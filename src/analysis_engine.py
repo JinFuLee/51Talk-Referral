@@ -130,7 +130,12 @@ class AnalysisEngine:
             # 计算效率进度和目标缺口
             if target > 0:
                 efficiency_progress = actual / target
-                gap = efficiency_progress - time_progress
+                # 比率型指标：gap = actual - target（直接差值）
+                # 累积型指标：gap = efficiency_progress - time_progress
+                if label == "转化率":
+                    gap = actual - target  # e.g. 0.174 - 0.23 = -0.056
+                else:
+                    gap = efficiency_progress - time_progress
             else:
                 efficiency_progress = 0.0
                 gap = 0.0
