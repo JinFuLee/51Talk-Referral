@@ -16,8 +16,11 @@ TRANSLATIONS["ui"] = {
 
     # Sidebar
     "sidebar_data_input": {"zh": "数据输入", "th": "ข้อมูลนำเข้า"},
-    "sidebar_file_path": {"zh": "数据文件路径", "th": "พาธไฟล์ข้อมูล"},
+    "sidebar_input_dir": {"zh": "数据文件夹路径", "th": "พาธโฟลเดอร์ข้อมูล"},
     "sidebar_upload": {"zh": "或上传文件", "th": "หรืออัปโหลดไฟล์"},
+    "help_input_dir": {"zh": "输入包含所有数据文件的文件夹路径", "th": "ระบุพาธโฟลเดอร์ที่มีไฟล์ข้อมูลทั้งหมด"},
+    "datasource_header": {"zh": "数据源状态", "th": "สถานะแหล่งข้อมูล"},
+    "datasource_core_file_missing": {"zh": "未找到核心数据文件（转介绍不同口径对比）", "th": "ไม่พบไฟล์ข้อมูลหลัก"},
     "sidebar_report_config": {"zh": "报告配置", "th": "ตั้งค่ารายงาน"},
     "sidebar_report_date": {"zh": "报告日期", "th": "วันที่รายงาน"},
     "sidebar_targets": {"zh": "月度目标配置", "th": "ตั้งเป้าหมายรายเดือน"},
@@ -92,6 +95,14 @@ TRANSLATIONS["ui"] = {
     "help_upload": {"zh": "如果没有路径，可以直接上传文件", "th": "หากไม่มีพาธสามารถอัปโหลดไฟล์ได้"},
     "help_report_date": {"zh": "报告生成日期（数据日期为 T-1）", "th": "วันที่สร้างรายงาน (ข้อมูล ณ T-1)"},
     "help_output_path": {"zh": "Markdown 报告输出目录", "th": "พาธเอาต์พุตรายงาน Markdown"},
+
+    # Data source status
+    "datasource_status": {"zh": "数据源状态", "th": "สถานะแหล่งข้อมูล"},
+    "datasource_t1": {"zh": "T-1 数据", "th": "ข้อมูล T-1"},
+    "datasource_not_provided": {"zh": "未提供", "th": "ไม่มี"},
+    "datasource_provided": {"zh": "已有", "th": "มีแล้ว"},
+    "datasource_outdated": {"zh": "非T-1", "th": "ไม่ใช่ T-1"},
+    "datasource_count": {"zh": "{}/{} 已提供", "th": "{}/{} มีแล้ว"},
 }
 
 # === 报告翻译（Markdown 报告内容） ===

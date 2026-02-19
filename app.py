@@ -6,6 +6,7 @@ import sys
 from pathlib import Path
 from datetime import datetime, timedelta
 import json
+import re
 
 # 项目根目录
 BASE_DIR = Path(__file__).resolve().parent
@@ -16,6 +17,21 @@ from src.analysis_engine import AnalysisEngine
 from src.md_report_generator import MarkdownReportGenerator
 from src.config import get_targets, MONTHLY_TARGETS
 from src.i18n import t
+
+# 数据源注册表
+DATA_SOURCES = [
+    {"id": "口径对比", "dir": "转介绍不同口径对比", "name_zh": "转介绍不同口径对比", "name_th": "เปรียบเทียบช่องทางแนะนำ", "integrated": True},
+    {"id": "leads明细", "dir": "转介绍leads明细表", "name_zh": "CM/EA转介绍leads明细表", "name_th": "รายละเอียด Leads แนะนำ CM/EA", "integrated": False},
+    {"id": "订单明细", "dir": "实时订单明细数据", "name_zh": "实时订单明细数据", "name_th": "ข้อมูลรายละเอียดคำสั่งซื้อแบบเรียลไทม์", "integrated": False},
+    {"id": "课前课后", "dir": "首次体验课课前课后跟进", "name_zh": "首次体验课课前课后跟进", "name_th": "ติดตามก่อน/หลังคลาสทดลอง", "integrated": False},
+    {"id": "围场跟进", "dir": "不同围场月度付费用户跟进", "name_zh": "不同围场月度付费用户跟进", "name_th": "ติดตามผู้ชำระรายเดือนตามช่วง", "integrated": False},
+    {"id": "打卡率", "dir": "当月转介绍打卡率", "name_zh": "当月转介绍打卡率", "name_th": "อัตราเช็คอินแนะนำเดือนนี้", "integrated": False},
+    {"id": "leads达成", "dir": "转介绍leads达成", "name_zh": "转介绍leads达成", "name_th": "ผลสำเร็จ Leads แนะนำ", "integrated": False},
+    {"id": "当月效率", "dir": "CC:CM:EA:宽口径转介绍类型-当月效率", "name_zh": "CC/CM/EA当月效率", "name_th": "ประสิทธิภาพ CC/CM/EA เดือนนี้", "integrated": False},
+    {"id": "围场汇总", "dir": "本月围场数据汇总", "name_zh": "本月围场数据汇总", "name_th": "สรุปข้อมูลช่วงเดือนนี้", "integrated": False},
+    {"id": "月度环比", "dir": "转介绍渠道月度环比", "name_zh": "转介绍渠道月度环比", "name_th": "เปรียบเทียบช่องทางรายเดือน", "integrated": False},
+    {"id": "月度同期", "dir": "截面跟进效率月度同期", "name_zh": "截面跟进效率月度同期", "name_th": "ประสิทธิภาพติดตามรายเดือน YoY", "integrated": False},
+]
 
 # 页面配置
 st.set_page_config(
@@ -39,7 +55,11 @@ def load_panel_config() -> dict:
     if PANEL_CONFIG_FILE.exists():
         try:
             with open(PANEL_CONFIG_FILE, 'r', encoding='utf-8') as f:
-                return json.load(f)
+                config = json.load(f)
+                # 兼容旧配置：file_path -> input_dir
+                if "file_path" in config and "input_dir" not in config:
+                    config["input_dir"] = config.pop("file_path")
+                return config
         except Exception:
             return {}
     return {}
@@ -49,6 +69,22 @@ def save_panel_config(config: dict):
     """保存面板配置"""
     with open(PANEL_CONFIG_FILE, 'w', encoding='utf-8') as f:
         json.dump(config, f, indent=2, ensure_ascii=False)
+
+
+def extract_file_date(file_path: Path) -> datetime:
+    """从文件名提取日期，如果没有则使用文件修改时间"""
+    # 从文件名提取日期 _YYYYMMDD_
+    match = re.search(r'_(\d{8})_', file_path.name)
+    if match:
+        return datetime.strptime(match.group(1), "%Y%m%d")
+    # fallback: 文件修改时间
+    return datetime.fromtimestamp(file_path.stat().st_mtime)
+
+
+def is_t1(file_date: datetime, report_date: datetime) -> bool:
+    """判断文件日期是否为 T-1"""
+    t1_date = report_date - timedelta(days=1)
+    return file_date.date() == t1_date.date()
 
 
 def main():
@@ -77,11 +113,11 @@ def main():
     with st.sidebar:
         st.header(f"📁 {t('ui', 'sidebar_data_input', lang)}")
 
-        # 文件路径输入
-        file_path = st.text_input(
-            t('ui', 'sidebar_file_path', lang),
-            value=saved_config.get("file_path", ""),
-            help=t('ui', 'help_file_path', lang),
+        # 文件夹路径输入
+        input_dir = st.text_input(
+            t('ui', 'sidebar_input_dir', lang),
+            value=saved_config.get("input_dir", str(BASE_DIR / "input")),
+            help=t('ui', 'help_input_dir', lang),
         )
 
         # 文件上传（备用）
@@ -93,13 +129,55 @@ def main():
 
         st.divider()
 
-        # 报告日期
+        # 报告日期（需要先获取，用于数据源状态判断）
         st.header(f"📅 {t('ui', 'sidebar_report_config', lang)}")
         report_date = st.date_input(
             t('ui', 'sidebar_report_date', lang),
             value=datetime.now(),
             help=t('ui', 'help_report_date', lang),
         )
+
+        st.divider()
+
+        # 数据源状态区域
+        input_dir_path = Path(input_dir) if input_dir else BASE_DIR / "input"
+
+        # 统计已提供的数据源数量
+        provided_count = 0
+        for source in DATA_SOURCES:
+            dir_path = input_dir_path / source["dir"]
+            xlsx_files = list(dir_path.glob("*.xlsx")) if dir_path.exists() else []
+            if xlsx_files:
+                provided_count += 1
+
+        # 数据源状态标题
+        st.caption(f"── {t('ui', 'datasource_header', lang)} ({provided_count}/{len(DATA_SOURCES)}) ──")
+
+        # 显示每个数据源的状态
+        for source in DATA_SOURCES:
+            dir_path = input_dir_path / source["dir"]
+            name = source["name_zh"] if lang == "zh" else source["name_th"]
+
+            # 已接入标记
+            name_display = f"{name}*" if source["integrated"] else name
+
+            # 查找文件
+            xlsx_files = list(dir_path.glob("*.xlsx")) if dir_path.exists() else []
+
+            if xlsx_files:
+                file = xlsx_files[0]  # 取第一个
+                file_date = extract_file_date(file)
+                date_str = file_date.strftime("%Y-%m-%d")
+
+                # 判断是否 T-1
+                if is_t1(file_date, datetime.combine(report_date, datetime.min.time())):
+                    st.markdown(f"✅ {name_display} :green-background[T-1 {date_str}]")
+                else:
+                    st.markdown(f"✅ {name_display} :red-background[{date_str}]")
+            else:
+                # 无文件
+                no_data_text = t('ui', 'datasource_not_provided', lang)
+                st.markdown(f"⬜ {name_display} :gray-background[{no_data_text}]")
 
         st.divider()
 
@@ -144,7 +222,7 @@ def main():
         # 保存配置按钮
         if st.button(t('ui', 'btn_save_config', lang), use_container_width=True):
             config_to_save = {
-                "file_path": file_path,
+                "input_dir": input_dir,
                 "output_path": output_path,
             }
             save_panel_config(config_to_save)
@@ -153,13 +231,11 @@ def main():
         # 生成报告按钮
         generate_button = st.button(t('ui', 'btn_generate', lang), type="primary", use_container_width=True)
 
+    # 转换 report_date 为 datetime（用于数据源状态判断）
+    report_date_dt = datetime.combine(report_date, datetime.min.time())
+
     # 主区域
     if generate_button:
-        # 验证输入
-        if not file_path and not uploaded_file:
-            st.error(t('ui', 'msg_no_file', lang))
-            return
-
         # 确定使用的文件路径
         if uploaded_file:
             # 保存上传的文件到临时位置
@@ -168,7 +244,15 @@ def main():
                 f.write(uploaded_file.read())
             data_file_path = str(temp_file)
         else:
-            data_file_path = file_path
+            # 从文件夹中自动找核心数据文件
+            core_dir = Path(input_dir) / "转介绍不同口径对比"
+            xlsx_files = list(core_dir.glob("*.xlsx")) if core_dir.exists() else []
+
+            if not xlsx_files:
+                st.error(t('ui', 'datasource_core_file_missing', lang))
+                return
+
+            data_file_path = str(xlsx_files[0])
 
         # 检查文件是否存在
         if not Path(data_file_path).exists():
@@ -196,7 +280,6 @@ def main():
 
                 # 2. 分析数据
                 engine = AnalysisEngine(processor)
-                report_date_dt = datetime.combine(report_date, datetime.min.time())
 
                 # 获取完整目标配置（包含时间进度）
                 full_targets = get_targets(report_date_dt)
