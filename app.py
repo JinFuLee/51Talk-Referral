@@ -7,6 +7,7 @@ from pathlib import Path
 from datetime import datetime, timedelta
 import json
 import re
+import altair as alt
 
 # 项目根目录
 BASE_DIR = Path(__file__).resolve().parent
@@ -51,6 +52,15 @@ OUTPUT_DIR = BASE_DIR / "output"
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
 
+def format_amount(usd_value: float, rate: float = 32.0) -> str:
+    """格式化金额为 THB(USD) 格式"""
+    thb = usd_value * rate
+    if abs(usd_value) >= 1000:
+        return f"{thb:,.0f}THB({usd_value:,.0f}USD)"
+    else:
+        return f"{thb:,.1f}THB({usd_value:,.1f}USD)"
+
+
 def load_panel_config() -> dict:
     """加载面板配置"""
     if PANEL_CONFIG_FILE.exists():
@@ -86,6 +96,186 @@ def is_t1(file_date: datetime, report_date: datetime) -> bool:
     """判断文件日期是否为 T-1"""
     t1_date = report_date - timedelta(days=1)
     return file_date.date() == t1_date.date()
+
+
+def render_markdown_with_charts(content: str):
+    """渲染 Markdown 内容，将 Mermaid 代码块转为原生 Streamlit 图表"""
+    import pandas as pd
+
+    # 按 mermaid 代码块分割
+    parts = re.split(r'```mermaid\n(.*?)```', content, flags=re.DOTALL)
+
+    for i, part in enumerate(parts):
+        if i % 2 == 0:
+            # 普通 markdown 文本
+            text = part.strip()
+            if text:
+                st.markdown(text)
+        else:
+            # Mermaid 代码块内容
+            mermaid_code = part.strip()
+            _render_mermaid_as_native(mermaid_code)
+
+
+def _render_mermaid_as_native(code: str):
+    """将单个 Mermaid 图表转为原生 Streamlit 图表"""
+    # 移除 init 配置行
+    code = re.sub(r'%%\{.*?\}%%\n?', '', code).strip()
+
+    if code.startswith('xychart-beta'):
+        _render_xychart(code)
+    elif code.startswith('pie'):
+        _render_pie(code)
+    elif code.startswith('flowchart'):
+        _render_flowchart(code)
+    else:
+        st.code(code, language="mermaid")
+
+
+def _render_xychart(code: str):
+    """xychart-beta → altair 柱状+折线组合图"""
+    import pandas as pd
+
+    title_match = re.search(r'title\s+"([^"]+)"', code)
+    title = title_match.group(1) if title_match else ""
+
+    x_match = re.search(r'x-axis\s+\[([^\]]+)\]', code)
+    if not x_match:
+        st.code(code, language="mermaid")
+        return
+    categories = [c.strip().strip('"') for c in x_match.group(1).split(',')]
+
+    y_match = re.search(r'y-axis\s+"([^"]+)"', code)
+    y_label = y_match.group(1) if y_match else ""
+
+    bar_matches = re.findall(r'bar\s+\[([^\]]+)\]', code)
+    line_matches = re.findall(r'line\s+\[([^\]]+)\]', code)
+
+    layers = []
+    LINE_COLORS = ['#5B8FF9', '#FF6B6B', '#5AD8A6', '#F6BD16', '#E86452']
+
+    # 渲染所有 bar 数据
+    for idx, bar_str in enumerate(bar_matches):
+        bar_values = [float(v.strip()) for v in bar_str.split(',')]
+        bar_df = pd.DataFrame({'category': categories, 'value': bar_values})
+        bar_chart = alt.Chart(bar_df).mark_bar(
+            color='#5B8FF9', cornerRadiusTopLeft=3, cornerRadiusTopRight=3, opacity=0.85
+        ).encode(
+            x=alt.X('category:N', sort=categories, title=None, axis=alt.Axis(labelAngle=0)),
+            y=alt.Y('value:Q', title=y_label),
+            tooltip=['category:N', alt.Tooltip('value:Q', format='.1f')]
+        )
+        layers.append(bar_chart)
+
+    # 渲染所有 line 数据
+    for idx, line_str in enumerate(line_matches):
+        line_values = [float(v.strip()) for v in line_str.split(',')]
+        color = LINE_COLORS[idx % len(LINE_COLORS)]
+        line_df = pd.DataFrame({'category': categories, 'value': line_values})
+
+        # 判断是否为基准线（全同值）
+        if len(set(line_values)) == 1:
+            rule = alt.Chart(pd.DataFrame({'value': [line_values[0]]})).mark_rule(
+                color=color, strokeWidth=2, strokeDash=[6, 4]
+            ).encode(y='value:Q')
+            layers.append(rule)
+        else:
+            line_chart = alt.Chart(line_df).mark_line(
+                color=color, strokeWidth=2, point=alt.OverlayMarkDef(size=40, filled=True, color=color)
+            ).encode(
+                x=alt.X('category:N', sort=categories, title=None),
+                y=alt.Y('value:Q', title=y_label),
+                tooltip=['category:N', alt.Tooltip('value:Q', format='.1f')]
+            )
+            layers.append(line_chart)
+
+    if layers:
+        chart = alt.layer(*layers).properties(
+            title=title, height=300
+        ).configure_title(fontSize=14, anchor='start')
+        st.altair_chart(chart, use_container_width=True)
+    else:
+        st.code(code, language="mermaid")
+
+
+def _render_pie(code: str):
+    """pie → altair 饼图"""
+    import pandas as pd
+
+    title_match = re.search(r'pie\s+title\s+(.+)', code)
+    title = title_match.group(1).strip() if title_match else ""
+
+    entries = re.findall(r'"([^"]+)"\s*:\s*([\d.]+)', code)
+    if not entries:
+        st.code(code, language="mermaid")
+        return
+
+    labels = [e[0] for e in entries]
+    values = [float(e[1]) for e in entries]
+    df = pd.DataFrame({'label': labels, 'value': values})
+
+    chart = alt.Chart(df).mark_arc(innerRadius=40, outerRadius=120).encode(
+        theta=alt.Theta('value:Q'),
+        color=alt.Color('label:N',
+            scale=alt.Scale(range=['#5B8FF9', '#5AD8A6', '#F6BD16', '#E86452', '#6DC8EC']),
+            legend=alt.Legend(title=None)),
+        tooltip=['label:N', alt.Tooltip('value:Q', format=',.0f')]
+    ).properties(title=title, height=300
+    ).configure_title(fontSize=14, anchor='start')
+
+    st.altair_chart(chart, use_container_width=True)
+
+
+def _render_flowchart(code: str):
+    """flowchart (漏斗对比) → altair 分组柱状图"""
+    import pandas as pd
+
+    # 解析 subgraph 结构
+    subgraph_pattern = r'subgraph\s+(.+?)\n(.*?)end'
+    subgraphs = re.findall(subgraph_pattern, code, re.DOTALL)
+
+    if not subgraphs:
+        st.code(code, language="mermaid")
+        return
+
+    rows = []
+    for channel_name, body in subgraphs:
+        channel_name = channel_name.strip()
+        # 解析节点: A1["注册 137"] 或 B1["预约 99"]
+        nodes = re.findall(r'\w+\["([^"]+?)"\]', body)
+        for node_text in nodes:
+            # "注册 137" → stage="注册", value=137
+            parts = node_text.rsplit(' ', 1)
+            if len(parts) == 2:
+                stage = parts[0]
+                try:
+                    value = float(parts[1])
+                    rows.append({'channel': channel_name, 'stage': stage, 'value': value})
+                except ValueError:
+                    pass
+
+    if not rows:
+        st.code(code, language="mermaid")
+        return
+
+    df = pd.DataFrame(rows)
+    # 保持漏斗顺序
+    stage_order = list(dict.fromkeys(r['stage'] for r in rows))
+
+    chart = alt.Chart(df).mark_bar(
+        cornerRadiusTopLeft=3, cornerRadiusTopRight=3
+    ).encode(
+        x=alt.X('stage:N', sort=stage_order, title=None, axis=alt.Axis(labelAngle=0)),
+        y=alt.Y('value:Q', title=None),
+        color=alt.Color('channel:N',
+            scale=alt.Scale(range=['#5B8FF9', '#5AD8A6', '#F6BD16']),
+            legend=alt.Legend(title=None, orient='top')),
+        xOffset='channel:N',
+        tooltip=['channel:N', 'stage:N', alt.Tooltip('value:Q', format=',.0f')]
+    ).properties(height=320
+    ).configure_title(fontSize=14, anchor='start')
+
+    st.altair_chart(chart, use_container_width=True)
 
 
 def main():
@@ -126,6 +316,19 @@ def main():
             t('ui', 'sidebar_upload', lang),
             type=["xlsx"],
             help=t('ui', 'help_upload', lang),
+        )
+
+        st.divider()
+
+        # 汇率配置
+        st.header("💱 汇率设置" if lang == "zh" else "การตั้งค่าอัตราแลกเปลี่ยน")
+        usd_thb_rate = st.number_input(
+            "USD → THB",
+            min_value=1.0,
+            max_value=100.0,
+            value=32.0,
+            step=0.5,
+            key="usd_thb_rate"
         )
 
         st.divider()
@@ -353,8 +556,8 @@ def main():
                 amount_data = summary.get("金额", {})
                 st.metric(
                     t('ui', 'metric_amount_progress', lang),
-                    f"{amount_data.get('actual', 0):,.0f}",
-                    f"{amount_data.get('efficiency_progress', 0)*100:.1f}%",
+                    f"{format_amount(amount_data.get('actual', 0), usd_thb_rate)}",
+                    f"/ {format_amount(amount_data.get('target', 0), usd_thb_rate)}",
                     delta_color="normal" if amount_data.get('gap', 0) > 0 else "inverse",
                 )
 
@@ -363,7 +566,8 @@ def main():
                 st.metric(
                     t('ui', 'metric_conv_rate', lang),
                     f"{conv_data.get('actual', 0)*100:.1f}%",
-                    f"{t('ui', 'col_target', lang)} {conv_data.get('target', 0)*100:.0f}%",
+                    f"{conv_data.get('gap', 0)*100:.1f}%",
+                    delta_color="normal" if conv_data.get('gap', 0) > 0 else "inverse",
                 )
 
             with col4:
@@ -371,8 +575,23 @@ def main():
                 st.metric(
                     t('ui', 'metric_time_progress', lang),
                     f"{time_progress*100:.1f}%",
-                    f"{meta.get('current_day', 0)}/{meta.get('days_in_month', 28)} {t('ui', 'ops_header_time_progress', lang) if lang=='zh' else 'วัน'}",
+                    f"{meta.get('current_day', 0)}/{meta.get('days_in_month', 28)} {'天' if lang=='zh' else 'วัน'}",
                 )
+
+            # 进度条
+            prog_cols = st.columns(4)
+            with prog_cols[0]:
+                paid_pct = min(paid_data.get('efficiency_progress', 0), 1.0)
+                st.progress(max(paid_pct, 0.0))
+            with prog_cols[1]:
+                amt_pct = min(amount_data.get('efficiency_progress', 0), 1.0)
+                st.progress(max(amt_pct, 0.0))
+            with prog_cols[2]:
+                conv_pct = min(conv_data.get('actual', 0) / max(conv_data.get('target', 1), 0.001), 1.0)
+                st.progress(max(conv_pct, 0.0))
+            with prog_cols[3]:
+                time_pct = min(time_progress, 1.0)
+                st.progress(max(time_pct, 0.0))
 
             st.divider()
 
@@ -380,12 +599,24 @@ def main():
             st.subheader(t('ui', 'header_progress', lang))
             progress_data = []
             for name, data in summary.items():
+                actual = data.get("actual", 0)
+                target = data.get("target", 0)
+                # 转化率是 0~1 比率，需要转为百分比显示
+                if name == "转化率":
+                    actual_display = f"{actual*100:.1f}%"
+                    target_display = f"{target*100:.1f}%"
+                elif name == "金额":
+                    actual_display = format_amount(actual, usd_thb_rate)
+                    target_display = format_amount(target, usd_thb_rate)
+                else:
+                    actual_display = f"{actual:,.0f}"
+                    target_display = f"{target:,.0f}"
                 progress_data.append({
                     t('ui', 'col_indicator', lang): name,
-                    t('ui', 'col_actual', lang): data.get("actual", 0),
-                    t('ui', 'col_target', lang): data.get("target", 0),
-                    t('ui', 'col_progress', lang): f"{data.get('efficiency_progress', 0)*100:.2f}%",
-                    t('ui', 'col_gap', lang): f"{data.get('gap', 0)*100:.2f}%",
+                    t('ui', 'col_actual', lang): actual_display,
+                    t('ui', 'col_target', lang): target_display,
+                    t('ui', 'col_progress', lang): f"{data.get('efficiency_progress', 0)*100:.1f}%",
+                    t('ui', 'col_gap', lang): f"{data.get('gap', 0)*100:.1f}%",
                     t('ui', 'col_status', lang): data.get("status", ""),
                 })
 
@@ -413,7 +644,7 @@ def main():
                     t('ui', 'col_channel', lang): channel_name,
                     t('ui', 'col_reg', lang): data.get("注册", 0),
                     t('ui', 'col_paid', lang): data.get("付费", 0),
-                    t('ui', 'col_amount', lang): f"{data.get('金额', 0):,}",
+                    t('ui', 'col_amount', lang): format_amount(data.get('金额', 0), usd_thb_rate),
                     t('ui', 'col_efficiency', lang): f"{data.get('效能指数', 0.0):.2f}×",
                     t('ui', 'col_gap_progress', lang): f"{data.get('目标缺口', 0.0)*100:.1f}%",
                 })
@@ -428,7 +659,7 @@ def main():
                 with open(report_paths['ops'], 'r', encoding='utf-8') as f:
                     ops_content = f.read()
 
-                st.markdown(ops_content)
+                render_markdown_with_charts(ops_content)
 
                 # 下载按钮
                 st.download_button(
@@ -448,7 +679,7 @@ def main():
                 with open(report_paths['exec'], 'r', encoding='utf-8') as f:
                     exec_content = f.read()
 
-                st.markdown(exec_content)
+                render_markdown_with_charts(exec_content)
 
                 # 下载按钮
                 st.download_button(
