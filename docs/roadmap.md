@@ -74,11 +74,24 @@
 - [x] CC 排名 + 已出席未付费报告章节（运营版 + 管理层版）
 - [x] QA 端到端验证
 
-### M6: 自动化运维（待排期）
-- [ ] 定时生成（cron / scheduled task）
-- [ ] 邮件/LINE 自动推送
-- [ ] 异常预警自动触发（阈值监控）
+### M5.5: AI 增强报告管线（2026-02-19）
+- [x] Gemini API 客户端（key 轮换 + 重试 + JSON 验证 + 优雅降级）
+- [x] AI 根因诊断（多数据源交叉推理，输出结构化根因+证据+方案）
+- [x] AI 管理层洞察（executive_summary + key_actions + outlook）
+- [x] 报告集成（运营版根因诊断章节 + 管理层版 AI 洞察）
+- [x] AI 增强 ROI 评估报告（docs/research/ai-enhancement-evaluation.md）
+- 统计: 7 个新文件 + 5 个修改 + 2 个 AI 方法
+- QA 结果: 7/10 通过，2 个 🟡 历史遗留 bug 已修复
+
+### M6: 自动化运维（2026-02-19）
+- [x] 定时生成（schedule 库 + --schedule CLI 参数）
+- [x] 邮件/LINE 通知推送（config 驱动，优雅降级）
+- [x] 异常预警自动触发（🔴 高级别预警即时通知）
+- [x] macOS launchd 开机自启模板
+- 统计: 调度器 + 通知系统 + 系统集成
+- QA 结果: 已集成到 M5.5 验证，全通过
 
 ### 暂缓
 - 成本数据接入（财务部数据暂无）
 - 续费率数据接入（CRM 数据暂无）
+- LINE Notify API 迁移到 LINE Messaging API（当前 token 方式仍可用）

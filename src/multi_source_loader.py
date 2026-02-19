@@ -279,8 +279,12 @@ class MultiSourceLoader:
                 team = row.get('B', '')
                 cc_raw = row.get('C', '')
 
-                # Row 1 = 总计
-                if idx == 0 or team == '总计':
+                # 跳过表头行
+                if idx == 0:
+                    continue
+
+                # 总计行
+                if region == '总计':
                     summary = {
                         "打卡参与率": self._safe_float(row.get('D')),
                         "参与率": self._safe_float(row.get('E')),

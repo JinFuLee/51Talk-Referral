@@ -93,6 +93,8 @@ Excel 数据源 → XlsxReader → DataProcessor → AnalysisEngine → Markdown
 | M3.7 | 2026-02-19 | 数据源状态面板 | 数据源注册表 + T-1 判断逻辑 + Streamlit 集成 + 中泰双语 | 2 files, +80 lines |
 | M4 | 2026-02-19 | 全量数据源集成 | 11 源加载器 + 7 新分析维度 + 12 新报告章节 + 业务术语沉淀 | 4 files new/mod, +1940 lines |
 | M5 | 2026-02-19 | CC 个人绩效排名 + 已出席未付费分析 | 5 数据源个人级解析 + 综合得分排名 + 3 报告章节 + 2 i18n 键 + E2E 验证 | 3 files mod, +200 lines |
+| M5.5 | 2026-02-19 | AI 增强报告管线 | Gemini 根因诊断 + 管理层洞察 + 报告集成 + ROI 评估 | 7 files new, 5 files mod |
+| M6 | 2026-02-19 | 自动化运维 | 定时调度器 + 邮件/LINE 通知 + 预警触发 + macOS launchd | 3 files new, 2 files mod |
 
 ## 已知问题与技术债
 | 序号 | 类别 | 描述 | 优先级 | 计划里程碑 | 备注 |
@@ -101,3 +103,6 @@ Excel 数据源 → XlsxReader → DataProcessor → AnalysisEngine → Markdown
 | 2 | 渲染兼容 | 报告 Mermaid 图表在纯文本 Markdown viewer 中显示为代码块 | P2 | M5+ | 需要 HTML 模板支持 |
 | 3 | 数据质量 | 金额字段可能未正确转换单位（显示为泰铢分而非美元） | P2 | M6 | M5 未修复，等财务部确认单位转换 |
 | 4 | 数据质量 | leads 聚合可能将已付费用户的 leads 计为 100% 转化率 | P2 | M6 | M5 未修复，待数据源验证 |
+| 5 | 数据质量 | 打卡率数据源缺失导致参与行为分析全为 0 | P1 | M6+ | 数据问题非代码问题，需业务部确认数据源 |
+| 6 | API 生命周期 | LINE Notify API 已于 2025 年 3 月停用，需迁移到 LINE Messaging API | P1 | M7 | 当前 token 方式仍可用，M6 已预留 notifier 接口 |
+| 7 | 功能配置 | 邮件/LINE 通知默认禁用，需配置凭证（email/notify.json）后启用 | P2 | M6 | 已支持优雅降级（通知禁用时不报错） |

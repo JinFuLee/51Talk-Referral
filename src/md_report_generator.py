@@ -771,8 +771,17 @@ xychart-beta
             "暂无数据" if self.lang == "zh" else "ไม่มีข้อมูล"
         )
 
-        # 洞察列表
-        insights_text = "\n".join([f"- {insight}" for insight in insights]) if insights else (
+        # 洞察列表（格式化 dict）
+        formatted_insights = []
+        for insight in insights:
+            if isinstance(insight, dict):
+                itype = insight.get("类型", "")
+                suggestion = insight.get("建议", "")
+                text = f"**{itype}**: {suggestion}"
+                formatted_insights.append(text)
+            else:
+                formatted_insights.append(str(insight))
+        insights_text = "\n".join([f"- {ins}" for ins in formatted_insights]) if formatted_insights else (
             "- 暂无洞察" if self.lang == "zh" else "- ไม่มีข้อค้นพบ"
         )
 
@@ -927,8 +936,17 @@ xychart-beta
         else:
             recovery_text = f"**{conversion_opportunity}**"
 
-        # 洞察列表
-        insights_text = "\n".join([f"- {insight}" for insight in insights]) if insights else (
+        # 洞察列表（格式化 dict）
+        formatted_insights = []
+        for insight in insights:
+            if isinstance(insight, dict):
+                itype = insight.get("类型", "")
+                suggestion = insight.get("建议", "")
+                text = f"**{itype}**: {suggestion}"
+                formatted_insights.append(text)
+            else:
+                formatted_insights.append(str(insight))
+        insights_text = "\n".join([f"- {ins}" for ins in formatted_insights]) if formatted_insights else (
             "- 暂无洞察" if self.lang == "zh" else "- ไม่มีข้อค้นพบ"
         )
 
@@ -1243,6 +1261,9 @@ xychart-beta
 
         table = "\n".join(rows)
 
+        # AI 根因诊断追加
+        ai_diagnosis_section = self._ops_ai_root_cause_diagnosis()
+
         return f"""{section_title}
 
 {subsection}
@@ -1251,7 +1272,45 @@ xychart-beta
 |--------|------|---------|---------|
 {table}
 
-{alert_rule}"""
+{alert_rule}
+
+{ai_diagnosis_section}"""
+
+    def _ops_ai_root_cause_diagnosis(self) -> str:
+        """运营版 AI 根因诊断章节（追加在风险预警后）"""
+        ai_root_cause = self.result.get("ai_root_cause")
+
+        if not ai_root_cause:
+            return ""  # 优雅降级，不显示
+
+        if self.lang == "zh":
+            subsection_title = "### 6.2 AI 根因诊断"
+            table_header = "| 根源 | 贡献度 | 证据 | 可执行方案 |"
+            ai_note = "> *AI 辅助分析，基于多数据源交叉推理*"
+        else:
+            subsection_title = "### 6.2 วิเคราะห์สาเหตุโดย AI"
+            table_header = "| สาเหตุ | น้ำหนัก | หลักฐาน | แผนปฏิบัติ |"
+            ai_note = "> *วิเคราะห์โดย AI จากการเชื่อมข้อมูลหลายแหล่ง*"
+
+        rows = []
+        for rc in ai_root_cause:
+            root_cause = rc.get("root_cause", "")
+            weight = f"{rc.get('impact_weight', 0)*100:.0f}%"
+            evidence = rc.get("evidence", "")
+            action = rc.get("action", "")
+
+            rows.append(f"| **{root_cause}** | {weight} | {evidence} | {action} |")
+
+        table = "\n".join(rows)
+
+        return f"""
+{subsection_title}
+
+{table_header}
+|------|-------:|------|----------|
+{table}
+
+{ai_note}"""
 
     def _ops_risk_dashboard(self) -> str:
         """运营版风险预警仪表盘（新增 #3）"""
@@ -1636,8 +1695,23 @@ xychart-beta
 
         table = "\n".join(rows)
 
-        # 洞察要点
-        insights_text = "\n".join([f"- {insight}" for insight in insights]) if insights else ""
+        # 洞察要点（格式化 dict 为可读文本）
+        formatted_insights = []
+        for insight in insights:
+            if isinstance(insight, dict):
+                cohort = insight.get("围场", "")
+                itype = insight.get("类型", "")
+                suggestion = insight.get("建议", "")
+                participation = insight.get("参与率", 0.0)
+
+                if participation > 0:
+                    text = f"**{itype}（{cohort}）**: 参与率 {participation*100:.1f}%，{suggestion}"
+                else:
+                    text = f"**{itype}**: {suggestion}"
+                formatted_insights.append(text)
+            else:
+                formatted_insights.append(str(insight))
+        insights_text = "\n".join([f"- {ins}" for ins in formatted_insights]) if formatted_insights else ""
 
         if self.lang == "zh":
             section_title = "## 四、围场生命周期分析（Cohort Analysis）"
@@ -1706,8 +1780,17 @@ xychart-beta
 
         team_table = "\n".join(team_rows) if team_rows else ""
 
-        # 洞察
-        insights_text = "\n".join([f"- {insight}" for insight in insights]) if insights else ""
+        # 洞察（格式化 dict）
+        formatted_insights = []
+        for insight in insights:
+            if isinstance(insight, dict):
+                itype = insight.get("类型", "")
+                suggestion = insight.get("建议", "")
+                text = f"**{itype}**: {suggestion}"
+                formatted_insights.append(text)
+            else:
+                formatted_insights.append(str(insight))
+        insights_text = "\n".join([f"- {ins}" for ins in formatted_insights]) if formatted_insights else ""
 
         if self.lang == "zh":
             section_title = "## 五、转介绍参与行为分析（Check-in Analysis）"
@@ -1797,8 +1880,17 @@ xychart-beta
         lp_narrow_table = build_channel_table("LP窄口径", by_channel.get("LP窄口径", []))
         wide_table = build_channel_table("宽口径", by_channel.get("宽口径", []))
 
-        # 洞察
-        insights_text = "\n".join([f"- {insight}" for insight in insights]) if insights else ""
+        # 洞察（格式化 dict）
+        formatted_insights = []
+        for insight in insights:
+            if isinstance(insight, dict):
+                itype = insight.get("类型", "")
+                suggestion = insight.get("建议", "")
+                text = f"**{itype}**: {suggestion}"
+                formatted_insights.append(text)
+            else:
+                formatted_insights.append(str(insight))
+        insights_text = "\n".join([f"- {ins}" for ins in formatted_insights]) if formatted_insights else ""
 
         if self.lang == "zh":
             section_title = "## 六、全团队 Leads 漏斗对标（Leads Achievement）"
@@ -1918,8 +2010,22 @@ xychart-beta
 
         cohort_table = "\n".join(cohort_rows) if cohort_rows else ""
 
-        # 洞察
-        insights_text = "\n".join([f"- {insight}" for insight in insights]) if insights else ""
+        # 洞察（格式化 dict）
+        formatted_insights = []
+        for insight in insights:
+            if isinstance(insight, dict):
+                itype = insight.get("类型", "")
+                suggestion = insight.get("建议", "")
+                cohort_count = insight.get("围场数", 0)
+
+                if cohort_count > 0:
+                    text = f"**{itype}**: 共 {cohort_count} 个围场，{suggestion}"
+                else:
+                    text = f"**{itype}**: {suggestion}"
+                formatted_insights.append(text)
+            else:
+                formatted_insights.append(str(insight))
+        insights_text = "\n".join([f"- {ins}" for ins in formatted_insights]) if formatted_insights else ""
 
         if self.lang == "zh":
             section_title = "## 七、跟进效率分析（Follow-up Efficiency）"
@@ -2021,8 +2127,17 @@ xychart-beta
 
         team_table = "\n".join(team_rows) if team_rows else ""
 
-        # 洞察
-        insights_text = "\n".join([f"- {insight}" for insight in insights]) if insights else ""
+        # 洞察（格式化 dict）
+        formatted_insights = []
+        for insight in insights:
+            if isinstance(insight, dict):
+                itype = insight.get("类型", "")
+                suggestion = insight.get("建议", "")
+                text = f"**{itype}**: {suggestion}"
+                formatted_insights.append(text)
+            else:
+                formatted_insights.append(str(insight))
+        insights_text = "\n".join([f"- {ins}" for ins in formatted_insights]) if formatted_insights else ""
 
         if self.lang == "zh":
             section_title = "## 十、订单明细分析"
@@ -2229,6 +2344,9 @@ xychart-beta
 
         amount_actual = amount_data.get("actual", 0)
 
+        # AI 洞察追加
+        ai_insights_section = self._exec_ai_insights_summary()
+
         if self.lang == "zh":
             return f"""## 核心摘要（60 秒速读）
 
@@ -2242,7 +2360,9 @@ xychart-beta
 
 **资源建议**: 加大窄口投入（ROI 高），优化宽口质量门槛。
 
-> **说白了**: 时间过了 {self.time_progress*100:.0f}%,付费才完成 {paid_data.get('efficiency_progress', 0)*100:.0f}%，必须紧急干预。"""
+> **说白了**: 时间过了 {self.time_progress*100:.0f}%,付费才完成 {paid_data.get('efficiency_progress', 0)*100:.0f}%，必须紧急干预。
+
+{ai_insights_section}"""
         else:
             return f"""## สรุปสำคัญ (อ่าน 60 วินาที)
 
@@ -2256,7 +2376,52 @@ xychart-beta
 
 **คำแนะนำทรัพยากร**: เพิ่มลงทุนช่องแคบ (ROI สูง) ปรับเกณฑ์คุณภาพช่องกว้าง
 
-> **กล่าวคือ**: เวลาผ่านไป {self.time_progress*100:.0f}% ชำระทำได้แค่ {paid_data.get('efficiency_progress', 0)*100:.0f}% ต้องแทรกแซงด่วน"""
+> **กล่าวคือ**: เวลาผ่านไป {self.time_progress*100:.0f}% ชำระทำได้แค่ {paid_data.get('efficiency_progress', 0)*100:.0f}% ต้องแทรกแซงด่วน
+
+{ai_insights_section}"""
+
+    def _exec_ai_insights_summary(self) -> str:
+        """管理层版 AI 洞察摘要（追加在核心摘要后）"""
+        ai_insights = self.result.get("ai_insights")
+
+        if not ai_insights:
+            return ""  # 优雅降级
+
+        exec_summary = ai_insights.get("executive_summary", "")
+        key_actions = ai_insights.get("key_actions", [])
+        outlook = ai_insights.get("outlook", "")
+
+        lines = []
+
+        if exec_summary:
+            if self.lang == "zh":
+                lines.append(f"\n> **AI 洞察**: {exec_summary}\n")
+            else:
+                lines.append(f"\n> **ข้อมูลเชิงลึกจาก AI**: {exec_summary}\n")
+
+        if key_actions:
+            if self.lang == "zh":
+                lines.append("**AI 建议行动**:")
+            else:
+                lines.append("**แผนปฏิบัติที่แนะนำโดย AI**:")
+
+            for i, action in enumerate(key_actions, 1):
+                lines.append(f"{i}. {action}")
+            lines.append("")
+
+        if outlook:
+            if self.lang == "zh":
+                lines.append(f"> **月末预测**: {outlook}\n")
+            else:
+                lines.append(f"> **คาดการณ์สิ้นเดือน**: {outlook}\n")
+
+        if lines:
+            if self.lang == "zh":
+                lines.append("> *AI 辅助分析，数据已验证*\n")
+            else:
+                lines.append("> *วิเคราะห์โดย AI ข้อมูลตรวจสอบแล้ว*\n")
+
+        return "\n".join(lines)
 
     def _exec_trend(self) -> str:
         """管理层版业绩趋势"""
@@ -2681,9 +2846,18 @@ xychart-beta
         else:
             attended_summary = f"**รวม**: {total_count} ผู้ใช้เข้าคลาสแล้วแต่ยังไม่ชำระ\n**ประมาณการกู้คืน**: {conversion_opportunity}"
 
-        # 关键发现（取前2条）
+        # 关键发现（取前2条，格式化 dict）
         key_insights = insights[:2] if len(insights) >= 2 else insights
-        insights_text = "\n".join([f"- {insight}" for insight in key_insights]) if key_insights else (
+        formatted_insights = []
+        for insight in key_insights:
+            if isinstance(insight, dict):
+                itype = insight.get("类型", "")
+                suggestion = insight.get("建议", "")
+                text = f"**{itype}**: {suggestion}"
+                formatted_insights.append(text)
+            else:
+                formatted_insights.append(str(insight))
+        insights_text = "\n".join([f"- {ins}" for ins in formatted_insights]) if formatted_insights else (
             "- 暂无关键发现" if self.lang == "zh" else "- ไม่มีข้อค้นพบ"
         )
 
@@ -2783,6 +2957,9 @@ xychart-beta
 
     def _exec_decision_points(self) -> str:
         """管理层版决策点"""
+        # AI 建议行动追加
+        ai_actions_section = self._exec_ai_actions_supplement()
+
         if self.lang == "zh":
             section_title = "## 八、管理层决策点"
             intro = "### 需要您决策的 3 个问题"
@@ -2824,7 +3001,37 @@ xychart-beta
 
 {q3_title}
 {q3_options}
-{q3_recommend}"""
+{q3_recommend}
+
+{ai_actions_section}"""
+
+    def _exec_ai_actions_supplement(self) -> str:
+        """管理层版 AI 建议行动补充（追加在决策点后）"""
+        ai_insights = self.result.get("ai_insights")
+
+        if not ai_insights:
+            return ""
+
+        key_actions = ai_insights.get("key_actions", [])
+
+        if not key_actions:
+            return ""
+
+        if self.lang == "zh":
+            subsection = "\n### AI 建议行动（补充）\n"
+            ai_note = "\n> *AI 基于数据交叉验证生成，供决策参考*\n"
+        else:
+            subsection = "\n### แผนปฏิบัติที่แนะนำโดย AI (เพิ่มเติม)\n"
+            ai_note = "\n> *AI สร้างจากการตรวจสอบข้อมูลข้ามแหล่ง เพื่อการตัดสินใจ*\n"
+
+        lines = [subsection]
+
+        for i, action in enumerate(key_actions, 1):
+            lines.append(f"{i}. {action}")
+
+        lines.append(ai_note)
+
+        return "\n".join(lines)
 
     def _exec_data_source(self) -> str:
         """管理层版数据来源"""
@@ -2907,7 +3114,22 @@ xychart-beta
 
         # 关键洞察（只要前3条）
         key_insights = insights[:3] if insights else []
-        insights_text = "\n".join([f"- {insight}" for insight in key_insights])
+        formatted_insights = []
+        for insight in key_insights:
+            if isinstance(insight, dict):
+                cohort = insight.get("围场", "")
+                itype = insight.get("类型", "")
+                suggestion = insight.get("建议", "")
+                participation = insight.get("参与率", 0.0)
+
+                if participation > 0:
+                    text = f"**{itype}（{cohort}）**: 参与率 {participation*100:.1f}%，{suggestion}"
+                else:
+                    text = f"**{itype}**: {suggestion}"
+                formatted_insights.append(text)
+            else:
+                formatted_insights.append(str(insight))
+        insights_text = "\n".join([f"- {ins}" for ins in formatted_insights])
 
         if self.lang == "zh":
             section_title = "## 三、围场生命周期分析"
@@ -2952,9 +3174,18 @@ xychart-beta
         checkin_multiplier = (summary.get("打卡倍率") or 0.0)
         bring_ratio = (summary.get("带货比") or 0.0)
 
-        # 关键洞察
+        # 关键洞察（格式化 dict）
         key_insights = insights[:2] if insights else []
-        insights_text = "\n".join([f"- {insight}" for insight in key_insights])
+        formatted_insights = []
+        for insight in key_insights:
+            if isinstance(insight, dict):
+                itype = insight.get("类型", "")
+                suggestion = insight.get("建议", "")
+                text = f"**{itype}**: {suggestion}"
+                formatted_insights.append(text)
+            else:
+                formatted_insights.append(str(insight))
+        insights_text = "\n".join([f"- {ins}" for ins in formatted_insights])
 
         if self.lang == "zh":
             section_title = "## 四、参与行为分析"
@@ -3017,9 +3248,18 @@ xychart-beta
 
         table = "\n".join(rows) if rows else ""
 
-        # 关键洞察
+        # 关键洞察（格式化 dict）
         key_insights = insights[:2] if insights else []
-        insights_text = "\n".join([f"- {insight}" for insight in key_insights])
+        formatted_insights = []
+        for insight in key_insights:
+            if isinstance(insight, dict):
+                itype = insight.get("类型", "")
+                suggestion = insight.get("建议", "")
+                text = f"**{itype}**: {suggestion}"
+                formatted_insights.append(text)
+            else:
+                formatted_insights.append(str(insight))
+        insights_text = "\n".join([f"- {ins}" for ins in formatted_insights])
 
         if self.lang == "zh":
             section_title = "## 五、Leads 漏斗对标"
@@ -3070,9 +3310,23 @@ xychart-beta
         avg_dial_coverage = cohort_summary.get("平均拨打覆盖率", 0.0)
         avg_valid_coverage = cohort_summary.get("平均有效接通覆盖率", 0.0)
 
-        # 关键洞察
+        # 关键洞察（格式化 dict）
         key_insights = insights[:2] if insights else []
-        insights_text = "\n".join([f"- {insight}" for insight in key_insights])
+        formatted_insights = []
+        for insight in key_insights:
+            if isinstance(insight, dict):
+                itype = insight.get("类型", "")
+                suggestion = insight.get("建议", "")
+                cohort_count = insight.get("围场数", 0)
+
+                if cohort_count > 0:
+                    text = f"**{itype}**: 共 {cohort_count} 个围场，{suggestion}"
+                else:
+                    text = f"**{itype}**: {suggestion}"
+                formatted_insights.append(text)
+            else:
+                formatted_insights.append(str(insight))
+        insights_text = "\n".join([f"- {ins}" for ins in formatted_insights])
 
         if self.lang == "zh":
             section_title = "## 六、跟进效率分析"
@@ -3143,9 +3397,18 @@ xychart-beta
 
         product_table = "\n".join(product_rows) if product_rows else ""
 
-        # 关键洞察
+        # 关键洞察（格式化 dict）
         key_insights = insights[:2] if insights else []
-        insights_text = "\n".join([f"- {insight}" for insight in key_insights])
+        formatted_insights = []
+        for insight in key_insights:
+            if isinstance(insight, dict):
+                itype = insight.get("类型", "")
+                suggestion = insight.get("建议", "")
+                text = f"**{itype}**: {suggestion}"
+                formatted_insights.append(text)
+            else:
+                formatted_insights.append(str(insight))
+        insights_text = "\n".join([f"- {ins}" for ins in formatted_insights])
 
         if self.lang == "zh":
             section_title = "## 七、订单分析"

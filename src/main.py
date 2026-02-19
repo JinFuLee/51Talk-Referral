@@ -178,7 +178,12 @@ def main():
         action='store_true',
         help='处理最新的数据源文件'
     )
-    
+    group.add_argument(
+        '--schedule', '-s',
+        action='store_true',
+        help='定时调度模式：按配置的时间自动生成报告'
+    )
+
     parser.add_argument(
         '--output-dir',
         type=Path,
@@ -200,7 +205,11 @@ def main():
             latest_file = find_latest_data_file()
             print(f"🔍 找到最新文件: {latest_file.name}")
             process_file(str(latest_file), args.output_dir)
-    
+        elif args.schedule:
+            from scheduler import ReportScheduler
+            scheduler = ReportScheduler()
+            scheduler.start()
+
     except FileNotFoundError as e:
         print(f"❌ 错误: {e}")
         sys.exit(1)

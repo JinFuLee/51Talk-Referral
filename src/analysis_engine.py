@@ -81,6 +81,20 @@ class AnalysisEngine:
             result["cc_ranking"] = self._analyze_cc_ranking(multi_source_data, report_date)
             result["attended_not_paid"] = self._analyze_attended_not_paid(multi_source_data, report_date)
 
+            # AI 增强分析（Gemini API，优雅降级）
+            try:
+                from .ai_client import GeminiClient
+                ai_client = GeminiClient()
+                result["ai_root_cause"] = self._ai_root_cause_diagnosis(
+                    result.get("risk_alerts", []), multi_source_data, ai_client
+                )
+                result["ai_insights"] = self._ai_generate_insights(result, ai_client)
+            except ImportError:
+                pass  # google-generativeai 未安装，跳过
+            except Exception as e:
+                import logging
+                logging.getLogger(__name__).warning(f"AI 分析跳过: {e}")
+
         return result
 
     def _analyze_summary(self, current_data: Dict, targets: Dict, time_progress: float) -> Dict:
@@ -1119,3 +1133,171 @@ class AnalysisEngine:
             "conversion_opportunity": conversion_opportunity,
             "insights": insights,
         }
+
+    def _ai_root_cause_diagnosis(self, alerts: list, multi_source_data: dict, ai_client) -> Optional[list]:
+        """AI 根因诊断：基于预警数据 + 多源数据推理根因"""
+        import logging
+        logger = logging.getLogger(__name__)
+
+        # 仅当有 🔴 高级别 alert 时才调用 AI（节省额度）
+        high_alerts = [a for a in alerts if "🔴" in a.get("级别", "")]
+        if not high_alerts:
+            return None
+
+        # 构建预警文本
+        alerts_text = "\n".join([
+            f"- {a.get('风险项')}: {a.get('量化影响')}"
+            for a in high_alerts
+        ])
+
+        # 提取关联指标
+        checkin_summary = multi_source_data.get("打卡率", {}).get("summary", {})
+        checkin_rate = checkin_summary.get("打卡参与率", "N/A")
+
+        outreach_summary = multi_source_data.get("围场跟进", {}).get("summary", {})
+        outreach_coverage = outreach_summary.get("有效接通覆盖率", "N/A")
+
+        # 开源质量（从 channel_comparison 计算）
+        total_reg = self.monthly_summaries.get(
+            list(self.monthly_summaries.keys())[-1], {}
+        ).get("总计_注册", 1)
+        wide_reg = self.monthly_summaries.get(
+            list(self.monthly_summaries.keys())[-1], {}
+        ).get("其它_注册", 0)
+        wide_ratio = wide_reg / total_reg if total_reg > 0 else 0.0
+
+        wide_paid = self.monthly_summaries.get(
+            list(self.monthly_summaries.keys())[-1], {}
+        ).get("其它_付费", 0)
+        wide_conversion = wide_paid / wide_reg if wide_reg > 0 else 0.0
+
+        # CC 综合得分后 5 名
+        cc_ranking = multi_source_data.get("cc_individual", {})
+        bottom_cc_text = "N/A"
+        if cc_ranking:
+            leads_by_cc = cc_ranking.get("leads_by_cc", {})
+            if leads_by_cc:
+                # 简化版：只取前3个
+                bottom_cc_text = ", ".join(
+                    list(leads_by_cc.keys())[:3]
+                )
+
+        # 构建 prompt
+        prompt = f"""你是 51Talk 泰国转介绍业务的数据分析专家。
+
+以下预警需要根因分析：
+{alerts_text}
+
+关联数据：
+- 打卡参与率: {checkin_rate}
+- 围场有效接通覆盖率: {outreach_coverage}
+- 宽口径注册占比: {wide_ratio:.1%}，宽口径转化率: {wide_conversion:.1%}
+- CC 代表样本: {bottom_cc_text}
+
+请推理 2-3 个最可能的根因（按影响程度排序）。
+
+输出 JSON 数组格式：
+[{{"root_cause": "根因", "impact_weight": 权重(0-1总和=1), "evidence": "数据证据", "action": "可执行方案"}}]
+
+要求：
+- evidence 必须引用具体数据
+- action 必须具体可执行（不要空话如"优化策略"）
+- 不要超过 3 个根因
+"""
+
+        try:
+            result = ai_client.generate_json(prompt)
+            if result is None:
+                return None
+
+            # 验证和归一化 impact_weight
+            if isinstance(result, list):
+                total_weight = sum(item.get("impact_weight", 0) for item in result)
+                if total_weight > 0 and abs(total_weight - 1.0) > 0.1:
+                    # 归一化
+                    for item in result:
+                        item["impact_weight"] = item.get("impact_weight", 0) / total_weight
+                return result
+            else:
+                logger.warning("AI 根因诊断返回格式错误，预期 list")
+                return None
+        except Exception as e:
+            logger.warning(f"AI 根因诊断失败: {e}")
+            return None
+
+    def _ai_generate_insights(self, analysis_result: dict, ai_client) -> Optional[dict]:
+        """AI 生成管理层洞察摘要"""
+        import logging
+        logger = logging.getLogger(__name__)
+
+        # 提取关键数字
+        summary = analysis_result.get("summary", {})
+        risk_alerts = analysis_result.get("risk_alerts", [])
+        channel_comparison = analysis_result.get("channel_comparison", {})
+        cc_ranking = analysis_result.get("cc_ranking", {})
+
+        # 构建摘要数据
+        paid_actual = summary.get("付费", {}).get("actual", 0)
+        paid_target = summary.get("付费", {}).get("target", 0)
+        paid_gap = summary.get("付费", {}).get("gap", 0.0)
+
+        amount_actual = summary.get("金额", {}).get("actual", 0)
+        amount_target = summary.get("金额", {}).get("target", 0)
+
+        conversion_actual = summary.get("转化率", {}).get("actual", 0.0)
+
+        alerts_count = len(risk_alerts)
+        high_alerts_count = len([a for a in risk_alerts if "🔴" in a.get("级别", "")])
+
+        # 渠道效能指数
+        channel_text = ", ".join([
+            f"{ch}: {data.get('效能指数', 0):.2f}"
+            for ch, data in channel_comparison.items()
+        ])
+
+        # CC TOP/BOTTOM
+        top_cc_text = "N/A"
+        bottom_cc_text = "N/A"
+        if cc_ranking:
+            by_composite = cc_ranking.get("by_composite", [])
+            bottom_5 = cc_ranking.get("bottom_5", [])
+            if by_composite:
+                top_cc_text = f"{by_composite[0].get('cc')} (得分: {by_composite[0].get('composite', 0):.1f})"
+            if bottom_5:
+                bottom_cc_text = ", ".join([b.get('cc') for b in bottom_5[:3]])
+
+        # 构建 prompt
+        prompt = f"""你是 51Talk 泰国转介绍业务的高管助理，需要为管理层生成简明扼要的数据洞察。
+
+数据概览：
+- 付费进度: {paid_actual}/{paid_target} (缺口 {paid_gap:.1%})
+- 金额进度: ${amount_actual:.0f}/${amount_target:.0f}
+- 转化率: {conversion_actual:.1%}
+- 预警数量: {alerts_count} 个（其中 🔴高级别 {high_alerts_count} 个）
+- 渠道效能指数: {channel_text}
+- CC TOP1: {top_cc_text}
+- CC 综合得分后5名: {bottom_cc_text}
+
+请输出 JSON 格式：
+{{
+  "executive_summary": "3句话管理层摘要（说白了风格，数据具体）",
+  "key_actions": ["行动1", "行动2", "行动3"],
+  "outlook": "本月预测一句话"
+}}
+
+要求：
+- executive_summary 必须包含具体数字，不要模糊表述
+- key_actions 必须具体可执行（不要空话）
+- outlook 基于当前进度和预警给出月末预测
+"""
+
+        try:
+            result = ai_client.generate_json(prompt)
+            if result and isinstance(result, dict):
+                return result
+            else:
+                logger.warning("AI 洞察生成返回格式错误，预期 dict")
+                return None
+        except Exception as e:
+            logger.warning(f"AI 洞察生成失败: {e}")
+            return None

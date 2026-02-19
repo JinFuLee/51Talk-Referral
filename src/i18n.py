@@ -116,6 +116,10 @@ TRANSLATIONS["ui"] = {
     # M5 CC 个人排名和已出席未付费
     "section_cc_ranking": {"zh": "CC 个人排名", "th": "อันดับ CC"},
     "section_attended_not_paid": {"zh": "已出席未付费", "th": "เข้าคลาสแล้วไม่ชำระ"},
+
+    # M6 AI 增强分析
+    "section_ai_diagnosis": {"zh": "AI 根因诊断", "th": "วิเคราะห์สาเหตุโดย AI"},
+    "section_ai_insights": {"zh": "AI 洞察", "th": "ข้อมูลเชิงลึกจาก AI"},
 }
 
 # === 报告翻译（Markdown 报告内容） ===
