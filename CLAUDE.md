@@ -96,6 +96,7 @@ Excel 数据源 → XlsxReader → DataProcessor → AnalysisEngine → Markdown
 | M5.5 | 2026-02-19 | AI 增强报告管线 | Gemini 根因诊断 + 管理层洞察 + 报告集成 + ROI 评估 | 7 files new, 5 files mod |
 | M6 | 2026-02-19 | 自动化运维 | 定时调度器 + 邮件/LINE 通知 + 预警触发 + macOS launchd | 3 files new, 2 files mod |
 | M7 | 2026-02-19 | 全维度质量升级 | ROI 成本模型、归因分析、趋势预测、SS/LP 排名、异常检测、LTV 框架、权限管理、报告模板、i18n 210 键 | 8 files mod, 5 files new, +2025 lines |
+| M7.5 | 2026-02-19 | 满分迭代 | 预测模型×3自动选优、动态异常阈值、LTV简化、ROI敏感度、异常UI、通知反馈、角色权限、数据质量指示、TOC导航、行动追踪、异常检测章节、i18n 41键 | 5 files mod, +478 lines, QA 12/12 PASS |
 
 ## 已知问题与技术债
 | 序号 | 类别 | 描述 | 优先级 | 计划里程碑 | 备注 |

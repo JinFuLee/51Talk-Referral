@@ -438,21 +438,42 @@ class AnalysisEngine:
         total_cards = total_paid * avg_cards_per_order
         card_cost = total_cards * ROI_COST_CONFIG["CARD_COST_PER_UNIT"]
 
-        # 现金佣金成本
+        # 现金佣金成本 - 改进：使用分位数估算大小单分布
         small_orders = 0
         large_orders = 0
         cash_threshold = ROI_COST_CONFIG["CASH_THRESHOLD"]
 
-        if avg_order_amount > 0:
-            # 简化版：根据客单价估算大小单分布
-            if avg_order_amount < cash_threshold:
-                small_orders = total_paid
-            elif avg_order_amount >= cash_threshold * 1.2:
-                large_orders = total_paid
-            else:
-                # 混合情况：假设 50/50 分布
-                small_orders = total_paid * 0.5
-                large_orders = total_paid * 0.5
+        # 尝试从订单明细数据计算实际分布（如果有）
+        order_detail_available = False
+        try:
+            # 这里假设 multi_source_data 或其他数据源可能有订单明细
+            # 当前简化版：检查是否有订单金额分布数据
+            # TODO: 接入真实订单明细数据源后替换此部分
+            order_detail_available = False
+        except Exception:
+            pass
+
+        if not order_detail_available and avg_order_amount > 0:
+            # 改进版：用分位数估算（假设订单金额服从正态分布）
+            # 估算标准差 = 客单价 × 0.3（经验值）
+            std_dev = avg_order_amount * 0.3
+
+            # 计算 P(订单 < 阈值)
+            # 使用简化的正态分布累积概率估算
+            z_score = (cash_threshold - avg_order_amount) / std_dev if std_dev > 0 else 0
+
+            # 简化版：用 sigmoid 近似正态分布 CDF
+            prob_small = 1 / (1 + (2.718 ** (1.7 * z_score)))
+
+            small_orders = total_paid * prob_small
+            large_orders = total_paid * (1 - prob_small)
+
+            distribution_method = f"分位数估算（μ={avg_order_amount:.0f}, σ={std_dev:.0f}）"
+        else:
+            # Fallback: 50/50 分布
+            small_orders = total_paid * 0.5
+            large_orders = total_paid * 0.5
+            distribution_method = "50/50假设（无订单明细）"
 
         cash_cost = (
             small_orders * ROI_COST_CONFIG["CASH_COMMISSION_SMALL"] +
@@ -471,6 +492,10 @@ class AnalysisEngine:
         # 现金 ROI
         cash_roi = total_amount / cash_cost if cash_cost > 0 else 0.0
 
+        # ROI 敏感度分析（±10% 成本变动）
+        roi_plus_10pct = total_amount / (total_cost * 1.1) if total_cost > 0 else 0.0
+        roi_minus_10pct = total_amount / (total_cost * 0.9) if total_cost > 0 else 0.0
+
         roi_data["综合"] = {
             "金额": total_amount,
             "总成本": total_cost,
@@ -487,6 +512,11 @@ class AnalysisEngine:
                 "小单佣金": ROI_COST_CONFIG["CASH_COMMISSION_SMALL"],
                 "大单数": int(large_orders),
                 "大单佣金": ROI_COST_CONFIG["CASH_COMMISSION_LARGE"],
+                "分布方法": distribution_method,
+            },
+            "敏感度分析": {
+                "成本+10%": {"ROI": roi_plus_10pct, "变化": f"{(roi_plus_10pct - total_roi) / total_roi * 100:+.1f}%"},
+                "成本-10%": {"ROI": roi_minus_10pct, "变化": f"{(roi_minus_10pct - total_roi) / total_roi * 100:+.1f}%"},
             }
         }
 
@@ -515,6 +545,10 @@ class AnalysisEngine:
         # 现金 ROI
         cash_roi = total_amount / cash_cost_total if cash_cost_total > 0 else 0.0
 
+        # ROI 敏感度分析（±10% 成本变动）
+        roi_plus_10pct = total_amount / (total_cost * 1.1) if total_cost > 0 else 0.0
+        roi_minus_10pct = total_amount / (total_cost * 0.9) if total_cost > 0 else 0.0
+
         roi_data = {
             "综合": {
                 "金额": total_amount,
@@ -531,6 +565,10 @@ class AnalysisEngine:
                     "现金佣金总额": cash_cost_total,
                     "小单佣金": config.get("CASH_COMMISSION_SMALL", 38),
                     "大单佣金": config.get("CASH_COMMISSION_LARGE", 68),
+                },
+                "敏感度分析": {
+                    "成本+10%": {"ROI": roi_plus_10pct, "变化": f"{(roi_plus_10pct - total_roi) / total_roi * 100:+.1f}%"},
+                    "成本-10%": {"ROI": roi_minus_10pct, "变化": f"{(roi_minus_10pct - total_roi) / total_roi * 100:+.1f}%"},
                 }
             }
         }
@@ -1576,21 +1614,27 @@ class AnalysisEngine:
         """
         时间序列预测：基于历史数据预测月末目标达成
 
-        使用移动平均法预测：
-        1. 计算过去 N 个月的平均增长率
-        2. 基于当前进度 + 剩余时间进度 × 平均增长率
-        3. 给出乐观/悲观区间
+        支持多种预测模型：
+        1. 线性外推（Linear）: 基于当前进度的日均增长外推
+        2. 加权移动平均（WMA）: 近期权重更高
+        3. 指数平滑（EWM）: alpha=0.3，平滑趋势
+        4. 自动选择最优模型（基于拟合误差 MAE）
 
         Returns:
             {
                 "paid_prediction": {
                     "current": 当前付费数,
                     "target": 目标付费数,
-                    "predicted_final": 预测月末值,
+                    "predicted_final": 预测月末值（最优模型）,
                     "optimistic": 乐观值,
                     "pessimistic": 悲观值,
                     "achievement_rate": 预测达成率,
-                    "confidence": "高/中/低"
+                    "confidence": "高/中/低",
+                    "best_model": "linear/wma/ewm",
+                    "linear": {预测值, 置信区间},
+                    "wma": {预测值, 置信区间},
+                    "ewm": {预测值, 置信区间},
+                    "comparison": {各模型MAE对比}
                 },
                 "amount_prediction": {...},
                 "insights": ["洞察1", "洞察2", ...]
@@ -1633,53 +1677,38 @@ class AnalysisEngine:
         target_paid = targets.get("付费目标", 0)
         target_amount = targets.get("金额目标", 0)
 
-        # 预测月末值（方法1: 线性外推）
-        # 假设剩余时间的增长速度 = 过去平均每日增长 × 剩余天数权重
+        # 剩余进度
         remaining_progress = 1.0 - time_progress
 
-        # 计算当前进度下的日均增长
-        if time_progress > 0:
-            daily_paid = current_paid / time_progress
-            daily_amount = current_amount / time_progress
-        else:
-            daily_paid = 0
-            daily_amount = 0
+        # === 模型1: 线性外推 ===
+        linear_paid, linear_ci_paid = self._predict_linear(current_paid, time_progress, remaining_progress)
+        linear_amount, linear_ci_amount = self._predict_linear(current_amount, time_progress, remaining_progress)
 
-        # 预测月末值 = 当前值 + 日均值 × 剩余进度
-        predicted_paid_final = current_paid + daily_paid * remaining_progress
-        predicted_amount_final = current_amount + daily_amount * remaining_progress
+        # === 模型2: 加权移动平均（WMA）===
+        wma_paid, wma_ci_paid = self._predict_wma(paid_values, time_progress, remaining_progress)
+        wma_amount, wma_ci_amount = self._predict_wma(amount_values, time_progress, remaining_progress)
 
-        # 乐观/悲观区间（基于历史波动）
-        # 计算历史月度增长率的标准差
-        if len(paid_values) >= 3:
-            growth_rates = []
-            for i in range(1, len(paid_values)):
-                if paid_values[i-1] > 0:
-                    growth_rate = (paid_values[i] - paid_values[i-1]) / paid_values[i-1]
-                    growth_rates.append(growth_rate)
+        # === 模型3: 指数平滑（EWM）===
+        ewm_paid, ewm_ci_paid = self._predict_ewm(paid_values, time_progress, remaining_progress, alpha=0.3)
+        ewm_amount, ewm_ci_amount = self._predict_ewm(amount_values, time_progress, remaining_progress, alpha=0.3)
 
-            if growth_rates:
-                avg_growth = sum(growth_rates) / len(growth_rates)
-                std_dev = (sum((r - avg_growth) ** 2 for r in growth_rates) / len(growth_rates)) ** 0.5
+        # === 模型选择：基于拟合误差（MAE）===
+        best_model_paid, mae_comparison_paid = self._select_best_model(
+            paid_values, time_progress,
+            {"linear": linear_paid, "wma": wma_paid, "ewm": ewm_paid}
+        )
+        best_model_amount, mae_comparison_amount = self._select_best_model(
+            amount_values, time_progress,
+            {"linear": linear_amount, "wma": wma_amount, "ewm": ewm_amount}
+        )
 
-                # 乐观 = 预测值 × (1 + std_dev)
-                # 悲观 = 预测值 × (1 - std_dev)
-                optimistic_paid = predicted_paid_final * (1 + std_dev)
-                pessimistic_paid = predicted_paid_final * (1 - std_dev)
+        # 使用最优模型的预测值
+        predicted_paid_final = {"linear": linear_paid, "wma": wma_paid, "ewm": ewm_paid}[best_model_paid]
+        predicted_amount_final = {"linear": linear_amount, "wma": wma_amount, "ewm": ewm_amount}[best_model_amount]
 
-                optimistic_amount = predicted_amount_final * (1 + std_dev)
-                pessimistic_amount = predicted_amount_final * (1 - std_dev)
-            else:
-                # 无历史增长数据，默认 ±10%
-                optimistic_paid = predicted_paid_final * 1.1
-                pessimistic_paid = predicted_paid_final * 0.9
-                optimistic_amount = predicted_amount_final * 1.1
-                pessimistic_amount = predicted_amount_final * 0.9
-        else:
-            optimistic_paid = predicted_paid_final * 1.1
-            pessimistic_paid = predicted_paid_final * 0.9
-            optimistic_amount = predicted_amount_final * 1.1
-            pessimistic_amount = predicted_amount_final * 0.9
+        # 置信区间（使用最优模型）
+        optimistic_paid, pessimistic_paid = {"linear": linear_ci_paid, "wma": wma_ci_paid, "ewm": ewm_ci_paid}[best_model_paid]
+        optimistic_amount, pessimistic_amount = {"linear": linear_ci_amount, "wma": wma_ci_amount, "ewm": ewm_ci_amount}[best_model_amount]
 
         # 预测达成率
         achievement_paid = predicted_paid_final / target_paid if target_paid > 0 else 0.0
@@ -1710,6 +1739,9 @@ class AnalysisEngine:
         elif time_progress < 0.3:
             insights.append(f"时间仅过 {time_progress*100:.0f}%，预测基于早期数据，后续波动可能较大")
 
+        # 模型对比洞察
+        insights.append(f"最优模型: 付费={best_model_paid.upper()}（MAE={mae_comparison_paid[best_model_paid]:.1f}），金额={best_model_amount.upper()}")
+
         return {
             "paid_prediction": {
                 "current": int(current_paid),
@@ -1718,7 +1750,12 @@ class AnalysisEngine:
                 "optimistic": int(optimistic_paid),
                 "pessimistic": int(pessimistic_paid),
                 "achievement_rate": achievement_paid,
-                "confidence": confidence_paid
+                "confidence": confidence_paid,
+                "best_model": best_model_paid,
+                "linear": {"value": int(linear_paid), "ci": (int(linear_ci_paid[0]), int(linear_ci_paid[1]))},
+                "wma": {"value": int(wma_paid), "ci": (int(wma_ci_paid[0]), int(wma_ci_paid[1]))},
+                "ewm": {"value": int(ewm_paid), "ci": (int(ewm_ci_paid[0]), int(ewm_ci_paid[1]))},
+                "comparison": mae_comparison_paid
             },
             "amount_prediction": {
                 "current": int(current_amount),
@@ -1727,13 +1764,159 @@ class AnalysisEngine:
                 "optimistic": int(optimistic_amount),
                 "pessimistic": int(pessimistic_amount),
                 "achievement_rate": achievement_amount,
-                "confidence": confidence_amount
+                "confidence": confidence_amount,
+                "best_model": best_model_amount,
+                "linear": {"value": int(linear_amount), "ci": (int(linear_ci_amount[0]), int(linear_ci_amount[1]))},
+                "wma": {"value": int(wma_amount), "ci": (int(wma_ci_amount[0]), int(wma_ci_amount[1]))},
+                "ewm": {"value": int(ewm_amount), "ci": (int(ewm_ci_amount[0]), int(ewm_ci_amount[1]))},
+                "comparison": mae_comparison_amount
             },
             "insights": insights,
             "available": True,
-            "method": "线性外推（日均增长）",
+            "method": "多模型预测（线性/WMA/EWM自动选优）",
             "sample_size": len(history_months)
         }
+
+    def _predict_linear(self, current_value: float, time_progress: float, remaining_progress: float) -> Tuple[float, Tuple[float, float]]:
+        """
+        线性外推预测
+
+        Args:
+            current_value: 当前值
+            time_progress: 已过时间进度
+            remaining_progress: 剩余时间进度
+
+        Returns:
+            (预测值, (乐观值, 悲观值))
+        """
+        if time_progress > 0:
+            daily_value = current_value / time_progress
+            predicted = current_value + daily_value * remaining_progress
+        else:
+            predicted = current_value
+
+        # 置信区间 ±10%
+        optimistic = predicted * 1.1
+        pessimistic = predicted * 0.9
+
+        return predicted, (optimistic, pessimistic)
+
+    def _predict_wma(self, values: List[float], time_progress: float, remaining_progress: float) -> Tuple[float, Tuple[float, float]]:
+        """
+        加权移动平均预测（近期权重更高）
+
+        Args:
+            values: 历史值列表
+            time_progress: 已过时间进度
+            remaining_progress: 剩余时间进度
+
+        Returns:
+            (预测值, (乐观值, 悲观值))
+        """
+        if len(values) < 2:
+            return self._predict_linear(values[-1] if values else 0, time_progress, remaining_progress)
+
+        # 计算增长率，权重递增（最近的权重最大）
+        growth_rates = []
+        for i in range(1, len(values)):
+            if values[i-1] > 0:
+                rate = (values[i] - values[i-1]) / values[i-1]
+                growth_rates.append(rate)
+
+        if not growth_rates:
+            return self._predict_linear(values[-1], time_progress, remaining_progress)
+
+        # 加权平均（权重: 1, 2, 3, ..., n）
+        weights = list(range(1, len(growth_rates) + 1))
+        weighted_avg_growth = sum(r * w for r, w in zip(growth_rates, weights)) / sum(weights)
+
+        # 预测剩余增长
+        current_value = values[-1]
+        predicted = current_value * (1 + weighted_avg_growth * remaining_progress)
+
+        # 置信区间基于历史波动
+        std_dev = (sum((r - weighted_avg_growth) ** 2 for r in growth_rates) / len(growth_rates)) ** 0.5 if len(growth_rates) > 1 else 0.1
+        optimistic = predicted * (1 + std_dev)
+        pessimistic = predicted * (1 - std_dev)
+
+        return predicted, (optimistic, pessimistic)
+
+    def _predict_ewm(self, values: List[float], time_progress: float, remaining_progress: float, alpha: float = 0.3) -> Tuple[float, Tuple[float, float]]:
+        """
+        指数平滑预测
+
+        Args:
+            values: 历史值列表
+            time_progress: 已过时间进度
+            remaining_progress: 剩余时间进度
+            alpha: 平滑系数（0-1，越大越重视近期）
+
+        Returns:
+            (预测值, (乐观值, 悲观值))
+        """
+        if len(values) < 2:
+            return self._predict_linear(values[-1] if values else 0, time_progress, remaining_progress)
+
+        # 计算指数平滑值
+        smoothed = values[0]
+        for value in values[1:]:
+            smoothed = alpha * value + (1 - alpha) * smoothed
+
+        # 计算趋势（最近值 vs 平滑值）
+        trend = values[-1] - smoothed
+
+        # 预测
+        current_value = values[-1]
+        predicted = current_value + trend * remaining_progress
+
+        # 置信区间（基于预测误差）
+        errors = [abs(values[i] - smoothed) for i in range(len(values))]
+        avg_error = sum(errors) / len(errors) if errors else current_value * 0.1
+        optimistic = predicted + avg_error
+        pessimistic = predicted - avg_error
+
+        return predicted, (optimistic, pessimistic)
+
+    def _select_best_model(self, values: List[float], time_progress: float, predictions: Dict[str, float]) -> Tuple[str, Dict[str, float]]:
+        """
+        基于拟合误差（MAE）选择最优模型
+
+        Args:
+            values: 历史值列表
+            time_progress: 已过时间进度
+            predictions: 各模型预测值 {"linear": x, "wma": y, "ewm": z}
+
+        Returns:
+            (最优模型名, {各模型MAE})
+        """
+        if len(values) < 3:
+            return "linear", {k: 0.0 for k in predictions.keys()}
+
+        # 计算各模型的历史拟合误差（简化版：用最后3个月回测）
+        mae_scores = {}
+
+        for model_name in predictions.keys():
+            errors = []
+            # 回测最近3个历史点
+            for i in range(max(1, len(values) - 3), len(values)):
+                historical_values = values[:i]
+                actual = values[i]
+
+                # 简化预测（使用当前模型逻辑）
+                if model_name == "linear":
+                    pred, _ = self._predict_linear(historical_values[-1], 0.5, 0.5)
+                elif model_name == "wma":
+                    pred, _ = self._predict_wma(historical_values, 0.5, 0.5)
+                else:  # ewm
+                    pred, _ = self._predict_ewm(historical_values, 0.5, 0.5)
+
+                errors.append(abs(actual - pred))
+
+            mae_scores[model_name] = sum(errors) / len(errors) if errors else float('inf')
+
+        # 选择MAE最小的模型
+        best_model = min(mae_scores, key=mae_scores.get)
+        return best_model, mae_scores
 
     def _assess_confidence(self, sample_size: int, time_progress: float) -> str:
         """
@@ -1975,7 +2158,9 @@ class AnalysisEngine:
         }
 
     def _detect_anomalies(self, analysis_result: dict, multi_source_data: dict) -> List[Dict]:
-        """异常检测"""
+        """异常检测（基于 ANOMALY_CONFIG 动态阈值）"""
+        from .config import ANOMALY_CONFIG
+
         anomalies = []
 
         # 1. 个人绩效异常（CC 综合得分后5名）
@@ -1983,15 +2168,17 @@ class AnalysisEngine:
         bottom_5 = cc_ranking.get("bottom_5", [])
         team_avg = cc_ranking.get("team_avg", {})
 
+        std_threshold = ANOMALY_CONFIG.get("std_threshold", 2.0)
+
         for cc in bottom_5:
             cc_composite = cc.get("composite", 0)
             team = cc.get("team", "")
             team_data = team_avg.get(team, {})
             avg_composite = team_data.get("avg_conversion", 0.0) * 100  # 粗略估算
 
-            # 判断是否低于团队均值 2 个标准差（简化版，假设标准差 = 均值*0.3）
+            # 判断是否低于团队均值 N 个标准差（简化版，假设标准差 = 均值*0.3）
             std_dev = avg_composite * 0.3
-            threshold = avg_composite - 2 * std_dev
+            threshold = avg_composite - std_threshold * std_dev
 
             if cc_composite < threshold:
                 anomalies.append({
@@ -2002,12 +2189,14 @@ class AnalysisEngine:
                     "value": cc_composite,
                     "threshold": threshold,
                     "severity": "高" if cc_composite < threshold * 0.7 else "中",
-                    "建议": f"{cc.get('cc')} 综合得分 {cc_composite:.1f}，低于团队均值，需个别辅导"
+                    "建议": f"{cc.get('cc')} 综合得分 {cc_composite:.1f}，低于团队均值 {std_threshold}σ，需个别辅导"
                 })
 
         # 2. 关键指标周环比异常（基于 mom_trend）
         mom_trend = analysis_result.get("mom_trend", {})
         trends = mom_trend.get("trends", [])
+
+        decline_threshold = ANOMALY_CONFIG.get("decline_threshold", 0.3)
 
         for channel_trend in trends:
             channel = channel_trend.get("渠道", "")
@@ -2016,8 +2205,8 @@ class AnalysisEngine:
             for metric, data in metrics.items():
                 mom_change = data.get("环比", 0)
 
-                # 下降超过 30% 判定为异常
-                if mom_change < -0.30:
+                # 下降超过配置阈值判定为异常
+                if mom_change < -decline_threshold:
                     anomalies.append({
                         "type": "环比异常下滑",
                         "channel": channel,
@@ -2058,19 +2247,82 @@ class AnalysisEngine:
         return anomalies
 
     def _analyze_ltv(self) -> dict:
-        """LTV 分析骨架（数据源未接入）"""
+        """LTV 分析（简化实现：基于现有付费数据 + 预估续费率）"""
+        from .config import LTV_CONFIG
+
+        # 获取最新月数据
+        months = self.processor.get_sorted_months()
+        if not months:
+            return {
+                "available": False,
+                "reason": "无月度数据",
+                "data_quality": "unavailable"
+            }
+
+        current_month = months[-1]
+        current_data = self.monthly_summaries.get(current_month, {})
+
+        # 计算人均付费金额（各渠道）
+        channels = ["总计", "CC窄口径", "SS窄口径", "宽口径"]
+        ltv_by_channel = {}
+
+        default_renewal_rate = LTV_CONFIG.get("default_renewal_rate", 0.3)
+        narrow_renewal_rate = LTV_CONFIG.get("narrow_renewal_rate", 0.4)
+        wide_renewal_rate = LTV_CONFIG.get("wide_renewal_rate", 0.25)
+
+        for channel in channels:
+            paid_key = f"{channel}_付费"
+            amount_key = f"{channel}_美金金额"
+
+            paid = current_data.get(paid_key, 0)
+            amount = current_data.get(amount_key, 0)
+
+            if paid > 0:
+                avg_order = amount / paid
+
+                # 根据渠道类型选择续费率
+                if "窄口径" in channel:
+                    renewal_rate = narrow_renewal_rate
+                elif channel == "宽口径":
+                    renewal_rate = wide_renewal_rate
+                else:
+                    renewal_rate = default_renewal_rate
+
+                # 简化 LTV = 人均付费 × 预估续费率（假设续费1次）
+                ltv = avg_order * (1 + renewal_rate)
+
+                ltv_by_channel[channel] = {
+                    "人均首单": round(avg_order, 2),
+                    "预估续费率": renewal_rate,
+                    "预估LTV": round(ltv, 2),
+                    "样本量": int(paid)
+                }
+            else:
+                ltv_by_channel[channel] = {
+                    "人均首单": 0,
+                    "预估续费率": 0,
+                    "预估LTV": 0,
+                    "样本量": 0
+                }
+
+        # 计算窄口 vs 宽口 LTV 差异
+        narrow_channels = ["CC窄口径", "SS窄口径"]
+        narrow_ltv = sum(ltv_by_channel.get(ch, {}).get("预估LTV", 0) for ch in narrow_channels) / len(narrow_channels)
+        wide_ltv = ltv_by_channel.get("宽口径", {}).get("预估LTV", 0)
+
+        ltv_gap = narrow_ltv - wide_ltv if wide_ltv > 0 else 0
+        ltv_gap_pct = (ltv_gap / wide_ltv * 100) if wide_ltv > 0 else 0
+
         return {
-            "available": False,
-            "reason": "CRM 数据未接入，90天留存率、人均LTV、渠道LTV对比数据暂无",
-            "fields": {
-                "90天留存率": None,
-                "人均LTV": None,
-                "渠道LTV对比": {
-                    "CC窄口径": None,
-                    "SS窄口径": None,
-                    "LP窄口径": None,
-                    "宽口径": None,
-                },
+            "available": True,
+            "data_quality": "estimated",
+            "by_channel": ltv_by_channel,
+            "insights": {
+                "窄口平均LTV": round(narrow_ltv, 2),
+                "宽口LTV": round(wide_ltv, 2),
+                "窄口优势": f"+${ltv_gap:.1f} ({ltv_gap_pct:+.1f}%)" if ltv_gap > 0 else f"${ltv_gap:.1f} ({ltv_gap_pct:.1f}%)",
+                "结论": "窄口径质量更高，LTV明显优于宽口径" if ltv_gap_pct > 20 else "窄口宽口LTV差异不显著"
             },
-            "todo": "接入 CRM 续费数据后计算 LTV = 客单价 × 续费次数 × 留存率"
+            "method": f"人均付费 × (1 + 预估续费率)，窄口={narrow_renewal_rate}，宽口={wide_renewal_rate}",
+            "limitation": "基于预估续费率，未接入真实CRM续费数据"
         }

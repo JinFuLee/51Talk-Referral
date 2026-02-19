@@ -118,6 +118,7 @@ class MarkdownReportGenerator:
             self._ops_trend_analysis(),  # M4 Phase 2
             self._ops_attribution_analysis(),  # Task #8 归因分析
             self._ops_prediction_analysis(),  # Task #8 预测展望
+            self._ops_anomaly_section(),  # M7 Task #3 异常检测章节
             self._ops_risk_alerts(),
             self._ops_risk_dashboard(),  # 新增 #3
             self._ops_action_list(),
@@ -131,7 +132,20 @@ class MarkdownReportGenerator:
         # 过滤掉空字符串（数据缺失时方法返回空字符串）
         parts = [p for p in parts if p]
 
-        return "\n\n---\n\n".join(parts)
+        # 拼接内容（不含 TOC）
+        content_without_toc = "\n\n---\n\n".join(parts)
+
+        # 生成 TOC 并插入到报告头之后
+        toc = self._generate_toc(content_without_toc, "ops")
+        if toc:
+            # 找到报告头结束位置（第一个分隔符之前）
+            first_separator = content_without_toc.find("\n\n---\n\n")
+            if first_separator > 0:
+                header = content_without_toc[:first_separator]
+                rest = content_without_toc[first_separator:]
+                return f"{header}\n\n---\n\n{toc}{rest}"
+
+        return content_without_toc
 
     def _build_exec_content(self) -> str:
         """构建管理层版报告内容"""
@@ -144,6 +158,7 @@ class MarkdownReportGenerator:
             self._exec_header(),
             self._exec_summary(),
             self._exec_trend(),
+            self._exec_anomaly_summary(),  # M7 Task #3 异常检测摘要
             self._exec_risk_alerts(),
             self._exec_attribution_analysis(),  # Task #8 归因分析
             self._exec_prediction_summary(),  # Task #8 预测摘要
@@ -166,7 +181,23 @@ class MarkdownReportGenerator:
             self._exec_glossary(),
         ]
 
-        return "\n\n---\n\n".join(parts)
+        # 过滤空内容
+        parts = [p for p in parts if p]
+
+        # 拼接内容（不含 TOC）
+        content_without_toc = "\n\n---\n\n".join(parts)
+
+        # 生成 TOC 并插入到报告头之后
+        toc = self._generate_toc(content_without_toc, "exec")
+        if toc:
+            # 找到报告头结束位置（第一个分隔符之前）
+            first_separator = content_without_toc.find("\n\n---\n\n")
+            if first_separator > 0:
+                header = content_without_toc[:first_separator]
+                rest = content_without_toc[first_separator:]
+                return f"{header}\n\n---\n\n{toc}{rest}"
+
+        return content_without_toc
 
     def _build_from_template(self, report_type: str) -> str:
         """根据模板配置动态构建报告内容"""
@@ -198,6 +229,88 @@ class MarkdownReportGenerator:
                     pass
 
         return "\n\n---\n\n".join(parts)
+
+    def _generate_toc(self, content: str, report_type: str = "ops") -> str:
+        """
+        生成目录（Table of Contents）
+
+        Args:
+            content: 完整报告内容
+            report_type: "ops" 或 "exec"
+
+        Returns:
+            Markdown 格式的目录
+        """
+        import re
+
+        # 提取所有标题（## 和 ###）
+        lines = content.split('\n')
+        headings = []
+
+        for line in lines:
+            # 匹配 ## 或 ### 开头的标题
+            match = re.match(r'^(#{2,3})\s+(.+)$', line)
+            if match:
+                level = len(match.group(1))  # 2 或 3
+                title = match.group(2).strip()
+
+                # 跳过报告标题（第一个 # 标题）
+                if level == 1:
+                    continue
+
+                headings.append({
+                    'level': level,
+                    'title': title,
+                    'anchor': self._generate_anchor(title)
+                })
+
+        if not headings:
+            return ""
+
+        # 生成目录内容
+        toc_title = t("ui", "toc_ops" if report_type == "ops" else "toc_exec", self.lang)
+        toc_lines = [f"## {toc_title}", ""]
+
+        for heading in headings:
+            indent = "  " * (heading['level'] - 2)  # level 2 = 无缩进，level 3 = 2空格
+            toc_lines.append(f"{indent}- [{heading['title']}](#{heading['anchor']})")
+
+        toc_lines.append("")  # 末尾空行
+        return "\n".join(toc_lines)
+
+    def _generate_anchor(self, title: str) -> str:
+        """
+        生成 Markdown 锚点链接
+
+        规则：
+        - 保留中文字符
+        - 空格转为 -
+        - 移除特殊符号（除了数字、字母、中文、-）
+        - 转小写（仅英文）
+        """
+        import re
+
+        # 移除 Markdown 格式符号（加粗、斜体等）
+        title = re.sub(r'\*\*|__|\*|_', '', title)
+
+        # 移除表情符号（简单处理，移除常见的 emoji）
+        title = re.sub(r'[🟢🟡🔴⏳✅⚠️📊📝📈📁💾🚀💬]', '', title)
+
+        # 空格转连字符
+        title = title.replace(' ', '-')
+
+        # 移除特殊符号，保留中文、英文、数字、连字符
+        title = re.sub(r'[^\w\u4e00-\u9fff-]', '', title)
+
+        # 英文转小写
+        result = []
+        for char in title:
+            if 'A' <= char <= 'Z':
+                result.append(char.lower())
+            else:
+                result.append(char)
+
+        return ''.join(result)
 
     # ==================== 运营版各章节 ====================
 
@@ -1547,33 +1660,130 @@ xychart-beta
 {p1_row1}
 {p1_row2}"""
 
-    def _extract_action_items(self) -> List[Dict[str, str]]:
-        """从当前报告提取行动建议（P0/P1）"""
+    def _extract_action_items(self) -> List[Dict[str, Any]]:
+        """
+        从当前报告提取行动建议（P0/P1）
+
+        新增字段：
+        - id: 唯一标识
+        - action: 行动描述
+        - owner: 负责人（默认空，待分配）
+        - status: pending/completed
+        - created_at: 创建日期
+        - due_date: 截止日期（7天后）
+        - completed_at: 完成日期（None）
+        - category: followup/outreach/training/other
+        """
+        from datetime import datetime, timedelta
+
         actions = []
+        current_date = self.report_date.strftime("%Y-%m-%d")
+        due_date = (self.report_date + timedelta(days=7)).strftime("%Y-%m-%d")
 
         # P0 行动
         if self.lang == "zh":
             actions.extend([
-                {"id": 1, "action": "分层触达已出席未付费用户", "priority": "P0", "status": "pending"},
-                {"id": 2, "action": "优化低质量开源渠道", "priority": "P0", "status": "pending"},
+                {
+                    "id": "action-1",
+                    "action": "分层触达已出席未付费用户",
+                    "owner": "",
+                    "status": "pending",
+                    "created_at": current_date,
+                    "due_date": due_date,
+                    "completed_at": None,
+                    "category": "followup"
+                },
+                {
+                    "id": "action-2",
+                    "action": "优化低质量开源渠道",
+                    "owner": "",
+                    "status": "pending",
+                    "created_at": current_date,
+                    "due_date": due_date,
+                    "completed_at": None,
+                    "category": "outreach"
+                },
             ])
         else:
             actions.extend([
-                {"id": 1, "action": "ติดตามผู้เข้าคลาสแบบแบ่งชั้น", "priority": "P0", "status": "pending"},
-                {"id": 2, "action": "ปรับปรุงช่องทางคุณภาพต่ำ", "priority": "P0", "status": "pending"},
+                {
+                    "id": "action-1",
+                    "action": "ติดตามผู้เข้าคลาสแบบแบ่งชั้น",
+                    "owner": "",
+                    "status": "pending",
+                    "created_at": current_date,
+                    "due_date": due_date,
+                    "completed_at": None,
+                    "category": "followup"
+                },
+                {
+                    "id": "action-2",
+                    "action": "ปรับปรุงช่องทางคุณภาพต่ำ",
+                    "owner": "",
+                    "status": "pending",
+                    "created_at": current_date,
+                    "due_date": due_date,
+                    "completed_at": None,
+                    "category": "outreach"
+                },
             ])
 
         # P1 行动
         if self.lang == "zh":
             actions.extend([
-                {"id": 3, "action": "加速窄口开源", "priority": "P1", "status": "pending"},
-                {"id": 4, "action": "收集成本数据", "priority": "P1", "status": "pending"},
+                {
+                    "id": "action-3",
+                    "action": "加速窄口开源",
+                    "owner": "",
+                    "status": "pending",
+                    "created_at": current_date,
+                    "due_date": due_date,
+                    "completed_at": None,
+                    "category": "outreach"
+                },
+                {
+                    "id": "action-4",
+                    "action": "收集成本数据",
+                    "owner": "",
+                    "status": "pending",
+                    "created_at": current_date,
+                    "due_date": due_date,
+                    "completed_at": None,
+                    "category": "other"
+                },
             ])
         else:
             actions.extend([
-                {"id": 3, "action": "เร่งช่องแคบเพิ่ม", "priority": "P1", "status": "pending"},
-                {"id": 4, "action": "เก็บข้อมูลต้นทุน", "priority": "P1", "status": "pending"},
+                {
+                    "id": "action-3",
+                    "action": "เร่งช่องแคบเพิ่ม",
+                    "owner": "",
+                    "status": "pending",
+                    "created_at": current_date,
+                    "due_date": due_date,
+                    "completed_at": None,
+                    "category": "outreach"
+                },
+                {
+                    "id": "action-4",
+                    "action": "เก็บข้อมูลต้นทุน",
+                    "owner": "",
+                    "status": "pending",
+                    "created_at": current_date,
+                    "due_date": due_date,
+                    "completed_at": None,
+                    "category": "other"
+                },
             ])
+
+        # 继承上期未完成行动
+        previous = self._load_previous_actions()
+        if previous:
+            prev_actions = previous.get("actions", [])
+            for prev_action in prev_actions:
+                if prev_action.get("status") == "pending":
+                    # 保留原有字段，不重新设置 due_date
+                    actions.append(prev_action)
 
         return actions
 
@@ -1602,7 +1812,16 @@ xychart-beta
             return None
 
     def _generate_action_tracking_section(self) -> str:
-        """生成行动追踪章节"""
+        """
+        生成行动追踪章节（增强版）
+
+        新增功能：
+        - 按类别分组统计
+        - 逾期标记
+        - 执行率按类别展示
+        """
+        from datetime import datetime
+
         previous = self._load_previous_actions()
 
         # 首次生成
@@ -1617,49 +1836,95 @@ xychart-beta
 
         if self.lang == "zh":
             title = "## 历史行动追踪"
-            subtitle = f"### 上次报告行动执行情况（{prev_date}）"
-            table_header = "| # | 行动 | 优先级 | 状态 |"
-            status_pending = "⏳ 待执行"
-            status_completed = "✅ 已完成"
-            completion_text = "行动执行率"
+            subtitle = f"### 上期行动回顾（{prev_date}）"
+            table_header = "| ID | 行动 | 类别 | 负责人 | 截止日期 | 状态 |"
+            completion_text = "总执行率"
+            category_stats_title = "#### 按类别统计"
+            category_header = "| 类别 | 总数 | 已完成 | 执行率 |"
         else:
             title = "## ติดตามแผนที่ผ่านมา"
-            subtitle = f"### สถานะแผนจากรายงานครั้งก่อน ({prev_date})"
-            table_header = "| # | แผน | ลำดับ | สถานะ |"
-            status_pending = "⏳ รอดำเนินการ"
-            status_completed = "✅ เสร็จแล้ว"
-            completion_text = "อัตราดำเนินการ"
+            subtitle = f"### ทบทวนแผนงวดก่อน ({prev_date})"
+            table_header = "| ID | แผน | หมวด | ผู้รับผิดชอบ | กำหนด | สถานะ |"
+            completion_text = "อัตรารวม"
+            category_stats_title = "#### สถิติตามหมวด"
+            category_header = "| หมวด | ทั้งหมด | เสร็จ | อัตรา |"
 
         # 构建表格
         rows = []
         completed_count = 0
+        overdue_count = 0
+        category_stats = {}
+
         for action in prev_actions:
             action_id = action.get("id", "")
             action_text = action.get("action", "")
-            priority = action.get("priority", "")
+            category = action.get("category", "other")
+            owner = action.get("owner", "") or "-"
+            due_date = action.get("due_date", "")
             status = action.get("status", "pending")
 
+            # 统计分类
+            if category not in category_stats:
+                category_stats[category] = {"total": 0, "completed": 0}
+            category_stats[category]["total"] += 1
+
+            # 状态显示
             if status == "completed":
                 completed_count += 1
-                status_display = status_completed
+                category_stats[category]["completed"] += 1
+                status_display = t("ui", "action_status_completed", self.lang)
             else:
-                status_display = status_pending
+                # 检查是否逾期
+                try:
+                    due_dt = datetime.strptime(due_date, "%Y-%m-%d")
+                    if due_dt < self.report_date:
+                        overdue_count += 1
+                        status_display = f"⚠️ {t('ui', 'action_status_overdue', self.lang)}"
+                    else:
+                        status_display = t("ui", "action_status_pending", self.lang)
+                except Exception:
+                    status_display = t("ui", "action_status_pending", self.lang)
 
-            rows.append(f"| {action_id} | {action_text} | {priority} | {status_display} |")
+            # 翻译类别
+            category_key = f"action_category_{category}"
+            category_display = t("ui", category_key, self.lang)
+
+            rows.append(f"| {action_id} | {action_text} | {category_display} | {owner} | {due_date} | {status_display} |")
 
         table_content = "\n".join(rows)
         total_count = len(prev_actions)
         completion_rate = (completed_count / total_count * 100) if total_count > 0 else 0
 
-        return f"""{title}
+        # 按类别统计表格
+        category_rows = []
+        for cat, stats in category_stats.items():
+            cat_key = f"action_category_{cat}"
+            cat_display = t("ui", cat_key, self.lang)
+            cat_rate = (stats["completed"] / stats["total"] * 100) if stats["total"] > 0 else 0
+            category_rows.append(f"| {cat_display} | {stats['total']} | {stats['completed']} | {cat_rate:.0f}% |")
+
+        category_table = "\n".join(category_rows) if category_rows else ""
+
+        result = f"""{title}
 
 {subtitle}
 
 {table_header}
-|---|------|--------|------|
+|-----|------|------|--------|----------|------|
 {table_content}
 
 **{completion_text}**: {completed_count}/{total_count} ({completion_rate:.0f}%)"""
+
+        if category_table:
+            result += f"""
+
+{category_stats_title}
+
+{category_header}
+|------|------|--------|------|
+{category_table}"""
+
+        return result
 
     def _ops_data_source(self) -> str:
         """运营版数据来源"""
@@ -1888,6 +2153,66 @@ xychart-beta
 {subsection3}
 
 {action_suggestions}"""
+
+    def _ops_anomaly_section(self) -> str:
+        """
+        运营版异常检测章节（M7 Task #3）
+
+        从 risk_alerts 提取异常数据，按级别排序展示
+        """
+        alerts = self.result.get("risk_alerts", [])
+
+        if not alerts:
+            if self.lang == "zh":
+                return """## 异常检测
+
+✅ 未检测到异常，所有指标正常。"""
+            else:
+                return """## ตรวจจับความผิดปกติ
+
+✅ ไม่พบความผิดปกติ ตัวชี้วัดทั้งหมดปกติ"""
+
+        # 按级别排序（🔴 严重 → 🟡 警告 → 🟢 提示）
+        def get_severity_order(alert):
+            level = alert.get("级别", "")
+            if "🔴" in level:
+                return 0
+            elif "🟡" in level:
+                return 1
+            else:
+                return 2
+
+        sorted_alerts = sorted(alerts, key=get_severity_order)
+
+        if self.lang == "zh":
+            section_title = "## 异常检测"
+            table_header = "| 级别 | 指标 | 当前值 | 阈值 | 建议 |"
+        else:
+            section_title = "## ตรวจจับความผิดปกติ"
+            table_header = "| ระดับ | ตัวชี้วัด | ค่าปัจจุบัน | เกณฑ์ | คำแนะนำ |"
+
+        # 构建表格
+        rows = []
+        for alert in sorted_alerts:
+            level = alert.get("级别", "")
+            risk_item = alert.get("风险项", "")
+            impact = alert.get("量化影响", "")
+            suggestion = alert.get("应对方案", "")
+
+            # 将量化影响拆分为当前值和阈值（简化处理）
+            # 实际上 risk_alerts 没有单独的阈值字段，我们用量化影响来展示
+            current_value = impact
+            threshold = "-"
+
+            rows.append(f"| {level} | {risk_item} | {current_value} | {threshold} | {suggestion} |")
+
+        table_content = "\n".join(rows)
+
+        return f"""{section_title}
+
+{table_header}
+|------|------|----------|------|------|
+{table_content}"""
 
     def _ops_cohort_analysis(self) -> str:
         """运营版围场生命周期分析"""
@@ -2615,6 +2940,64 @@ xychart-beta
 > **กล่าวคือ**: เวลาผ่านไป {self.time_progress*100:.0f}% ชำระทำได้แค่ {paid_data.get('efficiency_progress', 0)*100:.0f}% ต้องแทรกแซงด่วน
 
 {ai_insights_section}"""
+
+    def _exec_anomaly_summary(self) -> str:
+        """
+        管理层版异常检测摘要（M7 Task #3）
+
+        仅展示 critical 和 warning 级别，附带影响评估
+        """
+        alerts = self.result.get("risk_alerts", [])
+
+        # 筛选严重和警告级别
+        critical_and_warning = [a for a in alerts if "🔴" in a.get("级别", "") or "🟡" in a.get("级别", "")]
+
+        if not critical_and_warning:
+            return ""  # 无高风险时不显示章节
+
+        # 按级别排序
+        def get_severity_order(alert):
+            level = alert.get("级别", "")
+            if "🔴" in level:
+                return 0
+            else:
+                return 1
+
+        sorted_alerts = sorted(critical_and_warning, key=get_severity_order)
+
+        if self.lang == "zh":
+            section_title = "## 异常检测摘要"
+            impact_title = "**影响评估**"
+        else:
+            section_title = "## สรุปตรวจจับความผิดปกติ"
+            impact_title = "**ประเมินผลกระทบ**"
+
+        # 构建摘要列表
+        items = []
+        for i, alert in enumerate(sorted_alerts, 1):
+            level = alert.get("级别", "")
+            risk_item = alert.get("风险项", "")
+            impact = alert.get("量化影响", "")
+            suggestion = alert.get("应对方案", "")
+
+            items.append(f"{i}. {level} **{risk_item}**: {impact}")
+            items.append(f"   - {suggestion}")
+
+        content = "\n".join(items)
+
+        # 影响评估（汇总）
+        critical_count = sum(1 for a in sorted_alerts if "🔴" in a.get("级别", ""))
+
+        if self.lang == "zh":
+            impact_text = f"检测到 {len(sorted_alerts)} 项异常（严重 {critical_count} 项），需立即干预。"
+        else:
+            impact_text = f"ตรวจพบความผิดปกติ {len(sorted_alerts)} รายการ (ร้ายแรง {critical_count} รายการ) ต้องแทรกแซงทันที"
+
+        return f"""{section_title}
+
+{content}
+
+{impact_title}: {impact_text}"""
 
     def _exec_ai_insights_summary(self) -> str:
         """管理层版 AI 洞察摘要（追加在核心摘要后）"""

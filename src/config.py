@@ -163,6 +163,21 @@ ROI_COST_CONFIG = {
     "CASH_THRESHOLD": 850,  # USD（大小单分界线）
 }
 
+# 异常检测配置
+ANOMALY_CONFIG = {
+    "std_threshold": 2.0,        # 标准差倍数
+    "decline_threshold": 0.3,    # 环比下滑阈值
+    "conversion_floor": 0.05,    # 转化率下限
+    "rest_days": [2],            # 周三=2(0=周一)，休息日前后不算异常
+}
+
+# LTV 分析配置
+LTV_CONFIG = {
+    "default_renewal_rate": 0.3,       # 默认续费率
+    "narrow_renewal_rate": 0.4,        # 窄口径续费率（假设更高质量）
+    "wide_renewal_rate": 0.25,         # 宽口径续费率（假设较低）
+}
+
 
 def format_currency(usd_value: float, show_thb: bool = True) -> str:
     """

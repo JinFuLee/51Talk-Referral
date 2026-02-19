@@ -193,6 +193,71 @@ TRANSLATIONS["ui"] = {
     "role_exec": {"zh": "管理层", "th": "ผู้บริหาร"},
     "role_finance": {"zh": "财务", "th": "ฝ่ายการเงิน"},
     "role_access_denied": {"zh": "当前角色无权访问此内容", "th": "บทบาทปัจจุบันไม่มีสิทธิ์เข้าถึง"},
+
+    # M7+ 异常检测
+    "anomaly_alert": {"zh": "异常预警", "th": "แจ้งเตือนความผิดปกติ"},
+    "anomaly_none": {"zh": "所有指标正常", "th": "ตัวชี้วัดทั้งหมดปกติ"},
+    "anomaly_metric": {"zh": "异常指标", "th": "ตัวชี้วัดผิดปกติ"},
+    "anomaly_threshold": {"zh": "阈值", "th": "ค่าเกณฑ์"},
+    "anomaly_current": {"zh": "当前值", "th": "ค่าปัจจุบัน"},
+    "anomaly_team_avg": {"zh": "团队均值", "th": "ค่าเฉลี่ยทีม"},
+    "anomaly_suggestion": {"zh": "建议动作", "th": "ข้อแนะนำ"},
+    "anomaly_severity_high": {"zh": "严重", "th": "ร้ายแรง"},
+    "anomaly_severity_mid": {"zh": "中等", "th": "ปานกลาง"},
+    "anomaly_details": {"zh": "详细信息", "th": "รายละเอียด"},
+
+    # M7+ 通知测试反馈
+    "notify_success": {"zh": "测试通知已发送", "th": "ส่งการแจ้งเตือนทดสอบแล้ว"},
+    "notify_fail_smtp": {"zh": "SMTP 连接失败", "th": "เชื่อมต่อ SMTP ล้มเหลว"},
+    "notify_fail_auth": {"zh": "认证失败", "th": "การยืนยันตัวตนล้มเหลว"},
+    "notify_fail_token": {"zh": "Token 无效", "th": "Token ไม่ถูกต้อง"},
+    "notify_fail_network": {"zh": "网络超时", "th": "เครือข่ายหมดเวลา"},
+    "notify_error_detail": {"zh": "错误详情", "th": "รายละเอียดข้อผิดพลาด"},
+    "notify_check_server": {"zh": "请检查服务器地址", "th": "กรุณาตรวจสอบที่อยู่เซิร์ฟเวอร์"},
+    "notify_check_credentials": {"zh": "请检查用户名和密码", "th": "กรุณาตรวจสอบชื่อผู้ใช้และรหัสผ่าน"},
+    "notify_check_token": {"zh": "请检查 LINE Token", "th": "กรุณาตรวจสอบ LINE Token"},
+    "notify_check_network": {"zh": "请检查网络连接", "th": "กรุณาตรวจสอบการเชื่อมต่อเครือข่าย"},
+
+    # M7+ 角色权限配置
+    "role_config": {"zh": "权限配置", "th": "ตั้งค่าสิทธิ์"},
+    "role_tabs": {"zh": "可见 Tab", "th": "Tab ที่มองเห็น"},
+    "role_permission_hint": {"zh": "自定义当前角色可见的报告模块", "th": "กำหนดโมดูลรายงานที่บทบาทปัจจุบันเห็น"},
+
+    # M7+ 数据质量指示器
+    "data_quality_unavailable": {"zh": "数据源暂未接入，此部分数据为占位", "th": "แหล่งข้อมูลยังไม่เชื่อมต่อ ข้อมูลส่วนนี้เป็นตัวยึด"},
+    "data_quality_estimated": {"zh": "需接入 CRM 数据，当前为预估值", "th": "ต้องการข้อมูล CRM ค่าปัจจุบันเป็นค่าประมาณ"},
+    "data_quality_indicator": {"zh": "数据质量", "th": "คุณภาพข้อมูล"},
+
+    # M7 Task #3 TOC 导航
+    "toc_title": {"zh": "目录", "th": "สารบัญ"},
+    "toc_ops": {"zh": "运营版目录", "th": "สารบัญฉบับปฏิบัติการ"},
+    "toc_exec": {"zh": "管理层版目录", "th": "สารบัญฉบับผู้บริหาร"},
+
+    # M7 Task #3 行动追踪增强
+    "action_status_completed": {"zh": "已完成", "th": "เสร็จแล้ว"},
+    "action_status_pending": {"zh": "待执行", "th": "รอดำเนินการ"},
+    "action_status_overdue": {"zh": "逾期", "th": "เกินกำหนด"},
+    "action_category_followup": {"zh": "跟进", "th": "ติดตาม"},
+    "action_category_outreach": {"zh": "触达", "th": "เข้าถึง"},
+    "action_category_training": {"zh": "培训", "th": "ฝึกอบรม"},
+    "action_category_other": {"zh": "其他", "th": "อื่นๆ"},
+    "action_execution_rate": {"zh": "执行率", "th": "อัตราดำเนินการ"},
+    "action_previous_review": {"zh": "上期行动回顾", "th": "ทบทวนแผนงวดก่อน"},
+    "action_inherited": {"zh": "本期继承", "th": "รับช่วงต่อ"},
+    "action_overdue_warning": {"zh": "逾期", "th": "เกินกำหนด"},
+
+    # M7 Task #3 异常检测章节
+    "anomaly_section_title": {"zh": "异常检测", "th": "ตรวจจับความผิดปกติ"},
+    "anomaly_level_critical": {"zh": "严重", "th": "ร้ายแรง"},
+    "anomaly_level_warning": {"zh": "警告", "th": "เตือน"},
+    "anomaly_level_info": {"zh": "提示", "th": "แจ้ง"},
+    "anomaly_indicator": {"zh": "指标", "th": "ตัวชี้วัด"},
+    "anomaly_level": {"zh": "级别", "th": "ระดับ"},
+    "anomaly_current_value": {"zh": "当前值", "th": "ค่าปัจจุบัน"},
+    "anomaly_threshold_value": {"zh": "阈值", "th": "ค่าเกณฑ์"},
+    "anomaly_recommendation": {"zh": "建议", "th": "คำแนะนำ"},
+    "anomaly_impact": {"zh": "影响评估", "th": "ประเมินผลกระทบ"},
+    "anomaly_none_detected": {"zh": "未检测到异常", "th": "ไม่พบความผิดปกติ"},
 }
 
 # === 数据校验翻译 ===

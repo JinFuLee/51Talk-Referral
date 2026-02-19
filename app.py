@@ -332,6 +332,50 @@ def main():
         config_to_save["role"] = role
         save_panel_config(config_to_save)
 
+    # 角色权限配置
+    st.markdown(f"**{t('ui', 'role_config', lang)}**")
+
+    # 加载已保存的权限配置
+    role_permissions_config = saved_config.get("role_permissions", {})
+
+    # 默认权限预设
+    default_permissions = {
+        "ops": ["overview", "ops", "exec", "history"],
+        "exec": ["overview", "exec", "history"],
+        "finance": ["overview", "history"]
+    }
+
+    # 获取当前角色的默认权限
+    current_default = default_permissions.get(role, ["overview", "history"])
+
+    # 如果没有保存过配置，使用默认值
+    saved_role_perms = role_permissions_config.get(role, current_default)
+
+    # 全部可选 Tab
+    all_tabs = {
+        "overview": f"📊 {t('ui', 'tab_overview', lang)}",
+        "ops": f"📝 {t('ui', 'tab_ops', lang)}",
+        "exec": f"📈 {t('ui', 'tab_exec', lang)}",
+        "history": f"📁 {t('ui', 'tab_history', lang)}"
+    }
+
+    # multiselect 选择器
+    selected_tabs = st.multiselect(
+        t('ui', 'role_tabs', lang),
+        options=list(all_tabs.keys()),
+        default=saved_role_perms,
+        format_func=lambda x: all_tabs[x],
+        help=t('ui', 'role_permission_hint', lang)
+    )
+
+    # 保存到配置文件（实时保存）
+    if selected_tabs != saved_role_perms:
+        config_to_save = load_panel_config()
+        if "role_permissions" not in config_to_save:
+            config_to_save["role_permissions"] = {}
+        config_to_save["role_permissions"][role] = selected_tabs
+        save_panel_config(config_to_save)
+
     st.title(f"{t('ui', 'app_icon', lang)} 51Talk {t('ui', 'app_title', lang)}")
 
     # 快速入门引导（首次使用检测）
@@ -406,6 +450,13 @@ def main():
         # 数据源状态标题
         st.caption(f"── {t('ui', 'datasource_header', lang)} ({provided_count}/{len(DATA_SOURCES)}) ──")
 
+        # 功能依赖映射（数据源 ID -> 功能名称）
+        feature_dependencies = {
+            "打卡率": "参与行为分析" if lang == "zh" else "วิเคราะห์พฤติกรรม",
+            "围场汇总": "围场生命周期" if lang == "zh" else "วงจรชีวิตช่วง",
+            "leads达成": "Leads 漏斗对标" if lang == "zh" else "Leads Funnel",
+        }
+
         # 显示每个数据源的状态
         for source in DATA_SOURCES:
             dir_path = input_dir_path / source["dir"]
@@ -413,6 +464,11 @@ def main():
 
             # 已接入标记
             name_display = f"{name}*" if source["integrated"] else name
+
+            # 功能依赖提示
+            feature_hint = ""
+            if source["id"] in feature_dependencies:
+                feature_hint = f" → {feature_dependencies[source['id']]}"
 
             # 查找文件
             xlsx_files = list(dir_path.glob("*.xlsx")) if dir_path.exists() else []
@@ -424,13 +480,13 @@ def main():
 
                 # 判断是否 T-1
                 if is_t1(file_date, datetime.combine(report_date, datetime.min.time())):
-                    st.markdown(f"✅ {name_display} :green-background[T-1 {date_str}]")
+                    st.markdown(f"✅ {name_display}{feature_hint} :green-background[T-1 {date_str}]")
                 else:
-                    st.markdown(f"✅ {name_display} :red-background[{date_str}]")
+                    st.markdown(f"✅ {name_display}{feature_hint} :red-background[{date_str}]")
             else:
                 # 无文件
                 no_data_text = t('ui', 'datasource_not_provided', lang)
-                st.markdown(f"⬜ {name_display} :gray-background[{no_data_text}]")
+                st.markdown(f"⬜ {name_display}{feature_hint} :gray-background[{no_data_text}]")
 
         st.divider()
 
@@ -549,9 +605,35 @@ def main():
                     from src.notifier import Notifier
                     notifier = Notifier(str(notify_config_path))
                     notifier.send("test_report.md", [])
-                    st.success(t('ui', 'msg_test_notify_success', lang))
+
+                    # 成功: 显示收件人 + 发送时间
+                    recipients = []
+                    if email_enabled and email_to:
+                        recipients.extend([f"📧 {r.strip()}" for r in email_to.split(',')])
+                    if line_enabled:
+                        recipients.append("💬 LINE")
+
+                    st.success(f"{t('ui', 'notify_success', lang)}: {', '.join(recipients)} ({datetime.now().strftime('%H:%M:%S')})")
+
                 except Exception as e:
-                    st.warning(f"{t('ui', 'msg_test_notify_failed', lang)}: {str(e)}")
+                    error_msg = str(e).lower()
+
+                    # 失败: 用 st.expander 细分类型
+                    with st.expander(t('ui', 'notify_error_detail', lang), expanded=True):
+                        if "connection" in error_msg or "smtp" in error_msg:
+                            st.error(f"**{t('ui', 'notify_fail_smtp', lang)}**")
+                            st.info(t('ui', 'notify_check_server', lang))
+                        elif "auth" in error_msg or "password" in error_msg or "credential" in error_msg:
+                            st.error(f"**{t('ui', 'notify_fail_auth', lang)}**")
+                            st.info(t('ui', 'notify_check_credentials', lang))
+                        elif "token" in error_msg or "invalid" in error_msg:
+                            st.error(f"**{t('ui', 'notify_fail_token', lang)}**")
+                            st.info(t('ui', 'notify_check_token', lang))
+                        elif "timeout" in error_msg or "network" in error_msg:
+                            st.error(f"**{t('ui', 'notify_fail_network', lang)}**")
+                            st.info(t('ui', 'notify_check_network', lang))
+                        else:
+                            st.error(f"{t('ui', 'msg_test_notify_failed', lang)}: {str(e)}")
 
         st.divider()
 
@@ -664,29 +746,31 @@ def main():
         analysis_result = st.session_state['analysis_result']
         report_paths = st.session_state['report_paths']
 
-        # 根据角色过滤 Tab
-        tab_config = []
-        if role == "ops":
-            # 运营角色: 全量数据
-            tab_config = [
-                ("overview", t('ui', 'tab_overview', lang)),
-                ("ops", t('ui', 'tab_ops', lang)),
-                ("exec", t('ui', 'tab_exec', lang)),
-                ("history", t('ui', 'tab_history', lang))
-            ]
-        elif role == "exec":
-            # 管理层角色: 管理层版报告 + 汇总数据
-            tab_config = [
-                ("overview", t('ui', 'tab_overview', lang)),
-                ("exec", t('ui', 'tab_exec', lang)),
-                ("history", t('ui', 'tab_history', lang))
-            ]
-        elif role == "finance":
-            # 财务角色: ROI + 金额相关章节
-            tab_config = [
-                ("overview", t('ui', 'tab_overview', lang)),
-                ("history", t('ui', 'tab_history', lang))
-            ]
+        # 根据角色权限配置过滤 Tab
+        saved_config = load_panel_config()
+        role_permissions = saved_config.get("role_permissions", {})
+
+        # 如果有保存的权限配置，使用它；否则使用默认
+        if role in role_permissions:
+            allowed_tabs = role_permissions[role]
+        else:
+            # 默认权限
+            default_permissions = {
+                "ops": ["overview", "ops", "exec", "history"],
+                "exec": ["overview", "exec", "history"],
+                "finance": ["overview", "history"]
+            }
+            allowed_tabs = default_permissions.get(role, ["overview", "history"])
+
+        # 构建 tab_config（只包含允许的 Tab）
+        all_tabs_map = {
+            "overview": t('ui', 'tab_overview', lang),
+            "ops": t('ui', 'tab_ops', lang),
+            "exec": t('ui', 'tab_exec', lang),
+            "history": t('ui', 'tab_history', lang)
+        }
+
+        tab_config = [(tab_id, all_tabs_map[tab_id]) for tab_id in allowed_tabs if tab_id in all_tabs_map]
 
         tab_labels = [label for _, label in tab_config]
         tabs = st.tabs(tab_labels)
@@ -736,6 +820,36 @@ def main():
             multi_sources_count = len(analysis_result.get("multi_source_data", {}))
             if multi_sources_count > 0:
                 st.info(f"{t('ui', 'multi_source_loaded', lang)}: **{multi_sources_count}** / {len(DATA_SOURCES)}")
+
+            # 数据质量指示器
+            st.caption(f"📊 {t('ui', 'data_quality_indicator', lang)}")
+
+            # 检测打卡率数据是否为空/全零
+            checkin_data = analysis_result.get("checkin_analysis", {})
+            checkin_summary = checkin_data.get("summary", {})
+            is_checkin_empty = (
+                not checkin_data
+                or checkin_summary.get("触达率", 0) == 0
+                and checkin_summary.get("参与率", 0) == 0
+                and checkin_summary.get("打卡率", 0) == 0
+            )
+
+            # 检测 LTV 是否可用
+            ltv_data = analysis_result.get("ltv", {})
+            is_ltv_unavailable = not ltv_data.get("available", False)
+
+            # 显示质量提示
+            quality_indicators = []
+            if is_checkin_empty:
+                quality_indicators.append(f"🔸 打卡率: {t('ui', 'data_quality_unavailable', lang)}")
+            if is_ltv_unavailable:
+                quality_indicators.append(f"🔸 LTV: {t('ui', 'data_quality_estimated', lang)}")
+
+            if quality_indicators:
+                for indicator in quality_indicators:
+                    st.info(indicator)
+            else:
+                st.success(f"✅ 全部数据源已接入")
 
             # 关键指标卡片 — 2×2 布局避免截断
             paid_data = summary.get("付费", {})
@@ -796,6 +910,70 @@ def main():
                 st.progress(max(time_pct, 0.0))
 
             st.divider()
+
+            # 异常预警（在数据概览之后，整体进度表之前）
+            if role in ["ops", "exec"]:
+                st.subheader(f"⚠️ {t('ui', 'anomaly_alert', lang)}")
+                anomalies = analysis_result.get("anomalies", [])
+
+                if not anomalies:
+                    st.success(f"✅ {t('ui', 'anomaly_none', lang)}")
+                else:
+                    # 按严重级别分组
+                    high_severity = [a for a in anomalies if a.get("severity") == "高"]
+                    mid_severity = [a for a in anomalies if a.get("severity") == "中"]
+
+                    # 显示高严重度异常（st.error）
+                    if high_severity:
+                        for anomaly in high_severity:
+                            anomaly_type = anomaly.get("type", "")
+                            metric = anomaly.get("metric", "")
+                            value = anomaly.get("value", 0)
+                            suggestion = anomaly.get("建议", "")
+
+                            st.error(f"**{anomaly_type}** - {metric}: {value:.1f}")
+
+                            # 详细信息折叠
+                            with st.expander(t('ui', 'anomaly_details', lang)):
+                                if "person" in anomaly:
+                                    st.write(f"**{t('ui', 'anomaly_metric', lang)}**: {anomaly.get('person')} - {metric}")
+                                    st.write(f"**{t('ui', 'anomaly_current', lang)}**: {value:.1f}")
+                                    st.write(f"**{t('ui', 'anomaly_team_avg', lang)}**: {anomaly.get('threshold', 0):.1f}")
+                                elif "channel" in anomaly:
+                                    st.write(f"**{t('ui', 'col_channel', lang)}**: {anomaly.get('channel')}")
+                                    st.write(f"**{t('ui', 'anomaly_metric', lang)}**: {metric}")
+                                    st.write(f"**{t('ui', 'anomaly_current', lang)}**: {value:.1f}")
+                                    if "mom_change" in anomaly:
+                                        st.write(f"**环比变化**: {anomaly.get('mom_change', 0)*100:.1f}%")
+
+                                st.write(f"**{t('ui', 'anomaly_suggestion', lang)}**: {suggestion}")
+
+                    # 显示中等严重度异常（st.warning）
+                    if mid_severity:
+                        for anomaly in mid_severity:
+                            anomaly_type = anomaly.get("type", "")
+                            metric = anomaly.get("metric", "")
+                            value = anomaly.get("value", 0)
+                            suggestion = anomaly.get("建议", "")
+
+                            st.warning(f"**{anomaly_type}** - {metric}: {value:.1f}")
+
+                            # 详细信息折叠
+                            with st.expander(t('ui', 'anomaly_details', lang)):
+                                if "person" in anomaly:
+                                    st.write(f"**{t('ui', 'anomaly_metric', lang)}**: {anomaly.get('person')} - {metric}")
+                                    st.write(f"**{t('ui', 'anomaly_current', lang)}**: {value:.1f}")
+                                    st.write(f"**{t('ui', 'anomaly_team_avg', lang)}**: {anomaly.get('threshold', 0):.1f}")
+                                elif "channel" in anomaly:
+                                    st.write(f"**{t('ui', 'col_channel', lang)}**: {anomaly.get('channel')}")
+                                    st.write(f"**{t('ui', 'anomaly_metric', lang)}**: {metric}")
+                                    st.write(f"**{t('ui', 'anomaly_current', lang)}**: {value:.1f}")
+                                    if "mom_change" in anomaly:
+                                        st.write(f"**环比变化**: {anomaly.get('mom_change', 0)*100:.1f}%")
+
+                                st.write(f"**{t('ui', 'anomaly_suggestion', lang)}**: {suggestion}")
+
+                st.divider()
 
             # 整体进度表
             st.subheader(t('ui', 'header_progress', lang))
