@@ -5,6 +5,7 @@ import streamlit as st
 import sys
 from pathlib import Path
 from datetime import datetime, timedelta
+from dateutil.relativedelta import relativedelta
 import json
 import re
 import altair as alt
@@ -13,11 +14,11 @@ import altair as alt
 BASE_DIR = Path(__file__).resolve().parent
 sys.path.insert(0, str(BASE_DIR))
 
-from src.data_processor import XlsxReader, DataProcessor
+from src.data_processor import XlsxReader, DataProcessor, validate_data_format
 from src.analysis_engine import AnalysisEngine
 from src.md_report_generator import MarkdownReportGenerator
 from src.multi_source_loader import MultiSourceLoader
-from src.config import get_targets, MONTHLY_TARGETS
+from src.config import get_targets, MONTHLY_TARGETS, format_currency
 from src.i18n import t
 
 # 数据源注册表
@@ -52,13 +53,9 @@ OUTPUT_DIR = BASE_DIR / "output"
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
 
-def format_amount(usd_value: float, rate: float = 32.0) -> str:
-    """格式化金额为 THB(USD) 格式"""
-    thb = usd_value * rate
-    if abs(usd_value) >= 1000:
-        return f"{thb:,.0f}THB({usd_value:,.0f}USD)"
-    else:
-        return f"{thb:,.1f}THB({usd_value:,.1f}USD)"
+# format_amount 已废弃，使用 config.format_currency() 替代
+# 保留别名以兼容旧代码
+format_amount = format_currency
 
 
 def load_panel_config() -> dict:
@@ -280,22 +277,74 @@ def _render_flowchart(code: str):
 
 def main():
     """主应用"""
+    # 从配置文件加载语言偏好
+    saved_config = load_panel_config()
+    saved_lang = saved_config.get("lang", "zh")
+
     # 初始化 session_state
     if "lang" not in st.session_state:
-        st.session_state["lang"] = "zh"
+        st.session_state["lang"] = saved_lang
 
     # 语言切换（放在最上方）
     lang_options = {"🇨🇳 中文": "zh", "🇹🇭 ภาษาไทย": "th"}
+    # 根据 session_state 中的 lang 设置默认选项
+    default_index = 0 if st.session_state["lang"] == "zh" else 1
     selected_lang_label = st.radio(
         "",
         options=list(lang_options.keys()),
+        index=default_index,
         horizontal=True,
         key="lang_switcher"
     )
     lang = lang_options[selected_lang_label]
-    st.session_state["lang"] = lang
+
+    # 如果语言发生变化，保存到配置文件
+    if lang != st.session_state["lang"]:
+        st.session_state["lang"] = lang
+        config_to_save = load_panel_config()
+        config_to_save["lang"] = lang
+        save_panel_config(config_to_save)
+
+    # 角色选择器（语言切换后）
+    saved_role = saved_config.get("role", "ops")
+    if "role" not in st.session_state:
+        st.session_state["role"] = saved_role
+
+    role_options = {
+        f"👥 {t('ui', 'role_ops', lang)}": "ops",
+        f"👔 {t('ui', 'role_exec', lang)}": "exec",
+        f"💰 {t('ui', 'role_finance', lang)}": "finance"
+    }
+    role_index = list(role_options.values()).index(st.session_state["role"])
+    selected_role_label = st.radio(
+        "",
+        options=list(role_options.keys()),
+        index=role_index,
+        horizontal=True,
+        key="role_switcher"
+    )
+    role = role_options[selected_role_label]
+
+    # 如果角色发生变化，保存到 session_state 和配置文件
+    if role != st.session_state["role"]:
+        st.session_state["role"] = role
+        config_to_save = load_panel_config()
+        config_to_save["role"] = role
+        save_panel_config(config_to_save)
 
     st.title(f"{t('ui', 'app_icon', lang)} 51Talk {t('ui', 'app_title', lang)}")
+
+    # 快速入门引导（首次使用检测）
+    is_first_time = not PANEL_CONFIG_FILE.exists()
+    if is_first_time:
+        with st.expander(f"🚀 {t('ui', 'welcome_title', lang)}", expanded=True):
+            st.markdown(f"**{t('ui', 'welcome_subtitle', lang)}**")
+            st.markdown(f"**{t('ui', 'guide_step1', lang)}**")
+            st.info(t('ui', 'guide_step1_desc', lang))
+            st.markdown(f"**{t('ui', 'guide_step2', lang)}**")
+            st.info(t('ui', 'guide_step2_desc', lang))
+            st.markdown(f"**{t('ui', 'guide_step3', lang)}**")
+            st.info(t('ui', 'guide_step3_desc', lang))
 
     # 加载上次配置
     saved_config = load_panel_config()
@@ -321,7 +370,7 @@ def main():
         st.divider()
 
         # 汇率配置
-        st.header("💱 汇率设置" if lang == "zh" else "การตั้งค่าอัตราแลกเปลี่ยน")
+        st.header(f"💱 {t('ui', 'sidebar_exchange_rate', lang)}")
         usd_thb_rate = st.number_input(
             "USD → THB",
             min_value=1.0,
@@ -399,6 +448,24 @@ def main():
             index=month_options.index(default_month) if default_month in month_options else 0,
         )
 
+        # 对比月份选择
+        compare_options = [
+            t('ui', 'compare_none', lang),
+            t('ui', 'compare_last_month', lang),
+            t('ui', 'compare_yoy', lang),
+            t('ui', 'compare_custom', lang)
+        ]
+        compare_choice = st.selectbox(t('ui', 'compare_label', lang), compare_options, key="compare_month_selector")
+
+        # 自定义对比月份日期选择器
+        custom_compare_date = None
+        if compare_choice == t('ui', 'compare_custom', lang):
+            custom_compare_date = st.date_input(
+                t('ui', 'compare_custom_date', lang),
+                value=datetime.now() - relativedelta(months=1),
+                key="custom_compare_date_picker"
+            )
+
         # 获取该月份的默认目标
         month_targets = MONTHLY_TARGETS[selected_month]
 
@@ -420,6 +487,71 @@ def main():
             value=saved_config.get("output_path", str(OUTPUT_DIR)),
             help=t('ui', 'help_output_path', lang),
         )
+
+        st.divider()
+
+        # 通知配置
+        st.header(f"🔔 {t('ui', 'notify_title', lang)}")
+        with st.expander(t('ui', 'notify_settings', lang), expanded=False):
+            # 邮件通知配置
+            st.subheader(t('ui', 'notify_email_section', lang))
+            email_enabled = st.checkbox(
+                t('ui', 'notify_email_enabled', lang),
+                value=False,
+                key="email_enabled"
+            )
+            if email_enabled:
+                email_smtp_host = st.text_input(t('ui', 'notify_email_smtp_host', lang), value="smtp.gmail.com")
+                email_smtp_port = st.number_input(t('ui', 'notify_email_smtp_port', lang), value=587, step=1)
+                email_from = st.text_input(t('ui', 'notify_email_from', lang), value="")
+                email_to = st.text_input(t('ui', 'notify_email_to', lang), value="", help=t('ui', 'help_email_to', lang))
+                email_cred_file = st.text_input(t('ui', 'notify_email_cred_file', lang), value="key/email.json")
+
+            st.divider()
+
+            # LINE 通知配置
+            st.subheader(t('ui', 'notify_line_section', lang))
+            line_enabled = st.checkbox(
+                t('ui', 'notify_line_enabled', lang),
+                value=False,
+                key="line_enabled"
+            )
+            if line_enabled:
+                line_token = st.text_input(t('ui', 'notify_line_token', lang), value="", type="password")
+                line_cred_file = st.text_input(t('ui', 'notify_line_cred_file', lang), value="key/notify.json")
+
+            st.divider()
+
+            # 测试通知按钮
+            if st.button(t('ui', 'btn_test_notify', lang), use_container_width=True):
+                notify_config_to_save = {
+                    "email": {
+                        "enabled": email_enabled if email_enabled else False,
+                        "smtp_host": email_smtp_host if email_enabled else "smtp.gmail.com",
+                        "smtp_port": email_smtp_port if email_enabled else 587,
+                        "from": email_from if email_enabled else "",
+                        "to": email_to.split(',') if email_enabled and email_to else [],
+                        "credentials_file": email_cred_file if email_enabled else "key/email.json",
+                    },
+                    "line": {
+                        "enabled": line_enabled if line_enabled else False,
+                        "token": line_token if line_enabled and line_token else "",
+                        "credentials_file": line_cred_file if line_enabled else "key/notify.json",
+                    }
+                }
+                # 保存通知配置
+                notify_config_path = CONFIG_DIR / "notify.json"
+                with open(notify_config_path, 'w', encoding='utf-8') as f:
+                    json.dump(notify_config_to_save, f, indent=2, ensure_ascii=False)
+
+                # 发送测试通知
+                try:
+                    from src.notifier import Notifier
+                    notifier = Notifier(str(notify_config_path))
+                    notifier.send("test_report.md", [])
+                    st.success(t('ui', 'msg_test_notify_success', lang))
+                except Exception as e:
+                    st.warning(f"{t('ui', 'msg_test_notify_failed', lang)}: {str(e)}")
 
         st.divider()
 
@@ -479,14 +611,24 @@ def main():
             try:
                 # 1. 读取Excel
                 reader = XlsxReader(data_file_path)
+
+                # 2. 校验数据格式
+                is_valid, validation_errors = validate_data_format(reader, lang)
+                if not is_valid:
+                    st.error(f"**{t('validation', 'error_title', lang)}**")
+                    for error in validation_errors:
+                        st.error(f"• {error}")
+                    return
+
+                # 3. 处理数据
                 processor = DataProcessor(reader)
                 processor.process()
 
-                # 2. 加载多数据源
+                # 4. 加载多数据源
                 multi_loader = MultiSourceLoader(input_dir)
                 multi_source_data = multi_loader.load_all()
 
-                # 3. 分析数据
+                # 5. 分析数据
                 engine = AnalysisEngine(processor)
 
                 # 获取完整目标配置（包含时间进度）
@@ -496,7 +638,7 @@ def main():
 
                 analysis_result = engine.analyze(full_targets, report_date_dt, multi_source_data)
 
-                # 4. 生成报告（传递语言参数）
+                # 6. 生成报告（传递语言参数）
                 generator = MarkdownReportGenerator(analysis_result, Path(output_path), lang=lang)
                 report_paths = generator.generate_both()
 
@@ -509,6 +651,7 @@ def main():
                 # 保存分析结果到session_state
                 st.session_state['analysis_result'] = analysis_result
                 st.session_state['report_paths'] = report_paths
+                st.session_state['processor'] = processor
 
             except Exception as e:
                 st.error(f"{t('ui', 'msg_error', lang)}: {str(e)}")
@@ -521,19 +664,73 @@ def main():
         analysis_result = st.session_state['analysis_result']
         report_paths = st.session_state['report_paths']
 
-        tabs = st.tabs([
-            t('ui', 'tab_overview', lang),
-            t('ui', 'tab_ops', lang),
-            t('ui', 'tab_exec', lang),
-            t('ui', 'tab_history', lang)
-        ])
+        # 根据角色过滤 Tab
+        tab_config = []
+        if role == "ops":
+            # 运营角色: 全量数据
+            tab_config = [
+                ("overview", t('ui', 'tab_overview', lang)),
+                ("ops", t('ui', 'tab_ops', lang)),
+                ("exec", t('ui', 'tab_exec', lang)),
+                ("history", t('ui', 'tab_history', lang))
+            ]
+        elif role == "exec":
+            # 管理层角色: 管理层版报告 + 汇总数据
+            tab_config = [
+                ("overview", t('ui', 'tab_overview', lang)),
+                ("exec", t('ui', 'tab_exec', lang)),
+                ("history", t('ui', 'tab_history', lang))
+            ]
+        elif role == "finance":
+            # 财务角色: ROI + 金额相关章节
+            tab_config = [
+                ("overview", t('ui', 'tab_overview', lang)),
+                ("history", t('ui', 'tab_history', lang))
+            ]
 
-        # Tab 1: 数据概览
-        with tabs[0]:
-            st.header(t('ui', 'header_data_overview', lang))
+        tab_labels = [label for _, label in tab_config]
+        tabs = st.tabs(tab_labels)
 
-            summary = analysis_result.get("summary", {})
-            meta = analysis_result.get("meta", {})
+        # 构建 Tab 索引映射
+        tab_index_map = {tab_id: idx for idx, (tab_id, _) in enumerate(tab_config)}
+
+        # Tab: 数据概览
+        if "overview" in tab_index_map:
+            with tabs[tab_index_map["overview"]]:
+                st.header(t('ui', 'header_data_overview', lang))
+
+                summary = analysis_result.get("summary", {})
+                meta = analysis_result.get("meta", {})
+
+            # 计算对比月份
+            compare_month_key = None
+            compare_summary = None
+            if 'processor' in st.session_state and compare_choice != t('ui', 'compare_none', lang):
+                processor = st.session_state['processor']
+                monthly_summaries = processor.get_monthly_summaries()
+
+                # 当前月份 key
+                current_month_key = selected_month
+                current_date = datetime.strptime(current_month_key, "%Y%m")
+
+                if compare_choice == t('ui', 'compare_last_month', lang):
+                    # 上月
+                    compare_date = current_date - relativedelta(months=1)
+                    compare_month_key = compare_date.strftime("%Y%m")
+                elif compare_choice == t('ui', 'compare_yoy', lang):
+                    # 去年同期
+                    compare_date = current_date - relativedelta(years=1)
+                    compare_month_key = compare_date.strftime("%Y%m")
+                elif compare_choice == t('ui', 'compare_custom', lang) and custom_compare_date:
+                    # 自定义月份
+                    compare_month_key = custom_compare_date.strftime("%Y%m")
+
+                # 获取对比月数据
+                if compare_month_key and compare_month_key in monthly_summaries:
+                    compare_summary = monthly_summaries[compare_month_key]
+                elif compare_month_key:
+                    # 对比月数据不存在
+                    st.info(f"{t('ui', 'compare_no_data', lang)} ({compare_month_key})")
 
             # 显示已加载的数据源数量
             multi_sources_count = len(analysis_result.get("multi_source_data", {}))
@@ -546,13 +743,22 @@ def main():
             conv_data = summary.get("转化率", {})
             time_progress = analysis_result.get("time_progress", 0.0)
 
+            # 计算对比差值
+            paid_delta = None
+            amount_delta = None
+            conv_delta = None
+            if compare_summary:
+                paid_delta = paid_data.get('actual', 0) - compare_summary.get("付费", 0)
+                amount_delta = amount_data.get('actual', 0) - compare_summary.get("金额", 0)
+                conv_delta = (conv_data.get('actual', 0) - compare_summary.get("转化率", 0)) * 100
+
             row1_col1, row1_col2 = st.columns(2)
             with row1_col1:
                 st.metric(
                     t('ui', 'metric_paid_progress', lang),
                     f"{paid_data.get('actual', 0):.0f} / {paid_data.get('target', 0):.0f}",
-                    f"{paid_data.get('efficiency_progress', 0)*100:.1f}%",
-                    delta_color="normal" if paid_data.get('gap', 0) > 0 else "inverse",
+                    delta=f"{paid_delta:+.0f}" if paid_delta is not None else f"{paid_data.get('efficiency_progress', 0)*100:.1f}%",
+                    delta_color="normal" if (paid_delta or 0) >= 0 else "inverse" if paid_delta is not None else ("normal" if paid_data.get('gap', 0) > 0 else "inverse"),
                 )
                 paid_pct = min(paid_data.get('efficiency_progress', 0), 1.0)
                 st.progress(max(paid_pct, 0.0))
@@ -563,8 +769,8 @@ def main():
                 st.metric(
                     t('ui', 'metric_amount_progress', lang),
                     format_amount(amt_actual, usd_thb_rate),
-                    f"{'目标' if lang=='zh' else 'เป้า'} {format_amount(amt_target, usd_thb_rate)}",
-                    delta_color="normal" if amount_data.get('gap', 0) > 0 else "inverse",
+                    delta=format_amount(amount_delta, usd_thb_rate) if amount_delta is not None else f"{'目标' if lang=='zh' else 'เป้า'} {format_amount(amt_target, usd_thb_rate)}",
+                    delta_color="normal" if (amount_delta or 0) >= 0 else "inverse" if amount_delta is not None else ("normal" if amount_data.get('gap', 0) > 0 else "inverse"),
                 )
                 amt_pct = min(amount_data.get('efficiency_progress', 0), 1.0)
                 st.progress(max(amt_pct, 0.0))
@@ -574,8 +780,8 @@ def main():
                 st.metric(
                     t('ui', 'metric_conv_rate', lang),
                     f"{conv_data.get('actual', 0)*100:.1f}% / {conv_data.get('target', 0)*100:.0f}%",
-                    f"{conv_data.get('gap', 0)*100:.1f}%",
-                    delta_color="normal" if conv_data.get('gap', 0) > 0 else "inverse",
+                    delta=f"{conv_delta:+.1f}%" if conv_delta is not None else f"{conv_data.get('gap', 0)*100:.1f}%",
+                    delta_color="normal" if (conv_delta or 0) >= 0 else "inverse" if conv_delta is not None else ("normal" if conv_data.get('gap', 0) > 0 else "inverse"),
                 )
                 conv_pct = min(conv_data.get('actual', 0) / max(conv_data.get('target', 1), 0.001), 1.0)
                 st.progress(max(conv_pct, 0.0))
@@ -584,7 +790,7 @@ def main():
                 st.metric(
                     t('ui', 'metric_time_progress', lang),
                     f"{time_progress*100:.1f}%",
-                    f"{meta.get('current_day', 0)}/{meta.get('days_in_month', 28)} {'天' if lang=='zh' else 'วัน'}",
+                    f"{meta.get('current_day', 0)}/{meta.get('days_in_month', 28)} {t('ui', 'label_days', lang)}",
                 )
                 time_pct = min(time_progress, 1.0)
                 st.progress(max(time_pct, 0.0))
@@ -595,6 +801,10 @@ def main():
             st.subheader(t('ui', 'header_progress', lang))
             progress_data = []
             for name, data in summary.items():
+                # 财务角色仅显示金额、付费、转化率相关指标
+                if role == "finance" and name not in ["金额", "付费", "转化率"]:
+                    continue
+
                 actual = data.get("actual", 0)
                 target = data.get("target", 0)
                 # 转化率是 0~1 比率，需要转为百分比显示
@@ -620,106 +830,191 @@ def main():
 
             st.divider()
 
-            # 风险预警
-            st.subheader(t('ui', 'header_risk', lang))
-            alerts = analysis_result.get("risk_alerts", [])
-            if alerts:
-                for alert in alerts:
-                    st.warning(f"**{alert.get('风险项')}** ({alert.get('级别')}): {alert.get('量化影响')}")
-            else:
-                st.success(t('ui', 'no_risk', lang))
+            # 风险预警（财务角色不显示）
+            if role in ["ops", "exec"]:
+                st.subheader(t('ui', 'header_risk', lang))
+                alerts = analysis_result.get("risk_alerts", [])
+                if alerts:
+                    for alert in alerts:
+                        st.warning(f"**{alert.get('风险项')}** ({alert.get('级别')}): {alert.get('量化影响')}")
+                else:
+                    st.success(t('ui', 'no_risk', lang))
 
-            st.divider()
+                st.divider()
 
             # 渠道对比
             st.subheader(t('ui', 'header_channel', lang))
             channel_comparison = analysis_result.get("channel_comparison", {})
             channel_data = []
             for channel_name, data in channel_comparison.items():
-                channel_data.append({
-                    t('ui', 'col_channel', lang): channel_name,
-                    t('ui', 'col_reg', lang): data.get("注册", 0),
-                    t('ui', 'col_paid', lang): data.get("付费", 0),
-                    t('ui', 'col_amount', lang): format_amount(data.get('金额', 0), usd_thb_rate),
-                    t('ui', 'col_efficiency', lang): f"{data.get('效能指数', 0.0):.2f}×",
-                    t('ui', 'col_gap_progress', lang): f"{data.get('目标缺口', 0.0)*100:.1f}%",
-                })
+                # 财务角色仅显示金额、付费列
+                if role == "finance":
+                    channel_data.append({
+                        t('ui', 'col_channel', lang): channel_name,
+                        t('ui', 'col_paid', lang): data.get("付费", 0),
+                        t('ui', 'col_amount', lang): format_amount(data.get('金额', 0), usd_thb_rate),
+                    })
+                else:
+                    channel_data.append({
+                        t('ui', 'col_channel', lang): channel_name,
+                        t('ui', 'col_reg', lang): data.get("注册", 0),
+                        t('ui', 'col_paid', lang): data.get("付费", 0),
+                        t('ui', 'col_amount', lang): format_amount(data.get('金额', 0), usd_thb_rate),
+                        t('ui', 'col_efficiency', lang): f"{data.get('效能指数', 0.0):.2f}×",
+                        t('ui', 'col_gap_progress', lang): f"{data.get('目标缺口', 0.0)*100:.1f}%",
+                    })
 
             st.dataframe(channel_data, use_container_width=True)
 
-        # Tab 2: 运营版预览
-        with tabs[1]:
-            st.header(t('ui', 'header_ops_preview', lang))
+        # Tab: 运营版预览
+        if "ops" in tab_index_map:
+            with tabs[tab_index_map["ops"]]:
+                st.header(t('ui', 'header_ops_preview', lang))
 
-            if report_paths['ops'].exists():
-                with open(report_paths['ops'], 'r', encoding='utf-8') as f:
-                    ops_content = f.read()
+                if report_paths['ops'].exists():
+                    with open(report_paths['ops'], 'r', encoding='utf-8') as f:
+                        ops_content = f.read()
 
-                render_markdown_with_charts(ops_content)
+                    render_markdown_with_charts(ops_content)
 
-                # 下载按钮
-                st.download_button(
-                    label=t('ui', 'btn_download_ops', lang),
-                    data=ops_content,
-                    file_name=report_paths['ops'].name,
-                    mime="text/markdown",
-                )
-            else:
-                st.warning(t('ui', 'warn_ops_not_found', lang))
-
-        # Tab 3: 管理层版预览
-        with tabs[2]:
-            st.header(t('ui', 'header_exec_preview', lang))
-
-            if report_paths['exec'].exists():
-                with open(report_paths['exec'], 'r', encoding='utf-8') as f:
-                    exec_content = f.read()
-
-                render_markdown_with_charts(exec_content)
-
-                # 下载按钮
-                st.download_button(
-                    label=t('ui', 'btn_download_exec', lang),
-                    data=exec_content,
-                    file_name=report_paths['exec'].name,
-                    mime="text/markdown",
-                )
-            else:
-                st.warning(t('ui', 'warn_exec_not_found', lang))
-
-        # Tab 4: 历史报告
-        with tabs[3]:
-            st.header(t('ui', 'header_history', lang))
-
-            output_dir_path = Path(output_path)
-            if output_dir_path.exists():
-                # 列出所有.md文件
-                md_files = sorted(output_dir_path.glob("*.md"), key=lambda x: x.stat().st_mtime, reverse=True)
-
-                if md_files:
-                    st.write(t('ui', 'msg_history_count', lang).format(len(md_files)))
-
-                    for md_file in md_files:
-                        col1, col2, col3 = st.columns([3, 1, 1])
-                        with col1:
-                            st.text(md_file.name)
-                        with col2:
-                            mod_time = datetime.fromtimestamp(md_file.stat().st_mtime)
-                            st.text(mod_time.strftime("%Y-%m-%d %H:%M"))
-                        with col3:
-                            with open(md_file, 'r', encoding='utf-8') as f:
-                                content = f.read()
-                            st.download_button(
-                                label=t('ui', 'download', lang),
-                                data=content,
-                                file_name=md_file.name,
-                                mime="text/markdown",
-                                key=md_file.name,
-                            )
+                    # 下载按钮
+                    st.download_button(
+                        label=t('ui', 'btn_download_ops', lang),
+                        data=ops_content,
+                        file_name=report_paths['ops'].name,
+                        mime="text/markdown",
+                    )
                 else:
-                    st.info(t('ui', 'msg_no_history', lang))
-            else:
-                st.warning(f"{t('ui', 'warn_output_dir_not_exist', lang)}: {output_path}")
+                    st.warning(t('ui', 'warn_ops_not_found', lang))
+
+        # Tab: 管理层版预览
+        if "exec" in tab_index_map:
+            with tabs[tab_index_map["exec"]]:
+                st.header(t('ui', 'header_exec_preview', lang))
+
+                if report_paths['exec'].exists():
+                    with open(report_paths['exec'], 'r', encoding='utf-8') as f:
+                        exec_content = f.read()
+
+                    render_markdown_with_charts(exec_content)
+
+                    # 下载按钮
+                    st.download_button(
+                        label=t('ui', 'btn_download_exec', lang),
+                        data=exec_content,
+                        file_name=report_paths['exec'].name,
+                        mime="text/markdown",
+                    )
+                else:
+                    st.warning(t('ui', 'warn_exec_not_found', lang))
+
+        # Tab: 历史报告
+        if "history" in tab_index_map:
+            with tabs[tab_index_map["history"]]:
+                st.header(t('ui', 'header_history', lang))
+
+                # 调度历史查看器
+                with st.expander(f"📅 {t('ui', 'schedule_log_title', lang)}", expanded=False):
+                    schedule_log_path = BASE_DIR / "logs" / "schedule.log"
+                    if schedule_log_path.exists():
+                        # 读取日志文件（JSON Lines 格式）
+                        log_entries = []
+                        try:
+                            with open(schedule_log_path, 'r', encoding='utf-8') as f:
+                                for line in f:
+                                    try:
+                                        log_entries.append(json.loads(line.strip()))
+                                    except json.JSONDecodeError:
+                                        pass
+                        except Exception as e:
+                            st.error(f"{t('ui', 'schedule_log_error', lang)}: {str(e)}")
+
+                        if log_entries:
+                            # 状态筛选
+                            status_filter = st.radio(
+                                t('ui', 'schedule_log_filter', lang),
+                                options=[
+                                    t('ui', 'schedule_log_all', lang),
+                                    t('ui', 'schedule_log_success', lang),
+                                    t('ui', 'schedule_log_failed', lang)
+                                ],
+                                horizontal=True
+                            )
+
+                            # 根据筛选显示
+                            filtered = log_entries
+                            if status_filter == t('ui', 'schedule_log_success', lang):
+                                filtered = [e for e in log_entries if e.get("status") == "success"]
+                            elif status_filter == t('ui', 'schedule_log_failed', lang):
+                                filtered = [e for e in log_entries if e.get("status") == "failed"]
+
+                            # 反序显示（最新的在前）
+                            filtered.reverse()
+
+                            # 构建表格数据
+                            table_data = []
+                            for entry in filtered[:50]:  # 最多显示50条
+                                status_display = "✅" if entry.get("status") == "success" else "❌"
+                                table_data.append({
+                                    t('ui', 'schedule_log_col_time', lang): entry.get("timestamp", ""),
+                                    t('ui', 'schedule_log_col_status', lang): status_display,
+                                    t('ui', 'schedule_log_col_duration', lang): f"{entry.get('duration_ms', 0)}ms",
+                                    t('ui', 'schedule_log_col_report', lang): entry.get("report_path", "-"),
+                                    t('ui', 'schedule_log_col_error', lang): entry.get("error_msg", "-") if entry.get("status") == "failed" else "-"
+                                })
+
+                            st.dataframe(table_data, use_container_width=True)
+                            st.caption(f"{t('ui', 'schedule_log_showing', lang)}: {len(filtered)} / {len(log_entries)}")
+                        else:
+                            st.info(t('ui', 'schedule_log_empty', lang))
+                    else:
+                        st.info(t('ui', 'schedule_log_not_found', lang))
+
+                    # 下次执行时间（如果有配置）
+                    schedule_config_path = BASE_DIR / "config" / "schedule.json"
+                    if schedule_config_path.exists():
+                        try:
+                            with open(schedule_config_path, 'r', encoding='utf-8') as f:
+                                sched_cfg = json.load(f)
+                            if sched_cfg.get("enabled"):
+                                next_run = sched_cfg.get("cron", "09:00")
+                                st.info(f"{t('ui', 'schedule_next_run', lang)}: {next_run}")
+                        except Exception:
+                            pass
+
+                st.divider()
+
+                # 历史报告下载
+                st.subheader(t('ui', 'header_report_download', lang))
+                output_dir_path = Path(output_path)
+                if output_dir_path.exists():
+                    # 列出所有.md文件
+                    md_files = sorted(output_dir_path.glob("*.md"), key=lambda x: x.stat().st_mtime, reverse=True)
+
+                    if md_files:
+                        st.write(t('ui', 'msg_history_count', lang).format(len(md_files)))
+
+                        for md_file in md_files:
+                            col1, col2, col3 = st.columns([3, 1, 1])
+                            with col1:
+                                st.text(md_file.name)
+                            with col2:
+                                mod_time = datetime.fromtimestamp(md_file.stat().st_mtime)
+                                st.text(mod_time.strftime("%Y-%m-%d %H:%M"))
+                            with col3:
+                                with open(md_file, 'r', encoding='utf-8') as f:
+                                    content = f.read()
+                                st.download_button(
+                                    label=t('ui', 'download', lang),
+                                    data=content,
+                                    file_name=md_file.name,
+                                    mime="text/markdown",
+                                    key=md_file.name,
+                                )
+                    else:
+                        st.info(t('ui', 'msg_no_history', lang))
+                else:
+                    st.warning(f"{t('ui', 'warn_output_dir_not_exist', lang)}: {output_path}")
 
 
 if __name__ == "__main__":

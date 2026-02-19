@@ -3,15 +3,18 @@
 核心职责：接收分析结果字典，按模板生成两个版本的 .md 文件
 """
 from typing import Dict, List, Any
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 from .i18n import t
+from .config import format_currency
+import json
+import yaml
 
 
 class MarkdownReportGenerator:
     """Markdown 报告生成器"""
 
-    def __init__(self, analysis_result: Dict, output_dir: Path, lang: str = "zh"):
+    def __init__(self, analysis_result: Dict, output_dir: Path, lang: str = "zh", template_path: Path = None):
         self.result = analysis_result
         self.output_dir = Path(output_dir)
         self.output_dir.mkdir(parents=True, exist_ok=True)
@@ -26,10 +29,34 @@ class MarkdownReportGenerator:
         self.current_day = self.meta.get("current_day", 18)
         self.time_progress = analysis_result.get("time_progress", 0.0)
 
+        # 加载报告模板配置
+        self.template_config = self._load_template(template_path)
+
+    def _load_template(self, template_path: Path = None) -> Dict:
+        """加载报告模板配置"""
+        if template_path is None:
+            # 默认模板路径
+            base_dir = Path(__file__).parent.parent
+            template_path = base_dir / "config" / "report_template.yaml"
+
+        if not template_path.exists():
+            # 模板不存在时返回空配置（回退到硬编码章节）
+            return {}
+
+        try:
+            with open(template_path, 'r', encoding='utf-8') as f:
+                return yaml.safe_load(f)
+        except Exception:
+            return {}
+
     def generate_both(self) -> Dict[str, Path]:
         """生成运营版和管理层版两个报告"""
         ops_path = self.generate_ops_report()
         exec_path = self.generate_exec_report()
+
+        # 保存当前行动清单用于下次追踪
+        actions = self._extract_action_items()
+        self._save_action_tracker(actions)
 
         return {
             "ops": ops_path,
@@ -64,6 +91,11 @@ class MarkdownReportGenerator:
 
     def _build_ops_content(self) -> str:
         """构建运营版报告内容"""
+        # 如果有模板配置，使用模板；否则使用硬编码章节
+        if self.template_config and "ops_report" in self.template_config:
+            return self._build_from_template("ops_report")
+
+        # 回退：硬编码章节（向后兼容）
         parts = [
             self._ops_header(),
             self._ops_core_conclusion(),
@@ -84,9 +116,12 @@ class MarkdownReportGenerator:
             self._ops_unit_price_chart(),  # 新增 #7
             self._ops_order_analysis(),  # M4 Phase 2
             self._ops_trend_analysis(),  # M4 Phase 2
+            self._ops_attribution_analysis(),  # Task #8 归因分析
+            self._ops_prediction_analysis(),  # Task #8 预测展望
             self._ops_risk_alerts(),
             self._ops_risk_dashboard(),  # 新增 #3
             self._ops_action_list(),
+            self._generate_action_tracking_section(),  # M6 行动追踪
             self._ops_data_source(),
             self._ops_appendix(),
             self._ops_next_week(),
@@ -100,11 +135,18 @@ class MarkdownReportGenerator:
 
     def _build_exec_content(self) -> str:
         """构建管理层版报告内容"""
+        # 如果有模板配置，使用模板；否则使用硬编码章节
+        if self.template_config and "exec_report" in self.template_config:
+            return self._build_from_template("exec_report")
+
+        # 回退：硬编码章节（向后兼容）
         parts = [
             self._exec_header(),
             self._exec_summary(),
             self._exec_trend(),
             self._exec_risk_alerts(),
+            self._exec_attribution_analysis(),  # Task #8 归因分析
+            self._exec_prediction_summary(),  # Task #8 预测摘要
             self._exec_roi_allocation(),
             self._exec_efficiency_index_chart(),  # 新增 #6
             self._exec_cohort_analysis(),  # M4 Phase 2
@@ -119,9 +161,41 @@ class MarkdownReportGenerator:
             self._exec_key_numbers(),
             self._exec_next_month(),
             self._exec_decision_points(),
+            self._generate_exec_action_tracking(),  # M6 行动追踪
             self._exec_data_source(),
             self._exec_glossary(),
         ]
+
+        return "\n\n---\n\n".join(parts)
+
+    def _build_from_template(self, report_type: str) -> str:
+        """根据模板配置动态构建报告内容"""
+        config = self.template_config.get(report_type, {})
+        sections_config = config.get("sections", [])
+
+        # 按 order 排序
+        sections_config = sorted(sections_config, key=lambda x: x.get("order", 999))
+
+        parts = []
+        for section in sections_config:
+            # 跳过禁用的章节
+            if not section.get("enabled", True):
+                continue
+
+            method_name = section.get("method")
+            if not method_name:
+                continue
+
+            # 动态调用方法
+            if hasattr(self, method_name):
+                method = getattr(self, method_name)
+                try:
+                    content = method()
+                    if content:  # 过滤空内容
+                        parts.append(content)
+                except Exception:
+                    # 方法调用失败时跳过该章节
+                    pass
 
         return "\n\n---\n\n".join(parts)
 
@@ -741,13 +815,13 @@ xychart-beta
                 benchmark_text = f"""**{cc_id}** ({team})
 - 综合得分: **{composite:.1f}**
 - 付费数: {paid} (团队均值 {team_avg_paid:.1f}, 领先 **{paid_vs_avg:+.0f}%**)
-- 金额: ${amount:,} (团队均值 ${team_avg_amount:,.0f}, 领先 **{amount_vs_avg:+.0f}%**)
+- 金额: {format_currency(amount)} (团队均值 {format_currency(team_avg_amount)}, 领先 **{amount_vs_avg:+.0f}%**)
 - 转化率: {conv_rate*100:.1f}% (团队均值 {team_avg_conv*100:.1f}%, 领先 **{conv_vs_avg:+.0f}%**)"""
             else:
                 benchmark_text = f"""**{cc_id}** ({team})
 - คะแนนรวม: **{composite:.1f}**
 - ชำระ: {paid} (ค่าเฉลี่ยทีม {team_avg_paid:.1f}, นำหน้า **{paid_vs_avg:+.0f}%**)
-- ยอด: ${amount:,} (ค่าเฉลี่ยทีม ${team_avg_amount:,.0f}, นำหน้า **{amount_vs_avg:+.0f}%**)
+- ยอด: {format_currency(amount)} (ค่าเฉลี่ยทีม {format_currency(team_avg_amount)}, นำหน้า **{amount_vs_avg:+.0f}%**)
 - อัตราแปลง: {conv_rate*100:.1f}% (ค่าเฉลี่ยทีม {team_avg_conv*100:.1f}%, นำหน้า **{conv_vs_avg:+.0f}%**)"""
 
         # 待提升 CC 清单
@@ -826,7 +900,24 @@ xychart-beta
         attended_not_paid = self.result.get("attended_not_paid", {})
 
         if not attended_not_paid or attended_not_paid.get("total_count", 0) == 0:
-            return ""
+            # 无符合条件的数据，提示原因
+            if self.lang == "zh":
+                return """### 已出席未付费专项
+
+> **数据暂无**: 当前数据中无符合条件的记录（首次出席日期非空且首次付费日期为空）。可能原因：
+> - leads 明细表中相关字段未填写
+> - 当月所有出席用户均已付费（转化率 100%）
+
+请检查数据源的 O 列（首次出席日期）和 R 列（首次付费日期）字段完整性。"""
+            else:
+                return """### เข้าคลาสแล้วไม่ชำระ
+
+> **ไม่มีข้อมูล**: ไม่พบข้อมูลที่ตรงเงื่อนไข (วันแรกเข้าคลาสไม่ว่าง และ วันแรกชำระว่าง)
+> เหตุผลที่เป็นไปได้:
+> - ข้อมูล O และ R ในตาราง Leads ยังไม่กรอก
+> - ผู้เข้าคลาสทั้งหมดชำระแล้ว (อัตราแปลง 100%)
+
+โปรดตรวจสอบคอลัมน์ O (วันแรกเข้าคลาส) และ R (วันแรกชำระ) ในแหล่งข้อมูล"""
 
         total_count = attended_not_paid.get("total_count", 0)
         by_team = attended_not_paid.get("by_team", {})
@@ -994,58 +1085,83 @@ xychart-beta
 
     def _ops_roi_analysis(self) -> str:
         """运营版ROI分析"""
+        from .config import format_currency
         roi_data = self.result.get("roi_estimate", {})
 
         if self.lang == "zh":
-            section_title = "## 八、渠道 ROI 分析"
-            subsection1 = "### 4.1 成本数据收集状态"
-            subsection2 = "### 4.2 口径 ROI 预估（基于假设成本）"
+            section_title = "## 八、转介绍 ROI 真实成本分析"
+            subsection1 = "### 8.1 成本模型参数（业务 ROI 测算模版）"
+            subsection2 = "### 8.2 ROI 计算结果"
 
-            cost_table = """| 成本项 | 状态 | 备注 |
+            # 提取成本明细
+            cost_detail = roi_data.get("综合", {}).get("成本明细", {})
+            card_cost_per_unit = cost_detail.get("次卡单价", 1.31)
+            small_commission = cost_detail.get("小单佣金", 38)
+            large_commission = cost_detail.get("大单佣金", 68)
+
+            cost_table = f"""| 成本项 | 参数 | 备注 |
 |--------|------|------|
-| CC 人力成本 | 🟡 待补 | 需财务部门确认 |
-| 推荐人奖励成本 | 🟡 待补 | 需财务部门确认 |
-| TikTok 平台推广成本 | 🟡 待补 | 需财务部门确认 |"""
+| 次卡成本 | ${card_cost_per_unit}/张 | 业务部确认 |
+| 小单现金佣金 | ${small_commission}/人 | 订单 <$850 |
+| 大单现金佣金 | ${large_commission}/人 | 订单 ≥$850 |"""
 
-            action_note = "**立刻做**: 本周内找财务拿到实际成本，ROI 才算得准。"
-
-            roi_header = "| 口径 | 金额($) | 成本($) | ROI | 数据可信度 |"
-            formula_note = "**计算公式**: ROI = 金额 / 成本"
-            confidence_note = "**数据可信度**: 🟡 中（基于预估成本，等财务确认）"
+            roi_header = "| 指标 | 金额 | 说明 |"
+            formula_note = "**计算公式**: ROI = 转介绍收入 / (次卡成本 + 现金佣金成本)"
+            confidence_note = "**数据可信度**: 🟢 高（基于真实参数，成本=次卡+现金佣金）"
         else:
-            section_title = "## 4. วิเคราะห์ ROI ช่องทาง"
-            subsection1 = "### 4.1 สถานะเก็บข้อมูลต้นทุน"
-            subsection2 = "### 4.2 ROI ประมาณการ (ต้นทุนสมมติ)"
+            section_title = "## 8. วิเคราะห์ ROI ต้นทุนจริง"
+            subsection1 = "### 8.1 พารามิเตอร์ต้นทุน (จากเทมเพลต ROI)"
+            subsection2 = "### 8.2 ผลคำนวณ ROI"
 
-            cost_table = """| รายการต้นทุน | สถานะ | หมายเหตุ |
+            # 提取成本明细
+            cost_detail = roi_data.get("综合", {}).get("成本明细", {})
+            card_cost_per_unit = cost_detail.get("次卡单价", 1.31)
+            small_commission = cost_detail.get("小单佣金", 38)
+            large_commission = cost_detail.get("大单佣金", 68)
+
+            cost_table = f"""| รายการต้นทุน | พารามิเตอร์ | หมายเหตุ |
 |--------|------|------|
-| ต้นทุนบุคลากร CC | 🟡 รอเติม | รอฝ่ายการเงินยืนยัน |
-| ต้นทุนรางวัลผู้แนะนำ | 🟡 รอเติม | รอฝ่ายการเงินยืนยัน |
-| ต้นทุนโฆษณา TikTok | 🟡 รอเติม | รอฝ่ายการเงินยืนยัน |"""
+| ต้นทุนบัตร | ${card_cost_per_unit}/ใบ | ยืนยันจากธุรกิจ |
+| คอมมิชชั่นเงินสดรายการเล็ก | ${small_commission}/คน | ออเดอร์ <$850 |
+| คอมมิชชั่นเงินสดรายการใหญ่ | ${large_commission}/คน | ออเดอร์ ≥$850 |"""
 
-            action_note = "**ปฏิบัติทันที**: สัปดาห์นี้ติดต่อการเงินเอาต้นทุนจริง ROI จะแม่นยำ"
+            roi_header = "| ตัวชี้วัด | จำนวน | คำอธิบาย |"
+            formula_note = "**สูตรคำนวณ**: ROI = รายได้แนะนำ / (ต้นทุนบัตร + ต้นทุนคอมมิชชั่น)"
+            confidence_note = "**ความเชื่อมั่น**: 🟢 สูง (จากพารามิเตอร์จริง ต้นทุน=บัตร+คอมมิชชั่น)"
 
-            roi_header = "| ช่องทาง | ยอด($) | ต้นทุน($) | ROI | ความเชื่อมั่น |"
-            formula_note = "**สูตรคำนวณ**: ROI = ยอดเงิน / ต้นทุน"
-            confidence_note = "**ความเชื่อมั่น**: 🟡 ปานกลาง (ต้นทุนประมาณการ รอการเงินยืนยัน)"
+        # 提取综合数据
+        overall = roi_data.get("综合", {})
+        total_amount = overall.get("金额", 0)
+        total_cost = overall.get("总成本", 0)
+        card_cost = overall.get("次卡成本", 0)
+        cash_cost = overall.get("现金成本", 0)
+        total_roi = overall.get("ROI", 0.0)
+        card_roi = overall.get("次卡ROI", 0.0)
+        cash_roi = overall.get("现金ROI", 0.0)
+        confidence = overall.get("数据可信度", "")
 
-        rows = []
-        for channel, data in roi_data.items():
-            amount = data.get("金额", 0)
-            cost = data.get("成本", 0)
-            roi = data.get("ROI", 0.0)
-            confidence = data.get("数据可信度", "")
+        # 成本明细
+        cost_detail_data = overall.get("成本明细", {})
+        total_cards = cost_detail_data.get("次卡数", 0)
+        small_orders = cost_detail_data.get("小单数", 0)
+        large_orders = cost_detail_data.get("大单数", 0)
 
-            # 泰文渠道名
-            if self.lang == "th":
-                channel_map = {"CC窄口径": "CC ช่องแคบ", "SS窄口径": "SS ช่องแคบ", "其它": "ช่องกว้าง", "总体": "รวม"}
-                channel_display = channel_map.get(channel, channel)
-            else:
-                channel_display = channel
-
-            rows.append(f"| **{channel_display}** | {amount:,} | {cost:,} | **{roi:.1f}** | {confidence} |")
-
-        table = "\n".join(rows)
+        if self.lang == "zh":
+            result_table = f"""| **转介绍收入** | {format_currency(total_amount, False)} | 本月转介绍口径总金额 |
+| **次卡成本** | {format_currency(card_cost, False)} | {total_cards}张 × ${cost_detail_data.get('次卡单价', 1.31)}/张 |
+| **现金佣金成本** | {format_currency(cash_cost, False)} | 小单{small_orders}人 + 大单{large_orders}人 |
+| **总成本** | {format_currency(total_cost, False)} | 次卡 + 现金 |
+| **综合 ROI** | **{total_roi:.2f}×** | 每花$1赚${total_roi:.2f} |
+| **次卡 ROI** | {card_roi:.2f}× | 次卡投入产出比 |
+| **现金 ROI** | {cash_roi:.2f}× | 现金投入产出比 |"""
+        else:
+            result_table = f"""| **รายได้แนะนำ** | {format_currency(total_amount, False)} | ยอดรวมแนะนำเดือนนี้ |
+| **ต้นทุนบัตร** | {format_currency(card_cost, False)} | {total_cards}ใบ × ${cost_detail_data.get('次卡单价', 1.31)}/ใบ |
+| **ต้นทุนคอมมิชชั่น** | {format_currency(cash_cost, False)} | เล็ก{small_orders}คน + ใหญ่{large_orders}คน |
+| **ต้นทุนรวม** | {format_currency(total_cost, False)} | บัตร + คอมมิชชั่น |
+| **ROI รวม** | **{total_roi:.2f}×** | ลงทุน$1 ได้${total_roi:.2f} |
+| **ROI บัตร** | {card_roi:.2f}× | ผลตอบแทนบัตร |
+| **ROI เงินสด** | {cash_roi:.2f}× | ผลตอบแทนคอมมิชชั่น |"""
 
         return f"""{section_title}
 
@@ -1053,15 +1169,13 @@ xychart-beta
 
 {cost_table}
 
-{action_note}
-
 ---
 
 {subsection2}
 
 {roi_header}
-|------|--------:|--------:|----:|-----------|
-{table}
+|------|--------:|--------|
+{result_table}
 
 {formula_note}
 
@@ -1100,9 +1214,9 @@ pie title {pie_title}
 ```
 
 {analysis_title}
-- {cc_label}: ${cc_amount:,}（{cc_amount/total_amount*100 if total_amount>0 else 0:.1f}%）
-- {ss_label}: ${ss_amount:,}（{ss_amount/total_amount*100 if total_amount>0 else 0:.1f}%）
-- {other_label}: ${other_amount:,}（{other_amount/total_amount*100 if total_amount>0 else 0:.1f}%）"""
+- {cc_label}: {format_currency(cc_amount)}（{cc_amount/total_amount*100 if total_amount>0 else 0:.1f}%）
+- {ss_label}: {format_currency(ss_amount)}（{ss_amount/total_amount*100 if total_amount>0 else 0:.1f}%）
+- {other_label}: {format_currency(other_amount)}（{other_amount/total_amount*100 if total_amount>0 else 0:.1f}%）"""
 
         return f"""{section_title}
 
@@ -1433,6 +1547,120 @@ xychart-beta
 {p1_row1}
 {p1_row2}"""
 
+    def _extract_action_items(self) -> List[Dict[str, str]]:
+        """从当前报告提取行动建议（P0/P1）"""
+        actions = []
+
+        # P0 行动
+        if self.lang == "zh":
+            actions.extend([
+                {"id": 1, "action": "分层触达已出席未付费用户", "priority": "P0", "status": "pending"},
+                {"id": 2, "action": "优化低质量开源渠道", "priority": "P0", "status": "pending"},
+            ])
+        else:
+            actions.extend([
+                {"id": 1, "action": "ติดตามผู้เข้าคลาสแบบแบ่งชั้น", "priority": "P0", "status": "pending"},
+                {"id": 2, "action": "ปรับปรุงช่องทางคุณภาพต่ำ", "priority": "P0", "status": "pending"},
+            ])
+
+        # P1 行动
+        if self.lang == "zh":
+            actions.extend([
+                {"id": 3, "action": "加速窄口开源", "priority": "P1", "status": "pending"},
+                {"id": 4, "action": "收集成本数据", "priority": "P1", "status": "pending"},
+            ])
+        else:
+            actions.extend([
+                {"id": 3, "action": "เร่งช่องแคบเพิ่ม", "priority": "P1", "status": "pending"},
+                {"id": 4, "action": "เก็บข้อมูลต้นทุน", "priority": "P1", "status": "pending"},
+            ])
+
+        return actions
+
+    def _save_action_tracker(self, actions: List[Dict[str, str]]) -> None:
+        """保存行动清单到 action_tracker.json"""
+        tracker_file = self.output_dir / "action_tracker.json"
+        tracker_data = {
+            "generated_date": self.report_date.strftime("%Y-%m-%d"),
+            "actions": actions
+        }
+
+        with open(tracker_file, 'w', encoding='utf-8') as f:
+            json.dump(tracker_data, f, ensure_ascii=False, indent=2)
+
+    def _load_previous_actions(self) -> Dict[str, Any]:
+        """读取上次的行动清单"""
+        tracker_file = self.output_dir / "action_tracker.json"
+
+        if not tracker_file.exists():
+            return None
+
+        try:
+            with open(tracker_file, 'r', encoding='utf-8') as f:
+                return json.load(f)
+        except Exception:
+            return None
+
+    def _generate_action_tracking_section(self) -> str:
+        """生成行动追踪章节"""
+        previous = self._load_previous_actions()
+
+        # 首次生成
+        if previous is None:
+            title = t("ui", "action_tracking_title", self.lang)
+            first_time_msg = t("ui", "action_first_time", self.lang)
+            return f"## {title}\n\n{first_time_msg}"
+
+        # 有历史记录
+        prev_date = previous.get("generated_date", "")
+        prev_actions = previous.get("actions", [])
+
+        if self.lang == "zh":
+            title = "## 历史行动追踪"
+            subtitle = f"### 上次报告行动执行情况（{prev_date}）"
+            table_header = "| # | 行动 | 优先级 | 状态 |"
+            status_pending = "⏳ 待执行"
+            status_completed = "✅ 已完成"
+            completion_text = "行动执行率"
+        else:
+            title = "## ติดตามแผนที่ผ่านมา"
+            subtitle = f"### สถานะแผนจากรายงานครั้งก่อน ({prev_date})"
+            table_header = "| # | แผน | ลำดับ | สถานะ |"
+            status_pending = "⏳ รอดำเนินการ"
+            status_completed = "✅ เสร็จแล้ว"
+            completion_text = "อัตราดำเนินการ"
+
+        # 构建表格
+        rows = []
+        completed_count = 0
+        for action in prev_actions:
+            action_id = action.get("id", "")
+            action_text = action.get("action", "")
+            priority = action.get("priority", "")
+            status = action.get("status", "pending")
+
+            if status == "completed":
+                completed_count += 1
+                status_display = status_completed
+            else:
+                status_display = status_pending
+
+            rows.append(f"| {action_id} | {action_text} | {priority} | {status_display} |")
+
+        table_content = "\n".join(rows)
+        total_count = len(prev_actions)
+        completion_rate = (completed_count / total_count * 100) if total_count > 0 else 0
+
+        return f"""{title}
+
+{subtitle}
+
+{table_header}
+|---|------|--------|------|
+{table_content}
+
+**{completion_text}**: {completed_count}/{total_count} ({completion_rate:.0f}%)"""
+
     def _ops_data_source(self) -> str:
         """运营版数据来源"""
         if self.lang == "zh":
@@ -1753,8 +1981,16 @@ xychart-beta
         team_ranking = checkin_data.get("team_ranking", [])
         insights = checkin_data.get("insights", [])
 
-        if not summary:
-            return ""
+        if not summary or all(v == 0 or v is None for v in summary.values()):
+            # 数据源缺失或全为0，提示用户
+            if self.lang == "zh":
+                return """## 五、转介绍参与行为分析（Check-in Analysis）
+
+> **数据暂无**: 当月转介绍打卡率数据源缺失或未更新，请检查数据源文件。"""
+            else:
+                return """## 5. วิเคราะห์พฤติกรรมการมีส่วนร่วม
+
+> **ไม่มีข้อมูล**: ไม่พบข้อมูลอัตราเช็คอินแนะนำ โปรดตรวจสอบแหล่งข้อมูล"""
 
         # 整体指标
         checkin_participation = (summary.get("打卡参与率") or 0.0)
@@ -2108,7 +2344,7 @@ xychart-beta
             amount = product.get("金额", 0)
 
             product_rows.append(
-                f"| {i} | {product_name} | {order_count} | ${amount:,.0f} |"
+                f"| {i} | {product_name} | {order_count} | {format_currency(amount)} |"
             )
 
         product_table = "\n".join(product_rows) if product_rows else ""
@@ -2122,7 +2358,7 @@ xychart-beta
             new_orders = team.get("新单数", 0)
 
             team_rows.append(
-                f"| {i} | {team_name} | {order_count} | ${amount:,.0f} | {new_orders} |"
+                f"| {i} | {team_name} | {order_count} | {format_currency(amount)} | {new_orders} |"
             )
 
         team_table = "\n".join(team_rows) if team_rows else ""
@@ -2149,9 +2385,9 @@ xychart-beta
             product_header = "| 排名 | 产品 | 订单数 | 金额 |"
             team_header = "| 排名 | 团队 | 订单数 | 金额 | 新单数 |"
             row_total_orders = f"| 总订单数 | {total_orders} |"
-            row_total_amount = f"| 总金额 | ${total_amount:,.0f} |"
+            row_total_amount = f"| 总金额 | {format_currency(total_amount)} |"
             row_ref_ratio = f"| 转介绍占比 | {ref_ratio*100:.1f}% ({ref_orders} 单) |"
-            row_avg_price = f"| 平均客单价 | ${avg_price:,.0f} |"
+            row_avg_price = f"| 平均客单价 | {format_currency(avg_price)} |"
         else:
             section_title = "## 8. วิเคราะห์รายละเอียดคำสั่งซื้อ"
             subsection1 = "### 8.1 สรุป"
@@ -2162,9 +2398,9 @@ xychart-beta
             product_header = "| อันดับ | สินค้า | จำนวน | ยอด |"
             team_header = "| อันดับ | ทีม | จำนวน | ยอด | ออเดอร์ใหม่ |"
             row_total_orders = f"| ทั้งหมด | {total_orders} |"
-            row_total_amount = f"| ยอดรวม | ${total_amount:,.0f} |"
+            row_total_amount = f"| ยอดรวม | {format_currency(total_amount)} |"
             row_ref_ratio = f"| สัดส่วนแนะนำ | {ref_ratio*100:.1f}% ({ref_orders} ออเดอร์) |"
-            row_avg_price = f"| เฉลี่ย | ${avg_price:,.0f} |"
+            row_avg_price = f"| เฉลี่ย | {format_currency(avg_price)} |"
 
         return f"""{section_title}
 
@@ -3057,6 +3293,33 @@ xychart-beta
 
 {quality}"""
 
+    def _generate_exec_action_tracking(self) -> str:
+        """管理层版行动追踪（汇总行）"""
+        previous = self._load_previous_actions()
+
+        # 首次生成
+        if previous is None:
+            return ""
+
+        # 有历史记录
+        prev_date = previous.get("generated_date", "")
+        prev_actions = previous.get("actions", [])
+
+        completed_count = sum(1 for a in prev_actions if a.get("status") == "completed")
+        total_count = len(prev_actions)
+        completion_rate = (completed_count / total_count * 100) if total_count > 0 else 0
+
+        if self.lang == "zh":
+            title = "## 行动执行追踪"
+            summary_text = f"上次报告（{prev_date}）行动执行率: **{completed_count}/{total_count} ({completion_rate:.0f}%)**"
+        else:
+            title = "## ติดตามการดำเนินการ"
+            summary_text = f"อัตราดำเนินการรายงานครั้งก่อน ({prev_date}): **{completed_count}/{total_count} ({completion_rate:.0f}%)**"
+
+        return f"""{title}
+
+{summary_text}"""
+
     def _exec_glossary(self) -> str:
         """管理层版术语白话化"""
         if self.lang == "zh":
@@ -3392,7 +3655,7 @@ xychart-beta
             amount = product.get("金额", 0)
 
             product_rows.append(
-                f"| {i} | {product_name} | ${amount:,.0f} |"
+                f"| {i} | {product_name} | {format_currency(amount)} |"
             )
 
         product_table = "\n".join(product_rows) if product_rows else ""
@@ -3430,9 +3693,9 @@ xychart-beta
 {summary_header}
 |------|-----|
 | 总订单 / ทั้งหมด | {total_orders} |
-| 总金额 / ยอดรวม | ${total_amount:,.0f} |
+| 总金额 / ยอดรวม | {format_currency(total_amount)} |
 | 转介绍占比 / สัดส่วนแนะนำ | {ref_ratio*100:.1f}% |
-| 平均客单价 / เฉลี่ย | ${avg_price:,.0f} |
+| 平均客单价 / เฉลี่ย | {format_currency(avg_price)} |
 
 ---
 
@@ -3492,6 +3755,302 @@ xychart-beta
 {insights_text}
 
 {recommendation}"""
+
+    def _ops_attribution_analysis(self) -> str:
+        """运营版归因分析"""
+        attribution = self.result.get("attribution", {})
+
+        if not attribution.get("available"):
+            return ""
+
+        if self.lang == "zh":
+            section_title = "## 九、归因分析：关键变量影响力"
+            subsection1 = "### 9.1 弹性系数分析"
+            insights_title = "### 9.2 业务洞察"
+            method_note = "**方法说明**: 基于历史数据，用最小二乘法计算自变量对因变量的影响系数"
+        else:
+            section_title = "## 9. วิเคราะห์การระบุสาเหตุ: อิทธิพลตัวแปรหลัก"
+            subsection1 = "### 9.1 วิเคราะห์สัมประสิทธิ์ความยืดหยุ่น"
+            insights_title = "### 9.2 ข้อมูลเชิงลึก"
+            method_note = "**คำอธิบายวิธีการ**: จากข้อมูลย้อนหลัง ใช้ least squares คำนวณผลกระทบตัวแปรอิสระต่อตัวแปรตาม"
+
+        # 弹性系数表格
+        elasticity_results = attribution.get("elasticity", [])
+        sample_size = attribution.get("sample_size", 0)
+
+        if self.lang == "zh":
+            table_header = "| 自变量 | 因变量 | 弹性系数 | 方向 | 业务解读 | 样本量 |"
+            table_sep = "|--------|--------|----------|------|----------|--------|"
+        else:
+            table_header = "| ตัวแปรอิสระ | ตัวแปรตาม | สัมประสิทธิ์ | ทิศทาง | การตีความ | ขนาดตัวอย่าง |"
+            table_sep = "|--------|--------|----------|------|----------|--------|"
+
+        table_rows = []
+        for item in elasticity_results:
+            x_var = item.get("x_var", "")
+            y_var = item.get("y_var", "")
+            coefficient = item.get("coefficient", 0.0)
+            direction = item.get("direction", "")
+            interpretation = item.get("interpretation", "")
+            item_sample = item.get("sample_size", sample_size)
+
+            # 泰文变量名映射
+            if self.lang == "th":
+                var_map = {
+                    "宽口占比": "สัดส่วนช่องกว้าง",
+                    "注册付费率": "อัตราลงทะเบียน→ชำระเงิน",
+                    "CC窄口径转化率": "อัตราแปลง CC ช่องแคบ",
+                    "负相关": "สหสัมพันธ์เชิงลบ",
+                    "正相关": "สหสัมพันธ์เชิงบวก"
+                }
+                x_var = var_map.get(x_var, x_var)
+                y_var = var_map.get(y_var, y_var)
+                direction = var_map.get(direction, direction)
+
+                # 泰文解读
+                if "下降" in interpretation:
+                    interpretation = interpretation.replace("下降", "ลดลง").replace("升高", "เพิ่มขึ้น").replace("pp", "pp")
+                elif "上升" in interpretation:
+                    interpretation = interpretation.replace("上升", "เพิ่มขึ้น").replace("升高", "เพิ่มขึ้น").replace("pp", "pp")
+
+            table_rows.append(
+                f"| {x_var} | {y_var} | {coefficient:.4f} | {direction} | {interpretation} | {item_sample} |"
+            )
+
+        table = "\n".join(table_rows) if table_rows else "暂无数据"
+
+        # 洞察列表
+        insights = attribution.get("insights", [])
+        if self.lang == "zh":
+            insights_text = "\n".join([f"- {insight}" for insight in insights])
+        else:
+            # 泰文洞察翻译
+            insights_th = []
+            for insight in insights:
+                # 简单替换关键词
+                insight_th = insight.replace("宽口", "ช่องกว้าง").replace("转化率", "อัตราแปลง")
+                insight_th = insight_th.replace("下降", "ลดลง").replace("提升", "เพิ่มขึ้น")
+                insight_th = insight_th.replace("建议", "แนะนำ").replace("可适当", "สามารถ")
+                insights_th.append(f"- {insight_th}")
+            insights_text = "\n".join(insights_th)
+
+        return f"""{section_title}
+
+{subsection1}
+
+{table_header}
+{table_sep}
+{table}
+
+{method_note}
+
+---
+
+{insights_title}
+
+{insights_text}"""
+
+    def _ops_prediction_analysis(self) -> str:
+        """运营版预测展望"""
+        prediction = self.result.get("prediction", {})
+
+        if not prediction.get("available"):
+            return ""
+
+        paid_pred = prediction.get("paid_prediction", {})
+        amount_pred = prediction.get("amount_prediction", {})
+        insights = prediction.get("insights", [])
+        method = prediction.get("method", "线性外推")
+        sample_size = prediction.get("sample_size", 0)
+
+        if self.lang == "zh":
+            section_title = "## 十、月末预测展望"
+            subsection1 = "### 10.1 付费数预测"
+            subsection2 = "### 10.2 金额预测"
+            insights_title = "### 10.3 关键洞察"
+            method_note = f"**预测方法**: {method}（基于过去 {sample_size} 个月数据）"
+        else:
+            section_title = "## 10. คาดการณ์สิ้นเดือน"
+            subsection1 = "### 10.1 คาดการณ์จำนวนชำระเงิน"
+            subsection2 = "### 10.2 คาดการณ์ยอดเงิน"
+            insights_title = "### 10.3 ข้อมูลเชิงลึกสำคัญ"
+            method_note = f"**วิธีคาดการณ์**: {method} (จากข้อมูล {sample_size} เดือนย้อนหลัง)"
+
+        # 付费数预测表格
+        if self.lang == "zh":
+            paid_table = f"""| 指标 | 数值 |
+|------|-----:|
+| 当前付费数 | {paid_pred.get('current', 0):,} |
+| 月度目标 | {paid_pred.get('target', 0):,} |
+| **预测月末值** | **{paid_pred.get('predicted_final', 0):,}** |
+| 乐观值 | {paid_pred.get('optimistic', 0):,} |
+| 悲观值 | {paid_pred.get('pessimistic', 0):,} |
+| 预测达成率 | **{paid_pred.get('achievement_rate', 0)*100:.1f}%** |
+| 置信度 | {paid_pred.get('confidence', '中')} |"""
+        else:
+            paid_table = f"""| ตัวชี้วัด | ค่า |
+|------|-----:|
+| จำนวนชำระปัจจุบัน | {paid_pred.get('current', 0):,} |
+| เป้าหมายเดือน | {paid_pred.get('target', 0):,} |
+| **คาดการณ์สิ้นเดือน** | **{paid_pred.get('predicted_final', 0):,}** |
+| ค่าในแง่ดี | {paid_pred.get('optimistic', 0):,} |
+| ค่าในแง่ร้าย | {paid_pred.get('pessimistic', 0):,} |
+| อัตราบรรลุคาดการณ์ | **{paid_pred.get('achievement_rate', 0)*100:.1f}%** |
+| ความเชื่อมั่น | {paid_pred.get('confidence', 'ปานกลาง')} |"""
+
+        # 金额预测表格
+        from .config import format_currency
+
+        if self.lang == "zh":
+            amount_table = f"""| 指标 | 金额 |
+|------|-----:|
+| 当前金额 | {format_currency(amount_pred.get('current', 0), False)} |
+| 月度目标 | {format_currency(amount_pred.get('target', 0), False)} |
+| **预测月末值** | **{format_currency(amount_pred.get('predicted_final', 0), False)}** |
+| 乐观值 | {format_currency(amount_pred.get('optimistic', 0), False)} |
+| 悲观值 | {format_currency(amount_pred.get('pessimistic', 0), False)} |
+| 预测达成率 | **{amount_pred.get('achievement_rate', 0)*100:.1f}%** |
+| 置信度 | {amount_pred.get('confidence', '中')} |"""
+        else:
+            amount_table = f"""| ตัวชี้วัด | จำนวนเงิน |
+|------|-----:|
+| ยอดปัจจุบัน | {format_currency(amount_pred.get('current', 0), False)} |
+| เป้าหมายเดือน | {format_currency(amount_pred.get('target', 0), False)} |
+| **คาดการณ์สิ้นเดือน** | **{format_currency(amount_pred.get('predicted_final', 0), False)}** |
+| ค่าในแง่ดี | {format_currency(amount_pred.get('optimistic', 0), False)} |
+| ค่าในแง่ร้าย | {format_currency(amount_pred.get('pessimistic', 0), False)} |
+| อัตราบรรลุคาดการณ์ | **{amount_pred.get('achievement_rate', 0)*100:.1f}%** |
+| ความเชื่อมั่น | {amount_pred.get('confidence', 'ปานกลาง')} |"""
+
+        # 洞察列表
+        if self.lang == "zh":
+            insights_text = "\n".join([f"- {insight}" for insight in insights])
+        else:
+            # 泰文洞察翻译
+            insights_th = []
+            for insight in insights:
+                insight_th = insight.replace("付费", "ชำระเงิน").replace("预测", "คาดการณ์")
+                insight_th = insight_th.replace("达成", "บรรลุ").replace("缺口", "ช่องว่าง")
+                insight_th = insight_th.replace("需", "ต้อง").replace("月末", "สิ้นเดือน")
+                insight_th = insight_th.replace("时间已过", "เวลาผ่านไป").replace("剩余", "เหลือ")
+                insights_th.append(f"- {insight_th}")
+            insights_text = "\n".join(insights_th)
+
+        return f"""{section_title}
+
+{subsection1}
+
+{paid_table}
+
+---
+
+{subsection2}
+
+{amount_table}
+
+{method_note}
+
+---
+
+{insights_title}
+
+{insights_text}"""
+
+    def _exec_attribution_analysis(self) -> str:
+        """管理层版归因分析（简化版）"""
+        attribution = self.result.get("attribution", {})
+
+        if not attribution.get("available"):
+            return ""
+
+        elasticity_results = attribution.get("elasticity", [])
+        insights = attribution.get("insights", [])
+
+        if not elasticity_results:
+            return ""
+
+        if self.lang == "zh":
+            section_title = "## 五、归因分析"
+            key_finding = "**关键发现**"
+        else:
+            section_title = "## 5. การระบุสาเหตุ"
+            key_finding = "**การค้นพบสำคัญ**"
+
+        # 只展示最重要的弹性系数（宽口占比 → 注册付费率）
+        key_elasticity = None
+        for item in elasticity_results:
+            if item.get("x_var") == "宽口占比" and item.get("y_var") == "注册付费率":
+                key_elasticity = item
+                break
+
+        if not key_elasticity:
+            return ""
+
+        coefficient = key_elasticity.get("coefficient", 0.0)
+        interpretation = key_elasticity.get("interpretation", "")
+
+        if self.lang == "zh":
+            finding_text = f"- {interpretation}"
+            insights_text = "\n".join([f"- {i}" for i in insights[:2]])  # 只展示前2条
+        else:
+            # 泰文翻译
+            finding_text = f"- {interpretation}".replace("宽口占比", "สัดส่วนช่องกว้าง")
+            finding_text = finding_text.replace("下降", "ลดลง").replace("升高", "เพิ่มขึ้น")
+            insights_text = "\n".join([f"- {i}" for i in insights[:2]]).replace("宽口", "ช่องกว้าง")
+
+        return f"""{section_title}
+
+{key_finding}
+
+{finding_text}
+
+{insights_text}"""
+
+    def _exec_prediction_summary(self) -> str:
+        """管理层版预测摘要"""
+        prediction = self.result.get("prediction", {})
+
+        if not prediction.get("available"):
+            return ""
+
+        paid_pred = prediction.get("paid_prediction", {})
+        insights = prediction.get("insights", [])
+
+        if self.lang == "zh":
+            section_title = "## 六、月末预测"
+            achievement_rate = paid_pred.get('achievement_rate', 0)
+
+            if achievement_rate < 0.85:
+                status = "🔴 严重滞后"
+            elif achievement_rate < 0.95:
+                status = "🟡 需加速"
+            else:
+                status = "🟢 达成可期"
+
+            summary = f"""**预测月末付费**: {paid_pred.get('predicted_final', 0):,} 单 | **目标**: {paid_pred.get('target', 0):,} 单 | **达成率**: {achievement_rate*100:.0f}% {status}
+
+**区间**: {paid_pred.get('pessimistic', 0):,} ~ {paid_pred.get('optimistic', 0):,} 单（悲观-乐观）
+
+**关键洞察**: {insights[0] if insights else '无'}"""
+        else:
+            achievement_rate = paid_pred.get('achievement_rate', 0)
+
+            if achievement_rate < 0.85:
+                status = "🔴 ล่าช้ามาก"
+            elif achievement_rate < 0.95:
+                status = "🟡 ต้องเร่ง"
+            else:
+                status = "🟢 น่าจะบรรลุ"
+
+            summary = f"""**คาดการณ์ชำระสิ้นเดือน**: {paid_pred.get('predicted_final', 0):,} ราย | **เป้า**: {paid_pred.get('target', 0):,} ราย | **อัตรา**: {achievement_rate*100:.0f}% {status}
+
+**ช่วง**: {paid_pred.get('pessimistic', 0):,} ~ {paid_pred.get('optimistic', 0):,} ราย (แย่-ดี)
+
+**ข้อมูลสำคัญ**: {insights[0] if insights else 'ไม่มี'}"""
+
+        return f"""{section_title}
+
+{summary}"""
 
 
 # 辅助函数

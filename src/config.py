@@ -152,6 +152,41 @@ STYLES = {
     "currency_format": "$#,##0",       # 货币格式
 }
 
+# 汇率配置
+EXCHANGE_RATE_THB_USD = 32.0  # THB 转 USD 汇率（1 USD = 32 THB）
+
+# ROI 真实成本模型配置（基于 2026年转介绍ROI测算数据新模版.xlsx）
+ROI_COST_CONFIG = {
+    "CARD_COST_PER_UNIT": 1.31,  # USD/张（次卡单位成本）
+    "CASH_COMMISSION_SMALL": 38,  # USD（小单现金佣金，订单 <850 USD）
+    "CASH_COMMISSION_LARGE": 68,  # USD（大单现金佣金，订单 >=850 USD）
+    "CASH_THRESHOLD": 850,  # USD（大小单分界线）
+}
+
+
+def format_currency(usd_value: float, show_thb: bool = True) -> str:
+    """
+    统一的金额格式化函数
+
+    Args:
+        usd_value: USD 金额
+        show_thb: 是否显示 THB（默认 True）
+
+    Returns:
+        格式化后的字符串，如 "32,000THB($1,000)" 或 "$1,000"
+    """
+    if show_thb:
+        thb = usd_value * EXCHANGE_RATE_THB_USD
+        if abs(usd_value) >= 1000:
+            return f"{thb:,.0f}THB(${usd_value:,.0f})"
+        else:
+            return f"{thb:,.1f}THB(${usd_value:,.1f})"
+    else:
+        if abs(usd_value) >= 1000:
+            return f"${usd_value:,.0f}"
+        else:
+            return f"${usd_value:,.1f}"
+
 # 确保目录存在
 INPUT_DIR.mkdir(parents=True, exist_ok=True)
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)

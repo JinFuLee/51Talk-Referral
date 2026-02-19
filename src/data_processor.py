@@ -251,6 +251,52 @@ class DataProcessor:
         return growth
 
 
+def validate_data_format(reader: XlsxReader, lang: str = "zh") -> Tuple[bool, List[str]]:
+    """校验数据格式是否符合要求
+
+    Args:
+        reader: XlsxReader 实例
+        lang: 语言代码（zh/th）
+
+    Returns:
+        (is_valid, errors): 校验是否通过，错误列表
+    """
+    from src.config import COLUMN_MAPPING
+    from src.i18n import t
+
+    errors = []
+
+    # 1. 检查是否有数据
+    _, rows = reader.get_first_sheet_data()
+    if not rows:
+        errors.append(t('validation', 'no_data', lang))
+        return False, errors
+
+    # 2. 检查数据行数（过滤表头后）
+    data_rows = [r for r in rows if r.get('_row', 0) >= DataProcessor.DATA_START_ROW]
+    if not data_rows:
+        errors.append(t('validation', 'no_data_rows', lang))
+        return False, errors
+
+    # 3. 检查必需列是否存在
+    required_columns = set()
+    for channel_mapping in COLUMN_MAPPING.values():
+        required_columns.update(channel_mapping.values())
+
+    # 获取实际存在的列（从第一行数据中提取）
+    if data_rows:
+        existing_columns = set(data_rows[0].keys())
+        existing_columns.discard('_row')  # 移除行号标记
+
+        missing_columns = required_columns - existing_columns
+        if missing_columns:
+            missing_list = ', '.join(sorted(missing_columns))
+            errors.append(t('validation', 'missing_columns', lang).format(missing_list))
+            return False, errors
+
+    return True, []
+
+
 def load_and_process(file_path: str) -> Dict[str, Any]:
     """加载并处理Excel文件的便捷函数"""
     reader = XlsxReader(file_path)

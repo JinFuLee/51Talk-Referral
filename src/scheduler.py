@@ -43,14 +43,23 @@ class ReportScheduler:
         """执行一次完整的报告生成流程"""
         import sys
         sys.path.insert(0, str(Path(__file__).resolve().parent))
-        from config import get_targets, DATA_SOURCE_DIR, OUTPUT_DIR
+        from config import get_targets, DATA_SOURCE_DIR, OUTPUT_DIR, LOG_DIR
         from data_processor import XlsxReader, DataProcessor
         from analysis_engine import AnalysisEngine
         from md_report_generator import MarkdownReportGenerator
         from multi_source_loader import MultiSourceLoader
 
         report_date = datetime.now()
+        start_time = time.time()
         logger.info(f"[调度] 开始生成报告: {report_date.strftime('%Y-%m-%d %H:%M')}")
+
+        log_entry = {
+            "timestamp": report_date.strftime('%Y-%m-%d %H:%M:%S'),
+            "status": "running",
+            "duration_ms": 0,
+            "error_msg": None,
+            "report_path": None
+        }
 
         try:
             # 1. 加载主数据源
@@ -94,8 +103,21 @@ class ReportScheduler:
             if high_alerts:
                 self._alert(high_alerts)
 
+            # 9. 记录成功日志
+            duration_ms = int((time.time() - start_time) * 1000)
+            log_entry["status"] = "success"
+            log_entry["duration_ms"] = duration_ms
+            log_entry["report_path"] = str(ops_path.name)
+            self._write_log(log_entry)
+
         except Exception as e:
             logger.exception(f"[调度] 报告生成失败: {e}")
+            # 记录失败日志
+            duration_ms = int((time.time() - start_time) * 1000)
+            log_entry["status"] = "failed"
+            log_entry["duration_ms"] = duration_ms
+            log_entry["error_msg"] = str(e)
+            self._write_log(log_entry)
 
     def _notify(self, report_path, alerts):
         """报告完成后通知"""
@@ -116,3 +138,14 @@ class ReportScheduler:
             self.notifier.send_alert(high_alerts)
         except Exception as e:
             logger.warning(f"[调度] 预警通知失败: {e}")
+
+    def _write_log(self, log_entry: dict):
+        """将调度日志写入 schedule.log（JSON Lines 格式）"""
+        try:
+            from config import LOG_DIR
+            log_file = LOG_DIR / "schedule.log"
+            log_file.parent.mkdir(parents=True, exist_ok=True)
+            with open(log_file, 'a', encoding='utf-8') as f:
+                f.write(json.dumps(log_entry, ensure_ascii=False) + '\n')
+        except Exception as e:
+            logger.warning(f"[调度] 日志写入失败: {e}")

@@ -79,7 +79,12 @@ class AnalysisEngine:
             result["mom_trend"] = self._analyze_mom_trend(multi_source_data)
             result["yoy_trend"] = self._analyze_yoy_trend(multi_source_data)
             result["cc_ranking"] = self._analyze_cc_ranking(multi_source_data, report_date)
+            result["ss_ranking"] = self._analyze_ss_ranking(multi_source_data)
+            result["lp_ranking"] = self._analyze_lp_ranking(multi_source_data)
+            result["cc_growth"] = self._analyze_cc_growth(current_month)
             result["attended_not_paid"] = self._analyze_attended_not_paid(multi_source_data, report_date)
+            result["anomalies"] = self._detect_anomalies(result, multi_source_data)
+            result["ltv"] = self._analyze_ltv()
 
             # AI 增强分析（Gemini API，优雅降级）
             try:
@@ -94,6 +99,10 @@ class AnalysisEngine:
             except Exception as e:
                 import logging
                 logging.getLogger(__name__).warning(f"AI 分析跳过: {e}")
+
+        # 归因分析和预测模型（基于历史数据）
+        result["attribution"] = self._analyze_attribution(current_month)
+        result["prediction"] = self._analyze_prediction(current_month, targets, time_progress)
 
         return result
 
@@ -399,31 +408,132 @@ class AnalysisEngine:
         return alerts
 
     def _analyze_roi_estimate(self, current_data: Dict) -> Dict:
-        """ROI预估分析（基于假设成本）"""
-        # 预估成本（待财务确认）
-        ESTIMATED_COSTS = {
-            "CC窄口径": {"比例": 0.40, "单位成本": 37},  # 40% 成本占比
-            "SS窄口径": {"比例": 0.15, "单位成本": 44},
-            "其它": {"比例": 0.45, "单位成本": 21},
-        }
+        """ROI 分析（基于真实成本模型 或 预估假设）"""
+        # 尝试加载真实成本数据
+        try:
+            from .roi_loader import ROILoader
+            roi_loader = ROILoader()
+            roi_costs = roi_loader.load_roi_costs()
+
+            if roi_costs.get("available"):
+                return self._analyze_roi_real(current_data, roi_costs)
+        except Exception:
+            pass  # 降级到预估模式
+
+        # Fallback: 预估成本（基于 ROI_COST_CONFIG 参数）
+        from .config import ROI_COST_CONFIG
 
         roi_data = {}
+
+        # 获取总收入和付费数据
         total_amount = current_data.get("总计_美金金额") or 0
-        total_cost_estimate = total_amount * 0.08  # 假设总成本为收入的8%
+        total_paid = current_data.get("总计_付费") or 0
 
-        for channel, config in ESTIMATED_COSTS.items():
-            amount = current_data.get(f"{channel}_美金金额") or 0
-            paid = current_data.get(f"{channel}_付费") or 0
+        # 计算客单价
+        avg_order_amount = total_amount / total_paid if total_paid > 0 else 0
 
-            cost = paid * config["单位成本"] if paid > 0 else 0
-            roi = amount / cost if cost > 0 else 0.0
+        # 次卡成本：假设次卡数 = 付费数 × 平均次卡张数（假设8张/人）
+        # 注：实际次卡数待数据源接入后替换
+        avg_cards_per_order = 8.0
+        total_cards = total_paid * avg_cards_per_order
+        card_cost = total_cards * ROI_COST_CONFIG["CARD_COST_PER_UNIT"]
 
-            roi_data[channel] = {
-                "金额": amount,
-                "成本": cost,
-                "ROI": roi,
-                "数据可信度": "🟡 中（基于预估）",
+        # 现金佣金成本
+        small_orders = 0
+        large_orders = 0
+        cash_threshold = ROI_COST_CONFIG["CASH_THRESHOLD"]
+
+        if avg_order_amount > 0:
+            # 简化版：根据客单价估算大小单分布
+            if avg_order_amount < cash_threshold:
+                small_orders = total_paid
+            elif avg_order_amount >= cash_threshold * 1.2:
+                large_orders = total_paid
+            else:
+                # 混合情况：假设 50/50 分布
+                small_orders = total_paid * 0.5
+                large_orders = total_paid * 0.5
+
+        cash_cost = (
+            small_orders * ROI_COST_CONFIG["CASH_COMMISSION_SMALL"] +
+            large_orders * ROI_COST_CONFIG["CASH_COMMISSION_LARGE"]
+        )
+
+        # 总成本
+        total_cost = card_cost + cash_cost
+
+        # 综合 ROI
+        total_roi = total_amount / total_cost if total_cost > 0 else 0.0
+
+        # 次卡 ROI
+        card_roi = total_amount / card_cost if card_cost > 0 else 0.0
+
+        # 现金 ROI
+        cash_roi = total_amount / cash_cost if cash_cost > 0 else 0.0
+
+        roi_data["综合"] = {
+            "金额": total_amount,
+            "总成本": total_cost,
+            "次卡成本": card_cost,
+            "现金成本": cash_cost,
+            "ROI": total_roi,
+            "次卡ROI": card_roi,
+            "现金ROI": cash_roi,
+            "数据可信度": "🟡 中（基于预估，无 Excel 模板）",
+            "成本明细": {
+                "次卡数": int(total_cards),
+                "次卡单价": ROI_COST_CONFIG["CARD_COST_PER_UNIT"],
+                "小单数": int(small_orders),
+                "小单佣金": ROI_COST_CONFIG["CASH_COMMISSION_SMALL"],
+                "大单数": int(large_orders),
+                "大单佣金": ROI_COST_CONFIG["CASH_COMMISSION_LARGE"],
             }
+        }
+
+        return roi_data
+
+    def _analyze_roi_real(self, current_data: Dict, roi_costs: Dict) -> Dict:
+        """ROI 分析（基于真实成本模型）"""
+        total_amount = current_data.get("总计_美金金额") or 0
+        total_paid = current_data.get("总计_付费") or 0
+
+        # 从 ROI 模板提取的真实成本
+        card_cost_total = roi_costs.get("card_cost_total", 0.0)
+        cash_cost_total = roi_costs.get("cash_cost_total", 0.0)
+        card_count_total = roi_costs.get("card_count_total", 0)
+        config = roi_costs.get("config", {})
+
+        # 总成本
+        total_cost = card_cost_total + cash_cost_total
+
+        # 综合 ROI
+        total_roi = total_amount / total_cost if total_cost > 0 else 0.0
+
+        # 次卡 ROI
+        card_roi = total_amount / card_cost_total if card_cost_total > 0 else 0.0
+
+        # 现金 ROI
+        cash_roi = total_amount / cash_cost_total if cash_cost_total > 0 else 0.0
+
+        roi_data = {
+            "综合": {
+                "金额": total_amount,
+                "总成本": total_cost,
+                "次卡成本": card_cost_total,
+                "现金成本": cash_cost_total,
+                "ROI": total_roi,
+                "次卡ROI": card_roi,
+                "现金ROI": cash_roi,
+                "数据可信度": "🟢 高（Excel 模板真实成本）",
+                "成本明细": {
+                    "次卡数": int(card_count_total),
+                    "次卡单价": config.get("CARD_COST_PER_UNIT", 1.31),
+                    "现金佣金总额": cash_cost_total,
+                    "小单佣金": config.get("CASH_COMMISSION_SMALL", 38),
+                    "大单佣金": config.get("CASH_COMMISSION_LARGE", 68),
+                }
+            }
+        }
 
         return roi_data
 
@@ -1306,3 +1416,661 @@ class AnalysisEngine:
         except Exception as e:
             logger.warning(f"AI 洞察生成失败: {e}")
             return None
+
+    def _analyze_attribution(self, current_month: str) -> Dict:
+        """
+        归因分析：计算关键变量之间的弹性系数
+
+        基于历史数据，计算：
+        - 宽口占比每升高 1pp，注册付费率下降 X pp
+        - 触达率每升高 1pp，参与率提升 Y pp
+        等关键变量的相关性
+
+        Returns:
+            {
+                "elasticity": [
+                    {
+                        "x_var": "宽口占比",
+                        "y_var": "注册付费率",
+                        "coefficient": -0.xx,  # 弹性系数
+                        "direction": "负相关",
+                        "interpretation": "宽口占比每升高1pp，转化率下降X pp"
+                    },
+                    ...
+                ],
+                "insights": ["洞察1", "洞察2", ...]
+            }
+        """
+        months = self.processor.get_sorted_months()
+
+        # 至少需要 3 个月数据才能做有意义的归因分析
+        if len(months) < 3:
+            return {
+                "elasticity": [],
+                "insights": ["历史数据不足（需要 ≥3 个月），暂无归因分析"],
+                "available": False
+            }
+
+        # 提取历史数据
+        data_points = []
+        for month in months:
+            month_data = self.monthly_summaries.get(month, {})
+
+            # 计算宽口占比
+            total_reg = month_data.get("总计_注册") or 0
+            wide_reg = month_data.get("其它_注册") or 0
+            wide_ratio = wide_reg / total_reg if total_reg > 0 else 0.0
+
+            # 注册付费率
+            conversion_rate = month_data.get("总计_注册付费率") or 0.0
+
+            # CC窄口径转化率
+            cc_conversion = month_data.get("CC窄口径_注册付费率") or 0.0
+
+            # 出席付费率
+            attend_conversion = month_data.get("总计_出席付费率") or 0.0
+
+            data_points.append({
+                "month": month,
+                "wide_ratio": wide_ratio,
+                "conversion_rate": conversion_rate,
+                "cc_conversion": cc_conversion,
+                "attend_conversion": attend_conversion,
+            })
+
+        # 计算相关性（宽口占比 vs 注册付费率）
+        elasticity_results = []
+
+        # 1. 宽口占比 → 注册付费率
+        coef_wide_conv = self._calculate_elasticity(
+            [d["wide_ratio"] for d in data_points],
+            [d["conversion_rate"] for d in data_points]
+        )
+
+        if coef_wide_conv is not None:
+            elasticity_results.append({
+                "x_var": "宽口占比",
+                "y_var": "注册付费率",
+                "coefficient": coef_wide_conv,
+                "direction": "负相关" if coef_wide_conv < 0 else "正相关",
+                "interpretation": f"宽口占比每升高1pp，注册付费率{'下降' if coef_wide_conv < 0 else '上升'} {abs(coef_wide_conv)*100:.1f}pp",
+                "sample_size": len(data_points)
+            })
+
+        # 2. 宽口占比 → CC窄口径转化率（验证是否宽口挤压窄口效果）
+        coef_wide_cc = self._calculate_elasticity(
+            [d["wide_ratio"] for d in data_points],
+            [d["cc_conversion"] for d in data_points]
+        )
+
+        if coef_wide_cc is not None:
+            elasticity_results.append({
+                "x_var": "宽口占比",
+                "y_var": "CC窄口径转化率",
+                "coefficient": coef_wide_cc,
+                "direction": "负相关" if coef_wide_cc < 0 else "正相关",
+                "interpretation": f"宽口占比每升高1pp，CC窄口径转化率{'下降' if coef_wide_cc < 0 else '上升'} {abs(coef_wide_cc)*100:.1f}pp",
+                "sample_size": len(data_points)
+            })
+
+        # 生成洞察
+        insights = []
+
+        # 宽口占比负相关验证
+        if coef_wide_conv is not None and coef_wide_conv < -0.01:
+            insights.append(
+                f"宽口开源质量较低，每增加1%宽口占比，整体转化率下降 {abs(coef_wide_conv)*100:.1f}pp，建议限流宽口或提高质量门槛"
+            )
+        elif coef_wide_conv is not None and coef_wide_conv > 0.01:
+            insights.append(
+                f"宽口开源质量改善，每增加1%宽口占比，整体转化率提升 {abs(coef_wide_conv)*100:.1f}pp，可适当加大宽口推广"
+            )
+
+        # 样本量提示
+        if len(data_points) < 6:
+            insights.append(f"当前样本量 {len(data_points)} 个月，建议累积 ≥6 个月数据后归因分析更可靠")
+
+        return {
+            "elasticity": elasticity_results,
+            "insights": insights,
+            "available": True,
+            "sample_size": len(data_points)
+        }
+
+    def _calculate_elasticity(self, x_values: List[float], y_values: List[float]) -> Optional[float]:
+        """
+        计算弹性系数（简化版线性回归斜率）
+
+        使用最小二乘法计算 y = a + b*x 的斜率 b
+
+        Args:
+            x_values: 自变量列表
+            y_values: 因变量列表
+
+        Returns:
+            弹性系数 b（斜率），如果数据不足返回 None
+        """
+        if len(x_values) != len(y_values) or len(x_values) < 3:
+            return None
+
+        n = len(x_values)
+
+        # 计算均值
+        x_mean = sum(x_values) / n
+        y_mean = sum(y_values) / n
+
+        # 计算协方差和方差
+        covariance = sum((x_values[i] - x_mean) * (y_values[i] - y_mean) for i in range(n))
+        variance_x = sum((x - x_mean) ** 2 for x in x_values)
+
+        # 避免除零
+        if variance_x == 0:
+            return None
+
+        # 斜率 b = Cov(X,Y) / Var(X)
+        slope = covariance / variance_x
+
+        return round(slope, 4)
+
+    def _analyze_prediction(self, current_month: str, targets: Dict, time_progress: float) -> Dict:
+        """
+        时间序列预测：基于历史数据预测月末目标达成
+
+        使用移动平均法预测：
+        1. 计算过去 N 个月的平均增长率
+        2. 基于当前进度 + 剩余时间进度 × 平均增长率
+        3. 给出乐观/悲观区间
+
+        Returns:
+            {
+                "paid_prediction": {
+                    "current": 当前付费数,
+                    "target": 目标付费数,
+                    "predicted_final": 预测月末值,
+                    "optimistic": 乐观值,
+                    "pessimistic": 悲观值,
+                    "achievement_rate": 预测达成率,
+                    "confidence": "高/中/低"
+                },
+                "amount_prediction": {...},
+                "insights": ["洞察1", "洞察2", ...]
+            }
+        """
+        months = self.processor.get_sorted_months()
+
+        # 至少需要 3 个月数据
+        if len(months) < 3:
+            return {
+                "paid_prediction": {},
+                "amount_prediction": {},
+                "insights": ["历史数据不足（需要 ≥3 个月），暂无预测分析"],
+                "available": False
+            }
+
+        # 找到当前月索引
+        if current_month not in months:
+            return {"available": False, "insights": ["当前月数据缺失"]}
+
+        current_idx = months.index(current_month)
+
+        # 提取历史数据（最近 6 个月或全部）
+        history_months = months[max(0, current_idx - 5):current_idx + 1]
+
+        # 计算付费数的月度增长模式
+        paid_values = []
+        amount_values = []
+
+        for month in history_months:
+            month_data = self.monthly_summaries.get(month, {})
+            paid_values.append(month_data.get("总计_付费") or 0)
+            amount_values.append(month_data.get("总计_美金金额") or 0)
+
+        # 当前值
+        current_paid = paid_values[-1] if paid_values else 0
+        current_amount = amount_values[-1] if amount_values else 0
+
+        # 目标值
+        target_paid = targets.get("付费目标", 0)
+        target_amount = targets.get("金额目标", 0)
+
+        # 预测月末值（方法1: 线性外推）
+        # 假设剩余时间的增长速度 = 过去平均每日增长 × 剩余天数权重
+        remaining_progress = 1.0 - time_progress
+
+        # 计算当前进度下的日均增长
+        if time_progress > 0:
+            daily_paid = current_paid / time_progress
+            daily_amount = current_amount / time_progress
+        else:
+            daily_paid = 0
+            daily_amount = 0
+
+        # 预测月末值 = 当前值 + 日均值 × 剩余进度
+        predicted_paid_final = current_paid + daily_paid * remaining_progress
+        predicted_amount_final = current_amount + daily_amount * remaining_progress
+
+        # 乐观/悲观区间（基于历史波动）
+        # 计算历史月度增长率的标准差
+        if len(paid_values) >= 3:
+            growth_rates = []
+            for i in range(1, len(paid_values)):
+                if paid_values[i-1] > 0:
+                    growth_rate = (paid_values[i] - paid_values[i-1]) / paid_values[i-1]
+                    growth_rates.append(growth_rate)
+
+            if growth_rates:
+                avg_growth = sum(growth_rates) / len(growth_rates)
+                std_dev = (sum((r - avg_growth) ** 2 for r in growth_rates) / len(growth_rates)) ** 0.5
+
+                # 乐观 = 预测值 × (1 + std_dev)
+                # 悲观 = 预测值 × (1 - std_dev)
+                optimistic_paid = predicted_paid_final * (1 + std_dev)
+                pessimistic_paid = predicted_paid_final * (1 - std_dev)
+
+                optimistic_amount = predicted_amount_final * (1 + std_dev)
+                pessimistic_amount = predicted_amount_final * (1 - std_dev)
+            else:
+                # 无历史增长数据，默认 ±10%
+                optimistic_paid = predicted_paid_final * 1.1
+                pessimistic_paid = predicted_paid_final * 0.9
+                optimistic_amount = predicted_amount_final * 1.1
+                pessimistic_amount = predicted_amount_final * 0.9
+        else:
+            optimistic_paid = predicted_paid_final * 1.1
+            pessimistic_paid = predicted_paid_final * 0.9
+            optimistic_amount = predicted_amount_final * 1.1
+            pessimistic_amount = predicted_amount_final * 0.9
+
+        # 预测达成率
+        achievement_paid = predicted_paid_final / target_paid if target_paid > 0 else 0.0
+        achievement_amount = predicted_amount_final / target_amount if target_amount > 0 else 0.0
+
+        # 置信度评估
+        confidence_paid = self._assess_confidence(len(history_months), time_progress)
+        confidence_amount = self._assess_confidence(len(history_months), time_progress)
+
+        # 生成洞察
+        insights = []
+
+        if achievement_paid < 0.85:
+            gap = int(target_paid - predicted_paid_final)
+            insights.append(f"付费预测仅达成 {achievement_paid*100:.0f}%，月末预计缺口 {gap} 单，需紧急加大跟进力度")
+        elif achievement_paid >= 1.0:
+            surplus = int(predicted_paid_final - target_paid)
+            insights.append(f"付费预测超额达成 {achievement_paid*100:.0f}%，月末预计超出 {surplus} 单")
+        else:
+            insights.append(f"付费预测达成 {achievement_paid*100:.0f}%，接近目标但仍需努力")
+
+        if achievement_amount < 0.85:
+            insights.append(f"金额预测达成 {achievement_amount*100:.0f}%，需提高客单价或付费量")
+
+        # 时间进度提示
+        if time_progress > 0.7:
+            insights.append(f"时间已过 {time_progress*100:.0f}%，剩余时间紧张，预测可信度较高")
+        elif time_progress < 0.3:
+            insights.append(f"时间仅过 {time_progress*100:.0f}%，预测基于早期数据，后续波动可能较大")
+
+        return {
+            "paid_prediction": {
+                "current": int(current_paid),
+                "target": int(target_paid),
+                "predicted_final": int(predicted_paid_final),
+                "optimistic": int(optimistic_paid),
+                "pessimistic": int(pessimistic_paid),
+                "achievement_rate": achievement_paid,
+                "confidence": confidence_paid
+            },
+            "amount_prediction": {
+                "current": int(current_amount),
+                "target": int(target_amount),
+                "predicted_final": int(predicted_amount_final),
+                "optimistic": int(optimistic_amount),
+                "pessimistic": int(pessimistic_amount),
+                "achievement_rate": achievement_amount,
+                "confidence": confidence_amount
+            },
+            "insights": insights,
+            "available": True,
+            "method": "线性外推（日均增长）",
+            "sample_size": len(history_months)
+        }
+
+    def _assess_confidence(self, sample_size: int, time_progress: float) -> str:
+        """
+        评估预测置信度
+
+        Args:
+            sample_size: 历史样本数量
+            time_progress: 时间进度
+
+        Returns:
+            "高" / "中" / "低"
+        """
+        # 样本量评分
+        sample_score = min(sample_size / 6, 1.0)  # 6个月样本 = 满分
+
+        # 时间进度评分（时间越晚越准）
+        progress_score = time_progress
+
+        # 综合评分
+        total_score = (sample_score * 0.4 + progress_score * 0.6)
+
+        if total_score >= 0.7:
+            return "高"
+        elif total_score >= 0.4:
+            return "中"
+        else:
+            return "低"
+
+    def _analyze_ss_ranking(self, multi_source_data: dict) -> dict:
+        """SS 个人绩效排名（基于团队级数据）"""
+        leads_data = multi_source_data.get("leads达成", {})
+        teams = leads_data.get("teams", [])
+
+        if not teams:
+            return {"available": False, "reason": "SS 个人级数据未接入"}
+
+        ss_profiles = []
+
+        for team in teams:
+            ss_data = team.get("SS窄口径", {})
+            team_name = team.get("团队", "")
+
+            leads = ss_data.get("注册", 0)
+            paid = ss_data.get("付费", 0)
+
+            if leads == 0:
+                continue
+
+            # 转化率
+            conversion_rate = paid / leads if leads > 0 else 0.0
+
+            # 客单价（从订单明细）
+            order_data = multi_source_data.get("订单明细", {})
+            by_team = order_data.get("by_team", [])
+            amount = 0
+            for team_order in by_team:
+                if team_order.get("团队") == team_name:
+                    amount = team_order.get("金额", 0)
+                    break
+
+            unit_price = amount / paid if paid > 0 else 0.0
+
+            # 跟进及时率（从课前课后）
+            followup_data = multi_source_data.get("课前课后", {})
+            by_team_followup = followup_data.get("by_team", [])
+            followup_quality = 0.0
+            for team_followup in by_team_followup:
+                if team_followup.get("团队") == team_name:
+                    pre_rate = team_followup.get("课前有效接通率") or 0.0
+                    post_rate = team_followup.get("课后有效接通率") or 0.0
+                    followup_quality = (pre_rate + post_rate) / 2
+                    break
+
+            ss_profiles.append({
+                "team": team_name,
+                "leads": leads,
+                "paid": paid,
+                "amount": amount,
+                "conversion_rate": conversion_rate,
+                "unit_price": unit_price,
+                "followup_quality": followup_quality,
+            })
+
+        # 过滤 leads < 5
+        ss_qualified = [p for p in ss_profiles if p["leads"] >= 5]
+
+        # 归一化
+        def normalize(profiles, key):
+            vals = [p[key] for p in profiles]
+            min_val = min(vals) if vals else 0
+            max_val = max(vals) if vals else 1
+            denom = max_val - min_val if max_val > min_val else 1
+            return [(v - min_val) / denom * 100 for v in vals]
+
+        if ss_profiles:
+            conv_scores = normalize(ss_profiles, "conversion_rate")
+            price_scores = normalize(ss_profiles, "unit_price")
+            followup_scores = normalize(ss_profiles, "followup_quality")
+            leads_scores = normalize(ss_profiles, "leads")
+
+            for i, p in enumerate(ss_profiles):
+                p["composite"] = (
+                    conv_scores[i] * 0.35 +
+                    price_scores[i] * 0.25 +
+                    followup_scores[i] * 0.25 +
+                    leads_scores[i] * 0.15
+                )
+
+        # 排名
+        by_paid = sorted(ss_profiles, key=lambda x: x["paid"], reverse=True)[:10]
+        by_conversion = sorted(ss_qualified, key=lambda x: x["conversion_rate"], reverse=True)[:10]
+        by_composite = sorted(ss_profiles, key=lambda x: x["composite"], reverse=True)[:10]
+
+        # 添加排名序号
+        for i, p in enumerate(by_paid):
+            p["rank"] = i + 1
+        for i, p in enumerate(by_conversion):
+            p["rank"] = i + 1
+        for i, p in enumerate(by_composite):
+            p["rank"] = i + 1
+
+        insights = []
+        if by_composite:
+            top = by_composite[0]
+            insights.append(f"SS 综合得分第一：{top['team']}（得分 {top['composite']:.1f}）")
+
+        return {
+            "by_paid": by_paid,
+            "by_conversion": by_conversion,
+            "by_composite": by_composite,
+            "insights": insights,
+            "available": True,
+            "note": "SS 个人级数据未接入，当前为团队级排名"
+        }
+
+    def _analyze_lp_ranking(self, multi_source_data: dict) -> dict:
+        """LP 个人绩效排名（基于团队级数据）"""
+        leads_data = multi_source_data.get("leads达成", {})
+        teams = leads_data.get("teams", [])
+
+        if not teams:
+            return {"available": False, "reason": "LP 个人级数据未接入"}
+
+        lp_profiles = []
+
+        for team in teams:
+            lp_data = team.get("LP窄口径", {})
+            team_name = team.get("团队", "")
+
+            leads = lp_data.get("注册", 0)
+            paid = lp_data.get("付费", 0)
+
+            if leads == 0:
+                continue
+
+            # 服务响应（课前课后跟进率）
+            followup_data = multi_source_data.get("课前课后", {})
+            by_team_followup = followup_data.get("by_team", [])
+            service_response = 0.0
+            for team_followup in by_team_followup:
+                if team_followup.get("团队") == team_name:
+                    pre_rate = team_followup.get("课前有效接通率") or 0.0
+                    post_rate = team_followup.get("课后有效接通率") or 0.0
+                    service_response = (pre_rate + post_rate) / 2
+                    break
+
+            # 跟进质量（同服务响应，占位）
+            followup_quality = service_response
+
+            # 维护量（leads 数量）
+            maintenance_volume = leads
+
+            # 续费支持（付费转化率）
+            renewal_support = paid / leads if leads > 0 else 0.0
+
+            lp_profiles.append({
+                "team": team_name,
+                "leads": leads,
+                "paid": paid,
+                "service_response": service_response,
+                "followup_quality": followup_quality,
+                "maintenance_volume": maintenance_volume,
+                "renewal_support": renewal_support,
+            })
+
+        # 归一化
+        def normalize(profiles, key):
+            vals = [p[key] for p in profiles]
+            min_val = min(vals) if vals else 0
+            max_val = max(vals) if vals else 1
+            denom = max_val - min_val if max_val > min_val else 1
+            return [(v - min_val) / denom * 100 for v in vals]
+
+        if lp_profiles:
+            response_scores = normalize(lp_profiles, "service_response")
+            quality_scores = normalize(lp_profiles, "followup_quality")
+            volume_scores = normalize(lp_profiles, "maintenance_volume")
+            renewal_scores = normalize(lp_profiles, "renewal_support")
+
+            for i, p in enumerate(lp_profiles):
+                p["composite"] = (
+                    response_scores[i] * 0.30 +
+                    quality_scores[i] * 0.30 +
+                    volume_scores[i] * 0.25 +
+                    renewal_scores[i] * 0.15
+                )
+
+        # 排名
+        by_composite = sorted(lp_profiles, key=lambda x: x["composite"], reverse=True)[:10]
+
+        for i, p in enumerate(by_composite):
+            p["rank"] = i + 1
+
+        insights = []
+        if by_composite:
+            top = by_composite[0]
+            insights.append(f"LP 综合得分第一：{top['team']}（得分 {top['composite']:.1f}）")
+
+        return {
+            "by_composite": by_composite,
+            "insights": insights,
+            "available": True,
+            "note": "LP 个人级数据未接入，当前为团队级排名"
+        }
+
+    def _analyze_cc_growth(self, current_month: str) -> dict:
+        """CC 成长曲线（历史排名变化趋势）"""
+        months = self.processor.get_sorted_months()
+
+        if len(months) < 2:
+            return {"available": False, "reason": "历史数据不足（需要 ≥2 个月）"}
+
+        # 当前暂无历史 CC 排名数据（需要从 monthly_summaries 提取）
+        # 占位实现，未来接入历史排名后填充
+        return {
+            "available": False,
+            "reason": "CC 历史排名数据未持久化，暂无成长曲线分析",
+            "todo": "需在每月报告生成后将 CC 排名结果持久化到数据库或文件"
+        }
+
+    def _detect_anomalies(self, analysis_result: dict, multi_source_data: dict) -> List[Dict]:
+        """异常检测"""
+        anomalies = []
+
+        # 1. 个人绩效异常（CC 综合得分后5名）
+        cc_ranking = analysis_result.get("cc_ranking", {})
+        bottom_5 = cc_ranking.get("bottom_5", [])
+        team_avg = cc_ranking.get("team_avg", {})
+
+        for cc in bottom_5:
+            cc_composite = cc.get("composite", 0)
+            team = cc.get("team", "")
+            team_data = team_avg.get(team, {})
+            avg_composite = team_data.get("avg_conversion", 0.0) * 100  # 粗略估算
+
+            # 判断是否低于团队均值 2 个标准差（简化版，假设标准差 = 均值*0.3）
+            std_dev = avg_composite * 0.3
+            threshold = avg_composite - 2 * std_dev
+
+            if cc_composite < threshold:
+                anomalies.append({
+                    "type": "个人绩效异常",
+                    "person": cc.get("cc", ""),
+                    "team": team,
+                    "metric": "综合得分",
+                    "value": cc_composite,
+                    "threshold": threshold,
+                    "severity": "高" if cc_composite < threshold * 0.7 else "中",
+                    "建议": f"{cc.get('cc')} 综合得分 {cc_composite:.1f}，低于团队均值，需个别辅导"
+                })
+
+        # 2. 关键指标周环比异常（基于 mom_trend）
+        mom_trend = analysis_result.get("mom_trend", {})
+        trends = mom_trend.get("trends", [])
+
+        for channel_trend in trends:
+            channel = channel_trend.get("渠道", "")
+            metrics = channel_trend.get("指标变化", {})
+
+            for metric, data in metrics.items():
+                mom_change = data.get("环比", 0)
+
+                # 下降超过 30% 判定为异常
+                if mom_change < -0.30:
+                    anomalies.append({
+                        "type": "环比异常下滑",
+                        "channel": channel,
+                        "metric": metric,
+                        "value": data.get("当前值", 0),
+                        "mom_change": mom_change,
+                        "severity": "高",
+                        "建议": f"{channel} {metric} 环比下降 {abs(mom_change)*100:.1f}%，需紧急排查"
+                    })
+
+        # 3. 转化率异常（低于历史均值 2 个标准差）
+        summary = analysis_result.get("summary", {})
+        conversion_actual = summary.get("转化率", {}).get("actual", 0.0)
+
+        # 计算历史转化率均值和标准差
+        months = self.processor.get_sorted_months()
+        if len(months) >= 3:
+            conv_rates = []
+            for month in months:
+                month_data = self.monthly_summaries.get(month, {})
+                conv_rate = month_data.get("总计_注册付费率") or 0.0
+                conv_rates.append(conv_rate)
+
+            avg_conv = sum(conv_rates) / len(conv_rates) if conv_rates else 0.0
+            std_dev = (sum((r - avg_conv) ** 2 for r in conv_rates) / len(conv_rates)) ** 0.5 if conv_rates else 0.0
+            threshold_low = avg_conv - 2 * std_dev
+
+            if conversion_actual < threshold_low:
+                anomalies.append({
+                    "type": "转化率异常偏低",
+                    "metric": "注册付费率",
+                    "value": conversion_actual,
+                    "threshold": threshold_low,
+                    "severity": "高",
+                    "建议": f"当前转化率 {conversion_actual*100:.1f}% 低于历史均值 2 个标准差，需排查开源质量或跟进流程"
+                })
+
+        return anomalies
+
+    def _analyze_ltv(self) -> dict:
+        """LTV 分析骨架（数据源未接入）"""
+        return {
+            "available": False,
+            "reason": "CRM 数据未接入，90天留存率、人均LTV、渠道LTV对比数据暂无",
+            "fields": {
+                "90天留存率": None,
+                "人均LTV": None,
+                "渠道LTV对比": {
+                    "CC窄口径": None,
+                    "SS窄口径": None,
+                    "LP窄口径": None,
+                    "宽口径": None,
+                },
+            },
+            "todo": "接入 CRM 续费数据后计算 LTV = 客单价 × 续费次数 × 留存率"
+        }

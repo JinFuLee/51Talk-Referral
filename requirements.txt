@@ -7,3 +7,4 @@ XlsxWriter>=3.0.0
 streamlit>=1.30.0
 google-generativeai>=0.8.0
 schedule>=1.2.0
+python-dateutil>=2.8.0
