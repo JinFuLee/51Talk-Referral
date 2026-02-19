@@ -15,6 +15,7 @@ sys.path.insert(0, str(BASE_DIR))
 from src.data_processor import XlsxReader, DataProcessor
 from src.analysis_engine import AnalysisEngine
 from src.md_report_generator import MarkdownReportGenerator
+from src.multi_source_loader import MultiSourceLoader
 from src.config import get_targets, MONTHLY_TARGETS
 from src.i18n import t
 
@@ -278,7 +279,11 @@ def main():
                 processor = DataProcessor(reader)
                 processor.process()
 
-                # 2. 分析数据
+                # 2. 加载多数据源
+                multi_loader = MultiSourceLoader(input_dir)
+                multi_source_data = multi_loader.load_all()
+
+                # 3. 分析数据
                 engine = AnalysisEngine(processor)
 
                 # 获取完整目标配置（包含时间进度）
@@ -286,9 +291,9 @@ def main():
                 # 更新用户自定义的目标值
                 full_targets.update(targets)
 
-                analysis_result = engine.analyze(full_targets, report_date_dt)
+                analysis_result = engine.analyze(full_targets, report_date_dt, multi_source_data)
 
-                # 3. 生成报告（传递语言参数）
+                # 4. 生成报告（传递语言参数）
                 generator = MarkdownReportGenerator(analysis_result, Path(output_path), lang=lang)
                 report_paths = generator.generate_both()
 
@@ -326,6 +331,11 @@ def main():
 
             summary = analysis_result.get("summary", {})
             meta = analysis_result.get("meta", {})
+
+            # 显示已加载的数据源数量
+            multi_sources_count = len(analysis_result.get("multi_source_data", {}))
+            if multi_sources_count > 0:
+                st.info(f"{t('ui', 'multi_source_loaded', lang)}: **{multi_sources_count}** / {len(DATA_SOURCES)}")
 
             # 关键指标卡片
             col1, col2, col3, col4 = st.columns(4)

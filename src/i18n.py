@@ -103,6 +103,15 @@ TRANSLATIONS["ui"] = {
     "datasource_provided": {"zh": "已有", "th": "มีแล้ว"},
     "datasource_outdated": {"zh": "非T-1", "th": "ไม่ใช่ T-1"},
     "datasource_count": {"zh": "{}/{} 已提供", "th": "{}/{} มีแล้ว"},
+
+    # M4 Phase 2 新章节
+    "section_cohort": {"zh": "围场生命周期分析", "th": "วิเคราะห์วงจรชีวิตตามช่วง"},
+    "section_checkin": {"zh": "转介绍参与行为分析", "th": "วิเคราะห์พฤติกรรมการมีส่วนร่วม"},
+    "section_leads": {"zh": "全团队 Leads 漏斗对标", "th": "เปรียบเทียบ Leads Funnel ทุกทีม"},
+    "section_followup": {"zh": "跟进效率分析", "th": "วิเคราะห์ประสิทธิภาพการติดตาม"},
+    "section_orders": {"zh": "订单明细分析", "th": "วิเคราะห์รายละเอียดคำสั่งซื้อ"},
+    "section_trend": {"zh": "月度趋势分析", "th": "วิเคราะห์แนวโน้มรายเดือน"},
+    "multi_source_loaded": {"zh": "已加载数据源", "th": "โหลดแหล่งข้อมูลแล้ว"},
 }
 
 # === 报告翻译（Markdown 报告内容） ===

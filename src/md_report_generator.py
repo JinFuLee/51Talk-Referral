@@ -72,10 +72,16 @@ class MarkdownReportGenerator:
             self._ops_funnel_diagnosis(),
             self._ops_funnel_flowchart(),  # 新增 #1
             self._ops_team_ranking(),
+            self._ops_leads_achievement(),  # M4 Phase 2
+            self._ops_cohort_analysis(),  # M4 Phase 2
+            self._ops_checkin_analysis(),  # M4 Phase 2
+            self._ops_followup_analysis(),  # M4 Phase 2
             self._ops_roi_analysis(),
             self._ops_channel_pie_chart(),  # 新增 #5
             self._ops_unit_price_analysis(),
             self._ops_unit_price_chart(),  # 新增 #7
+            self._ops_order_analysis(),  # M4 Phase 2
+            self._ops_trend_analysis(),  # M4 Phase 2
             self._ops_risk_alerts(),
             self._ops_risk_dashboard(),  # 新增 #3
             self._ops_action_list(),
@@ -96,6 +102,12 @@ class MarkdownReportGenerator:
             self._exec_risk_alerts(),
             self._exec_roi_allocation(),
             self._exec_efficiency_index_chart(),  # 新增 #6
+            self._exec_cohort_analysis(),  # M4 Phase 2
+            self._exec_checkin_analysis(),  # M4 Phase 2
+            self._exec_leads_achievement(),  # M4 Phase 2
+            self._exec_followup_analysis(),  # M4 Phase 2
+            self._exec_order_analysis(),  # M4 Phase 2
+            self._exec_trend_analysis(),  # M4 Phase 2
             self._exec_root_cause(),
             self._exec_team_benchmark(),
             self._exec_key_numbers(),
@@ -1259,6 +1271,579 @@ xychart-beta
 
 {action_suggestions}"""
 
+    def _ops_cohort_analysis(self) -> str:
+        """运营版围场生命周期分析"""
+        cohort_data = self.result.get("cohort_analysis", {})
+
+        if not cohort_data:
+            return ""
+
+        summary = cohort_data.get("summary", {})
+        by_cohort = cohort_data.get("by_cohort", [])
+        insights = cohort_data.get("insights", [])
+
+        if not by_cohort:
+            return ""
+
+        # 构建表格
+        rows = []
+        for cohort in by_cohort:
+            fence = cohort.get("围场", "")
+            valid_students = cohort.get("有效学员", 0) or 0
+            participation = (cohort.get("参与率") or 0.0)
+            bring_ratio = (cohort.get("带货比") or 0.0)
+            fence_conv = (cohort.get("围场转率") or 0.0)
+            b_reg = cohort.get("B注册", 0) or 0
+            b_paid = cohort.get("B付费", 0) or 0
+            dial_coverage = (cohort.get("拨打覆盖率") or 0.0)
+            valid_coverage = (cohort.get("有效接通覆盖率") or 0.0)
+
+            rows.append(
+                f"| {fence} | {valid_students} | {participation*100:.1f}% | {bring_ratio*100:.1f}% | "
+                f"{fence_conv*100:.1f}% | {b_reg} | {b_paid} | {dial_coverage*100:.1f}% | {valid_coverage*100:.1f}% |"
+            )
+
+        table = "\n".join(rows)
+
+        # 洞察要点
+        insights_text = "\n".join([f"- {insight}" for insight in insights]) if insights else ""
+
+        if self.lang == "zh":
+            section_title = "## 四、围场生命周期分析"
+            subsection1 = "### 4.1 各围场 KPI 对比"
+            subsection2 = "### 4.2 洞察"
+            table_header = "| 围场 | 有效学员 | 参与率 | 带货比 | 围场转率 | B注册 | B付费 | 拨打覆盖率 | 有效接通覆盖率 |"
+            explain = "**说明**: 围场 = 付费当日起算天数分段（0-30天/31-60天/61-90天/91-180天/181天+）"
+        else:
+            section_title = "## 4. วิเคราะห์วงจรชีวิตตามช่วง"
+            subsection1 = "### 4.1 เปรียบเทียบ KPI แต่ละช่วง"
+            subsection2 = "### 4.2 ข้อสังเกต"
+            table_header = "| ช่วง | นักเรียนที่มี | อัตราร่วม | อัตรานำ | อัตราแปลงช่วง | ลงทะเบียน B | ชำระ B | ครอบคลุมโทร | ครอบคลุมรับสาย |"
+            explain = "**หมายเหตุ**: ช่วง = ช่วงวันนับจากชำระครั้งแรก (0-30/31-60/61-90/91-180/181+)"
+
+        return f"""{section_title}
+
+{subsection1}
+
+{table_header}
+|------|--------:|------:|------:|--------:|------:|-----:|----------:|---------------:|
+{table}
+
+{explain}
+
+---
+
+{subsection2}
+
+{insights_text}"""
+
+    def _ops_checkin_analysis(self) -> str:
+        """运营版转介绍参与行为分析（打卡率）"""
+        checkin_data = self.result.get("checkin_analysis", {})
+
+        if not checkin_data:
+            return ""
+
+        summary = checkin_data.get("summary", {})
+        team_ranking = checkin_data.get("team_ranking", [])
+        insights = checkin_data.get("insights", [])
+
+        if not summary:
+            return ""
+
+        # 整体指标
+        checkin_participation = (summary.get("打卡参与率") or 0.0)
+        ref_participation = (summary.get("参与率") or 0.0)
+        bring_coefficient = (summary.get("带新系数") or 0.0)
+        bring_ratio = (summary.get("带货比") or 0.0)
+        checkin_multiplier = (summary.get("打卡倍率") or 0.0)
+
+        # 团队排名
+        team_rows = []
+        for i, team in enumerate(team_ranking[:10], 1):
+            rank = f"{i}"
+            team_name = team.get("团队", "")
+            team_checkin_part = (team.get("打卡参与率") or 0.0)
+            team_part = (team.get("参与率") or 0.0)
+            team_coef = (team.get("带新系数") or 0.0)
+            team_ratio = (team.get("带货比") or 0.0)
+
+            team_rows.append(
+                f"| {rank} | {team_name} | {team_checkin_part*100:.1f}% | {team_part*100:.1f}% | "
+                f"{team_coef:.2f} | {team_ratio*100:.1f}% |"
+            )
+
+        team_table = "\n".join(team_rows) if team_rows else ""
+
+        # 洞察
+        insights_text = "\n".join([f"- {insight}" for insight in insights]) if insights else ""
+
+        if self.lang == "zh":
+            section_title = "## 五、转介绍参与行为分析"
+            subsection1 = "### 5.1 整体指标"
+            subsection2 = "### 5.2 打卡效果"
+            subsection3 = "### 5.3 团队排名（TOP 10）"
+            subsection4 = "### 5.4 洞察"
+            metric_header = "| 指标 | 数值 |"
+            team_header = "| 排名 | 团队 | 打卡参与率 | 参与率 | 带新系数 | 带货比 |"
+            checkin_effect = f"打卡用户参与率是未打卡的 **{checkin_multiplier:.1f}** 倍"
+        else:
+            section_title = "## 5. วิเคราะห์พฤติกรรมการมีส่วนร่วม"
+            subsection1 = "### 5.1 ตัวชี้วัดโดยรวม"
+            subsection2 = "### 5.2 ผลการเช็คอิน"
+            subsection3 = "### 5.3 อันดับทีม (TOP 10)"
+            subsection4 = "### 5.4 ข้อสังเกต"
+            metric_header = "| ตัวชี้วัด | ค่า |"
+            team_header = "| อันดับ | ทีม | อัตราเช็คอิน | อัตราร่วม | สัมประสิทธิ์นำ | อัตรานำชำระ |"
+            checkin_effect = f"อัตราร่วมผู้เช็คอินสูงกว่าไม่เช็คอิน **{checkin_multiplier:.1f}** เท่า"
+
+        return f"""{section_title}
+
+{subsection1}
+
+{metric_header}
+|------|-----|
+| 打卡参与率 / อัตราเช็คอิน | {checkin_participation*100:.1f}% |
+| 转介绍参与率 / อัตราร่วม | {ref_participation*100:.1f}% |
+| 带新系数 / สัมประสิทธิ์นำ | {bring_coefficient:.2f} |
+| 带货比 / อัตรานำชำระ | {bring_ratio*100:.1f}% |
+
+---
+
+{subsection2}
+
+{checkin_effect}
+
+---
+
+{subsection3}
+
+{team_header}
+|------|------|-----------|--------|--------|--------|
+{team_table}
+
+---
+
+{subsection4}
+
+{insights_text}"""
+
+    def _ops_leads_achievement(self) -> str:
+        """运营版全团队 Leads 对标"""
+        leads_data = self.result.get("leads_achievement", {})
+
+        if not leads_data:
+            return ""
+
+        by_channel = leads_data.get("by_channel", {})
+        insights = leads_data.get("insights", [])
+
+        if not by_channel:
+            return ""
+
+        # 获取各口径数据
+        def build_channel_table(channel_name, teams):
+            if not teams:
+                return ""
+            rows = []
+            for team in teams:
+                team_name = team.get("团队", "")
+                reg = team.get("注册", 0)
+                booking = team.get("预约", 0)
+                attend = team.get("出席", 0)
+                paid = team.get("付费", 0)
+                reg_paid_rate = team.get("注册付费率", 0.0)
+
+                rows.append(
+                    f"| {team_name} | {reg} | {booking} | {attend} | {paid} | {reg_paid_rate*100:.1f}% |"
+                )
+            return "\n".join(rows)
+
+        # 构建各口径的表格
+        total_table = build_channel_table("总计", by_channel.get("总计", []))
+        cc_narrow_table = build_channel_table("CC窄口径", by_channel.get("CC窄口径", []))
+        ss_narrow_table = build_channel_table("SS窄口径", by_channel.get("SS窄口径", []))
+        lp_narrow_table = build_channel_table("LP窄口径", by_channel.get("LP窄口径", []))
+        wide_table = build_channel_table("宽口径", by_channel.get("宽口径", []))
+
+        # 洞察
+        insights_text = "\n".join([f"- {insight}" for insight in insights]) if insights else ""
+
+        if self.lang == "zh":
+            section_title = "## 六、全团队 Leads 漏斗对标"
+            subsection1 = "### 6.1 SS/LP 团队达成（按总计口径）"
+            subsection2 = "### 6.2 CC 窄口径"
+            subsection3 = "### 6.3 SS 窄口径"
+            subsection4 = "### 6.4 LP 窄口径"
+            subsection5 = "### 6.5 宽口径"
+            subsection6 = "### 6.6 洞察"
+            table_header = "| 团队 | 注册 | 预约 | 出席 | 付费 | 注册付费率 |"
+        else:
+            section_title = "## 6. เปรียบเทียบ Leads Funnel ทุกทีม"
+            subsection1 = "### 6.1 ผลสำเร็จ SS/LP (ช่องรวม)"
+            subsection2 = "### 6.2 ช่องแคบ CC"
+            subsection3 = "### 6.3 ช่องแคบ SS"
+            subsection4 = "### 6.4 ช่องแคบ LP"
+            subsection5 = "### 6.5 ช่องกว้าง"
+            subsection6 = "### 6.6 ข้อสังเกต"
+            table_header = "| ทีม | ลงทะเบียน | จอง | เข้าคลาส | ชำระ | อัตราแปลง |"
+
+        return f"""{section_title}
+
+{subsection1}
+
+{table_header}
+|------|-----:|-----:|-----:|-----:|--------:|
+{total_table}
+
+---
+
+{subsection2}
+
+{table_header}
+|------|-----:|-----:|-----:|-----:|--------:|
+{cc_narrow_table}
+
+---
+
+{subsection3}
+
+{table_header}
+|------|-----:|-----:|-----:|-----:|--------:|
+{ss_narrow_table}
+
+---
+
+{subsection4}
+
+{table_header}
+|------|-----:|-----:|-----:|-----:|--------:|
+{lp_narrow_table}
+
+---
+
+{subsection5}
+
+{table_header}
+|------|-----:|-----:|-----:|-----:|--------:|
+{wide_table}
+
+---
+
+{subsection6}
+
+{insights_text}"""
+
+    def _ops_followup_analysis(self) -> str:
+        """运营版跟进效率分析"""
+        followup_data = self.result.get("followup_analysis", {})
+
+        if not followup_data:
+            return ""
+
+        trial_followup = followup_data.get("trial_followup", {})
+        cohort_outreach = followup_data.get("cohort_outreach", {})
+        insights = followup_data.get("insights", [])
+
+        if not trial_followup:
+            return ""
+
+        # 体验课课前课后跟进
+        trial_summary = trial_followup.get("summary", {})
+        before_dial = (trial_summary.get("课前拨打率") or 0.0)
+        before_connect = (trial_summary.get("课前接通率") or 0.0)
+        before_valid = (trial_summary.get("课前有效接通率") or 0.0)
+        after_dial = (trial_summary.get("课后拨打率") or 0.0)
+        after_connect = (trial_summary.get("课后接通率") or 0.0)
+        after_valid = (trial_summary.get("课后有效接通率") or 0.0)
+
+        # TOP5 团队
+        top5_before = trial_followup.get("课前TOP5", [])
+        before_rows = []
+        for team in top5_before[:5]:
+            team_name = team.get("团队", "")
+            trial_count = team.get("体验课量", 0) or 0
+            before_valid_rate = (team.get("课前有效接通率") or 0.0)
+            after_valid_rate = (team.get("课后有效接通率") or 0.0)
+
+            before_rows.append(
+                f"| {team_name} | {trial_count} | {before_valid_rate*100:.1f}% | {after_valid_rate*100:.1f}% |"
+            )
+
+        before_table = "\n".join(before_rows) if before_rows else ""
+
+        # 围场触达覆盖率
+        cohort_summary = cohort_outreach.get("by_cohort", [])
+        cohort_rows = []
+        for cohort in cohort_summary:
+            fence = cohort.get("围场", "")
+            student_count = cohort.get("学员数", 0) or 0
+            dial_coverage = (cohort.get("拨打覆盖率") or 0.0)
+            valid_coverage = (cohort.get("有效接通覆盖率") or 0.0)
+
+            cohort_rows.append(
+                f"| {fence} | {student_count} | {dial_coverage*100:.1f}% | {valid_coverage*100:.1f}% |"
+            )
+
+        cohort_table = "\n".join(cohort_rows) if cohort_rows else ""
+
+        # 洞察
+        insights_text = "\n".join([f"- {insight}" for insight in insights]) if insights else ""
+
+        if self.lang == "zh":
+            section_title = "## 七、跟进效率分析"
+            subsection1 = "### 7.1 体验课课前课后跟进"
+            subsection2 = "### 7.2 课前 TOP5 团队"
+            subsection3 = "### 7.3 围场触达覆盖率"
+            subsection4 = "### 7.4 洞察"
+            trial_header = "| 指标 | 课前 | 课后 |"
+            team_header = "| 团队 | 体验课量 | 课前有效接通率 | 课后有效接通率 |"
+            cohort_header = "| 围场 | 学员数 | 拨打覆盖率 | 有效接通覆盖率 |"
+        else:
+            section_title = "## 7. วิเคราะห์ประสิทธิภาพการติดตาม"
+            subsection1 = "### 7.1 ติดตามก่อน/หลังคลาสทดลอง"
+            subsection2 = "### 7.2 TOP5 ทีมติดตามก่อนคลาส"
+            subsection3 = "### 7.3 ครอบคลุมการติดตามตามช่วง"
+            subsection4 = "### 7.4 ข้อสังเกต"
+            trial_header = "| ตัวชี้วัด | ก่อนคลาส | หลังคลาส |"
+            team_header = "| ทีม | จำนวนคลาส | อัตรารับสายก่อน | อัตรารับสายหลัง |"
+            cohort_header = "| ช่วง | จำนวนนักเรียน | ครอบคลุมโทร | ครอบคลุมรับสาย |"
+
+        return f"""{section_title}
+
+{subsection1}
+
+{trial_header}
+|------|-----:|-----:|
+| 拨打率 / อัตราโทร | {before_dial*100:.1f}% | {after_dial*100:.1f}% |
+| 接通率 / อัตรารับ | {before_connect*100:.1f}% | {after_connect*100:.1f}% |
+| 有效接通率 / อัตรารับสายที่มี | {before_valid*100:.1f}% | {after_valid*100:.1f}% |
+
+---
+
+{subsection2}
+
+{team_header}
+|------|--------:|-------------:|-------------:|
+{before_table}
+
+---
+
+{subsection3}
+
+{cohort_header}
+|------|------:|----------:|-------------:|
+{cohort_table}
+
+---
+
+{subsection4}
+
+{insights_text}"""
+
+    def _ops_order_analysis(self) -> str:
+        """运营版订单明细分析"""
+        order_data = self.result.get("order_analysis", {})
+
+        if not order_data:
+            return ""
+
+        summary = order_data.get("summary", {})
+        top_products = order_data.get("top_products", [])
+        top_teams = order_data.get("top_teams", [])
+        insights = order_data.get("insights", [])
+
+        if not summary:
+            return ""
+
+        # 概要
+        total_orders = summary.get("总订单数", 0)
+        total_amount = summary.get("总金额", 0)
+        ref_orders = summary.get("转介绍订单数", 0)
+        ref_ratio = summary.get("转介绍占比", 0.0)
+        avg_price = summary.get("平均客单价", 0.0)
+
+        # TOP5 产品
+        product_rows = []
+        for i, product in enumerate(top_products[:5], 1):
+            product_name = product.get("产品", "")
+            order_count = product.get("订单数", 0)
+            amount = product.get("金额", 0)
+
+            product_rows.append(
+                f"| {i} | {product_name} | {order_count} | ${amount:,.0f} |"
+            )
+
+        product_table = "\n".join(product_rows) if product_rows else ""
+
+        # TOP5 团队
+        team_rows = []
+        for i, team in enumerate(top_teams[:5], 1):
+            team_name = team.get("团队", "")
+            order_count = team.get("订单数", 0)
+            amount = team.get("金额", 0)
+            new_orders = team.get("新单数", 0)
+
+            team_rows.append(
+                f"| {i} | {team_name} | {order_count} | ${amount:,.0f} | {new_orders} |"
+            )
+
+        team_table = "\n".join(team_rows) if team_rows else ""
+
+        # 洞察
+        insights_text = "\n".join([f"- {insight}" for insight in insights]) if insights else ""
+
+        if self.lang == "zh":
+            section_title = "## 八、订单明细分析"
+            subsection1 = "### 8.1 概要"
+            subsection2 = "### 8.2 TOP5 产品"
+            subsection3 = "### 8.3 TOP5 团队"
+            subsection4 = "### 8.4 洞察"
+            summary_header = "| 指标 | 数值 |"
+            product_header = "| 排名 | 产品 | 订单数 | 金额 |"
+            team_header = "| 排名 | 团队 | 订单数 | 金额 | 新单数 |"
+        else:
+            section_title = "## 8. วิเคราะห์รายละเอียดคำสั่งซื้อ"
+            subsection1 = "### 8.1 สรุป"
+            subsection2 = "### 8.2 TOP5 สินค้า"
+            subsection3 = "### 8.3 TOP5 ทีม"
+            subsection4 = "### 8.4 ข้อสังเกต"
+            summary_header = "| ตัวชี้วัด | ค่า |"
+            product_header = "| อันดับ | สินค้า | จำนวน | ยอด |"
+            team_header = "| อันดับ | ทีม | จำนวน | ยอด | ออเดอร์ใหม่ |"
+
+        return f"""{section_title}
+
+{subsection1}
+
+{summary_header}
+|------|-----|
+| 总订单数 / ทั้งหมด | {total_orders} |
+| 总金额 / ยอดรวม | ${total_amount:,.0f} |
+| 转介绍占比 / สัดส่วนแนะนำ | {ref_ratio*100:.1f}% ({ref_orders} 单/ออเดอร์) |
+| 平均客单价 / เฉลี่ย | ${avg_price:,.0f} |
+
+---
+
+{subsection2}
+
+{product_header}
+|------|------|-----:|-------:|
+{product_table}
+
+---
+
+{subsection3}
+
+{team_header}
+|------|------|-----:|-------:|------:|
+{team_table}
+
+---
+
+{subsection4}
+
+{insights_text}"""
+
+    def _ops_trend_analysis(self) -> str:
+        """运营版月度趋势分析（MoM + YoY 合并）"""
+        mom_data = self.result.get("mom_trend", {})
+        yoy_data = self.result.get("yoy_trend", {})
+
+        if not mom_data and not yoy_data:
+            return ""
+
+        # 环比变化
+        mom_trends = mom_data.get("trends", [])
+        mom_insights = mom_data.get("insights", [])
+
+        # 同比变化
+        yoy_trends = yoy_data.get("trends", [])
+        yoy_insights = yoy_data.get("insights", [])
+
+        # 构建环比表格（只列出变化超过 5% 的指标）
+        mom_rows = []
+        for trend in mom_trends:
+            change_pct = trend.get("环比", 0.0)
+            if abs(change_pct) >= 0.05:  # 5% 阈值
+                channel = trend.get("渠道", "")
+                metric = trend.get("指标", "")
+                last_value = trend.get("上月值", 0)
+                current_value = trend.get("当月值", 0)
+                trend_arrow = "📈" if change_pct > 0 else "📉"
+
+                mom_rows.append(
+                    f"| {channel} | {metric} | {last_value} | {current_value} | {change_pct*100:+.1f}% | {trend_arrow} |"
+                )
+
+        mom_table = "\n".join(mom_rows) if mom_rows else "无显著变化 / ไม่มีการเปลี่ยนแปลงที่สำคัญ"
+
+        # 构建同比表格（只列出变化超过 10% 的指标）
+        yoy_rows = []
+        for trend in yoy_trends:
+            change_pct = trend.get("同比", 0.0)
+            if abs(change_pct) >= 0.10:  # 10% 阈值
+                channel_type = trend.get("渠道类型", "")
+                metric = trend.get("指标", "")
+                last_year = trend.get("去年同期", 0)
+                current = trend.get("当前", 0)
+                trend_arrow = "📈" if change_pct > 0 else "📉"
+
+                yoy_rows.append(
+                    f"| {channel_type} | {metric} | {last_year} | {current} | {change_pct*100:+.1f}% | {trend_arrow} |"
+                )
+
+        yoy_table = "\n".join(yoy_rows) if yoy_rows else "无显著变化 / ไม่มีการเปลี่ยนแปลงที่สำคัญ"
+
+        # 合并洞察
+        all_insights = mom_insights + yoy_insights
+        insights_text = "\n".join([f"- {insight}" for insight in all_insights]) if all_insights else ""
+
+        if self.lang == "zh":
+            section_title = "## 九、月度趋势分析"
+            subsection1 = "### 9.1 环比变化（最近3个月）"
+            subsection2 = "### 9.2 同比变化"
+            subsection3 = "### 9.3 洞察"
+            mom_header = "| 渠道 | 指标 | 上月值 | 当月值 | 环比 | 趋势 |"
+            yoy_header = "| 渠道类型 | 指标 | 去年同期 | 当前 | 同比 | 趋势 |"
+            mom_note = "*仅显示变化 ≥5% 的指标*"
+            yoy_note = "*仅显示变化 ≥10% 的指标*"
+        else:
+            section_title = "## 9. วิเคราะห์แนวโน้มรายเดือน"
+            subsection1 = "### 9.1 เปลี่ยนแปลง MoM (3 เดือนล่าสุด)"
+            subsection2 = "### 9.2 เปลี่ยนแปลง YoY"
+            subsection3 = "### 9.3 ข้อสังเกต"
+            mom_header = "| ช่องทาง | ตัวชี้วัด | เดือนก่อน | เดือนนี้ | MoM | แนวโน้ม |"
+            yoy_header = "| ประเภทช่อง | ตัวชี้วัด | ปีก่อน | ปัจจุบัน | YoY | แนวโน้ม |"
+            mom_note = "*แสดงเฉพาะตัวชี้วัดที่เปลี่ยน ≥5%*"
+            yoy_note = "*แสดงเฉพาะตัวชี้วัดที่เปลี่ยน ≥10%*"
+
+        return f"""{section_title}
+
+{subsection1}
+
+{mom_header}
+|------|------|--------|--------|------|------|
+{mom_table}
+
+{mom_note}
+
+---
+
+{subsection2}
+
+{yoy_header}
+|------|------|--------|--------|------|------|
+{yoy_table}
+
+{yoy_note}
+
+---
+
+{subsection3}
+
+{insights_text}"""
+
     # ==================== 管理层版各章节 ====================
 
     def _exec_header(self) -> str:
@@ -1830,7 +2415,7 @@ xychart-beta
 | ROI | 投入产出比（花 1 块赚几块） |
 | 效能指数 | 单位注册产出效率（1 个注册能产出多少付费） |
 | 出席付费率 | 体验课后愿意付费的比例 |
-| 窄口/宽口 | 窄口 = 直接推荐（高质量），宽口 = 平台分享（低质量） |"""
+| 窄口/宽口 | 窄口 = CC/SS/LP 员工链接绑定新学员（高质量），宽口 = 老学员链接绑定新学员（低质量） |"""
         else:
             section_title = "## ตารางคำศัพท์"
             table_header = "| คำศัพท์ | คำอธิบาย |"
@@ -1839,13 +2424,351 @@ xychart-beta
 | ROI | อัตราผลตอบแทนการลงทุน (ลงทุน 1 ได้กำไรเท่าไหร่) |
 | ดัชนีประสิทธิภาพ | ประสิทธิภาพผลผลิตต่อหน่วยลงทะเบียน (1 ลงทะเบียนได้ชำระเท่าไหร่) |
 | อัตราชำระหลังเข้าคลาส | สัดส่วนที่ยินดีชำระหลังทดลองเรียน |
-| ช่องแคบ/กว้าง | แคบ = แนะนำตรง (คุณภาพสูง), กว้าง = แชร์แพลตฟอร์ม (คุณภาพต่ำ) |"""
+| ช่องแคบ/กว้าง | แคบ = CC/SS/LP ผูกนักเรียนใหม่ (คุณภาพสูง), กว้าง = ผู้ใช้ผูกนักเรียนใหม่ (คุณภาพต่ำ) |"""
 
         return f"""{section_title}
 
 {table_header}
 |------|---------|
 {rows}"""
+
+    def _exec_cohort_analysis(self) -> str:
+        """管理层版围场生命周期分析"""
+        cohort_data = self.result.get("cohort_analysis", {})
+
+        if not cohort_data:
+            return ""
+
+        summary = cohort_data.get("summary", {})
+        by_cohort = cohort_data.get("by_cohort", [])
+        insights = cohort_data.get("insights", [])
+
+        if not by_cohort:
+            return ""
+
+        # 简化表格（只要关键指标）
+        rows = []
+        for cohort in by_cohort:
+            fence = cohort.get("围场", "")
+            participation = cohort.get("参与率", 0.0)
+            fence_conv = cohort.get("围场转率", 0.0)
+            b_paid = cohort.get("B付费", 0)
+
+            rows.append(
+                f"| {fence} | {participation*100:.1f}% | {fence_conv*100:.1f}% | {b_paid} |"
+            )
+
+        table = "\n".join(rows)
+
+        # 关键洞察（只要前3条）
+        key_insights = insights[:3] if insights else []
+        insights_text = "\n".join([f"- {insight}" for insight in key_insights])
+
+        if self.lang == "zh":
+            section_title = "## 三、围场生命周期分析"
+            table_header = "| 围场 | 参与率 | 围场转率 | B付费 |"
+            subsection = "### 关键洞察"
+            recommendation = "**建议**: 重点提升低参与率围场的触达策略"
+        else:
+            section_title = "## 3. วิเคราะห์วงจรชีวิตตามช่วง"
+            table_header = "| ช่วง | อัตราร่วม | อัตราแปลง | ชำระ B |"
+            subsection = "### ข้อสังเกตหลัก"
+            recommendation = "**แนะนำ**: โฟกัสปรับกลยุทธ์ติดตามช่วงที่มีส่วนร่วมต่ำ"
+
+        return f"""{section_title}
+
+{table_header}
+|------|------:|--------:|------:|
+{table}
+
+---
+
+{subsection}
+
+{insights_text}
+
+{recommendation}"""
+
+    def _exec_checkin_analysis(self) -> str:
+        """管理层版转介绍参与行为分析"""
+        checkin_data = self.result.get("checkin_analysis", {})
+
+        if not checkin_data:
+            return ""
+
+        summary = checkin_data.get("summary", {})
+        insights = checkin_data.get("insights", [])
+
+        if not summary:
+            return ""
+
+        checkin_participation = (summary.get("打卡参与率") or 0.0)
+        ref_participation = (summary.get("参与率") or 0.0)
+        checkin_multiplier = (summary.get("打卡倍率") or 0.0)
+        bring_ratio = (summary.get("带货比") or 0.0)
+
+        # 关键洞察
+        key_insights = insights[:2] if insights else []
+        insights_text = "\n".join([f"- {insight}" for insight in key_insights])
+
+        if self.lang == "zh":
+            section_title = "## 四、参与行为分析"
+            metric_header = "| 指标 | 数值 |"
+            effect_title = "### 打卡倍率效果"
+            effect_text = f"打卡用户的参与率是未打卡用户的 **{checkin_multiplier:.1f}** 倍，证明打卡机制有效提升转介绍意愿。"
+            recommendation = "**建议**: 扩大打卡活动覆盖面，提升整体参与率"
+        else:
+            section_title = "## 4. วิเคราะห์พฤติกรรมการมีส่วนร่วม"
+            metric_header = "| ตัวชี้วัด | ค่า |"
+            effect_title = "### ผลตัวคูณการเช็คอิน"
+            effect_text = f"อัตราร่วมของผู้เช็คอินสูงกว่าผู้ไม่เช็คอิน **{checkin_multiplier:.1f}** เท่า พิสูจน์ว่ากลไกเช็คอินช่วยเพิ่มความตั้งใจแนะนำ"
+            recommendation = "**แนะนำ**: ขยายการครอบคลุมกิจกรรมเช็คอิน เพิ่มอัตราร่วมโดยรวม"
+
+        return f"""{section_title}
+
+{metric_header}
+|------|-----|
+| 打卡参与率 / อัตราเช็คอิน | {checkin_participation*100:.1f}% |
+| 参与率 / อัตราร่วม | {ref_participation*100:.1f}% |
+| 带货比 / อัตรานำชำระ | {bring_ratio*100:.1f}% |
+
+---
+
+{effect_title}
+
+{effect_text}
+
+{insights_text}
+
+{recommendation}"""
+
+    def _exec_leads_achievement(self) -> str:
+        """管理层版全团队 Leads 对标"""
+        leads_data = self.result.get("leads_achievement", {})
+
+        if not leads_data:
+            return ""
+
+        by_channel = leads_data.get("by_channel", {})
+        insights = leads_data.get("insights", [])
+
+        if not by_channel:
+            return ""
+
+        # 只要总计口径的 TOP5
+        total_teams = by_channel.get("总计", [])
+        top5 = total_teams[:5]
+
+        rows = []
+        for i, team in enumerate(top5, 1):
+            team_name = team.get("团队", "")
+            reg = team.get("注册", 0)
+            paid = team.get("付费", 0)
+            reg_paid_rate = team.get("注册付费率", 0.0)
+
+            rows.append(
+                f"| {i} | {team_name} | {reg} | {paid} | {reg_paid_rate*100:.1f}% |"
+            )
+
+        table = "\n".join(rows) if rows else ""
+
+        # 关键洞察
+        key_insights = insights[:2] if insights else []
+        insights_text = "\n".join([f"- {insight}" for insight in key_insights])
+
+        if self.lang == "zh":
+            section_title = "## 五、Leads 漏斗对标"
+            subsection = "### TOP5 团队（总计口径）"
+            table_header = "| 排名 | 团队 | 注册 | 付费 | 注册付费率 |"
+            recommendation = "**建议**: 复制 TOP 团队经验到其他团队"
+        else:
+            section_title = "## 5. เปรียบเทียบ Leads Funnel"
+            subsection = "### TOP5 ทีม (ช่องรวม)"
+            table_header = "| อันดับ | ทีม | ลงทะเบียน | ชำระ | อัตราแปลง |"
+            recommendation = "**แนะนำ**: ทำซ้ำประสบการณ์ทีม TOP ไปทีมอื่น"
+
+        return f"""{section_title}
+
+{subsection}
+
+{table_header}
+|------|------|-----:|-----:|--------:|
+{table}
+
+---
+
+{insights_text}
+
+{recommendation}"""
+
+    def _exec_followup_analysis(self) -> str:
+        """管理层版跟进效率分析"""
+        followup_data = self.result.get("followup_analysis", {})
+
+        if not followup_data:
+            return ""
+
+        trial_followup = followup_data.get("trial_followup", {})
+        cohort_outreach = followup_data.get("cohort_outreach", {})
+        insights = followup_data.get("insights", [])
+
+        if not trial_followup:
+            return ""
+
+        # 整体课前课后对比
+        trial_summary = trial_followup.get("summary", {})
+        before_valid = trial_summary.get("课前有效接通率", 0.0)
+        after_valid = trial_summary.get("课后有效接通率", 0.0)
+
+        # 围场触达概览（只要汇总数据）
+        cohort_summary = cohort_outreach.get("summary", {})
+        avg_dial_coverage = cohort_summary.get("平均拨打覆盖率", 0.0)
+        avg_valid_coverage = cohort_summary.get("平均有效接通覆盖率", 0.0)
+
+        # 关键洞察
+        key_insights = insights[:2] if insights else []
+        insights_text = "\n".join([f"- {insight}" for insight in key_insights])
+
+        if self.lang == "zh":
+            section_title = "## 六、跟进效率分析"
+            subsection1 = "### 课前课后跟进对比"
+            subsection2 = "### 围场触达概览"
+            metric_header = "| 指标 | 数值 |"
+            recommendation = "**建议**: 提升课前跟进覆盖率，降低流失风险"
+        else:
+            section_title = "## 6. วิเคราะห์ประสิทธิภาพการติดตาม"
+            subsection1 = "### เปรียบเทียบติดตามก่อน/หลังคลาส"
+            subsection2 = "### ภาพรวมการติดตามตามช่วง"
+            metric_header = "| ตัวชี้วัด | ค่า |"
+            recommendation = "**แนะนำ**: เพิ่มครอบคลุมติดตามก่อนคลาส ลดความเสี่ยงสูญเสีย"
+
+        return f"""{section_title}
+
+{subsection1}
+
+{metric_header}
+|------|-----|
+| 课前有效接通率 / อัตรารับสายก่อน | {before_valid*100:.1f}% |
+| 课后有效接通率 / อัตรารับสายหลัง | {after_valid*100:.1f}% |
+
+---
+
+{subsection2}
+
+{metric_header}
+|------|-----|
+| 平均拨打覆盖率 / เฉลี่ยครอบคลุมโทร | {avg_dial_coverage*100:.1f}% |
+| 平均有效接通覆盖率 / เฉลี่ยครอบคลุมรับสาย | {avg_valid_coverage*100:.1f}% |
+
+---
+
+{insights_text}
+
+{recommendation}"""
+
+    def _exec_order_analysis(self) -> str:
+        """管理层版订单明细分析"""
+        order_data = self.result.get("order_analysis", {})
+
+        if not order_data:
+            return ""
+
+        summary = order_data.get("summary", {})
+        top_products = order_data.get("top_products", [])
+        insights = order_data.get("insights", [])
+
+        if not summary:
+            return ""
+
+        # 概要
+        total_orders = summary.get("总订单数", 0)
+        total_amount = summary.get("总金额", 0)
+        ref_ratio = summary.get("转介绍占比", 0.0)
+        avg_price = summary.get("平均客单价", 0.0)
+
+        # TOP5 产品
+        product_rows = []
+        for i, product in enumerate(top_products[:5], 1):
+            product_name = product.get("产品", "")
+            amount = product.get("金额", 0)
+
+            product_rows.append(
+                f"| {i} | {product_name} | ${amount:,.0f} |"
+            )
+
+        product_table = "\n".join(product_rows) if product_rows else ""
+
+        # 关键洞察
+        key_insights = insights[:2] if insights else []
+        insights_text = "\n".join([f"- {insight}" for insight in key_insights])
+
+        if self.lang == "zh":
+            section_title = "## 七、订单分析"
+            subsection1 = "### 概要"
+            subsection2 = "### TOP5 产品"
+            summary_header = "| 指标 | 数值 |"
+            product_header = "| 排名 | 产品 | 金额 |"
+        else:
+            section_title = "## 7. วิเคราะห์คำสั่งซื้อ"
+            subsection1 = "### สรุป"
+            subsection2 = "### TOP5 สินค้า"
+            summary_header = "| ตัวชี้วัด | ค่า |"
+            product_header = "| อันดับ | สินค้า | ยอด |"
+
+        return f"""{section_title}
+
+{subsection1}
+
+{summary_header}
+|------|-----|
+| 总订单 / ทั้งหมด | {total_orders} |
+| 总金额 / ยอดรวม | ${total_amount:,.0f} |
+| 转介绍占比 / สัดส่วนแนะนำ | {ref_ratio*100:.1f}% |
+| 平均客单价 / เฉลี่ย | ${avg_price:,.0f} |
+
+---
+
+{subsection2}
+
+{product_header}
+|------|------|-------:|
+{product_table}
+
+---
+
+{insights_text}"""
+
+    def _exec_trend_analysis(self) -> str:
+        """管理层版月度趋势分析"""
+        mom_data = self.result.get("mom_trend", {})
+        yoy_data = self.result.get("yoy_trend", {})
+
+        if not mom_data and not yoy_data:
+            return ""
+
+        # 合并洞察（只要关键洞察）
+        mom_insights = mom_data.get("insights", [])
+        yoy_insights = yoy_data.get("insights", [])
+        all_insights = (mom_insights + yoy_insights)[:4]  # 最多4条
+
+        insights_text = "\n".join([f"- {insight}" for insight in all_insights]) if all_insights else ""
+
+        if self.lang == "zh":
+            section_title = "## 八、趋势分析"
+            subsection = "### 关键趋势洞察"
+            recommendation = "**建议**: 密切关注下降趋势指标，及时调整策略"
+        else:
+            section_title = "## 8. วิเคราะห์แนวโน้ม"
+            subsection = "### ข้อสังเกตแนวโน้มหลัก"
+            recommendation = "**แนะนำ**: ติดตามตัวชี้วัดที่ลดลงอย่างใกล้ชิด ปรับกลยุทธ์ทันท่วงที"
+
+        return f"""{section_title}
+
+{subsection}
+
+{insights_text}
+
+{recommendation}"""
 
 
 # 辅助函数

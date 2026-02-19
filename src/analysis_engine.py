@@ -24,13 +24,14 @@ class AnalysisEngine:
         self.monthly_summaries = processor.get_monthly_summaries()
         self.all_rows = processor.all_rows
 
-    def analyze(self, targets: dict, report_date: datetime) -> dict:
+    def analyze(self, targets: dict, report_date: datetime, multi_source_data: dict = None) -> dict:
         """
         主分析函数，返回结构化分析结果
 
         Args:
             targets: 月度目标配置字典（来自 config.get_targets()）
             report_date: 报告生成日期
+            multi_source_data: 多数据源数据（可选）
 
         Returns:
             包含全部分析结果的字典
@@ -49,7 +50,7 @@ class AnalysisEngine:
         time_progress = targets.get("时间进度", 0.0)
 
         # 执行各项分析
-        return {
+        result = {
             "summary": self._analyze_summary(current_data, targets, time_progress),
             "funnel": self._analyze_funnel(current_month),
             "trend": self._analyze_trend(current_month, limit=6),
@@ -67,6 +68,18 @@ class AnalysisEngine:
                 "current_day": data_date.day,
             }
         }
+
+        # 新增：多数据源分析
+        if multi_source_data:
+            result["cohort_analysis"] = self._analyze_cohort(multi_source_data)
+            result["checkin_analysis"] = self._analyze_checkin(multi_source_data)
+            result["leads_achievement"] = self._analyze_leads_achievement(multi_source_data)
+            result["followup_analysis"] = self._analyze_followup(multi_source_data)
+            result["order_analysis"] = self._analyze_orders(multi_source_data)
+            result["mom_trend"] = self._analyze_mom_trend(multi_source_data)
+            result["yoy_trend"] = self._analyze_yoy_trend(multi_source_data)
+
+        return result
 
     def _analyze_summary(self, current_data: Dict, targets: Dict, time_progress: float) -> Dict:
         """整体进度看板分析"""
@@ -450,3 +463,398 @@ class AnalysisEngine:
                     max_decline_name = name
 
         return max_decline_name, max_decline
+
+    def _analyze_cohort(self, multi_source_data: dict) -> dict:
+        """围场生命周期分析"""
+        cohort_summary = multi_source_data.get("围场汇总", {})
+        channel_cohort = multi_source_data.get("当月效率", {})
+        cohort_outreach = multi_source_data.get("围场跟进", {})
+
+        if not cohort_summary:
+            return {}
+
+        analysis = {
+            "summary": cohort_summary.get("summary", {}),
+            "by_cohort": [],
+            "insights": []
+        }
+
+        # 合并围场数据
+        by_cohort = cohort_summary.get("by_cohort", [])
+        for cohort_data in by_cohort:
+            cohort_name = cohort_data.get("围场", "")
+
+            # 基础数据
+            result = {
+                "围场": cohort_name,
+                "参与率": cohort_data.get("参与率"),
+                "带货比": cohort_data.get("带货比"),
+                "围场转率": cohort_data.get("围场转率"),
+                "有效学员": cohort_data.get("有效学员"),
+                "B注册": cohort_data.get("B注册"),
+                "B付费": cohort_data.get("B付费"),
+            }
+
+            # 添加触达覆盖率（从围场跟进）
+            for outreach_cohort in cohort_outreach.get("by_cohort", []):
+                if outreach_cohort.get("围场", "").startswith(cohort_name.split("至")[0]):
+                    result["拨打覆盖率"] = outreach_cohort.get("拨打覆盖率")
+                    result["有效接通覆盖率"] = outreach_cohort.get("有效接通覆盖率")
+                    break
+
+            analysis["by_cohort"].append(result)
+
+        # 识别最高/最低围场
+        if by_cohort:
+            max_participation = max(by_cohort, key=lambda x: x.get("参与率") or 0)
+            min_participation = min(by_cohort, key=lambda x: x.get("参与率") or 0)
+
+            analysis["insights"].append({
+                "类型": "最高参与率围场",
+                "围场": max_participation.get("围场"),
+                "参与率": max_participation.get("参与率"),
+                "建议": "重点维护该围场用户，提高触达频次"
+            })
+
+            if min_participation.get("参与率", 0) < 0.05:
+                analysis["insights"].append({
+                    "类型": "低参与率预警",
+                    "围场": min_participation.get("围场"),
+                    "参与率": min_participation.get("参与率"),
+                    "建议": "增加激励措施，优化触达话术"
+                })
+
+        return analysis
+
+    def _analyze_checkin(self, multi_source_data: dict) -> dict:
+        """转介绍参与行为分析"""
+        checkin_data = multi_source_data.get("打卡率", {})
+
+        if not checkin_data:
+            return {}
+
+        summary = checkin_data.get("summary", {})
+        by_team = checkin_data.get("by_team", [])
+
+        analysis = {
+            "summary": summary,
+            "team_ranking": [],
+            "insights": []
+        }
+
+        # 团队排名（按打卡参与率）
+        if by_team:
+            sorted_teams = sorted(by_team, key=lambda x: x.get("打卡参与率") or 0, reverse=True)
+            analysis["team_ranking"] = sorted_teams[:10]
+
+            # 打卡倍率分析
+            avg_multiplier = summary.get("打卡倍率", 1.0)
+            if avg_multiplier and avg_multiplier > 1.5:
+                analysis["insights"].append({
+                    "类型": "打卡效果显著",
+                    "打卡倍率": avg_multiplier,
+                    "建议": f"打卡用户参与率是未打卡的{avg_multiplier:.1f}倍，建议加大打卡推广力度"
+                })
+
+            # 识别低打卡率团队
+            low_teams = [t for t in by_team if (t.get("打卡参与率") or 0) < 0.3]
+            if low_teams:
+                analysis["insights"].append({
+                    "类型": "低打卡率团队",
+                    "团队数": len(low_teams),
+                    "团队": [t.get("团队") for t in low_teams[:5]],
+                    "建议": "加强打卡培训，优化打卡流程"
+                })
+
+        return analysis
+
+    def _analyze_leads_achievement(self, multi_source_data: dict) -> dict:
+        """全团队 Leads 对标分析"""
+        leads_data = multi_source_data.get("leads达成", {})
+
+        if not leads_data:
+            return {}
+
+        teams = leads_data.get("teams", [])
+
+        analysis = {
+            "by_channel": {},
+            "team_ranking": {},
+            "insights": []
+        }
+
+        # 按渠道分组
+        channels = ["总计", "CC窄口径", "SS窄口径", "LP窄口径", "宽口径"]
+        for channel in channels:
+            channel_teams = []
+            for team in teams:
+                channel_data = team.get(channel, {})
+                if channel_data.get("注册"):
+                    channel_teams.append({
+                        "团队": team.get("团队"),
+                        "注册": channel_data.get("注册"),
+                        "预约": channel_data.get("预约"),
+                        "出席": channel_data.get("出席"),
+                        "付费": channel_data.get("付费"),
+                        "注册付费率": channel_data.get("注册付费率"),
+                    })
+
+            # 按注册付费率排名
+            if channel_teams:
+                sorted_teams = sorted(
+                    channel_teams,
+                    key=lambda x: x.get("注册付费率") or 0,
+                    reverse=True
+                )
+                analysis["team_ranking"][channel] = sorted_teams
+
+        # 识别优秀团队和待提升团队
+        if teams:
+            # 找到总计口径的最佳团队
+            best_team = max(
+                [t for t in teams if t.get("总计", {}).get("注册")],
+                key=lambda x: x.get("总计", {}).get("注册付费率") or 0,
+                default=None
+            )
+
+            if best_team:
+                analysis["insights"].append({
+                    "类型": "最佳转化团队",
+                    "团队": best_team.get("团队"),
+                    "注册付费率": best_team.get("总计", {}).get("注册付费率"),
+                    "建议": "推广该团队的跟进话术和转化策略"
+                })
+
+        return analysis
+
+    def _analyze_followup(self, multi_source_data: dict) -> dict:
+        """跟进效率分析"""
+        trial_followup = multi_source_data.get("课前课后", {})
+        cohort_outreach = multi_source_data.get("围场跟进", {})
+
+        analysis = {
+            "trial_followup": {},
+            "cohort_outreach": {},
+            "insights": []
+        }
+
+        # 课前课后跟进分析
+        if trial_followup:
+            summary = trial_followup.get("summary", {})
+            by_team = trial_followup.get("by_team", [])
+
+            analysis["trial_followup"]["summary"] = summary
+
+            # 团队排名
+            if by_team:
+                # 课前有效接通率排名
+                pre_ranking = sorted(
+                    by_team,
+                    key=lambda x: x.get("课前有效接通率") or 0,
+                    reverse=True
+                )[:5]
+
+                # 课后有效接通率排名
+                post_ranking = sorted(
+                    by_team,
+                    key=lambda x: x.get("课后有效接通率") or 0,
+                    reverse=True
+                )[:5]
+
+                analysis["trial_followup"]["课前TOP5"] = pre_ranking
+                analysis["trial_followup"]["课后TOP5"] = post_ranking
+
+                # 识别跟进不足的团队
+                low_pre = [t for t in by_team if (t.get("课前有效接通率") or 0) < 0.4]
+                if low_pre:
+                    analysis["insights"].append({
+                        "类型": "课前跟进不足",
+                        "团队数": len(low_pre),
+                        "建议": "加强课前拨打培训，提高接通率"
+                    })
+
+        # 围场触达分析
+        if cohort_outreach:
+            summary = cohort_outreach.get("summary", {})
+            by_cohort = cohort_outreach.get("by_cohort", [])
+
+            analysis["cohort_outreach"]["summary"] = summary
+            analysis["cohort_outreach"]["by_cohort"] = by_cohort
+
+            # 识别触达率低的围场
+            if by_cohort:
+                low_outreach = [c for c in by_cohort if (c.get("有效接通覆盖率") or 0) < 0.1]
+                if low_outreach:
+                    analysis["insights"].append({
+                        "类型": "长尾围场触达不足",
+                        "围场数": len(low_outreach),
+                        "建议": "针对长尾围场制定专项触达计划"
+                    })
+
+        return analysis
+
+    def _analyze_orders(self, multi_source_data: dict) -> dict:
+        """订单分析"""
+        order_data = multi_source_data.get("订单明细", {})
+
+        if not order_data:
+            return {}
+
+        total_orders = order_data.get("total_orders", 0)
+        total_amount = order_data.get("total_amount", 0)
+        referral_orders = order_data.get("referral_orders", 0)
+
+        analysis = {
+            "summary": {
+                "总订单数": total_orders,
+                "总金额": total_amount,
+                "转介绍订单数": referral_orders,
+                "转介绍占比": referral_orders / total_orders if total_orders > 0 else 0,
+                "平均客单价": order_data.get("avg_amount", 0),
+            },
+            "by_team": order_data.get("by_team", []),
+            "by_product": order_data.get("by_product", []),
+            "insights": []
+        }
+
+        # 产品分析
+        by_product = order_data.get("by_product", [])
+        if by_product:
+            # 按金额排序
+            sorted_products = sorted(
+                by_product,
+                key=lambda x: x.get("金额") or 0,
+                reverse=True
+            )
+            analysis["top_products"] = sorted_products[:5]
+
+        # 团队贡献分析
+        by_team = order_data.get("by_team", [])
+        if by_team:
+            # 按金额排序
+            sorted_teams = sorted(
+                by_team,
+                key=lambda x: x.get("金额") or 0,
+                reverse=True
+            )
+            analysis["top_teams"] = sorted_teams[:5]
+
+        return analysis
+
+    def _analyze_mom_trend(self, multi_source_data: dict) -> dict:
+        """月度环比趋势分析"""
+        mom_data = multi_source_data.get("月度环比", {})
+
+        if not mom_data:
+            return {}
+
+        months = mom_data.get("months", [])
+        by_channel = mom_data.get("by_channel", [])
+
+        analysis = {
+            "months": months,
+            "trends": [],
+            "insights": []
+        }
+
+        # 计算环比变化
+        for channel_data in by_channel:
+            channel = channel_data.get("渠道", "")
+            trends = {}
+
+            for metric in ["注册", "注册付费率", "客单价", "预约率", "出席付费率"]:
+                values = channel_data.get(metric, [])
+                if len(values) >= 2:
+                    # 计算最近一个月的环比
+                    latest = values[-1] if values[-1] is not None else 0
+                    previous = values[-2] if values[-2] is not None else 0
+
+                    if previous != 0:
+                        mom_change = (latest - previous) / previous
+                        trends[metric] = {
+                            "当前值": latest,
+                            "上月值": previous,
+                            "环比": mom_change,
+                            "趋势": "上升" if mom_change > 0 else "下降"
+                        }
+
+            if trends:
+                analysis["trends"].append({
+                    "渠道": channel,
+                    "指标变化": trends
+                })
+
+                # 识别显著变化
+                for metric, data in trends.items():
+                    if abs(data.get("环比", 0)) > 0.1:  # 变化超过10%
+                        analysis["insights"].append({
+                            "渠道": channel,
+                            "指标": metric,
+                            "变化": data.get("环比"),
+                            "趋势": data.get("趋势"),
+                            "建议": f"{channel} {metric} {data.get('趋势')} {abs(data.get('环比', 0))*100:.1f}%"
+                        })
+
+        return analysis
+
+    def _analyze_yoy_trend(self, multi_source_data: dict) -> dict:
+        """年度同比趋势分析"""
+        yoy_data = multi_source_data.get("月度同期", {})
+
+        if not yoy_data:
+            return {}
+
+        channels = yoy_data.get("channels", [])
+        months = yoy_data.get("months", [])
+        by_channel = yoy_data.get("by_channel", [])
+
+        analysis = {
+            "months": months,
+            "channels": channels,
+            "trends": [],
+            "insights": []
+        }
+
+        # 分析每个渠道的趋势
+        for channel_data in by_channel:
+            channel = channel_data.get("渠道类型", "")
+            indicators = channel_data.get("指标", {})
+
+            channel_trends = {
+                "渠道": channel,
+                "指标": {}
+            }
+
+            for indicator_name, values in indicators.items():
+                if values and len(values) >= 2:
+                    # 计算同比变化（假设最后两个值是去年和今年同期）
+                    if len(values) >= 2:
+                        current = values[-1] if values[-1] is not None else 0
+                        previous = values[-2] if values[-2] is not None else 0
+
+                        if previous != 0:
+                            yoy_change = (current - previous) / previous
+                            channel_trends["指标"][indicator_name] = {
+                                "当前值": current,
+                                "去年同期": previous,
+                                "同比": yoy_change,
+                                "趋势": "增长" if yoy_change > 0 else "下降"
+                            }
+
+            if channel_trends["指标"]:
+                analysis["trends"].append(channel_trends)
+
+        # 识别转介绍渠道的关键变化
+        for trend in analysis["trends"]:
+            if trend.get("渠道") == "转介绍":
+                for metric, data in trend.get("指标", {}).items():
+                    yoy = data.get("同比", 0)
+                    if abs(yoy) > 0.15:  # 同比变化超过15%
+                        analysis["insights"].append({
+                            "指标": metric,
+                            "变化": yoy,
+                            "趋势": data.get("趋势"),
+                            "建议": f"转介绍{metric}同比{data.get('趋势')}{abs(yoy)*100:.1f}%，需关注"
+                        })
+
+        return analysis
