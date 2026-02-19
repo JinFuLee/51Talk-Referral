@@ -704,32 +704,31 @@ class MultiSourceLoader:
             if not rows:
                 return {}
 
-            # Row 3 包含月份信息（每个指标3个月）
+            # Row 4 包含月份信息（每个指标3个月）
             months = []
             by_channel = []
 
-            # 提取月份（从 Row 3）
-            header_row = None
+            # 提取月份（从 Row 4）
+            month_row = None
             for row in rows:
-                if row.get('_row', 0) == 3:
-                    header_row = row
+                if row.get('_row', 0) == 4:
+                    month_row = row
                     break
 
-            if header_row:
-                # 假设列C开始是数据，每3列一组（3个月）
-                # 需要从表头提取月份
-                for col in ['C', 'D', 'E']:
-                    val = header_row.get(col, '')
-                    if val and val.isdigit():
-                        months.append(val)
+            if month_row:
+                # 从列B开始提取前3个月份（注册的3个月）
+                for col in ['B', 'C', 'D']:
+                    val = month_row.get(col, '')
+                    if val and str(val).isdigit():
+                        months.append(str(val))
 
             # 默认月份
             if not months:
                 months = ["202512", "202601", "202602"]
 
-            # 从 Row 4+ 提取数据
+            # 从 Row 5+ 提取数据
             for row in rows:
-                if row.get('_row', 0) < 4:
+                if row.get('_row', 0) < 5:
                     continue
 
                 channel = row.get('A', '')
@@ -739,39 +738,39 @@ class MultiSourceLoader:
                 channel_data = {
                     "渠道": channel,
                     "注册": [
+                        self._safe_int(row.get('B')),
                         self._safe_int(row.get('C')),
                         self._safe_int(row.get('D')),
-                        self._safe_int(row.get('E')),
                     ],
                     "注册占比": [
+                        self._safe_float(row.get('E')),
                         self._safe_float(row.get('F')),
                         self._safe_float(row.get('G')),
-                        self._safe_float(row.get('H')),
                     ],
                     "注册付费率": [
+                        self._safe_float(row.get('H')),
                         self._safe_float(row.get('I')),
                         self._safe_float(row.get('J')),
-                        self._safe_float(row.get('K')),
                     ],
                     "客单价": [
+                        self._safe_float(row.get('K')),
                         self._safe_float(row.get('L')),
                         self._safe_float(row.get('M')),
-                        self._safe_float(row.get('N')),
                     ],
                     "预约率": [
+                        self._safe_float(row.get('N')),
                         self._safe_float(row.get('O')),
                         self._safe_float(row.get('P')),
-                        self._safe_float(row.get('Q')),
                     ],
                     "预约出席率": [
+                        self._safe_float(row.get('Q')),
                         self._safe_float(row.get('R')),
                         self._safe_float(row.get('S')),
-                        self._safe_float(row.get('T')),
                     ],
                     "出席付费率": [
+                        self._safe_float(row.get('T')),
                         self._safe_float(row.get('U')),
                         self._safe_float(row.get('V')),
-                        self._safe_float(row.get('W')),
                     ],
                 }
 
@@ -799,60 +798,50 @@ class MultiSourceLoader:
             if not rows:
                 return {}
 
-            # 提取月份和渠道
-            channels = []
-            months = []
-            by_channel = []
-
-            # Row 4 包含月份信息
-            header_row = None
-            for row in rows:
-                if row.get('_row', 0) == 4:
-                    header_row = row
-                    break
-
-            if header_row:
-                # 提取月份
-                for col in ['B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J']:
-                    val = header_row.get(col, '')
-                    if val and len(str(val)) == 6:
-                        months.append(str(val))
+            # 按渠道类型分组数据
+            market_data = []  # 市场渠道数据
+            referral_data = []  # 转介绍渠道数据
 
             # 从 Row 5+ 提取数据
-            current_channel = None
             for row in rows:
                 if row.get('_row', 0) < 5:
                     continue
 
                 channel_type = row.get('A', '')
-                indicator = row.get('A', '')
+                month = str(row.get('B', ''))
 
-                # 新渠道
-                if channel_type and channel_type in ['市场', '转介绍']:
-                    current_channel = channel_type
-                    channels.append(current_channel)
-                    by_channel.append({
-                        "渠道类型": current_channel,
-                        "指标": {}
-                    })
+                if not channel_type or not month:
                     continue
 
-                # 指标数据
-                if current_channel and indicator:
-                    indicator_name = indicator
-                    values = []
-                    for col in ['B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J']:
-                        val = self._safe_float(row.get(col))
-                        values.append(val)
+                # 每行是一个月的完整数据
+                month_data = {
+                    "月份": month,
+                    "预约率": self._safe_float(row.get('C')),
+                    "预约出席率": self._safe_float(row.get('D')),
+                    "出席付费率": self._safe_float(row.get('E')),
+                    "注册付费率": self._safe_float(row.get('F')),
+                    "注册": self._safe_int(row.get('G')),
+                    "预约": self._safe_int(row.get('H')),
+                    "出席": self._safe_int(row.get('I')),
+                    "付费": self._safe_int(row.get('J')),
+                    "美金金额": self._safe_float(row.get('K')),
+                }
 
-                    # 添加到最后一个渠道的指标中
-                    if by_channel:
-                        by_channel[-1]["指标"][indicator_name] = values
+                if channel_type == '市场':
+                    market_data.append(month_data)
+                elif channel_type == '转介绍':
+                    referral_data.append(month_data)
+
+            # 提取所有月份列表（去重、排序）
+            all_months = set()
+            for data in market_data + referral_data:
+                all_months.add(data["月份"])
+            months = sorted(list(all_months))
 
             return {
-                "channels": channels,
                 "months": months,
-                "by_channel": by_channel,
+                "market": market_data,
+                "referral": referral_data,
             }
 
         except Exception as e:

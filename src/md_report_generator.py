@@ -648,7 +648,7 @@ xychart-beta
         roi_data = self.result.get("roi_estimate", {})
 
         if self.lang == "zh":
-            section_title = "## 四、渠道 ROI 分析"
+            section_title = "## 八、渠道 ROI 分析"
             subsection1 = "### 4.1 成本数据收集状态"
             subsection2 = "### 4.2 口径 ROI 预估（基于假设成本）"
 
@@ -764,7 +764,7 @@ pie title {pie_title}
         unit_prices = self.result.get("unit_price", {})
 
         if self.lang == "zh":
-            section_title = "## 五、客单价与 LTV 分析"
+            section_title = "## 九、客单价与 LTV 分析"
             subsection1 = "### 5.1 客单价对比"
             subsection2 = "### 5.2 LTV 预测（等数据到位）"
             table_header = "| 维度 | 客单价($) | 对比目标 | 状态 |"
@@ -884,7 +884,7 @@ xychart-beta
         alerts = self.result.get("risk_alerts", [])
 
         if self.lang == "zh":
-            section_title = "## 六、风险预警（红黄绿分级）"
+            section_title = "## 十二、风险预警（红黄绿分级）"
             subsection = "### 6.1 当前风险清单"
             no_risk = "**当前无高风险预警项**。"
             table_header = "| 风险项 | 级别 | 量化影响 | 应对方案 |"
@@ -1007,7 +1007,7 @@ xychart-beta
     def _ops_action_list(self) -> str:
         """运营版执行清单"""
         if self.lang == "zh":
-            section_title = "## 七、执行清单（Who-What-When-How）"
+            section_title = "## 十三、执行清单（Who-What-When-How）"
             subsection1 = "### 7.1 P0 行动（2 天内必须完成）"
             subsection2 = "### 7.2 P1 行动（1 周内完成）"
             table_header = "| # | 行动 | 责任人 | Deadline | 预期收益 |"
@@ -1046,7 +1046,7 @@ xychart-beta
     def _ops_data_source(self) -> str:
         """运营版数据来源"""
         if self.lang == "zh":
-            section_title = "## 八、数据来源与质量说明"
+            section_title = "## 十四、数据来源与质量说明"
             subsection1 = "### 8.1 数据来源"
             subsection2 = "### 8.2 计算公式"
             ds_header = "| 数据源 | 提取时间 | 系统 | 覆盖范围 |"
@@ -1092,7 +1092,7 @@ xychart-beta
     def _ops_appendix(self) -> str:
         """运营版附录"""
         if self.lang == "zh":
-            return """## 九、附录
+            return """## 十五、附录
 
 ### 标杆打法拆解（等数据到位）
 
@@ -1107,7 +1107,7 @@ xychart-beta
     def _ops_next_week(self) -> str:
         """运营版下周重点"""
         if self.lang == "zh":
-            section_title = "## 十、下周重点看板"
+            section_title = "## 十六、下周重点看板"
             table_header = "| 日期 | 关键指标 | 目标 | 责任人 |"
             row1 = "| 本周 | 新增付费 | ≥15 单 | 全体 CC |"
             row2 = "| 本周 | 触达已出席未付费 | ≥50% | CC Team Leaders |"
@@ -1209,7 +1209,7 @@ xychart-beta
         top_conv_rate = top_team.get("注册付费率", 0.0)
 
         if self.lang == "zh":
-            section_title = "## 十一、销售看板"
+            section_title = "## 十七、销售看板"
             subsection1 = "### 11.1 CC 团队排行榜"
             subsection2 = "### 11.2 团队效能热力图"
             subsection3 = "### 11.3 行动建议"
@@ -1309,7 +1309,7 @@ xychart-beta
         insights_text = "\n".join([f"- {insight}" for insight in insights]) if insights else ""
 
         if self.lang == "zh":
-            section_title = "## 四、围场生命周期分析"
+            section_title = "## 四、围场生命周期分析（Cohort Analysis）"
             subsection1 = "### 4.1 各围场 KPI 对比"
             subsection2 = "### 4.2 洞察"
             table_header = "| 围场 | 有效学员 | 参与率 | 带货比 | 围场转率 | B注册 | B付费 | 拨打覆盖率 | 有效接通覆盖率 |"
@@ -1379,7 +1379,7 @@ xychart-beta
         insights_text = "\n".join([f"- {insight}" for insight in insights]) if insights else ""
 
         if self.lang == "zh":
-            section_title = "## 五、转介绍参与行为分析"
+            section_title = "## 五、转介绍参与行为分析（Check-in Analysis）"
             subsection1 = "### 5.1 整体指标"
             subsection2 = "### 5.2 打卡效果"
             subsection3 = "### 5.3 团队排名（TOP 10）"
@@ -1470,7 +1470,7 @@ xychart-beta
         insights_text = "\n".join([f"- {insight}" for insight in insights]) if insights else ""
 
         if self.lang == "zh":
-            section_title = "## 六、全团队 Leads 漏斗对标"
+            section_title = "## 六、全团队 Leads 漏斗对标（Leads Achievement）"
             subsection1 = "### 6.1 SS/LP 团队达成（按总计口径）"
             subsection2 = "### 6.2 CC 窄口径"
             subsection3 = "### 6.3 SS 窄口径"
@@ -1591,7 +1591,7 @@ xychart-beta
         insights_text = "\n".join([f"- {insight}" for insight in insights]) if insights else ""
 
         if self.lang == "zh":
-            section_title = "## 七、跟进效率分析"
+            section_title = "## 七、跟进效率分析（Follow-up Efficiency）"
             subsection1 = "### 7.1 体验课课前课后跟进"
             subsection2 = "### 7.2 课前 TOP5 团队"
             subsection3 = "### 7.3 围场触达覆盖率"
@@ -1694,7 +1694,7 @@ xychart-beta
         insights_text = "\n".join([f"- {insight}" for insight in insights]) if insights else ""
 
         if self.lang == "zh":
-            section_title = "## 八、订单明细分析"
+            section_title = "## 十、订单明细分析"
             subsection1 = "### 8.1 概要"
             subsection2 = "### 8.2 TOP5 产品"
             subsection3 = "### 8.3 TOP5 团队"
@@ -1702,6 +1702,10 @@ xychart-beta
             summary_header = "| 指标 | 数值 |"
             product_header = "| 排名 | 产品 | 订单数 | 金额 |"
             team_header = "| 排名 | 团队 | 订单数 | 金额 | 新单数 |"
+            row_total_orders = f"| 总订单数 | {total_orders} |"
+            row_total_amount = f"| 总金额 | ${total_amount:,.0f} |"
+            row_ref_ratio = f"| 转介绍占比 | {ref_ratio*100:.1f}% ({ref_orders} 单) |"
+            row_avg_price = f"| 平均客单价 | ${avg_price:,.0f} |"
         else:
             section_title = "## 8. วิเคราะห์รายละเอียดคำสั่งซื้อ"
             subsection1 = "### 8.1 สรุป"
@@ -1711,6 +1715,10 @@ xychart-beta
             summary_header = "| ตัวชี้วัด | ค่า |"
             product_header = "| อันดับ | สินค้า | จำนวน | ยอด |"
             team_header = "| อันดับ | ทีม | จำนวน | ยอด | ออเดอร์ใหม่ |"
+            row_total_orders = f"| ทั้งหมด | {total_orders} |"
+            row_total_amount = f"| ยอดรวม | ${total_amount:,.0f} |"
+            row_ref_ratio = f"| สัดส่วนแนะนำ | {ref_ratio*100:.1f}% ({ref_orders} ออเดอร์) |"
+            row_avg_price = f"| เฉลี่ย | ${avg_price:,.0f} |"
 
         return f"""{section_title}
 
@@ -1718,10 +1726,10 @@ xychart-beta
 
 {summary_header}
 |------|-----|
-| 总订单数 / ทั้งหมด | {total_orders} |
-| 总金额 / ยอดรวม | ${total_amount:,.0f} |
-| 转介绍占比 / สัดส่วนแนะนำ | {ref_ratio*100:.1f}% ({ref_orders} 单/ออเดอร์) |
-| 平均客单价 / เฉลี่ย | ${avg_price:,.0f} |
+{row_total_orders}
+{row_total_amount}
+{row_ref_ratio}
+{row_avg_price}
 
 ---
 
@@ -1797,10 +1805,25 @@ xychart-beta
 
         # 合并洞察
         all_insights = mom_insights + yoy_insights
-        insights_text = "\n".join([f"- {insight}" for insight in all_insights]) if all_insights else ""
+        # 格式化 insight：如果是 dict，提取 "建议" 字段；否则直接输出
+        formatted_insights = []
+        for insight in all_insights:
+            if isinstance(insight, dict):
+                text = insight.get("建议", "")
+                if not text:
+                    # 无 "建议" key，手动拼接
+                    channel = insight.get("渠道", insight.get("渠道类型", ""))
+                    metric = insight.get("指标", "")
+                    trend = insight.get("趋势", "")
+                    change = insight.get("变化", 0.0)
+                    text = f"{channel} {metric} {trend} {abs(change)*100:.1f}%，需关注"
+                formatted_insights.append(text)
+            else:
+                formatted_insights.append(str(insight))
+        insights_text = "\n".join([f"- {ins}" for ins in formatted_insights]) if formatted_insights else ""
 
         if self.lang == "zh":
-            section_title = "## 九、月度趋势分析"
+            section_title = "## 十一、月度趋势分析"
             subsection1 = "### 9.1 环比变化（最近3个月）"
             subsection2 = "### 9.2 同比变化"
             subsection3 = "### 9.3 洞察"
@@ -2751,7 +2774,22 @@ xychart-beta
         yoy_insights = yoy_data.get("insights", [])
         all_insights = (mom_insights + yoy_insights)[:4]  # 最多4条
 
-        insights_text = "\n".join([f"- {insight}" for insight in all_insights]) if all_insights else ""
+        # 格式化 insight：如果是 dict，提取 "建议" 字段；否则直接输出
+        formatted_insights = []
+        for insight in all_insights:
+            if isinstance(insight, dict):
+                text = insight.get("建议", "")
+                if not text:
+                    # 无 "建议" key，手动拼接
+                    channel = insight.get("渠道", insight.get("渠道类型", ""))
+                    metric = insight.get("指标", "")
+                    trend = insight.get("趋势", "")
+                    change = insight.get("变化", 0.0)
+                    text = f"{channel} {metric} {trend} {abs(change)*100:.1f}%，需关注"
+                formatted_insights.append(text)
+            else:
+                formatted_insights.append(str(insight))
+        insights_text = "\n".join([f"- {ins}" for ins in formatted_insights]) if formatted_insights else ""
 
         if self.lang == "zh":
             section_title = "## 八、趋势分析"
