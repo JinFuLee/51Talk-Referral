@@ -1,0 +1,18 @@
+# Build artifacts
+dist/
+build/
+.next/
+out/
+coverage/
+
+# Large generated files
+*.min.js
+*.min.css
+*.map
+
+# Claude Code snapshots (auto-backup, not for indexing)
+.claude/snapshots/
+
+# Assets (uncomment if project has large asset dirs)
+# public/images/
+# assets/

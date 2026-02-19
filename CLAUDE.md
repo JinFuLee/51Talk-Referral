@@ -11,41 +11,53 @@
 ## 目录结构
 ```
 ref-ops-engine/
-├── app.py                      # Streamlit 主应用入口
+├── app.py                       # Streamlit 主应用入口
+├── start.py                     # 一键启动脚本
+├── 启动面板.command              # macOS 双击启动
+├── requirements.txt             # Python 依赖
+├── CLAUDE.md                    # 本文件
+│
 ├── src/
-│   ├── analysis_engine.py      # 数据分析引擎（进度/漏斗/趋势/渠道/团队/风险）
-│   ├── md_report_generator.py  # Markdown 双版本报告生成器
-│   ├── data_processor.py       # XlsxReader + DataProcessor（Excel 解析）
-│   ├── config.py               # 月度目标、时间进度、列映射
-│   ├── report_generator.py     # Excel 报告生成器（xlsxwriter）
-│   ├── main.py                 # CLI 入口（--watch/--once/--latest）
-│   ├── file_watcher.py         # 文件监控模块
-│   └── agents/                 # Agent 子模块
-├── input/                      # XLSX 数据源
-├── output/                     # 生成的报告输出
-├── config/                     # 面板配置持久化（panel_config.json）
+│   ├── __init__.py
+│   ├── data_processor.py        # XlsxReader + DataProcessor（Excel 解析）
+│   ├── analysis_engine.py       # 七维数据分析引擎
+│   ├── md_report_generator.py   # Markdown 双版本报告生成器
+│   ├── report_generator.py      # Excel 报告生成器（xlsxwriter）
+│   ├── config.py                # 月度目标、时间进度、列映射
+│   ├── i18n.py                  # 中泰双语翻译系统
+│   ├── file_watcher.py          # 文件监控模块
+│   └── main.py                  # CLI 入口（--watch/--once/--latest）
+│
+├── input/                       # XLSX 数据源（.gitignore）
+├── output/                      # 生成的报告输出
+├── config/                      # 面板配置持久化（panel_config.json）
+│
 ├── docs/
-│   ├── research/               # 调研文档（评分框架、评分结果、迭代对比）
-│   └── roadmap.md              # 项目路线图
-├── referral-review-ops-*.md    # 运营版报告模板
-├── referral-review-exec-*.md   # 管理层版报告模板
-└── requirements.txt
+│   ├── roadmap.md               # 项目路线图
+│   └── research/                # 调研文档
+│       ├── scoring-framework.md
+│       ├── scoring-result.md
+│       ├── scoring-after-iteration.md
+│       └── visualization-enhancement.md
+│
+└── key/                         # 凭证存储（.gitignore）
 ```
 
 ## 数据流
 ```
-XLSX 文件 → XlsxReader → DataProcessor → AnalysisEngine → MarkdownReportGenerator → .md 报告
-                                              ↕
-                                      config.py (目标/进度)
+Excel 数据源 → XlsxReader → DataProcessor → AnalysisEngine → MarkdownReportGenerator → .md 报告
+                                                                     ↓
+                                                              Streamlit Web 面板
+                                                                     ↓
+                                                              i18n 系统（中/泰）
 ```
 
 ## 常用命令
-- **Streamlit 面板**: `python3 -m streamlit run app.py`
+- **一键启动**: `python3 start.py` 或双击 `启动面板.command`（macOS）
+- **Streamlit 面板**: `streamlit run app.py`
 - **CLI 单次处理**: `python src/main.py --once <file.xlsx>`
 - **CLI 监控模式**: `python src/main.py --watch`
 - **测试**: `pytest`
-- **类型检查**: `mypy .`
-- **Lint**: `ruff check .`
 
 ## 代码规范
 - 类型注解必须（Python 3.9+ 语法）
@@ -67,6 +79,7 @@ XLSX 文件 → XlsxReader → DataProcessor → AnalysisEngine → MarkdownRepo
 | M2 | 2026-02-19 | 报告质量评分迭代 | 15 维度评分框架，运营/管理层版双版本 82.0/86.0 分 | 3 files + docs |
 | M3 | 2026-02-19 | Streamlit Web 面板 | AnalysisEngine + MarkdownReportGenerator + Streamlit 面板 | 8 files |
 | M3.5 | 2026-02-19 | 可视化增强 | 8 个新增图表，运营版 2→7，管理层版 1→2 | 2 files, +370 lines |
+| M3.6 | 2026-02-19 | 多语言 + 文案润色 | i18n 系统（中泰双语，147 翻译键），报告生成器 29 个方法双语化，一键启动器，文档整理 | 8 files, +900 lines, E2E 通过 |
 
 ## 已知问题与技术债
 | 序号 | 类别 | 描述 | 优先级 | 计划里程碑 | 备注 |
