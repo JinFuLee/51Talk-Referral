@@ -130,6 +130,14 @@
 - 统计: 5 files modified, +478 lines
 - QA 结果: 12/12 features PASS, 5/5 syntax PASS, 41 i18n keys 100% bilingual
 
+### M7.6: 数据源接入修复（2026-02-19）
+- [x] 订单明细 Loader 修复（orders 列表存储 + 金额为空跳过）
+- [x] 打卡率数据真实加载验证（74 CC，63.38% 参与率）
+- [x] ROI 精度升级（实际订单分布 357 单：小 133/大 224 = 37.3%/62.7%）
+- [x] analysis_engine ROI 方法 3 级降级（实际订单→分位数估算→50/50 默认）
+- 统计: 2 files modified, +36 lines
+- QA 结果: PASS - 订单 357 条加载，打卡率 74 CC 加载，ROI 分布方法 = 实际订单明细
+
 ### 暂缓
 - 成本数据接入（财务部数据暂无）
 - 续费率数据接入（CRM 数据暂无）

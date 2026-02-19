@@ -775,12 +775,25 @@ class MultiSourceLoader:
             referral_orders = 0
             by_team = {}
             by_product = {}
+            orders = []  # 保存订单详情用于 ROI 分析
 
             for row in rows:
                 # 金额
                 amount = self._safe_float(row.get('T'))
-                if amount:
-                    total_amount += amount
+
+                # 跳过无效行（金额为空）
+                if not amount:
+                    continue
+
+                total_amount += amount
+
+                # 保存订单详情（用于 ROI 大小单分布分析）
+                orders.append({
+                    "金额USD": amount,
+                    "团队": row.get('P', ''),
+                    "渠道": row.get('G', ''),
+                    "产品": row.get('O', ''),
+                })
 
                 # 转介绍订单
                 channel = row.get('G', '')
@@ -828,6 +841,7 @@ class MultiSourceLoader:
                 "by_team": list(by_team.values()),
                 "by_product": list(by_product.values()),
                 "avg_amount": avg_amount,
+                "orders": orders,  # 订单列表（用于 ROI 分析）
             }
 
         except Exception as e:

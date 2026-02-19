@@ -59,7 +59,7 @@ class AnalysisEngine:
             "unit_price": self._analyze_unit_price(current_data, targets),
             "risk_alerts": self._analyze_risk_alerts(current_data, current_month, targets, time_progress),
             "time_progress": time_progress,
-            "roi_estimate": self._analyze_roi_estimate(current_data),
+            "roi_estimate": self._analyze_roi_estimate(current_data, multi_source_data),
             "meta": {
                 "report_date": report_date,
                 "data_date": data_date,
@@ -407,7 +407,7 @@ class AnalysisEngine:
 
         return alerts
 
-    def _analyze_roi_estimate(self, current_data: Dict) -> Dict:
+    def _analyze_roi_estimate(self, current_data: Dict, multi_source_data: dict = None) -> Dict:
         """ROI 分析（基于真实成本模型 或 预估假设）"""
         # 尝试加载真实成本数据
         try:
@@ -446,34 +446,54 @@ class AnalysisEngine:
         # 尝试从订单明细数据计算实际分布（如果有）
         order_detail_available = False
         try:
-            # 这里假设 multi_source_data 或其他数据源可能有订单明细
-            # 当前简化版：检查是否有订单金额分布数据
-            # TODO: 接入真实订单明细数据源后替换此部分
-            order_detail_available = False
+            if multi_source_data:
+                order_data = multi_source_data.get("订单明细", {})
+                orders = order_data.get("orders", [])
+
+                if orders:
+                    # 统计真实大小单分布
+                    small_count = 0
+                    large_count = 0
+
+                    for order in orders:
+                        amount_usd = order.get("金额USD", 0) or 0
+                        if amount_usd >= cash_threshold:
+                            large_count += 1
+                        else:
+                            small_count += 1
+
+                    total_orders = small_count + large_count
+                    if total_orders > 0:
+                        # 使用实际比例分配
+                        small_orders = total_paid * (small_count / total_orders)
+                        large_orders = total_paid * (large_count / total_orders)
+                        order_detail_available = True
+                        distribution_method = f"实际订单明细（{total_orders}单：{small_count}小单/{large_count}大单）"
         except Exception:
             pass
 
-        if not order_detail_available and avg_order_amount > 0:
-            # 改进版：用分位数估算（假设订单金额服从正态分布）
-            # 估算标准差 = 客单价 × 0.3（经验值）
-            std_dev = avg_order_amount * 0.3
+        if not order_detail_available:
+            if avg_order_amount > 0:
+                # 改进版：用分位数估算（假设订单金额服从正态分布）
+                # 估算标准差 = 客单价 × 0.3（经验值）
+                std_dev = avg_order_amount * 0.3
 
-            # 计算 P(订单 < 阈值)
-            # 使用简化的正态分布累积概率估算
-            z_score = (cash_threshold - avg_order_amount) / std_dev if std_dev > 0 else 0
+                # 计算 P(订单 < 阈值)
+                # 使用简化的正态分布累积概率估算
+                z_score = (cash_threshold - avg_order_amount) / std_dev if std_dev > 0 else 0
 
-            # 简化版：用 sigmoid 近似正态分布 CDF
-            prob_small = 1 / (1 + (2.718 ** (1.7 * z_score)))
+                # 简化版：用 sigmoid 近似正态分布 CDF
+                prob_small = 1 / (1 + (2.718 ** (1.7 * z_score)))
 
-            small_orders = total_paid * prob_small
-            large_orders = total_paid * (1 - prob_small)
+                small_orders = total_paid * prob_small
+                large_orders = total_paid * (1 - prob_small)
 
-            distribution_method = f"分位数估算（μ={avg_order_amount:.0f}, σ={std_dev:.0f}）"
-        else:
-            # Fallback: 50/50 分布
-            small_orders = total_paid * 0.5
-            large_orders = total_paid * 0.5
-            distribution_method = "50/50假设（无订单明细）"
+                distribution_method = f"分位数估算（μ={avg_order_amount:.0f}, σ={std_dev:.0f}）"
+            else:
+                # Fallback: 50/50 分布
+                small_orders = total_paid * 0.5
+                large_orders = total_paid * 0.5
+                distribution_method = "50/50假设（无订单明细）"
 
         cash_cost = (
             small_orders * ROI_COST_CONFIG["CASH_COMMISSION_SMALL"] +
