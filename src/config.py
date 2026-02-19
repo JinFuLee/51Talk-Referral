@@ -16,6 +16,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 INPUT_DIR = BASE_DIR / "input"
 OUTPUT_DIR = BASE_DIR / "output"
 LOG_DIR = BASE_DIR / "logs"
+DATA_DIR = BASE_DIR / "data"
 
 # 数据源路径 (从环境变量获取)
 DATA_SOURCE_DIR_STR = os.getenv("DATA_SOURCE_DIR")
@@ -206,3 +207,4 @@ def format_currency(usd_value: float, show_thb: bool = True) -> str:
 INPUT_DIR.mkdir(parents=True, exist_ok=True)
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 LOG_DIR.mkdir(parents=True, exist_ok=True)
+DATA_DIR.mkdir(parents=True, exist_ok=True)

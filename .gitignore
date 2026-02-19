@@ -36,6 +36,7 @@ input/
 output/
 logs/
 config/
+data/
 key/
 *.xlsx
 temp_upload.xlsx

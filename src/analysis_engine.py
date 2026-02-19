@@ -1680,6 +1680,56 @@ class AnalysisEngine:
         # 提取历史数据（最近 6 个月或全部）
         history_months = months[max(0, current_idx - 5):current_idx + 1]
 
+        # === 日级 KPI 增强预测（如有历史快照） ===
+        daily_enhanced = False
+        daily_prediction = {}
+        try:
+            from .snapshot_store import SnapshotStore
+            store = SnapshotStore()
+            daily_paid = store.get_daily_kpi_series(current_month, "付费")
+            daily_amount = store.get_daily_kpi_series(current_month, "金额")
+
+            if len(daily_paid) >= 5:
+                daily_enhanced = True
+
+                # 提取日级数值序列
+                paid_daily_values = [row["value"] for row in daily_paid]
+                amount_daily_values = [row["value"] for row in daily_amount] if daily_amount else []
+
+                # 计算最近 5 天日均增长
+                recent_paid_growth = []
+                for i in range(max(1, len(paid_daily_values) - 5), len(paid_daily_values)):
+                    recent_paid_growth.append(paid_daily_values[i] - paid_daily_values[i-1])
+                avg_daily_paid_growth = sum(recent_paid_growth) / len(recent_paid_growth) if recent_paid_growth else 0
+
+                # 计算剩余天数
+                data_date = datetime.strptime(current_month, "%Y%m")
+                days_in_month = calendar.monthrange(data_date.year, data_date.month)[1]
+                current_day = len(paid_daily_values)
+                remaining_days = days_in_month - current_day
+
+                # 日级外推预测
+                daily_paid_pred = paid_daily_values[-1] + avg_daily_paid_growth * remaining_days
+
+                daily_prediction = {
+                    "daily_data_points": len(paid_daily_values),
+                    "avg_daily_growth": round(avg_daily_paid_growth, 1),
+                    "remaining_days": remaining_days,
+                    "daily_predicted_paid": round(max(0, daily_paid_pred)),
+                }
+
+                if amount_daily_values and len(amount_daily_values) >= 5:
+                    recent_amount_growth = []
+                    for i in range(max(1, len(amount_daily_values) - 5), len(amount_daily_values)):
+                        recent_amount_growth.append(amount_daily_values[i] - amount_daily_values[i-1])
+                    avg_daily_amount_growth = sum(recent_amount_growth) / len(recent_amount_growth) if recent_amount_growth else 0
+                    daily_amount_pred = amount_daily_values[-1] + avg_daily_amount_growth * remaining_days
+                    daily_prediction["daily_predicted_amount"] = round(max(0, daily_amount_pred))
+                    daily_prediction["avg_daily_amount_growth"] = round(avg_daily_amount_growth, 1)
+
+        except (ImportError, Exception):
+            pass  # 降级到原有月度预测
+
         # 计算付费数的月度增长模式
         paid_values = []
         amount_values = []
@@ -1762,7 +1812,7 @@ class AnalysisEngine:
         # 模型对比洞察
         insights.append(f"最优模型: 付费={best_model_paid.upper()}（MAE={mae_comparison_paid[best_model_paid]:.1f}），金额={best_model_amount.upper()}")
 
-        return {
+        result = {
             "paid_prediction": {
                 "current": int(current_paid),
                 "target": int(target_paid),
@@ -1796,6 +1846,12 @@ class AnalysisEngine:
             "method": "多模型预测（线性/WMA/EWM自动选优）",
             "sample_size": len(history_months)
         }
+
+        if daily_enhanced:
+            result["daily_enhanced"] = True
+            result["daily_prediction"] = daily_prediction
+
+        return result
 
     def _predict_linear(self, current_value: float, time_progress: float, remaining_progress: float) -> Tuple[float, Tuple[float, float]]:
         """
@@ -2163,19 +2219,80 @@ class AnalysisEngine:
         }
 
     def _analyze_cc_growth(self, current_month: str) -> dict:
-        """CC 成长曲线（历史排名变化趋势）"""
-        months = self.processor.get_sorted_months()
+        """CC 成长曲线（从历史快照读取排名变化趋势）"""
+        try:
+            from .snapshot_store import SnapshotStore
+            store = SnapshotStore()
+            dates = store.get_snapshot_dates()
 
-        if len(months) < 2:
-            return {"available": False, "reason": "历史数据不足（需要 ≥2 个月）"}
+            if len(dates) < 2:
+                return {"available": False, "reason": "历史快照不足（需要 ≥2 天）"}
 
-        # 当前暂无历史 CC 排名数据（需要从 monthly_summaries 提取）
-        # 占位实现，未来接入历史排名后填充
-        return {
-            "available": False,
-            "reason": "CC 历史排名数据未持久化，暂无成长曲线分析",
-            "todo": "需在每月报告生成后将 CC 排名结果持久化到数据库或文件"
-        }
+            # 获取所有 CC 的历史排名数据
+            all_history = store.get_cc_history(limit_days=90)
+
+            if not all_history:
+                return {"available": False, "reason": "无 CC 排名历史数据"}
+
+            # 按 CC 分组
+            cc_data = {}
+            for row in all_history:
+                cc_name = row["cc_name"]
+                if cc_name not in cc_data:
+                    cc_data[cc_name] = []
+                cc_data[cc_name].append({
+                    "date": row["snapshot_date"],
+                    "rank": row["rank"],
+                    "composite": row["composite"]
+                })
+
+            # 计算进步/退步（比较最早和最近的排名）
+            changes = []
+            for cc_name, records in cc_data.items():
+                if len(records) >= 2:
+                    sorted_records = sorted(records, key=lambda x: x["date"])
+                    first_rank = sorted_records[0]["rank"]
+                    last_rank = sorted_records[-1]["rank"]
+                    change = first_rank - last_rank  # 正数=进步（排名数字变小）
+
+                    # 计算排名标准差（稳定性）
+                    ranks = [r["rank"] for r in sorted_records]
+                    avg_rank = sum(ranks) / len(ranks)
+                    std_rank = (sum((r - avg_rank) ** 2 for r in ranks) / len(ranks)) ** 0.5
+
+                    changes.append({
+                        "cc": cc_name,
+                        "from_rank": first_rank,
+                        "to_rank": last_rank,
+                        "change": change,
+                        "avg_rank": round(avg_rank, 1),
+                        "std": round(std_rank, 1),
+                        "data_points": len(sorted_records)
+                    })
+
+            if not changes:
+                return {"available": False, "reason": "CC 数据点不足"}
+
+            # 排序
+            most_improved = sorted(changes, key=lambda x: x["change"], reverse=True)[:5]
+            most_declined = sorted(changes, key=lambda x: x["change"])[:5]
+            most_stable = sorted(changes, key=lambda x: x["std"])[:5]
+
+            return {
+                "available": True,
+                "period": f"{dates[0]} ~ {dates[-1]}",
+                "snapshot_count": len(dates),
+                "cc_count": len(cc_data),
+                "most_improved": most_improved,
+                "most_declined": most_declined,
+                "most_stable": most_stable,
+                "cc_trends": {cc: records for cc, records in cc_data.items()}
+            }
+
+        except ImportError:
+            return {"available": False, "reason": "snapshot_store 模块未安装"}
+        except Exception as e:
+            return {"available": False, "reason": f"读取历史数据失败: {e}"}
 
     def _detect_anomalies(self, analysis_result: dict, multi_source_data: dict) -> List[Dict]:
         """异常检测（基于 ANOMALY_CONFIG 动态阈值）"""

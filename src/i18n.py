@@ -337,6 +337,18 @@ TRANSLATIONS["report"] = {
     "exec_summary_plain_time": {"zh": "时间过了", "th": "เวลาผ่านไป"},
     "exec_summary_plain_paid": {"zh": "付费才完成", "th": "ชำระทำได้แค่"},
     "exec_summary_plain_action": {"zh": "需要紧急干预。", "th": "ต้องแทรกแซงด่วน"},
+
+    # 快照数据管理
+    "snapshot_saved": {"zh": "快照已保存", "th": "บันทึกสแนปช็อตแล้ว"},
+    "snapshot_save_failed": {"zh": "快照保存失败", "th": "บันทึกสแนปช็อตล้มเหลว"},
+    "snapshot_management": {"zh": "快照数据管理", "th": "จัดการข้อมูลสแนปช็อต"},
+    "snapshot_stats": {"zh": "快照统计详情", "th": "รายละเอียดสถิติสแนปช็อต"},
+    "snapshot_total": {"zh": "总快照数", "th": "จำนวนสแนปช็อตทั้งหมด"},
+    "snapshot_earliest": {"zh": "最早日期", "th": "วันที่เก่าที่สุด"},
+    "snapshot_latest": {"zh": "最新日期", "th": "วันที่ล่าสุด"},
+    "btn_import_history": {"zh": "📥 导入历史数据", "th": "📥 นำเข้าข้อมูลย้อนหลัง"},
+    "btn_cleanup": {"zh": "🗑️ 清理旧数据", "th": "🗑️ ล้างข้อมูลเก่า"},
+    "cleanup_days": {"zh": "保留天数", "th": "จำนวนวันที่เก็บ"},
 }
 
 

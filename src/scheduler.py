@@ -103,6 +103,15 @@ class ReportScheduler:
             if high_alerts:
                 self._alert(high_alerts)
 
+            # 9.5. 保存快照到历史数据库
+            try:
+                from snapshot_store import SnapshotStore
+                store = SnapshotStore()
+                store.save_snapshot(analysis, report_date)
+                logger.info(f"[调度] 快照已保存: {report_date.strftime('%Y-%m-%d')}")
+            except Exception as e:
+                logger.warning(f"[调度] 快照保存失败: {e}")
+
             # 9. 记录成功日志
             duration_ms = int((time.time() - start_time) * 1000)
             log_entry["status"] = "success"

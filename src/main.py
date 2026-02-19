@@ -183,6 +183,11 @@ def main():
         action='store_true',
         help='定时调度模式：按配置的时间自动生成报告'
     )
+    group.add_argument(
+        '--import-history',
+        action='store_true',
+        help='导入历史数据到快照数据库'
+    )
 
     parser.add_argument(
         '--output-dir',
@@ -209,6 +214,11 @@ def main():
             from scheduler import ReportScheduler
             scheduler = ReportScheduler()
             scheduler.start()
+        elif args.import_history:
+            from history_importer import HistoryImporter
+            importer = HistoryImporter()
+            result = importer.import_all()
+            print(f"导入完成: {result}")
 
     except FileNotFoundError as e:
         print(f"❌ 错误: {e}")

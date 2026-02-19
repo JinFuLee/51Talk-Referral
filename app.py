@@ -735,6 +735,16 @@ def main():
                 st.session_state['report_paths'] = report_paths
                 st.session_state['processor'] = processor
 
+                # 自动保存快照到历史数据库
+                try:
+                    from src.snapshot_store import SnapshotStore
+                    store = SnapshotStore()
+                    store.save_snapshot(analysis_result, report_date_dt)
+                    st.toast(t('ui', 'snapshot_saved', lang))
+                except Exception as e:
+                    import logging
+                    logging.getLogger(__name__).warning(f"快照保存失败: {e}")
+
             except Exception as e:
                 st.error(f"{t('ui', 'msg_error', lang)}: {str(e)}")
                 import traceback
@@ -1159,6 +1169,55 @@ def main():
                                 st.info(f"{t('ui', 'schedule_next_run', lang)}: {next_run}")
                         except Exception:
                             pass
+
+                st.divider()
+
+                # 快照数据管理
+                st.subheader(t('ui', 'snapshot_management', lang))
+                try:
+                    from src.snapshot_store import SnapshotStore
+                    store = SnapshotStore()
+                    stats = store.get_stats()
+
+                    # 统计信息
+                    col1, col2, col3 = st.columns(3)
+                    with col1:
+                        st.metric(t('ui', 'snapshot_total', lang), stats.get("total_snapshots", 0))
+                    with col2:
+                        st.metric(t('ui', 'snapshot_earliest', lang), stats.get("earliest_date", "-"))
+                    with col3:
+                        st.metric(t('ui', 'snapshot_latest', lang), stats.get("latest_date", "-"))
+
+                    # 各表记录数
+                    with st.expander(t('ui', 'snapshot_stats', lang)):
+                        for table, count in stats.get("table_counts", {}).items():
+                            st.text(f"{table}: {count} records")
+                        st.text(f"DB size: {stats.get('db_size_kb', 0):.1f} KB")
+
+                    # 导入历史数据按钮
+                    if st.button(t('ui', 'btn_import_history', lang)):
+                        with st.spinner(t('ui', 'importing_history', lang) if 'importing_history' in {} else "导入中..."):
+                            try:
+                                from src.history_importer import HistoryImporter
+                                importer = HistoryImporter(input_dir)
+                                result = importer.import_all()
+                                st.success(f"导入完成: {result.get('imported', 0)} 条, 跳过: {result.get('skipped', 0)}, 失败: {result.get('failed', 0)}")
+                                st.rerun()
+                            except Exception as e:
+                                st.error(f"导入失败: {e}")
+
+                    # 清理旧数据
+                    with st.expander(t('ui', 'btn_cleanup', lang)):
+                        days = st.number_input(t('ui', 'cleanup_days', lang), min_value=30, max_value=3650, value=365)
+                        if st.button(t('ui', 'btn_cleanup', lang), key="cleanup_btn"):
+                            store.cleanup(days)
+                            st.success(f"已清理 {days} 天前的数据")
+                            st.rerun()
+
+                except ImportError:
+                    st.info("快照存储模块未就绪")
+                except Exception as e:
+                    st.warning(f"快照管理加载失败: {e}")
 
                 st.divider()
 

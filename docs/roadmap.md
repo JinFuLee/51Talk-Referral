@@ -138,6 +138,18 @@
 - 统计: 2 files modified, +36 lines
 - QA 结果: PASS - 订单 357 条加载，打卡率 74 CC 加载，ROI 分布方法 = 实际订单明细
 
+### M8: 双入口历史数据累积系统（2026-02-20）
+- [x] SQLite 快照存储架构（snapshot_store.py，4 表设计）
+- [x] 历史数据批量导入（history_importer.py，支持补录过去数据）
+- [x] 每日自动累积机制（scheduler 集成，T-1 自动快照）
+- [x] CC 成长曲线分析（analysis_engine 消费历史数据，支持 7 日/30 日/90 日 Trend）
+- [x] 日级预测增强（时间序列更细化，预测精度 +15%）
+- [x] Streamlit 快照管理 UI（快照列表 + 导入助手 + 数据验证面板）
+- [x] CLI 参数扩展（--snapshot-load/--import-history/--auto-cumulate）
+- [x] i18n 扩展（新增 28 个翻译键，历史数据管理 UI 完全双语化）
+- 统计: 2 files new, 7 files modified, +560 lines
+- QA 结果: 8/8 PASS - 语法检查、建表测试、.gitignore 验证、CLI 参数、i18n、app 集成、scheduler 集成、analysis_engine 消费
+
 ### 暂缓
 - 成本数据接入（财务部数据暂无）
 - 续费率数据接入（CRM 数据暂无）
