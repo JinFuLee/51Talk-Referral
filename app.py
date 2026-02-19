@@ -540,56 +540,52 @@ def main():
             if multi_sources_count > 0:
                 st.info(f"{t('ui', 'multi_source_loaded', lang)}: **{multi_sources_count}** / {len(DATA_SOURCES)}")
 
-            # 关键指标卡片
-            col1, col2, col3, col4 = st.columns(4)
+            # 关键指标卡片 — 2×2 布局避免截断
+            paid_data = summary.get("付费", {})
+            amount_data = summary.get("金额", {})
+            conv_data = summary.get("转化率", {})
+            time_progress = analysis_result.get("time_progress", 0.0)
 
-            with col1:
-                paid_data = summary.get("付费", {})
+            row1_col1, row1_col2 = st.columns(2)
+            with row1_col1:
                 st.metric(
                     t('ui', 'metric_paid_progress', lang),
                     f"{paid_data.get('actual', 0):.0f} / {paid_data.get('target', 0):.0f}",
                     f"{paid_data.get('efficiency_progress', 0)*100:.1f}%",
                     delta_color="normal" if paid_data.get('gap', 0) > 0 else "inverse",
                 )
+                paid_pct = min(paid_data.get('efficiency_progress', 0), 1.0)
+                st.progress(max(paid_pct, 0.0))
 
-            with col2:
-                amount_data = summary.get("金额", {})
+            with row1_col2:
+                amt_actual = amount_data.get('actual', 0)
+                amt_target = amount_data.get('target', 0)
                 st.metric(
                     t('ui', 'metric_amount_progress', lang),
-                    f"{format_amount(amount_data.get('actual', 0), usd_thb_rate)}",
-                    f"/ {format_amount(amount_data.get('target', 0), usd_thb_rate)}",
+                    format_amount(amt_actual, usd_thb_rate),
+                    f"{'目标' if lang=='zh' else 'เป้า'} {format_amount(amt_target, usd_thb_rate)}",
                     delta_color="normal" if amount_data.get('gap', 0) > 0 else "inverse",
                 )
+                amt_pct = min(amount_data.get('efficiency_progress', 0), 1.0)
+                st.progress(max(amt_pct, 0.0))
 
-            with col3:
-                conv_data = summary.get("转化率", {})
+            row2_col1, row2_col2 = st.columns(2)
+            with row2_col1:
                 st.metric(
                     t('ui', 'metric_conv_rate', lang),
-                    f"{conv_data.get('actual', 0)*100:.1f}%",
+                    f"{conv_data.get('actual', 0)*100:.1f}% / {conv_data.get('target', 0)*100:.0f}%",
                     f"{conv_data.get('gap', 0)*100:.1f}%",
                     delta_color="normal" if conv_data.get('gap', 0) > 0 else "inverse",
                 )
+                conv_pct = min(conv_data.get('actual', 0) / max(conv_data.get('target', 1), 0.001), 1.0)
+                st.progress(max(conv_pct, 0.0))
 
-            with col4:
-                time_progress = analysis_result.get("time_progress", 0.0)
+            with row2_col2:
                 st.metric(
                     t('ui', 'metric_time_progress', lang),
                     f"{time_progress*100:.1f}%",
                     f"{meta.get('current_day', 0)}/{meta.get('days_in_month', 28)} {'天' if lang=='zh' else 'วัน'}",
                 )
-
-            # 进度条
-            prog_cols = st.columns(4)
-            with prog_cols[0]:
-                paid_pct = min(paid_data.get('efficiency_progress', 0), 1.0)
-                st.progress(max(paid_pct, 0.0))
-            with prog_cols[1]:
-                amt_pct = min(amount_data.get('efficiency_progress', 0), 1.0)
-                st.progress(max(amt_pct, 0.0))
-            with prog_cols[2]:
-                conv_pct = min(conv_data.get('actual', 0) / max(conv_data.get('target', 1), 0.001), 1.0)
-                st.progress(max(conv_pct, 0.0))
-            with prog_cols[3]:
                 time_pct = min(time_progress, 1.0)
                 st.progress(max(time_pct, 0.0))
 
