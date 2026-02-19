@@ -112,6 +112,10 @@ TRANSLATIONS["ui"] = {
     "section_orders": {"zh": "订单明细分析", "th": "วิเคราะห์รายละเอียดคำสั่งซื้อ"},
     "section_trend": {"zh": "月度趋势分析", "th": "วิเคราะห์แนวโน้มรายเดือน"},
     "multi_source_loaded": {"zh": "已加载数据源", "th": "โหลดแหล่งข้อมูลแล้ว"},
+
+    # M5 CC 个人排名和已出席未付费
+    "section_cc_ranking": {"zh": "CC 个人排名", "th": "อันดับ CC"},
+    "section_attended_not_paid": {"zh": "已出席未付费", "th": "เข้าคลาสแล้วไม่ชำระ"},
 }
 
 # === 报告翻译（Markdown 报告内容） ===

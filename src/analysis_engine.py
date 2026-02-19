@@ -78,6 +78,8 @@ class AnalysisEngine:
             result["order_analysis"] = self._analyze_orders(multi_source_data)
             result["mom_trend"] = self._analyze_mom_trend(multi_source_data)
             result["yoy_trend"] = self._analyze_yoy_trend(multi_source_data)
+            result["cc_ranking"] = self._analyze_cc_ranking(multi_source_data, report_date)
+            result["attended_not_paid"] = self._analyze_attended_not_paid(multi_source_data, report_date)
 
         return result
 
@@ -858,3 +860,262 @@ class AnalysisEngine:
                         })
 
         return analysis
+
+    def _analyze_cc_ranking(self, multi_source_data: dict, report_date: datetime) -> dict:
+        """CC 个人排名分析"""
+        cc_individual = multi_source_data.get("cc_individual", {})
+        if not cc_individual:
+            return {}
+
+        leads_by_cc = cc_individual.get("leads_by_cc", {})
+        followup_by_cc = cc_individual.get("followup_by_cc", []) or []
+        checkin_by_cc = cc_individual.get("checkin_by_cc", []) or []
+        outreach_by_cc = cc_individual.get("outreach_by_cc", {})
+
+        if not leads_by_cc:
+            return {}
+
+        # 构建 CC 综合数据
+        cc_profiles = []
+
+        for cc_std, cc_data in leads_by_cc.items():
+            leads = cc_data.get("leads", 0)
+            paid = cc_data.get("付费", 0)
+            amount = cc_data.get("金额", 0)
+            team = cc_data.get("团队", "")
+            cc_name = cc_data.get("CC", cc_std)
+
+            # 转化率
+            conversion_rate = paid / leads if leads > 0 else 0.0
+
+            # 跟进质量（课前+课后有效接通率平均）
+            followup_quality = 0.0
+            for f in followup_by_cc:
+                if f.get("CC_标准") == cc_std:
+                    pre_connect = f.get("课前有效接通率") or 0.0
+                    post_connect = f.get("课后有效接通率") or 0.0
+                    followup_quality = (pre_connect + post_connect) / 2
+                    break
+
+            # 打卡参与率
+            checkin_rate = 0.0
+            for c in checkin_by_cc:
+                if c.get("CC_标准") == cc_std:
+                    checkin_rate = c.get("参与率") or 0.0
+                    break
+
+            # 围场触达（各围场有效接通覆盖率平均）
+            outreach_score = 0.0
+            if cc_std in outreach_by_cc:
+                cohorts = outreach_by_cc[cc_std].get("cohorts", [])
+                if cohorts:
+                    total_effective = sum(
+                        ch.get("effective_connect_coverage") or 0.0
+                        for ch in cohorts
+                    )
+                    outreach_score = total_effective / len(cohorts)
+
+            cc_profiles.append({
+                "cc": cc_name,
+                "cc_std": cc_std,
+                "team": team,
+                "leads": leads,
+                "paid": paid,
+                "amount": amount,
+                "conversion_rate": conversion_rate,
+                "followup_quality": followup_quality,
+                "checkin_rate": checkin_rate,
+                "outreach_score": outreach_score,
+            })
+
+        # 过滤掉 leads < 5 的 CC（用于转化率排名）
+        cc_qualified = [p for p in cc_profiles if p["leads"] >= 5]
+
+        # 计算综合得分（归一化）
+        def normalize(values, profiles, key):
+            """Min-Max 归一化"""
+            vals = [p[key] for p in profiles]
+            min_val = min(vals) if vals else 0
+            max_val = max(vals) if vals else 1
+            denominator = max_val - min_val if max_val > min_val else 1
+            return [(v - min_val) / denominator * 100 for v in vals]
+
+        if cc_profiles:
+            conversion_scores = normalize(None, cc_profiles, "conversion_rate")
+            followup_scores = normalize(None, cc_profiles, "followup_quality")
+            checkin_scores = normalize(None, cc_profiles, "checkin_rate")
+            outreach_scores = normalize(None, cc_profiles, "outreach_score")
+            leads_scores = normalize(None, cc_profiles, "leads")
+
+            for i, p in enumerate(cc_profiles):
+                p["composite"] = (
+                    conversion_scores[i] * 0.30 +
+                    followup_scores[i] * 0.25 +
+                    checkin_scores[i] * 0.15 +
+                    outreach_scores[i] * 0.15 +
+                    leads_scores[i] * 0.15
+                )
+
+        # 排名
+        by_paid = sorted(cc_profiles, key=lambda x: x["paid"], reverse=True)[:20]
+        by_amount = sorted(cc_profiles, key=lambda x: x["amount"], reverse=True)[:20]
+        by_conversion = sorted(cc_qualified, key=lambda x: x["conversion_rate"], reverse=True)[:20]
+        by_composite = sorted(cc_profiles, key=lambda x: x["composite"], reverse=True)[:20]
+
+        # 综合得分后5名（≥5 leads）
+        bottom_5 = sorted(cc_qualified, key=lambda x: x["composite"])[:5]
+
+        # 添加排名
+        for i, p in enumerate(by_paid):
+            p["rank"] = i + 1
+        for i, p in enumerate(by_amount):
+            p["rank"] = i + 1
+        for i, p in enumerate(by_conversion):
+            p["rank"] = i + 1
+        for i, p in enumerate(by_composite):
+            p["rank"] = i + 1
+
+        # 团队平均值
+        team_stats = {}
+        for p in cc_profiles:
+            team = p["team"]
+            if not team:
+                continue
+            if team not in team_stats:
+                team_stats[team] = {
+                    "paid": [],
+                    "amount": [],
+                    "conversion": []
+                }
+            team_stats[team]["paid"].append(p["paid"])
+            team_stats[team]["amount"].append(p["amount"])
+            team_stats[team]["conversion"].append(p["conversion_rate"])
+
+        team_avg = {}
+        for team, stats in team_stats.items():
+            team_avg[team] = {
+                "avg_paid": sum(stats["paid"]) / len(stats["paid"]) if stats["paid"] else 0,
+                "avg_amount": sum(stats["amount"]) / len(stats["amount"]) if stats["amount"] else 0,
+                "avg_conversion": sum(stats["conversion"]) / len(stats["conversion"]) if stats["conversion"] else 0,
+            }
+
+        # 洞察
+        insights = []
+        if by_paid:
+            top_cc = by_paid[0]
+            insights.append(f"付费王：{top_cc['cc']}（{top_cc['team']}）{top_cc['paid']}单，金额 ${top_cc['amount']:.0f}")
+
+        if by_conversion:
+            top_conv = by_conversion[0]
+            insights.append(f"转化王：{top_conv['cc']}（{top_conv['team']}）转化率 {top_conv['conversion_rate']*100:.1f}%")
+
+        if bottom_5:
+            insights.append(f"综合得分后5名需重点关注，包括{', '.join([b['cc'] for b in bottom_5[:3]])}")
+
+        return {
+            "by_paid": by_paid,
+            "by_amount": by_amount,
+            "by_conversion": by_conversion,
+            "by_composite": by_composite,
+            "bottom_5": bottom_5,
+            "team_avg": team_avg,
+            "insights": insights,
+        }
+
+    def _analyze_attended_not_paid(self, multi_source_data: dict, report_date: datetime) -> dict:
+        """已出席未付费用户分析"""
+        leads_detail = multi_source_data.get("leads明细", {})
+        rows = leads_detail.get("rows", [])
+
+        if not rows:
+            return {}
+
+        # 筛选：首次出席日期非空 且 首次付费日期为空
+        attended_not_paid = []
+        for row in rows:
+            first_attend_date = row.get("O")  # O列 = 首次出席日期
+            first_paid_date = row.get("R")   # R列 = 首次付费日期
+
+            if first_attend_date and not first_paid_date:
+                attended_not_paid.append(row)
+
+        total_count = len(attended_not_paid)
+
+        # 统计
+        by_team = {}
+        by_cc = {}
+        by_days = {"0-3天": 0, "4-7天": 0, "8-14天": 0, "15+天": 0}
+        high_priority = []
+
+        for row in attended_not_paid:
+            # 团队
+            team = row.get("Y", "")
+            if team:
+                by_team[team] = by_team.get(team, 0) + 1
+
+            # CC
+            cc_raw = row.get("Z", "")
+            if cc_raw:
+                # 使用 multi_source_loader 的标准化方法（简化版）
+                cc_name = cc_raw.strip().lower()
+                by_cc[cc_name] = by_cc.get(cc_name, 0) + 1
+
+            # 天数分组
+            attend_date_val = row.get("O")
+            if attend_date_val:
+                # 解析日期
+                try:
+                    if isinstance(attend_date_val, str):
+                        attend_date = datetime.strptime(attend_date_val, "%Y-%m-%d")
+                    elif isinstance(attend_date_val, int):
+                        # Excel serial date
+                        base = datetime(1899, 12, 30)
+                        attend_date = base + timedelta(days=int(attend_date_val))
+                    else:
+                        attend_date = attend_date_val
+
+                    days_since = (report_date - attend_date).days
+
+                    if days_since <= 3:
+                        by_days["0-3天"] += 1
+                        # 高优先级
+                        student_id = row.get("A", "")
+                        high_priority.append({
+                            "学员ID": student_id,
+                            "CC": cc_raw,
+                            "团队": team,
+                            "出席日期": attend_date.strftime("%Y-%m-%d") if hasattr(attend_date, 'strftime') else str(attend_date_val),
+                            "天数": days_since,
+                        })
+                    elif days_since <= 7:
+                        by_days["4-7天"] += 1
+                    elif days_since <= 14:
+                        by_days["8-14天"] += 1
+                    else:
+                        by_days["15+天"] += 1
+                except:
+                    pass
+
+        # 预估回收
+        conversion_opportunity = f"预估可回收 {int(total_count * 0.15)} 单"
+
+        # 洞察
+        insights = []
+        insights.append(f"共 {total_count} 个已出席未付费用户，其中 {by_days['0-3天']} 个在0-3天（高优先级）")
+
+        if by_team:
+            top_team = max(by_team.items(), key=lambda x: x[1])
+            insights.append(f"{top_team[0]} 团队待跟进最多（{top_team[1]}人）")
+
+        if by_days["0-3天"] > 0:
+            insights.append(f"建议立即分层触达0-3天用户，推限时优惠")
+
+        return {
+            "total_count": total_count,
+            "by_team": by_team,
+            "by_cc": by_cc,
+            "by_days_since_attend": by_days,
+            "high_priority": high_priority[:50],  # 限制50条
+            "conversion_opportunity": conversion_opportunity,
+            "insights": insights,
+        }

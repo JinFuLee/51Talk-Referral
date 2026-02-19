@@ -72,6 +72,8 @@ class MarkdownReportGenerator:
             self._ops_funnel_diagnosis(),
             self._ops_funnel_flowchart(),  # 新增 #1
             self._ops_team_ranking(),
+            self._ops_cc_ranking(),  # M5 CC个人排名
+            self._ops_attended_not_paid(),  # M5 已出席未付费
             self._ops_leads_achievement(),  # M4 Phase 2
             self._ops_cohort_analysis(),  # M4 Phase 2
             self._ops_checkin_analysis(),  # M4 Phase 2
@@ -90,6 +92,9 @@ class MarkdownReportGenerator:
             self._ops_next_week(),
             self._ops_sales_leaderboard(),  # 新增 #8
         ]
+
+        # 过滤掉空字符串（数据缺失时方法返回空字符串）
+        parts = [p for p in parts if p]
 
         return "\n\n---\n\n".join(parts)
 
@@ -110,6 +115,7 @@ class MarkdownReportGenerator:
             self._exec_trend_analysis(),  # M4 Phase 2
             self._exec_root_cause(),
             self._exec_team_benchmark(),
+            self._exec_cc_performance_summary(),  # M5 CC绩效概要
             self._exec_key_numbers(),
             self._exec_next_month(),
             self._exec_decision_points(),
@@ -642,6 +648,331 @@ xychart-beta
 {mermaid_chart}
 
 {avg_note}"""
+
+    def _ops_cc_ranking(self) -> str:
+        """运营版CC个人绩效排名"""
+        cc_ranking = self.result.get("cc_ranking", {})
+
+        if not cc_ranking or not cc_ranking.get("by_composite"):
+            return ""
+
+        by_composite = cc_ranking.get("by_composite", [])
+        by_paid = cc_ranking.get("by_paid", [])
+        bottom_5 = cc_ranking.get("bottom_5", [])
+        team_avg = cc_ranking.get("team_avg", {})
+        insights = cc_ranking.get("insights", [])
+
+        if self.lang == "zh":
+            section_title = "### CC 个人绩效排名"
+            subsection1 = "#### 综合排名 Top 10"
+            subsection2 = "#### 付费数 Top 5"
+            subsection3 = "#### 标杆 CC 拆解"
+            subsection4 = "#### 待提升 CC 清单"
+            subsection5 = "#### 关键洞察"
+
+            composite_header = "| 排名 | CC | 团队 | 付费数 | 金额($) | 转化率 | 综合得分 |"
+            paid_header = "| 排名 | CC | 团队 | 付费数 | 金额($) |"
+            bottom_header = "| CC | 团队 | 综合得分 | 改进建议 |"
+        else:
+            section_title = "### อันดับผลงาน CC"
+            subsection1 = "#### อันดับรวม Top 10"
+            subsection2 = "#### ยอดชำระ Top 5"
+            subsection3 = "#### วิเคราะห์ CC ต้นแบบ"
+            subsection4 = "#### รายชื่อ CC ที่ควรพัฒนา"
+            subsection5 = "#### ข้อค้นพบสำคัญ"
+
+            composite_header = "| อันดับ | CC | ทีม | ชำระ | ยอด($) | อัตราแปลง | คะแนนรวม |"
+            paid_header = "| อันดับ | CC | ทีม | ชำระ | ยอด($) |"
+            bottom_header = "| CC | ทีม | คะแนนรวม | คำแนะนำ |"
+
+        # 综合排名 Top 10 表格
+        composite_rows = []
+        for i, cc in enumerate(by_composite[:10], 1):
+            rank_emoji = "🥇" if i == 1 else ("🥈" if i == 2 else ("🥉" if i == 3 else str(i)))
+            cc_id = cc.get("cc", "")
+            team = cc.get("team", "")
+            paid = cc.get("paid", 0)
+            amount = cc.get("amount", 0)
+            conv_rate = cc.get("conversion_rate", 0.0)
+            composite = cc.get("composite", 0.0)
+
+            composite_rows.append(
+                f"| {rank_emoji} | {cc_id} | {team} | {paid} | {amount:,} | {conv_rate*100:.1f}% | **{composite:.1f}** |"
+            )
+
+        composite_table = "\n".join(composite_rows)
+
+        # 付费数 Top 5 表格
+        paid_rows = []
+        for i, cc in enumerate(by_paid[:5], 1):
+            rank_emoji = "🥇" if i == 1 else ("🥈" if i == 2 else ("🥉" if i == 3 else str(i)))
+            cc_id = cc.get("cc", "")
+            team = cc.get("team", "")
+            paid = cc.get("paid", 0)
+            amount = cc.get("amount", 0)
+
+            paid_rows.append(
+                f"| {rank_emoji} | {cc_id} | {team} | {paid} | {amount:,} |"
+            )
+
+        paid_table = "\n".join(paid_rows)
+
+        # 标杆 CC 拆解
+        benchmark_text = ""
+        if by_composite:
+            top_cc = by_composite[0]
+            cc_id = top_cc.get("cc", "")
+            team = top_cc.get("team", "")
+            paid = top_cc.get("paid", 0)
+            amount = top_cc.get("amount", 0)
+            conv_rate = top_cc.get("conversion_rate", 0.0)
+            composite = top_cc.get("composite", 0.0)
+
+            team_data = team_avg.get(team, {})
+            team_avg_paid = team_data.get("avg_paid", 0)
+            team_avg_amount = team_data.get("avg_amount", 0)
+            team_avg_conv = team_data.get("avg_conversion", 0.0)
+
+            paid_vs_avg = ((paid - team_avg_paid) / team_avg_paid * 100) if team_avg_paid > 0 else 0
+            amount_vs_avg = ((amount - team_avg_amount) / team_avg_amount * 100) if team_avg_amount > 0 else 0
+            conv_vs_avg = ((conv_rate - team_avg_conv) / team_avg_conv * 100) if team_avg_conv > 0 else 0
+
+            if self.lang == "zh":
+                benchmark_text = f"""**{cc_id}** ({team})
+- 综合得分: **{composite:.1f}**
+- 付费数: {paid} (团队均值 {team_avg_paid:.1f}, 领先 **{paid_vs_avg:+.0f}%**)
+- 金额: ${amount:,} (团队均值 ${team_avg_amount:,.0f}, 领先 **{amount_vs_avg:+.0f}%**)
+- 转化率: {conv_rate*100:.1f}% (团队均值 {team_avg_conv*100:.1f}%, 领先 **{conv_vs_avg:+.0f}%**)"""
+            else:
+                benchmark_text = f"""**{cc_id}** ({team})
+- คะแนนรวม: **{composite:.1f}**
+- ชำระ: {paid} (ค่าเฉลี่ยทีม {team_avg_paid:.1f}, นำหน้า **{paid_vs_avg:+.0f}%**)
+- ยอด: ${amount:,} (ค่าเฉลี่ยทีม ${team_avg_amount:,.0f}, นำหน้า **{amount_vs_avg:+.0f}%**)
+- อัตราแปลง: {conv_rate*100:.1f}% (ค่าเฉลี่ยทีม {team_avg_conv*100:.1f}%, นำหน้า **{conv_vs_avg:+.0f}%**)"""
+
+        # 待提升 CC 清单
+        bottom_rows = []
+        for cc in bottom_5:
+            cc_id = cc.get("cc", "")
+            team = cc.get("team", "")
+            composite = cc.get("composite", 0.0)
+
+            # 简单改进建议
+            if self.lang == "zh":
+                suggestion = "提升转化率+增加跟进频次"
+            else:
+                suggestion = "เพิ่มอัตราแปลง+เพิ่มความถี่ติดตาม"
+
+            bottom_rows.append(
+                f"| {cc_id} | {team} | {composite:.1f} | {suggestion} |"
+            )
+
+        bottom_table = "\n".join(bottom_rows) if bottom_rows else (
+            "暂无数据" if self.lang == "zh" else "ไม่มีข้อมูล"
+        )
+
+        # 洞察列表
+        insights_text = "\n".join([f"- {insight}" for insight in insights]) if insights else (
+            "- 暂无洞察" if self.lang == "zh" else "- ไม่มีข้อค้นพบ"
+        )
+
+        return f"""{section_title}
+
+{subsection1}
+
+{composite_header}
+|------|------|------|-----:|--------:|-------:|--------:|
+{composite_table}
+
+---
+
+{subsection2}
+
+{paid_header}
+|------|------|------|-----:|--------:|
+{paid_table}
+
+---
+
+{subsection3}
+
+{benchmark_text}
+
+---
+
+{subsection4}
+
+{bottom_header}
+|------|------|--------:|--------------|
+{bottom_table}
+
+---
+
+{subsection5}
+
+{insights_text}"""
+
+    def _ops_attended_not_paid(self) -> str:
+        """运营版已出席未付费专项分析"""
+        attended_not_paid = self.result.get("attended_not_paid", {})
+
+        if not attended_not_paid or attended_not_paid.get("total_count", 0) == 0:
+            return ""
+
+        total_count = attended_not_paid.get("total_count", 0)
+        by_team = attended_not_paid.get("by_team", {})
+        by_days = attended_not_paid.get("by_days_since_attend", {})
+        high_priority = attended_not_paid.get("high_priority", [])
+        conversion_opportunity = attended_not_paid.get("conversion_opportunity", "")
+        insights = attended_not_paid.get("insights", [])
+
+        if self.lang == "zh":
+            section_title = "### 已出席未付费专项"
+            subsection1 = "#### 整体统计"
+            subsection2 = "#### 按时间分层"
+            subsection3 = "#### 按团队分布"
+            subsection4 = "#### 高优先级跟进清单 (0-3天)"
+            subsection5 = "#### 预估回收量"
+            subsection6 = "#### 关键洞察"
+
+            days_header = "| 时间层 | 用户数 | 占比 | 优先级 |"
+            team_header = "| 团队 | 用户数 | 占比 |"
+            priority_header = "| 学员ID | CC | 团队 | 出席日期 |"
+        else:
+            section_title = "### เข้าคลาสแล้วยังไม่ชำระ"
+            subsection1 = "#### สถิติรวม"
+            subsection2 = "#### แบ่งตามช่วงเวลา"
+            subsection3 = "#### กระจายตามทีม"
+            subsection4 = "#### รายชื่อติดตามเร่งด่วน (0-3วัน)"
+            subsection5 = "#### ประมาณการกู้คืน"
+            subsection6 = "#### ข้อค้นพบสำคัญ"
+
+            days_header = "| ช่วงเวลา | จำนวน | สัดส่วน | ความสำคัญ |"
+            team_header = "| ทีม | จำนวน | สัดส่วน |"
+            priority_header = "| รหัสนักเรียน | CC | ทีม | วันเข้าคลาส |"
+
+        # 整体统计
+        if self.lang == "zh":
+            summary_text = f"**总计**: {total_count} 名用户已出席但尚未付费"
+        else:
+            summary_text = f"**รวม**: {total_count} ผู้ใช้เข้าคลาสแล้วแต่ยังไม่ชำระ"
+
+        # 按时间分层表格
+        days_order = ["0-3天", "4-7天", "8-14天", "15+天"]
+        days_rows = []
+        for day_range in days_order:
+            count = by_days.get(day_range, 0)
+            pct = (count / total_count * 100) if total_count > 0 else 0
+
+            # 优先级标记
+            if day_range == "0-3天":
+                priority = "🔴 极高" if self.lang == "zh" else "🔴 สูงสุด"
+            elif day_range == "4-7天":
+                priority = "🟡 高" if self.lang == "zh" else "🟡 สูง"
+            elif day_range == "8-14天":
+                priority = "🟢 中" if self.lang == "zh" else "🟢 ปานกลาง"
+            else:
+                priority = "⚪ 低" if self.lang == "zh" else "⚪ ต่ำ"
+
+            # 泰文时间层翻译
+            if self.lang == "th":
+                day_range_map = {
+                    "0-3天": "0-3วัน",
+                    "4-7天": "4-7วัน",
+                    "8-14天": "8-14วัน",
+                    "15+天": "15+วัน"
+                }
+                day_range_display = day_range_map.get(day_range, day_range)
+            else:
+                day_range_display = day_range
+
+            days_rows.append(
+                f"| {day_range_display} | {count} | {pct:.1f}% | {priority} |"
+            )
+
+        days_table = "\n".join(days_rows)
+
+        # 按团队分布表格
+        team_rows = []
+        sorted_teams = sorted(by_team.items(), key=lambda x: x[1], reverse=True)
+        for team, count in sorted_teams:
+            pct = (count / total_count * 100) if total_count > 0 else 0
+            team_rows.append(
+                f"| {team} | {count} | {pct:.1f}% |"
+            )
+
+        team_table = "\n".join(team_rows) if team_rows else (
+            "暂无数据" if self.lang == "zh" else "ไม่มีข้อมูล"
+        )
+
+        # 高优先级跟进清单 (Top 10)
+        priority_rows = []
+        for user in high_priority[:10]:
+            user_id = user.get("学员ID", "")
+            cc = user.get("CC", "")
+            team = user.get("团队", "")
+            attend_date = user.get("出席日期", "")
+
+            priority_rows.append(
+                f"| {user_id} | {cc} | {team} | {attend_date} |"
+            )
+
+        priority_table = "\n".join(priority_rows) if priority_rows else (
+            "暂无数据" if self.lang == "zh" else "ไม่มีข้อมูล"
+        )
+
+        # 预估回收量
+        if self.lang == "zh":
+            recovery_text = f"**{conversion_opportunity}**"
+        else:
+            recovery_text = f"**{conversion_opportunity}**"
+
+        # 洞察列表
+        insights_text = "\n".join([f"- {insight}" for insight in insights]) if insights else (
+            "- 暂无洞察" if self.lang == "zh" else "- ไม่มีข้อค้นพบ"
+        )
+
+        return f"""{section_title}
+
+{subsection1}
+
+{summary_text}
+
+---
+
+{subsection2}
+
+{days_header}
+|------|-----:|-----:|--------|
+{days_table}
+
+---
+
+{subsection3}
+
+{team_header}
+|------|-----:|-----:|
+{team_table}
+
+---
+
+{subsection4}
+
+{priority_header}
+|------|------|------|----------|
+{priority_table}
+
+---
+
+{subsection5}
+
+{recovery_text}
+
+---
+
+{subsection6}
+
+{insights_text}"""
 
     def _ops_roi_analysis(self) -> str:
         """运营版ROI分析"""
@@ -2285,6 +2616,97 @@ xychart-beta
 {bottom_table}
 
 {copy_plan}"""
+
+    def _exec_cc_performance_summary(self) -> str:
+        """管理层版CC绩效概要"""
+        cc_ranking = self.result.get("cc_ranking", {})
+        attended_not_paid = self.result.get("attended_not_paid", {})
+
+        if not cc_ranking or not cc_ranking.get("by_composite"):
+            return ""
+
+        by_composite = cc_ranking.get("by_composite", [])
+        bottom_5 = cc_ranking.get("bottom_5", [])
+        insights = cc_ranking.get("insights", [])
+
+        total_count = attended_not_paid.get("total_count", 0)
+        conversion_opportunity = attended_not_paid.get("conversion_opportunity", "")
+
+        if self.lang == "zh":
+            section_title = "### CC 绩效概要"
+            subsection1 = "#### Top 5 & Bottom 5"
+            subsection2 = "#### 已出席未付费汇总"
+            subsection3 = "#### 关键发现"
+
+            summary_header = "| 排名 | CC | 团队 | 综合得分 |"
+        else:
+            section_title = "### สรุปผลงาน CC"
+            subsection1 = "#### Top 5 & Bottom 5"
+            subsection2 = "#### สรุปเข้าคลาสยังไม่ชำระ"
+            subsection3 = "#### ข้อค้นพบสำคัญ"
+
+            summary_header = "| อันดับ | CC | ทีม | คะแนนรวม |"
+
+        # Top 5 表格
+        top_rows = []
+        for i, cc in enumerate(by_composite[:5], 1):
+            rank_emoji = "🥇" if i == 1 else ("🥈" if i == 2 else ("🥉" if i == 3 else str(i)))
+            cc_id = cc.get("cc", "")
+            team = cc.get("team", "")
+            composite = cc.get("composite", 0.0)
+
+            top_rows.append(
+                f"| {rank_emoji} | {cc_id} | {team} | **{composite:.1f}** |"
+            )
+
+        # Bottom 5 表格
+        bottom_rows = []
+        for cc in bottom_5:
+            cc_id = cc.get("cc", "")
+            team = cc.get("team", "")
+            composite = cc.get("composite", 0.0)
+
+            bottom_rows.append(
+                f"| ⚠️ | {cc_id} | {team} | {composite:.1f} |"
+            )
+
+        top_table = "\n".join(top_rows)
+        bottom_table = "\n".join(bottom_rows) if bottom_rows else (
+            "暂无数据" if self.lang == "zh" else "ไม่มีข้อมูล"
+        )
+
+        # 已出席未付费汇总
+        if self.lang == "zh":
+            attended_summary = f"**总计**: {total_count} 名用户已出席但尚未付费\n**预估回收**: {conversion_opportunity}"
+        else:
+            attended_summary = f"**รวม**: {total_count} ผู้ใช้เข้าคลาสแล้วแต่ยังไม่ชำระ\n**ประมาณการกู้คืน**: {conversion_opportunity}"
+
+        # 关键发现（取前2条）
+        key_insights = insights[:2] if len(insights) >= 2 else insights
+        insights_text = "\n".join([f"- {insight}" for insight in key_insights]) if key_insights else (
+            "- 暂无关键发现" if self.lang == "zh" else "- ไม่มีข้อค้นพบ"
+        )
+
+        return f"""{section_title}
+
+{subsection1}
+
+{summary_header}
+|------|------|------|--------:|
+{top_table}
+{bottom_table}
+
+---
+
+{subsection2}
+
+{attended_summary}
+
+---
+
+{subsection3}
+
+{insights_text}"""
 
     def _exec_key_numbers(self) -> str:
         """管理层版关键数字摘要"""

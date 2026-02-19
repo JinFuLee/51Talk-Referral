@@ -38,7 +38,52 @@ class MultiSourceLoader:
             "月度环比": self._load_mom_comparison(),
             "月度同期": self._load_yoy_comparison(),
         }
+
+        # 构建 CC 个人级数据汇总（必须在所有数据源加载后）
+        self.sources["cc_individual"] = self._build_cc_individual()
+
         return self.sources
+
+    def _build_cc_individual(self) -> dict:
+        """构建 CC 个人级数据汇总"""
+        return {
+            "leads_by_cc": self.sources.get("leads明细", {}).get("by_cc", {}),
+            "followup_by_cc": self.sources.get("课前课后", {}).get("by_cc", []),
+            "checkin_by_cc": self.sources.get("打卡率", {}).get("by_cc", []),
+            "outreach_by_cc": self._aggregate_outreach_by_cc(),
+        }
+
+    def _aggregate_outreach_by_cc(self) -> dict:
+        """聚合围场跟进数据，按 CC 汇总各围场数据"""
+        outreach_data = self.sources.get("围场跟进", {})
+        by_cc_raw = outreach_data.get("by_cc", [])
+        if not by_cc_raw:
+            by_cc_raw = []
+
+        # 按 CC_标准 分组
+        cc_aggregated = {}
+
+        for record in by_cc_raw:
+            cc_std = record.get("CC_标准", "")
+            if not cc_std:
+                continue
+
+            if cc_std not in cc_aggregated:
+                cc_aggregated[cc_std] = {
+                    "CC": record.get("CC", ""),
+                    "团队": record.get("团队", ""),
+                    "cohorts": []
+                }
+
+            cc_aggregated[cc_std]["cohorts"].append({
+                "cohort": record.get("围场", ""),
+                "students": record.get("学员数", 0),
+                "call_coverage": record.get("拨打覆盖率"),
+                "connect_coverage": record.get("接通覆盖率"),
+                "effective_connect_coverage": record.get("有效接通覆盖率"),
+            })
+
+        return cc_aggregated
 
     def _find_xlsx(self, subdir: str) -> Optional[Path]:
         """在子目录中找到第一个 xlsx 文件"""
@@ -86,6 +131,40 @@ class MultiSourceLoader:
         for old, new in self.ALIAS_MAP.items():
             if old in name:
                 name = name.replace(old, new)
+
+        return name
+
+    def _normalize_cc_name(self, name: str) -> str:
+        """标准化 CC 姓名: 统一大小写、去除前缀、过滤无效值"""
+        if not name:
+            return ""
+
+        # 去除前后空格
+        name = str(name).strip()
+
+        # 过滤无效值
+        invalid_names = [
+            '-',
+            '小计',
+            '总计',
+            '末次（当前）分配cc员工姓名',
+            '末次分配cc员工姓名',
+            'cc',
+            'mkt',
+            '泰国',
+        ]
+        if name.lower() in [x.lower() for x in invalid_names]:
+            return ""
+
+        # 统一转小写
+        name = name.lower()
+
+        # 去除常见前缀 (thcc-, thss-, thlp-)
+        prefixes = ['thcc-', 'thss-', 'thlp-', 'th-cc-', 'th-ss-', 'th-lp-']
+        for prefix in prefixes:
+            if name.startswith(prefix):
+                name = name[len(prefix):]
+                break
 
         return name
 
@@ -198,7 +277,7 @@ class MultiSourceLoader:
             for idx, row in enumerate(rows):
                 region = row.get('A', '')
                 team = row.get('B', '')
-                cc = row.get('C', '')
+                cc_raw = row.get('C', '')
 
                 # Row 1 = 总计
                 if idx == 0 or team == '总计':
@@ -221,7 +300,7 @@ class MultiSourceLoader:
                     continue
 
                 # 团队级数据（cc 为空）
-                if not cc:
+                if not cc_raw:
                     by_team.append({
                         "团队": team,
                         "打卡参与率": self._safe_float(row.get('D')),
@@ -234,17 +313,20 @@ class MultiSourceLoader:
                     })
                 else:
                     # 个人级数据
-                    by_cc.append({
-                        "团队": team,
-                        "CC": cc,
-                        "打卡参与率": self._safe_float(row.get('D')),
-                        "参与率": self._safe_float(row.get('E')),
-                        "参与率_已打卡": self._safe_float(row.get('F')),
-                        "参与率_未打卡": self._safe_float(row.get('G')),
-                        "打卡倍率": self._safe_float(row.get('H')),
-                        "带新系数": self._safe_float(row.get('I')),
-                        "带货比": self._safe_float(row.get('M')),
-                    })
+                    cc_normalized = self._normalize_cc_name(cc_raw)
+                    if cc_normalized:  # 跳过无效CC姓名
+                        by_cc.append({
+                            "团队": team,
+                            "CC": cc_raw,
+                            "CC_标准": cc_normalized,
+                            "打卡参与率": self._safe_float(row.get('D')),
+                            "参与率": self._safe_float(row.get('E')),
+                            "参与率_已打卡": self._safe_float(row.get('F')),
+                            "参与率_未打卡": self._safe_float(row.get('G')),
+                            "打卡倍率": self._safe_float(row.get('H')),
+                            "带新系数": self._safe_float(row.get('I')),
+                            "带货比": self._safe_float(row.get('M')),
+                        })
 
             return {
                 "summary": summary,
@@ -409,7 +491,7 @@ class MultiSourceLoader:
             for idx, row in enumerate(rows):
                 channel = row.get('A', '')
                 team = row.get('B', '')
-                cc = row.get('C', '')
+                cc_raw = row.get('C', '')
 
                 # Row 1 = MKT小计
                 if idx == 0 or team == 'MKT' or team == '小计':
@@ -426,7 +508,7 @@ class MultiSourceLoader:
                     continue
 
                 # 团队级数据（cc 为空）
-                if team and not cc:
+                if team and not cc_raw:
                     by_team.append({
                         "团队": team,
                         "体验课量": self._safe_int(row.get('D')),
@@ -438,20 +520,23 @@ class MultiSourceLoader:
                         "课后接通率": self._safe_float(row.get('P')),
                         "课后有效接通率": self._safe_float(row.get('Q')),
                     })
-                elif cc:
+                elif cc_raw:
                     # 个人级数据
-                    by_cc.append({
-                        "团队": team,
-                        "CC": cc,
-                        "体验课量": self._safe_int(row.get('D')),
-                        "出席数": self._safe_int(row.get('E')),
-                        "课前拨打率": self._safe_float(row.get('L')),
-                        "课前接通率": self._safe_float(row.get('M')),
-                        "课前有效接通率": self._safe_float(row.get('N')),
-                        "课后拨打率": self._safe_float(row.get('O')),
-                        "课后接通率": self._safe_float(row.get('P')),
-                        "课后有效接通率": self._safe_float(row.get('Q')),
-                    })
+                    cc_normalized = self._normalize_cc_name(cc_raw)
+                    if cc_normalized:  # 跳过无效CC姓名
+                        by_cc.append({
+                            "团队": team,
+                            "CC": cc_raw,
+                            "CC_标准": cc_normalized,
+                            "体验课量": self._safe_int(row.get('D')),
+                            "出席数": self._safe_int(row.get('E')),
+                            "课前拨打率": self._safe_float(row.get('L')),
+                            "课前接通率": self._safe_float(row.get('M')),
+                            "课前有效接通率": self._safe_float(row.get('N')),
+                            "课后拨打率": self._safe_float(row.get('O')),
+                            "课后接通率": self._safe_float(row.get('P')),
+                            "课后有效接通率": self._safe_float(row.get('Q')),
+                        })
 
             return {
                 "summary": summary,
@@ -478,12 +563,13 @@ class MultiSourceLoader:
 
             summary = {}
             by_cohort = []
+            by_cc = []
             current_cohort = None
 
             for idx, row in enumerate(rows):
                 cohort = row.get('A', '')
                 team = row.get('B', '')
-                cc = row.get('C', '')
+                cc_raw = row.get('C', '')
                 student_id = row.get('D', '')
 
                 # Row 1 = 总计
@@ -509,7 +595,7 @@ class MultiSourceLoader:
                     })
 
                 # 团队级数据
-                if team and not cc and current_cohort:
+                if team and not cc_raw and current_cohort:
                     # 找到当前围场的数据
                     for c in by_cohort:
                         if c["围场"] == current_cohort:
@@ -522,9 +608,25 @@ class MultiSourceLoader:
                             })
                             break
 
+                # CC 个人级数据
+                if cc_raw and current_cohort:
+                    cc_normalized = self._normalize_cc_name(cc_raw)
+                    if cc_normalized:  # 跳过无效CC姓名
+                        by_cc.append({
+                            "围场": current_cohort,
+                            "团队": team,
+                            "CC": cc_raw,
+                            "CC_标准": cc_normalized,
+                            "学员数": self._safe_int(row.get('H')),
+                            "拨打覆盖率": self._safe_float(row.get('H')),
+                            "接通覆盖率": self._safe_float(row.get('I')),
+                            "有效接通覆盖率": self._safe_float(row.get('J')),
+                        })
+
             return {
                 "summary": summary,
                 "by_cohort": by_cohort,
+                "by_cc": by_cc,
             }
 
         except Exception as e:
@@ -547,6 +649,7 @@ class MultiSourceLoader:
             total_leads = len(rows)
             by_channel = {}
             by_team = {}
+            by_cc = {}
             conversion_funnel = {
                 "注册": 0,
                 "预约": 0,
@@ -595,6 +698,40 @@ class MultiSourceLoader:
                         if amount:
                             by_team[team]["金额"] += amount
 
+                # 统计 CC 个人 (Z列 = 末次分配CC员工姓名)
+                cc_name_raw = row.get('Z', '')
+                if cc_name_raw:
+                    cc_name = self._normalize_cc_name(cc_name_raw)
+                    if cc_name:  # 跳过空字符串（无效CC姓名）
+                        if cc_name not in by_cc:
+                            by_cc[cc_name] = {
+                                "CC": cc_name_raw,  # 保留原始姓名
+                                "团队": team,
+                                "leads": 0,
+                                "预约": 0,
+                                "出席": 0,
+                                "付费": 0,
+                                "金额": 0,
+                            }
+                        by_cc[cc_name]["leads"] += 1
+
+                        # 预约
+                        if row.get('L'):
+                            by_cc[cc_name]["预约"] += 1
+
+                        # 出席
+                        if row.get('O'):
+                            by_cc[cc_name]["出席"] += 1
+
+                        # 付费
+                        if row.get('R'):
+                            by_cc[cc_name]["付费"] += 1
+
+                            # 金额
+                            amount = self._safe_float(row.get('AS'))
+                            if amount:
+                                by_cc[cc_name]["金额"] += amount
+
                 # 统计围场
                 cohort = row.get('AY', '')
                 if cohort:
@@ -606,8 +743,10 @@ class MultiSourceLoader:
                 "total_leads": total_leads,
                 "by_channel": by_channel,
                 "by_team": list(by_team.values()),
+                "by_cc": by_cc,
                 "conversion_funnel": conversion_funnel,
                 "by_cohort": by_cohort,
+                "rows": rows,  # 添加原始行数据，供已出席未付费分析使用
             }
 
         except Exception as e:
