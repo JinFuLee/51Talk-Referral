@@ -1,22 +1,22 @@
 "use client";
 
-import { useFollowup, useCheckin } from "@/lib/hooks";
+import { useTrialFollowup, useCheckin } from "@/lib/hooks";
 import { RateCard } from "@/components/ui/RateCard";
 import { CheckinImpactCard } from "@/components/ops/CheckinImpactCard";
 import { Card } from "@/components/ui/Card";
 import { Spinner } from "@/components/ui/Spinner";
-import type { CheckinData, FollowupData } from "@/lib/types";
+import type { CheckinData } from "@/lib/types";
 
 export default function OpsTrialPage() {
-  const { data: followupRaw, isLoading: loadingFollowup } = useFollowup();
+  const { data: followupRaw, isLoading: loadingFollowup } = useTrialFollowup();
   const { data: checkinRaw, isLoading: loadingCheckin } = useCheckin();
 
-  const followup = followupRaw as FollowupData | undefined;
+  const followup = followupRaw as Record<string, unknown> | undefined;
   const checkin = checkinRaw as CheckinData | undefined;
 
-  const preCallRate = (followupRaw as Record<string, unknown> | undefined)?.pre_call_rate as number ?? 0;
-  const postCallRate = followup?.followup_rate ?? 0;
-  const attendanceRate = (followupRaw as Record<string, unknown> | undefined)?.attendance_rate as number ?? 0;
+  const preCallRate = (followup?.pre_call_rate as number) ?? 0;
+  const postCallRate = (followup?.post_call_rate as number) ?? 0;
+  const attendanceRate = (followup?.attendance_rate as number) ?? 0;
   const checkinRate = checkin?.overall_rate ?? 0;
 
   // Lift computation: assume pre-call lift ~2x attendance

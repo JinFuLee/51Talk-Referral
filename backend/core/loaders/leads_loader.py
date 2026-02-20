@@ -102,15 +102,16 @@ class LeadsLoader(BaseLoader):
             # 列值按位置读取 (3~27 共25列，5通道×5指标)
             vals = [self._clean_numeric(row.iloc[i]) if i < len(row) else None for i in range(3, min(28, len(row)))]
 
-            def _chan(offset):
-                # 每通道5列: 注册付费率, 注册, 预约, 出席, 付费
-                base = offset * 5
+            def _chan(ch_offset):
+                # 布局: 指标优先（5指标×5通道）
+                # 指标顺序: 注册付费率(0), 注册(1), 预约(2), 出席(3), 付费(4)
+                # ch_offset: 0=总计, 1=CC, 2=EA(SS), 3=CM(LP), 4=宽
                 return {
-                    "注册付费率": vals[base] if base < len(vals) else None,
-                    "注册": vals[base + 1] if base + 1 < len(vals) else None,
-                    "预约": vals[base + 2] if base + 2 < len(vals) else None,
-                    "出席": vals[base + 3] if base + 3 < len(vals) else None,
-                    "付费": vals[base + 4] if base + 4 < len(vals) else None,
+                    "注册付费率": vals[0 * 5 + ch_offset] if 0 * 5 + ch_offset < len(vals) else None,
+                    "注册":       vals[1 * 5 + ch_offset] if 1 * 5 + ch_offset < len(vals) else None,
+                    "预约":       vals[2 * 5 + ch_offset] if 2 * 5 + ch_offset < len(vals) else None,
+                    "出席":       vals[3 * 5 + ch_offset] if 3 * 5 + ch_offset < len(vals) else None,
+                    "付费":       vals[4 * 5 + ch_offset] if 4 * 5 + ch_offset < len(vals) else None,
                 }
 
             record = {
@@ -125,14 +126,23 @@ class LeadsLoader(BaseLoader):
             }
             by_team.append(record)
 
-        # 按通道汇总（取总计行 group=="小计" 或 region=="总计"）
+        # 按通道汇总（优先取全局总计行：团队=="小计" 且 小组=="小计"）
         by_channel = {}
-        for rec in by_team:
-            if rec.get("小组") in ("小计", "总计") or rec.get("团队") in ("小计", "总计"):
-                for ch in ("总计", "CC窄口径", "SS窄口径", "LP窄口径", "宽口径"):
-                    if ch not in by_channel:
-                        by_channel[ch] = rec.get(ch, {})
-                break
+        # 先找全局总计行（团队和小组都是"小计"或"总计"）
+        global_totals = [
+            rec for rec in by_team
+            if rec.get("团队") in ("小计", "总计") and rec.get("小组") in ("小计", "总计")
+        ]
+        # 退回：任意一行团队或小组为"小计"/"总计"
+        fallback_totals = [
+            rec for rec in by_team
+            if rec.get("团队") in ("小计", "总计") or rec.get("小组") in ("小计", "总计")
+        ]
+        total_rows = global_totals if global_totals else fallback_totals
+        if total_rows:
+            rec = total_rows[-1]  # 取最后一条（通常是最底部的全局合计）
+            for ch in ("总计", "CC窄口径", "SS窄口径", "LP窄口径", "宽口径"):
+                by_channel[ch] = rec.get(ch, {})
 
         total = by_channel.get("总计", {})
 

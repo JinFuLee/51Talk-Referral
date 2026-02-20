@@ -79,14 +79,38 @@ def calculate_progress(date: datetime = None) -> float:
 
 
 def get_targets(date: datetime = None) -> dict:
-    """获取当月目标配置，自动计算时间进度"""
+    """获取当月目标配置，自动计算时间进度。支持 V2 override。"""
+    import json
+
     if date is None:
         date = datetime.now()
 
     month_key = date.strftime("%Y%m")
 
-    # 基础目标 (可按月份扩展)
+    # 1. 读基础扁平目标
     base = MONTHLY_TARGETS.get(month_key, MONTHLY_TARGETS.get("202601", {})).copy()
+
+    # 2. 读 override（如果存在）
+    override_file = BASE_DIR / "config" / "targets_override.json"
+    if override_file.exists():
+        try:
+            overrides = json.loads(override_file.read_text(encoding="utf-8"))
+            month_data = overrides.get(month_key, {})
+            if month_data.get("version") == 2:
+                # V2 结构 → flatten 后合并
+                _backend_dir = str(Path(__file__).resolve().parent.parent)
+                if _backend_dir not in sys.path:
+                    sys.path.insert(0, _backend_dir)
+                from models.config import MonthlyTargetV2
+                v2 = MonthlyTargetV2(**month_data)
+                base.update(v2.flatten())
+            elif month_data:
+                # 普通扁平 override
+                base.update(month_data)
+        except Exception:
+            pass
+
+    # 3. 追加时间进度
     base["时间进度"] = calculate_progress(date)
 
     return base
@@ -155,7 +179,7 @@ STYLES = {
 }
 
 # 汇率配置
-EXCHANGE_RATE_THB_USD = 32.0  # THB 转 USD 汇率（1 USD = 32 THB）
+EXCHANGE_RATE_THB_USD = 34.0  # THB 转 USD 汇率（1 USD = 34 THB）
 
 # ROI 真实成本模型配置（基于 2026年转介绍ROI测算数据新模版.xlsx）
 ROI_COST_CONFIG = {

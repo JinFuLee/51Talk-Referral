@@ -93,8 +93,151 @@ Excel 数据源 → XlsxReader → DataProcessor → AnalysisEngine → Markdown
 ## 关键约定
 - **T-1 数据**: 今天处理的是昨天的数据
 - **时间进度**: 加权计算（周六日 1.4x，周三 0.0）
+- **工作日**: 每周仅周三休息，周六周日正常上班；周三权重 0.0（不开班/休息日）
 - **双版本报告**: 运营版（战术执行）+ 管理层版（战略决策）
 - **状态标签**: 缺口 >0% = 🟢 持平, -5%~0% = 🟡 落后, <-5% = 🔴 严重
+
+## 业绩计算规则（核心）
+- **转介绍实际业绩** = 仅 **CC 前端 + 新单 + 转介绍渠道** 的订单金额
+- **排除项**:
+  - SS/LP 后端新单（部分与前端重叠，属后端业绩）
+  - CC 前端续费转介绍（借用转介绍渠道的后端业绩，非真正转介绍）
+  - SS/LP 后端续费转介绍
+- **数据过滤条件**: `channel == "转介绍" AND team 包含 "CC" AND order_tag == "新单"`
+- **泰国前端业绩** = 市场渠道 + 转介绍渠道（本项目只关注转介绍部分）
+- **代码位置**: `order_loader.py` 的 `_aggregate_referral_cc_new()` → `analysis_engine_v2.py` 的 `_analyze_summary()`
+
+## 双差额体系
+每个数值 KPI 必须计算 **两种差额 + 两个日均**:
+
+| 差额类型 | 公式 | 含义 |
+|----------|------|------|
+| **目标绝对差** | `actual - target` | 距离月目标还差多少（负=落后，正=超额）|
+| **时间进度差** | `actual/target - time_progress` | 是否跟上当前时间进度 |
+| **达标需日均** | `(target - actual) / remaining_workdays` | 完成月目标每天需要多少 |
+| **追进度需日均** | `max(0, target × time_progress - actual) / remaining_workdays` | 追上时间进度线每天需要多少 |
+
+- 后端字段: `absolute_gap`, `gap`(进度差), `remaining_daily_avg`(达标需), `pace_daily_needed`(追进度需)
+- 前端必须同时展示两种差额和两个日均，用户需要一眼看清"离目标差多少"和"是否掉队"
+
+## CC 人员排名算法（三类 18 维）
+
+### 过程指标（25%）
+| 指标 | 权重 | 数据源 |
+|------|------|--------|
+| 外呼数 | 4% | outreach.by_cc |
+| 接通数 | 4% | outreach.by_cc |
+| 有效接通(>=120s) | 5% | outreach.by_cc |
+| 付费前跟进 | 3% | trial_followup.pre_class |
+| 预约课前跟进 | 3% | trial_followup.pre_class |
+| 预约课后跟进 | 3% | trial_followup.post_class |
+| 付费后跟进 | 3% | paid_followup |
+
+### 结果指标（60%）
+| 指标 | 权重 | 数据源 |
+|------|------|--------|
+| 注册数 | 12% | leads.by_cc |
+| leads 数 | 8% | leads.by_cc |
+| 转介绍用户数 | 8% | leads.by_cc |
+| 客单价(USD) | 7% | orders.by_cc |
+| 付费单量 | 12% | orders.by_cc |
+| 转介绍业绩(USD) | 9% | orders.by_cc（CC新单转介绍）|
+| 业绩占比 | 4% | 个人/团队总额 |
+
+### 效率指标（15%）
+| 指标 | 权重 | 数据源 |
+|------|------|--------|
+| 注册→付费转化率 | 5% | paid/registered |
+| 打卡率 | 4% | kpi.by_cc |
+| 参与率 | 3% | kpi.by_cc |
+| 带新系数 | 3% | kpi.by_cc |
+
+### 算法
+- 每个指标在所有 CC 中 min-max 归一化到 [0,1]
+- 数据源缺失时，权重等比分摊到同类其他维度
+- `composite_score = process × 0.25 + result × 0.60 + efficiency × 0.15`
+- 输出: `{cc_name, rank, composite_score, process_score, result_score, efficiency_score, detail}`
+
+## ROI 成本框架（待对接真实数据）
+- 当前成本明细为框架占位，非真实数据
+- 真实成本需对接: 泰国转介绍用户激励政策 + 转介绍活动费用 + 基本法赠送礼品
+- 对接前标注"预估"，对接后标注"实际"
+
+## 币种显示规范
+- **统一格式**: `$1,234 (฿41,956)` — 美金在前，泰铢括号内
+- **禁止显示人民币** — 原始数据有 CNY/THB/USD 三种，前端一律转为 USD(THB) 展示
+- **汇率**: USD:THB = 1:34 | USD:CNY = 1:8（可在 Settings 页面修改，存 `config/exchange_rate.json`）
+- **前端**: 必须使用共享 `formatRevenue(usd, exchangeRate)` 工具函数，禁止硬编码 `¥` 或币种符号
+- **后端**: API 返回 `{usd, thb}` 双字段，前端按 displayCurrency 设定渲染
+
+## 指标显示规范
+
+### 数值类指标（注册/预约/出席/单量/客单价/付费金额等）
+每个数值卡片必须显示 **8 项**：
+1. **当前实际值** — 真实数据
+2. **本月目标** — 从月度目标体系读取
+3. **目标绝对差** — `actual - target`，正值绿色超额、负值红色落后
+4. **时间进度差** — `actual/target - time_progress`，衡量是否跟上进度
+5. **达标需日均** — `(target - actual) / remaining_workdays`，完成月目标每天需要多少
+6. **追进度需日均** — `max(0, target × time_progress - actual) / remaining_workdays`，追上时间进度线需每天多少
+7. **效率提升需求** — `达标需日均 / 当前日均 - 1`，需要提升多少百分比
+8. **当前日均** — `actual / elapsed_workdays`，当前节奏参考
+
+### 效率类指标（转化率/参与率/打卡率/触达率/约课率/出席率等）
+每个效率卡片必须显示 **5 项**：
+1. **当前实际率** — 真实数据
+2. **本月目标率** — 目标值
+3. **目标差** — `actual_rate - target_rate`
+4. **损失量化** — 如果效率 gap 为负，计算损失链：
+   - 打卡率 gap → 损失 X 个参与学员 → 损失 Y 个注册 → 损失 Z 个付费 → 损失 $W
+   - 转化率 gap → 损失 X 个付费 → 损失 $Y
+   - 约课率 gap → 损失 X 个出席 → 损失 Y 个付费 → 损失 $Z
+5. **根因标注** — 效率低/高/平庸的原因指示（来自 5-Why 分析或规则引擎）
+
+## 时间对比规范
+- **环比 (MoM/WoW)**: 月环比 + 周环比，所有 KPI 必须有
+- **同比 (YoY)**: 同月同比（去年同月 vs 本月）
+- **巅峰/谷底**: 标注历史最高/最低时段及数值
+- **趋势判断**: >=3 期连续上升=上升趋势、>=3 期连续下降=下降趋势、否则=波动
+- **5-Why 分析**: 对异常偏离（>2σ）的指标自动触发因果链分析，逐层追问至根因
+
+## 分析方法论框架
+
+### 数据分析六步法（所有分析模块遵循）
+1. **澄清问题** — 核心问题 + 关键人 + 本次分析能创造的核心价值
+2. **关键指标** — 结果指标（注册/付费/收入）+ 过程指标（打卡率/触达率/参与率）
+3. **数据支持** — 数据来源（35源）+ 数据处理工具（AnalysisEngineV2）
+4. **分析方法** — 核心方法（漏斗/环比/归因）+ 辅助方法（异常检测/预测）
+5. **核心洞察** — 根因诊断 + 关键发现
+6. **行动方案** — 策略建议 + 预期影响（量化到 $）
+
+### 金字塔原理（报告/展示遵循）
+- **结论先行** — 先给主结论，再展开论据
+- **MECE 原则** — 相互独立、完全穷尽的分类
+- **SCQA 框架** — 背景(S) → 冲突(C) → 疑问(Q) → 答案(A)
+- 每层论点 3-7 个，不超过 7 个 | 逻辑递进：时间顺序 / 空间顺序 / 程度顺序
+
+### 转介绍阶段演化模型（业务理解基础）
+| 阶段 | 核心驱动 | 关键特征 |
+|------|----------|----------|
+| 1. 基础启动 | 用户意愿（激励为主）| 结果激励（60美金/20节课）、工具能力（VIP/友谊卡/小精灵/推荐码）、四大红利（市场/启动/存量/销售）|
+| 2. 科学运营 | 公式化运营 | 转介绍公式 = 活跃用户 × 参与率 × 获客率 × 转化率；多渠道精细化（手拿嘴要/打卡活动/运营直播/社群运营/合伙人/进校合作）|
+| 3. 系统思维 | 两大存量经营 | 存量一：活跃满意用户 = 产品质量 + 服务体验 = 用户满意；存量二：用户人脉池（高信任高需求/高信任低需求/低信任高需求）|
+
+### 转介绍运营业务逻辑（因果模型）
+```
+01 业务驱动（因）          02 用户感知（根基）        03 层级跃迁（果）
+├─ 系统：精准度+工作台     ├─ 意愿：外部策略+奖励     全量付费用户
+├─ 用户服务：海报+文案+奖品 ├─ 能力：业务能力+一键分享   ↓ 参与转介绍的用户
+├─ 人：CC想不想做/会不会做  ├─ 环境：场景多元化          ↓ 活跃转介绍的用户
+└─ 策略：政策支持            └─ 产品：操作简化              ↓ 合伙人
+```
+
+### 金字塔 5-Why 分析法（异常诊断专用）
+- 从结果指标异常出发，沿因果链向下追问 5 层
+- 每层遵循 MECE 拆解
+- 每个"Why"必须有数据支撑（不是推测）
+- 最终指向可执行的行动方案 + 预期量化影响
 
 ## 里程碑摘要
 | 里程碑 | 日期 | 目标 | 成果 | 文件变更 |
@@ -115,6 +258,57 @@ Excel 数据源 → XlsxReader → DataProcessor → AnalysisEngine → Markdown
 | M8 | 2026-02-20 | 历史数据累积系统 | SQLite 快照存储(4表)、历史批量导入、每日自动累积、CC 成长曲线、日级预测增强、Streamlit 快照管理 UI | 2 files new, 7 files mod, +560 lines, QA 8/8 PASS |
 | M9 | 2026-02-20 | Streamlit → Next.js + FastAPI 全面改造 | 后端 FastAPI 7 routers/30+ endpoints、前端 Next.js 14 12页/43组件、WebMCP 8 Tool、Docker 容器化、i18n 升级、E2E 全通过 | 85 files new, 3 files mod, +10000+ lines, QA 16/16 PASS |
 | M10 | 2026-02-20 | 35源数据层全面重建 + 分析引擎V2 | 35 Loader、20分析模块、5跨源联动、运营6页+业务5页、28 API端点、17新组件、TypeScript升级 | 35 files new, 20 modules, 28 endpoints, 11 pages new, 17 components new, QA 6/7 PASS(1修复) |
+| M11 | 2026-02-21 | 币种统一 + 指标增强 | USD($)/THB(฿)双币显示、KPI 8项展示、效率卡5项、双差额体系、汇率1:34配置化 | 18 files mod, +850 lines, QA 12/12 PASS |
+| M12 | 2026-02-21 | 时间对比 + 9项缺陷修复 | YoY修复、WoW周环比、Peak/Valley标注、趋势判断、业绩CC新单化、CC排名18维、工作日修正 | 14 files mod, +1439/-252 lines, QA 12/12 PASS(M11/M12) + 12/12 PASS(bugfix-9) |
+
+## 里程碑规划（M11+）
+
+### M11: 币种统一 + 指标增强显示（P0 基础层）
+| 任务 | 描述 | 文件影响 |
+|------|------|---------|
+| M11.1 | 前端 `formatRevenue(usd, rate)` 工具函数，统一输出 `$X (฿Y)` 格式 | `frontend/lib/utils.ts` |
+| M11.2 | 替换所有 `¥` 硬编码为 `formatRevenue`，读取 Settings 汇率 | `frontend/app/ops/**`, `frontend/app/biz/**`, 8+ components |
+| M11.3 | 后端 API 补充 `thb` 字段（现有 `cny`+`usd`，加 `thb = usd × 34`）| `backend/api/analysis.py` adapter |
+| M11.4 | KPI 卡片增强：6 项数值展示（目标/差值/时间进度差/剩余日均/效率提升需求）| `frontend/components/dashboard/`, `frontend/components/ops/` |
+| M11.5 | 效率卡片增强：5 项展示（目标/差值/损失链量化/根因标注）| 新组件 `EfficiencyMetricCard` |
+| M11.6 | 后端 `_analyze_summary()` 补充 `daily_avg`, `remaining_daily_avg`, `efficiency_lift` 字段 | `backend/core/analysis_engine_v2.py` |
+
+### M12: 时间对比体系（MoM/WoW/YoY/Peak/Valley）
+| 任务 | 描述 | 文件影响 |
+|------|------|---------|
+| M12.1 | 修复 YoY bug（当前返回与 MoM 同一对象）| `backend/core/analysis_engine_v2.py` |
+| M12.2 | SQLite 周聚合查询 `get_weekly_kpi(metric, week_offset)` | `backend/core/snapshot_store.py` |
+| M12.3 | WoW 周环比 API + 前端展示 | `backend/api/snapshots.py`, `frontend/app/trend/` |
+| M12.4 | 历史巅峰/谷底标注：每个 KPI 标记 `peak_date/peak_value/valley_date/valley_value` | `backend/core/analysis_engine_v2.py`, `backend/core/snapshot_store.py` |
+| M12.5 | 趋势判断引擎：连续 3 期方向 → 趋势标签（上升/下降/波动）| `backend/core/analysis_engine_v2.py` |
+| M12.6 | 前端趋势可视化升级：环比线 + 同比线 + Peak/Valley 标注 | `frontend/components/charts/TrendLineChart.tsx` |
+
+### M13: 效率→收入影响链 + 损失量化引擎
+| 任务 | 描述 | 文件影响 |
+|------|------|---------|
+| M13.1 | 影响链计算引擎：`打卡率 gap → 参与学员损失 → 注册损失 → 付费损失 → $损失` | 新模块 `backend/core/impact_chain.py` |
+| M13.2 | 全效率指标影响链：触达率/参与率/打卡率/约课率/出席率/转化率 → 各自损失路径 | 同上 |
+| M13.3 | 影响链 API 端点 `GET /api/analysis/impact-chain` | `backend/api/analysis.py` |
+| M13.4 | 前端损失看板组件：瀑布图展示每个效率 gap 对应的 $ 损失 | 新组件 `ImpactWaterfallChart` |
+| M13.5 | "如果提升 X% 可增加 $Y" 模拟器（What-if 计算）| 前端 interactive slider + 后端 `POST /api/analysis/what-if` |
+
+### M14: 5-Why 根因分析 + 金字塔报告引擎
+| 任务 | 描述 | 文件影响 |
+|------|------|---------|
+| M14.1 | 规则引擎 5-Why 第一版：基于因果链模板的自动归因（不依赖 LLM）| 新模块 `backend/core/root_cause.py` |
+| M14.2 | AI 增强 5-Why：异常指标自动调用 LLM 生成深度根因分析 | `backend/core/root_cause.py` + LLM adapter |
+| M14.3 | 金字塔结构报告生成：结论先行 → MECE 拆解 → 数据论据 → 行动方案 | `backend/core/report_generator_v2.py` |
+| M14.4 | SCQA 卡片组件：背景/冲突/疑问/答案 格式化展示 | 新组件 `SCQACard` |
+| M14.5 | 六步法分析模板：每个分析模块输出标准化 6 步结构 | `backend/core/analysis_engine_v2.py` 各 `_analyze_*` 方法 |
+| M14.6 | 转介绍阶段评估：基于运营数据判断当前处于哪个演化阶段 + 升级建议 | 新模块 `backend/core/stage_evaluator.py` |
+
+### 依赖关系
+```
+M11 (币种+指标) ─── 无依赖，可立即开始
+M12 (时间对比)  ─── 依赖 M8 快照数据，可并行 M11
+M13 (影响链)    ─── 依赖 M11（目标体系完善后才能算 gap 损失）
+M14 (5-Why)     ─── 依赖 M13（影响链是 5-Why 的量化基础）
+```
 
 ## 已知问题与技术债
 | 序号 | 类别 | 描述 | 优先级 | 计划里程碑 | 备注 |
@@ -128,8 +322,10 @@ Excel 数据源 → XlsxReader → DataProcessor → AnalysisEngine → Markdown
 | 7 | 前端组件 | dashboard/page.tsx 内容为空，需补充实际组件调用 | P2 | M10 | 运营面板 Dashboard 实现待补充 |
 | 8 | 部署配置 | npm install 尚未在容器外执行，首次本地启动需手动运行 | P3 | M10 | Docker 内自动执行，本地开发流程待文档化 |
 | 9 | 浏览器兼容 | WebMCP 目前使用 @mcp-b/global polyfill，等浏览器原生支持后可移除 | P3 | M11 | 当前可用，后续升级移除 polyfill |
-| 10 | 类型系统 | TrendLineChart data prop 类型需进一步泛型化 | P2 | M11 | 支持多维数据源 |
-| 11 | 文档过期 | datasources.py 注释"12源"过时需更新为"35源" | P3 | M10 | 文档同步 |
+| 10 | 类型系统 | TrendLineChart data prop 类型需进一步泛型化 | P2 | M11 | 已沉淀到 M12 约束条件 |
+| 11 | 文档过期 | datasources.py 注释"12源"过时需更新为"35源" | P3 | M10 | M12 已更新 CLAUDE.md 业务规则 |
+| 12 | ROI成本数据 | 成本明细框架占位，待对接泰国真实激励/活动费用数据 | P1 | M13 | M11/M12 已标注预估 |
+| 13 | 类型优化 | 前端 TypeScript 仍有部分 `as any` 需清理 | P2 | M13+ | 日常重构积累 |
 
 ## WebMCP
 不适用（非 Web 前端项目）。如后续添加 Web UI，参见全局 CLAUDE.md WebMCP 章节。

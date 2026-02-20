@@ -155,9 +155,17 @@ export interface ROIData {
 
 // ── 趋势 ─────────────────────────────────────────────────────────────────────
 
+export interface TrendPeakValley {
+  date: string;
+  value: number;
+}
+
 export interface TrendData {
   series: TrendPoint[];
-  compare_type?: "mom" | "yoy";
+  compare_type?: "mom" | "yoy" | "wow";
+  direction?: "rising" | "falling" | "volatile" | "insufficient";
+  peak?: TrendPeakValley;
+  valley?: TrendPeakValley;
 }
 
 export interface TrendPoint {
@@ -281,7 +289,7 @@ export interface DataSourceStatus {
   has_file: boolean;
   latest_file: string | null;
   latest_date: string | null;
-  is_t1: boolean;
+  is_fresh: boolean;
   file_count: number;
 }
 
@@ -329,4 +337,100 @@ export interface MonthlyTarget {
 export interface ExchangeRate {
   rate: number;
   unit: string;
+}
+
+// ── 月目标 V2 ────────────────────────────────────────────────────────────────
+
+export interface HardTarget {
+  total_revenue: number;
+  referral_pct: number;
+  referral_revenue: number;
+  display_currency: "THB" | "USD";
+  lock_field: "pct" | "amount";
+}
+
+export interface ChannelTarget {
+  user_count: number;
+  asp: number;
+  conversion_rate: number;
+  reserve_rate: number;
+  attend_rate: number;
+}
+
+export interface ChannelDecomposition {
+  cc_narrow: ChannelTarget;
+  ss_narrow: ChannelTarget;
+  lp_narrow: ChannelTarget;
+  wide: ChannelTarget;
+}
+
+export interface EnclosureTarget {
+  reach_rate: number;
+  participation_rate: number;
+  conversion_rate: number;
+  checkin_rate: number;
+}
+
+export interface EnclosureDecomposition {
+  d0_30: EnclosureTarget;
+  d31_60: EnclosureTarget;
+  d61_90: EnclosureTarget;
+  d91_180: EnclosureTarget;
+  d181_plus: EnclosureTarget;
+  [key: string]: EnclosureTarget;
+}
+
+export interface SOPTargets {
+  checkin_rate: number;
+  reach_rate: number;
+  participation_rate: number;
+  reserve_rate: number;
+  attend_rate: number;
+  outreach_calls_per_day: number;
+}
+
+export interface MonthlyTargetV2 {
+  version: 2;
+  month: string;
+  hard: HardTarget;
+  channels: ChannelDecomposition;
+  enclosures: EnclosureDecomposition;
+  sop: SOPTargets;
+}
+
+// ── 智能推荐 ─────────────────────────────────────────────────────────────────
+
+export interface TargetScenario {
+  label: string;
+  multiplier: number;
+  summary: { 注册目标: number; 付费目标: number; 金额目标: number };
+  v2_prefill: {
+    hard: { referral_revenue: number; lock_field: string };
+    channels: Record<string, { user_count: number; asp: number; conversion_rate: number }>;
+    sop: { reserve_rate: number; attend_rate: number };
+  };
+}
+
+export interface TargetFeasibility {
+  score: number | null;
+  label: string;
+  probability: string;
+  detail: Record<string, {
+    actual: number;
+    target: number;
+    pace_ratio: number;
+    predicted_completion: number;
+  }>;
+  confidence: "high" | "medium" | "low";
+}
+
+export interface TargetRecommendation {
+  month: string;
+  growth_rates: { reg: number; paid: number; revenue: number };
+  scenarios: {
+    conservative: TargetScenario;
+    base: TargetScenario;
+    aggressive: TargetScenario;
+  };
+  feasibility: TargetFeasibility;
 }

@@ -249,12 +249,11 @@ def set_service(service: Any) -> None:
 
 
 def _build_status() -> list[dict[str, Any]]:
-    """扫描 input/ 子目录，判断各数据源文件是否存在及 T-1 状态"""
-    from datetime import datetime, timedelta
+    """扫描 input/ 子目录，判断各数据源文件是否存在及新鲜度"""
+    from datetime import datetime
     import re
 
-    today = datetime.now()
-    t1_date = (today - timedelta(days=1)).date()
+    today = datetime.now().date()
 
     status_list = []
     for src in DATA_SOURCE_REGISTRY:
@@ -263,7 +262,7 @@ def _build_status() -> list[dict[str, Any]]:
 
         latest_file = None
         latest_date = None
-        is_t1 = False
+        is_fresh = False
 
         if files:
             # 按修改时间排序取最新
@@ -273,7 +272,13 @@ def _build_status() -> list[dict[str, Any]]:
             if m:
                 try:
                     latest_date = datetime.strptime(m.group(1), "%Y%m%d").date()
-                    is_t1 = latest_date == t1_date
+                    freq = src.get("freq", "D-1")
+                    if freq == "M-1":
+                        # 月度源：本月文件即新鲜
+                        is_fresh = latest_date.year == today.year and latest_date.month == today.month
+                    else:
+                        # 日度源：今天下载的文件即新鲜
+                        is_fresh = latest_date == today
                 except ValueError:
                     pass
 
@@ -288,7 +293,7 @@ def _build_status() -> list[dict[str, Any]]:
                 "has_file": len(files) > 0,
                 "latest_file": latest_file.name if latest_file else None,
                 "latest_date": str(latest_date) if latest_date else None,
-                "is_t1": is_t1,
+                "is_fresh": is_fresh,
                 "file_count": len(files),
             }
         )
@@ -297,7 +302,7 @@ def _build_status() -> list[dict[str, Any]]:
 
 @router.get("/status")
 def get_datasource_status() -> list[dict[str, Any]]:
-    """返回所有数据源当前状态（含 T-1 判断）"""
+    """返回所有数据源当前状态（含新鲜度判断）"""
     global _status_cache
     if _status_cache is not None:
         return _status_cache
@@ -307,7 +312,7 @@ def get_datasource_status() -> list[dict[str, Any]]:
 
 @router.get("/registry")
 def get_registry() -> list[dict[str, Any]]:
-    """返回数据源注册表（12 源元信息）"""
+    """返回数据源注册表"""
     return DATA_SOURCE_REGISTRY
 
 

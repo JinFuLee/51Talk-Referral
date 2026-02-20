@@ -2,6 +2,7 @@
  * API client — 所有对 FastAPI 后端（localhost:8000）的请求封装
  * 通过 Next.js rewrites: /api/* → http://localhost:8000/api/*
  */
+import type { MonthlyTargetV2, TargetRecommendation } from "./types";
 
 const BASE = "/api";
 
@@ -54,7 +55,7 @@ export const analysisAPI = {
   getLeads: () => request<unknown>("/analysis/leads"),
   getFollowup: () => request<unknown>("/analysis/followup"),
   getOrders: () => request<unknown>("/analysis/orders"),
-  getTrend: (compareType: "mom" | "yoy" = "mom") =>
+  getTrend: (compareType: "mom" | "yoy" | "wow" = "mom") =>
     request<unknown>(`/analysis/trend?compare_type=${compareType}`),
   getLTV: () => request<unknown>("/analysis/ltv"),
 };
@@ -117,6 +118,20 @@ export const configAPI = {
       method: "PUT",
       body: JSON.stringify({ rate }),
     }),
+  getTargetsV2: (month: string) =>
+    request<MonthlyTargetV2>(`/config/targets/${month}/v2`),
+  putTargetsV2: (month: string, data: MonthlyTargetV2) =>
+    request<{ status: string }>(`/config/targets/${month}/v2`, {
+      method: "PUT",
+      body: JSON.stringify(data),
+    }),
+  calculateTargets: (month: string, partial: Partial<MonthlyTargetV2>) =>
+    request<{ v2: MonthlyTargetV2; flat: Record<string, unknown> }>(`/config/targets/${month}/calculate`, {
+      method: "POST",
+      body: JSON.stringify(partial),
+    }),
+  getRecommendation: (month: string) =>
+    request<TargetRecommendation>(`/config/targets/${month}/recommend`),
 };
 
 // ── Snapshots ─────────────────────────────────────────────────────────────────

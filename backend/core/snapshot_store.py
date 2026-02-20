@@ -438,6 +438,122 @@ class SnapshotStore:
 
         return [dict(row) for row in cursor.fetchall()]
 
+    def get_weekly_kpi(self, metric: str, weeks_back: int = 4) -> List[Dict]:
+        """
+        按 ISO 周聚合 daily_kpi，返回近 N 周的汇总数据。
+
+        Args:
+            metric:     指标名称（如 "注册"、"付费"）
+            weeks_back: 返回最近 N 周
+
+        Returns:
+            [{week: "2026-W07", avg_value, sum_value, count}, ...]  按周升序
+        """
+        cursor = self.conn.cursor()
+        cursor.execute("""
+            SELECT
+                strftime('%Y-W%W', snapshot_date) AS week,
+                AVG(value) AS avg_value,
+                SUM(value) AS sum_value,
+                COUNT(*) AS count
+            FROM daily_kpi
+            WHERE metric = ?
+            GROUP BY week
+            ORDER BY week DESC
+            LIMIT ?
+        """, (metric, weeks_back))
+        rows = cursor.fetchall()
+        # 反转为升序后返回
+        return list(reversed([dict(row) for row in rows]))
+
+    def get_monthly_comparison(self, metric: str, months_back: int = 3) -> List[Dict]:
+        """
+        月度聚合，供 MoM（月环比）对比使用。
+
+        Args:
+            metric:      指标名称
+            months_back: 返回最近 N 个月
+
+        Returns:
+            [{month: "202602", avg_value, max_value, min_value, sum_value, count}, ...]  按月升序
+        """
+        cursor = self.conn.cursor()
+        cursor.execute("""
+            SELECT
+                strftime('%Y%m', snapshot_date) AS month,
+                AVG(value)  AS avg_value,
+                MAX(value)  AS max_value,
+                MIN(value)  AS min_value,
+                SUM(value)  AS sum_value,
+                COUNT(*)    AS count
+            FROM daily_kpi
+            WHERE metric = ?
+            GROUP BY month
+            ORDER BY month DESC
+            LIMIT ?
+        """, (metric, months_back))
+        rows = cursor.fetchall()
+        return list(reversed([dict(row) for row in rows]))
+
+    def get_peak_valley(self, metric: str) -> Dict[str, Any]:
+        """
+        查询指定指标的历史最高（巅峰）和最低（谷底）。
+
+        Args:
+            metric: 指标名称
+
+        Returns:
+            {
+              "peak":   {"date": "2026-01-15", "value": 520} | None,
+              "valley": {"date": "2026-02-03", "value": 380} | None,
+            }
+        """
+        cursor = self.conn.cursor()
+
+        cursor.execute("""
+            SELECT snapshot_date, value
+            FROM daily_kpi
+            WHERE metric = ? AND value IS NOT NULL
+            ORDER BY value DESC
+            LIMIT 1
+        """, (metric,))
+        peak_row = cursor.fetchone()
+
+        cursor.execute("""
+            SELECT snapshot_date, value
+            FROM daily_kpi
+            WHERE metric = ? AND value IS NOT NULL
+            ORDER BY value ASC
+            LIMIT 1
+        """, (metric,))
+        valley_row = cursor.fetchone()
+
+        return {
+            "peak":   {"date": peak_row["snapshot_date"], "value": peak_row["value"]} if peak_row else None,
+            "valley": {"date": valley_row["snapshot_date"], "value": valley_row["value"]} if valley_row else None,
+        }
+
+    def get_same_month_last_year(self, metric: str, target_month: str) -> Optional[Dict]:
+        """
+        查询去年同月的聚合数据，供 YoY 对比。
+
+        Args:
+            metric:       指标名称
+            target_month: 当前月份，格式 "YYYYMM"（如 "202602"）
+
+        Returns:
+            {month, avg_value, max_value, sum_value, count} 或 None（无历史数据）
+        """
+        year = int(target_month[:4]) - 1
+        mon = target_month[4:6]
+        last_year_month = f"{year}{mon}"
+
+        rows = self.get_monthly_comparison(metric, months_back=24)
+        for row in rows:
+            if row.get("month") == last_year_month:
+                return row
+        return None
+
     def __del__(self):
         """关闭数据库连接"""
         if hasattr(self, 'conn'):

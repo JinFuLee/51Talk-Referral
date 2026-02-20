@@ -78,6 +78,28 @@ async def startup_event():
     snapshots.set_service(_analysis_service)
     notifications.set_service(_analysis_service)
 
+    # 后台自动运行分析（非阻塞）
+    import asyncio
+    asyncio.create_task(_auto_run_analysis())
+
+
+async def _auto_run_analysis():
+    """启动后自动运行一次分析（非阻塞），仅当 input 目录有数据文件时"""
+    import logging
+    logger = logging.getLogger(__name__)
+    input_dir = PROJECT_ROOT / "input"
+    # 检查 input 目录下是否有任何 xlsx 文件
+    xlsx_files = list(input_dir.rglob("*.xlsx")) if input_dir.exists() else []
+    if not xlsx_files:
+        logger.info("input 目录无数据文件，跳过启动自动分析")
+        return
+    try:
+        logger.info(f"检测到 {len(xlsx_files)} 个数据文件，开始启动自动分析...")
+        _analysis_service.run()
+        logger.info("启动自动分析完成")
+    except Exception as e:
+        logger.warning(f"启动自动分析失败（非阻塞）: {e}")
+
 
 if __name__ == "__main__":
     import uvicorn

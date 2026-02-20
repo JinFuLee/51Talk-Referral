@@ -52,12 +52,12 @@ export function EnclosureHeatmap({
             key={seg}
             className={cn(
               "rounded-xl border-2 p-4 flex flex-col gap-2 text-center",
-              roiColor(s.roi_index)
+              roiColor(s.roi_index ?? 0)
             )}
           >
             <div className="text-sm font-bold">{seg} 天</div>
-            <div className="text-xs opacity-70">{roiStatus(s.roi_index)}</div>
-            <div className="text-2xl font-bold">{s.roi_index.toFixed(1)}</div>
+            <div className="text-xs opacity-70">{roiStatus(s.roi_index ?? 0)}</div>
+            <div className="text-2xl font-bold">{(s.roi_index ?? 0).toFixed(1)}</div>
             <div className="text-xs opacity-60">ROI 指数</div>
             <div className="h-px bg-current opacity-20 my-1" />
             <div className="text-xs">

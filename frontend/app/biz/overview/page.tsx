@@ -1,17 +1,12 @@
 "use client";
 
 import { useSummary, usePrediction, useRiskAlerts } from "@/lib/hooks";
+import { formatRevenue } from "@/lib/utils";
 import { BigMetricCard } from "@/components/biz/BigMetricCard";
 import { ActionList } from "@/components/biz/ActionList";
 import { Card } from "@/components/ui/Card";
 import { Spinner } from "@/components/ui/Spinner";
 import type { SummaryData, PredictionData, RiskAlert } from "@/lib/types";
-
-function formatCNY(n: number) {
-  if (n >= 1_000_000) return `¥${(n / 1_000_000).toFixed(2)}M`;
-  if (n >= 1_000) return `¥${(n / 1_000).toFixed(0)}k`;
-  return `¥${n.toLocaleString()}`;
-}
 
 const DEFAULT_ACTIONS = [
   { text: "24H 打卡率仅 31%，需推动 CC 执行", target: "目标 60%", priority: "high" as const },
@@ -94,8 +89,8 @@ export default function BizOverviewPage() {
         <BigMetricCard
           icon="💵"
           title="本月收入"
-          value={formatCNY(revenueActual)}
-          subtitle={`目标 ${formatCNY(revenueTarget)}`}
+          value={formatRevenue(revenueActual)}
+          subtitle={`目标 ${formatRevenue(revenueTarget)}`}
           progress={revenueProgress}
           progressLabel="收入进度"
           status={revenueStatus}
@@ -105,7 +100,7 @@ export default function BizOverviewPage() {
         <BigMetricCard
           icon="🔮"
           title="月底预测"
-          value={formatCNY(eomRevenue)}
+          value={formatRevenue(eomRevenue)}
           subtitle={`付费预计 ${eomPayments} 单 · 模型 ${model} · 置信度 ${(confidence * 100).toFixed(0)}%`}
           status={eomPayments >= payTarget ? "green" : eomPayments >= payTarget * 0.9 ? "yellow" : "red"}
           statusLabel={eomPayments >= payTarget ? "有望达标" : "接近目标"}

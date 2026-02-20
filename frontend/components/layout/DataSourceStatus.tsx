@@ -7,7 +7,7 @@ interface DataSourceStatusProps {
   lang: "zh" | "th";
 }
 
-function StatusBadge({ isT1, hasFile }: { isT1: boolean; hasFile: boolean }) {
+function StatusBadge({ isFresh, hasFile }: { isFresh: boolean; hasFile: boolean }) {
   if (!hasFile) {
     return (
       <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-red-100 text-red-700">
@@ -15,10 +15,10 @@ function StatusBadge({ isT1, hasFile }: { isT1: boolean; hasFile: boolean }) {
       </span>
     );
   }
-  if (isT1) {
+  if (isFresh) {
     return (
       <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700">
-        T-1
+        最新
       </span>
     );
   }
@@ -36,7 +36,7 @@ export function DataSourceStatus({ source, lang }: DataSourceStatusProps) {
         {source.name_zh}
       </span>
       <div className="flex items-center gap-1.5 shrink-0">
-        <StatusBadge isT1={source.is_t1} hasFile={source.has_file} />
+        <StatusBadge isFresh={source.is_fresh} hasFile={source.has_file} />
         {source.latest_date && (
           <span className="text-xs text-gray-400">{source.latest_date}</span>
         )}

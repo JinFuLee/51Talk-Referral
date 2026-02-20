@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useOrders } from "@/lib/hooks";
+import { formatRevenue, formatUSD } from "@/lib/utils";
 import { TrendLineChart } from "@/components/charts/TrendLineChart";
 import { PieChart } from "@/components/charts/PieChart";
 import { ChannelBarChart } from "@/components/charts/ChannelBarChart";
@@ -57,7 +58,7 @@ export default function OpsOrdersPage() {
       <div>
         <h1 className="text-xl font-bold text-slate-800">订单分析</h1>
         <p className="text-xs text-slate-400 mt-0.5">
-          共 {totalOrders} 单 · 总收入 ¥{totalRevenue.toLocaleString()} · 均值 ¥{avgOrderValue.toLocaleString()}
+          共 {totalOrders} 单 · 总收入 {formatRevenue(totalRevenue)} · 均值 {formatRevenue(avgOrderValue)}
         </p>
       </div>
 
@@ -125,7 +126,7 @@ export default function OpsOrdersPage() {
                     <td className="px-3 py-2 text-slate-600">{row.channel ?? "—"}</td>
                     <td className="px-3 py-2 text-slate-600">{row.package ?? row.type ?? "—"}</td>
                     <td className="px-3 py-2 text-slate-700 font-medium">
-                      {row.amount !== undefined ? `¥${Number(row.amount).toLocaleString()}` : "—"}
+                      {row.amount !== undefined ? formatRevenue(Number(row.amount)) : "—"}
                     </td>
                   </tr>
                 ))}

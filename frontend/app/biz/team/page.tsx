@@ -1,16 +1,12 @@
 "use client";
 
 import { useSummary, useProductivity } from "@/lib/hooks";
+import { formatRevenue } from "@/lib/utils";
 import { Card } from "@/components/ui/Card";
 import { TrendLineChart } from "@/components/charts/TrendLineChart";
 import { Spinner } from "@/components/ui/Spinner";
 import type { ProductivityData } from "@/lib/types/analysis";
 import type { SummaryData } from "@/lib/types";
-
-function formatCNY(n: number) {
-  if (n >= 1_000) return `¥${(n / 1_000).toFixed(1)}k`;
-  return `¥${n.toLocaleString()}`;
-}
 
 const ACHIEVEMENT_ROWS = [
   { label: "24H 打卡达标率", cc: "52%", ss: "—", lp: "—", target: "60%", status: "yellow" as const },
@@ -61,7 +57,7 @@ export default function BizTeamPage() {
               📈 趋势正常
             </span>
           </div>
-          <div className="text-4xl font-bold text-slate-800">{formatCNY(ccPerCapita)}/人</div>
+          <div className="text-4xl font-bold text-slate-800">{formatRevenue(ccPerCapita)}/人</div>
           <p className="text-sm text-slate-400 mt-2">{ccCount} 人在岗 · 前端销售</p>
         </div>
 
@@ -72,7 +68,7 @@ export default function BizTeamPage() {
               📈 趋势正常
             </span>
           </div>
-          <div className="text-4xl font-bold text-slate-800">{formatCNY(ssPerCapita)}/人</div>
+          <div className="text-4xl font-bold text-slate-800">{formatRevenue(ssPerCapita)}/人</div>
           <p className="text-sm text-slate-400 mt-2">{ssCount} 人在岗 · 后端销售</p>
         </div>
       </div>

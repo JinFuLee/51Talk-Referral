@@ -102,8 +102,16 @@ class AnalysisService:
         loader = MultiSourceLoader(input_dir=str(effective_input_dir))
         data = loader.load_all()
 
-        # 执行 V2 引擎分析
-        engine = AnalysisEngineV2(data, targets, effective_date)
+        # 初始化快照存储（引擎需要用它查 YoY/WoW/峰谷）
+        from core.snapshot_store import SnapshotStore
+        store: Optional[SnapshotStore] = None
+        try:
+            store = SnapshotStore()
+        except Exception as e:
+            logger.warning(f"SnapshotStore 初始化失败（非阻塞）: {e}")
+
+        # 执行 V2 引擎分析（传入 snapshot_store 供 YoY/WoW/峰谷使用）
+        engine = AnalysisEngineV2(data, targets, effective_date, snapshot_store=store)
         result = engine.analyze()
 
         # 缓存
@@ -112,12 +120,11 @@ class AnalysisService:
         logger.info("AnalysisEngineV2 分析完成，结果已缓存")
 
         # 生成快照（优雅降级）
-        try:
-            from core.snapshot_store import SnapshotStore
-            store = SnapshotStore()
-            store.save_snapshot(result, effective_date)
-        except Exception as e:
-            logger.warning(f"快照保存失败（非阻塞）: {e}")
+        if store is not None:
+            try:
+                store.save_snapshot(result, effective_date)
+            except Exception as e:
+                logger.warning(f"快照保存失败（非阻塞）: {e}")
 
         return self._build_run_summary()
 

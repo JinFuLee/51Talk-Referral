@@ -136,6 +136,7 @@ class OrderLoader(BaseLoader):
             by_channel = self._aggregate_orders_by_channel(records)
             by_date = self._aggregate_orders_by_date(records)
             summary = self._summarize_orders(records)
+            referral_cc_new = self._aggregate_referral_cc_new(records)
 
             return {
                 "records": records,
@@ -143,6 +144,7 @@ class OrderLoader(BaseLoader):
                 "by_channel": by_channel,
                 "by_date": by_date,
                 "summary": summary,
+                "referral_cc_new": referral_cc_new,
             }
 
         except Exception as e:
@@ -184,6 +186,20 @@ class OrderLoader(BaseLoader):
             result[ch]["count"] += 1
             result[ch]["revenue_cny"] += r.get("amount_cny") or 0.0
             result[ch]["revenue_usd"] += r.get("amount_usd") or 0.0
+        return result
+
+    def _aggregate_referral_cc_new(self, records: list) -> dict:
+        """仅统计 CC前端 + 新单 + 转介绍 的订单"""
+        result = {"count": 0, "revenue_cny": 0.0, "revenue_usd": 0.0, "revenue_thb": 0.0}
+        for r in records:
+            channel = (r.get("channel") or "").strip()
+            team = (r.get("team") or r.get("sale_dept_name") or "").upper()
+            order_tag = (r.get("order_tag") or "").strip()
+            if channel == "转介绍" and "CC" in team and order_tag == "新单":
+                result["count"] += 1
+                result["revenue_cny"] += r.get("amount_cny") or 0.0
+                result["revenue_usd"] += r.get("amount_usd") or 0.0
+                result["revenue_thb"] += r.get("amount_thb") or 0.0
         return result
 
     def _aggregate_orders_by_date(self, records: list) -> list:

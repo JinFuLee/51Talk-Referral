@@ -7,6 +7,8 @@ interface KPICardProps {
   unit?: string;
   status: "green" | "yellow" | "red";
   progress: number; // 0~1
+  remaining_daily_avg?: number;
+  efficiency_lift_pct?: number;
 }
 
 const STATUS_COLORS = {
@@ -23,7 +25,7 @@ function formatNumber(n: number): string {
   return n.toLocaleString();
 }
 
-export function KPICard({ title, actual, target, unit, status, progress }: KPICardProps) {
+export function KPICard({ title, actual, target, unit, status, progress, remaining_daily_avg, efficiency_lift_pct }: KPICardProps) {
   const colors = STATUS_COLORS[status];
   const pct = Math.min(Math.round(progress * 100), 100);
 
@@ -53,6 +55,22 @@ export function KPICard({ title, actual, target, unit, status, progress }: KPICa
         <span>{pct}%</span>
         <span>目标 {formatNumber(target)}{unit}</span>
       </div>
+
+      {/* Enhanced metrics */}
+      {(remaining_daily_avg !== undefined || efficiency_lift_pct !== undefined) && (
+        <div className="mt-2 pt-2 border-t border-gray-200/60 space-y-0.5">
+          {remaining_daily_avg !== undefined && (
+            <p className="text-xs text-gray-400">
+              剩余日均: {formatNumber(remaining_daily_avg)}{unit}
+            </p>
+          )}
+          {efficiency_lift_pct !== undefined && (
+            <p className={`text-xs font-medium ${efficiency_lift_pct > 0 ? "text-red-500" : "text-green-600"}`}>
+              {efficiency_lift_pct > 0 ? `需提升: ↑${efficiency_lift_pct.toFixed(1)}%` : `超额: ↓${Math.abs(efficiency_lift_pct).toFixed(1)}%`}
+            </p>
+          )}
+        </div>
+      )}
     </div>
   );
 }

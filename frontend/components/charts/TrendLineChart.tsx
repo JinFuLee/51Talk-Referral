@@ -11,7 +11,10 @@ import {
   Legend,
   ResponsiveContainer,
   ReferenceLine,
+  ReferenceDot,
+  Label,
 } from "recharts";
+import type { TrendPeakValley } from "@/lib/types";
 
 interface TrendDataPoint {
   [key: string]: string | number | undefined;
@@ -33,6 +36,8 @@ interface TrendLineChartProps {
   targetValue?: number;
   barKeys?: string[];
   lineKeys?: string[];
+  peak?: TrendPeakValley;
+  valley?: TrendPeakValley;
 }
 
 /** Normalise raw API TrendData (has .series[]) or TrendPoint[] into a flat array */
@@ -67,6 +72,8 @@ export function TrendLineChart({
   targetValue,
   barKeys = [],
   lineKeys,
+  peak,
+  valley,
 }: TrendLineChartProps) {
   const data = normaliseData(rawData);
   const resolvedLineKeys = lineKeys ?? [yKey];
@@ -75,7 +82,7 @@ export function TrendLineChart({
     <div>
       {title && <p className="text-sm font-medium text-gray-700 mb-3">{title}</p>}
       <ResponsiveContainer width="100%" height={240}>
-        <ComposedChart data={data} margin={{ top: 8, right: 16, left: 0, bottom: 4 }}>
+        <ComposedChart data={data} margin={{ top: 16, right: 16, left: 0, bottom: 4 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
           <XAxis dataKey={xKey} tick={{ fontSize: 11 }} />
           <YAxis tick={{ fontSize: 11 }} />
@@ -112,6 +119,18 @@ export function TrendLineChart({
               activeDot={{ r: 5 }}
             />
           ))}
+
+          {peak && (
+            <ReferenceDot x={peak.date} y={peak.value} r={6} fill="#22c55e" stroke="#fff" strokeWidth={2}>
+              <Label value={`峰值: ${peak.value}`} position="top" fontSize={11} fill="#15803d" />
+            </ReferenceDot>
+          )}
+
+          {valley && (
+            <ReferenceDot x={valley.date} y={valley.value} r={6} fill="#ef4444" stroke="#fff" strokeWidth={2}>
+              <Label value={`谷底: ${valley.value}`} position="bottom" fontSize={11} fill="#b91c1c" />
+            </ReferenceDot>
+          )}
         </ComposedChart>
       </ResponsiveContainer>
     </div>

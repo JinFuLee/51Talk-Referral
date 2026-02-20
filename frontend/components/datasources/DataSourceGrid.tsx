@@ -30,8 +30,8 @@ export function DataSourceGrid({ sources, showDetail }: DataSourceGridProps) {
         <div key={src.id} className="rounded-lg border border-slate-200 bg-white p-3 text-xs">
           <div className="flex items-center justify-between mb-1">
             <span className="font-medium text-slate-700 truncate">{src.name_zh}</span>
-            <span className={`ml-1 px-1.5 py-0.5 rounded text-xs font-medium ${statusStyle[src.has_file ? (src.is_t1 ? "ok" : "outdated") : "missing"]}`}>
-              {statusLabel[src.has_file ? (src.is_t1 ? "ok" : "outdated") : "missing"]}
+            <span className={`ml-1 px-1.5 py-0.5 rounded text-xs font-medium ${statusStyle[src.has_file ? (src.is_fresh ? "ok" : "outdated") : "missing"]}`}>
+              {statusLabel[src.has_file ? (src.is_fresh ? "ok" : "outdated") : "missing"]}
             </span>
           </div>
           <div className="text-slate-400 space-y-0.5">

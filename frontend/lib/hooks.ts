@@ -19,6 +19,8 @@ import type {
   ExchangeRate,
   AnomalyItem,
   RiskAlert,
+  MonthlyTargetV2,
+  TargetRecommendation,
 } from "./types";
 
 const REFRESH_30S: SWRConfiguration = { refreshInterval: 30_000 };
@@ -113,11 +115,17 @@ export function useFollowup() {
   return useSWR("analysis/followup", () => analysisAPI.getFollowup());
 }
 
+export function useTrialFollowup() {
+  return useSWR("analysis/trial-followup", () =>
+    fetch("/api/analysis/trial-followup").then((r) => r.json())
+  );
+}
+
 export function useOrders() {
   return useSWR("analysis/orders", () => analysisAPI.getOrders());
 }
 
-export function useTrend(compareType: "mom" | "yoy" = "mom") {
+export function useTrend(compareType: "mom" | "yoy" | "wow" = "mom") {
   return useSWR(["analysis/trend", compareType], () =>
     analysisAPI.getTrend(compareType)
   );
@@ -220,5 +228,21 @@ export function useExchangeRate() {
   return useSWR<ExchangeRate>(
     "config/exchange-rate",
     () => configAPI.getExchangeRate()
+  );
+}
+
+// ── V2 目标计算 Hook ──────────────────────────────────────────────────────────
+
+export function useTargetsV2(month: string | null) {
+  return useSWR<MonthlyTargetV2>(
+    month ? ["config/targets-v2", month] : null,
+    () => configAPI.getTargetsV2(month!)
+  );
+}
+
+export function useTargetRecommendation(month: string | null) {
+  return useSWR<TargetRecommendation>(
+    month ? ["config/targets-recommend", month] : null,
+    () => configAPI.getRecommendation(month!)
   );
 }

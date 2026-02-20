@@ -177,6 +177,30 @@
 - 统计: 35 Loader files new, 20 analysis modules, 28 API endpoints, 11 pages new, 17 components new, +2000+ lines
 - QA 结果: 6/7 PASS（1 已修复），后端全过，前端 2 TS 类型 bug 已修复，WebMCP polyfill 为已知技术债
 
+### M11: 币种统一 + 指标增强显示（2026-02-21）
+- [x] 币种统一格式 `$X (฿Y)` — 前端 formatRevenue 工具函数
+- [x] 后端 API 补充 `thb` 字段（usd × 34 汇率）
+- [x] KPI 卡片增强：8 项数值展示（当前值/目标/目标差/进度差/达标需日均/追进度需日均/效率提升需求/日均）
+- [x] 效率卡片新增：5 项展示（实际率/目标率/目标差/损失链量化/根因标注）
+- [x] 后端 `_analyze_summary()` 补充 `daily_avg`, `remaining_daily_avg`, `pace_daily_needed`, `efficiency_lift` 字段
+- [x] 所有页面替换硬编码 `¥` 为 `formatRevenue`，读取 Settings 汇率配置
+- 统计: 18 files modified, +850 lines
+- QA 结果: 12/12 PASS - 币种格式、数值指标、效率指标、API 契约、前端组件、汇率配置
+
+### M12: 时间对比体系 + 9 项缺陷修复（2026-02-21）
+- [x] 修复 YoY 同比 bug（原返回与 MoM 同一对象）
+- [x] WoW 周环比实现（SQLite 周聚合查询 + API）
+- [x] 历史巅峰/谷底标注（peak_date/peak_value/valley_date/valley_value）
+- [x] 趋势判断引擎：连续 >=3 期方向 → 上升/下降/波动
+- [x] 前端趋势可视化升级（环比线 + 同比线 + Peak/Valley 标注）
+- [x] **业绩规则修复** — 仅计算 CC 前端新单转介绍渠道
+- [x] **双差额体系完善** — absolute_gap + pace_daily_needed 并行显示
+- [x] **CC 排名重写** — 过程(25%) + 结果(60%) + 效率(15%) 三类 18 维
+- [x] **4 个适配器修复** — outreach/trial/orders/trend loader 关键字段映射
+- [x] **工作日修正** — 仅周三休息，周六日正常上班，权重修正
+- 统计: 14 files modified, +1439 lines, -252 lines
+- QA 结果: 12/12 PASS (M11/M12) + 12/12 PASS (bugfix-9) - 时间对比、业绩规则、排名算法、适配器修复、工作日逻辑
+
 ### 暂缓
 - 成本数据接入（财务部数据暂无）
 - 续费率数据接入（CRM 数据暂无）

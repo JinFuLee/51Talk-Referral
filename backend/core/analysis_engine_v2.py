@@ -85,12 +85,13 @@ class AnalysisEngineV2:
     GAP_GREEN = 0.0
     GAP_YELLOW = -0.05
 
-    def __init__(self, data: dict, targets: dict, report_date: datetime):
+    def __init__(self, data: dict, targets: dict, report_date: datetime, snapshot_store=None):
         self.data = data
         self.targets = targets
         self.report_date = report_date
         self.data_date = report_date - timedelta(days=1)
         self._result: Optional[dict] = None
+        self._snapshot_store = snapshot_store  # Optional[SnapshotStore]，用于峰谷/YoY/WoW 查询
 
     # ── 主入口 ────────────────────────────────────────────────────────────────
 
@@ -142,7 +143,11 @@ class AnalysisEngineV2:
         result["checkin_analysis"]  = result.get("checkin_impact", {})
         result["leads_achievement"] = result.get("funnel", {})
         result["followup_analysis"] = result.get("outreach_analysis", {})
-        result["mom_trend"]         = result.get("trend", {})
+        # mom_trend / yoy_trend / wow_trend 各自指向 trend 子结构，避免指向同一对象
+        _trend_full = result.get("trend", {})
+        result["mom_trend"]         = _trend_full.get("mom", _trend_full)
+        result["yoy_trend"]         = _trend_full.get("yoy", {})
+        result["wow_trend"]         = _trend_full.get("wow", {})
         result["cc_ranking"]        = result.get("ranking_cc", [])
         result["ss_ranking"]        = result.get("ranking_ss_lp", {}).get("ss", [])
         result["lp_ranking"]        = result.get("ranking_ss_lp", {}).get("lp", [])
@@ -168,9 +173,61 @@ class AnalysisEngineV2:
 
     # ── 2. summary ────────────────────────────────────────────────────────────
 
+    def _calc_workdays(self) -> tuple[int, int]:
+        """
+        计算当月已过工作日和剩余工作日。
+        泰国排班：每周仅周三休息，周六周日正常上班。
+        T-1 数据：data_date 为实际数据日期。
+        返回 (elapsed_workdays, remaining_workdays)
+        """
+        dd = self.data_date
+        year, month = dd.year, dd.month
+        days_in_month = calendar.monthrange(year, month)[1]
+        current_day = dd.day
+
+        def _is_workday(d: int) -> bool:
+            # 周三 (weekday() == 2) 是唯一休息日；周六周日正常上班
+            return datetime(year, month, d).weekday() != 2
+
+        elapsed = sum(1 for d in range(1, current_day + 1) if _is_workday(d))
+        remaining = sum(1 for d in range(current_day + 1, days_in_month + 1) if _is_workday(d))
+        return elapsed, remaining
+
+    def _calc_efficiency_impact(
+        self,
+        metric_name: str,
+        actual_rate: Optional[float],
+        target_rate: Optional[float],
+        upstream_base: float,
+        asp_usd: float = 850.0,
+        conversion_rate: float = 0.23,
+    ) -> Optional[dict]:
+        """
+        计算效率 gap 对下游的量化影响。
+        因果链：打卡率 → 参与学员损失 → 注册损失 → 付费损失 → $损失
+        """
+        if actual_rate is None or target_rate is None or upstream_base <= 0:
+            return None
+        if target_rate <= actual_rate:
+            return None
+        gap = actual_rate - target_rate  # 负数表示落后
+        lost_students = abs(gap) * upstream_base
+        lost_payments = lost_students * conversion_rate
+        lost_revenue_usd = lost_payments * asp_usd
+        return {
+            "gap": round(gap, 4),
+            "lost_students": round(lost_students),
+            "lost_payments": round(lost_payments),
+            "lost_revenue_usd": round(lost_revenue_usd, 2),
+        }
+
     def _analyze_summary(self) -> dict:
         """概览 KPI：注册/预约/出席/付费/收入/打卡率 vs 目标"""
+        from core.config import EXCHANGE_RATE_THB_USD
         time_progress = self.targets.get("时间进度", 0.0)
+
+        # ── 工作日计算
+        elapsed_workdays, remaining_workdays = self._calc_workdays()
 
         # ── 从 leads (A1) 取注册/预约/出席/付费
         a1 = self.data.get("leads", {}).get("leads_achievement", {})
@@ -185,16 +242,34 @@ class AnalysisEngineV2:
         paid_target   = self.targets.get("付费目标", 0)
         amount_target = self.targets.get("金额目标", 0)
 
-        # ── 从 order (E3) 取收入
-        order_summary = self.data.get("order", {}).get("order_detail", {}).get("summary", {})
-        revenue_cny   = order_summary.get("total_revenue_cny", 0.0)
-        revenue_usd   = order_summary.get("total_revenue_usd", 0.0)
+        # ── 从 order (E3) 取转介绍渠道收入（CC前端+新单+转介绍，精确过滤）
+        order_detail = self.data.get("order", {}).get("order_detail", {})
+        referral_cc_new = order_detail.get("referral_cc_new", {})
+        if referral_cc_new and referral_cc_new.get("count", 0) > 0:
+            revenue_cny = referral_cc_new.get("revenue_cny", 0.0)
+            revenue_usd = referral_cc_new.get("revenue_usd", 0.0)
+        else:
+            # fallback：精确数据不存在时用 by_channel["转介绍"]
+            order_by_channel = order_detail.get("by_channel", {})
+            referral_rev = order_by_channel.get("转介绍", {})
+            if referral_rev:
+                revenue_cny = referral_rev.get("revenue_cny", 0.0)
+                revenue_usd = referral_rev.get("revenue_usd", 0.0)
+            else:
+                # 最终 fallback：无渠道拆分时用总计
+                order_summary = order_detail.get("summary", {})
+                revenue_cny = order_summary.get("total_revenue_cny", 0.0)
+                revenue_usd = order_summary.get("total_revenue_usd", 0.0)
 
         # ── 从 kpi (D1) 取打卡率
         d1 = self.data.get("kpi", {}).get("north_star_24h", {})
         checkin_summary = d1.get("summary", {})
         checkin_rate    = checkin_summary.get("avg_checkin_24h_rate")
         checkin_target  = checkin_summary.get("target") or 0.60
+
+        # ── THB 换算（汇率从 config 读取）
+        exchange_rate = EXCHANGE_RATE_THB_USD
+        revenue_thb = round(revenue_usd * exchange_rate, 2)
 
         def _progress_gap(actual, target):
             if not target:
@@ -203,9 +278,34 @@ class AnalysisEngineV2:
             gap = (prog - time_progress) if prog is not None else None
             return prog, gap
 
+        def _kpi_daily(actual, target):
+            """计算日均指标和效率提升需求"""
+            daily_avg = round(actual / elapsed_workdays, 2) if elapsed_workdays > 0 else None
+            gap_to_target = max(0, (target or 0) - actual)
+            remaining_daily_avg = (
+                round(gap_to_target / remaining_workdays, 2)
+                if remaining_workdays > 0 else None
+            )
+            efficiency_lift_pct = None
+            if daily_avg and daily_avg > 0 and remaining_daily_avg is not None:
+                efficiency_lift_pct = round(remaining_daily_avg / daily_avg - 1, 4)
+            # 双差额
+            absolute_gap = round(actual - (target or 0), 2)  # 负=落后，正=超额
+            pace_target = (target or 0) * time_progress  # 时间进度线应达到的值
+            pace_gap_val = actual - pace_target  # 与进度线的差距
+            pace_daily_needed = (
+                round(max(0, pace_target - actual) / max(1, remaining_workdays), 2)
+                if remaining_workdays > 0 else None
+            )
+            return daily_avg, remaining_daily_avg, efficiency_lift_pct, absolute_gap, pace_daily_needed
+
         reg_prog, reg_gap     = _progress_gap(reg_actual, reg_target)
         paid_prog, paid_gap   = _progress_gap(paid_actual, paid_target)
         amount_prog, amt_gap  = _progress_gap(revenue_usd, amount_target)
+
+        reg_daily, reg_rem_daily, reg_lift, reg_abs_gap, reg_pace_daily = _kpi_daily(reg_actual, reg_target)
+        paid_daily, paid_rem_daily, paid_lift, paid_abs_gap, paid_pace_daily = _kpi_daily(paid_actual, paid_target)
+        rev_daily, rev_rem_daily, rev_lift, rev_abs_gap, rev_pace_daily = _kpi_daily(revenue_usd, amount_target)
 
         def _status(gap):
             if gap is None:
@@ -216,6 +316,19 @@ class AnalysisEngineV2:
                 return "yellow"
             return "red"
 
+        # ── 打卡率效率影响链
+        checkin_impact = self._calc_efficiency_impact(
+            metric_name="checkin_24h",
+            actual_rate=checkin_rate,
+            target_rate=checkin_target,
+            upstream_base=float(reg_actual),
+        )
+
+        # ── 巅峰/谷底（从历史快照查询，无数据时为 None）
+        reg_pv  = self._get_peak_valley("注册")
+        paid_pv = self._get_peak_valley("付费")
+        rev_pv  = self._get_peak_valley("金额")
+
         return {
             "registration": {
                 "actual": reg_actual,
@@ -223,6 +336,14 @@ class AnalysisEngineV2:
                 "progress": reg_prog,
                 "gap": reg_gap,
                 "status": _status(reg_gap),
+                "daily_avg": reg_daily,
+                "remaining_daily_avg": reg_rem_daily,
+                "efficiency_lift_pct": reg_lift,
+                "absolute_gap": reg_abs_gap,
+                "pace_daily_needed": reg_pace_daily,
+                "remaining_workdays": remaining_workdays,
+                "peak":   reg_pv["peak"],
+                "valley": reg_pv["valley"],
             },
             "appointment": {
                 "actual": reserve_actual,
@@ -238,21 +359,41 @@ class AnalysisEngineV2:
                 "progress": paid_prog,
                 "gap": paid_gap,
                 "status": _status(paid_gap),
+                "daily_avg": paid_daily,
+                "remaining_daily_avg": paid_rem_daily,
+                "efficiency_lift_pct": paid_lift,
+                "absolute_gap": paid_abs_gap,
+                "pace_daily_needed": paid_pace_daily,
+                "remaining_workdays": remaining_workdays,
+                "peak":   paid_pv["peak"],
+                "valley": paid_pv["valley"],
             },
             "revenue": {
                 "cny": round(revenue_cny, 2),
                 "usd": round(revenue_usd, 2),
+                "thb": revenue_thb,
                 "target_usd": amount_target,
                 "progress": amount_prog,
                 "gap": amt_gap,
                 "status": _status(amt_gap),
+                "daily_avg": rev_daily,
+                "remaining_daily_avg": rev_rem_daily,
+                "efficiency_lift_pct": rev_lift,
+                "absolute_gap": rev_abs_gap,
+                "pace_daily_needed": rev_pace_daily,
+                "remaining_workdays": remaining_workdays,
+                "peak":   rev_pv["peak"],
+                "valley": rev_pv["valley"],
             },
             "checkin_24h": {
                 "rate": checkin_rate,
                 "target": checkin_target,
                 "achievement": _safe_pct(checkin_rate, checkin_target) if checkin_rate else None,
+                "impact": checkin_impact,
             },
             "time_progress": time_progress,
+            "elapsed_workdays": elapsed_workdays,
+            "remaining_workdays": remaining_workdays,
             "overall_status": _status(min(
                 [g for g in [reg_gap, paid_gap] if g is not None],
                 default=0.0
@@ -999,22 +1140,352 @@ class AnalysisEngineV2:
     # ── 14. cc_ranking ────────────────────────────────────────────────────────
 
     def _analyze_cc_ranking(self) -> list:
-        """CC 排名：从 cc_360 profiles 取 composite_score"""
-        cc_360 = self._analyze_cc_360()
-        profiles = cc_360.get("profiles", [])
-        ranking = []
-        for p in profiles:
-            ranking.append({
-                "rank":     p.get("rank"),
-                "name":     p.get("cc_name"),
-                "team":     p.get("team"),
-                "score":    p.get("composite_score"),
-                "leads":    p.get("leads"),
-                "paid":     p.get("paid"),
-                "revenue":  p.get("revenue_usd"),
-                "checkin_24h": p.get("checkin_24h"),
-                "conversion_rate": p.get("conversion_rate"),
+        """CC 排名：三类18维加权算法
+        - 过程指标 (25%): 外呼/接通/有效接通/付费前跟进/预约课前跟进/预约课后跟进/付费后跟进
+        - 结果指标 (60%): 注册数/leads数/转介绍用户数/客单价/付费单量/转介绍业绩/业绩占比
+        - 效率指标 (15%): 注册→付费转化率/打卡率/参与率/带新系数
+        """
+
+        # ── 数据源加载 ────────────────────────────────────────────────────────
+
+        # D1: 24H 打卡率 (by_cc = list)
+        d1_by_cc_list = (
+            self.data.get("kpi", {}).get("north_star_24h", {}).get("by_cc", []) or []
+        )
+        d1_cc: dict = {}
+        for r in d1_by_cc_list:
+            nm = _norm_cc(r.get("cc_name", ""))
+            if nm:
+                d1_cc[nm] = r
+
+        # D5: 打卡参与率 (by_cc = list, 有 checkin_rate / referral_participation_* / conversion_ratio)
+        d5_by_cc_list = (
+            self.data.get("kpi", {}).get("checkin_participation", {}).get("by_cc", []) or []
+        )
+        d5_cc: dict = {}
+        for r in d5_by_cc_list:
+            nm = _norm_cc(r.get("cc_name", ""))
+            if nm:
+                d5_cc[nm] = r
+
+        # F5: 每日外呼 (by_cc = dict: {cc_name: {total_calls, total_connects, total_effective, dates, team}})
+        f5_by_cc_raw = (
+            self.data.get("ops", {}).get("daily_outreach", {}).get("by_cc", {}) or {}
+        )
+        f5_cc: dict = {_norm_cc(k): v for k, v in f5_by_cc_raw.items()}
+
+        # F6: 体验课跟进 (by_cc = dict: {cc_name: {total, called_24h, connected_24h, called_48h, connected_48h}})
+        f6_by_cc_raw = (
+            self.data.get("ops", {}).get("trial_followup", {}).get("by_cc", {}) or {}
+        )
+        f6_cc: dict = {_norm_cc(k): v for k, v in f6_by_cc_raw.items()}
+
+        # F7: 付费用户跟进 (by_cc = dict: {cc_name: {monthly_called, monthly_connected, monthly_effective}})
+        f7_by_cc_raw = (
+            self.data.get("ops", {}).get("paid_user_followup", {}).get("by_cc", {}) or {}
+        )
+        f7_cc: dict = {_norm_cc(k): v for k, v in f7_by_cc_raw.items()}
+
+        # F9: 月度付费用户跟进 (by_cc = list: [{cc_name, monthly_called, ...}])
+        f9_by_cc_list = (
+            self.data.get("ops", {}).get("monthly_paid_followup", {}).get("by_cc", []) or []
+        )
+        f9_cc: dict = {}
+        for r in f9_by_cc_list:
+            nm = _norm_cc(r.get("cc_name", ""))
+            if nm:
+                f9_cc[nm] = r
+
+        # F10: 首次体验课课前课后跟进 (by_cc = list: [{cc_name, pre_called, post_called, ...}])
+        f10_by_cc_list = (
+            self.data.get("ops", {}).get("trial_class_followup", {}).get("by_cc", []) or []
+        )
+        f10_cc: dict = {}
+        for r in f10_by_cc_list:
+            nm = _norm_cc(r.get("cc_name", ""))
+            if nm:
+                f10_cc[nm] = r
+
+        # A3: leads明细 (by_cc = dict: {cc_name: {leads, 预约, 出席, 付费}})
+        a3_by_cc_raw = (
+            self.data.get("leads", {}).get("leads_detail", {}).get("by_cc", {}) or {}
+        )
+        a3_cc: dict = {_norm_cc(k): v for k, v in a3_by_cc_raw.items()}
+
+        # A4: 个人leads达成 (records = list, 含 name/leads/paid/conversion_rate)
+        a4_records = (
+            self.data.get("leads", {}).get("leads_achievement_personal", {}).get("records", []) or []
+        )
+        a4_cc: dict = {}
+        for r in a4_records:
+            nm = _norm_cc(r.get("name", ""))
+            if nm:
+                a4_cc[nm] = r
+
+        # E3: 订单明细 - 按 CC/seller 聚合收入和付费单量
+        e3_records = (
+            self.data.get("order", {}).get("order_detail", {}).get("records", []) or []
+        )
+        e3_cc: dict = {}
+        for r in e3_records:
+            seller = _norm_cc(r.get("seller", "") or "")
+            if not seller:
+                continue
+            if seller not in e3_cc:
+                e3_cc[seller] = {"paid_count": 0, "revenue_usd": 0.0, "amounts": []}
+            e3_cc[seller]["paid_count"] += 1
+            amt = r.get("amount_usd") or 0.0
+            e3_cc[seller]["revenue_usd"] += amt
+            if amt > 0:
+                e3_cc[seller]["amounts"].append(amt)
+
+        # 计算团队总收入（用于业绩占比）
+        team_revenue_total = sum(v["revenue_usd"] for v in e3_cc.values()) or 1.0
+
+        # 合并所有 CC 名称
+        raw_name_map: dict = {}
+        for r in d1_by_cc_list:
+            raw_name_map[_norm_cc(r.get("cc_name", ""))] = r.get("cc_name", "")
+        for r in d5_by_cc_list:
+            raw_name_map[_norm_cc(r.get("cc_name", ""))] = r.get("cc_name", "")
+        for k in f5_by_cc_raw:
+            raw_name_map[_norm_cc(k)] = k
+        for k in a3_by_cc_raw:
+            raw_name_map[_norm_cc(k)] = k
+        for r in a4_records:
+            raw_name_map[_norm_cc(r.get("name", ""))] = r.get("name", "")
+        for r in f10_by_cc_list:
+            raw_name_map[_norm_cc(r.get("cc_name", ""))] = r.get("cc_name", "")
+
+        all_cc = set(raw_name_map.keys())
+        all_cc.discard("")
+
+        if not all_cc:
+            return []
+
+        # ── 每个 CC 采集原始值 ─────────────────────────────────────────────────
+
+        def _get_team(nm: str) -> Optional[str]:
+            return (
+                (d1_cc.get(nm) or {}).get("team")
+                or (f5_cc.get(nm) or {}).get("team")
+                or (a4_cc.get(nm) or {}).get("group")
+                or None
+            )
+
+        raw_data: list = []
+        for nm in all_cc:
+            d1 = d1_cc.get(nm, {})
+            d5 = d5_cc.get(nm, {})
+            f5 = f5_cc.get(nm, {})
+            f6 = f6_cc.get(nm, {})
+            f7 = f7_cc.get(nm, {})
+            f9 = f9_cc.get(nm, {})
+            f10 = f10_cc.get(nm, {})
+            a3 = a3_cc.get(nm, {})
+            a4 = a4_cc.get(nm, {})
+            e3 = e3_cc.get(nm, {})
+
+            # 过程指标原始值
+            outreach_calls   = f5.get("total_calls") or 0
+            connected_calls  = f5.get("total_connects") or 0
+            effective_calls  = f5.get("total_effective") or 0
+
+            # 付费前跟进: F6 called_24h (体验课跟进)
+            pre_paid_followup = f6.get("called_24h") or 0
+            # 预约课前跟进: F10 pre_called
+            pre_class_followup = f10.get("pre_called") or 0
+            # 预约课后跟进: F10 post_called
+            post_class_followup = f10.get("post_called") or 0
+            # 付费后跟进: F7 monthly_called（付费用户跟进），fallback F9
+            post_paid_followup = (
+                (f7.get("monthly_called") or 0)
+                or (f9.get("monthly_called") or 0)
+            )
+
+            # 结果指标原始值
+            registrations    = a3.get("leads") or a4.get("leads") or 0
+            leads_count      = a3.get("leads") or a4.get("leads") or 0
+            # 转介绍用户数：从 a3 中取 转介绍口径；如无，粗估 paid 数
+            referral_users   = a3.get("付费") or a4.get("paid") or 0
+            paid_count_e3    = e3.get("paid_count") or 0
+            revenue_usd      = e3.get("revenue_usd") or 0.0
+            # 客单价 (ASP)
+            amounts = e3.get("amounts", []) or []
+            asp_usd = (sum(amounts) / len(amounts)) if amounts else 0.0
+            # 业绩占比
+            revenue_share    = revenue_usd / team_revenue_total
+
+            # 效率指标原始值
+            paid_for_conv    = a3.get("付费") or a4.get("paid") or paid_count_e3
+            conversion_rate  = _safe_pct(paid_for_conv, registrations) or 0.0
+            checkin_rate     = d1.get("checkin_24h_rate") or 0.0
+            # 参与率: D5 referral_participation_checked / total
+            participation_total   = d5.get("referral_participation_total") or 0
+            participation_checked = d5.get("referral_participation_checked") or 0
+            participation_rate = _safe_pct(participation_checked, participation_total) or 0.0
+            # 带新系数: D1 referral_coefficient 或 D5 referral_coefficient_total
+            bring_new_coeff = (
+                d1.get("referral_coefficient")
+                or d5.get("referral_coefficient_total")
+                or 0.0
+            )
+
+            raw_data.append({
+                "cc_name": raw_name_map.get(nm, nm),
+                "norm_name": nm,
+                "team": _get_team(nm),
+                # 过程
+                "outreach_calls":     outreach_calls,
+                "connected_calls":    connected_calls,
+                "effective_calls":    effective_calls,
+                "pre_paid_followup":  pre_paid_followup,
+                "pre_class_followup": pre_class_followup,
+                "post_class_followup": post_class_followup,
+                "post_paid_followup": post_paid_followup,
+                # 结果
+                "registrations":   registrations,
+                "leads_count":     leads_count,
+                "referral_users":  referral_users,
+                "asp_usd":         asp_usd,
+                "paid_count":      paid_count_e3,
+                "revenue_usd":     revenue_usd,
+                "revenue_share":   revenue_share,
+                # 效率
+                "conversion_rate":    conversion_rate,
+                "checkin_rate":       checkin_rate,
+                "participation_rate": participation_rate,
+                "bring_new_coeff":    bring_new_coeff,
             })
+
+        if not raw_data:
+            return []
+
+        # ── min-max 归一化 ────────────────────────────────────────────────────
+
+        METRICS = [
+            "outreach_calls", "connected_calls", "effective_calls",
+            "pre_paid_followup", "pre_class_followup", "post_class_followup", "post_paid_followup",
+            "registrations", "leads_count", "referral_users", "asp_usd",
+            "paid_count", "revenue_usd", "revenue_share",
+            "conversion_rate", "checkin_rate", "participation_rate", "bring_new_coeff",
+        ]
+
+        def _minmax(key: str) -> dict:
+            """返回每个 norm_name → normalized_value 的映射"""
+            values = [row[key] for row in raw_data if row[key] is not None]
+            if not values:
+                return {row["norm_name"]: 0.5 for row in raw_data}
+            mn, mx = min(values), max(values)
+            result = {}
+            for row in raw_data:
+                v = row[key]
+                if v is None:
+                    result[row["norm_name"]] = 0.5
+                elif mx == mn:
+                    result[row["norm_name"]] = 0.5
+                else:
+                    result[row["norm_name"]] = (v - mn) / (mx - mn)
+            return result
+
+        norm_maps: dict = {m: _minmax(m) for m in METRICS}
+
+        # ── 三类权重定义 (可用维度等比分摊) ──────────────────────────────────
+
+        # 检查哪些维度有实际数据（非全0）
+        def _has_data(key: str) -> bool:
+            return any(row[key] for row in raw_data)
+
+        PROCESS_DIMS = [
+            ("outreach_calls",     0.04),
+            ("connected_calls",    0.04),
+            ("effective_calls",    0.05),
+            ("pre_paid_followup",  0.03),
+            ("pre_class_followup", 0.03),
+            ("post_class_followup",0.03),
+            ("post_paid_followup", 0.03),
+        ]
+        RESULT_DIMS = [
+            ("registrations",  0.12),
+            ("leads_count",    0.08),
+            ("referral_users", 0.08),
+            ("asp_usd",        0.07),
+            ("paid_count",     0.12),
+            ("revenue_usd",    0.09),
+            ("revenue_share",  0.04),
+        ]
+        EFFICIENCY_DIMS = [
+            ("conversion_rate",    0.05),
+            ("checkin_rate",       0.04),
+            ("participation_rate", 0.03),
+            ("bring_new_coeff",    0.03),
+        ]
+
+        def _redistribute(dims: list) -> list:
+            """过滤掉无数据维度，等比分摊其权重到有数据的维度"""
+            active = [(k, w) for k, w in dims if _has_data(k)]
+            inactive_weight = sum(w for k, w in dims if not _has_data(k))
+            if not active:
+                return []
+            total_active_w = sum(w for _, w in active)
+            if total_active_w <= 0:
+                return active
+            scale = (total_active_w + inactive_weight) / total_active_w
+            return [(k, round(w * scale, 6)) for k, w in active]
+
+        active_process    = _redistribute(PROCESS_DIMS)
+        active_result     = _redistribute(RESULT_DIMS)
+        active_efficiency = _redistribute(EFFICIENCY_DIMS)
+
+        # ── 计算各 CC 得分 ────────────────────────────────────────────────────
+
+        ranking = []
+        for row in raw_data:
+            nm = row["norm_name"]
+
+            def _score(dims):
+                if not dims:
+                    return 0.5
+                return sum(norm_maps[k][nm] * w for k, w in dims)
+
+            process_score    = _score(active_process)
+            result_score     = _score(active_result)
+            efficiency_score = _score(active_efficiency)
+            composite_score  = (
+                process_score * 0.25
+                + result_score * 0.60
+                + efficiency_score * 0.15
+            )
+
+            detail = {
+                k: {
+                    "raw":  row[k],
+                    "norm": round(norm_maps[k][nm], 4),
+                }
+                for k in METRICS
+            }
+
+            ranking.append({
+                "cc_name":         row["cc_name"],
+                "team":            row["team"],
+                "rank":            None,  # 填充在排序后
+                "composite_score": round(composite_score, 4),
+                "process_score":   round(process_score, 4),
+                "result_score":    round(result_score, 4),
+                "efficiency_score": round(efficiency_score, 4),
+                # 关键业务指标（前端/适配器消费）
+                "registrations":   row["registrations"],
+                "payments":        row["paid_count"],
+                "revenue_usd":     round(row["revenue_usd"], 2),
+                "checkin_rate":    row["checkin_rate"],
+                "conversion_rate": row["conversion_rate"],
+                "detail":          detail,
+            })
+
+        ranking.sort(key=lambda x: x["composite_score"], reverse=True)
+        for i, item in enumerate(ranking):
+            item["rank"] = i + 1
+
         return ranking
 
     # ── 15. ss_lp_ranking ────────────────────────────────────────────────────
@@ -1054,8 +1525,45 @@ class AnalysisEngineV2:
 
     # ── 16. trend ─────────────────────────────────────────────────────────────
 
+    def _detect_trend_direction(self, values: List[float]) -> str:
+        """
+        趋势方向引擎：判断近期走向。
+        连续 >=3 期上升 = "rising"
+        连续 >=3 期下降 = "falling"
+        数据不足        = "insufficient"
+        否则            = "volatile"
+        """
+        if len(values) < 3:
+            return "insufficient"
+        diffs = [values[i + 1] - values[i] for i in range(len(values) - 1)]
+        last_3 = diffs[-3:]
+        if all(d > 0 for d in last_3):
+            return "rising"
+        if all(d < 0 for d in last_3):
+            return "falling"
+        return "volatile"
+
+    def _get_peak_valley(self, metric: str) -> dict:
+        """
+        从历史快照查询指定指标的巅峰/谷底。
+        若无 SnapshotStore 或无历史数据，返回 None。
+        """
+        if self._snapshot_store is None:
+            return {"peak": None, "valley": None}
+        try:
+            return self._snapshot_store.get_peak_valley(metric)
+        except Exception as e:
+            logger.warning(f"[_get_peak_valley] metric={metric} 查询失败: {e}")
+            return {"peak": None, "valley": None}
+
     def _analyze_trend(self) -> dict:
-        """趋势分析：E5 业绩日趋势 + F3 月度环比"""
+        """
+        趋势分析，返回三层结构：
+          - mom: 月度环比（F3 数据源）
+          - yoy: 年同比（从快照查去年同月，无数据返回 available=False）
+          - wow: 周环比（从快照查近 4 周 daily_kpi 聚合）
+        顶层保留 daily（日趋势序列）和 direction（趋势方向）。
+        """
         e5 = self.data.get("order", {}).get("revenue_daily_trend", []) or []
         e4 = self.data.get("order", {}).get("order_daily_trend", []) or []
         f3 = self.data.get("ops", {}).get("section_mom", {}) or {}
@@ -1063,7 +1571,7 @@ class AnalysisEngineV2:
         e5_sorted = sorted(e5, key=lambda x: x.get("date", ""))
         e4_sorted = sorted(e4, key=lambda x: x.get("date", ""))
 
-        # 按日期聚合收入
+        # 按日期聚合收入/订单
         e5_by_date: dict = {}
         for r in e5_sorted:
             d = r.get("date", "")
@@ -1084,22 +1592,66 @@ class AnalysisEngineV2:
             for d in all_dates
         ]
 
-        # F3 月度环比
+        # 趋势方向（基于日收入序列）
+        rev_values = [e5_by_date[d] for d in all_dates if e5_by_date.get(d) is not None]
+        direction = self._detect_trend_direction(rev_values)
+
+        # ── MoM：F3 月度环比 ──────────────────────────────────────────────────
         f3_by_month = f3.get("by_month", {}) or {}
         mom_months = sorted(f3_by_month.keys())
         mom = {
-            "months": mom_months,
-            "data":   f3_by_month,
+            "months":    mom_months,
+            "data":      f3_by_month,
+            "direction": direction,
         }
 
-        # 同比（F2 section_efficiency）
-        f2 = self.data.get("ops", {}).get("section_efficiency", {}) or {}
-        f2_by_channel = f2.get("by_channel", {}) or {}
+        # ── YoY：从快照查去年同月 ─────────────────────────────────────────────
+        current_month = self.data_date.strftime("%Y%m")
+        yoy: dict
+        if self._snapshot_store is not None:
+            try:
+                last_year_row = self._snapshot_store.get_same_month_last_year("注册", current_month)
+                if last_year_row:
+                    yoy = {
+                        "available":     True,
+                        "last_year_month": last_year_row.get("month"),
+                        "registrations": {
+                            "last_year_avg": last_year_row.get("avg_value"),
+                            "last_year_sum": last_year_row.get("sum_value"),
+                        },
+                        "direction": direction,
+                    }
+                else:
+                    yoy = {"available": False, "reason": "无去年同月历史数据"}
+            except Exception as e:
+                logger.warning(f"[YoY] 快照查询失败: {e}")
+                yoy = {"available": False, "reason": f"快照查询异常: {e}"}
+        else:
+            yoy = {"available": False, "reason": "快照存储未初始化"}
+
+        # ── WoW：从快照查近 4 周聚合 ─────────────────────────────────────────
+        wow: dict
+        if self._snapshot_store is not None:
+            try:
+                weekly_rows = self._snapshot_store.get_weekly_kpi("注册", weeks_back=4)
+                wow_values = [r.get("avg_value") for r in weekly_rows if r.get("avg_value") is not None]
+                wow = {
+                    "available": len(weekly_rows) >= 2,
+                    "weeks":     weekly_rows,
+                    "direction": self._detect_trend_direction(wow_values) if len(wow_values) >= 3 else "insufficient",
+                }
+            except Exception as e:
+                logger.warning(f"[WoW] 快照查询失败: {e}")
+                wow = {"available": False, "reason": f"快照查询异常: {e}"}
+        else:
+            wow = {"available": False, "reason": "快照存储未初始化"}
 
         return {
-            "daily":         daily[-60:],  # 最近60天
-            "mom":           mom,
-            "yoy_by_channel": f2_by_channel,
+            "daily":     daily[-60:],   # 最近 60 天日趋势
+            "direction": direction,     # 顶层趋势方向
+            "mom":       mom,
+            "yoy":       yoy,
+            "wow":       wow,
         }
 
     # ── 17. prediction ────────────────────────────────────────────────────────

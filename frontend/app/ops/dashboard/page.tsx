@@ -1,6 +1,7 @@
 "use client";
 
 import { useSummary, useAnomalies, useRiskAlerts } from "@/lib/hooks";
+import { formatRevenue } from "@/lib/utils";
 import { KPICard } from "@/components/charts/KPICard";
 import { RiskAlertList } from "@/components/dashboard/RiskAlertList";
 import { AnomalyBadge } from "@/components/dashboard/AnomalyBadge";
@@ -28,10 +29,33 @@ export default function OpsDashboardPage() {
   const leads = getMetric("leads");
   const timeProgress = (summaryData as Record<string, unknown> | undefined)?.time_progress as number ?? 0;
 
+  // Compute remaining daily avg as fallback if API doesn't return it
+  function remainingDailyAvg(metric: SummaryMetric): number | undefined {
+    if (!timeProgress || timeProgress >= 1) return undefined;
+    const remainingDays = Math.max(1, Math.round((1 - timeProgress) * 30));
+    const gap = Math.max(metric.target - metric.actual, 0);
+    return Math.round(gap / remainingDays);
+  }
+
+  function efficiencyLiftPct(metric: SummaryMetric): number | undefined {
+    if (!timeProgress || timeProgress <= 0) return undefined;
+    const expected = metric.target * timeProgress;
+    if (!expected) return undefined;
+    return parseFloat((((expected - metric.actual) / expected) * 100).toFixed(1));
+  }
+
   const kpis = [
-    { title: "注册人数", ...reg, unit: "人" },
-    { title: "付费人数", ...pay, unit: "人" },
-    { title: "收入", ...rev, unit: "¥" },
+    {
+      title: "注册人数", ...reg, unit: "人",
+      remaining_daily_avg: (summaryData as Record<string, unknown> | undefined)?.reg_remaining_daily_avg as number | undefined ?? remainingDailyAvg(reg),
+      efficiency_lift_pct: (summaryData as Record<string, unknown> | undefined)?.reg_efficiency_lift_pct as number | undefined ?? efficiencyLiftPct(reg),
+    },
+    {
+      title: "付费人数", ...pay, unit: "人",
+      remaining_daily_avg: (summaryData as Record<string, unknown> | undefined)?.pay_remaining_daily_avg as number | undefined ?? remainingDailyAvg(pay),
+      efficiency_lift_pct: (summaryData as Record<string, unknown> | undefined)?.pay_efficiency_lift_pct as number | undefined ?? efficiencyLiftPct(pay),
+    },
+    { title: "收入", ...rev, unit: "$" },
     { title: "Leads", ...leads, unit: "" },
   ];
 
@@ -68,6 +92,8 @@ export default function OpsDashboardPage() {
             unit={kpi.unit}
             status={kpi.status}
             progress={kpi.progress}
+            remaining_daily_avg={"remaining_daily_avg" in kpi ? kpi.remaining_daily_avg : undefined}
+            efficiency_lift_pct={"efficiency_lift_pct" in kpi ? kpi.efficiency_lift_pct : undefined}
           />
         ))}
       </div>

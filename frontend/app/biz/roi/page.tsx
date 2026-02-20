@@ -1,16 +1,11 @@
 "use client";
 
 import { useROI } from "@/lib/hooks";
+import { formatRevenue, formatUSD } from "@/lib/utils";
 import { Card } from "@/components/ui/Card";
 import { CohortDecayChart } from "@/components/charts/CohortDecayChart";
 import { Spinner } from "@/components/ui/Spinner";
 import type { ROIData } from "@/lib/types";
-
-function formatCNY(n: number) {
-  if (n >= 1_000_000) return `¥${(n / 1_000_000).toFixed(2)}M`;
-  if (n >= 1_000) return `¥${(n / 1_000).toFixed(0)}k`;
-  return `¥${n.toLocaleString()}`;
-}
 
 interface ROIMetricBlock {
   label: string;
@@ -41,13 +36,12 @@ export default function BizROIPage() {
   const totalCost = roi?.total_cost ?? 111400;
   const totalRevenue = roi?.total_revenue ?? 500000;
   const roiRatio = roi?.roi_ratio ?? 0.45;
-  const currency = roi?.currency ?? "CNY";
 
   // Simulate sub-type ROI breakdown
   const roiBlocks: ROIMetricBlock[] = [
-    { label: "次卡 ROI", roi: 0.50, cost: totalCost * 0.45, currency },
-    { label: "现金 ROI", roi: 0.40, cost: totalCost * 0.55, currency },
-    { label: "综合 ROI", roi: roiRatio, cost: totalCost, currency },
+    { label: "次卡 ROI", roi: 0.50, cost: totalCost * 0.45, currency: "USD" },
+    { label: "现金 ROI", roi: 0.40, cost: totalCost * 0.55, currency: "USD" },
+    { label: "综合 ROI", roi: roiRatio, cost: totalCost, currency: "USD" },
   ];
 
   return (
@@ -84,7 +78,7 @@ export default function BizROIPage() {
               >
                 {b.roi.toFixed(2)}
               </p>
-              <p className="text-sm text-slate-400">成本 {formatCNY(b.cost)}</p>
+              <p className="text-sm text-slate-400">成本 {formatRevenue(b.cost)}</p>
               <p className="text-xs mt-1 font-medium">
                 {b.roi >= 0.5 ? "🟢 良好" : b.roi >= 0.35 ? "🟡 偏低" : "🔴 需改善"}
               </p>
@@ -96,18 +90,18 @@ export default function BizROIPage() {
         <div className="mt-6 p-4 bg-slate-50 rounded-xl flex justify-around text-center">
           <div>
             <p className="text-xs text-slate-400">总收入</p>
-            <p className="text-xl font-bold text-slate-700">{formatCNY(totalRevenue)}</p>
+            <p className="text-xl font-bold text-slate-700">{formatRevenue(totalRevenue)}</p>
           </div>
           <div className="text-slate-200 flex items-center text-2xl">|</div>
           <div>
             <p className="text-xs text-slate-400">总成本</p>
-            <p className="text-xl font-bold text-slate-700">{formatCNY(totalCost)}</p>
+            <p className="text-xl font-bold text-slate-700">{formatRevenue(totalCost)}</p>
           </div>
           <div className="text-slate-200 flex items-center text-2xl">|</div>
           <div>
             <p className="text-xs text-slate-400">净利润</p>
             <p className="text-xl font-bold text-slate-700">
-              {formatCNY(totalRevenue - totalCost)}
+              {formatRevenue(totalRevenue - totalCost)}
             </p>
           </div>
         </div>
@@ -139,16 +133,16 @@ export default function BizROIPage() {
                 <td className="py-3 font-medium text-slate-700">{row.type}</td>
                 <td className="py-3 text-slate-400">{row.detail}</td>
                 <td className="py-3 text-right">{row.count}</td>
-                <td className="py-3 text-right">¥{row.unit_price}</td>
+                <td className="py-3 text-right">{formatUSD(row.unit_price)}</td>
                 <td className="py-3 text-right font-semibold text-slate-700">
-                  ¥{row.total.toLocaleString()}
+                  {formatRevenue(row.total)}
                 </td>
               </tr>
             ))}
             <tr className="bg-slate-50 font-bold">
               <td className="py-3 text-slate-700" colSpan={4}>合计</td>
               <td className="py-3 text-right text-indigo-700">
-                ¥{COST_BREAKDOWN.reduce((s, r) => s + r.total, 0).toLocaleString()}
+                {formatRevenue(COST_BREAKDOWN.reduce((s, r) => s + r.total, 0))}
               </td>
             </tr>
           </tbody>

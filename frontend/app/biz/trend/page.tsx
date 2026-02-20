@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useTrend, usePrediction } from "@/lib/hooks";
+import { formatRevenue } from "@/lib/utils";
 import { Card } from "@/components/ui/Card";
 import { TrendLineChart } from "@/components/charts/TrendLineChart";
 import { PredictionBandChart } from "@/components/charts/PredictionBandChart";
@@ -9,14 +10,39 @@ import { CheckinImpactCard } from "@/components/biz/CheckinImpactCard";
 import { Spinner } from "@/components/ui/Spinner";
 import type { TrendData, PredictionData } from "@/lib/types";
 
+type CompareType = "mom" | "wow" | "yoy";
+
 const METRIC_TABS = [
   { key: "registrations", label: "注册" },
   { key: "payments", label: "付费" },
   { key: "revenue", label: "收入" },
 ];
 
+const COMPARE_TABS: { key: CompareType; label: string }[] = [
+  { key: "mom", label: "月环比" },
+  { key: "wow", label: "周环比" },
+  { key: "yoy", label: "月同比" },
+];
+
+const DIRECTION_CONFIG = {
+  rising:   { icon: "↑", color: "bg-emerald-100 text-emerald-700", text: "上升趋势" },
+  falling:  { icon: "↓", color: "bg-rose-100 text-rose-700",    text: "下降趋势" },
+  volatile: { icon: "~", color: "bg-amber-100 text-amber-700",  text: "波动" },
+} as const;
+
+function TrendBadge({ direction }: { direction?: string }) {
+  if (!direction || direction === "insufficient") return null;
+  const c = DIRECTION_CONFIG[direction as keyof typeof DIRECTION_CONFIG];
+  if (!c) return null;
+  return (
+    <span className={`px-2 py-0.5 rounded text-xs font-medium ${c.color}`}>
+      {c.icon} {c.text}
+    </span>
+  );
+}
+
 export default function BizTrendPage() {
-  const [compareType, setCompareType] = useState<"mom" | "yoy">("mom");
+  const [compareType, setCompareType] = useState<CompareType>("mom");
   const [metricTab, setMetricTab] = useState("payments");
 
   const { data: trendResp, isLoading: tLoading } = useTrend(compareType);
@@ -42,24 +68,32 @@ export default function BizTrendPage() {
   return (
     <div className="max-w-5xl mx-auto space-y-8">
       {/* Page header */}
-      <div className="flex items-start justify-between">
+      <div className="flex items-start justify-between flex-wrap gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-slate-800">趋势 & 预测</h1>
+          <div className="flex items-center gap-2">
+            <h1 className="text-2xl font-bold text-slate-800">趋势 &amp; 预测</h1>
+            <TrendBadge direction={trend?.direction} />
+          </div>
           <p className="text-sm text-slate-400 mt-1">月度环比/预测区间 · 打卡因果分析</p>
+          {trend?.peak && trend?.valley && (
+            <p className="text-xs text-slate-400 mt-0.5">
+              峰值: {trend.peak.value.toLocaleString()} ({trend.peak.date}) &nbsp;|&nbsp; 谷底: {trend.valley.value.toLocaleString()} ({trend.valley.date})
+            </p>
+          )}
         </div>
         {/* Compare type toggle */}
         <div className="flex gap-1 bg-slate-100 rounded-lg p-1">
-          {(["mom", "yoy"] as const).map((t) => (
+          {COMPARE_TABS.map((t) => (
             <button
-              key={t}
-              onClick={() => setCompareType(t)}
+              key={t.key}
+              onClick={() => setCompareType(t.key)}
               className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
-                compareType === t
+                compareType === t.key
                   ? "bg-white text-indigo-600 shadow-sm"
                   : "text-slate-500 hover:text-slate-700"
               }`}
             >
-              {t === "mom" ? "月环比" : "月同比"}
+              {t.label}
             </button>
           ))}
         </div>
@@ -83,12 +117,20 @@ export default function BizTrendPage() {
             </button>
           ))}
         </div>
-        <TrendLineChart
-          data={trend}
-          xKey="date"
-          yKey={metricTab}
-          lineKeys={[metricTab]}
-        />
+        {compareType === "wow" && (!trend || (trend.series ?? []).length < 2) ? (
+          <div className="flex items-center justify-center h-40 text-slate-400 text-sm">
+            暂无周对比数据，需累积至少 2 周快照
+          </div>
+        ) : (
+          <TrendLineChart
+            data={trend}
+            xKey="date"
+            yKey={metricTab}
+            lineKeys={[metricTab]}
+            peak={trend?.peak}
+            valley={trend?.valley}
+          />
+        )}
       </Card>
 
       {/* Prediction + Checkin impact side by side */}
@@ -110,7 +152,7 @@ export default function BizTrendPage() {
           </div>
           <div className="flex justify-between text-xs text-slate-400 mb-2 px-1">
             <span>模型：{model}</span>
-            <span>预测收入：¥{(eomRev / 1000).toFixed(0)}k</span>
+            <span>预测收入：{formatRevenue(eomRev)}</span>
           </div>
           <PredictionBandChart />
         </Card>

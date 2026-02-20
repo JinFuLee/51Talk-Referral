@@ -1,5 +1,6 @@
 "use client";
 
+import { formatRevenue } from "@/lib/utils";
 import type { ChannelStat } from "@/lib/types";
 
 interface ChannelComparisonTableProps {
@@ -45,7 +46,7 @@ export function ChannelComparisonTable({ channels }: ChannelComparisonTableProps
               <td className="px-3 py-2 text-slate-600">{ch.payments.toLocaleString()}</td>
               <td className="px-3 py-2 text-slate-600">{(ch.conversion_rate * 100).toFixed(1)}%</td>
               <td className="px-3 py-2 text-slate-600">
-                {ch.revenue !== undefined ? `¥${ch.revenue.toLocaleString()}` : "—"}
+                {ch.revenue !== undefined ? formatRevenue(ch.revenue) : "—"}
               </td>
             </tr>
           ))}
