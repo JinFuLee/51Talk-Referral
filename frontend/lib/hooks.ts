@@ -1,0 +1,224 @@
+/**
+ * SWR hooks — 封装 API 请求，供页面使用
+ */
+import useSWR, { type SWRConfiguration } from "swr";
+import {
+  analysisAPI,
+  datasourcesAPI,
+  snapshotsAPI,
+  reportsAPI,
+  configAPI,
+} from "./api";
+import type {
+  DataSourceStatus,
+  SnapshotStats,
+  DailyKPIPoint,
+  CCGrowthAPIPoint,
+  ReportFile,
+  MonthlyTarget,
+  ExchangeRate,
+  AnomalyItem,
+  RiskAlert,
+} from "./types";
+
+const REFRESH_30S: SWRConfiguration = { refreshInterval: 30_000 };
+
+// ── Health ─────────────────────────────────────────────────────────────────────
+
+export function useHealth() {
+  return useSWR("health", () =>
+    fetch("/api/health").then((r) => r.json())
+  );
+}
+
+// ── Analysis summary ──────────────────────────────────────────────────────────
+
+export function useSummary() {
+  return useSWR(
+    "analysis/summary",
+    () => analysisAPI.getSummary(),
+    REFRESH_30S
+  );
+}
+
+export function useFunnel() {
+  return useSWR("analysis/funnel", () => analysisAPI.getFunnel());
+}
+
+export function useChannelComparison() {
+  return useSWR("analysis/channel-comparison", () =>
+    analysisAPI.getChannelComparison()
+  );
+}
+
+export function useTeamData() {
+  return useSWR("analysis/team-data", () => analysisAPI.getTeamData());
+}
+
+export function useAnomalies() {
+  return useSWR<AnomalyItem[]>("analysis/anomalies", () =>
+    analysisAPI.getAnomalies() as Promise<AnomalyItem[]>
+  );
+}
+
+export function useRiskAlerts() {
+  return useSWR<RiskAlert[]>("analysis/risk-alerts", () =>
+    analysisAPI.getRiskAlerts() as Promise<RiskAlert[]>
+  );
+}
+
+export function useROI() {
+  return useSWR("analysis/roi", () => analysisAPI.getROI());
+}
+
+export function usePrediction() {
+  return useSWR("analysis/prediction", () => analysisAPI.getPrediction());
+}
+
+export function useAttribution() {
+  return useSWR("analysis/attribution", () => analysisAPI.getAttribution());
+}
+
+export function useCCRanking(topN = 10) {
+  return useSWR(["analysis/cc-ranking", topN], () =>
+    analysisAPI.getCCRanking(topN)
+  );
+}
+
+export function useSSRanking(topN = 10) {
+  return useSWR(["analysis/ss-ranking", topN], () =>
+    analysisAPI.getSSRanking(topN)
+  );
+}
+
+export function useLPRanking(topN = 10) {
+  return useSWR(["analysis/lp-ranking", topN], () =>
+    analysisAPI.getLPRanking(topN)
+  );
+}
+
+export function useCohort() {
+  return useSWR("analysis/cohort", () => analysisAPI.getCohort());
+}
+
+export function useCheckin() {
+  return useSWR("analysis/checkin", () => analysisAPI.getCheckin());
+}
+
+export function useLeads() {
+  return useSWR("analysis/leads", () => analysisAPI.getLeads());
+}
+
+export function useFollowup() {
+  return useSWR("analysis/followup", () => analysisAPI.getFollowup());
+}
+
+export function useOrders() {
+  return useSWR("analysis/orders", () => analysisAPI.getOrders());
+}
+
+export function useTrend(compareType: "mom" | "yoy" = "mom") {
+  return useSWR(["analysis/trend", compareType], () =>
+    analysisAPI.getTrend(compareType)
+  );
+}
+
+export function useLTV() {
+  return useSWR("analysis/ltv", () => analysisAPI.getLTV());
+}
+
+// ── Biz-view hooks ─────────────────────────────────────────────────────────────
+
+export function useCohortROI() {
+  return useSWR("analysis/cohort-roi", () =>
+    fetch("/api/analysis/cohort-roi").then((r) => r.json())
+  );
+}
+
+export function useEnclosure() {
+  return useSWR("analysis/enclosure", () =>
+    fetch("/api/analysis/enclosure").then((r) => r.json())
+  );
+}
+
+export function useCheckinImpact() {
+  return useSWR("analysis/checkin-impact", () =>
+    fetch("/api/analysis/checkin-impact").then((r) => r.json())
+  );
+}
+
+export function useProductivity() {
+  return useSWR("analysis/productivity", () =>
+    fetch("/api/analysis/productivity").then((r) => r.json())
+  );
+}
+
+// ── Data Sources ──────────────────────────────────────────────────────────────
+
+export function useDataSources() {
+  return useSWR<DataSourceStatus[]>(
+    "datasources/status",
+    () => datasourcesAPI.getStatus() as Promise<DataSourceStatus[]>,
+    REFRESH_30S
+  );
+}
+
+// ── Snapshots ─────────────────────────────────────────────────────────────────
+
+export function useSnapshotStats() {
+  return useSWR<SnapshotStats>(
+    "snapshots/stats",
+    () => snapshotsAPI.getStats() as Promise<SnapshotStats>
+  );
+}
+
+export function useDailyKPI(params?: {
+  date_from?: string;
+  date_to?: string;
+  metric?: string;
+}) {
+  return useSWR<DailyKPIPoint[]>(
+    ["snapshots/daily-kpi", params],
+    () => snapshotsAPI.getDailyKPI(params) as Promise<DailyKPIPoint[]>
+  );
+}
+
+export function useCCGrowth(
+  ccName: string,
+  params?: { date_from?: string; date_to?: string }
+) {
+  return useSWR<CCGrowthAPIPoint[]>(
+    ccName ? ["snapshots/cc-growth", ccName, params] : null,
+    () =>
+      snapshotsAPI.getCCGrowth(ccName, params) as Promise<CCGrowthAPIPoint[]>
+  );
+}
+
+// ── Reports ───────────────────────────────────────────────────────────────────
+
+export function useReportList() {
+  return useSWR<ReportFile[]>(
+    "reports/list",
+    () => reportsAPI.list() as Promise<ReportFile[]>
+  );
+}
+
+export function useLatestReports() {
+  return useSWR("reports/latest", () => reportsAPI.getLatest());
+}
+
+// ── Config ────────────────────────────────────────────────────────────────────
+
+export function useMonthlyTargets() {
+  return useSWR<MonthlyTarget[]>(
+    "config/monthly-targets",
+    () => configAPI.getMonthlyTargets() as Promise<MonthlyTarget[]>
+  );
+}
+
+export function useExchangeRate() {
+  return useSWR<ExchangeRate>(
+    "config/exchange-rate",
+    () => configAPI.getExchangeRate()
+  );
+}

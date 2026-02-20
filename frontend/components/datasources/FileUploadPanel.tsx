@@ -1,0 +1,62 @@
+"use client";
+
+import { useRef, useState } from "react";
+import { datasourcesAPI } from "@/lib/api";
+
+interface FileUploadPanelProps {
+  onSuccess?: () => void;
+}
+
+export function FileUploadPanel({ onSuccess }: FileUploadPanelProps) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [sourceId, setSourceId] = useState("");
+  const [uploading, setUploading] = useState(false);
+  const [msg, setMsg] = useState<string | null>(null);
+
+  async function handleUpload() {
+    const file = inputRef.current?.files?.[0];
+    if (!file || !sourceId.trim()) {
+      setMsg("请填写数据源 ID 并选择文件");
+      return;
+    }
+    setUploading(true);
+    setMsg(null);
+    try {
+      await datasourcesAPI.upload(sourceId.trim(), file);
+      setMsg("上传成功");
+      onSuccess?.();
+    } catch (e: unknown) {
+      setMsg(e instanceof Error ? e.message : "上传失败");
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  return (
+    <div className="rounded-xl border border-slate-200 bg-white p-4 space-y-3 max-w-lg">
+      <div className="flex gap-2">
+        <input
+          value={sourceId}
+          onChange={(e) => setSourceId(e.target.value)}
+          placeholder="数据源 ID（如 orders）"
+          className="flex-1 px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+        />
+        <input ref={inputRef} type="file" accept=".xlsx,.csv" className="hidden" />
+        <button
+          onClick={() => inputRef.current?.click()}
+          className="px-3 py-2 border border-slate-200 rounded-lg text-sm text-slate-600 hover:bg-slate-50"
+        >
+          选择文件
+        </button>
+      </div>
+      <button
+        onClick={handleUpload}
+        disabled={uploading}
+        className="w-full py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 disabled:opacity-50"
+      >
+        {uploading ? "上传中…" : "上传"}
+      </button>
+      {msg && <p className={`text-xs ${msg.includes("成功") ? "text-green-600" : "text-red-500"}`}>{msg}</p>}
+    </div>
+  );
+}

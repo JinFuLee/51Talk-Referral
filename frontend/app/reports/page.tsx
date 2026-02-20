@@ -1,0 +1,114 @@
+"use client";
+
+import { useState } from "react";
+import { useReportList } from "@/lib/hooks";
+import { reportsAPI } from "@/lib/api";
+import { ReportViewer } from "@/components/reports/ReportViewer";
+import { Card } from "@/components/ui/Card";
+import { Spinner } from "@/components/ui/Spinner";
+import type { ReportFile } from "@/lib/types";
+
+export default function ReportsPage() {
+  const { data: reports, isLoading } = useReportList();
+  const [selected, setSelected] = useState<ReportFile | null>(null);
+  const [content, setContent] = useState<string | null>(null);
+  const [contentLoading, setContentLoading] = useState(false);
+
+  async function handleSelect(report: ReportFile) {
+    setSelected(report);
+    setContent(null);
+    if (!report.date || report.report_type === "unknown") return;
+    setContentLoading(true);
+    try {
+      const res = await reportsAPI.getContent(
+        report.report_type as "ops" | "exec",
+        report.date
+      );
+      setContent(res.content);
+    } catch {
+      setContent("加载失败");
+    } finally {
+      setContentLoading(false);
+    }
+  }
+
+  return (
+    <div className="space-y-4">
+      <h1 className="text-2xl font-bold text-slate-800">分析报告</h1>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 h-[calc(100vh-160px)]">
+        {/* File list */}
+        <Card title="报告列表" className="overflow-auto">
+          {isLoading ? (
+            <Spinner />
+          ) : reports && reports.length > 0 ? (
+            <ul className="space-y-1">
+              {reports.map((r) => (
+                <li key={r.filename}>
+                  <button
+                    onClick={() => handleSelect(r)}
+                    className={`w-full text-left px-3 py-2.5 rounded-lg text-sm transition-colors ${
+                      selected?.filename === r.filename
+                        ? "bg-brand-100 text-brand-700 font-medium"
+                        : "hover:bg-slate-50 text-slate-600"
+                    }`}
+                  >
+                    <div className="font-medium truncate">{r.filename}</div>
+                    <div className="flex gap-2 mt-0.5">
+                      <span
+                        className={`text-xs px-1.5 py-0.5 rounded ${
+                          r.report_type === "ops"
+                            ? "bg-blue-100 text-blue-700"
+                            : r.report_type === "exec"
+                            ? "bg-purple-100 text-purple-700"
+                            : "bg-slate-100 text-slate-500"
+                        }`}
+                      >
+                        {r.report_type}
+                      </span>
+                      {r.date && (
+                        <span className="text-xs text-slate-400">{r.date}</span>
+                      )}
+                    </div>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <div className="text-sm text-slate-400 text-center py-8">
+              暂无报告文件
+            </div>
+          )}
+        </Card>
+
+        {/* Report content */}
+        <div className="lg:col-span-2 overflow-auto">
+          {selected ? (
+            contentLoading ? (
+              <div className="flex justify-center py-20">
+                <Spinner />
+              </div>
+            ) : content ? (
+              <ReportViewer
+                content={content}
+                filename={selected.filename}
+                downloadURL={reportsAPI.downloadURL(selected.filename)}
+              />
+            ) : (
+              <div className="text-sm text-slate-400 text-center py-20">
+                加载中…
+              </div>
+            )
+          ) : (
+            <div className="flex flex-col items-center justify-center h-full text-slate-400">
+              <svg className="w-12 h-12 mb-3 opacity-30" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              <span className="text-sm">选择左侧报告查看内容</span>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}

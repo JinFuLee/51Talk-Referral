@@ -1,0 +1,50 @@
+"use client";
+
+import type { AnomalyItem } from "@/lib/types";
+
+const severityStyle: Record<string, string> = {
+  high: "bg-red-50 border-red-300 text-red-800",
+  medium: "bg-yellow-50 border-yellow-300 text-yellow-800",
+  low: "bg-slate-50 border-slate-300 text-slate-700",
+};
+
+const severityIcon: Record<string, string> = {
+  high: "🔴",
+  medium: "🟡",
+  low: "⚪",
+};
+
+interface AnomalyBannerProps {
+  anomalies: AnomalyItem[];
+}
+
+export function AnomalyBanner({ anomalies }: AnomalyBannerProps) {
+  if (anomalies.length === 0) return null;
+
+  const highCount = anomalies.filter((a) => a.severity === "high").length;
+  const medCount = anomalies.filter((a) => a.severity === "medium").length;
+  const bannerLevel = highCount > 0 ? "high" : medCount > 0 ? "medium" : "low";
+
+  return (
+    <div className={`rounded-lg border px-4 py-3 mb-4 flex items-start gap-3 ${severityStyle[bannerLevel]}`}>
+      <span className="text-lg leading-none mt-0.5">{severityIcon[bannerLevel]}</span>
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-semibold mb-1">
+          检测到 {anomalies.length} 个异常
+          {highCount > 0 && <span className="ml-2 text-red-700">({highCount} 严重)</span>}
+        </p>
+        <ul className="flex flex-wrap gap-x-4 gap-y-1">
+          {anomalies.slice(0, 4).map((a, i) => (
+            <li key={i} className="text-xs opacity-90">
+              <span className="font-medium">{a.metric}</span>
+              {a.description && <span className="ml-1 opacity-75">— {a.description}</span>}
+            </li>
+          ))}
+          {anomalies.length > 4 && (
+            <li className="text-xs opacity-60">+{anomalies.length - 4} 条…</li>
+          )}
+        </ul>
+      </div>
+    </div>
+  );
+}

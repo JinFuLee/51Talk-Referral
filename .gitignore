@@ -42,8 +42,16 @@ key/
 temp_upload.xlsx
 !.gitkeep
 
+# Node.js / Next.js
+node_modules/
+.next/
+package-lock.json
+*.tsbuildinfo
+.env.local
+
 # IDE
 .idea/
 .vscode/
 *.swp
+*.swo
 .DS_Store
