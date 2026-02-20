@@ -957,3 +957,39 @@ def get_risk_alerts_v2() -> dict[str, Any]:
     基于 summary 缺口 + anomalies 汇总生成
     """
     return {"status": "ok", "data": _require_cache("risk_alerts")}
+
+
+# ── M13: 影响链 ────────────────────────────────────────────────────────────────
+
+@router.get("/impact-chain")
+def get_impact_chain() -> dict[str, Any]:
+    """返回全效率指标影响链"""
+    cache = _require_full_cache()
+    from core.impact_chain import ImpactChainEngine
+    engine = ImpactChainEngine(
+        summary=cache.get("summary", {}),
+        targets=cache.get("meta", {}).get("targets", {}),
+        funnel=cache.get("funnel", {}),
+    )
+    return engine.compute_all_chains()
+
+
+class WhatIfRequest(BaseModel):
+    metric: str
+    new_value: float
+
+
+@router.post("/what-if")
+def post_what_if(req: WhatIfRequest) -> dict[str, Any]:
+    """模拟某效率指标提升后的全链收益变化"""
+    cache = _require_full_cache()
+    from core.impact_chain import ImpactChainEngine
+    engine = ImpactChainEngine(
+        summary=cache.get("summary", {}),
+        targets=cache.get("meta", {}).get("targets", {}),
+        funnel=cache.get("funnel", {}),
+    )
+    try:
+        return engine.what_if(req.metric, req.new_value)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc))

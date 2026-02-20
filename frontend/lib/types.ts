@@ -434,3 +434,112 @@ export interface TargetRecommendation {
   };
   feasibility: TargetFeasibility;
 }
+
+// ── M13: 影响链 ─────────────────────────────────────────────────────────────
+
+export interface ImpactChainData {
+  chains: ImpactChainItem[];
+  total_lost_revenue_usd: number;
+  total_lost_revenue_thb: number;
+  top_lever: string;
+  top_lever_label: string;
+}
+
+export interface ImpactChainItem {
+  metric: string;
+  label: string;
+  actual: number;
+  target: number;
+  gap: number;
+  impact_steps: ImpactStep[];
+}
+
+export interface ImpactStep {
+  step: string;
+  value: number;
+  label: string;
+}
+
+export interface WhatIfResult {
+  metric: string;
+  label: string;
+  current_value: number;
+  simulated_value: number;
+  delta_payments: number;
+  delta_revenue_usd: number;
+  delta_revenue_thb: number;
+  message: string;
+}
+
+// ── 5-Why 根因分析 (M14) ────────────────────────────────────────────────────
+
+export interface RootCauseData {
+  analyses: RootCauseAnalysis[];
+  generated_at: string;
+}
+
+export interface RootCauseAnalysis {
+  trigger: string;
+  trigger_metric: string;
+  severity: "red" | "yellow" | "green";
+  why_chain: WhyLevel[];
+  action: string;
+  expected_impact_usd: number;
+}
+
+export interface WhyLevel {
+  level: number;
+  question: string;
+  answer: string;
+  data_support: { metric?: string; actual?: number; target?: number } | null;
+  is_root: boolean;
+}
+
+// ── 阶段评估 ────────────────────────────────────────────────────────────────
+
+export interface StageEvaluation {
+  current_stage: number;
+  stage_name: string;
+  confidence: number;
+  evidence: StageEvidence[];
+  upgrade_suggestions: string[];
+  next_stage: { name: string; key_requirements: string[] };
+}
+
+export interface StageEvidence {
+  dimension: string;
+  score: number;
+  stage_indicator: number;
+  detail: string;
+}
+
+// ── 金字塔报告 ──────────────────────────────────────────────────────────────
+
+export interface PyramidReport {
+  conclusion: string;
+  scqa: {
+    situation: string;
+    complication: string;
+    question: string;
+    answer: string;
+  };
+  pillars: PyramidPillar[];
+  six_steps: {
+    clarify: string;
+    metrics: string[];
+    data_source: string;
+    method: string;
+    insight: string;
+    action: string;
+  };
+}
+
+export interface PyramidPillar {
+  title: string;
+  priority: number;
+  current: number;
+  target: number;
+  expected_revenue_lift_usd: number;
+  actions: string[];
+  data_points: { label: string; value: string }[];
+}

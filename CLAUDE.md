@@ -260,6 +260,7 @@ Excel 数据源 → XlsxReader → DataProcessor → AnalysisEngine → Markdown
 | M10 | 2026-02-20 | 35源数据层全面重建 + 分析引擎V2 | 35 Loader、20分析模块、5跨源联动、运营6页+业务5页、28 API端点、17新组件、TypeScript升级 | 35 files new, 20 modules, 28 endpoints, 11 pages new, 17 components new, QA 6/7 PASS(1修复) |
 | M11 | 2026-02-21 | 币种统一 + 指标增强 | USD($)/THB(฿)双币显示、KPI 8项展示、效率卡5项、双差额体系、汇率1:34配置化 | 18 files mod, +850 lines, QA 12/12 PASS |
 | M12 | 2026-02-21 | 时间对比 + 9项缺陷修复 | YoY修复、WoW周环比、Peak/Valley标注、趋势判断、业绩CC新单化、CC排名18维、工作日修正 | 14 files mod, +1439/-252 lines, QA 12/12 PASS(M11/M12) + 12/12 PASS(bugfix-9) |
+| M13+M14 | 2026-02-21 | 影响链引擎+What-if模拟器+5-Why根因分析+金字塔报告+阶段评估 | 6条效率→收入影响链、What-if POST API、4个前端组件、RootCauseEngine规则引擎、PyramidReportGenerator、StageEvaluator | 5 backend files new, 8 frontend files new, 6 edited, QA 11/11 PASS |
 
 ## 里程碑规划（M11+）
 
@@ -326,6 +327,8 @@ M14 (5-Why)     ─── 依赖 M13（影响链是 5-Why 的量化基础）
 | 11 | 文档过期 | datasources.py 注释"12源"过时需更新为"35源" | P3 | M10 | M12 已更新 CLAUDE.md 业务规则 |
 | 12 | ROI成本数据 | 成本明细框架占位，待对接泰国真实激励/活动费用数据 | P1 | M13 | M11/M12 已标注预估 |
 | 13 | 类型优化 | 前端 TypeScript 仍有部分 `as any` 需清理 | P2 | M13+ | 日常重构积累 |
+| 14 | insights.py 容错 | 复用 analysis._service，极早期请求可能 503 | P3 | M15 | M13+M14 低风险，下个周期优化 |
+| 15 | 5-Why 扩展 | 因果链模板可扩展更多分支（目前 3 条：注册/付费/收入） | P2 | M15 | M13+M14 初版完成，后续增强 |
 
 ## WebMCP
 不适用（非 Web 前端项目）。如后续添加 Web UI，参见全局 CLAUDE.md WebMCP 章节。

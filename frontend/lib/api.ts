@@ -2,7 +2,7 @@
  * API client — 所有对 FastAPI 后端（localhost:8000）的请求封装
  * 通过 Next.js rewrites: /api/* → http://localhost:8000/api/*
  */
-import type { MonthlyTargetV2, TargetRecommendation } from "./types";
+import type { MonthlyTargetV2, TargetRecommendation, ImpactChainData, WhatIfResult, RootCauseData, StageEvaluation, PyramidReport } from "./types";
 
 const BASE = "/api";
 
@@ -58,6 +58,15 @@ export const analysisAPI = {
   getTrend: (compareType: "mom" | "yoy" | "wow" = "mom") =>
     request<unknown>(`/analysis/trend?compare_type=${compareType}`),
   getLTV: () => request<unknown>("/analysis/ltv"),
+  getImpactChain: () => request<ImpactChainData>("/analysis/impact-chain"),
+  postWhatIf: (metric: string, newValue: number) =>
+    request<WhatIfResult>("/analysis/what-if", {
+      method: "POST",
+      body: JSON.stringify({ metric, new_value: newValue }),
+    }),
+  getRootCause: () => request<RootCauseData>("/analysis/root-cause"),
+  getStageEvaluation: () => request<StageEvaluation>("/analysis/stage-evaluation"),
+  getPyramidReport: () => request<PyramidReport>("/analysis/pyramid-report"),
 };
 
 // ── Reports ───────────────────────────────────────────────────────────────────

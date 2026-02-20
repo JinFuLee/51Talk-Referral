@@ -138,6 +138,16 @@ class AnalysisEngineV2:
             logger.error(f"[risk_alerts] 生成失败: {e}", exc_info=True)
             result["risk_alerts"] = []
 
+        # impact_chain 依赖 summary + funnel（必须在两者计算完成后执行）
+        try:
+            result["impact_chain"] = self._analyze_impact_chain(
+                result.get("summary", {}),
+                result.get("funnel", {}),
+            )
+        except Exception as e:
+            logger.error(f"[impact_chain] 分析失败: {e}", exc_info=True)
+            result["impact_chain"] = {}
+
         # 兼容旧 API key 名称
         result["cohort_analysis"]   = result.get("enclosure_cross", {})
         result["checkin_analysis"]  = result.get("checkin_impact", {})
@@ -1873,3 +1883,18 @@ class AnalysisEngineV2:
             "ltv_12m_usd":  round(ltv_12m, 2) if ltv_12m else None,
             "avg_unit_price_usd": avg_unit,
         }
+
+    # ── M13. impact_chain ──────────────────────────────────────────────────────
+
+    def _analyze_impact_chain(self, summary: dict, funnel: dict) -> dict:
+        """
+        影响链计算：各效率指标 gap → 收入损失量化。
+        依赖 summary（打卡率实际值/目标）和 funnel（漏斗转化率/有效学员数）。
+        """
+        from core.impact_chain import ImpactChainEngine
+        engine = ImpactChainEngine(
+            summary=summary,
+            targets=self.targets,
+            funnel=funnel,
+        )
+        return engine.compute_all_chains()

@@ -25,7 +25,9 @@ const BIZ_ITEMS: NavItem[] = [
   { href: "/biz/roi", label: "ROI 分析", icon: "💰" },
   { href: "/biz/enclosure", label: "围场策略", icon: "🎯" },
   { href: "/biz/trend", label: "趋势预测", icon: "🔮" },
+  { href: "/biz/impact", label: "影响链分析", icon: "⛓️" },
   { href: "/biz/team", label: "团队概况", icon: "👥" },
+  { href: "/biz/insights", label: "运营洞察", icon: "💡" },
 ];
 
 const SYS_ITEMS: NavItem[] = [

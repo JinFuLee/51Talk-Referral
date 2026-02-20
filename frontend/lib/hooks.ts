@@ -21,6 +21,10 @@ import type {
   RiskAlert,
   MonthlyTargetV2,
   TargetRecommendation,
+  ImpactChainData,
+  RootCauseData,
+  StageEvaluation,
+  PyramidReport,
 } from "./types";
 
 const REFRESH_30S: SWRConfiguration = { refreshInterval: 30_000 };
@@ -244,5 +248,29 @@ export function useTargetRecommendation(month: string | null) {
   return useSWR<TargetRecommendation>(
     month ? ["config/targets-recommend", month] : null,
     () => configAPI.getRecommendation(month!)
+  );
+}
+
+export function useImpactChain() {
+  return useSWR<ImpactChainData>("analysis/impact-chain", () =>
+    analysisAPI.getImpactChain()
+  );
+}
+
+export function useRootCause() {
+  return useSWR<RootCauseData>("analysis/root-cause", () =>
+    analysisAPI.getRootCause()
+  );
+}
+
+export function useStageEvaluation() {
+  return useSWR<StageEvaluation>("analysis/stage-evaluation", () =>
+    analysisAPI.getStageEvaluation()
+  );
+}
+
+export function usePyramidReport() {
+  return useSWR<PyramidReport>("analysis/pyramid-report", () =>
+    analysisAPI.getPyramidReport()
   );
 }

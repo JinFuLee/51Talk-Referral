@@ -201,7 +201,37 @@
 - 统计: 14 files modified, +1439 lines, -252 lines
 - QA 结果: 12/12 PASS (M11/M12) + 12/12 PASS (bugfix-9) - 时间对比、业绩规则、排名算法、适配器修复、工作日逻辑
 
+### M13: 影响链引擎 + What-if 模拟器（2026-02-21）
+- [x] ImpactChainEngine 核心实现（6 条效率→收入影响链）
+  - 打卡率 gap → 参与学员损失 → 注册损失 → 付费损失 → $损失
+  - 参与率/触达率/约课率/出席率/转化率 各自损失路径计算
+- [x] What-if 模拟器（POST /api/analysis/what-if，输入 metric+new_value 返回模拟增量）
+- [x] 前端瀑布图展示（ImpactWaterfallChart 组件，每个效率 gap 对应 $）
+- [x] 前端交互式滑块模拟（WhatIfSimulator，实时计算提升 X% 增加 $Y）
+- 统计: 3 backend files new, 2 frontend files new, 2 files edited
+- QA 结果: 6/7 PASS → bugfix → 7/7 PASS（pillar 字段名对齐、trigger/is_root/generated_at 补全）
+
+### M14: 5-Why 根因分析 + 金字塔报告（2026-02-21）
+- [x] RootCauseEngine 规则引擎（5-Why 3 条因果链：注册/付费/收入，5 层递进，数据驱动）
+- [x] StageEvaluator 转介绍阶段评估（6 维度：激励/渠道/数据/过程/存量/用户）→ 3 阶段判断
+- [x] PyramidReportGenerator 金字塔报告（SCQA 框架 + 3 个 MECE 杠杆 + 六步法摘要）
+- [x] 前端根因分析页面（/app/biz/insights，SCQACard/FiveWhyTree/StageBadge/SixStepSummary 4 组件）
+- [x] Bugfix 三项（pillar 字段对齐、trigger/is_root/generated_at 补全、链路截断降级处理）
+- 统计: 5 backend files new, 8 frontend files new, 6 files edited
+- QA 结果: 11/11 PASS（10 base + 1 bugfix）
+
+### M13+M14 合并（2026-02-21）
+- 统计合计: 5 new backend files, 8 new frontend files, 6 edited = 19 files total
+- QA 结果: 11/11 PASS（3 bug 已修复）
+- 后端新模块: `backend/core/impact_chain.py`, `backend/core/root_cause.py`, `backend/core/stage_evaluator.py`, `backend/core/report_generator_v2.py`
+- 后端 API: `backend/api/insights.py`（5-Why/金字塔/阶段评估），编辑 `backend/api/analysis.py`（What-if）
+- 前端页面: `app/biz/impact/page.tsx`（影响链瀑布），`app/biz/insights/page.tsx`（根因分析）
+- 前端组件: `ImpactWaterfallChart`, `WhatIfSimulator`, `SCQACard`, `FiveWhyTree`, `StageBadge`, `SixStepSummary`
+
 ### 暂缓
 - 成本数据接入（财务部数据暂无）
 - 续费率数据接入（CRM 数据暂无）
 - LINE Notify API 迁移到 LINE Messaging API（当前 token 方式仍可用）
+- ROI 成本明细泰国真实数据（M13 预研，挂起）
+- insights.py 复用 analysis service，极早期可能 503（低风险，M15 优化）
+- 5-Why 因果链模板可扩展更多分支（M15 增强）

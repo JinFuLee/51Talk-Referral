@@ -14,7 +14,7 @@ sys.path.insert(0, str(BACKEND_DIR))
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from api import analysis, reports, datasources, config, snapshots, notifications, health
+from api import analysis, reports, datasources, config, snapshots, notifications, health, insights
 from services.analysis_service import AnalysisService
 
 app = FastAPI(
@@ -64,6 +64,11 @@ app.include_router(
     notifications.router,
     prefix="/api/notifications",
     tags=["notifications"],
+)
+app.include_router(
+    insights.router,
+    prefix="/api/analysis",
+    tags=["insights"],
 )
 
 
