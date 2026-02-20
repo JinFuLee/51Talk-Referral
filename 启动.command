@@ -53,7 +53,7 @@ done
 # ── 自动触发分析（后台加载35源数据）───────────────
 
 echo "[引擎] 加载35源数据并执行分析..."
-curl -s -X POST http://localhost:8000/api/analysis/run > /dev/null 2>&1 &
+curl -s -X POST -H "Content-Type: application/json" -d '{}' http://localhost:8000/api/analysis/run > /dev/null 2>&1 &
 
 # ── 启动前端 ──────────────────────────────────────
 
