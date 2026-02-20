@@ -114,6 +114,7 @@ Excel 数据源 → XlsxReader → DataProcessor → AnalysisEngine → Markdown
 | M7.6 | 2026-02-19 | 数据源接入修复 | 订单明细 Loader 修复(357 单)，打卡率真实加载(74 CC)，ROI 分布 37.3%/62.7%，3 级降级 | 2 files mod, +36 lines, QA PASS |
 | M8 | 2026-02-20 | 历史数据累积系统 | SQLite 快照存储(4表)、历史批量导入、每日自动累积、CC 成长曲线、日级预测增强、Streamlit 快照管理 UI | 2 files new, 7 files mod, +560 lines, QA 8/8 PASS |
 | M9 | 2026-02-20 | Streamlit → Next.js + FastAPI 全面改造 | 后端 FastAPI 7 routers/30+ endpoints、前端 Next.js 14 12页/43组件、WebMCP 8 Tool、Docker 容器化、i18n 升级、E2E 全通过 | 85 files new, 3 files mod, +10000+ lines, QA 16/16 PASS |
+| M10 | 2026-02-20 | 35源数据层全面重建 + 分析引擎V2 | 35 Loader、20分析模块、5跨源联动、运营6页+业务5页、28 API端点、17新组件、TypeScript升级 | 35 files new, 20 modules, 28 endpoints, 11 pages new, 17 components new, QA 6/7 PASS(1修复) |
 
 ## 已知问题与技术债
 | 序号 | 类别 | 描述 | 优先级 | 计划里程碑 | 备注 |
@@ -127,6 +128,8 @@ Excel 数据源 → XlsxReader → DataProcessor → AnalysisEngine → Markdown
 | 7 | 前端组件 | dashboard/page.tsx 内容为空，需补充实际组件调用 | P2 | M10 | 运营面板 Dashboard 实现待补充 |
 | 8 | 部署配置 | npm install 尚未在容器外执行，首次本地启动需手动运行 | P3 | M10 | Docker 内自动执行，本地开发流程待文档化 |
 | 9 | 浏览器兼容 | WebMCP 目前使用 @mcp-b/global polyfill，等浏览器原生支持后可移除 | P3 | M11 | 当前可用，后续升级移除 polyfill |
+| 10 | 类型系统 | TrendLineChart data prop 类型需进一步泛型化 | P2 | M11 | 支持多维数据源 |
+| 11 | 文档过期 | datasources.py 注释"12源"过时需更新为"35源" | P3 | M10 | 文档同步 |
 
 ## WebMCP
 不适用（非 Web 前端项目）。如后续添加 Web UI，参见全局 CLAUDE.md WebMCP 章节。

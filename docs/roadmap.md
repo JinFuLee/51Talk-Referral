@@ -164,6 +164,19 @@
 - 统计: 85 个新文件, 3 个修改, +10000+ lines
 - QA 结果: 16/16 PASS - API 契约、前端组件、WebMCP Tool、Docker 构建、i18n 路由、数据流、权限管理、性能优化
 
+### M10: 35 源数据层全面重建 + 分析引擎 V2（2026-02-20）
+- [x] 数据源架构重构（35 个 Loader，base.py 统一接口）
+- [x] 多源联动分析（20 个分析模块，5 跨源联动维度）
+- [x] 前端混合布局（运营 6 页 + 业务 5 页 + 共享导航栏）
+- [x] API 端点扩展（28 个端点，新增分析/数据源 Router）
+- [x] 组件库补充（运营 7 个 + 业务 3 个 + 图表 4 个 + UI 2 个 = 17 新组件）
+- [x] TypeScript 类型升级（analysis.ts 7 个分析数据模型）
+- [x] Hook 系统完成（数据取数 + 加载状态 + 错误处理）
+- [x] 导航重构（NavSidebar 双栏、Topbar 面包屑）
+- [x] 文档完成（frontend-architecture.md）
+- 统计: 35 Loader files new, 20 analysis modules, 28 API endpoints, 11 pages new, 17 components new, +2000+ lines
+- QA 结果: 6/7 PASS（1 已修复），后端全过，前端 2 TS 类型 bug 已修复，WebMCP polyfill 为已知技术债
+
 ### 暂缓
 - 成本数据接入（财务部数据暂无）
 - 续费率数据接入（CRM 数据暂无）
