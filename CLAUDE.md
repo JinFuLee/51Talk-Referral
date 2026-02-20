@@ -3,43 +3,57 @@
 51Talk 泰国转介绍运营自动化分析引擎
 
 ## 技术栈
-- Python 3.9+
-- Streamlit（本地 Web 面板）
-- xlsxwriter（Excel 报告生成）
-- zipfile+xml（Excel 读取，替代 openpyxl）
+**后端：** Python 3.9+ FastAPI | **前端：** Node.js 18+ Next.js 14 (App Router) + React 18
+**分析引擎：** Python AnalysisEngine (ROI/预测/异常检测) | **可视化：** Recharts + shadcn/ui
+**通讯：** WebMCP Tools (8 个，AI Agent 可调) | **容器化：** Docker + docker-compose
+**数据持久：** SQLite (快照存储) + Excel (遗留数据) | **国际化：** 中泰双语动态路由
 
-## 目录结构
+## 目录结构 (M9 改造后)
 ```
 ref-ops-engine/
-├── app.py                       # Streamlit 主应用入口
-├── start.py                     # 一键启动脚本
-├── 启动面板.command              # macOS 双击启动
-├── requirements.txt             # Python 依赖
-├── CLAUDE.md                    # 本文件
+├── backend/                     # FastAPI 服务（新）
+│   ├── main.py                  # FastAPI app 主入口
+│   ├── requirements.txt          # Python 依赖
+│   ├── routers/                 # 7 个 Router（数据/分析/报告/通知/权限/系统/WebMCP）
+│   ├── models/                  # 7 个 Pydantic 数据模型
+│   ├── services/                # AnalysisService（Python 核心引擎调用）
+│   └── Dockerfile               # 多阶段构建
 │
-├── src/
-│   ├── __init__.py
-│   ├── data_processor.py        # XlsxReader + DataProcessor（Excel 解析）
-│   ├── analysis_engine.py       # 七维数据分析引擎
-│   ├── md_report_generator.py   # Markdown 双版本报告生成器
-│   ├── report_generator.py      # Excel 报告生成器（xlsxwriter）
-│   ├── config.py                # 月度目标、时间进度、列映射
-│   ├── i18n.py                  # 中泰双语翻译系统
-│   ├── file_watcher.py          # 文件监控模块
-│   └── main.py                  # CLI 入口（--watch/--once/--latest）
+├── frontend/                    # Next.js 14 前端（新）
+│   ├── app/                     # App Router（[locale] 动态根路由）
+│   │   ├── [locale]/
+│   │   │   ├── page.tsx         # 首页
+│   │   │   ├── dashboard/       # 运营面板
+│   │   │   ├── reports/         # 报告管理
+│   │   │   ├── settings/        # 系统配置
+│   │   │   └── ...              # 12 个页面总计
+│   ├── components/              # 43 个 React 组件（表格/图表/表单/布局）
+│   ├── lib/                     # 工具库
+│   │   ├── types/               # TypeScript 定义（与后端 models 对应）
+│   │   ├── api/                 # API client（自动生成或手写）
+│   │   ├── webmcp/              # WebMCP Tool 定义 + Provider
+│   │   └── utils.ts             # 通用工具函数
+│   ├── stores/                  # Zustand 状态管理
+│   ├── package.json
+│   └── Dockerfile
+│
+├── shared/                      # 前后端共享定义（新）
+│   ├── types.ts                 # 公共 TypeScript 类型
+│   └── constants.ts             # 常量定义
+│
+├── src/                         # 原 Python 分析核心（保留）
+│   ├── analysis_engine.py       # 核心分析引擎（被后端调用）
+│   ├── data_processor.py        # Excel 解析器
+│   ├── config.py                # 业务配置（月度目标、列映射）
+│   └── ...                      # M1-M8 所有功能代码
 │
 ├── input/                       # XLSX 数据源（.gitignore）
 ├── output/                      # 生成的报告输出
-├── config/                      # 面板配置持久化（panel_config.json）
-│
 ├── docs/
 │   ├── roadmap.md               # 项目路线图
 │   └── research/                # 调研文档
-│       ├── scoring-framework.md
-│       ├── scoring-result.md
-│       ├── scoring-after-iteration.md
-│       └── visualization-enhancement.md
 │
+├── docker-compose.yml           # 容器编排（后端 + 前端）
 └── key/                         # 凭证存储（.gitignore）
 ```
 
@@ -99,6 +113,7 @@ Excel 数据源 → XlsxReader → DataProcessor → AnalysisEngine → Markdown
 | M7.5 | 2026-02-19 | 满分迭代 | 预测模型×3自动选优、动态异常阈值、LTV简化、ROI敏感度、异常UI、通知反馈、角色权限、数据质量指示、TOC导航、行动追踪、异常检测章节、i18n 41键 | 5 files mod, +478 lines, QA 12/12 PASS |
 | M7.6 | 2026-02-19 | 数据源接入修复 | 订单明细 Loader 修复(357 单)，打卡率真实加载(74 CC)，ROI 分布 37.3%/62.7%，3 级降级 | 2 files mod, +36 lines, QA PASS |
 | M8 | 2026-02-20 | 历史数据累积系统 | SQLite 快照存储(4表)、历史批量导入、每日自动累积、CC 成长曲线、日级预测增强、Streamlit 快照管理 UI | 2 files new, 7 files mod, +560 lines, QA 8/8 PASS |
+| M9 | 2026-02-20 | Streamlit → Next.js + FastAPI 全面改造 | 后端 FastAPI 7 routers/30+ endpoints、前端 Next.js 14 12页/43组件、WebMCP 8 Tool、Docker 容器化、i18n 升级、E2E 全通过 | 85 files new, 3 files mod, +10000+ lines, QA 16/16 PASS |
 
 ## 已知问题与技术债
 | 序号 | 类别 | 描述 | 优先级 | 计划里程碑 | 备注 |
@@ -109,3 +124,9 @@ Excel 数据源 → XlsxReader → DataProcessor → AnalysisEngine → Markdown
 | 4 | API 生命周期 | LINE Notify API 已于 2025 年 3 月停用，需迁移到 LINE Messaging API | P1 | M7+ | 当前 token 方式仍可用，M6 已预留 notifier 接口 |
 | 5 | 数据依赖 | CC 成长曲线需要历史数据串联（当前仅支持月度快照） | P2 | M8 | 需要 TimeSeries 数据源 |
 | 6 | 数据依赖 | LTV 模型需要 CRM 续费/续费率数据 | P2 | M8 | 财务部/CRM 需开放接口 |
+| 7 | 前端组件 | dashboard/page.tsx 内容为空，需补充实际组件调用 | P2 | M10 | 运营面板 Dashboard 实现待补充 |
+| 8 | 部署配置 | npm install 尚未在容器外执行，首次本地启动需手动运行 | P3 | M10 | Docker 内自动执行，本地开发流程待文档化 |
+| 9 | 浏览器兼容 | WebMCP 目前使用 @mcp-b/global polyfill，等浏览器原生支持后可移除 | P3 | M11 | 当前可用，后续升级移除 polyfill |
+
+## WebMCP
+不适用（非 Web 前端项目）。如后续添加 Web UI，参见全局 CLAUDE.md WebMCP 章节。

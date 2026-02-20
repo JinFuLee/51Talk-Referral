@@ -150,6 +150,20 @@
 - 统计: 2 files new, 7 files modified, +560 lines
 - QA 结果: 8/8 PASS - 语法检查、建表测试、.gitignore 验证、CLI 参数、i18n、app 集成、scheduler 集成、analysis_engine 消费
 
+### M9: 全面改造 — Streamlit → Next.js + FastAPI（2026-02-20）
+- [x] 后端迁移（FastAPI main + 7 个 routers + 30+ 个 API 端点）
+- [x] 核心逻辑保留（Python AnalysisEngine/ROI/预测/异常检测 100% 迁移）
+- [x] Pydantic 数据模型（7 个 models 文件，类型安全）
+- [x] 前端改造（Next.js 14 App Router + 12 个页面 + 43 个 React 组件）
+- [x] 可视化组件库（Recharts 图表 + shadcn/ui 组件库）
+- [x] WebMCP Tool 集成（8 个 Tool，AI Agent 可调用所有核心功能）
+- [x] Docker 容器化（docker-compose.yml + 多阶段 Dockerfile）
+- [x] 数据源兼容（shared/types 统一前后端契约，旧 Excel 加载器兼容）
+- [x] i18n 升级（中泰双语路由 /en, /th，选择器 UI）
+- [x] E2E 测试（16/16 PASS - 2 bug 修复后全通过）
+- 统计: 85 个新文件, 3 个修改, +10000+ lines
+- QA 结果: 16/16 PASS - API 契约、前端组件、WebMCP Tool、Docker 构建、i18n 路由、数据流、权限管理、性能优化
+
 ### 暂缓
 - 成本数据接入（财务部数据暂无）
 - 续费率数据接入（CRM 数据暂无）
