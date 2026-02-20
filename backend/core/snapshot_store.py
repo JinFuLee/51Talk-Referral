@@ -7,16 +7,24 @@ import json
 from typing import Dict, List, Optional, Any
 from datetime import datetime, timedelta
 from pathlib import Path
-from .config import BASE_DIR
+from core.config import BASE_DIR
 
 
 class SnapshotStore:
     """快照存储系统，使用 SQLite 保存每日分析结果"""
 
-    def __init__(self):
-        """初始化数据库连接和表结构"""
+    def __init__(self, project_root: Optional[Path] = None):
+        """
+        初始化数据库连接和表结构
+
+        Args:
+            project_root: 项目根目录（可选，默认使用 config.BASE_DIR）
+        """
         # 创建 data 目录
-        self.data_dir = BASE_DIR / "data"
+        if project_root is not None:
+            self.data_dir = Path(project_root) / "data"
+        else:
+            self.data_dir = BASE_DIR / "data"
         self.data_dir.mkdir(parents=True, exist_ok=True)
 
         # 数据库路径
@@ -202,16 +210,7 @@ class SnapshotStore:
         cc_name: Optional[str] = None,
         limit_days: int = 90
     ) -> List[Dict]:
-        """
-        查询 CC 历史排名数据
-
-        Args:
-            cc_name: CC 名称，None 则返回所有 CC
-            limit_days: 限制查询天数
-
-        Returns:
-            排名历史记录列表
-        """
+        """查询 CC 历史排名数据"""
         cursor = self.conn.cursor()
 
         if cc_name:
@@ -236,19 +235,9 @@ class SnapshotStore:
         month: str,
         metric: Optional[str] = None
     ) -> List[Dict]:
-        """
-        查询月度每日 KPI 时间序列
-
-        Args:
-            month: 月份，格式 "YYYYMM"
-            metric: 指标名称，None 则返回所有指标
-
-        Returns:
-            KPI 时间序列数据
-        """
+        """查询月度每日 KPI 时间序列"""
         cursor = self.conn.cursor()
 
-        # 构造日期范围
         year = month[:4]
         mon = month[4:6]
         date_prefix = f"{year}-{mon}"
@@ -271,12 +260,7 @@ class SnapshotStore:
         return [dict(row) for row in rows]
 
     def get_snapshot_dates(self) -> List[str]:
-        """
-        查询所有不重复的快照日期
-
-        Returns:
-            日期列表（升序）
-        """
+        """查询所有不重复的快照日期"""
         cursor = self.conn.cursor()
         cursor.execute("""
             SELECT DISTINCT snapshot_date FROM daily_kpi
@@ -286,12 +270,7 @@ class SnapshotStore:
         return [row[0] for row in rows]
 
     def get_stats(self) -> Dict[str, Any]:
-        """
-        获取数据库统计信息
-
-        Returns:
-            统计信息字典
-        """
+        """获取数据库统计信息"""
         cursor = self.conn.cursor()
 
         stats = {}
@@ -325,15 +304,9 @@ class SnapshotStore:
         return stats
 
     def cleanup(self, days_to_keep: int = 365):
-        """
-        清理过期数据
-
-        Args:
-            days_to_keep: 保留天数（默认 365）
-        """
+        """清理过期数据"""
         cursor = self.conn.cursor()
 
-        # 删除超过 N 天的数据
         cursor.execute("""
             DELETE FROM daily_kpi
             WHERE snapshot_date < date('now', '-' || ? || ' days')
@@ -350,9 +323,120 @@ class SnapshotStore:
         """, (days_to_keep,))
 
         self.conn.commit()
-
-        # 执行 VACUUM 压缩数据库
         cursor.execute("VACUUM")
+
+    def cleanup_old_snapshots(self, days: int = 90) -> int:
+        """
+        清理 N 天前的快照数据（snapshots API 调用）
+
+        Args:
+            days: 保留最近 N 天，更早的数据删除
+
+        Returns:
+            删除的行数（daily_kpi 表）
+        """
+        cursor = self.conn.cursor()
+
+        cursor.execute("""
+            DELETE FROM daily_kpi
+            WHERE snapshot_date < date('now', '-' || ? || ' days')
+        """, (days,))
+        deleted = cursor.rowcount
+
+        cursor.execute("""
+            DELETE FROM cc_ranking_snapshot
+            WHERE snapshot_date < date('now', '-' || ? || ' days')
+        """, (days,))
+
+        cursor.execute("""
+            DELETE FROM multi_source_digest
+            WHERE snapshot_date < date('now', '-' || ? || ' days')
+        """, (days,))
+
+        self.conn.commit()
+        return deleted
+
+    def get_daily_kpi(
+        self,
+        date_from: Optional[str] = None,
+        date_to: Optional[str] = None,
+        metric: Optional[str] = None,
+    ) -> List[Dict]:
+        """
+        查询日级 KPI（snapshots API 调用）
+
+        Args:
+            date_from: 起始日期 YYYY-MM-DD（含）
+            date_to:   结束日期 YYYY-MM-DD（含）
+            metric:    指标名称过滤
+
+        Returns:
+            [{snapshot_date, metric, value, time_progress}, ...]
+        """
+        cursor = self.conn.cursor()
+
+        conditions = []
+        params: list = []
+
+        if date_from:
+            conditions.append("snapshot_date >= ?")
+            params.append(date_from)
+        if date_to:
+            conditions.append("snapshot_date <= ?")
+            params.append(date_to)
+        if metric:
+            conditions.append("metric = ?")
+            params.append(metric)
+
+        where = ("WHERE " + " AND ".join(conditions)) if conditions else ""
+        cursor.execute(f"""
+            SELECT snapshot_date, metric, value, time_progress
+            FROM daily_kpi
+            {where}
+            ORDER BY snapshot_date ASC, metric ASC
+        """, params)
+
+        return [dict(row) for row in cursor.fetchall()]
+
+    def get_cc_growth(
+        self,
+        cc_name: str,
+        date_from: Optional[str] = None,
+        date_to: Optional[str] = None,
+    ) -> List[Dict]:
+        """
+        查询指定 CC 的成长曲线（snapshots API 调用）
+
+        Args:
+            cc_name:   CC 姓名
+            date_from: 起始日期 YYYY-MM-DD
+            date_to:   结束日期 YYYY-MM-DD
+
+        Returns:
+            [{snapshot_date, cc_name, composite, rank, ...}, ...]
+        """
+        cursor = self.conn.cursor()
+
+        conditions = ["cc_name = ?"]
+        params: list = [cc_name]
+
+        if date_from:
+            conditions.append("snapshot_date >= ?")
+            params.append(date_from)
+        if date_to:
+            conditions.append("snapshot_date <= ?")
+            params.append(date_to)
+
+        where = "WHERE " + " AND ".join(conditions)
+        cursor.execute(f"""
+            SELECT snapshot_date, cc_name, team, composite, rank,
+                   leads_score, conversion_score, followup_score, checkin_score
+            FROM cc_ranking_snapshot
+            {where}
+            ORDER BY snapshot_date ASC
+        """, params)
+
+        return [dict(row) for row in cursor.fetchall()]
 
     def __del__(self):
         """关闭数据库连接"""
