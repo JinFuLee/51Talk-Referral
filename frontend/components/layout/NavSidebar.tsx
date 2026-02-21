@@ -38,6 +38,7 @@ import {
   FileText,
   Menu,
   X,
+  Monitor,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -93,6 +94,7 @@ const SYS_ITEMS: NavItem[] = [
   { href: "/settings", label: "系统设置", Icon: Settings },
   { href: "/snapshots", label: "历史快照", Icon: Clock },
   { href: "/reports", label: "分析报告", Icon: FileText },
+  { href: "/present", label: "汇报模式", Icon: Monitor },
 ];
 
 function NavLink({ href, label, Icon }: NavItem) {
