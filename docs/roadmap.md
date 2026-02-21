@@ -304,6 +304,30 @@
 - QA 结果: 16/19 PASS → bugfix → 19/19 PASS (3 P0+P2 bugs 已修复)
 - 技术债: PlaceholderSlide 降级待替换、Recharts Legend TS 错误 3 个、ExecutiveSummarySlide endpoint 字段格式待对齐
 
+### M18.2+M19: PlaceholderSlide 全替换 + 36key 注册表 + TS compile PASS（2026-02-22）
+- [x] PlaceholderSlide 全替换 24 个幻灯片组件
+  - ActionPlanSlide × 3 slides（运营/管理层/执行）
+  - MeetingSummarySlide × 2 slides（周报/月报）
+  - ResourceSlide × 2 slides（预算/工具）
+  - 每个 Slide 对应业务数据 Loader + API endpoint
+- [x] 36 key 注册表完成（nav.slides.{slide_id}.title/subtitle/description）
+- [x] TypeScript 编译 PASS（TS 0 errors）
+- [x] next build SUCCESS（包含 3 个预存在 TS 错误修复）
+  - Recharts Legend 类型对齐（LegendType 泛型）
+  - ExecutiveSummarySlide endpoint 字段格式映射
+  - WhatIfSlide 数值类型转换
+- [x] 3 MK 并行开发（8 slides × 3 teams）+ 1 MK 集成验证
+  - mk-gm-slides-sonnet: Executive/Manager 12 slides
+  - mk-ops-slides-sonnet: Operator/Daily 12 slides
+  - mk-cross-slides-sonnet: 跨场景幻灯片 8 slides
+  - mk-integration-sonnet: TS compile + next build 验证
+- 统计: 28 files changed, +5089 lines
+- QA 结果: TS 0 errors, next build SUCCESS, 36 i18n keys 注册完毕
+- 技术债新增:
+  - ActionPlanSlide/MeetingSummarySlide/ResourceSlide 使用静态模板数据，待对接真实 PDCA 系统
+  - 部分 slide 组件 API endpoint 可能返回 404（后端未实现对应路由时 fallback 到空数据）
+  - WhatIfSlide 滑块模拟为前端本地计算，未调用后端 POST /api/analysis/what-if
+
 ### 暂缓
 - 成本数据接入（财务部数据暂无）
 - 续费率数据接入（CRM 数据暂无）
