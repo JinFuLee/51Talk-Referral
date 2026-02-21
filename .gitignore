@@ -55,3 +55,7 @@ package-lock.json
 *.swp
 *.swo
 .DS_Store
+
+# Playwright session & temp downloads
+.playwright-session/
+_downloads_tmp/

@@ -1,0 +1,229 @@
+{
+  "_comment": "BI 数据源自动下载配置。每个 page 对应一个 BI 看板页面，tables 里每项对应页面上一张表的导出。用户需填入 page_url。",
+  "settings": {
+    "download_dir": "input",
+    "browser_data_dir": ".playwright-session",
+    "headless": false,
+    "export_format": "EXCEL",
+    "timeout_ms": 30000,
+    "delay_between_downloads_ms": 3000
+  },
+  "pages": [
+    {
+      "name": "海外转介绍关键KPI看板",
+      "source": "aliyun_bi",
+      "page_url": "https://bi.aliyuncs.com/token3rd/dashboard/view/pc.htm?pageId=da9e569f-7220-4034-a3b0-9d8e6f433b5b&accessTicket=d5290d53-0966-4155-b6dc-41ffcc84b72f&dd_orientation=auto&qbi_version_param=1",
+      "tables": [
+        {
+          "table_title": "转化数据_by市场/转介绍",
+          "tab": "by Channel 渠道",
+          "folder": "BI-KPI_当月转介绍打卡率_D-1"
+        },
+        {
+          "table_title": "本月围场数据汇总",
+          "tab": null,
+          "folder": "BI-KPI_市场&转介绍-本月围场数据_D-1",
+          "_note": "同一看板可能有多张围场表，按筛选条件区分"
+        },
+        {
+          "table_title": "本月围场数据汇总",
+          "tab": null,
+          "filter": {"市场/转介绍 MKT/REF": "市场"},
+          "folder": "BI-KPI_市场-本月围场数据_D-1"
+        },
+        {
+          "table_title": "本月围场数据汇总",
+          "tab": null,
+          "filter": {"市场/转介绍 MKT/REF": "转介绍"},
+          "folder": "BI-KPI_转介绍-本月围场数据_D-1"
+        }
+      ]
+    },
+    {
+      "name": "海外SS转介绍leads看板",
+      "source": "aliyun_bi",
+      "page_url": "__FILL_IN__",
+      "tables": [
+        {
+          "table_title": "转介绍leads达成_by CM_EA_宽口径",
+          "tab": null,
+          "folder": "BI-Leads_宽口径leads达成_D-1"
+        },
+        {
+          "table_title": "CC_CM_EA_宽口径转介绍类型-当月效率",
+          "tab": null,
+          "folder": "BI-Leads_全口径转介绍类型-当月效率_D-1"
+        },
+        {
+          "table_title": "CM_EA转介绍leads明细表",
+          "tab": null,
+          "folder": "BI-Leads_全口径leads明细表_D-1"
+        },
+        {
+          "table_title": "转介绍leads达成_by个人",
+          "tab": null,
+          "folder": "BI-Leads_宽口径leads达成-个人_D-1"
+        }
+      ]
+    },
+    {
+      "name": "海外转介绍cohort模型看板",
+      "source": "aliyun_bi",
+      "page_url": "__FILL_IN__",
+      "tables": [
+        {
+          "table_title": "海外转介绍cohort模型-CC触达率",
+          "tab": null,
+          "folder": "BI-cohort模型_CC触达率_M-1"
+        },
+        {
+          "table_title": "海外转介绍cohort模型-参与率",
+          "tab": null,
+          "folder": "BI-cohort模型_CC参与率_M-1"
+        },
+        {
+          "table_title": "海外转介绍cohort模型-打卡率",
+          "tab": null,
+          "folder": "BI-cohort模型_CC打卡率_M-1"
+        },
+        {
+          "table_title": "海外转介绍cohort模型-带新系数",
+          "tab": null,
+          "folder": "BI-cohort模型_CC帶新系數_M-1"
+        },
+        {
+          "table_title": "海外转介绍cohort模型-带货比",
+          "tab": null,
+          "folder": "BI-cohort模型_CC帶貨比_M-1"
+        },
+        {
+          "table_title": "转介绍cohort明细表",
+          "tab": null,
+          "folder": "BI-cohort模型_CCcohort明细表_M-1"
+        }
+      ]
+    },
+    {
+      "name": "海外北极星行动指标看板",
+      "source": "aliyun_bi",
+      "page_url": "__FILL_IN__",
+      "tables": [
+        {
+          "table_title": "转介绍-当月24H打卡参与率",
+          "tab": null,
+          "folder": "BI-北极星指标_当月24H打卡率_D-1"
+        }
+      ]
+    },
+    {
+      "name": "海外订单看板",
+      "source": "aliyun_bi",
+      "page_url": "__FILL_IN__",
+      "tables": [
+        {
+          "table_title": "海外CC上班人数",
+          "tab": null,
+          "folder": "BI-订单_CC上班人数_D-1"
+        },
+        {
+          "table_title": "海外SS上班人数",
+          "tab": null,
+          "folder": "BI-订单_SS上班人数_D-1"
+        },
+        {
+          "table_title": "明细表-凌云用户群_套餐数据",
+          "tab": null,
+          "folder": "BI-订单_明细_D-1"
+        },
+        {
+          "table_title": "套餐类型订单日趋势",
+          "tab": null,
+          "folder": "BI-订单_套餐类型订单日趋势_D-1"
+        },
+        {
+          "table_title": "业绩日趋势",
+          "tab": null,
+          "folder": "BI-订单_业绩日趋势_D-1"
+        },
+        {
+          "table_title": "套餐类型占比",
+          "tab": null,
+          "folder": "BI-订单_套餐类型占比_D-1"
+        },
+        {
+          "table_title": "分小组套餐类型占比",
+          "tab": null,
+          "folder": "BI-订单_分小组套餐类型占比_D-1"
+        },
+        {
+          "table_title": "套餐分渠道金额",
+          "tab": null,
+          "folder": "BI-订单_套餐分渠道金额_D-1"
+        }
+      ]
+    },
+    {
+      "name": "泰国运营数据看板（宣宣）",
+      "source": "51talk_bi",
+      "page_url": "http://bi.51talk.com/backend/market/overseas_referral_kpi_th",
+      "tables": [
+        {
+          "table_title": "漏斗跟进效率（T+1）",
+          "tab": null,
+          "folder": "宣宣_漏斗跟进效率_D-1"
+        },
+        {
+          "table_title": "截面跟进效率",
+          "tab": null,
+          "folder": "宣宣_截面跟进效率_D-1"
+        },
+        {
+          "table_title": "截面跟进效率——月度同期",
+          "tab": null,
+          "folder": "宣宣_截面跟进效率-月度环比_D-1"
+        },
+        {
+          "table_title": "截面跟进效率副本",
+          "tab": null,
+          "folder": "宣宣_转介绍渠道-月度环比_D-1",
+          "_note": "文件名显示为副本，实际是渠道月度环比"
+        },
+        {
+          "table_title": "每日外呼数据",
+          "tab": null,
+          "folder": "宣宣_转介绍每日外呼数据_D-1"
+        },
+        {
+          "table_title": "转介绍体验用户分配后跟进明细",
+          "tab": null,
+          "folder": "宣宣_转介绍体验用户分配后跟进明细_D-1"
+        },
+        {
+          "table_title": "付费数据当月跟进明细",
+          "tab": null,
+          "folder": "宣宣_付费用户围场当月跟进明细_D-1"
+        },
+        {
+          "table_title": "不同围场月度付费用户跟进",
+          "tab": null,
+          "folder": "宣萱_不同围场月度付费用户跟进_D-1"
+        },
+        {
+          "table_title": "月度付费用户跟进",
+          "tab": null,
+          "folder": "宣萱_月度付费用户跟进_D-1"
+        },
+        {
+          "table_title": "首次体验课课前课后跟进",
+          "tab": null,
+          "folder": "宣萱_首次体验课课前课后跟进_D-1"
+        },
+        {
+          "table_title": "明细表-泰国课前外呼覆盖",
+          "tab": null,
+          "folder": "宣萱_明细表-泰国课前外呼覆盖_D-1"
+        }
+      ]
+    }
+  ]
+}
