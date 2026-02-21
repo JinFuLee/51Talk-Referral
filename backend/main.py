@@ -14,7 +14,7 @@ sys.path.insert(0, str(BACKEND_DIR))
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from api import analysis, reports, datasources, config, snapshots, notifications, health, insights, system, cohort_detail, channel_trend, outreach_heatmap, outreach_coverage, cohort_decay, north_star, paid_followup, cohort_student
+from api import analysis, reports, datasources, config, snapshots, notifications, health, insights, system, cohort_detail, channel_trend, outreach_heatmap, outreach_coverage, cohort_decay, north_star, paid_followup, cohort_student, funnel_detail, channel_mom, retention_rank, leads_detail
 from services.analysis_service import AnalysisService
 
 app = FastAPI(
@@ -95,6 +95,10 @@ app.include_router(cohort_decay.router, prefix="/api/analysis", tags=["cohort-de
 app.include_router(north_star.router, prefix="/api/analysis", tags=["north-star"])
 app.include_router(paid_followup.router, prefix="/api/analysis", tags=["paid-followup"])
 app.include_router(cohort_student.router, prefix="/api/analysis", tags=["cohort-student"])
+app.include_router(funnel_detail.router, prefix="/api/analysis", tags=["funnel-detail"])
+app.include_router(channel_mom.router, prefix="/api/analysis", tags=["channel-mom"])
+app.include_router(retention_rank.router, prefix="/api/analysis", tags=["retention"])
+app.include_router(leads_detail.router, prefix="/api/analysis", tags=["leads-detail"])
 
 
 @app.on_event("startup")
@@ -116,6 +120,10 @@ async def startup_event():
     north_star.set_service(_analysis_service)
     paid_followup.set_service(_analysis_service)
     cohort_student.set_service(_analysis_service)
+    funnel_detail.set_service(_analysis_service)
+    channel_mom.set_service(_analysis_service)
+    retention_rank.set_service(_analysis_service)
+    leads_detail.set_service(_analysis_service)
 
     # 后台自动运行分析（非阻塞）
     import asyncio

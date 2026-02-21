@@ -80,6 +80,12 @@ export const analysisAPI = {
   getTeamPackageMix: () => request<{ teams: Array<{ team: string; items: Array<{ product_type: string; ratio: number }> }> }>("/analysis/team-package-mix"),
   getChannelRevenue: () => request<{ channels: Array<{ channel: string; revenue_usd: number; revenue_thb: number; percentage: number }>; total_usd: number }>("/analysis/channel-revenue"),
   getOutreachCoverage: () => request<unknown>("/analysis/outreach-coverage"),
+  getFunnelDetail: () => request<unknown>("/analysis/funnel-detail"),
+  getSectionEfficiency: () => request<unknown>("/analysis/section-efficiency"),
+  getChannelMoM: () => request<unknown>("/analysis/channel-mom"),
+  getRetentionContribution: () => request<unknown>("/analysis/retention-contribution"),
+  getEnclosureChannelMatrix: () => request<unknown>("/analysis/enclosure-channel-matrix"),
+  getTimeInterval: () => request<unknown>("/analysis/time-interval"),
 };
 
 // ── Reports ───────────────────────────────────────────────────────────────────

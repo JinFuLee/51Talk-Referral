@@ -308,3 +308,27 @@ export function useChannelRevenue() {
 export function useOutreachCoverage() {
   return useSWR("analysis/outreach-coverage", () => analysisAPI.getOutreachCoverage());
 }
+
+export function useFunnelDetail() {
+  return useSWR("analysis/funnel-detail", () => analysisAPI.getFunnelDetail());
+}
+
+export function useSectionEfficiency() {
+  return useSWR("analysis/section-efficiency", () => analysisAPI.getSectionEfficiency());
+}
+
+export function useChannelMoM() {
+  return useSWR("analysis/channel-mom", () => analysisAPI.getChannelMoM());
+}
+
+export function useRetentionContribution() {
+  return useSWR("analysis/retention-contribution", () => analysisAPI.getRetentionContribution());
+}
+
+export function useEnclosureChannelMatrix() {
+  return useSWR("analysis/enclosure-channel-matrix", () => analysisAPI.getEnclosureChannelMatrix());
+}
+
+export function useTimeInterval() {
+  return useSWR("analysis/time-interval", () => analysisAPI.getTimeInterval());
+}

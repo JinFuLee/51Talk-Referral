@@ -23,6 +23,9 @@ const OPS_ITEMS: NavItem[] = [
   { href: "/ops/kpi-north-star", label: "北极星KPI", icon: "⭐" },
   { href: "/ops/funnel-team", label: "团队漏斗", icon: "🔄" },
   { href: "/ops/followup-alert", label: "跟进预警", icon: "🚨" },
+  { href: "/ops/funnel-detail", label: "漏斗详情", icon: "📋" },
+  { href: "/ops/channel-mom", label: "渠道环比", icon: "📊" },
+  { href: "/ops/retention-rank", label: "留存排名", icon: "🏅" },
 ];
 
 const BIZ_ITEMS: NavItem[] = [
@@ -39,6 +42,9 @@ const BIZ_ITEMS: NavItem[] = [
   { href: "/biz/orders", label: "订单分析", icon: "🛒" },
   { href: "/biz/cohort-decay", label: "Cohort衰减", icon: "📉" },
   { href: "/biz/cohort-students", label: "学员明细", icon: "👨‍🎓" },
+  { href: "/biz/orders-detail", label: "订单详析", icon: "📦" },
+  { href: "/biz/enclosure-detail", label: "围场详情", icon: "🔬" },
+  { href: "/biz/leads-detail", label: "Leads详情", icon: "🔗" },
 ];
 
 const SYS_ITEMS: NavItem[] = [
