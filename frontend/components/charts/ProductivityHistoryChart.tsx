@@ -13,6 +13,7 @@ import {
 } from "recharts";
 import { Card } from "@/components/ui/Card";
 import { Spinner } from "@/components/ui/Spinner";
+import { CHART_FONT_SIZE, CHART_HEIGHT } from "@/lib/utils";
 
 interface SeriesPoint {
   date: string;
@@ -108,20 +109,20 @@ export function ProductivityHistoryChart() {
           <Spinner />
         </div>
       ) : (
-        <ResponsiveContainer width="100%" height={260}>
+        <ResponsiveContainer width="100%" height={CHART_HEIGHT.md} aria-label="出勤率历史趋势">
           <LineChart data={series} margin={{ top: 12, right: 16, left: 0, bottom: 4 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-            <XAxis dataKey="date" tick={{ fontSize: 11 }} />
+            <XAxis dataKey="date" tick={{ fontSize: CHART_FONT_SIZE.md }} />
             <YAxis
               tickFormatter={formatYAxis}
               domain={[0, 1]}
-              tick={{ fontSize: 11 }}
+              tick={{ fontSize: CHART_FONT_SIZE.md }}
             />
             <Tooltip
               formatter={(value: number) => pct(value)}
               labelFormatter={(label) => `日期: ${label}`}
             />
-            <Legend wrapperStyle={{ fontSize: 12 }} />
+            <Legend wrapperStyle={{ fontSize: CHART_FONT_SIZE.md }} />
             <Line
               type="monotone"
               dataKey="cc_rate"

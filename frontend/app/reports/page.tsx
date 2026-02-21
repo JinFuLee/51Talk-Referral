@@ -1,14 +1,16 @@
 "use client";
 
 import { useState } from "react";
-import { useReportList } from "@/lib/hooks";
+import { useReportList, useTranslation } from "@/lib/hooks";
 import { reportsAPI } from "@/lib/api";
 import { ReportViewer } from "@/components/reports/ReportViewer";
 import { Card } from "@/components/ui/Card";
-import { Spinner } from "@/components/ui/Spinner";
+import { Skeleton } from "@/components/ui/Skeleton";
+import { ErrorBoundary } from "@/components/providers/ErrorBoundary";
 import type { ReportFile } from "@/lib/types";
 
 export default function ReportsPage() {
+  const { t } = useTranslation();
   const { data: reports, isLoading } = useReportList();
   const [selected, setSelected] = useState<ReportFile | null>(null);
   const [content, setContent] = useState<string | null>(null);
@@ -34,13 +36,14 @@ export default function ReportsPage() {
 
   return (
     <div className="space-y-4">
-      <h1 className="text-2xl font-bold text-slate-800">分析报告</h1>
+      <h1 className="text-2xl font-bold text-slate-800">{t("reports.title")}</h1>
 
+      <ErrorBoundary>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 h-[calc(100vh-160px)]">
         {/* File list */}
-        <Card title="报告列表" className="overflow-auto">
+        <Card title={t("reports.card.list")} className="overflow-auto">
           {isLoading ? (
-            <Spinner />
+            <Skeleton className="h-32 w-full" />
           ) : reports && reports.length > 0 ? (
             <ul className="space-y-1">
               {reports.map((r) => (
@@ -76,7 +79,7 @@ export default function ReportsPage() {
             </ul>
           ) : (
             <div className="text-sm text-slate-400 text-center py-8">
-              暂无报告文件
+              {t("reports.label.noReports")}
             </div>
           )}
         </Card>
@@ -85,9 +88,7 @@ export default function ReportsPage() {
         <div className="lg:col-span-2 overflow-auto">
           {selected ? (
             contentLoading ? (
-              <div className="flex justify-center py-20">
-                <Spinner />
-              </div>
+              <Skeleton className="h-32 w-full" />
             ) : content ? (
               <ReportViewer
                 content={content}
@@ -96,7 +97,7 @@ export default function ReportsPage() {
               />
             ) : (
               <div className="text-sm text-slate-400 text-center py-20">
-                加载中…
+                {t("reports.label.loading")}
               </div>
             )
           ) : (
@@ -104,11 +105,12 @@ export default function ReportsPage() {
               <svg className="w-12 h-12 mb-3 opacity-30" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
-              <span className="text-sm">选择左侧报告查看内容</span>
+              <span className="text-sm">{t("reports.label.selectReport")}</span>
             </div>
           )}
         </div>
       </div>
+      </ErrorBoundary>
     </div>
   );
 }

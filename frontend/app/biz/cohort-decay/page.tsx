@@ -2,10 +2,12 @@
 
 import { useState } from "react";
 import useSWR from "swr";
+import { useTranslation } from "@/lib/hooks";
 import { CohortDecayCurve } from "@/components/biz/CohortDecayCurve";
 import { CohortCoefficientChart } from "@/components/biz/CohortCoefficientChart";
 import { Card } from "@/components/ui/Card";
-import { Spinner } from "@/components/ui/Spinner";
+import { Skeleton } from "@/components/ui/Skeleton";
+import { ErrorBoundary } from "@/components/providers/ErrorBoundary";
 
 async function fetcher(url: string) {
   const res = await fetch(url);
@@ -82,6 +84,7 @@ function parseCohortGroups(
 // ── Sub-components ────────────────────────────────────────────────────────────
 
 function DecayTab() {
+  const { t } = useTranslation();
   const [metric, setMetric] = useState<MetricKey>("reach_rate");
   const [groupBy, setGroupBy] = useState<"month" | "team">("month");
 
@@ -125,7 +128,7 @@ function DecayTab() {
                   : "border-slate-200 text-slate-600 hover:border-slate-400"
               }`}
             >
-              {mode === "month" ? "按入组月" : "按小组"}
+              {mode === "month" ? t("biz.cohort-decay.label.byMonth") : t("biz.cohort-decay.label.byTeam")}
             </button>
           ))}
         </div>
@@ -133,20 +136,18 @@ function DecayTab() {
 
       {/* Chart */}
       {isLoading && (
-        <div className="flex justify-center py-16">
-          <Spinner />
-        </div>
+        <Skeleton className="h-48 w-full" />
       )}
       {!isLoading && error && (
         <p className="text-sm text-red-500 py-8 text-center">
-          数据加载失败，请先运行分析（POST /api/analysis/run）
+          {t("biz.cohort-decay.label.loadError")}
         </p>
       )}
       {!isLoading && !error && data && (
         <Card>
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-sm font-semibold text-slate-700">
-              {data.metric_label} — Cohort 月龄衰减曲线
+              {data.metric_label} — {t("biz.cohort-decay.label.decayCurve")}
             </h3>
             <DataSourceBadge source={data.data_source} />
           </div>
@@ -174,16 +175,15 @@ function CoefficientTab() {
 // ── Main Page ─────────────────────────────────────────────────────────────────
 
 export default function CohortDecayPage() {
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<TabId>("decay");
 
   return (
     <div className="max-w-6xl mx-auto space-y-6 px-4 py-6">
       {/* Header */}
       <div>
-        <h1 className="text-xl font-bold text-slate-800">Cohort 衰减分析</h1>
-        <p className="text-sm text-slate-500 mt-1">
-          C1-C5 指标月龄衰减曲线 · C4 带新系数黄金窗口识别
-        </p>
+        <h1 className="text-xl font-bold text-slate-800">{t("biz.cohort-decay.title")}</h1>
+        <p className="text-sm text-slate-500 mt-1">{t("biz.cohort-decay.subtitle")}</p>
       </div>
 
       {/* Tabs */}

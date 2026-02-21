@@ -28,10 +28,10 @@ interface StatCardProps {
 }
 
 const accentMap: Record<string, { card: string; value: string }> = {
-  indigo: { card: "border-l-4 border-l-indigo-500", value: "text-indigo-700" },
-  emerald: { card: "border-l-4 border-l-emerald-500", value: "text-emerald-700" },
-  amber:  { card: "border-l-4 border-l-amber-500",  value: "text-amber-700"  },
-  sky:    { card: "border-l-4 border-l-sky-500",    value: "text-sky-700"    },
+  indigo: { card: "border-l-4 border-l-primary", value: "text-primary" },
+  emerald: { card: "border-l-4 border-l-success", value: "text-success" },
+  amber:  { card: "border-l-4 border-l-warning",  value: "text-warning"  },
+  sky:    { card: "border-l-4 border-l-info",    value: "text-info"    },
 };
 
 function StatCard({ label, value, sub, accent = "indigo" }: StatCardProps) {
@@ -111,7 +111,7 @@ export function CohortStudentOverview({ totalStudents, teams }: CohortStudentOve
               <Bar dataKey="学员数" fill="#c7d2fe" radius={[3, 3, 0, 0]} />
               <Bar dataKey="有效学员" fill="hsl(var(--chart-4))" radius={[3, 3, 0, 0]} />
               <Bar dataKey="触达学员" fill="#38bdf8" radius={[3, 3, 0, 0]} />
-              <Bar dataKey="带新总数" fill="#f59e0b" radius={[3, 3, 0, 0]} />
+              <Bar dataKey="带新总数" fill="hsl(var(--chart-amber))" radius={[3, 3, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
 
@@ -135,15 +135,15 @@ export function CohortStudentOverview({ totalStudents, teams }: CohortStudentOve
                     <td className="px-3 py-1.5 text-center text-slate-600">{t.students.toLocaleString()}</td>
                     <td className="px-3 py-1.5 text-center text-slate-600">{t.valid_students.toLocaleString()}</td>
                     <td className="px-3 py-1.5 text-center text-slate-600">{t.reached_students.toLocaleString()}</td>
-                    <td className="px-3 py-1.5 text-center font-semibold text-indigo-600">{t.bring_new_total}</td>
+                    <td className="px-3 py-1.5 text-center font-semibold text-primary">{t.bring_new_total}</td>
                     <td className="px-3 py-1.5 text-center">
                       <span
                         className={`font-medium ${
                           t.bring_new_rate >= 0.25
-                            ? "text-emerald-600"
+                            ? "text-success"
                             : t.bring_new_rate >= 0.18
-                            ? "text-amber-600"
-                            : "text-rose-500"
+                            ? "text-warning"
+                            : "text-destructive"
                         }`}
                       >
                         {(t.bring_new_rate * 100).toFixed(1)}%

@@ -19,10 +19,10 @@ function ProgressBar({ pct }: { pct: number }) {
   const clamped = Math.min(Math.max(pct, 0), 100);
   const color =
     clamped >= 100
-      ? "bg-emerald-500"
+      ? "bg-success"
       : clamped >= 80
-      ? "bg-amber-400"
-      : "bg-rose-500";
+      ? "bg-warning"
+      : "bg-destructive";
   return (
     <div className="w-full bg-gray-200 rounded-full h-1.5">
       <div
@@ -49,10 +49,10 @@ export function EfficiencyMetricCard({ label, actual, target, impact }: Efficien
         <span
           className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
             gap >= 0
-              ? "bg-emerald-100 text-emerald-700"
+              ? "bg-success/10 text-success"
               : gap >= -5
-              ? "bg-amber-100 text-amber-700"
-              : "bg-rose-100 text-rose-700"
+              ? "bg-warning/10 text-warning"
+              : "bg-destructive/10 text-destructive"
           }`}
         >
           {gap >= 0 ? `+${gap}%` : `${gap}%`}
@@ -72,7 +72,7 @@ export function EfficiencyMetricCard({ label, actual, target, impact }: Efficien
 
       {/* Loss quantification — only when in deficit */}
       {isDeficit && impact && (
-        <div className="text-xs text-rose-600 font-medium">
+        <div className="text-xs text-destructive font-medium">
           损失{" "}
           {impact.lost_students !== undefined && (
             <span>{impact.lost_students} 注册</span>

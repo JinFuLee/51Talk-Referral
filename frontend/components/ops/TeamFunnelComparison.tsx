@@ -34,13 +34,13 @@ interface FunnelApiResponse {
 const COLORS = {
   注册: "hsl(var(--chart-4))",
   预约: "#22d3ee",
-  出席: "#f59e0b",
+  出席: "hsl(var(--chart-amber))",
   付费: "hsl(var(--success))",
 };
 
 const RATE_LABELS: Record<string, string> = {
   预约率: "#22d3ee",
-  出席率: "#f59e0b",
+  出席率: "hsl(var(--chart-amber))",
   付费率: "hsl(var(--success))",
 };
 
@@ -117,7 +117,7 @@ export function TeamFunnelComparison() {
             onClick={() => setView(mode)}
             className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
               view === mode
-                ? "bg-indigo-600 text-white"
+                ? "bg-primary text-primary-foreground"
                 : "bg-slate-100 text-slate-600 hover:bg-slate-200"
             }`}
           >
@@ -213,7 +213,7 @@ export function TeamFunnelComparison() {
                 <td className="px-3 py-2 text-slate-600">{t.预约 ?? "—"}</td>
                 <td className="px-3 py-2 text-slate-600">{t.出席 ?? "—"}</td>
                 <td className="px-3 py-2 text-slate-600">{t.付费 ?? "—"}</td>
-                <td className="px-3 py-2 text-indigo-600 font-medium">
+                <td className="px-3 py-2 text-primary font-medium">
                   {t.conversion_rate != null
                     ? `${(t.conversion_rate * 100).toFixed(1)}%`
                     : "—"}

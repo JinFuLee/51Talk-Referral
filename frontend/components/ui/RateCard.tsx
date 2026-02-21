@@ -1,5 +1,7 @@
 "use client";
 
+import React from "react";
+
 interface RateCardProps {
   label: string;
   rate: number; // 0~1
@@ -7,7 +9,7 @@ interface RateCardProps {
   target?: number; // 0~1
 }
 
-export function RateCard({ label, rate, sub, target }: RateCardProps) {
+function RateCardBase({ label, rate, sub, target }: RateCardProps) {
   const pct = Math.round(rate * 100);
   const targetPct = target !== undefined ? Math.round(target * 100) : undefined;
   const status =
@@ -21,21 +23,21 @@ export function RateCard({ label, rate, sub, target }: RateCardProps) {
 
   const textColor =
     status === "green"
-      ? "text-green-600"
+      ? "text-success"
       : status === "yellow"
-      ? "text-yellow-600"
+      ? "text-warning"
       : status === "red"
-      ? "text-red-600"
+      ? "text-destructive"
       : "text-slate-700";
 
   const barColor =
     status === "green"
-      ? "bg-green-500"
+      ? "bg-success"
       : status === "yellow"
-      ? "bg-yellow-400"
+      ? "bg-warning"
       : status === "red"
-      ? "bg-red-500"
-      : "bg-blue-500";
+      ? "bg-destructive"
+      : "bg-primary";
 
   return (
     <div className="rounded-xl border border-slate-200 bg-white p-4">
@@ -56,3 +58,5 @@ export function RateCard({ label, rate, sub, target }: RateCardProps) {
     </div>
   );
 }
+
+export const RateCard = React.memo(RateCardBase);

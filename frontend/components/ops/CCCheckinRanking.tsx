@@ -27,7 +27,7 @@ interface CCCheckinRankingProps {
 function ProgressBar({ value, max }: { value: number; max: number }) {
   const pct = max > 0 ? Math.min((value / max) * 100, 100) : 0;
   const color =
-    pct >= 100 ? "bg-emerald-500" : pct >= 80 ? "bg-amber-400" : "bg-rose-500";
+    pct >= 100 ? "bg-success" : pct >= 80 ? "bg-warning" : "bg-destructive";
   return (
     <div className="flex items-center gap-2 w-full">
       <div className="flex-1 bg-slate-100 rounded-full h-2">
@@ -59,7 +59,7 @@ export function CCCheckinRanking({
         achievedPct >= 80
           ? "hsl(var(--success))"
           : achievedPct >= 60
-          ? "#f59e0b"
+          ? "hsl(var(--warning))"
           : "hsl(var(--destructive))",
     },
   ];
@@ -147,8 +147,8 @@ export function CCCheckinRanking({
                       <span
                         className={`inline-flex items-center text-xs px-2 py-0.5 rounded-full font-medium ${
                           achieved
-                            ? "bg-emerald-100 text-emerald-700"
-                            : "bg-rose-100 text-rose-700"
+                            ? "bg-success/10 text-success"
+                            : "bg-destructive/10 text-destructive"
                         }`}
                       >
                         {achieved ? "达标" : "未达"}

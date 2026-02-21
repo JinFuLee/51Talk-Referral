@@ -11,6 +11,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { ChannelStat } from "@/lib/types";
+import { CHART_FONT_SIZE, CHART_HEIGHT } from "@/lib/utils";
 
 interface ChannelComparisonProps {
   data: ChannelStat[];
@@ -30,17 +31,17 @@ export function ChannelComparison({ data, lang = "zh" }: ChannelComparisonProps)
   }));
 
   return (
-    <ResponsiveContainer width="100%" height={260}>
+    <ResponsiveContainer width="100%" height={CHART_HEIGHT.md} aria-label="渠道对比柱状图">
       <BarChart data={chartData} margin={{ top: 8, right: 16, left: 0, bottom: 4 }}>
         <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-        <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-        <YAxis tick={{ fontSize: 12 }} />
+        <XAxis dataKey="name" tick={{ fontSize: CHART_FONT_SIZE.md }} />
+        <YAxis tick={{ fontSize: CHART_FONT_SIZE.md }} />
         <Tooltip />
-        <Legend wrapperStyle={{ fontSize: 12 }} />
+        <Legend wrapperStyle={{ fontSize: CHART_FONT_SIZE.md }} />
         <Bar dataKey={regLabel} fill="hsl(var(--chart-2))" radius={[3, 3, 0, 0]} />
         <Bar dataKey={paidLabel} fill="hsl(var(--success))" radius={[3, 3, 0, 0]} />
         {data.some((d) => d.revenue !== undefined) && (
-          <Bar dataKey={revenueLabel} fill="#f59e0b" radius={[3, 3, 0, 0]} />
+          <Bar dataKey={revenueLabel} fill="hsl(var(--chart-amber))" radius={[3, 3, 0, 0]} />
         )}
       </BarChart>
     </ResponsiveContainer>

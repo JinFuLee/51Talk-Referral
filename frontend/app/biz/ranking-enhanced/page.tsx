@@ -1,17 +1,18 @@
 "use client";
 
+import { useTranslation } from "@/lib/hooks";
 import { Card } from "@/components/ui/Card";
 import { EnhancedRankingTable } from "@/components/charts/EnhancedRankingTable";
 import { GlossaryBanner } from "@/components/ui/GlossaryBanner";
+import { ErrorBoundary } from "@/components/providers/ErrorBoundary";
 
 export default function RankingEnhancedPage() {
+  const { t } = useTranslation();
   return (
     <div className="max-w-none space-y-4">
       <div>
-        <h1 className="text-xl font-bold text-slate-800">增强排名</h1>
-        <p className="text-xs text-slate-400 mt-0.5">
-          A4 CC 排名增强 — 约课率/出席率/综合评分维度
-        </p>
+        <h1 className="text-xl font-bold text-slate-800">{t("biz.ranking-enhanced.title")}</h1>
+        <p className="text-xs text-slate-400 mt-0.5">{t("biz.ranking-enhanced.subtitle")}</p>
       </div>
       <GlossaryBanner terms={[
         { term: "CC", definition: "前端销售" },
@@ -20,9 +21,11 @@ export default function RankingEnhancedPage() {
         { term: "预约率", definition: "预约课次/外呼接通数" },
         { term: "出席率", definition: "实际出席/预约课次" },
       ]} />
-      <Card title="CC 增强排名表">
-        <EnhancedRankingTable />
-      </Card>
+      <ErrorBoundary>
+        <Card title={t("biz.ranking-enhanced.card.table")}>
+          <EnhancedRankingTable />
+        </Card>
+      </ErrorBoundary>
     </div>
   );
 }

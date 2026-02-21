@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import {
   BarChart,
   Bar,
@@ -12,6 +13,7 @@ import {
 } from "recharts";
 import useSWR from "swr";
 import { Spinner } from "@/components/ui/Spinner";
+import { CHART_FONT_SIZE, CHART_HEIGHT } from "@/lib/utils";
 
 interface CCFunnelRow {
   cc_name: string;
@@ -29,8 +31,8 @@ interface FunnelDetailResponse {
 const BARS = [
   { key: "register_to_reserve", label: "注册→预约", color: "hsl(var(--chart-4))" },
   { key: "reserve_to_attend", label: "预约→出席", color: "hsl(var(--success))" },
-  { key: "attend_to_paid", label: "出席→付费", color: "#f59e0b" },
-  { key: "overall_conversion", label: "总转化率", color: "#f43f5e" },
+  { key: "attend_to_paid", label: "出席→付费", color: "hsl(var(--chart-amber))" },
+  { key: "overall_conversion", label: "总转化率", color: "hsl(var(--chart-rose))" },
 ];
 
 function pct(v: number) {
@@ -45,6 +47,17 @@ const MOCK: CCFunnelRow[] = [
 ];
 
 export function FunnelEfficiencyPanel() {
+  const [hiddenKeys, setHiddenKeys] = useState<Set<string>>(new Set());
+
+  const handleLegendClick = (e: { dataKey?: string }) => {
+    if (!e.dataKey) return;
+    setHiddenKeys((prev) => {
+      const next = new Set(prev);
+      next.has(e.dataKey!) ? next.delete(e.dataKey!) : next.add(e.dataKey!);
+      return next;
+    });
+  };
+
   const { data, isLoading, error } = useSWR<FunnelDetailResponse>(
     "funnel-detail",
     () => fetch("/api/analysis/funnel-detail").then((r) => r.json())
@@ -74,7 +87,7 @@ export function FunnelEfficiencyPanel() {
       <p className="text-xs text-slate-400">
         各 CC 漏斗阶段转化率 · 注册→预约→出席→付费
       </p>
-      <ResponsiveContainer width="100%" height={300}>
+      <ResponsiveContainer width="100%" height={CHART_HEIGHT.lg} aria-label="各CC漏斗转化率">
         <BarChart
           data={rows}
           margin={{ top: 8, right: 16, left: 0, bottom: 4 }}
@@ -82,12 +95,20 @@ export function FunnelEfficiencyPanel() {
           <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
           <XAxis
             dataKey="cc_name"
-            tick={{ fontSize: 11 }}
+            tick={{ fontSize: CHART_FONT_SIZE.md }}
             interval={0}
           />
-          <YAxis tickFormatter={pct} tick={{ fontSize: 11 }} domain={[0, 1]} />
+          <YAxis tickFormatter={pct} tick={{ fontSize: CHART_FONT_SIZE.md }} domain={[0, 1]} />
           <Tooltip formatter={(v: number) => pct(v)} />
-          <Legend wrapperStyle={{ fontSize: 12 }} />
+          <Legend
+            wrapperStyle={{ fontSize: CHART_FONT_SIZE.md }}
+            onClick={handleLegendClick}
+            formatter={(value: string) => (
+              <span style={{ opacity: hiddenKeys.has(value) ? 0.35 : 1, cursor: "pointer" }}>
+                {value}
+              </span>
+            )}
+          />
           {BARS.map((b) => (
             <Bar
               key={b.key}
@@ -96,6 +117,7 @@ export function FunnelEfficiencyPanel() {
               fill={b.color}
               radius={[2, 2, 0, 0]}
               maxBarSize={18}
+              hide={hiddenKeys.has(b.label)}
             />
           ))}
         </BarChart>

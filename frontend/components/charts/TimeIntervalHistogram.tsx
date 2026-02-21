@@ -11,6 +11,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { Spinner } from "@/components/ui/Spinner";
+import { CHART_FONT_SIZE, CHART_HEIGHT } from "@/lib/utils";
 
 interface HistogramBucket {
   bucket: string;
@@ -89,7 +90,7 @@ export function TimeIntervalHistogram() {
         注册 → 付费天数分布 · 共 {resp.total_records} 条记录
       </p>
 
-      <ResponsiveContainer width="100%" height={240}>
+      <ResponsiveContainer width="100%" height={CHART_HEIGHT.md} aria-label="注册付费天数分布直方图">
         <BarChart
           data={resp.histogram}
           margin={{ top: 8, right: 16, left: 0, bottom: 4 }}
@@ -97,13 +98,13 @@ export function TimeIntervalHistogram() {
           <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
           <XAxis
             dataKey="bucket"
-            tick={{ fontSize: 11 }}
+            tick={{ fontSize: CHART_FONT_SIZE.md }}
             interval={0}
           />
           <YAxis
-            tick={{ fontSize: 11 }}
+            tick={{ fontSize: CHART_FONT_SIZE.md }}
             allowDecimals={false}
-            label={{ value: "学员数", angle: -90, position: "insideLeft", fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
+            label={{ value: "学员数", angle: -90, position: "insideLeft", fontSize: CHART_FONT_SIZE.md, fill: "hsl(var(--muted-foreground))" }}
           />
           <Tooltip content={<CustomTooltip />} />
           <Bar

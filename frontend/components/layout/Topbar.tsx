@@ -16,7 +16,7 @@ function ViewModeBadge({ pathname }: { pathname: string }) {
   }
   if (pathname.startsWith("/biz")) {
     return (
-      <span className="text-xs px-2 py-0.5 rounded-full bg-indigo-600 text-white font-medium">
+      <span className="text-xs px-2 py-0.5 rounded-full bg-primary text-primary-foreground font-medium">
         业务视图
       </span>
     );
@@ -63,7 +63,7 @@ export function Topbar() {
           <span
             className={clsx(
               "inline-block w-2.5 h-2.5 rounded-full shadow-sm",
-              isOnline ? "bg-emerald-400" : "bg-rose-400"
+              isOnline ? "bg-success" : "bg-destructive"
             )}
           />
           {isOnline ? "后端在线" : "后端连接断开"}

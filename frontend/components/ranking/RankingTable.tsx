@@ -1,5 +1,7 @@
 "use client";
 
+import React from "react";
+
 type RoleTab = "CC" | "SS" | "LP";
 
 interface RankingTableProps {
@@ -7,7 +9,7 @@ interface RankingTableProps {
   role: RoleTab;
 }
 
-export function RankingTable({ data, role }: RankingTableProps) {
+function RankingTableBase({ data, role }: RankingTableProps) {
   if (data.length === 0) {
     return (
       <div className="rounded-xl border border-slate-200 bg-white p-8 text-center text-sm text-slate-400">
@@ -65,3 +67,5 @@ export function RankingTable({ data, role }: RankingTableProps) {
     </div>
   );
 }
+
+export const RankingTable = React.memo(RankingTableBase);

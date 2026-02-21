@@ -3,9 +3,9 @@
 import type { DataSourceStatus } from "@/lib/types";
 
 const statusStyle: Record<string, string> = {
-  ok: "bg-green-100 text-green-700",
-  missing: "bg-red-100 text-red-600",
-  outdated: "bg-yellow-100 text-yellow-700",
+  ok: "bg-success/10 text-success",
+  missing: "bg-destructive/10 text-destructive",
+  outdated: "bg-warning/10 text-warning",
 };
 
 const statusLabel: Record<string, string> = {

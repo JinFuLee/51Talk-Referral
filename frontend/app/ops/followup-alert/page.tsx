@@ -1,10 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useTranslation } from "@/lib/hooks";
 import { ZeroFollowupAlert } from "@/components/ops/ZeroFollowupAlert";
 import { PrePostCompareChart } from "@/components/ops/PrePostCompareChart";
-
-// ── Types ───────────────────────────────────────────────────────────────────
+import { Skeleton } from "@/components/ui/Skeleton";
+import { ErrorBoundary } from "@/components/providers/ErrorBoundary";
 
 interface ZeroStudent {
   student_id?: string;
@@ -66,9 +67,8 @@ interface CompareData {
   summary: ChannelSummary;
 }
 
-// ── Page ────────────────────────────────────────────────────────────────────
-
 export default function FollowupAlertPage() {
+  const { t } = useTranslation();
   const [alertData, setAlertData] = useState<AlertData | null>(null);
   const [alertLoading, setAlertLoading] = useState(true);
   const [alertError, setAlertError] = useState<string | null>(null);
@@ -103,42 +103,47 @@ export default function FollowupAlertPage() {
       .finally(() => setCompareLoading(false));
   }, []);
 
+  const isLoading = alertLoading || compareLoading;
+
   return (
     <div className="max-w-none space-y-6">
-      {/* Header */}
       <div>
-        <h1 className="text-xl font-bold text-slate-800">跟进预警 & 课前课后对比</h1>
-        <p className="text-xs text-slate-400 mt-0.5">
-          F7 零跟进付费学员预警 · F10 课前 vs 课后跟进效果 A/B 对比
-        </p>
+        <h1 className="text-xl font-bold text-slate-800">{t("ops.followup-alert.title")}</h1>
+        <p className="text-xs text-slate-400 mt-0.5">{t("ops.followup-alert.subtitle")}</p>
       </div>
 
-      {/* Section 1: Zero followup alert */}
-      <section>
-        <h2 className="text-sm font-semibold text-slate-700 mb-3">
-          零跟进付费学员预警（F7）
-        </h2>
-        <ZeroFollowupAlert
-          data={alertData}
-          isLoading={alertLoading}
-          error={alertError}
-        />
-      </section>
+      {isLoading ? (
+        <div className="space-y-4">
+          <Skeleton className="h-32" />
+          <Skeleton className="h-64" />
+        </div>
+      ) : (
+        <ErrorBoundary>
+          <section>
+            <h2 className="text-sm font-semibold text-slate-700 mb-3">
+              {t("ops.followup-alert.section.zeroAlert")}
+            </h2>
+            <ZeroFollowupAlert
+              data={alertData}
+              isLoading={alertLoading}
+              error={alertError}
+            />
+          </section>
 
-      {/* Divider */}
-      <div className="border-t border-slate-100" />
+          <div className="border-t border-slate-100" />
 
-      {/* Section 2: Pre/Post compare */}
-      <section>
-        <h2 className="text-sm font-semibold text-slate-700 mb-3">
-          课前 vs 课后跟进效果对比（F10）
-        </h2>
-        <PrePostCompareChart
-          data={compareData}
-          isLoading={compareLoading}
-          error={compareError}
-        />
-      </section>
+          <section>
+            <h2 className="text-sm font-semibold text-slate-700 mb-3">
+              {t("ops.followup-alert.section.prePost")}
+            </h2>
+            <PrePostCompareChart
+              data={compareData}
+              isLoading={compareLoading}
+              error={compareError}
+            />
+          </section>
+        </ErrorBoundary>
+      )}
     </div>
   );
 }

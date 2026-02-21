@@ -30,7 +30,7 @@ function GaugeArc({ value, max, size = 120 }: { value: number; max: number; size
   const r = size / 2 - 8;
   const circumference = Math.PI * r;
   const offset = circumference * (1 - ratio);
-  const color = ratio >= 0.95 ? "hsl(var(--success))" : ratio >= 0.8 ? "#f59e0b" : "#f43f5e";
+  const color = ratio >= 0.95 ? "hsl(var(--success))" : ratio >= 0.8 ? "hsl(var(--chart-amber))" : "hsl(var(--chart-rose))";
 
   return (
     <svg width={size} height={size / 2 + 16} viewBox={`0 0 ${size} ${size / 2 + 16}`}>

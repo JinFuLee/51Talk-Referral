@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import { cn } from "@/lib/utils";
 import type { ReactNode } from "react";
 
@@ -19,9 +20,9 @@ interface BigMetricCardProps {
 }
 
 const statusColors: Record<StatusLevel, { badge: string; dot: string }> = {
-  green: { badge: "bg-emerald-50 text-emerald-700 border-emerald-200", dot: "bg-emerald-500" },
-  yellow: { badge: "bg-amber-50 text-amber-700 border-amber-200", dot: "bg-amber-500" },
-  red: { badge: "bg-rose-50 text-rose-700 border-rose-200", dot: "bg-rose-500" },
+  green: { badge: "bg-success/10 text-success border-success/30", dot: "bg-success" },
+  yellow: { badge: "bg-warning/10 text-warning border-warning/30", dot: "bg-warning" },
+  red: { badge: "bg-destructive/10 text-destructive border-destructive/30", dot: "bg-destructive" },
   gray: { badge: "bg-slate-50 text-slate-500 border-slate-200", dot: "bg-slate-400" },
 };
 
@@ -32,7 +33,7 @@ const statusEmoji: Record<StatusLevel, string> = {
   gray: "⚪",
 };
 
-export function BigMetricCard({
+function BigMetricCardBase({
   title,
   icon,
   value,
@@ -49,7 +50,7 @@ export function BigMetricCard({
   return (
     <div
       className={cn(
-        "bg-white rounded-2xl border border-slate-100 shadow-lg p-8 flex flex-col gap-4",
+        "bg-white rounded-2xl border border-slate-100 shadow-lg p-6 flex flex-col gap-4",
         className
       )}
     >
@@ -91,10 +92,10 @@ export function BigMetricCard({
               className={cn(
                 "h-full rounded-full transition-all",
                 !status || status === "green"
-                  ? "bg-emerald-500"
+                  ? "bg-success"
                   : status === "yellow"
-                  ? "bg-amber-500"
-                  : "bg-rose-500"
+                  ? "bg-warning"
+                  : "bg-destructive"
               )}
               style={{ width: `${Math.min(progress * 100, 100)}%` }}
             />
@@ -107,3 +108,5 @@ export function BigMetricCard({
     </div>
   );
 }
+
+export const BigMetricCard = React.memo(BigMetricCardBase);

@@ -46,7 +46,7 @@ function CustomTooltip({ active, payload, label }: { active?: boolean; payload?:
   return (
     <div className="bg-white/95 backdrop-blur-md border border-border/40 rounded-xl shadow-flash px-3 py-2 text-xs space-y-1">
       <p className="font-semibold text-slate-700">M{pt.month_age}</p>
-      <p className="text-emerald-600">有效留存率: {pt.valid_rate != null ? `${(pt.valid_rate * 100).toFixed(1)}%` : "—"}</p>
+      <p className="text-success">有效留存率: {pt.valid_rate != null ? `${(pt.valid_rate * 100).toFixed(1)}%` : "—"}</p>
       <p className="text-slate-500">有效 / 总计: {pt.valid_count} / {pt.total}</p>
     </div>
   );
@@ -64,7 +64,7 @@ export function RetentionCurveChart({ data }: RetentionCurveChartProps) {
   return (
     <div className="space-y-3">
       {steepestMonth && (
-        <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded px-2.5 py-1.5 inline-block">
+        <p className="text-xs text-warning bg-warning/10 border border-warning/30 rounded px-2.5 py-1.5 inline-block">
           M{steepestMonth} 留存率下降最快（建议在此月龄前加强维护干预）
         </p>
       )}
@@ -105,9 +105,9 @@ export function RetentionCurveChart({ data }: RetentionCurveChartProps) {
           {steepestMonth && (
             <ReferenceLine
               x={`M${steepestMonth}`}
-              stroke="#f59e0b"
+              stroke="hsl(var(--chart-amber))"
               strokeDasharray="4 2"
-              label={{ value: "干预点", fill: "#f59e0b", fontSize: 10, position: "top" }}
+              label={{ value: "干预点", fill: "hsl(var(--chart-amber))", fontSize: 10, position: "top" }}
             />
           )}
 

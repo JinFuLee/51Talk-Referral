@@ -17,8 +17,8 @@ interface ActionListProps {
 }
 
 const priorityStyle: Record<Priority, string> = {
-  high: "bg-rose-50 border-rose-200 text-rose-800",
-  medium: "bg-amber-50 border-amber-200 text-amber-800",
+  high: "bg-destructive/10 border-destructive/30 text-destructive",
+  medium: "bg-warning/10 border-warning/30 text-warning",
   low: "bg-slate-50 border-slate-200 text-slate-700",
 };
 

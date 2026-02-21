@@ -3,8 +3,8 @@
 import type { AnomalyItem } from "@/lib/types";
 
 const severityStyle: Record<string, string> = {
-  high: "border-red-300 bg-red-50 text-red-700",
-  medium: "border-yellow-300 bg-yellow-50 text-yellow-700",
+  high: "border-destructive/30 bg-destructive/10 text-destructive",
+  medium: "border-warning/30 bg-warning/10 text-warning",
   low: "border-slate-200 bg-slate-50 text-slate-600",
 };
 

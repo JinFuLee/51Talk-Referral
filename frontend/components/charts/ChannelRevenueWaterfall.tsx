@@ -11,7 +11,7 @@ import {
   LabelList,
   ResponsiveContainer,
 } from "recharts";
-import { formatRevenue } from "@/lib/utils";
+import { formatRevenue, formatUSDShort, CHART_FONT_SIZE, CHART_HEIGHT } from "@/lib/utils";
 
 export interface ChannelRevenueEntry {
   channel: string;
@@ -28,14 +28,14 @@ interface ChannelRevenueWaterfallProps {
 const CHANNEL_COLOR_MAP: Record<string, string> = {
   转介绍: "hsl(var(--chart-4))",   // indigo-500
   市场: "hsl(var(--success))",     // emerald-500
-  宽口径: "#f59e0b",   // amber-500
-  cc窄口径: "#f43f5e", // rose-500
-  ss窄口径: "#0ea5e9", // sky-500
+  宽口径: "hsl(var(--chart-amber))",
+  cc窄口径: "hsl(var(--chart-rose))",
+  ss窄口径: "hsl(var(--chart-sky))",
   lp窄口径: "hsl(var(--chart-4))", // violet-500
 };
 
 const FALLBACK_COLORS = [
-  "hsl(var(--chart-4))", "hsl(var(--success))", "#f59e0b", "#f43f5e", "#0ea5e9", "hsl(var(--chart-4))", "#f97316",
+  "hsl(var(--chart-4))", "hsl(var(--success))", "hsl(var(--chart-amber))", "hsl(var(--chart-rose))", "hsl(var(--chart-sky))", "hsl(var(--chart-1))", "hsl(var(--chart-orange))",
 ];
 
 function getColor(channel: string, idx: number): string {
@@ -44,11 +44,6 @@ function getColor(channel: string, idx: number): string {
     if (lower.includes(key.toLowerCase())) return color;
   }
   return FALLBACK_COLORS[idx % FALLBACK_COLORS.length];
-}
-
-function formatUSDShort(usd: number): string {
-  if (usd >= 1000) return `$${(usd / 1000).toFixed(1)}k`;
-  return `$${usd.toFixed(0)}`;
 }
 
 interface ChartRow {
@@ -131,7 +126,7 @@ export function ChannelRevenueWaterfall({
 
       <div className="overflow-x-auto">
         <div style={{ minWidth: Math.max(320, (channels.length + 1) * 90) }}>
-          <ResponsiveContainer width="100%" height={260}>
+          <ResponsiveContainer width="100%" height={CHART_HEIGHT.md} aria-label="渠道收入瀑布图">
             <BarChart
               data={chartData}
               margin={{ top: 28, right: 16, left: 8, bottom: 4 }}
@@ -139,13 +134,13 @@ export function ChannelRevenueWaterfall({
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
               <XAxis
                 dataKey="label"
-                tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
+                tick={{ fontSize: CHART_FONT_SIZE.md, fill: "hsl(var(--muted-foreground))" }}
                 axisLine={false}
                 tickLine={false}
               />
               <YAxis
                 tickFormatter={formatUSDShort}
-                tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
+                tick={{ fontSize: CHART_FONT_SIZE.sm, fill: "hsl(var(--muted-foreground))" }}
                 axisLine={false}
                 tickLine={false}
               />
@@ -155,7 +150,7 @@ export function ChannelRevenueWaterfall({
                   dataKey="revenue_usd"
                   position="top"
                   formatter={formatUSDShort}
-                  style={{ fontSize: 10, fill: "hsl(var(--foreground))", fontWeight: 600 }}
+                  style={{ fontSize: CHART_FONT_SIZE.sm, fill: "hsl(var(--foreground))", fontWeight: 600 }}
                 />
                 {chartData.map((entry) => (
                   <Cell

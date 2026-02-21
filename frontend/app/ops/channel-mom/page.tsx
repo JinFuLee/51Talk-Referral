@@ -1,23 +1,24 @@
 "use client";
 
+import { useTranslation } from "@/lib/hooks";
 import { Card } from "@/components/ui/Card";
 import { ChannelMoMTrend } from "@/components/charts/ChannelMoMTrend";
+import { ErrorBoundary } from "@/components/providers/ErrorBoundary";
 
 export default function ChannelMoMPage() {
+  const { t } = useTranslation();
   return (
     <div className="max-w-none space-y-4">
-      {/* Header */}
       <div>
-        <h1 className="text-xl font-bold text-slate-800">渠道月度环比</h1>
-        <p className="text-xs text-slate-400 mt-0.5">
-          F4 各转介绍渠道注册/转化效率月度趋势对比
-        </p>
+        <h1 className="text-xl font-bold text-slate-800">{t("ops.channel-mom.title")}</h1>
+        <p className="text-xs text-slate-400 mt-0.5">{t("ops.channel-mom.subtitle")}</p>
       </div>
 
-      {/* Main chart */}
-      <Card title="渠道趋势折线图">
-        <ChannelMoMTrend />
-      </Card>
+      <ErrorBoundary>
+        <Card title={t("ops.channel-mom.card.trend")}>
+          <ChannelMoMTrend />
+        </Card>
+      </ErrorBoundary>
     </div>
   );
 }

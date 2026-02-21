@@ -1,11 +1,12 @@
 "use client";
 
-import { useRootCause, useStageEvaluation, usePyramidReport } from "@/lib/hooks";
+import { useRootCause, useStageEvaluation, usePyramidReport, useTranslation } from "@/lib/hooks";
 import { SCQACard } from "@/components/biz/SCQACard";
 import { FiveWhyTree } from "@/components/biz/FiveWhyTree";
 import { StageBadge } from "@/components/biz/StageBadge";
 import { SixStepSummary } from "@/components/biz/SixStepSummary";
-import { Spinner } from "@/components/ui/Spinner";
+import { Skeleton } from "@/components/ui/Skeleton";
+import { ErrorBoundary } from "@/components/providers/ErrorBoundary";
 import { TypewriterText } from "@/components/ui/TypewriterText";
 import { formatRevenue } from "@/lib/utils";
 import type { PyramidPillar } from "@/lib/types";
@@ -86,6 +87,7 @@ function PillarCard({ pillar }: { pillar: PyramidPillar }) {
 }
 
 export default function InsightsPage() {
+  const { t } = useTranslation();
   const { data: rootCause, isLoading: rcLoading, error: rcError } = useRootCause();
   const { data: stage, isLoading: stLoading, error: stError } = useStageEvaluation();
   const { data: pyramid, isLoading: pyLoading, error: pyError } = usePyramidReport();
@@ -95,8 +97,16 @@ export default function InsightsPage() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <Spinner />
+      <div className="max-w-5xl mx-auto space-y-6">
+        <Skeleton className="h-10 w-48" />
+        <Skeleton className="h-28" />
+        <Skeleton className="h-20" />
+        <div className="grid gap-4 md:grid-cols-3">
+          <Skeleton className="h-48" />
+          <Skeleton className="h-48" />
+          <Skeleton className="h-48" />
+        </div>
+        <Skeleton className="h-64" />
       </div>
     );
   }
@@ -104,7 +114,7 @@ export default function InsightsPage() {
   if (hasError && !pyramid && !rootCause && !stage) {
     return (
       <div className="p-6 text-sm text-slate-500">
-        数据加载失败，请确认后端服务正常运行。
+        {t("biz.insights.label.loadError")}
       </div>
     );
   }
@@ -113,11 +123,11 @@ export default function InsightsPage() {
     <div className="max-w-5xl mx-auto space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-slate-800">运营洞察</h1>
-        <p className="text-sm text-slate-400 mt-1">
-          金字塔报告 + 5-Why 根因分析 + 阶段评估
-        </p>
+        <h1 className="text-2xl font-bold text-slate-800">{t("biz.insights.title")}</h1>
+        <p className="text-sm text-slate-400 mt-1">{t("biz.insights.subtitle")}</p>
       </div>
+
+      <ErrorBoundary>
 
       {/* 核心结论 + SCQA */}
       {pyramid && (
@@ -125,7 +135,7 @@ export default function InsightsPage() {
           <div className="bg-white rounded-xl border border-slate-200 p-6 relative overflow-hidden">
             <div className="absolute top-0 left-0 w-1 h-full bg-brand-500 rounded-l-xl" />
             <h2 className="text-lg font-semibold mb-2 flex items-center gap-2">
-              <span className="text-brand-500">✨</span> 核心结论
+              <span className="text-brand-500">✨</span> {t("biz.insights.label.coreConclusion")}
             </h2>
             <p className="text-base font-medium text-slate-700 leading-relaxed min-h-[3rem]">
               <TypewriterText text={pyramid.conclusion} speed={15} />
@@ -141,7 +151,7 @@ export default function InsightsPage() {
       {/* 重点行动支柱 */}
       {pyramid?.pillars && pyramid.pillars.length > 0 && (
         <div className="bg-white rounded-xl border border-slate-200 p-6">
-          <h2 className="text-lg font-semibold mb-4">重点行动支柱</h2>
+          <h2 className="text-lg font-semibold mb-4">{t("biz.insights.label.pillars")}</h2>
           <div className="grid gap-4 md:grid-cols-3">
             {pyramid.pillars.map((p, i) => (
               <PillarCard key={i} pillar={p} />
@@ -157,6 +167,7 @@ export default function InsightsPage() {
 
       {/* 六步法摘要 */}
       {pyramid?.six_steps && <SixStepSummary data={pyramid.six_steps} />}
+      </ErrorBoundary>
     </div>
   );
 }

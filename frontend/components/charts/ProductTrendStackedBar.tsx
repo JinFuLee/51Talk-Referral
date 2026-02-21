@@ -11,7 +11,7 @@ import {
   ResponsiveContainer,
   Cell,
 } from "recharts";
-import { formatRevenue } from "@/lib/utils";
+import { formatRevenue, formatUSDShort, CHART_FONT_SIZE, CHART_HEIGHT } from "@/lib/utils";
 
 export interface ProductTrendItem {
   product_type: string;
@@ -25,13 +25,13 @@ interface ProductTrendStackedBarProps {
 }
 
 const COLORS = [
-  "hsl(var(--chart-4))", // indigo-500
-  "hsl(var(--success))", // emerald-500
-  "#f59e0b", // amber-500
-  "#f43f5e", // rose-500
-  "#0ea5e9", // sky-500
-  "hsl(var(--chart-4))", // violet-500
-  "#f97316", // orange-500
+  "hsl(var(--chart-4))",
+  "hsl(var(--success))",
+  "hsl(var(--chart-amber))",
+  "hsl(var(--chart-rose))",
+  "hsl(var(--chart-sky))",
+  "hsl(var(--chart-1))",
+  "hsl(var(--chart-orange))",
 ];
 
 interface TooltipEntry {
@@ -60,11 +60,6 @@ function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
       ))}
     </div>
   );
-}
-
-function formatUSDShort(usd: number): string {
-  if (usd >= 1000) return `$${(usd / 1000).toFixed(1)}k`;
-  return `$${usd.toFixed(0)}`;
 }
 
 export function ProductTrendStackedBar({ items }: ProductTrendStackedBarProps) {
@@ -101,7 +96,7 @@ export function ProductTrendStackedBar({ items }: ProductTrendStackedBarProps) {
         </span>
       </div>
 
-      <ResponsiveContainer width="100%" height={260}>
+      <ResponsiveContainer width="100%" height={CHART_HEIGHT.md} aria-label="套餐收入堆叠柱状图">
         <BarChart
           data={chartData}
           margin={{ top: 16, right: 16, left: 8, bottom: 4 }}
@@ -109,18 +104,18 @@ export function ProductTrendStackedBar({ items }: ProductTrendStackedBarProps) {
           <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
           <XAxis
             dataKey="name"
-            tick={{ fontSize: 12, fill: "hsl(var(--muted-foreground))" }}
+            tick={{ fontSize: CHART_FONT_SIZE.md, fill: "hsl(var(--muted-foreground))" }}
             axisLine={false}
             tickLine={false}
           />
           <YAxis
             tickFormatter={formatUSDShort}
-            tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
+            tick={{ fontSize: CHART_FONT_SIZE.sm, fill: "hsl(var(--muted-foreground))" }}
             axisLine={false}
             tickLine={false}
           />
           <Tooltip content={<CustomTooltip />} />
-          <Legend wrapperStyle={{ fontSize: 12 }} />
+          <Legend wrapperStyle={{ fontSize: CHART_FONT_SIZE.md }} />
           {productTypes.map((type, idx) => (
             <Bar
               key={type}

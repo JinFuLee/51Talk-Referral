@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { ClipboardList, TrendingUp, Download } from "lucide-react";
 
 interface ReportDownloaderProps {
   reportType: "ops" | "exec";
@@ -84,15 +85,19 @@ export function ReportDownloader({ reportType, date, lang = "zh" }: ReportDownlo
       <button
         onClick={handleDownload}
         disabled={loading}
-        className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 hover:bg-gray-50 disabled:bg-gray-100 text-sm font-medium text-gray-700 rounded-lg transition-colors shadow-sm"
+        className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 hover:bg-gray-50 disabled:opacity-50 text-sm font-medium text-gray-700 rounded-lg transition-colors shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
       >
-        <span className="text-base leading-none">
-          {reportType === "ops" ? "📋" : "📈"}
-        </span>
+        {loading ? (
+          <Download className="w-4 h-4 animate-bounce" aria-hidden="true" />
+        ) : reportType === "ops" ? (
+          <ClipboardList className="w-4 h-4" aria-hidden="true" />
+        ) : (
+          <TrendingUp className="w-4 h-4" aria-hidden="true" />
+        )}
         {loading ? l.downloading : (reportType === "ops" ? l.ops : l.exec)}
       </button>
       {error && (
-        <p className="text-xs text-red-500">{error}</p>
+        <p className="text-xs text-destructive">{error}</p>
       )}
     </div>
   );

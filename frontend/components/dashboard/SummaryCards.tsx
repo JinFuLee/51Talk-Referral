@@ -1,5 +1,7 @@
 "use client";
 
+import React from "react";
+
 interface SummaryCardsProps {
   summary: Record<string, unknown>;
   timeProgress: number;
@@ -12,12 +14,12 @@ function pct(actual: number, target: number) {
 }
 
 function statusColor(p: number) {
-  if (p >= 100) return "text-green-600 bg-green-50 border-green-200";
-  if (p >= 95) return "text-yellow-600 bg-yellow-50 border-yellow-200";
-  return "text-red-600 bg-red-50 border-red-200";
+  if (p >= 100) return "text-success bg-success/10 border-success/30";
+  if (p >= 95) return "text-warning bg-warning/10 border-warning/30";
+  return "text-destructive bg-destructive/10 border-destructive/30";
 }
 
-export function SummaryCards({ summary, timeProgress }: SummaryCardsProps) {
+function SummaryCardsBase({ summary, timeProgress }: SummaryCardsProps) {
   const reg = summary as { registrations?: { actual: number; target: number }; payments?: { actual: number; target: number }; revenue?: { actual: number; target: number }; leads?: { actual: number; target: number } };
   const progress = Math.round((timeProgress ?? 0) * 100);
 
@@ -33,7 +35,7 @@ export function SummaryCards({ summary, timeProgress }: SummaryCardsProps) {
       <div className="flex items-center gap-2 text-xs text-slate-500">
         <span>时间进度：{progress}%</span>
         <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
-          <div className="h-full bg-blue-400 rounded-full" style={{ width: `${progress}%` }} />
+          <div className="h-full bg-primary rounded-full" style={{ width: `${progress}%` }} />
         </div>
       </div>
       <div className="grid grid-cols-2 gap-4">
@@ -57,3 +59,5 @@ export function SummaryCards({ summary, timeProgress }: SummaryCardsProps) {
     </div>
   );
 }
+
+export const SummaryCards = React.memo(SummaryCardsBase);

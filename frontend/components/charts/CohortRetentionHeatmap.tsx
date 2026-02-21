@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import useSWR from "swr";
 import { Spinner } from "@/components/ui/Spinner";
 
@@ -62,7 +63,17 @@ function computeMaxPerMetric(rows: { seg: string; data: DecayPoint }[]) {
   return maxMap;
 }
 
+interface TooltipInfo {
+  seg: string;
+  metricLabel: string;
+  value: number | undefined;
+  x: number;
+  y: number;
+}
+
 export function CohortRetentionHeatmap() {
+  const [tooltip, setTooltip] = useState<TooltipInfo | null>(null);
+
   const { data, error, isLoading } = useSWR<CohortDecayRawResponse>(
     "cohort-decay-raw",
     () => fetch("/api/analysis/cohort-decay-raw").then((r) => r.json())
@@ -93,7 +104,7 @@ export function CohortRetentionHeatmap() {
   }
 
   return (
-    <div className="overflow-x-auto">
+    <div className="overflow-x-auto relative">
       <table className="w-full text-sm border-collapse">
         <thead>
           <tr>
@@ -122,8 +133,12 @@ export function CohortRetentionHeatmap() {
                 return (
                   <td
                     key={m.key}
-                    title={val != null ? `${m.label}: ${pct(val)}` : "无数据"}
                     className={`px-3 py-2 border border-slate-200 text-center font-mono transition-colors cursor-default select-none ${colorClass}`}
+                    onMouseEnter={(e) => {
+                      const rect = (e.target as HTMLElement).getBoundingClientRect();
+                      setTooltip({ seg, metricLabel: m.label, value: val, x: rect.left, y: rect.top });
+                    }}
+                    onMouseLeave={() => setTooltip(null)}
                   >
                     {pct(val)}
                   </td>
@@ -133,6 +148,21 @@ export function CohortRetentionHeatmap() {
           ))}
         </tbody>
       </table>
+
+      {/* Custom floating tooltip */}
+      {tooltip && (
+        <div
+          className="fixed z-50 pointer-events-none bg-white/95 backdrop-blur-md border border-border/40 rounded-lg shadow-lg px-3 py-2 text-xs"
+          style={{ left: tooltip.x + 8, top: tooltip.y - 48 }}
+        >
+          <p className="font-semibold text-slate-700">{tooltip.seg} 天围场</p>
+          <p className="text-slate-500 mt-0.5">
+            {tooltip.metricLabel}：
+            <span className="font-medium text-slate-700">{pct(tooltip.value)}</span>
+          </p>
+        </div>
+      )}
+
       <p className="text-xs text-slate-400 mt-2">
         * 取各围场段第一个月（M1）数据 · 颜色深浅反映指标相对表现
       </p>

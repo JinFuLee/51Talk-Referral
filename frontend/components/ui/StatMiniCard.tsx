@@ -1,5 +1,7 @@
 "use client";
 
+import React from "react";
+
 interface StatMiniCardProps {
   label: string;
   value: string | number;
@@ -8,14 +10,14 @@ interface StatMiniCardProps {
 }
 
 const accentColor: Record<string, string> = {
-  blue: "text-blue-600",
-  green: "text-green-600",
-  yellow: "text-yellow-600",
-  red: "text-red-600",
+  blue: "text-primary",
+  green: "text-success",
+  yellow: "text-warning",
+  red: "text-destructive",
   slate: "text-slate-700",
 };
 
-export function StatMiniCard({ label, value, sub, accent = "slate" }: StatMiniCardProps) {
+function StatMiniCardBase({ label, value, sub, accent = "slate" }: StatMiniCardProps) {
   return (
     <div className="rounded-xl border border-slate-200 bg-white px-4 py-3">
       <p className="text-xs text-slate-500 mb-1">{label}</p>
@@ -24,3 +26,5 @@ export function StatMiniCard({ label, value, sub, accent = "slate" }: StatMiniCa
     </div>
   );
 }
+
+export const StatMiniCard = React.memo(StatMiniCardBase);

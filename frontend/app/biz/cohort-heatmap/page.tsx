@@ -1,26 +1,29 @@
 "use client";
 
+import { useTranslation } from "@/lib/hooks";
 import { Card } from "@/components/ui/Card";
 import { CohortRetentionHeatmap } from "@/components/charts/CohortRetentionHeatmap";
 import { NorthStarGauge } from "@/components/charts/NorthStarGauge";
+import { ErrorBoundary } from "@/components/providers/ErrorBoundary";
 
 export default function CohortHeatmapPage() {
+  const { t } = useTranslation();
   return (
     <div className="p-6 space-y-6 max-w-5xl mx-auto">
       <div>
-        <h1 className="text-xl font-bold text-slate-800">Cohort 留存热力图</h1>
-        <p className="text-sm text-slate-500 mt-1">
-          按围场段（付费后天数）× 运营指标的矩阵热力图，颜色深浅反映各段相对表现
-        </p>
+        <h1 className="text-xl font-bold text-slate-800">{t("biz.cohort-heatmap.title")}</h1>
+        <p className="text-sm text-slate-500 mt-1">{t("biz.cohort-heatmap.subtitle")}</p>
       </div>
 
-      <Card title="北极星 KPI — 达成率 Gauge">
-        <NorthStarGauge />
-      </Card>
+      <ErrorBoundary>
+        <Card title={t("biz.cohort-heatmap.card.gauge")}>
+          <NorthStarGauge />
+        </Card>
 
-      <Card title="Cohort 留存热力矩阵（M1 快照）">
-        <CohortRetentionHeatmap />
-      </Card>
+        <Card title={t("biz.cohort-heatmap.card.heatmap")}>
+          <CohortRetentionHeatmap />
+        </Card>
+      </ErrorBoundary>
     </div>
   );
 }

@@ -35,7 +35,7 @@ export function StudentJourneyFlow({ steps }: StudentJourneyFlowProps) {
               <p className="text-lg font-bold text-slate-800">{step.value.toLocaleString()}</p>
             </div>
             {step.dropRate !== undefined && step.dropRate > 0 && (
-              <p className="text-[10px] text-red-500 mt-1">-{step.dropRate.toFixed(0)}%</p>
+              <p className="text-[10px] text-destructive mt-1">-{step.dropRate.toFixed(0)}%</p>
             )}
           </div>
 

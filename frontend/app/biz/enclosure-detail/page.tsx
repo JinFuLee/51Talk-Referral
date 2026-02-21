@@ -1,19 +1,20 @@
 "use client";
 
+import { useTranslation } from "@/lib/hooks";
 import { Card } from "@/components/ui/Card";
 import { EnclosureCompareChart } from "@/components/charts/EnclosureCompareChart";
 import { EnclosureCombinedOverview } from "@/components/charts/EnclosureCombinedOverview";
 import { GlossaryBanner } from "@/components/ui/GlossaryBanner";
+import { ErrorBoundary } from "@/components/providers/ErrorBoundary";
 
 export default function EnclosureDetailPage() {
+  const { t } = useTranslation();
   return (
     <div className="max-w-7xl mx-auto space-y-8">
       {/* Page header */}
       <div>
-        <h1 className="text-2xl font-bold text-slate-800">围场详情分析</h1>
-        <p className="text-sm text-slate-400 mt-1">
-          按付费起算天数分段 · 市场 vs 转介绍渠道对比 · 多维效率指标
-        </p>
+        <h1 className="text-2xl font-bold text-slate-800">{t("biz.enclosure-detail.title")}</h1>
+        <p className="text-sm text-slate-400 mt-1">{t("biz.enclosure-detail.subtitle")}</p>
       </div>
 
       {/* Context card */}
@@ -50,11 +51,13 @@ export default function EnclosureDetailPage() {
         { term: "D4", definition: "全渠道合并围场数据" },
       ]} />
 
-      {/* D2×D3: Channel compare bar chart */}
-      <EnclosureCompareChart />
+      <ErrorBoundary>
+        {/* D2×D3: Channel compare bar chart */}
+        <EnclosureCompareChart />
 
-      {/* D4: Combined overview with colored segment cards */}
-      <EnclosureCombinedOverview />
+        {/* D4: Combined overview with colored segment cards */}
+        <EnclosureCombinedOverview />
+      </ErrorBoundary>
     </div>
   );
 }

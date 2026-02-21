@@ -1,0 +1,453 @@
+/**
+ * 中文翻译表 — 供 useTranslation hook 使用
+ * Key 命名规范: {area}.{page}.{type}.{name}
+ * 泰文占位符标记为 [TH]
+ */
+
+export const zhTranslations: Record<string, string> = {
+  // ── 通用按钮 ────────────────────────────────────────────────────────────────
+  "common.button.refresh": "刷新状态",
+  "common.button.import": "导入历史数据",
+  "common.button.search": "查询",
+  "common.button.collapse": "收起 ▲",
+  "common.button.expand": "展开 ▼",
+  "common.button.retry": "重试",
+  "common.label.noData": "暂无数据",
+  "common.label.loading": "加载中…",
+  "common.label.loadFailed": "加载失败",
+  "common.label.runAnalysis": "请先运行分析",
+  "common.label.t1Data": "T-1 数据，30 秒自动刷新",
+  "common.label.dataMonth": "2026年2月",
+  "common.label.demoData": "演示数据",
+  "common.label.realData": "真实数据",
+
+  // ── 根页面 ──────────────────────────────────────────────────────────────────
+  "root.title": "运营分析看板",
+  "root.subtitle": "51Talk 泰国转介绍运营 · T-1 数据",
+  "root.section.datasources": "数据源状态",
+  "root.label.noAnalysisData": "暂无分析数据 — 请点击右上角「运行分析」",
+
+  // ── 分析页 ──────────────────────────────────────────────────────────────────
+  "analysis.title": "深度分析",
+  "analysis.card.funnel": "转化漏斗",
+  "analysis.card.channel": "渠道对比（窄口 vs 宽口）",
+  "analysis.card.attribution": "归因分析",
+  "analysis.card.roi": "ROI 估算",
+  "analysis.card.prediction": "月末预测",
+  "analysis.label.noData": "暂无数据",
+
+  // ── 排名页 ──────────────────────────────────────────────────────────────────
+  "ranking.title": "绩效排名",
+  "ranking.label.showTop": "显示前",
+
+  // ── 报告页 ──────────────────────────────────────────────────────────────────
+  "reports.title": "分析报告",
+  "reports.card.list": "报告列表",
+  "reports.label.noReports": "暂无报告文件",
+  "reports.label.selectReport": "选择左侧报告查看内容",
+  "reports.label.loading": "加载中…",
+
+  // ── 数据源页 ────────────────────────────────────────────────────────────────
+  "datasources.title": "数据源管理",
+  "datasources.button.refresh": "刷新状态",
+  "datasources.section.upload": "上传数据文件",
+  "datasources.label.upload": "上传数据文件",
+
+  // ── 快照页 ──────────────────────────────────────────────────────────────────
+  "snapshots.title": "历史快照",
+  "snapshots.button.import": "导入历史数据",
+  "snapshots.label.importResult": "导入结果",
+  "snapshots.card.dailyKpi": "日级 KPI 曲线",
+  "snapshots.card.ccGrowth": "CC 成长曲线",
+  "snapshots.input.ccPlaceholder": "输入 CC 姓名查询",
+  "snapshots.label.noDailyKpi": "暂无日级快照（请先导入历史数据）",
+  "snapshots.label.noWeeklyData": "暂无周对比数据，需累积至少 2 周快照",
+
+  // ── 趋势页 ──────────────────────────────────────────────────────────────────
+  "trend.title": "趋势分析",
+  "trend.card.daily": "日级 KPI 曲线",
+  "trend.label.peak": "峰值",
+  "trend.label.valley": "谷底",
+  "trend.tab.mom": "月环比",
+  "trend.tab.wow": "周环比 (WoW)",
+  "trend.tab.yoy": "月同比",
+
+  // ── ops 运营面板 ─────────────────────────────────────────────────────────────
+  "ops.dashboard.title": "运营总览",
+  "ops.dashboard.subtitle": "T-1 数据，30 秒自动刷新",
+  "ops.dashboard.label.aiLayout": "AI 排版生效中",
+  "ops.dashboard.label.perCapita": "人效日均（CC / SS / LP）",
+  "ops.dashboard.label.perCapitaUnit": "人均USD/月",
+  "ops.dashboard.kpi.registrations": "注册人数",
+  "ops.dashboard.kpi.payments": "付费人数",
+  "ops.dashboard.kpi.revenue": "收入",
+
+  // ── ops 渠道分析 ─────────────────────────────────────────────────────────────
+  "ops.channels.title": "渠道趋势分析",
+  "ops.channels.subtitle": "F4 转介绍渠道月度环比 · 注册贡献 · 转化效率",
+  "ops.channels.table.channel": "渠道",
+  "ops.channels.table.registrations": "注册数",
+  "ops.channels.table.mom": "环比",
+  "ops.channels.table.regPaidRate": "注册付费率",
+  "ops.channels.table.unitPrice": "客单价",
+  "ops.channels.table.attendPaidRate": "出席付费率",
+  "ops.channels.card.channelCount": "渠道数",
+  "ops.channels.card.monthsCovered": "覆盖月份",
+  "ops.channels.card.latestTotal": "最新月总注册",
+  "ops.channels.card.latestMonth": "最新月份",
+  "ops.channels.card.streamChart": "渠道注册贡献河流图",
+  "ops.channels.label.dataError": "数据加载异常。请先运行分析并确认 F4 数据文件已上传。",
+  "ops.channels.label.noData": "暂无数据",
+
+  // ── ops 外呼热力图 ───────────────────────────────────────────────────────────
+  "ops.outreach-heatmap.title": "CC 外呼热力图",
+  "ops.outreach-heatmap.subtitle": "CC × 日期二维矩阵 · 颜色=拨打量深浅 · 可切换维度",
+  "ops.outreach-heatmap.card.monthly": "月总拨打量",
+  "ops.outreach-heatmap.card.daily": "日均拨打",
+  "ops.outreach-heatmap.card.topCC": "本月 Top CC",
+  "ops.outreach-heatmap.card.heatmap": "CC 外呼热力图（CC × 日期）",
+  "ops.outreach-heatmap.label.loadFailed": "数据加载失败。请先运行分析后刷新。",
+  "ops.outreach-heatmap.label.colorLegend": "颜色图例：",
+
+  // ── ops 外呼监控 ─────────────────────────────────────────────────────────────
+  "ops.outreach.title": "外呼监控",
+  "ops.outreach.subtitle": "日历热力图 · CC 达标率 · 时段分布",
+  "ops.outreach.card.totalCalls": "总拨打量",
+  "ops.outreach.card.contactRate": "接通率",
+  "ops.outreach.card.effectiveRate": "有效通话率",
+  "ops.outreach.card.avgDuration": "平均通话(s)",
+  "ops.outreach.card.heatmap": "外呼日历热力图",
+  "ops.outreach.card.ccDetail": "CC 姓名 外呼达标明细",
+  "ops.outreach.card.trend": "外呼趋势",
+
+  // ── ops 外呼覆盖缺口 ─────────────────────────────────────────────────────────
+  "ops.outreach-gap.title": "课前外呼覆盖缺口",
+  "ops.outreach-gap.subtitle": "F11 覆盖率 vs 目标 · CC 粒度缺口排名 · 未覆盖学员预估 $ 损失",
+
+  // ── ops 团队漏斗对比 ─────────────────────────────────────────────────────────
+  "ops.funnel-team.title": "团队漏斗对比",
+  "ops.funnel-team.subtitle": "A1 数据源 · 各团队注册 → 预约 → 出席 → 付费漏斗",
+
+  // ── ops 漏斗跟进效率 ─────────────────────────────────────────────────────────
+  "ops.funnel-detail.title": "漏斗跟进效率",
+  "ops.funnel-detail.subtitle": "F1 CC 级别漏斗转化 · F2 截面效率四象限分析",
+  "ops.funnel-detail.card.f1": "F1 各 CC 漏斗跟进效率",
+  "ops.funnel-detail.card.f2": "F2 截面效率四象限",
+
+  // ── ops 转化漏斗 ─────────────────────────────────────────────────────────────
+  "ops.funnel.title": "转化漏斗",
+  "ops.funnel.subtitle": "窄口 vs 宽口 · 学员旅程分析",
+  "ops.funnel.card.narrow": "转化漏斗（窄口）",
+  "ops.funnel.card.channelCompare": "口径对比",
+  "ops.funnel.card.journey": "学员旅程",
+  "ops.funnel.card.detail": "口径明细",
+
+  // ── ops 渠道月度环比 ─────────────────────────────────────────────────────────
+  "ops.channel-mom.title": "渠道月度环比",
+  "ops.channel-mom.subtitle": "F4 各转介绍渠道注册/转化效率月度趋势对比",
+  "ops.channel-mom.card.trend": "渠道趋势折线图",
+
+  // ── ops 留存排名 ─────────────────────────────────────────────────────────────
+  "ops.retention-rank.title": "CC 留存贡献排名",
+  "ops.retention-rank.subtitle": "F9 各 CC 付费学员留存跟进效果 · 留存收入贡献占比",
+  "ops.retention-rank.card.rank": "留存贡献排名",
+
+  // ── ops 产能历史 ─────────────────────────────────────────────────────────────
+  "ops.productivity-history.title": "产能历史趋势",
+  "ops.productivity-history.subtitle": "E1/E2 CC+SS 出勤人数与产能利用率历史趋势",
+  "ops.productivity-history.card.chart": "产能历史趋势图",
+
+  // ── ops 人员排名 ─────────────────────────────────────────────────────────────
+  "ops.ranking.title": "人员排名",
+  "ops.ranking.subtitle": "CC / SS / LP 综合得分排行",
+  "ops.ranking.table.rank": "排名",
+  "ops.ranking.table.name": "姓名",
+  "ops.ranking.table.score": "综合分",
+  "ops.ranking.table.registrations": "注册",
+  "ops.ranking.table.payments": "付费",
+  "ops.ranking.table.contactRate": "触达率",
+  "ops.ranking.table.checkinRate": "打卡率",
+  "ops.ranking.table.participationRate": "参与率",
+  "ops.ranking.table.newCoeff": "带新系数",
+  "ops.ranking.table.convRate": "转化率",
+  "ops.ranking.label.noData": "暂无排名数据，请先运行分析",
+
+  // ── ops 跟进预警 ─────────────────────────────────────────────────────────────
+  "ops.followup-alert.title": "跟进预警 & 课前课后对比",
+  "ops.followup-alert.subtitle": "F7 零跟进付费学员预警 · F10 课前 vs 课后跟进效果 A/B 对比",
+  "ops.followup-alert.section.zeroAlert": "零跟进付费学员预警（F7）",
+  "ops.followup-alert.section.prePost": "课前 vs 课后跟进效果对比（F10）",
+
+  // ── ops 北极星 KPI ───────────────────────────────────────────────────────────
+  "ops.kpi-north-star.title": "北极星 · 24H 打卡率",
+  "ops.kpi-north-star.subtitle": "D1 打卡率排名 · D5 月度打卡系数 · D1×D5 散点分析",
+  "ops.kpi-north-star.card.teamAchievement": "团队达标率",
+  "ops.kpi-north-star.card.teamAvg": "团队均值",
+  "ops.kpi-north-star.card.target": "目标打卡率",
+  "ops.kpi-north-star.card.d5Monthly": "D5 月均参与",
+  "ops.kpi-north-star.card.ranking": "CC 24H 打卡率排名",
+  "ops.kpi-north-star.card.scatter": "打卡率 × 带新系数 散点图",
+  "ops.kpi-north-star.card.multiplier": "打卡倍率分析",
+
+  // ── ops 体验课跟进 ───────────────────────────────────────────────────────────
+  "ops.trial.title": "体验课跟进",
+  "ops.trial.subtitle": "课前/课后跟进率 · 外呼对出席率的影响",
+  "ops.trial.card.preCallLift": "课前外呼 → 出席率",
+  "ops.trial.card.stageDetail": "跟进阶段明细",
+  "ops.trial.card.preClass": "课前外呼 — CC 明细",
+  "ops.trial.card.postClass": "课后跟进 — CC 明细",
+  "ops.trial.table.stage": "阶段",
+  "ops.trial.table.count": "人数",
+  "ops.trial.table.rate": "达成率",
+  "ops.trial.table.ccName": "CC姓名",
+  "ops.trial.table.calls": "外呼数",
+  "ops.trial.table.followups": "跟进数",
+  "ops.trial.table.followupRate": "跟进率",
+  "ops.trial.label.noDetail": "暂无明细数据，请先运行分析",
+  "ops.trial.label.hasOutreach": "已外呼出席率",
+  "ops.trial.label.noOutreach": "未外呼出席率",
+  "ops.trial.label.liftDesc": "课前外呼对出席率有显著正向影响",
+
+  // ── ops 订单分析 ─────────────────────────────────────────────────────────────
+  "ops.orders.title": "订单分析",
+  "ops.orders.card.trend": "日付费趋势",
+  "ops.orders.card.packageDist": "套餐分布",
+  "ops.orders.card.channelRevenue": "渠道收入对比（E8）",
+  "ops.orders.card.orderDetail": "订单明细",
+  "ops.orders.table.channel": "渠道",
+  "ops.orders.table.revenueUSD": "收入 (USD)",
+  "ops.orders.table.revenueTHB": "收入 (THB)",
+  "ops.orders.table.pct": "占比",
+  "ops.orders.table.date": "日期",
+  "ops.orders.table.cc": "CC",
+  "ops.orders.table.student": "学员",
+  "ops.orders.table.package": "套餐",
+  "ops.orders.table.amount": "金额",
+  "ops.orders.input.search": "搜索…",
+  "ops.orders.label.noPackage": "暂无套餐数据",
+  "ops.orders.label.noOrders": "暂无订单数据，请先运行分析",
+  "ops.orders.label.noMatch": "无匹配结果",
+  "ops.orders.label.showFirst100": "仅显示前 100 条，共 {n} 条",
+
+  // ── biz 业务总览 ─────────────────────────────────────────────────────────────
+  "biz.overview.title": "泰国转介绍业务总览",
+  "biz.overview.subtitle": "2026年2月 · 数据截至 T-1 · 业务视图",
+  "biz.overview.card.risks": "主要风险",
+  "biz.overview.card.keyActions": "本周关键行动",
+  "biz.overview.metric.registration": "本月注册",
+  "biz.overview.metric.payment": "本月付费",
+  "biz.overview.metric.revenue": "本月收入",
+  "biz.overview.metric.prediction": "月底预测",
+  "biz.overview.label.achieved": "达标",
+  "biz.overview.label.belowTarget": "略低于目标",
+  "biz.overview.label.seriousLag": "严重落后",
+  "biz.overview.label.onTrack": "有望达标",
+  "biz.overview.label.nearTarget": "接近目标",
+  "biz.overview.label.completionProgress": "完成进度",
+  "biz.overview.label.revenueProgress": "收入进度",
+  "biz.overview.label.gap": "缺口",
+  "biz.overview.label.target": "目标",
+  "biz.overview.action.checkinLow": "24H 打卡率仅 31%，需推动 CC 执行",
+  "biz.overview.action.checkinTarget": "目标 60%",
+  "biz.overview.action.enclosureHigh": "0-30 围场转化率最高 (25%)，建议加大资源投入",
+  "biz.overview.action.preCallLift": "课前外呼→出席 lift 2.2x，强化课前触达",
+
+  // ── biz 团队概况 ─────────────────────────────────────────────────────────────
+  "biz.team.title": "团队概况",
+  "biz.team.subtitle": "2026年2月 · 人效 · 在岗 · 达标率",
+  "biz.team.card.ccEfficiency": "CC 人效",
+  "biz.team.card.ssEfficiency": "SS 人效",
+  "biz.team.card.trendNormal": "趋势正常",
+  "biz.team.card.dailyTrend": "人效日趋势",
+  "biz.team.card.achievement": "团队达标概览",
+  "biz.team.table.metric": "指标",
+  "biz.team.table.target": "目标",
+  "biz.team.table.status": "状态",
+  "biz.team.label.active": "人在岗",
+  "biz.team.label.frontend": "前端销售",
+  "biz.team.label.backend": "后端销售",
+  "biz.team.label.noDailyTrend": "暂无日趋势数据",
+  "biz.team.label.statusLegend": "达标   略低于目标 (-5%~0%)   严重落后 (<-5%)",
+  "biz.team.label.perPerson": "/人",
+
+  // ── biz 趋势预测 ─────────────────────────────────────────────────────────────
+  "biz.trend.title": "趋势 & 预测",
+  "biz.trend.subtitle": "月度环比/预测区间 · 打卡因果分析",
+  "biz.trend.tab.mom": "月环比",
+  "biz.trend.tab.wow": "周环比",
+  "biz.trend.tab.yoy": "月同比",
+  "biz.trend.card.monthlyTrend": "月度趋势",
+  "biz.trend.card.prediction": "月底预测区间",
+  "biz.trend.card.checkinCausal": "打卡→带新因果",
+  "biz.trend.card.modelInfo": "预测模型说明",
+  "biz.trend.label.predReg": "预测注册",
+  "biz.trend.label.predPay": "预测付费",
+  "biz.trend.label.confidence": "置信度",
+  "biz.trend.label.model": "模型：",
+  "biz.trend.label.predRevenue": "预测收入：",
+  "biz.trend.label.currentSelected": "当前选用",
+  "biz.trend.label.noWeekData": "暂无周对比数据，需累积至少 2 周快照",
+
+  // ── biz 影响链 ───────────────────────────────────────────────────────────────
+  "biz.impact.title": "影响链分析",
+  "biz.impact.subtitle": "效率指标缺口 → 收入损失量化 · What-if 模拟器",
+  "biz.impact.card.totalLoss": "总收入损失",
+  "biz.impact.card.topLever": "最大杠杆指标",
+  "biz.impact.card.metricCount": "分析指标数",
+  "biz.impact.card.waterfall": "效率损失瀑布图",
+  "biz.impact.card.whatif": "What-if 模拟器",
+  "biz.impact.label.whatifDesc": "拖动滑块调节效率指标，实时查看对付费单数和收入的预期影响",
+  "biz.impact.label.noData": "暂无影响链数据，请先运行分析引擎",
+
+  // ── biz 归因分析 ─────────────────────────────────────────────────────────────
+  "biz.attribution.title": "归因分析",
+  "biz.attribution.subtitle": "各驱动因素对转介绍业绩的贡献度拆解",
+  "biz.attribution.card.topFactor": "最大贡献因素",
+  "biz.attribution.card.factorCount": "分析因素数",
+  "biz.attribution.card.distribution": "贡献度分布",
+  "biz.attribution.card.detail": "归因明细",
+  "biz.attribution.table.rank": "排名",
+  "biz.attribution.table.factor": "因素",
+  "biz.attribution.table.id": "标识",
+  "biz.attribution.table.contribution": "贡献度",
+  "biz.attribution.label.contribution": "贡献度",
+  "biz.attribution.label.noData": "暂无归因数据",
+  "biz.attribution.label.noDetail": "暂无数据",
+  "biz.attribution.label.loadFailed": "暂无归因数据，请先运行分析引擎",
+
+  // ── biz ROI ──────────────────────────────────────────────────────────────────
+  "biz.roi.title": "ROI 分析",
+  "biz.roi.subtitle": "2026年2月 · 投资回报率全景",
+  "biz.roi.card.overview": "ROI 全景",
+  "biz.roi.card.cohort": "Cohort 衰减曲线",
+  "biz.roi.card.costDetail": "成本明细",
+  "biz.roi.label.totalRevenue": "总收入",
+  "biz.roi.label.totalCost": "总成本",
+  "biz.roi.label.netProfit": "净利润",
+  "biz.roi.label.cohortDesc": "触达率半衰期约 4 月，参与率半衰期约 2 月 — 前 2 月投入 ROI 最高",
+  "biz.roi.label.noCostData": "B1 数据文件未加载，暂无真实成本明细",
+  "biz.roi.label.noCostTable": "暂无数据 — 请上传 B1 ROI 数据文件后重新分析",
+  "biz.roi.label.good": "良好",
+  "biz.roi.label.low": "偏低",
+  "biz.roi.label.needImprove": "需改善",
+  "biz.roi.table.rewardType": "奖励类型",
+  "biz.roi.table.incentiveDetail": "激励详情",
+  "biz.roi.table.referralAction": "推荐动作",
+  "biz.roi.table.quantity": "数量",
+  "biz.roi.table.unitCost": "单价",
+  "biz.roi.table.totalCost": "总成本",
+  "biz.roi.table.total": "合计",
+  "biz.roi.label.targetGap": "目标",
+
+  // ── biz 订单结构 ─────────────────────────────────────────────────────────────
+  "biz.orders.title": "订单结构分析",
+  "biz.orders.subtitle": "套餐类型占比 (E6) · 小组套餐结构 (E7) · 渠道收入 Waterfall (E8)",
+  "biz.orders.card.e6": "套餐结构分析 (E6)",
+  "biz.orders.card.e8": "渠道收入瀑布图 (E8)",
+  "biz.orders.card.e7": "小组套餐结构 (E7)",
+  "biz.orders.label.e6NoData": "E6 数据未接入，请检查 BI-订单_套餐类型占比_D-1 文件",
+  "biz.orders.label.e7NoData": "E7 数据未接入，请检查 BI-订单_分小组套餐类型占比_D-1 文件",
+  "biz.orders.label.e8NoData": "E8 数据未接入，请检查 BI-订单_套餐分渠道金额_D-1 文件",
+  "biz.orders.label.loadFailed": "部分数据加载失败，请先运行分析引擎",
+  "biz.orders.table.group": "小组",
+  "biz.orders.label.byRevenue": "按套餐类型收入占比",
+  "biz.orders.label.e7pending": "E7 数据待接入",
+
+  // ── biz 订单高级分析 ─────────────────────────────────────────────────────────
+  "biz.orders-detail.title": "订单高级分析",
+  "biz.orders-detail.subtitle": "产品类型堆叠收入 (E4) · 小组套餐雷达对比 (E7) · 渠道收入瀑布图 (E8)",
+
+  // ── biz leads 详情 ───────────────────────────────────────────────────────────
+  "biz.leads-detail.title": "Leads 详情分析",
+  "biz.leads-detail.subtitle": "围场×渠道转化热力矩阵 · 注册→付费时间间隔分布",
+  "biz.leads-detail.card.a2": "A2 围场×渠道转化矩阵",
+  "biz.leads-detail.card.a3": "A3 注册→付费时间间隔分布",
+  "biz.leads-detail.label.a2Desc": "行 = 付费围场段 · 列 = 注册渠道 · 颜色 = 转化率",
+  "biz.leads-detail.label.a3Desc": "X轴: 天数区间 · Y轴: 学员数",
+
+  // ── biz 运营洞察 ─────────────────────────────────────────────────────────────
+  "biz.insights.title": "运营洞察",
+  "biz.insights.subtitle": "金字塔报告 + 5-Why 根因分析 + 阶段评估",
+  "biz.insights.section.conclusion": "核心结论",
+  "biz.insights.section.stagePillars": "重点行动支柱",
+  "biz.insights.section.fiveWhy": "5-Why 根因分析",
+  "biz.insights.label.current": "当前",
+  "biz.insights.label.target": "目标",
+  "biz.insights.label.gap": "缺口",
+  "biz.insights.label.expectedLift": "预期收益提升",
+  "biz.insights.label.loadFailed": "数据加载失败，请确认后端服务正常运行。",
+
+  // ── biz 围场 ─────────────────────────────────────────────────────────────────
+  "biz.enclosure.title": "围场资源投放策略",
+  "biz.enclosure.subtitle": "2026年2月 · 按付费当日起算围场段 · 优化资源分配",
+  "biz.enclosure.card.heatmap": "围场 × ROI 热力图",
+  "biz.enclosure.card.coverage": "围场跟进覆盖率",
+  "biz.enclosure.card.strategy": "策略建议",
+  "biz.enclosure.card.detail": "围场段明细",
+  "biz.enclosure.card.compare": "市场 vs 转介绍围场对比 (D2×D3)",
+  "biz.enclosure.card.combined": "合并围场总览 (D4)",
+  "biz.enclosure.label.heatmapDesc": "色块深浅 = ROI 指数，数字 = 建议资源投入占比",
+  "biz.enclosure.label.compareDesc": "蓝色 = 市场渠道 · 紫色 = 转介绍渠道 · 切换指标查看不同维度差异",
+  "biz.enclosure.label.combinedDesc": "市场+转介绍合并视图 · 5 个围场段核心指标 + 转化漏斗",
+  "biz.enclosure.label.noData": "暂无数据 — 请先运行分析",
+  "biz.enclosure.table.segment": "围场段",
+  "biz.enclosure.table.students": "学员数",
+  "biz.enclosure.table.convRate": "转化率",
+  "biz.enclosure.table.followupRate": "跟进率",
+  "biz.enclosure.table.roiIndex": "ROI 指数",
+  "biz.enclosure.table.suggestion": "建议",
+  "biz.enclosure.label.days": "天",
+
+  // ── biz 围场健康度 ───────────────────────────────────────────────────────────
+  "biz.enclosure-health.title": "围场健康度仪表盘",
+  "biz.enclosure-health.subtitle": "2026年2月 · 跨源联动 F7 付费跟进 + F8 围场月度跟进 + D3 转介绍围场",
+
+  // ── biz 围场详情 ─────────────────────────────────────────────────────────────
+  "biz.enclosure-detail.title": "围场详情分析",
+  "biz.enclosure-detail.subtitle": "按付费起算天数分段 · 市场 vs 转介绍渠道对比 · 多维效率指标",
+  "biz.enclosure-detail.context.def": "围场定义",
+  "biz.enclosure-detail.context.defDesc": "用户付费当日起算天数分段：0-30 / 31-60 / 61-90 / 91-180 / 181+",
+  "biz.enclosure-detail.context.compare": "D2×D3 对比视角",
+  "biz.enclosure-detail.context.compareDesc": "同一围场内：市场渠道 vs 转介绍渠道转化率/参与率/学员数对比",
+  "biz.enclosure-detail.context.combined": "D4 合并视角",
+  "biz.enclosure-detail.context.combinedDesc": "全渠道合并，展示每围场的活跃学员、付费、参与率、动员率综合表现",
+
+  // ── biz Cohort 热力图 ────────────────────────────────────────────────────────
+  "biz.cohort-heatmap.title": "Cohort 留存热力图",
+  "biz.cohort-heatmap.subtitle": "按围场段（付费后天数）× 运营指标的矩阵热力图，颜色深浅反映各段相对表现",
+  "biz.cohort-heatmap.card.northStar": "北极星 KPI — 达成率 Gauge",
+  "biz.cohort-heatmap.card.matrix": "Cohort 留存热力矩阵（M1 快照）",
+
+  // ── biz Cohort 学员 ──────────────────────────────────────────────────────────
+  "biz.cohort-students.title": "C6 学员明细分析",
+  "biz.cohort-students.subtitle": "条学员记录 · 留存曲线 · CC带新排名 · 团队对比",
+  "biz.cohort-students.card.overview": "总览与团队对比",
+  "biz.cohort-students.card.retention": "月龄留存曲线（有效留存率 M1-M12）",
+  "biz.cohort-students.card.ccRanking": "CC 带新效率排名（按带新率降序）",
+  "biz.cohort-students.label.loadFailed": "数据加载失败，请先运行分析",
+
+  // ── biz Cohort 衰减 ──────────────────────────────────────────────────────────
+  "biz.cohort-decay.title": "Cohort 衰减分析",
+  "biz.cohort-decay.subtitle": "C1-C5 指标月龄衰减曲线 · C4 带新系数黄金窗口识别",
+  "biz.cohort-decay.tab.decay": "指标衰减曲线",
+  "biz.cohort-decay.tab.coefficient": "C4 带新系数黄金窗口",
+  "biz.cohort-decay.label.byMonth": "按入组月",
+  "biz.cohort-decay.label.byTeam": "按小组",
+  "biz.cohort-decay.label.loadFailed": "数据加载失败，请先运行分析",
+
+  // ── biz 增强排名 ─────────────────────────────────────────────────────────────
+  "biz.ranking-enhanced.title": "增强排名",
+  "biz.ranking-enhanced.subtitle": "A4 CC 排名增强 — 约课率/出席率/综合评分维度",
+  "biz.ranking-enhanced.card.table": "CC 增强排名表",
+
+  // ── biz 课前外呼覆盖 ─────────────────────────────────────────────────────────
+  "biz.coverage.title": "课前外呼覆盖缺口",
+  "biz.coverage.subtitle": "F11 课前外呼明细 · 未覆盖学员识别 · 预估收入损失量化",
+};
+
+/**
+ * 泰文翻译占位符（待翻译）
+ */
+export const thTranslations: Record<string, string> = Object.fromEntries(
+  Object.entries(zhTranslations).map(([k, v]) => [k, `[TH] ${v}`])
+);

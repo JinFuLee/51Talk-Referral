@@ -26,11 +26,11 @@ interface Props {
 }
 
 const SEGMENT_COLORS: Record<string, { bg: string; border: string; text: string; badge: string }> = {
-  "0-30":   { bg: "bg-indigo-50",  border: "border-indigo-200", text: "text-indigo-700",  badge: "bg-indigo-600" },
-  "31-60":  { bg: "bg-violet-50",  border: "border-violet-200", text: "text-violet-700",  badge: "bg-violet-600" },
-  "61-90":  { bg: "bg-amber-50",   border: "border-amber-200",  text: "text-amber-700",   badge: "bg-amber-500" },
-  "91-180": { bg: "bg-orange-50",  border: "border-orange-200", text: "text-orange-700",  badge: "bg-orange-500" },
-  "181+":   { bg: "bg-rose-50",    border: "border-rose-200",   text: "text-rose-700",    badge: "bg-rose-500" },
+  "0-30":   { bg: "bg-primary/5",       border: "border-primary/20",      text: "text-primary",      badge: "bg-primary" },
+  "31-60":  { bg: "bg-violet-50",       border: "border-violet-200",       text: "text-violet-700",   badge: "bg-violet-600" },
+  "61-90":  { bg: "bg-warning/10",      border: "border-warning/30",       text: "text-warning",      badge: "bg-warning" },
+  "91-180": { bg: "bg-orange-50",       border: "border-orange-200",       text: "text-orange-700",   badge: "bg-orange-500" },
+  "181+":   { bg: "bg-destructive/10",  border: "border-destructive/30",   text: "text-destructive",  badge: "bg-destructive" },
 };
 
 function pct(v: number | null, decimals = 1): string {
@@ -67,7 +67,7 @@ export function EnclosureCombinedOverview({ segments, total }: Props) {
             <div className="text-xs text-slate-500 mt-0.5">本月注册</div>
           </div>
           <div className="text-center">
-            <div className="text-lg font-bold text-emerald-700">{num(total.monthly_b_paid)}</div>
+            <div className="text-lg font-bold text-success">{num(total.monthly_b_paid)}</div>
             <div className="text-xs text-slate-500 mt-0.5">本月付费</div>
           </div>
           <div className="text-center">
@@ -141,7 +141,7 @@ export function EnclosureCombinedOverview({ segments, total }: Props) {
                     <td className="py-2 text-right">{num(seg.active_students)}</td>
                     <td className="py-2 text-right">{num(seg.monthly_active_referrers)}</td>
                     <td className="py-2 text-right">{num(seg.monthly_b_registrations)}</td>
-                    <td className="py-2 text-right font-semibold text-emerald-700">
+                    <td className="py-2 text-right font-semibold text-success">
                       {num(seg.monthly_b_paid)}
                     </td>
                     <td className="py-2 text-right">
@@ -150,10 +150,10 @@ export function EnclosureCombinedOverview({ segments, total }: Props) {
                           seg.conversion_rate == null
                             ? "text-slate-400"
                             : seg.conversion_rate >= 0.15
-                            ? "text-emerald-600 font-medium"
+                            ? "text-success font-medium"
                             : seg.conversion_rate >= 0.08
-                            ? "text-amber-600"
-                            : "text-rose-600"
+                            ? "text-warning"
+                            : "text-destructive"
                         }
                       >
                         {pct(seg.conversion_rate)}

@@ -75,7 +75,7 @@ export function CheckinMultiplierCard({
     {
       label: "未打卡",
       value: parseFloat(avgUnchecked.toFixed(2)),
-      fill: "#f97316",
+      fill: "hsl(var(--chart-orange))",
     },
   ];
 
@@ -85,7 +85,7 @@ export function CheckinMultiplierCard({
       <div className="flex items-end gap-3">
         <div>
           <p className="text-xs text-slate-400 mb-1">平均打卡倍率</p>
-          <p className="text-5xl font-extrabold text-emerald-600">
+          <p className="text-5xl font-extrabold text-success00">
             {avgMultiplier > 0 ? `${avgMultiplier.toFixed(2)}x` : "—"}
           </p>
         </div>
@@ -93,7 +93,7 @@ export function CheckinMultiplierCard({
           打卡学员带新系数
           <br />
           是未打卡的{" "}
-          <span className="font-semibold text-emerald-600">
+          <span className="font-semibold text-success00">
             {avgMultiplier > 0 ? `${avgMultiplier.toFixed(1)}` : "—"}
           </span>{" "}
           倍
@@ -135,11 +135,11 @@ export function CheckinMultiplierCard({
 
       {/* "If all achieved" projection */}
       {unachivedCount > 0 && avgMultiplier > 1 && (
-        <div className="rounded-lg bg-emerald-50 border border-emerald-200 p-3 text-xs space-y-1">
-          <p className="font-semibold text-emerald-700">如果全员达标打卡</p>
+        <div className="rounded-lg bg-success/10 border border-success/30 p-3 text-xs space-y-1">
+          <p className="font-semibold text-success00">如果全员达标打卡</p>
           <p className="text-slate-600">
             预计新增{" "}
-            <span className="font-medium text-emerald-700">
+            <span className="font-medium text-success00">
               {estimatedExtraReg}
             </span>{" "}
             个注册
@@ -147,7 +147,7 @@ export function CheckinMultiplierCard({
           {estimatedExtraRevenue > 0 && (
             <p className="text-slate-600">
               预计增加收入约{" "}
-              <span className="font-medium text-emerald-700">
+              <span className="font-medium text-success00">
                 ${estimatedExtraRevenue.toLocaleString()}
               </span>
             </p>

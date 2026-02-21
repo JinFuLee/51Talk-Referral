@@ -1,17 +1,18 @@
 "use client";
 
+import { useTranslation } from "@/lib/hooks";
 import { OutreachCoverageGap } from "@/components/biz/OutreachCoverageGap";
 import { GlossaryBanner } from "@/components/ui/GlossaryBanner";
+import { ErrorBoundary } from "@/components/providers/ErrorBoundary";
 
 export default function OutreachCoveragePage() {
+  const { t } = useTranslation();
   return (
     <div className="max-w-5xl mx-auto space-y-8">
       {/* Page header */}
       <div>
-        <h1 className="text-2xl font-bold text-slate-800">课前外呼覆盖缺口</h1>
-        <p className="text-sm text-slate-400 mt-1">
-          F11 课前外呼明细 · 未覆盖学员识别 · 预估收入损失量化
-        </p>
+        <h1 className="text-2xl font-bold text-slate-800">{t("biz.coverage.title")}</h1>
+        <p className="text-sm text-slate-400 mt-1">{t("biz.coverage.subtitle")}</p>
       </div>
 
       <GlossaryBanner terms={[
@@ -21,8 +22,9 @@ export default function OutreachCoveragePage() {
         { term: "出席率", definition: "实际出席/预约课次" },
       ]} />
 
-      {/* Main content */}
-      <OutreachCoverageGap />
+      <ErrorBoundary>
+        <OutreachCoverageGap />
+      </ErrorBoundary>
     </div>
   );
 }

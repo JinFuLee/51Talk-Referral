@@ -8,6 +8,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
+import { CHART_FONT_SIZE, CHART_HEIGHT } from "@/lib/utils";
 
 interface PieDataItem {
   name: string;
@@ -19,7 +20,7 @@ interface PieChartProps {
   title?: string;
 }
 
-const PIE_COLORS = ["hsl(var(--chart-2))", "hsl(var(--success))", "#f59e0b", "hsl(var(--destructive))", "hsl(var(--chart-4))", "hsl(var(--chart-1))"];
+const PIE_COLORS = ["hsl(var(--chart-2))", "hsl(var(--success))", "hsl(var(--chart-amber))", "hsl(var(--destructive))", "hsl(var(--chart-4))", "hsl(var(--chart-1))"];
 
 export function PieChart({ data, title }: PieChartProps) {
   const total = data.reduce((sum, d) => sum + d.value, 0);
@@ -27,7 +28,7 @@ export function PieChart({ data, title }: PieChartProps) {
   return (
     <div>
       {title && <p className="text-sm font-medium text-gray-700 mb-3">{title}</p>}
-      <ResponsiveContainer width="100%" height={220}>
+      <ResponsiveContainer width="100%" height={CHART_HEIGHT.sm} aria-label={title ?? "饼图"}>
         <RechartsPieChart>
           <Pie
             data={data}
@@ -48,7 +49,7 @@ export function PieChart({ data, title }: PieChartProps) {
               "",
             ]}
           />
-          <Legend wrapperStyle={{ fontSize: 12 }} />
+          <Legend wrapperStyle={{ fontSize: CHART_FONT_SIZE.md }} />
         </RechartsPieChart>
       </ResponsiveContainer>
     </div>

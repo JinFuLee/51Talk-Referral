@@ -16,7 +16,7 @@ export function GoalGapCard({ title, actual, target, unit = "" }: GoalGapCardPro
     <div className="rounded-2xl border border-border/40 bg-white/95 backdrop-blur-md p-4 shadow-flash hover:shadow-flash-lg hover:-translate-y-1 transition-all duration-500">
       <p className="text-xs text-slate-500 mb-1">{title} 缺口</p>
       <div className="flex items-end justify-between">
-        <span className={`text-2xl font-bold ${isPositive ? "text-green-600" : "text-red-600"}`}>
+        <span className={`text-2xl font-bold ${isPositive ? "text-success" : "text-destructive"}`}>
           {isPositive ? "+" : ""}{(-gap).toLocaleString()}{unit}
         </span>
         <span className="text-xs text-slate-400">{gapPct}% 完成</span>

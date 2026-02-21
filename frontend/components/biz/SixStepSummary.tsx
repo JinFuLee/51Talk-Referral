@@ -36,7 +36,7 @@ function StepCard({
   return (
     <div className="bg-slate-50 rounded-lg border border-slate-200 p-4 flex flex-col gap-2">
       <div className="flex items-center gap-2">
-        <span className="w-6 h-6 rounded-full bg-indigo-600 text-white text-xs font-bold flex items-center justify-center shrink-0">
+        <span className="w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs font-bold flex items-center justify-center shrink-0">
           {num}
         </span>
         <span className="text-sm font-semibold text-slate-700">
@@ -48,7 +48,7 @@ function StepCard({
           <ul className="space-y-1">
             {content.map((item, i) => (
               <li key={i} className="flex gap-1.5">
-                <span className="text-indigo-400 shrink-0">·</span>
+                <span className="text-primary/60 shrink-0">·</span>
                 {item}
               </li>
             ))}

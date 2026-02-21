@@ -1,20 +1,23 @@
 "use client";
 
+import { useTranslation } from "@/lib/hooks";
 import { TeamFunnelComparison } from "@/components/ops/TeamFunnelComparison";
+import { ErrorBoundary } from "@/components/providers/ErrorBoundary";
 
 export default function FunnelTeamPage() {
+  const { t } = useTranslation();
   return (
     <div className="max-w-none space-y-4">
       <div>
-        <h1 className="text-xl font-bold text-slate-800">团队漏斗对比</h1>
-        <p className="text-xs text-slate-400 mt-0.5">
-          A1 数据源 · 各团队注册 → 预约 → 出席 → 付费漏斗
-        </p>
+        <h1 className="text-xl font-bold text-slate-800">{t("ops.funnel-team.title")}</h1>
+        <p className="text-xs text-slate-400 mt-0.5">{t("ops.funnel-team.subtitle")}</p>
       </div>
 
-      <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
-        <TeamFunnelComparison />
-      </div>
+      <ErrorBoundary>
+        <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
+          <TeamFunnelComparison />
+        </div>
+      </ErrorBoundary>
     </div>
   );
 }

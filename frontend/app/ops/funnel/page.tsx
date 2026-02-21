@@ -1,16 +1,18 @@
 "use client";
 
-import { useFunnel, useChannelComparison } from "@/lib/hooks";
+import { useFunnel, useChannelComparison, useTranslation } from "@/lib/hooks";
 import { GlossaryBanner } from "@/components/ui/GlossaryBanner";
 import { FunnelChart } from "@/components/charts/FunnelChart";
 import { ChannelBarChart } from "@/components/charts/ChannelBarChart";
 import { ChannelComparisonTable } from "@/components/ops/ChannelComparisonTable";
 import { StudentJourneyFlow } from "@/components/ops/StudentJourneyFlow";
 import { Card } from "@/components/ui/Card";
-import { Spinner } from "@/components/ui/Spinner";
+import { Skeleton } from "@/components/ui/Skeleton";
+import { ErrorBoundary } from "@/components/providers/ErrorBoundary";
 import type { FunnelData, ChannelComparisonData, ChannelStat } from "@/lib/types";
 
 export default function OpsFunnelPage() {
+  const { t } = useTranslation();
   const { data: funnelRaw, isLoading: loadingFunnel } = useFunnel();
   const { data: channelRaw, isLoading: loadingChannel } = useChannelComparison();
 
@@ -18,7 +20,6 @@ export default function OpsFunnelPage() {
   const channelData = channelRaw as ChannelComparisonData | undefined;
   const channels: ChannelStat[] = channelData?.channels ?? [];
 
-  // Build funnel stages from narrow channel data
   const narrow = funnel?.narrow ?? funnel?.total;
   const funnelStages = narrow
     ? [
@@ -30,7 +31,6 @@ export default function OpsFunnelPage() {
       ]
     : [];
 
-  // Journey steps derived from funnel
   const journeySteps = funnelStages.map((s, i) => ({
     label: s.name,
     value: s.value,
@@ -42,8 +42,14 @@ export default function OpsFunnelPage() {
 
   if (loadingFunnel || loadingChannel) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <Spinner />
+      <div className="max-w-none space-y-4">
+        <Skeleton className="h-8 w-48" />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Skeleton className="h-64" />
+          <Skeleton className="h-64" />
+        </div>
+        <Skeleton className="h-32" />
+        <Skeleton className="h-48" />
       </div>
     );
   }
@@ -52,8 +58,8 @@ export default function OpsFunnelPage() {
     <div className="max-w-none space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold text-slate-800">转化漏斗</h1>
-          <p className="text-xs text-slate-400 mt-0.5">窄口 vs 宽口 · 学员旅程分析</p>
+          <h1 className="text-xl font-bold text-slate-800">{t("ops.funnel.title")}</h1>
+          <p className="text-xs text-slate-400 mt-0.5">{t("ops.funnel.subtitle")}</p>
         </div>
       </div>
 
@@ -65,25 +71,26 @@ export default function OpsFunnelPage() {
         { term: "参与率", definition: "带来≥1注册的学员/有效学员" },
       ]} />
 
-      {/* Funnel + Channel comparison */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Card title="转化漏斗（窄口）">
-          <FunnelChart stages={funnelStages} />
-        </Card>
-        <Card title="口径对比">
-          <ChannelBarChart data={channelRaw as Record<string, unknown> ?? {}} />
-        </Card>
-      </div>
+      <ErrorBoundary>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Card title={t("ops.funnel.card.narrow")}>
+            <FunnelChart stages={funnelStages} />
+          </Card>
+          <Card title={t("ops.funnel.card.channelCompare")}>
+            <ChannelBarChart data={channelRaw as Record<string, unknown> ?? {}} />
+          </Card>
+        </div>
 
-      {/* Student journey */}
-      <Card title="学员旅程">
-        <StudentJourneyFlow steps={journeySteps} />
-      </Card>
+        <Card title={t("ops.funnel.card.journey")}>
+          <StudentJourneyFlow steps={journeySteps} />
+        </Card>
 
-      {/* Channel detail table */}
-      <Card title="口径明细">
-        <ChannelComparisonTable channels={channels} />
-      </Card>
+        <Card title={t("ops.funnel.card.detail")}>
+          <div className="overflow-x-auto">
+            <ChannelComparisonTable channels={channels} />
+          </div>
+        </Card>
+      </ErrorBoundary>
     </div>
   );
 }

@@ -1,11 +1,13 @@
 "use client";
 
 import useSWR from "swr";
+import { useTranslation } from "@/lib/hooks";
 import { CohortStudentOverview } from "@/components/biz/CohortStudentOverview";
 import { RetentionCurveChart } from "@/components/biz/RetentionCurveChart";
 import { CCBringNewRanking } from "@/components/biz/CCBringNewRanking";
 import { Card } from "@/components/ui/Card";
-import { Spinner } from "@/components/ui/Spinner";
+import { Skeleton } from "@/components/ui/Skeleton";
+import { ErrorBoundary } from "@/components/providers/ErrorBoundary";
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
@@ -55,6 +57,7 @@ function DataSourceBadge({ source }: { source?: string }) {
 }
 
 export default function CohortStudentsPage() {
+  const { t } = useTranslation();
   const { data, isLoading, error } = useSWR<CohortStudentsResponse>(
     `/api/analysis/cohort-students`,
     fetcher
@@ -62,8 +65,11 @@ export default function CohortStudentsPage() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center py-32">
-        <Spinner />
+      <div className="max-w-6xl mx-auto px-4 py-6 space-y-6">
+        <Skeleton className="h-10 w-64" />
+        <Skeleton className="h-48" />
+        <Skeleton className="h-48" />
+        <Skeleton className="h-48" />
       </div>
     );
   }
@@ -71,9 +77,7 @@ export default function CohortStudentsPage() {
   if (error || !data) {
     return (
       <div className="max-w-4xl mx-auto px-4 py-12 text-center">
-        <p className="text-sm text-red-500">
-          数据加载失败，请先运行分析（POST /api/analysis/run）
-        </p>
+        <p className="text-sm text-red-500">{t("biz.cohort-students.label.loadError")}</p>
       </div>
     );
   }
@@ -83,31 +87,33 @@ export default function CohortStudentsPage() {
       {/* Header */}
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-xl font-bold text-slate-800">C6 学员明细分析</h1>
+          <h1 className="text-xl font-bold text-slate-800">{t("biz.cohort-students.title")}</h1>
           <p className="text-sm text-slate-500 mt-1">
-            {data.total_students.toLocaleString()} 条学员记录 · 留存曲线 · CC带新排名 · 团队对比
+            {data.total_students.toLocaleString()} {t("biz.cohort-students.label.records")}
           </p>
         </div>
         <DataSourceBadge source={data.data_source} />
       </div>
 
-      {/* Overview + Team compare */}
-      <Card title="总览与团队对比">
-        <CohortStudentOverview
-          totalStudents={data.total_students}
-          teams={data.by_team}
-        />
-      </Card>
+      <ErrorBoundary>
+        {/* Overview + Team compare */}
+        <Card title={t("biz.cohort-students.card.overview")}>
+          <CohortStudentOverview
+            totalStudents={data.total_students}
+            teams={data.by_team}
+          />
+        </Card>
 
-      {/* Retention curve */}
-      <Card title="月龄留存曲线（有效留存率 M1-M12）">
-        <RetentionCurveChart data={data.retention_curve} />
-      </Card>
+        {/* Retention curve */}
+        <Card title={t("biz.cohort-students.card.retention")}>
+          <RetentionCurveChart data={data.retention_curve} />
+        </Card>
 
-      {/* CC ranking */}
-      <Card title="CC 带新效率排名（按带新率降序）">
-        <CCBringNewRanking data={data.cc_ranking} />
-      </Card>
+        {/* CC ranking */}
+        <Card title={t("biz.cohort-students.card.ranking")}>
+          <CCBringNewRanking data={data.cc_ranking} />
+        </Card>
+      </ErrorBoundary>
     </div>
   );
 }

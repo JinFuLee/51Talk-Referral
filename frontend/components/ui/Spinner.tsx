@@ -14,7 +14,9 @@ const sizeClass = {
 export function Spinner({ size = "md", className }: SpinnerProps) {
   return (
     <svg
-      className={clsx("animate-spin text-blue-500", sizeClass[size], className)}
+      role="status"
+      aria-label="Loading"
+      className={clsx("animate-spin text-primary", sizeClass[size], className)}
       fill="none"
       viewBox="0 0 24 24"
     >

@@ -1,13 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { useCCRanking, useSSRanking, useLPRanking } from "@/lib/hooks";
+import { useCCRanking, useSSRanking, useLPRanking, useTranslation } from "@/lib/hooks";
 import { RankingTable } from "@/components/ranking/RankingTable";
-import { Spinner } from "@/components/ui/Spinner";
+import { Skeleton } from "@/components/ui/Skeleton";
+import { ErrorBoundary } from "@/components/providers/ErrorBoundary";
 
 type RoleTab = "CC" | "SS" | "LP";
 
 export default function RankingPage() {
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<RoleTab>("CC");
   const [topN, setTopN] = useState(10);
 
@@ -33,22 +35,25 @@ export default function RankingPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-slate-800">绩效排名</h1>
+        <h1 className="text-2xl font-bold text-slate-800">{t("ranking.title")}</h1>
         <div className="flex items-center gap-2">
-          <span className="text-sm text-slate-500">显示前</span>
-          {[5, 10, 20].map((n) => (
-            <button
-              key={n}
-              onClick={() => setTopN(n)}
-              className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
-                topN === n
-                  ? "bg-brand-600 text-white"
-                  : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-50"
-              }`}
-            >
-              {n}
-            </button>
-          ))}
+          <span className="text-sm text-slate-500" id="topn-label">{t("ranking.label.showTop")}</span>
+          <div role="group" aria-labelledby="topn-label" className="flex gap-1">
+            {[5, 10, 20].map((n) => (
+              <button
+                key={n}
+                onClick={() => setTopN(n)}
+                aria-pressed={topN === n}
+                className={`px-3 py-1 rounded text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${
+                  topN === n
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-50"
+                }`}
+              >
+                {n}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -58,9 +63,10 @@ export default function RankingPage() {
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
-            className={`px-6 py-2 rounded-md text-sm font-medium transition-colors ${
+            aria-pressed={activeTab === tab}
+            className={`px-6 py-2 rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${
               activeTab === tab
-                ? "bg-brand-600 text-white shadow-sm"
+                ? "bg-primary text-primary-foreground shadow-sm"
                 : "text-slate-600 hover:bg-slate-50"
             }`}
           >
@@ -76,13 +82,13 @@ export default function RankingPage() {
       </div>
 
       {/* Table */}
-      {isLoading ? (
-        <div className="flex justify-center py-20">
-          <Spinner />
-        </div>
-      ) : (
-        <RankingTable data={currentData as Record<string, unknown>[]} role={activeTab} />
-      )}
+      <ErrorBoundary>
+        {isLoading ? (
+          <Skeleton className="h-64 w-full" />
+        ) : (
+          <RankingTable data={currentData as Record<string, unknown>[]} role={activeTab} />
+        )}
+      </ErrorBoundary>
     </div>
   );
 }

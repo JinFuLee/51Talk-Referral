@@ -1,10 +1,11 @@
 "use client";
 
-import { useROI, useROICostBreakdown } from "@/lib/hooks";
+import { useROI, useROICostBreakdown, useTranslation } from "@/lib/hooks";
 import { formatRevenue, formatUSD } from "@/lib/utils";
 import { Card } from "@/components/ui/Card";
 import { CohortDecayChart } from "@/components/charts/CohortDecayChart";
-import { Spinner } from "@/components/ui/Spinner";
+import { Skeleton } from "@/components/ui/Skeleton";
+import { ErrorBoundary } from "@/components/providers/ErrorBoundary";
 import type { ROIData, ROICostBreakdownData, ROIProductSummary, ROICostItem } from "@/lib/types";
 
 interface ROIMetricBlock {
@@ -53,13 +54,17 @@ function ROIBlock({ block }: { block: ROIMetricBlock }) {
 }
 
 export default function BizROIPage() {
+  const { t } = useTranslation();
   const { data: roiResp, isLoading: roiLoading } = useROI();
   const { data: costResp, isLoading: costLoading } = useROICostBreakdown();
 
   if (roiLoading || costLoading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <Spinner />
+      <div className="max-w-5xl mx-auto space-y-8">
+        <Skeleton className="h-10 w-48" />
+        <Skeleton className="h-56" />
+        <Skeleton className="h-48" />
+        <Skeleton className="h-48" />
       </div>
     );
   }
@@ -116,12 +121,13 @@ export default function BizROIPage() {
     <div className="max-w-5xl mx-auto space-y-8">
       {/* Page header */}
       <div>
-        <h1 className="text-2xl font-bold text-slate-800">ROI 分析</h1>
-        <p className="text-sm text-slate-400 mt-1">2026年2月 · 投资回报率全景</p>
+        <h1 className="text-2xl font-bold text-slate-800">{t("biz.roi.title")}</h1>
+        <p className="text-sm text-slate-400 mt-1">{t("biz.roi.subtitle")}</p>
       </div>
 
+      <ErrorBoundary>
       {/* ROI overview */}
-      <Card title="ROI 全景">
+      <Card title={t("biz.roi.card.overview")}>
         <div className="grid grid-cols-3 gap-6">
           {roiBlocks.map((b) => (
             <ROIBlock key={b.label} block={b} />
@@ -150,65 +156,64 @@ export default function BizROIPage() {
       </Card>
 
       {/* Cohort decay */}
-      <Card title="Cohort 衰减曲线">
-        <p className="text-xs text-slate-400 mb-4">
-          触达率半衰期约 4 月，参与率半衰期约 2 月 — 前 2 月投入 ROI 最高
-        </p>
+      <Card title={t("biz.roi.card.cohort")}>
+        <p className="text-xs text-slate-400 mb-4">{t("biz.roi.label.cohortDesc")}</p>
         <CohortDecayChart />
       </Card>
 
       {/* Cost breakdown */}
-      <Card title="成本明细">
+      <Card title={t("biz.roi.card.costBreakdown")}>
         {!hasRealCostData && (
-          <p className="text-xs text-amber-500 mb-3">
-            B1 数据文件未加载，暂无真实成本明细
-          </p>
+          <p className="text-xs text-amber-500 mb-3">{t("biz.roi.label.noCostData")}</p>
         )}
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="text-left border-b border-slate-100">
-              <th className="pb-2 text-slate-500 font-medium">奖励类型</th>
-              <th className="pb-2 text-slate-500 font-medium">激励详情</th>
-              <th className="pb-2 text-slate-500 font-medium">推荐动作</th>
-              <th className="pb-2 text-slate-500 font-medium text-right">数量</th>
-              <th className="pb-2 text-slate-500 font-medium text-right">单价</th>
-              <th className="pb-2 text-slate-500 font-medium text-right">总成本</th>
-            </tr>
-          </thead>
-          <tbody>
-            {hasRealCostData ? (
-              <>
-                {costItems.map((row, i) => (
-                  <tr key={i} className="border-b border-slate-50 hover:bg-slate-50">
-                    <td className="py-3 font-medium text-slate-700">{row.奖励类型}</td>
-                    <td className="py-3 text-slate-400">{row.激励详情 ?? "-"}</td>
-                    <td className="py-3 text-slate-400">{row.推荐动作 ?? "-"}</td>
-                    <td className="py-3 text-right">{row.赠送数 ?? "-"}</td>
-                    <td className="py-3 text-right">
-                      {row.成本单价USD != null ? formatUSD(row.成本单价USD) : "-"}
-                    </td>
-                    <td className="py-3 text-right font-semibold text-slate-700">
-                      {row.成本USD != null ? formatRevenue(row.成本USD) : "-"}
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="text-left border-b border-slate-100">
+                <th className="pb-2 text-slate-500 font-medium">{t("biz.roi.table.rewardType")}</th>
+                <th className="pb-2 text-slate-500 font-medium">{t("biz.roi.table.incentiveDetail")}</th>
+                <th className="pb-2 text-slate-500 font-medium">{t("biz.roi.table.action")}</th>
+                <th className="pb-2 text-slate-500 font-medium text-right">{t("biz.roi.table.qty")}</th>
+                <th className="pb-2 text-slate-500 font-medium text-right">{t("biz.roi.table.unitCost")}</th>
+                <th className="pb-2 text-slate-500 font-medium text-right">{t("biz.roi.table.totalCost")}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {hasRealCostData ? (
+                <>
+                  {costItems.map((row, i) => (
+                    <tr key={i} className="border-b border-slate-50 hover:bg-slate-50">
+                      <td className="py-3 font-medium text-slate-700">{row.奖励类型}</td>
+                      <td className="py-3 text-slate-400">{row.激励详情 ?? "-"}</td>
+                      <td className="py-3 text-slate-400">{row.推荐动作 ?? "-"}</td>
+                      <td className="py-3 text-right">{row.赠送数 ?? "-"}</td>
+                      <td className="py-3 text-right">
+                        {row.成本单价USD != null ? formatUSD(row.成本单价USD) : "-"}
+                      </td>
+                      <td className="py-3 text-right font-semibold text-slate-700">
+                        {row.成本USD != null ? formatRevenue(row.成本USD) : "-"}
+                      </td>
+                    </tr>
+                  ))}
+                  <tr className="bg-slate-50 font-bold">
+                    <td className="py-3 text-slate-700" colSpan={5}>{t("biz.roi.table.total")}</td>
+                    <td className="py-3 text-right text-indigo-700">
+                      {formatRevenue(computedTotalCost)}
                     </td>
                   </tr>
-                ))}
-                <tr className="bg-slate-50 font-bold">
-                  <td className="py-3 text-slate-700" colSpan={5}>合计</td>
-                  <td className="py-3 text-right text-indigo-700">
-                    {formatRevenue(computedTotalCost)}
+                </>
+              ) : (
+                <tr>
+                  <td colSpan={6} className="py-6 text-center text-slate-400 text-sm">
+                    {t("biz.roi.label.uploadPrompt")}
                   </td>
                 </tr>
-              </>
-            ) : (
-              <tr>
-                <td colSpan={6} className="py-6 text-center text-slate-400 text-sm">
-                  暂无数据 — 请上传 B1 ROI 数据文件后重新分析
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+              )}
+            </tbody>
+          </table>
+        </div>
       </Card>
+      </ErrorBoundary>
     </div>
   );
 }

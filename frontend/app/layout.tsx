@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import "./globals.css";
+import { Inter } from "next/font/google";
 import { SWRProvider } from "@/components/providers/SWRProvider";
 import { NavSidebar } from "@/components/layout/NavSidebar";
 import { Topbar } from "@/components/layout/Topbar";
@@ -7,6 +7,10 @@ import { WebMCPProvider } from "@/lib/webmcp";
 import { ErrorBoundary } from "@/components/providers/ErrorBoundary";
 import { CoPilotTerminal } from "@/components/ui/CoPilotTerminal";
 import { PresentationOverlay } from "@/components/ui/PresentationOverlay";
+import { ToastProvider } from "@/components/providers/ToastProvider";
+import "./globals.css";
+
+const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "ref-ops-engine — 运营分析面板",
@@ -20,7 +24,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="zh-CN">
-      <body>
+      <body className={inter.className}>
         <ErrorBoundary>
           <WebMCPProvider>
             <SWRProvider>
@@ -41,6 +45,7 @@ export default function RootLayout({
                 <CoPilotTerminal />
               </div>
               <PresentationOverlay />
+              <ToastProvider />
             </SWRProvider>
           </WebMCPProvider>
         </ErrorBoundary>

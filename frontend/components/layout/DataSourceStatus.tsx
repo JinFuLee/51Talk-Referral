@@ -10,20 +10,20 @@ interface DataSourceStatusProps {
 function StatusBadge({ isFresh, hasFile }: { isFresh: boolean; hasFile: boolean }) {
   if (!hasFile) {
     return (
-      <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-red-100 text-red-700">
+      <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-destructive/10 text-destructive">
         缺失
       </span>
     );
   }
   if (isFresh) {
     return (
-      <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700">
+      <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-success/10 text-success">
         最新
       </span>
     );
   }
   return (
-    <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-700">
+    <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-warning/10 text-warning">
       旧
     </span>
   );

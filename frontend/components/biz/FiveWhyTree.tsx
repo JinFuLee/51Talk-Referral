@@ -10,22 +10,22 @@ interface FiveWhyTreeProps {
 
 const SEVERITY_STYLES = {
   red: {
-    border: "border-l-4 border-red-400",
-    badge: "bg-red-100 text-red-700",
+    border: "border-l-4 border-destructive",
+    badge: "bg-destructive/10 text-destructive",
     label: "严重",
-    dot: "bg-red-500",
+    dot: "bg-destructive",
   },
   yellow: {
-    border: "border-l-4 border-amber-400",
-    badge: "bg-amber-100 text-amber-700",
+    border: "border-l-4 border-warning",
+    badge: "bg-warning/10 text-warning",
     label: "注意",
-    dot: "bg-amber-500",
+    dot: "bg-warning",
   },
   green: {
-    border: "border-l-4 border-green-400",
-    badge: "bg-green-100 text-green-700",
+    border: "border-l-4 border-success",
+    badge: "bg-success/10 text-success",
     label: "正常",
-    dot: "bg-green-500",
+    dot: "bg-success",
   },
 };
 
@@ -47,7 +47,7 @@ function DataSupportBadge({
   if (actual == null || target == null) return null;
   const gap = actual - target;
   const gapStr = gap > 0 ? `+${gap.toFixed(1)}` : gap.toFixed(1);
-  const gapColor = gap < 0 ? "text-red-600" : "text-green-600";
+  const gapColor = gap < 0 ? "text-destructive" : "text-success";
 
   return (
     <span className="inline-flex items-center gap-1 text-xs bg-slate-100 border border-slate-200 rounded px-2 py-0.5 mt-1">
@@ -72,7 +72,7 @@ function WhyChain({ chain }: { chain: WhyLevel[] }) {
                 <div className="mt-1 shrink-0">
                   {level.is_root ? (
                     <span
-                      className="inline-flex items-center text-xs font-bold bg-indigo-600 text-white rounded px-1.5 py-0.5"
+                      className="inline-flex items-center text-xs font-bold bg-primary text-primary-foreground rounded px-1.5 py-0.5"
                       title="根因"
                     >
                       根因
@@ -126,7 +126,7 @@ function AnalysisPanel({ analysis }: { analysis: RootCauseAnalysis }) {
         </div>
         <div className="shrink-0">
           <span className="text-xs text-slate-500">预期影响</span>
-          <p className="text-sm font-semibold text-indigo-700">
+          <p className="text-sm font-semibold text-primary">
             {formatRevenue(analysis.expected_impact_usd)}
           </p>
         </div>
@@ -193,16 +193,16 @@ export function FiveWhyTree({ data }: FiveWhyTreeProps) {
               <button
                 key={cat}
                 onClick={() => handleCatChange(cat)}
-                className={`text-sm px-3 py-1.5 rounded-md border transition-colors ${
+                className={`text-sm px-3 py-1.5 rounded-md border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${
                   activeCat === cat
-                    ? "bg-indigo-600 text-white border-indigo-600"
+                    ? "bg-primary text-primary-foreground border-primary"
                     : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
                 }`}
               >
                 {CATEGORY_LABELS[cat] ?? cat}
                 {count > 1 && (
                   <span className={`ml-1.5 text-xs rounded-full px-1.5 py-0.5 ${
-                    activeCat === cat ? "bg-indigo-500 text-indigo-100" : "bg-slate-100 text-slate-500"
+                    activeCat === cat ? "bg-primary/80 text-primary-foreground" : "bg-slate-100 text-slate-500"
                   }`}>
                     {count}
                   </span>
@@ -222,9 +222,9 @@ export function FiveWhyTree({ data }: FiveWhyTreeProps) {
               <button
                 key={i}
                 onClick={() => setActiveIdx(i)}
-                className={`flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-full border transition-colors ${
+                className={`flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-full border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${
                   safeIdx === i
-                    ? "bg-indigo-600 text-white border-indigo-600"
+                    ? "bg-primary text-primary-foreground border-primary"
                     : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
                 }`}
               >

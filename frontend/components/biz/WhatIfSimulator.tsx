@@ -45,7 +45,7 @@ function SimulatorRow({
           </span>
           <span className="text-xs text-slate-400">目标 {displayVal(chain.target)}</span>
         </div>
-        <span className="text-xs font-mono text-blue-600 min-w-[52px] text-right">
+        <span className="text-xs font-mono text-primary min-w-[52px] text-right">
           {displayVal(state.value)}
         </span>
       </div>
@@ -57,7 +57,7 @@ function SimulatorRow({
         step={step}
         value={state.value}
         onChange={(e) => onChange(chain.metric, parseFloat(e.target.value))}
-        className="w-full h-2 rounded-lg appearance-none cursor-pointer bg-slate-200 accent-blue-600"
+        className="w-full h-2 rounded-lg appearance-none cursor-pointer bg-slate-200 accent-primary"
       />
 
       <div className="mt-1.5 flex items-center gap-3 text-xs">
@@ -65,14 +65,14 @@ function SimulatorRow({
           <span className="text-slate-400">计算中...</span>
         )}
         {state.error && (
-          <span className="text-red-500">{state.error}</span>
+          <span className="text-destructive">{state.error}</span>
         )}
         {!state.loading && !state.error && state.result && (
           <>
-            <span className={`font-medium ${isImproved ? "text-emerald-600" : "text-slate-400"}`}>
+            <span className={`font-medium ${isImproved ? "text-success" : "text-slate-400"}`}>
               {isImproved ? "+" : ""}{deltaPayments.toFixed(1)} 付费单
             </span>
-            <span className={`font-medium ${isImproved ? "text-emerald-600" : "text-slate-400"}`}>
+            <span className={`font-medium ${isImproved ? "text-success" : "text-slate-400"}`}>
               {isImproved ? "+" : ""}{formatRevenue(deltaRevenue)}
             </span>
             {state.result.message && (
@@ -161,9 +161,9 @@ export function WhatIfSimulator({ chains }: WhatIfSimulatorProps) {
       </div>
 
       {hasAnyResult && (
-        <div className="mt-4 p-3 bg-emerald-50 border border-emerald-200 rounded-lg flex items-center justify-between">
-          <span className="text-sm font-medium text-emerald-700">全指标组合改善预期</span>
-          <div className="flex items-center gap-4 text-sm font-semibold text-emerald-700">
+        <div className="mt-4 p-3 bg-success/10 border border-success/30 rounded-lg flex items-center justify-between">
+          <span className="text-sm font-medium text-success">全指标组合改善预期</span>
+          <div className="flex items-center gap-4 text-sm font-semibold text-success">
             <span>+{totalDeltaPayments.toFixed(1)} 付费单</span>
             <span>+{formatRevenue(totalDeltaRevenue)}</span>
           </div>

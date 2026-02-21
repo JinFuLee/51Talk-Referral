@@ -127,7 +127,7 @@ export function PrePostCompareChart({ data, isLoading, error }: PrePostCompareCh
 
   if (error) {
     return (
-      <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
+      <div className="rounded-lg border border-warning/30 bg-warning/10 px-4 py-3 text-sm text-warning">
         数据加载失败: {error}。请先运行分析后刷新。
       </div>
     );
@@ -158,10 +158,11 @@ export function PrePostCompareChart({ data, isLoading, error }: PrePostCompareCh
           <button
             key={ch}
             onClick={() => setChannelTab(ch)}
-            className={`px-3 py-1 text-xs rounded-full border transition-colors ${
+            aria-pressed={channelTab === ch}
+            className={`px-3 py-1 text-xs rounded-full border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${
               channelTab === ch
-                ? "bg-indigo-600 text-white border-indigo-600"
-                : "bg-white text-slate-600 border-slate-200 hover:border-indigo-300"
+                ? "bg-primary text-primary-foreground border-primary"
+                : "bg-white text-slate-600 border-slate-200 hover:border-primary/50"
             }`}
           >
             {ch}
@@ -285,7 +286,7 @@ export function PrePostCompareChart({ data, isLoading, error }: PrePostCompareCh
                     <td className="px-3 py-2 text-slate-500">{row.team ?? "—"}</td>
                     <td className="px-3 py-2 text-slate-600">{pct(row.pre_call_rate)}%</td>
                     <td className="px-3 py-2 text-slate-600">{pct(row.pre_connect_rate)}%</td>
-                    <td className="px-3 py-2 font-semibold text-indigo-600">{pct(row.pre_effective_rate)}%</td>
+                    <td className="px-3 py-2 font-semibold text-primary">{pct(row.pre_effective_rate)}%</td>
                     <td className="px-3 py-2 text-slate-600">{pct(row.post_call_rate)}%</td>
                     <td className="px-3 py-2 text-slate-600">{pct(row.post_connect_rate)}%</td>
                     <td className="px-3 py-2 font-semibold text-purple-600">{pct(row.post_effective_rate)}%</td>

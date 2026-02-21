@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import useSWR from "swr";
+import { CHART_FONT_SIZE, CHART_HEIGHT } from "@/lib/utils";
 import {
   LineChart,
   Line,
@@ -56,12 +57,12 @@ type MetricKey = (typeof METRIC_OPTIONS)[number]["key"];
 const LINE_COLORS = [
   "hsl(var(--chart-2))",
   "hsl(var(--success))",
-  "#f59e0b",
+  "hsl(var(--chart-amber))",
   "hsl(var(--destructive))",
   "hsl(var(--chart-4))",
   "hsl(var(--chart-1))",
-  "#ec4899",
-  "#84cc16",
+  "hsl(var(--chart-pink))",
+  "hsl(var(--chart-lime))",
 ];
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -114,6 +115,16 @@ function formatValue(
 
 export function ChannelMoMTrend() {
   const [selectedMetric, setSelectedMetric] = useState<MetricKey>("registrations");
+  const [hiddenKeys, setHiddenKeys] = useState<Set<string>>(new Set());
+
+  const handleLegendClick = (e: { dataKey?: string }) => {
+    if (!e.dataKey) return;
+    setHiddenKeys((prev) => {
+      const next = new Set(prev);
+      next.has(e.dataKey!) ? next.delete(e.dataKey!) : next.add(e.dataKey!);
+      return next;
+    });
+  };
 
   const { data, error, isLoading } = useSWR<ChannelMomAPIResponse>(
     "/api/analysis/channel-mom",
@@ -165,15 +176,15 @@ export function ChannelMoMTrend() {
 
       {/* Chart */}
       {hasData ? (
-        <ResponsiveContainer width="100%" height={300}>
+        <ResponsiveContainer width="100%" height={CHART_HEIGHT.lg} aria-label="渠道MoM趋势">
           <LineChart
             data={chartData}
             margin={{ top: 12, right: 24, left: 0, bottom: 4 }}
           >
             <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-            <XAxis dataKey="month" tick={{ fontSize: 11 }} />
+            <XAxis dataKey="month" tick={{ fontSize: CHART_FONT_SIZE.md }} />
             <YAxis
-              tick={{ fontSize: 11 }}
+              tick={{ fontSize: CHART_FONT_SIZE.md }}
               tickFormatter={(v) => formatValue(v, selectedOpt)}
             />
             <Tooltip
@@ -182,7 +193,15 @@ export function ChannelMoMTrend() {
                 String(name),
               ]}
             />
-            <Legend wrapperStyle={{ fontSize: 12 }} />
+            <Legend
+              wrapperStyle={{ fontSize: CHART_FONT_SIZE.md }}
+              onClick={handleLegendClick}
+              formatter={(value: string) => (
+                <span style={{ opacity: hiddenKeys.has(value) ? 0.35 : 1, cursor: "pointer" }}>
+                  {value}
+                </span>
+              )}
+            />
             {byChannel.map((ch, i) => (
               <Line
                 key={ch.channel}
@@ -193,6 +212,7 @@ export function ChannelMoMTrend() {
                 dot={{ r: 3 }}
                 activeDot={{ r: 5 }}
                 connectNulls
+                hide={hiddenKeys.has(ch.channel)}
               />
             ))}
           </LineChart>

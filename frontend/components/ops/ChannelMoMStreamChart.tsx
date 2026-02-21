@@ -71,13 +71,13 @@ const METRIC_CONFIGS: Record<MetricKey, MetricConfig> = {
 
 const CHANNEL_COLORS = [
   "hsl(var(--chart-4))", // indigo
-  "#0ea5e9", // sky
+  "hsl(var(--chart-sky))", // sky
   "hsl(var(--success))", // emerald
-  "#f59e0b", // amber
-  "#ec4899", // pink
+  "hsl(var(--chart-amber))", // amber
+  "hsl(var(--chart-pink))", // pink
   "hsl(var(--chart-4))", // violet
   "hsl(var(--chart-1))", // teal
-  "#f97316", // orange
+  "hsl(var(--chart-orange))", // orange
 ];
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
@@ -147,7 +147,7 @@ function CustomTooltip({ active, payload, label, metric, byChannel }: CustomTool
                 {cfg.format(p.value)}
                 {mom !== null && metric === "registrations" && (
                   <span
-                    className={`ml-1 ${mom >= 0 ? "text-emerald-600" : "text-red-500"}`}
+                    className={`ml-1 ${mom >= 0 ? "text-success" : "text-destructive"}`}
                   >
                     {mom >= 0 ? "+" : ""}
                     {mom.toFixed(1)}%
@@ -192,9 +192,9 @@ export function ChannelMoMStreamChart({ data }: Props) {
           <button
             key={key}
             onClick={() => setMetric(key)}
-            className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+            className={`px-3 py-1 rounded-full text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${
               metric === key
-                ? "bg-indigo-600 text-white"
+                ? "bg-primary text-primary-foreground"
                 : "bg-slate-100 text-slate-600 hover:bg-slate-200"
             }`}
           >

@@ -28,10 +28,10 @@ interface ChannelRevenueWaterfallProps {
 const CHANNEL_COLORS: Record<string, string> = {
   转介绍: "hsl(var(--chart-2))",
   市场: "hsl(var(--success))",
-  宽口径: "#f59e0b",
+  宽口径: "hsl(var(--chart-amber))",
   "cc窄口径": "hsl(var(--chart-4))",
   "ss窄口径": "hsl(var(--chart-1))",
-  "lp窄口径": "#f97316",
+  "lp窄口径": "hsl(var(--chart-orange))",
 };
 
 function getChannelColor(channel: string, idx: number): string {
@@ -39,7 +39,7 @@ function getChannelColor(channel: string, idx: number): string {
   for (const [k, color] of Object.entries(CHANNEL_COLORS)) {
     if (key.includes(k.toLowerCase())) return color;
   }
-  const fallbacks = ["hsl(var(--chart-2))", "hsl(var(--success))", "#f59e0b", "hsl(var(--chart-4))", "hsl(var(--chart-1))", "#f97316", "#ec4899"];
+  const fallbacks = ["hsl(var(--chart-2))", "hsl(var(--success))", "hsl(var(--chart-amber))", "hsl(var(--chart-4))", "hsl(var(--chart-1))", "hsl(var(--chart-orange))", "hsl(var(--chart-pink))"];
   return fallbacks[idx % fallbacks.length];
 }
 

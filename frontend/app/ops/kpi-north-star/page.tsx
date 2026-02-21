@@ -1,12 +1,14 @@
 "use client";
 
 import useSWR from "swr";
+import { useTranslation } from "@/lib/hooks";
 import { Card } from "@/components/ui/Card";
-import { Spinner } from "@/components/ui/Spinner";
+import { Skeleton } from "@/components/ui/Skeleton";
 import { StatMiniCard } from "@/components/ui/StatMiniCard";
 import { CCCheckinRanking } from "@/components/ops/CCCheckinRanking";
 import { CheckinCoefScatter } from "@/components/biz/CheckinCoefScatter";
 import { CheckinMultiplierCard } from "@/components/biz/CheckinMultiplierCard";
+import { ErrorBoundary } from "@/components/providers/ErrorBoundary";
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
@@ -62,6 +64,7 @@ interface CheckinABData {
 }
 
 export default function KPINorthStarPage() {
+  const { t } = useTranslation();
   const { data: northStar, isLoading: loadingNS } = useSWR<NorthStarData>(
     `/api/analysis/north-star`,
     fetcher
@@ -75,8 +78,19 @@ export default function KPINorthStarPage() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <Spinner />
+      <div className="max-w-none space-y-4">
+        <Skeleton className="h-8 w-48" />
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <Skeleton className="h-20" />
+          <Skeleton className="h-20" />
+          <Skeleton className="h-20" />
+          <Skeleton className="h-20" />
+        </div>
+        <Skeleton className="h-64" />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Skeleton className="h-64" />
+          <Skeleton className="h-64" />
+        </div>
       </div>
     );
   }
@@ -95,36 +109,32 @@ export default function KPINorthStarPage() {
 
   return (
     <div className="max-w-none space-y-4">
-      {/* Header */}
       <div>
-        <h1 className="text-xl font-bold text-slate-800">北极星 · 24H 打卡率</h1>
-        <p className="text-xs text-slate-400 mt-0.5">
-          D1 打卡率排名 · D5 月度打卡系数 · D1×D5 散点分析
-        </p>
+        <h1 className="text-xl font-bold text-slate-800">{t("ops.kpi-north-star.title")}</h1>
+        <p className="text-xs text-slate-400 mt-0.5">{t("ops.kpi-north-star.subtitle")}</p>
       </div>
 
-      {/* Top stat cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <StatMiniCard
-          label="团队达标率"
+          label={t("ops.kpi-north-star.card.teamAchievement")}
           value={`${achievedPct}%`}
           sub={`${achievedCount}/${totalCC} 人达标`}
           accent={achievedPct >= 80 ? "green" : achievedPct >= 60 ? "yellow" : "red"}
         />
         <StatMiniCard
-          label="团队均值"
+          label={t("ops.kpi-north-star.card.teamAvg")}
           value={`${(avgRate * 100).toFixed(1)}%`}
           sub="24H 打卡率"
           accent="blue"
         />
         <StatMiniCard
-          label="目标打卡率"
+          label={t("ops.kpi-north-star.card.target")}
           value={target > 0 ? `${(target * 100).toFixed(0)}%` : "—"}
           sub="当月目标"
           accent="slate"
         />
         <StatMiniCard
-          label="D5 月均参与"
+          label={t("ops.kpi-north-star.card.d5Monthly")}
           value={
             d5Summary.avg_referral_participation != null
               ? d5Summary.avg_referral_participation.toFixed(1)
@@ -135,30 +145,30 @@ export default function KPINorthStarPage() {
         />
       </div>
 
-      {/* CC Ranking */}
-      <Card title="CC 24H 打卡率排名">
-        <CCCheckinRanking
-          byCC={byCC}
-          achievedCount={achievedCount}
-          totalCC={totalCC}
-          target={target}
-        />
-      </Card>
-
-      {/* Scatter + Multiplier */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Card title="打卡率 × 带新系数 散点图">
-          <CheckinCoefScatter data={merged} />
-        </Card>
-        <Card title="打卡倍率分析">
-          <CheckinMultiplierCard
-            data={merged}
-            d5Summary={d5Summary}
-            totalCC={totalCC}
+      <ErrorBoundary>
+        <Card title={t("ops.kpi-north-star.card.ranking")}>
+          <CCCheckinRanking
+            byCC={byCC}
             achievedCount={achievedCount}
+            totalCC={totalCC}
+            target={target}
           />
         </Card>
-      </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Card title={t("ops.kpi-north-star.card.scatter")}>
+            <CheckinCoefScatter data={merged} />
+          </Card>
+          <Card title={t("ops.kpi-north-star.card.multiplier")}>
+            <CheckinMultiplierCard
+              data={merged}
+              d5Summary={d5Summary}
+              totalCC={totalCC}
+              achievedCount={achievedCount}
+            />
+          </Card>
+        </div>
+      </ErrorBoundary>
     </div>
   );
 }

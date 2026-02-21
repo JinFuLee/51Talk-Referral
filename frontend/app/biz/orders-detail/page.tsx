@@ -1,14 +1,16 @@
 "use client";
 
-import { usePackageMix, useTeamPackageMix, useChannelRevenue } from "@/lib/hooks";
+import { usePackageMix, useTeamPackageMix, useChannelRevenue, useTranslation } from "@/lib/hooks";
 import { formatRevenue } from "@/lib/utils";
 import { Card } from "@/components/ui/Card";
-import { Spinner } from "@/components/ui/Spinner";
+import { Skeleton } from "@/components/ui/Skeleton";
+import { ErrorBoundary } from "@/components/providers/ErrorBoundary";
 import { ProductTrendStackedBar } from "@/components/charts/ProductTrendStackedBar";
 import { TeamPackageCompare } from "@/components/charts/TeamPackageCompare";
 import { ChannelRevenueWaterfall } from "@/components/charts/ChannelRevenueWaterfall";
 
 export default function OrdersDetailPage() {
+  const { t } = useTranslation();
   const { data: pkgData, isLoading: pkgLoading, error: pkgError } = usePackageMix();
   const { data: teamPkgData, isLoading: teamLoading, error: teamError } = useTeamPackageMix();
   const { data: chRevData, isLoading: chLoading, error: chError } = useChannelRevenue();
@@ -17,8 +19,13 @@ export default function OrdersDetailPage() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <Spinner />
+      <div className="max-w-6xl mx-auto space-y-8">
+        <Skeleton className="h-10 w-64" />
+        <Skeleton className="h-48" />
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <Skeleton className="h-48" />
+          <Skeleton className="h-48" />
+        </div>
       </div>
     );
   }
@@ -29,25 +36,24 @@ export default function OrdersDetailPage() {
     <div className="max-w-6xl mx-auto space-y-8">
       {/* Page header */}
       <div>
-        <h1 className="text-2xl font-bold text-slate-800">订单高级分析</h1>
-        <p className="text-sm text-slate-400 mt-1">
-          产品类型堆叠收入 (E4) · 小组套餐雷达对比 (E7) · 渠道收入瀑布图 (E8)
-        </p>
+        <h1 className="text-2xl font-bold text-slate-800">{t("biz.orders-detail.title")}</h1>
+        <p className="text-sm text-slate-400 mt-1">{t("biz.orders-detail.subtitle")}</p>
       </div>
 
       {hasError && (
         <div className="bg-red-50 border border-red-200 rounded-xl px-5 py-4 text-sm text-red-700">
-          部分数据加载失败，请先运行分析引擎
+          {t("biz.orders-detail.label.loadError")}
         </div>
       )}
 
       {/* E4 — Product type stacked bar */}
+      <ErrorBoundary>
       <Card
-        title="产品类型收入堆叠图 (E4)"
+        title={`${t("biz.orders-detail.card.stackedBar")} (E4)`}
         actions={
           pkgData ? (
             <span className="text-xs text-slate-400">
-              总计 {formatRevenue(pkgData.items.reduce((s: number, i: { revenue_usd: number }) => s + i.revenue_usd, 0))}
+              {t("biz.orders-detail.label.total")} {formatRevenue(pkgData.items.reduce((s: number, i: { revenue_usd: number }) => s + i.revenue_usd, 0))}
             </span>
           ) : null
         }
@@ -57,13 +63,11 @@ export default function OrdersDetailPage() {
             <ProductTrendStackedBar items={pkgData.items} />
           ) : (
             <div className="flex items-center justify-center h-40 text-xs text-slate-400">
-              E4 数据未接入，请检查 BI-订单_套餐类型占比_D-1 文件
+              {t("biz.orders-detail.label.noE4")}
             </div>
           )
         ) : (
-          <div className="flex items-center justify-center h-40">
-            <Spinner />
-          </div>
+          <Skeleton className="h-40 w-full" />
         )}
       </Card>
 
@@ -71,11 +75,11 @@ export default function OrdersDetailPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* E7 — Team package radar */}
         <Card
-          title="小组套餐结构雷达图 (E7)"
+          title={`${t("biz.orders-detail.card.teamRadar")} (E7)`}
           actions={
             teamPkgData ? (
               <span className="text-xs text-slate-400">
-                {teamPkgData.teams.length} 个小组
+                {teamPkgData.teams.length} {t("biz.orders-detail.label.teams")}
               </span>
             ) : null
           }
@@ -85,23 +89,21 @@ export default function OrdersDetailPage() {
               <TeamPackageCompare teams={teamPkgData.teams} />
             ) : (
               <div className="flex items-center justify-center h-40 text-xs text-slate-400">
-                E7 数据未接入，请检查 BI-订单_分小组套餐类型占比_D-1 文件
+                {t("biz.orders-detail.label.noE7")}
               </div>
             )
           ) : (
-            <div className="flex items-center justify-center h-40">
-              <Spinner />
-            </div>
+            <Skeleton className="h-40 w-full" />
           )}
         </Card>
 
         {/* E8 — Channel revenue waterfall */}
         <Card
-          title="渠道收入瀑布图 (E8)"
+          title={`${t("biz.orders-detail.card.channelWaterfall")} (E8)`}
           actions={
             chRevData ? (
               <span className="text-xs text-slate-400">
-                总计 {formatRevenue(chRevData.total_usd)}
+                {t("biz.orders-detail.label.total")} {formatRevenue(chRevData.total_usd)}
               </span>
             ) : null
           }
@@ -114,16 +116,15 @@ export default function OrdersDetailPage() {
               />
             ) : (
               <div className="flex items-center justify-center h-40 text-xs text-slate-400">
-                E8 数据未接入，请检查 BI-订单_套餐分渠道金额_D-1 文件
+                {t("biz.orders-detail.label.noE8")}
               </div>
             )
           ) : (
-            <div className="flex items-center justify-center h-40">
-              <Spinner />
-            </div>
+            <Skeleton className="h-40 w-full" />
           )}
         </Card>
       </div>
+      </ErrorBoundary>
     </div>
   );
 }

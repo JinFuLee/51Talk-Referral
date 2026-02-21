@@ -61,7 +61,7 @@ function CustomTooltip({ active, payload }: CustomTooltipProps) {
 
 function getQuadrantLabel(x: number, y: number, meanX: number, meanY: number) {
   if (x >= meanX && y >= meanY) return { label: "明星", color: "hsl(var(--success))" };
-  if (x >= meanX && y < meanY) return { label: "待激活", color: "#f59e0b" };
+  if (x >= meanX && y < meanY) return { label: "待激活", color: "hsl(var(--chart-amber))" };
   if (x < meanX && y >= meanY) return { label: "天赋型", color: "hsl(var(--chart-2))" };
   return { label: "需关注", color: "hsl(var(--destructive))" };
 }
@@ -97,7 +97,7 @@ export function CheckinCoefScatter({ data }: CheckinCoefScatterProps) {
       <div className="flex flex-wrap gap-3 text-xs">
         {[
           { label: "明星", color: "hsl(var(--success))", desc: "高打卡 + 高系数" },
-          { label: "待激活", color: "#f59e0b", desc: "高打卡 + 低系数" },
+          { label: "待激活", color: "hsl(var(--chart-amber))", desc: "高打卡 + 低系数" },
           { label: "天赋型", color: "hsl(var(--chart-2))", desc: "低打卡 + 高系数" },
           { label: "需关注", color: "hsl(var(--destructive))", desc: "低打卡 + 低系数" },
         ].map((q) => (

@@ -89,14 +89,14 @@ const STATUS_CONFIG = {
     bar: "bg-emerald-500",
   },
   yellow: {
-    ring: "#f59e0b",
+    ring: "hsl(var(--chart-amber))",
     bg: "bg-amber-50 border-amber-200",
     badge: "bg-amber-100 text-amber-700",
     label: "预警",
     bar: "bg-amber-500",
   },
   red: {
-    ring: "#f43f5e",
+    ring: "hsl(var(--chart-rose))",
     bg: "bg-rose-50 border-rose-200",
     badge: "bg-rose-100 text-rose-700",
     label: "危险",

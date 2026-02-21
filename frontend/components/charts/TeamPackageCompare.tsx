@@ -10,6 +10,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
+import { CHART_FONT_SIZE, CHART_HEIGHT } from "@/lib/utils";
 
 export interface TeamPackageItem {
   product_type: string;
@@ -26,13 +27,13 @@ interface TeamPackageCompareProps {
 }
 
 const TEAM_COLORS = [
-  "hsl(var(--chart-4))", // indigo-500
-  "hsl(var(--success))", // emerald-500
-  "#f59e0b", // amber-500
-  "#f43f5e", // rose-500
-  "#0ea5e9", // sky-500
-  "hsl(var(--chart-4))", // violet-500
-  "#f97316", // orange-500
+  "hsl(var(--chart-4))",
+  "hsl(var(--success))",
+  "hsl(var(--chart-amber))",
+  "hsl(var(--chart-rose))",
+  "hsl(var(--chart-sky))",
+  "hsl(var(--chart-1))",
+  "hsl(var(--chart-orange))",
 ];
 
 interface TooltipEntry {
@@ -97,21 +98,21 @@ export function TeamPackageCompare({ teams }: TeamPackageCompareProps) {
         </span>
       </div>
 
-      <ResponsiveContainer width="100%" height={300}>
+      <ResponsiveContainer width="100%" height={CHART_HEIGHT.lg} aria-label="小组套餐结构雷达图">
         <RadarChart data={radarData} margin={{ top: 8, right: 32, left: 32, bottom: 8 }}>
           <PolarGrid stroke="hsl(var(--border))" />
           <PolarAngleAxis
             dataKey="product_type"
-            tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
+            tick={{ fontSize: CHART_FONT_SIZE.md, fill: "hsl(var(--muted-foreground))" }}
           />
           <PolarRadiusAxis
             angle={30}
             domain={[0, 1]}
             tickFormatter={(v: number) => `${(v * 100).toFixed(0)}%`}
-            tick={{ fontSize: 9, fill: "hsl(var(--muted-foreground))" }}
+            tick={{ fontSize: CHART_FONT_SIZE.sm, fill: "hsl(var(--muted-foreground))" }}
           />
           <Tooltip content={<CustomTooltip />} />
-          <Legend wrapperStyle={{ fontSize: 12 }} />
+          <Legend wrapperStyle={{ fontSize: CHART_FONT_SIZE.md }} />
           {displayTeams.map((team, idx) => (
             <Radar
               key={team.team}

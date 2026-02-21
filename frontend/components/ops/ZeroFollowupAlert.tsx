@@ -81,9 +81,9 @@ const ENCLOSURE_ORDER = ["0-30", "31-60", "61-90", "91-180", "181+", "未知"];
 
 const ENCLOSURE_COLORS: Record<string, string> = {
   "0-30": "hsl(var(--destructive))",
-  "31-60": "#f97316",
+  "31-60": "hsl(var(--chart-orange))",
   "61-90": "#eab308",
-  "91-180": "#84cc16",
+  "91-180": "hsl(var(--chart-lime))",
   "181+": "hsl(var(--success))",
   "未知": "hsl(var(--muted-foreground))",
 };
@@ -103,7 +103,7 @@ export function ZeroFollowupAlert({ data, isLoading, error }: ZeroFollowupAlertP
 
   if (error) {
     return (
-      <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
+      <div className="rounded-lg border border-warning/30 bg-warning/10 px-4 py-3 text-sm text-warning">
         数据加载失败: {error}。请先运行分析后刷新。
       </div>
     );
@@ -128,15 +128,15 @@ export function ZeroFollowupAlert({ data, isLoading, error }: ZeroFollowupAlertP
   // Zero rate color
   const alertColor =
     zero_rate > 0.3
-      ? "bg-red-500"
+      ? "bg-destructive"
       : zero_rate > 0.15
-      ? "bg-amber-500"
-      : "bg-emerald-500";
+      ? "bg-warning"
+      : "bg-success";
 
   return (
     <div className="space-y-4">
       {/* Alert banner */}
-      <div className="rounded-xl border border-red-200 bg-red-50 p-4 flex items-center gap-4">
+      <div className="rounded-xl border border-destructive/30 bg-destructive/10 p-4 flex items-center gap-4">
         <div
           className={`flex-shrink-0 w-16 h-16 rounded-full flex flex-col items-center justify-center text-white font-bold ${alertColor}`}
         >
@@ -144,14 +144,14 @@ export function ZeroFollowupAlert({ data, isLoading, error }: ZeroFollowupAlertP
           <span className="text-xs leading-none opacity-80">人</span>
         </div>
         <div>
-          <p className="text-base font-semibold text-red-700">
+          <p className="text-base font-semibold text-destructive">
             本月零跟进付费学员预警
           </p>
-          <p className="text-sm text-red-600 mt-0.5">
+          <p className="text-sm text-destructive mt-0.5">
             {total_zero} / {total_students} 名付费学员本月未被拨打（占比{" "}
             <span className="font-bold">{(zero_rate * 100).toFixed(1)}%</span>）
           </p>
-          <p className="text-xs text-red-400 mt-1">
+          <p className="text-xs text-destructive/70 mt-1">
             零跟进学员流失风险高，建议优先安排 CC 跟进
           </p>
         </div>
@@ -232,7 +232,7 @@ export function ZeroFollowupAlert({ data, isLoading, error }: ZeroFollowupAlertP
                         <td className="px-3 py-2 font-medium text-slate-800">{row.cc_name}</td>
                         <td className="px-3 py-2 text-slate-500 text-xs">{row.team ?? "—"}</td>
                         <td className="px-3 py-2">
-                          <span className="font-semibold text-red-600">{row.count}</span>
+                          <span className="font-semibold text-destructive">{row.count}</span>
                         </td>
                         <td className="px-3 py-2 text-slate-500 text-xs">{pct.toFixed(1)}%</td>
                       </tr>
@@ -257,7 +257,7 @@ export function ZeroFollowupAlert({ data, isLoading, error }: ZeroFollowupAlertP
             {zero_followup_students.length > 0 && (
               <button
                 onClick={() => exportToCSV(zero_followup_students)}
-                className="text-xs bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 rounded px-2 py-1 font-medium transition-colors"
+                className="text-xs bg-success/10 text-success border border-success/30 hover:bg-success/20 rounded px-2 py-1 font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
               >
                 导出 CSV
               </button>

@@ -1,0 +1,117 @@
+"use client";
+
+import { Card } from "@/components/ui/Card";
+import { NumInput, PctInput } from "@/components/ui/NumInput";
+import type { ChannelDecomposition, ChannelTarget, MonthlyTargetV2 } from "@/lib/types";
+
+const CHANNEL_KEYS: (keyof ChannelDecomposition)[] = [
+  "cc_narrow",
+  "ss_narrow",
+  "lp_narrow",
+  "wide",
+];
+
+const CHANNEL_LABELS: Record<string, string> = {
+  cc_narrow: "CC窄口",
+  ss_narrow: "SS窄口",
+  lp_narrow: "LP窄口",
+  wide: "宽口",
+};
+
+interface ChannelSettingsCardProps {
+  v2: MonthlyTargetV2;
+  onUpdateChannel: (key: keyof ChannelDecomposition, patch: Partial<ChannelTarget>) => void;
+}
+
+export default function ChannelSettingsCard({ v2, onUpdateChannel }: ChannelSettingsCardProps) {
+  const ch = v2.channels;
+
+  const totalReg = CHANNEL_KEYS.reduce((s, k) => s + ch[k].user_count, 0);
+  const totalPaid = CHANNEL_KEYS.reduce(
+    (s, k) => s + Math.round(ch[k].user_count * ch[k].conversion_rate),
+    0
+  );
+  const totalChannelRevenue = CHANNEL_KEYS.reduce((s, k) => {
+    const c = ch[k];
+    return s + Math.round(c.user_count * c.conversion_rate) * c.asp;
+  }, 0);
+  const revenueGap =
+    v2.hard.referral_revenue > 0 ? totalChannelRevenue - v2.hard.referral_revenue : 0;
+
+  return (
+    <Card title="渠道拆解 (L2)">
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b border-slate-100">
+              <th className="text-left py-2 font-medium text-slate-500 w-20">渠道</th>
+              <th className="text-right py-2 font-medium text-slate-500">注册目标</th>
+              <th className="text-right py-2 font-medium text-slate-500">客单价</th>
+              <th className="text-right py-2 font-medium text-slate-500">转化率</th>
+              <th className="text-right py-2 font-medium text-slate-500">付费目标</th>
+              <th className="text-right py-2 font-medium text-slate-500">收入目标</th>
+            </tr>
+          </thead>
+          <tbody>
+            {CHANNEL_KEYS.map((k) => {
+              const c = ch[k];
+              const paid = Math.round(c.user_count * c.conversion_rate);
+              const rev = paid * c.asp;
+              return (
+                <tr key={k} className="border-b border-slate-50">
+                  <td className="py-2 font-medium text-slate-700">{CHANNEL_LABELS[k]}</td>
+                  <td className="py-2 text-right">
+                    <NumInput
+                      value={c.user_count}
+                      onChange={(v) => onUpdateChannel(k, { user_count: v })}
+                    />
+                  </td>
+                  <td className="py-2 text-right">
+                    <NumInput
+                      value={c.asp}
+                      onChange={(v) => onUpdateChannel(k, { asp: v })}
+                      suffix="USD"
+                      step={10}
+                    />
+                  </td>
+                  <td className="py-2 text-right">
+                    <PctInput
+                      value={c.conversion_rate}
+                      onChange={(v) => onUpdateChannel(k, { conversion_rate: v })}
+                    />
+                  </td>
+                  <td className="py-2 text-right text-slate-600">{paid}</td>
+                  <td className="py-2 text-right text-slate-600">${rev.toLocaleString()}</td>
+                </tr>
+              );
+            })}
+            <tr className="border-t-2 border-slate-200 font-semibold">
+              <td className="py-2 text-slate-800">合计</td>
+              <td className="py-2 text-right text-slate-800">{totalReg}</td>
+              <td className="py-2 text-right text-slate-400">—</td>
+              <td className="py-2 text-right text-slate-400">
+                {totalReg > 0 ? `${((totalPaid / totalReg) * 100).toFixed(1)}%` : "—"}
+              </td>
+              <td className="py-2 text-right text-slate-800">{totalPaid}</td>
+              <td
+                className={`py-2 text-right ${
+                  revenueGap !== 0 && v2.hard.referral_revenue > 0
+                    ? "text-yellow-600"
+                    : "text-slate-800"
+                }`}
+              >
+                ${totalChannelRevenue.toLocaleString()}
+                {revenueGap !== 0 && v2.hard.referral_revenue > 0 && (
+                  <span className="text-xs ml-1">
+                    ({revenueGap > 0 ? "+" : ""}
+                    {revenueGap.toLocaleString()})
+                  </span>
+                )}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </Card>
+  );
+}

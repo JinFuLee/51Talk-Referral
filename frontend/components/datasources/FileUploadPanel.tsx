@@ -39,12 +39,12 @@ export function FileUploadPanel({ onSuccess }: FileUploadPanelProps) {
           value={sourceId}
           onChange={(e) => setSourceId(e.target.value)}
           placeholder="数据源 ID（如 orders）"
-          className="flex-1 px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+          className="flex-1 px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring"
         />
-        <input ref={inputRef} type="file" accept=".xlsx,.csv" className="hidden" />
+        <input ref={inputRef} type="file" accept=".xlsx,.csv" className="hidden" aria-label="选择上传文件" />
         <button
           onClick={() => inputRef.current?.click()}
-          className="px-3 py-2 border border-slate-200 rounded-lg text-sm text-slate-600 hover:bg-slate-50"
+          className="px-3 py-2 border border-slate-200 rounded-lg text-sm text-slate-600 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
         >
           选择文件
         </button>
@@ -52,11 +52,15 @@ export function FileUploadPanel({ onSuccess }: FileUploadPanelProps) {
       <button
         onClick={handleUpload}
         disabled={uploading}
-        className="w-full py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 disabled:opacity-50"
+        className="w-full py-2 bg-primary text-primary-foreground text-sm rounded-lg hover:bg-primary/90 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
       >
         {uploading ? "上传中…" : "上传"}
       </button>
-      {msg && <p className={`text-xs ${msg.includes("成功") ? "text-green-600" : "text-red-500"}`}>{msg}</p>}
+      {msg && (
+        <p className={`text-xs ${msg.includes("成功") ? "text-success" : "text-destructive"}`}>
+          {msg}
+        </p>
+      )}
     </div>
   );
 }

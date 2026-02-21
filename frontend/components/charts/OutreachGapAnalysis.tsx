@@ -1,23 +1,9 @@
 "use client";
 
 import useSWR from "swr";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  ReferenceLine,
-  Cell,
-  LabelList,
-} from "recharts";
-import { Card } from "@/components/ui/Card";
 import { Spinner } from "@/components/ui/Spinner";
-import { formatRevenue } from "@/lib/utils";
-
-// ── Types ────────────────────────────────────────────────────────────────────
+import OutreachGapBarChart from "./outreach-gap/OutreachGapBarChart";
+import OutreachGapDetailTable from "./outreach-gap/OutreachGapDetailTable";
 
 interface CCGap {
   cc_name: string;
@@ -47,8 +33,6 @@ interface OutreachGapData {
   by_cc: CCGap[];
 }
 
-// ── Mock fallback ─────────────────────────────────────────────────────────────
-
 const MOCK: OutreachGapData = {
   summary: {
     total_students: 320,
@@ -74,64 +58,11 @@ const MOCK: OutreachGapData = {
   ],
 };
 
-// ── Fetcher ───────────────────────────────────────────────────────────────────
-
 async function fetcher(): Promise<OutreachGapData> {
   const res = await fetch(`/api/analysis/outreach-gap`);
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   return res.json();
 }
-
-// ── Sub-components ────────────────────────────────────────────────────────────
-
-interface MetricCardProps {
-  label: string;
-  value: string;
-  sub?: string;
-  highlight?: "red" | "orange" | "green" | "slate";
-}
-
-function MetricCard({ label, value, sub, highlight = "slate" }: MetricCardProps) {
-  const colorMap = {
-    red: "text-red-600",
-    orange: "text-orange-500",
-    green: "text-green-600",
-    slate: "text-slate-800",
-  };
-  return (
-    <div className="bg-white/95 backdrop-blur-md border border-border/40 rounded-2xl shadow-flash p-4 transition-all duration-500 hover:shadow-flash-lg hover:-translate-y-1">
-      <p className="text-xs text-slate-400 mb-1">{label}</p>
-      <p className={`text-2xl font-bold ${colorMap[highlight]}`}>{value}</p>
-      {sub && <p className="text-xs text-slate-400 mt-1">{sub}</p>}
-    </div>
-  );
-}
-
-interface TooltipPayloadItem {
-  payload: CCGap & { pct: number };
-}
-
-interface CustomTooltipProps {
-  active?: boolean;
-  payload?: TooltipPayloadItem[];
-}
-
-function CustomTooltip({ active, payload }: CustomTooltipProps) {
-  if (!active || !payload?.length) return null;
-  const d = payload[0].payload;
-  return (
-    <div className="bg-white/95 backdrop-blur-md border border-border/40 rounded-xl shadow-flash p-3 text-xs">
-      <p className="font-semibold text-slate-700 mb-1">{d.cc_name}</p>
-      <p className="text-slate-500">已拨: {d.called} / {d.total}</p>
-      <p className="text-slate-500">未拨: {d.not_called}</p>
-      <p className={d.gap_vs_target > 0 ? "text-red-600 font-medium" : "text-green-600 font-medium"}>
-        缺口: {(d.gap_vs_target * 100).toFixed(1)}%
-      </p>
-    </div>
-  );
-}
-
-// ── Main component ────────────────────────────────────────────────────────────
 
 export function OutreachGapAnalysis() {
   const { data: raw, isLoading, error } = useSWR("outreach-gap", fetcher, {
@@ -154,14 +85,6 @@ export function OutreachGapAnalysis() {
 
   const { summary, loss_estimate, by_cc } = data;
 
-  // Build chart data: coverage rate as percentage (0–100)
-  const chartData = by_cc.map((cc) => ({
-    ...cc,
-    pct: Math.round(cc.coverage_rate * 100),
-  }));
-
-  const targetPct = Math.round(summary.target_rate * 100);
-
   return (
     <div className="space-y-4">
       {isMock && (
@@ -175,161 +98,63 @@ export function OutreachGapAnalysis() {
         </div>
       )}
 
-      {/* Top 3 metric cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <MetricCard
-          label="实际覆盖率 vs 目标"
-          value={`${(summary.coverage_rate * 100).toFixed(1)}%`}
-          sub={`目标 ${(summary.target_rate * 100).toFixed(0)}% · 缺口 ${(summary.gap_rate * 100).toFixed(1)}%`}
-          highlight={summary.gap_rate > 0.1 ? "red" : summary.gap_rate > 0.05 ? "orange" : "green"}
-        />
-        <MetricCard
-          label="缺口学员数"
-          value={`${summary.gap_students} 人`}
-          sub={`未拨 ${summary.not_called} 人 / 共 ${summary.total_students} 人`}
-          highlight={summary.gap_students > 30 ? "red" : summary.gap_students > 10 ? "orange" : "slate"}
-        />
-        <MetricCard
-          label="预估损失收入"
-          value={formatRevenue(loss_estimate.lost_revenue_usd)}
-          sub={`→ 损失出席 ${loss_estimate.lost_attend} 人 · 损失付费 ${loss_estimate.lost_paid} 单`}
-          highlight={loss_estimate.lost_revenue_usd > 1000 ? "red" : loss_estimate.lost_revenue_usd > 300 ? "orange" : "slate"}
-        />
-      </div>
-
-      {/* Bar chart: CC coverage rate vs target */}
-      <Card title="CC 外呼覆盖率 vs 目标（85%）">
-        {by_cc.length === 0 ? (
-          <p className="text-sm text-slate-400 py-6 text-center">暂无 CC 粒度数据</p>
-        ) : (
-          <div className="overflow-x-auto">
-            <div style={{ minWidth: Math.max(400, by_cc.length * 72) }}>
-              <ResponsiveContainer width="100%" height={260}>
-                <BarChart
-                  data={chartData}
-                  margin={{ top: 24, right: 16, left: 0, bottom: 4 }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
-                  <XAxis
-                    dataKey="cc_name"
-                    tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
-                    axisLine={false}
-                    tickLine={false}
-                  />
-                  <YAxis
-                    domain={[0, 100]}
-                    tickFormatter={(v: number) => `${v}%`}
-                    tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
-                    axisLine={false}
-                    tickLine={false}
-                    width={36}
-                  />
-                  <Tooltip content={<CustomTooltip />} />
-                  <ReferenceLine
-                    y={targetPct}
-                    stroke="hsl(var(--chart-2))"
-                    strokeDasharray="4 4"
-                    label={{ value: `目标 ${targetPct}%`, position: "insideTopRight", fontSize: 10, fill: "hsl(var(--chart-2))" }}
-                  />
-                  <Bar dataKey="pct" radius={[4, 4, 0, 0]}>
-                    <LabelList
-                      dataKey="pct"
-                      position="top"
-                      formatter={(v: number) => `${v}%`}
-                      style={{ fontSize: 10, fill: "hsl(var(--foreground))", fontWeight: 600 }}
-                    />
-                    {chartData.map((entry) => (
-                      <Cell
-                        key={entry.cc_name}
-                        fill={
-                          entry.gap_vs_target > 0.1
-                            ? "hsl(var(--destructive))"
-                            : entry.gap_vs_target > 0
-                            ? "#f97316"
-                            : "hsl(var(--success))"
-                        }
-                      />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-        )}
-        <div className="flex items-center gap-4 mt-2 text-xs text-slate-400">
-          <span className="flex items-center gap-1">
-            <span className="inline-block w-3 h-3 rounded bg-red-500" /> 缺口 &gt;10%
-          </span>
-          <span className="flex items-center gap-1">
-            <span className="inline-block w-3 h-3 rounded bg-orange-500" /> 缺口 1–10%
-          </span>
-          <span className="flex items-center gap-1">
-            <span className="inline-block w-3 h-3 rounded bg-green-500" /> 达标
-          </span>
+        <div className="bg-white/95 backdrop-blur-md border border-border/40 rounded-2xl shadow-flash p-4 transition-all duration-500 hover:shadow-flash-lg hover:-translate-y-1">
+          <p className="text-xs text-slate-400 mb-1">实际覆盖率 vs 目标</p>
+          <p
+            className={`text-2xl font-bold ${
+              summary.gap_rate > 0.1
+                ? "text-red-600"
+                : summary.gap_rate > 0.05
+                ? "text-orange-500"
+                : "text-green-600"
+            }`}
+          >
+            {(summary.coverage_rate * 100).toFixed(1)}%
+          </p>
+          <p className="text-xs text-slate-400 mt-1">
+            目标 {(summary.target_rate * 100).toFixed(0)}% · 缺口{" "}
+            {(summary.gap_rate * 100).toFixed(1)}%
+          </p>
         </div>
-      </Card>
-
-      {/* CC detail table */}
-      <Card title="CC 外呼缺口明细（按缺口排序）">
-        {by_cc.length === 0 ? (
-          <p className="text-sm text-slate-400 py-4 text-center">暂无数据</p>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-xs">
-              <thead>
-                <tr className="border-b border-slate-100">
-                  <th className="text-left py-2 px-3 text-slate-400 font-medium">CC</th>
-                  <th className="text-right py-2 px-3 text-slate-400 font-medium">总学员</th>
-                  <th className="text-right py-2 px-3 text-slate-400 font-medium">已拨</th>
-                  <th className="text-right py-2 px-3 text-slate-400 font-medium">未拨</th>
-                  <th className="text-right py-2 px-3 text-slate-400 font-medium">覆盖率</th>
-                  <th className="text-right py-2 px-3 text-slate-400 font-medium">vs 目标</th>
-                </tr>
-              </thead>
-              <tbody>
-                {by_cc.map((cc) => {
-                  const isLargeGap = cc.gap_vs_target > 0.1;
-                  const isMedGap = cc.gap_vs_target > 0 && !isLargeGap;
-                  return (
-                    <tr
-                      key={cc.cc_name}
-                      className={
-                        isLargeGap
-                          ? "bg-red-50 border-b border-red-100"
-                          : isMedGap
-                          ? "bg-orange-50 border-b border-orange-100"
-                          : "border-b border-slate-50 hover:bg-slate-50"
-                      }
-                    >
-                      <td className="py-2 px-3 font-medium text-slate-700">{cc.cc_name}</td>
-                      <td className="py-2 px-3 text-right text-slate-600">{cc.total}</td>
-                      <td className="py-2 px-3 text-right text-slate-600">{cc.called}</td>
-                      <td className={`py-2 px-3 text-right font-medium ${cc.not_called > 0 ? "text-red-600" : "text-slate-400"}`}>
-                        {cc.not_called}
-                      </td>
-                      <td className="py-2 px-3 text-right text-slate-700">
-                        {(cc.coverage_rate * 100).toFixed(1)}%
-                      </td>
-                      <td className={`py-2 px-3 text-right font-semibold ${cc.gap_vs_target > 0 ? "text-red-600" : "text-green-600"}`}>
-                        {cc.gap_vs_target > 0 ? "-" : "+"}
-                        {Math.abs(cc.gap_vs_target * 100).toFixed(1)}%
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </Card>
-
-      {/* Loss breakdown note */}
-      <div className="bg-slate-50 rounded-xl border border-slate-100 px-4 py-3 text-xs text-slate-500 space-y-1">
-        <p className="font-medium text-slate-600">损失量化假设</p>
-        <p>未拨学员 × 出席率 30% → 损失出席 {loss_estimate.lost_attend} 人</p>
-        <p>损失出席 × 付费转化率 15% → 损失付费 {loss_estimate.lost_paid} 单</p>
-        <p>损失付费 × 客单价 $200 → 损失收入 {formatRevenue(loss_estimate.lost_revenue_usd)}</p>
+        <div className="bg-white/95 backdrop-blur-md border border-border/40 rounded-2xl shadow-flash p-4 transition-all duration-500 hover:shadow-flash-lg hover:-translate-y-1">
+          <p className="text-xs text-slate-400 mb-1">缺口学员数</p>
+          <p
+            className={`text-2xl font-bold ${
+              summary.gap_students > 30
+                ? "text-red-600"
+                : summary.gap_students > 10
+                ? "text-orange-500"
+                : "text-slate-800"
+            }`}
+          >
+            {summary.gap_students} 人
+          </p>
+          <p className="text-xs text-slate-400 mt-1">
+            未拨 {summary.not_called} 人 / 共 {summary.total_students} 人
+          </p>
+        </div>
+        <div className="bg-white/95 backdrop-blur-md border border-border/40 rounded-2xl shadow-flash p-4 transition-all duration-500 hover:shadow-flash-lg hover:-translate-y-1">
+          <p className="text-xs text-slate-400 mb-1">预估损失收入</p>
+          <p
+            className={`text-2xl font-bold ${
+              loss_estimate.lost_revenue_usd > 1000
+                ? "text-red-600"
+                : loss_estimate.lost_revenue_usd > 300
+                ? "text-orange-500"
+                : "text-slate-800"
+            }`}
+          >
+            ${loss_estimate.lost_revenue_usd.toLocaleString()}
+          </p>
+          <p className="text-xs text-slate-400 mt-1">
+            → 损失出席 {loss_estimate.lost_attend} 人 · 损失付费 {loss_estimate.lost_paid} 单
+          </p>
+        </div>
       </div>
+
+      <OutreachGapBarChart by_cc={by_cc} target_rate={summary.target_rate} />
+      <OutreachGapDetailTable by_cc={by_cc} loss_estimate={loss_estimate} />
     </div>
   );
 }

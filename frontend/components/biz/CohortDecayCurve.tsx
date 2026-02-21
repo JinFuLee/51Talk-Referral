@@ -36,8 +36,8 @@ export interface CohortDecayCurveProps {
 
 // Palette for cohort lines
 const PALETTE = [
-  "hsl(var(--chart-4))", "hsl(var(--success))", "#f59e0b", "#f43f5e",
-  "hsl(var(--chart-2))", "hsl(var(--chart-4))", "#ec4899", "hsl(var(--chart-1))",
+  "hsl(var(--chart-4))", "hsl(var(--success))", "hsl(var(--chart-amber))", "hsl(var(--chart-rose))",
+  "hsl(var(--chart-2))", "hsl(var(--chart-4))", "hsl(var(--chart-pink))", "hsl(var(--chart-1))",
 ];
 
 function formatVal(metric: string, v: number): string {
@@ -145,7 +145,7 @@ export function CohortDecayCurve({
       </div>
 
       {inflectionMonth && (
-        <p className="text-xs text-amber-600 bg-amber-50 rounded px-2 py-1 inline-block">
+        <p className="text-xs text-warning bg-warning/10 rounded px-2 py-1 inline-block">
           衰减拐点: M{inflectionMonth} (曲率最大处，建议在此月前加强干预)
         </p>
       )}
@@ -168,9 +168,9 @@ export function CohortDecayCurve({
           {inflectionMonth && (
             <ReferenceLine
               x={`M${inflectionMonth}`}
-              stroke="#f59e0b"
+              stroke="hsl(var(--chart-amber))"
               strokeDasharray="4 2"
-              label={{ value: "拐点", fill: "#f59e0b", fontSize: 11 }}
+              label={{ value: "拐点", fill: "hsl(var(--chart-amber))", fontSize: 11 }}
             />
           )}
           {cohortGroups.map((g, idx) =>

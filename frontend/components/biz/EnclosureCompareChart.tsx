@@ -81,7 +81,7 @@ export function EnclosureCompareChart({ comparison }: Props) {
           <p className="text-violet-600">转介绍：{formatVal(referral.value)}</p>
         )}
         {diff != null && (
-          <p className={`mt-1 font-medium ${diff >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
+          <p className={`mt-1 font-medium ${diff >= 0 ? "text-success" : "text-destructive"}`}>
             差值：{diff >= 0 ? "+" : ""}{formatVal(diff)}
           </p>
         )}
@@ -102,7 +102,7 @@ export function EnclosureCompareChart({ comparison }: Props) {
             onClick={() => setMetric(opt.value)}
             className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
               metric === opt.value
-                ? "bg-indigo-600 text-white"
+                ? "bg-primary text-primary-foreground"
                 : "bg-slate-100 text-slate-600 hover:bg-slate-200"
             }`}
           >
@@ -140,8 +140,8 @@ export function EnclosureCompareChart({ comparison }: Props) {
                   gap == null
                     ? "border-slate-100 bg-slate-50 text-slate-400"
                     : gap > 0
-                    ? "border-emerald-200 bg-emerald-50 text-emerald-700"
-                    : "border-rose-200 bg-rose-50 text-rose-700"
+                    ? "border-success/30 bg-success/10 text-success"
+                    : "border-destructive/30 bg-destructive/10 text-destructive"
                 }`}
               >
                 <div className="font-medium">{row.enclosure}天</div>

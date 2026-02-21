@@ -33,10 +33,11 @@ export function Sidebar() {
             <Link
               key={item.href}
               href={item.href}
+              aria-current={isActive ? "page" : undefined}
               className={clsx(
                 "flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
                 isActive
-                  ? "bg-blue-600 text-white"
+                  ? "bg-primary text-primary-foreground"
                   : "text-slate-400 hover:text-white hover:bg-slate-800"
               )}
             >

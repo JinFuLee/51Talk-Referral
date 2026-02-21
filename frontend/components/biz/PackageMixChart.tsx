@@ -24,13 +24,13 @@ interface PackageMixChartProps {
 const COLORS = [
   "hsl(var(--chart-2))", // blue
   "hsl(var(--success))", // emerald
-  "#f59e0b", // amber
+  "hsl(var(--chart-amber))", // amber
   "hsl(var(--chart-4))", // violet
   "hsl(var(--destructive))", // red
   "hsl(var(--chart-1))", // cyan
-  "#f97316", // orange
-  "#84cc16", // lime
-  "#ec4899", // pink
+  "hsl(var(--chart-orange))", // orange
+  "hsl(var(--chart-lime))", // lime
+  "hsl(var(--chart-pink))", // pink
   "hsl(var(--chart-4))", // indigo
 ];
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useSummary, useAnomalies, useRiskAlerts, useProductivity } from "@/lib/hooks";
+import { useSummary, useAnomalies, useRiskAlerts, useProductivity, useTranslation } from "@/lib/hooks";
 import { KPICard } from "@/components/charts/KPICard";
 import { RiskAlertList } from "@/components/dashboard/RiskAlertList";
 import { AnomalyBadge } from "@/components/dashboard/AnomalyBadge";
@@ -8,10 +8,12 @@ import { RunAnalysisButton } from "@/components/dashboard/RunAnalysisButton";
 import { AnomalyBanner } from "@/components/ops/AnomalyBanner";
 import { GoalGapCard } from "@/components/ops/GoalGapCard";
 import { TimeProgressBar } from "@/components/ops/TimeProgressBar";
-import { Spinner } from "@/components/ui/Spinner";
+import { Skeleton } from "@/components/ui/Skeleton";
+import { ErrorBoundary } from "@/components/providers/ErrorBoundary";
 import type { SummaryMetric } from "@/lib/types";
 
 export default function OpsDashboardPage() {
+  const { t } = useTranslation();
   const { data: summaryData, isLoading: loadingSummary } = useSummary();
   const { data: anomalies = [] } = useAnomalies();
   const { data: alerts = [] } = useRiskAlerts();
@@ -30,7 +32,6 @@ export default function OpsDashboardPage() {
   const leads = getMetric("leads");
   const timeProgress = (summaryData as Record<string, unknown> | undefined)?.time_progress as number ?? 0;
 
-  // Compute remaining daily avg as fallback if API doesn't return it
   function remainingDailyAvg(metric: SummaryMetric): number | undefined {
     if (!timeProgress || timeProgress >= 1) return undefined;
     const remainingDays = Math.max(1, Math.round((1 - timeProgress) * 30));
@@ -47,34 +48,44 @@ export default function OpsDashboardPage() {
 
   const kpis = [
     {
-      title: "注册人数", ...reg, unit: "人",
+      title: t("ops.dashboard.kpi.registrations"), ...reg, unit: "人",
       remaining_daily_avg: (summaryData as Record<string, unknown> | undefined)?.reg_remaining_daily_avg as number | undefined ?? remainingDailyAvg(reg),
       efficiency_lift_pct: (summaryData as Record<string, unknown> | undefined)?.reg_efficiency_lift_pct as number | undefined ?? efficiencyLiftPct(reg),
     },
     {
-      title: "付费人数", ...pay, unit: "人",
+      title: t("ops.dashboard.kpi.payments"), ...pay, unit: "人",
       remaining_daily_avg: (summaryData as Record<string, unknown> | undefined)?.pay_remaining_daily_avg as number | undefined ?? remainingDailyAvg(pay),
       efficiency_lift_pct: (summaryData as Record<string, unknown> | undefined)?.pay_efficiency_lift_pct as number | undefined ?? efficiencyLiftPct(pay),
     },
-    { title: "收入", ...rev, unit: "$" },
+    { title: t("ops.dashboard.kpi.revenue"), ...rev, unit: "$" },
     { title: "Leads", ...leads, unit: "" },
   ];
 
   if (loadingSummary) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <Spinner />
+      <div className="max-w-none space-y-4">
+        <Skeleton className="h-8 w-48" />
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <Skeleton className="h-32" />
+          <Skeleton className="h-32" />
+          <Skeleton className="h-32" />
+          <Skeleton className="h-32" />
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Skeleton className="h-32" />
+          <Skeleton className="h-32" />
+        </div>
+        <Skeleton className="h-24" />
       </div>
     );
   }
 
-  // -- Dynamic Dashboards: Smart Order Based on AI Context
   const hasAlertsOrAnomalies = alerts.length > 0 || anomalies.length > 0;
-  
+
   const sections = [
     {
       id: "kpis",
-      priority: 100, // Always first
+      priority: 100,
       content: (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {kpis.map((kpi) => (
@@ -95,7 +106,6 @@ export default function OpsDashboardPage() {
     },
     {
       id: "risks",
-      // Boost priority if there are active risks/anomalies
       priority: hasAlertsOrAnomalies ? 90 : 10,
       content: (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -120,7 +130,7 @@ export default function OpsDashboardPage() {
       priority: 30,
       content: productivity ? (
         <div className="rounded-xl border border-slate-200 bg-white p-4">
-          <p className="text-sm font-semibold text-slate-700 mb-3">人效日均（CC / SS / LP）</p>
+          <p className="text-sm font-semibold text-slate-700 mb-3">{t("ops.dashboard.label.perCapita")}</p>
           <div className="grid grid-cols-3 gap-4">
             {(["cc", "ss", "lp"] as const).map((role) => {
               const r = productivity?.[role];
@@ -131,7 +141,7 @@ export default function OpsDashboardPage() {
                   <p className="text-2xl font-bold text-blue-600">
                     ${Math.round(r.per_capita ?? r.per_capita_usd ?? 0).toLocaleString()}
                   </p>
-                  <p className="text-xs text-slate-400">人均USD/月</p>
+                  <p className="text-xs text-slate-400">{t("ops.dashboard.label.perCapitaUnit")}</p>
                 </div>
               );
             })}
@@ -141,37 +151,35 @@ export default function OpsDashboardPage() {
     },
   ].filter((s) => s.content != null);
 
-  // Sort sections descending by priority
   const orderedSections = [...sections].sort((a, b) => b.priority - a.priority);
 
   return (
     <div className="max-w-none space-y-4">
-      {/* Page header */}
       <div className="flex items-center justify-between shadow-sm pb-2 mb-2 border-b border-transparent">
         <div>
           <h1 className="text-xl font-bold text-slate-800 flex items-center gap-2">
-            运营总览 
+            {t("ops.dashboard.title")}
             {hasAlertsOrAnomalies && (
               <span className="text-xs bg-brand-100 text-brand-600 px-2 py-0.5 rounded-full flex items-center ml-2">
                 <span className="w-1.5 h-1.5 bg-brand-500 rounded-full mr-1 animate-pulse"></span>
-                AI 排版生效中
+                {t("ops.dashboard.label.aiLayout")}
               </span>
             )}
           </h1>
-          <p className="text-xs text-slate-400 mt-0.5">T-1 数据，30 秒自动刷新</p>
+          <p className="text-xs text-slate-400 mt-0.5">{t("ops.dashboard.subtitle")}</p>
         </div>
         <RunAnalysisButton />
       </div>
 
-      {/* Anomaly banner */}
       <AnomalyBanner anomalies={anomalies} />
 
-      {/* Render Dynamic Ordered Sections */}
-      {orderedSections.map((section) => (
-        <div key={section.id} className="transition-all duration-500 animate-in fade-in slide-in-from-bottom-2">
-          {section.content}
-        </div>
-      ))}
+      <ErrorBoundary>
+        {orderedSections.map((section) => (
+          <div key={section.id} className="transition-all duration-500 animate-in fade-in slide-in-from-bottom-2">
+            {section.content}
+          </div>
+        ))}
+      </ErrorBoundary>
     </div>
   );
 }

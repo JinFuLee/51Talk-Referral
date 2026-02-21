@@ -18,7 +18,7 @@ export function Header({ lang, onLangChange, role, onRoleChange, lastUpdated }: 
   return (
     <header className="h-14 bg-white/80 backdrop-blur-md border-b border-border/40 flex items-center justify-between px-6 shrink-0 relative z-40">
       <div className="flex items-center gap-3">
-        <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+        <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
           <span className="text-white text-sm font-bold">51</span>
         </div>
         <span className="font-semibold text-gray-900 text-sm">{title}</span>

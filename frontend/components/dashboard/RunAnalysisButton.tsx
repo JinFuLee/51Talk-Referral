@@ -29,7 +29,7 @@ export function RunAnalysisButton() {
       <button
         onClick={handleRun}
         disabled={running}
-        className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white text-sm font-medium rounded-lg transition-colors"
+        className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary/90 disabled:opacity-50 text-primary-foreground text-sm font-medium rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
       >
         {running && <Spinner size="sm" className="text-white" />}
         {running ? "分析中…" : "运行分析"}

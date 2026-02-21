@@ -21,7 +21,7 @@ interface ImpactWaterfallChartProps {
 
 function getBarColor(lostUsd: number): string {
   if (lostUsd > 10000) return "hsl(var(--destructive))"; // red
-  if (lostUsd > 5000) return "#f97316";  // orange
+  if (lostUsd > 5000) return "hsl(var(--chart-orange))";  // orange
   return "#eab308";                       // yellow
 }
 
@@ -50,7 +50,7 @@ function CustomTooltip({ active, payload }: CustomTooltipProps) {
     <div className="bg-white/95 backdrop-blur-md border border-border/40 rounded-xl shadow-flash p-3 text-xs max-w-xs">
       <p className="font-semibold text-slate-700 mb-1">{item.label}</p>
       <p className="text-slate-600">
-        损失: <span className="font-medium text-red-600">{formatRevenue(item.lost_usd)}</span>
+        损失: <span className="font-medium text-destructive">{formatRevenue(item.lost_usd)}</span>
       </p>
       {item.chain && (
         <div className="mt-2 border-t border-slate-100 pt-2 space-y-1">
@@ -138,7 +138,7 @@ export function ImpactWaterfallChart({ data }: ImpactWaterfallChartProps) {
                       entry.isTotal
                         ? "hsl(var(--muted-foreground))"
                         : entry.metric === selectedMetric
-                        ? "#1d4ed8"
+                        ? "hsl(var(--primary))"
                         : getBarColor(entry.lost_usd)
                     }
                     opacity={selectedMetric && entry.metric !== selectedMetric && !entry.isTotal ? 0.5 : 1}
@@ -152,7 +152,7 @@ export function ImpactWaterfallChart({ data }: ImpactWaterfallChartProps) {
 
       {/* Color legend */}
       <div className="flex items-center gap-4 mt-1 text-xs text-slate-500">
-        <span className="flex items-center gap-1"><span className="inline-block w-3 h-3 rounded bg-red-500" /> &gt;$10k 高损失</span>
+        <span className="flex items-center gap-1"><span className="inline-block w-3 h-3 rounded bg-destructive" /> &gt;$10k 高损失</span>
         <span className="flex items-center gap-1"><span className="inline-block w-3 h-3 rounded bg-orange-500" /> $5k–$10k 中损失</span>
         <span className="flex items-center gap-1"><span className="inline-block w-3 h-3 rounded bg-yellow-500" /> &lt;=$5k 低损失</span>
         <span className="flex items-center gap-1"><span className="inline-block w-3 h-3 rounded bg-slate-400" /> 总损失</span>
@@ -166,7 +166,8 @@ export function ImpactWaterfallChart({ data }: ImpactWaterfallChartProps) {
             <p className="text-sm font-semibold text-slate-700">{selectedChain.label} — 影响分解</p>
             <button
               onClick={() => setSelectedMetric(null)}
-              className="text-xs text-slate-400 hover:text-slate-600"
+              aria-label="关闭详情面板"
+              className="text-xs text-slate-400 hover:text-slate-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded"
             >
               关闭 ×
             </button>
@@ -182,7 +183,7 @@ export function ImpactWaterfallChart({ data }: ImpactWaterfallChartProps) {
             </div>
             <div className="bg-white rounded p-2 border border-red-100">
               <p className="text-slate-400">缺口</p>
-              <p className="font-semibold text-red-600 text-base mt-0.5">{(selectedChain.gap * 100).toFixed(1)}%</p>
+              <p className="font-semibold text-destructive text-base mt-0.5">{(selectedChain.gap * 100).toFixed(1)}%</p>
             </div>
           </div>
           {selectedChain.impact_steps.length > 0 && (

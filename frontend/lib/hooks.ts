@@ -2,6 +2,8 @@
  * SWR hooks — 封装 API 请求，供页面使用
  */
 import useSWR, { type SWRConfiguration } from "swr";
+import { useCallback } from "react";
+import { zhTranslations } from "./translations";
 import {
   analysisAPI,
   datasourcesAPI,
@@ -347,4 +349,13 @@ export function useEnclosureHealth() {
 
 export function useCCRankingEnhanced(topN = 20) {
   return useSWR(["analysis/cc-ranking-enhanced", topN], () => analysisAPI.getCCRankingEnhanced(topN));
+}
+
+// ── i18n ──────────────────────────────────────────────────────────────────────
+
+export function useTranslation() {
+  const t = useCallback((key: string, fallback?: string): string => {
+    return (zhTranslations as Record<string, string>)[key] ?? fallback ?? key;
+  }, []);
+  return { t };
 }

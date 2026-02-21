@@ -8,6 +8,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
+import { CHART_FONT_SIZE, CHART_HEIGHT } from "@/lib/utils";
 
 interface AttributionPieChartProps {
   data: Record<string, unknown>;
@@ -19,7 +20,7 @@ interface Factor {
   label?: string;
 }
 
-const COLORS = ["hsl(var(--chart-2))", "hsl(var(--success))", "#f59e0b", "hsl(var(--destructive))", "hsl(var(--chart-4))", "hsl(var(--chart-1))"];
+const COLORS = ["hsl(var(--chart-2))", "hsl(var(--success))", "hsl(var(--chart-amber))", "hsl(var(--destructive))", "hsl(var(--chart-4))", "hsl(var(--chart-1))"];
 
 function extractFactors(data: Record<string, unknown>): Factor[] {
   const factors = data.factors;
@@ -44,23 +45,21 @@ export function AttributionPieChart({ data }: AttributionPieChartProps) {
   }));
 
   return (
-    <ResponsiveContainer width="100%" height={240}>
+    <ResponsiveContainer width="100%" height={CHART_HEIGHT.md} aria-label="归因分析饼图">
       <PieChart>
         <Pie
           data={pieData}
           cx="50%"
           cy="50%"
-          outerRadius={90}
+          outerRadius={80}
           dataKey="value"
-          label={({ name, value }) => `${name}: ${value}%`}
-          labelLine={false}
         >
           {pieData.map((_, i) => (
             <Cell key={i} fill={COLORS[i % COLORS.length]} />
           ))}
         </Pie>
         <Tooltip formatter={(v) => [`${v}%`, "贡献度"]} />
-        <Legend wrapperStyle={{ fontSize: 12 }} />
+        <Legend wrapperStyle={{ fontSize: CHART_FONT_SIZE.md }} />
       </PieChart>
     </ResponsiveContainer>
   );

@@ -11,7 +11,7 @@ import {
   ResponsiveContainer,
   Cell,
 } from "recharts";
-import { formatRevenue } from "@/lib/utils";
+import { formatRevenue, CHART_FONT_SIZE, CHART_HEIGHT } from "@/lib/utils";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -37,11 +37,11 @@ interface ExchangeRateResponse {
 const BAR_COLORS = [
   "hsl(var(--chart-2))",
   "hsl(var(--success))",
-  "#f59e0b",
+  "hsl(var(--chart-amber))",
   "hsl(var(--chart-4))",
   "hsl(var(--chart-1))",
-  "#ec4899",
-  "#84cc16",
+  "hsl(var(--chart-pink))",
+  "hsl(var(--chart-lime))",
   "hsl(var(--destructive))",
 ];
 
@@ -149,7 +149,7 @@ export function RetentionContributionRank() {
         <p className="text-xs font-medium text-slate-500 mb-2">
           留存收入排名（Top {top10.length}）
         </p>
-        <ResponsiveContainer width="100%" height={220}>
+        <ResponsiveContainer width="100%" height={CHART_HEIGHT.sm} aria-label="留存收入排名">
           <BarChart
             data={barData}
             layout="vertical"
@@ -158,13 +158,13 @@ export function RetentionContributionRank() {
             <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" horizontal={false} />
             <XAxis
               type="number"
-              tick={{ fontSize: 10 }}
+              tick={{ fontSize: CHART_FONT_SIZE.sm }}
               tickFormatter={(v) => `$${v.toLocaleString()}`}
             />
             <YAxis
               type="category"
               dataKey="name"
-              tick={{ fontSize: 11 }}
+              tick={{ fontSize: CHART_FONT_SIZE.md }}
               width={72}
             />
             <Tooltip

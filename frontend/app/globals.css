@@ -18,10 +18,10 @@ body {
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #f1f5f9;
+  background: hsl(var(--muted));
 }
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: hsl(var(--border));
   border-radius: 3px;
 }
 
@@ -65,6 +65,16 @@ body {
     --chart-3: 142 71% 45%; /* 修改为翠绿色，适应图表积极向趋势 */
     --chart-4: 250 60% 75%;
     --chart-5: 340 60% 75%;
+
+    /* 扩展图表色板 */
+    --chart-amber: 38 92% 50%;
+    --chart-rose: 350 89% 60%;
+    --chart-sky: 199 89% 48%;
+    --chart-blue: 226 83% 47%;
+    --chart-orange: 25 95% 53%;
+    --chart-lime: 84 81% 44%;
+    --chart-pink: 330 81% 60%;
+    --chart-emerald: 160 84% 39%;
     
     --radius: 1rem; /* 增大圆角，从默认 0.75rem 到 1rem */
   }
@@ -101,6 +111,16 @@ body {
     --chart-3: 142 71% 45%; /* 与 light 保持逻辑一致的绿色 */
     --chart-4: 250 60% 75%;
     --chart-5: 340 60% 75%;
+
+    /* 扩展图表色板 */
+    --chart-amber: 38 92% 50%;
+    --chart-rose: 350 89% 60%;
+    --chart-sky: 199 89% 48%;
+    --chart-blue: 226 83% 47%;
+    --chart-orange: 25 95% 53%;
+    --chart-lime: 84 81% 44%;
+    --chart-pink: 330 81% 60%;
+    --chart-emerald: 160 84% 39%;
   }
 }
 

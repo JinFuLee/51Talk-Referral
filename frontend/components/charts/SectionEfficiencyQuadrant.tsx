@@ -14,6 +14,7 @@ import {
 } from "recharts";
 import useSWR from "swr";
 import { Spinner } from "@/components/ui/Spinner";
+import { CHART_FONT_SIZE, CHART_HEIGHT } from "@/lib/utils";
 
 interface SectionRow {
   cc_name: string;
@@ -40,9 +41,9 @@ function quadrantColor(contactRate: number, paidRate: number, midX: number, midY
   const highContact = contactRate >= midX;
   const highPaid = paidRate >= midY;
   if (highContact && highPaid) return "hsl(var(--success))"; // 绿
-  if (highContact && !highPaid) return "#f59e0b"; // 黄
+  if (highContact && !highPaid) return "hsl(var(--chart-amber))"; // 黄
   if (!highContact && highPaid) return "hsl(var(--chart-4))"; // 蓝
-  return "#f43f5e"; // 红
+  return "hsl(var(--chart-rose))"; // 红
 }
 
 interface CustomDotProps {
@@ -119,7 +120,7 @@ export function SectionEfficiencyQuadrant() {
         <span className="text-indigo-500 ml-1">蓝=低触达高转化</span>
         <span className="text-rose-500 ml-1">红=低触达低转化</span>
       </p>
-      <ResponsiveContainer width="100%" height={320}>
+      <ResponsiveContainer width="100%" height={CHART_HEIGHT.lg} aria-label="效率四象限散点图">
         <ScatterChart margin={{ top: 20, right: 30, left: 0, bottom: 8 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
           <XAxis
@@ -127,18 +128,18 @@ export function SectionEfficiencyQuadrant() {
             dataKey="contact_rate"
             name="触达率"
             tickFormatter={pct}
-            tick={{ fontSize: 11 }}
+            tick={{ fontSize: CHART_FONT_SIZE.md }}
             domain={[0, 1]}
-            label={{ value: "触达率", position: "insideBottomRight", offset: -4, fontSize: 11 }}
+            label={{ value: "触达率", position: "insideBottomRight", offset: -4, fontSize: CHART_FONT_SIZE.md }}
           />
           <YAxis
             type="number"
             dataKey="paid_rate"
             name="付费率"
             tickFormatter={pct}
-            tick={{ fontSize: 11 }}
+            tick={{ fontSize: CHART_FONT_SIZE.md }}
             domain={[0, 1]}
-            label={{ value: "付费率", angle: -90, position: "insideLeft", fontSize: 11 }}
+            label={{ value: "付费率", angle: -90, position: "insideLeft", fontSize: CHART_FONT_SIZE.md }}
           />
           <ZAxis range={[60, 60]} />
           <Tooltip
@@ -162,13 +163,13 @@ export function SectionEfficiencyQuadrant() {
             x={midX}
             stroke="hsl(var(--muted-foreground))"
             strokeDasharray="4 4"
-            label={{ value: "均值", fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
+            label={{ value: "均值", fontSize: CHART_FONT_SIZE.sm, fill: "hsl(var(--muted-foreground))" }}
           />
           <ReferenceLine
             y={midY}
             stroke="hsl(var(--muted-foreground))"
             strokeDasharray="4 4"
-            label={{ value: "均值", fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
+            label={{ value: "均值", fontSize: CHART_FONT_SIZE.sm, fill: "hsl(var(--muted-foreground))" }}
           />
           <Scatter
             data={colored}

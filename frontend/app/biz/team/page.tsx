@@ -1,10 +1,11 @@
 "use client";
 
-import { useSummary, useProductivity } from "@/lib/hooks";
+import { useSummary, useProductivity, useTranslation } from "@/lib/hooks";
 import { formatRevenue } from "@/lib/utils";
 import { Card } from "@/components/ui/Card";
 import { TrendLineChart } from "@/components/charts/TrendLineChart";
-import { Spinner } from "@/components/ui/Spinner";
+import { Skeleton } from "@/components/ui/Skeleton";
+import { ErrorBoundary } from "@/components/providers/ErrorBoundary";
 import type { ProductivityData } from "@/lib/types/analysis";
 import type { SummaryData } from "@/lib/types";
 
@@ -22,13 +23,22 @@ const STATUS_DOT: Record<string, string> = {
 };
 
 export default function BizTeamPage() {
+  const { t } = useTranslation();
   const { data: productivityResp, isLoading: pLoading } = useProductivity();
   const { data: summaryResp, isLoading: sLoading } = useSummary();
 
+  void summaryResp;
+
   if (pLoading || sLoading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <Spinner />
+      <div className="max-w-5xl mx-auto space-y-8">
+        <Skeleton className="h-10 w-64" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          <Skeleton className="h-40" />
+          <Skeleton className="h-40" />
+        </div>
+        <Skeleton className="h-48" />
+        <Skeleton className="h-48" />
       </div>
     );
   }
@@ -44,12 +54,13 @@ export default function BizTeamPage() {
     <div className="max-w-5xl mx-auto space-y-8">
       {/* Page header */}
       <div>
-        <h1 className="text-2xl font-bold text-slate-800">团队概况</h1>
-        <p className="text-sm text-slate-400 mt-1">2026年2月 · 人效 · 在岗 · 达标率</p>
+        <h1 className="text-2xl font-bold text-slate-800">{t("biz.team.title")}</h1>
+        <p className="text-sm text-slate-400 mt-1">{t("biz.team.subtitle")}</p>
       </div>
 
+      <ErrorBoundary>
       {/* Team mini-cards */}
-      <div className="grid grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
         <div className="bg-white rounded-2xl border border-slate-100 shadow-lg p-8">
           <div className="flex items-center justify-between mb-4">
             <span className="text-sm font-medium text-slate-500">CC 人效</span>
@@ -89,39 +100,42 @@ export default function BizTeamPage() {
       </Card>
 
       {/* Achievement overview */}
-      <Card title="✅ 团队达标概览">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="text-left border-b border-slate-100">
-              <th className="pb-2 text-slate-500 font-medium">指标</th>
-              <th className="pb-2 text-slate-500 font-medium text-center">CC</th>
-              <th className="pb-2 text-slate-500 font-medium text-center">SS</th>
-              <th className="pb-2 text-slate-500 font-medium text-center">LP</th>
-              <th className="pb-2 text-slate-500 font-medium text-center">目标</th>
-              <th className="pb-2 text-slate-500 font-medium text-center">状态</th>
-            </tr>
-          </thead>
-          <tbody>
-            {ACHIEVEMENT_ROWS.map((row, i) => (
-              <tr key={i} className="border-b border-slate-50 hover:bg-slate-50">
-                <td className="py-3 font-medium text-slate-700">{row.label}</td>
-                <td className="py-3 text-center text-slate-600">{row.cc}</td>
-                <td className="py-3 text-center text-slate-600">{row.ss}</td>
-                <td className="py-3 text-center text-slate-600">{row.lp}</td>
-                <td className="py-3 text-center text-slate-400">{row.target}</td>
-                <td className="py-3 text-center">
-                  <span
-                    className={`inline-block w-2.5 h-2.5 rounded-full ${STATUS_DOT[row.status]}`}
-                  />
-                </td>
+      <Card title={`✅ ${t("biz.team.card.achievement")}`}>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="text-left border-b border-slate-100">
+                <th className="pb-2 text-slate-500 font-medium">{t("biz.team.table.metric")}</th>
+                <th className="pb-2 text-slate-500 font-medium text-center">CC</th>
+                <th className="pb-2 text-slate-500 font-medium text-center">SS</th>
+                <th className="pb-2 text-slate-500 font-medium text-center">LP</th>
+                <th className="pb-2 text-slate-500 font-medium text-center">{t("biz.team.table.target")}</th>
+                <th className="pb-2 text-slate-500 font-medium text-center">{t("biz.team.table.status")}</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {ACHIEVEMENT_ROWS.map((row, i) => (
+                <tr key={i} className="border-b border-slate-50 hover:bg-slate-50">
+                  <td className="py-3 font-medium text-slate-700">{row.label}</td>
+                  <td className="py-3 text-center text-slate-600">{row.cc}</td>
+                  <td className="py-3 text-center text-slate-600">{row.ss}</td>
+                  <td className="py-3 text-center text-slate-600">{row.lp}</td>
+                  <td className="py-3 text-center text-slate-400">{row.target}</td>
+                  <td className="py-3 text-center">
+                    <span
+                      className={`inline-block w-2.5 h-2.5 rounded-full ${STATUS_DOT[row.status]}`}
+                    />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
         <p className="text-xs text-slate-400 mt-3">
           🟢 达标 &nbsp; 🟡 略低于目标 (-5%~0%) &nbsp; 🔴 严重落后 (&lt;-5%)
         </p>
       </Card>
+      </ErrorBoundary>
     </div>
   );
 }

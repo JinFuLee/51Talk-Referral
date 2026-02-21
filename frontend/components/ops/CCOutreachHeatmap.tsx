@@ -27,10 +27,10 @@ function getHeatColor(value: number, max: number): string {
   if (value === 0 || max === 0) return "bg-slate-50 text-slate-300";
   const ratio = Math.min(value / max, 1);
   if (ratio < 0.2) return "bg-slate-100 text-slate-500";
-  if (ratio < 0.4) return "bg-blue-100 text-blue-700";
-  if (ratio < 0.6) return "bg-blue-300 text-white";
-  if (ratio < 0.8) return "bg-blue-500 text-white";
-  return "bg-blue-700 text-white";
+  if (ratio < 0.4) return "bg-primary/10 text-primary";
+  if (ratio < 0.6) return "bg-primary/30 text-primary";
+  if (ratio < 0.8) return "bg-primary/60 text-white";
+  return "bg-primary text-white";
 }
 
 function formatDate(dateStr: string): string {
@@ -137,10 +137,10 @@ export function CCOutreachHeatmap({ dates, cc_names, data }: CCOutreachHeatmapPr
           <button
             key={d}
             onClick={() => setDim(d)}
-            className={`px-3 py-1 text-xs rounded-full border transition-colors ${
+            className={`px-3 py-1 text-xs rounded-full border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${
               dim === d
-                ? "bg-blue-600 text-white border-blue-600"
-                : "bg-white text-slate-600 border-slate-200 hover:border-blue-300"
+                ? "bg-primary text-primary-foreground border-primary"
+                : "bg-white text-slate-600 border-slate-200 hover:border-primary/50"
             }`}
           >
             {DIM_LABELS[d]}

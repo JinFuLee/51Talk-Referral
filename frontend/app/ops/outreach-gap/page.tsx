@@ -1,16 +1,17 @@
 "use client";
 
+import { useTranslation } from "@/lib/hooks";
 import { OutreachGapAnalysis } from "@/components/charts/OutreachGapAnalysis";
 import { GlossaryBanner } from "@/components/ui/GlossaryBanner";
+import { ErrorBoundary } from "@/components/providers/ErrorBoundary";
 
 export default function OutreachGapPage() {
+  const { t } = useTranslation();
   return (
     <div className="max-w-none space-y-4">
       <div>
-        <h1 className="text-xl font-bold text-slate-800">课前外呼覆盖缺口</h1>
-        <p className="text-xs text-slate-400 mt-0.5">
-          F11 覆盖率 vs 目标 · CC 粒度缺口排名 · 未覆盖学员预估 $ 损失
-        </p>
+        <h1 className="text-xl font-bold text-slate-800">{t("ops.outreach-gap.title")}</h1>
+        <p className="text-xs text-slate-400 mt-0.5">{t("ops.outreach-gap.subtitle")}</p>
       </div>
       <GlossaryBanner terms={[
         { term: "有效接通", definition: "通话≥120秒" },
@@ -18,7 +19,9 @@ export default function OutreachGapPage() {
         { term: "CC", definition: "前端销售" },
         { term: "有效学员", definition: "次卡>0且在有效期内" },
       ]} />
-      <OutreachGapAnalysis />
+      <ErrorBoundary>
+        <OutreachGapAnalysis />
+      </ErrorBoundary>
     </div>
   );
 }

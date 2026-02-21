@@ -2,8 +2,9 @@
 
 import { Card } from "@/components/ui/Card";
 import { EnclosureHeatmap } from "@/components/charts/EnclosureHeatmap";
-import { Spinner } from "@/components/ui/Spinner";
-import { useEnclosure, useEnclosureCompare, useEnclosureCombined } from "@/lib/hooks";
+import { Skeleton } from "@/components/ui/Skeleton";
+import { ErrorBoundary } from "@/components/providers/ErrorBoundary";
+import { useEnclosure, useEnclosureCompare, useEnclosureCombined, useTranslation } from "@/lib/hooks";
 import type { EnclosureData, EnclosureSegment } from "@/lib/types/analysis";
 import { EnclosureCompareChart } from "@/components/biz/EnclosureCompareChart";
 import { EnclosureCombinedOverview } from "@/components/biz/EnclosureCombinedOverview";
@@ -43,14 +44,18 @@ const STRATEGY_TIPS = [
 ];
 
 export default function BizEnclosurePage() {
+  const { t } = useTranslation();
   const { data, isLoading } = useEnclosure();
   const { data: compareData, isLoading: compareLoading } = useEnclosureCompare();
   const { data: combinedData, isLoading: combinedLoading } = useEnclosureCombined();
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <Spinner />
+      <div className="max-w-5xl mx-auto space-y-8">
+        <Skeleton className="h-10 w-64" />
+        <Skeleton className="h-56" />
+        <Skeleton className="h-48" />
+        <Skeleton className="h-32" />
       </div>
     );
   }
@@ -78,17 +83,14 @@ export default function BizEnclosurePage() {
     <div className="max-w-5xl mx-auto space-y-8">
       {/* Page header */}
       <div>
-        <h1 className="text-2xl font-bold text-slate-800">围场资源投放策略</h1>
-        <p className="text-sm text-slate-400 mt-1">
-          2026年2月 · 按付费当日起算围场段 · 优化资源分配
-        </p>
+        <h1 className="text-2xl font-bold text-slate-800">{t("biz.enclosure.title")}</h1>
+        <p className="text-sm text-slate-400 mt-1">{t("biz.enclosure.subtitle")}</p>
       </div>
 
+      <ErrorBoundary>
       {/* Heatmap */}
-      <Card title="围场 × ROI 热力图">
-        <p className="text-xs text-slate-400 mb-4">
-          色块深浅 = ROI 指数，数字 = 建议资源投入占比
-        </p>
+      <Card title={t("biz.enclosure.card.heatmap")}>
+        <p className="text-xs text-slate-400 mb-4">{t("biz.enclosure.label.heatmapDesc")}</p>
         <EnclosureHeatmap segments={segments} allocation={allocation} />
       </Card>
 
@@ -106,7 +108,7 @@ export default function BizEnclosurePage() {
       </Card>
 
       {/* Strategy tips */}
-      <Card title="策略建议">
+      <Card title={t("biz.enclosure.card.strategy")}>
         <ul className="space-y-2">
           {STRATEGY_TIPS.map((tip, i) => (
             <li
@@ -122,84 +124,75 @@ export default function BizEnclosurePage() {
 
       {/* Detail table */}
       {segments.length > 0 && (
-        <Card title="围场段明细">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="text-left border-b border-slate-100">
-                <th className="pb-2 text-slate-500 font-medium">围场段</th>
-                <th className="pb-2 text-slate-500 font-medium text-right">学员数</th>
-                <th className="pb-2 text-slate-500 font-medium text-right">转化率</th>
-                <th className="pb-2 text-slate-500 font-medium text-right">跟进率</th>
-                <th className="pb-2 text-slate-500 font-medium text-right">ROI 指数</th>
-                <th className="pb-2 text-slate-500 font-medium">建议</th>
-              </tr>
-            </thead>
-            <tbody>
-              {segments.map((s, i) => (
-                <tr key={i} className="border-b border-slate-50 hover:bg-slate-50">
-                  <td className="py-3 font-medium">{s.segment} 天</td>
-                  <td className="py-3 text-right">{(s.students ?? 0).toLocaleString()}</td>
-                  <td className="py-3 text-right">{((s.conversion_rate ?? 0) * 100).toFixed(1)}%</td>
-                  <td className="py-3 text-right">{((s.followup_rate ?? 0) * 100).toFixed(1)}%</td>
-                  <td className="py-3 text-right font-semibold">
-                    <span
-                      className={
-                        (s.roi_index ?? 0) >= 1.2
-                          ? "text-emerald-600"
-                          : (s.roi_index ?? 0) >= 0.8
-                          ? "text-amber-600"
-                          : "text-rose-600"
-                      }
-                    >
-                      {(s.roi_index ?? 0).toFixed(2)}
-                    </span>
-                  </td>
-                  <td className="py-3 text-slate-500">{s.recommendation}</td>
+        <Card title={t("biz.enclosure.card.detail")}>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-left border-b border-slate-100">
+                  <th className="pb-2 text-slate-500 font-medium">{t("biz.enclosure.table.segment")}</th>
+                  <th className="pb-2 text-slate-500 font-medium text-right">{t("biz.enclosure.table.students")}</th>
+                  <th className="pb-2 text-slate-500 font-medium text-right">{t("biz.enclosure.table.convRate")}</th>
+                  <th className="pb-2 text-slate-500 font-medium text-right">{t("biz.enclosure.table.followupRate")}</th>
+                  <th className="pb-2 text-slate-500 font-medium text-right">ROI</th>
+                  <th className="pb-2 text-slate-500 font-medium">{t("biz.enclosure.table.recommendation")}</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {segments.map((s, i) => (
+                  <tr key={i} className="border-b border-slate-50 hover:bg-slate-50">
+                    <td className="py-3 font-medium">{s.segment} 天</td>
+                    <td className="py-3 text-right">{(s.students ?? 0).toLocaleString()}</td>
+                    <td className="py-3 text-right">{((s.conversion_rate ?? 0) * 100).toFixed(1)}%</td>
+                    <td className="py-3 text-right">{((s.followup_rate ?? 0) * 100).toFixed(1)}%</td>
+                    <td className="py-3 text-right font-semibold">
+                      <span
+                        className={
+                          (s.roi_index ?? 0) >= 1.2
+                            ? "text-emerald-600"
+                            : (s.roi_index ?? 0) >= 0.8
+                            ? "text-amber-600"
+                            : "text-rose-600"
+                        }
+                      >
+                        {(s.roi_index ?? 0).toFixed(2)}
+                      </span>
+                    </td>
+                    <td className="py-3 text-slate-500">{s.recommendation}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </Card>
       )}
 
       {/* D2×D3 围场对比 */}
-      <Card title="市场 vs 转介绍围场对比 (D2×D3)">
-        <p className="text-xs text-slate-400 mb-4">
-          蓝色 = 市场渠道 · 紫色 = 转介绍渠道 · 切换指标查看不同维度差异
-        </p>
+      <Card title={`${t("biz.enclosure.card.compare")} (D2×D3)`}>
+        <p className="text-xs text-slate-400 mb-4">{t("biz.enclosure.label.compareDesc")}</p>
         {compareLoading ? (
-          <div className="flex items-center justify-center h-40">
-            <Spinner />
-          </div>
+          <Skeleton className="h-40 w-full" />
         ) : comparePoints.length > 0 ? (
           <EnclosureCompareChart comparison={comparePoints} />
         ) : (
-          <p className="text-sm text-slate-400 text-center py-8">
-            暂无数据 — 请先运行分析
-          </p>
+          <p className="text-sm text-slate-400 text-center py-8">{t("biz.enclosure.label.noData")}</p>
         )}
       </Card>
 
       {/* D4 合并围场总览 */}
-      <Card title="合并围场总览 (D4)">
-        <p className="text-xs text-slate-400 mb-4">
-          市场+转介绍合并视图 · 5 个围场段核心指标 + 转化漏斗
-        </p>
+      <Card title={`${t("biz.enclosure.card.combined")} (D4)`}>
+        <p className="text-xs text-slate-400 mb-4">{t("biz.enclosure.label.combinedDesc")}</p>
         {combinedLoading ? (
-          <div className="flex items-center justify-center h-40">
-            <Spinner />
-          </div>
+          <Skeleton className="h-40 w-full" />
         ) : combinedSegments.length > 0 ? (
           <EnclosureCombinedOverview
             segments={combinedSegments}
             total={combinedTotal}
           />
         ) : (
-          <p className="text-sm text-slate-400 text-center py-8">
-            暂无数据 — 请先运行分析
-          </p>
+          <p className="text-sm text-slate-400 text-center py-8">{t("biz.enclosure.label.noData")}</p>
         )}
       </Card>
+      </ErrorBoundary>
     </div>
   );
 }

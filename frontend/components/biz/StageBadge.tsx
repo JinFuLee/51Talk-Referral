@@ -18,7 +18,7 @@ function ScoreBar({ score, warn }: { score: number; warn: boolean }) {
     <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
       <div
         className={`h-full rounded-full transition-all ${
-          warn ? "bg-amber-400" : "bg-indigo-500"
+          warn ? "bg-warning" : "bg-primary"
         }`}
         style={{ width: `${pct}%` }}
       />
@@ -34,7 +34,7 @@ function EvidenceRow({ ev }: { ev: StageEvidence }) {
       <ScoreBar score={ev.score} warn={warn} />
       <span
         className={`text-xs font-semibold w-10 text-right ${
-          warn ? "text-amber-600" : "text-indigo-700"
+          warn ? "text-warning" : "text-primary"
         }`}
       >
         {ev.score.toFixed(2)}
@@ -67,9 +67,9 @@ export function StageBadge({ data }: StageBadgeProps) {
                 <div
                   className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold border-2 transition-colors ${
                     isActive
-                      ? "bg-indigo-600 border-indigo-600 text-white"
+                      ? "bg-primary border-primary text-primary-foreground"
                       : isPast
-                      ? "bg-indigo-100 border-indigo-300 text-indigo-600"
+                      ? "bg-primary/10 border-primary/30 text-primary"
                       : "bg-slate-100 border-slate-200 text-slate-400"
                   }`}
                 >
@@ -77,7 +77,7 @@ export function StageBadge({ data }: StageBadgeProps) {
                 </div>
                 <span
                   className={`text-xs font-medium whitespace-nowrap ${
-                    isActive ? "text-indigo-700" : isPast ? "text-indigo-400" : "text-slate-400"
+                    isActive ? "text-primary" : isPast ? "text-primary/60" : "text-slate-400"
                   }`}
                 >
                   {s.name}
@@ -91,7 +91,7 @@ export function StageBadge({ data }: StageBadgeProps) {
               {!isLast && (
                 <div
                   className={`flex-1 h-0.5 mb-5 ${
-                    s.num < data.current_stage ? "bg-indigo-300" : "bg-slate-200"
+                    s.num < data.current_stage ? "bg-primary/40" : "bg-slate-200"
                   }`}
                 />
               )}
@@ -119,7 +119,7 @@ export function StageBadge({ data }: StageBadgeProps) {
           <ul className="space-y-1">
             {data.upgrade_suggestions.map((s, i) => (
               <li key={i} className="text-sm text-slate-600 flex gap-2">
-                <span className="text-indigo-400 shrink-0">•</span>
+                <span className="text-primary/60 shrink-0">•</span>
                 <span>{s}</span>
               </li>
             ))}
@@ -130,13 +130,13 @@ export function StageBadge({ data }: StageBadgeProps) {
       {/* Next stage */}
       <div className="bg-slate-50 rounded-lg p-4">
         <h3 className="text-sm font-semibold text-slate-600 mb-1">
-          下一阶段: <span className="text-indigo-700">{data.next_stage.name}</span>
+          下一阶段: <span className="text-primary">{data.next_stage.name}</span>
         </h3>
         <p className="text-xs text-slate-500 mb-1">关键要求</p>
         <ul className="space-y-0.5">
           {data.next_stage.key_requirements.map((req, i) => (
             <li key={i} className="text-xs text-slate-600 flex gap-1.5">
-              <span className="text-indigo-400">→</span>
+              <span className="text-primary/60">→</span>
               {req}
             </li>
           ))}

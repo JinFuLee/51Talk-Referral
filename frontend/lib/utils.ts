@@ -27,3 +27,13 @@ export function formatCurrency(usd: number | null | undefined, rate: number = 34
     thb: `฿${t.toLocaleString("en-US", { maximumFractionDigits: 0 })}`,
   };
 }
+
+/** 格式化金额为简写形式（$1.2M / $3.4k / $567） */
+export function formatUSDShort(value: number): string {
+  if (value >= 1_000_000) return `$${(value / 1_000_000).toFixed(1)}M`
+  if (value >= 1_000) return `$${(value / 1_000).toFixed(1)}k`
+  return `$${value.toFixed(0)}`
+}
+
+export const CHART_FONT_SIZE = { sm: 10, md: 11, lg: 12 } as const
+export const CHART_HEIGHT = { sm: 220, md: 260, lg: 320 } as const

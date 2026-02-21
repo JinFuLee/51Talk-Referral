@@ -1,21 +1,21 @@
 "use client";
 
-import { useFollowup } from "@/lib/hooks";
+import { useFollowup, useTranslation } from "@/lib/hooks";
 import { GlossaryBanner } from "@/components/ui/GlossaryBanner";
 import { TrendLineChart } from "@/components/charts/TrendLineChart";
 import { OutreachHeatmap } from "@/components/charts/OutreachHeatmap";
 import { CCOutreachTable } from "@/components/ops/CCOutreachTable";
 import { StatMiniCard } from "@/components/ui/StatMiniCard";
 import { Card } from "@/components/ui/Card";
-import { Spinner } from "@/components/ui/Spinner";
+import { Skeleton } from "@/components/ui/Skeleton";
+import { ErrorBoundary } from "@/components/providers/ErrorBoundary";
 
 export default function OpsOutreachPage() {
-  // /followup endpoint calls _adapt_outreach internally, returning flattened fields
+  const { t } = useTranslation();
   const { data: outreachRaw, isLoading } = useFollowup();
 
   const outreach = outreachRaw as Record<string, unknown> | undefined;
 
-  // Extract summary numbers (with safe defaults)
   const totalCalls = (outreach?.total_calls as number) ?? 0;
   const totalConnects = (outreach?.total_connects as number) ?? 0;
   const totalEffective = (outreach?.total_effective as number) ?? 0;
@@ -26,7 +26,6 @@ export default function OpsOutreachPage() {
   const dailyTrend = (outreach?.daily_trend as Array<Record<string, unknown>>) ?? [];
   const ccBreakdownRaw = (outreach?.cc_breakdown as Array<Record<string, unknown>>) ?? [];
 
-  // Normalize cc_breakdown: API adapter returns name field; also handle cc_name alias
   const ccBreakdown = ccBreakdownRaw.map((row) => ({
     name: (row.name ?? row.cc_name ?? "—") as string,
     calls: (row.calls ?? row.total_calls ?? 0) as number,
@@ -36,7 +35,6 @@ export default function OpsOutreachPage() {
     achieved: (row.achieved ?? false) as boolean,
   }));
 
-  // Build heatmap data from daily_trend
   const heatmapData = dailyTrend.map((d) => ({
     date: d.date as string,
     calls: (d.calls as number) ?? 0,
@@ -44,17 +42,32 @@ export default function OpsOutreachPage() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <Spinner />
+      <div className="max-w-none space-y-4">
+        <Skeleton className="h-8 w-48" />
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <Skeleton className="h-20" />
+          <Skeleton className="h-20" />
+          <Skeleton className="h-20" />
+          <Skeleton className="h-20" />
+        </div>
+        <Skeleton className="h-48" />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Skeleton className="h-64" />
+          <Skeleton className="h-64" />
+        </div>
       </div>
     );
   }
 
+  // Suppress unused variable warnings
+  void totalConnects;
+  void totalEffective;
+
   return (
     <div className="max-w-none space-y-4">
       <div>
-        <h1 className="text-xl font-bold text-slate-800">外呼监控</h1>
-        <p className="text-xs text-slate-400 mt-0.5">日历热力图 · CC 达标率 · 时段分布</p>
+        <h1 className="text-xl font-bold text-slate-800">{t("ops.outreach.title")}</h1>
+        <p className="text-xs text-slate-400 mt-0.5">{t("ops.outreach.subtitle")}</p>
       </div>
 
       <GlossaryBanner terms={[
@@ -63,33 +76,34 @@ export default function OpsOutreachPage() {
         { term: "接通率", definition: "接通呼叫/总拨打量" },
       ]} />
 
-      {/* Summary stat cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <StatMiniCard label="总拨打量" value={totalCalls.toLocaleString()} accent="blue" />
-        <StatMiniCard label="接通率" value={`${(contactRate * 100).toFixed(1)}%`} accent="green" />
-        <StatMiniCard label="有效通话率" value={`${(effectiveRate * 100).toFixed(1)}%`} accent="yellow" />
-        <StatMiniCard label="平均通话(s)" value={`${avgDuration.toFixed(0)}s`} accent="slate" />
+        <StatMiniCard label={t("ops.outreach.card.totalCalls")} value={totalCalls.toLocaleString()} accent="blue" />
+        <StatMiniCard label={t("ops.outreach.card.contactRate")} value={`${(contactRate * 100).toFixed(1)}%`} accent="green" />
+        <StatMiniCard label={t("ops.outreach.card.effectiveRate")} value={`${(effectiveRate * 100).toFixed(1)}%`} accent="yellow" />
+        <StatMiniCard label={t("ops.outreach.card.avgDuration")} value={`${avgDuration.toFixed(0)}s`} accent="slate" />
       </div>
 
-      {/* Heatmap */}
-      <Card title="外呼日历热力图">
-        <OutreachHeatmap data={heatmapData} />
-      </Card>
+      <ErrorBoundary>
+        <Card title={t("ops.outreach.card.heatmap")}>
+          <OutreachHeatmap data={heatmapData} />
+        </Card>
 
-      {/* CC table + Trend */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Card title="CC 姓名 外呼达标明细">
-          <CCOutreachTable data={ccBreakdown} />
-        </Card>
-        <Card title="外呼趋势">
-          <TrendLineChart
-            data={dailyTrend}
-            xKey="date"
-            lineKeys={["contacted", "effective_calls"]}
-            barKeys={["calls"]}
-          />
-        </Card>
-      </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Card title={t("ops.outreach.card.ccDetail")}>
+            <div className="overflow-x-auto">
+              <CCOutreachTable data={ccBreakdown} />
+            </div>
+          </Card>
+          <Card title={t("ops.outreach.card.trend")}>
+            <TrendLineChart
+              data={dailyTrend}
+              xKey="date"
+              lineKeys={["contacted", "effective_calls"]}
+              barKeys={["calls"]}
+            />
+          </Card>
+        </div>
+      </ErrorBoundary>
     </div>
   );
 }

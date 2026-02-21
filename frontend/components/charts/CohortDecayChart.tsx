@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import {
   LineChart,
   Line,
@@ -10,6 +11,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
+import { CHART_FONT_SIZE } from "@/lib/utils";
 
 interface DecayPoint {
   month: string;
@@ -26,8 +28,8 @@ interface CohortDecayChartProps {
 const LINES = [
   { key: "reach_rate", label: "触达率", color: "hsl(var(--chart-4))" },
   { key: "participation_rate", label: "参与率", color: "hsl(var(--success))" },
-  { key: "checkin_rate", label: "打卡率", color: "#f59e0b" },
-  { key: "referral_ratio", label: "带货比", color: "#f43f5e" },
+  { key: "checkin_rate", label: "打卡率", color: "hsl(var(--chart-amber))" },
+  { key: "referral_ratio", label: "带货比", color: "hsl(var(--chart-rose))" },
 ];
 
 const MOCK_DATA: DecayPoint[] = [
@@ -44,14 +46,33 @@ function pct(v: number) {
 }
 
 export function CohortDecayChart({ data = MOCK_DATA }: CohortDecayChartProps) {
+  const [hiddenKeys, setHiddenKeys] = useState<Set<string>>(new Set());
+
+  const handleLegendClick = (e: { dataKey?: string }) => {
+    if (!e.dataKey) return;
+    setHiddenKeys((prev) => {
+      const next = new Set(prev);
+      next.has(e.dataKey!) ? next.delete(e.dataKey!) : next.add(e.dataKey!);
+      return next;
+    });
+  };
+
   return (
     <ResponsiveContainer width="100%" height={280}>
       <LineChart data={data} margin={{ top: 8, right: 16, left: 0, bottom: 4 }}>
         <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-        <XAxis dataKey="month" tick={{ fontSize: 12 }} />
-        <YAxis tickFormatter={pct} tick={{ fontSize: 11 }} domain={[0, 1]} />
+        <XAxis dataKey="month" tick={{ fontSize: CHART_FONT_SIZE.md }} />
+        <YAxis tickFormatter={pct} tick={{ fontSize: CHART_FONT_SIZE.md }} domain={[0, 1]} />
         <Tooltip formatter={(v: number) => pct(v)} />
-        <Legend wrapperStyle={{ fontSize: 12 }} />
+        <Legend
+          wrapperStyle={{ fontSize: CHART_FONT_SIZE.md }}
+          onClick={handleLegendClick}
+          formatter={(value: string) => (
+            <span style={{ opacity: hiddenKeys.has(value) ? 0.35 : 1, cursor: "pointer" }}>
+              {value}
+            </span>
+          )}
+        />
         {LINES.map((l) => (
           <Line
             key={l.key}
@@ -62,6 +83,7 @@ export function CohortDecayChart({ data = MOCK_DATA }: CohortDecayChartProps) {
             strokeWidth={2}
             dot={{ r: 3 }}
             activeDot={{ r: 5 }}
+            hide={hiddenKeys.has(l.label)}
           />
         ))}
       </LineChart>

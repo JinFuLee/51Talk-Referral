@@ -7,12 +7,13 @@ interface LangSwitcherProps {
 
 export function LangSwitcher({ lang, onLangChange }: LangSwitcherProps) {
   return (
-    <div className="flex rounded-md border border-gray-200 overflow-hidden">
+    <div className="flex rounded-md border border-gray-200 overflow-hidden" role="group" aria-label="语言切换">
       <button
         onClick={() => onLangChange("zh")}
-        className={`px-3 py-1 text-xs font-medium transition-colors ${
+        aria-pressed={lang === "zh"}
+        className={`px-3 py-1 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${
           lang === "zh"
-            ? "bg-blue-600 text-white"
+            ? "bg-primary text-primary-foreground"
             : "bg-white text-gray-600 hover:bg-gray-50"
         }`}
       >
@@ -20,9 +21,10 @@ export function LangSwitcher({ lang, onLangChange }: LangSwitcherProps) {
       </button>
       <button
         onClick={() => onLangChange("th")}
-        className={`px-3 py-1 text-xs font-medium transition-colors ${
+        aria-pressed={lang === "th"}
+        className={`px-3 py-1 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${
           lang === "th"
-            ? "bg-blue-600 text-white"
+            ? "bg-primary text-primary-foreground"
             : "bg-white text-gray-600 hover:bg-gray-50"
         }`}
       >

@@ -15,6 +15,8 @@ import {
   Label,
 } from "recharts";
 import type { TrendPeakValley } from "@/lib/types";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { CHART_FONT_SIZE, CHART_HEIGHT } from "@/lib/utils";
 
 interface TrendDataPoint {
   [key: string]: string | number | undefined;
@@ -78,10 +80,14 @@ export function TrendLineChart({
   const data = normaliseData(rawData);
   const resolvedLineKeys = lineKeys ?? [yKey];
 
+  if (!data || data.length === 0) {
+    return <EmptyState title="暂无趋势数据" />;
+  }
+
   return (
     <div>
       {title && <p className="text-sm font-medium text-gray-700 mb-3">{title}</p>}
-      <ResponsiveContainer width="100%" height={240}>
+      <ResponsiveContainer width="100%" height={CHART_HEIGHT.md} aria-label="趋势折线图">
         <ComposedChart data={data} margin={{ top: 16, right: 16, left: 0, bottom: 4 }}>
           <defs>
             <linearGradient id="colorBar0" x1="0" y1="0" x2="0" y2="1">
@@ -93,15 +99,15 @@ export function TrendLineChart({
               <stop offset="95%" stopColor="hsl(var(--success))" stopOpacity={0.2}/>
             </linearGradient>
             <linearGradient id="colorBar2" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.9}/>
-              <stop offset="95%" stopColor="#f59e0b" stopOpacity={0.2}/>
+              <stop offset="5%" stopColor="hsl(var(--chart-amber))" stopOpacity={0.9}/>
+              <stop offset="95%" stopColor="hsl(var(--chart-amber))" stopOpacity={0.2}/>
             </linearGradient>
           </defs>
           <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-          <XAxis dataKey={xKey} tick={{ fontSize: 11 }} />
-          <YAxis tick={{ fontSize: 11 }} />
+          <XAxis dataKey={xKey} tick={{ fontSize: CHART_FONT_SIZE.md }} />
+          <YAxis tick={{ fontSize: CHART_FONT_SIZE.md }} />
           <Tooltip />
-          <Legend wrapperStyle={{ fontSize: 12 }} />
+          <Legend wrapperStyle={{ fontSize: CHART_FONT_SIZE.md }} />
 
           {targetValue !== undefined && (
             <ReferenceLine
