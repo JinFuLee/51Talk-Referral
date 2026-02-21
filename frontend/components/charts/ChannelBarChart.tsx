@@ -59,13 +59,13 @@ export function ChannelBarChart({ data }: ChannelBarChartProps) {
   return (
     <ResponsiveContainer width="100%" height={240}>
       <BarChart data={stats} margin={{ top: 8, right: 16, left: 0, bottom: 4 }}>
-        <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
         <XAxis dataKey="name" tick={{ fontSize: 12 }} />
         <YAxis tick={{ fontSize: 12 }} />
         <Tooltip />
         <Legend wrapperStyle={{ fontSize: 12 }} />
-        <Bar dataKey="注册" fill="#3b82f6" radius={[4, 4, 0, 0]} />
-        <Bar dataKey="付费" fill="#10b981" radius={[4, 4, 0, 0]} />
+        <Bar dataKey="注册" fill="hsl(var(--chart-2))" radius={[4, 4, 0, 0]} />
+        <Bar dataKey="付费" fill="hsl(var(--success))" radius={[4, 4, 0, 0]} />
       </BarChart>
     </ResponsiveContainer>
   );

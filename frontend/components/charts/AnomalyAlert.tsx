@@ -68,7 +68,7 @@ export function AnomalyAlert({ anomalies, lang = "zh" }: AnomalyAlertProps) {
               {items.map((a, i) => (
                 <div
                   key={i}
-                  className={`rounded-lg border p-3 ${cfg.bg} ${cfg.border}`}
+                  className={`rounded-2xl border p-4 shadow-flash hover:shadow-flash-lg hover:-translate-y-1 transition-all duration-500 ${cfg.bg} ${cfg.border}`}
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div>

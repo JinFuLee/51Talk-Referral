@@ -24,8 +24,8 @@ interface CohortDecayChartProps {
 }
 
 const LINES = [
-  { key: "reach_rate", label: "触达率", color: "#6366f1" },
-  { key: "participation_rate", label: "参与率", color: "#10b981" },
+  { key: "reach_rate", label: "触达率", color: "hsl(var(--chart-4))" },
+  { key: "participation_rate", label: "参与率", color: "hsl(var(--success))" },
   { key: "checkin_rate", label: "打卡率", color: "#f59e0b" },
   { key: "referral_ratio", label: "带货比", color: "#f43f5e" },
 ];
@@ -47,7 +47,7 @@ export function CohortDecayChart({ data = MOCK_DATA }: CohortDecayChartProps) {
   return (
     <ResponsiveContainer width="100%" height={280}>
       <LineChart data={data} margin={{ top: 8, right: 16, left: 0, bottom: 4 }}>
-        <CartesianGrid strokeDasharray="3 3" stroke="#f0f4f8" />
+        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
         <XAxis dataKey="month" tick={{ fontSize: 12 }} />
         <YAxis tickFormatter={pct} tick={{ fontSize: 11 }} domain={[0, 1]} />
         <Tooltip formatter={(v: number) => pct(v)} />

@@ -26,12 +26,12 @@ interface TeamPackageCompareProps {
 }
 
 const TEAM_COLORS = [
-  "#6366f1", // indigo-500
-  "#10b981", // emerald-500
+  "hsl(var(--chart-4))", // indigo-500
+  "hsl(var(--success))", // emerald-500
   "#f59e0b", // amber-500
   "#f43f5e", // rose-500
   "#0ea5e9", // sky-500
-  "#8b5cf6", // violet-500
+  "hsl(var(--chart-4))", // violet-500
   "#f97316", // orange-500
 ];
 
@@ -50,7 +50,7 @@ interface CustomTooltipProps {
 function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="bg-white border border-slate-200 rounded-lg shadow-lg p-3 text-xs max-w-xs">
+    <div className="bg-white/95 backdrop-blur-md border border-border/40 rounded-xl shadow-flash p-3 text-xs max-w-xs">
       <p className="font-semibold text-slate-700 mb-1">{label}</p>
       {payload.map((entry, idx) => (
         <p key={idx} style={{ color: entry.color }} className="text-xs">
@@ -99,16 +99,16 @@ export function TeamPackageCompare({ teams }: TeamPackageCompareProps) {
 
       <ResponsiveContainer width="100%" height={300}>
         <RadarChart data={radarData} margin={{ top: 8, right: 32, left: 32, bottom: 8 }}>
-          <PolarGrid stroke="#e2e8f0" />
+          <PolarGrid stroke="hsl(var(--border))" />
           <PolarAngleAxis
             dataKey="product_type"
-            tick={{ fontSize: 11, fill: "#64748b" }}
+            tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
           />
           <PolarRadiusAxis
             angle={30}
             domain={[0, 1]}
             tickFormatter={(v: number) => `${(v * 100).toFixed(0)}%`}
-            tick={{ fontSize: 9, fill: "#94a3b8" }}
+            tick={{ fontSize: 9, fill: "hsl(var(--muted-foreground))" }}
           />
           <Tooltip content={<CustomTooltip />} />
           <Legend wrapperStyle={{ fontSize: 12 }} />

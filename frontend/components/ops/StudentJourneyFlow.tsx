@@ -10,7 +10,7 @@ interface StudentJourneyFlowProps {
   steps: JourneyStep[];
 }
 
-const STEP_COLORS = ["#3b82f6", "#6366f1", "#8b5cf6", "#a855f7", "#d946ef"];
+const STEP_COLORS = ["hsl(var(--chart-2))", "hsl(var(--chart-4))", "hsl(var(--chart-4))", "#a855f7", "#d946ef"];
 
 export function StudentJourneyFlow({ steps }: StudentJourneyFlowProps) {
   if (steps.length === 0) {

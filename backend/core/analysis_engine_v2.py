@@ -1270,7 +1270,7 @@ class AnalysisEngineV2:
 
         # D5: 打卡参与率 (by_cc = list, 有 checkin_rate / referral_participation_* / conversion_ratio)
         d5_by_cc_list = (
-            self.data.get("kpi", {}).get("checkin_participation", {}).get("by_cc", []) or []
+            self.data.get("kpi", {}).get("checkin_rate_monthly", {}).get("by_cc", []) or []
         )
         d5_cc: dict = {}
         for r in d5_by_cc_list:

@@ -43,7 +43,7 @@ function CustomTooltip({ active, payload }: CustomTooltipProps) {
   if (!active || !payload?.length) return null;
   const d = payload[0].payload;
   return (
-    <div className="bg-white border border-slate-200 rounded-lg shadow-lg p-3 text-xs">
+    <div className="bg-white/95 backdrop-blur-md border border-border/40 rounded-xl shadow-flash p-3 text-xs">
       <p className="font-semibold text-slate-700">{d.cc_name}</p>
       {d.team && <p className="text-slate-400">{d.team}</p>}
       <p className="mt-1 text-slate-600">
@@ -60,10 +60,10 @@ function CustomTooltip({ active, payload }: CustomTooltipProps) {
 }
 
 function getQuadrantLabel(x: number, y: number, meanX: number, meanY: number) {
-  if (x >= meanX && y >= meanY) return { label: "明星", color: "#10b981" };
+  if (x >= meanX && y >= meanY) return { label: "明星", color: "hsl(var(--success))" };
   if (x >= meanX && y < meanY) return { label: "待激活", color: "#f59e0b" };
-  if (x < meanX && y >= meanY) return { label: "天赋型", color: "#3b82f6" };
-  return { label: "需关注", color: "#ef4444" };
+  if (x < meanX && y >= meanY) return { label: "天赋型", color: "hsl(var(--chart-2))" };
+  return { label: "需关注", color: "hsl(var(--destructive))" };
 }
 
 export function CheckinCoefScatter({ data }: CheckinCoefScatterProps) {
@@ -96,10 +96,10 @@ export function CheckinCoefScatter({ data }: CheckinCoefScatterProps) {
       {/* Quadrant legend */}
       <div className="flex flex-wrap gap-3 text-xs">
         {[
-          { label: "明星", color: "#10b981", desc: "高打卡 + 高系数" },
+          { label: "明星", color: "hsl(var(--success))", desc: "高打卡 + 高系数" },
           { label: "待激活", color: "#f59e0b", desc: "高打卡 + 低系数" },
-          { label: "天赋型", color: "#3b82f6", desc: "低打卡 + 高系数" },
-          { label: "需关注", color: "#ef4444", desc: "低打卡 + 低系数" },
+          { label: "天赋型", color: "hsl(var(--chart-2))", desc: "低打卡 + 高系数" },
+          { label: "需关注", color: "hsl(var(--destructive))", desc: "低打卡 + 低系数" },
         ].map((q) => (
           <span key={q.label} className="flex items-center gap-1 text-slate-500">
             <span
@@ -116,13 +116,13 @@ export function CheckinCoefScatter({ data }: CheckinCoefScatterProps) {
 
       <ResponsiveContainer width="100%" height={320}>
         <ScatterChart margin={{ top: 16, right: 24, left: 0, bottom: 24 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
           <XAxis
             dataKey="x"
             type="number"
             domain={[0, 1]}
             tickFormatter={(v) => `${(v * 100).toFixed(0)}%`}
-            tick={{ fontSize: 11, fill: "#94a3b8" }}
+            tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
             axisLine={false}
             tickLine={false}
           >
@@ -130,14 +130,14 @@ export function CheckinCoefScatter({ data }: CheckinCoefScatterProps) {
               value="24H 打卡率"
               position="insideBottom"
               offset={-12}
-              style={{ fontSize: 11, fill: "#94a3b8" }}
+              style={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
             />
           </XAxis>
           <YAxis
             dataKey="y"
             type="number"
             tickFormatter={(v) => v.toFixed(1)}
-            tick={{ fontSize: 11, fill: "#94a3b8" }}
+            tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
             axisLine={false}
             tickLine={false}
           >
@@ -146,7 +146,7 @@ export function CheckinCoefScatter({ data }: CheckinCoefScatterProps) {
               angle={-90}
               position="insideLeft"
               offset={12}
-              style={{ fontSize: 11, fill: "#94a3b8" }}
+              style={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
             />
           </YAxis>
           <Tooltip content={<CustomTooltip />} />
@@ -155,13 +155,13 @@ export function CheckinCoefScatter({ data }: CheckinCoefScatterProps) {
             x={meanX}
             stroke="#cbd5e1"
             strokeDasharray="4 2"
-            label={{ value: "均值", position: "top", fontSize: 10, fill: "#94a3b8" }}
+            label={{ value: "均值", position: "top", fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
           />
           <ReferenceLine
             y={meanY}
             stroke="#cbd5e1"
             strokeDasharray="4 2"
-            label={{ value: "均值", position: "right", fontSize: 10, fill: "#94a3b8" }}
+            label={{ value: "均值", position: "right", fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
           />
           <Scatter
             data={coloredPoints}

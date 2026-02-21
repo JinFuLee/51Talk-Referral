@@ -117,7 +117,7 @@ class OrderLoader(BaseLoader):
                         "student_id": str(student_id).strip()
                         if pd.notna(student_id)
                         else None,
-                        "team": str(row.get("sale_dept_name", "")).strip() or None,
+                        "team": self._normalize_team(str(row.get("sale_dept_name", "")).strip()),
                         "seller": str(row.get("sale_name", "")).strip() or None,
                         "channel": str(row.get("chnl_type", "")).strip() or None,
                         "order_tag": str(row.get("order_tag", "")).strip() or None,

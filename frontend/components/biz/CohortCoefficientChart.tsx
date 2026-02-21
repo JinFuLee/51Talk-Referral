@@ -14,8 +14,6 @@ import {
   ReferenceLine,
 } from "recharts";
 
-const BASE = process.env.NEXT_PUBLIC_API_BASE ?? "http://localhost:8000";
-
 async function fetcher(url: string) {
   const res = await fetch(url);
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -54,8 +52,8 @@ interface RawDecayResponse {
 // ── Palette ───────────────────────────────────────────────────────────────────
 
 const PALETTE = [
-  "#6366f1", "#10b981", "#f59e0b", "#f43f5e",
-  "#3b82f6", "#8b5cf6", "#ec4899", "#14b8a6",
+  "hsl(var(--chart-4))", "hsl(var(--success))", "#f59e0b", "#f43f5e",
+  "hsl(var(--chart-2))", "hsl(var(--chart-4))", "#ec4899", "hsl(var(--chart-1))",
   "#84cc16", "#f97316",
 ];
 
@@ -136,12 +134,12 @@ export function CohortCoefficientChart() {
   const [viewMode, setViewMode] = useState<"month" | "team">("month");
 
   const { data: coefData, isLoading: coefLoading, error: coefError } =
-    useSWR<CoefficientResponse>(`${BASE}/api/analysis/cohort-coefficient`, fetcher);
+    useSWR<CoefficientResponse>(`/api/analysis/cohort-coefficient`, fetcher);
 
   const { data: rawData, isLoading: rawLoading, error: rawError } =
     useSWR<RawDecayResponse>(
       viewMode === "team"
-        ? `${BASE}/api/analysis/cohort-decay-raw?metric=referral_coefficient&group_by=team`
+        ? `/api/analysis/cohort-decay-raw?metric=referral_coefficient&group_by=team`
         : null,
       fetcher
     );
@@ -250,7 +248,7 @@ export function CohortCoefficientChart() {
                 }`}
                 style={{
                   borderColor: color,
-                  color: active ? color : "#94a3b8",
+                  color: active ? color : "hsl(var(--muted-foreground))",
                   backgroundColor: active ? `${color}18` : "transparent",
                 }}
               >
@@ -272,7 +270,7 @@ export function CohortCoefficientChart() {
       {!isLoading && !error && chartData.length > 0 && (
         <ResponsiveContainer width="100%" height={300}>
           <LineChart data={chartData} margin={{ top: 8, right: 16, left: 0, bottom: 4 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
             <XAxis dataKey="month" tick={{ fontSize: 11 }} />
             <YAxis
               tick={{ fontSize: 11 }}

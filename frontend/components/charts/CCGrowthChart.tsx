@@ -30,7 +30,7 @@ export function CCGrowthChart({ data, ccName }: CCGrowthChartProps) {
           data={sorted}
           margin={{ top: 8, right: 16, left: 0, bottom: 4 }}
         >
-          <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
           <XAxis dataKey="date" tick={{ fontSize: 11 }} />
           <YAxis tick={{ fontSize: 11 }} />
           <Tooltip
@@ -42,9 +42,9 @@ export function CCGrowthChart({ data, ccName }: CCGrowthChartProps) {
           <Line
             type="monotone"
             dataKey="composite_score"
-            stroke="#3b82f6"
+            stroke="hsl(var(--chart-2))"
             strokeWidth={2.5}
-            dot={{ r: 4, fill: "#3b82f6" }}
+            dot={{ r: 4, fill: "hsl(var(--chart-2))" }}
             activeDot={{ r: 6 }}
             name="composite_score"
           />
@@ -53,7 +53,7 @@ export function CCGrowthChart({ data, ccName }: CCGrowthChartProps) {
               x={sorted[sorted.length - 1].date}
               y={sorted[sorted.length - 1].composite_score}
               r={6}
-              fill="#ef4444"
+              fill="hsl(var(--destructive))"
               stroke="white"
               strokeWidth={2}
             />

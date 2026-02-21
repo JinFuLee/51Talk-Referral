@@ -7,7 +7,6 @@ import { CCBringNewRanking } from "@/components/biz/CCBringNewRanking";
 import { Card } from "@/components/ui/Card";
 import { Spinner } from "@/components/ui/Spinner";
 
-const BASE = process.env.NEXT_PUBLIC_API_BASE ?? "http://localhost:8000";
 const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
 interface CohortStudentsResponse {
@@ -57,7 +56,7 @@ function DataSourceBadge({ source }: { source?: string }) {
 
 export default function CohortStudentsPage() {
   const { data, isLoading, error } = useSWR<CohortStudentsResponse>(
-    `${BASE}/api/analysis/cohort-students`,
+    `/api/analysis/cohort-students`,
     fetcher
   );
 

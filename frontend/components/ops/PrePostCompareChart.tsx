@@ -102,9 +102,9 @@ const CustomDot = (props: { cx?: number; cy?: number; payload?: DotPayload }) =>
   const { cx = 0, cy = 0, payload } = props;
   return (
     <g>
-      <circle cx={cx} cy={cy} r={5} fill="#6366f1" fillOpacity={0.7} stroke="#fff" strokeWidth={1} />
+      <circle cx={cx} cy={cy} r={5} fill="hsl(var(--chart-4))" fillOpacity={0.7} stroke="hsl(var(--background))" strokeWidth={1} />
       {payload?.cc_name && (
-        <text x={cx + 7} y={cy + 4} fontSize={9} fill="#64748b">
+        <text x={cx + 7} y={cy + 4} fontSize={9} fill="hsl(var(--muted-foreground))">
           {payload.cc_name}
         </text>
       )}
@@ -173,27 +173,27 @@ export function PrePostCompareChart({ data, isLoading, error }: PrePostCompareCh
       <Card title="课前 vs 课后跟进效率对比（%）">
         <ResponsiveContainer width="100%" height={240}>
           <BarChart data={groupedData} margin={{ top: 8, right: 16, bottom: 4, left: 0 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
             <XAxis
               dataKey="metric"
-              tick={{ fontSize: 12, fill: "#64748b" }}
+              tick={{ fontSize: 12, fill: "hsl(var(--muted-foreground))" }}
               axisLine={false}
               tickLine={false}
             />
             <YAxis
               unit="%"
-              tick={{ fontSize: 11, fill: "#94a3b8" }}
+              tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
               axisLine={false}
               tickLine={false}
               domain={[0, 100]}
             />
             <Tooltip
               formatter={(value: number) => [`${value}%`]}
-              contentStyle={{ borderRadius: "8px", border: "1px solid #e2e8f0", fontSize: "12px" }}
+              contentStyle={{ borderRadius: "8px", border: "1px solid hsl(var(--border))", fontSize: "12px" }}
             />
             <Legend wrapperStyle={{ fontSize: "12px" }} />
-            <Bar dataKey="课前" fill="#60a5fa" radius={[3, 3, 0, 0]} maxBarSize={40} />
-            <Bar dataKey="课后" fill="#818cf8" radius={[3, 3, 0, 0]} maxBarSize={40} />
+            <Bar dataKey="课前" fill="hsl(var(--chart-2))" radius={[3, 3, 0, 0]} maxBarSize={40} />
+            <Bar dataKey="课后" fill="hsl(var(--chart-4))" radius={[3, 3, 0, 0]} maxBarSize={40} />
           </BarChart>
         </ResponsiveContainer>
       </Card>
@@ -203,15 +203,15 @@ export function PrePostCompareChart({ data, isLoading, error }: PrePostCompareCh
         {scatterData.length > 0 ? (
           <ResponsiveContainer width="100%" height={240}>
             <ScatterChart margin={{ top: 12, right: 12, bottom: 20, left: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
               <XAxis
                 type="number"
                 dataKey="x"
                 name="课前有效率"
                 unit="%"
                 domain={[0, maxPct]}
-                label={{ value: "课前有效率 (%)", position: "insideBottom", offset: -10, fontSize: 11, fill: "#94a3b8" }}
-                tick={{ fontSize: 10, fill: "#94a3b8" }}
+                label={{ value: "课前有效率 (%)", position: "insideBottom", offset: -10, fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
+                tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
                 axisLine={false}
                 tickLine={false}
               />
@@ -221,8 +221,8 @@ export function PrePostCompareChart({ data, isLoading, error }: PrePostCompareCh
                 name="课后有效率"
                 unit="%"
                 domain={[0, maxPct]}
-                label={{ value: "课后有效率 (%)", angle: -90, position: "insideLeft", offset: 10, fontSize: 11, fill: "#94a3b8" }}
-                tick={{ fontSize: 10, fill: "#94a3b8" }}
+                label={{ value: "课后有效率 (%)", angle: -90, position: "insideLeft", offset: 10, fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
+                tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
                 axisLine={false}
                 tickLine={false}
               />
@@ -246,9 +246,9 @@ export function PrePostCompareChart({ data, isLoading, error }: PrePostCompareCh
                   { x: 0, y: 0 },
                   { x: maxPct, y: maxPct },
                 ]}
-                stroke="#e2e8f0"
+                stroke="hsl(var(--border))"
                 strokeDasharray="4 4"
-                label={{ value: "1:1", position: "insideTopRight", fontSize: 10, fill: "#94a3b8" }}
+                label={{ value: "1:1", position: "insideTopRight", fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
               />
               <Scatter data={scatterData} shape={<CustomDot />} />
             </ScatterChart>

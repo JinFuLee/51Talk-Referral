@@ -50,7 +50,7 @@ function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
   if (!active || !payload || payload.length === 0) return null;
   const d = payload[0].payload;
   return (
-    <div className="bg-white border border-slate-200 rounded-lg shadow-sm px-3 py-2 text-xs">
+    <div className="bg-white/95 backdrop-blur-md border border-border/40 rounded-xl shadow-flash px-3 py-2 text-xs">
       <p className="font-semibold text-slate-700">{label}</p>
       <p className="text-slate-600 mt-1">学员数: <span className="font-bold">{d.count}</span></p>
       <p className="text-slate-500">占比: {d.percentage}%</p>
@@ -94,7 +94,7 @@ export function TimeIntervalHistogram() {
           data={resp.histogram}
           margin={{ top: 8, right: 16, left: 0, bottom: 4 }}
         >
-          <CartesianGrid strokeDasharray="3 3" stroke="#f0f4f8" />
+          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
           <XAxis
             dataKey="bucket"
             tick={{ fontSize: 11 }}
@@ -103,13 +103,13 @@ export function TimeIntervalHistogram() {
           <YAxis
             tick={{ fontSize: 11 }}
             allowDecimals={false}
-            label={{ value: "学员数", angle: -90, position: "insideLeft", fontSize: 11, fill: "#94a3b8" }}
+            label={{ value: "学员数", angle: -90, position: "insideLeft", fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
           />
           <Tooltip content={<CustomTooltip />} />
           <Bar
             dataKey="count"
             name="学员数"
-            fill="#10b981"
+            fill="hsl(var(--success))"
             radius={[4, 4, 0, 0]}
             maxBarSize={48}
           />

@@ -7,8 +7,6 @@ import { CohortCoefficientChart } from "@/components/biz/CohortCoefficientChart"
 import { Card } from "@/components/ui/Card";
 import { Spinner } from "@/components/ui/Spinner";
 
-const BASE = process.env.NEXT_PUBLIC_API_BASE ?? "http://localhost:8000";
-
 async function fetcher(url: string) {
   const res = await fetch(url);
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -88,7 +86,7 @@ function DecayTab() {
   const [groupBy, setGroupBy] = useState<"month" | "team">("month");
 
   const { data, isLoading, error } = useSWR<DecayRawResponse>(
-    `${BASE}/api/analysis/cohort-decay-raw?metric=${metric}&group_by=${groupBy}`,
+    `/api/analysis/cohort-decay-raw?metric=${metric}&group_by=${groupBy}`,
     fetcher
   );
 

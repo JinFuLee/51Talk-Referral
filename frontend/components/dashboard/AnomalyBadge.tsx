@@ -10,7 +10,7 @@ const severityStyle: Record<string, string> = {
 
 export function AnomalyBadge({ anomalies }: { anomalies: AnomalyItem[] }) {
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-4">
+    <div className="rounded-2xl border border-border/40 bg-white/95 backdrop-blur-md p-4 shadow-flash hover:shadow-flash-lg hover:-translate-y-1 transition-all duration-500">
       <h3 className="text-sm font-semibold text-slate-700 mb-3">异常检测 <span className="ml-1 text-xs font-normal text-slate-400">({anomalies.length})</span></h3>
       {anomalies.length === 0 ? (
         <p className="text-xs text-slate-400 py-4 text-center">未发现异常</p>

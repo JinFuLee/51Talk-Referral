@@ -90,19 +90,22 @@ function CustomTooltip({ active, payload, label, isPercent, segments }: CustomTo
   const gapColor = gapVal >= 0 ? "text-emerald-600" : "text-red-600";
 
   return (
-    <div className="bg-white border border-slate-200 rounded-lg shadow-lg p-3 text-xs min-w-[160px]">
+    <div className="bg-white/95 backdrop-blur-md border border-border/40 rounded-xl shadow-flash p-3 text-xs min-w-[160px]">
       <p className="font-semibold text-slate-700 mb-2">{label} 天</p>
-      {payload.map((p) => (
-        <div key={p.name} className="flex items-center justify-between gap-3 mb-1">
-          <span className="flex items-center gap-1">
-            <span className="inline-block w-2 h-2 rounded-sm" style={{ background: p.fill }} />
-            <span className="text-slate-500">{p.name}</span>
-          </span>
-          <span className="font-medium text-slate-700">
-            {isPercent ? `${(p.value * 100).toFixed(1)}%` : p.value.toLocaleString()}
-          </span>
-        </div>
-      ))}
+      {payload.map((p) => {
+        const val = p.value ?? 0;
+        return (
+          <div key={p.name} className="flex items-center justify-between gap-3 mb-1">
+            <span className="flex items-center gap-1">
+              <span className="inline-block w-2 h-2 rounded-sm" style={{ background: p.fill }} />
+              <span className="text-slate-500">{p.name}</span>
+            </span>
+            <span className="font-medium text-slate-700">
+              {isPercent ? `${(val * 100).toFixed(1)}%` : Number(val).toLocaleString()}
+            </span>
+          </div>
+        );
+      })}
       {seg && (
         <div className="mt-2 pt-2 border-t border-slate-100">
           <span className="text-slate-400">转化率差：</span>
@@ -206,16 +209,16 @@ export function EnclosureCompareChart() {
               barCategoryGap="25%"
               barGap={4}
             >
-              <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
               <XAxis
                 dataKey="name"
-                tick={{ fontSize: 12, fill: "#64748b" }}
+                tick={{ fontSize: 12, fill: "hsl(var(--muted-foreground))" }}
                 axisLine={false}
                 tickLine={false}
               />
               <YAxis
                 tickFormatter={tickFormatter}
-                tick={{ fontSize: 11, fill: "#94a3b8" }}
+                tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
                 axisLine={false}
                 tickLine={false}
               />
@@ -228,24 +231,24 @@ export function EnclosureCompareChart() {
                 }
               />
               <Legend wrapperStyle={{ fontSize: 12 }} />
-              <Bar dataKey={config.marketLabel} fill="#3b82f6" radius={[4, 4, 0, 0]}>
+              <Bar dataKey={config.marketLabel} fill="hsl(var(--chart-2))" radius={[4, 4, 0, 0]}>
                 <LabelList
                   dataKey={config.marketLabel}
                   position="top"
                   formatter={(v: number) =>
                     config.isPercent ? `${(v * 100).toFixed(0)}%` : v
                   }
-                  style={{ fontSize: 10, fill: "#3b82f6" }}
+                  style={{ fontSize: 10, fill: "hsl(var(--chart-2))" }}
                 />
               </Bar>
-              <Bar dataKey={config.referralLabel} fill="#10b981" radius={[4, 4, 0, 0]}>
+              <Bar dataKey={config.referralLabel} fill="hsl(var(--success))" radius={[4, 4, 0, 0]}>
                 <LabelList
                   dataKey={config.referralLabel}
                   position="top"
                   formatter={(v: number) =>
                     config.isPercent ? `${(v * 100).toFixed(0)}%` : v
                   }
-                  style={{ fontSize: 10, fill: "#10b981" }}
+                  style={{ fontSize: 10, fill: "hsl(var(--success))" }}
                 />
               </Bar>
             </BarChart>

@@ -83,7 +83,21 @@ export function TrendLineChart({
       {title && <p className="text-sm font-medium text-gray-700 mb-3">{title}</p>}
       <ResponsiveContainer width="100%" height={240}>
         <ComposedChart data={data} margin={{ top: 16, right: 16, left: 0, bottom: 4 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+          <defs>
+            <linearGradient id="colorBar0" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%" stopColor="hsl(var(--chart-2))" stopOpacity={0.9}/>
+              <stop offset="95%" stopColor="hsl(var(--chart-2))" stopOpacity={0.2}/>
+            </linearGradient>
+            <linearGradient id="colorBar1" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%" stopColor="hsl(var(--success))" stopOpacity={0.9}/>
+              <stop offset="95%" stopColor="hsl(var(--success))" stopOpacity={0.2}/>
+            </linearGradient>
+            <linearGradient id="colorBar2" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.9}/>
+              <stop offset="95%" stopColor="#f59e0b" stopOpacity={0.2}/>
+            </linearGradient>
+          </defs>
+          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
           <XAxis dataKey={xKey} tick={{ fontSize: 11 }} />
           <YAxis tick={{ fontSize: 11 }} />
           <Tooltip />
@@ -92,9 +106,9 @@ export function TrendLineChart({
           {targetValue !== undefined && (
             <ReferenceLine
               y={targetValue}
-              stroke="#ef4444"
+              stroke="hsl(var(--destructive))"
               strokeDasharray="4 4"
-              label={{ value: "目标", fill: "#ef4444", fontSize: 11 }}
+              label={{ value: "目标", fill: "hsl(var(--destructive))", fontSize: 11 }}
             />
           )}
 
@@ -102,9 +116,8 @@ export function TrendLineChart({
             <Bar
               key={key}
               dataKey={key}
-              fill={["#3b82f6", "#10b981", "#f59e0b"][i % 3]}
-              radius={[3, 3, 0, 0]}
-              opacity={0.8}
+              fill={`url(#colorBar${i % 3})`}
+              radius={[4, 4, 0, 0]}
             />
           ))}
 
@@ -113,7 +126,7 @@ export function TrendLineChart({
               key={key}
               type="monotone"
               dataKey={key}
-              stroke={["#ef4444", "#8b5cf6", "#06b6d4"][i % 3]}
+              stroke={["hsl(var(--destructive))", "hsl(var(--chart-4))", "hsl(var(--chart-1))"][i % 3]}
               strokeWidth={2}
               dot={{ r: 3 }}
               activeDot={{ r: 5 }}
@@ -121,14 +134,14 @@ export function TrendLineChart({
           ))}
 
           {peak && (
-            <ReferenceDot x={peak.date} y={peak.value} r={6} fill="#22c55e" stroke="#fff" strokeWidth={2}>
-              <Label value={`峰值: ${peak.value}`} position="top" fontSize={11} fill="#15803d" />
+            <ReferenceDot x={peak.date} y={peak.value} r={6} fill="hsl(var(--success))" stroke="hsl(var(--background))" strokeWidth={2}>
+              <Label value={`峰值: ${peak.value}`} position="top" fontSize={11} fill="hsl(var(--success))" />
             </ReferenceDot>
           )}
 
           {valley && (
-            <ReferenceDot x={valley.date} y={valley.value} r={6} fill="#ef4444" stroke="#fff" strokeWidth={2}>
-              <Label value={`谷底: ${valley.value}`} position="bottom" fontSize={11} fill="#b91c1c" />
+            <ReferenceDot x={valley.date} y={valley.value} r={6} fill="hsl(var(--destructive))" stroke="hsl(var(--background))" strokeWidth={2}>
+              <Label value={`谷底: ${valley.value}`} position="bottom" fontSize={11} fill="hsl(var(--destructive))" />
             </ReferenceDot>
           )}
         </ComposedChart>

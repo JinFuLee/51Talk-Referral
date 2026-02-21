@@ -25,12 +25,12 @@ interface ProductTrendStackedBarProps {
 }
 
 const COLORS = [
-  "#6366f1", // indigo-500
-  "#10b981", // emerald-500
+  "hsl(var(--chart-4))", // indigo-500
+  "hsl(var(--success))", // emerald-500
   "#f59e0b", // amber-500
   "#f43f5e", // rose-500
   "#0ea5e9", // sky-500
-  "#8b5cf6", // violet-500
+  "hsl(var(--chart-4))", // violet-500
   "#f97316", // orange-500
 ];
 
@@ -49,7 +49,7 @@ interface CustomTooltipProps {
 function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="bg-white border border-slate-200 rounded-lg shadow-lg p-3 text-xs max-w-xs">
+    <div className="bg-white/95 backdrop-blur-md border border-border/40 rounded-xl shadow-flash p-3 text-xs max-w-xs">
       <p className="font-semibold text-slate-700 mb-1">{label}</p>
       {payload.map((entry, idx) => (
         <p key={idx} className="text-slate-600">
@@ -106,16 +106,16 @@ export function ProductTrendStackedBar({ items }: ProductTrendStackedBarProps) {
           data={chartData}
           margin={{ top: 16, right: 16, left: 8, bottom: 4 }}
         >
-          <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
           <XAxis
             dataKey="name"
-            tick={{ fontSize: 12, fill: "#64748b" }}
+            tick={{ fontSize: 12, fill: "hsl(var(--muted-foreground))" }}
             axisLine={false}
             tickLine={false}
           />
           <YAxis
             tickFormatter={formatUSDShort}
-            tick={{ fontSize: 10, fill: "#94a3b8" }}
+            tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
             axisLine={false}
             tickLine={false}
           />

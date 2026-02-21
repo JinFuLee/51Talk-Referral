@@ -110,7 +110,7 @@ export function ProductivityHistoryChart() {
       ) : (
         <ResponsiveContainer width="100%" height={260}>
           <LineChart data={series} margin={{ top: 12, right: 16, left: 0, bottom: 4 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
             <XAxis dataKey="date" tick={{ fontSize: 11 }} />
             <YAxis
               tickFormatter={formatYAxis}
@@ -126,7 +126,7 @@ export function ProductivityHistoryChart() {
               type="monotone"
               dataKey="cc_rate"
               name="CC 出勤率"
-              stroke="#3b82f6"
+              stroke="hsl(var(--chart-2))"
               strokeWidth={2}
               dot={{ r: 3 }}
               activeDot={{ r: 5 }}
@@ -135,7 +135,7 @@ export function ProductivityHistoryChart() {
               type="monotone"
               dataKey="ss_rate"
               name="SS 出勤率"
-              stroke="#10b981"
+              stroke="hsl(var(--success))"
               strokeWidth={2}
               dot={{ r: 3 }}
               activeDot={{ r: 5 }}

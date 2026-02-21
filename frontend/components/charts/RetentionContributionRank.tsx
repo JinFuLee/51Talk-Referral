@@ -28,20 +28,22 @@ interface RetentionAPIResponse {
   total_retained: number;
 }
 
+interface ExchangeRateResponse {
+  usd_to_thb: number;
+}
+
 // ── Constants ────────────────────────────────────────────────────────────────
 
 const BAR_COLORS = [
-  "#3b82f6",
-  "#10b981",
+  "hsl(var(--chart-2))",
+  "hsl(var(--success))",
   "#f59e0b",
-  "#8b5cf6",
-  "#06b6d4",
+  "hsl(var(--chart-4))",
+  "hsl(var(--chart-1))",
   "#ec4899",
   "#84cc16",
-  "#ef4444",
+  "hsl(var(--destructive))",
 ];
-
-const EXCHANGE_RATE = 34;
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -75,6 +77,11 @@ export function RetentionContributionRank() {
     "/api/analysis/retention-contribution",
     fetcher
   );
+  const { data: rateData } = useSWR<ExchangeRateResponse>(
+    "/api/config/exchange-rate",
+    fetcher
+  );
+  const exchangeRate = rateData?.usd_to_thb ?? 34;
 
   if (isLoading) {
     return (
@@ -131,7 +138,7 @@ export function RetentionContributionRank() {
           <p className="text-lg font-bold text-slate-800 mt-0.5">
             {formatRevenue(
               rankings.reduce((s, r) => s + r.retained_revenue_usd, 0),
-              EXCHANGE_RATE
+              exchangeRate
             )}
           </p>
         </div>
@@ -148,7 +155,7 @@ export function RetentionContributionRank() {
             layout="vertical"
             margin={{ top: 4, right: 24, left: 8, bottom: 4 }}
           >
-            <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" horizontal={false} />
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" horizontal={false} />
             <XAxis
               type="number"
               tick={{ fontSize: 10 }}
@@ -162,7 +169,7 @@ export function RetentionContributionRank() {
             />
             <Tooltip
               formatter={(val) => [
-                formatRevenue(val as number, EXCHANGE_RATE),
+                formatRevenue(val as number, exchangeRate),
                 "留存收入",
               ]}
             />
@@ -226,7 +233,7 @@ export function RetentionContributionRank() {
                 </td>
                 <td className="py-2 px-2 text-right text-slate-700">
                   {r.retained_revenue_usd > 0
-                    ? formatRevenue(r.retained_revenue_usd, EXCHANGE_RATE)
+                    ? formatRevenue(r.retained_revenue_usd, exchangeRate)
                     : "—"}
                 </td>
                 <td className="py-2 px-2">

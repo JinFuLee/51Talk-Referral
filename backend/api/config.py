@@ -162,15 +162,23 @@ def get_targets_v2(month: str) -> dict[str, Any]:
 
 @router.put("/targets/{month}/v2")
 def put_targets_v2(month: str, body: dict[str, Any]) -> dict[str, Any]:
-    """保存 V2 结构到 targets_override.json"""
+    """保存 V2 结构到 targets_override.json (含强校验)"""
+    from models.config import MonthlyTargetV2
     if len(month) != 6 or not month.isdigit():
         raise HTTPException(status_code=400, detail="month 格式应为 YYYYMM")
 
-    body["version"] = 2
-    body["month"] = month
+    # 严格校验
+    try:
+        v2_model = MonthlyTargetV2(**body)
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=f"数据格式错误: {str(exc)}")
+
+    body_dict = v2_model.model_dump()
+    body_dict["version"] = 2
+    body_dict["month"] = month
 
     overrides = _read_json(TARGETS_OVERRIDE_FILE, {})
-    overrides[month] = body
+    overrides[month] = body_dict
     try:
         _write_json(TARGETS_OVERRIDE_FILE, overrides)
     except Exception as exc:

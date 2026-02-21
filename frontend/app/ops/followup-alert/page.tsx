@@ -4,8 +4,6 @@ import { useState, useEffect } from "react";
 import { ZeroFollowupAlert } from "@/components/ops/ZeroFollowupAlert";
 import { PrePostCompareChart } from "@/components/ops/PrePostCompareChart";
 
-const BASE = process.env.NEXT_PUBLIC_API_BASE ?? "http://localhost:8000";
-
 // ── Types ───────────────────────────────────────────────────────────────────
 
 interface ZeroStudent {
@@ -80,7 +78,7 @@ export default function FollowupAlertPage() {
   const [compareError, setCompareError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch(`${BASE}/api/analysis/paid-followup-alert`)
+    fetch(`/api/analysis/paid-followup-alert`)
       .then((r) => {
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
         return r.json();
@@ -92,7 +90,7 @@ export default function FollowupAlertPage() {
       .catch((e: Error) => setAlertError(e.message))
       .finally(() => setAlertLoading(false));
 
-    fetch(`${BASE}/api/analysis/trial-class-compare`)
+    fetch(`/api/analysis/trial-class-compare`)
       .then((r) => {
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
         return r.json();

@@ -19,8 +19,10 @@ import { Spinner } from "@/components/ui/Spinner";
 interface ZeroStudent {
   student_id?: string;
   cc_name?: string;
+  cc_team?: string;
   team?: string;
   first_paid_date?: string;
+  last_followup_date?: string;
   enclosure_segment: string;
   days_since_paid?: number | null;
   monthly_called?: number;
@@ -48,17 +50,42 @@ interface ZeroFollowupAlertProps {
   error: string | null;
 }
 
+// ── CSV Export ───────────────────────────────────────────────────────────────
+
+function exportToCSV(students: ZeroStudent[]) {
+  const headers = ["学员ID", "CC", "CC团队", "付费日期", "最后跟进日期", "围场段", "已付费天数"];
+  const rows = students.map((s) => [
+    s.student_id ?? "",
+    s.cc_name ?? "",
+    s.cc_team ?? s.team ?? "",
+    s.first_paid_date ?? "",
+    s.last_followup_date ?? "",
+    s.enclosure_segment,
+    s.days_since_paid != null ? String(s.days_since_paid) : "",
+  ]);
+  const csvContent = [headers, ...rows]
+    .map((row) => row.map((cell) => `"${cell.replace(/"/g, '""')}"`).join(","))
+    .join("\n");
+  const blob = new Blob(["\uFEFF" + csvContent], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `零跟进学员_${new Date().toISOString().slice(0, 10)}.csv`;
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
 // ── Enclosure order ─────────────────────────────────────────────────────────
 
 const ENCLOSURE_ORDER = ["0-30", "31-60", "61-90", "91-180", "181+", "未知"];
 
 const ENCLOSURE_COLORS: Record<string, string> = {
-  "0-30": "#ef4444",
+  "0-30": "hsl(var(--destructive))",
   "31-60": "#f97316",
   "61-90": "#eab308",
   "91-180": "#84cc16",
-  "181+": "#22c55e",
-  "未知": "#94a3b8",
+  "181+": "hsl(var(--success))",
+  "未知": "hsl(var(--muted-foreground))",
 };
 
 // ── Component ────────────────────────────────────────────────────────────────
@@ -137,15 +164,15 @@ export function ZeroFollowupAlert({ data, isLoading, error }: ZeroFollowupAlertP
           {chartData.length > 0 ? (
             <ResponsiveContainer width="100%" height={220}>
               <BarChart data={chartData} margin={{ top: 8, right: 8, bottom: 4, left: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                 <XAxis
                   dataKey="segment"
-                  tick={{ fontSize: 12, fill: "#64748b" }}
+                  tick={{ fontSize: 12, fill: "hsl(var(--muted-foreground))" }}
                   axisLine={false}
                   tickLine={false}
                 />
                 <YAxis
-                  tick={{ fontSize: 11, fill: "#94a3b8" }}
+                  tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
                   axisLine={false}
                   tickLine={false}
                   allowDecimals={false}
@@ -155,7 +182,7 @@ export function ZeroFollowupAlert({ data, isLoading, error }: ZeroFollowupAlertP
                   labelFormatter={(label) => `围场段 ${label} 天`}
                   contentStyle={{
                     borderRadius: "8px",
-                    border: "1px solid #e2e8f0",
+                    border: "1px solid hsl(var(--border))",
                     fontSize: "12px",
                   }}
                 />
@@ -226,12 +253,22 @@ export function ZeroFollowupAlert({ data, isLoading, error }: ZeroFollowupAlertP
       <Card
         title={`零跟进学员明细（${zero_followup_students.length} 人）`}
         actions={
-          <button
-            onClick={() => setShowDetail((v) => !v)}
-            className="text-xs text-blue-600 hover:text-blue-800 font-medium"
-          >
-            {showDetail ? "收起" : "展开"}
-          </button>
+          <div className="flex items-center gap-2">
+            {zero_followup_students.length > 0 && (
+              <button
+                onClick={() => exportToCSV(zero_followup_students)}
+                className="text-xs bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 rounded px-2 py-1 font-medium transition-colors"
+              >
+                导出 CSV
+              </button>
+            )}
+            <button
+              onClick={() => setShowDetail((v) => !v)}
+              className="text-xs text-blue-600 hover:text-blue-800 font-medium"
+            >
+              {showDetail ? "收起" : "展开"}
+            </button>
+          </div>
         }
       >
         {showDetail && (
@@ -241,7 +278,7 @@ export function ZeroFollowupAlert({ data, isLoading, error }: ZeroFollowupAlertP
                 <table className="w-full text-xs">
                   <thead className="bg-slate-50 border-b border-slate-200 sticky top-0">
                     <tr>
-                      {["学员ID", "CC", "付费日期", "围场段", "已付费天数"].map((h) => (
+                      {["学员ID", "CC", "CC团队", "付费日期", "最后跟进日期", "围场段", "已付费天数"].map((h) => (
                         <th
                           key={h}
                           className="px-3 py-2 text-left font-semibold text-slate-500"
@@ -261,15 +298,19 @@ export function ZeroFollowupAlert({ data, isLoading, error }: ZeroFollowupAlertP
                           {s.student_id ?? "—"}
                         </td>
                         <td className="px-3 py-2 text-slate-700">{s.cc_name ?? "—"}</td>
+                        <td className="px-3 py-2 text-slate-500">{s.cc_team ?? s.team ?? "—"}</td>
                         <td className="px-3 py-2 text-slate-500">
                           {s.first_paid_date ?? "—"}
+                        </td>
+                        <td className="px-3 py-2 text-slate-500">
+                          {s.last_followup_date ?? "—"}
                         </td>
                         <td className="px-3 py-2">
                           <span
                             className="px-1.5 py-0.5 rounded text-white text-xs font-medium"
                             style={{
                               backgroundColor:
-                                ENCLOSURE_COLORS[s.enclosure_segment] ?? "#94a3b8",
+                                ENCLOSURE_COLORS[s.enclosure_segment] ?? "hsl(var(--muted-foreground))",
                             }}
                           >
                             {s.enclosure_segment}

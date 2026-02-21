@@ -27,8 +27,8 @@ interface FunnelDetailResponse {
 }
 
 const BARS = [
-  { key: "register_to_reserve", label: "注册→预约", color: "#6366f1" },
-  { key: "reserve_to_attend", label: "预约→出席", color: "#10b981" },
+  { key: "register_to_reserve", label: "注册→预约", color: "hsl(var(--chart-4))" },
+  { key: "reserve_to_attend", label: "预约→出席", color: "hsl(var(--success))" },
   { key: "attend_to_paid", label: "出席→付费", color: "#f59e0b" },
   { key: "overall_conversion", label: "总转化率", color: "#f43f5e" },
 ];
@@ -79,7 +79,7 @@ export function FunnelEfficiencyPanel() {
           data={rows}
           margin={{ top: 8, right: 16, left: 0, bottom: 4 }}
         >
-          <CartesianGrid strokeDasharray="3 3" stroke="#f0f4f8" />
+          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
           <XAxis
             dataKey="cc_name"
             tick={{ fontSize: 11 }}

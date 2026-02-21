@@ -22,7 +22,7 @@ interface RadarChart360Props {
   color?: string;
 }
 
-export function RadarChart360({ data, name = "综合指标", color = "#3b82f6" }: RadarChart360Props) {
+export function RadarChart360({ data, name = "综合指标", color = "hsl(var(--chart-2))" }: RadarChart360Props) {
   if (data.length === 0) {
     return (
       <div className="flex items-center justify-center h-48 text-slate-400 text-sm">
@@ -34,12 +34,12 @@ export function RadarChart360({ data, name = "综合指标", color = "#3b82f6" }
   return (
     <ResponsiveContainer width="100%" height={240}>
       <RadarChart cx="50%" cy="50%" outerRadius={80} data={data}>
-        <PolarGrid stroke="#e2e8f0" />
-        <PolarAngleAxis dataKey="subject" tick={{ fontSize: 11, fill: "#64748b" }} />
+        <PolarGrid stroke="hsl(var(--border))" />
+        <PolarAngleAxis dataKey="subject" tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} />
         <PolarRadiusAxis
           angle={90}
           domain={[0, 100]}
-          tick={{ fontSize: 10, fill: "#94a3b8" }}
+          tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
           tickCount={4}
         />
         <Radar

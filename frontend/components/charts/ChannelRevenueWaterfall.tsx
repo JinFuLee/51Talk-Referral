@@ -26,16 +26,16 @@ interface ChannelRevenueWaterfallProps {
 }
 
 const CHANNEL_COLOR_MAP: Record<string, string> = {
-  转介绍: "#6366f1",   // indigo-500
-  市场: "#10b981",     // emerald-500
+  转介绍: "hsl(var(--chart-4))",   // indigo-500
+  市场: "hsl(var(--success))",     // emerald-500
   宽口径: "#f59e0b",   // amber-500
   cc窄口径: "#f43f5e", // rose-500
   ss窄口径: "#0ea5e9", // sky-500
-  lp窄口径: "#8b5cf6", // violet-500
+  lp窄口径: "hsl(var(--chart-4))", // violet-500
 };
 
 const FALLBACK_COLORS = [
-  "#6366f1", "#10b981", "#f59e0b", "#f43f5e", "#0ea5e9", "#8b5cf6", "#f97316",
+  "hsl(var(--chart-4))", "hsl(var(--success))", "#f59e0b", "#f43f5e", "#0ea5e9", "hsl(var(--chart-4))", "#f97316",
 ];
 
 function getColor(channel: string, idx: number): string {
@@ -72,7 +72,7 @@ function CustomTooltip({ active, payload }: CustomTooltipProps) {
   if (!active || !payload?.length) return null;
   const item = payload[0].payload;
   return (
-    <div className="bg-white border border-slate-200 rounded-lg shadow-lg p-3 text-xs max-w-xs">
+    <div className="bg-white/95 backdrop-blur-md border border-border/40 rounded-xl shadow-flash p-3 text-xs max-w-xs">
       <p className="font-semibold text-slate-700 mb-1">{item.label}</p>
       <p className="text-slate-600">
         收入:{" "}
@@ -136,16 +136,16 @@ export function ChannelRevenueWaterfall({
               data={chartData}
               margin={{ top: 28, right: 16, left: 8, bottom: 4 }}
             >
-              <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
               <XAxis
                 dataKey="label"
-                tick={{ fontSize: 11, fill: "#64748b" }}
+                tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
                 axisLine={false}
                 tickLine={false}
               />
               <YAxis
                 tickFormatter={formatUSDShort}
-                tick={{ fontSize: 10, fill: "#94a3b8" }}
+                tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
                 axisLine={false}
                 tickLine={false}
               />
@@ -155,14 +155,14 @@ export function ChannelRevenueWaterfall({
                   dataKey="revenue_usd"
                   position="top"
                   formatter={formatUSDShort}
-                  style={{ fontSize: 10, fill: "#475569", fontWeight: 600 }}
+                  style={{ fontSize: 10, fill: "hsl(var(--foreground))", fontWeight: 600 }}
                 />
                 {chartData.map((entry) => (
                   <Cell
                     key={entry.label}
                     fill={
                       entry.isTotal
-                        ? "#94a3b8"
+                        ? "hsl(var(--muted-foreground))"
                         : getColor(entry.label, entry.colorIdx)
                     }
                     opacity={entry.isTotal ? 0.65 : 1}

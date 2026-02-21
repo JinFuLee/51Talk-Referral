@@ -19,7 +19,7 @@ interface Factor {
   label?: string;
 }
 
-const COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#06b6d4"];
+const COLORS = ["hsl(var(--chart-2))", "hsl(var(--success))", "#f59e0b", "hsl(var(--destructive))", "hsl(var(--chart-4))", "hsl(var(--chart-1))"];
 
 function extractFactors(data: Record<string, unknown>): Factor[] {
   const factors = data.factors;

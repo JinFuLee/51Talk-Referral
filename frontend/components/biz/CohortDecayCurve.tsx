@@ -36,8 +36,8 @@ export interface CohortDecayCurveProps {
 
 // Palette for cohort lines
 const PALETTE = [
-  "#6366f1", "#10b981", "#f59e0b", "#f43f5e",
-  "#3b82f6", "#8b5cf6", "#ec4899", "#14b8a6",
+  "hsl(var(--chart-4))", "hsl(var(--success))", "#f59e0b", "#f43f5e",
+  "hsl(var(--chart-2))", "hsl(var(--chart-4))", "#ec4899", "hsl(var(--chart-1))",
 ];
 
 function formatVal(metric: string, v: number): string {
@@ -124,7 +124,7 @@ export function CohortDecayCurve({
               }`}
               style={{
                 borderColor: color,
-                color: active ? color : "#94a3b8",
+                color: active ? color : "hsl(var(--muted-foreground))",
                 backgroundColor: active ? `${color}18` : "transparent",
               }}
             >
@@ -152,7 +152,7 @@ export function CohortDecayCurve({
 
       <ResponsiveContainer width="100%" height={280}>
         <LineChart data={chartData} margin={{ top: 8, right: 16, left: 0, bottom: 4 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
           <XAxis dataKey="month" tick={{ fontSize: 11 }} />
           <YAxis
             tickFormatter={showPercentage && metric !== "referral_coefficient" ? (v) => `${(v * 100).toFixed(0)}%` : undefined}
@@ -193,7 +193,7 @@ export function CohortDecayCurve({
               type="monotone"
               dataKey="__avg__"
               name="均值"
-              stroke="#94a3b8"
+              stroke="hsl(var(--muted-foreground))"
               strokeWidth={2.5}
               strokeDasharray="5 3"
               dot={false}

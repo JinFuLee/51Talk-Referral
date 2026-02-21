@@ -140,7 +140,7 @@ function MermaidBlock({ body }: { body: string }) {
   if (trimmed.startsWith("xychart-beta")) {
     const props = xyChartToProps(trimmed);
     return (
-      <div className="my-4 p-4 bg-white rounded-xl border border-gray-200">
+      <div className="my-4 p-4 bg-white/95 backdrop-blur-md rounded-2xl border border-border/40 shadow-flash transition-all duration-500 hover:shadow-flash-lg hover:-translate-y-1">
         <TrendLineChart {...props} />
       </div>
     );
@@ -149,7 +149,7 @@ function MermaidBlock({ body }: { body: string }) {
   if (trimmed.startsWith("pie")) {
     const { data, title } = parsePieChart(trimmed);
     return (
-      <div className="my-4 p-4 bg-white rounded-xl border border-gray-200">
+      <div className="my-4 p-4 bg-white/95 backdrop-blur-md rounded-2xl border border-border/40 shadow-flash transition-all duration-500 hover:shadow-flash-lg hover:-translate-y-1">
         <PieChart data={data} title={title || undefined} />
       </div>
     );
@@ -158,7 +158,7 @@ function MermaidBlock({ body }: { body: string }) {
   if (trimmed.startsWith("flowchart") || trimmed.startsWith("graph")) {
     const stages = parseFlowchart(trimmed);
     return (
-      <div className="my-4 p-4 bg-white rounded-xl border border-gray-200">
+      <div className="my-4 p-4 bg-white/95 backdrop-blur-md rounded-2xl border border-border/40 shadow-flash transition-all duration-500 hover:shadow-flash-lg hover:-translate-y-1">
         <FunnelChart stages={stages} />
       </div>
     );

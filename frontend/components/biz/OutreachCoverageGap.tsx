@@ -78,9 +78,9 @@ function pct(rate: number): string {
 }
 
 function coverageColor(rate: number): string {
-  if (rate >= 0.8) return "#22c55e";
+  if (rate >= 0.8) return "hsl(var(--success))";
   if (rate >= 0.6) return "#f59e0b";
-  return "#ef4444";
+  return "hsl(var(--destructive))";
 }
 
 // ── Sub-components ────────────────────────────────────────────────────────────
@@ -127,7 +127,7 @@ function FunnelTooltip({ active, payload }: CustomTooltipProps) {
   if (!active || !payload?.length) return null;
   const item = payload[0].payload;
   return (
-    <div className="bg-white border border-slate-200 rounded-lg shadow-lg p-3 text-xs max-w-xs">
+    <div className="bg-white/95 backdrop-blur-md border border-border/40 rounded-xl shadow-flash p-3 text-xs max-w-xs">
       <p className="font-semibold text-slate-700 mb-1">{item.stage}</p>
       <p className="text-slate-600">人数: <span className="font-medium">{item.count.toLocaleString()}</span></p>
       <p className="text-slate-600">覆盖率: <span className="font-medium">{pct(item.rate)}</span></p>
@@ -243,10 +243,10 @@ export function OutreachCoverageGap() {
                 data={funnelChartData}
                 margin={{ top: 4, right: 80, left: 8, bottom: 4 }}
               >
-                <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f1f5f9" />
+                <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="hsl(var(--border))" />
                 <XAxis
                   type="number"
-                  tick={{ fontSize: 11, fill: "#94a3b8" }}
+                  tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
                   axisLine={false}
                   tickLine={false}
                   tickFormatter={(v: number) => v.toLocaleString()}
@@ -255,7 +255,7 @@ export function OutreachCoverageGap() {
                   type="category"
                   dataKey="stage"
                   width={72}
-                  tick={{ fontSize: 12, fill: "#64748b" }}
+                  tick={{ fontSize: 12, fill: "hsl(var(--muted-foreground))" }}
                   axisLine={false}
                   tickLine={false}
                 />
@@ -265,7 +265,7 @@ export function OutreachCoverageGap() {
                     dataKey="rate"
                     position="right"
                     formatter={(v: number) => pct(v)}
-                    style={{ fontSize: 11, fill: "#475569", fontWeight: 600 }}
+                    style={{ fontSize: 11, fill: "hsl(var(--foreground))", fontWeight: 600 }}
                   />
                   {funnelChartData.map((entry, idx) => (
                     <Cell key={idx} fill={entry.fill} />
@@ -309,16 +309,16 @@ export function OutreachCoverageGap() {
                         data={by_grade}
                         margin={{ top: 8, right: 16, left: 8, bottom: 4 }}
                       >
-                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
                         <XAxis
                           dataKey="grade"
-                          tick={{ fontSize: 11, fill: "#64748b" }}
+                          tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
                           axisLine={false}
                           tickLine={false}
                         />
                         <YAxis
                           tickFormatter={(v: number) => pct(v)}
-                          tick={{ fontSize: 11, fill: "#94a3b8" }}
+                          tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
                           axisLine={false}
                           tickLine={false}
                           domain={[0, 1]}

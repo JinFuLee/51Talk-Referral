@@ -43,7 +43,7 @@ export function PredictionBandChart({
   return (
     <ResponsiveContainer width="100%" height={260}>
       <ComposedChart data={chartData} margin={{ top: 8, right: 16, left: 0, bottom: 4 }}>
-        <CartesianGrid strokeDasharray="3 3" stroke="#f0f4f8" />
+        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
         <XAxis dataKey="date" tick={{ fontSize: 11 }} />
         <YAxis
           tickFormatter={(v: number) => `${(v / 1000).toFixed(0)}k`}
@@ -60,7 +60,7 @@ export function PredictionBandChart({
         <Area
           type="monotone"
           dataKey="band"
-          fill="#6366f1"
+          fill="hsl(var(--chart-4))"
           fillOpacity={0.12}
           stroke="none"
           name="置信区间"
@@ -68,7 +68,7 @@ export function PredictionBandChart({
         <Line
           type="monotone"
           dataKey="value"
-          stroke="#6366f1"
+          stroke="hsl(var(--chart-4))"
           strokeWidth={2.5}
           dot={false}
           name={valueLabel}

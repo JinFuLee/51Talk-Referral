@@ -22,16 +22,16 @@ interface PackageMixChartProps {
 }
 
 const COLORS = [
-  "#3b82f6", // blue
-  "#10b981", // emerald
+  "hsl(var(--chart-2))", // blue
+  "hsl(var(--success))", // emerald
   "#f59e0b", // amber
-  "#8b5cf6", // violet
-  "#ef4444", // red
-  "#06b6d4", // cyan
+  "hsl(var(--chart-4))", // violet
+  "hsl(var(--destructive))", // red
+  "hsl(var(--chart-1))", // cyan
   "#f97316", // orange
   "#84cc16", // lime
   "#ec4899", // pink
-  "#6366f1", // indigo
+  "hsl(var(--chart-4))", // indigo
 ];
 
 interface TooltipPayloadItem {
@@ -47,7 +47,7 @@ function CustomTooltip({ active, payload }: CustomTooltipProps) {
   if (!active || !payload?.length) return null;
   const item = payload[0].payload;
   return (
-    <div className="bg-white border border-slate-200 rounded-lg shadow-lg p-3 text-xs max-w-xs">
+    <div className="bg-white/95 backdrop-blur-md border border-border/40 rounded-xl shadow-flash p-3 text-xs max-w-xs">
       <p className="font-semibold text-slate-700 mb-1">{item.product_type}</p>
       <p className="text-slate-600">
         收入: <span className="font-medium text-blue-600">{formatRevenue(item.revenue_usd)}</span>

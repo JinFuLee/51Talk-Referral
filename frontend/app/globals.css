@@ -8,7 +8,8 @@
 }
 
 body {
-  background: rgb(var(--background-rgb));
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
 }
 
 /* Scrollbar */
@@ -26,56 +27,147 @@ body {
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 0 0% 3.9%;
+    /* FlashUI Light Theme (通透/极简) */
+    --background: 210 20% 98%; /* 极淡冰白 */
+    --foreground: 222.2 20% 25%; /* 降饱和度的深灰，不要纯黑 */
     --card: 0 0% 100%;
-    --card-foreground: 0 0% 3.9%;
+    --card-foreground: 222.2 20% 25%;
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 3.9%;
-    --primary: 0 0% 9%;
-    --primary-foreground: 0 0% 98%;
-    --secondary: 0 0% 96.1%;
-    --secondary-foreground: 0 0% 9%;
-    --muted: 0 0% 96.1%;
-    --muted-foreground: 0 0% 45.1%;
-    --accent: 0 0% 96.1%;
-    --accent-foreground: 0 0% 9%;
+    --popover-foreground: 222.2 20% 25%;
+    
+    /* 核心点缀色 (低饱和、高明度) */
+    --primary: 173 58% 39%; /* 水月薄荷绿 */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 10% 96%;
+    --muted-foreground: 215 16% 55%; /* 更柔和的次要文本 */
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    
     --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 89.8%;
-    --input: 0 0% 89.8%;
-    --ring: 0 0% 3.9%;
-    --chart-1: 12 76% 61%;
-    --chart-2: 173 58% 39%;
-    --chart-3: 197 37% 24%;
-    --chart-4: 43 74% 66%;
-    --chart-5: 27 87% 67%;
-    --radius: 0.5rem;
+    --destructive-foreground: 210 40% 98%;
+    /* 弱化边界感 */
+    --border: 210 20% 94%; 
+    --input: 210 20% 94%;
+    --ring: 173 58% 39%;
+    
+    --success: 142 71% 45%;
+    --success-foreground: 0 0% 100%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 100%;
+    --info: 210 80% 65%;
+    --info-foreground: 0 0% 100%;
+
+    /* 柔和化的图表色板 */
+    --chart-1: 173 58% 39%;
+    --chart-2: 210 80% 65%;
+    --chart-3: 142 71% 45%; /* 修改为翠绿色，适应图表积极向趋势 */
+    --chart-4: 250 60% 75%;
+    --chart-5: 340 60% 75%;
+    
+    --radius: 1rem; /* 增大圆角，从默认 0.75rem 到 1rem */
   }
+
   .dark {
-    --background: 0 0% 3.9%;
-    --foreground: 0 0% 98%;
-    --card: 0 0% 3.9%;
-    --card-foreground: 0 0% 98%;
-    --popover: 0 0% 3.9%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 0 0% 98%;
-    --primary-foreground: 0 0% 9%;
-    --secondary: 0 0% 14.9%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 0 0% 14.9%;
-    --muted-foreground: 0 0% 63.9%;
-    --accent: 0 0% 14.9%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 14.9%;
-    --input: 0 0% 14.9%;
-    --ring: 0 0% 83.1%;
-    --chart-1: 220 70% 50%;
-    --chart-2: 160 60% 45%;
-    --chart-3: 30 80% 55%;
-    --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%;
+    --background: 224 71% 4%;
+    --foreground: 213 31% 91%;
+    --card: 222 47% 7%;
+    --card-foreground: 213 31% 91%;
+    --popover: 224 71% 4%;
+    --popover-foreground: 215 20.2% 65.1%;
+    --primary: 173 58% 39%;
+    --primary-foreground: 222.2 47.4% 1.2%;
+    --secondary: 222.2 47.4% 11.2%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 223 47% 11%;
+    --muted-foreground: 215.4 16.3% 56.9%;
+    --accent: 216 34% 17%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 63% 31%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 216 34% 17%;
+    --input: 216 34% 17%;
+    --ring: 173 58% 39%;
+    --success: 142 71% 45%;
+    --success-foreground: 0 0% 100%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 100%;
+    --info: 210 80% 65%;
+    --info-foreground: 0 0% 100%;
+    
+    --chart-1: 173 58% 39%;
+    --chart-2: 210 80% 65%;
+    --chart-3: 142 71% 45%; /* 与 light 保持逻辑一致的绿色 */
+    --chart-4: 250 60% 75%;
+    --chart-5: 340 60% 75%;
+  }
+}
+
+@layer base {
+  /*
+  * {
+    @apply border-border;
+  }
+  */
+}
+
+/* =========================================
+   🎓 Presentation & Print Mode (汇报/打印模式)
+   ========================================= */
+
+/* Body global class triggered by toggle */
+body.presentation-mode .hide-in-presentation {
+  display: none !important;
+}
+
+body.presentation-mode .presentation-expand {
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 0 !important;
+}
+
+/* The elegant watermark header only visible in presentation mode */
+.presentation-watermark {
+  display: none;
+}
+body.presentation-mode .presentation-watermark {
+  display: flex !important;
+}
+
+/* Cmd+P Print PDF Media rules */
+@media print {
+  body {
+    background: white !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  
+  .hide-in-presentation, 
+  nav, 
+  aside,
+  button,
+  .shadow-flash,
+  .shadow-flash-lg {
+    display: none !important;
+    box-shadow: none !important;
+    border: none !important;
+  }
+
+  .presentation-expand, main {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  /* Make charts fill paper and break nicely */
+  .recharts-wrapper {
+    width: 100% !important;
+  }
+
+  .presentation-watermark {
+    display: flex !important;
+    color: #94a3b8 !important; /* Force render color in print */
   }
 }

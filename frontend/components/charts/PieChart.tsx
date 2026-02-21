@@ -19,7 +19,7 @@ interface PieChartProps {
   title?: string;
 }
 
-const PIE_COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#06b6d4"];
+const PIE_COLORS = ["hsl(var(--chart-2))", "hsl(var(--success))", "#f59e0b", "hsl(var(--destructive))", "hsl(var(--chart-4))", "hsl(var(--chart-1))"];
 
 export function PieChart({ data, title }: PieChartProps) {
   const total = data.reduce((sum, d) => sum + d.value, 0);

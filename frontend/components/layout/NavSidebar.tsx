@@ -97,7 +97,7 @@ export function NavSidebar() {
   const [sysOpen, setSysOpen] = useState(false);
 
   return (
-    <aside className="w-56 bg-white border-r border-slate-200 flex flex-col shrink-0">
+    <aside className="w-56 h-full bg-white/90 backdrop-blur-md border-r border-border/40 flex flex-col shrink-0">
       <div className="px-4 py-4 border-b border-slate-100">
         <p className="text-xs font-bold text-indigo-600 tracking-wide">ref-ops-engine</p>
         <p className="text-xs text-slate-400 mt-0.5">51Talk 泰国转介绍运营</p>

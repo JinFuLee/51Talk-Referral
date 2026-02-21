@@ -57,10 +57,10 @@ export function CCCheckinRanking({
       value: achievedPct,
       fill:
         achievedPct >= 80
-          ? "#10b981"
+          ? "hsl(var(--success))"
           : achievedPct >= 60
           ? "#f59e0b"
-          : "#ef4444",
+          : "hsl(var(--destructive))",
     },
   ];
 

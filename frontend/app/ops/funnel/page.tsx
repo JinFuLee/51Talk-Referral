@@ -1,6 +1,7 @@
 "use client";
 
 import { useFunnel, useChannelComparison } from "@/lib/hooks";
+import { GlossaryBanner } from "@/components/ui/GlossaryBanner";
 import { FunnelChart } from "@/components/charts/FunnelChart";
 import { ChannelBarChart } from "@/components/charts/ChannelBarChart";
 import { ChannelComparisonTable } from "@/components/ops/ChannelComparisonTable";
@@ -55,6 +56,14 @@ export default function OpsFunnelPage() {
           <p className="text-xs text-slate-400 mt-0.5">窄口 vs 宽口 · 学员旅程分析</p>
         </div>
       </div>
+
+      <GlossaryBanner terms={[
+        { term: "窄口", definition: "员工链接绑定(高质量)" },
+        { term: "宽口", definition: "学员链接绑定(低质量)" },
+        { term: "有效学员", definition: "次卡>0且在有效期内" },
+        { term: "触达率", definition: "有效通话(≥120s)学员/有效学员" },
+        { term: "参与率", definition: "带来≥1注册的学员/有效学员" },
+      ]} />
 
       {/* Funnel + Channel comparison */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

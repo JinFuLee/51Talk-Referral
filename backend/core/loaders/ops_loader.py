@@ -134,7 +134,7 @@ class OpsLoader(BaseLoader):
             records = []
             for _, row in df.iterrows():
                 channel = str(row.get("channel", "")).strip()
-                team = str(row.get("team", "")).strip()
+                team = self._normalize_team(str(row.get("team", "")).strip())
                 cc = str(row.get("cc_name", "")).strip()
                 # 跳过空行
                 if not channel or channel in ("nan", "NaN"):
@@ -218,7 +218,7 @@ class OpsLoader(BaseLoader):
             for _, row in df.iterrows():
                 ct = str(row["channel_type"]).strip()
                 month = str(row["month"]).strip()
-                team = str(row["team"]).strip()
+                team = self._normalize_team(str(row["team"]).strip())
                 cc = str(row["cc_name"]).strip()
                 if not ct or ct in ("nan", "NaN"):
                     continue
@@ -296,7 +296,7 @@ class OpsLoader(BaseLoader):
             for _, row in df.iterrows():
                 ct = str(row["channel_type"]).strip()
                 month = str(row["month"]).strip()
-                team = str(row["team"]).strip()
+                team = self._normalize_team(str(row["team"]).strip())
                 cc = str(row["cc_name"]).strip()
                 if not ct or ct in ("nan", "NaN"):
                     continue
@@ -444,7 +444,7 @@ class OpsLoader(BaseLoader):
 
             for _, row in df.iterrows():
                 date = self._clean_date(row["date_raw"])
-                team = str(row["team"]).strip() if pd.notna(row["team"]) else None
+                team = self._normalize_team(str(row["team"]).strip()) if pd.notna(row["team"]) else "THCC"
                 cc = str(row["cc_name"]).strip() if pd.notna(row["cc_name"]) else None
                 if not date or not team:
                     continue
@@ -468,11 +468,16 @@ class OpsLoader(BaseLoader):
                 if cc:
                     if cc not in by_cc:
                         by_cc[cc] = {"team": team, "dates": [], "total_calls": 0,
-                                     "total_connects": 0, "total_effective": 0}
+                                     "total_connects": 0, "total_effective": 0,
+                                     "_total_duration_min": 0.0, "_duration_days": 0}
                     by_cc[cc]["dates"].append(date)
                     by_cc[cc]["total_calls"] += rec["total_calls"] or 0
                     by_cc[cc]["total_connects"] += rec["total_connects"] or 0
                     by_cc[cc]["total_effective"] += rec["total_effective"] or 0
+                    dur = rec["total_duration_min"] or 0.0
+                    by_cc[cc]["_total_duration_min"] += dur
+                    if dur > 0:
+                        by_cc[cc]["_duration_days"] += 1
 
                 # by_team 聚合
                 if team not in by_team:
@@ -490,6 +495,12 @@ class OpsLoader(BaseLoader):
                 by_date[date]["cc_count"] += 1
 
             by_date_list = [{"date": d, **v} for d, v in sorted(by_date.items())]
+
+            # 计算每个 CC 的平均通话时长并清理临时字段
+            for cc_data in by_cc.values():
+                days = cc_data.pop("_duration_days", 0)
+                total_dur = cc_data.pop("_total_duration_min", 0.0)
+                cc_data["avg_duration_min"] = round(total_dur / days, 2) if days > 0 else None
 
             return {
                 "records": records,
@@ -528,7 +539,7 @@ class OpsLoader(BaseLoader):
             for _, row in df.iterrows():
                 channel = str(row["channel"]).strip() if pd.notna(row["channel"]) else None
                 alloc_date = self._clean_date(row["alloc_date_raw"])
-                team = str(row["team"]).strip() if pd.notna(row["team"]) else None
+                team = self._normalize_team(str(row["team"]).strip()) if pd.notna(row["team"]) else "THCC"
                 cc = str(row["cc_name"]).strip() if pd.notna(row["cc_name"]) else None
                 sid = row["student_id"]
                 if not channel or not team:
@@ -629,7 +640,7 @@ class OpsLoader(BaseLoader):
             by_team: dict = {}
 
             for _, row in df.iterrows():
-                team = str(row["team"]).strip() if pd.notna(row["team"]) else None
+                team = self._normalize_team(str(row["team"]).strip()) if pd.notna(row["team"]) else "THCC"
                 cc = str(row["cc_name"]).strip() if pd.notna(row["cc_name"]) else None
                 sid = row["student_id"]
                 if not team or not cc:
@@ -666,7 +677,7 @@ class OpsLoader(BaseLoader):
             # 为 by_cc 记录 team
             for _, row in df.iterrows():
                 cc = str(row["cc_name"]).strip() if pd.notna(row["cc_name"]) else None
-                team = str(row["team"]).strip() if pd.notna(row["team"]) else None
+                team = self._normalize_team(str(row["team"]).strip()) if pd.notna(row["team"]) else "THCC"
                 if cc and cc in by_cc and "team" not in by_cc[cc]:
                     by_cc[cc]["team"] = team
 
@@ -714,7 +725,7 @@ class OpsLoader(BaseLoader):
 
             for _, row in df.iterrows():
                 enc = str(row["enclosure"]).strip() if pd.notna(row["enclosure"]) else None
-                team = str(row["team"]).strip() if pd.notna(row["team"]) else None
+                team = self._normalize_team(str(row["team"]).strip()) if pd.notna(row["team"]) else "THCC"
                 cc = str(row["cc_name"]).strip() if pd.notna(row["cc_name"]) else None
                 if not enc or enc in ("nan", "NaN"):
                     continue
@@ -804,7 +815,7 @@ class OpsLoader(BaseLoader):
             by_team: dict = {}
 
             for _, row in df.iterrows():
-                team = str(row["team"]).strip() if pd.notna(row["team"]) else None
+                team = self._normalize_team(str(row["team"]).strip()) if pd.notna(row["team"]) else "THCC"
                 cc = str(row["cc_name"]).strip() if pd.notna(row["cc_name"]) else None
                 sid = row["student_id"]
                 if not team or team in ("nan", "NaN"):
@@ -897,7 +908,7 @@ class OpsLoader(BaseLoader):
 
             for _, row in df.iterrows():
                 channel = str(row["channel"]).strip() if pd.notna(row["channel"]) else None
-                team = str(row["team"]).strip() if pd.notna(row["team"]) else None
+                team = self._normalize_team(str(row["team"]).strip()) if pd.notna(row["team"]) else "THCC"
                 cc = str(row["cc_name"]).strip() if pd.notna(row["cc_name"]) else None
                 if not channel or channel in ("nan", "NaN"):
                     continue
@@ -984,7 +995,7 @@ class OpsLoader(BaseLoader):
             by_lead_type: dict = {}
 
             for _, row in df.iterrows():
-                team = str(row["team"]).strip() if pd.notna(row["team"]) else None
+                team = self._normalize_team(str(row["team"]).strip()) if pd.notna(row["team"]) else "THCC"
                 cc = str(row["cc_name"]).strip() if pd.notna(row["cc_name"]) else None
                 if not team:
                     continue

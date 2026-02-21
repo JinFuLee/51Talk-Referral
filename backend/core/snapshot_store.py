@@ -167,7 +167,7 @@ class SnapshotStore:
 
         for entry in rankings:
             cursor.execute("""
-                INSERT INTO cc_ranking_snapshot
+                INSERT OR REPLACE INTO cc_ranking_snapshot
                 (snapshot_date, cc_name, team, composite, rank,
                  leads_score, conversion_score, followup_score, checkin_score)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)

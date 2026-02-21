@@ -51,7 +51,7 @@ export function EnclosureHeatmap({
           <div
             key={seg}
             className={cn(
-              "rounded-xl border-2 p-4 flex flex-col gap-2 text-center",
+              "rounded-2xl border p-4 flex flex-col gap-2 text-center shadow-flash hover:shadow-flash-lg hover:-translate-y-1 transition-all duration-500 border-border/40",
               roiColor(s.roi_index ?? 0)
             )}
           >

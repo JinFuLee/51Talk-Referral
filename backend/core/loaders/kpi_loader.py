@@ -78,9 +78,9 @@ class KpiLoader(BaseLoader):
                 by_cc.append(
                     {
                         "cc_name": str(row["cc_name"]).strip(),
-                        "team": str(row["team"]).strip()
+                        "team": self._normalize_team(str(row["team"]).strip())
                         if pd.notna(row["team"])
-                        else None,
+                        else "THCC",
                         "checkin_24h_rate": self._clean_numeric(row["checkin_24h_rate"]),
                         "checkin_24h_target": self._clean_numeric(
                             row["checkin_24h_target"]
@@ -279,9 +279,9 @@ class KpiLoader(BaseLoader):
                 by_cc.append(
                     {
                         "cc_name": str(row["cc_name"]).strip(),
-                        "team": str(row["team"]).strip()
+                        "team": self._normalize_team(str(row["team"]).strip())
                         if pd.notna(row.get("team"))
-                        else None,
+                        else "THCC",
                         "checkin_rate": self._clean_numeric(row.get("checkin_rate")),
                         "referral_participation_total": self._clean_numeric(
                             row.get("referral_participation_total")

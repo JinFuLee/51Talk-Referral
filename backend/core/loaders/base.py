@@ -32,15 +32,18 @@ class BaseLoader:
     def _read_xlsx_pandas(self, path: Path, sheet_name=0, header=0, skiprows=None):
         """使用 pandas 读取 Excel，统一异常处理，优先 openpyxl，fallback calamine"""
         import pandas as pd
+        import warnings
 
         try:
-            df = pd.read_excel(
-                path,
-                sheet_name=sheet_name,
-                header=header,
-                skiprows=skiprows,
-                engine="openpyxl",
-            )
+            with warnings.catch_warnings():
+                warnings.filterwarnings("ignore", category=UserWarning, module="openpyxl")
+                df = pd.read_excel(
+                    path,
+                    sheet_name=sheet_name,
+                    header=header,
+                    skiprows=skiprows,
+                    engine="openpyxl",
+                )
             return df
         except Exception as e:
             logger.warning(f"openpyxl 读取失败，尝试 calamine: {e}")
@@ -65,6 +68,13 @@ class BaseLoader:
         for alias, standard in self.ALIAS_MAP.items():
             text = text.replace(alias, standard)
         return text
+
+    @staticmethod
+    def _normalize_team(name: str) -> str:
+        """规范化团队名：'-'/'—'/'nan'/空 → 'THCC'"""
+        if not name or str(name).strip() in ("-", "—", "nan", "NaN", ""):
+            return "THCC"
+        return str(name).strip()
 
     def _clean_numeric(self, val) -> Optional[float]:
         """清洗数值：处理 '-', 'NaN', None, 空字符串"""

@@ -11,11 +11,11 @@ interface OutreachHeatmapProps {
 }
 
 function getColor(calls: number, maxCalls: number): string {
-  if (calls === 0) return "#f1f5f9";
+  if (calls === 0) return "hsl(var(--border))";
   const intensity = Math.min(calls / maxCalls, 1);
   if (intensity < 0.25) return "#bfdbfe";
-  if (intensity < 0.5) return "#60a5fa";
-  if (intensity < 0.75) return "#2563eb";
+  if (intensity < 0.5) return "hsl(var(--chart-2))";
+  if (intensity < 0.75) return "hsl(var(--chart-2))";
   return "#1d4ed8";
 }
 
@@ -80,7 +80,7 @@ export function OutreachHeatmap({ data, maxCalls }: OutreachHeatmapProps) {
                     key={di}
                     title={cell ? `${cell.date}: ${cell.calls} 通` : ""}
                     className="h-4 w-4 rounded-sm cursor-default"
-                    style={{ backgroundColor: cell ? getColor(cell.calls, resolvedMax) : "#f8fafc" }}
+                    style={{ backgroundColor: cell ? getColor(cell.calls, resolvedMax) : "hsl(var(--background))" }}
                   />
                 );
               })}

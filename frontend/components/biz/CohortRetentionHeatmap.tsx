@@ -19,7 +19,7 @@ export interface CohortRetentionHeatmapProps {
 
 const METRIC_COLORS: Record<string, { from: string; to: string }> = {
   reach_rate:            { from: "#bfdbfe", to: "#1d4ed8" },
-  participation_rate:    { from: "#bbf7d0", to: "#15803d" },
+  participation_rate:    { from: "#bbf7d0", to: "hsl(var(--success))" },
   checkin_rate:          { from: "#fef08a", to: "#a16207" },
   referral_coefficient:  { from: "#fed7aa", to: "#c2410c" },
   conversion_ratio:      { from: "#e9d5ff", to: "#7e22ce" },
@@ -47,8 +47,8 @@ function lerpColor(from: string, to: string, t: number): string {
 }
 
 function getCellBg(metric: string, value: number | null, maxVal: number): string {
-  if (value === null) return "#f1f5f9";
-  const colors = METRIC_COLORS[metric] || { from: "#e2e8f0", to: "#1e293b" };
+  if (value === null) return "hsl(var(--border))";
+  const colors = METRIC_COLORS[metric] || { from: "hsl(var(--border))", to: "hsl(var(--foreground))" };
   const t = maxVal > 0 ? Math.min(value / maxVal, 1) : 0;
   return lerpColor(colors.from, colors.to, t);
 }
@@ -60,9 +60,9 @@ function getCellText(metric: string, value: number | null): string {
 }
 
 function getTextColor(metric: string, value: number | null, maxVal: number): string {
-  if (value === null) return "#94a3b8";
+  if (value === null) return "hsl(var(--muted-foreground))";
   const t = maxVal > 0 ? value / maxVal : 0;
-  return t > 0.55 ? "#fff" : "#1e293b";
+  return t > 0.55 ? "hsl(var(--background))" : "hsl(var(--foreground))";
 }
 
 export function CohortRetentionHeatmap({
@@ -111,7 +111,7 @@ export function CohortRetentionHeatmap({
                     style={{
                       backgroundColor: bg,
                       color: textColor,
-                      outline: isHovered ? "2px solid #6366f1" : undefined,
+                      outline: isHovered ? "2px solid hsl(var(--chart-4))" : undefined,
                       fontWeight: isHovered ? 600 : 400,
                     }}
                     onMouseEnter={() => setHovered({ mi, mj })}
@@ -133,7 +133,7 @@ export function CohortRetentionHeatmap({
       {/* Legend */}
       <div className="flex flex-wrap gap-4 mt-3 px-3">
         {metrics.map((metric, mi) => {
-          const colors = METRIC_COLORS[metric] || { from: "#e2e8f0", to: "#1e293b" };
+          const colors = METRIC_COLORS[metric] || { from: "hsl(var(--border))", to: "hsl(var(--foreground))" };
           return (
             <div key={metric} className="flex items-center gap-1.5 text-xs text-slate-500">
               <div

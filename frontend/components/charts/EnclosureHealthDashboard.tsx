@@ -82,7 +82,7 @@ function pct(v: number) {
 
 const STATUS_CONFIG = {
   green: {
-    ring: "#10b981",
+    ring: "hsl(var(--success))",
     bg: "bg-emerald-50 border-emerald-200",
     badge: "bg-emerald-100 text-emerald-700",
     label: "健康",
@@ -124,7 +124,7 @@ function GaugeArc({ score, color }: { score: number; color: string }) {
         cy={cy}
         r={r}
         fill="none"
-        stroke="#e2e8f0"
+        stroke="hsl(var(--border))"
         strokeWidth="7"
         strokeDasharray={`${arcLen} ${circumference}`}
         strokeDashoffset={0}
@@ -206,7 +206,7 @@ export function EnclosureHealthDashboard() {
       {!isLoading && (
         <>
           {/* Overall followup rate banner */}
-          <div className="flex items-center gap-3 mb-5 px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl">
+          <div className="flex items-center gap-3 mb-5 px-4 py-2.5 bg-white/95 backdrop-blur-md border border-border/40 shadow-flash rounded-2xl">
             <span className="text-xs text-slate-500">全局付费用户跟进率 (F7)</span>
             <span className="ml-auto text-base font-bold text-slate-700">
               {pct(d.overall_followup_rate)}
@@ -233,7 +233,7 @@ export function EnclosureHealthDashboard() {
               return (
                 <div
                   key={seg.enclosure}
-                  className={`rounded-xl border-2 p-4 flex flex-col gap-3 ${cfg.bg}`}
+                  className={`rounded-2xl border p-4 shadow-flash hover:shadow-flash-lg hover:-translate-y-1 transition-all duration-500 flex flex-col gap-3 ${cfg.bg} border-border/40`}
                 >
                   {/* Header: enclosure label + status badge */}
                   <div className="flex items-center justify-between">

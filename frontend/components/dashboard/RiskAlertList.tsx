@@ -16,7 +16,7 @@ const levelLabel: Record<string, string> = {
 
 export function RiskAlertList({ alerts }: { alerts: RiskAlert[] }) {
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-4">
+    <div className="rounded-2xl border border-border/40 bg-white/95 backdrop-blur-md p-4 shadow-flash hover:shadow-flash-lg hover:-translate-y-1 transition-all duration-500">
       <h3 className="text-sm font-semibold text-slate-700 mb-3">风险预警</h3>
       {alerts.length === 0 ? (
         <p className="text-xs text-slate-400 py-4 text-center">暂无风险预警</p>

@@ -17,7 +17,7 @@ const STATUS_EMOJI = { green: "🟢", yellow: "🟡", red: "🔴" };
 
 export function ProgressTable({ rows }: ProgressTableProps) {
   return (
-    <div className="overflow-x-auto rounded-lg border border-gray-200">
+    <div className="overflow-x-auto rounded-2xl border border-border/40 bg-white/95 backdrop-blur-md shadow-flash hover:shadow-flash-lg hover:-translate-y-1 transition-all duration-500">
       <table className="w-full text-sm">
         <thead>
           <tr className="bg-gray-50 border-b border-gray-200">

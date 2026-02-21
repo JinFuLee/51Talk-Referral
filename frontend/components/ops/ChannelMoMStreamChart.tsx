@@ -70,13 +70,13 @@ const METRIC_CONFIGS: Record<MetricKey, MetricConfig> = {
 };
 
 const CHANNEL_COLORS = [
-  "#6366f1", // indigo
+  "hsl(var(--chart-4))", // indigo
   "#0ea5e9", // sky
-  "#10b981", // emerald
+  "hsl(var(--success))", // emerald
   "#f59e0b", // amber
   "#ec4899", // pink
-  "#8b5cf6", // violet
-  "#14b8a6", // teal
+  "hsl(var(--chart-4))", // violet
+  "hsl(var(--chart-1))", // teal
   "#f97316", // orange
 ];
 
@@ -127,7 +127,7 @@ function CustomTooltip({ active, payload, label, metric, byChannel }: CustomTool
   }
 
   return (
-    <div className="bg-white border border-slate-200 rounded-lg shadow-lg p-3 text-xs max-w-[220px]">
+    <div className="bg-white/95 backdrop-blur-md border border-border/40 rounded-xl shadow-flash p-3 text-xs max-w-[220px]">
       <p className="font-semibold text-slate-700 mb-2">{formatMonth(label ?? "")}</p>
       {payload
         .filter((p) => p.value > 0)
@@ -211,16 +211,16 @@ export function ChannelMoMStreamChart({ data }: Props) {
               data={chartData}
               margin={{ top: 10, right: 16, left: 0, bottom: 0 }}
             >
-              <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
               <XAxis
                 dataKey="monthLabel"
-                tick={{ fontSize: 11, fill: "#64748b" }}
+                tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
                 axisLine={false}
                 tickLine={false}
               />
               <YAxis
                 tickFormatter={(v) => cfg.format(v)}
-                tick={{ fontSize: 11, fill: "#94a3b8" }}
+                tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
                 axisLine={false}
                 tickLine={false}
                 width={60}

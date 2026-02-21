@@ -39,9 +39,9 @@ const MOCK: SectionRow[] = [
 function quadrantColor(contactRate: number, paidRate: number, midX: number, midY: number): string {
   const highContact = contactRate >= midX;
   const highPaid = paidRate >= midY;
-  if (highContact && highPaid) return "#10b981"; // 绿
+  if (highContact && highPaid) return "hsl(var(--success))"; // 绿
   if (highContact && !highPaid) return "#f59e0b"; // 黄
-  if (!highContact && highPaid) return "#6366f1"; // 蓝
+  if (!highContact && highPaid) return "hsl(var(--chart-4))"; // 蓝
   return "#f43f5e"; // 红
 }
 
@@ -62,7 +62,7 @@ function CustomDot({ cx = 0, cy = 0, payload, color }: CustomDotProps) {
         y={cy - 10}
         textAnchor="middle"
         fontSize={10}
-        fill="#475569"
+        fill="hsl(var(--foreground))"
       >
         {payload.cc_name}
       </text>
@@ -121,7 +121,7 @@ export function SectionEfficiencyQuadrant() {
       </p>
       <ResponsiveContainer width="100%" height={320}>
         <ScatterChart margin={{ top: 20, right: 30, left: 0, bottom: 8 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#f0f4f8" />
+          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
           <XAxis
             type="number"
             dataKey="contact_rate"
@@ -148,7 +148,7 @@ export function SectionEfficiencyQuadrant() {
               if (!payload || payload.length === 0) return null;
               const d = payload[0]?.payload as SectionRow;
               return (
-                <div className="bg-white border border-slate-200 rounded p-2 text-xs shadow">
+              <div className="bg-white/95 backdrop-blur-md border border-border/40 rounded-xl shadow-flash p-2 text-xs">
                   <p className="font-semibold text-slate-700">{d.cc_name}</p>
                   <p>触达率：{pct(d.contact_rate)}</p>
                   <p>预约率：{pct(d.reserve_rate)}</p>
@@ -160,15 +160,15 @@ export function SectionEfficiencyQuadrant() {
           />
           <ReferenceLine
             x={midX}
-            stroke="#94a3b8"
+            stroke="hsl(var(--muted-foreground))"
             strokeDasharray="4 4"
-            label={{ value: "均值", fontSize: 10, fill: "#94a3b8" }}
+            label={{ value: "均值", fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
           />
           <ReferenceLine
             y={midY}
-            stroke="#94a3b8"
+            stroke="hsl(var(--muted-foreground))"
             strokeDasharray="4 4"
-            label={{ value: "均值", fontSize: 10, fill: "#94a3b8" }}
+            label={{ value: "均值", fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
           />
           <Scatter
             data={colored}
@@ -177,7 +177,7 @@ export function SectionEfficiencyQuadrant() {
                 cx={props.cx}
                 cy={props.cy}
                 payload={props.payload}
-                color={props.payload?.color ?? "#6366f1"}
+                color={props.payload?.color ?? "hsl(var(--chart-4))"}
               />
             )}
           >

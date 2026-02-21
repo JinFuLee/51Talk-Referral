@@ -93,7 +93,7 @@ class LeadsLoader(BaseLoader):
                 continue
 
             region = str(row.iloc[0]).strip() if str(row.iloc[0]).strip() not in ("nan", "") else None
-            team = str(row.iloc[1]).strip() if str(row.iloc[1]).strip() not in ("nan", "") else None
+            team = self._normalize_team(str(row.iloc[1]).strip())
             group = str(row.iloc[2]).strip() if str(row.iloc[2]).strip() not in ("nan", "") else None
 
             if not team and not group:
@@ -392,7 +392,7 @@ class LeadsLoader(BaseLoader):
             records.append({
                 "name": name,
                 "region": str(row.iloc[0]).strip() if pd.notna(row.iloc[0]) else None,
-                "team": self._normalize_alias(str(row.iloc[1]).strip()) if pd.notna(row.iloc[1]) else None,
+                "team": self._normalize_team(self._normalize_alias(str(row.iloc[1]).strip())) if pd.notna(row.iloc[1]) else "THCC",
                 "group": str(row.iloc[2]).strip() if pd.notna(row.iloc[2]) else None,
                 "leads": self._clean_numeric(row.iloc[4] if len(row) > 4 else None),
                 "reserve": self._clean_numeric(row.iloc[5] if len(row) > 5 else None),

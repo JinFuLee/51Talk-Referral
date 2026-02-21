@@ -12,11 +12,15 @@ interface RankingData { items: RankingItem[] }
 type RoleTab = "CC" | "SS" | "LP";
 
 function toRadarData(item: RankingItem) {
+  const detail = (item.detail ?? {}) as Record<string, number>;
   return [
-    { subject: "触达率", value: Math.round((item.contact_rate ?? 0) * 100) },
-    { subject: "打卡率", value: Math.round((item.checkin_rate ?? 0) * 100) },
-    { subject: "注册", value: Math.min(Math.round(((item.registrations ?? 0) / 50) * 100), 100) },
-    { subject: "付费", value: Math.min(Math.round(((item.payments ?? 0) / 20) * 100), 100) },
+    { subject: "触达率", value: Math.round(((detail.contact_rate ?? item.contact_rate ?? 0) as number) * 100) },
+    { subject: "打卡率", value: Math.round(((detail.checkin_rate ?? item.checkin_rate ?? 0) as number) * 100) },
+    { subject: "参与率", value: Math.round(((detail.participation_rate ?? 0) as number) * 100) },
+    { subject: "转化率", value: Math.round(((detail.conversion_rate ?? 0) as number) * 100) },
+    { subject: "注册", value: Math.min(Math.round((((detail.registrations ?? item.registrations ?? 0) as number) / 50) * 100), 100) },
+    { subject: "付费", value: Math.min(Math.round((((detail.payments ?? item.payments ?? 0) as number) / 20) * 100), 100) },
+    { subject: "带新系数", value: Math.min(Math.round(((detail.new_coefficient ?? 0) as number) * 50), 100) },
     { subject: "综合", value: Math.round(Math.min(item.composite_score ?? 0, 100)) },
   ];
 }
@@ -91,7 +95,7 @@ export default function OpsRankingPage() {
               <table className="w-full text-sm">
                 <thead className="bg-slate-50 border-b border-slate-200">
                   <tr>
-                    {["排名", "姓名", "综合分", "注册", "付费", "触达率", "打卡率"].map((h) => (
+                    {["排名", "姓名", "综合分", "注册", "付费", "触达率", "打卡率", "参与率", "带新系数", "转化率"].map((h) => (
                       <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-slate-500 whitespace-nowrap">
                         {h}
                       </th>
@@ -101,7 +105,7 @@ export default function OpsRankingPage() {
                 <tbody>
                   {items.length === 0 ? (
                     <tr>
-                      <td colSpan={7} className="px-4 py-8 text-center text-slate-400 text-xs">
+                      <td colSpan={10} className="px-4 py-8 text-center text-slate-400 text-xs">
                         暂无排名数据，请先运行分析
                       </td>
                     </tr>
@@ -115,7 +119,7 @@ export default function OpsRankingPage() {
                         }`}
                       >
                         <td className="px-4 py-3 font-bold text-slate-800">#{item.rank}</td>
-                        <td className="px-4 py-3 font-medium text-slate-800">{item.name}</td>
+                        <td className="px-4 py-3 font-medium text-slate-800">{(item as Record<string, unknown>).cc_name as string ?? item.name}</td>
                         <td className="px-4 py-3 text-slate-700">{(item.composite_score ?? 0).toFixed(1)}</td>
                         <td className="px-4 py-3 text-slate-600">{item.registrations ?? "—"}</td>
                         <td className="px-4 py-3 text-slate-600">{item.payments ?? "—"}</td>
@@ -124,6 +128,25 @@ export default function OpsRankingPage() {
                         </td>
                         <td className="px-4 py-3 text-slate-600">
                           {item.checkin_rate !== undefined ? `${(item.checkin_rate * 100).toFixed(1)}%` : "—"}
+                        </td>
+                        <td className="px-4 py-3 text-slate-600">
+                          {(item as Record<string, unknown>).participation_rate !== undefined
+                            ? `${(((item as Record<string, unknown>).participation_rate as number) * 100).toFixed(1)}%`
+                            : (item.detail as Record<string, number> | undefined)?.participation_rate !== undefined
+                            ? `${(((item.detail as Record<string, number>).participation_rate) * 100).toFixed(1)}%`
+                            : "—"}
+                        </td>
+                        <td className="px-4 py-3 text-slate-600">
+                          {(item.detail as Record<string, number> | undefined)?.new_coefficient !== undefined
+                            ? ((item.detail as Record<string, number>).new_coefficient).toFixed(2)
+                            : "—"}
+                        </td>
+                        <td className="px-4 py-3 text-slate-600">
+                          {(item as Record<string, unknown>).conversion_rate !== undefined
+                            ? `${(((item as Record<string, unknown>).conversion_rate as number) * 100).toFixed(1)}%`
+                            : (item.detail as Record<string, number> | undefined)?.conversion_rate !== undefined
+                            ? `${(((item.detail as Record<string, number>).conversion_rate) * 100).toFixed(1)}%`
+                            : "—"}
                         </td>
                       </tr>
                     ))
@@ -136,15 +159,15 @@ export default function OpsRankingPage() {
 
         {/* Radar */}
         <div className="lg:col-span-2">
-          <Card title={selected ? `${selected.name} — 360° 指标` : "360° 雷达图"}>
+          <Card title={selected ? `${((selected as Record<string, unknown>).cc_name as string) ?? selected.name} — 360° 指标` : "360° 雷达图"}>
             <RadarChart360
               data={selected ? toRadarData(selected) : []}
               name={selected?.name ?? ""}
-              color="#3b82f6"
+              color="hsl(var(--chart-2))"
             />
             {selected && (
               <p className="text-xs text-slate-400 text-center mt-1">
-                综合得分 {(selected.composite_score ?? 0).toFixed(1)}
+                综合得分 {(selected.composite_score ?? 0).toFixed(1)} · 过程 {(((selected as Record<string, unknown>).process_score as number) ?? 0).toFixed(1)} · 结果 {(((selected as Record<string, unknown>).result_score as number) ?? 0).toFixed(1)} · 效率 {(((selected as Record<string, unknown>).efficiency_score as number) ?? 0).toFixed(1)}
               </p>
             )}
           </Card>

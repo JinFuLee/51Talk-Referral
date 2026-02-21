@@ -56,7 +56,7 @@ const sections = [
 
 export function SCQACard({ scqa }: SCQACardProps) {
   return (
-    <div className="bg-white rounded-xl border border-slate-200 p-6">
+    <div className="bg-white/95 backdrop-blur-md rounded-2xl border border-border/40 p-6 shadow-flash transition-all duration-500 hover:shadow-flash-lg hover:-translate-y-1">
       <h2 className="text-lg font-semibold mb-4">
         <span className="mr-2">📋</span>SCQA 分析框架
       </h2>

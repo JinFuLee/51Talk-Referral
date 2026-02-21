@@ -13,7 +13,7 @@ export function GoalGapCard({ title, actual, target, unit = "" }: GoalGapCardPro
   const gapPct = target > 0 ? ((actual / target) * 100).toFixed(1) : "0";
 
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-4">
+    <div className="rounded-2xl border border-border/40 bg-white/95 backdrop-blur-md p-4 shadow-flash hover:shadow-flash-lg hover:-translate-y-1 transition-all duration-500">
       <p className="text-xs text-slate-500 mb-1">{title} 缺口</p>
       <div className="flex items-end justify-between">
         <span className={`text-2xl font-bold ${isPositive ? "text-green-600" : "text-red-600"}`}>

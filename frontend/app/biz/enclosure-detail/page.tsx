@@ -3,6 +3,7 @@
 import { Card } from "@/components/ui/Card";
 import { EnclosureCompareChart } from "@/components/charts/EnclosureCompareChart";
 import { EnclosureCombinedOverview } from "@/components/charts/EnclosureCombinedOverview";
+import { GlossaryBanner } from "@/components/ui/GlossaryBanner";
 
 export default function EnclosureDetailPage() {
   return (
@@ -39,6 +40,15 @@ export default function EnclosureDetailPage() {
           </div>
         </div>
       </Card>
+
+      <GlossaryBanner terms={[
+        { term: "围场", definition: "用户付费当日起算天数分段(0-30/31-60/61-90/91-180/181+)" },
+        { term: "窄口", definition: "员工链接绑定UserB（高质量）" },
+        { term: "宽口", definition: "学员链接绑定UserB（低质量）" },
+        { term: "D2", definition: "市场渠道围场数据" },
+        { term: "D3", definition: "转介绍渠道围场数据" },
+        { term: "D4", definition: "全渠道合并围场数据" },
+      ]} />
 
       {/* D2×D3: Channel compare bar chart */}
       <EnclosureCompareChart />

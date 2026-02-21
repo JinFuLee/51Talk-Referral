@@ -47,11 +47,13 @@ function convRateColor(rate: number): string {
 }
 
 function pct(v: number) {
+  if (v == null) return "0.0%";
   return `${(v * 100).toFixed(1)}%`;
 }
 
 function num(v: number) {
-  return v.toLocaleString();
+  if (v == null) return "0";
+  return Number(v).toLocaleString();
 }
 
 interface StatRowProps {

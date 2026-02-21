@@ -76,10 +76,8 @@ const MOCK: OutreachGapData = {
 
 // ── Fetcher ───────────────────────────────────────────────────────────────────
 
-const BASE = process.env.NEXT_PUBLIC_API_BASE ?? "http://localhost:8000";
-
 async function fetcher(): Promise<OutreachGapData> {
-  const res = await fetch(`${BASE}/api/analysis/outreach-gap`);
+  const res = await fetch(`/api/analysis/outreach-gap`);
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   return res.json();
 }
@@ -101,7 +99,7 @@ function MetricCard({ label, value, sub, highlight = "slate" }: MetricCardProps)
     slate: "text-slate-800",
   };
   return (
-    <div className="bg-white border border-slate-200 rounded-xl p-4">
+    <div className="bg-white/95 backdrop-blur-md border border-border/40 rounded-2xl shadow-flash p-4 transition-all duration-500 hover:shadow-flash-lg hover:-translate-y-1">
       <p className="text-xs text-slate-400 mb-1">{label}</p>
       <p className={`text-2xl font-bold ${colorMap[highlight]}`}>{value}</p>
       {sub && <p className="text-xs text-slate-400 mt-1">{sub}</p>}
@@ -122,7 +120,7 @@ function CustomTooltip({ active, payload }: CustomTooltipProps) {
   if (!active || !payload?.length) return null;
   const d = payload[0].payload;
   return (
-    <div className="bg-white border border-slate-200 rounded-lg shadow-lg p-3 text-xs">
+    <div className="bg-white/95 backdrop-blur-md border border-border/40 rounded-xl shadow-flash p-3 text-xs">
       <p className="font-semibold text-slate-700 mb-1">{d.cc_name}</p>
       <p className="text-slate-500">已拨: {d.called} / {d.total}</p>
       <p className="text-slate-500">未拨: {d.not_called}</p>
@@ -211,17 +209,17 @@ export function OutreachGapAnalysis() {
                   data={chartData}
                   margin={{ top: 24, right: 16, left: 0, bottom: 4 }}
                 >
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
                   <XAxis
                     dataKey="cc_name"
-                    tick={{ fontSize: 11, fill: "#64748b" }}
+                    tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
                     axisLine={false}
                     tickLine={false}
                   />
                   <YAxis
                     domain={[0, 100]}
                     tickFormatter={(v: number) => `${v}%`}
-                    tick={{ fontSize: 11, fill: "#94a3b8" }}
+                    tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
                     axisLine={false}
                     tickLine={false}
                     width={36}
@@ -229,26 +227,26 @@ export function OutreachGapAnalysis() {
                   <Tooltip content={<CustomTooltip />} />
                   <ReferenceLine
                     y={targetPct}
-                    stroke="#3b82f6"
+                    stroke="hsl(var(--chart-2))"
                     strokeDasharray="4 4"
-                    label={{ value: `目标 ${targetPct}%`, position: "insideTopRight", fontSize: 10, fill: "#3b82f6" }}
+                    label={{ value: `目标 ${targetPct}%`, position: "insideTopRight", fontSize: 10, fill: "hsl(var(--chart-2))" }}
                   />
                   <Bar dataKey="pct" radius={[4, 4, 0, 0]}>
                     <LabelList
                       dataKey="pct"
                       position="top"
                       formatter={(v: number) => `${v}%`}
-                      style={{ fontSize: 10, fill: "#475569", fontWeight: 600 }}
+                      style={{ fontSize: 10, fill: "hsl(var(--foreground))", fontWeight: 600 }}
                     />
                     {chartData.map((entry) => (
                       <Cell
                         key={entry.cc_name}
                         fill={
                           entry.gap_vs_target > 0.1
-                            ? "#ef4444"
+                            ? "hsl(var(--destructive))"
                             : entry.gap_vs_target > 0
                             ? "#f97316"
-                            : "#22c55e"
+                            : "hsl(var(--success))"
                         }
                       />
                     ))}

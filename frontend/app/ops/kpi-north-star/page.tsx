@@ -8,8 +8,6 @@ import { CCCheckinRanking } from "@/components/ops/CCCheckinRanking";
 import { CheckinCoefScatter } from "@/components/biz/CheckinCoefScatter";
 import { CheckinMultiplierCard } from "@/components/biz/CheckinMultiplierCard";
 
-const BASE = process.env.NEXT_PUBLIC_API_BASE ?? "http://localhost:8000";
-
 const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
 interface NorthStarCC {
@@ -65,11 +63,11 @@ interface CheckinABData {
 
 export default function KPINorthStarPage() {
   const { data: northStar, isLoading: loadingNS } = useSWR<NorthStarData>(
-    `${BASE}/api/analysis/north-star`,
+    `/api/analysis/north-star`,
     fetcher
   );
   const { data: checkinAB, isLoading: loadingAB } = useSWR<CheckinABData>(
-    `${BASE}/api/analysis/checkin-ab`,
+    `/api/analysis/checkin-ab`,
     fetcher
   );
 

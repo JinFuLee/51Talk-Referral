@@ -265,8 +265,10 @@ export default function SettingsPage() {
     setSaving(true);
     setMsg(null);
     try {
+      // Optimistic UI: 提前更新界面状态，不等待后端返回
+      mutateV2(v2, false); 
       await configAPI.putTargetsV2(selectedMonth, v2);
-      await mutateV2();
+      await mutateV2(); // 后端确认后再获取真实数据刷新
       setMsg("保存成功");
     } catch (e: unknown) {
       setMsg(e instanceof Error ? e.message : "保存失败");

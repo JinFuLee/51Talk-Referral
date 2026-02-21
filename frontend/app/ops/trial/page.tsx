@@ -14,21 +14,28 @@ export default function OpsTrialPage() {
   const followup = followupRaw as Record<string, unknown> | undefined;
   const checkin = checkinRaw as CheckinData | undefined;
 
+  // Map from _adapt_trial fields: pre_call_rate, post_call_rate, attendance_rate, by_stage
   const preCallRate = (followup?.pre_call_rate as number) ?? 0;
   const postCallRate = (followup?.post_call_rate as number) ?? 0;
   const attendanceRate = (followup?.attendance_rate as number) ?? 0;
-  const checkinRate = checkin?.overall_rate ?? 0;
+  // checkin_analysis overall_rate: 0~1
+  const checkinRate = (checkin as unknown as Record<string, number> | undefined)?.overall_rate ?? 0;
 
   // Lift computation: assume pre-call lift ~2x attendance
   const withCallAttend = attendanceRate;
   const withoutCallAttend = attendanceRate * 0.5;
   const lift = withoutCallAttend > 0 ? withCallAttend / withoutCallAttend : 0;
 
+  // by_stage: from _adapt_trial, maps by_cc → [{stage, count, rate}]
   const trialItems = (followup?.by_stage ?? []) as Array<{
     stage: string;
     count: number;
     rate: number;
   }>;
+
+  // Pre/post class CC breakdown from trial_followup
+  const preClassByCc = (followup?.pre_class as Record<string, unknown> | undefined)?.by_cc as Array<Record<string, unknown>> ?? [];
+  const postClassByCc = (followup?.post_class as Record<string, unknown> | undefined)?.by_cc as Array<Record<string, unknown>> ?? [];
 
   if (loadingFollowup || loadingCheckin) {
     return (
@@ -116,6 +123,77 @@ export default function OpsTrialPage() {
             暂无明细数据，请先运行分析
           </div>
         </Card>
+      )}
+
+      {/* Pre/Post CC breakdown */}
+      {(preClassByCc.length > 0 || postClassByCc.length > 0) && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {preClassByCc.length > 0 && (
+            <Card title="课前外呼 — CC 明细">
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead className="bg-slate-50 border-b border-slate-200">
+                    <tr>
+                      {["CC姓名", "外呼数", "跟进率"].map((h) => (
+                        <th key={h} className="px-3 py-2 text-left text-xs font-semibold text-slate-500">
+                          {h}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {preClassByCc.map((row, i) => (
+                      <tr key={i} className="border-b border-slate-100 hover:bg-slate-50">
+                        <td className="px-3 py-2 font-medium text-slate-800">
+                          {(row.cc_name ?? row.name ?? "—") as string}
+                        </td>
+                        <td className="px-3 py-2 text-slate-600">
+                          {((row.total ?? row.count ?? 0) as number).toLocaleString()}
+                        </td>
+                        <td className="px-3 py-2 text-slate-600">
+                          {row.rate !== undefined ? `${(((row.rate as number)) * 100).toFixed(1)}%` : "—"}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </Card>
+          )}
+
+          {postClassByCc.length > 0 && (
+            <Card title="课后跟进 — CC 明细">
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead className="bg-slate-50 border-b border-slate-200">
+                    <tr>
+                      {["CC姓名", "跟进数", "跟进率"].map((h) => (
+                        <th key={h} className="px-3 py-2 text-left text-xs font-semibold text-slate-500">
+                          {h}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {postClassByCc.map((row, i) => (
+                      <tr key={i} className="border-b border-slate-100 hover:bg-slate-50">
+                        <td className="px-3 py-2 font-medium text-slate-800">
+                          {(row.cc_name ?? row.name ?? "—") as string}
+                        </td>
+                        <td className="px-3 py-2 text-slate-600">
+                          {((row.total ?? row.count ?? 0) as number).toLocaleString()}
+                        </td>
+                        <td className="px-3 py-2 text-slate-600">
+                          {row.rate !== undefined ? `${(((row.rate as number)) * 100).toFixed(1)}%` : "—"}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </Card>
+          )}
+        </div>
       )}
     </div>
   );

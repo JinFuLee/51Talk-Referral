@@ -277,6 +277,20 @@
 - QA 结果: 全部功能文件创建完成、导航注册完成、API 接线完成
 - 技术债: #16 /attribution 端点逻辑待完善、#18 trend MoM 数据结构对齐待后续优化、部分图表 mock fallback 数据待真实后端验证
 
+### M17: 全站数据修复 — 30+ issues, 22/22 QA PASS（2026-02-21）
+- [x] D5 key 映射修复（checkin_participation → checkin_rate_monthly）
+- [x] 团队名标准化（"-" → "THCC" 全 loader 覆盖）
+- [x] F5 均时聚合（avg_duration_min → by_cc）
+- [x] API adapter 字段补全（outreach/orders/trial-followup/heatmap）
+- [x] 前端 Proxy bypass（localhost:8000 → /api 相对路径）
+- [x] 汇率动态化（RetentionContributionRank 读取 config API）
+- [x] 跟进预警增强（+CC团队 +最后跟进日期 +CSV导出）
+- [x] GlossaryBanner 术语栏组件 + 7 页应用
+- [x] 覆盖缺口 404 修复（outreach_coverage.py 路由前缀）
+- [x] 前端数据绑定全覆盖：CC名字/雷达8维/套餐分布/渠道收入/人效日均/打卡率
+- 统计: 99 files modified, 4 agents, QA 22/22 PASS, TS 0 errors, py_compile 11/11 PASS
+- 技术债: D2/D3 围场 Excel 需补数据、F4 渠道趋势依赖数据文件、历史对比依赖 SQLite 快照
+
 ### 暂缓
 - 成本数据接入（财务部数据暂无）
 - 续费率数据接入（CRM 数据暂无）

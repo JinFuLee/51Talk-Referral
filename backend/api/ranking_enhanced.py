@@ -54,11 +54,26 @@ def get_cc_ranking_enhanced(top_n: int = Query(default=20, ge=1, le=100)):
     for p in profiles[:top_n]:
         if not isinstance(p, dict):
             continue
-        name = p.get("name") or p.get("cc_name", "")
+        name = p.get("cc_name") or p.get("name", "")
         extra = cc_extra.get(name, {})
         total = extra.get("total") or 1
         enhanced.append({
             **p,
+            # Ensure cc_name is always set
+            "cc_name": name,
+            "team": p.get("team"),
+            "composite_score": p.get("composite_score", 0),
+            # Result metrics
+            "registrations": p.get("registrations", 0),
+            "payments": p.get("payments", 0),
+            "revenue_usd": p.get("revenue_usd", 0),
+            # Efficiency metrics
+            "contact_rate": p.get("contact_rate"),
+            "checkin_rate": p.get("checkin_rate", 0),
+            "participation_rate": p.get("participation_rate", 0),
+            "coefficient": p.get("bring_new_coeff") or p.get("coefficient", 0),
+            "conversion_rate": p.get("conversion_rate", 0),
+            # Enhanced fields
             "reserve_rate": round(extra.get("reserved", 0) / total, 4) if total else 0,
             "attend_rate": round(extra.get("attended", 0) / total, 4) if total else 0,
             "total_leads": extra.get("total", 0),

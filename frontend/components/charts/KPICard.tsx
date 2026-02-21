@@ -26,12 +26,15 @@ function formatNumber(n: number): string {
   return n.toLocaleString();
 }
 
+import { useCountUp } from "@/lib/use-count-up";
+
 export function KPICard({ title, actual, target, unit, status, progress, remaining_daily_avg, efficiency_lift_pct }: KPICardProps) {
   const colors = STATUS_COLORS[status];
   const pct = Math.min(Math.round(progress * 100), 100);
+  const animatedActual = useCountUp(actual, 1200);
 
   return (
-    <div className={`rounded-xl border p-4 ${colors.bg} ${colors.border}`}>
+    <div className={`rounded-2xl border p-4 shadow-flash transition-all duration-500 hover:shadow-flash-lg hover:-translate-y-1 ${colors.bg} ${colors.border}`}>
       <div className="flex items-center justify-between mb-2">
         <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">{title}</span>
         <span>{STATUS_EMOJI[status]}</span>
@@ -39,7 +42,7 @@ export function KPICard({ title, actual, target, unit, status, progress, remaini
 
       <div className="flex items-end gap-1 mb-3">
         <span className={`text-2xl font-bold ${colors.text}`}>
-          {formatNumber(actual)}
+          {formatNumber(Number(animatedActual.toFixed(0)))}
         </span>
         {unit && <span className="text-sm text-gray-400 mb-0.5">{unit}</span>}
       </div>

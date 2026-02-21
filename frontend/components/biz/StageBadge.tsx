@@ -51,7 +51,7 @@ export function StageBadge({ data }: StageBadgeProps) {
   const confidencePct = (data.confidence * 100).toFixed(0);
 
   return (
-    <div className="bg-white rounded-xl border border-slate-200 p-6">
+    <div className="bg-white/95 backdrop-blur-md rounded-2xl border border-border/40 p-6 shadow-flash transition-all duration-500 hover:shadow-flash-lg hover:-translate-y-1">
       <h2 className="text-lg font-semibold mb-4">📊 转介绍阶段评估</h2>
 
       {/* Stage progress track */}

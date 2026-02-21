@@ -13,15 +13,25 @@ sys.path.insert(0, str(BACKEND_DIR))
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
+from slowapi.middleware import SlowAPIMiddleware
 
 from api import analysis, reports, datasources, config, snapshots, notifications, health, insights, system, cohort_detail, channel_trend, outreach_heatmap, outreach_coverage, cohort_decay, north_star, paid_followup, cohort_student, funnel_detail, channel_mom, retention_rank, leads_detail, productivity_history, outreach_gap, enclosure_health, ranking_enhanced
 from services.analysis_service import AnalysisService
+
+limiter = Limiter(key_func=get_remote_address, default_limits=["100/minute"])
 
 app = FastAPI(
     title="ref-ops-engine API",
     description="51Talk 泰国转介绍运营分析引擎 REST API",
     version="9.0.0"
 )
+
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+app.add_middleware(SlowAPIMiddleware)
 
 app.add_middleware(
     CORSMiddleware,

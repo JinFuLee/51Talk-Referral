@@ -7,8 +7,6 @@ import { Card } from "@/components/ui/Card";
 import { Spinner } from "@/components/ui/Spinner";
 import useSWR from "swr";
 
-const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
-
 async function fetcher(url: string) {
   const res = await fetch(url);
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -90,7 +88,7 @@ function DataSourceBadge({ source }: { source?: string }) {
 
 function HeatmapTab() {
   const { data, isLoading, error } = useSWR<HeatmapResponse>(
-    `${API}/api/analysis/cohort-heatmap`,
+    `/api/analysis/cohort-heatmap`,
     fetcher
   );
 
@@ -171,7 +169,7 @@ function HeatmapTab() {
 function DecayTab() {
   const [selectedMetric, setSelectedMetric] = useState("reach_rate");
   const { data, isLoading, error } = useSWR<DecayResponse>(
-    `${API}/api/analysis/cohort-decay?metric=${selectedMetric}`,
+    `/api/analysis/cohort-decay?metric=${selectedMetric}`,
     fetcher
   );
 
@@ -229,7 +227,7 @@ function pct(v: number) {
 
 function DetailTab() {
   const { data, isLoading, error } = useSWR<DetailResponse>(
-    `${API}/api/analysis/cohort-detail`,
+    `/api/analysis/cohort-detail`,
     fetcher
   );
 

@@ -44,7 +44,7 @@ function CustomTooltip({ active, payload, label }: { active?: boolean; payload?:
   if (!active || !payload?.length) return null;
   const pt = payload[0].payload;
   return (
-    <div className="bg-white border border-slate-200 rounded-lg shadow-md px-3 py-2 text-xs space-y-1">
+    <div className="bg-white/95 backdrop-blur-md border border-border/40 rounded-xl shadow-flash px-3 py-2 text-xs space-y-1">
       <p className="font-semibold text-slate-700">M{pt.month_age}</p>
       <p className="text-emerald-600">有效留存率: {pt.valid_rate != null ? `${(pt.valid_rate * 100).toFixed(1)}%` : "—"}</p>
       <p className="text-slate-500">有效 / 总计: {pt.valid_count} / {pt.total}</p>
@@ -71,14 +71,14 @@ export function RetentionCurveChart({ data }: RetentionCurveChartProps) {
 
       <ResponsiveContainer width="100%" height={260}>
         <LineChart data={chartData} margin={{ top: 8, right: 16, left: 0, bottom: 4 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
           <XAxis
             dataKey="label"
-            tick={{ fontSize: 11, fill: "#94a3b8" }}
+            tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
           />
           <YAxis
             tickFormatter={(v) => `${(v * 100).toFixed(0)}%`}
-            tick={{ fontSize: 11, fill: "#94a3b8" }}
+            tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
             domain={[0, 1]}
           />
           <Tooltip content={<CustomTooltip />} />
@@ -90,9 +90,9 @@ export function RetentionCurveChart({ data }: RetentionCurveChartProps) {
           {/* 50% reference line */}
           <ReferenceLine
             y={0.5}
-            stroke="#94a3b8"
+            stroke="hsl(var(--muted-foreground))"
             strokeDasharray="4 2"
-            label={{ value: "50%", position: "right", fill: "#94a3b8", fontSize: 10 }}
+            label={{ value: "50%", position: "right", fill: "hsl(var(--muted-foreground))", fontSize: 10 }}
           />
           {/* 25% reference line */}
           <ReferenceLine
@@ -115,9 +115,9 @@ export function RetentionCurveChart({ data }: RetentionCurveChartProps) {
             type="monotone"
             dataKey="rate_pct"
             name="rate_pct"
-            stroke="#6366f1"
+            stroke="hsl(var(--chart-4))"
             strokeWidth={2.5}
-            dot={{ r: 3, fill: "#6366f1" }}
+            dot={{ r: 3, fill: "hsl(var(--chart-4))" }}
             activeDot={{ r: 5 }}
             connectNulls
           />

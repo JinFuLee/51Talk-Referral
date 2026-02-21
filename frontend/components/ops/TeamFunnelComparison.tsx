@@ -13,7 +13,6 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
-const BASE = process.env.NEXT_PUBLIC_API_BASE ?? "http://localhost:8000";
 const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
 type ViewMode = "count" | "rate";
@@ -33,16 +32,16 @@ interface FunnelApiResponse {
 }
 
 const COLORS = {
-  注册: "#6366f1",
+  注册: "hsl(var(--chart-4))",
   预约: "#22d3ee",
   出席: "#f59e0b",
-  付费: "#10b981",
+  付费: "hsl(var(--success))",
 };
 
 const RATE_LABELS: Record<string, string> = {
   预约率: "#22d3ee",
   出席率: "#f59e0b",
-  付费率: "#10b981",
+  付费率: "hsl(var(--success))",
 };
 
 function buildCountData(teams: TeamRow[]) {
@@ -74,7 +73,7 @@ export function TeamFunnelComparison() {
   const [view, setView] = useState<ViewMode>("count");
 
   const { data, isLoading, error } = useSWR<FunnelApiResponse>(
-    `${BASE}/api/analysis/funnel/team`,
+    `/api/analysis/funnel/team`,
     fetcher,
     { refreshInterval: 0 }
   );
@@ -136,15 +135,15 @@ export function TeamFunnelComparison() {
           data={chartData}
           margin={{ top: 4, right: 16, left: 0, bottom: 4 }}
         >
-          <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
           <XAxis
             dataKey="team"
-            tick={{ fontSize: 11, fill: "#64748b" }}
+            tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
             axisLine={false}
             tickLine={false}
           />
           <YAxis
-            tick={{ fontSize: 11, fill: "#64748b" }}
+            tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
             axisLine={false}
             tickLine={false}
             unit={view === "rate" ? "%" : ""}
@@ -153,7 +152,7 @@ export function TeamFunnelComparison() {
             contentStyle={{
               fontSize: 12,
               borderRadius: 8,
-              border: "1px solid #e2e8f0",
+              border: "1px solid hsl(var(--border))",
             }}
             formatter={(value: number, name: string) =>
               view === "rate"
@@ -162,7 +161,7 @@ export function TeamFunnelComparison() {
             }
           />
           <Legend
-            wrapperStyle={{ fontSize: 12, color: "#64748b" }}
+            wrapperStyle={{ fontSize: 12, color: "hsl(var(--muted-foreground))" }}
           />
           {view === "count"
             ? (Object.keys(COLORS) as Array<keyof typeof COLORS>).map((k) => (

@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { useOrders } from "@/lib/hooks";
-import { formatRevenue, formatUSD } from "@/lib/utils";
+import { useOrders, usePackageMix, useChannelRevenue, useExchangeRate } from "@/lib/hooks";
+import { GlossaryBanner } from "@/components/ui/GlossaryBanner";
+import { formatRevenue } from "@/lib/utils";
 import { TrendLineChart } from "@/components/charts/TrendLineChart";
 import { PieChart } from "@/components/charts/PieChart";
 import { ChannelBarChart } from "@/components/charts/ChannelBarChart";
@@ -13,16 +14,22 @@ import type { OrderData } from "@/lib/types";
 export default function OpsOrdersPage() {
   const [search, setSearch] = useState("");
   const { data: ordersRaw, isLoading } = useOrders();
+  const { data: packageMixRaw } = usePackageMix();
+  const { data: channelRevenueRaw } = useChannelRevenue();
+  const { data: exchangeRateRaw } = useExchangeRate();
 
+  const rate = (exchangeRateRaw as { rate?: number } | undefined)?.rate ?? 34;
   const orders = ordersRaw as (OrderData & Record<string, unknown>) | undefined;
 
   const totalOrders = orders?.total_orders ?? 0;
   const totalRevenue = orders?.total_revenue ?? 0;
   const avgOrderValue = orders?.avg_order_value ?? 0;
 
-  // Build pie data from by_type
-  const byType = orders?.by_type ?? [];
-  const pieData = byType.map((t) => ({ name: t.type, value: t.count }));
+  // Build pie data from package-mix endpoint (E6), fallback to by_type
+  const pkgItems = (packageMixRaw as { items?: Array<{ product_type: string; count: number; revenue_usd: number; percentage: number }> } | undefined)?.items ?? [];
+  const pieData = pkgItems.length > 0
+    ? pkgItems.map((t) => ({ name: t.product_type, value: t.revenue_usd > 0 ? t.revenue_usd : t.count }))
+    : (orders?.by_type ?? []).map((t) => ({ name: t.type, value: t.count }));
 
   // Daily trend series
   const dailySeries = (orders as Record<string, unknown> | undefined)?.daily_series as
@@ -40,10 +47,9 @@ export default function OpsOrdersPage() {
     )
   );
 
-  // Channel bar chart data (synthetic from by_type if no channel_breakdown)
-  const channelBreakdown = (orders as Record<string, unknown> | undefined)?.channel_breakdown as
-    | Record<string, unknown>
-    | undefined ?? { channels: [] };
+  // Channel bar chart: use channel-revenue endpoint (E8), fallback to channel_breakdown
+  const channelRevenueData = channelRevenueRaw as { channels?: Array<{ channel: string; revenue_usd: number; revenue_thb: number; percentage: number }>; total_usd?: number } | undefined;
+  const channelBreakdown = channelRevenueData ?? ((orders as Record<string, unknown> | undefined)?.channel_breakdown as Record<string, unknown> | undefined ?? { channels: [] });
 
   if (isLoading) {
     return (
@@ -58,9 +64,17 @@ export default function OpsOrdersPage() {
       <div>
         <h1 className="text-xl font-bold text-slate-800">订单分析</h1>
         <p className="text-xs text-slate-400 mt-0.5">
-          共 {totalOrders} 单 · 总收入 {formatRevenue(totalRevenue)} · 均值 {formatRevenue(avgOrderValue)}
+          共 {totalOrders} 单 · 总收入 {formatRevenue(totalRevenue, rate)} · 均值 {formatRevenue(avgOrderValue, rate)}
         </p>
       </div>
+
+      <GlossaryBanner terms={[
+        { term: "新单", definition: "首次购买" },
+        { term: "续单", definition: "续费" },
+        { term: "CC前端转介绍业绩", definition: "CC+新单+转介绍渠道" },
+        { term: "SS", definition: "后端销售(数据别名EA)" },
+        { term: "LP", definition: "后端服务(数据别名CM)" },
+      ]} />
 
       {/* Trend + Pie */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -83,9 +97,35 @@ export default function OpsOrdersPage() {
         </Card>
       </div>
 
-      {/* Channel comparison */}
-      <Card title="渠道对比（市场 vs 转介绍）">
-        <ChannelBarChart data={channelBreakdown} />
+      {/* Channel revenue comparison */}
+      <Card title="渠道收入对比（E8）">
+        {channelRevenueData?.channels && channelRevenueData.channels.length > 0 ? (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="bg-slate-50 border-b border-slate-200">
+                <tr>
+                  {["渠道", "收入 (USD)", "收入 (THB)", "占比"].map((h) => (
+                    <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-slate-500">
+                      {h}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {channelRevenueData.channels.map((ch, i) => (
+                  <tr key={i} className="border-b border-slate-100 hover:bg-slate-50">
+                    <td className="px-4 py-3 font-medium text-slate-800">{ch.channel}</td>
+                    <td className="px-4 py-3 text-slate-700">${Math.round(ch.revenue_usd).toLocaleString()}</td>
+                    <td className="px-4 py-3 text-slate-600">฿{Math.round(ch.revenue_thb).toLocaleString()}</td>
+                    <td className="px-4 py-3 text-slate-600">{ch.percentage.toFixed(1)}%</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <ChannelBarChart data={channelBreakdown as Record<string, unknown>} />
+        )}
       </Card>
 
       {/* Order detail table */}
@@ -126,7 +166,7 @@ export default function OpsOrdersPage() {
                     <td className="px-3 py-2 text-slate-600">{row.channel ?? "—"}</td>
                     <td className="px-3 py-2 text-slate-600">{row.package ?? row.type ?? "—"}</td>
                     <td className="px-3 py-2 text-slate-700 font-medium">
-                      {row.amount !== undefined ? formatRevenue(Number(row.amount)) : "—"}
+                      {row.amount !== undefined ? formatRevenue(Number(row.amount), rate) : "—"}
                     </td>
                   </tr>
                 ))}

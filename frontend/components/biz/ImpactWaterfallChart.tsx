@@ -20,7 +20,7 @@ interface ImpactWaterfallChartProps {
 }
 
 function getBarColor(lostUsd: number): string {
-  if (lostUsd > 10000) return "#ef4444"; // red
+  if (lostUsd > 10000) return "hsl(var(--destructive))"; // red
   if (lostUsd > 5000) return "#f97316";  // orange
   return "#eab308";                       // yellow
 }
@@ -47,7 +47,7 @@ function CustomTooltip({ active, payload }: CustomTooltipProps) {
   if (!active || !payload?.length) return null;
   const item = payload[0].payload;
   return (
-    <div className="bg-white border border-slate-200 rounded-lg shadow-lg p-3 text-xs max-w-xs">
+    <div className="bg-white/95 backdrop-blur-md border border-border/40 rounded-xl shadow-flash p-3 text-xs max-w-xs">
       <p className="font-semibold text-slate-700 mb-1">{item.label}</p>
       <p className="text-slate-600">
         损失: <span className="font-medium text-red-600">{formatRevenue(item.lost_usd)}</span>
@@ -110,16 +110,16 @@ export function ImpactWaterfallChart({ data }: ImpactWaterfallChartProps) {
                 }
               }}
             >
-              <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
               <XAxis
                 dataKey="label"
-                tick={{ fontSize: 11, fill: "#64748b" }}
+                tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
                 axisLine={false}
                 tickLine={false}
               />
               <YAxis
                 tickFormatter={formatUSDShort}
-                tick={{ fontSize: 11, fill: "#94a3b8" }}
+                tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
                 axisLine={false}
                 tickLine={false}
               />
@@ -129,14 +129,14 @@ export function ImpactWaterfallChart({ data }: ImpactWaterfallChartProps) {
                   dataKey="lost_usd"
                   position="top"
                   formatter={formatUSDShort}
-                  style={{ fontSize: 11, fill: "#475569", fontWeight: 600 }}
+                  style={{ fontSize: 11, fill: "hsl(var(--foreground))", fontWeight: 600 }}
                 />
                 {chartData.map((entry) => (
                   <Cell
                     key={entry.metric}
                     fill={
                       entry.isTotal
-                        ? "#94a3b8"
+                        ? "hsl(var(--muted-foreground))"
                         : entry.metric === selectedMetric
                         ? "#1d4ed8"
                         : getBarColor(entry.lost_usd)

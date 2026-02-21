@@ -20,22 +20,22 @@ interface BarChartProps {
   refLineValue?: number;
 }
 
-export function BarChart({ data, xKey, yKey, title, color = "#3b82f6", refLineValue }: BarChartProps) {
+export function BarChart({ data, xKey, yKey, title, color = "hsl(var(--chart-2))", refLineValue }: BarChartProps) {
   return (
     <div>
       {title && <p className="text-sm font-medium text-gray-700 mb-3">{title}</p>}
       <ResponsiveContainer width="100%" height={220}>
         <RechartsBarChart data={data} margin={{ top: 8, right: 16, left: 0, bottom: 4 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
           <XAxis dataKey={xKey} tick={{ fontSize: 11 }} />
           <YAxis tick={{ fontSize: 11 }} />
           <Tooltip />
           {refLineValue !== undefined && (
             <ReferenceLine
               y={refLineValue}
-              stroke="#ef4444"
+              stroke="hsl(var(--destructive))"
               strokeDasharray="4 4"
-              label={{ value: "目标", fill: "#ef4444", fontSize: 11 }}
+              label={{ value: "目标", fill: "hsl(var(--destructive))", fontSize: 11 }}
             />
           )}
           <Bar dataKey={yKey} fill={color} radius={[3, 3, 0, 0]} />

@@ -25,7 +25,7 @@ interface FunnelChartProps {
   title?: string;
 }
 
-const FUNNEL_COLORS = ["#3b82f6", "#6366f1", "#8b5cf6", "#a855f7", "#c026d3"];
+const FUNNEL_COLORS = ["hsl(var(--chart-2))", "hsl(var(--chart-4))", "hsl(var(--chart-4))", "#a855f7", "#c026d3"];
 
 /** Convert raw FunnelData API object into FunnelStage[] */
 function funnelDataToStages(data: Record<string, unknown>): FunnelStage[] {
@@ -54,7 +54,7 @@ export function FunnelChart({ stages: stagesProp, data, title }: FunnelChartProp
           data={stages}
           margin={{ top: 4, right: 60, left: 8, bottom: 4 }}
         >
-          <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" horizontal={false} />
+          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" horizontal={false} />
           <XAxis type="number" tick={{ fontSize: 12 }} />
           <YAxis dataKey="name" type="category" tick={{ fontSize: 12 }} width={70} />
           <Tooltip formatter={(value) => [value, "人数"]} />

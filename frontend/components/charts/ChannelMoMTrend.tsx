@@ -54,12 +54,12 @@ const METRIC_OPTIONS = [
 type MetricKey = (typeof METRIC_OPTIONS)[number]["key"];
 
 const LINE_COLORS = [
-  "#3b82f6",
-  "#10b981",
+  "hsl(var(--chart-2))",
+  "hsl(var(--success))",
   "#f59e0b",
-  "#ef4444",
-  "#8b5cf6",
-  "#06b6d4",
+  "hsl(var(--destructive))",
+  "hsl(var(--chart-4))",
+  "hsl(var(--chart-1))",
   "#ec4899",
   "#84cc16",
 ];
@@ -170,7 +170,7 @@ export function ChannelMoMTrend() {
             data={chartData}
             margin={{ top: 12, right: 24, left: 0, bottom: 4 }}
           >
-            <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
             <XAxis dataKey="month" tick={{ fontSize: 11 }} />
             <YAxis
               tick={{ fontSize: 11 }}

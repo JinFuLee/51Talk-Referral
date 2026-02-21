@@ -16,7 +16,7 @@ from typing import Any
 
 from fastapi import APIRouter, HTTPException
 
-router = APIRouter(prefix="/api/analysis", tags=["analysis"])
+router = APIRouter(tags=["analysis"])
 
 _service: Any = None
 

@@ -64,8 +64,13 @@ export function EnhancedRankingTable() {
     { refreshInterval: 60000 }
   );
 
-  const profiles: EnhancedProfile[] =
+  // Normalize: backend may return cc_name instead of name
+  const rawProfiles: EnhancedProfile[] =
     data?.profiles ?? (error || !isLoading ? MOCK_DATA : []);
+  const profiles: EnhancedProfile[] = rawProfiles.map((p) => ({
+    ...p,
+    name: p.name ?? p.cc_name,
+  }));
 
   function handleSort(key: SortKey) {
     if (sortKey === key) {

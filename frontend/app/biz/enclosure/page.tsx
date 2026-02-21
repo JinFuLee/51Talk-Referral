@@ -96,11 +96,11 @@ export default function BizEnclosurePage() {
       <Card title="围场跟进覆盖率">
         <ResponsiveContainer width="100%" height={200}>
           <BarChart data={coverageData} margin={{ top: 4, right: 16, left: 0, bottom: 4 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#f0f4f8" />
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
             <XAxis dataKey="segment" tick={{ fontSize: 12 }} />
             <YAxis tickFormatter={(v) => `${v}%`} tick={{ fontSize: 11 }} domain={[0, 100]} />
             <Tooltip formatter={(v) => [`${v}%`, "跟进覆盖率"]} />
-            <Bar dataKey="跟进覆盖率" fill="#6366f1" radius={[4, 4, 0, 0]} />
+            <Bar dataKey="跟进覆盖率" fill="hsl(var(--chart-4))" radius={[4, 4, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>
       </Card>

@@ -6,6 +6,7 @@ import { FiveWhyTree } from "@/components/biz/FiveWhyTree";
 import { StageBadge } from "@/components/biz/StageBadge";
 import { SixStepSummary } from "@/components/biz/SixStepSummary";
 import { Spinner } from "@/components/ui/Spinner";
+import { TypewriterText } from "@/components/ui/TypewriterText";
 import { formatRevenue } from "@/lib/utils";
 import type { PyramidPillar } from "@/lib/types";
 
@@ -121,10 +122,13 @@ export default function InsightsPage() {
       {/* 核心结论 + SCQA */}
       {pyramid && (
         <>
-          <div className="bg-white rounded-xl border border-slate-200 p-6">
-            <h2 className="text-lg font-semibold mb-2">核心结论</h2>
-            <p className="text-base text-slate-700 leading-relaxed">
-              {pyramid.conclusion}
+          <div className="bg-white rounded-xl border border-slate-200 p-6 relative overflow-hidden">
+            <div className="absolute top-0 left-0 w-1 h-full bg-brand-500 rounded-l-xl" />
+            <h2 className="text-lg font-semibold mb-2 flex items-center gap-2">
+              <span className="text-brand-500">✨</span> 核心结论
+            </h2>
+            <p className="text-base font-medium text-slate-700 leading-relaxed min-h-[3rem]">
+              <TypewriterText text={pyramid.conclusion} speed={15} />
             </p>
           </div>
           <SCQACard scqa={pyramid.scqa} />

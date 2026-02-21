@@ -43,7 +43,7 @@ export function SummaryCards({ summary, timeProgress }: SummaryCardsProps) {
           const p = pct(actual, target);
           const color = statusColor(p);
           return (
-            <div key={label} className={`rounded-xl border p-4 ${color}`}>
+            <div key={label} className={`rounded-2xl border p-4 shadow-flash transition-all duration-500 hover:shadow-flash-lg hover:-translate-y-1 ${color}`}>
               <p className="text-xs font-medium opacity-70">{label}</p>
               <p className="text-2xl font-bold mt-1">{actual.toLocaleString()}</p>
               <p className="text-xs mt-1 opacity-60">目标 {target.toLocaleString()} {unit} · {p}%</p>

@@ -70,7 +70,7 @@ export function CheckinMultiplierCard({
     {
       label: "已打卡",
       value: parseFloat(avgChecked.toFixed(2)),
-      fill: "#10b981",
+      fill: "hsl(var(--success))",
     },
     {
       label: "未打卡",
@@ -108,15 +108,15 @@ export function CheckinMultiplierCard({
             data={barData}
             margin={{ top: 8, right: 8, left: -24, bottom: 0 }}
           >
-            <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
             <XAxis
               dataKey="label"
-              tick={{ fontSize: 11, fill: "#64748b" }}
+              tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
               axisLine={false}
               tickLine={false}
             />
             <YAxis
-              tick={{ fontSize: 11, fill: "#94a3b8" }}
+              tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
               axisLine={false}
               tickLine={false}
             />

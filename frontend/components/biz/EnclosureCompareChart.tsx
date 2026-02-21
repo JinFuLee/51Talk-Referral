@@ -72,7 +72,7 @@ export function EnclosureCompareChart({ comparison }: Props) {
     const referral = payload.find((p) => p.name === "转介绍");
     const diff = referral && market ? referral.value - market.value : null;
     return (
-      <div className="bg-white border border-slate-200 rounded-lg shadow-md p-3 text-sm">
+      <div className="bg-white/95 backdrop-blur-md border border-border/40 rounded-xl shadow-flash p-3 text-sm">
         <p className="font-semibold text-slate-700 mb-2">{label} 天围场</p>
         {market && (
           <p className="text-blue-600">市场：{formatVal(market.value)}</p>
@@ -114,7 +114,7 @@ export function EnclosureCompareChart({ comparison }: Props) {
       {/* 双 Bar 图 */}
       <ResponsiveContainer width="100%" height={260}>
         <BarChart data={chartData} margin={{ top: 4, right: 16, left: 0, bottom: 4 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#f0f4f8" />
+          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
           <XAxis
             dataKey="enclosure"
             tick={{ fontSize: 12 }}
@@ -123,8 +123,8 @@ export function EnclosureCompareChart({ comparison }: Props) {
           <YAxis tickFormatter={yFormatter} tick={{ fontSize: 11 }} width={48} />
           <Tooltip content={<CustomTooltip />} />
           <Legend />
-          <Bar dataKey="市场" fill="#3b82f6" radius={[4, 4, 0, 0]} />
-          <Bar dataKey="转介绍" fill="#8b5cf6" radius={[4, 4, 0, 0]} />
+          <Bar dataKey="市场" fill="hsl(var(--chart-2))" radius={[4, 4, 0, 0]} />
+          <Bar dataKey="转介绍" fill="hsl(var(--chart-4))" radius={[4, 4, 0, 0]} />
         </BarChart>
       </ResponsiveContainer>
 

@@ -134,9 +134,49 @@ async def get_outreach_heatmap():
             "summary": {"total_calls": 0, "avg_daily": 0, "top_cc": ""},
         }
 
-    ops_raw = result.get("ops_raw") or {}
-    f5 = ops_raw.get("daily_outreach") or {}
-    records: list[dict] = f5.get("records") or []
+    # F5 data is stored in outreach_analysis.daily_outreach.by_date (list of {date, cc_name, ...})
+    # Also try the raw service _raw_data for per-cc-per-date records
+    outreach_analysis = result.get("outreach_analysis") or {}
+    daily_outreach = outreach_analysis.get("daily_outreach") or {}
+    by_date_list: list[dict] = daily_outreach.get("by_date") or []
+    by_cc_dict: dict = daily_outreach.get("by_cc") or {}
+
+    # Build records: flatten by_cc dict into (cc_name, date) records
+    records: list[dict] = []
+    if by_cc_dict:
+        for cc_name, cc_data in by_cc_dict.items():
+            if not isinstance(cc_data, dict):
+                continue
+            dates_data = cc_data.get("by_date", {}) or {}
+            if isinstance(dates_data, dict):
+                for date, day_data in dates_data.items():
+                    if isinstance(day_data, dict):
+                        records.append({
+                            "cc_name": cc_name,
+                            "date": date,
+                            "total_calls": day_data.get("calls", 0) or day_data.get("total_calls", 0),
+                            "total_connects": day_data.get("connects", 0) or day_data.get("connected", 0),
+                            "total_effective": day_data.get("effective", 0) or day_data.get("effective_calls", 0),
+                        })
+
+    # Fallback: try raw_data directly from service
+    if not records:
+        raw_data = getattr(_service, "_raw_data", None) or {}
+        ops = raw_data.get("ops", {}) if isinstance(raw_data, dict) else {}
+        f5_raw = ops.get("daily_outreach", {}) if isinstance(ops, dict) else {}
+        f5_by_cc = f5_raw.get("by_cc", {}) if isinstance(f5_raw, dict) else {}
+        if isinstance(f5_by_cc, dict):
+            for cc_name, cc_data in f5_by_cc.items():
+                if not isinstance(cc_data, dict):
+                    continue
+                for date in (cc_data.get("dates") or []):
+                    records.append({
+                        "cc_name": cc_name,
+                        "date": date,
+                        "total_calls": cc_data.get("total_calls", 0),
+                        "total_connects": cc_data.get("total_connects", 0),
+                        "total_effective": cc_data.get("total_effective", 0),
+                    })
 
     if not records:
         return {
