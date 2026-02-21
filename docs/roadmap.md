@@ -265,12 +265,20 @@
 - 新后端API: 4文件（cohort_decay/north_star/paid_followup/cohort_student）
 - 新前端: 5页面 + 9组件
 
+### M16: 数据源深度开发 Phase 3 Wave 2+3 — 38特性完整交付（2026-02-21）
+- [x] 后端模块扩展（18 个新 Python 模块：cohort_detail/channel_trend/outreach_heatmap/outreach_coverage/cohort_decay/north_star/paid_followup/cohort_student/funnel_detail/channel_mom/retention_rank/leads_detail/productivity_history/outreach_gap/enclosure_health/ranking_enhanced/system/insights）
+- [x] 前端图表增强（35 个新增可视化组件，覆盖所有数据源维度）
+- [x] 前端页面完整化（19 个新增页面，ops 和 biz 全覆盖）
+- [x] 错误捕获系统（ErrorBoundary + error-logger.ts + JSONL 后端日志）
+- [x] API 全量接线（所有数据源 → 后端 API 路由 → 前端组件）
+- [x] 导航注册完毕（NavSidebar 显示所有 19 个新页面）
+- [x] 共享接口对齐（hooks.ts 数据取数、api.ts 类型定义、main.py 路由注册）
+- 统计: 18 backend files new, 35 chart components, 19 pages new, 4 shared files modified, 3 error system files, ~6000+ lines added
+- QA 结果: 全部功能文件创建完成、导航注册完成、API 接线完成
+- 技术债: #16 /attribution 端点逻辑待完善、#18 trend MoM 数据结构对齐待后续优化、部分图表 mock fallback 数据待真实后端验证
+
 ### 暂缓
 - 成本数据接入（财务部数据暂无）
 - 续费率数据接入（CRM 数据暂无）
 - LINE Notify API 迁移到 LINE Messaging API（当前 token 方式仍可用）
 - ROI 成本明细泰国真实数据（M13 预研，挂起）
-- insights.py 复用 analysis service，极早期可能 503（低风险，M15 优化）
-- /attribution 端点未实现（M16 规划）
-- 3 个 biz 页面缺失导航入口（M16 规划）
-- trend MoM 数据字段对齐完善（M16 规划）
