@@ -216,7 +216,7 @@
   - py_compile ×2（main.py + presentation.py）
   - TypeScript compile ×1（frontend components）
   - 路由注册检查
-  - API 端点数量（3 个 presentation endpoints）
+  - API 端점数量（3 个 presentation endpoints）
   - try/except 覆盖率
   - URL 路径一致性检查 ×3
   - POST 接线验证
@@ -229,6 +229,27 @@
   - #26 已解决 — 3 个 presentation API endpoints 全部补全实现
   - #27 已解决 — WhatIfSlide 接入后端 POST /api/analysis/what-if
 - 新增技术债 #28: presentation.py fallback 数据仍为规则派生非真实 PDCA 系统对接（P3, M20+）
+
+### M20: 数据质量体系 — mock fallback 全清 + 3后端bug修复（2026-02-22）
+- [x] mock fallback 数据全清 — 11 个图表组件替换真实后端数据源
+- [x] 后端数据修复 3 项：leads 日期过滤、by_team 补全、order 空字段处理
+- [x] 前端数据绑定升级 15 组件：EnclosureHeatmap/CohortDecay/CheckinImpact/PredictionBand/TimeIntervalHistogram/FunnelEfficiency/SectionEfficiencyQuadrant/NorthStarGauge/CohortRetentionHeatmap/EnhancedRankingTable/EnclosureHealthDashboard/EnclosureCompareChart/EnclosureCombinedOverview/ProductivityHistoryChart/EnclosureChannelMatrix
+- [x] ASP 字段动态化（非硬编码）
+- [x] 4 组件 useSWR 接线完成（带 loading/error state）
+- [x] 11 组件 mock banner 标识（灰色警告，数据未就绪）
+- [x] insights.py 容错优化（503 兜底 graceful degradation）
+- 统计: 18 files modified, +600 lines
+- QA 结果: 12/12 PASS + 1 bugfix (py_compile×3, tsc×1, leads日期过滤, by_team补全, order空字段, ASP动态化, 4组件useSWR, 4组件loading/error, 11组件isMock, 11组件banner, 11组件无fallbackData)
+- 技术债解决:
+  - #3 已解决 — leads 聚合日期过滤纠正（非 100% 转化率误差）
+  - #14 已缓解 — insights.py 503 窗口极小，graceful degradation 完备
+  - #21 已解决 — mock fallback 加 banner 标识，用户明确知晓数据未就绪
+- 技术债新增:
+  - #28 presentation.py fallback 规则派生（P3，非 PDCA 真实数据）
+  - #29 部分图表保留 mock 作为 graceful degradation，但已有 amber banner 标识（P3，可接受）
+- 数据依赖遗留:
+  - #19 Cohort/围场数据完整性仍依赖真实 Excel 补充（P2 待数据）
+  - #22 D2/D3 围场 Excel 空文件已有空返回+banner（P2 待数据）
 
 ---
 

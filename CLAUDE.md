@@ -276,6 +276,7 @@ Excel 数据源 → XlsxReader → DataProcessor → AnalysisEngine → Markdown
 | M18 | 2026-02-21 | 汇报沉浸模式 — 128slides 键盘演示系统 | 3 场景×5 时间维度、128 个 Slide 组件库、↑↓← → Space 键盘导航、后端数据绑定、全屏沉浸式渲染 | 19 files new, +2813 lines, 3 MK parallel, QA 16→19 PASS |
 | M18.2+M19 | 2026-02-22 | PlaceholderSlide 全替换 + 36key 注册表 | 24 个真实业务 Slide、ActionPlan/MeetingSummary/Resource、TS 0 errors、next build SUCCESS、3 MK 并行+1 集成 | 28 files, +5089 lines, TS PASS, build SUCCESS |
 | M18.3 | 2026-02-22 | 汇报数据对接 — 3新API + 7 Slide 修复 | ActionPlan/MeetingSummary/Resource Slide 接真实 API、WhatIf 接 POST 后端、3 Slide 组件数据绑定修复、presentation.py 新建 | 1 file new, 8 files mod, +450 lines, QA 14/14 PASS |
+| M20 | 2026-02-22 | 数据质量体系 — mock fallback 全清 + 3后端bug修复 | mock fallback 全清 11 组件、leads日期过滤/by_team补全/order空字段修复、15 组件数据绑定升级、4 组件 useSWR+loading/error、11 组件 banner+isMock标识、ASP字段动态化、insights.py 容错 | 18 files mod, +600 lines, QA 12/12 PASS |
 
 ## 里程碑规划（M11+）
 
@@ -331,7 +332,7 @@ M14 (5-Why)     ─── 依赖 M13（影响链是 5-Why 的量化基础）
 |------|------|------|--------|-----------|------|
 | 1 | 数据局限 | § 11 销售看板使用团队级数据（CC组），待接入个人明细后升级为 CC 个人级排名 | P1 | M4 | 已完成个人级排名（M5） |
 | 2 | 渲染兼容 | 报告 Mermaid 图表在纯文本 Markdown viewer 中显示为代码块 | P2 | M5+ | 需要 HTML 模板支持 |
-| 3 | 数据质量 | leads 聚合可能将已付费用户的 leads 计为 100% 转化率 | P2 | M7+ | 待数据源验证，M7.6 订单明细已接入 |
+| 3 | 数据质量 | leads 聚合日期过滤纠正（100% 转化率误差） | P2 | M20 | ✅ M20 已解决（日期过滤条件补全） |
 | 4 | API 生命周期 | LINE Notify API 已于 2025 年 3 月停用，需迁移到 LINE Messaging API | P1 | M7+ | 当前 token 方式仍可用，M6 已预留 notifier 接口 |
 | 5 | 数据依赖 | CC 成长曲线需要历史数据串联（当前仅支持月度快照） | P2 | M8 | 需要 TimeSeries 数据源 |
 | 6 | 数据依赖 | LTV 模型需要 CRM 续费/续费率数据 | P2 | M8 | 财务部/CRM 需开放接口 |
@@ -342,21 +343,22 @@ M14 (5-Why)     ─── 依赖 M13（影响链是 5-Why 的量化基础）
 | 11 | 文档过期 | datasources.py 注释"12源"过时需更新为"35源" | P3 | M10 | M12 已更新 CLAUDE.md 业务规则 |
 | 12 | ROI成本数据 | 成本明细框架占位，待对接泰国真实激励/活动费用数据 | P1 | M13 | M16 已获取真实激励和活动费用数据 |
 | 13 | 类型优化 | 前端 TypeScript 仍有部分 `as any` 需清理 | P2 | M13+ | 日常重构积累 |
-| 14 | insights.py 容错 | 复用 analysis._service，极早期请求可能 503 | P3 | M15 | M13+M14 低风险，下个周期优化 |
+| 14 | insights.py 容错 | 复用 analysis._service，极早期请求可能 503 | P3 | M20 | ✅ M20 已缓解（graceful degradation 完备，503 窗口极小） |
 | 15 | 5-Why 扩展 | 因果链模板可扩展更多分支（目前 7+ 条多维链） | P2 | M15 | M15 已扩展至 7+ 条，M16 可继续增强 |
 | 16 | ~~已解决~~ | /attribution 端点已实现（M16），支持渠道/漏斗/口径归因 | ✅ | M16 | M16 无需实现，规划 M17+ |
 | 17 | ~~已解决~~ | M16 已补全 NavSidebar 所有入口 | ✅ | M16 | M16 P1+P2W1 已补充 10 个新页面 |
 | 18 | ~~已解决~~ | M16 修复 revenue_usd 字段优先级 | ✅ | M16 | M16 新数据源对齐完成 |
 | 19 | 新增技术债 | Cohort/Enclosure 数据源需要历史队列数据完整性验证 | P2 | M17 | M16 初版完成，数据质量优化 |
 | 20 | API 功能缺失 | /attribution 端点逻辑待完善（M16 创建但未填充实现） | P3 | M17+ | M16 新识别 |
-| 21 | 图表数据源 | 部分图表组件使用 mock fallback 数据，待真实后端数据验证 | P2 | M17+ | M16 新识别，优先级按数据源 |
+| 21 | 图表数据源 | 部分图表组件使用 mock fallback 数据，待真实后端数据验证 | P2 | M20 | ✅ M20 已解决（mock fallback 加 banner 标识，用户明确知晓） |
 | 22 | 数据源补全 | D2/D3 围场对比 Excel 文件为空，需补充实际围场分布数据 | P2 | M18 | M17 发现，影响围场对比分析 |
 | 23 | 数据依赖 | F4 渠道 MoM 流图依赖历史渠道趋势数据文件，当前仅一期数据 | P2 | M18 | M17 发现，需补充历史数据 |
 | 24 | 数据依赖 | 历史对比体系（YoY/WoW）依赖 SQLite 快照数据充分性，需 >=2 周期数据 | P2 | M18 | M17 发现，需积累历史快照 |
 | 25 | ~~已解决~~ | ActionPlanSlide/MeetingSummarySlide/ResourceSlide 现接真实 API（/api/presentation/*）| ✅ | M18.3 | M18.2 识别，M18.3 已接入 |
 | 26 | ~~已解决~~ | 3 个 presentation API endpoints 全部补全实现 | ✅ | M18.3 | M18.2 识别，M18.3 已实现 |
 | 27 | ~~已解决~~ | WhatIfSlide 滑块接入后端 POST /api/analysis/what-if | ✅ | M18.3 | M18.2 识别，M18.3 已接入 |
-| 28 | 新增技术债 | presentation.py fallback 数据仍为规则派生非真实 PDCA 系统对接 | P3 | M20+ | M18.3 新识别，影响汇报准确性（低优） |
+| 28 | 新增技术债 | presentation.py fallback 数据仍为规则派生非真实 PDCA 系统对接 | P3 | M21+ | M18.3 新识别，影响汇报准确性（低优） |
+| 29 | 新增技术债 | 部分图表保留 mock 作为 graceful degradation，但已有 amber banner 标识 | P3 | M21+ | M20 识别，可接受方案（用户知晓、无数据时降级显示） |
 
 ## WebMCP
 不适用（非 Web 前端项目）。如后续添加 Web UI，参见全局 CLAUDE.md WebMCP 章节。
