@@ -1,0 +1,67 @@
+from __future__ import annotations
+from typing import Any
+from fastapi import APIRouter, HTTPException, Query
+
+router = APIRouter()
+_service: Any = None
+
+
+def set_service(service: Any) -> None:
+    global _service
+    _service = service
+
+
+@router.get("/cc-ranking-enhanced")
+def get_cc_ranking_enhanced(top_n: int = Query(default=20, ge=1, le=100)):
+    """A4 增强排名：在现有 CC 排名基础上补充 reserve_rate/attend_rate"""
+    if _service is None:
+        raise HTTPException(status_code=503, detail="服务未初始化")
+
+    cache = _service.get_cached_result()
+    if not cache:
+        raise HTTPException(status_code=404, detail="no_data")
+
+    cc_ranking = cache.get("cc_ranking", {})
+    profiles = []
+    if isinstance(cc_ranking, dict):
+        profiles = cc_ranking.get("profiles", []) or cc_ranking.get("items", []) or []
+    elif isinstance(cc_ranking, list):
+        profiles = cc_ranking
+
+    # 从 raw_data 补充 reserve/attend 维度
+    raw_data = getattr(_service, "_raw_data", None) or {}
+    leads = raw_data.get("leads", {}) if isinstance(raw_data, dict) else {}
+    records = leads.get("records", []) if isinstance(leads, dict) else []
+
+    # 按 CC 聚合 reserve/attend
+    cc_extra: dict[str, dict[str, int]] = {}
+    if isinstance(records, list):
+        for rec in records:
+            if not isinstance(rec, dict):
+                continue
+            cc = rec.get("cc_name") or rec.get("seller") or rec.get("name", "")
+            if not cc:
+                continue
+            if cc not in cc_extra:
+                cc_extra[cc] = {"total": 0, "reserved": 0, "attended": 0}
+            cc_extra[cc]["total"] += 1
+            if rec.get("reserved") or rec.get("预约"):
+                cc_extra[cc]["reserved"] += 1
+            if rec.get("attended") or rec.get("出席"):
+                cc_extra[cc]["attended"] += 1
+
+    enhanced = []
+    for p in profiles[:top_n]:
+        if not isinstance(p, dict):
+            continue
+        name = p.get("name") or p.get("cc_name", "")
+        extra = cc_extra.get(name, {})
+        total = extra.get("total") or 1
+        enhanced.append({
+            **p,
+            "reserve_rate": round(extra.get("reserved", 0) / total, 4) if total else 0,
+            "attend_rate": round(extra.get("attended", 0) / total, 4) if total else 0,
+            "total_leads": extra.get("total", 0),
+        })
+
+    return {"profiles": enhanced, "total": len(enhanced)}

@@ -14,7 +14,7 @@ sys.path.insert(0, str(BACKEND_DIR))
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from api import analysis, reports, datasources, config, snapshots, notifications, health, insights, system, cohort_detail, channel_trend, outreach_heatmap, outreach_coverage, cohort_decay, north_star, paid_followup, cohort_student, funnel_detail, channel_mom, retention_rank, leads_detail
+from api import analysis, reports, datasources, config, snapshots, notifications, health, insights, system, cohort_detail, channel_trend, outreach_heatmap, outreach_coverage, cohort_decay, north_star, paid_followup, cohort_student, funnel_detail, channel_mom, retention_rank, leads_detail, productivity_history, outreach_gap, enclosure_health, ranking_enhanced
 from services.analysis_service import AnalysisService
 
 app = FastAPI(
@@ -99,6 +99,10 @@ app.include_router(funnel_detail.router, prefix="/api/analysis", tags=["funnel-d
 app.include_router(channel_mom.router, prefix="/api/analysis", tags=["channel-mom"])
 app.include_router(retention_rank.router, prefix="/api/analysis", tags=["retention"])
 app.include_router(leads_detail.router, prefix="/api/analysis", tags=["leads-detail"])
+app.include_router(productivity_history.router, prefix="/api/analysis", tags=["productivity"])
+app.include_router(outreach_gap.router, prefix="/api/analysis", tags=["outreach-gap"])
+app.include_router(enclosure_health.router, prefix="/api/analysis", tags=["enclosure-health"])
+app.include_router(ranking_enhanced.router, prefix="/api/analysis", tags=["ranking-enhanced"])
 
 
 @app.on_event("startup")
@@ -124,6 +128,10 @@ async def startup_event():
     channel_mom.set_service(_analysis_service)
     retention_rank.set_service(_analysis_service)
     leads_detail.set_service(_analysis_service)
+    productivity_history.set_service(_analysis_service)
+    outreach_gap.set_service(_analysis_service)
+    enclosure_health.set_service(_analysis_service)
+    ranking_enhanced.set_service(_analysis_service)
 
     # 后台自动运行分析（非阻塞）
     import asyncio

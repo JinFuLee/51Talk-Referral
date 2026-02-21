@@ -86,6 +86,10 @@ export const analysisAPI = {
   getRetentionContribution: () => request<unknown>("/analysis/retention-contribution"),
   getEnclosureChannelMatrix: () => request<unknown>("/analysis/enclosure-channel-matrix"),
   getTimeInterval: () => request<unknown>("/analysis/time-interval"),
+  getProductivityHistory: () => request<unknown>("/analysis/productivity-history"),
+  getOutreachGap: () => request<unknown>("/analysis/outreach-gap"),
+  getEnclosureHealth: () => request<unknown>("/analysis/enclosure-health"),
+  getCCRankingEnhanced: (topN = 20) => request<unknown>(`/analysis/cc-ranking-enhanced?top_n=${topN}`),
 };
 
 // ── Reports ───────────────────────────────────────────────────────────────────

@@ -26,6 +26,8 @@ const OPS_ITEMS: NavItem[] = [
   { href: "/ops/funnel-detail", label: "漏斗详情", icon: "📋" },
   { href: "/ops/channel-mom", label: "渠道环比", icon: "📊" },
   { href: "/ops/retention-rank", label: "留存排名", icon: "🏅" },
+  { href: "/ops/productivity-history", label: "产能趋势", icon: "📈" },
+  { href: "/ops/outreach-gap", label: "外呼缺口", icon: "📉" },
 ];
 
 const BIZ_ITEMS: NavItem[] = [
@@ -45,6 +47,9 @@ const BIZ_ITEMS: NavItem[] = [
   { href: "/biz/orders-detail", label: "订单详析", icon: "📦" },
   { href: "/biz/enclosure-detail", label: "围场详情", icon: "🔬" },
   { href: "/biz/leads-detail", label: "Leads详情", icon: "🔗" },
+  { href: "/biz/enclosure-health", label: "围场健康", icon: "🏥" },
+  { href: "/biz/ranking-enhanced", label: "增强排名", icon: "🥇" },
+  { href: "/biz/cohort-heatmap", label: "留存热力图", icon: "🔥" },
 ];
 
 const SYS_ITEMS: NavItem[] = [

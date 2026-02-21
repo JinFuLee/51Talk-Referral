@@ -332,3 +332,19 @@ export function useEnclosureChannelMatrix() {
 export function useTimeInterval() {
   return useSWR("analysis/time-interval", () => analysisAPI.getTimeInterval());
 }
+
+export function useProductivityHistory() {
+  return useSWR("analysis/productivity-history", () => analysisAPI.getProductivityHistory());
+}
+
+export function useOutreachGap() {
+  return useSWR("analysis/outreach-gap", () => analysisAPI.getOutreachGap());
+}
+
+export function useEnclosureHealth() {
+  return useSWR("analysis/enclosure-health", () => analysisAPI.getEnclosureHealth());
+}
+
+export function useCCRankingEnhanced(topN = 20) {
+  return useSWR(["analysis/cc-ranking-enhanced", topN], () => analysisAPI.getCCRankingEnhanced(topN));
+}
