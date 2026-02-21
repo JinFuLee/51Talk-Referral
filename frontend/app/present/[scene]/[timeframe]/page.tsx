@@ -12,6 +12,30 @@ import { FunnelOwnershipChart } from '@/components/presentation/FunnelOwnershipC
 import { ActionItemTracker } from '@/components/presentation/ActionItemTracker';
 import { SlideShell } from '@/components/presentation/SlideShell';
 import { SlideProgressBar } from '@/components/presentation/SlideProgressBar';
+import { RevenueSlide } from '@/components/presentation/RevenueSlide';
+import { FunnelSlide } from '@/components/presentation/FunnelSlide';
+import { RiskRadarSlide } from '@/components/presentation/RiskRadarSlide';
+import { TeamSlide } from '@/components/presentation/TeamSlide';
+import { TrendSlide } from '@/components/presentation/TrendSlide';
+import { CohortSlide } from '@/components/presentation/CohortSlide';
+import { StageSlide } from '@/components/presentation/StageSlide';
+import { ComparisonSlide } from '@/components/presentation/ComparisonSlide';
+import { OutreachSlide } from '@/components/presentation/OutreachSlide';
+import { TrialSlide } from '@/components/presentation/TrialSlide';
+import { ChannelSlide } from '@/components/presentation/ChannelSlide';
+import { FollowupAlertSlide } from '@/components/presentation/FollowupAlertSlide';
+import { KPINorthStarSlide } from '@/components/presentation/KPINorthStarSlide';
+import { OutreachGapSlide } from '@/components/presentation/OutreachGapSlide';
+import { ActionPlanSlide } from '@/components/presentation/ActionPlanSlide';
+import { ImpactSlide } from '@/components/presentation/ImpactSlide';
+import { SharedMetricsSlide } from '@/components/presentation/SharedMetricsSlide';
+import { LeadsHandoffSlide } from '@/components/presentation/LeadsHandoffSlide';
+import { ConversionSlide } from '@/components/presentation/ConversionSlide';
+import { ImpactAttributionSlide } from '@/components/presentation/ImpactAttributionSlide';
+import { WhatIfSlide } from '@/components/presentation/WhatIfSlide';
+import { MeetingSummarySlide } from '@/components/presentation/MeetingSummarySlide';
+import { StrategicSlide } from '@/components/presentation/StrategicSlide';
+import { ResourceSlide } from '@/components/presentation/ResourceSlide';
 import type { Audience, Timeframe } from '@/lib/presentation/types';
 
 const VALID_AUDIENCES: Audience[] = ['gm', 'ops-director', 'crosscheck'];
@@ -39,11 +63,45 @@ function PlaceholderSlide({
 }
 
 const COMPONENT_REGISTRY: Record<string, React.ComponentType<{ revealStep: number }>> = {
+  // Original 5
   'executive-summary': ExecutiveSummarySlide,
   'summary': SummarySlide as unknown as React.ComponentType<{ revealStep: number }>,
   'joint-action': JointActionCard as unknown as React.ComponentType<{ revealStep: number }>,
   'funnel-ownership': FunnelOwnershipChart as unknown as React.ComponentType<{ revealStep: number }>,
   'action-items': ActionItemTracker as unknown as React.ComponentType<{ revealStep: number }>,
+  // GM scene
+  'revenue-analysis': RevenueSlide as unknown as React.ComponentType<{ revealStep: number }>,
+  'revenue-deep-dive': RevenueSlide as unknown as React.ComponentType<{ revealStep: number }>,
+  'funnel-overview': FunnelSlide as unknown as React.ComponentType<{ revealStep: number }>,
+  'funnel-detail': FunnelSlide as unknown as React.ComponentType<{ revealStep: number }>,
+  'risk-radar': RiskRadarSlide as unknown as React.ComponentType<{ revealStep: number }>,
+  'team-performance': TeamSlide as unknown as React.ComponentType<{ revealStep: number }>,
+  'team-ranking': TeamSlide as unknown as React.ComponentType<{ revealStep: number }>,
+  'team-evolution': TeamSlide as unknown as React.ComponentType<{ revealStep: number }>,
+  'trend-analysis': TrendSlide as unknown as React.ComponentType<{ revealStep: number }>,
+  'cohort-analysis': CohortSlide as unknown as React.ComponentType<{ revealStep: number }>,
+  'stage-evaluation': StageSlide as unknown as React.ComponentType<{ revealStep: number }>,
+  'wow-comparison': ComparisonSlide as unknown as React.ComponentType<{ revealStep: number }>,
+  'yoy-comparison': ComparisonSlide as unknown as React.ComponentType<{ revealStep: number }>,
+  'key-changes': ComparisonSlide as unknown as React.ComponentType<{ revealStep: number }>,
+  // Ops-Director scene
+  'outreach-execution': OutreachSlide as unknown as React.ComponentType<{ revealStep: number }>,
+  'trial-followup': TrialSlide as unknown as React.ComponentType<{ revealStep: number }>,
+  'channel-breakdown': ChannelSlide as unknown as React.ComponentType<{ revealStep: number }>,
+  'followup-alert': FollowupAlertSlide as unknown as React.ComponentType<{ revealStep: number }>,
+  'kpi-north-star': KPINorthStarSlide as unknown as React.ComponentType<{ revealStep: number }>,
+  'outreach-gap': OutreachGapSlide as unknown as React.ComponentType<{ revealStep: number }>,
+  'action-plan': ActionPlanSlide as unknown as React.ComponentType<{ revealStep: number }>,
+  'impact-simulation': ImpactSlide as unknown as React.ComponentType<{ revealStep: number }>,
+  // Crosscheck + generic
+  'shared-metrics': SharedMetricsSlide as unknown as React.ComponentType<{ revealStep: number }>,
+  'leads-handoff': LeadsHandoffSlide as unknown as React.ComponentType<{ revealStep: number }>,
+  'conversion-accountability': ConversionSlide as unknown as React.ComponentType<{ revealStep: number }>,
+  'impact-attribution': ImpactAttributionSlide as unknown as React.ComponentType<{ revealStep: number }>,
+  'what-if-simulation': WhatIfSlide as unknown as React.ComponentType<{ revealStep: number }>,
+  'meeting-summary': MeetingSummarySlide as unknown as React.ComponentType<{ revealStep: number }>,
+  'strategic-recommendation': StrategicSlide as unknown as React.ComponentType<{ revealStep: number }>,
+  'resource-request': ResourceSlide as unknown as React.ComponentType<{ revealStep: number }>,
 };
 
 export default function PresentationSlidePage() {

@@ -48,11 +48,12 @@ function pct(v: number) {
 export function CohortDecayChart({ data = MOCK_DATA }: CohortDecayChartProps) {
   const [hiddenKeys, setHiddenKeys] = useState<Set<string>>(new Set());
 
-  const handleLegendClick = (e: { dataKey?: string }) => {
-    if (!e.dataKey) return;
+  const handleLegendClick = (e: { dataKey?: string | number | ((obj: object) => void) }) => {
+    if (!e.dataKey || typeof e.dataKey !== 'string') return;
+    const key = e.dataKey;
     setHiddenKeys((prev) => {
       const next = new Set(prev);
-      next.has(e.dataKey!) ? next.delete(e.dataKey!) : next.add(e.dataKey!);
+      next.has(key) ? next.delete(key) : next.add(key);
       return next;
     });
   };
