@@ -41,8 +41,8 @@
     },
     {
       "name": "海外SS转介绍leads看板",
-      "source": "aliyun_bi",
-      "page_url": "__FILL_IN__",
+      "source": "51talk_bi",
+      "page_url": "http://bi.51talk.com/backend/market/ovs_ref_leads_tg",
       "tables": [
         {
           "table_title": "转介绍leads达成_by CM_EA_宽口径",
@@ -68,8 +68,8 @@
     },
     {
       "name": "海外转介绍cohort模型看板",
-      "source": "aliyun_bi",
-      "page_url": "__FILL_IN__",
+      "source": "51talk_bi",
+      "page_url": "http://bi.51talk.com/backend/market/ovs_ref_cohort_tg",
       "tables": [
         {
           "table_title": "海外转介绍cohort模型-CC触达率",
@@ -105,8 +105,8 @@
     },
     {
       "name": "海外北极星行动指标看板",
-      "source": "aliyun_bi",
-      "page_url": "__FILL_IN__",
+      "source": "51talk_bi",
+      "page_url": "http://bi.51talk.com/backend/market/ovs_bjx_tg",
       "tables": [
         {
           "table_title": "转介绍-当月24H打卡参与率",
@@ -117,8 +117,8 @@
     },
     {
       "name": "海外订单看板",
-      "source": "aliyun_bi",
-      "page_url": "__FILL_IN__",
+      "source": "51talk_bi",
+      "page_url": "http://bi.51talk.com/backend/market/overseas_ord_tg",
       "tables": [
         {
           "table_title": "海外CC上班人数",
