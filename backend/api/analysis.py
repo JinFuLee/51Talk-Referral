@@ -615,7 +615,7 @@ def _adapt_trend(raw: dict[str, Any], compare_type: str) -> dict[str, Any]:
             row = _mom_row(mom_data[month])  # 缓存调用结果，避免重复搜索
             series.append({
                 "date": month,
-                "revenue": row.get("revenue_cny") or row.get("amount_usd") or row.get("revenue") or 0,
+                "revenue": row.get("revenue_usd") or row.get("amount_usd") or row.get("revenue") or row.get("revenue_cny") or 0,
                 "payments": row.get("payments") or row.get("paid") or 0,
                 "registrations": row.get("registrations") or row.get("register") or 0,
             })
