@@ -275,6 +275,7 @@ Excel 数据源 → XlsxReader → DataProcessor → AnalysisEngine → Markdown
 | M17 | 2026-02-21 | 全站数据修复 — D5 key/团队名/API adapter/前端数据绑定/proxy bypass | D5 key 映射(checkin_rate_monthly)、团队名 THCC 标准化、F5 均时聚合、outreach/orders/trial/heatmap 字段补全、localhost→/api proxy、汇率动态化、跟进预警增强、GlossaryBanner 术语栏、覆盖缺口 404 修复 | 99 files mod, 4 agents, QA 22/22 PASS, TS 0 errors, py_compile 11/11 PASS |
 | M18 | 2026-02-21 | 汇报沉浸模式 — 128slides 键盘演示系统 | 3 场景×5 时间维度、128 个 Slide 组件库、↑↓← → Space 键盘导航、后端数据绑定、全屏沉浸式渲染 | 19 files new, +2813 lines, 3 MK parallel, QA 16→19 PASS |
 | M18.2+M19 | 2026-02-22 | PlaceholderSlide 全替换 + 36key 注册表 | 24 个真实业务 Slide、ActionPlan/MeetingSummary/Resource、TS 0 errors、next build SUCCESS、3 MK 并行+1 集成 | 28 files, +5089 lines, TS PASS, build SUCCESS |
+| M18.3 | 2026-02-22 | 汇报数据对接 — 3新API + 7 Slide 修复 | ActionPlan/MeetingSummary/Resource Slide 接真实 API、WhatIf 接 POST 后端、3 Slide 组件数据绑定修复、presentation.py 新建 | 1 file new, 8 files mod, +450 lines, QA 14/14 PASS |
 
 ## 里程碑规划（M11+）
 
@@ -352,9 +353,10 @@ M14 (5-Why)     ─── 依赖 M13（影响链是 5-Why 的量化基础）
 | 22 | 数据源补全 | D2/D3 围场对比 Excel 文件为空，需补充实际围场分布数据 | P2 | M18 | M17 发现，影响围场对比分析 |
 | 23 | 数据依赖 | F4 渠道 MoM 流图依赖历史渠道趋势数据文件，当前仅一期数据 | P2 | M18 | M17 发现，需补充历史数据 |
 | 24 | 数据依赖 | 历史对比体系（YoY/WoW）依赖 SQLite 快照数据充分性，需 >=2 周期数据 | P2 | M18 | M17 发现，需积累历史快照 |
-| 25 | Slide 数据集成 | ActionPlanSlide/MeetingSummarySlide/ResourceSlide 使用静态模板数据，待对接真实 PDCA 系统 | P2 | M19+ | M18.2 识别，影响汇报数据准确性 |
-| 26 | API 容错 | 部分 Slide 组件 API endpoint 可能返回 404（后端未实现对应路由时 fallback 到空数据） | P2 | M19+ | M18.2 识别，需补充所有 Slide 对应的 API 实现 |
-| 27 | 前端计算 | WhatIfSlide 滑块模拟为前端本地计算，未调用后端 POST /api/analysis/what-if | P3 | M19+ | M18.2 识别，可优化为实时后端调用 |
+| 25 | ~~已解决~~ | ActionPlanSlide/MeetingSummarySlide/ResourceSlide 现接真实 API（/api/presentation/*）| ✅ | M18.3 | M18.2 识别，M18.3 已接入 |
+| 26 | ~~已解决~~ | 3 个 presentation API endpoints 全部补全实现 | ✅ | M18.3 | M18.2 识别，M18.3 已实现 |
+| 27 | ~~已解决~~ | WhatIfSlide 滑块接入后端 POST /api/analysis/what-if | ✅ | M18.3 | M18.2 识别，M18.3 已接入 |
+| 28 | 新增技术债 | presentation.py fallback 数据仍为规则派生非真实 PDCA 系统对接 | P3 | M20+ | M18.3 新识别，影响汇报准确性（低优） |
 
 ## WebMCP
 不适用（非 Web 前端项目）。如后续添加 Web UI，参见全局 CLAUDE.md WebMCP 章节。

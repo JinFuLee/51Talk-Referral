@@ -74,7 +74,7 @@ function SCQACard({
 }
 
 export function StrategicSlide({ revealStep }: StrategicSlideProps) {
-  const { data } = useSWR("/api/insights/pyramid-report", fetcher);
+  const { data } = useSWR("/api/analysis/pyramid-report", fetcher);
   const report = data?.data ?? {};
 
   const scqa = {

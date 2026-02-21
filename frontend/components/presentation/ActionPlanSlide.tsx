@@ -2,6 +2,7 @@
 
 import React from "react";
 import { clsx } from "clsx";
+import useSWR from "swr";
 import { AlertTriangle, Clock, RefreshCw, CheckCircle2 } from "lucide-react";
 
 interface ActionItem {
@@ -13,79 +14,11 @@ interface ActionItem {
   priority: "immediate" | "this-week" | "ongoing";
 }
 
-const ACTION_ITEMS: ActionItem[] = [
-  // Immediate
-  {
-    id: 1,
-    action: "整理零跟进学员名单下发各 CC，今日内完成首次外呼",
-    owner: "CC 组长",
-    deadline: "今日",
-    impact: "修复 30% 零跟进率，挽回高危流失风险",
-    priority: "immediate",
-  },
-  {
-    id: 2,
-    action: "外呼缺口 Top 3 CC 当面复盘，找出阻碍原因",
-    owner: "运营总监",
-    deadline: "今日",
-    impact: "识别系统性障碍，防止缺口扩大",
-    priority: "immediate",
-  },
-  {
-    id: 3,
-    action: "Bottom 5 打卡 CC 排期辅导，制定个人打卡提升计划",
-    owner: "CC 主管",
-    deadline: "明日",
-    impact: "提升团队整体打卡率 5–10%",
-    priority: "immediate",
-  },
-  // This Week
-  {
-    id: 4,
-    action: "优化课后跟进 SOP，设置课后 2H 内跟进提醒",
-    owner: "运营团队",
-    deadline: "本周五",
-    impact: "课后跟进率预计提升 15%，带动付费转化",
-    priority: "this-week",
-  },
-  {
-    id: 5,
-    action: "转介绍渠道激励政策复盘，评估渠道占比调整空间",
-    owner: "市场+运营",
-    deadline: "本周",
-    impact: "渠道结构优化，提升高价值转介绍占比",
-    priority: "this-week",
-  },
-  {
-    id: 6,
-    action: "外呼热力图复盘：识别低效时段，重新分配外呼时间窗口",
-    owner: "CC 组长",
-    deadline: "本周",
-    impact: "同等拨打量提升有效接通率 5–8%",
-    priority: "this-week",
-  },
-  // Ongoing
-  {
-    id: 7,
-    action: "每日晨会同步打卡率 + 外呼量，当天落后当天补",
-    owner: "各 CC 组长",
-    deadline: "持续",
-    impact: "月末不出现大额缺口，保持时间进度同步",
-    priority: "ongoing",
-  },
-  {
-    id: 8,
-    action: "围场 0–30 天新学员每周触达率抽查，确保 100% 首触",
-    owner: "质检",
-    deadline: "每周",
-    impact: "防止新学员流失，提升 30 天留存率",
-    priority: "ongoing",
-  },
-];
-
 interface ActionPlanSlideProps {
   revealStep: number;
 }
+
+const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
 const PRIORITY_CONFIG = {
   immediate: {
@@ -170,9 +103,28 @@ function ActionGroup({
 }
 
 export function ActionPlanSlide({ revealStep }: ActionPlanSlideProps) {
-  const immediate = ACTION_ITEMS.filter((i) => i.priority === "immediate");
-  const thisWeek = ACTION_ITEMS.filter((i) => i.priority === "this-week");
-  const ongoing = ACTION_ITEMS.filter((i) => i.priority === "ongoing");
+  const { data, isLoading, error } = useSWR("/api/analysis/action-plan", fetcher);
+
+  const items: ActionItem[] = data?.data?.items ?? [];
+  const immediate = items.filter((i) => i.priority === "immediate");
+  const thisWeek = items.filter((i) => i.priority === "this-week");
+  const ongoing = items.filter((i) => i.priority === "ongoing");
+
+  if (isLoading) {
+    return (
+      <div className="flex h-full items-center justify-center">
+        <div className="h-8 w-8 rounded-full border-4 border-slate-200 border-t-blue-500 animate-spin" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex h-full items-center justify-center text-slate-400 text-lg">
+        数据加载失败，请稍后重试
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col h-full gap-5">
@@ -182,7 +134,7 @@ export function ActionPlanSlide({ revealStep }: ActionPlanSlideProps) {
         className="text-center"
       >
         <h2 className="text-3xl font-extrabold text-slate-800">行动计划</h2>
-        <p className="text-sm text-slate-500 mt-1">Action Plan — {ACTION_ITEMS.length} 项待执行事项</p>
+        <p className="text-sm text-slate-500 mt-1">Action Plan — {items.length} 项待执行事项</p>
       </div>
 
       <div className="flex-1 grid grid-cols-3 gap-4 overflow-hidden">

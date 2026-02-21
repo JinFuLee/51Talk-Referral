@@ -43,7 +43,7 @@ const DEFAULT_DIMENSIONS = [
 ];
 
 export function StageSlide({ revealStep }: StageSlideProps) {
-  const { data, isLoading, error } = useSWR("/api/insights/stage", fetcher);
+  const { data, isLoading, error } = useSWR("/api/analysis/stage-evaluation", fetcher);
 
   if (isLoading) {
     return (

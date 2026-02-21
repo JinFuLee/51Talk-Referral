@@ -2,6 +2,7 @@
 
 import React from "react";
 import { clsx } from "clsx";
+import useSWR from "swr";
 import { CheckCircle2, MessageSquare, ArrowRight } from "lucide-react";
 
 interface MeetingSummarySlideProps {
@@ -22,6 +23,8 @@ interface ColumnConfig {
   bulletClass: string;
   revealIndex: number;
 }
+
+const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
 function SummaryColumn({
   label,
@@ -64,37 +67,29 @@ function SummaryColumn({
   );
 }
 
-const CONSENSUS_ITEMS: SummaryItem[] = [
-  { text: "本月转化率目标维持 30%，双方共同追踪" },
-  { text: "Leads 交接 SLA：运营发出后业务 2h 内首联" },
-  { text: "每周三下午同步数据，对齐进度" },
-];
-
-const DISPUTE_ITEMS: SummaryItem[] = [
-  { text: "打卡活动是否计入运营 KPI（待 GM 裁定）" },
-  { text: "续费转介绍归属（CC vs 业务团队）" },
-];
-
-const FOLLOWUP_ITEMS: SummaryItem[] = [
-  { text: "运营: 补齐本周打卡率到 65%（周五前）" },
-  { text: "业务: 提交约课响应 SLA 改进方案" },
-  { text: "双方: 确认下月目标分摊比例" },
-];
-
 export function MeetingSummarySlide({ revealStep }: MeetingSummarySlideProps) {
-  const nextMeetingDate = new Date();
-  nextMeetingDate.setDate(nextMeetingDate.getDate() + 7);
-  const dateStr = nextMeetingDate.toLocaleDateString("zh-CN", {
+  const { data, isLoading, error } = useSWR("/api/analysis/meeting-summary", fetcher);
+
+  const consensus: SummaryItem[] = data?.data?.consensus ?? [];
+  const disputes: SummaryItem[] = data?.data?.disputes ?? [];
+  const followups: SummaryItem[] = data?.data?.followups ?? [];
+
+  const defaultNextMeeting = new Date();
+  defaultNextMeeting.setDate(defaultNextMeeting.getDate() + 7);
+  const defaultDateStr = defaultNextMeeting.toLocaleDateString("zh-CN", {
     month: "long",
     day: "numeric",
     weekday: "short",
   });
 
+  const nextMeetingDate: string = data?.data?.next_meeting_date ?? defaultDateStr;
+  const nextMeetingTopic: string = data?.data?.next_meeting_topic ?? "月末复盘";
+
   const columns: ColumnConfig[] = [
     {
       label: "共识事项",
       sublabel: "Agreed Items",
-      items: CONSENSUS_ITEMS,
+      items: consensus,
       icon: <CheckCircle2 className="w-5 h-5 text-white" />,
       bgClass: "border-purple-200 bg-purple-50/40",
       headerClass: "bg-purple-600",
@@ -104,7 +99,7 @@ export function MeetingSummarySlide({ revealStep }: MeetingSummarySlideProps) {
     {
       label: "分歧待议",
       sublabel: "Open Issues",
-      items: DISPUTE_ITEMS,
+      items: disputes,
       icon: <MessageSquare className="w-5 h-5 text-white" />,
       bgClass: "border-slate-300 bg-slate-50",
       headerClass: "bg-slate-500",
@@ -114,7 +109,7 @@ export function MeetingSummarySlide({ revealStep }: MeetingSummarySlideProps) {
     {
       label: "下次跟进",
       sublabel: "Next Steps",
-      items: FOLLOWUP_ITEMS,
+      items: followups,
       icon: <ArrowRight className="w-5 h-5 text-white" />,
       bgClass: "border-blue-200 bg-blue-50/40",
       headerClass: "bg-blue-600",
@@ -122,6 +117,22 @@ export function MeetingSummarySlide({ revealStep }: MeetingSummarySlideProps) {
       revealIndex: 3,
     },
   ];
+
+  if (isLoading) {
+    return (
+      <div className="flex h-full items-center justify-center">
+        <div className="h-8 w-8 rounded-full border-4 border-slate-200 border-t-blue-500 animate-spin" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex h-full items-center justify-center text-slate-400 text-lg">
+        数据加载失败，请稍后重试
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col h-full gap-5">
@@ -150,11 +161,11 @@ export function MeetingSummarySlide({ revealStep }: MeetingSummarySlideProps) {
       >
         <div>
           <p className="text-xs text-slate-400 uppercase tracking-wide">下次会议</p>
-          <p className="text-lg font-bold text-slate-800">{dateStr}</p>
+          <p className="text-lg font-bold text-slate-800">{nextMeetingDate}</p>
         </div>
         <div className="text-right">
           <p className="text-xs text-slate-400 uppercase tracking-wide">核心议题</p>
-          <p className="text-base font-semibold text-slate-700">月末复盘 · 数据对齐 · 目标确认</p>
+          <p className="text-base font-semibold text-slate-700">{nextMeetingTopic}</p>
         </div>
       </div>
     </div>

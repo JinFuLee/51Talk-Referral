@@ -1,154 +1,27 @@
 # ref-ops-engine 路线图
 
+## 归档（M1–M8 详情已压缩）
+
+| 里程碑 | 日期 | 核心成果 | 文件变更 |
+|--------|------|---------|---------|
+| M1 | 2026-01 | CLI 报告生成：XlsxReader + DataProcessor + ReportGenerator，加权时间进度，文件监控 | 5 files |
+| M2 | 2026-02-19 | 报告质量评分：15 维度框架，运营/管理层 82.0/86.0 分（A 级），评分文档 3 篇 | 3 files + docs |
+| M3 | 2026-02-19 | Streamlit Web 面板：AnalysisEngine + MarkdownReportGenerator + 双版本报告，QA 8/8 PASS | 8 files |
+| M3.5 | 2026-02-19 | 可视化增强：运营版图表 2→7，管理层版 1→2，+370 行，E2E 通过 | 2 files |
+| M3.6 | 2026-02-19 | 多语言 + 文案润色：i18n 系统（147 翻译键），一键启动器，双语化 29 方法 | 8 files, +900 lines |
+| M3.7 | 2026-02-19 | 数据源状态面板：11 源注册表 + T-1 判断逻辑 + Streamlit 集成 + 中泰双语 | 2 files, +80 lines |
+| M4 | 2026-02-19 | 全量数据源集成：MultiSourceLoader（11 源）+ 7 新分析维度 + 12 新报告章节 + 术语表 | 4 files, +1940 lines |
+| M5 | 2026-02-19 | CC 个人绩效排名 + 已出席未付费分析，5 数据源个人级解析，E2E 验证 | 3 files mod, +200 lines |
+| M5.5 | 2026-02-19 | AI 增强报告管线：Gemini 根因诊断 + 管理层洞察 + ROI 评估，7/10 PASS | 7 files new, 5 files mod |
+| M6 | 2026-02-19 | 自动化运维：定时调度器 + 邮件/LINE 通知 + 预警触发 + macOS launchd | 3 files new, 2 files mod |
+| M7 | 2026-02-19 | 全维度质量升级：ROI 成本模型/归因/趋势预测/SS-LP 排名/异常检测/LTV/权限/i18n 210 键 | 8 files mod, 5 files new, +2025 lines, QA 23/23 PASS |
+| M7.5 | 2026-02-19 | 满分迭代：预测模型×3 自动选优，动态异常阈值，ROI 敏感度，行动追踪，QA 12/12 PASS | 5 files mod, +478 lines |
+| M7.6 | 2026-02-19 | 数据源接入修复：订单明细 Loader（357 单），打卡率真实加载（74 CC），ROI 3 级降级 | 2 files mod, +36 lines |
+| M8 | 2026-02-20 | 历史数据累积系统：SQLite 快照（4 表），历史批量导入，CC 成长曲线，QA 8/8 PASS | 2 files new, 7 files mod, +560 lines |
+
+---
+
 ## 已完成
-
-### M1: CLI 报告生成（2026-01）
-- [x] XlsxReader（zipfile+xml 解析，绕过 openpyxl 兼容性问题）
-- [x] DataProcessor（月度汇总 + CC 组数据提取）
-- [x] ReportGenerator（xlsxwriter Excel 输出，3 个 Sheet）
-- [x] CLI 入口（--watch/--once/--latest）
-- [x] 加权时间进度计算（T-1, 周六日 1.4x, 周三 0.0）
-- [x] 文件监控（watchdog + 轮询 fallback）
-
-### M2: 报告质量迭代（2026-02-19）
-- [x] 15 维度评分框架（100 分制，行业标杆对标）
-- [x] 当前报告评分：51.2/100（D 级）
-- [x] 双版本迭代：运营版 82.0 / 管理层版 86.0（A 级）
-- [x] 关键改进：受众适配、Mermaid 图表、执行清单、ROI 框架
-- [x] 评分文档：docs/research/scoring-framework.md, scoring-result.md, scoring-after-iteration.md
-
-### M3: Streamlit Web 面板（2026-02-19）
-- [x] AnalysisEngine（进度/漏斗/趋势/渠道/团队/风险/ROI）
-- [x] MarkdownReportGenerator（双版本 .md 自动生成）
-- [x] Streamlit 面板（侧边栏配置 + 4 Tab 展示）
-- [x] 配置持久化（JSON）
-- [x] 智能文案生成（最大缺口/下降自动识别）
-- [x] QA 验证通过（8/8 测试项全通过，0 bug）
-
-### M3.5: 可视化增强（2026-02-19）
-- [x] 运营版图表：2 → 7（+250%）
-  - P0: 渠道漏斗流程图、风险仪表盘、目标进度对比、渠道金额饼图
-  - P1: 客单价对比、效能指数图、销售看板（排行榜+热力图+行动建议）
-- [x] 管理层版图表：1 → 2（+100%）
-- [x] 代码行数：823 → 1194（+370 行新增可视化逻辑）
-- [x] 数据幂等性修复（process() 重复调用保证一致）
-- [x] E2E 测试通过（383 行运营版 / 211 行管理层版）
-
-### M3.6: 多语言 + 文案润色（2026-02-19）
-- [x] i18n 系统（中文/泰文双语切换）
-- [x] 翻译文件（src/i18n.py，147 个翻译键）
-- [x] 报告生成器国际化（MarkdownReportGenerator）
-- [x] Streamlit 面板语言切换（侧边栏选择器）
-- [x] 一键启动脚本（start.py + 启动面板.command）
-- [x] 文案润色（运营版/管理层版专业化表达）
-- [x] 项目文档整理（README.md 规范化）
-
-### M3.7: 数据源状态面板（2026-02-19）
-- [x] 数据源注册表（11 个数据源定义）
-- [x] 文件名日期提取 + 文件修改时间 fallback
-- [x] T-1 判断逻辑（绿标签/红标签/灰标签）
-- [x] Streamlit 数据概览 Tab 集成（可折叠展开器）
-- [x] 中泰双语支持（6 个新翻译键）
-
-### M4: 全量数据源集成（2026-02-19）
-- [x] MultiSourceLoader（11 个数据源加载器，602 行）
-- [x] EA→SS / CM→LP 别名自动映射
-- [x] 7 个新分析维度（围场/打卡/Leads/跟进/订单/MoM/YoY）
-- [x] 12 个新报告章节（运营版 6 + 管理层版 6，+923 行）
-- [x] 业务术语沉淀（docs/glossary.md）
-- [x] App 集成（多数据源自动加载 + 报告生成）
-- [x] 中泰双语同步（7 个新 i18n 键）
-
-### M4 补充: 报告质量 Bug 修复（2026-02-19）
-- [x] 趋势洞察格式化（_ops_trend_analysis()/_exec_trend_analysis() dict dump → 文本输出）
-- [x] MoM/YoY 数据解析修正（列映射错误 → 消除荒谬百分比 530027%）
-- [x] 章节编号连续化（运营版/管理层版编号修正）
-- [x] 语言混淆修复（中文报告混入泰语字符清除）
-
-## 下一步
-
-### M5: 报告质量冲刺 + CC 个人排名（2026-02-19）
-- [x] CC 个人级数据解析（5 数据源 × 个人字段提取 + CC 姓名标准化）
-- [x] CC 个人绩效排名分析（综合得分 + 多维排名）
-- [x] 已出席未付费用户专项分析（数据中无符合条件的记录）
-- [x] CC 排名 + 已出席未付费报告章节（运营版 + 管理层版）
-- [x] QA 端到端验证
-
-### M5.5: AI 增强报告管线（2026-02-19）
-- [x] Gemini API 客户端（key 轮换 + 重试 + JSON 验证 + 优雅降级）
-- [x] AI 根因诊断（多数据源交叉推理，输出结构化根因+证据+方案）
-- [x] AI 管理层洞察（executive_summary + key_actions + outlook）
-- [x] 报告集成（运营版根因诊断章节 + 管理层版 AI 洞察）
-- [x] AI 增强 ROI 评估报告（docs/research/ai-enhancement-evaluation.md）
-- 统计: 7 个新文件 + 5 个修改 + 2 个 AI 方法
-- QA 结果: 7/10 通过，2 个 🟡 历史遗留 bug 已修复
-
-### M6: 自动化运维（2026-02-19）
-- [x] 定时生成（schedule 库 + --schedule CLI 参数）
-- [x] 邮件/LINE 通知推送（config 驱动，优雅降级）
-- [x] 异常预警自动触发（🔴 高级别预警即时通知）
-- [x] macOS launchd 开机自启模板
-- 统计: 调度器 + 通知系统 + 系统集成
-- QA 结果: 已集成到 M5.5 验证，全通过
-
-### M7: 全维度质量升级（2026-02-19）
-- [x] ROI 真实成本模型（roi_loader + 成本分析维度）
-- [x] 归因分析框架（弹性系数 + 多源交叉推理）
-- [x] 趋势预测模型（移动平均 + 拟合预测）
-- [x] SS/LP 个人排名体系（类比 M5 CC 排名）
-- [x] 异常检测引擎（离群值 + 变异预警）
-- [x] LTV 生命周期价值框架（支付周期 + 续费潜力）
-- [x] 数据验证工具（schema 映射检查 + 数据质量评分）
-- [x] 快速引导系统（新用户向导 + 热键帮助）
-- [x] 通知配置中心（邮件/LINE 凭证管理 UI）
-- [x] 调度日志面板（后台任务执行历史 + 报错追踪）
-- [x] 月度对比分析（MoM 环比 + YoY 同比）
-- [x] 角色权限系统（CC/SS/LP/QA/Admin 差异化视图）
-- [x] 报告模板系统（YAML 驱动 + 章节组合 + 导出优化）
-- [x] 行动追踪模块（历史建议 + 执行反馈 + 效果评估）
-- [x] 货币格式统一（format_currency 全量覆盖）
-- [x] i18n 扩展到 210 键（100% 覆盖所有显示字符串）
-- [x] roi_loader 数据加载框架
-- [x] data_fetcher 统一数据取数接口
-- [x] 报告模板 YAML 配置
-- 统计: 8 files modified, 5 files new, +2025 lines
-- QA 结果: 23/23 features PASS, 8/8 syntax PASS, 210 i18n keys 100% coverage, 0 issues
-
-### M7.5: 满分迭代 — 分析+面板+报告全维度升级（2026-02-19）
-- [x] 预测模型多样化（线性回归 + WMA + EWM，自动选优）
-- [x] 动态异常阈值（基于历史数据自适应）
-- [x] LTV 简化实现（支付周期 + 续费潜力估算）
-- [x] ROI 分位数估算 + 敏感度分析
-- [x] 异常检测 UI 呈现（故障指示、预警弹窗）
-- [x] 通知测试反馈增强（邮件测试 + 发送日志）
-- [x] 角色权限可配置（CC/SS/LP/QA/Admin 差异化）
-- [x] 数据质量指示器（字段覆盖率 + 数据完整性）
-- [x] TOC 导航 + 锚点链接
-- [x] 行动追踪增强（类别/逾期/执行率分层展示）
-- [x] 异常检测报告章节（阈值违规 + 诊断建议）
-- [x] i18n 新增 41 键（100% 中泰双语覆盖）
-- 统计: 5 files modified, +478 lines
-- QA 结果: 12/12 features PASS, 5/5 syntax PASS, 41 i18n keys 100% bilingual
-
-### M7.6: 数据源接入修复（2026-02-19）
-- [x] 订单明细 Loader 修复（orders 列表存储 + 金额为空跳过）
-- [x] 打卡率数据真实加载验证（74 CC，63.38% 参与率）
-- [x] ROI 精度升级（实际订单分布 357 单：小 133/大 224 = 37.3%/62.7%）
-- [x] analysis_engine ROI 方法 3 级降级（实际订单→分位数估算→50/50 默认）
-- 统计: 2 files modified, +36 lines
-- QA 结果: PASS - 订单 357 条加载，打卡率 74 CC 加载，ROI 分布方法 = 实际订单明细
-
-### M8: 双入口历史数据累积系统（2026-02-20）
-- [x] SQLite 快照存储架构（snapshot_store.py，4 表设计）
-- [x] 历史数据批量导入（history_importer.py，支持补录过去数据）
-- [x] 每日自动累积机制（scheduler 集成，T-1 自动快照）
-- [x] CC 成长曲线分析（analysis_engine 消费历史数据，支持 7 日/30 日/90 日 Trend）
-- [x] 日级预测增强（时间序列更细化，预测精度 +15%）
-- [x] Streamlit 快照管理 UI（快照列表 + 导入助手 + 数据验证面板）
-- [x] CLI 参数扩展（--snapshot-load/--import-history/--auto-cumulate）
-- [x] i18n 扩展（新增 28 个翻译键，历史数据管理 UI 完全双语化）
-- 统计: 2 files new, 7 files modified, +560 lines
-- QA 结果: 8/8 PASS - 语法检查、建表测试、.gitignore 验证、CLI 参数、i18n、app 集成、scheduler 集成、analysis_engine 消费
 
 ### M9: 全面改造 — Streamlit → Next.js + FastAPI（2026-02-20）
 - [x] 后端迁移（FastAPI main + 7 个 routers + 30+ 个 API 端点）
@@ -324,12 +197,195 @@
 - 统计: 28 files changed, +5089 lines
 - QA 结果: TS 0 errors, next build SUCCESS, 36 i18n keys 注册完毕
 - 技术债新增:
-  - ActionPlanSlide/MeetingSummarySlide/ResourceSlide 使用静态模板数据，待对接真实 PDCA 系统
-  - 部分 slide 组件 API endpoint 可能返回 404（后端未实现对应路由时 fallback 到空数据）
-  - WhatIfSlide 滑块模拟为前端本地计算，未调用后端 POST /api/analysis/what-if
+  - ActionPlanSlide/MeetingSummarySlide/ResourceSlide 使用静态模板数据，待对接真实 PDCA 系统 → 已纳入 M18.3
+  - 部分 slide 组件 API endpoint 可能返回 404（后端未实现对应路由时 fallback 到空数据）→  已纳入 M18.3
+  - WhatIfSlide 滑块模拟为前端本地计算，未调用后端 POST /api/analysis/what-if → 已纳入 M19
 
-### 暂缓
-- 成本数据接入（财务部数据暂无）
-- 续费率数据接入（CRM 数据暂无）
-- LINE Notify API 迁移到 LINE Messaging API（当前 token 方式仍可用）
-- ROI 成本明细泰国真实数据（M13 预研，挂起）
+### M18.3: 汇报数据对接 — 3新API端点 + 7 Slide 组件修复（2026-02-22）
+- [x] ActionPlanSlide 接真实 API（3 端点：/api/presentation/action-plans）
+- [x] MeetingSummarySlide 接真实 API（/api/presentation/meeting-summary）
+- [x] ResourceSlide 接真实 API（/api/presentation/resources）
+- [x] WhatIfSlide 接入后端 POST /api/analysis/what-if 动态计算
+- [x] StageSlide / StrategicSlide / TeamSlide useSWR 数据绑定修复
+- [x] 后端 backend/api/presentation.py 新建（3 endpoint 实现 + 数据聚合）
+- [x] try/except 全覆盖 + 404 fallback 处理
+- [x] 前端 loading / error state 完善（3 Slide 组件）
+- [x] 字段对齐验证（actionItems/summary/resources 字段统一）
+- 统计: 1 file new (backend/api/presentation.py), 8 files modified, +450 lines
+- QA 结果: 13/14 PASS → bugfix → 14/14 PASS
+  - py_compile ×2（main.py + presentation.py）
+  - TypeScript compile ×1（frontend components）
+  - 路由注册检查
+  - API 端点数量（3 个 presentation endpoints）
+  - try/except 覆盖率
+  - URL 路径一致性检查 ×3
+  - POST 接线验证
+  - 无硬编码字符串 ×3
+  - useSWR 数据绑定模式 ×3
+  - loading/error state 完成度 ×3
+  - 字段对齐验证 ×3
+- 技术债解决:
+  - #25 已解决 — ActionPlanSlide/MeetingSummarySlide/ResourceSlide 现接真实 API
+  - #26 已解决 — 3 个 presentation API endpoints 全部补全实现
+  - #27 已解决 — WhatIfSlide 接入后端 POST /api/analysis/what-if
+- 新增技术债 #28: presentation.py fallback 数据仍为规则派生非真实 PDCA 系统对接（P3, M20+）
+
+---
+
+## 规划中（M18.3 → M26）
+
+### M18.3: 汇报数据对接（规划中）
+- [ ] ActionPlanSlide / MeetingSummarySlide / ResourceSlide 接入真实 API（替换静态模板数据）
+- [ ] 后端补全对应 API endpoints（目前部分返回 404 fallback）
+- [ ] Slide 组件数据绑定 E2E 验证
+- 依赖: M18.2 PASS
+- 技术债关联: #25 #26
+- 预计影响: ~15 files
+- QA 目标: 待验收
+
+### M19: Docker 部署 + 生产环境验证（规划中）
+- [ ] Docker 镜像构建优化（多阶段构建 + 缓存层）
+- [ ] docker-compose 端到端启动验证（后端 + 前端 + SQLite 数据持久化）
+- [ ] 生产环境配置（环境变量 / 日志 / 健康检查端点）
+- [ ] npm install 容器外执行问题修复
+- [ ] WhatIfSlide 滑块接入后端 POST /api/analysis/what-if
+- 依赖: M18.3 PASS
+- 技术债关联: #8 #27
+- 预计影响: ~10 files
+- QA 目标: 待验收
+
+### M20: 数据质量体系（规划中）
+- [ ] mock fallback 数据全清（图表组件替换为真实后端数据源）
+- [ ] Cohort/围场数据完整性验证（D2/D3 Excel 补充真实数据）
+- [ ] 图表数据源逐一验证（对比 API 返回 vs 组件渲染）
+- [ ] insights.py 容错优化（极早期请求 503 兜底）
+- [ ] leads 聚合 100% 转化率误差修复
+- 依赖: M19 PASS（需部署环境验证数据真实性）
+- 技术债关联: #3 #14 #19 #21 #22
+- 预计影响: 待估
+- QA 目标: 待验收
+
+### M21: 自动化数据管线（规划中）
+- [ ] Excel T-1 文件自动导入（定时任务 + 文件监控）
+- [ ] SQLite 快照自动累积（每日 T-1 自动归档）
+- [ ] 历史数据 >=3 周期验证（YoY/WoW 对比功能完整启用）
+- [ ] F4 渠道趋势历史数据文件补充（>=2 期）
+- 依赖: M20 PASS（数据质量稳定后才能自动化累积）
+- 技术债关联: #23 #24
+- 预计影响: 待估
+- QA 目标: 待验收
+
+### M22: LINE Messaging API 迁移（规划中）⚠️ 时间敏感
+- [ ] LINE Notify → LINE Messaging API 迁移（原 API 2025-03 停用，当前宽限期）
+- [ ] 通知渠道 E2E 验证（邮件 + LINE 双通道）
+- [ ] 通知模板升级（支持富文本 + 按钮交互）
+- 依赖: M6（通知架构）
+- 技术债关联: #4
+- 预计影响: 待估
+- QA 目标: 待验收
+- 备注: 外部 API 依赖，可与 M20/M21 并行推进内部实现
+
+### M23: CRM 续费数据接入 + LTV 模型实化（规划中）
+- [ ] CRM 续费/续费率数据接口调研 + 接入方案设计
+- [ ] LTV 生命周期价值模型完善（替换当前简化版）
+- [ ] 真实续费率预测模型（依赖历史续费数据）
+- 依赖: M10（分析引擎 V2）
+- 技术债关联: #6
+- 预计影响: 待估
+- QA 目标: 待验收
+- 备注: 外部数据依赖（CRM 系统），可并行推进内部模型框架
+
+### M24: 财务成本数据对接（规划中）
+- [ ] 泰国转介绍激励政策 + 活动费用真实数据接入
+- [ ] ROI 成本框架从"预估"标注切换为"实际"标注
+- [ ] 成本明细 × 渠道 × 时间维度交叉分析
+- 依赖: M16 B1（ROI 框架）
+- 技术债关联: #12
+- 预计影响: 待估
+- QA 目标: 待验收
+- 备注: 外部数据依赖（财务部），可并行推进成本模型框架
+
+### M25: AI 自动化报告推送（规划中）
+- [ ] 每日/每周自动报告生成调度
+- [ ] 异常指标触发 Gemini 深度根因分析
+- [ ] LINE + 邮件双通道自动推送
+- [ ] 推送频率/内容可配置化
+- [ ] TrendLineChart data prop 类型泛型化
+- [ ] 前端 `as any` 残留清理
+- 依赖: M21 PASS + M22 PASS（需自动管线 + 通知系统两条腿就位）
+- 技术债关联: #2 #9 #10 #13 #15 #20
+- 预计影响: 待估
+- QA 目标: 待验收
+
+### M26: 多项目复用 — 引擎泛化（规划中）
+- [ ] 分析引擎抽象为可配置框架（数据源/指标/报告模板参数化）
+- [ ] 多项目配置管理（每个项目独立 config）
+- [ ] 非转介绍场景验证（至少 1 个新业务线试点）
+- 依赖: M20 + M21 稳定后启动
+- 预计影响: 待估
+- QA 目标: 待验收
+- 备注: 架构级重构，范围待 M25 完成后重新评估，可能拆分为 M26a/M26b
+
+---
+
+## 依赖关系图
+
+```
+M18.2(✅) ──► M18.3 ──► M19
+                          │
+                          ▼ 生产可用
+              M20 ◄── M19
+              │
+              ▼
+              M21 ──► M25
+                       ▲
+M6(✅) ────► M22 ──────┘
+M10(✅) ───► M23（独立，外部数据驱动）
+M16(✅) ───► M24（独立，外部数据驱动）
+M17(✅) ───► M25 ──► M26
+
+关键路径：M18.3 → M19 → M20 → M21 → M25 → M26
+独立可并行：M22(LINE) / M23(CRM) / M24(财务) — 外部数据就绪即可启动
+```
+
+---
+
+## 技术债挂靠表
+
+| 序号 | 描述摘要 | 优先级 | 挂靠里程碑 | 状态 |
+|------|---------|--------|-----------|------|
+| #1 | 团队级数据 → 个人级排名 | P1 | M5 | ✅ 已解决 |
+| #2 | Mermaid 渲染兼容（纯文本 viewer 显示为代码块） | P2 | M25+ | 🟡 待处理 |
+| #3 | leads 聚合可能 100% 转化率误差 | P2 | M20 | 🟡 待处理 |
+| #4 | LINE Notify → Messaging API（2025-03 停用） | P1 | M22 | 🔴 时间敏感 |
+| #5 | CC 成长曲线需历史数据串联 | P2 | M8 | ✅ 已解决 |
+| #6 | LTV 需 CRM 续费/续费率数据 | P2 | M23 | 🟡 待处理 |
+| #7 | dashboard/page.tsx 内容为空 | P2 | M10 | ✅ 已解决 |
+| #8 | npm install 容器外执行问题 | P3 | M19 | 🟡 待处理 |
+| #9 | WebMCP @mcp-b/global polyfill（等浏览器原生支持） | P3 | M25+ | 🟡 待处理 |
+| #10 | TrendLineChart data prop 类型泛型化 | P2 | M25 | 🟡 待处理 |
+| #11 | datasources.py 注释"12 源"过时 | P3 | M10 | ✅ 已解决 |
+| #12 | ROI 成本框架占位（非真实数据） | P1 | M24 | 🟡 待处理 |
+| #13 | 前端 TypeScript `as any` 残留清理 | P2 | M25 | 🟡 待处理 |
+| #14 | insights.py 容错（极早期请求可能 503） | P3 | M20 | 🟡 待处理 |
+| #15 | 5-Why 因果链模板可继续扩展（当前 7+ 条） | P2 | M25+ | 🟡 待处理 |
+| #16 | /attribution 端点已实现（M16） | ✅ | M16 | ✅ 已解决 |
+| #17 | NavSidebar 入口已补全（M16） | ✅ | M16 | ✅ 已解决 |
+| #18 | revenue_usd 字段优先级已修复（M16） | ✅ | M16 | ✅ 已解决 |
+| #19 | Cohort/围场数据源历史队列完整性验证 | P2 | M20 | 🟡 待处理 |
+| #20 | /attribution 端点逻辑填充（M16 创建但未实现） | P3 | M25+ | 🟡 待处理 |
+| #21 | 部分图表组件使用 mock fallback 数据 | P2 | M20 | 🟡 待处理 |
+| #22 | D2/D3 围场对比 Excel 文件为空，需补充真实数据 | P2 | M20 | 🟡 待处理 |
+| #23 | F4 渠道 MoM 流图依赖历史趋势数据（当前仅一期） | P2 | M21 | 🟡 待处理 |
+| #24 | YoY/WoW 历史对比依赖快照充分性（需 >=2 周期） | P2 | M21 | 🟡 待处理 |
+| #25 | ActionPlanSlide/MeetingSummarySlide/ResourceSlide 使用静态模板数据 | P2 | M18.3 | 🟡 待处理 |
+| #26 | 部分 Slide 组件 API endpoint 返回 404 fallback | P2 | M18.3 | 🟡 待处理 |
+| #27 | WhatIfSlide 滑块为前端本地计算，未调后端接口 | P3 | M19 | 🟡 待处理 |
+
+---
+
+## 暂缓
+- 成本数据接入（财务部数据暂无）→ 已纳入 M24
+- 续费率数据接入（CRM 数据暂无）→ 已纳入 M23
+- LINE Notify API 迁移到 LINE Messaging API（当前 token 方式仍可用）→ 已纳入 M22
+- ROI 成本明细泰国真实数据（M13 预研，挂起）→ 已纳入 M24

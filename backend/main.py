@@ -18,7 +18,7 @@ from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 
-from api import analysis, reports, datasources, config, snapshots, notifications, health, insights, system, cohort_detail, channel_trend, outreach_heatmap, outreach_coverage, cohort_decay, north_star, paid_followup, cohort_student, funnel_detail, channel_mom, retention_rank, leads_detail, productivity_history, outreach_gap, enclosure_health, ranking_enhanced
+from api import analysis, reports, datasources, config, snapshots, notifications, health, insights, system, cohort_detail, channel_trend, outreach_heatmap, outreach_coverage, cohort_decay, north_star, paid_followup, cohort_student, funnel_detail, channel_mom, retention_rank, leads_detail, productivity_history, outreach_gap, enclosure_health, ranking_enhanced, presentation
 from services.analysis_service import AnalysisService
 
 limiter = Limiter(key_func=get_remote_address, default_limits=["100/minute"])
@@ -113,6 +113,7 @@ app.include_router(productivity_history.router, prefix="/api/analysis", tags=["p
 app.include_router(outreach_gap.router, prefix="/api/analysis", tags=["outreach-gap"])
 app.include_router(enclosure_health.router, prefix="/api/analysis", tags=["enclosure-health"])
 app.include_router(ranking_enhanced.router, prefix="/api/analysis", tags=["ranking-enhanced"])
+app.include_router(presentation.router, prefix="/api/analysis", tags=["presentation"])
 
 
 @app.on_event("startup")
@@ -142,6 +143,7 @@ async def startup_event():
     outreach_gap.set_service(_analysis_service)
     enclosure_health.set_service(_analysis_service)
     ranking_enhanced.set_service(_analysis_service)
+    presentation.set_service(_analysis_service)
 
     # 后台自动运行分析（非阻塞）
     import asyncio

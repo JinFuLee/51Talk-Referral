@@ -51,7 +51,7 @@ function ScoreBar({ value, max = 100 }: { value: number; max?: number }) {
 }
 
 export function TeamSlide({ revealStep }: TeamSlideProps) {
-  const { data, isLoading, error } = useSWR("/api/analysis/ranking", fetcher);
+  const { data, isLoading, error } = useSWR("/api/analysis/cc-ranking-enhanced", fetcher);
 
   if (isLoading) {
     return (

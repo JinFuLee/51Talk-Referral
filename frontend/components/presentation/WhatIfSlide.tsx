@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { clsx } from "clsx";
 import useSWR from "swr";
 import { formatRevenue } from "@/lib/utils";
@@ -161,10 +161,43 @@ export function WhatIfSlide({ revealStep }: WhatIfSlideProps) {
 
   const [opsValues, setOpsValues] = useState<number[]>(opsParams.map(() => 5));
   const [bizValues, setBizValues] = useState<number[]>(bizParams.map(() => 5));
+  const [projectedRevenue, setProjectedRevenue] = useState<number | null>(null);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Debounced POST to /api/analysis/what-if
+  useEffect(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      const adjustments: Record<string, number> = {};
+      opsParams.forEach((p, i) => { adjustments[p.key] = opsValues[i]; });
+      bizParams.forEach((p, i) => { adjustments[p.key] = bizValues[i]; });
+
+      fetch("/api/analysis/what-if", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ adjustments }),
+      })
+        .then((r) => r.json())
+        .then((result) => {
+          const rev = result?.data?.projected_revenue ?? result?.projected_revenue;
+          if (typeof rev === "number") setProjectedRevenue(rev);
+        })
+        .catch(() => {
+          // Fallback to local calculation on error
+          setProjectedRevenue(null);
+        });
+    }, 400);
+
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [opsValues, bizValues]);
 
   const opsTotalGain = opsParams.reduce((sum, p, i) => sum + (opsValues[i] / 100) * p.revenuePerUnit, 0);
   const bizTotalGain = bizParams.reduce((sum, p, i) => sum + (bizValues[i] / 100) * p.revenuePerUnit, 0);
-  const combinedGain = opsTotalGain + bizTotalGain;
+  const localCombinedGain = opsTotalGain + bizTotalGain;
+  const combinedGain = projectedRevenue ?? localCombinedGain;
 
   return (
     <div className="flex flex-col h-full gap-5">
