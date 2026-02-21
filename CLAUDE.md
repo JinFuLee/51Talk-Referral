@@ -273,6 +273,7 @@ Excel 数据源 → XlsxReader → DataProcessor → AnalysisEngine → Markdown
 | M16 Phase 2 W1 | 2026-02-21 | 数据源深度开发Phase2 Wave1 — 10特性+5新页面 | C1-C5 Cohort衰减API、C4黄金窗口、C6学员明细8800+、D1打卡排名、D1×D5散点、D5倍率、F7零跟进预警、F10课前课后对比、E3字段修复、A1团队漏斗 | 23 files, +3571 lines, TS 0 error |
 | M16 | 2026-02-21 | 数据源深度开发 Phase 3 完全版 — 38特性完整交付 | 18 backend modules、35 chart components、19 pages new、error-logger 系统、所有特性文件完成、导航注册完毕、API 接线完毕 | 18 files new, 35 components, 19 pages, 4 shared mod, +6000 lines, QA PASS |
 | M17 | 2026-02-21 | 全站数据修复 — D5 key/团队名/API adapter/前端数据绑定/proxy bypass | D5 key 映射(checkin_rate_monthly)、团队名 THCC 标准化、F5 均时聚合、outreach/orders/trial/heatmap 字段补全、localhost→/api proxy、汇率动态化、跟进预警增强、GlossaryBanner 术语栏、覆盖缺口 404 修复 | 99 files mod, 4 agents, QA 22/22 PASS, TS 0 errors, py_compile 11/11 PASS |
+| M18 | 2026-02-21 | 汇报沉浸模式 — 128slides 键盘演示系统 | 3 场景×5 时间维度、128 个 Slide 组件库、↑↓← → Space 键盘导航、后端数据绑定、全屏沉浸式渲染 | 19 files new, +2813 lines, 3 MK parallel, QA 16→19 PASS |
 
 ## 里程碑规划（M11+）
 
