@@ -237,6 +237,19 @@
 - 统计: 6 files modified, +530 lines, -20 lines
 - QA 结果: 85/91 PASS（93.4%），3 bug 已修复，2 QA 误报，3 残留项无用户影响
 
+### M16: 数据源深度开发 Phase 1 — 7特性 + 6源激活（2026-02-21）
+- [x] F11: 外呼覆盖缺口分析（/biz/coverage）— 外呼量 gap → $损失量化
+- [x] C6: Cohort 留存热力图（/biz/cohort）— 队列留存 + 衰减曲线
+- [x] B1: ROI 真实成本数据替换（/biz/roi）— 激励/活动费用实际数据
+- [x] D2×D3: 围场对比分析 + D4 综合概览（/biz/enclosure）— 五级围场 KPI 对标
+- [x] E6+E7+E8: 套餐组合分析 + 渠道收入瀑布（/biz/orders）— 产品矩阵 + 渠道混合
+- [x] F4: 渠道 MoM 流图（/ops/channels）— 环比趋势可视化
+- [x] F5: CC 外呼热力图（/ops/outreach-heatmap）— 外呼频次分布
+- 统计: 23 files modified, +1615 lines
+- QA 结果: 完成 7 大特性，激活 outreach_extended/cohort/roi_actual/enclosure/orders_detail/channel_trend/cc_outreach 6 个新数据源
+- 新页面: 5 个（/biz/{coverage,cohort,roi,enclosure,orders}, /ops/outreach-heatmap）
+- 新组件: 8 个（CoverageMetricCard, CohortHeatmap, OutreachHeatmap, etc）
+
 ### 暂缓
 - 成本数据接入（财务部数据暂无）
 - 续费率数据接入（CRM 数据暂无）

@@ -372,7 +372,7 @@ def _adapt_roi(raw: dict[str, Any]) -> dict[str, Any]:
     """
     将引擎 roi_estimate（含 total_cost_usd / total_revenue_usd / overall_roi）
     转换为前端 ROIData 格式：
-    { total_cost, total_revenue, roi_ratio, currency, cost_breakdown? }
+    { total_cost, total_revenue, roi_ratio, currency, cost_breakdown?, by_product? }
     """
     return {
         "total_cost": raw.get("total_cost_usd", 0),
@@ -380,6 +380,8 @@ def _adapt_roi(raw: dict[str, Any]) -> dict[str, Any]:
         "roi_ratio": raw.get("overall_roi", 0),
         "currency": "USD",
         "cost_breakdown": raw.get("cost_breakdown"),
+        "cost_list": raw.get("cost_list"),
+        "by_product": raw.get("by_product"),
         # 保留扩展字段
         "by_month": raw.get("by_month"),
         "optimal_months": raw.get("optimal_months"),
@@ -580,15 +582,28 @@ def _adapt_trend(raw: dict[str, Any], compare_type: str) -> dict[str, Any]:
     if compare_type == "mom":
         mom_data = mom_raw.get("data") or {}
         months_sorted = sorted(mom_data.keys())
-        series: list[dict[str, Any]] = [
-            {
+        def _mom_row(v) -> dict:
+            """兼容 mom_data[month] 为 dict 或 list（多渠道记录）两种结构"""
+            if isinstance(v, list):
+                # 找总计行，或转介绍行
+                row = next((r for r in v if isinstance(r, dict) and (
+                    "总计" in str(r.get("name", "")) or
+                    "总计" in str(r.get("channel_type", "")) or
+                    "转介绍" in str(r.get("channel_type", ""))
+                )), None)
+                if row is None:
+                    row = v[0] if v else {}
+                return row if isinstance(row, dict) else {}
+            return v if isinstance(v, dict) else {}
+        series: list[dict[str, Any]] = []
+        for month in months_sorted:
+            row = _mom_row(mom_data[month])  # 缓存调用结果，避免重复搜索
+            series.append({
                 "date": month,
-                "revenue": mom_data[month].get("revenue_cny") or mom_data[month].get("revenue") or 0,
-                "payments": mom_data[month].get("payments") or mom_data[month].get("paid") or 0,
-                "registrations": mom_data[month].get("registrations") or mom_data[month].get("register") or 0,
-            }
-            for month in months_sorted
-        ]
+                "revenue": row.get("revenue_cny") or row.get("amount_usd") or row.get("revenue") or 0,
+                "payments": row.get("payments") or row.get("paid") or 0,
+                "registrations": row.get("registrations") or row.get("register") or 0,
+            })
         if not series:
             series = daily_series
         compare_data = mom_raw
@@ -959,6 +974,28 @@ def get_risk_alerts_v2() -> dict[str, Any]:
     return {"status": "ok", "data": _require_cache("risk_alerts")}
 
 
+# ── ROI 成本明细（B1 真实数据）────────────────────────────────────────────────
+
+@router.get("/roi/cost-breakdown")
+def get_roi_cost_breakdown() -> dict[str, Any]:
+    """
+    返回 B1 真实成本明细数据，替代前端硬编码 COST_BREAKDOWN。
+    格式：{ items: ROICostItem[], total_cost_usd: float, by_product: dict }
+    ROICostItem: { 奖励类型, 内外场激励, 激励详情, 推荐动作, 赠送数, 成本单价USD, 成本USD }
+    """
+    raw = _require_cache("roi_estimate")
+    cost_list: list[Any] = raw.get("cost_list") or []
+    by_product: dict[str, Any] = raw.get("by_product") or {}
+    total_cost: float = raw.get("total_cost_usd") or 0.0
+
+    # 若 cost_list 为空（B1 文件未找到），返回空列表而非 404
+    return {
+        "items": cost_list,
+        "total_cost_usd": total_cost,
+        "by_product": by_product,
+    }
+
+
 # ── M13: 影响链 ────────────────────────────────────────────────────────────────
 
 @router.get("/impact-chain")
@@ -993,3 +1030,341 @@ def post_what_if(req: WhatIfRequest) -> dict[str, Any]:
         return engine.what_if(req.metric, req.new_value)
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc))
+
+
+# ── M16: 归因分析 ────────────────────────────────────────────────────────────
+
+def _adapt_attribution(cache: dict[str, Any]) -> dict[str, Any]:
+    """
+    从缓存中构建归因分析数据，返回前端 AttributionData 格式：
+    { factors: AttributionFactor[] }
+    AttributionFactor: { factor, contribution (0~1), label? }
+
+    归因逻辑：基于渠道对比（channel_comparison）+ 影响链（impact_chain）
+    计算各渠道/效率指标对总收益的相对贡献度。
+    """
+    channel_comparison = cache.get("channel_comparison") or {}
+    funnel = cache.get("funnel") or {}
+    summary = cache.get("summary") or {}
+
+    factors: list[dict[str, Any]] = []
+
+    # ── 渠道归因：从 channel_comparison 读取各渠道付费数 ────────────────────
+    channels_raw: list[dict[str, Any]] = []
+    if isinstance(channel_comparison, dict):
+        if "channels" in channel_comparison:
+            channels_raw = channel_comparison["channels"]
+        else:
+            # 中文 key 结构
+            for zh_key, en_key, label in _CHANNEL_LABEL_MAP:
+                if zh_key in channel_comparison:
+                    d = channel_comparison[zh_key]
+                    channels_raw.append({
+                        "channel": en_key,
+                        "label": label,
+                        "payments": d.get("paid", 0),
+                    })
+
+    total_payments = sum(c.get("payments", 0) or 0 for c in channels_raw) or 1
+    for ch in channels_raw:
+        paid = ch.get("payments", 0) or 0
+        factors.append({
+            "factor": ch.get("channel", ""),
+            "contribution": round(paid / total_payments, 4),
+            "label": ch.get("label", ch.get("channel", "")),
+        })
+
+    # ── 效率归因：若没有渠道数据，从 funnel 提取口径贡献 ────────────────────
+    if not factors and isinstance(funnel, dict):
+        narrow_paid = 0
+        wide_paid = 0
+        if "narrow" in funnel:
+            narrow_paid = funnel["narrow"].get("payments", 0) or 0
+        elif any(k in funnel for k in ("cc_narrow", "ss_narrow", "lp_narrow")):
+            for k in ("cc_narrow", "ss_narrow", "lp_narrow"):
+                if k in funnel:
+                    narrow_paid += funnel[k].get("payments", 0) or 0
+        if "wide" in funnel:
+            wide_paid = funnel["wide"].get("payments", 0) or 0
+        total_paid = (narrow_paid + wide_paid) or 1
+        if narrow_paid or wide_paid:
+            factors = [
+                {"factor": "narrow", "contribution": round(narrow_paid / total_paid, 4), "label": "窄口径"},
+                {"factor": "wide",   "contribution": round(wide_paid / total_paid, 4),  "label": "宽口径"},
+            ]
+
+    # ── 兜底：返回空因子列表而非 404 ────────────────────────────────────────
+    if not factors:
+        factors = [{"factor": "unknown", "contribution": 1.0, "label": "数据待接入"}]
+
+    return {"factors": factors}
+
+
+@router.get("/attribution")
+def get_attribution() -> dict[str, Any]:
+    """
+    返回归因分析数据（渠道对总收益的贡献度）。
+    输出已适配为前端 AttributionData 格式：{ factors: AttributionFactor[] }
+    归因基于 channel_comparison + funnel 数据计算各渠道付费贡献占比。
+    """
+    cache = _require_full_cache()
+    return _adapt_attribution(cache)
+
+
+# ── E6/E7/E8: 套餐结构 + 渠道收入 ─────────────────────────────────────────────
+
+def _adapt_package_mix(raw: dict[str, Any]) -> dict[str, Any]:
+    """
+    从 order_analysis 提取 E6 套餐占比，适配为前端饼图格式：
+    { items: [{ product_type, count, revenue_usd, percentage }] }
+    """
+    order_data = raw.get("order_analysis", {}) or {}
+    pkg_dist = order_data.get("package_distribution", {}) or {}
+
+    records: list[dict[str, Any]] = []
+    if isinstance(pkg_dist, dict):
+        by_ch = pkg_dist.get("by_channel", {}) or {}
+        if isinstance(by_ch, dict):
+            records = by_ch.get("records", []) or []
+
+    # 从 records 中汇总套餐类型
+    type_totals: dict[str, float] = {}
+    for rec in records:
+        if not isinstance(rec, dict):
+            continue
+        for k, v in rec.items():
+            if isinstance(v, (int, float)) and v > 0:
+                type_totals[k] = type_totals.get(k, 0.0) + float(v)
+
+    total_val = sum(type_totals.values()) or 1.0
+    items = [
+        {
+            "product_type": k,
+            "count": 0,
+            "revenue_usd": round(v, 2),
+            "percentage": round(v / total_val * 100, 1),
+        }
+        for k, v in sorted(type_totals.items(), key=lambda x: -x[1])
+        if v > 0
+    ]
+
+    # 兜底: 从 E8 channel_product 聚合套餐维度
+    if not items:
+        channel_product = order_data.get("channel_product", []) or []
+        ptype_totals: dict[str, float] = {}
+        for cp in channel_product:
+            if not isinstance(cp, dict):
+                continue
+            pt = cp.get("product", "未知")
+            amt = cp.get("amount_usd", 0) or 0
+            ptype_totals[pt] = ptype_totals.get(pt, 0.0) + amt
+        total_cp = sum(ptype_totals.values()) or 1.0
+        items = [
+            {
+                "product_type": k,
+                "count": 0,
+                "revenue_usd": round(v, 2),
+                "percentage": round(v / total_cp * 100, 1),
+            }
+            for k, v in sorted(ptype_totals.items(), key=lambda x: -x[1])
+            if v > 0
+        ]
+
+    return {"items": items}
+
+
+def _adapt_team_package_mix(raw: dict[str, Any]) -> dict[str, Any]:
+    """E7 团队套餐结构: { teams: [{ team, items: [{ product_type, ratio }] }] }"""
+    order_data = raw.get("order_analysis", {}) or {}
+    team_package = order_data.get("team_package", []) or []
+    return {"teams": team_package}
+
+
+def _adapt_channel_revenue(raw: dict[str, Any]) -> dict[str, Any]:
+    """
+    E8 渠道收入: { channels: [{ channel, revenue_usd, revenue_thb, percentage }], total_usd }
+    从 channel_product 按 channel 聚合金额
+    """
+    order_data = raw.get("order_analysis", {}) or {}
+    channel_product = order_data.get("channel_product", []) or []
+
+    channel_totals: dict[str, float] = {}
+    for cp in channel_product:
+        if not isinstance(cp, dict):
+            continue
+        ch = cp.get("channel", "未知")
+        amt = cp.get("amount_usd", 0) or 0
+        channel_totals[ch] = channel_totals.get(ch, 0.0) + amt
+
+    total_usd = sum(channel_totals.values())
+    total_denom = total_usd or 1.0
+
+    channels = [
+        {
+            "channel": ch,
+            "revenue_usd": round(rev, 2),
+            "revenue_thb": round(rev * 34, 0),
+            "percentage": round(rev / total_denom * 100, 1),
+        }
+        for ch, rev in sorted(channel_totals.items(), key=lambda x: -x[1])
+        if rev > 0
+    ]
+
+    # 兜底: 若 E8 无数据, 用 E3 by_channel
+    if not channels:
+        e3_by_channel = order_data.get("by_channel") or {}
+        if isinstance(e3_by_channel, dict):
+            total_e3 = sum(
+                (v.get("revenue_usd", 0) or 0)
+                for v in e3_by_channel.values()
+                if isinstance(v, dict)
+            )
+            total_e3_denom = total_e3 or 1.0
+            channels = [
+                {
+                    "channel": ch,
+                    "revenue_usd": round(d.get("revenue_usd", 0) or 0, 2),
+                    "revenue_thb": round((d.get("revenue_usd", 0) or 0) * 34, 0),
+                    "percentage": round(
+                        (d.get("revenue_usd", 0) or 0) / total_e3_denom * 100, 1
+                    ),
+                }
+                for ch, d in sorted(
+                    e3_by_channel.items(),
+                    key=lambda x: -(x[1].get("revenue_usd", 0) or 0) if isinstance(x[1], dict) else 0,
+                )
+                if isinstance(d, dict) and (d.get("revenue_usd", 0) or 0) > 0
+            ]
+            total_usd = total_e3
+
+    return {"channels": channels, "total_usd": round(total_usd, 2)}
+
+
+@router.get("/package-mix")
+def get_package_mix() -> dict[str, Any]:
+    """E6: 套餐类型占比（饼图数据）"""
+    cache = _require_full_cache()
+    return _adapt_package_mix(cache)
+
+
+@router.get("/team-package-mix")
+def get_team_package_mix() -> dict[str, Any]:
+    """E7: 小组套餐结构"""
+    cache = _require_full_cache()
+    return _adapt_team_package_mix(cache)
+
+
+@router.get("/channel-revenue")
+def get_channel_revenue() -> dict[str, Any]:
+    """E8: 渠道收入 Waterfall 数据"""
+    cache = _require_full_cache()
+    return _adapt_channel_revenue(cache)
+
+
+# ── D2×D3 围场对比 + D4 合并围场总览 ──────────────────────────────────────────
+
+def _safe_div_local(numerator: Any, denominator: Any) -> Optional[float]:
+    """安全除法，分母为0或None时返回None"""
+    try:
+        n = float(numerator)
+        d = float(denominator)
+        return round(n / d, 4) if d != 0 else None
+    except (TypeError, ValueError):
+        return None
+
+
+@router.get("/enclosure-compare")
+def get_enclosure_compare() -> dict[str, Any]:
+    """
+    D2×D3 围场对比：市场围场 vs 转介绍围场
+    返回每个围场段的双渠道核心指标，用于 EnclosureCompareChart 双 Bar 图。
+    """
+    if _service is None:
+        raise HTTPException(status_code=503, detail="服务未初始化")
+
+    enc_order = ["0-30", "31-60", "61-90", "91-180", "181+"]
+
+    raw_data = getattr(_service, "_raw_data", None) or {}
+    kpi_data = raw_data.get("kpi", {}) if isinstance(raw_data, dict) else {}
+
+    d2 = kpi_data.get("enclosure_market", {})
+    d3 = kpi_data.get("enclosure_referral", {})
+
+    d2_map = {r["enclosure"]: r for r in (d2.get("by_enclosure", []) or [])}
+    d3_map = {r["enclosure"]: r for r in (d3.get("by_enclosure", []) or [])}
+
+    comparison = []
+    for enc in enc_order:
+        m = d2_map.get(enc, {})
+        r = d3_map.get(enc, {})
+        comparison.append({
+            "enclosure": enc,
+            "market_conv": m.get("conversion_rate"),
+            "referral_conv": r.get("conversion_rate"),
+            "market_participation": m.get("participation_rate"),
+            "referral_participation": r.get("participation_rate"),
+            "market_students": m.get("active_students"),
+            "referral_students": r.get("active_students"),
+            "market_mobilization": _safe_div_local(
+                m.get("monthly_active_referrers"), m.get("active_students")
+            ),
+            "referral_mobilization": _safe_div_local(
+                r.get("monthly_active_referrers"), r.get("active_students")
+            ),
+            "market_monthly_paid": m.get("monthly_b_paid"),
+            "referral_monthly_paid": r.get("monthly_b_paid"),
+            "conv_gap": round(
+                (r.get("conversion_rate") or 0) - (m.get("conversion_rate") or 0), 4
+            ) if (r.get("conversion_rate") is not None and m.get("conversion_rate") is not None) else None,
+        })
+
+    return {"comparison": comparison, "segments": enc_order}
+
+
+@router.get("/enclosure-combined")
+def get_enclosure_combined() -> dict[str, Any]:
+    """
+    D4 合并围场总览：市场+转介绍合并视图
+    返回各围场段合并后的核心指标卡片数据，用于 EnclosureCombinedOverview。
+    """
+    if _service is None:
+        raise HTTPException(status_code=503, detail="服务未初始化")
+
+    enc_order = ["0-30", "31-60", "61-90", "91-180", "181+"]
+
+    raw_data = getattr(_service, "_raw_data", None) or {}
+    kpi_data = raw_data.get("kpi", {}) if isinstance(raw_data, dict) else {}
+
+    d4 = kpi_data.get("enclosure_combined", {})
+    by_enc = d4.get("by_enclosure", []) or []
+    total = d4.get("total", {}) or {}
+
+    enc_map = {r["enclosure"]: r for r in by_enc}
+
+    segments = []
+    for enc in enc_order:
+        row = enc_map.get(enc, {})
+        students = row.get("active_students") or 0
+        referrers = row.get("monthly_active_referrers") or 0
+        segments.append({
+            "enclosure": enc,
+            "active_students": students,
+            "monthly_b_registrations": row.get("monthly_b_registrations"),
+            "monthly_b_paid": row.get("monthly_b_paid"),
+            "monthly_active_referrers": referrers,
+            "conversion_rate": row.get("conversion_rate"),
+            "participation_rate": row.get("participation_rate"),
+            "mobilization_rate": _safe_div_local(referrers, students),
+            "ratio": row.get("ratio"),
+        })
+
+    return {
+        "segments": segments,
+        "total": {
+            "active_students": total.get("active_students"),
+            "monthly_b_paid": total.get("monthly_b_paid"),
+            "monthly_b_registrations": total.get("monthly_b_registrations"),
+            "conversion_rate": total.get("conversion_rate"),
+            "participation_rate": total.get("participation_rate"),
+        },
+    }

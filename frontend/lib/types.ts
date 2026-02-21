@@ -61,8 +61,16 @@ export interface SummaryMetric {
   actual: number;
   target: number;
   progress: number;       // 0.0 ~ 1.0
-  status: "green" | "yellow" | "red";
+  status: "green" | "yellow" | "red" | "gray";
   label?: string;
+  // M11 enhanced fields
+  daily_avg?: number;
+  remaining_daily_avg?: number;
+  efficiency_lift_pct?: number;
+  absolute_gap?: number;
+  pace_daily_needed?: number;
+  remaining_workdays?: number;
+  thb?: number;
 }
 
 // ── 漏斗 ─────────────────────────────────────────────────────────────────────
@@ -145,11 +153,37 @@ export interface RiskAlert {
 
 // ── ROI ───────────────────────────────────────────────────────────────────────
 
+export interface ROICostItem {
+  奖励类型: string;
+  内外场激励: string | null;
+  激励详情: string | null;
+  推荐动作: string | null;
+  赠送数: number | null;
+  成本单价USD: number | null;
+  成本USD: number | null;
+}
+
+export interface ROIProductSummary {
+  revenue_target: number | null;
+  roi_target: number | null;
+  revenue_actual: number | null;
+  cost_actual: number | null;
+  roi_actual: number | null;
+}
+
+export interface ROICostBreakdownData {
+  items: ROICostItem[];
+  total_cost_usd: number;
+  by_product: Record<string, ROIProductSummary>;
+}
+
 export interface ROIData {
   total_cost: number;
   total_revenue: number;
   roi_ratio: number;
   cost_breakdown?: Record<string, number>;
+  cost_list?: ROICostItem[];
+  by_product?: Record<string, ROIProductSummary>;
   currency?: string;
 }
 
@@ -452,6 +486,9 @@ export interface ImpactChainItem {
   target: number;
   gap: number;
   impact_steps: ImpactStep[];
+  lost_payments?: number;
+  lost_revenue_usd?: number;
+  lost_revenue_thb?: number;
 }
 
 export interface ImpactStep {
@@ -475,14 +512,19 @@ export interface WhatIfResult {
 
 export interface RootCauseData {
   analyses: RootCauseAnalysis[];
+  summary_text: string;
   generated_at: string;
 }
 
 export interface RootCauseAnalysis {
   trigger: string;
   trigger_metric: string;
+  trigger_label?: string;
+  trigger_description?: string;
   severity: "red" | "yellow" | "green";
+  category?: "total" | "channel" | "enclosure" | "efficiency";
   why_chain: WhyLevel[];
+  root_cause?: string;
   action: string;
   expected_impact_usd: number;
 }

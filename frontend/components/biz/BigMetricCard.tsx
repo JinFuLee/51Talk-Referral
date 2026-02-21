@@ -3,7 +3,7 @@
 import { cn } from "@/lib/utils";
 import type { ReactNode } from "react";
 
-type StatusLevel = "green" | "yellow" | "red";
+type StatusLevel = "green" | "yellow" | "red" | "gray";
 
 interface BigMetricCardProps {
   title: string;
@@ -22,12 +22,14 @@ const statusColors: Record<StatusLevel, { badge: string; dot: string }> = {
   green: { badge: "bg-emerald-50 text-emerald-700 border-emerald-200", dot: "bg-emerald-500" },
   yellow: { badge: "bg-amber-50 text-amber-700 border-amber-200", dot: "bg-amber-500" },
   red: { badge: "bg-rose-50 text-rose-700 border-rose-200", dot: "bg-rose-500" },
+  gray: { badge: "bg-slate-50 text-slate-500 border-slate-200", dot: "bg-slate-400" },
 };
 
 const statusEmoji: Record<StatusLevel, string> = {
   green: "🟢",
   yellow: "🟡",
   red: "🔴",
+  gray: "⚪",
 };
 
 export function BigMetricCard({

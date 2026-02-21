@@ -808,6 +808,22 @@ class AnalysisEngineV2:
         )[:3]
         optimal_months = [r["cohort_month"] for r in top_months]
 
+        # B1: 成本明细列表（直接透传，供前端展示真实成本结构）
+        cost_list = roi_data.get("cost_list", []) or []
+
+        # B1: 产品类型 ROI 汇总（次卡 / 现金）
+        by_product = {}
+        for product_key in ("次卡", "现金"):
+            pdata = roi_summary.get(product_key, {})
+            if pdata:
+                by_product[product_key] = {
+                    "revenue_target": pdata.get("目标营收"),
+                    "roi_target":     pdata.get("目标ROI"),
+                    "revenue_actual": pdata.get("实际营收"),
+                    "cost_actual":    pdata.get("实际成本"),
+                    "roi_actual":     pdata.get("实际ROI"),
+                }
+
         return {
             "by_month":        by_month,
             "optimal_months":  optimal_months,
@@ -818,6 +834,8 @@ class AnalysisEngineV2:
                 "reach_half_life":        reach_half_life,
                 "participation_half_life": part_half_life,
             },
+            "cost_list":    cost_list,
+            "by_product":   by_product,
         }
 
     def _calc_half_life(self, by_month: dict) -> Optional[int]:
@@ -1022,6 +1040,8 @@ class AnalysisEngineV2:
         e4 = self.data.get("order", {}).get("order_daily_trend", []) or []
         e5 = self.data.get("order", {}).get("revenue_daily_trend", []) or []
         e6 = self.data.get("order", {}).get("package_ratio", {}) or {}
+        e7_raw = self.data.get("order", {}).get("team_package_ratio", {}).get("by_team", []) or []
+        e8_raw = self.data.get("order", {}).get("channel_revenue", {}).get("by_channel_product", []) or []
 
         total_orders = e3_summary.get("total_orders", 0)
         new_orders   = e3_summary.get("new_orders", 0)
@@ -1042,6 +1062,12 @@ class AnalysisEngineV2:
             for d in all_dates
         ]
 
+        # E7: 分小组套餐占比 → 标准化为 {team, items: [{product_type, ratio}]}
+        team_package = self._normalize_team_package(e7_raw)
+
+        # E8: 渠道×套餐金额 → 标准化为 {channels: [{channel, product, amount_usd, amount_thb}]}
+        channel_product = self._normalize_channel_revenue(e8_raw)
+
         return {
             "summary": {
                 "total": total_orders,
@@ -1054,7 +1080,76 @@ class AnalysisEngineV2:
             "by_team":    list(e3_by_team.values()) if isinstance(e3_by_team, dict) else e3_by_team,
             "daily_trend": daily_trend,
             "package_distribution": e6,
+            "team_package": team_package,
+            "channel_product": channel_product,
         }
+
+    def _normalize_team_package(self, raw: list) -> list:
+        """将 E7 双层表头展平数据归一化为 [{team, items: [{product_type, ratio}]}]"""
+        if not raw:
+            return []
+        result = []
+        for row in raw:
+            if not isinstance(row, dict):
+                continue
+            # 第一列通常是小组名，其余为套餐占比列
+            cols = list(row.keys())
+            if not cols:
+                continue
+            team_name = str(row.get(cols[0], "")).strip()
+            if not team_name or team_name.lower() in ("nan", "none", ""):
+                continue
+            items = []
+            for col in cols[1:]:
+                val = row.get(col)
+                if val is None:
+                    continue
+                try:
+                    ratio = float(val)
+                    items.append({"product_type": str(col).strip(), "ratio": round(ratio, 4)})
+                except (TypeError, ValueError):
+                    pass
+            result.append({"team": team_name, "items": items})
+        return result
+
+    def _normalize_channel_revenue(self, raw: list) -> list:
+        """将 E8 渠道×套餐金额数据归一化为 [{channel, product, amount_usd, amount_thb}]"""
+        if not raw:
+            return []
+        result = []
+        for row in raw:
+            if not isinstance(row, dict):
+                continue
+            cols = list(row.keys())
+            if len(cols) < 2:
+                continue
+            # 尝试识别 product/channel/amount 列（按位置或名称推断）
+            # 列名通常是 产品类型 × 渠道 的展平结构，各字段值为金额
+            # 兼容方式: 第一列=产品/套餐名, 其余列=渠道金额
+            product_col = cols[0]
+            product_name = str(row.get(product_col, "")).strip()
+            if not product_name or product_name.lower() in ("nan", "none", ""):
+                continue
+            for col in cols[1:]:
+                val = row.get(col)
+                if val is None:
+                    continue
+                try:
+                    amount = float(val)
+                    if amount <= 0:
+                        continue
+                    channel_name = str(col).strip()
+                    # amount 字段通常是 THB，转 USD（÷34）
+                    amount_usd = round(amount / 34.0, 2)
+                    result.append({
+                        "channel": channel_name,
+                        "product": product_name,
+                        "amount_usd": amount_usd,
+                        "amount_thb": round(amount, 2),
+                    })
+                except (TypeError, ValueError):
+                    pass
+        return result
 
     # ── 12. outreach_analysis ─────────────────────────────────────────────────
 
@@ -1145,6 +1240,10 @@ class AnalysisEngineV2:
                 "no_call_attendance":     not_called_att,
             },
             "f11_summary": f11_summary,
+            # F11 完整聚合（供 outreach-coverage 端点使用）
+            "f11_by_cc":       f11.get("by_cc", {}) or {},
+            "f11_by_lead_type": f11.get("by_lead_type", {}) or {},
+            "f11_records":     f11.get("records", []) or [],
         }
 
     # ── 14. cc_ranking ────────────────────────────────────────────────────────
@@ -1772,7 +1871,7 @@ class AnalysisEngineV2:
                     pct_change = abs(val - mean_rev) / mean_rev
                     severity = "red" if pct_change >= 0.5 else "yellow"
                     anomalies.append({
-                        "metric":   "daily_revenue_cny",
+                        "metric":   "daily_revenue_usd",
                         "date":     date,
                         "value":    round(val, 2),
                         "expected": round(mean_rev, 2),

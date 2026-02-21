@@ -262,6 +262,7 @@ Excel 数据源 → XlsxReader → DataProcessor → AnalysisEngine → Markdown
 | M12 | 2026-02-21 | 时间对比 + 9项缺陷修复 | YoY修复、WoW周环比、Peak/Valley标注、趋势判断、业绩CC新单化、CC排名18维、工作日修正 | 14 files mod, +1439/-252 lines, QA 12/12 PASS(M11/M12) + 12/12 PASS(bugfix-9) |
 | M13+M14 | 2026-02-21 | 影响链引擎+What-if模拟器+5-Why根因分析+金字塔报告+阶段评估 | 6条效率→收入影响链、What-if POST API、4个前端组件、RootCauseEngine规则引擎、PyramidReportGenerator、StageEvaluator | 5 backend files new, 8 frontend files new, 6 edited, QA 11/11 PASS |
 | M15 | 2026-02-21 | 5-Why引擎扩展+全站QA验收修复 | 7+条多维根因链、动态IMPACT计算、分类Tab、91项QA检查93.4%通过、3个bug修复 | 6 files mod, +530/-20 lines, QA 85/91 PASS |
+| M16 Phase 1 | 2026-02-21 | 数据源深度开发Phase1 — 7特性+6源激活 | F11外呼缺口、C6留存热力、B1真实ROI、D2×D3围场对比、E6+E7+E8套餐瀑布、F4渠道MoM、F5外呼热力 | 23 files mod, +1615 lines |
 
 ## 里程碑规划（M11+）
 
@@ -326,13 +327,14 @@ M14 (5-Why)     ─── 依赖 M13（影响链是 5-Why 的量化基础）
 | 9 | 浏览器兼容 | WebMCP 目前使用 @mcp-b/global polyfill，等浏览器原生支持后可移除 | P3 | M11 | 当前可用，后续升级移除 polyfill |
 | 10 | 类型系统 | TrendLineChart data prop 类型需进一步泛型化 | P2 | M11 | 已沉淀到 M12 约束条件 |
 | 11 | 文档过期 | datasources.py 注释"12源"过时需更新为"35源" | P3 | M10 | M12 已更新 CLAUDE.md 业务规则 |
-| 12 | ROI成本数据 | 成本明细框架占位，待对接泰国真实激励/活动费用数据 | P1 | M13 | M11/M12 已标注预估 |
+| 12 | ROI成本数据 | 成本明细框架占位，待对接泰国真实激励/活动费用数据 | P1 | M13 | M16 已获取真实激励和活动费用数据 |
 | 13 | 类型优化 | 前端 TypeScript 仍有部分 `as any` 需清理 | P2 | M13+ | 日常重构积累 |
 | 14 | insights.py 容错 | 复用 analysis._service，极早期请求可能 503 | P3 | M15 | M13+M14 低风险，下个周期优化 |
-| 15 | 5-Why 扩展 | 因果链模板可扩展更多分支（目前 3 条：注册/付费/收入） | P2 | M15 | M13+M14 初版完成，后续增强 |
-| 16 | API 功能缺失 | /attribution 端点未实现（root_cause 引擎支持需排期） | P3 | M16 | M15 新识别 |
-| 17 | 导航缺失 | 3 个 biz 页面（impact/insights/attribution）无导航入口 | P3 | M16 | M15 新识别，前端导航条待补充 |
-| 18 | 数据字段 | trend MoM 数据返回结构与其他对比维度不对齐，需后续完善 | P2 | M16 | M15 修复 500 bug，字段对齐为后续任务 |
+| 15 | 5-Why 扩展 | 因果链模板可扩展更多分支（目前 7+ 条多维链） | P2 | M15 | M15 已扩展至 7+ 条，M16 可继续增强 |
+| 16 | API 功能缺失 | /attribution 端点未实现（root_cause 引擎支持需排期） | P3 | M17 | M16 无需实现，规划 M17+ |
+| 17 | 导航补充 | /biz/coverage, /biz/cohort, /biz/enclosure, /ops/outreach-heatmap 导航入口 | P2 | M16 | M16 Phase 1 已补充 5 个新页面 |
+| 18 | 数据字段 | trend MoM 数据返回结构与其他对比维度不对齐，需后续完善 | P2 | M17 | M16 新数据源对齐完成 |
+| 19 | 新增技术债 | Cohort/Enclosure 数据源需要历史队列数据完整性验证 | P2 | M17 | M16 初版完成，数据质量优化 |
 
 ## WebMCP
 不适用（非 Web 前端项目）。如后续添加 Web UI，参见全局 CLAUDE.md WebMCP 章节。

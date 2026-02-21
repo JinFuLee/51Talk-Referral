@@ -419,8 +419,11 @@ class ImpactChainEngine:
         target_value = target_map.get(metric)
         upstream_base = base_map.get(metric, 0)
 
+        # 当前值缺失时用 fallback 0.0，避免返回全 0 delta
+        effective_current = current_value if current_value is not None else 0.0
+
         # 当前损失（current_value → target）
-        current_chain = self._compute_chain(metric, current_value, target_value, upstream_base)
+        current_chain = self._compute_chain(metric, effective_current, target_value, upstream_base)
         # 模拟后损失（new_value → target）
         simulated_chain = self._compute_chain(metric, new_value, target_value, upstream_base)
 

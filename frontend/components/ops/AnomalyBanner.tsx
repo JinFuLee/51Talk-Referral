@@ -14,6 +14,12 @@ const severityIcon: Record<string, string> = {
   low: "⚪",
 };
 
+const metricLabel: Record<string, string> = {
+  daily_revenue_usd: "日收入(USD)",
+  daily_revenue_cny: "日收入",
+  cc_checkin_rate: "CC打卡率",
+};
+
 interface AnomalyBannerProps {
   anomalies: AnomalyItem[];
 }
@@ -36,7 +42,7 @@ export function AnomalyBanner({ anomalies }: AnomalyBannerProps) {
         <ul className="flex flex-wrap gap-x-4 gap-y-1">
           {anomalies.slice(0, 4).map((a, i) => (
             <li key={i} className="text-xs opacity-90">
-              <span className="font-medium">{a.metric}</span>
+              <span className="font-medium">{metricLabel[a.metric] ?? a.metric}</span>
               {a.description && <span className="ml-1 opacity-75">— {a.description}</span>}
             </li>
           ))}

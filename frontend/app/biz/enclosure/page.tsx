@@ -3,8 +3,12 @@
 import { Card } from "@/components/ui/Card";
 import { EnclosureHeatmap } from "@/components/charts/EnclosureHeatmap";
 import { Spinner } from "@/components/ui/Spinner";
-import { useEnclosure } from "@/lib/hooks";
+import { useEnclosure, useEnclosureCompare, useEnclosureCombined } from "@/lib/hooks";
 import type { EnclosureData, EnclosureSegment } from "@/lib/types/analysis";
+import { EnclosureCompareChart } from "@/components/biz/EnclosureCompareChart";
+import { EnclosureCombinedOverview } from "@/components/biz/EnclosureCombinedOverview";
+import type { EnclosureComparePoint } from "@/components/biz/EnclosureCompareChart";
+import type { EnclosureCombinedSegment, EnclosureCombinedTotal } from "@/components/biz/EnclosureCombinedOverview";
 import {
   BarChart,
   Bar,
@@ -40,6 +44,8 @@ const STRATEGY_TIPS = [
 
 export default function BizEnclosurePage() {
   const { data, isLoading } = useEnclosure();
+  const { data: compareData, isLoading: compareLoading } = useEnclosureCompare();
+  const { data: combinedData, isLoading: combinedLoading } = useEnclosureCombined();
 
   if (isLoading) {
     return (
@@ -64,6 +70,10 @@ export default function BizEnclosurePage() {
     跟进覆盖率: ((s.followup_rate ?? 0) * 100).toFixed(0),
   }));
 
+  const comparePoints: EnclosureComparePoint[] = compareData?.comparison ?? [];
+  const combinedSegments: EnclosureCombinedSegment[] = combinedData?.segments ?? [];
+  const combinedTotal: EnclosureCombinedTotal = combinedData?.total ?? {};
+
   return (
     <div className="max-w-5xl mx-auto space-y-8">
       {/* Page header */}
@@ -83,7 +93,7 @@ export default function BizEnclosurePage() {
       </Card>
 
       {/* Followup coverage bar chart */}
-      <Card title="📊 围场跟进覆盖率">
+      <Card title="围场跟进覆盖率">
         <ResponsiveContainer width="100%" height={200}>
           <BarChart data={coverageData} margin={{ top: 4, right: 16, left: 0, bottom: 4 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#f0f4f8" />
@@ -96,7 +106,7 @@ export default function BizEnclosurePage() {
       </Card>
 
       {/* Strategy tips */}
-      <Card title="💡 策略建议">
+      <Card title="策略建议">
         <ul className="space-y-2">
           {STRATEGY_TIPS.map((tip, i) => (
             <li
@@ -151,6 +161,45 @@ export default function BizEnclosurePage() {
           </table>
         </Card>
       )}
+
+      {/* D2×D3 围场对比 */}
+      <Card title="市场 vs 转介绍围场对比 (D2×D3)">
+        <p className="text-xs text-slate-400 mb-4">
+          蓝色 = 市场渠道 · 紫色 = 转介绍渠道 · 切换指标查看不同维度差异
+        </p>
+        {compareLoading ? (
+          <div className="flex items-center justify-center h-40">
+            <Spinner />
+          </div>
+        ) : comparePoints.length > 0 ? (
+          <EnclosureCompareChart comparison={comparePoints} />
+        ) : (
+          <p className="text-sm text-slate-400 text-center py-8">
+            暂无数据 — 请先运行分析
+          </p>
+        )}
+      </Card>
+
+      {/* D4 合并围场总览 */}
+      <Card title="合并围场总览 (D4)">
+        <p className="text-xs text-slate-400 mb-4">
+          市场+转介绍合并视图 · 5 个围场段核心指标 + 转化漏斗
+        </p>
+        {combinedLoading ? (
+          <div className="flex items-center justify-center h-40">
+            <Spinner />
+          </div>
+        ) : combinedSegments.length > 0 ? (
+          <EnclosureCombinedOverview
+            segments={combinedSegments}
+            total={combinedTotal}
+          />
+        ) : (
+          <p className="text-sm text-slate-400 text-center py-8">
+            暂无数据 — 请先运行分析
+          </p>
+        )}
+      </Card>
     </div>
   );
 }

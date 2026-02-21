@@ -3,6 +3,7 @@
  * 通过 Next.js rewrites: /api/* → http://localhost:8000/api/*
  */
 import type { MonthlyTargetV2, TargetRecommendation, ImpactChainData, WhatIfResult, RootCauseData, StageEvaluation, PyramidReport } from "./types";
+import { errorLogger } from "./error-logger";
 
 const BASE = "/api";
 
@@ -13,6 +14,13 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
   });
   if (!res.ok) {
     const text = await res.text().catch(() => res.statusText);
+    errorLogger.capture({
+      type: "api_error",
+      message: `API ${res.status}: ${text}`,
+      api: path,
+      status: res.status,
+      response: text.slice(0, 500),
+    });
     throw new Error(`API ${res.status}: ${text}`);
   }
   return res.json() as Promise<T>;
@@ -42,6 +50,7 @@ export const analysisAPI = {
   getAnomalies: () => request<unknown[]>("/analysis/anomalies"),
   getRiskAlerts: () => request<unknown[]>("/analysis/risk-alerts"),
   getROI: () => request<unknown>("/analysis/roi"),
+  getROICostBreakdown: () => request<unknown>("/analysis/roi/cost-breakdown"),
   getPrediction: () => request<unknown>("/analysis/prediction"),
   getAttribution: () => request<unknown>("/analysis/attribution"),
   getCCRanking: (topN = 10) =>
@@ -67,6 +76,10 @@ export const analysisAPI = {
   getRootCause: () => request<RootCauseData>("/analysis/root-cause"),
   getStageEvaluation: () => request<StageEvaluation>("/analysis/stage-evaluation"),
   getPyramidReport: () => request<PyramidReport>("/analysis/pyramid-report"),
+  getPackageMix: () => request<{ items: Array<{ product_type: string; count: number; revenue_usd: number; percentage: number }> }>("/analysis/package-mix"),
+  getTeamPackageMix: () => request<{ teams: Array<{ team: string; items: Array<{ product_type: string; ratio: number }> }> }>("/analysis/team-package-mix"),
+  getChannelRevenue: () => request<{ channels: Array<{ channel: string; revenue_usd: number; revenue_thb: number; percentage: number }>; total_usd: number }>("/analysis/channel-revenue"),
+  getOutreachCoverage: () => request<unknown>("/analysis/outreach-coverage"),
 };
 
 // ── Reports ───────────────────────────────────────────────────────────────────

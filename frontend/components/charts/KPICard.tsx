@@ -5,7 +5,7 @@ interface KPICardProps {
   actual: number;
   target: number;
   unit?: string;
-  status: "green" | "yellow" | "red";
+  status: "green" | "yellow" | "red" | "gray";
   progress: number; // 0~1
   remaining_daily_avg?: number;
   efficiency_lift_pct?: number;
@@ -15,9 +15,10 @@ const STATUS_COLORS = {
   green: { bg: "bg-green-50", border: "border-green-200", text: "text-green-700", bar: "bg-green-500" },
   yellow: { bg: "bg-yellow-50", border: "border-yellow-200", text: "text-yellow-700", bar: "bg-yellow-400" },
   red: { bg: "bg-red-50", border: "border-red-200", text: "text-red-700", bar: "bg-red-500" },
+  gray: { bg: "bg-slate-50", border: "border-slate-200", text: "text-slate-500", bar: "bg-slate-400" },
 };
 
-const STATUS_EMOJI = { green: "🟢", yellow: "🟡", red: "🔴" };
+const STATUS_EMOJI = { green: "🟢", yellow: "🟡", red: "🔴", gray: "⚪" };
 
 function formatNumber(n: number): string {
   if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;

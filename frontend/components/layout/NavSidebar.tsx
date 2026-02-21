@@ -18,6 +18,8 @@ const OPS_ITEMS: NavItem[] = [
   { href: "/ops/outreach", label: "外呼监控", icon: "📞" },
   { href: "/ops/trial", label: "体验课跟进", icon: "📚" },
   { href: "/ops/orders", label: "订单分析", icon: "🛒" },
+  { href: "/ops/channels", label: "渠道趋势", icon: "📈" },
+  { href: "/ops/outreach-heatmap", label: "外呼热力图", icon: "🔥" },
 ];
 
 const BIZ_ITEMS: NavItem[] = [
@@ -26,8 +28,12 @@ const BIZ_ITEMS: NavItem[] = [
   { href: "/biz/enclosure", label: "围场策略", icon: "🎯" },
   { href: "/biz/trend", label: "趋势预测", icon: "🔮" },
   { href: "/biz/impact", label: "影响链分析", icon: "⛓️" },
+  { href: "/biz/attribution", label: "归因分析", icon: "🔍" },
   { href: "/biz/team", label: "团队概况", icon: "👥" },
   { href: "/biz/insights", label: "运营洞察", icon: "💡" },
+  { href: "/biz/cohort", label: "Cohort 分析", icon: "📈" },
+  { href: "/biz/coverage", label: "覆盖缺口", icon: "🎯" },
+  { href: "/biz/orders", label: "订单分析", icon: "🛒" },
 ];
 
 const SYS_ITEMS: NavItem[] = [

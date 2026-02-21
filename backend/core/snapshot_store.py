@@ -132,10 +132,18 @@ class SnapshotStore:
         summary = analysis_result.get("summary", {})
         time_progress = analysis_result.get("time_progress", 0.0)
 
-        kpi_metrics = ["注册", "预约", "出席", "付费", "金额"]
+        # V2 引擎使用英文 key（registration/payment/revenue/appointment/attendance）
+        kpi_metrics = ["registration", "payment", "revenue", "appointment", "attendance"]
         for metric in kpi_metrics:
             if metric in summary:
-                actual = summary[metric].get("actual", 0)
+                v = summary[metric]
+                if not isinstance(v, dict):
+                    continue
+                # revenue 使用 usd 字段作为实际值
+                if metric == "revenue":
+                    actual = v.get("usd") or v.get("actual") or 0
+                else:
+                    actual = v.get("actual") or 0
                 cursor.execute("""
                     INSERT OR REPLACE INTO daily_kpi
                     (snapshot_date, metric, value, time_progress)
@@ -144,7 +152,13 @@ class SnapshotStore:
 
         # 2. 保存 CC 排名快照
         cc_ranking = analysis_result.get("cc_ranking", {})
-        rankings = cc_ranking.get("rankings", [])
+        # V2 引擎 cc_ranking 可能是 list 直出、或 dict 含 "profiles"/"items" key
+        if isinstance(cc_ranking, list):
+            rankings = cc_ranking
+        elif isinstance(cc_ranking, dict):
+            rankings = cc_ranking.get("profiles") or cc_ranking.get("items") or cc_ranking.get("rankings") or []
+        else:
+            rankings = []
 
         # 先删除该日期的旧数据
         cursor.execute("""
@@ -443,7 +457,7 @@ class SnapshotStore:
         按 ISO 周聚合 daily_kpi，返回近 N 周的汇总数据。
 
         Args:
-            metric:     指标名称（如 "注册"、"付费"）
+            metric:     指标名称（如 "registration"、"payment"、"revenue"）
             weeks_back: 返回最近 N 周
 
         Returns:

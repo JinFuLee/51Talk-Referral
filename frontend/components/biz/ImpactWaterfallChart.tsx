@@ -70,9 +70,9 @@ export function ImpactWaterfallChart({ data }: ImpactWaterfallChartProps) {
   const [selectedMetric, setSelectedMetric] = useState<string | null>(null);
 
   const chartData: ChartItem[] = data.chains.map((chain) => {
-    // Calculate lost_usd from impact_steps if available
-    const lostUsd = chain.impact_steps.find((s) => s.step === "lost_revenue_usd")?.value
-      ?? chain.gap * (data.total_lost_revenue_usd / data.chains.reduce((s, c) => s + Math.abs(c.gap), 0.001));
+    // Prefer lost_revenue_usd step, then top-level field, then default 0
+    const stepValue = chain.impact_steps.find((s) => s.step === "lost_revenue_usd")?.value;
+    const lostUsd = stepValue ?? chain.lost_revenue_usd ?? 0;
     return {
       label: chain.label,
       metric: chain.metric,

@@ -1,30 +1,62 @@
 "use client";
 
-import { useROI } from "@/lib/hooks";
+import { useROI, useROICostBreakdown } from "@/lib/hooks";
 import { formatRevenue, formatUSD } from "@/lib/utils";
 import { Card } from "@/components/ui/Card";
 import { CohortDecayChart } from "@/components/charts/CohortDecayChart";
 import { Spinner } from "@/components/ui/Spinner";
-import type { ROIData } from "@/lib/types";
+import type { ROIData, ROICostBreakdownData, ROIProductSummary, ROICostItem } from "@/lib/types";
 
 interface ROIMetricBlock {
   label: string;
   roi: number;
+  roi_target: number | null;
   cost: number;
-  currency: string;
+  revenue: number | null;
 }
 
-const COST_BREAKDOWN = [
-  { type: "次卡奖励", detail: "带新成功送1节次卡", count: 150, unit_price: 120, total: 18000 },
-  { type: "现金奖励", detail: "付费后现金返还", count: 80, unit_price: 300, total: 24000 },
-  { type: "活动奖励", detail: "打卡积分兑换", count: 200, unit_price: 50, total: 10000 },
-  { type: "SS 人力成本", detail: "SS 团队跟进", count: 33, unit_price: 1800, total: 59400 },
-];
+function ROIBlock({ block }: { block: ROIMetricBlock }) {
+  const color =
+    block.roi >= 0.5
+      ? "border-emerald-200 bg-emerald-50"
+      : block.roi >= 0.35
+      ? "border-amber-200 bg-amber-50"
+      : "border-rose-200 bg-rose-50";
+  const textColor =
+    block.roi >= 0.5
+      ? "text-emerald-700"
+      : block.roi >= 0.35
+      ? "text-amber-700"
+      : "text-rose-700";
+  const status =
+    block.roi >= 0.5 ? "良好" : block.roi >= 0.35 ? "偏低" : "需改善";
+
+  return (
+    <div className={`rounded-2xl border-2 p-6 text-center ${color}`}>
+      <p className="text-sm font-medium text-slate-500 mb-3">{block.label}</p>
+      <p className={`text-4xl font-bold mb-2 ${textColor}`}>
+        {block.roi.toFixed(2)}
+      </p>
+      {block.roi_target !== null && block.roi_target !== undefined && (
+        <p className="text-xs text-slate-400 mb-1">
+          目标 {block.roi_target.toFixed(2)}
+          <span className={block.roi >= block.roi_target ? " text-emerald-600" : " text-rose-500"}>
+            {" "}({block.roi >= block.roi_target ? "+" : ""}
+            {(block.roi - block.roi_target).toFixed(2)})
+          </span>
+        </p>
+      )}
+      <p className="text-sm text-slate-400">成本 {formatRevenue(block.cost)}</p>
+      <p className={`text-xs mt-1 font-medium ${textColor}`}>{status}</p>
+    </div>
+  );
+}
 
 export default function BizROIPage() {
-  const { data: roiResp, isLoading } = useROI();
+  const { data: roiResp, isLoading: roiLoading } = useROI();
+  const { data: costResp, isLoading: costLoading } = useROICostBreakdown();
 
-  if (isLoading) {
+  if (roiLoading || costLoading) {
     return (
       <div className="flex items-center justify-center h-64">
         <Spinner />
@@ -33,16 +65,52 @@ export default function BizROIPage() {
   }
 
   const roi = roiResp as ROIData | undefined;
-  const totalCost = roi?.total_cost ?? 111400;
-  const totalRevenue = roi?.total_revenue ?? 500000;
-  const roiRatio = roi?.roi_ratio ?? 0.45;
+  const costData = costResp as ROICostBreakdownData | undefined;
 
-  // Simulate sub-type ROI breakdown
-  const roiBlocks: ROIMetricBlock[] = [
-    { label: "次卡 ROI", roi: 0.50, cost: totalCost * 0.45, currency: "USD" },
-    { label: "现金 ROI", roi: 0.40, cost: totalCost * 0.55, currency: "USD" },
-    { label: "综合 ROI", roi: roiRatio, cost: totalCost, currency: "USD" },
-  ];
+  const totalCost = roi?.total_cost ?? costData?.total_cost_usd ?? 0;
+  const totalRevenue = roi?.total_revenue ?? 0;
+  const roiRatio = roi?.roi_ratio ?? 0;
+
+  // Build ROI metric blocks from real by_product data when available
+  const byProduct = roi?.by_product ?? costData?.by_product ?? {};
+  const roiBlocks: ROIMetricBlock[] = [];
+
+  const productLabels: Record<string, string> = { 次卡: "次卡 ROI", 现金: "现金 ROI" };
+  for (const [key, label] of Object.entries(productLabels)) {
+    const p = byProduct[key] as ROIProductSummary | undefined;
+    if (p) {
+      roiBlocks.push({
+        label,
+        roi: p.roi_actual ?? 0,
+        roi_target: p.roi_target ?? null,
+        cost: p.cost_actual ?? 0,
+        revenue: p.revenue_actual ?? null,
+      });
+    }
+  }
+
+  // Fallback: synthesize from total if no product breakdown
+  if (roiBlocks.length === 0) {
+    roiBlocks.push(
+      { label: "次卡 ROI", roi: 0.5, roi_target: null, cost: totalCost * 0.45, revenue: null },
+      { label: "现金 ROI", roi: 0.4, roi_target: null, cost: totalCost * 0.55, revenue: null }
+    );
+  }
+
+  // Always add overall
+  roiBlocks.push({
+    label: "综合 ROI",
+    roi: roiRatio,
+    roi_target: null,
+    cost: totalCost,
+    revenue: totalRevenue,
+  });
+
+  // Cost breakdown: use real cost_list from API, fall back to empty
+  const costItems: ROICostItem[] = roi?.cost_list ?? costData?.items ?? [];
+  const hasRealCostData = costItems.length > 0;
+
+  const computedTotalCost = costItems.reduce((s, r) => s + (r.成本USD ?? 0), 0);
 
   return (
     <div className="max-w-5xl mx-auto space-y-8">
@@ -56,33 +124,7 @@ export default function BizROIPage() {
       <Card title="ROI 全景">
         <div className="grid grid-cols-3 gap-6">
           {roiBlocks.map((b) => (
-            <div
-              key={b.label}
-              className={`rounded-2xl border-2 p-6 text-center ${
-                b.roi >= 0.5
-                  ? "border-emerald-200 bg-emerald-50"
-                  : b.roi >= 0.35
-                  ? "border-amber-200 bg-amber-50"
-                  : "border-rose-200 bg-rose-50"
-              }`}
-            >
-              <p className="text-sm font-medium text-slate-500 mb-3">{b.label}</p>
-              <p
-                className={`text-4xl font-bold mb-2 ${
-                  b.roi >= 0.5
-                    ? "text-emerald-700"
-                    : b.roi >= 0.35
-                    ? "text-amber-700"
-                    : "text-rose-700"
-                }`}
-              >
-                {b.roi.toFixed(2)}
-              </p>
-              <p className="text-sm text-slate-400">成本 {formatRevenue(b.cost)}</p>
-              <p className="text-xs mt-1 font-medium">
-                {b.roi >= 0.5 ? "🟢 良好" : b.roi >= 0.35 ? "🟡 偏低" : "🔴 需改善"}
-              </p>
-            </div>
+            <ROIBlock key={b.label} block={b} />
           ))}
         </div>
 
@@ -108,7 +150,7 @@ export default function BizROIPage() {
       </Card>
 
       {/* Cohort decay */}
-      <Card title="📉 Cohort 衰减曲线">
+      <Card title="Cohort 衰减曲线">
         <p className="text-xs text-slate-400 mb-4">
           触达率半衰期约 4 月，参与率半衰期约 2 月 — 前 2 月投入 ROI 最高
         </p>
@@ -116,35 +158,54 @@ export default function BizROIPage() {
       </Card>
 
       {/* Cost breakdown */}
-      <Card title="💰 成本明细">
+      <Card title="成本明细">
+        {!hasRealCostData && (
+          <p className="text-xs text-amber-500 mb-3">
+            B1 数据文件未加载，暂无真实成本明细
+          </p>
+        )}
         <table className="w-full text-sm">
           <thead>
             <tr className="text-left border-b border-slate-100">
               <th className="pb-2 text-slate-500 font-medium">奖励类型</th>
               <th className="pb-2 text-slate-500 font-medium">激励详情</th>
+              <th className="pb-2 text-slate-500 font-medium">推荐动作</th>
               <th className="pb-2 text-slate-500 font-medium text-right">数量</th>
               <th className="pb-2 text-slate-500 font-medium text-right">单价</th>
               <th className="pb-2 text-slate-500 font-medium text-right">总成本</th>
             </tr>
           </thead>
           <tbody>
-            {COST_BREAKDOWN.map((row, i) => (
-              <tr key={i} className="border-b border-slate-50 hover:bg-slate-50">
-                <td className="py-3 font-medium text-slate-700">{row.type}</td>
-                <td className="py-3 text-slate-400">{row.detail}</td>
-                <td className="py-3 text-right">{row.count}</td>
-                <td className="py-3 text-right">{formatUSD(row.unit_price)}</td>
-                <td className="py-3 text-right font-semibold text-slate-700">
-                  {formatRevenue(row.total)}
+            {hasRealCostData ? (
+              <>
+                {costItems.map((row, i) => (
+                  <tr key={i} className="border-b border-slate-50 hover:bg-slate-50">
+                    <td className="py-3 font-medium text-slate-700">{row.奖励类型}</td>
+                    <td className="py-3 text-slate-400">{row.激励详情 ?? "-"}</td>
+                    <td className="py-3 text-slate-400">{row.推荐动作 ?? "-"}</td>
+                    <td className="py-3 text-right">{row.赠送数 ?? "-"}</td>
+                    <td className="py-3 text-right">
+                      {row.成本单价USD != null ? formatUSD(row.成本单价USD) : "-"}
+                    </td>
+                    <td className="py-3 text-right font-semibold text-slate-700">
+                      {row.成本USD != null ? formatRevenue(row.成本USD) : "-"}
+                    </td>
+                  </tr>
+                ))}
+                <tr className="bg-slate-50 font-bold">
+                  <td className="py-3 text-slate-700" colSpan={5}>合计</td>
+                  <td className="py-3 text-right text-indigo-700">
+                    {formatRevenue(computedTotalCost)}
+                  </td>
+                </tr>
+              </>
+            ) : (
+              <tr>
+                <td colSpan={6} className="py-6 text-center text-slate-400 text-sm">
+                  暂无数据 — 请上传 B1 ROI 数据文件后重新分析
                 </td>
               </tr>
-            ))}
-            <tr className="bg-slate-50 font-bold">
-              <td className="py-3 text-slate-700" colSpan={4}>合计</td>
-              <td className="py-3 text-right text-indigo-700">
-                {formatRevenue(COST_BREAKDOWN.reduce((s, r) => s + r.total, 0))}
-              </td>
-            </tr>
+            )}
           </tbody>
         </table>
       </Card>

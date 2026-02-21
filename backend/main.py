@@ -14,7 +14,7 @@ sys.path.insert(0, str(BACKEND_DIR))
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from api import analysis, reports, datasources, config, snapshots, notifications, health, insights
+from api import analysis, reports, datasources, config, snapshots, notifications, health, insights, system, cohort_detail, channel_trend, outreach_heatmap, outreach_coverage
 from services.analysis_service import AnalysisService
 
 app = FastAPI(
@@ -70,6 +70,27 @@ app.include_router(
     prefix="/api/analysis",
     tags=["insights"],
 )
+app.include_router(
+    cohort_detail.router,
+    prefix="/api/analysis",
+    tags=["cohort"],
+)
+app.include_router(
+    channel_trend.router,
+    prefix="/api/analysis",
+    tags=["channel"],
+)
+app.include_router(
+    outreach_heatmap.router,
+    prefix="/api/analysis",
+    tags=["outreach"],
+)
+app.include_router(
+    outreach_coverage.router,
+    prefix="/api/analysis",
+    tags=["outreach"],
+)
+app.include_router(system.router)
 
 
 @app.on_event("startup")
@@ -82,6 +103,11 @@ async def startup_event():
     config.set_service(_analysis_service)
     snapshots.set_service(_analysis_service)
     notifications.set_service(_analysis_service)
+    insights.set_service(_analysis_service)  # BUG-4/11: 独立注入，消除对 analysis._service 的依赖
+    cohort_detail.set_service(_analysis_service)
+    channel_trend.set_service(_analysis_service)
+    outreach_heatmap.set_service(_analysis_service)
+    outreach_coverage.set_service(_analysis_service)
 
     # 后台自动运行分析（非阻塞）
     import asyncio

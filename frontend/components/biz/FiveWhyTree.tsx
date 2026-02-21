@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { formatRevenue } from "@/lib/utils";
 import type { RootCauseData, RootCauseAnalysis, WhyLevel } from "@/lib/types";
 
@@ -28,6 +28,15 @@ const SEVERITY_STYLES = {
     dot: "bg-green-500",
   },
 };
+
+const CATEGORY_LABELS: Record<string, string> = {
+  total:      "总量指标",
+  channel:    "渠道拆解",
+  enclosure:  "围场效率",
+  efficiency: "运营人效",
+};
+
+const CATEGORY_ORDER = ["total", "channel", "enclosure", "efficiency"];
 
 function DataSupportBadge({
   ds,
@@ -66,7 +75,7 @@ function WhyChain({ chain }: { chain: WhyLevel[] }) {
                       className="inline-flex items-center text-xs font-bold bg-indigo-600 text-white rounded px-1.5 py-0.5"
                       title="根因"
                     >
-                      🎯 根因
+                      根因
                     </span>
                   ) : (
                     <span className="text-xs font-semibold text-slate-400 bg-slate-100 rounded px-1.5 py-0.5">
@@ -93,7 +102,7 @@ function WhyChain({ chain }: { chain: WhyLevel[] }) {
 }
 
 function AnalysisPanel({ analysis }: { analysis: RootCauseAnalysis }) {
-  const sev = SEVERITY_STYLES[analysis.severity];
+  const sev = SEVERITY_STYLES[analysis.severity] ?? SEVERITY_STYLES.yellow;
   return (
     <div className={`rounded-lg border bg-white p-5 ${sev.border}`}>
       <div className="flex items-start justify-between gap-3 flex-wrap">
@@ -112,7 +121,7 @@ function AnalysisPanel({ analysis }: { analysis: RootCauseAnalysis }) {
 
       <div className="mt-4 pt-4 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
         <div>
-          <span className="text-xs font-semibold text-slate-500">💡 行动方案</span>
+          <span className="text-xs font-semibold text-slate-500">行动方案</span>
           <p className="text-sm text-slate-700 mt-0.5">{analysis.action}</p>
         </div>
         <div className="shrink-0">
@@ -127,45 +136,107 @@ function AnalysisPanel({ analysis }: { analysis: RootCauseAnalysis }) {
 }
 
 export function FiveWhyTree({ data }: FiveWhyTreeProps) {
-  const [activeIdx, setActiveIdx] = useState(0);
   const analyses = data.analyses ?? [];
+
+  // 按 category 分组
+  const grouped = useMemo(() => {
+    const map: Record<string, RootCauseAnalysis[]> = {};
+    for (const a of analyses) {
+      const cat = a.category ?? "total";
+      (map[cat] ??= []).push(a);
+    }
+    return map;
+  }, [analyses]);
+
+  // 只保留有数据的 category，按固定顺序排列
+  const activeCats = CATEGORY_ORDER.filter((c) => (grouped[c]?.length ?? 0) > 0);
+
+  const [activeCat, setActiveCat] = useState<string>(() => activeCats[0] ?? "total");
+  const [activeIdx, setActiveIdx] = useState(0);
+
+  // 切换分类时重置子 tab
+  function handleCatChange(cat: string) {
+    setActiveCat(cat);
+    setActiveIdx(0);
+  }
 
   if (analyses.length === 0) {
     return (
       <div className="bg-white rounded-xl border border-slate-200 p-6">
-        <h2 className="text-lg font-semibold mb-2">🔍 根因分析</h2>
+        <h2 className="text-lg font-semibold mb-2">根因分析</h2>
         <p className="text-sm text-slate-400">暂无根因分析数据</p>
       </div>
     );
   }
 
+  const currentGroup = grouped[activeCat] ?? [];
+  const safeIdx = Math.min(activeIdx, currentGroup.length - 1);
+  const currentAnalysis = currentGroup[safeIdx];
+
   return (
     <div className="bg-white rounded-xl border border-slate-200 p-6">
-      <h2 className="text-lg font-semibold mb-4">🔍 根因分析 (5-Why)</h2>
+      <h2 className="text-lg font-semibold mb-1">根因分析 (5-Why)</h2>
 
-      {analyses.length > 1 && (
-        <div className="flex gap-2 flex-wrap mb-4">
-          {analyses.map((a, i) => {
-            const sev = SEVERITY_STYLES[a.severity];
+      {/* 总结文本 */}
+      {data.summary_text && (
+        <p className="text-sm text-slate-500 mb-4 bg-slate-50 rounded px-3 py-2 border border-slate-100">
+          {data.summary_text}
+        </p>
+      )}
+
+      {/* 第一层：分类 Tab */}
+      {activeCats.length > 1 && (
+        <div className="flex gap-2 flex-wrap mb-4 border-b border-slate-100 pb-3">
+          {activeCats.map((cat) => {
+            const count = grouped[cat]?.length ?? 0;
             return (
               <button
-                key={i}
-                onClick={() => setActiveIdx(i)}
-                className={`flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-full border transition-colors ${
-                  activeIdx === i
+                key={cat}
+                onClick={() => handleCatChange(cat)}
+                className={`text-sm px-3 py-1.5 rounded-md border transition-colors ${
+                  activeCat === cat
                     ? "bg-indigo-600 text-white border-indigo-600"
                     : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
                 }`}
               >
-                <span className={`w-2 h-2 rounded-full ${sev.dot}`} />
-                {a.trigger_metric}
+                {CATEGORY_LABELS[cat] ?? cat}
+                {count > 1 && (
+                  <span className={`ml-1.5 text-xs rounded-full px-1.5 py-0.5 ${
+                    activeCat === cat ? "bg-indigo-500 text-indigo-100" : "bg-slate-100 text-slate-500"
+                  }`}>
+                    {count}
+                  </span>
+                )}
               </button>
             );
           })}
         </div>
       )}
 
-      <AnalysisPanel analysis={analyses[activeIdx]} />
+      {/* 第二层：同分类下多个分析切换 */}
+      {currentGroup.length > 1 && (
+        <div className="flex gap-2 flex-wrap mb-4">
+          {currentGroup.map((a, i) => {
+            const sev = SEVERITY_STYLES[a.severity] ?? SEVERITY_STYLES.yellow;
+            return (
+              <button
+                key={i}
+                onClick={() => setActiveIdx(i)}
+                className={`flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-full border transition-colors ${
+                  safeIdx === i
+                    ? "bg-indigo-600 text-white border-indigo-600"
+                    : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
+                }`}
+              >
+                <span className={`w-2 h-2 rounded-full ${sev.dot}`} />
+                {a.trigger_label ?? a.trigger_metric}
+              </button>
+            );
+          })}
+        </div>
+      )}
+
+      {currentAnalysis && <AnalysisPanel analysis={currentAnalysis} />}
 
       <p className="text-xs text-slate-400 mt-3 text-right">
         生成于 {data.generated_at}

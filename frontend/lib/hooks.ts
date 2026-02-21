@@ -77,6 +77,12 @@ export function useROI() {
   return useSWR("analysis/roi", () => analysisAPI.getROI());
 }
 
+export function useROICostBreakdown() {
+  return useSWR("analysis/roi/cost-breakdown", () =>
+    analysisAPI.getROICostBreakdown()
+  );
+}
+
 export function usePrediction() {
   return useSWR("analysis/prediction", () => analysisAPI.getPrediction());
 }
@@ -150,6 +156,18 @@ export function useCohortROI() {
 export function useEnclosure() {
   return useSWR("analysis/enclosure", () =>
     fetch("/api/analysis/enclosure").then((r) => r.json())
+  );
+}
+
+export function useEnclosureCompare() {
+  return useSWR("analysis/enclosure-compare", () =>
+    fetch("/api/analysis/enclosure-compare").then((r) => r.json())
+  );
+}
+
+export function useEnclosureCombined() {
+  return useSWR("analysis/enclosure-combined", () =>
+    fetch("/api/analysis/enclosure-combined").then((r) => r.json())
   );
 }
 
@@ -273,4 +291,20 @@ export function usePyramidReport() {
   return useSWR<PyramidReport>("analysis/pyramid-report", () =>
     analysisAPI.getPyramidReport()
   );
+}
+
+export function usePackageMix() {
+  return useSWR("analysis/package-mix", () => analysisAPI.getPackageMix());
+}
+
+export function useTeamPackageMix() {
+  return useSWR("analysis/team-package-mix", () => analysisAPI.getTeamPackageMix());
+}
+
+export function useChannelRevenue() {
+  return useSWR("analysis/channel-revenue", () => analysisAPI.getChannelRevenue());
+}
+
+export function useOutreachCoverage() {
+  return useSWR("analysis/outreach-coverage", () => analysisAPI.getOutreachCoverage());
 }

@@ -33,6 +33,7 @@ class AnalysisService:
         sys.path.insert(0, str(self.backend_dir))  # 使 from core.xxx 可解析
         self._cached_result: Optional[dict[str, Any]] = None
         self._last_run_at: Optional[datetime] = None
+        self._raw_data: Optional[dict[str, Any]] = None  # 35源原始数据，供 D2/D3/D4 直接读取
 
     # ── Public API ────────────────────────────────────────────────────────────
 
@@ -44,6 +45,7 @@ class AnalysisService:
         """手动清除缓存，下次 run() 会重新计算"""
         self._cached_result = None
         self._last_run_at = None
+        self._raw_data = None
 
     def _is_cache_valid(self) -> bool:
         """检查缓存是否在 TTL 内"""
@@ -101,6 +103,7 @@ class AnalysisService:
         logger.info(f"开始加载 35 源数据，input_dir={effective_input_dir}")
         loader = MultiSourceLoader(input_dir=str(effective_input_dir))
         data = loader.load_all()
+        self._raw_data = data  # 缓存原始数据供 enclosure-compare/combined 端点直接读取
 
         # 初始化快照存储（引擎需要用它查 YoY/WoW/峰谷）
         from core.snapshot_store import SnapshotStore
