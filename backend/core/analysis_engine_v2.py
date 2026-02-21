@@ -1078,6 +1078,7 @@ class AnalysisEngineV2:
             },
             "by_channel": e3_by_channel,
             "by_team":    list(e3_by_team.values()) if isinstance(e3_by_team, dict) else e3_by_team,
+            "records":    e3.get("records", []),
             "daily_trend": daily_trend,
             "package_distribution": e6,
             "team_package": team_package,

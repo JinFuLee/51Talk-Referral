@@ -535,6 +535,22 @@ def _adapt_orders(raw: dict[str, Any]) -> dict[str, Any]:
         for d in (raw.get("daily_trend") or [])
     ]
 
+    # E3 明细行：将 records 字段映射到前端期望的 cc_name/student_name 等列名
+    raw_records: list[Any] = raw.get("records") or []
+    items = [
+        {
+            "date":         r.get("date"),
+            "cc_name":      r.get("seller"),          # E3 实际字段: seller
+            "student_name": r.get("student_id"),      # E3 实际字段: student_id
+            "channel":      r.get("channel"),
+            "package":      r.get("product"),
+            "amount":       r.get("amount_usd"),
+            "order_tag":    r.get("order_tag"),
+            "team":         r.get("team"),
+        }
+        for r in raw_records
+    ]
+
     return {
         "total_orders": total,
         "new_orders": summary.get("new", 0) or 0,
@@ -544,8 +560,7 @@ def _adapt_orders(raw: dict[str, Any]) -> dict[str, Any]:
         "by_type": by_type,
         "daily_series": daily_series,
         "channel_breakdown": raw.get("by_channel") or {},
-        # 明细行（by_team 含个人级明细，供订单明细表格）
-        "items": raw.get("by_team") or [],
+        "items": items,
     }
 
 
@@ -1368,3 +1383,98 @@ def get_enclosure_combined() -> dict[str, Any]:
             "participation_rate": total.get("participation_rate"),
         },
     }
+
+
+# ── A1: 按团队分组的漏斗对比 ──────────────────────────────────────────────────
+
+@router.get("/funnel/team")
+def get_funnel_team() -> dict[str, Any]:
+    """
+    A1 按团队分组的漏斗数据（注册/预约/出席/付费），供 TeamFunnelComparison 图表使用。
+    数据来源：A1 leads_achievement.by_team（每行含 CC窄口径/SS窄口径/LP窄口径/总计 各口径漏斗值）
+    输出：{ teams: [{ team, group, 注册, 预约, 出席, 付费, conversion_rate }] }
+    """
+    if _service is None:
+        raise HTTPException(status_code=503, detail="服务未初始化")
+
+    raw_data = getattr(_service, "_raw_data", None) or {}
+    leads_raw = raw_data.get("leads", {}) if isinstance(raw_data, dict) else {}
+    achievement = leads_raw.get("leads_achievement", {}) if isinstance(leads_raw, dict) else {}
+    by_team_raw: list[Any] = achievement.get("by_team", []) or []
+
+    teams: list[dict[str, Any]] = []
+    for row in by_team_raw:
+        if not isinstance(row, dict):
+            continue
+        team = row.get("团队")
+        group = row.get("小组")
+        if not team and not group:
+            continue
+        # 跳过小计/总计行
+        team_str = str(team or "").strip()
+        group_str = str(group or "").strip()
+        if team_str in ("小计", "总计") or group_str in ("小计", "总计"):
+            continue
+
+        # 从"总计"口径取漏斗数值（含 CC+SS+LP+宽 全量）
+        total = row.get("总计", {}) or {}
+        reg = total.get("注册") or 0
+        rsv = total.get("预约") or 0
+        att = total.get("出席") or 0
+        paid = total.get("付费") or 0
+
+        # 同时提取 CC 窄口径供对比
+        cc = row.get("CC窄口径", {}) or {}
+        ss = row.get("SS窄口径", {}) or {}
+        lp = row.get("LP窄口径", {}) or {}
+        wide = row.get("宽口径", {}) or {}
+
+        teams.append({
+            "team": team_str or group_str,
+            "group": group_str,
+            "注册": reg,
+            "预约": rsv,
+            "出席": att,
+            "付费": paid,
+            "conversion_rate": round(paid / reg, 4) if reg else 0,
+            "cc_narrow": {
+                "注册": cc.get("注册") or 0,
+                "预约": cc.get("预约") or 0,
+                "出席": cc.get("出席") or 0,
+                "付费": cc.get("付费") or 0,
+            },
+            "ss_narrow": {
+                "注册": ss.get("注册") or 0,
+                "预约": ss.get("预约") or 0,
+                "出席": ss.get("出席") or 0,
+                "付费": ss.get("付费") or 0,
+            },
+            "lp_narrow": {
+                "注册": lp.get("注册") or 0,
+                "预约": lp.get("预约") or 0,
+                "出席": lp.get("出席") or 0,
+                "付费": lp.get("付费") or 0,
+            },
+            "wide": {
+                "注册": wide.get("注册") or 0,
+                "预约": wide.get("预约") or 0,
+                "出席": wide.get("出席") or 0,
+                "付费": wide.get("付费") or 0,
+            },
+        })
+
+    # 按团队名去重（同团队多行小组取合并）
+    merged: dict[str, dict[str, Any]] = {}
+    for t in teams:
+        key = t["team"]
+        if key not in merged:
+            merged[key] = dict(t)
+        else:
+            for metric in ("注册", "预约", "出席", "付费"):
+                merged[key][metric] = (merged[key].get(metric) or 0) + (t.get(metric) or 0)
+            reg_total = merged[key].get("注册") or 0
+            paid_total = merged[key].get("付费") or 0
+            merged[key]["conversion_rate"] = round(paid_total / reg_total, 4) if reg_total else 0
+
+    result_teams = list(merged.values())
+    return {"teams": result_teams, "total_teams": len(result_teams)}
