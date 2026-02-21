@@ -263,6 +263,7 @@ Excel 数据源 → XlsxReader → DataProcessor → AnalysisEngine → Markdown
 | M13+M14 | 2026-02-21 | 影响链引擎+What-if模拟器+5-Why根因分析+金字塔报告+阶段评估 | 6条效率→收入影响链、What-if POST API、4个前端组件、RootCauseEngine规则引擎、PyramidReportGenerator、StageEvaluator | 5 backend files new, 8 frontend files new, 6 edited, QA 11/11 PASS |
 | M15 | 2026-02-21 | 5-Why引擎扩展+全站QA验收修复 | 7+条多维根因链、动态IMPACT计算、分类Tab、91项QA检查93.4%通过、3个bug修复 | 6 files mod, +530/-20 lines, QA 85/91 PASS |
 | M16 Phase 1 | 2026-02-21 | 数据源深度开发Phase1 — 7特性+6源激活 | F11外呼缺口、C6留存热力、B1真实ROI、D2×D3围场对比、E6+E7+E8套餐瀑布、F4渠道MoM、F5外呼热力 | 23 files mod, +1615 lines |
+| M16 Phase 2 W1 | 2026-02-21 | 数据源深度开发Phase2 Wave1 — 10特性+5新页面 | C1-C5 Cohort衰减API、C4黄金窗口、C6学员明细8800+、D1打卡排名、D1×D5散点、D5倍率、F7零跟进预警、F10课前课后对比、E3字段修复、A1团队漏斗 | 23 files, +3571 lines, TS 0 error |
 
 ## 里程碑规划（M11+）
 
@@ -332,7 +333,7 @@ M14 (5-Why)     ─── 依赖 M13（影响链是 5-Why 的量化基础）
 | 14 | insights.py 容错 | 复用 analysis._service，极早期请求可能 503 | P3 | M15 | M13+M14 低风险，下个周期优化 |
 | 15 | 5-Why 扩展 | 因果链模板可扩展更多分支（目前 7+ 条多维链） | P2 | M15 | M15 已扩展至 7+ 条，M16 可继续增强 |
 | 16 | API 功能缺失 | /attribution 端点未实现（root_cause 引擎支持需排期） | P3 | M17 | M16 无需实现，规划 M17+ |
-| 17 | 导航补充 | /biz/coverage, /biz/cohort, /biz/enclosure, /ops/outreach-heatmap 导航入口 | P2 | M16 | M16 Phase 1 已补充 5 个新页面 |
+| 17 | 导航补充 | /biz/coverage, /biz/cohort, /biz/enclosure, /ops/outreach-heatmap 导航入口 | P2 | M16 | M16 P1+P2W1 已补充 10 个新页面 |
 | 18 | 数据字段 | trend MoM 数据返回结构与其他对比维度不对齐，需后续完善 | P2 | M17 | M16 新数据源对齐完成 |
 | 19 | 新增技术债 | Cohort/Enclosure 数据源需要历史队列数据完整性验证 | P2 | M17 | M16 初版完成，数据质量优化 |
 

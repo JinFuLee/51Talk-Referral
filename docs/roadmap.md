@@ -250,6 +250,21 @@
 - 新页面: 5 个（/biz/{coverage,cohort,roi,enclosure,orders}, /ops/outreach-heatmap）
 - 新组件: 8 个（CoverageMetricCard, CohortHeatmap, OutreachHeatmap, etc）
 
+### M16: 数据源深度开发 Phase 2 Wave 1 — 10特性 + 5新页面（2026-02-21）
+- [x] C1-C5: Cohort衰减曲线真实API接入（/biz/cohort-decay）— 5指标切换 + 按月/按团队分组
+- [x] C4: 带新系数黄金窗口图 — 峰值月份金色标注 + 入组月份多线对比
+- [x] C6: 学员明细分析（/biz/cohort-students）— 8800+学员留存曲线 + CC带新排名 + 团队对比
+- [x] D1: CC打卡率排名+达标仪表盘（/ops/kpi-north-star）— RadialBarChart + 排名表
+- [x] D1×D5: 打卡率×带新系数四象限散点图 — 明星/待激活/天赋型/需关注分区
+- [x] D5: 打卡倍率卡片 — 打卡vs未打卡对比 + "全员达标预计增收"推算
+- [x] F7: 零跟进付费学员预警（/ops/followup-alert）— 围场分布 + CC零跟进排名
+- [x] F10: 课前vs课后跟进A/B对比 — 渠道Tab + GroupedBarChart + CC散点
+- [x] E3: 订单明细字段映射修复 — seller→cc_name, student_id→student_name
+- [x] A1: 团队漏斗对比图（/ops/funnel-team）— 数量/转化率双视图
+- 统计: 23 files, +3571 lines
+- 新后端API: 4文件（cohort_decay/north_star/paid_followup/cohort_student）
+- 新前端: 5页面 + 9组件
+
 ### 暂缓
 - 成本数据接入（财务部数据暂无）
 - 续费率数据接入（CRM 数据暂无）
