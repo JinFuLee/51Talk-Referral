@@ -228,10 +228,21 @@
 - 前端页面: `app/biz/impact/page.tsx`（影响链瀑布），`app/biz/insights/page.tsx`（根因分析）
 - 前端组件: `ImpactWaterfallChart`, `WhatIfSimulator`, `SCQACard`, `FiveWhyTree`, `StageBadge`, `SixStepSummary`
 
+### M15: 5-Why 引擎扩展 + 全站 QA 验收修复（2026-02-21）
+- [x] 5-Why 根因引擎扩展（3→7+ 条多维链：总量/渠道/围场/人效/打卡转化）
+- [x] 动态 IMPACT 计算（替代硬编码，基于实际收入反推）
+- [x] 前端 FiveWhyTree 分类 Tab（总量/渠道/围场/人效）
+- [x] 全站 QA 验收 91 项检查，93.4% 通过率（85/91）
+- [x] Bug 修复 3 项：trend MoM 500 bug、root-cause key 映射、what-if fallback
+- 统计: 6 files modified, +530 lines, -20 lines
+- QA 结果: 85/91 PASS（93.4%），3 bug 已修复，2 QA 误报，3 残留项无用户影响
+
 ### 暂缓
 - 成本数据接入（财务部数据暂无）
 - 续费率数据接入（CRM 数据暂无）
 - LINE Notify API 迁移到 LINE Messaging API（当前 token 方式仍可用）
 - ROI 成本明细泰国真实数据（M13 预研，挂起）
 - insights.py 复用 analysis service，极早期可能 503（低风险，M15 优化）
-- 5-Why 因果链模板可扩展更多分支（M15 增强）
+- /attribution 端点未实现（M16 规划）
+- 3 个 biz 页面缺失导航入口（M16 规划）
+- trend MoM 数据字段对齐完善（M16 规划）
