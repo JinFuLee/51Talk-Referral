@@ -403,6 +403,17 @@ M17(✅) ───► M25 ──► M26
 | #26 | 部分 Slide 组件 API endpoint 返回 404 fallback | P2 | M18.3 | 🟡 待处理 |
 | #27 | WhatIfSlide 滑块为前端本地计算，未调后端接口 | P3 | M19 | 🟡 待处理 |
 
+### 本地化资产整理：PM Pipeline 三合一 + Agent/Skill 生态建设（2026-02-22）
+- [x] `.agents/pm-pipeline.md` 创建（统一里程碑收尾规范）
+- [x] `.agents/mk-meta-finalize.md` MK 执行模板
+- [x] `.agents/report-writer-scorer.md` 报告迭代评分 SOP
+- [x] `~/.claude/skills/` 全局 Skill 骨架 6 个（5 项目适配版 + 1 通用版）
+- [x] 全局 CLAUDE.md 引用一致性修复（Skill 定义、Agent v6 路径）
+- [x] 技术债转化为 Skill trigger 规则（WARN 项修复）
+- 统计: 12 files new, 6 skills new, 2 global archived, 4 WARN fixed
+- QA 结果: 43/47 PASS, 0 FAIL, 4 WARN (all fixed)
+- 新技术债 #30: 全局 Skill 骨架缺失通用版本，跨项目复用需手动复制 → 下一里程碑建立 ~/.claude/skills-lib/ 公共库
+
 ---
 
 ## 暂缓
