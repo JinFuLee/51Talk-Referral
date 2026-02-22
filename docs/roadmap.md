@@ -230,6 +230,17 @@
   - #27 已解决 — WhatIfSlide 接入后端 POST /api/analysis/what-if
 - 新增技术债 #28: presentation.py fallback 数据仍为规则派生非真实 PDCA 系统对接（P3, M20+）
 
+### M27: 前端泛化 + P2 技术债清理（2026-02-22）
+- [x] 前端通用类型提取（core.ts: Status/MetricWithTarget/PredictionBand/RiskAlertBiz）
+- [x] 前端领域类型泛型化（FunnelDataBiz→channels Record, ProductivityData→roles Record）
+- [x] 5-Why 因果链扩展 7→11 条（+产品/季节/渠道ROI/CC人效维度）
+- [x] /attribution 三维归因补全（渠道/漏斗/口径）
+- [x] as any 全清确认（0 matches）+ TrendLineChart 泛型确认
+- [x] 后端 productivity adapter roles 包装修复
+- 统计: 1 file new, 4 files mod, QA 19/19 PASS (1 bugfix)
+- 执行团队: mk-frontend-sonnet, mk-backend-sonnet, mk-qa-sonnet, mk-bugfix-sonnet
+- 技术债解决: #32, #10, #13, #15, #20（5 项 P2 清零）
+
 ### M26: 多项目复用 — 引擎泛化（2026-02-22）
 - [x] ProjectConfig Pydantic schema + load_project_config() 加载函数
 - [x] projects/referral/config.json — 转介绍完整配置（15 字段：targets/mapping/schedule/rate/roi/aliases/team/channels/thresholds/anomaly/ltv/modules/routers）
@@ -317,7 +328,7 @@ M18.2(✅) ──► M18.3(✅) ──► M19(✅)
                  ▼
                  M21(✅) ──► M25(✅) ──► M26(✅)
 
-关键路径：M26(✅) — 引擎泛化完成，下一站待规划
+关键路径：M26(✅) ──► M27(✅) — 前端泛化完成，5项P2技术债清零，下一站待规划
 ```
 
 ---
@@ -335,17 +346,17 @@ M18.2(✅) ──► M18.3(✅) ──► M19(✅)
 | #7 | dashboard/page.tsx 内容为空 | P2 | M10 | ✅ 已解决 |
 | #8 | npm install 容器外执行问题 | P3 | M19 | 🟡 待处理 |
 | #9 | WebMCP @mcp-b/global polyfill（等浏览器原生支持） | P3 | M25+ | 🟡 待处理 |
-| #10 | TrendLineChart data prop 类型泛型化 | P2 | M26+ | 🟡 待处理（M25 保留低优，集中化 toSlide helper 后影响范围缩小） |
+| #10 | TrendLineChart data prop 类型泛型化 | P2 | M27 | ✅ 已解决（M27 确认已是泛型设计，M25 完成） |
 | #11 | datasources.py 注释"12 源"过时 | P3 | M10 | ✅ 已解决 |
 | #12 | ~~ROI 成本框架占位（非真实数据）~~ | ~~P1~~ | ~~M24~~ | ✅ 需求已删除（M24 取消） |
-| #13 | 前端 TypeScript `as any` 残留清理 | P2 | M25 | 🟡 部分解决 — M25 从 38 降至 1（集中化 toSlide helper），剩余 1 处 P2 挂 M26+ |
+| #13 | 前端 TypeScript `as any` 残留清理 | P2 | M27 | ✅ 已解决（M27 全前端 0 matches 确认，M25 降至 1 处已在 M27 全清） |
 | #14 | insights.py 容错（极早期请求可能 503） | P3 | M20 | 🟡 待处理 |
-| #15 | 5-Why 因果链模板可继续扩展（当前 7+ 条） | P2 | M25+ | 🟡 待处理 |
+| #15 | 5-Why 因果链模板可继续扩展（当前 7+ 条） | P2 | M27 | ✅ 已解决（M27 从 7 条扩展到 11 条，+产品/季节/渠道ROI/CC人效维度） |
 | #16 | /attribution 端点已实现（M16） | ✅ | M16 | ✅ 已解决 |
 | #17 | NavSidebar 入口已补全（M16） | ✅ | M16 | ✅ 已解决 |
 | #18 | revenue_usd 字段优先级已修复（M16） | ✅ | M16 | ✅ 已解决 |
 | #19 | Cohort/围场数据源历史队列完整性验证 | P2 | M20 | 🟡 待处理 |
-| #20 | /attribution 端点逻辑填充（M16 创建但未实现） | P3 | M25+ | 🟡 待处理 |
+| #20 | /attribution 端点逻辑填充（M16 创建但未实现） | P3 | M27 | ✅ 已解决（M27 三维归因补全：渠道/漏斗/口径） |
 | #21 | 部分图表组件使用 mock fallback 数据 | P2 | M20 | 🟡 待处理 |
 | #22 | D2/D3 围场对比 Excel 文件为空，需补充真实数据 | P2 | M20 | 🟡 待处理 |
 | #23 | F4 渠道 MoM 流图依赖历史趋势数据（当前仅一期） | P2 | M22+ | 🟡 待处理（M21 缓存层已就绪，待多期数据文件） |
@@ -357,7 +368,7 @@ M18.2(✅) ──► M18.3(✅) ──► M19(✅)
 | #29 | 部分图表保留 mock 作为 graceful degradation，已有 amber banner 标识（可接受） | P3 | M22+ | 🟡 待处理 |
 | #30 | 全局 Skill 骨架缺失通用版本，跨项目复用需手动复制 | P2 | M22+ | 🟡 待处理 |
 | #31 | DuckDB dual-track 后手：评估报告 82/100 完成，待 M22+ 数据量增长后决策切换 | P3 | M22+ | 🟡 待处理 |
-| #32 | 前端 analysis.ts 领域类型未泛化（转介绍专用接口，多项目场景需泛型化） | P2 | M27+ | 🟡 待处理 |
+| #32 | 前端 analysis.ts 领域类型未泛化（转介绍专用接口，多项目场景需泛型化） | P2 | M27 | ✅ 已解决（M27 核心类型提取到 core.ts，领域类型 Record 化泛型化） |
 
 ### 本地化资产整理：PM Pipeline 三合一 + Agent/Skill 生态建设（2026-02-22）
 - [x] `.agents/pm-pipeline.md` 创建（统一里程碑收尾规范）

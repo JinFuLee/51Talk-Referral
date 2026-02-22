@@ -1,18 +1,18 @@
 /**
  * 分析引擎输出类型定义 — biz/ops 视图专用
  * 与 backend/models/analysis.py 对应
+ *
+ * 注意：带 "referral-specific" 注释的类型含转介绍业务语义，
+ * 不适合跨业务域复用。通用类型已提取至 ./core.ts。
  */
 
-export type Status = "green" | "yellow" | "red";
-export type RoleType = "CC" | "SS" | "LP";
-export type EnclosureBand = "0-30" | "31-60" | "61-90" | "91-180" | "181+";
+export type { Status, MetricWithTarget, PredictionBand, RiskAlertBiz } from "./core";
 
-export interface MetricWithTarget {
-  actual: number;
-  target: number;
-  unit?: string;
-  status?: Status;
-}
+// referral-specific: 角色类型
+export type RoleType = "CC" | "SS" | "LP";
+
+// referral-specific: 围场分段
+export type EnclosureBand = "0-30" | "31-60" | "61-90" | "91-180" | "181+";
 
 // ─── 模块 1: summary ─────────────────────────────────────────────────────────
 
@@ -22,7 +22,7 @@ export interface AnalysisSummary {
   revenue: { cny: number; usd: number; thb: number };
   checkin_24h: { rate: number; target: number; achievement: number };
   time_progress: number;
-  status: Status;
+  status: import("./core").Status;
 }
 
 // ─── 模块 2: funnel ───────────────────────────────────────────────────────────
@@ -39,16 +39,18 @@ export interface FunnelChannel {
   };
 }
 
+/**
+ * referral-specific: 转介绍漏斗数据
+ * channels 使用泛型 Record 以支持动态渠道键（cc_narrow / ss_narrow / lp_narrow / wide 等）
+ */
 export interface FunnelDataBiz {
   total: FunnelChannel;
-  cc_narrow: FunnelChannel;
-  ss_narrow: FunnelChannel;
-  lp_narrow: FunnelChannel;
-  wide: FunnelChannel;
+  channels: Record<string, FunnelChannel>;
 }
 
 // ─── 模块 3: CC360 ────────────────────────────────────────────────────────────
 
+// referral-specific: CC 个人 360 画像
 export interface CC360Profile {
   cc_name: string;
   team: string;
@@ -84,6 +86,7 @@ export interface CohortROIData {
 
 // ─── 模块 5: enclosure ────────────────────────────────────────────────────────
 
+// referral-specific: 围场分段
 export interface EnclosureSegment {
   segment: string;
   students: number;
@@ -93,6 +96,7 @@ export interface EnclosureSegment {
   recommendation: string;
 }
 
+// referral-specific: 围场分析结果
 export interface EnclosureData {
   by_enclosure: EnclosureSegment[];
   resource_allocation: { optimal: Record<string, number> };
@@ -116,42 +120,37 @@ export interface CheckinImpact {
 
 // ─── 模块 7: productivity ─────────────────────────────────────────────────────
 
+/** 单角色人效指标 */
+export interface ProductivityMetrics {
+  active_count: number;
+  total_revenue: number;
+  per_capita: number;
+}
+
+/**
+ * referral-specific: 人效分析数据
+ * roles 使用 Record 支持任意角色键（"cc" / "ss" / "lp" 等）
+ */
 export interface ProductivityData {
-  cc: { active_count: number; total_revenue: number; per_capita: number };
-  ss: { active_count: number; total_revenue: number; per_capita: number };
+  roles: Record<string, ProductivityMetrics>;
   daily_trend: Array<{
     date: string;
-    cc_active: number;
-    ss_active: number;
-    cc_revenue: number;
-    ss_revenue: number;
+    [roleMetric: string]: string | number;
   }>;
 }
 
 // ─── 模块 8: prediction ───────────────────────────────────────────────────────
 
-export interface PredictionBand {
-  date: string;
-  value: number;
-  lower: number;
-  upper: number;
-}
-
 export interface PredictionDataBiz {
   revenue: { predicted: number; model: string; confidence: number };
   registration: { predicted: number; model: string; confidence: number };
   payment: { predicted: number; model: string; confidence: number };
-  band?: PredictionBand[];
+  band?: import("./core").PredictionBand[];
 }
 
 // ─── 模块 9: risk_alerts ─────────────────────────────────────────────────────
 
-export interface RiskAlertBiz {
-  level: "red" | "yellow" | "green";
-  category: string;
-  message: string;
-  action: string;
-}
+// Re-exported via core.ts as RiskAlertBiz
 
 // ─── 模块 10: student_journey ────────────────────────────────────────────────
 

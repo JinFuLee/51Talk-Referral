@@ -393,6 +393,8 @@ def _adapt_productivity(raw: dict[str, Any]) -> dict[str, Any]:
     """
     将引擎 productivity（含 per_capita_usd / total_revenue_usd 等 _usd 后缀字段）
     补充前端期望的 per_capita / total_revenue 无后缀字段。
+    前端 ProductivityData 类型要求 { roles: Record<string, ProductivityMetrics> }，
+    将 cc/ss/lp 包装到 roles 字段。
     """
     adapted = dict(raw)
     for role in ("cc", "ss", "lp"):
@@ -403,6 +405,11 @@ def _adapt_productivity(raw: dict[str, Any]) -> dict[str, Any]:
             if "total_revenue_usd" in r and "total_revenue" not in r:
                 r["total_revenue"] = r["total_revenue_usd"]
             adapted[role] = r
+    roles: dict[str, Any] = {}
+    for role in ("cc", "ss", "lp"):
+        if role in adapted:
+            roles[role] = adapted.pop(role)
+    adapted["roles"] = roles
     return adapted
 
 
@@ -1221,76 +1228,174 @@ def post_what_if(req: WhatIfRequest) -> dict[str, Any]:
 
 def _adapt_attribution(cache: dict[str, Any]) -> dict[str, Any]:
     """
-    从缓存中构建归因分析数据，返回前端 AttributionData 格式：
-    { factors: AttributionFactor[] }
-    AttributionFactor: { factor, contribution (0~1), label? }
+    多维归因分析，返回三个归因维度：
+    - channel_attribution: 各渠道（CC窄/SS窄/LP窄/宽口径）对付费数的贡献占比
+    - funnel_attribution:  各漏斗阶段（注册→约课→出席→付费）的转化贡献及损耗
+    - aperture_attribution: 窄口/宽口对付费的贡献对比
+    - factors: 兼容旧前端格式（渠道贡献列表）
 
-    归因逻辑：基于渠道对比（channel_comparison）+ 影响链（impact_chain）
-    计算各渠道/效率指标对总收益的相对贡献度。
+    数据来源：channel_comparison + funnel + summary
     """
     channel_comparison = cache.get("channel_comparison") or {}
     funnel = cache.get("funnel") or {}
     summary = cache.get("summary") or {}
 
-    factors: list[dict[str, Any]] = []
-
-    # ── 渠道归因：从 channel_comparison 读取各渠道付费数 ────────────────────
+    # ── 1. 渠道归因 ──────────────────────────────────────────────────────────
     channels_raw: list[dict[str, Any]] = []
     if isinstance(channel_comparison, dict):
         if "channels" in channel_comparison:
             channels_raw = channel_comparison["channels"]
         else:
-            # 中文 key 结构
             for zh_key, en_key, label in _CHANNEL_LABEL_MAP:
                 if zh_key in channel_comparison:
                     d = channel_comparison[zh_key]
+                    regs = d.get("register", 0) or 0
+                    paid = d.get("paid", 0) or 0
                     channels_raw.append({
                         "channel": en_key,
                         "label": label,
-                        "payments": d.get("paid", 0),
+                        "registrations": regs,
+                        "payments": paid,
+                        "conversion_rate": round(paid / regs, 4) if regs > 0 else 0.0,
                     })
 
-    total_payments = sum(c.get("payments", 0) or 0 for c in channels_raw) or 1
+    total_channel_payments = sum(c.get("payments", 0) or 0 for c in channels_raw) or 1
+    total_channel_regs = sum(c.get("registrations", 0) or 0 for c in channels_raw) or 1
+
+    channel_attribution: list[dict[str, Any]] = []
     for ch in channels_raw:
         paid = ch.get("payments", 0) or 0
-        factors.append({
+        regs = ch.get("registrations", 0) or 0
+        channel_attribution.append({
             "factor": ch.get("channel", ""),
-            "contribution": round(paid / total_payments, 4),
             "label": ch.get("label", ch.get("channel", "")),
+            "registrations": regs,
+            "payments": paid,
+            "conversion_rate": ch.get("conversion_rate", 0.0),
+            "paid_contribution": round(paid / total_channel_payments, 4),
+            "reg_contribution": round(regs / total_channel_regs, 4),
         })
 
-    # ── 效率归因：若没有渠道数据，从 funnel 提取口径贡献 ────────────────────
-    if not factors and isinstance(funnel, dict):
-        narrow_paid = 0
-        wide_paid = 0
+    # ── 2. 漏斗归因 ──────────────────────────────────────────────────────────
+    # 从 funnel.total 提取各阶段数值，计算阶段转化率与损耗
+    funnel_attribution: list[dict[str, Any]] = []
+    funnel_total = {}
+    if isinstance(funnel, dict):
+        funnel_total = funnel.get("total", {}) or {}
+
+    if isinstance(funnel_total, dict):
+        regs = int(funnel_total.get("register", 0) or 0)
+        reserve = int(funnel_total.get("reserve", 0) or 0)
+        attend = int(funnel_total.get("attend", 0) or 0)
+        paid = int(funnel_total.get("paid", 0) or 0)
+        rates = funnel_total.get("rates", {}) or {}
+
+        if regs > 0:
+            funnel_stages = [
+                ("register",  "注册",  regs,    regs,    1.0),
+                ("reserve",   "约课",  reserve, regs,    round(reserve / regs, 4) if regs else 0.0),
+                ("attend",    "出席",  attend,  reserve, round(attend / reserve, 4) if reserve else 0.0),
+                ("paid",      "付费",  paid,    attend,  round(paid / attend, 4) if attend else 0.0),
+            ]
+            prev_count = regs
+            for stage_key, stage_label, stage_count, from_count, stage_rate in funnel_stages:
+                loss = max(0, from_count - stage_count) if stage_key != "register" else 0
+                loss_pct = round(loss / from_count, 4) if from_count > 0 else 0.0
+                paid_contribution = round(stage_count / regs, 4) if regs > 0 else 0.0
+                funnel_attribution.append({
+                    "stage": stage_key,
+                    "label": stage_label,
+                    "count": stage_count,
+                    "from_count": from_count,
+                    "conversion_rate": stage_rate,
+                    "loss_count": loss,
+                    "loss_rate": loss_pct,
+                    "cumulative_rate": paid_contribution,
+                })
+                prev_count = stage_count
+
+    if not funnel_attribution:
+        funnel_attribution = [{"stage": "unknown", "label": "漏斗数据待接入", "count": 0,
+                               "from_count": 0, "conversion_rate": 0.0, "loss_count": 0,
+                               "loss_rate": 0.0, "cumulative_rate": 0.0}]
+
+    # ── 3. 口径归因：窄口 vs 宽口 ────────────────────────────────────────────
+    narrow_paid = 0
+    narrow_regs = 0
+    wide_paid = 0
+    wide_regs = 0
+
+    if isinstance(funnel, dict):
         if "narrow" in funnel:
-            narrow_paid = funnel["narrow"].get("payments", 0) or 0
-        elif any(k in funnel for k in ("cc_narrow", "ss_narrow", "lp_narrow")):
+            narrow_paid = int(funnel["narrow"].get("payments", 0) or funnel["narrow"].get("paid", 0) or 0)
+            narrow_regs = int(funnel["narrow"].get("register", 0) or 0)
+        else:
             for k in ("cc_narrow", "ss_narrow", "lp_narrow"):
                 if k in funnel:
-                    narrow_paid += funnel[k].get("payments", 0) or 0
+                    narrow_paid += int(funnel[k].get("paid", 0) or 0)
+                    narrow_regs += int(funnel[k].get("register", 0) or 0)
         if "wide" in funnel:
-            wide_paid = funnel["wide"].get("payments", 0) or 0
-        total_paid = (narrow_paid + wide_paid) or 1
-        if narrow_paid or wide_paid:
-            factors = [
-                {"factor": "narrow", "contribution": round(narrow_paid / total_paid, 4), "label": "窄口径"},
-                {"factor": "wide",   "contribution": round(wide_paid / total_paid, 4),  "label": "宽口径"},
-            ]
+            wide_paid = int(funnel["wide"].get("payments", 0) or funnel["wide"].get("paid", 0) or 0)
+            wide_regs = int(funnel["wide"].get("register", 0) or 0)
 
-    # ── 兜底：返回空因子列表而非 404 ────────────────────────────────────────
-    if not factors:
+    total_aperture_paid = (narrow_paid + wide_paid) or 1
+    total_aperture_regs = (narrow_regs + wide_regs) or 1
+
+    aperture_attribution: list[dict[str, Any]] = [
+        {
+            "aperture": "narrow",
+            "label": "窄口径（CC/SS/LP学员链接绑定）",
+            "registrations": narrow_regs,
+            "payments": narrow_paid,
+            "conversion_rate": round(narrow_paid / narrow_regs, 4) if narrow_regs > 0 else 0.0,
+            "paid_contribution": round(narrow_paid / total_aperture_paid, 4),
+            "reg_contribution": round(narrow_regs / total_aperture_regs, 4),
+        },
+        {
+            "aperture": "wide",
+            "label": "宽口径（UserA学员链接绑定）",
+            "registrations": wide_regs,
+            "payments": wide_paid,
+            "conversion_rate": round(wide_paid / wide_regs, 4) if wide_regs > 0 else 0.0,
+            "paid_contribution": round(wide_paid / total_aperture_paid, 4),
+            "reg_contribution": round(wide_regs / total_aperture_regs, 4),
+        },
+    ]
+
+    # ── 4. 兼容旧格式：factors ────────────────────────────────────────────────
+    if channel_attribution:
+        factors = [
+            {"factor": a["factor"], "contribution": a["paid_contribution"], "label": a["label"]}
+            for a in channel_attribution
+        ]
+    elif narrow_paid or wide_paid:
+        factors = [
+            {"factor": "narrow", "contribution": round(narrow_paid / total_aperture_paid, 4), "label": "窄口径"},
+            {"factor": "wide",   "contribution": round(wide_paid / total_aperture_paid, 4),  "label": "宽口径"},
+        ]
+    else:
         factors = [{"factor": "unknown", "contribution": 1.0, "label": "数据待接入"}]
 
-    return {"factors": factors}
+    return {
+        "factors": factors,
+        "channel_attribution": channel_attribution,
+        "funnel_attribution": funnel_attribution,
+        "aperture_attribution": aperture_attribution,
+    }
 
 
 @router.get("/attribution")
 def get_attribution() -> dict[str, Any]:
     """
-    返回归因分析数据（渠道对总收益的贡献度）。
-    输出已适配为前端 AttributionData 格式：{ factors: AttributionFactor[] }
-    归因基于 channel_comparison + funnel 数据计算各渠道付费贡献占比。
+    多维归因分析：渠道归因 + 漏斗阶段归因 + 口径（窄口/宽口）归因。
+
+    返回格式：
+    - factors: 兼容旧前端（渠道贡献列表）
+    - channel_attribution: 各渠道的注册/付费贡献占比
+    - funnel_attribution: 注册→约课→出席→付费 各阶段转化率与损耗
+    - aperture_attribution: 窄口径 vs 宽口径 付费贡献对比
+
+    数据来源：channel_comparison + funnel（AnalysisEngineV2 缓存）
     """
     cache = _require_full_cache()
     return _adapt_attribution(cache)

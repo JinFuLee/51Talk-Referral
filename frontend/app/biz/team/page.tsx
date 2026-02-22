@@ -44,10 +44,10 @@ export default function BizTeamPage() {
   }
 
   const prod = productivityResp;
-  const ccCount = prod?.cc?.active_count ?? 49;
-  const ssCount = prod?.ss?.active_count ?? 33;
-  const ccPerCapita = prod?.cc?.per_capita ?? 6122;
-  const ssPerCapita = prod?.ss?.per_capita ?? 6061;
+  const ccCount = prod?.roles?.["cc"]?.active_count ?? 49;
+  const ssCount = prod?.roles?.["ss"]?.active_count ?? 33;
+  const ccPerCapita = prod?.roles?.["cc"]?.per_capita ?? 6122;
+  const ssPerCapita = prod?.roles?.["ss"]?.per_capita ?? 6061;
   const dailyTrend = prod?.daily_trend ?? [];
 
   return (

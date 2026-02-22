@@ -283,6 +283,7 @@ Excel 数据源 → XlsxReader → DataProcessor → AnalysisEngine → Markdown
 | M21 | 2026-02-22 | iterrows 向量化 + Parquet 缓存 + 一键启动 | 37 iterrows 向量化（12 保留）、Parquet 缓存层（base.py/ops/leads/cohort/kpi/order/roi loader）、analysis_engine_v2.py 性能适配、requirements.txt×2 + .gitignore + 一键启动.command、15 frontend components 数据绑定 | 28 files, +1875/-1037 lines, QA 7/7 PASS |
 | M25 | 2026-02-22 | Gemini AI 报告生成 + as any 技术债清理 | llm_adapter.py(new)、ai_report_generator.py(new)、reports.py/ReportGenerator.tsx/dashboard+trial+present+ranking pages、api.ts+hooks.ts；as any 38→1（集中化 toSlide helper） | 10 files, +962/-43 lines, py_compile 4/4 PASS, tsc 0 errors |
 | M26 | 2026-02-22 | 多项目复用 — 引擎泛化 | ProjectConfig schema、referral/demo 双项目配置、AnalysisEngineV2 模块注册表(18模块)、BaseLoader 配置注入、main.py 动态路由(25路由)、向后兼容 | 4 files new, 3 files mod, QA 21/21 PASS |
+| M27 | 2026-02-22 | 前端泛化 + P2 技术债清理 | core.ts(new)：通用类型 Status/MetricWithTarget/PredictionBand/RiskAlertBiz；analysis.ts 领域类型 Record 化；5-Why 7→11 条(+产品/季节/渠道ROI/CC人效)；/attribution 三维归因补全；as any 全清(0 matches)；productivity roles 包装修复 | 1 file new, 4 files mod, QA 19/19 PASS (1 bugfix) |
 
 ## 里程碑规划（M11+）
 
@@ -345,17 +346,17 @@ M14 (5-Why)     ─── 依赖 M13（影响链是 5-Why 的量化基础）
 | 7 | 前端组件 | dashboard/page.tsx 内容为空，需补充实际组件调用 | P2 | M10 | 运营面板 Dashboard 实现待补充 |
 | 8 | 部署配置 | npm install 尚未在容器外执行，首次本地启动需手动运行 | P3 | M10 | Docker 内自动执行，本地开发流程待文档化 |
 | 9 | 浏览器兼容 | WebMCP 目前使用 @mcp-b/global polyfill，等浏览器原生支持后可移除 | P3 | M11 | 当前可用，后续升级移除 polyfill |
-| 10 | 类型系统 | TrendLineChart data prop 类型需进一步泛型化 | P2 | M11 | 已沉淀到 M12 约束条件 |
+| 10 | ~~已解决~~ | TrendLineChart data prop 类型泛型化 | P2 | M27 | ✅ M27 确认已是泛型设计（M25 完成，M27 验证通过） |
 | 11 | 文档过期 | datasources.py 注释"12源"过时需更新为"35源" | P3 | M10 | M12 已更新 CLAUDE.md 业务规则 |
 | 12 | ~~已删除~~ | ~~成本明细框架占位，待对接泰国真实激励/活动费用数据~~ | ~~P1~~ | ~~M24~~ | 需求已取消（M24 删除） |
-| 13 | 类型优化 | 前端 TypeScript `as any` 残留清理 | P2 | M25 | ✅ M25 部分解决（38→1，集中化 toSlide helper；剩余 1 处挂 M26+） |
+| 13 | 类型优化 | 前端 TypeScript `as any` 残留清理 | P2 | M27 | ✅ M27 全清（全前端 0 matches 确认，M25 降至 1 处，M27 完全清零） |
 | 14 | insights.py 容错 | 复用 analysis._service，极早期请求可能 503 | P3 | M20 | ✅ M20 已缓解（graceful degradation 完备，503 窗口极小） |
-| 15 | 5-Why 扩展 | 因果链模板可扩展更多分支（目前 7+ 条多维链） | P2 | M15 | M15 已扩展至 7+ 条，M16 可继续增强 |
+| 15 | ~~已解决~~ | 因果链模板可扩展更多分支 | P2 | M27 | ✅ M27 已解决（7→11 条，+产品/季节/渠道ROI/CC人效维度） |
 | 16 | ~~已解决~~ | /attribution 端点已实现（M16），支持渠道/漏斗/口径归因 | ✅ | M16 | M16 无需实现，规划 M17+ |
 | 17 | ~~已解决~~ | M16 已补全 NavSidebar 所有入口 | ✅ | M16 | M16 P1+P2W1 已补充 10 个新页面 |
 | 18 | ~~已解决~~ | M16 修复 revenue_usd 字段优先级 | ✅ | M16 | M16 新数据源对齐完成 |
 | 19 | 新增技术债 | Cohort/Enclosure 数据源需要历史队列数据完整性验证 | P2 | M17 | M16 初版完成，数据质量优化 |
-| 20 | API 功能缺失 | /attribution 端点逻辑待完善（M16 创建但未填充实现） | P3 | M17+ | M16 新识别 |
+| 20 | ~~已解决~~ | /attribution 端点逻辑已完善（M16 创建，M27 三维归因补全） | P3 | M27 | ✅ M27 已解决（渠道/漏斗/口径三维归因补全） |
 | 21 | 图表数据源 | 部分图表组件使用 mock fallback 数据，待真实后端数据验证 | P2 | M20 | ✅ M20 已解决（mock fallback 加 banner 标识，用户明确知晓） |
 | 22 | 数据源补全 | D2/D3 围场对比 Excel 文件为空，需补充实际围场分布数据 | P2 | M18 | M17 发现，影响围场对比分析 |
 | 23 | 数据依赖 | F4 渠道 MoM 流图依赖历史渠道趋势数据文件，当前仅一期数据 | P2 | M18 | M17 发现，需补充历史数据 |
@@ -367,7 +368,7 @@ M14 (5-Why)     ─── 依赖 M13（影响链是 5-Why 的量化基础）
 | 29 | 新增技术债 | 部分图表保留 mock 作为 graceful degradation，但已有 amber banner 标识 | P3 | M21+ | M20 识别，可接受方案（用户知晓、无数据时降级显示） |
 | 30 | 全局 Skill 缺失 | 全局 Skill 骨架缺失通用版本，跨项目复用需手动复制（仅有项目级适配版） | P2 | M21+ | 本地化资产新识别，建议建立 ~/.claude/skills-lib/ 跨项目共用库 |
 | 31 | DuckDB dual-track 后手 | DuckDB 替换 Parquet+pandas 的可行性评估已完成（82/100），待 M22+ 数据量增长后决策切换时机 | P3 | M22+ | M21 新识别，评估报告已完成，当前 Parquet 方案满足需求 |
-| 32 | 前端类型未泛化 | 前端 analysis.ts 领域类型仍为转介绍专用接口，多项目场景需泛型化 | P2 | M27+ | M26 新识别，引擎泛化后前端类型层尚未同步泛化 |
+| 32 | ~~已解决~~ | 前端 analysis.ts 领域类型泛化 | P2 | M27 | ✅ M27 已解决（core.ts 通用类型提取，领域类型 Record 化，analysis.ts 泛型化完成） |
 
 ## WebMCP
 不适用（非 Web 前端项目）。如后续添加 Web UI，参见全局 CLAUDE.md WebMCP 章节。
