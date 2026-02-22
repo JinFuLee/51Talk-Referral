@@ -251,9 +251,27 @@
   - #19 Cohort/围场数据完整性仍依赖真实 Excel 补充（P2 待数据）
   - #22 D2/D3 围场 Excel 空文件已有空返回+banner（P2 待数据）
 
+### M21: iterrows 向量化 + Parquet 缓存 + 一键启动（2026-02-22）
+- [x] 37 个 iterrows 循环向量化（pandas vectorized ops），12 个保留（原生迭代必要场景）
+- [x] Parquet 缓存层全量接入：base.py 统一缓存接口 + ops_loader/leads_loader/cohort_loader/kpi_loader/order_loader/roi_loader 各自接入
+- [x] analysis_engine_v2.py 性能适配（配合 Parquet cache 读取路径）
+- [x] 依赖更新：requirements.txt×2（backend + root），pyarrow 确认可用
+- [x] .gitignore 补充 Parquet cache 目录
+- [x] 一键启动.command 更新（macOS 快捷启动适配缓存预热）
+- [x] 15 个前端组件数据绑定优化（配合后端性能提升）
+- [x] DuckDB dual-track 评估报告完成（82/100），结论：Parquet 当前满足需求，M22+ 数据量增长后再决策
+- 统计: 28 files changed, +1875/-1037 lines, 37 iterrows vectorized, 12 retained
+- QA 结果: 7/7 PASS（py_compile 7/7, pyarrow confirmed, cache logic verified）
+- 执行团队: mk-m21-ops-sonnet, mk-m21-leads-sonnet, mk-m21-order-sonnet, mk-m21-cache-sonnet
+- 技术债解决:
+  - #23 部分缓解 — Parquet 缓存加速历史数据读取，但 F4 渠道趋势仍需多期 Excel 数据文件
+  - #24 部分缓解 — 缓存层提升快照读写性能，YoY/WoW 仍依赖 SQLite 快照数据充分性
+- 技术债新增:
+  - #31 DuckDB dual-track 后手：评估报告 82/100 完成，M22+ 数据量增长后决策切换时机（P3）
+
 ---
 
-## 规划中（M18.3 → M26）
+## 规划中（M22 → M26）
 
 ### M18.3: 汇报数据对接（规划中）
 - [ ] ActionPlanSlide / MeetingSummarySlide / ResourceSlide 接入真实 API（替换静态模板数据）
@@ -286,15 +304,8 @@
 - 预计影响: 待估
 - QA 目标: 待验收
 
-### M21: 自动化数据管线（规划中）
-- [ ] Excel T-1 文件自动导入（定时任务 + 文件监控）
-- [ ] SQLite 快照自动累积（每日 T-1 自动归档）
-- [ ] 历史数据 >=3 周期验证（YoY/WoW 对比功能完整启用）
-- [ ] F4 渠道趋势历史数据文件补充（>=2 期）
-- 依赖: M20 PASS（数据质量稳定后才能自动化累积）
-- 技术债关联: #23 #24
-- 预计影响: 待估
-- QA 目标: 待验收
+### M21: iterrows 向量化 + Parquet 缓存 + 一键启动 ✅（已完成）
+- 见上方"已完成"区 M21 条目
 
 ### M22: LINE Messaging API 迁移（规划中）⚠️ 时间敏感
 - [ ] LINE Notify → LINE Messaging API 迁移（原 API 2025-03 停用，当前宽限期）
@@ -358,14 +369,14 @@ M18.2(✅) ──► M18.3 ──► M19
               M20 ◄── M19
               │
               ▼
-              M21 ──► M25
-                       ▲
-M6(✅) ────► M22 ──────┘
+              M21(✅) ──► M25
+                          ▲
+M6(✅) ────► M22 ─────────┘
 M10(✅) ───► M23（独立，外部数据驱动）
 M16(✅) ───► M24（独立，外部数据驱动）
 M17(✅) ───► M25 ──► M26
 
-关键路径：M18.3 → M19 → M20 → M21 → M25 → M26
+关键路径：M18.3(✅) → M19(✅) → M20(✅) → M21(✅) → M25 → M26
 独立可并行：M22(LINE) / M23(CRM) / M24(财务) — 外部数据就绪即可启动
 ```
 
@@ -397,11 +408,15 @@ M17(✅) ───► M25 ──► M26
 | #20 | /attribution 端点逻辑填充（M16 创建但未实现） | P3 | M25+ | 🟡 待处理 |
 | #21 | 部分图表组件使用 mock fallback 数据 | P2 | M20 | 🟡 待处理 |
 | #22 | D2/D3 围场对比 Excel 文件为空，需补充真实数据 | P2 | M20 | 🟡 待处理 |
-| #23 | F4 渠道 MoM 流图依赖历史趋势数据（当前仅一期） | P2 | M21 | 🟡 待处理 |
-| #24 | YoY/WoW 历史对比依赖快照充分性（需 >=2 周期） | P2 | M21 | 🟡 待处理 |
+| #23 | F4 渠道 MoM 流图依赖历史趋势数据（当前仅一期） | P2 | M22+ | 🟡 待处理（M21 缓存层已就绪，待多期数据文件） |
+| #24 | YoY/WoW 历史对比依赖快照充分性（需 >=2 周期） | P2 | M22+ | 🟡 待处理（M21 缓存性能提升，快照积累中） |
 | #25 | ActionPlanSlide/MeetingSummarySlide/ResourceSlide 使用静态模板数据 | P2 | M18.3 | 🟡 待处理 |
 | #26 | 部分 Slide 组件 API endpoint 返回 404 fallback | P2 | M18.3 | 🟡 待处理 |
 | #27 | WhatIfSlide 滑块为前端本地计算，未调后端接口 | P3 | M19 | 🟡 待处理 |
+| #28 | presentation.py fallback 数据仍为规则派生非真实 PDCA 系统对接 | P3 | M22+ | 🟡 待处理 |
+| #29 | 部分图表保留 mock 作为 graceful degradation，已有 amber banner 标识（可接受） | P3 | M22+ | 🟡 待处理 |
+| #30 | 全局 Skill 骨架缺失通用版本，跨项目复用需手动复制 | P2 | M22+ | 🟡 待处理 |
+| #31 | DuckDB dual-track 后手：评估报告 82/100 完成，待 M22+ 数据量增长后决策切换 | P3 | M22+ | 🟡 待处理 |
 
 ### 本地化资产整理：PM Pipeline 三合一 + Agent/Skill 生态建设（2026-02-22）
 - [x] `.agents/pm-pipeline.md` 创建（统一里程碑收尾规范）

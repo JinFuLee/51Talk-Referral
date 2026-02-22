@@ -280,6 +280,7 @@ Excel 数据源 → XlsxReader → DataProcessor → AnalysisEngine → Markdown
 | M18.3 | 2026-02-22 | 汇报数据对接 — 3新API + 7 Slide 修复 | ActionPlan/MeetingSummary/Resource Slide 接真实 API、WhatIf 接 POST 后端、3 Slide 组件数据绑定修复、presentation.py 新建 | 1 file new, 8 files mod, +450 lines, QA 14/14 PASS |
 | M20 | 2026-02-22 | 数据质量体系 — mock fallback 全清 + 3后端bug修复 | mock fallback 全清 11 组件、leads日期过滤/by_team补全/order空字段修复、15 组件数据绑定升级、4 组件 useSWR+loading/error、11 组件 banner+isMock标识、ASP字段动态化、insights.py 容错 | 18 files mod, +600 lines, QA 12/12 PASS |
 | 本地化资产 | 2026-02-22 | Agent/Skill/Context 本地化 — PM Pipeline 三合一、MK 模板、report-writer/scorer agent、5 Skill 项目适配、引用一致性修复 | 12 files new, 6 skills new, 2 global archived, 4 WARN fixed, QA 43/47 PASS |
+| M21 | 2026-02-22 | iterrows 向量化 + Parquet 缓存 + 一键启动 | 37 iterrows 向量化（12 保留）、Parquet 缓存层（base.py/ops/leads/cohort/kpi/order/roi loader）、analysis_engine_v2.py 性能适配、requirements.txt×2 + .gitignore + 一键启动.command、15 frontend components 数据绑定 | 28 files, +1875/-1037 lines, QA 7/7 PASS |
 
 ## 里程碑规划（M11+）
 
@@ -363,6 +364,7 @@ M14 (5-Why)     ─── 依赖 M13（影响链是 5-Why 的量化基础）
 | 28 | 新增技术债 | presentation.py fallback 数据仍为规则派生非真实 PDCA 系统对接 | P3 | M21+ | M18.3 新识别，影响汇报准确性（低优） |
 | 29 | 新增技术债 | 部分图表保留 mock 作为 graceful degradation，但已有 amber banner 标识 | P3 | M21+ | M20 识别，可接受方案（用户知晓、无数据时降级显示） |
 | 30 | 全局 Skill 缺失 | 全局 Skill 骨架缺失通用版本，跨项目复用需手动复制（仅有项目级适配版） | P2 | M21+ | 本地化资产新识别，建议建立 ~/.claude/skills-lib/ 跨项目共用库 |
+| 31 | DuckDB dual-track 后手 | DuckDB 替换 Parquet+pandas 的可行性评估已完成（82/100），待 M22+ 数据量增长后决策切换时机 | P3 | M22+ | M21 新识别，评估报告已完成，当前 Parquet 方案满足需求 |
 
 ## WebMCP
 不适用（非 Web 前端项目）。如后续添加 Web UI，参见全局 CLAUDE.md WebMCP 章节。
