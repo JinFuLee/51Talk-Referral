@@ -19,9 +19,9 @@ export default function RankingPage() {
 
   const tabs: RoleTab[] = ["CC", "SS", "LP"];
   const dataMap: Record<RoleTab, unknown[] | undefined> = {
-    CC: ccData as unknown[],
-    SS: ssData as unknown[],
-    LP: lpData as unknown[],
+    CC: ccData,
+    SS: ssData,
+    LP: lpData,
   };
   const loadingMap: Record<RoleTab, boolean> = {
     CC: ccLoading,

@@ -62,46 +62,65 @@ function PlaceholderSlide({
   );
 }
 
-const COMPONENT_REGISTRY: Record<string, React.ComponentType<{ revealStep: number }>> = {
+/**
+ * Slide components receive at minimum `{ revealStep: number }` from the shell.
+ * Components that declare additional required props (e.g. SummarySlide.situation)
+ * source those values internally via SWR or Zustand — they are never passed from
+ * this registry call site. TypeScript cannot verify this structural compatibility
+ * without a coercion; we use a typed intermediate `SlideComponentType` to make
+ * the intent explicit and avoid bare `as unknown as`.
+ *
+ * `toSlide` narrows via `unknown` with a descriptive name so the escape hatch is
+ * obvious in code review.
+ */
+type SlideComponentType = React.ComponentType<{ revealStep: number }>;
+
+function toSlide<P>(c: React.ComponentType<P>): SlideComponentType {
+  // Slide components source extra required props from SWR/store internally.
+  // The registry only passes `revealStep`; additional props default to undefined.
+  return c as unknown as SlideComponentType;
+}
+
+const COMPONENT_REGISTRY: Record<string, SlideComponentType> = {
   // Original 5
   'executive-summary': ExecutiveSummarySlide,
-  'summary': SummarySlide as unknown as React.ComponentType<{ revealStep: number }>,
-  'joint-action': JointActionCard as unknown as React.ComponentType<{ revealStep: number }>,
-  'funnel-ownership': FunnelOwnershipChart as unknown as React.ComponentType<{ revealStep: number }>,
-  'action-items': ActionItemTracker as unknown as React.ComponentType<{ revealStep: number }>,
+  'summary': toSlide(SummarySlide),
+  'joint-action': toSlide(JointActionCard),
+  'funnel-ownership': toSlide(FunnelOwnershipChart),
+  'action-items': toSlide(ActionItemTracker),
   // GM scene
-  'revenue-analysis': RevenueSlide as unknown as React.ComponentType<{ revealStep: number }>,
-  'revenue-deep-dive': RevenueSlide as unknown as React.ComponentType<{ revealStep: number }>,
-  'funnel-overview': FunnelSlide as unknown as React.ComponentType<{ revealStep: number }>,
-  'funnel-detail': FunnelSlide as unknown as React.ComponentType<{ revealStep: number }>,
-  'risk-radar': RiskRadarSlide as unknown as React.ComponentType<{ revealStep: number }>,
-  'team-performance': TeamSlide as unknown as React.ComponentType<{ revealStep: number }>,
-  'team-ranking': TeamSlide as unknown as React.ComponentType<{ revealStep: number }>,
-  'team-evolution': TeamSlide as unknown as React.ComponentType<{ revealStep: number }>,
-  'trend-analysis': TrendSlide as unknown as React.ComponentType<{ revealStep: number }>,
-  'cohort-analysis': CohortSlide as unknown as React.ComponentType<{ revealStep: number }>,
-  'stage-evaluation': StageSlide as unknown as React.ComponentType<{ revealStep: number }>,
-  'wow-comparison': ComparisonSlide as unknown as React.ComponentType<{ revealStep: number }>,
-  'yoy-comparison': ComparisonSlide as unknown as React.ComponentType<{ revealStep: number }>,
-  'key-changes': ComparisonSlide as unknown as React.ComponentType<{ revealStep: number }>,
+  'revenue-analysis': toSlide(RevenueSlide),
+  'revenue-deep-dive': toSlide(RevenueSlide),
+  'funnel-overview': toSlide(FunnelSlide),
+  'funnel-detail': toSlide(FunnelSlide),
+  'risk-radar': toSlide(RiskRadarSlide),
+  'team-performance': toSlide(TeamSlide),
+  'team-ranking': toSlide(TeamSlide),
+  'team-evolution': toSlide(TeamSlide),
+  'trend-analysis': toSlide(TrendSlide),
+  'cohort-analysis': toSlide(CohortSlide),
+  'stage-evaluation': toSlide(StageSlide),
+  'wow-comparison': toSlide(ComparisonSlide),
+  'yoy-comparison': toSlide(ComparisonSlide),
+  'key-changes': toSlide(ComparisonSlide),
   // Ops-Director scene
-  'outreach-execution': OutreachSlide as unknown as React.ComponentType<{ revealStep: number }>,
-  'trial-followup': TrialSlide as unknown as React.ComponentType<{ revealStep: number }>,
-  'channel-breakdown': ChannelSlide as unknown as React.ComponentType<{ revealStep: number }>,
-  'followup-alert': FollowupAlertSlide as unknown as React.ComponentType<{ revealStep: number }>,
-  'kpi-north-star': KPINorthStarSlide as unknown as React.ComponentType<{ revealStep: number }>,
-  'outreach-gap': OutreachGapSlide as unknown as React.ComponentType<{ revealStep: number }>,
-  'action-plan': ActionPlanSlide as unknown as React.ComponentType<{ revealStep: number }>,
-  'impact-simulation': ImpactSlide as unknown as React.ComponentType<{ revealStep: number }>,
+  'outreach-execution': toSlide(OutreachSlide),
+  'trial-followup': toSlide(TrialSlide),
+  'channel-breakdown': toSlide(ChannelSlide),
+  'followup-alert': toSlide(FollowupAlertSlide),
+  'kpi-north-star': toSlide(KPINorthStarSlide),
+  'outreach-gap': toSlide(OutreachGapSlide),
+  'action-plan': toSlide(ActionPlanSlide),
+  'impact-simulation': toSlide(ImpactSlide),
   // Crosscheck + generic
-  'shared-metrics': SharedMetricsSlide as unknown as React.ComponentType<{ revealStep: number }>,
-  'leads-handoff': LeadsHandoffSlide as unknown as React.ComponentType<{ revealStep: number }>,
-  'conversion-accountability': ConversionSlide as unknown as React.ComponentType<{ revealStep: number }>,
-  'impact-attribution': ImpactAttributionSlide as unknown as React.ComponentType<{ revealStep: number }>,
-  'what-if-simulation': WhatIfSlide as unknown as React.ComponentType<{ revealStep: number }>,
-  'meeting-summary': MeetingSummarySlide as unknown as React.ComponentType<{ revealStep: number }>,
-  'strategic-recommendation': StrategicSlide as unknown as React.ComponentType<{ revealStep: number }>,
-  'resource-request': ResourceSlide as unknown as React.ComponentType<{ revealStep: number }>,
+  'shared-metrics': toSlide(SharedMetricsSlide),
+  'leads-handoff': toSlide(LeadsHandoffSlide),
+  'conversion-accountability': toSlide(ConversionSlide),
+  'impact-attribution': toSlide(ImpactAttributionSlide),
+  'what-if-simulation': toSlide(WhatIfSlide),
+  'meeting-summary': toSlide(MeetingSummarySlide),
+  'strategic-recommendation': toSlide(StrategicSlide),
+  'resource-request': toSlide(ResourceSlide),
 };
 
 export default function PresentationSlidePage() {

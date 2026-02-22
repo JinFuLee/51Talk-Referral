@@ -231,7 +231,17 @@ export function useCCGrowth(
 export function useReportList() {
   return useSWR<ReportFile[]>(
     "reports/list",
-    () => reportsAPI.list() as Promise<ReportFile[]>
+    async (): Promise<ReportFile[]> => {
+      const res = await reportsAPI.list();
+      // API returns { reports: [{filename, date}] }; backfill optional fields for ReportFile
+      return res.reports.map((r) => ({
+        filename: r.filename,
+        report_type: "unknown" as const,
+        date: r.date,
+        size_bytes: 0,
+        path: r.filename,
+      }));
+    }
   );
 }
 

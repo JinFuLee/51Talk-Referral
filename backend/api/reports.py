@@ -1,6 +1,6 @@
 """
 报告文件 API 端点
-列表、读取内容、下载、最新报告
+列表、读取内容、下载、最新报告、AI 报告生成
 """
 from __future__ import annotations
 
@@ -10,11 +10,15 @@ from typing import Any, Optional
 
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import FileResponse
+from pydantic import BaseModel
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
+BACKEND_DIR = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
+sys.path.insert(0, str(BACKEND_DIR))
 
 OUTPUT_DIR = PROJECT_ROOT / "output"
+AI_REPORTS_DIR = PROJECT_ROOT / "output" / "reports"
 
 router = APIRouter()
 
@@ -24,6 +28,38 @@ _service: Any = None
 def set_service(service: Any) -> None:
     global _service
     _service = service
+
+
+# ── Pydantic 模型 ──────────────────────────────────────────────────────────────
+
+class GenerateReportRequest(BaseModel):
+    force_run: bool = False  # 是否强制重算分析数据（忽略缓存）
+
+
+def _iter_ai_report_files() -> list[dict[str, Any]]:
+    """扫描 output/reports/ 目录下的 AI 生成报告文件"""
+    reports = []
+    if not AI_REPORTS_DIR.exists():
+        return reports
+    import re
+    for f in sorted(AI_REPORTS_DIR.iterdir(), reverse=True):
+        if not f.is_file() or not f.name.endswith(".md"):
+            continue
+        # 尝试从文件名提取日期 YYYY-MM-DD
+        date_str = None
+        m = re.search(r"(\d{4}-\d{2}-\d{2})", f.name)
+        if m:
+            date_str = m.group(1)
+        reports.append(
+            {
+                "filename": f.name,
+                "report_type": "ai",
+                "date": date_str,
+                "size_bytes": f.stat().st_size,
+                "path": str(f),
+            }
+        )
+    return reports
 
 
 def _iter_report_files():
@@ -61,6 +97,50 @@ def _iter_report_files():
         )
     return reports
 
+
+# ── AI 报告端点 ────────────────────────────────────────────────────────────────
+
+@router.post("/generate")
+def generate_report(req: GenerateReportRequest) -> dict[str, Any]:
+    """
+    触发 AI 报告生成。
+    整合规则引擎分析 + Gemini AI 洞察，生成完整 Markdown 报告并保存到 output/reports/。
+
+    Returns:
+        {status, report: {report_path, markdown, generated_at, ai_commentary, model_used, has_ai}}
+    """
+    if _service is None:
+        raise HTTPException(status_code=503, detail="AnalysisService 尚未初始化")
+    try:
+        from core.ai_report_generator import AIReportGenerator
+        gen = AIReportGenerator(_service)
+        report = gen.generate_report(force_run=req.force_run)
+        return {"status": "ok", "report": report}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"报告生成失败: {e}")
+
+
+@router.get("/ai/latest")
+def get_latest_ai_report() -> dict[str, Any]:
+    """返回最近一份 AI 生成报告的元信息 + 内容"""
+    files = _iter_ai_report_files()
+    if not files:
+        raise HTTPException(status_code=404, detail="暂无 AI 生成报告")
+    latest = files[0]
+    try:
+        content = Path(latest["path"]).read_text(encoding="utf-8")
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+    return {**latest, "content": content}
+
+
+@router.get("/ai/list")
+def list_ai_reports() -> list[dict[str, Any]]:
+    """列出 output/reports/ 下所有 AI 生成报告文件名+日期"""
+    return _iter_ai_report_files()
+
+
+# ── 原有端点 ───────────────────────────────────────────────────────────────────
 
 @router.get("/list")
 def list_reports() -> list[dict[str, Any]]:

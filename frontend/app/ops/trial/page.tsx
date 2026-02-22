@@ -19,7 +19,7 @@ export default function OpsTrialPage() {
   const preCallRate = (followup?.pre_call_rate as number) ?? 0;
   const postCallRate = (followup?.post_call_rate as number) ?? 0;
   const attendanceRate = (followup?.attendance_rate as number) ?? 0;
-  const checkinRate = (checkin as unknown as Record<string, number> | undefined)?.overall_rate ?? 0;
+  const checkinRate = checkin?.overall_rate ?? 0;
 
   const withCallAttend = attendanceRate;
   const withoutCallAttend = attendanceRate * 0.5;

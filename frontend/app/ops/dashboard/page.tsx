@@ -6,6 +6,7 @@ import { RiskAlertList } from "@/components/dashboard/RiskAlertList";
 import { AnomalyBadge } from "@/components/dashboard/AnomalyBadge";
 import { RunAnalysisButton } from "@/components/dashboard/RunAnalysisButton";
 import { AnomalyBanner } from "@/components/ops/AnomalyBanner";
+import { ReportGenerator } from "@/components/biz/ReportGenerator";
 import { GoalGapCard } from "@/components/ops/GoalGapCard";
 import { TimeProgressBar } from "@/components/ops/TimeProgressBar";
 import { Skeleton } from "@/components/ui/Skeleton";
@@ -124,6 +125,13 @@ export default function OpsDashboardPage() {
           <GoalGapCard title="付费" actual={pay.actual} target={pay.target} unit="人" />
         </div>
       )
+    },
+    {
+      id: "ai-report",
+      priority: 20,
+      content: (
+        <ReportGenerator />
+      ),
     },
     {
       id: "productivity",

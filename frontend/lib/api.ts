@@ -95,14 +95,19 @@ export const analysisAPI = {
 // ── Reports ───────────────────────────────────────────────────────────────────
 
 export const reportsAPI = {
-  list: () => request<unknown[]>("/reports/list"),
+  generate: () =>
+    request<{ status: string; report: { markdown: string; generated_at: string; ai_commentary: string } }>(
+      "/reports/generate",
+      { method: "POST" }
+    ),
+  latest: () => request<{ markdown: string; generated_at: string } | null>("/reports/latest"),
+  list: () => request<{ reports: { filename: string; date: string }[] }>("/reports/list"),
   getLatest: () => request<{ ops: unknown; exec: unknown }>("/reports/latest"),
   getContent: (reportType: "ops" | "exec", date: string) =>
     request<{ filename: string; report_type: string; date: string; content: string }>(
       `/reports/${reportType}/${date}`
     ),
   downloadURL: (filename: string) => `${BASE}/reports/download/${encodeURIComponent(filename)}`,
-
 };
 
 // ── Data Sources ──────────────────────────────────────────────────────────────
