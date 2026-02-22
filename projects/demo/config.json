@@ -1,0 +1,25 @@
+{
+  "project_name": "demo",
+  "display_name": "Demo Analytics Project",
+  "monthly_targets": {
+    "202602": {
+      "target_leads": 100,
+      "target_revenue_usd": 10000
+    }
+  },
+  "column_mapping": {},
+  "work_schedule": {
+    "rest_weekdays": [5, 6],
+    "weekend_multiplier": 0.0
+  },
+  "exchange_rate": {"THB_USD": 34.0},
+  "roi_cost_config": {},
+  "role_aliases": {},
+  "default_team_name": "DEFAULT",
+  "channel_labels": ["online", "offline", "referral"],
+  "gap_thresholds": {"green": 0.0, "yellow": -0.05},
+  "anomaly_config": {"rest_days": [5, 6]},
+  "ltv_config": {},
+  "enabled_modules": ["summary", "funnel", "trend"],
+  "enabled_routers": ["analysis", "reports"]
+}

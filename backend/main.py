@@ -2,8 +2,11 @@
 ref-ops-engine FastAPI 主入口
 51Talk 泰国转介绍运营分析引擎 REST API
 """
+import importlib
+import logging
 import sys
 from pathlib import Path
+from typing import List, Optional
 
 # 确保项目根（src/）和 backend/（core/）均可被导入
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -18,13 +21,81 @@ from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 
-from api import analysis, reports, datasources, config, snapshots, health, insights, system, cohort_detail, channel_trend, outreach_heatmap, outreach_coverage, cohort_decay, north_star, paid_followup, cohort_student, funnel_detail, channel_mom, retention_rank, leads_detail, productivity_history, outreach_gap, enclosure_health, ranking_enhanced, presentation
 from services.analysis_service import AnalysisService
+
+logger = logging.getLogger(__name__)
+
+# ── 路由注册表 ─────────────────────────────────────────────────────────────────
+# 格式：router_key → (module_path, prefix, tags)
+# router_key 与 ProjectConfig.enabled_routers 中的字符串对应
+ROUTER_REGISTRY: dict = {
+    "health":               ("api.health",               "/api",               []),
+    "analysis":             ("api.analysis",             "/api/analysis",      ["analysis"]),
+    "reports":              ("api.reports",              "/api/reports",       ["reports"]),
+    "datasources":          ("api.datasources",          "/api/datasources",   ["datasources"]),
+    "config":               ("api.config",               "/api/config",        ["config"]),
+    "snapshots":            ("api.snapshots",            "/api/snapshots",     ["snapshots"]),
+    "insights":             ("api.insights",             "/api/analysis",      ["insights"]),
+    "system":               ("api.system",               "",                   []),
+    "cohort_detail":        ("api.cohort_detail",        "/api/analysis",      ["cohort"]),
+    "channel_trend":        ("api.channel_trend",        "/api/analysis",      ["channel"]),
+    "outreach_heatmap":     ("api.outreach_heatmap",     "/api/analysis",      ["outreach"]),
+    "outreach_coverage":    ("api.outreach_coverage",    "/api/analysis",      ["outreach"]),
+    "cohort_decay":         ("api.cohort_decay",         "/api/analysis",      ["cohort-decay"]),
+    "north_star":           ("api.north_star",           "/api/analysis",      ["north-star"]),
+    "paid_followup":        ("api.paid_followup",        "/api/analysis",      ["paid-followup"]),
+    "cohort_student":       ("api.cohort_student",       "/api/analysis",      ["cohort-student"]),
+    "funnel_detail":        ("api.funnel_detail",        "/api/analysis",      ["funnel-detail"]),
+    "channel_mom":          ("api.channel_mom",          "/api/analysis",      ["channel-mom"]),
+    "retention_rank":       ("api.retention_rank",       "/api/analysis",      ["retention"]),
+    "leads_detail":         ("api.leads_detail",         "/api/analysis",      ["leads-detail"]),
+    "productivity_history": ("api.productivity_history", "/api/analysis",      ["productivity"]),
+    "outreach_gap":         ("api.outreach_gap",         "/api/analysis",      ["outreach-gap"]),
+    "enclosure_health":     ("api.enclosure_health",     "/api/analysis",      ["enclosure-health"]),
+    "ranking_enhanced":     ("api.ranking_enhanced",     "/api/analysis",      ["ranking-enhanced"]),
+    "presentation":         ("api.presentation",         "/api/analysis",      ["presentation"]),
+}
+
+
+def _load_routers(enabled_routers: Optional[List[str]] = None) -> list:
+    """
+    动态导入并返回路由模块列表。
+    enabled_routers 为 None 时启用全部（向后兼容）。
+    返回 [(module, prefix, tags), ...]
+    """
+    keys = enabled_routers if enabled_routers is not None else list(ROUTER_REGISTRY.keys())
+    loaded = []
+    for key in keys:
+        if key not in ROUTER_REGISTRY:
+            logger.warning(f"未知路由 key: {key}，跳过")
+            continue
+        mod_path, prefix, tags = ROUTER_REGISTRY[key]
+        try:
+            mod = importlib.import_module(mod_path)
+            loaded.append((key, mod, prefix, tags))
+        except ImportError as e:
+            logger.error(f"路由模块导入失败 [{key}] {mod_path}: {e}")
+    return loaded
+
+
+# ── 尝试加载 ProjectConfig（可选，失败时降级为默认行为）────────────────────────
+_project_config = None
+try:
+    from core.project_config import load_project_config
+    _project_config = load_project_config("referral")
+    _display_name = _project_config.display_name
+    _enabled_routers: Optional[List[str]] = (
+        _project_config.enabled_routers if _project_config.enabled_routers else None
+    )
+except Exception as _cfg_err:
+    logger.warning(f"ProjectConfig 加载失败，使用默认配置: {_cfg_err}")
+    _display_name = "ref-ops-engine"
+    _enabled_routers = None
 
 limiter = Limiter(key_func=get_remote_address, default_limits=["100/minute"])
 
 app = FastAPI(
-    title="ref-ops-engine API",
+    title=f"{_display_name} API",
     description="51Talk 泰国转介绍运营分析引擎 REST API",
     version="9.0.0"
 )
@@ -44,100 +115,27 @@ app.add_middleware(
 # 单例 AnalysisService，注入到各路由模块
 _analysis_service = AnalysisService(project_root=PROJECT_ROOT)
 
-app.include_router(health.router, prefix="/api")
-app.include_router(
-    analysis.router,
-    prefix="/api/analysis",
-    tags=["analysis"],
-)
-app.include_router(
-    reports.router,
-    prefix="/api/reports",
-    tags=["reports"],
-)
-app.include_router(
-    datasources.router,
-    prefix="/api/datasources",
-    tags=["datasources"],
-)
-app.include_router(
-    config.router,
-    prefix="/api/config",
-    tags=["config"],
-)
-app.include_router(
-    snapshots.router,
-    prefix="/api/snapshots",
-    tags=["snapshots"],
-)
-app.include_router(
-    insights.router,
-    prefix="/api/analysis",
-    tags=["insights"],
-)
-app.include_router(
-    cohort_detail.router,
-    prefix="/api/analysis",
-    tags=["cohort"],
-)
-app.include_router(
-    channel_trend.router,
-    prefix="/api/analysis",
-    tags=["channel"],
-)
-app.include_router(
-    outreach_heatmap.router,
-    prefix="/api/analysis",
-    tags=["outreach"],
-)
-app.include_router(
-    outreach_coverage.router,
-    prefix="/api/analysis",
-    tags=["outreach"],
-)
-app.include_router(system.router)
-app.include_router(cohort_decay.router, prefix="/api/analysis", tags=["cohort-decay"])
-app.include_router(north_star.router, prefix="/api/analysis", tags=["north-star"])
-app.include_router(paid_followup.router, prefix="/api/analysis", tags=["paid-followup"])
-app.include_router(cohort_student.router, prefix="/api/analysis", tags=["cohort-student"])
-app.include_router(funnel_detail.router, prefix="/api/analysis", tags=["funnel-detail"])
-app.include_router(channel_mom.router, prefix="/api/analysis", tags=["channel-mom"])
-app.include_router(retention_rank.router, prefix="/api/analysis", tags=["retention"])
-app.include_router(leads_detail.router, prefix="/api/analysis", tags=["leads-detail"])
-app.include_router(productivity_history.router, prefix="/api/analysis", tags=["productivity"])
-app.include_router(outreach_gap.router, prefix="/api/analysis", tags=["outreach-gap"])
-app.include_router(enclosure_health.router, prefix="/api/analysis", tags=["enclosure-health"])
-app.include_router(ranking_enhanced.router, prefix="/api/analysis", tags=["ranking-enhanced"])
-app.include_router(presentation.router, prefix="/api/analysis", tags=["presentation"])
+# 动态加载并注册路由
+_loaded_routers = _load_routers(_enabled_routers)
+for _key, _mod, _prefix, _tags in _loaded_routers:
+    kwargs: dict = {}
+    if _prefix:
+        kwargs["prefix"] = _prefix
+    if _tags:
+        kwargs["tags"] = _tags
+    app.include_router(_mod.router, **kwargs)
 
 
 @app.on_event("startup")
 async def startup_event():
     """启动时初始化服务"""
-    # 将单例注入到各路由模块
-    analysis.set_service(_analysis_service)
-    reports.set_service(_analysis_service)
-    datasources.set_service(_analysis_service)
-    config.set_service(_analysis_service)
-    snapshots.set_service(_analysis_service)
-    insights.set_service(_analysis_service)  # BUG-4/11: 独立注入，消除对 analysis._service 的依赖
-    cohort_detail.set_service(_analysis_service)
-    channel_trend.set_service(_analysis_service)
-    outreach_heatmap.set_service(_analysis_service)
-    outreach_coverage.set_service(_analysis_service)
-    cohort_decay.set_service(_analysis_service)
-    north_star.set_service(_analysis_service)
-    paid_followup.set_service(_analysis_service)
-    cohort_student.set_service(_analysis_service)
-    funnel_detail.set_service(_analysis_service)
-    channel_mom.set_service(_analysis_service)
-    retention_rank.set_service(_analysis_service)
-    leads_detail.set_service(_analysis_service)
-    productivity_history.set_service(_analysis_service)
-    outreach_gap.set_service(_analysis_service)
-    enclosure_health.set_service(_analysis_service)
-    ranking_enhanced.set_service(_analysis_service)
-    presentation.set_service(_analysis_service)
+    # 将单例注入到所有已加载的路由模块（自动遍历，无需手动列举）
+    for _key, _mod, _prefix, _tags in _loaded_routers:
+        if hasattr(_mod, "set_service"):
+            try:
+                _mod.set_service(_analysis_service)
+            except Exception as _e:
+                logger.warning(f"set_service 失败 [{_key}]: {_e}")
 
     # 后台自动运行分析（非阻塞）
     import asyncio

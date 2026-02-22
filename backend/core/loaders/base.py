@@ -1,9 +1,12 @@
 """统一数据加载基础类"""
 from pathlib import Path
-from typing import Optional
+from typing import Optional, TYPE_CHECKING
 import hashlib
 import logging
 import math
+
+if TYPE_CHECKING:
+    from backend.core.project_config import ProjectConfig
 
 logger = logging.getLogger(__name__)
 
@@ -11,11 +14,19 @@ logger = logging.getLogger(__name__)
 class BaseLoader:
     """所有分类 Loader 的基类"""
 
-    # 别名映射（EA→SS, CM→LP）
+    # 别名映射（EA→SS, CM→LP）— 类常量保留用于向后兼容
     ALIAS_MAP = {"EA": "SS", "ea": "SS", "CM": "LP", "cm": "LP"}
 
-    def __init__(self, input_dir: Path):
+    def __init__(self, input_dir: Path, project_config: Optional["ProjectConfig"] = None):
         self.input_dir = Path(input_dir)
+        self._project_config = project_config
+        # 有 config 时使用 config 的别名映射和默认团队名，否则保留硬编码值
+        if project_config is not None:
+            self.alias_map: dict = dict(project_config.role_aliases)
+            self.default_team: str = project_config.default_team_name
+        else:
+            self.alias_map = dict(self.ALIAS_MAP)
+            self.default_team = "THCC"
 
     def _get_cache_path(self, file_path: Path, sheet_name=None) -> Path:
         """生成 Parquet 缓存文件路径"""
@@ -96,18 +107,17 @@ class BaseLoader:
         return df
 
     def _normalize_alias(self, text: str) -> str:
-        """规范化别名：EA→SS, CM→LP"""
+        """规范化别名：EA→SS, CM→LP（有 config 时使用 config 的别名映射）"""
         if not isinstance(text, str):
             return str(text)
-        for alias, standard in self.ALIAS_MAP.items():
+        for alias, standard in self.alias_map.items():
             text = text.replace(alias, standard)
         return text
 
-    @staticmethod
-    def _normalize_team(name: str) -> str:
-        """规范化团队名：'-'/'—'/'nan'/空 → 'THCC'"""
+    def _normalize_team(self, name: str) -> str:
+        """规范化团队名：'-'/'—'/'nan'/空 → default_team（有 config 时从 config 读取）"""
         if not name or str(name).strip() in ("-", "—", "nan", "NaN", ""):
-            return "THCC"
+            return self.default_team
         return str(name).strip()
 
     def _clean_numeric(self, val) -> Optional[float]:

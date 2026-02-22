@@ -1,0 +1,141 @@
+{
+  "project_name": "referral",
+  "display_name": "51Talk 泰国转介绍",
+  "monthly_targets": {
+    "202601": {
+      "注册目标": 779,
+      "付费目标": 179,
+      "金额目标": 147848,
+      "客单价": 825,
+      "目标转化率": 0.23,
+      "约课率目标": 0.77,
+      "出席率目标": 0.66
+    },
+    "202602": {
+      "注册目标": 869,
+      "付费目标": 200,
+      "金额目标": 169800,
+      "客单价": 850,
+      "目标转化率": 0.23,
+      "约课率目标": 0.77,
+      "出席率目标": 0.66,
+      "子口径": {
+        "CC窄口径": {"倒子目标": 217},
+        "SS窄口径": {"倒子目标": 87},
+        "LP窄口径": {"倒子目标": 87},
+        "宽口径": {"倒子目标": 478}
+      }
+    }
+  },
+  "column_mapping": {
+    "总计": {
+      "注册": "C", "预约": "D", "出席": "E", "付费": "F", "美金金额": "G",
+      "注册付费率": "H", "预约率": "I", "预约出席率": "J", "出席付费率": "K"
+    },
+    "CC窄口径": {
+      "注册": "L", "预约": "M", "出席": "N", "付费": "O", "美金金额": "P",
+      "注册付费率": "Q", "预约率": "R", "预约出席率": "S", "出席付费率": "T"
+    },
+    "SS窄口径": {
+      "注册": "U", "预约": "V", "出席": "W", "付费": "X", "美金金额": "Y",
+      "注册付费率": "Z", "预约率": "AA", "预约出席率": "AB", "出席付费率": "AC"
+    },
+    "其它": {
+      "注册": "AD", "预约": "AE", "出席": "AF", "付费": "AG", "美金金额": "AH",
+      "注册付费率": "AI", "预约率": "AJ", "预约出席率": "AK", "出席付费率": "AL"
+    }
+  },
+  "work_schedule": {
+    "rest_weekdays": [2],
+    "weekend_multiplier": 1.4,
+    "day_weights": {
+      "0": 1.0,
+      "1": 1.0,
+      "2": 0.0,
+      "3": 1.0,
+      "4": 1.0,
+      "5": 1.4,
+      "6": 1.4
+    }
+  },
+  "exchange_rate": {
+    "THB_USD": 34.0,
+    "CNY_USD": 8.0
+  },
+  "roi_cost_config": {
+    "CARD_COST_PER_UNIT": 1.31,
+    "CASH_COMMISSION_SMALL": 38,
+    "CASH_COMMISSION_LARGE": 68,
+    "CASH_THRESHOLD": 850
+  },
+  "role_aliases": {
+    "EA": "SS",
+    "ea": "SS",
+    "CM": "LP",
+    "cm": "LP"
+  },
+  "default_team_name": "THCC",
+  "channel_labels": ["CC窄口径", "SS窄口径", "LP窄口径", "宽口径"],
+  "gap_thresholds": {
+    "green": 0.0,
+    "yellow": -0.05
+  },
+  "anomaly_config": {
+    "std_threshold": 2.0,
+    "decline_threshold": 0.3,
+    "conversion_floor": 0.05,
+    "rest_days": [2]
+  },
+  "ltv_config": {
+    "default_renewal_rate": 0.3,
+    "narrow_renewal_rate": 0.4,
+    "wide_renewal_rate": 0.25
+  },
+  "enabled_modules": [
+    "meta",
+    "summary",
+    "funnel",
+    "channel_comparison",
+    "student_journey",
+    "cc_360",
+    "cohort_roi",
+    "enclosure_cross",
+    "checkin_impact",
+    "productivity",
+    "order_analysis",
+    "outreach_analysis",
+    "trial_followup",
+    "ranking_cc",
+    "ranking_ss_lp",
+    "trend",
+    "prediction",
+    "anomalies"
+  ],
+  "enabled_routers": [
+    "health",
+    "analysis",
+    "reports",
+    "datasources",
+    "config",
+    "snapshots",
+    "insights",
+    "system",
+    "cohort_detail",
+    "channel_trend",
+    "outreach_heatmap",
+    "outreach_coverage",
+    "cohort_decay",
+    "north_star",
+    "paid_followup",
+    "cohort_student",
+    "funnel_detail",
+    "channel_mom",
+    "retention_rank",
+    "leads_detail",
+    "productivity_history",
+    "outreach_gap",
+    "enclosure_health",
+    "ranking_enhanced",
+    "presentation"
+  ]
+}

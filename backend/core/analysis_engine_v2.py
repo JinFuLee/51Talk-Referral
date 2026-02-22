@@ -82,44 +82,80 @@ class AnalysisEngineV2:
         result = engine.analyze()
     """
 
+    # 类常量保留用于向后兼容，实例属性会在 __init__ 中按 config 覆盖
     GAP_GREEN = 0.0
     GAP_YELLOW = -0.05
 
-    def __init__(self, data: dict, targets: dict, report_date: datetime, snapshot_store=None):
+    def __init__(
+        self,
+        data: dict,
+        targets: dict,
+        report_date: datetime,
+        snapshot_store=None,
+        project_config=None,
+    ):
         self.data = data
         self.targets = targets
         self.report_date = report_date
         self.data_date = report_date - timedelta(days=1)
         self._result: Optional[dict] = None
         self._snapshot_store = snapshot_store  # Optional[SnapshotStore]，用于峰谷/YoY/WoW 查询
+        self.project_config = project_config   # Optional[ProjectConfig]
+
+        # 有 config 时从 config 读取阈值和渠道标签，否则保留类常量
+        if project_config is not None:
+            thresholds = project_config.gap_thresholds
+            self.GAP_GREEN = float(thresholds.get("green", self.__class__.GAP_GREEN))
+            self.GAP_YELLOW = float(thresholds.get("yellow", self.__class__.GAP_YELLOW))
+            self._channel_labels: List[str] = list(project_config.channel_labels)
+        else:
+            self.GAP_GREEN = self.__class__.GAP_GREEN
+            self.GAP_YELLOW = self.__class__.GAP_YELLOW
+            self._channel_labels = ["CC窄口径", "SS窄口径", "LP窄口径", "宽口径"]
 
     # ── 主入口 ────────────────────────────────────────────────────────────────
+
+    # 所有可用模块的完整注册表（key → 分析方法）
+    _MODULE_REGISTRY: Dict[str, str] = {
+        "meta":               "_build_meta",
+        "summary":            "_analyze_summary",
+        "funnel":             "_analyze_funnel",
+        "channel_comparison": "_analyze_channel_comparison",
+        "student_journey":    "_analyze_student_journey",
+        "cc_360":             "_analyze_cc_360",
+        "cohort_roi":         "_analyze_cohort_roi",
+        "enclosure_cross":    "_analyze_enclosure_cross",
+        "checkin_impact":     "_analyze_checkin_impact",
+        "productivity":       "_analyze_productivity",
+        "order_analysis":     "_analyze_orders",
+        "outreach_analysis":  "_analyze_outreach",
+        "trial_followup":     "_analyze_trial_followup",
+        "ranking_cc":         "_analyze_cc_ranking",
+        "ranking_ss_lp":      "_analyze_ss_lp_ranking",
+        "trend":              "_analyze_trend",
+        "prediction":         "_analyze_prediction",
+        "anomalies":          "_detect_anomalies",
+    }
 
     def analyze(self) -> dict:
         """主分析入口，返回全部分析结果（全部可 JSON 序列化）"""
         result: dict = {}
 
-        modules = [
-            ("meta",                self._build_meta),
-            ("summary",             self._analyze_summary),
-            ("funnel",              self._analyze_funnel),
-            ("channel_comparison",  self._analyze_channel_comparison),
-            ("student_journey",     self._analyze_student_journey),
-            ("cc_360",              self._analyze_cc_360),
-            ("cohort_roi",          self._analyze_cohort_roi),
-            ("enclosure_cross",     self._analyze_enclosure_cross),
-            ("checkin_impact",      self._analyze_checkin_impact),
-            ("productivity",        self._analyze_productivity),
-            ("order_analysis",      self._analyze_orders),
-            ("outreach_analysis",   self._analyze_outreach),
-            ("trial_followup",      self._analyze_trial_followup),
-            ("ranking_cc",          self._analyze_cc_ranking),
-            ("ranking_ss_lp",       self._analyze_ss_lp_ranking),
-            ("trend",               self._analyze_trend),
-            ("prediction",          self._analyze_prediction),
-            ("anomalies",           self._detect_anomalies),
-            # risk_alerts depends on anomalies, built last
-        ]
+        # 有 project_config 且指定了 enabled_modules 时，按白名单筛选；
+        # 否则沿用完整模块列表（向后兼容）
+        if self.project_config is not None and self.project_config.enabled_modules:
+            enabled = set(self.project_config.enabled_modules)
+            modules = [
+                (key, getattr(self, method))
+                for key, method in self._MODULE_REGISTRY.items()
+                if key in enabled and hasattr(self, method)
+            ]
+        else:
+            modules = [
+                (key, getattr(self, method))
+                for key, method in self._MODULE_REGISTRY.items()
+                if hasattr(self, method)
+            ]
 
         for key, fn in modules:
             try:
@@ -186,7 +222,8 @@ class AnalysisEngineV2:
     def _calc_workdays(self) -> tuple[int, int]:
         """
         计算当月已过工作日和剩余工作日。
-        泰国排班：每周仅周三休息，周六周日正常上班。
+        有 project_config 时从 work_schedule.rest_weekdays 读取休息日；
+        否则沿用硬编码（泰国排班：每周仅周三休息，周六周日正常上班）。
         T-1 数据：data_date 为实际数据日期。
         返回 (elapsed_workdays, remaining_workdays)
         """
@@ -195,9 +232,13 @@ class AnalysisEngineV2:
         days_in_month = calendar.monthrange(year, month)[1]
         current_day = dd.day
 
+        if self.project_config is not None:
+            rest_days = set(self.project_config.work_schedule.rest_weekdays)
+        else:
+            rest_days = {2}  # 周三（向后兼容硬编码）
+
         def _is_workday(d: int) -> bool:
-            # 周三 (weekday() == 2) 是唯一休息日；周六周日正常上班
-            return datetime(year, month, d).weekday() != 2
+            return datetime(year, month, d).weekday() not in rest_days
 
         elapsed = sum(1 for d in range(1, current_day + 1) if _is_workday(d))
         remaining = sum(1 for d in range(current_day + 1, days_in_month + 1) if _is_workday(d))
@@ -495,7 +536,7 @@ class AnalysisEngineV2:
         total_paid = total.get("付费") or 1
         time_prog  = self.targets.get("时间进度", 0.0)
 
-        channels = ["CC窄口径", "SS窄口径", "LP窄口径", "宽口径"]
+        channels = self._channel_labels
         comparison = {}
 
         for ch in channels:

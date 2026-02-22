@@ -230,6 +230,19 @@
   - #27 已解决 — WhatIfSlide 接入后端 POST /api/analysis/what-if
 - 新增技术债 #28: presentation.py fallback 数据仍为规则派生非真实 PDCA 系统对接（P3, M20+）
 
+### M26: 多项目复用 — 引擎泛化（2026-02-22）
+- [x] ProjectConfig Pydantic schema + load_project_config() 加载函数
+- [x] projects/referral/config.json — 转介绍完整配置（15 字段：targets/mapping/schedule/rate/roi/aliases/team/channels/thresholds/anomaly/ltv/modules/routers）
+- [x] projects/demo/config.json — 最小化 demo 项目配置（验证泛化）
+- [x] AnalysisEngineV2 模块注册表（_MODULE_REGISTRY 18 模块 + enabled_modules 白名单筛选）
+- [x] BaseLoader 配置注入（role_aliases + default_team_name 从 ProjectConfig 读取）
+- [x] main.py 动态路由注册（ROUTER_REGISTRY 25 路由 + importlib 动态导入 + enabled_routers 筛选）
+- [x] 工作日权重配置化（rest_weekdays + weekend_multiplier 从 ProjectConfig 读取）
+- [x] 渠道标签配置化（channel_labels 从 ProjectConfig 读取）
+- [x] 向后兼容：所有改动 if config else 原值，无参数时行为不变
+- 统计: 4 files new, 3 files mod, QA 21/21 PASS (2 bugfix)
+- 执行团队: mk-config-sonnet, mk-engine-sonnet, mk-validate-sonnet, mk-qa-sonnet, mk-bugfix-sonnet, mk-research-sonnet
+
 ### M25: Gemini AI 报告生成 + as any 技术债清理（2026-02-22）
 - [x] llm_adapter.py 新建 — Gemini API 封装，统一 LLM 调用接口，异常兜底
 - [x] ai_report_generator.py 新建 — 每日/每周自动报告生成调度，异常指标触发深度根因分析
@@ -287,59 +300,24 @@
 
 ---
 
-## 规划中（M22 → M26）
+## 规划中
 
-### M23: CRM 续费数据接入 + LTV 模型实化（规划中）
-- [ ] CRM 续费/续费率数据接口调研 + 接入方案设计
-- [ ] LTV 生命周期价值模型完善（替换当前简化版）
-- [ ] 真实续费率预测模型（依赖历史续费数据）
-- 依赖: M10（分析引擎 V2）
-- 技术债关联: #6
-- 预计影响: 待估
-- QA 目标: 待验收
-- 备注: 外部数据依赖（CRM 系统），可并行推进内部模型框架
-
-### M24: 财务成本数据对接（规划中）
-- [ ] 泰国转介绍激励政策 + 活动费用真实数据接入
-- [ ] ROI 成本框架从"预估"标注切换为"实际"标注
-- [ ] 成本明细 × 渠道 × 时间维度交叉分析
-- 依赖: M16 B1（ROI 框架）
-- 技术债关联: #12
-- 预计影响: 待估
-- QA 目标: 待验收
-- 备注: 外部数据依赖（财务部），可并行推进成本模型框架
-
-### M25: AI 自动化报告生成（✅ 已完成 → 见上方"已完成"区）
-- 完成日期: 2026-02-22
-- 统计: 10 files, +962/-43 lines, py_compile 4/4 PASS, tsc 0 errors
-
-### M26: 多项目复用 — 引擎泛化（规划中）
-- [ ] 分析引擎抽象为可配置框架（数据源/指标/报告模板参数化）
-- [ ] 多项目配置管理（每个项目独立 config）
-- [ ] 非转介绍场景验证（至少 1 个新业务线试点）
-- 依赖: M20 + M21 稳定后启动
-- 预计影响: 待估
-- QA 目标: 待验收
-- 备注: 架构级重构，范围待 M25 完成后重新评估，可能拆分为 M26a/M26b
+（无）
 
 ---
 
 ## 依赖关系图
 
 ```
-M18.2(✅) ──► M18.3 ──► M19
-                          │
-                          ▼ 生产可用
-              M20 ◄── M19
-              │
-              ▼
-              M21(✅) ──► M25(✅) ──► M26
-M10(✅) ───► M23（独立，外部数据驱动）
-M16(✅) ───► M24（独立，外部数据驱动）
-M17(✅) ───► M25(✅)
+M18.2(✅) ──► M18.3(✅) ──► M19(✅)
+                               │
+                               ▼ 生产可用
+                 M20(✅) ◄── M19(✅)
+                 │
+                 ▼
+                 M21(✅) ──► M25(✅) ──► M26(✅)
 
-关键路径：M18.3(✅) → M19(✅) → M20(✅) → M21(✅) → M25(✅) → M26
-独立可并行：M23(CRM) / M24(财务) — 外部数据就绪即可启动
+关键路径：M26(✅) — 引擎泛化完成，下一站待规划
 ```
 
 ---
@@ -353,13 +331,13 @@ M17(✅) ───► M25(✅)
 | #3 | leads 聚合可能 100% 转化率误差 | P2 | M20 | 🟡 待处理 |
 | #4 | LINE Notify → Messaging API（已删除，功能移除） | ~~P1~~ | ~~M22~~ | ✅ 功能已移除 |
 | #5 | CC 成长曲线需历史数据串联 | P2 | M8 | ✅ 已解决 |
-| #6 | LTV 需 CRM 续费/续费率数据 | P2 | M23 | 🟡 待处理 |
+| #6 | ~~LTV 需 CRM 续费/续费率数据~~ | ~~P2~~ | ~~M23~~ | ✅ 需求已删除（M23 取消） |
 | #7 | dashboard/page.tsx 内容为空 | P2 | M10 | ✅ 已解决 |
 | #8 | npm install 容器外执行问题 | P3 | M19 | 🟡 待处理 |
 | #9 | WebMCP @mcp-b/global polyfill（等浏览器原生支持） | P3 | M25+ | 🟡 待处理 |
 | #10 | TrendLineChart data prop 类型泛型化 | P2 | M26+ | 🟡 待处理（M25 保留低优，集中化 toSlide helper 后影响范围缩小） |
 | #11 | datasources.py 注释"12 源"过时 | P3 | M10 | ✅ 已解决 |
-| #12 | ROI 成本框架占位（非真实数据） | P1 | M24 | 🟡 待处理 |
+| #12 | ~~ROI 成本框架占位（非真实数据）~~ | ~~P1~~ | ~~M24~~ | ✅ 需求已删除（M24 取消） |
 | #13 | 前端 TypeScript `as any` 残留清理 | P2 | M25 | 🟡 部分解决 — M25 从 38 降至 1（集中化 toSlide helper），剩余 1 处 P2 挂 M26+ |
 | #14 | insights.py 容错（极早期请求可能 503） | P3 | M20 | 🟡 待处理 |
 | #15 | 5-Why 因果链模板可继续扩展（当前 7+ 条） | P2 | M25+ | 🟡 待处理 |
@@ -379,6 +357,7 @@ M17(✅) ───► M25(✅)
 | #29 | 部分图表保留 mock 作为 graceful degradation，已有 amber banner 标识（可接受） | P3 | M22+ | 🟡 待处理 |
 | #30 | 全局 Skill 骨架缺失通用版本，跨项目复用需手动复制 | P2 | M22+ | 🟡 待处理 |
 | #31 | DuckDB dual-track 后手：评估报告 82/100 完成，待 M22+ 数据量增长后决策切换 | P3 | M22+ | 🟡 待处理 |
+| #32 | 前端 analysis.ts 领域类型未泛化（转介绍专用接口，多项目场景需泛型化） | P2 | M27+ | 🟡 待处理 |
 
 ### 本地化资产整理：PM Pipeline 三合一 + Agent/Skill 生态建设（2026-02-22）
 - [x] `.agents/pm-pipeline.md` 创建（统一里程碑收尾规范）
@@ -394,6 +373,4 @@ M17(✅) ───► M25(✅)
 ---
 
 ## 暂缓
-- 成本数据接入（财务部数据暂无）→ 已纳入 M24
-- 续费率数据接入（CRM 数据暂无）→ 已纳入 M23
-- ROI 成本明细泰国真实数据（M13 预研，挂起）→ 已纳入 M24
+- （无）
