@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import useSWR from "swr";
 import {
   LineChart,
   Line,
@@ -12,6 +13,8 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { CHART_FONT_SIZE } from "@/lib/utils";
+
+const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
 interface DecayPoint {
   month: string;
@@ -32,24 +35,20 @@ const LINES = [
   { key: "referral_ratio", label: "带货比", color: "hsl(var(--chart-rose))" },
 ];
 
-const MOCK_DATA: DecayPoint[] = [
-  { month: "M1", reach_rate: 0.82, participation_rate: 0.25, checkin_rate: 0.75, referral_ratio: 0.3 },
-  { month: "M2", reach_rate: 0.65, participation_rate: 0.18, checkin_rate: 0.62, referral_ratio: 0.22 },
-  { month: "M3", reach_rate: 0.50, participation_rate: 0.13, checkin_rate: 0.52, referral_ratio: 0.15 },
-  { month: "M4", reach_rate: 0.38, participation_rate: 0.09, checkin_rate: 0.44, referral_ratio: 0.10 },
-  { month: "M5", reach_rate: 0.30, participation_rate: 0.07, checkin_rate: 0.40, referral_ratio: 0.07 },
-  { month: "M6", reach_rate: 0.25, participation_rate: 0.05, checkin_rate: 0.38, referral_ratio: 0.05 },
-];
-
 function pct(v: number) {
   return `${(v * 100).toFixed(1)}%`;
 }
 
-export function CohortDecayChart({ data = MOCK_DATA }: CohortDecayChartProps) {
+export function CohortDecayChart({ data: propData }: CohortDecayChartProps) {
   const [hiddenKeys, setHiddenKeys] = useState<Set<string>>(new Set());
 
+  const { data: apiData, isLoading, error } = useSWR(
+    propData ? null : "/api/analysis/cohort-decay",
+    fetcher
+  );
+
   const handleLegendClick = (e: { dataKey?: string | number | ((obj: object) => void) }) => {
-    if (!e.dataKey || typeof e.dataKey !== 'string') return;
+    if (!e.dataKey || typeof e.dataKey !== "string") return;
     const key = e.dataKey;
     setHiddenKeys((prev) => {
       const next = new Set(prev);
@@ -57,6 +56,24 @@ export function CohortDecayChart({ data = MOCK_DATA }: CohortDecayChartProps) {
       return next;
     });
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex h-[280px] items-center justify-center">
+        <div className="h-8 w-8 rounded-full border-4 border-slate-200 border-t-blue-500 animate-spin" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex h-[280px] items-center justify-center rounded-xl bg-red-50 border border-red-200 text-red-500 text-sm">
+        Cohort 衰减数据加载失败，请稍后重试
+      </div>
+    );
+  }
+
+  const data: DecayPoint[] = propData ?? apiData?.data ?? [];
 
   return (
     <ResponsiveContainer width="100%" height={280}>

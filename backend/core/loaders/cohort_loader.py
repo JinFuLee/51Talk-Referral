@@ -90,64 +90,68 @@ class CohortLoader(BaseLoader):
         fill_cols = col_names[:3]
         df = self._ffill_merged(df, fill_cols)
 
-        by_team = []
+        # 向量化：过滤全空行 + 无效月份行
+        non_empty_mask = ~df.apply(
+            lambda row: all(str(v).strip() in ("nan", "", "None") for v in row.values), axis=1
+        )
+        month_col = df.iloc[:, 0].apply(lambda v: str(v).strip() if pd.notna(v) else None)
+        invalid_months = {"nan", "", "月份", "col_0", None}
+        valid_month_mask = non_empty_mask & ~month_col.isin(invalid_months)
+        df_valid = df[valid_month_mask].copy()
+
+        if df_valid.empty:
+            return {"by_team": [], "by_month": []}
+
+        # 向量化清洗月份
+        df_valid["_month"] = df_valid.iloc[:, 0].apply(
+            lambda v: self._clean_month(str(v).strip()) if pd.notna(v) else None
+        )
+        df_valid = df_valid[df_valid["_month"].notna()].copy()
+
+        # 向量化清洗数值列 m1-m12 (col positions 3-14)
+        m_col_positions = [2 + m for m in range(1, 13)]  # 3..14
+        for m_idx, col_pos in enumerate(m_col_positions, start=1):
+            col_name = f"m{m_idx}"
+            if col_pos < len(df_valid.columns):
+                df_valid[col_name] = df_valid.iloc[:, col_pos].apply(self._clean_numeric)
+            else:
+                df_valid[col_name] = None
+
+        import math
+        region_col = df_valid.columns[1]
+        group_col = df_valid.columns[2]
+
+        # 向量化构建 by_team（列操作 + to_dict）
+        df_valid["_region"] = df_valid[region_col].apply(
+            lambda v: str(v).strip() if pd.notna(v) else None
+        )
+        df_valid["_group"] = df_valid[group_col].apply(
+            lambda v: str(v).strip() if pd.notna(v) else None
+        )
+        m_cols = [f"m{i}" for i in range(1, 13)]
+        by_team_df = df_valid[["_month", "_region", "_group"] + m_cols].copy()
+        by_team_df = by_team_df.rename(columns={"_month": "月份", "_region": "海外大区", "_group": "小组"})
+        # Replace NaN floats with None in m cols
+        by_team_df[m_cols] = by_team_df[m_cols].where(by_team_df[m_cols].notna(), other=None)
+        by_team = by_team_df.to_dict("records")
+
+        # 按月聚合（向量化 groupby）
+        summary_groups = {"小计", "总计"}
+        summary_mask = (
+            df_valid["_group"].fillna("").isin(summary_groups | {""}) |
+            df_valid["_region"].fillna("").isin(summary_groups)
+        )
+        df_summary = df_valid[summary_mask].copy()
+
         by_month = []
-        month_accum: dict = {}
-
-        for _, row in df.iterrows():
-            # 跳过全空行
-            vals_str = [str(v).strip() for v in row.values]
-            if all(v in ("nan", "", "None") for v in vals_str):
-                continue
-
-            month_raw = str(row.iloc[0]).strip() if pd.notna(row.iloc[0]) else None
-            region = str(row.iloc[1]).strip() if pd.notna(row.iloc[1]) else None
-            group = str(row.iloc[2]).strip() if pd.notna(row.iloc[2]) else None
-
-            if not month_raw or month_raw in ("nan", "月份", "col_0"):
-                continue
-
-            # 月份格式清洗
-            month = self._clean_month(month_raw)
-            if not month:
-                continue
-
-            # 读取第4-15列（第1-12个月的指标值）
-            month_vals = {}
-            for m_idx in range(1, 13):
-                col_pos = 2 + m_idx  # 0-based: col[3]=第1个月, col[14]=第12个月
-                val = row.iloc[col_pos] if col_pos < len(row) else None
-                month_vals[f"m{m_idx}"] = self._clean_numeric(val)
-
-            record = {
-                "月份": month,
-                "海外大区": region,
-                "小组": group,
-                **month_vals,
-            }
-            by_team.append(record)
-
-            # 按月份聚合（仅取小计行或合并为月度汇总）
-            if group in ("小计", "总计", None) or (region in ("小计", "总计")):
-                if month not in month_accum:
-                    month_accum[month] = {
-                        "月份": month,
-                        **{f"m{i}": [] for i in range(1, 13)},
-                    }
-                for m_idx in range(1, 13):
-                    v = month_vals.get(f"m{m_idx}")
-                    if v is not None:
-                        month_accum[month][f"m{m_idx}"].append(v)
-
-        # 按月聚合求平均
-        for month, data in month_accum.items():
-            avg_record = {"月份": month}
-            for m_idx in range(1, 13):
-                vals_list = data.get(f"m{m_idx}", [])
-                avg_record[f"m{m_idx}"] = (sum(vals_list) / len(vals_list)) if vals_list else None
-            by_month.append(avg_record)
-
-        by_month.sort(key=lambda x: x["月份"])
+        if not df_summary.empty:
+            monthly_avg = df_summary.groupby("_month")[m_cols].mean()
+            # Replace NaN with None and convert to list of dicts
+            monthly_avg = monthly_avg.where(monthly_avg.notna(), other=None)
+            monthly_avg.index.name = "月份"
+            monthly_avg = monthly_avg.reset_index()
+            by_month = monthly_avg.to_dict("records")
+            by_month.sort(key=lambda x: x["月份"])
 
         return {
             "by_team": by_team,
@@ -205,90 +209,124 @@ class CohortLoader(BaseLoader):
         fill_cols = [c for c in df.columns[:4] if c in df.columns]
         df = self._ffill_merged(df, fill_cols)
 
-        records = []
-        by_cc: dict = {}
-        by_team: dict = {}
+        # 向量化：过滤无效月份和无效学员id
+        month_col_data = df.get("月份", None)
+        id_col_data = df.get("学员id", None)
 
-        for _, row in df.iterrows():
-            month_raw = str(row.get("月份", "")).strip() if pd.notna(row.get("月份", None)) else None
-            if not month_raw or month_raw in ("nan", "月份"):
-                continue
+        if month_col_data is None or id_col_data is None:
+            return {"records": [], "by_cc": {}, "by_team": {}, "total_students": 0}
 
-            month = self._clean_month(month_raw)
-            region = str(row.get("海外大区", "")).strip() if pd.notna(row.get("海外大区", None)) else None
-            student_id = str(row.get("学员id", "")).strip() if pd.notna(row.get("学员id", None)) else None
-            group = str(row.get("当前小组", "")).strip() if pd.notna(row.get("当前小组", None)) else None
-            cc = str(row.get("当前CC", "")).strip() if pd.notna(row.get("当前CC", None)) else None
+        month_str = month_col_data.apply(lambda v: str(v).strip() if pd.notna(v) else None)
+        valid_month_mask = month_str.notna() & ~month_str.isin({"nan", "月份"})
+        student_str = id_col_data.apply(lambda v: str(v).strip() if pd.notna(v) else None)
+        valid_id_mask = student_str.notna() & (student_str != "nan")
+        df_valid = df[valid_month_mask & valid_id_mask].copy()
 
-            if not student_id or student_id == "nan":
-                continue
+        if df_valid.empty:
+            return {"records": [], "by_cc": {}, "by_team": {}, "total_students": 0}
 
-            # 读取第1-12个月的有效/触达/带新注册数
-            valid_months = {}
-            reach_months = {}
-            new_reg_months = {}
+        # 向量化清洗月份、基础字段
+        df_valid["_month"] = df_valid["月份"].apply(
+            lambda v: self._clean_month(str(v).strip()) if pd.notna(v) else None
+        )
+        df_valid = df_valid[df_valid["_month"].notna()].copy()
 
-            for m in range(1, 13):
-                valid_col = f"第{m}个月是否有效"
-                reach_col = f"第{m}个月是否触达"
-                new_reg_col = f"第{m}个月带新注册数"
+        def _clean_str_col(col: str):
+            return df_valid[col].apply(
+                lambda v: str(v).strip() if pd.notna(v) else None
+            ) if col in df_valid.columns else pd.Series([None] * len(df_valid), index=df_valid.index)
 
-                valid_months[f"m{m}"] = self._clean_numeric(row.get(valid_col, None))
-                reach_months[f"m{m}"] = self._clean_numeric(row.get(reach_col, None))
-                # 带新注册数有 "-" 字符串
-                new_reg_raw = row.get(new_reg_col, None)
-                new_reg_months[f"m{m}"] = self._clean_numeric(new_reg_raw)  # "-" 会被 clean_numeric 转 None
+        df_valid["_region"] = _clean_str_col("海外大区")
+        df_valid["_student_id"] = _clean_str_col("学员id")
+        df_valid["_group"] = _clean_str_col("当前小组")
+        df_valid["_cc"] = _clean_str_col("当前CC")
 
-            rec = {
-                "月份": month,
-                "海外大区": region,
-                "学员id": student_id,
-                "当前小组": group,
-                "当前CC": cc,
+        # 向量化清洗所有 36 个月度列（第1-12个月 × 3指标）
+        for m in range(1, 13):
+            for col_tmpl in [f"第{m}个月是否有效", f"第{m}个月是否触达", f"第{m}个月带新注册数"]:
+                if col_tmpl in df_valid.columns:
+                    df_valid[f"_clean_{col_tmpl}"] = df_valid[col_tmpl].apply(self._clean_numeric)
+                else:
+                    df_valid[f"_clean_{col_tmpl}"] = None
+
+        # 构建 records（需要嵌套 dict 结构，用 to_dict 列表推导）
+        def _build_c6_record(row):
+            valid_months = {f"m{m}": row.get(f"_clean_第{m}个月是否有效") for m in range(1, 13)}
+            reach_months = {f"m{m}": row.get(f"_clean_第{m}个月是否触达") for m in range(1, 13)}
+            new_reg_months = {f"m{m}": row.get(f"_clean_第{m}个月带新注册数") for m in range(1, 13)}
+            return {
+                "月份": row["_month"],
+                "海外大区": row["_region"],
+                "学员id": row["_student_id"],
+                "当前小组": row["_group"],
+                "当前CC": row["_cc"],
                 "是否有效": valid_months,
                 "是否触达": reach_months,
                 "带新注册数": new_reg_months,
             }
-            records.append(rec)
 
-            # by_cc 聚合
-            if cc and cc != "nan":
-                if cc not in by_cc:
-                    by_cc[cc] = {
-                        "CC": cc,
-                        "团队": group,
-                        "月份": month,
-                        "学员数": 0,
-                        "有效学员数": 0,
-                        "触达学员数": 0,
-                        "带新注册总数": 0,
-                    }
-                by_cc[cc]["学员数"] += 1
-                # 统计第1个月有效/触达
-                if valid_months.get("m1") == 1:
-                    by_cc[cc]["有效学员数"] += 1
-                if reach_months.get("m1") == 1:
-                    by_cc[cc]["触达学员数"] += 1
-                new_m1 = new_reg_months.get("m1") or 0
-                by_cc[cc]["带新注册总数"] += new_m1
+        # 保留 iterrows：输出需要嵌套 dict（是否有效/触达/带新注册数），
+        # 36 个数值列已预先向量化清洗，此循环仅做结构装配，无法消除
+        records = [_build_c6_record(row) for _, row in df_valid.iterrows()]
 
-            # by_team 聚合
-            if group and group != "nan":
-                if group not in by_team:
-                    by_team[group] = {
-                        "团队": group,
-                        "学员数": 0,
-                        "有效学员数": 0,
-                        "触达学员数": 0,
-                        "带新注册总数": 0,
-                    }
-                by_team[group]["学员数"] += 1
-                if valid_months.get("m1") == 1:
-                    by_team[group]["有效学员数"] += 1
-                if reach_months.get("m1") == 1:
-                    by_team[group]["触达学员数"] += 1
-                new_m1 = new_reg_months.get("m1") or 0
-                by_team[group]["带新注册总数"] += new_m1
+        # 向量化聚合 by_cc（groupby 替代逐行累加）
+        # m1 列用于统计有效/触达，"-" 已被 clean_numeric 转 None → 0
+        valid_m1_key = "_clean_第1个月是否有效"
+        reach_m1_key = "_clean_第1个月是否触达"
+        new_reg_m1_key = "_clean_第1个月带新注册数"
+
+        cc_col = df_valid["_cc"].fillna("").replace("nan", "")
+        df_valid["_cc_key"] = cc_col
+        cc_valid = df_valid[df_valid["_cc_key"] != ""].copy()
+
+        by_cc: dict = {}
+        if not cc_valid.empty:
+            cc_valid["_valid_m1"] = (cc_valid[valid_m1_key] == 1).astype(int)
+            cc_valid["_reach_m1"] = (cc_valid[reach_m1_key] == 1).astype(int)
+            cc_valid["_new_reg_m1"] = cc_valid[new_reg_m1_key].fillna(0)
+            cc_team = cc_valid.groupby("_cc_key").agg(
+                团队=("_group", "first"),
+                月份=("_month", "first"),
+                学员数=("_cc_key", "count"),
+                有效学员数=("_valid_m1", "sum"),
+                触达学员数=("_reach_m1", "sum"),
+                带新注册总数=("_new_reg_m1", "sum"),
+            )
+            for cc_name, row in cc_team.iterrows():
+                by_cc[cc_name] = {
+                    "CC": cc_name,
+                    "团队": row["团队"],
+                    "月份": row["月份"],
+                    "学员数": int(row["学员数"]),
+                    "有效学员数": int(row["有效学员数"]),
+                    "触达学员数": int(row["触达学员数"]),
+                    "带新注册总数": float(row["带新注册总数"]),
+                }
+
+        # 向量化聚合 by_team
+        group_col = df_valid["_group"].fillna("").replace("nan", "")
+        df_valid["_group_key"] = group_col
+        group_valid = df_valid[df_valid["_group_key"] != ""].copy()
+
+        by_team: dict = {}
+        if not group_valid.empty:
+            group_valid["_valid_m1"] = (group_valid[valid_m1_key] == 1).astype(int)
+            group_valid["_reach_m1"] = (group_valid[reach_m1_key] == 1).astype(int)
+            group_valid["_new_reg_m1"] = group_valid[new_reg_m1_key].fillna(0)
+            team_agg = group_valid.groupby("_group_key").agg(
+                学员数=("_group_key", "count"),
+                有效学员数=("_valid_m1", "sum"),
+                触达学员数=("_reach_m1", "sum"),
+                带新注册总数=("_new_reg_m1", "sum"),
+            )
+            for team_name, row in team_agg.iterrows():
+                by_team[team_name] = {
+                    "团队": team_name,
+                    "学员数": int(row["学员数"]),
+                    "有效学员数": int(row["有效学员数"]),
+                    "触达学员数": int(row["触达学员数"]),
+                    "带新注册总数": float(row["带新注册总数"]),
+                }
 
         return {
             "records": records,

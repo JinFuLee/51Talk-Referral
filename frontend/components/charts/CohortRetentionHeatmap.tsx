@@ -79,10 +79,8 @@ export function CohortRetentionHeatmap() {
     () => fetch("/api/analysis/cohort-decay-raw").then((r) => r.json())
   );
 
-  const curves: Record<string, DecayPoint[]> =
-    data?.decay_curves && Object.keys(data.decay_curves).length > 0
-      ? data.decay_curves
-      : MOCK_DECAY;
+  const isMock = !data?.decay_curves || Object.keys(data.decay_curves).length === 0;
+  const curves: Record<string, DecayPoint[]> = isMock ? MOCK_DECAY : data!.decay_curves!;
 
   const rows = buildMatrix(curves);
   const maxMap = computeMaxPerMetric(rows);
@@ -105,6 +103,11 @@ export function CohortRetentionHeatmap() {
 
   return (
     <div className="overflow-x-auto relative">
+      {isMock && (
+        <div className="bg-amber-50 border border-amber-200 text-amber-700 px-3 py-1.5 rounded text-xs mb-2">
+          ⚠ 当前显示模拟数据（API 数据不可用）
+        </div>
+      )}
       <table className="w-full text-sm border-collapse">
         <thead>
           <tr>

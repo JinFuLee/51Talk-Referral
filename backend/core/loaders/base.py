@@ -1,6 +1,7 @@
 """统一数据加载基础类"""
 from pathlib import Path
 from typing import Optional
+import hashlib
 import logging
 import math
 
@@ -16,6 +17,20 @@ class BaseLoader:
     def __init__(self, input_dir: Path):
         self.input_dir = Path(input_dir)
 
+    def _get_cache_path(self, file_path: Path, sheet_name=None) -> Path:
+        """生成 Parquet 缓存文件路径"""
+        cache_dir = self.input_dir / ".cache"
+        cache_dir.mkdir(exist_ok=True)
+        key = f"{file_path}:{sheet_name if sheet_name is not None else 'default'}"
+        hash_key = hashlib.md5(key.encode()).hexdigest()[:12]
+        return cache_dir / f"{hash_key}.parquet"
+
+    def _is_cache_fresh(self, file_path: Path, cache_path: Path) -> bool:
+        """检查缓存是否比源文件新"""
+        if not cache_path.exists():
+            return False
+        return cache_path.stat().st_mtime > file_path.stat().st_mtime
+
     def _find_latest_file(self, subdir: str) -> Optional[Path]:
         """在子目录中找到最新的 xlsx 文件（按文件名中的时间戳排序）"""
         target_dir = self.input_dir / subdir
@@ -30,10 +45,23 @@ class BaseLoader:
         return xlsx_files[0] if xlsx_files else None
 
     def _read_xlsx_pandas(self, path: Path, sheet_name=0, header=0, skiprows=None):
-        """使用 pandas 读取 Excel，统一异常处理，优先 openpyxl，fallback calamine"""
+        """使用 pandas 读取 Excel，统一异常处理，优先 openpyxl，fallback calamine。
+        内置 Parquet 缓存层：缓存比源文件新时直接返回，否则读 Excel 后写缓存。
+        """
         import pandas as pd
         import warnings
 
+        cache_path = self._get_cache_path(path, sheet_name)
+
+        if self._is_cache_fresh(path, cache_path):
+            try:
+                df = pd.read_parquet(cache_path)
+                logger.info(f"Cache hit: {cache_path.name} <- {path.name}")
+                return df
+            except Exception as cache_err:
+                logger.warning(f"缓存读取失败，降级重读 Excel: {cache_err}")
+
+        logger.info(f"Cache miss, reading Excel: {path.name} (sheet={sheet_name})")
         try:
             with warnings.catch_warnings():
                 warnings.filterwarnings("ignore", category=UserWarning, module="openpyxl")
@@ -44,7 +72,6 @@ class BaseLoader:
                     skiprows=skiprows,
                     engine="openpyxl",
                 )
-            return df
         except Exception as e:
             logger.warning(f"openpyxl 读取失败，尝试 calamine: {e}")
             try:
@@ -55,11 +82,18 @@ class BaseLoader:
                     skiprows=skiprows,
                     engine="calamine",
                 )
-                return df
             except Exception as e2:
                 logger.error(f"所有引擎读取失败 {path}: {e2}")
-                import pandas as pd
                 return pd.DataFrame()
+
+        # 写缓存（DataFrame 为空时跳过，避免无意义缓存）
+        if not df.empty:
+            try:
+                df.to_parquet(cache_path, index=False)
+            except Exception as write_err:
+                logger.warning(f"缓存写入失败（非阻塞）: {write_err}")
+
+        return df
 
     def _normalize_alias(self, text: str) -> str:
         """规范化别名：EA→SS, CM→LP"""

@@ -73,28 +73,23 @@ class KpiLoader(BaseLoader):
             )
             detail_df = df[detail_mask].copy()
 
-            by_cc = []
-            for _, row in detail_df.iterrows():
-                by_cc.append(
-                    {
-                        "cc_name": str(row["cc_name"]).strip(),
-                        "team": self._normalize_team(str(row["team"]).strip())
-                        if pd.notna(row["team"])
-                        else "THCC",
-                        "checkin_24h_rate": self._clean_numeric(row["checkin_24h_rate"]),
-                        "checkin_24h_target": self._clean_numeric(
-                            row["checkin_24h_target"]
-                        ),
-                        "achievement_rate": self._clean_numeric(row["achievement_rate"]),
-                        "referral_participation": self._clean_numeric(
-                            row["referral_participation"]
-                        ),
-                        "referral_coefficient": self._clean_numeric(
-                            row["referral_coefficient"]
-                        ),
-                        "conversion_ratio": self._clean_numeric(row["conversion_ratio"]),
-                    }
-                )
+            # 向量化构建 by_cc（applymap 替代逐行迭代）
+            numeric_fields = [
+                "checkin_24h_rate", "checkin_24h_target", "achievement_rate",
+                "referral_participation", "referral_coefficient", "conversion_ratio",
+            ]
+            d1_nums = detail_df[numeric_fields].applymap(self._clean_numeric)
+            teams_cleaned = detail_df["team"].apply(
+                lambda v: self._normalize_team(str(v).strip()) if pd.notna(v) else "THCC"
+            )
+            by_cc = [
+                {
+                    "cc_name": str(detail_df.iloc[i]["cc_name"]).strip(),
+                    "team": teams_cleaned.iloc[i],
+                    **{field: d1_nums.iloc[i][field] for field in numeric_fields},
+                }
+                for i in range(len(detail_df))
+            ]
 
             # 按团队聚合
             by_team = self._aggregate_by_team_24h(detail_df)
@@ -170,50 +165,44 @@ class KpiLoader(BaseLoader):
             enclosure_labels = {"0-30", "31-60", "61-90", "91-180", "181+", "小计"}
             total_labels = {"总计", "合计", "grand total"}
 
-            by_enclosure = []
+            # 向量化：分离明细行与总计行
+            enc_series = df["enclosure"].apply(lambda v: str(v).strip() if "enclosure" in df.columns else "")
+            total_mask = enc_series.str.lower().isin(total_labels) | enc_series.apply(lambda v: "总计" in v)
+            empty_mask = enc_series == ""
+
+            enc_fields = [
+                "conversion_rate", "participation_rate", "ratio",
+                "active_students", "monthly_b_registrations", "monthly_b_paid",
+                "monthly_active_referrers", "total_b_registrations",
+            ]
+            total_fields = [
+                "active_students", "monthly_b_registrations", "monthly_b_paid",
+                "conversion_rate", "participation_rate", "ratio",
+            ]
+
+            # 明细行（围场标签行）
+            detail_mask = ~total_mask & ~empty_mask
+            df_detail = df[detail_mask].copy()
+            df_total_rows = df[total_mask].copy()
+
+            # 向量化清洗数值
+            avail_enc_fields = [f for f in enc_fields if f in df_detail.columns]
+            df_detail_nums = df_detail[avail_enc_fields].applymap(self._clean_numeric) if not df_detail.empty else df_detail[avail_enc_fields]
+
+            by_enclosure = [
+                {
+                    "enclosure": str(df_detail.iloc[i]["enclosure"]).strip(),
+                    **{field: df_detail_nums.iloc[i][field] if field in df_detail_nums.columns else None
+                       for field in enc_fields},
+                }
+                for i in range(len(df_detail))
+            ]
+
+            # 总计行
             total: dict = {}
-
-            for _, row in df.iterrows():
-                enc = str(row.get("enclosure", "")).strip()
-                if enc.lower() in total_labels or enc == "":
-                    if enc.lower() in total_labels or "总计" in enc:
-                        total = {
-                            "active_students": self._clean_numeric(
-                                row.get("active_students")
-                            ),
-                            "monthly_b_registrations": self._clean_numeric(
-                                row.get("monthly_b_registrations")
-                            ),
-                            "monthly_b_paid": self._clean_numeric(row.get("monthly_b_paid")),
-                            "conversion_rate": self._clean_numeric(row.get("conversion_rate")),
-                            "participation_rate": self._clean_numeric(
-                                row.get("participation_rate")
-                            ),
-                            "ratio": self._clean_numeric(row.get("ratio")),
-                        }
-                    continue
-
-                by_enclosure.append(
-                    {
-                        "enclosure": enc,
-                        "conversion_rate": self._clean_numeric(row.get("conversion_rate")),
-                        "participation_rate": self._clean_numeric(
-                            row.get("participation_rate")
-                        ),
-                        "ratio": self._clean_numeric(row.get("ratio")),
-                        "active_students": self._clean_numeric(row.get("active_students")),
-                        "monthly_b_registrations": self._clean_numeric(
-                            row.get("monthly_b_registrations")
-                        ),
-                        "monthly_b_paid": self._clean_numeric(row.get("monthly_b_paid")),
-                        "monthly_active_referrers": self._clean_numeric(
-                            row.get("monthly_active_referrers")
-                        ),
-                        "total_b_registrations": self._clean_numeric(
-                            row.get("total_b_registrations")
-                        ),
-                    }
-                )
+            if not df_total_rows.empty:
+                t_row = df_total_rows.iloc[0]
+                total = {field: self._clean_numeric(t_row.get(field)) for field in total_fields}
 
             return {
                 "by_enclosure": by_enclosure,
@@ -274,35 +263,26 @@ class KpiLoader(BaseLoader):
             )
             detail_df = df[detail_mask].copy()
 
-            by_cc = []
-            for _, row in detail_df.iterrows():
-                by_cc.append(
-                    {
-                        "cc_name": str(row["cc_name"]).strip(),
-                        "team": self._normalize_team(str(row["team"]).strip())
-                        if pd.notna(row.get("team"))
-                        else "THCC",
-                        "checkin_rate": self._clean_numeric(row.get("checkin_rate")),
-                        "referral_participation_total": self._clean_numeric(
-                            row.get("referral_participation_total")
-                        ),
-                        "referral_participation_checked": self._clean_numeric(
-                            row.get("referral_participation_checked")
-                        ),
-                        "referral_participation_unchecked": self._clean_numeric(
-                            row.get("referral_participation_unchecked")
-                        ),
-                        "checkin_multiplier": self._clean_numeric(
-                            row.get("checkin_multiplier")
-                        ),
-                        "referral_coefficient_total": self._clean_numeric(
-                            row.get("referral_coefficient_total")
-                        ),
-                        "conversion_ratio": self._clean_numeric(
-                            row.get("conversion_ratio")
-                        ),
-                    }
-                )
+            # 向量化构建 by_cc（applymap 替代逐行迭代）
+            d5_numeric_fields = [
+                "checkin_rate", "referral_participation_total",
+                "referral_participation_checked", "referral_participation_unchecked",
+                "checkin_multiplier", "referral_coefficient_total", "conversion_ratio",
+            ]
+            avail_d5_fields = [f for f in d5_numeric_fields if f in detail_df.columns]
+            d5_nums = detail_df[avail_d5_fields].applymap(self._clean_numeric)
+            d5_teams = detail_df["team"].apply(
+                lambda v: self._normalize_team(str(v).strip()) if pd.notna(v) else "THCC"
+            )
+            by_cc = [
+                {
+                    "cc_name": str(detail_df.iloc[i]["cc_name"]).strip(),
+                    "team": d5_teams.iloc[i],
+                    **{field: d5_nums.iloc[i][field] if field in d5_nums.columns else None
+                       for field in d5_numeric_fields},
+                }
+                for i in range(len(detail_df))
+            ]
 
             by_team = self._aggregate_by_team_checkin(detail_df)
 

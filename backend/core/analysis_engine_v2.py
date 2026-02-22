@@ -203,23 +203,62 @@ class AnalysisEngineV2:
         remaining = sum(1 for d in range(current_day + 1, days_in_month + 1) if _is_workday(d))
         return elapsed, remaining
 
+    def _get_real_asp_and_conversion(self) -> tuple[float, float]:
+        """
+        从已加载数据中获取真实 ASP 和注册→付费转化率。
+        fallback 到保守默认值（仅当数据不可用时）。
+        """
+        _default_asp = 850.0
+        _default_conv = 0.23
+
+        # 真实 ASP：从 order_detail.summary.avg_order_value 读取
+        order_detail = self.data.get("order", {}).get("order_detail", {})
+        order_summary = order_detail.get("summary", {})
+        real_asp = order_summary.get("avg_order_value") or order_summary.get("avg_order_value_usd")
+        if real_asp and isinstance(real_asp, (int, float)) and real_asp > 0:
+            asp_usd = float(real_asp)
+        else:
+            asp_usd = _default_asp
+
+        # 真实转化率：注册→付费，从 A1 leads_achievement 总计中计算
+        a1 = self.data.get("leads", {}).get("leads_achievement", {})
+        total = a1.get("by_channel", {}).get("总计", {}) or a1.get("total", {})
+        reg = total.get("注册") or 0
+        paid = total.get("付费") or 0
+        if reg > 0 and paid > 0:
+            conversion_rate = min(paid / reg, 1.0)  # 上限 100%
+        else:
+            conversion_rate = _default_conv
+
+        return asp_usd, conversion_rate
+
     def _calc_efficiency_impact(
         self,
         metric_name: str,
         actual_rate: Optional[float],
         target_rate: Optional[float],
         upstream_base: float,
-        asp_usd: float = 850.0,
-        conversion_rate: float = 0.23,
+        asp_usd: Optional[float] = None,
+        conversion_rate: Optional[float] = None,
     ) -> Optional[dict]:
         """
         计算效率 gap 对下游的量化影响。
         因果链：打卡率 → 参与学员损失 → 注册损失 → 付费损失 → $损失
+        优先使用真实 ASP 和转化率，仅当传入 None 时从数据中动态获取。
         """
         if actual_rate is None or target_rate is None or upstream_base <= 0:
             return None
         if target_rate <= actual_rate:
             return None
+
+        # 动态获取真实参数（调用方未显式传入时）
+        if asp_usd is None or conversion_rate is None:
+            real_asp, real_conv = self._get_real_asp_and_conversion()
+            if asp_usd is None:
+                asp_usd = real_asp
+            if conversion_rate is None:
+                conversion_rate = real_conv
+
         gap = actual_rate - target_rate  # 负数表示落后
         lost_students = abs(gap) * upstream_base
         lost_payments = lost_students * conversion_rate

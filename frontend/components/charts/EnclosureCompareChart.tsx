@@ -136,9 +136,10 @@ export function EnclosureCompareChart() {
   const { data, isLoading, error } = useSWR<EnclosureCompareData>(
     "enclosure-compare",
     () => fetch("/api/analysis/enclosure-compare").then((r) => r.json()),
-    { fallbackData: MOCK_DATA, shouldRetryOnError: false }
+    { shouldRetryOnError: false }
   );
 
+  const isMock = !isLoading && (!data || error);
   const chartData = (data ?? MOCK_DATA).comparison.map((seg) => ({
     name: `${seg.enclosure}天`,
     [config.marketLabel]: Number((seg[config.marketKey] as number) ?? 0),
@@ -181,8 +182,10 @@ export function EnclosureCompareChart() {
           <Spinner />
         </div>
       )}
-      {error && !isLoading && (
-        <p className="text-xs text-amber-600 mb-2">API 暂不可用，显示示例数据</p>
+      {isMock && (
+        <div className="bg-amber-50 border border-amber-200 text-amber-700 px-3 py-1.5 rounded text-xs mb-2">
+          ⚠ 当前显示模拟数据（API 数据不可用）
+        </div>
       )}
       {!isLoading && (
         <>

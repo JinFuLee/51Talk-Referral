@@ -71,20 +71,22 @@ function formatYAxis(v: number) {
 }
 
 export function ProductivityHistoryChart() {
-  const { data, isLoading } = useSWR<ProductivityHistoryData>(
+  const { data, isLoading, error } = useSWR<ProductivityHistoryData>(
     "productivity-history",
-    () =>
-      fetch("/api/analysis/productivity-history")
-        .then((r) => r.json())
-        .catch(() => MOCK_DATA),
-    { fallbackData: MOCK_DATA }
+    () => fetch("/api/analysis/productivity-history").then((r) => r.json())
   );
 
+  const isMock = !isLoading && (!data || error);
   const resolved = data ?? MOCK_DATA;
   const { series, summary } = resolved;
 
   return (
     <div className="space-y-4">
+      {isMock && (
+        <div className="bg-amber-50 border border-amber-200 text-amber-700 px-3 py-1.5 rounded text-xs mb-2">
+          ⚠ 当前显示模拟数据（API 数据不可用）
+        </div>
+      )}
       {/* Summary cards */}
       <div className="grid grid-cols-2 gap-4">
         <div className="bg-blue-50 border border-blue-100 rounded-xl px-5 py-4">

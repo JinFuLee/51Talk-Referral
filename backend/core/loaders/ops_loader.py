@@ -85,7 +85,7 @@ class OpsLoader(BaseLoader):
             if raw.empty:
                 return {}
 
-            # 找表头行（包含"渠道"的行）
+            # 找表头行（包含"渠道"的行）— 小循环(<10行)，保留 iterrows
             header_row = 3  # 默认第4行（0-indexed=3）
             for i, row in raw.iterrows():
                 if str(row.iloc[0]).strip() == "渠道":
@@ -130,36 +130,56 @@ class OpsLoader(BaseLoader):
             } if len(df.columns) >= 29 else {}
             df = df.rename(columns=col_map)
 
-            # 过滤掉汇总行（总计/小计）
+            # 向量化：过滤空行（channel 非空且非 nan）
+            valid_mask = (
+                df["channel"].astype(str).str.strip().ne("") &
+                ~df["channel"].astype(str).str.strip().isin(("nan", "NaN"))
+            )
+            df_valid = df[valid_mask].copy()
+
+            # 向量化：规范化 team、cc_name
+            df_valid["team"] = df_valid["team"].astype(str).str.strip().apply(self._normalize_team)
+            df_valid["cc_name"] = df_valid["cc_name"].astype(str).str.strip()
+
+            # 数值列向量化（对每列应用 _clean_numeric）
+            numeric_cols = [
+                "leads", "appointments", "attended", "paid",
+                "appt_rate", "appt_attend_rate", "attend_paid_rate", "funnel_paid_rate",
+                "call_rate_24h", "connect_rate_24h", "effective_rate_24h",
+                "call_rate_48h", "connect_rate_48h", "effective_rate_48h",
+                "total_call_rate", "total_connect_rate", "total_effective_rate",
+            ]
+            for col in numeric_cols:
+                if col in df_valid.columns:
+                    df_valid[col] = df_valid[col].apply(self._clean_numeric)
+
+            # 构建 records（小DataFrame转dict，行数=CC人数级别）
             records = []
-            for _, row in df.iterrows():
-                channel = str(row.get("channel", "")).strip()
-                team = self._normalize_team(str(row.get("team", "")).strip())
-                cc = str(row.get("cc_name", "")).strip()
-                # 跳过空行
-                if not channel or channel in ("nan", "NaN"):
-                    continue
+            for _, row in df_valid.iterrows():
+                channel = str(row["channel"]).strip()
+                team = row["team"]
+                cc = row["cc_name"]
                 records.append({
                     "channel": channel,
                     "team": team if team not in ("nan", "NaN") else None,
                     "cc_name": cc if cc not in ("nan", "NaN", "小计") else None,
-                    "leads": self._clean_numeric(row.get("leads")),
-                    "appointments": self._clean_numeric(row.get("appointments")),
-                    "attended": self._clean_numeric(row.get("attended")),
-                    "paid": self._clean_numeric(row.get("paid")),
-                    "appt_rate": self._clean_numeric(row.get("appt_rate")),
-                    "appt_attend_rate": self._clean_numeric(row.get("appt_attend_rate")),
-                    "attend_paid_rate": self._clean_numeric(row.get("attend_paid_rate")),
-                    "funnel_paid_rate": self._clean_numeric(row.get("funnel_paid_rate")),
-                    "call_rate_24h": self._clean_numeric(row.get("call_rate_24h")),
-                    "connect_rate_24h": self._clean_numeric(row.get("connect_rate_24h")),
-                    "effective_rate_24h": self._clean_numeric(row.get("effective_rate_24h")),
-                    "call_rate_48h": self._clean_numeric(row.get("call_rate_48h")),
-                    "connect_rate_48h": self._clean_numeric(row.get("connect_rate_48h")),
-                    "effective_rate_48h": self._clean_numeric(row.get("effective_rate_48h")),
-                    "total_call_rate": self._clean_numeric(row.get("total_call_rate")),
-                    "total_connect_rate": self._clean_numeric(row.get("total_connect_rate")),
-                    "total_effective_rate": self._clean_numeric(row.get("total_effective_rate")),
+                    "leads": row.get("leads"),
+                    "appointments": row.get("appointments"),
+                    "attended": row.get("attended"),
+                    "paid": row.get("paid"),
+                    "appt_rate": row.get("appt_rate"),
+                    "appt_attend_rate": row.get("appt_attend_rate"),
+                    "attend_paid_rate": row.get("attend_paid_rate"),
+                    "funnel_paid_rate": row.get("funnel_paid_rate"),
+                    "call_rate_24h": row.get("call_rate_24h"),
+                    "connect_rate_24h": row.get("connect_rate_24h"),
+                    "effective_rate_24h": row.get("effective_rate_24h"),
+                    "call_rate_48h": row.get("call_rate_48h"),
+                    "connect_rate_48h": row.get("connect_rate_48h"),
+                    "effective_rate_48h": row.get("effective_rate_48h"),
+                    "total_call_rate": row.get("total_call_rate"),
+                    "total_connect_rate": row.get("total_connect_rate"),
+                    "total_effective_rate": row.get("total_effective_rate"),
                 })
 
             # 找汇总行
@@ -198,7 +218,7 @@ class OpsLoader(BaseLoader):
             if raw.empty:
                 return {}
 
-            # 找表头行（包含"渠道类型"）
+            # 找表头行（包含"渠道类型"）— 小循环，保留 iterrows
             header_row = 2
             for i, row in raw.iterrows():
                 if str(row.iloc[0]).strip() == "渠道类型":
@@ -214,32 +234,47 @@ class OpsLoader(BaseLoader):
             # ffill 渠道类型（可能有合并）
             df["channel_type"] = df["channel_type"].ffill()
 
+            # 向量化：过滤空行
+            valid_mask = (
+                df["channel_type"].astype(str).str.strip().ne("") &
+                ~df["channel_type"].astype(str).str.strip().isin(("nan", "NaN"))
+            )
+            df_valid = df[valid_mask].copy()
+
+            # 向量化：规范化字段
+            df_valid["team"] = df_valid["team"].astype(str).str.strip().apply(self._normalize_team)
+            df_valid["cc_name"] = df_valid["cc_name"].astype(str).str.strip()
+            df_valid["month_str"] = df_valid["month"].astype(str).str.strip()
+
+            # 数值列向量化
+            for col in ["appt_rate", "appt_attend_rate", "attend_paid_rate", "reg_paid_rate",
+                        "registrations", "appointments", "attended", "paid", "amount_usd"]:
+                df_valid[col] = df_valid[col].apply(self._clean_numeric)
+
+            # 构建 records（聚合后小DataFrame）
             records = []
-            for _, row in df.iterrows():
+            for _, row in df_valid.iterrows():
                 ct = str(row["channel_type"]).strip()
-                month = str(row["month"]).strip()
-                team = self._normalize_team(str(row["team"]).strip())
-                cc = str(row["cc_name"]).strip()
-                if not ct or ct in ("nan", "NaN"):
-                    continue
+                month = row["month_str"]
+                team = row["team"]
+                cc = row["cc_name"]
                 records.append({
                     "channel_type": ct,
                     "month": month if month not in ("nan", "NaN", "小计") else None,
                     "team": team if team not in ("nan", "NaN", "小计") else None,
                     "cc_name": cc if cc not in ("nan", "NaN", "小计") else None,
-                    "appt_rate": self._clean_numeric(row["appt_rate"]),
-                    "appt_attend_rate": self._clean_numeric(row["appt_attend_rate"]),
-                    "attend_paid_rate": self._clean_numeric(row["attend_paid_rate"]),
-                    "reg_paid_rate": self._clean_numeric(row["reg_paid_rate"]),
-                    "registrations": self._clean_numeric(row["registrations"]),
-                    "appointments": self._clean_numeric(row["appointments"]),
-                    "attended": self._clean_numeric(row["attended"]),
-                    "paid": self._clean_numeric(row["paid"]),
-                    "amount_usd": self._clean_numeric(row["amount_usd"]),
+                    "appt_rate": row["appt_rate"],
+                    "appt_attend_rate": row["appt_attend_rate"],
+                    "attend_paid_rate": row["attend_paid_rate"],
+                    "reg_paid_rate": row["reg_paid_rate"],
+                    "registrations": row["registrations"],
+                    "appointments": row["appointments"],
+                    "attended": row["attended"],
+                    "paid": row["paid"],
+                    "amount_usd": row["amount_usd"],
                 })
 
-            # 总计汇总
-            total_rows = df[df["channel_type"].astype(str).str.strip().isin(["市场", "转介绍"])]
+            # 总计汇总（向量化）
             by_channel = {}
             for ct in ["市场", "转介绍"]:
                 ct_rows = df[
@@ -278,7 +313,7 @@ class OpsLoader(BaseLoader):
             if raw.empty:
                 return {}
 
-            # 找表头行（包含"渠道类型"）
+            # 找表头行（包含"渠道类型"）— 小循环，保留 iterrows
             header_row = 3
             for i, row in raw.iterrows():
                 if str(row.iloc[0]).strip() == "渠道类型":
@@ -292,31 +327,47 @@ class OpsLoader(BaseLoader):
             df = df.iloc[1:].reset_index(drop=True)
             df["channel_type"] = df["channel_type"].ffill()
 
+            # 向量化：过滤空行
+            valid_mask = (
+                df["channel_type"].astype(str).str.strip().ne("") &
+                ~df["channel_type"].astype(str).str.strip().isin(("nan", "NaN"))
+            )
+            df_valid = df[valid_mask].copy()
+
+            # 向量化：规范化字段
+            df_valid["team"] = df_valid["team"].astype(str).str.strip().apply(self._normalize_team)
+            df_valid["cc_name"] = df_valid["cc_name"].astype(str).str.strip()
+            df_valid["month_str"] = df_valid["month"].astype(str).str.strip()
+
+            # 数值列向量化
+            for col in ["appt_rate", "appt_attend_rate", "attend_paid_rate", "alloc_paid_rate",
+                        "allocations", "appointments", "attended", "paid", "amount_usd"]:
+                df_valid[col] = df_valid[col].apply(self._clean_numeric)
+
+            # 构建 records（聚合后小DataFrame）
             records = []
-            for _, row in df.iterrows():
+            for _, row in df_valid.iterrows():
                 ct = str(row["channel_type"]).strip()
-                month = str(row["month"]).strip()
-                team = self._normalize_team(str(row["team"]).strip())
-                cc = str(row["cc_name"]).strip()
-                if not ct or ct in ("nan", "NaN"):
-                    continue
+                month = row["month_str"]
+                team = row["team"]
+                cc = row["cc_name"]
                 records.append({
                     "channel_type": ct,
                     "month": month if month not in ("nan", "NaN", "小计") else None,
                     "team": team if team not in ("nan", "NaN", "小计") else None,
                     "cc_name": cc if cc not in ("nan", "NaN", "小计") else None,
-                    "appt_rate": self._clean_numeric(row["appt_rate"]),
-                    "appt_attend_rate": self._clean_numeric(row["appt_attend_rate"]),
-                    "attend_paid_rate": self._clean_numeric(row["attend_paid_rate"]),
-                    "alloc_paid_rate": self._clean_numeric(row["alloc_paid_rate"]),
-                    "allocations": self._clean_numeric(row["allocations"]),
-                    "appointments": self._clean_numeric(row["appointments"]),
-                    "attended": self._clean_numeric(row["attended"]),
-                    "paid": self._clean_numeric(row["paid"]),
-                    "amount_usd": self._clean_numeric(row["amount_usd"]),
+                    "appt_rate": row["appt_rate"],
+                    "appt_attend_rate": row["appt_attend_rate"],
+                    "attend_paid_rate": row["attend_paid_rate"],
+                    "alloc_paid_rate": row["alloc_paid_rate"],
+                    "allocations": row["allocations"],
+                    "appointments": row["appointments"],
+                    "attended": row["attended"],
+                    "paid": row["paid"],
+                    "amount_usd": row["amount_usd"],
                 })
 
-            # 按渠道类型汇总
+            # 按渠道类型汇总（向量化）
             by_channel: dict = {}
             for ct in ["市场", "转介绍"]:
                 ct_rows = df[
@@ -333,7 +384,7 @@ class OpsLoader(BaseLoader):
                         "amount_usd": self._clean_numeric(r["amount_usd"]),
                     }
 
-            # 按月份汇总（MoM 对比）
+            # 按月份汇总（MoM 对比，向量化）
             months = df["month"].dropna().astype(str).str.strip()
             months = [m for m in months.unique() if m.isdigit() and len(m) == 6]
             by_month = {}
@@ -376,7 +427,7 @@ class OpsLoader(BaseLoader):
             if raw.empty:
                 return {}
 
-            # 解析多层表头
+            # 解析多层表头（Python 预处理，保留）
             metric_row = raw.iloc[2].tolist()    # 指标组名（度量, 注册, 注册, ...）
             month_row = raw.iloc[3].tolist()     # 月份（三级渠道, 202512, 202601, ...）
 
@@ -395,14 +446,24 @@ class OpsLoader(BaseLoader):
             df = raw.iloc[4:].reset_index(drop=True)
             df.columns = col_names
 
+            # 向量化：过滤空渠道行
+            valid_mask = (
+                df["channel"].astype(str).str.strip().ne("") &
+                ~df["channel"].astype(str).str.strip().isin(("nan", "NaN", "-"))
+            )
+            df_valid = df[valid_mask].copy()
+
+            # 向量化：对所有指标列应用 _clean_numeric
+            metric_cols = col_names[1:]
+            for col in metric_cols:
+                df_valid[col] = df_valid[col].apply(self._clean_numeric)
+
+            # 构建 records（聚合后小DataFrame，行数=渠道数级别）
             records = []
-            for _, row in df.iterrows():
-                ch = str(row["channel"]).strip()
-                if not ch or ch in ("nan", "NaN", "-"):
-                    continue
-                rec = {"channel": ch}
-                for col in col_names[1:]:
-                    rec[col] = self._clean_numeric(row[col])
+            for _, row in df_valid.iterrows():
+                rec = {"channel": str(row["channel"]).strip()}
+                for col in metric_cols:
+                    rec[col] = row[col]
                 records.append(rec)
 
             # 提取唯一月份列表
@@ -437,70 +498,77 @@ class OpsLoader(BaseLoader):
                           "total_calls", "total_connects", "total_effective", "total_duration_min"]
             df = df.iloc[1:].reset_index(drop=True)
 
-            records = []
+            # 向量化：清洗字段
+            df["date"] = df["date_raw"].apply(self._clean_date)
+            df["team"] = df["team"].apply(
+                lambda v: self._normalize_team(str(v).strip()) if pd.notna(v) else "THCC"
+            )
+            df["cc_name"] = df["cc_name"].apply(
+                lambda v: str(v).strip() if pd.notna(v) else None
+            )
+
+            # 数值列向量化
+            num_cols = ["avg_calls", "avg_connects", "avg_effective", "avg_duration_min",
+                        "total_calls", "total_connects", "total_effective", "total_duration_min"]
+            for col in num_cols:
+                df[col] = df[col].apply(self._clean_numeric)
+
+            # 过滤无效行（date 或 team 为空）
+            df = df[df["date"].notna() & df["team"].notna()].copy()
+
+            # 构建 records（向量化 to_dict）
+            record_cols = ["date", "team", "cc_name",
+                           "avg_calls", "avg_connects", "avg_effective", "avg_duration_min",
+                           "total_calls", "total_connects", "total_effective", "total_duration_min"]
+            records = df[record_cols].to_dict("records")
+
+            # by_cc 聚合（向量化 groupby）
+            df_cc = df[df["cc_name"].notna()].copy()
             by_cc: dict = {}
-            by_team: dict = {}
-            by_date: dict = {}
+            if not df_cc.empty:
+                cc_agg = df_cc.groupby("cc_name").agg(
+                    team=("team", "first"),
+                    dates=("date", list),
+                    total_calls=("total_calls", lambda x: sum(v or 0 for v in x)),
+                    total_connects=("total_connects", lambda x: sum(v or 0 for v in x)),
+                    total_effective=("total_effective", lambda x: sum(v or 0 for v in x)),
+                    _total_duration_min=("total_duration_min", lambda x: sum(v or 0.0 for v in x)),
+                    _duration_days=("total_duration_min", lambda x: sum(1 for v in x if v and v > 0)),
+                ).reset_index()
+                for _, row in cc_agg.iterrows():
+                    days = row["_duration_days"]
+                    total_dur = row["_total_duration_min"]
+                    by_cc[row["cc_name"]] = {
+                        "team": row["team"],
+                        "dates": row["dates"],
+                        "total_calls": row["total_calls"],
+                        "total_connects": row["total_connects"],
+                        "total_effective": row["total_effective"],
+                        "avg_duration_min": round(total_dur / days, 2) if days > 0 else None,
+                    }
 
-            for _, row in df.iterrows():
-                date = self._clean_date(row["date_raw"])
-                team = self._normalize_team(str(row["team"]).strip()) if pd.notna(row["team"]) else "THCC"
-                cc = str(row["cc_name"]).strip() if pd.notna(row["cc_name"]) else None
-                if not date or not team:
-                    continue
+            # by_team 聚合（向量化 groupby）
+            team_agg = df.groupby("team").agg(
+                total_calls=("total_calls", lambda x: sum(v or 0 for v in x)),
+                total_connects=("total_connects", lambda x: sum(v or 0 for v in x)),
+                total_effective=("total_effective", lambda x: sum(v or 0 for v in x)),
+            ).reset_index()
+            by_team = {row["team"]: row[["total_calls", "total_connects", "total_effective"]].to_dict()
+                       for _, row in team_agg.iterrows()}
 
-                rec = {
-                    "date": date,
-                    "team": team,
-                    "cc_name": cc,
-                    "avg_calls": self._clean_numeric(row["avg_calls"]),
-                    "avg_connects": self._clean_numeric(row["avg_connects"]),
-                    "avg_effective": self._clean_numeric(row["avg_effective"]),
-                    "avg_duration_min": self._clean_numeric(row["avg_duration_min"]),
-                    "total_calls": self._clean_numeric(row["total_calls"]),
-                    "total_connects": self._clean_numeric(row["total_connects"]),
-                    "total_effective": self._clean_numeric(row["total_effective"]),
-                    "total_duration_min": self._clean_numeric(row["total_duration_min"]),
-                }
-                records.append(rec)
-
-                # by_cc 聚合
-                if cc:
-                    if cc not in by_cc:
-                        by_cc[cc] = {"team": team, "dates": [], "total_calls": 0,
-                                     "total_connects": 0, "total_effective": 0,
-                                     "_total_duration_min": 0.0, "_duration_days": 0}
-                    by_cc[cc]["dates"].append(date)
-                    by_cc[cc]["total_calls"] += rec["total_calls"] or 0
-                    by_cc[cc]["total_connects"] += rec["total_connects"] or 0
-                    by_cc[cc]["total_effective"] += rec["total_effective"] or 0
-                    dur = rec["total_duration_min"] or 0.0
-                    by_cc[cc]["_total_duration_min"] += dur
-                    if dur > 0:
-                        by_cc[cc]["_duration_days"] += 1
-
-                # by_team 聚合
-                if team not in by_team:
-                    by_team[team] = {"total_calls": 0, "total_connects": 0, "total_effective": 0}
-                by_team[team]["total_calls"] += rec["total_calls"] or 0
-                by_team[team]["total_connects"] += rec["total_connects"] or 0
-                by_team[team]["total_effective"] += rec["total_effective"] or 0
-
-                # by_date 聚合
-                if date not in by_date:
-                    by_date[date] = {"total_calls": 0, "total_connects": 0, "total_effective": 0, "cc_count": 0}
-                by_date[date]["total_calls"] += rec["total_calls"] or 0
-                by_date[date]["total_connects"] += rec["total_connects"] or 0
-                by_date[date]["total_effective"] += rec["total_effective"] or 0
-                by_date[date]["cc_count"] += 1
-
-            by_date_list = [{"date": d, **v} for d, v in sorted(by_date.items())]
-
-            # 计算每个 CC 的平均通话时长并清理临时字段
-            for cc_data in by_cc.values():
-                days = cc_data.pop("_duration_days", 0)
-                total_dur = cc_data.pop("_total_duration_min", 0.0)
-                cc_data["avg_duration_min"] = round(total_dur / days, 2) if days > 0 else None
+            # by_date 聚合（向量化 groupby）
+            date_agg = df.groupby("date").agg(
+                total_calls=("total_calls", lambda x: sum(v or 0 for v in x)),
+                total_connects=("total_connects", lambda x: sum(v or 0 for v in x)),
+                total_effective=("total_effective", lambda x: sum(v or 0 for v in x)),
+                cc_count=("cc_name", "count"),
+            ).reset_index()
+            by_date_list = [
+                {"date": row["date"], "total_calls": row["total_calls"],
+                 "total_connects": row["total_connects"], "total_effective": row["total_effective"],
+                 "cc_count": row["cc_count"]}
+                for _, row in date_agg.sort_values("date").iterrows()
+            ]
 
             return {
                 "records": records,
@@ -532,80 +600,83 @@ class OpsLoader(BaseLoader):
                           "student_id", "called_24h", "connected_24h", "called_48h", "connected_48h"]
             df = df.iloc[1:].reset_index(drop=True)
 
-            records = []
+            # 向量化：清洗字段
+            df["channel"] = df["channel"].apply(
+                lambda v: str(v).strip() if pd.notna(v) else None
+            )
+            df["alloc_date"] = df["alloc_date_raw"].apply(self._clean_date)
+            df["team"] = df["team"].apply(
+                lambda v: self._normalize_team(str(v).strip()) if pd.notna(v) else "THCC"
+            )
+            df["cc_name"] = df["cc_name"].apply(
+                lambda v: str(v).strip() if pd.notna(v) else None
+            )
+            df["student_id"] = df["student_id"].apply(
+                lambda v: int(v) if pd.notna(v) and str(v) != "nan" else None
+            )
+
+            # 数值列向量化（强制 int）
+            for col in ["called_24h", "connected_24h", "called_48h", "connected_48h"]:
+                df[col] = df[col].apply(lambda v: int(self._clean_numeric(v) or 0))
+
+            # 过滤无效行
+            df = df[df["channel"].notna() & df["team"].notna()].copy()
+
+            # 构建 records
+            record_cols = ["channel", "alloc_date", "team", "cc_name", "student_id",
+                           "called_24h", "connected_24h", "called_48h", "connected_48h"]
+            records = df[record_cols].to_dict("records")
+
+            # by_cc 聚合（向量化 groupby）
+            df_cc = df[df["cc_name"].notna()].copy()
             by_cc: dict = {}
+            if not df_cc.empty:
+                cc_agg = df_cc.groupby("cc_name").agg(
+                    team=("team", "first"),
+                    total=("cc_name", "count"),
+                    called_24h=("called_24h", "sum"),
+                    connected_24h=("connected_24h", "sum"),
+                    called_48h=("called_48h", "sum"),
+                    connected_48h=("connected_48h", "sum"),
+                ).reset_index()
+                for _, row in cc_agg.iterrows():
+                    d = row.to_dict()
+                    cc_name = d.pop("cc_name")
+                    total = d["total"]
+                    if total > 0:
+                        d["call_rate_24h"] = round(d["called_24h"] / total, 4)
+                        d["connect_rate_24h"] = round(d["connected_24h"] / total, 4)
+                        d["call_rate_48h"] = round(d["called_48h"] / total, 4)
+                        d["connect_rate_48h"] = round(d["connected_48h"] / total, 4)
+                    by_cc[cc_name] = d
+
+            # by_team 聚合（向量化 groupby）
             by_team: dict = {}
-
-            for _, row in df.iterrows():
-                channel = str(row["channel"]).strip() if pd.notna(row["channel"]) else None
-                alloc_date = self._clean_date(row["alloc_date_raw"])
-                team = self._normalize_team(str(row["team"]).strip()) if pd.notna(row["team"]) else "THCC"
-                cc = str(row["cc_name"]).strip() if pd.notna(row["cc_name"]) else None
-                sid = row["student_id"]
-                if not channel or not team:
-                    continue
-
-                c24 = int(self._clean_numeric(row["called_24h"]) or 0)
-                cn24 = int(self._clean_numeric(row["connected_24h"]) or 0)
-                c48 = int(self._clean_numeric(row["called_48h"]) or 0)
-                cn48 = int(self._clean_numeric(row["connected_48h"]) or 0)
-
-                rec = {
-                    "channel": channel,
-                    "alloc_date": alloc_date,
-                    "team": team,
-                    "cc_name": cc,
-                    "student_id": int(sid) if pd.notna(sid) and str(sid) != "nan" else None,
-                    "called_24h": c24,
-                    "connected_24h": cn24,
-                    "called_48h": c48,
-                    "connected_48h": cn48,
-                }
-                records.append(rec)
-
-                # by_cc 聚合
-                if cc:
-                    if cc not in by_cc:
-                        by_cc[cc] = {"team": team, "total": 0, "called_24h": 0, "connected_24h": 0,
-                                     "called_48h": 0, "connected_48h": 0}
-                    by_cc[cc]["total"] += 1
-                    by_cc[cc]["called_24h"] += c24
-                    by_cc[cc]["connected_24h"] += cn24
-                    by_cc[cc]["called_48h"] += c48
-                    by_cc[cc]["connected_48h"] += cn48
-
-                # by_team 聚合
-                if team:
-                    if team not in by_team:
-                        by_team[team] = {"total": 0, "called_24h": 0, "connected_24h": 0,
-                                         "called_48h": 0, "connected_48h": 0}
-                    by_team[team]["total"] += 1
-                    by_team[team]["called_24h"] += c24
-                    by_team[team]["connected_24h"] += cn24
-                    by_team[team]["called_48h"] += c48
-                    by_team[team]["connected_48h"] += cn48
-
-            # 计算比率
-            def _add_rates(d: dict):
-                total = d.get("total", 0)
+            team_agg = df.groupby("team").agg(
+                total=("team", "count"),
+                called_24h=("called_24h", "sum"),
+                connected_24h=("connected_24h", "sum"),
+                called_48h=("called_48h", "sum"),
+                connected_48h=("connected_48h", "sum"),
+            ).reset_index()
+            for _, row in team_agg.iterrows():
+                d = row.to_dict()
+                team_name = d.pop("team")
+                total = d["total"]
                 if total > 0:
                     d["call_rate_24h"] = round(d["called_24h"] / total, 4)
                     d["connect_rate_24h"] = round(d["connected_24h"] / total, 4)
                     d["call_rate_48h"] = round(d["called_48h"] / total, 4)
                     d["connect_rate_48h"] = round(d["connected_48h"] / total, 4)
-
-            for v in by_cc.values():
-                _add_rates(v)
-            for v in by_team.values():
-                _add_rates(v)
+                by_team[team_name] = d
 
             n = len(records)
             summary = {
                 "total_leads": n,
-                "call_rate_24h": round(sum(r["called_24h"] for r in records) / n, 4) if n else 0,
-                "connect_rate_24h": round(sum(r["connected_24h"] for r in records) / n, 4) if n else 0,
-                "call_rate_48h": round(sum(r["called_48h"] for r in records) / n, 4) if n else 0,
-                "connect_rate_48h": round(sum(r["connected_48h"] for r in records) / n, 4) if n else 0,
+                "call_rate_24h": round(df["called_24h"].sum() / n, 4) if n else 0,
+                "connect_rate_24h": round(df["connected_24h"].sum() / n, 4) if n else 0,
+                "call_rate_48h": round(df["called_48h"].sum() / n, 4) if n else 0,
+                "connect_rate_48h": round(df["connected_48h"].sum() / n, 4) if n else 0,
             }
 
             return {"records": records, "by_cc": by_cc, "by_team": by_team, "summary": summary}
@@ -635,58 +706,65 @@ class OpsLoader(BaseLoader):
                           "monthly_effective", "monthly_effective_count"]
             df = df.iloc[1:].reset_index(drop=True)
 
-            records = []
+            # 向量化：清洗字段
+            df["team"] = df["team"].apply(
+                lambda v: self._normalize_team(str(v).strip()) if pd.notna(v) else "THCC"
+            )
+            df["cc_name"] = df["cc_name"].apply(
+                lambda v: str(v).strip() if pd.notna(v) else None
+            )
+            df["student_id"] = df["student_id"].apply(
+                lambda v: int(v) if pd.notna(v) and str(v) != "nan" else None
+            )
+            df["first_paid_date"] = df["first_paid_date_raw"].apply(self._clean_date)
+
+            # 数值列向量化（强制 int）
+            for col in ["monthly_called", "monthly_connected", "monthly_effective", "monthly_effective_count"]:
+                df[col] = df[col].apply(lambda v: int(self._clean_numeric(v) or 0))
+
+            # 过滤无效行（team 或 cc_name 为空）
+            df = df[df["team"].notna() & df["cc_name"].notna()].copy()
+
+            # 构建 records
+            record_cols = ["team", "cc_name", "student_id", "first_paid_date",
+                           "monthly_called", "monthly_connected", "monthly_effective", "monthly_effective_count"]
+            records = df[record_cols].to_dict("records")
+
+            # by_cc 聚合（向量化 groupby）— 同时捕获 team 归属
             by_cc: dict = {}
+            cc_agg = df.groupby("cc_name").agg(
+                team=("team", "first"),
+                total_students=("cc_name", "count"),
+                monthly_called=("monthly_called", "sum"),
+                monthly_connected=("monthly_connected", "sum"),
+                monthly_effective=("monthly_effective", "sum"),
+                monthly_effective_count=("monthly_effective_count", "sum"),
+            ).reset_index()
+            for _, row in cc_agg.iterrows():
+                d = row.to_dict()
+                cc_name = d.pop("cc_name")
+                by_cc[cc_name] = d
+
+            # by_team 聚合（向量化 groupby）
             by_team: dict = {}
-
-            for _, row in df.iterrows():
-                team = self._normalize_team(str(row["team"]).strip()) if pd.notna(row["team"]) else "THCC"
-                cc = str(row["cc_name"]).strip() if pd.notna(row["cc_name"]) else None
-                sid = row["student_id"]
-                if not team or not cc:
-                    continue
-
-                called = int(self._clean_numeric(row["monthly_called"]) or 0)
-                connected = int(self._clean_numeric(row["monthly_connected"]) or 0)
-                effective = int(self._clean_numeric(row["monthly_effective"]) or 0)
-                eff_count = int(self._clean_numeric(row["monthly_effective_count"]) or 0)
-
-                rec = {
-                    "team": team,
-                    "cc_name": cc,
-                    "student_id": int(sid) if pd.notna(sid) and str(sid) != "nan" else None,
-                    "first_paid_date": self._clean_date(row["first_paid_date_raw"]),
-                    "monthly_called": called,
-                    "monthly_connected": connected,
-                    "monthly_effective": effective,
-                    "monthly_effective_count": eff_count,
-                }
-                records.append(rec)
-
-                for key, d in [(cc, by_cc), (team, by_team)]:
-                    if key not in d:
-                        d[key] = {"total_students": 0, "monthly_called": 0,
-                                  "monthly_connected": 0, "monthly_effective": 0,
-                                  "monthly_effective_count": 0}
-                    d[key]["total_students"] += 1
-                    d[key]["monthly_called"] += called
-                    d[key]["monthly_connected"] += connected
-                    d[key]["monthly_effective"] += effective
-                    d[key]["monthly_effective_count"] += eff_count
-
-            # 为 by_cc 记录 team
-            for _, row in df.iterrows():
-                cc = str(row["cc_name"]).strip() if pd.notna(row["cc_name"]) else None
-                team = self._normalize_team(str(row["team"]).strip()) if pd.notna(row["team"]) else "THCC"
-                if cc and cc in by_cc and "team" not in by_cc[cc]:
-                    by_cc[cc]["team"] = team
+            team_agg = df.groupby("team").agg(
+                total_students=("team", "count"),
+                monthly_called=("monthly_called", "sum"),
+                monthly_connected=("monthly_connected", "sum"),
+                monthly_effective=("monthly_effective", "sum"),
+                monthly_effective_count=("monthly_effective_count", "sum"),
+            ).reset_index()
+            for _, row in team_agg.iterrows():
+                d = row.to_dict()
+                team_name = d.pop("team")
+                by_team[team_name] = d
 
             n = len(records)
             summary = {
                 "total_students": n,
-                "total_monthly_called": sum(r["monthly_called"] for r in records),
-                "total_monthly_connected": sum(r["monthly_connected"] for r in records),
-                "total_monthly_effective": sum(r["monthly_effective"] for r in records),
+                "total_monthly_called": int(df["monthly_called"].sum()),
+                "total_monthly_connected": int(df["monthly_connected"].sum()),
+                "total_monthly_effective": int(df["monthly_effective"].sum()),
             }
 
             return {"records": records, "by_cc": by_cc, "by_team": by_team, "summary": summary}
@@ -720,16 +798,33 @@ class OpsLoader(BaseLoader):
             # ffill 合并单元格
             df = self._ffill_merged(df, ["enclosure", "team"])
 
+            # 向量化：清洗字段
+            df["enc_str"] = df["enclosure"].apply(
+                lambda v: str(v).strip() if pd.notna(v) else None
+            )
+            df["team_norm"] = df["team"].apply(
+                lambda v: self._normalize_team(str(v).strip()) if pd.notna(v) else "THCC"
+            )
+            df["cc_str"] = df["cc_name"].apply(
+                lambda v: str(v).strip() if pd.notna(v) else None
+            )
+
+            # 数值列向量化
+            for col in ["monthly_called", "monthly_connected", "monthly_effective",
+                        "call_coverage", "connect_coverage", "effective_coverage", "avg_effective_count"]:
+                df[col] = df[col].apply(self._clean_numeric)
+
+            # 过滤空行
+            df = df[df["enc_str"].notna() & ~df["enc_str"].isin(("nan", "NaN"))].copy()
+
+            # 构建 by_enclosure 和 by_cc（行数=围场段×CC级别，逻辑复杂保留优化后迭代）
             by_enclosure: dict = {}
             by_cc: list = []
 
             for _, row in df.iterrows():
-                enc = str(row["enclosure"]).strip() if pd.notna(row["enclosure"]) else None
-                team = self._normalize_team(str(row["team"]).strip()) if pd.notna(row["team"]) else "THCC"
-                cc = str(row["cc_name"]).strip() if pd.notna(row["cc_name"]) else None
-                if not enc or enc in ("nan", "NaN"):
-                    continue
-
+                enc = row["enc_str"]
+                team = row["team_norm"]
+                cc = row["cc_str"]
                 sid_val = row["student_id"]
                 is_summary = cc in ("小计", None) or str(cc) in ("nan", "NaN")
 
@@ -739,16 +834,15 @@ class OpsLoader(BaseLoader):
                     "cc_name": None if is_summary else cc,
                     "student_count": self._clean_numeric(sid_val) if is_summary else None,
                     "student_id": int(sid_val) if not is_summary and pd.notna(sid_val) and str(sid_val) != "nan" else None,
-                    "monthly_called": self._clean_numeric(row["monthly_called"]),
-                    "monthly_connected": self._clean_numeric(row["monthly_connected"]),
-                    "monthly_effective": self._clean_numeric(row["monthly_effective"]),
-                    "call_coverage": self._clean_numeric(row["call_coverage"]),
-                    "connect_coverage": self._clean_numeric(row["connect_coverage"]),
-                    "effective_coverage": self._clean_numeric(row["effective_coverage"]),
-                    "avg_effective_count": self._clean_numeric(row["avg_effective_count"]),
+                    "monthly_called": row["monthly_called"],
+                    "monthly_connected": row["monthly_connected"],
+                    "monthly_effective": row["monthly_effective"],
+                    "call_coverage": row["call_coverage"],
+                    "connect_coverage": row["connect_coverage"],
+                    "effective_coverage": row["effective_coverage"],
+                    "avg_effective_count": row["avg_effective_count"],
                 }
 
-                # 汇总行放入 by_enclosure
                 if enc not in by_enclosure:
                     by_enclosure[enc] = {"by_team": [], "summary": None}
                 if team in ("小计", None) or str(team) in ("nan", "NaN"):
@@ -756,12 +850,11 @@ class OpsLoader(BaseLoader):
                 else:
                     by_enclosure[enc]["by_team"].append(rec)
 
-                # 个人级放 by_cc
                 if not is_summary and cc:
                     by_cc.append(rec)
 
-            # 总计行
-            total_rows = df[df["enclosure"].astype(str).str.strip() == "总计"]
+            # 总计行（向量化查找）
+            total_rows = df[df["enc_str"] == "总计"]
             summary = {}
             if not total_rows.empty:
                 r = total_rows.iloc[0]
@@ -811,43 +904,58 @@ class OpsLoader(BaseLoader):
             df = df.iloc[1:].reset_index(drop=True)
             df = self._ffill_merged(df, ["team"])
 
+            # 向量化：清洗字段
+            df["team_norm"] = df["team"].apply(
+                lambda v: self._normalize_team(str(v).strip()) if pd.notna(v) else "THCC"
+            )
+            df["cc_str"] = df["cc_name"].apply(
+                lambda v: str(v).strip() if pd.notna(v) else None
+            )
+
+            # 数值列向量化
+            for col in ["monthly_called", "monthly_connected", "monthly_effective",
+                        "call_coverage", "connect_coverage", "effective_coverage", "avg_effective_count"]:
+                df[col] = df[col].apply(self._clean_numeric)
+
+            # 过滤无效 team 行
+            df = df[
+                df["team_norm"].notna() & ~df["team_norm"].isin(("nan", "NaN"))
+            ].copy()
+
+            # 构建 by_cc 和 by_team（74行，逻辑有层级判断，保留优化后迭代）
             by_cc = []
             by_team: dict = {}
 
             for _, row in df.iterrows():
-                team = self._normalize_team(str(row["team"]).strip()) if pd.notna(row["team"]) else "THCC"
-                cc = str(row["cc_name"]).strip() if pd.notna(row["cc_name"]) else None
+                team = row["team_norm"]
+                cc = row["cc_str"]
                 sid = row["student_id"]
-                if not team or team in ("nan", "NaN"):
-                    continue
-
                 is_summary = cc in ("小计", None) or str(cc) in ("nan", "NaN")
                 rec = {
                     "team": team,
                     "cc_name": None if is_summary else cc,
                     "student_count": self._clean_numeric(sid) if is_summary else None,
                     "student_id": int(sid) if not is_summary and pd.notna(sid) and str(sid) != "nan" else None,
-                    "monthly_called": self._clean_numeric(row["monthly_called"]),
-                    "monthly_connected": self._clean_numeric(row["monthly_connected"]),
-                    "monthly_effective": self._clean_numeric(row["monthly_effective"]),
-                    "call_coverage": self._clean_numeric(row["call_coverage"]),
-                    "connect_coverage": self._clean_numeric(row["connect_coverage"]),
-                    "effective_coverage": self._clean_numeric(row["effective_coverage"]),
-                    "avg_effective_count": self._clean_numeric(row["avg_effective_count"]),
+                    "monthly_called": row["monthly_called"],
+                    "monthly_connected": row["monthly_connected"],
+                    "monthly_effective": row["monthly_effective"],
+                    "call_coverage": row["call_coverage"],
+                    "connect_coverage": row["connect_coverage"],
+                    "effective_coverage": row["effective_coverage"],
+                    "avg_effective_count": row["avg_effective_count"],
                 }
 
                 if not is_summary and cc and cc != "总计":
                     by_cc.append(rec)
 
-                # team 汇总行
                 if is_summary and team != "总计":
                     if team not in by_team:
                         by_team[team] = rec
 
-            # 总计行
+            # 总计行（向量化查找）
             total_rows = df[
-                (df["team"].astype(str).str.strip() == "总计") |
-                (df["cc_name"].isna() & df["team"].astype(str).str.strip().isin(["总计"]))
+                (df["team_norm"] == "总计") |
+                (df["cc_str"].isna() & (df["team_norm"] == "总计"))
             ]
             summary = {}
             if not total_rows.empty:
@@ -859,7 +967,6 @@ class OpsLoader(BaseLoader):
                     "effective_coverage": self._clean_numeric(r["effective_coverage"]),
                 }
             else:
-                # 尝试第一行（总计行）
                 r = df.iloc[0]
                 summary = {
                     "total_students": self._clean_numeric(r["student_id"]),
@@ -902,16 +1009,39 @@ class OpsLoader(BaseLoader):
             df = df.iloc[1:].reset_index(drop=True)
             df = self._ffill_merged(df, ["channel", "team"])
 
+            # 向量化：清洗字段
+            df["channel_str"] = df["channel"].apply(
+                lambda v: str(v).strip() if pd.notna(v) else None
+            )
+            df["team_norm"] = df["team"].apply(
+                lambda v: self._normalize_team(str(v).strip()) if pd.notna(v) else "THCC"
+            )
+            df["cc_str"] = df["cc_name"].apply(
+                lambda v: str(v).strip() if pd.notna(v) else None
+            )
+
+            # 数值列向量化
+            for col in ["trial_classes", "attended",
+                        "pre_called", "pre_connected", "pre_effective",
+                        "post_called", "post_connected", "post_effective",
+                        "pre_call_rate", "pre_connect_rate", "pre_effective_rate",
+                        "post_call_rate", "post_connect_rate", "post_effective_rate"]:
+                df[col] = df[col].apply(self._clean_numeric)
+
+            # 过滤空渠道行
+            df = df[
+                df["channel_str"].notna() & ~df["channel_str"].isin(("nan", "NaN"))
+            ].copy()
+
+            # 构建分层结果（126行，层级判断逻辑保留优化后迭代）
             by_cc = []
             by_team: dict = {}
             by_channel: dict = {}
 
             for _, row in df.iterrows():
-                channel = str(row["channel"]).strip() if pd.notna(row["channel"]) else None
-                team = self._normalize_team(str(row["team"]).strip()) if pd.notna(row["team"]) else "THCC"
-                cc = str(row["cc_name"]).strip() if pd.notna(row["cc_name"]) else None
-                if not channel or channel in ("nan", "NaN"):
-                    continue
+                channel = row["channel_str"]
+                team = row["team_norm"]
+                cc = row["cc_str"]
 
                 is_cc_level = cc and cc not in ("nan", "NaN", "小计", None)
                 is_team_level = team and team not in ("nan", "NaN", "小计", None) and not is_cc_level
@@ -921,18 +1051,18 @@ class OpsLoader(BaseLoader):
                     "channel": channel,
                     "team": team,
                     "cc_name": cc if is_cc_level else None,
-                    "trial_classes": self._clean_numeric(row["trial_classes"]),
-                    "attended": self._clean_numeric(row["attended"]),
-                    "pre_call_rate": self._clean_numeric(row["pre_call_rate"]),
-                    "pre_connect_rate": self._clean_numeric(row["pre_connect_rate"]),
-                    "pre_effective_rate": self._clean_numeric(row["pre_effective_rate"]),
-                    "post_call_rate": self._clean_numeric(row["post_call_rate"]),
-                    "post_connect_rate": self._clean_numeric(row["post_connect_rate"]),
-                    "post_effective_rate": self._clean_numeric(row["post_effective_rate"]),
-                    "pre_called": self._clean_numeric(row["pre_called"]),
-                    "pre_connected": self._clean_numeric(row["pre_connected"]),
-                    "post_called": self._clean_numeric(row["post_called"]),
-                    "post_connected": self._clean_numeric(row["post_connected"]),
+                    "trial_classes": row["trial_classes"],
+                    "attended": row["attended"],
+                    "pre_call_rate": row["pre_call_rate"],
+                    "pre_connect_rate": row["pre_connect_rate"],
+                    "pre_effective_rate": row["pre_effective_rate"],
+                    "post_call_rate": row["post_call_rate"],
+                    "post_connect_rate": row["post_connect_rate"],
+                    "post_effective_rate": row["post_effective_rate"],
+                    "pre_called": row["pre_called"],
+                    "pre_connected": row["pre_connected"],
+                    "post_called": row["post_called"],
+                    "post_connected": row["post_connected"],
                 }
 
                 if is_cc_level:
@@ -942,16 +1072,13 @@ class OpsLoader(BaseLoader):
                 if is_channel_level and team in ("小计", None) and channel not in by_channel:
                     by_channel[channel] = rec
 
-            # 总计行
-            total_rows = df[df["team"].isna() & df["channel"].astype(str).str.strip().isin(["MKT", "转介绍"])]
-            summary = {}
-            all_rows = df[df["cc_name"].isna() & df["team"].isna()]
-            # 总体汇总（所有渠道之和）
+            # 总计汇总（向量化）
+            summary_df = df[
+                df["cc_str"].isna() &
+                df["team_norm"].astype(str).str.strip().isin(["小计"])
+            ]
             summary = {
-                "total_trial_classes": sum(
-                    self._clean_numeric(r["trial_classes"]) or 0
-                    for _, r in df[df["cc_name"].isna() & df["team"].astype(str).str.strip().isin(["小计"])].iterrows()
-                ),
+                "total_trial_classes": int(summary_df["trial_classes"].apply(lambda v: v or 0).sum()),
             }
 
             return {
@@ -989,103 +1116,130 @@ class OpsLoader(BaseLoader):
                           "attended"]
             df = df.iloc[1:].reset_index(drop=True)
 
-            records = []
+            # 向量化：清洗字段
+            df["team"] = df["team"].apply(
+                lambda v: self._normalize_team(str(v).strip()) if pd.notna(v) else "THCC"
+            )
+            df["cc_name"] = df["cc_name"].apply(
+                lambda v: str(v).strip() if pd.notna(v) else None
+            )
+            df["lead_type"] = df["lead_type"].apply(
+                lambda v: str(v).strip() if pd.notna(v) else "未知"
+            )
+            df["lead_grade"] = df["lead_grade"].apply(self._clean_numeric)
+            df["is_new_lead"] = df["is_new_lead"].apply(
+                lambda v: str(v).strip() if pd.notna(v) else None
+            )
+            df["channel_l3"] = df["channel_l3"].apply(
+                lambda v: str(v).strip() if pd.notna(v) else None
+            )
+            df["channel_l4"] = df["channel_l4"].apply(
+                lambda v: str(v).strip() if pd.notna(v) else None
+            )
+            df["last_connect_time"] = df["last_connect_time"].apply(
+                lambda v: None if str(v).strip() in ("-", "nan", "") else str(v).strip()
+            )
+            df["last_call_time"] = df["last_call_time"].apply(
+                lambda v: None if str(v).strip() in ("-", "nan", "") else str(v).strip()
+            )
+            df["class_time"] = df["class_time_raw"].apply(
+                lambda v: str(v)[:19] if pd.notna(v) else None
+            )
+            df["class_id"] = df["class_id"].apply(
+                lambda v: str(v) if pd.notna(v) else None
+            )
+            df["student_id"] = df["student_id"].apply(
+                lambda v: int(v) if pd.notna(v) else None
+            )
+
+            # 数值列向量化（强制 int）
+            for col in ["pre_called", "pre_connected", "pre_connected_2h", "attended"]:
+                df[col] = df[col].apply(lambda v: int(self._clean_numeric(v) or 0))
+
+            # 过滤无效行（team 为空）
+            df = df[df["team"].notna()].copy()
+
+            # 构建 records（向量化 to_dict）
+            record_cols = [
+                "class_id", "student_id", "class_time", "team", "cc_name",
+                "lead_grade", "is_new_lead", "lead_type", "channel_l3", "channel_l4",
+                "last_connect_time", "last_call_time",
+                "pre_called", "pre_connected", "pre_connected_2h", "attended",
+            ]
+            records = df[record_cols].to_dict("records")
+
+            # by_cc 聚合（向量化 groupby — 最大收益：6931行→74 CC）
             by_cc: dict = {}
+            df_cc = df[df["cc_name"].notna()].copy()
+            if not df_cc.empty:
+                cc_agg = df_cc.groupby("cc_name").agg(
+                    team=("team", "first"),
+                    total_classes=("cc_name", "count"),
+                    pre_class_call=("pre_called", "sum"),
+                    pre_class_connect=("pre_connected", "sum"),
+                    pre_class_2h_connect=("pre_connected_2h", "sum"),
+                    attended=("attended", "sum"),
+                ).reset_index()
+                for _, row in cc_agg.iterrows():
+                    d = row.to_dict()
+                    cc_name = d.pop("cc_name")
+                    total = d["total_classes"]
+                    if total > 0:
+                        d["call_rate"] = round(d["pre_class_call"] / total, 4)
+                        d["connect_rate"] = round(d["pre_class_connect"] / total, 4)
+                        d["connect_2h_rate"] = round(d["pre_class_2h_connect"] / total, 4)
+                        d["attendance_rate"] = round(d["attended"] / total, 4)
+                    by_cc[cc_name] = d
+
+            # by_team 聚合（向量化 groupby）
             by_team: dict = {}
-            by_lead_type: dict = {}
-
-            for _, row in df.iterrows():
-                team = self._normalize_team(str(row["team"]).strip()) if pd.notna(row["team"]) else "THCC"
-                cc = str(row["cc_name"]).strip() if pd.notna(row["cc_name"]) else None
-                if not team:
-                    continue
-
-                pre_called = int(self._clean_numeric(row["pre_called"]) or 0)
-                pre_connected = int(self._clean_numeric(row["pre_connected"]) or 0)
-                pre_2h = int(self._clean_numeric(row["pre_connected_2h"]) or 0)
-                att = int(self._clean_numeric(row["attended"]) or 0)
-                lead_type = str(row["lead_type"]).strip() if pd.notna(row["lead_type"]) else "未知"
-
-                # 末次时间字段："-"为占位符
-                last_connect = str(row["last_connect_time"]).strip()
-                last_call = str(row["last_call_time"]).strip()
-
-                rec = {
-                    "class_id": str(row["class_id"]) if pd.notna(row["class_id"]) else None,
-                    "student_id": int(row["student_id"]) if pd.notna(row["student_id"]) else None,
-                    "class_time": str(row["class_time_raw"])[:19] if pd.notna(row["class_time_raw"]) else None,
-                    "team": team,
-                    "cc_name": cc,
-                    "lead_grade": self._clean_numeric(row["lead_grade"]),
-                    "is_new_lead": str(row["is_new_lead"]).strip() if pd.notna(row["is_new_lead"]) else None,
-                    "lead_type": lead_type,
-                    "channel_l3": str(row["channel_l3"]).strip() if pd.notna(row["channel_l3"]) else None,
-                    "channel_l4": str(row["channel_l4"]).strip() if pd.notna(row["channel_l4"]) else None,
-                    "last_connect_time": None if last_connect in ("-", "nan", "") else last_connect,
-                    "last_call_time": None if last_call in ("-", "nan", "") else last_call,
-                    "pre_called": pre_called,
-                    "pre_connected": pre_connected,
-                    "pre_connected_2h": pre_2h,
-                    "attended": att,
-                }
-                records.append(rec)
-
-                # by_cc 聚合
-                if cc:
-                    if cc not in by_cc:
-                        by_cc[cc] = {"team": team, "total_classes": 0, "pre_class_call": 0,
-                                     "pre_class_connect": 0, "pre_class_2h_connect": 0, "attended": 0}
-                    by_cc[cc]["total_classes"] += 1
-                    by_cc[cc]["pre_class_call"] += pre_called
-                    by_cc[cc]["pre_class_connect"] += pre_connected
-                    by_cc[cc]["pre_class_2h_connect"] += pre_2h
-                    by_cc[cc]["attended"] += att
-
-                # by_team 聚合
-                if team not in by_team:
-                    by_team[team] = {"total_classes": 0, "pre_class_call": 0,
-                                     "pre_class_connect": 0, "pre_class_2h_connect": 0, "attended": 0}
-                by_team[team]["total_classes"] += 1
-                by_team[team]["pre_class_call"] += pre_called
-                by_team[team]["pre_class_connect"] += pre_connected
-                by_team[team]["pre_class_2h_connect"] += pre_2h
-                by_team[team]["attended"] += att
-
-                # by_lead_type 聚合
-                if lead_type not in by_lead_type:
-                    by_lead_type[lead_type] = {"total_classes": 0, "pre_class_call": 0,
-                                               "pre_class_connect": 0, "pre_class_2h_connect": 0, "attended": 0}
-                by_lead_type[lead_type]["total_classes"] += 1
-                by_lead_type[lead_type]["pre_class_call"] += pre_called
-                by_lead_type[lead_type]["pre_class_connect"] += pre_connected
-                by_lead_type[lead_type]["pre_class_2h_connect"] += pre_2h
-                by_lead_type[lead_type]["attended"] += att
-
-            # 计算比率
-            def _calc_rates(d: dict):
-                total = d.get("total_classes", 0)
+            team_agg = df.groupby("team").agg(
+                total_classes=("team", "count"),
+                pre_class_call=("pre_called", "sum"),
+                pre_class_connect=("pre_connected", "sum"),
+                pre_class_2h_connect=("pre_connected_2h", "sum"),
+                attended=("attended", "sum"),
+            ).reset_index()
+            for _, row in team_agg.iterrows():
+                d = row.to_dict()
+                team_name = d.pop("team")
+                total = d["total_classes"]
                 if total > 0:
                     d["call_rate"] = round(d["pre_class_call"] / total, 4)
                     d["connect_rate"] = round(d["pre_class_connect"] / total, 4)
                     d["connect_2h_rate"] = round(d["pre_class_2h_connect"] / total, 4)
                     d["attendance_rate"] = round(d["attended"] / total, 4)
+                by_team[team_name] = d
 
-            for v in by_cc.values():
-                _calc_rates(v)
-            for v in by_team.values():
-                _calc_rates(v)
-            for v in by_lead_type.values():
-                _calc_rates(v)
+            # by_lead_type 聚合（向量化 groupby）
+            by_lead_type: dict = {}
+            lt_agg = df.groupby("lead_type").agg(
+                total_classes=("lead_type", "count"),
+                pre_class_call=("pre_called", "sum"),
+                pre_class_connect=("pre_connected", "sum"),
+                pre_class_2h_connect=("pre_connected_2h", "sum"),
+                attended=("attended", "sum"),
+            ).reset_index()
+            for _, row in lt_agg.iterrows():
+                d = row.to_dict()
+                lt_name = d.pop("lead_type")
+                total = d["total_classes"]
+                if total > 0:
+                    d["call_rate"] = round(d["pre_class_call"] / total, 4)
+                    d["connect_rate"] = round(d["pre_class_connect"] / total, 4)
+                    d["connect_2h_rate"] = round(d["pre_class_2h_connect"] / total, 4)
+                    d["attendance_rate"] = round(d["attended"] / total, 4)
+                by_lead_type[lt_name] = d
 
             n = len(records)
             summary = {
                 "total_records": n,
-                "total_pre_called": sum(r["pre_called"] for r in records),
-                "total_pre_connected": sum(r["pre_connected"] for r in records),
-                "total_attended": sum(r["attended"] for r in records),
-                "overall_call_rate": round(sum(r["pre_called"] for r in records) / n, 4) if n else 0,
-                "overall_connect_rate": round(sum(r["pre_connected"] for r in records) / n, 4) if n else 0,
-                "overall_attendance_rate": round(sum(r["attended"] for r in records) / n, 4) if n else 0,
+                "total_pre_called": int(df["pre_called"].sum()),
+                "total_pre_connected": int(df["pre_connected"].sum()),
+                "total_attended": int(df["attended"].sum()),
+                "overall_call_rate": round(df["pre_called"].sum() / n, 4) if n else 0,
+                "overall_connect_rate": round(df["pre_connected"].sum() / n, 4) if n else 0,
+                "overall_attendance_rate": round(df["attended"].sum() / n, 4) if n else 0,
             }
 
             return {

@@ -55,6 +55,9 @@ class ROILoader(BaseLoader):
         行2: 次卡数据 (col1=地区, col2=目标营收, col3=目标ROI, col4=实际营收, col5=实际成本, col6=实际ROI)
         行8: 现金数据 (同上结构)
         列索引从0开始
+
+        向量化策略：用 str.contains 在 DataFrame 层面查找关键词行，
+        保留原有 positional 索引逻辑（结构依赖行位置，无法用 groupby 替代）
         """
         import pandas as pd
 
@@ -74,31 +77,30 @@ class ROILoader(BaseLoader):
 
         summary = {}
 
-        # 找次卡行（含"次卡"关键词的行下一行）
-        card_data_idx = None
-        cash_data_idx = None
-        for i, row in df.iterrows():
-            row_str = " ".join(str(v) for v in row.values)
-            if "转介绍次卡" in row_str and card_data_idx is None:
-                card_data_idx = i + 1  # 数据在标题下一行
-            if "转介绍现金" in row_str and cash_data_idx is None:
-                cash_data_idx = i + 1
+        # 向量化搜索关键词行：将每行合并为字符串，用 str.contains 找目标行
+        row_strings = df.apply(
+            lambda row: " ".join(str(v) for v in row.values), axis=1
+        )
 
-        if card_data_idx is not None and card_data_idx < len(df):
-            summary["次卡"] = _extract_row(df.iloc[card_data_idx])
-        if cash_data_idx is not None and cash_data_idx < len(df):
-            summary["现金"] = _extract_row(df.iloc[cash_data_idx])
+        card_matches = row_strings[row_strings.str.contains("转介绍次卡", na=False)]
+        cash_matches = row_strings[row_strings.str.contains("转介绍现金", na=False)]
 
-        # 汇总总值
-        total_revenue = None
-        total_cost = None
-        for v in summary.values():
-            rev = v.get("实际营收")
-            cost = v.get("实际成本")
-            if rev is not None:
-                total_revenue = (total_revenue or 0) + rev
-            if cost is not None:
-                total_cost = (total_cost or 0) + cost
+        # 数据在标题下一行
+        if not card_matches.empty:
+            card_data_idx = card_matches.index[0] + 1
+            if card_data_idx < len(df):
+                summary["次卡"] = _extract_row(df.iloc[card_data_idx])
+
+        if not cash_matches.empty:
+            cash_data_idx = cash_matches.index[0] + 1
+            if cash_data_idx < len(df):
+                summary["现金"] = _extract_row(df.iloc[cash_data_idx])
+
+        # 汇总总值（向量化）
+        revenues = [v.get("实际营收") for v in summary.values() if v.get("实际营收") is not None]
+        costs = [v.get("实际成本") for v in summary.values() if v.get("实际成本") is not None]
+        total_revenue = sum(revenues) if revenues else None
+        total_cost = sum(costs) if costs else None
 
         summary["_total"] = {
             "实际营收": total_revenue,
@@ -109,7 +111,7 @@ class ROILoader(BaseLoader):
         return summary
 
     def _load_cost_list(self, path: Path) -> list:
-        """转介绍成本list sheet — 18行×8列，合并单元格前向填充"""
+        """转介绍成本list sheet — 18行×8列，合并单元格前向填充（向量化）"""
         import pandas as pd
 
         df = self._read_xlsx_pandas(path, sheet_name="转介绍成本list", header=0)
@@ -122,27 +124,42 @@ class ROILoader(BaseLoader):
         fill_cols = df.columns[:4].tolist()
         df = self._ffill_merged(df, fill_cols)
 
+        # 向量化过滤：第0列非空且不是标题行
+        reward_type_col = df.columns[0]
+        df["_reward_type"] = df.iloc[:, 0].apply(
+            lambda v: str(v).strip() if pd.notna(v) else None
+        )
+        df = df[
+            df["_reward_type"].notna()
+            & ~df["_reward_type"].isin(["nan", "奖励类型"])
+        ].copy()
+
+        if df.empty:
+            return []
+
+        # 向量化构建记录
         records = []
-        for _, row in df.iterrows():
-            reward_type = str(row.iloc[0]).strip() if pd.notna(row.iloc[0]) else None
-            if not reward_type or reward_type in ("nan", "奖励类型"):
-                continue
+        for col_idx, field in enumerate([
+            ("_reward_type", "奖励类型", None),
+        ]):
+            pass  # 下面统一处理
 
-            records.append({
-                "奖励类型": reward_type,
-                "内外场激励": str(row.iloc[1]).strip() if pd.notna(row.iloc[1]) else None,
-                "激励详情": str(row.iloc[2]).strip() if pd.notna(row.iloc[2]) else None,
-                "推荐动作": str(row.iloc[3]).strip() if pd.notna(row.iloc[3]) else None,
-                "推荐规则描述": str(row.iloc[4]).strip() if pd.notna(row.iloc[4]) else None,
-                "赠送数": self._clean_numeric(row.iloc[5] if len(row) > 5 else None),
-                "成本单价USD": self._clean_numeric(row.iloc[6] if len(row) > 6 else None),
-                "成本USD": self._clean_numeric(row.iloc[7] if len(row) > 7 else None),
-            })
+        # 用向量化方式构建所有字段
+        result_df = pd.DataFrame({
+            "奖励类型": df["_reward_type"],
+            "内外场激励": df.iloc[:, 1].apply(lambda v: str(v).strip() if pd.notna(v) else None),
+            "激励详情": df.iloc[:, 2].apply(lambda v: str(v).strip() if pd.notna(v) else None),
+            "推荐动作": df.iloc[:, 3].apply(lambda v: str(v).strip() if pd.notna(v) else None),
+            "推荐规则描述": df.iloc[:, 4].apply(lambda v: str(v).strip() if pd.notna(v) else None),
+            "赠送数": df.iloc[:, 5].apply(self._clean_numeric) if df.shape[1] > 5 else None,
+            "成本单价USD": df.iloc[:, 6].apply(self._clean_numeric) if df.shape[1] > 6 else None,
+            "成本USD": df.iloc[:, 7].apply(self._clean_numeric) if df.shape[1] > 7 else None,
+        })
 
-        return records
+        return result_df.to_dict("records")
 
     def _load_cost_rules(self, path: Path) -> list:
-        """转介绍详细规则 sheet — 10行×10列，推荐分类×人数分段"""
+        """转介绍详细规则 sheet — 10行×10列，推荐分类×人数分段（向量化）"""
         import pandas as pd
 
         df = self._read_xlsx_pandas(path, sheet_name="转介绍详细规则", header=0)
@@ -150,22 +167,27 @@ class ROILoader(BaseLoader):
             return []
 
         df.columns = [str(c).strip() for c in df.columns]
-        records = []
 
-        for _, row in df.iterrows():
-            category = str(row.iloc[0]).strip() if pd.notna(row.iloc[0]) else None
-            if not category or category == "nan":
+        # 向量化过滤：第0列非空且不为 "nan"
+        df["_category"] = df.iloc[:, 0].apply(
+            lambda v: str(v).strip() if pd.notna(v) else None
+        )
+        df = df[df["_category"].notna() & (df["_category"] != "nan")].copy()
+
+        if df.empty:
+            return []
+
+        # 向量化构建记录：推荐分类 + 其余列（数值清洗）
+        result_df = pd.DataFrame({"推荐分类": df["_category"]})
+        for col in df.columns[1:]:
+            if col == "_category":
                 continue
+            result_df[col] = df[col].apply(self._clean_numeric)
 
-            record = {"推荐分类": category}
-            for col in df.columns[1:]:
-                record[col] = self._clean_numeric(row.get(col, None))
-            records.append(record)
-
-        return records
+        return result_df.to_dict("records")
 
     def _load_regions(self, path: Path) -> list:
-        """地区 sheet — 9行×2列，辅助枚举"""
+        """地区 sheet — 9行×2列，辅助枚举（向量化）"""
         import pandas as pd
 
         df = self._read_xlsx_pandas(path, sheet_name="地区", header=0)
@@ -173,12 +195,17 @@ class ROILoader(BaseLoader):
             return []
 
         df.columns = [str(c).strip() for c in df.columns]
-        regions = []
 
-        for _, row in df.iterrows():
-            # 地区值在第2列 (col index 1)，第1列是"勿动"标记
-            val = str(row.iloc[1]).strip() if len(row) > 1 and pd.notna(row.iloc[1]) else None
-            if val and val not in ("nan", "勿动", ""):
-                regions.append(val)
+        if df.shape[1] < 2:
+            return []
+
+        # 向量化提取第2列，过滤无效值
+        vals = df.iloc[:, 1].apply(
+            lambda v: str(v).strip() if pd.notna(v) else None
+        )
+        regions = vals[
+            vals.notna()
+            & ~vals.isin(["nan", "勿动", ""])
+        ].tolist()
 
         return regions

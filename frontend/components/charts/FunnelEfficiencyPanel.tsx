@@ -64,8 +64,8 @@ export function FunnelEfficiencyPanel() {
     () => fetch("/api/analysis/funnel-detail").then((r) => r.json())
   );
 
-  const rows: CCFunnelRow[] =
-    data?.cc_funnel && data.cc_funnel.length > 0 ? data.cc_funnel : MOCK;
+  const isMock = !data?.cc_funnel || data.cc_funnel.length === 0;
+  const rows: CCFunnelRow[] = isMock ? MOCK : data!.cc_funnel;
 
   if (isLoading) {
     return (
@@ -85,6 +85,11 @@ export function FunnelEfficiencyPanel() {
 
   return (
     <div className="space-y-2">
+      {isMock && (
+        <div className="bg-amber-50 border border-amber-200 text-amber-700 px-3 py-1.5 rounded text-xs mb-2">
+          ⚠ 当前显示模拟数据（API 数据不可用）
+        </div>
+      )}
       <p className="text-xs text-slate-400">
         各 CC 漏斗阶段转化率 · 注册→预约→出席→付费
       </p>

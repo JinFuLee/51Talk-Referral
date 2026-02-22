@@ -1,10 +1,13 @@
 "use client";
 
+import useSWR from "swr";
 import { cn } from "@/lib/utils";
 import type { EnclosureSegment } from "@/lib/types/analysis";
 
+const fetcher = (url: string) => fetch(url).then((r) => r.json());
+
 interface EnclosureHeatmapProps {
-  segments: EnclosureSegment[];
+  segments?: EnclosureSegment[];
   allocation?: Record<string, number>;
 }
 
@@ -22,22 +25,41 @@ function roiStatus(roi: number): string {
   return "🔴";
 }
 
-const MOCK_SEGMENTS: EnclosureSegment[] = [
-  { segment: "0-30", students: 450, conversion_rate: 0.25, followup_rate: 0.80, roi_index: 1.5, recommendation: "加大投入" },
-  { segment: "31-60", students: 380, conversion_rate: 0.18, followup_rate: 0.65, roi_index: 1.2, recommendation: "维持" },
-  { segment: "61-90", students: 290, conversion_rate: 0.12, followup_rate: 0.50, roi_index: 0.8, recommendation: "精选跟进" },
-  { segment: "91-180", students: 220, conversion_rate: 0.08, followup_rate: 0.35, roi_index: 0.5, recommendation: "降低频次" },
-  { segment: "181+", students: 150, conversion_rate: 0.04, followup_rate: 0.15, roi_index: 0.3, recommendation: "暂缓" },
-];
-
-const MOCK_ALLOC: Record<string, number> = {
-  "0-30": 0.35, "31-60": 0.25, "61-90": 0.20, "91-180": 0.15, "181+": 0.05,
-};
-
 export function EnclosureHeatmap({
-  segments = MOCK_SEGMENTS,
-  allocation = MOCK_ALLOC,
+  segments: propSegments,
+  allocation: propAllocation,
 }: EnclosureHeatmapProps) {
+  const { data, isLoading, error } = useSWR(
+    propSegments ? null : "/api/analysis/enclosure-health",
+    fetcher
+  );
+
+  if (isLoading) {
+    return (
+      <div className="flex h-40 items-center justify-center">
+        <div className="h-8 w-8 rounded-full border-4 border-slate-200 border-t-blue-500 animate-spin" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex h-40 items-center justify-center rounded-xl bg-red-50 border border-red-200 text-red-500 text-sm">
+        围场数据加载失败，请稍后重试
+      </div>
+    );
+  }
+
+  const segments: EnclosureSegment[] = propSegments ?? data?.data?.segments ?? [];
+
+  // Derive allocation from segments if not provided
+  const totalStudents = segments.reduce((s, seg) => s + (seg.students ?? 0), 0);
+  const derivedAllocation: Record<string, number> = {};
+  for (const seg of segments) {
+    derivedAllocation[seg.segment] = totalStudents > 0 ? (seg.students ?? 0) / totalStudents : 0;
+  }
+  const allocation = propAllocation ?? data?.data?.allocation ?? derivedAllocation;
+
   const segMap: Record<string, EnclosureSegment> = {};
   for (const s of segments) segMap[s.segment] = s;
 

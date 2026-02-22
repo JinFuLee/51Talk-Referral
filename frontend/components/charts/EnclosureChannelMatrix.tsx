@@ -56,7 +56,8 @@ export function EnclosureChannelMatrix() {
 
   const enclosures = data?.enclosures ?? ["0-30", "31-60", "61-90", "91-180", "181+"];
   const channels = data?.channels ?? ["CC窄", "SS窄", "LP窄", "宽口"];
-  const cells: MatrixCell[] = data?.matrix && data.matrix.length > 0 ? data.matrix : MOCK_MATRIX;
+  const isMock = !data?.matrix || data.matrix.length === 0;
+  const cells: MatrixCell[] = isMock ? MOCK_MATRIX : data!.matrix;
 
   // Build lookup: enclosure+channel -> cell
   const lookup: Record<string, MatrixCell> = {};
@@ -82,6 +83,11 @@ export function EnclosureChannelMatrix() {
 
   return (
     <div className="overflow-x-auto">
+      {isMock && (
+        <div className="bg-amber-50 border border-amber-200 text-amber-700 px-3 py-1.5 rounded text-xs mb-2">
+          ⚠ 当前显示模拟数据（API 数据不可用）
+        </div>
+      )}
       <table className="w-full text-sm border-separate border-spacing-1">
         <thead>
           <tr>

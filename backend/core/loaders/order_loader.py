@@ -53,18 +53,25 @@ class OrderLoader(BaseLoader):
             }
             df = df.rename(columns={k: v for k, v in col_map.items() if k in df.columns})
 
-            records = []
-            for _, row in df.iterrows():
-                date_val = self._clean_date(row.get("calldate"))
-                if date_val is None:
-                    continue
-                records.append(
-                    {
-                        "date": date_val,
-                        "active_5min": self._clean_numeric(row.get("active_5min")),
-                        "active_30min": self._clean_numeric(row.get("active_30min")),
-                    }
-                )
+            # 向量化清洗日期列
+            df["_date"] = df["calldate"].apply(self._clean_date)
+            df = df[df["_date"].notna()].copy()
+
+            if df.empty:
+                return []
+
+            df["_active_5min"] = df["active_5min"].apply(self._clean_numeric)
+            df["_active_30min"] = df["active_30min"].apply(self._clean_numeric)
+
+            records = (
+                df[["_date", "_active_5min", "_active_30min"]]
+                .rename(columns={
+                    "_date": "date",
+                    "_active_5min": "active_5min",
+                    "_active_30min": "active_30min",
+                })
+                .to_dict("records")
+            )
             return records
 
         except Exception as e:
@@ -100,43 +107,74 @@ class OrderLoader(BaseLoader):
             col_map = {cols[i]: col_names[i] for i in range(min(len(cols), len(col_names)))}
             df = df.rename(columns=col_map)
 
-            # 别名规范化
+            # 别名规范化（向量化）
             if "sale_dept_name" in df.columns:
                 df["sale_dept_name"] = df["sale_dept_name"].apply(
                     lambda v: self._normalize_alias(str(v)) if pd.notna(v) else v
                 )
 
-            records = []
-            for _, row in df.iterrows():
-                date_val = self._clean_date(row.get("deal_time_day"))
-                student_id = row.get("stdt_id")
-                if pd.isna(student_id) if not isinstance(student_id, str) else False:
-                    continue
-                records.append(
-                    {
-                        "student_id": str(student_id).strip()
-                        if pd.notna(student_id)
-                        else None,
-                        "team": self._normalize_team(str(row.get("sale_dept_name", "")).strip()),
-                        "seller": str(row.get("sale_name", "")).strip() or None,
-                        "channel": str(row.get("chnl_type", "")).strip() or None,
-                        "order_tag": str(row.get("order_tag", "")).strip() or None,
-                        "product": str(row.get("product_name", "")).strip() or None,
-                        "date": date_val,
-                        "amount_thb": self._clean_numeric(row.get("pay_amt")),
-                        "amount_cny": self._clean_numeric(row.get("pay_amt_cny")),
-                        "amount_usd": self._clean_numeric(row.get("pay_amt_usd")),
-                        "order_id": str(row.get("ord_id", "")).strip() or None,
-                        "order_type": str(row.get("nml_type", "")).strip() or None,
-                    }
-                )
+            # 过滤无效 student_id
+            if "stdt_id" in df.columns:
+                df = df[df["stdt_id"].apply(
+                    lambda v: not (pd.isna(v) if not isinstance(v, str) else False)
+                )].copy()
 
-            # 汇总维度
-            by_team = self._aggregate_orders_by_team(records)
-            by_channel = self._aggregate_orders_by_channel(records)
-            by_date = self._aggregate_orders_by_date(records)
-            summary = self._summarize_orders(records)
-            referral_cc_new = self._aggregate_referral_cc_new(records)
+            if df.empty:
+                return self._empty_order_detail()
+
+            # 向量化构建所有清洗字段
+            df["_date"] = df["deal_time_day"].apply(self._clean_date)
+            df["_student_id"] = df["stdt_id"].apply(
+                lambda v: str(v).strip() if pd.notna(v) else None
+            )
+            df["_team"] = df["sale_dept_name"].apply(
+                lambda v: self._normalize_team(str(v).strip())
+            )
+            df["_seller"] = df["sale_name"].apply(
+                lambda v: str(v).strip() or None if pd.notna(v) else None
+            )
+            df["_channel"] = df["chnl_type"].apply(
+                lambda v: str(v).strip() or None if pd.notna(v) else None
+            )
+            df["_order_tag"] = df["order_tag"].apply(
+                lambda v: str(v).strip() or None if pd.notna(v) else None
+            )
+            df["_product"] = df["product_name"].apply(
+                lambda v: str(v).strip() or None if pd.notna(v) else None
+            )
+            df["_amount_thb"] = df["pay_amt"].apply(self._clean_numeric)
+            df["_amount_cny"] = df["pay_amt_cny"].apply(self._clean_numeric)
+            df["_amount_usd"] = df["pay_amt_usd"].apply(self._clean_numeric)
+            df["_order_id"] = df["ord_id"].apply(
+                lambda v: str(v).strip() or None if pd.notna(v) else None
+            )
+            df["_order_type"] = df["nml_type"].apply(
+                lambda v: str(v).strip() or None if pd.notna(v) else None
+            )
+
+            clean_cols = {
+                "_student_id": "student_id",
+                "_team": "team",
+                "_seller": "seller",
+                "_channel": "channel",
+                "_order_tag": "order_tag",
+                "_product": "product",
+                "_date": "date",
+                "_amount_thb": "amount_thb",
+                "_amount_cny": "amount_cny",
+                "_amount_usd": "amount_usd",
+                "_order_id": "order_id",
+                "_order_type": "order_type",
+            }
+            records_df = df[list(clean_cols.keys())].rename(columns=clean_cols)
+            records = records_df.to_dict("records")
+
+            # 汇总维度（基于向量化 DataFrame 操作）
+            by_team = self._aggregate_orders_by_team_df(records_df)
+            by_channel = self._aggregate_orders_by_channel_df(records_df)
+            by_date = self._aggregate_orders_by_date_df(records_df)
+            summary = self._summarize_orders_df(records_df)
+            referral_cc_new = self._aggregate_referral_cc_new_df(records_df)
 
             return {
                 "records": records,
@@ -164,7 +202,92 @@ class OrderLoader(BaseLoader):
                 "new_orders": 0,
                 "renewal_orders": 0,
             },
+            "referral_cc_new": {
+                "count": 0,
+                "amount_usd": 0,
+                "by_cc": {},
+                "by_date": [],
+            },
         }
+
+    # ── 向量化聚合方法（基于已清洗的 DataFrame）──────────────────────── #
+
+    def _aggregate_orders_by_team_df(self, df: pd.DataFrame) -> dict:
+        """向量化按团队聚合"""
+        df2 = df.copy()
+        df2["team"] = df2["team"].fillna("未知")
+        grp = df2.groupby("team", as_index=False).agg(
+            count=("team", "count"),
+            revenue_cny=("amount_cny", "sum"),
+            revenue_usd=("amount_usd", "sum"),
+        )
+        return {
+            row["team"]: {
+                "count": int(row["count"]),
+                "revenue_cny": float(row["revenue_cny"]),
+                "revenue_usd": float(row["revenue_usd"]),
+            }
+            for _, row in grp.iterrows()
+        }
+
+    def _aggregate_orders_by_channel_df(self, df: pd.DataFrame) -> dict:
+        """向量化按渠道聚合"""
+        df2 = df.copy()
+        df2["channel"] = df2["channel"].fillna("未知")
+        grp = df2.groupby("channel", as_index=False).agg(
+            count=("channel", "count"),
+            revenue_cny=("amount_cny", "sum"),
+            revenue_usd=("amount_usd", "sum"),
+        )
+        return {
+            row["channel"]: {
+                "count": int(row["count"]),
+                "revenue_cny": float(row["revenue_cny"]),
+                "revenue_usd": float(row["revenue_usd"]),
+            }
+            for _, row in grp.iterrows()
+        }
+
+    def _aggregate_referral_cc_new_df(self, df: pd.DataFrame) -> dict:
+        """仅统计 CC前端 + 新单 + 转介绍 的订单（核心业绩计算，过滤条件严格保持）"""
+        mask = (
+            (df["channel"].fillna("") == "转介绍")
+            & (df["team"].fillna("").str.upper().str.contains("CC", na=False))
+            & (df["order_tag"].fillna("") == "新单")
+        )
+        filtered = df[mask]
+        return {
+            "count": int(len(filtered)),
+            "revenue_cny": float(filtered["amount_cny"].sum()),
+            "revenue_usd": float(filtered["amount_usd"].sum()),
+            "revenue_thb": float(filtered["amount_thb"].sum()),
+        }
+
+    def _aggregate_orders_by_date_df(self, df: pd.DataFrame) -> list:
+        """向量化按日期聚合"""
+        df2 = df.copy()
+        df2["date"] = df2["date"].fillna("unknown")
+        grp = df2.groupby("date", as_index=False).agg(
+            count=("date", "count"),
+            revenue=("amount_cny", "sum"),
+        )
+        grp = grp.sort_values("date")
+        return [
+            {"date": row["date"], "count": int(row["count"]), "revenue": float(row["revenue"])}
+            for _, row in grp.iterrows()
+        ]
+
+    def _summarize_orders_df(self, df: pd.DataFrame) -> dict:
+        """向量化订单汇总"""
+        return {
+            "total_orders": int(len(df)),
+            "total_revenue_cny": round(float(df["amount_cny"].sum()), 2),
+            "total_revenue_usd": round(float(df["amount_usd"].sum()), 2),
+            "new_orders": int((df["order_tag"].fillna("") == "新单").sum()),
+            "renewal_orders": int((df["order_tag"].fillna("") == "续单").sum()),
+        }
+
+    # 以下旧方法保留（仍接受 list 参数，供外部调用兼容）──────────────── #
 
     def _aggregate_orders_by_team(self, records: list) -> dict:
         result: dict = {}
@@ -249,19 +372,26 @@ class OrderLoader(BaseLoader):
             }
             df = df.rename(columns={k: v for k, v in col_map.items() if k in df.columns})
 
-            records = []
-            for _, row in df.iterrows():
-                date_val = self._clean_date(row.get("deal_time_day"))
-                if date_val is None:
-                    continue
-                records.append(
-                    {
-                        "date": date_val,
-                        "product_type": str(row.get("product_type", "")).strip() or None,
-                        "order_count": self._clean_numeric(row.get("order_count")),
-                    }
-                )
-            return records
+            # 向量化清洗
+            df["_date"] = df["deal_time_day"].apply(self._clean_date)
+            df = df[df["_date"].notna()].copy()
+            if df.empty:
+                return []
+
+            df["_product_type"] = df["product_type"].apply(
+                lambda v: str(v).strip() or None if pd.notna(v) else None
+            )
+            df["_order_count"] = df["order_count"].apply(self._clean_numeric)
+
+            return (
+                df[["_date", "_product_type", "_order_count"]]
+                .rename(columns={
+                    "_date": "date",
+                    "_product_type": "product_type",
+                    "_order_count": "order_count",
+                })
+                .to_dict("records")
+            )
 
         except Exception as e:
             logger.error(f"[E4] 加载失败: {e}", exc_info=True)
@@ -291,19 +421,26 @@ class OrderLoader(BaseLoader):
             }
             df = df.rename(columns={k: v for k, v in col_map.items() if k in df.columns})
 
-            records = []
-            for _, row in df.iterrows():
-                date_val = self._clean_date(row.get("deal_time_day"))
-                if date_val is None:
-                    continue
-                records.append(
-                    {
-                        "date": date_val,
-                        "product_type": str(row.get("product_type", "")).strip() or None,
-                        "revenue_cny": self._clean_numeric(row.get("revenue_cny")),
-                    }
-                )
-            return records
+            # 向量化清洗
+            df["_date"] = df["deal_time_day"].apply(self._clean_date)
+            df = df[df["_date"].notna()].copy()
+            if df.empty:
+                return []
+
+            df["_product_type"] = df["product_type"].apply(
+                lambda v: str(v).strip() or None if pd.notna(v) else None
+            )
+            df["_revenue_cny"] = df["revenue_cny"].apply(self._clean_numeric)
+
+            return (
+                df[["_date", "_product_type", "_revenue_cny"]]
+                .rename(columns={
+                    "_date": "date",
+                    "_product_type": "product_type",
+                    "_revenue_cny": "revenue_cny",
+                })
+                .to_dict("records")
+            )
 
         except Exception as e:
             logger.error(f"[E5] 加载失败: {e}", exc_info=True)
@@ -321,25 +458,26 @@ class OrderLoader(BaseLoader):
             return {"by_channel": {}}
 
         try:
-            # 双层表头：header=[0,1]，合并 6 处
+            # 双层表头：header=[0,1]，合并；表头预处理保留 Python
             df = self._read_xlsx_pandas(path, header=[0, 1])
             if df.empty:
                 return {"by_channel": {}}
 
-            # 展平多级列头
+            # 展平多级列头（保留原有逻辑）
             df.columns = [
                 "_".join(str(c).strip() for c in col if str(c) != "nan").strip("_")
                 for col in df.columns
             ]
 
-            records = []
-            for _, row in df.iterrows():
-                rec = {}
-                for col in df.columns:
-                    rec[col] = self._clean_numeric(row[col]) if self._is_numeric_col(col) else str(row[col]).strip()
-                records.append(rec)
+            # 向量化：按列名判断数值/字符串，整列 apply
+            records_df = pd.DataFrame()
+            for col in df.columns:
+                if self._is_numeric_col(col):
+                    records_df[col] = df[col].apply(self._clean_numeric)
+                else:
+                    records_df[col] = df[col].apply(lambda v: str(v).strip() if pd.notna(v) else str(v))
 
-            return {"by_channel": {"records": records}}
+            return {"by_channel": {"records": records_df.to_dict("records")}}
 
         except Exception as e:
             logger.error(f"[E6] 加载失败: {e}", exc_info=True)
@@ -366,15 +504,15 @@ class OrderLoader(BaseLoader):
                 for col in df.columns
             ]
 
-            by_team = []
-            for _, row in df.iterrows():
-                rec = {}
-                for col in df.columns:
-                    val = row[col]
-                    rec[col] = self._clean_numeric(val) if self._is_numeric_col(col) else str(val).strip()
-                by_team.append(rec)
+            # 向量化：按列名判断数值/字符串，整列 apply
+            records_df = pd.DataFrame()
+            for col in df.columns:
+                if self._is_numeric_col(col):
+                    records_df[col] = df[col].apply(self._clean_numeric)
+                else:
+                    records_df[col] = df[col].apply(lambda v: str(v).strip() if pd.notna(v) else str(v))
 
-            return {"by_team": by_team}
+            return {"by_team": records_df.to_dict("records")}
 
         except Exception as e:
             logger.error(f"[E7] 加载失败: {e}", exc_info=True)
@@ -407,19 +545,21 @@ class OrderLoader(BaseLoader):
                 return {}
 
         try:
-            records = []
-            for _, row in df.iterrows():
-                rec = {}
-                for col in df.columns:
-                    val = row[col]
-                    if pd.isna(val) if not isinstance(val, (list, dict, str)) else False:
-                        rec[str(col)] = None
-                    else:
-                        cleaned = self._clean_numeric(val)
-                        rec[str(col)] = cleaned if cleaned is not None else str(val).strip()
-                records.append(rec)
+            # 向量化：每列独立清洗（数值列用 _clean_numeric，其他转字符串）
+            records_df = pd.DataFrame()
+            for col in df.columns:
+                col_str = str(col)
+                series = df[col]
+                # 判断是否为数值类型列（按 dtype 或列名）
+                if pd.api.types.is_numeric_dtype(series):
+                    records_df[col_str] = series.apply(self._clean_numeric)
+                else:
+                    records_df[col_str] = series.apply(
+                        lambda v: None if (pd.isna(v) if not isinstance(v, (list, dict, str)) else False)
+                        else (self._clean_numeric(v) if self._clean_numeric(v) is not None else str(v).strip())
+                    )
 
-            return {"by_channel_product": records}
+            return {"by_channel_product": records_df.to_dict("records")}
 
         except Exception as e:
             logger.error(f"[E8] 解析失败: {e}", exc_info=True)

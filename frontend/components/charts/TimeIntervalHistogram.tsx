@@ -65,8 +65,8 @@ export function TimeIntervalHistogram() {
     () => fetch("/api/analysis/time-interval").then((r) => r.json())
   );
 
-  const resp: TimeIntervalResponse =
-    data?.histogram && data.histogram.length > 0 ? data : MOCK;
+  const isMock = !data?.histogram || data.histogram.length === 0;
+  const resp: TimeIntervalResponse = isMock ? MOCK : data!;
 
   if (isLoading) {
     return (
@@ -86,6 +86,11 @@ export function TimeIntervalHistogram() {
 
   return (
     <div className="space-y-4">
+      {isMock && (
+        <div className="bg-amber-50 border border-amber-200 text-amber-700 px-3 py-1.5 rounded text-xs mb-2">
+          ⚠ 当前显示模拟数据（API 数据不可用）
+        </div>
+      )}
       <p className="text-xs text-slate-400">
         注册 → 付费天数分布 · 共 {resp.total_records} 条记录
       </p>

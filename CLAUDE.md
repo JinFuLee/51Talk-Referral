@@ -67,8 +67,10 @@ Excel 数据源 → XlsxReader → DataProcessor → AnalysisEngine → Markdown
 ```
 
 ## 常用命令
-- **一键启动**: `python3 start.py` 或双击 `启动面板.command`（macOS）
-- **Streamlit 面板**: `streamlit run app.py`
+- **一键启动（推荐）**: 双击 `一键启动.command`（自动检测数据 → 下载 → 后端 → 前端 → 浏览器）
+- **仅启动服务**: 双击 `启动.command`（跳过数据检测，直接启动）
+- **仅下载数据**: 双击 `下载BI数据.command`（交互式，支持选择看板）
+- **Streamlit 面板（旧版）**: `streamlit run app.py`
 - **CLI 单次处理**: `python src/main.py --once <file.xlsx>`
 - **CLI 监控模式**: `python src/main.py --watch`
 - **测试**: `pytest`

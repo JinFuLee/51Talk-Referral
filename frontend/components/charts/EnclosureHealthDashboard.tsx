@@ -188,9 +188,10 @@ export function EnclosureHealthDashboard() {
   const { data, isLoading, error } = useSWR<EnclosureHealthData>(
     "enclosure-health",
     () => fetch("/api/analysis/enclosure-health").then((r) => r.json()),
-    { fallbackData: MOCK_DATA, shouldRetryOnError: false }
+    { shouldRetryOnError: false }
   );
 
+  const isMock = !isLoading && (!data || error);
   const d = data ?? MOCK_DATA;
 
   return (
@@ -200,8 +201,10 @@ export function EnclosureHealthDashboard() {
           <Spinner />
         </div>
       )}
-      {error && !isLoading && (
-        <p className="text-xs text-amber-600 mb-3">API 暂不可用，显示示例数据</p>
+      {isMock && (
+        <div className="bg-amber-50 border border-amber-200 text-amber-700 px-3 py-1.5 rounded text-xs mb-2">
+          ⚠ 当前显示模拟数据（API 数据不可用）
+        </div>
       )}
       {!isLoading && (
         <>

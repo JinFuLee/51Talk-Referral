@@ -1,18 +1,46 @@
 "use client";
 
+import useSWR from "swr";
 import type { CheckinImpact } from "@/lib/types/analysis";
+
+const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
 interface CheckinImpactCardProps {
   data?: CheckinImpact;
 }
 
-const MOCK: CheckinImpact = {
-  participation_lift: { checkin: 0.15, no_checkin: 0.03, multiplier: 5.0 },
-  coefficient_lift: { checkin: 1.8, no_checkin: 0.6, multiplier: 3.0 },
-  conclusion: "打卡使参与率提升 5 倍",
-};
+export function CheckinImpactCard({ data: propData }: CheckinImpactCardProps) {
+  const { data: apiData, isLoading, error } = useSWR(
+    propData ? null : "/api/analysis/checkin-impact",
+    fetcher
+  );
 
-export function CheckinImpactCard({ data = MOCK }: CheckinImpactCardProps) {
+  if (isLoading) {
+    return (
+      <div className="flex h-40 items-center justify-center">
+        <div className="h-8 w-8 rounded-full border-4 border-slate-200 border-t-blue-500 animate-spin" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex h-40 items-center justify-center rounded-xl bg-red-50 border border-red-200 text-red-500 text-sm">
+        打卡影响数据加载失败，请稍后重试
+      </div>
+    );
+  }
+
+  const data: CheckinImpact | undefined = propData ?? apiData?.data;
+
+  if (!data) {
+    return (
+      <div className="flex h-40 items-center justify-center text-slate-400 text-sm">
+        暂无数据
+      </div>
+    );
+  }
+
   const p = data.participation_lift;
   const c = data.coefficient_lift;
 

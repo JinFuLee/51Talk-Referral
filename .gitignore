@@ -41,6 +41,7 @@ key/
 *.xlsx
 temp_upload.xlsx
 !.gitkeep
+input/.cache/
 
 # Node.js / Next.js
 node_modules/

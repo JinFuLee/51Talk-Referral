@@ -97,10 +97,10 @@ export function NorthStarGauge() {
     () => fetch("/api/analysis/north-star").then((r) => r.json())
   );
 
-  const metrics: NorthStarMetric[] =
-    data?.north_star_metrics && data.north_star_metrics.length > 0
-      ? data.north_star_metrics
-      : MOCK_DATA.north_star_metrics!;
+  const isMock = !data?.north_star_metrics || data.north_star_metrics.length === 0;
+  const metrics: NorthStarMetric[] = isMock
+    ? MOCK_DATA.north_star_metrics!
+    : data!.north_star_metrics!;
 
   if (isLoading) {
     return (
@@ -119,10 +119,17 @@ export function NorthStarGauge() {
   }
 
   return (
-    <div className="flex flex-wrap justify-center gap-8 py-4">
+    <div className="flex flex-col gap-2">
+      {isMock && (
+        <div className="bg-amber-50 border border-amber-200 text-amber-700 px-3 py-1.5 rounded text-xs mb-2">
+          ⚠ 当前显示模拟数据（API 数据不可用）
+        </div>
+      )}
+      <div className="flex flex-wrap justify-center gap-8 py-4">
       {metrics.map((m) => (
         <SingleGauge key={m.name} metric={m} />
       ))}
+      </div>
     </div>
   );
 }

@@ -81,8 +81,8 @@ export function SectionEfficiencyQuadrant() {
     () => fetch("/api/analysis/section-efficiency").then((r) => r.json())
   );
 
-  const rows: SectionRow[] =
-    data?.sections && data.sections.length > 0 ? data.sections : MOCK;
+  const isMock = !data?.sections || data.sections.length === 0;
+  const rows: SectionRow[] = isMock ? MOCK : data!.sections;
 
   // 计算中点（用于四象限分割线）
   const midX =
@@ -113,6 +113,11 @@ export function SectionEfficiencyQuadrant() {
 
   return (
     <div className="space-y-2">
+      {isMock && (
+        <div className="bg-amber-50 border border-amber-200 text-amber-700 px-3 py-1.5 rounded text-xs mb-2">
+          ⚠ 当前显示模拟数据（API 数据不可用）
+        </div>
+      )}
       <p className="text-xs text-slate-400">
         X轴：触达率 · Y轴：付费转化率 · 四象限颜色：
         <span className="text-emerald-500 ml-1">绿=高触达高转化</span>
