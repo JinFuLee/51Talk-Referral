@@ -230,6 +230,22 @@
   - #27 已解决 — WhatIfSlide 接入后端 POST /api/analysis/what-if
 - 新增技术债 #28: presentation.py fallback 数据仍为规则派生非真实 PDCA 系统对接（P3, M20+）
 
+### M25: Gemini AI 报告生成 + as any 技术债清理（2026-02-22）
+- [x] llm_adapter.py 新建 — Gemini API 封装，统一 LLM 调用接口，异常兜底
+- [x] ai_report_generator.py 新建 — 每日/每周自动报告生成调度，异常指标触发深度根因分析
+- [x] reports.py 修改 — 接入 AI 报告生成 API 端点
+- [x] ReportGenerator.tsx 新建 — 前端报告生成触发组件
+- [x] dashboard/page.tsx + trial/page.tsx + present/page.tsx + ranking/page.tsx 修改 — 接入 AI 报告生成功能
+- [x] api.ts + hooks.ts 修改 — AI 报告类型定义 + useSWR 接线
+- [x] `as any` 从 38 处降至 1 处（集中化 toSlide helper，类型安全显式映射）
+- 统计: 10 files changed (2 new backend, 1 new frontend, 7 modified), +962/-43 lines
+- QA 结果: py_compile 4/4 PASS, tsc 0 errors
+- 执行团队: mk-llm-backend-sonnet, mk-fe-cleanup-sonnet
+- 技术债解决:
+  - #13 部分解决 — `as any` 从 38 降至 1（集中化 toSlide helper，剩余 1 处低优保留）
+- 技术债新增:
+  - #10 TrendLineChart 类型泛型化保留（P2，低优，M26+）
+
 ### M20: 数据质量体系 — mock fallback 全清 + 3后端bug修复（2026-02-22）
 - [x] mock fallback 数据全清 — 11 个图表组件替换真实后端数据源
 - [x] 后端数据修复 3 项：leads 日期过滤、by_team 补全、order 空字段处理
@@ -293,15 +309,9 @@
 - QA 目标: 待验收
 - 备注: 外部数据依赖（财务部），可并行推进成本模型框架
 
-### M25: AI 自动化报告生成（规划中）
-- [ ] 每日/每周自动报告生成调度
-- [ ] 异常指标触发 Gemini 深度根因分析
-- [ ] TrendLineChart data prop 类型泛型化
-- [ ] 前端 `as any` 残留清理
-- 依赖: M21 PASS
-- 技术债关联: #2 #9 #10 #13 #15 #20
-- 预计影响: 待估
-- QA 目标: 待验收
+### M25: AI 自动化报告生成（✅ 已完成 → 见上方"已完成"区）
+- 完成日期: 2026-02-22
+- 统计: 10 files, +962/-43 lines, py_compile 4/4 PASS, tsc 0 errors
 
 ### M26: 多项目复用 — 引擎泛化（规划中）
 - [ ] 分析引擎抽象为可配置框架（数据源/指标/报告模板参数化）
@@ -323,12 +333,12 @@ M18.2(✅) ──► M18.3 ──► M19
               M20 ◄── M19
               │
               ▼
-              M21(✅) ──► M25 ──► M26
+              M21(✅) ──► M25(✅) ──► M26
 M10(✅) ───► M23（独立，外部数据驱动）
 M16(✅) ───► M24（独立，外部数据驱动）
-M17(✅) ───► M25
+M17(✅) ───► M25(✅)
 
-关键路径：M18.3(✅) → M19(✅) → M20(✅) → M21(✅) → M25 → M26
+关键路径：M18.3(✅) → M19(✅) → M20(✅) → M21(✅) → M25(✅) → M26
 独立可并行：M23(CRM) / M24(财务) — 外部数据就绪即可启动
 ```
 
@@ -347,10 +357,10 @@ M17(✅) ───► M25
 | #7 | dashboard/page.tsx 内容为空 | P2 | M10 | ✅ 已解决 |
 | #8 | npm install 容器外执行问题 | P3 | M19 | 🟡 待处理 |
 | #9 | WebMCP @mcp-b/global polyfill（等浏览器原生支持） | P3 | M25+ | 🟡 待处理 |
-| #10 | TrendLineChart data prop 类型泛型化 | P2 | M25 | 🟡 待处理 |
+| #10 | TrendLineChart data prop 类型泛型化 | P2 | M26+ | 🟡 待处理（M25 保留低优，集中化 toSlide helper 后影响范围缩小） |
 | #11 | datasources.py 注释"12 源"过时 | P3 | M10 | ✅ 已解决 |
 | #12 | ROI 成本框架占位（非真实数据） | P1 | M24 | 🟡 待处理 |
-| #13 | 前端 TypeScript `as any` 残留清理 | P2 | M25 | 🟡 待处理 |
+| #13 | 前端 TypeScript `as any` 残留清理 | P2 | M25 | 🟡 部分解决 — M25 从 38 降至 1（集中化 toSlide helper），剩余 1 处 P2 挂 M26+ |
 | #14 | insights.py 容错（极早期请求可能 503） | P3 | M20 | 🟡 待处理 |
 | #15 | 5-Why 因果链模板可继续扩展（当前 7+ 条） | P2 | M25+ | 🟡 待处理 |
 | #16 | /attribution 端点已实现（M16） | ✅ | M16 | ✅ 已解决 |

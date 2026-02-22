@@ -281,6 +281,7 @@ Excel 数据源 → XlsxReader → DataProcessor → AnalysisEngine → Markdown
 | M20 | 2026-02-22 | 数据质量体系 — mock fallback 全清 + 3后端bug修复 | mock fallback 全清 11 组件、leads日期过滤/by_team补全/order空字段修复、15 组件数据绑定升级、4 组件 useSWR+loading/error、11 组件 banner+isMock标识、ASP字段动态化、insights.py 容错 | 18 files mod, +600 lines, QA 12/12 PASS |
 | 本地化资产 | 2026-02-22 | Agent/Skill/Context 本地化 — PM Pipeline 三合一、MK 模板、report-writer/scorer agent、5 Skill 项目适配、引用一致性修复 | 12 files new, 6 skills new, 2 global archived, 4 WARN fixed, QA 43/47 PASS |
 | M21 | 2026-02-22 | iterrows 向量化 + Parquet 缓存 + 一键启动 | 37 iterrows 向量化（12 保留）、Parquet 缓存层（base.py/ops/leads/cohort/kpi/order/roi loader）、analysis_engine_v2.py 性能适配、requirements.txt×2 + .gitignore + 一键启动.command、15 frontend components 数据绑定 | 28 files, +1875/-1037 lines, QA 7/7 PASS |
+| M25 | 2026-02-22 | Gemini AI 报告生成 + as any 技术债清理 | llm_adapter.py(new)、ai_report_generator.py(new)、reports.py/ReportGenerator.tsx/dashboard+trial+present+ranking pages、api.ts+hooks.ts；as any 38→1（集中化 toSlide helper） | 10 files, +962/-43 lines, py_compile 4/4 PASS, tsc 0 errors |
 
 ## 里程碑规划（M11+）
 
@@ -346,7 +347,7 @@ M14 (5-Why)     ─── 依赖 M13（影响链是 5-Why 的量化基础）
 | 10 | 类型系统 | TrendLineChart data prop 类型需进一步泛型化 | P2 | M11 | 已沉淀到 M12 约束条件 |
 | 11 | 文档过期 | datasources.py 注释"12源"过时需更新为"35源" | P3 | M10 | M12 已更新 CLAUDE.md 业务规则 |
 | 12 | ROI成本数据 | 成本明细框架占位，待对接泰国真实激励/活动费用数据 | P1 | M13 | M16 已获取真实激励和活动费用数据 |
-| 13 | 类型优化 | 前端 TypeScript 仍有部分 `as any` 需清理 | P2 | M13+ | 日常重构积累 |
+| 13 | 类型优化 | 前端 TypeScript `as any` 残留清理 | P2 | M25 | ✅ M25 部分解决（38→1，集中化 toSlide helper；剩余 1 处挂 M26+） |
 | 14 | insights.py 容错 | 复用 analysis._service，极早期请求可能 503 | P3 | M20 | ✅ M20 已缓解（graceful degradation 完备，503 窗口极小） |
 | 15 | 5-Why 扩展 | 因果链模板可扩展更多分支（目前 7+ 条多维链） | P2 | M15 | M15 已扩展至 7+ 条，M16 可继续增强 |
 | 16 | ~~已解决~~ | /attribution 端点已实现（M16），支持渠道/漏斗/口径归因 | ✅ | M16 | M16 无需实现，规划 M17+ |
