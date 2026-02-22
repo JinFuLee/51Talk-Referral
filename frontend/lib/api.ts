@@ -193,21 +193,3 @@ export const snapshotsAPI = {
     }),
 };
 
-// ── Notifications ─────────────────────────────────────────────────────────────
-
-export const notificationsAPI = {
-  getConfig: () => request<Record<string, unknown>>("/notifications/config"),
-  putConfig: (data: Record<string, unknown>) =>
-    request<{ status: string }>("/notifications/config", {
-      method: "PUT",
-      body: JSON.stringify(data),
-    }),
-  sendTest: () =>
-    request<{ status: string; result: unknown }>("/notifications/test", { method: "POST" }),
-  getSchedule: () => request<Record<string, unknown>>("/notifications/schedule"),
-  putSchedule: (data: Record<string, unknown>) =>
-    request<{ status: string }>("/notifications/schedule", {
-      method: "PUT",
-      body: JSON.stringify(data),
-    }),
-};

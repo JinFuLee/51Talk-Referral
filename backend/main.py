@@ -18,7 +18,7 @@ from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 
-from api import analysis, reports, datasources, config, snapshots, notifications, health, insights, system, cohort_detail, channel_trend, outreach_heatmap, outreach_coverage, cohort_decay, north_star, paid_followup, cohort_student, funnel_detail, channel_mom, retention_rank, leads_detail, productivity_history, outreach_gap, enclosure_health, ranking_enhanced, presentation
+from api import analysis, reports, datasources, config, snapshots, health, insights, system, cohort_detail, channel_trend, outreach_heatmap, outreach_coverage, cohort_decay, north_star, paid_followup, cohort_student, funnel_detail, channel_mom, retention_rank, leads_detail, productivity_history, outreach_gap, enclosure_health, ranking_enhanced, presentation
 from services.analysis_service import AnalysisService
 
 limiter = Limiter(key_func=get_remote_address, default_limits=["100/minute"])
@@ -71,11 +71,6 @@ app.include_router(
     tags=["snapshots"],
 )
 app.include_router(
-    notifications.router,
-    prefix="/api/notifications",
-    tags=["notifications"],
-)
-app.include_router(
     insights.router,
     prefix="/api/analysis",
     tags=["insights"],
@@ -125,7 +120,6 @@ async def startup_event():
     datasources.set_service(_analysis_service)
     config.set_service(_analysis_service)
     snapshots.set_service(_analysis_service)
-    notifications.set_service(_analysis_service)
     insights.set_service(_analysis_service)  # BUG-4/11: 独立注入，消除对 analysis._service 的依赖
     cohort_detail.set_service(_analysis_service)
     channel_trend.set_service(_analysis_service)
