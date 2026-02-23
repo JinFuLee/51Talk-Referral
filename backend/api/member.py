@@ -596,32 +596,17 @@ def get_member_profile(cc_name: str) -> dict[str, Any]:
         # 数据未加载，返回空结构而非 404
         return _empty_profile(cc_name)
 
-    # 先精确匹配，失败时做容错：去掉常见 team 前缀（thcc-/thcc_）再 case-insensitive 比对
-    resolved_cc_name = cc_name
     if cc_name not in known_ccs:
-        # 尝试去掉 team 前缀（如 "thcc-Wave" → "Wave"）
-        stripped = cc_name
-        for prefix in ("thcc-", "thcc_", "THCC-", "THCC_"):
-            if cc_name.lower().startswith(prefix.lower()):
-                stripped = cc_name[len(prefix):]
-                break
+        raise HTTPException(status_code=404, detail=f"CC '{cc_name}' 不存在于 F1 数据中")
 
-        # case-insensitive 匹配
-        lower_map = {n.lower(): n for n in known_ccs if n}
-        match = lower_map.get(stripped.lower()) or lower_map.get(cc_name.lower())
-        if match:
-            resolved_cc_name = match
-        else:
-            raise HTTPException(status_code=404, detail=f"CC '{cc_name}' 不存在于 F1 数据中")
-
-    # 组装各模块（统一使用 resolved_cc_name — 已对齐 F1 原始数据中的格式）
-    identity_base = _build_identity(resolved_cc_name, f1_records)
-    badges_triggered, badge_details = _compute_badges(resolved_cc_name, f1_records, f5_records)
+    # 组装各模块
+    identity_base = _build_identity(cc_name, f1_records)
+    badges_triggered, badge_details = _compute_badges(cc_name, f1_records, f5_records)
     identity = {**identity_base, "badges": badges_triggered, "badge_details": badge_details}
 
-    radar = _build_radar(resolved_cc_name, f1_records, f7_by_cc, f8_by_cc, order_records)
-    anomaly = _build_anomaly(resolved_cc_name, f5_records)
-    revenue = _build_revenue(resolved_cc_name, order_records)
+    radar = _build_radar(cc_name, f1_records, f7_by_cc, f8_by_cc, order_records)
+    anomaly = _build_anomaly(cc_name, f5_records)
+    revenue = _build_revenue(cc_name, order_records)
 
     return {
         "identity": identity,
