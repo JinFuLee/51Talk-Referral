@@ -146,7 +146,7 @@ echo -e "${C_BLUE}--------------------------------------------------------------
 # ── 唤醒逻辑模块 ──────────────────────────────────────────────────────────
 
 info "引燃数据中间件 (Backend/FastAPI)..."
-(cd backend && ../venv/bin/python -m uvicorn main:app --host 0.0.0.0 --port 8000 --log-level warning --loop asyncio 2>&1) &
+(cd backend && ../venv/bin/python -m uvicorn main:app --host 0.0.0.0 --port 8000 --log-level warning 2>&1) &
 BACKEND_PID=$!
 
 # 等待后端就绪信号
