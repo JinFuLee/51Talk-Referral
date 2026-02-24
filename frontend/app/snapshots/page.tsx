@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { useSnapshotStats, useDailyKPI, useCCGrowth, useTranslation } from "@/lib/hooks";
+import { PageHeader } from "@/components/layout/PageHeader";
+import { BIZ_PAGE } from "@/lib/layout";
 import { snapshotsAPI } from "@/lib/api";
 import { DailyKPIChart } from "@/components/charts/DailyKPIChart";
 import { CCGrowthChart } from "@/components/charts/CCGrowthChart";
@@ -35,9 +37,8 @@ export default function SnapshotsPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-slate-800">{t("snapshots.title")}</h1>
+    <div className={BIZ_PAGE}>
+      <PageHeader title={t("snapshots.title")}>
         <button
           onClick={handleImport}
           disabled={importing}
@@ -50,7 +51,7 @@ export default function SnapshotsPage() {
           ) : null}
           {t("snapshots.button.import")}
         </button>
-      </div>
+      </PageHeader>
 
       {importResult && (
         <div className="rounded-lg bg-slate-50 border border-slate-200 p-4">

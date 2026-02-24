@@ -24,7 +24,7 @@ def set_service(service: Any) -> None:
 
 
 @router.get("/retention-contribution")
-async def get_retention_contribution() -> dict[str, Any]:
+def get_retention_contribution() -> dict[str, Any]:
     """
     F9 CC 留存贡献排名
 

@@ -2,15 +2,21 @@
 
 import { useSummary, usePrediction, useRiskAlerts, useTranslation } from "@/lib/hooks";
 import { formatRevenue } from "@/lib/utils";
+import { kpiDrilldownMap } from "@/lib/drilldown-config";
 import { BigMetricCard } from "@/components/biz/BigMetricCard";
 import { ActionList } from "@/components/biz/ActionList";
 import { Card } from "@/components/ui/Card";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { ErrorBoundary } from "@/components/providers/ErrorBoundary";
+import { useConfigStore } from "@/lib/stores/config-store";
 import type { SummaryData, PredictionData, RiskAlert } from "@/lib/types";
+import { PageHeader } from "@/components/layout/PageHeader";
+import { BIZ_PAGE } from "@/lib/layout";
 
 export default function BizOverviewPage() {
   const { t } = useTranslation();
+  const selectionContext = useConfigStore((s) => s.selectionContext);
+  const clearSelectionContext = useConfigStore((s) => s.clearSelectionContext);
 
   const DEFAULT_ACTIONS = [
     { text: t("biz.overview.action.checkinLow"), target: t("biz.overview.action.checkinTarget"), priority: "high" as const },
@@ -23,7 +29,7 @@ export default function BizOverviewPage() {
 
   if (sLoading || pLoading) {
     return (
-      <div className="max-w-5xl mx-auto space-y-8">
+      <div className={BIZ_PAGE}>
         <Skeleton className="h-10 w-64" />
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
           <Skeleton className="h-40" />
@@ -66,12 +72,27 @@ export default function BizOverviewPage() {
     return t("biz.overview.label.seriousLag");
   }
 
+  // Filter risk alerts by selected CC if selectionContext is set
+  const filteredAlerts = selectionContext?.type === 'cc'
+    ? riskAlerts.filter((a) => a.message?.includes(selectionContext.value))
+    : riskAlerts;
+  const displayAlerts = filteredAlerts.length > 0 ? filteredAlerts : riskAlerts;
+
   return (
-    <div className="max-w-5xl mx-auto space-y-8">
-      <div>
-        <h1 className="text-2xl font-bold text-slate-800">{t("biz.overview.title")}</h1>
-        <p className="text-sm text-slate-400 mt-1">{t("biz.overview.subtitle")}</p>
-      </div>
+    <div className={BIZ_PAGE}>
+      <PageHeader title={t("biz.overview.title")} subtitle={t("biz.overview.subtitle")} />
+
+      {selectionContext?.type === 'cc' && (
+        <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-blue-50 border border-blue-200 text-sm text-blue-700">
+          <span>聚焦 CC：<strong>{selectionContext.value}</strong> — 风险预警已过滤</span>
+          <button
+            onClick={clearSelectionContext}
+            className="ml-auto text-xs text-blue-500 hover:text-blue-700 underline"
+          >
+            清除
+          </button>
+        </div>
+      )}
 
       <ErrorBoundary>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
@@ -84,6 +105,8 @@ export default function BizOverviewPage() {
             progressLabel={t("biz.overview.label.completionProgress")}
             status={regStatus}
             statusLabel={statusLabel(regStatus)}
+            drilldownHref={kpiDrilldownMap.registrations?.href}
+            drilldownLabel={kpiDrilldownMap.registrations?.label}
           />
 
           <BigMetricCard
@@ -95,6 +118,8 @@ export default function BizOverviewPage() {
             progressLabel={t("biz.overview.label.completionProgress")}
             status={payStatus}
             statusLabel={statusLabel(payStatus)}
+            drilldownHref={kpiDrilldownMap.payments?.href}
+            drilldownLabel={kpiDrilldownMap.payments?.label}
           />
 
           <BigMetricCard
@@ -106,6 +131,8 @@ export default function BizOverviewPage() {
             progressLabel={t("biz.overview.label.revenueProgress")}
             status={revenueStatus}
             statusLabel={statusLabel(revenueStatus)}
+            drilldownHref={kpiDrilldownMap.revenue?.href}
+            drilldownLabel={kpiDrilldownMap.revenue?.label}
           />
 
           <BigMetricCard
@@ -118,12 +145,12 @@ export default function BizOverviewPage() {
           />
         </div>
 
-        {riskAlerts.length > 0 && (
+        {displayAlerts.length > 0 && (
           <Card title={t("biz.overview.card.risks")}>
             <ul className="space-y-2">
-              {riskAlerts.slice(0, 5).map((a, i) => (
+              {displayAlerts.slice(0, 5).map((a) => (
                 <li
-                  key={i}
+                  key={`${a.level}-${a.message}`}
                   className={`text-sm rounded-xl border px-4 py-2.5 ${
                     a.level === "critical"
                       ? "border-rose-200 bg-rose-50 text-rose-700"

@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import useSWR from "swr";
+import { swrFetcher } from "@/lib/api";
 import { Spinner } from "@/components/ui/Spinner";
 
 interface DecayPoint {
@@ -25,13 +26,7 @@ const METRICS: { key: keyof Omit<DecayPoint, "month">; label: string }[] = [
   { key: "referral_ratio", label: "带货比" },
 ];
 
-const MOCK_DECAY: Record<string, DecayPoint[]> = {
-  "0-30": [{ month: "M1", reach_rate: 0.82, participation_rate: 0.35, checkin_rate: 0.78, referral_ratio: 0.42 }],
-  "31-60": [{ month: "M1", reach_rate: 0.71, participation_rate: 0.28, checkin_rate: 0.65, referral_ratio: 0.33 }],
-  "61-90": [{ month: "M1", reach_rate: 0.58, participation_rate: 0.20, checkin_rate: 0.52, referral_ratio: 0.24 }],
-  "91-180": [{ month: "M1", reach_rate: 0.44, participation_rate: 0.14, checkin_rate: 0.40, referral_ratio: 0.16 }],
-  "181+": [{ month: "M1", reach_rate: 0.28, participation_rate: 0.08, checkin_rate: 0.25, referral_ratio: 0.09 }],
-};
+
 
 function getHeatColor(value: number, max: number): string {
   const ratio = value / (max || 1);
@@ -75,15 +70,15 @@ export function CohortRetentionHeatmap() {
   const [tooltip, setTooltip] = useState<TooltipInfo | null>(null);
 
   const { data, error, isLoading } = useSWR<CohortDecayRawResponse>(
-    "cohort-decay-raw",
-    () => fetch("/api/analysis/cohort-decay-raw").then((r) => r.json())
+    "/api/analysis/cohort-decay-raw",
+    swrFetcher
   );
 
-  const isMock = !data?.decay_curves || Object.keys(data.decay_curves).length === 0;
-  const curves: Record<string, DecayPoint[]> = isMock ? MOCK_DECAY : data!.decay_curves!;
+  const hasData = data?.decay_curves && Object.keys(data.decay_curves).length > 0;
 
-  const rows = buildMatrix(curves);
-  const maxMap = computeMaxPerMetric(rows);
+  const curves = useMemo(() => data?.decay_curves ?? {}, [data?.decay_curves]);
+  const rows = useMemo(() => buildMatrix(curves), [curves]);
+  const maxMap = useMemo(() => computeMaxPerMetric(rows), [rows]);
 
   if (isLoading) {
     return (
@@ -96,18 +91,22 @@ export function CohortRetentionHeatmap() {
   if (error) {
     return (
       <div className="flex items-center justify-center h-40 text-rose-500 text-sm">
-        数据加载失败，显示模拟数据
+        数据加载失败
+      </div>
+    );
+  }
+
+  if (!hasData || !data?.decay_curves) {
+    return (
+      <div className="flex flex-col items-center justify-center py-10 px-4 text-center bg-slate-50 border border-dashed border-slate-200 rounded-xl">
+        <p className="text-sm font-medium text-slate-600 mb-1">Cohort 留存热力图数据暂未就绪</p>
+        <p className="text-xs text-slate-400">请先运行分析以生成 cohort-decay-raw 数据</p>
       </div>
     );
   }
 
   return (
     <div className="overflow-x-auto relative">
-      {isMock && (
-        <div className="bg-amber-50 border border-amber-200 text-amber-700 px-3 py-1.5 rounded text-xs mb-2">
-          ⚠ 当前显示模拟数据（API 数据不可用）
-        </div>
-      )}
       <table className="w-full text-sm border-collapse">
         <thead>
           <tr>

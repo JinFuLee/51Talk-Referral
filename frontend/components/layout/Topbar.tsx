@@ -5,6 +5,8 @@ import { usePathname } from "next/navigation";
 import { usePresentationStore } from "@/lib/stores/presentation-store";
 import { MonitorPlay } from "lucide-react";
 import clsx from "clsx";
+import { TimePeriodSelector } from "@/components/shared/TimePeriodSelector";
+import { CompareToggle } from "@/components/shared/CompareToggle";
 
 function ViewModeBadge({ pathname }: { pathname: string }) {
   if (pathname.startsWith("/ops")) {
@@ -43,6 +45,9 @@ export function Topbar() {
           <span className="text-slate-300 mx-2">|</span>
           T-1 数据
         </div>
+        <TimePeriodSelector />
+        <span className="text-slate-200">|</span>
+        <CompareToggle />
         <ViewModeBadge pathname={pathname} />
       </div>
 

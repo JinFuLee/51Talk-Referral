@@ -132,9 +132,9 @@ export function SummarySlide({
             行动项
           </p>
           <div className="flex flex-col gap-2">
-            {actionItems.map((item, i) => (
+            {actionItems.map((item) => (
               <div
-                key={i}
+                key={item.text}
                 className="flex items-center gap-4 text-sm"
               >
                 <AlertCircle className="w-4 h-4 text-amber-500 flex-none" />

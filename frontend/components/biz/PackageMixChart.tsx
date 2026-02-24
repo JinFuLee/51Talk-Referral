@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import {
   PieChart,
   Pie,
@@ -73,10 +74,10 @@ function CustomLegend({ payload }: CustomLegendProps) {
   if (!payload?.length) return null;
   return (
     <ul className="flex flex-col gap-1.5 text-xs text-slate-600 mt-2">
-      {payload.map((entry, idx) => {
+      {payload.map((entry) => {
         const item = entry.payload as PackageMixItem | undefined;
         return (
-          <li key={idx} className="flex items-center justify-between gap-2">
+          <li key={String(entry.value)} className="flex items-center justify-between gap-2">
             <span className="flex items-center gap-1.5 min-w-0">
               <span
                 className="inline-block w-2.5 h-2.5 rounded-full flex-shrink-0"
@@ -95,6 +96,18 @@ function CustomLegend({ payload }: CustomLegendProps) {
 }
 
 export function PackageMixChart({ items }: PackageMixChartProps) {
+  const totalUsd = useMemo(() => (items ?? []).reduce((s, i) => s + i.revenue_usd, 0), [items]);
+
+  const legendPayload = useMemo(
+    () =>
+      (items ?? []).map((item, idx) => ({
+        value: item.product_type,
+        color: COLORS[idx % COLORS.length],
+        payload: item,
+      })),
+    [items]
+  );
+
   if (!items.length) {
     return (
       <div className="flex items-center justify-center h-48 text-xs text-slate-400">
@@ -102,8 +115,6 @@ export function PackageMixChart({ items }: PackageMixChartProps) {
       </div>
     );
   }
-
-  const totalUsd = items.reduce((s, i) => s + i.revenue_usd, 0);
 
   return (
     <div>
@@ -139,13 +150,7 @@ export function PackageMixChart({ items }: PackageMixChartProps) {
 
         {/* Legend */}
         <div className="flex-1 min-w-0">
-          <CustomLegend
-            payload={items.map((item, idx) => ({
-              value: item.product_type,
-              color: COLORS[idx % COLORS.length],
-              payload: item,
-            }))}
-          />
+          <CustomLegend payload={legendPayload} />
         </div>
       </div>
 
@@ -158,7 +163,7 @@ export function PackageMixChart({ items }: PackageMixChartProps) {
         </div>
         <div className="space-y-1">
           {items.slice(0, 6).map((item, idx) => (
-            <div key={idx} className="grid grid-cols-3 gap-x-2 text-xs px-1 py-0.5 rounded hover:bg-slate-50">
+            <div key={item.product_type} className="grid grid-cols-3 gap-x-2 text-xs px-1 py-0.5 rounded hover:bg-slate-50">
               <span className="flex items-center gap-1.5 truncate text-slate-600">
                 <span
                   className="inline-block w-2 h-2 rounded-full flex-shrink-0"

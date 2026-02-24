@@ -12,12 +12,11 @@ import {
   ResponsiveContainer,
   Tooltip,
 } from "recharts";
+import { swrFetcher } from "@/lib/api";
 
 interface StageSlideProps {
   revealStep: number;
 }
-
-const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
 interface StageData {
   current_stage: number; // 1, 2, or 3
@@ -43,7 +42,7 @@ const DEFAULT_DIMENSIONS = [
 ];
 
 export function StageSlide({ revealStep }: StageSlideProps) {
-  const { data, isLoading, error } = useSWR("/api/analysis/stage-evaluation", fetcher);
+  const { data, isLoading, error } = useSWR("/api/analysis/stage-evaluation", swrFetcher);
 
   if (isLoading) {
     return (
@@ -211,7 +210,7 @@ export function StageSlide({ revealStep }: StageSlideProps) {
           ) : (
             suggestions.slice(0, 5).map((suggestion, i) => (
               <div
-                key={i}
+                key={suggestion}
                 className="rounded-xl bg-indigo-50 border border-indigo-100 px-4 py-3 flex gap-3"
               >
                 <span className="w-5 h-5 rounded-full bg-indigo-200 text-indigo-700 text-xs flex items-center justify-center font-bold shrink-0 mt-0.5">

@@ -1,15 +1,14 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { clsx } from "clsx";
 import useSWR from "swr";
 import { formatRevenue } from "@/lib/utils";
+import { swrFetcher } from "@/lib/api";
 
 interface WhatIfSlideProps {
   revealStep: number;
 }
-
-const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
 interface SimParam {
   key: string;
@@ -21,6 +20,8 @@ interface SimParam {
   unit: string;
   baseRate: number;
   revenuePerUnit: number;
+  /** true when revenuePerUnit comes from hardcoded fallback, not real API data */
+  isEstimated?: boolean;
 }
 
 function SimSlider({
@@ -83,81 +84,114 @@ function SimSlider({
         <span className={clsx("text-lg font-bold", isOps ? "text-blue-700" : "text-orange-700")}>
           {formatRevenue(estimatedGain)}
         </span>
+        {param.isEstimated && (
+          <span className="ml-1 text-xs text-slate-400">(预估)</span>
+        )}
       </div>
     </div>
   );
 }
 
 export function WhatIfSlide({ revealStep }: WhatIfSlideProps) {
-  const { data } = useSWR("/api/analysis/impact-chain", fetcher);
-  const chains = Array.isArray(data?.data) ? data.data : [];
+  const { data } = useSWR<{ data?: Array<{ metric_key?: string; revenue_per_pct?: number }> }>("/api/analysis/impact-chain", swrFetcher);
+  const chains = useMemo(
+    () => (Array.isArray(data?.data) ? data.data : []),
+    [data]
+  );
 
-  // Pull per-unit revenue from impact chain data if available
-  const getRevenuePerUnit = (metricKey: string, fallback: number) => {
-    const chain = chains.find((c: { metric_key?: string }) => c.metric_key === metricKey);
-    return chain?.revenue_per_pct ?? fallback;
-  };
+  // Pull per-unit revenue from impact chain data if available.
+  // Returns { value, isEstimated: true } when falling back to hardcoded defaults.
+  const getRevenuePerUnit = useCallback(
+    (metricKey: string, fallback: number): { value: number; isEstimated: boolean } => {
+      const chain = chains.find((c: { metric_key?: string }) => c.metric_key === metricKey);
+      if (chain?.revenue_per_pct != null) {
+        return { value: chain.revenue_per_pct, isEstimated: false };
+      }
+      return { value: fallback, isEstimated: true };
+    },
+    [chains]
+  );
 
-  const opsParams: SimParam[] = [
-    {
-      key: "checkin_rate",
-      label: "提升打卡率",
-      side: "ops",
-      min: 0,
-      max: 20,
-      step: 1,
-      unit: "%",
-      baseRate: 0,
-      revenuePerUnit: getRevenuePerUnit("checkin_rate", 150),
+  const opsParams: SimParam[] = useMemo(
+    () => {
+      const checkin = getRevenuePerUnit("checkin_rate", 150);
+      const participation = getRevenuePerUnit("participation_rate", 200);
+      const contact = getRevenuePerUnit("contact_rate", 100);
+      return [
+        {
+          key: "checkin_rate",
+          label: "提升打卡率",
+          side: "ops",
+          min: 0,
+          max: 20,
+          step: 1,
+          unit: "%",
+          baseRate: 0,
+          revenuePerUnit: checkin.value,
+          isEstimated: checkin.isEstimated,
+        },
+        {
+          key: "participation_rate",
+          label: "提升参与率",
+          side: "ops",
+          min: 0,
+          max: 20,
+          step: 1,
+          unit: "%",
+          baseRate: 0,
+          revenuePerUnit: participation.value,
+          isEstimated: participation.isEstimated,
+        },
+        {
+          key: "contact_rate",
+          label: "提升触达率",
+          side: "ops",
+          min: 0,
+          max: 20,
+          step: 1,
+          unit: "%",
+          baseRate: 0,
+          revenuePerUnit: contact.value,
+          isEstimated: contact.isEstimated,
+        },
+      ];
     },
-    {
-      key: "participation_rate",
-      label: "提升参与率",
-      side: "ops",
-      min: 0,
-      max: 20,
-      step: 1,
-      unit: "%",
-      baseRate: 0,
-      revenuePerUnit: getRevenuePerUnit("participation_rate", 200),
-    },
-    {
-      key: "contact_rate",
-      label: "提升触达率",
-      side: "ops",
-      min: 0,
-      max: 20,
-      step: 1,
-      unit: "%",
-      baseRate: 0,
-      revenuePerUnit: getRevenuePerUnit("contact_rate", 100),
-    },
-  ];
+    [getRevenuePerUnit]
+  );
 
-  const bizParams: SimParam[] = [
-    {
-      key: "conversion_rate",
-      label: "提升付费转化率",
-      side: "biz",
-      min: 0,
-      max: 20,
-      step: 1,
-      unit: "%",
-      baseRate: 0,
-      revenuePerUnit: getRevenuePerUnit("conversion_rate", 300),
+  const bizParams: SimParam[] = useMemo(
+    () => {
+      const conversion = getRevenuePerUnit("conversion_rate", 300);
+      const booking = getRevenuePerUnit("booking_rate", 180);
+      return [
+        {
+          key: "conversion_rate",
+          label: "提升付费转化率",
+          side: "biz",
+          min: 0,
+          max: 20,
+          step: 1,
+          unit: "%",
+          baseRate: 0,
+          revenuePerUnit: conversion.value,
+          isEstimated: conversion.isEstimated,
+        },
+        {
+          key: "booking_rate",
+          label: "提升约课率",
+          side: "biz",
+          min: 0,
+          max: 20,
+          step: 1,
+          unit: "%",
+          baseRate: 0,
+          revenuePerUnit: booking.value,
+          isEstimated: booking.isEstimated,
+        },
+      ];
     },
-    {
-      key: "booking_rate",
-      label: "提升约课率",
-      side: "biz",
-      min: 0,
-      max: 20,
-      step: 1,
-      unit: "%",
-      baseRate: 0,
-      revenuePerUnit: getRevenuePerUnit("booking_rate", 180),
-    },
-  ];
+    [getRevenuePerUnit]
+  );
 
   const [opsValues, setOpsValues] = useState<number[]>(opsParams.map(() => 5));
   const [bizValues, setBizValues] = useState<number[]>(bizParams.map(() => 5));
@@ -194,9 +228,15 @@ export function WhatIfSlide({ revealStep }: WhatIfSlideProps) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [opsValues, bizValues]);
 
-  const opsTotalGain = opsParams.reduce((sum, p, i) => sum + (opsValues[i] / 100) * p.revenuePerUnit, 0);
-  const bizTotalGain = bizParams.reduce((sum, p, i) => sum + (bizValues[i] / 100) * p.revenuePerUnit, 0);
-  const localCombinedGain = opsTotalGain + bizTotalGain;
+  const opsTotalGain = useMemo(
+    () => opsParams.reduce((sum, p, i) => sum + (opsValues[i] / 100) * p.revenuePerUnit, 0),
+    [opsParams, opsValues]
+  );
+  const bizTotalGain = useMemo(
+    () => bizParams.reduce((sum, p, i) => sum + (bizValues[i] / 100) * p.revenuePerUnit, 0),
+    [bizParams, bizValues]
+  );
+  const localCombinedGain = useMemo(() => opsTotalGain + bizTotalGain, [opsTotalGain, bizTotalGain]);
   const combinedGain = projectedRevenue ?? localCombinedGain;
 
   return (

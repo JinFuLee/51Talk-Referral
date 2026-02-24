@@ -1,5 +1,8 @@
+from __future__ import annotations
+
 from fastapi import APIRouter, Request
 from pathlib import Path
+from typing import Any
 import json
 
 router = APIRouter(prefix="/api/system", tags=["system"])
@@ -17,7 +20,7 @@ async def receive_error_log(request: Request):
     return {"received": len(entries)}
 
 @router.get("/error-log")
-async def get_error_log(limit: int = 50):
+def get_error_log(limit: int = 50) -> dict[str, Any]:
     if not LOG_FILE.exists():
         return {"entries": [], "total": 0}
     lines = LOG_FILE.read_text(encoding="utf-8").strip().split("\n")
@@ -25,7 +28,7 @@ async def get_error_log(limit: int = 50):
     return {"entries": entries, "total": len(lines)}
 
 @router.delete("/error-log")
-async def clear_error_log():
+def clear_error_log() -> dict[str, Any]:
     if LOG_FILE.exists():
         LOG_FILE.unlink()
     return {"cleared": True}

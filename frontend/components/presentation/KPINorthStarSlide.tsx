@@ -10,8 +10,7 @@ import {
   ResponsiveContainer,
   PolarAngleAxis,
 } from "recharts";
-
-const fetcher = (url: string) => fetch(url).then((r) => r.json());
+import { swrFetcher } from "@/lib/api";
 
 interface NorthStarCC {
   cc_name: string;
@@ -116,9 +115,9 @@ function CircularProgress({
 export function KPINorthStarSlide({ revealStep }: KPINorthStarSlideProps) {
   const { data: northStar, error: nsError } = useSWR<NorthStarData>(
     "/api/analysis/north-star",
-    fetcher
+    swrFetcher
   );
-  const { data: checkinAB } = useSWR<CheckinABData>("/api/analysis/checkin-ab", fetcher);
+  const { data: checkinAB } = useSWR<CheckinABData>("/api/analysis/checkin-ab", swrFetcher);
 
   const summary = northStar?.summary ?? {};
   const avgRate = summary.avg_checkin_24h_rate ?? 0;

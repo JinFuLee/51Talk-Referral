@@ -55,8 +55,8 @@ function CustomTooltip({ active, payload }: CustomTooltipProps) {
       {item.chain && (
         <div className="mt-2 border-t border-slate-100 pt-2 space-y-1">
           <p className="text-slate-500">当前 {(item.chain.actual * 100).toFixed(1)}% · 目标 {(item.chain.target * 100).toFixed(1)}% · 缺口 {(item.chain.gap * 100).toFixed(1)}%</p>
-          {item.chain.impact_steps.map((step, i) => (
-            <p key={i} className="text-slate-500">
+          {item.chain.impact_steps.map((step) => (
+            <p key={step.label} className="text-slate-500">
               {step.label}: <span className="text-slate-700">{step.value > 1 ? step.value.toFixed(0) : (step.value * 100).toFixed(1) + "%"}</span>
             </p>
           ))}
@@ -111,18 +111,14 @@ export function ImpactWaterfallChart({ data }: ImpactWaterfallChartProps) {
               }}
             >
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
-              <XAxis
-                dataKey="label"
+              <XAxis dataKey="label"
                 tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
                 axisLine={false}
-                tickLine={false}
-              />
-              <YAxis
-                tickFormatter={formatUSDShort}
+                tickLine={false} />
+              <YAxis tickFormatter={formatUSDShort}
                 tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
                 axisLine={false}
-                tickLine={false}
-              />
+                tickLine={false} />
               <Tooltip content={<CustomTooltip />} />
               <Bar dataKey="lost_usd" radius={[4, 4, 0, 0]} cursor="pointer">
                 <LabelList
@@ -189,8 +185,8 @@ export function ImpactWaterfallChart({ data }: ImpactWaterfallChartProps) {
           {selectedChain.impact_steps.length > 0 && (
             <div className="space-y-1">
               <p className="text-xs text-slate-400 font-medium">影响路径</p>
-              {selectedChain.impact_steps.map((step, i) => (
-                <div key={i} className="flex items-center justify-between text-xs py-1 border-b border-slate-100 last:border-0">
+              {selectedChain.impact_steps.map((step) => (
+                <div key={step.label} className="flex items-center justify-between text-xs py-1 border-b border-slate-100 last:border-0">
                   <span className="text-slate-600">{step.label}</span>
                   <span className="font-medium text-slate-700">
                     {step.value > 1 ? step.value.toLocaleString("en-US", { maximumFractionDigits: 0 }) : `${(step.value * 100).toFixed(1)}%`}

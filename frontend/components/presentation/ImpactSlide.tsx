@@ -15,8 +15,7 @@ import {
   ReferenceLine,
 } from "recharts";
 import { formatRevenue } from "@/lib/utils";
-
-const fetcher = (url: string) => fetch(url).then((r) => r.json());
+import { swrFetcher } from "@/lib/api";
 
 interface ImpactItem {
   metric: string;
@@ -76,13 +75,10 @@ function WaterfallChart({
       <div className="text-sm font-semibold text-slate-600 mb-3">效率 Gap → 收入损失（瀑布图）</div>
       <ResponsiveContainer width="100%" height={200}>
         <BarChart data={sorted} barCategoryGap="20%">
-          <XAxis
-            dataKey="metric_label"
+          <XAxis tickLine={false} axisLine={false} dataKey="metric_label"
             tick={{ fontSize: 10 }}
-            interval={0}
-          />
-          <YAxis
-            tick={{ fontSize: 10 }}
+            interval={0} />
+          <YAxis tickLine={false} axisLine={false} tick={{ fontSize: 10 }}
             tickFormatter={(v: number) => `$${(v / 1000).toFixed(0)}k`}
           />
           <Tooltip
@@ -105,7 +101,7 @@ function WaterfallChart({
 }
 
 export function ImpactSlide({ revealStep }: ImpactSlideProps) {
-  const { data, error } = useSWR<ImpactChainData>("/api/analysis/impact-chain", fetcher);
+  const { data, error } = useSWR<ImpactChainData>("/api/analysis/impact-chain", swrFetcher);
 
   // Use real data if available, else fallback
   const chainData: ImpactChainData = !error && data?.items?.length

@@ -12,8 +12,7 @@ import {
   ResponsiveContainer,
   Legend,
 } from "recharts";
-
-const fetcher = (url: string) => fetch(url).then((r) => r.json());
+import { swrFetcher } from "@/lib/api";
 
 interface ChannelMetric {
   month: string;
@@ -69,7 +68,7 @@ function MomBadge({ pct }: { pct: number | null }) {
 }
 
 export function ChannelSlide({ revealStep }: ChannelSlideProps) {
-  const { data, error } = useSWR<ChannelMomResponse>("/api/analysis/channel-mom", fetcher);
+  const { data, error } = useSWR<ChannelMomResponse>("/api/analysis/channel-mom", swrFetcher);
 
   const byChannel = data?.by_channel ?? [];
   const months = data?.months ?? [];
@@ -147,7 +146,7 @@ export function ChannelSlide({ revealStep }: ChannelSlideProps) {
                 <Tooltip
                   formatter={(value: number) => [value.toLocaleString(), "注册数"]}
                 />
-                <Legend />
+                <Legend iconType="circle"  />
               </PieChart>
             </ResponsiveContainer>
           ) : (

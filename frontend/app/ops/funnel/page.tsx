@@ -1,17 +1,33 @@
 "use client";
 
+import { useState } from "react";
 import { useFunnel, useChannelComparison, useTranslation } from "@/lib/hooks";
+import { clsx } from "clsx";
 import { GlossaryBanner } from "@/components/ui/GlossaryBanner";
 import { FunnelChart } from "@/components/charts/FunnelChart";
 import { ChannelBarChart } from "@/components/charts/ChannelBarChart";
 import { ChannelComparisonTable } from "@/components/ops/ChannelComparisonTable";
 import { StudentJourneyFlow } from "@/components/ops/StudentJourneyFlow";
+import { TeamFunnelComparison } from "@/components/ops/TeamFunnelComparison";
 import { Card } from "@/components/ui/Card";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { ErrorBoundary } from "@/components/providers/ErrorBoundary";
 import type { FunnelData, ChannelComparisonData, ChannelStat } from "@/lib/types";
+import { PageHeader } from "@/components/layout/PageHeader";
+import { OPS_PAGE } from "@/lib/layout";
 
-export default function OpsFunnelPage() {
+// ── Tab definitions ───────────────────────────────────────────────────────────
+
+const TABS = [
+  { key: "overview", label: "转化漏斗" },
+  { key: "team", label: "团队漏斗" },
+] as const;
+
+type TabKey = (typeof TABS)[number]["key"];
+
+// ── Sub-tabs ──────────────────────────────────────────────────────────────────
+
+function OverviewTab() {
   const { t } = useTranslation();
   const { data: funnelRaw, isLoading: loadingFunnel } = useFunnel();
   const { data: channelRaw, isLoading: loadingChannel } = useChannelComparison();
@@ -20,14 +36,14 @@ export default function OpsFunnelPage() {
   const channelData = channelRaw as ChannelComparisonData | undefined;
   const channels: ChannelStat[] = channelData?.channels ?? [];
 
-  const narrow = funnel?.narrow ?? funnel?.total;
+  const narrow = funnel?.cc_narrow ?? funnel?.total;
   const funnelStages = narrow
     ? [
         { name: "有效学员", value: narrow.valid_students ?? 0 },
-        { name: "触达学员", value: Math.round((narrow.valid_students ?? 0) * narrow.contact_rate) },
-        { name: "参与学员", value: Math.round((narrow.valid_students ?? 0) * narrow.participation_rate) },
-        { name: "注册人数", value: narrow.registrations ?? 0 },
-        { name: "付费人数", value: narrow.payments ?? 0 },
+        { name: "触达学员", value: Math.round((narrow.valid_students ?? 0) * (narrow.rates?.contact_rate ?? 0)) },
+        { name: "参与学员", value: Math.round((narrow.valid_students ?? 0) * (narrow.rates?.participation_rate ?? 0)) },
+        { name: "注册人数", value: narrow.register ?? narrow.registrations ?? 0 },
+        { name: "付费人数", value: narrow.paid ?? narrow.payments ?? 0 },
       ]
     : [];
 
@@ -42,8 +58,7 @@ export default function OpsFunnelPage() {
 
   if (loadingFunnel || loadingChannel) {
     return (
-      <div className="max-w-none space-y-4">
-        <Skeleton className="h-8 w-48" />
+      <div className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Skeleton className="h-64" />
           <Skeleton className="h-64" />
@@ -55,14 +70,7 @@ export default function OpsFunnelPage() {
   }
 
   return (
-    <div className="max-w-none space-y-4">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-xl font-bold text-slate-800">{t("ops.funnel.title")}</h1>
-          <p className="text-xs text-slate-400 mt-0.5">{t("ops.funnel.subtitle")}</p>
-        </div>
-      </div>
-
+    <div className="space-y-4">
       <GlossaryBanner terms={[
         { term: "窄口", definition: "员工链接绑定(高质量)" },
         { term: "宽口", definition: "学员链接绑定(低质量)" },
@@ -91,6 +99,51 @@ export default function OpsFunnelPage() {
           </div>
         </Card>
       </ErrorBoundary>
+    </div>
+  );
+}
+
+function TeamTab() {
+  return (
+    <div className="space-y-4">
+      <ErrorBoundary>
+        <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
+          <TeamFunnelComparison />
+        </div>
+      </ErrorBoundary>
+    </div>
+  );
+}
+
+// ── Main Page ─────────────────────────────────────────────────────────────────
+
+export default function OpsFunnelPage() {
+  const { t } = useTranslation();
+  const [activeTab, setActiveTab] = useState<TabKey>("overview");
+
+  return (
+    <div className={OPS_PAGE}>
+      <PageHeader title={t("ops.funnel.title")} subtitle={t("ops.funnel.subtitle")} />
+
+      <div className="flex gap-1 border-b border-slate-200">
+        {TABS.map((tab) => (
+          <button
+            key={tab.key}
+            onClick={() => setActiveTab(tab.key)}
+            className={clsx(
+              "px-3 py-1.5 text-sm font-medium border-b-2 transition-colors",
+              activeTab === tab.key
+                ? "border-primary text-primary"
+                : "border-transparent text-slate-500 hover:text-slate-700"
+            )}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      {activeTab === "overview" && <OverviewTab />}
+      {activeTab === "team" && <TeamTab />}
     </div>
   );
 }

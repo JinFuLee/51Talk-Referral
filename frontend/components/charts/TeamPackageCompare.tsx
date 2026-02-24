@@ -53,8 +53,8 @@ function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
   return (
     <div className="bg-white/95 backdrop-blur-md border border-border/40 rounded-xl shadow-flash p-3 text-xs max-w-xs">
       <p className="font-semibold text-slate-700 mb-1">{label}</p>
-      {payload.map((entry, idx) => (
-        <p key={idx} style={{ color: entry.color }} className="text-xs">
+      {payload.map((entry) => (
+        <p key={String(entry.name ?? entry.value)} style={{ color: entry.color }} className="text-xs">
           {entry.name}: {(entry.value * 100).toFixed(1)}%
         </p>
       ))}
@@ -112,7 +112,7 @@ export function TeamPackageCompare({ teams }: TeamPackageCompareProps) {
             tick={{ fontSize: CHART_FONT_SIZE.sm, fill: "hsl(var(--muted-foreground))" }}
           />
           <Tooltip content={<CustomTooltip />} />
-          <Legend wrapperStyle={{ fontSize: CHART_FONT_SIZE.md }} />
+          <Legend iconType="circle" wrapperStyle={{ fontSize: CHART_FONT_SIZE.md }} />
           {displayTeams.map((team, idx) => (
             <Radar
               key={team.team}

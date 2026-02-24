@@ -23,7 +23,7 @@ def set_service(service: Any) -> None:
     _service = service
 
 
-def _get_snapshot_store():
+def _get_snapshot_store() -> Any:
     """懒加载 snapshot_store 模块"""
     try:
         from core.snapshot_store import SnapshotStore

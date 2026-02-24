@@ -1,11 +1,16 @@
 "use client";
 
 import { useState } from "react";
+import dynamic from "next/dynamic";
 import { reportsAPI } from "@/lib/api";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/Spinner";
-import { MarkdownRenderer } from "@/components/reports/MarkdownRenderer";
+
+const MarkdownRenderer = dynamic(
+  () => import("@/components/reports/MarkdownRenderer").then((m) => ({ default: m.MarkdownRenderer })),
+  { ssr: false }
+);
 
 interface ReportResult {
   markdown: string;
@@ -55,7 +60,7 @@ export function ReportGenerator() {
       {!report && !loading && !error && (
         <div className="flex flex-col items-center justify-center py-8 text-slate-400 text-sm gap-2">
           <span className="text-3xl opacity-30">📋</span>
-          <p>点击"一键生成报告"，AI 将分析当前数据并生成完整运营报告</p>
+          <p>点击&quot;一键生成报告&quot;，AI 将分析当前数据并生成完整运营报告</p>
         </div>
       )}
 

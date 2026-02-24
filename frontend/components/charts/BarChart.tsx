@@ -33,8 +33,8 @@ export function BarChart({ data, xKey, yKey, title, color = "hsl(var(--chart-2))
       <ResponsiveContainer width="100%" height={CHART_HEIGHT.sm} aria-label={title ?? "柱状图"}>
         <RechartsBarChart data={data} margin={{ top: 8, right: 16, left: 0, bottom: 4 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-          <XAxis dataKey={xKey} tick={{ fontSize: CHART_FONT_SIZE.md }} />
-          <YAxis tick={{ fontSize: CHART_FONT_SIZE.md }} />
+          <XAxis tickLine={false} axisLine={false} dataKey={xKey} tick={{ fontSize: CHART_FONT_SIZE.md }} />
+          <YAxis tickLine={false} axisLine={false} tick={{ fontSize: CHART_FONT_SIZE.md }} />
           <Tooltip />
           {refLineValue !== undefined && (
             <ReferenceLine

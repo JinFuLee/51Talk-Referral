@@ -45,19 +45,14 @@ export default function OutreachGapBarChart({ by_cc, target_rate }: OutreachGapB
           <div style={{ minWidth: Math.max(400, by_cc.length * 72) }}>
             <ResponsiveContainer width="100%" height={260}>
               <BarChart data={chartData} margin={{ top: 24, right: 16, left: 0, bottom: 4 }}>
-                <CartesianGrid
-                  strokeDasharray="3 3"
+                <CartesianGrid strokeDasharray="3 3"
                   stroke="hsl(var(--border))"
-                  vertical={false}
-                />
-                <XAxis
-                  dataKey="cc_name"
+                  vertical={false} />
+                <XAxis dataKey="cc_name"
                   tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
                   axisLine={false}
-                  tickLine={false}
-                />
-                <YAxis
-                  domain={[0, 100]}
+                  tickLine={false} />
+                <YAxis domain={[0, 100]}
                   tickFormatter={(v: number) => `${v}%`}
                   tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
                   axisLine={false}

@@ -10,6 +10,8 @@ import { ErrorBoundary } from "@/components/providers/ErrorBoundary";
 import { TypewriterText } from "@/components/ui/TypewriterText";
 import { formatRevenue } from "@/lib/utils";
 import type { PyramidPillar } from "@/lib/types";
+import { PageHeader } from "@/components/layout/PageHeader";
+import { BIZ_PAGE } from "@/lib/layout";
 
 function PillarCard({ pillar }: { pillar: PyramidPillar }) {
   const gapPct = pillar.target > 0
@@ -52,9 +54,9 @@ function PillarCard({ pillar }: { pillar: PyramidPillar }) {
       {/* data points */}
       {pillar.data_points.length > 0 && (
         <div className="flex flex-wrap gap-1">
-          {pillar.data_points.map((dp, i) => (
+          {pillar.data_points.map((dp) => (
             <span
-              key={i}
+              key={dp.label}
               className="text-xs bg-slate-50 border border-slate-200 rounded px-2 py-0.5 text-slate-600"
             >
               {dp.label}: <span className="font-medium">{dp.value}</span>
@@ -74,8 +76,8 @@ function PillarCard({ pillar }: { pillar: PyramidPillar }) {
       {/* actions */}
       {pillar.actions.length > 0 && (
         <ul className="space-y-1">
-          {pillar.actions.map((a, i) => (
-            <li key={i} className="text-xs text-slate-600 flex gap-1.5">
+          {pillar.actions.map((a) => (
+            <li key={a} className="text-xs text-slate-600 flex gap-1.5">
               <span className="text-indigo-400 shrink-0">→</span>
               {a}
             </li>
@@ -120,12 +122,8 @@ export default function InsightsPage() {
   }
 
   return (
-    <div className="max-w-5xl mx-auto space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-slate-800">{t("biz.insights.title")}</h1>
-        <p className="text-sm text-slate-400 mt-1">{t("biz.insights.subtitle")}</p>
-      </div>
+    <div className={BIZ_PAGE}>
+      <PageHeader title={t("biz.insights.title")} subtitle={t("biz.insights.subtitle")} />
 
       <ErrorBoundary>
 
@@ -153,8 +151,8 @@ export default function InsightsPage() {
         <div className="bg-white rounded-xl border border-slate-200 p-6">
           <h2 className="text-lg font-semibold mb-4">{t("biz.insights.label.pillars")}</h2>
           <div className="grid gap-4 md:grid-cols-3">
-            {pyramid.pillars.map((p, i) => (
-              <PillarCard key={i} pillar={p} />
+            {pyramid.pillars.map((p) => (
+              <PillarCard key={p.title} pillar={p} />
             ))}
           </div>
         </div>

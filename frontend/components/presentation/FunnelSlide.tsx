@@ -3,12 +3,11 @@
 import React from "react";
 import { clsx } from "clsx";
 import useSWR from "swr";
+import { swrFetcher } from "@/lib/api";
 
 interface FunnelSlideProps {
   revealStep: number;
 }
-
-const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
 interface FunnelStage {
   name: string;
@@ -30,14 +29,14 @@ function getWidthPct(index: number, total: number) {
 }
 
 export function FunnelSlide({ revealStep }: FunnelSlideProps) {
-  const { data, isLoading, error } = useSWR("/api/analysis/funnel", fetcher);
+  const { data, isLoading, error } = useSWR("/api/analysis/funnel", swrFetcher);
 
   const raw = data?.data ?? data ?? {};
 
   // Build funnel stages from API data
   const activeStudents = raw.active_students ?? raw.有效学员 ?? 0;
-  const reached = raw.reached ?? raw.触达 ?? 0;
-  const participated = raw.participated ?? raw.参与 ?? 0;
+  const reached = raw.reached ?? raw.触达 ?? Math.round(activeStudents * (raw.contact_rate ?? raw.rates?.contact_rate ?? 0));
+  const participated = raw.participated ?? raw.参与 ?? Math.round(activeStudents * (raw.participation_rate ?? raw.rates?.participation_rate ?? 0));
   const registered = raw.registered ?? raw.注册 ?? 0;
   const booked = raw.booked ?? raw.约课 ?? 0;
   const attended = raw.attended ?? raw.出席 ?? 0;

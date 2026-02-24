@@ -1,6 +1,7 @@
 "use client";
 
 import useSWR from "swr";
+import { swrFetcher } from "@/lib/api";
 import { Spinner } from "@/components/ui/Spinner";
 
 interface MatrixCell {
@@ -25,45 +26,15 @@ function getHeatColor(rate: number): string {
   return "bg-slate-50 text-slate-600";
 }
 
-const MOCK_MATRIX: MatrixCell[] = [
-  { enclosure: "0-30", channel: "CC窄", registrations: 120, payments: 28, conversion_rate: 0.233 },
-  { enclosure: "0-30", channel: "SS窄", registrations: 85, payments: 18, conversion_rate: 0.212 },
-  { enclosure: "0-30", channel: "LP窄", registrations: 60, payments: 11, conversion_rate: 0.183 },
-  { enclosure: "0-30", channel: "宽口", registrations: 200, payments: 22, conversion_rate: 0.110 },
-  { enclosure: "31-60", channel: "CC窄", registrations: 95, payments: 18, conversion_rate: 0.189 },
-  { enclosure: "31-60", channel: "SS窄", registrations: 70, payments: 12, conversion_rate: 0.171 },
-  { enclosure: "31-60", channel: "LP窄", registrations: 50, payments: 8, conversion_rate: 0.160 },
-  { enclosure: "31-60", channel: "宽口", registrations: 160, payments: 14, conversion_rate: 0.088 },
-  { enclosure: "61-90", channel: "CC窄", registrations: 70, payments: 10, conversion_rate: 0.143 },
-  { enclosure: "61-90", channel: "SS窄", registrations: 55, payments: 8, conversion_rate: 0.145 },
-  { enclosure: "61-90", channel: "LP窄", registrations: 40, payments: 5, conversion_rate: 0.125 },
-  { enclosure: "61-90", channel: "宽口", registrations: 120, payments: 9, conversion_rate: 0.075 },
-  { enclosure: "91-180", channel: "CC窄", registrations: 50, payments: 5, conversion_rate: 0.100 },
-  { enclosure: "91-180", channel: "SS窄", registrations: 38, payments: 4, conversion_rate: 0.105 },
-  { enclosure: "91-180", channel: "LP窄", registrations: 28, payments: 3, conversion_rate: 0.107 },
-  { enclosure: "91-180", channel: "宽口", registrations: 90, payments: 5, conversion_rate: 0.056 },
-  { enclosure: "181+", channel: "CC窄", registrations: 30, payments: 2, conversion_rate: 0.067 },
-  { enclosure: "181+", channel: "SS窄", registrations: 22, payments: 1, conversion_rate: 0.045 },
-  { enclosure: "181+", channel: "LP窄", registrations: 15, payments: 1, conversion_rate: 0.067 },
-  { enclosure: "181+", channel: "宽口", registrations: 55, payments: 2, conversion_rate: 0.036 },
-];
+
 
 export function EnclosureChannelMatrix() {
   const { data, isLoading, error } = useSWR<MatrixResponse>(
-    "enclosure-channel-matrix",
-    () => fetch("/api/analysis/enclosure-channel-matrix").then((r) => r.json())
+    "/api/analysis/enclosure-channel-matrix",
+    swrFetcher
   );
 
-  const enclosures = data?.enclosures ?? ["0-30", "31-60", "61-90", "91-180", "181+"];
-  const channels = data?.channels ?? ["CC窄", "SS窄", "LP窄", "宽口"];
-  const isMock = !data?.matrix || data.matrix.length === 0;
-  const cells: MatrixCell[] = isMock ? MOCK_MATRIX : data!.matrix;
-
-  // Build lookup: enclosure+channel -> cell
-  const lookup: Record<string, MatrixCell> = {};
-  for (const cell of cells) {
-    lookup[`${cell.enclosure}__${cell.channel}`] = cell;
-  }
+  const hasData = data?.matrix && data.matrix.length > 0;
 
   if (isLoading) {
     return (
@@ -75,19 +46,33 @@ export function EnclosureChannelMatrix() {
 
   if (error) {
     return (
-      <div className="flex items-center justify-center h-48 text-slate-400 text-sm">
-        数据加载失败，显示示例数据
+      <div className="flex items-center justify-center h-48 text-red-400 text-sm">
+        数据加载失败
       </div>
     );
   }
 
+  if (!hasData || !data) {
+    return (
+      <div className="flex flex-col items-center justify-center py-10 px-4 text-center bg-slate-50 border border-dashed border-slate-200 rounded-xl">
+        <p className="text-sm font-medium text-slate-600 mb-1">围场渠道矩阵数据暂未就绪</p>
+        <p className="text-xs text-slate-400">请先运行分析以生成 enclosure-channel-matrix 数据</p>
+      </div>
+    );
+  }
+
+  const enclosures = data.enclosures ?? ["0-30", "31-60", "61-90", "91-180", "181+"];
+  const channels = data.channels ?? ["CC窄", "SS窄", "LP窄", "宽口"];
+  const cells = data.matrix;
+
+  // Build lookup: enclosure+channel -> cell
+  const lookup: Record<string, MatrixCell> = {};
+  for (const cell of cells) {
+    lookup[`${cell.enclosure}__${cell.channel}`] = cell;
+  }
+
   return (
     <div className="overflow-x-auto">
-      {isMock && (
-        <div className="bg-amber-50 border border-amber-200 text-amber-700 px-3 py-1.5 rounded text-xs mb-2">
-          ⚠ 当前显示模拟数据（API 数据不可用）
-        </div>
-      )}
       <table className="w-full text-sm border-separate border-spacing-1">
         <thead>
           <tr>

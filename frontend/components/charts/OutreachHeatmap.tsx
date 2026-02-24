@@ -120,9 +120,9 @@ export function OutreachHeatmap({ data, maxCalls }: OutreachHeatmapProps) {
       {/* Legend */}
       <div className="flex items-center gap-1 mt-2">
         <span className="text-[10px] text-slate-400 mr-1">少</span>
-        {[0, 0.2, 0.4, 0.6, 0.8, 1].map((v, i) => (
+        {[0, 0.2, 0.4, 0.6, 0.8, 1].map((v) => (
           <div
-            key={i}
+            key={v}
             className="h-3 w-3 rounded-sm"
             style={{ backgroundColor: v === 0 ? "hsl(var(--border))" : getColor(v * resolvedMax, resolvedMax) }}
           />

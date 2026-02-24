@@ -15,8 +15,7 @@ import {
   Cell,
 } from "recharts";
 import { formatRevenue } from "@/lib/utils";
-
-const fetcher = (url: string) => fetch(url).then((r) => r.json());
+import { swrFetcher } from "@/lib/api";
 
 interface CCGapEntry {
   cc_name: string;
@@ -138,7 +137,7 @@ function LossChain({
 }
 
 export function OutreachGapSlide({ revealStep }: OutreachGapSlideProps) {
-  const { data, error } = useSWR<OutreachGapData>("/api/analysis/outreach-gap", fetcher);
+  const { data, error } = useSWR<OutreachGapData>("/api/analysis/outreach-gap", swrFetcher);
 
   const summary = data?.summary ?? {
     total_target: 0,
@@ -222,8 +221,8 @@ export function OutreachGapSlide({ revealStep }: OutreachGapSlideProps) {
         {chartData.length > 0 ? (
           <ResponsiveContainer width="100%" height={160}>
             <BarChart data={chartData} layout="vertical" barCategoryGap="25%">
-              <XAxis type="number" tick={{ fontSize: 10 }} />
-              <YAxis type="category" dataKey="name" tick={{ fontSize: 10 }} width={70} />
+              <XAxis tickLine={false} axisLine={false} type="number" tick={{ fontSize: 10 }} />
+              <YAxis tickLine={false} axisLine={false} type="category" dataKey="name" tick={{ fontSize: 10 }} width={70} />
               <Tooltip
                 formatter={(v: number) => [v.toLocaleString(), "缺口"]}
                 labelFormatter={(label) => {

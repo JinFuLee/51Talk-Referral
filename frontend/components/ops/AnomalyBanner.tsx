@@ -40,8 +40,8 @@ export function AnomalyBanner({ anomalies }: AnomalyBannerProps) {
           {highCount > 0 && <span className="ml-2 text-destructive">({highCount} 严重)</span>}
         </p>
         <ul className="flex flex-wrap gap-x-4 gap-y-1">
-          {anomalies.slice(0, 4).map((a, i) => (
-            <li key={i} className="text-xs opacity-90">
+          {anomalies.slice(0, 4).map((a) => (
+            <li key={a.metric} className="text-xs opacity-90">
               <span className="font-medium">{metricLabel[a.metric] ?? a.metric}</span>
               {a.description && <span className="ml-1 opacity-75">— {a.description}</span>}
             </li>

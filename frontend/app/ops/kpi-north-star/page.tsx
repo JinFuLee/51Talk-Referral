@@ -2,6 +2,7 @@
 
 import useSWR from "swr";
 import { useTranslation } from "@/lib/hooks";
+import { formatRate } from "@/lib/utils";
 import { Card } from "@/components/ui/Card";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { StatMiniCard } from "@/components/ui/StatMiniCard";
@@ -9,8 +10,10 @@ import { CCCheckinRanking } from "@/components/ops/CCCheckinRanking";
 import { CheckinCoefScatter } from "@/components/biz/CheckinCoefScatter";
 import { CheckinMultiplierCard } from "@/components/biz/CheckinMultiplierCard";
 import { ErrorBoundary } from "@/components/providers/ErrorBoundary";
-
-const fetcher = (url: string) => fetch(url).then((r) => r.json());
+import { swrFetcher } from "@/lib/api";
+import { useConfigStore } from "@/lib/stores/config-store";
+import { PageHeader } from "@/components/layout/PageHeader";
+import { OPS_PAGE } from "@/lib/layout";
 
 interface NorthStarCC {
   cc_name: string;
@@ -65,13 +68,18 @@ interface CheckinABData {
 
 export default function KPINorthStarPage() {
   const { t } = useTranslation();
+  const focusCC = useConfigStore((s) => s.focusCC);
+  const nsParams = new URLSearchParams();
+  if (focusCC) nsParams.set("cc_name", focusCC);
+  const nsKey = `/api/analysis/north-star${nsParams.toString() ? "?" + nsParams.toString() : ""}`;
+
   const { data: northStar, isLoading: loadingNS } = useSWR<NorthStarData>(
-    `/api/analysis/north-star`,
-    fetcher
+    [nsKey, focusCC],
+    () => swrFetcher(nsKey)
   );
   const { data: checkinAB, isLoading: loadingAB } = useSWR<CheckinABData>(
     `/api/analysis/checkin-ab`,
-    fetcher
+    swrFetcher
   );
 
   const isLoading = loadingNS || loadingAB;
@@ -108,11 +116,8 @@ export default function KPINorthStarPage() {
   const achievedPct = totalCC > 0 ? Math.round((achievedCount / totalCC) * 100) : 0;
 
   return (
-    <div className="max-w-none space-y-4">
-      <div>
-        <h1 className="text-xl font-bold text-slate-800">{t("ops.kpi-north-star.title")}</h1>
-        <p className="text-xs text-slate-400 mt-0.5">{t("ops.kpi-north-star.subtitle")}</p>
-      </div>
+    <div className={OPS_PAGE}>
+      <PageHeader title={t("ops.kpi-north-star.title")} subtitle={t("ops.kpi-north-star.subtitle")} />
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <StatMiniCard
@@ -123,7 +128,7 @@ export default function KPINorthStarPage() {
         />
         <StatMiniCard
           label={t("ops.kpi-north-star.card.teamAvg")}
-          value={`${(avgRate * 100).toFixed(1)}%`}
+          value={formatRate(avgRate)}
           sub="24H 打卡率"
           accent="blue"
         />

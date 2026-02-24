@@ -4,12 +4,11 @@ import React from "react";
 import { clsx } from "clsx";
 import useSWR from "swr";
 import { AlertTriangle, AlertCircle } from "lucide-react";
+import { swrFetcher } from "@/lib/api";
 
 interface RiskRadarSlideProps {
   revealStep: number;
 }
-
-const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
 interface AnomalyItem {
   metric: string;
@@ -81,11 +80,11 @@ function RiskItem({
 export function RiskRadarSlide({ revealStep }: RiskRadarSlideProps) {
   const { data: anomalyData, isLoading: anomalyLoading } = useSWR(
     "/api/analysis/anomalies",
-    fetcher
+    swrFetcher
   );
   const { data: summaryData, isLoading: summaryLoading } = useSWR(
     "/api/analysis/summary",
-    fetcher
+    swrFetcher
   );
 
   const isLoading = anomalyLoading || summaryLoading;

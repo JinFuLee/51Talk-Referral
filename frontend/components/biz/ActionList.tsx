@@ -35,7 +35,7 @@ export function ActionList({ items, className }: ActionListProps) {
         const p = item.priority ?? "low";
         return (
           <li
-            key={i}
+            key={item.text ?? i}
             className={cn(
               "flex items-start gap-3 rounded-xl border px-4 py-3 text-sm",
               priorityStyle[p]

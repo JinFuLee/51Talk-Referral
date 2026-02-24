@@ -1,9 +1,13 @@
 """统一数据加载基础类"""
 from pathlib import Path
-from typing import Optional, TYPE_CHECKING
+from typing import Any, Optional, TYPE_CHECKING
 import hashlib
 import logging
 import math
+import numpy as np
+import pandas as pd
+
+pd.set_option("future.no_silent_downcasting", True)
 
 if TYPE_CHECKING:
     from backend.core.project_config import ProjectConfig
@@ -17,7 +21,7 @@ class BaseLoader:
     # 别名映射（EA→SS, CM→LP）— 类常量保留用于向后兼容
     ALIAS_MAP = {"EA": "SS", "ea": "SS", "CM": "LP", "cm": "LP"}
 
-    def __init__(self, input_dir: Path, project_config: Optional["ProjectConfig"] = None):
+    def __init__(self, input_dir: Path, project_config: Optional["ProjectConfig"] = None) -> None:
         self.input_dir = Path(input_dir)
         self._project_config = project_config
         # 有 config 时使用 config 的别名映射和默认团队名，否则保留硬编码值
@@ -28,11 +32,11 @@ class BaseLoader:
             self.alias_map = dict(self.ALIAS_MAP)
             self.default_team = "THCC"
 
-    def _get_cache_path(self, file_path: Path, sheet_name=None) -> Path:
-        """生成 Parquet 缓存文件路径"""
+    def _get_cache_path(self, file_path: Path, sheet_name=None, header=0) -> Path:
+        """生成 Parquet 缓存文件路径（sheet_name + header 共同决定缓存键，避免 header=None 与 header=0 互串）"""
         cache_dir = self.input_dir / ".cache"
         cache_dir.mkdir(exist_ok=True)
-        key = f"{file_path}:{sheet_name if sheet_name is not None else 'default'}"
+        key = f"{file_path}:{sheet_name if sheet_name is not None else 'default'}:h{header}"
         hash_key = hashlib.md5(key.encode()).hexdigest()[:12]
         return cache_dir / f"{hash_key}.parquet"
 
@@ -55,14 +59,14 @@ class BaseLoader:
         )
         return xlsx_files[0] if xlsx_files else None
 
-    def _read_xlsx_pandas(self, path: Path, sheet_name=0, header=0, skiprows=None):
+    def _read_xlsx_pandas(self, path: Path, sheet_name=0, header=0, skiprows=None) -> Any:
         """使用 pandas 读取 Excel，统一异常处理，优先 openpyxl，fallback calamine。
         内置 Parquet 缓存层：缓存比源文件新时直接返回，否则读 Excel 后写缓存。
         """
         import pandas as pd
         import warnings
 
-        cache_path = self._get_cache_path(path, sheet_name)
+        cache_path = self._get_cache_path(path, sheet_name, header=header)
 
         if self._is_cache_fresh(path, cache_path):
             try:
@@ -100,7 +104,12 @@ class BaseLoader:
         # 写缓存（DataFrame 为空时跳过，避免无意义缓存）
         if not df.empty:
             try:
-                df.to_parquet(cache_path, index=False)
+                # PyArrow 不能处理 mixed types (例如既有 string 又有 float 的列)
+                # 在缓存前，将所有 object 类型的列强制转为字符串
+                cache_df = df.copy()
+                object_cols = cache_df.select_dtypes(include=['object']).columns
+                cache_df[object_cols] = cache_df[object_cols].astype(str)
+                cache_df.to_parquet(cache_path, index=False)
             except Exception as write_err:
                 logger.warning(f"缓存写入失败（非阻塞）: {write_err}")
 
@@ -147,7 +156,34 @@ class BaseLoader:
             return f"{s[:4]}-{s[4:6]}-{s[6:8]}"
         return s if len(s) >= 8 else None
 
-    def _ffill_merged(self, df, columns: list):
+    def _clean_numeric_vec(self, s: "pd.Series") -> "pd.Series":
+        """向量化数值清洗（替代逐行 apply(_clean_numeric)）。
+        处理 '-', 'NaN', None, 空字符串, '—', 'N/A', '#N/A', 千分位逗号, 百分号。
+        """
+        import pandas as pd
+
+        s = s.replace(["-", "nan", "NaN", "", None, "—", "N/A", "#N/A"], np.nan).infer_objects(copy=False)
+        s = s.astype(str).str.replace(",", "", regex=False).str.rstrip("%")
+        # "nan" 字符串由 astype(str) 还原，需再次置 NaN
+        s = s.replace("nan", np.nan).infer_objects(copy=False)
+        return pd.to_numeric(s, errors="coerce")
+
+    def _clean_date_vec(self, s: "pd.Series") -> "pd.Series":
+        """向量化日期清洗（替代逐行 apply(_clean_date)）。
+        处理 YYYYMMDD 纯数字字符串、标准 ISO/Excel 日期，过滤 < 2000-01-01 的无效占位符。
+        """
+        import pandas as pd
+
+        s = s.replace(["-", "nan", "NaN", "", None, "—", "N/A", "#N/A"], np.nan).infer_objects(copy=False)
+        # 去掉 pandas 可能带的小数点（如 "20210301.0"）
+        s = s.astype(str).str.split(".").str[0]
+        s = s.replace("nan", np.nan).infer_objects(copy=False)
+        s = pd.to_datetime(s, format="mixed", errors="coerce")
+        # 过滤 < 2000-01-01 的无效占位符（如 19700101）
+        s = s.where(s >= pd.Timestamp("2000-01-01"))
+        return s
+
+    def _ffill_merged(self, df, columns: list) -> Any:
         """对合并单元格产生的 NaN 做前向填充"""
         for col in columns:
             if col in df.columns:

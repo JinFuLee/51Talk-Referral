@@ -1,7 +1,25 @@
 "use client";
 
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
+import dynamic from "next/dynamic";
+import type { ComponentType } from "react";
+import type { Options } from "react-markdown";
+
+// Dynamically import the entire rendering chunk — react-markdown + remark-gfm
+// are heavy (remark AST, unified pipeline). Deferring them keeps the initial
+// JS bundle lean; the component is only ever used client-side anyway.
+const MarkdownRenderer = dynamic<Options>(
+  () =>
+    Promise.all([
+      import("react-markdown").then((m) => m.default),
+      import("remark-gfm").then((m) => m.default),
+    ]).then(([ReactMarkdown, remarkGfm]) => {
+      const Renderer: ComponentType<Options> = (props) => (
+        <ReactMarkdown {...props} remarkPlugins={[remarkGfm, ...(props.remarkPlugins ?? [])]} />
+      );
+      return Renderer;
+    }),
+  { ssr: false, loading: () => <div className="animate-pulse text-slate-400 text-sm">加载中…</div> }
+);
 
 interface ReportViewerProps {
   content: string;
@@ -23,7 +41,7 @@ export function ReportViewer({ content, filename, downloadURL }: ReportViewerPro
         </a>
       </div>
       <div className="p-6 prose prose-slate prose-sm max-w-none overflow-auto">
-        <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
+        <MarkdownRenderer>{content}</MarkdownRenderer>
       </div>
     </div>
   );

@@ -4,8 +4,7 @@ import React from "react";
 import { clsx } from "clsx";
 import useSWR from "swr";
 import { ChevronDown, TrendingUp } from "lucide-react";
-
-const fetcher = (url: string) => fetch(url).then((r) => r.json());
+import { swrFetcher } from "@/lib/api";
 
 interface ChannelSummary {
   pre_call_rate?: number | null;
@@ -106,7 +105,7 @@ function FunnelChart({
 }
 
 export function TrialSlide({ revealStep }: TrialSlideProps) {
-  const { data, error } = useSWR<CompareData>("/api/analysis/trial-class-compare", fetcher);
+  const { data, error } = useSWR<CompareData>("/api/analysis/trial-class-compare", swrFetcher);
 
   const summary = data?.summary ?? {};
   const preRate = summary.pre_call_rate ?? 0;

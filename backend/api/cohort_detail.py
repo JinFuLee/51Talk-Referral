@@ -146,7 +146,7 @@ def _approx_decay_curve(m1_val: float, metric: str) -> list[dict]:
 # ── 端点 1: GET /api/analysis/cohort-decay ────────────────────────────────────
 
 @router.get("/cohort-decay")
-async def get_cohort_decay(
+def get_cohort_decay(
     metric: str = Query(
         default="reach_rate",
         description="指标: reach_rate / participation_rate / checkin_rate / referral_coefficient / conversion_ratio",
@@ -216,7 +216,7 @@ async def get_cohort_decay(
 # ── 端点 2: GET /api/analysis/cohort-heatmap ─────────────────────────────────
 
 @router.get("/cohort-heatmap")
-async def get_cohort_heatmap():
+def get_cohort_heatmap() -> dict[str, Any]:
     """
     返回 5 个指标 × 12 个月龄的热力图矩阵数据。
     结构: { metrics, months, matrix: [[val_m1, val_m2, ...], ...] }
@@ -296,79 +296,144 @@ async def get_cohort_heatmap():
 # ── 端点 3: GET /api/analysis/cohort-detail ──────────────────────────────────
 
 @router.get("/cohort-detail")
-async def get_cohort_detail():
+def get_cohort_detail() -> dict[str, Any]:
     """
     C6 学员级 Cohort 分析
-    - retention_by_age: 月龄别留存率（真实数据或演示）
-    - by_cc: CC 级带新效率排行（真实数据或演示）
-    - churn_by_age: 月龄别流失漏斗
-    - top_bringers: 头部带新学员
+    - retention_by_age: 月龄别留存率（真实数据）
+    - by_cc: CC 级带新效率排行（真实数据）
+    - churn_by_age: 月龄别流失漏斗（从 records 计算）
+    - top_bringers: 头部带新学员（从 records 提取）
     """
-    result = _get_cohort_data()
+    if _service is None:
+        raise HTTPException(status_code=503, detail="服务未初始化，请先运行分析")
 
-    # 尝试从引擎结果中寻找 cohort_detail 相关数据
-    # 当前引擎不分析 C6，构造演示结构以验证 UI
-    # 实际生产接入后替换为真实 loader 数据
+    raw = getattr(_service, "_raw_data", None)
+    if not raw:
+        raise HTTPException(
+            status_code=404,
+            detail="尚无分析缓存，请先 POST /api/analysis/run",
+        )
 
-    # 月龄别留存率（12个月）
-    retention_by_age = [
-        {"m": 1, "valid_rate": 0.92, "reach_rate": 0.82, "bring_new_rate": 0.25},
-        {"m": 2, "valid_rate": 0.85, "reach_rate": 0.65, "bring_new_rate": 0.18},
-        {"m": 3, "valid_rate": 0.78, "reach_rate": 0.50, "bring_new_rate": 0.13},
-        {"m": 4, "valid_rate": 0.70, "reach_rate": 0.38, "bring_new_rate": 0.09},
-        {"m": 5, "valid_rate": 0.63, "reach_rate": 0.30, "bring_new_rate": 0.07},
-        {"m": 6, "valid_rate": 0.58, "reach_rate": 0.25, "bring_new_rate": 0.05},
-        {"m": 7, "valid_rate": 0.53, "reach_rate": 0.22, "bring_new_rate": 0.04},
-        {"m": 8, "valid_rate": 0.49, "reach_rate": 0.19, "bring_new_rate": 0.04},
-        {"m": 9, "valid_rate": 0.46, "reach_rate": 0.17, "bring_new_rate": 0.03},
-        {"m": 10, "valid_rate": 0.43, "reach_rate": 0.15, "bring_new_rate": 0.03},
-        {"m": 11, "valid_rate": 0.41, "reach_rate": 0.14, "bring_new_rate": 0.02},
-        {"m": 12, "valid_rate": 0.39, "reach_rate": 0.12, "bring_new_rate": 0.02},
-    ]
+    cohort_raw: dict = raw.get("cohort", {}) if isinstance(raw, dict) else {}
+    c6: dict = cohort_raw.get("cohort_detail", {}) if isinstance(cohort_raw, dict) else {}
 
-    # CC 级带新效率
-    by_cc = [
-        {"cc": "สมใจ", "team": "CC-A", "students": 145, "valid_rate": 0.88, "reach_rate": 0.79, "bring_new_rate": 0.28, "bring_new_total": 41},
-        {"cc": "มานี", "team": "CC-B", "students": 132, "valid_rate": 0.85, "reach_rate": 0.76, "bring_new_rate": 0.25, "bring_new_total": 33},
-        {"cc": "วิภา", "team": "CC-A", "students": 128, "valid_rate": 0.83, "reach_rate": 0.74, "bring_new_rate": 0.23, "bring_new_total": 29},
-        {"cc": "ประไพ", "team": "CC-C", "students": 119, "valid_rate": 0.80, "reach_rate": 0.71, "bring_new_rate": 0.21, "bring_new_total": 25},
-        {"cc": "สุดา", "team": "CC-B", "students": 115, "valid_rate": 0.78, "reach_rate": 0.68, "bring_new_rate": 0.19, "bring_new_total": 22},
-        {"cc": "พรรณี", "team": "CC-C", "students": 108, "valid_rate": 0.76, "reach_rate": 0.65, "bring_new_rate": 0.17, "bring_new_total": 18},
-        {"cc": "นิภา", "team": "CC-A", "students": 102, "valid_rate": 0.74, "reach_rate": 0.62, "bring_new_rate": 0.15, "bring_new_total": 15},
-        {"cc": "ลัดดา", "team": "CC-D", "students": 98, "valid_rate": 0.72, "reach_rate": 0.60, "bring_new_rate": 0.13, "bring_new_total": 13},
-    ]
+    if not c6:
+        raise HTTPException(
+            status_code=404,
+            detail="C6 cohort 数据不存在，该数据源可能未加载",
+        )
 
-    # 月龄流失漏斗
-    churn_by_age = [
-        {"m": 1, "first_churn_count": 73, "first_churn_rate": 0.08, "cumulative_churn_rate": 0.08},
-        {"m": 2, "first_churn_count": 63, "first_churn_rate": 0.07, "cumulative_churn_rate": 0.15},
-        {"m": 3, "first_churn_count": 63, "first_churn_rate": 0.07, "cumulative_churn_rate": 0.22},
-        {"m": 4, "first_churn_count": 72, "first_churn_rate": 0.08, "cumulative_churn_rate": 0.30},
-        {"m": 5, "first_churn_count": 63, "first_churn_rate": 0.07, "cumulative_churn_rate": 0.37},
-        {"m": 6, "first_churn_count": 45, "first_churn_rate": 0.05, "cumulative_churn_rate": 0.42},
-        {"m": 7, "first_churn_count": 45, "first_churn_rate": 0.05, "cumulative_churn_rate": 0.47},
-        {"m": 8, "first_churn_count": 36, "first_churn_rate": 0.04, "cumulative_churn_rate": 0.51},
-        {"m": 9, "first_churn_count": 27, "first_churn_rate": 0.03, "cumulative_churn_rate": 0.54},
-        {"m": 10, "first_churn_count": 27, "first_churn_rate": 0.03, "cumulative_churn_rate": 0.57},
-        {"m": 11, "first_churn_count": 18, "first_churn_rate": 0.02, "cumulative_churn_rate": 0.59},
-        {"m": 12, "first_churn_count": 18, "first_churn_rate": 0.02, "cumulative_churn_rate": 0.61},
-    ]
+    by_cc_raw: dict = c6.get("by_cc", {})
+    records: list = c6.get("records", [])
+    total: int = c6.get("total_students", 0)
 
-    # 头部带新学员（匿名化处理）
-    top_bringers = [
-        {"student_id": "S_0042", "total_new": 12, "team": "CC-A", "last_active_m": 9, "cohort": "2025-03"},
-        {"student_id": "S_0187", "total_new": 10, "team": "CC-A", "last_active_m": 11, "cohort": "2025-01"},
-        {"student_id": "S_0391", "total_new": 9, "team": "CC-B", "last_active_m": 7, "cohort": "2025-05"},
-        {"student_id": "S_0215", "total_new": 8, "team": "CC-C", "last_active_m": 12, "cohort": "2024-12"},
-        {"student_id": "S_0634", "total_new": 7, "team": "CC-B", "last_active_m": 8, "cohort": "2025-04"},
-    ]
+    data_source = "c6" if (by_cc_raw or records) else "empty"
+
+    # ── CC 级带新效率 ─────────────────────────────────────────────────────────
+    by_cc: list[dict] = []
+    if by_cc_raw:
+        for name, info in by_cc_raw.items():
+            valid = info.get("有效学员数", 0) or 0
+            bring_new = info.get("带新注册总数", 0) or 0
+            reached = info.get("触达学员数", 0) or 0
+            students = info.get("学员数", 0) or 0
+            by_cc.append({
+                "cc": name,
+                "team": info.get("团队", ""),
+                "students": students,
+                "valid_rate": round(valid / students, 4) if students > 0 else 0,
+                "reach_rate": round(reached / valid, 4) if valid > 0 else 0,
+                "bring_new_rate": round(bring_new / valid, 4) if valid > 0 else 0,
+                "bring_new_total": int(bring_new),
+            })
+        by_cc.sort(key=lambda x: x["bring_new_rate"], reverse=True)
+
+    # ── 月龄别留存率（从 records 聚合 m1-m12）────────────────────────────────
+    retention_by_age: list[dict] = []
+    if records:
+        _CN_NUMS = ["一", "二", "三", "四", "五", "六", "七", "八", "九", "十", "十一", "十二"]
+        for m_idx, m_cn in enumerate(_CN_NUMS, start=1):
+            valid_key = f"第{m_cn}个月是否有效"
+            reach_key = f"第{m_cn}个月是否触达"
+            bring_key = f"第{m_cn}个月带新注册数"
+            total_m = 0
+            valid_count = 0
+            reach_count = 0
+            bring_total = 0.0
+            for r in records:
+                v_valid = r.get("是否有效", {}).get(f"m{m_idx}")
+                v_reach = r.get("是否触达", {}).get(f"m{m_idx}")
+                v_bring = r.get("带新注册数", {}).get(f"m{m_idx}")
+                if v_valid is not None:
+                    total_m += 1
+                    if v_valid == 1:
+                        valid_count += 1
+                if v_reach == 1:
+                    reach_count += 1
+                if v_bring and float(v_bring) > 0:
+                    bring_total += float(v_bring)
+            if total_m > 0:
+                retention_by_age.append({
+                    "m": m_idx,
+                    "valid_rate": round(valid_count / total_m, 4),
+                    "reach_rate": round(reach_count / total_m, 4),
+                    "bring_new_rate": round(bring_total / total_m, 4),
+                })
+
+    # ── 月龄流失漏斗（从留存率反推）────────────────────────────────────────────
+    churn_by_age: list[dict] = []
+    if retention_by_age:
+        cumulative = 0.0
+        for pt in retention_by_age:
+            m = pt["m"]
+            valid_rate = pt["valid_rate"]
+            # m1 基准: 假设 m0 = 1.0（全部有效）
+            prev_rate = retention_by_age[m - 2]["valid_rate"] if m > 1 else 1.0
+            first_churn_rate = max(0.0, round(prev_rate - valid_rate, 4))
+            cumulative = round(cumulative + first_churn_rate, 4)
+            est_total = total or 1
+            churn_by_age.append({
+                "m": m,
+                "first_churn_count": round(first_churn_rate * est_total),
+                "first_churn_rate": first_churn_rate,
+                "cumulative_churn_rate": min(1.0, cumulative),
+            })
+
+    # ── 头部带新学员（从 records 提取）──────────────────────────────────────────
+    top_bringers: list[dict] = []
+    if records:
+        bringer_map: dict[str, dict] = {}
+        for r in records:
+            sid = r.get("学员id", "")
+            if not sid:
+                continue
+            bring_dict = r.get("带新注册数", {}) or {}
+            total_new = sum(
+                float(v) for v in bring_dict.values() if v and float(v) > 0
+            )
+            if total_new > 0:
+                last_active_m = max(
+                    (int(k[1:]) for k, v in (r.get("是否有效", {}) or {}).items()
+                     if v == 1 and k.startswith("m") and k[1:].isdigit()),
+                    default=0,
+                )
+                if sid not in bringer_map or total_new > bringer_map[sid]["total_new"]:
+                    bringer_map[sid] = {
+                        "student_id": sid,
+                        "total_new": int(total_new),
+                        "team": r.get("当前小组", ""),
+                        "last_active_m": last_active_m,
+                        "cohort": r.get("月份", ""),
+                    }
+        top_bringers = sorted(
+            bringer_map.values(), key=lambda x: x["total_new"], reverse=True
+        )[:10]
 
     return {
         "retention_by_age": retention_by_age,
         "by_cc": by_cc,
         "churn_by_age": churn_by_age,
         "top_bringers": top_bringers,
-        "total_students": 8806,
-        "data_source": "demo",  # 改为 "c6" 后表示真实数据
-        "note": "C6 明细数据已加载，分析引擎集成进行中",
+        "total_students": total,
+        "data_source": data_source,
     }

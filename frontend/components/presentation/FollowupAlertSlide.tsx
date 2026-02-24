@@ -13,8 +13,7 @@ import {
   ResponsiveContainer,
   Cell,
 } from "recharts";
-
-const fetcher = (url: string) => fetch(url).then((r) => r.json());
+import { swrFetcher } from "@/lib/api";
 
 interface ZeroStudent {
   student_id?: string;
@@ -60,7 +59,7 @@ const ENCLOSURE_DANGER: Record<string, string> = {
 };
 
 export function FollowupAlertSlide({ revealStep }: FollowupAlertSlideProps) {
-  const { data, error } = useSWR<AlertData>("/api/analysis/paid-followup-alert", fetcher);
+  const { data, error } = useSWR<AlertData>("/api/analysis/paid-followup-alert", swrFetcher);
 
   const totalZero = data?.total_zero ?? 0;
   const totalStudents = data?.total_students ?? 0;
@@ -189,8 +188,8 @@ export function FollowupAlertSlide({ revealStep }: FollowupAlertSlideProps) {
           {enclosureData.length > 0 ? (
             <ResponsiveContainer width="100%" height={180}>
               <BarChart data={enclosureData} barCategoryGap="30%">
-                <XAxis dataKey="name" tick={{ fontSize: 11 }} />
-                <YAxis tick={{ fontSize: 11 }} />
+                <XAxis tickLine={false} axisLine={false} dataKey="name" tick={{ fontSize: 11 }} />
+                <YAxis tickLine={false} axisLine={false} tick={{ fontSize: 11 }} />
                 <Tooltip formatter={(v: number) => [v.toLocaleString(), "人数"]} />
                 <Bar dataKey="count" radius={[4, 4, 0, 0]}>
                   {enclosureData.map((entry, i) => {

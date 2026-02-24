@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo, useCallback } from "react";
 import useSWR from "swr";
 import { CHART_FONT_SIZE, CHART_HEIGHT } from "@/lib/utils";
+import { swrFetcher } from "@/lib/api";
 import {
   LineChart,
   Line,
@@ -67,12 +68,6 @@ const LINE_COLORS = [
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
-const fetcher = (url: string) =>
-  fetch(url).then((r) => {
-    if (!r.ok) throw new Error(`HTTP ${r.status}`);
-    return r.json();
-  });
-
 function formatMonth(yyyyMM: string): string {
   if (!yyyyMM || yyyyMM.length < 6) return yyyyMM;
   const y = yyyyMM.slice(0, 4);
@@ -117,7 +112,7 @@ export function ChannelMoMTrend() {
   const [selectedMetric, setSelectedMetric] = useState<MetricKey>("registrations");
   const [hiddenKeys, setHiddenKeys] = useState<Set<string>>(new Set());
 
-  const handleLegendClick = (e: { dataKey?: string | number | ((obj: object) => void) }) => {
+  const handleLegendClick = useCallback((e: { dataKey?: string | number | ((obj: object) => void) }) => {
     if (!e.dataKey || typeof e.dataKey !== 'string') return;
     const key = e.dataKey;
     setHiddenKeys((prev) => {
@@ -125,15 +120,25 @@ export function ChannelMoMTrend() {
       next.has(key) ? next.delete(key) : next.add(key);
       return next;
     });
-  };
+  }, []);
 
   const { data, error, isLoading } = useSWR<ChannelMomAPIResponse>(
     "/api/analysis/channel-mom",
-    fetcher
+    swrFetcher
   );
 
-  const selectedOpt =
-    METRIC_OPTIONS.find((o) => o.key === selectedMetric) ?? METRIC_OPTIONS[0];
+  const selectedOpt = useMemo(
+    () => METRIC_OPTIONS.find((o) => o.key === selectedMetric) ?? METRIC_OPTIONS[0],
+    [selectedMetric]
+  );
+
+  const byChannel = useMemo(() => data?.by_channel ?? [], [data]);
+  const months = useMemo(() => data?.months ?? [], [data]);
+  const chartData = useMemo(
+    () => buildChartData(byChannel, months, selectedMetric),
+    [byChannel, months, selectedMetric]
+  );
+  const hasData = byChannel.length > 0 && months.length > 0;
 
   if (isLoading) {
     return (
@@ -150,11 +155,6 @@ export function ChannelMoMTrend() {
       </div>
     );
   }
-
-  const byChannel = data?.by_channel ?? [];
-  const months = data?.months ?? [];
-  const chartData = buildChartData(byChannel, months, selectedMetric);
-  const hasData = byChannel.length > 0 && months.length > 0;
 
   return (
     <div className="space-y-4">
@@ -183,9 +183,8 @@ export function ChannelMoMTrend() {
             margin={{ top: 12, right: 24, left: 0, bottom: 4 }}
           >
             <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-            <XAxis dataKey="month" tick={{ fontSize: CHART_FONT_SIZE.md }} />
-            <YAxis
-              tick={{ fontSize: CHART_FONT_SIZE.md }}
+            <XAxis tickLine={false} axisLine={false} dataKey="month" tick={{ fontSize: CHART_FONT_SIZE.md }} />
+            <YAxis tickLine={false} axisLine={false} tick={{ fontSize: CHART_FONT_SIZE.md }}
               tickFormatter={(v) => formatValue(v, selectedOpt)}
             />
             <Tooltip
@@ -194,8 +193,7 @@ export function ChannelMoMTrend() {
                 String(name),
               ]}
             />
-            <Legend
-              wrapperStyle={{ fontSize: CHART_FONT_SIZE.md }}
+            <Legend iconType="circle" wrapperStyle={{ fontSize: CHART_FONT_SIZE.md }}
               onClick={handleLegendClick}
               formatter={(value: string) => (
                 <span style={{ opacity: hiddenKeys.has(value) ? 0.35 : 1, cursor: "pointer" }}>

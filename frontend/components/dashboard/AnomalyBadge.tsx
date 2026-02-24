@@ -16,8 +16,8 @@ export function AnomalyBadge({ anomalies }: { anomalies: AnomalyItem[] }) {
         <p className="text-xs text-slate-400 py-4 text-center">未发现异常</p>
       ) : (
         <ul className="space-y-2">
-          {anomalies.slice(0, 5).map((a, i) => (
-            <li key={i} className={`text-xs rounded-lg border px-3 py-2 ${severityStyle[a.severity] ?? ""}`}>
+          {anomalies.slice(0, 5).map((a) => (
+            <li key={`${a.severity}-${a.metric}`} className={`text-xs rounded-lg border px-3 py-2 ${severityStyle[a.severity] ?? ""}`}>
               <span className="font-semibold">{a.metric}</span>
               {a.description && <span className="ml-1 opacity-80">— {a.description}</span>}
             </li>

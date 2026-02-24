@@ -18,7 +18,7 @@ def _pct(value) -> Optional[float]:
         return None
 
 
-def _safe_get(d: dict, *keys, default=None):
+def _safe_get(d: dict, *keys, default=None) -> Any:
     cur = d
     for k in keys:
         if not isinstance(cur, dict):
@@ -67,7 +67,7 @@ class StageEvaluator:
         },
     }
 
-    def __init__(self, cache: dict):
+    def __init__(self, cache: dict) -> None:
         self.cache = cache or {}
         self.summary = cache.get("summary", {}) or {}
         self.funnel = cache.get("funnel", {}) or {}

@@ -1,7 +1,7 @@
 """F类 运营数据 Loader — 11 个数据源（F1-F11）
 
-F1-F4 使用 calamine 引擎读取（openpyxl 遇到 name 参数异常无法解析）
-F5-F11 使用 openpyxl → calamine fallback
+所有数据源经 BaseLoader._read_xlsx_pandas 读取，享有 Parquet 缓存层。
+F1-F4 有 openpyxl name 兼容问题，_read_xlsx_pandas 会自动 fallback 到 calamine。
 """
 import logging
 from pathlib import Path
@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 class OpsLoader(BaseLoader):
     """宣宣/宣萱运营数据加载器（F1-F11）"""
 
-    # F1-F4 直接用 calamine，跳过 openpyxl（已知有 name 参数兼容问题）
+    # 所有 F1-F11 均经 _read_xlsx_pandas 走缓存；F1-F4 openpyxl 有 name 兼容问题，会自动 fallback 到 calamine
     _F1_SUBDIR = "宣宣_漏斗跟进效率_D-1"
     _F2_SUBDIR = "宣宣_截面跟进效率_D-1"
     _F3_SUBDIR = "宣宣_截面跟进效率-月度环比_D-1"
@@ -30,21 +30,11 @@ class OpsLoader(BaseLoader):
     _F10_SUBDIR = "宣萱_首次体验课课前课后跟进_D-1"
     _F11_SUBDIR = "宣萱_明细表-泰国课前外呼覆盖_D-1"
 
-    def _read_calamine(self, path: Path, header: int = 0, skiprows=None) -> pd.DataFrame:
-        """强制用 calamine 读取（用于 F1-F4 openpyxl 报 name 错误的文件）"""
-        try:
-            return pd.read_excel(path, engine="calamine", header=header, skiprows=skiprows)
-        except Exception as e:
-            logger.error(f"calamine 读取失败 {path}: {e}")
-            return pd.DataFrame()
-
     def _read_raw_calamine(self, path: Path) -> pd.DataFrame:
-        """无 header 原始读取（用于需要手动定位表头行的文件）"""
-        try:
-            return pd.read_excel(path, engine="calamine", header=None)
-        except Exception as e:
-            logger.error(f"calamine 原始读取失败 {path}: {e}")
-            return pd.DataFrame()
+        """无 header 原始读取，走 BaseLoader 缓存层（header=None 独立缓存键，不与 header=0 互串）。
+        F1-F4 文件有 openpyxl name 兼容问题，BaseLoader._read_xlsx_pandas 会自动 fallback 到 calamine。
+        """
+        return self._read_xlsx_pandas(path, header=None)
 
     # ------------------------------------------------------------------
     # 公共入口
@@ -74,6 +64,16 @@ class OpsLoader(BaseLoader):
     #     学员注册后是否触达, 学员注册后是否有效触达, 24h拨打率, 24h接通率,
     #     24h有效接通率, 48h拨打率, 48h接通率, 48h有效接通率, 总拨打率, 总接通率, 总有效接通率
     # ------------------------------------------------------------------
+    # ⚠️ 废弃字段清单 (Deprecated Columns) — 以下 17 列在 col_map 中被有意跳过:
+    #   [11] 注册24h拨打  [12] 24h接通  [13] 24h有效接通
+    #   [14] 48h拨打      [15] 48h接通  [16] 48h有效接通
+    #   [19] 学员注册后是否有效触达
+    #   [20] 24h拨打率    [21] 24h接通率  [22] 24h有效接通率
+    #   [23] 48h拨打率    [24] 48h接通率  [25] 48h有效接通率
+    #   [28] 总有效接通率
+    # 原因: 这些中间率指标拆分过细，下游漏斗引擎和前端均只消费精简后的
+    #       总拨打率(total_call_rate)、总接通率(total_connect_rate) 以及四大转化率。
+    # ------------------------------------------------------------------
 
     def _load_funnel_efficiency(self) -> dict:
         path = self._find_latest_file(self._F1_SUBDIR)
@@ -83,6 +83,7 @@ class OpsLoader(BaseLoader):
         try:
             raw = self._read_raw_calamine(path)
             if raw.empty:
+                logger.warning("F1: Excel 为空或格式异常，返回空结果")
                 return {}
 
             # 找表头行（包含"渠道"的行）— 小循环(<10行)，保留 iterrows
@@ -94,6 +95,7 @@ class OpsLoader(BaseLoader):
 
             df = raw.iloc[header_row:].reset_index(drop=True)
             df.columns = df.iloc[0].tolist()
+            logger.debug(f"F1 Parsed Columns (count={len(df.columns)}): {df.columns.tolist()}")
             df = df.iloc[1:].reset_index(drop=True)
 
             # 列名映射（精简）
@@ -105,29 +107,21 @@ class OpsLoader(BaseLoader):
                 df.columns[4]: "appointments",
                 df.columns[5]: "attended",
                 df.columns[6]: "paid",
-                df.columns[7]: "appt_rate",
-                df.columns[8]: "appt_attend_rate",
-                df.columns[9]: "attend_paid_rate",
-                df.columns[10]: "funnel_paid_rate",
-                df.columns[11]: "call_24h",
-                df.columns[12]: "connect_24h",
-                df.columns[13]: "effective_24h",
-                df.columns[14]: "call_48h",
-                df.columns[15]: "connect_48h",
-                df.columns[16]: "effective_48h",
-                df.columns[17]: "total_called",
-                df.columns[18]: "total_connected",
-                df.columns[19]: "total_effective",
-                df.columns[20]: "call_rate_24h",
-                df.columns[21]: "connect_rate_24h",
-                df.columns[22]: "effective_rate_24h",
-                df.columns[23]: "call_rate_48h",
-                df.columns[24]: "connect_rate_48h",
-                df.columns[25]: "effective_rate_48h",
-                df.columns[26]: "total_call_rate",
-                df.columns[27]: "total_connect_rate",
-                df.columns[28]: "total_effective_rate",
-            } if len(df.columns) >= 29 else {}
+            }
+            if len(df.columns) >= 11:
+                col_map.update({
+                    df.columns[7]: "appt_rate",
+                    df.columns[8]: "appt_attend_rate",
+                    df.columns[9]: "attend_paid_rate",
+                    df.columns[10]: "funnel_paid_rate",
+                })
+            if len(df.columns) >= 29:
+                col_map.update({
+                    df.columns[17]: "total_called",
+                    df.columns[18]: "total_connected",
+                    df.columns[26]: "total_call_rate",
+                    df.columns[27]: "total_connect_rate",
+                })
             df = df.rename(columns=col_map)
 
             # 向量化：过滤空行（channel 非空且非 nan）
@@ -145,42 +139,26 @@ class OpsLoader(BaseLoader):
             numeric_cols = [
                 "leads", "appointments", "attended", "paid",
                 "appt_rate", "appt_attend_rate", "attend_paid_rate", "funnel_paid_rate",
-                "call_rate_24h", "connect_rate_24h", "effective_rate_24h",
-                "call_rate_48h", "connect_rate_48h", "effective_rate_48h",
-                "total_call_rate", "total_connect_rate", "total_effective_rate",
+                "total_call_rate", "total_connect_rate",
             ]
             for col in numeric_cols:
                 if col in df_valid.columns:
-                    df_valid[col] = df_valid[col].apply(self._clean_numeric)
+                    df_valid[col] = self._clean_numeric_vec(df_valid[col])
 
-            # 构建 records（小DataFrame转dict，行数=CC人数级别）
-            records = []
-            for _, row in df_valid.iterrows():
-                channel = str(row["channel"]).strip()
-                team = row["team"]
-                cc = row["cc_name"]
-                records.append({
-                    "channel": channel,
-                    "team": team if team not in ("nan", "NaN") else None,
-                    "cc_name": cc if cc not in ("nan", "NaN", "小计") else None,
-                    "leads": row.get("leads"),
-                    "appointments": row.get("appointments"),
-                    "attended": row.get("attended"),
-                    "paid": row.get("paid"),
-                    "appt_rate": row.get("appt_rate"),
-                    "appt_attend_rate": row.get("appt_attend_rate"),
-                    "attend_paid_rate": row.get("attend_paid_rate"),
-                    "funnel_paid_rate": row.get("funnel_paid_rate"),
-                    "call_rate_24h": row.get("call_rate_24h"),
-                    "connect_rate_24h": row.get("connect_rate_24h"),
-                    "effective_rate_24h": row.get("effective_rate_24h"),
-                    "call_rate_48h": row.get("call_rate_48h"),
-                    "connect_rate_48h": row.get("connect_rate_48h"),
-                    "effective_rate_48h": row.get("effective_rate_48h"),
-                    "total_call_rate": row.get("total_call_rate"),
-                    "total_connect_rate": row.get("total_connect_rate"),
-                    "total_effective_rate": row.get("total_effective_rate"),
-                })
+            # 构建 records（向量化 to_dict）
+            _F1_SKIP = {"nan", "NaN"}
+            _F1_SKIP_CC = {"nan", "NaN", "小计"}
+            rec_df = df_valid.copy()
+            rec_df["channel"] = rec_df["channel"].astype(str).str.strip()
+            rec_df["team"] = rec_df["team"].where(~rec_df["team"].astype(str).isin(_F1_SKIP), other=None)
+            rec_df["cc_name"] = rec_df["cc_name"].where(~rec_df["cc_name"].astype(str).isin(_F1_SKIP_CC), other=None)
+            out_cols = [c for c in [
+                "channel", "team", "cc_name",
+                "leads", "appointments", "attended", "paid",
+                "appt_rate", "appt_attend_rate", "attend_paid_rate", "funnel_paid_rate",
+                "total_call_rate", "total_connect_rate",
+            ] if c in rec_df.columns]
+            records = rec_df[out_cols].to_dict("records")
 
             # 找汇总行
             summary_row = df[df.get("channel", pd.Series(dtype=str)).astype(str).str.strip() == "总计"]
@@ -206,6 +184,13 @@ class OpsLoader(BaseLoader):
     # 结构: 前2行说明, 第3行(index=2)为表头
     # 列: 渠道类型, 日期(month), CC组, CC姓名, 预约率, 预约出席率, 出席付费率, 注册付费率,
     #     注册, 预约, 出席, 付费, 美金金额
+    #
+    # 字段语义说明:
+    #   appt_rate        = 预约率 = 预约数 / leads数（注册数）— 非触达率
+    #   appt_attend_rate = 预约出席率 = 出席数 / 预约数
+    #   attend_paid_rate = 出席付费率 = 付费数 / 出席数
+    #   reg_paid_rate    = 注册付费率 = 付费数 / 注册数
+    # 注: 触达率（有效通话>=120s学员/有效学员）来自 C 类 Cohort 数据，不在此文件
     # ------------------------------------------------------------------
 
     def _load_section_efficiency(self) -> dict:
@@ -216,6 +201,7 @@ class OpsLoader(BaseLoader):
         try:
             raw = self._read_raw_calamine(path)
             if raw.empty:
+                logger.warning("F2: Excel 为空或格式异常，返回空结果")
                 return {}
 
             # 找表头行（包含"渠道类型"）— 小循环，保留 iterrows
@@ -228,7 +214,7 @@ class OpsLoader(BaseLoader):
             df = raw.iloc[header_row:].reset_index(drop=True)
             df.columns = ["channel_type", "month", "team", "cc_name",
                           "appt_rate", "appt_attend_rate", "attend_paid_rate", "reg_paid_rate",
-                          "registrations", "appointments", "attended", "paid", "amount_usd"]
+                          "registrations", "appointments", "attended", "paid", "amount_usd"][:len(df.columns)]
             df = df.iloc[1:].reset_index(drop=True)
 
             # ffill 渠道类型（可能有合并）
@@ -249,30 +235,20 @@ class OpsLoader(BaseLoader):
             # 数值列向量化
             for col in ["appt_rate", "appt_attend_rate", "attend_paid_rate", "reg_paid_rate",
                         "registrations", "appointments", "attended", "paid", "amount_usd"]:
-                df_valid[col] = df_valid[col].apply(self._clean_numeric)
+                df_valid[col] = self._clean_numeric_vec(df_valid[col])
 
-            # 构建 records（聚合后小DataFrame）
-            records = []
-            for _, row in df_valid.iterrows():
-                ct = str(row["channel_type"]).strip()
-                month = row["month_str"]
-                team = row["team"]
-                cc = row["cc_name"]
-                records.append({
-                    "channel_type": ct,
-                    "month": month if month not in ("nan", "NaN", "小计") else None,
-                    "team": team if team not in ("nan", "NaN", "小计") else None,
-                    "cc_name": cc if cc not in ("nan", "NaN", "小计") else None,
-                    "appt_rate": row["appt_rate"],
-                    "appt_attend_rate": row["appt_attend_rate"],
-                    "attend_paid_rate": row["attend_paid_rate"],
-                    "reg_paid_rate": row["reg_paid_rate"],
-                    "registrations": row["registrations"],
-                    "appointments": row["appointments"],
-                    "attended": row["attended"],
-                    "paid": row["paid"],
-                    "amount_usd": row["amount_usd"],
-                })
+            # 构建 records（向量化 to_dict）
+            _F2_SKIP = {"nan", "NaN", "小计"}
+            rec_df = df_valid.copy()
+            rec_df["channel_type"] = rec_df["channel_type"].astype(str).str.strip()
+            rec_df["month"] = rec_df["month_str"].where(~rec_df["month_str"].astype(str).isin(_F2_SKIP), other=None)
+            rec_df["team"] = rec_df["team"].where(~rec_df["team"].astype(str).isin(_F2_SKIP), other=None)
+            rec_df["cc_name"] = rec_df["cc_name"].where(~rec_df["cc_name"].astype(str).isin(_F2_SKIP), other=None)
+            records = rec_df[[
+                "channel_type", "month", "team", "cc_name",
+                "appt_rate", "appt_attend_rate", "attend_paid_rate", "reg_paid_rate",
+                "registrations", "appointments", "attended", "paid", "amount_usd",
+            ]].to_dict("records")
 
             # 总计汇总（向量化）
             by_channel = {}
@@ -291,7 +267,47 @@ class OpsLoader(BaseLoader):
                         "amount_usd": self._clean_numeric(r["amount_usd"]),
                     }
 
-            return {"records": records, "by_channel": by_channel}
+            # by_cc 聚合（修复 P0-2 Bug：补充缺失的 by_cc 数据）
+            _SKIP_CC_NAMES = {"nan", "NaN", "小计", "总计", "合计", ""}
+            df_cc = df_valid[
+                df_valid["cc_name"].notna() &
+                ~df_valid["cc_name"].astype(str).str.strip().isin(_SKIP_CC_NAMES)
+            ].copy()
+            by_cc: dict = {}
+            if not df_cc.empty:
+                cc_agg = df_cc.groupby("cc_name").agg(
+                    team=("team", "first"),
+                    channel_type=("channel_type", "first"),
+                    month=("month_str", "first"),
+                    registrations=("registrations", "sum"),
+                    appointments=("appointments", "sum"),
+                    attended=("attended", "sum"),
+                    paid=("paid", "sum"),
+                    amount_usd=("amount_usd", "sum")
+                ).reset_index()
+                
+                for _, row in cc_agg.iterrows():
+                    regs = row["registrations"] or 0
+                    appts = row["appointments"] or 0
+                    atts = row["attended"] or 0
+                    paids = row["paid"] or 0
+                    
+                    by_cc[row["cc_name"]] = {
+                        "team": row["team"],
+                        "channel_type": row["channel_type"],
+                        "month": row["month"],
+                        "registrations": regs,
+                        "appointments": appts,
+                        "attended": atts,
+                        "paid": paids,
+                        "amount_usd": row["amount_usd"],
+                        "appt_rate": round(appts / regs, 4) if regs > 0 else 0,
+                        "appt_attend_rate": round(atts / appts, 4) if appts > 0 else 0,
+                        "attend_paid_rate": round(paids / atts, 4) if atts > 0 else 0,
+                        "reg_paid_rate": round(paids / regs, 4) if regs > 0 else 0,
+                    }
+
+            return {"records": records, "by_channel": by_channel, "by_cc": by_cc}
         except Exception as e:
             logger.error(f"F2 解析失败: {e}", exc_info=True)
             return {}
@@ -311,6 +327,7 @@ class OpsLoader(BaseLoader):
         try:
             raw = self._read_raw_calamine(path)
             if raw.empty:
+                logger.warning("F3: Excel 为空或格式异常，返回空结果")
                 return {}
 
             # 找表头行（包含"渠道类型"）— 小循环，保留 iterrows
@@ -342,30 +359,20 @@ class OpsLoader(BaseLoader):
             # 数值列向量化
             for col in ["appt_rate", "appt_attend_rate", "attend_paid_rate", "alloc_paid_rate",
                         "allocations", "appointments", "attended", "paid", "amount_usd"]:
-                df_valid[col] = df_valid[col].apply(self._clean_numeric)
+                df_valid[col] = self._clean_numeric_vec(df_valid[col])
 
-            # 构建 records（聚合后小DataFrame）
-            records = []
-            for _, row in df_valid.iterrows():
-                ct = str(row["channel_type"]).strip()
-                month = row["month_str"]
-                team = row["team"]
-                cc = row["cc_name"]
-                records.append({
-                    "channel_type": ct,
-                    "month": month if month not in ("nan", "NaN", "小计") else None,
-                    "team": team if team not in ("nan", "NaN", "小计") else None,
-                    "cc_name": cc if cc not in ("nan", "NaN", "小计") else None,
-                    "appt_rate": row["appt_rate"],
-                    "appt_attend_rate": row["appt_attend_rate"],
-                    "attend_paid_rate": row["attend_paid_rate"],
-                    "alloc_paid_rate": row["alloc_paid_rate"],
-                    "allocations": row["allocations"],
-                    "appointments": row["appointments"],
-                    "attended": row["attended"],
-                    "paid": row["paid"],
-                    "amount_usd": row["amount_usd"],
-                })
+            # 构建 records（向量化 to_dict）
+            _F3_SKIP = {"nan", "NaN", "小计"}
+            rec_df = df_valid.copy()
+            rec_df["channel_type"] = rec_df["channel_type"].astype(str).str.strip()
+            rec_df["month"] = rec_df["month_str"].where(~rec_df["month_str"].astype(str).isin(_F3_SKIP), other=None)
+            rec_df["team"] = rec_df["team"].where(~rec_df["team"].astype(str).isin(_F3_SKIP), other=None)
+            rec_df["cc_name"] = rec_df["cc_name"].where(~rec_df["cc_name"].astype(str).isin(_F3_SKIP), other=None)
+            records = rec_df[[
+                "channel_type", "month", "team", "cc_name",
+                "appt_rate", "appt_attend_rate", "attend_paid_rate", "alloc_paid_rate",
+                "allocations", "appointments", "attended", "paid", "amount_usd",
+            ]].to_dict("records")
 
             # 按渠道类型汇总（向量化）
             by_channel: dict = {}
@@ -425,6 +432,7 @@ class OpsLoader(BaseLoader):
         try:
             raw = self._read_raw_calamine(path)
             if raw.empty:
+                logger.warning("F4: Excel 为空或格式异常，返回空结果")
                 return {}
 
             # 解析多层表头（Python 预处理，保留）
@@ -456,7 +464,7 @@ class OpsLoader(BaseLoader):
             # 向量化：对所有指标列应用 _clean_numeric
             metric_cols = col_names[1:]
             for col in metric_cols:
-                df_valid[col] = df_valid[col].apply(self._clean_numeric)
+                df_valid[col] = self._clean_numeric_vec(df_valid[col])
 
             # 构建 records（聚合后小DataFrame，行数=渠道数级别）
             records = []
@@ -490,6 +498,7 @@ class OpsLoader(BaseLoader):
         try:
             raw = self._read_raw_calamine(path)
             if raw.empty:
+                logger.warning("F5: Excel 为空或格式异常，返回空结果")
                 return {}
 
             df = raw.iloc[0:].reset_index(drop=True)
@@ -499,7 +508,7 @@ class OpsLoader(BaseLoader):
             df = df.iloc[1:].reset_index(drop=True)
 
             # 向量化：清洗字段
-            df["date"] = df["date_raw"].apply(self._clean_date)
+            df["date"] = self._clean_date_vec(df["date_raw"])
             df["team"] = df["team"].apply(
                 lambda v: self._normalize_team(str(v).strip()) if pd.notna(v) else "THCC"
             )
@@ -511,7 +520,7 @@ class OpsLoader(BaseLoader):
             num_cols = ["avg_calls", "avg_connects", "avg_effective", "avg_duration_min",
                         "total_calls", "total_connects", "total_effective", "total_duration_min"]
             for col in num_cols:
-                df[col] = df[col].apply(self._clean_numeric)
+                df[col] = self._clean_numeric_vec(df[col])
 
             # 过滤无效行（date 或 team 为空）
             df = df[df["date"].notna() & df["team"].notna()].copy()
@@ -593,6 +602,7 @@ class OpsLoader(BaseLoader):
         try:
             raw = self._read_raw_calamine(path)
             if raw.empty:
+                logger.warning("F6: Excel 为空或格式异常，返回空结果")
                 return {}
 
             df = raw.iloc[0:].reset_index(drop=True)
@@ -604,7 +614,7 @@ class OpsLoader(BaseLoader):
             df["channel"] = df["channel"].apply(
                 lambda v: str(v).strip() if pd.notna(v) else None
             )
-            df["alloc_date"] = df["alloc_date_raw"].apply(self._clean_date)
+            df["alloc_date"] = self._clean_date_vec(df["alloc_date_raw"])
             df["team"] = df["team"].apply(
                 lambda v: self._normalize_team(str(v).strip()) if pd.notna(v) else "THCC"
             )
@@ -617,7 +627,7 @@ class OpsLoader(BaseLoader):
 
             # 数值列向量化（强制 int）
             for col in ["called_24h", "connected_24h", "called_48h", "connected_48h"]:
-                df[col] = df[col].apply(lambda v: int(self._clean_numeric(v) or 0))
+                df[col] = self._clean_numeric_vec(df[col]).fillna(0).astype(int)
 
             # 过滤无效行
             df = df[df["channel"].notna() & df["team"].notna()].copy()
@@ -698,6 +708,7 @@ class OpsLoader(BaseLoader):
         try:
             raw = self._read_raw_calamine(path)
             if raw.empty:
+                logger.warning("F7: Excel 为空或格式异常，返回空结果")
                 return {}
 
             df = raw.iloc[0:].reset_index(drop=True)
@@ -716,11 +727,11 @@ class OpsLoader(BaseLoader):
             df["student_id"] = df["student_id"].apply(
                 lambda v: int(v) if pd.notna(v) and str(v) != "nan" else None
             )
-            df["first_paid_date"] = df["first_paid_date_raw"].apply(self._clean_date)
+            df["first_paid_date"] = self._clean_date_vec(df["first_paid_date_raw"])
 
             # 数值列向量化（强制 int）
             for col in ["monthly_called", "monthly_connected", "monthly_effective", "monthly_effective_count"]:
-                df[col] = df[col].apply(lambda v: int(self._clean_numeric(v) or 0))
+                df[col] = self._clean_numeric_vec(df[col]).fillna(0).astype(int)
 
             # 过滤无效行（team 或 cc_name 为空）
             df = df[df["team"].notna() & df["cc_name"].notna()].copy()
@@ -781,11 +792,12 @@ class OpsLoader(BaseLoader):
     def _load_enclosure_monthly(self) -> dict:
         path = self._find_latest_file(self._F8_SUBDIR)
         if not path:
-            logger.warning("F8 文件不存在")
+            logger.warning("D2/D3 围场数据为空，返回空结果（F8 文件不存在: %s）", self._F8_SUBDIR)
             return {}
         try:
             raw = self._read_raw_calamine(path)
             if raw.empty:
+                logger.warning("D2/D3 围场数据为空，返回空结果（F8 Excel 为空或格式异常）")
                 return {}
 
             df = raw.iloc[0:].reset_index(drop=True)
@@ -798,9 +810,12 @@ class OpsLoader(BaseLoader):
             # ffill 合并单元格
             df = self._ffill_merged(df, ["enclosure", "team"])
 
+            # 围场标签归一化映射（F8 文件使用 "90以上"，统一为标准值 "91-180"）
+            _F8_ENC_NORMALIZE = {"90以上": "91-180"}
+
             # 向量化：清洗字段
             df["enc_str"] = df["enclosure"].apply(
-                lambda v: str(v).strip() if pd.notna(v) else None
+                lambda v: _F8_ENC_NORMALIZE.get(str(v).strip(), str(v).strip()) if pd.notna(v) else None
             )
             df["team_norm"] = df["team"].apply(
                 lambda v: self._normalize_team(str(v).strip()) if pd.notna(v) else "THCC"
@@ -812,7 +827,7 @@ class OpsLoader(BaseLoader):
             # 数值列向量化
             for col in ["monthly_called", "monthly_connected", "monthly_effective",
                         "call_coverage", "connect_coverage", "effective_coverage", "avg_effective_count"]:
-                df[col] = df[col].apply(self._clean_numeric)
+                df[col] = self._clean_numeric_vec(df[col])
 
             # 过滤空行
             df = df[df["enc_str"].notna() & ~df["enc_str"].isin(("nan", "NaN"))].copy()
@@ -889,11 +904,12 @@ class OpsLoader(BaseLoader):
     def _load_monthly_paid(self) -> dict:
         path = self._find_latest_file(self._F9_SUBDIR)
         if not path:
-            logger.warning("F9 文件不存在")
+            logger.warning("D2/D3 围场数据为空，返回空结果（F9 文件不存在: %s）", self._F9_SUBDIR)
             return {}
         try:
             raw = self._read_raw_calamine(path)
             if raw.empty:
+                logger.warning("D2/D3 围场数据为空，返回空结果（F9 Excel 为空或格式异常）")
                 return {}
 
             df = raw.iloc[0:].reset_index(drop=True)
@@ -915,7 +931,7 @@ class OpsLoader(BaseLoader):
             # 数值列向量化
             for col in ["monthly_called", "monthly_connected", "monthly_effective",
                         "call_coverage", "connect_coverage", "effective_coverage", "avg_effective_count"]:
-                df[col] = df[col].apply(self._clean_numeric)
+                df[col] = self._clean_numeric_vec(df[col])
 
             # 过滤无效 team 行
             df = df[
@@ -997,6 +1013,7 @@ class OpsLoader(BaseLoader):
         try:
             raw = self._read_raw_calamine(path)
             if raw.empty:
+                logger.warning("F10: Excel 为空或格式异常，返回空结果")
                 return {}
 
             df = raw.iloc[0:].reset_index(drop=True)
@@ -1026,7 +1043,7 @@ class OpsLoader(BaseLoader):
                         "post_called", "post_connected", "post_effective",
                         "pre_call_rate", "pre_connect_rate", "pre_effective_rate",
                         "post_call_rate", "post_connect_rate", "post_effective_rate"]:
-                df[col] = df[col].apply(self._clean_numeric)
+                df[col] = self._clean_numeric_vec(df[col])
 
             # 过滤空渠道行
             df = df[
@@ -1104,6 +1121,7 @@ class OpsLoader(BaseLoader):
         try:
             raw = self._read_raw_calamine(path)
             if raw.empty:
+                logger.warning("F11: Excel 为空或格式异常，返回空结果")
                 return {}
 
             df = raw.iloc[0:].reset_index(drop=True)
@@ -1126,7 +1144,7 @@ class OpsLoader(BaseLoader):
             df["lead_type"] = df["lead_type"].apply(
                 lambda v: str(v).strip() if pd.notna(v) else "未知"
             )
-            df["lead_grade"] = df["lead_grade"].apply(self._clean_numeric)
+            df["lead_grade"] = self._clean_numeric_vec(df["lead_grade"])
             df["is_new_lead"] = df["is_new_lead"].apply(
                 lambda v: str(v).strip() if pd.notna(v) else None
             )
@@ -1154,7 +1172,7 @@ class OpsLoader(BaseLoader):
 
             # 数值列向量化（强制 int）
             for col in ["pre_called", "pre_connected", "pre_connected_2h", "attended"]:
-                df[col] = df[col].apply(lambda v: int(self._clean_numeric(v) or 0))
+                df[col] = self._clean_numeric_vec(df[col]).fillna(0).astype(int)
 
             # 过滤无效行（team 为空）
             df = df[df["team"].notna()].copy()
@@ -1231,6 +1249,50 @@ class OpsLoader(BaseLoader):
                     d["attendance_rate"] = round(d["attended"] / total, 4)
                 by_lead_type[lt_name] = d
 
+            # by_channel_l3 聚合（新增：深层渠道分析）
+            by_channel_l3: dict = {}
+            df_l3 = df[df["channel_l3"].notna() & (df["channel_l3"].astype(str).str.strip() != "")].copy()
+            if not df_l3.empty:
+                l3_agg = df_l3.groupby("channel_l3").agg(
+                    total_classes=("channel_l3", "count"),
+                    pre_class_call=("pre_called", "sum"),
+                    pre_class_connect=("pre_connected", "sum"),
+                    pre_class_2h_connect=("pre_connected_2h", "sum"),
+                    attended=("attended", "sum"),
+                ).reset_index()
+                for _, row in l3_agg.iterrows():
+                    d = row.to_dict()
+                    l3_name = str(d.pop("channel_l3"))
+                    total = d["total_classes"]
+                    if total > 0:
+                        d["call_rate"] = round(d["pre_class_call"] / total, 4)
+                        d["connect_rate"] = round(d["pre_class_connect"] / total, 4)
+                        d["connect_2h_rate"] = round(d["pre_class_2h_connect"] / total, 4)
+                        d["attendance_rate"] = round(d["attended"] / total, 4)
+                    by_channel_l3[l3_name] = d
+
+            # by_lead_grade 聚合（新增：线索质量分层）
+            by_lead_grade: dict = {}
+            df_lg = df[df["lead_grade"].notna() & (df["lead_grade"].astype(str).str.strip() != "")].copy()
+            if not df_lg.empty:
+                lg_agg = df_lg.groupby("lead_grade").agg(
+                    total_classes=("lead_grade", "count"),
+                    pre_class_call=("pre_called", "sum"),
+                    pre_class_connect=("pre_connected", "sum"),
+                    pre_class_2h_connect=("pre_connected_2h", "sum"),
+                    attended=("attended", "sum"),
+                ).reset_index()
+                for _, row in lg_agg.iterrows():
+                    d = row.to_dict()
+                    lg_name = str(d.pop("lead_grade"))
+                    total = d["total_classes"]
+                    if total > 0:
+                        d["call_rate"] = round(d["pre_class_call"] / total, 4)
+                        d["connect_rate"] = round(d["pre_class_connect"] / total, 4)
+                        d["connect_2h_rate"] = round(d["pre_class_2h_connect"] / total, 4)
+                        d["attendance_rate"] = round(d["attended"] / total, 4)
+                    by_lead_grade[lg_name] = d
+
             n = len(records)
             summary = {
                 "total_records": n,
@@ -1247,6 +1309,8 @@ class OpsLoader(BaseLoader):
                 "by_cc": by_cc,
                 "by_team": by_team,
                 "by_lead_type": by_lead_type,
+                "by_channel_l3": by_channel_l3,
+                "by_lead_grade": by_lead_grade,
                 "summary": summary,
             }
         except Exception as e:

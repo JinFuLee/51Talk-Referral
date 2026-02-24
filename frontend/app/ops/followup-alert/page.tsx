@@ -6,6 +6,8 @@ import { ZeroFollowupAlert } from "@/components/ops/ZeroFollowupAlert";
 import { PrePostCompareChart } from "@/components/ops/PrePostCompareChart";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { ErrorBoundary } from "@/components/providers/ErrorBoundary";
+import { PageHeader } from "@/components/layout/PageHeader";
+import { OPS_PAGE } from "@/lib/layout";
 
 interface ZeroStudent {
   student_id?: string;
@@ -106,11 +108,8 @@ export default function FollowupAlertPage() {
   const isLoading = alertLoading || compareLoading;
 
   return (
-    <div className="max-w-none space-y-6">
-      <div>
-        <h1 className="text-xl font-bold text-slate-800">{t("ops.followup-alert.title")}</h1>
-        <p className="text-xs text-slate-400 mt-0.5">{t("ops.followup-alert.subtitle")}</p>
-      </div>
+    <div className={OPS_PAGE}>
+      <PageHeader title={t("ops.followup-alert.title")} subtitle={t("ops.followup-alert.subtitle")} />
 
       {isLoading ? (
         <div className="space-y-4">

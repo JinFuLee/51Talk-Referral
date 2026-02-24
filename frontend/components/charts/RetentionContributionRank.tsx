@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo, memo } from "react";
 import useSWR from "swr";
 import {
   BarChart,
@@ -12,6 +13,7 @@ import {
   Cell,
 } from "recharts";
 import { formatRevenue, CHART_FONT_SIZE, CHART_HEIGHT } from "@/lib/utils";
+import { swrFetcher } from "@/lib/api";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -47,12 +49,6 @@ const BAR_COLORS = [
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
-const fetcher = (url: string) =>
-  fetch(url).then((r) => {
-    if (!r.ok) throw new Error(`HTTP ${r.status}`);
-    return r.json();
-  });
-
 function ContributionBar({ pct }: { pct: number }) {
   const clamped = Math.min(Math.max(pct, 0), 100);
   return (
@@ -72,16 +68,30 @@ function ContributionBar({ pct }: { pct: number }) {
 
 // ── Component ────────────────────────────────────────────────────────────────
 
-export function RetentionContributionRank() {
+function RetentionContributionRankInner() {
   const { data, error, isLoading } = useSWR<RetentionAPIResponse>(
     "/api/analysis/retention-contribution",
-    fetcher
+    swrFetcher
   );
   const { data: rateData } = useSWR<ExchangeRateResponse>(
     "/api/config/exchange-rate",
-    fetcher
+    swrFetcher
   );
   const exchangeRate = rateData?.usd_to_thb ?? 34;
+
+  const rankings = useMemo(() => data?.rankings ?? [], [data?.rankings]);
+  const totalRetained = data?.total_retained ?? 0;
+
+  // Top 10 for bar chart
+  const top10 = useMemo(() => rankings.slice(0, 10), [rankings]);
+  const barData = useMemo(
+    () => top10.map((r) => ({ name: r.cc_name || "未知", revenue: r.retained_revenue_usd })),
+    [top10]
+  );
+  const totalRevenue = useMemo(
+    () => rankings.reduce((s, r) => s + r.retained_revenue_usd, 0),
+    [rankings]
+  );
 
   if (isLoading) {
     return (
@@ -99,9 +109,6 @@ export function RetentionContributionRank() {
     );
   }
 
-  const rankings = data?.rankings ?? [];
-  const totalRetained = data?.total_retained ?? 0;
-
   if (rankings.length === 0) {
     return (
       <div className="flex items-center justify-center h-48 text-sm text-slate-400">
@@ -109,13 +116,6 @@ export function RetentionContributionRank() {
       </div>
     );
   }
-
-  // Top 10 for bar chart
-  const top10 = rankings.slice(0, 10);
-  const barData = top10.map((r) => ({
-    name: r.cc_name || "未知",
-    revenue: r.retained_revenue_usd,
-  }));
 
   return (
     <div className="space-y-6">
@@ -136,10 +136,7 @@ export function RetentionContributionRank() {
         <div className="bg-slate-50 rounded-lg p-3">
           <p className="text-xs text-slate-400">留存总收入</p>
           <p className="text-lg font-bold text-slate-800 mt-0.5">
-            {formatRevenue(
-              rankings.reduce((s, r) => s + r.retained_revenue_usd, 0),
-              exchangeRate
-            )}
+            {formatRevenue(totalRevenue, exchangeRate)}
           </p>
         </div>
       </div>
@@ -156,17 +153,14 @@ export function RetentionContributionRank() {
             margin={{ top: 4, right: 24, left: 8, bottom: 4 }}
           >
             <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" horizontal={false} />
-            <XAxis
-              type="number"
+            <XAxis tickLine={false} axisLine={false} type="number"
               tick={{ fontSize: CHART_FONT_SIZE.sm }}
               tickFormatter={(v) => `$${v.toLocaleString()}`}
             />
-            <YAxis
-              type="category"
+            <YAxis tickLine={false} axisLine={false} type="category"
               dataKey="name"
               tick={{ fontSize: CHART_FONT_SIZE.md }}
-              width={72}
-            />
+              width={72} />
             <Tooltip
               formatter={(val) => [
                 formatRevenue(val as number, exchangeRate),
@@ -247,3 +241,5 @@ export function RetentionContributionRank() {
     </div>
   );
 }
+
+export const RetentionContributionRank = memo(RetentionContributionRankInner);

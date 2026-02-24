@@ -4,12 +4,11 @@ import React from "react";
 import { clsx } from "clsx";
 import useSWR from "swr";
 import { formatRevenue } from "@/lib/utils";
+import { swrFetcher } from "@/lib/api";
 
 interface SharedMetricsSlideProps {
   revealStep: number;
 }
-
-const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
 interface MetricCardProps {
   label: string;
@@ -51,7 +50,7 @@ function MetricCard({ label, value, target, gap, revealIndex, revealStep }: Metr
 }
 
 export function SharedMetricsSlide({ revealStep }: SharedMetricsSlideProps) {
-  const { data } = useSWR("/api/analysis/summary", fetcher);
+  const { data } = useSWR("/api/analysis/summary", swrFetcher);
   const summary = data?.data ?? {};
 
   const registrations = summary.registrations?.actual ?? 0;

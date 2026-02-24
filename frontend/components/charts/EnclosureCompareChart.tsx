@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, memo } from "react";
 import {
   BarChart,
   Bar,
@@ -14,6 +14,7 @@ import {
   LabelList,
 } from "recharts";
 import useSWR from "swr";
+import { swrFetcher } from "@/lib/api";
 import { Card } from "@/components/ui/Card";
 import { Spinner } from "@/components/ui/Spinner";
 
@@ -118,37 +119,30 @@ function CustomTooltip({ active, payload, label, isPercent, segments }: CustomTo
   );
 }
 
-const MOCK_DATA: EnclosureCompareData = {
-  segments: ["0-30", "31-60", "61-90", "91-180", "181+"],
-  comparison: [
-    { enclosure: "0-30", market_conv: 0.12, referral_conv: 0.18, market_participation: 0.25, referral_participation: 0.35, market_students: 100, referral_students: 80, market_mobilization: 0.15, referral_mobilization: 0.22, market_monthly_paid: 5, referral_monthly_paid: 8, conv_gap: 0.06 },
-    { enclosure: "31-60", market_conv: 0.09, referral_conv: 0.14, market_participation: 0.20, referral_participation: 0.28, market_students: 85, referral_students: 65, market_mobilization: 0.12, referral_mobilization: 0.18, market_monthly_paid: 4, referral_monthly_paid: 6, conv_gap: 0.05 },
-    { enclosure: "61-90", market_conv: 0.07, referral_conv: 0.10, market_participation: 0.15, referral_participation: 0.20, market_students: 70, referral_students: 50, market_mobilization: 0.09, referral_mobilization: 0.13, market_monthly_paid: 3, referral_monthly_paid: 4, conv_gap: 0.03 },
-    { enclosure: "91-180", market_conv: 0.05, referral_conv: 0.06, market_participation: 0.10, referral_participation: 0.12, market_students: 55, referral_students: 40, market_mobilization: 0.06, referral_mobilization: 0.08, market_monthly_paid: 2, referral_monthly_paid: 2, conv_gap: 0.01 },
-    { enclosure: "181+", market_conv: 0.08, referral_conv: 0.05, market_participation: 0.12, referral_participation: 0.09, market_students: 40, referral_students: 30, market_mobilization: 0.07, referral_mobilization: 0.05, market_monthly_paid: 1, referral_monthly_paid: 1, conv_gap: -0.03 },
-  ],
-};
 
-export function EnclosureCompareChart() {
+function EnclosureCompareChartInner() {
   const [metric, setMetric] = useState<MetricKey>("conv");
   const config = METRIC_CONFIGS[metric];
 
   const { data, isLoading, error } = useSWR<EnclosureCompareData>(
-    "enclosure-compare",
-    () => fetch("/api/analysis/enclosure-compare").then((r) => r.json()),
+    "/api/analysis/enclosure-compare",
+    swrFetcher,
     { shouldRetryOnError: false }
   );
 
-  const isMock = !isLoading && (!data || error);
-  const chartData = (data ?? MOCK_DATA).comparison.map((seg) => ({
-    name: `${seg.enclosure}天`,
-    [config.marketLabel]: Number((seg[config.marketKey] as number) ?? 0),
-    [config.referralLabel]: Number((seg[config.referralKey] as number) ?? 0),
-    conv_gap: seg.conv_gap,
-    enclosure: seg.enclosure,
-  }));
+  const hasData = data && data.comparison && data.comparison.length > 0;
 
-  const segments = (data ?? MOCK_DATA).comparison;
+  const chartData = hasData
+    ? data.comparison.map((seg) => ({
+        name: `${seg.enclosure}天`,
+        [config.marketLabel]: Number((seg[config.marketKey] as number) ?? 0),
+        [config.referralLabel]: Number((seg[config.referralKey] as number) ?? 0),
+        conv_gap: seg.conv_gap,
+        enclosure: seg.enclosure,
+      }))
+    : [];
+
+  const segments = hasData ? data.comparison : [];
 
   const gapSummary = segments.filter((s) => s.conv_gap >= 0).length;
   const totalSegs = segments.length;
@@ -182,12 +176,13 @@ export function EnclosureCompareChart() {
           <Spinner />
         </div>
       )}
-      {isMock && (
-        <div className="bg-amber-50 border border-amber-200 text-amber-700 px-3 py-1.5 rounded text-xs mb-2">
-          ⚠ 当前显示模拟数据（API 数据不可用）
+      {!isLoading && !hasData && (
+        <div className="flex flex-col items-center justify-center py-10 px-4 text-center bg-slate-50 border border-dashed border-slate-200 rounded-xl">
+          <p className="text-sm font-medium text-slate-600 mb-1">围场渠道对比数据暂未就绪</p>
+          <p className="text-xs text-slate-400">请先运行分析以生成 D2/D3 围场对照数据</p>
         </div>
       )}
-      {!isLoading && (
+      {!isLoading && hasData && (
         <>
           {/* Summary strip */}
           <div className="flex items-center gap-4 mb-4 text-xs">
@@ -213,18 +208,14 @@ export function EnclosureCompareChart() {
               barGap={4}
             >
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
-              <XAxis
-                dataKey="name"
+              <XAxis dataKey="name"
                 tick={{ fontSize: 12, fill: "hsl(var(--muted-foreground))" }}
                 axisLine={false}
-                tickLine={false}
-              />
-              <YAxis
-                tickFormatter={tickFormatter}
+                tickLine={false} />
+              <YAxis tickFormatter={tickFormatter}
                 tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
                 axisLine={false}
-                tickLine={false}
-              />
+                tickLine={false} />
               <Tooltip
                 content={
                   <CustomTooltip
@@ -233,7 +224,7 @@ export function EnclosureCompareChart() {
                   />
                 }
               />
-              <Legend wrapperStyle={{ fontSize: 12 }} />
+              <Legend iconType="circle" wrapperStyle={{ fontSize: 12 }} />
               <Bar dataKey={config.marketLabel} fill="hsl(var(--chart-2))" radius={[4, 4, 0, 0]}>
                 <LabelList
                   dataKey={config.marketLabel}
@@ -283,3 +274,5 @@ export function EnclosureCompareChart() {
     </Card>
   );
 }
+
+export const EnclosureCompareChart = memo(EnclosureCompareChartInner);

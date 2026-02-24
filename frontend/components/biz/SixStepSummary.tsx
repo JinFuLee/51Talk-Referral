@@ -46,8 +46,8 @@ function StepCard({
       <div className="text-sm text-slate-600">
         {Array.isArray(content) ? (
           <ul className="space-y-1">
-            {content.map((item, i) => (
-              <li key={i} className="flex gap-1.5">
+            {content.map((item) => (
+              <li key={item} className="flex gap-1.5">
                 <span className="text-primary/60 shrink-0">·</span>
                 {item}
               </li>

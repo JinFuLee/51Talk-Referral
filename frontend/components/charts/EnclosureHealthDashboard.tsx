@@ -1,6 +1,7 @@
 "use client";
 
 import useSWR from "swr";
+import { swrFetcher } from "@/lib/api";
 import { Card } from "@/components/ui/Card";
 import { Spinner } from "@/components/ui/Spinner";
 
@@ -13,68 +14,14 @@ interface EnclosureHealthSegment {
   participation_rate: number;
   followup_rate: number;
   monthly_paid: number;
+  channel_efficiency?: Record<string, any>;
+  followup_detail?: Record<string, any>;
 }
 
 interface EnclosureHealthData {
   segments: EnclosureHealthSegment[];
   overall_followup_rate: number;
 }
-
-const MOCK_DATA: EnclosureHealthData = {
-  segments: [
-    {
-      enclosure: "0-30",
-      health_score: 22.5,
-      status: "green",
-      active_students: 180,
-      conversion_rate: 0.18,
-      participation_rate: 0.32,
-      followup_rate: 0.75,
-      monthly_paid: 14,
-    },
-    {
-      enclosure: "31-60",
-      health_score: 16.8,
-      status: "green",
-      active_students: 220,
-      conversion_rate: 0.14,
-      participation_rate: 0.26,
-      followup_rate: 0.58,
-      monthly_paid: 10,
-    },
-    {
-      enclosure: "61-90",
-      health_score: 10.2,
-      status: "yellow",
-      active_students: 170,
-      conversion_rate: 0.09,
-      participation_rate: 0.19,
-      followup_rate: 0.42,
-      monthly_paid: 7,
-    },
-    {
-      enclosure: "91-180",
-      health_score: 5.8,
-      status: "red",
-      active_students: 150,
-      conversion_rate: 0.05,
-      participation_rate: 0.12,
-      followup_rate: 0.28,
-      monthly_paid: 3,
-    },
-    {
-      enclosure: "181+",
-      health_score: 3.1,
-      status: "red",
-      active_students: 80,
-      conversion_rate: 0.03,
-      participation_rate: 0.07,
-      followup_rate: 0.18,
-      monthly_paid: 1,
-    },
-  ],
-  overall_followup_rate: 0.48,
-};
 
 function pct(v: number) {
   return `${(v * 100).toFixed(1)}%`;
@@ -185,14 +132,13 @@ function MiniBar({ label, value, barClass }: MiniBarProps) {
 }
 
 export function EnclosureHealthDashboard() {
-  const { data, isLoading, error } = useSWR<EnclosureHealthData>(
-    "enclosure-health",
-    () => fetch("/api/analysis/enclosure-health").then((r) => r.json()),
+  const { data: d, isLoading, error } = useSWR<EnclosureHealthData>(
+    "/api/analysis/enclosure-health",
+    swrFetcher,
     { shouldRetryOnError: false }
   );
 
-  const isMock = !isLoading && (!data || error);
-  const d = data ?? MOCK_DATA;
+  const hasData = d && d.segments && d.segments.length > 0;
 
   return (
     <Card title="围场健康度仪表盘 (F7+F8+D3)">
@@ -201,12 +147,13 @@ export function EnclosureHealthDashboard() {
           <Spinner />
         </div>
       )}
-      {isMock && (
-        <div className="bg-amber-50 border border-amber-200 text-amber-700 px-3 py-1.5 rounded text-xs mb-2">
-          ⚠ 当前显示模拟数据（API 数据不可用）
+      {!isLoading && !hasData && (
+        <div className="flex flex-col items-center justify-center py-10 px-4 text-center bg-slate-50 border border-dashed border-slate-200 rounded-xl">
+          <p className="text-sm font-medium text-slate-600 mb-1">由于当前 A2/F7 分析数据未就绪，暂无围场健康度</p>
+          <p className="text-xs text-slate-400">请确保执行了全量 Loader 跑批并生成了围场底层快照</p>
         </div>
       )}
-      {!isLoading && (
+      {!isLoading && hasData && d && (
         <>
           {/* Overall followup rate banner */}
           <div className="flex items-center gap-3 mb-5 px-4 py-2.5 bg-white/95 backdrop-blur-md border border-border/40 shadow-flash rounded-2xl">
@@ -260,6 +207,37 @@ export function EnclosureHealthDashboard() {
                     <MiniBar label="跟进率" value={seg.followup_rate} barClass={cfg.bar} />
                   </div>
 
+                  {/* A2 Channel breakdown & F8 Follow-up */}
+                  <div className="text-[10px] space-y-1 mt-1 p-2 bg-white/50 border border-border/40 rounded-lg">
+                    <div className="font-semibold text-slate-500 mb-1 flex items-center justify-between">
+                      <span>渠道效率 (A2)</span>
+                      <span className="text-slate-400 font-normal border px-1 rounded-sm">参 | 转</span>
+                    </div>
+                    {["CC窄口径", "SS窄口径", "LP窄口径"].map((ch) => {
+                      const chData = seg.channel_efficiency?.[ch];
+                      if (!chData) return null;
+                      return (
+                        <div key={ch} className="flex justify-between text-slate-600">
+                          <span>{ch.replace("窄口径", "")}</span>
+                          <span>
+                            {pct(chData["参与率"] || 0)} | {pct(chData["围场转率"] || 0)}
+                          </span>
+                        </div>
+                      );
+                    })}
+                    <div className="border-t border-border/40 my-1"></div>
+                    <div className="flex justify-between text-slate-600">
+                      <span className="font-semibold text-slate-500">有效覆盖 (F8)</span>
+                      <span>
+                        {pct(
+                          seg.followup_detail?.summary?.effective_coverage ||
+                            seg.followup_detail?.effective_coverage ||
+                            0
+                        )}
+                      </span>
+                    </div>
+                  </div>
+
                   {/* Footer counts */}
                   <div className="grid grid-cols-2 gap-1 mt-auto">
                     <div className="bg-white/60 rounded-lg p-2 text-center">
@@ -281,7 +259,7 @@ export function EnclosureHealthDashboard() {
           </div>
 
           <p className="text-[10px] text-slate-400 mt-3">
-            健康度 = 转化率×40% + 参与率×30% + 跟进率×30% × 100 · 数据源：F7 付费跟进 / F8 围场月度跟进 / D3 转介绍围场
+            健康度 = 转化率×40% + 参与率×30% + 跟进率×30% × 100 · 数据源：F7 全局跟进 / F8 围场覆盖 / D3 围场概览 / A2 围场分布
           </p>
         </>
       )}

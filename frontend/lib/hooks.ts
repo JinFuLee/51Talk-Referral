@@ -10,7 +10,10 @@ import {
   snapshotsAPI,
   reportsAPI,
   configAPI,
+  swrFetcher,
+  periodQuery,
 } from "./api";
+import { useConfigStore } from "./stores/config-store";
 import type {
   DataSourceStatus,
   SnapshotStats,
@@ -27,161 +30,205 @@ import type {
   RootCauseData,
   StageEvaluation,
   PyramidReport,
+  ComparisonResponse,
+  LeadsOverviewData,
 } from "./types";
+import type { CCDetailData } from "./types/analysis";
 
 const REFRESH_30S: SWRConfiguration = { refreshInterval: 30_000 };
 
 // ── Health ─────────────────────────────────────────────────────────────────────
 
 export function useHealth() {
-  return useSWR("health", () =>
-    fetch("/api/health").then((r) => r.json())
-  );
+  return useSWR("/api/health", swrFetcher);
 }
 
 // ── Analysis summary ──────────────────────────────────────────────────────────
 
 export function useSummary() {
+  const period = useConfigStore((s) => s.period);
   return useSWR(
-    "analysis/summary",
-    () => analysisAPI.getSummary(),
+    ["analysis/summary", period],
+    () => analysisAPI.getSummary(period),
     REFRESH_30S
   );
 }
 
 export function useFunnel() {
-  return useSWR("analysis/funnel", () => analysisAPI.getFunnel());
+  const period = useConfigStore((s) => s.period);
+  return useSWR(["analysis/funnel", period], () => analysisAPI.getFunnel(period));
 }
 
 export function useChannelComparison() {
-  return useSWR("analysis/channel-comparison", () =>
-    analysisAPI.getChannelComparison()
+  const period = useConfigStore((s) => s.period);
+  return useSWR(["analysis/channel-comparison", period], () =>
+    analysisAPI.getChannelComparison(period)
   );
 }
 
 export function useTeamData() {
-  return useSWR("analysis/team-data", () => analysisAPI.getTeamData());
+  const period = useConfigStore((s) => s.period);
+  return useSWR(["analysis/team-data", period], () =>
+    analysisAPI.getTeamData(period)
+  );
 }
 
 export function useAnomalies() {
-  return useSWR<AnomalyItem[]>("analysis/anomalies", () =>
-    analysisAPI.getAnomalies() as Promise<AnomalyItem[]>
+  const period = useConfigStore((s) => s.period);
+  return useSWR<AnomalyItem[]>(["analysis/anomalies", period], () =>
+    analysisAPI.getAnomalies(period) as Promise<AnomalyItem[]>
   );
 }
 
 export function useRiskAlerts() {
-  return useSWR<RiskAlert[]>("analysis/risk-alerts", () =>
-    analysisAPI.getRiskAlerts() as Promise<RiskAlert[]>
+  const period = useConfigStore((s) => s.period);
+  return useSWR<RiskAlert[]>(["analysis/risk-alerts", period], () =>
+    analysisAPI.getRiskAlerts(period) as Promise<RiskAlert[]>
   );
 }
 
 export function useROI() {
-  return useSWR("analysis/roi", () => analysisAPI.getROI());
+  const period = useConfigStore((s) => s.period);
+  return useSWR(["analysis/roi", period], () => analysisAPI.getROI(period));
 }
 
 export function useROICostBreakdown() {
-  return useSWR("analysis/roi/cost-breakdown", () =>
-    analysisAPI.getROICostBreakdown()
+  const period = useConfigStore((s) => s.period);
+  return useSWR(["analysis/roi/cost-breakdown", period], () =>
+    analysisAPI.getROICostBreakdown(period)
   );
 }
 
 export function usePrediction() {
-  return useSWR("analysis/prediction", () => analysisAPI.getPrediction());
+  const period = useConfigStore((s) => s.period);
+  return useSWR(["analysis/prediction", period], () =>
+    analysisAPI.getPrediction(period)
+  );
 }
 
 export function useAttribution() {
-  return useSWR("analysis/attribution", () => analysisAPI.getAttribution());
+  const period = useConfigStore((s) => s.period);
+  return useSWR(["analysis/attribution", period], () =>
+    analysisAPI.getAttribution(period)
+  );
 }
 
 export function useCCRanking(topN = 10) {
-  return useSWR(["analysis/cc-ranking", topN], () =>
-    analysisAPI.getCCRanking(topN)
+  const period = useConfigStore((s) => s.period);
+  const focusCC = useConfigStore((s) => s.focusCC);
+  const params = new URLSearchParams({ top_n: String(topN), period });
+  if (focusCC) params.set("cc_name", focusCC);
+  const key = `/api/analysis/cc-ranking?${params.toString()}`;
+  return useSWR(["analysis/cc-ranking", topN, period, focusCC], () =>
+    swrFetcher(key)
   );
 }
 
 export function useSSRanking(topN = 10) {
-  return useSWR(["analysis/ss-ranking", topN], () =>
-    analysisAPI.getSSRanking(topN)
+  const period = useConfigStore((s) => s.period);
+  return useSWR(["analysis/ss-ranking", topN, period], () =>
+    analysisAPI.getSSRanking(topN, period)
   );
 }
 
 export function useLPRanking(topN = 10) {
-  return useSWR(["analysis/lp-ranking", topN], () =>
-    analysisAPI.getLPRanking(topN)
+  const period = useConfigStore((s) => s.period);
+  return useSWR(["analysis/lp-ranking", topN, period], () =>
+    analysisAPI.getLPRanking(topN, period)
   );
 }
 
 export function useCohort() {
-  return useSWR("analysis/cohort", () => analysisAPI.getCohort());
+  const period = useConfigStore((s) => s.period);
+  return useSWR(["analysis/cohort", period], () => analysisAPI.getCohort(period));
 }
 
 export function useCheckin() {
-  return useSWR("analysis/checkin", () => analysisAPI.getCheckin());
+  const period = useConfigStore((s) => s.period);
+  return useSWR(["analysis/checkin", period], () =>
+    analysisAPI.getCheckin(period)
+  );
 }
 
 export function useLeads() {
-  return useSWR("analysis/leads", () => analysisAPI.getLeads());
+  const period = useConfigStore((s) => s.period);
+  return useSWR(["analysis/leads", period], () => analysisAPI.getLeads(period));
 }
 
 export function useFollowup() {
-  return useSWR("analysis/followup", () => analysisAPI.getFollowup());
+  const period = useConfigStore((s) => s.period);
+  return useSWR(["analysis/followup", period], () =>
+    analysisAPI.getFollowup(period)
+  );
 }
 
 export function useTrialFollowup() {
-  return useSWR("analysis/trial-followup", () =>
-    fetch("/api/analysis/trial-followup").then((r) => r.json())
+  const period = useConfigStore((s) => s.period);
+  return useSWR(["analysis/trial-followup", period], () =>
+    swrFetcher(`/api/analysis/trial-followup${periodQuery(period)}`)
   );
 }
 
 export function useOrders() {
-  return useSWR("analysis/orders", () => analysisAPI.getOrders());
+  const period = useConfigStore((s) => s.period);
+  return useSWR(["analysis/orders", period], () =>
+    analysisAPI.getOrders(period)
+  );
 }
 
 export function useTrend(compareType: "mom" | "yoy" | "wow" = "mom") {
-  return useSWR(["analysis/trend", compareType], () =>
-    analysisAPI.getTrend(compareType)
+  const period = useConfigStore((s) => s.period);
+  return useSWR(["analysis/trend", compareType, period], () =>
+    analysisAPI.getTrend(compareType, period)
   );
 }
 
 export function useLTV() {
-  return useSWR("analysis/ltv", () => analysisAPI.getLTV());
+  const period = useConfigStore((s) => s.period);
+  return useSWR(["analysis/ltv", period], () => analysisAPI.getLTV(period));
 }
 
 // ── Biz-view hooks ─────────────────────────────────────────────────────────────
 
 export function useCohortROI() {
-  return useSWR("analysis/cohort-roi", () =>
-    fetch("/api/analysis/cohort-roi").then((r) => r.json())
+  const period = useConfigStore((s) => s.period);
+  return useSWR(["analysis/cohort-roi", period], () =>
+    swrFetcher(`/api/analysis/cohort-roi${periodQuery(period)}`)
   );
 }
 
 export function useEnclosure() {
-  return useSWR("analysis/enclosure", () =>
-    fetch("/api/analysis/enclosure").then((r) => r.json())
+  const period = useConfigStore((s) => s.period);
+  return useSWR(["analysis/enclosure", period], () =>
+    swrFetcher(`/api/analysis/enclosure${periodQuery(period)}`)
   );
 }
 
 export function useEnclosureCompare() {
-  return useSWR("analysis/enclosure-compare", () =>
-    fetch("/api/analysis/enclosure-compare").then((r) => r.json())
+  const period = useConfigStore((s) => s.period);
+  return useSWR(["analysis/enclosure-compare", period], () =>
+    swrFetcher(`/api/analysis/enclosure-compare${periodQuery(period)}`)
   );
 }
 
 export function useEnclosureCombined() {
-  return useSWR("analysis/enclosure-combined", () =>
-    fetch("/api/analysis/enclosure-combined").then((r) => r.json())
+  const period = useConfigStore((s) => s.period);
+  return useSWR(["analysis/enclosure-combined", period], () =>
+    swrFetcher(`/api/analysis/enclosure-combined${periodQuery(period)}`)
   );
 }
 
 export function useCheckinImpact() {
-  return useSWR("analysis/checkin-impact", () =>
-    fetch("/api/analysis/checkin-impact").then((r) => r.json())
+  const period = useConfigStore((s) => s.period);
+  return useSWR(["analysis/checkin-impact", period], () =>
+    swrFetcher(`/api/analysis/checkin-impact${periodQuery(period)}`)
   );
 }
 
 export function useProductivity() {
-  return useSWR("analysis/productivity", () =>
-    fetch("/api/analysis/productivity").then((r) => r.json())
+  const period = useConfigStore((s) => s.period);
+  return useSWR(["analysis/productivity", period], () =>
+    swrFetcher(`/api/analysis/productivity${periodQuery(period)}`)
   );
 }
 
@@ -282,83 +329,189 @@ export function useTargetRecommendation(month: string | null) {
 }
 
 export function useImpactChain() {
-  return useSWR<ImpactChainData>("analysis/impact-chain", () =>
-    analysisAPI.getImpactChain()
+  const period = useConfigStore((s) => s.period);
+  return useSWR<ImpactChainData>(["analysis/impact-chain", period], () =>
+    analysisAPI.getImpactChain(period)
   );
 }
 
 export function useRootCause() {
-  return useSWR<RootCauseData>("analysis/root-cause", () =>
-    analysisAPI.getRootCause()
+  const period = useConfigStore((s) => s.period);
+  return useSWR<RootCauseData>(["analysis/root-cause", period], () =>
+    analysisAPI.getRootCause(period)
   );
 }
 
 export function useStageEvaluation() {
-  return useSWR<StageEvaluation>("analysis/stage-evaluation", () =>
-    analysisAPI.getStageEvaluation()
+  const period = useConfigStore((s) => s.period);
+  return useSWR<StageEvaluation>(["analysis/stage-evaluation", period], () =>
+    analysisAPI.getStageEvaluation(period)
   );
 }
 
 export function usePyramidReport() {
-  return useSWR<PyramidReport>("analysis/pyramid-report", () =>
-    analysisAPI.getPyramidReport()
+  const period = useConfigStore((s) => s.period);
+  return useSWR<PyramidReport>(["analysis/pyramid-report", period], () =>
+    analysisAPI.getPyramidReport(period)
   );
 }
 
 export function usePackageMix() {
-  return useSWR("analysis/package-mix", () => analysisAPI.getPackageMix());
+  const period = useConfigStore((s) => s.period);
+  return useSWR(["analysis/package-mix", period], () =>
+    analysisAPI.getPackageMix(period)
+  );
 }
 
 export function useTeamPackageMix() {
-  return useSWR("analysis/team-package-mix", () => analysisAPI.getTeamPackageMix());
+  const period = useConfigStore((s) => s.period);
+  return useSWR(["analysis/team-package-mix", period], () =>
+    analysisAPI.getTeamPackageMix(period)
+  );
 }
 
 export function useChannelRevenue() {
-  return useSWR("analysis/channel-revenue", () => analysisAPI.getChannelRevenue());
+  const period = useConfigStore((s) => s.period);
+  return useSWR(["analysis/channel-revenue", period], () =>
+    analysisAPI.getChannelRevenue(period)
+  );
 }
 
 export function useOutreachCoverage() {
-  return useSWR("analysis/outreach-coverage", () => analysisAPI.getOutreachCoverage());
+  const period = useConfigStore((s) => s.period);
+  return useSWR(["analysis/outreach-coverage", period], () =>
+    analysisAPI.getOutreachCoverage(period)
+  );
 }
 
 export function useFunnelDetail() {
-  return useSWR("analysis/funnel-detail", () => analysisAPI.getFunnelDetail());
+  const period = useConfigStore((s) => s.period);
+  const focusCC = useConfigStore((s) => s.focusCC);
+  const params = new URLSearchParams();
+  if (period && period !== "this_month") params.set("period", period);
+  if (focusCC) params.set("cc_name", focusCC);
+  const qs = params.toString();
+  const key = `/api/analysis/funnel-detail${qs ? "?" + qs : ""}`;
+  return useSWR(["analysis/funnel-detail", period, focusCC], () =>
+    swrFetcher(key)
+  );
+}
+
+export function useOutreachHeatmap() {
+  const focusCC = useConfigStore((s) => s.focusCC);
+  const params = new URLSearchParams();
+  if (focusCC) params.set("cc_name", focusCC);
+  const qs = params.toString();
+  const key = `/api/analysis/outreach-heatmap${qs ? "?" + qs : ""}`;
+  return useSWR(["analysis/outreach-heatmap", focusCC], () =>
+    swrFetcher(key)
+  );
 }
 
 export function useSectionEfficiency() {
-  return useSWR("analysis/section-efficiency", () => analysisAPI.getSectionEfficiency());
+  const period = useConfigStore((s) => s.period);
+  return useSWR(["analysis/section-efficiency", period], () =>
+    analysisAPI.getSectionEfficiency(period)
+  );
 }
 
 export function useChannelMoM() {
-  return useSWR("analysis/channel-mom", () => analysisAPI.getChannelMoM());
+  const period = useConfigStore((s) => s.period);
+  return useSWR(["analysis/channel-mom", period], () =>
+    analysisAPI.getChannelMoM(period)
+  );
 }
 
 export function useRetentionContribution() {
-  return useSWR("analysis/retention-contribution", () => analysisAPI.getRetentionContribution());
+  const period = useConfigStore((s) => s.period);
+  return useSWR(["analysis/retention-contribution", period], () =>
+    analysisAPI.getRetentionContribution(period)
+  );
 }
 
 export function useEnclosureChannelMatrix() {
-  return useSWR("analysis/enclosure-channel-matrix", () => analysisAPI.getEnclosureChannelMatrix());
+  const period = useConfigStore((s) => s.period);
+  return useSWR(["analysis/enclosure-channel-matrix", period], () =>
+    analysisAPI.getEnclosureChannelMatrix(period)
+  );
 }
 
 export function useTimeInterval() {
-  return useSWR("analysis/time-interval", () => analysisAPI.getTimeInterval());
+  const period = useConfigStore((s) => s.period);
+  return useSWR(["analysis/time-interval", period], () =>
+    analysisAPI.getTimeInterval(period)
+  );
 }
 
 export function useProductivityHistory() {
-  return useSWR("analysis/productivity-history", () => analysisAPI.getProductivityHistory());
+  const period = useConfigStore((s) => s.period);
+  return useSWR(["analysis/productivity-history", period], () =>
+    analysisAPI.getProductivityHistory(period)
+  );
 }
 
 export function useOutreachGap() {
-  return useSWR("analysis/outreach-gap", () => analysisAPI.getOutreachGap());
+  const period = useConfigStore((s) => s.period);
+  return useSWR(["analysis/outreach-gap", period], () =>
+    analysisAPI.getOutreachGap(period)
+  );
 }
 
 export function useEnclosureHealth() {
-  return useSWR("analysis/enclosure-health", () => analysisAPI.getEnclosureHealth());
+  const period = useConfigStore((s) => s.period);
+  return useSWR(["analysis/enclosure-health", period], () =>
+    analysisAPI.getEnclosureHealth(period)
+  );
 }
 
 export function useCCRankingEnhanced(topN = 20) {
-  return useSWR(["analysis/cc-ranking-enhanced", topN], () => analysisAPI.getCCRankingEnhanced(topN));
+  const period = useConfigStore((s) => s.period);
+  return useSWR(["analysis/cc-ranking-enhanced", topN, period], () =>
+    analysisAPI.getCCRankingEnhanced(topN, period)
+  );
+}
+
+export function useCompareSummary() {
+  const period = useConfigStore((s) => s.period);
+  const compareMode = useConfigStore((s) => s.compareMode);
+
+  return useSWR<ComparisonResponse>(
+    compareMode !== 'off' ? ["analysis/compare-summary", period, compareMode] : null,
+    () => analysisAPI.getCompareSummary(period, compareMode)
+  );
+}
+
+export function useKPISparkline(days = 14) {
+  return useSWR(
+    ["analysis/kpi-sparkline", days],
+    () => analysisAPI.getKPISparkline(days)
+  );
+}
+
+export function useLeadsOverview(scope: string = 'total') {
+  const period = useConfigStore((s) => s.period);
+  return useSWR<LeadsOverviewData>(
+    ["analysis/leads-overview", scope, period],
+    () => analysisAPI.getLeadsOverview(scope, period)
+  );
+}
+
+// ── Notifications ─────────────────────────────────────────────────────────────
+
+export { useNotificationStore } from "./stores/notification-store";
+import { useNotificationStore as _useNotificationStore } from "./stores/notification-store";
+
+export function useNotifications() {
+  return _useNotificationStore();
+}
+
+// ── CC Drawer ─────────────────────────────────────────────────────────────────
+
+export function useCCDetail(ccName: string | null) {
+  return useSWR<CCDetailData>(
+    ccName ? `/api/analysis/cc-detail/${encodeURIComponent(ccName)}` : null,
+    swrFetcher
+  );
 }
 
 // ── i18n ──────────────────────────────────────────────────────────────────────

@@ -1,6 +1,6 @@
 """
-F4 渠道月度环比 API 端点
-GET /api/analysis/channel-mom — 渠道注册占比、效率指标月度趋势
+F4 渠道月度趋势 API 端点
+GET /api/analysis/channel-trend — 渠道注册占比、效率指标月度趋势
 """
 from __future__ import annotations
 
@@ -97,10 +97,10 @@ def _pivot_f4(records: list[dict], months: list[str]) -> list[dict]:
     return out
 
 
-@router.get("/channel-mom")
-async def get_channel_mom():
+@router.get("/channel-trend")
+def get_channel_trend() -> dict[str, Any]:
     """
-    F4 渠道月度环比数据。
+    F4 渠道月度趋势数据。
     返回:
     - records: 原始宽表记录（渠道行，列名 = {指标}__{月份}）
     - months: 可用月份列表（yyyyMM 字符串）

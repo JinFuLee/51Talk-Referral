@@ -65,9 +65,9 @@ export function AnomalyAlert({ anomalies, lang = "zh" }: AnomalyAlertProps) {
               </span>
             </div>
             <div className="space-y-2">
-              {items.map((a, i) => (
+              {items.map((a) => (
                 <div
-                  key={i}
+                  key={a.metric}
                   className={`rounded-2xl border p-4 shadow-flash hover:shadow-flash-lg hover:-translate-y-1 transition-all duration-500 ${cfg.bg} ${cfg.border}`}
                 >
                   <div className="flex items-start justify-between gap-2">

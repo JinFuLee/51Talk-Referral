@@ -1,7 +1,8 @@
 "use client";
 
 import React from "react";
-import { cn } from "@/lib/utils";
+import Link from "next/link";
+import { cn, formatRate } from "@/lib/utils";
 import type { ReactNode } from "react";
 
 type StatusLevel = "green" | "yellow" | "red" | "gray";
@@ -17,6 +18,8 @@ interface BigMetricCardProps {
   statusLabel?: string;
   miniChart?: ReactNode;
   className?: string;
+  drilldownHref?: string;
+  drilldownLabel?: string;
 }
 
 const statusColors: Record<StatusLevel, { badge: string; dot: string }> = {
@@ -44,13 +47,16 @@ function BigMetricCardBase({
   statusLabel,
   miniChart,
   className,
+  drilldownHref,
+  drilldownLabel = "查看明细 →",
 }: BigMetricCardProps) {
   const colors = status ? statusColors[status] : null;
 
-  return (
+  const inner = (
     <div
       className={cn(
-        "bg-white rounded-2xl border border-slate-100 shadow-lg p-6 flex flex-col gap-4",
+        "relative group bg-white rounded-2xl border border-slate-100 shadow-lg p-6 flex flex-col gap-4",
+        drilldownHref ? "cursor-pointer pb-8" : "",
         className
       )}
     >
@@ -85,7 +91,7 @@ function BigMetricCardBase({
         <div>
           <div className="flex justify-between text-xs text-slate-400 mb-1">
             <span>{progressLabel ?? "进度"}</span>
-            <span>{(progress * 100).toFixed(1)}%</span>
+            <span>{formatRate(progress)}</span>
           </div>
           <div className="h-2 rounded-full bg-slate-100 overflow-hidden">
             <div
@@ -105,8 +111,23 @@ function BigMetricCardBase({
 
       {/* Mini chart slot */}
       {miniChart && <div className="h-16">{miniChart}</div>}
+
+      {/* Drilldown hover label */}
+      {drilldownHref && (
+        <div className="absolute inset-x-0 bottom-1 flex justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-1 group-hover:translate-y-0">
+          <span className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-slate-100/80 backdrop-blur-sm text-slate-500">
+            {drilldownLabel}
+          </span>
+        </div>
+      )}
     </div>
   );
+
+  if (drilldownHref) {
+    return <Link href={drilldownHref} className="block no-underline">{inner}</Link>;
+  }
+
+  return inner;
 }
 
 export const BigMetricCard = React.memo(BigMetricCardBase);

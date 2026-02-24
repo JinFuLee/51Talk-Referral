@@ -102,12 +102,12 @@ export function CohortStudentOverview({ totalStudents, teams }: CohortStudentOve
           <ResponsiveContainer width="100%" height={220}>
             <BarChart data={chartData} margin={{ top: 4, right: 16, left: 0, bottom: 4 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-              <XAxis dataKey="name" tick={{ fontSize: 11 }} />
-              <YAxis tick={{ fontSize: 11 }} />
+              <XAxis tickLine={false} axisLine={false} dataKey="name" tick={{ fontSize: 11 }} />
+              <YAxis tickLine={false} axisLine={false} tick={{ fontSize: 11 }} />
               <Tooltip
                 contentStyle={{ fontSize: 12, borderRadius: 8, border: "1px solid hsl(var(--border))" }}
               />
-              <Legend wrapperStyle={{ fontSize: 11 }} />
+              <Legend iconType="circle" wrapperStyle={{ fontSize: 11 }} />
               <Bar dataKey="学员数" fill="#c7d2fe" radius={[3, 3, 0, 0]} />
               <Bar dataKey="有效学员" fill="hsl(var(--chart-4))" radius={[3, 3, 0, 0]} />
               <Bar dataKey="触达学员" fill="#38bdf8" radius={[3, 3, 0, 0]} />

@@ -5,15 +5,14 @@ import { Card } from "@/components/ui/Card";
 import { EnhancedRankingTable } from "@/components/charts/EnhancedRankingTable";
 import { GlossaryBanner } from "@/components/ui/GlossaryBanner";
 import { ErrorBoundary } from "@/components/providers/ErrorBoundary";
+import { PageHeader } from "@/components/layout/PageHeader";
+import { OPS_PAGE } from "@/lib/layout";
 
 export default function RankingEnhancedPage() {
   const { t } = useTranslation();
   return (
-    <div className="max-w-none space-y-4">
-      <div>
-        <h1 className="text-xl font-bold text-slate-800">{t("biz.ranking-enhanced.title")}</h1>
-        <p className="text-xs text-slate-400 mt-0.5">{t("biz.ranking-enhanced.subtitle")}</p>
-      </div>
+    <div className={OPS_PAGE}>
+      <PageHeader title={t("biz.ranking-enhanced.title")} subtitle={t("biz.ranking-enhanced.subtitle")} />
       <GlossaryBanner terms={[
         { term: "CC", definition: "前端销售" },
         { term: "触达率", definition: "有效通话(≥120s)学员/有效学员" },

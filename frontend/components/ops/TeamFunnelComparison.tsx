@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import useSWR from "swr";
 import {
   BarChart,
@@ -12,8 +12,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
-
-const fetcher = (url: string) => fetch(url).then((r) => r.json());
+import { swrFetcher } from "@/lib/api";
 
 type ViewMode = "count" | "rate";
 
@@ -74,8 +73,15 @@ export function TeamFunnelComparison() {
 
   const { data, isLoading, error } = useSWR<FunnelApiResponse>(
     `/api/analysis/funnel/team`,
-    fetcher,
+    swrFetcher,
     { refreshInterval: 0 }
+  );
+
+  const teams = useMemo(() => data?.teams ?? [], [data?.teams]);
+
+  const chartData = useMemo(
+    () => (view === "count" ? buildCountData(teams) : buildRateData(teams)),
+    [view, teams]
   );
 
   if (isLoading) {
@@ -94,8 +100,6 @@ export function TeamFunnelComparison() {
     );
   }
 
-  const teams = data.teams ?? [];
-
   if (teams.length === 0) {
     return (
       <div className="flex items-center justify-center h-64 text-slate-400 text-sm">
@@ -103,9 +107,6 @@ export function TeamFunnelComparison() {
       </div>
     );
   }
-
-  const chartData =
-    view === "count" ? buildCountData(teams) : buildRateData(teams);
 
   return (
     <div className="space-y-3">
@@ -136,18 +137,14 @@ export function TeamFunnelComparison() {
           margin={{ top: 4, right: 16, left: 0, bottom: 4 }}
         >
           <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-          <XAxis
-            dataKey="team"
+          <XAxis dataKey="team"
             tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
             axisLine={false}
-            tickLine={false}
-          />
-          <YAxis
-            tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
+            tickLine={false} />
+          <YAxis tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
             axisLine={false}
             tickLine={false}
-            unit={view === "rate" ? "%" : ""}
-          />
+            unit={view === "rate" ? "%" : ""} />
           <Tooltip
             contentStyle={{
               fontSize: 12,
@@ -160,9 +157,7 @@ export function TeamFunnelComparison() {
                 : [value, name]
             }
           />
-          <Legend
-            wrapperStyle={{ fontSize: 12, color: "hsl(var(--muted-foreground))" }}
-          />
+          <Legend iconType="circle" wrapperStyle={{ fontSize: 12, color: "hsl(var(--muted-foreground))" }} />
           {view === "count"
             ? (Object.keys(COLORS) as Array<keyof typeof COLORS>).map((k) => (
                 <Bar
@@ -201,9 +196,9 @@ export function TeamFunnelComparison() {
             </tr>
           </thead>
           <tbody>
-            {teams.map((t, i) => (
+            {teams.map((t) => (
               <tr
-                key={i}
+                key={t.team}
                 className="border-b border-slate-100 hover:bg-slate-50 transition-colors"
               >
                 <td className="px-3 py-2 font-medium text-slate-700">

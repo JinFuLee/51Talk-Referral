@@ -3,9 +3,13 @@ B 类 ROI 数据加载器 — 1 个数据源
 B1: 中台_转介绍ROI测算数据模型_M-1
 """
 from pathlib import Path
+from typing import Optional, TYPE_CHECKING
 import logging
 
 from .base import BaseLoader
+
+if TYPE_CHECKING:
+    from backend.core.project_config import ProjectConfig
 
 logger = logging.getLogger(__name__)
 
@@ -13,16 +17,21 @@ logger = logging.getLogger(__name__)
 class ROILoader(BaseLoader):
     """B 类 ROI 数据加载器（新版，使用 pandas）"""
 
-    def __init__(self, input_dir: Path):
-        super().__init__(input_dir)
+    def __init__(self, input_dir: Path, project_config: Optional["ProjectConfig"] = None) -> None:
+        super().__init__(input_dir, project_config)
 
     def load_all(self) -> dict:
         """加载所有 B 类数据源"""
         try:
-            return self._load_b1_roi_model()
+            res = self._load_b1_roi_model()
+            if not res:
+                return {"is_estimated": True, "data_source": "none"}
+            res["is_estimated"] = False
+            res["data_source"] = "real_b1"
+            return res
         except Exception as e:
             logger.error(f"B1 roi_model 加载失败: {e}")
-            return {}
+            return {"is_estimated": True, "data_source": "error"}
 
     # ── B1: 转介绍ROI测算数据模型 ────────────────────────────────────
     def _load_b1_roi_model(self) -> dict:
@@ -151,9 +160,9 @@ class ROILoader(BaseLoader):
             "激励详情": df.iloc[:, 2].apply(lambda v: str(v).strip() if pd.notna(v) else None),
             "推荐动作": df.iloc[:, 3].apply(lambda v: str(v).strip() if pd.notna(v) else None),
             "推荐规则描述": df.iloc[:, 4].apply(lambda v: str(v).strip() if pd.notna(v) else None),
-            "赠送数": df.iloc[:, 5].apply(self._clean_numeric) if df.shape[1] > 5 else None,
-            "成本单价USD": df.iloc[:, 6].apply(self._clean_numeric) if df.shape[1] > 6 else None,
-            "成本USD": df.iloc[:, 7].apply(self._clean_numeric) if df.shape[1] > 7 else None,
+            "赠送数": self._clean_numeric_vec(df.iloc[:, 5]) if df.shape[1] > 5 else None,
+            "成本单价USD": self._clean_numeric_vec(df.iloc[:, 6]) if df.shape[1] > 6 else None,
+            "成本USD": self._clean_numeric_vec(df.iloc[:, 7]) if df.shape[1] > 7 else None,
         })
 
         return result_df.to_dict("records")
@@ -182,7 +191,7 @@ class ROILoader(BaseLoader):
         for col in df.columns[1:]:
             if col == "_category":
                 continue
-            result_df[col] = df[col].apply(self._clean_numeric)
+            result_df[col] = self._clean_numeric_vec(df[col])
 
         return result_df.to_dict("records")
 

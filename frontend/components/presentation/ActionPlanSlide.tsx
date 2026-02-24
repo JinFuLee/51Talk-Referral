@@ -4,6 +4,7 @@ import React from "react";
 import { clsx } from "clsx";
 import useSWR from "swr";
 import { AlertTriangle, Clock, RefreshCw, CheckCircle2 } from "lucide-react";
+import { swrFetcher } from "@/lib/api";
 
 interface ActionItem {
   id: number;
@@ -17,8 +18,6 @@ interface ActionItem {
 interface ActionPlanSlideProps {
   revealStep: number;
 }
-
-const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
 const PRIORITY_CONFIG = {
   immediate: {
@@ -52,7 +51,7 @@ const PRIORITY_CONFIG = {
 
 function ActionGroup({
   priority,
-  items,
+  items = [],
   revealStep,
 }: {
   priority: "immediate" | "this-week" | "ongoing";
@@ -103,7 +102,7 @@ function ActionGroup({
 }
 
 export function ActionPlanSlide({ revealStep }: ActionPlanSlideProps) {
-  const { data, isLoading, error } = useSWR("/api/analysis/action-plan", fetcher);
+  const { data, isLoading, error } = useSWR("/api/analysis/action-plan", swrFetcher);
 
   const items: ActionItem[] = data?.data?.items ?? [];
   const immediate = items.filter((i) => i.priority === "immediate");

@@ -39,13 +39,14 @@ METRIC_KEYS = {
     "reach_rate": "触达率",
     "participation_rate": "参与率",
     "checkin_rate": "打卡率",
+    "checkin_rate_actual": "打卡率(实测)",
     "referral_coefficient": "带新系数",
     "conversion_ratio": "带货比",
 }
 
 
 @router.get("/cohort-decay-raw")
-async def get_cohort_decay_raw(
+def get_cohort_decay_raw(
     metric: str = Query(
         default="reach_rate",
         description="指标: reach_rate / participation_rate / checkin_rate / referral_coefficient / conversion_ratio",
@@ -92,7 +93,7 @@ async def get_cohort_decay_raw(
 
 
 @router.get("/cohort-coefficient")
-async def get_cohort_coefficient():
+def get_cohort_coefficient() -> dict[str, Any]:
     """
     返回 C4 带新系数 cohort 数据 + 黄金窗口月份。
     黄金窗口 = 所有入组月中平均带新系数最高的月龄（m1-m12）。

@@ -58,9 +58,9 @@ function ActionColumn({ label, sublabel, items, bgClass, headerClass, badgeClass
         {items.length === 0 && (
           <p className="text-sm text-slate-400 text-center py-4">暂无行动项</p>
         )}
-        {items.map((item, i) => (
+        {items.map((item) => (
           <div
-            key={i}
+            key={item.text}
             className="rounded-xl bg-white border border-slate-100 p-4 flex flex-col gap-2 shadow-sm"
           >
             <div className="flex items-start gap-3">
@@ -104,9 +104,9 @@ function ActionColumn({ label, sublabel, items, bgClass, headerClass, badgeClass
 }
 
 export function JointActionCard({
-  opsActions,
-  bizActions,
-  sharedActions,
+  opsActions = [],
+  bizActions = [],
+  sharedActions = [],
   revealStep,
 }: JointActionCardProps) {
   const columns: ColumnConfig[] = [

@@ -2,6 +2,7 @@
 ref-ops-engine FastAPI 主入口
 51Talk 泰国转介绍运营分析引擎 REST API
 """
+import asyncio
 import importlib
 import logging
 import sys
@@ -139,14 +140,11 @@ async def startup_event():
                 logger.warning(f"set_service 失败 [{_key}]: {_e}")
 
     # 后台自动运行分析（非阻塞）
-    import asyncio
     asyncio.create_task(_auto_run_analysis())
 
 
 async def _auto_run_analysis():
     """启动后自动运行一次分析（非阻塞），仅当 input 目录有数据文件时"""
-    import logging
-    logger = logging.getLogger(__name__)
     input_dir = PROJECT_ROOT / "input"
     # 检查 input 目录下是否有任何 xlsx 文件
     xlsx_files = list(input_dir.rglob("*.xlsx")) if input_dir.exists() else []
@@ -155,7 +153,8 @@ async def _auto_run_analysis():
         return
     try:
         logger.info(f"检测到 {len(xlsx_files)} 个数据文件，开始启动自动分析...")
-        _analysis_service.run()
+        loop = asyncio.get_running_loop()
+        await loop.run_in_executor(None, _analysis_service.run)
         logger.info("启动自动分析完成")
     except Exception as e:
         logger.warning(f"启动自动分析失败（非阻塞）: {e}")
@@ -163,4 +162,4 @@ async def _auto_run_analysis():
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True, loop="asyncio")

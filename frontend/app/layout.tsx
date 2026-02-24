@@ -1,14 +1,23 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import dynamic from "next/dynamic";
 import { SWRProvider } from "@/components/providers/SWRProvider";
 import { NavSidebar } from "@/components/layout/NavSidebar";
 import { Topbar } from "@/components/layout/Topbar";
+import { ComparisonBanner } from "@/components/shared/ComparisonBanner";
 import { WebMCPProvider } from "@/lib/webmcp";
 import { ErrorBoundary } from "@/components/providers/ErrorBoundary";
-import { CoPilotTerminal } from "@/components/ui/CoPilotTerminal";
-import { PresentationOverlay } from "@/components/ui/PresentationOverlay";
 import { ToastProvider } from "@/components/providers/ToastProvider";
 import "./globals.css";
+
+const CoPilotTerminal = dynamic(
+  () => import("@/components/ui/CoPilotTerminal").then((m) => ({ default: m.CoPilotTerminal })),
+  { ssr: false }
+);
+const PresentationOverlay = dynamic(
+  () => import("@/components/ui/PresentationOverlay").then((m) => ({ default: m.PresentationOverlay })),
+  { ssr: false }
+);
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -35,6 +44,7 @@ export default function RootLayout({
                 <div className="flex flex-col flex-1 overflow-hidden presentation-expand">
                   <div className="hide-in-presentation shrink-0">
                     <Topbar />
+                    <ComparisonBanner />
                   </div>
                   <main className="flex-1 overflow-auto p-6 presentation-expand relative">
                     {children}

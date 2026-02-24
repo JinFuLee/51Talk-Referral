@@ -72,18 +72,14 @@ export function RetentionCurveChart({ data }: RetentionCurveChartProps) {
       <ResponsiveContainer width="100%" height={260}>
         <LineChart data={chartData} margin={{ top: 8, right: 16, left: 0, bottom: 4 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-          <XAxis
-            dataKey="label"
-            tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
-          />
-          <YAxis
-            tickFormatter={(v) => `${(v * 100).toFixed(0)}%`}
+          <XAxis tickLine={false} axisLine={false} dataKey="label"
+            tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} />
+          <YAxis tickLine={false} axisLine={false} tickFormatter={(v) => `${(v * 100).toFixed(0)}%`}
             tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
             domain={[0, 1]}
           />
           <Tooltip content={<CustomTooltip />} />
-          <Legend
-            wrapperStyle={{ fontSize: 11, paddingTop: 8 }}
+          <Legend iconType="circle" wrapperStyle={{ fontSize: 11, paddingTop: 8 }}
             formatter={(value) => value === "rate_pct" ? "有效留存率" : value}
           />
 

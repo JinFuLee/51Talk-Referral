@@ -8,7 +8,8 @@ import sys
 from pathlib import Path
 from typing import Any
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Query
+from typing import Optional
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
@@ -114,13 +115,15 @@ def _build_heatmap_data(records: list[dict]) -> dict:
 
 
 @router.get("/outreach-heatmap")
-async def get_outreach_heatmap():
+def get_outreach_heatmap(
+    cc_name: Optional[str] = Query(default=None, description="筛选指定 CC（精确匹配）"),
+) -> dict[str, Any]:
     """
     F5 CC 外呼热力图（CC × 日期二维矩阵）。
 
     返回:
     - dates: 本月所有有数据的日期列表（升序）
-    - cc_names: CC 姓名列表（按月总拨打量降序）
+    - cc_names: CC 姓名列表（按月总拨打量降序），若传 cc_name 则只返回该 CC
     - data: 每个 (cc, date) 格子的拨打/接通/有效接通 数值
     - summary: { total_calls, avg_daily, top_cc }
     """
@@ -185,5 +188,16 @@ async def get_outreach_heatmap():
             "data": [],
             "summary": {"total_calls": 0, "avg_daily": 0, "top_cc": ""},
         }
+
+    # CC 筛选：精确匹配 cc_name
+    if cc_name:
+        records = [r for r in records if r.get("cc_name") == cc_name]
+        if not records:
+            return {
+                "dates": [],
+                "cc_names": [],
+                "data": [],
+                "summary": {"total_calls": 0, "avg_daily": 0, "top_cc": cc_name},
+            }
 
     return _build_heatmap_data(records)

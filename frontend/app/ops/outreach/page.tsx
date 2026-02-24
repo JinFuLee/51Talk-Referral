@@ -1,16 +1,59 @@
 "use client";
 
-import { useFollowup, useTranslation } from "@/lib/hooks";
+import { useState } from "react";
+import { useFollowup, useOutreachHeatmap, useTranslation } from "@/lib/hooks";
+import { clsx } from "clsx";
+import { formatRate } from "@/lib/utils";
 import { GlossaryBanner } from "@/components/ui/GlossaryBanner";
 import { TrendLineChart } from "@/components/charts/TrendLineChart";
 import { OutreachHeatmap } from "@/components/charts/OutreachHeatmap";
 import { CCOutreachTable } from "@/components/ops/CCOutreachTable";
+import { CCOutreachHeatmap } from "@/components/ops/CCOutreachHeatmap";
 import { StatMiniCard } from "@/components/ui/StatMiniCard";
 import { Card } from "@/components/ui/Card";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { ErrorBoundary } from "@/components/providers/ErrorBoundary";
+import { OutreachGapAnalysis } from "@/components/charts/OutreachGapAnalysis";
+import { PageHeader } from "@/components/layout/PageHeader";
+import { OPS_PAGE } from "@/lib/layout";
 
-export default function OpsOutreachPage() {
+// ── Types ─────────────────────────────────────────────────────────────────────
+
+interface HeatmapCell {
+  cc_name: string;
+  date: string;
+  calls: number;
+  connects: number;
+  effective: number;
+  effective_rate: number;
+}
+
+interface HeatmapSummary {
+  total_calls: number;
+  avg_daily: number;
+  top_cc: string;
+}
+
+interface HeatmapData {
+  dates: string[];
+  cc_names: string[];
+  data: HeatmapCell[];
+  summary: HeatmapSummary;
+}
+
+// ── Tab definitions ───────────────────────────────────────────────────────────
+
+const TABS = [
+  { key: "monitor", label: "外呼监控" },
+  { key: "heatmap", label: "热力图" },
+  { key: "gap", label: "外呼缺口" },
+] as const;
+
+type TabKey = (typeof TABS)[number]["key"];
+
+// ── Sub-tabs ──────────────────────────────────────────────────────────────────
+
+function MonitorTab() {
   const { t } = useTranslation();
   const { data: outreachRaw, isLoading } = useFollowup();
 
@@ -40,10 +83,13 @@ export default function OpsOutreachPage() {
     calls: (d.calls as number) ?? 0,
   }));
 
+  // Suppress unused variable warnings
+  void totalConnects;
+  void totalEffective;
+
   if (isLoading) {
     return (
-      <div className="max-w-none space-y-4">
-        <Skeleton className="h-8 w-48" />
+      <div className="space-y-4">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <Skeleton className="h-20" />
           <Skeleton className="h-20" />
@@ -59,17 +105,8 @@ export default function OpsOutreachPage() {
     );
   }
 
-  // Suppress unused variable warnings
-  void totalConnects;
-  void totalEffective;
-
   return (
-    <div className="max-w-none space-y-4">
-      <div>
-        <h1 className="text-xl font-bold text-slate-800">{t("ops.outreach.title")}</h1>
-        <p className="text-xs text-slate-400 mt-0.5">{t("ops.outreach.subtitle")}</p>
-      </div>
-
+    <div className="space-y-4">
       <GlossaryBanner terms={[
         { term: "有效接通", definition: "通话≥120秒" },
         { term: "均时", definition: "平均通话时长" },
@@ -78,8 +115,8 @@ export default function OpsOutreachPage() {
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <StatMiniCard label={t("ops.outreach.card.totalCalls")} value={totalCalls.toLocaleString()} accent="blue" />
-        <StatMiniCard label={t("ops.outreach.card.contactRate")} value={`${(contactRate * 100).toFixed(1)}%`} accent="green" />
-        <StatMiniCard label={t("ops.outreach.card.effectiveRate")} value={`${(effectiveRate * 100).toFixed(1)}%`} accent="yellow" />
+        <StatMiniCard label={t("ops.outreach.card.contactRate")} value={formatRate(contactRate)} accent="green" />
+        <StatMiniCard label={t("ops.outreach.card.effectiveRate")} value={formatRate(effectiveRate)} accent="yellow" />
         <StatMiniCard label={t("ops.outreach.card.avgDuration")} value={`${avgDuration.toFixed(0)}s`} accent="slate" />
       </div>
 
@@ -104,6 +141,133 @@ export default function OpsOutreachPage() {
           </Card>
         </div>
       </ErrorBoundary>
+    </div>
+  );
+}
+
+function HeatmapTab() {
+  const { t } = useTranslation();
+  const { data: rawHeatmap, isLoading, error } = useOutreachHeatmap();
+  const heatmap = rawHeatmap as HeatmapData | undefined;
+
+  if (isLoading) {
+    return (
+      <div className="space-y-4">
+        <div className="grid grid-cols-3 gap-4">
+          <Skeleton className="h-20" />
+          <Skeleton className="h-20" />
+          <Skeleton className="h-20" />
+        </div>
+        <Skeleton className="h-64" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
+        {t("ops.outreach-heatmap.label.loadFailed")} {String(error?.message ?? error)}
+      </div>
+    );
+  }
+
+  const summary = heatmap?.summary ?? { total_calls: 0, avg_daily: 0, top_cc: "" };
+
+  return (
+    <div className="space-y-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+          <div className="text-xs text-slate-500">{t("ops.outreach-heatmap.card.monthly")}</div>
+          <div className="mt-1 text-2xl font-bold text-blue-700">
+            {summary.total_calls.toLocaleString()}
+          </div>
+        </div>
+        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+          <div className="text-xs text-slate-500">{t("ops.outreach-heatmap.card.daily")}</div>
+          <div className="mt-1 text-2xl font-bold text-blue-600">
+            {summary.avg_daily.toLocaleString()}
+          </div>
+        </div>
+        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+          <div className="text-xs text-slate-500">{t("ops.outreach-heatmap.card.topCC")}</div>
+          <div className="mt-1 text-2xl font-bold text-indigo-700 truncate">
+            {summary.top_cc || "—"}
+          </div>
+        </div>
+      </div>
+
+      <ErrorBoundary>
+        <Card title={t("ops.outreach-heatmap.card.heatmap")}>
+          <CCOutreachHeatmap
+            dates={heatmap?.dates ?? []}
+            cc_names={heatmap?.cc_names ?? []}
+            data={heatmap?.data ?? []}
+          />
+        </Card>
+
+        <div className="flex items-center gap-2 text-xs text-slate-500">
+          <span>{t("ops.outreach-heatmap.label.colorLegend")}</span>
+          <span className="rounded px-2 py-0.5 bg-slate-50 border border-slate-200">0</span>
+          <span className="rounded px-2 py-0.5 bg-slate-100">低</span>
+          <span className="rounded px-2 py-0.5 bg-blue-100 text-blue-700">中低</span>
+          <span className="rounded px-2 py-0.5 bg-blue-300 text-white">中</span>
+          <span className="rounded px-2 py-0.5 bg-blue-500 text-white">中高</span>
+          <span className="rounded px-2 py-0.5 bg-blue-700 text-white">高</span>
+        </div>
+      </ErrorBoundary>
+    </div>
+  );
+}
+
+function GapTab() {
+  return (
+    <div className="space-y-4">
+      <GlossaryBanner terms={[
+        { term: "有效接通", definition: "通话≥120秒" },
+        { term: "覆盖缺口", definition: "目标覆盖率 - 实际覆盖率" },
+        { term: "CC", definition: "前端销售" },
+        { term: "有效学员", definition: "次卡>0且在有效期内" },
+      ]} />
+      <ErrorBoundary>
+        <OutreachGapAnalysis />
+      </ErrorBoundary>
+    </div>
+  );
+}
+
+// ── Main Page ─────────────────────────────────────────────────────────────────
+
+export default function OpsOutreachPage() {
+  const { t } = useTranslation();
+  const [activeTab, setActiveTab] = useState<TabKey>("monitor");
+
+  return (
+    <div className={OPS_PAGE}>
+      <PageHeader title={t("ops.outreach.title")} subtitle={t("ops.outreach.subtitle")} />
+
+      <div className="flex gap-1 border-b border-slate-200" role="tablist">
+        {TABS.map((tab) => (
+          <button
+            key={tab.key}
+            type="button"
+            role="tab"
+            aria-selected={activeTab === tab.key}
+            onClick={() => setActiveTab(tab.key)}
+            className={clsx(
+              "px-3 py-1.5 text-sm font-medium border-b-2 transition-colors",
+              activeTab === tab.key
+                ? "border-primary text-primary"
+                : "border-transparent text-slate-500 hover:text-slate-700"
+            )}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      {activeTab === "monitor" && <MonitorTab />}
+      {activeTab === "heatmap" && <HeatmapTab />}
+      {activeTab === "gap" && <GapTab />}
     </div>
   );
 }

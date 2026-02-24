@@ -53,17 +53,16 @@ export default function CoefficientScatterChart({
     <ResponsiveContainer width="100%" height={300}>
       <LineChart data={chartData} margin={{ top: 8, right: 16, left: 0, bottom: 4 }}>
         <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-        <XAxis dataKey="month" tick={{ fontSize: 11 }} />
-        <YAxis
-          tick={{ fontSize: 11 }}
+        <XAxis tickLine={false} axisLine={false} dataKey="month" tick={{ fontSize: 11 }} />
+        <YAxis tickLine={false} axisLine={false} tick={{ fontSize: 11 }}
           domain={["auto", "auto"]}
-          tickFormatter={(v: number) => v.toFixed(2)}
+          tickFormatter={(v: number) => v?.toFixed ? v.toFixed(2) : String(v ?? "")}
         />
         <Tooltip
-          formatter={(v: number, name: string) => [v.toFixed(3), name]}
+          formatter={(v: number, name: string) => [v?.toFixed ? v.toFixed(3) : String(v ?? ""), name]}
           labelStyle={{ fontWeight: 600 }}
         />
-        <Legend wrapperStyle={{ fontSize: 11 }} />
+        <Legend iconType="circle" wrapperStyle={{ fontSize: 11 }} />
         {goldenMonth !== null && (
           <ReferenceLine
             x={`M${goldenMonth}`}

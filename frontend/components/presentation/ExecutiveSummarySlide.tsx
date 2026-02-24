@@ -5,12 +5,11 @@ import { clsx } from "clsx";
 import { TrendingUp, TrendingDown, Minus } from "lucide-react";
 import useSWR from "swr";
 import { formatRevenue } from "@/lib/utils";
+import { swrFetcher } from "@/lib/api";
 
 interface ExecutiveSummarySlideProps {
   revealStep: number;
 }
-
-const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
 interface KpiCardItem {
   label: string;
@@ -68,11 +67,11 @@ function KpiCard({
     >
       <p className="text-sm font-medium text-slate-500 mb-2">{label}</p>
       <p className={clsx("text-5xl font-bold leading-none", valueColor)}>{value}</p>
-      {mom !== undefined && (
+      {mom != null && (
         <div className={clsx("flex items-center gap-1 mt-3 text-sm", momColor)}>
           <MomIcon className="w-4 h-4" />
           <span>
-            {mom > 0 ? "+" : ""}{mom.toFixed(1)}% 环比
+            {mom > 0 ? "+" : ""}{(mom ?? 0).toFixed(1)}% 环比
           </span>
         </div>
       )}
@@ -81,7 +80,7 @@ function KpiCard({
 }
 
 export function ExecutiveSummarySlide({ revealStep }: ExecutiveSummarySlideProps) {
-  const { data } = useSWR("/api/analysis/summary", fetcher);
+  const { data } = useSWR("/api/analysis/summary", swrFetcher);
 
   const summary = data?.data ?? {};
 

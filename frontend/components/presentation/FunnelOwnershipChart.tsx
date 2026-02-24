@@ -121,7 +121,7 @@ function FunnelBar({
 }
 
 export function FunnelOwnershipChart({ stages, revealStep }: FunnelOwnershipChartProps) {
-  const displayStages = stages.length > 0 ? stages : DEFAULT_STAGES;
+  const displayStages = stages && stages.length > 0 ? stages : DEFAULT_STAGES;
 
   // Find divider position: first "biz" stage
   const bizStartIndex = displayStages.findIndex((s) => s.owner === "biz");

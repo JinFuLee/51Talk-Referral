@@ -6,6 +6,9 @@ import { Card } from "@/components/ui/Card";
 import { CohortDecayChart } from "@/components/charts/CohortDecayChart";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { ErrorBoundary } from "@/components/providers/ErrorBoundary";
+import { DataSourceBadge } from "@/components/ui/DataSourceBadge";
+import { PageHeader } from "@/components/layout/PageHeader";
+import { BIZ_PAGE } from "@/lib/layout";
 import type { ROIData, ROICostBreakdownData, ROIProductSummary, ROICostItem } from "@/lib/types";
 
 interface ROIMetricBlock {
@@ -94,12 +97,9 @@ export default function BizROIPage() {
     }
   }
 
-  // Fallback: synthesize from total if no product breakdown
-  if (roiBlocks.length === 0) {
-    roiBlocks.push(
-      { label: "次卡 ROI", roi: 0.5, roi_target: null, cost: totalCost * 0.45, revenue: null },
-      { label: "现金 ROI", roi: 0.4, roi_target: null, cost: totalCost * 0.55, revenue: null }
-    );
+  // Fallback: 如果没有真实的选品维度的 ROI，则不再使用 Mock，而是留下说明
+  if (roiBlocks.length === 0 && !roiLoading && !costLoading) {
+    // Empty state 维持在空数组中，由 UI 部分判断
   }
 
   // Always add overall
@@ -110,6 +110,9 @@ export default function BizROIPage() {
     cost: totalCost,
     revenue: totalRevenue,
   });
+
+  // 是否为理论模型预估出来的结果
+  const isEstimated = roi?.is_estimated === true;
 
   // Cost breakdown: use real cost_list from API, fall back to empty
   const costItems: ROICostItem[] = roi?.cost_list ?? costData?.items ?? [];
@@ -128,6 +131,11 @@ export default function BizROIPage() {
       <ErrorBoundary>
       {/* ROI overview */}
       <Card title={t("biz.roi.card.overview")}>
+        {isEstimated && (
+          <div className="bg-amber-50 border border-amber-200 text-amber-700 px-3 py-1.5 rounded text-xs mb-4">
+            ⚠ 当前整体 ROI 尚未具备强归属 B1 源数据，数字为架构自动推算的预估指标 (Estimated)
+          </div>
+        )}
         <div className="grid grid-cols-3 gap-6">
           {roiBlocks.map((b) => (
             <ROIBlock key={b.label} block={b} />
@@ -181,8 +189,8 @@ export default function BizROIPage() {
             <tbody>
               {hasRealCostData ? (
                 <>
-                  {costItems.map((row, i) => (
-                    <tr key={i} className="border-b border-slate-50 hover:bg-slate-50">
+                  {costItems.map((row) => (
+                    <tr key={String(row.奖励类型)} className="border-b border-slate-50 hover:bg-slate-50">
                       <td className="py-3 font-medium text-slate-700">{row.奖励类型}</td>
                       <td className="py-3 text-slate-400">{row.激励详情 ?? "-"}</td>
                       <td className="py-3 text-slate-400">{row.推荐动作 ?? "-"}</td>

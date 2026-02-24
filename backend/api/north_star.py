@@ -7,7 +7,8 @@ from __future__ import annotations
 
 from typing import Any
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Query
+from typing import Optional
 
 router = APIRouter(tags=["north_star"])
 
@@ -29,12 +30,14 @@ def _get_raw_data() -> dict[str, Any]:
 
 
 @router.get("/north-star")
-async def get_north_star() -> dict[str, Any]:
+def get_north_star(
+    cc_name: Optional[str] = Query(default=None, description="筛选指定 CC（精确匹配）"),
+) -> dict[str, Any]:
     """
     D1 北极星指标：CC 24H 打卡率排名 + 达标分布
 
     返回：
-    - by_cc: CC 列表（按 checkin_24h_rate 降序）
+    - by_cc: CC 列表（按 checkin_24h_rate 降序），若传 cc_name 则只返回该 CC
     - by_team: 团队汇总
     - summary: 整体均值 / 目标 / 总达标数
     - achieved_count: 达标 CC 数
@@ -49,9 +52,13 @@ async def get_north_star() -> dict[str, Any]:
 
     sorted_cc = sorted(by_cc, key=lambda x: float(x.get("checkin_24h_rate") or 0), reverse=True)
 
+    # CC 筛选：精确匹配 cc_name
+    if cc_name:
+        sorted_cc = [cc for cc in sorted_cc if cc.get("cc_name") == cc_name]
+
     target = float(summary.get("target") or 0)
     achieved_count = (
-        sum(1 for cc in by_cc if float(cc.get("checkin_24h_rate") or 0) >= target)
+        sum(1 for cc in sorted_cc if float(cc.get("checkin_24h_rate") or 0) >= target)
         if target > 0
         else 0
     )
@@ -61,12 +68,12 @@ async def get_north_star() -> dict[str, Any]:
         "by_team": d1.get("by_team") or [],
         "summary": summary,
         "achieved_count": achieved_count,
-        "total_cc": len(by_cc),
+        "total_cc": len(sorted_cc),
     }
 
 
 @router.get("/checkin-ab")
-async def get_checkin_ab() -> dict[str, Any]:
+def get_checkin_ab() -> dict[str, Any]:
     """
     D1×D5 联合对比：24H 打卡率 × 月度打卡率 × 打卡倍率
 

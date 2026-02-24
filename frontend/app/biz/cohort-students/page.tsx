@@ -2,14 +2,15 @@
 
 import useSWR from "swr";
 import { useTranslation } from "@/lib/hooks";
+import { PageHeader } from "@/components/layout/PageHeader";
+import { BIZ_PAGE } from "@/lib/layout";
 import { CohortStudentOverview } from "@/components/biz/CohortStudentOverview";
 import { RetentionCurveChart } from "@/components/biz/RetentionCurveChart";
 import { CCBringNewRanking } from "@/components/biz/CCBringNewRanking";
 import { Card } from "@/components/ui/Card";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { ErrorBoundary } from "@/components/providers/ErrorBoundary";
-
-const fetcher = (url: string) => fetch(url).then((r) => r.json());
+import { swrFetcher } from "@/lib/api";
 
 interface CohortStudentsResponse {
   total_students: number;
@@ -60,12 +61,12 @@ export default function CohortStudentsPage() {
   const { t } = useTranslation();
   const { data, isLoading, error } = useSWR<CohortStudentsResponse>(
     `/api/analysis/cohort-students`,
-    fetcher
+    swrFetcher
   );
 
   if (isLoading) {
     return (
-      <div className="max-w-6xl mx-auto px-4 py-6 space-y-6">
+      <div className={BIZ_PAGE}>
         <Skeleton className="h-10 w-64" />
         <Skeleton className="h-48" />
         <Skeleton className="h-48" />
@@ -76,24 +77,20 @@ export default function CohortStudentsPage() {
 
   if (error || !data) {
     return (
-      <div className="max-w-4xl mx-auto px-4 py-12 text-center">
+      <div className={BIZ_PAGE}>
         <p className="text-sm text-red-500">{t("biz.cohort-students.label.loadError")}</p>
       </div>
     );
   }
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-6 space-y-6">
-      {/* Header */}
-      <div className="flex items-start justify-between">
-        <div>
-          <h1 className="text-xl font-bold text-slate-800">{t("biz.cohort-students.title")}</h1>
-          <p className="text-sm text-slate-500 mt-1">
-            {data.total_students.toLocaleString()} {t("biz.cohort-students.label.records")}
-          </p>
-        </div>
+    <div className={BIZ_PAGE}>
+      <PageHeader
+        title={t("biz.cohort-students.title")}
+        subtitle={`${data.total_students.toLocaleString()} ${t("biz.cohort-students.label.records")}`}
+      >
         <DataSourceBadge source={data.data_source} />
-      </div>
+      </PageHeader>
 
       <ErrorBoundary>
         {/* Overview + Team compare */}

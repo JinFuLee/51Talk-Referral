@@ -87,19 +87,14 @@ export default function CoverageGapTable({
                       data={by_grade}
                       margin={{ top: 8, right: 16, left: 8, bottom: 4 }}
                     >
-                      <CartesianGrid
-                        strokeDasharray="3 3"
+                      <CartesianGrid strokeDasharray="3 3"
                         vertical={false}
-                        stroke="hsl(var(--border))"
-                      />
-                      <XAxis
-                        dataKey="grade"
+                        stroke="hsl(var(--border))" />
+                      <XAxis dataKey="grade"
                         tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
                         axisLine={false}
-                        tickLine={false}
-                      />
-                      <YAxis
-                        tickFormatter={(v: number) => pct(v)}
+                        tickLine={false} />
+                      <YAxis tickFormatter={(v: number) => pct(v)}
                         tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
                         axisLine={false}
                         tickLine={false}

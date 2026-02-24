@@ -8,7 +8,7 @@ from datetime import datetime
 from typing import Any, Optional
 
 
-def _safe_get(d: dict, *keys, default=None):
+def _safe_get(d: dict, *keys, default=None) -> Any:
     """安全多级取值"""
     cur = d
     for k in keys:
@@ -62,7 +62,7 @@ class RootCauseEngine:
         channel_roi: dict = None,
         cc_individual: list = None,
         seasonal_data: dict = None,
-    ):
+    ) -> None:
         self.summary = summary or {}
         self.funnel = funnel or {}
         self.targets = targets or {}

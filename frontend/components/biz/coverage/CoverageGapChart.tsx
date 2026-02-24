@@ -82,26 +82,21 @@ export default function CoverageGapChart({ funnel }: CoverageGapChartProps) {
               data={funnelChartData}
               margin={{ top: 4, right: 80, left: 8, bottom: 4 }}
             >
-              <CartesianGrid
-                strokeDasharray="3 3"
+              <CartesianGrid strokeDasharray="3 3"
                 horizontal={false}
-                stroke="hsl(var(--border))"
-              />
-              <XAxis
-                type="number"
+                stroke="hsl(var(--border))" />
+              <XAxis type="number"
                 tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
                 axisLine={false}
                 tickLine={false}
                 tickFormatter={(v: number) => v.toLocaleString()}
               />
-              <YAxis
-                type="category"
+              <YAxis type="category"
                 dataKey="stage"
                 width={72}
                 tick={{ fontSize: 12, fill: "hsl(var(--muted-foreground))" }}
                 axisLine={false}
-                tickLine={false}
-              />
+                tickLine={false} />
               <Tooltip content={<FunnelTooltip />} />
               <Bar dataKey="count" radius={[0, 4, 4, 0]}>
                 <LabelList

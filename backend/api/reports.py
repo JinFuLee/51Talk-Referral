@@ -62,7 +62,7 @@ def _iter_ai_report_files() -> list[dict[str, Any]]:
     return reports
 
 
-def _iter_report_files():
+def _iter_report_files() -> list[dict[str, Any]]:
     """扫描 output/ 目录下的报告文件，返回元信息列表"""
     reports = []
     if not OUTPUT_DIR.exists():

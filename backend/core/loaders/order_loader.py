@@ -54,14 +54,14 @@ class OrderLoader(BaseLoader):
             df = df.rename(columns={k: v for k, v in col_map.items() if k in df.columns})
 
             # 向量化清洗日期列
-            df["_date"] = df["calldate"].apply(self._clean_date)
+            df["_date"] = self._clean_date_vec(df["calldate"])
             df = df[df["_date"].notna()].copy()
 
             if df.empty:
                 return []
 
-            df["_active_5min"] = df["active_5min"].apply(self._clean_numeric)
-            df["_active_30min"] = df["active_30min"].apply(self._clean_numeric)
+            df["_active_5min"] = self._clean_numeric_vec(df["active_5min"])
+            df["_active_30min"] = self._clean_numeric_vec(df["active_30min"])
 
             records = (
                 df[["_date", "_active_5min", "_active_30min"]]
@@ -123,7 +123,7 @@ class OrderLoader(BaseLoader):
                 return self._empty_order_detail()
 
             # 向量化构建所有清洗字段
-            df["_date"] = df["deal_time_day"].apply(self._clean_date)
+            df["_date"] = self._clean_date_vec(df["deal_time_day"])
             df["_student_id"] = df["stdt_id"].apply(
                 lambda v: str(v).strip() if pd.notna(v) else None
             )
@@ -142,9 +142,9 @@ class OrderLoader(BaseLoader):
             df["_product"] = df["product_name"].apply(
                 lambda v: str(v).strip() or None if pd.notna(v) else None
             )
-            df["_amount_thb"] = df["pay_amt"].apply(self._clean_numeric)
-            df["_amount_cny"] = df["pay_amt_cny"].apply(self._clean_numeric)
-            df["_amount_usd"] = df["pay_amt_usd"].apply(self._clean_numeric)
+            df["_amount_thb"] = self._clean_numeric_vec(df["pay_amt"])
+            df["_amount_cny"] = self._clean_numeric_vec(df["pay_amt_cny"])
+            df["_amount_usd"] = self._clean_numeric_vec(df["pay_amt_usd"])
             df["_order_id"] = df["ord_id"].apply(
                 lambda v: str(v).strip() or None if pd.notna(v) else None
             )
@@ -204,9 +204,10 @@ class OrderLoader(BaseLoader):
             },
             "referral_cc_new": {
                 "count": 0,
-                "amount_usd": 0,
-                "by_cc": {},
-                "by_date": [],
+                "revenue_usd": 0.0,
+                "revenue_cny": 0.0,
+                "revenue_thb": 0.0,
+                "by_cc": [],
             },
         }
 
@@ -214,9 +215,7 @@ class OrderLoader(BaseLoader):
 
     def _aggregate_orders_by_team_df(self, df: pd.DataFrame) -> dict:
         """向量化按团队聚合"""
-        df2 = df.copy()
-        df2["team"] = df2["team"].fillna("未知")
-        grp = df2.groupby("team", as_index=False).agg(
+        grp = df.assign(team=df["team"].fillna("未知")).groupby("team", as_index=False).agg(
             count=("team", "count"),
             revenue_cny=("amount_cny", "sum"),
             revenue_usd=("amount_usd", "sum"),
@@ -232,9 +231,7 @@ class OrderLoader(BaseLoader):
 
     def _aggregate_orders_by_channel_df(self, df: pd.DataFrame) -> dict:
         """向量化按渠道聚合"""
-        df2 = df.copy()
-        df2["channel"] = df2["channel"].fillna("未知")
-        grp = df2.groupby("channel", as_index=False).agg(
+        grp = df.assign(channel=df["channel"].fillna("未知")).groupby("channel", as_index=False).agg(
             count=("channel", "count"),
             revenue_cny=("amount_cny", "sum"),
             revenue_usd=("amount_usd", "sum"),
@@ -265,9 +262,7 @@ class OrderLoader(BaseLoader):
 
     def _aggregate_orders_by_date_df(self, df: pd.DataFrame) -> list:
         """向量化按日期聚合"""
-        df2 = df.copy()
-        df2["date"] = df2["date"].fillna("unknown")
-        grp = df2.groupby("date", as_index=False).agg(
+        grp = df.assign(date=df["date"].fillna("unknown")).groupby("date", as_index=False).agg(
             count=("date", "count"),
             revenue=("amount_cny", "sum"),
         )
@@ -373,7 +368,7 @@ class OrderLoader(BaseLoader):
             df = df.rename(columns={k: v for k, v in col_map.items() if k in df.columns})
 
             # 向量化清洗
-            df["_date"] = df["deal_time_day"].apply(self._clean_date)
+            df["_date"] = self._clean_date_vec(df["deal_time_day"])
             df = df[df["_date"].notna()].copy()
             if df.empty:
                 return []
@@ -381,7 +376,7 @@ class OrderLoader(BaseLoader):
             df["_product_type"] = df["product_type"].apply(
                 lambda v: str(v).strip() or None if pd.notna(v) else None
             )
-            df["_order_count"] = df["order_count"].apply(self._clean_numeric)
+            df["_order_count"] = self._clean_numeric_vec(df["order_count"])
 
             return (
                 df[["_date", "_product_type", "_order_count"]]
@@ -422,7 +417,7 @@ class OrderLoader(BaseLoader):
             df = df.rename(columns={k: v for k, v in col_map.items() if k in df.columns})
 
             # 向量化清洗
-            df["_date"] = df["deal_time_day"].apply(self._clean_date)
+            df["_date"] = self._clean_date_vec(df["deal_time_day"])
             df = df[df["_date"].notna()].copy()
             if df.empty:
                 return []
@@ -430,7 +425,7 @@ class OrderLoader(BaseLoader):
             df["_product_type"] = df["product_type"].apply(
                 lambda v: str(v).strip() or None if pd.notna(v) else None
             )
-            df["_revenue_cny"] = df["revenue_cny"].apply(self._clean_numeric)
+            df["_revenue_cny"] = self._clean_numeric_vec(df["revenue_cny"])
 
             return (
                 df[["_date", "_product_type", "_revenue_cny"]]
@@ -473,7 +468,7 @@ class OrderLoader(BaseLoader):
             records_df = pd.DataFrame()
             for col in df.columns:
                 if self._is_numeric_col(col):
-                    records_df[col] = df[col].apply(self._clean_numeric)
+                    records_df[col] = self._clean_numeric_vec(df[col])
                 else:
                     records_df[col] = df[col].apply(lambda v: str(v).strip() if pd.notna(v) else str(v))
 
@@ -495,20 +490,38 @@ class OrderLoader(BaseLoader):
             return {"by_team": []}
 
         try:
-            df = self._read_xlsx_pandas(path, header=[0, 1])
-            if df.empty:
+            # E7 有 3 行表头（row0/row1/row2），用 header=None 读取后手动跳过
+            df_raw = self._read_xlsx_pandas(path, header=None)
+            if df_raw.empty:
                 return {"by_team": []}
 
-            df.columns = [
-                "_".join(str(c).strip() for c in col if str(c) != "nan").strip("_")
-                for col in df.columns
+            # 跳过前 3 行表头，第 4 行起为数据
+            df = df_raw.iloc[3:].reset_index(drop=True)
+
+            # 用前两行拼合列名（row0 ffill + row1）
+            header_row0 = df_raw.iloc[0].ffill().tolist()
+            header_row1 = df_raw.iloc[1].tolist()
+            col_names = [
+                "_".join(str(c).strip() for c in [h0, h1] if str(c).strip() not in ("nan", "")).strip("_")
+                for h0, h1 in zip(header_row0, header_row1)
             ]
+            # 去重：若列名重复则追加序号
+            seen: dict = {}
+            deduped = []
+            for name in col_names:
+                if name in seen:
+                    seen[name] += 1
+                    deduped.append(f"{name}_{seen[name]}")
+                else:
+                    seen[name] = 0
+                    deduped.append(name)
+            df.columns = deduped
 
             # 向量化：按列名判断数值/字符串，整列 apply
             records_df = pd.DataFrame()
             for col in df.columns:
                 if self._is_numeric_col(col):
-                    records_df[col] = df[col].apply(self._clean_numeric)
+                    records_df[col] = self._clean_numeric_vec(df[col])
                 else:
                     records_df[col] = df[col].apply(lambda v: str(v).strip() if pd.notna(v) else str(v))
 
@@ -519,7 +532,7 @@ class OrderLoader(BaseLoader):
             return {"by_team": []}
 
     # ------------------------------------------------------------------ #
-    # E8: BI-订单_套餐分渠道金额_D-1（XML 损坏，calamine 优先）
+    # E8: BI-订单_套餐分渠道金额_D-1（XML 可能损坏；_read_xlsx_pandas 自动 fallback 到 calamine）
     # ------------------------------------------------------------------ #
 
     def _load_channel_revenue(self) -> dict:
@@ -529,20 +542,11 @@ class OrderLoader(BaseLoader):
             logger.warning(f"[E8] 未找到文件: {subdir}")
             return {}
 
-        # 先尝试 calamine（损坏 XML 兼容性更好）
-        try:
-            df = pd.read_excel(path, engine="calamine")
-            if df.empty:
-                raise ValueError("calamine 读取结果为空")
-        except Exception as e_cal:
-            logger.warning(f"[E8] calamine 读取失败，尝试 openpyxl: {e_cal}")
-            try:
-                df = pd.read_excel(path, engine="openpyxl")
-                if df.empty:
-                    raise ValueError("openpyxl 读取结果为空")
-            except Exception as e_oxl:
-                logger.warning(f"[E8] 所有引擎失败，返回空字典: {e_oxl}")
-                return {}
+        # 经 BaseLoader 缓存层读取：openpyxl 优先，损坏 XML 自动 fallback 到 calamine
+        df = self._read_xlsx_pandas(path)
+        if df.empty:
+            logger.warning(f"[E8] 读取结果为空，返回空字典")
+            return {}
 
         try:
             # 向量化：每列独立清洗（数值列用 _clean_numeric，其他转字符串）
@@ -552,7 +556,7 @@ class OrderLoader(BaseLoader):
                 series = df[col]
                 # 判断是否为数值类型列（按 dtype 或列名）
                 if pd.api.types.is_numeric_dtype(series):
-                    records_df[col_str] = series.apply(self._clean_numeric)
+                    records_df[col_str] = self._clean_numeric_vec(series)
                 else:
                     records_df[col_str] = series.apply(
                         lambda v: None if (pd.isna(v) if not isinstance(v, (list, dict, str)) else False)

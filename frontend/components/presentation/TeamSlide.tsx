@@ -4,12 +4,11 @@ import React from "react";
 import { clsx } from "clsx";
 import useSWR from "swr";
 import { TrendingUp, TrendingDown, Minus } from "lucide-react";
+import { swrFetcher } from "@/lib/api";
 
 interface TeamSlideProps {
   revealStep: number;
 }
-
-const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
 interface CCRankEntry {
   rank: number;
@@ -51,7 +50,7 @@ function ScoreBar({ value, max = 100 }: { value: number; max?: number }) {
 }
 
 export function TeamSlide({ revealStep }: TeamSlideProps) {
-  const { data, isLoading, error } = useSWR("/api/analysis/cc-ranking-enhanced", fetcher);
+  const { data, isLoading, error } = useSWR("/api/analysis/cc-ranking-enhanced", swrFetcher);
 
   if (isLoading) {
     return (

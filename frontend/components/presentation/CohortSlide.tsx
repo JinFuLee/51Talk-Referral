@@ -1,14 +1,13 @@
 "use client";
 
-import React from "react";
+import React, { useMemo } from "react";
 import { clsx } from "clsx";
 import useSWR from "swr";
+import { swrFetcher } from "@/lib/api";
 
 interface CohortSlideProps {
   revealStep: number;
 }
-
-const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
 interface CohortRow {
   cohort: string; // e.g. "2025-10"
@@ -28,14 +27,50 @@ function getHeatColor(rate: number | null): string {
 export function CohortSlide({ revealStep }: CohortSlideProps) {
   const { data: cohortData, isLoading: cohortLoading } = useSWR(
     "/api/analysis/cohort",
-    fetcher
+    swrFetcher
   );
   const { data: decayData, isLoading: decayLoading } = useSWR(
     "/api/analysis/cohort-decay",
-    fetcher
+    swrFetcher
   );
 
   const isLoading = cohortLoading && decayLoading;
+
+  // Parse cohort rows from either endpoint
+  const { rows, maxPeriods } = useMemo(() => {
+    const rawCohort = cohortData?.data ?? cohortData ?? {};
+    const rawDecay = decayData?.data ?? decayData ?? {};
+    let parsedRows: CohortRow[] = [];
+    let parsedMax = 6;
+    if (rawCohort.rows && Array.isArray(rawCohort.rows)) {
+      parsedRows = rawCohort.rows as CohortRow[];
+      parsedMax = rawCohort.max_periods ?? 6;
+    } else if (rawDecay.cohort_matrix && Array.isArray(rawDecay.cohort_matrix)) {
+      parsedRows = rawDecay.cohort_matrix as CohortRow[];
+      parsedMax = parsedRows[0]?.periods?.length ?? 6;
+    } else if (Array.isArray(rawCohort)) {
+      parsedRows = rawCohort as CohortRow[];
+    } else if (Array.isArray(rawDecay)) {
+      parsedRows = rawDecay as CohortRow[];
+    }
+    return { rows: parsedRows, maxPeriods: parsedMax };
+  }, [cohortData, decayData]);
+
+  // Build period headers
+  const periodHeaders = useMemo(
+    () => Array.from({ length: maxPeriods }, (_, i) => `M${i}`),
+    [maxPeriods]
+  );
+
+  // Key insights: average M1 retention, average M3 retention
+  const { avgM1, avgM3 } = useMemo(() => {
+    const m1Rates = rows.map((r) => r.periods[1] ?? null).filter((v): v is number => v !== null);
+    const m3Rates = rows.map((r) => r.periods[3] ?? null).filter((v): v is number => v !== null);
+    return {
+      avgM1: m1Rates.length > 0 ? m1Rates.reduce((a, b) => a + b, 0) / m1Rates.length : null,
+      avgM3: m3Rates.length > 0 ? m3Rates.reduce((a, b) => a + b, 0) / m3Rates.length : null,
+    };
+  }, [rows]);
 
   if (isLoading) {
     return (
@@ -44,35 +79,6 @@ export function CohortSlide({ revealStep }: CohortSlideProps) {
       </div>
     );
   }
-
-  // Parse cohort rows from either endpoint
-  const rawCohort = cohortData?.data ?? cohortData ?? {};
-  const rawDecay = decayData?.data ?? decayData ?? {};
-
-  let rows: CohortRow[] = [];
-  let maxPeriods = 6;
-
-  // Try cohort endpoint first
-  if (rawCohort.rows && Array.isArray(rawCohort.rows)) {
-    rows = rawCohort.rows as CohortRow[];
-    maxPeriods = rawCohort.max_periods ?? 6;
-  } else if (rawDecay.cohort_matrix && Array.isArray(rawDecay.cohort_matrix)) {
-    rows = rawDecay.cohort_matrix as CohortRow[];
-    maxPeriods = rows[0]?.periods?.length ?? 6;
-  } else if (Array.isArray(rawCohort)) {
-    rows = rawCohort as CohortRow[];
-  } else if (Array.isArray(rawDecay)) {
-    rows = rawDecay as CohortRow[];
-  }
-
-  // Build period headers
-  const periodHeaders = Array.from({ length: maxPeriods }, (_, i) => `M${i}`);
-
-  // Key insights: average M1 retention, average M3 retention
-  const m1Rates = rows.map((r) => r.periods[1] ?? null).filter((v): v is number => v !== null);
-  const m3Rates = rows.map((r) => r.periods[3] ?? null).filter((v): v is number => v !== null);
-  const avgM1 = m1Rates.length > 0 ? m1Rates.reduce((a, b) => a + b, 0) / m1Rates.length : null;
-  const avgM3 = m3Rates.length > 0 ? m3Rates.reduce((a, b) => a + b, 0) / m3Rates.length : null;
 
   return (
     <div className="flex flex-col h-full gap-4">

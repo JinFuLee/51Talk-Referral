@@ -36,7 +36,7 @@ function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
     <div className="bg-white/95 backdrop-blur-md border border-border/40 rounded-xl shadow-lg p-3 text-xs">
       <p className="font-semibold text-slate-700 mb-1">{label}</p>
       {payload.map((entry) => (
-        <p key={entry.dataKey} style={{ color: entry.color }} className="mt-0.5">
+        <p key={String(entry.name)} style={{ color: entry.color }} className="mt-0.5">
           {entry.name}:{" "}
           <span className="font-medium">
             {typeof entry.value === "number" ? entry.value.toLocaleString() : entry.value}
@@ -75,10 +75,10 @@ export function DailyKPIChart({ data }: DailyKPIChartProps) {
           </filter>
         </defs>
         <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-        <XAxis dataKey="date" tick={{ fontSize: CHART_FONT_SIZE.md }} />
-        <YAxis tick={{ fontSize: CHART_FONT_SIZE.md }} />
+        <XAxis tickLine={false} axisLine={false} dataKey="date" tick={{ fontSize: CHART_FONT_SIZE.md }} />
+        <YAxis tickLine={false} axisLine={false} tick={{ fontSize: CHART_FONT_SIZE.md }} />
         <Tooltip content={<CustomTooltip />} />
-        <Legend wrapperStyle={{ fontSize: CHART_FONT_SIZE.md }} />
+        <Legend iconType="circle" wrapperStyle={{ fontSize: CHART_FONT_SIZE.md }} />
         {metrics.map((m, i) => (
           <Line
             key={m}

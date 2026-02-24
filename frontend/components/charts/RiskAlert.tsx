@@ -53,11 +53,11 @@ export function RiskAlert({ alerts, lang = "zh" }: RiskAlertProps) {
 
   return (
     <div className="space-y-2">
-      {sorted.map((alert, i) => {
+      {sorted.map((alert) => {
         const cfg = LEVEL_CONFIG[alert.level];
         return (
           <div
-            key={i}
+            key={`${alert.level}-${alert.metric}`}
             className={`rounded-lg border p-3 ${cfg.bg} ${cfg.border}`}
           >
             <div className="flex items-start gap-2">

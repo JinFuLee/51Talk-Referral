@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, memo } from "react";
 import {
   BarChart,
   Bar,
@@ -40,7 +40,7 @@ interface Props {
   comparison: EnclosureComparePoint[];
 }
 
-export function EnclosureCompareChart({ comparison }: Props) {
+function EnclosureCompareChartInner({ comparison }: Props) {
   const [metric, setMetric] = useState<Metric>("conv");
 
   const selected = METRIC_OPTIONS.find((o) => o.value === metric)!;
@@ -115,14 +115,13 @@ export function EnclosureCompareChart({ comparison }: Props) {
       <ResponsiveContainer width="100%" height={260}>
         <BarChart data={chartData} margin={{ top: 4, right: 16, left: 0, bottom: 4 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-          <XAxis
-            dataKey="enclosure"
+          <XAxis tickLine={false} axisLine={false} dataKey="enclosure"
             tick={{ fontSize: 12 }}
             tickFormatter={(v) => `${v}天`}
           />
-          <YAxis tickFormatter={yFormatter} tick={{ fontSize: 11 }} width={48} />
+          <YAxis tickLine={false} axisLine={false} tickFormatter={yFormatter} tick={{ fontSize: 11 }} width={48} />
           <Tooltip content={<CustomTooltip />} />
-          <Legend />
+          <Legend iconType="circle"  />
           <Bar dataKey="市场" fill="hsl(var(--chart-2))" radius={[4, 4, 0, 0]} />
           <Bar dataKey="转介绍" fill="hsl(var(--chart-4))" radius={[4, 4, 0, 0]} />
         </BarChart>
@@ -158,3 +157,5 @@ export function EnclosureCompareChart({ comparison }: Props) {
     </div>
   );
 }
+
+export const EnclosureCompareChart = memo(EnclosureCompareChartInner);

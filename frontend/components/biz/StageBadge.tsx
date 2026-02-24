@@ -117,8 +117,8 @@ export function StageBadge({ data }: StageBadgeProps) {
         <div className="mb-4">
           <h3 className="text-sm font-semibold text-slate-600 mb-2">升级建议</h3>
           <ul className="space-y-1">
-            {data.upgrade_suggestions.map((s, i) => (
-              <li key={i} className="text-sm text-slate-600 flex gap-2">
+            {data.upgrade_suggestions.map((s) => (
+              <li key={s} className="text-sm text-slate-600 flex gap-2">
                 <span className="text-primary/60 shrink-0">•</span>
                 <span>{s}</span>
               </li>
@@ -134,8 +134,8 @@ export function StageBadge({ data }: StageBadgeProps) {
         </h3>
         <p className="text-xs text-slate-500 mb-1">关键要求</p>
         <ul className="space-y-0.5">
-          {data.next_stage.key_requirements.map((req, i) => (
-            <li key={i} className="text-xs text-slate-600 flex gap-1.5">
+          {data.next_stage.key_requirements.map((req) => (
+            <li key={req} className="text-xs text-slate-600 flex gap-1.5">
               <span className="text-primary/60">→</span>
               {req}
             </li>

@@ -44,7 +44,7 @@ function RankingTableBase({ data, role }: RankingTableProps) {
           </thead>
           <tbody>
             {data.map((row, i) => (
-              <tr key={i} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
+              <tr key={(row.name as string) ?? (row.cc_name as string) ?? i} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
                 {columns.map((col) => {
                   const val = row[col];
                   const formatted =

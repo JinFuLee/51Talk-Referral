@@ -33,7 +33,7 @@ def _require_cache() -> dict[str, Any]:
 
 
 @router.get("/root-cause", summary="5-Why 根因分析")
-def get_root_cause():
+def get_root_cause() -> dict[str, Any]:
     """对所有异常 KPI 执行5-Why因果链分析（规则引擎，不依赖LLM）"""
     cache = _require_cache()
     from core.root_cause import RootCauseEngine
@@ -58,7 +58,7 @@ def get_root_cause():
 
 
 @router.get("/stage-evaluation", summary="转介绍阶段评估")
-def get_stage_evaluation():
+def get_stage_evaluation() -> dict[str, Any]:
     """评估当前转介绍运营成熟度阶段（基础启动/科学运营/系统思维）"""
     cache = _require_cache()
     from core.stage_evaluator import StageEvaluator
@@ -67,7 +67,7 @@ def get_stage_evaluation():
 
 
 @router.get("/pyramid-report", summary="金字塔结构报告")
-def get_pyramid_report():
+def get_pyramid_report() -> dict[str, Any]:
     """生成结论先行的金字塔结构报告（SCQA + MECE拆解 + 六步法）"""
     cache = _require_cache()
     from core.report_generator_v2 import PyramidReportGenerator

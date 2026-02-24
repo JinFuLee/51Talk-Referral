@@ -34,7 +34,7 @@ body {
     --card-foreground: 222.2 20% 25%;
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 20% 25%;
-    
+
     /* 核心点缀色 (低饱和、高明度) */
     --primary: 173 58% 39%; /* 水月薄荷绿 */
     --primary-foreground: 0 0% 100%;
@@ -44,14 +44,14 @@ body {
     --muted-foreground: 215 16% 55%; /* 更柔和的次要文本 */
     --accent: 210 40% 96.1%;
     --accent-foreground: 222.2 47.4% 11.2%;
-    
+
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
     /* 弱化边界感 */
-    --border: 210 20% 94%; 
+    --border: 210 20% 94%;
     --input: 210 20% 94%;
     --ring: 173 58% 39%;
-    
+
     --success: 142 71% 45%;
     --success-foreground: 0 0% 100%;
     --warning: 38 92% 50%;
@@ -75,7 +75,7 @@ body {
     --chart-lime: 84 81% 44%;
     --chart-pink: 330 81% 60%;
     --chart-emerald: 160 84% 39%;
-    
+
     --radius: 1rem; /* 增大圆角，从默认 0.75rem 到 1rem */
   }
 
@@ -105,7 +105,7 @@ body {
     --warning-foreground: 0 0% 100%;
     --info: 210 80% 65%;
     --info-foreground: 0 0% 100%;
-    
+
     --chart-1: 173 58% 39%;
     --chart-2: 210 80% 65%;
     --chart-3: 142 71% 45%; /* 与 light 保持逻辑一致的绿色 */
@@ -125,11 +125,35 @@ body {
 }
 
 @layer base {
-  /*
   * {
     @apply border-border;
   }
-  */
+  
+  /* Typography System / 字体排印规范 */
+  h1 {
+    @apply scroll-m-20 text-4xl font-extrabold tracking-tight lg:text-5xl;
+  }
+  h2 {
+    @apply scroll-m-20 text-3xl font-semibold tracking-tight first:mt-0;
+  }
+  h3 {
+    @apply scroll-m-20 text-2xl font-semibold tracking-tight;
+  }
+  h4 {
+    @apply scroll-m-20 text-xl font-semibold tracking-tight;
+  }
+  h5 {
+    @apply scroll-m-20 text-lg font-medium tracking-tight;
+  }
+  h6 {
+    @apply scroll-m-20 text-base font-medium tracking-tight;
+  }
+  p {
+    @apply leading-7;
+  }
+  blockquote {
+    @apply border-l-2 pl-6 italic text-muted-foreground;
+  }
 }
 
 /* =========================================
@@ -162,9 +186,9 @@ body.presentation-mode .presentation-watermark {
     padding: 0 !important;
     margin: 0 !important;
   }
-  
-  .hide-in-presentation, 
-  nav, 
+
+  .hide-in-presentation,
+  nav,
   aside,
   button,
   .shadow-flash,
@@ -174,7 +198,8 @@ body.presentation-mode .presentation-watermark {
     border: none !important;
   }
 
-  .presentation-expand, main {
+  .presentation-expand,
+  main {
     width: 100% !important;
     max-width: 100% !important;
     padding: 0 !important;
@@ -190,4 +215,118 @@ body.presentation-mode .presentation-watermark {
     display: flex !important;
     color: #94a3b8 !important; /* Force render color in print */
   }
+}
+
+/* =========================================
+   🔗 Chart Linkage Interaction (图表联动视觉)
+   ========================================= */
+
+.chart-linkage-group .chart-linkage-item {
+  transition:
+    opacity 0.3s ease,
+    filter 0.3s ease;
+}
+
+/* 当整个容器处于联动激活状态时，未选中的元素降低透明度 */
+.chart-linkage-group.has-active .chart-linkage-item:not(.is-active) {
+  opacity: 0.3;
+  filter: grayscale(40%);
+}
+
+/* =========================================
+   📱 Responsive Chart Degradation (图表响应式降级)
+   ========================================= */
+
+/* 紧凑模式下隐藏图例以节省空间 */
+.chart-compact-mode .recharts-legend-wrapper {
+  display: none !important;
+}
+
+/* 紧凑模式下调小或精简 X 轴文字 */
+.chart-compact-mode .recharts-cartesian-axis-x .recharts-cartesian-axis-tick-value {
+  font-size: 10px !important;
+}
+
+/* 紧凑模式下调小 Y 轴边缘边距 */
+.chart-compact-mode .recharts-yAxis .recharts-cartesian-axis-tick-value {
+  font-size: 10px !important;
+}
+
+/* 选中的元素保持高亮 */
+.chart-linkage-group.has-active .chart-linkage-item.is-active {
+  opacity: 1;
+  filter: grayscale(0%);
+  position: relative;
+  z-index: 10;
+}
+
+/* =========================================
+   📈 Recharts Global Modern Overrides 
+   (全局接管原始图表组件，降维打击所有 40+ 组件)
+   ========================================= */
+
+/* 1. Tooltip 毛玻璃与圆角进化 */
+.recharts-tooltip-wrapper {
+  z-index: 50 !important;
+  outline: none !important;
+}
+
+.recharts-default-tooltip {
+  background-color: rgba(255, 255, 255, 0.9) !important;
+  border-radius: 12px !important;
+  border: 1px solid hsl(var(--border) / 0.8) !important;
+  box-shadow:
+    0 10px 15px -3px rgba(0, 0, 0, 0.08),
+    0 4px 6px -4px rgba(0, 0, 0, 0.04) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  padding: 12px 14px !important;
+  margin: 0 !important;
+  color: hsl(var(--foreground)) !important;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+/* 适配原生深色模式的 Tooltip */
+.dark .recharts-default-tooltip {
+  background-color: rgba(15, 23, 42, 0.85) !important; /* slate-900 with opacity */
+  border-color: rgba(51, 65, 85, 0.5) !important; /* slate-700 */
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3) !important;
+  color: hsl(var(--foreground)) !important;
+}
+
+.recharts-tooltip-item {
+  color: inherit !important;
+  font-size: 13px !important;
+  padding: 2px 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+}
+
+.recharts-tooltip-item-name {
+  color: hsl(var(--muted-foreground)) !important;
+}
+
+.recharts-tooltip-item-value {
+  font-weight: 600 !important;
+  color: hsl(var(--foreground)) !important;
+}
+
+/* 2. CartesianGrid 网格线视觉弱化 */
+.recharts-cartesian-grid-horizontal line,
+.recharts-cartesian-grid-vertical line {
+  stroke: hsl(var(--border)) !important;
+  stroke-opacity: 0.6 !important;
+}
+
+/* 3. Legend 图例极简排版约束 */
+.recharts-legend-wrapper {
+  padding-top: 16px !important;
+  font-size: 12px !important;
+  color: hsl(var(--muted-foreground)) !important;
+}
+
+.recharts-legend-item-text {
+  color: hsl(var(--muted-foreground)) !important;
+  margin-left: 4px !important;
 }

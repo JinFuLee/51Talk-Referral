@@ -1,6 +1,8 @@
 "use client";
 
 import { usePackageMix, useTeamPackageMix, useChannelRevenue, useTranslation } from "@/lib/hooks";
+import { PageHeader } from "@/components/layout/PageHeader";
+import { BIZ_PAGE } from "@/lib/layout";
 import { formatRevenue } from "@/lib/utils";
 import { Card } from "@/components/ui/Card";
 import { Skeleton } from "@/components/ui/Skeleton";
@@ -19,7 +21,7 @@ export default function OrdersDetailPage() {
 
   if (isLoading) {
     return (
-      <div className="max-w-6xl mx-auto space-y-8">
+      <div className={BIZ_PAGE}>
         <Skeleton className="h-10 w-64" />
         <Skeleton className="h-48" />
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -33,12 +35,8 @@ export default function OrdersDetailPage() {
   const hasError = pkgError || teamError || chError;
 
   return (
-    <div className="max-w-6xl mx-auto space-y-8">
-      {/* Page header */}
-      <div>
-        <h1 className="text-2xl font-bold text-slate-800">{t("biz.orders-detail.title")}</h1>
-        <p className="text-sm text-slate-400 mt-1">{t("biz.orders-detail.subtitle")}</p>
-      </div>
+    <div className={BIZ_PAGE}>
+      <PageHeader title={t("biz.orders-detail.title")} subtitle={t("biz.orders-detail.subtitle")} />
 
       {hasError && (
         <div className="bg-red-50 border border-red-200 rounded-xl px-5 py-4 text-sm text-red-700">

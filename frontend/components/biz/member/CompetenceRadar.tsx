@@ -109,8 +109,7 @@ export function CompetenceRadar({ radar, hiredays = 30 }: CompetenceRadarProps) 
             fillOpacity={0.18}
             strokeWidth={2}
           />
-          <Legend
-            iconSize={10}
+          <Legend iconType="circle" iconSize={10}
             wrapperStyle={{ fontSize: 11 }}
             formatter={(value) => (
               <span className="text-slate-600">{value}</span>

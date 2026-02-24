@@ -71,6 +71,10 @@ export interface SummaryMetric {
   pace_daily_needed?: number;
   remaining_workdays?: number;
   thb?: number;
+  // MoM 内嵌字段（后端注入，KPICard V2 使用）
+  mom_prev?: number | null;
+  mom_change?: number | null;
+  mom_change_pct?: number | null;
 }
 
 // ── 漏斗 ─────────────────────────────────────────────────────────────────────
@@ -84,14 +88,26 @@ export interface FunnelData {
 
 export interface FunnelChannel {
   valid_students: number;
-  contact_rate: number;     // 触达率 0~1
-  participation_rate: number;
-  checkin_rate: number;
-  new_coefficient: number;
-  referral_ratio: number;
+  contact_rate?: number;     // 触达率 0~1 (legacy)
+  participation_rate?: number;
+  checkin_rate?: number;
+  new_coefficient?: number;
+  referral_ratio?: number;
+  register?: number;
   registrations: number;
+  reserve?: number;
+  attend?: number;
+  paid?: number;
   payments: number;
-  conversion_rate: number;
+  conversion_rate?: number;
+  rates?: {
+    reserve_rate: number;
+    attend_rate: number;
+    paid_rate: number;
+    register_paid_rate: number;
+    contact_rate?: number;
+    participation_rate?: number;
+  };
 }
 
 // ── 渠道对比 ──────────────────────────────────────────────────────────────────
@@ -185,6 +201,26 @@ export interface ROIData {
   cost_list?: ROICostItem[];
   by_product?: Record<string, ROIProductSummary>;
   currency?: string;
+  is_estimated?: boolean;
+  data_source?: string;
+  by_month?: Array<{
+    cohort_month: string;
+    reach_rate_m1?: number;
+    participation_m1?: number;
+    ltv_12m?: number;
+    acquisition_cost?: number;
+    roi?: number;
+    reach_rates?: Record<string, number>;
+    participation_rates?: Record<string, number>;
+    checkin_rates?: Record<string, number>;
+    referral_coefficients?: Record<string, number>;
+  }>;
+  optimal_months?: string[];
+  decay_summary?: {
+    reach_half_life?: number;
+    participation_half_life?: number;
+    checkin_half_life?: number;
+  };
 }
 
 // ── 趋势 ─────────────────────────────────────────────────────────────────────
@@ -405,6 +441,12 @@ export interface EnclosureTarget {
   checkin_rate: number;
 }
 
+export interface FollowupData {
+  pre_call_rate?: number;
+  post_call_rate?: number;
+  attendance_rate?: number;
+}
+
 export interface EnclosureDecomposition {
   d0_30: EnclosureTarget;
   d31_60: EnclosureTarget;
@@ -584,4 +626,109 @@ export interface PyramidPillar {
   expected_revenue_lift_usd: number;
   actions: string[];
   data_points: { label: string; value: string }[];
+}
+
+// ── 对比模式 ────────────────────────────────────────────────────────────────
+
+// ── 站内通知 ─────────────────────────────────────────────────────────────────
+
+export interface NotificationType {
+  id: string;
+  type: "warning" | "alert" | "info";
+  title: string;
+  message: string;
+  timestamp: number;
+  read: boolean;
+  source?: string;
+  actionHref?: string;
+}
+
+export interface ComparisonMetric {
+  current: number;
+  compare: number | null;
+  compare_date?: string | null;
+  change: number | null;
+  change_pct: number | null;
+}
+
+export interface ComparisonResponse {
+  available: boolean;
+  mode: 'pop' | 'yoy' | 'peak' | 'valley';
+  label: string;
+  compare_period?: string;
+  metrics: Record<string, ComparisonMetric>;
+  unavailable_reason?: string | null;
+}
+
+// === Leads Overview ===
+export interface LeadsFunnelMetrics {
+  register: number;
+  appointment: number;
+  showup: number;
+  paid: number;
+  revenue_usd: number;
+  leads_to_pay_rate: number;
+}
+
+export interface LeadsMonthlyRow extends LeadsFunnelMetrics {
+  month: string;
+}
+
+export interface LeadsTargetDecomposition {
+  revenue_target: number;
+  unit_price: number;
+  unit_target: number;
+  conversion_target: number;
+  leads_target: number;
+  leads_by_channel: {
+    cc_narrow: number;
+    ss_narrow: number;
+    lp_narrow: number;
+    wide: number;
+  };
+}
+
+export interface LeadsGapAnalysis {
+  performance_gap: number;
+  unit_price_gap: number;
+  bill_gap: number;
+  showup_gap: number;
+  appointment_gap: number;
+  lead_gap: number;
+  cc_lead_gap: number;
+  ss_lead_gap: number;
+  lp_lead_gap: number;
+  wide_lead_gap: number;
+}
+
+export interface TeamChannelRow {
+  team: string;
+  [channel: string]: {
+    register?: number;
+    paid?: number;
+    conversion?: number;
+    cargo_ratio?: number;
+  } | string;
+}
+
+export interface EnclosureBaselineRow {
+  enclosure: string;
+  current: { cargo_ratio: number; participation: number; conversion: number };
+  baseline_avg: { cargo_ratio: number; participation: number; conversion: number };
+  deviation: { cargo_ratio: number; participation: number; conversion: number };
+}
+
+export interface LeadsOverviewData {
+  monthly_trend: LeadsMonthlyRow[];
+  mom_gap: LeadsFunnelMetrics;
+  time_progress: number;
+  targets: LeadsFunnelMetrics;
+  achievement: LeadsFunnelMetrics;
+  progress_bm: LeadsFunnelMetrics;
+  target_gap: LeadsFunnelMetrics;
+  target_decomposition: LeadsTargetDecomposition;
+  gap_analysis: LeadsGapAnalysis;
+  team_channel_matrix: TeamChannelRow[];
+  enclosure_baseline: EnclosureBaselineRow[];
+  scopes_available: string[];
 }

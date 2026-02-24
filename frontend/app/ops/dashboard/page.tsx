@@ -1,7 +1,10 @@
 "use client";
 
-import { useSummary, useAnomalies, useRiskAlerts, useProductivity, useTranslation } from "@/lib/hooks";
+import { useSummary, useAnomalies, useRiskAlerts, useProductivity, useTranslation, useCompareSummary, useKPISparkline } from "@/lib/hooks";
 import { KPICard } from "@/components/charts/KPICard";
+import { GlossaryBanner } from "@/components/ui/GlossaryBanner";
+import { glossaryConfig } from "@/lib/glossary-config";
+import { kpiDrilldownMap } from "@/lib/drilldown-config";
 import { RiskAlertList } from "@/components/dashboard/RiskAlertList";
 import { AnomalyBadge } from "@/components/dashboard/AnomalyBadge";
 import { RunAnalysisButton } from "@/components/dashboard/RunAnalysisButton";
@@ -11,17 +14,33 @@ import { GoalGapCard } from "@/components/ops/GoalGapCard";
 import { TimeProgressBar } from "@/components/ops/TimeProgressBar";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { ErrorBoundary } from "@/components/providers/ErrorBoundary";
+import { useConfigStore } from "@/lib/stores/config-store";
 import type { SummaryMetric } from "@/lib/types";
+import { PageHeader } from "@/components/layout/PageHeader";
+import { OPS_PAGE } from "@/lib/layout";
 
 export default function OpsDashboardPage() {
   const { t } = useTranslation();
+  const selectionContext = useConfigStore((s) => s.selectionContext);
+  const clearSelectionContext = useConfigStore((s) => s.clearSelectionContext);
   const { data: summaryData, isLoading: loadingSummary } = useSummary();
   const { data: anomalies = [] } = useAnomalies();
   const { data: alerts = [] } = useRiskAlerts();
   const { data: productivityRaw } = useProductivity();
+  const { data: comparison } = useCompareSummary();
+  const { data: sparklineData } = useKPISparkline();
 
   const summary = summaryData as Record<string, SummaryMetric> | undefined;
   const productivity = productivityRaw as Record<string, Record<string, number>> | undefined;
+  const compMetrics = comparison?.available ? comparison.metrics : null;
+  const sparkMetrics = sparklineData?.available ? sparklineData.metrics : null;
+
+  // KPI metric key 到 sparkline metric key 的映射
+  const SPARK_KEY_MAP: Record<string, string> = {
+    registrations: "registration",
+    payments: "payment",
+    revenue: "revenue",
+  };
 
   function getMetric(key: string): SummaryMetric {
     return summary?.[key] ?? { actual: 0, target: 0, progress: 0, status: "red" };
@@ -30,7 +49,6 @@ export default function OpsDashboardPage() {
   const reg = getMetric("registrations");
   const pay = getMetric("payments");
   const rev = getMetric("revenue");
-  const leads = getMetric("leads");
   const timeProgress = (summaryData as Record<string, unknown> | undefined)?.time_progress as number ?? 0;
 
   function remainingDailyAvg(metric: SummaryMetric): number | undefined {
@@ -47,19 +65,47 @@ export default function OpsDashboardPage() {
     return parseFloat((((expected - metric.actual) / expected) * 100).toFixed(1));
   }
 
+  // 从正确层级读取 remaining_daily_avg / efficiency_lift_pct
+  // 后端 /api/analysis/summary 通过 **adapted 展开，顶层即含 registrations/payments 对象
+  // getMetric() 返回的 SummaryMetric 已包含这两个字段，直接读取，fallback 用本地计算
+
+  function absoluteGap(metric: SummaryMetric): number {
+    return metric.absolute_gap ?? (metric.actual - metric.target);
+  }
+
+  function timeProgressGap(metric: SummaryMetric): number {
+    if (!timeProgress || metric.target === 0) return 0;
+    return metric.actual / metric.target - timeProgress;
+  }
+
   const kpis = [
     {
       title: t("ops.dashboard.kpi.registrations"), ...reg, unit: "人",
-      remaining_daily_avg: (summaryData as Record<string, unknown> | undefined)?.reg_remaining_daily_avg as number | undefined ?? remainingDailyAvg(reg),
-      efficiency_lift_pct: (summaryData as Record<string, unknown> | undefined)?.reg_efficiency_lift_pct as number | undefined ?? efficiencyLiftPct(reg),
+      remaining_daily_avg: reg.remaining_daily_avg ?? remainingDailyAvg(reg),
+      efficiency_lift_pct: reg.efficiency_lift_pct ?? efficiencyLiftPct(reg),
+      absolute_gap: absoluteGap(reg),
+      gap: timeProgressGap(reg),
+      pace_daily_needed: reg.pace_daily_needed,
+      current_daily_avg: reg.daily_avg,
+      kpiKey: "registrations",
     },
     {
       title: t("ops.dashboard.kpi.payments"), ...pay, unit: "人",
-      remaining_daily_avg: (summaryData as Record<string, unknown> | undefined)?.pay_remaining_daily_avg as number | undefined ?? remainingDailyAvg(pay),
-      efficiency_lift_pct: (summaryData as Record<string, unknown> | undefined)?.pay_efficiency_lift_pct as number | undefined ?? efficiencyLiftPct(pay),
+      remaining_daily_avg: pay.remaining_daily_avg ?? remainingDailyAvg(pay),
+      efficiency_lift_pct: pay.efficiency_lift_pct ?? efficiencyLiftPct(pay),
+      absolute_gap: absoluteGap(pay),
+      gap: timeProgressGap(pay),
+      pace_daily_needed: pay.pace_daily_needed,
+      current_daily_avg: pay.daily_avg,
+      kpiKey: "payments",
     },
-    { title: t("ops.dashboard.kpi.revenue"), ...rev, unit: "$" },
-    { title: "Leads", ...leads, unit: "" },
+    {
+      title: t("ops.dashboard.kpi.revenue"), ...rev, unit: "$", kpiKey: "revenue",
+      absolute_gap: absoluteGap(rev),
+      gap: timeProgressGap(rev),
+      pace_daily_needed: rev.pace_daily_needed,
+      current_daily_avg: rev.daily_avg,
+    },
   ];
 
   if (loadingSummary) {
@@ -88,20 +134,47 @@ export default function OpsDashboardPage() {
       id: "kpis",
       priority: 100,
       content: (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {kpis.map((kpi) => (
-            <KPICard
-              key={kpi.title}
-              title={kpi.title}
-              actual={kpi.actual}
-              target={kpi.target}
-              unit={kpi.unit}
-              status={kpi.status}
-              progress={kpi.progress}
-              remaining_daily_avg={"remaining_daily_avg" in kpi ? kpi.remaining_daily_avg : undefined}
-              efficiency_lift_pct={"efficiency_lift_pct" in kpi ? kpi.efficiency_lift_pct : undefined}
-            />
-          ))}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {kpis.map((kpi) => {
+            const cm = compMetrics?.[kpi.kpiKey];
+            const comparisonProp = cm
+              ? {
+                  value: cm.compare,
+                  changePct: cm.change_pct,
+                  label: comparison?.label ?? "",
+                }
+              : null;
+            const sparkKey = SPARK_KEY_MAP[kpi.kpiKey];
+            const sparklineDailyData = sparkKey
+              ? (sparkMetrics?.[sparkKey]?.daily ?? null)
+              : null;
+            const drilldown = kpiDrilldownMap[kpi.kpiKey];
+            return (
+              <KPICard
+                key={kpi.title}
+                variant="compact"
+                title={kpi.title}
+                actual={kpi.actual}
+                target={kpi.target}
+                unit={kpi.unit}
+                status={kpi.status}
+                progress={kpi.progress}
+                absolute_gap={"absolute_gap" in kpi ? kpi.absolute_gap : undefined}
+                gap={"gap" in kpi ? kpi.gap : undefined}
+                pace_daily_needed={"pace_daily_needed" in kpi ? kpi.pace_daily_needed : undefined}
+                current_daily_avg={"current_daily_avg" in kpi ? kpi.current_daily_avg : undefined}
+                remaining_daily_avg={"remaining_daily_avg" in kpi ? kpi.remaining_daily_avg : undefined}
+                efficiency_lift_pct={"efficiency_lift_pct" in kpi ? kpi.efficiency_lift_pct : undefined}
+                mom_prev={summary?.[kpi.kpiKey]?.mom_prev}
+                mom_change={summary?.[kpi.kpiKey]?.mom_change}
+                mom_change_pct={summary?.[kpi.kpiKey]?.mom_change_pct}
+                sparkline={sparklineDailyData}
+                comparison={comparisonProp}
+                drilldownHref={drilldown?.href}
+                drilldownLabel={drilldown?.label}
+              />
+            );
+          })}
         </div>
       )
     },
@@ -119,10 +192,10 @@ export default function OpsDashboardPage() {
       id: "progress",
       priority: 50,
       content: (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           <TimeProgressBar progress={timeProgress} />
-          <GoalGapCard title="注册" actual={reg.actual} target={reg.target} unit="人" />
-          <GoalGapCard title="付费" actual={pay.actual} target={pay.target} unit="人" />
+          <GoalGapCard title="注册" actual={reg.actual} target={reg.target} unit="人" drilldownHref={kpiDrilldownMap.registrations?.href} drilldownLabel={kpiDrilldownMap.registrations?.label} />
+          <GoalGapCard title="付费" actual={pay.actual} target={pay.target} unit="人" drilldownHref={kpiDrilldownMap.payments?.href} drilldownLabel={kpiDrilldownMap.payments?.label} />
         </div>
       )
     },
@@ -162,22 +235,29 @@ export default function OpsDashboardPage() {
   const orderedSections = [...sections].sort((a, b) => b.priority - a.priority);
 
   return (
-    <div className="max-w-none space-y-4">
-      <div className="flex items-center justify-between shadow-sm pb-2 mb-2 border-b border-transparent">
-        <div>
-          <h1 className="text-xl font-bold text-slate-800 flex items-center gap-2">
-            {t("ops.dashboard.title")}
-            {hasAlertsOrAnomalies && (
-              <span className="text-xs bg-brand-100 text-brand-600 px-2 py-0.5 rounded-full flex items-center ml-2">
-                <span className="w-1.5 h-1.5 bg-brand-500 rounded-full mr-1 animate-pulse"></span>
-                {t("ops.dashboard.label.aiLayout")}
-              </span>
-            )}
-          </h1>
-          <p className="text-xs text-slate-400 mt-0.5">{t("ops.dashboard.subtitle")}</p>
-        </div>
+    <div className={OPS_PAGE}>
+      <PageHeader
+        title={t("ops.dashboard.title")}
+        subtitle={t("ops.dashboard.subtitle")}
+        badge={hasAlertsOrAnomalies ? t("ops.dashboard.label.aiLayout") : undefined}
+        badgeColor="bg-brand-100 text-brand-600"
+      >
         <RunAnalysisButton />
-      </div>
+      </PageHeader>
+
+      <GlossaryBanner terms={glossaryConfig.ops_dashboard} />
+
+      {selectionContext?.type === 'cc' && (
+        <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-blue-50 border border-blue-200 text-sm text-blue-700">
+          <span>当前聚焦：<strong>{selectionContext.value}</strong></span>
+          <button
+            onClick={clearSelectionContext}
+            className="ml-auto text-xs text-blue-500 hover:text-blue-700 underline"
+          >
+            清除
+          </button>
+        </div>
+      )}
 
       <AnomalyBanner anomalies={anomalies} />
 

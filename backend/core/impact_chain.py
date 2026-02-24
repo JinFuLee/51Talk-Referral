@@ -106,7 +106,7 @@ def _safe_pct(a, b) -> Optional[float]:
 class ImpactChainEngine:
     """影响链计算引擎：从分析缓存中提取效率指标，量化 gap 的下游业务损失"""
 
-    def __init__(self, summary: dict, targets: dict, funnel: dict):
+    def __init__(self, summary: dict, targets: dict, funnel: dict) -> None:
         self.summary = summary or {}
         self.targets = targets or {}
         self.funnel = funnel or {}
@@ -300,6 +300,7 @@ class ImpactChainEngine:
 
         return {
             "metric": metric,
+            "metric_key": metric,
             "label": label,
             "actual": round(actual_rate, 4),
             "target": round(target_rate, 4),

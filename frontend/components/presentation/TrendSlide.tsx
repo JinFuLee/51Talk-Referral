@@ -15,12 +15,11 @@ import {
   ReferenceDot,
 } from "recharts";
 import { formatRevenue } from "@/lib/utils";
+import { swrFetcher } from "@/lib/api";
 
 interface TrendSlideProps {
   revealStep: number;
 }
-
-const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
 interface TrendPoint {
   date: string;
@@ -79,11 +78,11 @@ function PeakValleyDot({ cx, cy, payload, dataKey, peakDate, valleyDate }: Custo
 export function TrendSlide({ revealStep }: TrendSlideProps) {
   const { data: trendData, isLoading: trendLoading } = useSWR(
     "/api/analysis/trend",
-    fetcher
+    swrFetcher
   );
   const { data: histData, isLoading: histLoading } = useSWR(
     "/api/snapshots/history",
-    fetcher
+    swrFetcher
   );
 
   const isLoading = trendLoading && histLoading;
@@ -155,20 +154,15 @@ export function TrendSlide({ revealStep }: TrendSlideProps) {
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={points} margin={{ top: 20, right: 30, left: 10, bottom: 10 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-              <XAxis
-                dataKey="date"
+              <XAxis tickLine={false} axisLine={false} dataKey="date"
                 tickFormatter={formatDate}
                 tick={{ fontSize: 11 }}
-                interval="preserveStartEnd"
-              />
-              <YAxis
-                yAxisId="count"
+                interval="preserveStartEnd" />
+              <YAxis tickLine={false} axisLine={false} yAxisId="count"
                 orientation="left"
                 tick={{ fontSize: 11 }}
-                label={{ value: "人数", angle: -90, position: "insideLeft", fontSize: 11 }}
-              />
-              <YAxis
-                yAxisId="revenue"
+                label={{ value: "人数", angle: -90, position: "insideLeft", fontSize: 11 }} />
+              <YAxis tickLine={false} axisLine={false} yAxisId="revenue"
                 orientation="right"
                 tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`}
                 tick={{ fontSize: 11 }}
@@ -182,8 +176,7 @@ export function TrendSlide({ revealStep }: TrendSlideProps) {
                 }}
                 labelFormatter={(label) => `日期: ${label}`}
               />
-              <Legend
-                formatter={(v) =>
+              <Legend iconType="circle" formatter={(v) =>
                   v === "registrations" ? "注册数" : v === "payments" ? "付费数" : "收入"
                 }
               />

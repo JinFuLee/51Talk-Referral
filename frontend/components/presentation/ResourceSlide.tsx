@@ -28,7 +28,7 @@ interface ResourceCategory {
   revealIndex: number;
 }
 
-const fetcher = (url: string) => fetch(url).then((r) => r.json());
+import { swrFetcher } from "@/lib/api";
 
 const PRIORITY_BADGE: Record<string, string> = {
   P0: "bg-red-100 text-red-700",
@@ -76,8 +76,8 @@ function ResourceCategoryColumn({
 
       {/* Cards */}
       <div className="p-4 flex flex-col gap-3 flex-1">
-        {cat.cards.map((card, i) => (
-          <div key={i} className="rounded-xl bg-white border border-slate-100 p-4 flex flex-col gap-2 shadow-sm">
+        {cat.cards.map((card) => (
+          <div key={card.title} className="rounded-xl bg-white border border-slate-100 p-4 flex flex-col gap-2 shadow-sm">
             <div className="flex items-center justify-between">
               <p className="text-sm font-semibold text-slate-800">{card.title}</p>
               <span className={clsx("text-xs font-bold px-2 py-0.5 rounded-full", PRIORITY_BADGE[card.priority] ?? "bg-slate-100 text-slate-600")}>
@@ -97,7 +97,7 @@ function ResourceCategoryColumn({
 }
 
 export function ResourceSlide({ revealStep }: ResourceSlideProps) {
-  const { data, isLoading, error } = useSWR("/api/analysis/resource-request", fetcher);
+  const { data, isLoading, error } = useSWR("/api/analysis/resource-request", swrFetcher);
 
   const rawCategories: Array<{ label: string; sublabel?: string; cards: ResourceCard[]; revealIndex?: number }> =
     data?.data?.categories ?? [];

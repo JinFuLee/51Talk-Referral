@@ -47,7 +47,7 @@ class KpiLoader(BaseLoader):
             df = self._read_xlsx_pandas(path)
             df = self._ffill_merged(df, [df.columns[0], df.columns[1]])
 
-            # 统一列名
+            # 统一列名（文件共 15 列，col[14] 才是真正的带货比）
             col_map = {
                 df.columns[0]: "region",
                 df.columns[1]: "team",
@@ -60,8 +60,14 @@ class KpiLoader(BaseLoader):
                 df.columns[8]: "referral_participation_unchecked",
                 df.columns[9]: "checkin_multiplier",
                 df.columns[10]: "referral_coefficient",
-                df.columns[11]: "conversion_ratio",
+                df.columns[11]: "referral_coefficient_checked",    # 带新系数-24H已打卡
             }
+            if len(df.columns) > 12:
+                col_map[df.columns[12]] = "referral_coefficient_unchecked"   # 带新系数-24H未打卡
+            if len(df.columns) > 13:
+                col_map[df.columns[13]] = "referral_coefficient_multiplier"  # 带新系数倍率
+            if len(df.columns) > 14:
+                col_map[df.columns[14]] = "conversion_ratio"                 # 转介绍带货比（真正的带货比）
             df = df.rename(columns=col_map)
 
             # 过滤汇总行（cc_name 为总计/小计 或 NaN）
@@ -78,7 +84,8 @@ class KpiLoader(BaseLoader):
                 "checkin_24h_rate", "checkin_24h_target", "achievement_rate",
                 "referral_participation", "referral_coefficient", "conversion_ratio",
             ]
-            d1_nums = detail_df[numeric_fields].applymap(self._clean_numeric)
+            avail_fields = [f for f in numeric_fields if f in detail_df.columns]
+            d1_nums = detail_df[avail_fields].map(self._clean_numeric)
             teams_cleaned = detail_df["team"].apply(
                 lambda v: self._normalize_team(str(v).strip()) if pd.notna(v) else "THCC"
             )
@@ -86,7 +93,7 @@ class KpiLoader(BaseLoader):
                 {
                     "cc_name": str(detail_df.iloc[i]["cc_name"]).strip(),
                     "team": teams_cleaned.iloc[i],
-                    **{field: d1_nums.iloc[i][field] for field in numeric_fields},
+                    **{f: (d1_nums.iloc[i].get(f) if f in avail_fields else None) for f in numeric_fields},
                 }
                 for i in range(len(detail_df))
             ]
@@ -119,8 +126,8 @@ class KpiLoader(BaseLoader):
         try:
             groups = df.groupby("team")
             for team, grp in groups:
-                rates = grp["checkin_24h_rate"].apply(self._clean_numeric).dropna()
-                targets = grp["checkin_24h_target"].apply(self._clean_numeric).dropna()
+                rates = self._clean_numeric_vec(grp["checkin_24h_rate"]).dropna()
+                targets = self._clean_numeric_vec(grp["checkin_24h_target"]).dropna()
                 result.append(
                     {
                         "team": str(team),
@@ -161,13 +168,24 @@ class KpiLoader(BaseLoader):
             }
             df = df.rename(columns={k: v for k, v in col_map.items() if k in df.columns})
 
+            # 围场标签归一化：文件中可能用"0至30"/"90之外"等中文标签
+            _ENC_NORMALIZE = {
+                "0至30": "0-30", "31至60": "31-60", "61至90": "61-90",
+                "91至180": "91-180", "90之外": "91-180", "181+": "181+",
+                "未付费": "未付费",
+            }
+            if "enclosure" in df.columns:
+                df["enclosure"] = df["enclosure"].apply(
+                    lambda v: _ENC_NORMALIZE.get(str(v).strip(), str(v).strip())
+                )
+
             # 分离明细行与小计/总计
-            enclosure_labels = {"0-30", "31-60", "61-90", "91-180", "181+", "小计"}
-            total_labels = {"总计", "合计", "grand total"}
+            enclosure_labels = {"0-30", "31-60", "61-90", "91-180", "181+"}
+            total_labels = {"总计", "合计", "小计", "grand total"}
 
             # 向量化：分离明细行与总计行
             enc_series = df["enclosure"].apply(lambda v: str(v).strip() if "enclosure" in df.columns else "")
-            total_mask = enc_series.str.lower().isin(total_labels) | enc_series.apply(lambda v: "总计" in v)
+            total_mask = enc_series.str.lower().isin(total_labels) | enc_series.apply(lambda v: "总计" in v or "小计" in v)
             empty_mask = enc_series == ""
 
             enc_fields = [
@@ -187,7 +205,7 @@ class KpiLoader(BaseLoader):
 
             # 向量化清洗数值
             avail_enc_fields = [f for f in enc_fields if f in df_detail.columns]
-            df_detail_nums = df_detail[avail_enc_fields].applymap(self._clean_numeric) if not df_detail.empty else df_detail[avail_enc_fields]
+            df_detail_nums = df_detail[avail_enc_fields].map(self._clean_numeric) if not df_detail.empty else df_detail[avail_enc_fields]
 
             by_enclosure = [
                 {
@@ -235,11 +253,11 @@ class KpiLoader(BaseLoader):
                 columns[0]: "region",
                 columns[1]: "team",
                 columns[2]: "cc_name",
-                columns[3]: "checkin_rate",
-                columns[4]: "referral_participation_total",
-                columns[5]: "referral_participation_checked",
-                columns[6]: "referral_participation_unchecked",
-                columns[7]: "checkin_multiplier",
+                columns[3]: "checkin_rate",                      # 打卡参与率
+                columns[4]: "participation_rate",                # 转介绍参与率
+                columns[5]: "referral_participation_checked",    # 转介绍参与率-已打卡
+                columns[6]: "referral_participation_unchecked",  # 转介绍参与率-未打卡
+                columns[7]: "referral_participation_multiplier", # 转介绍参与率-已打卡/未打卡倍率
             }
             # 后续列（带新系数 total/checked/unchecked/倍率，带货比）
             if len(columns) > 8:
@@ -265,12 +283,12 @@ class KpiLoader(BaseLoader):
 
             # 向量化构建 by_cc（applymap 替代逐行迭代）
             d5_numeric_fields = [
-                "checkin_rate", "referral_participation_total",
+                "checkin_rate", "participation_rate",
                 "referral_participation_checked", "referral_participation_unchecked",
-                "checkin_multiplier", "referral_coefficient_total", "conversion_ratio",
+                "referral_participation_multiplier", "referral_coefficient_total", "conversion_ratio",
             ]
             avail_d5_fields = [f for f in d5_numeric_fields if f in detail_df.columns]
-            d5_nums = detail_df[avail_d5_fields].applymap(self._clean_numeric)
+            d5_nums = detail_df[avail_d5_fields].map(self._clean_numeric)
             d5_teams = detail_df["team"].apply(
                 lambda v: self._normalize_team(str(v).strip()) if pd.notna(v) else "THCC"
             )
@@ -296,7 +314,7 @@ class KpiLoader(BaseLoader):
                 summary = {
                     "avg_checkin_rate": self._clean_numeric(tr.get("checkin_rate")),
                     "avg_referral_participation": self._clean_numeric(
-                        tr.get("referral_participation_total")
+                        tr.get("participation_rate")
                     ),
                     "avg_conversion_ratio": self._clean_numeric(
                         tr.get("conversion_ratio")
@@ -313,7 +331,7 @@ class KpiLoader(BaseLoader):
         result = []
         try:
             for team, grp in df.groupby("team"):
-                rates = grp["checkin_rate"].apply(self._clean_numeric).dropna()
+                rates = self._clean_numeric_vec(grp["checkin_rate"]).dropna()
                 result.append(
                     {
                         "team": str(team),

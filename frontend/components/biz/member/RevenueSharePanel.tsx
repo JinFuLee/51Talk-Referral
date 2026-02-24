@@ -44,6 +44,21 @@ export function RevenueSharePanel({ revenue }: RevenueSharePanelProps) {
     revenue &&
     (revenue.mtd_usd > 0 || (revenue.package_mix ?? []).length > 0);
 
+  // Merge packages beyond top-5 into "其他"
+  const packageMix = useMemo(() => {
+    const sorted = [...(revenue?.package_mix ?? [])].sort((a, b) => b.pct - a.pct);
+    if (sorted.length <= MAX_PIE_SLICES) return sorted;
+    const top = sorted.slice(0, MAX_PIE_SLICES);
+    const otherPct = sorted.slice(MAX_PIE_SLICES).reduce((s, p) => s + p.pct, 0);
+    const otherCount = sorted.slice(MAX_PIE_SLICES).reduce((s, p) => s + p.count, 0);
+    return [...top, { type: "其他", pct: otherPct, count: otherCount }];
+  }, [revenue?.package_mix]);
+
+  const totalOrders = useMemo(
+    () => (revenue?.package_mix ?? []).reduce((s, p) => s + p.count, 0),
+    [revenue?.package_mix]
+  );
+
   if (!hasData) {
     return (
       <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
@@ -56,21 +71,6 @@ export function RevenueSharePanel({ revenue }: RevenueSharePanelProps) {
       </div>
     );
   }
-
-  // Merge packages beyond top-5 into "其他"
-  const packageMix = useMemo(() => {
-    const sorted = [...(revenue.package_mix ?? [])].sort((a, b) => b.pct - a.pct);
-    if (sorted.length <= MAX_PIE_SLICES) return sorted;
-    const top = sorted.slice(0, MAX_PIE_SLICES);
-    const otherPct = sorted.slice(MAX_PIE_SLICES).reduce((s, p) => s + p.pct, 0);
-    const otherCount = sorted.slice(MAX_PIE_SLICES).reduce((s, p) => s + p.count, 0);
-    return [...top, { type: "其他", pct: otherPct, count: otherCount }];
-  }, [revenue.package_mix]);
-
-  const totalOrders = useMemo(
-    () => (revenue.package_mix ?? []).reduce((s, p) => s + p.count, 0),
-    [revenue.package_mix]
-  );
 
   return (
     <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
@@ -138,8 +138,7 @@ export function RevenueSharePanel({ revenue }: RevenueSharePanelProps) {
                     name,
                   ]}
                 />
-                <Legend
-                  iconSize={8}
+                <Legend iconType="circle" iconSize={8}
                   wrapperStyle={{ fontSize: 11 }}
                   formatter={(value, entry) => {
                     const item = packageMix.find((p) => p.type === value);

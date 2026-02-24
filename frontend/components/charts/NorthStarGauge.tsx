@@ -1,6 +1,8 @@
 "use client";
 
+import { memo } from "react";
 import useSWR from "swr";
+import { swrFetcher } from "@/lib/api";
 import { Spinner } from "@/components/ui/Spinner";
 
 interface NorthStarMetric {
@@ -10,20 +12,65 @@ interface NorthStarMetric {
   unit?: string;
 }
 
+/** Shape returned by GET /api/analysis/north-star */
 interface NorthStarResponse {
-  checkin_24h_rate?: number;
-  north_star_metrics?: NorthStarMetric[];
-  ranking?: unknown[];
+  by_cc: Array<{
+    cc_name: string;
+    checkin_24h_rate?: number;
+    participation_rate?: number;
+    contact_rate?: number;
+    team?: string;
+  }>;
+  by_team: unknown[];
+  summary: {
+    avg_checkin_24h_rate?: number;
+    target?: number;
+    participation_target?: number;
+    contact_target?: number;
+    total_achievement?: number;
+  };
+  achieved_count: number;
+  total_cc: number;
 }
 
-const MOCK_DATA: NorthStarResponse = {
-  checkin_24h_rate: 0.74,
-  north_star_metrics: [
-    { name: "打卡率", actual: 0.74, target: 0.85, unit: "%" },
-    { name: "参与率", actual: 0.32, target: 0.40, unit: "%" },
-    { name: "触达率", actual: 0.61, target: 0.75, unit: "%" },
-  ],
-};
+/** Derive the three north-star gauge metrics from the API response */
+function deriveMetrics(data: NorthStarResponse): NorthStarMetric[] {
+  const summary = data.summary ?? {};
+  const byCc = data.by_cc ?? [];
+
+  // Checkin rate comes from summary; target from API or fallback
+  const checkinActual = summary.avg_checkin_24h_rate ?? 0;
+  const checkinTarget = summary.target ?? 0.60; // fallback: 默认目标
+
+  // Participation and contact rates: average across CC list (graceful if absent)
+  const participationVals = byCc
+    .map((c) => c.participation_rate)
+    .filter((v): v is number => typeof v === "number" && v > 0);
+  const contactVals = byCc
+    .map((c) => c.contact_rate)
+    .filter((v): v is number => typeof v === "number" && v > 0);
+
+  const avg = (arr: number[]) =>
+    arr.length > 0 ? arr.reduce((a, b) => a + b, 0) / arr.length : 0;
+
+  const metrics: NorthStarMetric[] = [
+    { name: "打卡率", actual: checkinActual, target: checkinTarget, unit: "%" },
+  ];
+
+  if (participationVals.length > 0) {
+    // Target from API summary; fallback: 默认目标
+    const participationTarget = summary.participation_target ?? 0.40; // fallback: 默认目标
+    metrics.push({ name: "参与率", actual: avg(participationVals), target: participationTarget, unit: "%" });
+  }
+
+  if (contactVals.length > 0) {
+    // Target from API summary; fallback: 默认目标
+    const contactTarget = summary.contact_target ?? 0.75; // fallback: 默认目标
+    metrics.push({ name: "触达率", actual: avg(contactVals), target: contactTarget, unit: "%" });
+  }
+
+  return metrics;
+}
 
 function GaugeArc({ value, max, size = 120 }: { value: number; max: number; size?: number }) {
   const ratio = Math.min(value / (max || 1), 1);
@@ -91,16 +138,11 @@ function SingleGauge({ metric }: { metric: NorthStarMetric }) {
   );
 }
 
-export function NorthStarGauge() {
+function NorthStarGaugeInner() {
   const { data, error, isLoading } = useSWR<NorthStarResponse>(
-    "north-star",
-    () => fetch("/api/analysis/north-star").then((r) => r.json())
+    "/api/analysis/north-star",
+    swrFetcher
   );
-
-  const isMock = !data?.north_star_metrics || data.north_star_metrics.length === 0;
-  const metrics: NorthStarMetric[] = isMock
-    ? MOCK_DATA.north_star_metrics!
-    : data!.north_star_metrics!;
 
   if (isLoading) {
     return (
@@ -110,26 +152,23 @@ export function NorthStarGauge() {
     );
   }
 
-  if (error) {
+  if (error || !data) {
     return (
       <div className="flex items-center justify-center h-40 text-rose-500 text-sm">
-        数据加载失败，显示模拟数据
+        数据加载失败，请检查后端服务
       </div>
     );
   }
 
+  const metrics = deriveMetrics(data);
+
   return (
-    <div className="flex flex-col gap-2">
-      {isMock && (
-        <div className="bg-amber-50 border border-amber-200 text-amber-700 px-3 py-1.5 rounded text-xs mb-2">
-          ⚠ 当前显示模拟数据（API 数据不可用）
-        </div>
-      )}
-      <div className="flex flex-wrap justify-center gap-8 py-4">
+    <div className="flex flex-wrap justify-center gap-8 py-4">
       {metrics.map((m) => (
         <SingleGauge key={m.name} metric={m} />
       ))}
-      </div>
     </div>
   );
 }
+
+export const NorthStarGauge = memo(NorthStarGaugeInner);

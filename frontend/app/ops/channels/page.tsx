@@ -1,12 +1,28 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useTranslation } from "@/lib/hooks";
+import { useTranslation, usePrediction } from "@/lib/hooks";
+import { clsx } from "clsx";
 import { ChannelMoMStreamChart } from "@/components/ops/ChannelMoMStreamChart";
 import type { ChannelMomData } from "@/components/ops/ChannelMoMStreamChart";
+import { ChannelMoMTrend } from "@/components/charts/ChannelMoMTrend";
 import { Card } from "@/components/ui/Card";
+import { PredictionCard } from "@/components/analysis/PredictionCard";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { ErrorBoundary } from "@/components/providers/ErrorBoundary";
+import { PageHeader } from "@/components/layout/PageHeader";
+import { OPS_PAGE } from "@/lib/layout";
+
+// ── Tab definitions ───────────────────────────────────────────────────────────
+
+const TABS = [
+  { key: "trend", label: "渠道趋势" },
+  { key: "mom", label: "渠道环比" },
+] as const;
+
+type TabKey = (typeof TABS)[number]["key"];
+
+// ── Types ─────────────────────────────────────────────────────────────────────
 
 interface ChannelEntry {
   channel: string;
@@ -103,11 +119,14 @@ function ChannelDetailTable({
   );
 }
 
-export default function OpsChannelsPage() {
+// ── Sub-tabs ──────────────────────────────────────────────────────────────────
+
+function TrendTab() {
   const { t } = useTranslation();
   const [data, setData] = useState<ChannelMomData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { data: predResp, isLoading: predLoading } = usePrediction();
 
   useEffect(() => {
     setIsLoading(true);
@@ -130,10 +149,9 @@ export default function OpsChannelsPage() {
       .finally(() => setIsLoading(false));
   }, []);
 
-  if (isLoading) {
+  if (isLoading || predLoading) {
     return (
-      <div className="max-w-none space-y-4">
-        <Skeleton className="h-8 w-48" />
+      <div className="space-y-4">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <Skeleton className="h-20" />
           <Skeleton className="h-20" />
@@ -151,12 +169,7 @@ export default function OpsChannelsPage() {
   const byChannel = (data?.by_channel ?? []) as ChannelEntry[];
 
   return (
-    <div className="max-w-none space-y-4">
-      <div>
-        <h1 className="text-xl font-bold text-slate-800">{t("ops.channels.title")}</h1>
-        <p className="text-xs text-slate-400 mt-0.5">{t("ops.channels.subtitle")}</p>
-      </div>
-
+    <div className="space-y-4">
       {error && !hasData && (
         <div className="rounded-lg bg-amber-50 border border-amber-200 p-3 text-sm text-amber-700">
           {t("ops.channels.label.dataError")} {error}
@@ -192,6 +205,15 @@ export default function OpsChannelsPage() {
         </div>
       )}
 
+      {/* Prediction Cards */}
+      <Card title={`🔮 当月业务预测 (E7/E8)`}>
+        {predResp ? (
+          <PredictionCard data={predResp as Record<string, unknown>} />
+        ) : (
+          <div className="h-20 flex items-center justify-center text-slate-400 text-sm">暂无预测数据</div>
+        )}
+      </Card>
+
       <ErrorBoundary>
         <Card title={t("ops.channels.card.streamChart")}>
           {data ? (
@@ -209,6 +231,55 @@ export default function OpsChannelsPage() {
           </Card>
         )}
       </ErrorBoundary>
+    </div>
+  );
+}
+
+function MoMTab() {
+  const { t } = useTranslation();
+  return (
+    <div className="space-y-4">
+      <ErrorBoundary>
+        <Card title={t("ops.channel-mom.card.trend")}>
+          <ChannelMoMTrend />
+        </Card>
+      </ErrorBoundary>
+    </div>
+  );
+}
+
+// ── Main Page ─────────────────────────────────────────────────────────────────
+
+export default function OpsChannelsPage() {
+  const { t } = useTranslation();
+  const [activeTab, setActiveTab] = useState<TabKey>("trend");
+
+  return (
+    <div className={OPS_PAGE}>
+      <PageHeader title={t("ops.channels.title")} subtitle={t("ops.channels.subtitle")} />
+
+      <div className="flex gap-1 border-b border-slate-200" role="tablist">
+        {TABS.map((tab) => (
+          <button
+            key={tab.key}
+            type="button"
+            role="tab"
+            aria-selected={activeTab === tab.key}
+            onClick={() => setActiveTab(tab.key)}
+            className={clsx(
+              "px-3 py-1.5 text-sm font-medium border-b-2 transition-colors",
+              activeTab === tab.key
+                ? "border-primary text-primary"
+                : "border-transparent text-slate-500 hover:text-slate-700"
+            )}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      {activeTab === "trend" && <TrendTab />}
+      {activeTab === "mom" && <MoMTab />}
     </div>
   );
 }

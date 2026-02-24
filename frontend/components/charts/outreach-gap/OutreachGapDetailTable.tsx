@@ -19,17 +19,29 @@ interface LossEstimate {
   lost_revenue_thb: number;
 }
 
+interface DimensionStat {
+  name: string;
+  total_classes: number;
+  call_rate: number;
+  connect_rate: number;
+  attendance_rate: number;
+}
+
 interface OutreachGapDetailTableProps {
   by_cc: CCGap[];
   loss_estimate: LossEstimate;
+  by_channel_l3?: DimensionStat[];
+  by_lead_grade?: DimensionStat[];
 }
 
 export default function OutreachGapDetailTable({
   by_cc,
   loss_estimate,
+  by_channel_l3 = [],
+  by_lead_grade = [],
 }: OutreachGapDetailTableProps) {
   return (
-    <>
+    <div className="space-y-4">
       <Card title="CC 外呼缺口明细（按缺口排序）">
         {by_cc.length === 0 ? (
           <p className="text-sm text-slate-400 py-4 text-center">暂无数据</p>
@@ -99,6 +111,68 @@ export default function OutreachGapDetailTable({
           损失付费 × 客单价 $200 → 损失收入 {formatRevenue(loss_estimate.lost_revenue_usd)}
         </p>
       </div>
-    </>
+
+      {(by_channel_l3.length > 0 || by_lead_grade.length > 0) && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {by_channel_l3.length > 0 && (
+            <Card title="三级渠道外呼与出席表现">
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr className="border-b border-slate-100">
+                      <th className="text-left py-2 px-3 text-slate-400 font-medium">渠道 (L3)</th>
+                      <th className="text-right py-2 px-3 text-slate-400 font-medium">线索量</th>
+                      <th className="text-right py-2 px-3 text-slate-400 font-medium">外呼率</th>
+                      <th className="text-right py-2 px-3 text-slate-400 font-medium">接通率</th>
+                      <th className="text-right py-2 px-3 text-slate-400 font-medium">出席率</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {by_channel_l3.slice(0, 10).map((row) => (
+                      <tr key={row.name} className="border-b border-slate-50 hover:bg-slate-50">
+                        <td className="py-2 px-3 font-medium text-slate-700">{row.name}</td>
+                        <td className="py-2 px-3 text-right text-slate-600">{row.total_classes}</td>
+                        <td className="py-2 px-3 text-right text-slate-600">{(row.call_rate * 100).toFixed(1)}%</td>
+                        <td className="py-2 px-3 text-right text-slate-600">{(row.connect_rate * 100).toFixed(1)}%</td>
+                        <td className="py-2 px-3 text-right text-slate-600 font-semibold text-emerald-600">{(row.attendance_rate * 100).toFixed(1)}%</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </Card>
+          )}
+
+          {by_lead_grade.length > 0 && (
+            <Card title="线索质量外呼与出席表现">
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr className="border-b border-slate-100">
+                      <th className="text-left py-2 px-3 text-slate-400 font-medium">线索等级</th>
+                      <th className="text-right py-2 px-3 text-slate-400 font-medium">线索量</th>
+                      <th className="text-right py-2 px-3 text-slate-400 font-medium">外呼率</th>
+                      <th className="text-right py-2 px-3 text-slate-400 font-medium">接通率</th>
+                      <th className="text-right py-2 px-3 text-slate-400 font-medium">出席率</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {by_lead_grade.map((row) => (
+                      <tr key={row.name} className="border-b border-slate-50 hover:bg-slate-50">
+                        <td className="py-2 px-3 font-medium text-slate-700">{row.name}</td>
+                        <td className="py-2 px-3 text-right text-slate-600">{row.total_classes}</td>
+                        <td className="py-2 px-3 text-right text-slate-600">{(row.call_rate * 100).toFixed(1)}%</td>
+                        <td className="py-2 px-3 text-right text-slate-600">{(row.connect_rate * 100).toFixed(1)}%</td>
+                        <td className="py-2 px-3 text-right text-slate-600 font-semibold text-emerald-600">{(row.attendance_rate * 100).toFixed(1)}%</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </Card>
+          )}
+        </div>
+      )}
+    </div>
   );
 }

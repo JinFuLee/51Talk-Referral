@@ -2,8 +2,7 @@
 
 import useSWR from "swr";
 import type { CheckinImpact } from "@/lib/types/analysis";
-
-const fetcher = (url: string) => fetch(url).then((r) => r.json());
+import { swrFetcher } from "@/lib/api";
 
 interface CheckinImpactCardProps {
   data?: CheckinImpact;
@@ -12,7 +11,7 @@ interface CheckinImpactCardProps {
 export function CheckinImpactCard({ data: propData }: CheckinImpactCardProps) {
   const { data: apiData, isLoading, error } = useSWR(
     propData ? null : "/api/analysis/checkin-impact",
-    fetcher
+    swrFetcher
   );
 
   if (isLoading) {

@@ -212,14 +212,11 @@ export function ChannelMoMStreamChart({ data }: Props) {
               margin={{ top: 10, right: 16, left: 0, bottom: 0 }}
             >
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
-              <XAxis
-                dataKey="monthLabel"
+              <XAxis dataKey="monthLabel"
                 tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
                 axisLine={false}
-                tickLine={false}
-              />
-              <YAxis
-                tickFormatter={(v) => cfg.format(v)}
+                tickLine={false} />
+              <YAxis tickFormatter={(v) => cfg.format(v)}
                 tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
                 axisLine={false}
                 tickLine={false}
@@ -230,8 +227,7 @@ export function ChannelMoMStreamChart({ data }: Props) {
                   <CustomTooltip metric={metric} byChannel={by_channel} />
                 }
               />
-              <Legend
-                wrapperStyle={{ fontSize: 11, paddingTop: 8 }}
+              <Legend iconType="circle" wrapperStyle={{ fontSize: 11, paddingTop: 8 }}
                 formatter={(value) => (
                   <span className="text-slate-600">{value}</span>
                 )}

@@ -2,18 +2,16 @@
 
 import { useState } from "react";
 import useSWR from "swr";
+import { swrFetcher } from "@/lib/api";
 import { useTranslation } from "@/lib/hooks";
 import { CohortDecayCurve } from "@/components/biz/CohortDecayCurve";
 import { CohortCoefficientChart } from "@/components/biz/CohortCoefficientChart";
 import { Card } from "@/components/ui/Card";
 import { Skeleton } from "@/components/ui/Skeleton";
+import { DataSourceBadge } from "@/components/ui/DataSourceBadge";
 import { ErrorBoundary } from "@/components/providers/ErrorBoundary";
-
-async function fetcher(url: string) {
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  return res.json();
-}
+import { PageHeader } from "@/components/layout/PageHeader";
+import { BIZ_PAGE } from "@/lib/layout";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -47,21 +45,7 @@ type TabId = (typeof TABS)[number]["id"];
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-function DataSourceBadge({ source }: { source?: string }) {
-  if (!source) return null;
-  const isDemo = source === "demo";
-  return (
-    <span
-      className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-        isDemo
-          ? "bg-amber-50 text-amber-600 border border-amber-200"
-          : "bg-emerald-50 text-emerald-700 border border-emerald-200"
-      }`}
-    >
-      {isDemo ? "演示数据" : "真实数据"}
-    </span>
-  );
-}
+
 
 /**
  * Convert by_month series format [{月份, m1, m2, ..., m12}, ...] into
@@ -90,7 +74,7 @@ function DecayTab() {
 
   const { data, isLoading, error } = useSWR<DecayRawResponse>(
     `/api/analysis/cohort-decay-raw?metric=${metric}&group_by=${groupBy}`,
-    fetcher
+    swrFetcher
   );
 
   const cohortGroups = data ? parseCohortGroups(data.series) : [];
@@ -179,12 +163,8 @@ export default function CohortDecayPage() {
   const [activeTab, setActiveTab] = useState<TabId>("decay");
 
   return (
-    <div className="max-w-6xl mx-auto space-y-6 px-4 py-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-xl font-bold text-slate-800">{t("biz.cohort-decay.title")}</h1>
-        <p className="text-sm text-slate-500 mt-1">{t("biz.cohort-decay.subtitle")}</p>
-      </div>
+    <div className={BIZ_PAGE}>
+      <PageHeader title={t("biz.cohort-decay.title")} subtitle={t("biz.cohort-decay.subtitle")} />
 
       {/* Tabs */}
       <div className="flex gap-1 border-b border-slate-200">

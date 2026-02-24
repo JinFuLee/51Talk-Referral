@@ -22,8 +22,8 @@ export function RiskAlertList({ alerts }: { alerts: RiskAlert[] }) {
         <p className="text-xs text-slate-400 py-4 text-center">暂无风险预警</p>
       ) : (
         <ul className="space-y-2">
-          {alerts.map((a, i) => (
-            <li key={i} className={`text-xs rounded-lg border px-3 py-2 ${levelStyle[a.level] ?? "border-slate-200 bg-slate-50 text-slate-600"}`}>
+          {alerts.map((a) => (
+            <li key={`${a.level}-${a.message}`} className={`text-xs rounded-lg border px-3 py-2 ${levelStyle[a.level] ?? "border-slate-200 bg-slate-50 text-slate-600"}`}>
               <span className="font-semibold mr-1">[{levelLabel[a.level] ?? a.level}]</span>
               {a.message}
             </li>

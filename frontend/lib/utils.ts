@@ -35,5 +35,11 @@ export function formatUSDShort(value: number): string {
   return `$${value.toFixed(0)}`
 }
 
+/** 百分比格式化：0.7532 → "75.3%"，null/NaN → "0%" */
+export function formatRate(v: number | null | undefined): string {
+  if (v == null || Number.isNaN(Number(v))) return "0%";
+  return `${(Number(v) * 100).toFixed(1)}%`;
+}
+
 export const CHART_FONT_SIZE = { sm: 10, md: 11, lg: 12 } as const
 export const CHART_HEIGHT = { sm: 220, md: 260, lg: 320 } as const

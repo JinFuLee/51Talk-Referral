@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo, useCallback } from "react";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -64,62 +64,76 @@ export function CCOutreachHeatmap({ dates, cc_names, data }: CCOutreachHeatmapPr
   }>({ visible: false, x: 0, y: 0, cell: null });
 
   // Build lookup: (cc, date) → cell
-  const cellMap = new Map<string, HeatmapCell>();
-  for (const cell of data) {
-    cellMap.set(`${cell.cc_name}||${cell.date}`, cell);
-  }
+  const cellMap = useMemo(() => {
+    const map = new Map<string, HeatmapCell>();
+    for (const cell of data) {
+      map.set(`${cell.cc_name}||${cell.date}`, cell);
+    }
+    return map;
+  }, [data]);
 
   // Calculate max value for color scale
-  const max = Math.max(
-    1,
-    ...data.map((c) => {
-      if (dim === "effective_rate") return c.effective_rate;
-      return c[dim];
-    })
+  const max = useMemo(
+    () =>
+      Math.max(
+        1,
+        ...data.map((c) => (dim === "effective_rate" ? c.effective_rate : c[dim]))
+      ),
+    [data, dim]
   );
 
   // Row totals (per CC across all dates)
-  const rowTotals = new Map<string, number>();
-  for (const cc of cc_names) {
-    let total = 0;
-    for (const d of dates) {
-      const cell = cellMap.get(`${cc}||${d}`);
-      if (cell) {
-        if (dim === "effective_rate") {
-          total += cell.effective;
-        } else {
-          total += cell[dim];
+  const rowTotals = useMemo(() => {
+    const totals = new Map<string, number>();
+    for (const cc of cc_names) {
+      let total = 0;
+      for (const d of dates) {
+        const cell = cellMap.get(`${cc}||${d}`);
+        if (cell) {
+          total += dim === "effective_rate" ? cell.effective : cell[dim];
         }
       }
+      totals.set(cc, total);
     }
-    rowTotals.set(cc, total);
-  }
+    return totals;
+  }, [cellMap, cc_names, dates, dim]);
 
   // Column totals (per date across all CCs) — only for count dims
-  const colTotals = new Map<string, number>();
-  if (dim !== "effective_rate") {
-    for (const d of dates) {
-      let total = 0;
-      for (const cc of cc_names) {
-        const cell = cellMap.get(`${cc}||${d}`);
-        if (cell) total += cell[dim];
+  const colTotals = useMemo(() => {
+    const totals = new Map<string, number>();
+    if (dim !== "effective_rate") {
+      for (const d of dates) {
+        let total = 0;
+        for (const cc of cc_names) {
+          const cell = cellMap.get(`${cc}||${d}`);
+          if (cell) total += cell[dim];
+        }
+        totals.set(d, total);
       }
-      colTotals.set(d, total);
     }
-  }
+    return totals;
+  }, [cellMap, cc_names, dates, dim]);
 
-  const handleMouseEnter = (e: React.MouseEvent, cell: HeatmapCell | null) => {
+  const grandTotal = useMemo(
+    () =>
+      data.reduce(
+        (s, c) =>
+          s + (dim === "calls" ? c.calls : dim === "connects" ? c.connects : c.effective),
+        0
+      ),
+    [data, dim]
+  );
+
+  const handleMouseEnter = useCallback((e: React.MouseEvent, cell: HeatmapCell | null) => {
     if (!cell) return;
     setTooltip({ visible: true, x: e.clientX, y: e.clientY, cell });
-  };
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (tooltip.visible) {
-      setTooltip((prev) => ({ ...prev, x: e.clientX, y: e.clientY }));
-    }
-  };
-  const handleMouseLeave = () => {
+  }, []);
+  const handleMouseMove = useCallback((e: React.MouseEvent) => {
+    setTooltip((prev) => (prev.visible ? { ...prev, x: e.clientX, y: e.clientY } : prev));
+  }, []);
+  const handleMouseLeave = useCallback(() => {
     setTooltip((prev) => ({ ...prev, visible: false }));
-  };
+  }, []);
 
   if (!dates.length || !cc_names.length) {
     return (
@@ -221,9 +235,7 @@ export function CCOutreachHeatmap({ dates, cc_names, data }: CCOutreachHeatmapPr
                   </td>
                 ))}
                 <td className="border-l border-slate-200 px-2 py-1 text-center text-slate-700">
-                  {data
-                    .reduce((s, c) => s + (dim === "calls" ? c.calls : dim === "connects" ? c.connects : c.effective), 0)
-                    .toLocaleString()}
+                  {grandTotal.toLocaleString()}
                 </td>
               </tr>
             )}

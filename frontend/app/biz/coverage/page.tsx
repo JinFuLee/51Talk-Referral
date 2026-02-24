@@ -4,16 +4,14 @@ import { useTranslation } from "@/lib/hooks";
 import { OutreachCoverageGap } from "@/components/biz/OutreachCoverageGap";
 import { GlossaryBanner } from "@/components/ui/GlossaryBanner";
 import { ErrorBoundary } from "@/components/providers/ErrorBoundary";
+import { PageHeader } from "@/components/layout/PageHeader";
+import { BIZ_PAGE } from "@/lib/layout";
 
 export default function OutreachCoveragePage() {
   const { t } = useTranslation();
   return (
-    <div className="max-w-5xl mx-auto space-y-8">
-      {/* Page header */}
-      <div>
-        <h1 className="text-2xl font-bold text-slate-800">{t("biz.coverage.title")}</h1>
-        <p className="text-sm text-slate-400 mt-1">{t("biz.coverage.subtitle")}</p>
-      </div>
+    <div className={BIZ_PAGE}>
+      <PageHeader title={t("biz.coverage.title")} subtitle={t("biz.coverage.subtitle")} />
 
       <GlossaryBanner terms={[
         { term: "有效接通", definition: "通话≥120秒" },

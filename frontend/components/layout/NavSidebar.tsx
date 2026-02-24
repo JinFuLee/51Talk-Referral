@@ -13,21 +13,16 @@ import {
   BookOpen,
   ShoppingCart,
   TrendingUp,
-  Flame,
   Star,
-  RefreshCw,
   AlertTriangle,
   ClipboardList,
   Award,
-  TrendingDown,
   DollarSign,
   Target,
   Users,
   Search,
   Zap,
   Thermometer,
-  Package,
-  Activity,
   Globe,
   Sparkles,
   Link2,
@@ -48,53 +43,102 @@ interface NavItem {
   Icon: LucideIcon;
 }
 
-const OPS_ITEMS: NavItem[] = [
-  { href: "/ops/dashboard", label: "数据概览", Icon: BarChart3 },
-  { href: "/ops/funnel", label: "转化漏斗", Icon: ChevronDown },
-  { href: "/ops/ranking", label: "人员排名", Icon: Trophy },
-  { href: "/ops/outreach", label: "外呼监控", Icon: Phone },
-  { href: "/ops/trial", label: "体验课跟进", Icon: BookOpen },
-  { href: "/ops/orders", label: "订单分析", Icon: ShoppingCart },
-  { href: "/ops/channels", label: "渠道趋势", Icon: TrendingUp },
-  { href: "/ops/outreach-heatmap", label: "外呼热力图", Icon: Flame },
-  { href: "/ops/kpi-north-star", label: "北极星KPI", Icon: Star },
-  { href: "/ops/funnel-team", label: "团队漏斗", Icon: RefreshCw },
-  { href: "/ops/followup-alert", label: "跟进预警", Icon: AlertTriangle },
-  { href: "/ops/funnel-detail", label: "漏斗详情", Icon: ClipboardList },
-  { href: "/ops/channel-mom", label: "渠道环比", Icon: BarChart3 },
-  { href: "/ops/retention-rank", label: "留存排名", Icon: Award },
-  { href: "/ops/productivity-history", label: "产能趋势", Icon: TrendingUp },
-  { href: "/ops/outreach-gap", label: "外呼缺口", Icon: TrendingDown },
+interface NavGroup {
+  label: string;
+  items: NavItem[];
+}
+
+const OPS_GROUPS: NavGroup[] = [
+  {
+    label: "概览",
+    items: [
+      { href: "/ops/dashboard", label: "数据概览", Icon: BarChart3 },
+      { href: "/ops/funnel", label: "转化漏斗", Icon: ChevronDown },
+      { href: "/ops/funnel-detail", label: "漏斗详情", Icon: ClipboardList },
+      { href: "/ops/funnel-team", label: "团队漏斗", Icon: Users },
+    ]
+  },
+  {
+    label: "人员",
+    items: [
+      { href: "/ops/ranking", label: "人员排名", Icon: Trophy },
+      { href: "/ops/kpi-north-star", label: "北极星KPI", Icon: Star },
+      { href: "/ops/retention-rank", label: "留存排名", Icon: Award },
+      { href: "/ops/productivity-history", label: "产能趋势", Icon: TrendingUp },
+    ]
+  },
+  {
+    label: "外呼",
+    items: [
+      { href: "/ops/outreach", label: "外呼", Icon: Phone },
+      { href: "/ops/outreach-gap", label: "外呼缺口", Icon: Target },
+      { href: "/ops/trial", label: "体验课跟进", Icon: BookOpen },
+      { href: "/ops/followup-alert", label: "跟进预警", Icon: AlertTriangle },
+    ]
+  },
+  {
+    label: "订单",
+    items: [
+      { href: "/ops/channels", label: "渠道", Icon: TrendingUp },
+      { href: "/ops/channel-mom", label: "渠道环比", Icon: BarChart3 },
+    ]
+  }
 ];
 
-const BIZ_ITEMS: NavItem[] = [
-  { href: "/biz/overview", label: "业务总览", Icon: Globe },
-  { href: "/biz/roi", label: "ROI 分析", Icon: DollarSign },
-  { href: "/biz/enclosure", label: "围场策略", Icon: Target },
-  { href: "/biz/trend", label: "趋势预测", Icon: Sparkles },
-  { href: "/biz/impact", label: "影响链分析", Icon: Zap },
-  { href: "/biz/attribution", label: "归因分析", Icon: Search },
-  { href: "/biz/team", label: "团队概况", Icon: Users },
-  { href: "/biz/insights", label: "运营洞察", Icon: Thermometer },
-  { href: "/biz/cohort", label: "Cohort 分析", Icon: TrendingUp },
-  { href: "/biz/coverage", label: "覆盖缺口", Icon: Target },
-  { href: "/biz/orders", label: "订单分析", Icon: ShoppingCart },
-  { href: "/biz/cohort-decay", label: "Cohort衰减", Icon: TrendingDown },
-  { href: "/biz/cohort-students", label: "学员明细", Icon: Users },
-  { href: "/biz/orders-detail", label: "订单详析", Icon: Package },
-  { href: "/biz/enclosure-detail", label: "围场详情", Icon: Activity },
-  { href: "/biz/leads-detail", label: "Leads详情", Icon: Link2 },
-  { href: "/biz/enclosure-health", label: "围场健康", Icon: Activity },
-  { href: "/biz/ranking-enhanced", label: "增强排名", Icon: Medal },
-  { href: "/biz/cohort-heatmap", label: "留存热力图", Icon: Flame },
+const BIZ_GROUPS: NavGroup[] = [
+  {
+    label: "总览",
+    items: [
+      { href: "/biz/overview", label: "业务总览", Icon: Globe },
+      { href: "/biz/trend", label: "趋势预测", Icon: Sparkles },
+      { href: "/biz/impact", label: "影响链分析", Icon: Zap },
+      { href: "/biz/attribution", label: "归因分析", Icon: Search },
+      { href: "/biz/insights", label: "运营洞察", Icon: Thermometer },
+      { href: "/biz/roi", label: "ROI 分析", Icon: DollarSign },
+      { href: "/biz/team", label: "团队概况", Icon: Users },
+      { href: "/biz/ranking-enhanced", label: "增强排名", Icon: Medal },
+    ]
+  },
+  {
+    label: "Cohort",
+    items: [
+      { href: "/biz/cohort", label: "Cohort 分析", Icon: TrendingUp },
+      { href: "/biz/cohort-students", label: "学员明细", Icon: Users },
+      { href: "/biz/cohort-decay", label: "留存衰减", Icon: ChevronDown },
+      { href: "/biz/cohort-heatmap", label: "Cohort热力图", Icon: Thermometer },
+    ]
+  },
+  {
+    label: "围场",
+    items: [
+      { href: "/biz/enclosure", label: "围场", Icon: Target },
+      { href: "/biz/enclosure-detail", label: "围场详情", Icon: ClipboardList },
+      { href: "/biz/enclosure-health", label: "围场健康", Icon: Zap },
+    ]
+  },
+  {
+    label: "渠道",
+    items: [
+      { href: "/biz/orders", label: "订单", Icon: ShoppingCart },
+      { href: "/biz/orders-detail", label: "订单详析", Icon: BarChart3 },
+      { href: "/biz/leads-overview", label: "Leads总览", Icon: BarChart3 },
+      { href: "/biz/coverage", label: "覆盖缺口", Icon: Target },
+      { href: "/biz/leads-detail", label: "Leads详情", Icon: Link2 },
+    ]
+  }
 ];
 
-const SYS_ITEMS: NavItem[] = [
-  { href: "/datasources", label: "数据源管理", Icon: Database },
-  { href: "/settings", label: "系统设置", Icon: Settings },
-  { href: "/snapshots", label: "历史快照", Icon: Clock },
-  { href: "/reports", label: "分析报告", Icon: FileText },
-  { href: "/present", label: "汇报模式", Icon: Monitor },
+const SYS_GROUPS: NavGroup[] = [
+  {
+    label: "管理",
+    items: [
+      { href: "/datasources", label: "数据源管理", Icon: Database },
+      { href: "/settings", label: "系统设置", Icon: Settings },
+      { href: "/snapshots", label: "历史快照", Icon: Clock },
+      { href: "/reports", label: "分析报告", Icon: FileText },
+      { href: "/present", label: "汇报模式", Icon: Monitor },
+    ]
+  }
 ];
 
 function NavLink({ href, label, Icon }: NavItem) {
@@ -144,6 +188,21 @@ function SectionHeader({
   );
 }
 
+function SidebarGroup({ group }: { group: NavGroup }) {
+  return (
+    <div className="mb-3">
+      <div className="px-3 mb-1 text-[10px] uppercase tracking-wider text-slate-400 font-semibold">
+        {group.label}
+      </div>
+      <div className="space-y-0.5">
+        {group.items.map((item) => (
+          <NavLink key={item.href} {...item} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function SidebarContent() {
   const [opsOpen, setOpsOpen] = useState(true);
   const [bizOpen, setBizOpen] = useState(true);
@@ -161,9 +220,9 @@ function SidebarContent() {
         <div>
           <SectionHeader label="运营视图" open={opsOpen} onToggle={() => setOpsOpen((v) => !v)} />
           {opsOpen && (
-            <div className="space-y-0.5">
-              {OPS_ITEMS.map((item) => (
-                <NavLink key={item.href} {...item} />
+            <div className="mt-2 text-sm">
+              {OPS_GROUPS.map((group) => (
+                <SidebarGroup key={group.label} group={group} />
               ))}
             </div>
           )}
@@ -173,9 +232,9 @@ function SidebarContent() {
         <div>
           <SectionHeader label="业务视图" open={bizOpen} onToggle={() => setBizOpen((v) => !v)} />
           {bizOpen && (
-            <div className="space-y-0.5">
-              {BIZ_ITEMS.map((item) => (
-                <NavLink key={item.href} {...item} />
+            <div className="mt-2 text-sm">
+              {BIZ_GROUPS.map((group) => (
+                <SidebarGroup key={group.label} group={group} />
               ))}
             </div>
           )}
@@ -185,9 +244,9 @@ function SidebarContent() {
         <div>
           <SectionHeader label="系统" open={sysOpen} onToggle={() => setSysOpen((v) => !v)} />
           {sysOpen && (
-            <div className="space-y-0.5">
-              {SYS_ITEMS.map((item) => (
-                <NavLink key={item.href} {...item} />
+            <div className="mt-2 text-sm">
+              {SYS_GROUPS.map((group) => (
+                <SidebarGroup key={group.label} group={group} />
               ))}
             </div>
           )}

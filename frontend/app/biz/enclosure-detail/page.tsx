@@ -6,16 +6,14 @@ import { EnclosureCompareChart } from "@/components/charts/EnclosureCompareChart
 import { EnclosureCombinedOverview } from "@/components/charts/EnclosureCombinedOverview";
 import { GlossaryBanner } from "@/components/ui/GlossaryBanner";
 import { ErrorBoundary } from "@/components/providers/ErrorBoundary";
+import { PageHeader } from "@/components/layout/PageHeader";
+import { BIZ_PAGE } from "@/lib/layout";
 
 export default function EnclosureDetailPage() {
   const { t } = useTranslation();
   return (
-    <div className="max-w-7xl mx-auto space-y-8">
-      {/* Page header */}
-      <div>
-        <h1 className="text-2xl font-bold text-slate-800">{t("biz.enclosure-detail.title")}</h1>
-        <p className="text-sm text-slate-400 mt-1">{t("biz.enclosure-detail.subtitle")}</p>
-      </div>
+    <div className={BIZ_PAGE}>
+      <PageHeader title={t("biz.enclosure-detail.title")} subtitle={t("biz.enclosure-detail.subtitle")} />
 
       {/* Context card */}
       <Card>

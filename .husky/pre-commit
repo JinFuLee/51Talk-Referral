@@ -1,0 +1,1 @@
+#!/bin/sh\n. "$(dirname "$0")/_/husky.sh"\ncd frontend && npx lint-staged\ncd ../backend && black . && isort . && flake8 . && mypy .

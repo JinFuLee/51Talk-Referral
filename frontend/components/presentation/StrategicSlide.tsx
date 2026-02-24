@@ -4,12 +4,11 @@ import React from "react";
 import { clsx } from "clsx";
 import useSWR from "swr";
 import { Target } from "lucide-react";
+import { swrFetcher } from "@/lib/api";
 
 interface StrategicSlideProps {
   revealStep: number;
 }
-
-const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
 interface SCQABlock {
   key: "S" | "C" | "Q" | "A";
@@ -74,7 +73,7 @@ function SCQACard({
 }
 
 export function StrategicSlide({ revealStep }: StrategicSlideProps) {
-  const { data } = useSWR("/api/analysis/pyramid-report", fetcher);
+  const { data } = useSWR("/api/analysis/pyramid-report", swrFetcher);
   const report = data?.data ?? {};
 
   const scqa = {
@@ -162,8 +161,8 @@ export function StrategicSlide({ revealStep }: StrategicSlideProps) {
           关键行动项
         </p>
         <div className="grid grid-cols-3 gap-3">
-          {actions.slice(0, 3).map((action, i) => (
-            <div key={i} className="rounded-lg bg-white border border-slate-200 p-3 shadow-sm">
+          {actions.slice(0, 3).map((action) => (
+            <div key={action.text} className="rounded-lg bg-white border border-slate-200 p-3 shadow-sm">
               <p className="text-sm text-slate-700 leading-snug">{action.text}</p>
               <p className="text-xs text-primary font-medium mt-2">负责: {action.owner}</p>
             </div>

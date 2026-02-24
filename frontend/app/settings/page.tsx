@@ -2,6 +2,8 @@
 
 import { useState, useCallback, useEffect } from "react";
 import { useExchangeRate, useTargetsV2, useTargetRecommendation } from "@/lib/hooks";
+import { PageHeader } from "@/components/layout/PageHeader";
+import { BIZ_PAGE } from "@/lib/layout";
 import { configAPI } from "@/lib/api";
 import { Spinner } from "@/components/ui/Spinner";
 import type {
@@ -140,9 +142,8 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="space-y-6 max-w-4xl">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-slate-800">系统设置</h1>
+    <div className={BIZ_PAGE}>
+      <PageHeader title="系统设置">
         <div className="flex items-center gap-3">
           <select
             value={selectedMonth}
@@ -163,7 +164,7 @@ export default function SettingsPage() {
             {saving ? <Spinner size="sm" /> : "保存目标"}
           </button>
         </div>
-      </div>
+      </PageHeader>
 
       {msg && (
         <p className={`text-sm ${msg.includes("成功") ? "text-green-600" : "text-red-500"}`}>

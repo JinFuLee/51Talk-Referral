@@ -4,12 +4,11 @@ import React from "react";
 import { clsx } from "clsx";
 import useSWR from "swr";
 import { formatRevenue } from "@/lib/utils";
+import { swrFetcher } from "@/lib/api";
 
 interface ImpactAttributionSlideProps {
   revealStep: number;
 }
-
-const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
 interface ImpactChainItem {
   metric: string;
@@ -96,40 +95,60 @@ function AttributionRow({ item, maxLoss, visible }: AttributionRowProps) {
   );
 }
 
+interface ImpactChainApiResponse {
+  chains: Array<{
+    metric: string;
+    label: string;
+    actual: number;
+    target: number;
+    gap: number;
+    lost_revenue_usd: number;
+    lost_payments: number;
+  }>;
+  total_lost_revenue_usd: number;
+  total_lost_revenue_thb: number;
+  top_lever?: string;
+  top_lever_label?: string;
+}
+
 export function ImpactAttributionSlide({ revealStep }: ImpactAttributionSlideProps) {
-  const { data } = useSWR("/api/analysis/impact-chain", fetcher);
+  const { data, error } = useSWR<ImpactChainApiResponse>("/api/analysis/impact-chain", swrFetcher);
   const chains: ImpactChainItem[] = [];
 
-  if (data?.data) {
-    const rawChains = Array.isArray(data.data) ? data.data : [];
-    for (const chain of rawChains) {
+  if (data?.chains) {
+    // API returns chains[] at top level (not wrapped in .data)
+    // chain.metric is the metric key; chain.label is the display name
+    for (const chain of data.chains) {
       chains.push({
-        metric: chain.metric ?? chain.name ?? "—",
-        loss_usd: Math.abs(chain.total_loss_usd ?? chain.loss_usd ?? 0),
-        side: OPS_METRICS.has(chain.metric_key ?? "") ? "ops" : "biz",
+        metric: chain.label ?? chain.metric ?? "—",
+        loss_usd: Math.abs(chain.lost_revenue_usd ?? 0),
+        side: OPS_METRICS.has(chain.metric ?? "") ? "ops" : "biz",
       });
     }
   }
 
-  // Fallback placeholder rows if no data
-  const displayChains: ImpactChainItem[] = chains.length > 0 ? chains : [
-    { metric: "打卡率缺口", loss_usd: 0, side: "ops" },
-    { metric: "参与率缺口", loss_usd: 0, side: "ops" },
-    { metric: "触达率缺口", loss_usd: 0, side: "ops" },
-    { metric: "约课率缺口", loss_usd: 0, side: "biz" },
-    { metric: "出席率缺口", loss_usd: 0, side: "biz" },
-    { metric: "付费转化缺口", loss_usd: 0, side: "biz" },
-  ];
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-full text-rose-500 text-sm">
+        影响链数据加载失败
+      </div>
+    );
+  }
+
+  // Show empty state if no chains (all metrics at or above target — no losses)
+  const displayChains: ImpactChainItem[] = chains;
 
   const opsTotal = displayChains.filter((c) => c.side === "ops").reduce((s, c) => s + c.loss_usd, 0);
   const bizTotal = displayChains.filter((c) => c.side === "biz").reduce((s, c) => s + c.loss_usd, 0);
   const maxLoss = Math.max(...displayChains.map((c) => c.loss_usd), 1);
 
+  const topLever = data?.top_lever_label;
+  const totalLostUsd = data?.total_lost_revenue_usd ?? 0;
   const improvementSuggestions = [
-    "运营: 打卡活动频次提升 20% → 估增收 $X",
-    "业务: 约课回访 SLA 缩短至 2h → 估增收 $Y",
-    "共同: 结合激励政策提升留存率",
-  ];
+    topLever ? `首要杠杆: ${topLever}缺口，预计损失最大` : null,
+    totalLostUsd > 0 ? `本月效率缺口合计损失 $${totalLostUsd.toLocaleString()}` : null,
+    "建议结合具体 CC 外呼数据制定精细化改善方案",
+  ].filter((s): s is string => s !== null);
 
   return (
     <div className="flex flex-col h-full gap-5">
@@ -149,7 +168,7 @@ export function ImpactAttributionSlide({ revealStep }: ImpactAttributionSlidePro
         className="flex flex-col gap-2 flex-1"
         style={{ opacity: revealStep >= 1 ? 1 : 0, transition: "opacity 0.5s ease" }}
       >
-        {displayChains.map((item, i) => (
+        {displayChains.map((item) => (
           <AttributionRow
             key={item.metric}
             item={item}
@@ -183,8 +202,8 @@ export function ImpactAttributionSlide({ revealStep }: ImpactAttributionSlidePro
       >
         <p className="text-sm font-semibold text-slate-600 mb-2">改善方案</p>
         <ul className="space-y-1">
-          {improvementSuggestions.map((s, i) => (
-            <li key={i} className="text-sm text-slate-600 flex items-start gap-2">
+          {improvementSuggestions.map((s) => (
+            <li key={s} className="text-sm text-slate-600 flex items-start gap-2">
               <span className="text-slate-400 flex-none">•</span>
               <span>{s}</span>
             </li>

@@ -136,7 +136,7 @@ function AnalysisPanel({ analysis }: { analysis: RootCauseAnalysis }) {
 }
 
 export function FiveWhyTree({ data }: FiveWhyTreeProps) {
-  const analyses = data.analyses ?? [];
+  const analyses = useMemo(() => data.analyses ?? [], [data.analyses]);
 
   // 按 category 分组
   const grouped = useMemo(() => {
@@ -220,7 +220,7 @@ export function FiveWhyTree({ data }: FiveWhyTreeProps) {
             const sev = SEVERITY_STYLES[a.severity] ?? SEVERITY_STYLES.yellow;
             return (
               <button
-                key={i}
+                key={a.trigger_metric ?? i}
                 onClick={() => setActiveIdx(i)}
                 className={`flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-full border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${
                   safeIdx === i

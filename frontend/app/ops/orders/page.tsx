@@ -11,6 +11,8 @@ import { Card } from "@/components/ui/Card";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { ErrorBoundary } from "@/components/providers/ErrorBoundary";
 import type { OrderData } from "@/lib/types";
+import { PageHeader } from "@/components/layout/PageHeader";
+import { OPS_PAGE } from "@/lib/layout";
 
 export default function OpsOrdersPage() {
   const { t } = useTranslation();
@@ -72,13 +74,11 @@ export default function OpsOrdersPage() {
   }
 
   return (
-    <div className="max-w-none space-y-4">
-      <div>
-        <h1 className="text-xl font-bold text-slate-800">{t("ops.orders.title")}</h1>
-        <p className="text-xs text-slate-400 mt-0.5">
-          共 {totalOrders} 单 · 总收入 {formatRevenue(totalRevenue, rate)} · 均值 {formatRevenue(avgOrderValue, rate)}
-        </p>
-      </div>
+    <div className={OPS_PAGE}>
+      <PageHeader
+        title={t("ops.orders.title")}
+        subtitle={`共 ${totalOrders} 单 · 总收入 ${formatRevenue(totalRevenue, rate)} · 均值 ${formatRevenue(avgOrderValue, rate)}`}
+      />
 
       <GlossaryBanner terms={[
         { term: "新单", definition: "首次购买" },
@@ -123,8 +123,8 @@ export default function OpsOrdersPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {channelRevenueData.channels.map((ch, i) => (
-                    <tr key={i} className="border-b border-slate-100 hover:bg-slate-50">
+                  {channelRevenueData.channels.map((ch) => (
+                    <tr key={ch.channel} className="border-b border-slate-100 hover:bg-slate-50">
                       <td className="px-4 py-3 font-medium text-slate-800">{ch.channel}</td>
                       <td className="px-4 py-3 text-slate-700">${Math.round(ch.revenue_usd).toLocaleString()}</td>
                       <td className="px-4 py-3 text-slate-600">฿{Math.round(ch.revenue_thb).toLocaleString()}</td>
@@ -169,7 +169,7 @@ export default function OpsOrdersPage() {
                 </thead>
                 <tbody>
                   {filtered.slice(0, 100).map((row, i) => (
-                    <tr key={i} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
+                    <tr key={`${row.date}-${row.cc_name ?? row.cc ?? i}-${row.student_name ?? row.student ?? i}`} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
                       <td className="px-3 py-2 text-slate-600 whitespace-nowrap">{row.date ?? "—"}</td>
                       <td className="px-3 py-2 text-slate-600">{row.cc_name ?? row.cc ?? "—"}</td>
                       <td className="px-3 py-2 text-slate-600">{row.student_name ?? row.student ?? "—"}</td>

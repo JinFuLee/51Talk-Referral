@@ -3,15 +3,14 @@
 import { useTranslation } from "@/lib/hooks";
 import { TeamFunnelComparison } from "@/components/ops/TeamFunnelComparison";
 import { ErrorBoundary } from "@/components/providers/ErrorBoundary";
+import { PageHeader } from "@/components/layout/PageHeader";
+import { OPS_PAGE } from "@/lib/layout";
 
 export default function FunnelTeamPage() {
   const { t } = useTranslation();
   return (
-    <div className="max-w-none space-y-4">
-      <div>
-        <h1 className="text-xl font-bold text-slate-800">{t("ops.funnel-team.title")}</h1>
-        <p className="text-xs text-slate-400 mt-0.5">{t("ops.funnel-team.subtitle")}</p>
-      </div>
+    <div className={OPS_PAGE}>
+      <PageHeader title={t("ops.funnel-team.title")} subtitle={t("ops.funnel-team.subtitle")} />
 
       <ErrorBoundary>
         <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">

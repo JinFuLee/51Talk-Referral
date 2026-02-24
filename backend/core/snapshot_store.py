@@ -2,6 +2,7 @@
 51Talk 转介绍周报自动生成 - 快照存储系统
 核心职责：SQLite 存储每日分析结果，支持时间序列查询和历史导入
 """
+import logging
 import sqlite3
 import json
 from typing import Dict, List, Optional, Any
@@ -9,11 +10,13 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from core.config import BASE_DIR
 
+logger = logging.getLogger(__name__)
+
 
 class SnapshotStore:
     """快照存储系统，使用 SQLite 保存每日分析结果"""
 
-    def __init__(self, project_root: Optional[Path] = None):
+    def __init__(self, project_root: Optional[Path] = None) -> None:
         """
         初始化数据库连接和表结构
 
@@ -28,13 +31,13 @@ class SnapshotStore:
         self.data_dir.mkdir(parents=True, exist_ok=True)
 
         # 数据库路径
-        self.db_path = self.data_dir / "snapshots.db"
+        self.db_path = self.data_dir / "snapshots_v2.db"
 
-        # 连接数据库
+        # 连接数据库（使用默认事务模式，确保多条 INSERT 的原子性）
+        # 不设 isolation_level=None，避免 autocommit 导致 save_snapshot 中途异常时部分写入
         self.conn = sqlite3.connect(
             str(self.db_path),
             check_same_thread=False,
-            isolation_level=None  # autocommit mode
         )
 
         # 启用 WAL 模式（Write-Ahead Logging）
@@ -47,7 +50,7 @@ class SnapshotStore:
         # 初始化表结构
         self._init_tables()
 
-    def _init_tables(self):
+    def _init_tables(self) -> None:
         """创建表结构和索引"""
         cursor = self.conn.cursor()
 
@@ -114,7 +117,7 @@ class SnapshotStore:
 
         self.conn.commit()
 
-    def save_snapshot(self, analysis_result: dict, report_date: datetime):
+    def save_snapshot(self, analysis_result: dict, report_date: datetime) -> None:
         """
         保存分析结果快照到数据库
 
@@ -219,6 +222,12 @@ class SnapshotStore:
 
         self.conn.commit()
 
+        # 自动清理 90 天前的旧快照
+        try:
+            self.cleanup_old_snapshots(days=90)
+        except Exception as e:
+            logger.warning(f"Auto cleanup failed: {e}")
+
     def get_cc_history(
         self,
         cc_name: Optional[str] = None,
@@ -317,7 +326,7 @@ class SnapshotStore:
 
         return stats
 
-    def cleanup(self, days_to_keep: int = 365):
+    def cleanup(self, days_to_keep: int = 365) -> None:
         """清理过期数据"""
         cursor = self.conn.cursor()
 
@@ -368,6 +377,12 @@ class SnapshotStore:
         """, (days,))
 
         self.conn.commit()
+
+        try:
+            self.conn.execute("VACUUM")
+        except Exception as e:
+            logger.warning(f"VACUUM after cleanup failed (non-blocking): {e}")
+
         return deleted
 
     def get_daily_kpi(
@@ -568,7 +583,7 @@ class SnapshotStore:
                 return row
         return None
 
-    def __del__(self):
+    def __del__(self) -> None:
         """关闭数据库连接"""
         if hasattr(self, 'conn'):
             self.conn.close()

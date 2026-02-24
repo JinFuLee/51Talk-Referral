@@ -4,6 +4,7 @@ import React from "react";
 import { clsx } from "clsx";
 import useSWR from "swr";
 import { CheckCircle2, MessageSquare, ArrowRight } from "lucide-react";
+import { swrFetcher } from "@/lib/api";
 
 interface MeetingSummarySlideProps {
   revealStep: number;
@@ -23,8 +24,6 @@ interface ColumnConfig {
   bulletClass: string;
   revealIndex: number;
 }
-
-const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
 function SummaryColumn({
   label,
@@ -56,8 +55,8 @@ function SummaryColumn({
         </div>
       </div>
       <div className="p-4 flex flex-col gap-3 flex-1">
-        {items.map((item, i) => (
-          <div key={i} className="flex items-start gap-3 rounded-lg bg-white/80 border border-slate-100 p-3 shadow-sm">
+        {items.map((item) => (
+          <div key={item.text} className="flex items-start gap-3 rounded-lg bg-white/80 border border-slate-100 p-3 shadow-sm">
             <span className={clsx("mt-0.5 text-lg flex-none", bulletClass)}>•</span>
             <p className="text-sm text-slate-700 leading-relaxed">{item.text}</p>
           </div>
@@ -68,7 +67,7 @@ function SummaryColumn({
 }
 
 export function MeetingSummarySlide({ revealStep }: MeetingSummarySlideProps) {
-  const { data, isLoading, error } = useSWR("/api/analysis/meeting-summary", fetcher);
+  const { data, isLoading, error } = useSWR("/api/analysis/meeting-summary", swrFetcher);
 
   const consensus: SummaryItem[] = data?.data?.consensus ?? [];
   const disputes: SummaryItem[] = data?.data?.disputes ?? [];

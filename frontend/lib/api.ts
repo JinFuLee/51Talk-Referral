@@ -2,10 +2,27 @@
  * API client — 所有对 FastAPI 后端（localhost:8000）的请求封装
  * 通过 Next.js rewrites: /api/* → http://localhost:8000/api/*
  */
-import type { MonthlyTargetV2, TargetRecommendation, ImpactChainData, WhatIfResult, RootCauseData, StageEvaluation, PyramidReport } from "./types";
+import type { MonthlyTargetV2, TargetRecommendation, ImpactChainData, WhatIfResult, RootCauseData, StageEvaluation, PyramidReport, ComparisonResponse, LeadsOverviewData } from "./types";
 import { errorLogger } from "./error-logger";
 
 const BASE = "/api";
+
+export function periodQuery(
+  period?: string,
+  extra?: Record<string, string>
+): string {
+  const params = new URLSearchParams();
+  if (period && period !== "this_month") {
+    params.set("period", period);
+  }
+  if (extra) {
+    for (const [k, v] of Object.entries(extra)) {
+      if (v !== undefined && v !== null) params.set(k, v);
+    }
+  }
+  const q = params.toString();
+  return q ? `?${q}` : "";
+}
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await fetch(`${BASE}${path}`, {
@@ -35,61 +52,157 @@ export const healthAPI = {
 // ── Analysis ─────────────────────────────────────────────────────────────────
 
 export const analysisAPI = {
-  run: (params?: { input_dir?: string; report_date?: string; lang?: string }) =>
+  run: (params?: {
+    input_dir?: string;
+    report_date?: string;
+    lang?: string;
+    period?: string;
+    custom_start?: string;
+    custom_end?: string;
+  }) =>
     request<{ status: string; summary: unknown }>("/analysis/run", {
       method: "POST",
       body: JSON.stringify(params ?? {}),
     }),
 
-  getResult: () => request<Record<string, unknown>>("/analysis/result"),
-  getSummary: () =>
-    request<{ summary: unknown; meta: unknown; time_progress: number }>("/analysis/summary"),
-  getFunnel: () => request<unknown>("/analysis/funnel"),
-  getChannelComparison: () => request<unknown>("/analysis/channel-comparison"),
-  getTeamData: () => request<unknown[]>("/analysis/team-data"),
-  getAnomalies: () => request<unknown[]>("/analysis/anomalies"),
-  getRiskAlerts: () => request<unknown[]>("/analysis/risk-alerts"),
-  getROI: () => request<unknown>("/analysis/roi"),
-  getROICostBreakdown: () => request<unknown>("/analysis/roi/cost-breakdown"),
-  getPrediction: () => request<unknown>("/analysis/prediction"),
-  getAttribution: () => request<unknown>("/analysis/attribution"),
-  getCCRanking: (topN = 10) =>
-    request<unknown[]>(`/analysis/cc-ranking?top_n=${topN}`),
-  getSSRanking: (topN = 10) =>
-    request<unknown[]>(`/analysis/ss-ranking?top_n=${topN}`),
-  getLPRanking: (topN = 10) =>
-    request<unknown[]>(`/analysis/lp-ranking?top_n=${topN}`),
-  getCohort: () => request<unknown>("/analysis/cohort"),
-  getCheckin: () => request<unknown>("/analysis/checkin"),
-  getLeads: () => request<unknown>("/analysis/leads"),
-  getFollowup: () => request<unknown>("/analysis/followup"),
-  getOrders: () => request<unknown>("/analysis/orders"),
-  getTrend: (compareType: "mom" | "yoy" | "wow" = "mom") =>
-    request<unknown>(`/analysis/trend?compare_type=${compareType}`),
-  getLTV: () => request<unknown>("/analysis/ltv"),
-  getImpactChain: () => request<ImpactChainData>("/analysis/impact-chain"),
-  postWhatIf: (metric: string, newValue: number) =>
+  getResult: (period?: string) =>
+    request<Record<string, unknown>>(`/analysis/result${periodQuery(period)}`),
+  getSummary: (period?: string) =>
+    request<{ summary: unknown; meta: unknown; time_progress: number }>(
+      `/analysis/summary${periodQuery(period)}`
+    ),
+  getFunnel: (period?: string) =>
+    request<unknown>(`/analysis/funnel${periodQuery(period)}`),
+  getChannelComparison: (period?: string) =>
+    request<unknown>(`/analysis/channel-comparison${periodQuery(period)}`),
+  getTeamData: (period?: string) =>
+    request<unknown[]>(`/analysis/team-data${periodQuery(period)}`),
+  getAnomalies: (period?: string) =>
+    request<unknown[]>(`/analysis/anomalies${periodQuery(period)}`),
+  getRiskAlerts: (period?: string) =>
+    request<unknown[]>(`/analysis/risk-alerts${periodQuery(period)}`),
+  getROI: (period?: string) =>
+    request<unknown>(`/analysis/roi${periodQuery(period)}`),
+  getROICostBreakdown: (period?: string) =>
+    request<unknown>(`/analysis/roi/cost-breakdown${periodQuery(period)}`),
+  getPrediction: (period?: string) =>
+    request<unknown>(`/analysis/prediction${periodQuery(period)}`),
+  getAttribution: (period?: string) =>
+    request<unknown>(`/analysis/attribution${periodQuery(period)}`),
+  getCCRanking: (topN = 10, period?: string) =>
+    request<unknown[]>(
+      `/analysis/cc-ranking${periodQuery(period, { top_n: String(topN) })}`
+    ),
+  getSSRanking: (topN = 10, period?: string) =>
+    request<unknown[]>(
+      `/analysis/ss-ranking${periodQuery(period, { top_n: String(topN) })}`
+    ),
+  getLPRanking: (topN = 10, period?: string) =>
+    request<unknown[]>(
+      `/analysis/lp-ranking${periodQuery(period, { top_n: String(topN) })}`
+    ),
+  getCohort: (period?: string) =>
+    request<unknown>(`/analysis/cohort${periodQuery(period)}`),
+  getCheckin: (period?: string) =>
+    request<unknown>(`/analysis/checkin${periodQuery(period)}`),
+  getLeads: (period?: string) =>
+    request<unknown>(`/analysis/leads${periodQuery(period)}`),
+  getFollowup: (period?: string) =>
+    request<unknown>(`/analysis/followup${periodQuery(period)}`),
+  getOrders: (period?: string) =>
+    request<unknown>(`/analysis/orders${periodQuery(period)}`),
+  getTrend: (compareType: "mom" | "yoy" | "wow" = "mom", period?: string) =>
+    request<unknown>(
+      `/analysis/trend${periodQuery(period, { compare_type: compareType })}`
+    ),
+  getLTV: (period?: string) =>
+    request<unknown>(`/analysis/ltv${periodQuery(period)}`),
+  getImpactChain: (period?: string) =>
+    request<ImpactChainData>(`/analysis/impact-chain${periodQuery(period)}`),
+  postWhatIf: (metric: string, newValue: number, period?: string) =>
     request<WhatIfResult>("/analysis/what-if", {
       method: "POST",
-      body: JSON.stringify({ metric, new_value: newValue }),
+      body: JSON.stringify({
+        metric,
+        new_value: newValue,
+        ...(period && period !== "this_month" ? { period } : {}),
+      }),
     }),
-  getRootCause: () => request<RootCauseData>("/analysis/root-cause"),
-  getStageEvaluation: () => request<StageEvaluation>("/analysis/stage-evaluation"),
-  getPyramidReport: () => request<PyramidReport>("/analysis/pyramid-report"),
-  getPackageMix: () => request<{ items: Array<{ product_type: string; count: number; revenue_usd: number; percentage: number }> }>("/analysis/package-mix"),
-  getTeamPackageMix: () => request<{ teams: Array<{ team: string; items: Array<{ product_type: string; ratio: number }> }> }>("/analysis/team-package-mix"),
-  getChannelRevenue: () => request<{ channels: Array<{ channel: string; revenue_usd: number; revenue_thb: number; percentage: number }>; total_usd: number }>("/analysis/channel-revenue"),
-  getOutreachCoverage: () => request<unknown>("/analysis/outreach-coverage"),
-  getFunnelDetail: () => request<unknown>("/analysis/funnel-detail"),
-  getSectionEfficiency: () => request<unknown>("/analysis/section-efficiency"),
-  getChannelMoM: () => request<unknown>("/analysis/channel-mom"),
-  getRetentionContribution: () => request<unknown>("/analysis/retention-contribution"),
-  getEnclosureChannelMatrix: () => request<unknown>("/analysis/enclosure-channel-matrix"),
-  getTimeInterval: () => request<unknown>("/analysis/time-interval"),
-  getProductivityHistory: () => request<unknown>("/analysis/productivity-history"),
-  getOutreachGap: () => request<unknown>("/analysis/outreach-gap"),
-  getEnclosureHealth: () => request<unknown>("/analysis/enclosure-health"),
-  getCCRankingEnhanced: (topN = 20) => request<unknown>(`/analysis/cc-ranking-enhanced?top_n=${topN}`),
+  getRootCause: (period?: string) =>
+    request<RootCauseData>(`/analysis/root-cause${periodQuery(period)}`),
+  getStageEvaluation: (period?: string) =>
+    request<StageEvaluation>(`/analysis/stage-evaluation${periodQuery(period)}`),
+  getPyramidReport: (period?: string) =>
+    request<PyramidReport>(`/analysis/pyramid-report${periodQuery(period)}`),
+  getPackageMix: (period?: string) =>
+    request<{
+      items: Array<{
+        product_type: string;
+        count: number;
+        revenue_usd: number;
+        percentage: number;
+      }>;
+    }>(`/analysis/package-mix${periodQuery(period)}`),
+  getTeamPackageMix: (period?: string) =>
+    request<{
+      teams: Array<{
+        team: string;
+        items: Array<{ product_type: string; ratio: number }>;
+      }>;
+    }>(`/analysis/team-package-mix${periodQuery(period)}`),
+  getChannelRevenue: (period?: string) =>
+    request<{
+      channels: Array<{
+        channel: string;
+        revenue_usd: number;
+        revenue_thb: number;
+        percentage: number;
+      }>;
+      total_usd: number;
+    }>(`/analysis/channel-revenue${periodQuery(period)}`),
+  getOutreachCoverage: (period?: string) =>
+    request<unknown>(`/analysis/outreach-coverage${periodQuery(period)}`),
+  getFunnelDetail: (period?: string) =>
+    request<unknown>(`/analysis/funnel-detail${periodQuery(period)}`),
+  getSectionEfficiency: (period?: string) =>
+    request<unknown>(`/analysis/section-efficiency${periodQuery(period)}`),
+  getChannelMoM: (period?: string) =>
+    request<unknown>(`/analysis/channel-mom${periodQuery(period)}`),
+  getRetentionContribution: (period?: string) =>
+    request<unknown>(`/analysis/retention-contribution${periodQuery(period)}`),
+  getEnclosureChannelMatrix: (period?: string) =>
+    request<unknown>(`/analysis/enclosure-channel-matrix${periodQuery(period)}`),
+  getTimeInterval: (period?: string) =>
+    request<unknown>(`/analysis/time-interval${periodQuery(period)}`),
+  getProductivityHistory: (period?: string) =>
+    request<unknown>(`/analysis/productivity-history${periodQuery(period)}`),
+  getOutreachGap: (period?: string) =>
+    request<unknown>(`/analysis/outreach-gap${periodQuery(period)}`),
+  getEnclosureHealth: (period?: string) =>
+    request<unknown>(`/analysis/enclosure-health${periodQuery(period)}`),
+  getCCRankingEnhanced: (topN = 20, period?: string) =>
+    request<unknown>(
+      `/analysis/cc-ranking-enhanced${periodQuery(period, { top_n: String(topN) })}`
+    ),
+  getCompareSummary: (period?: string, mode?: string) =>
+    request<ComparisonResponse>(
+      `/analysis/compare-summary${periodQuery(period, { mode: mode ?? 'pop' })}`
+    ),
+  getKPISparkline: (days = 14) =>
+    request<{
+      available: boolean;
+      days: number;
+      metrics: Record<string, {
+        daily: { date: string; value: number }[];
+        peak: { date: string; value: number } | null;
+        valley: { date: string; value: number } | null;
+      }>;
+      unavailable_reason: string | null;
+    }>(`/analysis/kpi-sparkline?days=${days}`),
+  getLeadsOverview: (scope = 'total', period?: string) =>
+    request<LeadsOverviewData>(
+      `/analysis/leads-overview?scope=${scope}${period ? `&period=${period}` : ''}`
+    ),
 };
 
 // ── Reports ───────────────────────────────────────────────────────────────────
@@ -98,7 +211,7 @@ export const reportsAPI = {
   generate: () =>
     request<{ status: string; report: { markdown: string; generated_at: string; ai_commentary: string } }>(
       "/reports/generate",
-      { method: "POST" }
+      { method: "POST", body: JSON.stringify({}) }
     ),
   latest: () => request<{ markdown: string; generated_at: string } | null>("/reports/latest"),
   list: () => request<{ reports: { filename: string; date: string }[] }>("/reports/list"),
@@ -197,4 +310,11 @@ export const snapshotsAPI = {
       method: "DELETE",
     }),
 };
+
+// ── SWR fetcher ──────────────────────────────────────────────────────────────
+export const swrFetcher = (url: string) =>
+  fetch(url).then((r) => {
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    return r.json();
+  });
 

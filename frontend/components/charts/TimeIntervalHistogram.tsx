@@ -1,6 +1,7 @@
 "use client";
 
 import useSWR from "swr";
+import { swrFetcher } from "@/lib/api";
 import {
   BarChart,
   Bar,
@@ -27,19 +28,7 @@ interface TimeIntervalResponse {
   total_records: number;
 }
 
-const MOCK: TimeIntervalResponse = {
-  histogram: [
-    { bucket: "0-3天", count: 42, percentage: 28.2 },
-    { bucket: "4-7天", count: 38, percentage: 25.5 },
-    { bucket: "8-14天", count: 35, percentage: 23.5 },
-    { bucket: "15-30天", count: 22, percentage: 14.8 },
-    { bucket: "31+天", count: 12, percentage: 8.1 },
-  ],
-  avg_days: 9.3,
-  median_days: 6,
-  p90_days: 28,
-  total_records: 149,
-};
+
 
 interface CustomTooltipProps {
   active?: boolean;
@@ -61,12 +50,11 @@ function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
 
 export function TimeIntervalHistogram() {
   const { data, isLoading, error } = useSWR<TimeIntervalResponse>(
-    "time-interval",
-    () => fetch("/api/analysis/time-interval").then((r) => r.json())
+    "/api/analysis/time-interval",
+    swrFetcher
   );
 
-  const isMock = !data?.histogram || data.histogram.length === 0;
-  const resp: TimeIntervalResponse = isMock ? MOCK : data!;
+  const hasData = data?.histogram && data.histogram.length > 0;
 
   if (isLoading) {
     return (
@@ -78,39 +66,39 @@ export function TimeIntervalHistogram() {
 
   if (error) {
     return (
-      <div className="flex items-center justify-center h-12 text-slate-400 text-sm">
-        数据加载失败，显示示例数据
+      <div className="flex items-center justify-center h-12 text-red-400 text-sm">
+        数据加载失败
+      </div>
+    );
+  }
+
+  if (!hasData || !data) {
+    return (
+      <div className="flex flex-col items-center justify-center py-10 px-4 text-center bg-slate-50 border border-dashed border-slate-200 rounded-xl">
+        <p className="text-sm font-medium text-slate-600 mb-1">注册付费时间间隔数据暂未就绪</p>
+        <p className="text-xs text-slate-400">请先运行分析以生成 time-interval 统计</p>
       </div>
     );
   }
 
   return (
     <div className="space-y-4">
-      {isMock && (
-        <div className="bg-amber-50 border border-amber-200 text-amber-700 px-3 py-1.5 rounded text-xs mb-2">
-          ⚠ 当前显示模拟数据（API 数据不可用）
-        </div>
-      )}
       <p className="text-xs text-slate-400">
-        注册 → 付费天数分布 · 共 {resp.total_records} 条记录
+        注册 → 付费天数分布 · 共 {data.total_records} 条记录
       </p>
 
       <ResponsiveContainer width="100%" height={CHART_HEIGHT.md} aria-label="注册付费天数分布直方图">
         <BarChart
-          data={resp.histogram}
+          data={data.histogram}
           margin={{ top: 8, right: 16, left: 0, bottom: 4 }}
         >
           <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-          <XAxis
-            dataKey="bucket"
+          <XAxis tickLine={false} axisLine={false} dataKey="bucket"
             tick={{ fontSize: CHART_FONT_SIZE.md }}
-            interval={0}
-          />
-          <YAxis
-            tick={{ fontSize: CHART_FONT_SIZE.md }}
+            interval={0} />
+          <YAxis tickLine={false} axisLine={false} tick={{ fontSize: CHART_FONT_SIZE.md }}
             allowDecimals={false}
-            label={{ value: "学员数", angle: -90, position: "insideLeft", fontSize: CHART_FONT_SIZE.md, fill: "hsl(var(--muted-foreground))" }}
-          />
+            label={{ value: "学员数", angle: -90, position: "insideLeft", fontSize: CHART_FONT_SIZE.md, fill: "hsl(var(--muted-foreground))" }} />
           <Tooltip content={<CustomTooltip />} />
           <Bar
             dataKey="count"
@@ -125,9 +113,9 @@ export function TimeIntervalHistogram() {
       {/* Stats row */}
       <div className="grid grid-cols-3 gap-3">
         {[
-          { label: "平均天数", value: `${resp.avg_days} 天` },
-          { label: "中位天数", value: `${resp.median_days} 天` },
-          { label: "P90 天数", value: `${resp.p90_days} 天` },
+          { label: "平均天数", value: `${data.avg_days} 天` },
+          { label: "中位天数", value: `${data.median_days} 天` },
+          { label: "P90 天数", value: `${data.p90_days} 天` },
         ].map((stat) => (
           <div
             key={stat.label}

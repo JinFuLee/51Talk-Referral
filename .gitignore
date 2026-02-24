@@ -39,6 +39,7 @@ config/
 data/
 key/
 *.xlsx
+*.log
 temp_upload.xlsx
 !.gitkeep
 input/.cache/
@@ -46,6 +47,7 @@ input/.cache/
 # Node.js / Next.js
 node_modules/
 .next/
+.pnpm-store/
 package-lock.json
 *.tsbuildinfo
 .env.local

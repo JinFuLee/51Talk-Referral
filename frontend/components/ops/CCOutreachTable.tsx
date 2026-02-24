@@ -35,8 +35,8 @@ export function CCOutreachTable({ data }: CCOutreachTableProps) {
           </tr>
         </thead>
         <tbody>
-          {data.map((row, i) => (
-            <tr key={i} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
+          {data.map((row) => (
+            <tr key={row.name} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
               <td className="px-3 py-2 font-medium text-slate-800">{row.name}</td>
               <td className="px-3 py-2 text-slate-600">{(row.calls ?? 0).toLocaleString()}</td>
               <td className="px-3 py-2 text-slate-600">{((row.contact_rate ?? 0) * 100).toFixed(1)}%</td>

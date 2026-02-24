@@ -39,12 +39,6 @@ function pct(v: number) {
   return `${(v * 100).toFixed(1)}%`;
 }
 
-const MOCK: CCFunnelRow[] = [
-  { cc_name: "CC-A", register_to_reserve: 0.72, reserve_to_attend: 0.65, attend_to_paid: 0.48, overall_conversion: 0.22 },
-  { cc_name: "CC-B", register_to_reserve: 0.68, reserve_to_attend: 0.58, attend_to_paid: 0.40, overall_conversion: 0.16 },
-  { cc_name: "CC-C", register_to_reserve: 0.80, reserve_to_attend: 0.70, attend_to_paid: 0.55, overall_conversion: 0.31 },
-  { cc_name: "CC-D", register_to_reserve: 0.60, reserve_to_attend: 0.50, attend_to_paid: 0.35, overall_conversion: 0.11 },
-];
 
 export function FunnelEfficiencyPanel() {
   const [hiddenKeys, setHiddenKeys] = useState<Set<string>>(new Set());
@@ -64,8 +58,7 @@ export function FunnelEfficiencyPanel() {
     () => fetch("/api/analysis/funnel-detail").then((r) => r.json())
   );
 
-  const isMock = !data?.cc_funnel || data.cc_funnel.length === 0;
-  const rows: CCFunnelRow[] = isMock ? MOCK : data!.cc_funnel;
+  const rows: CCFunnelRow[] = data?.cc_funnel ?? [];
 
   if (isLoading) {
     return (
@@ -78,18 +71,21 @@ export function FunnelEfficiencyPanel() {
   if (error) {
     return (
       <div className="flex items-center justify-center h-64 text-slate-400 text-sm">
-        数据加载失败，显示示例数据
+        数据加载失败
+      </div>
+    );
+  }
+
+  if (rows.length === 0) {
+    return (
+      <div className="flex items-center justify-center h-64 text-slate-400 text-sm">
+        暂无漏斗分层跟进数据
       </div>
     );
   }
 
   return (
     <div className="space-y-2">
-      {isMock && (
-        <div className="bg-amber-50 border border-amber-200 text-amber-700 px-3 py-1.5 rounded text-xs mb-2">
-          ⚠ 当前显示模拟数据（API 数据不可用）
-        </div>
-      )}
       <p className="text-xs text-slate-400">
         各 CC 漏斗阶段转化率 · 注册→预约→出席→付费
       </p>
@@ -99,15 +95,12 @@ export function FunnelEfficiencyPanel() {
           margin={{ top: 8, right: 16, left: 0, bottom: 4 }}
         >
           <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-          <XAxis
-            dataKey="cc_name"
+          <XAxis tickLine={false} axisLine={false} dataKey="cc_name"
             tick={{ fontSize: CHART_FONT_SIZE.md }}
-            interval={0}
-          />
-          <YAxis tickFormatter={pct} tick={{ fontSize: CHART_FONT_SIZE.md }} domain={[0, 1]} />
+            interval={0} />
+          <YAxis tickLine={false} axisLine={false} tickFormatter={pct} tick={{ fontSize: CHART_FONT_SIZE.md }} domain={[0, 1]} />
           <Tooltip formatter={(v: number) => pct(v)} />
-          <Legend
-            wrapperStyle={{ fontSize: CHART_FONT_SIZE.md }}
+          <Legend iconType="circle" wrapperStyle={{ fontSize: CHART_FONT_SIZE.md }}
             onClick={handleLegendClick}
             formatter={(value: string) => (
               <span style={{ opacity: hiddenKeys.has(value) ? 0.35 : 1, cursor: "pointer" }}>

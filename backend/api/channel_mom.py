@@ -1,9 +1,6 @@
 """
 F4 渠道月度环比 API 端点
 GET /api/analysis/channel-mom — 渠道注册占比、效率指标月度趋势
-
-注：channel_trend.py 已实现同名端点（基于 ops_raw.channel_mom），
-此文件作为备用/重定向层，复用相同数据路径并保持相同响应结构。
 """
 from __future__ import annotations
 
@@ -101,7 +98,7 @@ def _pivot_channels(records: list[dict], months: list[str]) -> list[dict]:
 
 
 @router.get("/channel-mom")
-async def get_channel_mom() -> dict[str, Any]:
+def get_channel_mom() -> dict[str, Any]:
     """
     F4 渠道月度环比数据。
 

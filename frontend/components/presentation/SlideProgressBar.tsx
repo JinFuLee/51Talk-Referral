@@ -13,7 +13,7 @@ interface SlideProgressBarProps {
   sections?: Section[];
 }
 
-export function SlideProgressBar({ current, total, sections }: SlideProgressBarProps) {
+export function SlideProgressBar({ current, total, sections = [] }: SlideProgressBarProps) {
   const [hoveredSection, setHoveredSection] = useState<string | null>(null);
   const progressPct = total > 0 ? (current / total) * 100 : 0;
 
@@ -26,7 +26,7 @@ export function SlideProgressBar({ current, total, sections }: SlideProgressBarP
       />
 
       {/* Section markers */}
-      {sections?.map((section) => {
+      {sections.map((section) => {
         const markerPct = (section.startIndex / total) * 100;
         return (
           <div

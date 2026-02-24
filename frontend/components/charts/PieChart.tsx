@@ -49,7 +49,7 @@ export function PieChart({ data, title }: PieChartProps) {
               "",
             ]}
           />
-          <Legend wrapperStyle={{ fontSize: CHART_FONT_SIZE.md }} />
+          <Legend iconType="circle" wrapperStyle={{ fontSize: CHART_FONT_SIZE.md }} />
         </RechartsPieChart>
       </ResponsiveContainer>
     </div>

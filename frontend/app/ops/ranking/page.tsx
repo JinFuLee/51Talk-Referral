@@ -6,22 +6,32 @@ import { RadarChart360 } from "@/components/charts/RadarChart360";
 import { Card } from "@/components/ui/Card";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { ErrorBoundary } from "@/components/providers/ErrorBoundary";
+import { useConfigStore } from "@/lib/stores/config-store";
 import type { RankingItem } from "@/lib/types";
+import { PageHeader } from "@/components/layout/PageHeader";
+import { OPS_PAGE } from "@/lib/layout";
 
 interface RankingData { items: RankingItem[] }
 
 type RoleTab = "CC" | "SS" | "LP";
 
+function getDetailVal(detail: any, key: string, fallback: any = 0): number {
+  if (!detail || detail[key] == null) return fallback;
+  const val = detail[key];
+  const res = (typeof val === "object" && val !== null && "raw" in val) ? val.raw : val;
+  return res == null ? fallback : Number(res) || 0;
+}
+
 function toRadarData(item: RankingItem) {
-  const detail = (item.detail ?? {}) as Record<string, number>;
+  const detail = item.detail ?? {};
   return [
-    { subject: "触达率", value: Math.round(((detail.contact_rate ?? item.contact_rate ?? 0) as number) * 100) },
-    { subject: "打卡率", value: Math.round(((detail.checkin_rate ?? item.checkin_rate ?? 0) as number) * 100) },
-    { subject: "参与率", value: Math.round(((detail.participation_rate ?? 0) as number) * 100) },
-    { subject: "转化率", value: Math.round(((detail.conversion_rate ?? 0) as number) * 100) },
-    { subject: "注册", value: Math.min(Math.round((((detail.registrations ?? item.registrations ?? 0) as number) / 50) * 100), 100) },
-    { subject: "付费", value: Math.min(Math.round((((detail.payments ?? item.payments ?? 0) as number) / 20) * 100), 100) },
-    { subject: "带新系数", value: Math.min(Math.round(((detail.new_coefficient ?? 0) as number) * 50), 100) },
+    { subject: "触达率", value: Math.round((getDetailVal(detail, "contact_rate", item.contact_rate) as number) * 100) },
+    { subject: "打卡率", value: Math.round((getDetailVal(detail, "checkin_rate", item.checkin_rate) as number) * 100) },
+    { subject: "参与率", value: Math.round((getDetailVal(detail, "participation_rate") as number) * 100) },
+    { subject: "转化率", value: Math.round((getDetailVal(detail, "conversion_rate") as number) * 100) },
+    { subject: "注册", value: Math.min(Math.round(((getDetailVal(detail, "registrations", item.registrations) as number) / 50) * 100), 100) },
+    { subject: "付费", value: Math.min(Math.round(((getDetailVal(detail, "paid_count", item.payments) as number) / 20) * 100), 100) },
+    { subject: "带新系数", value: Math.min(Math.round((getDetailVal(detail, "bring_new_coeff", getDetailVal(detail, "new_coefficient")) as number) * 50), 100) },
     { subject: "综合", value: Math.round(Math.min(item.composite_score ?? 0, 100)) },
   ];
 }
@@ -30,10 +40,11 @@ export default function OpsRankingPage() {
   const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<RoleTab>("CC");
   const [selectedIndex, setSelectedIndex] = useState<number>(0);
+  const setSelectionContext = useConfigStore((s) => s.setSelectionContext);
 
-  const { data: ccRaw, isLoading: loadingCC } = useCCRanking(20);
-  const { data: ssRaw, isLoading: loadingSS } = useSSRanking(20);
-  const { data: lpRaw, isLoading: loadingLP } = useLPRanking(20);
+  const { data: ccRaw, isLoading: loadingCC } = useCCRanking(100);
+  const { data: ssRaw, isLoading: loadingSS } = useSSRanking(100);
+  const { data: lpRaw, isLoading: loadingLP } = useLPRanking(100);
 
   function extractItems(raw: unknown): RankingItem[] {
     if (!raw) return [];
@@ -84,13 +95,8 @@ export default function OpsRankingPage() {
   }
 
   return (
-    <div className="max-w-none space-y-4">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-xl font-bold text-slate-800">{t("ops.ranking.title")}</h1>
-          <p className="text-xs text-slate-400 mt-0.5">{t("ops.ranking.subtitle")}</p>
-        </div>
-      </div>
+    <div className={OPS_PAGE}>
+      <PageHeader title={t("ops.ranking.title")} subtitle={t("ops.ranking.subtitle")} />
 
       <div className="flex gap-1 border-b border-slate-200">
         {(["CC", "SS", "LP"] as RoleTab[]).map((role) => (
@@ -134,8 +140,12 @@ export default function OpsRankingPage() {
                     ) : (
                       items.map((item, i) => (
                         <tr
-                          key={i}
-                          onClick={() => setSelectedIndex(i)}
+                          key={(item as Record<string, unknown>).cc_name as string ?? item.name ?? i}
+                          onClick={() => {
+                            setSelectedIndex(i);
+                            const name = (item as Record<string, unknown>).cc_name as string ?? item.name;
+                            if (name) setSelectionContext({ type: 'cc', value: name });
+                          }}
                           className={`border-b border-slate-100 cursor-pointer transition-colors ${
                             selectedIndex === i ? "bg-blue-50" : "hover:bg-slate-50"
                           }`}
@@ -146,29 +156,23 @@ export default function OpsRankingPage() {
                           <td className="px-4 py-3 text-slate-600">{item.registrations ?? "—"}</td>
                           <td className="px-4 py-3 text-slate-600">{item.payments ?? "—"}</td>
                           <td className="px-4 py-3 text-slate-600">
-                            {item.contact_rate !== undefined ? `${(item.contact_rate * 100).toFixed(1)}%` : "—"}
+                            {item.contact_rate !== undefined ? `${(item.contact_rate * 100).toFixed(1)}%` : `${(getDetailVal(item.detail, "contact_rate") * 100).toFixed(1)}%`}
                           </td>
                           <td className="px-4 py-3 text-slate-600">
-                            {item.checkin_rate !== undefined ? `${(item.checkin_rate * 100).toFixed(1)}%` : "—"}
+                            {item.checkin_rate !== undefined ? `${(item.checkin_rate * 100).toFixed(1)}%` : `${(getDetailVal(item.detail, "checkin_rate") * 100).toFixed(1)}%`}
                           </td>
                           <td className="px-4 py-3 text-slate-600">
                             {(item as Record<string, unknown>).participation_rate !== undefined
                               ? `${(((item as Record<string, unknown>).participation_rate as number) * 100).toFixed(1)}%`
-                              : (item.detail as Record<string, number> | undefined)?.participation_rate !== undefined
-                              ? `${(((item.detail as Record<string, number>).participation_rate) * 100).toFixed(1)}%`
-                              : "—"}
+                              : `${((getDetailVal(item.detail, "participation_rate")) * 100).toFixed(1)}%`}
                           </td>
                           <td className="px-4 py-3 text-slate-600">
-                            {(item.detail as Record<string, number> | undefined)?.new_coefficient !== undefined
-                              ? ((item.detail as Record<string, number>).new_coefficient).toFixed(2)
-                              : "—"}
+                            {(getDetailVal(item.detail, "bring_new_coeff", getDetailVal(item.detail, "new_coefficient"))).toFixed(2)}
                           </td>
                           <td className="px-4 py-3 text-slate-600">
                             {(item as Record<string, unknown>).conversion_rate !== undefined
                               ? `${(((item as Record<string, unknown>).conversion_rate as number) * 100).toFixed(1)}%`
-                              : (item.detail as Record<string, number> | undefined)?.conversion_rate !== undefined
-                              ? `${(((item.detail as Record<string, number>).conversion_rate) * 100).toFixed(1)}%`
-                              : "—"}
+                              : `${((getDetailVal(item.detail, "conversion_rate")) * 100).toFixed(1)}%`}
                           </td>
                         </tr>
                       ))

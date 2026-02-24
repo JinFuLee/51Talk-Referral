@@ -1,15 +1,19 @@
 """
-A 类 Leads 数据加载器 — 4 个数据源
+A 类 Leads 数据加载器 — 5 个数据源
 A1: BI-Leads_宽口径leads达成_D-1
 A2: BI-Leads_全口径转介绍类型-当月效率_D-1
 A3: BI-Leads_全口径leads明细表_D-1
 A4: BI-Leads_宽口径leads达成-个人_D-1
+A5: 宣萱_转介绍不同口径对比_D-1
 """
 from pathlib import Path
-from typing import Optional
+from typing import Any, Optional, TYPE_CHECKING
 import logging
 
 from .base import BaseLoader
+
+if TYPE_CHECKING:
+    from backend.core.project_config import ProjectConfig
 
 logger = logging.getLogger(__name__)
 
@@ -17,8 +21,8 @@ logger = logging.getLogger(__name__)
 class LeadsLoader(BaseLoader):
     """A 类 Leads 数据加载器"""
 
-    def __init__(self, input_dir: Path):
-        super().__init__(input_dir)
+    def __init__(self, input_dir: Path, project_config: Optional["ProjectConfig"] = None) -> None:
+        super().__init__(input_dir, project_config)
 
     def load_all(self) -> dict:
         """加载所有 A 类数据源，单源失败不影响其他源"""
@@ -47,6 +51,12 @@ class LeadsLoader(BaseLoader):
         except Exception as e:
             logger.error(f"A4 leads_personal 加载失败: {e}")
             result["leads_achievement_personal"] = {}
+
+        try:
+            result["leads_overview_trend"] = self._load_a5_overview_trend()
+        except Exception as e:
+            logger.error(f"A5 leads_overview_trend 加载失败: {e}")
+            result["leads_overview_trend"] = {}
 
         return result
 
@@ -89,33 +99,33 @@ class LeadsLoader(BaseLoader):
         # 向量化：过滤全空行
         import pandas as pd
 
-        def _is_all_empty(row):
-            return all(str(v).strip() in ("nan", "", "None") for v in row.values)
-
-        non_empty_mask = ~df.apply(_is_all_empty, axis=1)
+        non_empty_mask = ~(
+            df.isnull() | df.astype(str).isin(["", "nan", "None", "NaN", "-", "—"])
+        ).all(axis=1)
         df_valid = df[non_empty_mask].copy()
 
-        # 过滤 team 和 group 都为空的行
-        def _team_group_empty(row):
-            team = self._normalize_team(str(row.iloc[1]).strip())
-            group = str(row.iloc[2]).strip() if str(row.iloc[2]).strip() not in ("nan", "") else None
-            return not team and not group
-
-        valid_mask = ~df_valid.apply(_team_group_empty, axis=1)
+        # 过滤 team 和 group 都为空的行（向量化）
+        team_series = df_valid.iloc[:, 1].apply(
+            lambda v: self._normalize_team(str(v).strip()) if pd.notna(v) else self._normalize_team("")
+        )
+        group_series = df_valid.iloc[:, 2].apply(
+            lambda v: str(v).strip() if pd.notna(v) and str(v).strip() not in ("nan", "") else None
+        )
+        valid_mask = ~(team_series.apply(lambda t: not t) & group_series.isna())
         df_valid = df_valid[valid_mask].copy()
 
         # 预先向量化清洗数值列 (3~27)
         num_cols = df_valid.columns[3:min(28, len(df_valid.columns))]
-        df_nums = df_valid[num_cols].applymap(self._clean_numeric)
+        df_nums = df_valid[num_cols].map(self._clean_numeric)
 
-        def _build_record(idx_pos):
+        def _build_record(idx_pos) -> dict[str, Any]:
             row = df_valid.iloc[idx_pos]
             nums = df_nums.iloc[idx_pos].tolist()
             # 补齐到 25 个元素
             while len(nums) < 25:
                 nums.append(None)
 
-            def _chan(ch_offset):
+            def _chan(ch_offset) -> dict[str, Any]:
                 return {
                     "注册付费率": nums[0 * 5 + ch_offset] if 0 * 5 + ch_offset < len(nums) else None,
                     "注册":       nums[1 * 5 + ch_offset] if 1 * 5 + ch_offset < len(nums) else None,
@@ -202,24 +212,24 @@ class LeadsLoader(BaseLoader):
         # 向量化：过滤全空行，要求 enclosure 非空
         import pandas as pd
 
-        non_empty_mask = ~df.apply(
-            lambda row: all(str(v).strip() in ("nan", "", "None") for v in row.values), axis=1
-        )
+        non_empty_mask = ~(
+            df.isnull() | df.astype(str).isin(["", "nan", "None", "NaN", "-", "—"])
+        ).all(axis=1)
         enc_col = df.iloc[:, 1].apply(lambda v: str(v).strip() if str(v).strip() not in ("nan", "") else None)
         valid_mask = non_empty_mask & enc_col.notna()
         df_valid = df[valid_mask].copy()
 
         # 预先清洗数值列 (2~31)
         num_cols = df_valid.columns[2:min(32, len(df_valid.columns))]
-        df_nums = df_valid[num_cols].applymap(self._clean_numeric)
+        df_nums = df_valid[num_cols].map(self._clean_numeric)
 
-        def _build_enc_record(idx_pos):
+        def _build_enc_record(idx_pos) -> dict[str, Any]:
             row = df_valid.iloc[idx_pos]
             nums = df_nums.iloc[idx_pos].tolist()
             while len(nums) < 30:
                 nums.append(None)
 
-            def _chan(offset):
+            def _chan(offset) -> dict[str, Any]:
                 base = offset * 6
                 return {
                     "带货比":  nums[base]     if base     < len(nums) else None,
@@ -231,7 +241,12 @@ class LeadsLoader(BaseLoader):
                 }
 
             region = str(row.iloc[0]).strip() if str(row.iloc[0]).strip() not in ("nan", "") else None
-            enclosure = str(row.iloc[1]).strip()
+            _A2_ENC_NORMALIZE = {
+                "0-30天": "0-30", "31-60天": "31-60", "61-90天": "61-90",
+                "90天以上": "91-180", "小计": "小计",
+            }
+            enclosure_raw = str(row.iloc[1]).strip()
+            enclosure = _A2_ENC_NORMALIZE.get(enclosure_raw, enclosure_raw)
             return {
                 "海外大区": region,
                 "围场": enclosure,
@@ -345,15 +360,45 @@ class LeadsLoader(BaseLoader):
 
         # 数值列
         if "首次1v1大单付费金额" in df_renamed.columns:
-            df_renamed["首次1v1大单付费金额"] = df_renamed["首次1v1大单付费金额"].apply(self._clean_numeric)
+            df_renamed["首次1v1大单付费金额"] = self._clean_numeric_vec(df_renamed["首次1v1大单付费金额"])
         else:
             df_renamed["首次1v1大单付费金额"] = None
         if "CC总流转次数" in df_renamed.columns:
-            df_renamed["CC总流转次数"] = df_renamed["CC总流转次数"].apply(self._clean_numeric)
+            df_renamed["CC总流转次数"] = self._clean_numeric_vec(df_renamed["CC总流转次数"])
         else:
             df_renamed["CC总流转次数"] = None
 
-        records = df_renamed[str_cols + date_cols + ["首次1v1大单付费金额", "CC总流转次数"]].to_dict("records")
+        # 向量化计算注册→付费天数 days_to_payment（用于 A3 时间间隔分布）
+        reg_date_series = df_renamed["注册日期(day)"]
+        paid_date_series_raw = df_renamed["首次1v1大单付费日期(day)"]
+
+        def _parse_date_str(v: object) -> "Optional[_dt]":
+            if not v or not isinstance(v, str):
+                return None
+            for fmt in ("%Y-%m-%d", "%Y/%m/%d"):
+                try:
+                    return _dt.strptime(v[:10], fmt)
+                except ValueError:
+                    continue
+            return None
+
+        reg_dates = reg_date_series.apply(_parse_date_str)
+        paid_dates = paid_date_series_raw.apply(_parse_date_str)
+
+        def _calc_days(pair: tuple) -> "Optional[int]":
+            reg, paid = pair
+            if reg is None or paid is None:
+                return None
+            try:
+                return int((paid - reg).days)
+            except Exception:
+                return None
+
+        df_renamed["days_to_payment"] = list(
+            map(_calc_days, zip(reg_dates, paid_dates))
+        )
+
+        records = df_renamed[str_cols + date_cols + ["首次1v1大单付费金额", "CC总流转次数", "days_to_payment"]].to_dict("records")
 
         # 向量化聚合 by_cc / by_team（groupby 替代逐行累加）
         # 判断付费是否在当月
@@ -441,7 +486,7 @@ class LeadsLoader(BaseLoader):
         import pandas as pd
 
         # 向量化：按姓名列过滤无效行
-        skip_vals = {"nan", "转介绍销售名称", "小计", "总计", ""}
+        skip_vals = {"nan", "转介绍销售名称", "小计", "总计", "", "-", "—"}
         name_series = df.iloc[:, 3].apply(lambda v: str(v).strip() if pd.notna(v) else None)
         valid_mask = name_series.notna() & ~name_series.isin(skip_vals)
         df_valid = df[valid_mask].copy()
@@ -450,7 +495,7 @@ class LeadsLoader(BaseLoader):
             return {"records": []}
 
         # 向量化构建各字段
-        def _safe_str_col(col_idx):
+        def _safe_str_col(col_idx) -> Any:
             return df_valid.iloc[:, col_idx].apply(
                 lambda v: str(v).strip() if pd.notna(v) else None
             )
@@ -461,11 +506,11 @@ class LeadsLoader(BaseLoader):
         )
         groups = _safe_str_col(2)
         names = name_series[valid_mask]
-        leads = df_valid.iloc[:, 4].apply(self._clean_numeric) if df_valid.shape[1] > 4 else pd.Series([None] * len(df_valid))
-        reserve = df_valid.iloc[:, 5].apply(self._clean_numeric) if df_valid.shape[1] > 5 else pd.Series([None] * len(df_valid))
-        showup = df_valid.iloc[:, 6].apply(self._clean_numeric) if df_valid.shape[1] > 6 else pd.Series([None] * len(df_valid))
-        paid = df_valid.iloc[:, 7].apply(self._clean_numeric) if df_valid.shape[1] > 7 else pd.Series([None] * len(df_valid))
-        conv = df_valid.iloc[:, 8].apply(self._clean_numeric) if df_valid.shape[1] > 8 else pd.Series([None] * len(df_valid))
+        leads = self._clean_numeric_vec(df_valid.iloc[:, 4]) if df_valid.shape[1] > 4 else pd.Series([None] * len(df_valid))
+        reserve = self._clean_numeric_vec(df_valid.iloc[:, 5]) if df_valid.shape[1] > 5 else pd.Series([None] * len(df_valid))
+        showup = self._clean_numeric_vec(df_valid.iloc[:, 6]) if df_valid.shape[1] > 6 else pd.Series([None] * len(df_valid))
+        paid = self._clean_numeric_vec(df_valid.iloc[:, 7]) if df_valid.shape[1] > 7 else pd.Series([None] * len(df_valid))
+        conv = self._clean_numeric_vec(df_valid.iloc[:, 8]) if df_valid.shape[1] > 8 else pd.Series([None] * len(df_valid))
 
         records = [
             {
@@ -483,3 +528,151 @@ class LeadsLoader(BaseLoader):
         ]
 
         return {"records": records}
+
+    # ── A5: 宣萱_转介绍不同口径对比（历史月度趋势） ────────────────────────────
+    def _load_a5_overview_trend(self) -> dict:
+        """
+        A5: 宣萱_转介绍不同口径对比_D-1
+        Sheet: 转介绍不同口径对比
+        必须使用 calamine 引擎（openpyxl 因字体 metadata bug 会失败）
+
+        结构（38列，约52行）：
+          Row 0-2: 注释行（跳过）
+          Row 3:   组表头 → 转介绍口径(×2) | 总计(×9) | CC窄口径(×9) | SS窄口径(×9) | 其它(×9)
+          Row 4:   子表头 → 注册|预约|出席|付费|美金金额|注册付费率|预约率|预约出席率|出席付费率
+          Row 5+:  数据行，按月分组（Col0=月份 YYYYMM，Col1=CC组/小计）
+
+        输出：
+          monthly_trend: list[{month, total, cc_narrow, ss_narrow, other}]
+          每个口径字段: {register, appointment, showup, paid, revenue_usd,
+                        leads_to_pay_rate, appointment_rate, appt_showup_rate, showup_pay_rate}
+        """
+        import pandas as pd
+
+        path = self._find_latest_file("宣萱_转介绍不同口径对比_D-1")
+        if not path:
+            logger.warning("A5: 数据文件未找到")
+            return {}
+
+        # 必须使用 calamine 引擎
+        logger.info(f"A5: 使用 calamine 引擎读取 {path.name}")
+        try:
+            df_raw = pd.read_excel(
+                path,
+                sheet_name="转介绍不同口径对比",
+                header=None,
+                engine="calamine",
+            )
+        except Exception as e:
+            logger.error(f"A5: calamine 读取失败: {e}")
+            return {}
+
+        if df_raw.empty or len(df_raw) < 5:
+            logger.warning("A5: 数据行不足")
+            return {}
+
+        # Row 3 (index 3): 组表头（转介绍口径×2 | 总计×9 | CC窄口径×9 | SS窄口径×9 | 其它×9）
+        # Row 4 (index 4): 子表头（注册|预约|出席|付费|美金金额|注册付费率|预约率|预约出席率|出席付费率）
+        # 数据行从 Row 5 (index 5) 开始
+        group_header = df_raw.iloc[3].ffill().tolist()
+        sub_header = df_raw.iloc[4].tolist()
+
+        # 构建扁平列名（维度列保持原样，数值列拼接 "组别_子指标"）
+        col_names: list[str] = []
+        for i, (g, s) in enumerate(zip(group_header, sub_header)):
+            g_str = str(g).strip() if str(g).strip() not in ("nan", "") else ""
+            s_str = str(s).strip() if str(s).strip() not in ("nan", "") else ""
+            if i < 2:
+                # 前两列是维度列：月份 + CC组
+                col_names.append(f"dim_{i}")
+            elif s_str:
+                col_names.append(f"{g_str}_{s_str}")
+            else:
+                col_names.append(f"col_{i}")
+
+        df = df_raw.iloc[5:].copy()
+        df.columns = col_names[: len(df.columns)]
+        df = df.reset_index(drop=True)
+
+        # 前向填充月份列（合并单元格）
+        df["dim_0"] = df["dim_0"].ffill()
+
+        # 子指标名称 → 英文 key 映射
+        _metric_map = {
+            "注册": "register",
+            "预约": "appointment",
+            "出席": "showup",
+            "付费": "paid",
+            "美金金额": "revenue_usd",
+            "注册付费率": "leads_to_pay_rate",
+            "预约率": "appointment_rate",
+            "预约出席率": "appt_showup_rate",
+            "出席付费率": "showup_pay_rate",
+        }
+
+        # 口径组名称 → 输出 key 映射
+        _group_map = {
+            "总计": "total",
+            "CC窄口径": "cc_narrow",
+            "SS窄口径": "ss_narrow",
+            "其它": "other",
+        }
+
+        def _extract_scope(row: "pd.Series", group_cn: str) -> dict[str, Any]:
+            """从行中提取指定口径的 9 个指标"""
+            result: dict[str, Any] = {}
+            for metric_cn, metric_en in _metric_map.items():
+                col = f"{group_cn}_{metric_cn}"
+                val = self._clean_numeric(row.get(col))
+                result[metric_en] = val
+            return result
+
+        # 按月分组，分离"小计"行（月度汇总）和团队明细行
+        monthly_trend: list[dict[str, Any]] = []
+        team_details: list[dict[str, Any]] = []
+        months_seen: set[str] = set()
+
+        for _, row in df.iterrows():
+            month_raw = str(row.get("dim_0", "")).strip()
+            cc_group = str(row.get("dim_1", "")).strip() if "dim_1" in row.index else ""
+
+            # 月份格式：6位纯数字 YYYYMM
+            if not month_raw.isdigit() or len(month_raw) != 6:
+                # 尝试从 float（如 202509.0）中提取
+                try:
+                    month_int = int(float(month_raw))
+                    month_raw = str(month_int)
+                except (ValueError, TypeError):
+                    continue
+
+            if len(month_raw) != 6 or not month_raw.isdigit():
+                continue
+
+            is_summary = cc_group in ("小计", "总计", "", "nan", "None")
+
+            if is_summary:
+                # 月度汇总行 → monthly_trend（每月只取第一条）
+                if month_raw not in months_seen:
+                    months_seen.add(month_raw)
+                    entry: dict[str, Any] = {"month": month_raw}
+                    for group_cn, group_en in _group_map.items():
+                        entry[group_en] = _extract_scope(row, group_cn)
+                    monthly_trend.append(entry)
+            else:
+                # 团队明细行 → team_details
+                detail: dict[str, Any] = {"month": month_raw, "team": cc_group}
+                for group_cn, group_en in _group_map.items():
+                    detail[group_en] = _extract_scope(row, group_cn)
+                team_details.append(detail)
+
+        # 按月份升序排列
+        monthly_trend.sort(key=lambda x: x["month"])
+        team_details.sort(key=lambda x: (x["month"], x["team"]))
+
+        current_month = monthly_trend[-1]["month"] if monthly_trend else ""
+
+        return {
+            "monthly_trend": monthly_trend,
+            "team_details": team_details,
+            "current_month": current_month,
+        }

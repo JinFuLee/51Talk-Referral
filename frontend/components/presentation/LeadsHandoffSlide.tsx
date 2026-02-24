@@ -3,12 +3,11 @@
 import React from "react";
 import { clsx } from "clsx";
 import useSWR from "swr";
+import { swrFetcher } from "@/lib/api";
 
 interface LeadsHandoffSlideProps {
   revealStep: number;
 }
-
-const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
 interface StatRowProps {
   label: string;
@@ -29,7 +28,7 @@ function StatRow({ label, value, sub }: StatRowProps) {
 }
 
 export function LeadsHandoffSlide({ revealStep }: LeadsHandoffSlideProps) {
-  const { data } = useSWR("/api/analysis/summary", fetcher);
+  const { data } = useSWR("/api/analysis/summary", swrFetcher);
   const summary = data?.data ?? {};
 
   const leadsActual = summary.registrations?.actual ?? 0;

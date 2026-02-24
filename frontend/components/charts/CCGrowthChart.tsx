@@ -47,8 +47,8 @@ export function CCGrowthChart({ data, ccName, isLoading }: CCGrowthChartProps) {
           margin={{ top: 8, right: 16, left: 0, bottom: 4 }}
         >
           <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-          <XAxis dataKey="date" tick={{ fontSize: CHART_FONT_SIZE.md }} />
-          <YAxis tick={{ fontSize: CHART_FONT_SIZE.md }} />
+          <XAxis tickLine={false} axisLine={false} dataKey="date" tick={{ fontSize: CHART_FONT_SIZE.md }} />
+          <YAxis tickLine={false} axisLine={false} tick={{ fontSize: CHART_FONT_SIZE.md }} />
           <Tooltip
             formatter={(v, name) => [
               typeof v === "number" ? v.toFixed(2) : v,

@@ -4,7 +4,7 @@
 """
 import re
 import logging
-from typing import List, Dict, Optional
+from typing import Any, List, Dict, Optional
 from pathlib import Path
 from datetime import datetime, timedelta
 
@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 class HistoryImporter:
     """历史数据导入器（V2 版本，使用 MultiSourceLoader + AnalysisEngineV2）"""
 
-    def __init__(self, project_root: Optional[Path] = None, input_dir: Optional[str] = None):
+    def __init__(self, project_root: Optional[Path] = None, input_dir: Optional[str] = None) -> None:
         """
         初始化导入器
 
@@ -37,7 +37,7 @@ class HistoryImporter:
 
     # ── 内部工厂 ──────────────────────────────────────────────────────────────
 
-    def _make_store(self):
+    def _make_store(self) -> Optional[Any]:
         """延迟导入 SnapshotStore，避免循环依赖"""
         try:
             from core.snapshot_store import SnapshotStore

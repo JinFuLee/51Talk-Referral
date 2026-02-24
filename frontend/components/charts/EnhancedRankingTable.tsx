@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, memo } from "react";
 import Link from "next/link";
 import useSWR from "swr";
 import { formatRevenue } from "@/lib/utils";
@@ -45,7 +45,7 @@ function getCellValue(p: EnhancedProfile, key: SortKey): string | number {
   return v as string | number;
 }
 
-export function EnhancedRankingTable() {
+function EnhancedRankingTableInner() {
   const [sortKey, setSortKey] = useState<SortKey>("rank");
   const [sortAsc, setSortAsc] = useState(true);
 
@@ -142,7 +142,7 @@ export function EnhancedRankingTable() {
               const score = p.composite_score ?? 0;
               const pct = Math.round((score / maxScore) * 100);
               return (
-                <tr key={i} className="border-b border-slate-100 hover:bg-slate-50/50 transition-colors group">
+                <tr key={p.name ?? p.cc_name ?? i} className="border-b border-slate-100 hover:bg-slate-50/50 transition-colors group">
                   {COLUMNS.map((col) => {
                     const isScore = col.key === "composite_score";
                     const isBlue = col.blue;
@@ -191,3 +191,5 @@ export function EnhancedRankingTable() {
     </div>
   );
 }
+
+export const EnhancedRankingTable = memo(EnhancedRankingTableInner);

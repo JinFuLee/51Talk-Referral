@@ -1,6 +1,8 @@
 "use client";
 
 import { useDataSources, useTranslation } from "@/lib/hooks";
+import { PageHeader } from "@/components/layout/PageHeader";
+import { BIZ_PAGE } from "@/lib/layout";
 import { datasourcesAPI } from "@/lib/api";
 import { DataSourceGrid } from "@/components/datasources/DataSourceGrid";
 import { FileUploadPanel } from "@/components/datasources/FileUploadPanel";
@@ -23,9 +25,8 @@ export default function DataSourcesPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-slate-800">{t("datasources.title")}</h1>
+    <div className={BIZ_PAGE}>
+      <PageHeader title={t("datasources.title")}>
         <button
           onClick={handleRefresh}
           disabled={refreshing}
@@ -42,12 +43,12 @@ export default function DataSourcesPage() {
           )}
           {t("datasources.button.refresh")}
         </button>
-      </div>
+      </PageHeader>
 
       {isLoading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {Array.from({ length: 6 }).map((_, i) => (
-            <Skeleton key={i} className="h-24" />
+            <Skeleton key={`skeleton-${i}`} className="h-24" />
           ))}
         </div>
       ) : (

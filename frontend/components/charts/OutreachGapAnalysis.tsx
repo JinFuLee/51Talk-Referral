@@ -1,7 +1,9 @@
 "use client";
 
 import useSWR from "swr";
+import { swrFetcher } from "@/lib/api";
 import { Spinner } from "@/components/ui/Spinner";
+import { DataSourceBadge } from "@/components/ui/DataSourceBadge";
 import OutreachGapBarChart from "./outreach-gap/OutreachGapBarChart";
 import OutreachGapDetailTable from "./outreach-gap/OutreachGapDetailTable";
 
@@ -31,49 +33,33 @@ interface OutreachGapData {
     lost_revenue_thb: number;
   };
   by_cc: CCGap[];
-}
-
-const MOCK: OutreachGapData = {
-  summary: {
-    total_students: 320,
-    called: 246,
-    not_called: 74,
-    coverage_rate: 0.769,
-    target_rate: 0.85,
-    gap_rate: 0.081,
-    gap_students: 26,
-  },
-  loss_estimate: {
-    lost_attend: 22,
-    lost_paid: 3,
-    lost_revenue_usd: 660,
-    lost_revenue_thb: 22440,
-  },
-  by_cc: [
-    { cc_name: "张伟", total: 45, called: 30, not_called: 15, coverage_rate: 0.667, gap_vs_target: 0.183 },
-    { cc_name: "李娜", total: 38, called: 27, not_called: 11, coverage_rate: 0.711, gap_vs_target: 0.139 },
-    { cc_name: "王芳", total: 52, called: 42, not_called: 10, coverage_rate: 0.808, gap_vs_target: 0.042 },
-    { cc_name: "刘洋", total: 40, called: 34, not_called: 6, coverage_rate: 0.85, gap_vs_target: 0.0 },
-    { cc_name: "陈静", total: 35, called: 31, not_called: 4, coverage_rate: 0.886, gap_vs_target: -0.036 },
-  ],
-};
-
-async function fetcher(): Promise<OutreachGapData> {
-  const res = await fetch(`/api/analysis/outreach-gap`);
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  return res.json();
+  by_channel_l3?: Array<{
+    name: string;
+    total_classes: number;
+    call_rate: number;
+    connect_rate: number;
+    attendance_rate: number;
+  }>;
+  by_lead_grade?: Array<{
+    name: string;
+    total_classes: number;
+    call_rate: number;
+    connect_rate: number;
+    attendance_rate: number;
+  }>;
+  data_source?: string;
+  loss_is_estimated?: boolean;
 }
 
 export function OutreachGapAnalysis() {
-  const { data: raw, isLoading, error } = useSWR("outreach-gap", fetcher, {
+  const { data: raw, isLoading, error } = useSWR<OutreachGapData>("/api/analysis/outreach-gap", swrFetcher, {
     onErrorRetry: (err, _key, _cfg, revalidate, { retryCount }) => {
       if (retryCount >= 1) return;
       setTimeout(() => revalidate({ retryCount }), 3000);
     },
   });
 
-  const data: OutreachGapData = raw ?? MOCK;
-  const isMock = !raw && !isLoading;
+  const isEmpty = !raw || (raw.summary?.total_students ?? 0) === 0;
 
   if (isLoading) {
     return (
@@ -83,20 +69,29 @@ export function OutreachGapAnalysis() {
     );
   }
 
-  const { summary, loss_estimate, by_cc } = data;
+  if (error) {
+    return (
+      <div className="text-xs bg-red-50 border border-red-200 text-red-600 rounded-lg px-3 py-2">
+        数据加载失败: {String(error)}
+      </div>
+    );
+  }
+
+  if (isEmpty) {
+    return (
+      <div className="text-slate-400 text-center py-8">
+        暂无外呼缺口数据，请先完成当月数据导入
+      </div>
+    );
+  }
+
+  const { summary, loss_estimate, by_cc, by_channel_l3, by_lead_grade } = raw;
 
   return (
     <div className="space-y-4">
-      {isMock && (
-        <div className="text-xs bg-amber-50 border border-amber-200 text-amber-700 rounded-lg px-3 py-2">
-          当前显示模拟数据（API 不可用）
-        </div>
-      )}
-      {error && !isMock && (
-        <div className="text-xs bg-red-50 border border-red-200 text-red-600 rounded-lg px-3 py-2">
-          数据加载失败: {String(error)}
-        </div>
-      )}
+      <div className="flex items-center justify-end">
+        <DataSourceBadge source={raw.data_source} />
+      </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <div className="bg-white/95 backdrop-blur-md border border-border/40 rounded-2xl shadow-flash p-4 transition-all duration-500 hover:shadow-flash-lg hover:-translate-y-1">
@@ -154,7 +149,12 @@ export function OutreachGapAnalysis() {
       </div>
 
       <OutreachGapBarChart by_cc={by_cc} target_rate={summary.target_rate} />
-      <OutreachGapDetailTable by_cc={by_cc} loss_estimate={loss_estimate} />
+      <OutreachGapDetailTable
+        by_cc={by_cc}
+        loss_estimate={loss_estimate}
+        by_channel_l3={by_channel_l3}
+        by_lead_grade={by_lead_grade}
+      />
     </div>
   );
 }

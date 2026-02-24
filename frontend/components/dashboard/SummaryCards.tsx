@@ -27,7 +27,6 @@ function SummaryCardsBase({ summary, timeProgress }: SummaryCardsProps) {
     { label: "注册", data: reg.registrations, unit: "人" },
     { label: "付费", data: reg.payments, unit: "人" },
     { label: "收入", data: reg.revenue, unit: "THB" },
-    { label: "Leads", data: reg.leads, unit: "条" },
   ];
 
   return (

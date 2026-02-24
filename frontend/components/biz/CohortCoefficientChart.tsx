@@ -2,15 +2,11 @@
 
 import { useState } from "react";
 import useSWR from "swr";
+import { swrFetcher } from "@/lib/api";
+import { DataSourceBadge } from "@/components/ui/DataSourceBadge";
 import CoefficientScatterChart from "./coefficient/CoefficientScatterChart";
 import CoefficientSummaryCards from "./coefficient/CoefficientSummaryCards";
 import CoefficientLegend from "./coefficient/CoefficientLegend";
-
-async function fetcher(url: string) {
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  return res.json();
-}
 
 interface CoefficientPoint {
   month: number;
@@ -76,14 +72,14 @@ export function CohortCoefficientChart() {
   const [viewMode, setViewMode] = useState<"month" | "team">("month");
 
   const { data: coefData, isLoading: coefLoading, error: coefError } =
-    useSWR<CoefficientResponse>(`/api/analysis/cohort-coefficient`, fetcher);
+    useSWR<CoefficientResponse>(`/api/analysis/cohort-coefficient`, swrFetcher);
 
   const { data: rawData, isLoading: rawLoading, error: rawError } =
     useSWR<RawDecayResponse>(
       viewMode === "team"
         ? `/api/analysis/cohort-decay-raw?metric=referral_coefficient&group_by=team`
         : null,
-      fetcher
+      swrFetcher
     );
 
   const lines: CoefficientLine[] = (() => {
@@ -132,17 +128,7 @@ export function CohortCoefficientChart() {
             X轴 = 月龄 (M1-M12)，每条线 = 一个入组月份，金色竖线 = 峰值月龄
           </p>
         </div>
-        {dataSource && (
-          <span
-            className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-              dataSource === "demo"
-                ? "bg-amber-50 text-amber-600 border border-amber-200"
-                : "bg-emerald-50 text-emerald-700 border border-emerald-200"
-            }`}
-          >
-            {dataSource === "demo" ? "演示数据" : "真实数据"}
-          </span>
-        )}
+        <DataSourceBadge source={dataSource} />
       </div>
 
       <div className="flex gap-1">

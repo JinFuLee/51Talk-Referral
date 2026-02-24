@@ -1,6 +1,8 @@
 "use client";
 
 import { useAttribution, useTranslation } from "@/lib/hooks";
+import { PageHeader } from "@/components/layout/PageHeader";
+import { BIZ_PAGE } from "@/lib/layout";
 import { Card } from "@/components/ui/Card";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { ErrorBoundary } from "@/components/providers/ErrorBoundary";
@@ -35,7 +37,7 @@ export default function AttributionPage() {
 
   if (isLoading) {
     return (
-      <div className="max-w-5xl mx-auto space-y-8">
+      <div className={BIZ_PAGE}>
         <Skeleton className="h-10 w-64" />
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Skeleton className="h-20" />
@@ -49,7 +51,7 @@ export default function AttributionPage() {
 
   if (error || !data) {
     return (
-      <div className="max-w-5xl mx-auto">
+      <div className={BIZ_PAGE}>
         <div className="bg-red-50 border border-red-200 rounded-xl px-5 py-4 text-sm text-red-700">
           {error
             ? `${t("biz.attribution.label.loadError")}: ${error.message}`
@@ -65,12 +67,8 @@ export default function AttributionPage() {
   const topFactor = sorted[0];
 
   return (
-    <div className="max-w-5xl mx-auto space-y-8">
-      {/* Page header */}
-      <div>
-        <h1 className="text-2xl font-bold text-slate-800">{t("biz.attribution.title")}</h1>
-        <p className="text-sm text-slate-400 mt-1">{t("biz.attribution.subtitle")}</p>
-      </div>
+    <div className={BIZ_PAGE}>
+      <PageHeader title={t("biz.attribution.title")} subtitle={t("biz.attribution.subtitle")} />
 
       <ErrorBoundary>
         {/* Summary row */}
@@ -100,8 +98,8 @@ export default function AttributionPage() {
             <p className="text-sm text-slate-400">{t("biz.attribution.label.noData")}</p>
           ) : (
             <div className="space-y-3 py-2">
-              {sorted.map((f, i) => (
-                <AttributionBar key={i} factor={f} />
+              {sorted.map((f) => (
+                <AttributionBar key={f.factor} factor={f} />
               ))}
             </div>
           )}
@@ -125,7 +123,7 @@ export default function AttributionPage() {
                 <tbody>
                   {sorted.map((f, i) => (
                     <tr
-                      key={i}
+                      key={f.factor}
                       className="border-b border-slate-50 hover:bg-slate-50 transition-colors"
                     >
                       <td className="py-2 pr-4 text-slate-400 text-xs">{i + 1}</td>

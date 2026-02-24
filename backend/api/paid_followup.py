@@ -21,7 +21,7 @@ def set_service(service: Any) -> None:
 
 
 @router.get("/paid-followup-alert")
-async def get_paid_followup_alert() -> dict[str, Any]:
+def get_paid_followup_alert() -> dict[str, Any]:
     """
     F7 零跟进付费学员预警
 
@@ -104,7 +104,7 @@ async def get_paid_followup_alert() -> dict[str, Any]:
 
 
 @router.get("/trial-class-compare")
-async def get_trial_class_compare() -> dict[str, Any]:
+def get_trial_class_compare() -> dict[str, Any]:
     """
     F10 课前vs课后跟进效果 A/B 对比
 

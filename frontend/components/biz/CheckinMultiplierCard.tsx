@@ -109,17 +109,13 @@ export function CheckinMultiplierCard({
             margin={{ top: 8, right: 8, left: -24, bottom: 0 }}
           >
             <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
-            <XAxis
-              dataKey="label"
+            <XAxis dataKey="label"
               tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
               axisLine={false}
-              tickLine={false}
-            />
-            <YAxis
-              tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
+              tickLine={false} />
+            <YAxis tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
               axisLine={false}
-              tickLine={false}
-            />
+              tickLine={false} />
             <Tooltip
               formatter={(v) => [v, "人均带新参与"]}
               contentStyle={{ fontSize: 12 }}

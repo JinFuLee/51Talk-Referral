@@ -3,8 +3,7 @@
 import useSWR from "swr";
 import { cn } from "@/lib/utils";
 import type { EnclosureSegment } from "@/lib/types/analysis";
-
-const fetcher = (url: string) => fetch(url).then((r) => r.json());
+import { swrFetcher } from "@/lib/api";
 
 interface EnclosureHeatmapProps {
   segments?: EnclosureSegment[];
@@ -31,7 +30,7 @@ export function EnclosureHeatmap({
 }: EnclosureHeatmapProps) {
   const { data, isLoading, error } = useSWR(
     propSegments ? null : "/api/analysis/enclosure-health",
-    fetcher
+    swrFetcher
   );
 
   if (isLoading) {

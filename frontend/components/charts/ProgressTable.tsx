@@ -30,8 +30,8 @@ export function ProgressTable({ rows }: ProgressTableProps) {
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-100">
-          {rows.map((row, i) => (
-            <tr key={i} className="hover:bg-gray-50 transition-colors">
+          {rows.map((row) => (
+            <tr key={row.metric} className="hover:bg-gray-50 transition-colors">
               <td className="px-4 py-2.5 font-medium text-gray-700">{row.metric}</td>
               <td className="px-4 py-2.5 text-right text-gray-900">{row.actual}</td>
               <td className="px-4 py-2.5 text-right text-gray-400">{row.target}</td>

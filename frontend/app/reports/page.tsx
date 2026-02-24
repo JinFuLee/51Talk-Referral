@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { useReportList, useTranslation } from "@/lib/hooks";
+import { PageHeader } from "@/components/layout/PageHeader";
+import { BIZ_PAGE } from "@/lib/layout";
 import { reportsAPI } from "@/lib/api";
 import { ReportViewer } from "@/components/reports/ReportViewer";
 import { Card } from "@/components/ui/Card";
@@ -35,8 +37,8 @@ export default function ReportsPage() {
   }
 
   return (
-    <div className="space-y-4">
-      <h1 className="text-2xl font-bold text-slate-800">{t("reports.title")}</h1>
+    <div className={BIZ_PAGE}>
+      <PageHeader title={t("reports.title")} />
 
       <ErrorBoundary>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 h-[calc(100vh-160px)]">

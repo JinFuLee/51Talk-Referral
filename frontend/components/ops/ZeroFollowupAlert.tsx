@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo, useCallback } from "react";
 import {
   BarChart,
   Bar,
@@ -93,6 +93,33 @@ const ENCLOSURE_COLORS: Record<string, string> = {
 export function ZeroFollowupAlert({ data, isLoading, error }: ZeroFollowupAlertProps) {
   const [showDetail, setShowDetail] = useState(false);
 
+  // Build chart data in order
+  const chartData = useMemo(
+    () =>
+      ENCLOSURE_ORDER.filter((seg) => (data?.by_enclosure ?? {})[seg] !== undefined).map((seg) => ({
+        segment: seg,
+        count: (data?.by_enclosure ?? {})[seg],
+        color: ENCLOSURE_COLORS[seg],
+      })),
+    [data?.by_enclosure]
+  );
+
+  // CC ranking sorted by count desc
+  const ccRanking = useMemo(
+    () =>
+      Object.entries(data?.by_cc ?? {})
+        .map(([cc_name, entry]) => ({ cc_name, ...entry }))
+        .sort((a, b) => b.count - a.count),
+    [data?.by_cc]
+  );
+
+  const handleExportCSV = useCallback(
+    () => exportToCSV(data?.zero_followup_students ?? []),
+    [data?.zero_followup_students]
+  );
+
+  const handleToggleDetail = useCallback(() => setShowDetail((v) => !v), []);
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-32">
@@ -111,19 +138,7 @@ export function ZeroFollowupAlert({ data, isLoading, error }: ZeroFollowupAlertP
 
   if (!data) return null;
 
-  const { total_zero, total_students, zero_rate, by_enclosure, by_cc, zero_followup_students } = data;
-
-  // Build chart data in order
-  const chartData = ENCLOSURE_ORDER.filter((seg) => by_enclosure[seg] !== undefined).map((seg) => ({
-    segment: seg,
-    count: by_enclosure[seg],
-    color: ENCLOSURE_COLORS[seg],
-  }));
-
-  // CC ranking sorted by count desc
-  const ccRanking = Object.entries(by_cc)
-    .map(([cc_name, entry]) => ({ cc_name, ...entry }))
-    .sort((a, b) => b.count - a.count);
+  const { total_zero, total_students, zero_rate, zero_followup_students } = data;
 
   // Zero rate color
   const alertColor =
@@ -165,18 +180,14 @@ export function ZeroFollowupAlert({ data, isLoading, error }: ZeroFollowupAlertP
             <ResponsiveContainer width="100%" height={220}>
               <BarChart data={chartData} margin={{ top: 8, right: 8, bottom: 4, left: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                <XAxis
-                  dataKey="segment"
+                <XAxis dataKey="segment"
                   tick={{ fontSize: 12, fill: "hsl(var(--muted-foreground))" }}
                   axisLine={false}
-                  tickLine={false}
-                />
-                <YAxis
-                  tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
+                  tickLine={false} />
+                <YAxis tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
                   axisLine={false}
                   tickLine={false}
-                  allowDecimals={false}
-                />
+                  allowDecimals={false} />
                 <Tooltip
                   formatter={(value: number) => [`${value} 人`, "零跟进学员"]}
                   labelFormatter={(label) => `围场段 ${label} 天`}
@@ -256,14 +267,14 @@ export function ZeroFollowupAlert({ data, isLoading, error }: ZeroFollowupAlertP
           <div className="flex items-center gap-2">
             {zero_followup_students.length > 0 && (
               <button
-                onClick={() => exportToCSV(zero_followup_students)}
+                onClick={handleExportCSV}
                 className="text-xs bg-success/10 text-success border border-success/30 hover:bg-success/20 rounded px-2 py-1 font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
               >
                 导出 CSV
               </button>
             )}
             <button
-              onClick={() => setShowDetail((v) => !v)}
+              onClick={handleToggleDetail}
               className="text-xs text-blue-600 hover:text-blue-800 font-medium"
             >
               {showDetail ? "收起" : "展开"}
@@ -289,9 +300,9 @@ export function ZeroFollowupAlert({ data, isLoading, error }: ZeroFollowupAlertP
                     </tr>
                   </thead>
                   <tbody>
-                    {zero_followup_students.map((s, i) => (
+                    {zero_followup_students.map((s) => (
                       <tr
-                        key={i}
+                        key={s.student_id ?? `${s.first_paid_date}-${s.cc_name}`}
                         className="border-b border-slate-100 hover:bg-slate-50"
                       >
                         <td className="px-3 py-2 text-slate-600 font-mono">

@@ -122,7 +122,7 @@ export interface CheckinImpact {
 
 /** 单角色人效指标 */
 export interface ProductivityMetrics {
-  active_count: number;
+  active_count: number | null;
   total_revenue: number;
   per_capita: number;
 }
@@ -151,6 +151,44 @@ export interface PredictionDataBiz {
 // ─── 模块 9: risk_alerts ─────────────────────────────────────────────────────
 
 // Re-exported via core.ts as RiskAlertBiz
+
+// ─── CC Drawer: CC 人员详情抽屉数据 ───────────────────────────────────────────
+
+export interface CCFollowupHistoryItem {
+  date: string;
+  type: "outreach" | "trial" | "paid";
+  count: number;
+  effective: number;
+}
+
+export interface CCMonthlyTrendItem {
+  month: string;
+  registrations: number;
+  payments: number;
+  revenue_usd: number;
+}
+
+export interface CCRadarScores {
+  process: number;
+  result: number;
+  efficiency: number;
+}
+
+export interface CCDetailData {
+  cc_name: string;
+  rank: number;
+  composite_score: number;
+  followup_history: CCFollowupHistoryItem[];
+  monthly_trend: CCMonthlyTrendItem[];
+  radar_scores: CCRadarScores;
+  // 附加字段（来自 cc_ranking 原始数据）
+  team?: string;
+  registrations?: number;
+  payments?: number;
+  revenue_usd?: number;
+  checkin_rate?: number;
+  conversion_rate?: number;
+}
 
 // ─── 模块 10: student_journey ────────────────────────────────────────────────
 

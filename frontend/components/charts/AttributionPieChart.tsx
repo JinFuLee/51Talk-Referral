@@ -59,7 +59,7 @@ export function AttributionPieChart({ data }: AttributionPieChartProps) {
           ))}
         </Pie>
         <Tooltip formatter={(v) => [`${v}%`, "贡献度"]} />
-        <Legend wrapperStyle={{ fontSize: CHART_FONT_SIZE.md }} />
+        <Legend iconType="circle" wrapperStyle={{ fontSize: CHART_FONT_SIZE.md }} />
       </PieChart>
     </ResponsiveContainer>
   );

@@ -7,6 +7,8 @@ import { Card } from "@/components/ui/Card";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { ErrorBoundary } from "@/components/providers/ErrorBoundary";
 import type { CheckinData } from "@/lib/types";
+import { PageHeader } from "@/components/layout/PageHeader";
+import { OPS_PAGE } from "@/lib/layout";
 
 export default function OpsTrialPage() {
   const { t } = useTranslation();
@@ -21,9 +23,11 @@ export default function OpsTrialPage() {
   const attendanceRate = (followup?.attendance_rate as number) ?? 0;
   const checkinRate = checkin?.overall_rate ?? 0;
 
-  const withCallAttend = attendanceRate;
-  const withoutCallAttend = attendanceRate * 0.5;
-  const lift = withoutCallAttend > 0 ? withCallAttend / withoutCallAttend : 0;
+  const correlation = (followup?.correlation as Record<string, unknown> | undefined) ?? {};
+  // 接入基于 F11 + F10 交叉出来的基于真实外呼行为相关的出席率数据
+  const withCallAttend = (correlation?.pre_call_attendance as number) || null;
+  const withoutCallAttend = (correlation?.no_call_attendance as number) || null;
+  const lift = (withCallAttend && withoutCallAttend && withoutCallAttend > 0) ? withCallAttend / withoutCallAttend : null;
 
   const trialItems = (followup?.by_stage ?? []) as Array<{
     stage: string;
@@ -55,11 +59,8 @@ export default function OpsTrialPage() {
   }
 
   return (
-    <div className="max-w-none space-y-4">
-      <div>
-        <h1 className="text-xl font-bold text-slate-800">{t("ops.trial.title")}</h1>
-        <p className="text-xs text-slate-400 mt-0.5">{t("ops.trial.subtitle")}</p>
-      </div>
+    <div className={OPS_PAGE}>
+      <PageHeader title={t("ops.trial.title")} subtitle={t("ops.trial.subtitle")} />
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <RateCard label="课前拨打率" rate={preCallRate} target={0.6} sub="目标 60%" />
@@ -77,6 +78,7 @@ export default function OpsTrialPage() {
           />
 
           <Card title={t("ops.trial.card.preCallLift")}>
+            {withCallAttend !== null && withoutCallAttend !== null && lift !== null ? (
             <div className="flex items-center gap-6 py-4">
               <div className="flex-1 text-center">
                 <p className="text-xs text-slate-500 mb-1">{t("ops.trial.label.hasOutreach")}</p>
@@ -91,6 +93,11 @@ export default function OpsTrialPage() {
                 <p className="text-3xl font-bold text-slate-400">{(withoutCallAttend * 100).toFixed(0)}%</p>
               </div>
             </div>
+            ) : (
+            <div className="py-8 text-center text-slate-400 text-sm">
+              暂无 F11 外呼行为关联数据，请确保后端已加载课前跟进表
+            </div>
+            )}
             <p className="text-xs text-slate-400 text-center">{t("ops.trial.label.liftDesc")}</p>
           </Card>
         </div>
@@ -109,8 +116,8 @@ export default function OpsTrialPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {trialItems.map((item, i) => (
-                    <tr key={i} className="border-b border-slate-100 hover:bg-slate-50">
+                  {trialItems.map((item) => (
+                    <tr key={item.stage} className="border-b border-slate-100 hover:bg-slate-50">
                       <td className="px-4 py-3 font-medium text-slate-800">{item.stage}</td>
                       <td className="px-4 py-3 text-slate-600">{item.count.toLocaleString()}</td>
                       <td className="px-4 py-3 text-slate-600">{((item.rate ?? 0) * 100).toFixed(1)}%</td>
@@ -147,7 +154,7 @@ export default function OpsTrialPage() {
                     </thead>
                     <tbody>
                       {preClassByCc.map((row, i) => (
-                        <tr key={i} className="border-b border-slate-100 hover:bg-slate-50">
+                        <tr key={(row.cc_name ?? row.name ?? i) as string} className="border-b border-slate-100 hover:bg-slate-50">
                           <td className="px-3 py-2 font-medium text-slate-800">
                             {(row.cc_name ?? row.name ?? "—") as string}
                           </td>
@@ -180,7 +187,7 @@ export default function OpsTrialPage() {
                     </thead>
                     <tbody>
                       {postClassByCc.map((row, i) => (
-                        <tr key={i} className="border-b border-slate-100 hover:bg-slate-50">
+                        <tr key={(row.cc_name ?? row.name ?? i) as string} className="border-b border-slate-100 hover:bg-slate-50">
                           <td className="px-3 py-2 font-medium text-slate-800">
                             {(row.cc_name ?? row.name ?? "—") as string}
                           </td>

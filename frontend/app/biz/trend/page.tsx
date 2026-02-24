@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { useTrend, usePrediction, useTranslation } from "@/lib/hooks";
+import { PageHeader } from "@/components/layout/PageHeader";
+import { BIZ_PAGE } from "@/lib/layout";
 import { formatRevenue } from "@/lib/utils";
 import { Card } from "@/components/ui/Card";
 import { TrendLineChart } from "@/components/charts/TrendLineChart";
@@ -52,7 +54,7 @@ export default function BizTrendPage() {
 
   if (tLoading || pLoading) {
     return (
-      <div className="max-w-5xl mx-auto space-y-8">
+      <div className={BIZ_PAGE}>
         <Skeleton className="h-10 w-64" />
         <Skeleton className="h-48" />
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -74,21 +76,16 @@ export default function BizTrendPage() {
   const conf = prediction?.confidence ?? 0;
 
   return (
-    <div className="max-w-5xl mx-auto space-y-8">
-      {/* Page header */}
-      <div className="flex items-start justify-between flex-wrap gap-3">
-        <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-bold text-slate-800">{t("biz.trend.title")}</h1>
-            <TrendBadge direction={trend?.direction} />
-          </div>
-          <p className="text-sm text-slate-400 mt-1">{t("biz.trend.subtitle")}</p>
-          {trend?.peak && trend?.valley && (
-            <p className="text-xs text-slate-400 mt-0.5">
-              {t("biz.trend.label.peak")}: {trend.peak.value.toLocaleString()} ({trend.peak.date}) &nbsp;|&nbsp; {t("biz.trend.label.valley")}: {trend.valley.value.toLocaleString()} ({trend.valley.date})
-            </p>
-          )}
-        </div>
+    <div className={BIZ_PAGE}>
+      <PageHeader
+        title={t("biz.trend.title")}
+        subtitle={
+          trend?.peak && trend?.valley
+            ? `${t("biz.trend.subtitle")} · ${t("biz.trend.label.peak")}: ${trend.peak.value.toLocaleString()} (${trend.peak.date}) | ${t("biz.trend.label.valley")}: ${trend.valley.value.toLocaleString()} (${trend.valley.date})`
+            : t("biz.trend.subtitle")
+        }
+        badge={trend?.direction && trend.direction !== "insufficient" ? (trend.direction === "rising" ? "↑ 上升趋势" : trend.direction === "falling" ? "↓ 下降趋势" : "~ 波动") : undefined}
+      >
         {/* Compare type toggle */}
         <div className="flex gap-1 bg-slate-100 rounded-lg p-1">
           {COMPARE_TABS.map((tab) => (
@@ -105,7 +102,7 @@ export default function BizTrendPage() {
             </button>
           ))}
         </div>
-      </div>
+      </PageHeader>
 
       <ErrorBoundary>
         {/* Monthly trend */}

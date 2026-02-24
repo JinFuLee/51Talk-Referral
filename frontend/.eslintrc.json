@@ -1,0 +1,12 @@
+{
+  "extends": ["next/core-web-vitals", "prettier"],
+  "rules": {
+    "no-restricted-syntax": [
+      "error",
+      {
+        "selector": "VariableDeclarator[id.name='fetcher'][init.type='ArrowFunctionExpression']",
+        "message": "Use swrFetcher from @/lib/api instead of defining local fetcher"
+      }
+    ]
+  }
+}

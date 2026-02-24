@@ -24,7 +24,7 @@ def set_service(service: Any) -> None:
 
 
 @router.get("/cohort-students")
-async def get_cohort_students():
+def get_cohort_students() -> dict[str, Any]:
     """C6 学员明细统计 — CC带新排名 / 月龄留存曲线 / 团队对比"""
     if _service is None:
         raise HTTPException(status_code=503, detail="服务未初始化")

@@ -12,7 +12,7 @@ def set_service(service: Any) -> None:
 
 
 @router.get("/outreach-gap")
-def get_outreach_gap():
+def get_outreach_gap() -> dict[str, Any]:
     """F11 课前外呼覆盖缺口 + $损失量化"""
     if _service is None:
         raise HTTPException(status_code=503, detail="服务未初始化")
@@ -27,6 +27,9 @@ def get_outreach_gap():
 
     summary = pre_class.get("summary", {}) if isinstance(pre_class, dict) else {}
     by_cc = pre_class.get("by_cc", []) if isinstance(pre_class, dict) else []
+    # 额外抽取的新增的分析维度
+    l3_raw = pre_class.get("by_channel_l3", {}) if isinstance(pre_class, dict) else {}
+    lg_raw = pre_class.get("by_lead_grade", {}) if isinstance(pre_class, dict) else {}
 
     total = summary.get("total_students") or summary.get("total") or 0
     called = summary.get("called") or summary.get("covered") or 0
@@ -37,10 +40,15 @@ def get_outreach_gap():
     gap = round(target_rate - coverage_rate, 4)
     gap_students = max(0, int(total * target_rate) - called)
 
-    # 损失量化: 未覆盖学员 → 假设 attend_rate=0.3, conversion_rate=0.15, ASP=200 USD
-    attend_rate = 0.30
-    conversion_rate = 0.15
-    asp_usd = 200
+    # 损失量化: 未覆盖学员 → 尝试从引擎真实宏观指标取值，取不到时用保守预估
+    # ── 从缓存中提取真实宏观指标 ──
+    _cached = _service.get_cached_result() if _service else None
+    _summary = (_cached or {}).get("summary", {})
+    _funnel = (_cached or {}).get("funnel_efficiency", {})
+    attend_rate = _funnel.get("attend_rate") or _summary.get("attend_rate") or 0.30
+    conversion_rate = _funnel.get("conversion_rate") or _summary.get("conversion_rate") or 0.15
+    asp_usd = _summary.get("asp_usd") or _funnel.get("asp_usd") or 200
+    _loss_is_estimated = (attend_rate == 0.30 and conversion_rate == 0.15 and asp_usd == 200)
     lost_attend = round(not_called * attend_rate)
     lost_paid = round(lost_attend * conversion_rate)
     lost_revenue_usd = round(lost_paid * asp_usd, 2)
@@ -83,4 +91,15 @@ def get_outreach_gap():
             "lost_revenue_thb": lost_revenue_thb,
         },
         "by_cc": cc_gaps,
+        # 新增下发表格所需的数据流
+        "by_channel_l3": sorted(
+            [{"name": k, **v} for k, v in l3_raw.items()], 
+            key=lambda x: x.get("total_classes", 0), reverse=True
+        ),
+        "by_lead_grade": sorted(
+            [{"name": k, **v} for k, v in lg_raw.items()], 
+            key=lambda x: str(x.get("name", "")), reverse=False
+        ),
+        "data_source": "f11" if total > 0 else "empty",
+        "loss_is_estimated": _loss_is_estimated,
     }

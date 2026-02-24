@@ -24,7 +24,7 @@ export function StudentJourneyFlow({ steps }: StudentJourneyFlowProps) {
   return (
     <div className="flex items-stretch gap-0 overflow-x-auto py-2">
       {steps.map((step, i) => (
-        <div key={i} className="flex items-center gap-0">
+        <div key={step.label} className="flex items-center gap-0">
           {/* Step box */}
           <div className="flex flex-col items-center min-w-[80px]">
             <div

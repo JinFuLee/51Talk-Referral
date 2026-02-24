@@ -62,22 +62,9 @@ function CustomTooltip({
 }
 
 export function AnomalyTimeline({ anomaly }: AnomalyTimelineProps) {
-  if (!anomaly?.daily_calls?.length) {
-    return (
-      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
-        <h3 className="text-sm font-semibold text-slate-700 mb-4">外呼监测线（近30天）</h3>
-        <div className="flex items-center justify-center h-56 bg-slate-50 rounded-xl border border-dashed border-slate-200">
-          <p className="text-sm text-slate-400 text-center px-4">
-            外呼数据暂无，请确认 F5 宣宣_转介绍每日外呼数据 文件已上传
-          </p>
-        </div>
-      </div>
-    );
-  }
-
   const workdayCalls = useMemo(
-    () => anomaly.daily_calls.filter((d) => d.flag !== undefined),
-    [anomaly.daily_calls]
+    () => (anomaly?.daily_calls ?? []).filter((d) => d.flag !== undefined),
+    [anomaly?.daily_calls]
   );
 
   const stats = useMemo(() => {
@@ -94,13 +81,26 @@ export function AnomalyTimeline({ anomaly }: AnomalyTimelineProps) {
 
   const chartData = useMemo(
     () =>
-      anomaly.daily_calls.map((d) => ({
+      (anomaly?.daily_calls ?? []).map((d) => ({
         date: d.date.slice(5), // MM-DD
         count: d.count,
         flag: d.flag,
       })),
-    [anomaly.daily_calls]
+    [anomaly?.daily_calls]
   );
+
+  if (!anomaly?.daily_calls?.length) {
+    return (
+      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
+        <h3 className="text-sm font-semibold text-slate-700 mb-4">外呼监测线（近30天）</h3>
+        <div className="flex items-center justify-center h-56 bg-slate-50 rounded-xl border border-dashed border-slate-200">
+          <p className="text-sm text-slate-400 text-center px-4">
+            外呼数据暂无，请确认 F5 宣宣_转介绍每日外呼数据 文件已上传
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   const displayedRedFlags = anomaly.red_flags.slice(0, 5);
 
@@ -129,16 +129,12 @@ export function AnomalyTimeline({ anomaly }: AnomalyTimelineProps) {
       <ResponsiveContainer width="100%" height={CHART_HEIGHT.sm}>
         <BarChart data={chartData} margin={{ top: 4, right: 4, left: -16, bottom: 4 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
-          <XAxis
-            dataKey="date"
+          <XAxis tickLine={false} axisLine={false} dataKey="date"
             tick={{ fontSize: CHART_FONT_SIZE.sm }}
-            interval={4}
-          />
-          <YAxis
-            domain={[0, 50]}
+            interval={4} />
+          <YAxis tickLine={false} axisLine={false} domain={[0, 50]}
             tick={{ fontSize: CHART_FONT_SIZE.sm }}
-            tickCount={6}
-          />
+            tickCount={6} />
           <Tooltip content={<CustomTooltip />} />
           <ReferenceLine
             y={25}
@@ -178,8 +174,8 @@ export function AnomalyTimeline({ anomaly }: AnomalyTimelineProps) {
         <div className="mt-4">
           <p className="text-xs font-semibold text-slate-600 mb-2">红旗详情</p>
           <ul className="space-y-1">
-            {displayedRedFlags.map((flag, i) => (
-              <li key={i} className="flex items-start gap-1.5 text-xs text-red-700">
+            {displayedRedFlags.map((flag) => (
+              <li key={flag} className="flex items-start gap-1.5 text-xs text-red-700">
                 <span className="mt-0.5 text-red-400">●</span>
                 {flag}
               </li>

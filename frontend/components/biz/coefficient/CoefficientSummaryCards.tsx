@@ -30,7 +30,7 @@ export default function CoefficientSummaryCards({
             </th>
             {Array.from({ length: 12 }, (_, i) => (
               <th
-                key={i}
+                key={`month-${i + 1}`}
                 className={`px-2 py-1.5 text-center font-medium ${
                   goldenMonth === i + 1
                     ? "text-warning bg-warning/10"
@@ -50,14 +50,14 @@ export default function CoefficientSummaryCards({
                 const pt = l.series.find((p) => p.month === i + 1);
                 return (
                   <td
-                    key={i}
+                    key={`cell-${i + 1}`}
                     className={`px-2 py-1.5 text-center ${
                       goldenMonth === i + 1
                         ? "bg-warning/10 font-semibold text-warning"
                         : "text-slate-600"
                     }`}
                   >
-                    {pt !== undefined ? pt.value.toFixed(2) : "—"}
+                    {pt?.value != null ? pt.value.toFixed(2) : "—"}
                   </td>
                 );
               })}
@@ -67,7 +67,7 @@ export default function CoefficientSummaryCards({
       </table>
       {goldenMonth !== null && (
         <p className="text-xs text-warning mt-2">
-          黄金窗口 M{goldenMonth}：均值带新系数 {goldenValue.toFixed(2)}
+          黄金窗口 M{goldenMonth}：均值带新系数 {goldenValue?.toFixed(2) ?? "—"}
         </p>
       )}
     </div>

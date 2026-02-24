@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import {
   BarChart,
   Bar,
@@ -52,8 +53,8 @@ function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
     <div className="bg-white/95 backdrop-blur-md border border-border/40 rounded-xl shadow-flash p-3 text-xs max-w-xs">
       <p className="font-semibold text-slate-700 mb-1">{label}</p>
       {payload.map((entry, idx) => (
-        <p key={idx} className="text-slate-600">
-          <span style={{ color: entry.payload.fill ?? COLORS[idx % COLORS.length] }}>■</span>{" "}
+        <p key={String(entry.name ?? idx)} className="text-slate-600">
+          <span style={{ color: entry.payload?.fill ?? COLORS[idx % COLORS.length] }}>■</span>{" "}
           {entry.name}:{" "}
           <span className="font-medium">{formatRevenue(entry.value)}</span>
         </p>
@@ -62,7 +63,7 @@ function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
   );
 }
 
-export function ProductTrendStackedBar({ items }: ProductTrendStackedBarProps) {
+function ProductTrendStackedBarInner({ items }: ProductTrendStackedBarProps) {
   if (!items.length) {
     return (
       <div className="flex items-center justify-center h-48 text-xs text-slate-400">
@@ -102,20 +103,16 @@ export function ProductTrendStackedBar({ items }: ProductTrendStackedBarProps) {
           margin={{ top: 16, right: 16, left: 8, bottom: 4 }}
         >
           <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
-          <XAxis
-            dataKey="name"
+          <XAxis dataKey="name"
             tick={{ fontSize: CHART_FONT_SIZE.md, fill: "hsl(var(--muted-foreground))" }}
             axisLine={false}
-            tickLine={false}
-          />
-          <YAxis
-            tickFormatter={formatUSDShort}
+            tickLine={false} />
+          <YAxis tickFormatter={formatUSDShort}
             tick={{ fontSize: CHART_FONT_SIZE.sm, fill: "hsl(var(--muted-foreground))" }}
             axisLine={false}
-            tickLine={false}
-          />
+            tickLine={false} />
           <Tooltip content={<CustomTooltip />} />
-          <Legend wrapperStyle={{ fontSize: CHART_FONT_SIZE.md }} />
+          <Legend iconType="circle" wrapperStyle={{ fontSize: CHART_FONT_SIZE.md }} />
           {productTypes.map((type, idx) => (
             <Bar
               key={type}
@@ -139,7 +136,7 @@ export function ProductTrendStackedBar({ items }: ProductTrendStackedBarProps) {
         <div className="space-y-1">
           {items.map((item, idx) => (
             <div
-              key={idx}
+              key={item.product_type}
               className="grid grid-cols-4 gap-x-2 text-xs px-1 py-0.5 rounded hover:bg-slate-50"
             >
               <span className="flex items-center gap-1.5 truncate text-slate-600">
@@ -163,3 +160,5 @@ export function ProductTrendStackedBar({ items }: ProductTrendStackedBarProps) {
     </div>
   );
 }
+
+export const ProductTrendStackedBar = memo(ProductTrendStackedBarInner);

@@ -15,12 +15,11 @@ import {
 } from "recharts";
 import { TrendingUp, TrendingDown, Minus } from "lucide-react";
 import { formatRevenue } from "@/lib/utils";
+import { swrFetcher } from "@/lib/api";
 
 interface RevenueSlideProps {
   revealStep: number;
 }
-
-const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
 function fade(revealStep: number, threshold: number) {
   return {
@@ -44,7 +43,7 @@ interface SummaryData {
 }
 
 export function RevenueSlide({ revealStep }: RevenueSlideProps) {
-  const { data, isLoading, error } = useSWR("/api/analysis/summary", fetcher);
+  const { data, isLoading, error } = useSWR("/api/analysis/summary", swrFetcher);
 
   const summary: SummaryData = data?.data ?? {};
   const rev = summary.revenue ?? {};
@@ -128,9 +127,8 @@ export function RevenueSlide({ revealStep }: RevenueSlideProps) {
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={barData} margin={{ top: 10, right: 10, left: 10, bottom: 10 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                <XAxis dataKey="name" tick={{ fontSize: 14 }} />
-                <YAxis
-                  tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`}
+                <XAxis tickLine={false} axisLine={false} dataKey="name" tick={{ fontSize: 14 }} />
+                <YAxis tickLine={false} axisLine={false} tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`}
                   tick={{ fontSize: 12 }}
                 />
                 <Tooltip

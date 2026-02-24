@@ -64,16 +64,13 @@ export function ChannelBarChart({ data }: ChannelBarChartProps) {
     <ResponsiveContainer width="100%" height={CHART_HEIGHT.md} aria-label="渠道注册付费对比">
       <BarChart data={stats} margin={{ top: 8, right: 40, left: 0, bottom: 4 }}>
         <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-        <XAxis dataKey="name" tick={{ fontSize: CHART_FONT_SIZE.md }} />
+        <XAxis tickLine={false} axisLine={false} dataKey="name" tick={{ fontSize: CHART_FONT_SIZE.md }} />
         {/* Left Y axis for counts */}
-        <YAxis
-          yAxisId="left"
+        <YAxis tickLine={false} axisLine={false} yAxisId="left"
           tick={{ fontSize: CHART_FONT_SIZE.md }}
-          label={{ value: "人数", angle: -90, position: "insideLeft", fontSize: CHART_FONT_SIZE.sm }}
-        />
+          label={{ value: "人数", angle: -90, position: "insideLeft", fontSize: CHART_FONT_SIZE.sm }} />
         {/* Right Y axis for revenue */}
-        <YAxis
-          yAxisId="right"
+        <YAxis tickLine={false} axisLine={false} yAxisId="right"
           orientation="right"
           tick={{ fontSize: CHART_FONT_SIZE.md }}
           tickFormatter={(v: number) => `$${(v / 1000).toFixed(0)}k`}
@@ -85,7 +82,7 @@ export function ChannelBarChart({ data }: ChannelBarChartProps) {
             return [value.toLocaleString(), name];
           }}
         />
-        <Legend wrapperStyle={{ fontSize: CHART_FONT_SIZE.md }} />
+        <Legend iconType="circle" wrapperStyle={{ fontSize: CHART_FONT_SIZE.md }} />
         <Bar yAxisId="left" dataKey="注册" fill="hsl(var(--chart-2))" radius={[4, 4, 0, 0]} />
         <Bar yAxisId="left" dataKey="付费" fill="hsl(var(--success))" radius={[4, 4, 0, 0]} />
         <Bar yAxisId="right" dataKey="收入USD" fill="hsl(var(--chart-amber))" radius={[4, 4, 0, 0]} />

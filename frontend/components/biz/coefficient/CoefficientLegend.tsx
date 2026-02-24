@@ -41,7 +41,7 @@ export default function CoefficientLegend({
           <span className="text-warning font-bold text-sm">黄金窗口</span>
           <span className="text-warning text-sm font-semibold">M{goldenMonth}</span>
           <span className="text-warning/80 text-xs">
-            均值带新系数 {goldenValue.toFixed(2)} — 建议在此月龄集中运营资源
+            均值带新系数 {goldenValue?.toFixed(2) ?? "—"} — 建议在此月龄集中运营资源
           </span>
         </div>
       )}

@@ -3,12 +3,11 @@
 import React from "react";
 import { clsx } from "clsx";
 import useSWR from "swr";
+import { swrFetcher } from "@/lib/api";
 
 interface ConversionSlideProps {
   revealStep: number;
 }
-
-const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
 interface FunnelStep {
   name: string;
@@ -103,7 +102,7 @@ function FunnelStepRow({
 }
 
 export function ConversionSlide({ revealStep }: ConversionSlideProps) {
-  const { data } = useSWR("/api/analysis/funnel", fetcher);
+  const { data } = useSWR("/api/analysis/funnel", swrFetcher);
   const funnel = data?.data ?? {};
 
   const steps: FunnelStep[] = [

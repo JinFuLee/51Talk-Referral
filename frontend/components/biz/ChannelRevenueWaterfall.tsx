@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import {
   BarChart,
   Bar,
@@ -87,7 +88,7 @@ function CustomTooltip({ active, payload }: CustomTooltipProps) {
   );
 }
 
-export function ChannelRevenueWaterfall({
+function ChannelRevenueWaterfallInner({
   channels,
   total_usd,
 }: ChannelRevenueWaterfallProps) {
@@ -139,23 +140,17 @@ export function ChannelRevenueWaterfall({
               data={chartData}
               margin={{ top: 24, right: 16, left: 8, bottom: 4 }}
             >
-              <CartesianGrid
-                strokeDasharray="3 3"
+              <CartesianGrid strokeDasharray="3 3"
                 stroke="hsl(var(--border))"
-                vertical={false}
-              />
-              <XAxis
-                dataKey="label"
+                vertical={false} />
+              <XAxis dataKey="label"
                 tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
                 axisLine={false}
-                tickLine={false}
-              />
-              <YAxis
-                tickFormatter={formatUSDShort}
+                tickLine={false} />
+              <YAxis tickFormatter={formatUSDShort}
                 tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
                 axisLine={false}
-                tickLine={false}
-              />
+                tickLine={false} />
               <Tooltip content={<CustomTooltip />} />
               <Bar dataKey="revenue_usd" radius={[4, 4, 0, 0]}>
                 <LabelList
@@ -191,7 +186,7 @@ export function ChannelRevenueWaterfall({
         <div className="space-y-1">
           {channels.map((ch, idx) => (
             <div
-              key={idx}
+              key={ch.channel}
               className="grid grid-cols-3 gap-x-2 text-xs px-1 py-0.5 rounded hover:bg-slate-50"
             >
               <span className="flex items-center gap-1.5 truncate text-slate-600">
@@ -216,3 +211,5 @@ export function ChannelRevenueWaterfall({
     </div>
   );
 }
+
+export const ChannelRevenueWaterfall = memo(ChannelRevenueWaterfallInner);

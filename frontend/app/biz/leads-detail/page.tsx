@@ -5,16 +5,14 @@ import { Card } from "@/components/ui/Card";
 import { EnclosureChannelMatrix } from "@/components/charts/EnclosureChannelMatrix";
 import { TimeIntervalHistogram } from "@/components/charts/TimeIntervalHistogram";
 import { ErrorBoundary } from "@/components/providers/ErrorBoundary";
+import { PageHeader } from "@/components/layout/PageHeader";
+import { BIZ_PAGE } from "@/lib/layout";
 
 export default function LeadsDetailPage() {
   const { t } = useTranslation();
   return (
-    <div className="max-w-5xl mx-auto space-y-8">
-      {/* Page header */}
-      <div>
-        <h1 className="text-2xl font-bold text-slate-800">{t("biz.leads-detail.title")}</h1>
-        <p className="text-sm text-slate-400 mt-1">{t("biz.leads-detail.subtitle")}</p>
-      </div>
+    <div className={BIZ_PAGE}>
+      <PageHeader title={t("biz.leads-detail.title")} subtitle={t("biz.leads-detail.subtitle")} />
 
       <ErrorBoundary>
         {/* A2: 围场×渠道矩阵 */}

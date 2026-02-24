@@ -4,8 +4,7 @@ import React from "react";
 import { clsx } from "clsx";
 import useSWR from "swr";
 import { Phone, PhoneCall, PhoneIncoming } from "lucide-react";
-
-const fetcher = (url: string) => fetch(url).then((r) => r.json());
+import { swrFetcher } from "@/lib/api";
 
 interface OutreachSummary {
   total_calls: number;
@@ -152,10 +151,10 @@ function MiniHeatmap({
 }
 
 export function OutreachSlide({ revealStep }: OutreachSlideProps) {
-  const { data, error } = useSWR<HeatmapData>("/api/analysis/outreach-heatmap", fetcher);
+  const { data, error } = useSWR<HeatmapData>("/api/analysis/outreach-heatmap", swrFetcher);
   const { data: outreachData } = useSWR<{ by_team: OutreachTeamEntry[] }>(
     "/api/analysis/outreach-gap",
-    fetcher
+    swrFetcher
   );
 
   const summary = data?.summary ?? {

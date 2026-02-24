@@ -5,12 +5,11 @@ import { clsx } from "clsx";
 import useSWR from "swr";
 import { TrendingUp, TrendingDown, Minus, ArrowRight } from "lucide-react";
 import { formatRevenue } from "@/lib/utils";
+import { swrFetcher } from "@/lib/api";
 
 interface ComparisonSlideProps {
   revealStep: number;
 }
-
-const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
 interface KpiComparison {
   label: string;
@@ -105,7 +104,7 @@ function ComparisonRow({
 }
 
 export function ComparisonSlide({ revealStep }: ComparisonSlideProps) {
-  const { data, isLoading, error } = useSWR("/api/analysis/summary", fetcher);
+  const { data, isLoading, error } = useSWR("/api/analysis/summary", swrFetcher);
 
   if (isLoading) {
     return (

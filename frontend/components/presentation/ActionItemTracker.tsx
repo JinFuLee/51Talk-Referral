@@ -42,7 +42,7 @@ function StatusCell({ status }: { status: TrackerItem["doStatus"] }) {
   );
 }
 
-export function ActionItemTracker({ items, title = "PDCA 行动追踪", revealStep }: ActionItemTrackerProps) {
+export function ActionItemTracker({ items = [], title = "PDCA 行动追踪", revealStep }: ActionItemTrackerProps) {
   return (
     <div className="flex flex-col h-full gap-4">
       {title && (
@@ -64,12 +64,12 @@ export function ActionItemTracker({ items, title = "PDCA 行动追踪", revealSt
 
       {/* Table rows */}
       <div className="flex flex-col gap-2 overflow-y-auto flex-1">
-        {items.map((item, i) => {
+        {(items || []).map((item, i) => {
           const priority = PRIORITY_CONFIG[item.priority];
           const visible = revealStep >= i + 1;
           return (
             <div
-              key={i}
+              key={item.plan ?? i}
               className="grid grid-cols-12 gap-3 px-4 py-3 bg-white rounded-xl border border-slate-100 items-center"
               style={{
                 opacity: visible ? 1 : 0,

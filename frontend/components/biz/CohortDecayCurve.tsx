@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, memo } from "react";
 import {
   LineChart,
   Line,
@@ -61,7 +61,7 @@ function findInflection(series: { month: number; value: number | null }[]): numb
   return inflectionIdx >= 0 ? series[inflectionIdx + 1]?.month ?? null : null;
 }
 
-export function CohortDecayCurve({
+function CohortDecayCurveInner({
   cohortGroups,
   summaryDecay,
   metric,
@@ -153,9 +153,8 @@ export function CohortDecayCurve({
       <ResponsiveContainer width="100%" height={280}>
         <LineChart data={chartData} margin={{ top: 8, right: 16, left: 0, bottom: 4 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-          <XAxis dataKey="month" tick={{ fontSize: 11 }} />
-          <YAxis
-            tickFormatter={showPercentage && metric !== "referral_coefficient" ? (v) => `${(v * 100).toFixed(0)}%` : undefined}
+          <XAxis tickLine={false} axisLine={false} dataKey="month" tick={{ fontSize: 11 }} />
+          <YAxis tickLine={false} axisLine={false} tickFormatter={showPercentage && metric !== "referral_coefficient" ? (v) => `${(v * 100).toFixed(0)}%` : undefined}
             tick={{ fontSize: 11 }}
             domain={["auto", "auto"]}
           />
@@ -206,3 +205,5 @@ export function CohortDecayCurve({
     </div>
   );
 }
+
+export const CohortDecayCurve = memo(CohortDecayCurveInner);

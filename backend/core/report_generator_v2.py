@@ -21,7 +21,7 @@ def _pct(value) -> Optional[float]:
         return None
 
 
-def _safe_get(d: dict, *keys, default=None):
+def _safe_get(d: dict, *keys, default=None) -> Any:
     cur = d
     for k in keys:
         if not isinstance(cur, dict):
@@ -51,7 +51,7 @@ class PyramidReportGenerator:
     接收完整分析缓存，生成结构化报告（结论先行，MECE拆解）。
     """
 
-    def __init__(self, analysis_result: dict):
+    def __init__(self, analysis_result: dict) -> None:
         self.data = analysis_result or {}
         self.summary = self.data.get("summary", {}) or {}
         self.funnel = self.data.get("funnel", {}) or {}
