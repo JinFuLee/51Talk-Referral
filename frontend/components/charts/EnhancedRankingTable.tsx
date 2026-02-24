@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import useSWR from "swr";
 import { formatRevenue } from "@/lib/utils";
 import { Spinner } from "@/components/ui/Spinner";
@@ -21,17 +22,10 @@ interface EnhancedProfile {
 
 type SortKey = keyof EnhancedProfile;
 
-const MOCK_DATA: EnhancedProfile[] = [
-  { name: "王芳", rank: 1, composite_score: 87.3, registrations: 42, payments: 18, revenue_usd: 3240, contact_rate: 0.78, reserve_rate: 0.65, attend_rate: 0.52, total_leads: 56 },
-  { name: "李明", rank: 2, composite_score: 81.5, registrations: 38, payments: 15, revenue_usd: 2700, contact_rate: 0.72, reserve_rate: 0.61, attend_rate: 0.48, total_leads: 49 },
-  { name: "张伟", rank: 3, composite_score: 76.2, registrations: 31, payments: 12, revenue_usd: 2160, contact_rate: 0.68, reserve_rate: 0.55, attend_rate: 0.43, total_leads: 41 },
-  { name: "刘洋", rank: 4, composite_score: 71.8, registrations: 27, payments: 10, revenue_usd: 1800, contact_rate: 0.63, reserve_rate: 0.49, attend_rate: 0.38, total_leads: 35 },
-  { name: "陈静", rank: 5, composite_score: 68.4, registrations: 24, payments: 9, revenue_usd: 1620, contact_rate: 0.59, reserve_rate: 0.46, attend_rate: 0.35, total_leads: 31 },
-];
 
-const COLUMNS: { key: SortKey; label: string; blue?: boolean; fmt?: (v: EnhancedProfile) => string }[] = [
-  { key: "rank", label: "排名" },
-  { key: "name", label: "CC 姓名" },
+const COLUMNS: { key: SortKey; label: string; blue?: boolean; fmt?: (v: EnhancedProfile) => string; sticky?: boolean; leftPos?: string }[] = [
+  { key: "rank", label: "排名", sticky: true, leftPos: "left-0" },
+  { key: "name", label: "CC 姓名", sticky: true, leftPos: "left-[80px]" },
   { key: "composite_score", label: "综合得分" },
   { key: "registrations", label: "注册数" },
   { key: "payments", label: "付费单量" },
@@ -65,9 +59,7 @@ export function EnhancedRankingTable() {
   );
 
   // Normalize: backend may return cc_name instead of name
-  const isMock = !data?.profiles;
-  const rawProfiles: EnhancedProfile[] =
-    data?.profiles ?? (error || !isLoading ? MOCK_DATA : []);
+  const rawProfiles: EnhancedProfile[] = data?.profiles ?? [];
   const profiles: EnhancedProfile[] = rawProfiles.map((p) => ({
     ...p,
     name: p.name ?? p.cc_name,
@@ -104,30 +96,38 @@ export function EnhancedRankingTable() {
   }
 
   return (
-    <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
-      {isMock && (
+    <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm">
+      {error && (
         <div className="bg-amber-50 border border-amber-200 text-amber-700 px-3 py-1.5 rounded text-xs mb-2">
-          ⚠ 当前显示模拟数据（API 数据不可用）
+          ⚠ 排名数据加载失败，请先运行分析
         </div>
       )}
-      <table className="w-full text-sm">
+      <table className="w-full text-sm relative">
         <thead className="bg-slate-50 border-b border-slate-200">
           <tr>
-            {COLUMNS.map((col) => (
-              <th
-                key={col.key}
-                onClick={() => handleSort(col.key)}
-                className={`px-4 py-3 text-left text-xs font-semibold whitespace-nowrap cursor-pointer select-none transition-colors hover:bg-slate-100 ${
-                  col.blue ? "text-blue-600" : "text-slate-500"
-                } ${sortKey === col.key ? "bg-slate-100" : ""}`}
-              >
-                {col.label}
-                {sortKey === col.key && (
-                  <span className="ml-1 text-slate-400">{sortAsc ? "↑" : "↓"}</span>
-                )}
-                {col.blue && <span className="ml-1 text-blue-400 text-[10px]">NEW</span>}
-              </th>
-            ))}
+            {COLUMNS.map((col) => {
+              const bgClass = sortKey === col.key ? "bg-slate-100" : "bg-slate-50";
+              const stickyClasses = col.sticky ? `sticky ${col.leftPos} z-20 shadow-[1px_0_0_#e2e8f0]` : "";
+              const widthClass = col.key === "rank" ? "w-[80px] min-w-[80px]" : col.key === "name" ? "w-[120px] min-w-[120px]" : "";
+
+              return (
+                <th
+                  key={col.key}
+                  onClick={() => handleSort(col.key)}
+                  className={`px-4 py-3 text-left text-xs font-semibold whitespace-nowrap cursor-pointer select-none transition-colors hover:bg-slate-200/50 ${bgClass} ${stickyClasses} ${widthClass} ${
+                    col.blue ? "text-blue-600" : "text-slate-600"
+                  }`}
+                >
+                  <div className="flex items-center gap-1">
+                    {col.label}
+                    {sortKey === col.key && (
+                      <span className="text-slate-400">{sortAsc ? "↑" : "↓"}</span>
+                    )}
+                    {col.blue && <span className="ml-1 text-blue-400 text-[10px]">NEW</span>}
+                  </div>
+                </th>
+              );
+            })}
           </tr>
         </thead>
         <tbody>
@@ -142,15 +142,19 @@ export function EnhancedRankingTable() {
               const score = p.composite_score ?? 0;
               const pct = Math.round((score / maxScore) * 100);
               return (
-                <tr key={i} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
+                <tr key={i} className="border-b border-slate-100 hover:bg-slate-50/50 transition-colors group">
                   {COLUMNS.map((col) => {
                     const isScore = col.key === "composite_score";
                     const isBlue = col.blue;
+                    const stickyClasses = col.sticky 
+                      ? `sticky ${col.leftPos} z-10 bg-white group-hover:bg-slate-50 shadow-[1px_0_0_#f1f5f9] transition-colors` 
+                      : "";
+
                     return (
                       <td
                         key={col.key}
-                        className={`px-4 py-3 whitespace-nowrap ${
-                          isBlue ? "text-blue-700 font-medium" : "text-slate-700"
+                        className={`px-4 py-3 whitespace-nowrap ${stickyClasses} ${
+                          isBlue ? "text-blue-700 font-medium bg-blue-50/30" : "text-slate-700"
                         }`}
                       >
                         {isScore ? (
@@ -165,6 +169,13 @@ export function EnhancedRankingTable() {
                               </span>
                             </div>
                           </div>
+                        ) : col.key === "name" ? (
+                          <Link
+                            href={`/biz/member/${encodeURIComponent(p.name ?? p.cc_name ?? "")}`}
+                            className="text-blue-600 hover:underline"
+                          >
+                            {getCellValue(p, col.key)}
+                          </Link>
                         ) : (
                           getCellValue(p, col.key)
                         )}

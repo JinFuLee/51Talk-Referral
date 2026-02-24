@@ -60,3 +60,6 @@ package-lock.json
 # Playwright session & temp downloads
 .playwright-session/
 _downloads_tmp/
+
+# Claude Code snapshots (ephemeral undo history)
+.claude/snapshots/

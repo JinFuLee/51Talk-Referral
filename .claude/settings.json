@@ -1,9 +1,3 @@
 {
-  "mcpServers": {
-    "ref-ops-engine": {
-      "command": "/opt/homebrew/bin/python3.11",
-      "args": ["backend/mcp_bridge.py"],
-      "cwd": "/Users/felixmacbookairm4/Desktop/ref-ops-engine"
-    }
-  }
+  "mcpServers": {}
 }

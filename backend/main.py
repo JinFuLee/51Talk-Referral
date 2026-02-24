@@ -54,6 +54,7 @@ ROUTER_REGISTRY: dict = {
     "enclosure_health":     ("api.enclosure_health",     "/api/analysis",      ["enclosure-health"]),
     "ranking_enhanced":     ("api.ranking_enhanced",     "/api/analysis",      ["ranking-enhanced"]),
     "presentation":         ("api.presentation",         "/api/analysis",      ["presentation"]),
+    "member_profile":       ("api.member",               "/api/member",        ["member-profile"]),
 }
 
 
