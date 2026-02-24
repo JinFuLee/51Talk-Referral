@@ -1,0 +1,74 @@
+# =============================================================================
+# claude-review.yml — GitHub Actions: PR 自动审查（ref-ops-engine 项目专属）
+#
+# 复利：每次 PR 审查的模式沉淀为项目审查清单，业务规则检查越来越精准
+#       通用骨架来自 ~/.claude/workflows/claude-review.yml，此处追加项目专属规则
+# 自适应：PR 创建/更新时自动触发，@claude 评论可手动触发
+#         无需人工 dispatch，CI/CD 层全自动响应
+# 自动化：GitHub Actions 强制执行，secrets.ANTHROPIC_API_KEY 驱动
+#         无需本地环境，cloud-native 零干预
+# =============================================================================
+#
+# 启用方法:
+#   在 GitHub 仓库 Settings -> Secrets -> Actions 中添加:
+#   ANTHROPIC_API_KEY = <your Anthropic API key>
+#
+# 手动触发: 在任意 PR 评论中写 "@claude review" 即可重新触发审查
+# =============================================================================
+
+name: Claude Code Review
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  issue_comment:
+    types: [created]
+
+jobs:
+  review:
+    # 触发条件: PR 事件 OR 包含 @claude 的 PR 评论
+    if: |
+      (github.event_name == 'pull_request') ||
+      (github.event_name == 'issue_comment' &&
+       github.event.issue.pull_request != null &&
+       contains(github.event.comment.body, '@claude'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Claude Code Review
+        uses: anthropic/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          model: claude-sonnet-4-20250514
+          max_turns: 10
+          timeout_minutes: 30
+          direct_prompt: |
+            Review this PR. Focus on:
+            1. **Type safety** — No `as unknown as`, `as any`, `@ts-ignore`, bare `...body` spread
+            2. **Error handling** — All async paths have catch/finally; loading/error/empty three-state coverage
+            3. **Security** — No hardcoded secrets or API keys; Zod validation on all API bodies
+            4. **Performance** — No N+1 queries, no unnecessary `copy.deepcopy` on large datasets
+            5. **Data integrity** — No mock/placeholder data; empty state returns `[]`/`{}` not fake data
+            6. **ref-ops-engine 业务规则**:
+               - CC/SS/LP 术语映射正确（EA->SS, CM->LP）
+               - 转介绍业绩过滤条件: channel=="转介绍" AND team 含 "CC" AND order_tag=="新单"
+               - 双差额体系完整（目标绝对差 + 时间进度差 + 两个日均）
+               - 币种显示规范: USD(THB) 格式，使用 formatRevenue() 工具函数
+               - 围场天数计算从付费当日起算
+
+            Output in Chinese with severity levels:
+            - CRITICAL: 必须修复（数据错误、安全漏洞、breaking change）
+            - WARNING: 应该修复（类型安全缺口、缺失错误处理、业务规则偏差）
+            - SUGGESTION: 建议优化（代码风格、小优化、文档）
+
+            每条 finding 必须包含 file:line 引用。无问题时输出 LGTM + 摘要。
