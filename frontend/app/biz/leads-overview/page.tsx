@@ -519,7 +519,8 @@ const SCOPE_TABS = [
   { id: "total", label: "总计" },
   { id: "cc_narrow", label: "CC窄口径" },
   { id: "ss_narrow", label: "SS窄口径" },
-  { id: "other", label: "其它" },
+  { id: "lp_narrow", label: "LP窄口径" },
+  { id: "wide", label: "宽口" },
 ];
 
 export default function LeadsOverviewPage() {

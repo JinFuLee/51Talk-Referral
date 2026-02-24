@@ -145,7 +145,8 @@ _SCOPE_MAP = {
     "total": "total",
     "cc_narrow": "cc_narrow",
     "ss_narrow": "ss_narrow",
-    "other": "other",
+    "lp_narrow": "lp_narrow",
+    "wide": "wide",
 }
 
 _METRIC_KEYS = ["register", "appointment", "showup", "paid", "revenue_usd", "leads_to_pay_rate"]
@@ -175,7 +176,7 @@ def _safe_sub(a: Optional[float], b: Optional[float]) -> Optional[float]:
 
 @router.get("/leads-overview")
 def get_leads_overview(
-    scope: str = Query("total", description="口径: total/cc_narrow/ss_narrow/other"),
+    scope: str = Query("total", description="口径: total/cc_narrow/ss_narrow/lp_narrow/wide"),
     period: Optional[str] = Query(None, description="月份 YYYYMM，默认最新月"),
 ) -> dict[str, Any]:
     """
@@ -206,7 +207,7 @@ def get_leads_overview(
     # 校验 scope
     scope_key = _SCOPE_MAP.get(scope, "total")
     scopes_available = [k for k in _SCOPE_MAP if k != scope]
-    scopes_available = ["total", "cc_narrow", "ss_narrow", "other"]
+    scopes_available = ["total", "cc_narrow", "ss_narrow", "lp_narrow", "wide"]
 
     # ── monthly_trend（按 scope 提取核心指标）────────────────────────────────
     monthly_trend: list[dict[str, Any]] = []
@@ -451,7 +452,8 @@ def get_leads_overview(
         "total": "总计",
         "cc_narrow": "CC窄口径",
         "ss_narrow": "SS窄口径",
-        "other": "宽口径",
+        "lp_narrow": "LP窄口径",
+        "wide": "宽口径",
     }
     a2_scope_cn = _A2_SCOPE_MAP.get(scope_key, "总计")
 
