@@ -149,6 +149,16 @@ _SCOPE_MAP = {
     "wide": "wide",
 }
 
+# A5 数据源（leads_overview_trend）只有 total/cc_narrow/ss_narrow/other 四个 key
+# LP窄口径 和 宽口 在 A5 中合并为 "other"
+_A5_SCOPE_MAP = {
+    "total": "total",
+    "cc_narrow": "cc_narrow",
+    "ss_narrow": "ss_narrow",
+    "lp_narrow": "other",
+    "wide": "other",
+}
+
 _METRIC_KEYS = ["register", "appointment", "showup", "paid", "revenue_usd", "leads_to_pay_rate"]
 
 
@@ -206,6 +216,7 @@ def get_leads_overview(
 
     # 校验 scope
     scope_key = _SCOPE_MAP.get(scope, "total")
+    a5_scope_key = _A5_SCOPE_MAP.get(scope, "total")
     scopes_available = [k for k in _SCOPE_MAP if k != scope]
     scopes_available = ["total", "cc_narrow", "ss_narrow", "lp_narrow", "wide"]
 
@@ -214,7 +225,7 @@ def get_leads_overview(
     for entry in monthly_trend_raw:
         if not isinstance(entry, dict):
             continue
-        scope_data = entry.get(scope_key, {}) if isinstance(entry.get(scope_key), dict) else {}
+        scope_data = entry.get(a5_scope_key, {}) if isinstance(entry.get(a5_scope_key), dict) else {}
         monthly_trend.append({
             "month": entry.get("month"),
             "register": scope_data.get("register"),
@@ -235,7 +246,7 @@ def get_leads_overview(
         (e for e in monthly_trend_raw if e.get("month") == target_month),
         monthly_trend_raw[-1] if monthly_trend_raw else {},
     )
-    achievement = _extract_scope_metrics(current_entry, scope_key)
+    achievement = _extract_scope_metrics(current_entry, a5_scope_key)
 
     # ── 上月 MoM gap ──────────────────────────────────────────────────────────
     mom_gap: dict[str, Any] = {}
@@ -245,8 +256,8 @@ def get_leads_overview(
             len(monthly_trend_raw) - 1,
         )
         if idx > 0:
-            prev_metrics = _extract_scope_metrics(monthly_trend_raw[idx - 1], scope_key)
-            curr_metrics = _extract_scope_metrics(current_entry, scope_key)
+            prev_metrics = _extract_scope_metrics(monthly_trend_raw[idx - 1], a5_scope_key)
+            curr_metrics = _extract_scope_metrics(current_entry, a5_scope_key)
             for k in _METRIC_KEYS:
                 cur = curr_metrics.get(k)
                 prev = prev_metrics.get(k)
