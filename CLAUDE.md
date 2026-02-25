@@ -228,10 +228,7 @@ CC 排名算法详见 [docs/cc-ranking-spec.md](docs/cc-ranking-spec.md)（3类1
 | 33 | 代码质量 | 24 个 API 路由文件重复 global _service + set_service() DI 反模式，无法 mock 测试 | P2 | M33+ | 可用 FastAPI Depends + app.state 重构 |
 | 34 | 类型安全 | frontend/lib/types.ts FollowupData 接口重复声明（L302 和 L444 两个不同 shape） | P2 | M33+ | 命名冲突 bug，strict 模式下会报错 |
 | 35 | 类型安全 | frontend/lib/api.ts 17 处 request<unknown> 类型断层，API 边界类型错误只在运行时暴露 | P2 | M33+ | 应替换为具体 interface |
-| 36 | 依赖管理 | pnpm-lock.yaml（本地）vs npm ci（CI）包管理器不一致，依赖解析可能不同 | P3 | M33+ | 统一为 pnpm 或 npm 其一 |
 | 37 | 前端性能 | 47 页面全部 "use client"，无 RSC 收益，所有页面全量 JS 客户端加载 | P3 | M34+ | 内部工具可接受，规模扩大时考虑部分页面改 RSC |
-| 39 | 性能 | loaders 中 .apply(_clean_numeric) 131 处，C6 场景 316,416 次 Python 函数调用，应替换为 pd.to_numeric 向量化 | P1 | M33+ | 预计 10-50x 加速 |
-| 40 | 性能 | C6 cohort_loader iterrows 遍历 8806 行构建嵌套 dict，单次 Loader 最慢操作 | P2 | M33+ | 重构为列操作 + to_dict |
 | 41 | 性能 | 6 个 Loader 串行加载无并行，I/O bound 可用 ThreadPoolExecutor 加速 ~60% | P2 | M34+ | 需验证 pandas 线程安全 |
 | 42 | 性能 | 18 个分析模块串行执行，其中 14 个无依赖可并行 | P2 | M34+ | 理论加速 3-4x，需验证 AnalyzerContext 线程安全 |
 | 43 | 持久化 | snapshot_store cleanup() 从未自动触发，multi_source_digest ~125MB/年无限增长 | P2 | M33+ | 在 save_snapshot 末尾添加自动清理（保留 90 天） |
