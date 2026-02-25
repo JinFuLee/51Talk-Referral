@@ -68,11 +68,44 @@ kill_port 3000
 
 # ── 依赖树分析与重组 ──────────────────────────────────────────────────────
 
+# ── 读取 .python-version 锁定 Python 版本 ─────────────────────────────────
+REQUIRED_PY=""
+if [ -f ".python-version" ]; then
+    REQUIRED_PY=$(head -1 .python-version | tr -d '[:space:]')
+fi
+
+resolve_python() {
+    # 优先找 Homebrew 精确版本 → 再找 python3.X → 最后 fallback python3
+    if [ -n "$REQUIRED_PY" ]; then
+        for candidate in "/opt/homebrew/bin/python${REQUIRED_PY}" "python${REQUIRED_PY}"; do
+            if command -v "$candidate" &>/dev/null; then
+                echo "$candidate"; return
+            fi
+        done
+        fail "需要 Python ${REQUIRED_PY}，但系统未安装。请运行: brew install python@${REQUIRED_PY}"
+        exit 1
+    fi
+    echo "python3"
+}
+PYTHON_BIN=$(resolve_python)
+ok "锁定 Python 版本: $($PYTHON_BIN --version) [$PYTHON_BIN]"
+
 info "校验 Python 虚拟沙盒层 (venv)..."
+# 检查 venv 是否存在且版本匹配
+REBUILD_VENV=0
 if [ ! -d "venv" ]; then
-    warn "未发现虚拟环境，正在构造..."
-    python3 -m venv venv
-    ok "沙盒构造完毕"
+    REBUILD_VENV=1
+elif [ -n "$REQUIRED_PY" ]; then
+    CURRENT_PY=$(venv/bin/python --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+')
+    if [ "$CURRENT_PY" != "$REQUIRED_PY" ]; then
+        warn "venv 版本 ($CURRENT_PY) 与 .python-version ($REQUIRED_PY) 不符，重建..."
+        rm -rf venv
+        REBUILD_VENV=1
+    fi
+fi
+if [ "$REBUILD_VENV" -eq 1 ]; then
+    $PYTHON_BIN -m venv venv
+    ok "沙盒构造完毕 (Python $REQUIRED_PY)"
 fi
 
 info "装载核心算法依赖簇 (backend/requirements.txt)..."
