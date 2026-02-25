@@ -116,7 +116,7 @@ class LeadsLoader(BaseLoader):
 
         # 预先向量化清洗数值列 (3~27)
         num_cols = df_valid.columns[3:min(28, len(df_valid.columns))]
-        df_nums = df_valid[num_cols].map(self._clean_numeric)
+        df_nums = df_valid[num_cols].apply(self._clean_numeric_vec)
 
         def _build_record(idx_pos) -> dict[str, Any]:
             row = df_valid.iloc[idx_pos]
@@ -221,7 +221,7 @@ class LeadsLoader(BaseLoader):
 
         # 预先清洗数值列 (2~31)
         num_cols = df_valid.columns[2:min(32, len(df_valid.columns))]
-        df_nums = df_valid[num_cols].map(self._clean_numeric)
+        df_nums = df_valid[num_cols].apply(self._clean_numeric_vec)
 
         def _build_enc_record(idx_pos) -> dict[str, Any]:
             row = df_valid.iloc[idx_pos]
@@ -421,19 +421,24 @@ class LeadsLoader(BaseLoader):
         by_cc: dict = {}
         if not cc_valid.empty:
             # 保留每个 CC 的团队（取第一个）
-            cc_team = cc_valid.groupby("_cc_key")["末次分配CC组名称"].first()
-            cc_agg = cc_valid.groupby("_cc_key")[["_预约_flag", "_出席_flag", "_paid_this_month"]].sum()
-            cc_counts = cc_valid.groupby("_cc_key").size().rename("leads")
-            cc_df = pd.concat([cc_counts, cc_agg, cc_team], axis=1)
-            for cc_name, row in cc_df.iterrows():
-                by_cc[cc_name] = {
+            cc_agg_df = cc_valid.groupby("_cc_key").agg(
+                团队=("末次分配CC组名称", "first"),
+                leads=("_cc_key", "count"),
+                预约=("_预约_flag", "sum"),
+                出席=("_出席_flag", "sum"),
+                付费=("_paid_this_month", "sum"),
+            )
+            by_cc = {
+                cc_name: {
                     "CC": cc_name,
-                    "团队": row.get("末次分配CC组名称"),
+                    "团队": row["团队"],
                     "leads": int(row["leads"]),
-                    "预约": int(row["_预约_flag"]),
-                    "出席": int(row["_出席_flag"]),
-                    "付费": int(row["_paid_this_month"]),
+                    "预约": int(row["预约"]),
+                    "出席": int(row["出席"]),
+                    "付费": int(row["付费"]),
                 }
+                for cc_name, row in cc_agg_df.to_dict("index").items()
+            }
 
         # by_team groupby
         team_col_val = df_renamed["末次分配CC组名称"].fillna("").replace("nan", "")
@@ -442,17 +447,22 @@ class LeadsLoader(BaseLoader):
 
         by_team: dict = {}
         if not team_valid.empty:
-            team_agg = team_valid.groupby("_team_key")[["_预约_flag", "_出席_flag", "_paid_this_month"]].sum()
-            team_counts = team_valid.groupby("_team_key").size().rename("leads")
-            team_df = pd.concat([team_counts, team_agg], axis=1)
-            for team_name, row in team_df.iterrows():
-                by_team[team_name] = {
+            team_agg_df = team_valid.groupby("_team_key").agg(
+                leads=("_team_key", "count"),
+                预约=("_预约_flag", "sum"),
+                出席=("_出席_flag", "sum"),
+                付费=("_paid_this_month", "sum"),
+            )
+            by_team = {
+                team_name: {
                     "团队": team_name,
                     "leads": int(row["leads"]),
-                    "预约": int(row["_预约_flag"]),
-                    "出席": int(row["_出席_flag"]),
-                    "付费": int(row["_paid_this_month"]),
+                    "预约": int(row["预约"]),
+                    "出席": int(row["出席"]),
+                    "付费": int(row["付费"]),
                 }
+                for team_name, row in team_agg_df.to_dict("index").items()
+            }
 
         return {
             "records": records,

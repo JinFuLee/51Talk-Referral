@@ -215,34 +215,34 @@ class OrderLoader(BaseLoader):
 
     def _aggregate_orders_by_team_df(self, df: pd.DataFrame) -> dict:
         """向量化按团队聚合"""
-        grp = df.assign(team=df["team"].fillna("未知")).groupby("team", as_index=False).agg(
+        grp = df.assign(team=df["team"].fillna("未知")).groupby("team").agg(
             count=("team", "count"),
             revenue_cny=("amount_cny", "sum"),
             revenue_usd=("amount_usd", "sum"),
         )
         return {
-            row["team"]: {
+            team: {
                 "count": int(row["count"]),
                 "revenue_cny": float(row["revenue_cny"]),
                 "revenue_usd": float(row["revenue_usd"]),
             }
-            for _, row in grp.iterrows()
+            for team, row in grp.to_dict("index").items()
         }
 
     def _aggregate_orders_by_channel_df(self, df: pd.DataFrame) -> dict:
         """向量化按渠道聚合"""
-        grp = df.assign(channel=df["channel"].fillna("未知")).groupby("channel", as_index=False).agg(
+        grp = df.assign(channel=df["channel"].fillna("未知")).groupby("channel").agg(
             count=("channel", "count"),
             revenue_cny=("amount_cny", "sum"),
             revenue_usd=("amount_usd", "sum"),
         )
         return {
-            row["channel"]: {
+            channel: {
                 "count": int(row["count"]),
                 "revenue_cny": float(row["revenue_cny"]),
                 "revenue_usd": float(row["revenue_usd"]),
             }
-            for _, row in grp.iterrows()
+            for channel, row in grp.to_dict("index").items()
         }
 
     def _aggregate_referral_cc_new_df(self, df: pd.DataFrame) -> dict:
@@ -262,14 +262,14 @@ class OrderLoader(BaseLoader):
 
     def _aggregate_orders_by_date_df(self, df: pd.DataFrame) -> list:
         """向量化按日期聚合"""
-        grp = df.assign(date=df["date"].fillna("unknown")).groupby("date", as_index=False).agg(
+        grp = df.assign(date=df["date"].fillna("unknown")).groupby("date").agg(
             count=("date", "count"),
             revenue=("amount_cny", "sum"),
-        )
-        grp = grp.sort_values("date")
+        ).sort_index()
+        result = grp.reset_index().rename(columns={"index": "date"})
         return [
             {"date": row["date"], "count": int(row["count"]), "revenue": float(row["revenue"])}
-            for _, row in grp.iterrows()
+            for row in result.to_dict("records")
         ]
 
     def _summarize_orders_df(self, df: pd.DataFrame) -> dict:

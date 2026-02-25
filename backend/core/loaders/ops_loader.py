@@ -86,12 +86,11 @@ class OpsLoader(BaseLoader):
                 logger.warning("F1: Excel 为空或格式异常，返回空结果")
                 return {}
 
-            # 找表头行（包含"渠道"的行）— 小循环(<10行)，保留 iterrows
+            # 找表头行（包含"渠道"的行）— 向量化搜索
             header_row = 3  # 默认第4行（0-indexed=3）
-            for i, row in raw.iterrows():
-                if str(row.iloc[0]).strip() == "渠道":
-                    header_row = i
-                    break
+            match = raw.iloc[:, 0].astype(str).str.strip().eq("渠道")
+            if match.any():
+                header_row = int(match.idxmax())
 
             df = raw.iloc[header_row:].reset_index(drop=True)
             df.columns = df.iloc[0].tolist()
@@ -204,12 +203,11 @@ class OpsLoader(BaseLoader):
                 logger.warning("F2: Excel 为空或格式异常，返回空结果")
                 return {}
 
-            # 找表头行（包含"渠道类型"）— 小循环，保留 iterrows
+            # 找表头行（包含"渠道类型"）— 向量化搜索
             header_row = 2
-            for i, row in raw.iterrows():
-                if str(row.iloc[0]).strip() == "渠道类型":
-                    header_row = i
-                    break
+            match = raw.iloc[:, 0].astype(str).str.strip().eq("渠道类型")
+            if match.any():
+                header_row = int(match.idxmax())
 
             df = raw.iloc[header_row:].reset_index(drop=True)
             df.columns = ["channel_type", "month", "team", "cc_name",
@@ -286,26 +284,37 @@ class OpsLoader(BaseLoader):
                     amount_usd=("amount_usd", "sum")
                 ).reset_index()
                 
-                for _, row in cc_agg.iterrows():
-                    regs = row["registrations"] or 0
-                    appts = row["appointments"] or 0
-                    atts = row["attended"] or 0
-                    paids = row["paid"] or 0
-                    
-                    by_cc[row["cc_name"]] = {
+                # 向量化计算派生率，消除 iterrows
+                cc_agg = cc_agg.copy()
+                regs_s = cc_agg["registrations"].fillna(0)
+                appts_s = cc_agg["appointments"].fillna(0)
+                atts_s = cc_agg["attended"].fillna(0)
+                paids_s = cc_agg["paid"].fillna(0)
+                cc_agg["regs_"] = regs_s
+                cc_agg["appts_"] = appts_s
+                cc_agg["atts_"] = atts_s
+                cc_agg["paids_"] = paids_s
+                cc_agg["appt_rate_calc"] = (appts_s / regs_s.replace(0, float("nan"))).fillna(0).round(4)
+                cc_agg["appt_attend_rate_calc"] = (atts_s / appts_s.replace(0, float("nan"))).fillna(0).round(4)
+                cc_agg["attend_paid_rate_calc"] = (paids_s / atts_s.replace(0, float("nan"))).fillna(0).round(4)
+                cc_agg["reg_paid_rate_calc"] = (paids_s / regs_s.replace(0, float("nan"))).fillna(0).round(4)
+                by_cc = {
+                    row["cc_name"]: {
                         "team": row["team"],
                         "channel_type": row["channel_type"],
                         "month": row["month"],
-                        "registrations": regs,
-                        "appointments": appts,
-                        "attended": atts,
-                        "paid": paids,
+                        "registrations": row["regs_"],
+                        "appointments": row["appts_"],
+                        "attended": row["atts_"],
+                        "paid": row["paids_"],
                         "amount_usd": row["amount_usd"],
-                        "appt_rate": round(appts / regs, 4) if regs > 0 else 0,
-                        "appt_attend_rate": round(atts / appts, 4) if appts > 0 else 0,
-                        "attend_paid_rate": round(paids / atts, 4) if atts > 0 else 0,
-                        "reg_paid_rate": round(paids / regs, 4) if regs > 0 else 0,
+                        "appt_rate": row["appt_rate_calc"],
+                        "appt_attend_rate": row["appt_attend_rate_calc"],
+                        "attend_paid_rate": row["attend_paid_rate_calc"],
+                        "reg_paid_rate": row["reg_paid_rate_calc"],
                     }
+                    for row in cc_agg.to_dict("records")
+                }
 
             return {"records": records, "by_channel": by_channel, "by_cc": by_cc}
         except Exception as e:
@@ -330,12 +339,11 @@ class OpsLoader(BaseLoader):
                 logger.warning("F3: Excel 为空或格式异常，返回空结果")
                 return {}
 
-            # 找表头行（包含"渠道类型"）— 小循环，保留 iterrows
+            # 找表头行（包含"渠道类型"）— 向量化搜索
             header_row = 3
-            for i, row in raw.iterrows():
-                if str(row.iloc[0]).strip() == "渠道类型":
-                    header_row = i
-                    break
+            match_f3 = raw.iloc[:, 0].astype(str).str.strip().eq("渠道类型")
+            if match_f3.any():
+                header_row = int(match_f3.idxmax())
 
             df = raw.iloc[header_row:].reset_index(drop=True)
             df.columns = ["channel_type", "month", "team", "cc_name",
@@ -467,12 +475,10 @@ class OpsLoader(BaseLoader):
                 df_valid[col] = self._clean_numeric_vec(df_valid[col])
 
             # 构建 records（聚合后小DataFrame，行数=渠道数级别）
-            records = []
-            for _, row in df_valid.iterrows():
-                rec = {"channel": str(row["channel"]).strip()}
-                for col in metric_cols:
-                    rec[col] = row[col]
-                records.append(rec)
+            # 向量化：规范化 channel 列，to_dict 替代 iterrows
+            df_valid = df_valid.copy()
+            df_valid["channel"] = df_valid["channel"].astype(str).str.strip()
+            records = df_valid[["channel"] + metric_cols].to_dict("records")
 
             # 提取唯一月份列表
             months = sorted(set(
@@ -544,26 +550,33 @@ class OpsLoader(BaseLoader):
                     _total_duration_min=("total_duration_min", lambda x: sum(v or 0.0 for v in x)),
                     _duration_days=("total_duration_min", lambda x: sum(1 for v in x if v and v > 0)),
                 ).reset_index()
-                for _, row in cc_agg.iterrows():
-                    days = row["_duration_days"]
-                    total_dur = row["_total_duration_min"]
-                    by_cc[row["cc_name"]] = {
+                cc_agg = cc_agg.copy()
+                cc_agg["avg_duration_min"] = cc_agg.apply(
+                    lambda r: round(r["_total_duration_min"] / r["_duration_days"], 2) if r["_duration_days"] > 0 else None,
+                    axis=1,
+                )
+                by_cc = {
+                    row["cc_name"]: {
                         "team": row["team"],
                         "dates": row["dates"],
                         "total_calls": row["total_calls"],
                         "total_connects": row["total_connects"],
                         "total_effective": row["total_effective"],
-                        "avg_duration_min": round(total_dur / days, 2) if days > 0 else None,
+                        "avg_duration_min": row["avg_duration_min"],
                     }
+                    for row in cc_agg.to_dict("records")
+                }
 
             # by_team 聚合（向量化 groupby）
             team_agg = df.groupby("team").agg(
                 total_calls=("total_calls", lambda x: sum(v or 0 for v in x)),
                 total_connects=("total_connects", lambda x: sum(v or 0 for v in x)),
                 total_effective=("total_effective", lambda x: sum(v or 0 for v in x)),
-            ).reset_index()
-            by_team = {row["team"]: row[["total_calls", "total_connects", "total_effective"]].to_dict()
-                       for _, row in team_agg.iterrows()}
+            )
+            by_team = {
+                team: {"total_calls": row["total_calls"], "total_connects": row["total_connects"], "total_effective": row["total_effective"]}
+                for team, row in team_agg.to_dict("index").items()
+            }
 
             # by_date 聚合（向量化 groupby）
             date_agg = df.groupby("date").agg(
@@ -571,12 +584,12 @@ class OpsLoader(BaseLoader):
                 total_connects=("total_connects", lambda x: sum(v or 0 for v in x)),
                 total_effective=("total_effective", lambda x: sum(v or 0 for v in x)),
                 cc_count=("cc_name", "count"),
-            ).reset_index()
+            ).sort_index().reset_index()
             by_date_list = [
                 {"date": row["date"], "total_calls": row["total_calls"],
                  "total_connects": row["total_connects"], "total_effective": row["total_effective"],
                  "cc_count": row["cc_count"]}
-                for _, row in date_agg.sort_values("date").iterrows()
+                for row in date_agg.to_dict("records")
             ]
 
             return {
@@ -649,16 +662,17 @@ class OpsLoader(BaseLoader):
                     called_48h=("called_48h", "sum"),
                     connected_48h=("connected_48h", "sum"),
                 ).reset_index()
-                for _, row in cc_agg.iterrows():
-                    d = row.to_dict()
-                    cc_name = d.pop("cc_name")
-                    total = d["total"]
-                    if total > 0:
-                        d["call_rate_24h"] = round(d["called_24h"] / total, 4)
-                        d["connect_rate_24h"] = round(d["connected_24h"] / total, 4)
-                        d["call_rate_48h"] = round(d["called_48h"] / total, 4)
-                        d["connect_rate_48h"] = round(d["connected_48h"] / total, 4)
-                    by_cc[cc_name] = d
+                # 向量化计算率，消除 iterrows
+                cc_agg = cc_agg.copy()
+                denom_cc = cc_agg["total"].replace(0, float("nan"))
+                cc_agg["call_rate_24h"] = (cc_agg["called_24h"] / denom_cc).fillna(0).round(4)
+                cc_agg["connect_rate_24h"] = (cc_agg["connected_24h"] / denom_cc).fillna(0).round(4)
+                cc_agg["call_rate_48h"] = (cc_agg["called_48h"] / denom_cc).fillna(0).round(4)
+                cc_agg["connect_rate_48h"] = (cc_agg["connected_48h"] / denom_cc).fillna(0).round(4)
+                by_cc = {
+                    row["cc_name"]: {k: v for k, v in row.items() if k != "cc_name"}
+                    for row in cc_agg.to_dict("records")
+                }
 
             # by_team 聚合（向量化 groupby）
             by_team: dict = {}
@@ -668,17 +682,14 @@ class OpsLoader(BaseLoader):
                 connected_24h=("connected_24h", "sum"),
                 called_48h=("called_48h", "sum"),
                 connected_48h=("connected_48h", "sum"),
-            ).reset_index()
-            for _, row in team_agg.iterrows():
-                d = row.to_dict()
-                team_name = d.pop("team")
-                total = d["total"]
-                if total > 0:
-                    d["call_rate_24h"] = round(d["called_24h"] / total, 4)
-                    d["connect_rate_24h"] = round(d["connected_24h"] / total, 4)
-                    d["call_rate_48h"] = round(d["called_48h"] / total, 4)
-                    d["connect_rate_48h"] = round(d["connected_48h"] / total, 4)
-                by_team[team_name] = d
+            )
+            # 向量化计算率
+            denom_team = team_agg["total"].replace(0, float("nan"))
+            team_agg["call_rate_24h"] = (team_agg["called_24h"] / denom_team).fillna(0).round(4)
+            team_agg["connect_rate_24h"] = (team_agg["connected_24h"] / denom_team).fillna(0).round(4)
+            team_agg["call_rate_48h"] = (team_agg["called_48h"] / denom_team).fillna(0).round(4)
+            team_agg["connect_rate_48h"] = (team_agg["connected_48h"] / denom_team).fillna(0).round(4)
+            by_team = {team: row for team, row in team_agg.to_dict("index").items()}
 
             n = len(records)
             summary = {
@@ -751,10 +762,10 @@ class OpsLoader(BaseLoader):
                 monthly_effective=("monthly_effective", "sum"),
                 monthly_effective_count=("monthly_effective_count", "sum"),
             ).reset_index()
-            for _, row in cc_agg.iterrows():
-                d = row.to_dict()
-                cc_name = d.pop("cc_name")
-                by_cc[cc_name] = d
+            by_cc = {
+                row["cc_name"]: {k: v for k, v in row.items() if k != "cc_name"}
+                for row in cc_agg.to_dict("records")
+            }
 
             # by_team 聚合（向量化 groupby）
             by_team: dict = {}
@@ -764,11 +775,8 @@ class OpsLoader(BaseLoader):
                 monthly_connected=("monthly_connected", "sum"),
                 monthly_effective=("monthly_effective", "sum"),
                 monthly_effective_count=("monthly_effective_count", "sum"),
-            ).reset_index()
-            for _, row in team_agg.iterrows():
-                d = row.to_dict()
-                team_name = d.pop("team")
-                by_team[team_name] = d
+            )
+            by_team = {team: row for team, row in team_agg.to_dict("index").items()}
 
             n = len(records)
             summary = {
@@ -832,7 +840,9 @@ class OpsLoader(BaseLoader):
             # 过滤空行
             df = df[df["enc_str"].notna() & ~df["enc_str"].isin(("nan", "NaN"))].copy()
 
-            # 构建 by_enclosure 和 by_cc（行数=围场段×CC级别，逻辑复杂保留优化后迭代）
+            # 构建 by_enclosure 和 by_cc（行数=围场段×CC级别，有嵌套分支：
+            # 同一行同时决定归属 by_enclosure[enc].by_team 还是 .summary，
+            # 无法用 groupby+to_dict 一步替代，保留 iterrows）
             by_enclosure: dict = {}
             by_cc: list = []
 
@@ -938,7 +948,9 @@ class OpsLoader(BaseLoader):
                 df["team_norm"].notna() & ~df["team_norm"].isin(("nan", "NaN"))
             ].copy()
 
-            # 构建 by_cc 和 by_team（74行，逻辑有层级判断，保留优化后迭代）
+            # 构建 by_cc 和 by_team（74行，逻辑有层级判断：
+            # is_summary 判断决定填充 by_cc 还是 by_team，单次迭代写两个目标结构，
+            # 无法用 groupby+to_dict 一步替代，保留 iterrows）
             by_cc = []
             by_team: dict = {}
 
@@ -1050,7 +1062,9 @@ class OpsLoader(BaseLoader):
                 df["channel_str"].notna() & ~df["channel_str"].isin(("nan", "NaN"))
             ].copy()
 
-            # 构建分层结果（126行，层级判断逻辑保留优化后迭代）
+            # 构建分层结果（126行，三级判断：is_cc_level/is_team_level/is_channel_level
+            # 同一行同时分发到 by_cc/by_team/by_channel 三个目标结构，
+            # 无法用 groupby+to_dict 一步替代，保留 iterrows）
             by_cc = []
             by_team: dict = {}
             by_channel: dict = {}
@@ -1198,18 +1212,9 @@ class OpsLoader(BaseLoader):
                     pre_class_2h_connect=("pre_connected_2h", "sum"),
                     attended=("attended", "sum"),
                 ).reset_index()
-                for _, row in cc_agg.iterrows():
-                    d = row.to_dict()
-                    cc_name = d.pop("cc_name")
-                    total = d["total_classes"]
-                    if total > 0:
-                        d["call_rate"] = round(d["pre_class_call"] / total, 4)
-                        d["connect_rate"] = round(d["pre_class_connect"] / total, 4)
-                        d["connect_2h_rate"] = round(d["pre_class_2h_connect"] / total, 4)
-                        d["attendance_rate"] = round(d["attended"] / total, 4)
-                    by_cc[cc_name] = d
+                by_cc = self._agg_to_rate_dict(cc_agg, "cc_name")
 
-            # by_team 聚合（向量化 groupby）
+            # by_team 聚合（向量化 groupby + _agg_to_rate_dict）
             by_team: dict = {}
             team_agg = df.groupby("team").agg(
                 total_classes=("team", "count"),
@@ -1218,18 +1223,9 @@ class OpsLoader(BaseLoader):
                 pre_class_2h_connect=("pre_connected_2h", "sum"),
                 attended=("attended", "sum"),
             ).reset_index()
-            for _, row in team_agg.iterrows():
-                d = row.to_dict()
-                team_name = d.pop("team")
-                total = d["total_classes"]
-                if total > 0:
-                    d["call_rate"] = round(d["pre_class_call"] / total, 4)
-                    d["connect_rate"] = round(d["pre_class_connect"] / total, 4)
-                    d["connect_2h_rate"] = round(d["pre_class_2h_connect"] / total, 4)
-                    d["attendance_rate"] = round(d["attended"] / total, 4)
-                by_team[team_name] = d
+            by_team = self._agg_to_rate_dict(team_agg, "team")
 
-            # by_lead_type 聚合（向量化 groupby）
+            # by_lead_type 聚合（向量化 groupby + _agg_to_rate_dict）
             by_lead_type: dict = {}
             lt_agg = df.groupby("lead_type").agg(
                 total_classes=("lead_type", "count"),
@@ -1238,16 +1234,7 @@ class OpsLoader(BaseLoader):
                 pre_class_2h_connect=("pre_connected_2h", "sum"),
                 attended=("attended", "sum"),
             ).reset_index()
-            for _, row in lt_agg.iterrows():
-                d = row.to_dict()
-                lt_name = d.pop("lead_type")
-                total = d["total_classes"]
-                if total > 0:
-                    d["call_rate"] = round(d["pre_class_call"] / total, 4)
-                    d["connect_rate"] = round(d["pre_class_connect"] / total, 4)
-                    d["connect_2h_rate"] = round(d["pre_class_2h_connect"] / total, 4)
-                    d["attendance_rate"] = round(d["attended"] / total, 4)
-                by_lead_type[lt_name] = d
+            by_lead_type = self._agg_to_rate_dict(lt_agg, "lead_type")
 
             # by_channel_l3 聚合（新增：深层渠道分析）
             by_channel_l3: dict = {}
@@ -1260,16 +1247,7 @@ class OpsLoader(BaseLoader):
                     pre_class_2h_connect=("pre_connected_2h", "sum"),
                     attended=("attended", "sum"),
                 ).reset_index()
-                for _, row in l3_agg.iterrows():
-                    d = row.to_dict()
-                    l3_name = str(d.pop("channel_l3"))
-                    total = d["total_classes"]
-                    if total > 0:
-                        d["call_rate"] = round(d["pre_class_call"] / total, 4)
-                        d["connect_rate"] = round(d["pre_class_connect"] / total, 4)
-                        d["connect_2h_rate"] = round(d["pre_class_2h_connect"] / total, 4)
-                        d["attendance_rate"] = round(d["attended"] / total, 4)
-                    by_channel_l3[l3_name] = d
+                by_channel_l3 = self._agg_to_rate_dict(l3_agg, "channel_l3")
 
             # by_lead_grade 聚合（新增：线索质量分层）
             by_lead_grade: dict = {}
@@ -1282,16 +1260,7 @@ class OpsLoader(BaseLoader):
                     pre_class_2h_connect=("pre_connected_2h", "sum"),
                     attended=("attended", "sum"),
                 ).reset_index()
-                for _, row in lg_agg.iterrows():
-                    d = row.to_dict()
-                    lg_name = str(d.pop("lead_grade"))
-                    total = d["total_classes"]
-                    if total > 0:
-                        d["call_rate"] = round(d["pre_class_call"] / total, 4)
-                        d["connect_rate"] = round(d["pre_class_connect"] / total, 4)
-                        d["connect_2h_rate"] = round(d["pre_class_2h_connect"] / total, 4)
-                        d["attendance_rate"] = round(d["attended"] / total, 4)
-                    by_lead_grade[lg_name] = d
+                by_lead_grade = self._agg_to_rate_dict(lg_agg, "lead_grade")
 
             n = len(records)
             summary = {
@@ -1316,3 +1285,20 @@ class OpsLoader(BaseLoader):
         except Exception as e:
             logger.error(f"F11 解析失败: {e}", exc_info=True)
             return {}
+
+    @staticmethod
+    def _agg_to_rate_dict(agg_df: "pd.DataFrame", key_col: str) -> dict:
+        """将 groupby 聚合结果转为 {key: {..., call_rate, connect_rate, ...}} dict，消除 iterrows。
+        要求 agg_df 有列：key_col, total_classes, pre_class_call, pre_class_connect,
+        pre_class_2h_connect, attended。
+        """
+        agg_df = agg_df.copy()
+        denom = agg_df["total_classes"].replace(0, float("nan"))
+        agg_df["call_rate"] = (agg_df["pre_class_call"] / denom).fillna(0).round(4)
+        agg_df["connect_rate"] = (agg_df["pre_class_connect"] / denom).fillna(0).round(4)
+        agg_df["connect_2h_rate"] = (agg_df["pre_class_2h_connect"] / denom).fillna(0).round(4)
+        agg_df["attendance_rate"] = (agg_df["attended"] / denom).fillna(0).round(4)
+        return {
+            str(row[key_col]): {k: v for k, v in row.items() if k != key_col}
+            for row in agg_df.to_dict("records")
+        }

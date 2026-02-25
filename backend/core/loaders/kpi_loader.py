@@ -85,7 +85,7 @@ class KpiLoader(BaseLoader):
                 "referral_participation", "referral_coefficient", "conversion_ratio",
             ]
             avail_fields = [f for f in numeric_fields if f in detail_df.columns]
-            d1_nums = detail_df[avail_fields].map(self._clean_numeric)
+            d1_nums = detail_df[avail_fields].apply(self._clean_numeric_vec)
             teams_cleaned = detail_df["team"].apply(
                 lambda v: self._normalize_team(str(v).strip()) if pd.notna(v) else "THCC"
             )
@@ -205,7 +205,7 @@ class KpiLoader(BaseLoader):
 
             # 向量化清洗数值
             avail_enc_fields = [f for f in enc_fields if f in df_detail.columns]
-            df_detail_nums = df_detail[avail_enc_fields].map(self._clean_numeric) if not df_detail.empty else df_detail[avail_enc_fields]
+            df_detail_nums = df_detail[avail_enc_fields].apply(self._clean_numeric_vec) if not df_detail.empty else df_detail[avail_enc_fields]
 
             by_enclosure = [
                 {
@@ -288,7 +288,7 @@ class KpiLoader(BaseLoader):
                 "referral_participation_multiplier", "referral_coefficient_total", "conversion_ratio",
             ]
             avail_d5_fields = [f for f in d5_numeric_fields if f in detail_df.columns]
-            d5_nums = detail_df[avail_d5_fields].map(self._clean_numeric)
+            d5_nums = detail_df[avail_d5_fields].apply(self._clean_numeric_vec)
             d5_teams = detail_df["team"].apply(
                 lambda v: self._normalize_team(str(v).strip()) if pd.notna(v) else "THCC"
             )
