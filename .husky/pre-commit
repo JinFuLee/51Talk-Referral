@@ -1,3 +1,3 @@
 #!/bin/sh
 cd frontend && npx lint-staged
-cd .. && uv run ruff check .
+cd .. && STAGED_PY=$(git diff --cached --name-only --diff-filter=ACM | grep '\.py$' | grep -v '^\.claude/') && [ -n "$STAGED_PY" ] && uv run ruff check $STAGED_PY || true

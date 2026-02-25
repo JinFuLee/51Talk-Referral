@@ -390,7 +390,7 @@ class AnalysisService:
             a3_records: list = a3.get("records", [])
 
             if isinstance(a3_records, list):
-                bool_true_vals = {"1", "1.0", True, 1}
+                bool_true_vals = {"1", "1.0", True}
 
                 def _is_true(v) -> bool:
                     return v in bool_true_vals or str(v).strip() in {"1", "1.0", "True", "true"}

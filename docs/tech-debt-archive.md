@@ -21,6 +21,7 @@
 | 26 | API 补全 | 3 个 presentation API endpoints 全部补全实现 | M18.3 | M18.2 识别，M18.3 已实现 |
 | 27 | WhatIfSlide | WhatIfSlide 滑块接入后端 POST /api/analysis/what-if | M18.3 | M18.2 识别，M18.3 已接入 |
 | 29 | Mock 全清 | mock fallback 全清，改为空态 UX 提示（缺什么数据 + 如何补充） | M33 | M33 已解决（政策变更：禁止 mock，空态优先） |
+| 38 | 性能 | analysis_service.py copy.deepcopy 对全量 35 源数据深拷贝（~20MB/次），每个新 period 请求触发 | M33 | M33 已解决：`_filter_data_by_period` 采用 COW 模式（`_walk_and_filter` 重建 dict/list 容器层，保留记录对象引用），内存开销从 O(全量数据) 降至 O(容器层数)；`_reaggregate_summaries` 写入均落在新容器上，`_raw_data` 不被污染。无需代码改动，原 deepcopy 调用已在历史版本移除。 |
 | 32 | 类型泛化 | 前端 analysis.ts 领域类型泛化 | M27 | M27 已解决（core.ts 通用类型提取，领域类型 Record 化，analysis.ts 泛型化完成） |
 | 33 | 测试覆盖 | 零测试覆盖（前后端均无自动化测试） | M31 | M31 已解决（pytest 105 case + vitest 42 case，CI 全链路覆盖） |
 | 34 | fetcher 统一 | fetcher 重复 34 处（各组件各自定义 fetch 逻辑，无统一入口） | M29 | M29 已解决（统一为 swrFetcher，api.ts 集中化） |
