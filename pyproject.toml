@@ -1,0 +1,58 @@
+[project]
+name = "ref-ops-engine"
+version = "0.1.0"
+description = "51Talk 泰国转介绍运营自动化分析引擎"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.110.0",
+    "uvicorn[standard]>=0.27.0",
+    "python-multipart>=0.0.9",
+    "pydantic>=2.6.0",
+    "pandas>=2.0.0",
+    "openpyxl>=3.1.2",
+    "python-calamine>=0.1.0",
+    "xlsxwriter>=3.1.9",
+    "google-generativeai>=0.4.0",
+    "schedule>=1.2.0",
+    "python-dotenv>=1.0.0",
+    "pyyaml>=6.0.1",
+    "playwright>=1.40.0",
+    "slowapi>=0.1.9",
+    "pyarrow>=14.0.0",
+    "watchdog>=3.0.0",
+    "streamlit>=1.30.0",
+    "python-dateutil>=2.8.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=7.0",
+    "pytest-asyncio>=0.21",
+    "httpx>=0.24",
+    "pytest-cov>=4.0",
+    "ruff>=0.9.0",
+]
+terminal = [
+    "anthropic>=0.40.0",
+    "textual>=0.80.0",
+    "textual-plotext>=0.2.0",
+    "httpx>=0.27.0",
+    "plotext>=5.2.0",
+]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 88
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "SIM"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["src", "backend"]
+
+[tool.ruff.format]
+quote-style = "double"
+
+[tool.pytest.ini_options]
+testpaths = ["tests", "backend/tests"]
+asyncio_mode = "auto"

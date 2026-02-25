@@ -3,7 +3,8 @@
 51Talk 泰国转介绍运营自动化分析引擎
 
 ## 技术栈
-**后端：** Python 3.9+ FastAPI | **前端：** Node.js 18+ Next.js 14 (App Router) + React 18
+**后端：** Python 3.11+ FastAPI | **前端：** Node.js 18+ Next.js 14 (App Router) + React 18
+**工具链：** uv (包管理/虚拟环境) + ruff (lint/format) | **配置：** pyproject.toml 单文件
 **分析引擎：** Python AnalysisEngine (ROI/预测/异常检测) | **可视化：** Recharts + shadcn/ui
 **通讯：** WebMCP Tools (8 个，AI Agent 可调) | **容器化：** Docker + docker-compose
 **数据持久：** SQLite (快照存储) + Excel (遗留数据) | **国际化：** 中泰双语动态路由
@@ -11,9 +12,11 @@
 ## 目录结构 (M9 改造后)
 ```
 ref-ops-engine/
+├── pyproject.toml               # Python 依赖 + 工具配置（uv/ruff/pytest）
+├── uv.lock                      # uv 锁定文件（自动生成）
+├── .python-version              # Python 版本锁定（3.11）
 ├── backend/                     # FastAPI 服务（新）
 │   ├── main.py                  # FastAPI app 主入口
-│   ├── requirements.txt          # Python 依赖
 │   ├── routers/                 # 7 个 Router（数据/分析/报告/通知/权限/系统/WebMCP）
 │   ├── models/                  # 7 个 Pydantic 数据模型
 │   ├── services/                # AnalysisService（Python 核心引擎调用）
@@ -70,14 +73,17 @@ Excel 数据源 → XlsxReader → DataProcessor → AnalysisEngine → Markdown
 - **一键启动（推荐）**: 双击 `一键启动.command`（自动检测数据 → 下载 → 后端 → 前端 → 浏览器）
 - **仅启动服务**: 双击 `启动.command`（跳过数据检测，直接启动）
 - **仅下载数据**: 双击 `下载BI数据.command`（交互式，支持选择看板）
-- **Streamlit 面板（旧版）**: `streamlit run app.py`
-- **CLI 单次处理**: `python src/main.py --once <file.xlsx>`
-- **CLI 监控模式**: `python src/main.py --watch`
-- **测试**: `pytest`
+- **安装依赖**: `uv sync --all-groups`（自动创建 .venv + 安装全部依赖组）
+- **添加依赖**: `uv add <pkg>` | **添加开发依赖**: `uv add --group dev <pkg>`
+- **Lint**: `uv run ruff check .` | **Format**: `uv run ruff format .`
+- **Streamlit 面板（旧版）**: `uv run streamlit run app.py`
+- **CLI 单次处理**: `uv run python src/main.py --once <file.xlsx>`
+- **CLI 监控模式**: `uv run python src/main.py --watch`
+- **测试**: `uv run pytest`
 
 ## 代码规范
-- 类型注解必须（Python 3.9+ 语法）
-- 4 空格缩进，遵循 PEP 8
+- 类型注解必须（Python 3.11+ 语法）
+- 4 空格缩进，ruff 自动 lint+format（替代 black/isort/flake8）
 - Excel 列映射定义在 config.py 的 COLUMN_MAPPING
 - 月度目标定义在 config.py 的 MONTHLY_TARGETS
 - all_rows 使用原始列名（A/B/C...），monthly_summaries 使用中文字段名

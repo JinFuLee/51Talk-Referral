@@ -40,55 +40,24 @@ echo ""
 # ── 环境自检 ──────────────────────────────────────────────────────────────
 
 info "执行系统合规性检测..."
-if ! command -v python3 &>/dev/null; then
-    fail "Python 3 不存在。请通过 Homebrew 安装 (brew install python3)。"
-    exit 1
-fi
 if ! command -v node &>/dev/null; then
     fail "Node.js (18+) 不存在。请通过 Node 官网或 nvm 安装。"
     exit 1
 fi
-ok "运行时组件校验通过 (Python: $(python3 -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")'), Node: $(node --version))"
+ok "运行时组件校验通过 (Node: $(node --version))"
 
-# ── 读取 .python-version 锁定 Python 版本 ─────────────────────────────────
-REQUIRED_PY=""
-if [ -f ".python-version" ]; then
-    REQUIRED_PY=$(head -1 .python-version | tr -d '[:space:]')
+# ── Python 环境（uv 自动管理）─────────────────────────────────────────────
+if ! command -v uv &>/dev/null; then
+    fail "uv 未安装。请运行: curl -LsSf https://astral.sh/uv/install.sh | sh"
+    exit 1
 fi
+ok "现代工具链就绪 (uv $(uv --version | cut -d' ' -f2))"
 
-resolve_python() {
-    if [ -n "$REQUIRED_PY" ]; then
-        for candidate in "/opt/homebrew/bin/python${REQUIRED_PY}" "python${REQUIRED_PY}"; do
-            if command -v "$candidate" &>/dev/null; then
-                echo "$candidate"; return
-            fi
-        done
-        fail "需要 Python ${REQUIRED_PY}，但系统未安装。请运行: brew install python@${REQUIRED_PY}"
-        exit 1
-    fi
-    echo "python3"
-}
-PYTHON_BIN=$(resolve_python)
-ok "锁定 Python 版本: $($PYTHON_BIN --version) [$PYTHON_BIN]"
-
-info "校验 Python 虚拟沙盒层 (venv)..."
-REBUILD_VENV=0
-if [ ! -d "venv" ]; then
-    REBUILD_VENV=1
-elif [ -n "$REQUIRED_PY" ]; then
-    CURRENT_PY=$(venv/bin/python --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+')
-    if [ "$CURRENT_PY" != "$REQUIRED_PY" ]; then
-        warn "venv 版本 ($CURRENT_PY) 与 .python-version ($REQUIRED_PY) 不符，重建..."
-        rm -rf venv
-        REBUILD_VENV=1
-    fi
+info "同步 Python 依赖树 (uv sync)..."
+if ! uv sync --quiet 2>/dev/null; then
+    warn "依赖同步存在异常，但脚本将尝试继续。"
 fi
-if [ "$REBUILD_VENV" -eq 1 ]; then
-    $PYTHON_BIN -m venv venv
-    ok "沙盒构造完毕 (Python $REQUIRED_PY)"
-else
-    ok "虚拟沙盒层已就绪 (Python $(venv/bin/python --version 2>&1 | grep -oE '[0-9]+\.[0-9]+\.[0-9]+'))"
-fi
+ok "Python 依赖同步完成"
 
 # ── 数据新鲜度检测 ────────────────────────────────────────────────────────
 
@@ -121,7 +90,7 @@ else
 
         if session_exists; then
             info "检测到有效 session，正在自动调用 BI 下载器刷新数据..."
-            venv/bin/python scripts/bi_downloader.py --download
+            uv run python scripts/bi_downloader.py --download
             if [ $? -eq 0 ]; then
                 ok "数据刷新完成，input/ 已更新至最新快照"
             else
@@ -141,11 +110,6 @@ fi
 echo -e "${C_BLUE}----------------------------------------------------------------------${C_RESET}"
 
 # ── 依赖树分析与重组 ──────────────────────────────────────────────────────
-
-info "装载核心算法依赖簇 (backend/requirements.txt)..."
-if ! venv/bin/pip install -q -r backend/requirements.txt 2>/dev/null; then
-    warn "Python 依赖同步过程存在异常输出，但脚本将尝试继续。"
-fi
 
 info "校验本地界面层资产包 (node_modules)..."
 if [ ! -d "frontend/node_modules" ]; then
@@ -175,7 +139,7 @@ echo -e "${C_BLUE}--------------------------------------------------------------
 # ── 唤醒逻辑模块 ──────────────────────────────────────────────────────────
 
 info "引燃数据中间件 (Backend/FastAPI)..."
-(cd backend && ../venv/bin/python -m uvicorn main:app --host 0.0.0.0 --port 8000 --loop asyncio --log-level warning 2>&1) &
+(cd backend && uv run python -m uvicorn main:app --host 0.0.0.0 --port 8000 --loop asyncio --log-level warning 2>&1) &
 BACKEND_PID=$!
 
 # 等待后端就绪信号
