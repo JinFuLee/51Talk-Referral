@@ -8,26 +8,19 @@ on:
 jobs:
   backend:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: backend
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+      - name: Install uv
+        run: pip install uv
       - name: Install dependencies
-        run: |
-          pip install -r requirements.txt
-          pip install -r requirements-dev.txt
-      - name: py_compile check
-        run: python -m py_compile main.py && find . -name "*.py" -not -path "./tests/*" | xargs -I {} python -m py_compile {}
-      - name: Lint and Type Check
-        run: |
-          flake8 .
-          mypy .
+        run: uv sync --all-groups
+      - name: Lint
+        run: uv run ruff check .
       - name: Run tests
-        run: pytest tests/ -v --cov=core --cov=api --cov=services --cov-report=term-missing --cov-fail-under=60
+        run: uv run pytest tests/ -v --cov=core --cov=api --cov=services --cov-report=term-missing --cov-fail-under=60
 
   frontend:
     runs-on: ubuntu-latest
@@ -36,14 +29,19 @@ jobs:
         working-directory: frontend
     steps:
       - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: latest
       - uses: actions/setup-node@v4
         with:
           node-version: '18'
+          cache: 'pnpm'
+          cache-dependency-path: frontend/pnpm-lock.yaml
       - name: Install dependencies
-        run: npm ci
+        run: pnpm install --frozen-lockfile
       - name: TypeScript check
         run: tsc --noEmit
       - name: Run tests
         run: vitest run --coverage
       - name: Build check
-        run: npm run build
+        run: pnpm run build
