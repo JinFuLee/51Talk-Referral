@@ -107,3 +107,23 @@
 | **YoY / 同期** | 年度同比（本月 vs 去年同月） |
 | **转码** | 生成/激活转介绍专属二维码或链接 |
 | **次卡** | 课时卡，按次数计费的课程套餐 |
+
+## 排名算法术语
+
+| 术语 | 说明 |
+|------|------|
+| **CC composite_score** | CC 三类综合得分 = process×0.25 + result×0.60 + efficiency×0.15，满分 1.0。详见 docs/cc-ranking-spec.md |
+| **SS/LP composite_score** | SS/LP 四类综合得分 = process×0.25 + result×0.30 + quality×0.25 + contribution×0.20，满分 1.0。SS 和 LP 分别独立排名 |
+| **min-max 归一化** | 将某指标在同组人员中缩放到 [0,1]：`(v - min) / (max - min)`；所有人值相同时归一化为 0.5 |
+| **paid_share** | SS/LP 贡献指标：个人 CC 转化付费数 / 同角色（SS 或 LP）团队总 CC 转化付费数 |
+| **leads_to_cc_rate** | SS/LP 质量指标：SS/LP 带来的 leads 被 CC 转化为付费的比率，体现跨岗协作效率，非 SS/LP 自身销售转化 |
+| **_redistribute** | 数据缺失时的权重分摊机制：若某维度无数据则将其权重按比例分摊到同类有数据的其他维度，保证类别得分满分仍为 1.0 |
+
+## 数据架构术语
+
+| 术语 | 说明 |
+|------|------|
+| **SnapshotStore** | SQLite 持久化层，负责存储和查询每次分析的快照数据（`multi_source_digest` 表）。每次 `save_snapshot` 后自动触发过期清理（保留 90 天）。代码位置: `backend/core/snapshot_store.py` |
+| **enclosure_role_assignment** | 围场×岗位负责边界配置，定义各天数分段由哪个岗位（CC/SS/LP）负责运营。配置位置: `projects/referral/config.json` → `enclosure_role_assignment`。0-90天→CC，91-120天→SS，121天+→LP |
+| **channel_metric_scope** | 口径×指标归属规则配置，定义各渠道口径（CC/SS/LP/宽口）可用的指标范围。CC=full_funnel，SS/LP=leads_and_process，宽口=leads_only。配置位置: `projects/referral/config.json` → `channel_metric_scope` |
+| **data_source_registry** | 数据源口径覆盖配置，记录各数据源（A1/A2/A3/A5等）对 CC/SS/LP/宽口 4 口径的支持情况。A1(当月快照)+A2(围场效率) 有完整 4 口径，A5(历史趋势) LP+宽口合并为"其它"不可拆。配置位置: `projects/referral/config.json` → `data_source_registry` |

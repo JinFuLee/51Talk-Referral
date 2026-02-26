@@ -5,9 +5,9 @@ ref-ops-engine FastAPI 主入口
 import asyncio
 import importlib
 import logging
+import os
 import sys
 from pathlib import Path
-from typing import List, Optional
 
 # 确保项目根（src/）和 backend/（core/）均可被导入
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -15,14 +15,15 @@ BACKEND_DIR = Path(__file__).resolve().parent
 sys.path.insert(0, str(PROJECT_ROOT))
 sys.path.insert(0, str(BACKEND_DIR))
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from services.analysis_service import AnalysisService
 from slowapi import Limiter, _rate_limit_exceeded_handler
-from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
-
-from services.analysis_service import AnalysisService
+from slowapi.util import get_remote_address
+from starlette.middleware.base import BaseHTTPMiddleware
 
 logger = logging.getLogger(__name__)
 
@@ -59,7 +60,7 @@ ROUTER_REGISTRY: dict = {
 }
 
 
-def _load_routers(enabled_routers: Optional[List[str]] = None) -> list:
+def _load_routers(enabled_routers: list[str] | None = None) -> list:
     """
     动态导入并返回路由模块列表。
     enabled_routers 为 None 时启用全部（向后兼容）。
@@ -86,7 +87,7 @@ try:
     from core.project_config import load_project_config
     _project_config = load_project_config("referral")
     _display_name = _project_config.display_name
-    _enabled_routers: Optional[List[str]] = (
+    _enabled_routers: list[str] | None = (
         _project_config.enabled_routers if _project_config.enabled_routers else None
     )
 except Exception as _cfg_err:
@@ -106,13 +107,43 @@ app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 app.add_middleware(SlowAPIMiddleware)
 
+CORS_ORIGINS = os.getenv(
+    "CORS_ORIGINS",
+    "http://localhost:3000,http://localhost:3001",
+).split(",")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://localhost:3001"],
+    allow_origins=CORS_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+class SecurityHeadersMiddleware(BaseHTTPMiddleware):
+    """为所有响应注入安全响应头"""
+
+    async def dispatch(self, request: Request, call_next):
+        response = await call_next(request)
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["X-Frame-Options"] = "DENY"
+        response.headers["X-XSS-Protection"] = "1; mode=block"
+        return response
+
+
+app.add_middleware(SecurityHeadersMiddleware)
+
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    import traceback
+
+    debug = os.getenv("DEBUG", "false").lower() == "true"
+    detail = traceback.format_exc() if debug else "Internal server error"
+    logger.error(f"Unhandled exception on {request.method} {request.url}: {exc}")
+    return JSONResponse(status_code=500, content={"detail": detail})
+
 
 # 单例 AnalysisService，注入到各路由模块
 _analysis_service = AnalysisService(project_root=PROJECT_ROOT)
