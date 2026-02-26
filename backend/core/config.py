@@ -116,60 +116,26 @@ def get_targets(date: datetime = None) -> dict:
     return base
 
 
-# 月度目标配置
-MONTHLY_TARGETS = {
-    "202601": {
-        "注册目标": 779,
-        "付费目标": 179,
-        "金额目标": 147848,
-        "客单价": 825,
-        "目标转化率": 0.23,
-        "约课率目标": 0.77,
-        "出席率目标": 0.66,
-    },
-    "202602": {
-        "注册目标": 869,
-        "付费目标": 200,
-        "金额目标": 169800,
-        "客单价": 850,
-        "目标转化率": 0.23,
-        "约课率目标": 0.77,
-        "出席率目标": 0.66,
-        # 子口径拆分
-        "子口径": {
-            "CC窄口径": {"倒子目标": 217},
-            "SS窄口径": {"倒子目标": 87},
-            "LP窄口径": {"倒子目标": 87},
-            "宽口径": {"倒子目标": 478},
-        }
-    }
-}
+# ── 委托层：所有业务常量统一从 projects/referral/config.json 读取 ─────────────
+# 消费方无需改动（from core.config import MONTHLY_TARGETS 等均继续有效），
+# 但数据源已统一，修改 JSON 即全局生效，不会静默分叉。
+try:
+    from backend.core.project_config import load_project_config as _load_project_config
+except ImportError:
+    # 兜底：sys.path 尚未包含项目根时的相对导入
+    import sys as _sys
+    _sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
+    from backend.core.project_config import load_project_config as _load_project_config  # type: ignore[no-redef]
 
-# 数据列映射
-COLUMN_MAPPING = {
-    # 总计口径
-    "总计": {
-        "注册": "C", "预约": "D", "出席": "E", "付费": "F", "美金金额": "G",
-        "注册付费率": "H", "预约率": "I", "预约出席率": "J", "出席付费率": "K"
-    },
-    # CC窄口径
-    "CC窄口径": {
-        "注册": "L", "预约": "M", "出席": "N", "付费": "O", "美金金额": "P",
-        "注册付费率": "Q", "预约率": "R", "预约出席率": "S", "出席付费率": "T"
-    },
-    # SS窄口径
-    "SS窄口径": {
-        "注册": "U", "预约": "V", "出席": "W", "付费": "X", "美金金额": "Y",
-        "注册付费率": "Z", "预约率": "AA", "预约出席率": "AB", "出席付费率": "AC"
-    },
-    # 其它(宽口径)
-    "其它": {
-        "注册": "AD", "预约": "AE", "出席": "AF", "付费": "AG", "美金金额": "AH",
-        "注册付费率": "AI", "预约率": "AJ", "预约出席率": "AK", "出席付费率": "AL"
-    }
-}
+_cfg = _load_project_config("referral")
 
-# 输出Excel样式配置
+# 月度目标配置（委托 ProjectConfig）
+MONTHLY_TARGETS: dict = _cfg.monthly_targets
+
+# 数据列映射（委托 ProjectConfig）
+COLUMN_MAPPING: dict = _cfg.column_mapping
+
+# 输出Excel样式配置（本地独有，不在 JSON 中，保留原值）
 STYLES = {
     "header_fill": "#4472C4",         # 表头背景色
     "header_font_color": "#FFFFFF",   # 表头字体颜色
@@ -178,31 +144,17 @@ STYLES = {
     "currency_format": "$#,##0",       # 货币格式
 }
 
-# 汇率配置
-EXCHANGE_RATE_THB_USD = 34.0  # THB 转 USD 汇率（1 USD = 34 THB）
+# 汇率配置（委托 ProjectConfig）
+EXCHANGE_RATE_THB_USD: float = _cfg.exchange_rate.get("THB_USD", 34.0)
 
-# ROI 真实成本模型配置（基于 2026年转介绍ROI测算数据新模版.xlsx）
-ROI_COST_CONFIG = {
-    "CARD_COST_PER_UNIT": 1.31,  # USD/张（次卡单位成本）
-    "CASH_COMMISSION_SMALL": 38,  # USD（小单现金佣金，订单 <850 USD）
-    "CASH_COMMISSION_LARGE": 68,  # USD（大单现金佣金，订单 >=850 USD）
-    "CASH_THRESHOLD": 850,  # USD（大小单分界线）
-}
+# ROI 真实成本模型配置（委托 ProjectConfig）
+ROI_COST_CONFIG: dict = _cfg.roi_cost_config
 
-# 异常检测配置
-ANOMALY_CONFIG = {
-    "std_threshold": 2.0,        # 标准差倍数
-    "decline_threshold": 0.3,    # 环比下滑阈值
-    "conversion_floor": 0.05,    # 转化率下限
-    "rest_days": [2],            # 周三=2(0=周一)，休息日前后不算异常
-}
+# 异常检测配置（委托 ProjectConfig）
+ANOMALY_CONFIG: dict = _cfg.anomaly_config
 
-# LTV 分析配置
-LTV_CONFIG = {
-    "default_renewal_rate": 0.3,       # 默认续费率
-    "narrow_renewal_rate": 0.4,        # 窄口径续费率（假设更高质量）
-    "wide_renewal_rate": 0.25,         # 宽口径续费率（假设较低）
-}
+# LTV 分析配置（委托 ProjectConfig）
+LTV_CONFIG: dict = _cfg.ltv_config
 
 
 def format_currency(usd_value: float, show_thb: bool = True) -> str:

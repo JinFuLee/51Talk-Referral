@@ -3,7 +3,7 @@
  */
 import useSWR, { type SWRConfiguration } from "swr";
 import { useCallback } from "react";
-import { zhTranslations } from "./translations";
+import { zhTranslations, thTranslations } from "./translations";
 import {
   analysisAPI,
   datasourcesAPI,
@@ -517,8 +517,13 @@ export function useCCDetail(ccName: string | null) {
 // ── i18n ──────────────────────────────────────────────────────────────────────
 
 export function useTranslation() {
-  const t = useCallback((key: string, fallback?: string): string => {
-    return (zhTranslations as Record<string, string>)[key] ?? fallback ?? key;
-  }, []);
+  const language = useConfigStore((s) => s.language);
+  const translations = language === "th" ? thTranslations : zhTranslations;
+  const t = useCallback(
+    (key: string, fallback?: string): string => {
+      return (translations as Record<string, string>)[key] ?? fallback ?? key;
+    },
+    [translations]
+  );
   return { t };
 }

@@ -91,6 +91,11 @@
     "narrow_renewal_rate": 0.4,
     "wide_renewal_rate": 0.25
   },
+  "ranking_targets": {
+    "outreach_calls_per_day": 30,
+    "checkin_rate_target": 0.6,
+    "conversion_rate_full_score": 0.3
+  },
   "enabled_modules": [
     "meta",
     "summary",

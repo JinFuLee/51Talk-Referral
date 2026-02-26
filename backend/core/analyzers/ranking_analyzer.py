@@ -82,14 +82,22 @@ class RankingAnalyzer:
             )
 
             checkin_rate        = d1_row.get("checkin_24h_rate")
-            checkin_target      = d1_row.get("checkin_24h_target") or 0.6
+            _ranking_targets    = (
+                self.ctx.project_config.ranking_targets
+                if self.ctx.project_config is not None
+                else {}
+            )
+            checkin_target      = d1_row.get("checkin_24h_target") or _ranking_targets.get(
+                "checkin_rate_target", 0.6
+            )
             checkin_achievement = _safe_div(checkin_rate, checkin_target) if checkin_rate else None
 
-            # 外呼达标：以总通话量判断（粗估，目标 30 次/天）
+            # 外呼达标：以总通话量判断（粗估，目标从 ranking_targets 读取）
             total_calls  = f5_row.get("total_calls") or 0
             total_days   = len(f5_row.get("dates", [])) or 1
             avg_calls    = _safe_div(total_calls, total_days)
-            outreach_score = min(1.0, _safe_div(avg_calls, 30.0) or 0.0)
+            _calls_target = _ranking_targets.get("outreach_calls_per_day", 30.0)
+            outreach_score = min(1.0, _safe_div(avg_calls, _calls_target) or 0.0)
 
             # 转化率
             leads = a4_row.get("leads") or 0
@@ -106,7 +114,8 @@ class RankingAnalyzer:
             if outreach_score is not None:
                 scores.append(outreach_score * 25)
             if conversion_rate is not None:
-                scores.append(min(1.0, conversion_rate / 0.3) * 25)  # 30% 为满分基准
+                _conv_full = _ranking_targets.get("conversion_rate_full_score", 0.3)
+                scores.append(min(1.0, conversion_rate / _conv_full) * 25)
             # 收入贡献：相对分，暂填满分组均值占比
             scores.append(25.0)  # 收入维度留待后处理归一化
 
@@ -349,10 +358,16 @@ class RankingAnalyzer:
             )
 
             # 结果指标原始值
-            registrations  = a3.get("leads") or a4.get("leads") or 0
+            # Bug 2 fix: registrations 取实际注册人数字段，与 leads_count（转介绍leads数）区分
+            registrations  = (
+                a3.get("注册") or a3.get("registered") or a4.get("registered") or 0
+            )
             leads_count    = a3.get("leads") or a4.get("leads") or 0
-            # 转介绍用户数：从 a3 中取 转介绍口径；如无，粗估 paid 数
-            referral_users = a3.get("付费") or a4.get("paid") or 0
+            # Bug 3 fix: 转介绍用户数 = 转介绍注册人数 = leads数，fallback 到 leads_count
+            referral_users = (
+                a3.get("推荐注册") or a3.get("referral_registered")
+                or a4.get("referral_users") or leads_count
+            )
             paid_count_e3  = e3.get("paid_count") or 0
             revenue_usd    = e3.get("revenue_usd") or 0.0
             # 客单价 (ASP)
@@ -440,29 +455,31 @@ class RankingAnalyzer:
         def _has_data(key: str) -> bool:
             return any(row[key] for row in raw_data)
 
+        # Bug 1 fix: 类内权重归一化到 1.0，_score() 返回 0~1，
+        # 再乘类别权重（0.25/0.60/0.15）后 composite_score 满分=1.0
         PROCESS_DIMS = [
-            ("outreach_calls",      0.04),
-            ("connected_calls",     0.04),
-            ("effective_calls",     0.05),
-            ("pre_paid_followup",   0.03),
-            ("pre_class_followup",  0.03),
-            ("post_class_followup", 0.03),
-            ("post_paid_followup",  0.03),
+            ("outreach_calls",      0.1600),  # 0.04 / 0.25
+            ("connected_calls",     0.1600),  # 0.04 / 0.25
+            ("effective_calls",     0.2000),  # 0.05 / 0.25
+            ("pre_paid_followup",   0.1200),  # 0.03 / 0.25
+            ("pre_class_followup",  0.1200),  # 0.03 / 0.25
+            ("post_class_followup", 0.1200),  # 0.03 / 0.25
+            ("post_paid_followup",  0.1200),  # 0.03 / 0.25
         ]
         RESULT_DIMS = [
-            ("registrations",  0.12),
-            ("leads_count",    0.08),
-            ("referral_users", 0.08),
-            ("asp_usd",        0.07),
-            ("paid_count",     0.12),
-            ("revenue_usd",    0.09),
-            ("revenue_share",  0.04),
+            ("registrations",  0.2000),  # 0.12 / 0.60
+            ("leads_count",    0.1333),  # 0.08 / 0.60
+            ("referral_users", 0.1333),  # 0.08 / 0.60
+            ("asp_usd",        0.1167),  # 0.07 / 0.60
+            ("paid_count",     0.2000),  # 0.12 / 0.60
+            ("revenue_usd",    0.1500),  # 0.09 / 0.60
+            ("revenue_share",  0.0667),  # 0.04 / 0.60
         ]
         EFFICIENCY_DIMS = [
-            ("conversion_rate",    0.05),
-            ("checkin_rate",       0.04),
-            ("participation_rate", 0.03),
-            ("bring_new_coeff",    0.03),
+            ("conversion_rate",    0.3333),  # 0.05 / 0.15
+            ("checkin_rate",       0.2667),  # 0.04 / 0.15
+            ("participation_rate", 0.2000),  # 0.03 / 0.15
+            ("bring_new_coeff",    0.2000),  # 0.03 / 0.15
         ]
 
         def _redistribute(dims: list) -> list:

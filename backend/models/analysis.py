@@ -1,12 +1,8 @@
 from pydantic import BaseModel
 from typing import Optional, List, Dict, Any
 
-
-class RunAnalysisRequest(BaseModel):
-    input_dir: str = "./input"
-    report_date: Optional[str] = None   # YYYY-MM-DD
-    lang: str = "zh"
-    targets: Optional[Dict[str, float]] = None
+# RunAnalysisRequest 已移至 backend/api/analysis.py（含 force/period/custom_start/custom_end 等完整字段）
+# 此处不再重复定义，避免字段定义分裂导致的行为不一致。
 
 
 class AnalysisResult(BaseModel):

@@ -8,6 +8,7 @@ import { ComparisonBanner } from "@/components/shared/ComparisonBanner";
 import { WebMCPProvider } from "@/lib/webmcp";
 import { ErrorBoundary } from "@/components/providers/ErrorBoundary";
 import { ToastProvider } from "@/components/providers/ToastProvider";
+import { HtmlLangUpdater } from "@/components/providers/HtmlLangUpdater";
 import "./globals.css";
 
 const CoPilotTerminal = dynamic(
@@ -56,6 +57,7 @@ export default function RootLayout({
               </div>
               <PresentationOverlay />
               <ToastProvider />
+              <HtmlLangUpdater />
             </SWRProvider>
           </WebMCPProvider>
         </ErrorBoundary>

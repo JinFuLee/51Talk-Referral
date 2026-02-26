@@ -10,14 +10,14 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from pydantic import BaseModel, Field
 
 
 class WorkScheduleConfig(BaseModel):
     """工作日权重配置"""
-    rest_weekdays: List[int] = Field(
+    rest_weekdays: list[int] = Field(
         default=[2],
         description="休息日星期编号列表（0=周一, 2=周三, ...）"
     )
@@ -25,7 +25,7 @@ class WorkScheduleConfig(BaseModel):
         default=1.4,
         description="周末权重倍数"
     )
-    day_weights: Dict[str, float] = Field(
+    day_weights: dict[str, float] = Field(
         default_factory=lambda: {
             "0": 1.0, "1": 1.0, "2": 0.0,
             "3": 1.0, "4": 1.0, "5": 1.4, "6": 1.4
@@ -40,11 +40,11 @@ class ProjectConfig(BaseModel):
     project_name: str = Field(description="项目标识符，如 'referral'")
     display_name: str = Field(description="项目显示名称，如 '51Talk 泰国转介绍'")
 
-    monthly_targets: Dict[str, Any] = Field(
+    monthly_targets: dict[str, Any] = Field(
         default_factory=dict,
         description="月度目标配置，key 格式 'YYYYMM'"
     )
-    column_mapping: Dict[str, Dict[str, str]] = Field(
+    column_mapping: dict[str, dict[str, str]] = Field(
         default_factory=dict,
         description="Excel 列映射，按口径分组"
     )
@@ -54,17 +54,17 @@ class ProjectConfig(BaseModel):
         description="工作日/权重配置"
     )
 
-    exchange_rate: Dict[str, float] = Field(
+    exchange_rate: dict[str, float] = Field(
         default_factory=lambda: {"THB_USD": 34.0, "CNY_USD": 8.0},
         description="汇率配置，key 格式 'FROM_TO'"
     )
 
-    roi_cost_config: Dict[str, Any] = Field(
+    roi_cost_config: dict[str, Any] = Field(
         default_factory=dict,
         description="ROI 成本模型配置"
     )
 
-    role_aliases: Dict[str, str] = Field(
+    role_aliases: dict[str, str] = Field(
         default_factory=lambda: {"EA": "SS", "ea": "SS", "CM": "LP", "cm": "LP"},
         description="角色别名映射（原始数据别名 → 标准展示名）"
     )
@@ -73,12 +73,12 @@ class ProjectConfig(BaseModel):
         description="数据中占位符（'-'/空）映射到的默认团队名"
     )
 
-    channel_labels: List[str] = Field(
+    channel_labels: list[str] = Field(
         default_factory=lambda: ["CC窄口径", "SS窄口径", "LP窄口径", "宽口径"],
         description="渠道/口径标签列表"
     )
 
-    enclosure_role_assignment: Dict[str, Any] = Field(
+    enclosure_role_assignment: dict[str, Any] = Field(
         default_factory=lambda: {
             "CC": {"min_days": 0, "max_days": 90, "scope": "full_funnel"},
             "SS": {"min_days": 91, "max_days": 120, "scope": "process_and_leads"},
@@ -87,7 +87,7 @@ class ProjectConfig(BaseModel):
         description="围场×岗位负责边界（天数可配置，禁止硬编码）"
     )
 
-    channel_metric_scope: Dict[str, Any] = Field(
+    channel_metric_scope: dict[str, Any] = Field(
         default_factory=lambda: {
             "total": {"role": "full_funnel", "metrics": ["register", "appointment", "showup", "paid", "revenue_usd"]},
             "cc_narrow": {"role": "full_funnel", "metrics": ["register", "appointment", "showup", "paid", "revenue_usd"]},
@@ -98,17 +98,17 @@ class ProjectConfig(BaseModel):
         description="口径×指标归属: full_funnel=全漏斗(CC/总计), leads_and_process=leads+过程指标(SS/LP), leads_only=仅leads(宽口)"
     )
 
-    data_source_registry: Dict[str, Any] = Field(
+    data_source_registry: dict[str, Any] = Field(
         default_factory=dict,
         description="数据源注册表: 口径覆盖、指标、时间维度、备注"
     )
 
-    gap_thresholds: Dict[str, float] = Field(
+    gap_thresholds: dict[str, float] = Field(
         default_factory=lambda: {"green": 0.0, "yellow": -0.05},
         description="进度差阈值（green≥0, yellow>=-5%）"
     )
 
-    anomaly_config: Dict[str, Any] = Field(
+    anomaly_config: dict[str, Any] = Field(
         default_factory=lambda: {
             "std_threshold": 2.0,
             "decline_threshold": 0.3,
@@ -118,7 +118,7 @@ class ProjectConfig(BaseModel):
         description="异常检测配置"
     )
 
-    ltv_config: Dict[str, float] = Field(
+    ltv_config: dict[str, float] = Field(
         default_factory=lambda: {
             "default_renewal_rate": 0.3,
             "narrow_renewal_rate": 0.4,
@@ -127,11 +127,20 @@ class ProjectConfig(BaseModel):
         description="LTV 分析配置"
     )
 
-    enabled_modules: List[str] = Field(
+    ranking_targets: dict[str, float] = Field(
+        default_factory=lambda: {
+            "outreach_calls_per_day": 30.0,
+            "checkin_rate_target": 0.6,
+            "conversion_rate_full_score": 0.3,
+        },
+        description="CC 排名算法基准值（外呼目标/打卡率目标/转化率满分基准）"
+    )
+
+    enabled_modules: list[str] = Field(
         default_factory=list,
         description="启用的分析模块白名单"
     )
-    enabled_routers: List[str] = Field(
+    enabled_routers: list[str] = Field(
         default_factory=list,
         description="启用的 API 路由白名单"
     )

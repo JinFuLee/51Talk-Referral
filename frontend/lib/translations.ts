@@ -4,6 +4,20 @@
  * 泰文占位符标记为 [TH]
  */
 
+/**
+ * 返回当前月份标签，格式 "YYYY年M月"（中文）或 "M/YYYY"（泰文）
+ * 使用运行时 Date，避免硬编码月份字符串
+ */
+export function getCurrentMonthLabel(lang: "zh" | "th" = "zh"): string {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth() + 1;
+  if (lang === "th") {
+    return `${month}/${year}`;
+  }
+  return `${year}年${month}月`;
+}
+
 export const zhTranslations: Record<string, string> = {
   // ── 通用按钮 ────────────────────────────────────────────────────────────────
   "common.button.refresh": "刷新状态",
@@ -17,7 +31,7 @@ export const zhTranslations: Record<string, string> = {
   "common.label.loadFailed": "加载失败",
   "common.label.runAnalysis": "请先运行分析",
   "common.label.t1Data": "T-1 数据，30 秒自动刷新",
-  "common.label.dataMonth": "2026年2月",
+  "common.label.dataMonth": getCurrentMonthLabel(),
   "common.label.demoData": "演示数据",
   "common.label.realData": "真实数据",
 
@@ -231,7 +245,7 @@ export const zhTranslations: Record<string, string> = {
 
   // ── biz 业务总览 ─────────────────────────────────────────────────────────────
   "biz.overview.title": "泰国转介绍业务总览",
-  "biz.overview.subtitle": "2026年2月 · 数据截至 T-1 · 业务视图",
+  "biz.overview.subtitle": `${getCurrentMonthLabel()} · 数据截至 T-1 · 业务视图`,
   "biz.overview.card.risks": "主要风险",
   "biz.overview.card.keyActions": "本周关键行动",
   "biz.overview.metric.registration": "本月注册",
@@ -254,7 +268,7 @@ export const zhTranslations: Record<string, string> = {
 
   // ── biz 团队概况 ─────────────────────────────────────────────────────────────
   "biz.team.title": "团队概况",
-  "biz.team.subtitle": "2026年2月 · 人效 · 在岗 · 达标率",
+  "biz.team.subtitle": `${getCurrentMonthLabel()} · 人效 · 在岗 · 达标率`,
   "biz.team.card.ccEfficiency": "CC 人效",
   "biz.team.card.ssEfficiency": "SS 人效",
   "biz.team.card.trendNormal": "趋势正常",
@@ -317,7 +331,7 @@ export const zhTranslations: Record<string, string> = {
 
   // ── biz ROI ──────────────────────────────────────────────────────────────────
   "biz.roi.title": "ROI 分析",
-  "biz.roi.subtitle": "2026年2月 · 投资回报率全景",
+  "biz.roi.subtitle": `${getCurrentMonthLabel()} · 投资回报率全景`,
   "biz.roi.card.overview": "ROI 全景",
   "biz.roi.card.cohort": "Cohort 衰减曲线",
   "biz.roi.card.costDetail": "成本明细",
@@ -379,7 +393,7 @@ export const zhTranslations: Record<string, string> = {
 
   // ── biz 围场 ─────────────────────────────────────────────────────────────────
   "biz.enclosure.title": "围场资源投放策略",
-  "biz.enclosure.subtitle": "2026年2月 · 按付费当日起算围场段 · 优化资源分配",
+  "biz.enclosure.subtitle": `${getCurrentMonthLabel()} · 按付费当日起算围场段 · 优化资源分配`,
   "biz.enclosure.card.heatmap": "围场 × ROI 热力图",
   "biz.enclosure.card.coverage": "围场跟进覆盖率",
   "biz.enclosure.card.strategy": "策略建议",
@@ -400,7 +414,7 @@ export const zhTranslations: Record<string, string> = {
 
   // ── biz 围场健康度 ───────────────────────────────────────────────────────────
   "biz.enclosure-health.title": "围场健康度仪表盘",
-  "biz.enclosure-health.subtitle": "2026年2月 · 跨源联动 F7 付费跟进 + F8 围场月度跟进 + D3 转介绍围场",
+  "biz.enclosure-health.subtitle": `${getCurrentMonthLabel()} · 跨源联动 F7 付费跟进 + F8 围场月度跟进 + D3 转介绍围场`,
 
   // ── biz 围场详情 ─────────────────────────────────────────────────────────────
   "biz.enclosure-detail.title": "围场详情分析",
@@ -497,6 +511,8 @@ export const zhTranslations: Record<string, string> = {
 
 /**
  * 泰文翻译占位符（待翻译）
+ * TODO: 替换为真实泰文翻译，当前为中文占位（以 [TH] 前缀标识）
+ * 替换方式：将 Object.fromEntries 生成改为逐 key 手写泰文字符串
  */
 export const thTranslations: Record<string, string> = Object.fromEntries(
   Object.entries(zhTranslations).map(([k, v]) => [k, `[TH] ${v}`])
