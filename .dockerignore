@@ -30,3 +30,10 @@ key/
 docs/
 tests/
 *.md
+
+# 临时文件与 IDE 配置
+*.DS_Store
+.idea/
+.vscode/
+*.swp
+*.swo

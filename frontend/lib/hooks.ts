@@ -3,7 +3,8 @@
  */
 import useSWR, { type SWRConfiguration } from "swr";
 import { useCallback } from "react";
-import { zhTranslations, thTranslations } from "./translations";
+// zhTranslations / thTranslations are now consumed via lib/i18n.ts getTranslations()
+import { getTranslations, createT } from './i18n';
 import {
   analysisAPI,
   datasourcesAPI,
@@ -515,15 +516,11 @@ export function useCCDetail(ccName: string | null) {
 }
 
 // ── i18n ──────────────────────────────────────────────────────────────────────
+// 内部改用 i18n.ts 纯函数，对外 API 不变（向后兼容所有 39 处调用）
 
 export function useTranslation() {
   const language = useConfigStore((s) => s.language);
-  const translations = language === "th" ? thTranslations : zhTranslations;
-  const t = useCallback(
-    (key: string, fallback?: string): string => {
-      return (translations as Record<string, string>)[key] ?? fallback ?? key;
-    },
-    [translations]
-  );
+  const translations = getTranslations(language);
+  const t = useCallback(createT(translations), [translations]);
   return { t };
 }
