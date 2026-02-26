@@ -731,6 +731,12 @@ export interface LeadsOverviewData {
   team_channel_matrix: TeamChannelRow[];
   enclosure_baseline: EnclosureBaselineRow[];
   scopes_available: string[];
+  /** 口径角色：CC/总计 = "full_funnel"；SS/LP/宽口 = "leads_only" */
+  role: "full_funnel" | "leads_only";
+  /** 当前口径可用的指标键列表，leads_only 时仅含 ["register"] */
+  metrics_available: string[];
+  /** leads_only 口径无历史趋势数据时的原因说明，有数据时为 null */
+  trend_unavailable_reason: string | null;
 }
 
 // ── F1 漏斗明细 ──────────────────────────────────────────────────────────────

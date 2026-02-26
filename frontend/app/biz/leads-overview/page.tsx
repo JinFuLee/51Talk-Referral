@@ -60,11 +60,15 @@ function LoadingSkeleton() {
 function MonthlyFunnelTable({
   rows,
   momGap,
+  role,
+  trendUnavailableReason,
 }: {
   rows: LeadsMonthlyRow[];
   momGap: LeadsFunnelMetrics;
+  role: "full_funnel" | "leads_only";
+  trendUnavailableReason: string | null;
 }) {
-  const cols: { key: keyof LeadsFunnelMetrics; label: string }[] = [
+  const allCols: { key: keyof LeadsFunnelMetrics; label: string }[] = [
     { key: "register", label: "注册 Register" },
     { key: "appointment", label: "预约 Appt." },
     { key: "showup", label: "出席 Show up" },
@@ -72,6 +76,10 @@ function MonthlyFunnelTable({
     { key: "revenue_usd", label: "美金金额 USD" },
     { key: "leads_to_pay_rate", label: "注册付费率%" },
   ];
+  const cols =
+    role === "leads_only"
+      ? allCols.filter((c) => c.key === "register")
+      : allCols;
 
   const lastMonthIdx = rows.length - 1;
 
@@ -85,6 +93,14 @@ function MonthlyFunnelTable({
     if (key === "revenue_usd") return fmtGapNum(value);
     if (key === "leads_to_pay_rate") return fmtGapPct(value);
     return fmtGapNum(value);
+  }
+
+  if (role === "leads_only" && rows.length === 0) {
+    return (
+      <p className="text-xs text-slate-400 py-4 text-center">
+        {trendUnavailableReason ?? "该口径无独立历史趋势数据（数据源限制）"}
+      </p>
+    );
   }
 
   return (
@@ -155,14 +171,16 @@ function ProgressBanner({
   achievement,
   progressBm,
   targetGap,
+  role,
 }: {
   timeProgress: number;
   targets: LeadsFunnelMetrics;
   achievement: LeadsFunnelMetrics;
   progressBm: LeadsFunnelMetrics;
   targetGap: LeadsFunnelMetrics;
+  role: "full_funnel" | "leads_only";
 }) {
-  const cols: { key: keyof LeadsFunnelMetrics; label: string }[] = [
+  const allCols: { key: keyof LeadsFunnelMetrics; label: string }[] = [
     { key: "register", label: "注册 Register" },
     { key: "appointment", label: "预约 Appt." },
     { key: "showup", label: "出席 Show up" },
@@ -170,6 +188,10 @@ function ProgressBanner({
     { key: "revenue_usd", label: "美金金额 USD" },
     { key: "leads_to_pay_rate", label: "注册付费率%" },
   ];
+  const cols =
+    role === "leads_only"
+      ? allCols.filter((c) => c.key === "register")
+      : allCols;
 
   function renderVal(key: keyof LeadsFunnelMetrics, value: number): string {
     if (key === "revenue_usd") return formatRevenue(value);
@@ -247,8 +269,18 @@ function ProgressBanner({
 
 // ── Area ③: Target Decomposition ─────────────────────────────────────────────
 
+// 渠道标签映射：scope → leads_by_channel 键
+const SCOPE_TO_CHANNEL_KEY: Record<string, keyof { cc_narrow: number; ss_narrow: number; lp_narrow: number; wide: number }> = {
+  cc_narrow: "cc_narrow",
+  ss_narrow: "ss_narrow",
+  lp_narrow: "lp_narrow",
+  wide: "wide",
+};
+
 function TargetPanel({
   decomp,
+  role,
+  scope,
 }: {
   decomp: {
     revenue_target: number;
@@ -258,17 +290,33 @@ function TargetPanel({
     leads_target: number;
     leads_by_channel: { cc_narrow: number; ss_narrow: number; lp_narrow: number; wide: number };
   };
+  role: "full_funnel" | "leads_only";
+  scope: string;
 }) {
-  const items = [
+  const channelItems = [
+    { label: "CC窄口", key: "cc_narrow" as const, value: fmtNum(decomp.leads_by_channel.cc_narrow) },
+    { label: "SS窄口", key: "ss_narrow" as const, value: fmtNum(decomp.leads_by_channel.ss_narrow) },
+    { label: "LP窄口", key: "lp_narrow" as const, value: fmtNum(decomp.leads_by_channel.lp_narrow) },
+    { label: "宽口55%", key: "wide" as const, value: fmtNum(decomp.leads_by_channel.wide) },
+  ];
+
+  // leads_only 口径：只显示 "例子目标" + 当前口径的渠道目标
+  const visibleChannelItems =
+    role === "leads_only" && scope in SCOPE_TO_CHANNEL_KEY
+      ? channelItems.filter((c) => c.key === SCOPE_TO_CHANNEL_KEY[scope])
+      : channelItems;
+
+  const fullFunnelItems = [
     { label: "1月总标", value: fmtNum(decomp.revenue_target) },
     { label: "1月客单价", value: fmtNum(decomp.unit_price) },
     { label: "单量目标", value: fmtNum(decomp.unit_target) },
     { label: "转率目标", value: fmtPct(decomp.conversion_target) },
+  ];
+
+  const items = [
+    ...(role === "leads_only" ? [] : fullFunnelItems),
     { label: "例子目标", value: fmtNum(decomp.leads_target) },
-    { label: "CC窄口", value: fmtNum(decomp.leads_by_channel.cc_narrow) },
-    { label: "SS窄口", value: fmtNum(decomp.leads_by_channel.ss_narrow) },
-    { label: "LP窄口", value: fmtNum(decomp.leads_by_channel.lp_narrow) },
-    { label: "宽口55%", value: fmtNum(decomp.leads_by_channel.wide) },
+    ...visibleChannelItems.map(({ label, value }) => ({ label, value })),
   ];
 
   return (
@@ -288,8 +336,18 @@ function TargetPanel({
 
 // ── Area ④: Gap Panel ─────────────────────────────────────────────────────────
 
+// scope → gap 字段映射
+const SCOPE_TO_GAP_KEY: Record<string, "cc_lead_gap" | "ss_lead_gap" | "lp_lead_gap" | "wide_lead_gap"> = {
+  cc_narrow: "cc_lead_gap",
+  ss_narrow: "ss_lead_gap",
+  lp_narrow: "lp_lead_gap",
+  wide: "wide_lead_gap",
+};
+
 function GapPanel({
   gap,
+  role,
+  scope,
 }: {
   gap: {
     performance_gap: number;
@@ -303,18 +361,34 @@ function GapPanel({
     lp_lead_gap: number;
     wide_lead_gap: number;
   };
+  role: "full_funnel" | "leads_only";
+  scope: string;
 }) {
-  const items = [
+  const allChannelGaps = [
+    { label: "CC窄口缺口 CC Lead Gap", key: "cc_lead_gap" as const, value: gap.cc_lead_gap },
+    { label: "SS窄口缺口 SS Lead Gap", key: "ss_lead_gap" as const, value: gap.ss_lead_gap },
+    { label: "LP窄口缺口 LP Lead Gap", key: "lp_lead_gap" as const, value: gap.lp_lead_gap },
+    { label: "宽口缺口 User Lead Gap", key: "wide_lead_gap" as const, value: gap.wide_lead_gap },
+  ];
+
+  // leads_only 口径：只显示 "例子缺口" + 当前口径的渠道缺口
+  const visibleChannelGaps =
+    role === "leads_only" && scope in SCOPE_TO_GAP_KEY
+      ? allChannelGaps.filter((c) => c.key === SCOPE_TO_GAP_KEY[scope])
+      : allChannelGaps;
+
+  const fullFunnelItems = [
     { label: "业绩缺口 Performance gap", value: gap.performance_gap },
     { label: "客单价缺口 Unit price Gap", value: gap.unit_price_gap },
     { label: "单量缺口 Bill Gap", value: gap.bill_gap },
     { label: "出席缺口 Show up Gap", value: gap.showup_gap },
     { label: "预约缺口 Apps. Gap", value: gap.appointment_gap },
+  ];
+
+  const items = [
+    ...(role === "leads_only" ? [] : fullFunnelItems),
     { label: "例子缺口 Lead Gap", value: gap.lead_gap },
-    { label: "CC窄口缺口 CC Lead Gap", value: gap.cc_lead_gap },
-    { label: "SS窄口缺口 SS Lead Gap", value: gap.ss_lead_gap },
-    { label: "LP窄口缺口 LP Lead Gap", value: gap.lp_lead_gap },
-    { label: "宽口缺口 User Lead Gap", value: gap.wide_lead_gap },
+    ...visibleChannelGaps.map(({ label, value }) => ({ label, value })),
   ];
 
   return (
@@ -565,12 +639,17 @@ export default function LeadsOverviewPage() {
         <>
           {/* Area ①: Monthly Funnel Table */}
           <Card title={t("biz.leads-overview.section.monthly_trend")}>
-            {data.monthly_trend.length === 0 ? (
+            {data.monthly_trend.length === 0 && data.role !== "leads_only" ? (
               <p className="text-xs text-slate-400 py-4 text-center">
                 {t("biz.leads-overview.empty")}
               </p>
             ) : (
-              <MonthlyFunnelTable rows={data.monthly_trend} momGap={data.mom_gap} />
+              <MonthlyFunnelTable
+                rows={data.monthly_trend}
+                momGap={data.mom_gap}
+                role={data.role}
+                trendUnavailableReason={data.trend_unavailable_reason}
+              />
             )}
           </Card>
 
@@ -584,17 +663,26 @@ export default function LeadsOverviewPage() {
               achievement={data.achievement}
               progressBm={data.progress_bm}
               targetGap={data.target_gap}
+              role={data.role}
             />
           </Card>
 
           {/* Area ③④: Grid 2-col — Target Decomposition + Gap Panel */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Card title={t("biz.leads-overview.section.target_decomposition")}>
-              <TargetPanel decomp={data.target_decomposition} />
+              <TargetPanel
+                decomp={data.target_decomposition}
+                role={data.role}
+                scope={scope}
+              />
             </Card>
 
             <Card title={t("biz.leads-overview.section.gap_panel")}>
-              <GapPanel gap={data.gap_analysis} />
+              <GapPanel
+                gap={data.gap_analysis}
+                role={data.role}
+                scope={scope}
+              />
             </Card>
           </div>
 
