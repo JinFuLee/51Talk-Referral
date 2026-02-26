@@ -29,3 +29,6 @@
 | 36 | async/sync | async/sync 混用：FastAPI endpoint 18 个函数误用 async 导致 blocking IO | M28 | M28 已解决（18 函数修复为同步，无 blocking IO 风险） |
 | 32 (backend) | 代码质量 | SnapshotStore 每次 API 请求新建实例，SQLite 连接不共享，并发场景下非最优 | a5b671ff | 已修复：改为单例模式，SQLite 连接共享，WAL 模式保留 |
 | 33 (backend) | 代码质量 | 24 个 API 路由文件重复 global _service + set_service() DI 反模式，无法 mock 测试 | 719c206a | 已修复：改用 FastAPI Depends + app.state 重构，DI 反模式消除 |
+| 41 | 性能 | 6 个 Loader 串行加载无并行 | e3790ef9 | 已修复：ThreadPoolExecutor + PARALLEL_LOADERS 开关 + 串行 fallback + timeout 结果保留 |
+| 42 | 性能 | 18 个分析模块串行执行 | e3790ef9 | 已修复：PARALLEL_ANALYZERS 开关 + LTV 纳入 MODULE_REGISTRY + 错误隔离 |
+| 43 | 持久化 | snapshot_store cleanup() 从未自动触发 | ed4b11b3 | 已修复：概率触发（每 10 次 save）+ 24h 冷却 + 后台 daemon 线程 + SNAPSHOT_RETENTION_DAYS 可配置 |
