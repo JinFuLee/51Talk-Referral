@@ -78,15 +78,24 @@ class ProjectConfig(BaseModel):
         description="渠道/口径标签列表"
     )
 
+    enclosure_role_assignment: Dict[str, Any] = Field(
+        default_factory=lambda: {
+            "CC": {"min_days": 0, "max_days": 90, "scope": "full_funnel"},
+            "SS": {"min_days": 91, "max_days": 120, "scope": "process_and_leads"},
+            "LP": {"min_days": 121, "max_days": None, "scope": "process_and_leads"},
+        },
+        description="围场×岗位负责边界（天数可配置，禁止硬编码）"
+    )
+
     channel_metric_scope: Dict[str, Any] = Field(
         default_factory=lambda: {
             "total": {"role": "full_funnel", "metrics": ["register", "appointment", "showup", "paid", "revenue_usd"]},
             "cc_narrow": {"role": "full_funnel", "metrics": ["register", "appointment", "showup", "paid", "revenue_usd"]},
-            "ss_narrow": {"role": "leads_only", "metrics": ["register"]},
-            "lp_narrow": {"role": "leads_only", "metrics": ["register"]},
+            "ss_narrow": {"role": "leads_and_process", "metrics": ["register"], "process_metrics": ["contact_rate", "checkin_rate"]},
+            "lp_narrow": {"role": "leads_and_process", "metrics": ["register"], "process_metrics": ["contact_rate", "checkin_rate"]},
             "wide": {"role": "leads_only", "metrics": ["register"]},
         },
-        description="口径×指标归属: full_funnel=全漏斗(CC/总计), leads_only=仅leads数(SS/LP/宽口)"
+        description="口径×指标归属: full_funnel=全漏斗(CC/总计), leads_and_process=leads+过程指标(SS/LP), leads_only=仅leads(宽口)"
     )
 
     data_source_registry: Dict[str, Any] = Field(

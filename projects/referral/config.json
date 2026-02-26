@@ -139,6 +139,31 @@
     "presentation",
     "member_profile"
   ],
+  "enclosure_role_assignment": {
+    "CC": {
+      "min_days": 0, "max_days": 90,
+      "scope": "full_funnel",
+      "metrics": ["register", "appointment", "showup", "paid", "revenue_usd"],
+      "rates": ["leads_to_pay_rate", "appointment_rate", "appt_showup_rate", "showup_pay_rate"],
+      "description": "0-90天已付费学员：CC负责，全维度全时间转换"
+    },
+    "SS": {
+      "min_days": 91, "max_days": 120,
+      "scope": "process_and_leads",
+      "metrics": ["register"],
+      "process_metrics": ["contact_rate", "checkin_rate"],
+      "cross_role_metrics": ["leads_to_cc_conversion_rate"],
+      "description": "91-120天已付费学员：SS负责，转介绍用户数+过程指标（触达率/打卡率）"
+    },
+    "LP": {
+      "min_days": 121, "max_days": null,
+      "scope": "process_and_leads",
+      "metrics": ["register"],
+      "process_metrics": ["contact_rate", "checkin_rate"],
+      "cross_role_metrics": ["leads_to_cc_conversion_rate"],
+      "description": "121天+已付费学员：LP负责，转介绍用户数+过程指标（触达率/打卡率）"
+    }
+  },
   "channel_metric_scope": {
     "total": {
       "role": "full_funnel",
@@ -150,19 +175,23 @@
       "role": "full_funnel",
       "metrics": ["register", "appointment", "showup", "paid", "revenue_usd"],
       "rates": ["leads_to_pay_rate", "appointment_rate", "appt_showup_rate", "showup_pay_rate"],
-      "description": "CC 前端销售：过程+效率+结果全指标"
+      "description": "CC 前端销售：过程+效率+结果全指标（0-90天围场）"
     },
     "ss_narrow": {
-      "role": "leads_only",
+      "role": "leads_and_process",
       "metrics": ["register"],
+      "process_metrics": ["contact_rate", "checkin_rate"],
+      "cross_role_metrics": ["leads_to_cc_conversion_rate"],
       "rates": [],
-      "description": "SS 后端销售：仅转介绍leads数，不参与转换阶段"
+      "description": "SS 后端销售：转介绍leads数+过程指标，leads→CC转化率为跨岗效率参考（91-120天围场）"
     },
     "lp_narrow": {
-      "role": "leads_only",
+      "role": "leads_and_process",
       "metrics": ["register"],
+      "process_metrics": ["contact_rate", "checkin_rate"],
+      "cross_role_metrics": ["leads_to_cc_conversion_rate"],
       "rates": [],
-      "description": "LP 后端服务：仅转介绍leads数，不参与转换阶段"
+      "description": "LP 后端服务：转介绍leads数+过程指标，leads→CC转化率为跨岗效率参考（121天+围场）"
     },
     "wide": {
       "role": "leads_only",

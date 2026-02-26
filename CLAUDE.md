@@ -107,9 +107,16 @@ Excel 数据源 → XlsxReader → DataProcessor → AnalysisEngine → Markdown
 - **带新系数** = B注册数/带来注册的A学员数 | **带货比** = 推荐注册数/有效学员
 - **CC-A/CC-B** = CC 团队分组（如 THCC-A、THCC-B），非个人代号
 - **THCC** = 泰国前端销售团队（数据中 "-" 占位符应映射为 THCC）
-- **口径×指标归属规则**: CC 看全漏斗（过程/效率/结果），SS/LP/宽口 仅看转介绍 leads 数（注册数）
-  - CC 全漏斗 = 注册→预约→出席→付费→金额 + 预约率/出席率/付费率
-  - SS/LP 唯一 KPI = 转介绍 leads 数（不参与预约→出席→付费转换阶段）
+- **围场×岗位负责边界**（可配置，禁止硬编码）:
+  - 0-90天已付费学员 → **CC** 负责：全维度全时间转换（full_funnel）
+  - 91-120天已付费学员 → **SS** 负责：转介绍leads数 + 过程指标（触达率/打卡率）
+  - 121天+已付费学员 → **LP** 负责：转介绍leads数 + 过程指标（触达率/打卡率）
+  - 配置位置: `projects/referral/config.json` 的 `enclosure_role_assignment`
+- **口径×指标归属规则**:
+  - CC（full_funnel）= 注册→预约→出席→付费→金额 + 全部转化率
+  - SS/LP（leads_and_process）= 转介绍leads数 + 过程指标（触达率/打卡率）+ **leads→CC转化率**（跨岗效率参考，非自身KPI）
+  - 宽口（leads_only）= 仅转介绍leads数
+  - SS/LP "转化率" = SS/LP带来的leads被CC转化为付费的比率（跨岗效率），不是SS/LP自身的销售漏斗转化
   - leads 数是唯一需要 4 口径拆分（CC/SS/LP/宽口）的指标
   - 配置位置: `projects/referral/config.json` 的 `channel_metric_scope`
 - **数据源口径覆盖**: 仅 A1(当月快照) + A2(围场效率) 有 CC/SS/LP/宽口 4 口径齐全拆分
