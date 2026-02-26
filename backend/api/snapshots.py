@@ -17,10 +17,10 @@ router = APIRouter()
 
 
 def _get_snapshot_store() -> Any:
-    """懒加载 snapshot_store 模块"""
+    """获取 SnapshotStore 进程级单例（project_root 仅首次初始化时生效）"""
     try:
         from core.snapshot_store import SnapshotStore
-        return SnapshotStore(project_root=PROJECT_ROOT)
+        return SnapshotStore.get_instance(project_root=PROJECT_ROOT)
     except ImportError as exc:
         raise HTTPException(status_code=500, detail=f"snapshot_store 模块不可用: {exc}")
 

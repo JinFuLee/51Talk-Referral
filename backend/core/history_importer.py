@@ -38,10 +38,10 @@ class HistoryImporter:
     # ── 内部工厂 ──────────────────────────────────────────────────────────────
 
     def _make_store(self) -> Optional[Any]:
-        """延迟导入 SnapshotStore，避免循环依赖"""
+        """获取 SnapshotStore 进程级单例，避免重复建立 SQLite 连接"""
         try:
             from core.snapshot_store import SnapshotStore
-            return SnapshotStore()
+            return SnapshotStore.get_instance()
         except Exception as e:
             logger.warning(f"SnapshotStore 初始化失败（非阻塞）: {e}")
             return None

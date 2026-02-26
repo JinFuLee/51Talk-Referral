@@ -211,11 +211,11 @@ class AnalysisService:
             if cache_key != period:
                 self._filtered_raw[period] = filtered_data
 
-            # 初始化快照存储（引擎需要用它查 YoY/WoW/峰谷）
+            # 获取快照存储单例（引擎需要用它查 YoY/WoW/峰谷）
             from core.snapshot_store import SnapshotStore
             store: Optional[SnapshotStore] = None
             try:
-                store = SnapshotStore()
+                store = SnapshotStore.get_instance()
             except Exception as e:
                 logger.warning(f"SnapshotStore 初始化失败（非阻塞）: {e}")
 

@@ -1208,10 +1208,10 @@ def compare_summary(
 
     # ── 模式 3/4: peak（巅峰）或 valley（低谷）──────────────────────────────
     if mode in ("peak", "valley"):
-        # 初始化快照存储
+        # 获取快照存储单例
         try:
             from core.snapshot_store import SnapshotStore
-            store = SnapshotStore()
+            store = SnapshotStore.get_instance()
         except Exception as e:
             return {
                 "available": False,
@@ -1480,10 +1480,10 @@ def get_kpi_sparkline(
     from datetime import date as _date
     from datetime import timedelta as _timedelta
 
-    # 初始化快照存储，失败则返回 available=false（不抛 500）
+    # 获取快照存储单例，失败则返回 available=false（不抛 500）
     try:
         from core.snapshot_store import SnapshotStore
-        store = SnapshotStore()
+        store = SnapshotStore.get_instance()
     except Exception as _init_err:
         return {
             "available": False,

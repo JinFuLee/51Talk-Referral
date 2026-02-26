@@ -5,7 +5,8 @@
 import logging
 import sqlite3
 import json
-from typing import Dict, List, Optional, Any
+import threading
+from typing import ClassVar, Dict, List, Optional, Any
 from datetime import datetime, timedelta
 from pathlib import Path
 from core.config import BASE_DIR
@@ -14,7 +15,30 @@ logger = logging.getLogger(__name__)
 
 
 class SnapshotStore:
-    """快照存储系统，使用 SQLite 保存每日分析结果"""
+    """快照存储系统，使用 SQLite 保存每日分析结果（进程内单例，SQLite 连接共享）"""
+
+    _instance: ClassVar[Optional["SnapshotStore"]] = None
+    _lock: ClassVar[threading.Lock] = threading.Lock()
+
+    @classmethod
+    def get_instance(cls, project_root: Optional[Path] = None) -> "SnapshotStore":
+        """获取全局单例（双重检查锁定，线程安全）"""
+        if cls._instance is None:
+            with cls._lock:
+                if cls._instance is None:
+                    cls._instance = cls(project_root=project_root)
+        return cls._instance
+
+    @classmethod
+    def reset_instance(cls) -> None:
+        """重置单例（仅用于测试清理，生产环境禁止调用）"""
+        with cls._lock:
+            if cls._instance is not None and hasattr(cls._instance, "conn"):
+                try:
+                    cls._instance.conn.close()
+                except Exception:
+                    pass
+            cls._instance = None
 
     def __init__(self, project_root: Optional[Path] = None) -> None:
         """
