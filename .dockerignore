@@ -1,0 +1,32 @@
+# Python 虚拟环境与缓存
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.ruff_cache/
+
+# Node.js 依赖与构建产物
+frontend/node_modules/
+frontend/.next/
+
+# 数据与输出（挂载卷提供，不打包进镜像）
+input/
+output/
+data/
+logs/
+
+# 凭证与本地配置
+key/
+.env
+.env.*
+
+# 版本控制与编辑器
+.git/
+.gitignore
+.claude/
+
+# 文档与测试（镜像不需要）
+docs/
+tests/
+*.md

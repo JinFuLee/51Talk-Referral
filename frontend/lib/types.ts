@@ -441,7 +441,7 @@ export interface EnclosureTarget {
   checkin_rate: number;
 }
 
-export interface FollowupData {
+export interface FollowupRateTarget {
   pre_call_rate?: number;
   post_call_rate?: number;
   attendance_rate?: number;
@@ -731,4 +731,166 @@ export interface LeadsOverviewData {
   team_channel_matrix: TeamChannelRow[];
   enclosure_baseline: EnclosureBaselineRow[];
   scopes_available: string[];
+}
+
+// ── F1 漏斗明细 ──────────────────────────────────────────────────────────────
+
+export interface CCFunnelItem {
+  cc_name: string;
+  register_count: number;
+  reserve_count: number;
+  attend_count: number;
+  paid_count: number;
+  register_to_reserve: number;
+  reserve_to_attend: number;
+  attend_to_paid: number;
+  overall_conversion: number;
+  [key: string]: unknown;
+}
+
+export interface FunnelDetailData {
+  cc_funnel: CCFunnelItem[];
+  stages: string[];
+}
+
+// ── F2 截面效率 ───────────────────────────────────────────────────────────────
+
+export interface SectionEfficiencyItem {
+  cc_name: string;
+  contact_rate: number;
+  reserve_rate: number;
+  attend_rate: number;
+  paid_rate: number;
+}
+
+export interface SectionEfficiencyData {
+  sections: SectionEfficiencyItem[];
+  data_source: string;
+}
+
+// ── F4 渠道月度环比 ───────────────────────────────────────────────────────────
+
+export interface ChannelMoMItem {
+  channel: string;
+  metrics: Record<string, unknown>;
+}
+
+export interface ChannelMoMData {
+  records: Record<string, unknown>[];
+  months: string[];
+  by_channel: ChannelMoMItem[];
+  summary: Record<string, unknown>[];
+}
+
+// ── F11 课前外呼覆盖缺口 ──────────────────────────────────────────────────────
+
+export interface OutreachCoverageSummary {
+  total_records: number;
+  total_pre_called: number;
+  total_pre_connected: number;
+  total_attended: number;
+  overall_call_rate: number;
+  overall_connect_rate: number;
+  overall_attendance_rate: number;
+}
+
+export interface OutreachCoverageGap {
+  uncovered_students: number;
+  uncovered_rate: number;
+  estimated_lost_attendance: number;
+  estimated_lost_paid: number;
+  estimated_lost_revenue_usd: number;
+}
+
+export interface OutreachCoverageData {
+  summary: OutreachCoverageSummary;
+  coverage_gap: OutreachCoverageGap;
+  assumptions: { avg_order_usd: number; attend_to_paid_rate: number };
+  funnel: Record<string, unknown>[];
+  by_grade: Record<string, unknown>[];
+  by_cc: Record<string, unknown>[];
+}
+
+// ── 外呼缺口 / 围场健康 / 增强排名 / 留存贡献 / 围场渠道矩阵 / 时间间隔 / 生产力历史 ─
+
+export interface OutreachGapData {
+  summary: {
+    total_students: number;
+    called: number;
+    not_called: number;
+    coverage_rate: number;
+    gap: number;
+    gap_students: number;
+    lost_revenue_usd: number;
+    lost_revenue_thb: number;
+    loss_is_estimated: boolean;
+  };
+  cc_gaps: Record<string, unknown>[];
+  by_channel_l3: Record<string, unknown>;
+  by_lead_grade: Record<string, unknown>;
+}
+
+export interface EnclosureHealthSegment {
+  enclosure: string;
+  d3_conversion_rate: number;
+  d3_participation_rate: number;
+  d3_active_students: number;
+  f8_followup_rate: number;
+  f7_global_rate: number;
+  a2_efficiency: Record<string, unknown>;
+  health_score: number;
+  [key: string]: unknown;
+}
+
+export interface EnclosureHealthData {
+  segments: EnclosureHealthSegment[];
+  f7_global_rate: number;
+  [key: string]: unknown;
+}
+
+export interface CCRankingEnhancedItem extends Record<string, unknown> {
+  cc_name: string;
+  team?: string;
+  composite_score: number;
+  registrations: number;
+  payments: number;
+  revenue_usd: number;
+  contact_rate?: number;
+  checkin_rate: number;
+  participation_rate: number;
+  coefficient: number;
+  conversion_rate: number;
+  reserve_rate: number;
+  attend_rate: number;
+  total_leads: number;
+}
+
+export interface CCRankingEnhancedData {
+  profiles: CCRankingEnhancedItem[];
+  total: number;
+}
+
+export interface RetentionContributionData {
+  segments: Record<string, unknown>[];
+  total_revenue_usd: number;
+  [key: string]: unknown;
+}
+
+export interface EnclosureChannelMatrixData {
+  rows: Record<string, unknown>[];
+  channels: string[];
+  enclosures: string[];
+  [key: string]: unknown;
+}
+
+export interface TimeIntervalData {
+  by_cc: Record<string, unknown>[];
+  overall: Record<string, unknown>;
+  [key: string]: unknown;
+}
+
+export interface ProductivityHistoryData {
+  series: Record<string, unknown>[];
+  by_cc: Record<string, unknown>[];
+  [key: string]: unknown;
 }

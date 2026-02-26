@@ -2,7 +2,51 @@
  * API client — 所有对 FastAPI 后端（localhost:8000）的请求封装
  * 通过 Next.js rewrites: /api/* → http://localhost:8000/api/*
  */
-import type { MonthlyTargetV2, TargetRecommendation, ImpactChainData, WhatIfResult, RootCauseData, StageEvaluation, PyramidReport, ComparisonResponse, LeadsOverviewData } from "./types";
+import type {
+  MonthlyTarget,
+  MonthlyTargetV2,
+  TargetRecommendation,
+  ImpactChainData,
+  WhatIfResult,
+  RootCauseData,
+  StageEvaluation,
+  PyramidReport,
+  ComparisonResponse,
+  LeadsOverviewData,
+  AnalysisResult,
+  FunnelData,
+  ChannelComparisonData,
+  TeamMemberData,
+  AnomalyItem,
+  RiskAlert,
+  ROIData,
+  ROICostBreakdownData,
+  PredictionData,
+  AttributionData,
+  RankingItem,
+  CohortData,
+  CheckinData,
+  LeadsData,
+  FollowupData,
+  OrderData,
+  TrendData,
+  LTVData,
+  DataSourceStatus,
+  SnapshotStats,
+  DailyKPIPoint,
+  CCGrowthAPIPoint,
+  FunnelDetailData,
+  SectionEfficiencyData,
+  ChannelMoMData,
+  OutreachCoverageData,
+  OutreachGapData,
+  EnclosureHealthData,
+  CCRankingEnhancedData,
+  RetentionContributionData,
+  EnclosureChannelMatrixData,
+  TimeIntervalData,
+  ProductivityHistoryData,
+} from "./types";
 import { errorLogger } from "./error-logger";
 
 const BASE = "/api";
@@ -60,63 +104,63 @@ export const analysisAPI = {
     custom_start?: string;
     custom_end?: string;
   }) =>
-    request<{ status: string; summary: unknown }>("/analysis/run", {
+    request<{ status: string; summary: Record<string, unknown> }>("/analysis/run", {
       method: "POST",
       body: JSON.stringify(params ?? {}),
     }),
 
   getResult: (period?: string) =>
-    request<Record<string, unknown>>(`/analysis/result${periodQuery(period)}`),
+    request<AnalysisResult>(`/analysis/result${periodQuery(period)}`),
   getSummary: (period?: string) =>
-    request<{ summary: unknown; meta: unknown; time_progress: number }>(
+    request<{ summary: AnalysisResult["summary"]; meta: Record<string, unknown>; time_progress: number }>(
       `/analysis/summary${periodQuery(period)}`
     ),
   getFunnel: (period?: string) =>
-    request<unknown>(`/analysis/funnel${periodQuery(period)}`),
+    request<FunnelData>(`/analysis/funnel${periodQuery(period)}`),
   getChannelComparison: (period?: string) =>
-    request<unknown>(`/analysis/channel-comparison${periodQuery(period)}`),
+    request<ChannelComparisonData>(`/analysis/channel-comparison${periodQuery(period)}`),
   getTeamData: (period?: string) =>
-    request<unknown[]>(`/analysis/team-data${periodQuery(period)}`),
+    request<TeamMemberData[]>(`/analysis/team-data${periodQuery(period)}`),
   getAnomalies: (period?: string) =>
-    request<unknown[]>(`/analysis/anomalies${periodQuery(period)}`),
+    request<AnomalyItem[]>(`/analysis/anomalies${periodQuery(period)}`),
   getRiskAlerts: (period?: string) =>
-    request<unknown[]>(`/analysis/risk-alerts${periodQuery(period)}`),
+    request<RiskAlert[]>(`/analysis/risk-alerts${periodQuery(period)}`),
   getROI: (period?: string) =>
-    request<unknown>(`/analysis/roi${periodQuery(period)}`),
+    request<ROIData>(`/analysis/roi${periodQuery(period)}`),
   getROICostBreakdown: (period?: string) =>
-    request<unknown>(`/analysis/roi/cost-breakdown${periodQuery(period)}`),
+    request<ROICostBreakdownData>(`/analysis/roi/cost-breakdown${periodQuery(period)}`),
   getPrediction: (period?: string) =>
-    request<unknown>(`/analysis/prediction${periodQuery(period)}`),
+    request<PredictionData>(`/analysis/prediction${periodQuery(period)}`),
   getAttribution: (period?: string) =>
-    request<unknown>(`/analysis/attribution${periodQuery(period)}`),
+    request<AttributionData>(`/analysis/attribution${periodQuery(period)}`),
   getCCRanking: (topN = 10, period?: string) =>
-    request<unknown[]>(
+    request<RankingItem[]>(
       `/analysis/cc-ranking${periodQuery(period, { top_n: String(topN) })}`
     ),
   getSSRanking: (topN = 10, period?: string) =>
-    request<unknown[]>(
+    request<RankingItem[]>(
       `/analysis/ss-ranking${periodQuery(period, { top_n: String(topN) })}`
     ),
   getLPRanking: (topN = 10, period?: string) =>
-    request<unknown[]>(
+    request<RankingItem[]>(
       `/analysis/lp-ranking${periodQuery(period, { top_n: String(topN) })}`
     ),
   getCohort: (period?: string) =>
-    request<unknown>(`/analysis/cohort${periodQuery(period)}`),
+    request<CohortData>(`/analysis/cohort${periodQuery(period)}`),
   getCheckin: (period?: string) =>
-    request<unknown>(`/analysis/checkin${periodQuery(period)}`),
+    request<CheckinData>(`/analysis/checkin${periodQuery(period)}`),
   getLeads: (period?: string) =>
-    request<unknown>(`/analysis/leads${periodQuery(period)}`),
+    request<LeadsData>(`/analysis/leads${periodQuery(period)}`),
   getFollowup: (period?: string) =>
-    request<unknown>(`/analysis/followup${periodQuery(period)}`),
+    request<FollowupData>(`/analysis/followup${periodQuery(period)}`),
   getOrders: (period?: string) =>
-    request<unknown>(`/analysis/orders${periodQuery(period)}`),
+    request<OrderData>(`/analysis/orders${periodQuery(period)}`),
   getTrend: (compareType: "mom" | "yoy" | "wow" = "mom", period?: string) =>
-    request<unknown>(
+    request<TrendData>(
       `/analysis/trend${periodQuery(period, { compare_type: compareType })}`
     ),
   getLTV: (period?: string) =>
-    request<unknown>(`/analysis/ltv${periodQuery(period)}`),
+    request<LTVData>(`/analysis/ltv${periodQuery(period)}`),
   getImpactChain: (period?: string) =>
     request<ImpactChainData>(`/analysis/impact-chain${periodQuery(period)}`),
   postWhatIf: (metric: string, newValue: number, period?: string) =>
@@ -161,27 +205,27 @@ export const analysisAPI = {
       total_usd: number;
     }>(`/analysis/channel-revenue${periodQuery(period)}`),
   getOutreachCoverage: (period?: string) =>
-    request<unknown>(`/analysis/outreach-coverage${periodQuery(period)}`),
+    request<OutreachCoverageData>(`/analysis/outreach-coverage${periodQuery(period)}`),
   getFunnelDetail: (period?: string) =>
-    request<unknown>(`/analysis/funnel-detail${periodQuery(period)}`),
+    request<FunnelDetailData>(`/analysis/funnel-detail${periodQuery(period)}`),
   getSectionEfficiency: (period?: string) =>
-    request<unknown>(`/analysis/section-efficiency${periodQuery(period)}`),
+    request<SectionEfficiencyData>(`/analysis/section-efficiency${periodQuery(period)}`),
   getChannelMoM: (period?: string) =>
-    request<unknown>(`/analysis/channel-mom${periodQuery(period)}`),
+    request<ChannelMoMData>(`/analysis/channel-mom${periodQuery(period)}`),
   getRetentionContribution: (period?: string) =>
-    request<unknown>(`/analysis/retention-contribution${periodQuery(period)}`),
+    request<RetentionContributionData>(`/analysis/retention-contribution${periodQuery(period)}`),
   getEnclosureChannelMatrix: (period?: string) =>
-    request<unknown>(`/analysis/enclosure-channel-matrix${periodQuery(period)}`),
+    request<EnclosureChannelMatrixData>(`/analysis/enclosure-channel-matrix${periodQuery(period)}`),
   getTimeInterval: (period?: string) =>
-    request<unknown>(`/analysis/time-interval${periodQuery(period)}`),
+    request<TimeIntervalData>(`/analysis/time-interval${periodQuery(period)}`),
   getProductivityHistory: (period?: string) =>
-    request<unknown>(`/analysis/productivity-history${periodQuery(period)}`),
+    request<ProductivityHistoryData>(`/analysis/productivity-history${periodQuery(period)}`),
   getOutreachGap: (period?: string) =>
-    request<unknown>(`/analysis/outreach-gap${periodQuery(period)}`),
+    request<OutreachGapData>(`/analysis/outreach-gap${periodQuery(period)}`),
   getEnclosureHealth: (period?: string) =>
-    request<unknown>(`/analysis/enclosure-health${periodQuery(period)}`),
+    request<EnclosureHealthData>(`/analysis/enclosure-health${periodQuery(period)}`),
   getCCRankingEnhanced: (topN = 20, period?: string) =>
-    request<unknown>(
+    request<CCRankingEnhancedData>(
       `/analysis/cc-ranking-enhanced${periodQuery(period, { top_n: String(topN) })}`
     ),
   getCompareSummary: (period?: string, mode?: string) =>
@@ -226,8 +270,8 @@ export const reportsAPI = {
 // ── Data Sources ──────────────────────────────────────────────────────────────
 
 export const datasourcesAPI = {
-  getStatus: () => request<unknown[]>("/datasources/status"),
-  getRegistry: () => request<unknown[]>("/datasources/registry"),
+  getStatus: () => request<DataSourceStatus[]>("/datasources/status"),
+  getRegistry: () => request<DataSourceStatus[]>("/datasources/registry"),
   refresh: () =>
     request<{ status: string; refreshed: number }>("/datasources/refresh", { method: "POST" }),
   upload: async (sourceId: string, file: File) => {
@@ -256,7 +300,7 @@ export const configAPI = {
       body: JSON.stringify(data),
     }),
   getTargets: () => request<Record<string, unknown>>("/config/targets"),
-  getMonthlyTargets: () => request<unknown[]>("/config/monthly-targets"),
+  getMonthlyTargets: () => request<MonthlyTarget[]>("/config/monthly-targets"),
   putTargets: (month: string, data: Record<string, unknown>) =>
     request<{ status: string }>(`/config/targets/${month}`, {
       method: "PUT",
@@ -287,21 +331,21 @@ export const configAPI = {
 // ── Snapshots ─────────────────────────────────────────────────────────────────
 
 export const snapshotsAPI = {
-  getStats: () => request<unknown>("/snapshots/stats"),
+  getStats: () => request<SnapshotStats>("/snapshots/stats"),
   getDailyKPI: (params?: { date_from?: string; date_to?: string; metric?: string }) => {
     const qs = new URLSearchParams();
     if (params?.date_from) qs.set("date_from", params.date_from);
     if (params?.date_to) qs.set("date_to", params.date_to);
     if (params?.metric) qs.set("metric", params.metric);
     const q = qs.toString();
-    return request<unknown[]>(`/snapshots/daily-kpi${q ? `?${q}` : ""}`);
+    return request<DailyKPIPoint[]>(`/snapshots/daily-kpi${q ? `?${q}` : ""}`);
   },
   getCCGrowth: (ccName: string, params?: { date_from?: string; date_to?: string }) => {
     const qs = new URLSearchParams();
     if (params?.date_from) qs.set("date_from", params.date_from);
     if (params?.date_to) qs.set("date_to", params.date_to);
     const q = qs.toString();
-    return request<unknown[]>(`/snapshots/cc-growth/${encodeURIComponent(ccName)}${q ? `?${q}` : ""}`);
+    return request<CCGrowthAPIPoint[]>(`/snapshots/cc-growth/${encodeURIComponent(ccName)}${q ? `?${q}` : ""}`);
   },
   importHistory: () =>
     request<{ status: string; result: unknown }>("/snapshots/import-history", { method: "POST" }),

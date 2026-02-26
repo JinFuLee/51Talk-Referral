@@ -49,7 +49,17 @@ export default function OpsOrdersPage() {
   );
 
   const channelRevenueData = channelRevenueRaw as { channels?: Array<{ channel: string; revenue_usd: number; revenue_thb: number; percentage: number }>; total_usd?: number } | undefined;
-  const channelBreakdown = channelRevenueData ?? ((orders as Record<string, unknown> | undefined)?.channel_breakdown as Record<string, unknown> | undefined ?? { channels: [] });
+  const channelBreakdownChannels = channelRevenueData?.channels ?? [];
+  const channelBreakdown = {
+    channels: channelBreakdownChannels.map((c) => ({
+      channel: c.channel,
+      label: c.channel === "narrow" ? "窄口" : c.channel === "wide" ? "宽口" : c.channel,
+      registrations: 0,
+      payments: 0,
+      revenue: c.revenue_usd,
+      conversion_rate: 0,
+    })),
+  };
 
   const tableHeaders = [
     t("ops.orders.table.date"),
@@ -135,7 +145,7 @@ export default function OpsOrdersPage() {
               </table>
             </div>
           ) : (
-            <ChannelBarChart data={channelBreakdown as Record<string, unknown>} />
+            <ChannelBarChart data={channelBreakdown} />
           )}
         </Card>
 

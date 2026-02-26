@@ -11,9 +11,10 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { CHART_FONT_SIZE, CHART_HEIGHT } from "@/lib/utils";
+import type { ChannelComparisonData } from "@/lib/types";
 
 interface ChannelBarChartProps {
-  data: Record<string, unknown>;
+  data: ChannelComparisonData;
 }
 
 interface ChannelStat {
@@ -25,23 +26,9 @@ interface ChannelStat {
   conversion_rate?: number;
 }
 
-function extractChannels(data: Record<string, unknown>): ChannelStat[] {
-  const channels = data.channels;
-  if (Array.isArray(channels)) return channels as ChannelStat[];
-  // Fallback: treat top-level keys as channel names
-  return Object.entries(data)
-    .filter(([, v]) => v && typeof v === "object")
-    .map(([key, val]) => {
-      const ch = val as Record<string, unknown>;
-      return {
-        channel: key,
-        label: key === "narrow" ? "窄口" : key === "wide" ? "宽口" : key,
-        registrations: Number(ch.registrations ?? 0),
-        payments: Number(ch.payments ?? 0),
-        revenue_usd: Number(ch.revenue_usd ?? 0),
-        conversion_rate: Number(ch.conversion_rate ?? 0),
-      };
-    });
+function extractChannels(data: ChannelComparisonData): ChannelStat[] {
+  if (Array.isArray(data.channels)) return data.channels;
+  return [];
 }
 
 export function ChannelBarChart({ data }: ChannelBarChartProps) {

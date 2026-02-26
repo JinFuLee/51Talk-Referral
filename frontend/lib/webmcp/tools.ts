@@ -180,8 +180,8 @@ export function registerAllTools() {
       },
     },
     async execute({ only_missing = false }: { only_missing?: boolean }) {
-      const statuses = (await datasourcesAPI.getStatus()) as Array<Record<string, unknown>>;
-      const filtered = only_missing ? statuses.filter((s) => s.status !== 'ok') : statuses;
+      const statuses = await datasourcesAPI.getStatus();
+      const filtered = only_missing ? statuses.filter((s) => !s.is_fresh) : statuses;
       return { content: [{ type: 'text', text: JSON.stringify(filtered) }] };
     },
   });

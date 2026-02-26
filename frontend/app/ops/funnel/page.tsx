@@ -85,7 +85,7 @@ function OverviewTab() {
             <FunnelChart stages={funnelStages} />
           </Card>
           <Card title={t("ops.funnel.card.channelCompare")}>
-            <ChannelBarChart data={channelRaw as Record<string, unknown> ?? {}} />
+            <ChannelBarChart data={channelData ?? { channels: [] }} />
           </Card>
         </div>
 
