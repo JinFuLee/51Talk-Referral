@@ -3,6 +3,7 @@
 核心职责：SQLite 存储每日分析结果，支持时间序列查询和历史导入
 """
 import logging
+import os
 import sqlite3
 import json
 import threading
@@ -70,6 +71,11 @@ class SnapshotStore:
 
         # Row factory
         self.conn.row_factory = sqlite3.Row
+
+        # 自动清理计数器（每 SNAPSHOT_CLEANUP_INTERVAL 次 save 触发一次后台清理）
+        self._save_count: int = 0
+        self._last_cleanup: Optional[datetime] = None
+        self._cleanup_lock: threading.Lock = threading.Lock()
 
         # 初始化表结构
         self._init_tables()
@@ -246,11 +252,28 @@ class SnapshotStore:
 
         self.conn.commit()
 
-        # 自动清理 90 天前的旧快照
-        try:
-            self.cleanup_old_snapshots(days=90)
-        except Exception as e:
-            logger.warning(f"Auto cleanup failed: {e}")
+        # 自动清理：概率触发（每 N 次 save 1 次）+ 时间戳双重保护（24h 最多 1 次）
+        self._save_count += 1
+        cleanup_interval: int = int(os.environ.get("SNAPSHOT_CLEANUP_INTERVAL", "10"))
+        cleanup_cooldown_hours: int = int(os.environ.get("SNAPSHOT_CLEANUP_COOLDOWN_HOURS", "24"))
+        retention_days: int = int(os.environ.get("SNAPSHOT_RETENTION_DAYS", "90"))
+
+        if self._save_count % cleanup_interval == 0:
+            now = datetime.now()
+            cooldown = timedelta(hours=cleanup_cooldown_hours)
+            should_run = (
+                self._last_cleanup is None
+                or (now - self._last_cleanup) >= cooldown
+            )
+            if should_run:
+                self._last_cleanup = now
+                t = threading.Thread(
+                    target=self._background_cleanup,
+                    args=(retention_days,),
+                    daemon=True,
+                    name="snapshot-cleanup",
+                )
+                t.start()
 
     def get_cc_history(
         self,
@@ -371,6 +394,19 @@ class SnapshotStore:
 
         self.conn.commit()
         cursor.execute("VACUUM")
+
+    def _background_cleanup(self, retention_days: int) -> None:
+        """后台线程执行清理，日志记录删除行数，不阻塞 save_snapshot。"""
+        with self._cleanup_lock:
+            try:
+                deleted = self.cleanup_old_snapshots(days=retention_days)
+                logger.info(
+                    "Auto cleanup: removed %d daily_kpi rows older than %d days",
+                    deleted,
+                    retention_days,
+                )
+            except Exception as e:
+                logger.warning("Background cleanup failed (non-blocking): %s", e)
 
     def cleanup_old_snapshots(self, days: int = 90) -> int:
         """
