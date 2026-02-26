@@ -91,12 +91,18 @@ except Exception as _cfg_err:
     _display_name = "ref-ops-engine"
     _enabled_routers = None
 
-limiter = Limiter(key_func=get_remote_address, default_limits=["100/minute"])
+# RATE_LIMIT 环境变量格式示例: "60/minute" / "1000/hour"
+# 未设置时默认 60/minute
+_rate_limit_str = os.getenv("RATE_LIMIT", "60/minute")
+limiter = Limiter(key_func=get_remote_address, default_limits=[_rate_limit_str])
 
 app = FastAPI(
     title=f"{_display_name} API",
     description="51Talk 泰国转介绍运营分析引擎 REST API",
-    version="9.0.0"
+    version="9.0.0",
+    docs_url="/api/docs",
+    redoc_url="/api/redoc",
+    openapi_url="/api/openapi.json",
 )
 
 app.state.limiter = limiter
@@ -118,13 +124,22 @@ app.add_middleware(
 
 
 class SecurityHeadersMiddleware(BaseHTTPMiddleware):
-    """为所有响应注入安全响应头"""
+    """为所有响应注入安全响应头（含 CSP / Referrer-Policy / Permissions-Policy）"""
 
     async def dispatch(self, request: Request, call_next):
         response = await call_next(request)
         response.headers["X-Content-Type-Options"] = "nosniff"
         response.headers["X-Frame-Options"] = "DENY"
         response.headers["X-XSS-Protection"] = "1; mode=block"
+        response.headers["Content-Security-Policy"] = (
+            "default-src 'self'; "
+            "script-src 'self'; "
+            "style-src 'self' 'unsafe-inline'"
+        )
+        response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+        response.headers["Permissions-Policy"] = (
+            "camera=(), microphone=(), geolocation=()"
+        )
         return response
 
 
