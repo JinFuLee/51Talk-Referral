@@ -5,12 +5,20 @@ SnapshotStore 自动清理逻辑单元测试（Tech Debt #43）
 import threading
 import time
 from datetime import datetime, timedelta
-from pathlib import Path
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 
 import pytest
-
 from core.snapshot_store import SnapshotStore
+
+_KPI_SQL = (
+    "INSERT OR REPLACE INTO daily_kpi "
+    "(snapshot_date, metric, value, time_progress) VALUES (?, ?, ?, ?)"
+)
+
+
+def _insert_kpi(conn, date: str, metric: str, value: float) -> None:
+    conn.execute(_KPI_SQL, (date, metric, value, 0.5))
+    conn.commit()
 
 
 @pytest.fixture(autouse=True)
@@ -164,10 +172,7 @@ def test_background_cleanup_deletes_old_rows(store, minimal_result, caplog):
     import logging
     # 插入一条 200 天前的数据
     old_date = (datetime.now() - timedelta(days=200)).strftime("%Y-%m-%d")
-    store.conn.execute(
-        "INSERT OR REPLACE INTO daily_kpi (snapshot_date, metric, value, time_progress) VALUES (?, ?, ?, ?)",
-        (old_date, "registration", 100.0, 0.5)
-    )
+    _insert_kpi(store.conn, old_date, "registration", 100.0)
     store.conn.commit()
 
     with caplog.at_level(logging.INFO, logger="core.snapshot_store"):
@@ -191,10 +196,7 @@ def test_background_cleanup_deletes_old_rows(store, minimal_result, caplog):
 def test_cleanup_preserves_recent_data(store, minimal_result):
     """cleanup 保留 retention_days 内的数据"""
     recent_date = datetime.now().strftime("%Y-%m-%d")
-    store.conn.execute(
-        "INSERT OR REPLACE INTO daily_kpi (snapshot_date, metric, value, time_progress) VALUES (?, ?, ?, ?)",
-        (recent_date, "registration", 200.0, 0.5)
-    )
+    _insert_kpi(store.conn, recent_date, "registration", 200.0)
     store.conn.commit()
 
     store.cleanup_old_snapshots(days=90)

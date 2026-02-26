@@ -2,14 +2,15 @@
 51Talk 转介绍周报自动生成 - 快照存储系统
 核心职责：SQLite 存储每日分析结果，支持时间序列查询和历史导入
 """
+import json
 import logging
 import os
 import sqlite3
-import json
 import threading
-from typing import ClassVar, Dict, List, Optional, Any
 from datetime import datetime, timedelta
 from pathlib import Path
+from typing import Any, ClassVar, Optional
+
 from core.config import BASE_DIR
 
 logger = logging.getLogger(__name__)
@@ -22,7 +23,7 @@ class SnapshotStore:
     _lock: ClassVar[threading.Lock] = threading.Lock()
 
     @classmethod
-    def get_instance(cls, project_root: Optional[Path] = None) -> "SnapshotStore":
+    def get_instance(cls, project_root: Path | None = None) -> "SnapshotStore":
         """获取全局单例（双重检查锁定，线程安全）"""
         if cls._instance is None:
             with cls._lock:
@@ -41,7 +42,7 @@ class SnapshotStore:
                     pass
             cls._instance = None
 
-    def __init__(self, project_root: Optional[Path] = None) -> None:
+    def __init__(self, project_root: Path | None = None) -> None:
         """
         初始化数据库连接和表结构
 
@@ -74,7 +75,7 @@ class SnapshotStore:
 
         # 自动清理计数器（每 SNAPSHOT_CLEANUP_INTERVAL 次 save 触发一次后台清理）
         self._save_count: int = 0
-        self._last_cleanup: Optional[datetime] = None
+        self._last_cleanup: datetime | None = None
         self._cleanup_lock: threading.Lock = threading.Lock()
 
         # 初始化表结构
@@ -255,7 +256,9 @@ class SnapshotStore:
         # 自动清理：概率触发（每 N 次 save 1 次）+ 时间戳双重保护（24h 最多 1 次）
         self._save_count += 1
         cleanup_interval: int = int(os.environ.get("SNAPSHOT_CLEANUP_INTERVAL", "10"))
-        cleanup_cooldown_hours: int = int(os.environ.get("SNAPSHOT_CLEANUP_COOLDOWN_HOURS", "24"))
+        cleanup_cooldown_hours: int = int(
+            os.environ.get("SNAPSHOT_CLEANUP_COOLDOWN_HOURS", "24")
+        )
         retention_days: int = int(os.environ.get("SNAPSHOT_RETENTION_DAYS", "90"))
 
         if self._save_count % cleanup_interval == 0:
@@ -277,9 +280,9 @@ class SnapshotStore:
 
     def get_cc_history(
         self,
-        cc_name: Optional[str] = None,
+        cc_name: str | None = None,
         limit_days: int = 90
-    ) -> List[Dict]:
+    ) -> list[dict]:
         """查询 CC 历史排名数据"""
         cursor = self.conn.cursor()
 
@@ -303,8 +306,8 @@ class SnapshotStore:
     def get_daily_kpi_series(
         self,
         month: str,
-        metric: Optional[str] = None
-    ) -> List[Dict]:
+        metric: str | None = None
+    ) -> list[dict]:
         """查询月度每日 KPI 时间序列"""
         cursor = self.conn.cursor()
 
@@ -329,7 +332,7 @@ class SnapshotStore:
         rows = cursor.fetchall()
         return [dict(row) for row in rows]
 
-    def get_snapshot_dates(self) -> List[str]:
+    def get_snapshot_dates(self) -> list[str]:
         """查询所有不重复的快照日期"""
         cursor = self.conn.cursor()
         cursor.execute("""
@@ -339,7 +342,7 @@ class SnapshotStore:
         rows = cursor.fetchall()
         return [row[0] for row in rows]
 
-    def get_stats(self) -> Dict[str, Any]:
+    def get_stats(self) -> dict[str, Any]:
         """获取数据库统计信息"""
         cursor = self.conn.cursor()
 
@@ -447,10 +450,10 @@ class SnapshotStore:
 
     def get_daily_kpi(
         self,
-        date_from: Optional[str] = None,
-        date_to: Optional[str] = None,
-        metric: Optional[str] = None,
-    ) -> List[Dict]:
+        date_from: str | None = None,
+        date_to: str | None = None,
+        metric: str | None = None,
+    ) -> list[dict]:
         """
         查询日级 KPI（snapshots API 调用）
 
@@ -490,9 +493,9 @@ class SnapshotStore:
     def get_cc_growth(
         self,
         cc_name: str,
-        date_from: Optional[str] = None,
-        date_to: Optional[str] = None,
-    ) -> List[Dict]:
+        date_from: str | None = None,
+        date_to: str | None = None,
+    ) -> list[dict]:
         """
         查询指定 CC 的成长曲线（snapshots API 调用）
 
@@ -527,7 +530,7 @@ class SnapshotStore:
 
         return [dict(row) for row in cursor.fetchall()]
 
-    def get_weekly_kpi(self, metric: str, weeks_back: int = 4) -> List[Dict]:
+    def get_weekly_kpi(self, metric: str, weeks_back: int = 4) -> list[dict]:
         """
         按 ISO 周聚合 daily_kpi，返回近 N 周的汇总数据。
 
@@ -555,7 +558,7 @@ class SnapshotStore:
         # 反转为升序后返回
         return list(reversed([dict(row) for row in rows]))
 
-    def get_monthly_comparison(self, metric: str, months_back: int = 3) -> List[Dict]:
+    def get_monthly_comparison(self, metric: str, months_back: int = 3) -> list[dict]:
         """
         月度聚合，供 MoM（月环比）对比使用。
 
@@ -584,7 +587,7 @@ class SnapshotStore:
         rows = cursor.fetchall()
         return list(reversed([dict(row) for row in rows]))
 
-    def get_peak_valley(self, metric: str) -> Dict[str, Any]:
+    def get_peak_valley(self, metric: str) -> dict[str, Any]:
         """
         查询指定指标的历史最高（巅峰）和最低（谷底）。
 
@@ -622,7 +625,7 @@ class SnapshotStore:
             "valley": {"date": valley_row["snapshot_date"], "value": valley_row["value"]} if valley_row else None,
         }
 
-    def get_same_month_last_year(self, metric: str, target_month: str) -> Optional[Dict]:
+    def get_same_month_last_year(self, metric: str, target_month: str) -> dict | None:
         """
         查询去年同月的聚合数据，供 YoY 对比。
 
