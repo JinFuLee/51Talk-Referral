@@ -7,23 +7,17 @@ from __future__ import annotations
 
 from typing import Any
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from typing import Optional
+
+from .dependencies import get_service
+from services.analysis_service import AnalysisService
 
 router = APIRouter(tags=["north_star"])
 
-_service: Any = None
 
-
-def set_service(service: Any) -> None:
-    global _service
-    _service = service
-
-
-def _get_raw_data() -> dict[str, Any]:
-    if _service is None:
-        raise HTTPException(status_code=503, detail="服务未初始化")
-    raw = getattr(_service, "_raw_data", None)
+def _get_raw_data(svc: AnalysisService) -> dict[str, Any]:
+    raw = getattr(svc, "_raw_data", None)
     if not raw:
         raise HTTPException(status_code=503, detail="数据未加载，请先运行分析")
     return raw
@@ -32,6 +26,7 @@ def _get_raw_data() -> dict[str, Any]:
 @router.get("/north-star")
 def get_north_star(
     cc_name: Optional[str] = Query(default=None, description="筛选指定 CC（精确匹配）"),
+    svc: AnalysisService = Depends(get_service),
 ) -> dict[str, Any]:
     """
     D1 北极星指标：CC 24H 打卡率排名 + 达标分布
@@ -43,7 +38,7 @@ def get_north_star(
     - achieved_count: 达标 CC 数
     - total_cc: 参与统计的 CC 总数
     """
-    raw = _get_raw_data()
+    raw = _get_raw_data(svc)
     kpi = raw.get("kpi") or {}
     d1 = kpi.get("north_star_24h") or {}
 
@@ -73,7 +68,7 @@ def get_north_star(
 
 
 @router.get("/checkin-ab")
-def get_checkin_ab() -> dict[str, Any]:
+def get_checkin_ab(svc: AnalysisService = Depends(get_service)) -> dict[str, Any]:
     """
     D1×D5 联合对比：24H 打卡率 × 月度打卡率 × 打卡倍率
 
@@ -85,7 +80,7 @@ def get_checkin_ab() -> dict[str, Any]:
     - d1_summary: D1 整体汇总
     - d5_summary: D5 整体汇总
     """
-    raw = _get_raw_data()
+    raw = _get_raw_data(svc)
     kpi = raw.get("kpi") or {}
     d1 = kpi.get("north_star_24h") or {}
     d5 = kpi.get("checkin_rate_monthly") or {}

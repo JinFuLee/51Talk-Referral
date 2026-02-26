@@ -15,13 +15,6 @@ sys.path.insert(0, str(PROJECT_ROOT))
 
 router = APIRouter()
 
-_service: Any = None
-
-
-def set_service(service: Any) -> None:
-    global _service
-    _service = service
-
 
 def _get_snapshot_store() -> Any:
     """懒加载 snapshot_store 模块"""

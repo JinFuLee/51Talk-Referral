@@ -2,15 +2,12 @@ from __future__ import annotations
 import calendar
 from datetime import datetime, timedelta
 from typing import Any, Optional
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Depends, Query
+
+from .dependencies import get_service
+from services.analysis_service import AnalysisService
 
 router = APIRouter()
-_service: Any = None
-
-
-def set_service(service: Any) -> None:
-    global _service
-    _service = service
 
 
 def _calculate_time_progress(ref_date: Optional[datetime] = None) -> float:
@@ -33,11 +30,9 @@ def _calculate_time_progress(ref_date: Optional[datetime] = None) -> float:
 
 
 @router.get("/enclosure-channel-matrix")
-def get_enclosure_channel_matrix() -> dict[str, Any]:
+def get_enclosure_channel_matrix(svc: AnalysisService = Depends(get_service)) -> dict[str, Any]:
     """A2 围场×渠道热力矩阵 — 数据源: leads.channel_efficiency.by_enclosure (A2)"""
-    if _service is None:
-        raise HTTPException(status_code=503, detail="服务未初始化")
-    raw_data = getattr(_service, "_raw_data", None) or {}
+    raw_data = getattr(svc, "_raw_data", None) or {}
     leads = raw_data.get("leads", {}) if isinstance(raw_data, dict) else {}
 
     # A2 channel_efficiency 返回 by_enclosure: list[{围场, 总计, CC窄口径, LP窄口径, SS窄口径, 宽口径}]
@@ -87,11 +82,9 @@ def get_enclosure_channel_matrix() -> dict[str, Any]:
 
 
 @router.get("/time-interval")
-def get_time_interval() -> dict[str, Any]:
+def get_time_interval(svc: AnalysisService = Depends(get_service)) -> dict[str, Any]:
     """A3 注册→付费时间间隔分布 — 数据源: leads.leads_detail.records[].days_to_payment"""
-    if _service is None:
-        raise HTTPException(status_code=503, detail="服务未初始化")
-    raw_data = getattr(_service, "_raw_data", None) or {}
+    raw_data = getattr(svc, "_raw_data", None) or {}
     leads = raw_data.get("leads", {}) if isinstance(raw_data, dict) else {}
     # LeadsLoader.load_all() returns {leads_achievement, channel_efficiency, leads_detail, ...}
     leads_detail = leads.get("leads_detail", {}) if isinstance(leads, dict) else {}
@@ -226,14 +219,12 @@ def get_leads_overview(
         "total", description="口径: total/cc_narrow/ss_narrow/lp_narrow/wide"
     ),
     period: Optional[str] = Query(None, description="月份 YYYYMM，默认最新月"),
+    svc: AnalysisService = Depends(get_service),
 ) -> dict[str, Any]:
     """
     Leads 总揽概览 — 数据源: leads.leads_overview_trend (A5) + leads.leads_achievement (A1) + leads.channel_efficiency (A2)
     """
-    if _service is None:
-        raise HTTPException(status_code=503, detail="服务未初始化")
-
-    raw_data = getattr(_service, "_raw_data", None) or {}
+    raw_data = getattr(svc, "_raw_data", None) or {}
     leads = raw_data.get("leads", {}) if isinstance(raw_data, dict) else {}
 
     # A5 数据

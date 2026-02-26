@@ -9,33 +9,27 @@ import sys
 from pathlib import Path
 from typing import Any, Optional
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
+
+from .dependencies import get_service
+from services.analysis_service import AnalysisService
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
 router = APIRouter()
 
-_service: Any = None
 
-
-def set_service(service: Any) -> None:
-    global _service
-    _service = service
-
-
-def _get_cohort_data() -> dict:
+def _get_cohort_data(svc: AnalysisService) -> dict:
     """从服务缓存中取 cohort 原始数据（C1-C6）"""
-    if _service is None:
-        raise HTTPException(status_code=503, detail="服务未初始化")
-    result = _service.get_cached_result()
+    result = svc.get_cached_result()
     if result is None:
         raise HTTPException(
             status_code=404,
             detail="no_data: 请先运行分析 POST /api/analysis/run",
         )
     # cohort 原始数据挂在 result["_raw_cohort"] 或通过 loader 直接访问
-    # AnalysisService 的结果中没有 raw cohort，需要通过 _service 的底层 loader 访问
+    # AnalysisService 的结果中没有 raw cohort，需要通过 svc 的底层 loader 访问
     # 降级：从引擎结果 cohort_roi.by_month 中提取聚合数据
     return result
 
@@ -150,7 +144,8 @@ def get_cohort_decay(
     metric: str = Query(
         default="reach_rate",
         description="指标: reach_rate / participation_rate / checkin_rate / referral_coefficient / conversion_ratio",
-    )
+    ),
+    svc: AnalysisService = Depends(get_service),
 ):
     """
     返回指定指标的 cohort 衰减数据（C1-C5）
@@ -163,7 +158,7 @@ def get_cohort_decay(
             detail=f"metric 无效，支持: {', '.join(METRIC_KEYS.keys())}",
         )
 
-    result = _get_cohort_data()
+    result = _get_cohort_data(svc)
     raw = _extract_raw_cohort(result, metric)
     by_cohort_month = raw["by_cohort_month"]
 
@@ -216,12 +211,12 @@ def get_cohort_decay(
 # ── 端点 2: GET /api/analysis/cohort-heatmap ─────────────────────────────────
 
 @router.get("/cohort-heatmap")
-def get_cohort_heatmap() -> dict[str, Any]:
+def get_cohort_heatmap(svc: AnalysisService = Depends(get_service)) -> dict[str, Any]:
     """
     返回 5 个指标 × 12 个月龄的热力图矩阵数据。
     结构: { metrics, months, matrix: [[val_m1, val_m2, ...], ...] }
     """
-    result = _get_cohort_data()
+    result = _get_cohort_data(svc)
 
     cohort_roi = result.get("cohort_roi") or result.get("roi_estimate") or {}
     by_month_raw = cohort_roi.get("by_month") or []
@@ -296,7 +291,7 @@ def get_cohort_heatmap() -> dict[str, Any]:
 # ── 端点 3: GET /api/analysis/cohort-detail ──────────────────────────────────
 
 @router.get("/cohort-detail")
-def get_cohort_detail() -> dict[str, Any]:
+def get_cohort_detail(svc: AnalysisService = Depends(get_service)) -> dict[str, Any]:
     """
     C6 学员级 Cohort 分析
     - retention_by_age: 月龄别留存率（真实数据）
@@ -304,17 +299,14 @@ def get_cohort_detail() -> dict[str, Any]:
     - churn_by_age: 月龄别流失漏斗（从 records 计算）
     - top_bringers: 头部带新学员（从 records 提取）
     """
-    if _service is None:
-        raise HTTPException(status_code=503, detail="服务未初始化，请先运行分析")
-
-    raw = getattr(_service, "_raw_data", None)
+    raw = getattr(svc, "_raw_data", None)
     if not raw:
         raise HTTPException(
             status_code=404,
             detail="尚无分析缓存，请先 POST /api/analysis/run",
         )
 
-    cohort_raw: dict = raw.get("cohort", {}) if isinstance(raw, dict) else {}
+    cohort_raw: dict = raw.get("cohort", {}) if isinstance(raw, dict) else {}  # noqa: E501
     c6: dict = cohort_raw.get("cohort_detail", {}) if isinstance(cohort_raw, dict) else {}
 
     if not c6:

@@ -8,23 +8,19 @@ import sys
 from pathlib import Path
 from typing import Any
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends
+
+from .dependencies import get_service
+from services.analysis_service import AnalysisService
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
 router = APIRouter()
 
-_service: Any = None
-
-
-def set_service(service: Any) -> None:
-    global _service
-    _service = service
-
 
 @router.get("/retention-contribution")
-def get_retention_contribution() -> dict[str, Any]:
+def get_retention_contribution(svc: AnalysisService = Depends(get_service)) -> dict[str, Any]:
     """
     F9 CC 留存贡献排名
 
@@ -35,13 +31,10 @@ def get_retention_contribution() -> dict[str, Any]:
                 retained_revenue_usd, contribution_pct
     - total_retained: 所有 CC 的跟进总量（用于贡献占比基准）
     """
-    if _service is None:
-        raise HTTPException(status_code=503, detail="服务未初始化")
-
-    raw_data: Any = getattr(_service, "_raw_data", None)
+    raw_data: Any = getattr(svc, "_raw_data", None)
     if not raw_data:
         # 降级：尝试从缓存结果取
-        result = _service.get_cached_result()
+        result = svc.get_cached_result()
         if result:
             raw_data = result.get("ops_raw") or {}
         else:

@@ -7,22 +7,19 @@ from __future__ import annotations
 
 from typing import Any
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Depends, Query
 from typing import Optional
 
+from .dependencies import get_service
+from services.analysis_service import AnalysisService
+
 router = APIRouter()
-
-_service: Any = None
-
-
-def set_service(service: Any) -> None:
-    global _service
-    _service = service
 
 
 @router.get("/funnel-detail")
 def get_funnel_detail(
     cc_name: Optional[str] = Query(default=None, description="筛选指定 CC（精确匹配）"),
+    svc: AnalysisService = Depends(get_service),
 ) -> dict[str, Any]:
     """
     F1 CC 级别各漏斗阶段跟进效率
@@ -31,10 +28,7 @@ def get_funnel_detail(
     - cc_funnel: CC 粒度各阶段效率列表，若传 cc_name 则只返回该 CC
     - stages: 漏斗阶段名称列表
     """
-    if _service is None:
-        raise HTTPException(status_code=503, detail="服务未初始化")
-
-    raw_data = getattr(_service, "_raw_data", None) or {}
+    raw_data = getattr(svc, "_raw_data", None) or {}
     ops = raw_data.get("ops", {}) if isinstance(raw_data, dict) else {}
     funnel_eff = ops.get("funnel_efficiency", {})
 
@@ -89,7 +83,7 @@ def get_funnel_detail(
 
 
 @router.get("/section-efficiency")
-def get_section_efficiency() -> dict[str, Any]:
+def get_section_efficiency(svc: AnalysisService = Depends(get_service)) -> dict[str, Any]:
     """
     F2 CC 级别截面效率（四象限散点图数据）
 
@@ -98,10 +92,7 @@ def get_section_efficiency() -> dict[str, Any]:
       每项含 cc_name / contact_rate / reserve_rate / attend_rate / paid_rate
     - data_source: 标明是 "real_f2_section" 还是降级的 "fallback_f5"
     """
-    if _service is None:
-        raise HTTPException(status_code=503, detail="服务未初始化")
-
-    raw_data = getattr(_service, "_raw_data", None) or {}
+    raw_data = getattr(svc, "_raw_data", None) or {}
     ops = raw_data.get("ops", {}) if isinstance(raw_data, dict) else {}
     section_eff = ops.get("section_efficiency", {})
 

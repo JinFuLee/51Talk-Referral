@@ -1,22 +1,17 @@
 from __future__ import annotations
 from typing import Any
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends
+
+from .dependencies import get_service
+from services.analysis_service import AnalysisService
 
 router = APIRouter()
-_service: Any = None
-
-
-def set_service(service: Any) -> None:
-    global _service
-    _service = service
 
 
 @router.get("/outreach-gap")
-def get_outreach_gap() -> dict[str, Any]:
+def get_outreach_gap(svc: AnalysisService = Depends(get_service)) -> dict[str, Any]:
     """F11 课前外呼覆盖缺口 + $损失量化"""
-    if _service is None:
-        raise HTTPException(status_code=503, detail="服务未初始化")
-    raw_data = getattr(_service, "_raw_data", None) or {}
+    raw_data = getattr(svc, "_raw_data", None) or {}
     ops = raw_data.get("ops", {}) if isinstance(raw_data, dict) else {}
     pre_class = ops.get("pre_class_outreach", {})
 
@@ -42,7 +37,7 @@ def get_outreach_gap() -> dict[str, Any]:
 
     # 损失量化: 未覆盖学员 → 尝试从引擎真实宏观指标取值，取不到时用保守预估
     # ── 从缓存中提取真实宏观指标 ──
-    _cached = _service.get_cached_result() if _service else None
+    _cached = svc.get_cached_result()
     _summary = (_cached or {}).get("summary", {})
     _funnel = (_cached or {}).get("funnel_efficiency", {})
     attend_rate = _funnel.get("attend_rate") or _summary.get("attend_rate") or 0.30
@@ -93,11 +88,11 @@ def get_outreach_gap() -> dict[str, Any]:
         "by_cc": cc_gaps,
         # 新增下发表格所需的数据流
         "by_channel_l3": sorted(
-            [{"name": k, **v} for k, v in l3_raw.items()], 
+            [{"name": k, **v} for k, v in l3_raw.items()],
             key=lambda x: x.get("total_classes", 0), reverse=True
         ),
         "by_lead_grade": sorted(
-            [{"name": k, **v} for k, v in lg_raw.items()], 
+            [{"name": k, **v} for k, v in lg_raw.items()],
             key=lambda x: str(x.get("name", "")), reverse=False
         ),
         "data_source": "f11" if total > 0 else "empty",

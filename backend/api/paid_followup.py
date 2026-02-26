@@ -8,20 +8,16 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Any
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
+
+from .dependencies import get_service
+from services.analysis_service import AnalysisService
 
 router = APIRouter()
 
-_service: Any = None
-
-
-def set_service(service: Any) -> None:
-    global _service
-    _service = service
-
 
 @router.get("/paid-followup-alert")
-def get_paid_followup_alert() -> dict[str, Any]:
+def get_paid_followup_alert(svc: AnalysisService = Depends(get_service)) -> dict[str, Any]:
     """
     F7 零跟进付费学员预警
 
@@ -33,10 +29,7 @@ def get_paid_followup_alert() -> dict[str, Any]:
     - by_enclosure: 按围场段分组计数 {segment: count}
     - by_cc: 按 CC 分组 {cc_name: {team, count}}
     """
-    if _service is None:
-        raise HTTPException(status_code=503, detail="服务未初始化")
-
-    raw = getattr(_service, "_raw_data", None)
+    raw = getattr(svc, "_raw_data", None)
     if not raw:
         raise HTTPException(status_code=503, detail="数据未加载")
 
@@ -104,7 +97,7 @@ def get_paid_followup_alert() -> dict[str, Any]:
 
 
 @router.get("/trial-class-compare")
-def get_trial_class_compare() -> dict[str, Any]:
+def get_trial_class_compare(svc: AnalysisService = Depends(get_service)) -> dict[str, Any]:
     """
     F10 课前vs课后跟进效果 A/B 对比
 
@@ -114,10 +107,7 @@ def get_trial_class_compare() -> dict[str, Any]:
     - by_channel: 渠道维度（市场 vs 转介绍）
     - summary: 全局汇总
     """
-    if _service is None:
-        raise HTTPException(status_code=503, detail="服务未初始化")
-
-    raw = getattr(_service, "_raw_data", None)
+    raw = getattr(svc, "_raw_data", None)
     if not raw:
         raise HTTPException(status_code=503, detail="数据未加载")
 

@@ -9,8 +9,11 @@ import sys
 from pathlib import Path
 from typing import Any
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
+
+from .dependencies import get_service
+from services.analysis_service import AnalysisService
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
@@ -23,13 +26,6 @@ TARGETS_OVERRIDE_FILE = CONFIG_DIR / "targets_override.json"
 EXCHANGE_RATE_FILE = CONFIG_DIR / "exchange_rate.json"
 
 router = APIRouter()
-
-_service: Any = None
-
-
-def set_service(service: Any) -> None:
-    global _service
-    _service = service
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
@@ -53,6 +49,21 @@ class ExchangeRateBody(BaseModel):
     rate: float
 
 
+class PanelConfigUpdate(BaseModel):
+    """面板配置更新：接受任意键值对，通过 model_extra 透传"""
+    model_config = {"extra": "allow"}
+
+
+class MonthTargetsUpdate(BaseModel):
+    """月度目标更新：接受任意数值型键值对"""
+    model_config = {"extra": "allow"}
+
+
+class MonthlyTargetV2Body(BaseModel):
+    """V2 月度目标结构入参：透传给 models.config.MonthlyTargetV2 校验"""
+    model_config = {"extra": "allow"}
+
+
 # ── Endpoints ─────────────────────────────────────────────────────────────────
 
 @router.get("/panel")
@@ -63,10 +74,10 @@ def get_panel_config() -> dict[str, Any]:
 
 
 @router.put("/panel")
-def put_panel_config(body: dict[str, Any]) -> dict[str, Any]:
+def put_panel_config(body: PanelConfigUpdate) -> dict[str, Any]:
     """写入面板配置 panel_config.json"""
     try:
-        _write_json(PANEL_CONFIG_FILE, body)
+        _write_json(PANEL_CONFIG_FILE, body.model_dump())
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc))
     return {"status": "ok"}
@@ -102,17 +113,18 @@ def get_monthly_targets() -> list[dict[str, Any]]:
 
 
 @router.put("/targets/{month}")
-def put_targets_month(month: str, body: dict[str, Any]) -> dict[str, Any]:
+def put_targets_month(month: str, body: MonthTargetsUpdate) -> dict[str, Any]:
     """更新指定月份目标，持久化到 targets_override.json"""
     if len(month) != 6 or not month.isdigit():
         raise HTTPException(status_code=400, detail="month 格式应为 YYYYMM（如 202602）")
+    body_dict = body.model_dump()
     overrides = _read_json(TARGETS_OVERRIDE_FILE, {})
-    overrides[month] = {**(overrides.get(month) or {}), **body}
+    overrides[month] = {**(overrides.get(month) or {}), **body_dict}
     try:
         _write_json(TARGETS_OVERRIDE_FILE, overrides)
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc))
-    return {"status": "ok", "month": month, "updated": body}
+    return {"status": "ok", "month": month, "updated": body_dict}
 
 
 @router.get("/exchange-rate")
@@ -161,15 +173,14 @@ def get_targets_v2(month: str) -> dict[str, Any]:
 
 
 @router.put("/targets/{month}/v2")
-def put_targets_v2(month: str, body: dict[str, Any]) -> dict[str, Any]:
+def put_targets_v2(month: str, body: "MonthlyTargetV2Body") -> dict[str, Any]:
     """保存 V2 结构到 targets_override.json (含强校验)"""
     from models.config import MonthlyTargetV2
     if len(month) != 6 or not month.isdigit():
         raise HTTPException(status_code=400, detail="month 格式应为 YYYYMM")
 
-    # 严格校验
     try:
-        v2_model = MonthlyTargetV2(**body)
+        v2_model = MonthlyTargetV2(**body.model_dump())
     except Exception as exc:
         raise HTTPException(status_code=400, detail=f"数据格式错误: {str(exc)}")
 
@@ -187,11 +198,11 @@ def put_targets_v2(month: str, body: dict[str, Any]) -> dict[str, Any]:
 
 
 @router.post("/targets/{month}/calculate")
-def calculate_targets(month: str, body: dict[str, Any]) -> dict[str, Any]:
+def calculate_targets(month: str, body: "MonthlyTargetV2Body") -> dict[str, Any]:
     """接收部分 V2 输入，返回完整计算结果（双向计算）"""
     from models.config import MonthlyTargetV2
     try:
-        v2 = MonthlyTargetV2(**body)
+        v2 = MonthlyTargetV2(**body.model_dump())
     except Exception as exc:
         raise HTTPException(status_code=400, detail=str(exc))
     return {
@@ -251,7 +262,10 @@ def _synthesize_v2_from_flat(month: str, flat: dict) -> dict:
 # ── 智能目标推荐 ────────────────────────────────────────────────────────────────
 
 @router.get("/targets/{month}/recommend")
-def get_target_recommendations(month: str) -> dict[str, Any]:
+def get_target_recommendations(
+    month: str,
+    svc: AnalysisService = Depends(get_service),
+) -> dict[str, Any]:
     """智能目标推荐：三档场景 + 可行性评估"""
     if len(month) != 6 or not month.isdigit():
         raise HTTPException(status_code=400, detail="month 格式应为 YYYYMM")
@@ -343,7 +357,7 @@ def get_target_recommendations(month: str) -> dict[str, Any]:
     }
 
     # ── 4. 可行性评估（当月） ────────────────────────────────────────────────
-    feasibility = _calculate_feasibility(month, base_targets)
+    feasibility = _calculate_feasibility(svc, month, base_targets)
 
     return {
         "month": month,
@@ -353,7 +367,7 @@ def get_target_recommendations(month: str) -> dict[str, Any]:
     }
 
 
-def _calculate_feasibility(month: str, targets: dict) -> dict:
+def _calculate_feasibility(svc: Any, month: str, targets: dict) -> dict:
     """计算当月目标可行性"""
     result: dict[str, Any] = {
         "score": None,
@@ -362,10 +376,10 @@ def _calculate_feasibility(month: str, targets: dict) -> dict:
         "confidence": "low",
     }
 
-    if _service is None:
+    if svc is None:
         return result
 
-    cached = _service.get_cached_result()
+    cached = svc.get_cached_result()
     if cached is None:
         return result
 

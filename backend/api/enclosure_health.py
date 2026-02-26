@@ -1,27 +1,24 @@
 from __future__ import annotations
 from typing import Any
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends
+
+from .dependencies import get_service
+from services.analysis_service import AnalysisService
 
 router = APIRouter()
-_service: Any = None
 
-def set_service(service: Any) -> None:
-    global _service
-    _service = service
 
 @router.get("/enclosure-health")
-def get_enclosure_health() -> dict[str, Any]:
+def get_enclosure_health(svc: AnalysisService = Depends(get_service)) -> dict[str, Any]:
     """围场健康度仪表盘 — 交叉 F7+F8+D3"""
-    if _service is None:
-        raise HTTPException(status_code=503, detail="服务未初始化")
-    raw_data = getattr(_service, "_raw_data", None) or {}
+    raw_data = getattr(svc, "_raw_data", None) or {}
     ops = raw_data.get("ops", {}) if isinstance(raw_data, dict) else {}
     kpi = raw_data.get("kpi", {}) if isinstance(raw_data, dict) else {}
 
     f7 = ops.get("paid_user_followup", {})  # F7 付费用户跟进
     f8 = ops.get("enclosure_monthly_followup", {})  # F8 围场月度跟进
     d3 = kpi.get("enclosure_referral", {})  # D3 转介绍围场
-    
+
     leads = raw_data.get("leads", {}) if isinstance(raw_data, dict) else {}
     a2 = leads.get("channel_efficiency", {}) # A2 围场效率矩阵
 

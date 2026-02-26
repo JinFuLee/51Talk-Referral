@@ -8,25 +8,19 @@ import sys
 from pathlib import Path
 from typing import Any
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
+from services.analysis_service import AnalysisService
+
+from .dependencies import get_service
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
 router = APIRouter()
 
-_service: Any = None
 
-
-def set_service(s: Any) -> None:
-    global _service
-    _service = s
-
-
-def _get_raw() -> dict:
-    if _service is None:
-        raise HTTPException(status_code=503, detail="服务未初始化")
-    raw = getattr(_service, "_raw_data", None)
+def _get_raw(svc: AnalysisService) -> dict:
+    raw = getattr(svc, "_raw_data", None)
     if not raw:
         raise HTTPException(
             status_code=503,
@@ -55,6 +49,7 @@ def get_cohort_decay_raw(
         default="month",
         description="group_by: month（按入组月）| team（按小组）",
     ),
+    svc: AnalysisService = Depends(get_service),
 ):
     """
     返回 C1-C5 cohort 衰减数据，直接读取 Loader 层原始数据。
@@ -66,7 +61,7 @@ def get_cohort_decay_raw(
             detail=f"metric 无效，支持: {', '.join(METRIC_KEYS.keys())}",
         )
 
-    raw = _get_raw()
+    raw = _get_raw(svc)
     cohort = raw.get("cohort", {})
     metric_data = cohort.get(metric, {})
 
@@ -93,12 +88,12 @@ def get_cohort_decay_raw(
 
 
 @router.get("/cohort-coefficient")
-def get_cohort_coefficient() -> dict[str, Any]:
+def get_cohort_coefficient(svc: AnalysisService = Depends(get_service)) -> dict[str, Any]:
     """
     返回 C4 带新系数 cohort 数据 + 黄金窗口月份。
     黄金窗口 = 所有入组月中平均带新系数最高的月龄（m1-m12）。
     """
-    raw = _get_raw()
+    raw = _get_raw(svc)
     cohort = raw.get("cohort", {})
     coef_data = cohort.get("referral_coefficient", {})
     by_month = coef_data.get("by_month", [])

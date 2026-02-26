@@ -6,24 +6,17 @@ from __future__ import annotations
 
 from typing import Any
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
+
+from .dependencies import get_service
+from services.analysis_service import AnalysisService
 
 router = APIRouter()
 
-# 模块级单例（由 main.py startup 注入，独立于 analysis._service 避免竞态）
-_service: Any = None
 
-
-def set_service(service: Any) -> None:
-    global _service
-    _service = service
-
-
-def _require_cache() -> dict[str, Any]:
+def _require_cache(svc: AnalysisService) -> dict[str, Any]:
     """返回完整缓存，不存在则 404"""
-    if _service is None:
-        raise HTTPException(status_code=503, detail="服务未初始化")
-    result = _service.get_cached_result()
+    result = svc.get_cached_result()
     if result is None:
         raise HTTPException(
             status_code=404,
@@ -33,9 +26,9 @@ def _require_cache() -> dict[str, Any]:
 
 
 @router.get("/root-cause", summary="5-Why 根因分析")
-def get_root_cause() -> dict[str, Any]:
+def get_root_cause(svc: AnalysisService = Depends(get_service)) -> dict[str, Any]:
     """对所有异常 KPI 执行5-Why因果链分析（规则引擎，不依赖LLM）"""
-    cache = _require_cache()
+    cache = _require_cache(svc)
     from core.root_cause import RootCauseEngine
     summary = dict(cache.get("summary", {}))
     # 兼容 V2 缓存 key 名（registrations → registration, payments → payment）
@@ -58,18 +51,18 @@ def get_root_cause() -> dict[str, Any]:
 
 
 @router.get("/stage-evaluation", summary="转介绍阶段评估")
-def get_stage_evaluation() -> dict[str, Any]:
+def get_stage_evaluation(svc: AnalysisService = Depends(get_service)) -> dict[str, Any]:
     """评估当前转介绍运营成熟度阶段（基础启动/科学运营/系统思维）"""
-    cache = _require_cache()
+    cache = _require_cache(svc)
     from core.stage_evaluator import StageEvaluator
     evaluator = StageEvaluator(cache)
     return evaluator.evaluate()
 
 
 @router.get("/pyramid-report", summary="金字塔结构报告")
-def get_pyramid_report() -> dict[str, Any]:
+def get_pyramid_report(svc: AnalysisService = Depends(get_service)) -> dict[str, Any]:
     """生成结论先行的金字塔结构报告（SCQA + MECE拆解 + 六步法）"""
-    cache = _require_cache()
+    cache = _require_cache(svc)
     from core.report_generator_v2 import PyramidReportGenerator
     generator = PyramidReportGenerator(cache)
     return generator.generate()

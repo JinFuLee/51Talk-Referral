@@ -1,16 +1,15 @@
 from __future__ import annotations
 from typing import Any
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends
+
+from .dependencies import get_service
+from services.analysis_service import AnalysisService
 
 router = APIRouter()
-_service: Any = None
 
-def set_service(service: Any) -> None:
-    global _service
-    _service = service
 
 @router.get("/productivity-history")
-def get_productivity_history() -> dict[str, Any]:
+def get_productivity_history(svc: AnalysisService = Depends(get_service)) -> dict[str, Any]:
     """
     E1/E2 CC+SS 出勤历史 → 产能利用率趋势
 
@@ -21,9 +20,7 @@ def get_productivity_history() -> dict[str, Any]:
     active_5min = 当日活跃>=5分钟的人数（即出勤人数）
     active_30min = 当日活跃>=30分钟的人数（深度出勤）
     """
-    if _service is None:
-        raise HTTPException(status_code=503, detail="服务未初始化")
-    raw_data = getattr(_service, "_raw_data", None) or {}
+    raw_data = getattr(svc, "_raw_data", None) or {}
     order = raw_data.get("order", {}) if isinstance(raw_data, dict) else {}
 
     # order_loader 返回 list[{date, active_5min, active_30min}]

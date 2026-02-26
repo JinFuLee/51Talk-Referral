@@ -6,11 +6,14 @@ from __future__ import annotations
 
 import sys
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
+
+from .dependencies import get_service
+from services.analysis_service import AnalysisService
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 BACKEND_DIR = Path(__file__).resolve().parent.parent
@@ -21,13 +24,6 @@ OUTPUT_DIR = PROJECT_ROOT / "output"
 AI_REPORTS_DIR = PROJECT_ROOT / "output" / "reports"
 
 router = APIRouter()
-
-_service: Any = None
-
-
-def set_service(service: Any) -> None:
-    global _service
-    _service = service
 
 
 # ── Pydantic 模型 ──────────────────────────────────────────────────────────────
@@ -101,7 +97,10 @@ def _iter_report_files() -> list[dict[str, Any]]:
 # ── AI 报告端点 ────────────────────────────────────────────────────────────────
 
 @router.post("/generate")
-def generate_report(req: GenerateReportRequest) -> dict[str, Any]:
+def generate_report(
+    req: GenerateReportRequest,
+    svc: AnalysisService = Depends(get_service),
+) -> dict[str, Any]:
     """
     触发 AI 报告生成。
     整合规则引擎分析 + Gemini AI 洞察，生成完整 Markdown 报告并保存到 output/reports/。
@@ -109,11 +108,9 @@ def generate_report(req: GenerateReportRequest) -> dict[str, Any]:
     Returns:
         {status, report: {report_path, markdown, generated_at, ai_commentary, model_used, has_ai}}
     """
-    if _service is None:
-        raise HTTPException(status_code=503, detail="AnalysisService 尚未初始化")
     try:
         from core.ai_report_generator import AIReportGenerator
-        gen = AIReportGenerator(_service)
+        gen = AIReportGenerator(svc)
         report = gen.generate_report(force_run=req.force_run)
         return {"status": "ok", "report": report}
     except Exception as e:

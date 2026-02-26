@@ -131,13 +131,8 @@ for _key, _mod, _prefix, _tags in _loaded_routers:
 @app.on_event("startup")
 async def startup_event():
     """启动时初始化服务"""
-    # 将单例注入到所有已加载的路由模块（自动遍历，无需手动列举）
-    for _key, _mod, _prefix, _tags in _loaded_routers:
-        if hasattr(_mod, "set_service"):
-            try:
-                _mod.set_service(_analysis_service)
-            except Exception as _e:
-                logger.warning(f"set_service 失败 [{_key}]: {_e}")
+    # 挂载单例到 app.state，所有路由通过 Depends(get_service) 获取
+    app.state.service = _analysis_service
 
     # 后台自动运行分析（非阻塞）
     asyncio.create_task(_auto_run_analysis())

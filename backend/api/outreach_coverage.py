@@ -14,22 +14,16 @@ from __future__ import annotations
 
 from typing import Any
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
+from services.analysis_service import AnalysisService
+
+from .dependencies import get_service
 
 router = APIRouter(tags=["analysis"])
 
-_service: Any = None
 
-
-def set_service(service: Any) -> None:
-    global _service
-    _service = service
-
-
-def _require_full_cache() -> dict[str, Any]:
-    if _service is None:
-        raise HTTPException(status_code=503, detail="服务未初始化")
-    result = _service.get_cached_result()
+def _require_full_cache(svc: AnalysisService) -> dict[str, Any]:
+    result = svc.get_cached_result()
     if result is None:
         raise HTTPException(
             status_code=404,
@@ -235,7 +229,7 @@ def _build_coverage_data(cache: dict[str, Any]) -> dict[str, Any]:
 
 
 @router.get("/outreach-coverage")
-def get_outreach_coverage() -> dict[str, Any]:
+def get_outreach_coverage(svc: AnalysisService = Depends(get_service)) -> dict[str, Any]:
     """
     F11 课前外呼覆盖缺口 → $ 损失量化
 
@@ -247,5 +241,5 @@ def get_outreach_coverage() -> dict[str, Any]:
     - by_grade: 按 lead_grade 分组的覆盖率（高评级优先外呼验证）
     - by_cc: CC 覆盖排名（覆盖率低→高，优先显示最需改进的 CC）
     """
-    cache = _require_full_cache()
+    cache = _require_full_cache(svc)
     return _build_coverage_data(cache)

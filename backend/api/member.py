@@ -10,19 +10,15 @@ import sys
 from pathlib import Path
 from typing import Any, Optional
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
+
+from .dependencies import get_service
+from services.analysis_service import AnalysisService
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
 router = APIRouter()
-
-_service: Any = None
-
-
-def set_service(service: Any) -> None:
-    global _service
-    _service = service
 
 
 # ── 工具函数 ─────────────────────────────────────────────────────────────────
@@ -560,7 +556,10 @@ def _build_revenue(cc_name: str, order_records: list[dict]) -> dict:
 
 
 @router.get("/{cc_name}/profile")
-def get_member_profile(cc_name: str) -> dict[str, Any]:
+def get_member_profile(
+    cc_name: str,
+    svc: AnalysisService = Depends(get_service),
+) -> dict[str, Any]:
     """
     GET /api/member/{cc_name}/profile
     返回 MemberProfileResponse 结构（identity / radar / anomaly / revenue）
@@ -572,12 +571,9 @@ def get_member_profile(cc_name: str) -> dict[str, Any]:
     - F8 enclosure_monthly_followup.by_cc — 围场月度覆盖补充
     - E3 order_detail.records — 订单明细（雷达维度6 + 收入面板）
     """
-    if _service is None:
-        raise HTTPException(status_code=503, detail="服务未初始化")
-
-    raw_data: Any = getattr(_service, "_raw_data", None) or {}
+    raw_data: Any = getattr(svc, "_raw_data", None) or {}
     if not raw_data:
-        result = _service.get_cached_result()
+        result = svc.get_cached_result()
         if result:
             raw_data = result.get("ops_raw") or {}
 

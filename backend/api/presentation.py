@@ -7,34 +7,28 @@ from __future__ import annotations
 from datetime import datetime, timedelta
 from typing import Any
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
+
+from .dependencies import get_service
+from services.analysis_service import AnalysisService
 
 router = APIRouter()
 
-_service: Any = None
 
-
-def set_service(service: Any) -> None:
-    global _service
-    _service = service
-
-
-def _get_cache() -> dict[str, Any] | None:
-    if _service is None:
-        return None
-    return _service.get_cached_result()
+def _get_cache(svc: AnalysisService) -> dict[str, Any] | None:
+    return svc.get_cached_result()
 
 
 # ─── 端点1: 行动计划 ──────────────────────────────────────────────────────────
 
 @router.get("/action-plan", summary="行动计划列表")
-def get_action_plan() -> dict[str, Any]:
+def get_action_plan(svc: AnalysisService = Depends(get_service)) -> dict[str, Any]:
     """
     从 root_cause + impact_chain + outreach 数据派生行动项列表。
     按 priority (immediate > this-week > ongoing) 排序。
     """
     try:
-        cache = _get_cache()
+        cache = _get_cache(svc)
         if cache is None:
             return _fallback_action_plan()
 
@@ -176,13 +170,13 @@ def _fallback_action_plan(error: str = "") -> dict:
 # ─── 端点2: 会议纪要 ──────────────────────────────────────────────────────────
 
 @router.get("/meeting-summary", summary="会议讨论要点")
-def get_meeting_summary() -> dict[str, Any]:
+def get_meeting_summary(svc: AnalysisService = Depends(get_service)) -> dict[str, Any]:
     """
     从 pyramid_report + root_cause 派生会议讨论要点。
     返回共识、分歧点、待跟进项及下次会议信息。
     """
     try:
-        cache = _get_cache()
+        cache = _get_cache(svc)
         if cache is None:
             return _fallback_meeting_summary()
 
@@ -316,13 +310,13 @@ def _fallback_meeting_summary(error: str = "") -> dict:
 # ─── 端点3: 资源需求 ──────────────────────────────────────────────────────────
 
 @router.get("/resource-request", summary="资源需求建议")
-def get_resource_request() -> dict[str, Any]:
+def get_resource_request(svc: AnalysisService = Depends(get_service)) -> dict[str, Any]:
     """
     从 impact_chain 派生资源需求建议。
     按人力/预算/工具分类，计算总预期收益。
     """
     try:
-        cache = _get_cache()
+        cache = _get_cache(svc)
         if cache is None:
             return _fallback_resource_request()
 

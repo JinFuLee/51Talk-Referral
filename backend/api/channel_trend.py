@@ -8,25 +8,19 @@ import sys
 from pathlib import Path
 from typing import Any
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
+from services.analysis_service import AnalysisService
+
+from .dependencies import get_service
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
 router = APIRouter()
 
-_service: Any = None
 
-
-def set_service(service: Any) -> None:
-    global _service
-    _service = service
-
-
-def _get_result() -> dict:
-    if _service is None:
-        raise HTTPException(status_code=503, detail="服务未初始化")
-    result = _service.get_cached_result()
+def _get_result(svc: AnalysisService) -> dict:
+    result = svc.get_cached_result()
     if result is None:
         raise HTTPException(
             status_code=404,
@@ -98,7 +92,7 @@ def _pivot_f4(records: list[dict], months: list[str]) -> list[dict]:
 
 
 @router.get("/channel-trend")
-def get_channel_trend() -> dict[str, Any]:
+def get_channel_trend(svc: AnalysisService = Depends(get_service)) -> dict[str, Any]:
     """
     F4 渠道月度趋势数据。
     返回:
@@ -108,7 +102,7 @@ def get_channel_trend() -> dict[str, Any]:
     - summary: 各月汇总注册数（跨所有渠道求和）
     """
     try:
-        result = _get_result()
+        result = _get_result(svc)
     except HTTPException:
         # 数据不可用时返回空结构
         return {

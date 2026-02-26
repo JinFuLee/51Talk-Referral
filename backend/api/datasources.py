@@ -17,8 +17,6 @@ INPUT_DIR = PROJECT_ROOT / "input"
 
 router = APIRouter()
 
-_service: Any = None
-
 # 35 数据源注册表（A/B/C/D/E/F 六类，与 MultiSourceLoader/AnalysisEngineV2 对应）
 DATA_SOURCE_REGISTRY: list[dict[str, Any]] = [
     # ── A 类: Leads Pipeline ──────────────────────────────────────────────────
@@ -241,11 +239,6 @@ DATA_SOURCE_REGISTRY: list[dict[str, Any]] = [
 
 # 简单内存状态缓存
 _status_cache: list[dict[str, Any]] | None = None
-
-
-def set_service(service: Any) -> None:
-    global _service
-    _service = service
 
 
 def _build_status() -> list[dict[str, Any]]:

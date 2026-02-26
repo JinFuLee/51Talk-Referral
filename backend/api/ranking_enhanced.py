@@ -1,23 +1,19 @@
 from __future__ import annotations
-from typing import Any
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
+
+from .dependencies import get_service
+from services.analysis_service import AnalysisService
 
 router = APIRouter()
-_service: Any = None
-
-
-def set_service(service: Any) -> None:
-    global _service
-    _service = service
 
 
 @router.get("/cc-ranking-enhanced")
-def get_cc_ranking_enhanced(top_n: int = Query(default=20, ge=1, le=100)):
+def get_cc_ranking_enhanced(
+    top_n: int = Query(default=20, ge=1, le=100),
+    svc: AnalysisService = Depends(get_service),
+):
     """A4 增强排名：在现有 CC 排名基础上补充 reserve_rate/attend_rate"""
-    if _service is None:
-        raise HTTPException(status_code=503, detail="服务未初始化")
-
-    cache = _service.get_cached_result()
+    cache = svc.get_cached_result()
     if not cache:
         raise HTTPException(status_code=404, detail="no_data")
 
@@ -29,7 +25,7 @@ def get_cc_ranking_enhanced(top_n: int = Query(default=20, ge=1, le=100)):
         profiles = cc_ranking
 
     # 从 raw_data 补充 reserve/attend 维度
-    raw_data = getattr(_service, "_raw_data", None) or {}
+    raw_data = getattr(svc, "_raw_data", None) or {}
     leads = raw_data.get("leads", {}) if isinstance(raw_data, dict) else {}
     records = leads.get("records", []) if isinstance(leads, dict) else []
 

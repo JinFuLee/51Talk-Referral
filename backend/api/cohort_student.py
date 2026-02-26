@@ -8,28 +8,21 @@ import sys
 from pathlib import Path
 from typing import Any
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends
+
+from .dependencies import get_service
+from services.analysis_service import AnalysisService
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
 router = APIRouter()
 
-_service: Any = None
-
-
-def set_service(service: Any) -> None:
-    global _service
-    _service = service
-
 
 @router.get("/cohort-students")
-def get_cohort_students() -> dict[str, Any]:
+def get_cohort_students(svc: AnalysisService = Depends(get_service)) -> dict[str, Any]:
     """C6 学员明细统计 — CC带新排名 / 月龄留存曲线 / 团队对比"""
-    if _service is None:
-        raise HTTPException(status_code=503, detail="服务未初始化")
-
-    raw = getattr(_service, "_raw_data", None)
+    raw = getattr(svc, "_raw_data", None)
 
     # 尝试从原始数据中读取 C6 cohort_detail
     c6: dict = {}

@@ -8,26 +8,20 @@ import sys
 from pathlib import Path
 from typing import Any
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from typing import Optional
+
+from .dependencies import get_service
+from services.analysis_service import AnalysisService
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
 router = APIRouter()
 
-_service: Any = None
 
-
-def set_service(service: Any) -> None:
-    global _service
-    _service = service
-
-
-def _get_result() -> dict:
-    if _service is None:
-        raise HTTPException(status_code=503, detail="服务未初始化")
-    result = _service.get_cached_result()
+def _get_result(svc: AnalysisService) -> dict:
+    result = svc.get_cached_result()
     if result is None:
         raise HTTPException(
             status_code=404,
@@ -117,6 +111,7 @@ def _build_heatmap_data(records: list[dict]) -> dict:
 @router.get("/outreach-heatmap")
 def get_outreach_heatmap(
     cc_name: Optional[str] = Query(default=None, description="筛选指定 CC（精确匹配）"),
+    svc: AnalysisService = Depends(get_service),
 ) -> dict[str, Any]:
     """
     F5 CC 外呼热力图（CC × 日期二维矩阵）。
@@ -128,7 +123,7 @@ def get_outreach_heatmap(
     - summary: { total_calls, avg_daily, top_cc }
     """
     try:
-        result = _get_result()
+        result = _get_result(svc)
     except HTTPException:
         return {
             "dates": [],
@@ -164,7 +159,7 @@ def get_outreach_heatmap(
 
     # Fallback: try raw_data directly from service
     if not records:
-        raw_data = getattr(_service, "_raw_data", None) or {}
+        raw_data = getattr(svc, "_raw_data", None) or {}
         ops = raw_data.get("ops", {}) if isinstance(raw_data, dict) else {}
         f5_raw = ops.get("daily_outreach", {}) if isinstance(ops, dict) else {}
         f5_by_cc = f5_raw.get("by_cc", {}) if isinstance(f5_raw, dict) else {}
