@@ -54,9 +54,9 @@ export default function OpsRankingPage() {
   const [selectedIndex, setSelectedIndex] = useState<number>(0);
   const setSelectionContext = useConfigStore((s) => s.setSelectionContext);
 
-  const { data: ccRaw, isLoading: loadingCC } = useCCRanking(100);
-  const { data: ssRaw, isLoading: loadingSS } = useSSRanking(100);
-  const { data: lpRaw, isLoading: loadingLP } = useLPRanking(100);
+  const { data: ccRaw, isLoading: loadingCC, error: errorCC } = useCCRanking(100);
+  const { data: ssRaw, isLoading: loadingSS, error: errorSS } = useSSRanking(100);
+  const { data: lpRaw, isLoading: loadingLP, error: errorLP } = useLPRanking(100);
 
   function extractItems(raw: unknown): RankingItem[] {
     if (!raw) return [];
@@ -73,6 +73,7 @@ export default function OpsRankingPage() {
   };
 
   const isLoading = loadingCC || loadingSS || loadingLP;
+  const isError = errorCC || errorSS || errorLP;
   const items = roleMap[activeTab];
   const selected = items[selectedIndex];
 
@@ -115,6 +116,14 @@ export default function OpsRankingPage() {
           <Skeleton className="lg:col-span-3 h-64" />
           <Skeleton className="lg:col-span-2 h-64" />
         </div>
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="flex items-center justify-center h-64 text-slate-500 text-sm">
+        数据加载失败，请刷新重试
       </div>
     );
   }

@@ -23,7 +23,7 @@ export default function OpsDashboardPage() {
   const { t } = useTranslation();
   const selectionContext = useConfigStore((s) => s.selectionContext);
   const clearSelectionContext = useConfigStore((s) => s.clearSelectionContext);
-  const { data: summaryData, isLoading: loadingSummary } = useSummary();
+  const { data: summaryData, isLoading: loadingSummary, error: summaryError } = useSummary();
   const { data: anomalies = [] } = useAnomalies();
   const { data: alerts = [] } = useRiskAlerts();
   const { data: productivityRaw } = useProductivity();
@@ -123,6 +123,14 @@ export default function OpsDashboardPage() {
           <Skeleton className="h-32" />
         </div>
         <Skeleton className="h-24" />
+      </div>
+    );
+  }
+
+  if (summaryError) {
+    return (
+      <div className="flex items-center justify-center h-64 text-slate-500 text-sm">
+        数据加载失败，请刷新重试
       </div>
     );
   }

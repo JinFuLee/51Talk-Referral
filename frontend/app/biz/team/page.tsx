@@ -17,11 +17,13 @@ import type { SummaryData } from "@/lib/types";
 
 export default function BizTeamPage() {
   const { t } = useTranslation();
-  const { data: productivityResp, isLoading: pLoading } = useProductivity();
-  const { data: summaryResp, isLoading: sLoading } = useSummary();
+  const { data: productivityResp, isLoading: pLoading, error: pError } = useProductivity();
+  const { data: summaryResp, isLoading: sLoading, error: sError } = useSummary();
   const { data: predResp, isLoading: predLoading } = usePrediction();
 
   void summaryResp;
+
+  const isError = pError || sError;
 
   if (pLoading || sLoading || predLoading) {
     return (
@@ -33,6 +35,14 @@ export default function BizTeamPage() {
         </div>
         <Skeleton className="h-48" />
         <Skeleton className="h-48" />
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="flex items-center justify-center h-64 text-slate-500 text-sm">
+        数据加载失败，请刷新重试
       </div>
     );
   }

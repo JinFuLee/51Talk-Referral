@@ -65,7 +65,7 @@ const STRATEGY_TIPS = [
 
 function StrategyTab() {
   const { t } = useTranslation();
-  const { data, isLoading } = useEnclosure();
+  const { data, isLoading, error: isError } = useEnclosure();
   const { data: compareData, isLoading: compareLoading } = useEnclosureCompare();
   const { data: combinedData, isLoading: combinedLoading } = useEnclosureCombined();
 
@@ -76,6 +76,14 @@ function StrategyTab() {
         <Skeleton className="h-56" />
         <Skeleton className="h-48" />
         <Skeleton className="h-32" />
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="flex items-center justify-center h-64 text-slate-500 text-sm">
+        数据加载失败，请刷新重试
       </div>
     );
   }

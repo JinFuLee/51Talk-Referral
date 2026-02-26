@@ -73,16 +73,17 @@ export default function KPINorthStarPage() {
   if (focusCC) nsParams.set("cc_name", focusCC);
   const nsKey = `/api/analysis/north-star${nsParams.toString() ? "?" + nsParams.toString() : ""}`;
 
-  const { data: northStar, isLoading: loadingNS } = useSWR<NorthStarData>(
+  const { data: northStar, isLoading: loadingNS, error: errorNS } = useSWR<NorthStarData>(
     [nsKey, focusCC],
     () => swrFetcher(nsKey)
   );
-  const { data: checkinAB, isLoading: loadingAB } = useSWR<CheckinABData>(
+  const { data: checkinAB, isLoading: loadingAB, error: errorAB } = useSWR<CheckinABData>(
     `/api/analysis/checkin-ab`,
     swrFetcher
   );
 
   const isLoading = loadingNS || loadingAB;
+  const hasError = errorNS || errorAB;
 
   if (isLoading) {
     return (
@@ -99,6 +100,14 @@ export default function KPINorthStarPage() {
           <Skeleton className="h-64" />
           <Skeleton className="h-64" />
         </div>
+      </div>
+    );
+  }
+
+  if (hasError) {
+    return (
+      <div className="flex items-center justify-center h-64 text-slate-500 text-sm">
+        数据加载失败，请刷新重试
       </div>
     );
   }

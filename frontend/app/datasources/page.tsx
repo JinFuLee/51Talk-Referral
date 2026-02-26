@@ -11,7 +11,7 @@ import { useState } from "react";
 
 export default function DataSourcesPage() {
   const { t } = useTranslation();
-  const { data: sources, isLoading, mutate } = useDataSources();
+  const { data: sources, isLoading, error: isError, mutate } = useDataSources();
   const [refreshing, setRefreshing] = useState(false);
 
   async function handleRefresh() {
@@ -50,6 +50,10 @@ export default function DataSourcesPage() {
           {Array.from({ length: 6 }).map((_, i) => (
             <Skeleton key={`skeleton-${i}`} className="h-24" />
           ))}
+        </div>
+      ) : isError ? (
+        <div className="flex items-center justify-center h-64 text-slate-500 text-sm">
+          数据加载失败，请刷新重试
         </div>
       ) : (
         <DataSourceGrid sources={sources ?? []} showDetail />

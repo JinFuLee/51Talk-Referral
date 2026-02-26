@@ -23,9 +23,11 @@ export default function BizOverviewPage() {
     { text: t("biz.overview.action.enclosureHigh"), priority: "medium" as const },
     { text: t("biz.overview.action.preCallLift"), priority: "medium" as const },
   ];
-  const { data: summaryResp, isLoading: sLoading } = useSummary();
-  const { data: predictionResp, isLoading: pLoading } = usePrediction();
+  const { data: summaryResp, isLoading: sLoading, error: sError } = useSummary();
+  const { data: predictionResp, isLoading: pLoading, error: pError } = usePrediction();
   const { data: alerts } = useRiskAlerts();
+
+  const isError = sError || pError;
 
   if (sLoading || pLoading) {
     return (
@@ -38,6 +40,14 @@ export default function BizOverviewPage() {
           <Skeleton className="h-40" />
         </div>
         <Skeleton className="h-32" />
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="flex items-center justify-center h-64 text-slate-500 text-sm">
+        数据加载失败，请刷新重试
       </div>
     );
   }

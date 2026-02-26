@@ -17,7 +17,7 @@ import { OPS_PAGE } from "@/lib/layout";
 export default function OpsOrdersPage() {
   const { t } = useTranslation();
   const [search, setSearch] = useState("");
-  const { data: ordersRaw, isLoading } = useOrders();
+  const { data: ordersRaw, isLoading, error: isError } = useOrders();
   const { data: packageMixRaw } = usePackageMix();
   const { data: channelRevenueRaw } = useChannelRevenue();
   const { data: exchangeRateRaw } = useExchangeRate();
@@ -79,6 +79,14 @@ export default function OpsOrdersPage() {
           <Skeleton className="h-48" />
         </div>
         <Skeleton className="h-64" />
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="flex items-center justify-center h-64 text-slate-500 text-sm">
+        数据加载失败，请刷新重试
       </div>
     );
   }

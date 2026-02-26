@@ -58,8 +58,8 @@ function ROIBlock({ block }: { block: ROIMetricBlock }) {
 
 export default function BizROIPage() {
   const { t } = useTranslation();
-  const { data: roiResp, isLoading: roiLoading } = useROI();
-  const { data: costResp, isLoading: costLoading } = useROICostBreakdown();
+  const { data: roiResp, isLoading: roiLoading, error: roiError } = useROI();
+  const { data: costResp, isLoading: costLoading, error: costError } = useROICostBreakdown();
 
   if (roiLoading || costLoading) {
     return (
@@ -68,6 +68,14 @@ export default function BizROIPage() {
         <Skeleton className="h-56" />
         <Skeleton className="h-48" />
         <Skeleton className="h-48" />
+      </div>
+    );
+  }
+
+  if (roiError || costError) {
+    return (
+      <div className="flex items-center justify-center h-64 text-slate-500 text-sm">
+        数据加载失败，请刷新重试
       </div>
     );
   }

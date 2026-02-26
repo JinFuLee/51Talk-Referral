@@ -12,8 +12,8 @@ import { OPS_PAGE } from "@/lib/layout";
 
 export default function OpsTrialPage() {
   const { t } = useTranslation();
-  const { data: followupRaw, isLoading: loadingFollowup } = useTrialFollowup();
-  const { data: checkinRaw, isLoading: loadingCheckin } = useCheckin();
+  const { data: followupRaw, isLoading: loadingFollowup, error: errorFollowup } = useTrialFollowup();
+  const { data: checkinRaw, isLoading: loadingCheckin, error: errorCheckin } = useCheckin();
 
   const followup = followupRaw as Record<string, unknown> | undefined;
   const checkin = checkinRaw as CheckinData | undefined;
@@ -54,6 +54,14 @@ export default function OpsTrialPage() {
           <Skeleton className="h-48" />
           <Skeleton className="h-48" />
         </div>
+      </div>
+    );
+  }
+
+  if (errorFollowup || errorCheckin) {
+    return (
+      <div className="flex items-center justify-center h-64 text-slate-500 text-sm">
+        数据加载失败，请刷新重试
       </div>
     );
   }

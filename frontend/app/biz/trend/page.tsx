@@ -49,8 +49,8 @@ export default function BizTrendPage() {
   const [compareType, setCompareType] = useState<CompareType>("mom");
   const [metricTab, setMetricTab] = useState("payments");
 
-  const { data: trendResp, isLoading: tLoading } = useTrend(compareType);
-  const { data: predResp, isLoading: pLoading } = usePrediction();
+  const { data: trendResp, isLoading: tLoading, error: tError } = useTrend(compareType);
+  const { data: predResp, isLoading: pLoading, error: pError } = usePrediction();
 
   if (tLoading || pLoading) {
     return (
@@ -62,6 +62,14 @@ export default function BizTrendPage() {
           <Skeleton className="h-56" />
         </div>
         <Skeleton className="h-36" />
+      </div>
+    );
+  }
+
+  if (tError || pError) {
+    return (
+      <div className="flex items-center justify-center h-64 text-slate-500 text-sm">
+        数据加载失败，请刷新重试
       </div>
     );
   }

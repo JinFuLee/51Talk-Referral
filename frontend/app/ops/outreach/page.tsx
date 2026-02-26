@@ -55,7 +55,7 @@ type TabKey = (typeof TABS)[number]["key"];
 
 function MonitorTab() {
   const { t } = useTranslation();
-  const { data: outreachRaw, isLoading } = useFollowup();
+  const { data: outreachRaw, isLoading, error: isError } = useFollowup();
 
   const outreach = outreachRaw as Record<string, unknown> | undefined;
 
@@ -101,6 +101,14 @@ function MonitorTab() {
           <Skeleton className="h-64" />
           <Skeleton className="h-64" />
         </div>
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="flex items-center justify-center h-64 text-slate-500 text-sm">
+        数据加载失败，请刷新重试
       </div>
     );
   }

@@ -106,6 +106,7 @@ export default function FollowupAlertPage() {
   }, []);
 
   const isLoading = alertLoading || compareLoading;
+  const isError = alertError || compareError;
 
   return (
     <div className={OPS_PAGE}>
@@ -115,6 +116,10 @@ export default function FollowupAlertPage() {
         <div className="space-y-4">
           <Skeleton className="h-32" />
           <Skeleton className="h-64" />
+        </div>
+      ) : isError && !alertData && !compareData ? (
+        <div className="flex items-center justify-center h-64 text-slate-500 text-sm">
+          数据加载失败，请刷新重试
         </div>
       ) : (
         <ErrorBoundary>
