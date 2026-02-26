@@ -569,18 +569,18 @@ class RankingAnalyzer:
                 or ""
             )
 
-        ss_list: list = []
-        lp_list: list = []
+        ss_raw: list = []
+        lp_raw: list = []
 
         for nm in all_cc:
             team_str = _get_team(nm)
             team_upper = team_str.upper() if team_str else ""
-            
+
             # Since names are like TH-CC05Team, TH-SS04Team, we can just do exact checks:
             # We must be careful that "EA" is inside "TEAM", so we check for "-EA", "-SS" etc.
             is_ss = ("-SS" in team_upper) or (team_upper.startswith("SS")) or ("-EA" in team_upper) or (team_upper.startswith("EA")) or ("EA" in team_upper and "TEAM" not in team_upper)
             is_lp = ("-LP" in team_upper) or (team_upper.startswith("LP")) or ("-CM" in team_upper) or (team_upper.startswith("CM"))
-            
+
             if not is_ss and not is_lp:
                 continue
             a4 = a4_cc.get(nm, {})
@@ -597,45 +597,159 @@ class RankingAnalyzer:
             outreach_calls = f5.get("total_calls") or 0
             effective_calls = f5.get("total_effective") or 0
             contact_rate = _safe_pct(effective_calls, outreach_calls) or 0.0
-            
+
             checkin_rate = min(d1.get("checkin_24h_rate") or d5.get("checkin_rate") or 0.0, 1.0)
             participation_rate = min(d5.get("participation_rate") or 0.0, 1.0)
             new_coeff = d1.get("referral_coefficient") or d5.get("referral_coefficient_total") or 0.0
 
             record = {
+                "norm_name":          nm,
                 "name":               raw_name_map.get(nm, nm),
                 "team":               team_str,
                 "group":              a4.get("group") or team_str,
                 "leads":              leads,
-                "reserve":            None,     # SS/LP 不参与预约流程
-                "showup":             None,     # SS/LP 不参与出席流程
-                "paid":               paid,                # 保留原名（前端兼容）
-                "cc_converted_paid":  paid,                # 语义别名：CC 转化后的付费数
-                "conversion_rate":    conversion,          # 保留原名（前端兼容）
-                "leads_to_cc_rate":   conversion,          # 语义别名：leads→CC转化率（跨岗效率）
+                "reserve":            reserve,
+                "showup":             showup,
+                "paid":               paid,
+                "cc_converted_paid":  paid,
+                "conversion_rate":    conversion,
+                "leads_to_cc_rate":   conversion,
                 "contact_rate":       contact_rate,
                 "checkin_rate":       checkin_rate,
                 "participation_rate": participation_rate,
-                "detail": {
-                    "reserve":            {"raw": reserve, "norm": 0.5},  # 原始值保留在 detail
-                    "showup":             {"raw": showup,  "norm": 0.5},  # 原始值保留在 detail
-                    "contact_rate":       {"raw": contact_rate, "norm": 0.5},
-                    "checkin_rate":       {"raw": checkin_rate, "norm": 0.5},
-                    "participation_rate": {"raw": participation_rate, "norm": 0.5},
-                    "conversion_rate":    {"raw": conversion, "norm": 0.5},
-                    "new_coefficient":    {"raw": new_coeff, "norm": 0.5},
-                },
+                "new_coeff":          new_coeff,
             }
             if is_ss:
-                ss_list.append(record)
+                ss_raw.append(record)
             elif is_lp:
-                lp_list.append(record)
+                lp_raw.append(record)
 
-        ss_list.sort(key=lambda x: (x.get("leads") or 0), reverse=True)
-        lp_list.sort(key=lambda x: (x.get("leads") or 0), reverse=True)
-        for i, r in enumerate(ss_list):
-            r["rank"] = i + 1
-        for i, r in enumerate(lp_list):
-            r["rank"] = i + 1
+        # ── paid_share 预计算（按角色分组，除零保护）────────────────────────────
+
+        ss_total_paid = sum(r["paid"] for r in ss_raw) or 0
+        lp_total_paid = sum(r["paid"] for r in lp_raw) or 0
+
+        for r in ss_raw:
+            r["paid_share"] = _safe_div(r["paid"], ss_total_paid) if ss_total_paid else 0.0
+        for r in lp_raw:
+            r["paid_share"] = _safe_div(r["paid"], lp_total_paid) if lp_total_paid else 0.0
+
+        # ── SS/LP 共用评分常量 ────────────────────────────────────────────────
+
+        SS_LP_DIMS = {
+            "process":      [("contact_rate", 0.5), ("checkin_rate", 0.5)],
+            "result":       [("leads", 1.0)],
+            "quality":      [("conversion_rate", 1.0)],
+            "contribution": [("paid_share", 1.0)],
+        }
+        SS_LP_WEIGHTS = {"process": 0.25, "result": 0.30, "quality": 0.25, "contribution": 0.20}
+        SS_LP_METRIC_KEYS = ["contact_rate", "checkin_rate", "leads", "conversion_rate", "paid_share"]
+
+        def _build_ranked_list(data_list: list) -> list:
+            """对单个角色列表执行 min-max 归一化 + 综合评分 + 排序。"""
+            if not data_list:
+                return []
+
+            # min-max 归一化（独立于本角色列表）
+            def _minmax_role(key: str) -> dict:
+                values = [r[key] for r in data_list if r.get(key) is not None]
+                if not values:
+                    return {r["norm_name"]: 0.5 for r in data_list}
+                mn, mx = min(values), max(values)
+                result: dict = {}
+                for r in data_list:
+                    v = r.get(key)
+                    if v is None:
+                        result[r["norm_name"]] = 0.5
+                    elif mx == mn:
+                        result[r["norm_name"]] = 0.5
+                    else:
+                        result[r["norm_name"]] = (v - mn) / (mx - mn)
+                return result
+
+            norm_maps_role = {k: _minmax_role(k) for k in SS_LP_METRIC_KEYS}
+
+            # _redistribute 模式：无数据维度等比分摊权重
+            def _has_role_data(key: str) -> bool:
+                return any(r.get(key) for r in data_list)
+
+            def _redistribute_role(dims: list) -> list:
+                active = [(k, w) for k, w in dims if _has_role_data(k)]
+                inactive_w = sum(w for k, w in dims if not _has_role_data(k))
+                if not active:
+                    return []
+                total_active_w = sum(w for _, w in active)
+                if total_active_w <= 0:
+                    return active
+                scale = (total_active_w + inactive_w) / total_active_w
+                return [(k, round(w * scale, 6)) for k, w in active]
+
+            active_dims = {cat: _redistribute_role(dims) for cat, dims in SS_LP_DIMS.items()}
+
+            ranked: list = []
+            for r in data_list:
+                nm = r["norm_name"]
+
+                def _cat_score(cat: str) -> float:
+                    dims = active_dims.get(cat, [])
+                    if not dims:
+                        return 0.5
+                    return sum(norm_maps_role[k][nm] * w for k, w in dims)
+
+                process_score      = _cat_score("process")
+                result_score       = _cat_score("result")
+                quality_score      = _cat_score("quality")
+                contribution_score = _cat_score("contribution")
+                composite_score = (
+                    process_score      * SS_LP_WEIGHTS["process"]
+                    + result_score     * SS_LP_WEIGHTS["result"]
+                    + quality_score    * SS_LP_WEIGHTS["quality"]
+                    + contribution_score * SS_LP_WEIGHTS["contribution"]
+                )
+
+                detail = {
+                    "reserve":            {"raw": r["reserve"],            "norm": 0.5},
+                    "showup":             {"raw": r["showup"],             "norm": 0.5},
+                    "contact_rate":       {"raw": r["contact_rate"],       "norm": round(norm_maps_role["contact_rate"][nm], 4)},
+                    "checkin_rate":       {"raw": r["checkin_rate"],       "norm": round(norm_maps_role["checkin_rate"][nm], 4)},
+                    "leads":              {"raw": r["leads"],              "norm": round(norm_maps_role["leads"][nm], 4)},
+                    "conversion_rate":    {"raw": r["conversion_rate"],    "norm": round(norm_maps_role["conversion_rate"][nm], 4)},
+                    "paid_share":         {"raw": r["paid_share"],         "norm": round(norm_maps_role["paid_share"][nm], 4)},
+                    "participation_rate": {"raw": r["participation_rate"], "norm": 0.5},
+                    "new_coefficient":    {"raw": r["new_coeff"],          "norm": 0.5},
+                }
+
+                ranked.append({
+                    "name":               r["name"],
+                    "team":               r["team"],
+                    "group":              r["group"],
+                    "rank":               None,  # 填充在排序后
+                    "composite_score":    round(composite_score, 4),
+                    "process_score":      round(process_score, 4),
+                    "result_score":       round(result_score, 4),
+                    "quality_score":      round(quality_score, 4),
+                    "contribution_score": round(contribution_score, 4),
+                    "leads":              r["leads"],
+                    "paid":               r["paid"],
+                    "cc_converted_paid":  r["cc_converted_paid"],
+                    "reserve":            None,   # SS/LP 不参与预约流程
+                    "showup":             None,   # SS/LP 不参与出席流程
+                    "conversion_rate":    r["conversion_rate"],
+                    "leads_to_cc_rate":   r["leads_to_cc_rate"],
+                    "contact_rate":       r["contact_rate"],
+                    "checkin_rate":       r["checkin_rate"],
+                    "participation_rate": r["participation_rate"],
+                    "paid_share":         round(r["paid_share"], 4),
+                    "detail":             detail,
+                })
+
+            ranked.sort(key=lambda x: x["composite_score"], reverse=True)
+            for i, item in enumerate(ranked):
+                item["rank"] = i + 1
+
+            return ranked
+
+        ss_list = _build_ranked_list(ss_raw)
+        lp_list = _build_ranked_list(lp_raw)
 
         return {"ss": ss_list, "lp": lp_list}

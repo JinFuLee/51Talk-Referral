@@ -35,3 +35,45 @@
 - 数据源缺失时，权重等比分摊到同类其他维度
 - `composite_score = process × 0.25 + result × 0.60 + efficiency × 0.15`
 - 输出: `{cc_name, rank, composite_score, process_score, result_score, efficiency_score, detail}`
+
+---
+
+# SS/LP 人员排名算法规范（四类 4 维）
+
+## 过程指标（25%）
+| 指标 | 权重 | 数据源 |
+|------|------|--------|
+| 触达率 (contact_rate) | 12.5% | outreach.by_cc (F5) |
+| 打卡率 (checkin_rate) | 12.5% | kpi.north_star_24h (D1) / kpi.checkin_rate_monthly (D5) |
+
+## 结果指标（30%）
+| 指标 | 权重 | 数据源 |
+|------|------|--------|
+| 转介绍用户数 (leads) | 30% | leads.personal (A4) |
+
+## 质量指标（25%）
+| 指标 | 权重 | 数据源 |
+|------|------|--------|
+| leads→CC转化率 | 25% | leads.personal (A4) paid/leads |
+
+## 贡献指标（20%）
+| 指标 | 权重 | 数据源 |
+|------|------|--------|
+| 业绩贡献占比 (paid_share) | 20% | 个人 CC转化付费数 / 同角色团队总 CC转化付费数 |
+
+## 算法
+- 每个指标在同角色（SS 或 LP）中 min-max 归一化到 [0,1]
+- SS 和 LP 分别归一化排名，不混合
+- 数据源缺失时，权重等比分摊到同类其他维度
+- `composite_score = process × 0.25 + result × 0.30 + quality × 0.25 + contribution × 0.20`
+- 输出: `{name, rank, composite_score, process_score, result_score, quality_score, contribution_score, paid_share, detail}`
+
+## 与 CC 排名的区别
+| 维度 | CC | SS/LP |
+|------|-----|-------|
+| 过程 | 7 维（外呼/接通/跟进等）| 2 维（触达率/打卡率）|
+| 结果 | 7 维（注册/付费/金额等）| 1 维（leads 数）|
+| 效率 | 4 维（转化率/打卡/参与/带新）| — |
+| 质量 | — | 1 维（leads→CC 转化率）|
+| 贡献 | 业绩占比在结果类 | 独立类别（paid_share）|
+| 总权重 | process 25% + result 60% + efficiency 15% | process 25% + result 30% + quality 25% + contribution 20% |

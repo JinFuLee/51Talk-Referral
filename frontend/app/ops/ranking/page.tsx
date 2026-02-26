@@ -39,10 +39,12 @@ function toRadarData(item: RankingItem, role: RoleTab) {
       { subject: "综合", value: Math.round(Math.min(item.composite_score ?? 0, 100)) },
     ];
   }
-  // SS/LP：不含"付费"维度，转化率改为"leads→CC转化"（跨岗效率）
+  // SS/LP：4维评分体系（过程/结果/质量/贡献），直接使用 0-1 范围的评分字段
   return [
-    ...common,
-    { subject: "leads→CC转化", value: Math.round((getDetailVal(detail, "conversion_rate") as number) * 100) },
+    { subject: "过程", value: Math.round(((item as Record<string, unknown>).process_score as number ?? 0) * 100) },
+    { subject: "结果", value: Math.round(((item as Record<string, unknown>).result_score as number ?? 0) * 100) },
+    { subject: "质量", value: Math.round(((item as Record<string, unknown>).quality_score as number ?? 0) * 100) },
+    { subject: "贡献", value: Math.round(((item as Record<string, unknown>).contribution_score as number ?? 0) * 100) },
   ];
 }
 
@@ -90,12 +92,14 @@ export default function OpsRankingPage() {
     : [
         t("ops.ranking.table.rank"),
         t("ops.ranking.table.name"),
+        t("ops.ranking.table.team") ?? "团队",
+        "综合分",
         "leads数",
+        "业绩占比",
+        "CC转化付费",
+        "leads→CC转化率",
         t("ops.ranking.table.contactRate"),
         t("ops.ranking.table.checkinRate"),
-        t("ops.ranking.table.participationRate"),
-        t("ops.ranking.table.newCoeff"),
-        "leads→CC转化率",
       ];
 
   if (isLoading) {
@@ -154,7 +158,7 @@ export default function OpsRankingPage() {
                   <tbody>
                     {items.length === 0 ? (
                       <tr>
-                        <td colSpan={activeTab === "CC" ? 10 : 8} className="px-4 py-8 text-center text-slate-400 text-xs">
+                        <td colSpan={10} className="px-4 py-8 text-center text-slate-400 text-xs">
                           {t("ops.ranking.label.noData")}
                         </td>
                       </tr>
@@ -178,30 +182,57 @@ export default function OpsRankingPage() {
                               <td className="px-4 py-3 text-slate-700">{(item.composite_score ?? 0).toFixed(1)}</td>
                               <td className="px-4 py-3 text-slate-600">{item.registrations ?? "—"}</td>
                               <td className="px-4 py-3 text-slate-600">{item.payments ?? "—"}</td>
+                              <td className="px-4 py-3 text-slate-600">
+                                {item.contact_rate !== undefined ? `${(item.contact_rate * 100).toFixed(1)}%` : `${(getDetailVal(item.detail, "contact_rate") * 100).toFixed(1)}%`}
+                              </td>
+                              <td className="px-4 py-3 text-slate-600">
+                                {item.checkin_rate !== undefined ? `${(item.checkin_rate * 100).toFixed(1)}%` : `${(getDetailVal(item.detail, "checkin_rate") * 100).toFixed(1)}%`}
+                              </td>
+                              <td className="px-4 py-3 text-slate-600">
+                                {(item as Record<string, unknown>).participation_rate !== undefined
+                                  ? `${(((item as Record<string, unknown>).participation_rate as number) * 100).toFixed(1)}%`
+                                  : `${((getDetailVal(item.detail, "participation_rate")) * 100).toFixed(1)}%`}
+                              </td>
+                              <td className="px-4 py-3 text-slate-600">
+                                {(getDetailVal(item.detail, "bring_new_coeff", getDetailVal(item.detail, "new_coefficient"))).toFixed(2)}
+                              </td>
+                              <td className="px-4 py-3 text-slate-600">
+                                {(item as Record<string, unknown>).conversion_rate !== undefined
+                                  ? `${(((item as Record<string, unknown>).conversion_rate as number) * 100).toFixed(1)}%`
+                                  : `${((getDetailVal(item.detail, "conversion_rate")) * 100).toFixed(1)}%`}
+                              </td>
                             </>
                           ) : (
-                            // SS/LP: 核心 KPI = leads数，隐藏综合分和付费
-                            <td className="px-4 py-3 font-medium text-blue-700">{item.registrations ?? "—"}</td>
+                            // SS/LP: 10列 — 团队/综合分/leads数/业绩占比/CC转化付费/leads→CC转化率/触达率/打卡率
+                            <>
+                              <td className="px-4 py-3 text-slate-500 text-xs">
+                                {(item as Record<string, unknown>).team as string ?? "—"}
+                              </td>
+                              <td className="px-4 py-3 font-semibold text-blue-700">
+                                {(item as Record<string, unknown>).composite_score != null
+                                  ? `${(((item as Record<string, unknown>).composite_score as number) * 100).toFixed(1)}`
+                                  : "—"}
+                              </td>
+                              <td className="px-4 py-3 font-medium text-slate-800">{(item as Record<string, unknown>).leads as number ?? item.registrations ?? "—"}</td>
+                              <td className="px-4 py-3 text-slate-600">
+                                {(item as Record<string, unknown>).paid_share != null
+                                  ? `${(((item as Record<string, unknown>).paid_share as number) * 100).toFixed(1)}%`
+                                  : "—"}
+                              </td>
+                              <td className="px-4 py-3 text-slate-600">{(item as Record<string, unknown>).cc_converted_paid as number ?? item.payments ?? "—"}</td>
+                              <td className="px-4 py-3 text-slate-600">
+                                {(item as Record<string, unknown>).conversion_rate !== undefined
+                                  ? `${(((item as Record<string, unknown>).conversion_rate as number) * 100).toFixed(1)}%`
+                                  : `${((getDetailVal(item.detail, "conversion_rate")) * 100).toFixed(1)}%`}
+                              </td>
+                              <td className="px-4 py-3 text-slate-600">
+                                {item.contact_rate !== undefined ? `${(item.contact_rate * 100).toFixed(1)}%` : `${(getDetailVal(item.detail, "contact_rate") * 100).toFixed(1)}%`}
+                              </td>
+                              <td className="px-4 py-3 text-slate-600">
+                                {item.checkin_rate !== undefined ? `${(item.checkin_rate * 100).toFixed(1)}%` : `${(getDetailVal(item.detail, "checkin_rate") * 100).toFixed(1)}%`}
+                              </td>
+                            </>
                           )}
-                          <td className="px-4 py-3 text-slate-600">
-                            {item.contact_rate !== undefined ? `${(item.contact_rate * 100).toFixed(1)}%` : `${(getDetailVal(item.detail, "contact_rate") * 100).toFixed(1)}%`}
-                          </td>
-                          <td className="px-4 py-3 text-slate-600">
-                            {item.checkin_rate !== undefined ? `${(item.checkin_rate * 100).toFixed(1)}%` : `${(getDetailVal(item.detail, "checkin_rate") * 100).toFixed(1)}%`}
-                          </td>
-                          <td className="px-4 py-3 text-slate-600">
-                            {(item as Record<string, unknown>).participation_rate !== undefined
-                              ? `${(((item as Record<string, unknown>).participation_rate as number) * 100).toFixed(1)}%`
-                              : `${((getDetailVal(item.detail, "participation_rate")) * 100).toFixed(1)}%`}
-                          </td>
-                          <td className="px-4 py-3 text-slate-600">
-                            {(getDetailVal(item.detail, "bring_new_coeff", getDetailVal(item.detail, "new_coefficient"))).toFixed(2)}
-                          </td>
-                          <td className="px-4 py-3 text-slate-600">
-                            {(item as Record<string, unknown>).conversion_rate !== undefined
-                              ? `${(((item as Record<string, unknown>).conversion_rate as number) * 100).toFixed(1)}%`
-                              : `${((getDetailVal(item.detail, "conversion_rate")) * 100).toFixed(1)}%`}
-                          </td>
                         </tr>
                       ))
                     )}
@@ -225,7 +256,7 @@ export default function OpsRankingPage() {
               )}
               {selected && activeTab !== "CC" && (
                 <p className="text-xs text-slate-400 text-center mt-1">
-                  {activeTab} 核心 KPI：leads 数 · 转化率 = leads→CC 转化效率（跨岗参考）
+                  {activeTab} 综合评分 = 过程(触达率/打卡率)×25% + 结果(leads数)×30% + 质量(leads→CC转化率)×25% + 贡献(业绩占比)×20%
                 </p>
               )}
             </Card>
