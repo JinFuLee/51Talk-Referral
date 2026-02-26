@@ -89,7 +89,7 @@ def _pivot_channels(records: list[dict], months: list[str]) -> list[dict]:
     return out
 
 
-@router.get("/channel-mom")
+@router.get("/channel-mom", summary="F4 渠道月度环比（注册占比 + 效率指标）")
 def get_channel_mom(svc: AnalysisService = Depends(get_service)) -> dict[str, Any]:
     """
     F4 渠道月度环比数据。

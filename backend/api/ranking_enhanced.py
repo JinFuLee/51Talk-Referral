@@ -7,7 +7,7 @@ from services.analysis_service import AnalysisService
 router = APIRouter()
 
 
-@router.get("/cc-ranking-enhanced")
+@router.get("/cc-ranking-enhanced", summary="A4 CC 增强排名（补充预约率 + 出席率）")
 def get_cc_ranking_enhanced(
     top_n: int = Query(default=20, ge=1, le=100),
     svc: AnalysisService = Depends(get_service),

@@ -86,7 +86,7 @@ def _pivot_f4(records: list[dict], months: list[str]) -> list[dict]:
     return out
 
 
-@router.get("/channel-trend")
+@router.get("/channel-trend", summary="F4 渠道注册占比 + 效率指标月度趋势")
 def get_channel_trend(svc: AnalysisService = Depends(get_service)) -> dict[str, Any]:
     """
     F4 渠道月度趋势数据。

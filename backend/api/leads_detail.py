@@ -31,7 +31,7 @@ def _calculate_time_progress(ref_date: Optional[datetime] = None) -> float:
     return round(elapsed_weight / total_weight, 4) if total_weight > 0 else 0.0
 
 
-@router.get("/enclosure-channel-matrix")
+@router.get("/enclosure-channel-matrix", summary="A2 围场×渠道热力矩阵")
 def get_enclosure_channel_matrix(svc: AnalysisService = Depends(get_service)) -> dict[str, Any]:
     """A2 围场×渠道热力矩阵 — 数据源: leads.channel_efficiency.by_enclosure (A2)"""
     raw_data = getattr(svc, "_raw_data", None) or {}
@@ -83,7 +83,7 @@ def get_enclosure_channel_matrix(svc: AnalysisService = Depends(get_service)) ->
     }
 
 
-@router.get("/time-interval")
+@router.get("/time-interval", summary="A3 注册→付费时间间隔分布")
 def get_time_interval(svc: AnalysisService = Depends(get_service)) -> dict[str, Any]:
     """A3 注册→付费时间间隔分布 — 数据源: leads.leads_detail.records[].days_to_payment"""
     raw_data = getattr(svc, "_raw_data", None) or {}
@@ -215,7 +215,7 @@ def _safe_sub(a: Optional[float], b: Optional[float]) -> Optional[float]:
     return round(a - b, 4)
 
 
-@router.get("/leads-overview")
+@router.get("/leads-overview", summary="Leads 总揽概览（A5+A1+A2 多口径）")
 def get_leads_overview(
     scope: str = Query(
         "total", description="口径: total/cc_narrow/ss_narrow/lp_narrow/wide"

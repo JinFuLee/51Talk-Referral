@@ -553,7 +553,7 @@ def _build_revenue(cc_name: str, order_records: list[dict]) -> dict:
 # ── 主端点 ────────────────────────────────────────────────────────────────────
 
 
-@router.get("/{cc_name}/profile")
+@router.get("/{cc_name}/profile", summary="CC 个人战斗力全息档案（身份/雷达/异常/收入）")
 def get_member_profile(
     cc_name: str,
     svc: AnalysisService = Depends(get_service),

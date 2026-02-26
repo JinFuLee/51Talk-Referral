@@ -14,7 +14,7 @@ from services.analysis_service import AnalysisService
 router = APIRouter()
 
 
-@router.get("/retention-contribution")
+@router.get("/retention-contribution", summary="F9 CC 留存贡献排名（按留存收入降序）")
 def get_retention_contribution(svc: AnalysisService = Depends(get_service)) -> dict[str, Any]:
     """
     F9 CC 留存贡献排名

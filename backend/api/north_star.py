@@ -23,7 +23,7 @@ def _get_raw_data(svc: AnalysisService) -> dict[str, Any]:
     return raw
 
 
-@router.get("/north-star")
+@router.get("/north-star", summary="CC 24H 打卡率排名 + 达标分布")
 def get_north_star(
     cc_name: Optional[str] = Query(default=None, description="筛选指定 CC（精确匹配）"),
     svc: AnalysisService = Depends(get_service),
@@ -67,7 +67,7 @@ def get_north_star(
     }
 
 
-@router.get("/checkin-ab")
+@router.get("/checkin-ab", summary="D1×D5 24H 打卡率 × 月度打卡率联合对比")
 def get_checkin_ab(svc: AnalysisService = Depends(get_service)) -> dict[str, Any]:
     """
     D1×D5 联合对比：24H 打卡率 × 月度打卡率 × 打卡倍率

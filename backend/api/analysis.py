@@ -142,7 +142,7 @@ def _require_full_cache(svc: AnalysisService, period: str = "this_month") -> dic
 
 # ── Endpoints — 触发 & 全量结果 ────────────────────────────────────────────────
 
-@router.post("/run")
+@router.post("/run", summary="触发分析管线")
 def run_analysis(
     body: RunAnalysisRequest,
     background_tasks: BackgroundTasks,
@@ -166,7 +166,7 @@ def run_analysis(
     return {"status": "processing", "summary": {}, "message": "分析任务已提交后台运行"}
 
 
-@router.get("/result")
+@router.get("/result", summary="获取完整分析结果")
 def get_result(
     period: str = Query(default="this_month", description="时间维度"),
     svc: AnalysisService = Depends(get_service),
@@ -178,7 +178,7 @@ def get_result(
 
 # ── Endpoints — 核心指标（原有，URL 不变）────────────────────────────────────
 
-@router.get("/summary")
+@router.get("/summary", summary="进度看板汇总指标")
 def get_summary(
     period: str = Query(default="this_month", description="时间维度"),
     svc: AnalysisService = Depends(get_service),
@@ -296,7 +296,7 @@ def get_summary(
     return response
 
 
-@router.get("/funnel")
+@router.get("/funnel", summary="漏斗转化数据")
 def get_funnel(
     period: str = Query(default="this_month", description="时间维度"),
     svc: AnalysisService = Depends(get_service),
@@ -313,7 +313,7 @@ def get_funnel(
     return raw
 
 
-@router.get("/channel-comparison")
+@router.get("/channel-comparison", summary="渠道对比数据")
 def get_channel_comparison(
     period: str = Query(default="this_month", description="时间维度"),
     svc: AnalysisService = Depends(get_service),
@@ -330,7 +330,7 @@ def get_channel_comparison(
     return {"channels": []}
 
 
-@router.get("/team-data")
+@router.get("/team-data", summary="团队成员数据列表")
 def get_team_data(
     period: str = Query(default="this_month", description="时间维度"),
     svc: AnalysisService = Depends(get_service),
@@ -351,7 +351,7 @@ def get_team_data(
     return members
 
 
-@router.get("/cc-ranking")
+@router.get("/cc-ranking", summary="CC 综合绩效排名")
 def get_cc_ranking(
     top_n: int = Query(default=10, ge=1, le=100),
     sort_by: str = Query(default="composite"),
@@ -373,7 +373,7 @@ def get_cc_ranking(
     return _get_adapted(adapt_key, version, _adapt_ranking, items)
 
 
-@router.get("/ss-ranking")
+@router.get("/ss-ranking", summary="SS 绩效排名")
 def get_ss_ranking(
     top_n: int = Query(default=10, ge=1, le=100),
     period: str = Query(default="this_month", description="时间维度"),
@@ -394,7 +394,7 @@ def get_ss_ranking(
     return _get_adapted(adapt_key, version, _adapt_ranking, items)
 
 
-@router.get("/lp-ranking")
+@router.get("/lp-ranking", summary="LP 绩效排名")
 def get_lp_ranking(
     top_n: int = Query(default=10, ge=1, le=100),
     period: str = Query(default="this_month", description="时间维度"),
@@ -415,7 +415,7 @@ def get_lp_ranking(
     return _get_adapted(adapt_key, version, _adapt_ranking, items)
 
 
-@router.get("/prediction")
+@router.get("/prediction", summary="三模型月末预测")
 def get_prediction(
     period: str = Query(default="this_month", description="时间维度"),
     svc: AnalysisService = Depends(get_service),
@@ -429,7 +429,7 @@ def get_prediction(
     return raw
 
 
-@router.get("/roi")
+@router.get("/roi", summary="ROI 估算（Cohort×ROI 联动）")
 def get_roi(
     period: str = Query(default="this_month", description="时间维度"),
     svc: AnalysisService = Depends(get_service),
@@ -443,7 +443,7 @@ def get_roi(
     return raw
 
 
-@router.get("/anomalies")
+@router.get("/anomalies", summary="动态阈值异常检测")
 def get_anomalies(
     period: str = Query(default="this_month", description="时间维度"),
     svc: AnalysisService = Depends(get_service),
@@ -453,7 +453,7 @@ def get_anomalies(
     return _require_cache(svc, "anomalies", period)
 
 
-@router.get("/trend")
+@router.get("/trend", summary="趋势数据（MoM/YoY/WoW）")
 def get_trend(
     compare_type: str = Query(default="mom", description="mom=月环比, yoy=年同比, wow=周环比"),
     period: str = Query(default="this_month", description="时间维度"),
@@ -483,7 +483,7 @@ def get_trend(
 
 # ── Endpoints — 向后兼容别名（老端点保留）────────────────────────────────────
 
-@router.get("/cohort")
+@router.get("/cohort", summary="围场（cohort）分析")
 def get_cohort(
     period: str = Query(default="this_month", description="时间维度"),
     svc: AnalysisService = Depends(get_service),
@@ -493,7 +493,7 @@ def get_cohort(
     return _require_cache(svc, "cohort_analysis", period)
 
 
-@router.get("/checkin")
+@router.get("/checkin", summary="打卡率分析")
 def get_checkin(
     period: str = Query(default="this_month", description="时间维度"),
     svc: AnalysisService = Depends(get_service),
@@ -503,7 +503,7 @@ def get_checkin(
     return _require_cache(svc, "checkin_analysis", period)
 
 
-@router.get("/leads")
+@router.get("/leads", summary="Leads 达成分析")
 def get_leads(
     period: str = Query(default="this_month", description="时间维度"),
     svc: AnalysisService = Depends(get_service),
@@ -513,7 +513,7 @@ def get_leads(
     return _require_cache(svc, "leads_achievement", period)
 
 
-@router.get("/followup")
+@router.get("/followup", summary="外呼监控数据")
 def get_followup(
     period: str = Query(default="this_month", description="时间维度"),
     svc: AnalysisService = Depends(get_service),
@@ -527,7 +527,7 @@ def get_followup(
     return raw
 
 
-@router.get("/orders")
+@router.get("/orders", summary="订单分析")
 def get_orders(
     period: str = Query(default="this_month", description="时间维度"),
     svc: AnalysisService = Depends(get_service),
@@ -541,7 +541,7 @@ def get_orders(
     return raw
 
 
-@router.get("/ltv")
+@router.get("/ltv", summary="LTV 生命周期价值分析")
 def get_ltv(
     period: str = Query(default="this_month", description="时间维度"),
     svc: AnalysisService = Depends(get_service),
@@ -551,7 +551,7 @@ def get_ltv(
     return _require_cache(svc, "ltv", period)
 
 
-@router.get("/risk-alerts")
+@router.get("/risk-alerts", summary="风险预警列表")
 def get_risk_alerts(
     period: str = Query(default="this_month", description="时间维度"),
     svc: AnalysisService = Depends(get_service),
@@ -563,7 +563,7 @@ def get_risk_alerts(
 
 # ── Endpoints — 新增跨源联动端点 ──────────────────────────────────────────────
 
-@router.get("/student-journey")
+@router.get("/student-journey", summary="学员全旅程跨源联动")
 def get_student_journey(
     period: str = Query(default="this_month", description="时间维度"),
     svc: AnalysisService = Depends(get_service),
@@ -576,7 +576,7 @@ def get_student_journey(
     return _require_cache(svc, "student_journey", period)
 
 
-@router.get("/cc-360")
+@router.get("/cc-360", summary="CC 360° 画像跨源联动")
 def get_cc_360(
     top_n: int = Query(default=20, ge=1, le=200),
     period: str = Query(default="this_month", description="时间维度"),
@@ -600,7 +600,7 @@ def get_cc_360(
     return data
 
 
-@router.get("/cohort-roi")
+@router.get("/cohort-roi", summary="Cohort×ROI 联动分析")
 def get_cohort_roi(
     period: str = Query(default="this_month", description="时间维度"),
     svc: AnalysisService = Depends(get_service),
@@ -613,7 +613,7 @@ def get_cohort_roi(
     return _require_cache(svc, "cohort_roi", period)
 
 
-@router.get("/enclosure")
+@router.get("/enclosure", summary="围场交叉分析")
 def get_enclosure(
     period: str = Query(default="this_month", description="时间维度"),
     svc: AnalysisService = Depends(get_service),
@@ -626,7 +626,7 @@ def get_enclosure(
     return _require_cache(svc, "enclosure_cross", period)
 
 
-@router.get("/checkin-impact")
+@router.get("/checkin-impact", summary="打卡因果分析")
 def get_checkin_impact(
     period: str = Query(default="this_month", description="时间维度"),
     svc: AnalysisService = Depends(get_service),
@@ -639,7 +639,7 @@ def get_checkin_impact(
     return _require_cache(svc, "checkin_impact", period)
 
 
-@router.get("/productivity")
+@router.get("/productivity", summary="人效分析")
 def get_productivity(
     period: str = Query(default="this_month", description="时间维度"),
     svc: AnalysisService = Depends(get_service),
@@ -657,7 +657,7 @@ def get_productivity(
     return raw
 
 
-@router.get("/outreach")
+@router.get("/outreach", summary="外呼分析")
 def get_outreach(
     period: str = Query(default="this_month", description="时间维度"),
     svc: AnalysisService = Depends(get_service),
@@ -676,7 +676,7 @@ def get_outreach(
     return raw
 
 
-@router.get("/trial-followup")
+@router.get("/trial-followup", summary="体验课跟进分析")
 def get_trial_followup(
     period: str = Query(default="this_month", description="时间维度"),
     svc: AnalysisService = Depends(get_service),
@@ -692,7 +692,7 @@ def get_trial_followup(
     return raw
 
 
-@router.get("/risk-alerts-v2")
+@router.get("/risk-alerts-v2", summary="风险预警（V2 完整格式）")
 def get_risk_alerts_v2(
     period: str = Query(default="this_month", description="时间维度"),
     svc: AnalysisService = Depends(get_service),
@@ -707,7 +707,7 @@ def get_risk_alerts_v2(
 
 # ── ROI 成本明细（B1 真实数据）────────────────────────────────────────────────
 
-@router.get("/roi/cost-breakdown")
+@router.get("/roi/cost-breakdown", summary="ROI 成本明细（B1 数据）")
 def get_roi_cost_breakdown(
     period: str = Query(default="this_month", description="时间维度"),
     svc: AnalysisService = Depends(get_service),
@@ -733,7 +733,7 @@ def get_roi_cost_breakdown(
 
 # ── M13: 影响链 ────────────────────────────────────────────────────────────────
 
-@router.get("/impact-chain")
+@router.get("/impact-chain", summary="效率指标影响链")
 def get_impact_chain(
     period: str = Query(default="this_month", description="时间维度"),
     svc: AnalysisService = Depends(get_service),
@@ -756,7 +756,7 @@ class WhatIfRequest(BaseModel):
     period: str = "this_month"
 
 
-@router.post("/what-if")
+@router.post("/what-if", summary="What-If 情景模拟")
 def post_what_if(
     req: WhatIfRequest,
     svc: AnalysisService = Depends(get_service),
@@ -777,7 +777,7 @@ def post_what_if(
 
 # ── M16: 归因分析 ────────────────────────────────────────────────────────────
 
-@router.get("/attribution")
+@router.get("/attribution", summary="多维归因分析")
 def get_attribution(
     period: str = Query(default="this_month", description="时间维度"),
     svc: AnalysisService = Depends(get_service),
@@ -801,7 +801,7 @@ def get_attribution(
 
 # ── E6/E7/E8: 套餐结构 + 渠道收入 ─────────────────────────────────────────────
 
-@router.get("/package-mix")
+@router.get("/package-mix", summary="套餐类型占比")
 def get_package_mix(
     period: str = Query(default="this_month", description="时间维度"),
     svc: AnalysisService = Depends(get_service),
@@ -813,7 +813,7 @@ def get_package_mix(
     return _get_adapted(f"package_mix:{period}", version, _adapt_package_mix, cache)
 
 
-@router.get("/team-package-mix")
+@router.get("/team-package-mix", summary="小组套餐结构")
 def get_team_package_mix(
     period: str = Query(default="this_month", description="时间维度"),
     svc: AnalysisService = Depends(get_service),
@@ -825,7 +825,7 @@ def get_team_package_mix(
     return _get_adapted(f"team_package_mix:{period}", version, _adapt_team_package_mix, cache)
 
 
-@router.get("/channel-revenue")
+@router.get("/channel-revenue", summary="渠道收入 Waterfall 数据")
 def get_channel_revenue(
     period: str = Query(default="this_month", description="时间维度"),
     svc: AnalysisService = Depends(get_service),
@@ -849,7 +849,7 @@ def _safe_div_local(numerator: Any, denominator: Any) -> float | None:
         return None
 
 
-@router.get("/enclosure-compare")
+@router.get("/enclosure-compare", summary="D2×D3 围场对比（市场 vs 转介绍）")
 def get_enclosure_compare(
     period: str = Query(default="this_month", description="时间维度"),
     svc: AnalysisService = Depends(get_service),
@@ -899,7 +899,7 @@ def get_enclosure_compare(
     return {"comparison": comparison, "segments": enc_order}
 
 
-@router.get("/enclosure-combined")
+@router.get("/enclosure-combined", summary="D4 合并围场总览")
 def get_enclosure_combined(
     period: str = Query(default="this_month", description="时间维度"),
     svc: AnalysisService = Depends(get_service),

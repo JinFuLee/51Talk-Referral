@@ -92,7 +92,7 @@ def _iter_report_files() -> list[dict[str, Any]]:
 
 # ── AI 报告端点 ────────────────────────────────────────────────────────────────
 
-@router.post("/generate")
+@router.post("/generate", summary="触发 AI 报告生成")
 def generate_report(
     req: GenerateReportRequest,
     svc: AnalysisService = Depends(get_service),
@@ -113,7 +113,7 @@ def generate_report(
         raise HTTPException(status_code=500, detail=f"报告生成失败: {e}")
 
 
-@router.get("/ai/latest")
+@router.get("/ai/latest", summary="获取最新 AI 生成报告")
 def get_latest_ai_report() -> dict[str, Any]:
     """返回最近一份 AI 生成报告的元信息 + 内容"""
     files = _iter_ai_report_files()
@@ -127,7 +127,7 @@ def get_latest_ai_report() -> dict[str, Any]:
     return {**latest, "content": content}
 
 
-@router.get("/ai/list")
+@router.get("/ai/list", summary="列出所有 AI 生成报告")
 def list_ai_reports() -> list[dict[str, Any]]:
     """列出 output/reports/ 下所有 AI 生成报告文件名+日期"""
     return _iter_ai_report_files()
@@ -135,13 +135,13 @@ def list_ai_reports() -> list[dict[str, Any]]:
 
 # ── 原有端点 ───────────────────────────────────────────────────────────────────
 
-@router.get("/list")
+@router.get("/list", summary="列出所有报告文件")
 def list_reports() -> list[dict[str, Any]]:
     """扫描 output/ 目录，返回报告文件列表"""
     return _iter_report_files()
 
 
-@router.get("/latest")
+@router.get("/latest", summary="获取最新 ops/exec 报告路径")
 def get_latest() -> dict[str, Any]:
     """返回最新 ops 和 exec 报告的路径"""
     all_reports = _iter_report_files()
@@ -153,7 +153,7 @@ def get_latest() -> dict[str, Any]:
     }
 
 
-@router.get("/download/{filename}")
+@router.get("/download/{filename}", summary="下载指定报告文件")
 def download_report(filename: str) -> FileResponse:
     """下载指定报告文件"""
     # 防止路径穿越
@@ -168,7 +168,7 @@ def download_report(filename: str) -> FileResponse:
     )
 
 
-@router.get("/{report_type}/{date}")
+@router.get("/{report_type}/{date}", summary="读取指定报告内容")
 def get_report_content(report_type: str, date: str) -> dict[str, Any]:
     """读取指定类型和日期的报告内容（report_type: ops|exec，date: YYYYMMDD）"""
     if report_type not in ("ops", "exec"):

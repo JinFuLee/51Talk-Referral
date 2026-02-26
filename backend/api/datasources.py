@@ -291,7 +291,7 @@ def _build_status() -> list[dict[str, Any]]:
     return status_list
 
 
-@router.get("/status")
+@router.get("/status", summary="查询所有数据源状态（含新鲜度）")
 def get_datasource_status() -> list[dict[str, Any]]:
     """返回所有数据源当前状态（含新鲜度判断）"""
     global _status_cache
@@ -301,13 +301,13 @@ def get_datasource_status() -> list[dict[str, Any]]:
     return _status_cache
 
 
-@router.get("/registry")
+@router.get("/registry", summary="获取数据源注册表（35 个数据源）")
 def get_registry() -> list[dict[str, Any]]:
     """返回数据源注册表"""
     return DATA_SOURCE_REGISTRY
 
 
-@router.post("/refresh")
+@router.post("/refresh", summary="清空状态缓存并重新扫描")
 def refresh_status() -> dict[str, Any]:
     """清空状态缓存并重新扫描"""
     global _status_cache
@@ -316,7 +316,7 @@ def refresh_status() -> dict[str, Any]:
     return {"status": "ok", "refreshed": len(_status_cache)}
 
 
-@router.post("/upload")
+@router.post("/upload", summary="上传数据源文件到 input/ 目录")
 async def upload_file(
     source_id: str = Form(...),
     file: UploadFile = File(...),

@@ -8,7 +8,7 @@ from services.analysis_service import AnalysisService
 router = APIRouter()
 
 
-@router.get("/outreach-gap")
+@router.get("/outreach-gap", summary="F11 课前外呼覆盖缺口 + 损失收入量化（简版）")
 def get_outreach_gap(svc: AnalysisService = Depends(get_service)) -> dict[str, Any]:
     """F11 课前外呼覆盖缺口 + $损失量化"""
     raw_data = getattr(svc, "_raw_data", None) or {}

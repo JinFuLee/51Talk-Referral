@@ -16,7 +16,7 @@ from services.analysis_service import AnalysisService
 router = APIRouter()
 
 
-@router.get("/funnel-detail")
+@router.get("/funnel-detail", summary="F1 CC 级别各漏斗阶段跟进效率")
 def get_funnel_detail(
     cc_name: Optional[str] = Query(default=None, description="筛选指定 CC（精确匹配）"),
     svc: AnalysisService = Depends(get_service),
@@ -82,7 +82,7 @@ def get_funnel_detail(
     }
 
 
-@router.get("/section-efficiency")
+@router.get("/section-efficiency", summary="F2 CC 级别截面效率（四象限散点图）")
 def get_section_efficiency(svc: AnalysisService = Depends(get_service)) -> dict[str, Any]:
     """
     F2 CC 级别截面效率（四象限散点图数据）

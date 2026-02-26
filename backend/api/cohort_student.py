@@ -17,7 +17,7 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 router = APIRouter()
 
 
-@router.get("/cohort-students")
+@router.get("/cohort-students", summary="C6 学员明细 — CC 带新排名 + 月龄留存曲线 + 团队对比")
 def get_cohort_students(svc: AnalysisService = Depends(get_service)) -> dict[str, Any]:
     """C6 学员明细统计 — CC带新排名 / 月龄留存曲线 / 团队对比"""
     raw = getattr(svc, "_raw_data", None)

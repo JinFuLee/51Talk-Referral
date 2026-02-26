@@ -64,14 +64,14 @@ class MonthlyTargetV2Body(BaseModel):
 
 # ── Endpoints ─────────────────────────────────────────────────────────────────
 
-@router.get("/panel")
+@router.get("/panel", summary="读取面板配置")
 def get_panel_config() -> dict[str, Any]:
     """读取面板配置 panel_config.json"""
     data = _read_json(PANEL_CONFIG_FILE, {})
     return data
 
 
-@router.put("/panel")
+@router.put("/panel", summary="更新面板配置")
 def put_panel_config(body: PanelConfigUpdate) -> dict[str, Any]:
     """写入面板配置 panel_config.json"""
     try:
@@ -81,7 +81,7 @@ def put_panel_config(body: PanelConfigUpdate) -> dict[str, Any]:
     return {"status": "ok"}
 
 
-@router.get("/targets")
+@router.get("/targets", summary="获取所有月度目标（含 override）")
 def get_targets_all() -> dict[str, Any]:
     """返回全部月度目标（含 override）"""
     from core.config import MONTHLY_TARGETS
@@ -96,7 +96,7 @@ def get_targets_all() -> dict[str, Any]:
     return base
 
 
-@router.get("/monthly-targets")
+@router.get("/monthly-targets", summary="获取所有月份目标列表")
 def get_monthly_targets() -> list[dict[str, Any]]:
     """返回所有月份目标列表"""
     from core.config import MONTHLY_TARGETS
@@ -110,7 +110,7 @@ def get_monthly_targets() -> list[dict[str, Any]]:
     return result
 
 
-@router.put("/targets/{month}")
+@router.put("/targets/{month}", summary="更新指定月份目标")
 def put_targets_month(month: str, body: MonthTargetsUpdate) -> dict[str, Any]:
     """更新指定月份目标，持久化到 targets_override.json"""
     if len(month) != 6 or not month.isdigit():
@@ -125,7 +125,7 @@ def put_targets_month(month: str, body: MonthTargetsUpdate) -> dict[str, Any]:
     return {"status": "ok", "month": month, "updated": body_dict}
 
 
-@router.get("/exchange-rate")
+@router.get("/exchange-rate", summary="获取当前汇率")
 def get_exchange_rate() -> dict[str, Any]:
     """返回当前汇率"""
     from core.config import EXCHANGE_RATE_THB_USD
@@ -134,7 +134,7 @@ def get_exchange_rate() -> dict[str, Any]:
     return {"rate": rate, "unit": "THB/USD"}
 
 
-@router.put("/exchange-rate")
+@router.put("/exchange-rate", summary="更新汇率")
 def put_exchange_rate(body: ExchangeRateBody) -> dict[str, Any]:
     """更新汇率"""
     if body.rate <= 0:
@@ -148,7 +148,7 @@ def put_exchange_rate(body: ExchangeRateBody) -> dict[str, Any]:
 
 # ── V2 月目标 ──────────────────────────────────────────────────────────────────
 
-@router.get("/targets/{month}/v2")
+@router.get("/targets/{month}/v2", summary="获取 V2 分层月度目标")
 def get_targets_v2(month: str) -> dict[str, Any]:
     """返回完整 V2 结构（无 V2 记录则从扁平数据合成）"""
     if len(month) != 6 or not month.isdigit():
@@ -170,7 +170,7 @@ def get_targets_v2(month: str) -> dict[str, Any]:
     return _synthesize_v2_from_flat(month, flat)
 
 
-@router.put("/targets/{month}/v2")
+@router.put("/targets/{month}/v2", summary="保存 V2 分层月度目标")
 def put_targets_v2(month: str, body: "MonthlyTargetV2Body") -> dict[str, Any]:
     """保存 V2 结构到 targets_override.json (含强校验)"""
     from models.config import MonthlyTargetV2
@@ -195,7 +195,7 @@ def put_targets_v2(month: str, body: "MonthlyTargetV2Body") -> dict[str, Any]:
     return {"status": "ok", "month": month}
 
 
-@router.post("/targets/{month}/calculate")
+@router.post("/targets/{month}/calculate", summary="双向计算目标（V2 结构）")
 def calculate_targets(month: str, body: "MonthlyTargetV2Body") -> dict[str, Any]:
     """接收部分 V2 输入，返回完整计算结果（双向计算）"""
     from models.config import MonthlyTargetV2
@@ -259,7 +259,7 @@ def _synthesize_v2_from_flat(month: str, flat: dict) -> dict:
 
 # ── 智能目标推荐 ────────────────────────────────────────────────────────────────
 
-@router.get("/targets/{month}/recommend")
+@router.get("/targets/{month}/recommend", summary="智能目标推荐（三档场景）")
 def get_target_recommendations(
     month: str,
     svc: AnalysisService = Depends(get_service),

@@ -8,7 +8,7 @@ from services.analysis_service import AnalysisService
 router = APIRouter()
 
 
-@router.get("/enclosure-health")
+@router.get("/enclosure-health", summary="围场健康度仪表盘（F7+F8+D3 交叉）")
 def get_enclosure_health(svc: AnalysisService = Depends(get_service)) -> dict[str, Any]:
     """围场健康度仪表盘 — 交叉 F7+F8+D3"""
     raw_data = getattr(svc, "_raw_data", None) or {}

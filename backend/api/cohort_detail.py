@@ -134,7 +134,7 @@ def _approx_decay_curve(m1_val: float, metric: str) -> list[dict]:
 
 # ── 端点 1: GET /api/analysis/cohort-decay ────────────────────────────────────
 
-@router.get("/cohort-decay")
+@router.get("/cohort-decay", summary="Cohort 衰减曲线（C1-C5 指标 m1-m12）")
 def get_cohort_decay(
     metric: str = Query(
         default="reach_rate",
@@ -205,7 +205,7 @@ def get_cohort_decay(
 
 # ── 端点 2: GET /api/analysis/cohort-heatmap ─────────────────────────────────
 
-@router.get("/cohort-heatmap")
+@router.get("/cohort-heatmap", summary="5 指标 × 12 月龄 Cohort 热力图矩阵")
 def get_cohort_heatmap(svc: AnalysisService = Depends(get_service)) -> dict[str, Any]:
     """
     返回 5 个指标 × 12 个月龄的热力图矩阵数据。
@@ -285,7 +285,7 @@ def get_cohort_heatmap(svc: AnalysisService = Depends(get_service)) -> dict[str,
 
 # ── 端点 3: GET /api/analysis/cohort-detail ──────────────────────────────────
 
-@router.get("/cohort-detail")
+@router.get("/cohort-detail", summary="C6 学员级留存分析 + CC 带新排行")
 def get_cohort_detail(svc: AnalysisService = Depends(get_service)) -> dict[str, Any]:
     """
     C6 学员级 Cohort 分析

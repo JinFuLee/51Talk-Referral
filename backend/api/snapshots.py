@@ -23,7 +23,7 @@ def _get_snapshot_store() -> Any:
         raise HTTPException(status_code=500, detail=f"snapshot_store 模块不可用: {exc}")
 
 
-@router.get("/stats")
+@router.get("/stats", summary="快照数据库统计信息")
 def get_snapshot_stats() -> dict[str, Any]:
     """返回快照数据库统计信息"""
     store = _get_snapshot_store()
@@ -33,7 +33,7 @@ def get_snapshot_stats() -> dict[str, Any]:
         raise HTTPException(status_code=500, detail=str(exc))
 
 
-@router.get("/daily-kpi")
+@router.get("/daily-kpi", summary="查询日级 KPI 快照")
 def get_daily_kpi(
     date_from: Optional[str] = Query(default=None, description="起始日期 YYYY-MM-DD"),
     date_to: Optional[str] = Query(default=None, description="结束日期 YYYY-MM-DD"),
@@ -51,7 +51,7 @@ def get_daily_kpi(
         raise HTTPException(status_code=500, detail=str(exc))
 
 
-@router.get("/cc-growth/{cc_name}")
+@router.get("/cc-growth/{cc_name}", summary="查询 CC 个人成长曲线")
 def get_cc_growth(
     cc_name: str,
     date_from: Optional[str] = Query(default=None),
@@ -69,7 +69,7 @@ def get_cc_growth(
         raise HTTPException(status_code=500, detail=str(exc))
 
 
-@router.post("/import-history")
+@router.post("/import-history", summary="触发历史数据批量导入")
 def import_history() -> dict[str, Any]:
     """触发历史数据批量导入"""
     try:
@@ -83,7 +83,7 @@ def import_history() -> dict[str, Any]:
         raise HTTPException(status_code=500, detail=str(exc))
 
 
-@router.delete("/cleanup")
+@router.delete("/cleanup", summary="清理旧快照数据")
 def cleanup_snapshots(
     days: int = Query(default=90, ge=1, description="清理 N 天前的快照"),
 ) -> dict[str, Any]:

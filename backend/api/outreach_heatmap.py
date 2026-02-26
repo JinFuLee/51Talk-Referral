@@ -102,7 +102,7 @@ def _build_heatmap_data(records: list[dict]) -> dict:
     }
 
 
-@router.get("/outreach-heatmap")
+@router.get("/outreach-heatmap", summary="CC × 日期外呼二维热力图")
 def get_outreach_heatmap(
     cc_name: Optional[str] = Query(default=None, description="筛选指定 CC（精确匹配）"),
     svc: AnalysisService = Depends(get_service),

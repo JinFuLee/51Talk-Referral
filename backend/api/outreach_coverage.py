@@ -228,7 +228,7 @@ def _build_coverage_data(cache: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-@router.get("/outreach-coverage")
+@router.get("/outreach-coverage", summary="F11 课前外呼覆盖缺口 + 损失收入量化")
 def get_outreach_coverage(svc: AnalysisService = Depends(get_service)) -> dict[str, Any]:
     """
     F11 课前外呼覆盖缺口 → $ 损失量化

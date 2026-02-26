@@ -8,7 +8,7 @@ from services.analysis_service import AnalysisService
 router = APIRouter()
 
 
-@router.get("/productivity-history")
+@router.get("/productivity-history", summary="E1/E2 CC+SS 出勤历史产能利用率趋势")
 def get_productivity_history(svc: AnalysisService = Depends(get_service)) -> dict[str, Any]:
     """
     E1/E2 CC+SS 出勤历史 → 产能利用率趋势
