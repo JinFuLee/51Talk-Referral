@@ -510,10 +510,496 @@ export const zhTranslations: Record<string, string> = {
 };
 
 /**
- * 泰文翻译占位符（待翻译）
- * TODO: 替换为真实泰文翻译，当前为中文占位（以 [TH] 前缀标识）
- * 替换方式：将 Object.fromEntries 生成改为逐 key 手写泰文字符串
+ * การแปลภาษาไทย — ใช้กับ useTranslation hook
+ * Key ตรงกับ zhTranslations ทุก key
  */
-export const thTranslations: Record<string, string> = Object.fromEntries(
-  Object.entries(zhTranslations).map(([k, v]) => [k, `[TH] ${v}`])
-);
+export const thTranslations: Record<string, string> = {
+  // ── ปุ่มทั่วไป ─────────────────────────────────────────────────────────────
+  "common.button.refresh": "รีเฟรช",
+  "common.button.import": "นำเข้าข้อมูลเก่า",
+  "common.button.search": "ค้นหา",
+  "common.button.collapse": "ย่อ ▲",
+  "common.button.expand": "ขยาย ▼",
+  "common.button.retry": "ลองใหม่",
+  "common.label.noData": "ไม่มีข้อมูล",
+  "common.label.loading": "กำลังโหลด…",
+  "common.label.loadFailed": "โหลดล้มเหลว",
+  "common.label.runAnalysis": "กรุณาเรียกใช้การวิเคราะห์ก่อน",
+  "common.label.t1Data": "ข้อมูล T-1 รีเฟรชอัตโนมัติ 30 วิ",
+  "common.label.dataMonth": getCurrentMonthLabel("th"),
+  "common.label.demoData": "ข้อมูลตัวอย่าง",
+  "common.label.realData": "ข้อมูลจริง",
+
+  // ── หน้าหลัก ───────────────────────────────────────────────────────────────
+  "root.title": "แดชบอร์ดวิเคราะห์การดำเนินงาน",
+  "root.subtitle": "51Talk ไทย · การแนะนำ · ข้อมูล T-1",
+  "root.section.datasources": "สถานะแหล่งข้อมูล",
+  "root.label.noAnalysisData": "ยังไม่มีข้อมูลวิเคราะห์ — กดปุ่ม «เรียกใช้การวิเคราะห์» ที่มุมขวาบน",
+
+  // ── หน้าวิเคราะห์ ──────────────────────────────────────────────────────────
+  "analysis.title": "วิเคราะห์เชิงลึก",
+  "analysis.card.funnel": "กรวยการแปลง",
+  "analysis.card.channel": "เปรียบเทียบช่องทาง (ช่องทางแคบ vs กว้าง)",
+  "analysis.card.attribution": "การวิเคราะห์แหล่งที่มา",
+  "analysis.card.roi": "ประมาณ ROI",
+  "analysis.card.prediction": "พยากรณ์สิ้นเดือน",
+  "analysis.label.noData": "ไม่มีข้อมูล",
+
+  // ── หน้าอันดับ ─────────────────────────────────────────────────────────────
+  "ranking.title": "อันดับผลงาน",
+  "ranking.label.showTop": "แสดง Top",
+
+  // ── หน้ารายงาน ─────────────────────────────────────────────────────────────
+  "reports.title": "รายงานการวิเคราะห์",
+  "reports.card.list": "รายการรายงาน",
+  "reports.label.noReports": "ยังไม่มีไฟล์รายงาน",
+  "reports.label.selectReport": "เลือกรายงานด้านซ้ายเพื่อดูเนื้อหา",
+  "reports.label.loading": "กำลังโหลด…",
+
+  // ── หน้าแหล่งข้อมูล ────────────────────────────────────────────────────────
+  "datasources.title": "จัดการแหล่งข้อมูล",
+  "datasources.button.refresh": "รีเฟรชสถานะ",
+  "datasources.section.upload": "อัปโหลดไฟล์ข้อมูล",
+  "datasources.label.upload": "อัปโหลดไฟล์ข้อมูล",
+
+  // ── หน้า Snapshot ──────────────────────────────────────────────────────────
+  "snapshots.title": "ภาพรวมย้อนหลัง",
+  "snapshots.button.import": "นำเข้าข้อมูลเก่า",
+  "snapshots.label.importResult": "ผลการนำเข้า",
+  "snapshots.card.dailyKpi": "กราฟ KPI รายวัน",
+  "snapshots.card.ccGrowth": "กราฟการเติบโตของ CC",
+  "snapshots.input.ccPlaceholder": "พิมพ์ชื่อ CC เพื่อค้นหา",
+  "snapshots.label.noDailyKpi": "ยังไม่มี snapshot รายวัน (กรุณานำเข้าข้อมูลเก่าก่อน)",
+  "snapshots.label.noWeeklyData": "ยังไม่มีข้อมูลเปรียบเทียบรายสัปดาห์ ต้องการ snapshot อย่างน้อย 2 สัปดาห์",
+
+  // ── หน้าแนวโน้ม ────────────────────────────────────────────────────────────
+  "trend.title": "วิเคราะห์แนวโน้ม",
+  "trend.card.daily": "กราฟ KPI รายวัน",
+  "trend.label.peak": "สูงสุด",
+  "trend.label.valley": "ต่ำสุด",
+  "trend.tab.mom": "เทียบเดือนก่อน (MoM)",
+  "trend.tab.wow": "เทียบสัปดาห์ก่อน (WoW)",
+  "trend.tab.yoy": "เทียบปีก่อน (YoY)",
+
+  // ── ops แดชบอร์ดภาพรวม ─────────────────────────────────────────────────────
+  "ops.dashboard.title": "ภาพรวมการดำเนินงาน",
+  "ops.dashboard.subtitle": "ข้อมูล T-1 รีเฟรชอัตโนมัติ 30 วิ",
+  "ops.dashboard.label.aiLayout": "AI จัดหน้าแบบอัตโนมัติ",
+  "ops.dashboard.label.perCapita": "ประสิทธิภาพรายคน (CC / SS / LP)",
+  "ops.dashboard.label.perCapitaUnit": "USD/คน/เดือน",
+  "ops.dashboard.kpi.registrations": "จำนวนลงทะเบียน (Leads)",
+  "ops.dashboard.kpi.payments": "จำนวนชำระเงิน",
+  "ops.dashboard.kpi.revenue": "รายได้",
+
+  // ── ops วิเคราะห์ช่องทาง ──────────────────────────────────────────────────
+  "ops.channels.title": "วิเคราะห์แนวโน้มช่องทาง",
+  "ops.channels.subtitle": "F4 แนวโน้มช่องทางการแนะนำรายเดือน · การลงทะเบียน · ประสิทธิภาพการแปลง",
+  "ops.channels.table.channel": "ช่องทาง",
+  "ops.channels.table.registrations": "ลงทะเบียน",
+  "ops.channels.table.mom": "MoM",
+  "ops.channels.table.regPaidRate": "อัตราลงทะเบียน→ชำระ",
+  "ops.channels.table.unitPrice": "ราคาต่อหน่วย",
+  "ops.channels.table.attendPaidRate": "อัตราเข้าเรียน→ชำระ",
+  "ops.channels.card.channelCount": "จำนวนช่องทาง",
+  "ops.channels.card.monthsCovered": "เดือนที่ครอบคลุม",
+  "ops.channels.card.latestTotal": "ลงทะเบียนรวมเดือนล่าสุด",
+  "ops.channels.card.latestMonth": "เดือนล่าสุด",
+  "ops.channels.card.streamChart": "กราฟการมีส่วนร่วมของช่องทาง",
+  "ops.channels.label.dataError": "ข้อมูลผิดพลาด กรุณาเรียกใช้การวิเคราะห์และตรวจสอบไฟล์ F4",
+  "ops.channels.label.noData": "ไม่มีข้อมูล",
+
+  // ── ops แผนที่ความร้อนโทรออก ───────────────────────────────────────────────
+  "ops.outreach-heatmap.title": "แผนที่ความร้อนการโทรออกของ CC",
+  "ops.outreach-heatmap.subtitle": "CC × วันที่ · สี = ปริมาณการโทร · เปลี่ยนมิติได้",
+  "ops.outreach-heatmap.card.monthly": "รวมโทรทั้งเดือน",
+  "ops.outreach-heatmap.card.daily": "เฉลี่ยโทรต่อวัน",
+  "ops.outreach-heatmap.card.topCC": "CC อันดับต้นเดือนนี้",
+  "ops.outreach-heatmap.card.heatmap": "แผนที่ความร้อนการโทรออกของ CC (CC × วันที่)",
+  "ops.outreach-heatmap.label.loadFailed": "โหลดข้อมูลล้มเหลว กรุณาเรียกใช้การวิเคราะห์แล้วรีเฟรช",
+  "ops.outreach-heatmap.label.colorLegend": "คำอธิบายสี:",
+
+  // ── ops ติดตามการโทรออก ────────────────────────────────────────────────────
+  "ops.outreach.title": "ติดตามการโทรออก",
+  "ops.outreach.subtitle": "แผนที่ความร้อนรายวัน · อัตราบรรลุเป้า CC · การกระจายตามช่วงเวลา",
+  "ops.outreach.card.totalCalls": "รวมโทรออก",
+  "ops.outreach.card.contactRate": "อัตราติดต่อสำเร็จ",
+  "ops.outreach.card.effectiveRate": "อัตราสนทนาสำเร็จ",
+  "ops.outreach.card.avgDuration": "เฉลี่ยเวลาสนทนา (วิ)",
+  "ops.outreach.card.heatmap": "แผนที่ความร้อนการโทรออกรายวัน",
+  "ops.outreach.card.ccDetail": "รายละเอียดการโทรออกของ CC",
+  "ops.outreach.card.trend": "แนวโน้มการโทรออก",
+
+  // ── ops ช่องว่างการโทรก่อนเรียน ───────────────────────────────────────────
+  "ops.outreach-gap.title": "ช่องว่างการโทรก่อนเรียน",
+  "ops.outreach-gap.subtitle": "F11 อัตราครอบคลุม vs เป้าหมาย · อันดับช่องว่าง CC · ประมาณรายได้ที่เสียไป",
+
+  // ── ops เปรียบเทียบกรวยทีม ────────────────────────────────────────────────
+  "ops.funnel-team.title": "เปรียบเทียบกรวยทีม",
+  "ops.funnel-team.subtitle": "A1 · กรวยลงทะเบียน → นัด → เข้าเรียน → ชำระ แต่ละทีม",
+
+  // ── ops ประสิทธิภาพติดตามกรวย ─────────────────────────────────────────────
+  "ops.funnel-detail.title": "ประสิทธิภาพติดตามกรวย",
+  "ops.funnel-detail.subtitle": "F1 กรวย CC ระดับบุคคล · F2 สี่จตุภาคประสิทธิภาพ",
+  "ops.funnel-detail.card.f1": "F1 ประสิทธิภาพกรวยของ CC แต่ละคน",
+  "ops.funnel-detail.card.f2": "F2 สี่จตุภาคประสิทธิภาพ",
+
+  // ── ops กรวยการแปลง ────────────────────────────────────────────────────────
+  "ops.funnel.title": "กรวยการแปลง",
+  "ops.funnel.subtitle": "ช่องทางแคบ vs กว้าง · วิเคราะห์เส้นทางนักเรียน",
+  "ops.funnel.card.narrow": "กรวยการแปลง (ช่องทางแคบ)",
+  "ops.funnel.card.channelCompare": "เปรียบเทียบช่องทาง",
+  "ops.funnel.card.journey": "เส้นทางนักเรียน",
+  "ops.funnel.card.detail": "รายละเอียดช่องทาง",
+
+  // ── ops แนวโน้มช่องทาง MoM ────────────────────────────────────────────────
+  "ops.channel-mom.title": "แนวโน้มช่องทางรายเดือน",
+  "ops.channel-mom.subtitle": "F4 แนวโน้มลงทะเบียน/แปลงรายเดือนของแต่ละช่องทาง",
+  "ops.channel-mom.card.trend": "กราฟแนวโน้มช่องทาง",
+
+  // ── ops อันดับการรักษาลูกค้า ──────────────────────────────────────────────
+  "ops.retention-rank.title": "อันดับการรักษาลูกค้าของ CC",
+  "ops.retention-rank.subtitle": "F9 ผลการติดตามนักเรียนของ CC · สัดส่วนรายได้จากการรักษา",
+  "ops.retention-rank.card.rank": "อันดับการรักษาลูกค้า",
+
+  // ── ops ประวัติกำลังผลิต ───────────────────────────────────────────────────
+  "ops.productivity-history.title": "ประวัติแนวโน้มกำลังผลิต",
+  "ops.productivity-history.subtitle": "E1/E2 ประวัติจำนวน CC+SS และอัตราใช้กำลังผลิต",
+  "ops.productivity-history.card.chart": "กราฟประวัติกำลังผลิต",
+
+  // ── ops อันดับบุคลากร ──────────────────────────────────────────────────────
+  "ops.ranking.title": "อันดับบุคลากร",
+  "ops.ranking.subtitle": "คะแนนรวม CC / SS / LP",
+  "ops.ranking.table.rank": "อันดับ",
+  "ops.ranking.table.name": "ชื่อ",
+  "ops.ranking.table.score": "คะแนนรวม",
+  "ops.ranking.table.registrations": "ลงทะเบียน",
+  "ops.ranking.table.payments": "ชำระเงิน",
+  "ops.ranking.table.contactRate": "อัตราการติดต่อ",
+  "ops.ranking.table.checkinRate": "อัตราเช็คอิน",
+  "ops.ranking.table.participationRate": "อัตราการมีส่วนร่วม",
+  "ops.ranking.table.newCoeff": "ค่าสัมประสิทธิ์การแนะนำ",
+  "ops.ranking.table.convRate": "อัตราการแปลง",
+  "ops.ranking.label.noData": "ยังไม่มีข้อมูลอันดับ กรุณาเรียกใช้การวิเคราะห์ก่อน",
+
+  // ── ops แจ้งเตือนติดตาม ────────────────────────────────────────────────────
+  "ops.followup-alert.title": "แจ้งเตือนติดตาม & เปรียบเทียบก่อน/หลังเรียน",
+  "ops.followup-alert.subtitle": "F7 นักเรียนชำระที่ยังไม่มีการติดตาม · F10 เปรียบเทียบผลก่อน/หลังเรียน",
+  "ops.followup-alert.section.zeroAlert": "แจ้งเตือนนักเรียนชำระที่ยังไม่มีการติดตาม (F7)",
+  "ops.followup-alert.section.prePost": "เปรียบเทียบผลก่อน/หลังเรียน (F10)",
+
+  // ── ops KPI หลัก ───────────────────────────────────────────────────────────
+  "ops.kpi-north-star.title": "KPI หลัก · อัตราเช็คอิน 24H",
+  "ops.kpi-north-star.subtitle": "D1 อันดับเช็คอิน · D5 ค่าสัมประสิทธิ์รายเดือน · D1×D5 scatter plot",
+  "ops.kpi-north-star.card.teamAchievement": "อัตราบรรลุเป้าทีม",
+  "ops.kpi-north-star.card.teamAvg": "ค่าเฉลี่ยทีม",
+  "ops.kpi-north-star.card.target": "เป้าหมายเช็คอิน",
+  "ops.kpi-north-star.card.d5Monthly": "D5 เฉลี่ยรายเดือน",
+  "ops.kpi-north-star.card.ranking": "อันดับเช็คอิน 24H ของ CC",
+  "ops.kpi-north-star.card.scatter": "Scatter: เช็คอิน × ค่าสัมประสิทธิ์การแนะนำ",
+  "ops.kpi-north-star.card.multiplier": "วิเคราะห์ตัวคูณเช็คอิน",
+
+  // ── ops ติดตามคอร์สทดลอง ──────────────────────────────────────────────────
+  "ops.trial.title": "ติดตามคอร์สทดลอง",
+  "ops.trial.subtitle": "อัตราติดตามก่อน/หลังเรียน · ผลของการโทรก่อนเรียนต่ออัตราเข้าเรียน",
+  "ops.trial.card.preCallLift": "การโทรก่อนเรียน → อัตราเข้าเรียน",
+  "ops.trial.card.stageDetail": "รายละเอียดขั้นตอนติดตาม",
+  "ops.trial.card.preClass": "โทรก่อนเรียน — รายละเอียด CC",
+  "ops.trial.card.postClass": "ติดตามหลังเรียน — รายละเอียด CC",
+  "ops.trial.table.stage": "ขั้นตอน",
+  "ops.trial.table.count": "จำนวน",
+  "ops.trial.table.rate": "อัตราบรรลุ",
+  "ops.trial.table.ccName": "ชื่อ CC",
+  "ops.trial.table.calls": "โทรออก",
+  "ops.trial.table.followups": "ติดตาม",
+  "ops.trial.table.followupRate": "อัตราติดตาม",
+  "ops.trial.label.noDetail": "ยังไม่มีรายละเอียด กรุณาเรียกใช้การวิเคราะห์ก่อน",
+  "ops.trial.label.hasOutreach": "อัตราเข้าเรียนที่โทรแล้ว",
+  "ops.trial.label.noOutreach": "อัตราเข้าเรียนที่ยังไม่ได้โทร",
+  "ops.trial.label.liftDesc": "การโทรก่อนเรียนมีผลบวกอย่างมีนัยสำคัญต่ออัตราเข้าเรียน",
+
+  // ── ops วิเคราะห์คำสั่งซื้อ ────────────────────────────────────────────────
+  "ops.orders.title": "วิเคราะห์คำสั่งซื้อ",
+  "ops.orders.card.trend": "แนวโน้มชำระรายวัน",
+  "ops.orders.card.packageDist": "การกระจายแพ็กเกจ",
+  "ops.orders.card.channelRevenue": "รายได้เปรียบเทียบช่องทาง (E8)",
+  "ops.orders.card.orderDetail": "รายละเอียดคำสั่งซื้อ",
+  "ops.orders.table.channel": "ช่องทาง",
+  "ops.orders.table.revenueUSD": "รายได้ (USD)",
+  "ops.orders.table.revenueTHB": "รายได้ (THB)",
+  "ops.orders.table.pct": "สัดส่วน",
+  "ops.orders.table.date": "วันที่",
+  "ops.orders.table.cc": "CC",
+  "ops.orders.table.student": "นักเรียน",
+  "ops.orders.table.package": "แพ็กเกจ",
+  "ops.orders.table.amount": "จำนวนเงิน",
+  "ops.orders.input.search": "ค้นหา…",
+  "ops.orders.label.noPackage": "ยังไม่มีข้อมูลแพ็กเกจ",
+  "ops.orders.label.noOrders": "ยังไม่มีข้อมูลคำสั่งซื้อ กรุณาเรียกใช้การวิเคราะห์ก่อน",
+  "ops.orders.label.noMatch": "ไม่พบผลลัพธ์",
+  "ops.orders.label.showFirst100": "แสดงเฉพาะ 100 รายการแรก จากทั้งหมด {n} รายการ",
+
+  // ── biz ภาพรวมธุรกิจ ────────────────────────────────────────────────────────
+  "biz.overview.title": "ภาพรวมธุรกิจการแนะนำในไทย",
+  "biz.overview.subtitle": `${getCurrentMonthLabel("th")} · ข้อมูลถึง T-1 · มุมมองธุรกิจ`,
+  "biz.overview.card.risks": "ความเสี่ยงหลัก",
+  "biz.overview.card.keyActions": "การดำเนินการสำคัญสัปดาห์นี้",
+  "biz.overview.metric.registration": "ลงทะเบียนเดือนนี้",
+  "biz.overview.metric.payment": "ชำระเงินเดือนนี้",
+  "biz.overview.metric.revenue": "รายได้เดือนนี้",
+  "biz.overview.metric.prediction": "พยากรณ์สิ้นเดือน",
+  "biz.overview.label.achieved": "บรรลุเป้า",
+  "biz.overview.label.belowTarget": "ต่ำกว่าเป้าเล็กน้อย",
+  "biz.overview.label.seriousLag": "ล้าหลังอย่างมาก",
+  "biz.overview.label.onTrack": "น่าจะบรรลุเป้า",
+  "biz.overview.label.nearTarget": "ใกล้เป้าหมาย",
+  "biz.overview.label.completionProgress": "ความคืบหน้า",
+  "biz.overview.label.revenueProgress": "ความคืบหน้ารายได้",
+  "biz.overview.label.gap": "ช่องว่าง",
+  "biz.overview.label.target": "เป้าหมาย",
+  "biz.overview.action.checkinLow": "อัตราเช็คอิน 24H เพียง 31% ต้องผลักดัน CC ให้ดำเนินการ",
+  "biz.overview.action.checkinTarget": "เป้าหมาย 60%",
+  "biz.overview.action.enclosureHigh": "อัตราแปลงช่วง 0-30 วันสูงสุด (25%) แนะนำเพิ่มทรัพยากร",
+  "biz.overview.action.preCallLift": "การโทรก่อนเรียนเพิ่มอัตราเข้าเรียน 2.2x ควรเพิ่มการติดต่อก่อนเรียน",
+
+  // ── biz ภาพรวมทีม ───────────────────────────────────────────────────────────
+  "biz.team.title": "ภาพรวมทีม",
+  "biz.team.subtitle": `${getCurrentMonthLabel("th")} · ประสิทธิภาพ · การเข้างาน · อัตราบรรลุเป้า`,
+  "biz.team.card.ccEfficiency": "ประสิทธิภาพ CC",
+  "biz.team.card.ssEfficiency": "ประสิทธิภาพ SS",
+  "biz.team.card.trendNormal": "แนวโน้มปกติ",
+  "biz.team.card.dailyTrend": "แนวโน้มประสิทธิภาพรายวัน",
+  "biz.team.card.achievement": "ภาพรวมการบรรลุเป้าทีม",
+  "biz.team.table.metric": "ตัวชี้วัด",
+  "biz.team.table.target": "เป้าหมาย",
+  "biz.team.table.status": "สถานะ",
+  "biz.team.label.active": "คนในทีม",
+  "biz.team.label.frontend": "ทีมขายหน้าบ้าน",
+  "biz.team.label.backend": "ทีมขายหลังบ้าน",
+  "biz.team.label.noDailyTrend": "ยังไม่มีข้อมูลแนวโน้มรายวัน",
+  "biz.team.label.statusLegend": "บรรลุ   ต่ำกว่าเป้าเล็กน้อย (-5%~0%)   ล้าหลังอย่างมาก (<-5%)",
+  "biz.team.label.perPerson": "/คน",
+
+  // ── biz แนวโน้มและพยากรณ์ ──────────────────────────────────────────────────
+  "biz.trend.title": "แนวโน้ม & พยากรณ์",
+  "biz.trend.subtitle": "MoM/ช่วงพยากรณ์ · วิเคราะห์เหตุผลเช็คอิน",
+  "biz.trend.tab.mom": "MoM",
+  "biz.trend.tab.wow": "WoW",
+  "biz.trend.tab.yoy": "YoY",
+  "biz.trend.card.monthlyTrend": "แนวโน้มรายเดือน",
+  "biz.trend.card.prediction": "ช่วงพยากรณ์สิ้นเดือน",
+  "biz.trend.card.checkinCausal": "เช็คอิน→การแนะนำ (Causal)",
+  "biz.trend.card.modelInfo": "คำอธิบายโมเดลพยากรณ์",
+  "biz.trend.label.predReg": "พยากรณ์ลงทะเบียน",
+  "biz.trend.label.predPay": "พยากรณ์ชำระเงิน",
+  "biz.trend.label.confidence": "ความเชื่อมั่น",
+  "biz.trend.label.model": "โมเดล:",
+  "biz.trend.label.predRevenue": "พยากรณ์รายได้:",
+  "biz.trend.label.currentSelected": "ที่เลือกอยู่",
+  "biz.trend.label.noWeekData": "ยังไม่มีข้อมูลเปรียบเทียบรายสัปดาห์ ต้องการ snapshot อย่างน้อย 2 สัปดาห์",
+
+  // ── biz วิเคราะห์ผลกระทบ ──────────────────────────────────────────────────
+  "biz.impact.title": "วิเคราะห์ผลกระทบ",
+  "biz.impact.subtitle": "ช่องว่างตัวชี้วัดประสิทธิภาพ → ประมาณรายได้ที่เสียไป · What-if Simulator",
+  "biz.impact.card.totalLoss": "รายได้ที่เสียไปรวม",
+  "biz.impact.card.topLever": "ตัวชี้วัดที่มีผลมากที่สุด",
+  "biz.impact.card.metricCount": "จำนวนตัวชี้วัดที่วิเคราะห์",
+  "biz.impact.card.waterfall": "กราฟ Waterfall รายได้ที่เสียไป",
+  "biz.impact.card.whatif": "What-if Simulator",
+  "biz.impact.label.whatifDesc": "ลากสไลเดอร์เพื่อปรับตัวชี้วัด แล้วดูผลกระทบต่อจำนวนชำระและรายได้",
+  "biz.impact.label.noData": "ยังไม่มีข้อมูลผลกระทบ กรุณาเรียกใช้เครื่องมือวิเคราะห์ก่อน",
+
+  // ── biz วิเคราะห์แหล่งที่มา ─────────────────────────────────────────────────
+  "biz.attribution.title": "วิเคราะห์แหล่งที่มา",
+  "biz.attribution.subtitle": "สัดส่วนการมีส่วนร่วมของแต่ละปัจจัยต่อผลงานการแนะนำ",
+  "biz.attribution.card.topFactor": "ปัจจัยหลัก",
+  "biz.attribution.card.factorCount": "จำนวนปัจจัยที่วิเคราะห์",
+  "biz.attribution.card.distribution": "การกระจายสัดส่วน",
+  "biz.attribution.card.detail": "รายละเอียดแหล่งที่มา",
+  "biz.attribution.table.rank": "อันดับ",
+  "biz.attribution.table.factor": "ปัจจัย",
+  "biz.attribution.table.id": "รหัส",
+  "biz.attribution.table.contribution": "สัดส่วน",
+  "biz.attribution.label.contribution": "สัดส่วน",
+  "biz.attribution.label.noData": "ยังไม่มีข้อมูลแหล่งที่มา",
+  "biz.attribution.label.noDetail": "ไม่มีข้อมูล",
+  "biz.attribution.label.loadFailed": "ยังไม่มีข้อมูลแหล่งที่มา กรุณาเรียกใช้เครื่องมือวิเคราะห์ก่อน",
+
+  // ── biz ROI ──────────────────────────────────────────────────────────────────
+  "biz.roi.title": "วิเคราะห์ ROI",
+  "biz.roi.subtitle": `${getCurrentMonthLabel("th")} · ภาพรวมผลตอบแทนการลงทุน`,
+  "biz.roi.card.overview": "ภาพรวม ROI",
+  "biz.roi.card.cohort": "กราฟ Cohort Decay",
+  "biz.roi.card.costDetail": "รายละเอียดต้นทุน",
+  "biz.roi.label.totalRevenue": "รายได้รวม",
+  "biz.roi.label.totalCost": "ต้นทุนรวม",
+  "biz.roi.label.netProfit": "กำไรสุทธิ",
+  "biz.roi.label.cohortDesc": "อัตราการติดต่อลดครึ่งหนึ่งใน ~4 เดือน อัตราการมีส่วนร่วมลดครึ่งหนึ่งใน ~2 เดือน — ROI สูงสุดใน 2 เดือนแรก",
+  "biz.roi.label.noCostData": "ยังไม่ได้โหลดไฟล์ B1 ยังไม่มีข้อมูลต้นทุนจริง",
+  "biz.roi.label.noCostTable": "ไม่มีข้อมูล — กรุณาอัปโหลดไฟล์ B1 ROI แล้วเรียกวิเคราะห์ใหม่",
+  "biz.roi.label.good": "ดี",
+  "biz.roi.label.low": "ต่ำ",
+  "biz.roi.label.needImprove": "ต้องปรับปรุง",
+  "biz.roi.table.rewardType": "ประเภทรางวัล",
+  "biz.roi.table.incentiveDetail": "รายละเอียดสิ่งจูงใจ",
+  "biz.roi.table.referralAction": "การดำเนินการแนะนำ",
+  "biz.roi.table.quantity": "จำนวน",
+  "biz.roi.table.unitCost": "ต้นทุนต่อหน่วย",
+  "biz.roi.table.totalCost": "ต้นทุนรวม",
+  "biz.roi.table.total": "รวม",
+  "biz.roi.label.targetGap": "เป้าหมาย",
+
+  // ── biz โครงสร้างคำสั่งซื้อ ─────────────────────────────────────────────────
+  "biz.orders.title": "วิเคราะห์โครงสร้างคำสั่งซื้อ",
+  "biz.orders.subtitle": "สัดส่วนแพ็กเกจ (E6) · โครงสร้างแพ็กเกจกลุ่มย่อย (E7) · Waterfall รายได้ช่องทาง (E8)",
+  "biz.orders.card.e6": "วิเคราะห์โครงสร้างแพ็กเกจ (E6)",
+  "biz.orders.card.e8": "Waterfall รายได้ช่องทาง (E8)",
+  "biz.orders.card.e7": "โครงสร้างแพ็กเกจกลุ่มย่อย (E7)",
+  "biz.orders.label.e6NoData": "E6 ยังไม่ได้เชื่อมต่อ กรุณาตรวจสอบไฟล์ BI-订单_套餐类型占比_D-1",
+  "biz.orders.label.e7NoData": "E7 ยังไม่ได้เชื่อมต่อ กรุณาตรวจสอบไฟล์ BI-订单_分小组套餐类型占比_D-1",
+  "biz.orders.label.e8NoData": "E8 ยังไม่ได้เชื่อมต่อ กรุณาตรวจสอบไฟล์ BI-订单_套餐分渠道金额_D-1",
+  "biz.orders.label.loadFailed": "โหลดข้อมูลบางส่วนล้มเหลว กรุณาเรียกใช้เครื่องมือวิเคราะห์ก่อน",
+  "biz.orders.table.group": "กลุ่ม",
+  "biz.orders.label.byRevenue": "สัดส่วนรายได้ตามประเภทแพ็กเกจ",
+  "biz.orders.label.e7pending": "E7 รอการเชื่อมต่อข้อมูล",
+
+  // ── biz วิเคราะห์คำสั่งซื้อขั้นสูง ─────────────────────────────────────────
+  "biz.orders-detail.title": "วิเคราะห์คำสั่งซื้อขั้นสูง",
+  "biz.orders-detail.subtitle": "รายได้ตามประเภทผลิตภัณฑ์แบบซ้อน (E4) · Radar กลุ่ม (E7) · Waterfall ช่องทาง (E8)",
+
+  // ── biz รายละเอียด Leads ──────────────────────────────────────────────────
+  "biz.leads-detail.title": "วิเคราะห์รายละเอียด Leads",
+  "biz.leads-detail.subtitle": "เมทริกซ์ความร้อนช่วงวัน×ช่องทาง · การกระจายเวลาลงทะเบียน→ชำระ",
+  "biz.leads-detail.card.a2": "A2 เมทริกซ์ช่วงวัน×ช่องทาง",
+  "biz.leads-detail.card.a3": "A3 การกระจายเวลาลงทะเบียน→ชำระ",
+  "biz.leads-detail.label.a2Desc": "แถว = ช่วงวันหลังชำระ · คอลัมน์ = ช่องทางลงทะเบียน · สี = อัตราแปลง",
+  "biz.leads-detail.label.a3Desc": "แกน X: ช่วงวัน · แกน Y: จำนวนนักเรียน",
+
+  // ── biz ข้อมูลเชิงลึก ─────────────────────────────────────────────────────
+  "biz.insights.title": "ข้อมูลเชิงลึก",
+  "biz.insights.subtitle": "รายงาน Pyramid + วิเคราะห์ 5-Why + ประเมินขั้นตอน",
+  "biz.insights.section.conclusion": "สรุปหลัก",
+  "biz.insights.section.stagePillars": "เสาหลักการดำเนินการสำคัญ",
+  "biz.insights.section.fiveWhy": "วิเคราะห์ 5-Why",
+  "biz.insights.label.current": "ปัจจุบัน",
+  "biz.insights.label.target": "เป้าหมาย",
+  "biz.insights.label.gap": "ช่องว่าง",
+  "biz.insights.label.expectedLift": "การเพิ่มขึ้นที่คาดหวัง",
+  "biz.insights.label.loadFailed": "โหลดข้อมูลล้มเหลว กรุณาตรวจสอบว่าบริการ backend ทำงานปกติ",
+
+  // ── biz ช่วงวันหลังชำระ ────────────────────────────────────────────────────
+  "biz.enclosure.title": "กลยุทธ์จัดสรรทรัพยากรตามช่วงวันหลังชำระ",
+  "biz.enclosure.subtitle": `${getCurrentMonthLabel("th")} · นับจากวันชำระเงิน · เพิ่มประสิทธิภาพการจัดสรร`,
+  "biz.enclosure.card.heatmap": "แผนที่ความร้อน ช่วงวัน × ROI",
+  "biz.enclosure.card.coverage": "อัตราครอบคลุมการติดตามตามช่วงวัน",
+  "biz.enclosure.card.strategy": "คำแนะนำเชิงกลยุทธ์",
+  "biz.enclosure.card.detail": "รายละเอียดช่วงวัน",
+  "biz.enclosure.card.compare": "เปรียบเทียบตลาด vs การแนะนำ (D2×D3)",
+  "biz.enclosure.card.combined": "ภาพรวมรวมช่วงวัน (D4)",
+  "biz.enclosure.label.heatmapDesc": "ความเข้มสี = ดัชนี ROI · ตัวเลข = สัดส่วนทรัพยากรที่แนะนำ",
+  "biz.enclosure.label.compareDesc": "น้ำเงิน = ช่องทางตลาด · ม่วง = ช่องทางการแนะนำ · เปลี่ยนตัวชี้วัดได้",
+  "biz.enclosure.label.combinedDesc": "มุมมองรวมทุกช่องทาง · ตัวชี้วัดหลัก 5 ช่วงวัน + กรวยแปลง",
+  "biz.enclosure.label.noData": "ไม่มีข้อมูล — กรุณาเรียกใช้การวิเคราะห์ก่อน",
+  "biz.enclosure.table.segment": "ช่วงวัน",
+  "biz.enclosure.table.students": "จำนวนนักเรียน",
+  "biz.enclosure.table.convRate": "อัตราแปลง",
+  "biz.enclosure.table.followupRate": "อัตราติดตาม",
+  "biz.enclosure.table.roiIndex": "ดัชนี ROI",
+  "biz.enclosure.table.suggestion": "คำแนะนำ",
+  "biz.enclosure.label.days": "วัน",
+
+  // ── biz สุขภาพช่วงวัน ─────────────────────────────────────────────────────
+  "biz.enclosure-health.title": "แดชบอร์ดสุขภาพช่วงวัน",
+  "biz.enclosure-health.subtitle": `${getCurrentMonthLabel("th")} · F7+F8+D3 ติดตามการชำระ`,
+
+  // ── biz รายละเอียดช่วงวัน ─────────────────────────────────────────────────
+  "biz.enclosure-detail.title": "วิเคราะห์รายละเอียดช่วงวัน",
+  "biz.enclosure-detail.subtitle": "แบ่งตามวันหลังชำระ · เปรียบเทียบตลาด vs การแนะนำ · ตัวชี้วัดหลายมิติ",
+  "biz.enclosure-detail.context.def": "นิยามช่วงวัน",
+  "biz.enclosure-detail.context.defDesc": "นับจากวันชำระเงิน: 0-30 / 31-60 / 61-90 / 91-180 / 181+",
+  "biz.enclosure-detail.context.compare": "มุมมองเปรียบเทียบ D2×D3",
+  "biz.enclosure-detail.context.compareDesc": "ช่วงวันเดียวกัน: อัตราแปลง/มีส่วนร่วม/จำนวนนักเรียน ตลาด vs การแนะนำ",
+  "biz.enclosure-detail.context.combined": "มุมมองรวม D4",
+  "biz.enclosure-detail.context.combinedDesc": "รวมทุกช่องทาง แสดงนักเรียนที่ active/ชำระ/มีส่วนร่วม/อัตราการดำเนินงานทุกช่วงวัน",
+
+  // ── biz แผนที่ความร้อน Cohort ─────────────────────────────────────────────
+  "biz.cohort-heatmap.title": "แผนที่ความร้อนการรักษา Cohort",
+  "biz.cohort-heatmap.subtitle": "เมทริกซ์ช่วงวัน×ตัวชี้วัด สีแสดงผลงานสัมพัทธ์",
+  "biz.cohort-heatmap.card.northStar": "KPI หลัก — Gauge อัตราบรรลุเป้า",
+  "biz.cohort-heatmap.card.matrix": "เมทริกซ์การรักษา Cohort (M1 Snapshot)",
+
+  // ── biz นักเรียน Cohort ───────────────────────────────────────────────────
+  "biz.cohort-students.title": "วิเคราะห์รายละเอียดนักเรียน C6",
+  "biz.cohort-students.subtitle": "รายการนักเรียน · กราฟการรักษา · อันดับ CC · เปรียบเทียบทีม",
+  "biz.cohort-students.card.overview": "ภาพรวมและเปรียบเทียบทีม",
+  "biz.cohort-students.card.retention": "กราฟการรักษารายเดือน (M1-M12)",
+  "biz.cohort-students.card.ccRanking": "อันดับประสิทธิภาพการแนะนำของ CC",
+  "biz.cohort-students.label.loadFailed": "โหลดข้อมูลล้มเหลว กรุณาเรียกใช้การวิเคราะห์ก่อน",
+
+  // ── biz Cohort Decay ──────────────────────────────────────────────────────
+  "biz.cohort-decay.title": "วิเคราะห์ Cohort Decay",
+  "biz.cohort-decay.subtitle": "กราฟ Decay C1-C5 · หน้าต่างทอง C4",
+  "biz.cohort-decay.tab.decay": "กราฟ Decay ตัวชี้วัด",
+  "biz.cohort-decay.tab.coefficient": "C4 หน้าต่างทองค่าสัมประสิทธิ์",
+  "biz.cohort-decay.label.byMonth": "ตามเดือนที่เข้ากลุ่ม",
+  "biz.cohort-decay.label.byTeam": "ตามกลุ่มย่อย",
+  "biz.cohort-decay.label.loadFailed": "โหลดข้อมูลล้มเหลว กรุณาเรียกใช้การวิเคราะห์ก่อน",
+
+  // ── biz อันดับขั้นสูง ─────────────────────────────────────────────────────
+  "biz.ranking-enhanced.title": "อันดับขั้นสูง",
+  "biz.ranking-enhanced.subtitle": "A4 CC อันดับขั้นสูง — อัตรานัด/เข้าเรียน/คะแนนรวม",
+  "biz.ranking-enhanced.card.table": "ตารางอันดับ CC ขั้นสูง",
+
+  // ── biz ครอบคลุมการโทรก่อนเรียน ─────────────────────────────────────────
+  "biz.coverage.title": "ช่องว่างการโทรก่อนเรียน",
+  "biz.coverage.subtitle": "F11 รายละเอียดการโทรก่อนเรียน · ระบุนักเรียนที่ยังไม่ครอบคลุม · ประมาณรายได้ที่เสียไป",
+
+  // ── biz ภาพรวม Leads ──────────────────────────────────────────────────────
+  "biz.leads-overview.title": "ภาพรวม Leads / ภาพรวม Leads",
+  "biz.leads-overview.subtitle": "กรวยเต็ม · แยกเป้าหมาย · ติดตามช่องว่าง · ประสิทธิภาพช่วงวัน",
+  "biz.leads-overview.glossary": "ช่องทางแคบ=ลิงก์พนักงาน CC/SS/LP | ช่องทางกว้าง=ลิงก์นักเรียน UserA",
+  "biz.leads-overview.tab.total": "รวม",
+  "biz.leads-overview.tab.cc_narrow": "CC ช่องทางแคบ",
+  "biz.leads-overview.tab.ss_narrow": "SS ช่องทางแคบ",
+  "biz.leads-overview.tab.lp_narrow": "LP ช่องทางแคบ",
+  "biz.leads-overview.tab.wide": "ช่องทางกว้าง",
+  "biz.leads-overview.section.monthly_trend": "แนวโน้มรายเดือน",
+  "biz.leads-overview.section.progress": "ติดตามความคืบหน้า",
+  "biz.leads-overview.section.target_decomposition": "แยกย่อยเป้าหมาย",
+  "biz.leads-overview.section.gap_panel": "ปัญหาปัจจุบัน Current Issue",
+  "biz.leads-overview.section.team_matrix": "เมทริกซ์ประสิทธิภาพทีม×ช่องทาง Team Channel Efficiency",
+  "biz.leads-overview.section.enclosure_baseline": "ความเบี่ยงเบนประสิทธิภาพช่วงวัน Enclosure Efficiency vs Baseline",
+  "biz.leads-overview.col.month": "เดือน",
+  "biz.leads-overview.col.register": "ลงทะเบียน Register",
+  "biz.leads-overview.col.appointment": "นัดเรียน Appt.",
+  "biz.leads-overview.col.showup": "เข้าเรียน Show up",
+  "biz.leads-overview.col.paid": "ชำระเงิน Paid",
+  "biz.leads-overview.col.revenue_usd": "รายได้ USD",
+  "biz.leads-overview.col.leads_to_pay_rate": "อัตราลงทะเบียน→ชำระ %",
+  "biz.leads-overview.row.mom_gap": "GAP MoM",
+  "biz.leads-overview.row.target": "เป้าหมาย Target",
+  "biz.leads-overview.row.achievement": "ทำได้ Achievement",
+  "biz.leads-overview.row.progress_bm": "ความคืบหน้า BM",
+  "biz.leads-overview.row.target_gap": "GAP เป้าหมาย",
+  "biz.leads-overview.label.time_progress": "BM วันนี้",
+  "biz.leads-overview.label.revenue_target": "เป้ารายได้เดือน 1",
+  "biz.leads-overview.label.unit_price": "ราคาต่อหน่วยเดือน 1",
+  "biz.leads-overview.label.unit_target": "เป้าจำนวนชำระ",
+  "biz.leads-overview.label.conversion_target": "เป้าอัตราแปลง",
+  "biz.leads-overview.label.leads_target": "เป้า Leads",
+  "biz.leads-overview.label.cc_narrow": "CC ช่องทางแคบ",
+  "biz.leads-overview.label.ss_narrow": "SS ช่องทางแคบ",
+  "biz.leads-overview.label.lp_narrow": "LP ช่องทางแคบ",
+  "biz.leads-overview.label.wide": "ช่องทางกว้าง 55%",
+  "biz.leads-overview.gap.performance": "ช่องว่างผลงาน Performance gap",
+  "biz.leads-overview.gap.unit_price": "ช่องว่างราคาต่อหน่วย Unit price Gap",
+  "biz.leads-overview.gap.bill": "ช่องว่างจำนวนชำระ Bill Gap",
+  "biz.leads-overview.gap.showup": "ช่องว่างเข้าเรียน Show up Gap",
+  "biz.leads-overview.gap.appointment": "ช่องว่างนัด Apps. Gap",
+  "biz.leads-overview.gap.lead": "ช่องว่าง Leads Lead Gap",
+  "biz.leads-overview.gap.cc_lead": "ช่องว่าง CC ช่องทางแคบ CC Lead Gap",
+  "biz.leads-overview.gap.ss_lead": "ช่องว่าง SS ช่องทางแคบ SS Lead Gap",
+  "biz.leads-overview.gap.lp_lead": "ช่องว่าง LP ช่องทางแคบ LP Lead Gap",
+  "biz.leads-overview.gap.wide_lead": "ช่องว่างช่องทางกว้าง User Lead Gap",
+  "biz.leads-overview.empty": "ไม่มีข้อมูล กรุณาตรวจสอบว่าอัปโหลดไฟล์แหล่งข้อมูลแล้ว",
+  "biz.leads-overview.error": "โหลดข้อมูลล้มเหลว กรุณาลองใหม่ภายหลัง",
+};

@@ -5,6 +5,7 @@
 from __future__ import annotations
 
 import logging
+import os
 from concurrent.futures import ThreadPoolExecutor, as_completed, TimeoutError as FuturesTimeout
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
@@ -41,6 +42,9 @@ class AnalysisEngineV2:
     GAP_GREEN = 0.0
     GAP_YELLOW = -0.05
 
+    # 并行开关：PARALLEL_ANALYZERS=0 强制串行（调试/基准测试用），默认开启
+    _PARALLEL_ENABLED: bool = os.environ.get("PARALLEL_ANALYZERS", "1") != "0"
+
     # 所有可用模块的完整注册表（key → 分析方法）
     _MODULE_REGISTRY: Dict[str, str] = {
         "meta":               "_build_meta",
@@ -61,6 +65,7 @@ class AnalysisEngineV2:
         "trend":              "_analyze_trend",
         "prediction":         "_analyze_prediction",
         "anomalies":          "_detect_anomalies",
+        "ltv":                "_analyze_ltv",
     }
 
     def __init__(
@@ -110,6 +115,7 @@ class AnalysisEngineV2:
 
         执行分两阶段：
           Phase 1 — 并行执行所有互相独立的模块（ThreadPoolExecutor, max_workers=8）
+                    PARALLEL_ANALYZERS=0 时降级为串行（调试/基准测试用）
           Phase 2 — 串行执行有跨模块依赖的模块（risk_alerts, impact_chain）
         """
         result: dict = {}
@@ -130,24 +136,38 @@ class AnalysisEngineV2:
                 if hasattr(self, method)
             ]
 
-        # Phase 1: 并行执行所有独立模块（_DEPENDENT_MODULES 已排除在外）
+        # Phase 1: 执行所有独立模块（_DEPENDENT_MODULES 已排除在外）
+        # PARALLEL_ANALYZERS=0 时强制串行，方便调试和基准测试
         independent = [(key, fn) for key, fn in modules if key not in self._DEPENDENT_MODULES]
-        with ThreadPoolExecutor(max_workers=min(len(independent), 8)) as executor:
-            future_to_key = {executor.submit(fn): key for key, fn in independent}
-            try:
-                for future in as_completed(future_to_key, timeout=30):
-                    key = future_to_key[future]
-                    try:
-                        result[key] = future.result()
-                    except Exception as e:
-                        logger.error(f"[{key}] 分析失败: {e}", exc_info=True)
-                        result[key] = {}
-            except FuturesTimeout:
-                logger.error("Analyzer timeout: some modules did not complete within 30s")
-                for f in future_to_key:
-                    if not f.done():
-                        f.cancel()
-                        result[future_to_key[f]] = {}
+        parallel_enabled = os.environ.get("PARALLEL_ANALYZERS", "1") != "0"
+
+        if parallel_enabled and len(independent) > 1:
+            with ThreadPoolExecutor(max_workers=min(len(independent), 8)) as executor:
+                future_to_key = {executor.submit(fn): key for key, fn in independent}
+                try:
+                    for future in as_completed(future_to_key, timeout=30):
+                        key = future_to_key[future]
+                        try:
+                            result[key] = future.result()
+                        except Exception as e:
+                            logger.error(f"[{key}] 分析失败: {e}", exc_info=True)
+                            result[key] = {}
+                except FuturesTimeout:
+                    logger.error("Analyzer timeout: some modules did not complete within 30s")
+                    for f in future_to_key:
+                        if not f.done():
+                            f.cancel()
+                            result[future_to_key[f]] = {}
+        else:
+            # 串行模式：PARALLEL_ANALYZERS=0 或仅有 1 个模块时
+            if not parallel_enabled:
+                logger.debug("PARALLEL_ANALYZERS=0: running analyzers in serial mode")
+            for key, fn in independent:
+                try:
+                    result[key] = fn()
+                except Exception as e:
+                    logger.error(f"[{key}] 分析失败: {e}", exc_info=True)
+                    result[key] = {}
 
         # Phase 2: 串行执行依赖模块
         # risk_alerts 依赖 summary + anomalies
@@ -183,7 +203,13 @@ class AnalysisEngineV2:
         result["cc_ranking"]        = result.get("ranking_cc", [])
         result["ss_ranking"]        = result.get("ranking_ss_lp", {}).get("ss", [])
         result["lp_ranking"]        = result.get("ranking_ss_lp", {}).get("lp", [])
-        result["ltv"]               = self._analyze_ltv()
+        # ltv 已纳入 _MODULE_REGISTRY，Phase 1 并行执行；此处仅做 fallback 保底
+        if "ltv" not in result:
+            try:
+                result["ltv"] = self._analyze_ltv()
+            except Exception as e:
+                logger.error(f"[ltv] 分析失败: {e}", exc_info=True)
+                result["ltv"] = {}
         result["roi_estimate"]      = result.get("cohort_roi", {})
         result["time_progress"]     = self.targets.get("时间进度", 0.0)
 

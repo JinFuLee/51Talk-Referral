@@ -1,10 +1,11 @@
 """
 Unit tests for core.analysis_engine_v2.AnalysisEngineV2
 ~12 test cases — analyze() 基本语义 + 空数据安全 + enabled_modules 白名单
++ 并行化开关测试（PARALLEL_ANALYZERS）
 """
 from datetime import datetime
 from types import SimpleNamespace
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
 from core.analysis_engine_v2 import AnalysisEngineV2
@@ -215,3 +216,58 @@ class TestEnabledModules:
         # 非白名单、非依赖后置模块的 key 不应出现
         for key in ("ranking_cc", "ranking_ss_lp", "trend"):
             assert key not in result, f"key={key} 不在白名单，不应出现在结果中"
+
+
+# ── PARALLEL_ANALYZERS 开关测试 ───────────────────────────────────────────────
+
+
+class TestParallelAnalyzersSwitch:
+    """PARALLEL_ANALYZERS 环境变量开关：并行/串行两路都应产出相同结构。"""
+
+    def test_parallel_mode_returns_dict(self):
+        """PARALLEL_ANALYZERS=1（默认），analyze() 应返回 dict。"""
+        with patch.dict("os.environ", {"PARALLEL_ANALYZERS": "1"}):
+            result = _make_engine().analyze()
+        assert isinstance(result, dict)
+
+    def test_serial_mode_returns_dict(self):
+        """PARALLEL_ANALYZERS=0 强制串行，analyze() 应返回 dict。"""
+        with patch.dict("os.environ", {"PARALLEL_ANALYZERS": "0"}):
+            result = _make_engine().analyze()
+        assert isinstance(result, dict)
+
+    def test_serial_mode_contains_same_keys(self):
+        """串行模式产出的顶层 key 应与并行模式一致。"""
+        with patch.dict("os.environ", {"PARALLEL_ANALYZERS": "1"}):
+            parallel_result = _make_engine().analyze()
+        with patch.dict("os.environ", {"PARALLEL_ANALYZERS": "0"}):
+            serial_result = _make_engine().analyze()
+        assert set(parallel_result.keys()) == set(serial_result.keys())
+
+    def test_parallel_mode_contains_ltv_key(self):
+        """ltv 已纳入 _MODULE_REGISTRY，并行模式下应存在于结果。"""
+        with patch.dict("os.environ", {"PARALLEL_ANALYZERS": "1"}):
+            result = _make_engine().analyze()
+        assert "ltv" in result
+
+    def test_serial_mode_contains_ltv_key(self):
+        """串行模式下 ltv 也应存在。"""
+        with patch.dict("os.environ", {"PARALLEL_ANALYZERS": "0"}):
+            result = _make_engine().analyze()
+        assert "ltv" in result
+
+    def test_single_analyzer_failure_does_not_break_analyze(self):
+        """单个 Analyzer 抛出异常，analyze() 仍应返回完整结果（其他 key 不受影响）。"""
+        engine = _make_engine()
+        original_fn = engine._analyze_cc_ranking
+
+        def _bad_fn():
+            raise RuntimeError("模拟 analyzer 故障")
+
+        engine._analyze_cc_ranking = _bad_fn
+        with patch.dict("os.environ", {"PARALLEL_ANALYZERS": "1"}):
+            result = engine.analyze()
+        # 整体仍返回 dict
+        assert isinstance(result, dict)
+        # 故障的 key 应降级为 {} 或 []，不应抛出
+        assert "ranking_cc" in result or "cc_ranking" in result
