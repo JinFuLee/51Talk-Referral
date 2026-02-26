@@ -2060,6 +2060,7 @@ def get_funnel_team(
             "出席": att,
             "付费": paid,
             "conversion_rate": round(paid / reg, 4) if reg else 0,
+            "funnel_source": "总计",  # 顶层漏斗为 CC+SS+LP+宽口混合口径
             "cc_narrow": {
                 "注册": cc.get("注册") or 0,
                 "预约": cc.get("预约") or 0,
@@ -2068,21 +2069,14 @@ def get_funnel_team(
             },
             "ss_narrow": {
                 "注册": ss.get("注册") or 0,
-                "预约": ss.get("预约") or 0,
-                "出席": ss.get("出席") or 0,
-                "付费": ss.get("付费") or 0,
+                "CC转化付费": ss.get("付费") or 0,   # SS 带来的 leads 被 CC 转化为付费数（跨岗效率）
             },
             "lp_narrow": {
                 "注册": lp.get("注册") or 0,
-                "预约": lp.get("预约") or 0,
-                "出席": lp.get("出席") or 0,
-                "付费": lp.get("付费") or 0,
+                "CC转化付费": lp.get("付费") or 0,   # LP 带来的 leads 被 CC 转化为付费数（跨岗效率）
             },
             "wide": {
                 "注册": wide.get("注册") or 0,
-                "预约": wide.get("预约") or 0,
-                "出席": wide.get("出席") or 0,
-                "付费": wide.get("付费") or 0,
             },
         })
 

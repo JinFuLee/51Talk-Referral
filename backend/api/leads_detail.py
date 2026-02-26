@@ -184,10 +184,12 @@ _METRIC_KEYS = [
 _SCOPE_ROLE: dict[str, str] = {
     "total": "full_funnel",
     "cc_narrow": "full_funnel",
-    "ss_narrow": "leads_only",
-    "lp_narrow": "leads_only",
-    "wide": "leads_only",
+    "ss_narrow": "leads_and_process",   # SS: leads数 + 过程指标（触达率/打卡率）+ leads→CC转化率
+    "lp_narrow": "leads_and_process",   # LP: 同 SS
+    "wide": "leads_only",               # 宽口径仅 register（质量低，无过程追踪）
 }
+# 注意: leads_detail 页面的实际过滤逻辑仍只展示 register（不展示过程指标）
+# 过程指标（触达率/打卡率）在 ranking 和 funnel 页面展示，此处角色值为语义声明，与 config.json 对齐
 
 # A1 by_channel 中文 key 映射（leads_only 口径用 A1 替代 A5）
 _A1_CH_CN: dict[str, str] = {

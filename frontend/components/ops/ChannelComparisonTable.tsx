@@ -52,6 +52,9 @@ export function ChannelComparisonTable({ channels }: ChannelComparisonTableProps
           ))}
         </tbody>
       </table>
+      <p className="text-xs text-slate-400 mt-2">
+        * SS/LP 口径的「付费」= CC 将该口径 leads 转化后的付费数，「转化率」= leads→CC 转化效率（非 SS/LP 自身漏斗转化）
+      </p>
     </div>
   );
 }

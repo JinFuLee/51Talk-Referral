@@ -607,14 +607,18 @@ class RankingAnalyzer:
                 "team":               team_str,
                 "group":              a4.get("group") or team_str,
                 "leads":              leads,
-                "reserve":            reserve,
-                "showup":             showup,
-                "paid":               paid,
-                "conversion_rate":    conversion,
+                "reserve":            None,     # SS/LP 不参与预约流程
+                "showup":             None,     # SS/LP 不参与出席流程
+                "paid":               paid,                # 保留原名（前端兼容）
+                "cc_converted_paid":  paid,                # 语义别名：CC 转化后的付费数
+                "conversion_rate":    conversion,          # 保留原名（前端兼容）
+                "leads_to_cc_rate":   conversion,          # 语义别名：leads→CC转化率（跨岗效率）
                 "contact_rate":       contact_rate,
                 "checkin_rate":       checkin_rate,
                 "participation_rate": participation_rate,
                 "detail": {
+                    "reserve":            {"raw": reserve, "norm": 0.5},  # 原始值保留在 detail
+                    "showup":             {"raw": showup,  "norm": 0.5},  # 原始值保留在 detail
                     "contact_rate":       {"raw": contact_rate, "norm": 0.5},
                     "checkin_rate":       {"raw": checkin_rate, "norm": 0.5},
                     "participation_rate": {"raw": participation_rate, "norm": 0.5},
@@ -627,8 +631,8 @@ class RankingAnalyzer:
             elif is_lp:
                 lp_list.append(record)
 
-        ss_list.sort(key=lambda x: (x.get("paid") or 0), reverse=True)
-        lp_list.sort(key=lambda x: (x.get("paid") or 0), reverse=True)
+        ss_list.sort(key=lambda x: (x.get("leads") or 0), reverse=True)
+        lp_list.sort(key=lambda x: (x.get("leads") or 0), reverse=True)
         for i, r in enumerate(ss_list):
             r["rank"] = i + 1
         for i, r in enumerate(lp_list):

@@ -64,13 +64,13 @@ export default function BizTeamPage() {
 
         <div className="bg-white rounded-2xl border border-slate-100 shadow-lg p-8">
           <div className="flex items-center justify-between mb-4">
-            <span className="text-sm font-medium text-slate-500">SS 人效</span>
+            <span className="text-sm font-medium text-slate-500">SS 收入人效</span>
             <span className="text-xs bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded-full font-medium">
               📈 趋势正常
             </span>
           </div>
           <div className="text-4xl font-bold text-slate-800">{formatRevenue(ssPerCapita)}/人</div>
-          <p className="text-sm text-slate-400 mt-2">{ssCount != null ? `${ssCount} 人在岗` : "人数待更新"} · 后端销售</p>
+          <p className="text-sm text-slate-400 mt-2">{ssCount != null ? `${ssCount} 人在岗` : "人数待更新"} · 后端销售（收入人效 = CC 转化 SS leads 产生的收入 / SS 在岗人数）</p>
         </div>
       </div>
 

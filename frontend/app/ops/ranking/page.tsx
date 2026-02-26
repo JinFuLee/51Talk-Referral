@@ -22,17 +22,27 @@ function getDetailVal(detail: any, key: string, fallback: any = 0): number {
   return res == null ? fallback : Number(res) || 0;
 }
 
-function toRadarData(item: RankingItem) {
+function toRadarData(item: RankingItem, role: RoleTab) {
   const detail = item.detail ?? {};
-  return [
+  const common = [
     { subject: "触达率", value: Math.round((getDetailVal(detail, "contact_rate", item.contact_rate) as number) * 100) },
     { subject: "打卡率", value: Math.round((getDetailVal(detail, "checkin_rate", item.checkin_rate) as number) * 100) },
     { subject: "参与率", value: Math.round((getDetailVal(detail, "participation_rate") as number) * 100) },
-    { subject: "转化率", value: Math.round((getDetailVal(detail, "conversion_rate") as number) * 100) },
-    { subject: "注册", value: Math.min(Math.round(((getDetailVal(detail, "registrations", item.registrations) as number) / 50) * 100), 100) },
-    { subject: "付费", value: Math.min(Math.round(((getDetailVal(detail, "paid_count", item.payments) as number) / 20) * 100), 100) },
+    { subject: "leads数", value: Math.min(Math.round(((getDetailVal(detail, "registrations", item.registrations) as number) / 50) * 100), 100) },
     { subject: "带新系数", value: Math.min(Math.round((getDetailVal(detail, "bring_new_coeff", getDetailVal(detail, "new_coefficient")) as number) * 50), 100) },
-    { subject: "综合", value: Math.round(Math.min(item.composite_score ?? 0, 100)) },
+  ];
+  if (role === "CC") {
+    return [
+      ...common,
+      { subject: "转化率", value: Math.round((getDetailVal(detail, "conversion_rate") as number) * 100) },
+      { subject: "付费", value: Math.min(Math.round(((getDetailVal(detail, "paid_count", item.payments) as number) / 20) * 100), 100) },
+      { subject: "综合", value: Math.round(Math.min(item.composite_score ?? 0, 100)) },
+    ];
+  }
+  // SS/LP：不含"付费"维度，转化率改为"leads→CC转化"（跨岗效率）
+  return [
+    ...common,
+    { subject: "leads→CC转化", value: Math.round((getDetailVal(detail, "conversion_rate") as number) * 100) },
   ];
 }
 
@@ -64,18 +74,29 @@ export default function OpsRankingPage() {
   const items = roleMap[activeTab];
   const selected = items[selectedIndex];
 
-  const headers = [
-    t("ops.ranking.table.rank"),
-    t("ops.ranking.table.name"),
-    t("ops.ranking.table.score"),
-    t("ops.ranking.table.registrations"),
-    t("ops.ranking.table.payments"),
-    t("ops.ranking.table.contactRate"),
-    t("ops.ranking.table.checkinRate"),
-    t("ops.ranking.table.participationRate"),
-    t("ops.ranking.table.newCoeff"),
-    t("ops.ranking.table.convRate"),
-  ];
+  const headers = activeTab === "CC"
+    ? [
+        t("ops.ranking.table.rank"),
+        t("ops.ranking.table.name"),
+        t("ops.ranking.table.score"),
+        t("ops.ranking.table.registrations"),
+        t("ops.ranking.table.payments"),
+        t("ops.ranking.table.contactRate"),
+        t("ops.ranking.table.checkinRate"),
+        t("ops.ranking.table.participationRate"),
+        t("ops.ranking.table.newCoeff"),
+        t("ops.ranking.table.convRate"),
+      ]
+    : [
+        t("ops.ranking.table.rank"),
+        t("ops.ranking.table.name"),
+        "leads数",
+        t("ops.ranking.table.contactRate"),
+        t("ops.ranking.table.checkinRate"),
+        t("ops.ranking.table.participationRate"),
+        t("ops.ranking.table.newCoeff"),
+        "leads→CC转化率",
+      ];
 
   if (isLoading) {
     return (
@@ -133,7 +154,7 @@ export default function OpsRankingPage() {
                   <tbody>
                     {items.length === 0 ? (
                       <tr>
-                        <td colSpan={10} className="px-4 py-8 text-center text-slate-400 text-xs">
+                        <td colSpan={activeTab === "CC" ? 10 : 8} className="px-4 py-8 text-center text-slate-400 text-xs">
                           {t("ops.ranking.label.noData")}
                         </td>
                       </tr>
@@ -152,9 +173,16 @@ export default function OpsRankingPage() {
                         >
                           <td className="px-4 py-3 font-bold text-slate-800">#{item.rank}</td>
                           <td className="px-4 py-3 font-medium text-slate-800">{(item as Record<string, unknown>).cc_name as string ?? item.name}</td>
-                          <td className="px-4 py-3 text-slate-700">{(item.composite_score ?? 0).toFixed(1)}</td>
-                          <td className="px-4 py-3 text-slate-600">{item.registrations ?? "—"}</td>
-                          <td className="px-4 py-3 text-slate-600">{item.payments ?? "—"}</td>
+                          {activeTab === "CC" ? (
+                            <>
+                              <td className="px-4 py-3 text-slate-700">{(item.composite_score ?? 0).toFixed(1)}</td>
+                              <td className="px-4 py-3 text-slate-600">{item.registrations ?? "—"}</td>
+                              <td className="px-4 py-3 text-slate-600">{item.payments ?? "—"}</td>
+                            </>
+                          ) : (
+                            // SS/LP: 核心 KPI = leads数，隐藏综合分和付费
+                            <td className="px-4 py-3 font-medium text-blue-700">{item.registrations ?? "—"}</td>
+                          )}
                           <td className="px-4 py-3 text-slate-600">
                             {item.contact_rate !== undefined ? `${(item.contact_rate * 100).toFixed(1)}%` : `${(getDetailVal(item.detail, "contact_rate") * 100).toFixed(1)}%`}
                           </td>
@@ -186,13 +214,18 @@ export default function OpsRankingPage() {
           <div className="lg:col-span-2">
             <Card title={selected ? `${((selected as Record<string, unknown>).cc_name as string) ?? selected.name} — 360° 指标` : "360° 雷达图"}>
               <RadarChart360
-                data={selected ? toRadarData(selected) : []}
+                data={selected ? toRadarData(selected, activeTab) : []}
                 name={selected?.name ?? ""}
                 color="hsl(var(--chart-2))"
               />
-              {selected && (
+              {selected && activeTab === "CC" && (
                 <p className="text-xs text-slate-400 text-center mt-1">
                   综合得分 {(selected.composite_score ?? 0).toFixed(1)} · 过程 {(((selected as Record<string, unknown>).process_score as number) ?? 0).toFixed(1)} · 结果 {(((selected as Record<string, unknown>).result_score as number) ?? 0).toFixed(1)} · 效率 {(((selected as Record<string, unknown>).efficiency_score as number) ?? 0).toFixed(1)}
+                </p>
+              )}
+              {selected && activeTab !== "CC" && (
+                <p className="text-xs text-slate-400 text-center mt-1">
+                  {activeTab} 核心 KPI：leads 数 · 转化率 = leads→CC 转化效率（跨岗参考）
                 </p>
               )}
             </Card>

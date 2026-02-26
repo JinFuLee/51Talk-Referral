@@ -217,6 +217,9 @@ export function TeamFunnelComparison() {
             ))}
           </tbody>
         </table>
+        <p className="text-xs text-slate-400 mt-2">
+          * 漏斗数据基于总计口径（含 CC + SS + LP + 宽口 leads 的全转化路径），个人维度口径分析请前往「排名」页。
+        </p>
       </div>
     </div>
   );
