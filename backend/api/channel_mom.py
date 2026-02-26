@@ -4,7 +4,6 @@ GET /api/analysis/channel-mom — 渠道注册占比、效率指标月度趋势
 """
 from __future__ import annotations
 
-import sys
 from pathlib import Path
 from typing import Any
 
@@ -14,7 +13,6 @@ from services.analysis_service import AnalysisService
 from .dependencies import get_service
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
-sys.path.insert(0, str(PROJECT_ROOT))
 
 router = APIRouter()
 

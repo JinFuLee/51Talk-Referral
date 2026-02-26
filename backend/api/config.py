@@ -5,7 +5,6 @@
 from __future__ import annotations
 
 import json
-import sys
 from pathlib import Path
 from typing import Any
 
@@ -16,7 +15,6 @@ from .dependencies import get_service
 from services.analysis_service import AnalysisService
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
-sys.path.insert(0, str(PROJECT_ROOT))
 
 CONFIG_DIR = PROJECT_ROOT / "config"
 CONFIG_DIR.mkdir(parents=True, exist_ok=True)

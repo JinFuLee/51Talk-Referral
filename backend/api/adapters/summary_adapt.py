@@ -8,6 +8,15 @@ from __future__ import annotations
 
 from typing import Any
 
+from backend.models.adapter_types import (
+    ChannelComparisonResult,
+    FunnelAdaptResult,
+    PredictionResult,
+    ProductivityResult,
+    ROIResult,
+    SummaryAdaptResult,
+)
+
 # ── 渠道标签映射 ───────────────────────────────────────────────────────────────
 
 _CHANNEL_LABEL_MAP = [
@@ -34,7 +43,7 @@ def _calc_status(actual: float, target: float, time_progress: float) -> str:
 
 # ── Summary ──────────────────────────────────────────────────────────────────
 
-def _adapt_summary(raw: dict[str, Any]) -> dict[str, Any]:
+def _adapt_summary(raw: dict[str, Any]) -> SummaryAdaptResult:
     """
     将引擎 summary（单数 key + revenue 拆包结构）转换为前端 SummaryMetric 格式。
     前端期望：registrations / payments / revenue / appointments / attendances
@@ -141,7 +150,7 @@ def _adapt_summary(raw: dict[str, Any]) -> dict[str, Any]:
 
 # ── Funnel ────────────────────────────────────────────────────────────────────
 
-def _adapt_funnel(raw: dict[str, Any]) -> dict[str, Any]:
+def _adapt_funnel(raw: dict[str, Any]) -> FunnelAdaptResult:
     """
     将引擎 funnel（{ total, cc_narrow, ss_narrow, lp_narrow, wide }，每项含 register/reserve/attend/paid/rates）
     转换为前端 FunnelData 格式（narrow = cc+ss+lp 合并，total，wide）。
@@ -230,7 +239,7 @@ def _adapt_funnel(raw: dict[str, Any]) -> dict[str, Any]:
 
 # ── Channel Comparison ────────────────────────────────────────────────────────
 
-def _adapt_channel_comparison(raw: dict[str, Any]) -> dict[str, Any]:
+def _adapt_channel_comparison(raw: dict[str, Any]) -> ChannelComparisonResult:
     """
     将引擎 channel_comparison（中文 key dict）转换为前端 ChannelComparisonData 格式。
     前端期望：{ channels: ChannelStat[] }
@@ -261,7 +270,7 @@ def _adapt_channel_comparison(raw: dict[str, Any]) -> dict[str, Any]:
 
 # ── Prediction ────────────────────────────────────────────────────────────────
 
-def _adapt_prediction(raw: dict[str, Any]) -> dict[str, Any]:
+def _adapt_prediction(raw: dict[str, Any]) -> PredictionResult:
     """
     将引擎 prediction（{ revenue, registration, payment } 各含 predicted/model/confidence）
     转换为前端 PredictionData 格式：
@@ -284,7 +293,7 @@ def _adapt_prediction(raw: dict[str, Any]) -> dict[str, Any]:
 
 # ── ROI ───────────────────────────────────────────────────────────────────────
 
-def _adapt_roi(raw: dict[str, Any]) -> dict[str, Any]:
+def _adapt_roi(raw: dict[str, Any]) -> ROIResult:
     """
     将引擎 roi_estimate（含 total_cost_usd / total_revenue_usd / overall_roi）
     转换为前端 ROIData 格式：
@@ -309,7 +318,7 @@ def _adapt_roi(raw: dict[str, Any]) -> dict[str, Any]:
 
 # ── Productivity ──────────────────────────────────────────────────────────────
 
-def _adapt_productivity(raw: dict[str, Any]) -> dict[str, Any]:
+def _adapt_productivity(raw: dict[str, Any]) -> ProductivityResult:
     """
     将引擎 productivity（含 per_capita_usd / total_revenue_usd 等 _usd 后缀字段）
     补充前端期望的 per_capita / total_revenue 无后缀字段。

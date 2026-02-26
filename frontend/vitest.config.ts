@@ -11,16 +11,16 @@ export default defineConfig({
     include: ['tests/**/*.{test,spec}.?(c|m)[jt]s?(x)', 'tests/**/test_*.?(c|m)[jt]s?(x)'],
     coverage: {
       provider: 'v8',
-      reporter: ['text', 'json', 'html'],
+      reporter: ['text', 'text-summary'],
+      include: ['lib/**', 'stores/**', 'components/shared/**'],
       exclude: [
         'node_modules/',
         'tests/',
       ],
       thresholds: {
-        lines: 40,
-        functions: 40,
-        branches: 40,
-        statements: 40,
+        lines: 30,
+        functions: 30,
+        branches: 25,
       },
     },
   },

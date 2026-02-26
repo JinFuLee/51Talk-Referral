@@ -6,14 +6,10 @@ import asyncio
 import importlib
 import logging
 import os
-import sys
 from pathlib import Path
 
-# 确保项目根（src/）和 backend/（core/）均可被导入
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 BACKEND_DIR = Path(__file__).resolve().parent
-sys.path.insert(0, str(PROJECT_ROOT))
-sys.path.insert(0, str(BACKEND_DIR))
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware

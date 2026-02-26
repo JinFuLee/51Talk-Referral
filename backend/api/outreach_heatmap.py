@@ -4,18 +4,12 @@ GET /api/analysis/outreach-heatmap — CC × 日期 二维热力图数据
 """
 from __future__ import annotations
 
-import sys
-from pathlib import Path
-from typing import Any
+from typing import Any, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from typing import Optional
 
 from .dependencies import get_service
 from services.analysis_service import AnalysisService
-
-PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
-sys.path.insert(0, str(PROJECT_ROOT))
 
 router = APIRouter()
 

@@ -9,8 +9,6 @@ adapt 函数已拆分至 backend/api/adapters/ 目录，本文件只保留路由
 """
 from __future__ import annotations
 
-import sys
-from pathlib import Path
 from typing import Any
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
@@ -36,9 +34,6 @@ from .adapters.summary_adapt import (
 )
 from .adapters.trend_adapt import _adapt_trend
 from .dependencies import get_service
-
-PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
-sys.path.insert(0, str(PROJECT_ROOT))
 
 router = APIRouter()
 

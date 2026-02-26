@@ -1,11 +1,13 @@
 from __future__ import annotations
+
 import calendar
 from datetime import datetime, timedelta
 from typing import Any, Optional
+
 from fastapi import APIRouter, Depends, Query
+from services.analysis_service import AnalysisService
 
 from .dependencies import get_service
-from services.analysis_service import AnalysisService
 
 router = APIRouter()
 
@@ -386,12 +388,6 @@ def get_leads_overview(
     # ── 月度目标（从 config 读取） ────────────────────────────────────────────
     targets: dict[str, Any] = {}
     try:
-        import sys
-        from pathlib import Path as _Path
-
-        _backend_dir = str(_Path(__file__).resolve().parent.parent)
-        if _backend_dir not in sys.path:
-            sys.path.insert(0, _backend_dir)
         from core.config import MONTHLY_TARGETS
 
         now = datetime.now()

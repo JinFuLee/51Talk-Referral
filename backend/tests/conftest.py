@@ -1,13 +1,8 @@
 """
 共享 fixtures：全局测试数据和基础配置
 """
-import os
-import sys
-
 import pytest
-
-# 确保 backend/ 在 path 中
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+# pyproject.toml [tool.pytest.ini_options].pythonpath = ["backend"] 已确保 backend/ 在 path 中
 
 
 @pytest.fixture

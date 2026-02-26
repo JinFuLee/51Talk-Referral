@@ -22,7 +22,7 @@ jobs:
       - name: Format check
         run: uv run ruff format --check .
       - name: Test
-        run: uv run pytest backend/tests/ -v --tb=short
+        run: uv run pytest backend/tests/ -v --tb=short --cov --cov-report=term-missing
 
   frontend:
     runs-on: ubuntu-latest
@@ -41,5 +41,5 @@ jobs:
         run: pnpm exec tsc --noEmit
         working-directory: frontend
       - name: Test
-        run: pnpm exec vitest run
+        run: pnpm exec vitest run --coverage
         working-directory: frontend

@@ -240,8 +240,6 @@ CC 排名算法详见 [docs/cc-ranking-spec.md](docs/cc-ranking-spec.md)（3类1
 | 28 | 新增技术债 | presentation.py fallback 数据仍为规则派生非真实 PDCA 系统对接 | P3 | M21+ | M18.3 新识别，影响汇报准确性（低优） |
 | 30 | 全局 Skill 缺失 | 全局 Skill 骨架缺失通用版本，跨项目复用需手动复制（仅有项目级适配版） | P2 | M21+ | 本地化资产新识别，建议建立 ~/.claude/skills-lib/ 跨项目共用库 |
 | 31 | DuckDB dual-track 后手 | DuckDB 替换 Parquet+pandas 的可行性评估已完成（82/100），待 M22+ 数据量增长后决策切换时机 | P3 | M22+ | M21 新识别，评估报告已完成，当前 Parquet 方案满足需求 |
-| 32 | 代码质量 | SnapshotStore 每次 API 请求新建实例，SQLite 连接不共享，并发场景下非最优 | P2 | M33+ | WAL 模式缓解但不根治，建议改为单例 |
-| 33 | 代码质量 | 24 个 API 路由文件重复 global _service + set_service() DI 反模式，无法 mock 测试 | P2 | M33+ | 可用 FastAPI Depends + app.state 重构 |
 | 37 | 前端性能 | 47 页面全部 "use client"，无 RSC 收益，所有页面全量 JS 客户端加载 | P3 | M34+ | 内部工具可接受，规模扩大时考虑部分页面改 RSC |
 | 41 | 性能 | 6 个 Loader 串行加载无并行，I/O bound 可用 ThreadPoolExecutor 加速 ~60% | P2 | M34+ | 需验证 pandas 线程安全 |
 | 42 | 性能 | 18 个分析模块串行执行，其中 14 个无依赖可并行 | P2 | M34+ | 理论加速 3-4x，需验证 AnalyzerContext 线程安全 |

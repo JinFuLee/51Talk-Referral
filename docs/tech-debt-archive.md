@@ -27,3 +27,5 @@
 | 34 | fetcher 统一 | fetcher 重复 34 处（各组件各自定义 fetch 逻辑，无统一入口） | M29 | M29 已解决（统一为 swrFetcher，api.ts 集中化） |
 | 35 | God Class | God Class：AnalysisEngineV2 2108 行单文件无法维护 | M30 | M30 已解决（拆分为 6 Analyzer + context + utils，主文件降至 309 行） |
 | 36 | async/sync | async/sync 混用：FastAPI endpoint 18 个函数误用 async 导致 blocking IO | M28 | M28 已解决（18 函数修复为同步，无 blocking IO 风险） |
+| 32 (backend) | 代码质量 | SnapshotStore 每次 API 请求新建实例，SQLite 连接不共享，并发场景下非最优 | a5b671ff | 已修复：改为单例模式，SQLite 连接共享，WAL 模式保留 |
+| 33 (backend) | 代码质量 | 24 个 API 路由文件重复 global _service + set_service() DI 反模式，无法 mock 测试 | 719c206a | 已修复：改用 FastAPI Depends + app.state 重构，DI 反模式消除 |

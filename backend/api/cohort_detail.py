@@ -5,17 +5,12 @@ C6: 学员级留存分析 + CC 真实带新排行
 """
 from __future__ import annotations
 
-import sys
-from pathlib import Path
 from typing import Any, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 
 from .dependencies import get_service
 from services.analysis_service import AnalysisService
-
-PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
-sys.path.insert(0, str(PROJECT_ROOT))
 
 router = APIRouter()
 

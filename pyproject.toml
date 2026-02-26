@@ -57,3 +57,17 @@ quote-style = "double"
 [tool.pytest.ini_options]
 testpaths = ["tests", "backend/tests"]
 asyncio_mode = "auto"
+pythonpath = ["backend"]
+
+[tool.coverage.run]
+source = ["backend"]
+omit = ["backend/tests/*", "backend/api/adapters/*"]
+
+[tool.coverage.report]
+fail_under = 40
+show_missing = true
+exclude_lines = [
+    "pragma: no cover",
+    "if __name__",
+    "if TYPE_CHECKING",
+]

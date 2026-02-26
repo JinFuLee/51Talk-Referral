@@ -9,10 +9,17 @@ from __future__ import annotations
 from typing import Any
 
 from backend.api.adapters.summary_adapt import _CHANNEL_LABEL_MAP
+from backend.models.adapter_types import (
+    AttributionResult,
+    ChannelRevenueResult,
+    PackageMixResult,
+    RankingItemDict,
+    TeamPackageMixResult,
+)
 
 # ── Ranking ───────────────────────────────────────────────────────────────────
 
-def _adapt_ranking_item(item: dict[str, Any]) -> dict[str, Any]:
+def _adapt_ranking_item(item: dict[str, Any]) -> RankingItemDict:
     """将单条排名项从引擎字段映射为前端 RankingItem 字段"""
     adapted = dict(item)
     # 新排名体系已直出标准字段:
@@ -34,7 +41,7 @@ def _adapt_ranking_item(item: dict[str, Any]) -> dict[str, Any]:
     return adapted
 
 
-def _adapt_ranking(raw: Any) -> Any:
+def _adapt_ranking(raw: Any) -> list[RankingItemDict] | dict[str, Any] | Any:
     """将排名列表或含 items key 的 dict 中的每项做字段映射"""
     if not isinstance(raw, list):
         if isinstance(raw, dict) and "items" in raw:
@@ -47,7 +54,7 @@ def _adapt_ranking(raw: Any) -> Any:
 
 # ── Attribution ───────────────────────────────────────────────────────────────
 
-def _adapt_attribution(cache: dict[str, Any]) -> dict[str, Any]:
+def _adapt_attribution(cache: dict[str, Any]) -> AttributionResult:
     """
     多维归因分析，返回三个归因维度：
     - channel_attribution: 各渠道（CC窄/SS窄/LP窄/宽口径）对付费数的贡献占比
@@ -203,7 +210,7 @@ def _adapt_attribution(cache: dict[str, Any]) -> dict[str, Any]:
 
 # ── Package Mix ───────────────────────────────────────────────────────────────
 
-def _adapt_package_mix(raw: dict[str, Any]) -> dict[str, Any]:
+def _adapt_package_mix(raw: dict[str, Any]) -> PackageMixResult:
     """
     从 order_analysis 提取 E6 套餐占比，适配为前端饼图格式：
     { items: [{ product_type, count, revenue_usd, percentage }] }
@@ -265,7 +272,7 @@ def _adapt_package_mix(raw: dict[str, Any]) -> dict[str, Any]:
 
 # ── Team Package Mix ──────────────────────────────────────────────────────────
 
-def _adapt_team_package_mix(raw: dict[str, Any]) -> dict[str, Any]:
+def _adapt_team_package_mix(raw: dict[str, Any]) -> TeamPackageMixResult:
     """E7 团队套餐结构: { teams: [{ team, items: [{ product_type, ratio }] }] }"""
     order_data = raw.get("order_analysis", {}) or {}
     team_package = order_data.get("team_package", []) or []
@@ -274,7 +281,7 @@ def _adapt_team_package_mix(raw: dict[str, Any]) -> dict[str, Any]:
 
 # ── Channel Revenue ───────────────────────────────────────────────────────────
 
-def _adapt_channel_revenue(raw: dict[str, Any]) -> dict[str, Any]:
+def _adapt_channel_revenue(raw: dict[str, Any]) -> ChannelRevenueResult:
     """
     E8 渠道收入: { channels: [{ channel, revenue_usd, revenue_thb, percentage }], total_usd }
     从 channel_product 按 channel 聚合金额

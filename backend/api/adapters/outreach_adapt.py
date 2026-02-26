@@ -9,10 +9,11 @@ from __future__ import annotations
 from typing import Any
 
 from backend.api.utils import safe_div
+from backend.models.adapter_types import OrdersResult, OutreachResult, TrialResult
 
 # ── Outreach ──────────────────────────────────────────────────────────────────
 
-def _adapt_outreach(raw: dict[str, Any]) -> dict[str, Any]:
+def _adapt_outreach(raw: dict[str, Any]) -> OutreachResult:
     """
     将引擎 outreach_analysis 嵌套结构拍平为前端期望的平铺字段。
     引擎结构：{ daily_outreach: {by_date, by_cc}, trial_followup: {...}, compliance: {...} }
@@ -97,7 +98,7 @@ def _adapt_outreach(raw: dict[str, Any]) -> dict[str, Any]:
 
 # ── Trial Followup ────────────────────────────────────────────────────────────
 
-def _adapt_trial(raw: dict[str, Any]) -> dict[str, Any]:
+def _adapt_trial(raw: dict[str, Any]) -> TrialResult:
     """
     将引擎 trial_followup 结构映射为前端体验课页面期望的字段。
     引擎结构：{ pre_class: {call_rate, ...}, post_class: {call_rate, ...},
@@ -259,7 +260,7 @@ def _adapt_trial(raw: dict[str, Any]) -> dict[str, Any]:
 
 # ── Orders ────────────────────────────────────────────────────────────────────
 
-def _adapt_orders(raw: dict[str, Any]) -> dict[str, Any]:
+def _adapt_orders(raw: dict[str, Any]) -> OrdersResult:
     """
     将引擎 order_analysis（summary.* 子层）拍平为前端 OrderData 格式。
     引擎结构：{ summary: {total, new, renewal, revenue_usd}, daily_trend, package_distribution, by_channel }

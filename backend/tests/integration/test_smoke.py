@@ -6,12 +6,9 @@ from __future__ import annotations
 
 import glob
 import os
-import sys
 
 import pytest
-
-# Ensure backend/ is on the path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../.."))
+# pyproject.toml [tool.pytest.ini_options].pythonpath = ["backend"] 已确保 backend/ 在 path 中
 
 DATA_ROOT = os.path.join(
     os.path.dirname(__file__),

@@ -1,14 +1,9 @@
 """
 健康检查 + i18n 端点
 """
-import sys
-from pathlib import Path
 from typing import Any
 
 from fastapi import APIRouter, HTTPException
-
-PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
-sys.path.insert(0, str(PROJECT_ROOT))
 
 router = APIRouter()
 

@@ -4,7 +4,6 @@
 """
 from __future__ import annotations
 
-import sys
 from pathlib import Path
 from typing import Any
 
@@ -16,9 +15,6 @@ from .dependencies import get_service
 from services.analysis_service import AnalysisService
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
-BACKEND_DIR = Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(PROJECT_ROOT))
-sys.path.insert(0, str(BACKEND_DIR))
 
 OUTPUT_DIR = PROJECT_ROOT / "output"
 AI_REPORTS_DIR = PROJECT_ROOT / "output" / "reports"

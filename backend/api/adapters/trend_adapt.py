@@ -8,8 +8,10 @@ from __future__ import annotations
 
 from typing import Any
 
+from backend.models.adapter_types import TrendResult
 
-def _adapt_trend(raw: dict[str, Any], compare_type: str) -> dict[str, Any]:
+
+def _adapt_trend(raw: dict[str, Any], compare_type: str) -> TrendResult:
     """
     将引擎 trend 转换为前端 TrendData 格式：
     { series: TrendPoint[], compare_type, direction?, compare_data?, mom?, yoy?, wow? }

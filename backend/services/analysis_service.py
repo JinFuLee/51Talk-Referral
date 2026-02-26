@@ -5,7 +5,6 @@ AnalysisService — 分析引擎单例服务
 """
 from __future__ import annotations
 
-import sys
 import logging
 import threading
 from datetime import date, datetime, timedelta
@@ -47,8 +46,6 @@ class AnalysisService:
     def __init__(self, project_root: Path) -> None:
         self.project_root = Path(project_root)
         self.backend_dir = Path(__file__).resolve().parent.parent
-        sys.path.insert(0, str(self.project_root))
-        sys.path.insert(0, str(self.backend_dir))  # 使 from core.xxx 可解析
 
         # 多期缓存，key = period 字符串（如 "this_month"）
         self._cached_results: dict[str, dict[str, Any]] = {}

@@ -2,7 +2,6 @@
 51Talk 转介绍周报自动生成 - 配置文件
 """
 import os
-import sys
 from pathlib import Path
 from datetime import datetime, timedelta
 import calendar
@@ -98,9 +97,6 @@ def get_targets(date: datetime = None) -> dict:
             month_data = overrides.get(month_key, {})
             if month_data.get("version") == 2:
                 # V2 结构 → flatten 后合并
-                _backend_dir = str(Path(__file__).resolve().parent.parent)
-                if _backend_dir not in sys.path:
-                    sys.path.insert(0, _backend_dir)
                 from models.config import MonthlyTargetV2
                 v2 = MonthlyTargetV2(**month_data)
                 base.update(v2.flatten())
@@ -119,13 +115,7 @@ def get_targets(date: datetime = None) -> dict:
 # ── 委托层：所有业务常量统一从 projects/referral/config.json 读取 ─────────────
 # 消费方无需改动（from core.config import MONTHLY_TARGETS 等均继续有效），
 # 但数据源已统一，修改 JSON 即全局生效，不会静默分叉。
-try:
-    from backend.core.project_config import load_project_config as _load_project_config
-except ImportError:
-    # 兜底：sys.path 尚未包含项目根时的相对导入
-    import sys as _sys
-    _sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-    from backend.core.project_config import load_project_config as _load_project_config  # type: ignore[no-redef]
+from .project_config import load_project_config as _load_project_config
 
 _cfg = _load_project_config("referral")
 

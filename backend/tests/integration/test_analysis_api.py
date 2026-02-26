@@ -10,10 +10,8 @@ from fastapi.testclient import TestClient
 @pytest.fixture(scope="module")
 def client():
     """Create a synchronous TestClient for the FastAPI app."""
-    import sys
-    import os
-    sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../.."))
     from main import app
+
     with TestClient(app) as c:
         yield c
 
