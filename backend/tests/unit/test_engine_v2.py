@@ -7,9 +7,7 @@ from types import SimpleNamespace
 from unittest.mock import MagicMock
 
 import pytest
-
 from core.analysis_engine_v2 import AnalysisEngineV2
-
 
 # ── Fixtures ──────────────────────────────────────────────────────────────────
 
@@ -52,8 +50,12 @@ MINIMAL_DATA: dict = {
                 "total_revenue_usd": 25000.0,
                 "avg_order_value": 500.0,
             },
-            "referral_cc_new": {"count": 40, "revenue_cny": 150000.0, "revenue_usd": 20000.0},
-            "by_channel": {"转介绍": {"revenue_cny": 150000.0, "revenue_usd": 20000.0}},
+            "referral_cc_new": {
+                "count": 40, "revenue_cny": 150000.0, "revenue_usd": 20000.0
+            },
+            "by_channel": {
+                "转介绍": {"revenue_cny": 150000.0, "revenue_usd": 20000.0}
+            },
             "by_team": {},
             "records": [],
         },
@@ -156,7 +158,7 @@ class TestAnalyzeEmptyData:
         """完全空数据，analyze() 不应抛出异常。"""
         engine = _make_engine(data={})
         try:
-            result = engine.analyze()
+            engine.analyze()
         except Exception as exc:
             pytest.fail(f"空数据下 analyze() 抛出异常: {exc}")
 
@@ -205,7 +207,9 @@ class TestEnabledModules:
         assert result.get("funnel") is not None
 
     def test_modules_not_in_whitelist_absent(self):
-        """白名单只含 meta，其他注册模块的 key 不应出现（risk_alerts/impact_chain 除外，它们始终执行）。"""
+        """白名单只含 meta，其他注册模块的 key 不应出现。
+        risk_alerts/impact_chain 除外，它们始终执行。
+        """
         cfg = self._config_with_modules(["meta"])
         result = _make_engine(project_config=cfg).analyze()
         # 非白名单、非依赖后置模块的 key 不应出现

@@ -5,10 +5,8 @@ Unit tests for core.analyzers.ranking_analyzer.RankingAnalyzer
 from datetime import datetime
 
 import pytest
-
 from core.analyzers.context import AnalyzerContext
 from core.analyzers.ranking_analyzer import RankingAnalyzer
-
 
 # ── Fixtures ──────────────────────────────────────────────────────────────────
 
@@ -223,7 +221,9 @@ class TestCCRankingEdgeCases:
         assert result == []
 
     def test_single_person_composite_score_is_half(self):
-        """单人时所有维度 max==min，_minmax 返回 0.5，composite = 0.5*0.25+0.5*0.60+0.5*0.15 = 0.5。"""
+        """单人时所有维度 max==min，_minmax 返回 0.5。
+        composite = 0.5*0.25 + 0.5*0.60 + 0.5*0.15 = 0.5
+        """
         data = _cc_data("Solo", "THCC-A")
         ctx = _make_ctx(_merge_cc_data([data]))
         result = RankingAnalyzer(ctx).analyze_cc_ranking()
@@ -245,9 +245,7 @@ class TestCCRankingEdgeCases:
 
 class TestCCWeightConstants:
     def test_process_dims_weight_sum(self):
-        from core.analyzers.ranking_analyzer import RankingAnalyzer as RA
-
-        # 直接取类中定义的 PROCESS_DIMS 常量（在 analyze_cc_ranking 方法内部）
+        # 类内权重常量（PROCESS_DIMS 定义于 analyze_cc_ranking 方法内部）
         PROCESS_WEIGHTS = [0.1600, 0.1600, 0.2000, 0.1200, 0.1200, 0.1200, 0.1200]
         assert sum(PROCESS_WEIGHTS) == pytest.approx(1.0, abs=1e-6)
 
@@ -261,7 +259,7 @@ class TestCCWeightConstants:
 
     def test_composite_formula_sum_to_one(self):
         """0.25 + 0.60 + 0.15 == 1.0。"""
-        assert 0.25 + 0.60 + 0.15 == pytest.approx(1.0)
+        assert pytest.approx(1.0) == 0.25 + 0.60 + 0.15
 
     def test_full_norm_gives_full_composite(self):
         """当所有归一化值均为 1.0 时，composite_score 应为 1.0。"""
@@ -417,7 +415,10 @@ class TestSSLPRankingNormal:
 
     def test_ss_lp_weights_sum_to_one(self):
         """SS_LP_WEIGHTS 各值合计 = 1.0。"""
-        weights = {"process": 0.25, "result": 0.30, "quality": 0.25, "contribution": 0.20}
+        weights = {
+            "process": 0.25, "result": 0.30,
+            "quality": 0.25, "contribution": 0.20,
+        }
         assert sum(weights.values()) == pytest.approx(1.0)
 
 
@@ -439,8 +440,7 @@ class TestMinmaxLogic:
 
     def test_redistribute_drops_all_zero_dim(self):
         """无数据维度不参与评分，但其权重被分摊给有数据维度。"""
-        # 所有 CC 的 pre_paid_followup/pre_class_followup/post_class_followup/post_paid_followup 均为 0
-        # 则 _redistribute 会将这些维度权重等比分摊到有数据的维度上
+        # 所有 CC 的跟进维度均为 0，_redistribute 将其权重等比分摊到有数据的维度
         a = _cc_data("Alpha", "THCC-A", leads=15, paid=5, calls=100)
         b = _cc_data("Beta", "THCC-A", leads=5, paid=1, calls=30)
         ctx = _make_ctx(_merge_cc_data([a, b]))
