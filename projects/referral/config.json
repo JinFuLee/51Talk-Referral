@@ -138,5 +138,139 @@
     "ranking_enhanced",
     "presentation",
     "member_profile"
-  ]
+  ],
+  "channel_metric_scope": {
+    "total": {
+      "role": "full_funnel",
+      "metrics": ["register", "appointment", "showup", "paid", "revenue_usd"],
+      "rates": ["leads_to_pay_rate", "appointment_rate", "appt_showup_rate", "showup_pay_rate"],
+      "description": "总计：全漏斗汇总"
+    },
+    "cc_narrow": {
+      "role": "full_funnel",
+      "metrics": ["register", "appointment", "showup", "paid", "revenue_usd"],
+      "rates": ["leads_to_pay_rate", "appointment_rate", "appt_showup_rate", "showup_pay_rate"],
+      "description": "CC 前端销售：过程+效率+结果全指标"
+    },
+    "ss_narrow": {
+      "role": "leads_only",
+      "metrics": ["register"],
+      "rates": [],
+      "description": "SS 后端销售：仅转介绍leads数，不参与转换阶段"
+    },
+    "lp_narrow": {
+      "role": "leads_only",
+      "metrics": ["register"],
+      "rates": [],
+      "description": "LP 后端服务：仅转介绍leads数，不参与转换阶段"
+    },
+    "wide": {
+      "role": "leads_only",
+      "metrics": ["register"],
+      "rates": [],
+      "description": "宽口径（学员链接）：仅转介绍leads数"
+    }
+  },
+  "data_source_registry": {
+    "A1": {
+      "name": "BI-Leads_宽口径leads达成_D-1",
+      "loader": "LeadsLoader",
+      "frequency": "D-1",
+      "channel_complete": true,
+      "channels": ["总计", "CC窄口径", "SS窄口径", "LP窄口径", "宽口径"],
+      "metrics": ["注册", "预约", "出席", "付费", "注册付费率"],
+      "time_dimension": "当月快照",
+      "notes": "原始列名 EA窄→SS, CM窄→LP; 无金额列"
+    },
+    "A2": {
+      "name": "BI-Leads_全口径转介绍类型-当月效率_D-1",
+      "loader": "LeadsLoader",
+      "frequency": "D-1",
+      "channel_complete": true,
+      "channels": ["总计", "CC窄口径", "LP窄口径", "SS窄口径", "宽口径"],
+      "metrics": ["带货比", "参与率", "围场转率", "A学员数", "推荐注册", "推荐付费"],
+      "time_dimension": "当月快照×围场",
+      "notes": "原始列名 CM窄→LP, EA窄→SS"
+    },
+    "A3": {
+      "name": "BI-Leads_全口径leads明细表_D-1",
+      "loader": "LeadsLoader",
+      "frequency": "D-1",
+      "channel_complete": false,
+      "channels": ["行级: 转介绍类型_新 可过滤 CC窄/CM窄(LP)/EA窄(SS)/宽口"],
+      "metrics": ["502行明细: 注册/预约/出席/付费/金额/CC分配/SS分配/LP分配"],
+      "time_dimension": "当月",
+      "notes": "需按 Col47 转介绍类型_新 过滤口径"
+    },
+    "A4": {
+      "name": "BI-Leads_宽口径leads达成-个人_D-1",
+      "loader": "LeadsLoader",
+      "frequency": "D-1",
+      "channel_complete": false,
+      "channels": [],
+      "metrics": ["个人维度: leads/预约/出席/付费/转化率"],
+      "time_dimension": "当月",
+      "notes": "无口径拆分"
+    },
+    "A5": {
+      "name": "宣萱_转介绍不同口径对比_D-1",
+      "loader": "LeadsLoader",
+      "frequency": "D-1",
+      "channel_complete": false,
+      "channels": ["总计", "CC窄口径", "SS窄口径", "其它(LP+宽口合并)"],
+      "metrics": ["注册", "预约", "出席", "付费", "美金金额", "注册付费率", "预约率", "预约出席率", "出席付费率"],
+      "time_dimension": "历史月度趋势",
+      "notes": "LP+宽口合并为'其它'不可拆; 唯一有历史月度+金额的数据源; CC/SS 可用"
+    },
+    "C1-C6": {
+      "name": "BI-cohort模型_CC*_M-1",
+      "loader": "CohortLoader",
+      "frequency": "M-1",
+      "channel_complete": false,
+      "channels": ["仅CC"],
+      "metrics": ["触达率", "参与率", "打卡率", "带新系数", "带货比", "明细"],
+      "time_dimension": "月度cohort",
+      "notes": "CC 专属，无 SS/LP/宽口维度"
+    },
+    "K1-K4_N1": {
+      "name": "BI-KPI_* + 北极星_D-1",
+      "loader": "KpiLoader",
+      "frequency": "D-1",
+      "channel_complete": false,
+      "channels": [],
+      "metrics": ["围场数据", "打卡率"],
+      "time_dimension": "当月",
+      "notes": "无口径拆分"
+    },
+    "O1-O8": {
+      "name": "BI-订单_*_D-1",
+      "loader": "OrderLoader",
+      "frequency": "D-1",
+      "channel_complete": false,
+      "channels": ["团队级(THCC/THSS)但非口径"],
+      "metrics": ["订单明细", "业绩趋势", "套餐占比", "渠道金额"],
+      "time_dimension": "日/月",
+      "notes": "渠道=市场/转介绍(非CC/SS/LP口径)"
+    },
+    "F1-F11": {
+      "name": "宣宣/宣萱_*_D-1",
+      "loader": "OpsLoader",
+      "frequency": "D-1",
+      "channel_complete": false,
+      "channels": ["仅CC或无"],
+      "metrics": ["漏斗效率", "截面效率", "外呼", "体验课跟进", "付费跟进"],
+      "time_dimension": "日/月",
+      "notes": "F2/F3 渠道列=市场/转介绍(非口径)"
+    },
+    "R1": {
+      "name": "中台_转介绍ROI测算数据模型_M-1",
+      "loader": "ROILoader",
+      "frequency": "M-1",
+      "channel_complete": false,
+      "channels": [],
+      "metrics": ["ROI成本模型"],
+      "time_dimension": "月度",
+      "notes": "无口径拆分"
+    }
+  }
 }

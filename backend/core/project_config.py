@@ -78,6 +78,22 @@ class ProjectConfig(BaseModel):
         description="渠道/口径标签列表"
     )
 
+    channel_metric_scope: Dict[str, Any] = Field(
+        default_factory=lambda: {
+            "total": {"role": "full_funnel", "metrics": ["register", "appointment", "showup", "paid", "revenue_usd"]},
+            "cc_narrow": {"role": "full_funnel", "metrics": ["register", "appointment", "showup", "paid", "revenue_usd"]},
+            "ss_narrow": {"role": "leads_only", "metrics": ["register"]},
+            "lp_narrow": {"role": "leads_only", "metrics": ["register"]},
+            "wide": {"role": "leads_only", "metrics": ["register"]},
+        },
+        description="口径×指标归属: full_funnel=全漏斗(CC/总计), leads_only=仅leads数(SS/LP/宽口)"
+    )
+
+    data_source_registry: Dict[str, Any] = Field(
+        default_factory=dict,
+        description="数据源注册表: 口径覆盖、指标、时间维度、备注"
+    )
+
     gap_thresholds: Dict[str, float] = Field(
         default_factory=lambda: {"green": 0.0, "yellow": -0.05},
         description="进度差阈值（green≥0, yellow>=-5%）"

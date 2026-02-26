@@ -107,6 +107,15 @@ Excel 数据源 → XlsxReader → DataProcessor → AnalysisEngine → Markdown
 - **带新系数** = B注册数/带来注册的A学员数 | **带货比** = 推荐注册数/有效学员
 - **CC-A/CC-B** = CC 团队分组（如 THCC-A、THCC-B），非个人代号
 - **THCC** = 泰国前端销售团队（数据中 "-" 占位符应映射为 THCC）
+- **口径×指标归属规则**: CC 看全漏斗（过程/效率/结果），SS/LP/宽口 仅看转介绍 leads 数（注册数）
+  - CC 全漏斗 = 注册→预约→出席→付费→金额 + 预约率/出席率/付费率
+  - SS/LP 唯一 KPI = 转介绍 leads 数（不参与预约→出席→付费转换阶段）
+  - leads 数是唯一需要 4 口径拆分（CC/SS/LP/宽口）的指标
+  - 配置位置: `projects/referral/config.json` 的 `channel_metric_scope`
+- **数据源口径覆盖**: 仅 A1(当月快照) + A2(围场效率) 有 CC/SS/LP/宽口 4 口径齐全拆分
+  - A5(历史月度趋势) LP+宽口合并为"其它"不可拆，CC/SS 可用
+  - A3(明细表) 可通过"转介绍类型_新"列行级过滤口径
+  - 配置位置: `projects/referral/config.json` 的 `data_source_registry`
 - **工作日** = 每周除周三外均为工作日（周三权重 0.0），另扣除泰国国定假期
 - **差额细化** = 目标差额可细化到：每人均摊/每日均摊/SKU 层面
 - **页面术语说明** = 每个分析页面顶部须用小字展示该页涉及的代称/名词/定义/公式
