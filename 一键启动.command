@@ -1,6 +1,6 @@
 #!/bin/bash
 # ==============================================================================
-# Ref-Ops-Engine - 一键启动序列 v2 (数据新鲜度感知 + FlashUI 强化版)
+# Ref-Ops-Engine - 一键启动序列 v3
 # ==============================================================================
 cd "$(dirname "$0")" || { echo "切换目录失败，请把此脚本放到项目根目录"; exit 1; }
 
@@ -59,62 +59,12 @@ if ! uv sync --quiet 2>/dev/null; then
 fi
 ok "Python 依赖同步完成"
 
-# ── 数据新鲜度检测 ────────────────────────────────────────────────────────
-
-info "侦测数据新鲜度（T-1 合规性校验）..."
-
-SESSION_DIR=".playwright-session/Default"
-STALE_THRESHOLD=86400  # 24 小时（秒）
-
-session_exists() {
-    [ -d "$SESSION_DIR" ] && [ "$(ls -A "$SESSION_DIR" 2>/dev/null)" ]
-}
-
-# 查找 input/ 下最新的 xlsx 文件
-LATEST_XLSX=$(find input -name "*.xlsx" -type f 2>/dev/null | \
-    xargs stat -f "%m %N" 2>/dev/null | sort -rn | head -1 | cut -d' ' -f2-)
-
-if [ -z "$LATEST_XLSX" ]; then
-    warn "input/ 目录下未检测到任何 .xlsx 数据文件。"
-    warn "请先运行「下载BI数据.command」完成数据下载，再启动系统。"
-    echo ""
-else
-    # 获取最新文件的修改时间戳（macOS stat 语法）
-    LATEST_MTIME=$(stat -f "%m" "$LATEST_XLSX" 2>/dev/null)
-    NOW=$(date +%s)
-    AGE=$(( NOW - LATEST_MTIME ))
-
-    if [ "$AGE" -gt "$STALE_THRESHOLD" ]; then
-        AGE_HOURS=$(( AGE / 3600 ))
-        warn "数据文件已超过 ${AGE_HOURS}h 未刷新（$(basename "$LATEST_XLSX")），触发自动更新协议..."
-
-        if session_exists; then
-            info "检测到有效 session，正在自动调用 BI 下载器刷新数据..."
-            uv run python scripts/bi_downloader.py --download
-            if [ $? -eq 0 ]; then
-                ok "数据刷新完成，input/ 已更新至最新快照"
-            else
-                warn "BI 数据自动下载失败，将继续以现有数据启动（分析结果可能偏旧）"
-            fi
-        else
-            warn "未检测到 Playwright 登录 session（$SESSION_DIR）。"
-            warn "无法自动下载数据。请先运行「下载BI数据.command」完成首次登录，再重启本脚本。"
-            warn "当前将继续以现有数据（${AGE_HOURS}h 前快照）启动系统。"
-        fi
-    else
-        AGE_MIN=$(( AGE / 60 ))
-        ok "数据新鲜度合规（最新文件 ${AGE_MIN}min 前更新：$(basename "$LATEST_XLSX")）"
-    fi
-fi
-
-echo -e "${C_BLUE}----------------------------------------------------------------------${C_RESET}"
-
 # ── 依赖树分析与重组 ──────────────────────────────────────────────────────
 
 info "校验本地界面层资产包 (node_modules)..."
 if [ ! -d "frontend/node_modules" ]; then
-    warn "初次部署，正在构建 npm 组件链（将耗时数分钟）..."
-    (cd frontend && npm install --silent)
+    warn "初次部署，正在构建 pnpm 组件链（将耗时数分钟）..."
+    (cd frontend && pnpm install --silent)
     ok "前端资产包构建完成"
 fi
 
@@ -136,10 +86,24 @@ kill_port 3000
 
 echo -e "${C_BLUE}----------------------------------------------------------------------${C_RESET}"
 
+# ── 日志存储配置 ──────────────────────────────────────────────────────────
+
+LOG_DIR="logs"
+mkdir -p "$LOG_DIR"
+TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
+BACKEND_LOG="${LOG_DIR}/backend_${TIMESTAMP}.log"
+FRONTEND_LOG="${LOG_DIR}/frontend_${TIMESTAMP}.log"
+
+# 清理旧日志（保留最近 5 组）
+ls -t "${LOG_DIR}"/backend_*.log 2>/dev/null | tail -n +6 | xargs rm -f 2>/dev/null
+ls -t "${LOG_DIR}"/frontend_*.log 2>/dev/null | tail -n +6 | xargs rm -f 2>/dev/null
+
+info "系统启动日志将双向持久化至: ${LOG_DIR}/"
+
 # ── 唤醒逻辑模块 ──────────────────────────────────────────────────────────
 
 info "引燃数据中间件 (Backend/FastAPI)..."
-(cd backend && uv run python -m uvicorn main:app --host 0.0.0.0 --port 8000 --loop asyncio --log-level warning 2>&1) &
+(cd backend && uv run python -m uvicorn main:app --host 0.0.0.0 --port 8000 --loop asyncio --log-level warning > "../$BACKEND_LOG" 2>&1) &
 BACKEND_PID=$!
 
 # 等待后端就绪信号
@@ -154,7 +118,7 @@ for ((i=1; i<=20; i++)); do
 done
 
 if [ "$BACKEND_READY" -eq 0 ]; then
-    fail "中间件唤醒超时跳段，后端未能及时响应，请人工排查（可通过日志诊断）"
+    fail "中间件唤醒超时跳段，后端未能及时响应，请人工排查（参考: $BACKEND_LOG）"
     exit 1
 fi
 
@@ -171,7 +135,7 @@ fi
 # ── 拉起视图层 ────────────────────────────────────────────────────────────
 
 info "唤醒流体视角引擎 (Frontend/Next.js UI)..."
-(cd frontend && npm run dev -- --port 3000 2>&1 | grep -v "^$" | head -n 5) &
+(cd frontend && pnpm dev --port 3000 > "../$FRONTEND_LOG" 2>&1) &
 FRONTEND_PID=$!
 
 FRONTEND_READY=0
