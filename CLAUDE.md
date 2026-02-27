@@ -70,8 +70,7 @@ Excel 数据源 → XlsxReader → DataProcessor → AnalysisEngine → Markdown
 ```
 
 ## 常用命令
-- **一键启动（推荐）**: 双击 `一键启动.command`（自动检测数据 → 下载 → 后端 → 前端 → 浏览器）
-- **仅启动服务**: 双击 `启动.command`（跳过数据检测，直接启动）
+- **一键启动**: 双击 `一键启动.command`（自动检测数据 → 下载 → 后端 → 前端 → 浏览器）
 - **仅下载数据**: 双击 `下载BI数据.command`（交互式，支持选择看板）
 - **安装依赖**: `uv sync --all-groups`（自动创建 .venv + 安装全部依赖组）
 - **添加依赖**: `uv add <pkg>` | **添加开发依赖**: `uv add --group dev <pkg>`
