@@ -7,11 +7,7 @@
  *
  * 客户端页面继续使用 `useTranslation()` hook，保持向后兼容。
  *
- * Next.js 版本兼容说明：
- *   - Next.js 14: cookies() 是同步函数，返回 ReadonlyRequestCookies
- *   - Next.js 15: cookies() 变为异步函数，返回 Promise<ReadonlyRequestCookies>
- *   当前项目使用 Next.js 14.2.21，getServerLocale() 标记为 async 仅为向前兼容，
- *   内部使用同步 cookies() 调用。升级到 Next.js 15 后改为 await cookies()。
+ * Next.js 15: cookies() 变为异步函数，需要 await。
  */
 
 import { cookies } from 'next/headers';
@@ -25,11 +21,11 @@ function isValidLocale(v: string | undefined): v is Locale {
 
 /**
  * 在 RSC 中获取当前 locale（从 Cookie 读取，fallback zh）。
- * Next.js 14 兼容：cookies() 为同步调用。
+ * Next.js 15: cookies() 为异步调用。
  */
 export async function getServerLocale(): Promise<Locale> {
-  // Next.js 14: cookies() is synchronous
-  const cookieStore = cookies();
+  // Next.js 15: cookies() is asynchronous
+  const cookieStore = await cookies();
   const raw = cookieStore.get('locale')?.value;
   return isValidLocale(raw) ? raw : 'zh';
 }

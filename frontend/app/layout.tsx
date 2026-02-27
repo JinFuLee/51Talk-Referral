@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import dynamic from "next/dynamic";
 import { SWRProvider } from "@/components/providers/SWRProvider";
 import { NavSidebar } from "@/components/layout/NavSidebar";
 import { Topbar } from "@/components/layout/Topbar";
@@ -9,16 +8,8 @@ import { WebMCPProvider } from "@/lib/webmcp";
 import { ErrorBoundary } from "@/components/providers/ErrorBoundary";
 import { ToastProvider } from "@/components/providers/ToastProvider";
 import { HtmlLangUpdater } from "@/components/providers/HtmlLangUpdater";
+import { CoPilotTerminalClient, PresentationOverlayClient } from "@/components/providers/ClientOnlyDynamics";
 import "./globals.css";
-
-const CoPilotTerminal = dynamic(
-  () => import("@/components/ui/CoPilotTerminal").then((m) => ({ default: m.CoPilotTerminal })),
-  { ssr: false }
-);
-const PresentationOverlay = dynamic(
-  () => import("@/components/ui/PresentationOverlay").then((m) => ({ default: m.PresentationOverlay })),
-  { ssr: false }
-);
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -53,9 +44,9 @@ export default function RootLayout({
                 </div>
               </div>
               <div className="hide-in-presentation">
-                <CoPilotTerminal />
+                <CoPilotTerminalClient />
               </div>
-              <PresentationOverlay />
+              <PresentationOverlayClient />
               <ToastProvider />
               <HtmlLangUpdater />
             </SWRProvider>
