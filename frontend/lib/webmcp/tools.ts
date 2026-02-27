@@ -1,4 +1,3 @@
-import '@mcp-b/global';
 import { analysisAPI, reportsAPI, datasourcesAPI, snapshotsAPI } from '@/lib/api';
 
 export function registerAllTools() {
