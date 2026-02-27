@@ -79,8 +79,8 @@ ok "Python 依赖同步完成"
 
 info "校验本地界面层资产包 (node_modules)..."
 if [ ! -d "frontend/node_modules" ]; then
-    warn "初次部署，正在构建 npm 组件链 (将耗时数分钟)..."
-    (cd frontend && npm install --silent)
+    warn "初次部署，正在构建 pnpm 组件链（将耗时数分钟）..."
+    (cd frontend && pnpm install --silent)
     ok "前端资产包构建完成"
 fi
 
@@ -121,7 +121,7 @@ fi
 # ── 拉起视图层 ────────────────────────────────────────────────────────────
 
 info "唤醒流体视角引擎 (Frontend/Next.js UI)..."
-(cd frontend && npm run dev -- --port 3000 2>&1 | grep -v "^$" | head -n 5) &
+(cd frontend && pnpm dev --port 3000 2>&1) &
 FRONTEND_PID=$!
 
 FRONTEND_READY=0
