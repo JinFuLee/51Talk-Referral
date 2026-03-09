@@ -422,7 +422,7 @@ def get_cohort_detail(svc: AnalysisService = Depends(get_service)) -> dict[str, 
             "十一",
             "十二",
         ]
-        for m_idx, m_cn in enumerate(_CN_NUMS, start=1):
+        for m_idx, _m_cn in enumerate(_CN_NUMS, start=1):
             total_m = 0
             valid_count = 0
             reach_count = 0
