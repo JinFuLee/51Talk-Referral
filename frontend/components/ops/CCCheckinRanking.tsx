@@ -128,7 +128,7 @@ export function CCCheckinRanking({
                 const achieved = target > 0 ? rate >= target : false;
                 return (
                   <tr
-                    key={row.cc_name}
+                    key={`${row.cc_name}-${i}`}
                     className="border-b border-slate-100 hover:bg-slate-50 transition-colors"
                   >
                     <td className="px-3 py-2 text-xs text-slate-400 font-mono">
