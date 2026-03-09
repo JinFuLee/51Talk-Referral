@@ -10,7 +10,7 @@ from typing import Any, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 
 from .dependencies import get_service
-from services.analysis_service import AnalysisService
+from backend.services.analysis_service import AnalysisService
 
 router = APIRouter()
 

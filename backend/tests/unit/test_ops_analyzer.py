@@ -6,8 +6,8 @@ from datetime import datetime
 
 import pytest
 
-from core.analyzers.context import AnalyzerContext
-from core.analyzers.ops_analyzer import OpsAnalyzer
+from backend.core.analyzers.context import AnalyzerContext
+from backend.core.analyzers.ops_analyzer import OpsAnalyzer
 
 # ── Fixtures ──────────────────────────────────────────────────────────────────
 

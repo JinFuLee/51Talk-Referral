@@ -11,7 +11,7 @@ from fastapi import APIRouter, Depends, Query
 from typing import Optional
 
 from .dependencies import get_service
-from services.analysis_service import AnalysisService
+from backend.services.analysis_service import AnalysisService
 
 router = APIRouter()
 

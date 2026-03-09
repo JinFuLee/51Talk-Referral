@@ -40,7 +40,7 @@ class HistoryImporter:
     def _make_store(self) -> Optional[Any]:
         """获取 SnapshotStore 进程级单例，避免重复建立 SQLite 连接"""
         try:
-            from core.snapshot_store import SnapshotStore
+            from backend.core.snapshot_store import SnapshotStore
             return SnapshotStore.get_instance()
         except Exception as e:
             logger.warning(f"SnapshotStore 初始化失败（非阻塞）: {e}")
@@ -137,9 +137,9 @@ class HistoryImporter:
         Returns:
             是否成功导入
         """
-        from core.multi_source_loader import MultiSourceLoader
-        from core.analysis_engine_v2 import AnalysisEngineV2
-        from core.config import get_targets
+        from backend.core.multi_source_loader import MultiSourceLoader
+        from backend.core.analysis_engine_v2 import AnalysisEngineV2
+        from backend.core.config import get_targets
 
         # 以文件所在目录作为数据源目录（MultiSourceLoader 会扫描该目录）
         source_dir = str(file_path.parent)

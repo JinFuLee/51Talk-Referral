@@ -12,7 +12,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
 from .dependencies import get_service
-from services.analysis_service import AnalysisService
+from backend.services.analysis_service import AnalysisService
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 
@@ -84,7 +84,7 @@ def put_panel_config(body: PanelConfigUpdate) -> dict[str, Any]:
 @router.get("/targets", summary="获取所有月度目标（含 override）")
 def get_targets_all() -> dict[str, Any]:
     """返回全部月度目标（含 override）"""
-    from core.config import MONTHLY_TARGETS
+    from backend.core.config import MONTHLY_TARGETS
     base = dict(MONTHLY_TARGETS)
     overrides = _read_json(TARGETS_OVERRIDE_FILE, {})
     # 合并覆盖
@@ -99,7 +99,7 @@ def get_targets_all() -> dict[str, Any]:
 @router.get("/monthly-targets", summary="获取所有月份目标列表")
 def get_monthly_targets() -> list[dict[str, Any]]:
     """返回所有月份目标列表"""
-    from core.config import MONTHLY_TARGETS
+    from backend.core.config import MONTHLY_TARGETS
     overrides = _read_json(TARGETS_OVERRIDE_FILE, {})
     result = []
     for month, vals in MONTHLY_TARGETS.items():
@@ -128,7 +128,7 @@ def put_targets_month(month: str, body: MonthTargetsUpdate) -> dict[str, Any]:
 @router.get("/exchange-rate", summary="获取当前汇率")
 def get_exchange_rate() -> dict[str, Any]:
     """返回当前汇率"""
-    from core.config import EXCHANGE_RATE_THB_USD
+    from backend.core.config import EXCHANGE_RATE_THB_USD
     stored = _read_json(EXCHANGE_RATE_FILE, {})
     rate = stored.get("rate", EXCHANGE_RATE_THB_USD)
     return {"rate": rate, "unit": "THB/USD"}
@@ -162,7 +162,7 @@ def get_targets_v2(month: str) -> dict[str, Any]:
         return month_override
 
     # 否则从扁平数据合成 V2
-    from core.config import MONTHLY_TARGETS
+    from backend.core.config import MONTHLY_TARGETS
     flat = MONTHLY_TARGETS.get(month, {}).copy()
     if month in overrides:
         flat.update(overrides[month])
@@ -173,7 +173,7 @@ def get_targets_v2(month: str) -> dict[str, Any]:
 @router.put("/targets/{month}/v2", summary="保存 V2 分层月度目标")
 def put_targets_v2(month: str, body: "MonthlyTargetV2Body") -> dict[str, Any]:
     """保存 V2 结构到 targets_override.json (含强校验)"""
-    from models.config import MonthlyTargetV2
+    from backend.models.config import MonthlyTargetV2
     if len(month) != 6 or not month.isdigit():
         raise HTTPException(status_code=400, detail="month 格式应为 YYYYMM")
 
@@ -198,7 +198,7 @@ def put_targets_v2(month: str, body: "MonthlyTargetV2Body") -> dict[str, Any]:
 @router.post("/targets/{month}/calculate", summary="双向计算目标（V2 结构）")
 def calculate_targets(month: str, body: "MonthlyTargetV2Body") -> dict[str, Any]:
     """接收部分 V2 输入，返回完整计算结果（双向计算）"""
-    from models.config import MonthlyTargetV2
+    from backend.models.config import MonthlyTargetV2
     try:
         v2 = MonthlyTargetV2(**body.model_dump())
     except Exception as exc:
@@ -268,7 +268,7 @@ def get_target_recommendations(
     if len(month) != 6 or not month.isdigit():
         raise HTTPException(status_code=400, detail="month 格式应为 YYYYMM")
 
-    from core.config import MONTHLY_TARGETS
+    from backend.core.config import MONTHLY_TARGETS
 
     # ── 1. 计算历史增长率 ────────────────────────────────────────────────────
     sorted_months = sorted(MONTHLY_TARGETS.keys())

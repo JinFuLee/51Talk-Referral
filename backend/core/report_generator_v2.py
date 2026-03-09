@@ -7,7 +7,7 @@ from __future__ import annotations
 from typing import Any, Optional
 
 try:
-    from core.config import EXCHANGE_RATE_THB_USD
+    from backend.core.config import EXCHANGE_RATE_THB_USD
 except ImportError:
     EXCHANGE_RATE_THB_USD = 34.0
 
@@ -183,7 +183,7 @@ class PyramidReportGenerator:
         # 尝试从 impact_chain 获取量化数据
         impact_data = {}
         try:
-            from core.impact_chain import ImpactChain  # type: ignore
+            from backend.core.impact_chain import ImpactChain  # type: ignore
             chain = ImpactChain(self.data)
             impact_data = chain.calculate() if hasattr(chain, "calculate") else {}
         except (ImportError, Exception):

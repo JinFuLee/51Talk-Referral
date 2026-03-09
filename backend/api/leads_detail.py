@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 from typing import Any, Optional
 
 from fastapi import APIRouter, Depends, Query
-from services.analysis_service import AnalysisService
+from backend.services.analysis_service import AnalysisService
 
 from .dependencies import get_service
 
@@ -388,7 +388,7 @@ def get_leads_overview(
     # ── 月度目标（从 config 读取） ────────────────────────────────────────────
     targets: dict[str, Any] = {}
     try:
-        from core.config import MONTHLY_TARGETS
+        from backend.core.config import MONTHLY_TARGETS
 
         now = datetime.now()
         month_key = target_month if target_month else now.strftime("%Y%m")

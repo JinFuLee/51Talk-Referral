@@ -5,8 +5,8 @@ Unit tests for core.analyzers.ranking_analyzer.RankingAnalyzer
 from datetime import datetime
 
 import pytest
-from core.analyzers.context import AnalyzerContext
-from core.analyzers.ranking_analyzer import RankingAnalyzer
+from backend.core.analyzers.context import AnalyzerContext
+from backend.core.analyzers.ranking_analyzer import RankingAnalyzer
 
 # ── Fixtures ──────────────────────────────────────────────────────────────────
 

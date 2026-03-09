@@ -8,8 +8,8 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from core.analyzers.context import AnalyzerContext
-from core.analyzers.trend_analyzer import TrendAnalyzer
+from backend.core.analyzers.context import AnalyzerContext
+from backend.core.analyzers.trend_analyzer import TrendAnalyzer
 
 # ── Fixtures ──────────────────────────────────────────────────────────────────
 

@@ -156,7 +156,7 @@ class AIReportGenerator:
         # RootCauseEngine(summary, funnel, targets, outreach, trial, ...)
         root_cause_result: dict[str, Any] = {}
         try:
-            from core.root_cause import RootCauseEngine
+            from backend.core.root_cause import RootCauseEngine
             rce = RootCauseEngine(
                 summary=summary,
                 funnel=funnel,
@@ -171,7 +171,7 @@ class AIReportGenerator:
         # ImpactChainEngine(summary, targets, funnel)
         impact_result: dict[str, Any] = {}
         try:
-            from core.impact_chain import ImpactChainEngine
+            from backend.core.impact_chain import ImpactChainEngine
             ice = ImpactChainEngine(
                 summary=summary,
                 targets=targets,
@@ -185,7 +185,7 @@ class AIReportGenerator:
         # StageEvaluator(cache: dict) — 接收完整 analysis cache
         stage_result: dict[str, Any] = {}
         try:
-            from core.stage_evaluator import StageEvaluator
+            from backend.core.stage_evaluator import StageEvaluator
             se = StageEvaluator(result)
             stage_result = se.evaluate()
         except Exception as e:
@@ -212,7 +212,7 @@ class AIReportGenerator:
         )
 
         # ── 步骤 4：调用 Gemini 生成 AI 洞察 ─────────────────────────────────
-        from core.llm_adapter import get_adapter
+        from backend.core.llm_adapter import get_adapter
         adapter = get_adapter()
         ai_commentary = ""
         model_used = adapter.model_name

@@ -23,7 +23,7 @@ DATA_DIR = BASE_DIR / "data"
 DATA_SOURCE_DIR_STR = os.getenv("DATA_SOURCE_DIR")
 if not DATA_SOURCE_DIR_STR:
     print("WARNING: DATA_SOURCE_DIR not set in .env")
-    DATA_SOURCE_DIR = Path("/tmp/fallback_data_source")
+    DATA_SOURCE_DIR = Path(os.environ.get("TMPDIR", "/private/tmp/claude-501")) / "fallback_data_source"
 else:
     DATA_SOURCE_DIR = Path(DATA_SOURCE_DIR_STR)
 
@@ -97,7 +97,7 @@ def get_targets(date: datetime = None) -> dict:
             month_data = overrides.get(month_key, {})
             if month_data.get("version") == 2:
                 # V2 结构 → flatten 后合并
-                from models.config import MonthlyTargetV2
+                from backend.models.config import MonthlyTargetV2
                 v2 = MonthlyTargetV2(**month_data)
                 base.update(v2.flatten())
             elif month_data:

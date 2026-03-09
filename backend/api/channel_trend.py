@@ -7,7 +7,7 @@ from __future__ import annotations
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException
-from services.analysis_service import AnalysisService
+from backend.services.analysis_service import AnalysisService
 
 from .dependencies import get_service
 

@@ -147,10 +147,10 @@ class AnalysisService:
                 logger.info(f"缓存命中（TTL 内，period={period}, key={cache_key}），跳过重算")
                 return self._build_run_summary(cache_key)
 
-            from core.analysis_engine_v2 import AnalysisEngineV2
-            from core.multi_source_loader import MultiSourceLoader
-            from core.config import get_targets as cfg_get_targets
-            from core.time_period import TimePeriod, resolve_period
+            from backend.core.analysis_engine_v2 import AnalysisEngineV2
+            from backend.core.multi_source_loader import MultiSourceLoader
+            from backend.core.config import get_targets as cfg_get_targets
+            from backend.core.time_period import TimePeriod, resolve_period
 
             # 解析 period → 日期范围
             try:
@@ -209,7 +209,7 @@ class AnalysisService:
                 self._filtered_raw[period] = filtered_data
 
             # 获取快照存储单例（引擎需要用它查 YoY/WoW/峰谷）
-            from core.snapshot_store import SnapshotStore
+            from backend.core.snapshot_store import SnapshotStore
             store: Optional[SnapshotStore] = None
             try:
                 store = SnapshotStore.get_instance()

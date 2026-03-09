@@ -5,7 +5,7 @@ Unit tests for core.loaders.base.BaseLoader
 import numpy as np
 import pandas as pd
 import pytest
-from core.loaders.base import BaseLoader
+from backend.core.loaders.base import BaseLoader
 
 # ── Fixtures ──────────────────────────────────────────────────────────────────
 

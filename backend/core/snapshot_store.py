@@ -11,7 +11,7 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any, ClassVar, Optional
 
-from core.config import BASE_DIR
+from backend.core.config import BASE_DIR
 
 logger = logging.getLogger(__name__)
 

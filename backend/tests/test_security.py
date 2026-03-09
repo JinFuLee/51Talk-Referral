@@ -20,8 +20,8 @@ def app_client():
     mock_svc.get_cached_result.return_value = None
     mock_svc.run.return_value = None
 
-    with patch("services.analysis_service.AnalysisService", return_value=mock_svc):
-        from main import app
+    with patch("backend.services.analysis_service.AnalysisService", return_value=mock_svc):
+        from backend.main import app
 
         client = TestClient(app, raise_server_exceptions=False)
         yield client
@@ -112,7 +112,7 @@ class TestRateLimitConfig:
     def test_rate_limit_default_env(self):
         """未设置 RATE_LIMIT 时 _rate_limit_str 默认为 60/minute"""
         os.environ.pop("RATE_LIMIT", None)
-        import main as main_module
+        import backend.main as main_module
 
         importlib.reload(main_module)
         # slowapi Limiter 使用 _default_limits 存储（私有属性），
@@ -122,7 +122,7 @@ class TestRateLimitConfig:
     def test_rate_limit_custom_env(self):
         """设置 RATE_LIMIT=120/minute 后 _rate_limit_str 应反映自定义值"""
         with patch.dict(os.environ, {"RATE_LIMIT": "120/minute"}):
-            import main as main_module
+            import backend.main as main_module
 
             importlib.reload(main_module)
             assert main_module._rate_limit_str == "120/minute"
@@ -130,7 +130,7 @@ class TestRateLimitConfig:
     def test_rate_limit_limiter_uses_env_string(self):
         """slowapi Limiter 的 _default_limits 应包含环境变量指定的限制字符串"""
         os.environ.pop("RATE_LIMIT", None)
-        import main as main_module
+        import backend.main as main_module
 
         importlib.reload(main_module)
         # slowapi LimitGroup 将原始字符串存储在 __limit_provider 私有属性中

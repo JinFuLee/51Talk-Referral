@@ -7,8 +7,8 @@ from datetime import datetime
 
 import pytest
 
-from core.analyzers.context import AnalyzerContext
-from core.analyzers.cohort_analyzer import CohortAnalyzer
+from backend.core.analyzers.context import AnalyzerContext
+from backend.core.analyzers.cohort_analyzer import CohortAnalyzer
 
 # ── Fixtures ──────────────────────────────────────────────────────────────────
 

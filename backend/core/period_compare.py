@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from datetime import date, timedelta
 from typing import Optional
 
-from core.time_period import TimePeriod, resolve_period
+from backend.core.time_period import TimePeriod, resolve_period
 
 
 @dataclass

@@ -10,7 +10,7 @@ from fastapi.testclient import TestClient
 @pytest.fixture(scope="module")
 def client():
     """Create a synchronous TestClient for the FastAPI app."""
-    from main import app
+    from backend.main import app
 
     with TestClient(app) as c:
         yield c

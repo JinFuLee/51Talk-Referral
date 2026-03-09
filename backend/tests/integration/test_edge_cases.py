@@ -5,11 +5,11 @@ Integration / unit edge case tests
 import pytest
 from datetime import datetime
 
-from core.analyzers.utils import _safe_div, _safe_pct, _clean_for_json, _norm_cc
-from core.analyzers.context import AnalyzerContext
-from core.analyzers.summary_analyzer import SummaryAnalyzer
-from core.analyzers.order_analyzer import OrderAnalyzer
-from core.impact_chain import ImpactChainEngine
+from backend.core.analyzers.utils import _safe_div, _safe_pct, _clean_for_json, _norm_cc
+from backend.core.analyzers.context import AnalyzerContext
+from backend.core.analyzers.summary_analyzer import SummaryAnalyzer
+from backend.core.analyzers.order_analyzer import OrderAnalyzer
+from backend.core.impact_chain import ImpactChainEngine
 
 
 class TestNullInputHandling:

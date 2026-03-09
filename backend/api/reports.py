@@ -12,7 +12,7 @@ from fastapi.responses import FileResponse
 from pydantic import BaseModel
 
 from .dependencies import get_service
-from services.analysis_service import AnalysisService
+from backend.services.analysis_service import AnalysisService
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 
@@ -105,7 +105,7 @@ def generate_report(
         {status, report: {report_path, markdown, generated_at, ai_commentary, model_used, has_ai}}
     """
     try:
-        from core.ai_report_generator import AIReportGenerator
+        from backend.core.ai_report_generator import AIReportGenerator
         gen = AIReportGenerator(svc)
         report = gen.generate_report(force_run=req.force_run)
         return {"status": "ok", "report": report}

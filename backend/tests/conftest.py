@@ -104,7 +104,7 @@ def report_date():
 @pytest.fixture
 def analyzer_context(sample_data, sample_targets, report_date):
     """创建 AnalyzerContext 实例"""
-    from core.analyzers.context import AnalyzerContext
+    from backend.core.analyzers.context import AnalyzerContext
 
     return AnalyzerContext(
         data=sample_data,

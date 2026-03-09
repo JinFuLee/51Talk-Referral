@@ -26,7 +26,7 @@ def health_check(request: Request) -> dict[str, Any]:
 def get_i18n(lang: str) -> dict[str, Any]:
     """返回指定语言的翻译字典（lang: zh / th）"""
     try:
-        from core.i18n import TRANSLATIONS
+        from backend.core.i18n import TRANSLATIONS
     except ImportError as exc:
         raise HTTPException(status_code=500, detail="i18n 模块导入失败") from exc
 

@@ -13,7 +13,7 @@ from typing import Any
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
 from pydantic import BaseModel
-from services.analysis_service import AnalysisService
+from backend.services.analysis_service import AnalysisService
 
 # ── Adapt 函数（从同包子模块导入，相对导入不依赖 sys.path）──────────────────────
 from .adapters.outreach_adapt import _adapt_orders, _adapt_outreach, _adapt_trial
@@ -741,7 +741,7 @@ def get_impact_chain(
     """返回全效率指标影响链"""
     period = _validate_period(period)
     cache = _require_full_cache(svc, period)
-    from core.impact_chain import ImpactChainEngine
+    from backend.core.impact_chain import ImpactChainEngine
     engine = ImpactChainEngine(
         summary=cache.get("summary", {}),
         targets=cache.get("meta", {}).get("targets", {}),
@@ -763,7 +763,7 @@ def post_what_if(
 ) -> dict[str, Any]:
     """模拟某效率指标提升后的全链收益变化"""
     cache = _require_full_cache(svc, req.period)
-    from core.impact_chain import ImpactChainEngine
+    from backend.core.impact_chain import ImpactChainEngine
     engine = ImpactChainEngine(
         summary=cache.get("summary", {}),
         targets=cache.get("meta", {}).get("targets", {}),
@@ -1138,7 +1138,7 @@ def compare_summary(
 
     # ── 模式 1/2: pop（环比）或 yoy（同比）────────────────────────────────────
     if mode in ("pop", "yoy"):
-        from core.period_compare import resolve_pop_period, resolve_yoy_period
+        from backend.core.period_compare import resolve_pop_period, resolve_yoy_period
 
         if mode == "pop":
             comp = resolve_pop_period(period, custom_start, custom_end)
@@ -1205,7 +1205,7 @@ def compare_summary(
     if mode in ("peak", "valley"):
         # 获取快照存储单例
         try:
-            from core.snapshot_store import SnapshotStore
+            from backend.core.snapshot_store import SnapshotStore
             store = SnapshotStore.get_instance()
         except Exception as e:
             return {
@@ -1313,7 +1313,7 @@ def get_cc_detail(
     - monthly_trend：如无历史 MoM 数据则返回空数组
     """
     period = _validate_period(period)
-    from core.analyzers.utils import _norm_cc
+    from backend.core.analyzers.utils import _norm_cc
 
     cache = _require_full_cache(svc, period)
 
@@ -1477,7 +1477,7 @@ def get_kpi_sparkline(
 
     # 获取快照存储单例，失败则返回 available=false（不抛 500）
     try:
-        from core.snapshot_store import SnapshotStore
+        from backend.core.snapshot_store import SnapshotStore
         store = SnapshotStore.get_instance()
     except Exception as _init_err:
         return {

@@ -4,7 +4,7 @@ Unit tests for core.impact_chain.ImpactChainEngine
 """
 import pytest
 
-from core.impact_chain import ImpactChainEngine
+from backend.core.impact_chain import ImpactChainEngine
 
 
 @pytest.fixture

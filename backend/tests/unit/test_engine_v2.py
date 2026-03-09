@@ -8,7 +8,7 @@ from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
 import pytest
-from core.analysis_engine_v2 import AnalysisEngineV2
+from backend.core.analysis_engine_v2 import AnalysisEngineV2
 
 # ── Fixtures ──────────────────────────────────────────────────────────────────
 

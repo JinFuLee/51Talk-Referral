@@ -103,7 +103,7 @@ info "系统启动日志将双向持久化至: ${LOG_DIR}/"
 # ── 唤醒逻辑模块 ──────────────────────────────────────────────────────────
 
 info "引燃数据中间件 (Backend/FastAPI)..."
-(cd backend && uv run python -m uvicorn main:app --host 0.0.0.0 --port 8000 --loop asyncio --log-level warning > "../$BACKEND_LOG" 2>&1) &
+(uv run python -m uvicorn backend.main:app --host 0.0.0.0 --port 8000 --loop asyncio --log-level warning > "$BACKEND_LOG" 2>&1) &
 BACKEND_PID=$!
 
 # 等待后端就绪信号

@@ -10,7 +10,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed, TimeoutError as
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
 
-from core.analyzers import (
+from backend.core.analyzers import (
     AnalyzerContext,
     SummaryAnalyzer,
     OpsAnalyzer,
@@ -337,7 +337,7 @@ class AnalysisEngineV2:
         影响链计算：各效率指标 gap → 收入损失量化。
         依赖 summary（打卡率实际值/目标）和 funnel（漏斗转化率/有效学员数）。
         """
-        from core.impact_chain import ImpactChainEngine
+        from backend.core.impact_chain import ImpactChainEngine
         engine = ImpactChainEngine(
             summary=summary,
             targets=self.targets,

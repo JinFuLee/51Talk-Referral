@@ -4,8 +4,8 @@ Unit tests for core.analyzers.order_analyzer.OrderAnalyzer
 """
 import pytest
 
-from core.analyzers.context import AnalyzerContext
-from core.analyzers.order_analyzer import OrderAnalyzer
+from backend.core.analyzers.context import AnalyzerContext
+from backend.core.analyzers.order_analyzer import OrderAnalyzer
 
 
 class TestOrderAnalyzer:

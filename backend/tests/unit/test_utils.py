@@ -6,7 +6,7 @@ import math
 
 import pytest
 
-from core.analyzers.utils import (
+from backend.core.analyzers.utils import (
     _clean_for_json,
     _norm_cc,
     _safe_div,

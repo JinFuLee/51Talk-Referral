@@ -16,7 +16,7 @@ class SummaryAnalyzer:
 
     def analyze_summary(self) -> dict:
         """概览 KPI：注册/预约/出席/付费/收入/打卡率 vs 目标"""
-        from core.config import EXCHANGE_RATE_THB_USD
+        from backend.core.config import EXCHANGE_RATE_THB_USD
         ctx = self.ctx
         time_progress = ctx.targets.get("时间进度", 0.0)
 

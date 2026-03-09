@@ -8,7 +8,7 @@ from datetime import datetime, timedelta
 from unittest.mock import patch
 
 import pytest
-from core.snapshot_store import SnapshotStore
+from backend.core.snapshot_store import SnapshotStore
 
 _KPI_SQL = (
     "INSERT OR REPLACE INTO daily_kpi "
@@ -175,7 +175,7 @@ def test_background_cleanup_deletes_old_rows(store, minimal_result, caplog):
     _insert_kpi(store.conn, old_date, "registration", 100.0)
     store.conn.commit()
 
-    with caplog.at_level(logging.INFO, logger="core.snapshot_store"):
+    with caplog.at_level(logging.INFO, logger="backend.core.snapshot_store"):
         store._background_cleanup(retention_days=90)
 
     # 旧数据被删

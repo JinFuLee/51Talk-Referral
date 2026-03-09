@@ -8,7 +8,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from core.multi_source_loader import MultiSourceLoader, _parallel_enabled, load_all_sources
+from backend.core.multi_source_loader import MultiSourceLoader, _parallel_enabled, load_all_sources
 
 
 # ── Fixtures ──────────────────────────────────────────────────────────────────

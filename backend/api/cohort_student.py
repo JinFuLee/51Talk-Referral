@@ -10,7 +10,7 @@ from typing import Any
 from fastapi import APIRouter, Depends
 
 from .dependencies import get_service
-from services.analysis_service import AnalysisService
+from backend.services.analysis_service import AnalysisService
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 

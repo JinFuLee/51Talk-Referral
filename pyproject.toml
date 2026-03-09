@@ -57,7 +57,7 @@ quote-style = "double"
 [tool.pytest.ini_options]
 testpaths = ["tests", "backend/tests"]
 asyncio_mode = "auto"
-pythonpath = ["backend"]
+pythonpath = ["."]
 
 [tool.coverage.run]
 source = ["backend"]

@@ -10,7 +10,7 @@ from typing import Any
 from fastapi import APIRouter, Depends
 
 from .dependencies import get_service
-from services.analysis_service import AnalysisService
+from backend.services.analysis_service import AnalysisService
 
 router = APIRouter()
 
@@ -32,8 +32,8 @@ def get_action_plan(svc: AnalysisService = Depends(get_service)) -> dict[str, An
         if cache is None:
             return _fallback_action_plan()
 
-        from core.root_cause import RootCauseEngine
-        from core.impact_chain import ImpactChainEngine
+        from backend.core.root_cause import RootCauseEngine
+        from backend.core.impact_chain import ImpactChainEngine
 
         # 构建 root_cause 分析
         summary = dict(cache.get("summary", {}))
@@ -180,8 +180,8 @@ def get_meeting_summary(svc: AnalysisService = Depends(get_service)) -> dict[str
         if cache is None:
             return _fallback_meeting_summary()
 
-        from core.report_generator_v2 import PyramidReportGenerator
-        from core.root_cause import RootCauseEngine
+        from backend.core.report_generator_v2 import PyramidReportGenerator
+        from backend.core.root_cause import RootCauseEngine
 
         # 金字塔报告
         pyramid_gen = PyramidReportGenerator(cache)
@@ -320,7 +320,7 @@ def get_resource_request(svc: AnalysisService = Depends(get_service)) -> dict[st
         if cache is None:
             return _fallback_resource_request()
 
-        from core.impact_chain import ImpactChainEngine
+        from backend.core.impact_chain import ImpactChainEngine
 
         summary = dict(cache.get("summary", {}))
         if "registrations" in summary and "registration" not in summary:

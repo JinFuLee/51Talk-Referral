@@ -17,7 +17,7 @@ router = APIRouter()
 def _get_snapshot_store() -> Any:
     """获取 SnapshotStore 进程级单例（project_root 仅首次初始化时生效）"""
     try:
-        from core.snapshot_store import SnapshotStore
+        from backend.core.snapshot_store import SnapshotStore
         return SnapshotStore.get_instance(project_root=PROJECT_ROOT)
     except ImportError as exc:
         raise HTTPException(status_code=500, detail=f"snapshot_store 模块不可用: {exc}")
@@ -73,7 +73,7 @@ def get_cc_growth(
 def import_history() -> dict[str, Any]:
     """触发历史数据批量导入"""
     try:
-        from core.history_importer import HistoryImporter
+        from backend.core.history_importer import HistoryImporter
         importer = HistoryImporter(project_root=PROJECT_ROOT)
         result = importer.run()
         return {"status": "ok", "result": result}

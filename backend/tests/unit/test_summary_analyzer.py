@@ -7,8 +7,8 @@ from datetime import datetime
 
 import pytest
 
-from core.analyzers.context import AnalyzerContext
-from core.analyzers.summary_analyzer import SummaryAnalyzer
+from backend.core.analyzers.context import AnalyzerContext
+from backend.core.analyzers.summary_analyzer import SummaryAnalyzer
 
 
 # ── AnalyzerContext ────────────────────────────────────────────────────────────

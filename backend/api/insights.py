@@ -9,7 +9,7 @@ from typing import Any
 from fastapi import APIRouter, Depends, HTTPException
 
 from .dependencies import get_service
-from services.analysis_service import AnalysisService
+from backend.services.analysis_service import AnalysisService
 
 router = APIRouter()
 
@@ -29,7 +29,7 @@ def _require_cache(svc: AnalysisService) -> dict[str, Any]:
 def get_root_cause(svc: AnalysisService = Depends(get_service)) -> dict[str, Any]:
     """对所有异常 KPI 执行5-Why因果链分析（规则引擎，不依赖LLM）"""
     cache = _require_cache(svc)
-    from core.root_cause import RootCauseEngine
+    from backend.core.root_cause import RootCauseEngine
     summary = dict(cache.get("summary", {}))
     # 兼容 V2 缓存 key 名（registrations → registration, payments → payment）
     if "registrations" in summary and "registration" not in summary:
@@ -54,7 +54,7 @@ def get_root_cause(svc: AnalysisService = Depends(get_service)) -> dict[str, Any
 def get_stage_evaluation(svc: AnalysisService = Depends(get_service)) -> dict[str, Any]:
     """评估当前转介绍运营成熟度阶段（基础启动/科学运营/系统思维）"""
     cache = _require_cache(svc)
-    from core.stage_evaluator import StageEvaluator
+    from backend.core.stage_evaluator import StageEvaluator
     evaluator = StageEvaluator(cache)
     return evaluator.evaluate()
 
@@ -63,6 +63,6 @@ def get_stage_evaluation(svc: AnalysisService = Depends(get_service)) -> dict[st
 def get_pyramid_report(svc: AnalysisService = Depends(get_service)) -> dict[str, Any]:
     """生成结论先行的金字塔结构报告（SCQA + MECE拆解 + 六步法）"""
     cache = _require_cache(svc)
-    from core.report_generator_v2 import PyramidReportGenerator
+    from backend.core.report_generator_v2 import PyramidReportGenerator
     generator = PyramidReportGenerator(cache)
     return generator.generate()

@@ -14,7 +14,7 @@ from __future__ import annotations
 
 from typing import Optional
 
-from core.config import EXCHANGE_RATE_THB_USD
+from backend.core.config import EXCHANGE_RATE_THB_USD
 
 # 默认参数
 _DEFAULT_ASP_USD = 850.0
