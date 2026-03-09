@@ -187,7 +187,10 @@ def _approx_decay_curve(m1_val: float, metric: str) -> list[dict]:
 def get_cohort_decay(
     metric: str = Query(
         default="reach_rate",
-        description="指标: reach_rate / participation_rate / checkin_rate / referral_coefficient / conversion_ratio",
+        description=(
+            "指标: reach_rate / participation_rate / checkin_rate"
+            " / referral_coefficient / conversion_ratio"
+        ),
     ),
     svc: AnalysisService = Depends(get_service),
 ):
@@ -243,7 +246,8 @@ def get_cohort_decay(
         "metric_label": METRIC_KEYS[metric],
         "by_cohort_month": by_cohort_month,
         "summary_decay": summary_decay,
-        "data_source": "cohort_roi",
+        "data_source": "approximate",
+        "data_note": "m1 基于 cohort_roi 真实值，m2-m12 基于典型衰减模型近似",
     }
 
 
@@ -276,18 +280,36 @@ def get_cohort_heatmap(svc: AnalysisService = Depends(get_service)) -> dict[str,
         "conversion_ratio": 0.30,
     }
 
+    field_map: dict[str, str] = {
+        "reach_rate": "reach_rate_m1",
+        "participation_rate": "participation_m1",
+        "checkin_rate": "checkin_rate_m1",
+        "referral_coefficient": "referral_coefficient_m1",
+        "conversion_ratio": "conversion_ratio_m1",
+    }
+
     if by_month_raw:
         last = by_month_raw[-1]
-        if last.get("reach_rate_m1") is not None:
-            latest_m1["reach_rate"] = float(last["reach_rate_m1"])
-        if last.get("participation_m1") is not None:
-            latest_m1["participation_rate"] = float(last["participation_m1"])
+        for metric_key, field_name in field_map.items():
+            val = last.get(field_name)
+            if val is not None:
+                latest_m1[metric_key] = float(val)
 
     matrix = []
     for metric in metrics:
         base = latest_m1.get(metric, 0.5)
         row = _approx_decay_curve(base, metric)
         matrix.append([pt["value"] for pt in row])
+
+    # 标记哪些指标使用了默认值（非真实数据）
+    if by_month_raw:
+        last = by_month_raw[-1]
+        estimated_metrics = [
+            mk for mk in METRIC_LABELS_EN
+            if field_map.get(mk) and last.get(field_map[mk]) is None
+        ]
+    else:
+        estimated_metrics = list(METRIC_LABELS_EN)
 
     # 同时构造按 cohort 月的热力图（X=入组月, Y=指标, 值=m1）
     cohort_months_data: list[dict] = []
@@ -321,6 +343,7 @@ def get_cohort_heatmap(svc: AnalysisService = Depends(get_service)) -> dict[str,
         "months": months,
         "matrix": matrix,
         "cohort_months": cohort_months_data,
+        "estimated_metrics": estimated_metrics,
         "data_source": "cohort_roi",
     }
 
@@ -400,9 +423,6 @@ def get_cohort_detail(svc: AnalysisService = Depends(get_service)) -> dict[str, 
             "十二",
         ]
         for m_idx, m_cn in enumerate(_CN_NUMS, start=1):
-            valid_key = f"第{m_cn}个月是否有效"
-            reach_key = f"第{m_cn}个月是否触达"
-            bring_key = f"第{m_cn}个月带新注册数"
             total_m = 0
             valid_count = 0
             reach_count = 0

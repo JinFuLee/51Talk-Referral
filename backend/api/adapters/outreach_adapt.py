@@ -18,9 +18,10 @@ from backend.models.adapter_types import OrdersResult, OutreachResult, TrialResu
 def _adapt_outreach(raw: dict[str, Any]) -> OutreachResult:
     """
     将引擎 outreach_analysis 嵌套结构拍平为前端期望的平铺字段。
-    引擎结构：{ daily_outreach: {by_date, by_cc}, trial_followup: {...}, compliance: {...} }
-    前端期望：{ total_calls, total_connects, total_effective, contact_rate, effective_rate,
-               avg_duration_min, daily_trend, cc_breakdown }
+    引擎结构：{ daily_outreach: {by_date, by_cc}, trial_followup: {...},
+               compliance: {...} }
+    前端期望：{ total_calls, total_connects, total_effective, contact_rate,
+               effective_rate, avg_duration_min, daily_trend, cc_breakdown }
     """
     daily_outreach = raw.get("daily_outreach", {}) or {}
     by_date = daily_outreach.get("by_date", []) or []
@@ -118,8 +119,9 @@ def _adapt_trial(raw: dict[str, Any]) -> TrialResult:
     将引擎 trial_followup 结构映射为前端体验课页面期望的字段。
     引擎结构：{ pre_class: {call_rate, ...}, post_class: {call_rate, ...},
                by_cc (list from F10), f11_summary, f11_by_cc, f11_by_lead_type }
-    前端期望：{ pre_call_rate, attendance_rate, by_stage, post_call_rate, followup_rate,
-               pre_class_summary, post_class_summary, by_cc (per-CC detail), checkin_rate }
+    前端期望：{ pre_call_rate, attendance_rate, by_stage, post_call_rate,
+               followup_rate, pre_class_summary, post_class_summary,
+               by_cc (per-CC detail), checkin_rate }
     """
     pre_class = raw.get("pre_class", {}) or {}
     post_class = raw.get("post_class", {}) or {}
@@ -243,7 +245,8 @@ def _adapt_trial(raw: dict[str, Any]) -> TrialResult:
         {"stage": "课后跟进", "count": post_class_count, "rate": post_call_rate},
     ]
 
-    # Bug 1 fix: 在 pre_class / post_class 中注入 by_cc 明细，前端路径 followup.pre_class.by_cc
+    # Bug 1 fix: 在 pre_class / post_class 中注入 by_cc 明细
+    # 前端路径 followup.pre_class.by_cc
     pre_class_with_by_cc = {
         **pre_class,
         "by_cc": [
@@ -295,8 +298,10 @@ def _adapt_trial(raw: dict[str, Any]) -> TrialResult:
 def _adapt_orders(raw: dict[str, Any]) -> OrdersResult:
     """
     将引擎 order_analysis（summary.* 子层）拍平为前端 OrderData 格式。
-    引擎结构：{ summary: {total, new, renewal, revenue_usd}, daily_trend, package_distribution, by_channel }
-    前端期望：{ total_orders, new_orders, renewal_orders, total_revenue, avg_order_value,
+    引擎结构：{ summary: {total, new, renewal, revenue_usd}, daily_trend,
+               package_distribution, by_channel }
+    前端期望：{ total_orders, new_orders, renewal_orders, total_revenue,
+               avg_order_value,
                by_type, daily_series, channel_breakdown (list), package_distribution,
                items (with amount_usd + amount_thb) }
     """
@@ -304,7 +309,8 @@ def _adapt_orders(raw: dict[str, Any]) -> OrdersResult:
     total = summary.get("total", 0) or 0
     rev_usd = summary.get("revenue_usd", 0) or summary.get("revenue_usd", 0) or 0
 
-    # package_distribution: E6 data — can be a dict of {product_type: count/ratio} or nested
+    # package_distribution: E6 data — can be a dict of
+    # {product_type: count/ratio} or nested
     pkg_dist_raw = raw.get("package_distribution") or {}
     if isinstance(pkg_dist_raw, dict):
         # Try flat numeric values first (product_type → count)
