@@ -44,19 +44,6 @@ const CATEGORY_COLORS: Record<string, string> = {
   followup: "#f59e0b",
 };
 
-const FALLBACK_DATA: ImpactChainData = {
-  items: [
-    { metric: "checkin_rate", metric_label: "打卡率", gap: -0.08, loss_usd: 3200, fix_gain_usd: 3200, category: "efficiency" },
-    { metric: "participation_rate", metric_label: "参与率", gap: -0.05, loss_usd: 2100, fix_gain_usd: 2100, category: "efficiency" },
-    { metric: "outreach_effective", metric_label: "有效接通", gap: -120, loss_usd: 1800, fix_gain_usd: 1800, category: "outreach" },
-    { metric: "trial_post_rate", metric_label: "课后跟进率", gap: -0.12, loss_usd: 1400, fix_gain_usd: 1400, category: "trial" },
-    { metric: "conversion_rate", metric_label: "注册→付费", gap: -0.03, loss_usd: 900, fix_gain_usd: 900, category: "efficiency" },
-    { metric: "zero_followup", metric_label: "零跟进率", gap: 0.25, loss_usd: 650, fix_gain_usd: 650, category: "followup" },
-  ],
-  total_loss_usd: 10050,
-  total_fix_gain_usd: 10050,
-  summary: "修复全部效率缺口可增收约 $10,050",
-};
 
 function WaterfallChart({
   items,
@@ -101,22 +88,27 @@ function WaterfallChart({
 }
 
 export function ImpactSlide({ revealStep }: ImpactSlideProps) {
-  const { data, error } = useSWR<ImpactChainData>("/api/analysis/impact-chain", swrFetcher);
+  const { data, error, isLoading } = useSWR<ImpactChainData>("/api/analysis/impact-chain", swrFetcher);
 
-  // Use real data if available, else fallback
-  const chainData: ImpactChainData = !error && data?.items?.length
-    ? data
-    : FALLBACK_DATA;
+  const hasData = !error && data?.items?.length;
 
-  const { items, total_loss_usd, total_fix_gain_usd } = chainData;
+  if (!hasData) {
+    return (
+      <div className="flex flex-col h-full items-center justify-center gap-4">
+        <div className="text-center">
+          <h2 className="text-3xl font-extrabold text-slate-800">效率缺口影响模拟</h2>
+          <p className="text-sm text-slate-400 mt-2">
+            {isLoading
+              ? "正在加载影响链数据..."
+              : "暂无影响链数据，请先运行分析 POST /api/analysis/run"}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  const { items, total_loss_usd, total_fix_gain_usd } = data;
   const sorted = [...items].sort((a, b) => b.loss_usd - a.loss_usd);
-
-  // Build waterfall steps cumulatively for display
-  let cumulative = 0;
-  const waterfallSteps = sorted.map((item) => {
-    cumulative += item.loss_usd;
-    return { ...item, cumulative };
-  });
 
   return (
     <div className="flex flex-col h-full gap-6">

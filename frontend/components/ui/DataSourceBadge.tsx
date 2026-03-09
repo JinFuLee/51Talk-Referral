@@ -46,6 +46,15 @@ export function DataSourceBadge({ source, className, isEstimated }: DataSourceBa
   } else if (source === "c4") {
     label = "带新池 (C4)";
     variant = "green";
+  } else if (source === "no_data") {
+    label = "暂无数据";
+    variant = "gray";
+  } else if (source === "unavailable") {
+    label = "数据不可用";
+    variant = "yellow";
+  } else if (source === "approximate") {
+    label = "近似数据";
+    variant = "yellow";
   } else if (source === "empty" || source === "none") {
     return null; // 有意留空不渲染
   } else if (source) {
