@@ -65,89 +65,6 @@ def _build_decay_from_roi(result: dict, metric: str) -> list[dict]:
     return out
 
 
-def _mock_decay_series(metric: str, cohort_month: Optional[str] = None) -> list[dict]:
-    """
-    当真实 by_team 数据不可用时，生成占位衰减序列（12个月）。
-    形状基于典型 cohort 衰减曲线。
-    """
-    base_vals = {
-        "reach_rate": [
-            0.82,
-            0.65,
-            0.50,
-            0.38,
-            0.30,
-            0.25,
-            0.22,
-            0.19,
-            0.17,
-            0.15,
-            0.14,
-            0.12,
-        ],
-        "participation_rate": [
-            0.25,
-            0.18,
-            0.13,
-            0.09,
-            0.07,
-            0.05,
-            0.04,
-            0.04,
-            0.03,
-            0.03,
-            0.02,
-            0.02,
-        ],
-        "checkin_rate": [
-            0.75,
-            0.62,
-            0.52,
-            0.44,
-            0.40,
-            0.38,
-            0.36,
-            0.34,
-            0.32,
-            0.30,
-            0.28,
-            0.26,
-        ],
-        "referral_coefficient": [
-            1.8,
-            1.5,
-            1.3,
-            1.1,
-            0.9,
-            0.8,
-            0.7,
-            0.65,
-            0.6,
-            0.55,
-            0.5,
-            0.45,
-        ],
-        "conversion_ratio": [
-            0.30,
-            0.22,
-            0.15,
-            0.10,
-            0.07,
-            0.05,
-            0.04,
-            0.035,
-            0.03,
-            0.025,
-            0.02,
-            0.018,
-        ],
-    }
-    vals = base_vals.get(metric, [0.5] * 12)
-    return [
-        {"month": i + 1, "value": vals[i], "cohort": cohort_month or "2025-09"}
-        for i in range(12)
-    ]
-
 
 def _extract_raw_cohort(result: dict, metric: str) -> dict:
     """
@@ -289,24 +206,19 @@ def get_cohort_decay(
     raw = _extract_raw_cohort(result, metric)
     by_cohort_month = raw["by_cohort_month"]
 
-    # 若无真实 cohort_month 数据，生成示例数据
+    # 若无真实 cohort_month 数据，返回空态
     if not by_cohort_month:
-        demo_months = ["2025-06", "2025-07", "2025-08", "2025-09", "2025-10", "2025-11"]
-        base_m1_vals = {
-            "reach_rate": [0.78, 0.81, 0.79, 0.82, 0.80, 0.83],
-            "participation_rate": [0.22, 0.24, 0.23, 0.25, 0.24, 0.26],
-            "checkin_rate": [0.70, 0.73, 0.72, 0.75, 0.74, 0.76],
-            "referral_coefficient": [1.6, 1.7, 1.75, 1.8, 1.72, 1.85],
-            "conversion_ratio": [0.28, 0.29, 0.30, 0.30, 0.31, 0.32],
+        return {
+            "available": False,
+            "data_source": "no_data",
+            "empty_reason": "无 cohort 衰减数据可用",
+            "data": {
+                "metric": metric,
+                "metric_label": METRIC_KEYS[metric],
+                "by_cohort_month": [],
+                "summary_decay": [],
+            },
         }
-        m1_vals = base_m1_vals.get(metric, [0.5] * 6)
-        by_cohort_month = [
-            {
-                "cohort": month,
-                "series": _approx_decay_curve(m1_vals[i], metric),
-            }
-            for i, month in enumerate(demo_months)
-        ]
 
     # 计算平均衰减序列（跨所有 cohort 月）
     month_sums: dict[int, list[float]] = {}
@@ -331,7 +243,7 @@ def get_cohort_decay(
         "metric_label": METRIC_KEYS[metric],
         "by_cohort_month": by_cohort_month,
         "summary_decay": summary_decay,
-        "data_source": "cohort_roi" if raw["by_cohort_month"] else "demo",
+        "data_source": "cohort_roi",
     }
 
 
@@ -388,27 +300,20 @@ def get_cohort_heatmap(svc: AnalysisService = Depends(get_service)) -> dict[str,
                     "participation_rate": row.get("participation_m1"),
                 }
             )
-    else:
-        # 演示数据
-        demo = [
-            ("2025-06", 0.78, 0.22, 0.70, 1.60, 0.28),
-            ("2025-07", 0.81, 0.24, 0.73, 1.70, 0.29),
-            ("2025-08", 0.79, 0.23, 0.72, 1.75, 0.30),
-            ("2025-09", 0.82, 0.25, 0.75, 1.80, 0.30),
-            ("2025-10", 0.80, 0.24, 0.74, 1.72, 0.31),
-            ("2025-11", 0.83, 0.26, 0.76, 1.85, 0.32),
-        ]
-        for d in demo:
-            cohort_months_data.append(
-                {
-                    "cohort": d[0],
-                    "reach_rate": d[1],
-                    "participation_rate": d[2],
-                    "checkin_rate": d[3],
-                    "referral_coefficient": d[4],
-                    "conversion_ratio": d[5],
-                }
-            )
+
+    if not by_month_raw:
+        return {
+            "available": False,
+            "data_source": "no_data",
+            "empty_reason": "无 cohort 热力图数据可用",
+            "data": {
+                "metrics": metrics,
+                "metric_labels": METRIC_LABELS_ZH,
+                "months": months,
+                "matrix": [],
+                "cohort_months": [],
+            },
+        }
 
     return {
         "metrics": metrics,
@@ -416,7 +321,7 @@ def get_cohort_heatmap(svc: AnalysisService = Depends(get_service)) -> dict[str,
         "months": months,
         "matrix": matrix,
         "cohort_months": cohort_months_data,
-        "data_source": "cohort_roi" if by_month_raw else "demo",
+        "data_source": "cohort_roi",
     }
 
 

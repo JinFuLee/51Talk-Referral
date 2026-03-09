@@ -159,25 +159,10 @@ def get_action_plan(svc: AnalysisService = Depends(get_service)) -> dict[str, An
 
 def _fallback_action_plan(error: str = "") -> dict:
     return {
-        "status": "fallback",
+        "status": "unavailable",
         "error": error or "no_data",
         "data": {
-            "items": [
-                {
-                    "id": 1,
-                    "priority": "immediate",
-                    "action": "请先运行分析 POST /api/analysis/run 后再查看行动计划",
-                    "owner": "CC 组长",
-                    "deadline": "今日",
-                    "impact": "预期增收 $0/月",
-                    "category": "total",
-                    "trigger_label": "系统提示",
-                    "expected_impact_usd": 0,
-                    "expected_impact_thb": 0,
-                    "severity": "yellow",
-                    "root_cause": "数据未加载",
-                }
-            ],
+            "items": [],
             "total_expected_impact_usd": 0,
             "total_expected_impact_thb": 0,
             "generated_at": datetime.now().isoformat(),
@@ -320,14 +305,14 @@ def _fallback_meeting_summary(error: str = "") -> dict:
     today = datetime.now()
     next_meeting = (today + timedelta(days=7)).strftime("%Y-%m-%d")
     return {
-        "status": "fallback",
+        "status": "unavailable",
         "error": error or "no_data",
         "data": {
-            "consensus": ["数据暂未加载，请先运行分析"],
+            "consensus": [],
             "disputes": [],
             "followups": [],
             "next_meeting_date": next_meeting,
-            "next_meeting_topic": "运营数据复盘及行动计划",
+            "next_meeting_topic": "",
             "generated_at": datetime.now().isoformat(),
         },
     }
@@ -451,25 +436,10 @@ def get_resource_request(svc: AnalysisService = Depends(get_service)) -> dict[st
 
 def _fallback_resource_request(error: str = "") -> dict:
     return {
-        "status": "fallback",
+        "status": "unavailable",
         "error": error or "no_data",
         "data": {
-            "categories": [
-                {
-                    "category": "人力",
-                    "label": "人力",
-                    "cards": [
-                        {
-                            "title": "增加CC外呼配置",
-                            "description": "触达率提升，可回收收入 $0/月",
-                            "expectedRoi": "$0 (触达率提升)",
-                            "priority": "P1",
-                        }
-                    ],
-                    "estimated_gain_usd": 0,
-                    "estimated_gain_thb": 0,
-                }
-            ],
+            "categories": [],
             "total_estimated_gain_usd": 0,
             "total_estimated_gain_thb": 0,
             "top_lever": "",
