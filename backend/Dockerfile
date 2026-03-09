@@ -35,7 +35,6 @@ COPY --from=builder /app/pyproject.toml /app/uv.lock /app/.python-version ./
 
 # 复制项目源码（构建上下文为项目根目录）
 COPY backend/ ./backend/
-COPY src/ ./src/
 
 RUN chown -R appuser:appuser /app
 USER appuser

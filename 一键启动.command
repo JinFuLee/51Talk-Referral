@@ -81,8 +81,8 @@ kill_port() {
         ok "端口 $port 重置成功"
     fi
 }
-kill_port 8000
-kill_port 3000
+kill_port 8100
+kill_port 3100
 
 echo -e "${C_BLUE}----------------------------------------------------------------------${C_RESET}"
 
@@ -103,15 +103,15 @@ info "系统启动日志将双向持久化至: ${LOG_DIR}/"
 # ── 唤醒逻辑模块 ──────────────────────────────────────────────────────────
 
 info "引燃数据中间件 (Backend/FastAPI)..."
-(uv run python -m uvicorn backend.main:app --host 0.0.0.0 --port 8000 --loop asyncio --log-level warning > "$BACKEND_LOG" 2>&1) &
+(uv run python -m uvicorn backend.main:app --host 0.0.0.0 --port 8100 --loop asyncio --log-level warning > "$BACKEND_LOG" 2>&1) &
 BACKEND_PID=$!
 
 # 等待后端就绪信号
 BACKEND_READY=0
 for ((i=1; i<=20; i++)); do
     sleep 1
-    if curl -s http://localhost:8000/api/health > /dev/null 2>&1; then
-        ok "API 隧道建立完毕 (http://localhost:8000)"
+    if curl -s http://localhost:8100/api/health > /dev/null 2>&1; then
+        ok "API 隧道建立完毕 (http://localhost:8100)"
         BACKEND_READY=1
         break
     fi
@@ -125,7 +125,7 @@ fi
 info "向中央处理器下达批处理分析指令..."
 ANALYSIS_STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
     -X POST -H "Content-Type: application/json" -d '{}' \
-    http://localhost:8000/api/analysis/run)
+    http://localhost:8100/api/analysis/run)
 if [ "$ANALYSIS_STATUS" = "200" ] || [ "$ANALYSIS_STATUS" = "202" ]; then
     ok "洞察引擎状态码: [$ANALYSIS_STATUS]。分析运算准备就绪。"
 else
@@ -135,14 +135,14 @@ fi
 # ── 拉起视图层 ────────────────────────────────────────────────────────────
 
 info "唤醒流体视角引擎 (Frontend/Next.js UI)..."
-(cd frontend && pnpm dev --port 3000 > "../$FRONTEND_LOG" 2>&1) &
+(cd frontend && pnpm dev --port 3100 > "../$FRONTEND_LOG" 2>&1) &
 FRONTEND_PID=$!
 
 FRONTEND_READY=0
 for ((i=1; i<=30; i++)); do
     sleep 1.5
-    if curl -s http://localhost:3000 > /dev/null 2>&1; then
-        ok "流体视角层编译通过并就绪 (http://localhost:3000)"
+    if curl -s http://localhost:3100 > /dev/null 2>&1; then
+        ok "流体视角层编译通过并就绪 (http://localhost:3100)"
         FRONTEND_READY=1
         break
     fi
@@ -152,14 +152,14 @@ if [ "$FRONTEND_READY" -eq 1 ]; then
     echo ""
     echo -e "${C_BLUE}======================================================================${C_RESET}"
     echo -e "  节点矩阵已全部上线，您可以自由查阅并利用系统特性。"
-    echo -e "  访问控制台      => ${C_GREEN}http://localhost:3000/ops/dashboard${C_RESET}"
+    echo -e "  访问控制台      => ${C_GREEN}http://localhost:3100/ops/dashboard${C_RESET}"
     echo -e "  体验汇报模式    => ${C_GREEN}点击页面右上角 [汇报沉浸模式]${C_RESET}"
     echo -e "  安全下线指令    => 随时在终端键入 ${C_YELLOW}[ Ctrl + C ]${C_RESET} 销毁此会话簇"
     echo -e "${C_BLUE}======================================================================${C_RESET}"
 
-    open "http://localhost:3000/ops/dashboard"
+    open "http://localhost:3100/ops/dashboard"
 else
-    fail "渲染引擎编译严重超时，请手动打开 localhost:3000 观察错误日志。"
+    fail "渲染引擎编译严重超时，请手动打开 localhost:3100 观察错误日志。"
 fi
 
 # 阻塞主线程以保持服务存活

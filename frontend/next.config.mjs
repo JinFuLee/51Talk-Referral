@@ -1,5 +1,5 @@
 /** @type {import('next').NextConfig} */
-const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8100';
 
 const config = {
   // 启用 standalone 输出，Docker 运行时仅需 .next/standalone（无需完整 node_modules）
