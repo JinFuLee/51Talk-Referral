@@ -2,6 +2,7 @@
 ref-ops-engine FastAPI 主入口
 51Talk 泰国转介绍运营分析引擎 REST API
 """
+
 import asyncio
 import importlib
 import logging
@@ -14,12 +15,13 @@ BACKEND_DIR = Path(__file__).resolve().parent
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from backend.services.analysis_service import AnalysisService
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 from slowapi.util import get_remote_address
 from starlette.middleware.base import BaseHTTPMiddleware
+
+from backend.services.analysis_service import AnalysisService
 
 logger = logging.getLogger(__name__)
 
@@ -27,32 +29,52 @@ logger = logging.getLogger(__name__)
 # 格式：router_key → (module_path, prefix, tags)
 # router_key 与 ProjectConfig.enabled_routers 中的字符串对应
 ROUTER_REGISTRY: dict = {
-    "health":               ("backend.api.health",               "/api",               []),
-    "analysis":             ("backend.api.analysis",             "/api/analysis",      ["analysis"]),
-    "reports":              ("backend.api.reports",              "/api/reports",       ["reports"]),
-    "datasources":          ("backend.api.datasources",          "/api/datasources",   ["datasources"]),
-    "config":               ("backend.api.config",               "/api/config",        ["config"]),
-    "snapshots":            ("backend.api.snapshots",            "/api/snapshots",     ["snapshots"]),
-    "insights":             ("backend.api.insights",             "/api/analysis",      ["insights"]),
-    "system":               ("backend.api.system",               "",                   []),
-    "cohort_detail":        ("backend.api.cohort_detail",        "/api/analysis",      ["cohort"]),
-    "channel_trend":        ("backend.api.channel_trend",        "/api/analysis",      ["channel"]),
-    "outreach_heatmap":     ("backend.api.outreach_heatmap",     "/api/analysis",      ["outreach"]),
-    "outreach_coverage":    ("backend.api.outreach_coverage",    "/api/analysis",      ["outreach"]),
-    "cohort_decay":         ("backend.api.cohort_decay",         "/api/analysis",      ["cohort-decay"]),
-    "north_star":           ("backend.api.north_star",           "/api/analysis",      ["north-star"]),
-    "paid_followup":        ("backend.api.paid_followup",        "/api/analysis",      ["paid-followup"]),
-    "cohort_student":       ("backend.api.cohort_student",       "/api/analysis",      ["cohort-student"]),
-    "funnel_detail":        ("backend.api.funnel_detail",        "/api/analysis",      ["funnel-detail"]),
-    "channel_mom":          ("backend.api.channel_mom",          "/api/analysis",      ["channel-mom"]),
-    "retention_rank":       ("backend.api.retention_rank",       "/api/analysis",      ["retention"]),
-    "leads_detail":         ("backend.api.leads_detail",         "/api/analysis",      ["leads-detail"]),
-    "productivity_history": ("backend.api.productivity_history", "/api/analysis",      ["productivity"]),
-    "outreach_gap":         ("backend.api.outreach_gap",         "/api/analysis",      ["outreach-gap"]),
-    "enclosure_health":     ("backend.api.enclosure_health",     "/api/analysis",      ["enclosure-health"]),
-    "ranking_enhanced":     ("backend.api.ranking_enhanced",     "/api/analysis",      ["ranking-enhanced"]),
-    "presentation":         ("backend.api.presentation",         "/api/analysis",      ["presentation"]),
-    "member_profile":       ("backend.api.member",               "/api/member",        ["member-profile"]),
+    "health": ("backend.api.health", "/api", []),
+    "analysis": ("backend.api.analysis", "/api/analysis", ["analysis"]),
+    "reports": ("backend.api.reports", "/api/reports", ["reports"]),
+    "datasources": ("backend.api.datasources", "/api/datasources", ["datasources"]),
+    "config": ("backend.api.config", "/api/config", ["config"]),
+    "snapshots": ("backend.api.snapshots", "/api/snapshots", ["snapshots"]),
+    "insights": ("backend.api.insights", "/api/analysis", ["insights"]),
+    "system": ("backend.api.system", "", []),
+    "cohort_detail": ("backend.api.cohort_detail", "/api/analysis", ["cohort"]),
+    "channel_trend": ("backend.api.channel_trend", "/api/analysis", ["channel"]),
+    "outreach_heatmap": ("backend.api.outreach_heatmap", "/api/analysis", ["outreach"]),
+    "outreach_coverage": (
+        "backend.api.outreach_coverage",
+        "/api/analysis",
+        ["outreach"],
+    ),
+    "cohort_decay": ("backend.api.cohort_decay", "/api/analysis", ["cohort-decay"]),
+    "north_star": ("backend.api.north_star", "/api/analysis", ["north-star"]),
+    "paid_followup": ("backend.api.paid_followup", "/api/analysis", ["paid-followup"]),
+    "cohort_student": (
+        "backend.api.cohort_student",
+        "/api/analysis",
+        ["cohort-student"],
+    ),
+    "funnel_detail": ("backend.api.funnel_detail", "/api/analysis", ["funnel-detail"]),
+    "channel_mom": ("backend.api.channel_mom", "/api/analysis", ["channel-mom"]),
+    "retention_rank": ("backend.api.retention_rank", "/api/analysis", ["retention"]),
+    "leads_detail": ("backend.api.leads_detail", "/api/analysis", ["leads-detail"]),
+    "productivity_history": (
+        "backend.api.productivity_history",
+        "/api/analysis",
+        ["productivity"],
+    ),
+    "outreach_gap": ("backend.api.outreach_gap", "/api/analysis", ["outreach-gap"]),
+    "enclosure_health": (
+        "backend.api.enclosure_health",
+        "/api/analysis",
+        ["enclosure-health"],
+    ),
+    "ranking_enhanced": (
+        "backend.api.ranking_enhanced",
+        "/api/analysis",
+        ["ranking-enhanced"],
+    ),
+    "presentation": ("backend.api.presentation", "/api/analysis", ["presentation"]),
+    "member_profile": ("backend.api.member", "/api/member", ["member-profile"]),
 }
 
 
@@ -62,7 +84,9 @@ def _load_routers(enabled_routers: list[str] | None = None) -> list:
     enabled_routers 为 None 时启用全部（向后兼容）。
     返回 [(module, prefix, tags), ...]
     """
-    keys = enabled_routers if enabled_routers is not None else list(ROUTER_REGISTRY.keys())
+    keys = (
+        enabled_routers if enabled_routers is not None else list(ROUTER_REGISTRY.keys())
+    )
     loaded = []
     for key in keys:
         if key not in ROUTER_REGISTRY:
@@ -81,6 +105,7 @@ def _load_routers(enabled_routers: list[str] | None = None) -> list:
 _project_config = None
 try:
     from backend.core.project_config import load_project_config
+
     _project_config = load_project_config("referral")
     _display_name = _project_config.display_name
     _enabled_routers: list[str] | None = (
@@ -132,9 +157,7 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         response.headers["X-Frame-Options"] = "DENY"
         response.headers["X-XSS-Protection"] = "1; mode=block"
         response.headers["Content-Security-Policy"] = (
-            "default-src 'self'; "
-            "script-src 'self'; "
-            "style-src 'self' 'unsafe-inline'"
+            "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'"
         )
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
         response.headers["Permissions-Policy"] = (
@@ -199,4 +222,5 @@ async def _auto_run_analysis():
 
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run("backend.main:app", host="0.0.0.0", port=8000, reload=True)

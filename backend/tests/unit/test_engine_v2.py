@@ -3,11 +3,13 @@ Unit tests for core.analysis_engine_v2.AnalysisEngineV2
 ~12 test cases — analyze() 基本语义 + 空数据安全 + enabled_modules 白名单
 + 并行化开关测试（PARALLEL_ANALYZERS）
 """
+
 from datetime import datetime
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
 import pytest
+
 from backend.core.analysis_engine_v2 import AnalysisEngineV2
 
 # ── Fixtures ──────────────────────────────────────────────────────────────────
@@ -52,11 +54,11 @@ MINIMAL_DATA: dict = {
                 "avg_order_value": 500.0,
             },
             "referral_cc_new": {
-                "count": 40, "revenue_cny": 150000.0, "revenue_usd": 20000.0
+                "count": 40,
+                "revenue_cny": 150000.0,
+                "revenue_usd": 20000.0,
             },
-            "by_channel": {
-                "转介绍": {"revenue_cny": 150000.0, "revenue_usd": 20000.0}
-            },
+            "by_channel": {"转介绍": {"revenue_cny": 150000.0, "revenue_usd": 20000.0}},
             "by_team": {},
             "records": [],
         },
@@ -98,8 +100,9 @@ MINIMAL_DATA: dict = {
 }
 
 
-def _make_engine(data: dict = None, targets: dict = None,
-                 project_config=None) -> AnalysisEngineV2:
+def _make_engine(
+    data: dict = None, targets: dict = None, project_config=None
+) -> AnalysisEngineV2:
     return AnalysisEngineV2(
         data=data if data is not None else MINIMAL_DATA,
         targets=targets if targets is not None else BASE_TARGETS,
@@ -143,6 +146,7 @@ class TestAnalyzeReturnStructure:
 
     def test_result_is_json_serializable(self):
         import json
+
         result = _make_engine().analyze()
         # _clean_for_json 已处理 NaN/inf；这里验证 json.dumps 不抛出
         try:

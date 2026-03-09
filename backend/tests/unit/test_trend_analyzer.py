@@ -3,6 +3,7 @@ Unit tests for core.analyzers.trend_analyzer.TrendAnalyzer
 ~30 test cases covering: detect_trend_direction, get_peak_valley,
 analyze_trend, analyze_prediction, detect_anomalies
 """
+
 from datetime import datetime
 from unittest.mock import MagicMock
 
@@ -56,7 +57,10 @@ class TestDetectTrendDirection:
         assert self._analyzer().detect_trend_direction([3.0, 2.0, 1.0]) == "falling"
 
     def test_volatile_for_mixed(self):
-        assert self._analyzer().detect_trend_direction([1.0, 3.0, 2.0, 4.0, 3.0]) == "volatile"
+        assert (
+            self._analyzer().detect_trend_direction([1.0, 3.0, 2.0, 4.0, 3.0])
+            == "volatile"
+        )
 
     def test_rising_requires_last_3_diffs(self):
         """最后 3 个 diff 全为正才 rising，前面下降不影响。"""
@@ -84,7 +88,10 @@ class TestGetPeakValley:
 
     def test_delegates_to_snapshot_store(self):
         mock_store = MagicMock()
-        mock_store.get_peak_valley.return_value = {"peak": {"value": 500}, "valley": {"value": 100}}
+        mock_store.get_peak_valley.return_value = {
+            "peak": {"value": 500},
+            "valley": {"value": 100},
+        }
         ctx = _make_ctx({}, snapshot_store=mock_store)
         result = TrendAnalyzer(ctx).get_peak_valley("注册")
         mock_store.get_peak_valley.assert_called_once_with("注册")
@@ -105,13 +112,20 @@ class TestAnalyzeTrend:
     def _trend_data(self) -> dict:
         return {
             "order": {
-                "revenue_daily_trend": _daily_revenue([
-                    ("2026-02-01", 1000.0), ("2026-02-02", 1100.0),
-                    ("2026-02-03", 1200.0), ("2026-02-04", 1300.0),
-                ]),
-                "order_daily_trend": _daily_orders([
-                    ("2026-02-01", 5), ("2026-02-02", 6),
-                ]),
+                "revenue_daily_trend": _daily_revenue(
+                    [
+                        ("2026-02-01", 1000.0),
+                        ("2026-02-02", 1100.0),
+                        ("2026-02-03", 1200.0),
+                        ("2026-02-04", 1300.0),
+                    ]
+                ),
+                "order_daily_trend": _daily_orders(
+                    [
+                        ("2026-02-01", 5),
+                        ("2026-02-02", 6),
+                    ]
+                ),
             },
             "ops": {
                 "section_mom": {
@@ -141,12 +155,18 @@ class TestAnalyzeTrend:
 
     def test_daily_max_60_items(self):
         """daily 应限制为最近 60 天。"""
-        many_dates = [(f"2025-{m:02d}-{d:02d}", float(m * d))
-                      for m in range(1, 13) for d in range(1, 7)]
-        data = {"order": {
-            "revenue_daily_trend": _daily_revenue(many_dates),
-            "order_daily_trend": [],
-        }, "ops": {"section_mom": {}}}
+        many_dates = [
+            (f"2025-{m:02d}-{d:02d}", float(m * d))
+            for m in range(1, 13)
+            for d in range(1, 7)
+        ]
+        data = {
+            "order": {
+                "revenue_daily_trend": _daily_revenue(many_dates),
+                "order_daily_trend": [],
+            },
+            "ops": {"section_mom": {}},
+        }
         ctx = _make_ctx(data)
         result = TrendAnalyzer(ctx).analyze_trend()
         assert len(result["daily"]) <= 60
@@ -194,16 +214,14 @@ class TestAnalyzePrediction:
     def _pred_data(self, n_days: int = 14) -> dict:
         return {
             "order": {
-                "revenue_daily_trend": _daily_revenue([
-                    (f"2026-02-{d:02d}", 1000.0 + d * 10.0)
-                    for d in range(1, n_days + 1)
-                ]),
+                "revenue_daily_trend": _daily_revenue(
+                    [
+                        (f"2026-02-{d:02d}", 1000.0 + d * 10.0)
+                        for d in range(1, n_days + 1)
+                    ]
+                ),
             },
-            "leads": {
-                "leads_achievement": {
-                    "total": {"注册": 175, "付费": 40}
-                }
-            },
+            "leads": {"leads_achievement": {"total": {"注册": 175, "付费": 40}}},
         }
 
     def test_returns_dict_with_three_keys(self):
@@ -214,7 +232,9 @@ class TestAnalyzePrediction:
         assert "payment" in result
 
     def test_predicted_is_none_with_insufficient_data(self):
-        ctx = _make_ctx({"order": {"revenue_daily_trend": _daily_revenue([("2026-02-01", 1000.0)])}})
+        ctx = _make_ctx(
+            {"order": {"revenue_daily_trend": _daily_revenue([("2026-02-01", 1000.0)])}}
+        )
         result = TrendAnalyzer(ctx).analyze_prediction()
         assert result["revenue"]["predicted"] is None
 
@@ -273,15 +293,15 @@ class TestDetectAnomalies:
     def _anomaly_data(self, spike_value: float = 10000.0) -> dict:
         """构造含一个异常骤升点的日收入序列。"""
         normal_days = [
-            ("2026-02-01", 1000.0), ("2026-02-02", 1050.0),
-            ("2026-02-03", 980.0),  ("2026-02-04", 1020.0),
+            ("2026-02-01", 1000.0),
+            ("2026-02-02", 1050.0),
+            ("2026-02-03", 980.0),
+            ("2026-02-04", 1020.0),
             ("2026-02-05", 1010.0),
         ]
         spike = [("2026-02-06", spike_value)]
         return {
-            "order": {
-                "revenue_daily_trend": _daily_revenue(normal_days + spike)
-            },
+            "order": {"revenue_daily_trend": _daily_revenue(normal_days + spike)},
             "kpi": {},
         }
 
@@ -300,7 +320,14 @@ class TestDetectAnomalies:
         ctx = _make_ctx(self._anomaly_data(spike_value=50000.0))
         result = TrendAnalyzer(ctx).detect_anomalies()
         if result:
-            for field in ("metric", "date", "value", "expected", "severity", "description"):
+            for field in (
+                "metric",
+                "date",
+                "value",
+                "expected",
+                "severity",
+                "description",
+            ):
                 assert field in result[0], f"缺失字段: {field}"
 
     def test_severity_is_high_for_large_deviation(self):
@@ -324,10 +351,14 @@ class TestDetectAnomalies:
         """少于 5 个数据点不检测异常。"""
         data = {
             "order": {
-                "revenue_daily_trend": _daily_revenue([
-                    ("2026-02-01", 1000.0), ("2026-02-02", 50000.0),
-                    ("2026-02-03", 900.0),  ("2026-02-04", 1100.0),
-                ])
+                "revenue_daily_trend": _daily_revenue(
+                    [
+                        ("2026-02-01", 1000.0),
+                        ("2026-02-02", 50000.0),
+                        ("2026-02-03", 900.0),
+                        ("2026-02-04", 1100.0),
+                    ]
+                )
             },
             "kpi": {},
         }
@@ -343,10 +374,7 @@ class TestDetectAnomalies:
 
     def test_cc_checkin_anomaly_detected(self):
         """CC 打卡率异常（>=5 个 CC，其中一个严重偏低）。"""
-        by_cc = [
-            {"cc_name": f"CC{i}", "checkin_24h_rate": 0.80}
-            for i in range(5)
-        ]
+        by_cc = [{"cc_name": f"CC{i}", "checkin_24h_rate": 0.80} for i in range(5)]
         by_cc.append({"cc_name": "Outlier", "checkin_24h_rate": 0.01})  # 远低于均值
         data = {
             "order": {"revenue_daily_trend": []},

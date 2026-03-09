@@ -2,6 +2,7 @@
 51Talk 转介绍周报自动生成 - 快照存储系统
 核心职责：SQLite 存储每日分析结果，支持时间序列查询和历史导入
 """
+
 import json
 import logging
 import os
@@ -167,7 +168,13 @@ class SnapshotStore:
         time_progress = analysis_result.get("time_progress", 0.0)
 
         # V2 引擎使用英文 key（registration/payment/revenue/appointment/attendance）
-        kpi_metrics = ["registration", "payment", "revenue", "appointment", "attendance"]
+        kpi_metrics = [
+            "registration",
+            "payment",
+            "revenue",
+            "appointment",
+            "attendance",
+        ]
         for metric in kpi_metrics:
             if metric in summary:
                 v = summary[metric]
@@ -178,11 +185,14 @@ class SnapshotStore:
                     actual = v.get("usd") or v.get("actual") or 0
                 else:
                     actual = v.get("actual") or 0
-                cursor.execute("""
+                cursor.execute(
+                    """
                     INSERT OR REPLACE INTO daily_kpi
                     (snapshot_date, metric, value, time_progress)
                     VALUES (?, ?, ?, ?)
-                """, (data_date, metric, actual, time_progress))
+                """,
+                    (data_date, metric, actual, time_progress),
+                )
 
         # 2. 保存 CC 排名快照
         cc_ranking = analysis_result.get("cc_ranking", {})
@@ -190,32 +200,43 @@ class SnapshotStore:
         if isinstance(cc_ranking, list):
             rankings = cc_ranking
         elif isinstance(cc_ranking, dict):
-            rankings = cc_ranking.get("profiles") or cc_ranking.get("items") or cc_ranking.get("rankings") or []
+            rankings = (
+                cc_ranking.get("profiles")
+                or cc_ranking.get("items")
+                or cc_ranking.get("rankings")
+                or []
+            )
         else:
             rankings = []
 
         # 先删除该日期的旧数据
-        cursor.execute("""
+        cursor.execute(
+            """
             DELETE FROM cc_ranking_snapshot WHERE snapshot_date = ?
-        """, (data_date,))
+        """,
+            (data_date,),
+        )
 
         for entry in rankings:
-            cursor.execute("""
+            cursor.execute(
+                """
                 INSERT OR REPLACE INTO cc_ranking_snapshot
                 (snapshot_date, cc_name, team, composite, rank,
                  leads_score, conversion_score, followup_score, checkin_score)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, (
-                data_date,
-                entry.get("cc", ""),
-                entry.get("team", ""),
-                entry.get("composite", 0.0),
-                entry.get("rank", 0),
-                entry.get("leads_score", 0.0),
-                entry.get("conversion_score", 0.0),
-                entry.get("followup_score", 0.0),
-                entry.get("checkin_score", 0.0)
-            ))
+            """,
+                (
+                    data_date,
+                    entry.get("cc", ""),
+                    entry.get("team", ""),
+                    entry.get("composite", 0.0),
+                    entry.get("rank", 0),
+                    entry.get("leads_score", 0.0),
+                    entry.get("conversion_score", 0.0),
+                    entry.get("followup_score", 0.0),
+                    entry.get("checkin_score", 0.0),
+                ),
+            )
 
         # 3. 保存月度聚合数据
         monthly_data = {
@@ -223,10 +244,13 @@ class SnapshotStore:
             "prediction": analysis_result.get("prediction", {}),
         }
 
-        cursor.execute("""
+        cursor.execute(
+            """
             INSERT OR REPLACE INTO monthly_aggregate (month, data_json)
             VALUES (?, ?)
-        """, (current_month, json.dumps(monthly_data, ensure_ascii=False)))
+        """,
+            (current_month, json.dumps(monthly_data, ensure_ascii=False)),
+        )
 
         # 4. 保存多数据源摘要
         multi_source_keys = [
@@ -236,20 +260,23 @@ class SnapshotStore:
             "followup_analysis",
             "order_analysis",
             "mom_trend",
-            "yoy_trend"
+            "yoy_trend",
         ]
 
         for source_type in multi_source_keys:
             if source_type in analysis_result:
-                cursor.execute("""
+                cursor.execute(
+                    """
                     INSERT OR REPLACE INTO multi_source_digest
                     (snapshot_date, source_type, summary_json)
                     VALUES (?, ?, ?)
-                """, (
-                    data_date,
-                    source_type,
-                    json.dumps(analysis_result[source_type], ensure_ascii=False)
-                ))
+                """,
+                    (
+                        data_date,
+                        source_type,
+                        json.dumps(analysis_result[source_type], ensure_ascii=False),
+                    ),
+                )
 
         self.conn.commit()
 
@@ -265,8 +292,7 @@ class SnapshotStore:
             now = datetime.now()
             cooldown = timedelta(hours=cleanup_cooldown_hours)
             should_run = (
-                self._last_cleanup is None
-                or (now - self._last_cleanup) >= cooldown
+                self._last_cleanup is None or (now - self._last_cleanup) >= cooldown
             )
             if should_run:
                 self._last_cleanup = now
@@ -279,35 +305,35 @@ class SnapshotStore:
                 t.start()
 
     def get_cc_history(
-        self,
-        cc_name: str | None = None,
-        limit_days: int = 90
+        self, cc_name: str | None = None, limit_days: int = 90
     ) -> list[dict]:
         """查询 CC 历史排名数据"""
         cursor = self.conn.cursor()
 
         if cc_name:
-            cursor.execute("""
+            cursor.execute(
+                """
                 SELECT * FROM cc_ranking_snapshot
                 WHERE cc_name = ?
                 AND snapshot_date >= date('now', '-' || ? || ' days')
                 ORDER BY snapshot_date ASC
-            """, (cc_name, limit_days))
+            """,
+                (cc_name, limit_days),
+            )
         else:
-            cursor.execute("""
+            cursor.execute(
+                """
                 SELECT * FROM cc_ranking_snapshot
                 WHERE snapshot_date >= date('now', '-' || ? || ' days')
                 ORDER BY snapshot_date ASC, rank ASC
-            """, (limit_days,))
+            """,
+                (limit_days,),
+            )
 
         rows = cursor.fetchall()
         return [dict(row) for row in rows]
 
-    def get_daily_kpi_series(
-        self,
-        month: str,
-        metric: str | None = None
-    ) -> list[dict]:
+    def get_daily_kpi_series(self, month: str, metric: str | None = None) -> list[dict]:
         """查询月度每日 KPI 时间序列"""
         cursor = self.conn.cursor()
 
@@ -316,18 +342,24 @@ class SnapshotStore:
         date_prefix = f"{year}-{mon}"
 
         if metric:
-            cursor.execute("""
+            cursor.execute(
+                """
                 SELECT * FROM daily_kpi
                 WHERE snapshot_date LIKE ? || '%'
                 AND metric = ?
                 ORDER BY snapshot_date ASC
-            """, (date_prefix, metric))
+            """,
+                (date_prefix, metric),
+            )
         else:
-            cursor.execute("""
+            cursor.execute(
+                """
                 SELECT * FROM daily_kpi
                 WHERE snapshot_date LIKE ? || '%'
                 ORDER BY snapshot_date ASC, metric ASC
-            """, (date_prefix,))
+            """,
+                (date_prefix,),
+            )
 
         rows = cursor.fetchall()
         return [dict(row) for row in rows]
@@ -350,7 +382,12 @@ class SnapshotStore:
 
         # 各表行数
         table_counts = {}
-        for table in ["daily_kpi", "cc_ranking_snapshot", "monthly_aggregate", "multi_source_digest"]:
+        for table in [
+            "daily_kpi",
+            "cc_ranking_snapshot",
+            "monthly_aggregate",
+            "multi_source_digest",
+        ]:
             cursor.execute(f"SELECT COUNT(*) FROM {table}")
             table_counts[table] = cursor.fetchone()[0]
         stats["table_counts"] = table_counts
@@ -380,20 +417,29 @@ class SnapshotStore:
         """清理过期数据"""
         cursor = self.conn.cursor()
 
-        cursor.execute("""
+        cursor.execute(
+            """
             DELETE FROM daily_kpi
             WHERE snapshot_date < date('now', '-' || ? || ' days')
-        """, (days_to_keep,))
+        """,
+            (days_to_keep,),
+        )
 
-        cursor.execute("""
+        cursor.execute(
+            """
             DELETE FROM cc_ranking_snapshot
             WHERE snapshot_date < date('now', '-' || ? || ' days')
-        """, (days_to_keep,))
+        """,
+            (days_to_keep,),
+        )
 
-        cursor.execute("""
+        cursor.execute(
+            """
             DELETE FROM multi_source_digest
             WHERE snapshot_date < date('now', '-' || ? || ' days')
-        """, (days_to_keep,))
+        """,
+            (days_to_keep,),
+        )
 
         self.conn.commit()
         cursor.execute("VACUUM")
@@ -423,21 +469,30 @@ class SnapshotStore:
         """
         cursor = self.conn.cursor()
 
-        cursor.execute("""
+        cursor.execute(
+            """
             DELETE FROM daily_kpi
             WHERE snapshot_date < date('now', '-' || ? || ' days')
-        """, (days,))
+        """,
+            (days,),
+        )
         deleted = cursor.rowcount
 
-        cursor.execute("""
+        cursor.execute(
+            """
             DELETE FROM cc_ranking_snapshot
             WHERE snapshot_date < date('now', '-' || ? || ' days')
-        """, (days,))
+        """,
+            (days,),
+        )
 
-        cursor.execute("""
+        cursor.execute(
+            """
             DELETE FROM multi_source_digest
             WHERE snapshot_date < date('now', '-' || ? || ' days')
-        """, (days,))
+        """,
+            (days,),
+        )
 
         self.conn.commit()
 
@@ -481,12 +536,15 @@ class SnapshotStore:
             params.append(metric)
 
         where = ("WHERE " + " AND ".join(conditions)) if conditions else ""
-        cursor.execute(f"""
+        cursor.execute(
+            f"""
             SELECT snapshot_date, metric, value, time_progress
             FROM daily_kpi
             {where}
             ORDER BY snapshot_date ASC, metric ASC
-        """, params)
+        """,
+            params,
+        )
 
         return [dict(row) for row in cursor.fetchall()]
 
@@ -520,13 +578,16 @@ class SnapshotStore:
             params.append(date_to)
 
         where = "WHERE " + " AND ".join(conditions)
-        cursor.execute(f"""
+        cursor.execute(
+            f"""
             SELECT snapshot_date, cc_name, team, composite, rank,
                    leads_score, conversion_score, followup_score, checkin_score
             FROM cc_ranking_snapshot
             {where}
             ORDER BY snapshot_date ASC
-        """, params)
+        """,
+            params,
+        )
 
         return [dict(row) for row in cursor.fetchall()]
 
@@ -542,7 +603,8 @@ class SnapshotStore:
             [{week: "2026-W07", avg_value, sum_value, count}, ...]  按周升序
         """
         cursor = self.conn.cursor()
-        cursor.execute("""
+        cursor.execute(
+            """
             SELECT
                 strftime('%Y-W%W', snapshot_date) AS week,
                 AVG(value) AS avg_value,
@@ -553,7 +615,9 @@ class SnapshotStore:
             GROUP BY week
             ORDER BY week DESC
             LIMIT ?
-        """, (metric, weeks_back))
+        """,
+            (metric, weeks_back),
+        )
         rows = cursor.fetchall()
         # 反转为升序后返回
         return list(reversed([dict(row) for row in rows]))
@@ -570,7 +634,8 @@ class SnapshotStore:
             [{month: "202602", avg_value, max_value, min_value, sum_value, count}, ...]  按月升序
         """
         cursor = self.conn.cursor()
-        cursor.execute("""
+        cursor.execute(
+            """
             SELECT
                 strftime('%Y%m', snapshot_date) AS month,
                 AVG(value)  AS avg_value,
@@ -583,7 +648,9 @@ class SnapshotStore:
             GROUP BY month
             ORDER BY month DESC
             LIMIT ?
-        """, (metric, months_back))
+        """,
+            (metric, months_back),
+        )
         rows = cursor.fetchall()
         return list(reversed([dict(row) for row in rows]))
 
@@ -602,27 +669,40 @@ class SnapshotStore:
         """
         cursor = self.conn.cursor()
 
-        cursor.execute("""
+        cursor.execute(
+            """
             SELECT snapshot_date, value
             FROM daily_kpi
             WHERE metric = ? AND value IS NOT NULL
             ORDER BY value DESC
             LIMIT 1
-        """, (metric,))
+        """,
+            (metric,),
+        )
         peak_row = cursor.fetchone()
 
-        cursor.execute("""
+        cursor.execute(
+            """
             SELECT snapshot_date, value
             FROM daily_kpi
             WHERE metric = ? AND value IS NOT NULL
             ORDER BY value ASC
             LIMIT 1
-        """, (metric,))
+        """,
+            (metric,),
+        )
         valley_row = cursor.fetchone()
 
         return {
-            "peak":   {"date": peak_row["snapshot_date"], "value": peak_row["value"]} if peak_row else None,
-            "valley": {"date": valley_row["snapshot_date"], "value": valley_row["value"]} if valley_row else None,
+            "peak": {"date": peak_row["snapshot_date"], "value": peak_row["value"]}
+            if peak_row
+            else None,
+            "valley": {
+                "date": valley_row["snapshot_date"],
+                "value": valley_row["value"],
+            }
+            if valley_row
+            else None,
         }
 
     def get_same_month_last_year(self, metric: str, target_month: str) -> dict | None:
@@ -648,5 +728,5 @@ class SnapshotStore:
 
     def __del__(self) -> None:
         """关闭数据库连接"""
-        if hasattr(self, 'conn'):
+        if hasattr(self, "conn"):
             self.conn.close()

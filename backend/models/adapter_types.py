@@ -15,6 +15,7 @@ Adapter 层返回结构的类型定义。
   TrendResult, RankingItemDict, AttributionResult,
   PackageMixResult, TeamPackageMixResult, ChannelRevenueResult
 """
+
 from __future__ import annotations
 
 from typing import Any
@@ -25,8 +26,10 @@ from typing_extensions import TypedDict
 # Summary adapt
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 class SummaryMetricDict(TypedDict, total=False):
     """_adapt_summary 内各 KPI 子结构"""
+
     actual: float
     target: float
     progress: float
@@ -45,6 +48,7 @@ class SummaryMetricDict(TypedDict, total=False):
 
 class SummaryAdaptResult(TypedDict, total=False):
     """_adapt_summary() 返回值"""
+
     registrations: SummaryMetricDict
     payments: SummaryMetricDict
     revenue: SummaryMetricDict
@@ -57,8 +61,10 @@ class SummaryAdaptResult(TypedDict, total=False):
 # Funnel adapt
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 class FunnelChannelDict(TypedDict, total=False):
     """_adapt_funnel → _to_channel() 单渠道结构"""
+
     valid_students: int
     contact_rate: float
     participation_rate: float
@@ -77,6 +83,7 @@ class FunnelChannelDict(TypedDict, total=False):
 
 class FunnelAdaptResult(TypedDict, total=False):
     """_adapt_funnel() 返回值"""
+
     total: FunnelChannelDict
     narrow: FunnelChannelDict
     cc_narrow: FunnelChannelDict
@@ -89,8 +96,10 @@ class FunnelAdaptResult(TypedDict, total=False):
 # Channel Comparison adapt
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 class ChannelStatDict(TypedDict, total=False):
     """_adapt_channel_comparison → channels list item"""
+
     channel: str
     label: str
     registrations: int
@@ -104,6 +113,7 @@ class ChannelStatDict(TypedDict, total=False):
 
 class ChannelComparisonResult(TypedDict):
     """_adapt_channel_comparison() 返回值"""
+
     channels: list[ChannelStatDict]
 
 
@@ -111,8 +121,10 @@ class ChannelComparisonResult(TypedDict):
 # Prediction adapt
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 class PredictionResult(TypedDict, total=False):
     """_adapt_prediction() 返回值"""
+
     eom_registrations: float | None
     eom_payments: float | None
     eom_revenue: float | None
@@ -126,8 +138,10 @@ class PredictionResult(TypedDict, total=False):
 # ROI adapt
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 class ROIResult(TypedDict, total=False):
     """_adapt_roi() 返回值"""
+
     total_cost: float
     total_revenue: float
     roi_ratio: float
@@ -146,8 +160,10 @@ class ROIResult(TypedDict, total=False):
 # Productivity adapt
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 class ProductivityRoleDict(TypedDict, total=False):
     """单角色生产力指标"""
+
     per_capita: float
     per_capita_usd: float
     total_revenue: float
@@ -156,12 +172,14 @@ class ProductivityRoleDict(TypedDict, total=False):
 
 class ProductivityResult(TypedDict, total=False):
     """_adapt_productivity() 返回值"""
+
     roles: dict[str, ProductivityRoleDict]
 
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Outreach adapt
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 class OutreachDailyTrendItem(TypedDict, total=False):
     date: str
@@ -188,6 +206,7 @@ class OutreachCCBreakdownItem(TypedDict, total=False):
 
 class OutreachResult(TypedDict, total=False):
     """_adapt_outreach() 返回值"""
+
     total_calls: int
     total_connects: int
     total_effective: int
@@ -202,6 +221,7 @@ class OutreachResult(TypedDict, total=False):
 # ─────────────────────────────────────────────────────────────────────────────
 # Trial adapt
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 class TrialStageDict(TypedDict, total=False):
     stage: str
@@ -220,6 +240,7 @@ class TrialCCSummaryDict(TypedDict, total=False):
 
 class TrialResult(TypedDict, total=False):
     """_adapt_trial() 返回值"""
+
     pre_call_rate: float | None
     post_call_rate: float | None
     attendance_rate: float | None
@@ -236,6 +257,7 @@ class TrialResult(TypedDict, total=False):
 # ─────────────────────────────────────────────────────────────────────────────
 # Orders adapt
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 class OrdersByTypeItem(TypedDict, total=False):
     type: str
@@ -273,6 +295,7 @@ class OrdersItemDict(TypedDict, total=False):
 
 class OrdersResult(TypedDict, total=False):
     """_adapt_orders() 返回值"""
+
     total_orders: int
     new_orders: int
     renewal_orders: int
@@ -289,6 +312,7 @@ class OrdersResult(TypedDict, total=False):
 # Trend adapt
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 class TrendPointDict(TypedDict, total=False):
     date: str
     revenue: float
@@ -298,6 +322,7 @@ class TrendPointDict(TypedDict, total=False):
 
 class TrendResult(TypedDict, total=False):
     """_adapt_trend() 返回值"""
+
     series: list[TrendPointDict]
     daily_series: list[TrendPointDict]
     compare_type: str
@@ -315,8 +340,10 @@ class TrendResult(TypedDict, total=False):
 # Ranking adapt
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 class RankingItemDict(TypedDict, total=False):
     """_adapt_ranking_item() 返回值（兼容新旧格式）"""
+
     composite_score: float
     process_score: float
     result_score: float
@@ -332,6 +359,7 @@ class RankingItemDict(TypedDict, total=False):
 # ─────────────────────────────────────────────────────────────────────────────
 # Attribution adapt
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 class AttributionFactorDict(TypedDict, total=False):
     factor: str
@@ -367,6 +395,7 @@ class ApertureAttributionDict(TypedDict, total=False):
 
 class AttributionResult(TypedDict):
     """_adapt_attribution() 返回值"""
+
     factors: list[AttributionFactorDict]
     channel_attribution: list[AttributionFactorDict]
     funnel_attribution: list[FunnelAttributionStageDict]
@@ -377,6 +406,7 @@ class AttributionResult(TypedDict):
 # Package Mix adapt
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 class PackageMixItemDict(TypedDict, total=False):
     product_type: str
     count: int
@@ -386,17 +416,20 @@ class PackageMixItemDict(TypedDict, total=False):
 
 class PackageMixResult(TypedDict):
     """_adapt_package_mix() 返回值"""
+
     items: list[PackageMixItemDict]
 
 
 class TeamPackageMixResult(TypedDict):
     """_adapt_team_package_mix() 返回值"""
+
     teams: list[dict[str, Any]]
 
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Channel Revenue adapt
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 class ChannelRevenueItemDict(TypedDict, total=False):
     channel: str
@@ -407,5 +440,6 @@ class ChannelRevenueItemDict(TypedDict, total=False):
 
 class ChannelRevenueResult(TypedDict):
     """_adapt_channel_revenue() 返回值"""
+
     channels: list[ChannelRevenueItemDict]
     total_usd: float

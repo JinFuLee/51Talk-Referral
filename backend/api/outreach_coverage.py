@@ -10,11 +10,13 @@ GET /api/analysis/outreach-coverage
   - cache["meta"]["targets"]["客单价"]       — 客单价（USD）
   - cache["summary"]                        — 出席→付费转化率
 """
+
 from __future__ import annotations
 
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException
+
 from backend.services.analysis_service import AnalysisService
 
 from .dependencies import get_service
@@ -65,12 +67,16 @@ def _build_coverage_data(cache: dict[str, Any]) -> dict[str, Any]:
 
     paid_actual = summary.get("paid_actual") or 0
     attend_actual = summary.get("attend_actual") or 0
-    attend_to_paid_rate: float = _safe_div(paid_actual, attend_actual) if attend_actual else 0.0
+    attend_to_paid_rate: float = (
+        _safe_div(paid_actual, attend_actual) if attend_actual else 0.0
+    )
     if attend_to_paid_rate <= 0:
         # 从 funnel 推算
         funnel_attend = funnel.get("attend_actual") or attend_actual
         funnel_paid = funnel.get("paid_actual") or paid_actual
-        attend_to_paid_rate = _safe_div(funnel_paid, funnel_attend) if funnel_attend else 0.15
+        attend_to_paid_rate = (
+            _safe_div(funnel_paid, funnel_attend) if funnel_attend else 0.15
+        )
 
     # ── 构建汇总指标 ───────────────────────────────────────────────────────────
     total_records = f11_summary.get("total_records") or len(f11_records) or 0
@@ -78,9 +84,15 @@ def _build_coverage_data(cache: dict[str, Any]) -> dict[str, Any]:
     total_pre_connected = f11_summary.get("total_pre_connected") or 0
     total_attended = f11_summary.get("total_attended") or 0
 
-    overall_call_rate = f11_summary.get("overall_call_rate") or _safe_div(total_pre_called, total_records)
-    overall_connect_rate = f11_summary.get("overall_connect_rate") or _safe_div(total_pre_connected, total_records)
-    overall_attendance_rate = f11_summary.get("overall_attendance_rate") or _safe_div(total_attended, total_records)
+    overall_call_rate = f11_summary.get("overall_call_rate") or _safe_div(
+        total_pre_called, total_records
+    )
+    overall_connect_rate = f11_summary.get("overall_connect_rate") or _safe_div(
+        total_pre_connected, total_records
+    )
+    overall_attendance_rate = f11_summary.get("overall_attendance_rate") or _safe_div(
+        total_attended, total_records
+    )
 
     # 未被外呼的学员数 & 覆盖缺口
     uncovered_count = max(0, total_records - total_pre_called)
@@ -120,7 +132,11 @@ def _build_coverage_data(cache: dict[str, Any]) -> dict[str, Any]:
             "count": total_attended,
             "rate": round(overall_attendance_rate, 4),
             "estimated_revenue_loss": round(
-                uncovered_count * overall_attendance_rate * attend_to_paid_rate * avg_order_usd, 2
+                uncovered_count
+                * overall_attendance_rate
+                * attend_to_paid_rate
+                * avg_order_usd,
+                2,
             ),
         },
     ]
@@ -141,7 +157,12 @@ def _build_coverage_data(cache: dict[str, Any]) -> dict[str, Any]:
                     grade_key = str(grade)
 
             if grade_key not in grade_agg:
-                grade_agg[grade_key] = {"total": 0, "called": 0, "connected": 0, "attended": 0}
+                grade_agg[grade_key] = {
+                    "total": 0,
+                    "called": 0,
+                    "connected": 0,
+                    "attended": 0,
+                }
             grade_agg[grade_key]["total"] += 1
             grade_agg[grade_key]["called"] += rec.get("pre_called") or 0
             grade_agg[grade_key]["connected"] += rec.get("pre_connected") or 0
@@ -194,8 +215,12 @@ def _build_coverage_data(cache: dict[str, Any]) -> dict[str, Any]:
                 "connected": connected,
                 "attended": attended_cc,
                 "call_rate": round(call_rate, 4),
-                "connect_rate": round(agg.get("connect_rate") or _safe_div(connected, total_cls), 4),
-                "attendance_rate": round(agg.get("attendance_rate") or _safe_div(attended_cc, total_cls), 4),
+                "connect_rate": round(
+                    agg.get("connect_rate") or _safe_div(connected, total_cls), 4
+                ),
+                "attendance_rate": round(
+                    agg.get("attendance_rate") or _safe_div(attended_cc, total_cls), 4
+                ),
             }
         )
     # 按覆盖率升序排（低覆盖率在前，显示最需改进的 CC）
@@ -229,7 +254,9 @@ def _build_coverage_data(cache: dict[str, Any]) -> dict[str, Any]:
 
 
 @router.get("/outreach-coverage", summary="F11 课前外呼覆盖缺口 + 损失收入量化")
-def get_outreach_coverage(svc: AnalysisService = Depends(get_service)) -> dict[str, Any]:
+def get_outreach_coverage(
+    svc: AnalysisService = Depends(get_service),
+) -> dict[str, Any]:
     """
     F11 课前外呼覆盖缺口 → $ 损失量化
 

@@ -1,13 +1,15 @@
 from __future__ import annotations
 
-from fastapi import APIRouter, Request
+import json
 from pathlib import Path
 from typing import Any
-import json
+
+from fastapi import APIRouter, Request
 
 router = APIRouter(prefix="/api/system", tags=["system"])
 
 LOG_FILE = Path("output/error-log.jsonl")
+
 
 @router.post("/error-log", summary="上报前端错误日志")
 async def receive_error_log(request: Request) -> dict[str, Any]:
@@ -20,6 +22,7 @@ async def receive_error_log(request: Request) -> dict[str, Any]:
             f.write(json.dumps(entry, ensure_ascii=False) + "\n")
     return {"received": len(entries)}
 
+
 @router.get("/error-log", summary="查询前端错误日志")
 def get_error_log(limit: int = 50) -> dict[str, Any]:
     """读取最近 N 条前端错误日志记录"""
@@ -28,6 +31,7 @@ def get_error_log(limit: int = 50) -> dict[str, Any]:
     lines = LOG_FILE.read_text(encoding="utf-8").strip().split("\n")
     entries = [json.loads(l) for l in lines[-limit:] if l.strip()]
     return {"entries": entries, "total": len(lines)}
+
 
 @router.delete("/error-log", summary="清空前端错误日志")
 def clear_error_log() -> dict[str, Any]:

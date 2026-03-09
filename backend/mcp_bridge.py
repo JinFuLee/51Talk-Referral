@@ -7,6 +7,7 @@ MCP stdio bridge — 将 FastAPI 后端 API 暴露为 Claude Code 可调用的 M
 前置条件：
     后端服务运行中（默认 http://localhost:8000）
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -41,7 +42,9 @@ _tools_meta_cache: dict[str, dict[str, str]] | None = None
 server = Server("ref-ops-engine")
 
 
-async def _ensure_tools_loaded() -> tuple[list[dict[str, Any]], dict[str, dict[str, str]]]:
+async def _ensure_tools_loaded() -> tuple[
+    list[dict[str, Any]], dict[str, dict[str, str]]
+]:
     """确保工具列表已从后端加载并缓存；后端不可达时抛出友好异常。"""
     global _tools_cache, _tools_meta_cache
     if _tools_cache is None:
@@ -75,7 +78,9 @@ async def handle_list_tools() -> list[Tool]:
 
 
 @server.call_tool()
-async def handle_call_tool(tool_name: str, arguments: dict[str, Any]) -> list[TextContent]:
+async def handle_call_tool(
+    tool_name: str, arguments: dict[str, Any]
+) -> list[TextContent]:
     """执行指定工具，转发到 FastAPI 后端并返回结果。"""
     _, tools_meta = await _ensure_tools_loaded()
     result_str = await execute_tool(

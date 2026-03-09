@@ -1,13 +1,15 @@
 """
 51Talk 转介绍周报自动生成 - 配置文件
 """
-import os
-from pathlib import Path
-from datetime import datetime, timedelta
+
 import calendar
+import os
+from datetime import datetime, timedelta
+from pathlib import Path
 
 try:
     from dotenv import load_dotenv
+
     load_dotenv()
 except ImportError:
     pass
@@ -23,7 +25,10 @@ DATA_DIR = BASE_DIR / "data"
 DATA_SOURCE_DIR_STR = os.getenv("DATA_SOURCE_DIR")
 if not DATA_SOURCE_DIR_STR:
     print("WARNING: DATA_SOURCE_DIR not set in .env")
-    DATA_SOURCE_DIR = Path(os.environ.get("TMPDIR", "/private/tmp/claude-501")) / "fallback_data_source"
+    DATA_SOURCE_DIR = (
+        Path(os.environ.get("TMPDIR", "/private/tmp/claude-501"))
+        / "fallback_data_source"
+    )
 else:
     DATA_SOURCE_DIR = Path(DATA_SOURCE_DIR_STR)
 
@@ -53,25 +58,23 @@ def calculate_progress(date: datetime = None) -> float:
 
     # 权重定义
     WEIGHTS = {
-        0: 1.0,   # 周一
-        1: 1.0,   # 周二
-        2: 0.0,   # 周三 (不计入)
-        3: 1.0,   # 周四
-        4: 1.0,   # 周五
-        5: 1.4,   # 周六 (高)
-        6: 1.4,   # 周日 (高)
+        0: 1.0,  # 周一
+        1: 1.0,  # 周二
+        2: 0.0,  # 周三 (不计入)
+        3: 1.0,  # 周四
+        4: 1.0,  # 周五
+        5: 1.4,  # 周六 (高)
+        6: 1.4,  # 周日 (高)
     }
 
     # 计算已过天数的加权值
     elapsed_weight = sum(
-        WEIGHTS[datetime(year, month, d).weekday()]
-        for d in range(1, current_day + 1)
+        WEIGHTS[datetime(year, month, d).weekday()] for d in range(1, current_day + 1)
     )
 
     # 计算全月的加权值
     total_weight = sum(
-        WEIGHTS[datetime(year, month, d).weekday()]
-        for d in range(1, days_in_month + 1)
+        WEIGHTS[datetime(year, month, d).weekday()] for d in range(1, days_in_month + 1)
     )
 
     return round(elapsed_weight / total_weight, 4)
@@ -98,6 +101,7 @@ def get_targets(date: datetime = None) -> dict:
             if month_data.get("version") == 2:
                 # V2 结构 → flatten 后合并
                 from backend.models.config import MonthlyTargetV2
+
                 v2 = MonthlyTargetV2(**month_data)
                 base.update(v2.flatten())
             elif month_data:
@@ -127,11 +131,11 @@ COLUMN_MAPPING: dict = _cfg.column_mapping
 
 # 输出Excel样式配置（本地独有，不在 JSON 中，保留原值）
 STYLES = {
-    "header_fill": "#4472C4",         # 表头背景色
-    "header_font_color": "#FFFFFF",   # 表头字体颜色
-    "percent_format": "0.00%",         # 百分比格式
-    "number_format": "#,##0",          # 数字格式
-    "currency_format": "$#,##0",       # 货币格式
+    "header_fill": "#4472C4",  # 表头背景色
+    "header_font_color": "#FFFFFF",  # 表头字体颜色
+    "percent_format": "0.00%",  # 百分比格式
+    "number_format": "#,##0",  # 数字格式
+    "currency_format": "$#,##0",  # 货币格式
 }
 
 # 汇率配置（委托 ProjectConfig）
@@ -169,6 +173,7 @@ def format_currency(usd_value: float, show_thb: bool = True) -> str:
             return f"${usd_value:,.0f}"
         else:
             return f"${usd_value:,.1f}"
+
 
 # 确保目录存在
 INPUT_DIR.mkdir(parents=True, exist_ok=True)

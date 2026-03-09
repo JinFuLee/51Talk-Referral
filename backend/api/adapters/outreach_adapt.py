@@ -4,6 +4,7 @@ backend/api/adapters/outreach_adapt.py
 
 对应引擎输出 key：outreach_analysis, trial_followup, order_analysis
 """
+
 from __future__ import annotations
 
 from typing import Any
@@ -12,6 +13,7 @@ from backend.api.utils import safe_div
 from backend.models.adapter_types import OrdersResult, OutreachResult, TrialResult
 
 # ── Outreach ──────────────────────────────────────────────────────────────────
+
 
 def _adapt_outreach(raw: dict[str, Any]) -> OutreachResult:
     """
@@ -33,16 +35,19 @@ def _adapt_outreach(raw: dict[str, Any]) -> OutreachResult:
         for d in by_date
     )
     total_effective = sum(
-        (d.get("effective_calls") or d.get("total_effective") or 0)
-        for d in by_date
+        (d.get("effective_calls") or d.get("total_effective") or 0) for d in by_date
     )
 
     # 派生汇率
-    contact_rate = safe_div(total_connects, total_calls) if total_calls else (
-        compliance.get("compliance_rate") or 0.0
+    contact_rate = (
+        safe_div(total_connects, total_calls)
+        if total_calls
+        else (compliance.get("compliance_rate") or 0.0)
     )
-    effective_rate = safe_div(total_effective, total_calls) if total_calls else (
-        trial_fu.get("call_rate_24h") or 0.0
+    effective_rate = (
+        safe_div(total_effective, total_calls)
+        if total_calls
+        else (trial_fu.get("call_rate_24h") or 0.0)
     )
 
     # cc_breakdown：把 by_cc dict 转为前端期望的 list
@@ -53,29 +58,38 @@ def _adapt_outreach(raw: dict[str, Any]) -> OutreachResult:
             cc_connects = cc_data.get("total_connects", 0) or 0
             cc_effective = cc_data.get("total_effective", 0) or 0
             avg_dur_s = cc_data.get("avg_duration_s")
-            cc_breakdown.append({
-                "cc_name": name,
-                "team": cc_data.get("team"),
-                "total_calls": cc_total,
-                "total_connects": cc_connects,
-                "total_effective": cc_effective,
-                "contact_rate": cc_data.get("contact_rate") or safe_div(cc_connects, cc_total),
-                "effective_rate": cc_data.get("effective_rate") or safe_div(cc_effective, cc_total),
-                "avg_duration_s": avg_dur_s,
-                "avg_duration_min": round(avg_dur_s / 60, 1) if avg_dur_s else None,
-                # legacy aliases
-                "name": name,
-                "calls": cc_total,
-                "achieved": cc_data.get("achieved", False),
-            })
+            cc_breakdown.append(
+                {
+                    "cc_name": name,
+                    "team": cc_data.get("team"),
+                    "total_calls": cc_total,
+                    "total_connects": cc_connects,
+                    "total_effective": cc_effective,
+                    "contact_rate": cc_data.get("contact_rate")
+                    or safe_div(cc_connects, cc_total),
+                    "effective_rate": cc_data.get("effective_rate")
+                    or safe_div(cc_effective, cc_total),
+                    "avg_duration_s": avg_dur_s,
+                    "avg_duration_min": round(avg_dur_s / 60, 1) if avg_dur_s else None,
+                    # legacy aliases
+                    "name": name,
+                    "calls": cc_total,
+                    "achieved": cc_data.get("achieved", False),
+                }
+            )
 
     # daily_trend
     daily_trend = [
         {
             "date": d.get("date", ""),
             "calls": d.get("total_calls", 0),
-            "connects": d.get("connected_calls") or d.get("total_connects") or d.get("contacted") or 0,
-            "effective_calls": d.get("effective_calls") or d.get("total_effective") or 0,
+            "connects": d.get("connected_calls")
+            or d.get("total_connects")
+            or d.get("contacted")
+            or 0,
+            "effective_calls": d.get("effective_calls")
+            or d.get("total_effective")
+            or 0,
             # legacy aliases
             "contacted": d.get("connected_calls") or d.get("contacted") or 0,
         }
@@ -98,6 +112,7 @@ def _adapt_outreach(raw: dict[str, Any]) -> OutreachResult:
 
 # ── Trial Followup ────────────────────────────────────────────────────────────
 
+
 def _adapt_trial(raw: dict[str, Any]) -> TrialResult:
     """
     将引擎 trial_followup 结构映射为前端体验课页面期望的字段。
@@ -114,9 +129,8 @@ def _adapt_trial(raw: dict[str, Any]) -> TrialResult:
     correlation = raw.get("correlation", {}) or {}
 
     # attendance_rate：从 f11_summary 取，fallback 到 correlation
-    attendance_rate = (
-        f11_summary.get("overall_attendance_rate")
-        or correlation.get("pre_call_attendance")
+    attendance_rate = f11_summary.get("overall_attendance_rate") or correlation.get(
+        "pre_call_attendance"
     )
     # Bug 3 fix: 若两个来源均无数据，从 by_cc_raw 中计算均值作为最终 fallback
     if not attendance_rate and isinstance(by_cc_raw, list):
@@ -134,7 +148,8 @@ def _adapt_trial(raw: dict[str, Any]) -> TrialResult:
     # pre_class_summary / post_class_summary with rates
     pre_class_summary = {
         "call_rate": pre_call_rate,
-        "connect_rate": pre_class.get("connect_rate") or f11_summary.get("overall_connect_rate"),
+        "connect_rate": pre_class.get("connect_rate")
+        or f11_summary.get("overall_connect_rate"),
         "attendance_rate": attendance_rate,
         "total_records": f11_summary.get("total_records", 0),
         "total_called": f11_summary.get("total_pre_called", 0),
@@ -154,61 +169,77 @@ def _adapt_trial(raw: dict[str, Any]) -> TrialResult:
                 continue
             cc_name = item.get("cc_name") or item.get("name") or ""
             f11_cc = f11_by_cc.get(cc_name, {}) if isinstance(f11_by_cc, dict) else {}
-            by_cc_merged.append({
-                "cc_name": cc_name,
-                "team": item.get("team"),
-                # pre-class metrics from F11
-                "pre_call_rate": f11_cc.get("call_rate") or item.get("pre_call_rate"),
-                "pre_connect_rate": f11_cc.get("connect_rate") or item.get("pre_connect_rate"),
-                "total_classes": f11_cc.get("total_classes") or item.get("total_classes") or 0,
-                "pre_class_call": f11_cc.get("pre_class_call") or 0,
-                # post-class metrics from F10
-                "post_call_rate": item.get("post_call_rate"),
-                "post_connect_rate": item.get("post_connect_rate"),
-                # attendance
-                "attendance_rate": f11_cc.get("attendance_rate") or item.get("attendance_rate"),
-                "attended": f11_cc.get("attended") or 0,
-                # checkin_rate from D5 (not in this data source; pass None)
-                "checkin_rate": item.get("checkin_rate"),
-                # stage breakdown for frontend
-                "pre_class": {
-                    "call_rate": f11_cc.get("call_rate") or item.get("pre_call_rate"),
-                    "count": f11_cc.get("pre_class_call") or 0,
-                },
-                "post_class": {
-                    "call_rate": item.get("post_call_rate"),
-                    "count": item.get("post_class_call") or 0,
-                },
-            })
+            by_cc_merged.append(
+                {
+                    "cc_name": cc_name,
+                    "team": item.get("team"),
+                    # pre-class metrics from F11
+                    "pre_call_rate": f11_cc.get("call_rate")
+                    or item.get("pre_call_rate"),
+                    "pre_connect_rate": f11_cc.get("connect_rate")
+                    or item.get("pre_connect_rate"),
+                    "total_classes": f11_cc.get("total_classes")
+                    or item.get("total_classes")
+                    or 0,
+                    "pre_class_call": f11_cc.get("pre_class_call") or 0,
+                    # post-class metrics from F10
+                    "post_call_rate": item.get("post_call_rate"),
+                    "post_connect_rate": item.get("post_connect_rate"),
+                    # attendance
+                    "attendance_rate": f11_cc.get("attendance_rate")
+                    or item.get("attendance_rate"),
+                    "attended": f11_cc.get("attended") or 0,
+                    # checkin_rate from D5 (not in this data source; pass None)
+                    "checkin_rate": item.get("checkin_rate"),
+                    # stage breakdown for frontend
+                    "pre_class": {
+                        "call_rate": f11_cc.get("call_rate")
+                        or item.get("pre_call_rate"),
+                        "count": f11_cc.get("pre_class_call") or 0,
+                    },
+                    "post_class": {
+                        "call_rate": item.get("post_call_rate"),
+                        "count": item.get("post_class_call") or 0,
+                    },
+                }
+            )
     elif isinstance(f11_by_cc, dict):
         # fallback: build from f11_by_cc only
         for cc_name, f11_cc in f11_by_cc.items():
             if not isinstance(f11_cc, dict):
                 continue
-            by_cc_merged.append({
-                "cc_name": cc_name,
-                "team": f11_cc.get("team"),
-                "pre_call_rate": f11_cc.get("call_rate"),
-                "pre_connect_rate": f11_cc.get("connect_rate"),
-                "total_classes": f11_cc.get("total_classes", 0),
-                "pre_class_call": f11_cc.get("pre_class_call", 0),
-                "post_call_rate": None,
-                "attendance_rate": f11_cc.get("attendance_rate"),
-                "attended": f11_cc.get("attended", 0),
-                "checkin_rate": None,
-                "pre_class": {"call_rate": f11_cc.get("call_rate"), "count": f11_cc.get("pre_class_call", 0)},
-                "post_class": {"call_rate": None, "count": 0},
-            })
+            by_cc_merged.append(
+                {
+                    "cc_name": cc_name,
+                    "team": f11_cc.get("team"),
+                    "pre_call_rate": f11_cc.get("call_rate"),
+                    "pre_connect_rate": f11_cc.get("connect_rate"),
+                    "total_classes": f11_cc.get("total_classes", 0),
+                    "pre_class_call": f11_cc.get("pre_class_call", 0),
+                    "post_call_rate": None,
+                    "attendance_rate": f11_cc.get("attendance_rate"),
+                    "attended": f11_cc.get("attended", 0),
+                    "checkin_rate": None,
+                    "pre_class": {
+                        "call_rate": f11_cc.get("call_rate"),
+                        "count": f11_cc.get("pre_class_call", 0),
+                    },
+                    "post_class": {"call_rate": None, "count": 0},
+                }
+            )
 
     # Bug 2 fix: 从 by_cc_merged 汇总课后跟进 count，替换硬编码 0
     post_class_count = sum(
-        (item.get("post_class", {}).get("count") or 0)
-        for item in by_cc_merged
+        (item.get("post_class", {}).get("count") or 0) for item in by_cc_merged
     )
 
     # by_stage: stage-level summary (aggregated from pre/post for chart use)
     by_stage = [
-        {"stage": "课前外呼", "count": pre_class_summary.get("total_called", 0), "rate": pre_call_rate},
+        {
+            "stage": "课前外呼",
+            "count": pre_class_summary.get("total_called", 0),
+            "rate": pre_call_rate,
+        },
         {"stage": "课后跟进", "count": post_class_count, "rate": post_call_rate},
     ]
 
@@ -259,6 +290,7 @@ def _adapt_trial(raw: dict[str, Any]) -> TrialResult:
 
 
 # ── Orders ────────────────────────────────────────────────────────────────────
+
 
 def _adapt_orders(raw: dict[str, Any]) -> OrdersResult:
     """
@@ -317,8 +349,14 @@ def _adapt_orders(raw: dict[str, Any]) -> OrdersResult:
                 if pt in existing:
                     existing[pt]["revenue_usd"] = round(amt, 2)
                 else:
-                    existing[pt] = {"type": pt, "count": 0, "revenue_usd": round(amt, 2)}
-            by_type = sorted(existing.values(), key=lambda x: -(x.get("revenue_usd") or 0))
+                    existing[pt] = {
+                        "type": pt,
+                        "count": 0,
+                        "revenue_usd": round(amt, 2),
+                    }
+            by_type = sorted(
+                existing.values(), key=lambda x: -(x.get("revenue_usd") or 0)
+            )
 
     daily_series = [
         {
@@ -351,16 +389,18 @@ def _adapt_orders(raw: dict[str, Any]) -> OrdersResult:
     raw_records: list[Any] = raw.get("records") or []
     items = [
         {
-            "date":         r.get("date"),
-            "cc_name":      r.get("seller") or r.get("cc_name"),
+            "date": r.get("date"),
+            "cc_name": r.get("seller") or r.get("cc_name"),
             "student_name": r.get("student_id") or r.get("student_name"),
-            "channel":      r.get("channel"),
-            "package":      r.get("product") or r.get("package"),
-            "amount_usd":   r.get("amount_usd"),
-            "amount_thb":   round((r.get("amount_usd") or 0) * 34, 0) if r.get("amount_usd") else None,
-            "amount":       r.get("amount_usd"),       # legacy alias
-            "order_tag":    r.get("order_tag"),
-            "team":         r.get("team"),
+            "channel": r.get("channel"),
+            "package": r.get("product") or r.get("package"),
+            "amount_usd": r.get("amount_usd"),
+            "amount_thb": round((r.get("amount_usd") or 0) * 34, 0)
+            if r.get("amount_usd")
+            else None,
+            "amount": r.get("amount_usd"),  # legacy alias
+            "order_tag": r.get("order_tag"),
+            "team": r.get("team"),
         }
         for r in raw_records
     ]
@@ -372,7 +412,7 @@ def _adapt_orders(raw: dict[str, Any]) -> OrdersResult:
         "total_revenue": rev_usd,
         "avg_order_value": safe_div(rev_usd, total),
         "by_type": by_type,
-        "package_distribution": by_type,   # alias expected by some components
+        "package_distribution": by_type,  # alias expected by some components
         "daily_series": daily_series,
         "channel_breakdown": channel_breakdown,
         "items": items,

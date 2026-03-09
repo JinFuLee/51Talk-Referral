@@ -2,6 +2,7 @@
 配置管理 API 端点
 面板配置、月度目标、汇率
 """
+
 from __future__ import annotations
 
 import json
@@ -11,8 +12,9 @@ from typing import Any
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
-from .dependencies import get_service
 from backend.services.analysis_service import AnalysisService
+
+from .dependencies import get_service
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 
@@ -27,6 +29,7 @@ router = APIRouter()
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
+
 
 def _read_json(path: Path, default: Any = None) -> Any:
     if path.exists():
@@ -43,26 +46,31 @@ def _write_json(path: Path, data: Any) -> None:
 
 # ── Request Models ────────────────────────────────────────────────────────────
 
+
 class ExchangeRateBody(BaseModel):
     rate: float
 
 
 class PanelConfigUpdate(BaseModel):
     """面板配置更新：接受任意键值对，通过 model_extra 透传"""
+
     model_config = {"extra": "allow"}
 
 
 class MonthTargetsUpdate(BaseModel):
     """月度目标更新：接受任意数值型键值对"""
+
     model_config = {"extra": "allow"}
 
 
 class MonthlyTargetV2Body(BaseModel):
     """V2 月度目标结构入参：透传给 models.config.MonthlyTargetV2 校验"""
+
     model_config = {"extra": "allow"}
 
 
 # ── Endpoints ─────────────────────────────────────────────────────────────────
+
 
 @router.get("/panel", summary="读取面板配置")
 def get_panel_config() -> dict[str, Any]:
@@ -85,6 +93,7 @@ def put_panel_config(body: PanelConfigUpdate) -> dict[str, Any]:
 def get_targets_all() -> dict[str, Any]:
     """返回全部月度目标（含 override）"""
     from backend.core.config import MONTHLY_TARGETS
+
     base = dict(MONTHLY_TARGETS)
     overrides = _read_json(TARGETS_OVERRIDE_FILE, {})
     # 合并覆盖
@@ -100,6 +109,7 @@ def get_targets_all() -> dict[str, Any]:
 def get_monthly_targets() -> list[dict[str, Any]]:
     """返回所有月份目标列表"""
     from backend.core.config import MONTHLY_TARGETS
+
     overrides = _read_json(TARGETS_OVERRIDE_FILE, {})
     result = []
     for month, vals in MONTHLY_TARGETS.items():
@@ -114,7 +124,9 @@ def get_monthly_targets() -> list[dict[str, Any]]:
 def put_targets_month(month: str, body: MonthTargetsUpdate) -> dict[str, Any]:
     """更新指定月份目标，持久化到 targets_override.json"""
     if len(month) != 6 or not month.isdigit():
-        raise HTTPException(status_code=400, detail="month 格式应为 YYYYMM（如 202602）")
+        raise HTTPException(
+            status_code=400, detail="month 格式应为 YYYYMM（如 202602）"
+        )
     body_dict = body.model_dump()
     overrides = _read_json(TARGETS_OVERRIDE_FILE, {})
     overrides[month] = {**(overrides.get(month) or {}), **body_dict}
@@ -129,6 +141,7 @@ def put_targets_month(month: str, body: MonthTargetsUpdate) -> dict[str, Any]:
 def get_exchange_rate() -> dict[str, Any]:
     """返回当前汇率"""
     from backend.core.config import EXCHANGE_RATE_THB_USD
+
     stored = _read_json(EXCHANGE_RATE_FILE, {})
     rate = stored.get("rate", EXCHANGE_RATE_THB_USD)
     return {"rate": rate, "unit": "THB/USD"}
@@ -148,6 +161,7 @@ def put_exchange_rate(body: ExchangeRateBody) -> dict[str, Any]:
 
 # ── V2 月目标 ──────────────────────────────────────────────────────────────────
 
+
 @router.get("/targets/{month}/v2", summary="获取 V2 分层月度目标")
 def get_targets_v2(month: str) -> dict[str, Any]:
     """返回完整 V2 结构（无 V2 记录则从扁平数据合成）"""
@@ -163,6 +177,7 @@ def get_targets_v2(month: str) -> dict[str, Any]:
 
     # 否则从扁平数据合成 V2
     from backend.core.config import MONTHLY_TARGETS
+
     flat = MONTHLY_TARGETS.get(month, {}).copy()
     if month in overrides:
         flat.update(overrides[month])
@@ -174,6 +189,7 @@ def get_targets_v2(month: str) -> dict[str, Any]:
 def put_targets_v2(month: str, body: "MonthlyTargetV2Body") -> dict[str, Any]:
     """保存 V2 结构到 targets_override.json (含强校验)"""
     from backend.models.config import MonthlyTargetV2
+
     if len(month) != 6 or not month.isdigit():
         raise HTTPException(status_code=400, detail="month 格式应为 YYYYMM")
 
@@ -199,6 +215,7 @@ def put_targets_v2(month: str, body: "MonthlyTargetV2Body") -> dict[str, Any]:
 def calculate_targets(month: str, body: "MonthlyTargetV2Body") -> dict[str, Any]:
     """接收部分 V2 输入，返回完整计算结果（双向计算）"""
     from backend.models.config import MonthlyTargetV2
+
     try:
         v2 = MonthlyTargetV2(**body.model_dump())
     except Exception as exc:
@@ -234,17 +251,66 @@ def _synthesize_v2_from_flat(month: str, flat: dict) -> dict:
             "lock_field": "amount",
         },
         "channels": {
-            "cc_narrow": {"user_count": cc_reg, "asp": asp, "conversion_rate": conv, "reserve_rate": 0.0, "attend_rate": 0.0},
-            "ss_narrow": {"user_count": ss_reg, "asp": asp, "conversion_rate": conv, "reserve_rate": 0.0, "attend_rate": 0.0},
-            "lp_narrow": {"user_count": lp_reg, "asp": asp, "conversion_rate": conv, "reserve_rate": 0.0, "attend_rate": 0.0},
-            "wide": {"user_count": wide_reg, "asp": asp, "conversion_rate": conv, "reserve_rate": 0.0, "attend_rate": 0.0},
+            "cc_narrow": {
+                "user_count": cc_reg,
+                "asp": asp,
+                "conversion_rate": conv,
+                "reserve_rate": 0.0,
+                "attend_rate": 0.0,
+            },
+            "ss_narrow": {
+                "user_count": ss_reg,
+                "asp": asp,
+                "conversion_rate": conv,
+                "reserve_rate": 0.0,
+                "attend_rate": 0.0,
+            },
+            "lp_narrow": {
+                "user_count": lp_reg,
+                "asp": asp,
+                "conversion_rate": conv,
+                "reserve_rate": 0.0,
+                "attend_rate": 0.0,
+            },
+            "wide": {
+                "user_count": wide_reg,
+                "asp": asp,
+                "conversion_rate": conv,
+                "reserve_rate": 0.0,
+                "attend_rate": 0.0,
+            },
         },
         "enclosures": {
-            "d0_30": {"reach_rate": 0.0, "participation_rate": 0.0, "conversion_rate": 0.0, "checkin_rate": 0.0},
-            "d31_60": {"reach_rate": 0.0, "participation_rate": 0.0, "conversion_rate": 0.0, "checkin_rate": 0.0},
-            "d61_90": {"reach_rate": 0.0, "participation_rate": 0.0, "conversion_rate": 0.0, "checkin_rate": 0.0},
-            "d91_180": {"reach_rate": 0.0, "participation_rate": 0.0, "conversion_rate": 0.0, "checkin_rate": 0.0},
-            "d181_plus": {"reach_rate": 0.0, "participation_rate": 0.0, "conversion_rate": 0.0, "checkin_rate": 0.0},
+            "d0_30": {
+                "reach_rate": 0.0,
+                "participation_rate": 0.0,
+                "conversion_rate": 0.0,
+                "checkin_rate": 0.0,
+            },
+            "d31_60": {
+                "reach_rate": 0.0,
+                "participation_rate": 0.0,
+                "conversion_rate": 0.0,
+                "checkin_rate": 0.0,
+            },
+            "d61_90": {
+                "reach_rate": 0.0,
+                "participation_rate": 0.0,
+                "conversion_rate": 0.0,
+                "checkin_rate": 0.0,
+            },
+            "d91_180": {
+                "reach_rate": 0.0,
+                "participation_rate": 0.0,
+                "conversion_rate": 0.0,
+                "checkin_rate": 0.0,
+            },
+            "d181_plus": {
+                "reach_rate": 0.0,
+                "participation_rate": 0.0,
+                "conversion_rate": 0.0,
+                "checkin_rate": 0.0,
+            },
         },
         "sop": {
             "checkin_rate": 0.0,
@@ -258,6 +324,7 @@ def _synthesize_v2_from_flat(month: str, flat: dict) -> dict:
 
 
 # ── 智能目标推荐 ────────────────────────────────────────────────────────────────
+
 
 @router.get("/targets/{month}/recommend", summary="智能目标推荐（三档场景）")
 def get_target_recommendations(
@@ -292,7 +359,9 @@ def get_target_recommendations(
         }
 
     # ── 2. 获取当前月目标作为基准 ────────────────────────────────────────────
-    base_targets = MONTHLY_TARGETS.get(month, MONTHLY_TARGETS.get(sorted_months[-1], {}))
+    base_targets = MONTHLY_TARGETS.get(
+        month, MONTHLY_TARGETS.get(sorted_months[-1], {})
+    )
     base_reg = base_targets.get("注册目标", 0)
     base_paid = base_targets.get("付费目标", 0)
     base_revenue = base_targets.get("金额目标", 0.0)
@@ -336,10 +405,26 @@ def get_target_recommendations(
                     "lock_field": "amount",
                 },
                 "channels": {
-                    "cc_narrow": {"user_count": int(reg * ratios["cc"]), "asp": base_asp, "conversion_rate": base_conv},
-                    "ss_narrow": {"user_count": int(reg * ratios["ss"]), "asp": base_asp, "conversion_rate": base_conv},
-                    "lp_narrow": {"user_count": int(reg * ratios["lp"]), "asp": base_asp, "conversion_rate": base_conv},
-                    "wide": {"user_count": int(reg * ratios["wide"]), "asp": base_asp, "conversion_rate": base_conv},
+                    "cc_narrow": {
+                        "user_count": int(reg * ratios["cc"]),
+                        "asp": base_asp,
+                        "conversion_rate": base_conv,
+                    },
+                    "ss_narrow": {
+                        "user_count": int(reg * ratios["ss"]),
+                        "asp": base_asp,
+                        "conversion_rate": base_conv,
+                    },
+                    "lp_narrow": {
+                        "user_count": int(reg * ratios["lp"]),
+                        "asp": base_asp,
+                        "conversion_rate": base_conv,
+                    },
+                    "wide": {
+                        "user_count": int(reg * ratios["wide"]),
+                        "asp": base_asp,
+                        "conversion_rate": base_conv,
+                    },
                 },
                 "sop": {
                     "reserve_rate": base_targets.get("约课率目标", 0.77),
@@ -351,7 +436,9 @@ def get_target_recommendations(
     scenarios = {
         "conservative": make_scenario(1.0, "保守（持平）"),
         "base": make_scenario(1.0 + growth_rates["revenue"], "基准（趋势延伸）"),
-        "aggressive": make_scenario(1.0 + growth_rates["revenue"] * 1.5, "激进（加速增长）"),
+        "aggressive": make_scenario(
+            1.0 + growth_rates["revenue"] * 1.5, "激进（加速增长）"
+        ),
     }
 
     # ── 4. 可行性评估（当月） ────────────────────────────────────────────────

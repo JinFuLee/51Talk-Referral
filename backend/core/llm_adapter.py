@@ -5,6 +5,7 @@ Gemini LLM 适配器
 - 模型：gemini-2.5-flash（从 json 读取 recommended_model）
 - 所有 key 失败时优雅降级返回空字符串
 """
+
 from __future__ import annotations
 
 import json
@@ -111,7 +112,9 @@ class GeminiAdapter:
                 )
                 return text
             except Exception as e:
-                logger.warning(f"Gemini key ...{key[-4:]} 调用失败: {e}，尝试下一个 key")
+                logger.warning(
+                    f"Gemini key ...{key[-4:]} 调用失败: {e}，尝试下一个 key"
+                )
                 continue
 
         logger.error("所有 Gemini keys 均失败，返回空字符串")

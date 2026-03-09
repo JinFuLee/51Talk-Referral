@@ -4,6 +4,7 @@ Summary / Funnel / Channel / Prediction / ROI / Productivity 类 adapt 函数。
 
 对应引擎输出 key：summary, funnel, channel_comparison, prediction, roi_estimate, productivity
 """
+
 from __future__ import annotations
 
 from typing import Any
@@ -20,14 +21,15 @@ from backend.models.adapter_types import (
 # ── 渠道标签映射 ───────────────────────────────────────────────────────────────
 
 _CHANNEL_LABEL_MAP = [
-    ("CC窄口径",  "cc_narrow", "CC 窄口径"),
-    ("SS窄口径",  "ss_narrow", "SS 窄口径"),
-    ("LP窄口径",  "lp_narrow", "LP 窄口径"),
-    ("宽口径",    "wide",      "宽口径"),
+    ("CC窄口径", "cc_narrow", "CC 窄口径"),
+    ("SS窄口径", "ss_narrow", "SS 窄口径"),
+    ("LP窄口径", "lp_narrow", "LP 窄口径"),
+    ("宽口径", "wide", "宽口径"),
 ]
 
 
 # ── 状态推算 ──────────────────────────────────────────────────────────────────
+
 
 def _calc_status(actual: float, target: float, time_progress: float) -> str:
     """根据实际/目标/时间进度推算状态标签"""
@@ -42,6 +44,7 @@ def _calc_status(actual: float, target: float, time_progress: float) -> str:
 
 
 # ── Summary ──────────────────────────────────────────────────────────────────
+
 
 def _adapt_summary(raw: dict[str, Any]) -> SummaryAdaptResult:
     """
@@ -89,12 +92,15 @@ def _adapt_summary(raw: dict[str, Any]) -> SummaryAdaptResult:
         rev = raw["revenue"]
         actual_usd = rev.get("usd") or 0
         target_usd = rev.get("target_usd") or 0
-        progress = rev.get("progress") or (round(actual_usd / target_usd, 4) if target_usd else 0)
+        progress = rev.get("progress") or (
+            round(actual_usd / target_usd, 4) if target_usd else 0
+        )
         adapted["revenue"] = {
             "actual": actual_usd,
             "target": target_usd,
             "progress": progress,
-            "status": rev.get("status") or _calc_status(actual_usd, target_usd, time_progress),
+            "status": rev.get("status")
+            or _calc_status(actual_usd, target_usd, time_progress),
             "thb": rev.get("thb"),
             "daily_avg": rev.get("daily_avg"),
             "remaining_daily_avg": rev.get("remaining_daily_avg"),
@@ -141,7 +147,9 @@ def _adapt_summary(raw: dict[str, Any]) -> SummaryAdaptResult:
                 "actual": round(rate * 100, 1),
                 "target": round(target_rate * 100, 1),
                 "progress": achievement,
-                "status": "green" if achievement >= 1 else ("yellow" if achievement >= 0.95 else "red"),
+                "status": "green"
+                if achievement >= 1
+                else ("yellow" if achievement >= 0.95 else "red"),
                 "impact": c.get("impact"),
             }
 
@@ -150,12 +158,14 @@ def _adapt_summary(raw: dict[str, Any]) -> SummaryAdaptResult:
 
 # ── Funnel ────────────────────────────────────────────────────────────────────
 
+
 def _adapt_funnel(raw: dict[str, Any]) -> FunnelAdaptResult:
     """
     将引擎 funnel（{ total, cc_narrow, ss_narrow, lp_narrow, wide }，每项含 register/reserve/attend/paid/rates）
     转换为前端 FunnelData 格式（narrow = cc+ss+lp 合并，total，wide）。
     前端 FunnelChannel 字段：valid_students, registrations, payments, conversion_rate, reserve, attend, ...
     """
+
     def _to_channel(d: dict[str, Any]) -> dict[str, Any]:
         rates = d.get("rates", {})
         reg = d.get("register", 0)
@@ -170,7 +180,7 @@ def _adapt_funnel(raw: dict[str, Any]) -> FunnelAdaptResult:
             "new_coefficient": rates.get("new_coefficient", 0),
             "referral_ratio": rates.get("referral_ratio", 0),
             "registrations": reg,
-            "register": reg,          # 保留原字段供 FunnelDataBiz 兼容
+            "register": reg,  # 保留原字段供 FunnelDataBiz 兼容
             "reserve": reserve,
             "attend": attend,
             "payments": paid,
@@ -190,7 +200,13 @@ def _adapt_funnel(raw: dict[str, Any]) -> FunnelAdaptResult:
 
     # cc_narrow / ss_narrow / lp_narrow 单独透传（供详细页面）
     narrow_keys = ["cc_narrow", "ss_narrow", "lp_narrow"]
-    narrow_sum: dict[str, Any] = {"register": 0, "reserve": 0, "attend": 0, "paid": 0, "valid_students": 0}
+    narrow_sum: dict[str, Any] = {
+        "register": 0,
+        "reserve": 0,
+        "attend": 0,
+        "paid": 0,
+        "valid_students": 0,
+    }
     has_narrow = False
     for k in narrow_keys:
         if k in raw:
@@ -221,11 +237,11 @@ def _adapt_funnel(raw: dict[str, Any]) -> FunnelAdaptResult:
             return 0
 
         narrow_sum["rates"] = {
-            "reserve_rate":       round(rsv / reg, 4) if reg else 0,
-            "attend_rate":        round(att / rsv, 4) if rsv else 0,
-            "paid_rate":          round(paid / att, 4) if att else 0,
+            "reserve_rate": round(rsv / reg, 4) if reg else 0,
+            "attend_rate": round(att / rsv, 4) if rsv else 0,
+            "paid_rate": round(paid / att, 4) if att else 0,
             "register_paid_rate": round(paid / reg, 4) if reg else 0,
-            "contact_rate":       _first_nonzero("contact_rate"),
+            "contact_rate": _first_nonzero("contact_rate"),
             "participation_rate": _first_nonzero("participation_rate"),
         }
         adapted["narrow"] = _to_channel(narrow_sum)
@@ -239,6 +255,7 @@ def _adapt_funnel(raw: dict[str, Any]) -> FunnelAdaptResult:
 
 # ── Channel Comparison ────────────────────────────────────────────────────────
 
+
 def _adapt_channel_comparison(raw: dict[str, Any]) -> ChannelComparisonResult:
     """
     将引擎 channel_comparison（中文 key dict）转换为前端 ChannelComparisonData 格式。
@@ -251,17 +268,19 @@ def _adapt_channel_comparison(raw: dict[str, Any]) -> ChannelComparisonResult:
             d = raw[zh_key]
             reg = d.get("register", 0)
             paid = d.get("paid", 0)
-            channels.append({
-                "channel": en_key,
-                "label": label,
-                "registrations": reg,
-                "payments": paid,
-                "conversion_rate": round(paid / reg, 4) if reg else 0,
-                "target": d.get("target"),
-                "progress": d.get("progress"),
-                "gap": d.get("gap"),
-                "efficiency_index": d.get("efficiency_index"),
-            })
+            channels.append(
+                {
+                    "channel": en_key,
+                    "label": label,
+                    "registrations": reg,
+                    "payments": paid,
+                    "conversion_rate": round(paid / reg, 4) if reg else 0,
+                    "target": d.get("target"),
+                    "progress": d.get("progress"),
+                    "gap": d.get("gap"),
+                    "efficiency_index": d.get("efficiency_index"),
+                }
+            )
     # 若引擎已是前端格式（含 channels key），直接透传
     if not channels and "channels" in raw:
         return raw
@@ -269,6 +288,7 @@ def _adapt_channel_comparison(raw: dict[str, Any]) -> ChannelComparisonResult:
 
 
 # ── Prediction ────────────────────────────────────────────────────────────────
+
 
 def _adapt_prediction(raw: dict[str, Any]) -> PredictionResult:
     """
@@ -292,6 +312,7 @@ def _adapt_prediction(raw: dict[str, Any]) -> PredictionResult:
 
 
 # ── ROI ───────────────────────────────────────────────────────────────────────
+
 
 def _adapt_roi(raw: dict[str, Any]) -> ROIResult:
     """
@@ -317,6 +338,7 @@ def _adapt_roi(raw: dict[str, Any]) -> ROIResult:
 
 
 # ── Productivity ──────────────────────────────────────────────────────────────
+
 
 def _adapt_productivity(raw: dict[str, Any]) -> ProductivityResult:
     """

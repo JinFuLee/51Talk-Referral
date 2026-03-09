@@ -2,13 +2,15 @@
 Integration / unit edge case tests
 ~17 test cases: None inputs, missing fields, invalid params, special chars, large values
 """
-import pytest
+
 from datetime import datetime
 
-from backend.core.analyzers.utils import _safe_div, _safe_pct, _clean_for_json, _norm_cc
+import pytest
+
 from backend.core.analyzers.context import AnalyzerContext
-from backend.core.analyzers.summary_analyzer import SummaryAnalyzer
 from backend.core.analyzers.order_analyzer import OrderAnalyzer
+from backend.core.analyzers.summary_analyzer import SummaryAnalyzer
+from backend.core.analyzers.utils import _clean_for_json, _norm_cc, _safe_div, _safe_pct
 from backend.core.impact_chain import ImpactChainEngine
 
 
@@ -18,6 +20,7 @@ class TestNullInputHandling:
 
     def test_clean_for_json_deeply_nested_nan(self):
         import math
+
         obj = {"a": {"b": [float("nan"), {"c": float("inf")}]}}
         result = _clean_for_json(obj)
         assert result["a"]["b"][0] is None
@@ -38,29 +41,47 @@ class TestNullInputHandling:
 class TestMissingFieldHandling:
     def test_summary_analyzer_missing_leads(self, sample_targets, report_date):
         data = {"order": {}, "kpi": {}}
-        ctx = AnalyzerContext(data=data, targets=sample_targets, report_date=report_date)
+        ctx = AnalyzerContext(
+            data=data, targets=sample_targets, report_date=report_date
+        )
         sa = SummaryAnalyzer(ctx)
         result = sa.analyze_summary()
         assert result["registration"]["actual"] == 0
 
     def test_summary_analyzer_missing_kpi(self, sample_targets, report_date):
-        data = {"leads": {"leads_achievement": {"by_channel": {"总计": {"注册": 100, "付费": 20}}}}}
-        ctx = AnalyzerContext(data=data, targets=sample_targets, report_date=report_date)
+        data = {
+            "leads": {
+                "leads_achievement": {"by_channel": {"总计": {"注册": 100, "付费": 20}}}
+            }
+        }
+        ctx = AnalyzerContext(
+            data=data, targets=sample_targets, report_date=report_date
+        )
         sa = SummaryAnalyzer(ctx)
         result = sa.analyze_summary()
         # Should not raise; checkin_rate may be None
         assert "checkin_24h" in result
 
     def test_order_analyzer_missing_attendance(self, sample_targets, report_date):
-        data = {"order": {"order_detail": {"summary": {}, "by_team": {}, "by_channel": {}}, "cc_attendance": [], "ss_attendance": []}}
-        ctx = AnalyzerContext(data=data, targets=sample_targets, report_date=report_date)
+        data = {
+            "order": {
+                "order_detail": {"summary": {}, "by_team": {}, "by_channel": {}},
+                "cc_attendance": [],
+                "ss_attendance": [],
+            }
+        }
+        ctx = AnalyzerContext(
+            data=data, targets=sample_targets, report_date=report_date
+        )
         oa = OrderAnalyzer(ctx)
         result = oa.analyze_productivity()
         # cc_active should be None (empty attendance list)
         assert result["cc"]["active_count"] is None
 
     def test_impact_chain_missing_valid_students(self, sample_targets):
-        funnel = {"total": {"register": 0, "reserve": 0, "valid_students": 0, "rates": {}}}
+        funnel = {
+            "total": {"register": 0, "reserve": 0, "valid_students": 0, "rates": {}}
+        }
         engine = ImpactChainEngine(summary={}, targets=sample_targets, funnel=funnel)
         result = engine.compute_all_chains()
         # No upstream_base means no chains can be computed
@@ -68,7 +89,9 @@ class TestMissingFieldHandling:
 
 
 class TestInvalidParameterHandling:
-    def test_impact_chain_what_if_boundary_zero(self, minimal_summary, minimal_funnel, sample_targets):
+    def test_impact_chain_what_if_boundary_zero(
+        self, minimal_summary, minimal_funnel, sample_targets
+    ):
         engine = ImpactChainEngine(
             summary=minimal_summary,
             targets=sample_targets,
@@ -79,7 +102,9 @@ class TestInvalidParameterHandling:
         assert isinstance(result, dict)
         assert "delta_revenue_usd" in result
 
-    def test_impact_chain_what_if_above_target(self, minimal_summary, minimal_funnel, sample_targets):
+    def test_impact_chain_what_if_above_target(
+        self, minimal_summary, minimal_funnel, sample_targets
+    ):
         engine = ImpactChainEngine(
             summary=minimal_summary,
             targets=sample_targets,
@@ -103,11 +128,15 @@ class TestLargeValues:
         data = {
             "leads": {
                 "leads_achievement": {
-                    "by_channel": {"总计": {"注册": 999999, "预约": 0, "出席": 0, "付费": 50000}}
+                    "by_channel": {
+                        "总计": {"注册": 999999, "预约": 0, "出席": 0, "付费": 50000}
+                    }
                 }
             }
         }
-        ctx = AnalyzerContext(data=data, targets=sample_targets, report_date=report_date)
+        ctx = AnalyzerContext(
+            data=data, targets=sample_targets, report_date=report_date
+        )
         sa = SummaryAnalyzer(ctx)
         result = sa.analyze_summary()
         assert result["registration"]["actual"] == 999999

@@ -2,6 +2,7 @@
 Presentation API 端点 — 汇报演示数据
 为 M18/M19 Slide 组件提供行动计划、会议纪要、资源需求三个端点。
 """
+
 from __future__ import annotations
 
 from datetime import datetime, timedelta
@@ -9,8 +10,9 @@ from typing import Any
 
 from fastapi import APIRouter, Depends
 
-from .dependencies import get_service
 from backend.services.analysis_service import AnalysisService
+
+from .dependencies import get_service
 
 router = APIRouter()
 
@@ -20,6 +22,7 @@ def _get_cache(svc: AnalysisService) -> dict[str, Any] | None:
 
 
 # ─── 端点1: 行动计划 ──────────────────────────────────────────────────────────
+
 
 @router.get("/action-plan", summary="行动计划列表")
 def get_action_plan(svc: AnalysisService = Depends(get_service)) -> dict[str, Any]:
@@ -32,8 +35,8 @@ def get_action_plan(svc: AnalysisService = Depends(get_service)) -> dict[str, An
         if cache is None:
             return _fallback_action_plan()
 
-        from backend.core.root_cause import RootCauseEngine
         from backend.core.impact_chain import ImpactChainEngine
+        from backend.core.root_cause import RootCauseEngine
 
         # 构建 root_cause 分析
         summary = dict(cache.get("summary", {}))
@@ -49,7 +52,8 @@ def get_action_plan(svc: AnalysisService = Depends(get_service)) -> dict[str, An
             outreach=cache.get("outreach_analysis", {}),
             trial=cache.get("trial_followup", {}),
             channel_comparison=cache.get("channel_comparison", {}),
-            enclosure_cross=cache.get("enclosure_cross") or cache.get("cohort_analysis", {}),
+            enclosure_cross=cache.get("enclosure_cross")
+            or cache.get("cohort_analysis", {}),
             checkin_impact=cache.get("checkin_impact", {}),
             productivity=cache.get("productivity", {}),
         )
@@ -88,12 +92,19 @@ def get_action_plan(svc: AnalysisService = Depends(get_service)) -> dict[str, An
 
             # 拆分行动文本为子项（按中文顿号/分号/；分割）
             import re
-            sub_actions = [s.strip() for s in re.split(r"[；;]|；|；", action_text) if s.strip()]
+
+            sub_actions = [
+                s.strip() for s in re.split(r"[；;]|；|；", action_text) if s.strip()
+            ]
             if not sub_actions:
                 sub_actions = [action_text]
 
             # deadline 映射（前端期望中文标签）
-            deadline_map = {"immediate": "今日", "this-week": "本周五", "ongoing": "持续"}
+            deadline_map = {
+                "immediate": "今日",
+                "this-week": "本周五",
+                "ongoing": "持续",
+            }
 
             # owner 根据 root_cause 推断
             root_cause = analysis.get("root_cause", "")
@@ -104,24 +115,31 @@ def get_action_plan(svc: AnalysisService = Depends(get_service)) -> dict[str, An
             else:
                 owner = "CC 组长"
 
-            items.append({
-                "id": len(items) + 1,
-                "priority": priority,
-                "action": action_text,
-                "owner": owner,
-                "deadline": deadline_map.get(priority, "本周五"),
-                "impact": f"预期增收 ${expected_impact:.0f}/月",
-                "category": category,
-                "trigger_label": analysis.get("trigger_label", ""),
-                "expected_impact_usd": expected_impact,
-                "expected_impact_thb": round(expected_impact * 34),
-                "severity": severity,
-                "root_cause": root_cause,
-            })
+            items.append(
+                {
+                    "id": len(items) + 1,
+                    "priority": priority,
+                    "action": action_text,
+                    "owner": owner,
+                    "deadline": deadline_map.get(priority, "本周五"),
+                    "impact": f"预期增收 ${expected_impact:.0f}/月",
+                    "category": category,
+                    "trigger_label": analysis.get("trigger_label", ""),
+                    "expected_impact_usd": expected_impact,
+                    "expected_impact_thb": round(expected_impact * 34),
+                    "severity": severity,
+                    "root_cause": root_cause,
+                }
+            )
 
         # 按优先级排序
         priority_order = {"immediate": 0, "this-week": 1, "ongoing": 2}
-        items.sort(key=lambda x: (priority_order.get(x["priority"], 3), -x["expected_impact_usd"]))
+        items.sort(
+            key=lambda x: (
+                priority_order.get(x["priority"], 3),
+                -x["expected_impact_usd"],
+            )
+        )
 
         total_impact = sum(i["expected_impact_usd"] for i in items)
 
@@ -169,6 +187,7 @@ def _fallback_action_plan(error: str = "") -> dict:
 
 # ─── 端点2: 会议纪要 ──────────────────────────────────────────────────────────
 
+
 @router.get("/meeting-summary", summary="会议讨论要点")
 def get_meeting_summary(svc: AnalysisService = Depends(get_service)) -> dict[str, Any]:
     """
@@ -201,7 +220,8 @@ def get_meeting_summary(svc: AnalysisService = Depends(get_service)) -> dict[str
             outreach=cache.get("outreach_analysis", {}),
             trial=cache.get("trial_followup", {}),
             channel_comparison=cache.get("channel_comparison", {}),
-            enclosure_cross=cache.get("enclosure_cross") or cache.get("cohort_analysis", {}),
+            enclosure_cross=cache.get("enclosure_cross")
+            or cache.get("cohort_analysis", {}),
             checkin_impact=cache.get("checkin_impact", {}),
             productivity=cache.get("productivity", {}),
         )
@@ -232,9 +252,11 @@ def get_meeting_summary(svc: AnalysisService = Depends(get_service)) -> dict[str
             if analysis.get("severity") == "red":
                 topic = analysis.get("trigger_label", "")
                 description = analysis.get("trigger", "")
-                disputes.append({
-                    "text": f"{topic}: {description}" if topic else description,
-                })
+                disputes.append(
+                    {
+                        "text": f"{topic}: {description}" if topic else description,
+                    }
+                )
 
         disputes = disputes[:4]
 
@@ -244,9 +266,11 @@ def get_meeting_summary(svc: AnalysisService = Depends(get_service)) -> dict[str
         for analysis in rc_result.get("analyses", []):
             action = analysis.get("action", "")
             if action:
-                followups.append({
-                    "text": f"{action}（CC团队，{due_date}）",
-                })
+                followups.append(
+                    {
+                        "text": f"{action}（CC团队，{due_date}）",
+                    }
+                )
 
         followups = followups[:6]
 
@@ -259,7 +283,9 @@ def get_meeting_summary(svc: AnalysisService = Depends(get_service)) -> dict[str
         analyses = rc_result.get("analyses", [])
         if analyses:
             top = max(analyses, key=lambda x: x.get("expected_impact_usd", 0))
-            next_topic = f"跟进{top.get('trigger_label', '核心指标')}改善进展及本周行动结果复盘"
+            next_topic = (
+                f"跟进{top.get('trigger_label', '核心指标')}改善进展及本周行动结果复盘"
+            )
         else:
             next_topic = "本周运营数据复盘及下周行动计划制定"
 
@@ -309,6 +335,7 @@ def _fallback_meeting_summary(error: str = "") -> dict:
 
 # ─── 端点3: 资源需求 ──────────────────────────────────────────────────────────
 
+
 @router.get("/resource-request", summary="资源需求建议")
 def get_resource_request(svc: AnalysisService = Depends(get_service)) -> dict[str, Any]:
     """
@@ -337,16 +364,22 @@ def get_resource_request(svc: AnalysisService = Depends(get_service)) -> dict[st
         chains = ic_result.get("chains", [])
 
         # 按损失金额排序，取 top 链
-        sorted_chains = sorted(chains, key=lambda c: c.get("lost_revenue_usd", 0), reverse=True)
+        sorted_chains = sorted(
+            chains, key=lambda c: c.get("lost_revenue_usd", 0), reverse=True
+        )
 
         # 按指标类型映射到资源需求分类
         category_map = {
-            "reach_rate":        ("人力", "增加CC外呼人力配置", "外呼覆盖率提升"),
-            "participation_rate":("人力", "优化CC外呼话术培训，增加激活SOP执行", "参与率提升"),
-            "checkin_rate":      ("预算", "打卡激励奖品及活动预算", "打卡率提升"),
-            "reserve_rate":      ("人力", "CC预约引导培训及SOP标准化", "约课率提升"),
-            "attend_rate":       ("工具", "课前提醒自动化工具（短信/LINE）", "出席率提升"),
-            "conversion_rate":   ("工具", "CRM跟进系统及促单话术工具", "转化率提升"),
+            "reach_rate": ("人力", "增加CC外呼人力配置", "外呼覆盖率提升"),
+            "participation_rate": (
+                "人力",
+                "优化CC外呼话术培训，增加激活SOP执行",
+                "参与率提升",
+            ),
+            "checkin_rate": ("预算", "打卡激励奖品及活动预算", "打卡率提升"),
+            "reserve_rate": ("人力", "CC预约引导培训及SOP标准化", "约课率提升"),
+            "attend_rate": ("工具", "课前提醒自动化工具（短信/LINE）", "出席率提升"),
+            "conversion_rate": ("工具", "CRM跟进系统及促单话术工具", "转化率提升"),
         }
 
         # 按类别聚合
@@ -372,12 +405,14 @@ def get_resource_request(svc: AnalysisService = Depends(get_service)) -> dict[st
                 if cat is not None:
                     rank = _priority_rank.get(metric, 99)
                     priority = "P0" if rank == 0 else ("P1" if rank == 1 else "P2")
-                    cat["cards"].append({
-                        "title": resource_desc,
-                        "description": f"{gain_desc}，可回收收入 ${lost_usd:,.0f}/月",
-                        "expectedRoi": f"${lost_usd:,.0f} ({gain_desc})",
-                        "priority": priority,
-                    })
+                    cat["cards"].append(
+                        {
+                            "title": resource_desc,
+                            "description": f"{gain_desc}，可回收收入 ${lost_usd:,.0f}/月",
+                            "expectedRoi": f"${lost_usd:,.0f} ({gain_desc})",
+                            "priority": priority,
+                        }
+                    )
                     cat["estimated_gain_usd"] += lost_usd
 
         # 构建输出类别列表（仅包含有数据的类别）
@@ -385,13 +420,15 @@ def get_resource_request(svc: AnalysisService = Depends(get_service)) -> dict[st
         for cat_key in ["人力", "预算", "工具"]:
             cat = cat_data[cat_key]
             if cat["cards"]:
-                categories.append({
-                    "category": cat_key,
-                    "label": cat["label"],
-                    "cards": cat["cards"],
-                    "estimated_gain_usd": round(cat["estimated_gain_usd"], 2),
-                    "estimated_gain_thb": round(cat["estimated_gain_usd"] * 34),
-                })
+                categories.append(
+                    {
+                        "category": cat_key,
+                        "label": cat["label"],
+                        "cards": cat["cards"],
+                        "estimated_gain_usd": round(cat["estimated_gain_usd"], 2),
+                        "estimated_gain_thb": round(cat["estimated_gain_usd"] * 34),
+                    }
+                )
 
         total_gain = sum(c["estimated_gain_usd"] for c in categories)
         top_lever = ic_result.get("top_lever_label", "")
@@ -421,7 +458,14 @@ def _fallback_resource_request(error: str = "") -> dict:
                 {
                     "category": "人力",
                     "label": "人力",
-                    "cards": [{"title": "增加CC外呼配置", "description": "触达率提升，可回收收入 $0/月", "expectedRoi": "$0 (触达率提升)", "priority": "P1"}],
+                    "cards": [
+                        {
+                            "title": "增加CC外呼配置",
+                            "description": "触达率提升，可回收收入 $0/月",
+                            "expectedRoi": "$0 (触达率提升)",
+                            "priority": "P1",
+                        }
+                    ],
                     "estimated_gain_usd": 0,
                     "estimated_gain_thb": 0,
                 }

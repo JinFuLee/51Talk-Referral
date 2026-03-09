@@ -1,22 +1,24 @@
 """时间维度枚举与日期范围解析器"""
+
 from __future__ import annotations
-from enum import Enum
-from datetime import date, timedelta
+
 from dataclasses import dataclass
+from datetime import date, timedelta
+from enum import Enum
 from typing import Optional
 
 
 class TimePeriod(str, Enum):
-    THIS_WEEK = "this_week"        # 本周T-1
-    THIS_MONTH = "this_month"      # 本月T-1（默认）
-    LAST_7_DAYS = "last_7_days"    # 近7日
+    THIS_WEEK = "this_week"  # 本周T-1
+    THIS_MONTH = "this_month"  # 本月T-1（默认）
+    LAST_7_DAYS = "last_7_days"  # 近7日
     LAST_30_DAYS = "last_30_days"  # 近30日
-    LAST_MONTH = "last_month"      # 上个月
+    LAST_MONTH = "last_month"  # 上个月
     THIS_QUARTER = "this_quarter"  # 本季度
     LAST_QUARTER = "last_quarter"  # 上季度
-    THIS_YEAR = "this_year"        # 本年
-    LAST_YEAR = "last_year"        # 上年
-    CUSTOM = "custom"              # 自定义
+    THIS_YEAR = "this_year"  # 本年
+    LAST_YEAR = "last_year"  # 上年
+    CUSTOM = "custom"  # 自定义
 
 
 @dataclass
@@ -63,13 +65,17 @@ def resolve_period(
         q_m = ((t1.month - 1) // 3) * 3 + 1
         prev_q_end = t1.replace(month=q_m, day=1) - timedelta(days=1)
         prev_q_m = ((prev_q_end.month - 1) // 3) * 3 + 1
-        return PeriodRange(prev_q_end.replace(month=prev_q_m, day=1), prev_q_end, period, "上季度")
+        return PeriodRange(
+            prev_q_end.replace(month=prev_q_m, day=1), prev_q_end, period, "上季度"
+        )
 
     if period == TimePeriod.THIS_YEAR:
         return PeriodRange(t1.replace(month=1, day=1), t1, period, "本年")
 
     if period == TimePeriod.LAST_YEAR:
-        return PeriodRange(date(t1.year - 1, 1, 1), date(t1.year - 1, 12, 31), period, "上年")
+        return PeriodRange(
+            date(t1.year - 1, 1, 1), date(t1.year - 1, 12, 31), period, "上年"
+        )
 
     if period == TimePeriod.CUSTOM:
         s = date.fromisoformat(custom_start) if custom_start else t1.replace(day=1)

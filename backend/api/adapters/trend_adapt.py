@@ -4,6 +4,7 @@ backend/api/adapters/trend_adapt.py
 
 对应引擎输出 key：trend（含 daily / mom / yoy / wow 四层子结构）
 """
+
 from __future__ import annotations
 
 from typing import Any
@@ -49,11 +50,19 @@ def _adapt_trend(raw: dict[str, Any], compare_type: str) -> TrendResult:
             """兼容 mom_data[month] 为 dict 或 list（多渠道记录）两种结构"""
             if isinstance(v, list):
                 # 找总计行，或转介绍行
-                row = next((r for r in v if isinstance(r, dict) and (
-                    "总计" in str(r.get("name", "")) or
-                    "总计" in str(r.get("channel_type", "")) or
-                    "转介绍" in str(r.get("channel_type", ""))
-                )), None)
+                row = next(
+                    (
+                        r
+                        for r in v
+                        if isinstance(r, dict)
+                        and (
+                            "总计" in str(r.get("name", ""))
+                            or "总计" in str(r.get("channel_type", ""))
+                            or "转介绍" in str(r.get("channel_type", ""))
+                        )
+                    ),
+                    None,
+                )
                 if row is None:
                     row = v[0] if v else {}
                 return row if isinstance(row, dict) else {}
@@ -62,12 +71,20 @@ def _adapt_trend(raw: dict[str, Any], compare_type: str) -> TrendResult:
         series: list[dict[str, Any]] = []
         for month in months_sorted:
             row = _mom_row(mom_data[month])
-            series.append({
-                "date": month,
-                "revenue": row.get("revenue_usd") or row.get("amount_usd") or row.get("revenue") or row.get("revenue_cny") or 0,
-                "payments": row.get("payments") or row.get("paid") or 0,
-                "registrations": row.get("registrations") or row.get("register") or 0,
-            })
+            series.append(
+                {
+                    "date": month,
+                    "revenue": row.get("revenue_usd")
+                    or row.get("amount_usd")
+                    or row.get("revenue")
+                    or row.get("revenue_cny")
+                    or 0,
+                    "payments": row.get("payments") or row.get("paid") or 0,
+                    "registrations": row.get("registrations")
+                    or row.get("register")
+                    or 0,
+                }
+            )
         if not series:
             series = daily_series
         compare_data = mom_raw
@@ -93,17 +110,17 @@ def _adapt_trend(raw: dict[str, Any], compare_type: str) -> TrendResult:
         compare_data = None
 
     return {
-        "series":         series,
-        "daily_series":   daily_series,
-        "compare_type":   compare_type,
-        "direction":      raw.get("direction"),
-        "compare_data":   compare_data,
-        "peak":           raw.get("peak"),
-        "valley":         raw.get("valley"),
+        "series": series,
+        "daily_series": daily_series,
+        "compare_type": compare_type,
+        "direction": raw.get("direction"),
+        "compare_data": compare_data,
+        "peak": raw.get("peak"),
+        "valley": raw.get("valley"),
         # 保留全部子结构供前端按需读取
-        "mom":            mom_raw,
-        "yoy":            yoy_raw,
-        "wow":            wow_raw,
+        "mom": mom_raw,
+        "yoy": yoy_raw,
+        "wow": wow_raw,
         # 向后兼容旧字段名
         "yoy_by_channel": raw.get("yoy_by_channel"),
     }

@@ -2,9 +2,11 @@
 Unit tests for core.analyzers.ranking_analyzer.RankingAnalyzer
 ~18 test cases — CC ranking + SS/LP ranking + helpers
 """
+
 from datetime import datetime
 
 import pytest
+
 from backend.core.analyzers.context import AnalyzerContext
 from backend.core.analyzers.ranking_analyzer import RankingAnalyzer
 
@@ -23,9 +25,17 @@ def _make_ctx(data: dict) -> AnalyzerContext:
     return AnalyzerContext(data=data, targets=BASE_TARGETS, report_date=REPORT_DATE)
 
 
-def _cc_data(cc_name: str, team: str, leads: int = 10, paid: int = 3,
-             registered: int = 15, revenue_usd: float = 1500.0,
-             calls: int = 80, connects: int = 50, effective: int = 30) -> dict:
+def _cc_data(
+    cc_name: str,
+    team: str,
+    leads: int = 10,
+    paid: int = 3,
+    registered: int = 15,
+    revenue_usd: float = 1500.0,
+    calls: int = 80,
+    connects: int = 50,
+    effective: int = 30,
+) -> dict:
     """Helper: 构造单个 CC 的跨源数据片段。"""
     return {
         "kpi": {
@@ -68,9 +78,7 @@ def _cc_data(cc_name: str, team: str, leads: int = 10, paid: int = 3,
                 "by_cc": [{"cc_name": cc_name, "monthly_called": 8}]
             },
             "trial_class_followup": {
-                "by_cc": [
-                    {"cc_name": cc_name, "pre_called": 4, "post_called": 3}
-                ]
+                "by_cc": [{"cc_name": cc_name, "pre_called": 4, "post_called": 3}]
             },
         },
         "leads": {
@@ -171,10 +179,28 @@ class TestCCRankingNormal:
     @pytest.fixture
     def two_cc_data(self):
         """两人数据，A 明显强于 B。"""
-        a = _cc_data("Alice", "THCC-A", leads=20, paid=8, registered=30,
-                     revenue_usd=8000.0, calls=200, connects=120, effective=80)
-        b = _cc_data("Bob", "THCC-A", leads=5, paid=1, registered=8,
-                     revenue_usd=1000.0, calls=40, connects=20, effective=10)
+        a = _cc_data(
+            "Alice",
+            "THCC-A",
+            leads=20,
+            paid=8,
+            registered=30,
+            revenue_usd=8000.0,
+            calls=200,
+            connects=120,
+            effective=80,
+        )
+        b = _cc_data(
+            "Bob",
+            "THCC-A",
+            leads=5,
+            paid=1,
+            registered=8,
+            revenue_usd=1000.0,
+            calls=40,
+            connects=20,
+            effective=10,
+        )
         return _merge_cc_data([a, b])
 
     def test_returns_list(self, two_cc_data):
@@ -206,9 +232,15 @@ class TestCCRankingNormal:
         ctx = _make_ctx(two_cc_data)
         result = RankingAnalyzer(ctx).analyze_cc_ranking()
         required = {
-            "cc_name", "rank", "composite_score",
-            "process_score", "result_score", "efficiency_score",
-            "registrations", "payments", "revenue_usd",
+            "cc_name",
+            "rank",
+            "composite_score",
+            "process_score",
+            "result_score",
+            "efficiency_score",
+            "registrations",
+            "payments",
+            "revenue_usd",
         }
         for item in result:
             assert required.issubset(item.keys())
@@ -233,8 +265,17 @@ class TestCCRankingEdgeCases:
     def test_identical_data_all_same_score(self):
         """所有人数据完全相同 → composite_score 全部相同（均为 0.5）。"""
         cc_list = [
-            _cc_data(f"CC{i}", "THCC-A", leads=10, paid=3, registered=15,
-                     revenue_usd=1500.0, calls=80, connects=50, effective=30)
+            _cc_data(
+                f"CC{i}",
+                "THCC-A",
+                leads=10,
+                paid=3,
+                registered=15,
+                revenue_usd=1500.0,
+                calls=80,
+                connects=50,
+                effective=30,
+            )
             for i in range(3)
         ]
         ctx = _make_ctx(_merge_cc_data(cc_list))
@@ -265,14 +306,26 @@ class TestCCWeightConstants:
         """当所有归一化值均为 1.0 时，composite_score 应为 1.0。"""
         # 构造两人，一人远高于另一人，使胜者在所有维度归一化后接近 1.0
         winner = _cc_data(
-            "Top", "THCC-A",
-            leads=100, paid=50, registered=200,
-            revenue_usd=50000.0, calls=1000, connects=800, effective=600,
+            "Top",
+            "THCC-A",
+            leads=100,
+            paid=50,
+            registered=200,
+            revenue_usd=50000.0,
+            calls=1000,
+            connects=800,
+            effective=600,
         )
         loser = _cc_data(
-            "Bot", "THCC-A",
-            leads=1, paid=0, registered=1,
-            revenue_usd=0.0, calls=1, connects=0, effective=0,
+            "Bot",
+            "THCC-A",
+            leads=1,
+            paid=0,
+            registered=1,
+            revenue_usd=0.0,
+            calls=1,
+            connects=0,
+            effective=0,
         )
         ctx = _make_ctx(_merge_cc_data([winner, loser]))
         result = RankingAnalyzer(ctx).analyze_cc_ranking()
@@ -416,8 +469,10 @@ class TestSSLPRankingNormal:
     def test_ss_lp_weights_sum_to_one(self):
         """SS_LP_WEIGHTS 各值合计 = 1.0。"""
         weights = {
-            "process": 0.25, "result": 0.30,
-            "quality": 0.25, "contribution": 0.20,
+            "process": 0.25,
+            "result": 0.30,
+            "quality": 0.25,
+            "contribution": 0.20,
         }
         assert sum(weights.values()) == pytest.approx(1.0)
 
@@ -429,8 +484,17 @@ class TestMinmaxLogic:
     def test_all_zero_values_gives_half(self):
         """所有人该维度原始值均为 0（即 max==min==0），归一化应返回 0.5。"""
         cc_list = [
-            _cc_data(f"CC{i}", "THCC-A", leads=0, paid=0, registered=0,
-                     revenue_usd=0.0, calls=0, connects=0, effective=0)
+            _cc_data(
+                f"CC{i}",
+                "THCC-A",
+                leads=0,
+                paid=0,
+                registered=0,
+                revenue_usd=0.0,
+                calls=0,
+                connects=0,
+                effective=0,
+            )
             for i in range(2)
         ]
         ctx = _make_ctx(_merge_cc_data(cc_list))

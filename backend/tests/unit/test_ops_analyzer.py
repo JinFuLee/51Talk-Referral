@@ -2,6 +2,7 @@
 Unit tests for core.analyzers.ops_analyzer.OpsAnalyzer
 ~26 test cases covering: analyze_outreach, analyze_trial_followup
 """
+
 from datetime import datetime
 
 import pytest
@@ -23,7 +24,7 @@ def _outreach_data(cc_names: list[str], calls_per_cc: int = 60, days: int = 2) -
     """构造完整 F5/F6/F7 外呼数据。"""
     by_cc = {
         name: {
-            "total_calls":    calls_per_cc,
+            "total_calls": calls_per_cc,
             "total_connects": calls_per_cc // 2,
             "total_effective": calls_per_cc // 4,
             "dates": [f"2026-02-{d:02d}" for d in range(1, days + 1)],
@@ -33,8 +34,10 @@ def _outreach_data(cc_names: list[str], calls_per_cc: int = 60, days: int = 2) -
     return {
         "ops": {
             "daily_outreach": {
-                "by_date": [{"date": f"2026-02-{d:02d}", "calls": calls_per_cc * len(cc_names)}
-                            for d in range(1, days + 1)],
+                "by_date": [
+                    {"date": f"2026-02-{d:02d}", "calls": calls_per_cc * len(cc_names)}
+                    for d in range(1, days + 1)
+                ],
                 "by_cc": by_cc,
             },
             "trial_followup": {
@@ -49,8 +52,9 @@ def _outreach_data(cc_names: list[str], calls_per_cc: int = 60, days: int = 2) -
     }
 
 
-def _trial_followup_data(pre_call_rate: float = 0.70, overall_att: float = 0.80,
-                          called_att: float = 0.90) -> dict:
+def _trial_followup_data(
+    pre_call_rate: float = 0.70, overall_att: float = 0.80, called_att: float = 0.90
+) -> dict:
     """构造 F10/F11 体验课跟进数据。"""
     return {
         "ops": {
@@ -58,25 +62,23 @@ def _trial_followup_data(pre_call_rate: float = 0.70, overall_att: float = 0.80,
                 "by_cc": [{"cc_name": "Alice", "pre_called": 5, "post_called": 4}],
                 "by_channel": {
                     "转介绍": {
-                        "pre_call_rate":    pre_call_rate,
+                        "pre_call_rate": pre_call_rate,
                         "pre_connect_rate": 0.60,
-                        "post_call_rate":   0.65,
+                        "post_call_rate": 0.65,
                         "post_connect_rate": 0.50,
-                        "attendance_rate":  overall_att,
+                        "attendance_rate": overall_att,
                     }
                 },
             },
             "pre_class_outreach": {
                 "summary": {
-                    "overall_call_rate":       pre_call_rate,
-                    "overall_connect_rate":    0.60,
+                    "overall_call_rate": pre_call_rate,
+                    "overall_connect_rate": 0.60,
                     "overall_attendance_rate": overall_att,
                 },
-                "by_lead_type": {
-                    "转介绍": {"attendance_rate": called_att}
-                },
-                "by_cc":        {},
-                "records":      [],
+                "by_lead_type": {"转介绍": {"attendance_rate": called_att}},
+                "by_cc": {},
+                "records": [],
             },
         }
     }
@@ -172,7 +174,10 @@ class TestAnalyzeOutreachEdgeCases:
             "ops": {
                 "daily_outreach": {"by_date": [], "by_cc": {}},
                 "trial_followup": {"summary": {}, "by_cc": {}},
-                "paid_user_followup": {"summary": {"total_students": 0, "total_monthly_called": 0}, "by_cc": {}},
+                "paid_user_followup": {
+                    "summary": {"total_students": 0, "total_monthly_called": 0},
+                    "by_cc": {},
+                },
             }
         }
         ctx = _make_ctx(data)
@@ -215,18 +220,22 @@ class TestAnalyzeTrialFollowupNormal:
     def test_no_call_attendance_derived_correctly(self):
         """反推：not_called_att = (overall - called * call_rate) / (1 - call_rate)"""
         pre_call_rate = 0.70
-        overall_att   = 0.80
-        called_att    = 0.90
+        overall_att = 0.80
+        called_att = 0.90
         ctx = _make_ctx(_trial_followup_data(pre_call_rate, overall_att, called_att))
         result = OpsAnalyzer(ctx).analyze_trial_followup()
         derived = result["correlation"]["no_call_attendance"]
         if derived is not None:
-            expected = (overall_att - called_att * pre_call_rate) / (1.0 - pre_call_rate)
+            expected = (overall_att - called_att * pre_call_rate) / (
+                1.0 - pre_call_rate
+            )
             assert derived == pytest.approx(expected, abs=1e-4)
 
     def test_no_call_attendance_clamped_to_0_1(self):
         """反推结果应被 clamp 到 [0, 1]。"""
-        ctx = _make_ctx(_trial_followup_data(pre_call_rate=0.70, overall_att=0.80, called_att=0.90))
+        ctx = _make_ctx(
+            _trial_followup_data(pre_call_rate=0.70, overall_att=0.80, called_att=0.90)
+        )
         result = OpsAnalyzer(ctx).analyze_trial_followup()
         val = result["correlation"]["no_call_attendance"]
         if val is not None:

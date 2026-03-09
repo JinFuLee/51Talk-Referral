@@ -2,9 +2,10 @@
 B 类 ROI 数据加载器 — 1 个数据源
 B1: 中台_转介绍ROI测算数据模型_M-1
 """
-from pathlib import Path
-from typing import Optional, TYPE_CHECKING
+
 import logging
+from pathlib import Path
+from typing import TYPE_CHECKING, Optional
 
 from .base import BaseLoader
 
@@ -17,7 +18,9 @@ logger = logging.getLogger(__name__)
 class ROILoader(BaseLoader):
     """B 类 ROI 数据加载器（新版，使用 pandas）"""
 
-    def __init__(self, input_dir: Path, project_config: Optional["ProjectConfig"] = None) -> None:
+    def __init__(
+        self, input_dir: Path, project_config: Optional["ProjectConfig"] = None
+    ) -> None:
         super().__init__(input_dir, project_config)
 
     def load_all(self) -> dict:
@@ -87,9 +90,7 @@ class ROILoader(BaseLoader):
         summary = {}
 
         # 向量化搜索关键词行：将每行合并为字符串，用 str.contains 找目标行
-        row_strings = df.apply(
-            lambda row: " ".join(str(v) for v in row.values), axis=1
-        )
+        row_strings = df.apply(lambda row: " ".join(str(v) for v in row.values), axis=1)
 
         card_matches = row_strings[row_strings.str.contains("转介绍次卡", na=False)]
         cash_matches = row_strings[row_strings.str.contains("转介绍现金", na=False)]
@@ -106,15 +107,21 @@ class ROILoader(BaseLoader):
                 summary["现金"] = _extract_row(df.iloc[cash_data_idx])
 
         # 汇总总值（向量化）
-        revenues = [v.get("实际营收") for v in summary.values() if v.get("实际营收") is not None]
-        costs = [v.get("实际成本") for v in summary.values() if v.get("实际成本") is not None]
+        revenues = [
+            v.get("实际营收") for v in summary.values() if v.get("实际营收") is not None
+        ]
+        costs = [
+            v.get("实际成本") for v in summary.values() if v.get("实际成本") is not None
+        ]
         total_revenue = sum(revenues) if revenues else None
         total_cost = sum(costs) if costs else None
 
         summary["_total"] = {
             "实际营收": total_revenue,
             "实际成本": total_cost,
-            "实际ROI": (total_revenue / total_cost) if total_cost and total_cost != 0 else None,
+            "实际ROI": (total_revenue / total_cost)
+            if total_cost and total_cost != 0
+            else None,
         }
 
         return summary
@@ -139,8 +146,7 @@ class ROILoader(BaseLoader):
             lambda v: str(v).strip() if pd.notna(v) else None
         )
         df = df[
-            df["_reward_type"].notna()
-            & ~df["_reward_type"].isin(["nan", "奖励类型"])
+            df["_reward_type"].notna() & ~df["_reward_type"].isin(["nan", "奖励类型"])
         ].copy()
 
         if df.empty:
@@ -148,22 +154,40 @@ class ROILoader(BaseLoader):
 
         # 向量化构建记录
         records = []
-        for col_idx, field in enumerate([
-            ("_reward_type", "奖励类型", None),
-        ]):
+        for col_idx, field in enumerate(
+            [
+                ("_reward_type", "奖励类型", None),
+            ]
+        ):
             pass  # 下面统一处理
 
         # 用向量化方式构建所有字段
-        result_df = pd.DataFrame({
-            "奖励类型": df["_reward_type"],
-            "内外场激励": df.iloc[:, 1].apply(lambda v: str(v).strip() if pd.notna(v) else None),
-            "激励详情": df.iloc[:, 2].apply(lambda v: str(v).strip() if pd.notna(v) else None),
-            "推荐动作": df.iloc[:, 3].apply(lambda v: str(v).strip() if pd.notna(v) else None),
-            "推荐规则描述": df.iloc[:, 4].apply(lambda v: str(v).strip() if pd.notna(v) else None),
-            "赠送数": self._clean_numeric_vec(df.iloc[:, 5]) if df.shape[1] > 5 else None,
-            "成本单价USD": self._clean_numeric_vec(df.iloc[:, 6]) if df.shape[1] > 6 else None,
-            "成本USD": self._clean_numeric_vec(df.iloc[:, 7]) if df.shape[1] > 7 else None,
-        })
+        result_df = pd.DataFrame(
+            {
+                "奖励类型": df["_reward_type"],
+                "内外场激励": df.iloc[:, 1].apply(
+                    lambda v: str(v).strip() if pd.notna(v) else None
+                ),
+                "激励详情": df.iloc[:, 2].apply(
+                    lambda v: str(v).strip() if pd.notna(v) else None
+                ),
+                "推荐动作": df.iloc[:, 3].apply(
+                    lambda v: str(v).strip() if pd.notna(v) else None
+                ),
+                "推荐规则描述": df.iloc[:, 4].apply(
+                    lambda v: str(v).strip() if pd.notna(v) else None
+                ),
+                "赠送数": self._clean_numeric_vec(df.iloc[:, 5])
+                if df.shape[1] > 5
+                else None,
+                "成本单价USD": self._clean_numeric_vec(df.iloc[:, 6])
+                if df.shape[1] > 6
+                else None,
+                "成本USD": self._clean_numeric_vec(df.iloc[:, 7])
+                if df.shape[1] > 7
+                else None,
+            }
+        )
 
         return result_df.to_dict("records")
 
@@ -209,12 +233,7 @@ class ROILoader(BaseLoader):
             return []
 
         # 向量化提取第2列，过滤无效值
-        vals = df.iloc[:, 1].apply(
-            lambda v: str(v).strip() if pd.notna(v) else None
-        )
-        regions = vals[
-            vals.notna()
-            & ~vals.isin(["nan", "勿动", ""])
-        ].tolist()
+        vals = df.iloc[:, 1].apply(lambda v: str(v).strip() if pd.notna(v) else None)
+        regions = vals[vals.notna() & ~vals.isin(["nan", "勿动", ""])].tolist()
 
         return regions

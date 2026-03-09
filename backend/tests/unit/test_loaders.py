@@ -2,9 +2,11 @@
 Unit tests for core.loaders.base.BaseLoader
 ~17 test cases — alias normalization + team normalization + numeric cleaning
 """
+
 import numpy as np
 import pandas as pd
 import pytest
+
 from backend.core.loaders.base import BaseLoader
 
 # ── Fixtures ──────────────────────────────────────────────────────────────────

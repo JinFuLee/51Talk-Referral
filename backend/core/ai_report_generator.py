@@ -10,6 +10,7 @@ AI 报告编排器
   5. 保存到 output/reports/YYYY-MM-DD.md
   6. 返回结构化结果 dict
 """
+
 from __future__ import annotations
 
 import logging
@@ -70,6 +71,7 @@ def _fmt_usd(value: Any) -> str:
 
 
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 class AIReportGenerator:
     """
@@ -157,6 +159,7 @@ class AIReportGenerator:
         root_cause_result: dict[str, Any] = {}
         try:
             from backend.core.root_cause import RootCauseEngine
+
             rce = RootCauseEngine(
                 summary=summary,
                 funnel=funnel,
@@ -172,6 +175,7 @@ class AIReportGenerator:
         impact_result: dict[str, Any] = {}
         try:
             from backend.core.impact_chain import ImpactChainEngine
+
             ice = ImpactChainEngine(
                 summary=summary,
                 targets=targets,
@@ -186,6 +190,7 @@ class AIReportGenerator:
         stage_result: dict[str, Any] = {}
         try:
             from backend.core.stage_evaluator import StageEvaluator
+
             se = StageEvaluator(result)
             stage_result = se.evaluate()
         except Exception as e:
@@ -213,6 +218,7 @@ class AIReportGenerator:
 
         # ── 步骤 4：调用 Gemini 生成 AI 洞察 ─────────────────────────────────
         from backend.core.llm_adapter import get_adapter
+
         adapter = get_adapter()
         ai_commentary = ""
         model_used = adapter.model_name
@@ -370,7 +376,9 @@ class AIReportGenerator:
         # ── 标题 + 元信息 ─────────────────────────────────────────────────────
         lines.append(f"# 51Talk 泰国转介绍运营日报 — {report_date}")
         lines.append("")
-        lines.append(f"> **数据日期**：{data_date}　**生成时间**：{generated_time}　**AI模型**：{model_used if has_ai else '未启用'}")
+        lines.append(
+            f"> **数据日期**：{data_date}　**生成时间**：{generated_time}　**AI模型**：{model_used if has_ai else '未启用'}"
+        )
         lines.append("")
 
         # ── 核心指标概览表格 ──────────────────────────────────────────────────
@@ -386,9 +394,9 @@ class AIReportGenerator:
         lines.append("|------|--------|--------|--------|-----------|")
 
         kpi_metrics = [
-            ("revenue",       "转介绍业绩($)", True),
-            ("registrations", "转介绍注册",   False),
-            ("payments",      "付费单量",     False),
+            ("revenue", "转介绍业绩($)", True),
+            ("registrations", "转介绍注册", False),
+            ("payments", "付费单量", False),
         ]
         for key, label, is_money in kpi_metrics:
             block = summary.get(key, {}) if isinstance(summary, dict) else {}
@@ -408,9 +416,13 @@ class AIReportGenerator:
             else:
                 abs_gap_s = "N/A"
 
-            progress_gap_s = _fmt_pct(progress_gap) if progress_gap is not None else "N/A"
+            progress_gap_s = (
+                _fmt_pct(progress_gap) if progress_gap is not None else "N/A"
+            )
 
-            lines.append(f"| {label} | {actual_s} | {target_s} | {abs_gap_s} | {progress_gap_s} |")
+            lines.append(
+                f"| {label} | {actual_s} | {target_s} | {abs_gap_s} | {progress_gap_s} |"
+            )
 
         lines.append("")
 
@@ -419,10 +431,10 @@ class AIReportGenerator:
         lines.append("|----------|--------|------|------|")
 
         eff_metrics = [
-            ("reach_rate",         "触达率"),
+            ("reach_rate", "触达率"),
             ("participation_rate", "参与率"),
-            ("checkin_rate",       "打卡率"),
-            ("conversion_rate",    "注册→付费转化率"),
+            ("checkin_rate", "打卡率"),
+            ("conversion_rate", "注册→付费转化率"),
         ]
         for key, label in eff_metrics:
             block = kpi.get(key, {}) if isinstance(kpi, dict) else {}
@@ -457,7 +469,11 @@ class AIReportGenerator:
                     action = analysis_item.get("action", "")
                     impact_usd = analysis_item.get("expected_impact_usd", 0)
 
-                    status_icon = "🔴" if severity == "red" else ("🟡" if severity == "yellow" else "🟢")
+                    status_icon = (
+                        "🔴"
+                        if severity == "red"
+                        else ("🟡" if severity == "yellow" else "🟢")
+                    )
                     lines.append(f"### {status_icon} {label}")
                     lines.append("")
 
@@ -505,7 +521,11 @@ class AIReportGenerator:
             lines.append("| 效率指标 | 差值 | 损失付费 | 损失收入($) |")
             lines.append("|----------|------|----------|------------|")
 
-            chains_list = impact_result.get("chains", []) if isinstance(impact_result, dict) else []
+            chains_list = (
+                impact_result.get("chains", [])
+                if isinstance(impact_result, dict)
+                else []
+            )
             for chain_data in chains_list:
                 if not isinstance(chain_data, dict):
                     continue
@@ -515,9 +535,17 @@ class AIReportGenerator:
                 lost_revenue_usd = chain_data.get("lost_revenue_usd")
 
                 gap_s = _fmt_pct(gap) if gap is not None else "N/A"
-                lost_payments_s = _fmt_num(lost_payments) if lost_payments is not None else "N/A"
-                lost_rev_s = _fmt_usd(lost_revenue_usd) if lost_revenue_usd is not None else "N/A"
-                lines.append(f"| {label} | {gap_s} | {lost_payments_s} | {lost_rev_s} |")
+                lost_payments_s = (
+                    _fmt_num(lost_payments) if lost_payments is not None else "N/A"
+                )
+                lost_rev_s = (
+                    _fmt_usd(lost_revenue_usd)
+                    if lost_revenue_usd is not None
+                    else "N/A"
+                )
+                lines.append(
+                    f"| {label} | {gap_s} | {lost_payments_s} | {lost_rev_s} |"
+                )
 
             lines.append("")
 

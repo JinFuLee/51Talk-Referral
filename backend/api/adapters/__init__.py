@@ -2,6 +2,7 @@
 backend/api/adapters/__init__.py
 统一导出所有 adapt 函数，方便 analysis.py 一次性导入。
 """
+
 from backend.api.adapters.outreach_adapt import (
     _adapt_orders,
     _adapt_outreach,

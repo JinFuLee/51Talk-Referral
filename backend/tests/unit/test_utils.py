@@ -2,6 +2,7 @@
 Unit tests for core.analyzers.utils
 ~15 test cases
 """
+
 import math
 
 import pytest
@@ -12,7 +13,6 @@ from backend.core.analyzers.utils import (
     _safe_div,
     _safe_pct,
 )
-
 
 # ── _safe_div ──────────────────────────────────────────────────────────────────
 

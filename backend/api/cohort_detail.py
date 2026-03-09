@@ -3,14 +3,16 @@ Cohort 分析 API 端点
 C1-C5: 衰减曲线 + 热力图数据
 C6: 学员级留存分析 + CC 真实带新排行
 """
+
 from __future__ import annotations
 
 from typing import Any, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 
-from .dependencies import get_service
 from backend.services.analysis_service import AnalysisService
+
+from .dependencies import get_service
 
 router = APIRouter()
 
@@ -69,11 +71,76 @@ def _mock_decay_series(metric: str, cohort_month: Optional[str] = None) -> list[
     形状基于典型 cohort 衰减曲线。
     """
     base_vals = {
-        "reach_rate": [0.82, 0.65, 0.50, 0.38, 0.30, 0.25, 0.22, 0.19, 0.17, 0.15, 0.14, 0.12],
-        "participation_rate": [0.25, 0.18, 0.13, 0.09, 0.07, 0.05, 0.04, 0.04, 0.03, 0.03, 0.02, 0.02],
-        "checkin_rate": [0.75, 0.62, 0.52, 0.44, 0.40, 0.38, 0.36, 0.34, 0.32, 0.30, 0.28, 0.26],
-        "referral_coefficient": [1.8, 1.5, 1.3, 1.1, 0.9, 0.8, 0.7, 0.65, 0.6, 0.55, 0.5, 0.45],
-        "conversion_ratio": [0.30, 0.22, 0.15, 0.10, 0.07, 0.05, 0.04, 0.035, 0.03, 0.025, 0.02, 0.018],
+        "reach_rate": [
+            0.82,
+            0.65,
+            0.50,
+            0.38,
+            0.30,
+            0.25,
+            0.22,
+            0.19,
+            0.17,
+            0.15,
+            0.14,
+            0.12,
+        ],
+        "participation_rate": [
+            0.25,
+            0.18,
+            0.13,
+            0.09,
+            0.07,
+            0.05,
+            0.04,
+            0.04,
+            0.03,
+            0.03,
+            0.02,
+            0.02,
+        ],
+        "checkin_rate": [
+            0.75,
+            0.62,
+            0.52,
+            0.44,
+            0.40,
+            0.38,
+            0.36,
+            0.34,
+            0.32,
+            0.30,
+            0.28,
+            0.26,
+        ],
+        "referral_coefficient": [
+            1.8,
+            1.5,
+            1.3,
+            1.1,
+            0.9,
+            0.8,
+            0.7,
+            0.65,
+            0.6,
+            0.55,
+            0.5,
+            0.45,
+        ],
+        "conversion_ratio": [
+            0.30,
+            0.22,
+            0.15,
+            0.10,
+            0.07,
+            0.05,
+            0.04,
+            0.035,
+            0.03,
+            0.025,
+            0.02,
+            0.018,
+        ],
     }
     vals = base_vals.get(metric, [0.5] * 12)
     return [
@@ -105,10 +172,12 @@ def _extract_raw_cohort(result: dict, metric: str) -> dict:
         if m1_val is not None and cohort_month:
             # 基于 m1 值构造近似衰减曲线
             decay_series = _approx_decay_curve(float(m1_val), metric)
-            by_cohort.append({
-                "cohort": cohort_month,
-                "series": decay_series,
-            })
+            by_cohort.append(
+                {
+                    "cohort": cohort_month,
+                    "series": decay_series,
+                }
+            )
 
     return {
         "by_cohort_month": by_cohort,
@@ -119,20 +188,83 @@ def _extract_raw_cohort(result: dict, metric: str) -> dict:
 def _approx_decay_curve(m1_val: float, metric: str) -> list[dict]:
     """基于 m1 基准值，用典型衰减系数生成 m1-m12 近似曲线"""
     decay_rates = {
-        "reach_rate": [1.0, 0.79, 0.61, 0.46, 0.37, 0.30, 0.27, 0.23, 0.21, 0.18, 0.17, 0.15],
-        "participation_rate": [1.0, 0.72, 0.52, 0.36, 0.28, 0.20, 0.16, 0.16, 0.12, 0.12, 0.08, 0.08],
-        "checkin_rate": [1.0, 0.83, 0.69, 0.59, 0.53, 0.51, 0.48, 0.45, 0.43, 0.40, 0.37, 0.35],
-        "referral_coefficient": [1.0, 0.83, 0.72, 0.61, 0.50, 0.44, 0.39, 0.36, 0.33, 0.31, 0.28, 0.25],
-        "conversion_ratio": [1.0, 0.73, 0.50, 0.33, 0.23, 0.17, 0.13, 0.12, 0.10, 0.08, 0.07, 0.06],
+        "reach_rate": [
+            1.0,
+            0.79,
+            0.61,
+            0.46,
+            0.37,
+            0.30,
+            0.27,
+            0.23,
+            0.21,
+            0.18,
+            0.17,
+            0.15,
+        ],
+        "participation_rate": [
+            1.0,
+            0.72,
+            0.52,
+            0.36,
+            0.28,
+            0.20,
+            0.16,
+            0.16,
+            0.12,
+            0.12,
+            0.08,
+            0.08,
+        ],
+        "checkin_rate": [
+            1.0,
+            0.83,
+            0.69,
+            0.59,
+            0.53,
+            0.51,
+            0.48,
+            0.45,
+            0.43,
+            0.40,
+            0.37,
+            0.35,
+        ],
+        "referral_coefficient": [
+            1.0,
+            0.83,
+            0.72,
+            0.61,
+            0.50,
+            0.44,
+            0.39,
+            0.36,
+            0.33,
+            0.31,
+            0.28,
+            0.25,
+        ],
+        "conversion_ratio": [
+            1.0,
+            0.73,
+            0.50,
+            0.33,
+            0.23,
+            0.17,
+            0.13,
+            0.12,
+            0.10,
+            0.08,
+            0.07,
+            0.06,
+        ],
     }
     rates = decay_rates.get(metric, [1.0] * 12)
-    return [
-        {"month": i + 1, "value": round(m1_val * rates[i], 4)}
-        for i in range(12)
-    ]
+    return [{"month": i + 1, "value": round(m1_val * rates[i], 4)} for i in range(12)]
 
 
 # ── 端点 1: GET /api/analysis/cohort-decay ────────────────────────────────────
+
 
 @router.get("/cohort-decay", summary="Cohort 衰减曲线（C1-C5 指标 m1-m12）")
 def get_cohort_decay(
@@ -205,6 +337,7 @@ def get_cohort_decay(
 
 # ── 端点 2: GET /api/analysis/cohort-heatmap ─────────────────────────────────
 
+
 @router.get("/cohort-heatmap", summary="5 指标 × 12 月龄 Cohort 热力图矩阵")
 def get_cohort_heatmap(svc: AnalysisService = Depends(get_service)) -> dict[str, Any]:
     """
@@ -248,11 +381,13 @@ def get_cohort_heatmap(svc: AnalysisService = Depends(get_service)) -> dict[str,
     cohort_months_data: list[dict] = []
     if by_month_raw:
         for row in by_month_raw:
-            cohort_months_data.append({
-                "cohort": row.get("cohort_month", ""),
-                "reach_rate": row.get("reach_rate_m1"),
-                "participation_rate": row.get("participation_m1"),
-            })
+            cohort_months_data.append(
+                {
+                    "cohort": row.get("cohort_month", ""),
+                    "reach_rate": row.get("reach_rate_m1"),
+                    "participation_rate": row.get("participation_m1"),
+                }
+            )
     else:
         # 演示数据
         demo = [
@@ -264,14 +399,16 @@ def get_cohort_heatmap(svc: AnalysisService = Depends(get_service)) -> dict[str,
             ("2025-11", 0.83, 0.26, 0.76, 1.85, 0.32),
         ]
         for d in demo:
-            cohort_months_data.append({
-                "cohort": d[0],
-                "reach_rate": d[1],
-                "participation_rate": d[2],
-                "checkin_rate": d[3],
-                "referral_coefficient": d[4],
-                "conversion_ratio": d[5],
-            })
+            cohort_months_data.append(
+                {
+                    "cohort": d[0],
+                    "reach_rate": d[1],
+                    "participation_rate": d[2],
+                    "checkin_rate": d[3],
+                    "referral_coefficient": d[4],
+                    "conversion_ratio": d[5],
+                }
+            )
 
     return {
         "metrics": metrics,
@@ -284,6 +421,7 @@ def get_cohort_heatmap(svc: AnalysisService = Depends(get_service)) -> dict[str,
 
 
 # ── 端点 3: GET /api/analysis/cohort-detail ──────────────────────────────────
+
 
 @router.get("/cohort-detail", summary="C6 学员级留存分析 + CC 带新排行")
 def get_cohort_detail(svc: AnalysisService = Depends(get_service)) -> dict[str, Any]:
@@ -302,7 +440,9 @@ def get_cohort_detail(svc: AnalysisService = Depends(get_service)) -> dict[str, 
         )
 
     cohort_raw: dict = raw.get("cohort", {}) if isinstance(raw, dict) else {}  # noqa: E501
-    c6: dict = cohort_raw.get("cohort_detail", {}) if isinstance(cohort_raw, dict) else {}
+    c6: dict = (
+        cohort_raw.get("cohort_detail", {}) if isinstance(cohort_raw, dict) else {}
+    )
 
     if not c6:
         raise HTTPException(
@@ -324,21 +464,36 @@ def get_cohort_detail(svc: AnalysisService = Depends(get_service)) -> dict[str, 
             bring_new = info.get("带新注册总数", 0) or 0
             reached = info.get("触达学员数", 0) or 0
             students = info.get("学员数", 0) or 0
-            by_cc.append({
-                "cc": name,
-                "team": info.get("团队", ""),
-                "students": students,
-                "valid_rate": round(valid / students, 4) if students > 0 else 0,
-                "reach_rate": round(reached / valid, 4) if valid > 0 else 0,
-                "bring_new_rate": round(bring_new / valid, 4) if valid > 0 else 0,
-                "bring_new_total": int(bring_new),
-            })
+            by_cc.append(
+                {
+                    "cc": name,
+                    "team": info.get("团队", ""),
+                    "students": students,
+                    "valid_rate": round(valid / students, 4) if students > 0 else 0,
+                    "reach_rate": round(reached / valid, 4) if valid > 0 else 0,
+                    "bring_new_rate": round(bring_new / valid, 4) if valid > 0 else 0,
+                    "bring_new_total": int(bring_new),
+                }
+            )
         by_cc.sort(key=lambda x: x["bring_new_rate"], reverse=True)
 
     # ── 月龄别留存率（从 records 聚合 m1-m12）────────────────────────────────
     retention_by_age: list[dict] = []
     if records:
-        _CN_NUMS = ["一", "二", "三", "四", "五", "六", "七", "八", "九", "十", "十一", "十二"]
+        _CN_NUMS = [
+            "一",
+            "二",
+            "三",
+            "四",
+            "五",
+            "六",
+            "七",
+            "八",
+            "九",
+            "十",
+            "十一",
+            "十二",
+        ]
         for m_idx, m_cn in enumerate(_CN_NUMS, start=1):
             valid_key = f"第{m_cn}个月是否有效"
             reach_key = f"第{m_cn}个月是否触达"
@@ -360,12 +515,14 @@ def get_cohort_detail(svc: AnalysisService = Depends(get_service)) -> dict[str, 
                 if v_bring and float(v_bring) > 0:
                     bring_total += float(v_bring)
             if total_m > 0:
-                retention_by_age.append({
-                    "m": m_idx,
-                    "valid_rate": round(valid_count / total_m, 4),
-                    "reach_rate": round(reach_count / total_m, 4),
-                    "bring_new_rate": round(bring_total / total_m, 4),
-                })
+                retention_by_age.append(
+                    {
+                        "m": m_idx,
+                        "valid_rate": round(valid_count / total_m, 4),
+                        "reach_rate": round(reach_count / total_m, 4),
+                        "bring_new_rate": round(bring_total / total_m, 4),
+                    }
+                )
 
     # ── 月龄流失漏斗（从留存率反推）────────────────────────────────────────────
     churn_by_age: list[dict] = []
@@ -379,12 +536,14 @@ def get_cohort_detail(svc: AnalysisService = Depends(get_service)) -> dict[str, 
             first_churn_rate = max(0.0, round(prev_rate - valid_rate, 4))
             cumulative = round(cumulative + first_churn_rate, 4)
             est_total = total or 1
-            churn_by_age.append({
-                "m": m,
-                "first_churn_count": round(first_churn_rate * est_total),
-                "first_churn_rate": first_churn_rate,
-                "cumulative_churn_rate": min(1.0, cumulative),
-            })
+            churn_by_age.append(
+                {
+                    "m": m,
+                    "first_churn_count": round(first_churn_rate * est_total),
+                    "first_churn_rate": first_churn_rate,
+                    "cumulative_churn_rate": min(1.0, cumulative),
+                }
+            )
 
     # ── 头部带新学员（从 records 提取）──────────────────────────────────────────
     top_bringers: list[dict] = []
@@ -395,13 +554,14 @@ def get_cohort_detail(svc: AnalysisService = Depends(get_service)) -> dict[str, 
             if not sid:
                 continue
             bring_dict = r.get("带新注册数", {}) or {}
-            total_new = sum(
-                float(v) for v in bring_dict.values() if v and float(v) > 0
-            )
+            total_new = sum(float(v) for v in bring_dict.values() if v and float(v) > 0)
             if total_new > 0:
                 last_active_m = max(
-                    (int(k[1:]) for k, v in (r.get("是否有效", {}) or {}).items()
-                     if v == 1 and k.startswith("m") and k[1:].isdigit()),
+                    (
+                        int(k[1:])
+                        for k, v in (r.get("是否有效", {}) or {}).items()
+                        if v == 1 and k.startswith("m") and k[1:].isdigit()
+                    ),
                     default=0,
                 )
                 if sid not in bringer_map or total_new > bringer_map[sid]["total_new"]:

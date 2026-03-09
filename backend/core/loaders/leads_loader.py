@@ -6,9 +6,10 @@ A3: BI-Leads_全口径leads明细表_D-1
 A4: BI-Leads_宽口径leads达成-个人_D-1
 A5: 宣萱_转介绍不同口径对比_D-1
 """
-from pathlib import Path
-from typing import Any, Optional, TYPE_CHECKING
+
 import logging
+from pathlib import Path
+from typing import TYPE_CHECKING, Any, Optional
 
 from .base import BaseLoader
 
@@ -21,7 +22,9 @@ logger = logging.getLogger(__name__)
 class LeadsLoader(BaseLoader):
     """A 类 Leads 数据加载器"""
 
-    def __init__(self, input_dir: Path, project_config: Optional["ProjectConfig"] = None) -> None:
+    def __init__(
+        self, input_dir: Path, project_config: Optional["ProjectConfig"] = None
+    ) -> None:
         super().__init__(input_dir, project_config)
 
     def load_all(self) -> dict:
@@ -75,7 +78,9 @@ class LeadsLoader(BaseLoader):
             return {}
 
         # 先用 header=None 读取原始结构，便于理解双层表头
-        df_raw = self._read_xlsx_pandas(path, sheet_name="转介绍leads达成_by_CM_EA_宽口径", header=None)
+        df_raw = self._read_xlsx_pandas(
+            path, sheet_name="转介绍leads达成_by_CM_EA_宽口径", header=None
+        )
         if df_raw.empty:
             return {}
 
@@ -84,7 +89,9 @@ class LeadsLoader(BaseLoader):
         header_row0 = df_raw.iloc[0].ffill().tolist()
         header_row1 = df_raw.iloc[1].tolist()
         col_names = [
-            f"{str(h0).strip()}_{str(h1).strip()}" if str(h1).strip() not in ("nan", "") else str(h0).strip()
+            f"{str(h0).strip()}_{str(h1).strip()}"
+            if str(h1).strip() not in ("nan", "")
+            else str(h0).strip()
             for h0, h1 in zip(header_row0, header_row1)
         ]
 
@@ -106,16 +113,24 @@ class LeadsLoader(BaseLoader):
 
         # 过滤 team 和 group 都为空的行（向量化）
         team_series = df_valid.iloc[:, 1].apply(
-            lambda v: self._normalize_team(str(v).strip()) if pd.notna(v) else self._normalize_team("")
+            lambda v: (
+                self._normalize_team(str(v).strip())
+                if pd.notna(v)
+                else self._normalize_team("")
+            )
         )
         group_series = df_valid.iloc[:, 2].apply(
-            lambda v: str(v).strip() if pd.notna(v) and str(v).strip() not in ("nan", "") else None
+            lambda v: (
+                str(v).strip()
+                if pd.notna(v) and str(v).strip() not in ("nan", "")
+                else None
+            )
         )
         valid_mask = ~(team_series.apply(lambda t: not t) & group_series.isna())
         df_valid = df_valid[valid_mask].copy()
 
         # 预先向量化清洗数值列 (3~27)
-        num_cols = df_valid.columns[3:min(28, len(df_valid.columns))]
+        num_cols = df_valid.columns[3 : min(28, len(df_valid.columns))]
         df_nums = df_valid[num_cols].apply(self._clean_numeric_vec)
 
         def _build_record(idx_pos) -> dict[str, Any]:
@@ -127,16 +142,34 @@ class LeadsLoader(BaseLoader):
 
             def _chan(ch_offset) -> dict[str, Any]:
                 return {
-                    "注册付费率": nums[0 * 5 + ch_offset] if 0 * 5 + ch_offset < len(nums) else None,
-                    "注册":       nums[1 * 5 + ch_offset] if 1 * 5 + ch_offset < len(nums) else None,
-                    "预约":       nums[2 * 5 + ch_offset] if 2 * 5 + ch_offset < len(nums) else None,
-                    "出席":       nums[3 * 5 + ch_offset] if 3 * 5 + ch_offset < len(nums) else None,
-                    "付费":       nums[4 * 5 + ch_offset] if 4 * 5 + ch_offset < len(nums) else None,
+                    "注册付费率": nums[0 * 5 + ch_offset]
+                    if 0 * 5 + ch_offset < len(nums)
+                    else None,
+                    "注册": nums[1 * 5 + ch_offset]
+                    if 1 * 5 + ch_offset < len(nums)
+                    else None,
+                    "预约": nums[2 * 5 + ch_offset]
+                    if 2 * 5 + ch_offset < len(nums)
+                    else None,
+                    "出席": nums[3 * 5 + ch_offset]
+                    if 3 * 5 + ch_offset < len(nums)
+                    else None,
+                    "付费": nums[4 * 5 + ch_offset]
+                    if 4 * 5 + ch_offset < len(nums)
+                    else None,
                 }
 
-            region = str(row.iloc[0]).strip() if str(row.iloc[0]).strip() not in ("nan", "") else None
+            region = (
+                str(row.iloc[0]).strip()
+                if str(row.iloc[0]).strip() not in ("nan", "")
+                else None
+            )
             team = self._normalize_team(str(row.iloc[1]).strip())
-            group = str(row.iloc[2]).strip() if str(row.iloc[2]).strip() not in ("nan", "") else None
+            group = (
+                str(row.iloc[2]).strip()
+                if str(row.iloc[2]).strip() not in ("nan", "")
+                else None
+            )
             return {
                 "海外大区": region,
                 "团队": self._normalize_alias(team) if team else None,
@@ -154,13 +187,17 @@ class LeadsLoader(BaseLoader):
         by_channel = {}
         # 先找全局总计行（团队和小组都是"小计"或"总计"）
         global_totals = [
-            rec for rec in by_team
-            if rec.get("团队") in ("小计", "总计") and rec.get("小组") in ("小计", "总计")
+            rec
+            for rec in by_team
+            if rec.get("团队") in ("小计", "总计")
+            and rec.get("小组") in ("小计", "总计")
         ]
         # 退回：任意一行团队或小组为"小计"/"总计"
         fallback_totals = [
-            rec for rec in by_team
-            if rec.get("团队") in ("小计", "总计") or rec.get("小组") in ("小计", "总计")
+            rec
+            for rec in by_team
+            if rec.get("团队") in ("小计", "总计")
+            or rec.get("小组") in ("小计", "总计")
         ]
         total_rows = global_totals if global_totals else fallback_totals
         if total_rows:
@@ -200,7 +237,9 @@ class LeadsLoader(BaseLoader):
         header_row0 = df_raw.iloc[0].ffill().tolist()
         header_row1 = df_raw.iloc[1].tolist()
         col_names = [
-            f"{str(h0).strip()}_{str(h1).strip()}" if str(h1).strip() not in ("nan", "") else str(h0).strip()
+            f"{str(h0).strip()}_{str(h1).strip()}"
+            if str(h1).strip() not in ("nan", "")
+            else str(h0).strip()
             for h0, h1 in zip(header_row0, header_row1)
         ]
 
@@ -215,12 +254,14 @@ class LeadsLoader(BaseLoader):
         non_empty_mask = ~(
             df.isnull() | df.astype(str).isin(["", "nan", "None", "NaN", "-", "—"])
         ).all(axis=1)
-        enc_col = df.iloc[:, 1].apply(lambda v: str(v).strip() if str(v).strip() not in ("nan", "") else None)
+        enc_col = df.iloc[:, 1].apply(
+            lambda v: str(v).strip() if str(v).strip() not in ("nan", "") else None
+        )
         valid_mask = non_empty_mask & enc_col.notna()
         df_valid = df[valid_mask].copy()
 
         # 预先清洗数值列 (2~31)
-        num_cols = df_valid.columns[2:min(32, len(df_valid.columns))]
+        num_cols = df_valid.columns[2 : min(32, len(df_valid.columns))]
         df_nums = df_valid[num_cols].apply(self._clean_numeric_vec)
 
         def _build_enc_record(idx_pos) -> dict[str, Any]:
@@ -232,18 +273,25 @@ class LeadsLoader(BaseLoader):
             def _chan(offset) -> dict[str, Any]:
                 base = offset * 6
                 return {
-                    "带货比":  nums[base]     if base     < len(nums) else None,
-                    "参与率":  nums[base + 1] if base + 1 < len(nums) else None,
+                    "带货比": nums[base] if base < len(nums) else None,
+                    "参与率": nums[base + 1] if base + 1 < len(nums) else None,
                     "围场转率": nums[base + 2] if base + 2 < len(nums) else None,
                     "A学员数": nums[base + 3] if base + 3 < len(nums) else None,
                     "推荐注册": nums[base + 4] if base + 4 < len(nums) else None,
                     "推荐付费": nums[base + 5] if base + 5 < len(nums) else None,
                 }
 
-            region = str(row.iloc[0]).strip() if str(row.iloc[0]).strip() not in ("nan", "") else None
+            region = (
+                str(row.iloc[0]).strip()
+                if str(row.iloc[0]).strip() not in ("nan", "")
+                else None
+            )
             _A2_ENC_NORMALIZE = {
-                "0-30天": "0-30", "31-60天": "31-60", "61-90天": "61-90",
-                "90天以上": "91-180", "小计": "小计",
+                "0-30天": "0-30",
+                "31-60天": "31-60",
+                "61-90天": "61-90",
+                "90天以上": "91-180",
+                "小计": "小计",
             }
             enclosure_raw = str(row.iloc[1]).strip()
             enclosure = _A2_ENC_NORMALIZE.get(enclosure_raw, enclosure_raw)
@@ -279,8 +327,9 @@ class LeadsLoader(BaseLoader):
         Sheet: CM_EA转介绍leads明细表
         扁平结构，502行×30列
         """
-        import pandas as pd
         from datetime import datetime as _dt
+
+        import pandas as pd
 
         path = self._find_latest_file("BI-Leads_全口径leads明细表_D-1")
         if not path:
@@ -309,7 +358,9 @@ class LeadsLoader(BaseLoader):
                 col_map["末次分配CC员工ID"] = c
             if "首次分配CC员工姓名" in c and "末次" not in c:
                 col_map["首次分配CC员工姓名"] = c
-            if "首次分配CC员工组名称" in c or ("首次分配CC" in c and "组" in c and "末次" not in c):
+            if "首次分配CC员工组名称" in c or (
+                "首次分配CC" in c and "组" in c and "末次" not in c
+            ):
                 col_map["首次分配CC组名称"] = c
             if "当月是否预约" in c:
                 col_map["当月是否预约"] = c
@@ -319,19 +370,33 @@ class LeadsLoader(BaseLoader):
                 col_map["首次1v1大单付费金额"] = c
 
         # 反转 col_map 用于 DataFrame 列重命名（原始列名 → 标准键名）
-        rename_map = {v_col: std_key for std_key, v_col in col_map.items() if v_col in df.columns}
+        rename_map = {
+            v_col: std_key for std_key, v_col in col_map.items() if v_col in df.columns
+        }
         df_renamed = df.rename(columns=rename_map)
 
         # 向量化构建 records（各列直接操作）
         str_cols = [
-            "学员ID", "渠道类型", "当月是否预约", "是否预约过", "是否转介绍", "当月是否出席",
-            "转介绍类型", "推荐人学员ID",
-            "首次分配CC员工姓名", "首次分配CC员工ID", "首次分配CC组名称",
-            "末次分配CC员工姓名", "末次分配CC员工ID", "末次分配CC组名称",
+            "学员ID",
+            "渠道类型",
+            "当月是否预约",
+            "是否预约过",
+            "是否转介绍",
+            "当月是否出席",
+            "转介绍类型",
+            "推荐人学员ID",
+            "首次分配CC员工姓名",
+            "首次分配CC员工ID",
+            "首次分配CC组名称",
+            "末次分配CC员工姓名",
+            "末次分配CC员工ID",
+            "末次分配CC组名称",
         ]
         date_cols = [
-            "注册日期(day)", "首次体验课约课日期(day)",
-            "首次体验课出席日期(day)", "首次1v1大单付费日期(day)",
+            "注册日期(day)",
+            "首次体验课约课日期(day)",
+            "首次体验课出席日期(day)",
+            "首次1v1大单付费日期(day)",
         ]
 
         def _safe_str(series: "pd.Series") -> "pd.Series":
@@ -360,11 +425,15 @@ class LeadsLoader(BaseLoader):
 
         # 数值列
         if "首次1v1大单付费金额" in df_renamed.columns:
-            df_renamed["首次1v1大单付费金额"] = self._clean_numeric_vec(df_renamed["首次1v1大单付费金额"])
+            df_renamed["首次1v1大单付费金额"] = self._clean_numeric_vec(
+                df_renamed["首次1v1大单付费金额"]
+            )
         else:
             df_renamed["首次1v1大单付费金额"] = None
         if "CC总流转次数" in df_renamed.columns:
-            df_renamed["CC总流转次数"] = self._clean_numeric_vec(df_renamed["CC总流转次数"])
+            df_renamed["CC总流转次数"] = self._clean_numeric_vec(
+                df_renamed["CC总流转次数"]
+            )
         else:
             df_renamed["CC总流转次数"] = None
 
@@ -398,20 +467,30 @@ class LeadsLoader(BaseLoader):
             map(_calc_days, zip(reg_dates, paid_dates))
         )
 
-        records = df_renamed[str_cols + date_cols + ["首次1v1大单付费金额", "CC总流转次数", "days_to_payment"]].to_dict("records")
+        records = df_renamed[
+            str_cols
+            + date_cols
+            + ["首次1v1大单付费金额", "CC总流转次数", "days_to_payment"]
+        ].to_dict("records")
 
         # 向量化聚合 by_cc / by_team（groupby 替代逐行累加）
         # 判断付费是否在当月
         paid_date_series = df_renamed["首次1v1大单付费日期(day)"]
         paid_this_month_mask = paid_date_series.apply(
-            lambda v: bool(v and isinstance(v, str) and v.startswith(_report_month_prefix))
+            lambda v: bool(
+                v and isinstance(v, str) and v.startswith(_report_month_prefix)
+            )
         )
         df_renamed["_paid_this_month"] = paid_this_month_mask.astype(int)
 
         # 布尔指标向量化
         bool_true_vals = {"1", "1.0", 1, True}
-        df_renamed["_预约_flag"] = df_renamed["当月是否预约"].isin(bool_true_vals).astype(int)
-        df_renamed["_出席_flag"] = df_renamed["当月是否出席"].isin(bool_true_vals).astype(int)
+        df_renamed["_预约_flag"] = (
+            df_renamed["当月是否预约"].isin(bool_true_vals).astype(int)
+        )
+        df_renamed["_出席_flag"] = (
+            df_renamed["当月是否出席"].isin(bool_true_vals).astype(int)
+        )
 
         # by_cc groupby
         cc_col_val = df_renamed["末次分配CC员工姓名"].fillna("").replace("nan", "")
@@ -497,7 +576,9 @@ class LeadsLoader(BaseLoader):
 
         # 向量化：按姓名列过滤无效行
         skip_vals = {"nan", "转介绍销售名称", "小计", "总计", "", "-", "—"}
-        name_series = df.iloc[:, 3].apply(lambda v: str(v).strip() if pd.notna(v) else None)
+        name_series = df.iloc[:, 3].apply(
+            lambda v: str(v).strip() if pd.notna(v) else None
+        )
         valid_mask = name_series.notna() & ~name_series.isin(skip_vals)
         df_valid = df[valid_mask].copy()
 
@@ -512,15 +593,39 @@ class LeadsLoader(BaseLoader):
 
         regions = _safe_str_col(0)
         teams = df_valid.iloc[:, 1].apply(
-            lambda v: self._normalize_team(self._normalize_alias(str(v).strip())) if pd.notna(v) else "THCC"
+            lambda v: (
+                self._normalize_team(self._normalize_alias(str(v).strip()))
+                if pd.notna(v)
+                else "THCC"
+            )
         )
         groups = _safe_str_col(2)
         names = name_series[valid_mask]
-        leads = self._clean_numeric_vec(df_valid.iloc[:, 4]) if df_valid.shape[1] > 4 else pd.Series([None] * len(df_valid))
-        reserve = self._clean_numeric_vec(df_valid.iloc[:, 5]) if df_valid.shape[1] > 5 else pd.Series([None] * len(df_valid))
-        showup = self._clean_numeric_vec(df_valid.iloc[:, 6]) if df_valid.shape[1] > 6 else pd.Series([None] * len(df_valid))
-        paid = self._clean_numeric_vec(df_valid.iloc[:, 7]) if df_valid.shape[1] > 7 else pd.Series([None] * len(df_valid))
-        conv = self._clean_numeric_vec(df_valid.iloc[:, 8]) if df_valid.shape[1] > 8 else pd.Series([None] * len(df_valid))
+        leads = (
+            self._clean_numeric_vec(df_valid.iloc[:, 4])
+            if df_valid.shape[1] > 4
+            else pd.Series([None] * len(df_valid))
+        )
+        reserve = (
+            self._clean_numeric_vec(df_valid.iloc[:, 5])
+            if df_valid.shape[1] > 5
+            else pd.Series([None] * len(df_valid))
+        )
+        showup = (
+            self._clean_numeric_vec(df_valid.iloc[:, 6])
+            if df_valid.shape[1] > 6
+            else pd.Series([None] * len(df_valid))
+        )
+        paid = (
+            self._clean_numeric_vec(df_valid.iloc[:, 7])
+            if df_valid.shape[1] > 7
+            else pd.Series([None] * len(df_valid))
+        )
+        conv = (
+            self._clean_numeric_vec(df_valid.iloc[:, 8])
+            if df_valid.shape[1] > 8
+            else pd.Series([None] * len(df_valid))
+        )
 
         records = [
             {

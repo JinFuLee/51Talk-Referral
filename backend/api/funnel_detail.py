@@ -3,15 +3,16 @@ F1 漏斗跟进效率 + F2 截面效率四象限
 GET /api/analysis/funnel-detail
 GET /api/analysis/section-efficiency
 """
+
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, Optional
 
 from fastapi import APIRouter, Depends, Query
-from typing import Optional
+
+from backend.services.analysis_service import AnalysisService
 
 from .dependencies import get_service
-from backend.services.analysis_service import AnalysisService
 
 router = APIRouter()
 
@@ -55,10 +56,18 @@ def get_funnel_detail(
                         "attend_count": 0,
                         "paid_count": 0,
                     }
-                aggregated[cc]["register_count"] += (r.get("register_count") or r.get("leads") or 0)
-                aggregated[cc]["reserve_count"] += (r.get("reserve_count") or r.get("appointments") or 0)
-                aggregated[cc]["attend_count"] += (r.get("attend_count") or r.get("attended") or 0)
-                aggregated[cc]["paid_count"] += (r.get("paid_count") or r.get("paid") or 0)
+                aggregated[cc]["register_count"] += (
+                    r.get("register_count") or r.get("leads") or 0
+                )
+                aggregated[cc]["reserve_count"] += (
+                    r.get("reserve_count") or r.get("appointments") or 0
+                )
+                aggregated[cc]["attend_count"] += (
+                    r.get("attend_count") or r.get("attended") or 0
+                )
+                aggregated[cc]["paid_count"] += (
+                    r.get("paid_count") or r.get("paid") or 0
+                )
             cc_funnel = list(aggregated.values())
 
     # CC 筛选：精确匹配 cc_name
@@ -83,7 +92,9 @@ def get_funnel_detail(
 
 
 @router.get("/section-efficiency", summary="F2 CC 级别截面效率（四象限散点图）")
-def get_section_efficiency(svc: AnalysisService = Depends(get_service)) -> dict[str, Any]:
+def get_section_efficiency(
+    svc: AnalysisService = Depends(get_service),
+) -> dict[str, Any]:
     """
     F2 CC 级别截面效率（四象限散点图数据）
 
@@ -103,29 +114,40 @@ def get_section_efficiency(svc: AnalysisService = Depends(get_service)) -> dict[
     if isinstance(section_eff, dict) and section_eff.get("by_cc"):
         by_cc = section_eff.get("by_cc", {})
         for cc_name, row in by_cc.items():
-            sections.append({
-                "cc_name": cc_name,
-                "contact_rate": row.get("appt_rate", 0), # F2 里的 appt_rate 代表截面接触率
-                "reserve_rate": row.get("appt_attend_rate", 0),
-                "attend_rate": row.get("attend_paid_rate", 0),
-                "paid_rate": row.get("reg_paid_rate", 0),
-            })
+            sections.append(
+                {
+                    "cc_name": cc_name,
+                    "contact_rate": row.get(
+                        "appt_rate", 0
+                    ),  # F2 里的 appt_rate 代表截面接触率
+                    "reserve_rate": row.get("appt_attend_rate", 0),
+                    "attend_rate": row.get("attend_paid_rate", 0),
+                    "paid_rate": row.get("reg_paid_rate", 0),
+                }
+            )
     else:
         # Fallback 到跨表推演
         data_source = "fallback_f5"
         kpi_data = raw_data.get("kpi", {})
-        kpi_by_cc: list[dict] = kpi_data.get("by_cc", []) if isinstance(kpi_data, dict) else []
+        kpi_by_cc: list[dict] = (
+            kpi_data.get("by_cc", []) if isinstance(kpi_data, dict) else []
+        )
 
         outreach_data = ops.get("daily_outreach", {})
-        outreach_by_cc: dict[str, dict] = outreach_data.get("by_cc", {}) if isinstance(outreach_data, dict) else {}
+        outreach_by_cc: dict[str, dict] = (
+            outreach_data.get("by_cc", {}) if isinstance(outreach_data, dict) else {}
+        )
 
         for row in kpi_by_cc:
-            if not isinstance(row, dict): continue
+            if not isinstance(row, dict):
+                continue
             cc = row.get("cc_name") or row.get("cc") or "未知"
             out = outreach_by_cc.get(cc, {})
             total_students = row.get("valid_students", 0) or 1
 
-            reached = out.get("effective_calls", 0) or out.get("total_effective", 0) or 0
+            reached = (
+                out.get("effective_calls", 0) or out.get("total_effective", 0) or 0
+            )
             contact_rate = round(reached / total_students, 4) if total_students else 0
 
             sections.append(

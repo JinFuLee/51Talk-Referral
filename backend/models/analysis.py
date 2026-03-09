@@ -1,5 +1,6 @@
+from typing import Any, Dict, List, Optional
+
 from pydantic import BaseModel
-from typing import Optional, List, Dict, Any
 
 # RunAnalysisRequest 已移至 backend/api/analysis.py（含 force/period/custom_start/custom_end 等完整字段）
 # 此处不再重复定义，避免字段定义分裂导致的行为不一致。
@@ -10,6 +11,7 @@ class AnalysisResult(BaseModel):
     AnalysisEngine.analyze() 返回的完整结构。
     复杂嵌套字段统一用 Dict[str, Any] / List 兜底，避免过度 schema 化。
     """
+
     # 元数据
     meta: Dict[str, Any] = {}
 

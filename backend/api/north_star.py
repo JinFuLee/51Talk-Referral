@@ -3,15 +3,16 @@
 GET /api/analysis/north-star   — CC 打卡率排名 + 达标分布（D1 数据源）
 GET /api/analysis/checkin-ab   — D1×D5 联合对比（24H 打卡 + 月度打卡 + 倍率）
 """
+
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from typing import Optional
+
+from backend.services.analysis_service import AnalysisService
 
 from .dependencies import get_service
-from backend.services.analysis_service import AnalysisService
 
 router = APIRouter(tags=["north_star"])
 
@@ -45,7 +46,9 @@ def get_north_star(
     by_cc: list[dict] = d1.get("by_cc") or []
     summary: dict = d1.get("summary") or {}
 
-    sorted_cc = sorted(by_cc, key=lambda x: float(x.get("checkin_24h_rate") or 0), reverse=True)
+    sorted_cc = sorted(
+        by_cc, key=lambda x: float(x.get("checkin_24h_rate") or 0), reverse=True
+    )
 
     # CC 筛选：精确匹配 cc_name
     if cc_name:
@@ -107,12 +110,19 @@ def get_checkin_ab(svc: AnalysisService = Depends(get_service)) -> dict[str, Any
                 "referral_coefficient_24h": d1_cc.get("referral_coefficient"),
                 "referral_participation": d1_cc.get("referral_participation"),
                 "achievement_rate": d1_cc.get("achievement_rate"),
-                "referral_participation_total": d5_cc.get("referral_participation_total"),
-                "referral_participation_checked": d5_cc.get("referral_participation_checked"),
-                "referral_participation_unchecked": d5_cc.get("referral_participation_unchecked"),
+                "referral_participation_total": d5_cc.get(
+                    "referral_participation_total"
+                ),
+                "referral_participation_checked": d5_cc.get(
+                    "referral_participation_checked"
+                ),
+                "referral_participation_unchecked": d5_cc.get(
+                    "referral_participation_unchecked"
+                ),
                 "checkin_multiplier": d5_cc.get("checkin_multiplier"),
                 "referral_coefficient_monthly": d5_cc.get("referral_coefficient_total"),
-                "conversion_ratio": d1_cc.get("conversion_ratio") or d5_cc.get("conversion_ratio"),
+                "conversion_ratio": d1_cc.get("conversion_ratio")
+                or d5_cc.get("conversion_ratio"),
             }
         )
 

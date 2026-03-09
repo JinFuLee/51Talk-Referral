@@ -4,6 +4,7 @@ backend/api/adapters/ranking_adapt.py
 
 对应引擎输出 key：cc_ranking, ss_ranking, lp_ranking, attribution, package_mix, channel_revenue
 """
+
 from __future__ import annotations
 
 from typing import Any
@@ -18,6 +19,7 @@ from backend.models.adapter_types import (
 )
 
 # ── Ranking ───────────────────────────────────────────────────────────────────
+
 
 def _adapt_ranking_item(item: dict[str, Any]) -> RankingItemDict:
     """将单条排名项从引擎字段映射为前端 RankingItem 字段"""
@@ -54,6 +56,7 @@ def _adapt_ranking(raw: Any) -> list[RankingItemDict] | dict[str, Any] | Any:
 
 # ── Attribution ───────────────────────────────────────────────────────────────
 
+
 def _adapt_attribution(cache: dict[str, Any]) -> AttributionResult:
     """
     多维归因分析，返回三个归因维度：
@@ -78,13 +81,17 @@ def _adapt_attribution(cache: dict[str, Any]) -> AttributionResult:
                     d = channel_comparison[zh_key]
                     regs = d.get("register", 0) or 0
                     paid = d.get("paid", 0) or 0
-                    channels_raw.append({
-                        "channel": en_key,
-                        "label": label,
-                        "registrations": regs,
-                        "payments": paid,
-                        "conversion_rate": round(paid / regs, 4) if regs > 0 else 0.0,
-                    })
+                    channels_raw.append(
+                        {
+                            "channel": en_key,
+                            "label": label,
+                            "registrations": regs,
+                            "payments": paid,
+                            "conversion_rate": round(paid / regs, 4)
+                            if regs > 0
+                            else 0.0,
+                        }
+                    )
 
     total_channel_payments = sum(c.get("payments", 0) or 0 for c in channels_raw) or 1
     total_channel_regs = sum(c.get("registrations", 0) or 0 for c in channels_raw) or 1
@@ -93,15 +100,17 @@ def _adapt_attribution(cache: dict[str, Any]) -> AttributionResult:
     for ch in channels_raw:
         paid = ch.get("payments", 0) or 0
         regs = ch.get("registrations", 0) or 0
-        channel_attribution.append({
-            "factor": ch.get("channel", ""),
-            "label": ch.get("label", ch.get("channel", "")),
-            "registrations": regs,
-            "payments": paid,
-            "conversion_rate": ch.get("conversion_rate", 0.0),
-            "paid_contribution": round(paid / total_channel_payments, 4),
-            "reg_contribution": round(regs / total_channel_regs, 4),
-        })
+        channel_attribution.append(
+            {
+                "factor": ch.get("channel", ""),
+                "label": ch.get("label", ch.get("channel", "")),
+                "registrations": regs,
+                "payments": paid,
+                "conversion_rate": ch.get("conversion_rate", 0.0),
+                "paid_contribution": round(paid / total_channel_payments, 4),
+                "reg_contribution": round(regs / total_channel_regs, 4),
+            }
+        )
 
     # ── 2. 漏斗归因 ──────────────────────────────────────────────────────────
     # 从 funnel.total 提取各阶段数值，计算阶段转化率与损耗
@@ -118,30 +127,67 @@ def _adapt_attribution(cache: dict[str, Any]) -> AttributionResult:
 
         if regs > 0:
             funnel_stages = [
-                ("register",  "注册",  regs,    regs,    1.0),
-                ("reserve",   "约课",  reserve, regs,    round(reserve / regs, 4) if regs else 0.0),
-                ("attend",    "出席",  attend,  reserve, round(attend / reserve, 4) if reserve else 0.0),
-                ("paid",      "付费",  paid,    attend,  round(paid / attend, 4) if attend else 0.0),
+                ("register", "注册", regs, regs, 1.0),
+                (
+                    "reserve",
+                    "约课",
+                    reserve,
+                    regs,
+                    round(reserve / regs, 4) if regs else 0.0,
+                ),
+                (
+                    "attend",
+                    "出席",
+                    attend,
+                    reserve,
+                    round(attend / reserve, 4) if reserve else 0.0,
+                ),
+                (
+                    "paid",
+                    "付费",
+                    paid,
+                    attend,
+                    round(paid / attend, 4) if attend else 0.0,
+                ),
             ]
-            for stage_key, stage_label, stage_count, from_count, stage_rate in funnel_stages:
-                loss = max(0, from_count - stage_count) if stage_key != "register" else 0
+            for (
+                stage_key,
+                stage_label,
+                stage_count,
+                from_count,
+                stage_rate,
+            ) in funnel_stages:
+                loss = (
+                    max(0, from_count - stage_count) if stage_key != "register" else 0
+                )
                 loss_pct = round(loss / from_count, 4) if from_count > 0 else 0.0
                 paid_contribution = round(stage_count / regs, 4) if regs > 0 else 0.0
-                funnel_attribution.append({
-                    "stage": stage_key,
-                    "label": stage_label,
-                    "count": stage_count,
-                    "from_count": from_count,
-                    "conversion_rate": stage_rate,
-                    "loss_count": loss,
-                    "loss_rate": loss_pct,
-                    "cumulative_rate": paid_contribution,
-                })
+                funnel_attribution.append(
+                    {
+                        "stage": stage_key,
+                        "label": stage_label,
+                        "count": stage_count,
+                        "from_count": from_count,
+                        "conversion_rate": stage_rate,
+                        "loss_count": loss,
+                        "loss_rate": loss_pct,
+                        "cumulative_rate": paid_contribution,
+                    }
+                )
 
     if not funnel_attribution:
-        funnel_attribution = [{"stage": "unknown", "label": "漏斗数据待接入", "count": 0,
-                               "from_count": 0, "conversion_rate": 0.0, "loss_count": 0,
-                               "loss_rate": 0.0, "cumulative_rate": 0.0}]
+        funnel_attribution = [
+            {
+                "stage": "unknown",
+                "label": "漏斗数据待接入",
+                "count": 0,
+                "from_count": 0,
+                "conversion_rate": 0.0,
+                "loss_count": 0,
+                "loss_rate": 0.0,
+                "cumulative_rate": 0.0,
+            }
+        ]
 
     # ── 3. 口径归因：窄口 vs 宽口 ────────────────────────────────────────────
     narrow_paid = 0
@@ -151,7 +197,11 @@ def _adapt_attribution(cache: dict[str, Any]) -> AttributionResult:
 
     if isinstance(funnel, dict):
         if "narrow" in funnel:
-            narrow_paid = int(funnel["narrow"].get("payments", 0) or funnel["narrow"].get("paid", 0) or 0)
+            narrow_paid = int(
+                funnel["narrow"].get("payments", 0)
+                or funnel["narrow"].get("paid", 0)
+                or 0
+            )
             narrow_regs = int(funnel["narrow"].get("register", 0) or 0)
         else:
             for k in ("cc_narrow", "ss_narrow", "lp_narrow"):
@@ -159,7 +209,9 @@ def _adapt_attribution(cache: dict[str, Any]) -> AttributionResult:
                     narrow_paid += int(funnel[k].get("paid", 0) or 0)
                     narrow_regs += int(funnel[k].get("register", 0) or 0)
         if "wide" in funnel:
-            wide_paid = int(funnel["wide"].get("payments", 0) or funnel["wide"].get("paid", 0) or 0)
+            wide_paid = int(
+                funnel["wide"].get("payments", 0) or funnel["wide"].get("paid", 0) or 0
+            )
             wide_regs = int(funnel["wide"].get("register", 0) or 0)
 
     total_aperture_paid = (narrow_paid + wide_paid) or 1
@@ -171,7 +223,9 @@ def _adapt_attribution(cache: dict[str, Any]) -> AttributionResult:
             "label": "窄口径（CC/SS/LP学员链接绑定）",
             "registrations": narrow_regs,
             "payments": narrow_paid,
-            "conversion_rate": round(narrow_paid / narrow_regs, 4) if narrow_regs > 0 else 0.0,
+            "conversion_rate": round(narrow_paid / narrow_regs, 4)
+            if narrow_regs > 0
+            else 0.0,
             "paid_contribution": round(narrow_paid / total_aperture_paid, 4),
             "reg_contribution": round(narrow_regs / total_aperture_regs, 4),
         },
@@ -180,7 +234,9 @@ def _adapt_attribution(cache: dict[str, Any]) -> AttributionResult:
             "label": "宽口径（UserA学员链接绑定）",
             "registrations": wide_regs,
             "payments": wide_paid,
-            "conversion_rate": round(wide_paid / wide_regs, 4) if wide_regs > 0 else 0.0,
+            "conversion_rate": round(wide_paid / wide_regs, 4)
+            if wide_regs > 0
+            else 0.0,
             "paid_contribution": round(wide_paid / total_aperture_paid, 4),
             "reg_contribution": round(wide_regs / total_aperture_regs, 4),
         },
@@ -189,13 +245,25 @@ def _adapt_attribution(cache: dict[str, Any]) -> AttributionResult:
     # ── 4. 兼容旧格式：factors ────────────────────────────────────────────────
     if channel_attribution:
         factors = [
-            {"factor": a["factor"], "contribution": a["paid_contribution"], "label": a["label"]}
+            {
+                "factor": a["factor"],
+                "contribution": a["paid_contribution"],
+                "label": a["label"],
+            }
             for a in channel_attribution
         ]
     elif narrow_paid or wide_paid:
         factors = [
-            {"factor": "narrow", "contribution": round(narrow_paid / total_aperture_paid, 4), "label": "窄口径"},
-            {"factor": "wide",   "contribution": round(wide_paid / total_aperture_paid, 4),  "label": "宽口径"},
+            {
+                "factor": "narrow",
+                "contribution": round(narrow_paid / total_aperture_paid, 4),
+                "label": "窄口径",
+            },
+            {
+                "factor": "wide",
+                "contribution": round(wide_paid / total_aperture_paid, 4),
+                "label": "宽口径",
+            },
         ]
     else:
         factors = [{"factor": "unknown", "contribution": 1.0, "label": "数据待接入"}]
@@ -209,6 +277,7 @@ def _adapt_attribution(cache: dict[str, Any]) -> AttributionResult:
 
 
 # ── Package Mix ───────────────────────────────────────────────────────────────
+
 
 def _adapt_package_mix(raw: dict[str, Any]) -> PackageMixResult:
     """
@@ -272,6 +341,7 @@ def _adapt_package_mix(raw: dict[str, Any]) -> PackageMixResult:
 
 # ── Team Package Mix ──────────────────────────────────────────────────────────
 
+
 def _adapt_team_package_mix(raw: dict[str, Any]) -> TeamPackageMixResult:
     """E7 团队套餐结构: { teams: [{ team, items: [{ product_type, ratio }] }] }"""
     order_data = raw.get("order_analysis", {}) or {}
@@ -280,6 +350,7 @@ def _adapt_team_package_mix(raw: dict[str, Any]) -> TeamPackageMixResult:
 
 
 # ── Channel Revenue ───────────────────────────────────────────────────────────
+
 
 def _adapt_channel_revenue(raw: dict[str, Any]) -> ChannelRevenueResult:
     """
@@ -332,7 +403,11 @@ def _adapt_channel_revenue(raw: dict[str, Any]) -> ChannelRevenueResult:
                 }
                 for ch, d in sorted(
                     e3_by_channel.items(),
-                    key=lambda x: -(x[1].get("revenue_usd", 0) or 0) if isinstance(x[1], dict) else 0,
+                    key=lambda x: (
+                        -(x[1].get("revenue_usd", 0) or 0)
+                        if isinstance(x[1], dict)
+                        else 0
+                    ),
                 )
                 if isinstance(d, dict) and (d.get("revenue_usd", 0) or 0) > 0
             ]

@@ -2,6 +2,7 @@
 AnalyzerContext — 所有 Analyzer 共享的状态容器
 从 analysis_engine_v2.py 的实例属性和 helper 方法提取。
 """
+
 from __future__ import annotations
 
 import calendar
@@ -66,7 +67,9 @@ class AnalyzerContext:
             return datetime(year, month, d).weekday() not in rest_days
 
         elapsed = sum(1 for d in range(1, current_day + 1) if _is_workday(d))
-        remaining = sum(1 for d in range(current_day + 1, days_in_month + 1) if _is_workday(d))
+        remaining = sum(
+            1 for d in range(current_day + 1, days_in_month + 1) if _is_workday(d)
+        )
         return elapsed, remaining
 
     def get_real_asp_and_conversion(self) -> tuple[float, float]:
@@ -80,7 +83,9 @@ class AnalyzerContext:
         # 真实 ASP：从 order_detail.summary.avg_order_value 读取
         order_detail = self.data.get("order", {}).get("order_detail", {})
         order_summary = order_detail.get("summary", {})
-        real_asp = order_summary.get("avg_order_value") or order_summary.get("avg_order_value_usd")
+        real_asp = order_summary.get("avg_order_value") or order_summary.get(
+            "avg_order_value_usd"
+        )
         if real_asp and isinstance(real_asp, (int, float)) and real_asp > 0:
             asp_usd = float(real_asp)
         else:

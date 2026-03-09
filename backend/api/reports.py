@@ -2,6 +2,7 @@
 报告文件 API 端点
 列表、读取内容、下载、最新报告、AI 报告生成
 """
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -11,8 +12,9 @@ from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 
-from .dependencies import get_service
 from backend.services.analysis_service import AnalysisService
+
+from .dependencies import get_service
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 
@@ -24,6 +26,7 @@ router = APIRouter()
 
 # ── Pydantic 模型 ──────────────────────────────────────────────────────────────
 
+
 class GenerateReportRequest(BaseModel):
     force_run: bool = False  # 是否强制重算分析数据（忽略缓存）
 
@@ -34,6 +37,7 @@ def _iter_ai_report_files() -> list[dict[str, Any]]:
     if not AI_REPORTS_DIR.exists():
         return reports
     import re
+
     for f in sorted(AI_REPORTS_DIR.iterdir(), reverse=True):
         if not f.is_file() or not f.name.endswith(".md"):
             continue
@@ -74,6 +78,7 @@ def _iter_report_files() -> list[dict[str, Any]]:
         # 尝试从文件名提取日期 YYYYMMDD
         date_str = None
         import re
+
         m = re.search(r"(\d{8})", name)
         if m:
             date_str = m.group(1)
@@ -92,6 +97,7 @@ def _iter_report_files() -> list[dict[str, Any]]:
 
 # ── AI 报告端点 ────────────────────────────────────────────────────────────────
 
+
 @router.post("/generate", summary="触发 AI 报告生成")
 def generate_report(
     req: GenerateReportRequest,
@@ -106,6 +112,7 @@ def generate_report(
     """
     try:
         from backend.core.ai_report_generator import AIReportGenerator
+
         gen = AIReportGenerator(svc)
         report = gen.generate_report(force_run=req.force_run)
         return {"status": "ok", "report": report}
@@ -134,6 +141,7 @@ def list_ai_reports() -> list[dict[str, Any]]:
 
 
 # ── 原有端点 ───────────────────────────────────────────────────────────────────
+
 
 @router.get("/list", summary="列出所有报告文件")
 def list_reports() -> list[dict[str, Any]]:
@@ -179,13 +187,15 @@ def get_report_content(report_type: str, date: str) -> dict[str, Any]:
         raise HTTPException(status_code=404, detail="output 目录不存在")
 
     candidates = [
-        f for f in OUTPUT_DIR.iterdir()
+        f
+        for f in OUTPUT_DIR.iterdir()
         if f.is_file() and date in f.name and f"_{report_type}" in f.name
     ]
     if not candidates:
         # 宽松匹配：type 关键字在文件名中
         candidates = [
-            f for f in OUTPUT_DIR.iterdir()
+            f
+            for f in OUTPUT_DIR.iterdir()
             if f.is_file() and date in f.name and report_type in f.name
         ]
 

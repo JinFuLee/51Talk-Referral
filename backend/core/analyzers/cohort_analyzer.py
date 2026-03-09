@@ -8,13 +8,14 @@ Covers:
   - analyze_checkin_impact  (原 _analyze_checkin_impact,  行 1025-1079)
   - analyze_ltv          (原 _analyze_ltv,          行 2070-2093)
 """
+
 from __future__ import annotations
 
 import statistics
 from typing import Optional
 
 from .context import AnalyzerContext
-from .utils import _safe_div, _safe_pct, _clean_for_json  # noqa: F401
+from .utils import _clean_for_json, _safe_div, _safe_pct  # noqa: F401
 
 
 class CohortAnalyzer:
@@ -31,9 +32,9 @@ class CohortAnalyzer:
         # B1: 成本模型
         roi_summary = roi_data.get("summary", {}) or {}
         total_roi_data = roi_summary.get("_total", {})
-        total_cost    = total_roi_data.get("实际成本") or 0
+        total_cost = total_roi_data.get("实际成本") or 0
         total_revenue = total_roi_data.get("实际营收") or 0
-        overall_roi   = total_roi_data.get("实际ROI")
+        overall_roi = total_roi_data.get("实际ROI")
 
         # C1: 触达率 by_month
         reach_by_month = {
@@ -68,11 +69,13 @@ class CohortAnalyzer:
 
         avg_unit_price = self.ctx.targets.get("客单价", 850)  # USD
 
-        all_months = sorted(set(reach_by_month) | set(part_by_month) | set(checkin_by_month))
+        all_months = sorted(
+            set(reach_by_month) | set(part_by_month) | set(checkin_by_month)
+        )
         by_month = []
         for month in all_months:
             reach = reach_by_month.get(month, {})
-            part  = part_by_month.get(month, {})
+            part = part_by_month.get(month, {})
             ratio = ratio_by_month.get(month, {})
 
             # 累积12月 LTV = Σ(带货比_m × 客单价)
@@ -83,28 +86,33 @@ class CohortAnalyzer:
                     ltv += ratio_m * avg_unit_price
 
             acq_cost = (total_cost / len(all_months)) if all_months else 0
-            roi_val  = _safe_div(ltv, acq_cost)
+            roi_val = _safe_div(ltv, acq_cost)
 
             # P0-1 提取 m1-m12 的各项指标全集，方便前端渲染实测曲线
             reach_m_dict = {f"m{i}": reach.get(f"m{i}") for i in range(1, 13)}
-            part_m_dict  = {f"m{i}": part.get(f"m{i}") for i in range(1, 13)}
-            checkin_m_dict = {f"m{i}": checkin_by_month.get(month, {}).get(f"m{i}") for i in range(1, 13)}
+            part_m_dict = {f"m{i}": part.get(f"m{i}") for i in range(1, 13)}
+            checkin_m_dict = {
+                f"m{i}": checkin_by_month.get(month, {}).get(f"m{i}")
+                for i in range(1, 13)
+            }
 
-            by_month.append({
-                "cohort_month":     month,
-                "reach_rate_m1":    reach.get("m1"),
-                "participation_m1": part.get("m1"),
-                "ltv_12m":          round(ltv, 2),
-                "acquisition_cost": round(acq_cost, 2),
-                "roi":              round(roi_val, 4) if roi_val else None,
-                "reach_rates":      reach_m_dict,
-                "participation_rates": part_m_dict,
-                "checkin_rates":    checkin_m_dict,
-            })
+            by_month.append(
+                {
+                    "cohort_month": month,
+                    "reach_rate_m1": reach.get("m1"),
+                    "participation_m1": part.get("m1"),
+                    "ltv_12m": round(ltv, 2),
+                    "acquisition_cost": round(acq_cost, 2),
+                    "roi": round(roi_val, 4) if roi_val else None,
+                    "reach_rates": reach_m_dict,
+                    "participation_rates": part_m_dict,
+                    "checkin_rates": checkin_m_dict,
+                }
+            )
 
         # 半衰期估算（触达率/参与率从 m1 降至 m1/2 的月份）
         reach_half_life = self.calc_half_life(reach_by_month)
-        part_half_life  = self.calc_half_life(part_by_month)
+        part_half_life = self.calc_half_life(part_by_month)
         checkin_half_life = self.calc_half_life(checkin_by_month)
 
         # 最优月龄
@@ -125,25 +133,25 @@ class CohortAnalyzer:
             if pdata:
                 by_product[product_key] = {
                     "revenue_target": pdata.get("目标营收"),
-                    "roi_target":     pdata.get("目标ROI"),
+                    "roi_target": pdata.get("目标ROI"),
                     "revenue_actual": pdata.get("实际营收"),
-                    "cost_actual":    pdata.get("实际成本"),
-                    "roi_actual":     pdata.get("实际ROI"),
+                    "cost_actual": pdata.get("实际成本"),
+                    "roi_actual": pdata.get("实际ROI"),
                 }
 
         return {
-            "by_month":        by_month,
-            "optimal_months":  optimal_months,
-            "overall_roi":     round(overall_roi, 4) if overall_roi else None,
-            "total_cost_usd":  round(total_cost, 2),
+            "by_month": by_month,
+            "optimal_months": optimal_months,
+            "overall_roi": round(overall_roi, 4) if overall_roi else None,
+            "total_cost_usd": round(total_cost, 2),
             "total_revenue_usd": round(total_revenue, 2),
             "decay_summary": {
-                "reach_half_life":        reach_half_life,
+                "reach_half_life": reach_half_life,
                 "participation_half_life": part_half_life,
-                "checkin_half_life":      checkin_half_life,
+                "checkin_half_life": checkin_half_life,
             },
-            "cost_list":    cost_list,
-            "by_product":   by_product,
+            "cost_list": cost_list,
+            "by_product": by_product,
         }
 
     def calc_half_life(self, by_month: dict) -> Optional[int]:
@@ -199,60 +207,69 @@ class CohortAnalyzer:
 
         all_enclosures = set(by_enc_d) | set(by_enc_f8) | set(by_enc_a2)
         enc_order = ["0-30", "31-60", "61-90", "91-180", "181+"]
-        all_enclosures = (
-            [e for e in enc_order if e in all_enclosures]
-            + [e for e in all_enclosures if e not in enc_order]
-        )
+        all_enclosures = [e for e in enc_order if e in all_enclosures] + [
+            e for e in all_enclosures if e not in enc_order
+        ]
 
         by_enclosure = []
         for enc in all_enclosures:
-            d_row  = by_enc_d.get(enc, {})
+            d_row = by_enc_d.get(enc, {})
             f8_row = by_enc_f8.get(enc, {})
             a2_row = by_enc_a2.get(enc, {})
 
-            students  = d_row.get("active_students") or 0
+            students = d_row.get("active_students") or 0
             conv_rate = d_row.get("conversion_rate")
             part_rate = d_row.get("participation_rate")
 
             # 跟进率来自 F8 summary
-            f8_summary   = f8_row.get("summary", {}) or {}
-            followup_rate = f8_summary.get("call_coverage") or f8_summary.get("effective_coverage")
+            f8_summary = f8_row.get("summary", {}) or {}
+            followup_rate = f8_summary.get("call_coverage") or f8_summary.get(
+                "effective_coverage"
+            )
 
             # ROI 指数（相对值）：用参与率 × 带货比近似
             a2_total = a2_row.get("总计", {}) or {}
-            ratio    = a2_total.get("带货比")
-            part     = a2_total.get("参与率")
-            roi_index = round((ratio or 0) * (part or 0) * 10, 2) if ratio and part else None
+            ratio = a2_total.get("带货比")
+            part = a2_total.get("参与率")
+            roi_index = (
+                round((ratio or 0) * (part or 0) * 10, 2) if ratio and part else None
+            )
 
             # 建议
             if roi_index is not None:
                 recommendation = (
-                    "加大投入" if roi_index >= 1.0
+                    "加大投入"
+                    if roi_index >= 1.0
                     else ("维持" if roi_index >= 0.3 else "降低优先级")
                 )
             else:
                 recommendation = "数据不足"
 
-            by_enclosure.append({
-                "segment":            enc,
-                "students":           students,
-                "conversion_rate":    conv_rate,
-                "participation_rate": part_rate,
-                "followup_rate":      followup_rate,
-                "roi_index":          roi_index,
-                "recommendation":     recommendation,
-            })
+            by_enclosure.append(
+                {
+                    "segment": enc,
+                    "students": students,
+                    "conversion_rate": conv_rate,
+                    "participation_rate": part_rate,
+                    "followup_rate": followup_rate,
+                    "roi_index": roi_index,
+                    "recommendation": recommendation,
+                }
+            )
 
         # 资源分配建议（按 roi_index 归一化）
-        valid = [r for r in by_enclosure if r.get("roi_index") is not None and r["roi_index"] > 0]
+        valid = [
+            r
+            for r in by_enclosure
+            if r.get("roi_index") is not None and r["roi_index"] > 0
+        ]
         total_roi_sum = sum(r["roi_index"] for r in valid) or 1.0
         resource_allocation = {
-            r["segment"]: round(r["roi_index"] / total_roi_sum, 3)
-            for r in valid
+            r["segment"]: round(r["roi_index"] / total_roi_sum, 3) for r in valid
         }
 
         return {
-            "by_enclosure":        by_enclosure,
+            "by_enclosure": by_enclosure,
             "resource_allocation": {"optimal": resource_allocation},
         }
 
@@ -262,7 +279,7 @@ class CohortAnalyzer:
         """打卡→带新因果：D1 × D5 已打卡/未打卡对比"""
         d5 = self.ctx.data.get("kpi", {}).get("checkin_rate_monthly", {})
         d5_summary = d5.get("summary", {}) or {}
-        d5_by_cc   = d5.get("by_cc", []) or []
+        d5_by_cc = d5.get("by_cc", []) or []
 
         # D5 已包含 referral_participation_checked/unchecked
         checked_parts = [
@@ -276,13 +293,16 @@ class CohortAnalyzer:
             if r.get("referral_participation_unchecked") is not None
         ]
 
-        avg_checked   = statistics.mean(checked_parts) if checked_parts else None
+        avg_checked = statistics.mean(checked_parts) if checked_parts else None
         avg_unchecked = statistics.mean(unchecked_parts) if unchecked_parts else None
         part_multiplier = _safe_div(avg_checked, avg_unchecked)
 
         # 带新系数
-        d1_by_cc       = self.ctx.data.get("kpi", {}).get("north_star_24h", {}).get("by_cc", []) or []
-        checked_coefs  = []
+        d1_by_cc = (
+            self.ctx.data.get("kpi", {}).get("north_star_24h", {}).get("by_cc", [])
+            or []
+        )
+        checked_coefs = []
         unchecked_coefs = []
         for r in d1_by_cc:
             rate = r.get("checkin_24h_rate") or 0
@@ -294,9 +314,11 @@ class CohortAnalyzer:
             elif rate < 0.3:
                 unchecked_coefs.append(coef)
 
-        avg_coef_checked   = statistics.mean(checked_coefs) if checked_coefs else None
-        avg_coef_unchecked = statistics.mean(unchecked_coefs) if unchecked_coefs else None
-        coef_multiplier    = _safe_div(avg_coef_checked, avg_coef_unchecked)
+        avg_coef_checked = statistics.mean(checked_coefs) if checked_coefs else None
+        avg_coef_unchecked = (
+            statistics.mean(unchecked_coefs) if unchecked_coefs else None
+        )
+        coef_multiplier = _safe_div(avg_coef_checked, avg_coef_unchecked)
 
         summary_avg_checkin = d5_summary.get("avg_checkin_rate")
 
@@ -309,17 +331,17 @@ class CohortAnalyzer:
 
         return {
             "participation_lift": {
-                "checkin":    avg_checked,
+                "checkin": avg_checked,
                 "no_checkin": avg_unchecked,
                 "multiplier": round(part_multiplier, 2) if part_multiplier else None,
             },
             "coefficient_lift": {
-                "checkin":    avg_coef_checked,
+                "checkin": avg_coef_checked,
                 "no_checkin": avg_coef_unchecked,
                 "multiplier": round(coef_multiplier, 2) if coef_multiplier else None,
             },
             "avg_checkin_rate": summary_avg_checkin,
-            "conclusion":       conclusion,
+            "conclusion": conclusion,
         }
 
     # ── 20. ltv ───────────────────────────────────────────────────────────────
@@ -328,33 +350,35 @@ class CohortAnalyzer:
         """LTV 简化估算（基于 cohort 带货比衰减）"""
         cohort = self.ctx.data.get("cohort", {})
         ratio_by_month = cohort.get("conversion_ratio", {}).get("by_month", []) or []
-        ref_coef_by_month = cohort.get("referral_coefficient", {}).get("by_month", []) or []
+        ref_coef_by_month = (
+            cohort.get("referral_coefficient", {}).get("by_month", []) or []
+        )
 
         avg_unit = self.ctx.targets.get("客单价", 850)
 
         # 取最新月份的 cohort 指标
         if ratio_by_month:
-            latest  = ratio_by_month[-1]
+            latest = ratio_by_month[-1]
             latest_coef = ref_coef_by_month[-1] if ref_coef_by_month else {}
 
             # 融入带新系数乘数 (referral_multiplier) 提升 LTV (如果为空则默认1)
             # P1-1: C4 Cohort 带新系数
             def _get_ratio(m_str: str) -> float:
                 rat = latest.get(m_str) or 0.0
-                coef = latest_coef.get(m_str) or 1.0 # 默认为1
+                coef = latest_coef.get(m_str) or 1.0  # 默认为1
                 return rat * coef
 
-            ltv_3m  = sum(_get_ratio(f"m{i}") for i in range(1, 4)) * avg_unit
-            ltv_6m  = sum(_get_ratio(f"m{i}") for i in range(1, 7)) * avg_unit
+            ltv_3m = sum(_get_ratio(f"m{i}") for i in range(1, 4)) * avg_unit
+            ltv_6m = sum(_get_ratio(f"m{i}") for i in range(1, 7)) * avg_unit
             ltv_12m = sum(_get_ratio(f"m{i}") for i in range(1, 13)) * avg_unit
         else:
-            ltv_3m  = None
-            ltv_6m  = None
+            ltv_3m = None
+            ltv_6m = None
             ltv_12m = None
 
         return {
-            "ltv_3m_usd":        round(ltv_3m, 2) if ltv_3m else None,
-            "ltv_6m_usd":        round(ltv_6m, 2) if ltv_6m else None,
-            "ltv_12m_usd":       round(ltv_12m, 2) if ltv_12m else None,
+            "ltv_3m_usd": round(ltv_3m, 2) if ltv_3m else None,
+            "ltv_6m_usd": round(ltv_6m, 2) if ltv_6m else None,
+            "ltv_12m_usd": round(ltv_12m, 2) if ltv_12m else None,
             "avg_unit_price_usd": avg_unit,
         }

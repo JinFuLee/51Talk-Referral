@@ -1,6 +1,7 @@
 """
 健康检查 + i18n 端点
 """
+
 from typing import Any
 
 from fastapi import APIRouter, HTTPException, Request

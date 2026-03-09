@@ -2,12 +2,14 @@
 SnapshotStore 自动清理逻辑单元测试（Tech Debt #43）
 覆盖：概率触发、时间戳冷却、后台线程、retention_days 环境变量
 """
+
 import threading
 import time
 from datetime import datetime, timedelta
 from unittest.mock import patch
 
 import pytest
+
 from backend.core.snapshot_store import SnapshotStore
 
 _KPI_SQL = (
@@ -56,6 +58,7 @@ def _save_n(store, result, n, base_date=None):
 # 1. 初始状态
 # ---------------------------------------------------------------------------
 
+
 def test_initial_save_count_is_zero(store):
     assert store._save_count == 0
     assert store._last_cleanup is None
@@ -65,6 +68,7 @@ def test_initial_save_count_is_zero(store):
 # 2. 计数器累加
 # ---------------------------------------------------------------------------
 
+
 def test_save_count_increments(store, minimal_result):
     _save_n(store, minimal_result, 3)
     assert store._save_count == 3
@@ -73,6 +77,7 @@ def test_save_count_increments(store, minimal_result):
 # ---------------------------------------------------------------------------
 # 3. 概率触发：第 10 次才触发（默认 interval=10）
 # ---------------------------------------------------------------------------
+
 
 def test_cleanup_not_triggered_before_interval(store, minimal_result):
     with patch.object(store, "_background_cleanup") as mock_cleanup:
@@ -95,6 +100,7 @@ def test_cleanup_triggered_at_interval(store, minimal_result):
 # ---------------------------------------------------------------------------
 # 4. 时间戳双重保护：24h 内不重复执行
 # ---------------------------------------------------------------------------
+
 
 def test_cleanup_skipped_within_cooldown(store, minimal_result):
     """第一次在第 10 次触发后，第 20 次因 24h 冷却不触发"""
@@ -145,10 +151,11 @@ def test_cleanup_runs_again_after_cooldown(store, minimal_result):
 # 5. retention_days 读取环境变量
 # ---------------------------------------------------------------------------
 
+
 def test_retention_days_from_env(store, minimal_result, monkeypatch):
     """SNAPSHOT_RETENTION_DAYS=30 时，cleanup_old_snapshots 应以 days=30 调用"""
     monkeypatch.setenv("SNAPSHOT_RETENTION_DAYS", "30")
-    monkeypatch.setenv("SNAPSHOT_CLEANUP_INTERVAL", "1")   # 每次都触发
+    monkeypatch.setenv("SNAPSHOT_CLEANUP_INTERVAL", "1")  # 每次都触发
     monkeypatch.setenv("SNAPSHOT_CLEANUP_COOLDOWN_HOURS", "0")  # 无冷却
 
     received_days = []
@@ -167,9 +174,11 @@ def test_retention_days_from_env(store, minimal_result, monkeypatch):
 # 6. _background_cleanup 实际删除旧数据 + 日志
 # ---------------------------------------------------------------------------
 
+
 def test_background_cleanup_deletes_old_rows(store, minimal_result, caplog):
     """插入超过 90 天的旧数据，cleanup 后应删除"""
     import logging
+
     # 插入一条 200 天前的数据
     old_date = (datetime.now() - timedelta(days=200)).strftime("%Y-%m-%d")
     _insert_kpi(store.conn, old_date, "registration", 100.0)
@@ -185,13 +194,15 @@ def test_background_cleanup_deletes_old_rows(store, minimal_result, caplog):
     assert len(rows) == 0, "200 天前的数据应被清理"
 
     # 日志有清理条数
-    assert any("Auto cleanup" in r.message for r in caplog.records), \
+    assert any("Auto cleanup" in r.message for r in caplog.records), (
         "应有 Auto cleanup 日志输出"
+    )
 
 
 # ---------------------------------------------------------------------------
 # 7. cleanup_old_snapshots 不改变最近数据
 # ---------------------------------------------------------------------------
+
 
 def test_cleanup_preserves_recent_data(store, minimal_result):
     """cleanup 保留 retention_days 内的数据"""
@@ -210,6 +221,7 @@ def test_cleanup_preserves_recent_data(store, minimal_result):
 # ---------------------------------------------------------------------------
 # 8. 线程安全：_cleanup_lock 防止并发重入
 # ---------------------------------------------------------------------------
+
 
 def test_cleanup_lock_prevents_concurrent_runs(store):
     """两个线程同时调用 _background_cleanup，_cleanup_lock 确保串行"""
@@ -231,5 +243,6 @@ def test_cleanup_lock_prevents_concurrent_runs(store):
         t2.join(timeout=3)
 
     # 顺序必须是 start→end→start→end，不能交叉
-    assert call_order == ["start", "end", "start", "end"], \
+    assert call_order == ["start", "end", "start", "end"], (
         f"cleanup_lock 应保证串行执行，实际顺序: {call_order}"
+    )

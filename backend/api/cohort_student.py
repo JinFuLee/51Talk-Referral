@@ -2,6 +2,7 @@
 C6 学员明细分析 API 端点
 8800+ 学员记录 → CC带新排名 / 留存曲线 / 团队对比
 """
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -9,15 +10,18 @@ from typing import Any
 
 from fastapi import APIRouter, Depends
 
-from .dependencies import get_service
 from backend.services.analysis_service import AnalysisService
+
+from .dependencies import get_service
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 
 router = APIRouter()
 
 
-@router.get("/cohort-students", summary="C6 学员明细 — CC 带新排名 + 月龄留存曲线 + 团队对比")
+@router.get(
+    "/cohort-students", summary="C6 学员明细 — CC 带新排名 + 月龄留存曲线 + 团队对比"
+)
 def get_cohort_students(svc: AnalysisService = Depends(get_service)) -> dict[str, Any]:
     """C6 学员明细统计 — CC带新排名 / 月龄留存曲线 / 团队对比"""
     raw = getattr(svc, "_raw_data", None)
@@ -42,16 +46,18 @@ def get_cohort_students(svc: AnalysisService = Depends(get_service)) -> dict[str
             valid = info.get("有效学员数", 0) or 0
             bring_new = info.get("带新注册总数", 0) or 0
             reached = info.get("触达学员数", 0) or 0
-            cc_ranking.append({
-                "cc_name": name,
-                "team": info.get("团队", ""),
-                "students": info.get("学员数", 0) or 0,
-                "valid_students": valid,
-                "reached_students": reached,
-                "bring_new_total": bring_new,
-                "bring_new_rate": round(bring_new / valid, 4) if valid > 0 else 0,
-                "reach_rate": round(reached / valid, 4) if valid > 0 else 0,
-            })
+            cc_ranking.append(
+                {
+                    "cc_name": name,
+                    "team": info.get("团队", ""),
+                    "students": info.get("学员数", 0) or 0,
+                    "valid_students": valid,
+                    "reached_students": reached,
+                    "bring_new_total": bring_new,
+                    "bring_new_rate": round(bring_new / valid, 4) if valid > 0 else 0,
+                    "reach_rate": round(reached / valid, 4) if valid > 0 else 0,
+                }
+            )
         cc_ranking.sort(key=lambda x: x["bring_new_rate"], reverse=True)
     else:
         # 演示数据
@@ -68,14 +74,20 @@ def get_cohort_students(svc: AnalysisService = Depends(get_service)) -> dict[str
         team_list = []
         for name, info in by_team_raw.items():
             valid = info.get("有效学员数", 0) or 0
-            team_list.append({
-                "team": name,
-                "students": info.get("学员数", 0) or 0,
-                "valid_students": valid,
-                "reached_students": info.get("触达学员数", 0) or 0,
-                "bring_new_total": info.get("带新注册总数", 0) or 0,
-                "bring_new_rate": round((info.get("带新注册总数", 0) or 0) / valid, 4) if valid > 0 else 0,
-            })
+            team_list.append(
+                {
+                    "team": name,
+                    "students": info.get("学员数", 0) or 0,
+                    "valid_students": valid,
+                    "reached_students": info.get("触达学员数", 0) or 0,
+                    "bring_new_total": info.get("带新注册总数", 0) or 0,
+                    "bring_new_rate": round(
+                        (info.get("带新注册总数", 0) or 0) / valid, 4
+                    )
+                    if valid > 0
+                    else 0,
+                }
+            )
     else:
         team_list = _demo_team_list()
 
@@ -89,6 +101,7 @@ def get_cohort_students(svc: AnalysisService = Depends(get_service)) -> dict[str
 
 
 # ── 内部计算 ──────────────────────────────────────────────────────────────────
+
 
 def _build_retention_curve(records: list) -> list[dict]:
     """按月龄 m1-m12 计算有效率"""
@@ -107,27 +120,104 @@ def _build_retention_curve(records: list) -> list[dict]:
                 total_valid += 1
                 if val == 1:
                     valid_count += 1
-        retention_curve.append({
-            "month_age": m_idx,
-            "valid_rate": round(valid_count / total_valid, 4) if total_valid > 0 else None,
-            "valid_count": valid_count,
-            "total": total_valid,
-        })
+        retention_curve.append(
+            {
+                "month_age": m_idx,
+                "valid_rate": round(valid_count / total_valid, 4)
+                if total_valid > 0
+                else None,
+                "valid_count": valid_count,
+                "total": total_valid,
+            }
+        )
     return retention_curve
 
 
 # ── 演示数据 ──────────────────────────────────────────────────────────────────
 
+
 def _demo_cc_ranking() -> list[dict]:
     return [
-        {"cc_name": "สมใจ", "team": "CC-A", "students": 145, "valid_students": 127, "reached_students": 100, "bring_new_total": 41, "bring_new_rate": 0.323, "reach_rate": 0.787},
-        {"cc_name": "มานี", "team": "CC-B", "students": 132, "valid_students": 112, "reached_students": 85,  "bring_new_total": 33, "bring_new_rate": 0.295, "reach_rate": 0.759},
-        {"cc_name": "วิภา", "team": "CC-A", "students": 128, "valid_students": 106, "reached_students": 78,  "bring_new_total": 29, "bring_new_rate": 0.274, "reach_rate": 0.736},
-        {"cc_name": "ประไพ", "team": "CC-C", "students": 119, "valid_students": 95,  "reached_students": 67,  "bring_new_total": 25, "bring_new_rate": 0.263, "reach_rate": 0.705},
-        {"cc_name": "สุดา", "team": "CC-B", "students": 115, "valid_students": 90,  "reached_students": 61,  "bring_new_total": 22, "bring_new_rate": 0.244, "reach_rate": 0.678},
-        {"cc_name": "พรรณี", "team": "CC-C", "students": 108, "valid_students": 82,  "reached_students": 53,  "bring_new_total": 18, "bring_new_rate": 0.220, "reach_rate": 0.646},
-        {"cc_name": "นิภา", "team": "CC-A", "students": 102, "valid_students": 75,  "reached_students": 47,  "bring_new_total": 15, "bring_new_rate": 0.200, "reach_rate": 0.627},
-        {"cc_name": "ลัดดา", "team": "CC-D", "students": 98,  "valid_students": 70,  "reached_students": 42,  "bring_new_total": 13, "bring_new_rate": 0.186, "reach_rate": 0.600},
+        {
+            "cc_name": "สมใจ",
+            "team": "CC-A",
+            "students": 145,
+            "valid_students": 127,
+            "reached_students": 100,
+            "bring_new_total": 41,
+            "bring_new_rate": 0.323,
+            "reach_rate": 0.787,
+        },
+        {
+            "cc_name": "มานี",
+            "team": "CC-B",
+            "students": 132,
+            "valid_students": 112,
+            "reached_students": 85,
+            "bring_new_total": 33,
+            "bring_new_rate": 0.295,
+            "reach_rate": 0.759,
+        },
+        {
+            "cc_name": "วิภา",
+            "team": "CC-A",
+            "students": 128,
+            "valid_students": 106,
+            "reached_students": 78,
+            "bring_new_total": 29,
+            "bring_new_rate": 0.274,
+            "reach_rate": 0.736,
+        },
+        {
+            "cc_name": "ประไพ",
+            "team": "CC-C",
+            "students": 119,
+            "valid_students": 95,
+            "reached_students": 67,
+            "bring_new_total": 25,
+            "bring_new_rate": 0.263,
+            "reach_rate": 0.705,
+        },
+        {
+            "cc_name": "สุดา",
+            "team": "CC-B",
+            "students": 115,
+            "valid_students": 90,
+            "reached_students": 61,
+            "bring_new_total": 22,
+            "bring_new_rate": 0.244,
+            "reach_rate": 0.678,
+        },
+        {
+            "cc_name": "พรรณี",
+            "team": "CC-C",
+            "students": 108,
+            "valid_students": 82,
+            "reached_students": 53,
+            "bring_new_total": 18,
+            "bring_new_rate": 0.220,
+            "reach_rate": 0.646,
+        },
+        {
+            "cc_name": "นิภา",
+            "team": "CC-A",
+            "students": 102,
+            "valid_students": 75,
+            "reached_students": 47,
+            "bring_new_total": 15,
+            "bring_new_rate": 0.200,
+            "reach_rate": 0.627,
+        },
+        {
+            "cc_name": "ลัดดา",
+            "team": "CC-D",
+            "students": 98,
+            "valid_students": 70,
+            "reached_students": 42,
+            "bring_new_total": 13,
+            "bring_new_rate": 0.186,
+            "reach_rate": 0.600,
+        },
     ]
 
 
@@ -154,8 +244,36 @@ def _demo_retention_curve() -> list[dict]:
 
 def _demo_team_list() -> list[dict]:
     return [
-        {"team": "CC-A", "students": 375, "valid_students": 308, "reached_students": 225, "bring_new_total": 85, "bring_new_rate": 0.276},
-        {"team": "CC-B", "students": 247, "valid_students": 202, "reached_students": 146, "bring_new_total": 55, "bring_new_rate": 0.272},
-        {"team": "CC-C", "students": 227, "valid_students": 177, "reached_students": 120, "bring_new_total": 43, "bring_new_rate": 0.243},
-        {"team": "CC-D", "students": 98,  "valid_students": 70,  "reached_students": 42,  "bring_new_total": 13, "bring_new_rate": 0.186},
+        {
+            "team": "CC-A",
+            "students": 375,
+            "valid_students": 308,
+            "reached_students": 225,
+            "bring_new_total": 85,
+            "bring_new_rate": 0.276,
+        },
+        {
+            "team": "CC-B",
+            "students": 247,
+            "valid_students": 202,
+            "reached_students": 146,
+            "bring_new_total": 55,
+            "bring_new_rate": 0.272,
+        },
+        {
+            "team": "CC-C",
+            "students": 227,
+            "valid_students": 177,
+            "reached_students": 120,
+            "bring_new_total": 43,
+            "bring_new_rate": 0.243,
+        },
+        {
+            "team": "CC-D",
+            "students": 98,
+            "valid_students": 70,
+            "reached_students": 42,
+            "bring_new_total": 13,
+            "bring_new_rate": 0.186,
+        },
     ]

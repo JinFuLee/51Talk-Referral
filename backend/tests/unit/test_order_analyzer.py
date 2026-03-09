@@ -2,6 +2,7 @@
 Unit tests for core.analyzers.order_analyzer.OrderAnalyzer
 ~10 test cases
 """
+
 import pytest
 
 from backend.core.analyzers.context import AnalyzerContext

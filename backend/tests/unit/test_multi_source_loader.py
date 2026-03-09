@@ -2,14 +2,18 @@
 Unit tests for core.multi_source_loader.MultiSourceLoader
 覆盖：并行加载成功、单 Loader 异常隔离、串行 fallback、环境变量开关、timeout 处理
 """
+
 import os
 from concurrent.futures import Future
 from unittest.mock import MagicMock, patch
 
 import pytest
 
-from backend.core.multi_source_loader import MultiSourceLoader, _parallel_enabled, load_all_sources
-
+from backend.core.multi_source_loader import (
+    MultiSourceLoader,
+    _parallel_enabled,
+    load_all_sources,
+)
 
 # ── Fixtures ──────────────────────────────────────────────────────────────────
 
@@ -137,7 +141,10 @@ class TestLoadAllSerial:
         monkeypatch.setenv("PARALLEL_LOADERS", "0")
         msl.load_all()
         for name, loader in msl._loaders.items():
-            loader.load_all.assert_called_once(), f"{name}.load_all 应只调用一次（串行）"
+            (
+                loader.load_all.assert_called_once(),
+                f"{name}.load_all 应只调用一次（串行）",
+            )
 
 
 # ── 并行异常 fallback 到串行 ───────────────────────────────────────────────────
@@ -147,7 +154,9 @@ class TestParallelFallbackToSerial:
     def test_fallback_when_parallel_raises(self, msl, monkeypatch):
         """_load_parallel 抛出意外异常时自动降级到串行，结果仍完整。"""
         monkeypatch.delenv("PARALLEL_LOADERS", raising=False)
-        with patch.object(msl, "_load_parallel", side_effect=RuntimeError("线程池崩了")):
+        with patch.object(
+            msl, "_load_parallel", side_effect=RuntimeError("线程池崩了")
+        ):
             result = msl.load_all()
         # 降级到串行后所有 Loader 结果应正常返回
         assert set(result.keys()) == {"leads", "roi", "cohort", "kpi", "order", "ops"}

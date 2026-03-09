@@ -6,13 +6,22 @@
   环境变量 PARALLEL_LOADERS=0  → 强制串行（调试/兼容回退）
   环境变量 PARALLEL_LOADERS=1  → 并行（默认）
 """
-import os
-from concurrent.futures import ThreadPoolExecutor, as_completed, TimeoutError as FuturesTimeout
-from pathlib import Path
-from typing import Dict, Any, Optional, TYPE_CHECKING
-import logging
 
-from .loaders import LeadsLoader, ROILoader, CohortLoader, KpiLoader, OrderLoader, OpsLoader
+import logging
+import os
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import TimeoutError as FuturesTimeout
+from pathlib import Path
+from typing import TYPE_CHECKING, Any, Dict, Optional
+
+from .loaders import (
+    CohortLoader,
+    KpiLoader,
+    LeadsLoader,
+    OpsLoader,
+    OrderLoader,
+    ROILoader,
+)
 
 if TYPE_CHECKING:
     from .project_config import ProjectConfig
@@ -35,7 +44,9 @@ class MultiSourceLoader:
     设置环境变量 PARALLEL_LOADERS=0 可回退到串行模式（兼容性 / 调试用途）。
     """
 
-    def __init__(self, input_dir: str, project_config: Optional["ProjectConfig"] = None) -> None:
+    def __init__(
+        self, input_dir: str, project_config: Optional["ProjectConfig"] = None
+    ) -> None:
         self.input_dir = Path(input_dir)
         self._loaders: Dict[str, Any] = {
             "leads": LeadsLoader(self.input_dir, project_config),
@@ -61,7 +72,9 @@ class MultiSourceLoader:
             logger.info("PARALLEL_LOADERS=0，使用串行模式加载")
             return self._load_serial()
 
-        logger.info(f"并行加载 {len(self._loaders)} 个 Loader（timeout={_PARALLEL_TIMEOUT_SECS}s）")
+        logger.info(
+            f"并行加载 {len(self._loaders)} 个 Loader（timeout={_PARALLEL_TIMEOUT_SECS}s）"
+        )
         try:
             return self._load_parallel()
         except Exception as exc:
@@ -75,7 +88,9 @@ class MultiSourceLoader:
         """按类别加载单类数据源。"""
         loader = self._loaders.get(category)
         if not loader:
-            raise ValueError(f"未知类别: {category}，可用: {list(self._loaders.keys())}")
+            raise ValueError(
+                f"未知类别: {category}，可用: {list(self._loaders.keys())}"
+            )
         return loader.load_all()
 
     # ------------------------------------------------------------------ #
@@ -91,13 +106,17 @@ class MultiSourceLoader:
                 for name, loader in self._loaders.items()
             }
             try:
-                for future in as_completed(future_to_name, timeout=_PARALLEL_TIMEOUT_SECS):
+                for future in as_completed(
+                    future_to_name, timeout=_PARALLEL_TIMEOUT_SECS
+                ):
                     name = future_to_name[future]
                     try:
                         data[name] = future.result()
                         logger.info(f"[{name}] 加载成功（并行）")
                     except Exception as loader_exc:
-                        logger.error(f"[{name}] 加载失败（并行）: {loader_exc}", exc_info=True)
+                        logger.error(
+                            f"[{name}] 加载失败（并行）: {loader_exc}", exc_info=True
+                        )
                         data[name] = {}
             except FuturesTimeout:
                 logger.error(

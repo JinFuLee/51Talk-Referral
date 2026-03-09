@@ -10,6 +10,7 @@ M13 影响链计算引擎
 - attend_rate (出席率): gap → 缺席学员 → 损失付费 → $损失
 - conversion_rate (转化率): gap → 损失付费 → $损失
 """
+
 from __future__ import annotations
 
 from typing import Optional
@@ -129,12 +130,8 @@ class ImpactChainEngine:
         self._actual_checkin: Optional[float] = _safe_float(
             rates.get("checkin_rate") or total.get("checkin_rate")
         )
-        self._actual_reserve: Optional[float] = _safe_float(
-            rates.get("reserve_rate")
-        )
-        self._actual_attend: Optional[float] = _safe_float(
-            rates.get("attend_rate")
-        )
+        self._actual_reserve: Optional[float] = _safe_float(rates.get("reserve_rate"))
+        self._actual_attend: Optional[float] = _safe_float(rates.get("attend_rate"))
         self._actual_conversion: Optional[float] = _safe_float(
             rates.get("register_paid_rate")
             or rates.get("conversion_rate")
@@ -154,12 +151,12 @@ class ImpactChainEngine:
         # 目标值
         asp = _safe_float(self.targets.get("客单价")) or _DEFAULT_ASP_USD
         self._asp_usd = asp
-        self._target_conversion = _safe_float(self.targets.get("目标转化率")) or _DEFAULT_CONVERSION
+        self._target_conversion = (
+            _safe_float(self.targets.get("目标转化率")) or _DEFAULT_CONVERSION
+        )
         self._target_reserve = _safe_float(self.targets.get("约课率目标")) or 0.77
         self._target_attend = _safe_float(self.targets.get("出席率目标")) or 0.66
-        self._target_checkin: float = float(
-            checkin_block.get("target") or 0.60
-        )
+        self._target_checkin: float = float(checkin_block.get("target") or 0.60)
         # 触达率、参与率目标没有显式配置，用相对基准
         # 触达率目标：参考业内典型值 0.80（若无配置）
         self._target_reach = _safe_float(self.targets.get("触达率目标")) or 0.80
@@ -167,8 +164,17 @@ class ImpactChainEngine:
         self._target_participation = _safe_float(self.targets.get("参与率目标")) or 0.50
 
         # 漏斗基数
-        self._reg_base = total_reg if total_reg > 0 else float(
-            (self.summary.get("registration") or self.summary.get("registrations") or {}).get("actual") or 0
+        self._reg_base = (
+            total_reg
+            if total_reg > 0
+            else float(
+                (
+                    self.summary.get("registration")
+                    or self.summary.get("registrations")
+                    or {}
+                ).get("actual")
+                or 0
+            )
         )
         self._reserve_base = total_reserve
 
@@ -291,7 +297,11 @@ class ImpactChainEngine:
 
         # ── 组装 impact_steps ──────────────────────────────────────────────────
         impact_steps = [
-            {"step": step_key, "value": step_values.get(step_key, 0), "label": step_label}
+            {
+                "step": step_key,
+                "value": step_values.get(step_key, 0),
+                "label": step_label,
+            }
             for step_key, step_label in step_defs
         ]
 
@@ -412,7 +422,9 @@ class ImpactChainEngine:
             "participation_rate": self._valid_students,
             "checkin_rate": self._valid_students,
             "reserve_rate": self._reg_base,
-            "attend_rate": self._reserve_base if self._reserve_base > 0 else self._reg_base,
+            "attend_rate": self._reserve_base
+            if self._reserve_base > 0
+            else self._reg_base,
             "conversion_rate": self._reg_base,
         }
 
@@ -424,9 +436,13 @@ class ImpactChainEngine:
         effective_current = current_value if current_value is not None else 0.0
 
         # 当前损失（current_value → target）
-        current_chain = self._compute_chain(metric, effective_current, target_value, upstream_base)
+        current_chain = self._compute_chain(
+            metric, effective_current, target_value, upstream_base
+        )
         # 模拟后损失（new_value → target）
-        simulated_chain = self._compute_chain(metric, new_value, target_value, upstream_base)
+        simulated_chain = self._compute_chain(
+            metric, new_value, target_value, upstream_base
+        )
 
         current_payments = current_chain["lost_payments"] if current_chain else 0
         current_usd = current_chain["lost_revenue_usd"] if current_chain else 0.0
@@ -448,7 +464,9 @@ class ImpactChainEngine:
         return {
             "metric": metric,
             "label": label,
-            "current_value": round(current_value, 4) if current_value is not None else None,
+            "current_value": round(current_value, 4)
+            if current_value is not None
+            else None,
             "simulated_value": round(new_value, 4),
             "delta_payments": delta_payments,
             "delta_revenue_usd": delta_usd,

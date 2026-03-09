@@ -2,11 +2,13 @@
 F4 渠道月度趋势 API 端点
 GET /api/analysis/channel-trend — 渠道注册占比、效率指标月度趋势
 """
+
 from __future__ import annotations
 
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException
+
 from backend.services.analysis_service import AnalysisService
 
 from .dependencies import get_service
@@ -69,17 +71,19 @@ def _pivot_f4(records: list[dict], months: list[str]) -> list[dict]:
                 mom_pct = round((reg - prev_reg) / prev_reg * 100, 2)
             prev_reg = reg
 
-            month_metrics.append({
-                "month": month,
-                "registrations": reg,
-                "reg_share": reg_share,
-                "reg_paid_rate": reg_paid_rate,
-                "unit_price_usd": unit_price,
-                "appt_rate": appt_rate,
-                "appt_attend_rate": appt_attend,
-                "attend_paid_rate": attend_paid,
-                "mom_reg_pct": mom_pct,
-            })
+            month_metrics.append(
+                {
+                    "month": month,
+                    "registrations": reg,
+                    "reg_share": reg_share,
+                    "reg_paid_rate": reg_paid_rate,
+                    "unit_price_usd": unit_price,
+                    "appt_rate": appt_rate,
+                    "appt_attend_rate": appt_attend,
+                    "attend_paid_rate": attend_paid,
+                    "mom_reg_pct": mom_pct,
+                }
+            )
 
         out.append({"channel": channel, "metrics": month_metrics})
 

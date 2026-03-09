@@ -1,9 +1,11 @@
 """统一数据加载基础类"""
-from pathlib import Path
-from typing import Any, Optional, TYPE_CHECKING
+
 import hashlib
 import logging
 import math
+from pathlib import Path
+from typing import TYPE_CHECKING, Any, Optional
+
 import numpy as np
 import pandas as pd
 
@@ -21,7 +23,9 @@ class BaseLoader:
     # 别名映射（EA→SS, CM→LP）— 类常量保留用于向后兼容
     ALIAS_MAP = {"EA": "SS", "ea": "SS", "CM": "LP", "cm": "LP"}
 
-    def __init__(self, input_dir: Path, project_config: Optional["ProjectConfig"] = None) -> None:
+    def __init__(
+        self, input_dir: Path, project_config: Optional["ProjectConfig"] = None
+    ) -> None:
         self.input_dir = Path(input_dir)
         self._project_config = project_config
         # 有 config 时使用 config 的别名映射和默认团队名，否则保留硬编码值
@@ -59,12 +63,15 @@ class BaseLoader:
         )
         return xlsx_files[0] if xlsx_files else None
 
-    def _read_xlsx_pandas(self, path: Path, sheet_name=0, header=0, skiprows=None) -> Any:
+    def _read_xlsx_pandas(
+        self, path: Path, sheet_name=0, header=0, skiprows=None
+    ) -> Any:
         """使用 pandas 读取 Excel，统一异常处理，优先 openpyxl，fallback calamine。
         内置 Parquet 缓存层：缓存比源文件新时直接返回，否则读 Excel 后写缓存。
         """
-        import pandas as pd
         import warnings
+
+        import pandas as pd
 
         cache_path = self._get_cache_path(path, sheet_name, header=header)
 
@@ -79,7 +86,9 @@ class BaseLoader:
         logger.info(f"Cache miss, reading Excel: {path.name} (sheet={sheet_name})")
         try:
             with warnings.catch_warnings():
-                warnings.filterwarnings("ignore", category=UserWarning, module="openpyxl")
+                warnings.filterwarnings(
+                    "ignore", category=UserWarning, module="openpyxl"
+                )
                 df = pd.read_excel(
                     path,
                     sheet_name=sheet_name,
@@ -107,7 +116,7 @@ class BaseLoader:
                 # PyArrow 不能处理 mixed types (例如既有 string 又有 float 的列)
                 # 在缓存前，将所有 object 类型的列强制转为字符串
                 cache_df = df.copy()
-                object_cols = cache_df.select_dtypes(include=['object']).columns
+                object_cols = cache_df.select_dtypes(include=["object"]).columns
                 cache_df[object_cols] = cache_df[object_cols].astype(str)
                 cache_df.to_parquet(cache_path, index=False)
             except Exception as write_err:
@@ -162,7 +171,9 @@ class BaseLoader:
         """
         import pandas as pd
 
-        s = s.replace(["-", "nan", "NaN", "", None, "—", "N/A", "#N/A"], np.nan).infer_objects(copy=False)
+        s = s.replace(
+            ["-", "nan", "NaN", "", None, "—", "N/A", "#N/A"], np.nan
+        ).infer_objects(copy=False)
         s = s.astype(str).str.replace(",", "", regex=False).str.rstrip("%")
         # "nan" 字符串由 astype(str) 还原，需再次置 NaN
         s = s.replace("nan", np.nan).infer_objects(copy=False)
@@ -174,7 +185,9 @@ class BaseLoader:
         """
         import pandas as pd
 
-        s = s.replace(["-", "nan", "NaN", "", None, "—", "N/A", "#N/A"], np.nan).infer_objects(copy=False)
+        s = s.replace(
+            ["-", "nan", "NaN", "", None, "—", "N/A", "#N/A"], np.nan
+        ).infer_objects(copy=False)
         # 去掉 pandas 可能带的小数点（如 "20210301.0"）
         s = s.astype(str).str.split(".").str[0]
         s = s.replace("nan", np.nan).infer_objects(copy=False)
@@ -195,6 +208,7 @@ class BaseLoader:
         result = {}
         for col, val in row.items():
             import pandas as pd
+
             if pd.isna(val) if not isinstance(val, (list, dict)) else False:
                 result[col] = None
             else:

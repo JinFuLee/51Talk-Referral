@@ -2,6 +2,7 @@
 OrderAnalyzer — 订单分析 + 人效分析
 从 analysis_engine_v2.py 行 1083-1251 提取。
 """
+
 from __future__ import annotations
 
 from .context import AnalyzerContext
@@ -17,8 +18,12 @@ class OrderAnalyzer:
         ctx = self.ctx
         e1 = ctx.data.get("order", {}).get("cc_attendance", []) or []
         e2 = ctx.data.get("order", {}).get("ss_attendance", []) or []
-        e3_summary = ctx.data.get("order", {}).get("order_detail", {}).get("summary", {}) or {}
-        e3_by_team = ctx.data.get("order", {}).get("order_detail", {}).get("by_team", {}) or {}
+        e3_summary = (
+            ctx.data.get("order", {}).get("order_detail", {}).get("summary", {}) or {}
+        )
+        e3_by_team = (
+            ctx.data.get("order", {}).get("order_detail", {}).get("by_team", {}) or {}
+        )
 
         # 最新一天的上班人数
         cc_active = e1[-1]["active_5min"] if e1 else None
@@ -43,14 +48,14 @@ class OrderAnalyzer:
 
         return {
             "cc": {
-                "active_count":    cc_active,
+                "active_count": cc_active,
                 "total_revenue_usd": round(cc_rev, 2),
-                "per_capita_usd":  round(_safe_div(cc_rev, cc_active) or 0, 2),
+                "per_capita_usd": round(_safe_div(cc_rev, cc_active) or 0, 2),
             },
             "ss": {
-                "active_count":    ss_active,
+                "active_count": ss_active,
                 "total_revenue_usd": round(ss_rev, 2),
-                "per_capita_usd":  round(_safe_div(ss_rev, ss_active) or 0, 2),
+                "per_capita_usd": round(_safe_div(ss_rev, ss_active) or 0, 2),
             },
             "total_revenue_cny": round(total_rev_cny, 2),
             "total_revenue_usd": round(total_rev_usd, 2),
@@ -61,29 +66,37 @@ class OrderAnalyzer:
         """订单分析：E3-E8"""
         ctx = self.ctx
         e3 = ctx.data.get("order", {}).get("order_detail", {})
-        e3_summary   = e3.get("summary", {}) or {}
-        e3_by_team   = e3.get("by_team", {}) or {}
+        e3_summary = e3.get("summary", {}) or {}
+        e3_by_team = e3.get("by_team", {}) or {}
         e3_by_channel = e3.get("by_channel", {}) or {}
 
         e4 = ctx.data.get("order", {}).get("order_daily_trend", []) or []
         e5 = ctx.data.get("order", {}).get("revenue_daily_trend", []) or []
         e6 = ctx.data.get("order", {}).get("package_ratio", {}) or {}
-        e7_raw = ctx.data.get("order", {}).get("team_package_ratio", {}).get("by_team", []) or []
-        e8_raw = ctx.data.get("order", {}).get("channel_revenue", {}).get("by_channel_product", []) or []
+        e7_raw = (
+            ctx.data.get("order", {}).get("team_package_ratio", {}).get("by_team", [])
+            or []
+        )
+        e8_raw = (
+            ctx.data.get("order", {})
+            .get("channel_revenue", {})
+            .get("by_channel_product", [])
+            or []
+        )
 
         total_orders = e3_summary.get("total_orders", 0)
-        new_orders   = e3_summary.get("new_orders", 0)
-        renewal      = e3_summary.get("renewal_orders", 0)
-        rev_cny      = e3_summary.get("total_revenue_cny", 0.0)
-        rev_usd      = e3_summary.get("total_revenue_usd", 0.0)
+        new_orders = e3_summary.get("new_orders", 0)
+        renewal = e3_summary.get("renewal_orders", 0)
+        rev_cny = e3_summary.get("total_revenue_cny", 0.0)
+        rev_usd = e3_summary.get("total_revenue_usd", 0.0)
 
         # 日趋势整合
         e4_by_date = {r["date"]: r for r in e4}
         e5_by_date = {r["date"]: r for r in e5}
-        all_dates  = sorted(set(e4_by_date) | set(e5_by_date))
+        all_dates = sorted(set(e4_by_date) | set(e5_by_date))
         daily_trend = [
             {
-                "date":        d,
+                "date": d,
                 "order_count": e4_by_date.get(d, {}).get("order_count"),
                 "revenue_cny": e5_by_date.get(d, {}).get("revenue_cny"),
             }
@@ -98,19 +111,21 @@ class OrderAnalyzer:
 
         return {
             "summary": {
-                "total":       total_orders,
-                "new":         new_orders,
-                "renewal":     renewal,
+                "total": total_orders,
+                "new": new_orders,
+                "renewal": renewal,
                 "revenue_cny": round(rev_cny, 2),
                 "revenue_usd": round(rev_usd, 2),
             },
-            "by_channel":           e3_by_channel,
-            "by_team":              list(e3_by_team.values()) if isinstance(e3_by_team, dict) else e3_by_team,
-            "records":              e3.get("records", []),
-            "daily_trend":          daily_trend,
+            "by_channel": e3_by_channel,
+            "by_team": list(e3_by_team.values())
+            if isinstance(e3_by_team, dict)
+            else e3_by_team,
+            "records": e3.get("records", []),
+            "daily_trend": daily_trend,
             "package_distribution": e6,
-            "team_package":         team_package,
-            "channel_product":      channel_product,
+            "team_package": team_package,
+            "channel_product": channel_product,
         }
 
     def _normalize_team_package(self, raw: list) -> list:
@@ -134,7 +149,9 @@ class OrderAnalyzer:
                     continue
                 try:
                     ratio = float(val)
-                    items.append({"product_type": str(col).strip(), "ratio": round(ratio, 4)})
+                    items.append(
+                        {"product_type": str(col).strip(), "ratio": round(ratio, 4)}
+                    )
                 except (TypeError, ValueError):
                     pass
             result.append({"team": team_name, "items": items})
@@ -151,7 +168,7 @@ class OrderAnalyzer:
             cols = list(row.keys())
             if len(cols) < 2:
                 continue
-            product_col  = cols[0]
+            product_col = cols[0]
             product_name = str(row.get(product_col, "")).strip()
             if not product_name or product_name.lower() in ("nan", "none", ""):
                 continue
@@ -166,12 +183,14 @@ class OrderAnalyzer:
                     channel_name = str(col).strip()
                     # amount 字段通常是 THB，转 USD（÷34）
                     amount_usd = round(amount / 34.0, 2)
-                    result.append({
-                        "channel":    channel_name,
-                        "product":    product_name,
-                        "amount_usd": amount_usd,
-                        "amount_thb": round(amount, 2),
-                    })
+                    result.append(
+                        {
+                            "channel": channel_name,
+                            "product": product_name,
+                            "amount_usd": amount_usd,
+                            "amount_thb": round(amount, 2),
+                        }
+                    )
                 except (TypeError, ValueError):
                     pass
         return result

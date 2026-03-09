@@ -2,20 +2,24 @@
 F9 CC 留存贡献排名 API 端点
 GET /api/analysis/retention-contribution — 按留存收入降序的 CC 排名
 """
+
 from __future__ import annotations
 
 from typing import Any
 
 from fastapi import APIRouter, Depends
 
-from .dependencies import get_service
 from backend.services.analysis_service import AnalysisService
+
+from .dependencies import get_service
 
 router = APIRouter()
 
 
 @router.get("/retention-contribution", summary="F9 CC 留存贡献排名（按留存收入降序）")
-def get_retention_contribution(svc: AnalysisService = Depends(get_service)) -> dict[str, Any]:
+def get_retention_contribution(
+    svc: AnalysisService = Depends(get_service),
+) -> dict[str, Any]:
     """
     F9 CC 留存贡献排名
 
@@ -47,11 +51,7 @@ def get_retention_contribution(svc: AnalysisService = Depends(get_service)) -> d
         for cc in by_cc:
             if not isinstance(cc, dict):
                 continue
-            retained = (
-                cc.get("retained_count")
-                or cc.get("followup_count")
-                or 0
-            )
+            retained = cc.get("retained_count") or cc.get("followup_count") or 0
             total_retained += int(retained)
             rankings.append(
                 {
@@ -67,9 +67,7 @@ def get_retention_contribution(svc: AnalysisService = Depends(get_service)) -> d
     # 计算贡献占比（基于 followup_count）
     total_denom = total_retained if total_retained > 0 else 1
     for r in rankings:
-        r["contribution_pct"] = round(
-            r["followup_count"] / total_denom * 100, 1
-        )
+        r["contribution_pct"] = round(r["followup_count"] / total_denom * 100, 1)
 
     rankings.sort(key=lambda x: x.get("retained_revenue_usd", 0), reverse=True)
 

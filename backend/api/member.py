@@ -3,6 +3,7 @@ Member Profile API
 GET /api/member/{cc_name}/profile — CC 个人战斗力全息档案
 整合 F1/F5/F7/F8/E3 数据，返回 MemberProfileResponse 结构
 """
+
 from __future__ import annotations
 
 import math
@@ -11,8 +12,9 @@ from typing import Any, Optional
 
 from fastapi import APIRouter, Depends, HTTPException
 
-from .dependencies import get_service
 from backend.services.analysis_service import AnalysisService
+
+from .dependencies import get_service
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 
@@ -156,8 +158,7 @@ def _compute_badges(
         name: val
         for name, val in cc_attend_paid.items()
         if any(
-            r.get("cc_name") == name and r.get("team") == team_of_cc
-            for r in f1_records
+            r.get("cc_name") == name and r.get("team") == team_of_cc for r in f1_records
         )
     }
     if not same_team_ccs:
@@ -177,8 +178,8 @@ def _compute_badges(
 
     # ── 徽章 2：外呼劳模（连续 4 周日均拨打 ≥ 28）────────────────────────────
     # 从 f5_records 提取该 CC 的每日拨打数（按周聚合）
-    from collections import defaultdict
     import datetime as dt_module
+    from collections import defaultdict
 
     cc_daily_calls: dict[str, int] = {}
     for rec in f5_records:
@@ -275,7 +276,14 @@ def _build_radar(
     维度顺序（顺时针从顶部）：
       触达穿透 | 邀约手腕 | 出勤保障 | 临门一脚 | 服务覆盖 | 价值单产
     """
-    DIMENSIONS = ["触达穿透", "邀约手腕", "出勤保障", "临门一脚", "服务覆盖", "价值单产"]
+    DIMENSIONS = [
+        "触达穿透",
+        "邀约手腕",
+        "出勤保障",
+        "临门一脚",
+        "服务覆盖",
+        "价值单产",
+    ]
     BENCHMARK = [50.0] * 6
 
     # 过滤有效 CC（排除汇总行）
@@ -553,7 +561,9 @@ def _build_revenue(cc_name: str, order_records: list[dict]) -> dict:
 # ── 主端点 ────────────────────────────────────────────────────────────────────
 
 
-@router.get("/{cc_name}/profile", summary="CC 个人战斗力全息档案（身份/雷达/异常/收入）")
+@router.get(
+    "/{cc_name}/profile", summary="CC 个人战斗力全息档案（身份/雷达/异常/收入）"
+)
 def get_member_profile(
     cc_name: str,
     svc: AnalysisService = Depends(get_service),
@@ -584,7 +594,9 @@ def get_member_profile(
 
     # 校验 CC 是否存在（F1 中查找）
     valid_skip = {"nan", "NaN", "小计", "总计", None}
-    known_ccs = {r.get("cc_name") for r in f1_records if r.get("cc_name") not in valid_skip}
+    known_ccs = {
+        r.get("cc_name") for r in f1_records if r.get("cc_name") not in valid_skip
+    }
 
     if not known_ccs:
         # 数据未加载，返回空结构而非 404
@@ -597,7 +609,7 @@ def get_member_profile(
         stripped = cc_name
         for prefix in ("thcc-", "thcc_", "THCC-", "THCC_"):
             if cc_name.lower().startswith(prefix.lower()):
-                stripped = cc_name[len(prefix):]
+                stripped = cc_name[len(prefix) :]
                 break
 
         # case-insensitive 匹配
@@ -606,14 +618,24 @@ def get_member_profile(
         if match:
             resolved_cc_name = match
         else:
-            raise HTTPException(status_code=404, detail=f"CC '{cc_name}' 不存在于 F1 数据中")
+            raise HTTPException(
+                status_code=404, detail=f"CC '{cc_name}' 不存在于 F1 数据中"
+            )
 
     # 组装各模块（统一使用 resolved_cc_name — 已对齐 F1 原始数据中的格式）
     identity_base = _build_identity(resolved_cc_name, f1_records)
-    badges_triggered, badge_details = _compute_badges(resolved_cc_name, f1_records, f5_records)
-    identity = {**identity_base, "badges": badges_triggered, "badge_details": badge_details}
+    badges_triggered, badge_details = _compute_badges(
+        resolved_cc_name, f1_records, f5_records
+    )
+    identity = {
+        **identity_base,
+        "badges": badges_triggered,
+        "badge_details": badge_details,
+    }
 
-    radar = _build_radar(resolved_cc_name, f1_records, f7_by_cc, f8_by_cc, order_records)
+    radar = _build_radar(
+        resolved_cc_name, f1_records, f7_by_cc, f8_by_cc, order_records
+    )
     anomaly = _build_anomaly(resolved_cc_name, f5_records)
     revenue = _build_revenue(resolved_cc_name, order_records)
 
@@ -638,7 +660,14 @@ def _empty_profile(cc_name: str) -> dict[str, Any]:
         "radar": {
             "personal": [0.0] * 6,
             "benchmark": [50.0] * 6,
-            "dimensions": ["触达穿透", "邀约手腕", "出勤保障", "临门一脚", "服务覆盖", "价值单产"],
+            "dimensions": [
+                "触达穿透",
+                "邀约手腕",
+                "出勤保障",
+                "临门一脚",
+                "服务覆盖",
+                "价值单产",
+            ],
         },
         "anomaly": {
             "daily_calls": [],

@@ -3,12 +3,13 @@ Unit tests for core.analyzers.cohort_analyzer.CohortAnalyzer
 ~28 test cases covering: analyze_cohort_roi, calc_half_life,
 analyze_enclosure_cross, analyze_checkin_impact, analyze_ltv
 """
+
 from datetime import datetime
 
 import pytest
 
-from backend.core.analyzers.context import AnalyzerContext
 from backend.core.analyzers.cohort_analyzer import CohortAnalyzer
+from backend.core.analyzers.context import AnalyzerContext
 
 # ── Fixtures ──────────────────────────────────────────────────────────────────
 
@@ -27,7 +28,9 @@ def _make_ctx(data: dict, targets: dict | None = None) -> AnalyzerContext:
     )
 
 
-def _cohort_by_month(months: list[str], m1_val: float = 0.8, decay: float = 0.1) -> list[dict]:
+def _cohort_by_month(
+    months: list[str], m1_val: float = 0.8, decay: float = 0.1
+) -> list[dict]:
     """构造带 m1-m12 衰减序列的 by_month 记录列表。"""
     result = []
     for month in months:
@@ -42,11 +45,13 @@ def _full_cohort_data(months: list[str]) -> dict:
     """构造 cohort 数据源（C1-C5 全齐）。"""
     by_month = _cohort_by_month(months)
     return {
-        "reach_rate":          {"by_month": by_month},
-        "participation_rate":  {"by_month": by_month},
-        "checkin_rate":        {"by_month": by_month},
+        "reach_rate": {"by_month": by_month},
+        "participation_rate": {"by_month": by_month},
+        "checkin_rate": {"by_month": by_month},
         "referral_coefficient": {"by_month": [{"月份": m, "m1": 1.2} for m in months]},
-        "conversion_ratio":    {"by_month": [{"月份": m, "m1": 0.15, "m2": 0.10} for m in months]},
+        "conversion_ratio": {
+            "by_month": [{"月份": m, "m1": 0.15, "m2": 0.10} for m in months]
+        },
     }
 
 
@@ -62,8 +67,16 @@ class TestAnalyzeCohortRoi:
     def test_required_top_level_keys(self):
         ctx = _make_ctx({"cohort": _full_cohort_data(["2026-01"])})
         result = CohortAnalyzer(ctx).analyze_cohort_roi()
-        for key in ("by_month", "optimal_months", "overall_roi", "total_cost_usd",
-                    "total_revenue_usd", "decay_summary", "cost_list", "by_product"):
+        for key in (
+            "by_month",
+            "optimal_months",
+            "overall_roi",
+            "total_cost_usd",
+            "total_revenue_usd",
+            "decay_summary",
+            "cost_list",
+            "by_product",
+        ):
             assert key in result, f"缺失键: {key}"
 
     def test_by_month_length_matches_input(self):
@@ -99,9 +112,9 @@ class TestAnalyzeCohortRoi:
             "roi": {
                 "summary": {
                     "_total": {
-                        "实际成本":  5000.0,
+                        "实际成本": 5000.0,
                         "实际营收": 20000.0,
-                        "实际ROI":   4.0,
+                        "实际ROI": 4.0,
                     }
                 }
             },
@@ -161,7 +174,7 @@ class TestCalcHalfLife:
                 "m2": 0.70,
                 "m3": 0.55,
                 "m4": 0.45,
-                "m5": 0.35,   # < 0.8/2 = 0.4
+                "m5": 0.35,  # < 0.8/2 = 0.4
             }
         }
         result = CohortAnalyzer(ctx).calc_half_life(by_month)
@@ -185,17 +198,25 @@ class TestAnalyzeEnclosureCross:
             "kpi": {
                 "enclosure_referral": {
                     "by_enclosure": [
-                        {"enclosure": "0-30",  "active_students": 200,
-                         "conversion_rate": 0.35, "participation_rate": 0.60},
-                        {"enclosure": "31-60", "active_students": 150,
-                         "conversion_rate": 0.28, "participation_rate": 0.45},
+                        {
+                            "enclosure": "0-30",
+                            "active_students": 200,
+                            "conversion_rate": 0.35,
+                            "participation_rate": 0.60,
+                        },
+                        {
+                            "enclosure": "31-60",
+                            "active_students": 150,
+                            "conversion_rate": 0.28,
+                            "participation_rate": 0.45,
+                        },
                     ]
                 }
             },
             "ops": {
                 "enclosure_monthly_followup": {
                     "by_enclosure": [
-                        {"enclosure": "0-30",  "summary": {"call_coverage": 0.75}},
+                        {"enclosure": "0-30", "summary": {"call_coverage": 0.75}},
                         {"enclosure": "31-60", "summary": {"call_coverage": 0.55}},
                     ]
                 }
@@ -203,7 +224,7 @@ class TestAnalyzeEnclosureCross:
             "leads": {
                 "channel_efficiency": {
                     "by_enclosure": [
-                        {"围场": "0-30",  "总计": {"带货比": 0.15, "参与率": 0.60}},
+                        {"围场": "0-30", "总计": {"带货比": 0.15, "参与率": 0.60}},
                         {"围场": "31-60", "总计": {"带货比": 0.08, "参与率": 0.40}},
                     ]
                 }
@@ -260,17 +281,35 @@ class TestAnalyzeCheckinImpact:
                 "checkin_rate_monthly": {
                     "summary": {"avg_checkin_rate": 0.65},
                     "by_cc": [
-                        {"cc_name": "Alice", "referral_participation_checked": 0.70,
-                         "referral_participation_unchecked": 0.30},
-                        {"cc_name": "Bob",   "referral_participation_checked": 0.65,
-                         "referral_participation_unchecked": 0.25},
+                        {
+                            "cc_name": "Alice",
+                            "referral_participation_checked": 0.70,
+                            "referral_participation_unchecked": 0.30,
+                        },
+                        {
+                            "cc_name": "Bob",
+                            "referral_participation_checked": 0.65,
+                            "referral_participation_unchecked": 0.25,
+                        },
                     ],
                 },
                 "north_star_24h": {
                     "by_cc": [
-                        {"cc_name": "Alice", "checkin_24h_rate": 0.90, "referral_coefficient": 1.5},
-                        {"cc_name": "Bob",   "checkin_24h_rate": 0.85, "referral_coefficient": 1.4},
-                        {"cc_name": "Carol", "checkin_24h_rate": 0.10, "referral_coefficient": 0.8},
+                        {
+                            "cc_name": "Alice",
+                            "checkin_24h_rate": 0.90,
+                            "referral_coefficient": 1.5,
+                        },
+                        {
+                            "cc_name": "Bob",
+                            "checkin_24h_rate": 0.85,
+                            "referral_coefficient": 1.4,
+                        },
+                        {
+                            "cc_name": "Carol",
+                            "checkin_24h_rate": 0.10,
+                            "referral_coefficient": 0.8,
+                        },
                     ]
                 },
             }
@@ -283,7 +322,12 @@ class TestAnalyzeCheckinImpact:
 
     def test_required_keys(self):
         result = CohortAnalyzer(self._checkin_ctx()).analyze_checkin_impact()
-        for key in ("participation_lift", "coefficient_lift", "avg_checkin_rate", "conclusion"):
+        for key in (
+            "participation_lift",
+            "coefficient_lift",
+            "avg_checkin_rate",
+            "conclusion",
+        ):
             assert key in result
 
     def test_participation_lift_checkin_gt_no_checkin(self):
@@ -325,10 +369,21 @@ class TestAnalyzeLtv:
             "cohort": {
                 "conversion_ratio": {
                     "by_month": [
-                        {"月份": "2026-01", "m1": 0.20, "m2": 0.15, "m3": 0.10,
-                         "m4": 0.08, "m5": 0.06, "m6": 0.05,
-                         "m7": 0.04, "m8": 0.03, "m9": 0.03,
-                         "m10": 0.02, "m11": 0.02, "m12": 0.01},
+                        {
+                            "月份": "2026-01",
+                            "m1": 0.20,
+                            "m2": 0.15,
+                            "m3": 0.10,
+                            "m4": 0.08,
+                            "m5": 0.06,
+                            "m6": 0.05,
+                            "m7": 0.04,
+                            "m8": 0.03,
+                            "m9": 0.03,
+                            "m10": 0.02,
+                            "m11": 0.02,
+                            "m12": 0.01,
+                        },
                     ]
                 },
                 "referral_coefficient": {
@@ -351,7 +406,10 @@ class TestAnalyzeLtv:
 
     def test_ltv_ordering_3m_le_6m_le_12m(self):
         result = CohortAnalyzer(self._ltv_ctx()).analyze_ltv()
-        if all(v is not None for v in (result["ltv_3m_usd"], result["ltv_6m_usd"], result["ltv_12m_usd"])):
+        if all(
+            v is not None
+            for v in (result["ltv_3m_usd"], result["ltv_6m_usd"], result["ltv_12m_usd"])
+        ):
             assert result["ltv_3m_usd"] <= result["ltv_6m_usd"] <= result["ltv_12m_usd"]
 
     def test_ltv_12m_uses_unit_price(self):

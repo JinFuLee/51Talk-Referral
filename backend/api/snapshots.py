@@ -2,6 +2,7 @@
 历史快照 API 端点
 统计、KPI 查询、CC 成长曲线、历史导入、清理
 """
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -18,6 +19,7 @@ def _get_snapshot_store() -> Any:
     """获取 SnapshotStore 进程级单例（project_root 仅首次初始化时生效）"""
     try:
         from backend.core.snapshot_store import SnapshotStore
+
         return SnapshotStore.get_instance(project_root=PROJECT_ROOT)
     except ImportError as exc:
         raise HTTPException(status_code=500, detail=f"snapshot_store 模块不可用: {exc}")
@@ -37,7 +39,9 @@ def get_snapshot_stats() -> dict[str, Any]:
 def get_daily_kpi(
     date_from: Optional[str] = Query(default=None, description="起始日期 YYYY-MM-DD"),
     date_to: Optional[str] = Query(default=None, description="结束日期 YYYY-MM-DD"),
-    metric: Optional[str] = Query(default=None, description="指标过滤（如 注册、付费）"),
+    metric: Optional[str] = Query(
+        default=None, description="指标过滤（如 注册、付费）"
+    ),
 ) -> list[dict[str, Any]]:
     """查询日级 KPI 快照"""
     store = _get_snapshot_store()
@@ -74,11 +78,14 @@ def import_history() -> dict[str, Any]:
     """触发历史数据批量导入"""
     try:
         from backend.core.history_importer import HistoryImporter
+
         importer = HistoryImporter(project_root=PROJECT_ROOT)
         result = importer.run()
         return {"status": "ok", "result": result}
     except ImportError as exc:
-        raise HTTPException(status_code=500, detail=f"history_importer 模块不可用: {exc}")
+        raise HTTPException(
+            status_code=500, detail=f"history_importer 模块不可用: {exc}"
+        )
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc))
 

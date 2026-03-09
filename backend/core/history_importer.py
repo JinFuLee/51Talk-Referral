@@ -2,11 +2,12 @@
 51Talk 转介绍周报自动生成 - 历史数据导入器
 核心职责：扫描历史 Excel 目录，使用 V2 引擎重放分析，写入快照数据库
 """
-import re
+
 import logging
-from typing import Any, List, Dict, Optional
-from pathlib import Path
+import re
 from datetime import datetime, timedelta
+from pathlib import Path
+from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -14,7 +15,9 @@ logger = logging.getLogger(__name__)
 class HistoryImporter:
     """历史数据导入器（V2 版本，使用 MultiSourceLoader + AnalysisEngineV2）"""
 
-    def __init__(self, project_root: Optional[Path] = None, input_dir: Optional[str] = None) -> None:
+    def __init__(
+        self, project_root: Optional[Path] = None, input_dir: Optional[str] = None
+    ) -> None:
         """
         初始化导入器
 
@@ -41,6 +44,7 @@ class HistoryImporter:
         """获取 SnapshotStore 进程级单例，避免重复建立 SQLite 连接"""
         try:
             from backend.core.snapshot_store import SnapshotStore
+
             return SnapshotStore.get_instance()
         except Exception as e:
             logger.warning(f"SnapshotStore 初始化失败（非阻塞）: {e}")
@@ -107,7 +111,9 @@ class HistoryImporter:
 
         for file_path, file_date in files:
             try:
-                logger.info(f"处理: {file_path.name} (日期: {file_date.strftime('%Y-%m-%d')})")
+                logger.info(
+                    f"处理: {file_path.name} (日期: {file_date.strftime('%Y-%m-%d')})"
+                )
                 success = self.import_single(file_path, file_date)
                 if success:
                     stats["imported"] += 1
@@ -137,9 +143,9 @@ class HistoryImporter:
         Returns:
             是否成功导入
         """
-        from backend.core.multi_source_loader import MultiSourceLoader
         from backend.core.analysis_engine_v2 import AnalysisEngineV2
         from backend.core.config import get_targets
+        from backend.core.multi_source_loader import MultiSourceLoader
 
         # 以文件所在目录作为数据源目录（MultiSourceLoader 会扫描该目录）
         source_dir = str(file_path.parent)

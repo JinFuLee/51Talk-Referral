@@ -3,6 +3,7 @@ F7 零跟进付费学员预警 + F10 课前vs课后跟进对比
 GET /api/analysis/paid-followup-alert
 GET /api/analysis/trial-class-compare
 """
+
 from __future__ import annotations
 
 from datetime import datetime
@@ -10,14 +11,17 @@ from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException
 
-from .dependencies import get_service
 from backend.services.analysis_service import AnalysisService
+
+from .dependencies import get_service
 
 router = APIRouter()
 
 
 @router.get("/paid-followup-alert", summary="F7 零跟进付费学员预警")
-def get_paid_followup_alert(svc: AnalysisService = Depends(get_service)) -> dict[str, Any]:
+def get_paid_followup_alert(
+    svc: AnalysisService = Depends(get_service),
+) -> dict[str, Any]:
     """
     F7 零跟进付费学员预警
 
@@ -97,7 +101,9 @@ def get_paid_followup_alert(svc: AnalysisService = Depends(get_service)) -> dict
 
 
 @router.get("/trial-class-compare", summary="F10 课前 vs 课后跟进效果 A/B 对比")
-def get_trial_class_compare(svc: AnalysisService = Depends(get_service)) -> dict[str, Any]:
+def get_trial_class_compare(
+    svc: AnalysisService = Depends(get_service),
+) -> dict[str, Any]:
     """
     F10 课前vs课后跟进效果 A/B 对比
 

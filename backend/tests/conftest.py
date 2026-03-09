@@ -1,7 +1,9 @@
 """
 共享 fixtures：全局测试数据和基础配置
 """
+
 import pytest
+
 # pyproject.toml [tool.pytest.ini_options].pythonpath = ["backend"] 已确保 backend/ 在 path 中
 
 
@@ -48,7 +50,11 @@ def sample_data():
                     "total_revenue_usd": 40000.0,
                     "avg_order_value": 500.0,
                 },
-                "referral_cc_new": {"count": 60, "revenue_cny": 200000.0, "revenue_usd": 30000.0},
+                "referral_cc_new": {
+                    "count": 60,
+                    "revenue_cny": 200000.0,
+                    "revenue_usd": 30000.0,
+                },
                 "by_channel": {
                     "转介绍": {"revenue_cny": 200000.0, "revenue_usd": 30000.0}
                 },

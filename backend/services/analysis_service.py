@@ -3,6 +3,7 @@ AnalysisService — 分析引擎单例服务
 封装 AnalysisEngineV2 + MultiSourceLoader 的调用，
 为 API 端点提供统一缓存接口（5 分钟 TTL 内存缓存，按 period 分槽）
 """
+
 from __future__ import annotations
 
 import logging
@@ -39,6 +40,7 @@ class AnalysisService:
             return [AnalysisService._scrub_nans(item) for item in obj]
         elif isinstance(obj, float):
             import math
+
             if math.isnan(obj) or math.isinf(obj):
                 return None
         return obj
@@ -65,7 +67,11 @@ class AnalysisService:
     # ── Public API ────────────────────────────────────────────────────────────
 
     @staticmethod
-    def _cache_key(period: str, custom_start: Optional[str] = None, custom_end: Optional[str] = None) -> str:
+    def _cache_key(
+        period: str,
+        custom_start: Optional[str] = None,
+        custom_end: Optional[str] = None,
+    ) -> str:
         """
         生成缓存键，避免不同自定义日期范围的 period='custom' 互相覆盖。
         - 对于 period='custom' + 有效日期参数：返回 "custom_{start}_{end}"
@@ -75,7 +81,12 @@ class AnalysisService:
             return f"custom_{custom_start}_{custom_end}"
         return period
 
-    def get_cached_result(self, period: str = "this_month", custom_start: Optional[str] = None, custom_end: Optional[str] = None) -> Optional[dict[str, Any]]:
+    def get_cached_result(
+        self,
+        period: str = "this_month",
+        custom_start: Optional[str] = None,
+        custom_end: Optional[str] = None,
+    ) -> Optional[dict[str, Any]]:
         """返回指定 period 的最近一次 run() 分析结果，尚未运行则返回 None"""
         key = self._cache_key(period, custom_start, custom_end)
         return self._cached_results.get(key)
@@ -144,12 +155,14 @@ class AnalysisService:
         with lock:
             # TTL 缓存命中
             if not force and self._is_cache_valid(cache_key):
-                logger.info(f"缓存命中（TTL 内，period={period}, key={cache_key}），跳过重算")
+                logger.info(
+                    f"缓存命中（TTL 内，period={period}, key={cache_key}），跳过重算"
+                )
                 return self._build_run_summary(cache_key)
 
             from backend.core.analysis_engine_v2 import AnalysisEngineV2
-            from backend.core.multi_source_loader import MultiSourceLoader
             from backend.core.config import get_targets as cfg_get_targets
+            from backend.core.multi_source_loader import MultiSourceLoader
             from backend.core.time_period import TimePeriod, resolve_period
 
             # 解析 period → 日期范围
@@ -169,7 +182,9 @@ class AnalysisService:
             )
 
             # 解析报告日期参数（优先用 period_range.end_date 使时间进度匹配）
-            effective_input_dir = Path(input_dir) if input_dir else self.project_root / "input"
+            effective_input_dir = (
+                Path(input_dir) if input_dir else self.project_root / "input"
+            )
             if report_date:
                 effective_date = datetime.strptime(report_date, "%Y-%m-%d")
             else:
@@ -192,8 +207,14 @@ class AnalysisService:
             # force=True 时强制重新加载，否则仅在首次加载（None）时读取
             with self._raw_data_lock:
                 if self._raw_data is None or force:
-                    load_reason = "首次加载" if self._raw_data is None else "强制重新加载（force=True）"
-                    logger.info(f"开始加载 35 源数据（{load_reason}），input_dir={effective_input_dir}")
+                    load_reason = (
+                        "首次加载"
+                        if self._raw_data is None
+                        else "强制重新加载（force=True）"
+                    )
+                    logger.info(
+                        f"开始加载 35 源数据（{load_reason}），input_dir={effective_input_dir}"
+                    )
                     loader = MultiSourceLoader(input_dir=str(effective_input_dir))
                     raw_all = loader.load_all()
                     self._raw_data = self._scrub_nans(raw_all)
@@ -210,6 +231,7 @@ class AnalysisService:
 
             # 获取快照存储单例（引擎需要用它查 YoY/WoW/峰谷）
             from backend.core.snapshot_store import SnapshotStore
+
             store: Optional[SnapshotStore] = None
             try:
                 store = SnapshotStore.get_instance()
@@ -217,13 +239,17 @@ class AnalysisService:
                 logger.warning(f"SnapshotStore 初始化失败（非阻塞）: {e}")
 
             # 执行 V2 引擎分析
-            engine = AnalysisEngineV2(filtered_data, targets, effective_date, snapshot_store=store)
+            engine = AnalysisEngineV2(
+                filtered_data, targets, effective_date, snapshot_store=store
+            )
             result = engine.analyze()
 
             # 写入对应 cache_key 的缓存槽
             self._cached_results[cache_key] = result
             self._last_run_ats[cache_key] = datetime.now()
-            logger.info(f"AnalysisEngineV2 分析完成（period={period}, key={cache_key}），结果已缓存")
+            logger.info(
+                f"AnalysisEngineV2 分析完成（period={period}, key={cache_key}），结果已缓存"
+            )
 
             # 生成快照（优雅降级，仅对 this_month 存快照避免污染历史记录）
             if store is not None and period == "this_month":
@@ -233,8 +259,14 @@ class AnalysisService:
                     try:
                         summary = result.get("summary", {})
                         leads_data = summary.get("leads", {})
-                        leads_actual = leads_data.get("actual", 0) if isinstance(leads_data, dict) else 0
-                        data_date = (effective_date - timedelta(days=1)).strftime("%Y-%m-%d")
+                        leads_actual = (
+                            leads_data.get("actual", 0)
+                            if isinstance(leads_data, dict)
+                            else 0
+                        )
+                        data_date = (effective_date - timedelta(days=1)).strftime(
+                            "%Y-%m-%d"
+                        )
                         time_progress = result.get("time_progress", 0.0)
                         cursor = store.conn.cursor()
                         cursor.execute(
@@ -242,7 +274,9 @@ class AnalysisService:
                             (data_date, "leads", leads_actual, time_progress),
                         )
                         store.conn.commit()
-                        logger.info(f"leads 快照已写入 daily_kpi（date={data_date}, value={leads_actual}）")
+                        logger.info(
+                            f"leads 快照已写入 daily_kpi（date={data_date}, value={leads_actual}）"
+                        )
                     except Exception as e:
                         logger.warning(f"leads 快照写入失败（非阻塞）: {e}")
                 except Exception as e:
@@ -294,7 +328,9 @@ class AnalysisService:
                     try:
                         # 支持 date / datetime / str 格式
                         if isinstance(raw_val, date):
-                            item_date = raw_val if isinstance(raw_val, date) else raw_val.date()
+                            item_date = (
+                                raw_val if isinstance(raw_val, date) else raw_val.date()
+                            )
                         else:
                             raw_str = str(raw_val).strip()[:10]
                             item_date = date.fromisoformat(raw_str)
@@ -325,10 +361,14 @@ class AnalysisService:
         try:
             filtered = _walk_and_filter(data)
         except Exception as e:
-            logger.warning(f"_filter_data_by_period 过滤异常（非阻塞，使用全量数据）: {e}")
+            logger.warning(
+                f"_filter_data_by_period 过滤异常（非阻塞，使用全量数据）: {e}"
+            )
             # 降级：仅浅拷贝顶层容器，避免 _reaggregate_summaries 回写 _raw_data
-            filtered = {k: _walk_and_filter(v) if isinstance(v, (dict, list)) else v
-                        for k, v in data.items()}
+            filtered = {
+                k: _walk_and_filter(v) if isinstance(v, (dict, list)) else v
+                for k, v in data.items()
+            }
 
         # 过滤完明细记录后，重新聚合预聚合 summary 字段
         self._reaggregate_summaries(filtered, pr)
@@ -355,25 +395,44 @@ class AnalysisService:
             if isinstance(order_records, list):
                 # 1a. referral_cc_new — CC前端+新单+转介绍
                 ref_cc_new = [
-                    r for r in order_records
+                    r
+                    for r in order_records
                     if (r.get("channel") or "").strip() == "转介绍"
                     and "CC" in str(r.get("team") or "").upper()
                     and (r.get("order_tag") or "").strip() == "新单"
                 ]
                 order_detail["referral_cc_new"] = {
                     "count": len(ref_cc_new),
-                    "revenue_cny": round(sum(r.get("amount_cny") or 0.0 for r in ref_cc_new), 2),
-                    "revenue_usd": round(sum(r.get("amount_usd") or 0.0 for r in ref_cc_new), 2),
-                    "revenue_thb": round(sum(r.get("amount_thb") or 0.0 for r in ref_cc_new), 2),
+                    "revenue_cny": round(
+                        sum(r.get("amount_cny") or 0.0 for r in ref_cc_new), 2
+                    ),
+                    "revenue_usd": round(
+                        sum(r.get("amount_usd") or 0.0 for r in ref_cc_new), 2
+                    ),
+                    "revenue_thb": round(
+                        sum(r.get("amount_thb") or 0.0 for r in ref_cc_new), 2
+                    ),
                 }
 
                 # 1b. summary — 全量订单
-                new_orders = sum(1 for r in order_records if (r.get("order_tag") or "").strip() == "新单")
-                renewal_orders = sum(1 for r in order_records if (r.get("order_tag") or "").strip() == "续单")
+                new_orders = sum(
+                    1
+                    for r in order_records
+                    if (r.get("order_tag") or "").strip() == "新单"
+                )
+                renewal_orders = sum(
+                    1
+                    for r in order_records
+                    if (r.get("order_tag") or "").strip() == "续单"
+                )
                 order_detail["summary"] = {
                     "total_orders": len(order_records),
-                    "total_revenue_cny": round(sum(r.get("amount_cny") or 0.0 for r in order_records), 2),
-                    "total_revenue_usd": round(sum(r.get("amount_usd") or 0.0 for r in order_records), 2),
+                    "total_revenue_cny": round(
+                        sum(r.get("amount_cny") or 0.0 for r in order_records), 2
+                    ),
+                    "total_revenue_usd": round(
+                        sum(r.get("amount_usd") or 0.0 for r in order_records), 2
+                    ),
                     "new_orders": new_orders,
                     "renewal_orders": renewal_orders,
                 }
@@ -390,18 +449,32 @@ class AnalysisService:
                 bool_true_vals = {"1", "1.0", True}
 
                 def _is_true(v) -> bool:
-                    return v in bool_true_vals or str(v).strip() in {"1", "1.0", "True", "true"}
+                    return v in bool_true_vals or str(v).strip() in {
+                        "1",
+                        "1.0",
+                        "True",
+                        "true",
+                    }
 
                 reg_count = len(a3_records)  # 每条 A3 记录 = 1 个注册 leads
-                reserve_count = sum(1 for r in a3_records if _is_true(r.get("当月是否预约")))
-                attend_count = sum(1 for r in a3_records if _is_true(r.get("当月是否出席")))
+                reserve_count = sum(
+                    1 for r in a3_records if _is_true(r.get("当月是否预约"))
+                )
+                attend_count = sum(
+                    1 for r in a3_records if _is_true(r.get("当月是否出席"))
+                )
                 # 付费：首次1v1大单付费日期在 period 范围内
                 paid_count = 0
                 for r in a3_records:
                     paid_date_raw = r.get("首次1v1大单付费日期(day)")
-                    if paid_date_raw and isinstance(paid_date_raw, str) and len(paid_date_raw) >= 7:
+                    if (
+                        paid_date_raw
+                        and isinstance(paid_date_raw, str)
+                        and len(paid_date_raw) >= 7
+                    ):
                         try:
                             from datetime import date as _date
+
                             paid_date = _date.fromisoformat(paid_date_raw[:10])
                             if pr.start_date <= paid_date <= pr.end_date:
                                 paid_count += 1
@@ -413,7 +486,9 @@ class AnalysisService:
                     "预约": reserve_count,
                     "出席": attend_count,
                     "付费": paid_count,
-                    "注册付费率": round(paid_count / reg_count, 4) if reg_count > 0 else None,
+                    "注册付费率": round(paid_count / reg_count, 4)
+                    if reg_count > 0
+                    else None,
                 }
 
                 # 更新 by_channel["总计"] 和 total（_analyze_summary 的两个读取路径）
@@ -440,19 +515,19 @@ class AnalysisService:
         for k, v in summary_block.items():
             if isinstance(v, dict):
                 key_metrics[k] = {
-                    "actual":   v.get("actual"),
-                    "target":   v.get("target"),
-                    "gap":      v.get("gap"),
-                    "status":   v.get("status"),
+                    "actual": v.get("actual"),
+                    "target": v.get("target"),
+                    "gap": v.get("gap"),
+                    "status": v.get("status"),
                 }
 
         last_run_at = self._last_run_ats.get(period)
         return {
-            "run_at":         last_run_at.isoformat() if last_run_at else None,
-            "data_date":      str(meta.get("data_date", "")),
-            "current_month":  meta.get("current_month"),
-            "time_progress":  result.get("time_progress"),
-            "key_metrics":    key_metrics,
-            "engine":         "AnalysisEngineV2",
-            "period":         period,
+            "run_at": last_run_at.isoformat() if last_run_at else None,
+            "data_date": str(meta.get("data_date", "")),
+            "current_month": meta.get("current_month"),
+            "time_progress": result.get("time_progress"),
+            "key_metrics": key_metrics,
+            "engine": "AnalysisEngineV2",
+            "period": period,
         }

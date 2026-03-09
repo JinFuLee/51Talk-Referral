@@ -1,6 +1,7 @@
 """
 安全功能测试：Rate Limiting + Security Headers + CSP
 """
+
 from __future__ import annotations
 
 import importlib
@@ -20,7 +21,9 @@ def app_client():
     mock_svc.get_cached_result.return_value = None
     mock_svc.run.return_value = None
 
-    with patch("backend.services.analysis_service.AnalysisService", return_value=mock_svc):
+    with patch(
+        "backend.services.analysis_service.AnalysisService", return_value=mock_svc
+    ):
         from backend.main import app
 
         client = TestClient(app, raise_server_exceptions=False)

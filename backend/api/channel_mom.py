@@ -2,12 +2,14 @@
 F4 渠道月度环比 API 端点
 GET /api/analysis/channel-mom — 渠道注册占比、效率指标月度趋势
 """
+
 from __future__ import annotations
 
 from pathlib import Path
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException
+
 from backend.services.analysis_service import AnalysisService
 
 from .dependencies import get_service

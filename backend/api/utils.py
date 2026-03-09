@@ -5,6 +5,7 @@ API 层通用工具函数。
 单一版本 safe_div：分母为 0 或 None 时返回 0.0。
 其他 API 路由中的工具函数均从此模块导入，避免多处变体。
 """
+
 from __future__ import annotations
 
 from typing import Any

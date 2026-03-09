@@ -7,12 +7,14 @@
 adapt 函数已拆分至 backend/api/adapters/ 目录，本文件只保留路由薄层。
 工具函数 safe_div 统一来自 backend/api/utils.py。
 """
+
 from __future__ import annotations
 
 from typing import Any
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
 from pydantic import BaseModel
+
 from backend.services.analysis_service import AnalysisService
 
 # ── Adapt 函数（从同包子模块导入，相对导入不依赖 sys.path）──────────────────────
@@ -72,7 +74,8 @@ def _get_adapted(key: str, version: float, adapt_fn: Any, *args: Any) -> Any:
     if period_seg:
         # 仅清理同 period 下 version 已过期的条目
         stale_keys = [
-            k for k, (v, _) in _adapt_cache.items()
+            k
+            for k, (v, _) in _adapt_cache.items()
             if v != version and k.split(":", 2)[1:2] == [period_seg]
         ]
         for k in stale_keys:
@@ -97,18 +100,20 @@ def _validate_period(period: str) -> str:
 
 # ── Request Models ────────────────────────────────────────────────────────────
 
+
 class RunAnalysisRequest(BaseModel):
     input_dir: str | None = None
-    report_date: str | None = None   # ISO 格式 YYYY-MM-DD
+    report_date: str | None = None  # ISO 格式 YYYY-MM-DD
     lang: str = "zh"
     targets: dict[str, Any] | None = None
-    force: bool = False                  # True 时忽略 TTL 强制重算
-    period: str = "this_month"           # 时间维度
+    force: bool = False  # True 时忽略 TTL 强制重算
+    period: str = "this_month"  # 时间维度
     custom_start: str | None = None  # YYYY-MM-DD（period="custom" 时使用）
-    custom_end: str | None = None    # YYYY-MM-DD（period="custom" 时使用）
+    custom_end: str | None = None  # YYYY-MM-DD（period="custom" 时使用）
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
+
 
 def _require_cache(svc: AnalysisService, key: str, period: str = "this_month") -> Any:
     """从缓存中取指定 key，缓存不存在则 404，提示先 POST /api/analysis/run"""
@@ -127,7 +132,9 @@ def _require_cache(svc: AnalysisService, key: str, period: str = "this_month") -
     return value
 
 
-def _require_full_cache(svc: AnalysisService, period: str = "this_month") -> dict[str, Any]:
+def _require_full_cache(
+    svc: AnalysisService, period: str = "this_month"
+) -> dict[str, Any]:
     """返回完整缓存，缓存不存在则 404，提示先 POST /api/analysis/run"""
     result = svc.get_cached_result(period)
     if result is None:
@@ -138,9 +145,8 @@ def _require_full_cache(svc: AnalysisService, period: str = "this_month") -> dic
     return result
 
 
-
-
 # ── Endpoints — 触发 & 全量结果 ────────────────────────────────────────────────
+
 
 @router.post("/run", summary="触发分析管线")
 def run_analysis(
@@ -178,6 +184,7 @@ def get_result(
 
 # ── Endpoints — 核心指标（原有，URL 不变）────────────────────────────────────
 
+
 @router.get("/summary", summary="进度看板汇总指标")
 def get_summary(
     period: str = Query(default="this_month", description="时间维度"),
@@ -201,7 +208,10 @@ def get_summary(
     cache = _require_full_cache(svc, period)
     raw_summary: dict[str, Any] = cache.get("summary") or {}
     # 注入 time_progress 供 _adapt_summary 计算 _calc_status 使用
-    raw_summary_with_tp = {**raw_summary, "time_progress": cache.get("time_progress", 0.0)}
+    raw_summary_with_tp = {
+        **raw_summary,
+        "time_progress": cache.get("time_progress", 0.0),
+    }
     adapted = _adapt_summary(raw_summary_with_tp)
 
     # ── 内嵌 MoM 环比数据（不修改 _adapt_summary，在端点层注入）──────────────
@@ -234,9 +244,13 @@ def get_summary(
                 prev_paid = sum((e.get("paid") or 0) for e in prev_entries)
                 prev_revenue_usd = sum((e.get("amount_usd") or 0) for e in prev_entries)
                 # allocations 字段近似注册分配数（F3 loader 预聚合字段）
-                prev_allocations = sum((e.get("allocations") or 0) for e in prev_entries)
+                prev_allocations = sum(
+                    (e.get("allocations") or 0) for e in prev_entries
+                )
 
-                def _inject_mom(metric_dict: dict[str, Any], curr_actual: float, prev_value: float) -> None:
+                def _inject_mom(
+                    metric_dict: dict[str, Any], curr_actual: float, prev_value: float
+                ) -> None:
                     """将上月值和变化量注入到 metric 字典（原地修改）"""
                     metric_dict["mom_prev"] = prev_value
                     change = (curr_actual or 0) - prev_value
@@ -245,7 +259,9 @@ def get_summary(
                         round(change / prev_value * 100, 1) if prev_value else None
                     )
 
-                if "registrations" in adapted and isinstance(adapted["registrations"], dict):
+                if "registrations" in adapted and isinstance(
+                    adapted["registrations"], dict
+                ):
                     _inject_mom(
                         adapted["registrations"],
                         adapted["registrations"].get("actual", 0),
@@ -271,7 +287,10 @@ def get_summary(
                     )
     except Exception as _mom_err:
         import logging as _log
-        _log.getLogger(__name__).warning(f"get_summary: MoM 注入失败（不影响主响应）: {_mom_err}")
+
+        _log.getLogger(__name__).warning(
+            f"get_summary: MoM 注入失败（不影响主响应）: {_mom_err}"
+        )
     # ─────────────────────────────────────────────────────────────────────────
 
     response = {
@@ -287,7 +306,8 @@ def get_summary(
     period_seg = parts[1] if len(parts) >= 2 else ""
     if period_seg:
         stale_keys = [
-            k for k, (v, _) in _adapt_cache.items()
+            k
+            for k, (v, _) in _adapt_cache.items()
             if v != version and k.split(":", 2)[1:2] == [period_seg]
         ]
         for k in stale_keys:
@@ -326,7 +346,9 @@ def get_channel_comparison(
     version = _cache_version(svc, period)
     raw = _require_cache(svc, "channel_comparison", period)
     if isinstance(raw, dict):
-        return _get_adapted(f"channel_comparison:{period}", version, _adapt_channel_comparison, raw)
+        return _get_adapted(
+            f"channel_comparison:{period}", version, _adapt_channel_comparison, raw
+        )
     return {"channels": []}
 
 
@@ -365,7 +387,11 @@ def get_cc_ranking(
     data = _require_cache(svc, "cc_ranking", period)
     items: list[Any] = data if isinstance(data, list) else data.get("items", [])
     if cc_name:
-        items = [item for item in items if (item.get("cc_name") or item.get("name")) == cc_name]
+        items = [
+            item
+            for item in items
+            if (item.get("cc_name") or item.get("name")) == cc_name
+        ]
         adapt_key = f"cc_ranking:{period}:name:{cc_name}"
     else:
         items = items[:top_n]
@@ -386,7 +412,11 @@ def get_ss_ranking(
     data = _require_cache(svc, "ss_ranking", period)
     items: list[Any] = data if isinstance(data, list) else data.get("items", [])
     if cc_name:
-        items = [item for item in items if (item.get("cc_name") or item.get("name")) == cc_name]
+        items = [
+            item
+            for item in items
+            if (item.get("cc_name") or item.get("name")) == cc_name
+        ]
         adapt_key = f"ss_ranking:{period}:name:{cc_name}"
     else:
         items = items[:top_n]
@@ -407,7 +437,11 @@ def get_lp_ranking(
     data = _require_cache(svc, "lp_ranking", period)
     items: list[Any] = data if isinstance(data, list) else data.get("items", [])
     if cc_name:
-        items = [item for item in items if (item.get("cc_name") or item.get("name")) == cc_name]
+        items = [
+            item
+            for item in items
+            if (item.get("cc_name") or item.get("name")) == cc_name
+        ]
         adapt_key = f"lp_ranking:{period}:name:{cc_name}"
     else:
         items = items[:top_n]
@@ -455,7 +489,9 @@ def get_anomalies(
 
 @router.get("/trend", summary="趋势数据（MoM/YoY/WoW）")
 def get_trend(
-    compare_type: str = Query(default="mom", description="mom=月环比, yoy=年同比, wow=周环比"),
+    compare_type: str = Query(
+        default="mom", description="mom=月环比, yoy=年同比, wow=周环比"
+    ),
     period: str = Query(default="this_month", description="时间维度"),
     svc: AnalysisService = Depends(get_service),
 ) -> Any:
@@ -477,11 +513,18 @@ def get_trend(
             detail="no_data: 分析结果中不含趋势数据，请先运行分析",
         )
     if isinstance(trend_full, dict):
-        return _get_adapted(f"trend:{period}:{compare_type}", version, _adapt_trend, trend_full, compare_type)
+        return _get_adapted(
+            f"trend:{period}:{compare_type}",
+            version,
+            _adapt_trend,
+            trend_full,
+            compare_type,
+        )
     return trend_full
 
 
 # ── Endpoints — 向后兼容别名（老端点保留）────────────────────────────────────
+
 
 @router.get("/cohort", summary="围场（cohort）分析")
 def get_cohort(
@@ -562,6 +605,7 @@ def get_risk_alerts(
 
 
 # ── Endpoints — 新增跨源联动端点 ──────────────────────────────────────────────
+
 
 @router.get("/student-journey", summary="学员全旅程跨源联动")
 def get_student_journey(
@@ -707,6 +751,7 @@ def get_risk_alerts_v2(
 
 # ── ROI 成本明细（B1 真实数据）────────────────────────────────────────────────
 
+
 @router.get("/roi/cost-breakdown", summary="ROI 成本明细（B1 数据）")
 def get_roi_cost_breakdown(
     period: str = Query(default="this_month", description="时间维度"),
@@ -733,6 +778,7 @@ def get_roi_cost_breakdown(
 
 # ── M13: 影响链 ────────────────────────────────────────────────────────────────
 
+
 @router.get("/impact-chain", summary="效率指标影响链")
 def get_impact_chain(
     period: str = Query(default="this_month", description="时间维度"),
@@ -742,6 +788,7 @@ def get_impact_chain(
     period = _validate_period(period)
     cache = _require_full_cache(svc, period)
     from backend.core.impact_chain import ImpactChainEngine
+
     engine = ImpactChainEngine(
         summary=cache.get("summary", {}),
         targets=cache.get("meta", {}).get("targets", {}),
@@ -764,6 +811,7 @@ def post_what_if(
     """模拟某效率指标提升后的全链收益变化"""
     cache = _require_full_cache(svc, req.period)
     from backend.core.impact_chain import ImpactChainEngine
+
     engine = ImpactChainEngine(
         summary=cache.get("summary", {}),
         targets=cache.get("meta", {}).get("targets", {}),
@@ -776,6 +824,7 @@ def post_what_if(
 
 
 # ── M16: 归因分析 ────────────────────────────────────────────────────────────
+
 
 @router.get("/attribution", summary="多维归因分析")
 def get_attribution(
@@ -801,6 +850,7 @@ def get_attribution(
 
 # ── E6/E7/E8: 套餐结构 + 渠道收入 ─────────────────────────────────────────────
 
+
 @router.get("/package-mix", summary="套餐类型占比")
 def get_package_mix(
     period: str = Query(default="this_month", description="时间维度"),
@@ -822,7 +872,9 @@ def get_team_package_mix(
     period = _validate_period(period)
     version = _cache_version(svc, period)
     cache = _require_full_cache(svc, period)
-    return _get_adapted(f"team_package_mix:{period}", version, _adapt_team_package_mix, cache)
+    return _get_adapted(
+        f"team_package_mix:{period}", version, _adapt_team_package_mix, cache
+    )
 
 
 @router.get("/channel-revenue", summary="渠道收入 Waterfall 数据")
@@ -834,10 +886,13 @@ def get_channel_revenue(
     period = _validate_period(period)
     version = _cache_version(svc, period)
     cache = _require_full_cache(svc, period)
-    return _get_adapted(f"channel_revenue:{period}", version, _adapt_channel_revenue, cache)
+    return _get_adapted(
+        f"channel_revenue:{period}", version, _adapt_channel_revenue, cache
+    )
 
 
 # ── D2×D3 围场对比 + D4 合并围场总览 ──────────────────────────────────────────
+
 
 def _safe_div_local(numerator: Any, denominator: Any) -> float | None:
     """围场端点专用安全除法，分母为 0 或 None 时返回 None（区别于 safe_div 的 0.0 返回值）。"""
@@ -875,26 +930,33 @@ def get_enclosure_compare(
     for enc in enc_order:
         m = d2_map.get(enc, {})
         r = d3_map.get(enc, {})
-        comparison.append({
-            "enclosure": enc,
-            "market_conv": m.get("conversion_rate"),
-            "referral_conv": r.get("conversion_rate"),
-            "market_participation": m.get("participation_rate"),
-            "referral_participation": r.get("participation_rate"),
-            "market_students": m.get("active_students"),
-            "referral_students": r.get("active_students"),
-            "market_mobilization": _safe_div_local(
-                m.get("monthly_active_referrers"), m.get("active_students")
-            ),
-            "referral_mobilization": _safe_div_local(
-                r.get("monthly_active_referrers"), r.get("active_students")
-            ),
-            "market_monthly_paid": m.get("monthly_b_paid"),
-            "referral_monthly_paid": r.get("monthly_b_paid"),
-            "conv_gap": round(
-                (r.get("conversion_rate") or 0) - (m.get("conversion_rate") or 0), 4
-            ) if (r.get("conversion_rate") is not None and m.get("conversion_rate") is not None) else None,
-        })
+        comparison.append(
+            {
+                "enclosure": enc,
+                "market_conv": m.get("conversion_rate"),
+                "referral_conv": r.get("conversion_rate"),
+                "market_participation": m.get("participation_rate"),
+                "referral_participation": r.get("participation_rate"),
+                "market_students": m.get("active_students"),
+                "referral_students": r.get("active_students"),
+                "market_mobilization": _safe_div_local(
+                    m.get("monthly_active_referrers"), m.get("active_students")
+                ),
+                "referral_mobilization": _safe_div_local(
+                    r.get("monthly_active_referrers"), r.get("active_students")
+                ),
+                "market_monthly_paid": m.get("monthly_b_paid"),
+                "referral_monthly_paid": r.get("monthly_b_paid"),
+                "conv_gap": round(
+                    (r.get("conversion_rate") or 0) - (m.get("conversion_rate") or 0), 4
+                )
+                if (
+                    r.get("conversion_rate") is not None
+                    and m.get("conversion_rate") is not None
+                )
+                else None,
+            }
+        )
 
     return {"comparison": comparison, "segments": enc_order}
 
@@ -926,17 +988,19 @@ def get_enclosure_combined(
         row = enc_map.get(enc, {})
         students = row.get("active_students") or 0
         referrers = row.get("monthly_active_referrers") or 0
-        segments.append({
-            "enclosure": enc,
-            "active_students": students,
-            "monthly_b_registrations": row.get("monthly_b_registrations"),
-            "monthly_b_paid": row.get("monthly_b_paid"),
-            "monthly_active_referrers": referrers,
-            "conversion_rate": row.get("conversion_rate"),
-            "participation_rate": row.get("participation_rate"),
-            "mobilization_rate": _safe_div_local(referrers, students),
-            "ratio": row.get("ratio"),
-        })
+        segments.append(
+            {
+                "enclosure": enc,
+                "active_students": students,
+                "monthly_b_registrations": row.get("monthly_b_registrations"),
+                "monthly_b_paid": row.get("monthly_b_paid"),
+                "monthly_active_referrers": referrers,
+                "conversion_rate": row.get("conversion_rate"),
+                "participation_rate": row.get("participation_rate"),
+                "mobilization_rate": _safe_div_local(referrers, students),
+                "ratio": row.get("ratio"),
+            }
+        )
 
     return {
         "segments": segments,
@@ -952,6 +1016,7 @@ def get_enclosure_combined(
 
 # ── A1: 按团队分组的漏斗对比 ──────────────────────────────────────────────────
 
+
 @router.get("/funnel/team")
 def get_funnel_team(
     period: str = Query(default="this_month", description="时间维度"),
@@ -966,7 +1031,9 @@ def get_funnel_team(
     # 使用按 period 过滤后的原始数据
     raw_data = svc.get_raw_data(period)
     leads_raw = raw_data.get("leads", {}) if isinstance(raw_data, dict) else {}
-    achievement = leads_raw.get("leads_achievement", {}) if isinstance(leads_raw, dict) else {}
+    achievement = (
+        leads_raw.get("leads_achievement", {}) if isinstance(leads_raw, dict) else {}
+    )
     by_team_raw: list[Any] = achievement.get("by_team", []) or []
 
     teams: list[dict[str, Any]] = []
@@ -996,33 +1063,37 @@ def get_funnel_team(
         lp = row.get("LP窄口径", {}) or {}
         wide = row.get("宽口径", {}) or {}
 
-        teams.append({
-            "team": team_str or group_str,
-            "group": group_str,
-            "注册": reg,
-            "预约": rsv,
-            "出席": att,
-            "付费": paid,
-            "conversion_rate": round(paid / reg, 4) if reg else 0,
-            "funnel_source": "总计",  # 顶层漏斗为 CC+SS+LP+宽口混合口径
-            "cc_narrow": {
-                "注册": cc.get("注册") or 0,
-                "预约": cc.get("预约") or 0,
-                "出席": cc.get("出席") or 0,
-                "付费": cc.get("付费") or 0,
-            },
-            "ss_narrow": {
-                "注册": ss.get("注册") or 0,
-                "CC转化付费": ss.get("付费") or 0,   # SS 带来的 leads 被 CC 转化为付费数（跨岗效率）
-            },
-            "lp_narrow": {
-                "注册": lp.get("注册") or 0,
-                "CC转化付费": lp.get("付费") or 0,   # LP 带来的 leads 被 CC 转化为付费数（跨岗效率）
-            },
-            "wide": {
-                "注册": wide.get("注册") or 0,
-            },
-        })
+        teams.append(
+            {
+                "team": team_str or group_str,
+                "group": group_str,
+                "注册": reg,
+                "预约": rsv,
+                "出席": att,
+                "付费": paid,
+                "conversion_rate": round(paid / reg, 4) if reg else 0,
+                "funnel_source": "总计",  # 顶层漏斗为 CC+SS+LP+宽口混合口径
+                "cc_narrow": {
+                    "注册": cc.get("注册") or 0,
+                    "预约": cc.get("预约") or 0,
+                    "出席": cc.get("出席") or 0,
+                    "付费": cc.get("付费") or 0,
+                },
+                "ss_narrow": {
+                    "注册": ss.get("注册") or 0,
+                    "CC转化付费": ss.get("付费")
+                    or 0,  # SS 带来的 leads 被 CC 转化为付费数（跨岗效率）
+                },
+                "lp_narrow": {
+                    "注册": lp.get("注册") or 0,
+                    "CC转化付费": lp.get("付费")
+                    or 0,  # LP 带来的 leads 被 CC 转化为付费数（跨岗效率）
+                },
+                "wide": {
+                    "注册": wide.get("注册") or 0,
+                },
+            }
+        )
 
     # 按团队名去重（同团队多行小组取合并）
     merged: dict[str, dict[str, Any]] = {}
@@ -1032,16 +1103,21 @@ def get_funnel_team(
             merged[key] = dict(t)
         else:
             for metric in ("注册", "预约", "出席", "付费"):
-                merged[key][metric] = (merged[key].get(metric) or 0) + (t.get(metric) or 0)
+                merged[key][metric] = (merged[key].get(metric) or 0) + (
+                    t.get(metric) or 0
+                )
             reg_total = merged[key].get("注册") or 0
             paid_total = merged[key].get("付费") or 0
-            merged[key]["conversion_rate"] = round(paid_total / reg_total, 4) if reg_total else 0
+            merged[key]["conversion_rate"] = (
+                round(paid_total / reg_total, 4) if reg_total else 0
+            )
 
     result_teams = list(merged.values())
     return {"teams": result_teams, "total_teams": len(result_teams)}
 
 
 # ── M28: 对比分析端点 ────────────────────────────────────────────────────────
+
 
 def _extract_metric_actual(summary: dict[str, Any], metric_key: str) -> float | None:
     """
@@ -1096,7 +1172,9 @@ def _build_metric_compare(
 @router.get("/compare-summary")
 def compare_summary(
     period: str = Query(default="this_month", description="当前选中的时间维度"),
-    mode: str = Query(..., description="对比模式: pop=环比, yoy=同比, peak=巅峰, valley=低谷"),
+    mode: str = Query(
+        ..., description="对比模式: pop=环比, yoy=同比, peak=巅峰, valley=低谷"
+    ),
     custom_start: str = Query(default=None, description="自定义起始日期 YYYY-MM-DD"),
     custom_end: str = Query(default=None, description="自定义结束日期 YYYY-MM-DD"),
     svc: AnalysisService = Depends(get_service),
@@ -1131,9 +1209,9 @@ def compare_summary(
     # 4 个核心 KPI（引擎层英文 key → 响应层前端 key）
     metric_map: list[tuple[str, str]] = [
         ("registration", "registrations"),
-        ("payment",      "payments"),
-        ("revenue",      "revenue"),
-        ("leads",        "leads"),
+        ("payment", "payments"),
+        ("revenue", "revenue"),
+        ("leads", "leads"),
     ]
 
     # ── 模式 1/2: pop（环比）或 yoy（同比）────────────────────────────────────
@@ -1167,8 +1245,7 @@ def compare_summary(
 
         # 若对比期所有指标均为 0，标注不可用
         comp_values = [
-            _extract_metric_actual(comp_summary, eng_key)
-            for eng_key, _ in metric_map
+            _extract_metric_actual(comp_summary, eng_key) for eng_key, _ in metric_map
         ]
         all_zero = all((v or 0) == 0 for v in comp_values)
         if not comp_summary or all_zero:
@@ -1206,6 +1283,7 @@ def compare_summary(
         # 获取快照存储单例
         try:
             from backend.core.snapshot_store import SnapshotStore
+
             store = SnapshotStore.get_instance()
         except Exception as e:
             return {
@@ -1224,8 +1302,8 @@ def compare_summary(
         # 本端点直接使用正确的英文 key。
         pv_metric_map: list[tuple[str, str]] = [
             ("registration", "registrations"),
-            ("payment",      "payments"),
-            ("revenue",      "revenue"),
+            ("payment", "payments"),
+            ("revenue", "revenue"),
             # leads 无快照数据，单独处理
         ]
 
@@ -1239,7 +1317,10 @@ def compare_summary(
                 pv_entry = pv.get(mode)  # peak 或 valley
             except Exception as e:
                 import logging as _log
-                _log.getLogger(__name__).warning(f"compare-summary peak/valley: metric={eng_key} 查询失败: {e}")
+
+                _log.getLogger(__name__).warning(
+                    f"compare-summary peak/valley: metric={eng_key} 查询失败: {e}"
+                )
                 pv_entry = None
 
             if pv_entry is not None:
@@ -1294,6 +1375,7 @@ def compare_summary(
 
 # ── CC 人员详情抽屉 ──────────────────────────────────────────────────────────
 
+
 @router.get("/cc-detail/{cc_name}")
 def get_cc_detail(
     cc_name: str,
@@ -1335,8 +1417,8 @@ def get_cc_detail(
 
     # ── 2. 雷达图得分 ────────────────────────────────────────────────────────
     radar_scores = {
-        "process":    matched.get("process_score") or 0.0,
-        "result":     matched.get("result_score") or 0.0,
+        "process": matched.get("process_score") or 0.0,
+        "result": matched.get("result_score") or 0.0,
         "efficiency": matched.get("efficiency_score") or 0.0,
     }
 
@@ -1367,14 +1449,16 @@ def get_cc_detail(
             effective_list: list[int] = cc_outreach.get("effective", []) or []
 
             for i, date_str in enumerate(dates):
-                followup_history.append({
-                    "date": date_str,
-                    "type": "outreach",
-                    "count": calls_list[i] if i < len(calls_list) else 0,
-                    "effective": effective_list[i] if i < len(effective_list) else (
-                        connects_list[i] if i < len(connects_list) else 0
-                    ),
-                })
+                followup_history.append(
+                    {
+                        "date": date_str,
+                        "type": "outreach",
+                        "count": calls_list[i] if i < len(calls_list) else 0,
+                        "effective": effective_list[i]
+                        if i < len(effective_list)
+                        else (connects_list[i] if i < len(connects_list) else 0),
+                    }
+                )
 
     # ── 4. 月度趋势（MoM 数据，graceful degradation）────────────────────────
     monthly_trend: list[dict[str, Any]] = []
@@ -1396,17 +1480,25 @@ def get_cc_detail(
                     continue
                 total_reg += entry.get("registrations") or entry.get("register") or 0
                 total_paid += entry.get("payments") or entry.get("paid") or 0
-                total_revenue += entry.get("revenue_usd") or entry.get("amount_usd") or 0.0
+                total_revenue += (
+                    entry.get("revenue_usd") or entry.get("amount_usd") or 0.0
+                )
 
             # month_key 格式为 "202501"，转换为 "2025-01"
-            month_display = f"{month_key[:4]}-{month_key[4:6]}" if len(month_key) >= 6 else month_key
+            month_display = (
+                f"{month_key[:4]}-{month_key[4:6]}"
+                if len(month_key) >= 6
+                else month_key
+            )
 
-            monthly_trend.append({
-                "month": month_display,
-                "registrations": total_reg,
-                "payments": total_paid,
-                "revenue_usd": round(total_revenue, 2),
-            })
+            monthly_trend.append(
+                {
+                    "month": month_display,
+                    "registrations": total_reg,
+                    "payments": total_paid,
+                    "revenue_usd": round(total_revenue, 2),
+                }
+            )
     except Exception:
         pass
 
@@ -1446,6 +1538,7 @@ def get_cc_detail(
 
 # ── KPI Sparkline 端点 ────────────────────────────────────────────────────────
 
+
 @router.get("/kpi-sparkline")
 def get_kpi_sparkline(
     days: int = Query(default=14, ge=7, le=90, description="回看天数（7-90）"),
@@ -1478,6 +1571,7 @@ def get_kpi_sparkline(
     # 获取快照存储单例，失败则返回 available=false（不抛 500）
     try:
         from backend.core.snapshot_store import SnapshotStore
+
         store = SnapshotStore.get_instance()
     except Exception as _init_err:
         return {
@@ -1498,14 +1592,16 @@ def get_kpi_sparkline(
             pv = store.get_peak_valley(metric)
         except Exception as _q_err:
             import logging as _log
-            _log.getLogger(__name__).warning(f"kpi-sparkline: metric={metric} 查询失败: {_q_err}")
+
+            _log.getLogger(__name__).warning(
+                f"kpi-sparkline: metric={metric} 查询失败: {_q_err}"
+            )
             daily_rows = []
             pv = {"peak": None, "valley": None}
 
         result[metric] = {
             "daily": [
-                {"date": r["snapshot_date"], "value": r["value"]}
-                for r in daily_rows
+                {"date": r["snapshot_date"], "value": r["value"]} for r in daily_rows
             ],
             "peak": pv.get("peak") if pv else None,
             "valley": pv.get("valley") if pv else None,

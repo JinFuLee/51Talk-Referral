@@ -3,6 +3,7 @@ Integration tests for core API endpoints
 ~22 test cases covering happy path and status codes.
 Uses FastAPI TestClient (sync) to avoid pytest-asyncio complexity.
 """
+
 import pytest
 from fastapi.testclient import TestClient
 

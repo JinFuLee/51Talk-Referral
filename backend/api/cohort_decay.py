@@ -2,11 +2,13 @@
 Cohort Decay + C4 带新系数 API 端点
 直接读取 _service._raw_data["cohort"] 的原始 Loader 数据。
 """
+
 from __future__ import annotations
 
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Query
+
 from backend.services.analysis_service import AnalysisService
 
 from .dependencies import get_service
@@ -83,7 +85,9 @@ def get_cohort_decay_raw(
 
 
 @router.get("/cohort-coefficient")
-def get_cohort_coefficient(svc: AnalysisService = Depends(get_service)) -> dict[str, Any]:
+def get_cohort_coefficient(
+    svc: AnalysisService = Depends(get_service),
+) -> dict[str, Any]:
     """
     返回 C4 带新系数 cohort 数据 + 黄金窗口月份。
     黄金窗口 = 所有入组月中平均带新系数最高的月龄（m1-m12）。
@@ -137,6 +141,7 @@ def get_cohort_coefficient(svc: AnalysisService = Depends(get_service)) -> dict[
 
 # ── Helpers ────────────────────────────────────────────────────────────────────
 
+
 def _compute_summary_decay(series: list) -> list[dict]:
     """计算跨入组月的各月龄均值衰减曲线"""
     if not series:
@@ -168,15 +173,83 @@ def _fallback_decay(metric: str, raw: dict) -> dict:
     by_month_raw = cohort_roi.get("by_month") or []
 
     decay_rates = {
-        "reach_rate": [1.0, 0.79, 0.61, 0.46, 0.37, 0.30, 0.27, 0.23, 0.21, 0.18, 0.17, 0.15],
-        "participation_rate": [1.0, 0.72, 0.52, 0.36, 0.28, 0.20, 0.16, 0.16, 0.12, 0.12, 0.08, 0.08],
-        "checkin_rate": [1.0, 0.83, 0.69, 0.59, 0.53, 0.51, 0.48, 0.45, 0.43, 0.40, 0.37, 0.35],
-        "referral_coefficient": [1.0, 0.83, 0.72, 0.61, 0.50, 0.44, 0.39, 0.36, 0.33, 0.31, 0.28, 0.25],
-        "conversion_ratio": [1.0, 0.73, 0.50, 0.33, 0.23, 0.17, 0.13, 0.12, 0.10, 0.08, 0.07, 0.06],
+        "reach_rate": [
+            1.0,
+            0.79,
+            0.61,
+            0.46,
+            0.37,
+            0.30,
+            0.27,
+            0.23,
+            0.21,
+            0.18,
+            0.17,
+            0.15,
+        ],
+        "participation_rate": [
+            1.0,
+            0.72,
+            0.52,
+            0.36,
+            0.28,
+            0.20,
+            0.16,
+            0.16,
+            0.12,
+            0.12,
+            0.08,
+            0.08,
+        ],
+        "checkin_rate": [
+            1.0,
+            0.83,
+            0.69,
+            0.59,
+            0.53,
+            0.51,
+            0.48,
+            0.45,
+            0.43,
+            0.40,
+            0.37,
+            0.35,
+        ],
+        "referral_coefficient": [
+            1.0,
+            0.83,
+            0.72,
+            0.61,
+            0.50,
+            0.44,
+            0.39,
+            0.36,
+            0.33,
+            0.31,
+            0.28,
+            0.25,
+        ],
+        "conversion_ratio": [
+            1.0,
+            0.73,
+            0.50,
+            0.33,
+            0.23,
+            0.17,
+            0.13,
+            0.12,
+            0.10,
+            0.08,
+            0.07,
+            0.06,
+        ],
     }
     base_m1 = {
-        "reach_rate": 0.82, "participation_rate": 0.25,
-        "checkin_rate": 0.75, "referral_coefficient": 1.80, "conversion_ratio": 0.30,
+        "reach_rate": 0.82,
+        "participation_rate": 0.25,
+        "checkin_rate": 0.75,
+        "referral_coefficient": 1.80,
+        "conversion_ratio": 0.30,
     }
 
     # 尝试从 cohort_roi 取最近 m1 值
@@ -196,7 +269,7 @@ def _fallback_decay(metric: str, raw: dict) -> dict:
     for month in demo_months:
         row: dict[str, Any] = {"月份": month}
         for i, r in enumerate(rates):
-            row[f"m{i+1}"] = round(base * r, 4)
+            row[f"m{i + 1}"] = round(base * r, 4)
         series.append(row)
 
     summary_decay = _compute_summary_decay(series)
@@ -213,7 +286,20 @@ def _fallback_decay(metric: str, raw: dict) -> dict:
 
 def _demo_coefficient_by_month() -> list[dict]:
     """生成 C4 带新系数演示数据（6个入组月 × m1-m12）"""
-    decay_rates = [1.0, 0.83, 0.72, 0.61, 0.50, 0.44, 0.39, 0.36, 0.33, 0.31, 0.28, 0.25]
+    decay_rates = [
+        1.0,
+        0.83,
+        0.72,
+        0.61,
+        0.50,
+        0.44,
+        0.39,
+        0.36,
+        0.33,
+        0.31,
+        0.28,
+        0.25,
+    ]
     demo_months = [
         ("2025-06", 1.60),
         ("2025-07", 1.70),
@@ -226,6 +312,6 @@ def _demo_coefficient_by_month() -> list[dict]:
     for month, base in demo_months:
         row: dict[str, Any] = {"月份": month}
         for i, r in enumerate(decay_rates):
-            row[f"m{i+1}"] = round(base * r, 4)
+            row[f"m{i + 1}"] = round(base * r, 4)
         rows.append(row)
     return rows

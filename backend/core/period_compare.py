@@ -1,4 +1,5 @@
 """对比期间解析模块 — 环比(PoP)、同比(YoY)"""
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -11,10 +12,11 @@ from backend.core.time_period import TimePeriod, resolve_period
 @dataclass
 class CompareTarget:
     """对比期间解析结果"""
-    period: str               # 统一为 'custom'（计算出的范围）或预设字符串
+
+    period: str  # 统一为 'custom'（计算出的范围）或预设字符串
     custom_start: Optional[str]  # ISO date 字符串，period='custom' 时使用
-    custom_end: Optional[str]    # ISO date 字符串，period='custom' 时使用
-    label: str                # 中文标签，如 "环比上月"
+    custom_end: Optional[str]  # ISO date 字符串，period='custom' 时使用
+    label: str  # 中文标签，如 "环比上月"
 
 
 def _safe_replace_year(d: date, year: int) -> date:
@@ -77,16 +79,16 @@ def resolve_pop_period(
 
     # 中文标签映射
     label_map: dict[str, str] = {
-        "this_week":    "环比上周",
-        "this_month":   "环比上月",
-        "last_7_days":  "环比前7日",
+        "this_week": "环比上周",
+        "this_month": "环比上月",
+        "last_7_days": "环比前7日",
         "last_30_days": "环比前30日",
-        "last_month":   "环比上上月",
+        "last_month": "环比上上月",
         "this_quarter": "环比上季度",
         "last_quarter": "环比上上季度",
-        "this_year":    "环比去年",
-        "last_year":    "环比前年",
-        "custom":       "环比前期",
+        "this_year": "环比去年",
+        "last_year": "环比前年",
+        "custom": "环比前期",
     }
     label = label_map.get(base_period, "环比前期")
 
@@ -122,13 +124,13 @@ def resolve_yoy_period(
 
     # 中文标签映射
     label_map: dict[str, str] = {
-        "this_month":   "同比去年同月",
-        "this_week":    "同比去年同周",
-        "last_month":   "同比去年同月",
+        "this_month": "同比去年同月",
+        "this_week": "同比去年同周",
+        "last_month": "同比去年同月",
         "this_quarter": "同比去年同季",
-        "this_year":    "同比去年",
-        "last_year":    "同比前年",
-        "custom":       "同比去年同期",
+        "this_year": "同比去年",
+        "last_year": "同比前年",
+        "custom": "同比去年同期",
     }
     label = label_map.get(base_period, "同比去年同期")
 

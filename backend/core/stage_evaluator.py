@@ -5,7 +5,9 @@
   2. 科学运营 — 公式化运营，转介绍公式 = 活跃用户 × 参与率 × 获客率 × 转化率
   3. 系统思维 — 两大存量经营（活跃满意用户 + 用户人脉池）
 """
+
 from __future__ import annotations
+
 from typing import Any, Optional
 
 
@@ -100,7 +102,11 @@ class StageEvaluator:
     def _score_channel_granularity(self) -> tuple[float, int, str]:
         """渠道精细化：CC/SS/LP三渠道独立数据 = 0.8, 两渠道 = 0.5, 单渠道 = 0.3"""
         channels_with_data = []
-        for label, key in [("CC窄口径", "cc_narrow"), ("SS窄口径", "ss_narrow"), ("LP窄口径", "lp_narrow")]:
+        for label, key in [
+            ("CC窄口径", "cc_narrow"),
+            ("SS窄口径", "ss_narrow"),
+            ("LP窄口径", "lp_narrow"),
+        ]:
             node = self.funnel.get(key, {})
             if isinstance(node, dict) and (node.get("register", 0) or 0) > 0:
                 channels_with_data.append(label)
@@ -124,7 +130,9 @@ class StageEvaluator:
         """数据驱动：日级数据追踪+异常检测 = 0.8, 仅周报 = 0.5, 无 = 0.3"""
         # 检查是否有异常检测模块数据
         anomaly_data = self.cache.get("anomaly_detection", {})
-        has_anomaly = bool(anomaly_data and isinstance(anomaly_data, dict) and anomaly_data)
+        has_anomaly = bool(
+            anomaly_data and isinstance(anomaly_data, dict) and anomaly_data
+        )
 
         # 检查是否有历史快照（日级追踪）
         snapshots = self.cache.get("snapshots", []) or []
@@ -143,7 +151,9 @@ class StageEvaluator:
 
     def _score_process_management(self) -> tuple[float, int, str]:
         """过程管理：外呼/触达/打卡完整链路 = 0.8, 部分 = 0.5, 无 = 0.3"""
-        has_outreach = bool(self.outreach and isinstance(self.outreach, dict) and self.outreach)
+        has_outreach = bool(
+            self.outreach and isinstance(self.outreach, dict) and self.outreach
+        )
         has_checkin = bool(
             isinstance(self.summary.get("checkin_24h", None), dict)
             and self.summary["checkin_24h"].get("rate") is not None
@@ -174,8 +184,7 @@ class StageEvaluator:
         # 检查围场数据（student_journey 中围场分层）
         journey = self.cache.get("student_journey", {})
         has_enclosure = bool(
-            isinstance(journey, dict)
-            and journey.get("enclosure_analysis")
+            isinstance(journey, dict) and journey.get("enclosure_analysis")
         )
 
         # 检查 LTV/生命周期数据
@@ -232,12 +241,14 @@ class StageEvaluator:
             except Exception:
                 score, stage_indicator, detail = 0.3, 1, "评估失败，使用默认值"
 
-            evidence.append({
-                "dimension": dim_name,
-                "score": round(score, 2),
-                "stage_indicator": stage_indicator,
-                "detail": detail,
-            })
+            evidence.append(
+                {
+                    "dimension": dim_name,
+                    "score": round(score, 2),
+                    "stage_indicator": stage_indicator,
+                    "detail": detail,
+                }
+            )
             total_score += score
 
             if score <= 0.3:

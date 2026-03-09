@@ -2,12 +2,14 @@
 Smoke tests migrated from backend/check.py.
 Verifies that key Excel data files can be read and have expected columns.
 """
+
 from __future__ import annotations
 
 import glob
 import os
 
 import pytest
+
 # pyproject.toml [tool.pytest.ini_options].pythonpath = ["backend"] 已确保 backend/ 在 path 中
 
 DATA_ROOT = os.path.join(
@@ -23,6 +25,7 @@ def _latest_file(pattern: str) -> str | None:
 
 
 # ── D5: 当月转介绍打卡率 ──────────────────────────────────────────────────────
+
 
 class TestD5KpiCheckinFile:
     """Tests for the D5 KPI checkin-rate Excel file."""
@@ -56,6 +59,7 @@ class TestD5KpiCheckinFile:
 
 # ── D1: 北极星指标 24H 打卡率 ──────────────────────────────────────────────────
 
+
 class TestD1NorthStarFile:
     """Tests for the D1 north-star 24H checkin-rate Excel file."""
 
@@ -87,6 +91,7 @@ class TestD1NorthStarFile:
 
 
 # ── Core imports ──────────────────────────────────────────────────────────────
+
 
 class TestCoreImports:
     """Verify that key backend modules can be imported without errors."""

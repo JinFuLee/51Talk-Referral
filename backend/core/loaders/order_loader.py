@@ -1,7 +1,8 @@
 """E类 Order/Revenue 数据加载器"""
+
+import logging
 from pathlib import Path
 from typing import Optional
-import logging
 
 import pandas as pd
 
@@ -51,7 +52,9 @@ class OrderLoader(BaseLoader):
                 cols[1]: "active_5min",
                 cols[2]: "active_30min",
             }
-            df = df.rename(columns={k: v for k, v in col_map.items() if k in df.columns})
+            df = df.rename(
+                columns={k: v for k, v in col_map.items() if k in df.columns}
+            )
 
             # 向量化清洗日期列
             df["_date"] = self._clean_date_vec(df["calldate"])
@@ -65,11 +68,13 @@ class OrderLoader(BaseLoader):
 
             records = (
                 df[["_date", "_active_5min", "_active_30min"]]
-                .rename(columns={
-                    "_date": "date",
-                    "_active_5min": "active_5min",
-                    "_active_30min": "active_30min",
-                })
+                .rename(
+                    columns={
+                        "_date": "date",
+                        "_active_5min": "active_5min",
+                        "_active_30min": "active_30min",
+                    }
+                )
                 .to_dict("records")
             )
             return records
@@ -100,11 +105,26 @@ class OrderLoader(BaseLoader):
             #           chnl_type, order_tag, product_name, deal_time, deal_time_day,
             #           deal_time_hms, pay_amt, ord_id, pay_amt_cny, pay_amt_usd, nml_type
             col_names = [
-                "region", "sale_dept_name", "sale_name", "stdt_id", "occup_desc",
-                "chnl_type", "order_tag", "product_name", "deal_time", "deal_time_day",
-                "deal_time_hms", "pay_amt", "ord_id", "pay_amt_cny", "pay_amt_usd", "nml_type",
+                "region",
+                "sale_dept_name",
+                "sale_name",
+                "stdt_id",
+                "occup_desc",
+                "chnl_type",
+                "order_tag",
+                "product_name",
+                "deal_time",
+                "deal_time_day",
+                "deal_time_hms",
+                "pay_amt",
+                "ord_id",
+                "pay_amt_cny",
+                "pay_amt_usd",
+                "nml_type",
             ]
-            col_map = {cols[i]: col_names[i] for i in range(min(len(cols), len(col_names)))}
+            col_map = {
+                cols[i]: col_names[i] for i in range(min(len(cols), len(col_names)))
+            }
             df = df.rename(columns=col_map)
 
             # 别名规范化（向量化）
@@ -115,9 +135,11 @@ class OrderLoader(BaseLoader):
 
             # 过滤无效 student_id
             if "stdt_id" in df.columns:
-                df = df[df["stdt_id"].apply(
-                    lambda v: not (pd.isna(v) if not isinstance(v, str) else False)
-                )].copy()
+                df = df[
+                    df["stdt_id"].apply(
+                        lambda v: not (pd.isna(v) if not isinstance(v, str) else False)
+                    )
+                ].copy()
 
             if df.empty:
                 return self._empty_order_detail()
@@ -215,10 +237,14 @@ class OrderLoader(BaseLoader):
 
     def _aggregate_orders_by_team_df(self, df: pd.DataFrame) -> dict:
         """向量化按团队聚合"""
-        grp = df.assign(team=df["team"].fillna("未知")).groupby("team").agg(
-            count=("team", "count"),
-            revenue_cny=("amount_cny", "sum"),
-            revenue_usd=("amount_usd", "sum"),
+        grp = (
+            df.assign(team=df["team"].fillna("未知"))
+            .groupby("team")
+            .agg(
+                count=("team", "count"),
+                revenue_cny=("amount_cny", "sum"),
+                revenue_usd=("amount_usd", "sum"),
+            )
         )
         return {
             team: {
@@ -231,10 +257,14 @@ class OrderLoader(BaseLoader):
 
     def _aggregate_orders_by_channel_df(self, df: pd.DataFrame) -> dict:
         """向量化按渠道聚合"""
-        grp = df.assign(channel=df["channel"].fillna("未知")).groupby("channel").agg(
-            count=("channel", "count"),
-            revenue_cny=("amount_cny", "sum"),
-            revenue_usd=("amount_usd", "sum"),
+        grp = (
+            df.assign(channel=df["channel"].fillna("未知"))
+            .groupby("channel")
+            .agg(
+                count=("channel", "count"),
+                revenue_cny=("amount_cny", "sum"),
+                revenue_usd=("amount_usd", "sum"),
+            )
         )
         return {
             channel: {
@@ -262,13 +292,22 @@ class OrderLoader(BaseLoader):
 
     def _aggregate_orders_by_date_df(self, df: pd.DataFrame) -> list:
         """向量化按日期聚合"""
-        grp = df.assign(date=df["date"].fillna("unknown")).groupby("date").agg(
-            count=("date", "count"),
-            revenue=("amount_cny", "sum"),
-        ).sort_index()
+        grp = (
+            df.assign(date=df["date"].fillna("unknown"))
+            .groupby("date")
+            .agg(
+                count=("date", "count"),
+                revenue=("amount_cny", "sum"),
+            )
+            .sort_index()
+        )
         result = grp.reset_index().rename(columns={"index": "date"})
         return [
-            {"date": row["date"], "count": int(row["count"]), "revenue": float(row["revenue"])}
+            {
+                "date": row["date"],
+                "count": int(row["count"]),
+                "revenue": float(row["revenue"]),
+            }
             for row in result.to_dict("records")
         ]
 
@@ -308,7 +347,12 @@ class OrderLoader(BaseLoader):
 
     def _aggregate_referral_cc_new(self, records: list) -> dict:
         """仅统计 CC前端 + 新单 + 转介绍 的订单"""
-        result = {"count": 0, "revenue_cny": 0.0, "revenue_usd": 0.0, "revenue_thb": 0.0}
+        result = {
+            "count": 0,
+            "revenue_cny": 0.0,
+            "revenue_usd": 0.0,
+            "revenue_thb": 0.0,
+        }
         for r in records:
             channel = (r.get("channel") or "").strip()
             team = (r.get("team") or r.get("sale_dept_name") or "").upper()
@@ -365,7 +409,9 @@ class OrderLoader(BaseLoader):
                 cols[1]: "product_type",
                 cols[2]: "order_count",
             }
-            df = df.rename(columns={k: v for k, v in col_map.items() if k in df.columns})
+            df = df.rename(
+                columns={k: v for k, v in col_map.items() if k in df.columns}
+            )
 
             # 向量化清洗
             df["_date"] = self._clean_date_vec(df["deal_time_day"])
@@ -380,11 +426,13 @@ class OrderLoader(BaseLoader):
 
             return (
                 df[["_date", "_product_type", "_order_count"]]
-                .rename(columns={
-                    "_date": "date",
-                    "_product_type": "product_type",
-                    "_order_count": "order_count",
-                })
+                .rename(
+                    columns={
+                        "_date": "date",
+                        "_product_type": "product_type",
+                        "_order_count": "order_count",
+                    }
+                )
                 .to_dict("records")
             )
 
@@ -414,7 +462,9 @@ class OrderLoader(BaseLoader):
                 cols[1]: "product_type",
                 cols[2]: "revenue_cny",
             }
-            df = df.rename(columns={k: v for k, v in col_map.items() if k in df.columns})
+            df = df.rename(
+                columns={k: v for k, v in col_map.items() if k in df.columns}
+            )
 
             # 向量化清洗
             df["_date"] = self._clean_date_vec(df["deal_time_day"])
@@ -429,11 +479,13 @@ class OrderLoader(BaseLoader):
 
             return (
                 df[["_date", "_product_type", "_revenue_cny"]]
-                .rename(columns={
-                    "_date": "date",
-                    "_product_type": "product_type",
-                    "_revenue_cny": "revenue_cny",
-                })
+                .rename(
+                    columns={
+                        "_date": "date",
+                        "_product_type": "product_type",
+                        "_revenue_cny": "revenue_cny",
+                    }
+                )
                 .to_dict("records")
             )
 
@@ -470,7 +522,9 @@ class OrderLoader(BaseLoader):
                 if self._is_numeric_col(col):
                     records_df[col] = self._clean_numeric_vec(df[col])
                 else:
-                    records_df[col] = df[col].apply(lambda v: str(v).strip() if pd.notna(v) else str(v))
+                    records_df[col] = df[col].apply(
+                        lambda v: str(v).strip() if pd.notna(v) else str(v)
+                    )
 
             return {"by_channel": {"records": records_df.to_dict("records")}}
 
@@ -502,7 +556,11 @@ class OrderLoader(BaseLoader):
             header_row0 = df_raw.iloc[0].ffill().tolist()
             header_row1 = df_raw.iloc[1].tolist()
             col_names = [
-                "_".join(str(c).strip() for c in [h0, h1] if str(c).strip() not in ("nan", "")).strip("_")
+                "_".join(
+                    str(c).strip()
+                    for c in [h0, h1]
+                    if str(c).strip() not in ("nan", "")
+                ).strip("_")
                 for h0, h1 in zip(header_row0, header_row1)
             ]
             # 去重：若列名重复则追加序号
@@ -523,7 +581,9 @@ class OrderLoader(BaseLoader):
                 if self._is_numeric_col(col):
                     records_df[col] = self._clean_numeric_vec(df[col])
                 else:
-                    records_df[col] = df[col].apply(lambda v: str(v).strip() if pd.notna(v) else str(v))
+                    records_df[col] = df[col].apply(
+                        lambda v: str(v).strip() if pd.notna(v) else str(v)
+                    )
 
             return {"by_team": records_df.to_dict("records")}
 
@@ -559,8 +619,19 @@ class OrderLoader(BaseLoader):
                     records_df[col_str] = self._clean_numeric_vec(series)
                 else:
                     records_df[col_str] = series.apply(
-                        lambda v: None if (pd.isna(v) if not isinstance(v, (list, dict, str)) else False)
-                        else (self._clean_numeric(v) if self._clean_numeric(v) is not None else str(v).strip())
+                        lambda v: (
+                            None
+                            if (
+                                pd.isna(v)
+                                if not isinstance(v, (list, dict, str))
+                                else False
+                            )
+                            else (
+                                self._clean_numeric(v)
+                                if self._clean_numeric(v) is not None
+                                else str(v).strip()
+                            )
+                        )
                     )
 
             return {"by_channel_product": records_df.to_dict("records")}
@@ -577,8 +648,19 @@ class OrderLoader(BaseLoader):
     def _is_numeric_col(col_name: str) -> bool:
         """简单判断列名是否应当作数值处理"""
         numeric_hints = {
-            "amt", "amount", "count", "revenue", "rate", "ratio",
-            "cny", "usd", "thb", "pay", "占比", "金额", "数量",
+            "amt",
+            "amount",
+            "count",
+            "revenue",
+            "rate",
+            "ratio",
+            "cny",
+            "usd",
+            "thb",
+            "pay",
+            "占比",
+            "金额",
+            "数量",
         }
         col_lower = col_name.lower()
         return any(hint in col_lower for hint in numeric_hints)

@@ -1,6 +1,7 @@
 """
 共享工具函数：从 analysis_engine_v2.py 提取（原 1-70 行）
 """
+
 from __future__ import annotations
 
 import json

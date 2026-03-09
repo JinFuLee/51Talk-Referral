@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 from typing import Any, Optional
 
 from fastapi import APIRouter, Depends, Query
+
 from backend.services.analysis_service import AnalysisService
 
 from .dependencies import get_service
@@ -32,7 +33,9 @@ def _calculate_time_progress(ref_date: Optional[datetime] = None) -> float:
 
 
 @router.get("/enclosure-channel-matrix", summary="A2 围场×渠道热力矩阵")
-def get_enclosure_channel_matrix(svc: AnalysisService = Depends(get_service)) -> dict[str, Any]:
+def get_enclosure_channel_matrix(
+    svc: AnalysisService = Depends(get_service),
+) -> dict[str, Any]:
     """A2 围场×渠道热力矩阵 — 数据源: leads.channel_efficiency.by_enclosure (A2)"""
     raw_data = getattr(svc, "_raw_data", None) or {}
     leads = raw_data.get("leads", {}) if isinstance(raw_data, dict) else {}
@@ -179,9 +182,9 @@ _METRIC_KEYS = [
 _SCOPE_ROLE: dict[str, str] = {
     "total": "full_funnel",
     "cc_narrow": "full_funnel",
-    "ss_narrow": "leads_and_process",   # SS: leads数 + 过程指标（触达率/打卡率）+ leads→CC转化率
-    "lp_narrow": "leads_and_process",   # LP: 同 SS
-    "wide": "leads_only",               # 宽口径仅 register（质量低，无过程追踪）
+    "ss_narrow": "leads_and_process",  # SS: leads数 + 过程指标（触达率/打卡率）+ leads→CC转化率
+    "lp_narrow": "leads_and_process",  # LP: 同 SS
+    "wide": "leads_only",  # 宽口径仅 register（质量低，无过程追踪）
 }
 # 注意: leads_detail 页面的实际过滤逻辑仍只展示 register（不展示过程指标）
 # 过程指标（触达率/打卡率）在 ranking 和 funnel 页面展示，此处角色值为语义声明，与 config.json 对齐

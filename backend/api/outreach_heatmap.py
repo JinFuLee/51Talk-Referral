@@ -2,14 +2,16 @@
 F5+F1 CC 外呼热力图 API 端点
 GET /api/analysis/outreach-heatmap — CC × 日期 二维热力图数据
 """
+
 from __future__ import annotations
 
 from typing import Any, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 
-from .dependencies import get_service
 from backend.services.analysis_service import AnalysisService
+
+from .dependencies import get_service
 
 router = APIRouter()
 
@@ -79,7 +81,9 @@ def _build_heatmap_data(records: list[dict]) -> dict:
             "calls": round(v["calls"]),
             "connects": round(v["connects"]),
             "effective": round(v["effective"]),
-            "effective_rate": round(v["effective"] / v["calls"], 4) if v["calls"] > 0 else 0.0,
+            "effective_rate": round(v["effective"] / v["calls"], 4)
+            if v["calls"] > 0
+            else 0.0,
         }
         for v in cell.values()
     ]
@@ -143,13 +147,18 @@ def get_outreach_heatmap(
             if isinstance(dates_data, dict):
                 for date, day_data in dates_data.items():
                     if isinstance(day_data, dict):
-                        records.append({
-                            "cc_name": cc_name,
-                            "date": date,
-                            "total_calls": day_data.get("calls", 0) or day_data.get("total_calls", 0),
-                            "total_connects": day_data.get("connects", 0) or day_data.get("connected", 0),
-                            "total_effective": day_data.get("effective", 0) or day_data.get("effective_calls", 0),
-                        })
+                        records.append(
+                            {
+                                "cc_name": cc_name,
+                                "date": date,
+                                "total_calls": day_data.get("calls", 0)
+                                or day_data.get("total_calls", 0),
+                                "total_connects": day_data.get("connects", 0)
+                                or day_data.get("connected", 0),
+                                "total_effective": day_data.get("effective", 0)
+                                or day_data.get("effective_calls", 0),
+                            }
+                        )
 
     # Fallback: try raw_data directly from service
     if not records:
@@ -161,14 +170,16 @@ def get_outreach_heatmap(
             for cc_name, cc_data in f5_by_cc.items():
                 if not isinstance(cc_data, dict):
                     continue
-                for date in (cc_data.get("dates") or []):
-                    records.append({
-                        "cc_name": cc_name,
-                        "date": date,
-                        "total_calls": cc_data.get("total_calls", 0),
-                        "total_connects": cc_data.get("total_connects", 0),
-                        "total_effective": cc_data.get("total_effective", 0),
-                    })
+                for date in cc_data.get("dates") or []:
+                    records.append(
+                        {
+                            "cc_name": cc_name,
+                            "date": date,
+                            "total_calls": cc_data.get("total_calls", 0),
+                            "total_connects": cc_data.get("total_connects", 0),
+                            "total_effective": cc_data.get("total_effective", 0),
+                        }
+                    )
 
     if not records:
         return {

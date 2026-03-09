@@ -2,6 +2,7 @@
 Unit tests for core.impact_chain.ImpactChainEngine
 ~13 test cases
 """
+
 import pytest
 
 from backend.core.impact_chain import ImpactChainEngine
@@ -36,11 +37,15 @@ class TestImpactChainEngine:
             assert "lost_revenue_usd" in chain
             assert "impact_steps" in chain
 
-    def test_gap_zero_means_no_loss(self, minimal_summary, minimal_funnel, sample_targets):
+    def test_gap_zero_means_no_loss(
+        self, minimal_summary, minimal_funnel, sample_targets
+    ):
         """当 actual >= target 时，该指标无损失"""
         # checkin_rate actual=0.90 > target=0.60 → no chain
         summary = {**minimal_summary, "checkin_24h": {"rate": 0.90, "target": 0.60}}
-        engine = ImpactChainEngine(summary=summary, targets=sample_targets, funnel=minimal_funnel)
+        engine = ImpactChainEngine(
+            summary=summary, targets=sample_targets, funnel=minimal_funnel
+        )
         result = engine.compute_all_chains()
         metrics = [c["metric"] for c in result["chains"]]
         assert "checkin_rate" not in metrics
@@ -83,7 +88,9 @@ class TestImpactChainEngine:
         assert isinstance(result, dict)
         assert result["total_lost_revenue_usd"] == 0.0
 
-    def test_conversion_rate_chain(self, minimal_summary, minimal_funnel, sample_targets):
+    def test_conversion_rate_chain(
+        self, minimal_summary, minimal_funnel, sample_targets
+    ):
         """conversion_rate low → should generate chain"""
         funnel = {
             "total": {
@@ -94,7 +101,9 @@ class TestImpactChainEngine:
                 },
             }
         }
-        engine = ImpactChainEngine(summary=minimal_summary, targets=sample_targets, funnel=funnel)
+        engine = ImpactChainEngine(
+            summary=minimal_summary, targets=sample_targets, funnel=funnel
+        )
         result = engine.compute_all_chains()
         metrics = [c["metric"] for c in result["chains"]]
         assert "conversion_rate" in metrics

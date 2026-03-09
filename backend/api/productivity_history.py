@@ -1,15 +1,20 @@
 from __future__ import annotations
+
 from typing import Any
+
 from fastapi import APIRouter, Depends
 
-from .dependencies import get_service
 from backend.services.analysis_service import AnalysisService
+
+from .dependencies import get_service
 
 router = APIRouter()
 
 
 @router.get("/productivity-history", summary="E1/E2 CC+SS 出勤历史产能利用率趋势")
-def get_productivity_history(svc: AnalysisService = Depends(get_service)) -> dict[str, Any]:
+def get_productivity_history(
+    svc: AnalysisService = Depends(get_service),
+) -> dict[str, Any]:
     """
     E1/E2 CC+SS 出勤历史 → 产能利用率趋势
 
@@ -52,7 +57,12 @@ def get_productivity_history(svc: AnalysisService = Depends(get_service)) -> dic
             continue
         if d not in date_map:
             date_map[d] = {"date": d}
-        present = item.get("active_5min") or item.get("present") or item.get("present_count") or 0
+        present = (
+            item.get("active_5min")
+            or item.get("present")
+            or item.get("present_count")
+            or 0
+        )
         deep = item.get("active_30min") or 0
         date_map[d]["cc_present"] = present
         date_map[d]["cc_deep_present"] = deep
@@ -65,7 +75,12 @@ def get_productivity_history(svc: AnalysisService = Depends(get_service)) -> dic
             continue
         if d not in date_map:
             date_map[d] = {"date": d}
-        present = item.get("active_5min") or item.get("present") or item.get("present_count") or 0
+        present = (
+            item.get("active_5min")
+            or item.get("present")
+            or item.get("present_count")
+            or 0
+        )
         deep = item.get("active_30min") or 0
         date_map[d]["ss_present"] = present
         date_map[d]["ss_deep_present"] = deep
@@ -75,11 +90,13 @@ def get_productivity_history(svc: AnalysisService = Depends(get_service)) -> dic
     # 汇总统计
     cc_present_total = sum(
         r.get("active_5min") or r.get("present") or r.get("present_count") or 0
-        for r in cc_list if isinstance(r, dict)
+        for r in cc_list
+        if isinstance(r, dict)
     )
     ss_present_total = sum(
         r.get("active_5min") or r.get("present") or r.get("present_count") or 0
-        for r in ss_list if isinstance(r, dict)
+        for r in ss_list
+        if isinstance(r, dict)
     )
     cc_days = len(cc_list)
     ss_days = len(ss_list)
