@@ -74,17 +74,15 @@ describe('thTranslations', () => {
     expect(Object.keys(thTranslations).length).toBe(Object.keys(zhTranslations).length)
   })
 
-  it('all th values are prefixed with "[TH] " (placeholder convention)', () => {
-    // thTranslations is auto-derived: Object.entries(zhTranslations).map([k, v] => [k, `[TH] ${v}`])
+  it('all th values are non-empty real strings (not placeholder)', () => {
     for (const [, v] of Object.entries(thTranslations)) {
-      expect(v.startsWith('[TH] ')).toBe(true)
+      expect(typeof v).toBe('string')
+      expect(v.length).toBeGreaterThan(0)
+      expect(v.startsWith('[TH] ')).toBe(false)  // 确认不是占位符
     }
   })
 
-  it('th value contains the zh value after prefix', () => {
-    const key = 'common.label.noData'
-    const zhVal = zhTranslations[key]
-    const thVal = thTranslations[key]
-    expect(thVal).toBe(`[TH] ${zhVal}`)
+  it('th noData key is real Thai translation', () => {
+    expect(thTranslations['common.label.noData']).toBe('ไม่มีข้อมูล')
   })
 })

@@ -29,15 +29,15 @@ describe('KPICard', () => {
 
   it('displays the actual value formatted', () => {
     render(<KPICard {...defaultProps} actual={1500} />)
-    // 1500 → "1.5K"
-    expect(screen.getByText('1.5K')).toBeInTheDocument()
+    // 1500 → "1.5k"
+    expect(screen.getByText('1.5k')).toBeInTheDocument()
   })
 
   it('displays the target value in footer', () => {
     render(<KPICard {...defaultProps} target={2000} unit="人" />)
-    // Text split across multiple spans: "目标 " + "2.0K" + "人"
+    // Text split across multiple spans: "目标 " + "2.0k" + "人"
     expect(screen.getByText(/目标/)).toBeInTheDocument()
-    expect(screen.getByText(/2\.0K/)).toBeInTheDocument()
+    expect(screen.getByText(/2\.0k/)).toBeInTheDocument()
   })
 
   it('shows green status emoji for green status', () => {
@@ -57,18 +57,18 @@ describe('KPICard', () => {
 
   it('displays remaining_daily_avg when provided', () => {
     render(<KPICard {...defaultProps} remaining_daily_avg={50} />)
-    expect(screen.getByText(/剩余日均/)).toBeInTheDocument()
+    expect(screen.getByText(/达标需日均/)).toBeInTheDocument()
   })
 
   it('does not render enhanced metrics section when neither prop is provided', () => {
     render(<KPICard {...defaultProps} />)
-    expect(screen.queryByText(/剩余日均/)).not.toBeInTheDocument()
-    expect(screen.queryByText(/需提升/)).not.toBeInTheDocument()
+    expect(screen.queryByText(/达标需日均/)).not.toBeInTheDocument()
+    expect(screen.queryByText(/效率提升需求/)).not.toBeInTheDocument()
   })
 
   it('shows efficiency lift text when efficiency_lift_pct > 0', () => {
     render(<KPICard {...defaultProps} efficiency_lift_pct={12.5} />)
-    expect(screen.getByText(/需提升/)).toBeInTheDocument()
+    expect(screen.getByText(/效率提升/)).toBeInTheDocument()
     expect(screen.getByText(/12.5%/)).toBeInTheDocument()
   })
 
@@ -91,6 +91,6 @@ describe('KPICard', () => {
 
   it('renders progress percentage', () => {
     render(<KPICard {...defaultProps} progress={0.75} />)
-    expect(screen.getByText('75%')).toBeInTheDocument()
+    expect(screen.getByText(/75%/)).toBeInTheDocument()
   })
 })
