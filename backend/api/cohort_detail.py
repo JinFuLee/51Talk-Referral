@@ -6,7 +6,7 @@ C6: 学员级留存分析 + CC 真实带新排行
 
 from __future__ import annotations
 
-from typing import Any, Optional
+from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 
