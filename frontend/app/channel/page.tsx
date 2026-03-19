@@ -51,10 +51,14 @@ export default function ChannelPage() {
   const contributions = Array.isArray(attrData) ? attrData : (attrData?.contributions ?? []);
   const comparisons = Array.isArray(threeData) ? threeData : (threeData?.comparisons ?? []);
 
-  const pieData = channels.map((c) => ({
-    name: c.channel,
-    value: c.revenue_usd,
-  }));
+  const n = (v: number | null | undefined) => v ?? 0;
+
+  const pieData = channels
+    .filter((c) => n(c.revenue_usd) > 0)
+    .map((c) => ({
+      name: c.channel,
+      value: n(c.revenue_usd),
+    }));
 
   return (
     <div className="space-y-6">
@@ -102,11 +106,11 @@ export default function ChannelPage() {
                     {channels.map((c) => (
                       <tr key={c.channel} className="border-b border-slate-50">
                         <td className="py-2.5 pr-3 font-medium">{c.channel}</td>
-                        <td className="py-2.5 pr-3 text-right">{c.registrations.toLocaleString()}</td>
-                        <td className="py-2.5 pr-3 text-right">{c.appointments.toLocaleString()}</td>
-                        <td className="py-2.5 pr-3 text-right">{c.attendance.toLocaleString()}</td>
-                        <td className="py-2.5 pr-3 text-right">{c.payments.toLocaleString()}</td>
-                        <td className="py-2.5 text-right text-slate-600">${c.revenue_usd.toLocaleString()}</td>
+                        <td className="py-2.5 pr-3 text-right">{n(c.registrations).toLocaleString()}</td>
+                        <td className="py-2.5 pr-3 text-right">{n(c.appointments).toLocaleString()}</td>
+                        <td className="py-2.5 pr-3 text-right">{n(c.attendance).toLocaleString()}</td>
+                        <td className="py-2.5 pr-3 text-right">{n(c.payments).toLocaleString()}</td>
+                        <td className="py-2.5 text-right text-slate-600">${n(c.revenue_usd).toLocaleString()}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -163,11 +167,11 @@ export default function ChannelPage() {
                     <tr key={c.channel} className="border-b border-slate-50">
                       <td className="py-2.5 pr-4 font-medium">{c.channel}</td>
                       <td className="py-2.5 pr-4 text-right font-semibold">
-                        ${c.revenue.toLocaleString()}
+                        ${n(c.revenue).toLocaleString()}
                       </td>
-                      <td className="py-2.5 pr-4 text-right">{formatRate(c.share / 100)}</td>
+                      <td className="py-2.5 pr-4 text-right">{formatRate(n(c.share) / 100)}</td>
                       <td className="py-2.5 text-right text-slate-500">
-                        ${c.per_capita.toLocaleString()}
+                        ${n(c.per_capita).toLocaleString()}
                       </td>
                     </tr>
                   ))}
@@ -200,14 +204,14 @@ export default function ChannelPage() {
                   {comparisons.map((c) => (
                     <tr key={c.channel} className="border-b border-slate-50">
                       <td className="py-2.5 pr-4 font-medium">{c.channel}</td>
-                      <td className="py-2.5 pr-4 text-right">{c.expected_volume.toLocaleString()}</td>
-                      <td className="py-2.5 pr-4 text-right font-semibold">{c.actual_volume.toLocaleString()}</td>
-                      <td className={`py-2.5 pr-4 text-right font-medium ${c.gap >= 0 ? "text-green-600" : "text-red-500"}`}>
-                        {c.gap >= 0 ? "+" : ""}{c.gap.toLocaleString()}
+                      <td className="py-2.5 pr-4 text-right">{n(c.expected_volume).toLocaleString()}</td>
+                      <td className="py-2.5 pr-4 text-right font-semibold">{n(c.actual_volume).toLocaleString()}</td>
+                      <td className={`py-2.5 pr-4 text-right font-medium ${n(c.gap) >= 0 ? "text-green-600" : "text-red-500"}`}>
+                        {n(c.gap) >= 0 ? "+" : ""}{n(c.gap).toLocaleString()}
                       </td>
-                      <td className="py-2.5 pr-4 text-right">{formatRate(c.appt_factor)}</td>
-                      <td className="py-2.5 pr-4 text-right">{formatRate(c.show_factor)}</td>
-                      <td className="py-2.5 text-right">{formatRate(c.pay_factor)}</td>
+                      <td className="py-2.5 pr-4 text-right">{formatRate(n(c.appt_factor))}</td>
+                      <td className="py-2.5 pr-4 text-right">{formatRate(n(c.show_factor))}</td>
+                      <td className="py-2.5 text-right">{formatRate(n(c.pay_factor))}</td>
                     </tr>
                   ))}
                 </tbody>
