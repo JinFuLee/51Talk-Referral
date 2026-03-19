@@ -5,11 +5,50 @@
 :root {
   --foreground-rgb: 15, 23, 42;
   --background-rgb: 248, 250, 252;
+
+  /* ── SEE Warm Neutral Tokens ─────────────────────── */
+  --n-50: #FAFAF5;
+  --n-100: #F5F5EB;
+  --n-200: #E8E8D8;
+  --n-300: #D4D4C4;
+  --n-400: #A3A38E;
+  --n-500: #737360;
+  --n-600: #52524A;
+  --n-700: #3D3D37;
+  --n-800: #28282A;
+  --n-900: #1A1A1C;
+
+  /* 语义映射 */
+  --bg-primary: var(--n-50);
+  --bg-surface: #FFFFFF;
+  --bg-subtle: var(--n-100);
+  --text-primary: var(--n-900);
+  --text-secondary: var(--n-600);
+  --text-muted: var(--n-400);
+  --border-default: var(--n-200);
+  --border-subtle: var(--n-100);
+
+  /* 圆角 */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+
+  /* 阴影（单层） */
+  --shadow-subtle: 0 1px 3px rgba(0,0,0,0.04);
+  --shadow-medium: 0 4px 12px rgba(0,0,0,0.06);
+  --shadow-raised: 0 8px 24px rgba(0,0,0,0.08);
+
+  /* 图表色板 */
+  --chart-1-hex: #92400E;
+  --chart-2-hex: #065F46;
+  --chart-3-hex: #1E40AF;
+  --chart-4-hex: #6B21A8;
+  --chart-5-hex: #9A3412;
 }
 
 body {
-  background: hsl(var(--background));
-  color: hsl(var(--foreground));
+  background: var(--bg-primary) !important;
+  color: var(--text-primary) !important;
 }
 
 /* Scrollbar */
@@ -80,6 +119,19 @@ body {
   }
 
   .dark {
+    /* SEE Warm Neutral — dark 翻转 */
+    --bg-primary: var(--n-900);
+    --bg-surface: var(--n-800);
+    --bg-subtle: var(--n-700);
+    --text-primary: var(--n-50);
+    --text-secondary: var(--n-300);
+    --text-muted: var(--n-500);
+    --border-default: var(--n-700);
+    --border-subtle: var(--n-800);
+    --shadow-subtle: 0 1px 3px rgba(0,0,0,0.2);
+    --shadow-medium: 0 4px 12px rgba(0,0,0,0.3);
+    --shadow-raised: 0 8px 24px rgba(0,0,0,0.4);
+
     --background: 224 71% 4%;
     --foreground: 213 31% 91%;
     --card: 222 47% 7%;
@@ -329,4 +381,13 @@ body.presentation-mode .presentation-watermark {
 .recharts-legend-item-text {
   color: hsl(var(--muted-foreground)) !important;
   margin-left: 4px !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

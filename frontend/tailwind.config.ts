@@ -9,6 +9,18 @@ const config: Config = {
   theme: {
   	extend: {
   		colors: {
+  			n: {
+  				'50': 'var(--n-50)',
+  				'100': 'var(--n-100)',
+  				'200': 'var(--n-200)',
+  				'300': 'var(--n-300)',
+  				'400': 'var(--n-400)',
+  				'500': 'var(--n-500)',
+  				'600': 'var(--n-600)',
+  				'700': 'var(--n-700)',
+  				'800': 'var(--n-800)',
+  				'900': 'var(--n-900)',
+  			},
   			brand: {
   				'50': '#f0f9ff',
   				'100': '#e0f2fe',
@@ -79,13 +91,18 @@ const config: Config = {
   			}
   		},
   		borderRadius: {
-  			lg: 'var(--radius)',
-  			md: 'calc(var(--radius) - 2px)',
-  			sm: 'calc(var(--radius) - 4px)'
+  			lg: 'var(--radius-lg)',
+  			md: 'var(--radius-md)',
+  			sm: 'var(--radius-sm)'
   		},
+		fontFamily: {
+			sans: ['var(--font-manrope)', 'Noto Sans Thai', 'PingFang SC', 'Hiragino Sans GB', 'sans-serif'],
+			mono: ['var(--font-mono)', 'ui-monospace', 'monospace'],
+		},
 		boxShadow: {
-			'flash': '0 20px 40px -10px rgba(0, 0, 0, 0.03), 0 10px 20px -5px rgba(0, 0, 0, 0.02)',
-			'flash-lg': '0 30px 60px -15px rgba(0, 0, 0, 0.05), 0 15px 25px -10px rgba(0, 0, 0, 0.03)'
+			'subtle': 'var(--shadow-subtle)',
+			'medium': 'var(--shadow-medium)',
+			'raised': 'var(--shadow-raised)',
 		},
 		keyframes: {
 			"accordion-down": {

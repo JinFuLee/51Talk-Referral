@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Manrope, IBM_Plex_Mono } from "next/font/google";
 import { SWRProvider } from "@/components/providers/SWRProvider";
 import { NavSidebar } from "@/components/layout/NavSidebar";
 import { Topbar } from "@/components/layout/Topbar";
@@ -10,7 +10,16 @@ import { HtmlLangUpdater } from "@/components/providers/HtmlLangUpdater";
 import { CoPilotTerminalClient, PresentationOverlayClient } from "@/components/providers/ClientOnlyDynamics";
 import "./globals.css";
 
-const inter = Inter({ subsets: ["latin"] });
+const manrope = Manrope({
+  subsets: ["latin"],
+  variable: "--font-manrope",
+});
+
+const ibmPlexMono = IBM_Plex_Mono({
+  subsets: ["latin"],
+  weight: ["400", "500", "600"],
+  variable: "--font-mono",
+});
 
 export const metadata: Metadata = {
   title: "ref-ops-engine — 运营分析面板",
@@ -24,7 +33,16 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="zh-CN">
-      <body className={inter.className}>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: `
+  try {
+    if (localStorage.theme === 'dark' || (!('theme' in localStorage) && matchMedia('(prefers-color-scheme:dark)').matches))
+      document.documentElement.classList.add('dark')
+  } catch(e){}
+` }} />
+      </head>
+      <body className={`${manrope.variable} ${ibmPlexMono.variable} font-sans`}
+        style={{ fontFamily: "var(--font-manrope), 'Noto Sans Thai', 'PingFang SC', 'Hiragino Sans GB', sans-serif" }}>
         <ErrorBoundary>
             <SWRProvider>
               <div className="flex h-screen overflow-hidden bg-slate-50 presentation-expand relative">
