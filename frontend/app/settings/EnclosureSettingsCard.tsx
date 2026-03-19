@@ -45,12 +45,20 @@ interface EnclosureSettingsCardProps {
   onUpdateEnclosure: (key: string, patch: Partial<EnclosureTarget>) => void;
 }
 
+const EMPTY_ENCLOSURE: EnclosureTarget = {
+  reach_rate: 0,
+  participation_rate: 0,
+  conversion_rate: 0,
+  checkin_rate: 0,
+};
+
 export default function EnclosureSettingsCard({
   v2,
   open,
   onToggle,
   onUpdateEnclosure,
 }: EnclosureSettingsCardProps) {
+  const enclosures = v2.enclosures ?? {} as Record<string, EnclosureTarget>;
   return (
     <Card
       title="围场目标"
@@ -76,7 +84,7 @@ export default function EnclosureSettingsCard({
                   {ENCLOSURE_KEYS.map((k) => (
                     <td key={k} className="py-2 text-right">
                       <PctInput
-                        value={v2.enclosures[k][metric]}
+                        value={(enclosures[k] ?? EMPTY_ENCLOSURE)[metric]}
                         onChange={(v) => onUpdateEnclosure(k, { [metric]: v })}
                       />
                     </td>
