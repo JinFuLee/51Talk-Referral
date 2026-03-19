@@ -64,7 +64,7 @@ export default function EnclosurePage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-[var(--text-primary)]">围场分析</h1>
+        <h1 className="text-lg font-bold text-[var(--text-primary)]">围场分析</h1>
         <p className="text-sm text-[var(--text-secondary)] mt-1">围场分段 × CC 矩阵 · 参与率/带新/带货</p>
       </div>
 
@@ -93,34 +93,34 @@ export default function EnclosurePage() {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="text-left text-xs text-[var(--text-muted)] border-b border-[var(--border-subtle)]">
-                  <th className="py-2 pr-3">围场段</th>
-                  <th className="py-2 pr-3">CC</th>
-                  <th className="py-2 pr-3 text-right">有效学员</th>
-                  <th className="py-2 pr-3 text-right">参与率</th>
-                  <th className="py-2 pr-3 text-right">带新系数</th>
-                  <th className="py-2 pr-3 text-right">带货比</th>
-                  <th className="py-2 pr-3 text-right">打卡率</th>
-                  <th className="py-2 text-right">注册数</th>
+                <tr className="bg-[var(--n-800)] text-white text-xs font-medium">
+                  <th className="py-1.5 px-2 border-0 text-left">围场段</th>
+                  <th className="py-1.5 px-2 border-0 text-left">CC</th>
+                  <th className="py-1.5 px-2 border-0 text-right">有效学员</th>
+                  <th className="py-1.5 px-2 border-0 text-right">参与率</th>
+                  <th className="py-1.5 px-2 border-0 text-right">带新系数</th>
+                  <th className="py-1.5 px-2 border-0 text-right">带货比</th>
+                  <th className="py-1.5 px-2 border-0 text-right">打卡率</th>
+                  <th className="py-1.5 px-2 border-0 text-right">注册数</th>
                 </tr>
               </thead>
               <tbody>
                 {rows.map((r, i) => (
-                  <tr key={i} className="border-b border-[var(--border-subtle)]">
-                    <td className="py-2 pr-3 text-[var(--text-secondary)]">{r.enclosure}</td>
-                    <td className="py-2 pr-3 font-medium">{r.cc_name}</td>
-                    <td className="py-2 pr-3 text-right">{r.students.toLocaleString()}</td>
-                    <td className={`py-2 pr-3 text-right ${metricColor(r.participation_rate, [0.1, 0.2])}`}>
+                  <tr key={i} className="even:bg-[var(--bg-subtle)]">
+                    <td className="py-1 px-2 text-xs text-[var(--text-secondary)]">{r.enclosure}</td>
+                    <td className="py-1 px-2 text-xs font-medium">{r.cc_name}</td>
+                    <td className="py-1 px-2 text-xs text-right font-mono tabular-nums">{r.students.toLocaleString()}</td>
+                    <td className={`py-1 px-2 text-xs text-right font-mono tabular-nums ${metricColor(r.participation_rate, [0.1, 0.2])}`}>
                       {formatRate(r.participation_rate)}
                     </td>
-                    <td className="py-2 pr-3 text-right">{r.new_coefficient.toFixed(2)}</td>
-                    <td className={`py-2 pr-3 text-right ${metricColor(r.cargo_ratio, [0.05, 0.1])}`}>
+                    <td className="py-1 px-2 text-xs text-right font-mono tabular-nums">{r.new_coefficient.toFixed(2)}</td>
+                    <td className={`py-1 px-2 text-xs text-right font-mono tabular-nums ${metricColor(r.cargo_ratio, [0.05, 0.1])}`}>
                       {formatRate(r.cargo_ratio)}
                     </td>
-                    <td className={`py-2 pr-3 text-right ${metricColor(r.checkin_rate, [0.3, 0.5])}`}>
+                    <td className={`py-1 px-2 text-xs text-right font-mono tabular-nums ${metricColor(r.checkin_rate, [0.3, 0.5])}`}>
                       {formatRate(r.checkin_rate)}
                     </td>
-                    <td className="py-2 text-right">{r.registrations.toLocaleString()}</td>
+                    <td className="py-1 px-2 text-xs text-right font-mono tabular-nums">{r.registrations.toLocaleString()}</td>
                   </tr>
                 ))}
               </tbody>
@@ -137,20 +137,20 @@ export default function EnclosurePage() {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="text-left text-xs text-[var(--text-muted)] border-b border-[var(--border-subtle)]">
-                  <th className="py-2 pr-3">排名</th>
-                  <th className="py-2 pr-3">CC</th>
-                  <th className="py-2 pr-3">组别</th>
-                  <th className="py-2 pr-3 text-right">参与率</th>
-                  <th className="py-2 pr-3 text-right">带货比</th>
-                  <th className="py-2 pr-3 text-right">注册数</th>
-                  <th className="py-2 text-right">付费数</th>
+                <tr className="bg-[var(--n-800)] text-white text-xs font-medium">
+                  <th className="py-1.5 px-2 border-0 text-left">排名</th>
+                  <th className="py-1.5 px-2 border-0 text-left">CC</th>
+                  <th className="py-1.5 px-2 border-0 text-left">组别</th>
+                  <th className="py-1.5 px-2 border-0 text-right">参与率</th>
+                  <th className="py-1.5 px-2 border-0 text-right">带货比</th>
+                  <th className="py-1.5 px-2 border-0 text-right">注册数</th>
+                  <th className="py-1.5 px-2 border-0 text-right">付费数</th>
                 </tr>
               </thead>
               <tbody>
                 {rankings.map((r, i) => (
-                  <tr key={r.cc_name} className="border-b border-[var(--border-subtle)]">
-                    <td className="py-2.5 pr-3">
+                  <tr key={r.cc_name} className="even:bg-[var(--bg-subtle)]">
+                    <td className="py-1 px-2 text-xs">
                       <span
                         className={`inline-flex w-6 h-6 items-center justify-center rounded-full text-xs font-bold ${
                           i === 0
@@ -165,14 +165,14 @@ export default function EnclosurePage() {
                         {i + 1}
                       </span>
                     </td>
-                    <td className="py-2.5 pr-3 font-medium">{r.cc_name}</td>
-                    <td className="py-2.5 pr-3 text-[var(--text-secondary)]">{r.cc_group}</td>
-                    <td className={`py-2.5 pr-3 text-right ${metricColor(r.participation_rate, [0.1, 0.2])}`}>
+                    <td className="py-1 px-2 text-xs font-medium">{r.cc_name}</td>
+                    <td className="py-1 px-2 text-xs text-[var(--text-secondary)]">{r.cc_group}</td>
+                    <td className={`py-1 px-2 text-xs text-right font-mono tabular-nums ${metricColor(r.participation_rate, [0.1, 0.2])}`}>
                       {formatRate(r.participation_rate)}
                     </td>
-                    <td className="py-2.5 pr-3 text-right">{formatRate(r.cargo_ratio)}</td>
-                    <td className="py-2.5 pr-3 text-right">{r.registrations.toLocaleString()}</td>
-                    <td className="py-2.5 text-right">{r.payments.toLocaleString()}</td>
+                    <td className="py-1 px-2 text-xs text-right font-mono tabular-nums">{formatRate(r.cargo_ratio)}</td>
+                    <td className="py-1 px-2 text-xs text-right font-mono tabular-nums">{r.registrations.toLocaleString()}</td>
+                    <td className="py-1 px-2 text-xs text-right font-mono tabular-nums">{r.payments.toLocaleString()}</td>
                   </tr>
                 ))}
               </tbody>

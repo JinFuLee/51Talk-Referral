@@ -96,7 +96,7 @@ export default function FunnelPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-[var(--text-primary)]">漏斗分析</h1>
+        <h1 className="text-lg font-bold text-[var(--text-primary)]">漏斗分析</h1>
         <p className="text-sm text-[var(--text-secondary)] mt-1">各环节目标 vs 实际 · 场景推演</p>
       </div>
 
@@ -108,34 +108,34 @@ export default function FunnelPage() {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="text-left text-xs text-[var(--text-muted)] border-b border-[var(--border-subtle)]">
-                  <th className="py-2 pr-4">环节</th>
-                  <th className="py-2 pr-4 text-right">目标</th>
-                  <th className="py-2 pr-4 text-right">实际</th>
-                  <th className="py-2 pr-4 text-right">差距</th>
-                  <th className="py-2 pr-4 text-right">达成率</th>
-                  <th className="py-2 text-right">转化率</th>
+                <tr className="bg-[var(--n-800)] text-white text-xs font-medium">
+                  <th className="py-1.5 px-2 border-0 text-left">环节</th>
+                  <th className="py-1.5 px-2 border-0 text-right">目标</th>
+                  <th className="py-1.5 px-2 border-0 text-right">实际</th>
+                  <th className="py-1.5 px-2 border-0 text-right">差距</th>
+                  <th className="py-1.5 px-2 border-0 text-right">达成率</th>
+                  <th className="py-1.5 px-2 border-0 text-right">转化率</th>
                 </tr>
               </thead>
               <tbody>
                 {stages.map((s) => (
-                  <tr key={s.name} className="border-b border-[var(--border-subtle)]">
-                    <td className="py-2.5 pr-4 font-medium">{s.name}</td>
-                    <td className="py-2.5 pr-4 text-right text-[var(--text-secondary)]">
+                  <tr key={s.name} className="even:bg-[var(--bg-subtle)]">
+                    <td className="py-1 px-2 text-xs font-medium">{s.name}</td>
+                    <td className="py-1 px-2 text-xs text-right font-mono tabular-nums text-[var(--text-secondary)]">
                       {(s.target ?? 0).toLocaleString()}
                     </td>
-                    <td className="py-2.5 pr-4 text-right font-semibold">
+                    <td className="py-1 px-2 text-xs text-right font-mono tabular-nums font-semibold">
                       {(s.actual ?? 0).toLocaleString()}
                     </td>
                     <td
-                      className={`py-2.5 pr-4 text-right font-medium ${
+                      className={`py-1 px-2 text-xs text-right font-mono tabular-nums font-medium ${
                         (s.gap ?? 0) >= 0 ? "text-green-600" : "text-red-500"
                       }`}
                     >
                       {(s.gap ?? 0) >= 0 ? "+" : ""}
                       {(s.gap ?? 0).toLocaleString()}
                     </td>
-                    <td className="py-2.5 pr-4 text-right">
+                    <td className="py-1 px-2 text-xs text-right font-mono tabular-nums">
                       <span
                         className={`font-medium ${
                           (s.achievement_rate ?? 0) >= 1
@@ -148,7 +148,7 @@ export default function FunnelPage() {
                         {formatRate(s.achievement_rate)}
                       </span>
                     </td>
-                    <td className="py-2.5 text-right text-[var(--text-secondary)]">
+                    <td className="py-1 px-2 text-xs text-right font-mono tabular-nums text-[var(--text-secondary)]">
                       {s.conversion_rate !== undefined
                         ? formatRate(s.conversion_rate)
                         : "—"}
@@ -194,32 +194,32 @@ export default function FunnelPage() {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="text-left text-xs text-[var(--text-muted)] border-b border-[var(--border-subtle)]">
-                  <th className="py-2 pr-4">环节</th>
-                  <th className="py-2 pr-4 text-right">当前转化率</th>
-                  <th className="py-2 pr-4 text-right">场景转化率</th>
-                  <th className="py-2 pr-4 text-right">影响注册数</th>
-                  <th className="py-2 pr-4 text-right">影响付费数</th>
-                  <th className="py-2 text-right">影响业绩</th>
+                <tr className="bg-[var(--n-800)] text-white text-xs font-medium">
+                  <th className="py-1.5 px-2 border-0 text-left">环节</th>
+                  <th className="py-1.5 px-2 border-0 text-right">当前转化率</th>
+                  <th className="py-1.5 px-2 border-0 text-right">场景转化率</th>
+                  <th className="py-1.5 px-2 border-0 text-right">影响注册数</th>
+                  <th className="py-1.5 px-2 border-0 text-right">影响付费数</th>
+                  <th className="py-1.5 px-2 border-0 text-right">影响业绩</th>
                 </tr>
               </thead>
               <tbody>
                 {scenarios.map((s) => (
-                  <tr key={s.stage} className="border-b border-[var(--border-subtle)]">
-                    <td className="py-2.5 pr-4 font-medium">{s.stage}</td>
-                    <td className="py-2.5 pr-4 text-right text-[var(--text-secondary)]">
+                  <tr key={s.stage} className="even:bg-[var(--bg-subtle)]">
+                    <td className="py-1 px-2 text-xs font-medium">{s.stage}</td>
+                    <td className="py-1 px-2 text-xs text-right font-mono tabular-nums text-[var(--text-secondary)]">
                       {formatRate(s.current_rate)}
                     </td>
-                    <td className="py-2.5 pr-4 text-right text-blue-600 font-medium">
+                    <td className="py-1 px-2 text-xs text-right font-mono tabular-nums text-blue-600 font-medium">
                       {formatRate(s.scenario_rate)}
                     </td>
-                    <td className="py-2.5 pr-4 text-right">
+                    <td className="py-1 px-2 text-xs text-right font-mono tabular-nums">
                       +{(s.impact_registrations ?? 0).toLocaleString()}
                     </td>
-                    <td className="py-2.5 pr-4 text-right">
+                    <td className="py-1 px-2 text-xs text-right font-mono tabular-nums">
                       +{(s.impact_payments ?? 0).toLocaleString()}
                     </td>
-                    <td className="py-2.5 text-right text-green-600 font-medium">
+                    <td className="py-1 px-2 text-xs text-right font-mono tabular-nums text-green-600 font-medium">
                       +${(s.impact_revenue ?? 0).toLocaleString()}
                     </td>
                   </tr>

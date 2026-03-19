@@ -63,7 +63,7 @@ export default function ChannelPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-[var(--text-primary)]">渠道分析</h1>
+        <h1 className="text-lg font-bold text-[var(--text-primary)]">渠道分析</h1>
         <p className="text-sm text-[var(--text-secondary)] mt-1">CC窄/SS窄/LP窄/宽口 · 业绩归因</p>
       </div>
 
@@ -93,24 +93,24 @@ export default function ChannelPage() {
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="text-left text-xs text-[var(--text-muted)] border-b border-[var(--border-subtle)]">
-                      <th className="py-2 pr-3">渠道</th>
-                      <th className="py-2 pr-3 text-right">注册</th>
-                      <th className="py-2 pr-3 text-right">预约</th>
-                      <th className="py-2 pr-3 text-right">出席</th>
-                      <th className="py-2 pr-3 text-right">付费</th>
-                      <th className="py-2 text-right">业绩</th>
+                    <tr className="bg-[var(--n-800)] text-white text-xs font-medium">
+                      <th className="py-1.5 px-2 border-0 text-left">渠道</th>
+                      <th className="py-1.5 px-2 border-0 text-right">注册</th>
+                      <th className="py-1.5 px-2 border-0 text-right">预约</th>
+                      <th className="py-1.5 px-2 border-0 text-right">出席</th>
+                      <th className="py-1.5 px-2 border-0 text-right">付费</th>
+                      <th className="py-1.5 px-2 border-0 text-right">业绩</th>
                     </tr>
                   </thead>
                   <tbody>
                     {channels.map((c) => (
-                      <tr key={c.channel} className="border-b border-[var(--border-subtle)]">
-                        <td className="py-2.5 pr-3 font-medium">{c.channel}</td>
-                        <td className="py-2.5 pr-3 text-right">{n(c.registrations).toLocaleString()}</td>
-                        <td className="py-2.5 pr-3 text-right">{n(c.appointments).toLocaleString()}</td>
-                        <td className="py-2.5 pr-3 text-right">{n(c.attendance).toLocaleString()}</td>
-                        <td className="py-2.5 pr-3 text-right">{n(c.payments).toLocaleString()}</td>
-                        <td className="py-2.5 text-right text-[var(--text-secondary)]">${n(c.revenue_usd).toLocaleString()}</td>
+                      <tr key={c.channel} className="even:bg-[var(--bg-subtle)]">
+                        <td className="py-1 px-2 text-xs font-medium">{c.channel}</td>
+                        <td className="py-1 px-2 text-xs text-right font-mono tabular-nums">{n(c.registrations).toLocaleString()}</td>
+                        <td className="py-1 px-2 text-xs text-right font-mono tabular-nums">{n(c.appointments).toLocaleString()}</td>
+                        <td className="py-1 px-2 text-xs text-right font-mono tabular-nums">{n(c.attendance).toLocaleString()}</td>
+                        <td className="py-1 px-2 text-xs text-right font-mono tabular-nums">{n(c.payments).toLocaleString()}</td>
+                        <td className="py-1 px-2 text-xs text-right font-mono tabular-nums text-[var(--text-secondary)]">${n(c.revenue_usd).toLocaleString()}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -155,22 +155,22 @@ export default function ChannelPage() {
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="text-left text-xs text-[var(--text-muted)] border-b border-slate-100">
-                    <th className="py-2 pr-4">渠道</th>
-                    <th className="py-2 pr-4 text-right">净业绩 (USD)</th>
-                    <th className="py-2 pr-4 text-right">占比</th>
-                    <th className="py-2 text-right">人均业绩</th>
+                  <tr className="bg-[var(--n-800)] text-white text-xs font-medium">
+                    <th className="py-1.5 px-2 border-0 text-left">渠道</th>
+                    <th className="py-1.5 px-2 border-0 text-right">净业绩 (USD)</th>
+                    <th className="py-1.5 px-2 border-0 text-right">占比</th>
+                    <th className="py-1.5 px-2 border-0 text-right">人均业绩</th>
                   </tr>
                 </thead>
                 <tbody>
                   {contributions.map((c) => (
-                    <tr key={c.channel} className="border-b border-slate-50">
-                      <td className="py-2.5 pr-4 font-medium">{c.channel}</td>
-                      <td className="py-2.5 pr-4 text-right font-semibold">
+                    <tr key={c.channel} className="even:bg-[var(--bg-subtle)]">
+                      <td className="py-1 px-2 text-xs font-medium">{c.channel}</td>
+                      <td className="py-1 px-2 text-xs text-right font-mono tabular-nums font-semibold">
                         ${n(c.revenue).toLocaleString()}
                       </td>
-                      <td className="py-2.5 pr-4 text-right">{formatRate(n(c.share) / 100)}</td>
-                      <td className="py-2.5 text-right text-[var(--text-secondary)]">
+                      <td className="py-1 px-2 text-xs text-right font-mono tabular-nums">{formatRate(n(c.share) / 100)}</td>
+                      <td className="py-1 px-2 text-xs text-right font-mono tabular-nums text-[var(--text-secondary)]">
                         ${n(c.per_capita).toLocaleString()}
                       </td>
                     </tr>
@@ -190,28 +190,28 @@ export default function ChannelPage() {
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="text-left text-xs text-[var(--text-muted)] border-b border-slate-100">
-                    <th className="py-2 pr-4">渠道</th>
-                    <th className="py-2 pr-4 text-right">预期量</th>
-                    <th className="py-2 pr-4 text-right">实际量</th>
-                    <th className="py-2 pr-4 text-right">差距</th>
-                    <th className="py-2 pr-4 text-right">预约因子</th>
-                    <th className="py-2 pr-4 text-right">出席因子</th>
-                    <th className="py-2 text-right">付费因子</th>
+                  <tr className="bg-[var(--n-800)] text-white text-xs font-medium">
+                    <th className="py-1.5 px-2 border-0 text-left">渠道</th>
+                    <th className="py-1.5 px-2 border-0 text-right">预期量</th>
+                    <th className="py-1.5 px-2 border-0 text-right">实际量</th>
+                    <th className="py-1.5 px-2 border-0 text-right">差距</th>
+                    <th className="py-1.5 px-2 border-0 text-right">预约因子</th>
+                    <th className="py-1.5 px-2 border-0 text-right">出席因子</th>
+                    <th className="py-1.5 px-2 border-0 text-right">付费因子</th>
                   </tr>
                 </thead>
                 <tbody>
                   {comparisons.map((c) => (
-                    <tr key={c.channel} className="border-b border-slate-50">
-                      <td className="py-2.5 pr-4 font-medium">{c.channel}</td>
-                      <td className="py-2.5 pr-4 text-right">{n(c.expected_volume).toLocaleString()}</td>
-                      <td className="py-2.5 pr-4 text-right font-semibold">{n(c.actual_volume).toLocaleString()}</td>
-                      <td className={`py-2.5 pr-4 text-right font-medium ${n(c.gap) >= 0 ? "text-green-600" : "text-red-500"}`}>
+                    <tr key={c.channel} className="even:bg-[var(--bg-subtle)]">
+                      <td className="py-1 px-2 text-xs font-medium">{c.channel}</td>
+                      <td className="py-1 px-2 text-xs text-right font-mono tabular-nums">{n(c.expected_volume).toLocaleString()}</td>
+                      <td className="py-1 px-2 text-xs text-right font-mono tabular-nums font-semibold">{n(c.actual_volume).toLocaleString()}</td>
+                      <td className={`py-1 px-2 text-xs text-right font-mono tabular-nums font-medium ${n(c.gap) >= 0 ? "text-green-600" : "text-red-500"}`}>
                         {n(c.gap) >= 0 ? "+" : ""}{n(c.gap).toLocaleString()}
                       </td>
-                      <td className="py-2.5 pr-4 text-right">{formatRate(n(c.appt_factor))}</td>
-                      <td className="py-2.5 pr-4 text-right">{formatRate(n(c.show_factor))}</td>
-                      <td className="py-2.5 text-right">{formatRate(n(c.pay_factor))}</td>
+                      <td className="py-1 px-2 text-xs text-right font-mono tabular-nums">{formatRate(n(c.appt_factor))}</td>
+                      <td className="py-1 px-2 text-xs text-right font-mono tabular-nums">{formatRate(n(c.show_factor))}</td>
+                      <td className="py-1 px-2 text-xs text-right font-mono tabular-nums">{formatRate(n(c.pay_factor))}</td>
                     </tr>
                   ))}
                 </tbody>

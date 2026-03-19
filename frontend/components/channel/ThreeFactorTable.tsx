@@ -31,46 +31,46 @@ export function ThreeFactorTable({ comparisons }: ThreeFactorTableProps) {
     <div className="overflow-x-auto">
       <table className="w-full text-sm">
         <thead>
-          <tr className="text-left text-xs text-[var(--text-muted)] border-b border-slate-100">
-            <th className="py-2 pr-4 font-medium">渠道</th>
-            <th className="py-2 pr-4 text-right font-medium">预期量</th>
-            <th className="py-2 pr-4 text-right font-medium">实际量</th>
-            <th className="py-2 pr-4 text-right font-medium">差距</th>
-            <th className="py-2 pr-4 text-right font-medium">预约因子</th>
-            <th className="py-2 pr-4 text-right font-medium">出席因子</th>
-            <th className="py-2 text-right font-medium">付费因子</th>
+          <tr className="bg-[var(--n-800)] text-white text-xs font-medium">
+            <th className="py-1.5 px-2 border-0 text-left">渠道</th>
+            <th className="py-1.5 px-2 border-0 text-right">预期量</th>
+            <th className="py-1.5 px-2 border-0 text-right">实际量</th>
+            <th className="py-1.5 px-2 border-0 text-right">差距</th>
+            <th className="py-1.5 px-2 border-0 text-right">预约因子</th>
+            <th className="py-1.5 px-2 border-0 text-right">出席因子</th>
+            <th className="py-1.5 px-2 border-0 text-right">付费因子</th>
           </tr>
         </thead>
         <tbody>
           {comparisons.map((c) => (
             <tr
               key={c.channel}
-              className="border-b border-slate-50 hover:bg-slate-50/60 transition-colors"
+              className="even:bg-[var(--bg-subtle)]"
             >
-              <td className="py-2.5 pr-4 font-medium text-[var(--text-primary)]">
+              <td className="py-1 px-2 text-xs font-medium text-[var(--text-primary)]">
                 {c.channel}
               </td>
-              <td className="py-2.5 pr-4 text-right text-[var(--text-secondary)]">
+              <td className="py-1 px-2 text-xs text-right font-mono tabular-nums text-[var(--text-secondary)]">
                 {c.expected_volume.toLocaleString()}
               </td>
-              <td className="py-2.5 pr-4 text-right font-semibold text-[var(--text-primary)]">
+              <td className="py-1 px-2 text-xs text-right font-mono tabular-nums font-semibold text-[var(--text-primary)]">
                 {c.actual_volume.toLocaleString()}
               </td>
               <td
-                className={`py-2.5 pr-4 text-right font-medium ${
+                className={`py-1 px-2 text-xs text-right font-mono tabular-nums font-medium ${
                   c.gap >= 0 ? "text-green-600" : "text-red-500"
                 }`}
               >
                 {c.gap >= 0 ? "+" : ""}
                 {c.gap.toLocaleString()}
               </td>
-              <td className="py-2.5 pr-4 text-right">
+              <td className="py-1 px-2 text-xs text-right">
                 <FactorBadge value={c.appt_factor} />
               </td>
-              <td className="py-2.5 pr-4 text-right">
+              <td className="py-1 px-2 text-xs text-right">
                 <FactorBadge value={c.show_factor} />
               </td>
-              <td className="py-2.5 text-right">
+              <td className="py-1 px-2 text-xs text-right">
                 <FactorBadge value={c.pay_factor} />
               </td>
             </tr>

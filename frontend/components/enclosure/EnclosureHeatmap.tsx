@@ -26,44 +26,44 @@ export function EnclosureHeatmap({ metrics }: EnclosureHeatmapProps) {
     <div className="overflow-x-auto">
       <table className="w-full text-sm border-collapse">
         <thead>
-          <tr className="text-left text-xs text-[var(--text-muted)] border-b border-slate-100">
-            <th className="py-2 pr-3 font-medium">围场段</th>
-            <th className="py-2 pr-3 font-medium">CC</th>
-            <th className="py-2 pr-3 text-right font-medium">有效学员</th>
-            <th className="py-2 pr-3 text-center font-medium">参与率</th>
-            <th className="py-2 pr-3 text-center font-medium">带货比</th>
-            <th className="py-2 pr-3 text-center font-medium">打卡率</th>
-            <th className="py-2 pr-3 text-center font-medium">触达率</th>
-            <th className="py-2 text-right font-medium">注册数</th>
+          <tr className="bg-[var(--n-800)] text-white text-xs font-medium">
+            <th className="py-1.5 px-2 border-0 text-left">围场段</th>
+            <th className="py-1.5 px-2 border-0 text-left">CC</th>
+            <th className="py-1.5 px-2 border-0 text-right">有效学员</th>
+            <th className="py-1.5 px-2 border-0 text-center">参与率</th>
+            <th className="py-1.5 px-2 border-0 text-center">带货比</th>
+            <th className="py-1.5 px-2 border-0 text-center">打卡率</th>
+            <th className="py-1.5 px-2 border-0 text-center">触达率</th>
+            <th className="py-1.5 px-2 border-0 text-right">注册数</th>
           </tr>
         </thead>
         <tbody>
           {metrics.map((r, i) => (
-            <tr key={i} className="border-b border-slate-50 hover:bg-slate-50">
-              <td className="py-2 pr-3 text-[var(--text-secondary)] text-xs">{r.enclosure}</td>
-              <td className="py-2 pr-3 font-medium">{r.cc_name}</td>
-              <td className="py-2 pr-3 text-right tabular-nums">{r.students.toLocaleString()}</td>
-              <td className="py-2 pr-3 text-center">
-                <span className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${heatmapBg(r.participation_rate, 0.1, 0.2)}`}>
+            <tr key={i} className="even:bg-[var(--bg-subtle)]">
+              <td className="py-1 px-2 text-xs text-[var(--text-secondary)]">{r.enclosure}</td>
+              <td className="py-1 px-2 text-xs font-medium">{r.cc_name}</td>
+              <td className="py-1 px-2 text-xs text-right font-mono tabular-nums">{r.students.toLocaleString()}</td>
+              <td className="py-1 px-2 text-xs text-center">
+                <span className={`inline-block px-1.5 py-0.5 rounded text-xs font-medium ${heatmapBg(r.participation_rate, 0.1, 0.2)}`}>
                   {formatRate(r.participation_rate)}
                 </span>
               </td>
-              <td className="py-2 pr-3 text-center">
-                <span className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${heatmapBg(r.cargo_ratio, 0.05, 0.1)}`}>
+              <td className="py-1 px-2 text-xs text-center">
+                <span className={`inline-block px-1.5 py-0.5 rounded text-xs font-medium ${heatmapBg(r.cargo_ratio, 0.05, 0.1)}`}>
                   {formatRate(r.cargo_ratio)}
                 </span>
               </td>
-              <td className="py-2 pr-3 text-center">
-                <span className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${heatmapBg(r.checkin_rate, 0.3, 0.5)}`}>
+              <td className="py-1 px-2 text-xs text-center">
+                <span className={`inline-block px-1.5 py-0.5 rounded text-xs font-medium ${heatmapBg(r.checkin_rate, 0.3, 0.5)}`}>
                   {formatRate(r.checkin_rate)}
                 </span>
               </td>
-              <td className="py-2 pr-3 text-center">
-                <span className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${heatmapBg(r.cc_reach_rate, 0.3, 0.5)}`}>
+              <td className="py-1 px-2 text-xs text-center">
+                <span className={`inline-block px-1.5 py-0.5 rounded text-xs font-medium ${heatmapBg(r.cc_reach_rate, 0.3, 0.5)}`}>
                   {formatRate(r.cc_reach_rate)}
                 </span>
               </td>
-              <td className="py-2 text-right tabular-nums">{r.registrations.toLocaleString()}</td>
+              <td className="py-1 px-2 text-xs text-right font-mono tabular-nums">{r.registrations.toLocaleString()}</td>
             </tr>
           ))}
         </tbody>

@@ -133,7 +133,7 @@ export default function MembersPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-[var(--text-primary)]">学员明细</h1>
+        <h1 className="text-lg font-bold text-[var(--text-primary)]">学员明细</h1>
         <p className="text-sm text-[var(--text-secondary)] mt-1">有效学员列表 · 点击行查看 59 字段详情</p>
       </div>
 
@@ -190,15 +190,15 @@ export default function MembersPage() {
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="text-left text-xs text-[var(--text-muted)] border-b border-[var(--border-subtle)]">
-                    <th className="py-2 pr-3">ID</th>
-                    <th className="py-2 pr-3">围场</th>
-                    <th className="py-2 pr-3">生命周期</th>
-                    <th className="py-2 pr-3">CC</th>
-                    <th className="py-2 pr-3 text-right">注册</th>
-                    <th className="py-2 pr-3 text-right">预约</th>
-                    <th className="py-2 pr-3 text-right">出席</th>
-                    <th className="py-2 text-right">付费</th>
+                  <tr className="bg-[var(--n-800)] text-white text-xs font-medium">
+                    <th className="py-1.5 px-2 border-0 text-left">ID</th>
+                    <th className="py-1.5 px-2 border-0 text-left">围场</th>
+                    <th className="py-1.5 px-2 border-0 text-left">生命周期</th>
+                    <th className="py-1.5 px-2 border-0 text-left">CC</th>
+                    <th className="py-1.5 px-2 border-0 text-right">注册</th>
+                    <th className="py-1.5 px-2 border-0 text-right">预约</th>
+                    <th className="py-1.5 px-2 border-0 text-right">出席</th>
+                    <th className="py-1.5 px-2 border-0 text-right">付费</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -206,18 +206,18 @@ export default function MembersPage() {
                     <tr
                       key={m.id}
                       onClick={() => setSelectedId(m.id)}
-                      className="border-b border-[var(--border-subtle)] cursor-pointer hover:bg-[var(--bg-subtle)] transition-colors"
+                      className="even:bg-[var(--bg-subtle)] cursor-pointer hover:bg-blue-50 transition-colors"
                     >
-                      <td className="py-2.5 pr-3 text-blue-600 font-medium">{m.id}</td>
-                      <td className="py-2.5 pr-3 text-[var(--text-secondary)]">{m.enclosure}</td>
-                      <td className="py-2.5 pr-3">
-                        <span className="px-2 py-0.5 bg-[var(--bg-subtle)] rounded text-xs">{m.lifecycle}</span>
+                      <td className="py-1 px-2 text-xs text-blue-600 font-medium font-mono tabular-nums">{m.id}</td>
+                      <td className="py-1 px-2 text-xs text-[var(--text-secondary)]">{m.enclosure}</td>
+                      <td className="py-1 px-2 text-xs">
+                        <span className="px-1.5 py-0.5 bg-[var(--bg-subtle)] rounded text-xs">{m.lifecycle}</span>
                       </td>
-                      <td className="py-2.5 pr-3">{m.cc_name}</td>
-                      <td className="py-2.5 pr-3 text-right">{m.registrations}</td>
-                      <td className="py-2.5 pr-3 text-right">{m.appointments}</td>
-                      <td className="py-2.5 pr-3 text-right">{m.attendance}</td>
-                      <td className="py-2.5 text-right font-medium">{m.payments}</td>
+                      <td className="py-1 px-2 text-xs">{m.cc_name}</td>
+                      <td className="py-1 px-2 text-xs text-right font-mono tabular-nums">{m.registrations}</td>
+                      <td className="py-1 px-2 text-xs text-right font-mono tabular-nums">{m.appointments}</td>
+                      <td className="py-1 px-2 text-xs text-right font-mono tabular-nums">{m.attendance}</td>
+                      <td className="py-1 px-2 text-xs text-right font-mono tabular-nums font-medium">{m.payments}</td>
                     </tr>
                   ))}
                 </tbody>

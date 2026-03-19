@@ -18,11 +18,11 @@ export function RevenueContributionTable({ contributions }: RevenueContributionT
     <div className="overflow-x-auto">
       <table className="w-full text-sm">
         <thead>
-          <tr className="text-left text-xs text-[var(--text-muted)] border-b border-slate-100">
-            <th className="py-2 pr-4 font-medium">渠道</th>
-            <th className="py-2 pr-4 text-right font-medium">净业绩</th>
-            <th className="py-2 pr-4 text-right font-medium">占比</th>
-            <th className="py-2 text-right font-medium">人均业绩</th>
+          <tr className="bg-[var(--n-800)] text-white text-xs font-medium">
+            <th className="py-1.5 px-2 border-0 text-left">渠道</th>
+            <th className="py-1.5 px-2 border-0 text-right">净业绩</th>
+            <th className="py-1.5 px-2 border-0 text-right">占比</th>
+            <th className="py-1.5 px-2 border-0 text-right">人均业绩</th>
           </tr>
         </thead>
         <tbody>
@@ -32,38 +32,38 @@ export function RevenueContributionTable({ contributions }: RevenueContributionT
             return (
               <tr
                 key={c.channel}
-                className="border-b border-slate-50 hover:bg-slate-50/60 transition-colors"
+                className="even:bg-[var(--bg-subtle)]"
               >
-                <td className="py-2.5 pr-4">
+                <td className="py-1 px-2 text-xs">
                   <span className="font-medium text-[var(--text-primary)]">{c.channel}</span>
                   {/* Mini bar */}
-                  <div className="mt-1 w-full bg-slate-100 rounded-full h-1">
+                  <div className="mt-0.5 w-full bg-slate-100 rounded-full h-1">
                     <div
                       className="h-1 rounded-full bg-blue-400 transition-all duration-200"
                       style={{ width: `${barWidth}%` }}
                     />
                   </div>
                 </td>
-                <td className="py-2.5 pr-4 text-right font-semibold text-[var(--text-primary)]">
+                <td className="py-1 px-2 text-xs text-right font-mono tabular-nums font-semibold text-[var(--text-primary)]">
                   {formatRevenue(c.revenue)}
                 </td>
-                <td className="py-2.5 pr-4 text-right text-[var(--text-secondary)]">
+                <td className="py-1 px-2 text-xs text-right font-mono tabular-nums text-[var(--text-secondary)]">
                   {formatRate(sharePct)}
                 </td>
-                <td className="py-2.5 text-right text-[var(--text-secondary)]">
+                <td className="py-1 px-2 text-xs text-right font-mono tabular-nums text-[var(--text-secondary)]">
                   {formatRevenue(c.per_capita)}
                 </td>
               </tr>
             );
           })}
           {/* Total row */}
-          <tr className="bg-slate-50 font-semibold border-t border-slate-200">
-            <td className="py-2.5 pr-4 text-[var(--text-primary)]">合计</td>
-            <td className="py-2.5 pr-4 text-right text-[var(--text-primary)]">
+          <tr className="bg-[var(--bg-subtle)] font-semibold border-t border-[var(--border-subtle)]">
+            <td className="py-1 px-2 text-xs text-[var(--text-primary)]">合计</td>
+            <td className="py-1 px-2 text-xs text-right font-mono tabular-nums text-[var(--text-primary)]">
               {formatRevenue(totalRevenue)}
             </td>
-            <td className="py-2.5 pr-4 text-right text-[var(--text-secondary)]">100%</td>
-            <td className="py-2.5 text-right text-[var(--text-muted)]">—</td>
+            <td className="py-1 px-2 text-xs text-right font-mono tabular-nums text-[var(--text-secondary)]">100%</td>
+            <td className="py-1 px-2 text-xs text-right font-mono tabular-nums text-[var(--text-muted)]">—</td>
           </tr>
         </tbody>
       </table>

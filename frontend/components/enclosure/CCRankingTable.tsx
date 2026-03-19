@@ -57,17 +57,17 @@ export function CCRankingTable({ rankings }: CCRankingTableProps) {
     <div className="overflow-x-auto">
       <table className="w-full text-sm">
         <thead>
-          <tr className="text-left text-xs text-[var(--text-muted)] border-b border-slate-100">
-            <th className="py-2 pr-3 font-medium">排名</th>
-            <th className="py-2 pr-3 font-medium">CC 姓名</th>
-            <th className="py-2 pr-3 font-medium">组别</th>
+          <tr className="bg-[var(--n-800)] text-white text-xs font-medium">
+            <th className="py-1.5 px-2 border-0 text-left">排名</th>
+            <th className="py-1.5 px-2 border-0 text-left">CC 姓名</th>
+            <th className="py-1.5 px-2 border-0 text-left">组别</th>
             {rankings[0]?.students !== undefined && (
-              <th className="py-2 pr-3 text-right font-medium">学员数</th>
+              <th className="py-1.5 px-2 border-0 text-right">学员数</th>
             )}
             {COLUMNS.map((col) => (
               <th
                 key={col.key}
-                className="py-2 pr-3 text-right font-medium cursor-pointer hover:text-[var(--text-secondary)] select-none"
+                className="py-1.5 px-2 border-0 text-right cursor-pointer hover:text-slate-300 select-none"
                 onClick={() => handleSort(col.key)}
               >
                 {col.label}
@@ -80,8 +80,8 @@ export function CCRankingTable({ rankings }: CCRankingTableProps) {
         </thead>
         <tbody>
           {sorted.map((r, i) => (
-            <tr key={r.cc_name} className="border-b border-slate-50 hover:bg-slate-50">
-              <td className="py-2.5 pr-3">
+            <tr key={r.cc_name} className="even:bg-[var(--bg-subtle)]">
+              <td className="py-1 px-2 text-xs">
                 <span
                   className={`inline-flex w-6 h-6 items-center justify-center rounded-full text-xs font-bold ${
                     i === 0
@@ -96,15 +96,15 @@ export function CCRankingTable({ rankings }: CCRankingTableProps) {
                   {i + 1}
                 </span>
               </td>
-              <td className="py-2.5 pr-3 font-medium">{r.cc_name}</td>
-              <td className="py-2.5 pr-3 text-[var(--text-secondary)] text-xs">{r.cc_group}</td>
+              <td className="py-1 px-2 text-xs font-medium">{r.cc_name}</td>
+              <td className="py-1 px-2 text-xs text-[var(--text-secondary)]">{r.cc_group}</td>
               {r.students !== undefined && (
-                <td className="py-2.5 pr-3 text-right tabular-nums">{r.students.toLocaleString()}</td>
+                <td className="py-1 px-2 text-xs text-right font-mono tabular-nums">{r.students.toLocaleString()}</td>
               )}
               {COLUMNS.map((col) => (
                 <td
                   key={col.key}
-                  className={`py-2.5 pr-3 text-right tabular-nums ${
+                  className={`py-1 px-2 text-xs text-right font-mono tabular-nums ${
                     sortKey === col.key ? "font-semibold text-blue-600" : ""
                   }`}
                 >
