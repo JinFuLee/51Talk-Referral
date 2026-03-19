@@ -178,7 +178,7 @@ export function NavSidebar() {
       )}
 
       {/* Desktop sidebar */}
-      <aside className="hidden lg:flex w-56 h-full bg-[var(--bg-surface)]/90 backdrop-blur-md border-r border-[var(--border-default)]/40 flex-col shrink-0">
+      <aside className="hidden lg:flex w-56 h-full bg-[var(--bg-surface)] backdrop-blur-md border-r border-[var(--border-default)] flex-col shrink-0">
         <SidebarContent />
       </aside>
     </>

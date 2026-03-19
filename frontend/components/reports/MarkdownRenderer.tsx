@@ -143,7 +143,7 @@ function MermaidBlock({ body }: { body: string }) {
   if (trimmed.startsWith("xychart-beta")) {
     const props = xyChartToProps(trimmed);
     return (
-      <div className="my-4 p-4 bg-[var(--bg-surface)]/95 backdrop-blur-md rounded-[var(--radius-xl)] border border-border/40 shadow-[var(--shadow-md)] transition-all duration-200 hover:shadow-[var(--shadow-lg)] hover:-translate-y-1">
+      <div className="my-4 p-4 bg-[var(--bg-surface)] backdrop-blur-md rounded-[var(--radius-xl)] border border-[var(--border-default)] shadow-[var(--shadow-md)] transition-all duration-200 hover:shadow-[var(--shadow-lg)] hover:-translate-y-1">
         <TrendLineChart {...props} />
       </div>
     );
@@ -152,7 +152,7 @@ function MermaidBlock({ body }: { body: string }) {
   if (trimmed.startsWith("pie")) {
     const { data, title } = parsePieChart(trimmed);
     return (
-      <div className="my-4 p-4 bg-[var(--bg-surface)]/95 backdrop-blur-md rounded-[var(--radius-xl)] border border-border/40 shadow-[var(--shadow-md)] transition-all duration-200 hover:shadow-[var(--shadow-lg)] hover:-translate-y-1">
+      <div className="my-4 p-4 bg-[var(--bg-surface)] backdrop-blur-md rounded-[var(--radius-xl)] border border-[var(--border-default)] shadow-[var(--shadow-md)] transition-all duration-200 hover:shadow-[var(--shadow-lg)] hover:-translate-y-1">
         <PieChart data={data} title={title || undefined} />
       </div>
     );
@@ -161,7 +161,7 @@ function MermaidBlock({ body }: { body: string }) {
   if (trimmed.startsWith("flowchart") || trimmed.startsWith("graph")) {
     const stages = parseFlowchart(trimmed);
     return (
-      <div className="my-4 p-4 bg-[var(--bg-surface)]/95 backdrop-blur-md rounded-[var(--radius-xl)] border border-border/40 shadow-[var(--shadow-md)] transition-all duration-200 hover:shadow-[var(--shadow-lg)] hover:-translate-y-1">
+      <div className="my-4 p-4 bg-[var(--bg-surface)] backdrop-blur-md rounded-[var(--radius-xl)] border border-[var(--border-default)] shadow-[var(--shadow-md)] transition-all duration-200 hover:shadow-[var(--shadow-lg)] hover:-translate-y-1">
         <FunnelChart stages={stages} />
       </div>
     );
