@@ -32,6 +32,15 @@
 - `<body>` className 改为 `font-sans` + CSS 变量字体 fallback（含中文/泰文）
 - `<head>` 内联 Anti-FOUC script（localStorage.theme 检测 → 同步 `class="dark"`）
 
+### 4. 排版 5 级 Token（Task #1 补充）
+
+- `:root` 新增 `--text-display-*`（2rem/800/lh1.1）
+- `:root` 新增 `--text-heading-*`（1.125rem/700/lh1.3）
+- `:root` 新增 `--text-body-*`（0.875rem/400/lh1.65）
+- `:root` 新增 `--text-caption-*`（0.75rem/500/lh1.5）
+- `:root` 新增 `--text-overline-*`（0.6875rem/700/lh1/tracking0.12em/uppercase）
+- 对齐 `design-system/02-typography.md` 规范
+
 ## TypeScript 验证
 
 `./node_modules/.bin/tsc --noEmit` → 0 errors

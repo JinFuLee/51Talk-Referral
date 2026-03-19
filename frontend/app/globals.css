@@ -44,6 +44,29 @@
   --chart-3-hex: #1E40AF;
   --chart-4-hex: #6B21A8;
   --chart-5-hex: #9A3412;
+
+  /* ── SEE 排版 5 级 Token ─────────────────────────── */
+  --text-display-size: 2rem;
+  --text-display-weight: 800;
+  --text-display-lh: 1.1;
+
+  --text-heading-size: 1.125rem;
+  --text-heading-weight: 700;
+  --text-heading-lh: 1.3;
+
+  --text-body-size: 0.875rem;
+  --text-body-weight: 400;
+  --text-body-lh: 1.65;
+
+  --text-caption-size: 0.75rem;
+  --text-caption-weight: 500;
+  --text-caption-lh: 1.5;
+
+  --text-overline-size: 0.6875rem;
+  --text-overline-weight: 700;
+  --text-overline-lh: 1;
+  --text-overline-tracking: 0.12em;
+  --text-overline-transform: uppercase;
 }
 
 body {
