@@ -20,12 +20,12 @@ export function StatCard({ label, value, target, achievement, className }: StatC
   return (
     <div
       className={cn(
-        "bg-[var(--bg-surface)] backdrop-blur-md rounded-[var(--radius-md)] border border-[var(--border-default)] shadow-[var(--shadow-subtle)] p-5",
+        "bg-[var(--bg-surface)] rounded-lg border border-[var(--border-default)] shadow-[var(--shadow-subtle)] p-3",
         className
       )}
     >
-      <p className="text-xs text-[var(--text-muted)] font-medium mb-2">{label}</p>
-      <div className="text-2xl font-bold text-[var(--text-primary)] tabular-nums">{value}</div>
+      <p className="text-xs text-[var(--text-secondary)] uppercase tracking-wide mb-1">{label}</p>
+      <div className="text-xl font-bold font-mono tabular-nums text-[var(--text-primary)]">{value}</div>
       {target !== undefined && (
         <p className="text-xs text-[var(--text-muted)] mt-1">目标 {target}</p>
       )}

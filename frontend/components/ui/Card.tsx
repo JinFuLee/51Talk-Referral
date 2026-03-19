@@ -12,19 +12,19 @@ export function Card({ title, children, className, actions }: CardProps) {
   return (
     <div
       className={cn(
-        "bg-[var(--bg-surface)] backdrop-blur-md text-card-foreground rounded-[var(--radius-md)] border border-[var(--border-default)] shadow-[var(--shadow-subtle)] transition-all duration-200 hover:shadow-[var(--shadow-medium)] hover:-translate-y-1",
+        "bg-[var(--bg-surface)] text-card-foreground rounded-lg border border-[var(--border-default)] shadow-[var(--shadow-subtle)]",
         className,
       )}
     >
       {(title || actions) && (
-        <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--border-default)]">
+        <div className="flex items-center justify-between px-3 py-2 border-b border-[var(--border-default)]">
           {title && (
-            <h3 className="text-base font-semibold tracking-tight text-[var(--text-primary)]">{title}</h3>
+            <h3 className="text-sm font-semibold text-[var(--text-primary)]">{title}</h3>
           )}
           {actions && <div className="flex items-center gap-2">{actions}</div>}
         </div>
       )}
-      <div className="p-5">{children}</div>
+      <div className="p-3">{children}</div>
     </div>
   );
 }
