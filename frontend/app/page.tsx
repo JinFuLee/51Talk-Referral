@@ -148,13 +148,13 @@ export default function DashboardPage() {
                 key={s.id}
                 className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium ${
                   s.has_file
-                    ? "bg-green-50 text-green-700"
-                    : "bg-red-50 text-red-600"
+                    ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400"
+                    : "bg-red-50 text-red-600 dark:bg-red-900/20 dark:text-red-400"
                 }`}
               >
                 <span
                   className={`w-2 h-2 rounded-full ${
-                    s.has_file ? "bg-green-500" : "bg-red-500"
+                    s.has_file ? "bg-emerald-500 dark:bg-emerald-400" : "bg-red-500 dark:bg-red-400"
                   }`}
                 />
                 {s.name}

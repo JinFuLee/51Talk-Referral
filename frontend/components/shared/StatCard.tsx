@@ -20,7 +20,7 @@ export function StatCard({ label, value, target, achievement, className }: StatC
   return (
     <div
       className={cn(
-        "bg-[var(--bg-surface)]/95 backdrop-blur-md rounded-[var(--radius-md)] border border-[var(--border-default)]/40 shadow-sm p-5",
+        "bg-[var(--bg-surface)] backdrop-blur-md rounded-[var(--radius-md)] border border-[var(--border-default)] shadow-[var(--shadow-subtle)] p-5",
         className
       )}
     >
