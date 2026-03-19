@@ -1,0 +1,3 @@
+{"date":"2026-03-12","metric":"route_protocol_kappa","current":1.0,"target":0.61,"review_date":"2026-03-19","source":"see-three-cli-collaboration-report"}
+{"date":"2026-03-12","metric":"traceability","current":1.0,"target":0.95,"review_date":"2026-03-19","source":"see-three-cli-collaboration-report"}
+{"date":"2026-03-12","metric":"composite_route_score","current":0.95,"target":0.90,"review_date":"2026-03-19","source":"see-three-cli-collaboration-report"}

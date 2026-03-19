@@ -1,6 +1,6 @@
 /**
- * API client — 所有对 FastAPI 后端（localhost:8000）的请求封装
- * 通过 Next.js rewrites: /api/* → http://localhost:8000/api/*
+ * API client — 所有对 FastAPI 后端（127.0.0.1:8100）的请求封装
+ * 通过 Next.js rewrites: /api/* → http://127.0.0.1:8100/api/*
  */
 import type {
   MonthlyTarget,

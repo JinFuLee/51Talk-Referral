@@ -1,0 +1,11 @@
+capability,claude_code,codex,gemini_cli,notes
+外部实时搜索,3,5,5,inference
+代码读改运行,5,5,4,docs
+规则化评审输出,3,4,2,inference
+MCP工具桥接,5,5,5,docs
+子代理任务切分,5,5,1,inference
+Headless批处理,4,5,5,docs
+Checkpoint恢复,4,4,5,inference
+权限边界TrustedFolders,3,3,5,inference
+多入口面,5,5,3,docs
+SEE规则适配度,4,4,4,inference

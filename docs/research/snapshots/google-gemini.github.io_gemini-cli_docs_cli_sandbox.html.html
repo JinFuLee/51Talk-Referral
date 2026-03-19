@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>Sandboxing in the Gemini CLI | gemini-cli</title>
+<meta name="generator" content="Jekyll v3.10.0" />
+<meta property="og:title" content="Sandboxing in the Gemini CLI" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="An open-source AI agent that brings the power of Gemini directly into your terminal." />
+<meta property="og:description" content="An open-source AI agent that brings the power of Gemini directly into your terminal." />
+<link rel="canonical" href="https://google-gemini.github.io/gemini-cli/docs/cli/sandbox.html" />
+<meta property="og:url" content="https://google-gemini.github.io/gemini-cli/docs/cli/sandbox.html" />
+<meta property="og:site_name" content="gemini-cli" />
+<meta property="og:type" content="website" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="Sandboxing in the Gemini CLI" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebPage","description":"An open-source AI agent that brings the power of Gemini directly into your terminal.","headline":"Sandboxing in the Gemini CLI","url":"https://google-gemini.github.io/gemini-cli/docs/cli/sandbox.html"}</script>
+<!-- End Jekyll SEO tag -->
+
+    <link rel="stylesheet" href="/gemini-cli/assets/css/style.css?v=34ba8be82192e9a689f491f78e0d40212f7ad059">
+    <!-- start custom head snippets, customize with your own _includes/head-custom.html file -->
+
+<!-- Setup Google Analytics -->
+
+
+
+<!-- You can set your favicon here -->
+<!-- link rel="shortcut icon" type="image/x-icon" href="/gemini-cli/favicon.ico" -->
+
+<!-- end custom head snippets -->
+
+  </head>
+  <body>
+    <div class="container-lg px-3 my-5 markdown-body">
+      
+      <h1><a href="https://google-gemini.github.io/gemini-cli/">gemini-cli</a></h1>
+      
+
+      <h1 id="sandboxing-in-the-gemini-cli">Sandboxing in the Gemini CLI</h1>
+
+<p>This document provides a guide to sandboxing in the Gemini CLI, including prerequisites, quickstart, and configuration.</p>
+
+<h2 id="prerequisites">Prerequisites</h2>
+
+<p>Before using sandboxing, you need to install and set up the Gemini CLI:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>npm <span class="nb">install</span> <span class="nt">-g</span> @google/gemini-cli
+</code></pre></div></div>
+
+<p>To verify the installation</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>gemini <span class="nt">--version</span>
+</code></pre></div></div>
+
+<h2 id="overview-of-sandboxing">Overview of sandboxing</h2>
+
+<p>Sandboxing isolates potentially dangerous operations (such as shell commands or file modifications) from your host system, providing a security barrier between AI operations and your environment.</p>
+
+<p>The benefits of sandboxing include:</p>
+
+<ul>
+  <li><strong>Security</strong>: Prevent accidental system damage or data loss.</li>
+  <li><strong>Isolation</strong>: Limit file system access to project directory.</li>
+  <li><strong>Consistency</strong>: Ensure reproducible environments across different systems.</li>
+  <li><strong>Safety</strong>: Reduce risk when working with untrusted code or experimental commands.</li>
+</ul>
+
+<h2 id="sandboxing-methods">Sandboxing methods</h2>
+
+<p>Your ideal method of sandboxing may differ depending on your platform and your preferred container solution.</p>
+
+<h3 id="1-macos-seatbelt-macos-only">1. macOS Seatbelt (macOS only)</h3>
+
+<p>Lightweight, built-in sandboxing using <code class="language-plaintext highlighter-rouge">sandbox-exec</code>.</p>
+
+<p><strong>Default profile</strong>: <code class="language-plaintext highlighter-rouge">permissive-open</code> - restricts writes outside project directory but allows most other operations.</p>
+
+<h3 id="2-container-based-dockerpodman">2. Container-based (Docker/Podman)</h3>
+
+<p>Cross-platform sandboxing with complete process isolation.</p>
+
+<p><strong>Note</strong>: Requires building the sandbox image locally or using a published image from your organization’s registry.</p>
+
+<h2 id="quickstart">Quickstart</h2>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Enable sandboxing with command flag</span>
+gemini <span class="nt">-s</span> <span class="nt">-p</span> <span class="s2">"analyze the code structure"</span>
+
+<span class="c"># Use environment variable</span>
+<span class="nb">export </span><span class="nv">GEMINI_SANDBOX</span><span class="o">=</span><span class="nb">true
+</span>gemini <span class="nt">-p</span> <span class="s2">"run the test suite"</span>
+
+<span class="c"># Configure in settings.json</span>
+<span class="o">{</span>
+  <span class="s2">"tools"</span>: <span class="o">{</span>
+    <span class="s2">"sandbox"</span>: <span class="s2">"docker"</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<h2 id="configuration">Configuration</h2>
+
+<h3 id="enable-sandboxing-in-order-of-precedence">Enable sandboxing (in order of precedence)</h3>
+
+<ol>
+  <li><strong>Command flag</strong>: <code class="language-plaintext highlighter-rouge">-s</code> or <code class="language-plaintext highlighter-rouge">--sandbox</code></li>
+  <li><strong>Environment variable</strong>: <code class="language-plaintext highlighter-rouge">GEMINI_SANDBOX=true|docker|podman|sandbox-exec</code></li>
+  <li><strong>Settings file</strong>: <code class="language-plaintext highlighter-rouge">"sandbox": true</code> in the <code class="language-plaintext highlighter-rouge">tools</code> object of your <code class="language-plaintext highlighter-rouge">settings.json</code> file (e.g., <code class="language-plaintext highlighter-rouge">{"tools": {"sandbox": true}}</code>).</li>
+</ol>
+
+<h3 id="macos-seatbelt-profiles">macOS Seatbelt profiles</h3>
+
+<p>Built-in profiles (set via <code class="language-plaintext highlighter-rouge">SEATBELT_PROFILE</code> env var):</p>
+
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">permissive-open</code> (default): Write restrictions, network allowed</li>
+  <li><code class="language-plaintext highlighter-rouge">permissive-closed</code>: Write restrictions, no network</li>
+  <li><code class="language-plaintext highlighter-rouge">permissive-proxied</code>: Write restrictions, network via proxy</li>
+  <li><code class="language-plaintext highlighter-rouge">restrictive-open</code>: Strict restrictions, network allowed</li>
+  <li><code class="language-plaintext highlighter-rouge">restrictive-closed</code>: Maximum restrictions</li>
+</ul>
+
+<h3 id="custom-sandbox-flags">Custom Sandbox Flags</h3>
+
+<p>For container-based sandboxing, you can inject custom flags into the <code class="language-plaintext highlighter-rouge">docker</code> or <code class="language-plaintext highlighter-rouge">podman</code> command using the <code class="language-plaintext highlighter-rouge">SANDBOX_FLAGS</code> environment variable. This is useful for advanced configurations, such as disabling security features for specific use cases.</p>
+
+<p><strong>Example (Podman)</strong>:</p>
+
+<p>To disable SELinux labeling for volume mounts, you can set the following:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">export </span><span class="nv">SANDBOX_FLAGS</span><span class="o">=</span><span class="s2">"--security-opt label=disable"</span>
+</code></pre></div></div>
+
+<p>Multiple flags can be provided as a space-separated string:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">export </span><span class="nv">SANDBOX_FLAGS</span><span class="o">=</span><span class="s2">"--flag1 --flag2=value"</span>
+</code></pre></div></div>
+
+<h2 id="linux-uidgid-handling">Linux UID/GID handling</h2>
+
+<p>The sandbox automatically handles user permissions on Linux. Override these permissions with:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">export </span><span class="nv">SANDBOX_SET_UID_GID</span><span class="o">=</span><span class="nb">true</span>   <span class="c"># Force host UID/GID</span>
+<span class="nb">export </span><span class="nv">SANDBOX_SET_UID_GID</span><span class="o">=</span><span class="nb">false</span>  <span class="c"># Disable UID/GID mapping</span>
+</code></pre></div></div>
+
+<h2 id="troubleshooting">Troubleshooting</h2>
+
+<h3 id="common-issues">Common issues</h3>
+
+<p><strong>“Operation not permitted”</strong></p>
+
+<ul>
+  <li>Operation requires access outside sandbox.</li>
+  <li>Try more permissive profile or add mount points.</li>
+</ul>
+
+<p><strong>Missing commands</strong></p>
+
+<ul>
+  <li>Add to custom Dockerfile.</li>
+  <li>Install via <code class="language-plaintext highlighter-rouge">sandbox.bashrc</code>.</li>
+</ul>
+
+<p><strong>Network issues</strong></p>
+
+<ul>
+  <li>Check sandbox profile allows network.</li>
+  <li>Verify proxy configuration.</li>
+</ul>
+
+<h3 id="debug-mode">Debug mode</h3>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">DEBUG</span><span class="o">=</span>1 gemini <span class="nt">-s</span> <span class="nt">-p</span> <span class="s2">"debug command"</span>
+</code></pre></div></div>
+
+<p><strong>Note:</strong> If you have <code class="language-plaintext highlighter-rouge">DEBUG=true</code> in a project’s <code class="language-plaintext highlighter-rouge">.env</code> file, it won’t affect gemini-cli due to automatic exclusion. Use <code class="language-plaintext highlighter-rouge">.gemini/.env</code> files for gemini-cli specific debug settings.</p>
+
+<h3 id="inspect-sandbox">Inspect sandbox</h3>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Check environment</span>
+gemini <span class="nt">-s</span> <span class="nt">-p</span> <span class="s2">"run shell command: env | grep SANDBOX"</span>
+
+<span class="c"># List mounts</span>
+gemini <span class="nt">-s</span> <span class="nt">-p</span> <span class="s2">"run shell command: mount | grep workspace"</span>
+</code></pre></div></div>
+
+<h2 id="security-notes">Security notes</h2>
+
+<ul>
+  <li>Sandboxing reduces but doesn’t eliminate all risks.</li>
+  <li>Use the most restrictive profile that allows your work.</li>
+  <li>Container overhead is minimal after first build.</li>
+  <li>GUI applications may not work in sandboxes.</li>
+</ul>
+
+<h2 id="related-documentation">Related documentation</h2>
+
+<ul>
+  <li><a href="/gemini-cli/docs/get-started/configuration.html">Configuration</a>: Full configuration options.</li>
+  <li><a href="/gemini-cli/docs/cli/commands.html">Commands</a>: Available commands.</li>
+  <li><a href="/gemini-cli/docs/troubleshooting.html">Troubleshooting</a>: General troubleshooting.</li>
+</ul>
+
+
+      
+      <div class="footer border-top border-gray-light mt-5 pt-3 text-right text-gray">
+        This site is open source. <a href="https://github.com/google-gemini/gemini-cli/edit/main/docs/cli/sandbox.md">Improve this page</a>.
+      </div>
+      
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/anchor-js/4.1.0/anchor.min.js" integrity="sha256-lZaRhKri35AyJSypXXs4o6OPFTbTmUoltBbDCbdzegg=" crossorigin="anonymous"></script>
+    <script>anchors.add();</script>
+  </body>
+</html>

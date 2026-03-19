@@ -1,0 +1,6 @@
+research_weight,review_weight,delivery_weight,recommended_route_score,best_single_score,margin,recommended_route_stays_top
+0.20,0.35,0.45,0.949,0.831,0.118,true
+0.25,0.30,0.45,0.948,0.833,0.115,true
+0.30,0.25,0.45,0.947,0.836,0.111,true
+0.25,0.35,0.40,0.951,0.824,0.127,true
+0.25,0.25,0.50,0.945,0.842,0.103,true

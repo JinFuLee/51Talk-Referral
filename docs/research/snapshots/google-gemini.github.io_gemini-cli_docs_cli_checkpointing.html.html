@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>Checkpointing | gemini-cli</title>
+<meta name="generator" content="Jekyll v3.10.0" />
+<meta property="og:title" content="Checkpointing" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="An open-source AI agent that brings the power of Gemini directly into your terminal." />
+<meta property="og:description" content="An open-source AI agent that brings the power of Gemini directly into your terminal." />
+<link rel="canonical" href="https://google-gemini.github.io/gemini-cli/docs/cli/checkpointing.html" />
+<meta property="og:url" content="https://google-gemini.github.io/gemini-cli/docs/cli/checkpointing.html" />
+<meta property="og:site_name" content="gemini-cli" />
+<meta property="og:type" content="website" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="Checkpointing" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebPage","description":"An open-source AI agent that brings the power of Gemini directly into your terminal.","headline":"Checkpointing","url":"https://google-gemini.github.io/gemini-cli/docs/cli/checkpointing.html"}</script>
+<!-- End Jekyll SEO tag -->
+
+    <link rel="stylesheet" href="/gemini-cli/assets/css/style.css?v=34ba8be82192e9a689f491f78e0d40212f7ad059">
+    <!-- start custom head snippets, customize with your own _includes/head-custom.html file -->
+
+<!-- Setup Google Analytics -->
+
+
+
+<!-- You can set your favicon here -->
+<!-- link rel="shortcut icon" type="image/x-icon" href="/gemini-cli/favicon.ico" -->
+
+<!-- end custom head snippets -->
+
+  </head>
+  <body>
+    <div class="container-lg px-3 my-5 markdown-body">
+      
+      <h1><a href="https://google-gemini.github.io/gemini-cli/">gemini-cli</a></h1>
+      
+
+      <h1 id="checkpointing">Checkpointing</h1>
+
+<p>The Gemini CLI includes a Checkpointing feature that automatically saves a snapshot of your project’s state before any file modifications are made by AI-powered tools. This allows you to safely experiment with and apply code changes, knowing you can instantly revert back to the state before the tool was run.</p>
+
+<h2 id="how-it-works">How It Works</h2>
+
+<p>When you approve a tool that modifies the file system (like <code class="language-plaintext highlighter-rouge">write_file</code> or <code class="language-plaintext highlighter-rouge">replace</code>), the CLI automatically creates a “checkpoint.” This checkpoint includes:</p>
+
+<ol>
+  <li><strong>A Git Snapshot:</strong> A commit is made in a special, shadow Git repository located in your home directory (<code class="language-plaintext highlighter-rouge">~/.gemini/history/&lt;project_hash&gt;</code>). This snapshot captures the complete state of your project files at that moment. It does <strong>not</strong> interfere with your own project’s Git repository.</li>
+  <li><strong>Conversation History:</strong> The entire conversation you’ve had with the agent up to that point is saved.</li>
+  <li><strong>The Tool Call:</strong> The specific tool call that was about to be executed is also stored.</li>
+</ol>
+
+<p>If you want to undo the change or simply go back, you can use the <code class="language-plaintext highlighter-rouge">/restore</code> command. Restoring a checkpoint will:</p>
+
+<ul>
+  <li>Revert all files in your project to the state captured in the snapshot.</li>
+  <li>Restore the conversation history in the CLI.</li>
+  <li>Re-propose the original tool call, allowing you to run it again, modify it, or simply ignore it.</li>
+</ul>
+
+<p>All checkpoint data, including the Git snapshot and conversation history, is stored locally on your machine. The Git snapshot is stored in the shadow repository while the conversation history and tool calls are saved in a JSON file in your project’s temporary directory, typically located at <code class="language-plaintext highlighter-rouge">~/.gemini/tmp/&lt;project_hash&gt;/checkpoints</code>.</p>
+
+<h2 id="enabling-the-feature">Enabling the Feature</h2>
+
+<p>The Checkpointing feature is disabled by default. To enable it, you can either use a command-line flag or edit your <code class="language-plaintext highlighter-rouge">settings.json</code> file.</p>
+
+<h3 id="using-the-command-line-flag">Using the Command-Line Flag</h3>
+
+<p>You can enable checkpointing for the current session by using the <code class="language-plaintext highlighter-rouge">--checkpointing</code> flag when starting the Gemini CLI:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>gemini <span class="nt">--checkpointing</span>
+</code></pre></div></div>
+
+<h3 id="using-the-settingsjson-file">Using the <code class="language-plaintext highlighter-rouge">settings.json</code> File</h3>
+
+<p>To enable checkpointing by default for all sessions, you need to edit your <code class="language-plaintext highlighter-rouge">settings.json</code> file.</p>
+
+<p>Add the following key to your <code class="language-plaintext highlighter-rouge">settings.json</code>:</p>
+
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="w">
+  </span><span class="nl">"general"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+    </span><span class="nl">"checkpointing"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+      </span><span class="nl">"enabled"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="w">
+    </span><span class="p">}</span><span class="w">
+  </span><span class="p">}</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div></div>
+
+<h2 id="using-the-restore-command">Using the <code class="language-plaintext highlighter-rouge">/restore</code> Command</h2>
+
+<p>Once enabled, checkpoints are created automatically. To manage them, you use the <code class="language-plaintext highlighter-rouge">/restore</code> command.</p>
+
+<h3 id="list-available-checkpoints">List Available Checkpoints</h3>
+
+<p>To see a list of all saved checkpoints for the current project, simply run:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>/restore
+</code></pre></div></div>
+
+<p>The CLI will display a list of available checkpoint files. These file names are typically composed of a timestamp, the name of the file being modified, and the name of the tool that was about to be run (e.g., <code class="language-plaintext highlighter-rouge">2025-06-22T10-00-00_000Z-my-file.txt-write_file</code>).</p>
+
+<h3 id="restore-a-specific-checkpoint">Restore a Specific Checkpoint</h3>
+
+<p>To restore your project to a specific checkpoint, use the checkpoint file from the list:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>/restore &lt;checkpoint_file&gt;
+</code></pre></div></div>
+
+<p>For example:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>/restore 2025-06-22T10-00-00_000Z-my-file.txt-write_file
+</code></pre></div></div>
+
+<p>After running the command, your files and conversation will be immediately restored to the state they were in when the checkpoint was created, and the original tool prompt will reappear.</p>
+
+
+      
+      <div class="footer border-top border-gray-light mt-5 pt-3 text-right text-gray">
+        This site is open source. <a href="https://github.com/google-gemini/gemini-cli/edit/main/docs/cli/checkpointing.md">Improve this page</a>.
+      </div>
+      
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/anchor-js/4.1.0/anchor.min.js" integrity="sha256-lZaRhKri35AyJSypXXs4o6OPFTbTmUoltBbDCbdzegg=" crossorigin="anonymous"></script>
+    <script>anchors.add();</script>
+  </body>
+</html>

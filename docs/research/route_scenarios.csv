@@ -1,0 +1,13 @@
+scenario_id,requires_external_freshness,writes_code,policy_density,offline_mode,risk_profile
+S01,true,true,high,false,high
+S02,true,false,high,false,medium
+S03,false,true,high,false,high
+S04,false,false,high,false,medium
+S05,true,true,low,false,low
+S06,true,false,low,false,low
+S07,false,true,low,false,low
+S08,false,false,low,false,low
+S09,true,true,high,true,high
+S10,false,true,medium,true,medium
+S11,true,false,medium,true,low
+S12,false,false,medium,true,low

@@ -1,0 +1,2 @@
+items,raters,signal,cohen_kappa,kappa_ci_low,kappa_ci_high,icc_2_1,icc_ci_low,icc_ci_high,script_sha256_16
+12,2,route_protocol,1.000,1.000,1.000,1.000,1.000,1.000,af23fb341dd1c38d

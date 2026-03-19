@@ -1,0 +1,4 @@
+component,version,mode,source_or_switches,captured_on
+Claude Code,docs-snapshot,documentation,overview+mcp+sub-agents,2026-03-12
+Codex,docs-snapshot,documentation,overview+cli+product-page,2026-03-12
+Gemini CLI,docs-snapshot,documentation,docs+headless+checkpointing+sandbox+google_web_search+read_many_files,2026-03-12

@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>Headless Mode | gemini-cli</title>
+<meta name="generator" content="Jekyll v3.10.0" />
+<meta property="og:title" content="Headless Mode" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="An open-source AI agent that brings the power of Gemini directly into your terminal." />
+<meta property="og:description" content="An open-source AI agent that brings the power of Gemini directly into your terminal." />
+<link rel="canonical" href="https://google-gemini.github.io/gemini-cli/docs/cli/headless.html" />
+<meta property="og:url" content="https://google-gemini.github.io/gemini-cli/docs/cli/headless.html" />
+<meta property="og:site_name" content="gemini-cli" />
+<meta property="og:type" content="website" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="Headless Mode" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebPage","description":"An open-source AI agent that brings the power of Gemini directly into your terminal.","headline":"Headless Mode","url":"https://google-gemini.github.io/gemini-cli/docs/cli/headless.html"}</script>
+<!-- End Jekyll SEO tag -->
+
+    <link rel="stylesheet" href="/gemini-cli/assets/css/style.css?v=34ba8be82192e9a689f491f78e0d40212f7ad059">
+    <!-- start custom head snippets, customize with your own _includes/head-custom.html file -->
+
+<!-- Setup Google Analytics -->
+
+
+
+<!-- You can set your favicon here -->
+<!-- link rel="shortcut icon" type="image/x-icon" href="/gemini-cli/favicon.ico" -->
+
+<!-- end custom head snippets -->
+
+  </head>
+  <body>
+    <div class="container-lg px-3 my-5 markdown-body">
+      
+      <h1><a href="https://google-gemini.github.io/gemini-cli/">gemini-cli</a></h1>
+      
+
+      <h1 id="headless-mode">Headless Mode</h1>
+
+<p>Headless mode allows you to run Gemini CLI programmatically from command line
+scripts and automation tools without any interactive UI. This is ideal for
+scripting, automation, CI/CD pipelines, and building AI-powered tools.</p>
+
+<ul>
+  <li><a href="#headless-mode">Headless Mode</a>
+    <ul>
+      <li><a href="#overview">Overview</a></li>
+      <li><a href="#basic-usage">Basic Usage</a>
+        <ul>
+          <li><a href="#direct-prompts">Direct Prompts</a></li>
+          <li><a href="#stdin-input">Stdin Input</a></li>
+          <li><a href="#combining-with-file-input">Combining with File Input</a></li>
+        </ul>
+      </li>
+      <li><a href="#output-formats">Output Formats</a>
+        <ul>
+          <li><a href="#text-output-default">Text Output (Default)</a></li>
+          <li><a href="#json-output">JSON Output</a>
+            <ul>
+              <li><a href="#response-schema">Response Schema</a></li>
+              <li><a href="#example-usage">Example Usage</a></li>
+            </ul>
+          </li>
+          <li><a href="#file-redirection">File Redirection</a></li>
+        </ul>
+      </li>
+      <li><a href="#configuration-options">Configuration Options</a></li>
+      <li><a href="#examples">Examples</a>
+        <ul>
+          <li><a href="#code-review">Code review</a></li>
+          <li><a href="#generate-commit-messages">Generate commit messages</a></li>
+          <li><a href="#api-documentation">API documentation</a></li>
+          <li><a href="#batch-code-analysis">Batch code analysis</a></li>
+          <li><a href="#code-review-1">Code review</a></li>
+          <li><a href="#log-analysis">Log analysis</a></li>
+          <li><a href="#release-notes-generation">Release notes generation</a></li>
+          <li><a href="#model-and-tool-usage-tracking">Model and tool usage tracking</a></li>
+        </ul>
+      </li>
+      <li><a href="#resources">Resources</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="overview">Overview</h2>
+
+<p>The headless mode provides a headless interface to Gemini CLI that:</p>
+
+<ul>
+  <li>Accepts prompts via command line arguments or stdin</li>
+  <li>Returns structured output (text or JSON)</li>
+  <li>Supports file redirection and piping</li>
+  <li>Enables automation and scripting workflows</li>
+  <li>Provides consistent exit codes for error handling</li>
+</ul>
+
+<h2 id="basic-usage">Basic Usage</h2>
+
+<h3 id="direct-prompts">Direct Prompts</h3>
+
+<p>Use the <code class="language-plaintext highlighter-rouge">--prompt</code> (or <code class="language-plaintext highlighter-rouge">-p</code>) flag to run in headless mode:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>gemini <span class="nt">--prompt</span> <span class="s2">"What is machine learning?"</span>
+</code></pre></div></div>
+
+<h3 id="stdin-input">Stdin Input</h3>
+
+<p>Pipe input to Gemini CLI from your terminal:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">echo</span> <span class="s2">"Explain this code"</span> | gemini
+</code></pre></div></div>
+
+<h3 id="combining-with-file-input">Combining with File Input</h3>
+
+<p>Read from files and process with Gemini:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">cat </span>README.md | gemini <span class="nt">--prompt</span> <span class="s2">"Summarize this documentation"</span>
+</code></pre></div></div>
+
+<h2 id="output-formats">Output Formats</h2>
+
+<h3 id="text-output-default">Text Output (Default)</h3>
+
+<p>Standard human-readable output:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>gemini <span class="nt">-p</span> <span class="s2">"What is the capital of France?"</span>
+</code></pre></div></div>
+
+<p>Response format:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>The capital of France is Paris.
+</code></pre></div></div>
+
+<h3 id="json-output">JSON Output</h3>
+
+<p>Returns structured data including response, statistics, and metadata. This
+format is ideal for programmatic processing and automation scripts.</p>
+
+<h4 id="response-schema">Response Schema</h4>
+
+<p>The JSON output follows this high-level structure:</p>
+
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="w">
+  </span><span class="nl">"response"</span><span class="p">:</span><span class="w"> </span><span class="s2">"string"</span><span class="p">,</span><span class="w"> </span><span class="err">//</span><span class="w"> </span><span class="err">The</span><span class="w"> </span><span class="err">main</span><span class="w"> </span><span class="err">AI-generated</span><span class="w"> </span><span class="err">content</span><span class="w"> </span><span class="err">answering</span><span class="w"> </span><span class="err">your</span><span class="w"> </span><span class="err">prompt</span><span class="w">
+  </span><span class="nl">"stats"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+    </span><span class="err">//</span><span class="w"> </span><span class="err">Usage</span><span class="w"> </span><span class="err">metrics</span><span class="w"> </span><span class="err">and</span><span class="w"> </span><span class="err">performance</span><span class="w"> </span><span class="err">data</span><span class="w">
+    </span><span class="nl">"models"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+      </span><span class="err">//</span><span class="w"> </span><span class="err">Per-model</span><span class="w"> </span><span class="err">API</span><span class="w"> </span><span class="err">and</span><span class="w"> </span><span class="err">token</span><span class="w"> </span><span class="err">usage</span><span class="w"> </span><span class="err">statistics</span><span class="w">
+      </span><span class="nl">"[model-name]"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+        </span><span class="nl">"api"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+          </span><span class="err">/*</span><span class="w"> </span><span class="err">request</span><span class="w"> </span><span class="err">counts</span><span class="p">,</span><span class="w"> </span><span class="err">errors</span><span class="p">,</span><span class="w"> </span><span class="err">latency</span><span class="w"> </span><span class="err">*/</span><span class="w">
+        </span><span class="p">},</span><span class="w">
+        </span><span class="nl">"tokens"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+          </span><span class="err">/*</span><span class="w"> </span><span class="err">prompt</span><span class="p">,</span><span class="w"> </span><span class="err">response</span><span class="p">,</span><span class="w"> </span><span class="err">cached</span><span class="p">,</span><span class="w"> </span><span class="err">total</span><span class="w"> </span><span class="err">counts</span><span class="w"> </span><span class="err">*/</span><span class="w">
+        </span><span class="p">}</span><span class="w">
+      </span><span class="p">}</span><span class="w">
+    </span><span class="p">},</span><span class="w">
+    </span><span class="nl">"tools"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+      </span><span class="err">//</span><span class="w"> </span><span class="err">Tool</span><span class="w"> </span><span class="err">execution</span><span class="w"> </span><span class="err">statistics</span><span class="w">
+      </span><span class="nl">"totalCalls"</span><span class="p">:</span><span class="w"> </span><span class="s2">"number"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"totalSuccess"</span><span class="p">:</span><span class="w"> </span><span class="s2">"number"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"totalFail"</span><span class="p">:</span><span class="w"> </span><span class="s2">"number"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"totalDurationMs"</span><span class="p">:</span><span class="w"> </span><span class="s2">"number"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"totalDecisions"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+        </span><span class="err">/*</span><span class="w"> </span><span class="err">accept</span><span class="p">,</span><span class="w"> </span><span class="err">reject</span><span class="p">,</span><span class="w"> </span><span class="err">modify</span><span class="p">,</span><span class="w"> </span><span class="err">auto_accept</span><span class="w"> </span><span class="err">counts</span><span class="w"> </span><span class="err">*/</span><span class="w">
+      </span><span class="p">},</span><span class="w">
+      </span><span class="nl">"byName"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+        </span><span class="err">/*</span><span class="w"> </span><span class="err">per-tool</span><span class="w"> </span><span class="err">detailed</span><span class="w"> </span><span class="err">stats</span><span class="w"> </span><span class="err">*/</span><span class="w">
+      </span><span class="p">}</span><span class="w">
+    </span><span class="p">},</span><span class="w">
+    </span><span class="nl">"files"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+      </span><span class="err">//</span><span class="w"> </span><span class="err">File</span><span class="w"> </span><span class="err">modification</span><span class="w"> </span><span class="err">statistics</span><span class="w">
+      </span><span class="nl">"totalLinesAdded"</span><span class="p">:</span><span class="w"> </span><span class="s2">"number"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"totalLinesRemoved"</span><span class="p">:</span><span class="w"> </span><span class="s2">"number"</span><span class="w">
+    </span><span class="p">}</span><span class="w">
+  </span><span class="p">},</span><span class="w">
+  </span><span class="nl">"error"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+    </span><span class="err">//</span><span class="w"> </span><span class="err">Present</span><span class="w"> </span><span class="err">only</span><span class="w"> </span><span class="err">when</span><span class="w"> </span><span class="err">an</span><span class="w"> </span><span class="err">error</span><span class="w"> </span><span class="err">occurred</span><span class="w">
+    </span><span class="nl">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"string"</span><span class="p">,</span><span class="w"> </span><span class="err">//</span><span class="w"> </span><span class="err">Error</span><span class="w"> </span><span class="err">type</span><span class="w"> </span><span class="err">(e.g.</span><span class="p">,</span><span class="w"> </span><span class="s2">"ApiError"</span><span class="p">,</span><span class="w"> </span><span class="s2">"AuthError"</span><span class="err">)</span><span class="w">
+    </span><span class="nl">"message"</span><span class="p">:</span><span class="w"> </span><span class="s2">"string"</span><span class="p">,</span><span class="w"> </span><span class="err">//</span><span class="w"> </span><span class="err">Human-readable</span><span class="w"> </span><span class="err">error</span><span class="w"> </span><span class="err">description</span><span class="w">
+    </span><span class="nl">"code"</span><span class="p">:</span><span class="w"> </span><span class="s2">"number"</span><span class="w"> </span><span class="err">//</span><span class="w"> </span><span class="err">Optional</span><span class="w"> </span><span class="err">error</span><span class="w"> </span><span class="err">code</span><span class="w">
+  </span><span class="p">}</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div></div>
+
+<h4 id="example-usage">Example Usage</h4>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>gemini <span class="nt">-p</span> <span class="s2">"What is the capital of France?"</span> <span class="nt">--output-format</span> json
+</code></pre></div></div>
+
+<p>Response:</p>
+
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="w">
+  </span><span class="nl">"response"</span><span class="p">:</span><span class="w"> </span><span class="s2">"The capital of France is Paris."</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"stats"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+    </span><span class="nl">"models"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+      </span><span class="nl">"gemini-2.5-pro"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+        </span><span class="nl">"api"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+          </span><span class="nl">"totalRequests"</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w">
+          </span><span class="nl">"totalErrors"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+          </span><span class="nl">"totalLatencyMs"</span><span class="p">:</span><span class="w"> </span><span class="mi">5053</span><span class="w">
+        </span><span class="p">},</span><span class="w">
+        </span><span class="nl">"tokens"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+          </span><span class="nl">"prompt"</span><span class="p">:</span><span class="w"> </span><span class="mi">24939</span><span class="p">,</span><span class="w">
+          </span><span class="nl">"candidates"</span><span class="p">:</span><span class="w"> </span><span class="mi">20</span><span class="p">,</span><span class="w">
+          </span><span class="nl">"total"</span><span class="p">:</span><span class="w"> </span><span class="mi">25113</span><span class="p">,</span><span class="w">
+          </span><span class="nl">"cached"</span><span class="p">:</span><span class="w"> </span><span class="mi">21263</span><span class="p">,</span><span class="w">
+          </span><span class="nl">"thoughts"</span><span class="p">:</span><span class="w"> </span><span class="mi">154</span><span class="p">,</span><span class="w">
+          </span><span class="nl">"tool"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="w">
+        </span><span class="p">}</span><span class="w">
+      </span><span class="p">},</span><span class="w">
+      </span><span class="nl">"gemini-2.5-flash"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+        </span><span class="nl">"api"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+          </span><span class="nl">"totalRequests"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w">
+          </span><span class="nl">"totalErrors"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+          </span><span class="nl">"totalLatencyMs"</span><span class="p">:</span><span class="w"> </span><span class="mi">1879</span><span class="w">
+        </span><span class="p">},</span><span class="w">
+        </span><span class="nl">"tokens"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+          </span><span class="nl">"prompt"</span><span class="p">:</span><span class="w"> </span><span class="mi">8965</span><span class="p">,</span><span class="w">
+          </span><span class="nl">"candidates"</span><span class="p">:</span><span class="w"> </span><span class="mi">10</span><span class="p">,</span><span class="w">
+          </span><span class="nl">"total"</span><span class="p">:</span><span class="w"> </span><span class="mi">9033</span><span class="p">,</span><span class="w">
+          </span><span class="nl">"cached"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+          </span><span class="nl">"thoughts"</span><span class="p">:</span><span class="w"> </span><span class="mi">30</span><span class="p">,</span><span class="w">
+          </span><span class="nl">"tool"</span><span class="p">:</span><span class="w"> </span><span class="mi">28</span><span class="w">
+        </span><span class="p">}</span><span class="w">
+      </span><span class="p">}</span><span class="w">
+    </span><span class="p">},</span><span class="w">
+    </span><span class="nl">"tools"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+      </span><span class="nl">"totalCalls"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"totalSuccess"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"totalFail"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"totalDurationMs"</span><span class="p">:</span><span class="w"> </span><span class="mi">1881</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"totalDecisions"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+        </span><span class="nl">"accept"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"reject"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"modify"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"auto_accept"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="w">
+      </span><span class="p">},</span><span class="w">
+      </span><span class="nl">"byName"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+        </span><span class="nl">"google_web_search"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+          </span><span class="nl">"count"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w">
+          </span><span class="nl">"success"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w">
+          </span><span class="nl">"fail"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+          </span><span class="nl">"durationMs"</span><span class="p">:</span><span class="w"> </span><span class="mi">1881</span><span class="p">,</span><span class="w">
+          </span><span class="nl">"decisions"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+            </span><span class="nl">"accept"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+            </span><span class="nl">"reject"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+            </span><span class="nl">"modify"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+            </span><span class="nl">"auto_accept"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="w">
+          </span><span class="p">}</span><span class="w">
+        </span><span class="p">}</span><span class="w">
+      </span><span class="p">}</span><span class="w">
+    </span><span class="p">},</span><span class="w">
+    </span><span class="nl">"files"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+      </span><span class="nl">"totalLinesAdded"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"totalLinesRemoved"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="w">
+    </span><span class="p">}</span><span class="w">
+  </span><span class="p">}</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div></div>
+
+<h3 id="file-redirection">File Redirection</h3>
+
+<p>Save output to files or pipe to other commands:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Save to file</span>
+gemini <span class="nt">-p</span> <span class="s2">"Explain Docker"</span> <span class="o">&gt;</span> docker-explanation.txt
+gemini <span class="nt">-p</span> <span class="s2">"Explain Docker"</span> <span class="nt">--output-format</span> json <span class="o">&gt;</span> docker-explanation.json
+
+<span class="c"># Append to file</span>
+gemini <span class="nt">-p</span> <span class="s2">"Add more details"</span> <span class="o">&gt;&gt;</span> docker-explanation.txt
+
+<span class="c"># Pipe to other tools</span>
+gemini <span class="nt">-p</span> <span class="s2">"What is Kubernetes?"</span> <span class="nt">--output-format</span> json | jq <span class="s1">'.response'</span>
+gemini <span class="nt">-p</span> <span class="s2">"Explain microservices"</span> | <span class="nb">wc</span> <span class="nt">-w</span>
+gemini <span class="nt">-p</span> <span class="s2">"List programming languages"</span> | <span class="nb">grep</span> <span class="nt">-i</span> <span class="s2">"python"</span>
+</code></pre></div></div>
+
+<h2 id="configuration-options">Configuration Options</h2>
+
+<p>Key command-line options for headless usage:</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Option</th>
+      <th>Description</th>
+      <th>Example</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">--prompt</code>, <code class="language-plaintext highlighter-rouge">-p</code></td>
+      <td>Run in headless mode</td>
+      <td><code class="language-plaintext highlighter-rouge">gemini -p "query"</code></td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">--output-format</code></td>
+      <td>Specify output format (text, json)</td>
+      <td><code class="language-plaintext highlighter-rouge">gemini -p "query" --output-format json</code></td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">--model</code>, <code class="language-plaintext highlighter-rouge">-m</code></td>
+      <td>Specify the Gemini model</td>
+      <td><code class="language-plaintext highlighter-rouge">gemini -p "query" -m gemini-2.5-flash</code></td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">--debug</code>, <code class="language-plaintext highlighter-rouge">-d</code></td>
+      <td>Enable debug mode</td>
+      <td><code class="language-plaintext highlighter-rouge">gemini -p "query" --debug</code></td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">--all-files</code>, <code class="language-plaintext highlighter-rouge">-a</code></td>
+      <td>Include all files in context</td>
+      <td><code class="language-plaintext highlighter-rouge">gemini -p "query" --all-files</code></td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">--include-directories</code></td>
+      <td>Include additional directories</td>
+      <td><code class="language-plaintext highlighter-rouge">gemini -p "query" --include-directories src,docs</code></td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">--yolo</code>, <code class="language-plaintext highlighter-rouge">-y</code></td>
+      <td>Auto-approve all actions</td>
+      <td><code class="language-plaintext highlighter-rouge">gemini -p "query" --yolo</code></td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">--approval-mode</code></td>
+      <td>Set approval mode</td>
+      <td><code class="language-plaintext highlighter-rouge">gemini -p "query" --approval-mode auto_edit</code></td>
+    </tr>
+  </tbody>
+</table>
+
+<p>For complete details on all available configuration options, settings files, and environment variables, see the <a href="/gemini-cli/docs/get-started/configuration.html">Configuration Guide</a>.</p>
+
+<h2 id="examples">Examples</h2>
+
+<h4 id="code-review">Code review</h4>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">cat </span>src/auth.py | gemini <span class="nt">-p</span> <span class="s2">"Review this authentication code for security issues"</span> <span class="o">&gt;</span> security-review.txt
+</code></pre></div></div>
+
+<h4 id="generate-commit-messages">Generate commit messages</h4>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">result</span><span class="o">=</span><span class="si">$(</span>git diff <span class="nt">--cached</span> | gemini <span class="nt">-p</span> <span class="s2">"Write a concise commit message for these changes"</span> <span class="nt">--output-format</span> json<span class="si">)</span>
+<span class="nb">echo</span> <span class="s2">"</span><span class="nv">$result</span><span class="s2">"</span> | jq <span class="nt">-r</span> <span class="s1">'.response'</span>
+</code></pre></div></div>
+
+<h4 id="api-documentation">API documentation</h4>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">result</span><span class="o">=</span><span class="si">$(</span><span class="nb">cat </span>api/routes.js | gemini <span class="nt">-p</span> <span class="s2">"Generate OpenAPI spec for these routes"</span> <span class="nt">--output-format</span> json<span class="si">)</span>
+<span class="nb">echo</span> <span class="s2">"</span><span class="nv">$result</span><span class="s2">"</span> | jq <span class="nt">-r</span> <span class="s1">'.response'</span> <span class="o">&gt;</span> openapi.json
+</code></pre></div></div>
+
+<h4 id="batch-code-analysis">Batch code analysis</h4>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">for </span>file <span class="k">in </span>src/<span class="k">*</span>.py<span class="p">;</span> <span class="k">do
+    </span><span class="nb">echo</span> <span class="s2">"Analyzing </span><span class="nv">$file</span><span class="s2">..."</span>
+    <span class="nv">result</span><span class="o">=</span><span class="si">$(</span><span class="nb">cat</span> <span class="s2">"</span><span class="nv">$file</span><span class="s2">"</span> | gemini <span class="nt">-p</span> <span class="s2">"Find potential bugs and suggest improvements"</span> <span class="nt">--output-format</span> json<span class="si">)</span>
+    <span class="nb">echo</span> <span class="s2">"</span><span class="nv">$result</span><span class="s2">"</span> | jq <span class="nt">-r</span> <span class="s1">'.response'</span> <span class="o">&gt;</span> <span class="s2">"reports/</span><span class="si">$(</span><span class="nb">basename</span> <span class="s2">"</span><span class="nv">$file</span><span class="s2">"</span><span class="si">)</span><span class="s2">.analysis"</span>
+    <span class="nb">echo</span> <span class="s2">"Completed analysis for </span><span class="si">$(</span><span class="nb">basename</span> <span class="s2">"</span><span class="nv">$file</span><span class="s2">"</span><span class="si">)</span><span class="s2">"</span> <span class="o">&gt;&gt;</span> reports/progress.log
+<span class="k">done</span>
+</code></pre></div></div>
+
+<h4 id="code-review-1">Code review</h4>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">result</span><span class="o">=</span><span class="si">$(</span>git diff origin/main...HEAD | gemini <span class="nt">-p</span> <span class="s2">"Review these changes for bugs, security issues, and code quality"</span> <span class="nt">--output-format</span> json<span class="si">)</span>
+<span class="nb">echo</span> <span class="s2">"</span><span class="nv">$result</span><span class="s2">"</span> | jq <span class="nt">-r</span> <span class="s1">'.response'</span> <span class="o">&gt;</span> pr-review.json
+</code></pre></div></div>
+
+<h4 id="log-analysis">Log analysis</h4>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">grep</span> <span class="s2">"ERROR"</span> /var/log/app.log | <span class="nb">tail</span> <span class="nt">-20</span> | gemini <span class="nt">-p</span> <span class="s2">"Analyze these errors and suggest root cause and fixes"</span> <span class="o">&gt;</span> error-analysis.txt
+</code></pre></div></div>
+
+<h4 id="release-notes-generation">Release notes generation</h4>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">result</span><span class="o">=</span><span class="si">$(</span>git log <span class="nt">--oneline</span> v1.0.0..HEAD | gemini <span class="nt">-p</span> <span class="s2">"Generate release notes from these commits"</span> <span class="nt">--output-format</span> json<span class="si">)</span>
+<span class="nv">response</span><span class="o">=</span><span class="si">$(</span><span class="nb">echo</span> <span class="s2">"</span><span class="nv">$result</span><span class="s2">"</span> | jq <span class="nt">-r</span> <span class="s1">'.response'</span><span class="si">)</span>
+<span class="nb">echo</span> <span class="s2">"</span><span class="nv">$response</span><span class="s2">"</span>
+<span class="nb">echo</span> <span class="s2">"</span><span class="nv">$response</span><span class="s2">"</span> <span class="o">&gt;&gt;</span> CHANGELOG.md
+</code></pre></div></div>
+
+<h4 id="model-and-tool-usage-tracking">Model and tool usage tracking</h4>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">result</span><span class="o">=</span><span class="si">$(</span>gemini <span class="nt">-p</span> <span class="s2">"Explain this database schema"</span> <span class="nt">--include-directories</span> db <span class="nt">--output-format</span> json<span class="si">)</span>
+<span class="nv">total_tokens</span><span class="o">=</span><span class="si">$(</span><span class="nb">echo</span> <span class="s2">"</span><span class="nv">$result</span><span class="s2">"</span> | jq <span class="nt">-r</span> <span class="s1">'.stats.models // {} | to_entries | map(.value.tokens.total) | add // 0'</span><span class="si">)</span>
+<span class="nv">models_used</span><span class="o">=</span><span class="si">$(</span><span class="nb">echo</span> <span class="s2">"</span><span class="nv">$result</span><span class="s2">"</span> | jq <span class="nt">-r</span> <span class="s1">'.stats.models // {} | keys | join(", ") | if . == "" then "none" else . end'</span><span class="si">)</span>
+<span class="nv">tool_calls</span><span class="o">=</span><span class="si">$(</span><span class="nb">echo</span> <span class="s2">"</span><span class="nv">$result</span><span class="s2">"</span> | jq <span class="nt">-r</span> <span class="s1">'.stats.tools.totalCalls // 0'</span><span class="si">)</span>
+<span class="nv">tools_used</span><span class="o">=</span><span class="si">$(</span><span class="nb">echo</span> <span class="s2">"</span><span class="nv">$result</span><span class="s2">"</span> | jq <span class="nt">-r</span> <span class="s1">'.stats.tools.byName // {} | keys | join(", ") | if . == "" then "none" else . end'</span><span class="si">)</span>
+<span class="nb">echo</span> <span class="s2">"</span><span class="si">$(</span><span class="nb">date</span><span class="si">)</span><span class="s2">: </span><span class="nv">$total_tokens</span><span class="s2"> tokens, </span><span class="nv">$tool_calls</span><span class="s2"> tool calls (</span><span class="nv">$tools_used</span><span class="s2">) used with models: </span><span class="nv">$models_used</span><span class="s2">"</span> <span class="o">&gt;&gt;</span> usage.log
+<span class="nb">echo</span> <span class="s2">"</span><span class="nv">$result</span><span class="s2">"</span> | jq <span class="nt">-r</span> <span class="s1">'.response'</span> <span class="o">&gt;</span> schema-docs.md
+<span class="nb">echo</span> <span class="s2">"Recent usage trends:"</span>
+<span class="nb">tail</span> <span class="nt">-5</span> usage.log
+</code></pre></div></div>
+
+<h2 id="resources">Resources</h2>
+
+<ul>
+  <li><a href="/gemini-cli/docs/get-started/configuration.html">CLI Configuration</a> - Complete configuration guide</li>
+  <li><a href="/gemini-cli/docs/get-started/authentication.html">Authentication</a> - Setup authentication</li>
+  <li><a href="/gemini-cli/docs/cli/commands.html">Commands</a> - Interactive commands reference</li>
+  <li><a href="/gemini-cli/docs/cli/tutorials.html">Tutorials</a> - Step-by-step automation guides</li>
+</ul>
+
+
+      
+      <div class="footer border-top border-gray-light mt-5 pt-3 text-right text-gray">
+        This site is open source. <a href="https://github.com/google-gemini/gemini-cli/edit/main/docs/cli/headless.md">Improve this page</a>.
+      </div>
+      
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/anchor-js/4.1.0/anchor.min.js" integrity="sha256-lZaRhKri35AyJSypXXs4o6OPFTbTmUoltBbDCbdzegg=" crossorigin="anonymous"></script>
+    <script>anchors.add();</script>
+  </body>
+</html>

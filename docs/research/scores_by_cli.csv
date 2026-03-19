@@ -1,0 +1,19 @@
+stage,criterion,weight,claude_code,codex,gemini_cli,evidence_ids,rationale
+research,external_real_time_search,0.50,3,3,5,E07|E11,Gemini has explicit search tooling docs while Claude and Codex are usable but not cited as first-class search surfaces here
+research,headless_batch,0.15,4,4,5,E08,Gemini documents headless mode explicitly and Claude or Codex remain strong but less specialized in cited sources
+research,checkpoint_restore,0.10,3,3,5,E09,Gemini exposes checkpointing directly in cited docs while Claude and Codex are only generally resumable in this report context
+research,permissions_boundary,0.10,3,4,5,E10|E13|E14,Gemini explicitly documents sandbox and trusted folders while Claude security and OpenAI shell sandbox pages provide the supporting boundary evidence for their lower scores
+research,mcp_tool_bridging,0.10,5,4,4,E02|E07,Claude documents MCP as a core workflow and the other two remain strong but not the review default
+research,multi_surface,0.05,4,5,3,E04|E06|E15,Codex spans more user surfaces and Claude also has SDK level evidence while Gemini remains more CLI-centric in cited sources
+review,structured_review_output,0.35,5,4,3,E01|E03,Claude best matches rule-heavy review and independent scorer roles in SEE
+review,mcp_tool_bridging,0.20,5,4,4,E02|E07,Claude gets the edge because its MCP usage is central to governance workflows in this report
+review,subagents_task_split,0.20,5,4,3,E03|E06,Claude sub-agents are explicitly documented and align with review separation
+review,see_rules_fit,0.15,5,4,3,I02|I04,Internal SEE rules assign review and rule closure more naturally to Claude than to the execution-first tools
+review,multi_surface,0.10,4,5,3,E04|E06,Codex has broader surfaces but that is not the deciding review criterion
+delivery,code_read_modify_run,0.55,4,5,3,E04|E05,Codex is the clearest execution-first fit in the cited official docs
+delivery,permissions_boundary,0.10,3,4,5,E10,Gemini scores high on sandbox docs but delivery remains dominated by code execution weight
+delivery,multi_surface,0.10,4,5,3,E04|E06,Codex offers the broadest execution surfaces for delivery
+delivery,mcp_tool_bridging,0.10,5,4,4,E02|E07,Claude is strong on tooling but delivery is not tooling-led in the final route
+delivery,headless_batch,0.05,4,4,5,E08,Gemini headless strength matters but is secondary to code execution
+delivery,checkpoint_restore,0.05,3,3,5,E09,Checkpointing is useful for delivery resiliency but not the dominant factor
+delivery,see_rules_fit,0.05,5,4,3,I02|I04,Claude is closest to rule stewardship while Codex remains the delivery owner because execution weight dominates

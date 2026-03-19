@@ -12,8 +12,6 @@ from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 
-from backend.services.analysis_service import AnalysisService
-
 from .dependencies import get_service
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
@@ -101,7 +99,7 @@ def _iter_report_files() -> list[dict[str, Any]]:
 @router.post("/generate", summary="触发 AI 报告生成")
 def generate_report(
     req: GenerateReportRequest,
-    svc: AnalysisService = Depends(get_service),
+    svc=Depends(get_service),
 ) -> dict[str, Any]:
     """
     触发 AI 报告生成。

@@ -1,0 +1,13 @@
+scenario_id,research_owner,review_owner,delivery_owner,route_label,route_score
+S01,Gemini CLI,Claude Code,Codex,Gemini->Claude->Codex,0.95
+S02,Gemini CLI,Claude Code,Claude Code,Gemini->Claude->Claude,0.89
+S03,Claude Code,Claude Code,Codex,Claude->Claude->Codex,0.88
+S04,Claude Code,Claude Code,Claude Code,Claude->Claude->Claude,0.82
+S05,Gemini CLI,Claude Code,Codex,Gemini->Claude->Codex,0.95
+S06,Gemini CLI,Claude Code,Claude Code,Gemini->Claude->Claude,0.89
+S07,Claude Code,Claude Code,Codex,Claude->Claude->Codex,0.88
+S08,Claude Code,Claude Code,Claude Code,Claude->Claude->Claude,0.82
+S09,Claude Code,Claude Code,Codex,Claude->Claude->Codex,0.88
+S10,Claude Code,Claude Code,Codex,Claude->Claude->Codex,0.88
+S11,Claude Code,Claude Code,Claude Code,Claude->Claude->Claude,0.82
+S12,Claude Code,Claude Code,Claude Code,Claude->Claude->Claude,0.82

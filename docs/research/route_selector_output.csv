@@ -1,0 +1,13 @@
+scenario_id,research_owner,review_owner,delivery_owner,fallback_owner,route_label,route_score
+S01,Gemini,Claude,Codex,Claude,Gemini->Claude->Codex,0.95
+S02,Gemini,Claude,Claude,Codex,Gemini->Claude->Claude,0.89
+S03,Claude,Claude,Codex,Claude,Claude->Claude->Codex,0.88
+S04,Claude,Claude,Claude,Codex,Claude->Claude->Claude,0.82
+S05,Gemini,Claude,Codex,Claude,Gemini->Claude->Codex,0.95
+S06,Gemini,Claude,Claude,Codex,Gemini->Claude->Claude,0.89
+S07,Claude,Claude,Codex,Claude,Claude->Claude->Codex,0.88
+S08,Claude,Claude,Claude,Codex,Claude->Claude->Claude,0.82
+S09,Claude,Claude,Codex,Claude,Claude->Claude->Codex,0.88
+S10,Claude,Claude,Codex,Claude,Claude->Claude->Codex,0.88
+S11,Claude,Claude,Claude,Codex,Claude->Claude->Claude,0.82
+S12,Claude,Claude,Claude,Codex,Claude->Claude->Claude,0.82

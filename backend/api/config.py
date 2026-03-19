@@ -12,8 +12,6 @@ from typing import Any
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
-from backend.services.analysis_service import AnalysisService
-
 from .dependencies import get_service
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
@@ -329,7 +327,7 @@ def _synthesize_v2_from_flat(month: str, flat: dict) -> dict:
 @router.get("/targets/{month}/recommend", summary="智能目标推荐（三档场景）")
 def get_target_recommendations(
     month: str,
-    svc: AnalysisService = Depends(get_service),
+    svc=Depends(get_service),
 ) -> dict[str, Any]:
     """智能目标推荐：三档场景 + 可行性评估"""
     if len(month) != 6 or not month.isdigit():

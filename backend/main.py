@@ -3,7 +3,6 @@ ref-ops-engine FastAPI 主入口
 51Talk 泰国转介绍运营分析引擎 REST API
 """
 
-import asyncio
 import importlib
 import logging
 import os
@@ -21,8 +20,6 @@ from slowapi.middleware import SlowAPIMiddleware
 from slowapi.util import get_remote_address
 from starlette.middleware.base import BaseHTTPMiddleware
 
-from backend.services.analysis_service import AnalysisService
-
 logger = logging.getLogger(__name__)
 
 # ── 路由注册表 ─────────────────────────────────────────────────────────────────
@@ -30,51 +27,11 @@ logger = logging.getLogger(__name__)
 # router_key 与 ProjectConfig.enabled_routers 中的字符串对应
 ROUTER_REGISTRY: dict = {
     "health": ("backend.api.health", "/api", []),
-    "analysis": ("backend.api.analysis", "/api/analysis", ["analysis"]),
+    "system": ("backend.api.system", "", []),
+    "config": ("backend.api.config", "/api/config", ["config"]),
     "reports": ("backend.api.reports", "/api/reports", ["reports"]),
     "datasources": ("backend.api.datasources", "/api/datasources", ["datasources"]),
-    "config": ("backend.api.config", "/api/config", ["config"]),
-    "snapshots": ("backend.api.snapshots", "/api/snapshots", ["snapshots"]),
-    "insights": ("backend.api.insights", "/api/analysis", ["insights"]),
-    "system": ("backend.api.system", "", []),
-    "cohort_detail": ("backend.api.cohort_detail", "/api/analysis", ["cohort"]),
-    "channel_trend": ("backend.api.channel_trend", "/api/analysis", ["channel"]),
-    "outreach_heatmap": ("backend.api.outreach_heatmap", "/api/analysis", ["outreach"]),
-    "outreach_coverage": (
-        "backend.api.outreach_coverage",
-        "/api/analysis",
-        ["outreach"],
-    ),
-    "cohort_decay": ("backend.api.cohort_decay", "/api/analysis", ["cohort-decay"]),
-    "north_star": ("backend.api.north_star", "/api/analysis", ["north-star"]),
-    "paid_followup": ("backend.api.paid_followup", "/api/analysis", ["paid-followup"]),
-    "cohort_student": (
-        "backend.api.cohort_student",
-        "/api/analysis",
-        ["cohort-student"],
-    ),
-    "funnel_detail": ("backend.api.funnel_detail", "/api/analysis", ["funnel-detail"]),
-    "channel_mom": ("backend.api.channel_mom", "/api/analysis", ["channel-mom"]),
-    "retention_rank": ("backend.api.retention_rank", "/api/analysis", ["retention"]),
-    "leads_detail": ("backend.api.leads_detail", "/api/analysis", ["leads-detail"]),
-    "productivity_history": (
-        "backend.api.productivity_history",
-        "/api/analysis",
-        ["productivity"],
-    ),
-    "outreach_gap": ("backend.api.outreach_gap", "/api/analysis", ["outreach-gap"]),
-    "enclosure_health": (
-        "backend.api.enclosure_health",
-        "/api/analysis",
-        ["enclosure-health"],
-    ),
-    "ranking_enhanced": (
-        "backend.api.ranking_enhanced",
-        "/api/analysis",
-        ["ranking-enhanced"],
-    ),
-    "presentation": ("backend.api.presentation", "/api/analysis", ["presentation"]),
-    "member_profile": ("backend.api.member", "/api/member", ["member-profile"]),
+    "presentation": ("backend.api.presentation", "/api/presentation", ["presentation"]),
 }
 
 
@@ -179,9 +136,6 @@ async def global_exception_handler(request: Request, exc: Exception):
     return JSONResponse(status_code=500, content={"detail": detail})
 
 
-# 单例 AnalysisService，注入到各路由模块
-_analysis_service = AnalysisService(project_root=PROJECT_ROOT)
-
 # 动态加载并注册路由
 _loaded_routers = _load_routers(_enabled_routers)
 for _key, _mod, _prefix, _tags in _loaded_routers:
@@ -191,33 +145,6 @@ for _key, _mod, _prefix, _tags in _loaded_routers:
     if _tags:
         kwargs["tags"] = _tags
     app.include_router(_mod.router, **kwargs)
-
-
-@app.on_event("startup")
-async def startup_event():
-    """启动时初始化服务"""
-    # 挂载单例到 app.state，所有路由通过 Depends(get_service) 获取
-    app.state.service = _analysis_service
-
-    # 后台自动运行分析（非阻塞）
-    asyncio.create_task(_auto_run_analysis())
-
-
-async def _auto_run_analysis():
-    """启动后自动运行一次分析（非阻塞），仅当 input 目录有数据文件时"""
-    input_dir = PROJECT_ROOT / "input"
-    # 检查 input 目录下是否有任何 xlsx 文件
-    xlsx_files = list(input_dir.rglob("*.xlsx")) if input_dir.exists() else []
-    if not xlsx_files:
-        logger.info("input 目录无数据文件，跳过启动自动分析")
-        return
-    try:
-        logger.info(f"检测到 {len(xlsx_files)} 个数据文件，开始启动自动分析...")
-        loop = asyncio.get_running_loop()
-        await loop.run_in_executor(None, _analysis_service.run)
-        logger.info("启动自动分析完成")
-    except Exception as e:
-        logger.warning(f"启动自动分析失败（非阻塞）: {e}")
 
 
 if __name__ == "__main__":
