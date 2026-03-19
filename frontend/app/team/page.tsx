@@ -54,7 +54,7 @@ export default function TeamPage() {
     );
   }
 
-  const teams = data?.teams ?? [];
+  const teams = Array.isArray(data) ? data : (data?.teams ?? []);
 
   const chartData = teams.map((t) => ({
     name: t.cc_name,

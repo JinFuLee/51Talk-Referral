@@ -8,7 +8,7 @@ interface MemberTableProps {
   page: number;
   pageSize?: number;
   onPageChange: (page: number) => void;
-  onRowClick?: (id: number) => void;
+  onRowClick?: (id: string | number) => void;
 }
 
 export function MemberTable({

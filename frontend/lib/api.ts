@@ -260,11 +260,11 @@ export const reportsAPI = {
   latest: () => request<{ markdown: string; generated_at: string } | null>("/reports/latest"),
   list: async () => {
     const raw = await request<
-      | { reports: { filename: string; date: string }[] }
-      | { filename: string; date: string }[]
+      | { reports: { filename: string; report_type?: string; date: string; size_bytes?: number; path?: string }[] }
+      | { filename: string; report_type?: string; date: string; size_bytes?: number; path?: string }[]
     >("/reports/list");
-    // 后端可能返回数组或 {reports:[...]}，统一为 {reports:[...]}
-    if (Array.isArray(raw)) return { reports: raw.map((r) => ({ filename: r.filename, date: r.date ?? "" })) };
+    // 后端可能返回数组或 {reports:[...]}，统一为 {reports:[...]}，保留 report_type 等字段
+    if (Array.isArray(raw)) return { reports: raw.map((r) => ({ filename: r.filename, report_type: r.report_type, date: r.date ?? "", size_bytes: r.size_bytes, path: r.path })) };
     return raw;
   },
   getLatest: () => request<{ ops: unknown; exec: unknown }>("/reports/latest"),

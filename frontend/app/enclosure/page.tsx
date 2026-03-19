@@ -58,8 +58,8 @@ export default function EnclosurePage() {
     );
   }
 
-  const rows = enclosureData?.data ?? [];
-  const rankings = rankingData?.rankings ?? [];
+  const rows = Array.isArray(enclosureData) ? enclosureData : (enclosureData?.data ?? []);
+  const rankings = Array.isArray(rankingData) ? rankingData : (rankingData?.rankings ?? []);
 
   return (
     <div className="space-y-6">

@@ -47,9 +47,9 @@ export default function ChannelPage() {
     );
   }
 
-  const channels = channelData?.channels ?? [];
-  const contributions = attrData?.contributions ?? [];
-  const comparisons = threeData?.comparisons ?? [];
+  const channels = Array.isArray(channelData) ? channelData : (channelData?.channels ?? []);
+  const contributions = Array.isArray(attrData) ? attrData : (attrData?.contributions ?? []);
+  const comparisons = Array.isArray(threeData) ? threeData : (threeData?.comparisons ?? []);
 
   const pieData = channels.map((c) => ({
     name: c.channel,

@@ -1,7 +1,7 @@
 "use client";
 
 interface StudentDetail {
-  id: number;
+  id: string | number;
   name?: string;
   enclosure?: string;
   lifecycle?: string;
@@ -15,6 +15,7 @@ interface StudentDetail {
   appointments?: number;
   attendance?: number;
   payments?: number;
+  total_revenue_usd?: number;
   revenue_usd?: number;
   [key: string]: unknown;
 }
@@ -53,14 +54,14 @@ const FIELD_GROUPS: { title: string; fields: [string, string][] }[] = [
       ["appointments", "预约数"],
       ["attendance", "出席数"],
       ["payments", "付费数"],
-      ["revenue_usd", "业绩 (USD)"],
+      ["total_revenue_usd", "业绩 (USD)"],
     ],
   },
 ];
 
 function formatValue(key: string, value: unknown): string {
   if (value === undefined || value === null || value === "") return "—";
-  if (key === "revenue_usd" && typeof value === "number") {
+  if ((key === "total_revenue_usd" || key === "revenue_usd") && typeof value === "number") {
     return `$${value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   }
   return String(value);

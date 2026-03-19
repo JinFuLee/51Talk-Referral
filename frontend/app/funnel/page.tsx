@@ -63,9 +63,20 @@ export default function FunnelPage() {
   const stages = (funnelData?.stages ?? []).filter(
     (s) => s.target != null || s.actual != null
   );
-  const scenarios = Array.isArray(scenarioRaw)
-    ? scenarioRaw.filter((s: ScenarioResult) => s.impact_registrations != null)
+
+  // 后端返回单对象或数组；字段名映射到前端期望的 ScenarioResult 结构
+  const scenarioList: ScenarioResult[] = scenarioRaw
+    ? [scenarioRaw].flat().map((s: Record<string, unknown>) => ({
+        stage: (s.scenario_stage ?? s.stage ?? "") as string,
+        current_rate: (s.scenario_rate_current ?? s.current_rate ?? 0) as number,
+        scenario_rate: (s.scenario_rate_target ?? s.scenario_rate ?? 0) as number,
+        impact_registrations: (s.impact_registrations ?? 0) as number,
+        impact_payments: (s.incremental_payments ?? s.impact_payments ?? 0) as number,
+        impact_revenue: (s.incremental_revenue ?? s.impact_revenue ?? 0) as number,
+      }))
     : [];
+  // 仅展示有 stage 名称的条目（过滤无效空对象）
+  const scenarios = scenarioList.filter((s) => !!s.stage);
 
   const conversionChartData = stages
     .filter((s) => s.conversion_rate !== undefined)
@@ -73,7 +84,13 @@ export default function FunnelPage() {
       name: s.name,
       actual: Number(((s.conversion_rate ?? 0) * 100).toFixed(1)),
       target: Number(((s.target_rate ?? 0) * 100).toFixed(1)),
-      gap: s.rate_gap ?? 0,
+      // rate_gap 后端未提供时，用 actual 转化率 vs target_rate 的差值着色；
+      // 若 target_rate 也不存在，则用 conversion_rate 绝对值（>0 为绿色）
+      gap: s.rate_gap != null
+        ? s.rate_gap
+        : s.target_rate != null
+          ? (s.conversion_rate ?? 0) - s.target_rate
+          : (s.conversion_rate ?? 0),
     }));
 
   return (

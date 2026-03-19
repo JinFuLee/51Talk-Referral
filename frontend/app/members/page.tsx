@@ -16,7 +16,7 @@ interface MembersResponse {
 }
 
 interface StudentDetail {
-  id: number;
+  id: string | number;
   name?: string;
   enclosure?: string;
   lifecycle?: string;
@@ -28,6 +28,7 @@ interface StudentDetail {
   appointments?: number;
   attendance?: number;
   payments?: number;
+  total_revenue_usd?: number;
   revenue_usd?: number;
   [key: string]: unknown;
 }
@@ -36,7 +37,7 @@ function DetailDrawer({
   memberId,
   onClose,
 }: {
-  memberId: number;
+  memberId: string | number;
   onClose: () => void;
 }) {
   const { data, isLoading } = useSWR<StudentDetail>(
@@ -57,7 +58,7 @@ function DetailDrawer({
     ["appointments", "预约数"],
     ["attendance", "出席数"],
     ["payments", "付费数"],
-    ["revenue_usd", "业绩(USD)"],
+    ["total_revenue_usd", "业绩(USD)"],
   ];
 
   return (
@@ -113,7 +114,7 @@ export default function MembersPage() {
   const [page, setPage] = useState(1);
   const [enclosureFilter, setEnclosureFilter] = useState("");
   const [ccFilter, setCcFilter] = useState("");
-  const [selectedId, setSelectedId] = useState<number | null>(null);
+  const [selectedId, setSelectedId] = useState<string | number | null>(null);
 
   const qs = new URLSearchParams({
     page: String(page),

@@ -1,5 +1,5 @@
 export interface StudentBrief {
-  id: number
+  id: string | number
   name: string
   enclosure: string
   lifecycle: string
@@ -12,7 +12,7 @@ export interface StudentBrief {
 }
 
 export interface HighPotentialStudent {
-  id: number
+  id: string | number
   enclosure: string
   total_new: number
   attendance: number

@@ -99,7 +99,7 @@ export default function HighPotentialPage() {
     );
   }
 
-  const students = data?.students ?? [];
+  const students = Array.isArray(data) ? data : (data?.students ?? []);
 
   return (
     <div className="space-y-6">

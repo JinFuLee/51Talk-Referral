@@ -281,13 +281,13 @@ export function useReportList() {
     "reports/list",
     async (): Promise<ReportFile[]> => {
       const res = await reportsAPI.list();
-      // API returns { reports: [{filename, date}] }; backfill optional fields for ReportFile
+      // API returns { reports: [{filename, report_type, date, ...}] }; backfill optional fields for ReportFile
       return res.reports.map((r) => ({
         filename: r.filename,
-        report_type: "unknown" as const,
+        report_type: (r.report_type ?? "unknown") as ReportFile["report_type"],
         date: r.date,
-        size_bytes: 0,
-        path: r.filename,
+        size_bytes: r.size_bytes ?? 0,
+        path: r.path ?? r.filename,
       }));
     }
   );
