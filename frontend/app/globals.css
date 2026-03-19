@@ -23,8 +23,8 @@
   --bg-surface: #FFFFFF;
   --bg-subtle: var(--n-100);
   --text-primary: var(--n-900);
-  --text-secondary: var(--n-600);
-  --text-muted: var(--n-400);
+  --text-secondary: #3D3D37;  /* n-700，比 n-600 更深，表格数字清晰可读 */
+  --text-muted: #52524A;      /* n-600，从 n-400(#A3A38E) 大幅加深，确保可读性 */
   --border-default: var(--n-200);
   --border-subtle: var(--n-100);
 
@@ -97,22 +97,22 @@ body {
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 20% 25%;
 
-    /* 核心点缀色 (琥珀暖色，对齐 Warm Neutral 风格) */
-    --primary: 37 90% 45%; /* 琥珀 #D97706 */
+    /* 核心点缀色（深暖灰绿，克制不跳，Apple/Notion 风格） */
+    --primary: 160 30% 38%; /* 深暖灰绿 #44806B */
     --primary-foreground: 0 0% 100%;
-    --secondary: 38 20% 96%;
+    --secondary: 38 15% 96%;
     --secondary-foreground: 30 20% 20%;
     --muted: 38 15% 95%;
-    --muted-foreground: 35 10% 45%; /* 暖灰次要文本 */
-    --accent: 38 20% 96%;
+    --muted-foreground: 30 15% 35%; /* 暖灰次要文本，加深至 #52524A 级别 */
+    --accent: 38 15% 96%;
     --accent-foreground: 30 20% 20%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
-    /* 弱化边界感 */
-    --border: 210 20% 94%;
-    --input: 210 20% 94%;
-    --ring: 37 90% 45%;
+    /* 暖灰边界（更温暖，不用冷蓝调） */
+    --border: 38 20% 88%;
+    --input: 38 20% 88%;
+    --ring: 160 30% 38%;
 
     --success: 142 71% 45%;
     --success-foreground: 0 0% 100%;
@@ -121,8 +121,8 @@ body {
     --info: 210 80% 65%;
     --info-foreground: 0 0% 100%;
 
-    /* 柔和化的图表色板（chart-1 对齐琥珀主色） */
-    --chart-1: 37 90% 45%;
+    /* 柔和化的图表色板（chart-1 对齐深暖灰绿主色） */
+    --chart-1: 160 30% 38%;
     --chart-2: 210 80% 65%;
     --chart-3: 142 71% 45%; /* 修改为翠绿色，适应图表积极向趋势 */
     --chart-4: 250 60% 75%;
@@ -161,7 +161,7 @@ body {
     --card-foreground: 213 31% 91%;
     --popover: 224 71% 4%;
     --popover-foreground: 215 20.2% 65.1%;
-    --primary: 37 85% 52%; /* 琥珀 dark 稍亮，确保对比度 */
+    --primary: 160 35% 52%; /* 深暖灰绿 dark 稍亮，确保对比度 */
     --primary-foreground: 0 0% 100%;
     --secondary: 222.2 47.4% 11.2%;
     --secondary-foreground: 210 40% 98%;
@@ -173,7 +173,7 @@ body {
     --destructive-foreground: 210 40% 98%;
     --border: 216 34% 17%;
     --input: 216 34% 17%;
-    --ring: 37 85% 52%;
+    --ring: 160 35% 52%;
     --success: 142 71% 45%;
     --success-foreground: 0 0% 100%;
     --warning: 38 92% 50%;
@@ -181,7 +181,7 @@ body {
     --info: 210 80% 65%;
     --info-foreground: 0 0% 100%;
 
-    --chart-1: 37 85% 52%;
+    --chart-1: 160 35% 52%;
     --chart-2: 210 80% 65%;
     --chart-3: 142 71% 45%; /* 与 light 保持逻辑一致的绿色 */
     --chart-4: 250 60% 75%;
