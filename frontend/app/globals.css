@@ -97,8 +97,8 @@ body {
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 20% 25%;
 
-    /* 核心点缀色 (低饱和、高明度) */
-    --primary: 173 58% 39%; /* 水月薄荷绿 */
+    /* 核心点缀色 (琥珀暖色，对齐 Warm Neutral 风格) */
+    --primary: 37 90% 45%; /* 琥珀 #D97706 */
     --primary-foreground: 0 0% 100%;
     --secondary: 210 40% 96.1%;
     --secondary-foreground: 222.2 47.4% 11.2%;
@@ -112,7 +112,7 @@ body {
     /* 弱化边界感 */
     --border: 210 20% 94%;
     --input: 210 20% 94%;
-    --ring: 173 58% 39%;
+    --ring: 37 90% 45%;
 
     --success: 142 71% 45%;
     --success-foreground: 0 0% 100%;
@@ -121,8 +121,8 @@ body {
     --info: 210 80% 65%;
     --info-foreground: 0 0% 100%;
 
-    /* 柔和化的图表色板 */
-    --chart-1: 173 58% 39%;
+    /* 柔和化的图表色板（chart-1 对齐琥珀主色） */
+    --chart-1: 37 90% 45%;
     --chart-2: 210 80% 65%;
     --chart-3: 142 71% 45%; /* 修改为翠绿色，适应图表积极向趋势 */
     --chart-4: 250 60% 75%;
@@ -161,8 +161,8 @@ body {
     --card-foreground: 213 31% 91%;
     --popover: 224 71% 4%;
     --popover-foreground: 215 20.2% 65.1%;
-    --primary: 173 58% 39%;
-    --primary-foreground: 222.2 47.4% 1.2%;
+    --primary: 37 85% 52%; /* 琥珀 dark 稍亮，确保对比度 */
+    --primary-foreground: 0 0% 100%;
     --secondary: 222.2 47.4% 11.2%;
     --secondary-foreground: 210 40% 98%;
     --muted: 223 47% 11%;
@@ -173,7 +173,7 @@ body {
     --destructive-foreground: 210 40% 98%;
     --border: 216 34% 17%;
     --input: 216 34% 17%;
-    --ring: 173 58% 39%;
+    --ring: 37 85% 52%;
     --success: 142 71% 45%;
     --success-foreground: 0 0% 100%;
     --warning: 38 92% 50%;
@@ -181,7 +181,7 @@ body {
     --info: 210 80% 65%;
     --info-foreground: 0 0% 100%;
 
-    --chart-1: 173 58% 39%;
+    --chart-1: 37 85% 52%;
     --chart-2: 210 80% 65%;
     --chart-3: 142 71% 45%; /* 与 light 保持逻辑一致的绿色 */
     --chart-4: 250 60% 75%;
