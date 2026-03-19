@@ -66,8 +66,8 @@ export default function TeamPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-slate-900">团队汇总</h1>
-        <p className="text-sm text-slate-500 mt-1">各 CC 学员数 · 参与率 · 注册 · 付费对比</p>
+        <h1 className="text-2xl font-bold text-[var(--text-primary)]">团队汇总</h1>
+        <p className="text-sm text-[var(--text-secondary)] mt-1">各 CC 学员数 · 参与率 · 注册 · 付费对比</p>
       </div>
 
       {/* 团队汇总卡片 */}
@@ -80,30 +80,30 @@ export default function TeamPage() {
           teams.map((t) => (
             <div
               key={t.cc_name}
-              className="bg-white rounded-2xl border border-border/40 shadow-sm p-5"
+              className="bg-[var(--bg-surface)] rounded-[var(--radius-md)] border border-[var(--border-subtle)] shadow-[var(--shadow-subtle)] p-5"
             >
               <div className="flex items-start justify-between mb-3">
                 <div>
-                  <p className="text-base font-bold text-slate-900">{t.cc_name}</p>
-                  <p className="text-xs text-slate-400">{t.cc_group}</p>
+                  <p className="text-base font-bold text-[var(--text-primary)]">{t.cc_name}</p>
+                  <p className="text-xs text-[var(--text-muted)]">{t.cc_group}</p>
                 </div>
                 <div className="text-right">
                   <div className="text-lg font-bold text-blue-600">{t.students}</div>
-                  <div className="text-xs text-slate-400">有效学员</div>
+                  <div className="text-xs text-[var(--text-muted)]">有效学员</div>
                 </div>
               </div>
-              <div className="grid grid-cols-3 gap-2 pt-3 border-t border-slate-100">
+              <div className="grid grid-cols-3 gap-2 pt-3 border-t border-[var(--border-subtle)]">
                 <div className="text-center">
-                  <div className="text-sm font-semibold text-slate-700">{formatRate(t.participation_rate)}</div>
-                  <div className="text-[10px] text-slate-400">参与率</div>
+                  <div className="text-sm font-semibold text-[var(--text-primary)]">{formatRate(t.participation_rate)}</div>
+                  <div className="text-[10px] text-[var(--text-muted)]">参与率</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-sm font-semibold text-slate-700">{t.registrations}</div>
-                  <div className="text-[10px] text-slate-400">注册数</div>
+                  <div className="text-sm font-semibold text-[var(--text-primary)]">{t.registrations}</div>
+                  <div className="text-[10px] text-[var(--text-muted)]">注册数</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-sm font-semibold text-slate-700">{t.payments}</div>
-                  <div className="text-[10px] text-slate-400">付费数</div>
+                  <div className="text-sm font-semibold text-[var(--text-primary)]">{t.payments}</div>
+                  <div className="text-[10px] text-[var(--text-muted)]">付费数</div>
                 </div>
               </div>
             </div>

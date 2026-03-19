@@ -17,7 +17,7 @@ import {
   Legend,
 } from "recharts";
 
-const CHANNEL_COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#8b5cf6"];
+const CHANNEL_COLORS = ['#92400E', '#065F46', '#1E40AF', '#6B21A8'];
 const TABS = ["业绩贡献", "净拆解", "三因素对标"] as const;
 type Tab = (typeof TABS)[number];
 
@@ -63,20 +63,20 @@ export default function ChannelPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-slate-900">渠道分析</h1>
-        <p className="text-sm text-slate-500 mt-1">CC窄/SS窄/LP窄/宽口 · 业绩归因</p>
+        <h1 className="text-2xl font-bold text-[var(--text-primary)]">渠道分析</h1>
+        <p className="text-sm text-[var(--text-secondary)] mt-1">CC窄/SS窄/LP窄/宽口 · 业绩归因</p>
       </div>
 
       {/* Tab 切换 */}
-      <div className="flex gap-1 bg-slate-100 p-1 rounded-xl w-fit">
+      <div className="flex gap-1 bg-[var(--bg-subtle)] p-1 rounded-xl w-fit">
         {TABS.map((t) => (
           <button
             key={t}
             onClick={() => setTab(t)}
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
               tab === t
-                ? "bg-white shadow-sm text-slate-900"
-                : "text-slate-500 hover:text-slate-700"
+                ? "bg-[var(--bg-surface)] shadow-sm text-[var(--text-primary)]"
+                : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
             }`}
           >
             {t}
@@ -93,7 +93,7 @@ export default function ChannelPage() {
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="text-left text-xs text-slate-400 border-b border-slate-100">
+                    <tr className="text-left text-xs text-[var(--text-muted)] border-b border-[var(--border-subtle)]">
                       <th className="py-2 pr-3">渠道</th>
                       <th className="py-2 pr-3 text-right">注册</th>
                       <th className="py-2 pr-3 text-right">预约</th>
@@ -104,13 +104,13 @@ export default function ChannelPage() {
                   </thead>
                   <tbody>
                     {channels.map((c) => (
-                      <tr key={c.channel} className="border-b border-slate-50">
+                      <tr key={c.channel} className="border-b border-[var(--border-subtle)]">
                         <td className="py-2.5 pr-3 font-medium">{c.channel}</td>
                         <td className="py-2.5 pr-3 text-right">{n(c.registrations).toLocaleString()}</td>
                         <td className="py-2.5 pr-3 text-right">{n(c.appointments).toLocaleString()}</td>
                         <td className="py-2.5 pr-3 text-right">{n(c.attendance).toLocaleString()}</td>
                         <td className="py-2.5 pr-3 text-right">{n(c.payments).toLocaleString()}</td>
-                        <td className="py-2.5 text-right text-slate-600">${n(c.revenue_usd).toLocaleString()}</td>
+                        <td className="py-2.5 text-right text-[var(--text-secondary)]">${n(c.revenue_usd).toLocaleString()}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -170,7 +170,7 @@ export default function ChannelPage() {
                         ${n(c.revenue).toLocaleString()}
                       </td>
                       <td className="py-2.5 pr-4 text-right">{formatRate(n(c.share) / 100)}</td>
-                      <td className="py-2.5 text-right text-slate-500">
+                      <td className="py-2.5 text-right text-[var(--text-secondary)]">
                         ${n(c.per_capita).toLocaleString()}
                       </td>
                     </tr>

@@ -64,8 +64,8 @@ export default function EnclosurePage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-slate-900">围场分析</h1>
-        <p className="text-sm text-slate-500 mt-1">围场分段 × CC 矩阵 · 参与率/带新/带货</p>
+        <h1 className="text-2xl font-bold text-[var(--text-primary)]">围场分析</h1>
+        <p className="text-sm text-[var(--text-secondary)] mt-1">围场分段 × CC 矩阵 · 参与率/带新/带货</p>
       </div>
 
       {/* 围场筛选器 */}
@@ -77,7 +77,7 @@ export default function EnclosurePage() {
             className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${
               filter === f.value
                 ? "bg-blue-600 text-white"
-                : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                : "bg-[var(--bg-subtle)] text-[var(--text-secondary)] hover:bg-[var(--bg-subtle)]"
             }`}
           >
             {f.label}
@@ -93,7 +93,7 @@ export default function EnclosurePage() {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="text-left text-xs text-slate-400 border-b border-slate-100">
+                <tr className="text-left text-xs text-[var(--text-muted)] border-b border-[var(--border-subtle)]">
                   <th className="py-2 pr-3">围场段</th>
                   <th className="py-2 pr-3">CC</th>
                   <th className="py-2 pr-3 text-right">有效学员</th>
@@ -106,8 +106,8 @@ export default function EnclosurePage() {
               </thead>
               <tbody>
                 {rows.map((r, i) => (
-                  <tr key={i} className="border-b border-slate-50">
-                    <td className="py-2 pr-3 text-slate-500">{r.enclosure}</td>
+                  <tr key={i} className="border-b border-[var(--border-subtle)]">
+                    <td className="py-2 pr-3 text-[var(--text-secondary)]">{r.enclosure}</td>
                     <td className="py-2 pr-3 font-medium">{r.cc_name}</td>
                     <td className="py-2 pr-3 text-right">{r.students.toLocaleString()}</td>
                     <td className={`py-2 pr-3 text-right ${metricColor(r.participation_rate, [0.1, 0.2])}`}>
@@ -137,7 +137,7 @@ export default function EnclosurePage() {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="text-left text-xs text-slate-400 border-b border-slate-100">
+                <tr className="text-left text-xs text-[var(--text-muted)] border-b border-[var(--border-subtle)]">
                   <th className="py-2 pr-3">排名</th>
                   <th className="py-2 pr-3">CC</th>
                   <th className="py-2 pr-3">组别</th>
@@ -149,24 +149,24 @@ export default function EnclosurePage() {
               </thead>
               <tbody>
                 {rankings.map((r, i) => (
-                  <tr key={r.cc_name} className="border-b border-slate-50">
+                  <tr key={r.cc_name} className="border-b border-[var(--border-subtle)]">
                     <td className="py-2.5 pr-3">
                       <span
                         className={`inline-flex w-6 h-6 items-center justify-center rounded-full text-xs font-bold ${
                           i === 0
                             ? "bg-yellow-100 text-yellow-700"
                             : i === 1
-                            ? "bg-slate-100 text-slate-600"
+                            ? "bg-[var(--bg-subtle)] text-[var(--text-secondary)]"
                             : i === 2
                             ? "bg-orange-50 text-orange-600"
-                            : "text-slate-400"
+                            : "text-[var(--text-muted)]"
                         }`}
                       >
                         {i + 1}
                       </span>
                     </td>
                     <td className="py-2.5 pr-3 font-medium">{r.cc_name}</td>
-                    <td className="py-2.5 pr-3 text-slate-500">{r.cc_group}</td>
+                    <td className="py-2.5 pr-3 text-[var(--text-secondary)]">{r.cc_group}</td>
                     <td className={`py-2.5 pr-3 text-right ${metricColor(r.participation_rate, [0.1, 0.2])}`}>
                       {formatRate(r.participation_rate)}
                     </td>

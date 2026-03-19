@@ -70,14 +70,14 @@ function DetailDrawer({
     >
       <div className="absolute inset-0 bg-black/40" aria-hidden="true" />
       <div
-        className="absolute right-0 top-0 h-full w-96 bg-white shadow-2xl overflow-y-auto"
+        className="absolute right-0 top-0 h-full w-96 bg-[var(--bg-surface)] shadow-2xl overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between px-5 py-4 border-b">
-          <h2 className="font-semibold text-slate-900">学员详情</h2>
+          <h2 className="font-semibold text-[var(--text-primary)]">学员详情</h2>
           <button
             onClick={onClose}
-            className="text-slate-400 hover:text-slate-600 text-lg leading-none"
+            className="text-[var(--text-muted)] hover:text-[var(--text-secondary)] text-lg leading-none"
           >
             ×
           </button>
@@ -94,8 +94,8 @@ function DetailDrawer({
             <dl className="space-y-3">
               {displayFields.map(([key, label]) => (
                 <div key={key} className="flex items-start justify-between">
-                  <dt className="text-xs text-slate-400 w-24 shrink-0">{label}</dt>
-                  <dd className="text-sm font-medium text-slate-700 text-right">
+                  <dt className="text-xs text-[var(--text-muted)] w-24 shrink-0">{label}</dt>
+                  <dd className="text-sm font-medium text-[var(--text-primary)] text-right">
                     {data[key] !== undefined && data[key] !== null
                       ? String(data[key])
                       : "—"}
@@ -133,8 +133,8 @@ export default function MembersPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-slate-900">学员明细</h1>
-        <p className="text-sm text-slate-500 mt-1">有效学员列表 · 点击行查看 59 字段详情</p>
+        <h1 className="text-2xl font-bold text-[var(--text-primary)]">学员明细</h1>
+        <p className="text-sm text-[var(--text-secondary)] mt-1">有效学员列表 · 点击行查看 59 字段详情</p>
       </div>
 
       {/* 筛选器 */}
@@ -147,7 +147,7 @@ export default function MembersPage() {
             setEnclosureFilter(e.target.value);
             setPage(1);
           }}
-          className="px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-48"
+          className="px-3 py-2 border border-[var(--border-subtle)] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-48"
         />
         <input
           type="text"
@@ -157,7 +157,7 @@ export default function MembersPage() {
             setCcFilter(e.target.value);
             setPage(1);
           }}
-          className="px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-48"
+          className="px-3 py-2 border border-[var(--border-subtle)] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-48"
         />
         {(enclosureFilter || ccFilter) && (
           <button
@@ -166,7 +166,7 @@ export default function MembersPage() {
               setCcFilter("");
               setPage(1);
             }}
-            className="px-3 py-2 text-sm text-slate-500 hover:text-slate-700"
+            className="px-3 py-2 text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
           >
             清除筛选
           </button>
@@ -190,7 +190,7 @@ export default function MembersPage() {
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="text-left text-xs text-slate-400 border-b border-slate-100">
+                  <tr className="text-left text-xs text-[var(--text-muted)] border-b border-[var(--border-subtle)]">
                     <th className="py-2 pr-3">ID</th>
                     <th className="py-2 pr-3">围场</th>
                     <th className="py-2 pr-3">生命周期</th>
@@ -206,12 +206,12 @@ export default function MembersPage() {
                     <tr
                       key={m.id}
                       onClick={() => setSelectedId(m.id)}
-                      className="border-b border-slate-50 cursor-pointer hover:bg-slate-50 transition-colors"
+                      className="border-b border-[var(--border-subtle)] cursor-pointer hover:bg-[var(--bg-subtle)] transition-colors"
                     >
                       <td className="py-2.5 pr-3 text-blue-600 font-medium">{m.id}</td>
-                      <td className="py-2.5 pr-3 text-slate-500">{m.enclosure}</td>
+                      <td className="py-2.5 pr-3 text-[var(--text-secondary)]">{m.enclosure}</td>
                       <td className="py-2.5 pr-3">
-                        <span className="px-2 py-0.5 bg-slate-100 rounded text-xs">{m.lifecycle}</span>
+                        <span className="px-2 py-0.5 bg-[var(--bg-subtle)] rounded text-xs">{m.lifecycle}</span>
                       </td>
                       <td className="py-2.5 pr-3">{m.cc_name}</td>
                       <td className="py-2.5 pr-3 text-right">{m.registrations}</td>
@@ -225,22 +225,22 @@ export default function MembersPage() {
             </div>
 
             {/* 分页 */}
-            <div className="flex items-center justify-between mt-4 pt-4 border-t border-slate-100">
-              <span className="text-xs text-slate-400">
+            <div className="flex items-center justify-between mt-4 pt-4 border-t border-[var(--border-subtle)]">
+              <span className="text-xs text-[var(--text-muted)]">
                 第 {page} / {totalPages} 页
               </span>
               <div className="flex gap-2">
                 <button
                   onClick={() => setPage((p) => Math.max(1, p - 1))}
                   disabled={page === 1}
-                  className="px-3 py-1.5 rounded-lg border border-slate-200 text-sm disabled:opacity-40 hover:bg-slate-50"
+                  className="px-3 py-1.5 rounded-lg border border-[var(--border-subtle)] text-sm disabled:opacity-40 hover:bg-[var(--bg-subtle)]"
                 >
                   上一页
                 </button>
                 <button
                   onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                   disabled={page >= totalPages}
-                  className="px-3 py-1.5 rounded-lg border border-slate-200 text-sm disabled:opacity-40 hover:bg-slate-50"
+                  className="px-3 py-1.5 rounded-lg border border-[var(--border-subtle)] text-sm disabled:opacity-40 hover:bg-[var(--bg-subtle)]"
                 >
                   下一页
                 </button>

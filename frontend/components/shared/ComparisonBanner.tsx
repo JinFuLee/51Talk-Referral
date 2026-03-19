@@ -25,12 +25,12 @@ export function ComparisonBanner() {
 
   if (isLoading) {
     return (
-      <div className="h-9 bg-slate-50/80 border-b border-slate-100 flex items-center justify-center gap-4 px-6">
-        <div className="h-3 w-16 rounded bg-slate-200 animate-pulse" />
-        <div className="h-3 w-24 rounded bg-slate-200 animate-pulse" />
-        <div className="h-3 w-24 rounded bg-slate-200 animate-pulse" />
-        <div className="h-3 w-24 rounded bg-slate-200 animate-pulse" />
-        <div className="h-3 w-24 rounded bg-slate-200 animate-pulse" />
+      <div className="h-9 bg-[var(--bg-subtle)]/80 border-b border-[var(--border-subtle)] flex items-center justify-center gap-4 px-6">
+        <div className="h-3 w-16 rounded bg-[var(--bg-subtle)] animate-pulse" />
+        <div className="h-3 w-24 rounded bg-[var(--bg-subtle)] animate-pulse" />
+        <div className="h-3 w-24 rounded bg-[var(--bg-subtle)] animate-pulse" />
+        <div className="h-3 w-24 rounded bg-[var(--bg-subtle)] animate-pulse" />
+        <div className="h-3 w-24 rounded bg-[var(--bg-subtle)] animate-pulse" />
       </div>
     );
   }
@@ -50,8 +50,8 @@ export function ComparisonBanner() {
   const metricKeys = Object.keys(KPI_LABELS);
 
   return (
-    <div className="h-9 bg-slate-50/80 border-b border-slate-100 flex items-center justify-center gap-4 px-6 overflow-x-auto">
-      <span className="text-xs font-medium text-slate-500 shrink-0">{data.label}</span>
+    <div className="h-9 bg-[var(--bg-subtle)]/80 border-b border-[var(--border-subtle)] flex items-center justify-center gap-4 px-6 overflow-x-auto">
+      <span className="text-xs font-medium text-[var(--text-secondary)] shrink-0">{data.label}</span>
       {metricKeys.map((key) => {
         const metric = data.metrics[key];
         if (!metric) return null;
@@ -60,11 +60,11 @@ export function ComparisonBanner() {
         const label = KPI_LABELS[key];
 
         let dirIcon = "—";
-        let colorCls = "text-slate-400";
+        let colorCls = "text-[var(--text-muted)]";
 
         if (pct === null || pct === undefined) {
           dirIcon = "暂无数据";
-          colorCls = "text-slate-400";
+          colorCls = "text-[var(--text-muted)]";
         } else if (pct > 0) {
           dirIcon = `▲${Math.abs(pct).toFixed(1)}%`;
           colorCls = "text-emerald-600";
@@ -75,11 +75,11 @@ export function ComparisonBanner() {
 
         return (
           <span key={key} className="flex items-center gap-1 text-xs shrink-0">
-            <span className="text-slate-500">{label}</span>
+            <span className="text-[var(--text-secondary)]">{label}</span>
             {metric.compare != null && (
-              <span className="text-slate-400">{formatCompact(metric.compare)}→</span>
+              <span className="text-[var(--text-muted)]">{formatCompact(metric.compare)}→</span>
             )}
-            <span className="text-slate-600 font-medium">{formatCompact(metric.current)}</span>
+            <span className="text-[var(--text-secondary)] font-medium">{formatCompact(metric.current)}</span>
             <span className={`font-semibold ${colorCls}`}>{dirIcon}</span>
           </span>
         );

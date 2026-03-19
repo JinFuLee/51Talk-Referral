@@ -13,18 +13,18 @@ interface HighPotentialResponse {
 
 function HighPotentialCard({ student }: { student: HighPotentialStudent }) {
   return (
-    <div className="bg-white rounded-2xl border border-border/40 shadow-sm hover:shadow-md transition-all duration-200 p-5">
+    <div className="bg-[var(--bg-surface)] rounded-[var(--radius-md)] border border-[var(--border-subtle)] shadow-[var(--shadow-subtle)] hover:shadow-[var(--shadow-medium)] transition-all duration-200 p-5">
       <div className="flex items-start justify-between mb-3">
         <div>
           <div className="flex items-center gap-2">
             <Star className="w-4 h-4 text-yellow-500" />
-            <span className="text-sm font-semibold text-slate-900">学员 #{student.id}</span>
+            <span className="text-sm font-semibold text-[var(--text-primary)]">学员 #{student.id}</span>
           </div>
-          <p className="text-xs text-slate-400 mt-0.5">围场：{student.enclosure}</p>
+          <p className="text-xs text-[var(--text-muted)] mt-0.5">围场：{student.enclosure}</p>
         </div>
         <div className="text-right">
           <div className="text-lg font-bold text-blue-600">{student.payments}</div>
-          <div className="text-xs text-slate-400">付费次数</div>
+          <div className="text-xs text-[var(--text-muted)]">付费次数</div>
         </div>
       </div>
 
@@ -34,28 +34,28 @@ function HighPotentialCard({ student }: { student: HighPotentialStudent }) {
             <Users className="w-3.5 h-3.5" />
             <span className="text-base font-bold">{student.total_new}</span>
           </div>
-          <p className="text-[10px] text-slate-400">带新数</p>
+          <p className="text-[10px] text-[var(--text-muted)]">带新数</p>
         </div>
         <div className="text-center">
           <div className="flex items-center justify-center gap-1 text-purple-600 mb-1">
             <TrendingUp className="w-3.5 h-3.5" />
             <span className="text-base font-bold">{student.attendance}</span>
           </div>
-          <p className="text-[10px] text-slate-400">出席数</p>
+          <p className="text-[10px] text-[var(--text-muted)]">出席数</p>
         </div>
         <div className="text-center">
           <div className="flex items-center justify-center gap-1 text-orange-600 mb-1">
             <DollarSign className="w-3.5 h-3.5" />
             <span className="text-base font-bold">{student.payments}</span>
           </div>
-          <p className="text-[10px] text-slate-400">付费数</p>
+          <p className="text-[10px] text-[var(--text-muted)]">付费数</p>
         </div>
       </div>
 
-      <div className="pt-3 border-t border-slate-100 space-y-1.5">
+      <div className="pt-3 border-t border-[var(--border-subtle)] space-y-1.5">
         {student.cc_name && (
           <div className="flex justify-between text-xs">
-            <span className="text-slate-400">CC</span>
+            <span className="text-[var(--text-muted)]">CC</span>
             <span className="font-medium">{student.cc_group} · {student.cc_name}</span>
           </div>
         )}
@@ -104,8 +104,8 @@ export default function HighPotentialPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-slate-900">高潜学员</h1>
-        <p className="text-sm text-slate-500 mt-1">
+        <h1 className="text-2xl font-bold text-[var(--text-primary)]">高潜学员</h1>
+        <p className="text-sm text-[var(--text-secondary)] mt-1">
           带新数高 + 出席活跃 + 付费意向强的学员 · 共 {students.length} 人
         </p>
       </div>

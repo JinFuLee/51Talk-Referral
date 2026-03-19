@@ -8,7 +8,7 @@ interface ScenarioTableProps {
 export function ScenarioTable({ stages }: ScenarioTableProps) {
   if (stages.length === 0) {
     return (
-      <p className="text-sm text-slate-400 text-center py-6">暂无场景推演数据</p>
+      <p className="text-sm text-[var(--text-muted)] text-center py-6">暂无场景推演数据</p>
     );
   }
 
@@ -16,7 +16,7 @@ export function ScenarioTable({ stages }: ScenarioTableProps) {
     <div className="overflow-x-auto">
       <table className="w-full text-sm">
         <thead>
-          <tr className="text-left text-xs text-slate-400 border-b border-slate-100">
+          <tr className="text-left text-xs text-[var(--text-muted)] border-b border-[var(--border-subtle)]">
             <th className="py-2 pr-4">环节</th>
             <th className="py-2 pr-4 text-right">当前转化率</th>
             <th className="py-2 pr-4 text-right">场景转化率</th>
@@ -27,20 +27,20 @@ export function ScenarioTable({ stages }: ScenarioTableProps) {
         </thead>
         <tbody>
           {stages.map((s) => (
-            <tr key={s.stage} className="border-b border-slate-50 hover:bg-slate-50/60 transition-colors">
-              <td className="py-2.5 pr-4 font-medium text-slate-800">
+            <tr key={s.stage} className="border-b border-[var(--border-subtle)] hover:bg-[var(--bg-subtle)]/60 transition-colors">
+              <td className="py-2.5 pr-4 font-medium text-[var(--text-primary)]">
                 {s.stage}
               </td>
-              <td className="py-2.5 pr-4 text-right text-slate-500">
+              <td className="py-2.5 pr-4 text-right text-[var(--text-secondary)]">
                 {formatRate(s.current_rate)}
               </td>
               <td className="py-2.5 pr-4 text-right font-medium text-blue-600">
                 {formatRate(s.scenario_rate)}
               </td>
-              <td className="py-2.5 pr-4 text-right text-slate-700">
+              <td className="py-2.5 pr-4 text-right text-[var(--text-primary)]">
                 +{s.impact_registrations.toLocaleString()}
               </td>
-              <td className="py-2.5 pr-4 text-right text-slate-700">
+              <td className="py-2.5 pr-4 text-right text-[var(--text-primary)]">
                 +{s.impact_payments.toLocaleString()}
               </td>
               <td className="py-2.5 text-right font-semibold text-green-600">

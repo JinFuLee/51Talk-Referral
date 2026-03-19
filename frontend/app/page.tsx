@@ -46,7 +46,7 @@ function FunnelSnapshot({ metrics }: { metrics: Record<string, number | string |
         const rate = num(metrics[rateKey]);
         return (
           <div key={rateKey}>
-            <div className="flex justify-between text-xs text-slate-500 mb-1">
+            <div className="flex justify-between text-xs text-[var(--text-secondary)] mb-1">
               <span>
                 {from.replace("转介绍", "").replace("数", "")} → {to.replace("数", "")}
               </span>
@@ -103,8 +103,8 @@ export default function DashboardPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-slate-900">运营总览</h1>
-        <p className="text-sm text-slate-500 mt-1">转介绍漏斗达成情况 · 数据源状态</p>
+        <h1 className="text-2xl font-bold text-[var(--text-primary)]">运营总览</h1>
+        <p className="text-sm text-[var(--text-secondary)] mt-1">转介绍漏斗达成情况 · 数据源状态</p>
       </div>
 
       {/* KPI 卡片 */}
@@ -159,12 +159,12 @@ export default function DashboardPage() {
                 />
                 {s.name}
                 {s.has_file && (
-                  <span className="text-slate-400 ml-1">({s.row_count})</span>
+                  <span className="text-[var(--text-muted)] ml-1">({s.row_count})</span>
                 )}
               </div>
             ))}
             {!allSourcesOk && (
-              <p className="w-full text-xs text-slate-400 mt-1">
+              <p className="w-full text-xs text-[var(--text-muted)] mt-1">
                 部分数据源缺失，分析结果可能不完整
               </p>
             )}
