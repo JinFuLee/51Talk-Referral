@@ -90,7 +90,7 @@ body {
 @layer base {
   :root {
     /* FlashUI Light Theme (通透/极简) */
-    --background: 210 20% 98%; /* 极淡冰白 */
+    --background: 40 33% 98%; /* Warm Neutral 暖米白，对齐 --bg-primary #FAFAF5 */
     --foreground: 222.2 20% 25%; /* 降饱和度的深灰，不要纯黑 */
     --card: 0 0% 100%;
     --card-foreground: 222.2 20% 25%;
@@ -100,12 +100,12 @@ body {
     /* 核心点缀色 (琥珀暖色，对齐 Warm Neutral 风格) */
     --primary: 37 90% 45%; /* 琥珀 #D97706 */
     --primary-foreground: 0 0% 100%;
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-    --muted: 210 10% 96%;
-    --muted-foreground: 215 16% 55%; /* 更柔和的次要文本 */
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --secondary: 38 20% 96%;
+    --secondary-foreground: 30 20% 20%;
+    --muted: 38 15% 95%;
+    --muted-foreground: 35 10% 45%; /* 暖灰次要文本 */
+    --accent: 38 20% 96%;
+    --accent-foreground: 30 20% 20%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
