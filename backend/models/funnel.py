@@ -2,35 +2,33 @@
 
 from __future__ import annotations
 
-from typing import Optional
-
 from pydantic import BaseModel
 
 
 class FunnelStage(BaseModel):
     name: str
-    target: Optional[float] = None
-    actual: Optional[float] = None
-    gap: Optional[float] = None
-    achievement_rate: Optional[float] = None
-    conversion_rate: Optional[float] = None
+    target: float | None = None
+    actual: float | None = None
+    gap: float | None = None
+    achievement_rate: float | None = None
+    conversion_rate: float | None = None
 
 
 class FunnelResult(BaseModel):
-    date: Optional[str] = None
+    date: str | None = None
     stages: list[FunnelStage] = []
-    target_revenue: Optional[float] = None
-    actual_revenue: Optional[float] = None
-    revenue_gap: Optional[float] = None
-    revenue_achievement: Optional[float] = None
+    target_revenue: float | None = None
+    actual_revenue: float | None = None
+    revenue_gap: float | None = None
+    revenue_achievement: float | None = None
 
 
 class ScenarioResult(BaseModel):
     """漏斗场景推演结果 — 假设某环节提升到目标值后的影响"""
 
     scenario_stage: str
-    scenario_rate_current: Optional[float] = None
-    scenario_rate_target: Optional[float] = None
+    scenario_rate_current: float | None = None
+    scenario_rate_target: float | None = None
     stages: list[FunnelStage] = []
-    incremental_payments: Optional[float] = None
-    incremental_revenue: Optional[float] = None
+    incremental_payments: float | None = None
+    incremental_revenue: float | None = None

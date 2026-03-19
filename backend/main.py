@@ -32,6 +32,14 @@ ROUTER_REGISTRY: dict = {
     "reports": ("backend.api.reports", "/api/reports", ["reports"]),
     "datasources": ("backend.api.datasources", "/api/datasources", ["datasources"]),
     "presentation": ("backend.api.presentation", "/api/presentation", ["presentation"]),
+    # ── Phase2 新增：转介绍中台监测分析端点 ──────────────────────────────────────
+    "overview": ("backend.api.overview", "/api", ["overview"]),
+    "funnel": ("backend.api.funnel", "/api", ["funnel"]),
+    "enclosure": ("backend.api.enclosure", "/api", ["enclosure"]),
+    "channel": ("backend.api.channel", "/api", ["channel"]),
+    "member_detail": ("backend.api.member_detail", "/api", ["members"]),
+    "high_potential": ("backend.api.high_potential", "/api", ["high-potential"]),
+    "team_ranking": ("backend.api.team_ranking", "/api", ["team"]),
 }
 
 

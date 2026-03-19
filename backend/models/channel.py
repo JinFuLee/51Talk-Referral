@@ -2,35 +2,33 @@
 
 from __future__ import annotations
 
-from typing import Optional
-
 from pydantic import BaseModel
 
 
 class ChannelMetrics(BaseModel):
     channel: str  # CC窄 / SS窄 / LP窄 / 宽口
-    registrations: Optional[float] = None
-    appointments: Optional[float] = None
-    attendance: Optional[float] = None
-    payments: Optional[float] = None
-    revenue_usd: Optional[float] = None
-    share_pct: Optional[float] = None
+    registrations: float | None = None
+    appointments: float | None = None
+    attendance: float | None = None
+    payments: float | None = None
+    revenue_usd: float | None = None
+    share_pct: float | None = None
 
 
 class RevenueContribution(BaseModel):
     channel: str
-    revenue: Optional[float] = None
-    share: Optional[float] = None
-    per_capita: Optional[float] = None
+    revenue: float | None = None
+    share: float | None = None
+    per_capita: float | None = None
 
 
 class ThreeFactorComparison(BaseModel):
     """三因素对标：预约率/出席率/付费率 × 渠道"""
 
     channel: str
-    expected_volume: Optional[float] = None
-    actual_volume: Optional[float] = None
-    gap: Optional[float] = None
-    appt_factor: Optional[float] = None
-    show_factor: Optional[float] = None
-    pay_factor: Optional[float] = None
+    expected_volume: float | None = None
+    actual_volume: float | None = None
+    gap: float | None = None
+    appt_factor: float | None = None
+    show_factor: float | None = None
+    pay_factor: float | None = None

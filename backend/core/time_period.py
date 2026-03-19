@@ -5,7 +5,6 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import date, timedelta
 from enum import Enum
-from typing import Optional
 
 
 class TimePeriod(str, Enum):
@@ -31,9 +30,9 @@ class PeriodRange:
 
 def resolve_period(
     period: TimePeriod,
-    reference_date: Optional[date] = None,
-    custom_start: Optional[str] = None,
-    custom_end: Optional[str] = None,
+    reference_date: date | None = None,
+    custom_start: str | None = None,
+    custom_end: str | None = None,
 ) -> PeriodRange:
     """将 TimePeriod 枚举解析为具体日期范围，T-1 基准"""
     ref = reference_date or date.today()

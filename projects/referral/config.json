@@ -142,7 +142,14 @@
     "enclosure_health",
     "ranking_enhanced",
     "presentation",
-    "member_profile"
+    "member_profile",
+    "overview",
+    "funnel",
+    "enclosure",
+    "channel",
+    "member_detail",
+    "high_potential",
+    "team_ranking"
   ],
   "enclosure_role_assignment": {
     "CC": {

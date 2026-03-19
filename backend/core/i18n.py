@@ -1,13 +1,11 @@
 """中泰双语翻译系统"""
 
-from typing import Dict
-
 # 支持的语言
 LANGUAGES = {"zh": "中文", "th": "ภาษาไทย"}
 DEFAULT_LANG = "zh"
 
 # 翻译字典
-TRANSLATIONS: Dict[str, Dict[str, Dict[str, str]]] = {}
+TRANSLATIONS: dict[str, dict[str, dict[str, str]]] = {}
 
 # === UI 翻译（Streamlit 界面） ===
 TRANSLATIONS["ui"] = {

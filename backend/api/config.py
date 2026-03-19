@@ -184,7 +184,7 @@ def get_targets_v2(month: str) -> dict[str, Any]:
 
 
 @router.put("/targets/{month}/v2", summary="保存 V2 分层月度目标")
-def put_targets_v2(month: str, body: "MonthlyTargetV2Body") -> dict[str, Any]:
+def put_targets_v2(month: str, body: MonthlyTargetV2Body) -> dict[str, Any]:
     """保存 V2 结构到 targets_override.json (含强校验)"""
     from backend.models.config import MonthlyTargetV2
 
@@ -210,7 +210,7 @@ def put_targets_v2(month: str, body: "MonthlyTargetV2Body") -> dict[str, Any]:
 
 
 @router.post("/targets/{month}/calculate", summary="双向计算目标（V2 结构）")
-def calculate_targets(month: str, body: "MonthlyTargetV2Body") -> dict[str, Any]:
+def calculate_targets(month: str, body: MonthlyTargetV2Body) -> dict[str, Any]:
     """接收部分 V2 输入，返回完整计算结果（双向计算）"""
     from backend.models.config import MonthlyTargetV2
 

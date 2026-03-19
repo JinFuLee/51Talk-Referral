@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Optional
+from typing import Any
 
 from pydantic import BaseModel
 
@@ -11,8 +11,8 @@ class DataSourceStatus(BaseModel):
     id: str
     name: str
     has_file: bool
-    latest_file: Optional[str] = None
-    row_count: Optional[int] = None
+    latest_file: str | None = None
+    row_count: int | None = None
     is_fresh: bool = False
 
 

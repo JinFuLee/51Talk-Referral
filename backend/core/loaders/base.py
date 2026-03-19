@@ -50,7 +50,7 @@ class BaseLoader:
             return False
         return cache_path.stat().st_mtime > file_path.stat().st_mtime
 
-    def _find_latest_file(self, subdir: str) -> Optional[Path]:
+    def _find_latest_file(self, subdir: str) -> Path | None:
         """在子目录中找到最新的 xlsx 文件（按文件名中的时间戳排序）"""
         target_dir = self.input_dir / subdir
         if not target_dir.exists():
@@ -138,7 +138,7 @@ class BaseLoader:
             return self.default_team
         return str(name).strip()
 
-    def _clean_numeric(self, val) -> Optional[float]:
+    def _clean_numeric(self, val) -> float | None:
         """清洗数值：处理 '-', 'NaN', None, 空字符串"""
         if val is None:
             return None
@@ -154,7 +154,7 @@ class BaseLoader:
         except ValueError:
             return None
 
-    def _clean_date(self, val) -> Optional[str]:
+    def _clean_date(self, val) -> str | None:
         """清洗日期：YYYYMMDD 文本 → ISO 格式，过滤无效日期占位符"""
         if val is None:
             return None
