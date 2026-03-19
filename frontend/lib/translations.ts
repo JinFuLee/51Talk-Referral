@@ -507,6 +507,60 @@ export const zhTranslations: Record<string, string> = {
   "biz.leads-overview.gap.wide_lead": "宽口缺口 User Lead Gap",
   "biz.leads-overview.empty": "暂无数据，请确认数据源文件已上传",
   "biz.leads-overview.error": "数据加载失败，请稍后重试",
+
+  // ── 新导航菜单 ────────────────────────────────────────────────────────────────
+  "nav.dashboard": "总览 Dashboard",
+  "nav.funnel": "漏斗分析",
+  "nav.enclosure": "围场分析",
+  "nav.channel": "渠道分析",
+  "nav.members": "学员明细",
+  "nav.highPotential": "高潜学员",
+  "nav.team": "团队汇总",
+  "nav.reports": "分析报告",
+  "nav.settings": "设置",
+
+  // ── 漏斗分析页 ───────────────────────────────────────────────────────────────
+  "funnel.title": "漏斗分析",
+  "funnel.subtitle": "各环节目标 vs 实际 · 场景推演",
+  "funnel.col.stage": "环节",
+  "funnel.col.target": "目标",
+  "funnel.col.actual": "实际",
+  "funnel.col.gap": "差距",
+  "funnel.col.achievement": "达成率",
+  "funnel.col.convRate": "转化率",
+  "funnel.scenario.title": "场景推演",
+
+  // ── 渠道分析页 ───────────────────────────────────────────────────────────────
+  "channel.title": "渠道分析",
+  "channel.subtitle": "CC窄/SS窄/LP窄/宽口 · 业绩归因",
+  "channel.tab.contribution": "业绩贡献",
+  "channel.tab.net": "净拆解",
+  "channel.tab.threeFactor": "三因素对标",
+
+  // ── 围场分析页 ───────────────────────────────────────────────────────────────
+  "enclosure.title": "围场分析",
+  "enclosure.subtitle": "围场分段 × CC 矩阵 · 参与率/带新/带货",
+  "enclosure.col.enclosure": "围场段",
+  "enclosure.col.cc": "CC",
+  "enclosure.col.students": "有效学员",
+  "enclosure.col.participationRate": "参与率",
+  "enclosure.col.newCoeff": "带新系数",
+  "enclosure.col.cargoRatio": "带货比",
+  "enclosure.col.checkinRate": "打卡率",
+
+  // ── 学员明细页 ───────────────────────────────────────────────────────────────
+  "members.title": "学员明细",
+  "members.subtitle": "有效学员列表 · 点击行查看详情",
+  "members.filter.enclosure": "围场筛选",
+  "members.filter.cc": "CC 筛选",
+
+  // ── 高潜学员页 ───────────────────────────────────────────────────────────────
+  "highPotential.title": "高潜学员",
+  "highPotential.subtitle": "带新数高 + 出席活跃 + 付费意向强",
+
+  // ── 团队汇总页 ───────────────────────────────────────────────────────────────
+  "team.title": "团队汇总",
+  "team.subtitle": "各 CC 学员数 · 参与率 · 注册 · 付费对比",
 };
 
 /**
@@ -1002,4 +1056,58 @@ export const thTranslations: Record<string, string> = {
   "biz.leads-overview.gap.wide_lead": "ช่องว่างช่องทางกว้าง User Lead Gap",
   "biz.leads-overview.empty": "ไม่มีข้อมูล กรุณาตรวจสอบว่าอัปโหลดไฟล์แหล่งข้อมูลแล้ว",
   "biz.leads-overview.error": "โหลดข้อมูลล้มเหลว กรุณาลองใหม่ภายหลัง",
+
+  // ── เมนูนำทางใหม่ ─────────────────────────────────────────────────────────────
+  "nav.dashboard": "ภาพรวม Dashboard",
+  "nav.funnel": "วิเคราะห์กรวย",
+  "nav.enclosure": "วิเคราะห์ช่วงวัน",
+  "nav.channel": "วิเคราะห์ช่องทาง",
+  "nav.members": "รายละเอียดนักเรียน",
+  "nav.highPotential": "นักเรียนที่มีศักยภาพสูง",
+  "nav.team": "สรุปทีม",
+  "nav.reports": "รายงาน",
+  "nav.settings": "ตั้งค่า",
+
+  // ── หน้าวิเคราะห์กรวย ─────────────────────────────────────────────────────────
+  "funnel.title": "วิเคราะห์กรวย",
+  "funnel.subtitle": "เป้าหมาย vs จริง · การจำลองสถานการณ์",
+  "funnel.col.stage": "ขั้นตอน",
+  "funnel.col.target": "เป้าหมาย",
+  "funnel.col.actual": "จริง",
+  "funnel.col.gap": "ช่องว่าง",
+  "funnel.col.achievement": "อัตราบรรลุ",
+  "funnel.col.convRate": "อัตราแปลง",
+  "funnel.scenario.title": "จำลองสถานการณ์",
+
+  // ── หน้าวิเคราะห์ช่องทาง ─────────────────────────────────────────────────────
+  "channel.title": "วิเคราะห์ช่องทาง",
+  "channel.subtitle": "CC แคบ/SS แคบ/LP แคบ/กว้าง · การแยกผลงาน",
+  "channel.tab.contribution": "การมีส่วนร่วมรายได้",
+  "channel.tab.net": "การแยกสุทธิ",
+  "channel.tab.threeFactor": "เปรียบเทียบสามปัจจัย",
+
+  // ── หน้าวิเคราะห์ช่วงวัน ─────────────────────────────────────────────────────
+  "enclosure.title": "วิเคราะห์ช่วงวัน",
+  "enclosure.subtitle": "เมทริกซ์ช่วงวัน × CC · อัตราการมีส่วนร่วม/แนะนำใหม่",
+  "enclosure.col.enclosure": "ช่วงวัน",
+  "enclosure.col.cc": "CC",
+  "enclosure.col.students": "นักเรียนที่ active",
+  "enclosure.col.participationRate": "อัตราการมีส่วนร่วม",
+  "enclosure.col.newCoeff": "ค่าสัมประสิทธิ์ใหม่",
+  "enclosure.col.cargoRatio": "อัตราแนะนำ",
+  "enclosure.col.checkinRate": "อัตราเช็คอิน",
+
+  // ── หน้ารายละเอียดนักเรียน ────────────────────────────────────────────────────
+  "members.title": "รายละเอียดนักเรียน",
+  "members.subtitle": "รายการนักเรียน · คลิกแถวเพื่อดูรายละเอียด",
+  "members.filter.enclosure": "กรองช่วงวัน",
+  "members.filter.cc": "กรอง CC",
+
+  // ── หน้านักเรียนที่มีศักยภาพสูง ───────────────────────────────────────────────
+  "highPotential.title": "นักเรียนที่มีศักยภาพสูง",
+  "highPotential.subtitle": "แนะนำมาก + เข้าเรียนสม่ำเสมอ + มีแนวโน้มชำระ",
+
+  // ── หน้าสรุปทีม ────────────────────────────────────────────────────────────────
+  "team.title": "สรุปทีม",
+  "team.subtitle": "จำนวนนักเรียน CC · อัตราการมีส่วนร่วม · ลงทะเบียน · ชำระ",
 };
