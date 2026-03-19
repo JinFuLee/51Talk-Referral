@@ -20,33 +20,71 @@
       "约课率目标": 0.77,
       "出席率目标": 0.66,
       "子口径": {
-        "CC窄口径": {"倒子目标": 217},
-        "SS窄口径": {"倒子目标": 87},
-        "LP窄口径": {"倒子目标": 87},
-        "宽口径": {"倒子目标": 478}
+        "CC窄口径": {
+          "倒子目标": 217
+        },
+        "SS窄口径": {
+          "倒子目标": 87
+        },
+        "LP窄口径": {
+          "倒子目标": 87
+        },
+        "宽口径": {
+          "倒子目标": 478
+        }
       }
     }
   },
   "column_mapping": {
     "总计": {
-      "注册": "C", "预约": "D", "出席": "E", "付费": "F", "美金金额": "G",
-      "注册付费率": "H", "预约率": "I", "预约出席率": "J", "出席付费率": "K"
+      "注册": "C",
+      "预约": "D",
+      "出席": "E",
+      "付费": "F",
+      "美金金额": "G",
+      "注册付费率": "H",
+      "预约率": "I",
+      "预约出席率": "J",
+      "出席付费率": "K"
     },
     "CC窄口径": {
-      "注册": "L", "预约": "M", "出席": "N", "付费": "O", "美金金额": "P",
-      "注册付费率": "Q", "预约率": "R", "预约出席率": "S", "出席付费率": "T"
+      "注册": "L",
+      "预约": "M",
+      "出席": "N",
+      "付费": "O",
+      "美金金额": "P",
+      "注册付费率": "Q",
+      "预约率": "R",
+      "预约出席率": "S",
+      "出席付费率": "T"
     },
     "SS窄口径": {
-      "注册": "U", "预约": "V", "出席": "W", "付费": "X", "美金金额": "Y",
-      "注册付费率": "Z", "预约率": "AA", "预约出席率": "AB", "出席付费率": "AC"
+      "注册": "U",
+      "预约": "V",
+      "出席": "W",
+      "付费": "X",
+      "美金金额": "Y",
+      "注册付费率": "Z",
+      "预约率": "AA",
+      "预约出席率": "AB",
+      "出席付费率": "AC"
     },
     "其它": {
-      "注册": "AD", "预约": "AE", "出席": "AF", "付费": "AG", "美金金额": "AH",
-      "注册付费率": "AI", "预约率": "AJ", "预约出席率": "AK", "出席付费率": "AL"
+      "注册": "AD",
+      "预约": "AE",
+      "出席": "AF",
+      "付费": "AG",
+      "美金金额": "AH",
+      "注册付费率": "AI",
+      "预约率": "AJ",
+      "预约出席率": "AK",
+      "出席付费率": "AL"
     }
   },
   "work_schedule": {
-    "rest_weekdays": [2],
+    "rest_weekdays": [
+      2
+    ],
     "weekend_multiplier": 1.4,
     "day_weights": {
       "0": 1.0,
@@ -75,7 +113,12 @@
     "cm": "LP"
   },
   "default_team_name": "THCC",
-  "channel_labels": ["CC窄口径", "SS窄口径", "LP窄口径", "宽口径"],
+  "channel_labels": [
+    "CC窄口径",
+    "SS窄口径",
+    "LP窄口径",
+    "宽口径"
+  ],
   "gap_thresholds": {
     "green": 0.0,
     "yellow": -0.05
@@ -84,7 +127,9 @@
     "std_threshold": 2.0,
     "decline_threshold": 0.3,
     "conversion_floor": 0.05,
-    "rest_days": [2]
+    "rest_days": [
+      2
+    ]
   },
   "ltv_config": {
     "default_renewal_rate": 0.3,
@@ -97,52 +142,21 @@
     "conversion_rate_full_score": 0.3
   },
   "enabled_modules": [
-    "meta",
-    "summary",
+    "overview",
     "funnel",
-    "channel_comparison",
-    "student_journey",
-    "cc_360",
-    "cohort_roi",
-    "enclosure_cross",
-    "checkin_impact",
-    "productivity",
-    "order_analysis",
-    "outreach_analysis",
-    "trial_followup",
-    "ranking_cc",
-    "ranking_ss_lp",
-    "trend",
-    "prediction",
-    "anomalies"
+    "enclosure",
+    "channel",
+    "members",
+    "high_potential",
+    "team"
   ],
   "enabled_routers": [
     "health",
-    "analysis",
+    "system",
+    "config",
     "reports",
     "datasources",
-    "config",
-    "snapshots",
-    "insights",
-    "system",
-    "cohort_detail",
-    "channel_trend",
-    "outreach_heatmap",
-    "outreach_coverage",
-    "cohort_decay",
-    "north_star",
-    "paid_followup",
-    "cohort_student",
-    "funnel_detail",
-    "channel_mom",
-    "retention_rank",
-    "leads_detail",
-    "productivity_history",
-    "outreach_gap",
-    "enclosure_health",
-    "ranking_enhanced",
     "presentation",
-    "member_profile",
     "overview",
     "funnel",
     "enclosure",
@@ -153,165 +167,203 @@
   ],
   "enclosure_role_assignment": {
     "CC": {
-      "min_days": 0, "max_days": 90,
+      "min_days": 0,
+      "max_days": 90,
       "scope": "full_funnel",
-      "metrics": ["register", "appointment", "showup", "paid", "revenue_usd"],
-      "rates": ["leads_to_pay_rate", "appointment_rate", "appt_showup_rate", "showup_pay_rate"],
+      "metrics": [
+        "register",
+        "appointment",
+        "showup",
+        "paid",
+        "revenue_usd"
+      ],
+      "rates": [
+        "leads_to_pay_rate",
+        "appointment_rate",
+        "appt_showup_rate",
+        "showup_pay_rate"
+      ],
       "description": "0-90天已付费学员：CC负责，全维度全时间转换"
     },
     "SS": {
-      "min_days": 91, "max_days": 120,
+      "min_days": 91,
+      "max_days": 120,
       "scope": "process_and_leads",
-      "metrics": ["register"],
-      "process_metrics": ["contact_rate", "checkin_rate"],
-      "cross_role_metrics": ["leads_to_cc_conversion_rate"],
+      "metrics": [
+        "register"
+      ],
+      "process_metrics": [
+        "contact_rate",
+        "checkin_rate"
+      ],
+      "cross_role_metrics": [
+        "leads_to_cc_conversion_rate"
+      ],
       "description": "91-120天已付费学员：SS负责，转介绍用户数+过程指标（触达率/打卡率）"
     },
     "LP": {
-      "min_days": 121, "max_days": null,
+      "min_days": 121,
+      "max_days": null,
       "scope": "process_and_leads",
-      "metrics": ["register"],
-      "process_metrics": ["contact_rate", "checkin_rate"],
-      "cross_role_metrics": ["leads_to_cc_conversion_rate"],
+      "metrics": [
+        "register"
+      ],
+      "process_metrics": [
+        "contact_rate",
+        "checkin_rate"
+      ],
+      "cross_role_metrics": [
+        "leads_to_cc_conversion_rate"
+      ],
       "description": "121天+已付费学员：LP负责，转介绍用户数+过程指标（触达率/打卡率）"
     }
   },
   "channel_metric_scope": {
     "total": {
       "role": "full_funnel",
-      "metrics": ["register", "appointment", "showup", "paid", "revenue_usd"],
-      "rates": ["leads_to_pay_rate", "appointment_rate", "appt_showup_rate", "showup_pay_rate"],
+      "metrics": [
+        "register",
+        "appointment",
+        "showup",
+        "paid",
+        "revenue_usd"
+      ],
+      "rates": [
+        "leads_to_pay_rate",
+        "appointment_rate",
+        "appt_showup_rate",
+        "showup_pay_rate"
+      ],
       "description": "总计：全漏斗汇总"
     },
     "cc_narrow": {
       "role": "full_funnel",
-      "metrics": ["register", "appointment", "showup", "paid", "revenue_usd"],
-      "rates": ["leads_to_pay_rate", "appointment_rate", "appt_showup_rate", "showup_pay_rate"],
+      "metrics": [
+        "register",
+        "appointment",
+        "showup",
+        "paid",
+        "revenue_usd"
+      ],
+      "rates": [
+        "leads_to_pay_rate",
+        "appointment_rate",
+        "appt_showup_rate",
+        "showup_pay_rate"
+      ],
       "description": "CC 前端销售：过程+效率+结果全指标（0-90天围场）"
     },
     "ss_narrow": {
       "role": "leads_and_process",
-      "metrics": ["register"],
-      "process_metrics": ["contact_rate", "checkin_rate"],
-      "cross_role_metrics": ["leads_to_cc_conversion_rate"],
+      "metrics": [
+        "register"
+      ],
+      "process_metrics": [
+        "contact_rate",
+        "checkin_rate"
+      ],
+      "cross_role_metrics": [
+        "leads_to_cc_conversion_rate"
+      ],
       "rates": [],
       "description": "SS 后端销售：转介绍leads数+过程指标，leads→CC转化率为跨岗效率参考（91-120天围场）"
     },
     "lp_narrow": {
       "role": "leads_and_process",
-      "metrics": ["register"],
-      "process_metrics": ["contact_rate", "checkin_rate"],
-      "cross_role_metrics": ["leads_to_cc_conversion_rate"],
+      "metrics": [
+        "register"
+      ],
+      "process_metrics": [
+        "contact_rate",
+        "checkin_rate"
+      ],
+      "cross_role_metrics": [
+        "leads_to_cc_conversion_rate"
+      ],
       "rates": [],
       "description": "LP 后端服务：转介绍leads数+过程指标，leads→CC转化率为跨岗效率参考（121天+围场）"
     },
     "wide": {
       "role": "leads_only",
-      "metrics": ["register"],
+      "metrics": [
+        "register"
+      ],
       "rates": [],
       "description": "宽口径（学员链接）：仅转介绍leads数"
     }
   },
   "data_source_registry": {
-    "A1": {
-      "name": "BI-Leads_宽口径leads达成_D-1",
-      "loader": "LeadsLoader",
+    "D1": {
+      "name": "转介绍中台检测-结果数据",
+      "loader": "ResultLoader",
       "frequency": "D-1",
-      "channel_complete": true,
-      "channels": ["总计", "CC窄口径", "SS窄口径", "LP窄口径", "宽口径"],
-      "metrics": ["注册", "预约", "出席", "付费", "注册付费率"],
-      "time_dimension": "当月快照",
-      "notes": "原始列名 EA窄→SS, CM窄→LP; 无金额列"
+      "columns": 18,
+      "metrics": [
+        "注册",
+        "预约",
+        "出席",
+        "付费",
+        "客单价",
+        "金额",
+        "转化率",
+        "达成率"
+      ]
     },
-    "A2": {
-      "name": "BI-Leads_全口径转介绍类型-当月效率_D-1",
-      "loader": "LeadsLoader",
+    "D2": {
+      "name": "转介绍中台检测-围场过程数据-byCC",
+      "loader": "EnclosureCCLoader",
       "frequency": "D-1",
-      "channel_complete": true,
-      "channels": ["总计", "CC窄口径", "LP窄口径", "SS窄口径", "宽口径"],
-      "metrics": ["带货比", "参与率", "围场转率", "A学员数", "推荐注册", "推荐付费"],
-      "time_dimension": "当月快照×围场",
-      "notes": "原始列名 CM窄→LP, EA窄→SS"
+      "columns": 25,
+      "metrics": [
+        "参与率",
+        "带新系数",
+        "带货比",
+        "触达率",
+        "打卡率",
+        "注册数",
+        "付费数"
+      ]
     },
-    "A3": {
-      "name": "BI-Leads_全口径leads明细表_D-1",
-      "loader": "LeadsLoader",
+    "D3": {
+      "name": "转介绍中台检测-明细",
+      "loader": "DetailLoader",
       "frequency": "D-1",
-      "channel_complete": false,
-      "channels": ["行级: 转介绍类型_新 可过滤 CC窄/CM窄(LP)/EA窄(SS)/宽口"],
-      "metrics": ["502行明细: 注册/预约/出席/付费/金额/CC分配/SS分配/LP分配"],
-      "time_dimension": "当月",
-      "notes": "需按 Col47 转介绍类型_新 过滤口径"
+      "columns": 19,
+      "metrics": [
+        "注册",
+        "邀约",
+        "出席",
+        "付费",
+        "金额",
+        "打卡",
+        "接通"
+      ]
     },
-    "A4": {
-      "name": "BI-Leads_宽口径leads达成-个人_D-1",
-      "loader": "LeadsLoader",
+    "D4": {
+      "name": "已付费学员转介绍围场明细",
+      "loader": "StudentLoader",
       "frequency": "D-1",
-      "channel_complete": false,
-      "channels": [],
-      "metrics": ["个人维度: leads/预约/出席/付费/转化率"],
-      "time_dimension": "当月",
-      "notes": "无口径拆分"
+      "columns": 59,
+      "metrics": [
+        "打卡",
+        "转码",
+        "课耗",
+        "推荐",
+        "围场",
+        "次卡",
+        "续费"
+      ]
     },
-    "A5": {
-      "name": "宣萱_转介绍不同口径对比_D-1",
-      "loader": "LeadsLoader",
+    "D5": {
+      "name": "转介绍中台监测-高潜学员",
+      "loader": "HighPotentialLoader",
       "frequency": "D-1",
-      "channel_complete": false,
-      "channels": ["总计", "CC窄口径", "SS窄口径", "其它(LP+宽口合并)"],
-      "metrics": ["注册", "预约", "出席", "付费", "美金金额", "注册付费率", "预约率", "预约出席率", "出席付费率"],
-      "time_dimension": "历史月度趋势",
-      "notes": "LP+宽口合并为'其它'不可拆; 唯一有历史月度+金额的数据源; CC/SS 可用"
-    },
-    "C1-C6": {
-      "name": "BI-cohort模型_CC*_M-1",
-      "loader": "CohortLoader",
-      "frequency": "M-1",
-      "channel_complete": false,
-      "channels": ["仅CC"],
-      "metrics": ["触达率", "参与率", "打卡率", "带新系数", "带货比", "明细"],
-      "time_dimension": "月度cohort",
-      "notes": "CC 专属，无 SS/LP/宽口维度"
-    },
-    "K1-K4_N1": {
-      "name": "BI-KPI_* + 北极星_D-1",
-      "loader": "KpiLoader",
-      "frequency": "D-1",
-      "channel_complete": false,
-      "channels": [],
-      "metrics": ["围场数据", "打卡率"],
-      "time_dimension": "当月",
-      "notes": "无口径拆分"
-    },
-    "O1-O8": {
-      "name": "BI-订单_*_D-1",
-      "loader": "OrderLoader",
-      "frequency": "D-1",
-      "channel_complete": false,
-      "channels": ["团队级(THCC/THSS)但非口径"],
-      "metrics": ["订单明细", "业绩趋势", "套餐占比", "渠道金额"],
-      "time_dimension": "日/月",
-      "notes": "渠道=市场/转介绍(非CC/SS/LP口径)"
-    },
-    "F1-F11": {
-      "name": "宣宣/宣萱_*_D-1",
-      "loader": "OpsLoader",
-      "frequency": "D-1",
-      "channel_complete": false,
-      "channels": ["仅CC或无"],
-      "metrics": ["漏斗效率", "截面效率", "外呼", "体验课跟进", "付费跟进"],
-      "time_dimension": "日/月",
-      "notes": "F2/F3 渠道列=市场/转介绍(非口径)"
-    },
-    "R1": {
-      "name": "中台_转介绍ROI测算数据模型_M-1",
-      "loader": "ROILoader",
-      "frequency": "M-1",
-      "channel_complete": false,
-      "channels": [],
-      "metrics": ["ROI成本模型"],
-      "time_dimension": "月度",
-      "notes": "无口径拆分"
+      "columns": 14,
+      "metrics": [
+        "带新人数",
+        "出席数",
+        "付费数"
+      ]
     }
   }
 }
