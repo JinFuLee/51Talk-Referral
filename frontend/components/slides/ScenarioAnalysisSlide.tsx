@@ -32,24 +32,24 @@ export function ScenarioAnalysisSlide({ slideNumber, totalSlides }: ScenarioAnal
         <div className="overflow-auto h-full">
           <table className="w-full text-sm">
             <thead>
-              <tr className="text-left text-xs text-[var(--text-muted)] border-b border-slate-200">
-                <th className="py-3 pr-6">环节</th>
-                <th className="py-3 pr-6 text-right">当前转化率</th>
-                <th className="py-3 pr-6 text-right">场景转化率</th>
-                <th className="py-3 pr-6 text-right">影响注册数</th>
-                <th className="py-3 pr-6 text-right">影响付费数</th>
-                <th className="py-3 text-right">影响业绩</th>
+              <tr className="bg-[var(--n-800)] text-white text-xs font-medium">
+                <th className="py-1.5 px-2 text-left">环节</th>
+                <th className="py-1.5 px-2 text-right">当前转化率</th>
+                <th className="py-1.5 px-2 text-right">场景转化率</th>
+                <th className="py-1.5 px-2 text-right">影响注册数</th>
+                <th className="py-1.5 px-2 text-right">影响付费数</th>
+                <th className="py-1.5 px-2 text-right">影响业绩</th>
               </tr>
             </thead>
             <tbody>
               {scenarios.map((s) => (
                 <tr key={s.stage} className="border-b border-slate-100">
-                  <td className="py-4 pr-6 text-base font-semibold">{s.stage}</td>
-                  <td className="py-4 pr-6 text-right text-[var(--text-secondary)]">{formatRate(s.current_rate)}</td>
-                  <td className="py-4 pr-6 text-right text-blue-600 font-bold">{formatRate(s.scenario_rate)}</td>
-                  <td className="py-4 pr-6 text-right">+{s.impact_registrations.toLocaleString()}</td>
-                  <td className="py-4 pr-6 text-right">+{s.impact_payments.toLocaleString()}</td>
-                  <td className="py-4 text-right text-green-600 font-bold">+${s.impact_revenue.toLocaleString()}</td>
+                  <td className="py-1 px-2 text-xs font-semibold">{s.stage}</td>
+                  <td className="py-1 px-2 text-xs text-right font-mono tabular-nums text-[var(--text-secondary)]">{formatRate(s.current_rate)}</td>
+                  <td className="py-1 px-2 text-xs text-right font-mono tabular-nums text-blue-600 font-bold">{formatRate(s.scenario_rate)}</td>
+                  <td className="py-1 px-2 text-xs text-right font-mono tabular-nums">+{s.impact_registrations.toLocaleString()}</td>
+                  <td className="py-1 px-2 text-xs text-right font-mono tabular-nums">+{s.impact_payments.toLocaleString()}</td>
+                  <td className="py-1 px-2 text-xs text-right font-mono tabular-nums text-green-600 font-bold">+${s.impact_revenue.toLocaleString()}</td>
                 </tr>
               ))}
             </tbody>

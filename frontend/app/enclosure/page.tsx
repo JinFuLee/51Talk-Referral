@@ -62,7 +62,7 @@ export default function EnclosurePage() {
   const rankings = Array.isArray(rankingData) ? rankingData : (rankingData?.rankings ?? []);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       <div>
         <h1 className="text-lg font-bold text-[var(--text-primary)]">围场分析</h1>
         <p className="text-sm text-[var(--text-secondary)] mt-1">围场分段 × CC 矩阵 · 参与率/带新/带货</p>

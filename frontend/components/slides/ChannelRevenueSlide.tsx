@@ -100,11 +100,11 @@ export function ChannelRevenueSlide({
           <div className="flex-1 overflow-auto">
             <table className="w-full text-sm border-collapse">
               <thead>
-                <tr className="bg-slate-50 text-[var(--text-secondary)] text-xs uppercase tracking-wide">
-                  <th className="text-left px-4 py-3 font-semibold">渠道</th>
-                  <th className="text-right px-4 py-3 font-semibold">人均金额</th>
-                  <th className="text-right px-4 py-3 font-semibold">总金额</th>
-                  <th className="text-right px-4 py-3 font-semibold">占比</th>
+                <tr className="bg-[var(--n-800)] text-white text-xs font-medium">
+                  <th className="text-left px-2 py-1.5">渠道</th>
+                  <th className="text-right px-2 py-1.5">人均金额</th>
+                  <th className="text-right px-2 py-1.5">总金额</th>
+                  <th className="text-right px-2 py-1.5">占比</th>
                 </tr>
               </thead>
               <tbody>
@@ -116,22 +116,22 @@ export function ChannelRevenueSlide({
                       key={c.channel}
                       className={i % 2 === 0 ? "bg-[var(--bg-surface)]" : "bg-slate-50/50"}
                     >
-                      <td className="px-4 py-3 font-semibold text-[var(--text-primary)] flex items-center gap-2">
+                      <td className="px-2 py-1 text-xs font-semibold text-[var(--text-primary)] flex items-center gap-2">
                         <span
-                          className="inline-block w-2.5 h-2.5 rounded-full"
+                          className="inline-block w-2 h-2 rounded-full"
                           style={{
                             backgroundColor: COLORS[i % COLORS.length],
                           }}
                         />
                         {c.channel}
                       </td>
-                      <td className="px-4 py-3 text-right text-blue-700 font-semibold">
+                      <td className="px-2 py-1 text-xs text-right font-mono tabular-nums text-blue-700 font-semibold">
                         {formatRevenue(c.per_capita_usd ?? 0)}
                       </td>
-                      <td className="px-4 py-3 text-right font-medium text-[var(--text-primary)]">
+                      <td className="px-2 py-1 text-xs text-right font-mono tabular-nums font-medium text-[var(--text-primary)]">
                         {formatRevenue(c.paid_amount_usd)}
                       </td>
-                      <td className="px-4 py-3 text-right text-[var(--text-muted)]">
+                      <td className="px-2 py-1 text-xs text-right font-mono tabular-nums text-[var(--text-muted)]">
                         {formatRate(pct)}
                       </td>
                     </tr>
@@ -140,12 +140,12 @@ export function ChannelRevenueSlide({
               </tbody>
               <tfoot>
                 <tr className="border-t-2 border-slate-200 bg-slate-100 font-bold text-[var(--text-primary)]">
-                  <td className="px-4 py-3">合计</td>
-                  <td className="px-4 py-3 text-right text-[var(--text-muted)]">—</td>
-                  <td className="px-4 py-3 text-right">
+                  <td className="px-2 py-1 text-xs">合计</td>
+                  <td className="px-2 py-1 text-xs text-right font-mono tabular-nums text-[var(--text-muted)]">—</td>
+                  <td className="px-2 py-1 text-xs text-right font-mono tabular-nums">
                     {formatRevenue(totalAmount)}
                   </td>
-                  <td className="px-4 py-3 text-right text-[var(--text-muted)]">100%</td>
+                  <td className="px-2 py-1 text-xs text-right font-mono tabular-nums text-[var(--text-muted)]">100%</td>
                 </tr>
               </tfoot>
             </table>

@@ -61,7 +61,7 @@ export default function ChannelPage() {
     }));
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       <div>
         <h1 className="text-lg font-bold text-[var(--text-primary)]">渠道分析</h1>
         <p className="text-sm text-[var(--text-secondary)] mt-1">CC窄/SS窄/LP窄/宽口 · 业绩归因</p>

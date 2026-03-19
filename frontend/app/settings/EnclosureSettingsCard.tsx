@@ -68,10 +68,10 @@ export default function EnclosureSettingsCard({
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-slate-100">
-                <th className="text-left py-2 font-medium text-[var(--text-secondary)]">指标</th>
+              <tr className="bg-[var(--n-800)] text-white text-xs font-medium">
+                <th className="text-left py-1.5 px-2">指标</th>
                 {ENCLOSURE_KEYS.map((k) => (
-                  <th key={k} className="text-right py-2 font-medium text-[var(--text-secondary)]">
+                  <th key={k} className="text-right py-1.5 px-2">
                     {ENCLOSURE_LABELS[k]}
                   </th>
                 ))}
@@ -80,9 +80,9 @@ export default function EnclosureSettingsCard({
             <tbody>
               {ENCLOSURE_METRICS.map(({ key: metric, label }) => (
                 <tr key={metric} className="border-b border-slate-50">
-                  <td className="py-2 text-[var(--text-secondary)]">{label}</td>
+                  <td className="py-1 px-2 text-xs text-[var(--text-secondary)]">{label}</td>
                   {ENCLOSURE_KEYS.map((k) => (
-                    <td key={k} className="py-2 text-right">
+                    <td key={k} className="py-1 px-2 text-xs text-right">
                       <PctInput
                         value={(enclosures[k] ?? EMPTY_ENCLOSURE)[metric]}
                         onChange={(v) => onUpdateEnclosure(k, { [metric]: v })}

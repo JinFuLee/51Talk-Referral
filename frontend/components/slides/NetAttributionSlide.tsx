@@ -51,13 +51,13 @@ export function NetAttributionSlide({
         <div className="overflow-auto h-full">
           <table className="w-full text-sm border-collapse">
             <thead>
-              <tr className="bg-slate-50 text-[var(--text-secondary)] text-xs uppercase tracking-wide">
-                <th className="text-left px-4 py-3 font-semibold">渠道</th>
-                <th className="text-right px-4 py-3 font-semibold">注册数</th>
-                <th className="text-right px-4 py-3 font-semibold">付费人数</th>
-                <th className="text-right px-4 py-3 font-semibold">总业绩</th>
-                <th className="text-right px-4 py-3 font-semibold">人均业绩</th>
-                <th className="text-right px-4 py-3 font-semibold">注册均价</th>
+              <tr className="bg-[var(--n-800)] text-white text-xs font-medium">
+                <th className="text-left px-2 py-1.5">渠道</th>
+                <th className="text-right px-2 py-1.5">注册数</th>
+                <th className="text-right px-2 py-1.5">付费人数</th>
+                <th className="text-right px-2 py-1.5">总业绩</th>
+                <th className="text-right px-2 py-1.5">人均业绩</th>
+                <th className="text-right px-2 py-1.5">注册均价</th>
               </tr>
             </thead>
             <tbody>
@@ -73,22 +73,22 @@ export function NetAttributionSlide({
                     key={c.channel}
                     className={i % 2 === 0 ? "bg-[var(--bg-surface)]" : "bg-slate-50/50"}
                   >
-                    <td className="px-4 py-3 font-semibold text-[var(--text-primary)]">
+                    <td className="px-2 py-1 text-xs font-semibold text-[var(--text-primary)]">
                       {c.channel}
                     </td>
-                    <td className="px-4 py-3 text-right text-[var(--text-secondary)]">
+                    <td className="px-2 py-1 text-xs text-right font-mono tabular-nums text-[var(--text-secondary)]">
                       {c.registrations.toLocaleString()}
                     </td>
-                    <td className="px-4 py-3 text-right text-[var(--text-secondary)]">
+                    <td className="px-2 py-1 text-xs text-right font-mono tabular-nums text-[var(--text-secondary)]">
                       {c.paid_count.toLocaleString()}
                     </td>
-                    <td className="px-4 py-3 text-right font-medium text-[var(--text-primary)]">
+                    <td className="px-2 py-1 text-xs text-right font-mono tabular-nums font-medium text-[var(--text-primary)]">
                       {formatRevenue(c.paid_amount_usd)}
                     </td>
-                    <td className="px-4 py-3 text-right font-semibold text-blue-700">
+                    <td className="px-2 py-1 text-xs text-right font-mono tabular-nums font-semibold text-blue-700">
                       {formatRevenue(perPaid)}
                     </td>
-                    <td className="px-4 py-3 text-right text-[var(--text-secondary)]">
+                    <td className="px-2 py-1 text-xs text-right font-mono tabular-nums text-[var(--text-secondary)]">
                       {formatRevenue(perReg)}
                     </td>
                   </tr>

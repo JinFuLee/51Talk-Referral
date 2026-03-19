@@ -94,7 +94,7 @@ export default function FunnelPage() {
     }));
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       <div>
         <h1 className="text-lg font-bold text-[var(--text-primary)]">漏斗分析</h1>
         <p className="text-sm text-[var(--text-secondary)] mt-1">各环节目标 vs 实际 · 场景推演</p>

@@ -35,8 +35,8 @@ function GapCell({
       ? "text-yellow-600 bg-yellow-50"
       : "text-red-600 bg-red-50";
   return (
-    <td className="px-4 py-3 text-right">
-      <span className={`inline-block px-2 py-0.5 rounded text-xs font-bold ${color}`}>
+    <td className="px-2 py-1 text-xs text-right font-mono tabular-nums">
+      <span className={`inline-block px-1.5 py-0.5 rounded text-xs font-bold ${color}`}>
         {gap >= 0 ? "+" : ""}{formatRate(gap)}
       </span>
     </td>
@@ -77,19 +77,19 @@ export function FunnelAttributionSlide({
         <div className="overflow-auto h-full">
           <table className="w-full text-sm border-collapse">
             <thead>
-              <tr className="bg-slate-50 text-[var(--text-secondary)] text-xs uppercase tracking-wide">
-                <th className="text-left px-4 py-3 font-semibold" rowSpan={2}>渠道</th>
-                <th className="text-center px-4 py-2 font-semibold border-b border-slate-200" colSpan={2}>预约率</th>
-                <th className="text-center px-4 py-2 font-semibold border-b border-slate-200" colSpan={2}>出席率</th>
-                <th className="text-center px-4 py-2 font-semibold border-b border-slate-200" colSpan={2}>付费率</th>
+              <tr className="bg-[var(--n-800)] text-white text-xs font-medium">
+                <th className="text-left px-2 py-1.5" rowSpan={2}>渠道</th>
+                <th className="text-center px-2 py-1.5 border-b border-white/20" colSpan={2}>预约率</th>
+                <th className="text-center px-2 py-1.5 border-b border-white/20" colSpan={2}>出席率</th>
+                <th className="text-center px-2 py-1.5 border-b border-white/20" colSpan={2}>付费率</th>
               </tr>
-              <tr className="bg-slate-50 text-[var(--text-muted)] text-xs">
-                <th className="text-right px-4 py-2 font-medium">实际</th>
-                <th className="text-right px-4 py-2 font-medium">差距</th>
-                <th className="text-right px-4 py-2 font-medium">实际</th>
-                <th className="text-right px-4 py-2 font-medium">差距</th>
-                <th className="text-right px-4 py-2 font-medium">实际</th>
-                <th className="text-right px-4 py-2 font-medium">差距</th>
+              <tr className="bg-[var(--n-800)] text-white/80 text-xs font-medium">
+                <th className="text-right px-2 py-1.5">实际</th>
+                <th className="text-right px-2 py-1.5">差距</th>
+                <th className="text-right px-2 py-1.5">实际</th>
+                <th className="text-right px-2 py-1.5">差距</th>
+                <th className="text-right px-2 py-1.5">实际</th>
+                <th className="text-right px-2 py-1.5">差距</th>
               </tr>
             </thead>
             <tbody>
@@ -98,24 +98,24 @@ export function FunnelAttributionSlide({
                   key={c.channel}
                   className={i % 2 === 0 ? "bg-[var(--bg-surface)]" : "bg-slate-50/50"}
                 >
-                  <td className="px-4 py-3 font-semibold text-[var(--text-primary)]">
+                  <td className="px-2 py-1 text-xs font-semibold text-[var(--text-primary)]">
                     {c.channel}
                   </td>
-                  <td className="px-4 py-3 text-right text-[var(--text-secondary)]">
+                  <td className="px-2 py-1 text-xs text-right font-mono tabular-nums text-[var(--text-secondary)]">
                     {formatRate(c.appointment_rate)}
                   </td>
                   <GapCell
                     actual={c.appointment_rate}
                     target={c.appointment_rate_target ?? 0}
                   />
-                  <td className="px-4 py-3 text-right text-[var(--text-secondary)]">
+                  <td className="px-2 py-1 text-xs text-right font-mono tabular-nums text-[var(--text-secondary)]">
                     {formatRate(c.attendance_rate)}
                   </td>
                   <GapCell
                     actual={c.attendance_rate}
                     target={c.attendance_rate_target ?? 0}
                   />
-                  <td className="px-4 py-3 text-right text-[var(--text-secondary)]">
+                  <td className="px-2 py-1 text-xs text-right font-mono tabular-nums text-[var(--text-secondary)]">
                     {formatRate(c.paid_rate)}
                   </td>
                   <GapCell

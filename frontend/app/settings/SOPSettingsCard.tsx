@@ -34,7 +34,7 @@ export default function SOPSettingsCard({
       actions={<CollapseToggle open={open} onToggle={onToggle} />}
     >
       {open ? (
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 gap-2">
           <div>
             <label className="text-xs text-[var(--text-secondary)] mb-1 block">24H打卡率</label>
             <PctInput

@@ -53,13 +53,13 @@ export function RevenueContributionSlide({
         <div className="overflow-auto h-full">
           <table className="w-full text-sm border-collapse">
             <thead>
-              <tr className="bg-slate-50 text-[var(--text-secondary)] text-xs uppercase tracking-wide">
-                <th className="text-left px-4 py-3 font-semibold">渠道</th>
-                <th className="text-right px-4 py-3 font-semibold">注册数</th>
-                <th className="text-right px-4 py-3 font-semibold">注册占比</th>
-                <th className="text-right px-4 py-3 font-semibold">付费金额</th>
-                <th className="text-right px-4 py-3 font-semibold">金额占比</th>
-                <th className="text-right px-4 py-3 font-semibold">付费率</th>
+              <tr className="bg-[var(--n-800)] text-white text-xs font-medium">
+                <th className="text-left px-2 py-1.5">渠道</th>
+                <th className="text-right px-2 py-1.5">注册数</th>
+                <th className="text-right px-2 py-1.5">注册占比</th>
+                <th className="text-right px-2 py-1.5">付费金额</th>
+                <th className="text-right px-2 py-1.5">金额占比</th>
+                <th className="text-right px-2 py-1.5">付费率</th>
               </tr>
             </thead>
             <tbody>
@@ -75,22 +75,22 @@ export function RevenueContributionSlide({
                     key={c.channel}
                     className={i % 2 === 0 ? "bg-[var(--bg-surface)]" : "bg-slate-50/50"}
                   >
-                    <td className="px-4 py-3 font-semibold text-[var(--text-primary)]">
+                    <td className="px-2 py-1 text-xs font-semibold text-[var(--text-primary)]">
                       {c.channel}
                     </td>
-                    <td className="px-4 py-3 text-right text-[var(--text-secondary)]">
+                    <td className="px-2 py-1 text-xs text-right font-mono tabular-nums text-[var(--text-secondary)]">
                       {c.registrations.toLocaleString()}
                     </td>
-                    <td className="px-4 py-3 text-right text-[var(--text-muted)]">
+                    <td className="px-2 py-1 text-xs text-right font-mono tabular-nums text-[var(--text-muted)]">
                       {formatRate(regPct)}
                     </td>
-                    <td className="px-4 py-3 text-right font-medium text-[var(--text-primary)]">
+                    <td className="px-2 py-1 text-xs text-right font-mono tabular-nums font-medium text-[var(--text-primary)]">
                       {formatRevenue(c.paid_amount_usd)}
                     </td>
-                    <td className="px-4 py-3 text-right text-[var(--text-muted)]">
+                    <td className="px-2 py-1 text-xs text-right font-mono tabular-nums text-[var(--text-muted)]">
                       {formatRate(amtPct)}
                     </td>
-                    <td className="px-4 py-3 text-right">
+                    <td className="px-2 py-1 text-xs text-right font-mono tabular-nums">
                       <span
                         className={
                           c.paid_ratio >= 0.1
@@ -109,16 +109,16 @@ export function RevenueContributionSlide({
             </tbody>
             <tfoot>
               <tr className="border-t-2 border-slate-200 bg-slate-100 font-bold text-[var(--text-primary)]">
-                <td className="px-4 py-3">合计</td>
-                <td className="px-4 py-3 text-right">
+                <td className="px-2 py-1 text-xs">合计</td>
+                <td className="px-2 py-1 text-xs text-right font-mono tabular-nums">
                   {totalRegistrations.toLocaleString()}
                 </td>
-                <td className="px-4 py-3 text-right text-[var(--text-muted)]">100%</td>
-                <td className="px-4 py-3 text-right">
+                <td className="px-2 py-1 text-xs text-right font-mono tabular-nums text-[var(--text-muted)]">100%</td>
+                <td className="px-2 py-1 text-xs text-right font-mono tabular-nums">
                   {formatRevenue(totalAmount)}
                 </td>
-                <td className="px-4 py-3 text-right text-[var(--text-muted)]">100%</td>
-                <td className="px-4 py-3 text-right text-[var(--text-muted)]">—</td>
+                <td className="px-2 py-1 text-xs text-right font-mono tabular-nums text-[var(--text-muted)]">100%</td>
+                <td className="px-2 py-1 text-xs text-right font-mono tabular-nums text-[var(--text-muted)]">—</td>
               </tr>
             </tfoot>
           </table>

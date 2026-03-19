@@ -52,13 +52,13 @@ export function RevenueDecompositionSlide({
         <div className="overflow-auto h-full">
           <table className="w-full text-sm border-collapse">
             <thead>
-              <tr className="bg-slate-50 text-[var(--text-secondary)] text-xs uppercase tracking-wide">
-                <th className="text-left px-4 py-3 font-semibold">渠道</th>
-                <th className="text-right px-4 py-3 font-semibold">目标金额</th>
-                <th className="text-right px-4 py-3 font-semibold">实际金额</th>
-                <th className="text-right px-4 py-3 font-semibold">差距</th>
-                <th className="text-right px-4 py-3 font-semibold">达成率</th>
-                <th className="px-4 py-3 font-semibold">进度</th>
+              <tr className="bg-[var(--n-800)] text-white text-xs font-medium">
+                <th className="text-left px-2 py-1.5">渠道</th>
+                <th className="text-right px-2 py-1.5">目标金额</th>
+                <th className="text-right px-2 py-1.5">实际金额</th>
+                <th className="text-right px-2 py-1.5">差距</th>
+                <th className="text-right px-2 py-1.5">达成率</th>
+                <th className="px-2 py-1.5">进度</th>
               </tr>
             </thead>
             <tbody>
@@ -70,17 +70,17 @@ export function RevenueDecompositionSlide({
                     key={c.channel}
                     className={i % 2 === 0 ? "bg-[var(--bg-surface)]" : "bg-slate-50/50"}
                   >
-                    <td className="px-4 py-3 font-semibold text-[var(--text-primary)]">
+                    <td className="px-2 py-1 text-xs font-semibold text-[var(--text-primary)]">
                       {c.channel}
                     </td>
-                    <td className="px-4 py-3 text-right text-[var(--text-secondary)]">
+                    <td className="px-2 py-1 text-xs text-right font-mono tabular-nums text-[var(--text-secondary)]">
                       {formatRevenue(c.target_amount_usd)}
                     </td>
-                    <td className="px-4 py-3 text-right font-medium text-[var(--text-primary)]">
+                    <td className="px-2 py-1 text-xs text-right font-mono tabular-nums font-medium text-[var(--text-primary)]">
                       {formatRevenue(c.actual_amount_usd)}
                     </td>
                     <td
-                      className={`px-4 py-3 text-right font-bold ${
+                      className={`px-2 py-1 text-xs text-right font-mono tabular-nums font-bold ${
                         isGood ? "text-green-600" : "text-red-500"
                       }`}
                     >
@@ -88,7 +88,7 @@ export function RevenueDecompositionSlide({
                       {formatRevenue(c.gap_usd)}
                     </td>
                     <td
-                      className={`px-4 py-3 text-right font-semibold ${
+                      className={`px-2 py-1 text-xs text-right font-mono tabular-nums font-semibold ${
                         c.achievement_rate >= 1
                           ? "text-green-600"
                           : c.achievement_rate >= 0.8
@@ -98,7 +98,7 @@ export function RevenueDecompositionSlide({
                     >
                       {formatRate(c.achievement_rate)}
                     </td>
-                    <td className="px-4 py-3 w-32">
+                    <td className="px-2 py-1 w-32">
                       <div className="w-full bg-slate-200 rounded-full h-2">
                         <div
                           className={`h-2 rounded-full ${

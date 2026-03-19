@@ -85,30 +85,30 @@ export function ThreeFactorSlide({
         <div className="overflow-auto h-full">
           <table className="w-full text-sm border-collapse">
             <thead>
-              <tr className="bg-slate-50 text-[var(--text-secondary)] text-xs uppercase tracking-wide">
-                <th className="text-left px-4 py-3 font-semibold" rowSpan={2}>
+              <tr className="bg-[var(--n-800)] text-white text-xs font-medium">
+                <th className="text-left px-2 py-1.5" rowSpan={2}>
                   渠道
                 </th>
                 <th
-                  className="text-center px-4 py-2 font-semibold border-b border-slate-200"
+                  className="text-center px-2 py-1.5 border-b border-white/20"
                   colSpan={3}
                 >
                   单量
                 </th>
                 <th
-                  className="text-center px-4 py-2 font-semibold border-b border-slate-200"
+                  className="text-center px-2 py-1.5 border-b border-white/20"
                   colSpan={3}
                 >
                   三因素
                 </th>
               </tr>
-              <tr className="bg-slate-50 text-[var(--text-muted)] text-xs">
-                <th className="text-right px-4 py-2 font-medium">预期</th>
-                <th className="text-right px-4 py-2 font-medium">实际</th>
-                <th className="text-right px-4 py-2 font-medium">差距</th>
-                <th className="text-right px-4 py-2 font-medium">预约</th>
-                <th className="text-right px-4 py-2 font-medium">出席</th>
-                <th className="text-right px-4 py-2 font-medium">付费</th>
+              <tr className="bg-[var(--n-800)] text-white/80 text-xs font-medium">
+                <th className="text-right px-2 py-1.5">预期</th>
+                <th className="text-right px-2 py-1.5">实际</th>
+                <th className="text-right px-2 py-1.5">差距</th>
+                <th className="text-right px-2 py-1.5">预约</th>
+                <th className="text-right px-2 py-1.5">出席</th>
+                <th className="text-right px-2 py-1.5">付费</th>
               </tr>
             </thead>
             <tbody>
@@ -117,25 +117,25 @@ export function ThreeFactorSlide({
                   key={c.channel}
                   className={i % 2 === 0 ? "bg-[var(--bg-surface)]" : "bg-slate-50/50"}
                 >
-                  <td className="px-4 py-3 font-semibold text-[var(--text-primary)]">
+                  <td className="px-2 py-1 text-xs font-semibold text-[var(--text-primary)]">
                     {c.channel}
                   </td>
-                  <td className="px-4 py-3 text-right text-[var(--text-secondary)]">
+                  <td className="px-2 py-1 text-xs text-right font-mono tabular-nums text-[var(--text-secondary)]">
                     {c.expected_orders.toLocaleString()}
                   </td>
-                  <td className="px-4 py-3 text-right font-medium text-[var(--text-primary)]">
+                  <td className="px-2 py-1 text-xs text-right font-mono tabular-nums font-medium text-[var(--text-primary)]">
                     {c.actual_orders.toLocaleString()}
                   </td>
-                  <td className="px-4 py-3 text-right">
+                  <td className="px-2 py-1 text-xs text-right font-mono tabular-nums">
                     <GapBadge gap={c.gap_orders} />
                   </td>
-                  <td className="px-4 py-3 text-right">
+                  <td className="px-2 py-1 text-xs text-right">
                     <FactorBadge value={c.appointment_factor ?? 0} />
                   </td>
-                  <td className="px-4 py-3 text-right">
+                  <td className="px-2 py-1 text-xs text-right">
                     <FactorBadge value={c.attendance_factor ?? 0} />
                   </td>
-                  <td className="px-4 py-3 text-right">
+                  <td className="px-2 py-1 text-xs text-right">
                     <FactorBadge value={c.paid_factor ?? 0} />
                   </td>
                 </tr>

@@ -24,13 +24,13 @@ export default function TargetSettingsCard({
       {/* 智能推荐 */}
       {recommendation && (
         <Card title="智能推荐">
-          <div className="space-y-4">
+          <div className="space-y-2">
             <div className="text-xs text-[var(--text-secondary)]">
               历史增长率：注册 {(recommendation.growth_rates.reg * 100).toFixed(1)}% ·{" "}
               付费 {(recommendation.growth_rates.paid * 100).toFixed(1)}% ·{" "}
               收入 {(recommendation.growth_rates.revenue * 100).toFixed(1)}%
             </div>
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-3 gap-2">
               {(["conservative", "base", "aggressive"] as const).map((key) => {
                 const s = recommendation.scenarios[key];
                 const colors: Record<typeof key, string> = {
@@ -63,7 +63,7 @@ export default function TargetSettingsCard({
 
       {/* 硬性目标 */}
       <Card title="硬性目标 (L1)">
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 gap-2">
           <div>
             <label className="text-xs text-[var(--text-secondary)] mb-1 block">HQ总业绩目标</label>
             <NumInput
