@@ -38,8 +38,8 @@ interface FunnelResponse {
 export default function FunnelPage() {
   const { data: funnelData, isLoading: fLoading, error: fError } =
     useSWR<FunnelResult>("/api/funnel", swrFetcher);
-  const { data: scenarioData, isLoading: sLoading } =
-    useSWR<ScenarioResult[]>("/api/funnel/scenario", swrFetcher);
+  const { data: scenarioRaw, isLoading: sLoading } =
+    useSWR("/api/funnel/scenario", swrFetcher);
 
   const isLoading = fLoading || sLoading;
 
@@ -60,8 +60,12 @@ export default function FunnelPage() {
     );
   }
 
-  const stages = funnelData?.stages ?? [];
-  const scenarios = scenarioData ?? [];
+  const stages = (funnelData?.stages ?? []).filter(
+    (s) => s.target != null || s.actual != null
+  );
+  const scenarios = Array.isArray(scenarioRaw)
+    ? scenarioRaw.filter((s: ScenarioResult) => s.impact_registrations != null)
+    : [];
 
   const conversionChartData = stages
     .filter((s) => s.conversion_rate !== undefined)
@@ -101,25 +105,25 @@ export default function FunnelPage() {
                   <tr key={s.name} className="border-b border-slate-50">
                     <td className="py-2.5 pr-4 font-medium">{s.name}</td>
                     <td className="py-2.5 pr-4 text-right text-slate-500">
-                      {s.target.toLocaleString()}
+                      {(s.target ?? 0).toLocaleString()}
                     </td>
                     <td className="py-2.5 pr-4 text-right font-semibold">
-                      {s.actual.toLocaleString()}
+                      {(s.actual ?? 0).toLocaleString()}
                     </td>
                     <td
                       className={`py-2.5 pr-4 text-right font-medium ${
-                        s.gap >= 0 ? "text-green-600" : "text-red-500"
+                        (s.gap ?? 0) >= 0 ? "text-green-600" : "text-red-500"
                       }`}
                     >
-                      {s.gap >= 0 ? "+" : ""}
-                      {s.gap.toLocaleString()}
+                      {(s.gap ?? 0) >= 0 ? "+" : ""}
+                      {(s.gap ?? 0).toLocaleString()}
                     </td>
                     <td className="py-2.5 pr-4 text-right">
                       <span
                         className={`font-medium ${
-                          s.achievement_rate >= 1
+                          (s.achievement_rate ?? 0) >= 1
                             ? "text-green-600"
-                            : s.achievement_rate >= 0.8
+                            : (s.achievement_rate ?? 0) >= 0.8
                             ? "text-yellow-600"
                             : "text-red-500"
                         }`}
@@ -193,13 +197,13 @@ export default function FunnelPage() {
                       {formatRate(s.scenario_rate)}
                     </td>
                     <td className="py-2.5 pr-4 text-right">
-                      +{s.impact_registrations.toLocaleString()}
+                      +{(s.impact_registrations ?? 0).toLocaleString()}
                     </td>
                     <td className="py-2.5 pr-4 text-right">
-                      +{s.impact_payments.toLocaleString()}
+                      +{(s.impact_payments ?? 0).toLocaleString()}
                     </td>
                     <td className="py-2.5 text-right text-green-600 font-medium">
-                      +${s.impact_revenue.toLocaleString()}
+                      +${(s.impact_revenue ?? 0).toLocaleString()}
                     </td>
                   </tr>
                 ))}

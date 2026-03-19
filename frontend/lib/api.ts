@@ -356,9 +356,21 @@ export const snapshotsAPI = {
 };
 
 // ── SWR fetcher ──────────────────────────────────────────────────────────────
-export const swrFetcher = (url: string) =>
-  fetch(url).then((r) => {
-    if (!r.ok) throw new Error(`HTTP ${r.status}`);
-    return r.json();
-  });
+export const swrFetcher = async (url: string) => {
+  const r = await fetch(url);
+  if (!r.ok) {
+    const body = await r.text().catch(() => "");
+    // 自动上报 API 错误到崩溃日志
+    const { errorLogger } = await import("./error-logger");
+    errorLogger.capture({
+      type: "api_error",
+      message: `HTTP ${r.status} ${r.statusText}`,
+      api: url,
+      status: r.status,
+      response: body.slice(0, 500),
+    });
+    throw new Error(`HTTP ${r.status}`);
+  }
+  return r.json();
+};
 

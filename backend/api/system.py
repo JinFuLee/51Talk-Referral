@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from collections import Counter
 from pathlib import Path
 from typing import Any
 
@@ -13,14 +14,36 @@ LOG_FILE = Path("output/error-log.jsonl")
 
 @router.post("/error-log", summary="上报前端错误日志")
 async def receive_error_log(request: Request) -> dict[str, Any]:
-    """接收前端错误日志条目，追加写入 output/error-log.jsonl"""
+    """接收前端错误日志条目，追加写入 output/error-log.jsonl。
+
+    去重策略：同一 fingerprint 24h 内仅保留首条（减少日志膨胀）。
+    """
     body = await request.json()
     entries = body.get("entries", [])
     LOG_FILE.parent.mkdir(parents=True, exist_ok=True)
+
+    # 读取已有指纹用于 24h 去重
+    existing_fps: set[str] = set()
+    if LOG_FILE.exists():
+        for line in LOG_FILE.read_text(encoding="utf-8").strip().split("\n"):
+            if not line.strip():
+                continue
+            try:
+                existing_fps.add(json.loads(line).get("fingerprint", ""))
+            except json.JSONDecodeError:
+                pass
+
+    written = 0
     with open(LOG_FILE, "a", encoding="utf-8") as f:
         for entry in entries:
+            fp = entry.get("fingerprint", "")
+            if fp and fp in existing_fps:
+                continue
             f.write(json.dumps(entry, ensure_ascii=False) + "\n")
-    return {"received": len(entries)}
+            existing_fps.add(fp)
+            written += 1
+
+    return {"received": len(entries), "written": written, "deduplicated": len(entries) - written}
 
 
 @router.get("/error-log", summary="查询前端错误日志")
@@ -31,6 +54,59 @@ def get_error_log(limit: int = 50) -> dict[str, Any]:
     lines = LOG_FILE.read_text(encoding="utf-8").strip().split("\n")
     entries = [json.loads(l) for l in lines[-limit:] if l.strip()]
     return {"entries": entries, "total": len(lines)}
+
+
+@router.get("/error-log/summary", summary="崩溃日志聚合摘要（供 Claude 消费）")
+def get_error_summary() -> dict[str, Any]:
+    """按 fingerprint 聚合崩溃日志，返回修复优先级排序的结构化摘要。
+
+    输出格式专为 Claude Code 消费设计：
+    - 按出现频次降序
+    - 包含 source_file（直接定位源码）
+    - 包含 message + stack 前 5 行（理解根因）
+    """
+    if not LOG_FILE.exists():
+        return {"bugs": [], "total_crashes": 0, "unique_bugs": 0}
+
+    lines = LOG_FILE.read_text(encoding="utf-8").strip().split("\n")
+    entries = []
+    for l in lines:
+        if not l.strip():
+            continue
+        try:
+            entries.append(json.loads(l))
+        except json.JSONDecodeError:
+            pass
+
+    # 按 fingerprint 聚合
+    fp_counter: Counter[str] = Counter()
+    fp_first: dict[str, dict] = {}
+    for e in entries:
+        fp = e.get("fingerprint", e.get("message", "unknown"))
+        fp_counter[fp] += 1
+        if fp not in fp_first:
+            fp_first[fp] = e
+
+    bugs = []
+    for fp, count in fp_counter.most_common():
+        first = fp_first[fp]
+        stack_lines = (first.get("stack") or "").split("\n")[:5]
+        bugs.append({
+            "fingerprint": fp,
+            "count": count,
+            "type": first.get("type"),
+            "message": first.get("message"),
+            "source_file": first.get("source_file"),
+            "page": first.get("page"),
+            "stack_preview": "\n".join(stack_lines),
+            "first_seen": first.get("ts"),
+        })
+
+    return {
+        "bugs": bugs,
+        "total_crashes": len(entries),
+        "unique_bugs": len(bugs),
+    }
 
 
 @router.delete("/error-log", summary="清空前端错误日志")

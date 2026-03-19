@@ -79,6 +79,23 @@ Excel 数据源 → XlsxReader → DataProcessor → AnalysisEngine → Markdown
 - **CLI 单次处理**: `uv run python src/main.py --once <file.xlsx>`
 - **CLI 监控模式**: `uv run python src/main.py --watch`
 - **测试**: `uv run pytest`
+- **启动后端**: `DATA_SOURCE_DIR="$HOME/Desktop/转介绍中台监测指标" uv run uvicorn backend.main:app --host 0.0.0.0 --port 8100 --reload`
+- **启动前端**: `cd frontend && npm run dev`（端口 3100，rewrites 到 8100）
+- **崩溃日志摘要**: `curl -s http://localhost:8100/api/system/error-log/summary`
+
+## 崩溃自动收集系统（SEE 闭环）
+
+前端运行时错误自动收集到 `output/error-log.jsonl`，供下次 Claude 会话消费。
+
+**链路**: ErrorBoundary + window.onerror + SWR API 错误 → `errorLogger` → POST `/api/system/error-log` → `output/error-log.jsonl`
+**去重**: 前端 fingerprint 5 分钟窗口去重 + 后端 24h 指纹去重
+**消费**: `GET /api/system/error-log/summary` 返回按频次排序的结构化 bug 列表
+
+**Claude 修复 bug 工作流**:
+1. 读取 `output/error-log.jsonl` 或调用 `curl http://localhost:8100/api/system/error-log/summary`
+2. 按 `source_file` 定位崩溃源文件，按 `stack_preview` 理解根因
+3. 修复后调用 `DELETE /api/system/error-log` 清空已修复的日志
+4. 用户说"修 bug" = 先读崩溃日志，按优先级（count 降序）逐个修复
 
 ## 代码规范
 - 类型注解必须（Python 3.11+ 语法）
