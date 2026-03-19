@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import contextlib
 import json
 from collections import Counter
 from pathlib import Path
@@ -10,6 +11,17 @@ from fastapi import APIRouter, Request
 router = APIRouter(prefix="/api/system", tags=["system"])
 
 LOG_FILE = Path("output/error-log.jsonl")
+
+
+def _parse_jsonl(text: str) -> list[dict]:
+    """解析 JSONL 文本，跳过无效行。"""
+    result = []
+    for line in text.strip().split("\n"):
+        if not line.strip():
+            continue
+        with contextlib.suppress(json.JSONDecodeError):
+            result.append(json.loads(line))
+    return result
 
 
 @router.post("/error-log", summary="上报前端错误日志")
@@ -25,13 +37,8 @@ async def receive_error_log(request: Request) -> dict[str, Any]:
     # 读取已有指纹用于 24h 去重
     existing_fps: set[str] = set()
     if LOG_FILE.exists():
-        for line in LOG_FILE.read_text(encoding="utf-8").strip().split("\n"):
-            if not line.strip():
-                continue
-            try:
-                existing_fps.add(json.loads(line).get("fingerprint", ""))
-            except json.JSONDecodeError:
-                pass
+        for row in _parse_jsonl(LOG_FILE.read_text(encoding="utf-8")):
+            existing_fps.add(row.get("fingerprint", ""))
 
     written = 0
     with open(LOG_FILE, "a", encoding="utf-8") as f:
@@ -43,7 +50,12 @@ async def receive_error_log(request: Request) -> dict[str, Any]:
             existing_fps.add(fp)
             written += 1
 
-    return {"received": len(entries), "written": written, "deduplicated": len(entries) - written}
+    deduped = len(entries) - written
+    return {
+        "received": len(entries),
+        "written": written,
+        "deduplicated": deduped,
+    }
 
 
 @router.get("/error-log", summary="查询前端错误日志")
@@ -51,9 +63,8 @@ def get_error_log(limit: int = 50) -> dict[str, Any]:
     """读取最近 N 条前端错误日志记录"""
     if not LOG_FILE.exists():
         return {"entries": [], "total": 0}
-    lines = LOG_FILE.read_text(encoding="utf-8").strip().split("\n")
-    entries = [json.loads(l) for l in lines[-limit:] if l.strip()]
-    return {"entries": entries, "total": len(lines)}
+    all_entries = _parse_jsonl(LOG_FILE.read_text(encoding="utf-8"))
+    return {"entries": all_entries[-limit:], "total": len(all_entries)}
 
 
 @router.get("/error-log/summary", summary="崩溃日志聚合摘要（供 Claude 消费）")
@@ -68,24 +79,16 @@ def get_error_summary() -> dict[str, Any]:
     if not LOG_FILE.exists():
         return {"bugs": [], "total_crashes": 0, "unique_bugs": 0}
 
-    lines = LOG_FILE.read_text(encoding="utf-8").strip().split("\n")
-    entries = []
-    for l in lines:
-        if not l.strip():
-            continue
-        try:
-            entries.append(json.loads(l))
-        except json.JSONDecodeError:
-            pass
+    entries = _parse_jsonl(LOG_FILE.read_text(encoding="utf-8"))
 
     # 按 fingerprint 聚合
     fp_counter: Counter[str] = Counter()
     fp_first: dict[str, dict] = {}
-    for e in entries:
-        fp = e.get("fingerprint", e.get("message", "unknown"))
+    for entry in entries:
+        fp = entry.get("fingerprint", entry.get("message", "unknown"))
         fp_counter[fp] += 1
         if fp not in fp_first:
-            fp_first[fp] = e
+            fp_first[fp] = entry
 
     bugs = []
     for fp, count in fp_counter.most_common():
