@@ -1,1 +1,0 @@
-export { WebMCPProvider } from './provider';

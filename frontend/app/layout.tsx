@@ -4,7 +4,6 @@ import { SWRProvider } from "@/components/providers/SWRProvider";
 import { NavSidebar } from "@/components/layout/NavSidebar";
 import { Topbar } from "@/components/layout/Topbar";
 import { ComparisonBanner } from "@/components/shared/ComparisonBanner";
-import { WebMCPProvider } from "@/lib/webmcp";
 import { ErrorBoundary } from "@/components/providers/ErrorBoundary";
 import { ToastProvider } from "@/components/providers/ToastProvider";
 import { HtmlLangUpdater } from "@/components/providers/HtmlLangUpdater";
@@ -27,7 +26,6 @@ export default function RootLayout({
     <html lang="zh-CN">
       <body className={inter.className}>
         <ErrorBoundary>
-          <WebMCPProvider>
             <SWRProvider>
               <div className="flex h-screen overflow-hidden bg-slate-50 presentation-expand relative">
                 <div className="hide-in-presentation shrink-0 h-full">
@@ -50,7 +48,6 @@ export default function RootLayout({
               <ToastProvider />
               <HtmlLangUpdater />
             </SWRProvider>
-          </WebMCPProvider>
         </ErrorBoundary>
       </body>
     </html>
