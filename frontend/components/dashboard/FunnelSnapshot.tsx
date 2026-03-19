@@ -38,11 +38,11 @@ export function FunnelSnapshot({ stages }: FunnelSnapshotProps) {
             : "bg-red-400";
         return (
           <div key={`${from}-${to}`}>
-            <div className="flex justify-between text-xs text-slate-500 mb-1">
+            <div className="flex justify-between text-xs text-[var(--text-secondary)] mb-1">
               <span>
                 {from} → {to}
               </span>
-              <span className="font-medium text-slate-700">
+              <span className="font-medium text-[var(--text-primary)]">
                 {formatRate(rate)}
               </span>
             </div>

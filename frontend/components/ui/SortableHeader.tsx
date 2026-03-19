@@ -30,7 +30,7 @@ export function SortableHeader({
       title={`点击按 ${label} 排序`}
       className={cn(
         "group cursor-pointer p-4 text-sm font-medium transition-colors select-none",
-        isActive ? "bg-slate-50 text-slate-900" : "text-slate-500 hover:bg-slate-50 hover:text-slate-700",
+        isActive ? "bg-slate-50 text-[var(--text-primary)]" : "text-[var(--text-secondary)] hover:bg-slate-50 hover:text-[var(--text-primary)]",
         align === "right" ? "text-right" : align === "center" ? "text-center" : "text-left",
         className
       )}
@@ -49,8 +49,8 @@ export function SortableHeader({
             )
           ) : (
             <>
-              <ChevronUp className="w-3 h-3 text-slate-400" />
-              <ChevronDown className="w-3 h-3 text-slate-400" />
+              <ChevronUp className="w-3 h-3 text-[var(--text-muted)]" />
+              <ChevronDown className="w-3 h-3 text-[var(--text-muted)]" />
             </>
           )}
         </div>

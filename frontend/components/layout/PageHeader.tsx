@@ -17,7 +17,7 @@ export function PageHeader({
   subtitle,
   icon: Icon,
   badge,
-  badgeColor = "bg-slate-100 text-slate-600",
+  badgeColor = "bg-slate-100 text-[var(--text-secondary)]",
   children,
 }: PageHeaderProps) {
   return (
@@ -25,12 +25,12 @@ export function PageHeader({
       <div className="flex items-center gap-3">
         {Icon && (
           <div className="p-2 rounded-lg bg-slate-50 border border-slate-100">
-            <Icon className="w-5 h-5 text-slate-600" aria-hidden="true" />
+            <Icon className="w-5 h-5 text-[var(--text-secondary)]" aria-hidden="true" />
           </div>
         )}
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-xl font-bold text-slate-900">{title}</h1>
+            <h1 className="text-xl font-bold text-[var(--text-primary)]">{title}</h1>
             {badge && (
               <span
                 className={`text-xs px-2 py-0.5 rounded-full font-medium ${badgeColor}`}
@@ -40,7 +40,7 @@ export function PageHeader({
             )}
           </div>
           {subtitle && (
-            <p className="text-xs text-slate-400 mt-0.5">{subtitle}</p>
+            <p className="text-xs text-[var(--text-muted)] mt-0.5">{subtitle}</p>
           )}
         </div>
       </div>

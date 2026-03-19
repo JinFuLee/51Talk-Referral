@@ -77,7 +77,7 @@ export function CoPilotTerminal() {
             <TerminalIcon className="w-4 h-4 text-brand-400" />
             <span className="text-sm font-semibold tracking-tight text-slate-200">Co-pilot Terminal</span>
           </div>
-          <button onClick={() => setIsOpen(false)} className="text-slate-400 hover:text-white transition-colors">
+          <button onClick={() => setIsOpen(false)} className="text-[var(--text-muted)] hover:text-white transition-colors">
             <X className="w-4 h-4" />
           </button>
         </div>
@@ -133,7 +133,7 @@ export function CoPilotTerminal() {
             <button
               onClick={handleSend}
               disabled={!input.trim() || isTyping}
-              className="absolute right-2 text-slate-400 hover:text-brand-400 disabled:opacity-50 transition-colors"
+              className="absolute right-2 text-[var(--text-muted)] hover:text-brand-400 disabled:opacity-50 transition-colors"
             >
               <Send className="w-4 h-4" />
             </button>

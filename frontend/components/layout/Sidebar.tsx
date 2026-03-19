@@ -22,7 +22,7 @@ export function Sidebar() {
     <aside className="w-56 bg-slate-900 flex flex-col shrink-0">
       <div className="px-4 py-5 border-b border-slate-700">
         <div className="text-white font-bold text-sm leading-tight">ref-ops-engine</div>
-        <div className="text-slate-400 text-xs mt-0.5">51Talk 泰国转介绍</div>
+        <div className="text-[var(--text-muted)] text-xs mt-0.5">51Talk 泰国转介绍</div>
       </div>
 
       <nav className="flex-1 px-2 py-4 space-y-0.5 overflow-y-auto">
@@ -38,7 +38,7 @@ export function Sidebar() {
                 "flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
                 isActive
                   ? "bg-primary text-primary-foreground"
-                  : "text-slate-400 hover:text-white hover:bg-slate-800"
+                  : "text-[var(--text-muted)] hover:text-white hover:bg-slate-800"
               )}
             >
               {item.label}
@@ -48,7 +48,7 @@ export function Sidebar() {
       </nav>
 
       <div className="px-4 py-3 border-t border-slate-700">
-        <p className="text-xs text-slate-500">M9 · Next.js 前端</p>
+        <p className="text-xs text-[var(--text-secondary)]">M9 · Next.js 前端</p>
       </div>
     </aside>
   );

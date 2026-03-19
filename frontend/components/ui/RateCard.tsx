@@ -28,7 +28,7 @@ function RateCardBase({ label, rate, sub, target }: RateCardProps) {
       ? "text-warning"
       : status === "red"
       ? "text-destructive"
-      : "text-slate-700";
+      : "text-[var(--text-primary)]";
 
   const barColor =
     status === "green"
@@ -41,9 +41,9 @@ function RateCardBase({ label, rate, sub, target }: RateCardProps) {
 
   return (
     <div className="rounded-xl border border-slate-200 bg-[var(--bg-surface)] p-4">
-      <p className="text-xs text-slate-500 mb-2">{label}</p>
+      <p className="text-xs text-[var(--text-secondary)] mb-2">{label}</p>
       <p className={`text-3xl font-bold ${textColor}`}>{pct}%</p>
-      {sub && <p className="text-xs text-slate-400 mt-1">{sub}</p>}
+      {sub && <p className="text-xs text-[var(--text-muted)] mt-1">{sub}</p>}
       {targetPct !== undefined && (
         <>
           <div className="mt-3 w-full bg-slate-100 rounded-full h-1.5">
@@ -52,7 +52,7 @@ function RateCardBase({ label, rate, sub, target }: RateCardProps) {
               style={{ width: `${Math.min(pct, 100)}%` }}
             />
           </div>
-          <p className="text-xs text-slate-400 mt-1">目标 {targetPct}%</p>
+          <p className="text-xs text-[var(--text-muted)] mt-1">目标 {targetPct}%</p>
         </>
       )}
     </div>

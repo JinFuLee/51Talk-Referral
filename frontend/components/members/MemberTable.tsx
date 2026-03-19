@@ -23,7 +23,7 @@ export function MemberTable({
 
   if (items.length === 0) {
     return (
-      <div className="text-center py-8 text-sm text-slate-400">
+      <div className="text-center py-8 text-sm text-[var(--text-muted)]">
         暂无学员数据，上传数据文件后自动刷新或调整筛选条件
       </div>
     );
@@ -34,7 +34,7 @@ export function MemberTable({
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
-            <tr className="text-left text-xs text-slate-400 border-b border-slate-100">
+            <tr className="text-left text-xs text-[var(--text-muted)] border-b border-slate-100">
               <th className="py-2 pr-3 font-medium">ID</th>
               <th className="py-2 pr-3 font-medium">姓名</th>
               <th className="py-2 pr-3 font-medium">围场</th>
@@ -57,9 +57,9 @@ export function MemberTable({
               >
                 <td className="py-2.5 pr-3 text-blue-600 font-medium tabular-nums">{m.id}</td>
                 <td className="py-2.5 pr-3">{m.name || "—"}</td>
-                <td className="py-2.5 pr-3 text-slate-500 text-xs">{m.enclosure}</td>
+                <td className="py-2.5 pr-3 text-[var(--text-secondary)] text-xs">{m.enclosure}</td>
                 <td className="py-2.5 pr-3">
-                  <span className="px-2 py-0.5 bg-slate-100 rounded text-xs text-slate-600">
+                  <span className="px-2 py-0.5 bg-slate-100 rounded text-xs text-[var(--text-secondary)]">
                     {m.lifecycle}
                   </span>
                 </td>
@@ -75,7 +75,7 @@ export function MemberTable({
       </div>
 
       <div className="flex items-center justify-between mt-4 pt-4 border-t border-slate-100">
-        <span className="text-xs text-slate-400">
+        <span className="text-xs text-[var(--text-muted)]">
           第 {page} / {totalPages} 页，共 {total} 条
         </span>
         <div className="flex gap-2">

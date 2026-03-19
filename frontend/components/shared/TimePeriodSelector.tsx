@@ -74,7 +74,7 @@ export function TimePeriodSelector() {
   return (
     <div className="flex items-center gap-2">
       <Select value={period} onValueChange={handlePeriodChange}>
-        <SelectTrigger className="h-8 w-[120px] rounded-full border border-slate-200 bg-slate-50 px-3 py-0 text-xs font-semibold text-slate-600 shadow-none focus:ring-1 focus:ring-slate-300">
+        <SelectTrigger className="h-8 w-[120px] rounded-full border border-slate-200 bg-slate-50 px-3 py-0 text-xs font-semibold text-[var(--text-secondary)] shadow-none focus:ring-1 focus:ring-slate-300">
           <SelectValue placeholder="选择时段" />
         </SelectTrigger>
         <SelectContent>
@@ -92,20 +92,20 @@ export function TimePeriodSelector() {
             type="date"
             value={customStart ?? ""}
             onChange={(e) => handleCustomDateChange("start", e.target.value)}
-            className="h-8 rounded-lg border border-slate-200 bg-slate-50 px-2 text-xs font-medium text-slate-600 focus:outline-none focus:ring-1 focus:ring-slate-300"
+            className="h-8 rounded-lg border border-slate-200 bg-slate-50 px-2 text-xs font-medium text-[var(--text-secondary)] focus:outline-none focus:ring-1 focus:ring-slate-300"
           />
-          <span className="text-xs text-slate-400">—</span>
+          <span className="text-xs text-[var(--text-muted)]">—</span>
           <input
             type="date"
             value={customEnd ?? ""}
             onChange={(e) => handleCustomDateChange("end", e.target.value)}
-            className="h-8 rounded-lg border border-slate-200 bg-slate-50 px-2 text-xs font-medium text-slate-600 focus:outline-none focus:ring-1 focus:ring-slate-300"
+            className="h-8 rounded-lg border border-slate-200 bg-slate-50 px-2 text-xs font-medium text-[var(--text-secondary)] focus:outline-none focus:ring-1 focus:ring-slate-300"
           />
         </div>
       )}
 
       {loading && (
-        <Loader2 className="h-3.5 w-3.5 animate-spin text-slate-400" />
+        <Loader2 className="h-3.5 w-3.5 animate-spin text-[var(--text-muted)]" />
       )}
     </div>
   );

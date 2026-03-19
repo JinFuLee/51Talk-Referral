@@ -47,7 +47,7 @@ export function CCRankingTable({ rankings }: CCRankingTableProps) {
 
   if (rankings.length === 0) {
     return (
-      <div className="text-center py-8 text-sm text-slate-400">
+      <div className="text-center py-8 text-sm text-[var(--text-muted)]">
         暂无 CC 排名数据
       </div>
     );
@@ -57,7 +57,7 @@ export function CCRankingTable({ rankings }: CCRankingTableProps) {
     <div className="overflow-x-auto">
       <table className="w-full text-sm">
         <thead>
-          <tr className="text-left text-xs text-slate-400 border-b border-slate-100">
+          <tr className="text-left text-xs text-[var(--text-muted)] border-b border-slate-100">
             <th className="py-2 pr-3 font-medium">排名</th>
             <th className="py-2 pr-3 font-medium">CC 姓名</th>
             <th className="py-2 pr-3 font-medium">组别</th>
@@ -67,7 +67,7 @@ export function CCRankingTable({ rankings }: CCRankingTableProps) {
             {COLUMNS.map((col) => (
               <th
                 key={col.key}
-                className="py-2 pr-3 text-right font-medium cursor-pointer hover:text-slate-600 select-none"
+                className="py-2 pr-3 text-right font-medium cursor-pointer hover:text-[var(--text-secondary)] select-none"
                 onClick={() => handleSort(col.key)}
               >
                 {col.label}
@@ -87,17 +87,17 @@ export function CCRankingTable({ rankings }: CCRankingTableProps) {
                     i === 0
                       ? "bg-yellow-100 text-yellow-700"
                       : i === 1
-                      ? "bg-slate-100 text-slate-600"
+                      ? "bg-slate-100 text-[var(--text-secondary)]"
                       : i === 2
                       ? "bg-orange-50 text-orange-600"
-                      : "text-slate-400 text-xs"
+                      : "text-[var(--text-muted)] text-xs"
                   }`}
                 >
                   {i + 1}
                 </span>
               </td>
               <td className="py-2.5 pr-3 font-medium">{r.cc_name}</td>
-              <td className="py-2.5 pr-3 text-slate-500 text-xs">{r.cc_group}</td>
+              <td className="py-2.5 pr-3 text-[var(--text-secondary)] text-xs">{r.cc_group}</td>
               {r.students !== undefined && (
                 <td className="py-2.5 pr-3 text-right tabular-nums">{r.students.toLocaleString()}</td>
               )}

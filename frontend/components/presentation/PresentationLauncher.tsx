@@ -73,7 +73,7 @@ export function PresentationLauncher() {
     <div className="flex flex-col gap-8 max-w-4xl mx-auto py-8">
       {/* Scene selection */}
       <div>
-        <p className="text-sm font-semibold text-slate-500 uppercase tracking-widest mb-4">
+        <p className="text-sm font-semibold text-[var(--text-secondary)] uppercase tracking-widest mb-4">
           选择汇报场景
         </p>
         <div className="grid grid-cols-3 gap-4">
@@ -96,16 +96,16 @@ export function PresentationLauncher() {
                 <div
                   className={clsx(
                     "rounded-xl p-3",
-                    isSelected ? "bg-primary text-white" : "bg-slate-100 text-slate-600"
+                    isSelected ? "bg-primary text-white" : "bg-slate-100 text-[var(--text-secondary)]"
                   )}
                 >
                   {scene.icon}
                 </div>
                 <div>
-                  <p className={clsx("text-lg font-bold", isSelected ? "text-primary" : "text-slate-800")}>
+                  <p className={clsx("text-lg font-bold", isSelected ? "text-primary" : "text-[var(--text-primary)]")}>
                     {scene.title}
                   </p>
-                  <p className="text-sm text-slate-500 mt-1 leading-snug">{scene.description}</p>
+                  <p className="text-sm text-[var(--text-secondary)] mt-1 leading-snug">{scene.description}</p>
                 </div>
               </button>
             );
@@ -124,7 +124,7 @@ export function PresentationLauncher() {
               to   { opacity: 1; transform: translateY(0); }
             }
           `}</style>
-          <p className="text-sm font-semibold text-slate-500 uppercase tracking-widest mb-4 flex items-center gap-2">
+          <p className="text-sm font-semibold text-[var(--text-secondary)] uppercase tracking-widest mb-4 flex items-center gap-2">
             <Clock className="w-4 h-4" />
             选择时间维度
           </p>
@@ -142,11 +142,11 @@ export function PresentationLauncher() {
                     !allowed && "opacity-30 cursor-not-allowed",
                     isSelected
                       ? "border-primary bg-primary/5 text-primary"
-                      : "border-slate-200 bg-[var(--bg-surface)] hover:border-slate-300 text-slate-700"
+                      : "border-slate-200 bg-[var(--bg-surface)] hover:border-slate-300 text-[var(--text-primary)]"
                   )}
                 >
                   <span className="text-base font-bold">{tf.label}</span>
-                  <span className="text-xs text-slate-400">{tf.sublabel}</span>
+                  <span className="text-xs text-[var(--text-muted)]">{tf.sublabel}</span>
                 </button>
               );
             })}
@@ -163,7 +163,7 @@ export function PresentationLauncher() {
             "flex items-center gap-3 px-8 py-4 rounded-[var(--radius-xl)] text-lg font-bold transition-all duration-200",
             selectedScene && selectedTimeframe
               ? "bg-primary text-white shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 hover:-translate-y-0.5"
-              : "bg-slate-100 text-slate-400 cursor-not-allowed"
+              : "bg-slate-100 text-[var(--text-muted)] cursor-not-allowed"
           )}
         >
           <Play className="w-5 h-5" />

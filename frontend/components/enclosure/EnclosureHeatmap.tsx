@@ -16,7 +16,7 @@ function heatmapBg(value: number, low: number, high: number): string {
 export function EnclosureHeatmap({ metrics }: EnclosureHeatmapProps) {
   if (metrics.length === 0) {
     return (
-      <div className="text-center py-8 text-sm text-slate-400">
+      <div className="text-center py-8 text-sm text-[var(--text-muted)]">
         暂无围场数据，上传数据文件后自动刷新
       </div>
     );
@@ -26,7 +26,7 @@ export function EnclosureHeatmap({ metrics }: EnclosureHeatmapProps) {
     <div className="overflow-x-auto">
       <table className="w-full text-sm border-collapse">
         <thead>
-          <tr className="text-left text-xs text-slate-400 border-b border-slate-100">
+          <tr className="text-left text-xs text-[var(--text-muted)] border-b border-slate-100">
             <th className="py-2 pr-3 font-medium">围场段</th>
             <th className="py-2 pr-3 font-medium">CC</th>
             <th className="py-2 pr-3 text-right font-medium">有效学员</th>
@@ -40,7 +40,7 @@ export function EnclosureHeatmap({ metrics }: EnclosureHeatmapProps) {
         <tbody>
           {metrics.map((r, i) => (
             <tr key={i} className="border-b border-slate-50 hover:bg-slate-50">
-              <td className="py-2 pr-3 text-slate-500 text-xs">{r.enclosure}</td>
+              <td className="py-2 pr-3 text-[var(--text-secondary)] text-xs">{r.enclosure}</td>
               <td className="py-2 pr-3 font-medium">{r.cc_name}</td>
               <td className="py-2 pr-3 text-right tabular-nums">{r.students.toLocaleString()}</td>
               <td className="py-2 pr-3 text-center">
