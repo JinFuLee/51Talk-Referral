@@ -91,11 +91,11 @@ body {
   :root {
     /* FlashUI Light Theme (通透/极简) */
     --background: 40 33% 98%; /* Warm Neutral 暖米白，对齐 --bg-primary #FAFAF5 */
-    --foreground: 222.2 20% 25%; /* 降饱和度的深灰，不要纯黑 */
+    --foreground: 240 3% 11%; /* Warm Neutral n-900 #1A1A1C */
     --card: 0 0% 100%;
-    --card-foreground: 222.2 20% 25%;
+    --card-foreground: 240 3% 11%;
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 20% 25%;
+    --popover-foreground: 240 3% 11%;
 
     /* 核心点缀色（深暖灰绿，克制不跳，Apple/Notion 风格） */
     --primary: 160 30% 38%; /* 深暖灰绿 #44806B */
