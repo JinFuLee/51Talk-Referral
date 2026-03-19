@@ -149,7 +149,7 @@ export default function EnclosurePage() {
               </thead>
               <tbody>
                 {rankings.map((r, i) => (
-                  <tr key={r.cc_name} className="even:bg-[var(--bg-subtle)]">
+                  <tr key={`${r.cc_name}-${i}`} className="even:bg-[var(--bg-subtle)]">
                     <td className="py-1 px-2 text-xs">
                       <span
                         className={`inline-flex w-6 h-6 items-center justify-center rounded-full text-xs font-bold ${
