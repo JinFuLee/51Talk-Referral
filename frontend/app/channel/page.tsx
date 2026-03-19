@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import useSWR from "swr";
-import { swrFetcher, formatRevenue, formatRate } from "@/lib/utils";
+import { swrFetcher } from "@/lib/api";
+import { formatRevenue, formatRate } from "@/lib/utils";
 import { Card } from "@/components/ui/Card";
 import { Spinner } from "@/components/ui/Spinner";
 import { EmptyState } from "@/components/ui/EmptyState";

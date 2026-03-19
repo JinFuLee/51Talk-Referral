@@ -9,7 +9,8 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
-import { swrFetcher, formatRevenue, formatRate } from "@/lib/utils";
+import { swrFetcher } from "@/lib/api";
+import { formatRevenue, formatRate } from "@/lib/utils";
 import { SlideShell } from "@/components/presentation/SlideShell";
 import { Spinner } from "@/components/ui/Spinner";
 

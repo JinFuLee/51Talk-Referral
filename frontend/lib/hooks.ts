@@ -34,7 +34,7 @@ import type {
   ComparisonResponse,
   LeadsOverviewData,
 } from "./types";
-import type { CCDetailData } from "./types/analysis";
+// CCDetailData removed — legacy analysis types deleted in refactor
 
 const REFRESH_30S: SWRConfiguration = { refreshInterval: 30_000 };
 
@@ -506,14 +506,7 @@ export function useNotifications() {
   return _useNotificationStore();
 }
 
-// ── CC Drawer ─────────────────────────────────────────────────────────────────
-
-export function useCCDetail(ccName: string | null) {
-  return useSWR<CCDetailData>(
-    ccName ? `/api/analysis/cc-detail/${encodeURIComponent(ccName)}` : null,
-    swrFetcher
-  );
-}
+// ── CC Drawer (legacy, removed in refactor) ──────────────────────────────────
 
 // ── i18n ──────────────────────────────────────────────────────────────────────
 // 内部改用 i18n.ts 纯函数，对外 API 不变（向后兼容所有 39 处调用）

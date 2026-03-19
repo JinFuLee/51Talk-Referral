@@ -1,7 +1,8 @@
 "use client";
 
 import useSWR from "swr";
-import { swrFetcher, formatRate } from "@/lib/utils";
+import { swrFetcher } from "@/lib/api";
+import { formatRate } from "@/lib/utils";
 import { SlideShell } from "@/components/presentation/SlideShell";
 import { Spinner } from "@/components/ui/Spinner";
 

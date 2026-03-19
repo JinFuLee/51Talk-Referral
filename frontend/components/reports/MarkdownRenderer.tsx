@@ -2,9 +2,12 @@
 
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { TrendLineChart } from "@/components/charts/TrendLineChart";
-import { PieChart } from "@/components/charts/PieChart";
-import { FunnelChart, FunnelStage } from "@/components/charts/FunnelChart";
+// Charts removed in refactor — inline Recharts used in pages directly
+// TrendLineChart, PieChart, FunnelChart stubs for report rendering
+const TrendLineChart = (_props: Record<string, unknown>) => null;
+const PieChart = (_props: Record<string, unknown>) => null;
+const FunnelChart = (_props: Record<string, unknown>) => null;
+type FunnelStage = { name: string; value: number };
 
 // ── Mermaid parsers ───────────────────────────────────────────────────────────
 

@@ -1,7 +1,7 @@
 "use client";
 
 import useSWR from "swr";
-import { swrFetcher } from "@/lib/utils";
+import { swrFetcher } from "@/lib/api";
 import { Spinner } from "@/components/ui/Spinner";
 import { EmptyState } from "@/components/ui/EmptyState";
 import type { HighPotentialStudent } from "@/lib/types/member";
