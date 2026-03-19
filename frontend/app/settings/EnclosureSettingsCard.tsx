@@ -31,7 +31,7 @@ function CollapseToggle({ open, onToggle }: CollapseToggleProps) {
   return (
     <button
       onClick={onToggle}
-      className="text-xs text-slate-500 hover:text-slate-800 flex items-center gap-1 transition-colors focus-visible:ring-2 focus-visible:ring-brand-500 rounded"
+      className="text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)] flex items-center gap-1 transition-colors focus-visible:ring-2 focus-visible:ring-brand-500 rounded"
     >
       <span>{open ? "▼ 收起" : "▶ 展开"}</span>
     </button>
@@ -69,9 +69,9 @@ export default function EnclosureSettingsCard({
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-slate-100">
-                <th className="text-left py-2 font-medium text-slate-500">指标</th>
+                <th className="text-left py-2 font-medium text-[var(--text-secondary)]">指标</th>
                 {ENCLOSURE_KEYS.map((k) => (
-                  <th key={k} className="text-right py-2 font-medium text-slate-500">
+                  <th key={k} className="text-right py-2 font-medium text-[var(--text-secondary)]">
                     {ENCLOSURE_LABELS[k]}
                   </th>
                 ))}
@@ -80,7 +80,7 @@ export default function EnclosureSettingsCard({
             <tbody>
               {ENCLOSURE_METRICS.map(({ key: metric, label }) => (
                 <tr key={metric} className="border-b border-slate-50">
-                  <td className="py-2 text-slate-700">{label}</td>
+                  <td className="py-2 text-[var(--text-secondary)]">{label}</td>
                   {ENCLOSURE_KEYS.map((k) => (
                     <td key={k} className="py-2 text-right">
                       <PctInput
@@ -95,7 +95,7 @@ export default function EnclosureSettingsCard({
           </table>
         </div>
       ) : (
-        <p className="text-sm text-slate-400">点击右上角展开配置</p>
+        <p className="text-sm text-[var(--text-muted)]">点击右上角展开配置</p>
       )}
     </Card>
   );

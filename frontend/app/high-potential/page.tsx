@@ -61,13 +61,13 @@ function HighPotentialCard({ student }: { student: HighPotentialStudent }) {
         )}
         {student.ss_name && (
           <div className="flex justify-between text-xs">
-            <span className="text-slate-400">SS</span>
+            <span className="text-[var(--text-muted)]">SS</span>
             <span className="font-medium">{student.ss_group} · {student.ss_name}</span>
           </div>
         )}
         {student.lp_name && (
           <div className="flex justify-between text-xs">
-            <span className="text-slate-400">LP</span>
+            <span className="text-[var(--text-muted)]">LP</span>
             <span className="font-medium">{student.lp_group} · {student.lp_name}</span>
           </div>
         )}

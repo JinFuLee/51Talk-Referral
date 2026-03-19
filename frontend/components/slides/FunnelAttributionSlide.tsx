@@ -69,7 +69,7 @@ export function FunnelAttributionSlide({
           <Spinner size="lg" />
         </div>
       ) : channels.length === 0 ? (
-        <div className="flex flex-col justify-center items-center h-full gap-3 text-slate-400">
+        <div className="flex flex-col justify-center items-center h-full gap-3 text-[var(--text-muted)]">
           <p className="text-lg font-medium">暂无渠道转化率数据</p>
           <p className="text-sm">请确认 /api/channel 已返回转化率字段</p>
         </div>
@@ -77,13 +77,13 @@ export function FunnelAttributionSlide({
         <div className="overflow-auto h-full">
           <table className="w-full text-sm border-collapse">
             <thead>
-              <tr className="bg-slate-50 text-slate-500 text-xs uppercase tracking-wide">
+              <tr className="bg-slate-50 text-[var(--text-secondary)] text-xs uppercase tracking-wide">
                 <th className="text-left px-4 py-3 font-semibold" rowSpan={2}>渠道</th>
                 <th className="text-center px-4 py-2 font-semibold border-b border-slate-200" colSpan={2}>预约率</th>
                 <th className="text-center px-4 py-2 font-semibold border-b border-slate-200" colSpan={2}>出席率</th>
                 <th className="text-center px-4 py-2 font-semibold border-b border-slate-200" colSpan={2}>付费率</th>
               </tr>
-              <tr className="bg-slate-50 text-slate-400 text-xs">
+              <tr className="bg-slate-50 text-[var(--text-muted)] text-xs">
                 <th className="text-right px-4 py-2 font-medium">实际</th>
                 <th className="text-right px-4 py-2 font-medium">差距</th>
                 <th className="text-right px-4 py-2 font-medium">实际</th>
@@ -98,24 +98,24 @@ export function FunnelAttributionSlide({
                   key={c.channel}
                   className={i % 2 === 0 ? "bg-[var(--bg-surface)]" : "bg-slate-50/50"}
                 >
-                  <td className="px-4 py-3 font-semibold text-slate-800">
+                  <td className="px-4 py-3 font-semibold text-[var(--text-primary)]">
                     {c.channel}
                   </td>
-                  <td className="px-4 py-3 text-right text-slate-700">
+                  <td className="px-4 py-3 text-right text-[var(--text-secondary)]">
                     {formatRate(c.appointment_rate)}
                   </td>
                   <GapCell
                     actual={c.appointment_rate}
                     target={c.appointment_rate_target ?? 0}
                   />
-                  <td className="px-4 py-3 text-right text-slate-700">
+                  <td className="px-4 py-3 text-right text-[var(--text-secondary)]">
                     {formatRate(c.attendance_rate)}
                   </td>
                   <GapCell
                     actual={c.attendance_rate}
                     target={c.attendance_rate_target ?? 0}
                   />
-                  <td className="px-4 py-3 text-right text-slate-700">
+                  <td className="px-4 py-3 text-right text-[var(--text-secondary)]">
                     {formatRate(c.paid_rate)}
                   </td>
                   <GapCell
@@ -126,7 +126,7 @@ export function FunnelAttributionSlide({
               ))}
             </tbody>
           </table>
-          <p className="mt-3 px-4 text-xs text-slate-400">
+          <p className="mt-3 px-4 text-xs text-[var(--text-muted)]">
             🟢 超目标 &nbsp;|&nbsp; 🟡 落后 0~5% &nbsp;|&nbsp; 🔴 严重落后 &gt;5%
           </p>
         </div>

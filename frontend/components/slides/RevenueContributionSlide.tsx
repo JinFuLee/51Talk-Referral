@@ -45,7 +45,7 @@ export function RevenueContributionSlide({
           <Spinner size="lg" />
         </div>
       ) : channels.length === 0 ? (
-        <div className="flex flex-col justify-center items-center h-full gap-3 text-slate-400">
+        <div className="flex flex-col justify-center items-center h-full gap-3 text-[var(--text-muted)]">
           <p className="text-lg font-medium">暂无渠道归因数据</p>
           <p className="text-sm">请确认 /api/channel/attribution 已返回数据</p>
         </div>
@@ -53,7 +53,7 @@ export function RevenueContributionSlide({
         <div className="overflow-auto h-full">
           <table className="w-full text-sm border-collapse">
             <thead>
-              <tr className="bg-slate-50 text-slate-500 text-xs uppercase tracking-wide">
+              <tr className="bg-slate-50 text-[var(--text-secondary)] text-xs uppercase tracking-wide">
                 <th className="text-left px-4 py-3 font-semibold">渠道</th>
                 <th className="text-right px-4 py-3 font-semibold">注册数</th>
                 <th className="text-right px-4 py-3 font-semibold">注册占比</th>
@@ -75,19 +75,19 @@ export function RevenueContributionSlide({
                     key={c.channel}
                     className={i % 2 === 0 ? "bg-[var(--bg-surface)]" : "bg-slate-50/50"}
                   >
-                    <td className="px-4 py-3 font-semibold text-slate-800">
+                    <td className="px-4 py-3 font-semibold text-[var(--text-primary)]">
                       {c.channel}
                     </td>
-                    <td className="px-4 py-3 text-right text-slate-700">
+                    <td className="px-4 py-3 text-right text-[var(--text-secondary)]">
                       {c.registrations.toLocaleString()}
                     </td>
-                    <td className="px-4 py-3 text-right text-slate-500">
+                    <td className="px-4 py-3 text-right text-[var(--text-muted)]">
                       {formatRate(regPct)}
                     </td>
-                    <td className="px-4 py-3 text-right font-medium text-slate-800">
+                    <td className="px-4 py-3 text-right font-medium text-[var(--text-primary)]">
                       {formatRevenue(c.paid_amount_usd)}
                     </td>
-                    <td className="px-4 py-3 text-right text-slate-500">
+                    <td className="px-4 py-3 text-right text-[var(--text-muted)]">
                       {formatRate(amtPct)}
                     </td>
                     <td className="px-4 py-3 text-right">
@@ -108,17 +108,17 @@ export function RevenueContributionSlide({
               })}
             </tbody>
             <tfoot>
-              <tr className="border-t-2 border-slate-200 bg-slate-100 font-bold text-slate-800">
+              <tr className="border-t-2 border-slate-200 bg-slate-100 font-bold text-[var(--text-primary)]">
                 <td className="px-4 py-3">合计</td>
                 <td className="px-4 py-3 text-right">
                   {totalRegistrations.toLocaleString()}
                 </td>
-                <td className="px-4 py-3 text-right text-slate-400">100%</td>
+                <td className="px-4 py-3 text-right text-[var(--text-muted)]">100%</td>
                 <td className="px-4 py-3 text-right">
                   {formatRevenue(totalAmount)}
                 </td>
-                <td className="px-4 py-3 text-right text-slate-400">100%</td>
-                <td className="px-4 py-3 text-right text-slate-400">—</td>
+                <td className="px-4 py-3 text-right text-[var(--text-muted)]">100%</td>
+                <td className="px-4 py-3 text-right text-[var(--text-muted)]">—</td>
               </tr>
             </tfoot>
           </table>

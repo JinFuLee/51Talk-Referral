@@ -25,7 +25,7 @@ export default function TargetSettingsCard({
       {recommendation && (
         <Card title="智能推荐">
           <div className="space-y-4">
-            <div className="text-xs text-slate-500">
+            <div className="text-xs text-[var(--text-secondary)]">
               历史增长率：注册 {(recommendation.growth_rates.reg * 100).toFixed(1)}% ·{" "}
               付费 {(recommendation.growth_rates.paid * 100).toFixed(1)}% ·{" "}
               收入 {(recommendation.growth_rates.revenue * 100).toFixed(1)}%
@@ -40,9 +40,9 @@ export default function TargetSettingsCard({
                 };
                 return (
                   <div key={key} className={`rounded-lg border p-3 ${colors[key]}`}>
-                    <div className="font-medium text-sm text-slate-800">{s.label}</div>
-                    <div className="text-xs text-slate-500 mb-2">×{s.multiplier}</div>
-                    <div className="space-y-1 text-xs text-slate-600">
+                    <div className="font-medium text-sm text-[var(--text-primary)]">{s.label}</div>
+                    <div className="text-xs text-[var(--text-secondary)] mb-2">×{s.multiplier}</div>
+                    <div className="space-y-1 text-xs text-[var(--text-secondary)]">
                       <div>注册: {s.summary.注册目标}</div>
                       <div>付费: {s.summary.付费目标}</div>
                       <div>收入: ${s.summary.金额目标.toLocaleString()}</div>
@@ -65,14 +65,14 @@ export default function TargetSettingsCard({
       <Card title="硬性目标 (L1)">
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="text-xs text-slate-500 mb-1 block">HQ总业绩目标</label>
+            <label className="text-xs text-[var(--text-secondary)] mb-1 block">HQ总业绩目标</label>
             <NumInput
               value={v2.hard.total_revenue}
               onChange={(v) => onUpdateHard({ total_revenue: v })}
               suffix="USD"
             />
             {v2.hard.total_revenue > 0 && (
-              <span className="text-xs text-slate-400 mt-1 block">
+              <span className="text-xs text-[var(--text-muted)] mt-1 block">
                 ≈ {(v2.hard.total_revenue * exchangeRate).toLocaleString()} THB
               </span>
             )}
@@ -88,14 +88,14 @@ export default function TargetSettingsCard({
                   }`}
                 >
                   <span>{recommendation.feasibility.label}</span>
-                  <span className="text-slate-500">({recommendation.feasibility.probability})</span>
+                  <span className="text-[var(--text-secondary)]">({recommendation.feasibility.probability})</span>
                 </div>
               )}
             {recommendation?.feasibility.detail &&
               Object.keys(recommendation.feasibility.detail).length > 0 && (
                 <div className="mt-2 space-y-1">
                   {Object.entries(recommendation.feasibility.detail).map(([metric, d]) => (
-                    <div key={metric} className="flex items-center gap-2 text-xs text-slate-500">
+                    <div key={metric} className="flex items-center gap-2 text-xs text-[var(--text-secondary)]">
                       <span>{metric}:</span>
                       <span>
                         {d.actual.toLocaleString()} / {d.target.toLocaleString()}
@@ -109,7 +109,7 @@ export default function TargetSettingsCard({
               )}
           </div>
           <div>
-            <label className="text-xs text-slate-500 mb-1 block">显示币种</label>
+            <label className="text-xs text-[var(--text-secondary)] mb-1 block">显示币种</label>
             <select
               value={v2.hard.display_currency}
               onChange={(e) =>
@@ -122,7 +122,7 @@ export default function TargetSettingsCard({
             </select>
           </div>
           <div>
-            <label className="text-xs text-slate-500 mb-1 block">转介绍占比</label>
+            <label className="text-xs text-[var(--text-secondary)] mb-1 block">转介绍占比</label>
             <div className="flex items-center gap-2">
               <input
                 type="radio"
@@ -137,7 +137,7 @@ export default function TargetSettingsCard({
             </div>
           </div>
           <div>
-            <label className="text-xs text-slate-500 mb-1 block">转介绍收入</label>
+            <label className="text-xs text-[var(--text-secondary)] mb-1 block">转介绍收入</label>
             <div className="flex items-center gap-2">
               <input
                 type="radio"

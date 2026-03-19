@@ -155,7 +155,7 @@ export default function ChannelPage() {
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="text-left text-xs text-slate-400 border-b border-slate-100">
+                  <tr className="text-left text-xs text-[var(--text-muted)] border-b border-slate-100">
                     <th className="py-2 pr-4">渠道</th>
                     <th className="py-2 pr-4 text-right">净业绩 (USD)</th>
                     <th className="py-2 pr-4 text-right">占比</th>
@@ -190,7 +190,7 @@ export default function ChannelPage() {
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="text-left text-xs text-slate-400 border-b border-slate-100">
+                  <tr className="text-left text-xs text-[var(--text-muted)] border-b border-slate-100">
                     <th className="py-2 pr-4">渠道</th>
                     <th className="py-2 pr-4 text-right">预期量</th>
                     <th className="py-2 pr-4 text-right">实际量</th>

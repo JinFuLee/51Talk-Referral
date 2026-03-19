@@ -44,12 +44,12 @@ export default function ChannelSettingsCard({ v2, onUpdateChannel }: ChannelSett
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-slate-100">
-              <th className="text-left py-2 font-medium text-slate-500 w-20">渠道</th>
-              <th className="text-right py-2 font-medium text-slate-500">注册目标</th>
-              <th className="text-right py-2 font-medium text-slate-500">客单价</th>
-              <th className="text-right py-2 font-medium text-slate-500">转化率</th>
-              <th className="text-right py-2 font-medium text-slate-500">付费目标</th>
-              <th className="text-right py-2 font-medium text-slate-500">收入目标</th>
+              <th className="text-left py-2 font-medium text-[var(--text-secondary)] w-20">渠道</th>
+              <th className="text-right py-2 font-medium text-[var(--text-secondary)]">注册目标</th>
+              <th className="text-right py-2 font-medium text-[var(--text-secondary)]">客单价</th>
+              <th className="text-right py-2 font-medium text-[var(--text-secondary)]">转化率</th>
+              <th className="text-right py-2 font-medium text-[var(--text-secondary)]">付费目标</th>
+              <th className="text-right py-2 font-medium text-[var(--text-secondary)]">收入目标</th>
             </tr>
           </thead>
           <tbody>
@@ -59,7 +59,7 @@ export default function ChannelSettingsCard({ v2, onUpdateChannel }: ChannelSett
               const rev = paid * c.asp;
               return (
                 <tr key={k} className="border-b border-slate-50">
-                  <td className="py-2 font-medium text-slate-700">{CHANNEL_LABELS[k]}</td>
+                  <td className="py-2 font-medium text-[var(--text-secondary)]">{CHANNEL_LABELS[k]}</td>
                   <td className="py-2 text-right">
                     <NumInput
                       value={c.user_count}
@@ -80,24 +80,24 @@ export default function ChannelSettingsCard({ v2, onUpdateChannel }: ChannelSett
                       onChange={(v) => onUpdateChannel(k, { conversion_rate: v })}
                     />
                   </td>
-                  <td className="py-2 text-right text-slate-600">{paid}</td>
-                  <td className="py-2 text-right text-slate-600">${rev.toLocaleString()}</td>
+                  <td className="py-2 text-right text-[var(--text-secondary)]">{paid}</td>
+                  <td className="py-2 text-right text-[var(--text-secondary)]">${rev.toLocaleString()}</td>
                 </tr>
               );
             })}
             <tr className="border-t-2 border-slate-200 font-semibold">
-              <td className="py-2 text-slate-800">合计</td>
-              <td className="py-2 text-right text-slate-800">{totalReg}</td>
-              <td className="py-2 text-right text-slate-400">—</td>
-              <td className="py-2 text-right text-slate-400">
+              <td className="py-2 text-[var(--text-primary)]">合计</td>
+              <td className="py-2 text-right text-[var(--text-primary)]">{totalReg}</td>
+              <td className="py-2 text-right text-[var(--text-muted)]">—</td>
+              <td className="py-2 text-right text-[var(--text-muted)]">
                 {totalReg > 0 ? `${((totalPaid / totalReg) * 100).toFixed(1)}%` : "—"}
               </td>
-              <td className="py-2 text-right text-slate-800">{totalPaid}</td>
+              <td className="py-2 text-right text-[var(--text-primary)]">{totalPaid}</td>
               <td
                 className={`py-2 text-right ${
                   revenueGap !== 0 && v2.hard.referral_revenue > 0
                     ? "text-yellow-600"
-                    : "text-slate-800"
+                    : "text-[var(--text-primary)]"
                 }`}
               >
                 ${totalChannelRevenue.toLocaleString()}

@@ -32,7 +32,7 @@ export function ScenarioAnalysisSlide({ slideNumber, totalSlides }: ScenarioAnal
         <div className="overflow-auto h-full">
           <table className="w-full text-sm">
             <thead>
-              <tr className="text-left text-xs text-slate-400 border-b border-slate-200">
+              <tr className="text-left text-xs text-[var(--text-muted)] border-b border-slate-200">
                 <th className="py-3 pr-6">环节</th>
                 <th className="py-3 pr-6 text-right">当前转化率</th>
                 <th className="py-3 pr-6 text-right">场景转化率</th>
@@ -45,7 +45,7 @@ export function ScenarioAnalysisSlide({ slideNumber, totalSlides }: ScenarioAnal
               {scenarios.map((s) => (
                 <tr key={s.stage} className="border-b border-slate-100">
                   <td className="py-4 pr-6 text-base font-semibold">{s.stage}</td>
-                  <td className="py-4 pr-6 text-right text-slate-500">{formatRate(s.current_rate)}</td>
+                  <td className="py-4 pr-6 text-right text-[var(--text-secondary)]">{formatRate(s.current_rate)}</td>
                   <td className="py-4 pr-6 text-right text-blue-600 font-bold">{formatRate(s.scenario_rate)}</td>
                   <td className="py-4 pr-6 text-right">+{s.impact_registrations.toLocaleString()}</td>
                   <td className="py-4 pr-6 text-right">+{s.impact_payments.toLocaleString()}</td>

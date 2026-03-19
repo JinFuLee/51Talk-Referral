@@ -23,9 +23,9 @@ export default function ExchangeRateCard({
   return (
     <Card title="汇率配置">
       <div className="space-y-3">
-        <div className="flex items-center gap-2 text-sm text-slate-600">
+        <div className="flex items-center gap-2 text-sm text-[var(--text-secondary)]">
           <span>当前汇率：</span>
-          <span className="font-semibold text-slate-800">
+          <span className="font-semibold text-[var(--text-primary)]">
             {rate ? `${rate.rate} ${rate.unit}` : "加载中…"}
           </span>
         </div>
