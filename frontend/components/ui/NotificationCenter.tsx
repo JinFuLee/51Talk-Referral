@@ -33,7 +33,7 @@ export function NotificationCenter() {
     <div className="relative">
       <button 
         onClick={() => setIsOpen(!isOpen)}
-        className="relative p-2 text-slate-500 hover:bg-slate-100 rounded-full transition-colors"
+        className="relative p-2 text-[var(--text-secondary)] hover:bg-slate-100 rounded-full transition-colors"
       >
         <Bell className="w-5 h-5" />
         {unreadCount > 0 && (
@@ -45,12 +45,12 @@ export function NotificationCenter() {
         <div className="absolute right-0 mt-2 w-80 bg-[var(--bg-surface)] shadow-xl rounded-xl border border-slate-200 overflow-hidden z-50 animate-in fade-in slide-in-from-top-2">
           {/* Header */}
           <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100 bg-slate-50/50">
-            <h3 className="text-sm font-semibold text-slate-800">通知中心</h3>
+            <h3 className="text-sm font-semibold text-[var(--text-primary)]">通知中心</h3>
             <div className="flex items-center gap-2">
               <button onClick={markAllRead} className="text-[11px] text-brand-600 hover:text-brand-700 font-medium">
                 全部已读
               </button>
-              <button onClick={clearAll} className="p-1 text-slate-400 hover:text-red-500 rounded">
+              <button onClick={clearAll} className="p-1 text-[var(--text-muted)] hover:text-red-500 rounded">
                 <Trash2 className="w-3.5 h-3.5" />
               </button>
             </div>
@@ -60,13 +60,13 @@ export function NotificationCenter() {
           <div className="flex border-b border-slate-100">
             <button 
               onClick={() => setFilter("all")}
-              className={`flex-1 py-2 text-xs font-medium text-center ${filter === "all" ? "text-brand-600 border-b-2 border-brand-600" : "text-slate-500"}`}
+              className={`flex-1 py-2 text-xs font-medium text-center ${filter === "all" ? "text-brand-600 border-b-2 border-brand-600" : "text-[var(--text-secondary)]"}`}
             >
               全部
             </button>
             <button 
               onClick={() => setFilter("unread")}
-              className={`flex-1 py-2 text-xs font-medium text-center ${filter === "unread" ? "text-brand-600 border-b-2 border-brand-600" : "text-slate-500"}`}
+              className={`flex-1 py-2 text-xs font-medium text-center ${filter === "unread" ? "text-brand-600 border-b-2 border-brand-600" : "text-[var(--text-secondary)]"}`}
             >
               未读 ({unreadCount})
             </button>
@@ -75,7 +75,7 @@ export function NotificationCenter() {
           {/* List */}
           <div className="max-h-[320px] overflow-y-auto">
             {filtered.length === 0 ? (
-              <div className="p-8 text-center text-slate-400 text-xs">
+              <div className="p-8 text-center text-[var(--text-muted)] text-xs">
                 暂无通知
               </div>
             ) : (
@@ -90,14 +90,14 @@ export function NotificationCenter() {
                       </div>
                       <div className="flex-1 space-y-1">
                         <div className="flex items-start justify-between">
-                          <h4 className={`text-sm ${!n.read ? "font-semibold text-slate-800" : "font-medium text-slate-600"}`}>
+                          <h4 className={`text-sm ${!n.read ? "font-semibold text-[var(--text-primary)]" : "font-medium text-[var(--text-secondary)]"}`}>
                             {n.title}
                           </h4>
-                          <span className="text-[10px] text-slate-400 whitespace-nowrap ml-2">
+                          <span className="text-[10px] text-[var(--text-muted)] whitespace-nowrap ml-2">
                             {n.timestamp}
                           </span>
                         </div>
-                        <p className="text-xs text-slate-500 leading-snug">
+                        <p className="text-xs text-[var(--text-secondary)] leading-snug">
                           {n.message}
                         </p>
                       </div>
@@ -106,7 +106,7 @@ export function NotificationCenter() {
                           onClick={() => {
                             setNotifications(prev => prev.map(item => item.id === n.id ? { ...item, read: true } : item))
                           }}
-                          className="shrink-0 p-1 text-slate-300 hover:text-brand-600 self-center transition-colors"
+                          className="shrink-0 p-1 text-[var(--text-muted)] hover:text-brand-600 self-center transition-colors"
                           title="标记为已读"
                         >
                           <Check className="w-4 h-4" />

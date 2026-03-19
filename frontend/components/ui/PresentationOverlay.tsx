@@ -13,11 +13,11 @@ export function PresentationOverlay() {
     <>
       {/* 水印 Header */}
       <div className="absolute top-6 right-8 flex flex-col items-end opacity-40 select-none z-50 pointer-events-none presentation-watermark">
-        <span className="text-2xl font-bold tracking-tighter text-slate-800">51Talk · 泰国转介绍</span>
+        <span className="text-2xl font-bold tracking-tighter text-[var(--text-primary)]">51Talk · 泰国转介绍</span>
         <span className="text-xs font-semibold uppercase tracking-[0.2em] text-cyan-700 mt-1 flex items-center gap-1">
           <Sparkles className="w-3 h-3" /> Confidential Intelligence Report
         </span>
-        <span className="text-[10px] text-slate-400 mt-1 font-mono">
+        <span className="text-[10px] text-[var(--text-muted)] mt-1 font-mono">
           {new Date().toLocaleString("zh-CN")}
         </span>
       </div>

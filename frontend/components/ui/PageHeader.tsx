@@ -27,16 +27,16 @@ export function PageHeader({
           </div>
         )}
         <div>
-          <h1 className="text-xl font-bold text-slate-800 flex items-center gap-2">
+          <h1 className="text-xl font-bold text-[var(--text-primary)] flex items-center gap-2">
             {title}
             {badge && (
-              <span className="text-[10px] uppercase font-bold tracking-wider bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full">
+              <span className="text-[10px] uppercase font-bold tracking-wider bg-slate-100 text-[var(--text-secondary)] px-2 py-0.5 rounded-full">
                 {badge}
               </span>
             )}
           </h1>
           {subtitle && (
-            <p className="text-xs text-slate-400 mt-0.5">{subtitle}</p>
+            <p className="text-xs text-[var(--text-muted)] mt-0.5">{subtitle}</p>
           )}
         </div>
       </div>

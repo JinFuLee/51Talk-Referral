@@ -29,7 +29,7 @@ interface TeamCompareChartProps {
 export function TeamCompareChart({ teams }: TeamCompareChartProps) {
   if (teams.length === 0) {
     return (
-      <div className="text-center py-8 text-sm text-slate-400">
+      <div className="text-center py-8 text-sm text-[var(--text-muted)]">
         暂无团队数据
       </div>
     );
@@ -45,7 +45,7 @@ export function TeamCompareChart({ teams }: TeamCompareChartProps) {
   return (
     <div className="space-y-6">
       <div>
-        <p className="text-xs text-slate-400 mb-3">参与率对比（%）</p>
+        <p className="text-xs text-[var(--text-muted)] mb-3">参与率对比（%）</p>
         <ResponsiveContainer width="100%" height={200}>
           <BarChart data={chartData} barSize={24}>
             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
@@ -67,7 +67,7 @@ export function TeamCompareChart({ teams }: TeamCompareChartProps) {
       </div>
 
       <div>
-        <p className="text-xs text-slate-400 mb-3">注册数 vs 付费数对比</p>
+        <p className="text-xs text-[var(--text-muted)] mb-3">注册数 vs 付费数对比</p>
         <ResponsiveContainer width="100%" height={220}>
           <BarChart data={chartData} barSize={20}>
             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />

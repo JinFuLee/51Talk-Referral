@@ -84,12 +84,12 @@ export function MemberDetailDrawer({ student, open, onClose }: MemberDetailDrawe
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between px-5 py-4 border-b sticky top-0 bg-[var(--bg-surface)] z-10">
-          <h2 className="font-semibold text-slate-900">
+          <h2 className="font-semibold text-[var(--text-primary)]">
             {student ? `学员 #${student.id}` : "学员详情"}
           </h2>
           <button
             onClick={onClose}
-            className="text-slate-400 hover:text-slate-600 text-xl leading-none w-7 h-7 flex items-center justify-center rounded hover:bg-slate-100 transition-colors"
+            className="text-[var(--text-muted)] hover:text-[var(--text-secondary)] text-xl leading-none w-7 h-7 flex items-center justify-center rounded hover:bg-slate-100 transition-colors"
             aria-label="关闭"
           >
             ×
@@ -98,18 +98,18 @@ export function MemberDetailDrawer({ student, open, onClose }: MemberDetailDrawe
 
         <div className="p-5 space-y-5">
           {!student ? (
-            <div className="text-center py-8 text-sm text-slate-400">未找到学员信息</div>
+            <div className="text-center py-8 text-sm text-[var(--text-muted)]">未找到学员信息</div>
           ) : (
             FIELD_GROUPS.map((group) => (
               <section key={group.title}>
-                <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">
+                <h3 className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider mb-3">
                   {group.title}
                 </h3>
                 <dl className="space-y-2">
                   {group.fields.map(([key, label]) => (
                     <div key={key} className="flex items-start justify-between gap-3">
-                      <dt className="text-xs text-slate-400 shrink-0 w-24">{label}</dt>
-                      <dd className="text-sm font-medium text-slate-700 text-right break-all">
+                      <dt className="text-xs text-[var(--text-muted)] shrink-0 w-24">{label}</dt>
+                      <dd className="text-sm font-medium text-[var(--text-primary)] text-right break-all">
                         {formatValue(key, student[key])}
                       </dd>
                     </div>
@@ -121,7 +121,7 @@ export function MemberDetailDrawer({ student, open, onClose }: MemberDetailDrawe
 
           {student && (
             <section>
-              <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">
+              <h3 className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider mb-3">
                 其他字段
               </h3>
               <dl className="space-y-2">
@@ -131,10 +131,10 @@ export function MemberDetailDrawer({ student, open, onClose }: MemberDetailDrawe
                   )
                   .map(([key, val]) => (
                     <div key={key} className="flex items-start justify-between gap-3">
-                      <dt className="text-xs text-slate-400 shrink-0 w-24 truncate" title={key}>
+                      <dt className="text-xs text-[var(--text-muted)] shrink-0 w-24 truncate" title={key}>
                         {key}
                       </dt>
-                      <dd className="text-xs text-slate-600 text-right break-all">
+                      <dd className="text-xs text-[var(--text-secondary)] text-right break-all">
                         {formatValue(key, val)}
                       </dd>
                     </div>

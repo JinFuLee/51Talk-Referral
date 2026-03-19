@@ -25,7 +25,7 @@ export function PageTabs({ tabs, activeId, onChange, className }: PageTabsProps)
             onClick={() => onChange(tab.id)}
             className={cn(
               "relative px-1 py-3 text-sm font-medium transition-colors outline-none whitespace-nowrap",
-              isActive ? "text-brand-600" : "text-slate-500 hover:text-slate-800"
+              isActive ? "text-brand-600" : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
             )}
           >
             {tab.label}

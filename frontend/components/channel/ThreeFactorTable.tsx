@@ -23,7 +23,7 @@ function FactorBadge({ value }: { value: number }) {
 export function ThreeFactorTable({ comparisons }: ThreeFactorTableProps) {
   if (comparisons.length === 0) {
     return (
-      <p className="text-sm text-slate-400 text-center py-6">暂无三因素数据</p>
+      <p className="text-sm text-[var(--text-muted)] text-center py-6">暂无三因素数据</p>
     );
   }
 
@@ -31,7 +31,7 @@ export function ThreeFactorTable({ comparisons }: ThreeFactorTableProps) {
     <div className="overflow-x-auto">
       <table className="w-full text-sm">
         <thead>
-          <tr className="text-left text-xs text-slate-400 border-b border-slate-100">
+          <tr className="text-left text-xs text-[var(--text-muted)] border-b border-slate-100">
             <th className="py-2 pr-4 font-medium">渠道</th>
             <th className="py-2 pr-4 text-right font-medium">预期量</th>
             <th className="py-2 pr-4 text-right font-medium">实际量</th>
@@ -47,13 +47,13 @@ export function ThreeFactorTable({ comparisons }: ThreeFactorTableProps) {
               key={c.channel}
               className="border-b border-slate-50 hover:bg-slate-50/60 transition-colors"
             >
-              <td className="py-2.5 pr-4 font-medium text-slate-800">
+              <td className="py-2.5 pr-4 font-medium text-[var(--text-primary)]">
                 {c.channel}
               </td>
-              <td className="py-2.5 pr-4 text-right text-slate-500">
+              <td className="py-2.5 pr-4 text-right text-[var(--text-secondary)]">
                 {c.expected_volume.toLocaleString()}
               </td>
-              <td className="py-2.5 pr-4 text-right font-semibold text-slate-800">
+              <td className="py-2.5 pr-4 text-right font-semibold text-[var(--text-primary)]">
                 {c.actual_volume.toLocaleString()}
               </td>
               <td

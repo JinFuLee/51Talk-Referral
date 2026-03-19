@@ -44,7 +44,7 @@ export function FileUploadPanel({ onSuccess }: FileUploadPanelProps) {
         <input ref={inputRef} type="file" accept=".xlsx,.csv" className="hidden" aria-label="选择上传文件" />
         <button
           onClick={() => inputRef.current?.click()}
-          className="px-3 py-2 border border-slate-200 rounded-lg text-sm text-slate-600 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+          className="px-3 py-2 border border-slate-200 rounded-lg text-sm text-[var(--text-secondary)] hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
         >
           选择文件
         </button>

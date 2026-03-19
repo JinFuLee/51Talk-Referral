@@ -28,7 +28,7 @@ export function ExportButton({ onExportCsv, onExportExcel, isExporting }: Export
       <button
         onClick={() => setIsOpen(!isOpen)}
         disabled={isExporting}
-        className="flex items-center gap-2 px-3 py-1.5 bg-[var(--bg-surface)] border border-slate-200 text-slate-600 rounded-lg hover:bg-brand-50 hover:text-brand-600 hover:border-brand-200 transition-colors shadow-sm disabled:opacity-50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-brand-500/20"
+        className="flex items-center gap-2 px-3 py-1.5 bg-[var(--bg-surface)] border border-slate-200 text-[var(--text-secondary)] rounded-lg hover:bg-brand-50 hover:text-brand-600 hover:border-brand-200 transition-colors shadow-sm disabled:opacity-50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-brand-500/20"
       >
         <Download className="w-4 h-4" />
         {isExporting ? "导出中..." : "数据导出"}
@@ -41,7 +41,7 @@ export function ExportButton({ onExportCsv, onExportExcel, isExporting }: Export
               setIsOpen(false);
               onExportCsv?.();
             }}
-            className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors text-left border-b border-slate-50 last:border-0"
+            className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-[var(--text-primary)] hover:bg-slate-50 transition-colors text-left border-b border-slate-50 last:border-0"
           >
             <FileText className="w-4 h-4 text-emerald-600" />
             CSV 格式
@@ -51,7 +51,7 @@ export function ExportButton({ onExportCsv, onExportExcel, isExporting }: Export
               setIsOpen(false);
               onExportExcel?.();
             }}
-            className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors text-left"
+            className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-[var(--text-primary)] hover:bg-slate-50 transition-colors text-left"
           >
             <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
             Excel 格式

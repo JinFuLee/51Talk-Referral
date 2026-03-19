@@ -18,7 +18,7 @@ const MarkdownRenderer = dynamic<Options>(
       );
       return Renderer;
     }),
-  { ssr: false, loading: () => <div className="animate-pulse text-slate-400 text-sm">加载中…</div> }
+  { ssr: false, loading: () => <div className="animate-pulse text-[var(--text-muted)] text-sm">加载中…</div> }
 );
 
 interface ReportViewerProps {
@@ -31,7 +31,7 @@ export function ReportViewer({ content, filename, downloadURL }: ReportViewerPro
   return (
     <div className="rounded-xl border border-slate-200 bg-[var(--bg-surface)] overflow-hidden">
       <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100 bg-slate-50">
-        <span className="text-sm font-medium text-slate-700 truncate">{filename}</span>
+        <span className="text-sm font-medium text-[var(--text-primary)] truncate">{filename}</span>
         <a
           href={downloadURL}
           download={filename}

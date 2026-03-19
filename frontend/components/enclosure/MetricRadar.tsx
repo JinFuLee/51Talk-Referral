@@ -26,7 +26,7 @@ export function MetricRadar({ metrics }: MetricRadarProps) {
 
   return (
     <div className="w-full">
-      <p className="text-xs text-slate-400 mb-2 text-center">{metrics.cc_name} — 指标雷达图</p>
+      <p className="text-xs text-[var(--text-muted)] mb-2 text-center">{metrics.cc_name} — 指标雷达图</p>
       <ResponsiveContainer width="100%" height={240}>
         <RadarChart data={data}>
           <PolarGrid stroke="#e2e8f0" />

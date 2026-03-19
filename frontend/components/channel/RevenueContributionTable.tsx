@@ -8,7 +8,7 @@ interface RevenueContributionTableProps {
 export function RevenueContributionTable({ contributions }: RevenueContributionTableProps) {
   if (contributions.length === 0) {
     return (
-      <p className="text-sm text-slate-400 text-center py-6">暂无贡献数据</p>
+      <p className="text-sm text-[var(--text-muted)] text-center py-6">暂无贡献数据</p>
     );
   }
 
@@ -18,7 +18,7 @@ export function RevenueContributionTable({ contributions }: RevenueContributionT
     <div className="overflow-x-auto">
       <table className="w-full text-sm">
         <thead>
-          <tr className="text-left text-xs text-slate-400 border-b border-slate-100">
+          <tr className="text-left text-xs text-[var(--text-muted)] border-b border-slate-100">
             <th className="py-2 pr-4 font-medium">渠道</th>
             <th className="py-2 pr-4 text-right font-medium">净业绩</th>
             <th className="py-2 pr-4 text-right font-medium">占比</th>
@@ -35,7 +35,7 @@ export function RevenueContributionTable({ contributions }: RevenueContributionT
                 className="border-b border-slate-50 hover:bg-slate-50/60 transition-colors"
               >
                 <td className="py-2.5 pr-4">
-                  <span className="font-medium text-slate-800">{c.channel}</span>
+                  <span className="font-medium text-[var(--text-primary)]">{c.channel}</span>
                   {/* Mini bar */}
                   <div className="mt-1 w-full bg-slate-100 rounded-full h-1">
                     <div
@@ -44,13 +44,13 @@ export function RevenueContributionTable({ contributions }: RevenueContributionT
                     />
                   </div>
                 </td>
-                <td className="py-2.5 pr-4 text-right font-semibold text-slate-800">
+                <td className="py-2.5 pr-4 text-right font-semibold text-[var(--text-primary)]">
                   {formatRevenue(c.revenue)}
                 </td>
-                <td className="py-2.5 pr-4 text-right text-slate-600">
+                <td className="py-2.5 pr-4 text-right text-[var(--text-secondary)]">
                   {formatRate(sharePct)}
                 </td>
-                <td className="py-2.5 text-right text-slate-500">
+                <td className="py-2.5 text-right text-[var(--text-secondary)]">
                   {formatRevenue(c.per_capita)}
                 </td>
               </tr>
@@ -58,12 +58,12 @@ export function RevenueContributionTable({ contributions }: RevenueContributionT
           })}
           {/* Total row */}
           <tr className="bg-slate-50 font-semibold border-t border-slate-200">
-            <td className="py-2.5 pr-4 text-slate-700">合计</td>
-            <td className="py-2.5 pr-4 text-right text-slate-800">
+            <td className="py-2.5 pr-4 text-[var(--text-primary)]">合计</td>
+            <td className="py-2.5 pr-4 text-right text-[var(--text-primary)]">
               {formatRevenue(totalRevenue)}
             </td>
-            <td className="py-2.5 pr-4 text-right text-slate-500">100%</td>
-            <td className="py-2.5 text-right text-slate-400">—</td>
+            <td className="py-2.5 pr-4 text-right text-[var(--text-secondary)]">100%</td>
+            <td className="py-2.5 text-right text-[var(--text-muted)]">—</td>
           </tr>
         </tbody>
       </table>

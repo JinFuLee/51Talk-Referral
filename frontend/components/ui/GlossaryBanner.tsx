@@ -11,7 +11,7 @@ export function GlossaryBanner({ terms }: { terms: GlossaryItem[] }) {
       <div className="flex flex-wrap gap-x-4 gap-y-1">
         {terms.map((t) => (
           <span key={t.term}>
-            <strong className="text-[var(--text-primary)] dark:text-slate-300">{t.term}</strong>: {t.definition}
+            <strong className="text-[var(--text-primary)]">{t.term}</strong>: {t.definition}
           </span>
         ))}
       </div>

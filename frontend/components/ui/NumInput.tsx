@@ -27,7 +27,7 @@ export function NumInput({
         min={min}
         className="w-24 px-2 py-1 border border-slate-200 rounded text-sm text-right focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
       />
-      {suffix && <span className="text-xs text-slate-400">{suffix}</span>}
+      {suffix && <span className="text-xs text-[var(--text-muted)]">{suffix}</span>}
     </div>
   );
 }

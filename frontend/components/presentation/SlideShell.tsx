@@ -43,19 +43,19 @@ export function SlideShell({
 
       {/* 51Talk watermark */}
       <div className="absolute top-5 right-6 opacity-10 select-none pointer-events-none">
-        <span className="text-2xl font-black tracking-tight text-slate-900">51Talk</span>
+        <span className="text-2xl font-black tracking-tight text-[var(--text-primary)]">51Talk</span>
       </div>
 
       {/* Header */}
       <div className="px-10 pt-8 pb-4 flex-none">
         {section && (
-          <p className="text-xs font-medium text-slate-400 uppercase tracking-widest mb-1">
+          <p className="text-xs font-medium text-[var(--text-muted)] uppercase tracking-widest mb-1">
             {section}
           </p>
         )}
-        <h1 className="text-3xl font-bold text-slate-900 leading-tight">{title}</h1>
+        <h1 className="text-3xl font-bold text-[var(--text-primary)] leading-tight">{title}</h1>
         {subtitle && (
-          <p className="text-lg text-slate-500 mt-1">{subtitle}</p>
+          <p className="text-lg text-[var(--text-secondary)] mt-1">{subtitle}</p>
         )}
       </div>
 
@@ -74,7 +74,7 @@ export function SlideShell({
             />
           </div>
         </div>
-        <span className="text-xs text-slate-400 whitespace-nowrap font-medium">
+        <span className="text-xs text-[var(--text-muted)] whitespace-nowrap font-medium">
           {slideNumber} / {totalSlides}
         </span>
       </div>

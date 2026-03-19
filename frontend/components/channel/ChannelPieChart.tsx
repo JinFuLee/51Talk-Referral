@@ -25,7 +25,7 @@ const CHANNEL_COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#8b5cf6"];
 export function ChannelPieChart({ channels, height = 240 }: ChannelPieChartProps) {
   if (channels.length === 0) {
     return (
-      <p className="text-sm text-slate-400 text-center py-6">暂无渠道数据</p>
+      <p className="text-sm text-[var(--text-muted)] text-center py-6">暂无渠道数据</p>
     );
   }
 

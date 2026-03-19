@@ -5,7 +5,7 @@ import type { SnapshotStats } from "@/lib/types";
 export function SnapshotStatsCard({ stats }: { stats: SnapshotStats | undefined }) {
   if (!stats) {
     return (
-      <div className="rounded-xl border border-slate-200 bg-[var(--bg-surface)] p-4 text-xs text-slate-400">
+      <div className="rounded-xl border border-slate-200 bg-[var(--bg-surface)] p-4 text-xs text-[var(--text-muted)]">
         加载快照统计中…
       </div>
     );
@@ -30,8 +30,8 @@ export function SnapshotStatsCard({ stats }: { stats: SnapshotStats | undefined 
 function Stat({ label, value }: { label: string; value: string | number }) {
   return (
     <div className="rounded-xl border border-slate-200 bg-[var(--bg-surface)] p-4">
-      <p className="text-xs text-slate-500 mb-1">{label}</p>
-      <p className="text-xl font-bold text-slate-800">{value}</p>
+      <p className="text-xs text-[var(--text-secondary)] mb-1">{label}</p>
+      <p className="text-xl font-bold text-[var(--text-primary)]">{value}</p>
     </div>
   );
 }

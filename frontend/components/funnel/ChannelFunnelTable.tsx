@@ -16,7 +16,7 @@ const STAGE_LABELS: Record<(typeof STAGES)[number], string> = {
 export function ChannelFunnelTable({ channels }: ChannelFunnelTableProps) {
   if (channels.length === 0) {
     return (
-      <p className="text-sm text-slate-400 text-center py-6">暂无渠道漏斗数据</p>
+      <p className="text-sm text-[var(--text-muted)] text-center py-6">暂无渠道漏斗数据</p>
     );
   }
 
@@ -38,7 +38,7 @@ export function ChannelFunnelTable({ channels }: ChannelFunnelTableProps) {
     <div className="overflow-x-auto">
       <table className="w-full text-sm">
         <thead>
-          <tr className="text-left text-xs text-slate-400 border-b border-slate-100">
+          <tr className="text-left text-xs text-[var(--text-muted)] border-b border-slate-100">
             <th className="py-2 pr-3 font-medium">渠道</th>
             {STAGES.map((s) => (
               <th key={s} className="py-2 pr-3 text-right font-medium">
@@ -56,40 +56,40 @@ export function ChannelFunnelTable({ channels }: ChannelFunnelTableProps) {
               key={c.channel}
               className="border-b border-slate-50 hover:bg-slate-50/60 transition-colors"
             >
-              <td className="py-2.5 pr-3 font-medium text-slate-800">
+              <td className="py-2.5 pr-3 font-medium text-[var(--text-primary)]">
                 {c.channel}
               </td>
               {STAGES.map((s) => (
-                <td key={s} className="py-2.5 pr-3 text-right text-slate-700">
+                <td key={s} className="py-2.5 pr-3 text-right text-[var(--text-primary)]">
                   {c[s].toLocaleString()}
                 </td>
               ))}
-              <td className="py-2.5 pr-3 text-right text-slate-500 text-xs">
+              <td className="py-2.5 pr-3 text-right text-[var(--text-secondary)] text-xs">
                 {convRate(c.appointments, c.registrations)}
               </td>
-              <td className="py-2.5 pr-3 text-right text-slate-500 text-xs">
+              <td className="py-2.5 pr-3 text-right text-[var(--text-secondary)] text-xs">
                 {convRate(c.attendance, c.appointments)}
               </td>
-              <td className="py-2.5 text-right text-slate-500 text-xs">
+              <td className="py-2.5 text-right text-[var(--text-secondary)] text-xs">
                 {convRate(c.payments, c.attendance)}
               </td>
             </tr>
           ))}
           {/* Totals row */}
           <tr className="bg-slate-50 font-semibold border-t border-slate-200">
-            <td className="py-2.5 pr-3 text-slate-700">合计</td>
+            <td className="py-2.5 pr-3 text-[var(--text-primary)]">合计</td>
             {STAGES.map((s) => (
-              <td key={s} className="py-2.5 pr-3 text-right text-slate-800">
+              <td key={s} className="py-2.5 pr-3 text-right text-[var(--text-primary)]">
                 {totals[s].toLocaleString()}
               </td>
             ))}
-            <td className="py-2.5 pr-3 text-right text-slate-500 text-xs">
+            <td className="py-2.5 pr-3 text-right text-[var(--text-secondary)] text-xs">
               {convRate(totals.appointments, totals.registrations)}
             </td>
-            <td className="py-2.5 pr-3 text-right text-slate-500 text-xs">
+            <td className="py-2.5 pr-3 text-right text-[var(--text-secondary)] text-xs">
               {convRate(totals.attendance, totals.appointments)}
             </td>
-            <td className="py-2.5 text-right text-slate-500 text-xs">
+            <td className="py-2.5 text-right text-[var(--text-secondary)] text-xs">
               {convRate(totals.payments, totals.attendance)}
             </td>
           </tr>
