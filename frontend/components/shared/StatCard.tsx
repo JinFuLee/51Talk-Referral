@@ -20,24 +20,24 @@ export function StatCard({ label, value, target, achievement, className }: StatC
   return (
     <div
       className={cn(
-        "bg-white/95 backdrop-blur-md rounded-2xl border border-border/40 shadow-sm p-5",
+        "bg-[var(--bg-surface)]/95 backdrop-blur-md rounded-[var(--radius-md)] border border-[var(--border-default)]/40 shadow-sm p-5",
         className
       )}
     >
-      <p className="text-xs text-slate-400 font-medium mb-2">{label}</p>
-      <div className="text-2xl font-bold text-slate-900 tabular-nums">{value}</div>
+      <p className="text-xs text-[var(--text-muted)] font-medium mb-2">{label}</p>
+      <div className="text-2xl font-bold text-[var(--text-primary)] tabular-nums">{value}</div>
       {target !== undefined && (
-        <p className="text-xs text-slate-400 mt-1">目标 {target}</p>
+        <p className="text-xs text-[var(--text-muted)] mt-1">目标 {target}</p>
       )}
       {pct !== null && (
         <div className="mt-3">
           <div className="flex justify-between text-xs mb-1">
-            <span className="text-slate-400">达成率</span>
+            <span className="text-[var(--text-muted)]">达成率</span>
             <span className={cn("font-semibold", achievementClass(achievement ?? 0))}>
               {pct}%
             </span>
           </div>
-          <div className="w-full bg-slate-100 rounded-full h-1.5">
+          <div className="w-full bg-[var(--bg-subtle)] rounded-full h-1.5">
             <div
               className={cn(
                 "h-1.5 rounded-full transition-all",

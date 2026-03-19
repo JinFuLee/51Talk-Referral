@@ -69,7 +69,7 @@ function NavLink({ href, label, Icon }: NavItem) {
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
         isActive
           ? "bg-primary text-primary-foreground font-medium"
-          : "text-slate-600 hover:bg-slate-100"
+          : "text-[var(--text-secondary)] hover:bg-[var(--bg-subtle)]"
       )}
     >
       <Icon className="w-4 h-4 shrink-0" aria-hidden="true" />
@@ -91,7 +91,7 @@ function SectionHeader({
     <button
       onClick={onToggle}
       aria-expanded={open}
-      className="w-full flex items-center justify-between px-3 py-1.5 mb-2 mt-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground hover:text-slate-600 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded"
+      className="w-full flex items-center justify-between px-3 py-1.5 mb-2 mt-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground hover:text-[var(--text-secondary)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded"
     >
       <span>{label}</span>
       {open ? (
@@ -106,7 +106,7 @@ function SectionHeader({
 function SidebarGroup({ group }: { group: NavGroup }) {
   return (
     <div className="mb-3">
-      <div className="px-3 mb-1 text-[10px] uppercase tracking-wider text-slate-400 font-semibold">
+      <div className="px-3 mb-1 text-[10px] uppercase tracking-wider text-[var(--text-muted)] font-semibold">
         {group.label}
       </div>
       <div className="space-y-0.5">
@@ -121,9 +121,9 @@ function SidebarGroup({ group }: { group: NavGroup }) {
 function SidebarContent() {
   return (
     <>
-      <div className="px-4 py-4 border-b border-slate-100">
+      <div className="px-4 py-4 border-b border-[var(--border-subtle)]">
         <p className="text-xs font-bold text-primary tracking-wide">ref-ops-engine</p>
-        <p className="text-xs text-slate-400 mt-0.5">51Talk 泰国转介绍运营</p>
+        <p className="text-xs text-[var(--text-muted)] mt-0.5">51Talk 泰国转介绍运营</p>
       </div>
 
       <nav className="flex-1 p-2 overflow-y-auto" aria-label="主导航">
@@ -142,11 +142,11 @@ export function NavSidebar() {
     <>
       {/* Mobile hamburger button */}
       <button
-        className="lg:hidden fixed top-4 left-4 z-50 p-2 rounded-lg bg-white border border-slate-200 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+        className="lg:hidden fixed top-4 left-4 z-50 p-2 rounded-lg bg-[var(--bg-surface)] border border-[var(--border-subtle)] shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
         onClick={() => setMobileOpen(true)}
         aria-label="打开导航菜单"
       >
-        <Menu className="w-5 h-5 text-slate-600" aria-hidden="true" />
+        <Menu className="w-5 h-5 text-[var(--text-secondary)]" aria-hidden="true" />
       </button>
 
       {/* Mobile overlay */}
@@ -164,9 +164,9 @@ export function NavSidebar() {
             aria-hidden="true"
           />
           {/* Sidebar panel */}
-          <aside className="relative w-64 h-full bg-white flex flex-col shrink-0 shadow-xl">
+          <aside className="relative w-64 h-full bg-[var(--bg-surface)] flex flex-col shrink-0 shadow-xl">
             <button
-              className="absolute top-3 right-3 p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              className="absolute top-3 right-3 p-1.5 rounded-lg text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-[var(--bg-subtle)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
               onClick={() => setMobileOpen(false)}
               aria-label="关闭导航菜单"
             >
@@ -178,7 +178,7 @@ export function NavSidebar() {
       )}
 
       {/* Desktop sidebar */}
-      <aside className="hidden lg:flex w-56 h-full bg-white/90 backdrop-blur-md border-r border-border/40 flex-col shrink-0">
+      <aside className="hidden lg:flex w-56 h-full bg-[var(--bg-surface)]/90 backdrop-blur-md border-r border-[var(--border-default)]/40 flex-col shrink-0">
         <SidebarContent />
       </aside>
     </>
