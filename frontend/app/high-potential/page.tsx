@@ -104,7 +104,7 @@ export default function HighPotentialPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-[var(--text-primary)]">高潜学员</h1>
+        <h1 className="text-lg font-bold text-[var(--text-primary)]">高潜学员</h1>
         <p className="text-sm text-[var(--text-secondary)] mt-1">
           带新数高 + 出席活跃 + 付费意向强的学员 · 共 {students.length} 人
         </p>

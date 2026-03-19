@@ -66,7 +66,7 @@ export default function TeamPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-[var(--text-primary)]">团队汇总</h1>
+        <h1 className="text-lg font-bold text-[var(--text-primary)]">团队汇总</h1>
         <p className="text-sm text-[var(--text-secondary)] mt-1">各 CC 学员数 · 参与率 · 注册 · 付费对比</p>
       </div>
 

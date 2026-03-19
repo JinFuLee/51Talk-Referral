@@ -34,16 +34,16 @@ export function MemberTable({
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
-            <tr className="text-left text-xs text-[var(--text-muted)] border-b border-slate-100">
-              <th className="py-2 pr-3 font-medium">ID</th>
-              <th className="py-2 pr-3 font-medium">姓名</th>
-              <th className="py-2 pr-3 font-medium">围场</th>
-              <th className="py-2 pr-3 font-medium">生命周期</th>
-              <th className="py-2 pr-3 font-medium">CC</th>
-              <th className="py-2 pr-3 text-right font-medium">注册</th>
-              <th className="py-2 pr-3 text-right font-medium">预约</th>
-              <th className="py-2 pr-3 text-right font-medium">出席</th>
-              <th className="py-2 text-right font-medium">付费</th>
+            <tr className="bg-[var(--n-800)] text-white text-xs font-medium">
+              <th className="py-1.5 px-2 border-0 text-left">ID</th>
+              <th className="py-1.5 px-2 border-0 text-left">姓名</th>
+              <th className="py-1.5 px-2 border-0 text-left">围场</th>
+              <th className="py-1.5 px-2 border-0 text-left">生命周期</th>
+              <th className="py-1.5 px-2 border-0 text-left">CC</th>
+              <th className="py-1.5 px-2 border-0 text-right">注册</th>
+              <th className="py-1.5 px-2 border-0 text-right">预约</th>
+              <th className="py-1.5 px-2 border-0 text-right">出席</th>
+              <th className="py-1.5 px-2 border-0 text-right">付费</th>
             </tr>
           </thead>
           <tbody>
@@ -51,23 +51,23 @@ export function MemberTable({
               <tr
                 key={m.id}
                 onClick={() => onRowClick?.(m.id)}
-                className={`border-b border-slate-50 transition-colors ${
-                  onRowClick ? "cursor-pointer hover:bg-slate-50" : ""
+                className={`even:bg-[var(--bg-subtle)] transition-colors ${
+                  onRowClick ? "cursor-pointer hover:bg-[var(--bg-subtle)]" : ""
                 }`}
               >
-                <td className="py-2.5 pr-3 text-blue-600 font-medium tabular-nums">{m.id}</td>
-                <td className="py-2.5 pr-3">{m.name || "—"}</td>
-                <td className="py-2.5 pr-3 text-[var(--text-secondary)] text-xs">{m.enclosure}</td>
-                <td className="py-2.5 pr-3">
-                  <span className="px-2 py-0.5 bg-slate-100 rounded text-xs text-[var(--text-secondary)]">
+                <td className="py-1 px-2 text-xs text-blue-600 font-medium tabular-nums">{m.id}</td>
+                <td className="py-1 px-2 text-xs">{m.name || "—"}</td>
+                <td className="py-1 px-2 text-xs text-[var(--text-secondary)]">{m.enclosure}</td>
+                <td className="py-1 px-2 text-xs">
+                  <span className="px-1.5 py-0.5 bg-[var(--bg-subtle)] rounded text-xs text-[var(--text-secondary)]">
                     {m.lifecycle}
                   </span>
                 </td>
-                <td className="py-2.5 pr-3">{m.cc_name}</td>
-                <td className="py-2.5 pr-3 text-right tabular-nums">{m.registrations}</td>
-                <td className="py-2.5 pr-3 text-right tabular-nums">{m.appointments}</td>
-                <td className="py-2.5 pr-3 text-right tabular-nums">{m.attendance}</td>
-                <td className="py-2.5 text-right tabular-nums font-medium">{m.payments}</td>
+                <td className="py-1 px-2 text-xs">{m.cc_name}</td>
+                <td className="py-1 px-2 text-xs text-right font-mono tabular-nums">{m.registrations}</td>
+                <td className="py-1 px-2 text-xs text-right font-mono tabular-nums">{m.appointments}</td>
+                <td className="py-1 px-2 text-xs text-right font-mono tabular-nums">{m.attendance}</td>
+                <td className="py-1 px-2 text-xs text-right font-mono tabular-nums font-medium">{m.payments}</td>
               </tr>
             ))}
           </tbody>

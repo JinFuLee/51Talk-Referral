@@ -38,58 +38,58 @@ export function ChannelFunnelTable({ channels }: ChannelFunnelTableProps) {
     <div className="overflow-x-auto">
       <table className="w-full text-sm">
         <thead>
-          <tr className="text-left text-xs text-[var(--text-muted)] border-b border-slate-100">
-            <th className="py-2 pr-3 font-medium">渠道</th>
+          <tr className="bg-[var(--n-800)] text-white text-xs font-medium">
+            <th className="py-1.5 px-2 border-0 text-left">渠道</th>
             {STAGES.map((s) => (
-              <th key={s} className="py-2 pr-3 text-right font-medium">
+              <th key={s} className="py-1.5 px-2 border-0 text-right">
                 {STAGE_LABELS[s]}
               </th>
             ))}
-            <th className="py-2 pr-3 text-right font-medium">注→预</th>
-            <th className="py-2 pr-3 text-right font-medium">预→出</th>
-            <th className="py-2 text-right font-medium">出→付</th>
+            <th className="py-1.5 px-2 border-0 text-right">注→预</th>
+            <th className="py-1.5 px-2 border-0 text-right">预→出</th>
+            <th className="py-1.5 px-2 border-0 text-right">出→付</th>
           </tr>
         </thead>
         <tbody>
           {channels.map((c) => (
             <tr
               key={c.channel}
-              className="border-b border-slate-50 hover:bg-slate-50/60 transition-colors"
+              className="even:bg-[var(--bg-subtle)]"
             >
-              <td className="py-2.5 pr-3 font-medium text-[var(--text-primary)]">
+              <td className="py-1 px-2 text-xs font-medium text-[var(--text-primary)]">
                 {c.channel}
               </td>
               {STAGES.map((s) => (
-                <td key={s} className="py-2.5 pr-3 text-right text-[var(--text-primary)]">
+                <td key={s} className="py-1 px-2 text-xs text-right font-mono tabular-nums text-[var(--text-primary)]">
                   {c[s].toLocaleString()}
                 </td>
               ))}
-              <td className="py-2.5 pr-3 text-right text-[var(--text-secondary)] text-xs">
+              <td className="py-1 px-2 text-xs text-right font-mono tabular-nums text-[var(--text-secondary)]">
                 {convRate(c.appointments, c.registrations)}
               </td>
-              <td className="py-2.5 pr-3 text-right text-[var(--text-secondary)] text-xs">
+              <td className="py-1 px-2 text-xs text-right font-mono tabular-nums text-[var(--text-secondary)]">
                 {convRate(c.attendance, c.appointments)}
               </td>
-              <td className="py-2.5 text-right text-[var(--text-secondary)] text-xs">
+              <td className="py-1 px-2 text-xs text-right font-mono tabular-nums text-[var(--text-secondary)]">
                 {convRate(c.payments, c.attendance)}
               </td>
             </tr>
           ))}
           {/* Totals row */}
-          <tr className="bg-slate-50 font-semibold border-t border-slate-200">
-            <td className="py-2.5 pr-3 text-[var(--text-primary)]">合计</td>
+          <tr className="bg-[var(--bg-subtle)] font-semibold border-t border-[var(--border-subtle)]">
+            <td className="py-1 px-2 text-xs text-[var(--text-primary)]">合计</td>
             {STAGES.map((s) => (
-              <td key={s} className="py-2.5 pr-3 text-right text-[var(--text-primary)]">
+              <td key={s} className="py-1 px-2 text-xs text-right font-mono tabular-nums text-[var(--text-primary)]">
                 {totals[s].toLocaleString()}
               </td>
             ))}
-            <td className="py-2.5 pr-3 text-right text-[var(--text-secondary)] text-xs">
+            <td className="py-1 px-2 text-xs text-right font-mono tabular-nums text-[var(--text-secondary)]">
               {convRate(totals.appointments, totals.registrations)}
             </td>
-            <td className="py-2.5 pr-3 text-right text-[var(--text-secondary)] text-xs">
+            <td className="py-1 px-2 text-xs text-right font-mono tabular-nums text-[var(--text-secondary)]">
               {convRate(totals.attendance, totals.appointments)}
             </td>
-            <td className="py-2.5 text-right text-[var(--text-secondary)] text-xs">
+            <td className="py-1 px-2 text-xs text-right font-mono tabular-nums text-[var(--text-secondary)]">
               {convRate(totals.payments, totals.attendance)}
             </td>
           </tr>
