@@ -15,7 +15,7 @@ export function Pagination({ currentPage, totalPages, totalItems, onPageChange }
       {totalItems !== undefined && (
         <span className="text-slate-500 hidden sm:inline-block">共 {totalItems.toLocaleString()} 条记录</span>
       )}
-      <div className="flex items-center bg-white border border-slate-200 rounded-lg shadow-sm">
+      <div className="flex items-center bg-[var(--bg-surface)] border border-slate-200 rounded-lg shadow-sm">
         <button
           onClick={() => onPageChange(currentPage - 1)}
           disabled={currentPage <= 1}

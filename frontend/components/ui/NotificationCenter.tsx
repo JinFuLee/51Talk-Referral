@@ -42,7 +42,7 @@ export function NotificationCenter() {
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-80 bg-white shadow-xl rounded-xl border border-slate-200 overflow-hidden z-50 animate-in fade-in slide-in-from-top-2">
+        <div className="absolute right-0 mt-2 w-80 bg-[var(--bg-surface)] shadow-xl rounded-xl border border-slate-200 overflow-hidden z-50 animate-in fade-in slide-in-from-top-2">
           {/* Header */}
           <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100 bg-slate-50/50">
             <h3 className="text-sm font-semibold text-slate-800">通知中心</h3>

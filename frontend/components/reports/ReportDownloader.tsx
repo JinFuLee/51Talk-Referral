@@ -85,7 +85,7 @@ export function ReportDownloader({ reportType, date, lang = "zh" }: ReportDownlo
       <button
         onClick={handleDownload}
         disabled={loading}
-        className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 hover:bg-gray-50 disabled:opacity-50 text-sm font-medium text-gray-700 rounded-lg transition-colors shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+        className="inline-flex items-center gap-2 px-4 py-2 bg-[var(--bg-surface)] border border-gray-300 hover:bg-gray-50 disabled:opacity-50 text-sm font-medium text-gray-700 rounded-lg transition-colors shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
       >
         {loading ? (
           <Download className="w-4 h-4 animate-bounce" aria-hidden="true" />

@@ -49,7 +49,7 @@ export default function TargetSettingsCard({
                     </div>
                     <button
                       onClick={() => onApplyScenario(s)}
-                      className="mt-2 w-full px-2 py-1 text-xs font-medium rounded bg-white border border-slate-200 hover:bg-slate-50 transition-colors focus-visible:ring-2 focus-visible:ring-brand-500"
+                      className="mt-2 w-full px-2 py-1 text-xs font-medium rounded bg-[var(--bg-surface)] border border-slate-200 hover:bg-slate-50 transition-colors focus-visible:ring-2 focus-visible:ring-brand-500"
                     >
                       应用此方案
                     </button>

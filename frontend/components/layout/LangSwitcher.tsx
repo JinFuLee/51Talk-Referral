@@ -14,7 +14,7 @@ export function LangSwitcher({ lang, onLangChange }: LangSwitcherProps) {
         className={`px-3 py-1 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${
           lang === "zh"
             ? "bg-primary text-primary-foreground"
-            : "bg-white text-gray-600 hover:bg-gray-50"
+            : "bg-[var(--bg-surface)] text-gray-600 hover:bg-gray-50"
         }`}
       >
         ZH
@@ -25,7 +25,7 @@ export function LangSwitcher({ lang, onLangChange }: LangSwitcherProps) {
         className={`px-3 py-1 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${
           lang === "th"
             ? "bg-primary text-primary-foreground"
-            : "bg-white text-gray-600 hover:bg-gray-50"
+            : "bg-[var(--bg-surface)] text-gray-600 hover:bg-gray-50"
         }`}
       >
         TH

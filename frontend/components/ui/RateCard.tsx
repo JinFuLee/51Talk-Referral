@@ -40,7 +40,7 @@ function RateCardBase({ label, rate, sub, target }: RateCardProps) {
       : "bg-primary";
 
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-4">
+    <div className="rounded-xl border border-slate-200 bg-[var(--bg-surface)] p-4">
       <p className="text-xs text-slate-500 mb-2">{label}</p>
       <p className={`text-3xl font-bold ${textColor}`}>{pct}%</p>
       {sub && <p className="text-xs text-slate-400 mt-1">{sub}</p>}

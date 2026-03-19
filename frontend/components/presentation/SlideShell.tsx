@@ -29,7 +29,7 @@ export function SlideShell({
   return (
     <div
       className={clsx(
-        "relative flex flex-col w-full h-screen bg-white overflow-hidden",
+        "relative flex flex-col w-full h-screen bg-[var(--bg-surface)] overflow-hidden",
         "animate-fadeIn"
       )}
       style={{ animation: "slideIn 0.3s ease forwards" }}

@@ -7,7 +7,7 @@ export function GlobalFilterBar() {
   const [isMobileOpen, setIsMobileOpen] = useState(false);
 
   return (
-    <div className="sticky top-0 z-40 w-full bg-white/90 backdrop-blur-md border-b border-slate-200 shadow-sm flex-shrink-0">
+    <div className="sticky top-0 z-40 w-full bg-[var(--bg-surface)]/90 backdrop-blur-md border-b border-slate-200 shadow-sm flex-shrink-0">
       {/* Mobile Toggle */}
       <div className="md:hidden flex items-center justify-between p-3">
         <span className="text-sm font-semibold text-slate-700">全局数据筛选</span>
@@ -28,7 +28,7 @@ export function GlobalFilterBar() {
             <div className="p-1.5 bg-slate-50 text-slate-500 rounded hidden md:block">
               <Calendar className="w-4 h-4" />
             </div>
-            <select className="bg-white hover:bg-slate-50 cursor-pointer border border-slate-200 text-slate-700 text-sm font-medium rounded-lg focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 block w-full md:w-auto px-3 py-1.5 outline-none transition-colors">
+            <select className="bg-[var(--bg-surface)] hover:bg-slate-50 cursor-pointer border border-slate-200 text-slate-700 text-sm font-medium rounded-lg focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 block w-full md:w-auto px-3 py-1.5 outline-none transition-colors">
               <option value="this_month">本月 (This Month)</option>
               <option value="this_week">本周 (This Week)</option>
               <option value="last_month">上月 (Last Month)</option>
@@ -41,7 +41,7 @@ export function GlobalFilterBar() {
             <div className="p-1.5 bg-slate-50 text-slate-500 rounded hidden md:block">
               <Users className="w-4 h-4" />
             </div>
-            <select className="bg-white hover:bg-slate-50 cursor-pointer border border-slate-200 text-slate-700 text-sm font-medium rounded-lg focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 block w-full md:w-48 px-3 py-1.5 outline-none transition-colors">
+            <select className="bg-[var(--bg-surface)] hover:bg-slate-50 cursor-pointer border border-slate-200 text-slate-700 text-sm font-medium rounded-lg focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 block w-full md:w-48 px-3 py-1.5 outline-none transition-colors">
               <option value="all">所有团队 (All Teams)</option>
               <option value="team_a">A 组 / Team A</option>
               <option value="team_b">B 组 / Team B</option>

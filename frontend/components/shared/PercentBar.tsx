@@ -12,7 +12,7 @@ export function PercentBar({ value, max = 100, className, colorClass = "bg-blue-
   return (
     <div className={cn("w-full bg-[var(--bg-subtle)] rounded-full h-2", className)}>
       <div
-        className={cn("h-2 rounded-full transition-all duration-500", colorClass)}
+        className={cn("h-2 rounded-full transition-all duration-200", colorClass)}
         style={{ width: `${pct}%` }}
       />
     </div>

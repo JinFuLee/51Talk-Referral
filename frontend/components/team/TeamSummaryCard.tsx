@@ -22,7 +22,7 @@ export function TeamSummaryCard({
   revenue_usd,
 }: TeamSummaryCardProps) {
   return (
-    <div className="bg-white rounded-2xl border border-slate-200/60 shadow-sm p-5">
+    <div className="bg-[var(--bg-surface)] rounded-[var(--radius-xl)] border border-slate-200/60 shadow-sm p-5">
       <div className="flex items-start justify-between mb-3">
         <div>
           <p className="text-base font-bold text-slate-900">{cc_name}</p>

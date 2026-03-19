@@ -68,7 +68,7 @@ export function RevenueDecompositionSlide({
                 return (
                   <tr
                     key={c.channel}
-                    className={i % 2 === 0 ? "bg-white" : "bg-slate-50/50"}
+                    className={i % 2 === 0 ? "bg-[var(--bg-surface)]" : "bg-slate-50/50"}
                   >
                     <td className="px-4 py-3 font-semibold text-slate-800">
                       {c.channel}

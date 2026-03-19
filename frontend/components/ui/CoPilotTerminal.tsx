@@ -67,7 +67,7 @@ export function CoPilotTerminal() {
       {/* Terminal Window */}
       <div
         className={cn(
-          "fixed bottom-6 right-6 w-96 h-[32rem] bg-slate-950 rounded-2xl shadow-2xl flex flex-col overflow-hidden z-50 border border-slate-800 transition-all duration-300 transform origin-bottom-right",
+          "fixed bottom-6 right-6 w-96 h-[32rem] bg-slate-950 rounded-[var(--radius-xl)] shadow-2xl flex flex-col overflow-hidden z-50 border border-slate-800 transition-all duration-200 transform origin-bottom-right",
           isOpen ? "scale-100 opacity-100" : "scale-90 opacity-0 pointer-events-none"
         )}
       >

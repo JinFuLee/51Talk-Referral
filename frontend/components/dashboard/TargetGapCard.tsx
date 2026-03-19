@@ -17,7 +17,7 @@ export function TargetGapCard({ name, target, actual, gap, achievement_rate }: T
       : "text-red-500";
 
   return (
-    <div className="rounded-xl border border-slate-100 bg-white p-4 shadow-sm">
+    <div className="rounded-xl border border-slate-100 bg-[var(--bg-surface)] p-4 shadow-sm">
       <p className="text-xs font-medium text-slate-500 mb-2">{name}</p>
       <div className="flex items-end justify-between">
         <span className="text-2xl font-bold text-slate-900">
@@ -39,7 +39,7 @@ export function TargetGapCard({ name, target, actual, gap, achievement_rate }: T
       {/* Achievement bar */}
       <div className="mt-3 w-full bg-slate-100 rounded-full h-1.5">
         <div
-          className={`h-1.5 rounded-full transition-all duration-500 ${
+          className={`h-1.5 rounded-full transition-all duration-200 ${
             achievePct >= 100
               ? "bg-green-500"
               : achievePct >= 80

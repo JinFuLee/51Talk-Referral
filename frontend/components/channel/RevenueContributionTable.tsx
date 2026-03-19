@@ -39,7 +39,7 @@ export function RevenueContributionTable({ contributions }: RevenueContributionT
                   {/* Mini bar */}
                   <div className="mt-1 w-full bg-slate-100 rounded-full h-1">
                     <div
-                      className="h-1 rounded-full bg-blue-400 transition-all duration-500"
+                      className="h-1 rounded-full bg-blue-400 transition-all duration-200"
                       style={{ width: `${barWidth}%` }}
                     />
                   </div>

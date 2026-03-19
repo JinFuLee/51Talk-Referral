@@ -42,7 +42,7 @@ export function TargetGapSlide({ slideNumber, totalSlides }: TargetGapSlideProps
       ) : (
         <div className="grid grid-cols-2 xl:grid-cols-4 gap-6 h-full content-center">
           {stages.map((s) => (
-            <div key={s.name} className="flex flex-col gap-2 bg-slate-50 rounded-2xl p-6">
+            <div key={s.name} className="flex flex-col gap-2 bg-slate-50 rounded-[var(--radius-xl)] p-6">
               <p className="text-sm font-medium text-slate-500">{s.name}</p>
               <div className="text-3xl font-bold text-slate-900">{s.actual.toLocaleString()}</div>
               <p className="text-sm text-slate-400">目标 {s.target.toLocaleString()}</p>

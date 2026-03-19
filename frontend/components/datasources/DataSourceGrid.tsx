@@ -27,7 +27,7 @@ export function DataSourceGrid({ sources, showDetail }: DataSourceGridProps) {
   return (
     <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">
       {sources.map((src) => (
-        <div key={src.id} className="rounded-lg border border-slate-200 bg-white p-3 text-xs">
+        <div key={src.id} className="rounded-lg border border-slate-200 bg-[var(--bg-surface)] p-3 text-xs">
           <div className="flex items-center justify-between mb-1">
             <span className="font-medium text-slate-700 truncate">{src.name_zh}</span>
             <span className={`ml-1 px-1.5 py-0.5 rounded text-xs font-medium ${statusStyle[src.has_file ? (src.is_fresh ? "ok" : "outdated") : "missing"]}`}>

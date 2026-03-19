@@ -29,7 +29,7 @@ interface ReportViewerProps {
 
 export function ReportViewer({ content, filename, downloadURL }: ReportViewerProps) {
   return (
-    <div className="rounded-xl border border-slate-200 bg-white overflow-hidden">
+    <div className="rounded-xl border border-slate-200 bg-[var(--bg-surface)] overflow-hidden">
       <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100 bg-slate-50">
         <span className="text-sm font-medium text-slate-700 truncate">{filename}</span>
         <a

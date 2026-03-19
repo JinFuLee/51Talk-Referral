@@ -87,10 +87,10 @@ export function PresentationLauncher() {
                   setSelectedTimeframe(null);
                 }}
                 className={clsx(
-                  "flex flex-col items-start gap-3 rounded-2xl border-2 p-6 text-left transition-all duration-200",
+                  "flex flex-col items-start gap-3 rounded-[var(--radius-xl)] border-2 p-6 text-left transition-all duration-200",
                   isSelected
                     ? "border-primary bg-primary/5 shadow-md shadow-primary/10"
-                    : "border-slate-200 bg-white hover:border-slate-300 hover:shadow-sm"
+                    : "border-slate-200 bg-[var(--bg-surface)] hover:border-slate-300 hover:shadow-sm"
                 )}
               >
                 <div
@@ -142,7 +142,7 @@ export function PresentationLauncher() {
                     !allowed && "opacity-30 cursor-not-allowed",
                     isSelected
                       ? "border-primary bg-primary/5 text-primary"
-                      : "border-slate-200 bg-white hover:border-slate-300 text-slate-700"
+                      : "border-slate-200 bg-[var(--bg-surface)] hover:border-slate-300 text-slate-700"
                   )}
                 >
                   <span className="text-base font-bold">{tf.label}</span>
@@ -160,7 +160,7 @@ export function PresentationLauncher() {
           onClick={handleStart}
           disabled={!selectedScene || !selectedTimeframe}
           className={clsx(
-            "flex items-center gap-3 px-8 py-4 rounded-2xl text-lg font-bold transition-all duration-200",
+            "flex items-center gap-3 px-8 py-4 rounded-[var(--radius-xl)] text-lg font-bold transition-all duration-200",
             selectedScene && selectedTimeframe
               ? "bg-primary text-white shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 hover:-translate-y-0.5"
               : "bg-slate-100 text-slate-400 cursor-not-allowed"

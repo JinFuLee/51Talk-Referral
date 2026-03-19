@@ -80,10 +80,10 @@ export function MemberDetailDrawer({ student, open, onClose }: MemberDetailDrawe
     >
       <div className="absolute inset-0 bg-black/40" aria-hidden="true" />
       <div
-        className="absolute right-0 top-0 h-full w-96 bg-white shadow-2xl overflow-y-auto"
+        className="absolute right-0 top-0 h-full w-96 bg-[var(--bg-surface)] shadow-2xl overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between px-5 py-4 border-b sticky top-0 bg-white z-10">
+        <div className="flex items-center justify-between px-5 py-4 border-b sticky top-0 bg-[var(--bg-surface)] z-10">
           <h2 className="font-semibold text-slate-900">
             {student ? `学员 #${student.id}` : "学员详情"}
           </h2>
