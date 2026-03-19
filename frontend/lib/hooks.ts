@@ -476,9 +476,16 @@ export function useCompareSummary() {
   const period = useConfigStore((s) => s.period);
   const compareMode = useConfigStore((s) => s.compareMode);
 
-  return useSWR<ComparisonResponse>(
+  return useSWR<ComparisonResponse | null>(
     compareMode !== 'off' ? ["analysis/compare-summary", period, compareMode] : null,
-    () => analysisAPI.getCompareSummary(period, compareMode)
+    async () => {
+      try {
+        return await analysisAPI.getCompareSummary(period, compareMode);
+      } catch {
+        // 端点可能不存在（404），静默返回 null
+        return null;
+      }
+    }
   );
 }
 

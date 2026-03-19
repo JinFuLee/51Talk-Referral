@@ -258,7 +258,15 @@ export const reportsAPI = {
       { method: "POST", body: JSON.stringify({}) }
     ),
   latest: () => request<{ markdown: string; generated_at: string } | null>("/reports/latest"),
-  list: () => request<{ reports: { filename: string; date: string }[] }>("/reports/list"),
+  list: async () => {
+    const raw = await request<
+      | { reports: { filename: string; date: string }[] }
+      | { filename: string; date: string }[]
+    >("/reports/list");
+    // 后端可能返回数组或 {reports:[...]}，统一为 {reports:[...]}
+    if (Array.isArray(raw)) return { reports: raw.map((r) => ({ filename: r.filename, date: r.date ?? "" })) };
+    return raw;
+  },
   getLatest: () => request<{ ops: unknown; exec: unknown }>("/reports/latest"),
   getContent: (reportType: "ops" | "exec", date: string) =>
     request<{ filename: string; report_type: string; date: string; content: string }>(
