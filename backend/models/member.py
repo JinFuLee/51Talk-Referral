@@ -18,6 +18,13 @@ class StudentBrief(BaseModel):
     appointments: float | None = None
     attendance: float | None = None
     payments: float | None = None
+    # D4 高价值列（列表直接展示）
+    checkin_this_month: float | None = None
+    lesson_consumed_this_month: float | None = None
+    referral_code_count_this_month: float | None = None
+    referral_reward_status: str | None = None
+    days_until_card_expiry: float | None = None
+    cc_last_call_date: str | None = None
 
 
 class StudentDetail(StudentBrief):

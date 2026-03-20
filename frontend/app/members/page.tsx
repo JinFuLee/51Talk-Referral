@@ -191,35 +191,65 @@ export default function MembersPage() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="bg-[var(--n-800)] text-white text-xs font-medium">
-                    <th className="py-1.5 px-2 border-0 text-left">ID</th>
-                    <th className="py-1.5 px-2 border-0 text-left">围场</th>
-                    <th className="py-1.5 px-2 border-0 text-left">生命周期</th>
-                    <th className="py-1.5 px-2 border-0 text-left">CC</th>
-                    <th className="py-1.5 px-2 border-0 text-right">注册</th>
-                    <th className="py-1.5 px-2 border-0 text-right">预约</th>
-                    <th className="py-1.5 px-2 border-0 text-right">出席</th>
-                    <th className="py-1.5 px-2 border-0 text-right">付费</th>
+                    <th className="py-1.5 px-2 border-0 text-left whitespace-nowrap">ID</th>
+                    <th className="py-1.5 px-2 border-0 text-left whitespace-nowrap">围场</th>
+                    <th className="py-1.5 px-2 border-0 text-left whitespace-nowrap">生命周期</th>
+                    <th className="py-1.5 px-2 border-0 text-left whitespace-nowrap">CC</th>
+                    <th className="py-1.5 px-2 border-0 text-right whitespace-nowrap">注册</th>
+                    <th className="py-1.5 px-2 border-0 text-right whitespace-nowrap">预约</th>
+                    <th className="py-1.5 px-2 border-0 text-right whitespace-nowrap">出席</th>
+                    <th className="py-1.5 px-2 border-0 text-right whitespace-nowrap">付费</th>
+                    <th className="py-1.5 px-2 border-0 text-right whitespace-nowrap" title="本月打卡天数">打卡天</th>
+                    <th className="py-1.5 px-2 border-0 text-right whitespace-nowrap" title="本月课耗">课耗</th>
+                    <th className="py-1.5 px-2 border-0 text-right whitespace-nowrap" title="本月转码次数">转码</th>
+                    <th className="py-1.5 px-2 border-0 text-left whitespace-nowrap" title="推荐奖励领取状态">奖励状态</th>
+                    <th className="py-1.5 px-2 border-0 text-right whitespace-nowrap" title="次卡距到期天数">卡到期</th>
+                    <th className="py-1.5 px-2 border-0 text-left whitespace-nowrap" title="CC末次拨打日期">末次拨打</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {data.items.map((m) => (
-                    <tr
-                      key={m.id}
-                      onClick={() => setSelectedId(m.id)}
-                      className="even:bg-[var(--bg-subtle)] cursor-pointer hover:bg-blue-50 transition-colors"
-                    >
-                      <td className="py-1 px-2 text-xs text-blue-600 font-medium font-mono tabular-nums">{m.id}</td>
-                      <td className="py-1 px-2 text-xs text-[var(--text-secondary)]">{m.enclosure}</td>
-                      <td className="py-1 px-2 text-xs">
-                        <span className="px-1.5 py-0.5 bg-[var(--bg-subtle)] rounded text-xs">{m.lifecycle}</span>
-                      </td>
-                      <td className="py-1 px-2 text-xs">{m.cc_name}</td>
-                      <td className="py-1 px-2 text-xs text-right font-mono tabular-nums">{m.registrations}</td>
-                      <td className="py-1 px-2 text-xs text-right font-mono tabular-nums">{m.appointments}</td>
-                      <td className="py-1 px-2 text-xs text-right font-mono tabular-nums">{m.attendance}</td>
-                      <td className="py-1 px-2 text-xs text-right font-mono tabular-nums font-medium">{m.payments}</td>
-                    </tr>
-                  ))}
+                  {data.items.map((m) => {
+                    const daysExpiry = m.days_until_card_expiry;
+                    const expiryColor =
+                      daysExpiry === null || daysExpiry === undefined
+                        ? ""
+                        : daysExpiry <= 0
+                        ? "text-red-600 font-semibold"
+                        : daysExpiry <= 30
+                        ? "text-orange-500"
+                        : "text-[var(--text-secondary)]";
+
+                    return (
+                      <tr
+                        key={m.id}
+                        onClick={() => setSelectedId(m.id)}
+                        className="even:bg-[var(--bg-subtle)] cursor-pointer hover:bg-blue-50 transition-colors"
+                      >
+                        <td className="py-1 px-2 text-xs text-blue-600 font-medium font-mono tabular-nums whitespace-nowrap">{m.id}</td>
+                        <td className="py-1 px-2 text-xs text-[var(--text-secondary)] whitespace-nowrap">{m.enclosure}</td>
+                        <td className="py-1 px-2 text-xs whitespace-nowrap">
+                          <span className="px-1.5 py-0.5 bg-[var(--bg-subtle)] rounded text-xs">{m.lifecycle}</span>
+                        </td>
+                        <td className="py-1 px-2 text-xs whitespace-nowrap">{m.cc_name}</td>
+                        <td className="py-1 px-2 text-xs text-right font-mono tabular-nums">{m.registrations ?? "—"}</td>
+                        <td className="py-1 px-2 text-xs text-right font-mono tabular-nums">{m.appointments ?? "—"}</td>
+                        <td className="py-1 px-2 text-xs text-right font-mono tabular-nums">{m.attendance ?? "—"}</td>
+                        <td className="py-1 px-2 text-xs text-right font-mono tabular-nums font-medium">{m.payments ?? "—"}</td>
+                        <td className="py-1 px-2 text-xs text-right font-mono tabular-nums">{m.checkin_this_month ?? "—"}</td>
+                        <td className="py-1 px-2 text-xs text-right font-mono tabular-nums">{m.lesson_consumed_this_month ?? "—"}</td>
+                        <td className="py-1 px-2 text-xs text-right font-mono tabular-nums">{m.referral_code_count_this_month ?? "—"}</td>
+                        <td className="py-1 px-2 text-xs whitespace-nowrap max-w-[120px] truncate" title={m.referral_reward_status ?? ""}>
+                          {m.referral_reward_status || "—"}
+                        </td>
+                        <td className={`py-1 px-2 text-xs text-right font-mono tabular-nums ${expiryColor}`}>
+                          {daysExpiry === null || daysExpiry === undefined ? "—" : daysExpiry <= -9000 ? "—" : String(Math.round(daysExpiry))}
+                        </td>
+                        <td className="py-1 px-2 text-xs whitespace-nowrap text-[var(--text-secondary)]">
+                          {m.cc_last_call_date || "—"}
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>

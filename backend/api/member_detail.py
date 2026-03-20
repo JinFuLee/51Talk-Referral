@@ -32,6 +32,13 @@ def _safe(val) -> Any:
 
 
 def _row_to_brief(row: pd.Series) -> StudentBrief:
+    cc_last_call_raw = row.get("CC末次拨打日期(day)")
+    cc_last_call = None
+    if cc_last_call_raw is not None:
+        s = str(cc_last_call_raw)
+        # 过滤掉 epoch 占位符
+        cc_last_call = None if s.startswith("1970") else s[:10] if len(s) >= 10 else s
+
     return StudentBrief(
         id=str(row.get("学员id", "") or row.get("stdt_id", "") or ""),
         name=str(row.get("真实姓名", "") or ""),
@@ -43,6 +50,12 @@ def _row_to_brief(row: pd.Series) -> StudentBrief:
         appointments=_safe(row.get("当月推荐出席人数")),
         attendance=_safe(row.get("当月推荐出席人数")),
         payments=_safe(row.get("本月推荐付费数")),
+        checkin_this_month=_safe(row.get("本月打卡天数")),
+        lesson_consumed_this_month=_safe(row.get("本月课耗")),
+        referral_code_count_this_month=_safe(row.get("本月转码次数")),
+        referral_reward_status=str(row.get("推荐奖励领取状态", "") or "") or None,
+        days_until_card_expiry=_safe(row.get("次卡距到期天数")),
+        cc_last_call_date=cc_last_call,
     )
 
 
