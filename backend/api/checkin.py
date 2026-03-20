@@ -165,6 +165,13 @@ _D2_CC_GROUP = "last_cc_group_name"
 _D3_CHECKIN_COL = "有效打卡"
 _D3_STUDENT_ID = "stdt_id"
 
+# D3 各岗位人员列（name, group）
+_D3_ROLE_COLS: dict[str, tuple[str, str]] = {
+    "CC": ("last_cc_name", "last_cc_group_name"),
+    "SS": ("last_ss_name", "last_ss_group_name"),
+    "LP": ("last_lp_name", "last_lp_group_name"),
+}
+
 # D4 学员 ID 候选列（按优先级）
 _D4_STUDENT_ID_CANDIDATES = ["学员id", "stdt_id"]
 _D4_LIFECYCLE_COL = "生命周期"  # 格式 0M/1M/2M...
@@ -179,126 +186,255 @@ def _find_d4_id_col(df: pd.DataFrame) -> str | None:
 
 # ── 内部聚合函数 ─────────────────────────────────────────────────────────────
 
-def _aggregate_d2_by_role_and_team(
-    df_d2: pd.DataFrame,
+def _clean_name_col(
+    df: pd.DataFrame, name_col: str, group_col: str | None
+) -> pd.DataFrame:
+    """过滤无效行（nan / 小计 / 合计 / 空值）"""
+    _INVALID = {"nan", "小计", "合计", ""}
+    df = df.copy()
+    if name_col in df.columns:
+        s = df[name_col].astype(str).str.strip()
+        df = df[~s.isin(_INVALID)]
+        df = df[df[name_col].notna()]
+    if group_col and group_col in df.columns:
+        s = df[group_col].astype(str).str.strip()
+        df = df[~s.isin({"nan", ""})]
+        df = df[df[group_col].notna()]
+    return df
+
+
+def _aggregate_d3_for_role(
+    df_d3: pd.DataFrame,
+    role: str,
     role_assignment: dict[str, dict],
 ) -> dict[str, Any]:
     """
-    基于 D2 按角色、团队、围场聚合打卡数据。
-    返回结构：{role: {total_students, checked_in, checkin_rate, by_team, by_enclosure}}
+    用 D3 明细表聚合指定岗位（SS / LP / 运营）的打卡数据。
+    D3 有 `有效打卡` 列（1=打卡，0=未打卡），按人员列 groupby 统计。
+    返回与 _aggregate_d2_by_role_and_team 同结构的单角色 dict。
     """
-    if df_d2.empty:
+    if df_d3.empty:
         return {}
 
-    # D2 围场列可能是天数段或已是 M 格式，统一转换
-    df = df_d2.copy()
+    name_col, group_col = _D3_ROLE_COLS.get(role, (None, None))
+    checkin_col = _D3_CHECKIN_COL if _D3_CHECKIN_COL in df_d3.columns else None
 
-    # ── 过滤无效行（nan / 小计 / 合计）────────────────────────────────────────
-    # 过滤 last_cc_name 为 NaN、空、"小计"、"合计"、"nan" 的行
-    if _D2_CC_NAME in df.columns:
-        name_series = df[_D2_CC_NAME].astype(str).str.strip()
-        invalid_names = {"nan", "小计", "合计", ""}
-        df = df[~name_series.isin(invalid_names)]
-        # 还要过滤 pandas NaN（astype str 后为 "nan" 已处理，但双保险）
-        df = df[df[_D2_CC_NAME].notna()]
+    # 围场列
+    enc_col = _D2_ENCLOSURE_COL if _D2_ENCLOSURE_COL in df_d3.columns else None
+    lifecycle_col = "生命周期" if "生命周期" in df_d3.columns else None
 
-    # 过滤 last_cc_group_name 为 NaN / 空 的行（不过滤"小计"，组名不会叫小计）
-    if _D2_CC_GROUP in df.columns:
-        group_series = df[_D2_CC_GROUP].astype(str).str.strip()
-        df = df[~group_series.isin({"nan", ""})]
-        df = df[df[_D2_CC_GROUP].notna()]
+    df = df_d3.copy()
+
+    # 过滤无效人员行
+    if name_col and name_col in df.columns:
+        gc = group_col if group_col and group_col in df.columns else None
+        df = _clean_name_col(df, name_col, gc)
 
     if df.empty:
         return {}
 
-    # 如果 D2 有围场列，转为 M 标签
-    if _D2_ENCLOSURE_COL in df.columns:
-        df["_m_label"] = df[_D2_ENCLOSURE_COL].apply(_days_to_m)
-    else:
-        df["_m_label"] = "M?"
+    # 计算围场 M 标签，仅保留属于该 role 围场段的行
+    def _get_enc(row: pd.Series) -> str:
+        val = row.get(enc_col) if enc_col else None
+        if val is None and lifecycle_col:
+            val = row.get(lifecycle_col)
+        return _days_to_m(val) if val is not None else "M?"
 
+    df["_m_label"] = df.apply(_get_enc, axis=1)
     df["_role"] = df["_m_label"].apply(lambda m: _enclosure_to_role(m, role_assignment))
 
-    # 从 D2 推算打卡人数：打卡率 × 学员数
-    students_col = _D2_STUDENTS_COL if _D2_STUDENTS_COL in df.columns else None
-    rate_col = _D2_CHECKIN_COL if _D2_CHECKIN_COL in df.columns else None
+    # 仅保留属于当前 role 的行（运营岗不拆人员）
+    role_df = df[df["_role"] == role].copy()
+    if role_df.empty:
+        return {}
 
-    def _calc_checked_in(row: pd.Series) -> float:
-        if students_col and rate_col:
-            s = _safe(row.get(students_col, 0)) or 0
-            r = _safe(row.get(rate_col, 0)) or 0
-            return s * r
-        return 0.0
+    # 打卡字段
+    if checkin_col:
+        role_df["_checkin_val"] = (
+            pd.to_numeric(role_df[checkin_col], errors="coerce").fillna(0)
+        )
+    else:
+        role_df["_checkin_val"] = 0
 
-    df["_students"] = df.apply(
-        lambda r: _safe(r.get(students_col, 0)) or 0 if students_col else 0, axis=1
-    )
-    df["_checked_in"] = df.apply(_calc_checked_in, axis=1)
+    total_students = len(role_df)
+    checked_in_int = int(role_df["_checkin_val"].sum())
+    rate = checked_in_int / total_students if total_students > 0 else 0.0
 
+    # by_team（非运营岗且有 group_col 时展示）
+    by_team: list[dict] = []
+    if role != "运营" and group_col and group_col in role_df.columns:
+        for grp, grp_df in role_df.groupby(group_col, sort=False):
+            grp_name = _safe_str(grp)
+            if not grp_name or grp_name.lower() in {"nan", "小计", "合计"}:
+                continue
+            t_total = len(grp_df)
+            t_checked = int(grp_df["_checkin_val"].sum())
+            t_rate = t_checked / t_total if t_total > 0 else 0.0
+            by_team.append({
+                "team": grp_name,
+                "students": t_total,
+                "checked_in": t_checked,
+                "rate": round(t_rate, 4),
+            })
+    by_team.sort(key=lambda x: x["rate"], reverse=True)
+
+    # by_enclosure
+    by_enclosure: list[dict] = []
+    for enc, enc_df in role_df.groupby("_m_label", sort=False):
+        e_total = len(enc_df)
+        e_checked = int(enc_df["_checkin_val"].sum())
+        e_rate = e_checked / e_total if e_total > 0 else 0.0
+        by_enclosure.append({
+            "enclosure": str(enc),
+            "students": e_total,
+            "checked_in": e_checked,
+            "rate": round(e_rate, 4),
+        })
+    by_enclosure.sort(key=lambda x: _m_label_to_index(x["enclosure"]))
+
+    return {
+        "total_students": total_students,
+        "checked_in": checked_in_int,
+        "checkin_rate": round(rate, 4),
+        "by_team": by_team,
+        "by_enclosure": by_enclosure,
+    }
+
+
+def _aggregate_d2_by_role_and_team(
+    df_d2: pd.DataFrame,
+    role_assignment: dict[str, dict],
+    df_d3: pd.DataFrame | None = None,
+) -> dict[str, Any]:
+    """
+    CC 围场段：基于 D2（enclosure_cc）聚合，用 last_cc_name/last_cc_group_name。
+    SS / LP 围场段：基于 D3（detail）聚合，用各岗位的 last_ss/lp_name/group 列。
+    运营围场段：基于 D3 聚合，不按人员细分。
+
+    返回结构：{role: {total_students, checked_in, checkin_rate, by_team, by_enclosure}}
+    """
     by_role: dict[str, Any] = {}
 
-    # CC 角色集合：只有 CC 岗位才用 CC 组名做团队细分
-    _CC_ROLES = {"CC"}
+    # ── CC：从 D2 聚合 ──────────────────────────────────────────────────────
+    if not df_d2.empty:
+        df = _clean_name_col(df_d2, _D2_CC_NAME, _D2_CC_GROUP)
 
-    for role, role_df in df.groupby("_role", sort=False):
-        total_students = int(role_df["_students"].sum())
-        checked_in = role_df["_checked_in"].sum()
-        checked_in_int = int(round(checked_in))
-        total_s = role_df["_students"].sum()
-        rate = checked_in / total_s if total_s > 0 else 0.0
+        if not df.empty:
+            if _D2_ENCLOSURE_COL in df.columns:
+                df["_m_label"] = df[_D2_ENCLOSURE_COL].apply(_days_to_m)
+            else:
+                df["_m_label"] = "M?"
 
-        # by_team：仅 CC 角色展示 CC 团队细分；SS/LP/运营 D2 无独立组名，不展示
-        by_team: list[dict] = []
-        if str(role) in _CC_ROLES:
-            team_col = _D2_CC_GROUP if _D2_CC_GROUP in role_df.columns else None
-            if team_col:
-                for team, team_df in role_df.groupby(team_col, sort=False):
-                    team_name = _safe_str(team)
-                    # 再次过滤空/nan 组名（groupby 有时仍会分出这些 key）
-                    if not team_name or team_name.lower() in {"nan", "小计", "合计"}:
-                        continue
-                    t_students = int(team_df["_students"].sum())
-                    t_checked = team_df["_checked_in"].sum()
-                    t_rate = t_checked / t_students if t_students > 0 else 0.0
-                    by_team.append({
-                        "team": team_name,
-                        "students": t_students,
-                        "checked_in": int(round(t_checked)),
-                        "rate": round(t_rate, 4),
+            df["_role"] = df["_m_label"].apply(
+                lambda m: _enclosure_to_role(m, role_assignment)
+            )
+
+            students_col = _D2_STUDENTS_COL if _D2_STUDENTS_COL in df.columns else None
+            rate_col = _D2_CHECKIN_COL if _D2_CHECKIN_COL in df.columns else None
+
+            def _get_students(r: pd.Series) -> float:
+                return _safe(r.get(students_col, 0)) or 0 if students_col else 0
+
+            df["_students"] = df.apply(_get_students, axis=1)
+
+            def _calc_checked_in(row: pd.Series) -> float:
+                if students_col and rate_col:
+                    s = _safe(row.get(students_col, 0)) or 0
+                    r = _safe(row.get(rate_col, 0)) or 0
+                    return s * r
+                return 0.0
+
+            df["_checked_in"] = df.apply(_calc_checked_in, axis=1)
+
+            # 仅处理 CC 围场段
+            cc_df = df[df["_role"] == "CC"]
+            if not cc_df.empty:
+                total_students = int(cc_df["_students"].sum())
+                checked_in = cc_df["_checked_in"].sum()
+                checked_in_int = int(round(checked_in))
+                total_s = cc_df["_students"].sum()
+                rate = checked_in / total_s if total_s > 0 else 0.0
+
+                by_team: list[dict] = []
+                team_col = _D2_CC_GROUP if _D2_CC_GROUP in cc_df.columns else None
+                if team_col:
+                    for team_name_val, team_df in cc_df.groupby(team_col, sort=False):
+                        team_name = _safe_str(team_name_val)
+                        _invalid_teams = {"nan", "小计", "合计"}
+                        if not team_name or team_name.lower() in _invalid_teams:
+                            continue
+                        t_students = int(team_df["_students"].sum())
+                        t_checked = team_df["_checked_in"].sum()
+                        t_rate = t_checked / t_students if t_students > 0 else 0.0
+                        by_team.append({
+                            "team": team_name,
+                            "students": t_students,
+                            "checked_in": int(round(t_checked)),
+                            "rate": round(t_rate, 4),
+                        })
+                by_team.sort(key=lambda x: x["rate"], reverse=True)
+
+                by_enclosure: list[dict] = []
+                for enc, enc_df in cc_df.groupby("_m_label", sort=False):
+                    e_students = int(enc_df["_students"].sum())
+                    e_checked = enc_df["_checked_in"].sum()
+                    e_rate = e_checked / e_students if e_students > 0 else 0.0
+                    by_enclosure.append({
+                        "enclosure": str(enc),
+                        "students": e_students,
+                        "checked_in": int(round(e_checked)),
+                        "rate": round(e_rate, 4),
                     })
-        by_team.sort(key=lambda x: x["rate"], reverse=True)
+                by_enclosure.sort(key=lambda x: _m_label_to_index(x["enclosure"]))
 
-        # by_enclosure
-        by_enclosure: list[dict] = []
-        for enc, enc_df in role_df.groupby("_m_label", sort=False):
-            e_students = int(enc_df["_students"].sum())
-            e_checked = enc_df["_checked_in"].sum()
-            e_rate = e_checked / e_students if e_students > 0 else 0.0
-            by_enclosure.append({
-                "enclosure": str(enc),
-                "students": e_students,
-                "checked_in": int(round(e_checked)),
-                "rate": round(e_rate, 4),
-            })
-        by_enclosure.sort(key=lambda x: _m_label_to_index(x["enclosure"]))
+                by_role["CC"] = {
+                    "total_students": total_students,
+                    "checked_in": checked_in_int,
+                    "checkin_rate": round(rate, 4),
+                    "by_team": by_team,
+                    "by_enclosure": by_enclosure,
+                }
 
-        by_role[str(role)] = {
-            "total_students": total_students,
-            "checked_in": checked_in_int,
-            "checkin_rate": round(rate, 4),
-            "by_team": by_team,
-            "by_enclosure": by_enclosure,
-        }
+    # ── SS / LP / 运营：从 D3 聚合 ─────────────────────────────────────────
+    if df_d3 is not None and not df_d3.empty:
+        for role_key in ("SS", "LP", "运营"):
+            result = _aggregate_d3_for_role(df_d3, role_key, role_assignment)
+            if result:
+                by_role[role_key] = result
 
     return by_role
+
+
+def _detect_role_from_team(team: str) -> str:
+    """
+    从团队名前缀推断岗位角色。
+    THSS-* / SS* → SS；THLP-* / LP* → LP；其余 → CC
+    """
+    t = team.strip().upper()
+    if t.startswith("SS") or "SS" in t.split("-")[:2]:
+        return "SS"
+    if t.startswith("LP") or "LP" in t.split("-")[:2]:
+        return "LP"
+    # 泰国 CC 前缀：THCC-*
+    return "CC"
 
 
 def _aggregate_team_members(
     df_d2: pd.DataFrame,
     team: str,
     role_assignment: dict[str, dict],
+    df_d3: pd.DataFrame | None = None,
 ) -> list[dict]:
-    """D2 按团队筛选后聚合每个销售的打卡数据"""
+    """
+    按团队筛选后聚合每个销售的打卡数据。
+    CC 团队 → D2（enclosure_cc）；SS/LP 团队 → D3（detail）。
+    """
+    role = _detect_role_from_team(team)
+
+    if role in ("SS", "LP") and df_d3 is not None and not df_d3.empty:
+        return _aggregate_d3_team_members(df_d3, team, role)
+
+    # CC：原有 D2 逻辑
     if df_d2.empty:
         return []
 
@@ -308,16 +444,7 @@ def _aggregate_team_members(
     if team_col is None or name_col is None:
         return []
 
-    # 过滤无效行后再按 team 筛选
-    df_clean = df_d2.copy()
-    if name_col in df_clean.columns:
-        name_s = df_clean[name_col].astype(str).str.strip()
-        df_clean = df_clean[~name_s.isin({"nan", "小计", "合计", ""})]
-        df_clean = df_clean[df_clean[name_col].notna()]
-    if team_col in df_clean.columns:
-        grp_s = df_clean[team_col].astype(str).str.strip()
-        df_clean = df_clean[~grp_s.isin({"nan", ""})]
-        df_clean = df_clean[df_clean[team_col].notna()]
+    df_clean = _clean_name_col(df_d2, name_col, team_col)
 
     mask = df_clean[team_col].astype(str).str.strip() == team.strip()
     df = df_clean[mask].copy()
@@ -336,7 +463,8 @@ def _aggregate_team_members(
     df["_students"] = df.apply(
         lambda r: _safe(r.get(students_col, 0)) or 0 if students_col else 0, axis=1
     )
-    def _checked_in_val(r):
+
+    def _checked_in_val(r: pd.Series) -> float:
         if not (students_col and rate_col):
             return 0.0
         s = (_safe(r.get(students_col, 0)) or 0)
@@ -368,6 +496,77 @@ def _aggregate_team_members(
             "name": _safe_str(name),
             "total_students": total_students,
             "checked_in": int(round(checked_in)),
+            "rate": round(rate, 4),
+            "by_enclosure": by_enclosure,
+        })
+
+    members.sort(key=lambda x: x["rate"], reverse=True)
+    return members
+
+
+def _aggregate_d3_team_members(
+    df_d3: pd.DataFrame,
+    team: str,
+    role: str,
+) -> list[dict]:
+    """
+    D3 按 SS/LP 团队筛选后聚合每个销售成员的打卡数据。
+    role 决定使用哪对 (name_col, group_col)。
+    """
+    name_col, group_col = _D3_ROLE_COLS.get(role, (None, None))
+    if name_col is None or group_col is None:
+        return []
+    if name_col not in df_d3.columns or group_col not in df_d3.columns:
+        return []
+
+    df = _clean_name_col(df_d3, name_col, group_col)
+
+    # 按团队筛选
+    mask = df[group_col].astype(str).str.strip() == team.strip()
+    df = df[mask].copy()
+    if df.empty:
+        return []
+
+    checkin_col = _D3_CHECKIN_COL if _D3_CHECKIN_COL in df.columns else None
+    enc_col = _D2_ENCLOSURE_COL if _D2_ENCLOSURE_COL in df.columns else None
+    lifecycle_col = "生命周期" if "生命周期" in df.columns else None
+
+    def _get_enc(row: pd.Series) -> str:
+        val = row.get(enc_col) if enc_col else None
+        if val is None and lifecycle_col:
+            val = row.get(lifecycle_col)
+        return _days_to_m(val) if val is not None else "M?"
+
+    df["_m_label"] = df.apply(_get_enc, axis=1)
+
+    if checkin_col:
+        df["_checkin_val"] = pd.to_numeric(df[checkin_col], errors="coerce").fillna(0)
+    else:
+        df["_checkin_val"] = 0
+
+    members: list[dict] = []
+    for name, person_df in df.groupby(name_col, sort=False):
+        total_students = len(person_df)
+        checked_in = int(person_df["_checkin_val"].sum())
+        rate = checked_in / total_students if total_students > 0 else 0.0
+
+        by_enclosure: list[dict] = []
+        for enc, enc_df in person_df.groupby("_m_label", sort=False):
+            e_total = len(enc_df)
+            e_checked = int(enc_df["_checkin_val"].sum())
+            e_rate = e_checked / e_total if e_total > 0 else 0.0
+            by_enclosure.append({
+                "enclosure": str(enc),
+                "students": e_total,
+                "checked_in": e_checked,
+                "rate": round(e_rate, 4),
+            })
+        by_enclosure.sort(key=lambda x: _m_label_to_index(x["enclosure"]))
+
+        members.append({
+            "name": _safe_str(name),
+            "total_students": total_students,
+            "checked_in": checked_in,
             "rate": round(rate, 4),
             "by_enclosure": by_enclosure,
         })
@@ -468,21 +667,38 @@ def _build_followup_students(
     if role and role != "全部":
         df = df[df["_role"] == role]
 
-    # 按 team 筛选（D3 的团队列）
-    team_col_d3 = None
-    for c in ["last_cc_group_name", "CC员工组名称", "cc_group", "team"]:
-        if c in df.columns:
-            team_col_d3 = c
-            break
+    # 按 role 决定人员列（team_col / sales_col）
+    # 优先用 _D3_ROLE_COLS 映射；无 role 时按候选列顺序探测（兜底）
+    _role_upper = (role or "").strip().upper()
+    if _role_upper in _D3_ROLE_COLS:
+        _name_col_candidate, _group_col_candidate = _D3_ROLE_COLS[_role_upper]
+    else:
+        # role 未指定或"全部"：按存在优先级探测（CC 列兜底）
+        _name_candidates = ["last_cc_name", "last_ss_name", "last_lp_name"]
+        _group_candidates = [
+            "last_cc_group_name", "last_ss_group_name", "last_lp_group_name"
+        ]
+        _name_col_candidate = next(
+            (c for c in _name_candidates if c in df.columns), None
+        )
+        _group_col_candidate = next(
+            (c for c in _group_candidates if c in df.columns), None
+        )
+
+    team_col_d3 = (
+        _group_col_candidate
+        if _group_col_candidate and _group_col_candidate in df.columns
+        else None
+    )
+    sales_col_d3 = (
+        _name_col_candidate
+        if _name_col_candidate and _name_col_candidate in df.columns
+        else None
+    )
+
     if team and team_col_d3:
         df = df[df[team_col_d3].astype(str).str.strip() == team.strip()]
 
-    # 按 sales 筛选（D3 的销售姓名列）
-    sales_col_d3 = None
-    for c in ["last_cc_name", "CC员工姓名", "cc_name", "sales"]:
-        if c in df.columns:
-            sales_col_d3 = c
-            break
     if sales and sales_col_d3:
         df = df[df[sales_col_d3].astype(str).str.strip() == sales.strip()]
 
@@ -514,13 +730,23 @@ def _build_followup_students(
         enc = row.get("_m_label", "M?")
         role_val = row.get("_role", "")
 
-        cc_name = _safe_str(row.get(sales_col_d3 or "", "")) or (
-            _safe_str(d4_row.get("末次CC员工姓名", "")) if d4_row is not None else ""
-        )
+        # 人员姓名 / 团队：优先从 D3 当前行对应角色列读取，回退到 D4
+        cc_name = _safe_str(row.get(sales_col_d3 or "", ""))
+        if not cc_name and d4_row is not None:
+            # D4 列名按角色映射
+            _d4_name_col = {
+                "CC": "末次（当前）分配CC员工姓名",
+                "SS": "末次（当前）分配SS员工姓名",
+            }.get(_role_upper, "末次（当前）分配CC员工姓名")
+            cc_name = _safe_str(d4_row.get(_d4_name_col, ""))
 
-        team_val = _safe_str(row.get(team_col_d3 or "", "")) or (
-            _safe_str(d4_row.get("末次CC员工组名称", "")) if d4_row is not None else ""
-        )
+        team_val = _safe_str(row.get(team_col_d3 or "", ""))
+        if not team_val and d4_row is not None:
+            _d4_group_col = {
+                "CC": "末次（当前）分配CC员工组名称",
+                "SS": "末次（当前）分配SS员工组名称",
+            }.get(_role_upper, "末次（当前）分配CC员工组名称")
+            team_val = _safe_str(d4_row.get(_d4_group_col, ""))
 
         # CC 末次拨打日期
         cc_last_call = None
@@ -626,16 +852,17 @@ def get_checkin_summary(
 ) -> dict:
     data = dm.load_all()
     df_d2: pd.DataFrame = data.get("enclosure_cc", pd.DataFrame())
+    df_d3: pd.DataFrame = data.get("detail", pd.DataFrame())
 
     # 优先使用前端传来的宽口径配置，回退到 config.json
     role_assignment = (
         _parse_role_config_param(role_config) or _load_role_assignment(wide=True)
     )
 
-    if df_d2.empty:
+    if df_d2.empty and df_d3.empty:
         return {"by_role": {}}
 
-    by_role = _aggregate_d2_by_role_and_team(df_d2, role_assignment)
+    by_role = _aggregate_d2_by_role_and_team(df_d2, role_assignment, df_d3=df_d3)
     return {"by_role": by_role}
 
 
@@ -650,9 +877,10 @@ def get_checkin_team_detail(
 ) -> dict:
     data = dm.load_all()
     df_d2: pd.DataFrame = data.get("enclosure_cc", pd.DataFrame())
+    df_d3: pd.DataFrame = data.get("detail", pd.DataFrame())
     role_assignment = _load_role_assignment(wide=True)
 
-    members = _aggregate_team_members(df_d2, team, role_assignment)
+    members = _aggregate_team_members(df_d2, team, role_assignment, df_d3=df_d3)
     return {"team": team, "members": members}
 
 
