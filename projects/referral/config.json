@@ -163,7 +163,8 @@
     "channel",
     "member_detail",
     "high_potential",
-    "team_ranking"
+    "team_ranking",
+    "checkin"
   ],
   "enclosure_role_assignment": {
     "CC": {

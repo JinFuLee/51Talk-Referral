@@ -41,6 +41,7 @@ ROUTER_REGISTRY: dict = {
     "high_potential": ("backend.api.high_potential", "/api", ["high-potential"]),
     "team_ranking": ("backend.api.team_ranking", "/api", ["team"]),
     "outreach_quality": ("backend.api.outreach_quality", "/api", ["analysis"]),
+    "checkin": ("backend.api.checkin", "/api", ["checkin"]),
 }
 
 
