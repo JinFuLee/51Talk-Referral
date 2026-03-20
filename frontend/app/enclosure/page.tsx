@@ -102,6 +102,10 @@ export default function EnclosurePage() {
                   <th className="py-1.5 px-2 border-0 text-right">带货比</th>
                   <th className="py-1.5 px-2 border-0 text-right">打卡率</th>
                   <th className="py-1.5 px-2 border-0 text-right">注册数</th>
+                  <th className="py-1.5 px-2 border-0 text-right">SS触达率</th>
+                  <th className="py-1.5 px-2 border-0 text-right">LP触达率</th>
+                  <th className="py-1.5 px-2 border-0 text-right">付费数</th>
+                  <th className="py-1.5 px-2 border-0 text-right">业绩(USD)</th>
                 </tr>
               </thead>
               <tbody>
@@ -121,6 +125,14 @@ export default function EnclosurePage() {
                       {formatRate(r.checkin_rate)}
                     </td>
                     <td className="py-1 px-2 text-xs text-right font-mono tabular-nums">{r.registrations.toLocaleString()}</td>
+                    <td className={`py-1 px-2 text-xs text-right font-mono tabular-nums ${metricColor(r.ss_reach_rate ?? 0, [0.3, 0.5])}`}>
+                      {formatRate(r.ss_reach_rate ?? 0)}
+                    </td>
+                    <td className={`py-1 px-2 text-xs text-right font-mono tabular-nums ${metricColor(r.lp_reach_rate ?? 0, [0.3, 0.5])}`}>
+                      {formatRate(r.lp_reach_rate ?? 0)}
+                    </td>
+                    <td className="py-1 px-2 text-xs text-right font-mono tabular-nums">{(r.payments ?? 0).toLocaleString()}</td>
+                    <td className="py-1 px-2 text-xs text-right font-mono tabular-nums">${(r.revenue_usd ?? 0).toLocaleString()}</td>
                   </tr>
                 ))}
               </tbody>

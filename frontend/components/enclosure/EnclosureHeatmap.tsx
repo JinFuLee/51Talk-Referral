@@ -33,8 +33,12 @@ export function EnclosureHeatmap({ metrics }: EnclosureHeatmapProps) {
             <th className="py-1.5 px-2 border-0 text-center">参与率</th>
             <th className="py-1.5 px-2 border-0 text-center">带货比</th>
             <th className="py-1.5 px-2 border-0 text-center">打卡率</th>
-            <th className="py-1.5 px-2 border-0 text-center">触达率</th>
+            <th className="py-1.5 px-2 border-0 text-center">CC触达率</th>
+            <th className="py-1.5 px-2 border-0 text-center">SS触达率</th>
+            <th className="py-1.5 px-2 border-0 text-center">LP触达率</th>
             <th className="py-1.5 px-2 border-0 text-right">注册数</th>
+            <th className="py-1.5 px-2 border-0 text-right">付费数</th>
+            <th className="py-1.5 px-2 border-0 text-right">业绩(USD)</th>
           </tr>
         </thead>
         <tbody>
@@ -63,7 +67,19 @@ export function EnclosureHeatmap({ metrics }: EnclosureHeatmapProps) {
                   {formatRate(r.cc_reach_rate)}
                 </span>
               </td>
+              <td className="py-1 px-2 text-xs text-center">
+                <span className={`inline-block px-1.5 py-0.5 rounded text-xs font-medium ${heatmapBg(r.ss_reach_rate ?? 0, 0.3, 0.5)}`}>
+                  {formatRate(r.ss_reach_rate ?? 0)}
+                </span>
+              </td>
+              <td className="py-1 px-2 text-xs text-center">
+                <span className={`inline-block px-1.5 py-0.5 rounded text-xs font-medium ${heatmapBg(r.lp_reach_rate ?? 0, 0.3, 0.5)}`}>
+                  {formatRate(r.lp_reach_rate ?? 0)}
+                </span>
+              </td>
               <td className="py-1 px-2 text-xs text-right font-mono tabular-nums">{r.registrations.toLocaleString()}</td>
+              <td className="py-1 px-2 text-xs text-right font-mono tabular-nums">{(r.payments ?? 0).toLocaleString()}</td>
+              <td className="py-1 px-2 text-xs text-right font-mono tabular-nums">${(r.revenue_usd ?? 0).toLocaleString()}</td>
             </tr>
           ))}
         </tbody>

@@ -14,7 +14,7 @@ interface CCRankingItem {
   revenue_usd?: number;
 }
 
-type SortKey = keyof Pick<CCRankingItem, "participation_rate" | "cargo_ratio" | "registrations" | "payments">;
+type SortKey = keyof Pick<CCRankingItem, "participation_rate" | "cargo_ratio" | "registrations" | "payments" | "revenue_usd">;
 
 interface CCRankingTableProps {
   rankings: CCRankingItem[];
@@ -25,6 +25,7 @@ const COLUMNS: { key: SortKey; label: string; format: (v: number) => string }[] 
   { key: "cargo_ratio", label: "带货比", format: (v) => formatRate(v) },
   { key: "registrations", label: "注册数", format: (v) => v.toLocaleString() },
   { key: "payments", label: "付费数", format: (v) => v.toLocaleString() },
+  { key: "revenue_usd", label: "业绩(USD)", format: (v) => `$${v.toLocaleString()}` },
 ];
 
 export function CCRankingTable({ rankings }: CCRankingTableProps) {
@@ -32,7 +33,7 @@ export function CCRankingTable({ rankings }: CCRankingTableProps) {
   const [sortAsc, setSortAsc] = useState(false);
 
   const sorted = [...rankings].sort((a, b) => {
-    const diff = a[sortKey] - b[sortKey];
+    const diff = (a[sortKey] ?? 0) - (b[sortKey] ?? 0);
     return sortAsc ? diff : -diff;
   });
 
@@ -108,7 +109,7 @@ export function CCRankingTable({ rankings }: CCRankingTableProps) {
                     sortKey === col.key ? "font-semibold text-blue-600" : ""
                   }`}
                 >
-                  {col.format(r[col.key])}
+                  {col.format(r[col.key] ?? 0)}
                 </td>
               ))}
             </tr>
