@@ -65,16 +65,15 @@ def _row_to_detail(row: pd.Series) -> StudentDetail:
     for col in row.index:
         extra[col] = _safe(row[col])
 
+    brief_data = brief.model_dump()
     return StudentDetail(
-        **brief.model_dump(),
+        **brief_data,
         region=str(row.get("区域", "") or ""),
         business_line=str(row.get("业务线", "") or ""),
         country=str(row.get("当前国家名称", "") or ""),
         teacher_level=str(row.get("当前菲教级别", "") or ""),
         first_paid_date=str(row.get("首次1v1大单付费日期(day)", "") or ""),
         checkin_last_month=_safe(row.get("上月打卡天数")),
-        checkin_this_month=_safe(row.get("本月打卡天数")),
-        referral_reward_status=str(row.get("推荐奖励领取状态", "") or ""),
         ss_name=str(row.get("末次SS员工姓名", "") or ""),
         ss_group=str(row.get("末次SS员工姓名/组", "") or ""),
         lp_name=str(row.get("末次LP员工姓名", "") or ""),

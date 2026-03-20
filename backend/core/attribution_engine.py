@@ -78,7 +78,6 @@ class AttributionEngine:
 
         results = []
         total_registrations = self._sum_col(self._d2, "转介绍注册数") or 0
-        total_revenue = self._sum_col(self._d2, "总带新付费金额USD") or 0
 
         # CC窄：有完整漏斗
         cc_reg = self._sum_col(self._d2, "转介绍注册数")
@@ -94,17 +93,50 @@ class AttributionEngine:
             )
         )
 
-        # SS窄/LP窄/宽口：仅带新参与数
-        for channel, col in [
-            ("SS窄", "SS带新参与数"),
-            ("LP窄", "LP带新参与数"),
-            ("宽口", "宽口径带新参与数"),
-        ]:
-            participation = self._sum_col(self._d2, col)
+        # SS窄/LP窄/宽口：从 D3 明细按「转介绍类型_新」列过滤付费/金额
+        # D3 渠道标签映射（与 D2 参与数列对应）
+        channel_d3_type_map = {
+            "SS窄": "SS窄口",
+            "LP窄": "LP窄口",
+            "宽口": "宽口",
+        }
+        channel_d2_col_map = {
+            "SS窄": "SS带新参与数",
+            "LP窄": "LP带新参与数",
+            "宽口": "宽口径带新参与数",
+        }
+
+        has_d3_type = (
+            not self._d3.empty and "转介绍类型_新" in self._d3.columns
+        )
+
+        for channel in ["SS窄", "LP窄", "宽口"]:
+            participation = self._sum_col(self._d2, channel_d2_col_map[channel])
+
+            pay: float | None = None
+            rev: float | None = None
+            if has_d3_type:
+                d3_label = channel_d3_type_map[channel]
+                mask = self._d3["转介绍类型_新"].astype(str).str.contains(
+                    d3_label, na=False
+                )
+                sub = self._d3[mask]
+                if not sub.empty:
+                    pay = (
+                        self._sum_col(sub, "付费数")
+                        or self._sum_col(sub, "转介绍付费数")
+                    )
+                    rev = (
+                        self._sum_col(sub, "付费金额USD")
+                        or self._sum_col(sub, "总带新付费金额USD")
+                    )
+
             results.append(
                 ChannelMetrics(
                     channel=channel,
                     registrations=participation,
+                    payments=pay,
+                    revenue_usd=rev,
                     share_pct=_safe_div(participation, total_registrations)
                     if participation
                     else None,

@@ -47,6 +47,7 @@ exclude = [".claude"]
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "UP", "B", "SIM"]
+ignore = ["B008"]  # FastAPI Depends() 是官方推荐用法，非性能问题
 
 [tool.ruff.lint.isort]
 known-first-party = ["src", "backend"]

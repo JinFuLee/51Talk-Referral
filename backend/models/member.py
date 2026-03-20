@@ -36,8 +36,7 @@ class StudentDetail(StudentBrief):
     teacher_level: str | None = None
     first_paid_date: str | None = None
     checkin_last_month: float | None = None
-    checkin_this_month: float | None = None
-    referral_reward_status: str | None = None
+    # checkin_this_month 和 referral_reward_status 继承自 StudentBrief，不重复定义
     ss_name: str | None = None
     ss_group: str | None = None
     lp_name: str | None = None
