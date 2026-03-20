@@ -7,15 +7,15 @@ import os
 from datetime import datetime, timedelta
 from pathlib import Path
 
+# 基础路径 (core/ 的上两级是项目根目录: backend/core/ -> backend/ -> project_root/)
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
+
 try:
     from dotenv import load_dotenv
 
-    load_dotenv()
+    load_dotenv(BASE_DIR / ".env")
 except ImportError:
     pass
-
-# 基础路径 (core/ 的上两级是项目根目录: backend/core/ -> backend/ -> project_root/)
-BASE_DIR = Path(__file__).resolve().parent.parent.parent
 INPUT_DIR = BASE_DIR / "input"
 OUTPUT_DIR = BASE_DIR / "output"
 LOG_DIR = BASE_DIR / "logs"
