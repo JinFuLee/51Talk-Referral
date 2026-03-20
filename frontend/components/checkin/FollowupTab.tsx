@@ -26,12 +26,22 @@ interface FollowupMember {
   [key: string]: unknown;
 }
 
+interface FollowupResponseRaw {
+  students?: FollowupMember[];
+  items?: FollowupMember[];
+  total: number;
+  avg_quality_score?: number;
+  high_quality_count?: number;
+  teams?: string[];
+  score_formula?: string;
+}
+
 interface FollowupResponse {
   items: FollowupMember[];
   total: number;
   avg_quality_score: number;
   high_quality_count: number;
-  teams: string[]; // available teams for current role
+  teams: string[];
 }
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
@@ -454,10 +464,29 @@ export function FollowupTab() {
     return p.toString();
   }, [role, team, salesSearch, enclosures]);
 
-  const { data, isLoading, error } = useSWR<FollowupResponse>(
-    `/api/checkin/followup?${qs}`,
-    swrFetcher
-  );
+  const {
+    data: raw,
+    isLoading,
+    error,
+  } = useSWR<FollowupResponseRaw>(`/api/checkin/followup?${qs}`, swrFetcher);
+
+  // 适配后端 {students} → 前端 {items}，补全缺失字段
+  const data: FollowupResponse | undefined = raw
+    ? (() => {
+        const items = raw.items ?? raw.students ?? [];
+        const scores = items.map((s) => s.quality_score ?? 0);
+        const avg = scores.length > 0 ? scores.reduce((a, b) => a + b, 0) / scores.length : 0;
+        const highCount = scores.filter((s) => s >= 70).length;
+        const teamSet = new Set(items.map((s) => s.team).filter(Boolean));
+        return {
+          items,
+          total: raw.total ?? items.length,
+          avg_quality_score: raw.avg_quality_score ?? avg,
+          high_quality_count: raw.high_quality_count ?? highCount,
+          teams: raw.teams ?? Array.from(teamSet).sort(),
+        };
+      })()
+    : undefined;
 
   const teams = data?.teams ?? [];
 
