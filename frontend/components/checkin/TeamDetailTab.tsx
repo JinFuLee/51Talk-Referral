@@ -5,17 +5,25 @@ import useSWR from 'swr';
 import { swrFetcher } from '@/lib/api';
 import { Spinner } from '@/components/ui/Spinner';
 
-// ── 团队列表（value 与后端 last_cc_group_name 一致）──────────────────────────
+// ── 团队列表（value 与后端 D3 group_name 一致）──────────────────────────────
 const TEAM_OPTIONS = [
-  { value: 'TH-CC01Team', label: 'CC01' },
-  { value: 'TH-CC02Team', label: 'CC02' },
-  { value: 'TH-CC03Team', label: 'CC03' },
-  { value: 'TH-CC04Team', label: 'CC04' },
-  { value: 'TH-CC05Team', label: 'CC05' },
-  { value: 'TH-CC06Team', label: 'CC06' },
-  { value: 'SS', label: 'SS' },
-  { value: 'LP', label: 'LP' },
-  { value: '运营', label: '运营' },
+  // CC 团队
+  { value: 'TH-CC01Team', label: 'CC01', group: 'CC' },
+  { value: 'TH-CC02Team', label: 'CC02', group: 'CC' },
+  { value: 'TH-CC03Team', label: 'CC03', group: 'CC' },
+  { value: 'TH-CC04Team', label: 'CC04', group: 'CC' },
+  { value: 'TH-CC05Team', label: 'CC05', group: 'CC' },
+  { value: 'TH-CC06Team', label: 'CC06', group: 'CC' },
+  { value: 'TH-CC15Team', label: 'CC15', group: 'CC' },
+  // SS 团队
+  { value: 'TH-SS01Team', label: 'SS01', group: 'SS' },
+  { value: 'TH-SS02Team', label: 'SS02', group: 'SS' },
+  { value: 'TH-SS03Team', label: 'SS03', group: 'SS' },
+  { value: 'TH-SS04Team', label: 'SS04', group: 'SS' },
+  // LP 团队
+  { value: 'TH-LP01Team', label: 'LP01', group: 'LP' },
+  { value: 'TH-LP02Team', label: 'LP02', group: 'LP' },
+  { value: 'TH-LP03Team', label: 'LP03', group: 'LP' },
 ];
 
 // ── 类型定义 ──────────────────────────────────────────────────────────────────
@@ -88,20 +96,26 @@ export function TeamDetailTab() {
 
   return (
     <div className="space-y-3">
-      {/* 团队选择器 */}
-      <div className="flex flex-wrap gap-1.5">
-        {TEAM_OPTIONS.map((opt) => (
-          <button
-            key={opt.value}
-            onClick={() => setSelectedTeam(opt.value)}
-            className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
-              selectedTeam === opt.value
-                ? 'bg-[var(--n-800)] text-white'
-                : 'bg-[var(--bg-subtle)] text-[var(--text-secondary)] hover:bg-slate-200'
-            }`}
-          >
-            {opt.label}
-          </button>
+      {/* 团队选择器 — 按 CC / SS / LP 分组 */}
+      <div className="flex flex-wrap items-center gap-1.5">
+        {(['CC', 'SS', 'LP'] as const).map((group, gi) => (
+          <div key={group} className="contents">
+            {gi > 0 && <span className="text-[var(--text-muted)] text-xs mx-1">|</span>}
+            <span className="text-[10px] text-[var(--text-muted)] font-medium mr-0.5">{group}</span>
+            {TEAM_OPTIONS.filter((o) => o.group === group).map((opt) => (
+              <button
+                key={opt.value}
+                onClick={() => setSelectedTeam(opt.value)}
+                className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
+                  selectedTeam === opt.value
+                    ? 'bg-[var(--n-800)] text-white'
+                    : 'bg-[var(--bg-subtle)] text-[var(--text-secondary)] hover:bg-slate-200'
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
         ))}
       </div>
 

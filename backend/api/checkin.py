@@ -138,12 +138,12 @@ def _find_d4_id_col(df: pd.DataFrame) -> str | None:
 
 
 def _detect_role_from_team(team: str) -> str:
-    """从团队名推断岗位。THSS-* / SS* → SS；THLP-* / LP* → LP；其余 → CC"""
+    """从团队名推断岗位。含 SS → SS；含 LP → LP；其余 → CC。
+    例：TH-SS01Team → SS, TH-LP02Team → LP, TH-CC01Team → CC"""
     t = team.strip().upper()
-    parts = t.split("-")
-    if t.startswith("SS") or (len(parts) >= 2 and "SS" in parts[:2]):
+    if "SS" in t:
         return "SS"
-    if t.startswith("LP") or (len(parts) >= 2 and "LP" in parts[:2]):
+    if "LP" in t:
         return "LP"
     return "CC"
 
