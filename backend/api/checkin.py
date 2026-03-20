@@ -587,15 +587,23 @@ def get_checkin_followup(
     role:  str | None = Query(default=None, description="角色筛选：CC / SS / LP"),
     team:  str | None = Query(default=None, description="团队筛选，例如 TH-CC01Team"),
     sales: str | None = Query(default=None, description="销售姓名筛选，例如 thcc-Zen"),
+    enclosure: str | None = Query(default=None, description="围场筛选，逗号分隔，例如 M0,M1"),
     dm: DataManager = Depends(get_data_manager),
 ) -> dict:
     """
-    筛选 D3 中 有效打卡==0 的行，按 role/team/sales 过滤，
+    筛选 D3 中 有效打卡==0 的行，按 role/team/sales/enclosure 过滤，
     JOIN D4 获取质量评分字段，降序返回。
     """
     data  = dm.load_all()
     df_d3: pd.DataFrame = data.get("detail",   pd.DataFrame())
     df_d4: pd.DataFrame = data.get("students", pd.DataFrame())
+
+    # 围场筛选：前端传 M 标签（M0,M3），转为 D3 原始值（0~30,91~120）
+    if enclosure and _D3_ENCLOSURE_COL in df_d3.columns:
+        m_to_raw = {v: k for k, v in _M_MAP.items()}
+        enc_list = [e.strip() for e in enclosure.split(",") if e.strip()]
+        raw_encs = [m_to_raw.get(e, e) for e in enc_list]
+        df_d3 = df_d3[df_d3[_D3_ENCLOSURE_COL].isin(raw_encs)]
 
     students = _build_followup_students(df_d3, df_d4, role, team, sales)
     return {
