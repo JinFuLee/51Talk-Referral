@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import useSWR from 'swr';
 import { swrFetcher } from '@/lib/api';
 import { Spinner } from '@/components/ui/Spinner';
@@ -10,118 +10,30 @@ import { cn } from '@/lib/utils';
 import { TeamDetailTab } from '@/components/checkin/TeamDetailTab';
 import { FollowupTab } from '@/components/checkin/FollowupTab';
 
-// ── 宽口径配置读取 ─────────────────────────────────────────────────────────────
-
-const ENCLOSURE_KEYS = ['M0', 'M1', 'M2', 'M3', 'M4', 'M5', 'M6+'] as const;
-type EnclosureMonth = (typeof ENCLOSURE_KEYS)[number];
-type Role = 'CC' | 'SS' | 'LP' | '运营';
-type EnclosureRoleAssignment = Record<EnclosureMonth, Role[]>;
-
-// 宽口径默认值（与 EnclosureRoleCard 保持同步）
-const DEFAULT_WIDE: EnclosureRoleAssignment = {
-  M0: ['CC'],
-  M1: ['CC'],
-  M2: ['CC'],
-  M3: ['SS'],
-  M4: ['LP'],
-  M5: ['LP'],
-  'M6+': ['运营'],
-};
-
-/**
- * 从 localStorage 读取宽口径配置，转换为后端期望的格式：
- * { CC: {min_days, max_days}, SS: {...}, ... }
- *
- * 后端 _load_role_assignment 会读取 config.json 的 enclosure_role_wide，
- * 但前端保存的配置优先级更高——通过 query param `role_config` 传入后端。
- */
-function loadWideConfig(): Record<string, { min_days: number; max_days: number | null }> {
-  let assignment: EnclosureRoleAssignment = DEFAULT_WIDE;
-  if (typeof window !== 'undefined') {
-    try {
-      const raw = localStorage.getItem('enclosure_role_wide');
-      if (raw) assignment = JSON.parse(raw) as EnclosureRoleAssignment;
-    } catch {
-      // fallback to default
-    }
-  }
-
-  // M 月份 → 天数范围映射（与后端 _ENCLOSURE_BANDS 对齐）
-  const M_TO_DAYS: Record<string, { min: number; max: number | null }> = {
-    M0: { min: 0, max: 30 },
-    M1: { min: 31, max: 60 },
-    M2: { min: 61, max: 90 },
-    M3: { min: 91, max: 120 },
-    M4: { min: 121, max: 150 },
-    M5: { min: 151, max: 180 },
-    'M6+': { min: 181, max: null },
-  };
-
-  // 将 assignment（月份→角色[]）反转为 角色→{min_days, max_days}
-  // 每个角色取其覆盖的连续月份段的 min/max
-  const roleToMonths: Record<string, EnclosureMonth[]> = {};
-  for (const month of ENCLOSURE_KEYS) {
-    const roles = assignment[month] ?? [];
-    for (const role of roles) {
-      if (!roleToMonths[role]) roleToMonths[role] = [];
-      roleToMonths[role].push(month);
-    }
-  }
-
-  const result: Record<string, { min_days: number; max_days: number | null }> = {};
-  for (const [role, months] of Object.entries(roleToMonths)) {
-    const dayRanges = months.map((m) => M_TO_DAYS[m]).filter(Boolean);
-    if (dayRanges.length === 0) continue;
-    const minDays = Math.min(...dayRanges.map((r) => r!.min));
-    // 取最后一段的 max_days（连续段末尾，null 表示无上限）
-    const sortedMonths = months
-      .slice()
-      .sort((a, b) => ENCLOSURE_KEYS.indexOf(a) - ENCLOSURE_KEYS.indexOf(b));
-    const lastMonth = sortedMonths[sortedMonths.length - 1];
-    const maxDays = M_TO_DAYS[lastMonth]?.max ?? null;
-    result[role] = { min_days: minDays, max_days: maxDays };
-  }
-
-  return result;
-}
-
 // ── 类型定义 ───────────────────────────────────────────────────────────────────
 
-interface CheckinTeamRow {
-  team: string;
-  students: number;
-  checked_in: number;
-  rate: number; // 后端字段名
-}
-
-interface CheckinEnclosureRow {
+interface FlatCheckinRow {
   enclosure: string;
+  enclosure_raw: string;
+  cc_name: string;
+  cc_group: string;
   students: number;
-  checked_in: number;
-  rate: number; // 后端字段名
-}
-
-interface CheckinRoleSummary {
-  total_students: number;
-  checked_in: number;
   checkin_rate: number;
-  by_team: CheckinTeamRow[];
-  by_enclosure: CheckinEnclosureRow[];
+  checked_in: number;
+  participation_rate: number;
+  new_coefficient: number;
+  cargo_ratio: number;
+  cc_reach_rate: number;
+  ss_reach_rate: number;
+  lp_reach_rate: number;
+  registrations: number;
+  payments: number;
+  revenue_usd: number;
 }
 
-// 后端返回 { by_role: { CC: {...}, SS: {...}, LP: {...} } }
-interface CheckinSummaryResponse {
-  by_role: Record<string, CheckinRoleSummary>;
-}
-
-// 前端渲染用的规范化结构
-interface CheckinChannelSummary {
-  channel: string;
-  total_students: number;
-  total_checkin: number;
-  checkin_rate: number;
-  by_team: CheckinTeamRow[];
-  by_enclosure: CheckinEnclosureRow[];
+interface FlatRowsResponse {
+  rows: FlatCheckinRow[];
+  total: number;
 }
 
 // ── Tab 定义 ──────────────────────────────────────────────────────────────────
@@ -134,129 +46,37 @@ const TABS = [
 
 type TabId = (typeof TABS)[number]['id'];
 
-// ── 打卡率颜色 ────────────────────────────────────────────────────────────────
-
-function rateColor(rate: number): string {
-  if (rate >= 0.6) return 'text-green-600';
-  if (rate >= 0.4) return 'text-yellow-600';
-  return 'text-red-500';
-}
-
-function rateBg(rate: number): string {
-  if (rate >= 0.6) return 'bg-green-50 text-green-700';
-  if (rate >= 0.4) return 'bg-yellow-50 text-yellow-700';
-  return 'bg-red-50 text-red-500';
-}
+// ── 格式化工具 ────────────────────────────────────────────────────────────────
 
 function fmtRate(rate: number): string {
   return `${(rate * 100).toFixed(1)}%`;
 }
 
-// ── 单个渠道列 ────────────────────────────────────────────────────────────────
-
-function ChannelColumn({ ch }: { ch: CheckinChannelSummary }) {
-  return (
-    <div className="flex flex-col gap-3 min-w-0">
-      {/* 渠道标题 */}
-      <div className="bg-[var(--n-800,#1e293b)] text-white text-xs font-semibold px-2 py-1.5 rounded-t-md">
-        {ch.channel}
-      </div>
-
-      {/* 总体大数字 */}
-      <div className="bg-[var(--bg-surface)] border border-[var(--border-default)] rounded-md px-3 py-2.5 space-y-1">
-        <div className="flex items-baseline gap-1.5">
-          <span className="text-2xl font-bold text-[var(--text-primary)]">{ch.total_checkin}</span>
-          <span className="text-xs text-[var(--text-muted)]">/ {ch.total_students} 人</span>
-        </div>
-        <div
-          className={cn(
-            'inline-block text-sm font-semibold px-1.5 py-0.5 rounded',
-            rateBg(ch.checkin_rate)
-          )}
-        >
-          {fmtRate(ch.checkin_rate)}
-        </div>
-        <div className="text-[10px] text-[var(--text-muted)]">有效学员 · 已打卡 · 打卡率</div>
-      </div>
-
-      {/* 按团队 */}
-      <div className="bg-[var(--bg-surface)] border border-[var(--border-default)] rounded-md overflow-hidden">
-        <div className="bg-[var(--n-800,#1e293b)] text-white text-[10px] font-semibold px-2 py-1 grid grid-cols-4 gap-1">
-          <span className="col-span-2">团队</span>
-          <span className="text-right">学员</span>
-          <span className="text-right">打卡率</span>
-        </div>
-        {ch.by_team.length === 0 ? (
-          <div className="text-[10px] text-[var(--text-muted)] px-2 py-2">暂无团队数据</div>
-        ) : (
-          ch.by_team.map((row, i) => (
-            <div
-              key={row.team}
-              className={cn(
-                'grid grid-cols-4 gap-1 px-2 py-1 text-xs',
-                i % 2 === 0 ? 'bg-[var(--bg-subtle)]' : 'bg-[var(--bg-surface)]'
-              )}
-            >
-              <span className="col-span-2 truncate text-[var(--text-secondary)]" title={row.team}>
-                {row.team}
-              </span>
-              <span className="text-right text-[var(--text-primary)]">{row.students}</span>
-              <span className={cn('text-right font-medium', rateColor(row.rate))}>
-                {fmtRate(row.rate)}
-              </span>
-            </div>
-          ))
-        )}
-      </div>
-
-      {/* 按围场 */}
-      <div className="bg-[var(--bg-surface)] border border-[var(--border-default)] rounded-md overflow-hidden">
-        <div className="bg-[var(--n-800,#1e293b)] text-white text-[10px] font-semibold px-2 py-1 grid grid-cols-4 gap-1">
-          <span className="col-span-2">围场</span>
-          <span className="text-right">学员</span>
-          <span className="text-right">打卡率</span>
-        </div>
-        {ch.by_enclosure.length === 0 ? (
-          <div className="text-[10px] text-[var(--text-muted)] px-2 py-2">暂无围场数据</div>
-        ) : (
-          ch.by_enclosure.map((row, i) => (
-            <div
-              key={row.enclosure}
-              className={cn(
-                'grid grid-cols-4 gap-1 px-2 py-1 text-xs',
-                i % 2 === 0 ? 'bg-[var(--bg-subtle)]' : 'bg-[var(--bg-surface)]'
-              )}
-            >
-              <span className="col-span-2 text-[var(--text-secondary)]">{row.enclosure}</span>
-              <span className="text-right text-[var(--text-primary)]">{row.students}</span>
-              <span className={cn('text-right font-medium', rateColor(row.rate))}>
-                {fmtRate(row.rate)}
-              </span>
-            </div>
-          ))
-        )}
-      </div>
-    </div>
-  );
+function fmtNum(n: number): string {
+  return n.toLocaleString();
 }
 
-// ── Tab 1: 汇总视图 ───────────────────────────────────────────────────────────
+function fmtUsd(n: number): string {
+  return `$${n.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
+}
+
+function checkinRateCell(rate: number): string {
+  if (rate >= 0.6) return 'text-green-700 font-semibold';
+  if (rate >= 0.4) return 'text-yellow-700 font-semibold';
+  return 'text-red-600 font-semibold';
+}
+
+// 围场顺序
+const ENCLOSURE_ORDER = ['M0', 'M1', 'M2', 'M3', 'M4', 'M5', 'M6+'];
+const ENCLOSURE_ALL = ['全部', ...ENCLOSURE_ORDER];
+
+// ── Tab 1: 汇总视图（全维度表格）────────────────────────────────────────────
 
 function SummaryTab() {
-  // 从 localStorage 读取宽口径配置，构建带 role_config query param 的 URL
-  // useEffect + useState 确保 SSR 安全（localStorage 仅在客户端可用）
-  const [summaryUrl, setSummaryUrl] = useState<string | null>(null);
+  const [enclosureFilter, setEnclosureFilter] = useState<string>('全部');
+  const [groupFilter, setGroupFilter] = useState<string>('全部');
 
-  useEffect(() => {
-    const cfg = loadWideConfig();
-    const encoded = encodeURIComponent(JSON.stringify(cfg));
-    setSummaryUrl(`/api/checkin/summary?role_config=${encoded}`);
-  }, []);
-
-  const { data, isLoading, error } = useSWR<CheckinSummaryResponse>(
-    summaryUrl, // null 时 SWR 不发请求，等 useEffect 完成后才触发
-    swrFetcher
-  );
+  const { data, isLoading, error } = useSWR<FlatRowsResponse>('/api/checkin/flat-rows', swrFetcher);
 
   if (isLoading) {
     return (
@@ -270,26 +90,205 @@ function SummaryTab() {
     return <EmptyState title="数据加载失败" description="无法获取打卡汇总数据，请检查后端服务" />;
   }
 
-  // 将后端 by_role 对象转为前端渲染列表
-  const byRole = data?.by_role ?? {};
-  const channels: CheckinChannelSummary[] = Object.entries(byRole).map(([role, v]) => ({
-    channel: role,
-    total_students: v.total_students,
-    total_checkin: v.checked_in,
-    checkin_rate: v.checkin_rate,
-    by_team: v.by_team,
-    by_enclosure: v.by_enclosure,
-  }));
+  const allRows = data?.rows ?? [];
 
-  if (channels.length === 0) {
+  if (allRows.length === 0) {
     return <EmptyState title="暂无打卡数据" description="上传包含打卡记录的数据文件后自动刷新" />;
   }
 
+  // 提取团队列表（保留顺序去重）
+  const allGroups = Array.from(new Set(allRows.map((r) => r.cc_group))).sort();
+  const groupOptions = ['全部', ...allGroups];
+
+  // 筛选
+  const rows = allRows.filter((r) => {
+    if (enclosureFilter !== '全部' && r.enclosure !== enclosureFilter) return false;
+    if (groupFilter !== '全部' && r.cc_group !== groupFilter) return false;
+    return true;
+  });
+
+  // 底部汇总
+  const totalStudents = rows.reduce((s, r) => s + r.students, 0);
+  const totalCheckedIn = rows.reduce((s, r) => s + r.checked_in, 0);
+  const weightedRate = totalStudents > 0 ? totalCheckedIn / totalStudents : 0;
+  const totalRegistrations = rows.reduce((s, r) => s + r.registrations, 0);
+  const totalPayments = rows.reduce((s, r) => s + r.payments, 0);
+  const totalRevenue = rows.reduce((s, r) => s + r.revenue_usd, 0);
+
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-      {channels.map((ch) => (
-        <ChannelColumn key={ch.channel} ch={ch} />
-      ))}
+    <div className="space-y-3">
+      {/* 筛选栏 */}
+      <div className="flex flex-wrap items-center gap-3">
+        {/* 围场按钮组 */}
+        <div className="flex flex-wrap gap-1">
+          {ENCLOSURE_ALL.map((enc) => (
+            <button
+              key={enc}
+              onClick={() => setEnclosureFilter(enc)}
+              className={cn(
+                'px-2 py-0.5 text-xs rounded border transition-colors',
+                enclosureFilter === enc
+                  ? 'bg-[var(--n-800,#1e293b)] text-white border-[var(--n-800,#1e293b)]'
+                  : 'bg-[var(--bg-surface)] text-[var(--text-secondary)] border-[var(--border-default)] hover:border-[var(--n-600)]'
+              )}
+            >
+              {enc}
+            </button>
+          ))}
+        </div>
+
+        {/* 团队下拉 */}
+        <select
+          value={groupFilter}
+          onChange={(e) => setGroupFilter(e.target.value)}
+          className="text-xs border border-[var(--border-default)] rounded px-2 py-1 bg-[var(--bg-surface)] text-[var(--text-secondary)] focus:outline-none"
+        >
+          {groupOptions.map((g) => (
+            <option key={g} value={g}>
+              {g}
+            </option>
+          ))}
+        </select>
+
+        <span className="text-xs text-[var(--text-muted)] ml-auto">
+          {rows.length} 条 / 共 {allRows.length} 条
+        </span>
+      </div>
+
+      {/* 全维度表格 */}
+      <div className="overflow-x-auto rounded-md border border-[var(--border-default)]">
+        <table className="w-full text-xs border-collapse min-w-[900px]">
+          <thead>
+            <tr className="bg-[var(--n-800,#1e293b)] text-white">
+              <th className="px-2 py-1.5 text-left whitespace-nowrap">围场</th>
+              <th className="px-2 py-1.5 text-left whitespace-nowrap">CC</th>
+              <th className="px-2 py-1.5 text-left whitespace-nowrap">团队</th>
+              <th className="px-2 py-1.5 text-right whitespace-nowrap font-mono">有效学员</th>
+              <th className="px-2 py-1.5 text-right whitespace-nowrap font-mono">已打卡</th>
+              <th className="px-2 py-1.5 text-right whitespace-nowrap">打卡率</th>
+              <th className="px-2 py-1.5 text-right whitespace-nowrap">参与率</th>
+              <th className="px-2 py-1.5 text-right whitespace-nowrap font-mono">带新系数</th>
+              <th className="px-2 py-1.5 text-right whitespace-nowrap">带货比</th>
+              <th className="px-2 py-1.5 text-right whitespace-nowrap">CC触达率</th>
+              <th className="px-2 py-1.5 text-right whitespace-nowrap">SS触达率</th>
+              <th className="px-2 py-1.5 text-right whitespace-nowrap">LP触达率</th>
+              <th className="px-2 py-1.5 text-right whitespace-nowrap font-mono">注册数</th>
+              <th className="px-2 py-1.5 text-right whitespace-nowrap font-mono">付费数</th>
+              <th className="px-2 py-1.5 text-right whitespace-nowrap font-mono">业绩(USD)</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.length === 0 ? (
+              <tr>
+                <td colSpan={15} className="text-center py-8 text-[var(--text-muted)]">
+                  暂无符合筛选条件的数据
+                </td>
+              </tr>
+            ) : (
+              rows.map((row, i) => (
+                <tr
+                  key={`${row.cc_name}-${row.enclosure_raw}-${i}`}
+                  className={cn(
+                    'border-t border-[var(--border-subtle)] hover:bg-[var(--bg-hover)]',
+                    i % 2 === 0 ? 'bg-[var(--bg-surface)]' : 'bg-[var(--bg-subtle)]'
+                  )}
+                >
+                  <td className="px-2 py-1 whitespace-nowrap text-[var(--text-secondary)]">
+                    {row.enclosure}
+                  </td>
+                  <td
+                    className="px-2 py-1 whitespace-nowrap text-[var(--text-primary)] font-medium max-w-[100px] truncate"
+                    title={row.cc_name}
+                  >
+                    {row.cc_name}
+                  </td>
+                  <td
+                    className="px-2 py-1 whitespace-nowrap text-[var(--text-secondary)] max-w-[80px] truncate"
+                    title={row.cc_group}
+                  >
+                    {row.cc_group}
+                  </td>
+                  <td className="px-2 py-1 text-right font-mono tabular-nums text-[var(--text-primary)]">
+                    {fmtNum(row.students)}
+                  </td>
+                  <td className="px-2 py-1 text-right font-mono tabular-nums text-[var(--text-primary)]">
+                    {fmtNum(row.checked_in)}
+                  </td>
+                  <td
+                    className={cn(
+                      'px-2 py-1 text-right tabular-nums',
+                      checkinRateCell(row.checkin_rate)
+                    )}
+                  >
+                    {fmtRate(row.checkin_rate)}
+                  </td>
+                  <td className="px-2 py-1 text-right tabular-nums text-[var(--text-secondary)]">
+                    {fmtRate(row.participation_rate)}
+                  </td>
+                  <td className="px-2 py-1 text-right font-mono tabular-nums text-[var(--text-secondary)]">
+                    {row.new_coefficient.toFixed(2)}
+                  </td>
+                  <td className="px-2 py-1 text-right tabular-nums text-[var(--text-secondary)]">
+                    {fmtRate(row.cargo_ratio)}
+                  </td>
+                  <td className="px-2 py-1 text-right tabular-nums text-[var(--text-secondary)]">
+                    {fmtRate(row.cc_reach_rate)}
+                  </td>
+                  <td className="px-2 py-1 text-right tabular-nums text-[var(--text-secondary)]">
+                    {fmtRate(row.ss_reach_rate)}
+                  </td>
+                  <td className="px-2 py-1 text-right tabular-nums text-[var(--text-secondary)]">
+                    {fmtRate(row.lp_reach_rate)}
+                  </td>
+                  <td className="px-2 py-1 text-right font-mono tabular-nums text-[var(--text-primary)]">
+                    {fmtNum(row.registrations)}
+                  </td>
+                  <td className="px-2 py-1 text-right font-mono tabular-nums text-[var(--text-primary)]">
+                    {fmtNum(row.payments)}
+                  </td>
+                  <td className="px-2 py-1 text-right font-mono tabular-nums text-[var(--text-primary)]">
+                    {fmtUsd(row.revenue_usd)}
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+          {/* 汇总行 */}
+          {rows.length > 0 && (
+            <tfoot>
+              <tr className="bg-[var(--n-800,#1e293b)] text-white font-bold border-t-2 border-[var(--border-default)]">
+                <td className="px-2 py-1.5 whitespace-nowrap" colSpan={3}>
+                  合计 ({rows.length} 行)
+                </td>
+                <td className="px-2 py-1.5 text-right font-mono tabular-nums">
+                  {fmtNum(totalStudents)}
+                </td>
+                <td className="px-2 py-1.5 text-right font-mono tabular-nums">
+                  {fmtNum(totalCheckedIn)}
+                </td>
+                <td
+                  className={cn(
+                    'px-2 py-1.5 text-right tabular-nums',
+                    checkinRateCell(weightedRate)
+                  )}
+                >
+                  {fmtRate(weightedRate)}
+                </td>
+                <td className="px-2 py-1.5" colSpan={6} />
+                <td className="px-2 py-1.5 text-right font-mono tabular-nums">
+                  {fmtNum(totalRegistrations)}
+                </td>
+                <td className="px-2 py-1.5 text-right font-mono tabular-nums">
+                  {fmtNum(totalPayments)}
+                </td>
+                <td className="px-2 py-1.5 text-right font-mono tabular-nums">
+                  {fmtUsd(totalRevenue)}
+                </td>
+              </tr>
+            </tfoot>
+          )}
+        </table>
+      </div>
     </div>
   );
 }
