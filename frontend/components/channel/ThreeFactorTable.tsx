@@ -5,7 +5,10 @@ interface ThreeFactorTableProps {
   comparisons: ThreeFactorComparison[];
 }
 
-function FactorBadge({ value }: { value: number }) {
+function FactorBadge({ value }: { value: number | null }) {
+  if (value == null) {
+    return <span className="text-xs text-[var(--text-secondary)]">—</span>;
+  }
   const pct = value * 100;
   const color =
     pct >= 50
@@ -51,18 +54,17 @@ export function ThreeFactorTable({ comparisons }: ThreeFactorTableProps) {
                 {c.channel}
               </td>
               <td className="py-1 px-2 text-xs text-right font-mono tabular-nums text-[var(--text-secondary)]">
-                {c.expected_volume.toLocaleString()}
+                {c.expected_volume != null ? c.expected_volume.toLocaleString() : "—"}
               </td>
               <td className="py-1 px-2 text-xs text-right font-mono tabular-nums font-semibold text-[var(--text-primary)]">
-                {c.actual_volume.toLocaleString()}
+                {c.actual_volume != null ? c.actual_volume.toLocaleString() : "—"}
               </td>
               <td
                 className={`py-1 px-2 text-xs text-right font-mono tabular-nums font-medium ${
-                  c.gap >= 0 ? "text-green-600" : "text-red-500"
+                  c.gap == null ? "text-[var(--text-secondary)]" : c.gap >= 0 ? "text-green-600" : "text-red-500"
                 }`}
               >
-                {c.gap >= 0 ? "+" : ""}
-                {c.gap.toLocaleString()}
+                {c.gap == null ? "—" : `${c.gap >= 0 ? "+" : ""}${c.gap.toLocaleString()}`}
               </td>
               <td className="py-1 px-2 text-xs text-right">
                 <FactorBadge value={c.appt_factor} />

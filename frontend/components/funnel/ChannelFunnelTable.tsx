@@ -20,18 +20,20 @@ export function ChannelFunnelTable({ channels }: ChannelFunnelTableProps) {
     );
   }
 
-  // Compute totals row
+  // Compute totals row (null-safe)
   const totals = STAGES.reduce(
     (acc, key) => {
-      acc[key] = channels.reduce((sum, c) => sum + c[key], 0);
+      acc[key] = channels.reduce((sum, c) => sum + (c[key] ?? 0), 0);
       return acc;
     },
     {} as Record<(typeof STAGES)[number], number>
   );
 
-  function convRate(numerator: number, denominator: number) {
-    if (denominator === 0) return "—";
-    return formatRate(numerator / denominator);
+  function convRate(numerator: number | null | undefined, denominator: number | null | undefined) {
+    const n = numerator ?? 0;
+    const d = denominator ?? 0;
+    if (d === 0) return "—";
+    return formatRate(n / d);
   }
 
   return (
@@ -61,7 +63,7 @@ export function ChannelFunnelTable({ channels }: ChannelFunnelTableProps) {
               </td>
               {STAGES.map((s) => (
                 <td key={s} className="py-1 px-2 text-xs text-right font-mono tabular-nums text-[var(--text-primary)]">
-                  {c[s].toLocaleString()}
+                  {c[s] != null ? c[s]!.toLocaleString() : "—"}
                 </td>
               ))}
               <td className="py-1 px-2 text-xs text-right font-mono tabular-nums text-[var(--text-secondary)]">

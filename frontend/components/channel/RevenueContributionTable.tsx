@@ -12,7 +12,7 @@ export function RevenueContributionTable({ contributions }: RevenueContributionT
     );
   }
 
-  const totalRevenue = contributions.reduce((sum, c) => sum + c.revenue, 0);
+  const totalRevenue = contributions.reduce((sum, c) => sum + (c.revenue ?? 0), 0);
 
   return (
     <div className="overflow-x-auto">
@@ -27,8 +27,8 @@ export function RevenueContributionTable({ contributions }: RevenueContributionT
         </thead>
         <tbody>
           {contributions.map((c) => {
-            const sharePct = c.share / 100;
-            const barWidth = Math.min(100, (c.revenue / (totalRevenue || 1)) * 100);
+            const sharePct = (c.share ?? 0) / 100;
+            const barWidth = Math.min(100, ((c.revenue ?? 0) / (totalRevenue || 1)) * 100);
             return (
               <tr
                 key={c.channel}

@@ -1,26 +1,26 @@
 export interface ChannelMetrics {
   channel: string
-  registrations: number
-  appointments: number
-  attendance: number
-  payments: number
-  revenue_usd: number
-  share_pct: number
+  registrations: number | null
+  appointments: number | null
+  attendance: number | null
+  payments: number | null
+  revenue_usd: number | null
+  share_pct: number | null
 }
 
 export interface RevenueContribution {
   channel: string
-  revenue: number
-  share: number
-  per_capita: number
+  revenue: number | null
+  share: number | null
+  per_capita: number | null
 }
 
 export interface ThreeFactorComparison {
   channel: string
-  expected_volume: number
-  actual_volume: number
-  gap: number
-  appt_factor: number
-  show_factor: number
-  pay_factor: number
+  expected_volume: number | null
+  actual_volume: number | null
+  gap: number | null
+  appt_factor: number | null
+  show_factor: number | null
+  pay_factor: number | null
 }
