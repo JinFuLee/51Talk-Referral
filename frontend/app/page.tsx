@@ -11,9 +11,30 @@ import { PercentBar } from "@/components/shared/PercentBar";
 
 /* ── 后端实际返回结构 ────────────────────────────────────────────── */
 
+interface TimeProgressInfo {
+  today: string;
+  month_start: string;
+  month_end: string;
+  elapsed_workdays: number;
+  remaining_workdays: number;
+  total_workdays: number;
+  time_progress: number;        // 0~1
+  elapsed_calendar_days: number;
+  total_calendar_days: number;
+}
+
+interface KpiPaceItem {
+  actual: number | null;
+  target: number | null;
+  daily_avg: number | null;
+  pace_daily_needed: number | null;
+}
+
 interface OverviewResponse {
   metrics: Record<string, number | string | null>;
   data_sources: { id: string; name: string; has_file: boolean; row_count: number }[];
+  time_progress?: TimeProgressInfo;
+  kpi_pace?: Record<string, KpiPaceItem | null>;
 }
 
 /* ── KPI 卡片定义 ─────────────────────────────────────────────── */
@@ -23,16 +44,17 @@ interface KpiCardDef {
   label: string;
   format?: "rate" | "currency";
   targetKey?: string; // 对应目标字段 key
+  paceKey?: string;   // 对应 kpi_pace key
 }
 
 const KPI_CARDS: KpiCardDef[] = [
-  { key: "转介绍注册数",       label: "注册" },
-  { key: "预约数",             label: "预约" },
-  { key: "出席数",             label: "出席" },
-  { key: "转介绍付费数",       label: "付费",      targetKey: "转介绍基础业绩单量标" },
-  { key: "总带新付费金额USD",  label: "业绩 (USD)", format: "currency", targetKey: "转介绍基础业绩标USD" },
-  { key: "客单价",             label: "客单价",     format: "currency", targetKey: "转介绍基础业绩客单价标USD" },
-  { key: "注册转化率",         label: "注册转化率", format: "rate" },
+  { key: "转介绍注册数",       label: "注册",        paceKey: "register" },
+  { key: "预约数",             label: "预约",        paceKey: "appointment" },
+  { key: "出席数",             label: "出席",        paceKey: "showup" },
+  { key: "转介绍付费数",       label: "付费",        targetKey: "转介绍基础业绩单量标", paceKey: "paid" },
+  { key: "总带新付费金额USD",  label: "业绩 (USD)", format: "currency", targetKey: "转介绍基础业绩标USD", paceKey: "revenue" },
+  { key: "客单价",             label: "客单价",      format: "currency", targetKey: "转介绍基础业绩客单价标USD" },
+  { key: "注册转化率",         label: "注册转化率",  format: "rate" },
 ];
 
 const RATE_PAIRS: { from: string; to: string; rateKey: string }[] = [
@@ -45,9 +67,109 @@ function num(v: unknown): number {
   return typeof v === "number" ? v : 0;
 }
 
-/* ── 漏斗转化率条 ─────────────────────────────────────────────── */
+/* ── 时间进度信息条 ────────────────────────────────────────────── */
 
-function FunnelSnapshot({ metrics }: { metrics: Record<string, number | string | null> }) {
+function TimeProgressBar({ tp }: { tp: TimeProgressInfo }) {
+  const pct = Math.round(tp.time_progress * 100);
+  const month = tp.month_start.slice(0, 7).replace("-", " 年 ") + " 月";
+
+  return (
+    <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-xs text-[var(--text-secondary)]">
+      <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
+        <span className="font-medium text-[var(--text-primary)]">时间进度</span>
+        <span className="text-[var(--text-muted)]">{month}</span>
+      </div>
+
+      {/* 进度条 */}
+      <div className="relative h-2 rounded-full bg-[var(--border)] overflow-hidden mb-2">
+        <div
+          className="absolute left-0 top-0 h-full rounded-full bg-blue-500 transition-all"
+          style={{ width: `${Math.min(pct, 100)}%` }}
+        />
+      </div>
+
+      {/* 数字信息行 */}
+      <div className="flex flex-wrap gap-x-5 gap-y-1">
+        <span>
+          今日 <span className="font-medium text-[var(--text-primary)]">{tp.today}</span>
+        </span>
+        <span>
+          已过工作日{" "}
+          <span className="font-medium text-[var(--text-primary)]">{tp.elapsed_workdays}</span>
+          {" "}/ {tp.total_workdays}
+        </span>
+        <span>
+          剩余工作日{" "}
+          <span className="font-medium text-[var(--text-primary)]">{tp.remaining_workdays}</span>
+        </span>
+        <span>
+          时间进度{" "}
+          <span className={`font-semibold ${pct >= 80 ? "text-red-500" : pct >= 50 ? "text-amber-500" : "text-blue-500"}`}>
+            {pct}%
+          </span>
+        </span>
+      </div>
+    </div>
+  );
+}
+
+/* ── 追进度需日均信息行（漏斗下方） ───────────────────────────────── */
+
+interface PaceRowProps {
+  kpiPace: Record<string, KpiPaceItem | null>;
+  timeProgress: number;
+}
+
+const PACE_LABELS: { key: string; label: string; format?: "currency" }[] = [
+  { key: "register",    label: "注册日均需" },
+  { key: "appointment", label: "预约日均需" },
+  { key: "showup",      label: "出席日均需" },
+  { key: "paid",        label: "付费日均需" },
+  { key: "revenue",     label: "业绩日均需", format: "currency" },
+];
+
+function PaceRow({ kpiPace, timeProgress }: PaceRowProps) {
+  const items = PACE_LABELS
+    .map(({ key, label, format }) => {
+      const item = kpiPace[key];
+      if (!item || item.pace_daily_needed === null) return null;
+      const needed = item.pace_daily_needed;
+      const avg = item.daily_avg ?? 0;
+      // 当前日均是否落后（日均 < 追进度需日均 → 落后）
+      const isBehind = avg < needed - 0.001;
+      const display = format === "currency" ? formatRevenue(needed) : needed.toFixed(1);
+      return { key, label, display, isBehind };
+    })
+    .filter(Boolean) as { key: string; label: string; display: string; isBehind: boolean }[];
+
+  if (items.length === 0) return null;
+
+  return (
+    <div className="flex flex-wrap gap-x-5 gap-y-1 px-1 pt-1 text-xs">
+      {items.map(({ key, label, display, isBehind }) => (
+        <span key={key} className="flex items-center gap-1">
+          <span className="text-[var(--text-muted)]">{label}</span>
+          <span className={`font-semibold ${isBehind ? "text-red-500" : "text-emerald-600"}`}>
+            {display}
+          </span>
+        </span>
+      ))}
+      <span className="text-[var(--text-muted)] ml-auto">
+        （追进度时间进度 {Math.round(timeProgress * 100)}%）
+      </span>
+    </div>
+  );
+}
+
+/* ── 漏斗转化率条（含进度对比） ──────────────────────────────────── */
+
+function FunnelSnapshot({
+  metrics,
+  timeProgress,
+}: {
+  metrics: Record<string, number | string | null>;
+  timeProgress: number;
+}) {
   return (
     <div className="space-y-3">
       {RATE_PAIRS.map(({ from, to, rateKey }) => {
@@ -95,6 +217,8 @@ export default function DashboardPage() {
 
   const metrics = data?.metrics ?? {};
   const sources = data?.data_sources ?? [];
+  const tp = data?.time_progress;
+  const kpiPace = data?.kpi_pace ?? {};
   const hasMetrics = Object.keys(metrics).length > 0;
 
   if (!hasMetrics && sources.length === 0) {
@@ -115,10 +239,13 @@ export default function DashboardPage() {
         <p className="text-sm text-[var(--text-secondary)] mt-1">转介绍漏斗达成情况 · 数据源状态</p>
       </div>
 
+      {/* 时间进度信息条 */}
+      {tp && <TimeProgressBar tp={tp} />}
+
       {/* KPI 卡片 */}
       {hasMetrics && (
         <div className="grid grid-cols-2 xl:grid-cols-3 gap-4">
-          {KPI_CARDS.map(({ key, label, format, targetKey }) => {
+          {KPI_CARDS.map(({ key, label, format, targetKey, paceKey }) => {
             const v = num(metrics[key]);
             const display =
               format === "currency"
@@ -139,6 +266,10 @@ export default function DashboardPage() {
             const achievement =
               targetRaw != null && targetRaw > 0 ? v / targetRaw : undefined;
 
+            // 是否落后时间进度（达成率 < 时间进度）
+            const isBehindTime =
+              tp && achievement != null && achievement < tp.time_progress;
+
             return (
               <StatCard
                 key={key}
@@ -146,6 +277,7 @@ export default function DashboardPage() {
                 value={display}
                 target={targetDisplay}
                 achievement={achievement}
+                highlight={isBehindTime ? "warn" : undefined}
               />
             );
           })}
@@ -157,7 +289,15 @@ export default function DashboardPage() {
         {!hasMetrics ? (
           <EmptyState title="暂无漏斗数据" description="上传数据后自动刷新" />
         ) : (
-          <FunnelSnapshot metrics={metrics} />
+          <>
+            <FunnelSnapshot metrics={metrics} timeProgress={tp?.time_progress ?? 0} />
+            {/* 追进度需日均行 */}
+            {tp && Object.keys(kpiPace).length > 0 && (
+              <div className="mt-3 pt-3 border-t border-[var(--border)]">
+                <PaceRow kpiPace={kpiPace} timeProgress={tp.time_progress} />
+              </div>
+            )}
+          </>
         )}
       </Card>
 

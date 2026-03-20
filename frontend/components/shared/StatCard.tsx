@@ -6,6 +6,8 @@ interface StatCardProps {
   target?: string | number;
   achievement?: number;
   className?: string;
+  /** "warn" = 达成率落后时间进度，卡片边框变橙色 */
+  highlight?: "warn";
 }
 
 function achievementClass(rate: number) {
@@ -14,13 +16,16 @@ function achievementClass(rate: number) {
   return "text-red-500";
 }
 
-export function StatCard({ label, value, target, achievement, className }: StatCardProps) {
+export function StatCard({ label, value, target, achievement, className, highlight }: StatCardProps) {
   const pct = achievement !== undefined ? Math.round(achievement * 100) : null;
 
   return (
     <div
       className={cn(
-        "bg-[var(--bg-surface)] rounded-lg border border-[var(--border-default)] shadow-[var(--shadow-subtle)] p-3",
+        "bg-[var(--bg-surface)] rounded-lg border shadow-[var(--shadow-subtle)] p-3",
+        highlight === "warn"
+          ? "border-orange-400 dark:border-orange-500"
+          : "border-[var(--border-default)]",
         className
       )}
     >
