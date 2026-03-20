@@ -7,6 +7,8 @@ import { Spinner } from '@/components/ui/Spinner';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { PageTabs } from '@/components/ui/PageTabs';
 import { cn } from '@/lib/utils';
+import { TeamDetailTab } from '@/components/checkin/TeamDetailTab';
+import { FollowupTab } from '@/components/checkin/FollowupTab';
 
 // ── 类型定义 ───────────────────────────────────────────────────────────────────
 
@@ -213,12 +215,8 @@ export default function CheckinPage() {
       {/* Tab 内容 */}
       <div className="mt-2">
         {activeTab === 'summary' && <SummaryTab />}
-        {activeTab === 'team_detail' && (
-          <EmptyState title="团队明细（开发中）" description="此 Tab 由其他 MK 负责实现" />
-        )}
-        {activeTab === 'followup' && (
-          <EmptyState title="未打卡跟进（开发中）" description="此 Tab 由其他 MK 负责实现" />
-        )}
+        {activeTab === 'team_detail' && <TeamDetailTab />}
+        {activeTab === 'followup' && <FollowupTab />}
       </div>
     </div>
   );
