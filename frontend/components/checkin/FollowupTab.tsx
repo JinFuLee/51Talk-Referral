@@ -94,6 +94,7 @@ interface FilterBarProps {
   onSalesSearch: (s: string) => void;
   enclosures: string[];
   onEnclosuresChange: (e: string[]) => void;
+  visibleRoles?: Role[];
 }
 
 function FilterBar({
@@ -106,7 +107,9 @@ function FilterBar({
   onSalesSearch,
   enclosures,
   onEnclosuresChange,
+  visibleRoles: visibleRolesProp,
 }: FilterBarProps) {
+  const displayRoles = visibleRolesProp && visibleRolesProp.length > 0 ? visibleRolesProp : ROLES;
   function toggleEnclosure(enc: string) {
     if (enclosures.includes(enc)) {
       onEnclosuresChange(enclosures.filter((e) => e !== enc));
@@ -121,7 +124,7 @@ function FilterBar({
       <div className="flex flex-wrap items-center gap-3">
         {/* Role toggle group */}
         <div className="flex rounded-lg border border-[var(--border-subtle)] overflow-hidden text-xs font-medium">
-          {visibleRoles.map((r) => (
+          {displayRoles.map((r) => (
             <button
               key={r}
               onClick={() => onRoleChange(r)}
@@ -549,6 +552,7 @@ export function FollowupTab({ activeRoles }: FollowupTabProps) {
         onSalesSearch={setSalesSearch}
         enclosures={enclosures}
         onEnclosuresChange={setEnclosures}
+        visibleRoles={visibleRoles}
       />
 
       {isLoading ? (
