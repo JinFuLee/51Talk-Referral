@@ -5,40 +5,42 @@ import useSWR from 'swr';
 import { swrFetcher } from '@/lib/api';
 import { Spinner } from '@/components/ui/Spinner';
 
-// ── 团队列表 ──────────────────────────────────────────────────────────────────
+// ── 团队列表（value 与后端 last_cc_group_name 一致）──────────────────────────
 const TEAM_OPTIONS = [
-  { value: 'CC01Team', label: 'CC01' },
-  { value: 'CC02Team', label: 'CC02' },
-  { value: 'CC03Team', label: 'CC03' },
-  { value: 'CC04Team', label: 'CC04' },
-  { value: 'CC05Team', label: 'CC05' },
-  { value: 'CC06Team', label: 'CC06' },
+  { value: 'TH-CC01Team', label: 'CC01' },
+  { value: 'TH-CC02Team', label: 'CC02' },
+  { value: 'TH-CC03Team', label: 'CC03' },
+  { value: 'TH-CC04Team', label: 'CC04' },
+  { value: 'TH-CC05Team', label: 'CC05' },
+  { value: 'TH-CC06Team', label: 'CC06' },
   { value: 'SS', label: 'SS' },
   { value: 'LP', label: 'LP' },
   { value: '运营', label: '运营' },
 ];
 
 // ── 类型定义 ──────────────────────────────────────────────────────────────────
+
+// 后端 by_enclosure 按围场分组的明细
+interface EnclosureRow {
+  enclosure: string;
+  students: number;
+  checked_in: number;
+  rate: number;
+}
+
+// 后端 member 字段：total_students / checked_in / rate（无 monthly 历史）
 interface CheckinPersonRow {
   name: string;
-  valid_students: number;
+  total_students: number; // 后端字段
   checked_in: number;
-  checkin_rate: number;
-  /** 按月打卡明细，键为 "M0"/"M1"/... */
-  monthly: Record<string, number | null>;
+  rate: number; // 后端字段名（打卡率 0~1）
+  by_enclosure: EnclosureRow[];
 }
 
 interface TeamDetailResponse {
   team: string;
   members: CheckinPersonRow[];
-  summary: {
-    total_students: number;
-    total_checked_in: number;
-    checkin_rate: number;
-    monthly: Record<string, number | null>;
-  };
-  /** 月份标签列表，如 ["M0","M1","M2",...] */
-  month_labels: string[];
+  // 后端目前不返回 summary / month_labels，前端自行派生
 }
 
 // ── 打卡率颜色编码 ─────────────────────────────────────────────────────────────
@@ -68,9 +70,21 @@ export function TeamDetailTab() {
     { refreshInterval: 30_000 }
   );
 
-  const monthLabels = data?.month_labels ?? [];
   const members = data?.members ?? [];
-  const summary = data?.summary;
+
+  // 从 members 派生团队汇总（后端不返回 summary 字段）
+  const summary =
+    members.length > 0
+      ? (() => {
+          const totalStudents = members.reduce((s, m) => s + m.total_students, 0);
+          const totalCheckedIn = members.reduce((s, m) => s + m.checked_in, 0);
+          return {
+            total_students: totalStudents,
+            total_checked_in: totalCheckedIn,
+            checkin_rate: totalStudents > 0 ? totalCheckedIn / totalStudents : 0,
+          };
+        })()
+      : null;
 
   return (
     <div className="space-y-3">
@@ -127,14 +141,6 @@ export function TeamDetailTab() {
                 <th className="py-1.5 px-2 border-0 text-right whitespace-nowrap">有效学员</th>
                 <th className="py-1.5 px-2 border-0 text-right whitespace-nowrap">已打卡</th>
                 <th className="py-1.5 px-2 border-0 text-right whitespace-nowrap">打卡率</th>
-                {monthLabels.map((m) => (
-                  <th
-                    key={m}
-                    className="py-1.5 px-2 border-0 text-right whitespace-nowrap min-w-[52px]"
-                  >
-                    {m}
-                  </th>
-                ))}
               </tr>
             </thead>
 
@@ -147,27 +153,16 @@ export function TeamDetailTab() {
                   </td>
                   <td className="py-1 px-2 text-xs font-medium whitespace-nowrap">{row.name}</td>
                   <td className="py-1 px-2 text-xs text-right font-mono tabular-nums">
-                    {fmtNum(row.valid_students)}
+                    {fmtNum(row.total_students)}
                   </td>
                   <td className="py-1 px-2 text-xs text-right font-mono tabular-nums">
                     {fmtNum(row.checked_in)}
                   </td>
                   <td
-                    className={`py-1 px-2 text-xs text-right font-mono tabular-nums ${rateColor(row.checkin_rate)}`}
+                    className={`py-1 px-2 text-xs text-right font-mono tabular-nums ${rateColor(row.rate)}`}
                   >
-                    {fmtRate(row.checkin_rate)}
+                    {fmtRate(row.rate)}
                   </td>
-                  {monthLabels.map((m) => {
-                    const val = row.monthly[m];
-                    return (
-                      <td
-                        key={m}
-                        className="py-1 px-2 text-xs text-right font-mono tabular-nums text-[var(--text-secondary)]"
-                      >
-                        {fmtRate(val)}
-                      </td>
-                    );
-                  })}
                 </tr>
               ))}
             </tbody>
@@ -189,14 +184,6 @@ export function TeamDetailTab() {
                   >
                     {fmtRate(summary.checkin_rate)}
                   </td>
-                  {monthLabels.map((m) => {
-                    const val = summary.monthly[m];
-                    return (
-                      <td key={m} className="py-1.5 px-2 text-xs text-right font-mono tabular-nums">
-                        {fmtRate(val)}
-                      </td>
-                    );
-                  })}
                 </tr>
               </tfoot>
             )}
@@ -219,7 +206,6 @@ export function TeamDetailTab() {
             <span className="inline-block w-2.5 h-2.5 rounded-sm bg-red-400 opacity-70" />
             &lt;40% 落后
           </span>
-          <span className="ml-auto">M0 = 当月，M1 = 上月，M2 = 上上月…</span>
         </div>
       )}
     </div>

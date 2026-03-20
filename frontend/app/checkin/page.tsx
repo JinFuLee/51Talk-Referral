@@ -15,28 +15,38 @@ import { FollowupTab } from '@/components/checkin/FollowupTab';
 interface CheckinTeamRow {
   team: string;
   students: number;
-  checkin_count: number;
-  checkin_rate: number;
+  checked_in: number;
+  rate: number; // 后端字段名
 }
 
 interface CheckinEnclosureRow {
   enclosure: string;
   students: number;
-  checkin_count: number;
-  checkin_rate: number;
+  checked_in: number;
+  rate: number; // 后端字段名
 }
 
-interface CheckinChannelSummary {
-  channel: string; // "CC" | "SS" | "LP" | "运营"
+interface CheckinRoleSummary {
   total_students: number;
-  total_checkin: number;
+  checked_in: number;
   checkin_rate: number;
   by_team: CheckinTeamRow[];
   by_enclosure: CheckinEnclosureRow[];
 }
 
+// 后端返回 { by_role: { CC: {...}, SS: {...}, LP: {...} } }
 interface CheckinSummaryResponse {
-  channels: CheckinChannelSummary[];
+  by_role: Record<string, CheckinRoleSummary>;
+}
+
+// 前端渲染用的规范化结构
+interface CheckinChannelSummary {
+  channel: string;
+  total_students: number;
+  total_checkin: number;
+  checkin_rate: number;
+  by_team: CheckinTeamRow[];
+  by_enclosure: CheckinEnclosureRow[];
 }
 
 // ── Tab 定义 ──────────────────────────────────────────────────────────────────
@@ -116,8 +126,8 @@ function ChannelColumn({ ch }: { ch: CheckinChannelSummary }) {
                 {row.team}
               </span>
               <span className="text-right text-[var(--text-primary)]">{row.students}</span>
-              <span className={cn('text-right font-medium', rateColor(row.checkin_rate))}>
-                {fmtRate(row.checkin_rate)}
+              <span className={cn('text-right font-medium', rateColor(row.rate))}>
+                {fmtRate(row.rate)}
               </span>
             </div>
           ))
@@ -144,8 +154,8 @@ function ChannelColumn({ ch }: { ch: CheckinChannelSummary }) {
             >
               <span className="col-span-2 text-[var(--text-secondary)]">{row.enclosure}</span>
               <span className="text-right text-[var(--text-primary)]">{row.students}</span>
-              <span className={cn('text-right font-medium', rateColor(row.checkin_rate))}>
-                {fmtRate(row.checkin_rate)}
+              <span className={cn('text-right font-medium', rateColor(row.rate))}>
+                {fmtRate(row.rate)}
               </span>
             </div>
           ))
@@ -175,7 +185,16 @@ function SummaryTab() {
     return <EmptyState title="数据加载失败" description="无法获取打卡汇总数据，请检查后端服务" />;
   }
 
-  const channels = data?.channels ?? [];
+  // 将后端 by_role 对象转为前端渲染列表
+  const byRole = data?.by_role ?? {};
+  const channels: CheckinChannelSummary[] = Object.entries(byRole).map(([role, v]) => ({
+    channel: role,
+    total_students: v.total_students,
+    total_checkin: v.checked_in,
+    checkin_rate: v.checkin_rate,
+    by_team: v.by_team,
+    by_enclosure: v.by_enclosure,
+  }));
 
   if (channels.length === 0) {
     return <EmptyState title="暂无打卡数据" description="上传包含打卡记录的数据文件后自动刷新" />;

@@ -26,8 +26,24 @@ interface FollowupMember {
   [key: string]: unknown;
 }
 
+// 后端原始返回的 student 字段名
+interface BackendStudent {
+  student_id: string;
+  enclosure: string;
+  role: string;
+  cc_name: string; // 负责人
+  team: string;
+  quality_score: number;
+  lesson_consumption_3m: number | null;
+  referral_registrations: number | null;
+  referral_payments: number | null;
+  cc_last_call_date: string | null;
+  card_days_remaining: number | null;
+  extra: Record<string, unknown>;
+}
+
 interface FollowupResponseRaw {
-  students?: FollowupMember[];
+  students?: BackendStudent[];
   items?: FollowupMember[];
   total: number;
   avg_quality_score?: number;
@@ -470,14 +486,32 @@ export function FollowupTab() {
     error,
   } = useSWR<FollowupResponseRaw>(`/api/checkin/followup?${qs}`, swrFetcher);
 
-  // 适配后端 {students} → 前端 {items}，补全缺失字段
+  // 适配后端字段名 → 前端 FollowupMember 接口
   const data: FollowupResponse | undefined = raw
     ? (() => {
-        const items = raw.items ?? raw.students ?? [];
+        // 后端用 students[] 返回，字段名与前端接口不同，需要逐一映射
+        const backendStudents: BackendStudent[] =
+          (raw.students as BackendStudent[] | undefined) ?? [];
+        const items: FollowupMember[] = backendStudents.map((s, idx) => ({
+          rank: idx + 1,
+          quality_score: s.quality_score ?? 0,
+          id: s.student_id, // student_id → id
+          enclosure: s.enclosure,
+          responsible: s.cc_name, // cc_name → responsible
+          lesson_avg_3m: s.lesson_consumption_3m, // lesson_consumption_3m → lesson_avg_3m
+          referrals_this_month: s.referral_registrations ?? 0, // referral_registrations → referrals_this_month
+          total_revenue_usd: null, // 后端无此字段
+          cc_last_contact_date: s.cc_last_call_date, // cc_last_call_date → cc_last_contact_date
+          days_until_card_expiry: s.card_days_remaining, // card_days_remaining → days_until_card_expiry
+          team: s.team,
+          // 展开 extra 字段（D4 全量字段，用于 ExpandedRow 展示）
+          ...(s.extra ?? {}),
+        }));
+
         const scores = items.map((s) => s.quality_score ?? 0);
         const avg = scores.length > 0 ? scores.reduce((a, b) => a + b, 0) / scores.length : 0;
         const highCount = scores.filter((s) => s >= 70).length;
-        const teamSet = new Set(items.map((s) => s.team).filter(Boolean));
+        const teamSet = new Set(items.map((s) => s.team as string).filter(Boolean));
         return {
           items,
           total: raw.total ?? items.length,
