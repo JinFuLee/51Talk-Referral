@@ -18,13 +18,21 @@ interface OverviewResponse {
 
 /* ── KPI 卡片定义 ─────────────────────────────────────────────── */
 
-const KPI_CARDS: { key: string; label: string; format?: "rate" | "currency" }[] = [
-  { key: "转介绍注册数", label: "注册" },
-  { key: "预约数", label: "预约" },
-  { key: "出席数", label: "出席" },
-  { key: "转介绍付费数", label: "付费" },
-  { key: "总带新付费金额USD", label: "业绩 (USD)", format: "currency" },
-  { key: "客单价", label: "客单价", format: "currency" },
+interface KpiCardDef {
+  key: string;
+  label: string;
+  format?: "rate" | "currency";
+  targetKey?: string; // 对应目标字段 key
+}
+
+const KPI_CARDS: KpiCardDef[] = [
+  { key: "转介绍注册数",       label: "注册" },
+  { key: "预约数",             label: "预约" },
+  { key: "出席数",             label: "出席" },
+  { key: "转介绍付费数",       label: "付费",      targetKey: "转介绍基础业绩单量标" },
+  { key: "总带新付费金额USD",  label: "业绩 (USD)", format: "currency", targetKey: "转介绍基础业绩标USD" },
+  { key: "客单价",             label: "客单价",     format: "currency", targetKey: "转介绍基础业绩客单价标USD" },
+  { key: "注册转化率",         label: "注册转化率", format: "rate" },
 ];
 
 const RATE_PAIRS: { from: string; to: string; rateKey: string }[] = [
@@ -110,7 +118,7 @@ export default function DashboardPage() {
       {/* KPI 卡片 */}
       {hasMetrics && (
         <div className="grid grid-cols-2 xl:grid-cols-3 gap-4">
-          {KPI_CARDS.map(({ key, label, format }) => {
+          {KPI_CARDS.map(({ key, label, format, targetKey }) => {
             const v = num(metrics[key]);
             const display =
               format === "currency"
@@ -118,8 +126,27 @@ export default function DashboardPage() {
                 : format === "rate"
                   ? formatRate(v)
                   : v.toLocaleString();
+
+            const targetRaw = targetKey != null ? num(metrics[targetKey]) : undefined;
+            const targetDisplay =
+              targetRaw != null && targetRaw > 0
+                ? format === "currency"
+                  ? formatRevenue(targetRaw)
+                  : format === "rate"
+                    ? formatRate(targetRaw)
+                    : targetRaw.toLocaleString()
+                : undefined;
+            const achievement =
+              targetRaw != null && targetRaw > 0 ? v / targetRaw : undefined;
+
             return (
-              <StatCard key={key} label={label} value={display} />
+              <StatCard
+                key={key}
+                label={label}
+                value={display}
+                target={targetDisplay}
+                achievement={achievement}
+              />
             );
           })}
         </div>
