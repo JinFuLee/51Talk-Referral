@@ -2,7 +2,7 @@
 
 import useSWR from "swr";
 import { swrFetcher } from "@/lib/api";
-import { formatRate } from "@/lib/utils";
+
 import { Card } from "@/components/ui/Card";
 import { Spinner } from "@/components/ui/Spinner";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -16,6 +16,7 @@ import {
   ResponsiveContainer,
   Legend,
 } from "recharts";
+import { TeamSummaryCard } from "@/components/team/TeamSummaryCard";
 
 interface TeamMember {
   cc_name: string;
@@ -25,6 +26,8 @@ interface TeamMember {
   registrations: number;
   payments: number;
   revenue_usd: number;
+  checkin_rate?: number;
+  cc_reach_rate?: number;
 }
 
 interface TeamSummaryResponse {
@@ -78,35 +81,18 @@ export default function TeamPage() {
           </div>
         ) : (
           teams.map((t) => (
-            <div
+            <TeamSummaryCard
               key={t.cc_name}
-              className="bg-[var(--bg-surface)] rounded-[var(--radius-md)] border border-[var(--border-subtle)] shadow-[var(--shadow-subtle)] p-5"
-            >
-              <div className="flex items-start justify-between mb-3">
-                <div>
-                  <p className="text-base font-bold text-[var(--text-primary)]">{t.cc_name}</p>
-                  <p className="text-xs text-[var(--text-muted)]">{t.cc_group}</p>
-                </div>
-                <div className="text-right">
-                  <div className="text-lg font-bold text-blue-600">{t.students}</div>
-                  <div className="text-xs text-[var(--text-muted)]">有效学员</div>
-                </div>
-              </div>
-              <div className="grid grid-cols-3 gap-2 pt-3 border-t border-[var(--border-subtle)]">
-                <div className="text-center">
-                  <div className="text-sm font-semibold text-[var(--text-primary)]">{formatRate(t.participation_rate)}</div>
-                  <div className="text-[10px] text-[var(--text-muted)]">参与率</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-sm font-semibold text-[var(--text-primary)]">{t.registrations}</div>
-                  <div className="text-[10px] text-[var(--text-muted)]">注册数</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-sm font-semibold text-[var(--text-primary)]">{t.payments}</div>
-                  <div className="text-[10px] text-[var(--text-muted)]">付费数</div>
-                </div>
-              </div>
-            </div>
+              cc_name={t.cc_name}
+              cc_group={t.cc_group}
+              students={t.students}
+              participation_rate={t.participation_rate}
+              registrations={t.registrations}
+              payments={t.payments}
+              revenue_usd={t.revenue_usd ?? 0}
+              checkin_rate={t.checkin_rate}
+              cc_reach_rate={t.cc_reach_rate}
+            />
           ))
         )}
       </div>

@@ -10,6 +10,8 @@ interface TeamSummaryCardProps {
   registrations: number;
   payments: number;
   revenue_usd: number;
+  checkin_rate?: number;
+  cc_reach_rate?: number;
 }
 
 export function TeamSummaryCard({
@@ -20,6 +22,8 @@ export function TeamSummaryCard({
   registrations,
   payments,
   revenue_usd,
+  checkin_rate,
+  cc_reach_rate,
 }: TeamSummaryCardProps) {
   return (
     <div className="bg-[var(--bg-surface)] rounded-[var(--radius-xl)] border border-slate-200/60 shadow-sm p-5">
@@ -55,10 +59,25 @@ export function TeamSummaryCard({
         </div>
       </div>
 
+      <div className="grid grid-cols-2 gap-2 mt-3 pt-3 border-t border-slate-100">
+        <div className="text-center">
+          <div className="text-sm font-semibold text-[var(--text-primary)]">
+            {formatRate(checkin_rate ?? 0)}
+          </div>
+          <div className="text-[10px] text-[var(--text-muted)] mt-0.5">打卡率</div>
+        </div>
+        <div className="text-center">
+          <div className="text-sm font-semibold text-[var(--text-primary)]">
+            {formatRate(cc_reach_rate ?? 0)}
+          </div>
+          <div className="text-[10px] text-[var(--text-muted)] mt-0.5">CC触达率</div>
+        </div>
+      </div>
+
       <div className="mt-3 pt-2 border-t border-slate-50 text-right">
         <span className="text-xs text-[var(--text-muted)]">业绩 </span>
         <span className="text-sm font-semibold text-[var(--text-primary)]">
-          ${revenue_usd.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+          ${(revenue_usd ?? 0).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
         </span>
       </div>
     </div>
