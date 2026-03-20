@@ -95,6 +95,7 @@ interface FilterBarProps {
   enclosures: string[];
   onEnclosuresChange: (e: string[]) => void;
   visibleRoles?: Role[];
+  roleEnclosures?: string[];
 }
 
 function FilterBar({
@@ -108,8 +109,13 @@ function FilterBar({
   enclosures,
   onEnclosuresChange,
   visibleRoles: visibleRolesProp,
+  roleEnclosures: roleEnclosuresProp,
 }: FilterBarProps) {
   const displayRoles = visibleRolesProp && visibleRolesProp.length > 0 ? visibleRolesProp : ROLES;
+  const displayEnclosures =
+    roleEnclosuresProp && roleEnclosuresProp.length > 0
+      ? ENCLOSURE_OPTIONS.filter((e) => roleEnclosuresProp.includes(e))
+      : ENCLOSURE_OPTIONS;
   function toggleEnclosure(enc: string) {
     if (enclosures.includes(enc)) {
       onEnclosuresChange(enclosures.filter((e) => e !== enc));
@@ -171,7 +177,7 @@ function FilterBar({
       {/* Row 2: enclosure multi-select */}
       <div className="flex flex-wrap items-center gap-1.5">
         <span className="text-xs text-[var(--text-muted)] mr-1">围场:</span>
-        {ENCLOSURE_OPTIONS.map((enc) => {
+        {displayEnclosures.map((enc) => {
           const active = enclosures.includes(enc);
           return (
             <button
@@ -469,7 +475,7 @@ interface FollowupTabProps {
   roleEnclosures?: Record<string, string[]>;
 }
 
-export function FollowupTab({ activeRoles }: FollowupTabProps) {
+export function FollowupTab({ activeRoles, roleEnclosures }: FollowupTabProps) {
   const visibleRoles: Role[] =
     activeRoles && activeRoles.length > 0 ? ROLES.filter((r) => activeRoles.includes(r)) : ROLES;
   const [role, setRole] = useState<Role>(visibleRoles[0] ?? 'CC');
@@ -538,6 +544,7 @@ export function FollowupTab({ activeRoles }: FollowupTabProps) {
   const handleRoleChange = (r: Role) => {
     setRole(r);
     setTeam('');
+    setEnclosures([]); // 清空围场筛选（新角色负责不同围场）
   };
 
   return (
@@ -553,6 +560,7 @@ export function FollowupTab({ activeRoles }: FollowupTabProps) {
         enclosures={enclosures}
         onEnclosuresChange={setEnclosures}
         visibleRoles={visibleRoles}
+        roleEnclosures={roleEnclosures?.[role]}
       />
 
       {isLoading ? (
