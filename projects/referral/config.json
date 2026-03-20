@@ -219,6 +219,45 @@
       "description": "121天+已付费学员：LP负责，转介绍用户数+过程指标（触达率/打卡率）"
     }
   },
+  "enclosure_role_narrow": {
+    "CC": {
+      "min_days": 0,
+      "max_days": 90,
+      "description": "窄口径：CC主动联系，0-90天（M0-M2），全漏斗负责"
+    },
+    "SS": {
+      "min_days": 91,
+      "max_days": 120,
+      "description": "窄口径：SS主动联系，91-120天（M3），leads+过程指标"
+    },
+    "LP": {
+      "min_days": 121,
+      "max_days": null,
+      "description": "窄口径：LP主动联系，121天+（M4+），leads+过程指标"
+    }
+  },
+  "enclosure_role_wide": {
+    "CC": {
+      "min_days": 0,
+      "max_days": 90,
+      "description": "宽口径：CC负责，0-90天（M0-M2），学员自主打卡场景"
+    },
+    "SS": {
+      "min_days": 91,
+      "max_days": 120,
+      "description": "宽口径：SS负责，91-120天（M3），学员自主打卡场景"
+    },
+    "LP": {
+      "min_days": 121,
+      "max_days": 180,
+      "description": "宽口径：LP负责，121-180天（M4-M5），学员自主打卡场景"
+    },
+    "运营": {
+      "min_days": 181,
+      "max_days": null,
+      "description": "宽口径：运营负责，181天+（M6+），学员自主打卡场景"
+    }
+  },
   "channel_metric_scope": {
     "total": {
       "role": "full_funnel",

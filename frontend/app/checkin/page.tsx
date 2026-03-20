@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import useSWR from 'swr';
 import { swrFetcher } from '@/lib/api';
 import { Spinner } from '@/components/ui/Spinner';
@@ -9,6 +9,81 @@ import { PageTabs } from '@/components/ui/PageTabs';
 import { cn } from '@/lib/utils';
 import { TeamDetailTab } from '@/components/checkin/TeamDetailTab';
 import { FollowupTab } from '@/components/checkin/FollowupTab';
+
+// ── 宽口径配置读取 ─────────────────────────────────────────────────────────────
+
+const ENCLOSURE_KEYS = ['M0', 'M1', 'M2', 'M3', 'M4', 'M5', 'M6+'] as const;
+type EnclosureMonth = (typeof ENCLOSURE_KEYS)[number];
+type Role = 'CC' | 'SS' | 'LP' | '运营';
+type EnclosureRoleAssignment = Record<EnclosureMonth, Role[]>;
+
+// 宽口径默认值（与 EnclosureRoleCard 保持同步）
+const DEFAULT_WIDE: EnclosureRoleAssignment = {
+  M0: ['CC'],
+  M1: ['CC'],
+  M2: ['CC'],
+  M3: ['SS'],
+  M4: ['LP'],
+  M5: ['LP'],
+  'M6+': ['运营'],
+};
+
+/**
+ * 从 localStorage 读取宽口径配置，转换为后端期望的格式：
+ * { CC: {min_days, max_days}, SS: {...}, ... }
+ *
+ * 后端 _load_role_assignment 会读取 config.json 的 enclosure_role_wide，
+ * 但前端保存的配置优先级更高——通过 query param `role_config` 传入后端。
+ */
+function loadWideConfig(): Record<string, { min_days: number; max_days: number | null }> {
+  let assignment: EnclosureRoleAssignment = DEFAULT_WIDE;
+  if (typeof window !== 'undefined') {
+    try {
+      const raw = localStorage.getItem('enclosure_role_wide');
+      if (raw) assignment = JSON.parse(raw) as EnclosureRoleAssignment;
+    } catch {
+      // fallback to default
+    }
+  }
+
+  // M 月份 → 天数范围映射（与后端 _ENCLOSURE_BANDS 对齐）
+  const M_TO_DAYS: Record<string, { min: number; max: number | null }> = {
+    M0: { min: 0, max: 30 },
+    M1: { min: 31, max: 60 },
+    M2: { min: 61, max: 90 },
+    M3: { min: 91, max: 120 },
+    M4: { min: 121, max: 150 },
+    M5: { min: 151, max: 180 },
+    'M6+': { min: 181, max: null },
+  };
+
+  // 将 assignment（月份→角色[]）反转为 角色→{min_days, max_days}
+  // 每个角色取其覆盖的连续月份段的 min/max
+  const roleToMonths: Record<string, EnclosureMonth[]> = {};
+  for (const month of ENCLOSURE_KEYS) {
+    const roles = assignment[month] ?? [];
+    for (const role of roles) {
+      if (!roleToMonths[role]) roleToMonths[role] = [];
+      roleToMonths[role].push(month);
+    }
+  }
+
+  const result: Record<string, { min_days: number; max_days: number | null }> = {};
+  for (const [role, months] of Object.entries(roleToMonths)) {
+    const dayRanges = months.map((m) => M_TO_DAYS[m]).filter(Boolean);
+    if (dayRanges.length === 0) continue;
+    const minDays = Math.min(...dayRanges.map((r) => r!.min));
+    // 取最后一段的 max_days（连续段末尾，null 表示无上限）
+    const sortedMonths = months
+      .slice()
+      .sort((a, b) => ENCLOSURE_KEYS.indexOf(a) - ENCLOSURE_KEYS.indexOf(b));
+    const lastMonth = sortedMonths[sortedMonths.length - 1];
+    const maxDays = M_TO_DAYS[lastMonth]?.max ?? null;
+    result[role] = { min_days: minDays, max_days: maxDays };
+  }
+
+  return result;
+}
 
 // ── 类型定义 ───────────────────────────────────────────────────────────────────
 
@@ -168,8 +243,18 @@ function ChannelColumn({ ch }: { ch: CheckinChannelSummary }) {
 // ── Tab 1: 汇总视图 ───────────────────────────────────────────────────────────
 
 function SummaryTab() {
+  // 从 localStorage 读取宽口径配置，构建带 role_config query param 的 URL
+  // useEffect + useState 确保 SSR 安全（localStorage 仅在客户端可用）
+  const [summaryUrl, setSummaryUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    const cfg = loadWideConfig();
+    const encoded = encodeURIComponent(JSON.stringify(cfg));
+    setSummaryUrl(`/api/checkin/summary?role_config=${encoded}`);
+  }, []);
+
   const { data, isLoading, error } = useSWR<CheckinSummaryResponse>(
-    '/api/checkin/summary',
+    summaryUrl, // null 时 SWR 不发请求，等 useEffect 完成后才触发
     swrFetcher
   );
 

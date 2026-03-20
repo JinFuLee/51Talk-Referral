@@ -575,6 +575,39 @@ def _build_followup_students(
 
 # ── API 端点 ─────────────────────────────────────────────────────────────────
 
+def _parse_role_config_param(role_config: str | None) -> dict[str, dict] | None:
+    """
+    解析前端传来的 role_config JSON 字符串。
+    格式：{"CC": {"min_days": 0, "max_days": 90}, "SS": {...}, ...}
+    解析成功返回 role_assignment dict；失败返回 None（使用默认配置）。
+    """
+    if not role_config:
+        return None
+    try:
+        import json
+
+        cfg = json.loads(role_config)
+        if not isinstance(cfg, dict):
+            return None
+
+        result: dict[str, dict] = {}
+        for role, spec in cfg.items():
+            if not isinstance(spec, dict):
+                continue
+            min_days = int(spec.get("min_days", 0))
+            max_days = spec.get("max_days")  # None = 无上限
+
+            min_m = _m_label_to_index(_days_to_m(min_days))
+            max_m = (
+                _m_label_to_index(_days_to_m(max_days)) if max_days is not None else 99
+            )
+            result[str(role)] = {"m_range": (min_m, max_m)}
+
+        return result if result else None
+    except Exception:
+        return None
+
+
 @router.get(
     "/checkin/summary",
     summary="打卡汇总（Tab1）— 按角色 / 团队 / 围场分组",
@@ -582,10 +615,22 @@ def _build_followup_students(
 def get_checkin_summary(
     request: Request,
     dm: DataManager = Depends(get_data_manager),
+    role_config: str | None = Query(
+        default=None,
+        description=(
+            "JSON 字符串，前端宽口径配置。"
+            '格式：{"CC":{"min_days":0,"max_days":90},"SS":{...},...}。'
+            "不传则使用服务端 config.json 中的 enclosure_role_wide 配置。"
+        ),
+    ),
 ) -> dict:
     data = dm.load_all()
     df_d2: pd.DataFrame = data.get("enclosure_cc", pd.DataFrame())
-    role_assignment = _load_role_assignment(wide=True)
+
+    # 优先使用前端传来的宽口径配置，回退到 config.json
+    role_assignment = (
+        _parse_role_config_param(role_config) or _load_role_assignment(wide=True)
+    )
 
     if df_d2.empty:
         return {"by_role": {}}
