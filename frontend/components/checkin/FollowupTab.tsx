@@ -121,7 +121,7 @@ function FilterBar({
       <div className="flex flex-wrap items-center gap-3">
         {/* Role toggle group */}
         <div className="flex rounded-lg border border-[var(--border-subtle)] overflow-hidden text-xs font-medium">
-          {ROLES.map((r) => (
+          {visibleRoles.map((r) => (
             <button
               key={r}
               onClick={() => onRoleChange(r)}
@@ -461,8 +461,15 @@ function BottomStats({ total, avgScore, highQualityCount }: BottomStatsProps) {
 
 // ── Main Component ─────────────────────────────────────────────────────────────
 
-export function FollowupTab() {
-  const [role, setRole] = useState<Role>('CC');
+interface FollowupTabProps {
+  activeRoles?: string[];
+  roleEnclosures?: Record<string, string[]>;
+}
+
+export function FollowupTab({ activeRoles }: FollowupTabProps) {
+  const visibleRoles: Role[] =
+    activeRoles && activeRoles.length > 0 ? ROLES.filter((r) => activeRoles.includes(r)) : ROLES;
+  const [role, setRole] = useState<Role>(visibleRoles[0] ?? 'CC');
   const [team, setTeam] = useState('');
   const [salesSearch, setSalesSearch] = useState('');
   const [enclosures, setEnclosures] = useState<string[]>([]);

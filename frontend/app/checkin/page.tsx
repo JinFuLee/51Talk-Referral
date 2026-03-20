@@ -310,12 +310,57 @@ function SummaryTab() {
 
 // ── 主页面 ────────────────────────────────────────────────────────────────────
 
+/**
+ * 从宽口配置中提取角色→围场 M 标签映射。
+ * 供 Tab 2/3 用于：哪些角色可选、角色对应哪些围场段。
+ */
+function getWideRoleEnclosures(): Record<string, string[]> {
+  let assignment: EnclosureRoleAssignment = DEFAULT_WIDE;
+  if (typeof window !== 'undefined') {
+    try {
+      const raw = localStorage.getItem('enclosure_role_wide');
+      if (raw) assignment = JSON.parse(raw) as EnclosureRoleAssignment;
+    } catch {
+      /* fallback */
+    }
+  }
+  const result: Record<string, string[]> = {};
+  for (const month of ENCLOSURE_KEYS) {
+    for (const role of assignment[month] ?? []) {
+      if (!result[role]) result[role] = [];
+      result[role].push(month);
+    }
+  }
+  return result;
+}
+
 export default function CheckinPage() {
   const [activeTab, setActiveTab] = useState<TabId>('summary');
+  const [roleEnclosures, setRoleEnclosures] = useState<Record<string, string[]>>({});
+
+  // 读取宽口配置 + 监听变化
+  useEffect(() => {
+    const load = () => setRoleEnclosures(getWideRoleEnclosures());
+    load();
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === 'enclosure_role_wide') load();
+    };
+    const onCustom = () => load();
+    window.addEventListener('storage', onStorage);
+    window.addEventListener('enclosure-role-changed', onCustom);
+    return () => {
+      window.removeEventListener('storage', onStorage);
+      window.removeEventListener('enclosure-role-changed', onCustom);
+    };
+  }, []);
+
+  // 从配置中提取有效角色列表（有围场分配的角色才显示）
+  const activeRoles = Object.keys(roleEnclosures).filter(
+    (r) => (roleEnclosures[r]?.length ?? 0) > 0
+  );
 
   return (
     <div className="space-y-4">
-      {/* 页面标题 */}
       <div>
         <h1 className="text-lg font-bold text-[var(--text-primary)]">打卡管理</h1>
         <p className="text-sm text-[var(--text-secondary)] mt-0.5">
@@ -323,18 +368,20 @@ export default function CheckinPage() {
         </p>
       </div>
 
-      {/* Tab 切换 */}
       <PageTabs
         tabs={TABS.map((t) => ({ id: t.id, label: t.label }))}
         activeId={activeTab}
         onChange={(id) => setActiveTab(id as TabId)}
       />
 
-      {/* Tab 内容 */}
       <div className="mt-2">
         {activeTab === 'summary' && <SummaryTab />}
-        {activeTab === 'team_detail' && <TeamDetailTab />}
-        {activeTab === 'followup' && <FollowupTab />}
+        {activeTab === 'team_detail' && (
+          <TeamDetailTab activeRoles={activeRoles} roleEnclosures={roleEnclosures} />
+        )}
+        {activeTab === 'followup' && (
+          <FollowupTab activeRoles={activeRoles} roleEnclosures={roleEnclosures} />
+        )}
       </div>
     </div>
   );

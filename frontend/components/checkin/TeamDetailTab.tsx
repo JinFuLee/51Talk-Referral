@@ -69,8 +69,24 @@ function fmtNum(n: number | null | undefined): string {
 }
 
 // ── 组件 ──────────────────────────────────────────────────────────────────────
-export function TeamDetailTab() {
-  const [selectedTeam, setSelectedTeam] = useState<string>(TEAM_OPTIONS[0].value);
+interface TeamDetailTabProps {
+  activeRoles?: string[];
+  roleEnclosures?: Record<string, string[]>;
+}
+
+export function TeamDetailTab({ activeRoles, roleEnclosures }: TeamDetailTabProps) {
+  // 只显示配置中有围场分配的角色的团队
+  const visibleGroups =
+    activeRoles && activeRoles.length > 0
+      ? (['CC', 'SS', 'LP'] as const).filter((g) => activeRoles.includes(g))
+      : (['CC', 'SS', 'LP'] as const);
+  const visibleTeams = TEAM_OPTIONS.filter((o) =>
+    visibleGroups.includes(o.group as 'CC' | 'SS' | 'LP')
+  );
+  void roleEnclosures; // 预留：可用于围场维度筛选
+  const [selectedTeam, setSelectedTeam] = useState<string>(
+    visibleTeams[0]?.value ?? TEAM_OPTIONS[0].value
+  );
 
   const { data, error, isLoading } = useSWR<TeamDetailResponse>(
     `/api/checkin/team-detail?team=${encodeURIComponent(selectedTeam)}`,
@@ -96,9 +112,9 @@ export function TeamDetailTab() {
 
   return (
     <div className="space-y-3">
-      {/* 团队选择器 — 按 CC / SS / LP 分组 */}
+      {/* 团队选择器 — 按配置中有效的角色分组 */}
       <div className="flex flex-wrap items-center gap-1.5">
-        {(['CC', 'SS', 'LP'] as const).map((group, gi) => (
+        {visibleGroups.map((group, gi) => (
           <div key={group} className="contents">
             {gi > 0 && <span className="text-[var(--text-muted)] text-xs mx-1">|</span>}
             <span className="text-[10px] text-[var(--text-muted)] font-medium mr-0.5">{group}</span>
