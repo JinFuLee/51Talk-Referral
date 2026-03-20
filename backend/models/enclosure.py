@@ -11,6 +11,8 @@ class EnclosureCCMetrics(BaseModel):
     cc_name: str | None = None
     students: float | None = None
     participation_rate: float | None = None
+    # D2 财务模型参与率（区别于转介绍参与率）
+    finance_participation_rate: float | None = None
     new_coefficient: float | None = None
     cargo_ratio: float | None = None
     checkin_rate: float | None = None

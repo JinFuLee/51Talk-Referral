@@ -37,6 +37,7 @@ def _df_to_metrics(df: pd.DataFrame) -> list[EnclosureCCMetrics]:
         "cc_name": "last_cc_name",
         "students": "学员数",
         "participation_rate": "转介绍参与率",
+        "finance_participation_rate": "财务模型参与率",
         "new_coefficient": "带新系数",
         "cargo_ratio": "带货比",
         "checkin_rate": "当月有效打卡率",
@@ -52,6 +53,7 @@ def _df_to_metrics(df: pd.DataFrame) -> list[EnclosureCCMetrics]:
     num_cols = [
         "学员数",
         "转介绍参与率",
+        "财务模型参与率",
         "带新系数",
         "带货比",
         "当月有效打卡率",
