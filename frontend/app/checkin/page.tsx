@@ -1,0 +1,225 @@
+'use client';
+
+import { useState } from 'react';
+import useSWR from 'swr';
+import { swrFetcher } from '@/lib/api';
+import { Spinner } from '@/components/ui/Spinner';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { PageTabs } from '@/components/ui/PageTabs';
+import { cn } from '@/lib/utils';
+
+// ── 类型定义 ───────────────────────────────────────────────────────────────────
+
+interface CheckinTeamRow {
+  team: string;
+  students: number;
+  checkin_count: number;
+  checkin_rate: number;
+}
+
+interface CheckinEnclosureRow {
+  enclosure: string;
+  students: number;
+  checkin_count: number;
+  checkin_rate: number;
+}
+
+interface CheckinChannelSummary {
+  channel: string; // "CC" | "SS" | "LP" | "运营"
+  total_students: number;
+  total_checkin: number;
+  checkin_rate: number;
+  by_team: CheckinTeamRow[];
+  by_enclosure: CheckinEnclosureRow[];
+}
+
+interface CheckinSummaryResponse {
+  channels: CheckinChannelSummary[];
+}
+
+// ── Tab 定义 ──────────────────────────────────────────────────────────────────
+
+const TABS = [
+  { id: 'summary', label: '汇总视图' },
+  { id: 'team_detail', label: '团队明细' },
+  { id: 'followup', label: '未打卡跟进' },
+] as const;
+
+type TabId = (typeof TABS)[number]['id'];
+
+// ── 打卡率颜色 ────────────────────────────────────────────────────────────────
+
+function rateColor(rate: number): string {
+  if (rate >= 0.6) return 'text-green-600';
+  if (rate >= 0.4) return 'text-yellow-600';
+  return 'text-red-500';
+}
+
+function rateBg(rate: number): string {
+  if (rate >= 0.6) return 'bg-green-50 text-green-700';
+  if (rate >= 0.4) return 'bg-yellow-50 text-yellow-700';
+  return 'bg-red-50 text-red-500';
+}
+
+function fmtRate(rate: number): string {
+  return `${(rate * 100).toFixed(1)}%`;
+}
+
+// ── 单个渠道列 ────────────────────────────────────────────────────────────────
+
+function ChannelColumn({ ch }: { ch: CheckinChannelSummary }) {
+  return (
+    <div className="flex flex-col gap-3 min-w-0">
+      {/* 渠道标题 */}
+      <div className="bg-[var(--n-800,#1e293b)] text-white text-xs font-semibold px-2 py-1.5 rounded-t-md">
+        {ch.channel}
+      </div>
+
+      {/* 总体大数字 */}
+      <div className="bg-[var(--bg-surface)] border border-[var(--border-default)] rounded-md px-3 py-2.5 space-y-1">
+        <div className="flex items-baseline gap-1.5">
+          <span className="text-2xl font-bold text-[var(--text-primary)]">{ch.total_checkin}</span>
+          <span className="text-xs text-[var(--text-muted)]">/ {ch.total_students} 人</span>
+        </div>
+        <div
+          className={cn(
+            'inline-block text-sm font-semibold px-1.5 py-0.5 rounded',
+            rateBg(ch.checkin_rate)
+          )}
+        >
+          {fmtRate(ch.checkin_rate)}
+        </div>
+        <div className="text-[10px] text-[var(--text-muted)]">有效学员 · 已打卡 · 打卡率</div>
+      </div>
+
+      {/* 按团队 */}
+      <div className="bg-[var(--bg-surface)] border border-[var(--border-default)] rounded-md overflow-hidden">
+        <div className="bg-[var(--n-800,#1e293b)] text-white text-[10px] font-semibold px-2 py-1 grid grid-cols-4 gap-1">
+          <span className="col-span-2">团队</span>
+          <span className="text-right">学员</span>
+          <span className="text-right">打卡率</span>
+        </div>
+        {ch.by_team.length === 0 ? (
+          <div className="text-[10px] text-[var(--text-muted)] px-2 py-2">暂无团队数据</div>
+        ) : (
+          ch.by_team.map((row, i) => (
+            <div
+              key={row.team}
+              className={cn(
+                'grid grid-cols-4 gap-1 px-2 py-1 text-xs',
+                i % 2 === 0 ? 'bg-[var(--bg-subtle)]' : 'bg-[var(--bg-surface)]'
+              )}
+            >
+              <span className="col-span-2 truncate text-[var(--text-secondary)]" title={row.team}>
+                {row.team}
+              </span>
+              <span className="text-right text-[var(--text-primary)]">{row.students}</span>
+              <span className={cn('text-right font-medium', rateColor(row.checkin_rate))}>
+                {fmtRate(row.checkin_rate)}
+              </span>
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* 按围场 */}
+      <div className="bg-[var(--bg-surface)] border border-[var(--border-default)] rounded-md overflow-hidden">
+        <div className="bg-[var(--n-800,#1e293b)] text-white text-[10px] font-semibold px-2 py-1 grid grid-cols-4 gap-1">
+          <span className="col-span-2">围场</span>
+          <span className="text-right">学员</span>
+          <span className="text-right">打卡率</span>
+        </div>
+        {ch.by_enclosure.length === 0 ? (
+          <div className="text-[10px] text-[var(--text-muted)] px-2 py-2">暂无围场数据</div>
+        ) : (
+          ch.by_enclosure.map((row, i) => (
+            <div
+              key={row.enclosure}
+              className={cn(
+                'grid grid-cols-4 gap-1 px-2 py-1 text-xs',
+                i % 2 === 0 ? 'bg-[var(--bg-subtle)]' : 'bg-[var(--bg-surface)]'
+              )}
+            >
+              <span className="col-span-2 text-[var(--text-secondary)]">{row.enclosure}</span>
+              <span className="text-right text-[var(--text-primary)]">{row.students}</span>
+              <span className={cn('text-right font-medium', rateColor(row.checkin_rate))}>
+                {fmtRate(row.checkin_rate)}
+              </span>
+            </div>
+          ))
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ── Tab 1: 汇总视图 ───────────────────────────────────────────────────────────
+
+function SummaryTab() {
+  const { data, isLoading, error } = useSWR<CheckinSummaryResponse>(
+    '/api/checkin/summary',
+    swrFetcher
+  );
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Spinner size="lg" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return <EmptyState title="数据加载失败" description="无法获取打卡汇总数据，请检查后端服务" />;
+  }
+
+  const channels = data?.channels ?? [];
+
+  if (channels.length === 0) {
+    return <EmptyState title="暂无打卡数据" description="上传包含打卡记录的数据文件后自动刷新" />;
+  }
+
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+      {channels.map((ch) => (
+        <ChannelColumn key={ch.channel} ch={ch} />
+      ))}
+    </div>
+  );
+}
+
+// ── 主页面 ────────────────────────────────────────────────────────────────────
+
+export default function CheckinPage() {
+  const [activeTab, setActiveTab] = useState<TabId>('summary');
+
+  return (
+    <div className="space-y-4">
+      {/* 页面标题 */}
+      <div>
+        <h1 className="text-lg font-bold text-[var(--text-primary)]">打卡管理</h1>
+        <p className="text-sm text-[var(--text-secondary)] mt-0.5">
+          有效学员打卡率 · 按岗位 / 团队 / 围场拆分
+        </p>
+      </div>
+
+      {/* Tab 切换 */}
+      <PageTabs
+        tabs={TABS.map((t) => ({ id: t.id, label: t.label }))}
+        activeId={activeTab}
+        onChange={(id) => setActiveTab(id as TabId)}
+      />
+
+      {/* Tab 内容 */}
+      <div className="mt-2">
+        {activeTab === 'summary' && <SummaryTab />}
+        {activeTab === 'team_detail' && (
+          <EmptyState title="团队明细（开发中）" description="此 Tab 由其他 MK 负责实现" />
+        )}
+        {activeTab === 'followup' && (
+          <EmptyState title="未打卡跟进（开发中）" description="此 Tab 由其他 MK 负责实现" />
+        )}
+      </div>
+    </div>
+  );
+}

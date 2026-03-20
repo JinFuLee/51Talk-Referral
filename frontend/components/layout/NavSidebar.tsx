@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { clsx } from "clsx";
-import { useState } from "react";
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { clsx } from 'clsx';
+import { useState } from 'react';
 import {
   BarChart3,
   ChevronDown,
@@ -19,8 +19,9 @@ import {
   Menu,
   X,
   Monitor,
-} from "lucide-react";
-import type { LucideIcon } from "lucide-react";
+  CheckCircle,
+} from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 
 interface NavItem {
   href: string;
@@ -35,41 +36,42 @@ interface NavGroup {
 
 const MAIN_GROUPS: NavGroup[] = [
   {
-    label: "分析",
+    label: '分析',
     items: [
-      { href: "/", label: "总览 Dashboard", Icon: BarChart3 },
-      { href: "/funnel", label: "漏斗分析", Icon: TrendingUp },
-      { href: "/enclosure", label: "围场分析", Icon: Target },
-      { href: "/channel", label: "渠道分析", Icon: DollarSign },
-      { href: "/members", label: "学员明细", Icon: Users },
-      { href: "/high-potential", label: "高潜学员", Icon: Star },
-      { href: "/team", label: "团队汇总", Icon: Trophy },
+      { href: '/', label: '总览 Dashboard', Icon: BarChart3 },
+      { href: '/funnel', label: '漏斗分析', Icon: TrendingUp },
+      { href: '/enclosure', label: '围场分析', Icon: Target },
+      { href: '/channel', label: '渠道分析', Icon: DollarSign },
+      { href: '/members', label: '学员明细', Icon: Users },
+      { href: '/high-potential', label: '高潜学员', Icon: Star },
+      { href: '/team', label: '团队汇总', Icon: Trophy },
+      { href: '/checkin', label: '打卡管理', Icon: CheckCircle },
     ],
   },
   {
-    label: "系统",
+    label: '系统',
     items: [
-      { href: "/reports", label: "分析报告", Icon: FileText },
-      { href: "/settings", label: "设置", Icon: Settings },
-      { href: "/present", label: "汇报模式", Icon: Monitor },
+      { href: '/reports', label: '分析报告', Icon: FileText },
+      { href: '/settings', label: '设置', Icon: Settings },
+      { href: '/present', label: '汇报模式', Icon: Monitor },
     ],
   },
 ];
 
 function NavLink({ href, label, Icon }: NavItem) {
   const pathname = usePathname();
-  const isActive = pathname === href || (href !== "/" && pathname.startsWith(href));
+  const isActive = pathname === href || (href !== '/' && pathname.startsWith(href));
 
   return (
     <Link
       href={href}
-      aria-current={isActive ? "page" : undefined}
+      aria-current={isActive ? 'page' : undefined}
       className={clsx(
-        "flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+        'flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors',
+        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
         isActive
-          ? "bg-primary text-primary-foreground font-medium"
-          : "text-[var(--text-secondary)] hover:bg-[var(--bg-subtle)]"
+          ? 'bg-primary text-primary-foreground font-medium'
+          : 'text-[var(--text-secondary)] hover:bg-[var(--bg-subtle)]'
       )}
     >
       <Icon className="w-4 h-4 shrink-0" aria-hidden="true" />
