@@ -43,6 +43,9 @@ def _row_to_hp(row: pd.Series) -> HighPotentialStudent:
         ss_group=str(row.get("last_ss_group_name", "") or ""),
         lp_name=str(row.get("last_lp_name", "") or ""),
         lp_group=str(row.get("last_lp_group_name", "") or ""),
+        stat_date=str(row.get("统计日期", "") or "") or None,
+        region=str(row.get("区域", "") or "") or None,
+        business_line=str(row.get("业务线", "") or "") or None,
     )
 
 

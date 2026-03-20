@@ -30,4 +30,7 @@ export interface HighPotentialStudent {
   ss_name: string
   lp_group: string
   lp_name: string
+  stat_date?: string | null
+  region?: string | null
+  business_line?: string | null
 }

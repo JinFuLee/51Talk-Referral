@@ -5,7 +5,7 @@ import { swrFetcher } from "@/lib/api";
 import { Spinner } from "@/components/ui/Spinner";
 import { EmptyState } from "@/components/ui/EmptyState";
 import type { HighPotentialStudent } from "@/lib/types/member";
-import { Star, Users, TrendingUp, DollarSign } from "lucide-react";
+import { Star, Users, TrendingUp, DollarSign, Calendar, MapPin, Briefcase } from "lucide-react";
 
 interface HighPotentialResponse {
   students: HighPotentialStudent[];
@@ -53,6 +53,30 @@ function HighPotentialCard({ student }: { student: HighPotentialStudent }) {
       </div>
 
       <div className="pt-3 border-t border-[var(--border-subtle)] space-y-1.5">
+        {student.stat_date && (
+          <div className="flex items-center justify-between text-xs">
+            <span className="flex items-center gap-1 text-[var(--text-muted)]">
+              <Calendar className="w-3 h-3" />统计日期
+            </span>
+            <span className="font-medium">{student.stat_date}</span>
+          </div>
+        )}
+        {student.region && (
+          <div className="flex items-center justify-between text-xs">
+            <span className="flex items-center gap-1 text-[var(--text-muted)]">
+              <MapPin className="w-3 h-3" />区域
+            </span>
+            <span className="font-medium">{student.region}</span>
+          </div>
+        )}
+        {student.business_line && (
+          <div className="flex items-center justify-between text-xs">
+            <span className="flex items-center gap-1 text-[var(--text-muted)]">
+              <Briefcase className="w-3 h-3" />业务线
+            </span>
+            <span className="font-medium">{student.business_line}</span>
+          </div>
+        )}
         {student.cc_name && (
           <div className="flex justify-between text-xs">
             <span className="text-[var(--text-muted)]">CC</span>

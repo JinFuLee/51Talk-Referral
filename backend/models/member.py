@@ -58,3 +58,6 @@ class HighPotentialStudent(BaseModel):
     ss_group: str | None = None
     lp_name: str | None = None
     lp_group: str | None = None
+    stat_date: str | None = None
+    region: str | None = None
+    business_line: str | None = None
