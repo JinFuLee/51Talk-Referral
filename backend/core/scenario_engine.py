@@ -57,14 +57,29 @@ class ScenarioEngine:
     def _get_actual(self, col: str) -> float | None:
         return _safe_float(self._row.get(col))
 
+    # 漏斗 stage 名 → targets_override.json key 名的显式映射
+    _TARGET_ALIASES: dict[str, str] = {
+        "转介绍注册数": "注册目标",
+        "预约数": "预约目标",
+        "出席数": "出席目标",
+        "转介绍付费数": "付费目标",
+        "注册预约率": "约课率目标",
+        "预约出席率": "出席率目标",
+        "出席付费率": "目标转化率",
+    }
+
     def _get_target(self, col: str) -> float | None:
-        """从 targets dict 中查找目标值（支持模糊匹配）"""
-        # 直接命中
+        """从 targets dict 中查找目标值（显式别名 → 直接命中 → 双向模糊匹配）"""
+        # 0. 显式别名映射
+        alias = self._TARGET_ALIASES.get(col)
+        if alias and alias in self._targets:
+            return _safe_float(self._targets[alias])
+        # 1. 直接命中
         if col in self._targets:
             return _safe_float(self._targets[col])
-        # 模糊匹配（targets key 可能带月份前缀）
+        # 2. 双向模糊匹配
         for k, v in self._targets.items():
-            if col in str(k):
+            if col in str(k) or str(k) in col:
                 return _safe_float(v)
         return None
 

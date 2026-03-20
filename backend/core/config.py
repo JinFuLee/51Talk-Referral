@@ -99,11 +99,15 @@ def get_targets(date: datetime = None) -> dict:
             overrides = json.loads(override_file.read_text(encoding="utf-8"))
             month_data = overrides.get(month_key, {})
             if month_data.get("version") == 2:
-                # V2 结构 → flatten 后合并
-                from backend.models.config import MonthlyTargetV2
+                # V2 结构：先尝试 flatten，失败则直接用扁平字段
+                try:
+                    from backend.api.config import MonthlyTargetV2Body
 
-                v2 = MonthlyTargetV2(**month_data)
-                base.update(v2.flatten())
+                    v2 = MonthlyTargetV2Body(**month_data)
+                    base.update(v2.model_dump(exclude_none=True))
+                except Exception:
+                    # flatten 失败时直接合并扁平键（注册目标/付费目标等）
+                    base.update(month_data)
             elif month_data:
                 # 普通扁平 override
                 base.update(month_data)
