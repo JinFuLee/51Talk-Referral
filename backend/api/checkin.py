@@ -20,6 +20,7 @@ D3 列：stdt_id, 围场, 有效打卡(1/0),
 
 from __future__ import annotations
 
+import json
 import math
 from typing import Any
 
@@ -189,19 +190,22 @@ def _calc_quality_score(row_d3: pd.Series, d4_row: pd.Series | None) -> float:
 
 # ── 核心聚合 ──────────────────────────────────────────────────────────────────
 
-def _aggregate_role(df_d3: pd.DataFrame, role: str) -> dict[str, Any]:
+def _aggregate_role(
+    df_d3: pd.DataFrame,
+    role: str,
+    enclosures_override: list[str] | None = None,
+) -> dict[str, Any]:
     """
     从 D3 聚合单个角色的打卡数据。
 
-    - subset：筛选该角色负责的围场段（_WIDE_ROLE[role]）
+    - subset：筛选该角色负责的围场段
     - by_team：按 group_col 分组
     - by_enclosure：按围场段分组（使用 M 标签）
 
-    返回结构：{total_students, checked_in, checkin_rate, by_team, by_enclosure}
-    若该角色无数据（围场数据暂未覆盖）也正常返回，所有数值为 0。
+    enclosures_override: 外部传入的围场列表（来自前端 Settings），优先于硬编码默认值。
     """
-    name_col, group_col = _ROLE_COLS[role]
-    enclosures = _WIDE_ROLE[role]
+    name_col, group_col = _ROLE_COLS.get(role, ("last_cc_name", "last_cc_group_name"))
+    enclosures = enclosures_override if enclosures_override else _WIDE_ROLE.get(role, [])
 
     # 按围场筛选
     if _D3_ENCLOSURE_COL in df_d3.columns:
@@ -509,25 +513,44 @@ def _build_followup_students(
 def get_checkin_summary(
     request: Request,
     dm: DataManager = Depends(get_data_manager),
+    role_config: str | None = Query(default=None, description="前端宽口径配置 JSON"),
 ) -> dict:
     """
-    全部从 D3 明细表聚合。
-
-    返回：
-      by_role: {
-        CC: {total_students, checked_in, checkin_rate, by_team, by_enclosure},
-        SS: {...},
-        LP: {...},
-      }
-
-    注意：当前 D3 只有 0~30 围场数据，SS/LP 的 total_students=0 是正常的数据源限制，
-    前端应照常展示（让用户知道该围场段暂无数据）。
+    全部从 D3 明细表聚合。优先使用前端传来的 role_config（Settings 宽口径配置），
+    否则 fallback 到 _WIDE_ROLE 硬编码默认值。
     """
     d3: pd.DataFrame = dm.load_all().get("detail", pd.DataFrame())
 
+    # 解析前端传来的宽口配置 → {role: [围场段列表]}
+    # 前端格式：{"CC": {"min_days":0,"max_days":90}, "LP": {"min_days":91,...}}
+    # 需要转为：{"CC": ["0~30","31~60","61~90"], ...}
+    _M_TO_DAYS = {
+        "0~30": (0, 30), "31~60": (31, 60), "61~90": (61, 90),
+        "91~120": (91, 120), "121~150": (121, 150), "151~180": (151, 180),
+        "M6+": (181, 9999),
+    }
+    role_enclosures: dict[str, list[str]] | None = None
+    if role_config:
+        try:
+            parsed = json.loads(role_config)
+            role_enclosures = {}
+            for role_name, cfg in parsed.items():
+                min_d = cfg.get("min_days", 0)
+                max_d = cfg.get("max_days") or 9999
+                bands = []
+                for band, (lo, hi) in _M_TO_DAYS.items():
+                    if lo >= min_d and hi <= max_d:
+                        bands.append(band)
+                if bands:
+                    role_enclosures[role_name] = bands
+        except (json.JSONDecodeError, AttributeError, TypeError):
+            role_enclosures = None
+
     by_role: dict[str, Any] = {}
-    for role in ("CC", "SS", "LP"):
-        by_role[role] = _aggregate_role(d3, role)
+    roles = list((role_enclosures or _WIDE_ROLE).keys())
+    for role in roles:
+        override = role_enclosures.get(role) if role_enclosures else None
+        by_role[role] = _aggregate_role(d3, role, enclosures_override=override)
 
     return {"by_role": by_role}
 

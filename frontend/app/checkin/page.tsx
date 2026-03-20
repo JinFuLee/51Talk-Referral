@@ -243,14 +243,28 @@ function ChannelColumn({ ch }: { ch: CheckinChannelSummary }) {
 // ── Tab 1: 汇总视图 ───────────────────────────────────────────────────────────
 
 function SummaryTab() {
-  // 从 localStorage 读取宽口径配置，构建带 role_config query param 的 URL
-  // useEffect + useState 确保 SSR 安全（localStorage 仅在客户端可用）
   const [summaryUrl, setSummaryUrl] = useState<string | null>(null);
 
+  // 构建 URL + 监听 localStorage 变化（Settings 页面保存后自动刷新）
   useEffect(() => {
-    const cfg = loadWideConfig();
-    const encoded = encodeURIComponent(JSON.stringify(cfg));
-    setSummaryUrl(`/api/checkin/summary?role_config=${encoded}`);
+    function buildUrl() {
+      const cfg = loadWideConfig();
+      const encoded = encodeURIComponent(JSON.stringify(cfg));
+      setSummaryUrl(`/api/checkin/summary?role_config=${encoded}`);
+    }
+    buildUrl();
+
+    // 监听 storage 事件（其他 tab 改了 localStorage）+ 自定义事件（同 tab）
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === 'enclosure_role_wide') buildUrl();
+    };
+    const onCustom = () => buildUrl();
+    window.addEventListener('storage', onStorage);
+    window.addEventListener('enclosure-role-changed', onCustom);
+    return () => {
+      window.removeEventListener('storage', onStorage);
+      window.removeEventListener('enclosure-role-changed', onCustom);
+    };
   }, []);
 
   const { data, isLoading, error } = useSWR<CheckinSummaryResponse>(

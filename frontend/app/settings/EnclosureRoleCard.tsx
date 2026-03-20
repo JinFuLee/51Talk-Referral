@@ -58,6 +58,8 @@ function loadAssignment(key: string, defaultVal: EnclosureRoleAssignment): Enclo
 function saveAssignment(key: string, assignment: EnclosureRoleAssignment) {
   try {
     localStorage.setItem(key, JSON.stringify(assignment));
+    // 通知打卡面板刷新（同 tab 内 storage 事件不触发，用自定义事件）
+    window.dispatchEvent(new Event('enclosure-role-changed'));
   } catch {
     // ignore
   }
