@@ -6,6 +6,7 @@ import { swrFetcher } from "@/lib/api";
 import { Card } from "@/components/ui/Card";
 import { Spinner } from "@/components/ui/Spinner";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { MemberDetailDrawer } from "@/components/members/MemberDetailDrawer";
 import type { StudentBrief } from "@/lib/types/member";
 
 interface MembersResponse {
@@ -15,98 +16,32 @@ interface MembersResponse {
   size: number;
 }
 
-interface StudentDetail {
-  id: string | number;
-  name?: string;
-  enclosure?: string;
-  lifecycle?: string;
-  cc_name?: string;
-  cc_group?: string;
-  ss_name?: string;
-  lp_name?: string;
-  registrations?: number;
-  appointments?: number;
-  attendance?: number;
-  payments?: number;
-  total_revenue_usd?: number;
-  revenue_usd?: number;
-  [key: string]: unknown;
-}
-
-function DetailDrawer({
+function DetailDrawerWrapper({
   memberId,
   onClose,
 }: {
   memberId: string | number;
   onClose: () => void;
 }) {
-  const { data, isLoading } = useSWR<StudentDetail>(
+  const { data, isLoading } = useSWR(
     `/api/members/${memberId}`,
     swrFetcher
   );
 
-  const displayFields: [string, string][] = [
-    ["id", "学员ID"],
-    ["name", "姓名"],
-    ["enclosure", "围场段"],
-    ["lifecycle", "生命周期"],
-    ["cc_name", "CC"],
-    ["cc_group", "CC组别"],
-    ["ss_name", "SS"],
-    ["lp_name", "LP"],
-    ["registrations", "注册数"],
-    ["appointments", "预约数"],
-    ["attendance", "出席数"],
-    ["payments", "付费数"],
-    ["total_revenue_usd", "业绩(USD)"],
-  ];
+  if (isLoading) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={onClose}>
+        <Spinner size="lg" />
+      </div>
+    );
+  }
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex"
-      onClick={onClose}
-      role="dialog"
-      aria-modal="true"
-    >
-      <div className="absolute inset-0 bg-black/40" aria-hidden="true" />
-      <div
-        className="absolute right-0 top-0 h-full w-96 bg-[var(--bg-surface)] shadow-2xl overflow-y-auto"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="flex items-center justify-between px-5 py-4 border-b">
-          <h2 className="font-semibold text-[var(--text-primary)]">学员详情</h2>
-          <button
-            onClick={onClose}
-            className="text-[var(--text-muted)] hover:text-[var(--text-secondary)] text-lg leading-none"
-          >
-            ×
-          </button>
-        </div>
-
-        <div className="p-5">
-          {isLoading ? (
-            <div className="flex justify-center py-8">
-              <Spinner />
-            </div>
-          ) : !data ? (
-            <EmptyState title="未找到学员" description="请检查学员ID" />
-          ) : (
-            <dl className="space-y-3">
-              {displayFields.map(([key, label]) => (
-                <div key={key} className="flex items-start justify-between">
-                  <dt className="text-xs text-[var(--text-muted)] w-24 shrink-0">{label}</dt>
-                  <dd className="text-sm font-medium text-[var(--text-primary)] text-right">
-                    {data[key] !== undefined && data[key] !== null
-                      ? String(data[key])
-                      : "—"}
-                  </dd>
-                </div>
-              ))}
-            </dl>
-          )}
-        </div>
-      </div>
-    </div>
+    <MemberDetailDrawer
+      student={data ?? null}
+      open={true}
+      onClose={onClose}
+    />
   );
 }
 
@@ -280,9 +215,9 @@ export default function MembersPage() {
         )}
       </Card>
 
-      {/* 详情抽屉 */}
+      {/* 详情抽屉 — 使用 MemberDetailDrawer 展示全部 59 字段 */}
       {selectedId !== null && (
-        <DetailDrawer memberId={selectedId} onClose={() => setSelectedId(null)} />
+        <DetailDrawerWrapper memberId={selectedId} onClose={() => setSelectedId(null)} />
       )}
     </div>
   );
