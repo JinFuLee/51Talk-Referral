@@ -953,7 +953,7 @@ def _parse_role_config_param(role_config: str | None) -> dict[str, dict] | None:
 
 @router.get(
     "/checkin/summary",
-    summary="打卡汇总（Tab1）— 按角色 / 团队 / 围场分组（旧格式）",
+    summary="打卡汇总（Tab1）— 按角色 / 团队 / 围场分组",
 )
 def get_checkin_summary(
     request: Request,
@@ -981,97 +981,6 @@ def get_checkin_summary(
 
     by_role = _aggregate_d2_by_role_and_team(df_d2, role_assignment, df_d3=df_d3)
     return {"by_role": by_role}
-
-
-@router.get(
-    "/checkin/flat-rows",
-    summary="打卡全维度扁平表（Tab1 新版）— D2 每行一条记录，含全部指标",
-)
-def get_checkin_flat_rows(
-    dm: DataManager = Depends(get_data_manager),
-) -> dict:
-    """
-    返回 D2（enclosure_cc）每行一条记录的扁平数组，供前端全维度表格渲染。
-    过滤条件：小计/合计/nan 行 + 是否有效 != 是。
-    排序：打卡率降序。
-    """
-    data = dm.load_all()
-    df_d2: pd.DataFrame = data.get("enclosure_cc", pd.DataFrame())
-
-    if df_d2.empty:
-        return {"rows": [], "total": 0}
-
-    # 列名安全读取辅助
-    def _col(row: pd.Series, col: str, default=0):
-        v = row.get(col)
-        if v is None:
-            return default
-        try:
-            if pd.isna(v):
-                return default
-        except (TypeError, ValueError):
-            pass
-        return v
-
-    def _to_float(v, default: float = 0.0) -> float:
-        try:
-            f = float(v)
-            return 0.0 if (math.isnan(f) or math.isinf(f)) else f
-        except (ValueError, TypeError):
-            return default
-
-    def _to_int(v, default: int = 0) -> int:
-        try:
-            f = float(v)
-            return default if (math.isnan(f) or math.isinf(f)) else int(round(f))
-        except (ValueError, TypeError):
-            return default
-
-    _INVALID_NAMES = {"小计", "合计", "nan", ""}
-
-    rows: list[dict] = []
-    for _, r in df_d2.iterrows():
-        name = _safe_str(_col(r, _D2_CC_NAME, ""))
-        group = _safe_str(_col(r, _D2_CC_GROUP, ""))
-
-        # 过滤小计 / 合计 / 空行
-        if name.lower() in _INVALID_NAMES or group.lower() in {"nan", ""}:
-            continue
-
-        # 过滤无效学员
-        valid_flag = _safe_str(_col(r, "是否有效", ""))
-        if valid_flag and valid_flag != "是":
-            continue
-
-        enclosure_raw = _safe_str(_col(r, _D2_ENCLOSURE_COL, ""))
-        m_label = _D2_BAND_TO_M.get(enclosure_raw, enclosure_raw)
-
-        students = _to_int(_col(r, _D2_STUDENTS_COL, 0))
-        checkin_rate = _to_float(_col(r, _D2_CHECKIN_COL, 0.0))
-        checked_in = int(round(students * checkin_rate))
-
-        rows.append({
-            "enclosure": m_label,
-            "enclosure_raw": enclosure_raw,
-            "cc_name": name,
-            "cc_group": group,
-            "students": students,
-            "checkin_rate": round(checkin_rate, 4),
-            "checked_in": checked_in,
-            "participation_rate": round(_to_float(_col(r, "转介绍参与率", 0.0)), 4),
-            "new_coefficient": round(_to_float(_col(r, "带新系数", 0.0)), 2),
-            "cargo_ratio": round(_to_float(_col(r, "带货比", 0.0)), 4),
-            "cc_reach_rate": round(_to_float(_col(r, "CC触达率", 0.0)), 4),
-            "ss_reach_rate": round(_to_float(_col(r, "SS触达率", 0.0)), 4),
-            "lp_reach_rate": round(_to_float(_col(r, "LP触达率", 0.0)), 4),
-            "registrations": _to_int(_col(r, "转介绍注册数", 0)),
-            "payments": _to_int(_col(r, "转介绍付费数", 0)),
-            "revenue_usd": round(_to_float(_col(r, "总带新付费金额USD", 0.0)), 2),
-        })
-
-    # 按打卡率降序
-    rows.sort(key=lambda x: x["checkin_rate"], reverse=True)
-    return {"rows": rows, "total": len(rows)}
 
 
 @router.get(
