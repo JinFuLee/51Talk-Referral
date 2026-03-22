@@ -1,0 +1,67 @@
+'use client';
+
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Cell,
+} from 'recharts';
+import type { CCContactRankItem } from '@/lib/types/cross-analysis';
+
+interface CCContactRankingProps {
+  data: CCContactRankItem[];
+}
+
+const COLORS = ['#f59e0b', '#d1d5db', '#fbbf24', '#3b82f6', '#8b5cf6', '#10b981'];
+
+export function CCContactRanking({ data }: CCContactRankingProps) {
+  const sorted = [...data].sort((a, b) => b.contact_rate - a.contact_rate);
+  const chartData = sorted.map((d) => ({
+    name: d.cc_name,
+    触达率: Math.round(d.contact_rate * 100),
+    接通次数: d.contact_count,
+    students: d.students,
+  }));
+
+  return (
+    <ResponsiveContainer width="100%" height={Math.max(200, chartData.length * 36)}>
+      <BarChart
+        layout="vertical"
+        data={chartData}
+        margin={{ top: 4, right: 40, left: 0, bottom: 4 }}
+      >
+        <CartesianGrid strokeDasharray="3 3" stroke="var(--border-subtle)" horizontal={false} />
+        <XAxis
+          type="number"
+          tickFormatter={(v) => `${v}%`}
+          tick={{ fontSize: 11, fill: 'var(--text-secondary)' }}
+          domain={[0, 100]}
+        />
+        <YAxis
+          type="category"
+          dataKey="name"
+          tick={{ fontSize: 11, fill: 'var(--text-secondary)' }}
+          width={64}
+        />
+        <Tooltip
+          formatter={(v: number, name: string) => (name === '触达率' ? `${v}%` : v)}
+          contentStyle={{
+            background: 'var(--bg-surface)',
+            border: '1px solid var(--border-default)',
+            borderRadius: 8,
+            fontSize: 12,
+          }}
+        />
+        <Bar dataKey="触达率" radius={[0, 4, 4, 0]}>
+          {chartData.map((_, i) => (
+            <Cell key={i} fill={COLORS[i % COLORS.length]} />
+          ))}
+        </Bar>
+      </BarChart>
+    </ResponsiveContainer>
+  );
+}

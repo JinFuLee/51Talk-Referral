@@ -411,6 +411,83 @@ export const attributionAPI = {
     ),
 };
 
+// ── Daily Monitor ─────────────────────────────────────────────────────────────
+
+export const dailyMonitorAPI = {
+  getStats: () =>
+    request<import('./types/cross-analysis').DailyMonitorStats>('/daily-monitor/stats'),
+
+  getCCRanking: (role: 'cc' | 'ss' | 'lp' = 'cc') =>
+    request<import('./types/cross-analysis').CCContactRankItem[]>(
+      `/daily-monitor/cc-ranking?role=${role}`
+    ),
+
+  getContactVsConversion: () =>
+    request<import('./types/cross-analysis').ContactConversionItem[]>(
+      '/daily-monitor/contact-vs-conversion'
+    ),
+};
+
+// ── Student 360 ───────────────────────────────────────────────────────────────
+
+export const student360API = {
+  search: (params: import('./types/cross-analysis').Student360SearchParams) => {
+    const qs = new URLSearchParams();
+    if (params.query) qs.set('query', params.query);
+    if (params.segment) qs.set('segment', params.segment);
+    if (params.lifecycle) qs.set('lifecycle', params.lifecycle);
+    if (params.cc_name) qs.set('cc_name', params.cc_name);
+    if (params.is_hp !== undefined) qs.set('is_hp', String(params.is_hp));
+    if (params.sort) qs.set('sort', params.sort);
+    if (params.page) qs.set('page', String(params.page));
+    if (params.page_size) qs.set('page_size', String(params.page_size));
+    const q = qs.toString();
+    return request<import('./types/cross-analysis').Student360SearchResponse>(
+      `/students/360/search${q ? `?${q}` : ''}`
+    );
+  },
+
+  getDetail: (stdtId: string) =>
+    request<import('./types/cross-analysis').Student360Detail>(
+      `/students/360/${encodeURIComponent(stdtId)}`
+    ),
+
+  getNetwork: (stdtId: string, depth = 2) =>
+    request<import('./types/cross-analysis').Student360Network>(
+      `/students/360/${encodeURIComponent(stdtId)}/network?depth=${depth}`
+    ),
+};
+
+// ── CC 战力图 ─────────────────────────────────────────────────────────────────
+
+export const ccMatrixAPI = {
+  getHeatmap: (metric = 'coefficient') =>
+    request<import('./types/cross-analysis').CCHeatmapResponse>(
+      `/cc-matrix/heatmap?metric=${metric}`
+    ),
+  getRadar: (ccName: string) =>
+    request<import('./types/cross-analysis').CCRadarData>(
+      `/cc-matrix/radar/${encodeURIComponent(ccName)}`
+    ),
+  getDrilldown: (ccName: string, segment: string) =>
+    request<import('./types/cross-analysis').CCDrilldownRow[]>(
+      `/cc-matrix/drilldown?cc_name=${encodeURIComponent(ccName)}&segment=${encodeURIComponent(segment)}`
+    ),
+};
+
+// ── 围场健康 ──────────────────────────────────────────────────────────────────
+
+export const enclosureHealthAPI = {
+  getScores: () =>
+    request<import('./types/cross-analysis').EnclosureHealthScore[]>('/enclosure-health/scores'),
+  getBenchmark: () =>
+    request<import('./types/cross-analysis').EnclosureBenchmarkRow[]>(
+      '/enclosure-health/benchmark'
+    ),
+  getVariance: () =>
+    request<import('./types/cross-analysis').EnclosureVarianceRow[]>('/enclosure-health/variance'),
+};
+
 // ── SWR fetcher ──────────────────────────────────────────────────────────────
 export const swrFetcher = async (url: string) => {
   const r = await fetch(url);

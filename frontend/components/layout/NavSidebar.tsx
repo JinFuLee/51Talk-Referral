@@ -22,6 +22,9 @@ import {
   CheckCircle,
   GitMerge,
   Swords,
+  Grid3X3,
+  HeartPulse,
+  Radio,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
@@ -48,6 +51,7 @@ const MAIN_GROUPS: NavGroup[] = [
       { href: '/high-potential', label: '高潜学员', Icon: Star },
       { href: '/team', label: '团队汇总', Icon: Trophy },
       { href: '/checkin', label: '打卡管理', Icon: CheckCircle },
+      { href: '/daily-monitor', label: '触达监控', Icon: Radio },
     ],
   },
   {
@@ -55,6 +59,8 @@ const MAIN_GROUPS: NavGroup[] = [
     items: [
       { href: '/attribution', label: '达成归因分析', Icon: GitMerge },
       { href: '/high-potential/warroom', label: '高潜作战室', Icon: Swords },
+      { href: '/cc-matrix', label: 'CC 围场战力图', Icon: Grid3X3 },
+      { href: '/enclosure-health', label: '围场健康扫描仪', Icon: HeartPulse },
     ],
   },
   {

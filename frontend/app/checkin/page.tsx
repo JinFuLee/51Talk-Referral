@@ -6,9 +6,12 @@ import { swrFetcher } from '@/lib/api';
 import { Spinner } from '@/components/ui/Spinner';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { PageTabs } from '@/components/ui/PageTabs';
+import { Card } from '@/components/ui/Card';
 import { cn } from '@/lib/utils';
 import { TeamDetailTab } from '@/components/checkin/TeamDetailTab';
 import { FollowupTab } from '@/components/checkin/FollowupTab';
+import { ContactConversionScatter } from '@/components/daily-monitor/ContactConversionScatter';
+import type { ContactConversionItem } from '@/lib/types/cross-analysis';
 
 // ── 宽口径配置读取 ─────────────────────────────────────────────────────────────
 
@@ -338,6 +341,11 @@ export default function CheckinPage() {
   const [activeTab, setActiveTab] = useState<TabId>('summary');
   const [roleEnclosures, setRoleEnclosures] = useState<Record<string, string[]>>({});
 
+  const { data: scatterData } = useSWR<ContactConversionItem[]>(
+    '/api/daily-monitor/contact-vs-conversion',
+    swrFetcher
+  );
+
   // 读取宽口配置 + 监听变化
   useEffect(() => {
     const load = () => setRoleEnclosures(getWideRoleEnclosures());
@@ -383,6 +391,18 @@ export default function CheckinPage() {
           <FollowupTab activeRoles={activeRoles} roleEnclosures={roleEnclosures} />
         )}
       </div>
+
+      {/* 触达效果分析 */}
+      {scatterData && scatterData.length > 0 && (
+        <div className="mt-6">
+          <Card title="触达效果分析">
+            <p className="text-xs text-[var(--text-muted)] mb-3">
+              触达率 × 转化率散点图 · 数据来源：日常触达监控
+            </p>
+            <ContactConversionScatter data={scatterData} />
+          </Card>
+        </div>
+      )}
     </div>
   );
 }
