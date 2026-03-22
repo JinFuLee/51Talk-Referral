@@ -69,7 +69,7 @@ export default function AttributionPage() {
     <div className="space-y-3">
       {/* 页面标题 */}
       <div>
-        <h1 className="text-lg font-bold text-neutral-800">达成率归因分析</h1>
+        <h1 className="text-lg font-bold text-[var(--text-primary)]">达成率归因分析</h1>
         <p className="text-sm text-[var(--text-secondary)] mt-1">
           漏斗各阶段达成率 · 贡献拆解 · 缺口模拟
         </p>
@@ -105,8 +105,8 @@ export default function AttributionPage() {
         </div>
 
         {/* 业绩达成概览行 */}
-        <div className="mt-3 pt-3 border-t border-neutral-300 flex flex-wrap gap-x-6 gap-y-2 text-xs">
-          <span className="text-neutral-500">
+        <div className="mt-3 pt-3 border-t border-[var(--border-default)] flex flex-wrap gap-x-6 gap-y-2 text-xs">
+          <span className="text-[var(--text-muted)]">
             业绩达成率{' '}
             <span
               className={`font-semibold ${
@@ -120,7 +120,7 @@ export default function AttributionPage() {
               {(summary.revenue_achievement_rate * 100).toFixed(1)}%
             </span>
           </span>
-          <span className="text-neutral-500">
+          <span className="text-[var(--text-muted)]">
             客单价达成率{' '}
             <span
               className={`font-semibold ${
@@ -134,15 +134,15 @@ export default function AttributionPage() {
               {(summary.order_value_achievement_rate * 100).toFixed(1)}%
             </span>
           </span>
-          <span className="text-neutral-500">
+          <span className="text-[var(--text-muted)]">
             注册转化率{' '}
-            <span className="font-semibold text-neutral-800">
+            <span className="font-semibold text-[var(--text-primary)]">
               {(summary.registration_conversion_rate * 100).toFixed(1)}%
             </span>
           </span>
-          <span className="text-neutral-500">
+          <span className="text-[var(--text-muted)]">
             出席→付费率{' '}
-            <span className="font-semibold text-neutral-800">
+            <span className="font-semibold text-[var(--text-primary)]">
               {(summary.attend_to_pay_rate * 100).toFixed(1)}%
             </span>
           </span>

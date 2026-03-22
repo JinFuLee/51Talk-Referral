@@ -69,7 +69,7 @@ export function CCHeatmap({ rows, cols, data, onCCClick, onCellClick }: CCHeatma
           {cols.map((seg) => (
             <div
               key={seg}
-              className="flex-shrink-0 text-center text-[10px] text-neutral-500 font-medium truncate py-1 border-b border-[var(--border-subtle)]"
+              className="flex-shrink-0 text-center text-[10px] text-[var(--text-muted)] font-medium truncate py-1 border-b border-[var(--border-subtle)]"
               style={{ width: CELL_W }}
             >
               {seg}
@@ -79,10 +79,10 @@ export function CCHeatmap({ rows, cols, data, onCCClick, onCellClick }: CCHeatma
 
         {/* 数据行 */}
         {rows.map((cc) => (
-          <div key={cc} className="flex items-center hover:bg-neutral-50 group">
+          <div key={cc} className="flex items-center hover:bg-[var(--bg-subtle)] group">
             {/* CC 名称列 */}
             <div
-              className="flex-shrink-0 truncate text-xs font-medium text-neutral-800 cursor-pointer hover:text-blue-500 transition-colors pr-2 py-0.5"
+              className="flex-shrink-0 truncate text-xs font-medium text-[var(--text-primary)] cursor-pointer hover:text-blue-500 transition-colors pr-2 py-0.5"
               style={{ width: CC_COL_W, minWidth: CC_COL_W }}
               onClick={() => onCCClick?.(cc)}
               title={cc}
@@ -127,7 +127,7 @@ export function CCHeatmap({ rows, cols, data, onCCClick, onCellClick }: CCHeatma
         ))}
 
         {/* 色阶图例 */}
-        <div className="flex items-center gap-2 mt-3 text-xs text-neutral-500">
+        <div className="flex items-center gap-2 mt-3 text-xs text-[var(--text-muted)]">
           <span>低</span>
           <div
             className="h-3 w-32 rounded"

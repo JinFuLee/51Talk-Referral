@@ -100,7 +100,7 @@ export function StudentTable({
           <tbody>
             {items.length === 0 ? (
               <tr>
-                <td colSpan={10} className="py-12 text-center text-sm text-neutral-500">
+                <td colSpan={10} className="py-12 text-center text-sm text-[var(--text-muted)]">
                   暂无数据，请调整搜索条件
                 </td>
               </tr>
@@ -109,7 +109,7 @@ export function StudentTable({
                 <tr
                   key={m.stdt_id}
                   onClick={() => onRowClick(m.stdt_id)}
-                  className={`even:bg-neutral-50 cursor-pointer hover:bg-blue-50 transition-colors ${
+                  className={`even:bg-[var(--bg-subtle)] cursor-pointer hover:bg-blue-50 transition-colors ${
                     m.is_high_potential ? 'border-l-2 border-l-orange-400' : ''
                   }`}
                 >
@@ -121,7 +121,7 @@ export function StudentTable({
                     {m.enclosure || '—'}
                   </td>
                   <td className="py-1 px-2 text-xs whitespace-nowrap">
-                    <span className="px-1.5 py-0.5 bg-neutral-50 rounded text-xs">
+                    <span className="px-1.5 py-0.5 bg-[var(--bg-subtle)] rounded text-xs">
                       {m.lifecycle || '—'}
                     </span>
                   </td>
@@ -144,7 +144,7 @@ export function StudentTable({
                         高潜
                       </Badge>
                     ) : (
-                      <span className="text-neutral-500">—</span>
+                      <span className="text-[var(--text-muted)]">—</span>
                     )}
                   </td>
                   <td className="py-1 px-2 text-xs text-[var(--text-secondary)] whitespace-nowrap">
@@ -159,21 +159,21 @@ export function StudentTable({
 
       {/* 分页 */}
       <div className="flex items-center justify-between mt-4 pt-4 border-t border-[var(--border-subtle)]">
-        <span className="text-xs text-neutral-500">
+        <span className="text-xs text-[var(--text-muted)]">
           第 {page} / {totalPages} 页，共 {total} 条
         </span>
         <div className="flex gap-2">
           <button
             onClick={() => onPageChange(Math.max(1, page - 1))}
             disabled={page === 1}
-            className="px-3 py-1.5 rounded-lg border border-[var(--border-subtle)] text-sm disabled:opacity-40 hover:bg-neutral-50"
+            className="px-3 py-1.5 rounded-lg border border-[var(--border-subtle)] text-sm disabled:opacity-40 hover:bg-[var(--bg-subtle)]"
           >
             上一页
           </button>
           <button
             onClick={() => onPageChange(Math.min(totalPages, page + 1))}
             disabled={page >= totalPages}
-            className="px-3 py-1.5 rounded-lg border border-[var(--border-subtle)] text-sm disabled:opacity-40 hover:bg-neutral-50"
+            className="px-3 py-1.5 rounded-lg border border-[var(--border-subtle)] text-sm disabled:opacity-40 hover:bg-[var(--bg-subtle)]"
           >
             下一页
           </button>

@@ -32,9 +32,11 @@ function FunnelBar({
     <div className="space-y-1">
       <div className="flex justify-between text-xs">
         <span className="text-[var(--text-secondary)]">{label}</span>
-        <span className="font-mono font-medium text-neutral-800">{value.toLocaleString()}</span>
+        <span className="font-mono font-medium text-[var(--text-primary)]">
+          {value.toLocaleString()}
+        </span>
       </div>
-      <div className="w-full bg-neutral-50 rounded-full h-2">
+      <div className="w-full bg-[var(--bg-subtle)] rounded-full h-2">
         <div
           className={`h-2 rounded-full transition-all ${color}`}
           style={{ width: `${Math.min(100, pct)}%` }}
@@ -80,7 +82,7 @@ export default function DailyMonitorPage() {
     <div className="space-y-4">
       {/* 页头 */}
       <div>
-        <h1 className="text-lg font-bold text-neutral-800">日常触达监控</h1>
+        <h1 className="text-lg font-bold text-[var(--text-primary)]">日常触达监控</h1>
         <p className="text-sm text-[var(--text-secondary)] mt-0.5">
           CC / SS / LP 每日触达率 · 围场分布 · 排行 · 漏斗
         </p>
@@ -133,13 +135,13 @@ export default function DailyMonitorPage() {
             />
             <div className="pt-1 border-t border-[var(--border-subtle)]">
               <div className="flex justify-between text-xs">
-                <span className="text-neutral-500">业绩 (USD)</span>
+                <span className="text-[var(--text-muted)]">业绩 (USD)</span>
                 <span className="font-mono font-semibold text-green-600">
                   ${stats.funnel.revenue_usd.toLocaleString()}
                 </span>
               </div>
               <div className="flex justify-between text-xs mt-1">
-                <span className="text-neutral-500">打卡率</span>
+                <span className="text-[var(--text-muted)]">打卡率</span>
                 <span className="font-mono font-medium">
                   {(stats.checkin_rate * 100).toFixed(1)}%
                 </span>
@@ -166,7 +168,7 @@ export default function DailyMonitorPage() {
       {/* 触达 × 转化散点图 */}
       {scatterData.length > 0 && (
         <Card title="触达率 × 转化率 散点图">
-          <p className="text-xs text-neutral-500 mb-2">
+          <p className="text-xs text-[var(--text-muted)] mb-2">
             横轴：触达率 · 纵轴：转化率 · 右上角为最优区间
           </p>
           <ContactConversionScatter data={scatterData} />

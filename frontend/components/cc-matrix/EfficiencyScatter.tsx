@@ -50,7 +50,7 @@ function CustomDot({ cx = 0, cy = 0, payload }: CustomDotProps) {
 export function EfficiencyScatter({ data }: EfficiencyScatterProps) {
   if (!data.length) {
     return (
-      <div className="flex items-center justify-center h-48 text-sm text-neutral-500">
+      <div className="flex items-center justify-center h-48 text-sm text-[var(--text-muted)]">
         暂无散点数据
       </div>
     );
@@ -104,7 +104,7 @@ export function EfficiencyScatter({ data }: EfficiencyScatterProps) {
               if (!active || !payload?.length) return null;
               const d = payload[0]?.payload as ScatterPoint;
               return (
-                <div className="bg-white border border-neutral-300 rounded p-2 text-xs shadow">
+                <div className="bg-white border border-[var(--border-default)] rounded p-2 text-xs shadow">
                   <div className="font-semibold">{d.cc_name}</div>
                   <div>带新系数: {(d.x ?? 0).toFixed(2)}</div>
                   <div>付费金额: ${(d.y ?? 0).toLocaleString()}</div>
@@ -123,7 +123,7 @@ export function EfficiencyScatter({ data }: EfficiencyScatterProps) {
         {quadrantLabels.map((q) => (
           <div key={q.text} className="flex items-center gap-1">
             <div className="w-2 h-2 rounded-full" style={{ backgroundColor: q.color }} />
-            <span className="text-xs text-neutral-500">{q.text}</span>
+            <span className="text-xs text-[var(--text-muted)]">{q.text}</span>
           </div>
         ))}
       </div>

@@ -35,7 +35,7 @@ export function ContributionBreakdown({ data, title }: ContributionBreakdownProp
 
   return (
     <div>
-      <p className="text-xs text-neutral-500 mb-2">{title} · 按付费人数排名</p>
+      <p className="text-xs text-[var(--text-muted)] mb-2">{title} · 按付费人数排名</p>
       <ResponsiveContainer width="100%" height={Math.max(160, sorted.length * 36)}>
         <BarChart
           layout="vertical"
@@ -76,7 +76,7 @@ export function ContributionBreakdown({ data, title }: ContributionBreakdownProp
       </ResponsiveContainer>
 
       {/* 图例 */}
-      <div className="flex gap-4 mt-2 text-xs text-neutral-500">
+      <div className="flex gap-4 mt-2 text-xs text-[var(--text-muted)]">
         <span className="flex items-center gap-1">
           <span className="w-3 h-3 rounded-sm inline-block bg-green-600" /> &ge;100% 目标
         </span>

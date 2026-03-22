@@ -11,7 +11,7 @@ function Cell({ active, title }: { active: boolean; title: string }) {
     <div
       title={title}
       className={`w-5 h-5 rounded-sm ${
-        active ? 'bg-green-500' : 'bg-neutral-50 border border-[var(--border-subtle)]'
+        active ? 'bg-green-500' : 'bg-[var(--bg-subtle)] border border-[var(--border-subtle)]'
       }`}
     />
   );
@@ -19,7 +19,7 @@ function Cell({ active, title }: { active: boolean; title: string }) {
 
 export function DailyLogTab({ logs }: DailyLogTabProps) {
   if (!logs || logs.length === 0) {
-    return <div className="py-8 text-center text-sm text-neutral-500">暂无日报记录</div>;
+    return <div className="py-8 text-center text-sm text-[var(--text-muted)]">暂无日报记录</div>;
   }
 
   // 取最近 30 天
@@ -32,7 +32,7 @@ export function DailyLogTab({ logs }: DailyLogTabProps) {
           <span className="w-3 h-3 rounded-sm bg-green-500 inline-block" /> 有接通/打卡
         </span>
         <span className="flex items-center gap-1">
-          <span className="w-3 h-3 rounded-sm bg-neutral-50 border border-[var(--border-subtle)] inline-block" />{' '}
+          <span className="w-3 h-3 rounded-sm bg-[var(--bg-subtle)] border border-[var(--border-subtle)] inline-block" />{' '}
           无
         </span>
       </div>
@@ -41,21 +41,21 @@ export function DailyLogTab({ logs }: DailyLogTabProps) {
         <table className="text-xs border-collapse">
           <thead>
             <tr>
-              <th className="text-left pr-3 py-1 text-neutral-500 font-medium whitespace-nowrap w-20">
+              <th className="text-left pr-3 py-1 text-[var(--text-muted)] font-medium whitespace-nowrap w-20">
                 日期
               </th>
-              <th className="px-1 py-1 text-neutral-500 font-medium">CC</th>
-              <th className="px-1 py-1 text-neutral-500 font-medium">SS</th>
-              <th className="px-1 py-1 text-neutral-500 font-medium">LP</th>
-              <th className="px-1 py-1 text-neutral-500 font-medium">打卡</th>
-              <th className="px-2 py-1 text-right text-neutral-500 font-medium">注册</th>
-              <th className="px-2 py-1 text-right text-neutral-500 font-medium">出席</th>
-              <th className="px-2 py-1 text-right text-neutral-500 font-medium">付费</th>
+              <th className="px-1 py-1 text-[var(--text-muted)] font-medium">CC</th>
+              <th className="px-1 py-1 text-[var(--text-muted)] font-medium">SS</th>
+              <th className="px-1 py-1 text-[var(--text-muted)] font-medium">LP</th>
+              <th className="px-1 py-1 text-[var(--text-muted)] font-medium">打卡</th>
+              <th className="px-2 py-1 text-right text-[var(--text-muted)] font-medium">注册</th>
+              <th className="px-2 py-1 text-right text-[var(--text-muted)] font-medium">出席</th>
+              <th className="px-2 py-1 text-right text-[var(--text-muted)] font-medium">付费</th>
             </tr>
           </thead>
           <tbody>
             {recent.map((log) => (
-              <tr key={log.date} className="hover:bg-neutral-50">
+              <tr key={log.date} className="hover:bg-[var(--bg-subtle)]">
                 <td className="pr-3 py-0.5 text-[var(--text-secondary)] whitespace-nowrap font-mono">
                   {log.date}
                 </td>
