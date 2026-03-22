@@ -1,7 +1,7 @@
 """高潜作战室 API
 
-GET /api/hp-warroom         → D5×D3 联合：高潜学员作战室列表（含紧急度/联络状态）
-GET /api/hp-warroom/timeline → 单个高潜学员时间线（D3+D4+D5）
+GET /api/high-potential/warroom              → D5×D3 联合：高潜学员作战室列表（含紧急度/联络状态）
+GET /api/high-potential/{stdt_id}/timeline   → 单个高潜学员时间线（D3+D4+D5）
 """
 
 from __future__ import annotations
@@ -21,7 +21,7 @@ def _get_analyzer(dm: DataManager) -> CrossAnalyzer:
 
 
 @router.get(
-    "/hp-warroom",
+    "/high-potential/warroom",
     response_model=list[WarroomStudent],
     summary="高潜作战室列表（D5×D3，含紧急度 urgency_level）",
 )
@@ -29,7 +29,7 @@ def get_hp_warroom(
     request: Request,
     urgency: str | None = Query(
         default=None,
-        description="紧急度过滤：high / medium / low（不传 = 全部）",
+        description="紧急度过滤：red / yellow / green（不传 = 全部）",
     ),
     cc_names: str | None = Query(
         default=None,
@@ -48,13 +48,13 @@ def get_hp_warroom(
 
 
 @router.get(
-    "/hp-warroom/timeline",
+    "/high-potential/{stdt_id}/timeline",
     response_model=StudentTimeline,
     summary="高潜学员时间线（D3 日志 + D4 基本信息 + D5 高潜标记）",
 )
 def get_hp_timeline(
     request: Request,
-    stdt_id: str = Query(..., description="学员 ID"),
+    stdt_id: str,
     dm: DataManager = Depends(get_data_manager),
 ) -> StudentTimeline:
     analyzer = _get_analyzer(dm)

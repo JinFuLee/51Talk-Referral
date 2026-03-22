@@ -379,7 +379,7 @@ class CrossAnalyzer:
         """
         高潜作战室：D5 × D3 merge，补充联络状态 + urgency。
 
-        urgency: "high" / "medium" / "low" / None（不过滤）
+        urgency: "red" / "yellow" / "green" / None（不过滤）
         cc_names: CC 姓名过滤列表（空/None = 不过滤）
         """
         hp = self._high_potential
@@ -405,8 +405,8 @@ class CrossAnalyzer:
             cc_set = {n.strip() for n in cc_names}
             results = [r for r in results if r.get("cc_name") in cc_set]
 
-        # 按 urgency_score 降序（high=3, medium=2, low=1）
-        urgency_order = {"high": 3, "medium": 2, "low": 1}
+        # 按 urgency_score 降序（red=3, yellow=2, green=1）
+        urgency_order = {"red": 3, "yellow": 2, "green": 1}
         results.sort(
             key=lambda x: urgency_order.get(x.get("urgency_level", ""), 0),
             reverse=True,
@@ -518,23 +518,23 @@ class CrossAnalyzer:
     ) -> str:
         """
         urgency_level 判定规则：
-        - high:   days_remaining <= 7，或已有带新但零接通
-        - medium: days_remaining <= 15，或接通次数 < 2
-        - low:    其他
+        - red:    days_remaining <= 7，或已有带新但零接通
+        - yellow: days_remaining <= 15，或接通次数 < 2
+        - green:  其他
         """
         if days_remaining is not None and days_remaining <= 7:
-            return "high"
+            return "red"
 
         if payments and float(payments) == 0 and total_new and float(total_new) > 0:
-            return "high"
+            return "red"
 
         if days_remaining is not None and days_remaining <= 15:
-            return "medium"
+            return "yellow"
 
         if contact_count is not None and float(contact_count) < 2:
-            return "medium"
+            return "yellow"
 
-        return "low"
+        return "green"
 
     # ──────────────────────────────────────────────────────────────────────────
     # 高潜学员时间线：D3 + D4 + D5 联合

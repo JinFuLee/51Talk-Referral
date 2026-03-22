@@ -32,7 +32,7 @@ class WarroomStudent(BaseModel):
     checkin_7d: float | None = None
     contact_count_7d: float | None = None
     # 紧急度
-    urgency_level: str | None = None  # "high" / "medium" / "low"
+    urgency_level: str | None = None  # "red" / "yellow" / "green"
 
 
 class TimelineEvent(BaseModel):

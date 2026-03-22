@@ -2,7 +2,7 @@
 
 GET /api/attribution/summary   → D1 第一行全字段映射（英文 key）
 GET /api/attribution/breakdown → D2/D4 多维度归因拆解
-GET /api/attribution/simulate  → 转化率提升模拟预测
+GET /api/attribution/simulation → 转化率提升模拟预测
 """
 
 from __future__ import annotations
@@ -60,7 +60,7 @@ def get_attribution_breakdown(
 
 
 @router.get(
-    "/attribution/simulate",
+    "/attribution/simulation",
     response_model=SimulationResult,
     summary="转化率提升模拟：预测指定围场 segment 提升注册转化率后的达成率变化",
 )

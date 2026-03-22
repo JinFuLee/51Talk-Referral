@@ -44,7 +44,7 @@ ROUTER_REGISTRY: dict = {
     "checkin": ("backend.api.checkin", "/api", ["checkin"]),
     # ── Wave 1 新增：交叉分析引擎 API ──────────────────────────────────────────
     "attribution": ("backend.api.attribution", "/api", ["attribution"]),
-    "hp_warroom": ("backend.api.hp_warroom", "/api", ["warroom"]),
+    "hp_warroom": ("backend.api.hp_warroom", "/api", ["high-potential"]),
 }
 
 
