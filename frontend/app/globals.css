@@ -74,6 +74,30 @@ body {
   color: var(--text-primary) !important;
 }
 
+/* 全局表格数据可读性强制 — 防止 CSS 变量链/shadcn 层覆盖导致文字过浅 */
+td,
+th {
+  color: #1a1a1c !important;
+}
+td.text-blue-600,
+td.text-green-600,
+td.text-red-500,
+td.text-yellow-600,
+th.text-blue-600,
+th.text-green-600,
+th.text-red-500,
+th.text-yellow-600 {
+  color: inherit !important; /* 保留显式颜色标记 */
+}
+td[class*='text-blue'],
+td[class*='text-green'],
+td[class*='text-red'],
+td[class*='text-yellow'],
+td[class*='text-emerald'],
+td[class*='text-orange'] {
+  color: revert !important; /* 有色 class 优先 */
+}
+
 /* Scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
