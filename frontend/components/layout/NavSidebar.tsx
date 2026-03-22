@@ -21,6 +21,7 @@ import {
   Monitor,
   CheckCircle,
   GitMerge,
+  Swords,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
@@ -51,7 +52,10 @@ const MAIN_GROUPS: NavGroup[] = [
   },
   {
     label: '交叉分析',
-    items: [{ href: '/attribution', label: '达成归因分析', Icon: GitMerge }],
+    items: [
+      { href: '/attribution', label: '达成归因分析', Icon: GitMerge },
+      { href: '/high-potential/warroom', label: '高潜作战室', Icon: Swords },
+    ],
   },
   {
     label: '系统',
