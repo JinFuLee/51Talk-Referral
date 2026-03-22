@@ -45,6 +45,11 @@ ROUTER_REGISTRY: dict = {
     # ── Wave 1 新增：交叉分析引擎 API ──────────────────────────────────────────
     "attribution": ("backend.api.attribution", "/api", ["attribution"]),
     "hp_warroom": ("backend.api.hp_warroom", "/api", ["high-potential"]),
+    # ── Wave 2-4 新增：日报监控 + CC矩阵 + 围场健康 + 学员360 ─────────────────
+    "daily_monitor": ("backend.api.daily_monitor", "/api", ["daily-monitor"]),
+    "cc_matrix": ("backend.api.cc_matrix", "/api", ["cc-matrix"]),
+    "enclosure_health": ("backend.api.enclosure_health", "/api", ["enclosure-health"]),
+    "student_360": ("backend.api.student_360", "/api", ["students"]),
 }
 
 
