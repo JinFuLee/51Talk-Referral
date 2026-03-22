@@ -1,7 +1,7 @@
 """高潜作战室 API
 
-GET /api/high-potential/warroom              → D5×D3 联合：高潜学员作战室列表（含紧急度/联络状态）
-GET /api/high-potential/{stdt_id}/timeline   → 单个高潜学员时间线（D3+D4+D5）
+GET /high-potential/warroom           → 高潜学员作战室
+GET /high-potential/{stdt_id}/timeline → 学员时间线
 """
 
 from __future__ import annotations
