@@ -6,11 +6,22 @@ from pydantic import BaseModel
 
 
 class HeatmapCell(BaseModel):
-    """CC×围场 热力矩阵单元"""
+    """CC×围场 热力矩阵单元（与前端 CCHeatmapCell 对齐）"""
 
     cc_name: str
     segment: str
     value: float | None = None
+
+
+class CCHeatmapResponse(BaseModel):
+    """热力矩阵响应（与前端 CCHeatmapResponse 对齐）"""
+
+    # 前端期望 rows（原 cc_names）
+    rows: list[str] = []
+    # 前端期望 cols（原 segments）
+    cols: list[str] = []
+    # 前端期望 data（原 cells）
+    data: list[HeatmapCell] = []
 
 
 class CCRadarData(BaseModel):

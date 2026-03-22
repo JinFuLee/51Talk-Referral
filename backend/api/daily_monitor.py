@@ -46,15 +46,17 @@ def get_daily_contact_stats(
     data = analyzer.daily_contact_stats(date=date, segments=seg_list, role=role)
 
     funnel = FunnelStat(**data.get("funnel", {}))
-    segment_breakdown = [
-        ContactSegmentStat(**s) for s in data.get("segment_breakdown", [])
+    by_segment = [
+        ContactSegmentStat(**s) for s in data.get("by_segment", [])
     ]
     return DailyContactStats(
-        overall_cc_rate=data.get("overall_cc_rate"),
-        overall_ss_rate=data.get("overall_ss_rate"),
-        overall_lp_rate=data.get("overall_lp_rate"),
-        segment_breakdown=segment_breakdown,
+        total_students=data.get("total_students"),
+        cc_contact_rate=data.get("cc_contact_rate"),
+        ss_contact_rate=data.get("ss_contact_rate"),
+        lp_contact_rate=data.get("lp_contact_rate"),
+        by_segment=by_segment,
         funnel=funnel,
+        checkin_rate=data.get("checkin_rate"),
     )
 
 

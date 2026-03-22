@@ -67,20 +67,20 @@ class CrossAnalyzer:
             "区域": "region",
             "转介绍注册数": "registrations",
             "预约数": "appointments",
-            "出席数": "attendance",
-            "转介绍付费数": "paid_count",
-            "客单价": "avg_price",
-            "总带新付费金额USD": "total_revenue_usd",
+            "出席数": "attendances",
+            "转介绍付费数": "payments",
+            "客单价": "avg_order_value",
+            "总带新付费金额USD": "total_revenue",
             "注册预约率": "reg_to_appt_rate",
             "预约出席率": "appt_to_attend_rate",
-            "出席付费率": "attend_to_paid_rate",
-            "注册转化率": "reg_to_paid_rate",
-            "转介绍基础业绩单量标": "target_paid_count",
-            "转介绍基础业绩标USD": "target_revenue_usd",
-            "转介绍基础业绩客单价标USD": "target_avg_price_usd",
-            "区域单量达成率": "region_count_attainment",
-            "区域业绩达成率": "region_revenue_attainment",
-            "区域转介绍客单价达成率": "region_price_attainment",
+            "出席付费率": "attend_to_pay_rate",
+            "注册转化率": "registration_conversion_rate",
+            "转介绍基础业绩单量标": "monthly_target_units",
+            "转介绍基础业绩标USD": "monthly_target_revenue",
+            "转介绍基础业绩客单价标USD": "target_order_value",
+            "区域单量达成率": "unit_achievement_rate",
+            "区域业绩达成率": "revenue_achievement_rate",
+            "区域转介绍客单价达成率": "order_value_achievement_rate",
         }
 
         result: dict[str, Any] = {}
@@ -164,9 +164,9 @@ class CrossAnalyzer:
             results.append(
                 {
                     "dimension": group_by,
-                    "label": str(row[group_col]) if row[group_col] else "",
+                    "group_key": str(row[group_col]) if row[group_col] else "",
                     "paid_count": paid,
-                    "total_revenue_usd": revenue,
+                    "revenue": revenue,
                     "pct_of_target": pct_of_target,
                 }
             )
@@ -260,9 +260,9 @@ class CrossAnalyzer:
             results.append(
                 {
                     "dimension": dimension,
-                    "label": str(row[group_col]) if row[group_col] else "",
+                    "group_key": str(row[group_col]) if row[group_col] else "",
                     "paid_count": paid,
-                    "total_revenue_usd": revenue,
+                    "revenue": revenue,
                     "pct_of_target": pct_of_target,
                 }
             )
@@ -347,7 +347,7 @@ class CrossAnalyzer:
             "current_paid": current_paid,
             "new_paid": new_paid,
             "delta": delta,
-            "predicted_attainment_pct": predicted_attainment_pct,
+            "predicted_achievement": predicted_attainment_pct,
             "d1_paid_count": d1_paid,
             "d1_target_paid": d1_target,
         }
@@ -362,7 +362,7 @@ class CrossAnalyzer:
             "current_paid": None,
             "new_paid": None,
             "delta": None,
-            "predicted_attainment_pct": None,
+            "predicted_achievement": None,
             "d1_paid_count": None,
             "d1_target_paid": None,
         }
@@ -550,15 +550,19 @@ class CrossAnalyzer:
         df = self._detail
         if df.empty:
             return {
-                "overall_cc_rate": None,
-                "overall_ss_rate": None,
-                "overall_lp_rate": None,
-                "segment_breakdown": [],
+                "total_students": None,
+                "cc_contact_rate": None,
+                "ss_contact_rate": None,
+                "lp_contact_rate": None,
+                "by_segment": [],
                 "funnel": {
                     "registrations": None,
+                    "invitations": None,
                     "attendance": None,
-                    "paid_count": None,
+                    "payments": None,
+                    "revenue_usd": None,
                 },
+                "checkin_rate": None,
             }
 
         # 过滤日期
@@ -576,13 +580,14 @@ class CrossAnalyzer:
         overall_ss = _safe(df["SS接通"].mean()) if "SS接通" in cols else None
         overall_lp = _safe(df["LP接通"].mean()) if "LP接通" in cols else None
 
-        # 围场段分布
+        # 围场段分布（by_segment = 前端期望的字段名）
         segment_breakdown: list[dict[str, Any]] = []
         if "围场" in cols:
             for seg, grp in df.groupby("围场", dropna=False):
                 seg_str = str(seg) if seg else ""
                 if seg_str in ("小计", ""):
                     continue
+                student_cnt = int(len(grp))
                 segment_breakdown.append(
                     {
                         "segment": seg_str,
@@ -595,27 +600,49 @@ class CrossAnalyzer:
                         "lp_rate": _safe(grp["LP接通"].mean())
                         if "LP接通" in cols
                         else None,
-                        "student_count": int(len(grp)),
+                        # 前端期望 students
+                        "students": student_cnt,
+                        "student_count": student_cnt,
                     }
                 )
 
-        # 带新漏斗
+        # 带新漏斗（与前端 FunnelStats 对齐）
         funnel = {
             "registrations": _safe(df["转介绍注册数"].sum())
             if "转介绍注册数" in cols
             else None,
+            "invitations": _safe(df["邀约数"].sum()) if "邀约数" in cols else None,
             "attendance": _safe(df["出席数"].sum()) if "出席数" in cols else None,
+            # 前端期望 payments
+            "payments": _safe(df["转介绍付费数"].sum())
+            if "转介绍付费数" in cols
+            else None,
             "paid_count": _safe(df["转介绍付费数"].sum())
             if "转介绍付费数" in cols
             else None,
+            "revenue_usd": _safe(df["总带新付费金额USD"].sum())
+            if "总带新付费金额USD" in cols
+            else None,
         }
 
+        # 整体打卡率（有效打卡 mean）
+        checkin_rate = _safe(df["有效打卡"].mean()) if "有效打卡" in cols else None
+
+        # 总学员数
+        total_students: int | None = None
+        if "stdt_id" in cols:
+            total_students = int(df["stdt_id"].nunique())
+        elif len(df) > 0:
+            total_students = int(len(df))
+
         return {
-            "overall_cc_rate": overall_cc,
-            "overall_ss_rate": overall_ss,
-            "overall_lp_rate": overall_lp,
-            "segment_breakdown": segment_breakdown,
+            "total_students": total_students,
+            "cc_contact_rate": overall_cc,
+            "ss_contact_rate": overall_ss,
+            "lp_contact_rate": overall_lp,
+            "by_segment": segment_breakdown,
             "funnel": funnel,
+            "checkin_rate": checkin_rate,
         }
 
     def daily_cc_ranking(self, role: str = "cc") -> list[dict[str, Any]]:
@@ -715,7 +742,7 @@ class CrossAnalyzer:
         """D2 透视为 CC×围场 热力矩阵"""
         df = self._enclosure_cc
         if df.empty:
-            return {"cells": [], "cc_names": [], "segments": [], "metric": metric}
+            return {"data": [], "rows": [], "cols": [], "metric": metric}
 
         # 过滤有效且非小计
         valid_mask = df.get("是否有效", pd.Series(dtype=str)).astype(str).str.strip() == "是"  # noqa: E501
@@ -726,12 +753,12 @@ class CrossAnalyzer:
             df = df[df["围场"].astype(str).isin(segments)].copy()
 
         if df.empty or "last_cc_name" not in df.columns or "围场" not in df.columns:
-            return {"cells": [], "cc_names": [], "segments": [], "metric": metric}
+            return {"data": [], "rows": [], "cols": [], "metric": metric}
 
         # metric 列存在性检查
         if metric not in df.columns:
             logger.warning(f"cc_enclosure_heatmap: metric '{metric}' 不在 D2 列中")
-            return {"cells": [], "cc_names": [], "segments": [], "metric": metric}
+            return {"data": [], "rows": [], "cols": [], "metric": metric}
 
         pivot = df.pivot_table(
             index="last_cc_name",
@@ -752,9 +779,9 @@ class CrossAnalyzer:
                 )
 
         return {
-            "cells": cells,
-            "cc_names": [str(x or "") for x in pivot.index.tolist()],
-            "segments": [str(x or "") for x in pivot.columns.tolist()],
+            "data": cells,
+            "rows": [str(x or "") for x in pivot.index.tolist()],
+            "cols": [str(x or "") for x in pivot.columns.tolist()],
             "metric": metric,
         }
 
@@ -867,13 +894,27 @@ class CrossAnalyzer:
             if valid_weight > 0:
                 score = round(weighted_sum / valid_weight * 100, 2)
 
+            # Compute level from health_score (>=80→green, 60-80→yellow, <60→red)
+            level: str | None = None
+            if score is not None:
+                if score >= 80:
+                    level = "green"
+                elif score >= 60:
+                    level = "yellow"
+                else:
+                    level = "red"
+
             results.append(
                 {
                     "segment": seg_str,
                     "health_score": score,
-                    "participation_rate": participation,
-                    "conversion_rate": conversion,
-                    "checkin_rate": checkin,
+                    # 前端期望 participation（非 participation_rate）
+                    "participation": participation,
+                    # 前端期望 conversion（非 conversion_rate）
+                    "conversion": conversion,
+                    # 前端期望 checkin（非 checkin_rate）
+                    "checkin": checkin,
+                    "level": level,
                     "cc_count": int(grp["last_cc_name"].nunique())
                     if "last_cc_name" in grp.columns
                     else None,
@@ -1209,27 +1250,39 @@ class CrossAnalyzer:
             )
 
             for _, row in d3_rows.iterrows():
+                # Map D3 columns → DailyContact (frontend field names)
+                cc_val = _safe(row.get("CC接通"))
+                ss_val = _safe(row.get("SS接通"))
+                lp_val = _safe(row.get("LP接通"))
+                checkin_val = _safe(row.get("有效打卡"))
                 timeline.append(
                     {
                         "date": str(row.get("统计日期", "") or ""),
-                        "enclosure": str(row.get("围场", "") or ""),
-                        "registrations": _safe(row.get("转介绍注册数")),
-                        "invitations": _safe(row.get("邀约数")),
-                        "attendance": _safe(row.get("出席数")),
-                        "payments": _safe(row.get("转介绍付费数")),
-                        "revenue_usd": _safe(row.get("总带新付费金额USD")),
-                        "checkin": _safe(row.get("有效打卡")),
-                        "cc_contact": _safe(row.get("CC接通")),
-                        "ss_contact": _safe(row.get("SS接通")),
-                        "lp_contact": _safe(row.get("LP接通")),
+                        "cc_connected": bool(cc_val) if cc_val is not None else False,
+                        "ss_connected": bool(ss_val) if ss_val is not None else False,
+                        "lp_connected": bool(lp_val) if lp_val is not None else False,
+                        "valid_checkin": bool(checkin_val) if checkin_val is not None else False,  # noqa: E501
+                        "new_reg": _safe(row.get("转介绍注册数")),
+                        "new_attend": _safe(row.get("出席数")),
+                        "new_paid": _safe(row.get("转介绍付费数")),
                     }
                 )
 
+        # Build profile from d4_info + hp_info
+        profile = {
+            "cc_name": hp_info.get("cc_name", "") if hp_info else "",
+            "ss_name": "",
+            "enclosure": d4_info.get("enclosure", "") if d4_info else "",
+        }
+
         return {
             "stdt_id": stdt_id,
+            "profile": profile,
+            "daily_log": timeline,
+            "is_high_potential": in_hp,
+            # Internal fields kept for backward compatibility
             "in_high_potential": in_hp,
             "hp_info": hp_info,
             "d4_info": d4_info,
-            "timeline": timeline,
             "timeline_length": len(timeline),
         }

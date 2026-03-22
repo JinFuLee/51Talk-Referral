@@ -13,8 +13,10 @@ from backend.api.dependencies import get_data_manager
 from backend.core.cross_analyzer import CrossAnalyzer
 from backend.core.data_manager import DataManager
 from backend.models.cc_matrix import (
+    CCHeatmapResponse,
     CCRadarData,
     DrilldownStudent,
+    HeatmapCell,
 )
 
 router = APIRouter()
@@ -34,6 +36,7 @@ def _get_analyzer(dm: DataManager) -> CrossAnalyzer:
 
 @router.get(
     "/cc-matrix/heatmap",
+    response_model=CCHeatmapResponse,
     summary="CC×围场 热力矩阵",
 )
 def get_cc_enclosure_heatmap(
@@ -46,13 +49,17 @@ def get_cc_enclosure_heatmap(
         default=None, description="围场段过滤，逗号分隔，如 '0-30天,31-60天'"
     ),
     dm: DataManager = Depends(get_data_manager),
-) -> dict:
+) -> CCHeatmapResponse:
     analyzer = _get_analyzer(dm)
     metric_cn = _METRIC_ALIAS.get(metric, metric)
     seg_list = [s.strip() for s in segments.split(",")] if segments else None
     data = analyzer.cc_enclosure_heatmap(metric=metric_cn, segments=seg_list)
-    # cells 直接序列化
-    return data
+    cells = [HeatmapCell(**c) for c in data.get("data", [])]
+    return CCHeatmapResponse(
+        rows=data.get("rows", []),
+        cols=data.get("cols", []),
+        data=cells,
+    )
 
 
 @router.get(

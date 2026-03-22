@@ -35,8 +35,45 @@ class WarroomStudent(BaseModel):
     urgency_level: str | None = None  # "red" / "yellow" / "green"
 
 
+class DailyContact(BaseModel):
+    """学员单日联络记录（与前端 cross-analysis.ts DailyContact 对齐）"""
+
+    date: str = ""
+    # 前端期望 cc_connected（原 cc_contact）
+    cc_connected: bool = False
+    # 前端期望 ss_connected（原 ss_contact）
+    ss_connected: bool = False
+    # 前端期望 lp_connected（原 lp_contact）
+    lp_connected: bool = False
+    # 前端期望 valid_checkin（原 checkin）
+    valid_checkin: bool = False
+    # 前端期望 new_reg（原 registrations）
+    new_reg: float | None = None
+    # 前端期望 new_attend（原 attendance）
+    new_attend: float | None = None
+    # 前端期望 new_paid（原 payments）
+    new_paid: float | None = None
+
+
+class WarroomTimelineProfile(BaseModel):
+    """时间线中的学员身份摘要"""
+
+    cc_name: str = ""
+    ss_name: str = ""
+    enclosure: str = ""
+
+
+class WarroomTimeline(BaseModel):
+    """高潜学员时间线（与前端 cross-analysis.ts WarroomTimeline 对齐）"""
+
+    stdt_id: str
+    profile: WarroomTimelineProfile = WarroomTimelineProfile()
+    daily_log: list[DailyContact] = []
+    is_high_potential: bool = False
+
+
 class TimelineEvent(BaseModel):
-    """高潜学员时间线单日事件（来自 D3）"""
+    """高潜学员时间线单日事件（来自 D3，内部 → 映射到 DailyContact 输出）"""
 
     date: str | None = None
     enclosure: str | None = None
@@ -52,7 +89,7 @@ class TimelineEvent(BaseModel):
 
 
 class StudentTimeline(BaseModel):
-    """高潜学员完整时间线（D3 + D4 + D5 联合）"""
+    """高潜学员完整时间线（D3 + D4 + D5 联合，内部用）"""
 
     stdt_id: str
     in_high_potential: bool = False

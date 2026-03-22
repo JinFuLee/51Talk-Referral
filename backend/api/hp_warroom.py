@@ -11,7 +11,12 @@ from fastapi import APIRouter, Depends, Query, Request
 from backend.api.dependencies import get_data_manager
 from backend.core.cross_analyzer import CrossAnalyzer
 from backend.core.data_manager import DataManager
-from backend.models.warroom import StudentTimeline, TimelineEvent, WarroomStudent
+from backend.models.warroom import (
+    DailyContact,
+    WarroomStudent,
+    WarroomTimeline,
+    WarroomTimelineProfile,
+)
 
 router = APIRouter()
 
@@ -49,19 +54,30 @@ def get_hp_warroom(
 
 @router.get(
     "/high-potential/{stdt_id}/timeline",
-    response_model=StudentTimeline,
+    response_model=WarroomTimeline,
     summary="高潜学员时间线（D3 日志 + D4 基本信息 + D5 高潜标记）",
 )
 def get_hp_timeline(
     request: Request,
     stdt_id: str,
     dm: DataManager = Depends(get_data_manager),
-) -> StudentTimeline:
+) -> WarroomTimeline:
     analyzer = _get_analyzer(dm)
     result = analyzer.hp_timeline(stdt_id=stdt_id)
 
-    # 将 timeline list[dict] 转为 list[TimelineEvent]
-    timeline_events = [TimelineEvent(**evt) for evt in result.get("timeline", [])]
-    result["timeline"] = timeline_events  # type: ignore[assignment]
+    # 将 daily_log list[dict] 转为 list[DailyContact]
+    daily_log = [DailyContact(**evt) for evt in result.get("daily_log", [])]
 
-    return StudentTimeline(**result)
+    # 构建 profile
+    profile_dict = result.get("profile", {})
+    if profile_dict:
+        profile = WarroomTimelineProfile(**profile_dict)
+    else:
+        profile = WarroomTimelineProfile()
+
+    return WarroomTimeline(
+        stdt_id=result["stdt_id"],
+        profile=profile,
+        daily_log=daily_log,
+        is_high_potential=result.get("is_high_potential", False),
+    )

@@ -6,13 +6,19 @@ from pydantic import BaseModel
 
 
 class EnclosureHealthScore(BaseModel):
-    """围场加权健康评分"""
+    """围场加权健康评分（与前端 cross-analysis.ts EnclosureHealthScore 对齐）"""
 
     segment: str
+    # 前端期望 participation（原 participation_rate）
+    participation: float | None = None  # 转介绍参与率（权重 0.3）
+    # 前端期望 conversion（原 conversion_rate）
+    conversion: float | None = None     # 注册转化率（权重 0.4）
+    # 前端期望 checkin（原 checkin_rate）
+    checkin: float | None = None        # 当月有效打卡率（权重 0.3）
     health_score: float | None = None
-    participation_rate: float | None = None  # 转介绍参与率（权重 0.3）
-    conversion_rate: float | None = None     # 注册转化率（权重 0.4）
-    checkin_rate: float | None = None        # 当月有效打卡率（权重 0.3）
+    # 前端期望 level：>=80→green, 60-80→yellow, <60→red
+    level: str | None = None
+    # cc_count 后端内部使用，前端不用但无害
     cc_count: int | None = None
 
 
