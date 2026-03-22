@@ -25,6 +25,7 @@ import {
   Grid3X3,
   HeartPulse,
   Radio,
+  Search,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
@@ -52,6 +53,7 @@ const MAIN_GROUPS: NavGroup[] = [
       { href: '/team', label: '团队汇总', Icon: Trophy },
       { href: '/checkin', label: '打卡管理', Icon: CheckCircle },
       { href: '/daily-monitor', label: '触达监控', Icon: Radio },
+      { href: '/students/360', label: '学员360档案', Icon: Search },
     ],
   },
   {
