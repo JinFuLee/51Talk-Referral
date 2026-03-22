@@ -7,24 +7,24 @@
   --background-rgb: 248, 250, 252;
 
   /* ── SEE Warm Neutral Tokens ─────────────────────── */
-  --n-50: #FAFAF5;
-  --n-100: #F5F5EB;
-  --n-200: #E8E8D8;
-  --n-300: #D4D4C4;
-  --n-400: #A3A38E;
+  --n-50: #fafaf5;
+  --n-100: #f5f5eb;
+  --n-200: #e8e8d8;
+  --n-300: #d4d4c4;
+  --n-400: #a3a38e;
   --n-500: #737360;
-  --n-600: #52524A;
-  --n-700: #3D3D37;
-  --n-800: #28282A;
-  --n-900: #1A1A1C;
+  --n-600: #52524a;
+  --n-700: #3d3d37;
+  --n-800: #28282a;
+  --n-900: #1a1a1c;
 
   /* 语义映射 */
   --bg-primary: var(--n-50);
-  --bg-surface: #FFFFFF;
+  --bg-surface: #ffffff;
   --bg-subtle: var(--n-100);
   --text-primary: var(--n-900);
-  --text-secondary: #3D3D37;  /* n-700，比 n-600 更深，表格数字清晰可读 */
-  --text-muted: #52524A;      /* n-600，从 n-400(#A3A38E) 大幅加深，确保可读性 */
+  --text-secondary: #28282a; /* n-800，表格数据/数字，高对比可读 */
+  --text-muted: #3d3d37; /* n-700，辅助标签/提示，比 n-600(#52524A) 更深 */
   --border-default: var(--n-200);
   --border-subtle: var(--n-100);
 
@@ -34,16 +34,16 @@
   --radius-lg: 16px;
 
   /* 阴影（单层） */
-  --shadow-subtle: 0 1px 3px rgba(0,0,0,0.04);
-  --shadow-medium: 0 4px 12px rgba(0,0,0,0.06);
-  --shadow-raised: 0 8px 24px rgba(0,0,0,0.08);
+  --shadow-subtle: 0 1px 3px rgba(0, 0, 0, 0.04);
+  --shadow-medium: 0 4px 12px rgba(0, 0, 0, 0.06);
+  --shadow-raised: 0 8px 24px rgba(0, 0, 0, 0.08);
 
   /* 图表色板 */
-  --chart-1-hex: #92400E;
-  --chart-2-hex: #065F46;
-  --chart-3-hex: #1E40AF;
-  --chart-4-hex: #6B21A8;
-  --chart-5-hex: #9A3412;
+  --chart-1-hex: #92400e;
+  --chart-2-hex: #065f46;
+  --chart-3-hex: #1e40af;
+  --chart-4-hex: #6b21a8;
+  --chart-5-hex: #9a3412;
 
   /* ── SEE 排版 5 级 Token ─────────────────────────── */
   --text-display-size: 2rem;
@@ -151,9 +151,9 @@ body {
     --text-muted: var(--n-500);
     --border-default: var(--n-700);
     --border-subtle: var(--n-800);
-    --shadow-subtle: 0 1px 3px rgba(0,0,0,0.2);
-    --shadow-medium: 0 4px 12px rgba(0,0,0,0.3);
-    --shadow-raised: 0 8px 24px rgba(0,0,0,0.4);
+    --shadow-subtle: 0 1px 3px rgba(0, 0, 0, 0.2);
+    --shadow-medium: 0 4px 12px rgba(0, 0, 0, 0.3);
+    --shadow-raised: 0 8px 24px rgba(0, 0, 0, 0.4);
 
     --background: 224 71% 4%;
     --foreground: 213 31% 91%;
@@ -203,7 +203,7 @@ body {
   * {
     @apply border-border;
   }
-  
+
   /* Typography System / 字体排印规范 */
   h1 {
     @apply scroll-m-20 text-4xl font-extrabold tracking-tight lg:text-5xl;
@@ -407,7 +407,9 @@ body.presentation-mode .presentation-watermark {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
+  *,
+  *::before,
+  *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
