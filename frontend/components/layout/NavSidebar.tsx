@@ -20,6 +20,7 @@ import {
   X,
   Monitor,
   CheckCircle,
+  GitMerge,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
@@ -47,6 +48,10 @@ const MAIN_GROUPS: NavGroup[] = [
       { href: '/team', label: '团队汇总', Icon: Trophy },
       { href: '/checkin', label: '打卡管理', Icon: CheckCircle },
     ],
+  },
+  {
+    label: '交叉分析',
+    items: [{ href: '/attribution', label: '达成归因分析', Icon: GitMerge }],
   },
   {
     label: '系统',
