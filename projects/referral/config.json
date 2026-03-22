@@ -164,7 +164,13 @@
     "member_detail",
     "high_potential",
     "team_ranking",
-    "checkin"
+    "checkin",
+    "attribution",
+    "hp_warroom",
+    "daily_monitor",
+    "cc_matrix",
+    "enclosure_health",
+    "student_360"
   ],
   "enclosure_role_assignment": {
     "CC": {
