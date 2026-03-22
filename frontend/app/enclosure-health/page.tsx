@@ -44,7 +44,7 @@ export default function EnclosureHealthPage() {
   return (
     <div className="space-y-3">
       <div>
-        <h1 className="text-lg font-bold text-[var(--text-primary)]">围场健康扫描仪</h1>
+        <h1 className="text-lg font-bold text-neutral-800">围场健康扫描仪</h1>
         <p className="text-sm text-[var(--text-secondary)] mt-1">
           7段围场 · 健康分 · 对标分析 · CC方差诊断
         </p>
@@ -93,7 +93,7 @@ export default function EnclosureHealthPage() {
           title={`${expandedSegment} — CC 列表`}
           actions={
             <button
-              className="text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
+              className="text-xs text-neutral-500 hover:text-neutral-800 transition-colors"
               onClick={() => setExpandedSegment(null)}
             >
               收起
@@ -102,18 +102,18 @@ export default function EnclosureHealthPage() {
         >
           {(() => {
             const seg = scores.find((s) => s.segment === expandedSegment);
-            if (!seg) return <div className="text-sm text-[var(--text-muted)]">无数据</div>;
+            if (!seg) return <div className="text-sm text-neutral-500">无数据</div>;
             return (
               <div className="text-sm text-[var(--text-secondary)]">
                 <p>
                   围场段 <strong>{seg.segment}</strong> 健康分{' '}
                   <strong>{seg.health_score.toFixed(0)}</strong>
                 </p>
-                <p className="text-xs mt-1 text-[var(--text-muted)]">
+                <p className="text-xs mt-1 text-neutral-500">
                   参与率 {(seg.participation * 100).toFixed(1)}% · 转化率{' '}
                   {(seg.conversion * 100).toFixed(1)}% · 打卡率 {(seg.checkin * 100).toFixed(1)}%
                 </p>
-                <p className="text-xs mt-2 text-[var(--text-muted)]">
+                <p className="text-xs mt-2 text-neutral-500">
                   点击围场健康卡片可在此展开 CC 明细（需后端
                   /api/enclosure-health/segment-ccs?segment= 接口支持）
                 </p>

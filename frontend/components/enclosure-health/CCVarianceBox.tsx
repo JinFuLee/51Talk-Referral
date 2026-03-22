@@ -20,7 +20,7 @@ function formatPct(v: number) {
 export function CCVarianceBox({ data }: CCVarianceBoxProps) {
   if (!data.length) {
     return (
-      <div className="flex items-center justify-center h-32 text-sm text-[var(--text-muted)]">
+      <div className="flex items-center justify-center h-32 text-sm text-neutral-500">
         暂无方差数据
       </div>
     );
@@ -36,8 +36,8 @@ export function CCVarianceBox({ data }: CCVarianceBoxProps) {
         return (
           <div key={row.segment}>
             <div className="flex items-center justify-between mb-1">
-              <span className="text-xs font-medium text-[var(--text-primary)]">{row.segment}</span>
-              <div className="flex gap-3 text-[10px] text-[var(--text-muted)] font-mono">
+              <span className="text-xs font-medium text-neutral-800">{row.segment}</span>
+              <div className="flex gap-3 text-[10px] text-neutral-500 font-mono">
                 <span>min {formatPct(row.min)}</span>
                 <span>中位 {formatPct(row.median)}</span>
                 <span>均值 {formatPct(row.mean)}</span>
@@ -47,7 +47,7 @@ export function CCVarianceBox({ data }: CCVarianceBoxProps) {
             </div>
 
             {/* 简化箱线图：横向条 */}
-            <div className="relative h-5 bg-[var(--bg-subtle)] rounded overflow-hidden">
+            <div className="relative h-5 bg-neutral-50 rounded overflow-hidden">
               {/* min → max 全程条 */}
               <div
                 className="absolute inset-y-0 bg-blue-100 dark:bg-blue-900/30 rounded"
@@ -85,7 +85,7 @@ export function CCVarianceBox({ data }: CCVarianceBoxProps) {
         );
       })}
 
-      <div className="flex items-center gap-4 text-[10px] text-[var(--text-muted)] mt-1">
+      <div className="flex items-center gap-4 text-[10px] text-neutral-500 mt-1">
         <div className="flex items-center gap-1">
           <div className="w-3 h-0.5 bg-blue-600" />
           <span>均值</span>

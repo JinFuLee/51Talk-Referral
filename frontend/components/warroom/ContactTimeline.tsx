@@ -36,22 +36,20 @@ export function ContactTimeline({ stdtId }: ContactTimelineProps) {
     return (
       <div className="flex items-center justify-center py-6">
         <Spinner size="sm" />
-        <span className="ml-2 text-xs text-[var(--text-muted)]">加载联系记录...</span>
+        <span className="ml-2 text-xs text-neutral-500">加载联系记录...</span>
       </div>
     );
   }
 
   if (error || !data) {
-    return (
-      <div className="py-4 text-center text-xs text-[var(--text-muted)]">无法加载联系记录</div>
-    );
+    return <div className="py-4 text-center text-xs text-neutral-500">无法加载联系记录</div>;
   }
 
   const logs = data.daily_log.slice(-30);
 
   return (
-    <div className="mt-3 rounded-lg border border-[var(--border-default)] bg-[var(--bg-subtle)] p-3">
-      <div className="flex items-center gap-3 mb-2 text-xs text-[var(--text-muted)]">
+    <div className="mt-3 rounded-lg border border-neutral-300 bg-neutral-50 p-3">
+      <div className="flex items-center gap-3 mb-2 text-xs text-neutral-500">
         <span className="font-medium text-[var(--text-secondary)]">联系时间轴（近30天）</span>
         <span>围场：{data.profile.enclosure}</span>
         <span
@@ -74,7 +72,7 @@ export function ContactTimeline({ stdtId }: ContactTimelineProps) {
             {logs.map((d) => (
               <div
                 key={d.date}
-                className="flex-1 text-center text-[9px] text-[var(--text-muted)] leading-none"
+                className="flex-1 text-center text-[9px] text-neutral-500 leading-none"
               >
                 {d.date.slice(8)}
               </div>
@@ -115,7 +113,7 @@ export function ContactTimeline({ stdtId }: ContactTimelineProps) {
           </div>
 
           {/* 图例 */}
-          <div className="flex gap-4 mt-2 text-[10px] text-[var(--text-muted)]">
+          <div className="flex gap-4 mt-2 text-[10px] text-neutral-500">
             <span className="flex items-center gap-1">
               <span className="w-2.5 h-2.5 rounded-full bg-green-500 inline-block" />
               已接通

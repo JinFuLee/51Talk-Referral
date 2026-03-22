@@ -57,7 +57,7 @@ export default function Students360Page() {
     <div className="space-y-6">
       {/* 页面标题 */}
       <div>
-        <h1 className="text-lg font-bold text-[var(--text-primary)]">学员360全景档案</h1>
+        <h1 className="text-lg font-bold text-neutral-800">学员360全景档案</h1>
         <p className="text-sm text-[var(--text-secondary)] mt-1">
           多维搜索学员 · 点击行查看全景档案（学习/推荐/CC/付费/日报）
         </p>

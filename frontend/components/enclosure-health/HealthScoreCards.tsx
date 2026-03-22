@@ -38,9 +38,7 @@ function scoreColor(score: number): string {
 
 export function HealthScoreCards({ data, onSegmentClick }: HealthScoreCardsProps) {
   if (!data.length) {
-    return (
-      <div className="text-sm text-[var(--text-muted)] text-center py-8">暂无围场健康数据</div>
-    );
+    return <div className="text-sm text-neutral-500 text-center py-8">暂无围场健康数据</div>;
   }
 
   return (
@@ -56,11 +54,11 @@ export function HealthScoreCards({ data, onSegmentClick }: HealthScoreCardsProps
         return (
           <div
             key={item.segment}
-            className={`bg-[var(--bg-surface)] border-l-4 ${borderColor} rounded-lg p-3 cursor-pointer hover:shadow-md transition-shadow`}
+            className={`bg-white border-l-4 ${borderColor} rounded-lg p-3 cursor-pointer hover:shadow-md transition-shadow`}
             onClick={() => onSegmentClick?.(item.segment)}
           >
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-semibold text-[var(--text-primary)] truncate">
+              <span className="text-xs font-semibold text-neutral-800 truncate">
                 {item.segment}
               </span>
               <LevelBadge level={item.level} />
@@ -100,15 +98,15 @@ export function HealthScoreCards({ data, onSegmentClick }: HealthScoreCardsProps
               </div>
               <div className="flex-1 space-y-0.5 text-xs">
                 <div className="flex justify-between">
-                  <span className="text-[var(--text-muted)]">参与率</span>
+                  <span className="text-neutral-500">参与率</span>
                   <span className="font-mono tabular-nums">{formatRate(item.participation)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-[var(--text-muted)]">转化率</span>
+                  <span className="text-neutral-500">转化率</span>
                   <span className="font-mono tabular-nums">{formatRate(item.conversion)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-[var(--text-muted)]">打卡率</span>
+                  <span className="text-neutral-500">打卡率</span>
                   <span className="font-mono tabular-nums">{formatRate(item.checkin)}</span>
                 </div>
               </div>

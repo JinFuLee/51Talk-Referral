@@ -158,7 +158,7 @@ export function StudentSearch({ filters, onChange }: StudentSearchProps) {
         {hasFilters && (
           <button
             onClick={clearAll}
-            className="h-8 px-3 text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)] border border-[var(--border-subtle)] rounded-md"
+            className="h-8 px-3 text-xs text-[var(--text-secondary)] hover:text-neutral-800 border border-[var(--border-subtle)] rounded-md"
           >
             清除筛选
           </button>

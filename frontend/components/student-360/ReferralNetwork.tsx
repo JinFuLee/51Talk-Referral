@@ -32,9 +32,7 @@ function NetworkNode({
         <div className="font-medium text-xs font-mono">{stdt_id}</div>
         <div className="text-[var(--text-secondary)] text-xs">{name || '未知'}</div>
         {paid_amount != null && (
-          <div className="text-[var(--text-muted)] text-[10px]">
-            ${paid_amount.toLocaleString()}
-          </div>
+          <div className="text-neutral-500 text-[10px]">${paid_amount.toLocaleString()}</div>
         )}
       </div>
     </div>
@@ -43,20 +41,18 @@ function NetworkNode({
 
 export function ReferralNetwork({ network, isLoading }: ReferralNetworkProps) {
   if (isLoading) {
-    return <div className="py-8 text-center text-sm text-[var(--text-muted)]">加载中...</div>;
+    return <div className="py-8 text-center text-sm text-neutral-500">加载中...</div>;
   }
 
   if (!network) {
-    return (
-      <div className="py-8 text-center text-sm text-[var(--text-muted)]">暂无推荐网络数据</div>
-    );
+    return <div className="py-8 text-center text-sm text-neutral-500">暂无推荐网络数据</div>;
   }
 
   return (
     <div className="space-y-4">
       {/* 推荐人 */}
       <div className="space-y-2">
-        <div className="text-xs font-medium text-[var(--text-muted)] flex items-center gap-1">
+        <div className="text-xs font-medium text-neutral-500 flex items-center gap-1">
           <ArrowUp className="w-3 h-3" /> 推荐人（上游）
         </div>
         {network.referred_by ? (
@@ -66,7 +62,7 @@ export function ReferralNetwork({ network, isLoading }: ReferralNetworkProps) {
             type="referrer"
           />
         ) : (
-          <div className="text-xs text-[var(--text-muted)] px-3 py-2 border border-dashed border-[var(--border-subtle)] rounded-lg">
+          <div className="text-xs text-neutral-500 px-3 py-2 border border-dashed border-[var(--border-subtle)] rounded-lg">
             无推荐人（直接渠道）
           </div>
         )}
@@ -75,9 +71,7 @@ export function ReferralNetwork({ network, isLoading }: ReferralNetworkProps) {
       {/* 分割线 */}
       <div className="flex items-center gap-2">
         <div className="flex-1 border-t border-[var(--border-subtle)]" />
-        <span className="text-[10px] text-[var(--text-muted)] uppercase tracking-wider">
-          当前学员
-        </span>
+        <span className="text-[10px] text-neutral-500 uppercase tracking-wider">当前学员</span>
         <div className="flex-1 border-t border-[var(--border-subtle)]" />
       </div>
 
@@ -86,15 +80,15 @@ export function ReferralNetwork({ network, isLoading }: ReferralNetworkProps) {
 
       {/* 分割线 */}
       <div className="flex items-center gap-2">
-        <ArrowDown className="w-3 h-3 text-[var(--text-muted)]" />
-        <div className="text-xs font-medium text-[var(--text-muted)] flex items-center gap-1">
+        <ArrowDown className="w-3 h-3 text-neutral-500" />
+        <div className="text-xs font-medium text-neutral-500 flex items-center gap-1">
           <Users className="w-3 h-3" /> 被推荐人（下游 {network.referrals.length} 人）
         </div>
       </div>
 
       {/* 被推荐人列表 */}
       {network.referrals.length === 0 ? (
-        <div className="text-xs text-[var(--text-muted)] px-3 py-2 border border-dashed border-[var(--border-subtle)] rounded-lg">
+        <div className="text-xs text-neutral-500 px-3 py-2 border border-dashed border-[var(--border-subtle)] rounded-lg">
           暂无被推荐人
         </div>
       ) : (

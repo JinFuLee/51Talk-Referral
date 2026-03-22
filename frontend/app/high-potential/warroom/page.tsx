@@ -86,7 +86,7 @@ export default function WarroomPage() {
       {/* 标题 */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-lg font-bold text-[var(--text-primary)]">高潜学员作战室</h1>
+          <h1 className="text-lg font-bold text-neutral-800">高潜学员作战室</h1>
           <p className="text-sm text-[var(--text-secondary)] mt-0.5">
             实时跟进高潜学员触达状态 · 共 {allStudents.length} 人
           </p>
@@ -111,12 +111,12 @@ export default function WarroomPage() {
       <HPFunnel students={allStudents} />
 
       {/* 学员表格 */}
-      <div className="bg-[var(--bg-surface)] rounded-lg border border-[var(--border-default)] shadow-[var(--shadow-subtle)]">
-        <div className="px-3 py-2 border-b border-[var(--border-default)] flex items-center justify-between">
-          <h3 className="text-sm font-semibold text-[var(--text-primary)]">
+      <div className="bg-white rounded-lg border border-neutral-300 shadow-[var(--shadow-subtle)]">
+        <div className="px-3 py-2 border-b border-neutral-300 flex items-center justify-between">
+          <h3 className="text-sm font-semibold text-neutral-800">
             学员列表
             {urgencyFilter && (
-              <span className="ml-2 text-xs font-normal text-[var(--text-muted)]">
+              <span className="ml-2 text-xs font-normal text-neutral-500">
                 （已筛选：{URGENCY_LABELS[urgencyFilter]}）
               </span>
             )}
@@ -158,7 +158,7 @@ export default function WarroomPage() {
                       key={s.stdt_id}
                       className={[
                         'cursor-pointer transition-colors',
-                        idx % 2 === 0 ? 'bg-[var(--bg-surface)]' : 'bg-[var(--bg-subtle)]',
+                        idx % 2 === 0 ? 'bg-white' : 'bg-neutral-50',
                         isExpanded ? 'bg-blue-50 dark:bg-blue-900/10' : '',
                       ].join(' ')}
                       onClick={() => setExpandedId(isExpanded ? null : s.stdt_id)}
@@ -178,7 +178,7 @@ export default function WarroomPage() {
                       >
                         {s.days_remaining}
                       </TableCell>
-                      <TableCell className="text-xs text-[var(--text-muted)]">
+                      <TableCell className="text-xs text-neutral-500">
                         {s.last_contact_date ?? '—'}
                       </TableCell>
                       <TableCell className="text-xs text-center">{s.checkin_7d}</TableCell>

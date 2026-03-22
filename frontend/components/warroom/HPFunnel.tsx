@@ -37,15 +37,15 @@ export function HPFunnel({ students }: HPFunnelProps) {
   ];
 
   return (
-    <div className="bg-[var(--bg-surface)] rounded-lg border border-[var(--border-default)] shadow-[var(--shadow-subtle)] p-3">
-      <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-3">高潜漏斗</h3>
+    <div className="bg-white rounded-lg border border-neutral-300 shadow-[var(--shadow-subtle)] p-3">
+      <h3 className="text-sm font-semibold text-neutral-800 mb-3">高潜漏斗</h3>
       <div className="space-y-2">
         {steps.map((step) => (
           <div key={step.label} className="flex items-center gap-3">
             <div className="w-16 shrink-0 text-xs text-[var(--text-secondary)] text-right">
               {step.label}
             </div>
-            <div className="flex-1 h-7 rounded bg-[var(--bg-subtle)] overflow-hidden relative">
+            <div className="flex-1 h-7 rounded bg-neutral-50 overflow-hidden relative">
               <div
                 className="h-full rounded transition-all flex items-center pl-2"
                 style={{
@@ -56,9 +56,7 @@ export function HPFunnel({ students }: HPFunnelProps) {
                 <span className="text-[10px] font-bold text-white">{step.value}</span>
               </div>
             </div>
-            <div className="w-10 shrink-0 text-xs text-[var(--text-muted)] text-right">
-              {step.pct}%
-            </div>
+            <div className="w-10 shrink-0 text-xs text-neutral-500 text-right">{step.pct}%</div>
           </div>
         ))}
       </div>

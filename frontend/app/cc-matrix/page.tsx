@@ -61,7 +61,7 @@ export default function CCMatrixPage() {
   return (
     <div className="space-y-3">
       <div>
-        <h1 className="text-lg font-bold text-[var(--text-primary)]">CC 围场战力图</h1>
+        <h1 className="text-lg font-bold text-neutral-800">CC 围场战力图</h1>
         <p className="text-sm text-[var(--text-secondary)] mt-1">
           CC × 围场段热力矩阵 · 点击 CC 行查看雷达图 · 点击格子下钻学员
         </p>
@@ -69,7 +69,7 @@ export default function CCMatrixPage() {
 
       {/* 着色维度切换 */}
       <div className="flex items-center gap-3">
-        <span className="text-xs text-[var(--text-muted)]">着色维度</span>
+        <span className="text-xs text-neutral-500">着色维度</span>
         <Select value={metric} onValueChange={setMetric}>
           <SelectTrigger className="w-36 h-8 text-xs">
             <SelectValue />
@@ -132,7 +132,7 @@ export default function CCMatrixPage() {
           title={`${drilldownCC} · ${drilldownSeg} 学员明细`}
           actions={
             <button
-              className="text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
+              className="text-xs text-neutral-500 hover:text-neutral-800 transition-colors"
               onClick={() => {
                 setDrilldownCC(null);
                 setDrilldownSeg(null);
@@ -160,7 +160,7 @@ export default function CCMatrixPage() {
                 </thead>
                 <tbody>
                   {drilldownData.map((row, i) => (
-                    <tr key={`${row.stdt_id}-${i}`} className="even:bg-[var(--bg-subtle)]">
+                    <tr key={`${row.stdt_id}-${i}`} className="even:bg-neutral-50">
                       <td className="py-1 px-2 font-mono">{row.stdt_id}</td>
                       <td className="py-1 px-2">{row.name}</td>
                       <td className="py-1 px-2 text-right font-mono tabular-nums">

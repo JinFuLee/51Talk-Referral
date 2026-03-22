@@ -19,8 +19,8 @@ interface Profile360DrawerProps {
 function InfoRow({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div className="grid grid-cols-[120px_1fr] gap-2 py-1.5 border-b border-[var(--border-subtle)] last:border-0">
-      <span className="text-xs text-[var(--text-muted)]">{label}</span>
-      <span className="text-xs text-[var(--text-primary)]">{value ?? '—'}</span>
+      <span className="text-xs text-neutral-500">{label}</span>
+      <span className="text-xs text-neutral-800">{value ?? '—'}</span>
     </div>
   );
 }
@@ -39,7 +39,7 @@ function CompareRow({
   const diff = current != null && lastMonth != null ? current - lastMonth : null;
   return (
     <div className="grid grid-cols-[120px_1fr_1fr_60px] gap-2 py-1.5 border-b border-[var(--border-subtle)] last:border-0">
-      <span className="text-xs text-[var(--text-muted)]">{label}</span>
+      <span className="text-xs text-neutral-500">{label}</span>
       <span className="text-xs font-mono tabular-nums">
         {current != null ? `${current}${unit}` : '—'}
       </span>
@@ -54,7 +54,7 @@ function CompareRow({
               ? 'text-green-600'
               : diff < 0
                 ? 'text-red-500'
-                : 'text-[var(--text-muted)]'
+                : 'text-neutral-500'
         }`}
       >
         {diff != null ? (diff > 0 ? `+${diff}${unit}` : `${diff}${unit}`) : '—'}
@@ -74,7 +74,7 @@ function NewResultRow({
 }) {
   return (
     <div className="grid grid-cols-[80px_1fr_1fr] gap-2 py-1.5 border-b border-[var(--border-subtle)] last:border-0">
-      <span className="text-xs text-[var(--text-muted)]">{role}</span>
+      <span className="text-xs text-neutral-500">{role}</span>
       <span className="text-xs font-mono tabular-nums">{newCount ?? '—'}</span>
       <span className="text-xs font-mono tabular-nums">{paidCount ?? '—'}</span>
     </div>
@@ -116,7 +116,7 @@ export function Profile360Drawer({ stdtId, onClose }: Profile360DrawerProps) {
 
       {/* 抽屉 */}
       <aside
-        className="fixed right-0 top-0 h-full z-50 w-full max-w-2xl bg-[var(--bg-surface)] shadow-2xl flex flex-col overflow-hidden"
+        className="fixed right-0 top-0 h-full z-50 w-full max-w-2xl bg-white shadow-2xl flex flex-col overflow-hidden"
         role="dialog"
         aria-modal="true"
         aria-label="学员360档案"
@@ -124,13 +124,11 @@ export function Profile360Drawer({ stdtId, onClose }: Profile360DrawerProps) {
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--border-subtle)] shrink-0">
           <div>
-            <h2 className="text-sm font-bold text-[var(--text-primary)]">
+            <h2 className="text-sm font-bold text-neutral-800">
               学员360档案
               {p?.name && <span className="ml-2 text-[var(--text-secondary)]">{p.name}</span>}
             </h2>
-            {stdtId && (
-              <p className="text-xs text-[var(--text-muted)] font-mono mt-0.5">{stdtId}</p>
-            )}
+            {stdtId && <p className="text-xs text-neutral-500 font-mono mt-0.5">{stdtId}</p>}
           </div>
           <div className="flex items-center gap-2">
             {detail?.is_high_potential && (
@@ -140,7 +138,7 @@ export function Profile360Drawer({ stdtId, onClose }: Profile360DrawerProps) {
             )}
             <button
               onClick={onClose}
-              className="p-1.5 rounded-lg hover:bg-[var(--bg-subtle)] text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
+              className="p-1.5 rounded-lg hover:bg-neutral-50 text-neutral-500 hover:text-neutral-800 transition-colors"
               aria-label="关闭"
             >
               <X className="w-4 h-4" />
@@ -155,7 +153,7 @@ export function Profile360Drawer({ stdtId, onClose }: Profile360DrawerProps) {
               <Spinner size="lg" />
             </div>
           ) : !detail ? (
-            <div className="flex justify-center items-center py-16 text-sm text-[var(--text-muted)]">
+            <div className="flex justify-center items-center py-16 text-sm text-neutral-500">
               数据加载失败，请稍后重试
             </div>
           ) : (
@@ -228,7 +226,7 @@ export function Profile360Drawer({ stdtId, onClose }: Profile360DrawerProps) {
                 {/* Tab 2: 学习行为 */}
                 <TabsContent value="learning">
                   <div className="mb-3">
-                    <div className="grid grid-cols-[120px_1fr_1fr_60px] gap-2 py-1 text-[10px] uppercase tracking-wider text-[var(--text-muted)] font-semibold">
+                    <div className="grid grid-cols-[120px_1fr_1fr_60px] gap-2 py-1 text-[10px] uppercase tracking-wider text-neutral-500 font-semibold">
                       <span>指标</span>
                       <span>本月</span>
                       <span>上月</span>
@@ -298,7 +296,7 @@ export function Profile360Drawer({ stdtId, onClose }: Profile360DrawerProps) {
                 {/* Tab 6: 带新成果 */}
                 <TabsContent value="new_result">
                   <div className="mb-3">
-                    <div className="grid grid-cols-[80px_1fr_1fr] gap-2 py-1 text-[10px] uppercase tracking-wider text-[var(--text-muted)] font-semibold">
+                    <div className="grid grid-cols-[80px_1fr_1fr] gap-2 py-1 text-[10px] uppercase tracking-wider text-neutral-500 font-semibold">
                       <span>渠道</span>
                       <span>带新数</span>
                       <span>付费数</span>
