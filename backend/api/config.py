@@ -1,11 +1,13 @@
 """
 配置管理 API 端点
-面板配置、月度目标、汇率
+面板配置、月度目标、汇率、围场角色、打卡阈值
 """
 
 from __future__ import annotations
 
 import json
+import shutil
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -19,9 +21,14 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 CONFIG_DIR = PROJECT_ROOT / "config"
 CONFIG_DIR.mkdir(parents=True, exist_ok=True)
 
+BACKUP_DIR = CONFIG_DIR / "backups"
+BACKUP_DIR.mkdir(parents=True, exist_ok=True)
+
 PANEL_CONFIG_FILE = CONFIG_DIR / "panel_config.json"
 TARGETS_OVERRIDE_FILE = CONFIG_DIR / "targets_override.json"
 EXCHANGE_RATE_FILE = CONFIG_DIR / "exchange_rate.json"
+ENCLOSURE_ROLE_FILE = CONFIG_DIR / "enclosure_role_override.json"
+CHECKIN_THRESHOLDS_FILE = CONFIG_DIR / "checkin_thresholds.json"
 
 router = APIRouter()
 
@@ -40,6 +47,24 @@ def _read_json(path: Path, default: Any = None) -> Any:
 
 def _write_json(path: Path, data: Any) -> None:
     path.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
+
+
+def _backup_config_file(path: Path) -> None:
+    """PUT 写入前自动备份 config 文件，保留最近 10 个备份"""
+    if not path.exists():
+        return
+    ts = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
+    backup_path = BACKUP_DIR / f"{path.stem}_{ts}{path.suffix}"
+    try:
+        shutil.copy2(path, backup_path)
+        # 保留最近 10 个备份，删除旧的
+        backups = sorted(
+            BACKUP_DIR.glob(f"{path.stem}_*{path.suffix}"), reverse=True
+        )
+        for old in backups[10:]:
+            old.unlink(missing_ok=True)
+    except Exception:
+        pass  # 备份失败不阻塞业务
 
 
 # ── Request Models ────────────────────────────────────────────────────────────
@@ -80,6 +105,7 @@ def get_panel_config() -> dict[str, Any]:
 @router.put("/panel", summary="更新面板配置")
 def put_panel_config(body: PanelConfigUpdate) -> dict[str, Any]:
     """写入面板配置 panel_config.json"""
+    _backup_config_file(PANEL_CONFIG_FILE)
     try:
         _write_json(PANEL_CONFIG_FILE, body.model_dump())
     except Exception as exc:
@@ -126,6 +152,7 @@ def put_targets_month(month: str, body: MonthTargetsUpdate) -> dict[str, Any]:
             status_code=400, detail="month 格式应为 YYYYMM（如 202602）"
         )
     body_dict = body.model_dump()
+    _backup_config_file(TARGETS_OVERRIDE_FILE)
     overrides = _read_json(TARGETS_OVERRIDE_FILE, {})
     overrides[month] = {**(overrides.get(month) or {}), **body_dict}
     try:
@@ -150,6 +177,7 @@ def put_exchange_rate(body: ExchangeRateBody) -> dict[str, Any]:
     """更新汇率"""
     if body.rate <= 0:
         raise HTTPException(status_code=400, detail="汇率必须大于 0")
+    _backup_config_file(EXCHANGE_RATE_FILE)
     try:
         _write_json(EXCHANGE_RATE_FILE, {"rate": body.rate})
     except Exception as exc:
@@ -200,6 +228,7 @@ def put_targets_v2(month: str, body: MonthlyTargetV2Body) -> dict[str, Any]:
     body_dict["version"] = 2
     body_dict["month"] = month
 
+    _backup_config_file(TARGETS_OVERRIDE_FILE)
     overrides = _read_json(TARGETS_OVERRIDE_FILE, {})
     overrides[month] = body_dict
     try:
@@ -448,6 +477,64 @@ def get_target_recommendations(
         "scenarios": scenarios,
         "feasibility": feasibility,
     }
+
+
+# ── 围场角色配置 ────────────────────────────────────────────────────────────────
+
+
+@router.get("/enclosure-role", summary="获取围场-岗位负责配置")
+def get_enclosure_role() -> dict[str, Any]:
+    """返回围场角色配置（narrow + wide），含 override 合并"""
+    from backend.core.project_config import load_project_config
+
+    cfg = load_project_config("referral")
+    assignment = (
+        cfg.enclosure_role_assignment
+        if hasattr(cfg, "enclosure_role_assignment")
+        else {}
+    )
+    base = {
+        "narrow": assignment.get("enclosure_role_narrow", {}),
+        "wide": assignment.get("enclosure_role_wide", {}),
+    }
+    override = _read_json(ENCLOSURE_ROLE_FILE, {})
+    if override:
+        for key in ("narrow", "wide"):
+            if key in override:
+                base[key] = override[key]
+    return base
+
+
+@router.put("/enclosure-role", summary="更新围场-岗位负责配置")
+def put_enclosure_role(body: dict[str, Any]) -> dict[str, Any]:
+    """保存围场角色配置到 override 文件"""
+    _backup_config_file(ENCLOSURE_ROLE_FILE)
+    try:
+        _write_json(ENCLOSURE_ROLE_FILE, body)
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
+    return {"status": "ok"}
+
+
+# ── 打卡阈值配置 ────────────────────────────────────────────────────────────────
+
+
+@router.get("/checkin-thresholds", summary="获取打卡率阈值")
+def get_checkin_thresholds() -> dict[str, Any]:
+    """返回打卡率阈值配置"""
+    default: dict[str, Any] = {"good": 0.6, "warning": 0.3, "danger": 0.0}
+    return _read_json(CHECKIN_THRESHOLDS_FILE, default)
+
+
+@router.put("/checkin-thresholds", summary="更新打卡率阈值")
+def put_checkin_thresholds(body: dict[str, Any]) -> dict[str, Any]:
+    """保存打卡率阈值到 config 文件"""
+    _backup_config_file(CHECKIN_THRESHOLDS_FILE)
+    try:
+        _write_json(CHECKIN_THRESHOLDS_FILE, body)
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
+    return {"status": "ok"}
 
 
 def _calculate_feasibility(svc: Any, month: str, targets: dict) -> dict:

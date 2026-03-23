@@ -100,12 +100,34 @@ limiter = Limiter(key_func=get_remote_address, default_limits=[_rate_limit_str])
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    import shutil
+
     from backend.api.dependencies import _create_data_manager
     from backend.core.file_watcher import FileWatcher
 
     dm = _create_data_manager()
     app.state.data_manager = dm
     dm.load_all()
+
+    # config/ 完整性检测与自动恢复
+    config_dir = PROJECT_ROOT / "config"
+    expected_files = [
+        "targets_override.json",
+        "exchange_rate.json",
+        "indicator_matrix_override.json",
+    ]
+    missing = [f for f in expected_files if not (config_dir / f).exists()]
+    if missing:
+        logger.warning(f"⚠ config/ 缺失文件（将使用默认值）: {missing}")
+        backup_dir = config_dir / "backups"
+        if backup_dir.exists():
+            for f in missing:
+                stem = Path(f).stem
+                suffix = Path(f).suffix
+                backups = sorted(backup_dir.glob(f"{stem}_*{suffix}"), reverse=True)
+                if backups:
+                    shutil.copy2(backups[0], config_dir / f)
+                    logger.info(f"✓ 从备份恢复: {f} ← {backups[0].name}")
 
     watcher = FileWatcher(dm)
     watcher.start()

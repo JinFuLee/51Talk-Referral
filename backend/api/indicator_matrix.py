@@ -12,6 +12,7 @@ from typing import Any
 
 from fastapi import APIRouter, HTTPException
 
+from backend.api.config import _backup_config_file
 from backend.models.indicator_matrix import MatrixUpdateBody
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
@@ -129,6 +130,7 @@ def put_indicator_matrix(role: str, body: MatrixUpdateBody) -> dict[str, Any]:
         )
 
     # 写入 override
+    _backup_config_file(MATRIX_OVERRIDE_FILE)
     override = _read_json(MATRIX_OVERRIDE_FILE, {})
     override[role_upper] = {"active": body.active}
     try:
@@ -186,6 +188,7 @@ def reset_indicator_matrix(role: str) -> dict[str, Any]:
             "message": "该岗位未有自定义配置，无需重置",
         }
 
+    _backup_config_file(MATRIX_OVERRIDE_FILE)
     del override[role_upper]
     try:
         _write_json(MATRIX_OVERRIDE_FILE, override)
