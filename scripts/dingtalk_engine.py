@@ -633,11 +633,17 @@ class NotificationEngine:
                 facecolor="white", edgecolor=_C_BORDER, linewidth=1,
             ))
 
-            # 左侧状态色条（3px 细线，圆角感）
+            # 左侧状态色条（细+柔，用浅色版本降低视觉权重）
+            _light_colors = {
+                _C_SUCCESS: "#BBF7D0",
+                _C_WARNING: "#FDE68A",
+                _C_DANGER: "#FECACA",
+            }
+            bar_col = _light_colors.get(col, col)
             ax.add_patch(mpatches.FancyBboxPatch(
-                (card_x + 0.08, y - card_h + 0.25), 0.04, card_h - 0.5,
+                (card_x + 0.08, y - card_h + 0.25), 0.03, card_h - 0.5,
                 boxstyle="round,pad=0.02",
-                facecolor=col, edgecolor="none",
+                facecolor=bar_col, edgecolor="none",
             ))
 
             # 左区：指标名（上）→ 大数字（中）→ 目标（下）
@@ -759,7 +765,7 @@ class NotificationEngine:
         plt.rcParams["font.family"] = _THAI_FONTS
         n = len(table_data)
         row_unit = 0.55  # 每行高度（双语行需要更多空间）
-        header_h = 0.5
+        header_h = 0.60  # 双行表头需要更高行高
         title_h = 1.1
         footer_h = 0.5
         fig_h = max(title_h + header_h + n * row_unit + footer_h, 3.0)
@@ -794,13 +800,11 @@ class NotificationEngine:
         )
         y -= 0.45
 
-        # ── 表头（深色背景） ──
+        # ── 表头（深色背景，双行：泰文主行 + 中文副行）──
         table_x = 0.2
         table_w = 8.6
-        col_labels_th = [
-            "ตัวชี้วัด (指标)", "เป้า (目标)", "จริง (实际)",
-            "อัตราบรรลุ (达成率)", "ผลต่าง (差额)", "",
-        ]
+        col_headers_th = ["ตัวชี้วัด", "เป้า", "จริง", "อัตราบรรลุ", "ผลต่าง", ""]
+        col_headers_zh = ["指标", "目标", "实际", "达成率", "差额", ""]
         col_xs = [0.35, 2.9, 4.2, 5.5, 7.0, 8.5]
         col_aligns = ["left", "right", "right", "right", "right", "left"]
 
@@ -808,11 +812,18 @@ class NotificationEngine:
             (table_x, y - header_h), table_w, header_h,
             facecolor=_C_N800, edgecolor="none",
         ))
-        for label, x, align in zip(col_labels_th, col_xs, col_aligns, strict=False):
+        for th_lbl, zh_lbl, x, align in zip(
+            col_headers_th, col_headers_zh, col_xs, col_aligns, strict=False
+        ):
             ax.text(
-                x, y - header_h * 0.5, label,
+                x, y - header_h * 0.33, th_lbl,
                 fontsize=8.5, color="white", va="center",
                 ha=align, fontweight="bold",
+            )
+            ax.text(
+                x, y - header_h * 0.70, zh_lbl,
+                fontsize=6.5, color="#A8A29E", va="center",
+                ha=align,
             )
         y -= header_h
 
@@ -889,45 +900,46 @@ class NotificationEngine:
             metrics = overview.get("metrics", {})
 
         # 按 role 决定过程/效率指标（全泰文 label → 数据字段 key）
+        # items 格式：(泰文指标名, 中文指标名, 数据key)，渲染为双行
         if role == "CC":
             process_items = [
-                ("ลงทะเบียน (注册)", "转介绍注册数"),
-                ("นัดหมาย (预约)", "预约数"),
-                ("เข้าเรียน (出席)", "出席数"),
-                ("ชำระ (付费)", "转介绍付费数"),
-                ("เช็คอิน (打卡)", "打卡数"),
-                ("ติดต่อ ≥120s (触达)", "触达数"),
-                ("แนะนำ (带新)", "带新数"),
-                ("สัดส่วน (带货)", "带货数"),
+                ("ลงทะเบียน", "注册", "转介绍注册数"),
+                ("นัดหมาย", "预约", "预约数"),
+                ("เข้าเรียน", "出席", "出席数"),
+                ("ชำระ", "付费", "转介绍付费数"),
+                ("เช็คอิน", "打卡", "打卡数"),
+                ("ติดต่อ ≥120s", "触达", "触达数"),
+                ("แนะนำ", "带新", "带新数"),
+                ("สัดส่วน", "带货", "带货数"),
             ]
             efficiency_items = [
-                ("อัตราติดต่อ (触达率)", "触达率"),
-                ("สัดส่วนแนะนำ (带货比)", "带货比"),
-                ("ค่าสัมประสิทธิ์แนะนำ (带新系数)", "带新系数"),
-                ("อัตราลงทะเบียน→ชำระ (注册转化率)", "注册转化率"),
-                ("อัตรานัดหมาย→ชำระ (预约出席率)", "预约出席率"),
-                ("อัตราเข้าเรียน→ชำระ (出席付费率)", "出席付费率"),
+                ("อัตราติดต่อ", "触达率", "触达率"),
+                ("สัดส่วนแนะนำ", "带货比", "带货比"),
+                ("ค่าสัมประสิทธิ์แนะนำ", "带新系数", "带新系数"),
+                ("อัตราลงทะเบียน→ชำระ", "注册转化率", "注册转化率"),
+                ("อัตรานัดหมาย→ชำระ", "预约出席率", "预约出席率"),
+                ("อัตราเข้าเรียน→ชำระ", "出席付费率", "出席付费率"),
             ]
         elif role == "SS":
             process_items = [
-                ("ลงทะเบียน (注册)", "转介绍注册数"),
-                ("ติดต่อ (触达)", "触达数"),
-                ("แนะนำ (带新)", "带新数"),
+                ("ลงทะเบียน", "注册", "转介绍注册数"),
+                ("ติดต่อ", "触达", "触达数"),
+                ("แนะนำ", "带新", "带新数"),
             ]
             efficiency_items = [
-                ("อัตราติดต่อ (触达率)", "触达率"),
-                ("ค่าสัมประสิทธิ์แนะนำ (带新系数)", "带新系数"),
+                ("อัตราติดต่อ", "触达率", "触达率"),
+                ("ค่าสัมประสิทธิ์แนะนำ", "带新系数", "带新系数"),
             ]
         else:  # LP
             process_items = [
-                ("ลงทะเบียน (注册)", "转介绍注册数"),
-                ("ติดต่อ (触达)", "触达数"),
-                ("แนะนำ (带新)", "带新数"),
-                ("เช็คอิน (打卡)", "打卡数"),
+                ("ลงทะเบียน", "注册", "转介绍注册数"),
+                ("ติดต่อ", "触达", "触达数"),
+                ("แนะนำ", "带新", "带新数"),
+                ("เช็คอิน", "打卡", "打卡数"),
             ]
             efficiency_items = [
-                ("อัตราติดต่อ (触达率)", "触达率"),
-                ("ค่าสัมประสิทธิ์แนะนำ (带新系数)", "带新系数"),
+                ("อัตราติดต่อ", "触达率", "触达率"),
+                ("ค่าสัมประสิทธิ์แนะนำ", "带新系数", "带新系数"),
             ]
 
         def _fmt_val(v: object) -> str:
@@ -942,7 +954,7 @@ class NotificationEngine:
         n_efficiency = len(efficiency_items)
         n_total = n_process + n_efficiency
 
-        row_unit = 0.40
+        row_unit = 0.52  # 双行指标名需要更多行高（从 0.40 增加）
         header_h = 0.46
         section_gap = 0.5  # 过程/效率分隔区高度
         title_h = 1.1
@@ -1021,8 +1033,9 @@ class NotificationEngine:
                 )
             sy -= header_h
 
-            # 数据行
-            for idx, (label_th, data_key) in enumerate(items):
+            # 数据行（三元素元组：泰文名, 中文名, 数据key；双行显示）
+            for idx, item in enumerate(items):
+                label_th, label_zh, data_key = item
                 val = metrics.get(data_key)
                 row_bg = _C_SURFACE if idx % 2 == 0 else "white"
                 ax.add_patch(plt.Rectangle(
@@ -1030,9 +1043,15 @@ class NotificationEngine:
                     facecolor=row_bg, edgecolor="none",
                 ))
                 cy = sy - row_unit * 0.5
+                # 泰文主行（偏上）
                 ax.text(
-                    col_xs[0], cy, label_th,
+                    col_xs[0], cy + 0.08, label_th,
                     fontsize=8.5, color=_C_TEXT, va="center", ha="left",
+                )
+                # 中文副行（偏下，浅色）
+                ax.text(
+                    col_xs[0], cy - 0.10, label_zh,
+                    fontsize=6.5, color=_C_MUTED, va="center", ha="left",
                 )
                 ax.text(
                     col_xs[2], cy, _fmt_val(val),
