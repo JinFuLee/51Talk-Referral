@@ -121,6 +121,54 @@ class _ExcelFileHandler(FileSystemEventHandler):
                     )
 
 
+def cleanup_old_versions(data_dir: Path, keep_file: Path | None) -> list[Path]:
+    """扫描 data_dir，对每个数据源只保留最新文件，删除旧版本。
+
+    参数:
+        data_dir: 数据目录
+        keep_file: 如果指定，该文件不会被删除（当前加载中的文件）
+
+    返回:
+        被删除的文件路径列表
+    """
+    deleted: list[Path] = []
+
+    for src_id, pattern in LOADER_PATTERNS.items():
+        all_files = [
+            f
+            for f in data_dir.glob(pattern)
+            if not f.name.startswith(".") and not f.name.startswith("~$")
+        ]
+        # detail 排除逻辑
+        if src_id == "detail":
+            all_files = [
+                f
+                for f in all_files
+                if "围场过程" not in f.name and "付费学员" not in f.name
+            ]
+
+        if len(all_files) <= 1:
+            continue
+
+        # 按文件名倒序排列（与 Loader 选择逻辑一致），第一个是最新
+        all_files.sort(key=lambda p: p.name, reverse=True)
+        latest = all_files[0]
+
+        for old in all_files[1:]:
+            try:
+                old.unlink()
+                deleted.append(old)
+                logger.info(
+                    f"清理旧版本: {old.name} (保留 {latest.name})"
+                )
+            except OSError:
+                logger.warning(
+                    f"删除旧文件失败: {old.name}", exc_info=True
+                )
+
+    return deleted
+
+
 class FileWatcher:
     """管理 watchdog Observer 生命周期"""
 
@@ -130,6 +178,15 @@ class FileWatcher:
         self._handler = _ExcelFileHandler(data_manager, debounce_sec)
 
     def start(self) -> None:
+        """启动文件监控，并清理已有旧版本文件"""
+        # 启动前先清理目录中已存在的旧版本
+        deleted = cleanup_old_versions(self._dm.data_dir, keep_file=None)
+        if deleted:
+            logger.info(f"启动清理: 删除 {len(deleted)} 个旧版本文件")
+            # 清理后重新加载以确保缓存与磁盘一致
+            self._dm.invalidate()
+            self._dm.load_all()
+
         watch_dir = str(self._dm.data_dir)
         self._observer.schedule(self._handler, watch_dir, recursive=False)
         self._observer.daemon = True
