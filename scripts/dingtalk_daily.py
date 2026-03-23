@@ -41,23 +41,48 @@ OUTPUT_DIR = PROJECT_ROOT / "output"
 GOOD_RATE = 0.6
 WARN_RATE = 0.4
 
-# 泰文文案集中字典（ICU MessageFormat 模式，单一信源）
+# 泰中双语文案集中字典（泰文主行 + 中文副行，单一信源）
+# 每个 key 的 value 为 {"th": "泰文", "zh": "中文"} 结构
 TH_STRINGS = {
-    "overview_title": "CC Check-in Report",  # 英文品牌名保留
-    "overview_card": "ภาพรวม CC",
-    "col_rank": "#",
-    "col_team": "ทีม",
-    "col_students": "นักเรียน",
-    "col_checkin": "เช็คอิน",
-    "col_rate": "อัตรา",
-    "col_name": "ชื่อ",
-    "legend_pass": "ผ่าน",
-    "legend_near": "ใกล้เคียง",
-    "legend_below": "ต่ำกว่า",
-    "top10_title": "บุคคล Top 10",
-    "team_rank_title": "จัดอันดับทีม",
-    "team_individual": "รายบุคคล",
+    "overview_title": {"th": "CC Check-in Report", "zh": "CC 打卡报告"},
+    "overview_card": {"th": "ภาพรวม CC", "zh": "CC 总览"},
+    "col_rank": {"th": "#", "zh": "#"},
+    "col_team": {"th": "ทีม", "zh": "团队"},
+    "col_students": {"th": "นักเรียน", "zh": "学员"},
+    "col_checkin": {"th": "เช็คอิน", "zh": "打卡"},
+    "col_rate": {"th": "อัตรา", "zh": "打卡率"},
+    "col_name": {"th": "ชื่อ", "zh": "姓名"},
+    "legend_pass": {"th": "ผ่าน", "zh": "达标"},
+    "legend_near": {"th": "ใกล้เคียง", "zh": "接近"},
+    "legend_below": {"th": "ต่ำกว่า", "zh": "落后"},
+    "top10_title": {"th": "บุคคล Top 10", "zh": "个人 Top 10"},
+    "team_rank_title": {"th": "จัดอันดับทีม", "zh": "团队排名"},
+    "team_individual": {"th": "รายบุคคล", "zh": "个人明细"},
 }
+
+
+def _th(key: str) -> str:
+    """返回泰文主行"""
+    return TH_STRINGS[key]["th"]
+
+
+def _zh(key: str) -> str:
+    """返回中文副行"""
+    return TH_STRINGS[key]["zh"]
+
+
+def _bilingual_header(key: str) -> str:
+    """模式 B：表头括号格式 '泰文(中文)'，节省空间"""
+    v = TH_STRINGS[key]
+    if v["th"] == v["zh"]:  # 相同（如 "#"）则不加括号
+        return v["th"]
+    return f"{v['th']}({v['zh']})"
+
+
+def _legend_label(key: str, prefix: str) -> str:
+    """模式 C：图例斜杠格式 'prefix泰文/中文'"""
+    v = TH_STRINGS[key]
+    return f"{prefix}{v['th']}/{v['zh']}"
 
 # SEE Design System — Warm Neutral 色板
 C_BG = "#FAFAF9"  # --n-50  bg-primary
@@ -236,10 +261,18 @@ def generate_report_image(data: dict) -> bytes:
     ax.text(
         0.45,
         y,
-        TH_STRINGS["overview_title"],
+        _th("overview_title"),
         fontsize=18,
         fontweight="bold",
         color=C_HEADER,
+        va="top",
+    )
+    ax.text(
+        0.45,
+        y - 0.28,
+        _zh("overview_title"),
+        fontsize=9,
+        color=C_MUTED,
         va="top",
     )
     y -= 0.45
@@ -267,11 +300,19 @@ def generate_report_image(data: dict) -> bytes:
     _draw_status_dot(ax, 0.55, cy, rate)
     ax.text(
         0.75,
-        cy,
-        TH_STRINGS["overview_card"],
+        cy + 0.09,
+        _th("overview_card"),
         fontsize=13,
         fontweight="bold",
         color=C_HEADER,
+        va="center",
+    )
+    ax.text(
+        0.75,
+        cy - 0.09,
+        _zh("overview_card"),
+        fontsize=8,
+        color=C_MUTED,
         va="center",
     )
     ax.text(
@@ -336,21 +377,29 @@ def generate_report_image(data: dict) -> bytes:
     ax.text(
         0.4,
         y,
-        TH_STRINGS["team_rank_title"],
+        _th("team_rank_title"),
         fontsize=13,
         fontweight="bold",
         color=C_HEADER,
+        va="top",
+    )
+    ax.text(
+        0.4,
+        y - 0.28,
+        _zh("team_rank_title"),
+        fontsize=8,
+        color=C_MUTED,
         va="top",
     )
     y -= 0.45
 
     cols_x = [0.3, 1.2, 3.5, 5.0, 6.5, 8.0]
     headers = [
-        TH_STRINGS["col_rank"],
-        TH_STRINGS["col_team"],
-        TH_STRINGS["col_students"],
-        TH_STRINGS["col_checkin"],
-        TH_STRINGS["col_rate"],
+        _bilingual_header("col_rank"),
+        _bilingual_header("col_team"),
+        _bilingual_header("col_students"),
+        _bilingual_header("col_checkin"),
+        _bilingual_header("col_rate"),
         "",
     ]
     for i, h in enumerate(headers[:-1]):
@@ -464,21 +513,29 @@ def generate_report_image(data: dict) -> bytes:
         ax.text(
             0.4,
             y,
-            TH_STRINGS["top10_title"],
+            _th("top10_title"),
             fontsize=13,
             fontweight="bold",
             color=C_HEADER,
+            va="top",
+        )
+        ax.text(
+            0.4,
+            y - 0.28,
+            _zh("top10_title"),
+            fontsize=8,
+            color=C_MUTED,
             va="top",
         )
         y -= 0.45
 
         p_cols = [0.3, 1.2, 4.5, 6.0, 7.5]
         p_headers = [
-            TH_STRINGS["col_rank"],
-            TH_STRINGS["col_name"],
-            TH_STRINGS["col_team"],
-            TH_STRINGS["col_students"],
-            TH_STRINGS["col_rate"],
+            _bilingual_header("col_rank"),
+            _bilingual_header("col_name"),
+            _bilingual_header("col_team"),
+            _bilingual_header("col_students"),
+            _bilingual_header("col_rate"),
         ]
         for i, h in enumerate(p_headers):
             ha = "right" if i >= 3 else "left"
@@ -543,14 +600,15 @@ def generate_report_image(data: dict) -> bytes:
 
     # ── 图例 ──
     y -= 0.3
+    g_pct_ov = int(GOOD_RATE * 100)
+    w_pct_ov = int(WARN_RATE * 100)
     legend_items = [
-        (C_SUCCESS, f"  >= {int(GOOD_RATE * 100)}%  {TH_STRINGS['legend_pass']}"),
+        (C_SUCCESS, _legend_label("legend_pass", f"  >={g_pct_ov}%  ")),
         (
             C_WARNING,
-            f"  {int(WARN_RATE * 100)}-{int(GOOD_RATE * 100)}%  "
-            f"{TH_STRINGS['legend_near']}",
+            _legend_label("legend_near", f"  {w_pct_ov}-{g_pct_ov}%  "),
         ),
-        (C_DANGER, f"  < {int(WARN_RATE * 100)}%  {TH_STRINGS['legend_below']}"),
+        (C_DANGER, _legend_label("legend_below", f"  <{w_pct_ov}%  ")),
     ]
     lx = 0.5
     for color, label in legend_items:
@@ -616,9 +674,22 @@ def generate_team_image(
             edgecolor="none",
         )
     )
-    title_txt = f"{short_name}  {TH_STRINGS['team_individual']}"
     ax.text(
-        0.45, y, title_txt, fontsize=16, fontweight="bold", color=C_HEADER, va="top"
+        0.45,
+        y,
+        f"{short_name}  {_th('team_individual')}",
+        fontsize=16,
+        fontweight="bold",
+        color=C_HEADER,
+        va="top",
+    )
+    ax.text(
+        0.45,
+        y - 0.3,
+        f"{short_name}  {_zh('team_individual')}",
+        fontsize=8,
+        color=C_MUTED,
+        va="top",
     )
     y -= 0.4
     ax.text(0.45, y, f"{today}  |  T-1", fontsize=9, color=C_TEXT2, va="top")
@@ -687,11 +758,11 @@ def generate_team_image(
     # ── 成员表 ──
     cols = [0.3, 1.1, 4.0, 5.3, 6.6, 7.8]
     hdrs = [
-        TH_STRINGS["col_rank"],
-        TH_STRINGS["col_name"],
-        TH_STRINGS["col_students"],
-        TH_STRINGS["col_checkin"],
-        TH_STRINGS["col_rate"],
+        _bilingual_header("col_rank"),
+        _bilingual_header("col_name"),
+        _bilingual_header("col_students"),
+        _bilingual_header("col_checkin"),
+        _bilingual_header("col_rate"),
         "",
     ]
     for i, h in enumerate(hdrs[:-1]):
@@ -805,9 +876,9 @@ def generate_team_image(
     g_pct = int(GOOD_RATE * 100)
     w_pct = int(WARN_RATE * 100)
     legend_items = [
-        (C_SUCCESS, f">={g_pct}% {TH_STRINGS['legend_pass']}"),
-        (C_WARNING, f"{w_pct}-{g_pct}% {TH_STRINGS['legend_near']}"),
-        (C_DANGER, f"<{w_pct}% {TH_STRINGS['legend_below']}"),
+        (C_SUCCESS, _legend_label("legend_pass", f">={g_pct}% ")),
+        (C_WARNING, _legend_label("legend_near", f"{w_pct}-{g_pct}% ")),
+        (C_DANGER, _legend_label("legend_below", f"<{w_pct}% ")),
     ]
     lx = 0.5
     for color, label in legend_items:
@@ -888,14 +959,16 @@ def build_text_markdown(data: dict) -> str:
 
     lines = [
         "## 📋 CC Check-in Report",
+        "## 📋 CC 打卡报告",
         "",
         f"📅 **{today}**　⏰ {now_time}",
         "",
         "---",
         "",
-        f"### {rate_icon(rate)} ภาพรวม CC　**{fmt_pct(rate)}**",
+        f"### {rate_icon(rate)} {_th('overview_card')}　**{fmt_pct(rate)}**",
+        f"### {_zh('overview_card')}",
         "",
-        f"- 👥 นักเรียนทั้งหมด: **{total:,}** คน",
+        f"- 👥 {_th('col_students')}: **{total:,}** คน",
         f"- ✅ Check-in แล้ว: **{checked:,}** คน",
         "",
     ]
@@ -904,7 +977,8 @@ def build_text_markdown(data: dict) -> str:
         lines += [
             "---",
             "",
-            "### 🏆 อันดับทีม",
+            f"### 🏆 {_th('team_rank_title')}",
+            f"### {_zh('team_rank_title')}",
             "",
             "| อันดับ | ทีม | นร. | เช็คอิน | อัตรา |",
             "|:---:|------|:---:|:---:|------:|",
@@ -925,7 +999,8 @@ def build_text_markdown(data: dict) -> str:
         lines += [
             "---",
             "",
-            "### 🌟 Top 10 พนักงาน",
+            f"### 🌟 {_th('top10_title')}",
+            f"### {_zh('top10_title')}",
             "",
             "| อันดับ | ชื่อ | ทีม | อัตรา |",
             "|:---:|------|------|------:|",
@@ -946,14 +1021,27 @@ def build_text_markdown(data: dict) -> str:
         if g.get("rate", 0) < WARN_RATE
     ]
     if behind:
-        lines += ["---", "", f"⚠️ **ทีมที่ต้องปรับปรุง**: {'、'.join(behind)}", ""]
+        teams_str = "、".join(behind)
+        lines += [
+            "---",
+            "",
+            f"⚠️ **ทีมที่ต้องปรับปรุง / 需改进团队**: {teams_str}",
+            "",
+        ]
 
+    g_md = int(GOOD_RATE * 100)
+    w_md = int(WARN_RATE * 100)
+    pass_lbl = f"{_th('legend_pass')}/{_zh('legend_pass')}"
+    near_lbl = f"{_th('legend_near')}/{_zh('legend_near')}"
+    below_lbl = f"{_th('legend_below')}/{_zh('legend_below')}"
     lines += [
         "---",
         "",
-        f"🟢 ≥{int(GOOD_RATE * 100)}% ผ่านเกณฑ์　"
-        f"🟡 {int(WARN_RATE * 100)}-{int(GOOD_RATE * 100)}% ใกล้เกณฑ์　"
-        f"🔴 <{int(WARN_RATE * 100)}% ต่ำกว่าเกณฑ์",
+        (
+            f"🟢 ≥{g_md}% {pass_lbl}　"
+            f"🟡 {w_md}-{g_md}% {near_lbl}　"
+            f"🔴 <{w_md}% {below_lbl}"
+        ),
         "",
         "> ข้อมูล T-1 · ref-ops-engine",
     ]
