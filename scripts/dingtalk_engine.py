@@ -133,6 +133,16 @@ class NotificationEngine:
             force:      忽略幂等检查，强制重发
             sandbox:    沙箱模式，所有推送重定向到测试群
         """
+        # 从配置注入阈值到 dingtalk_daily 模块（确保图片生成用配置值）
+        th = self.defaults.get("thresholds", {})
+        import sys
+        _sd = str(Path(__file__).resolve().parent)
+        if _sd not in sys.path:
+            sys.path.insert(0, _sd)
+        import dingtalk_daily as _dm
+        _dm.GOOD_RATE = th.get("good", 0.6)
+        _dm.WARN_RATE = th.get("warning", 0.4)
+
         targets = self._resolve_targets(channel_id)
 
         # sandbox 模式：保留内容路由，替换发送目标为测试群
@@ -594,11 +604,14 @@ class NotificationEngine:
         )
         y -= 0.55
 
-        # ── 图例（状态圆点） ──
+        # ── 图例（状态圆点，阈值从配置读取） ──
+        th = self.defaults.get("thresholds", {})
+        g_pct = int(th.get("good", 0.6) * 100)
+        w_pct = int(th.get("warning", 0.4) * 100)
         legend_items = [
-            (_C_SUCCESS, "ผ่าน/达标"),
-            (_C_WARNING, "ใกล้เคียง/接近"),
-            (_C_DANGER, "ต่ำกว่า/未达"),
+            (_C_SUCCESS, f">={g_pct}% ผ่าน/达标"),
+            (_C_WARNING, f"{w_pct}-{g_pct}% ใกล้เคียง/接近"),
+            (_C_DANGER, f"<{w_pct}% ต่ำกว่า/未达"),
         ]
         lx = 0.4
         for lc, ltxt in legend_items:
