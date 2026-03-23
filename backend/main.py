@@ -51,6 +51,7 @@ ROUTER_REGISTRY: dict = {
     "cc_matrix": ("backend.api.cc_matrix", "/api", ["cc-matrix"]),
     "enclosure_health": ("backend.api.enclosure_health", "/api", ["enclosure-health"]),
     "student_360": ("backend.api.student_360", "/api", ["students"]),
+    "indicator_matrix": ("backend.api.indicator_matrix", "/api", ["indicator-matrix"]),
 }
 
 

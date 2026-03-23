@@ -154,6 +154,19 @@ class ProjectConfig(BaseModel):
         default_factory=list, description="启用的 API 路由白名单"
     )
 
+    indicator_registry: list[dict[str, Any]] = Field(
+        default_factory=list,
+        description="全维度指标注册表: 35项指标定义(id/name_zh/name_th/category/unit/formula/data_source/has_target/availability)",
+    )
+    indicator_matrix: dict[str, Any] = Field(
+        default_factory=lambda: {
+            "CC": {"readonly": True, "active": []},
+            "SS": {"readonly": False, "active": []},
+            "LP": {"readonly": False, "active": []},
+        },
+        description="岗位×指标激活矩阵: CC为只读超集, SS/LP为可配置子集",
+    )
+
 
 _PROJECTS_DIR = Path(__file__).resolve().parent.parent.parent / "projects"
 
