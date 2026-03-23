@@ -452,9 +452,12 @@ class NotificationEngine:
         elif module_id == "service_metrics":
             overview = self._fetch_overview()
             img_bytes = self._gen_service_metrics_image(overview, role, today_str)
-            path = OUTPUT_DIR / f"service-metrics-{role}-{date_tag}.png"
-            path.write_bytes(img_bytes)
-            images.append((f"บริการ {role} {today_str}", img_bytes, path))
+            if img_bytes is not None:
+                path = OUTPUT_DIR / f"service-metrics-{role}-{date_tag}.png"
+                path.write_bytes(img_bytes)
+                images.append((f"บริการ {role} {today_str}", img_bytes, path))
+            else:
+                print("  [service_metrics] ข้ามเนื่องจากไม่มีข้อมูล")
 
         # action_items 由 _process_module 直接处理文本，不走图片流程
         else:
@@ -622,47 +625,47 @@ class NotificationEngine:
                 facecolor="white", edgecolor=_C_BORDER, linewidth=1.2,
             ))
 
-            # 左侧状态色条
+            # 左侧状态色条（细线）
             ax.add_patch(plt.Rectangle(
-                (card_x, y - card_h + 0.08), 0.07, card_h - 0.16,
+                (card_x + 0.05, y - card_h + 0.15), 0.05, card_h - 0.3,
                 facecolor=col, edgecolor="none",
             ))
 
-            # 大数字（实际值）
+            # 左区：指标名（上）+ 大数字（中）+ 目标（下）
+            lx = card_x + 0.6  # 左侧留更多间距
             ax.text(
-                card_x + 0.25, y - 0.32, val_str,
-                fontsize=20, fontweight="bold", color=_C_TEXT, va="center",
+                lx, y - 0.25, item["label_th"],
+                fontsize=9, color=_C_MUTED, va="center",
             )
-            # 指标名称（泰文）
             ax.text(
-                card_x + 0.25, y - 0.62, item["label_th"],
-                fontsize=10, color=_C_TEXT2, va="center",
+                lx, y - 0.6, val_str,
+                fontsize=22, fontweight="bold", color=_C_TEXT, va="center",
             )
-            # 目标值小字
             ax.text(
-                card_x + 0.25, y - 0.88,
+                lx, y - 0.92,
                 f"เป้า {tgt_str}",
                 fontsize=8.5, color=_C_MUTED, va="center",
             )
 
-            # 达成率百分比（右侧大字）
+            # 右区：达成率百分比（垂直居中）
+            rx = card_x + card_w - 0.8
             ax.text(
-                card_x + card_w - 1.0, y - 0.45,
+                rx, y - 0.5,
                 f"{rate * 100:.0f}%",
-                fontsize=22, fontweight="bold", color=col,
-                va="center", ha="center",
+                fontsize=24, fontweight="bold", color=col,
+                va="center", ha="right",
             )
             ax.text(
-                card_x + card_w - 1.0, y - 0.78,
+                rx, y - 0.82,
                 "อัตราบรรลุ",
                 fontsize=7.5, color=_C_MUTED,
-                va="center", ha="center",
+                va="center", ha="right",
             )
 
-            # 进度条（背景）
-            bar_x = card_x + 0.25
-            bar_y = y - 1.12
-            bar_total_w = card_w - 1.6
+            # 进度条（底部，全宽）
+            bar_x = lx
+            bar_y = y - 1.15
+            bar_total_w = card_w - 2.0
             ax.add_patch(mpatches.FancyBboxPatch(
                 (bar_x, bar_y), bar_total_w, 0.14,
                 boxstyle="round,pad=0.04",
@@ -731,6 +734,9 @@ class NotificationEngine:
             pace = kpi_pace.get(key, {})
             actual = pace.get("actual", 0) or 0
             target = pace.get("target", 0) or 0
+            # 跳过目标和实际都为 0 的行（无数据）
+            if target == 0 and actual == 0:
+                continue
             rate = (actual / target) if target > 0 else 0
             gap = actual - target
             table_data.append((label_th, target, actual, rate, gap))
@@ -832,20 +838,6 @@ class NotificationEngine:
                 (col_xs[5] - 0.15, cy), 0.1,
                 facecolor=col, edgecolor="none", zorder=5,
             ))
-
-            # 行内迷你进度条（在差额列左侧）
-            mini_x = col_xs[3] + 0.25
-            mini_w = col_xs[4] - col_xs[3] - 0.5
-            ax.add_patch(plt.Rectangle(
-                (mini_x, cy - 0.06), mini_w, 0.12,
-                facecolor=_C_ELEVATED, edgecolor="none", zorder=2,
-            ))
-            fill = mini_w * min(rate, 1.0)
-            if fill > 0.02:
-                ax.add_patch(plt.Rectangle(
-                    (mini_x, cy - 0.06), fill, 0.12,
-                    facecolor=col, edgecolor="none", zorder=3,
-                ))
 
             y -= row_unit
 
@@ -1042,8 +1034,8 @@ class NotificationEngine:
 
     def _gen_service_metrics_image(
         self, overview: dict | None, role: str, today_str: str
-    ) -> bytes:
-        """服务指标图：付费前/后外呼双列表格，空态品牌虚线框（SEE Design System）"""
+    ) -> bytes | None:
+        """服务指标图：付费前/后外呼双列表格。无数据时返回 None（不发送）。"""
         metrics: dict = {}
         if overview:
             metrics = overview.get("metrics", {})
@@ -1052,6 +1044,10 @@ class NotificationEngine:
         pre_call = metrics.get("付费前外呼数")
         post_call = metrics.get("付费后外呼数")
         has_data = pre_call is not None or post_call is not None
+
+        # 无数据 → 跳过，不生成空态图
+        if not has_data:
+            return None
 
         plt.rcParams["font.family"] = _THAI_FONTS
         fig_h = 4.2
