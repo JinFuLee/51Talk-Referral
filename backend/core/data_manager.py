@@ -134,15 +134,13 @@ class DataManager:
             return df
 
         # 对多个团队列取 OR：行中任一团队列以 TH（大小写不敏感）开头则保留
+        # null/空值行同样保留（可能是跨团队公共数据，不代表非泰国）
         mask = pd.Series(False, index=df.index)
         for col in team_cols:
-            col_mask = (
-                df[col]
-                .fillna("")
-                .str.upper()
-                .str.startswith("TH")
-            )
-            mask = mask | col_mask
+            s = df[col].astype(str).str.strip().str.upper()
+            th_mask = s.str.startswith("TH")
+            null_mask = df[col].isna() | (s == "") | (s == "NAN")
+            mask = mask | th_mask | null_mask
 
         before = len(df)
         filtered = df[mask].copy()
