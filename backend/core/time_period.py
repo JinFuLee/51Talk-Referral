@@ -4,10 +4,10 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import date, timedelta
-from enum import Enum
+from enum import StrEnum
 
 
-class TimePeriod(str, Enum):
+class TimePeriod(StrEnum):
     THIS_WEEK = "this_week"  # 本周T-1
     THIS_MONTH = "this_month"  # 本月T-1（默认）
     LAST_7_DAYS = "last_7_days"  # 近7日

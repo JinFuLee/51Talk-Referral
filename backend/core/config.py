@@ -123,7 +123,7 @@ def get_targets(date: datetime = None) -> dict:
 # ── 委托层：所有业务常量统一从 projects/referral/config.json 读取 ─────────────
 # 消费方无需改动（from core.config import MONTHLY_TARGETS 等均继续有效），
 # 但数据源已统一，修改 JSON 即全局生效，不会静默分叉。
-from .project_config import load_project_config as _load_project_config
+from .project_config import load_project_config as _load_project_config  # noqa: E402
 
 _cfg = _load_project_config("referral")
 

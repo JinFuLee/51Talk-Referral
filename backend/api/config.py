@@ -109,7 +109,7 @@ def put_panel_config(body: PanelConfigUpdate) -> dict[str, Any]:
     try:
         _write_json(PANEL_CONFIG_FILE, body.model_dump())
     except Exception as exc:
-        raise HTTPException(status_code=500, detail=str(exc))
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
     return {"status": "ok"}
 
 
@@ -158,7 +158,7 @@ def put_targets_month(month: str, body: MonthTargetsUpdate) -> dict[str, Any]:
     try:
         _write_json(TARGETS_OVERRIDE_FILE, overrides)
     except Exception as exc:
-        raise HTTPException(status_code=500, detail=str(exc))
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
     return {"status": "ok", "month": month, "updated": body_dict}
 
 
@@ -181,7 +181,7 @@ def put_exchange_rate(body: ExchangeRateBody) -> dict[str, Any]:
     try:
         _write_json(EXCHANGE_RATE_FILE, {"rate": body.rate})
     except Exception as exc:
-        raise HTTPException(status_code=500, detail=str(exc))
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
     return {"status": "ok", "rate": body.rate}
 
 
@@ -222,7 +222,9 @@ def put_targets_v2(month: str, body: MonthlyTargetV2Body) -> dict[str, Any]:
     try:
         v2_model = MonthlyTargetV2(**body.model_dump())
     except Exception as exc:
-        raise HTTPException(status_code=400, detail=f"数据格式错误: {str(exc)}")
+        raise HTTPException(
+            status_code=400, detail=f"数据格式错误: {exc}"
+        ) from exc
 
     body_dict = v2_model.model_dump()
     body_dict["version"] = 2
@@ -234,7 +236,7 @@ def put_targets_v2(month: str, body: MonthlyTargetV2Body) -> dict[str, Any]:
     try:
         _write_json(TARGETS_OVERRIDE_FILE, overrides)
     except Exception as exc:
-        raise HTTPException(status_code=500, detail=str(exc))
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
     return {"status": "ok", "month": month}
 
 
@@ -246,7 +248,7 @@ def calculate_targets(month: str, body: MonthlyTargetV2Body) -> dict[str, Any]:
     try:
         v2 = MonthlyTargetV2(**body.model_dump())
     except Exception as exc:
-        raise HTTPException(status_code=400, detail=str(exc))
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
     return {
         "v2": v2.model_dump(),
         "flat": v2.flatten(),
@@ -256,8 +258,6 @@ def calculate_targets(month: str, body: MonthlyTargetV2Body) -> dict[str, Any]:
 def _synthesize_v2_from_flat(month: str, flat: dict) -> dict:
     """从扁平目标合成 V2 结构"""
     sub = flat.get("子口径", {})
-    total_reg = flat.get("注册目标", 0)
-    total_paid = flat.get("付费目标", 0)
     total_amount = flat.get("金额目标", 0.0)
     asp = flat.get("客单价", 0.0)
     conv = flat.get("目标转化率", 0.0)
@@ -577,10 +577,7 @@ def _calculate_feasibility(svc: Any, month: str, targets: dict) -> dict:
 
         # 从 summary 取实绩
         metric_data = summary.get(eng_key, {})
-        if isinstance(metric_data, dict):
-            actual = metric_data.get("actual", 0)
-        else:
-            actual = 0
+        actual = metric_data.get("actual", 0) if isinstance(metric_data, dict) else 0
 
         # 节奏比
         pace_ratio = (actual / target_val) / time_progress if time_progress > 0 else 0

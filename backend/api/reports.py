@@ -106,7 +106,8 @@ def generate_report(
     整合规则引擎分析 + Gemini AI 洞察，生成完整 Markdown 报告并保存到 output/reports/。
 
     Returns:
-        {status, report: {report_path, markdown, generated_at, ai_commentary, model_used, has_ai}}
+        {status, report: {report_path, markdown, generated_at,
+        ai_commentary, model_used, has_ai}}
     """
     try:
         from backend.core.ai_report_generator import AIReportGenerator
@@ -115,7 +116,9 @@ def generate_report(
         report = gen.generate_report(force_run=req.force_run)
         return {"status": "ok", "report": report}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"报告生成失败: {e}")
+        raise HTTPException(
+            status_code=500, detail=f"报告生成失败: {e}"
+        ) from e
 
 
 @router.get("/ai/latest", summary="获取最新 AI 生成报告")
@@ -128,7 +131,7 @@ def get_latest_ai_report() -> dict[str, Any]:
     try:
         content = Path(latest["path"]).read_text(encoding="utf-8")
     except Exception as exc:
-        raise HTTPException(status_code=500, detail=str(exc))
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
     return {**latest, "content": content}
 
 
@@ -207,7 +210,7 @@ def get_report_content(report_type: str, date: str) -> dict[str, Any]:
     try:
         content = target.read_text(encoding="utf-8")
     except Exception as exc:
-        raise HTTPException(status_code=500, detail=str(exc))
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
 
     return {
         "filename": target.name,

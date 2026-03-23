@@ -107,7 +107,10 @@ class ProjectConfig(BaseModel):
             },
             "wide": {"role": "leads_only", "metrics": ["register"]},
         },
-        description="口径×指标归属: full_funnel=全漏斗(CC/总计), leads_and_process=leads+过程指标(SS/LP), leads_only=仅leads(宽口)",
+        description=(
+            "口径×指标归属: full_funnel=全漏斗(CC/总计), "
+            "leads_and_process=leads+过程指标(SS/LP), leads_only=仅leads(宽口)"
+        ),
     )
 
     data_source_registry: dict[str, Any] = Field(
@@ -156,7 +159,10 @@ class ProjectConfig(BaseModel):
 
     indicator_registry: list[dict[str, Any]] = Field(
         default_factory=list,
-        description="全维度指标注册表: 35项指标定义(id/name_zh/name_th/category/unit/formula/data_source/has_target/availability)",
+        description=(
+            "全维度指标注册表: 35项指标定义"
+            "(id/name_zh/name_th/category/unit/formula/data_source/has_target/availability)"
+        ),
     )
     indicator_matrix: dict[str, Any] = Field(
         default_factory=lambda: {

@@ -76,7 +76,6 @@ def get_action_plan(svc=Depends(get_service)) -> dict[str, Any]:
         items = []
 
         for analysis in rc_result.get("analyses", []):
-            trigger_metric = analysis.get("trigger_metric", "")
             action_text = analysis.get("action", "")
             severity = analysis.get("severity", "yellow")
             expected_impact = float(analysis.get("expected_impact_usd", 0))
@@ -382,7 +381,6 @@ def get_resource_request(svc=Depends(get_service)) -> dict[str, Any]:
         for chain in sorted_chains:
             metric = chain.get("metric", "")
             lost_usd = chain.get("lost_revenue_usd", 0.0)
-            label = chain.get("label", metric)
 
             if metric in category_map:
                 cat_key, resource_desc, gain_desc = category_map[metric]
@@ -393,7 +391,9 @@ def get_resource_request(svc=Depends(get_service)) -> dict[str, Any]:
                     cat["cards"].append(
                         {
                             "title": resource_desc,
-                            "description": f"{gain_desc}，可回收收入 ${lost_usd:,.0f}/月",
+                            "description": (
+                                f"{gain_desc}，可回收收入 ${lost_usd:,.0f}/月"
+                            ),
                             "expectedRoi": f"${lost_usd:,.0f} ({gain_desc})",
                             "priority": priority,
                         }
