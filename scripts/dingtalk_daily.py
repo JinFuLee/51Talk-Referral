@@ -237,8 +237,8 @@ def generate_report_image(data: dict) -> bytes:
 
     n_groups = len(groups)
     n_persons = len(persons)
-    table_h = max(n_groups, 1) * 0.35 + 1.2
-    person_h = max(n_persons, 1) * 0.35 + 1.2
+    table_h = max(n_groups, 1) * 0.35 + 1.55  # 双行表头增加 0.35
+    person_h = max(n_persons, 1) * 0.35 + 1.55  # 双行表头增加 0.35
     total_h = 3.5 + table_h + person_h + 1.5
 
     fig, ax = plt.subplots(figsize=(8, total_h), dpi=150)
@@ -394,28 +394,47 @@ def generate_report_image(data: dict) -> bytes:
     y -= 0.45
 
     cols_x = [0.3, 1.2, 3.5, 5.0, 6.5, 8.0]
-    headers = [
-        _bilingual_header("col_rank"),
-        _bilingual_header("col_team"),
-        _bilingual_header("col_students"),
-        _bilingual_header("col_checkin"),
-        _bilingual_header("col_rate"),
-        "",
-    ]
-    for i, h in enumerate(headers[:-1]):
+    # 双行表头：深色背景矩形
+    ax.add_patch(
+        plt.Rectangle(
+            (0.2, y - 0.45),
+            9.6,
+            0.5,
+            facecolor=C_N800,
+            edgecolor="none",
+            zorder=1,
+        )
+    )
+    th_keys = ["col_rank", "col_team", "col_students", "col_checkin", "col_rate"]
+    for i, key in enumerate(th_keys):
         ha = "right" if i >= 2 else "left"
+        # 泰文主行（白字，fontsize=9）
         ax.text(
             cols_x[i],
-            y,
-            h,
+            y - 0.12,
+            _th(key),
             fontsize=9,
             fontweight="bold",
-            color=C_TEXT2,
+            color="white",
             va="center",
             ha=ha,
+            zorder=2,
         )
+        # 中文副行（灰字，fontsize=7）
+        zh_text = _zh(key)
+        if zh_text != _th(key):  # 相同（如 "#"）则不重复
+            ax.text(
+                cols_x[i],
+                y - 0.32,
+                zh_text,
+                fontsize=7,
+                color=C_MUTED,
+                va="center",
+                ha=ha,
+                zorder=2,
+            )
 
-    y -= 0.15
+    y -= 0.5
     ax.plot([0.2, 9.8], [y, y], color=C_BORDER, linewidth=0.8)
     y -= 0.15
 
@@ -530,26 +549,46 @@ def generate_report_image(data: dict) -> bytes:
         y -= 0.45
 
         p_cols = [0.3, 1.2, 4.5, 6.0, 7.5]
-        p_headers = [
-            _bilingual_header("col_rank"),
-            _bilingual_header("col_name"),
-            _bilingual_header("col_team"),
-            _bilingual_header("col_students"),
-            _bilingual_header("col_rate"),
-        ]
-        for i, h in enumerate(p_headers):
+        # 双行表头：深色背景矩形
+        ax.add_patch(
+            plt.Rectangle(
+                (0.2, y - 0.45),
+                9.6,
+                0.5,
+                facecolor=C_N800,
+                edgecolor="none",
+                zorder=1,
+            )
+        )
+        p_keys = ["col_rank", "col_name", "col_team", "col_students", "col_rate"]
+        for i, key in enumerate(p_keys):
             ha = "right" if i >= 3 else "left"
+            # 泰文主行
             ax.text(
                 p_cols[i],
-                y,
-                h,
+                y - 0.12,
+                _th(key),
                 fontsize=9,
                 fontweight="bold",
-                color=C_TEXT2,
+                color="white",
                 va="center",
                 ha=ha,
+                zorder=2,
             )
-        y -= 0.15
+            # 中文副行
+            zh_text = _zh(key)
+            if zh_text != _th(key):
+                ax.text(
+                    p_cols[i],
+                    y - 0.32,
+                    zh_text,
+                    fontsize=7,
+                    color=C_MUTED,
+                    va="center",
+                    ha=ha,
+                    zorder=2,
+                )
+        y -= 0.5
         ax.plot([0.2, 9.8], [y, y], color=C_BORDER, linewidth=0.8)
         y -= 0.15
 
@@ -652,7 +691,7 @@ def generate_team_image(
     plt.rcParams["font.size"] = 11
 
     n = len(members)
-    total_h = max(n * 0.38 + 2.8, 3.5)
+    total_h = max(n * 0.38 + 3.15, 3.85)  # 双行表头增加 0.35
 
     fig, ax = plt.subplots(figsize=(7, total_h), dpi=150)
     fig.patch.set_facecolor(C_BG)
@@ -757,28 +796,47 @@ def generate_team_image(
 
     # ── 成员表 ──
     cols = [0.3, 1.1, 4.0, 5.3, 6.6, 7.8]
-    hdrs = [
-        _bilingual_header("col_rank"),
-        _bilingual_header("col_name"),
-        _bilingual_header("col_students"),
-        _bilingual_header("col_checkin"),
-        _bilingual_header("col_rate"),
-        "",
-    ]
-    for i, h in enumerate(hdrs[:-1]):
+    # 双行表头：深色背景矩形
+    ax.add_patch(
+        plt.Rectangle(
+            (0.2, y - 0.45),
+            8.6,
+            0.5,
+            facecolor=C_N800,
+            edgecolor="none",
+            zorder=1,
+        )
+    )
+    hdr_keys = ["col_rank", "col_name", "col_students", "col_checkin", "col_rate"]
+    for i, key in enumerate(hdr_keys):
         ha = "right" if i >= 2 else "left"
+        # 泰文主行
         ax.text(
             cols[i],
-            y,
-            h,
+            y - 0.12,
+            _th(key),
             fontsize=9,
             fontweight="bold",
-            color=C_TEXT2,
+            color="white",
             va="center",
             ha=ha,
+            zorder=2,
         )
+        # 中文副行
+        zh_text = _zh(key)
+        if zh_text != _th(key):
+            ax.text(
+                cols[i],
+                y - 0.32,
+                zh_text,
+                fontsize=7,
+                color=C_MUTED,
+                va="center",
+                ha=ha,
+                zorder=2,
+            )
 
-    y -= 0.15
+    y -= 0.5
     ax.plot([0.2, 8.8], [y, y], color=C_BORDER, linewidth=0.8)
     y -= 0.15
 
