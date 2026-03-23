@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { Fragment, useState } from 'react';
 import useSWR from 'swr';
 import { swrFetcher } from '@/lib/api';
 import { Spinner } from '@/components/ui/Spinner';
@@ -153,9 +153,8 @@ export default function WarroomPage() {
                 const isExpanded = expandedId === s.stdt_id;
                 const isUrgentDays = s.days_remaining < 7;
                 return (
-                  <>
+                  <Fragment key={s.stdt_id}>
                     <TableRow
-                      key={s.stdt_id}
                       className={[
                         'cursor-pointer transition-colors',
                         idx % 2 === 0 ? 'bg-[var(--bg-surface)]' : 'bg-[var(--bg-subtle)]',
@@ -195,7 +194,7 @@ export default function WarroomPage() {
                         </TableCell>
                       </TableRow>
                     )}
-                  </>
+                  </Fragment>
                 );
               })}
             </TableBody>
