@@ -452,6 +452,13 @@ def cmd_followup(args: argparse.Namespace) -> None:
     webhook = channel["webhook"]
     secret = channel.get("secret") or None
 
+    # ── 安全防线：非 test 通道必须 --confirm ──
+    if args.channel != "test" and not args.confirm:
+        print(f"[拦截] 通道 '{args.channel}' 非测试群，需要 --confirm 标志才能发送。")
+        print(f"       安全模式：先用 --channel test 验证，确认后加 --confirm 发正式群。")
+        print(f"       示例：uv run python scripts/lark_bot.py followup --channel {args.channel} --confirm")
+        return
+
     today = datetime.now()
     # T-1 数据
     data_date = (today - timedelta(days=1)).strftime("%Y-%m-%d")
@@ -565,7 +572,8 @@ def main() -> None:
 
     # followup 子命令
     p_followup = sub.add_parser("followup", help="发送未打卡跟进名单")
-    p_followup.add_argument("--channel", default="cc_all", help="Lark 通道名 (default: cc_all)")
+    p_followup.add_argument("--channel", default="test", help="Lark 通道名 (default: test，安全模式)")
+    p_followup.add_argument("--confirm", action="store_true", help="确认发送到正式群（非 test 通道必须加此标志）")
     p_followup.add_argument("--dry-run", action="store_true", help="只生成图片不发送")
 
     # test 连通性
