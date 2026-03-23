@@ -7,6 +7,7 @@ import { Spinner } from '@/components/ui/Spinner';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { useWideConfig } from '@/lib/hooks/useWideConfig';
 import { useCheckinThresholds } from '@/lib/hooks/useCheckinThresholds';
+import { OpsChannelView } from './OpsChannelView';
 
 // ── 类型定义 ──────────────────────────────────────────────────────────────────
 
@@ -251,51 +252,58 @@ export function TeamDetailTab({ activeRoles: _ar, roleEnclosures: _re }: TeamDet
         )}
       </div>
 
-      {/* 加载态 */}
-      {isLoading && (
-        <div className="flex items-center justify-center py-16 gap-2 text-sm text-[var(--text-muted)]">
-          <Spinner size="lg" />
-        </div>
-      )}
+      {/* 运营角色：渠道触达视图 */}
+      {selectedRole === '运营' ? (
+        <OpsChannelView configJson={configJson} />
+      ) : (
+        <>
+          {/* 加载态 */}
+          {isLoading && (
+            <div className="flex items-center justify-center py-16 gap-2 text-sm text-[var(--text-muted)]">
+              <Spinner size="lg" />
+            </div>
+          )}
 
-      {/* 错误态 */}
-      {error && !isLoading && (
-        <EmptyState title="加载失败" description="无法获取打卡数据，请检查后端服务" />
-      )}
+          {/* 错误态 */}
+          {error && !isLoading && (
+            <EmptyState title="加载失败" description="无法获取打卡数据，请检查后端服务" />
+          )}
 
-      {/* 空态 */}
-      {!isLoading && !error && teamCards.length === 0 && (
-        <EmptyState
-          title={`${selectedRole} 暂无团队打卡数据`}
-          description="上传围场过程数据（D3）并运行分析后自动刷新"
-        />
-      )}
+          {/* 空态 */}
+          {!isLoading && !error && teamCards.length === 0 && (
+            <EmptyState
+              title={`${selectedRole} 暂无团队打卡数据`}
+              description="上传围场过程数据（D3）并运行分析后自动刷新"
+            />
+          )}
 
-      {/* 团队卡片网格：2-3 列自适应 */}
-      {!isLoading && !error && teamCards.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-          {teamCards.map((card) => (
-            <TeamCard key={card.team} card={card} rateColor={rateColor} rateBg={rateBg} />
-          ))}
-        </div>
-      )}
+          {/* 团队卡片网格：2-3 列自适应 */}
+          {!isLoading && !error && teamCards.length > 0 && (
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+              {teamCards.map((card) => (
+                <TeamCard key={card.team} card={card} rateColor={rateColor} rateBg={rateBg} />
+              ))}
+            </div>
+          )}
 
-      {/* 图例 */}
-      {!isLoading && !error && teamCards.length > 0 && (
-        <div className="flex items-center gap-4 text-xs text-[var(--text-muted)] pt-1">
-          <span className="flex items-center gap-1">
-            <span className="inline-block w-2.5 h-2.5 rounded-sm bg-green-500 opacity-70" />
-            {legend.good}
-          </span>
-          <span className="flex items-center gap-1">
-            <span className="inline-block w-2.5 h-2.5 rounded-sm bg-yellow-400 opacity-70" />
-            {legend.warning}
-          </span>
-          <span className="flex items-center gap-1">
-            <span className="inline-block w-2.5 h-2.5 rounded-sm bg-red-400 opacity-70" />
-            {legend.bad}
-          </span>
-        </div>
+          {/* 图例 */}
+          {!isLoading && !error && teamCards.length > 0 && (
+            <div className="flex items-center gap-4 text-xs text-[var(--text-muted)] pt-1">
+              <span className="flex items-center gap-1">
+                <span className="inline-block w-2.5 h-2.5 rounded-sm bg-green-500 opacity-70" />
+                {legend.good}
+              </span>
+              <span className="flex items-center gap-1">
+                <span className="inline-block w-2.5 h-2.5 rounded-sm bg-yellow-400 opacity-70" />
+                {legend.warning}
+              </span>
+              <span className="flex items-center gap-1">
+                <span className="inline-block w-2.5 h-2.5 rounded-sm bg-red-400 opacity-70" />
+                {legend.bad}
+              </span>
+            </div>
+          )}
+        </>
       )}
     </div>
   );
