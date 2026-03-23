@@ -452,8 +452,8 @@ def cmd_followup(args: argparse.Namespace) -> None:
     webhook = channel["webhook"]
     secret = channel.get("secret") or None
 
-    # ── 安全防线：非 test 通道必须 --confirm ──
-    if args.channel != "test" and not args.confirm:
+    # ── 安全防线：非 test 通道 + 非 dry-run 必须 --confirm ──
+    if args.channel != "test" and not args.confirm and not args.dry_run:
         print(f"[拦截] 通道 '{args.channel}' 非测试群，需要 --confirm 标志才能发送。")
         print(f"       安全模式：先用 --channel test 验证，确认后加 --confirm 发正式群。")
         print(f"       示例：uv run python scripts/lark_bot.py followup --channel {args.channel} --confirm")
@@ -523,6 +523,9 @@ def cmd_followup(args: argparse.Namespace) -> None:
         return
 
     # 发送到 Lark
+    if not webhook:
+        print("3. [跳过] 通道 webhook 为空（test 通道仅支持 --dry-run）")
+        return
     print("3. 发送到 Lark...")
 
     # 构建富文本消息（泰文主、中文辅）
