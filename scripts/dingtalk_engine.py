@@ -511,25 +511,23 @@ class NotificationEngine:
     def _gen_result_metrics_image(
         self, overview: dict | None, role: str, today_str: str
     ) -> bytes:
-        """结果指标卡片图：大数字 + 进度条"""
+        """结果指标卡片图：品牌竖条 + 圆角卡片 + 大数字 + 进度条（SEE Design System）"""
         metrics: dict = {}
         kpi_pace: dict = {}
         if overview:
             metrics = overview.get("metrics", {})
             kpi_pace = overview.get("kpi_pace", {})
 
-        # 按 role 决定展示项
+        # 按 role 决定展示项（全泰文 label）
         if role == "CC":
             items = [
                 {
-                    "label": "付费金额 (USD)",
                     "label_th": "รายได้ (USD)",
                     "actual": metrics.get("总带新付费金额USD", 0),
                     "target": kpi_pace.get("revenue", {}).get("target", 0),
                     "fmt": lambda v: f"${v:,.0f}",
                 },
                 {
-                    "label": "付费单量",
                     "label_th": "จำนวนชำระ",
                     "actual": kpi_pace.get("paid", {}).get("actual", 0),
                     "target": kpi_pace.get("paid", {}).get("target", 0),
@@ -537,243 +535,379 @@ class NotificationEngine:
                 },
             ]
         elif role == "SS":
-            narrow_leads = metrics.get("转介绍注册数", 0)
             items = [
                 {
-                    "label": "窄口 Leads",
                     "label_th": "Leads แคบ",
-                    "actual": narrow_leads,
+                    "actual": metrics.get("转介绍注册数", 0),
                     "target": kpi_pace.get("register", {}).get("target", 0),
                     "fmt": lambda v: f"{v:,.0f}",
                 },
             ]
         else:  # LP
-            total_leads = metrics.get("转介绍注册数", 0)
             items = [
                 {
-                    "label": "窄+宽 Leads",
                     "label_th": "Leads รวม",
-                    "actual": total_leads,
+                    "actual": metrics.get("转介绍注册数", 0),
                     "target": kpi_pace.get("register", {}).get("target", 0),
                     "fmt": lambda v: f"{v:,.0f}",
                 },
             ]
 
+        plt.rcParams["font.family"] = _THAI_FONTS
         n = len(items)
-        fig_h = 0.8 + n * 1.2
-        fig, axes = plt.subplots(n, 1, figsize=(7, fig_h))
-        if n == 1:
-            axes = [axes]
+        # 高度 = 标题区(1.4) + 每卡片(1.6) + 图例(0.5) + 底部(0.4)
+        fig_h = 1.4 + n * 1.6 + 0.5 + 0.4
+        fig, ax = plt.subplots(figsize=(7, fig_h), dpi=150)
         fig.patch.set_facecolor(_C_BG)
-        self._draw_header(fig, f"ผลลัพธ์ · {role}", f"{today_str}  |  T-1")
+        ax.set_xlim(0, 9)
+        ax.set_ylim(0, fig_h)
+        ax.set_aspect("equal")
+        ax.axis("off")
 
-        for _i, (ax, item) in enumerate(zip(axes, items, strict=False)):
-            ax.set_facecolor(_C_SURFACE)
-            ax.set_xlim(0, 1)
-            ax.set_ylim(0, 1)
-            ax.axis("off")
+        y = fig_h
 
+        # ── 品牌竖条 + 标题 ──
+        y -= 0.3
+        ax.add_patch(plt.Rectangle(
+            (0.2, y - 0.35), 0.08, 0.35,
+            facecolor=_C_ACCENT, edgecolor="none",
+        ))
+        ax.text(
+            0.45, y, f"ผลลัพธ์ · {role}",
+            fontsize=14, fontweight="bold", color=_C_TEXT, va="top",
+        )
+        y -= 0.45
+        ax.text(
+            0.45, y, f"{today_str}  |  T-1",
+            fontsize=9, color=_C_TEXT2, va="top",
+        )
+        y -= 0.55
+
+        # ── 图例（状态圆点） ──
+        legend_items = [
+            (_C_SUCCESS, ">= 100%  ผ่าน"),
+            (_C_WARNING, "80-99%  ใกล้เคียง"),
+            (_C_DANGER, "< 80%  ต่ำกว่า"),
+        ]
+        lx = 0.4
+        for lc, ltxt in legend_items:
+            ax.add_patch(plt.Circle(
+                (lx + 0.1, y + 0.08), 0.07,
+                facecolor=lc, edgecolor="none",
+            ))
+            ax.text(
+                lx + 0.25, y + 0.08, ltxt,
+                fontsize=7.5, color=_C_TEXT2, va="center",
+            )
+            lx += 2.8
+        y -= 0.35
+
+        # ── KPI 卡片 ──
+        card_w = 8.6
+        card_h = 1.35
+        card_x = 0.2
+
+        for item in items:
             actual = item["actual"] or 0
             target = item["target"] or 0
             rate = (actual / target) if target > 0 else 0
             col = self._status_color(rate)
-            bg = self._status_bg(rate)
+            val_str = item["fmt"](actual)
+            tgt_str = item["fmt"](target)
 
-            # 背景卡片
+            # 卡片背景（白底圆角边框）
             ax.add_patch(mpatches.FancyBboxPatch(
-                (0.02, 0.05), 0.96, 0.88,
-                boxstyle="round,pad=0.01",
-                facecolor=bg, edgecolor=_C_BORDER, linewidth=0.5,
+                (card_x, y - card_h), card_w, card_h,
+                boxstyle="round,pad=0.1",
+                facecolor="white", edgecolor=_C_BORDER, linewidth=1.2,
             ))
 
-            # 大数字
-            val_str = item["fmt"](actual)
+            # 左侧状态色条
+            ax.add_patch(plt.Rectangle(
+                (card_x, y - card_h + 0.08), 0.07, card_h - 0.16,
+                facecolor=col, edgecolor="none",
+            ))
+
+            # 大数字（实际值）
             ax.text(
-                0.08, 0.7, val_str,
+                card_x + 0.25, y - 0.32, val_str,
                 fontsize=20, fontweight="bold", color=_C_TEXT, va="center",
             )
+            # 指标名称（泰文）
             ax.text(
-                0.08, 0.4, item["label_th"],
-                fontsize=9, color=_C_TEXT2, va="center",
-                fontfamily=_THAI_FONTS,
+                card_x + 0.25, y - 0.62, item["label_th"],
+                fontsize=10, color=_C_TEXT2, va="center",
             )
-            # 目标 + 达成率
+            # 目标值小字
             ax.text(
-                0.08, 0.18,
-                f"เป้า {item['fmt'](target)}  |  ทำได้ {rate*100:.1f}%",
-                fontsize=8, color=_C_MUTED, va="center",
-                fontfamily=_THAI_FONTS,
-            )
-            # 进度条背景
-            ax.add_patch(mpatches.FancyBboxPatch(
-                (0.55, 0.42), 0.4, 0.1,
-                boxstyle="square,pad=0",
-                facecolor=_C_ELEVATED, linewidth=0,
-            ))
-            # 进度条填充
-            bar_w = min(rate, 1.0) * 0.4
-            if bar_w > 0:
-                ax.add_patch(mpatches.FancyBboxPatch(
-                    (0.55, 0.42), bar_w, 0.1,
-                    boxstyle="square,pad=0",
-                    facecolor=col, linewidth=0,
-                ))
-            ax.text(
-                0.75, 0.65, f"{rate*100:.0f}%",
-                fontsize=11, fontweight="bold", color=col, ha="center", va="center",
+                card_x + 0.25, y - 0.88,
+                f"เป้า {tgt_str}",
+                fontsize=8.5, color=_C_MUTED, va="center",
             )
 
-        fig.tight_layout(rect=[0, 0, 1, 0.88])
+            # 达成率百分比（右侧大字）
+            ax.text(
+                card_x + card_w - 1.0, y - 0.45,
+                f"{rate * 100:.0f}%",
+                fontsize=22, fontweight="bold", color=col,
+                va="center", ha="center",
+            )
+            ax.text(
+                card_x + card_w - 1.0, y - 0.78,
+                "อัตราบรรลุ",
+                fontsize=7.5, color=_C_MUTED,
+                va="center", ha="center",
+            )
+
+            # 进度条（背景）
+            bar_x = card_x + 0.25
+            bar_y = y - 1.12
+            bar_total_w = card_w - 1.6
+            ax.add_patch(mpatches.FancyBboxPatch(
+                (bar_x, bar_y), bar_total_w, 0.14,
+                boxstyle="round,pad=0.04",
+                facecolor=_C_ELEVATED, edgecolor="none",
+            ))
+            # 进度条（填充）
+            fill_w = min(rate, 1.0) * bar_total_w
+            if fill_w > 0.05:
+                ax.add_patch(mpatches.FancyBboxPatch(
+                    (bar_x, bar_y), fill_w, 0.14,
+                    boxstyle="round,pad=0.04",
+                    facecolor=col, edgecolor="none",
+                ))
+            # 进度条右端达成率文字
+            ax.text(
+                bar_x + bar_total_w + 0.15, bar_y + 0.07,
+                f"{rate * 100:.1f}%",
+                fontsize=8, color=col, va="center",
+            )
+
+            y -= card_h + 0.2
+
+        # ── 底部分隔线 + 品牌文字 ──
+        y -= 0.1
+        ax.plot([1.0, 8.0], [y + 0.1, y + 0.1], color=_C_BORDER_H, linewidth=0.5)
+        ax.text(
+            4.5, y - 0.05, "ref-ops-engine  |  T-1 Data",
+            fontsize=7.5, color=_C_MUTED, va="center", ha="center",
+        )
+
+        plt.tight_layout(pad=0.3)
         return self._fig_to_bytes(fig)
 
     def _gen_achievement_metrics_image(
         self, overview: dict | None, role: str, today_str: str
     ) -> bytes:
-        """达成指标表格图：各 KPI 目标 | 实际 | 达成率 | 状态"""
+        """达成指标表格图：深色表头 + 斑马纹 + 状态圆点 + 迷你进度条"""
         kpi_pace: dict = {}
         if overview:
             kpi_pace = overview.get("kpi_pace", {})
 
-        # 按 role 决定行
+        # 按 role 决定行（全泰文 label）
         if role == "CC":
             rows = [
-                ("Leads 注册数", "register"),
-                ("预约数", "appointment"),
-                ("出席数", "showup"),
-                ("付费单量", "paid"),
-                ("付费金额 USD", "revenue"),
+                ("อัตราบรรลุ Leads", "register"),
+                ("อัตราบรรลุนัดหมาย", "appointment"),
+                ("อัตราบรรลุเข้าเรียน", "showup"),
+                ("อัตราบรรลุชำระ", "paid"),
+                ("อัตราบรรลุรายได้", "revenue"),
+                ("อัตราบรรลุ AOV", "aov"),
+                ("อัตราเช็คอิน", "checkin"),
             ]
         elif role == "SS":
-            rows = [("Leads 注册数", "register")]
+            rows = [
+                ("อัตราบรรลุ Leads", "register"),
+                ("อัตราเช็คอิน", "checkin"),
+            ]
         else:  # LP
             rows = [
-                ("Leads 注册数", "register"),
+                ("อัตราบรรลุ Leads", "register"),
+                ("อัตราเช็คอิน", "checkin"),
             ]
 
         table_data = []
-        for label, key in rows:
+        for label_th, key in rows:
             pace = kpi_pace.get(key, {})
             actual = pace.get("actual", 0) or 0
             target = pace.get("target", 0) or 0
             rate = (actual / target) if target > 0 else 0
             gap = actual - target
-            table_data.append((label, target, actual, rate, gap))
+            table_data.append((label_th, target, actual, rate, gap))
 
+        plt.rcParams["font.family"] = _THAI_FONTS
         n = len(table_data)
-        fig_h = 1.0 + n * 0.55
-        fig, ax = plt.subplots(figsize=(7, max(fig_h, 2.5)))
+        row_unit = 0.42  # 每行高度（数据坐标系）
+        header_h = 0.5
+        title_h = 1.1
+        footer_h = 0.5
+        fig_h = max(title_h + header_h + n * row_unit + footer_h, 3.0)
+
+        fig, ax = plt.subplots(figsize=(7, fig_h), dpi=150)
         fig.patch.set_facecolor(_C_BG)
-        ax.set_facecolor(_C_BG)
+        ax.set_xlim(0, 9)
+        ax.set_ylim(0, fig_h)
+        ax.set_aspect("equal")
         ax.axis("off")
-        self._draw_header(fig, f"การบรรลุเป้า · {role}", f"{today_str}  |  T-1")
 
-        col_labels = ["指标", "目标", "实际", "达成率", "差额"]
-        col_xs = [0.02, 0.35, 0.50, 0.65, 0.82]
-        col_aligns = ["left", "right", "right", "right", "right"]
+        y = fig_h
 
-        ax.set_xlim(0, 1)
-        ax.set_ylim(0, 1)
-
-        # 表头
-        header_y = 0.94
-        ax.add_patch(mpatches.FancyBboxPatch(
-            (0.0, header_y - 0.04), 1.0, 0.07,
-            boxstyle="square,pad=0",
-            facecolor=_C_N800, linewidth=0,
-            transform=ax.transAxes,
+        # ── 品牌竖条 + 标题 ──
+        y -= 0.3
+        ax.add_patch(plt.Rectangle(
+            (0.2, y - 0.35), 0.08, 0.35,
+            facecolor=_C_BRAND_P2, edgecolor="none",
         ))
-        for label, x, align in zip(col_labels, col_xs, col_aligns, strict=False):
+        ax.text(
+            0.45, y, f"การบรรลุเป้า · {role}",
+            fontsize=14, fontweight="bold", color=_C_TEXT, va="top",
+        )
+        y -= 0.45
+        ax.text(
+            0.45, y, f"{today_str}  |  T-1",
+            fontsize=9, color=_C_TEXT2, va="top",
+        )
+        y -= 0.45
+
+        # ── 表头（深色背景） ──
+        table_x = 0.2
+        table_w = 8.6
+        col_labels_th = ["ตัวชี้วัด", "เป้า", "จริง", "อัตราบรรลุ", "ผลต่าง", ""]
+        col_xs = [0.35, 2.9, 4.2, 5.5, 7.0, 8.5]
+        col_aligns = ["left", "right", "right", "right", "right", "left"]
+
+        ax.add_patch(plt.Rectangle(
+            (table_x, y - header_h), table_w, header_h,
+            facecolor=_C_N800, edgecolor="none",
+        ))
+        for label, x, align in zip(col_labels_th, col_xs, col_aligns, strict=False):
             ax.text(
-                x, header_y, label,
-                fontsize=8, color="white", va="center",
-                ha=align, transform=ax.transAxes,
+                x, y - header_h * 0.5, label,
+                fontsize=8.5, color="white", va="center",
+                ha=align, fontweight="bold",
+            )
+        y -= header_h
+
+        # ── 数据行（斑马纹 + 状态圆点 + 迷你进度条） ──
+        for idx, (label_th, target, actual, rate, gap) in enumerate(table_data):
+            row_bg = _C_SURFACE if idx % 2 == 0 else "white"
+            ax.add_patch(plt.Rectangle(
+                (table_x, y - row_unit), table_w, row_unit,
+                facecolor=row_bg, edgecolor="none",
+            ))
+
+            col = self._status_color(rate)
+            cy = y - row_unit * 0.5  # 行中心 y
+
+            # 指标名
+            ax.text(
+                col_xs[0], cy, label_th,
+                fontsize=8.5, color=_C_TEXT, va="center", ha="left",
+            )
+            # 目标
+            ax.text(
+                col_xs[1], cy, f"{target:,.0f}",
+                fontsize=8.5, color=_C_TEXT2, va="center", ha="right",
+            )
+            # 实际
+            ax.text(
+                col_xs[2], cy, f"{actual:,.0f}",
+                fontsize=8.5, color=_C_TEXT, va="center", ha="right",
+            )
+            # 达成率（带状态颜色）
+            ax.text(
+                col_xs[3], cy, f"{rate * 100:.1f}%",
+                fontsize=8.5, color=col, va="center", ha="right",
                 fontweight="bold",
             )
+            # 差额
+            gap_col = _C_SUCCESS if gap >= 0 else _C_DANGER
+            ax.text(
+                col_xs[4], cy, f"{gap:+,.0f}",
+                fontsize=8.5, color=gap_col, va="center", ha="right",
+            )
 
-        row_h = 0.85 / max(n, 1)
-        for idx, (label, target, actual, rate, gap) in enumerate(table_data):
-            y = 0.88 - idx * row_h
-            bg = _C_SURFACE if idx % 2 == 0 else "white"
-            ax.add_patch(mpatches.FancyBboxPatch(
-                (0.0, y - row_h * 0.45), 1.0, row_h * 0.9,
-                boxstyle="square,pad=0",
-                facecolor=bg, linewidth=0,
-                transform=ax.transAxes,
-            ))
-            col = self._status_color(rate)
-            vals = [
-                label,
-                f"{target:,.0f}",
-                f"{actual:,.0f}",
-                f"{rate*100:.1f}%",
-                f"{gap:+,.0f}",
-            ]
-            colors = [_C_TEXT, _C_TEXT2, _C_TEXT, col, col if gap < 0 else _C_SUCCESS]
-            for v, x, align, fc in zip(vals, col_xs, col_aligns, colors, strict=False):
-                ax.text(
-                    x, y, v,
-                    fontsize=8.5, color=fc, va="center",
-                    ha=align, transform=ax.transAxes,
-                )
             # 状态圆点
-            dot_col = self._status_color(rate)
             ax.add_patch(plt.Circle(
-                (0.97, y), 0.012,
-                facecolor=dot_col, edgecolor="none",
-                transform=ax.transAxes, zorder=5,
+                (col_xs[5] - 0.15, cy), 0.1,
+                facecolor=col, edgecolor="none", zorder=5,
             ))
 
-        fig.tight_layout()
+            # 行内迷你进度条（在差额列左侧）
+            mini_x = col_xs[3] + 0.25
+            mini_w = col_xs[4] - col_xs[3] - 0.5
+            ax.add_patch(plt.Rectangle(
+                (mini_x, cy - 0.06), mini_w, 0.12,
+                facecolor=_C_ELEVATED, edgecolor="none", zorder=2,
+            ))
+            fill = mini_w * min(rate, 1.0)
+            if fill > 0.02:
+                ax.add_patch(plt.Rectangle(
+                    (mini_x, cy - 0.06), fill, 0.12,
+                    facecolor=col, edgecolor="none", zorder=3,
+                ))
+
+            y -= row_unit
+
+        # ── 底部分隔线 + 品牌文字 ──
+        y -= 0.15
+        ax.plot([1.0, 8.0], [y + 0.05, y + 0.05], color=_C_BORDER_H, linewidth=0.5)
+        ax.text(
+            4.5, y - 0.12, "ref-ops-engine  |  T-1 Data",
+            fontsize=7.5, color=_C_MUTED, va="center", ha="center",
+        )
+
+        plt.tight_layout(pad=0.3)
         return self._fig_to_bytes(fig)
 
     def _gen_process_efficiency_image(
         self, overview: dict | None, role: str, today_str: str
     ) -> bytes:
-        """过程指标 + 效率指标合并图（横向两列表格）"""
+        """过程 + 效率指标两段式表格（深色表头 + 斑马纹 + 段落分隔线）"""
         metrics: dict = {}
         if overview:
             metrics = overview.get("metrics", {})
 
-        # 按 role 决定过程/效率指标
+        # 按 role 决定过程/效率指标（全泰文 label → 数据字段 key）
         if role == "CC":
             process_items = [
-                ("转介绍注册数", "转介绍注册数"),
-                ("预约数", "预约数"),
-                ("出席数", "出席数"),
-                ("付费数", "转介绍付费数"),
-                ("打卡数 (打卡学员)", "打卡数"),
-                ("触达数 (≥120s)", "触达数"),
-                ("带新数", "带新数"),
-                ("带货数", "带货数"),
+                ("ลงทะเบียน", "转介绍注册数"),
+                ("นัดหมาย", "预约数"),
+                ("เข้าเรียน", "出席数"),
+                ("ชำระ", "转介绍付费数"),
+                ("เช็คอิน", "打卡数"),
+                ("ติดต่อ (≥120s)", "触达数"),
+                ("แนะนำ", "带新数"),
+                ("สัดส่วน", "带货数"),
             ]
             efficiency_items = [
-                ("触达率", "触达率"),
-                ("带货比", "带货比"),
-                ("带新系数", "带新系数"),
-                ("注册→付费率", "注册转化率"),
-                ("预约→付费率", "预约出席率"),
-                ("出席→付费率", "出席付费率"),
+                ("อัตราติดต่อ", "触达率"),
+                ("สัดส่วนแนะนำ", "带货比"),
+                ("ค่าสัมประสิทธิ์แนะนำ", "带新系数"),
+                ("อัตราลงทะเบียน→ชำระ", "注册转化率"),
+                ("อัตรานัดหมาย→ชำระ", "预约出席率"),
+                ("อัตราเข้าเรียน→ชำระ", "出席付费率"),
             ]
         elif role == "SS":
             process_items = [
-                ("转介绍注册数", "转介绍注册数"),
-                ("触达数", "触达数"),
-                ("带新数", "带新数"),
+                ("ลงทะเบียน", "转介绍注册数"),
+                ("ติดต่อ", "触达数"),
+                ("แนะนำ", "带新数"),
             ]
             efficiency_items = [
-                ("触达率", "触达率"),
-                ("带新系数", "带新系数"),
+                ("อัตราติดต่อ", "触达率"),
+                ("ค่าสัมประสิทธิ์แนะนำ", "带新系数"),
             ]
         else:  # LP
             process_items = [
-                ("转介绍注册数", "转介绍注册数"),
-                ("触达数", "触达数"),
-                ("带新数", "带新数"),
-                ("打卡数", "打卡数"),
+                ("ลงทะเบียน", "转介绍注册数"),
+                ("ติดต่อ", "触达数"),
+                ("แนะนำ", "带新数"),
+                ("เช็คอิน", "打卡数"),
             ]
             efficiency_items = [
-                ("触达率", "触达率"),
-                ("带新系数", "带新系数"),
+                ("อัตราติดต่อ", "触达率"),
+                ("ค่าสัมประสิทธิ์แนะนำ", "带新系数"),
             ]
 
         def _fmt_val(v: object) -> str:
@@ -783,72 +917,133 @@ class NotificationEngine:
                 return f"{v:.2%}" if v < 10 else f"{v:,.1f}"
             return f"{int(v):,}"
 
-        all_items = [("过程指标", k, metrics.get(k)) for _, k in process_items]
-        all_items += [("效率指标", k, metrics.get(k)) for _, k in efficiency_items]
+        plt.rcParams["font.family"] = _THAI_FONTS
+        n_process = len(process_items)
+        n_efficiency = len(efficiency_items)
+        n_total = n_process + n_efficiency
 
-        n = len(all_items)
-        fig_h = 1.2 + n * 0.4
-        fig, ax = plt.subplots(figsize=(7, max(fig_h, 3.0)))
-        fig.patch.set_facecolor(_C_BG)
-        ax.set_facecolor(_C_BG)
-        ax.axis("off")
-        self._draw_header(
-            fig, f"กระบวนการ & ประสิทธิภาพ · {role}", f"{today_str}  |  T-1"
+        row_unit = 0.40
+        header_h = 0.46
+        section_gap = 0.5  # 过程/效率分隔区高度
+        title_h = 1.1
+        footer_h = 0.5
+        fig_h = max(
+            title_h + header_h + n_total * row_unit + section_gap + footer_h,
+            3.5,
         )
 
-        ax.set_xlim(0, 1)
-        ax.set_ylim(0, 1)
+        fig, ax = plt.subplots(figsize=(7, fig_h), dpi=150)
+        fig.patch.set_facecolor(_C_BG)
+        ax.set_xlim(0, 9)
+        ax.set_ylim(0, fig_h)
+        ax.set_aspect("equal")
+        ax.axis("off")
 
-        col_labels = ["类别", "指标", "数值"]
-        col_xs = [0.02, 0.22, 0.78]
+        y = fig_h
+
+        # ── 品牌竖条 + 标题 ──
+        y -= 0.3
+        ax.add_patch(plt.Rectangle(
+            (0.2, y - 0.35), 0.08, 0.35,
+            facecolor=_C_ACCENT, edgecolor="none",
+        ))
+        ax.text(
+            0.45, y, f"กระบวนการ & ประสิทธิภาพ · {role}",
+            fontsize=13, fontweight="bold", color=_C_TEXT, va="top",
+        )
+        y -= 0.45
+        ax.text(
+            0.45, y, f"{today_str}  |  T-1",
+            fontsize=9, color=_C_TEXT2, va="top",
+        )
+        y -= 0.45
+
+        table_x = 0.2
+        table_w = 8.6
+        col_xs = [0.35, 5.5, 8.4]
         col_aligns = ["left", "left", "right"]
 
-        header_y = 0.94
-        ax.add_patch(mpatches.FancyBboxPatch(
-            (0.0, header_y - 0.04), 1.0, 0.07,
-            boxstyle="square,pad=0",
-            facecolor=_C_N800, linewidth=0,
-            transform=ax.transAxes,
-        ))
-        for label, x, align in zip(col_labels, col_xs, col_aligns, strict=False):
-            ax.text(
-                x, header_y, label,
-                fontsize=8, color="white", va="center",
-                ha=align, transform=ax.transAxes,
-                fontweight="bold",
-            )
+        def _draw_section(
+            section_label: str,
+            items: list[tuple[str, str]],
+            start_y: float,
+            accent: str,
+        ) -> float:
+            """绘制一段表格（标题竖条 + 深色表头 + 数据行），返回结束 y"""
+            sy = start_y
 
-        row_h = 0.82 / max(n, 1)
-        prev_cat = ""
-        for idx, (cat, key, val) in enumerate(all_items):
-            y = 0.88 - idx * row_h
-            bg = _C_SURFACE if idx % 2 == 0 else "white"
-            ax.add_patch(mpatches.FancyBboxPatch(
-                (0.0, y - row_h * 0.45), 1.0, row_h * 0.9,
-                boxstyle="square,pad=0",
-                facecolor=bg, linewidth=0,
-                transform=ax.transAxes,
+            # 段标题（竖条 + 文字）
+            ax.add_patch(plt.Rectangle(
+                (0.2, sy - 0.28), 0.06, 0.25,
+                facecolor=accent, edgecolor="none",
             ))
-            cat_label = cat if cat != prev_cat else ""
-            prev_cat = cat
-            vals = [cat_label, key, _fmt_val(val)]
-            colors_row = [_C_BRAND_P2, _C_TEXT, _C_TEXT]
-            for v, x, align, fc in zip(  # noqa: B905
-                vals, col_xs, col_aligns, colors_row, strict=False
-            ):
-                ax.text(
-                    x, y, v,
-                    fontsize=8.5, color=fc, va="center",
-                    ha=align, transform=ax.transAxes,
-                )
+            ax.text(
+                0.38, sy, section_label,
+                fontsize=10, fontweight="bold", color=_C_TEXT, va="top",
+            )
+            sy -= 0.38
 
-        fig.tight_layout()
+            # 深色表头
+            col_labels_th = ["ตัวชี้วัด", "", "ค่า"]
+            ax.add_patch(plt.Rectangle(
+                (table_x, sy - header_h), table_w, header_h,
+                facecolor=_C_N800, edgecolor="none",
+            ))
+            for lbl, cx, ca in zip(col_labels_th, col_xs, col_aligns, strict=False):
+                ax.text(
+                    cx, sy - header_h * 0.5, lbl,
+                    fontsize=8.5, color="white", va="center",
+                    ha=ca, fontweight="bold",
+                )
+            sy -= header_h
+
+            # 数据行
+            for idx, (label_th, data_key) in enumerate(items):
+                val = metrics.get(data_key)
+                row_bg = _C_SURFACE if idx % 2 == 0 else "white"
+                ax.add_patch(plt.Rectangle(
+                    (table_x, sy - row_unit), table_w, row_unit,
+                    facecolor=row_bg, edgecolor="none",
+                ))
+                cy = sy - row_unit * 0.5
+                ax.text(
+                    col_xs[0], cy, label_th,
+                    fontsize=8.5, color=_C_TEXT, va="center", ha="left",
+                )
+                ax.text(
+                    col_xs[2], cy, _fmt_val(val),
+                    fontsize=9, color=_C_TEXT, va="center", ha="right",
+                    fontweight="bold",
+                )
+                sy -= row_unit
+
+            return sy
+
+        y = _draw_section("กระบวนการ", process_items, y, _C_ACCENT)
+        y -= section_gap * 0.3
+
+        # 段落分隔线
+        ax.plot([0.8, 8.2], [y + section_gap * 0.35, y + section_gap * 0.35],
+                color=_C_BORDER_H, linewidth=0.8, linestyle="--")
+        y -= section_gap * 0.3
+
+        y = _draw_section("ประสิทธิภาพ", efficiency_items, y, _C_BRAND_P2)
+
+        # ── 底部分隔线 + 品牌文字 ──
+        y -= 0.15
+        ax.plot([1.0, 8.0], [y + 0.05, y + 0.05], color=_C_BORDER_H, linewidth=0.5)
+        ax.text(
+            4.5, y - 0.12, "ref-ops-engine  |  T-1 Data",
+            fontsize=7.5, color=_C_MUTED, va="center", ha="center",
+        )
+
+        plt.tight_layout(pad=0.3)
         return self._fig_to_bytes(fig)
 
     def _gen_service_metrics_image(
         self, overview: dict | None, role: str, today_str: str
     ) -> bytes:
-        """服务指标图：付费前/后外呼表格（无数据时显示空态提示）"""
+        """服务指标图：付费前/后外呼双列表格，空态品牌虚线框（SEE Design System）"""
         metrics: dict = {}
         if overview:
             metrics = overview.get("metrics", {})
@@ -858,81 +1053,127 @@ class NotificationEngine:
         post_call = metrics.get("付费后外呼数")
         has_data = pre_call is not None or post_call is not None
 
-        fig, ax = plt.subplots(figsize=(7, 3.5))
+        plt.rcParams["font.family"] = _THAI_FONTS
+        fig_h = 4.2
+        fig, ax = plt.subplots(figsize=(7, fig_h), dpi=150)
         fig.patch.set_facecolor(_C_BG)
-        ax.set_facecolor(_C_BG)
+        ax.set_xlim(0, 9)
+        ax.set_ylim(0, fig_h)
+        ax.set_aspect("equal")
         ax.axis("off")
-        self._draw_header(fig, f"บริการ · {role}", f"{today_str}  |  T-1")
-        ax.set_xlim(0, 1)
-        ax.set_ylim(0, 1)
+
+        y = fig_h
+
+        # ── 品牌竖条 + 标题 ──
+        y -= 0.3
+        ax.add_patch(plt.Rectangle(
+            (0.2, y - 0.35), 0.08, 0.35,
+            facecolor=_C_BRAND_P2, edgecolor="none",
+        ))
+        ax.text(
+            0.45, y, f"บริการ · {role}",
+            fontsize=14, fontweight="bold", color=_C_TEXT, va="top",
+        )
+        y -= 0.45
+        ax.text(
+            0.45, y, f"{today_str}  |  T-1",
+            fontsize=9, color=_C_TEXT2, va="top",
+        )
+        y -= 0.55
 
         if not has_data:
-            # 空态提示
+            # 空态：品牌色虚线框 + 居中泰文提示
+            box_h = 1.4
             ax.add_patch(mpatches.FancyBboxPatch(
-                (0.1, 0.25), 0.8, 0.4,
-                boxstyle="round,pad=0.02",
-                facecolor=_C_SURFACE, edgecolor=_C_BORDER, linewidth=0.8,
+                (0.5, y - box_h), 8.0, box_h,
+                boxstyle="round,pad=0.15",
+                facecolor=_C_SURFACE,
+                edgecolor=_C_BRAND_P2, linewidth=1.5,
+                linestyle="--",
             ))
+            # 绘制矩形图标（代替 emoji）
+            icon_x, icon_y = 3.8, y - box_h * 0.38
+            ax.add_patch(plt.Rectangle(
+                (icon_x - 0.25, icon_y - 0.18), 0.5, 0.36,
+                facecolor=_C_ELEVATED, edgecolor=_C_BORDER, linewidth=0.8,
+            ))
+            ax.plot([icon_x - 0.25, icon_x + 0.25], [icon_y, icon_y],
+                    color=_C_MUTED, linewidth=0.8)
+
             ax.text(
-                0.5, 0.52, "⚠ ยังไม่มีข้อมูลการโทร",
+                4.5, y - box_h * 0.42,
+                "ยังไม่มีข้อมูลการโทร",
                 fontsize=12, color=_C_MUTED, ha="center", va="center",
-                fontfamily=_THAI_FONTS,
+                fontweight="bold",
             )
             ax.text(
-                0.5, 0.37, "后端暂未提供外呼数据 API，待对接后自动展示",
-                fontsize=8, color=_C_MUTED, ha="center", va="center",
+                4.5, y - box_h * 0.72,
+                "ระบบจะแสดงข้อมูลโดยอัตโนมัติเมื่อเชื่อมต่อ API",
+                fontsize=8.5, color=_C_MUTED, ha="center", va="center",
             )
-            fig.tight_layout()
+
+            # 底部
+            ax.plot([1.0, 8.0], [0.4, 0.4], color=_C_BORDER_H, linewidth=0.5)
+            ax.text(4.5, 0.22, "ref-ops-engine  |  T-1 Data",
+                    fontsize=7.5, color=_C_MUTED, va="center", ha="center")
+            plt.tight_layout(pad=0.3)
             return self._fig_to_bytes(fig)
 
-        # 有数据时渲染表格
+        # 有数据时渲染双列表格
         rows_def = [
-            ("外呼数", "付费前外呼数", "付费后外呼数"),
-            ("接通数", "付费前接通数", "付费后接通数"),
-            ("有效接通数", "付费前有效接通数", "付费后有效接通数"),
+            ("จำนวนโทร", "付费前外呼数", "付费后外呼数"),
+            ("ติดต่อได้", "付费前接通数", "付费后接通数"),
+            ("มีประสิทธิผล", "付费前有效接通数", "付费后有效接通数"),
         ]
-        col_labels = ["指标", "付费前", "付费后"]
-        col_xs = [0.05, 0.55, 0.8]
+        col_labels_th = ["ตัวชี้วัด", "โทรก่อนชำระ", "โทรหลังชำระ"]
+        col_xs = [0.35, 4.5, 7.2]
         col_aligns = ["left", "right", "right"]
 
-        header_y = 0.72
-        ax.add_patch(mpatches.FancyBboxPatch(
-            (0.0, header_y - 0.04), 1.0, 0.07,
-            boxstyle="square,pad=0",
-            facecolor=_C_N800, linewidth=0,
-            transform=ax.transAxes,
-        ))
-        for label, x, align in zip(col_labels, col_xs, col_aligns, strict=False):
-            ax.text(
-                x, header_y, label,
-                fontsize=8, color="white", va="center",
-                ha=align, transform=ax.transAxes, fontweight="bold",
-            )
+        table_x = 0.2
+        table_w = 8.6
+        header_h = 0.46
 
-        for idx, (label, pre_key, post_key) in enumerate(rows_def):
-            y = 0.60 - idx * 0.16
-            bg = _C_SURFACE if idx % 2 == 0 else "white"
-            ax.add_patch(mpatches.FancyBboxPatch(
-                (0.0, y - 0.07), 1.0, 0.13,
-                boxstyle="square,pad=0",
-                facecolor=bg, linewidth=0,
-                transform=ax.transAxes,
+        # 深色表头
+        ax.add_patch(plt.Rectangle(
+            (table_x, y - header_h), table_w, header_h,
+            facecolor=_C_N800, edgecolor="none",
+        ))
+        for label, x, align in zip(col_labels_th, col_xs, col_aligns, strict=False):
+            ax.text(
+                x, y - header_h * 0.5, label,
+                fontsize=8.5, color="white", va="center",
+                ha=align, fontweight="bold",
+            )
+        y -= header_h
+
+        # 数据行（斑马纹）
+        row_unit = 0.46
+        for idx, (label_th, pre_key, post_key) in enumerate(rows_def):
+            row_bg = _C_SURFACE if idx % 2 == 0 else "white"
+            ax.add_patch(plt.Rectangle(
+                (table_x, y - row_unit), table_w, row_unit,
+                facecolor=row_bg, edgecolor="none",
             ))
             pre_v = metrics.get(pre_key)
             post_v = metrics.get(post_key)
-            vals = [
-                label,
-                f"{int(pre_v):,}" if pre_v is not None else "--",
-                f"{int(post_v):,}" if post_v is not None else "--",
-            ]
-            for v, x, align in zip(vals, col_xs, col_aligns, strict=False):
-                ax.text(
-                    x, y, v,
-                    fontsize=9, color=_C_TEXT, va="center",
-                    ha=align, transform=ax.transAxes,
-                )
+            cy = y - row_unit * 0.5
+            pre_str = f"{int(pre_v):,}" if pre_v is not None else "--"
+            post_str = f"{int(post_v):,}" if post_v is not None else "--"
+            for v, x, align in zip(
+                [label_th, pre_str, post_str], col_xs, col_aligns, strict=False
+            ):
+                ax.text(x, cy, v, fontsize=9, color=_C_TEXT, va="center", ha=align)
+            y -= row_unit
 
-        fig.tight_layout()
+        # ── 底部分隔线 + 品牌文字 ──
+        y -= 0.15
+        ax.plot([1.0, 8.0], [y + 0.05, y + 0.05], color=_C_BORDER_H, linewidth=0.5)
+        ax.text(
+            4.5, y - 0.15, "ref-ops-engine  |  T-1 Data",
+            fontsize=7.5, color=_C_MUTED, va="center", ha="center",
+        )
+
+        plt.tight_layout(pad=0.3)
         return self._fig_to_bytes(fig)
 
     def _generate_action_items_text(self, role: str) -> str:
