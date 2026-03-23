@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+    "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key><string>com.ref-ops-engine.dingtalk-daily</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/usr/bin/env</string>
+        <string>uv</string><string>run</string>
+        <string>python</string><string>scripts/dingtalk_daily.py</string>
+        <string>--engine</string>
+    </array>
+    <key>StartCalendarInterval</key>
+    <!-- UTC 04:00 = 泰国 11:00 (Asia/Bangkok UTC+7) -->
+    <dict><key>Hour</key><integer>4</integer><key>Minute</key><integer>0</integer></dict>
+    <key>StandardOutPath</key><string>/Users/felixmacbookairm4/Desktop/ref-ops-engine/output/dingtalk-daily.log</string>
+    <key>StandardErrorPath</key><string>/Users/felixmacbookairm4/Desktop/ref-ops-engine/output/dingtalk-daily-error.log</string>
+    <key>WorkingDirectory</key><string>/Users/felixmacbookairm4/Desktop/ref-ops-engine</string>
+    <key>RunAtLoad</key><false/>
+</dict>
+</plist>

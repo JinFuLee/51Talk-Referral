@@ -986,7 +986,31 @@ def main():
     parser.add_argument("--test", action="store_true", help="连通性测试")
     parser.add_argument("--text", action="store_true", help="纯文本 Markdown 模式")
     parser.add_argument("--dry-run", action="store_true", help="只生成不发送")
+    # 多通道引擎模式
+    parser.add_argument(
+        "--engine",
+        action="store_true",
+        help="使用多通道引擎模式（读 key/dingtalk-channels.json）",
+    )
+    parser.add_argument(
+        "--channel",
+        type=str,
+        default=None,
+        help="指定通道 ID（仅 --engine 模式有效）",
+    )
     args = parser.parse_args()
+
+    # ── 引擎模式：委托给 NotificationEngine，现有逻辑完全不变 ──
+    if args.engine:
+        import sys
+
+        _scripts_dir = str(Path(__file__).resolve().parent)
+        if _scripts_dir not in sys.path:
+            sys.path.insert(0, _scripts_dir)
+        from dingtalk_engine import NotificationEngine  # noqa: PLC0415
+        engine = NotificationEngine()
+        engine.run(channel_id=args.channel, dry_run=args.dry_run, test=args.test)
+        return
 
     cred = load_credentials()
     thresholds = cred.get("thresholds", {})
