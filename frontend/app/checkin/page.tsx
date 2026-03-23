@@ -12,6 +12,7 @@ import { TeamDetailTab } from '@/components/checkin/TeamDetailTab';
 import { FollowupTab } from '@/components/checkin/FollowupTab';
 import { RankingTab } from '@/components/checkin/RankingTab';
 import { useWideConfig } from '@/lib/hooks/useWideConfig';
+import { useCheckinThresholds } from '@/lib/hooks/useCheckinThresholds';
 import { ContactConversionScatter } from '@/components/daily-monitor/ContactConversionScatter';
 import type { ContactConversionItem } from '@/lib/types/cross-analysis';
 
@@ -65,19 +66,7 @@ const TABS = [
 
 type TabId = (typeof TABS)[number]['id'];
 
-// ── 打卡率颜色 ────────────────────────────────────────────────────────────────
-
-function rateColor(rate: number): string {
-  if (rate >= 0.6) return 'text-green-600';
-  if (rate >= 0.4) return 'text-yellow-600';
-  return 'text-red-500';
-}
-
-function rateBg(rate: number): string {
-  if (rate >= 0.6) return 'bg-green-50 text-green-700';
-  if (rate >= 0.4) return 'bg-yellow-50 text-yellow-700';
-  return 'bg-red-50 text-red-500';
-}
+// ── 工具函数 ──────────────────────────────────────────────────────────────────
 
 function fmtRate(rate: number): string {
   return `${(rate * 100).toFixed(1)}%`;
@@ -85,7 +74,13 @@ function fmtRate(rate: number): string {
 
 // ── 单个渠道列 ────────────────────────────────────────────────────────────────
 
-function ChannelColumn({ ch }: { ch: CheckinChannelSummary }) {
+interface ChannelColumnProps {
+  ch: CheckinChannelSummary;
+  rateColor: (rate: number) => string;
+  rateBg: (rate: number) => string;
+}
+
+function ChannelColumn({ ch, rateColor, rateBg }: ChannelColumnProps) {
   return (
     <div className="flex flex-col gap-3 min-w-0">
       {/* 渠道标题 */}
@@ -175,6 +170,7 @@ function ChannelColumn({ ch }: { ch: CheckinChannelSummary }) {
 
 function SummaryTab() {
   const { configJson } = useWideConfig();
+  const { rateColor, rateBg } = useCheckinThresholds();
 
   const { data, isLoading, error } = useSWR<CheckinSummaryResponse>(
     `/api/checkin/summary?role_config=${encodeURIComponent(configJson)}`,
@@ -211,7 +207,7 @@ function SummaryTab() {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
       {channels.map((ch) => (
-        <ChannelColumn key={ch.channel} ch={ch} />
+        <ChannelColumn key={ch.channel} ch={ch} rateColor={rateColor} rateBg={rateBg} />
       ))}
     </div>
   );

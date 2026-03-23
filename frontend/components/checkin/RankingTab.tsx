@@ -6,6 +6,7 @@ import { swrFetcher } from '@/lib/api';
 import { Spinner } from '@/components/ui/Spinner';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { useWideConfig } from '@/lib/hooks/useWideConfig';
+import { useCheckinThresholds } from '@/lib/hooks/useCheckinThresholds';
 
 // ── 类型定义 ──────────────────────────────────────────────────────────────────
 
@@ -40,12 +41,6 @@ interface RankingResponse {
 
 // ── 工具函数 ──────────────────────────────────────────────────────────────────
 
-function rateColor(rate: number): string {
-  if (rate >= 0.6) return 'text-green-600 font-semibold';
-  if (rate >= 0.4) return 'text-yellow-600 font-semibold';
-  return 'text-red-600 font-semibold';
-}
-
 function fmtRate(rate: number | null | undefined): string {
   if (rate == null) return '—';
   return `${(rate * 100).toFixed(1)}%`;
@@ -62,9 +57,10 @@ interface RoleColumnProps {
   role: string;
   summary: RankingRoleSummary;
   subTab: 'group' | 'person';
+  rateColor: (rate: number) => string;
 }
 
-function RoleColumn({ role, summary, subTab }: RoleColumnProps) {
+function RoleColumn({ role, summary, subTab, rateColor }: RoleColumnProps) {
   const rows = subTab === 'group' ? summary.by_group : summary.by_person;
 
   return (
@@ -171,6 +167,7 @@ function RoleColumn({ role, summary, subTab }: RoleColumnProps) {
 
 export function RankingTab() {
   const { configJson, activeRoles } = useWideConfig();
+  const { rateColor, legend } = useCheckinThresholds();
   const [subTab, setSubTab] = useState<'group' | 'person'>('group');
 
   const { data, isLoading, error } = useSWR<RankingResponse>(
@@ -233,7 +230,13 @@ export function RankingTab() {
                 ? activeRoles.filter((r) => r in data.by_role)
                 : Object.keys(data.by_role)
               ).map((role) => (
-                <RoleColumn key={role} role={role} summary={data.by_role[role]} subTab={subTab} />
+                <RoleColumn
+                  key={role}
+                  role={role}
+                  summary={data.by_role[role]}
+                  subTab={subTab}
+                  rateColor={rateColor}
+                />
               ))}
             </div>
           )}
@@ -242,15 +245,15 @@ export function RankingTab() {
           <div className="flex items-center gap-4 text-xs text-[var(--text-muted)] pt-1">
             <span className="flex items-center gap-1">
               <span className="inline-block w-2.5 h-2.5 rounded-sm bg-green-500 opacity-70" />
-              ≥60% 达标
+              {legend.good}
             </span>
             <span className="flex items-center gap-1">
               <span className="inline-block w-2.5 h-2.5 rounded-sm bg-yellow-400 opacity-70" />
-              40–60% 接近
+              {legend.warning}
             </span>
             <span className="flex items-center gap-1">
               <span className="inline-block w-2.5 h-2.5 rounded-sm bg-red-400 opacity-70" />
-              &lt;40% 落后
+              {legend.bad}
             </span>
           </div>
         </>
