@@ -6,6 +6,7 @@
 from __future__ import annotations
 
 import json
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -137,6 +138,21 @@ def put_indicator_matrix(role: str, body: MatrixUpdateBody) -> dict[str, Any]:
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc)) from exc
 
+    # 审计日志
+    audit_path = PROJECT_ROOT / "output" / "indicator-matrix-changes.jsonl"
+    audit_entry = {
+        "ts": datetime.now(timezone.utc).isoformat(),
+        "action": "update",
+        "role": role_upper,
+        "active_count": len(body.active),
+        "active": body.active,
+    }
+    try:
+        with audit_path.open("a", encoding="utf-8") as f:
+            f.write(json.dumps(audit_entry, ensure_ascii=False) + "\n")
+    except Exception:
+        pass  # 审计失败不阻塞业务
+
     return {"status": "ok", "role": role_upper, "active_count": len(body.active)}
 
 
@@ -176,5 +192,18 @@ def reset_indicator_matrix(role: str) -> dict[str, Any]:
         _write_json(MATRIX_OVERRIDE_FILE, override)
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc)) from exc
+
+    # 审计日志
+    audit_path = PROJECT_ROOT / "output" / "indicator-matrix-changes.jsonl"
+    audit_entry = {
+        "ts": datetime.now(timezone.utc).isoformat(),
+        "action": "reset",
+        "role": role_upper,
+    }
+    try:
+        with audit_path.open("a", encoding="utf-8") as f:
+            f.write(json.dumps(audit_entry, ensure_ascii=False) + "\n")
+    except Exception:
+        pass  # 审计失败不阻塞业务
 
     return {"status": "ok", "role": role_upper, "message": "已恢复默认配置"}
