@@ -12,7 +12,8 @@ D3 列：stdt_id, 围场, 有效打卡(1/0),
 围场-角色映射（宽口）：
   CC:  0~30, 31~60, 61~90
   SS:  91~120
-  LP:  121~150, 151~180, M6+
+  LP:  121~150, 151~180
+  运营: M6+, 181+
 
 当前 D3 只有 0~30 的数据 → SS/LP 显示 0 是数据源限制，代码正确。
 未来 D3 覆盖更多围场时自动生效。
@@ -50,7 +51,8 @@ _M_MAP: dict[str, str] = {
 _WIDE_ROLE: dict[str, list[str]] = {
     "CC": ["0~30", "31~60", "61~90"],
     "SS": ["91~120"],
-    "LP": ["121~150", "151~180", "M6+"],
+    "LP": ["121~150", "151~180"],
+    "运营": ["M6+", "181+"],
 }
 
 # 围场段 → 天数映射（与前端 M_TO_DAYS 对齐）
@@ -318,6 +320,150 @@ def _aggregate_role(
     }
 
 
+# 运营渠道推荐配置
+_OPS_CHANNELS: list[dict[str, Any]] = [
+    {
+        "channel_id": "phone",
+        "channel_name": "电话/短信",
+        "priority": "high",
+        "cost_level": "high",
+        "description": "高价值学员人工触达",
+        "target_criteria": "质量评分≥70",
+        "estimated_contact_rate": 0.70,
+    },
+    {
+        "channel_id": "line_oa",
+        "channel_name": "LINE OA",
+        "priority": "medium",
+        "cost_level": "medium",
+        "description": "社交触达，适合 M6-M7 中等质量学员",
+        "target_criteria": "质量评分≥40 且 M6-M7 围场",
+        "estimated_contact_rate": 0.40,
+    },
+    {
+        "channel_id": "app_push",
+        "channel_name": "APP 站内推送",
+        "priority": "medium",
+        "cost_level": "low",
+        "description": "自动化批量触达",
+        "target_criteria": "全部 M6+ 未打卡",
+        "estimated_contact_rate": 0.18,
+    },
+    {
+        "channel_id": "email",
+        "channel_name": "邮件",
+        "priority": "low",
+        "cost_level": "lowest",
+        "description": "兜底广撒网",
+        "target_criteria": "全部 M6+ 未打卡",
+        "estimated_contact_rate": 0.10,
+    },
+]
+
+
+def _aggregate_ops_channels(
+    df_d3: pd.DataFrame,
+    df_d4: pd.DataFrame,
+    enclosures_override: list[str] | None = None,
+) -> dict[str, Any]:
+    """运营角色聚合：按渠道推荐 + 围场子段，不使用 CC/SS/LP 人员列。"""
+    enclosures = enclosures_override or ["M6+", "181+"]
+
+    # 筛选 M6+ 围场学员
+    if _D3_ENCLOSURE_COL in df_d3.columns:
+        subset = df_d3[df_d3[_D3_ENCLOSURE_COL].isin(enclosures)].copy()
+    else:
+        subset = df_d3.copy()
+
+    total = len(subset)
+    checked = 0
+    if total > 0 and _D3_CHECKIN_COL in subset.columns:
+        checked = int(
+            pd.to_numeric(subset[_D3_CHECKIN_COL], errors="coerce").fillna(0).sum()
+        )
+    rate = checked / total if total > 0 else 0.0
+    unchecked = total - checked
+
+    # 构建 D4 索引，计算未打卡学员质量评分
+    d3_id_col = _D3_STUDENT_COL if _D3_STUDENT_COL in subset.columns else None
+    d4_id_col = _find_d4_id_col(df_d4) if not df_d4.empty else None
+    d4_index: dict[str, pd.Series] = {}
+    if d4_id_col and not df_d4.empty:
+        for _, row in df_d4.iterrows():
+            sid = _safe_str(row.get(d4_id_col, ""))
+            if sid:
+                d4_index[sid] = row
+
+    quality_scores: list[float] = []
+    for _, row in subset.iterrows():
+        is_checked = pd.to_numeric(row.get(_D3_CHECKIN_COL, 0), errors="coerce") or 0
+        if is_checked > 0:
+            continue  # 只统计未打卡学员
+        sid = _safe_str(row.get(d3_id_col, "")) if d3_id_col else ""
+        d4_row = d4_index.get(sid)
+        score = _calc_quality_score(row, d4_row)
+        quality_scores.append(score)
+
+    phone_count = sum(1 for s in quality_scores if s >= 70)
+    line_count = sum(1 for s in quality_scores if s >= 40)
+
+    channels: list[dict[str, Any]] = []
+    for ch_def in _OPS_CHANNELS:
+        ch = dict(ch_def)
+        if ch["channel_id"] == "phone":
+            ch["recommended_count"] = phone_count
+        elif ch["channel_id"] == "line_oa":
+            ch["recommended_count"] = line_count
+        else:
+            ch["recommended_count"] = unchecked
+        channels.append(ch)
+
+    # 围场子段
+    by_enclosure_segment: list[dict[str, Any]] = []
+    if _D3_ENCLOSURE_COL in subset.columns:
+        for enc_val in sorted(subset[_D3_ENCLOSURE_COL].dropna().unique()):
+            seg = subset[subset[_D3_ENCLOSURE_COL] == enc_val]
+            t = len(seg)
+            c = (
+                int(
+                    pd.to_numeric(seg[_D3_CHECKIN_COL], errors="coerce")
+                    .fillna(0)
+                    .sum()
+                )
+                if _D3_CHECKIN_COL in seg.columns
+                else 0
+            )
+            label = _M_MAP.get(_safe_str(enc_val), _safe_str(enc_val))
+            by_enclosure_segment.append({
+                "segment": label,
+                "label": f"{label}围场",
+                "students": t,
+                "checked_in": c,
+                "rate": round(c / t, 4) if t > 0 else 0.0,
+            })
+
+    if not by_enclosure_segment:
+        by_enclosure_segment = [
+            {
+                "segment": "M6+",
+                "label": "181天+",
+                "students": total,
+                "checked_in": checked,
+                "rate": round(rate, 4),
+            }
+        ]
+
+    return {
+        "total_students": total,
+        "checked_in": checked,
+        "checkin_rate": round(rate, 4),
+        "channels": channels,
+        "by_enclosure_segment": by_enclosure_segment,
+        "by_group": [],
+        "by_person": [],
+    }
+
+
 def _aggregate_team_members(df_d3: pd.DataFrame, team: str, role: str) -> list[dict]:
     """
     按团队筛选 D3，按 name_col 分组，返回每个销售的打卡情况。
@@ -562,7 +708,11 @@ def get_checkin_summary(
     by_role: dict[str, Any] = {}
     for role in roles:
         override = _parse_role_enclosures(role_config, role)
-        by_role[role] = _aggregate_role(d3, role, enclosures_override=override)
+        if role == "运营":
+            d4: pd.DataFrame = dm.load_all().get("students", pd.DataFrame())
+            by_role[role] = _aggregate_ops_channels(d3, d4, enclosures_override=override)
+        else:
+            by_role[role] = _aggregate_role(d3, role, enclosures_override=override)
 
     return {"by_role": by_role}
 
@@ -661,10 +811,17 @@ def get_checkin_ranking(
 
     by_role: dict[str, Any] = {}
     for role in roles:
+        override = _parse_role_enclosures(role_config, role)
+
+        # 运营角色：返回渠道推荐数据，不做 by_group/by_person 个人聚合
+        if role == "运营":
+            d4_ops: pd.DataFrame = dm.load_all().get("students", pd.DataFrame())
+            by_role[role] = _aggregate_ops_channels(d3, d4_ops, enclosures_override=override)
+            continue
+
         name_col, group_col = _ROLE_COLS.get(
             role, ("last_cc_name", "last_cc_group_name")
         )
-        override = _parse_role_enclosures(role_config, role)
         enclosures = override if override else _WIDE_ROLE.get(role, [])
 
         # 按围场筛选
