@@ -498,7 +498,6 @@ export const indicatorMatrixAPI = {
   putMatrix: (role: 'SS' | 'LP', active: string[]) =>
     request<{ status: string }>(`/indicator-matrix/matrix/${role}`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ active }),
     }),
   resetMatrix: (role: 'SS' | 'LP') =>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { ChevronDown, ChevronUp, Lock } from 'lucide-react';
 import { Card } from '@/components/ui/Card';
 import { useIndicatorMatrix } from '@/lib/hooks/useIndicatorMatrix';
@@ -127,22 +127,22 @@ function CategorySection({
 }
 
 export default function IndicatorMatrixCard() {
-  const { registry, matrix, mutate, isLoading } = useIndicatorMatrix();
+  const { registry, matrix, mutate, isLoading, error } = useIndicatorMatrix();
   const language = useConfigStore((s) => s.language) as 'zh' | 'th';
 
   // 本地编辑态
   const [ssActive, setSsActive] = useState<Set<string>>(() => new Set());
   const [lpActive, setLpActive] = useState<Set<string>>(() => new Set());
-  const [initialized, setInitialized] = useState(false);
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
 
-  // 从 SWR 数据初始化本地状态（仅一次）
-  if (matrix && !initialized) {
-    setSsActive(new Set(matrix.SS.active));
-    setLpActive(new Set(matrix.LP.active));
-    setInitialized(true);
-  }
+  // 从 SWR 数据初始化本地状态
+  useEffect(() => {
+    if (matrix) {
+      setSsActive(new Set(matrix.SS.active));
+      setLpActive(new Set(matrix.LP.active));
+    }
+  }, [matrix]);
 
   const handleToggle = useCallback((role: 'SS' | 'LP', id: string) => {
     if (role === 'SS') {
@@ -196,6 +196,26 @@ export default function IndicatorMatrixCard() {
     {} as Record<IndicatorCategory, typeof registry>
   );
 
+  if (error) {
+    return (
+      <Card title="指标矩阵配置">
+        <div className="p-6 text-center text-[var(--text-muted)]">
+          加载失败：{error.message || '无法连接后端'}
+        </div>
+      </Card>
+    );
+  }
+
+  if (!isLoading && registry.length === 0) {
+    return (
+      <Card title="指标矩阵配置">
+        <div className="p-6 text-center text-[var(--text-muted)]">
+          指标注册表为空，请检查 config.json 中的 indicator_registry 配置
+        </div>
+      </Card>
+    );
+  }
+
   return (
     <Card title="指标矩阵配置">
       <p className="text-xs text-[var(--text-muted)] mb-3">
@@ -235,7 +255,9 @@ export default function IndicatorMatrixCard() {
           {/* 操作栏 */}
           <div className="flex items-center justify-between mt-3">
             {msg && (
-              <p className={`text-xs ${msg.includes('成功') ? 'text-green-600' : 'text-red-500'}`}>
+              <p
+                className={`text-xs ${msg.includes('成功') ? 'text-[var(--n-600)]' : 'text-[var(--n-500)]'}`}
+              >
                 {msg}
               </p>
             )}

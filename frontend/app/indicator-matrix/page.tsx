@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { LayoutGrid, Download } from 'lucide-react';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { BIZ_PAGE } from '@/lib/layout';
@@ -21,7 +21,7 @@ const AVAILABILITY_LABELS: Record<IndicatorAvailability, string> = {
 };
 
 export default function IndicatorMatrixPage() {
-  const { registry, matrix, mutate, isLoading } = useIndicatorMatrix();
+  const { registry, matrix, mutate, isLoading, error } = useIndicatorMatrix();
   const language = useConfigStore((s) => s.language) as 'zh' | 'th';
 
   const [filterCategory, setFilterCategory] = useState<IndicatorCategory | 'all'>('all');
@@ -35,13 +35,14 @@ export default function IndicatorMatrixPage() {
   // 本地编辑态（SS/LP 可编辑）
   const [ssActive, setSsActive] = useState<Set<string>>(() => new Set());
   const [lpActive, setLpActive] = useState<Set<string>>(() => new Set());
-  const [initialized, setInitialized] = useState(false);
 
-  if (matrix && !initialized) {
-    setSsActive(new Set(matrix.SS.active));
-    setLpActive(new Set(matrix.LP.active));
-    setInitialized(true);
-  }
+  // 从 SWR 数据初始化本地状态
+  useEffect(() => {
+    if (matrix) {
+      setSsActive(new Set(matrix.SS.active));
+      setLpActive(new Set(matrix.LP.active));
+    }
+  }, [matrix]);
 
   // CC active set — CC 是 readonly，全量视为 active
   const ccActive = useMemo(() => new Set(registry.map((i) => i.id)), [registry]);
@@ -159,6 +160,36 @@ export default function IndicatorMatrixPage() {
     return map;
   }, [filtered]);
 
+  if (error) {
+    return (
+      <div className={BIZ_PAGE}>
+        <PageHeader
+          title="指标矩阵总览"
+          subtitle="CC/SS/LP 三岗位指标覆盖范围配置与对比"
+          icon={LayoutGrid}
+        />
+        <div className="py-12 text-center text-[var(--text-muted)]">
+          加载失败：{error.message || '无法连接后端'}
+        </div>
+      </div>
+    );
+  }
+
+  if (!isLoading && registry.length === 0) {
+    return (
+      <div className={BIZ_PAGE}>
+        <PageHeader
+          title="指标矩阵总览"
+          subtitle="CC/SS/LP 三岗位指标覆盖范围配置与对比"
+          icon={LayoutGrid}
+        />
+        <div className="py-12 text-center text-[var(--text-muted)]">
+          指标注册表为空，请检查 config.json 中的 indicator_registry 配置
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className={BIZ_PAGE}>
       <PageHeader
@@ -184,7 +215,9 @@ export default function IndicatorMatrixPage() {
       </PageHeader>
 
       {msg && (
-        <p className={`text-sm ${msg.includes('成功') ? 'text-green-600' : 'text-red-500'}`}>
+        <p
+          className={`text-sm ${msg.includes('成功') ? 'text-[var(--n-600)]' : 'text-[var(--n-500)]'}`}
+        >
           {msg}
         </p>
       )}
@@ -278,13 +311,13 @@ export default function IndicatorMatrixPage() {
                       <div
                         key={ind.id}
                         className={`flex items-center gap-3 px-4 py-2.5 border-b border-[var(--border-subtle)] last:border-0 hover:bg-[var(--bg-subtle)] transition-colors ${
-                          isCCOnly ? 'bg-red-50/40' : ''
+                          isCCOnly ? 'bg-[var(--n-100)]' : ''
                         }`}
                       >
                         <div className="flex-1 min-w-0">
                           <span className="text-sm text-[var(--text-primary)]">{name}</span>
                           {isCCOnly && (
-                            <span className="ml-1.5 text-[10px] text-red-500 font-medium">
+                            <span className="ml-1.5 text-[10px] text-[var(--n-500)] font-medium">
                               CC 独有
                             </span>
                           )}
@@ -331,9 +364,9 @@ export default function IndicatorMatrixPage() {
                           <span
                             className={`text-[10px] font-medium px-1.5 py-0.5 rounded ${
                               ind.availability === 'available'
-                                ? 'bg-green-50 text-green-700'
+                                ? 'bg-[var(--n-100)] text-[var(--n-600)]'
                                 : ind.availability === 'partial'
-                                  ? 'bg-yellow-50 text-yellow-700'
+                                  ? 'bg-[var(--n-200)] text-[var(--n-700)]'
                                   : 'bg-[var(--n-100)] text-[var(--text-muted)]'
                             }`}
                           >

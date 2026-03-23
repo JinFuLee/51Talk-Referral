@@ -6,14 +6,16 @@ import { swrFetcher } from '@/lib/api';
 import type { IndicatorDef, IndicatorMatrix } from '@/lib/types/indicator-matrix';
 
 export function useIndicatorMatrix() {
-  const { data: registry, isLoading: registryLoading } = useSWR<IndicatorDef[]>(
-    '/api/indicator-matrix/registry',
-    swrFetcher
-  );
+  const {
+    data: registry,
+    isLoading: registryLoading,
+    error: registryError,
+  } = useSWR<IndicatorDef[]>('/api/indicator-matrix/registry', swrFetcher);
   const {
     data: matrix,
     mutate,
     isLoading: matrixLoading,
+    error: matrixError,
   } = useSWR<IndicatorMatrix>('/api/indicator-matrix/matrix', swrFetcher);
 
   const getActiveForRole = useCallback(
@@ -31,5 +33,6 @@ export function useIndicatorMatrix() {
     mutate,
     getActiveForRole,
     isLoading: registryLoading || matrixLoading,
+    error: registryError || matrixError,
   };
 }

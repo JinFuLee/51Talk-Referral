@@ -371,7 +371,7 @@ function MonthlyAchievementSection() {
   );
 }
 
-/* ── KPI 卡片对应的指标 ID（与 indicator_registry id 对应） ──── */
+/* ── KPI 卡片对应的指标 ID（与 overview API metrics key 对应） ──── */
 
 const KPI_CARD_INDICATOR_IDS: Record<string, string[]> = {
   CC: [
@@ -383,8 +383,8 @@ const KPI_CARD_INDICATOR_IDS: Record<string, string[]> = {
     '客单价',
     '注册转化率',
   ],
-  SS: ['转介绍注册数', '触达率', '打卡率', '参与率'],
-  LP: ['转介绍注册数', '触达率', '打卡率', '参与率'],
+  SS: ['转介绍注册数', '触达率', '打卡率'],
+  LP: ['转介绍注册数', '触达率', '打卡率'],
 };
 
 /* ── 主页面 ───────────────────────────────────────────────────── */
