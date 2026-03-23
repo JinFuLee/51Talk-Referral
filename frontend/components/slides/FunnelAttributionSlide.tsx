@@ -20,7 +20,13 @@ interface FunnelResponse {
   stages: FunnelStage[];
 }
 
-const TH: React.CSSProperties = { color: 'white' };
+const TH_ROW: React.CSSProperties = { backgroundColor: '#28282a', color: '#ffffff' };
+const TH_CELL: React.CSSProperties = {
+  color: '#ffffff',
+  padding: '10px 12px',
+  fontSize: '12px',
+  fontWeight: 500,
+};
 
 export function FunnelAttributionSlide({ slideNumber, totalSlides }: SlideProps) {
   const { data, isLoading, error } = useSWR<FunnelResponse>('/api/funnel', swrFetcher);
@@ -64,25 +70,13 @@ export function FunnelAttributionSlide({ slideNumber, totalSlides }: SlideProps)
         <div className="overflow-auto h-full">
           <table className="w-full text-sm border-collapse">
             <thead>
-              <tr style={{ backgroundColor: '#28282a' }}>
-                <th className="text-left px-3 py-2.5 text-xs font-medium" style={TH}>
-                  环节
-                </th>
-                <th className="text-right px-3 py-2.5 text-xs font-medium" style={TH}>
-                  实际
-                </th>
-                <th className="text-right px-3 py-2.5 text-xs font-medium" style={TH}>
-                  目标
-                </th>
-                <th className="text-right px-3 py-2.5 text-xs font-medium" style={TH}>
-                  差距
-                </th>
-                <th className="text-right px-3 py-2.5 text-xs font-medium" style={TH}>
-                  达成率
-                </th>
-                <th className="text-right px-3 py-2.5 text-xs font-medium" style={TH}>
-                  环节转化率
-                </th>
+              <tr style={TH_ROW}>
+                <th style={{ ...TH_CELL, textAlign: 'left' }}>环节</th>
+                <th style={{ ...TH_CELL, textAlign: 'right' }}>实际</th>
+                <th style={{ ...TH_CELL, textAlign: 'right' }}>目标</th>
+                <th style={{ ...TH_CELL, textAlign: 'right' }}>差距</th>
+                <th style={{ ...TH_CELL, textAlign: 'right' }}>达成率</th>
+                <th style={{ ...TH_CELL, textAlign: 'right' }}>环节转化率</th>
               </tr>
             </thead>
             <tbody>

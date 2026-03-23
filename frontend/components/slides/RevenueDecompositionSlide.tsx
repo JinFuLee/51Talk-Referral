@@ -60,22 +60,70 @@ export function RevenueDecompositionSlide({ slideNumber, totalSlides }: SlidePro
                 className="text-xs font-medium"
                 style={{ backgroundColor: '#28282a', color: 'white' }}
               >
-                <th className="text-left px-3 py-2" style={{ color: 'white' }}>
+                <th
+                  style={{
+                    color: '#ffffff',
+                    textAlign: 'left',
+                    padding: '4px 6px',
+                    fontSize: '12px',
+                    fontWeight: 500,
+                  }}
+                >
                   渠道
                 </th>
-                <th className="text-right px-3 py-2" style={{ color: 'white' }}>
+                <th
+                  style={{
+                    color: '#ffffff',
+                    textAlign: 'left',
+                    padding: '4px 6px',
+                    fontSize: '12px',
+                    fontWeight: 500,
+                  }}
+                >
                   注册数
                 </th>
-                <th className="text-right px-3 py-2" style={{ color: 'white' }}>
+                <th
+                  style={{
+                    color: '#ffffff',
+                    textAlign: 'left',
+                    padding: '4px 6px',
+                    fontSize: '12px',
+                    fontWeight: 500,
+                  }}
+                >
                   付费数
                 </th>
-                <th className="text-right px-3 py-2" style={{ color: 'white' }}>
+                <th
+                  style={{
+                    color: '#ffffff',
+                    textAlign: 'left',
+                    padding: '4px 6px',
+                    fontSize: '12px',
+                    fontWeight: 500,
+                  }}
+                >
                   付费金额
                 </th>
-                <th className="text-right px-3 py-2" style={{ color: 'white' }}>
+                <th
+                  style={{
+                    color: '#ffffff',
+                    textAlign: 'left',
+                    padding: '4px 6px',
+                    fontSize: '12px',
+                    fontWeight: 500,
+                  }}
+                >
                   金额占比
                 </th>
-                <th className="px-3 py-2 w-28" style={{ color: 'white' }}>
+                <th
+                  style={{
+                    color: '#ffffff',
+                    textAlign: 'left',
+                    padding: '4px 6px',
+                    fontSize: '12px',
+                    fontWeight: 500,
+                  }}
+                >
                   占比
                 </th>
               </tr>

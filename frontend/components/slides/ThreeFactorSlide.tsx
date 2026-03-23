@@ -77,19 +77,38 @@ export function ThreeFactorSlide({ slideNumber, totalSlides }: SlideProps) {
                 className="text-xs font-medium"
                 style={{ backgroundColor: '#28282a', color: 'white' }}
               >
-                <th className="text-left px-2 py-1.5" style={{ color: 'white' }} rowSpan={2}>
+                <th
+                  style={{
+                    color: '#ffffff',
+                    textAlign: 'left',
+                    padding: '4px 6px',
+                    fontSize: '12px',
+                    fontWeight: 500,
+                  }}
+                  rowSpan={2}
+                >
                   渠道
                 </th>
                 <th
-                  className="text-center px-2 py-1.5 border-b border-white/20"
-                  style={{ color: 'white' }}
+                  style={{
+                    color: '#ffffff',
+                    textAlign: 'left',
+                    padding: '4px 6px',
+                    fontSize: '12px',
+                    fontWeight: 500,
+                  }}
                   colSpan={3}
                 >
                   单量
                 </th>
                 <th
-                  className="text-center px-2 py-1.5 border-b border-white/20"
-                  style={{ color: 'white' }}
+                  style={{
+                    color: '#ffffff',
+                    textAlign: 'left',
+                    padding: '4px 6px',
+                    fontSize: '12px',
+                    fontWeight: 500,
+                  }}
                   colSpan={3}
                 >
                   三因素

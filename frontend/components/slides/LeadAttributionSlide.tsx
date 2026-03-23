@@ -44,19 +44,59 @@ export function LeadAttributionSlide({ slideNumber, totalSlides }: SlideProps) {
                 className="text-xs font-medium"
                 style={{ backgroundColor: '#28282a', color: 'white' }}
               >
-                <th className="text-left px-2 py-1.5" style={{ color: 'white' }}>
+                <th
+                  style={{
+                    color: '#ffffff',
+                    textAlign: 'left',
+                    padding: '4px 6px',
+                    fontSize: '12px',
+                    fontWeight: 500,
+                  }}
+                >
                   渠道
                 </th>
-                <th className="text-right px-2 py-1.5" style={{ color: 'white' }}>
+                <th
+                  style={{
+                    color: '#ffffff',
+                    textAlign: 'left',
+                    padding: '4px 6px',
+                    fontSize: '12px',
+                    fontWeight: 500,
+                  }}
+                >
                   注册数
                 </th>
-                <th className="text-right px-2 py-1.5" style={{ color: 'white' }}>
+                <th
+                  style={{
+                    color: '#ffffff',
+                    textAlign: 'left',
+                    padding: '4px 6px',
+                    fontSize: '12px',
+                    fontWeight: 500,
+                  }}
+                >
                   预约数
                 </th>
-                <th className="text-right px-2 py-1.5" style={{ color: 'white' }}>
+                <th
+                  style={{
+                    color: '#ffffff',
+                    textAlign: 'left',
+                    padding: '4px 6px',
+                    fontSize: '12px',
+                    fontWeight: 500,
+                  }}
+                >
                   出席数
                 </th>
-                <th className="text-right px-2 py-1.5" style={{ color: 'white' }}>
+                <th
+                  style={{
+                    color: '#ffffff',
+                    textAlign: 'left',
+                    padding: '4px 6px',
+                    fontSize: '12px',
+                    fontWeight: 500,
+                  }}
+                >
                   付费数
                 </th>
               </tr>

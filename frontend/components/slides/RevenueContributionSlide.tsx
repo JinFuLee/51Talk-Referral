@@ -47,16 +47,48 @@ export function RevenueContributionSlide({ slideNumber, totalSlides }: SlideProp
                 className="text-xs font-medium"
                 style={{ backgroundColor: '#28282a', color: 'white' }}
               >
-                <th className="text-left px-2 py-1.5" style={{ color: 'white' }}>
+                <th
+                  style={{
+                    color: '#ffffff',
+                    textAlign: 'left',
+                    padding: '4px 6px',
+                    fontSize: '12px',
+                    fontWeight: 500,
+                  }}
+                >
                   渠道
                 </th>
-                <th className="text-right px-2 py-1.5" style={{ color: 'white' }}>
+                <th
+                  style={{
+                    color: '#ffffff',
+                    textAlign: 'left',
+                    padding: '4px 6px',
+                    fontSize: '12px',
+                    fontWeight: 500,
+                  }}
+                >
                   付费金额
                 </th>
-                <th className="text-right px-2 py-1.5" style={{ color: 'white' }}>
+                <th
+                  style={{
+                    color: '#ffffff',
+                    textAlign: 'left',
+                    padding: '4px 6px',
+                    fontSize: '12px',
+                    fontWeight: 500,
+                  }}
+                >
                   金额占比
                 </th>
-                <th className="text-right px-2 py-1.5" style={{ color: 'white' }}>
+                <th
+                  style={{
+                    color: '#ffffff',
+                    textAlign: 'left',
+                    padding: '4px 6px',
+                    fontSize: '12px',
+                    fontWeight: 500,
+                  }}
+                >
                   人均金额
                 </th>
               </tr>
