@@ -237,9 +237,9 @@ def generate_report_image(data: dict) -> bytes:
 
     n_groups = len(groups)
     n_persons = len(persons)
-    table_h = max(n_groups, 1) * 0.35 + 1.55  # 双行表头增加 0.35
-    person_h = max(n_persons, 1) * 0.35 + 1.55  # 双行表头增加 0.35
-    total_h = 3.5 + table_h + person_h + 1.5
+    table_h = max(n_groups, 1) * 0.35 + 1.8
+    person_h = max(n_persons, 1) * 0.35 + 1.8
+    total_h = 4.0 + table_h + person_h + 1.5
 
     fig, ax = plt.subplots(figsize=(8, total_h), dpi=150)
     fig.patch.set_facecolor(C_BG)
@@ -269,19 +269,19 @@ def generate_report_image(data: dict) -> bytes:
     )
     ax.text(
         0.45,
-        y - 0.28,
+        y - 0.35,
         _zh("overview_title"),
         fontsize=9,
         color=C_MUTED,
         va="top",
     )
-    y -= 0.45
+    y -= 0.6
     ax.text(
         0.45, y, f"{today}  |  {now_time}  |  T-1", fontsize=10, color=C_TEXT2, va="top"
     )
 
     # ── 总览卡片 ──
-    y -= 0.7
+    y -= 0.6
     card_h = 1.2
     ax.add_patch(
         mpatches.FancyBboxPatch(
@@ -309,7 +309,7 @@ def generate_report_image(data: dict) -> bytes:
     )
     ax.text(
         0.75,
-        cy - 0.09,
+        cy - 0.2,
         _zh("overview_card"),
         fontsize=8,
         color=C_MUTED,
@@ -385,13 +385,13 @@ def generate_report_image(data: dict) -> bytes:
     )
     ax.text(
         0.4,
-        y - 0.28,
+        y - 0.32,
         _zh("team_rank_title"),
         fontsize=8,
         color=C_MUTED,
         va="top",
     )
-    y -= 0.45
+    y -= 0.65
 
     cols_x = [0.3, 1.2, 3.5, 5.0, 6.5, 8.0]
     # 双行表头：深色背景矩形
@@ -540,13 +540,13 @@ def generate_report_image(data: dict) -> bytes:
         )
         ax.text(
             0.4,
-            y - 0.28,
+            y - 0.32,
             _zh("top10_title"),
             fontsize=8,
             color=C_MUTED,
             va="top",
         )
-        y -= 0.45
+        y -= 0.65
 
         p_cols = [0.3, 1.2, 4.5, 6.0, 7.5]
         # 双行表头：深色背景矩形
@@ -691,7 +691,7 @@ def generate_team_image(
     plt.rcParams["font.size"] = 11
 
     n = len(members)
-    total_h = max(n * 0.38 + 3.15, 3.85)  # 双行表头增加 0.35
+    total_h = max(n * 0.38 + 3.6, 4.2)
 
     fig, ax = plt.subplots(figsize=(7, total_h), dpi=150)
     fig.patch.set_facecolor(C_BG)
@@ -724,13 +724,13 @@ def generate_team_image(
     )
     ax.text(
         0.45,
-        y - 0.3,
+        y - 0.35,
         f"{short_name}  {_zh('team_individual')}",
         fontsize=8,
         color=C_MUTED,
         va="top",
     )
-    y -= 0.4
+    y -= 0.6
     ax.text(0.45, y, f"{today}  |  T-1", fontsize=9, color=C_TEXT2, va="top")
 
     # ── 汇总条 ──
