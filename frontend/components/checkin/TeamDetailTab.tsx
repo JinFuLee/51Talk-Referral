@@ -6,6 +6,7 @@ import { swrFetcher } from '@/lib/api';
 import { Spinner } from '@/components/ui/Spinner';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { useWideConfig } from '@/lib/hooks/useWideConfig';
+import { useCheckinThresholds } from '@/lib/hooks/useCheckinThresholds';
 
 // ── 类型定义 ──────────────────────────────────────────────────────────────────
 
@@ -40,18 +41,6 @@ interface RankingResponse {
 
 // ── 工具函数 ──────────────────────────────────────────────────────────────────
 
-function rateColor(rate: number): string {
-  if (rate >= 0.6) return 'text-green-600';
-  if (rate >= 0.4) return 'text-yellow-600';
-  return 'text-red-600';
-}
-
-function rateBg(rate: number): string {
-  if (rate >= 0.6) return 'bg-green-50 text-green-700 border-green-200';
-  if (rate >= 0.4) return 'bg-yellow-50 text-yellow-700 border-yellow-200';
-  return 'bg-red-50 text-red-600 border-red-200';
-}
-
 function fmtRate(rate: number | null | undefined): string {
   if (rate == null) return '—';
   return `${(rate * 100).toFixed(1)}%`;
@@ -72,7 +61,13 @@ interface TeamCardData {
   members: PersonRow[];
 }
 
-function TeamCard({ card }: { card: TeamCardData }) {
+interface TeamCardProps {
+  card: TeamCardData;
+  rateColor: (r: number) => string;
+  rateBg: (r: number) => string;
+}
+
+function TeamCard({ card, rateColor, rateBg }: TeamCardProps) {
   // 短名：TH-CC01Team → CC01
   const shortName = card.team.replace(/^TH-/i, '').replace(/Team$/i, '');
 
@@ -167,6 +162,7 @@ const ROLE_OPTIONS = ['CC', 'SS', 'LP', '运营'] as const;
 
 export function TeamDetailTab({ activeRoles: _ar, roleEnclosures: _re }: TeamDetailTabProps) {
   const { configJson, activeRoles } = useWideConfig();
+  const { rateColor, rateBg, legend } = useCheckinThresholds();
 
   // 可见角色（配置中有围场分配的）
   const visibleRoles = useMemo(
@@ -279,7 +275,7 @@ export function TeamDetailTab({ activeRoles: _ar, roleEnclosures: _re }: TeamDet
       {!isLoading && !error && teamCards.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
           {teamCards.map((card) => (
-            <TeamCard key={card.team} card={card} />
+            <TeamCard key={card.team} card={card} rateColor={rateColor} rateBg={rateBg} />
           ))}
         </div>
       )}
@@ -289,15 +285,15 @@ export function TeamDetailTab({ activeRoles: _ar, roleEnclosures: _re }: TeamDet
         <div className="flex items-center gap-4 text-xs text-[var(--text-muted)] pt-1">
           <span className="flex items-center gap-1">
             <span className="inline-block w-2.5 h-2.5 rounded-sm bg-green-500 opacity-70" />
-            ≥60% 达标
+            {legend.good}
           </span>
           <span className="flex items-center gap-1">
             <span className="inline-block w-2.5 h-2.5 rounded-sm bg-yellow-400 opacity-70" />
-            40–60% 接近
+            {legend.warning}
           </span>
           <span className="flex items-center gap-1">
             <span className="inline-block w-2.5 h-2.5 rounded-sm bg-red-400 opacity-70" />
-            &lt;40% 落后
+            {legend.bad}
           </span>
         </div>
       )}

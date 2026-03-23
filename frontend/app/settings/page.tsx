@@ -21,6 +21,7 @@ import ChannelSettingsCard from './ChannelSettingsCard';
 import EnclosureSettingsCard from './EnclosureSettingsCard';
 import SOPSettingsCard from './SOPSettingsCard';
 import EnclosureRoleCard from './EnclosureRoleCard';
+import CheckinThresholdsCard from './CheckinThresholdsCard';
 import { defaultV2, MONTHS } from './defaultV2';
 
 export default function SettingsPage() {
@@ -205,6 +206,7 @@ export default function SettingsPage() {
         onUpdateSOP={updateSOP}
       />
       <EnclosureRoleCard />
+      <CheckinThresholdsCard />
     </div>
   );
 }
