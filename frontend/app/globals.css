@@ -445,12 +445,17 @@ body.presentation-mode .presentation-watermark {
 /* 修改此处即全局生效于所有 Slide 表格组件 */
 
 .slide-thead-row {
-  background-color: var(--n-800);
-  color: #ffffff;
+  background-color: var(--n-800) !important;
+}
+
+/* 后代选择器 + !important：确保 th 白字不被任何 Tailwind/Preflight 规则覆盖 */
+.slide-thead-row th,
+.slide-thead-row .slide-th,
+.slide-thead-row .slide-th-sub {
+  color: #ffffff !important;
 }
 
 .slide-th {
-  color: #ffffff;
   padding: 8px 12px;
   font-size: 12px;
   font-weight: 500;
