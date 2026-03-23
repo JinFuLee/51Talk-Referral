@@ -171,6 +171,13 @@ Excel 数据源 → XlsxReader → DataProcessor → AnalysisEngine → Markdown
 - **页面术语说明** = 每个分析页面顶部须用小字展示该页涉及的代称/名词/定义/公式
 - 完整术语表: `docs/glossary.md`
 
+## 配置 SSoT 规则（铁律）
+- **围场-岗位配置唯一真相源**: `config/enclosure_role_override.json`（Settings 页面写入），后端 `_get_wide_role()` 优先读此文件
+- **三级 fallback**: override 文件 → config.json `enclosure_role_wide` → 硬编码 `_WIDE_ROLE_FALLBACK`
+- **前端 `useWideConfig()` 从 API `/api/config/enclosure-role` 读取**，禁止直接读 localStorage（Settings 迁移后已删除）
+- **新增配置项时必须对齐三方**：Settings UI 写入路径 = API GET 读取路径 = 后端 consumer 读取路径。三方不一致 = SSoT 违规
+- **数据地域过滤**: DataManager `_filter_thai_only()` 在数据加载后统一过滤非 TH- 前缀团队，全站 API 自动生效。禁止在单个 API 中手动过滤
+
 ## 关键约定
 - **T-1 数据**: 今天处理的是昨天的数据
 - **时间进度**: 加权计算（周六日 1.4x，周三 0.0）
