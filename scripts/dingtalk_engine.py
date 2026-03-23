@@ -486,17 +486,24 @@ class NotificationEngine:
         return buf.read()
 
     def _status_color(self, rate: float) -> str:
-        """达成率 → 状态颜色"""
-        if rate >= 1.0:
+        """达成率 → 状态颜色（阈值从 defaults.thresholds 读取）"""
+        th = self.defaults.get("thresholds", {})
+        good = th.get("achievement_good", 1.0)
+        warn = th.get("achievement_warning", 0.8)
+        if rate >= good:
             return _C_SUCCESS
-        if rate >= 0.8:
+        if rate >= warn:
             return _C_WARNING
         return _C_DANGER
 
     def _status_bg(self, rate: float) -> str:
-        if rate >= 1.0:
+        """达成率 → 背景颜色（阈值从 defaults.thresholds 读取）"""
+        th = self.defaults.get("thresholds", {})
+        good = th.get("achievement_good", 1.0)
+        warn = th.get("achievement_warning", 0.8)
+        if rate >= good:
             return _C_GREEN_BG
-        if rate >= 0.8:
+        if rate >= warn:
             return _C_YELLOW_BG
         return _C_RED_BG
 
