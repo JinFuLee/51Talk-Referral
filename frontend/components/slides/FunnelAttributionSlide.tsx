@@ -5,36 +5,59 @@ import { swrFetcher } from '@/lib/api';
 import { formatRate } from '@/lib/utils';
 import { SlideShell } from '@/components/presentation/SlideShell';
 import { Spinner } from '@/components/ui/Spinner';
-import type { ChannelConversion, SlideProps } from '@/lib/presentation/types';
+import type { SlideProps } from '@/lib/presentation/types';
 
-function GapCell({ actual, target }: { actual: number; target: number }) {
-  const gap = actual - target;
-  const color =
-    gap >= 0
-      ? 'text-green-600 bg-green-50'
-      : gap >= -0.05
-        ? 'text-yellow-600 bg-yellow-50'
-        : 'text-red-600 bg-red-50';
-  return (
-    <td className="px-2 py-1 text-xs text-right font-mono tabular-nums">
-      <span className={`inline-block px-1.5 py-0.5 rounded text-xs font-bold ${color}`}>
-        {gap >= 0 ? '+' : ''}
-        {formatRate(gap)}
-      </span>
-    </td>
-  );
+// 对齐 /api/channel 真实返回
+interface ChannelRow {
+  channel: string;
+  registrations: number | null;
+  appointments: number | null;
+  attendance: number | null;
+  payments: number | null;
+  revenue_usd: number | null;
+  share_pct: number | null;
 }
 
 export function FunnelAttributionSlide({ slideNumber, totalSlides }: SlideProps) {
-  const { data, isLoading, error } = useSWR<ChannelConversion[]>('/api/channel', swrFetcher);
+  const { data, isLoading, error } = useSWR<ChannelRow[]>('/api/channel', swrFetcher);
   const channels = data ?? [];
+
+  // 从真实数据计算转化率
+  const rows = channels.map((c) => {
+    const reg = c.registrations ?? 0;
+    const appt = c.appointments ?? 0;
+    const attend = c.attendance ?? 0;
+    const paid = c.payments ?? 0;
+    return {
+      channel: c.channel,
+      appt_rate: reg > 0 ? appt / reg : 0,
+      attend_rate: appt > 0 ? attend / appt : 0,
+      paid_rate: attend > 0 ? paid / attend : 0,
+    };
+  });
+
+  function RateBadge({ value }: { value: number }) {
+    const color =
+      value >= 0.5
+        ? 'text-green-700 bg-green-50'
+        : value >= 0.3
+          ? 'text-yellow-700 bg-yellow-50'
+          : value > 0
+            ? 'text-red-700 bg-red-50'
+            : 'text-slate-400 bg-slate-50';
+    return (
+      <span className={`inline-block px-2 py-0.5 rounded text-xs font-bold ${color}`}>
+        {value > 0 ? formatRate(value) : '-'}
+      </span>
+    );
+  }
 
   return (
     <SlideShell
       slideNumber={slideNumber}
       totalSlides={totalSlides}
       title="过程转化率拆解"
-      subtitle="各渠道 × 预约率 / 出席率 / 付费率 vs 目标差距"
+      subtitle="各渠道 × 预约率 / 出席率 / 付费率（从实际数据计算）"
       section="渠道分析"
     >
       {isLoading ? (
@@ -48,10 +71,9 @@ export function FunnelAttributionSlide({ slideNumber, totalSlides }: SlideProps)
             <p className="text-sm text-[var(--text-muted)] mt-2">请检查后端服务是否正常运行</p>
           </div>
         </div>
-      ) : channels.length === 0 ? (
-        <div className="flex flex-col justify-center items-center h-full gap-3 text-[var(--text-muted)]">
-          <p className="text-lg font-medium">暂无渠道转化率数据</p>
-          <p className="text-sm">请确认 /api/channel 已返回转化率字段</p>
+      ) : rows.length === 0 ? (
+        <div className="flex items-center justify-center h-full">
+          <p className="text-[var(--text-muted)]">暂无渠道数据</p>
         </div>
       ) : (
         <div className="overflow-auto h-full">
@@ -61,59 +83,45 @@ export function FunnelAttributionSlide({ slideNumber, totalSlides }: SlideProps)
                 className="text-white text-xs font-medium"
                 style={{ backgroundColor: 'var(--n-800)' }}
               >
-                <th className="text-left px-2 py-1.5" rowSpan={2}>
-                  渠道
-                </th>
-                <th className="text-center px-2 py-1.5 border-b border-white/20" colSpan={2}>
-                  预约率
-                </th>
-                <th className="text-center px-2 py-1.5 border-b border-white/20" colSpan={2}>
-                  出席率
-                </th>
-                <th className="text-center px-2 py-1.5 border-b border-white/20" colSpan={2}>
-                  付费率
-                </th>
-              </tr>
-              <tr
-                className="text-white/80 text-xs font-medium"
-                style={{ backgroundColor: 'var(--n-800)' }}
-              >
-                <th className="text-right px-2 py-1.5">实际</th>
-                <th className="text-right px-2 py-1.5">差距</th>
-                <th className="text-right px-2 py-1.5">实际</th>
-                <th className="text-right px-2 py-1.5">差距</th>
-                <th className="text-right px-2 py-1.5">实际</th>
-                <th className="text-right px-2 py-1.5">差距</th>
+                <th className="text-left px-3 py-2">渠道</th>
+                <th className="text-right px-3 py-2">注册数</th>
+                <th className="text-right px-3 py-2">预约率</th>
+                <th className="text-right px-3 py-2">出席率</th>
+                <th className="text-right px-3 py-2">付费率</th>
+                <th className="text-right px-3 py-2">付费数</th>
               </tr>
             </thead>
             <tbody>
-              {channels.map((c, i) => (
-                <tr
-                  key={c.channel}
-                  className={i % 2 === 0 ? 'bg-[var(--bg-surface)]' : 'bg-slate-50/50'}
-                >
-                  <td className="px-2 py-1 text-xs font-semibold text-[var(--text-primary)]">
-                    {c.channel}
-                  </td>
-                  <td className="px-2 py-1 text-xs text-right font-mono tabular-nums text-[var(--text-secondary)]">
-                    {formatRate(c.appointment_rate)}
-                  </td>
-                  <GapCell actual={c.appointment_rate} target={c.appointment_rate_target ?? 0} />
-                  <td className="px-2 py-1 text-xs text-right font-mono tabular-nums text-[var(--text-secondary)]">
-                    {formatRate(c.attendance_rate)}
-                  </td>
-                  <GapCell actual={c.attendance_rate} target={c.attendance_rate_target ?? 0} />
-                  <td className="px-2 py-1 text-xs text-right font-mono tabular-nums text-[var(--text-secondary)]">
-                    {formatRate(c.paid_rate)}
-                  </td>
-                  <GapCell actual={c.paid_rate} target={c.paid_rate_target ?? 0} />
-                </tr>
-              ))}
+              {rows.map((r, i) => {
+                const c = channels[i];
+                return (
+                  <tr
+                    key={r.channel}
+                    className={i % 2 === 0 ? 'bg-[var(--bg-surface)]' : 'bg-slate-50/50'}
+                  >
+                    <td className="px-3 py-1.5 text-xs font-semibold text-[var(--text-primary)]">
+                      {r.channel}
+                    </td>
+                    <td className="px-3 py-1.5 text-xs text-right font-mono tabular-nums">
+                      {(c.registrations ?? 0).toLocaleString()}
+                    </td>
+                    <td className="px-3 py-1.5 text-xs text-right">
+                      <RateBadge value={r.appt_rate} />
+                    </td>
+                    <td className="px-3 py-1.5 text-xs text-right">
+                      <RateBadge value={r.attend_rate} />
+                    </td>
+                    <td className="px-3 py-1.5 text-xs text-right">
+                      <RateBadge value={r.paid_rate} />
+                    </td>
+                    <td className="px-3 py-1.5 text-xs text-right font-mono tabular-nums font-semibold">
+                      {(c.payments ?? 0).toLocaleString()}
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
-          <p className="mt-3 px-4 text-xs text-[var(--text-muted)]">
-            🟢 超目标 &nbsp;|&nbsp; 🟡 落后 0~5% &nbsp;|&nbsp; 🔴 严重落后 &gt;5%
-          </p>
         </div>
       )}
     </SlideShell>

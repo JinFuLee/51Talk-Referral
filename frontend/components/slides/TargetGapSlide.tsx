@@ -5,11 +5,28 @@ import { swrFetcher } from '@/lib/api';
 import { formatRate } from '@/lib/utils';
 import { SlideShell } from '@/components/presentation/SlideShell';
 import { Spinner } from '@/components/ui/Spinner';
-import type { OverviewData, SlideProps } from '@/lib/presentation/types';
+import type { SlideProps } from '@/lib/presentation/types';
+
+// 对齐 /api/funnel 真实返回
+interface FunnelResponse {
+  date: string | null;
+  stages: {
+    name: string;
+    target: number | null;
+    actual: number | null;
+    gap: number | null;
+    achievement_rate: number | null;
+    conversion_rate: number | null;
+  }[];
+  target_revenue: number | null;
+  actual_revenue: number | null;
+  revenue_gap: number | null;
+  revenue_achievement: number | null;
+}
 
 export function TargetGapSlide({ slideNumber, totalSlides }: SlideProps) {
-  const { data, isLoading, error } = useSWR<OverviewData>('/api/overview', swrFetcher);
-  const stages = data?.funnel_stages ?? [];
+  const { data, isLoading, error } = useSWR<FunnelResponse>('/api/funnel', swrFetcher);
+  const stages = data?.stages ?? [];
 
   return (
     <SlideShell
@@ -30,37 +47,53 @@ export function TargetGapSlide({ slideNumber, totalSlides }: SlideProps) {
             <p className="text-sm text-[var(--text-muted)] mt-2">请检查后端服务是否正常运行</p>
           </div>
         </div>
+      ) : stages.length === 0 ? (
+        <div className="flex items-center justify-center h-full">
+          <p className="text-[var(--text-muted)]">暂无漏斗数据</p>
+        </div>
       ) : (
         <div className="grid grid-cols-2 xl:grid-cols-4 gap-6 h-full content-center">
-          {stages.map((s) => (
-            <div
-              key={s.name}
-              className="flex flex-col gap-2 bg-slate-50 rounded-[var(--radius-xl)] p-6"
-            >
-              <p className="text-sm font-medium text-[var(--text-secondary)]">{s.name}</p>
-              <div className="text-3xl font-bold text-[var(--text-primary)]">
-                {s.actual.toLocaleString()}
-              </div>
-              <p className="text-sm text-[var(--text-muted)]">目标 {s.target.toLocaleString()}</p>
+          {stages.map((s) => {
+            const actual = s.actual ?? 0;
+            const target = s.target ?? 0;
+            const gap = s.gap ?? 0;
+            const rate = s.achievement_rate ?? 0;
+            return (
               <div
-                className={`text-lg font-bold ${s.gap >= 0 ? 'text-green-600' : 'text-red-500'}`}
+                key={s.name}
+                className="flex flex-col gap-2 bg-slate-50 rounded-[var(--radius-xl)] p-6"
               >
-                {s.gap >= 0 ? '+' : ''}
-                {s.gap.toLocaleString()}
+                <p className="text-sm font-medium text-[var(--text-secondary)]">{s.name}</p>
+                <div className="text-3xl font-bold text-[var(--text-primary)]">
+                  {actual.toLocaleString()}
+                </div>
+                {target > 0 && (
+                  <p className="text-sm text-[var(--text-muted)]">目标 {target.toLocaleString()}</p>
+                )}
+                {target > 0 && (
+                  <>
+                    <div
+                      className={`text-lg font-bold ${gap >= 0 ? 'text-green-600' : 'text-red-500'}`}
+                    >
+                      {gap >= 0 ? '+' : ''}
+                      {gap.toLocaleString()}
+                    </div>
+                    <div className="w-full bg-slate-200 rounded-full h-2">
+                      <div
+                        className={`h-2 rounded-full ${rate >= 1 ? 'bg-green-500' : rate >= 0.8 ? 'bg-yellow-400' : 'bg-red-400'}`}
+                        style={{ width: `${Math.min(100, rate * 100)}%` }}
+                      />
+                    </div>
+                    <p
+                      className={`text-sm font-semibold ${rate >= 1 ? 'text-green-600' : 'text-red-500'}`}
+                    >
+                      {formatRate(rate)}
+                    </p>
+                  </>
+                )}
               </div>
-              <div className="w-full bg-slate-200 rounded-full h-2">
-                <div
-                  className={`h-2 rounded-full ${s.achievement_rate >= 1 ? 'bg-green-500' : s.achievement_rate >= 0.8 ? 'bg-yellow-400' : 'bg-red-400'}`}
-                  style={{ width: `${Math.min(100, s.achievement_rate * 100)}%` }}
-                />
-              </div>
-              <p
-                className={`text-sm font-semibold ${s.achievement_rate >= 1 ? 'text-green-600' : 'text-red-500'}`}
-              >
-                {formatRate(s.achievement_rate)}
-              </p>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </SlideShell>

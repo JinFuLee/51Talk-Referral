@@ -2,21 +2,39 @@
 
 import useSWR from 'swr';
 import { swrFetcher } from '@/lib/api';
-import { formatRevenue, formatRate } from '@/lib/utils';
+import { formatRate } from '@/lib/utils';
 import { SlideShell } from '@/components/presentation/SlideShell';
 import { Spinner } from '@/components/ui/Spinner';
-import type { ChannelRevenue, SlideProps } from '@/lib/presentation/types';
+import type { SlideProps } from '@/lib/presentation/types';
+
+// 对齐 /api/channel 真实返回
+interface ChannelRow {
+  channel: string;
+  registrations: number | null;
+  appointments: number | null;
+  attendance: number | null;
+  payments: number | null;
+  revenue_usd: number | null;
+  share_pct: number | null;
+}
+
+function formatUSD(v: number | null): string {
+  if (v == null || v === 0) return '-';
+  return `$${v.toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
+}
 
 export function RevenueDecompositionSlide({ slideNumber, totalSlides }: SlideProps) {
-  const { data, isLoading, error } = useSWR<ChannelRevenue[]>('/api/channel', swrFetcher);
+  const { data, isLoading, error } = useSWR<ChannelRow[]>('/api/channel', swrFetcher);
   const channels = data ?? [];
+
+  const totalRevenue = channels.reduce((s, c) => s + (c.revenue_usd ?? 0), 0);
 
   return (
     <SlideShell
       slideNumber={slideNumber}
       totalSlides={totalSlides}
       title="渠道业绩拆解"
-      subtitle="各渠道目标 / 实际 / 差距 / 达成率"
+      subtitle="各渠道注册 → 付费 → 金额 → 占比"
       section="渠道分析"
     >
       {isLoading ? (
@@ -31,9 +49,8 @@ export function RevenueDecompositionSlide({ slideNumber, totalSlides }: SlidePro
           </div>
         </div>
       ) : channels.length === 0 ? (
-        <div className="flex flex-col justify-center items-center h-full gap-3 text-[var(--text-muted)]">
-          <p className="text-lg font-medium">暂无渠道业绩数据</p>
-          <p className="text-sm">请确认 /api/channel 已返回数据</p>
+        <div className="flex items-center justify-center h-full">
+          <p className="text-[var(--text-muted)]">暂无渠道业绩数据</p>
         </div>
       ) : (
         <div className="overflow-auto h-full">
@@ -43,62 +60,43 @@ export function RevenueDecompositionSlide({ slideNumber, totalSlides }: SlidePro
                 className="text-white text-xs font-medium"
                 style={{ backgroundColor: 'var(--n-800)' }}
               >
-                <th className="text-left px-2 py-1.5">渠道</th>
-                <th className="text-right px-2 py-1.5">目标金额</th>
-                <th className="text-right px-2 py-1.5">实际金额</th>
-                <th className="text-right px-2 py-1.5">差距</th>
-                <th className="text-right px-2 py-1.5">达成率</th>
-                <th className="px-2 py-1.5">进度</th>
+                <th className="text-left px-3 py-2">渠道</th>
+                <th className="text-right px-3 py-2">注册数</th>
+                <th className="text-right px-3 py-2">付费数</th>
+                <th className="text-right px-3 py-2">付费金额</th>
+                <th className="text-right px-3 py-2">金额占比</th>
+                <th className="px-3 py-2 w-28">占比</th>
               </tr>
             </thead>
             <tbody>
               {channels.map((c, i) => {
-                const isGood = c.gap_usd >= 0;
-                const pct = Math.min(100, c.achievement_rate * 100);
+                const rev = c.revenue_usd ?? 0;
+                const share = c.share_pct ?? 0;
                 return (
                   <tr
                     key={c.channel}
                     className={i % 2 === 0 ? 'bg-[var(--bg-surface)]' : 'bg-slate-50/50'}
                   >
-                    <td className="px-2 py-1 text-xs font-semibold text-[var(--text-primary)]">
+                    <td className="px-3 py-1.5 text-xs font-semibold text-[var(--text-primary)]">
                       {c.channel}
                     </td>
-                    <td className="px-2 py-1 text-xs text-right font-mono tabular-nums text-[var(--text-secondary)]">
-                      {formatRevenue(c.target_amount_usd)}
+                    <td className="px-3 py-1.5 text-xs text-right font-mono tabular-nums text-[var(--text-secondary)]">
+                      {(c.registrations ?? 0).toLocaleString()}
                     </td>
-                    <td className="px-2 py-1 text-xs text-right font-mono tabular-nums font-medium text-[var(--text-primary)]">
-                      {formatRevenue(c.actual_amount_usd)}
+                    <td className="px-3 py-1.5 text-xs text-right font-mono tabular-nums text-[var(--text-secondary)]">
+                      {(c.payments ?? 0).toLocaleString()}
                     </td>
-                    <td
-                      className={`px-2 py-1 text-xs text-right font-mono tabular-nums font-bold ${
-                        isGood ? 'text-green-600' : 'text-red-500'
-                      }`}
-                    >
-                      {isGood ? '+' : ''}
-                      {formatRevenue(c.gap_usd)}
+                    <td className="px-3 py-1.5 text-xs text-right font-mono tabular-nums font-medium text-[var(--text-primary)]">
+                      {formatUSD(rev)}
                     </td>
-                    <td
-                      className={`px-2 py-1 text-xs text-right font-mono tabular-nums font-semibold ${
-                        c.achievement_rate >= 1
-                          ? 'text-green-600'
-                          : c.achievement_rate >= 0.8
-                            ? 'text-yellow-600'
-                            : 'text-red-500'
-                      }`}
-                    >
-                      {formatRate(c.achievement_rate)}
+                    <td className="px-3 py-1.5 text-xs text-right font-mono tabular-nums text-[var(--text-secondary)]">
+                      {formatRate(share)}
                     </td>
-                    <td className="px-2 py-1 w-32">
+                    <td className="px-3 py-1.5 w-28">
                       <div className="w-full bg-slate-200 rounded-full h-2">
                         <div
-                          className={`h-2 rounded-full ${
-                            c.achievement_rate >= 1
-                              ? 'bg-green-500'
-                              : c.achievement_rate >= 0.8
-                                ? 'bg-yellow-400'
-                                : 'bg-red-400'
-                          }`}
-                          style={{ width: `${pct}%` }}
+                          className="h-2 rounded-full bg-primary"
+                          style={{ width: `${Math.min(100, share * 100)}%` }}
                         />
                       </div>
                     </td>
@@ -106,6 +104,22 @@ export function RevenueDecompositionSlide({ slideNumber, totalSlides }: SlidePro
                 );
               })}
             </tbody>
+            <tfoot>
+              <tr className="border-t-2 border-slate-200 bg-slate-100 font-bold text-[var(--text-primary)]">
+                <td className="px-3 py-1.5 text-xs">合计</td>
+                <td className="px-3 py-1.5 text-xs text-right font-mono tabular-nums">
+                  {channels.reduce((s, c) => s + (c.registrations ?? 0), 0).toLocaleString()}
+                </td>
+                <td className="px-3 py-1.5 text-xs text-right font-mono tabular-nums">
+                  {channels.reduce((s, c) => s + (c.payments ?? 0), 0).toLocaleString()}
+                </td>
+                <td className="px-3 py-1.5 text-xs text-right font-mono tabular-nums">
+                  {formatUSD(totalRevenue)}
+                </td>
+                <td className="px-3 py-1.5 text-xs text-right font-mono tabular-nums">100%</td>
+                <td />
+              </tr>
+            </tfoot>
           </table>
         </div>
       )}
