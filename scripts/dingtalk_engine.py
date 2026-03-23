@@ -78,7 +78,9 @@ class NotificationEngine:
             print("没有可用的通道（检查 channels.json 和 enabled 状态）")
             return
 
-        for ch_id, ch in targets:
+        for ch_idx, (ch_id, ch) in enumerate(targets):
+            if ch_idx > 0 and not test:
+                time.sleep(5)  # 通道间间隔，避免跨群频率限制
             print(f"\n{'='*40}")
             print(
                 f"通道: {ch_id} ({ch.get('group_name', '?')}) | "
@@ -165,7 +167,7 @@ class NotificationEngine:
             for title, img_bytes, path in images:
                 if self._upload_and_send(img_bytes, title, channel, path.name):
                     success += 1
-                time.sleep(1.5)  # 钉钉频率限制：相邻消息间隔
+                time.sleep(3)  # 钉钉频率限制：20条/分钟，间隔3s安全
 
             result["status"] = "sent" if success == len(images) else "partial"
             result["sent"] = success
@@ -274,6 +276,82 @@ class NotificationEngine:
 
         return images
 
+    # ── 内部：图片上传（双图床 fallback）────────────────────────────────────
+
+    @staticmethod
+    def _upload_image(
+        img_bytes: bytes, filename: str = "report.png"
+    ) -> str | None:
+        """上传图片，双图床 fallback 链：freeimage.host → sm.ms(新域名)"""
+        providers = [
+            ("freeimage.host", NotificationEngine._upload_freeimage),
+            ("sm.ms(s.ee)", NotificationEngine._upload_smms),
+        ]
+        for name, fn in providers:
+            try:
+                url = fn(img_bytes, filename)
+                if url:
+                    return url
+            except Exception as e:
+                print(f"    [{name}] 失败: {e}")
+        return None
+
+    @staticmethod
+    def _upload_freeimage(
+        img_bytes: bytes, filename: str
+    ) -> str | None:
+        """freeimage.host — 免费，无需注册"""
+        import base64 as b64
+
+        encoded = b64.b64encode(img_bytes).decode("utf-8")
+        data = urllib.parse.urlencode({
+            "key": "6d207e02198a847aa98d0a2a901485a5",
+            "source": encoded,
+            "format": "json",
+        }).encode("utf-8")
+
+        req = urllib.request.Request(
+            "https://freeimage.host/api/1/upload",
+            data=data,
+            headers={"User-Agent": "ref-ops-engine/1.0"},
+            method="POST",
+        )
+        with urllib.request.urlopen(req, timeout=20) as resp:
+            result = json.loads(resp.read().decode("utf-8"))
+            if result.get("status_code") == 200:
+                return result["image"]["url"]
+        return None
+
+    @staticmethod
+    def _upload_smms(
+        img_bytes: bytes, filename: str
+    ) -> str | None:
+        """sm.ms (迁移至 s.ee) — 备用"""
+        boundary = f"----Py{int(time.time())}"
+        body = (
+            f"--{boundary}\r\n"
+            f'Content-Disposition: form-data; '
+            f'name="smfile"; filename="{filename}"\r\n'
+            f"Content-Type: image/png\r\n\r\n"
+        ).encode() + img_bytes + f"\r\n--{boundary}--\r\n".encode()
+
+        req = urllib.request.Request(
+            "https://s.ee/api/v1/file/upload",
+            data=body,
+            headers={
+                "Content-Type": f"multipart/form-data; boundary={boundary}",
+                "User-Agent": "ref-ops-engine/1.0",
+            },
+            method="POST",
+        )
+        with urllib.request.urlopen(req, timeout=20) as resp:
+            result = json.loads(resp.read().decode("utf-8"))
+            if result.get("success"):
+                return result["data"]["url"]
+            if "images" in str(result.get("message", "")):
+                return result.get("images")
+        return None
+
     # ── 内部：上传+发送 ───────────────────────────────────────────────────────
 
     def _upload_and_send(
@@ -283,36 +361,36 @@ class NotificationEngine:
         channel: dict,
         filename: str = "report.png",
     ) -> bool:
-        """上传图床 → 发钉钉 Markdown；失败时对总览图做纯文本回退"""
-        import sys  # noqa: PLC0415
-
-        _scripts_dir = str(Path(__file__).resolve().parent)
-        if _scripts_dir not in sys.path:
-            sys.path.insert(0, _scripts_dir)
-        import dingtalk_daily as _daily_mod  # noqa: PLC0415
-
-        img_url = _daily_mod.upload_image(img_bytes, filename)
+        """上传图床 → 发钉钉 Markdown；失败时做文本回退"""
+        img_url = self._upload_image(img_bytes, filename)
         if img_url:
             md = f"## {title}\n\n![report]({img_url})"
             result = self._send_dingtalk(title, md, channel)
             if result.get("errcode") == 0:
-                print(f"  {title} 发送成功")
+                print(f"  ✅ {title}")
                 return True
-            print(f"  {title} 发送失败: {result}")
+            print(f"  ❌ {title}: {result}")
         else:
-            print(f"  {title} 图床上传失败，尝试文本回退")
+            print(f"  ⚠️ {title} 所有图床失败")
 
         # 总览图文本回退
         if "overview" in filename.lower() or "Overview" in title:
             try:
+                import sys  # noqa: PLC0415
+
+                d = str(Path(__file__).resolve().parent)
+                if d not in sys.path:
+                    sys.path.insert(0, d)
+                import dingtalk_daily as _m  # noqa: PLC0415
+
                 role = channel.get("role", "CC")
                 data = self._fetch_data(role)
                 if data:
-                    md_fallback = _daily_mod.build_text_markdown(data)
-                    self._send_dingtalk(title, md_fallback, channel)
-                    print(f"  {title} 文本回退完成")
-            except Exception as fb_exc:
-                print(f"  {title} 文本回退失败: {fb_exc}")
+                    md_fb = _m.build_text_markdown(data)
+                    self._send_dingtalk(title, md_fb, channel)
+                    print(f"  ↩ {title} 文本回退")
+            except Exception as e:
+                print(f"  ❌ 回退失败: {e}")
 
         return False
 
