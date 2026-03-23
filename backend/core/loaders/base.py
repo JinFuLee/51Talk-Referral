@@ -90,31 +90,47 @@ class BaseLoader:
                 logger.warning(f"缓存读取失败，降级重读 Excel: {cache_err}")
 
         logger.info(f"Cache miss, reading Excel: {path.name} (sheet={sheet_name})")
-        try:
-            with warnings.catch_warnings():
-                warnings.filterwarnings(
-                    "ignore", category=UserWarning, module="openpyxl"
-                )
-                df = pd.read_excel(
-                    path,
-                    sheet_name=sheet_name,
-                    header=header,
-                    skiprows=skiprows,
-                    engine="openpyxl",
-                )
-        except Exception as e:
-            logger.warning(f"openpyxl 读取失败，尝试 calamine: {e}")
+
+        # sheet 名 fallback 链：指定名 → 第一个 sheet（兼容 BI 导出 sheet 名变更）
+        sheet_candidates = (
+            [sheet_name, 0] if isinstance(sheet_name, str) else [sheet_name]
+        )
+
+        df = pd.DataFrame()
+        for sn in sheet_candidates:
             try:
-                df = pd.read_excel(
-                    path,
-                    sheet_name=sheet_name,
-                    header=header,
-                    skiprows=skiprows,
-                    engine="calamine",
-                )
-            except Exception as e2:
-                logger.error(f"所有引擎读取失败 {path}: {e2}")
-                return pd.DataFrame()
+                with warnings.catch_warnings():
+                    warnings.filterwarnings(
+                        "ignore", category=UserWarning, module="openpyxl"
+                    )
+                    df = pd.read_excel(
+                        path,
+                        sheet_name=sn,
+                        header=header,
+                        skiprows=skiprows,
+                        engine="openpyxl",
+                    )
+                if sn != sheet_name:
+                    logger.info(f"Sheet '{sheet_name}' 不存在，fallback 到首个 sheet")
+                break
+            except Exception as e:
+                if sn == sheet_candidates[-1]:
+                    # 最后一个候选也失败，尝试 calamine
+                    logger.warning(f"openpyxl 失败，尝试 calamine: {e}")
+                    for sn2 in sheet_candidates:
+                        try:
+                            df = pd.read_excel(
+                                path,
+                                sheet_name=sn2,
+                                header=header,
+                                skiprows=skiprows,
+                                engine="calamine",
+                            )
+                            break
+                        except Exception as e2:
+                            if sn2 == sheet_candidates[-1]:
+                                logger.error(f"所有引擎读取失败 {path}: {e2}")
+                                return pd.DataFrame()
 
         # 写缓存（DataFrame 为空时跳过，避免无意义缓存）
         if not df.empty:
