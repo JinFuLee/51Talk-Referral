@@ -18,6 +18,7 @@ from __future__ import annotations
 import base64
 import hashlib
 import hmac
+import io
 import json
 import time
 import urllib.parse
@@ -25,6 +26,37 @@ import urllib.request
 from datetime import datetime
 from pathlib import Path
 from typing import Any
+
+import matplotlib
+
+matplotlib.use("Agg")
+import matplotlib.patches as mpatches  # noqa: E402
+import matplotlib.pyplot as plt  # noqa: E402
+
+# ── SEE Design System — Warm Neutral 色板（与 dingtalk_daily.py 同源）──────────
+_C_BG = "#FAFAF9"
+_C_SURFACE = "#F5F5F4"
+_C_ELEVATED = "#E7E5E4"
+_C_BORDER = "#E7E5E4"
+_C_BORDER_H = "#D6D3D1"
+_C_MUTED = "#78716C"
+_C_TEXT2 = "#57534E"
+_C_TEXT = "#1C1917"
+_C_N800 = "#292524"
+_C_BRAND_P2 = "#3730A3"
+_C_ACCENT = "#F59E0B"
+_C_SUCCESS = "#059669"
+_C_WARNING = "#D97706"
+_C_DANGER = "#DC2626"
+_C_GREEN_BG = "#ECFDF5"
+_C_YELLOW_BG = "#FFFBEB"
+_C_RED_BG = "#FEF2F2"
+
+_THAI_FONTS = [
+    "Tahoma", "Angsana New", "Browallia New", "Cordia New",
+    "TH Sarabun New", "Leelawadee", "Arial Unicode MS", "DejaVu Sans",
+    "sans-serif",
+]
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_CHANNELS_PATH = PROJECT_ROOT / "key" / "dingtalk-channels.json"
@@ -194,7 +226,7 @@ class NotificationEngine:
     # ── 内部：模块处理 ────────────────────────────────────────────────────────
 
     def _process_module(self, module_id: str, channel: dict, dry_run: bool) -> dict:
-        """处理单个内容模块：获取数据 → 生成图片 → 发送"""
+        """处理单个内容模块：获取数据 → 生成图片/文本 → 发送"""
         result: dict[str, Any] = {
             "module": module_id,
             "status": "pending",
@@ -203,6 +235,24 @@ class NotificationEngine:
 
         try:
             role = channel.get("role", "CC")
+
+            # action_items 是文本消息，走独立分支
+            if module_id == "action_items":
+                md_text = self._generate_action_items_text(role)
+                if dry_run:
+                    print(f"  [{module_id}] (文本消息 dry-run):\n{md_text[:200]}...")
+                    result["status"] = "dry_run"
+                else:
+                    title = "📋 คำแนะนำการดำเนินงาน"
+                    r = self._send_dingtalk(title, md_text, channel)
+                    if r.get("errcode") == 0:
+                        print(f"  ✅ {title}")
+                        result["status"] = "sent"
+                    else:
+                        print(f"  ❌ {title}: {r}")
+                        result["status"] = "error"
+                return result
+
             data = self._fetch_data(role)
             if not data:
                 result["status"] = "no_data"
@@ -213,8 +263,17 @@ class NotificationEngine:
             result["images_count"] = len(images)
 
             if not images:
-                result["status"] = "no_images"
-                print(f"  [{module_id}] 该模块暂无图片生成器（待后续迭代实现）")
+                # efficiency_metrics 与 process_metrics 合并为一张图，此处跳过
+                if module_id == "efficiency_metrics":
+                    result["status"] = "merged"
+                    print(
+                        f"  [{module_id}] 已合并至 process_metrics 图片"
+                    )
+                else:
+                    result["status"] = "no_images"
+                    print(
+                        f"  [{module_id}] 该模块暂无图片生成器（待后续迭代实现）"
+                    )
                 return result
 
             if dry_run:
@@ -270,6 +329,34 @@ class NotificationEngine:
                 print(f"  _fetch_data 第 {attempt + 1} 次失败: {e}")
 
         raise RuntimeError("_fetch_data 重试 3 次仍失败") from last_exc
+
+    def _fetch_url(self, url: str) -> dict | None:
+        """通用 HTTP GET，含 3 次重试，失败返回 None（不抛出异常）"""
+        last_exc: Exception | None = None
+        for attempt in range(3):
+            if attempt > 0:
+                time.sleep(attempt * 1)
+            try:
+                req = urllib.request.Request(
+                    url, headers={"Accept": "application/json"}
+                )
+                with urllib.request.urlopen(req, timeout=15) as resp:
+                    return json.loads(resp.read().decode("utf-8"))
+            except Exception as e:
+                last_exc = e
+                print(f"  _fetch_url({url}) 第 {attempt + 1} 次失败: {e}")
+        print(f"  _fetch_url 重试耗尽: {last_exc}")
+        return None
+
+    def _fetch_overview(self) -> dict | None:
+        """获取 /api/overview 数据（含 metrics/time_progress/kpi_pace）"""
+        return self._fetch_url(f"{self.api_base}/api/overview")
+
+    def _fetch_followup(self, role: str) -> dict | None:
+        """获取 /api/checkin/followup?role={role} 未打卡高潜学员数据"""
+        return self._fetch_url(
+            f"{self.api_base}/api/checkin/followup?role={urllib.parse.quote(role)}"
+        )
 
     # ── 内部：图片生成 ────────────────────────────────────────────────────────
 
@@ -335,12 +422,555 @@ class NotificationEngine:
                 path.write_bytes(img)
                 images.append((f"{short} Check-in {today_str}", img, path))
 
-        # result_metrics / achievement_metrics / process_metrics 等模块
-        # 暂返回空列表，后续迭代实现对应 image generator
+        elif module_id == "result_metrics":
+            overview = self._fetch_overview()
+            img_bytes = self._gen_result_metrics_image(overview, role, today_str)
+            path = OUTPUT_DIR / f"result-metrics-{role}-{date_tag}.png"
+            path.write_bytes(img_bytes)
+            images.append((f"ผลลัพธ์ {role} {today_str}", img_bytes, path))
+
+        elif module_id == "achievement_metrics":
+            overview = self._fetch_overview()
+            img_bytes = self._gen_achievement_metrics_image(overview, role, today_str)
+            path = OUTPUT_DIR / f"achievement-metrics-{role}-{date_tag}.png"
+            path.write_bytes(img_bytes)
+            images.append((f"การบรรลุเป้า {role} {today_str}", img_bytes, path))
+
+        elif module_id in ("process_metrics", "efficiency_metrics"):
+            # 合并过程+效率为一张图
+            # process_metrics 生成图，efficiency_metrics 跳过避免重复
+            if module_id == "process_metrics":
+                overview = self._fetch_overview()
+                img_bytes = self._gen_process_efficiency_image(
+                    overview, role, today_str
+                )
+                path = OUTPUT_DIR / f"process-efficiency-{role}-{date_tag}.png"
+                path.write_bytes(img_bytes)
+                title_th = f"กระบวนการ+ประสิทธิภาพ {role} {today_str}"
+                images.append((title_th, img_bytes, path))
+
+        elif module_id == "service_metrics":
+            overview = self._fetch_overview()
+            img_bytes = self._gen_service_metrics_image(overview, role, today_str)
+            path = OUTPUT_DIR / f"service-metrics-{role}-{date_tag}.png"
+            path.write_bytes(img_bytes)
+            images.append((f"บริการ {role} {today_str}", img_bytes, path))
+
+        # action_items 由 _process_module 直接处理文本，不走图片流程
         else:
             pass
 
         return images
+
+    # ── 内部：TL+ 专属图片生成器 ───────────────────────────────────────────────
+
+    def _fig_to_bytes(self, fig: plt.Figure) -> bytes:
+        """Figure → PNG bytes，自动关闭 fig"""
+        buf = io.BytesIO()
+        fig.savefig(buf, format="png", dpi=150, bbox_inches="tight")
+        plt.close(fig)
+        buf.seek(0)
+        return buf.read()
+
+    def _status_color(self, rate: float) -> str:
+        """达成率 → 状态颜色"""
+        if rate >= 1.0:
+            return _C_SUCCESS
+        if rate >= 0.8:
+            return _C_WARNING
+        return _C_DANGER
+
+    def _status_bg(self, rate: float) -> str:
+        if rate >= 1.0:
+            return _C_GREEN_BG
+        if rate >= 0.8:
+            return _C_YELLOW_BG
+        return _C_RED_BG
+
+    def _draw_header(self, fig: plt.Figure, title: str, subtitle: str) -> None:
+        """在 Figure 顶部绘制统一标题栏"""
+        fig.text(
+            0.05, 0.97, title,
+            fontsize=14, fontweight="bold", color=_C_TEXT,
+            fontfamily=_THAI_FONTS, va="top",
+        )
+        fig.text(
+            0.05, 0.93, subtitle,
+            fontsize=9, color=_C_TEXT2,
+            fontfamily=_THAI_FONTS, va="top",
+        )
+        fig.add_artist(
+            mpatches.FancyBboxPatch(
+                (0.0, 0.905), 1.0, 0.002,
+                transform=fig.transFigure,
+                boxstyle="square,pad=0",
+                facecolor=_C_BORDER, linewidth=0,
+            )
+        )
+
+    def _gen_result_metrics_image(
+        self, overview: dict | None, role: str, today_str: str
+    ) -> bytes:
+        """结果指标卡片图：大数字 + 进度条"""
+        metrics: dict = {}
+        kpi_pace: dict = {}
+        if overview:
+            metrics = overview.get("metrics", {})
+            kpi_pace = overview.get("kpi_pace", {})
+
+        # 按 role 决定展示项
+        if role == "CC":
+            items = [
+                {
+                    "label": "付费金额 (USD)",
+                    "label_th": "รายได้ (USD)",
+                    "actual": metrics.get("总带新付费金额USD", 0),
+                    "target": kpi_pace.get("revenue", {}).get("target", 0),
+                    "fmt": lambda v: f"${v:,.0f}",
+                },
+                {
+                    "label": "付费单量",
+                    "label_th": "จำนวนชำระ",
+                    "actual": kpi_pace.get("paid", {}).get("actual", 0),
+                    "target": kpi_pace.get("paid", {}).get("target", 0),
+                    "fmt": lambda v: f"{v:,.0f}",
+                },
+            ]
+        elif role == "SS":
+            narrow_leads = metrics.get("转介绍注册数", 0)
+            items = [
+                {
+                    "label": "窄口 Leads",
+                    "label_th": "Leads แคบ",
+                    "actual": narrow_leads,
+                    "target": kpi_pace.get("register", {}).get("target", 0),
+                    "fmt": lambda v: f"{v:,.0f}",
+                },
+            ]
+        else:  # LP
+            total_leads = metrics.get("转介绍注册数", 0)
+            items = [
+                {
+                    "label": "窄+宽 Leads",
+                    "label_th": "Leads รวม",
+                    "actual": total_leads,
+                    "target": kpi_pace.get("register", {}).get("target", 0),
+                    "fmt": lambda v: f"{v:,.0f}",
+                },
+            ]
+
+        n = len(items)
+        fig_h = 0.8 + n * 1.2
+        fig, axes = plt.subplots(n, 1, figsize=(7, fig_h))
+        if n == 1:
+            axes = [axes]
+        fig.patch.set_facecolor(_C_BG)
+        self._draw_header(fig, f"ผลลัพธ์ · {role}", f"{today_str}  |  T-1")
+
+        for _i, (ax, item) in enumerate(zip(axes, items, strict=False)):
+            ax.set_facecolor(_C_SURFACE)
+            ax.set_xlim(0, 1)
+            ax.set_ylim(0, 1)
+            ax.axis("off")
+
+            actual = item["actual"] or 0
+            target = item["target"] or 0
+            rate = (actual / target) if target > 0 else 0
+            col = self._status_color(rate)
+            bg = self._status_bg(rate)
+
+            # 背景卡片
+            ax.add_patch(mpatches.FancyBboxPatch(
+                (0.02, 0.05), 0.96, 0.88,
+                boxstyle="round,pad=0.01",
+                facecolor=bg, edgecolor=_C_BORDER, linewidth=0.5,
+            ))
+
+            # 大数字
+            val_str = item["fmt"](actual)
+            ax.text(
+                0.08, 0.7, val_str,
+                fontsize=20, fontweight="bold", color=_C_TEXT, va="center",
+            )
+            ax.text(
+                0.08, 0.4, item["label_th"],
+                fontsize=9, color=_C_TEXT2, va="center",
+                fontfamily=_THAI_FONTS,
+            )
+            # 目标 + 达成率
+            ax.text(
+                0.08, 0.18,
+                f"เป้า {item['fmt'](target)}  |  ทำได้ {rate*100:.1f}%",
+                fontsize=8, color=_C_MUTED, va="center",
+                fontfamily=_THAI_FONTS,
+            )
+            # 进度条背景
+            ax.add_patch(mpatches.FancyBboxPatch(
+                (0.55, 0.42), 0.4, 0.1,
+                boxstyle="square,pad=0",
+                facecolor=_C_ELEVATED, linewidth=0,
+            ))
+            # 进度条填充
+            bar_w = min(rate, 1.0) * 0.4
+            if bar_w > 0:
+                ax.add_patch(mpatches.FancyBboxPatch(
+                    (0.55, 0.42), bar_w, 0.1,
+                    boxstyle="square,pad=0",
+                    facecolor=col, linewidth=0,
+                ))
+            ax.text(
+                0.75, 0.65, f"{rate*100:.0f}%",
+                fontsize=11, fontweight="bold", color=col, ha="center", va="center",
+            )
+
+        fig.tight_layout(rect=[0, 0, 1, 0.88])
+        return self._fig_to_bytes(fig)
+
+    def _gen_achievement_metrics_image(
+        self, overview: dict | None, role: str, today_str: str
+    ) -> bytes:
+        """达成指标表格图：各 KPI 目标 | 实际 | 达成率 | 状态"""
+        kpi_pace: dict = {}
+        if overview:
+            kpi_pace = overview.get("kpi_pace", {})
+
+        # 按 role 决定行
+        if role == "CC":
+            rows = [
+                ("Leads 注册数", "register"),
+                ("预约数", "appointment"),
+                ("出席数", "showup"),
+                ("付费单量", "paid"),
+                ("付费金额 USD", "revenue"),
+            ]
+        elif role == "SS":
+            rows = [("Leads 注册数", "register")]
+        else:  # LP
+            rows = [
+                ("Leads 注册数", "register"),
+            ]
+
+        table_data = []
+        for label, key in rows:
+            pace = kpi_pace.get(key, {})
+            actual = pace.get("actual", 0) or 0
+            target = pace.get("target", 0) or 0
+            rate = (actual / target) if target > 0 else 0
+            gap = actual - target
+            table_data.append((label, target, actual, rate, gap))
+
+        n = len(table_data)
+        fig_h = 1.0 + n * 0.55
+        fig, ax = plt.subplots(figsize=(7, max(fig_h, 2.5)))
+        fig.patch.set_facecolor(_C_BG)
+        ax.set_facecolor(_C_BG)
+        ax.axis("off")
+        self._draw_header(fig, f"การบรรลุเป้า · {role}", f"{today_str}  |  T-1")
+
+        col_labels = ["指标", "目标", "实际", "达成率", "差额"]
+        col_xs = [0.02, 0.35, 0.50, 0.65, 0.82]
+        col_aligns = ["left", "right", "right", "right", "right"]
+
+        ax.set_xlim(0, 1)
+        ax.set_ylim(0, 1)
+
+        # 表头
+        header_y = 0.94
+        ax.add_patch(mpatches.FancyBboxPatch(
+            (0.0, header_y - 0.04), 1.0, 0.07,
+            boxstyle="square,pad=0",
+            facecolor=_C_N800, linewidth=0,
+            transform=ax.transAxes,
+        ))
+        for label, x, align in zip(col_labels, col_xs, col_aligns, strict=False):
+            ax.text(
+                x, header_y, label,
+                fontsize=8, color="white", va="center",
+                ha=align, transform=ax.transAxes,
+                fontweight="bold",
+            )
+
+        row_h = 0.85 / max(n, 1)
+        for idx, (label, target, actual, rate, gap) in enumerate(table_data):
+            y = 0.88 - idx * row_h
+            bg = _C_SURFACE if idx % 2 == 0 else "white"
+            ax.add_patch(mpatches.FancyBboxPatch(
+                (0.0, y - row_h * 0.45), 1.0, row_h * 0.9,
+                boxstyle="square,pad=0",
+                facecolor=bg, linewidth=0,
+                transform=ax.transAxes,
+            ))
+            col = self._status_color(rate)
+            vals = [
+                label,
+                f"{target:,.0f}",
+                f"{actual:,.0f}",
+                f"{rate*100:.1f}%",
+                f"{gap:+,.0f}",
+            ]
+            colors = [_C_TEXT, _C_TEXT2, _C_TEXT, col, col if gap < 0 else _C_SUCCESS]
+            for v, x, align, fc in zip(vals, col_xs, col_aligns, colors, strict=False):
+                ax.text(
+                    x, y, v,
+                    fontsize=8.5, color=fc, va="center",
+                    ha=align, transform=ax.transAxes,
+                )
+            # 状态圆点
+            dot_col = self._status_color(rate)
+            ax.add_patch(plt.Circle(
+                (0.97, y), 0.012,
+                facecolor=dot_col, edgecolor="none",
+                transform=ax.transAxes, zorder=5,
+            ))
+
+        fig.tight_layout()
+        return self._fig_to_bytes(fig)
+
+    def _gen_process_efficiency_image(
+        self, overview: dict | None, role: str, today_str: str
+    ) -> bytes:
+        """过程指标 + 效率指标合并图（横向两列表格）"""
+        metrics: dict = {}
+        if overview:
+            metrics = overview.get("metrics", {})
+
+        # 按 role 决定过程/效率指标
+        if role == "CC":
+            process_items = [
+                ("转介绍注册数", "转介绍注册数"),
+                ("预约数", "预约数"),
+                ("出席数", "出席数"),
+                ("付费数", "转介绍付费数"),
+                ("打卡数 (打卡学员)", "打卡数"),
+                ("触达数 (≥120s)", "触达数"),
+                ("带新数", "带新数"),
+                ("带货数", "带货数"),
+            ]
+            efficiency_items = [
+                ("触达率", "触达率"),
+                ("带货比", "带货比"),
+                ("带新系数", "带新系数"),
+                ("注册→付费率", "注册转化率"),
+                ("预约→付费率", "预约出席率"),
+                ("出席→付费率", "出席付费率"),
+            ]
+        elif role == "SS":
+            process_items = [
+                ("转介绍注册数", "转介绍注册数"),
+                ("触达数", "触达数"),
+                ("带新数", "带新数"),
+            ]
+            efficiency_items = [
+                ("触达率", "触达率"),
+                ("带新系数", "带新系数"),
+            ]
+        else:  # LP
+            process_items = [
+                ("转介绍注册数", "转介绍注册数"),
+                ("触达数", "触达数"),
+                ("带新数", "带新数"),
+                ("打卡数", "打卡数"),
+            ]
+            efficiency_items = [
+                ("触达率", "触达率"),
+                ("带新系数", "带新系数"),
+            ]
+
+        def _fmt_val(v: object) -> str:
+            if v is None:
+                return "--"
+            if isinstance(v, float):
+                return f"{v:.2%}" if v < 10 else f"{v:,.1f}"
+            return f"{int(v):,}"
+
+        all_items = [("过程指标", k, metrics.get(k)) for _, k in process_items]
+        all_items += [("效率指标", k, metrics.get(k)) for _, k in efficiency_items]
+
+        n = len(all_items)
+        fig_h = 1.2 + n * 0.4
+        fig, ax = plt.subplots(figsize=(7, max(fig_h, 3.0)))
+        fig.patch.set_facecolor(_C_BG)
+        ax.set_facecolor(_C_BG)
+        ax.axis("off")
+        self._draw_header(
+            fig, f"กระบวนการ & ประสิทธิภาพ · {role}", f"{today_str}  |  T-1"
+        )
+
+        ax.set_xlim(0, 1)
+        ax.set_ylim(0, 1)
+
+        col_labels = ["类别", "指标", "数值"]
+        col_xs = [0.02, 0.22, 0.78]
+        col_aligns = ["left", "left", "right"]
+
+        header_y = 0.94
+        ax.add_patch(mpatches.FancyBboxPatch(
+            (0.0, header_y - 0.04), 1.0, 0.07,
+            boxstyle="square,pad=0",
+            facecolor=_C_N800, linewidth=0,
+            transform=ax.transAxes,
+        ))
+        for label, x, align in zip(col_labels, col_xs, col_aligns, strict=False):
+            ax.text(
+                x, header_y, label,
+                fontsize=8, color="white", va="center",
+                ha=align, transform=ax.transAxes,
+                fontweight="bold",
+            )
+
+        row_h = 0.82 / max(n, 1)
+        prev_cat = ""
+        for idx, (cat, key, val) in enumerate(all_items):
+            y = 0.88 - idx * row_h
+            bg = _C_SURFACE if idx % 2 == 0 else "white"
+            ax.add_patch(mpatches.FancyBboxPatch(
+                (0.0, y - row_h * 0.45), 1.0, row_h * 0.9,
+                boxstyle="square,pad=0",
+                facecolor=bg, linewidth=0,
+                transform=ax.transAxes,
+            ))
+            cat_label = cat if cat != prev_cat else ""
+            prev_cat = cat
+            vals = [cat_label, key, _fmt_val(val)]
+            colors_row = [_C_BRAND_P2, _C_TEXT, _C_TEXT]
+            for v, x, align, fc in zip(  # noqa: B905
+                vals, col_xs, col_aligns, colors_row, strict=False
+            ):
+                ax.text(
+                    x, y, v,
+                    fontsize=8.5, color=fc, va="center",
+                    ha=align, transform=ax.transAxes,
+                )
+
+        fig.tight_layout()
+        return self._fig_to_bytes(fig)
+
+    def _gen_service_metrics_image(
+        self, overview: dict | None, role: str, today_str: str
+    ) -> bytes:
+        """服务指标图：付费前/后外呼表格（无数据时显示空态提示）"""
+        metrics: dict = {}
+        if overview:
+            metrics = overview.get("metrics", {})
+
+        # 尝试读取外呼字段（后端可能尚未提供）
+        pre_call = metrics.get("付费前外呼数")
+        post_call = metrics.get("付费后外呼数")
+        has_data = pre_call is not None or post_call is not None
+
+        fig, ax = plt.subplots(figsize=(7, 3.5))
+        fig.patch.set_facecolor(_C_BG)
+        ax.set_facecolor(_C_BG)
+        ax.axis("off")
+        self._draw_header(fig, f"บริการ · {role}", f"{today_str}  |  T-1")
+        ax.set_xlim(0, 1)
+        ax.set_ylim(0, 1)
+
+        if not has_data:
+            # 空态提示
+            ax.add_patch(mpatches.FancyBboxPatch(
+                (0.1, 0.25), 0.8, 0.4,
+                boxstyle="round,pad=0.02",
+                facecolor=_C_SURFACE, edgecolor=_C_BORDER, linewidth=0.8,
+            ))
+            ax.text(
+                0.5, 0.52, "⚠ ยังไม่มีข้อมูลการโทร",
+                fontsize=12, color=_C_MUTED, ha="center", va="center",
+                fontfamily=_THAI_FONTS,
+            )
+            ax.text(
+                0.5, 0.37, "后端暂未提供外呼数据 API，待对接后自动展示",
+                fontsize=8, color=_C_MUTED, ha="center", va="center",
+            )
+            fig.tight_layout()
+            return self._fig_to_bytes(fig)
+
+        # 有数据时渲染表格
+        rows_def = [
+            ("外呼数", "付费前外呼数", "付费后外呼数"),
+            ("接通数", "付费前接通数", "付费后接通数"),
+            ("有效接通数", "付费前有效接通数", "付费后有效接通数"),
+        ]
+        col_labels = ["指标", "付费前", "付费后"]
+        col_xs = [0.05, 0.55, 0.8]
+        col_aligns = ["left", "right", "right"]
+
+        header_y = 0.72
+        ax.add_patch(mpatches.FancyBboxPatch(
+            (0.0, header_y - 0.04), 1.0, 0.07,
+            boxstyle="square,pad=0",
+            facecolor=_C_N800, linewidth=0,
+            transform=ax.transAxes,
+        ))
+        for label, x, align in zip(col_labels, col_xs, col_aligns, strict=False):
+            ax.text(
+                x, header_y, label,
+                fontsize=8, color="white", va="center",
+                ha=align, transform=ax.transAxes, fontweight="bold",
+            )
+
+        for idx, (label, pre_key, post_key) in enumerate(rows_def):
+            y = 0.60 - idx * 0.16
+            bg = _C_SURFACE if idx % 2 == 0 else "white"
+            ax.add_patch(mpatches.FancyBboxPatch(
+                (0.0, y - 0.07), 1.0, 0.13,
+                boxstyle="square,pad=0",
+                facecolor=bg, linewidth=0,
+                transform=ax.transAxes,
+            ))
+            pre_v = metrics.get(pre_key)
+            post_v = metrics.get(post_key)
+            vals = [
+                label,
+                f"{int(pre_v):,}" if pre_v is not None else "--",
+                f"{int(post_v):,}" if post_v is not None else "--",
+            ]
+            for v, x, align in zip(vals, col_xs, col_aligns, strict=False):
+                ax.text(
+                    x, y, v,
+                    fontsize=9, color=_C_TEXT, va="center",
+                    ha=align, transform=ax.transAxes,
+                )
+
+        fig.tight_layout()
+        return self._fig_to_bytes(fig)
+
+    def _generate_action_items_text(self, role: str) -> str:
+        """生成操作指令 Markdown 文本：未打卡高潜学员 top 5"""
+        followup = self._fetch_followup(role)
+        today = datetime.now().strftime("%d/%m/%Y")
+
+        lines = [f"## 📋 คำแนะนำการดำเนินงาน · {role}"]
+        lines.append(f"**{today}  |  T-1**\n")
+
+        if not followup:
+            lines.append("⚠ ยังไม่มีข้อมูล (后端暂未提供跟进数据)")
+            lines.append("\n> 请相关人员跟进重点学员")
+            return "\n".join(lines)
+
+        raw: object = followup.get("students", followup)
+        students: list[dict] = raw if isinstance(raw, list) else []
+        if not students:
+            lines.append("✅ ไม่มีนักเรียนที่ต้องติดตาม (暂无需跟进学员)")
+            return "\n".join(lines)
+
+        top5 = students[:5]
+        lines.append("**高潜未打卡学员 Top 5：**\n")
+        for i, s in enumerate(top5, 1):
+            sid = s.get("student_id", s.get("id", "--"))
+            enclosure = s.get("enclosure", s.get("days", "--"))
+            score = s.get("quality_score", s.get("score", "--"))
+            owner = s.get("owner", s.get("assigned_to", "--"))
+            if isinstance(score, float):
+                score = f"{score:.1f}"
+            line = (
+                f"{i}. 学员 `{sid}` | 围场 {enclosure}天"
+                f" | 评分 {score} | 负责人: {owner}"
+            )
+            lines.append(line)
+
+        lines.append(f"\n> 请相关人员尽快跟进以上 {len(top5)} 位学员")
+        return "\n".join(lines)
 
     # ── 内部：图片上传（双图床 fallback）────────────────────────────────────
 
