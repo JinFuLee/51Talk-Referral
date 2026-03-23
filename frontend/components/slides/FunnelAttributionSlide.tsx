@@ -24,11 +24,14 @@ const TH: React.CSSProperties = { color: 'white' };
 
 export function FunnelAttributionSlide({ slideNumber, totalSlides }: SlideProps) {
   const { data, isLoading, error } = useSWR<FunnelResponse>('/api/funnel', swrFetcher);
-  const stages = data?.stages ?? [];
+  const allStages = data?.stages ?? [];
+
+  // 只保留计数型 stage（过滤掉名称含"率"的率值 stage）
+  const countStages = allStages.filter((s) => !s.name.includes('率'));
 
   // 相邻环节计算转化率
-  const rows = stages.map((s, i) => {
-    const prev = i > 0 ? (stages[i - 1].actual ?? 0) : 0;
+  const rows = countStages.map((s, i) => {
+    const prev = i > 0 ? (countStages[i - 1].actual ?? 0) : 0;
     const curr = s.actual ?? 0;
     const stepRate = prev > 0 ? curr / prev : null;
     return { ...s, stepRate };
