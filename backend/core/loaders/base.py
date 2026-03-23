@@ -38,10 +38,15 @@ class BaseLoader:
             self.default_team = "THCC"
 
     def _get_cache_path(self, file_path: Path, sheet_name=None, header=0) -> Path:
-        """生成 Parquet 缓存文件路径（sheet_name + header 共同决定缓存键，避免 header=None 与 header=0 互串）"""
+        """生成 Parquet 缓存文件路径。
+
+        sheet_name + header 共同决定缓存键，
+        避免 header=None 与 header=0 互串。
+        """
         cache_dir = self.input_dir / ".cache"
         cache_dir.mkdir(exist_ok=True)
-        key = f"{file_path}:{sheet_name if sheet_name is not None else 'default'}:h{header}"
+        sn = sheet_name if sheet_name is not None else "default"
+        key = f"{file_path}:{sn}:h{header}"
         hash_key = hashlib.md5(key.encode()).hexdigest()[:12]
         return cache_dir / f"{hash_key}.parquet"
 
@@ -134,7 +139,10 @@ class BaseLoader:
         return text
 
     def _normalize_team(self, name: str) -> str:
-        """规范化团队名：'-'/'—'/'nan'/空 → default_team（有 config 时从 config 读取）"""
+        """规范化团队名。
+
+        '-'/'—'/'nan'/空 → default_team（有 config 时从 config 读取）
+        """
         if not name or str(name).strip() in ("-", "—", "nan", "NaN", ""):
             return self.default_team
         return str(name).strip()
@@ -182,7 +190,9 @@ class BaseLoader:
 
     def _clean_date_vec(self, s: "pd.Series") -> "pd.Series":
         """向量化日期清洗（替代逐行 apply(_clean_date)）。
-        处理 YYYYMMDD 纯数字字符串、标准 ISO/Excel 日期，过滤 < 2000-01-01 的无效占位符。
+
+        处理 YYYYMMDD 纯数字字符串、标准 ISO/Excel 日期，
+        过滤 < 2000-01-01 的无效占位符。
         """
         import pandas as pd
 

@@ -9,9 +9,6 @@ import os
 from contextlib import asynccontextmanager
 from pathlib import Path
 
-PROJECT_ROOT = Path(__file__).resolve().parent.parent
-BACKEND_DIR = Path(__file__).resolve().parent
-
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -20,6 +17,9 @@ from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 from slowapi.util import get_remote_address
 from starlette.middleware.base import BaseHTTPMiddleware
+
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+BACKEND_DIR = Path(__file__).resolve().parent
 
 logger = logging.getLogger(__name__)
 
