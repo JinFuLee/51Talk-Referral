@@ -6,13 +6,9 @@ import { formatRate } from '@/lib/utils';
 import { SlideShell } from '@/components/presentation/SlideShell';
 import { Spinner } from '@/components/ui/Spinner';
 import type { ScenarioResult } from '@/lib/types/funnel';
+import type { SlideProps } from '@/lib/presentation/types';
 
-interface ScenarioAnalysisSlideProps {
-  slideNumber: number;
-  totalSlides: number;
-}
-
-export function ScenarioAnalysisSlide({ slideNumber, totalSlides }: ScenarioAnalysisSlideProps) {
+export function ScenarioAnalysisSlide({ slideNumber, totalSlides }: SlideProps) {
   const { data, isLoading, error } = useSWR<ScenarioResult>('/api/funnel/scenario', swrFetcher);
 
   return (

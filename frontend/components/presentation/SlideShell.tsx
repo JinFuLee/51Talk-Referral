@@ -10,8 +10,6 @@ interface SlideShellProps {
   title: string;
   subtitle?: string;
   section?: string;
-  revealStep?: number;
-  maxRevealSteps?: number;
 }
 
 export function SlideShell({
@@ -21,8 +19,6 @@ export function SlideShell({
   title,
   subtitle,
   section,
-  revealStep = 0,
-  maxRevealSteps = 1,
 }: SlideShellProps) {
   const progressPct = Math.round((slideNumber / totalSlides) * 100);
 

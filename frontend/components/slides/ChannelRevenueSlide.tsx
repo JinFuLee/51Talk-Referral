@@ -6,23 +6,11 @@ import { swrFetcher } from '@/lib/api';
 import { formatRevenue, formatRate } from '@/lib/utils';
 import { SlideShell } from '@/components/presentation/SlideShell';
 import { Spinner } from '@/components/ui/Spinner';
-
-interface ChannelAttribution {
-  channel: string;
-  revenue: number;
-  share: number;
-  per_capita: number;
-}
+import type { ChannelAttribution, SlideProps } from '@/lib/presentation/types';
 
 const COLORS = ['#6366f1', '#22d3ee', '#f59e0b', '#10b981', '#f43f5e'];
 
-export function ChannelRevenueSlide({
-  slideNumber,
-  totalSlides,
-}: {
-  slideNumber: number;
-  totalSlides: number;
-}) {
+export function ChannelRevenueSlide({ slideNumber, totalSlides }: SlideProps) {
   const { data, isLoading, error } = useSWR<ChannelAttribution[]>(
     '/api/channel/attribution',
     swrFetcher

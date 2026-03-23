@@ -5,16 +5,7 @@ import { swrFetcher } from '@/lib/api';
 import { formatRate } from '@/lib/utils';
 import { SlideShell } from '@/components/presentation/SlideShell';
 import { Spinner } from '@/components/ui/Spinner';
-
-interface ChannelConversion {
-  channel: string;
-  appointment_rate: number;
-  appointment_rate_target: number;
-  attendance_rate: number;
-  attendance_rate_target: number;
-  paid_rate: number;
-  paid_rate_target: number;
-}
+import type { ChannelConversion, SlideProps } from '@/lib/presentation/types';
 
 function GapCell({ actual, target }: { actual: number; target: number }) {
   const gap = actual - target;
@@ -34,13 +25,7 @@ function GapCell({ actual, target }: { actual: number; target: number }) {
   );
 }
 
-export function FunnelAttributionSlide({
-  slideNumber,
-  totalSlides,
-}: {
-  slideNumber: number;
-  totalSlides: number;
-}) {
+export function FunnelAttributionSlide({ slideNumber, totalSlides }: SlideProps) {
   const { data, isLoading, error } = useSWR<ChannelConversion[]>('/api/channel', swrFetcher);
   const channels = data ?? [];
 

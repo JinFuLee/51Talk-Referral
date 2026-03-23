@@ -4,16 +4,7 @@ import useSWR from 'swr';
 import { swrFetcher } from '@/lib/api';
 import { SlideShell } from '@/components/presentation/SlideShell';
 import { Spinner } from '@/components/ui/Spinner';
-
-interface ChannelFactor {
-  channel: string;
-  expected_orders: number;
-  actual_orders: number;
-  gap_orders: number;
-  appt_factor: number;
-  show_factor: number;
-  pay_factor: number;
-}
+import type { ChannelFactor, SlideProps } from '@/lib/presentation/types';
 
 function GapBadge({ gap }: { gap: number }) {
   const isPositive = gap >= 0;
@@ -47,13 +38,7 @@ function FactorBadge({ value }: { value: number }) {
   );
 }
 
-export function ThreeFactorSlide({
-  slideNumber,
-  totalSlides,
-}: {
-  slideNumber: number;
-  totalSlides: number;
-}) {
+export function ThreeFactorSlide({ slideNumber, totalSlides }: SlideProps) {
   const { data, isLoading, error } = useSWR<ChannelFactor[]>(
     '/api/channel/three-factor',
     swrFetcher

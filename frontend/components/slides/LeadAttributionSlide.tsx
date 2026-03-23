@@ -4,22 +4,9 @@ import useSWR from 'swr';
 import { swrFetcher } from '@/lib/api';
 import { SlideShell } from '@/components/presentation/SlideShell';
 import { Spinner } from '@/components/ui/Spinner';
+import type { ChannelFunnel, SlideProps } from '@/lib/presentation/types';
 
-interface ChannelFunnel {
-  channel: string;
-  registrations: number;
-  appointments: number;
-  attendances: number;
-  paid_count: number;
-}
-
-export function LeadAttributionSlide({
-  slideNumber,
-  totalSlides,
-}: {
-  slideNumber: number;
-  totalSlides: number;
-}) {
+export function LeadAttributionSlide({ slideNumber, totalSlides }: SlideProps) {
   const { data, isLoading, error } = useSWR<ChannelFunnel[]>('/api/channel', swrFetcher);
   const channels = data ?? [];
 

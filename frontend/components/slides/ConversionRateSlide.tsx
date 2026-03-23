@@ -16,13 +16,9 @@ import {
   Cell,
 } from 'recharts';
 import type { FunnelResult } from '@/lib/types/funnel';
+import type { SlideProps } from '@/lib/presentation/types';
 
-interface ConversionRateSlideProps {
-  slideNumber: number;
-  totalSlides: number;
-}
-
-export function ConversionRateSlide({ slideNumber, totalSlides }: ConversionRateSlideProps) {
+export function ConversionRateSlide({ slideNumber, totalSlides }: SlideProps) {
   const { data, isLoading, error } = useSWR<FunnelResult>('/api/funnel', swrFetcher);
   const stages = data?.stages ?? [];
 

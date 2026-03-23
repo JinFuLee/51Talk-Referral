@@ -5,23 +5,10 @@ import { swrFetcher } from '@/lib/api';
 import { formatRevenue, formatRate } from '@/lib/utils';
 import { SlideShell } from '@/components/presentation/SlideShell';
 import { Spinner } from '@/components/ui/Spinner';
+import type { ChannelRevenue, SlideProps } from '@/lib/presentation/types';
 
-interface ChannelData {
-  channel: string;
-  target_amount_usd: number;
-  actual_amount_usd: number;
-  gap_usd: number;
-  achievement_rate: number;
-}
-
-export function RevenueDecompositionSlide({
-  slideNumber,
-  totalSlides,
-}: {
-  slideNumber: number;
-  totalSlides: number;
-}) {
-  const { data, isLoading, error } = useSWR<ChannelData[]>('/api/channel', swrFetcher);
+export function RevenueDecompositionSlide({ slideNumber, totalSlides }: SlideProps) {
+  const { data, isLoading, error } = useSWR<ChannelRevenue[]>('/api/channel', swrFetcher);
   const channels = data ?? [];
 
   return (

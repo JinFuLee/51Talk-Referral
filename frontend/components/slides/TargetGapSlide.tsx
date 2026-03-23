@@ -5,25 +5,9 @@ import { swrFetcher } from '@/lib/api';
 import { formatRate } from '@/lib/utils';
 import { SlideShell } from '@/components/presentation/SlideShell';
 import { Spinner } from '@/components/ui/Spinner';
+import type { OverviewData, SlideProps } from '@/lib/presentation/types';
 
-interface Stage {
-  name: string;
-  target: number;
-  actual: number;
-  gap: number;
-  achievement_rate: number;
-}
-
-interface OverviewData {
-  funnel_stages: Stage[];
-}
-
-interface TargetGapSlideProps {
-  slideNumber: number;
-  totalSlides: number;
-}
-
-export function TargetGapSlide({ slideNumber, totalSlides }: TargetGapSlideProps) {
+export function TargetGapSlide({ slideNumber, totalSlides }: SlideProps) {
   const { data, isLoading, error } = useSWR<OverviewData>('/api/overview', swrFetcher);
   const stages = data?.funnel_stages ?? [];
 
