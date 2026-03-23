@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import logging
 import threading
+import time
 from pathlib import Path
 from typing import Any
 
@@ -20,6 +21,10 @@ from backend.core.loaders import (
 from backend.models.common import DataSourceStatus
 
 logger = logging.getLogger(__name__)
+
+# 数据源空态告警节流（每小时最多 1 次，避免 reload 循环刷屏）
+_last_empty_alert_ts: float = 0.0
+_ALERT_THROTTLE_SECONDS = 3600
 
 # 5 个数据源定义（用于状态查询）
 _DATA_SOURCE_META = [
@@ -99,6 +104,15 @@ class DataManager:
                 elif isinstance(val, dict):
                     logger.info(f"  {key}: {len(val)} 个目标键")
 
+            # 数据源全空检查（D1-D5，排除 targets 字典）
+            d1_to_d5 = {
+                k: v for k, v in new_cache.items()
+                if k != "targets" and isinstance(v, pd.DataFrame)
+            }
+            if d1_to_d5 and all(df.empty for df in d1_to_d5.values()):
+                logger.warning("所有数据源为空（D1-D5），可能数据文件缺失或格式变更")
+                self._alert_empty_data()
+
             return self._cache
 
     def get(self, key: str) -> Any:
@@ -119,6 +133,74 @@ class DataManager:
         """返回当前已加载文件路径的副本（线程安全）"""
         with self._lock:
             return dict(self._loaded_files)
+
+    def _alert_empty_data(self) -> None:
+        """数据源全空时向 ops 群推送告警，节流：每小时最多 1 次"""
+        global _last_empty_alert_ts
+
+        now_ts = time.time()
+        if now_ts - _last_empty_alert_ts < _ALERT_THROTTLE_SECONDS:
+            logger.debug("数据源空态告警已节流，跳过推送")
+            return
+
+        try:
+            import base64
+            import hashlib
+            import hmac
+            import json
+            import urllib.parse
+            import urllib.request
+            from datetime import datetime
+
+            key_dir = Path(__file__).resolve().parent.parent.parent / "key"
+            channels_path = key_dir / "dingtalk-channels.json"
+            if not channels_path.exists():
+                logger.debug("dingtalk-channels.json 不存在，跳过告警推送")
+                return
+
+            with open(channels_path) as f:
+                data = json.load(f)
+
+            ops = data.get("channels", {}).get("ops")
+            if not ops or not ops.get("enabled"):
+                logger.debug("ops 频道未启用，跳过告警推送")
+                return
+
+            # 加签
+            webhook: str = ops["webhook"]
+            secret: str = ops["secret"]
+            ts = str(int(now_ts * 1000))
+            sign_str = f"{ts}\n{secret}"
+            hmac_code = hmac.new(
+                secret.encode(), sign_str.encode(), digestmod=hashlib.sha256
+            ).digest()
+            sign = urllib.parse.quote_plus(base64.b64encode(hmac_code).decode())
+            url = f"{webhook}&timestamp={ts}&sign={sign}"
+
+            now_str = datetime.now().strftime("%Y-%m-%d %H:%M")
+            md = (
+                "## ⚠ Data Source Alert\n\n"
+                "All data sources (D1-D5) are **empty**.\n\n"
+                "- Possible: Excel files missing or sheet name changed\n"
+                "- Action: Check `DATA_SOURCE_DIR` and re-download from BI\n\n"
+                f"> {now_str}"
+            )
+
+            payload = json.dumps(
+                {"msgtype": "markdown", "markdown": {"title": "Data Alert", "text": md}}
+            ).encode()
+            req = urllib.request.Request(
+                url,
+                data=payload,
+                headers={"Content-Type": "application/json"},
+                method="POST",
+            )
+            urllib.request.urlopen(req, timeout=5)
+
+            _last_empty_alert_ts = now_ts
+            logger.info("数据源空态告警已推送到 ops 群")
+        except Exception as e:
+            logger.warning(f"数据源空态告警推送失败: {e}")
 
     def get_status(self) -> list[DataSourceStatus]:
         """返回 5 个数据文件的存在性与新鲜度状态"""
