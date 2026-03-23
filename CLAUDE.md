@@ -159,6 +159,7 @@ Excel 数据源 → XlsxReader → DataProcessor → AnalysisEngine → Markdown
 - 修改表头颜色/间距/字号 → 改 `globals.css` 一处，全部 Slide 自动生效
 - Tailwind `bg-[var(--xxx)]` 在 JIT 模式下对 CSS 变量编译不稳定，Slide 组件统一用 CSS class 而非 Tailwind arbitrary value
 - 新增 Slide 组件不引用 `slide-*` class = 不合格
+- **CSS 优先级铁律**：Tailwind Preflight 对 `th/td` 有默认样式（`color: inherit` + 特定 specificity），自定义 class 必须用 `.parent th { ... !important }` 后代选择器确保覆盖。当前 `globals.css` 已用 `.slide-thead-row th { color: #fff !important }` 模式
 
 ## API 契约防漂移规则
 - 前端 `useSWR<T>` 泛型 T 必须精确匹配后端 `response_model` 类型
