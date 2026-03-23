@@ -6,6 +6,7 @@ import { swrFetcher } from '@/lib/api';
 import { Spinner } from '@/components/ui/Spinner';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { MemberDetailDrawer } from '@/components/members/MemberDetailDrawer';
+import { useWideConfig } from '@/lib/hooks/useWideConfig';
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -475,9 +476,14 @@ interface FollowupTabProps {
   roleEnclosures?: Record<string, string[]>;
 }
 
-export function FollowupTab({ activeRoles, roleEnclosures }: FollowupTabProps) {
+export function FollowupTab({ activeRoles: activeRolesProp }: FollowupTabProps) {
+  const { configJson, activeRoles: hookActiveRoles, roleEnclosures: wideRoleEnc } = useWideConfig();
+
+  // 优先使用 hook 内部读取的值，props 作为备用
+  const activeRoles = hookActiveRoles.length > 0 ? hookActiveRoles : (activeRolesProp ?? []);
+
   const visibleRoles: Role[] =
-    activeRoles && activeRoles.length > 0 ? ROLES.filter((r) => activeRoles.includes(r)) : ROLES;
+    activeRoles.length > 0 ? ROLES.filter((r) => activeRoles.includes(r)) : ROLES;
   const [role, setRole] = useState<Role>(visibleRoles[0] ?? 'CC');
   const [team, setTeam] = useState('');
   const [salesSearch, setSalesSearch] = useState('');
@@ -493,8 +499,9 @@ export function FollowupTab({ activeRoles, roleEnclosures }: FollowupTabProps) {
     if (team) p.set('team', team);
     if (salesSearch.trim()) p.set('sales', salesSearch.trim());
     if (enclosures.length > 0) p.set('enclosure', enclosures.join(','));
+    p.set('role_config', configJson);
     return p.toString();
-  }, [role, team, salesSearch, enclosures]);
+  }, [role, team, salesSearch, enclosures, configJson]);
 
   const {
     data: raw,
@@ -560,7 +567,7 @@ export function FollowupTab({ activeRoles, roleEnclosures }: FollowupTabProps) {
         enclosures={enclosures}
         onEnclosuresChange={setEnclosures}
         visibleRoles={visibleRoles}
-        roleEnclosures={roleEnclosures?.[role]}
+        roleEnclosures={wideRoleEnc?.[role]}
       />
 
       {isLoading ? (
