@@ -166,6 +166,20 @@ def cleanup_old_versions(data_dir: Path, keep_file: Path | None) -> list[Path]:
                     f"删除旧文件失败: {old.name}", exc_info=True
                 )
 
+    # 有旧文件被删除时，清理对应的 Parquet 缓存（无法反推缓存键，全量清理让 load 重建）
+    if deleted:
+        cache_dir = data_dir / ".cache"
+        if cache_dir.is_dir():
+            stale_count = 0
+            for pq in cache_dir.glob("*.parquet"):
+                try:
+                    pq.unlink()
+                    stale_count += 1
+                except OSError:
+                    pass
+            if stale_count:
+                logger.info(f"清理孤儿缓存: 删除 {stale_count} 个 .parquet 文件")
+
     return deleted
 
 
