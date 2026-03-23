@@ -58,8 +58,6 @@ def get_indicator_registry() -> list[dict[str, Any]]:
     """返回 config.json 中的 indicator_registry 全量列表"""
     config = _get_project_config()
     registry = config.get("indicator_registry", [])
-    if not registry:
-        raise HTTPException(status_code=404, detail="指标注册表为空或不存在")
     return registry
 
 
@@ -140,6 +138,7 @@ def put_indicator_matrix(role: str, body: MatrixUpdateBody) -> dict[str, Any]:
 
     # 审计日志
     audit_path = PROJECT_ROOT / "output" / "indicator-matrix-changes.jsonl"
+    audit_path.parent.mkdir(parents=True, exist_ok=True)
     audit_entry = {
         "ts": datetime.now(UTC).isoformat(),
         "action": "update",
@@ -195,6 +194,7 @@ def reset_indicator_matrix(role: str) -> dict[str, Any]:
 
     # 审计日志
     audit_path = PROJECT_ROOT / "output" / "indicator-matrix-changes.jsonl"
+    audit_path.parent.mkdir(parents=True, exist_ok=True)
     audit_entry = {
         "ts": datetime.now(UTC).isoformat(),
         "action": "reset",
