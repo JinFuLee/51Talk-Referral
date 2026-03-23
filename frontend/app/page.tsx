@@ -10,9 +10,11 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { StatCard } from '@/components/shared/StatCard';
 import { PercentBar } from '@/components/shared/PercentBar';
 import { useIndicatorMatrix } from '@/lib/hooks/useIndicatorMatrix';
+import { useDataSources } from '@/lib/hooks';
 import type { AttributionSummary } from '@/lib/types/cross-analysis';
 import type { IndicatorCategory } from '@/lib/types/indicator-matrix';
 import { CATEGORY_LABELS_ZH } from '@/lib/types/indicator-matrix';
+import { DataSourceSection } from '@/components/datasources/DataSourceSection';
 
 /* ── 岗位视角类型 ──────────────────────────────────────────────── */
 
@@ -392,6 +394,7 @@ const KPI_CARD_INDICATOR_IDS: Record<string, string[]> = {
 export default function DashboardPage() {
   const [roleView, setRoleView] = useState<RoleView>('all');
   const { data, isLoading, error } = useSWR<OverviewResponse>('/api/overview', swrFetcher);
+  const { data: fullSources } = useDataSources();
 
   // 根据岗位视角过滤 KPI 卡片（all = 全部显示）
   const visibleKpiCards = useMemo(() => {
@@ -507,37 +510,7 @@ export default function DashboardPage() {
 
       {/* 数据源状态 */}
       <Card title="数据源状态">
-        {sources.length === 0 ? (
-          <EmptyState title="未检测到数据源" description="请前往设置页面配置数据文件路径" />
-        ) : (
-          <div className="flex flex-wrap gap-3">
-            {sources.map((s) => (
-              <div
-                key={s.id}
-                className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium ${
-                  s.has_file
-                    ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400'
-                    : 'bg-red-50 text-red-600 dark:bg-red-900/20 dark:text-red-400'
-                }`}
-              >
-                <span
-                  className={`w-2 h-2 rounded-full ${
-                    s.has_file ? 'bg-emerald-500 dark:bg-emerald-400' : 'bg-red-500 dark:bg-red-400'
-                  }`}
-                />
-                {s.name}
-                {s.has_file && (
-                  <span className="text-[var(--text-muted)] ml-1">({s.row_count})</span>
-                )}
-              </div>
-            ))}
-            {!allSourcesOk && (
-              <p className="w-full text-xs text-[var(--text-muted)] mt-1">
-                部分数据源缺失，分析结果可能不完整
-              </p>
-            )}
-          </div>
-        )}
+        <DataSourceSection sources={fullSources ?? []} />
       </Card>
     </div>
   );

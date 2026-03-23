@@ -60,8 +60,8 @@ export interface SummaryData {
 export interface SummaryMetric {
   actual: number;
   target: number;
-  progress: number;       // 0.0 ~ 1.0
-  status: "green" | "yellow" | "red" | "gray";
+  progress: number; // 0.0 ~ 1.0
+  status: 'green' | 'yellow' | 'red' | 'gray';
   label?: string;
   // M11 enhanced fields
   daily_avg?: number;
@@ -88,7 +88,7 @@ export interface FunnelData {
 
 export interface FunnelChannel {
   valid_students: number;
-  contact_rate?: number;     // 触达率 0~1 (legacy)
+  contact_rate?: number; // 触达率 0~1 (legacy)
   participation_rate?: number;
   checkin_rate?: number;
   new_coefficient?: number;
@@ -117,7 +117,7 @@ export interface ChannelComparisonData {
 }
 
 export interface ChannelStat {
-  channel: string;          // "narrow" | "wide"
+  channel: string; // "narrow" | "wide"
   label: string;
   registrations: number;
   payments: number;
@@ -129,7 +129,7 @@ export interface ChannelStat {
 
 export interface TeamMemberData {
   name: string;
-  role: "CC" | "SS" | "LP";
+  role: 'CC' | 'SS' | 'LP';
   registrations?: number;
   payments?: number;
   revenue?: number;
@@ -160,7 +160,7 @@ export interface RankingItem {
 // ── 风险预警 ──────────────────────────────────────────────────────────────────
 
 export interface RiskAlert {
-  level: "critical" | "warning" | "info";
+  level: 'critical' | 'warning' | 'info';
   metric: string;
   message: string;
   value?: number;
@@ -232,14 +232,14 @@ export interface TrendPeakValley {
 
 export interface TrendData {
   series: TrendPoint[];
-  compare_type?: "mom" | "yoy" | "wow";
-  direction?: "rising" | "falling" | "volatile" | "insufficient";
+  compare_type?: 'mom' | 'yoy' | 'wow';
+  direction?: 'rising' | 'falling' | 'volatile' | 'insufficient';
   peak?: TrendPeakValley;
   valley?: TrendPeakValley;
 }
 
 export interface TrendPoint {
-  date: string;             // YYYY-MM or YYYY-MM-DD
+  date: string; // YYYY-MM or YYYY-MM-DD
   registrations?: number;
   payments?: number;
   revenue?: number;
@@ -254,7 +254,7 @@ export interface AttributionData {
 
 export interface AttributionFactor {
   factor: string;
-  contribution: number;   // 0~1
+  contribution: number; // 0~1
   label?: string;
 }
 
@@ -276,7 +276,7 @@ export interface CohortData {
 }
 
 export interface CohortSegment {
-  range: string;            // "0-30" | "31-60" | ...
+  range: string; // "0-30" | "31-60" | ...
   count: number;
   conversion_rate: number;
   payments: number;
@@ -323,7 +323,7 @@ export interface AnomalyItem {
   value: number;
   expected?: number;
   z_score?: number;
-  severity: "high" | "medium" | "low";
+  severity: 'high' | 'medium' | 'low';
   description?: string;
 }
 
@@ -349,11 +349,15 @@ export interface CCGrowthPoint {
 
 // ── 数据源状态 ────────────────────────────────────────────────────────────────
 
+export type FreshnessTier = 'today' | 'yesterday' | 'recent' | 'stale' | 'missing';
+export type RowAnomalyStatus = 'low' | 'high' | 'ok' | 'unknown';
+
 export interface DataSourceStatus {
   id: string;
+  name: string;
   name_zh: string;
-  priority: "P0" | "P1" | "P2" | "P3";
-  update_frequency: "daily" | "weekly" | "monthly";
+  priority: 'P0' | 'P1' | 'P2' | 'P3';
+  update_frequency: 'daily' | 'weekly' | 'monthly';
   is_single_point: boolean;
   dir: string;
   has_file: boolean;
@@ -361,6 +365,25 @@ export interface DataSourceStatus {
   latest_date: string | null;
   is_fresh: boolean;
   file_count: number;
+  row_count?: number | null;
+  // 日期 & 新鲜度
+  data_date: string | null;
+  freshness_tier: FreshnessTier;
+  days_behind: number | null;
+  // 行数异常
+  expected_rows_min: number | null;
+  expected_rows_max: number | null;
+  row_anomaly: RowAnomalyStatus;
+  // 字段利用率
+  total_columns: number | null;
+  columns_present: number | null;
+  completeness_rate: number | null;
+  system_consumed_columns: number | null;
+  utilization_rate: number | null;
+  // 核心字段
+  critical_columns_total: number | null;
+  critical_columns_present: number | null;
+  critical_completeness_rate: number | null;
 }
 
 // ── 快照 ─────────────────────────────────────────────────────────────────────
@@ -388,7 +411,7 @@ export interface CCGrowthAPIPoint {
 
 export interface ReportFile {
   filename: string;
-  report_type: "ops" | "exec" | "unknown";
+  report_type: 'ops' | 'exec' | 'unknown';
   date: string | null;
   size_bytes: number;
   path: string;
@@ -415,8 +438,8 @@ export interface HardTarget {
   total_revenue: number;
   referral_pct: number;
   referral_revenue: number;
-  display_currency: "THB" | "USD";
-  lock_field: "pct" | "amount";
+  display_currency: 'THB' | 'USD';
+  lock_field: 'pct' | 'amount';
 }
 
 export interface ChannelTarget {
@@ -491,13 +514,16 @@ export interface TargetFeasibility {
   score: number | null;
   label: string;
   probability: string;
-  detail: Record<string, {
-    actual: number;
-    target: number;
-    pace_ratio: number;
-    predicted_completion: number;
-  }>;
-  confidence: "high" | "medium" | "low";
+  detail: Record<
+    string,
+    {
+      actual: number;
+      target: number;
+      pace_ratio: number;
+      predicted_completion: number;
+    }
+  >;
+  confidence: 'high' | 'medium' | 'low';
 }
 
 export interface TargetRecommendation {
@@ -563,8 +589,8 @@ export interface RootCauseAnalysis {
   trigger_metric: string;
   trigger_label?: string;
   trigger_description?: string;
-  severity: "red" | "yellow" | "green";
-  category?: "total" | "channel" | "enclosure" | "efficiency";
+  severity: 'red' | 'yellow' | 'green';
+  category?: 'total' | 'channel' | 'enclosure' | 'efficiency';
   why_chain: WhyLevel[];
   root_cause?: string;
   action: string;
@@ -634,7 +660,7 @@ export interface PyramidPillar {
 
 export interface NotificationType {
   id: string;
-  type: "warning" | "alert" | "info";
+  type: 'warning' | 'alert' | 'info';
   title: string;
   message: string;
   timestamp: number;
@@ -703,12 +729,14 @@ export interface LeadsGapAnalysis {
 
 export interface TeamChannelRow {
   team: string;
-  [channel: string]: {
-    register?: number;
-    paid?: number;
-    conversion?: number;
-    cargo_ratio?: number;
-  } | string;
+  [channel: string]:
+    | {
+        register?: number;
+        paid?: number;
+        conversion?: number;
+        cargo_ratio?: number;
+      }
+    | string;
 }
 
 export interface EnclosureBaselineRow {
@@ -732,7 +760,7 @@ export interface LeadsOverviewData {
   enclosure_baseline: EnclosureBaselineRow[];
   scopes_available: string[];
   /** 口径角色：CC/总计 = "full_funnel"；SS/LP/宽口 = "leads_only" */
-  role: "full_funnel" | "leads_only";
+  role: 'full_funnel' | 'leads_only';
   /** 当前口径可用的指标键列表，leads_only 时仅含 ["register"] */
   metrics_available: string[];
   /** leads_only 口径无历史趋势数据时的原因说明，有数据时为 null */
