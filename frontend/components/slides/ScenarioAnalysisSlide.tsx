@@ -13,8 +13,7 @@ interface ScenarioAnalysisSlideProps {
 }
 
 export function ScenarioAnalysisSlide({ slideNumber, totalSlides }: ScenarioAnalysisSlideProps) {
-  const { data, isLoading, error } = useSWR<ScenarioResult[]>('/api/funnel/scenario', swrFetcher);
-  const scenarios = data ?? [];
+  const { data, isLoading, error } = useSWR<ScenarioResult>('/api/funnel/scenario', swrFetcher);
 
   return (
     <SlideShell
@@ -35,42 +34,45 @@ export function ScenarioAnalysisSlide({ slideNumber, totalSlides }: ScenarioAnal
             <p className="text-sm text-[var(--text-muted)] mt-2">请检查后端服务是否正常运行</p>
           </div>
         </div>
+      ) : !data ? (
+        <div className="flex flex-col justify-center items-center h-full gap-3 text-[var(--text-muted)]">
+          <p className="text-lg font-medium">暂无场景推演数据</p>
+          <p className="text-sm">请确认 /api/funnel/scenario?stage= 已返回数据</p>
+        </div>
       ) : (
         <div className="overflow-auto h-full">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="bg-[var(--n-800)] text-white text-xs font-medium">
-                <th className="py-1.5 px-2 text-left">环节</th>
-                <th className="py-1.5 px-2 text-right">当前转化率</th>
-                <th className="py-1.5 px-2 text-right">场景转化率</th>
-                <th className="py-1.5 px-2 text-right">影响注册数</th>
-                <th className="py-1.5 px-2 text-right">影响付费数</th>
-                <th className="py-1.5 px-2 text-right">影响业绩</th>
-              </tr>
-            </thead>
-            <tbody>
-              {scenarios.map((s) => (
-                <tr key={s.stage} className="border-b border-slate-100">
-                  <td className="py-1 px-2 text-xs font-semibold">{s.stage}</td>
-                  <td className="py-1 px-2 text-xs text-right font-mono tabular-nums text-[var(--text-secondary)]">
-                    {formatRate(s.current_rate)}
-                  </td>
-                  <td className="py-1 px-2 text-xs text-right font-mono tabular-nums text-blue-600 font-bold">
-                    {formatRate(s.scenario_rate)}
-                  </td>
-                  <td className="py-1 px-2 text-xs text-right font-mono tabular-nums">
-                    +{s.impact_registrations.toLocaleString()}
-                  </td>
-                  <td className="py-1 px-2 text-xs text-right font-mono tabular-nums">
-                    +{s.impact_payments.toLocaleString()}
-                  </td>
-                  <td className="py-1 px-2 text-xs text-right font-mono tabular-nums text-green-600 font-bold">
-                    +${s.impact_revenue.toLocaleString()}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <div className="grid grid-cols-2 gap-4 mb-4">
+            <div className="bg-slate-50 rounded-lg p-4">
+              <p className="text-xs text-[var(--text-muted)] mb-1">当前转化率</p>
+              <p className="text-2xl font-bold text-[var(--text-primary)]">
+                {formatRate(data.current_rate)}
+              </p>
+            </div>
+            <div className="bg-blue-50 rounded-lg p-4">
+              <p className="text-xs text-[var(--text-muted)] mb-1">场景转化率</p>
+              <p className="text-2xl font-bold text-blue-600">{formatRate(data.scenario_rate)}</p>
+            </div>
+          </div>
+          <div className="grid grid-cols-3 gap-3">
+            <div className="bg-slate-50 rounded-lg p-3 text-center">
+              <p className="text-xs text-[var(--text-muted)] mb-1">影响注册数</p>
+              <p className="text-lg font-bold text-[var(--text-primary)]">
+                +{data.impact_registrations.toLocaleString()}
+              </p>
+            </div>
+            <div className="bg-slate-50 rounded-lg p-3 text-center">
+              <p className="text-xs text-[var(--text-muted)] mb-1">影响付费数</p>
+              <p className="text-lg font-bold text-[var(--text-primary)]">
+                +{data.impact_payments.toLocaleString()}
+              </p>
+            </div>
+            <div className="bg-green-50 rounded-lg p-3 text-center">
+              <p className="text-xs text-[var(--text-muted)] mb-1">影响业绩</p>
+              <p className="text-lg font-bold text-green-600">
+                +${data.impact_revenue.toLocaleString()}
+              </p>
+            </div>
+          </div>
         </div>
       )}
     </SlideShell>

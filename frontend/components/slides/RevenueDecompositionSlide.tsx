@@ -14,10 +14,6 @@ interface ChannelData {
   achievement_rate: number;
 }
 
-interface ChannelResponse {
-  channels: ChannelData[];
-}
-
 export function RevenueDecompositionSlide({
   slideNumber,
   totalSlides,
@@ -25,8 +21,8 @@ export function RevenueDecompositionSlide({
   slideNumber: number;
   totalSlides: number;
 }) {
-  const { data, isLoading, error } = useSWR<ChannelResponse>('/api/channel', swrFetcher);
-  const channels = data?.channels ?? [];
+  const { data, isLoading, error } = useSWR<ChannelData[]>('/api/channel', swrFetcher);
+  const channels = data ?? [];
 
   return (
     <SlideShell

@@ -54,6 +54,10 @@ export function ConversionRateSlide({ slideNumber, totalSlides }: ConversionRate
             <p className="text-sm text-[var(--text-muted)] mt-2">请检查后端服务是否正常运行</p>
           </div>
         </div>
+      ) : chartData.length === 0 ? (
+        <div className="flex items-center justify-center h-full">
+          <p className="text-[var(--text-muted)]">暂无漏斗数据</p>
+        </div>
       ) : (
         <ResponsiveContainer width="100%" height="85%">
           <BarChart data={chartData} margin={{ top: 20, right: 30, bottom: 20, left: 0 }}>

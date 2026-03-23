@@ -16,10 +16,6 @@ interface ChannelConversion {
   paid_rate_target: number;
 }
 
-interface ChannelResponse {
-  channels: ChannelConversion[];
-}
-
 function GapCell({ actual, target }: { actual: number; target: number }) {
   const gap = actual - target;
   const color =
@@ -45,8 +41,8 @@ export function FunnelAttributionSlide({
   slideNumber: number;
   totalSlides: number;
 }) {
-  const { data, isLoading, error } = useSWR<ChannelResponse>('/api/channel', swrFetcher);
-  const channels = data?.channels ?? [];
+  const { data, isLoading, error } = useSWR<ChannelConversion[]>('/api/channel', swrFetcher);
+  const channels = data ?? [];
 
   return (
     <SlideShell

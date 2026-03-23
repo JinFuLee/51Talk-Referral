@@ -8,13 +8,9 @@ import { Spinner } from '@/components/ui/Spinner';
 
 interface ChannelAttribution {
   channel: string;
-  registrations: number;
-  paid_amount_usd: number;
-  paid_ratio: number;
-}
-
-interface AttributionData {
-  channels: ChannelAttribution[];
+  revenue: number;
+  share: number;
+  per_capita: number;
 }
 
 export function RevenueContributionSlide({
@@ -24,13 +20,12 @@ export function RevenueContributionSlide({
   slideNumber: number;
   totalSlides: number;
 }) {
-  const { data, isLoading, error } = useSWR<AttributionData>(
+  const { data, isLoading, error } = useSWR<ChannelAttribution[]>(
     '/api/channel/attribution',
     swrFetcher
   );
-  const channels = data?.channels ?? [];
-  const totalRegistrations = channels.reduce((s, c) => s + c.registrations, 0);
-  const totalAmount = channels.reduce((s, c) => s + c.paid_amount_usd, 0);
+  const channels = data ?? [];
+  const totalAmount = channels.reduce((s, c) => s + c.revenue, 0);
 
   return (
     <SlideShell
@@ -62,63 +57,35 @@ export function RevenueContributionSlide({
             <thead>
               <tr className="bg-[var(--n-800)] text-white text-xs font-medium">
                 <th className="text-left px-2 py-1.5">渠道</th>
-                <th className="text-right px-2 py-1.5">注册数</th>
-                <th className="text-right px-2 py-1.5">注册占比</th>
                 <th className="text-right px-2 py-1.5">付费金额</th>
                 <th className="text-right px-2 py-1.5">金额占比</th>
-                <th className="text-right px-2 py-1.5">付费率</th>
+                <th className="text-right px-2 py-1.5">人均金额</th>
               </tr>
             </thead>
             <tbody>
-              {channels.map((c, i) => {
-                const regPct = totalRegistrations > 0 ? c.registrations / totalRegistrations : 0;
-                const amtPct = totalAmount > 0 ? c.paid_amount_usd / totalAmount : 0;
-                return (
-                  <tr
-                    key={c.channel}
-                    className={i % 2 === 0 ? 'bg-[var(--bg-surface)]' : 'bg-slate-50/50'}
-                  >
-                    <td className="px-2 py-1 text-xs font-semibold text-[var(--text-primary)]">
-                      {c.channel}
-                    </td>
-                    <td className="px-2 py-1 text-xs text-right font-mono tabular-nums text-[var(--text-secondary)]">
-                      {c.registrations.toLocaleString()}
-                    </td>
-                    <td className="px-2 py-1 text-xs text-right font-mono tabular-nums text-[var(--text-muted)]">
-                      {formatRate(regPct)}
-                    </td>
-                    <td className="px-2 py-1 text-xs text-right font-mono tabular-nums font-medium text-[var(--text-primary)]">
-                      {formatRevenue(c.paid_amount_usd)}
-                    </td>
-                    <td className="px-2 py-1 text-xs text-right font-mono tabular-nums text-[var(--text-muted)]">
-                      {formatRate(amtPct)}
-                    </td>
-                    <td className="px-2 py-1 text-xs text-right font-mono tabular-nums">
-                      <span
-                        className={
-                          c.paid_ratio >= 0.1
-                            ? 'text-green-600 font-semibold'
-                            : c.paid_ratio >= 0.05
-                              ? 'text-yellow-600 font-semibold'
-                              : 'text-red-500 font-semibold'
-                        }
-                      >
-                        {formatRate(c.paid_ratio)}
-                      </span>
-                    </td>
-                  </tr>
-                );
-              })}
+              {channels.map((c, i) => (
+                <tr
+                  key={c.channel}
+                  className={i % 2 === 0 ? 'bg-[var(--bg-surface)]' : 'bg-slate-50/50'}
+                >
+                  <td className="px-2 py-1 text-xs font-semibold text-[var(--text-primary)]">
+                    {c.channel}
+                  </td>
+                  <td className="px-2 py-1 text-xs text-right font-mono tabular-nums font-medium text-[var(--text-primary)]">
+                    {formatRevenue(c.revenue)}
+                  </td>
+                  <td className="px-2 py-1 text-xs text-right font-mono tabular-nums text-[var(--text-muted)]">
+                    {formatRate(c.share)}
+                  </td>
+                  <td className="px-2 py-1 text-xs text-right font-mono tabular-nums text-blue-700 font-semibold">
+                    {formatRevenue(c.per_capita)}
+                  </td>
+                </tr>
+              ))}
             </tbody>
             <tfoot>
               <tr className="border-t-2 border-slate-200 bg-slate-100 font-bold text-[var(--text-primary)]">
                 <td className="px-2 py-1 text-xs">合计</td>
-                <td className="px-2 py-1 text-xs text-right font-mono tabular-nums">
-                  {totalRegistrations.toLocaleString()}
-                </td>
-                <td className="px-2 py-1 text-xs text-right font-mono tabular-nums text-[var(--text-muted)]">
-                  100%
-                </td>
                 <td className="px-2 py-1 text-xs text-right font-mono tabular-nums">
                   {formatRevenue(totalAmount)}
                 </td>

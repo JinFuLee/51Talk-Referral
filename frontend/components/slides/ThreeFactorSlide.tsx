@@ -10,13 +10,9 @@ interface ChannelFactor {
   expected_orders: number;
   actual_orders: number;
   gap_orders: number;
-  appointment_factor: number;
-  attendance_factor: number;
-  paid_factor: number;
-}
-
-interface ThreeFactorResponse {
-  channels: ChannelFactor[];
+  appt_factor: number;
+  show_factor: number;
+  pay_factor: number;
 }
 
 function GapBadge({ gap }: { gap: number }) {
@@ -58,11 +54,11 @@ export function ThreeFactorSlide({
   slideNumber: number;
   totalSlides: number;
 }) {
-  const { data, isLoading, error } = useSWR<ThreeFactorResponse>(
+  const { data, isLoading, error } = useSWR<ChannelFactor[]>(
     '/api/channel/three-factor',
     swrFetcher
   );
-  const channels = data?.channels ?? [];
+  const channels = data ?? [];
 
   return (
     <SlideShell
@@ -131,13 +127,13 @@ export function ThreeFactorSlide({
                     <GapBadge gap={c.gap_orders} />
                   </td>
                   <td className="px-2 py-1 text-xs text-right">
-                    <FactorBadge value={c.appointment_factor ?? 0} />
+                    <FactorBadge value={c.appt_factor ?? 0} />
                   </td>
                   <td className="px-2 py-1 text-xs text-right">
-                    <FactorBadge value={c.attendance_factor ?? 0} />
+                    <FactorBadge value={c.show_factor ?? 0} />
                   </td>
                   <td className="px-2 py-1 text-xs text-right">
-                    <FactorBadge value={c.paid_factor ?? 0} />
+                    <FactorBadge value={c.pay_factor ?? 0} />
                   </td>
                 </tr>
               ))}

@@ -9,13 +9,9 @@ import { Spinner } from '@/components/ui/Spinner';
 
 interface ChannelAttribution {
   channel: string;
-  registrations: number;
-  paid_amount_usd: number;
-  per_capita_usd: number;
-}
-
-interface AttributionData {
-  channels: ChannelAttribution[];
+  revenue: number;
+  share: number;
+  per_capita: number;
 }
 
 const COLORS = ['#6366f1', '#22d3ee', '#f59e0b', '#10b981', '#f43f5e'];
@@ -27,16 +23,16 @@ export function ChannelRevenueSlide({
   slideNumber: number;
   totalSlides: number;
 }) {
-  const { data, isLoading, error } = useSWR<AttributionData>(
+  const { data, isLoading, error } = useSWR<ChannelAttribution[]>(
     '/api/channel/attribution',
     swrFetcher
   );
-  const channels = data?.channels ?? [];
-  const totalAmount = channels.reduce((s, c) => s + c.paid_amount_usd, 0);
+  const channels = data ?? [];
+  const totalAmount = channels.reduce((s, c) => s + c.revenue, 0);
 
   const pieData = channels.map((c) => ({
     name: c.channel,
-    value: c.paid_amount_usd,
+    value: c.revenue,
   }));
 
   return (
@@ -100,34 +96,31 @@ export function ChannelRevenueSlide({
                 </tr>
               </thead>
               <tbody>
-                {channels.map((c, i) => {
-                  const pct = totalAmount > 0 ? c.paid_amount_usd / totalAmount : 0;
-                  return (
-                    <tr
-                      key={c.channel}
-                      className={i % 2 === 0 ? 'bg-[var(--bg-surface)]' : 'bg-slate-50/50'}
-                    >
-                      <td className="px-2 py-1 text-xs font-semibold text-[var(--text-primary)] flex items-center gap-2">
-                        <span
-                          className="inline-block w-2 h-2 rounded-full"
-                          style={{
-                            backgroundColor: COLORS[i % COLORS.length],
-                          }}
-                        />
-                        {c.channel}
-                      </td>
-                      <td className="px-2 py-1 text-xs text-right font-mono tabular-nums text-blue-700 font-semibold">
-                        {formatRevenue(c.per_capita_usd ?? 0)}
-                      </td>
-                      <td className="px-2 py-1 text-xs text-right font-mono tabular-nums font-medium text-[var(--text-primary)]">
-                        {formatRevenue(c.paid_amount_usd)}
-                      </td>
-                      <td className="px-2 py-1 text-xs text-right font-mono tabular-nums text-[var(--text-muted)]">
-                        {formatRate(pct)}
-                      </td>
-                    </tr>
-                  );
-                })}
+                {channels.map((c, i) => (
+                  <tr
+                    key={c.channel}
+                    className={i % 2 === 0 ? 'bg-[var(--bg-surface)]' : 'bg-slate-50/50'}
+                  >
+                    <td className="px-2 py-1 text-xs font-semibold text-[var(--text-primary)] flex items-center gap-2">
+                      <span
+                        className="inline-block w-2 h-2 rounded-full"
+                        style={{
+                          backgroundColor: COLORS[i % COLORS.length],
+                        }}
+                      />
+                      {c.channel}
+                    </td>
+                    <td className="px-2 py-1 text-xs text-right font-mono tabular-nums text-blue-700 font-semibold">
+                      {formatRevenue(c.per_capita ?? 0)}
+                    </td>
+                    <td className="px-2 py-1 text-xs text-right font-mono tabular-nums font-medium text-[var(--text-primary)]">
+                      {formatRevenue(c.revenue)}
+                    </td>
+                    <td className="px-2 py-1 text-xs text-right font-mono tabular-nums text-[var(--text-muted)]">
+                      {formatRate(c.share)}
+                    </td>
+                  </tr>
+                ))}
               </tbody>
               <tfoot>
                 <tr className="border-t-2 border-slate-200 bg-slate-100 font-bold text-[var(--text-primary)]">
@@ -135,7 +128,7 @@ export function ChannelRevenueSlide({
                   <td className="px-2 py-1 text-xs text-right font-mono tabular-nums text-[var(--text-muted)]">
                     —
                   </td>
-                  <td className="px-2 py-1 text-xs text-right font-mono tabular-nums">
+                  <td className="px-2 py-1 text-xs text-right font-mono tabular-nums font-medium text-[var(--text-primary)]">
                     {formatRevenue(totalAmount)}
                   </td>
                   <td className="px-2 py-1 text-xs text-right font-mono tabular-nums text-[var(--text-muted)]">

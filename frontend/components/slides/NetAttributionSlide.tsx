@@ -2,19 +2,15 @@
 
 import useSWR from 'swr';
 import { swrFetcher } from '@/lib/api';
-import { formatRevenue } from '@/lib/utils';
+import { formatRevenue, formatRate } from '@/lib/utils';
 import { SlideShell } from '@/components/presentation/SlideShell';
 import { Spinner } from '@/components/ui/Spinner';
 
 interface ChannelAttribution {
   channel: string;
-  registrations: number;
-  paid_count: number;
-  paid_amount_usd: number;
-}
-
-interface AttributionData {
-  channels: ChannelAttribution[];
+  revenue: number;
+  share: number;
+  per_capita: number;
 }
 
 export function NetAttributionSlide({
@@ -24,11 +20,11 @@ export function NetAttributionSlide({
   slideNumber: number;
   totalSlides: number;
 }) {
-  const { data, isLoading, error } = useSWR<AttributionData>(
+  const { data, isLoading, error } = useSWR<ChannelAttribution[]>(
     '/api/channel/attribution',
     swrFetcher
   );
-  const channels = data?.channels ?? [];
+  const channels = data ?? [];
 
   return (
     <SlideShell
@@ -60,47 +56,35 @@ export function NetAttributionSlide({
             <thead>
               <tr className="bg-[var(--n-800)] text-white text-xs font-medium">
                 <th className="text-left px-2 py-1.5">渠道</th>
-                <th className="text-right px-2 py-1.5">注册数</th>
-                <th className="text-right px-2 py-1.5">付费人数</th>
                 <th className="text-right px-2 py-1.5">总业绩</th>
+                <th className="text-right px-2 py-1.5">金额占比</th>
                 <th className="text-right px-2 py-1.5">人均业绩</th>
-                <th className="text-right px-2 py-1.5">注册均价</th>
               </tr>
             </thead>
             <tbody>
-              {channels.map((c, i) => {
-                const perPaid = c.paid_count > 0 ? c.paid_amount_usd / c.paid_count : 0;
-                const perReg = c.registrations > 0 ? c.paid_amount_usd / c.registrations : 0;
-                return (
-                  <tr
-                    key={c.channel}
-                    className={i % 2 === 0 ? 'bg-[var(--bg-surface)]' : 'bg-slate-50/50'}
-                  >
-                    <td className="px-2 py-1 text-xs font-semibold text-[var(--text-primary)]">
-                      {c.channel}
-                    </td>
-                    <td className="px-2 py-1 text-xs text-right font-mono tabular-nums text-[var(--text-secondary)]">
-                      {c.registrations.toLocaleString()}
-                    </td>
-                    <td className="px-2 py-1 text-xs text-right font-mono tabular-nums text-[var(--text-secondary)]">
-                      {c.paid_count.toLocaleString()}
-                    </td>
-                    <td className="px-2 py-1 text-xs text-right font-mono tabular-nums font-medium text-[var(--text-primary)]">
-                      {formatRevenue(c.paid_amount_usd)}
-                    </td>
-                    <td className="px-2 py-1 text-xs text-right font-mono tabular-nums font-semibold text-blue-700">
-                      {formatRevenue(perPaid)}
-                    </td>
-                    <td className="px-2 py-1 text-xs text-right font-mono tabular-nums text-[var(--text-secondary)]">
-                      {formatRevenue(perReg)}
-                    </td>
-                  </tr>
-                );
-              })}
+              {channels.map((c, i) => (
+                <tr
+                  key={c.channel}
+                  className={i % 2 === 0 ? 'bg-[var(--bg-surface)]' : 'bg-slate-50/50'}
+                >
+                  <td className="px-2 py-1 text-xs font-semibold text-[var(--text-primary)]">
+                    {c.channel}
+                  </td>
+                  <td className="px-2 py-1 text-xs text-right font-mono tabular-nums font-medium text-[var(--text-primary)]">
+                    {formatRevenue(c.revenue)}
+                  </td>
+                  <td className="px-2 py-1 text-xs text-right font-mono tabular-nums text-[var(--text-muted)]">
+                    {formatRate(c.share)}
+                  </td>
+                  <td className="px-2 py-1 text-xs text-right font-mono tabular-nums font-semibold text-blue-700">
+                    {formatRevenue(c.per_capita)}
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
           <p className="mt-4 px-4 text-xs text-[var(--text-muted)]">
-            人均业绩 = 总业绩 ÷ 付费人数 &nbsp;|&nbsp; 注册均价 = 总业绩 ÷ 注册数（含未付费）
+            人均业绩 = 总业绩 ÷ 付费人数（由后端计算）
           </p>
         </div>
       )}

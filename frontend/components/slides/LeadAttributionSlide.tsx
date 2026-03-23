@@ -13,10 +13,6 @@ interface ChannelFunnel {
   paid_count: number;
 }
 
-interface ChannelResponse {
-  channels: ChannelFunnel[];
-}
-
 export function LeadAttributionSlide({
   slideNumber,
   totalSlides,
@@ -24,8 +20,8 @@ export function LeadAttributionSlide({
   slideNumber: number;
   totalSlides: number;
 }) {
-  const { data, isLoading, error } = useSWR<ChannelResponse>('/api/channel', swrFetcher);
-  const channels = data?.channels ?? [];
+  const { data, isLoading, error } = useSWR<ChannelFunnel[]>('/api/channel', swrFetcher);
+  const channels = data ?? [];
 
   return (
     <SlideShell

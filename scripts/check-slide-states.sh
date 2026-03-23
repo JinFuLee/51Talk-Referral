@@ -6,7 +6,7 @@ SLIDES_DIR="frontend/components/slides"
 MISSING=0
 
 for f in "$SLIDES_DIR"/*.tsx; do
-  if ! grep -q 'error' "$f"; then
+  if ! grep -qE '(error|isError).*=.*useSWR|useSWR.*error' "$f"; then
     echo "⚠ 缺少 error 态: $f"
     MISSING=$((MISSING + 1))
   fi
