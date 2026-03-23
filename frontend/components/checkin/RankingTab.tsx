@@ -68,7 +68,7 @@ function RoleColumn({ role, summary, subTab }: RoleColumnProps) {
   const rows = subTab === 'group' ? summary.by_group : summary.by_person;
 
   return (
-    <div className="flex flex-col min-w-0">
+    <div className="flex flex-col min-w-[320px] flex-1">
       {/* 角色标题 + 汇总 */}
       <div className="bg-[var(--n-800,#1e293b)] text-white text-xs font-semibold px-2 py-1.5 rounded-t-md flex items-center justify-between">
         <span>{role}</span>
@@ -114,15 +114,12 @@ function RoleColumn({ role, summary, subTab }: RoleColumnProps) {
                     <td className="py-1 px-2 text-center text-[var(--text-muted)] font-mono tabular-nums">
                       {row.rank}
                     </td>
-                    <td
-                      className="py-1 px-2 font-medium whitespace-nowrap truncate max-w-[120px]"
-                      title={nameField}
-                    >
+                    <td className="py-1 px-2 font-medium whitespace-nowrap" title={nameField}>
                       {nameField}
                     </td>
                     {subTab === 'person' && (
                       <td
-                        className="py-1 px-2 text-[var(--text-muted)] whitespace-nowrap truncate max-w-[80px]"
+                        className="py-1 px-2 text-[var(--text-muted)] whitespace-nowrap"
                         title={teamField ?? ''}
                       >
                         {teamField || '—'}
@@ -231,12 +228,7 @@ export function RankingTab() {
               description="当前围场配置下无可展示的角色排行，请检查围场角色分配设置"
             />
           ) : (
-            <div
-              className="grid gap-4"
-              style={{
-                gridTemplateColumns: `repeat(${Math.min(Object.keys(data.by_role).length, 4)}, minmax(0, 1fr))`,
-              }}
-            >
+            <div className="flex gap-4 overflow-x-auto pb-2">
               {(activeRoles.length > 0
                 ? activeRoles.filter((r) => r in data.by_role)
                 : Object.keys(data.by_role)
