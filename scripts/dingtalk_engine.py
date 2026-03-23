@@ -59,11 +59,37 @@ class NotificationEngine:
 
     # ── 公共接口 ──────────────────────────────────────────────────────────────
 
+    def _today_tag(self) -> str:
+        return datetime.now().strftime("%Y%m%d")
+
+    def _is_already_sent(self, channel_id: str) -> bool:
+        """幂等检查：同日同通道是否已推送成功（防重复推送）"""
+        today = self._today_tag()
+        if not LOG_PATH.exists():
+            return False
+        with open(LOG_PATH) as f:
+            for line in f:
+                try:
+                    entry = json.loads(line.strip())
+                    if (
+                        entry.get("channel") == channel_id
+                        and entry.get("ts", "")[:10].replace("-", "") == today
+                        and any(
+                            r.get("status") == "sent"
+                            for r in entry.get("results", [])
+                        )
+                    ):
+                        return True
+                except json.JSONDecodeError:
+                    continue
+        return False
+
     def run(
         self,
         channel_id: str | None = None,
         dry_run: bool = False,
         test: bool = False,
+        force: bool = False,
     ) -> None:
         """执行推送
 
@@ -71,8 +97,19 @@ class NotificationEngine:
             channel_id: 指定通道 ID；None 表示所有 enabled 通道
             dry_run:    只生成图片，不上传不发送
             test:       发送连通性测试消息
+            force:      忽略幂等检查，强制重发
         """
         targets = self._resolve_targets(channel_id)
+
+        # 幂等过滤：同日已成功推送的通道跳过
+        if not force and not test and not dry_run:
+            filtered = []
+            for ch_id, ch in targets:
+                if self._is_already_sent(ch_id):
+                    print(f"[跳过] {ch_id} 今日已推送，用 --force 强制重发")
+                else:
+                    filtered.append((ch_id, ch))
+            targets = filtered
 
         if not targets:
             print("没有可用的通道（检查 channels.json 和 enabled 状态）")
@@ -162,12 +199,16 @@ class NotificationEngine:
                 result["status"] = "dry_run"
                 return result
 
-            # 发送
+            # 发送（含重试）
             success = 0
-            for title, img_bytes, path in images:
-                if self._upload_and_send(img_bytes, title, channel, path.name):
+            for img_idx, (title, img_bytes, path) in enumerate(images):
+                if img_idx > 0:
+                    time.sleep(5)  # 钉钉 20条/分钟，5s间隔=12条/分钟（安全）
+                sent = self._upload_and_send(
+                    img_bytes, title, channel, path.name
+                )
+                if sent:
                     success += 1
-                time.sleep(3)  # 钉钉频率限制：20条/分钟，间隔3s安全
 
             result["status"] = "sent" if success == len(images) else "partial"
             result["sent"] = success
@@ -396,37 +437,56 @@ class NotificationEngine:
 
     # ── 内部：钉钉签名发送 ────────────────────────────────────────────────────
 
-    def _send_dingtalk(self, title: str, markdown_text: str, channel: dict) -> dict:
-        """钉钉加签模式发送 Markdown 消息"""
+    def _send_dingtalk(
+        self, title: str, markdown_text: str, channel: dict
+    ) -> dict:
+        """钉钉加签模式发送 Markdown 消息（含"系统繁忙"自动重试）"""
         webhook: str = channel["webhook"]
         secret: str = channel["secret"]
 
-        timestamp = str(int(time.time() * 1000))
-        sign_str = f"{timestamp}\n{secret}"
-        hmac_code = hmac.new(
-            secret.encode("utf-8"),
-            sign_str.encode("utf-8"),
-            digestmod=hashlib.sha256,
-        ).digest()
-        sign = urllib.parse.quote_plus(base64.b64encode(hmac_code).decode("utf-8"))
-        url = f"{webhook}&timestamp={timestamp}&sign={sign}"
+        for attempt in range(3):  # 最多 3 次（首次 + 2 次重试）
+            # 每次重试都重新生成签名（timestamp 需刷新）
+            timestamp = str(int(time.time() * 1000))
+            sign_str = f"{timestamp}\n{secret}"
+            hmac_code = hmac.new(
+                secret.encode("utf-8"),
+                sign_str.encode("utf-8"),
+                digestmod=hashlib.sha256,
+            ).digest()
+            sign = urllib.parse.quote_plus(
+                base64.b64encode(hmac_code).decode("utf-8")
+            )
+            url = f"{webhook}&timestamp={timestamp}&sign={sign}"
 
-        payload = json.dumps(
-            {
-                "msgtype": "markdown",
-                "markdown": {"title": title, "text": markdown_text},
-            },
-            ensure_ascii=False,
-        ).encode("utf-8")
+            payload = json.dumps(
+                {
+                    "msgtype": "markdown",
+                    "markdown": {"title": title, "text": markdown_text},
+                },
+                ensure_ascii=False,
+            ).encode("utf-8")
 
-        req = urllib.request.Request(
-            url,
-            data=payload,
-            headers={"Content-Type": "application/json"},
-            method="POST",
-        )
-        with urllib.request.urlopen(req, timeout=10) as resp:
-            return json.loads(resp.read().decode("utf-8"))
+            req = urllib.request.Request(
+                url,
+                data=payload,
+                headers={"Content-Type": "application/json"},
+                method="POST",
+            )
+            with urllib.request.urlopen(req, timeout=10) as resp:
+                result = json.loads(resp.read().decode("utf-8"))
+
+            errcode = result.get("errcode", 0)
+            if errcode == 0:
+                return result
+            if errcode == -1 and attempt < 2:
+                # "系统繁忙"：等 5s 后重试
+                wait = 5 * (attempt + 1)
+                print(f"    [重试 {attempt+1}/2] 系统繁忙，等 {wait}s...")
+                time.sleep(wait)
+                continue
+            return result  # 非繁忙错误或重试耗尽
+
+        return {"errcode": -1, "errmsg": "重试耗尽"}
 
     # ── 内部：连通测试 ────────────────────────────────────────────────────────
 

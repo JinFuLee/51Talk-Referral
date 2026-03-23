@@ -6,8 +6,9 @@
 **后端：** Python 3.11+ FastAPI | **前端：** Node.js 18+ Next.js 14 (App Router) + React 18
 **工具链：** uv (包管理/虚拟环境) + ruff (lint/format) | **配置：** pyproject.toml 单文件
 **分析引擎：** Python AnalysisEngine (ROI/预测/异常检测) | **可视化：** Recharts + shadcn/ui
-**通讯：** WebMCP Tools (8 个，AI Agent 可调) | **容器化：** Docker + docker-compose
+**通讯：** WebMCP Tools (8 个，AI Agent 可调) + 钉钉多通道推送 | **容器化：** Docker + docker-compose
 **数据持久：** SQLite (快照存储) + Excel (遗留数据) | **国际化：** 中泰双语动态路由
+**钉钉推送：** `scripts/dingtalk_engine.py`（多通道引擎）+ `key/dingtalk-channels.json`（6 群凭证）
 
 ## 目录结构 (M9 改造后)
 ```
@@ -82,6 +83,21 @@ Excel 数据源 → XlsxReader → DataProcessor → AnalysisEngine → Markdown
 - **启动后端**: `DATA_SOURCE_DIR="$HOME/Desktop/转介绍中台监测指标" uv run uvicorn backend.main:app --host 0.0.0.0 --port 8100 --reload`
 - **启动前端**: `cd frontend && npm run dev`（端口 3100，rewrites 到 8100）
 - **崩溃日志摘要**: `curl -s http://localhost:8100/api/system/error-log/summary`
+- **钉钉日报推送**: `uv run python scripts/dingtalk_daily.py --engine`（全 6 通道图片推送）
+- **钉钉指定通道**: `uv run python scripts/dingtalk_daily.py --engine --channel cc_all`
+- **钉钉强制重发**: `uv run python scripts/dingtalk_daily.py --engine --force`（忽略幂等检查）
+- **钉钉 dry-run**: `uv run python scripts/dingtalk_daily.py --engine --dry-run`（只生成不发送）
+- **钉钉连通测试**: `uv run python scripts/dingtalk_daily.py --engine --test`
+
+## 钉钉推送防错规则
+
+| 规则 | 说明 | 防线 |
+|------|------|------|
+| **幂等推送** | 同日同通道不重复发送，用 `--force` 覆盖 | `_is_already_sent()` 读 `notification-log.jsonl` |
+| **频率限制** | 钉钉 20 条/分钟，消息间隔 ≥5s，通道间隔 ≥5s | `time.sleep(5)` |
+| **系统繁忙重试** | `errcode: -1` 自动重试 2 次（5s/10s 退避） | `_send_dingtalk()` 内置重试 |
+| **图床双 fallback** | freeimage.host → sm.ms(s.ee)，两个都失败才降级文本 | `_upload_image()` 链式调用 |
+| **凭证隔离** | `key/dingtalk-channels.json`（.gitignore），禁止硬编码 webhook/secret | 凭证 SOP |
 
 ## 崩溃自动收集系统（SEE 闭环）
 
