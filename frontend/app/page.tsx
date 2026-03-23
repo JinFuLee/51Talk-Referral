@@ -1,6 +1,7 @@
 'use client';
 
 import useSWR from 'swr';
+import { useState, useMemo } from 'react';
 import { swrFetcher } from '@/lib/api';
 import { formatRevenue, formatRate } from '@/lib/utils';
 import { Card } from '@/components/ui/Card';
@@ -8,7 +9,94 @@ import { Spinner } from '@/components/ui/Spinner';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { StatCard } from '@/components/shared/StatCard';
 import { PercentBar } from '@/components/shared/PercentBar';
+import { useIndicatorMatrix } from '@/lib/hooks/useIndicatorMatrix';
 import type { AttributionSummary } from '@/lib/types/cross-analysis';
+import type { IndicatorCategory } from '@/lib/types/indicator-matrix';
+import { CATEGORY_LABELS_ZH } from '@/lib/types/indicator-matrix';
+
+/* ── 岗位视角类型 ──────────────────────────────────────────────── */
+
+type RoleView = 'all' | 'CC' | 'SS' | 'LP';
+
+const ROLE_LABELS: Record<RoleView, string> = {
+  all: '全部',
+  CC: 'CC 前端',
+  SS: 'SS 后端',
+  LP: 'LP 服务',
+};
+
+/* ── 岗位筛选器 ─────────────────────────────────────────────────── */
+
+function RoleFilter({ value, onChange }: { value: RoleView; onChange: (v: RoleView) => void }) {
+  return (
+    <div className="flex items-center gap-1.5 flex-wrap">
+      {(Object.keys(ROLE_LABELS) as RoleView[]).map((role) => (
+        <button
+          key={role}
+          onClick={() => onChange(role)}
+          className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+            value === role
+              ? 'bg-[var(--text-primary)] text-[var(--bg-surface)]'
+              : 'bg-[var(--bg-subtle)] text-[var(--text-secondary)] hover:bg-[var(--border-default)]'
+          }`}
+        >
+          {ROLE_LABELS[role]}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+/* ── 指标矩阵摘要卡片 ──────────────────────────────────────────── */
+
+function IndicatorMatrixSummary({ role }: { role: RoleView }) {
+  const { registry, matrix, isLoading } = useIndicatorMatrix();
+
+  if (isLoading) return null;
+  if (role === 'all' || !matrix) return null;
+
+  const activeIds = new Set(matrix[role as 'CC' | 'SS' | 'LP'].active);
+  const activeIndicators = registry.filter((ind) => activeIds.has(ind.id));
+
+  // 按分类汇总
+  const categoryCount = activeIndicators.reduce<Record<IndicatorCategory, number>>(
+    (acc, ind) => {
+      acc[ind.category] = (acc[ind.category] ?? 0) + 1;
+      return acc;
+    },
+    {} as Record<IndicatorCategory, number>
+  );
+
+  const categories = Object.entries(categoryCount) as [IndicatorCategory, number][];
+
+  return (
+    <div className="rounded-xl border border-[var(--border-default)] bg-[var(--bg-subtle)] px-4 py-3">
+      <div className="flex items-center justify-between mb-2">
+        <span className="text-xs font-semibold text-[var(--text-primary)]">
+          {ROLE_LABELS[role]} 活跃指标
+        </span>
+        <span className="text-xs text-[var(--text-muted)]">
+          共{' '}
+          <span className="font-semibold text-[var(--text-primary)]">
+            {activeIndicators.length}
+          </span>{' '}
+          项
+        </span>
+      </div>
+      <div className="flex flex-wrap gap-2">
+        {categories.map(([cat, count]) => (
+          <span
+            key={cat}
+            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] bg-[var(--bg-surface)] border border-[var(--border-default)] text-[var(--text-secondary)]"
+          >
+            {CATEGORY_LABELS_ZH[cat]}
+            <span className="font-semibold text-[var(--text-primary)]">{count}</span>
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 /* ── 后端实际返回结构 ────────────────────────────────────────────── */
 
@@ -283,10 +371,34 @@ function MonthlyAchievementSection() {
   );
 }
 
+/* ── KPI 卡片对应的指标 ID（与 indicator_registry id 对应） ──── */
+
+const KPI_CARD_INDICATOR_IDS: Record<string, string[]> = {
+  CC: [
+    '转介绍注册数',
+    '预约数',
+    '出席数',
+    '转介绍付费数',
+    '总带新付费金额USD',
+    '客单价',
+    '注册转化率',
+  ],
+  SS: ['转介绍注册数', '触达率', '打卡率', '参与率'],
+  LP: ['转介绍注册数', '触达率', '打卡率', '参与率'],
+};
+
 /* ── 主页面 ───────────────────────────────────────────────────── */
 
 export default function DashboardPage() {
+  const [roleView, setRoleView] = useState<RoleView>('all');
   const { data, isLoading, error } = useSWR<OverviewResponse>('/api/overview', swrFetcher);
+
+  // 根据岗位视角过滤 KPI 卡片（all = 全部显示）
+  const visibleKpiCards = useMemo(() => {
+    if (roleView === 'all') return KPI_CARDS;
+    const allowedKeys = new Set(KPI_CARD_INDICATOR_IDS[roleView] ?? []);
+    return KPI_CARDS.filter((c) => allowedKeys.has(c.key));
+  }, [roleView]);
 
   if (isLoading) {
     return (
@@ -316,10 +428,19 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-3">
-      <div>
-        <h1 className="text-lg font-bold text-[var(--text-primary)]">运营总览</h1>
-        <p className="text-sm text-[var(--text-secondary)] mt-1">转介绍漏斗达成情况 · 数据源状态</p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-lg font-bold text-[var(--text-primary)]">运营总览</h1>
+          <p className="text-sm text-[var(--text-secondary)] mt-1">
+            转介绍漏斗达成情况 · 数据源状态
+          </p>
+        </div>
+        {/* 岗位视角筛选器 */}
+        <RoleFilter value={roleView} onChange={setRoleView} />
       </div>
+
+      {/* 指标矩阵摘要（仅 SS/LP 视角时显示） */}
+      <IndicatorMatrixSummary role={roleView} />
 
       {/* 时间进度信息条 */}
       {tp && <TimeProgressBar tp={tp} />}
@@ -327,7 +448,7 @@ export default function DashboardPage() {
       {/* KPI 卡片 */}
       {hasMetrics && (
         <div className="grid grid-cols-2 xl:grid-cols-3 gap-4">
-          {KPI_CARDS.map(({ key, label, format, targetKey, paceKey }) => {
+          {visibleKpiCards.map(({ key, label, format, targetKey, paceKey }) => {
             const v = num(metrics[key]);
             const display =
               format === 'currency'

@@ -127,6 +127,17 @@ Excel 数据源 → XlsxReader → DataProcessor → AnalysisEngine → Markdown
 - 新增组件必须有 loading / error / empty 三态，empty 态必须有操作指引
 - `isMock` / `MOCK_DATA` / `fallback.*data` 模式禁止引入，代码审查红线
 
+## 指标矩阵系统
+
+配置驱动的全维度 KPI 指标矩阵。CC 为不可变超集（33 项），SS/LP 为可动态配置的子集。
+
+**架构**: `config.json indicator_registry` (33 项定义) → `indicator_matrix` (CC/SS/LP 激活列表) → Frontend `useIndicatorMatrix()` hook → Dashboard 过滤
+**持久化**: SS/LP 用户自定义存入 `config/indicator_matrix_override.json`（与 `targets_override.json` 同模式）
+**8 类指标**: result(结果) / achievement(达成) / process(过程) / efficiency(效率) / process_wide(宽口过程) / conversion(转化) / service_pre_paid(服务-付费前外呼) / service_post_paid(服务-付费后外呼)
+**API**: `GET /api/indicator-matrix/registry` | `GET /api/indicator-matrix/matrix` | `PUT /api/indicator-matrix/matrix/{role}` | `POST /api/indicator-matrix/matrix/{role}/reset`
+**完整性检查**: `bash scripts/check-indicator-matrix.sh`
+**前端页面**: `/settings` (编辑卡片) | `/indicator-matrix` (总览页面)
+
 ## 业务术语（关键）
 - **CC** = 前端销售 | **SS** = 后端销售（数据别名 EA）| **LP** = 后端服务（数据别名 CM）
 - **面板/报告统一用 CC/SS/LP**，遇到 EA→SS, CM→LP 自动映射
