@@ -83,21 +83,26 @@ Excel 数据源 → XlsxReader → DataProcessor → AnalysisEngine → Markdown
 - **启动后端**: `DATA_SOURCE_DIR="$HOME/Desktop/转介绍中台监测指标" uv run uvicorn backend.main:app --host 0.0.0.0 --port 8100 --reload`
 - **启动前端**: `cd frontend && npm run dev`（端口 3100，rewrites 到 8100）
 - **崩溃日志摘要**: `curl -s http://localhost:8100/api/system/error-log/summary`
-- **钉钉日报推送**: `uv run python scripts/dingtalk_daily.py --engine`（全 6 通道图片推送）
-- **钉钉指定通道**: `uv run python scripts/dingtalk_daily.py --engine --channel cc_all`
-- **钉钉强制重发**: `uv run python scripts/dingtalk_daily.py --engine --force`（忽略幂等检查）
+- **钉钉日报推送**: `uv run python scripts/dingtalk_daily.py --engine --confirm`（全 6 通道，需 --confirm 发正式群）
+- **钉钉指定通道**: `uv run python scripts/dingtalk_daily.py --engine --channel cc_all --confirm`
+- **钉钉强制重发**: `uv run python scripts/dingtalk_daily.py --engine --force --confirm`（忽略幂等检查）
 - **钉钉 dry-run**: `uv run python scripts/dingtalk_daily.py --engine --dry-run`（只生成不发送）
 - **钉钉连通测试**: `uv run python scripts/dingtalk_daily.py --engine --test`
+- **Lark 未打卡跟进**: `uv run python scripts/lark_bot.py followup --channel cc_all --confirm`（需 --confirm 发正式群）
+- **Lark dry-run**: `uv run python scripts/lark_bot.py followup --dry-run`（只生成图片不发送）
+- **Lark 连通测试**: `uv run python scripts/lark_bot.py --test`
 
-## 钉钉推送防错规则
+## 通知推送防错规则（全平台统一）
 
 | 规则 | 说明 | 防线 |
 |------|------|------|
+| **🔴 正式群防护** | 所有推送默认 test/sandbox，发正式群必须 `--confirm` | 代码层 hard deny（钉钉+Lark 统一） |
 | **幂等推送** | 同日同通道不重复发送，用 `--force` 覆盖 | `_is_already_sent()` 读 `notification-log.jsonl` |
 | **频率限制** | 钉钉 20 条/分钟，消息间隔 ≥5s，通道间隔 ≥5s | `time.sleep(5)` |
 | **系统繁忙重试** | `errcode: -1` 自动重试 2 次（5s/10s 退避） | `_send_dingtalk()` 内置重试 |
 | **图床双 fallback** | freeimage.host → sm.ms(s.ee)，两个都失败才降级文本 | `_upload_image()` 链式调用 |
-| **凭证隔离** | `key/dingtalk-channels.json`（.gitignore），禁止硬编码 webhook/secret | 凭证 SOP |
+| **凭证隔离** | `key/dingtalk-channels.json` + `key/lark-channels.json`（.gitignore），禁止硬编码 webhook/secret | 凭证 SOP |
+| **后端告警禁用** | `_alert_empty_data()` 仅记日志不推群 | `data_manager.py` L173 |
 
 ## 崩溃自动收集系统（SEE 闭环）
 
@@ -112,6 +117,22 @@ Excel 数据源 → XlsxReader → DataProcessor → AnalysisEngine → Markdown
 2. 按 `source_file` 定位崩溃源文件，按 `stack_preview` 理解根因
 3. 修复后调用 `DELETE /api/system/error-log` 清空已修复的日志
 4. 用户说"修 bug" = 先读崩溃日志，按优先级（count 降序）逐个修复
+
+## 去硬编码政策（SEE 铁律）
+- **有场景可配 = 禁止硬编码**，与变化频率无关
+- 所有业务阈值/权重/映射必须从 `config.json` 或 `dingtalk-channels.json` 读取
+- 已配置化：围场-角色映射 / 角色列名 / 团队前缀检测 / 质量评分权重 / 围场加权 / 无效名称集 / 打卡率阈值 / 达成率阈值
+- 配置读取函数：后端 `_get_config()` (lazy load + cache) / 前端 `useCheckinThresholds` hook / engine `self.defaults`
+- 布局数值（行高/间距/字号）不算业务硬编码，可保留
+
+## 双语输出政策
+- **所有面向用户的输出**（图片/Markdown/告警）必须泰中双语：泰文为主、中文为辅
+- 图片：泰文主行（大字深色）+ 中文副行（小字灰色 `_C_MUTED`），间距 ≥0.25
+- 表头：双行模式（泰文白字 + 中文灰字），禁止括号挤压模式
+- Markdown：双行标题 `### 泰文\n### 中文`
+- 图例：斜杠 `ผ่าน/达标`
+- 品牌名 CC/SS/LP/USD 不翻译
+- 文案集中管理：`TH_STRINGS` 字典（`{"th": "...", "zh": "..."}`），禁止散落硬编码
 
 ## 代码规范
 - 类型注解必须（Python 3.11+ 语法）
