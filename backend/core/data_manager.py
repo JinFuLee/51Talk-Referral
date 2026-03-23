@@ -179,15 +179,20 @@ class DataManager:
 
             now_str = datetime.now().strftime("%Y-%m-%d %H:%M")
             md = (
-                "## ⚠ Data Source Alert\n\n"
-                "All data sources (D1-D5) are **empty**.\n\n"
-                "- Possible: Excel files missing or sheet name changed\n"
-                "- Action: Check `DATA_SOURCE_DIR` and re-download from BI\n\n"
+                f"## ⚠ แจ้งเตือนแหล่งข้อมูล\n"
+                f"## 数据源告警\n\n"
+                f"แหล่งข้อมูลทั้งหมด (D1-D5) **ว่างเปล่า**\n"
+                f"所有数据源 (D1-D5) **为空**\n\n"
+                f"- สาเหตุ: ไฟล์ Excel หายไปหรือชื่อ Sheet เปลี่ยน\n"
+                f"- 原因：Excel 文件缺失或 Sheet 名变更\n"
+                f"- การดำเนินการ: ตรวจสอบ DATA_SOURCE_DIR แล้วดาวน์โหลดใหม่\n"
+                f"- 操作：检查 DATA_SOURCE_DIR 并重新下载\n\n"
                 f"> {now_str}"
             )
 
+            title = "แจ้งเตือนข้อมูล / 数据告警"
             payload = json.dumps(
-                {"msgtype": "markdown", "markdown": {"title": "Data Alert", "text": md}}
+                {"msgtype": "markdown", "markdown": {"title": title, "text": md}}
             ).encode()
             req = urllib.request.Request(
                 url,
