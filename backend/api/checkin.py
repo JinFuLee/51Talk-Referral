@@ -53,6 +53,34 @@ _WIDE_ROLE: dict[str, list[str]] = {
     "LP": ["121~150", "151~180", "M6+"],
 }
 
+# 围场段 → 天数映射（与前端 M_TO_DAYS 对齐）
+_M_TO_DAYS: dict[str, tuple[int, int]] = {
+    "0~30": (0, 30), "31~60": (31, 60), "61~90": (61, 90),
+    "91~120": (91, 120), "121~150": (121, 150), "151~180": (151, 180),
+    "M6+": (181, 9999),
+}
+
+
+def _parse_role_enclosures(role_config: str | None, role: str) -> list[str] | None:
+    """解析前端 role_config JSON → 指定角色的 D3 围场段列表。
+    返回 None 表示无配置（fallback 到 _WIDE_ROLE 默认值）。"""
+    if not role_config:
+        return None
+    try:
+        parsed = json.loads(role_config)
+        cfg = parsed.get(role)
+        if not cfg:
+            return None
+        min_d = cfg.get("min_days", 0)
+        max_d = cfg.get("max_days") or 9999
+        bands = [
+            band for band, (lo, hi) in _M_TO_DAYS.items()
+            if lo >= min_d and hi <= max_d
+        ]
+        return bands if bands else None
+    except (json.JSONDecodeError, AttributeError, TypeError):
+        return None
+
 # 各岗位人员列（name_col, group_col）
 _ROLE_COLS: dict[str, tuple[str, str]] = {
     "CC": ("last_cc_name", "last_cc_group_name"),
@@ -205,7 +233,9 @@ def _aggregate_role(
     enclosures_override: 外部传入的围场列表（来自前端 Settings），优先于硬编码默认值。
     """
     name_col, group_col = _ROLE_COLS.get(role, ("last_cc_name", "last_cc_group_name"))
-    enclosures = enclosures_override if enclosures_override else _WIDE_ROLE.get(role, [])
+    enclosures = (
+        enclosures_override if enclosures_override else _WIDE_ROLE.get(role, [])
+    )
 
     # 按围场筛选
     if _D3_ENCLOSURE_COL in df_d3.columns:
@@ -521,35 +551,17 @@ def get_checkin_summary(
     """
     d3: pd.DataFrame = dm.load_all().get("detail", pd.DataFrame())
 
-    # 解析前端传来的宽口配置 → {role: [围场段列表]}
-    # 前端格式：{"CC": {"min_days":0,"max_days":90}, "LP": {"min_days":91,...}}
-    # 需要转为：{"CC": ["0~30","31~60","61~90"], ...}
-    _M_TO_DAYS = {
-        "0~30": (0, 30), "31~60": (31, 60), "61~90": (61, 90),
-        "91~120": (91, 120), "121~150": (121, 150), "151~180": (151, 180),
-        "M6+": (181, 9999),
-    }
-    role_enclosures: dict[str, list[str]] | None = None
+    roles = list(_WIDE_ROLE.keys())
     if role_config:
         try:
             parsed = json.loads(role_config)
-            role_enclosures = {}
-            for role_name, cfg in parsed.items():
-                min_d = cfg.get("min_days", 0)
-                max_d = cfg.get("max_days") or 9999
-                bands = []
-                for band, (lo, hi) in _M_TO_DAYS.items():
-                    if lo >= min_d and hi <= max_d:
-                        bands.append(band)
-                if bands:
-                    role_enclosures[role_name] = bands
-        except (json.JSONDecodeError, AttributeError, TypeError):
-            role_enclosures = None
+            roles = list(parsed.keys()) or roles
+        except (json.JSONDecodeError, AttributeError):
+            pass
 
     by_role: dict[str, Any] = {}
-    roles = list((role_enclosures or _WIDE_ROLE).keys())
     for role in roles:
-        override = role_enclosures.get(role) if role_enclosures else None
+        override = _parse_role_enclosures(role_config, role)
         by_role[role] = _aggregate_role(d3, role, enclosures_override=override)
 
     return {"by_role": by_role}
@@ -562,6 +574,7 @@ def get_checkin_summary(
 def get_checkin_team_detail(
     request: Request,
     team: str = Query(..., description="团队名称，例如 TH-CC01Team"),
+    role_config: str | None = Query(default=None, description="前端宽口径配置 JSON"),
     dm: DataManager = Depends(get_data_manager),
 ) -> dict:
     """
@@ -574,6 +587,9 @@ def get_checkin_team_detail(
     """
     d3: pd.DataFrame = dm.load_all().get("detail", pd.DataFrame())
     role = _detect_role_from_team(team)
+    enclosures = _parse_role_enclosures(role_config, role)
+    if enclosures and _D3_ENCLOSURE_COL in d3.columns:
+        d3 = d3[d3[_D3_ENCLOSURE_COL].isin(enclosures)]
     members = _aggregate_team_members(d3, team, role)
     return {"team": team, "role": role, "members": members}
 
@@ -587,7 +603,10 @@ def get_checkin_followup(
     role:  str | None = Query(default=None, description="角色筛选：CC / SS / LP"),
     team:  str | None = Query(default=None, description="团队筛选，例如 TH-CC01Team"),
     sales: str | None = Query(default=None, description="销售姓名筛选，例如 thcc-Zen"),
-    enclosure: str | None = Query(default=None, description="围场筛选，逗号分隔，例如 M0,M1"),
+    enclosure: str | None = Query(
+        default=None, description="围场筛选，逗号分隔，例如 M0,M1"
+    ),
+    role_config: str | None = Query(default=None, description="前端宽口径配置 JSON"),
     dm: DataManager = Depends(get_data_manager),
 ) -> dict:
     """
@@ -605,9 +624,121 @@ def get_checkin_followup(
         raw_encs = [m_to_raw.get(e, e) for e in enc_list]
         df_d3 = df_d3[df_d3[_D3_ENCLOSURE_COL].isin(raw_encs)]
 
+    # role_config 围场过滤：按 role 指定的宽口径范围进一步筛选
+    if role_config and role and role not in ("全部", ""):
+        enc_override = _parse_role_enclosures(role_config, role)
+        if enc_override and _D3_ENCLOSURE_COL in df_d3.columns:
+            df_d3 = df_d3[df_d3[_D3_ENCLOSURE_COL].isin(enc_override)]
+
     students = _build_followup_students(df_d3, df_d4, role, team, sales)
     return {
         "students":     students,
         "total":        len(students),
         "score_formula": "课耗(40%) + 推荐活跃(30%) + 付费贡献(20%) + 围场加权(10%)",
     }
+
+
+@router.get(
+    "/checkin/ranking",
+    summary="打卡排行（Tab2）— 按角色展示小组+个人排名",
+)
+def get_checkin_ranking(
+    request: Request,
+    role_config: str | None = Query(default=None, description="前端宽口径配置 JSON"),
+    dm: DataManager = Depends(get_data_manager),
+) -> dict:
+    """按角色返回打卡排行，小组+个人双维度，按打卡率降序→同率按已打卡人数降序。"""
+    d3: pd.DataFrame = dm.load_all().get("detail", pd.DataFrame())
+
+    # 确定角色列表
+    roles = list(_WIDE_ROLE.keys())
+    if role_config:
+        try:
+            parsed = json.loads(role_config)
+            roles = list(parsed.keys()) or roles
+        except (json.JSONDecodeError, AttributeError):
+            pass
+
+    by_role: dict[str, Any] = {}
+    for role in roles:
+        name_col, group_col = _ROLE_COLS.get(
+            role, ("last_cc_name", "last_cc_group_name")
+        )
+        override = _parse_role_enclosures(role_config, role)
+        enclosures = override if override else _WIDE_ROLE.get(role, [])
+
+        # 按围场筛选
+        if _D3_ENCLOSURE_COL in d3.columns:
+            subset = d3[d3[_D3_ENCLOSURE_COL].isin(enclosures)].copy()
+        else:
+            subset = d3.copy()
+
+        # 过滤无效行
+        if name_col in subset.columns:
+            gc = group_col if group_col in subset.columns else None
+            subset = _clean_names(subset, name_col, gc)
+
+        total = len(subset)
+        checked = 0
+        rate = 0.0
+        if total > 0 and _D3_CHECKIN_COL in subset.columns:
+            subset["_ck"] = pd.to_numeric(
+                subset[_D3_CHECKIN_COL], errors="coerce"
+            ).fillna(0)
+            checked = int(subset["_ck"].sum())
+            rate = checked / total
+        else:
+            subset["_ck"] = 0
+
+        # by_group — 按 group_col 聚合
+        by_group: list[dict] = []
+        if total > 0 and group_col in subset.columns:
+            for grp, g in subset.groupby(group_col, sort=False):
+                grp_str = _safe_str(grp)
+                if grp_str.lower() in _INVALID_NAMES:
+                    continue
+                t = len(g)
+                c = int(g["_ck"].sum())
+                by_group.append({
+                    "group": grp_str,
+                    "students": t,
+                    "checked_in": c,
+                    "rate": round(c / t, 4) if t > 0 else 0.0,
+                })
+            # 排序：① rate DESC ② checked_in DESC
+            by_group.sort(key=lambda x: (-x["rate"], -x["checked_in"]))
+            for i, g in enumerate(by_group):
+                g["rank"] = i + 1
+
+        # by_person — 按 name_col 聚合
+        by_person: list[dict] = []
+        if total > 0 and name_col in subset.columns:
+            for name, pf in subset.groupby(name_col, sort=False):
+                name_str = _safe_str(name)
+                if name_str.lower() in _INVALID_NAMES:
+                    continue
+                t = len(pf)
+                c = int(pf["_ck"].sum())
+                grp_val = ""
+                if group_col in pf.columns:
+                    grp_val = _safe_str(pf[group_col].iloc[0])
+                by_person.append({
+                    "name": name_str,
+                    "group": grp_val,
+                    "students": t,
+                    "checked_in": c,
+                    "rate": round(c / t, 4) if t > 0 else 0.0,
+                })
+            by_person.sort(key=lambda x: (-x["rate"], -x["checked_in"]))
+            for i, p in enumerate(by_person):
+                p["rank"] = i + 1
+
+        by_role[role] = {
+            "total_students": total,
+            "checked_in": checked,
+            "checkin_rate": round(rate, 4),
+            "by_group": by_group,
+            "by_person": by_person,
+        }
+
+    return {"by_role": by_role}
