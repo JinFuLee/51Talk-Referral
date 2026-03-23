@@ -86,7 +86,7 @@ class DataManager:
             new_loaded_files: dict[str, Path | None] = {}
 
             for key, loader in loaders.items():
-                new_cache[key] = loader.load()
+                new_cache[key] = self._filter_thai_only(loader.load())
                 new_loaded_files[key] = loader.last_loaded_file
 
             new_cache["targets"] = (
@@ -114,6 +114,44 @@ class DataManager:
                 self._alert_empty_data()
 
             return self._cache
+
+    # ── 泰国数据过滤 ───────────────────────────────────────────────────────────
+
+    _TEAM_COLUMNS = ("last_cc_group_name", "last_ss_group_name", "last_lp_group_name")
+
+    @classmethod
+    def _filter_thai_only(cls, df: pd.DataFrame) -> pd.DataFrame:
+        """过滤 DataFrame，仅保留 TH- 前缀的团队行。
+
+        - 有团队列（last_cc/ss/lp_group_name）→ 对各列做 OR 过滤，保留任一列以 TH- 开头的行
+        - 无团队列 → 原样返回（如 targets、学员维度数据源）
+        """
+        if df.empty:
+            return df
+
+        team_cols = [c for c in cls._TEAM_COLUMNS if c in df.columns]
+        if not team_cols:
+            return df
+
+        # 对多个团队列取 OR：行中任一团队列以 TH（大小写不敏感）开头则保留
+        mask = pd.Series(False, index=df.index)
+        for col in team_cols:
+            col_mask = (
+                df[col]
+                .fillna("")
+                .str.upper()
+                .str.startswith("TH")
+            )
+            mask = mask | col_mask
+
+        before = len(df)
+        filtered = df[mask].copy()
+        excluded = before - len(filtered)
+        if excluded > 0:
+            logger.info(
+                f"  _filter_thai_only: 排除非 TH- 行 {excluded} 条（含列: {team_cols}）"
+            )
+        return filtered
 
     def get(self, key: str) -> Any:
         """获取指定数据集（懒加载）"""
