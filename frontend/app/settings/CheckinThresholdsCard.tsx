@@ -2,51 +2,51 @@
 
 import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/Card';
-import { type CheckinThresholds, saveThresholds } from '@/lib/hooks/useCheckinThresholds';
-
-const STORAGE_KEY = 'checkin_thresholds';
-
-const DEFAULT: CheckinThresholds = { good: 0.6, warning: 0.4 };
-
-function load(): CheckinThresholds {
-  if (typeof window === 'undefined') return DEFAULT;
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) {
-      const p = JSON.parse(raw) as Partial<CheckinThresholds>;
-      return {
-        good: typeof p.good === 'number' ? p.good : DEFAULT.good,
-        warning: typeof p.warning === 'number' ? p.warning : DEFAULT.warning,
-      };
-    }
-  } catch {
-    /* fallback */
-  }
-  return DEFAULT;
-}
+import {
+  type CheckinThresholds,
+  DEFAULT_THRESHOLDS,
+  useCheckinThresholds,
+} from '@/lib/hooks/useCheckinThresholds';
 
 export default function CheckinThresholdsCard() {
-  const [cfg, setCfg] = useState<CheckinThresholds>(DEFAULT);
+  const { thresholds, update, isLoading } = useCheckinThresholds();
+  const [cfg, setCfg] = useState<CheckinThresholds>(DEFAULT_THRESHOLDS);
   const [saved, setSaved] = useState(false);
+  const [saving, setSaving] = useState(false);
 
-  useEffect(() => setCfg(load()), []);
+  // 当 SWR 数据加载完成后同步到本地编辑状态
+  useEffect(() => {
+    if (!isLoading) {
+      setCfg(thresholds);
+    }
+  }, [isLoading, thresholds]);
 
-  function handleSave() {
+  async function handleSave() {
     // 确保 good > warning > 0
     const good = Math.max(0.01, Math.min(1, cfg.good));
     const warning = Math.max(0, Math.min(good - 0.01, cfg.warning));
     const final = { good, warning };
     setCfg(final);
-    saveThresholds(final);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
+    setSaving(true);
+    try {
+      await update(final);
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+    } finally {
+      setSaving(false);
+    }
   }
 
-  function handleReset() {
-    setCfg(DEFAULT);
-    saveThresholds(DEFAULT);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
+  async function handleReset() {
+    setSaving(true);
+    try {
+      await update(DEFAULT_THRESHOLDS);
+      setCfg(DEFAULT_THRESHOLDS);
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
@@ -55,6 +55,10 @@ export default function CheckinThresholdsCard() {
         <p className="text-xs text-[var(--text-muted)]">
           设置打卡率的达标/接近/落后阈值，影响打卡管理页面所有颜色标注。
         </p>
+
+        {isLoading && (
+          <div className="py-2 text-center text-xs text-[var(--text-muted)]">加载中…</div>
+        )}
 
         <div className="grid grid-cols-2 gap-4">
           {/* 达标阈值 */}
@@ -123,15 +127,17 @@ export default function CheckinThresholdsCard() {
         <div className="flex items-center gap-2 justify-end">
           <button
             onClick={handleReset}
-            className="text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
+            disabled={saving || isLoading}
+            className="text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors disabled:opacity-40"
           >
             重置默认
           </button>
           <button
             onClick={handleSave}
-            className="px-3 py-1 bg-brand-600 text-white rounded text-xs font-medium hover:bg-brand-700 transition-colors focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-brand-500"
+            disabled={saving || isLoading}
+            className="px-3 py-1 bg-brand-600 text-white rounded text-xs font-medium hover:bg-brand-700 transition-colors focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-brand-500 disabled:opacity-40"
           >
-            {saved ? '已保存' : '保存'}
+            {saving ? '保存中…' : saved ? '已保存' : '保存'}
           </button>
         </div>
       </div>

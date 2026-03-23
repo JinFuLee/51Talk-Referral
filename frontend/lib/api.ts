@@ -345,6 +345,20 @@ export const configAPI = {
     ),
   getRecommendation: (month: string) =>
     request<TargetRecommendation>(`/config/targets/${month}/recommend`),
+  getEnclosureRole: () =>
+    request<Record<string, Record<string, string[]>>>('/config/enclosure-role'),
+  putEnclosureRole: (data: Record<string, Record<string, string[]>>) =>
+    request<{ status: string }>('/config/enclosure-role', {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }),
+  getCheckinThresholds: () =>
+    request<{ good: number; warning: number }>('/config/checkin-thresholds'),
+  putCheckinThresholds: (data: { good: number; warning: number }) =>
+    request<{ status: string }>('/config/checkin-thresholds', {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }),
 };
 
 // ── Snapshots ─────────────────────────────────────────────────────────────────

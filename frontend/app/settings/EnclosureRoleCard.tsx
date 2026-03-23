@@ -1,7 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import useSWR from 'swr';
 import { Card } from '@/components/ui/Card';
+import { configAPI, swrFetcher } from '@/lib/api';
 
 const ENCLOSURE_KEYS = ['M0', 'M1', 'M2', 'M3', 'M4', 'M5', 'M6+'] as const;
 type EnclosureMonth = (typeof ENCLOSURE_KEYS)[number];
@@ -33,52 +35,45 @@ const DEFAULT_WIDE: EnclosureRoleAssignment = {
   'M6+': ['运营'],
 };
 
+// 旧 localStorage keys（一次性迁移用）
 const STORAGE_KEY_NARROW = 'enclosure_role_narrow';
 const STORAGE_KEY_WIDE = 'enclosure_role_wide';
-
-// 保留旧 key 兼容（旧版只有一套配置，迁移到窄口径）
 const STORAGE_KEY_LEGACY = 'enclosure_role_assignment';
 
-function loadAssignment(key: string, defaultVal: EnclosureRoleAssignment): EnclosureRoleAssignment {
-  if (typeof window === 'undefined') return defaultVal;
+function readLocalStorage(key: string): EnclosureRoleAssignment | null {
+  if (typeof window === 'undefined') return null;
   try {
     const raw = localStorage.getItem(key);
     if (raw) return JSON.parse(raw) as EnclosureRoleAssignment;
-    // 旧数据迁移：如果是窄口径 key 且旧 key 有数据
-    if (key === STORAGE_KEY_NARROW) {
-      const legacy = localStorage.getItem(STORAGE_KEY_LEGACY);
-      if (legacy) return JSON.parse(legacy) as EnclosureRoleAssignment;
-    }
-    return defaultVal;
   } catch {
-    return defaultVal;
+    /* ignore */
   }
-}
-
-function saveAssignment(key: string, assignment: EnclosureRoleAssignment) {
-  try {
-    localStorage.setItem(key, JSON.stringify(assignment));
-    // 通知打卡面板刷新（同 tab 内 storage 事件不触发，用自定义事件）
-    window.dispatchEvent(new Event('enclosure-role-changed'));
-  } catch {
-    // ignore
-  }
+  return null;
 }
 
 interface AssignmentTableProps {
   title: string;
   subtitle: string;
-  storageKey: string;
+  assignment: EnclosureRoleAssignment;
   defaultVal: EnclosureRoleAssignment;
+  onSave: (data: EnclosureRoleAssignment) => Promise<void>;
 }
 
-function AssignmentTable({ title, subtitle, storageKey, defaultVal }: AssignmentTableProps) {
-  const [assignment, setAssignment] = useState<EnclosureRoleAssignment>(defaultVal);
+function AssignmentTable({
+  title,
+  subtitle,
+  assignment: initialAssignment,
+  defaultVal,
+  onSave,
+}: AssignmentTableProps) {
+  const [assignment, setAssignment] = useState<EnclosureRoleAssignment>(initialAssignment);
   const [saved, setSaved] = useState(false);
+  const [saving, setSaving] = useState(false);
 
+  // 当父组件 SWR 数据更新时同步
   useEffect(() => {
-    setAssignment(loadAssignment(storageKey, defaultVal));
-  }, [storageKey, defaultVal]);
+    setAssignment(initialAssignment);
+  }, [initialAssignment]);
 
   function toggle(month: EnclosureMonth, role: Role) {
     setAssignment((prev) => {
@@ -89,17 +84,27 @@ function AssignmentTable({ title, subtitle, storageKey, defaultVal }: Assignment
     setSaved(false);
   }
 
-  function handleSave() {
-    saveAssignment(storageKey, assignment);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
+  async function handleSave() {
+    setSaving(true);
+    try {
+      await onSave(assignment);
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+    } finally {
+      setSaving(false);
+    }
   }
 
-  function handleReset() {
-    setAssignment(defaultVal);
-    saveAssignment(storageKey, defaultVal);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
+  async function handleReset() {
+    setSaving(true);
+    try {
+      await onSave(defaultVal);
+      setAssignment(defaultVal);
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
@@ -112,15 +117,17 @@ function AssignmentTable({ title, subtitle, storageKey, defaultVal }: Assignment
         <div className="flex items-center gap-2">
           <button
             onClick={handleReset}
-            className="text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
+            disabled={saving}
+            className="text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors disabled:opacity-40"
           >
             重置默认
           </button>
           <button
             onClick={handleSave}
-            className="px-3 py-1 bg-brand-600 text-white rounded text-xs font-medium hover:bg-brand-700 transition-colors focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-brand-500"
+            disabled={saving}
+            className="px-3 py-1 bg-brand-600 text-white rounded text-xs font-medium hover:bg-brand-700 transition-colors focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-brand-500 disabled:opacity-40"
           >
-            {saved ? '已保存' : '保存'}
+            {saving ? '保存中…' : saved ? '已保存' : '保存'}
           </button>
         </div>
       </div>
@@ -169,25 +176,100 @@ function AssignmentTable({ title, subtitle, storageKey, defaultVal }: Assignment
 }
 
 export default function EnclosureRoleCard() {
+  const { data, mutate, isLoading, error } = useSWR<Record<string, Record<string, string[]>>>(
+    '/api/config/enclosure-role',
+    swrFetcher
+  );
+
+  // 一次性 localStorage→API 迁移
+  useEffect(() => {
+    if (isLoading) return;
+    const apiHasData =
+      data &&
+      (Object.keys(data.narrow ?? {}).length > 0 || Object.keys(data.wide ?? {}).length > 0);
+    if (!apiHasData) {
+      // 尝试从旧 localStorage 读取
+      const legacyNarrow =
+        readLocalStorage(STORAGE_KEY_NARROW) ?? readLocalStorage(STORAGE_KEY_LEGACY);
+      const legacyWide = readLocalStorage(STORAGE_KEY_WIDE);
+      if (legacyNarrow || legacyWide) {
+        const migrateData = {
+          narrow: (legacyNarrow ?? DEFAULT_NARROW) as Record<string, string[]>,
+          wide: (legacyWide ?? DEFAULT_WIDE) as Record<string, string[]>,
+        };
+        configAPI
+          .putEnclosureRole(migrateData)
+          .then(() => {
+            mutate(migrateData, false);
+            // 清除旧 localStorage
+            try {
+              localStorage.removeItem(STORAGE_KEY_NARROW);
+              localStorage.removeItem(STORAGE_KEY_WIDE);
+              localStorage.removeItem(STORAGE_KEY_LEGACY);
+            } catch {
+              /* ignore */
+            }
+          })
+          .catch(() => {
+            /* 迁移失败静默忽略，下次会重试 */
+          });
+      }
+    }
+  }, [isLoading, data, mutate]);
+
+  const narrowAssignment = (data?.narrow as EnclosureRoleAssignment | undefined) ?? DEFAULT_NARROW;
+  const wideAssignment = (data?.wide as EnclosureRoleAssignment | undefined) ?? DEFAULT_WIDE;
+
+  async function handleSaveNarrow(newAssignment: EnclosureRoleAssignment) {
+    const newData = {
+      narrow: newAssignment as Record<string, string[]>,
+      wide: (data?.wide ?? DEFAULT_WIDE) as Record<string, string[]>,
+    };
+    await configAPI.putEnclosureRole(newData);
+    await mutate(newData, false);
+    // 通知打卡面板刷新（同 tab 内 storage 事件不触发，用自定义事件）
+    window.dispatchEvent(new Event('enclosure-role-changed'));
+  }
+
+  async function handleSaveWide(newAssignment: EnclosureRoleAssignment) {
+    const newData = {
+      narrow: (data?.narrow ?? DEFAULT_NARROW) as Record<string, string[]>,
+      wide: newAssignment as Record<string, string[]>,
+    };
+    await configAPI.putEnclosureRole(newData);
+    await mutate(newData, false);
+    window.dispatchEvent(new Event('enclosure-role-changed'));
+  }
+
   return (
     <Card title="围场-岗位负责配置">
-      <div className="space-y-6">
-        <AssignmentTable
-          title="窄口径负责配置"
-          subtitle="CC/SS/LP 主动联系场景"
-          storageKey={STORAGE_KEY_NARROW}
-          defaultVal={DEFAULT_NARROW}
-        />
-        <div className="border-t border-slate-100" />
-        <AssignmentTable
-          title="宽口径负责配置"
-          subtitle="学员自主打卡场景（打卡面板使用）"
-          storageKey={STORAGE_KEY_WIDE}
-          defaultVal={DEFAULT_WIDE}
-        />
-      </div>
+      {isLoading && (
+        <div className="py-4 text-center text-xs text-[var(--text-muted)]">加载中…</div>
+      )}
+      {error && !isLoading && (
+        <div className="py-2 text-xs text-red-500">加载配置失败，使用本地默认值</div>
+      )}
+      {!isLoading && (
+        <div className="space-y-6">
+          <AssignmentTable
+            title="窄口径负责配置"
+            subtitle="CC/SS/LP 主动联系场景"
+            assignment={narrowAssignment}
+            defaultVal={DEFAULT_NARROW}
+            onSave={handleSaveNarrow}
+          />
+          <div className="border-t border-slate-100" />
+          <AssignmentTable
+            title="宽口径负责配置"
+            subtitle="学员自主打卡场景（打卡面板使用）"
+            assignment={wideAssignment}
+            defaultVal={DEFAULT_WIDE}
+            onSave={handleSaveWide}
+          />
+        </div>
+      )}
       <p className="mt-3 text-xs text-[var(--text-muted)]">
-        勾选 = 该围场由该岗位服务；允许多选。配置保存在本地浏览器，打卡面板读取宽口径配置。
+        勾选 = 该围场由该岗位服务；允许多选。配置持久化到服务端，打卡面板读取宽口径配置。
       </p>
     </Card>
   );
