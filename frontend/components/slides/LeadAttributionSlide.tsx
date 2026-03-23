@@ -41,14 +41,24 @@ export function LeadAttributionSlide({ slideNumber, totalSlides }: SlideProps) {
           <table className="w-full text-sm border-collapse">
             <thead>
               <tr
-                className="text-white text-xs font-medium"
-                style={{ backgroundColor: 'var(--n-800)' }}
+                className="text-xs font-medium"
+                style={{ backgroundColor: '#28282a', color: 'white' }}
               >
-                <th className="text-left px-2 py-1.5">渠道</th>
-                <th className="text-right px-2 py-1.5">注册数</th>
-                <th className="text-right px-2 py-1.5">预约数</th>
-                <th className="text-right px-2 py-1.5">出席数</th>
-                <th className="text-right px-2 py-1.5">付费数</th>
+                <th className="text-left px-2 py-1.5" style={{ color: 'white' }}>
+                  渠道
+                </th>
+                <th className="text-right px-2 py-1.5" style={{ color: 'white' }}>
+                  注册数
+                </th>
+                <th className="text-right px-2 py-1.5" style={{ color: 'white' }}>
+                  预约数
+                </th>
+                <th className="text-right px-2 py-1.5" style={{ color: 'white' }}>
+                  出席数
+                </th>
+                <th className="text-right px-2 py-1.5" style={{ color: 'white' }}>
+                  付费数
+                </th>
               </tr>
             </thead>
             <tbody>

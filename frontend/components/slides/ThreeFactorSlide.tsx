@@ -74,22 +74,30 @@ export function ThreeFactorSlide({ slideNumber, totalSlides }: SlideProps) {
           <table className="w-full text-sm border-collapse">
             <thead>
               <tr
-                className="text-white text-xs font-medium"
-                style={{ backgroundColor: 'var(--n-800)' }}
+                className="text-xs font-medium"
+                style={{ backgroundColor: '#28282a', color: 'white' }}
               >
-                <th className="text-left px-2 py-1.5" rowSpan={2}>
+                <th className="text-left px-2 py-1.5" style={{ color: 'white' }} rowSpan={2}>
                   渠道
                 </th>
-                <th className="text-center px-2 py-1.5 border-b border-white/20" colSpan={3}>
+                <th
+                  className="text-center px-2 py-1.5 border-b border-white/20"
+                  style={{ color: 'white' }}
+                  colSpan={3}
+                >
                   单量
                 </th>
-                <th className="text-center px-2 py-1.5 border-b border-white/20" colSpan={3}>
+                <th
+                  className="text-center px-2 py-1.5 border-b border-white/20"
+                  style={{ color: 'white' }}
+                  colSpan={3}
+                >
                   三因素
                 </th>
               </tr>
               <tr
-                className="text-white/80 text-xs font-medium"
-                style={{ backgroundColor: 'var(--n-800)' }}
+                className="text-xs font-medium"
+                style={{ backgroundColor: '#28282a', color: 'rgba(255,255,255,0.8)' }}
               >
                 <th className="text-right px-2 py-1.5">预期</th>
                 <th className="text-right px-2 py-1.5">实际</th>

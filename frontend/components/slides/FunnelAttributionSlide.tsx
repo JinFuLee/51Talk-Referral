@@ -7,58 +7,40 @@ import { SlideShell } from '@/components/presentation/SlideShell';
 import { Spinner } from '@/components/ui/Spinner';
 import type { SlideProps } from '@/lib/presentation/types';
 
-// 对齐 /api/channel 真实返回
-interface ChannelRow {
-  channel: string;
-  registrations: number | null;
-  appointments: number | null;
-  attendance: number | null;
-  payments: number | null;
-  revenue_usd: number | null;
-  share_pct: number | null;
+interface FunnelStage {
+  name: string;
+  target: number | null;
+  actual: number | null;
+  gap: number | null;
+  achievement_rate: number | null;
+  conversion_rate: number | null;
 }
 
+interface FunnelResponse {
+  stages: FunnelStage[];
+}
+
+const TH: React.CSSProperties = { color: 'white' };
+
 export function FunnelAttributionSlide({ slideNumber, totalSlides }: SlideProps) {
-  const { data, isLoading, error } = useSWR<ChannelRow[]>('/api/channel', swrFetcher);
-  const channels = data ?? [];
+  const { data, isLoading, error } = useSWR<FunnelResponse>('/api/funnel', swrFetcher);
+  const stages = data?.stages ?? [];
 
-  // 从真实数据计算转化率
-  const rows = channels.map((c) => {
-    const reg = c.registrations ?? 0;
-    const appt = c.appointments ?? 0;
-    const attend = c.attendance ?? 0;
-    const paid = c.payments ?? 0;
-    return {
-      channel: c.channel,
-      appt_rate: reg > 0 ? appt / reg : 0,
-      attend_rate: appt > 0 ? attend / appt : 0,
-      paid_rate: attend > 0 ? paid / attend : 0,
-    };
+  // 相邻环节计算转化率
+  const rows = stages.map((s, i) => {
+    const prev = i > 0 ? (stages[i - 1].actual ?? 0) : 0;
+    const curr = s.actual ?? 0;
+    const stepRate = prev > 0 ? curr / prev : null;
+    return { ...s, stepRate };
   });
-
-  function RateBadge({ value }: { value: number }) {
-    const color =
-      value >= 0.5
-        ? 'text-green-700 bg-green-50'
-        : value >= 0.3
-          ? 'text-yellow-700 bg-yellow-50'
-          : value > 0
-            ? 'text-red-700 bg-red-50'
-            : 'text-slate-400 bg-slate-50';
-    return (
-      <span className={`inline-block px-2 py-0.5 rounded text-xs font-bold ${color}`}>
-        {value > 0 ? formatRate(value) : '-'}
-      </span>
-    );
-  }
 
   return (
     <SlideShell
       slideNumber={slideNumber}
       totalSlides={totalSlides}
-      title="过程转化率拆解"
-      subtitle="各渠道 × 预约率 / 出席率 / 付费率（从实际数据计算）"
-      section="渠道分析"
+      title="全漏斗转化链"
+      subtitle="注册 → 预约 → 出席 → 付费，逐环节达成 & 转化率"
+      section="漏斗分析"
     >
       {isLoading ? (
         <div className="flex justify-center items-center h-full">
@@ -73,49 +55,77 @@ export function FunnelAttributionSlide({ slideNumber, totalSlides }: SlideProps)
         </div>
       ) : rows.length === 0 ? (
         <div className="flex items-center justify-center h-full">
-          <p className="text-[var(--text-muted)]">暂无渠道数据</p>
+          <p className="text-[var(--text-muted)]">暂无漏斗数据</p>
         </div>
       ) : (
         <div className="overflow-auto h-full">
           <table className="w-full text-sm border-collapse">
             <thead>
-              <tr
-                className="text-white text-xs font-medium"
-                style={{ backgroundColor: 'var(--n-800)' }}
-              >
-                <th className="text-left px-3 py-2">渠道</th>
-                <th className="text-right px-3 py-2">注册数</th>
-                <th className="text-right px-3 py-2">预约率</th>
-                <th className="text-right px-3 py-2">出席率</th>
-                <th className="text-right px-3 py-2">付费率</th>
-                <th className="text-right px-3 py-2">付费数</th>
+              <tr style={{ backgroundColor: '#28282a' }}>
+                <th className="text-left px-3 py-2.5 text-xs font-medium" style={TH}>
+                  环节
+                </th>
+                <th className="text-right px-3 py-2.5 text-xs font-medium" style={TH}>
+                  实际
+                </th>
+                <th className="text-right px-3 py-2.5 text-xs font-medium" style={TH}>
+                  目标
+                </th>
+                <th className="text-right px-3 py-2.5 text-xs font-medium" style={TH}>
+                  差距
+                </th>
+                <th className="text-right px-3 py-2.5 text-xs font-medium" style={TH}>
+                  达成率
+                </th>
+                <th className="text-right px-3 py-2.5 text-xs font-medium" style={TH}>
+                  环节转化率
+                </th>
               </tr>
             </thead>
             <tbody>
               {rows.map((r, i) => {
-                const c = channels[i];
+                const actual = r.actual ?? 0;
+                const target = r.target ?? 0;
+                const gap = r.gap ?? 0;
+                const rate = r.achievement_rate ?? 0;
+                const isGood = gap >= 0;
                 return (
-                  <tr
-                    key={r.channel}
-                    className={i % 2 === 0 ? 'bg-[var(--bg-surface)]' : 'bg-slate-50/50'}
-                  >
-                    <td className="px-3 py-1.5 text-xs font-semibold text-[var(--text-primary)]">
-                      {r.channel}
+                  <tr key={r.name} className={i % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
+                    <td className="px-3 py-2 text-sm font-semibold text-[var(--text-primary)]">
+                      {r.name}
                     </td>
-                    <td className="px-3 py-1.5 text-xs text-right font-mono tabular-nums">
-                      {(c.registrations ?? 0).toLocaleString()}
+                    <td className="px-3 py-2 text-sm text-right font-mono tabular-nums font-bold text-[var(--text-primary)]">
+                      {actual.toLocaleString()}
                     </td>
-                    <td className="px-3 py-1.5 text-xs text-right">
-                      <RateBadge value={r.appt_rate} />
+                    <td className="px-3 py-2 text-sm text-right font-mono tabular-nums text-[var(--text-secondary)]">
+                      {target > 0 ? target.toLocaleString() : '-'}
                     </td>
-                    <td className="px-3 py-1.5 text-xs text-right">
-                      <RateBadge value={r.attend_rate} />
+                    <td
+                      className={`px-3 py-2 text-sm text-right font-mono tabular-nums font-bold ${isGood ? 'text-green-600' : 'text-red-500'}`}
+                    >
+                      {target > 0 ? `${isGood ? '+' : ''}${gap.toLocaleString()}` : '-'}
                     </td>
-                    <td className="px-3 py-1.5 text-xs text-right">
-                      <RateBadge value={r.paid_rate} />
+                    <td
+                      className={`px-3 py-2 text-sm text-right font-semibold ${rate >= 1 ? 'text-green-600' : rate >= 0.8 ? 'text-yellow-600' : rate > 0 ? 'text-red-500' : 'text-[var(--text-muted)]'}`}
+                    >
+                      {rate > 0 ? formatRate(rate) : '-'}
                     </td>
-                    <td className="px-3 py-1.5 text-xs text-right font-mono tabular-nums font-semibold">
-                      {(c.payments ?? 0).toLocaleString()}
+                    <td className="px-3 py-2 text-sm text-right">
+                      {r.stepRate != null ? (
+                        <span
+                          className={`inline-block px-2 py-0.5 rounded text-xs font-bold ${
+                            r.stepRate >= 0.8
+                              ? 'text-green-700 bg-green-50'
+                              : r.stepRate >= 0.5
+                                ? 'text-yellow-700 bg-yellow-50'
+                                : 'text-red-700 bg-red-50'
+                          }`}
+                        >
+                          {formatRate(r.stepRate)}
+                        </span>
+                      ) : (
+                        '-'
+                      )}
                     </td>
                   </tr>
                 );

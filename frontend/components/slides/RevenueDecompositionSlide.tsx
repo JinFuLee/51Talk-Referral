@@ -57,15 +57,27 @@ export function RevenueDecompositionSlide({ slideNumber, totalSlides }: SlidePro
           <table className="w-full text-sm border-collapse">
             <thead>
               <tr
-                className="text-white text-xs font-medium"
-                style={{ backgroundColor: 'var(--n-800)' }}
+                className="text-xs font-medium"
+                style={{ backgroundColor: '#28282a', color: 'white' }}
               >
-                <th className="text-left px-3 py-2">渠道</th>
-                <th className="text-right px-3 py-2">注册数</th>
-                <th className="text-right px-3 py-2">付费数</th>
-                <th className="text-right px-3 py-2">付费金额</th>
-                <th className="text-right px-3 py-2">金额占比</th>
-                <th className="px-3 py-2 w-28">占比</th>
+                <th className="text-left px-3 py-2" style={{ color: 'white' }}>
+                  渠道
+                </th>
+                <th className="text-right px-3 py-2" style={{ color: 'white' }}>
+                  注册数
+                </th>
+                <th className="text-right px-3 py-2" style={{ color: 'white' }}>
+                  付费数
+                </th>
+                <th className="text-right px-3 py-2" style={{ color: 'white' }}>
+                  付费金额
+                </th>
+                <th className="text-right px-3 py-2" style={{ color: 'white' }}>
+                  金额占比
+                </th>
+                <th className="px-3 py-2 w-28" style={{ color: 'white' }}>
+                  占比
+                </th>
               </tr>
             </thead>
             <tbody>

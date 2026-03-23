@@ -43,13 +43,21 @@ export function NetAttributionSlide({ slideNumber, totalSlides }: SlideProps) {
           <table className="w-full text-sm border-collapse">
             <thead>
               <tr
-                className="text-white text-xs font-medium"
-                style={{ backgroundColor: 'var(--n-800)' }}
+                className="text-xs font-medium"
+                style={{ backgroundColor: '#28282a', color: 'white' }}
               >
-                <th className="text-left px-2 py-1.5">渠道</th>
-                <th className="text-right px-2 py-1.5">总业绩</th>
-                <th className="text-right px-2 py-1.5">金额占比</th>
-                <th className="text-right px-2 py-1.5">人均业绩</th>
+                <th className="text-left px-2 py-1.5" style={{ color: 'white' }}>
+                  渠道
+                </th>
+                <th className="text-right px-2 py-1.5" style={{ color: 'white' }}>
+                  总业绩
+                </th>
+                <th className="text-right px-2 py-1.5" style={{ color: 'white' }}>
+                  金额占比
+                </th>
+                <th className="text-right px-2 py-1.5" style={{ color: 'white' }}>
+                  人均业绩
+                </th>
               </tr>
             </thead>
             <tbody>
