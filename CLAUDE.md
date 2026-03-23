@@ -153,6 +153,13 @@ Excel 数据源 → XlsxReader → DataProcessor → AnalysisEngine → Markdown
 - 新增组件必须有 loading / error / empty 三态，empty 态必须有操作指引
 - `isMock` / `MOCK_DATA` / `fallback.*data` 模式禁止引入，代码审查红线
 
+## Slide 设计体系 SSoT 规则
+- Slide 表格样式统一引用 `globals.css` 中的 `slide-*` Design Token 类（`slide-thead-row/slide-th/slide-td/slide-row-*/slide-tfoot-row`）
+- **禁止在 Slide 组件中内联 `style={{ color/backgroundColor }}`**，所有视觉属性从中央 CSS 类继承
+- 修改表头颜色/间距/字号 → 改 `globals.css` 一处，全部 Slide 自动生效
+- Tailwind `bg-[var(--xxx)]` 在 JIT 模式下对 CSS 变量编译不稳定，Slide 组件统一用 CSS class 而非 Tailwind arbitrary value
+- 新增 Slide 组件不引用 `slide-*` class = 不合格
+
 ## API 契约防漂移规则
 - 前端 `useSWR<T>` 泛型 T 必须精确匹配后端 `response_model` 类型
 - 后端返回 `list[Item]` → 前端用 `useSWR<Item[]>`，**禁止** `data?.items` 包装假设
