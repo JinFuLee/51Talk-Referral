@@ -90,6 +90,7 @@ class NotificationEngine:
         dry_run: bool = False,
         test: bool = False,
         force: bool = False,
+        sandbox: bool = False,
     ) -> None:
         """执行推送
 
@@ -98,8 +99,32 @@ class NotificationEngine:
             dry_run:    只生成图片，不上传不发送
             test:       发送连通性测试消息
             force:      忽略幂等检查，强制重发
+            sandbox:    沙箱模式，所有推送重定向到测试群
         """
         targets = self._resolve_targets(channel_id)
+
+        # sandbox 模式：保留内容路由，替换发送目标为测试群
+        if sandbox:
+            sandbox_id = self.defaults.get("sandbox_channel", "test")
+            sandbox_ch = self.channels.get(sandbox_id)
+            if not sandbox_ch:
+                print(f"[错误] sandbox 通道 {sandbox_id!r} 不存在")
+                return
+            print(
+                f"🔒 沙箱模式：所有推送重定向到"
+                f" [{sandbox_ch.get('group_name', sandbox_id)}]"
+            )
+            targets = [
+                (
+                    ch_id,
+                    {
+                        **ch,
+                        "webhook": sandbox_ch["webhook"],
+                        "secret": sandbox_ch["secret"],
+                    },
+                )
+                for ch_id, ch in targets
+            ]
 
         # 幂等过滤：同日已成功推送的通道跳过
         if not force and not test and not dry_run:

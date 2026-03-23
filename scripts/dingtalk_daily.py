@@ -1003,6 +1003,11 @@ def main():
         action="store_true",
         help="忽略幂等检查，强制重发（仅 --engine 模式有效）",
     )
+    parser.add_argument(
+        "--sandbox",
+        action="store_true",
+        help="沙箱模式：所有推送重定向到测试群（仅 --engine 模式有效）",
+    )
     args = parser.parse_args()
 
     # ── 引擎模式：委托给 NotificationEngine，现有逻辑完全不变 ──
@@ -1020,6 +1025,7 @@ def main():
             dry_run=args.dry_run,
             test=args.test,
             force=args.force,
+            sandbox=args.sandbox,
         )
         return
 
