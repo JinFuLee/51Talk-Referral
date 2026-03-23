@@ -171,7 +171,14 @@ class DataManager:
             return dict(self._loaded_files)
 
     def _alert_empty_data(self) -> None:
-        """数据源全空时向 ops 群推送告警，节流：每小时最多 1 次"""
+        """数据源全空时向 ops 群推送告警 — 已禁用自动推送（2026-03-23）
+        原因：不应未经用户许可自动向正式群发消息。
+        改为仅日志记录，需要时手动查看。
+        """
+        logger.warning("所有数据源 (D1-D5) 为空 — 告警仅记录日志，不自动推送群消息")
+        return
+
+        # ── 以下为原自动推送逻辑，已禁用 ──
         global _last_empty_alert_ts
 
         now_ts = time.time()
