@@ -488,6 +488,25 @@ export const enclosureHealthAPI = {
     request<import('./types/cross-analysis').EnclosureVarianceRow[]>('/enclosure-health/variance'),
 };
 
+// ── Indicator Matrix ──────────────────────────────────────────────────────────
+
+export const indicatorMatrixAPI = {
+  getRegistry: () =>
+    request<import('./types/indicator-matrix').IndicatorDef[]>('/indicator-matrix/registry'),
+  getMatrix: () =>
+    request<import('./types/indicator-matrix').IndicatorMatrix>('/indicator-matrix/matrix'),
+  putMatrix: (role: 'SS' | 'LP', active: string[]) =>
+    request<{ status: string }>(`/indicator-matrix/matrix/${role}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ active }),
+    }),
+  resetMatrix: (role: 'SS' | 'LP') =>
+    request<{ status: string }>(`/indicator-matrix/matrix/${role}/reset`, {
+      method: 'POST',
+    }),
+};
+
 // ── SWR fetcher ──────────────────────────────────────────────────────────────
 export const swrFetcher = async (url: string) => {
   const r = await fetch(url);

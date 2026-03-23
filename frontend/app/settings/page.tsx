@@ -22,6 +22,7 @@ import EnclosureSettingsCard from './EnclosureSettingsCard';
 import SOPSettingsCard from './SOPSettingsCard';
 import EnclosureRoleCard from './EnclosureRoleCard';
 import CheckinThresholdsCard from './CheckinThresholdsCard';
+import IndicatorMatrixCard from './IndicatorMatrixCard';
 import { defaultV2, MONTHS } from './defaultV2';
 
 export default function SettingsPage() {
@@ -207,6 +208,7 @@ export default function SettingsPage() {
       />
       <EnclosureRoleCard />
       <CheckinThresholdsCard />
+      <IndicatorMatrixCard />
     </div>
   );
 }

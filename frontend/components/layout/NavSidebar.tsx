@@ -26,6 +26,7 @@ import {
   HeartPulse,
   Radio,
   Search,
+  LayoutGrid,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
@@ -70,6 +71,7 @@ const MAIN_GROUPS: NavGroup[] = [
     items: [
       { href: '/reports', label: '分析报告', Icon: FileText },
       { href: '/settings', label: '设置', Icon: Settings },
+      { href: '/indicator-matrix', label: '指标矩阵', Icon: LayoutGrid },
       { href: '/present', label: '汇报模式', Icon: Monitor },
     ],
   },
