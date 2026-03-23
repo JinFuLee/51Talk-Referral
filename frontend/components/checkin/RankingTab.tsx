@@ -57,7 +57,7 @@ interface RoleColumnProps {
   role: string;
   summary: RankingRoleSummary;
   subTab: 'group' | 'person';
-  rateColor: (rate: number) => string;
+  rateColor?: (rate: number) => string;
 }
 
 function RoleColumn({ role, summary, subTab, rateColor }: RoleColumnProps) {
@@ -69,7 +69,7 @@ function RoleColumn({ role, summary, subTab, rateColor }: RoleColumnProps) {
       <div className="bg-[var(--n-800,#1e293b)] text-white text-xs font-semibold px-2 py-1.5 rounded-t-md flex items-center justify-between">
         <span>{role}</span>
         <span
-          className={`font-mono tabular-nums ${rateColor(summary.checkin_rate)}`}
+          className={`font-mono tabular-nums ${rateColor?.(summary.checkin_rate) ?? ''}`}
           style={{ color: 'inherit' }}
         >
           <span className="opacity-70">
@@ -128,7 +128,7 @@ function RoleColumn({ role, summary, subTab, rateColor }: RoleColumnProps) {
                       {fmtNum(row.checked_in)}
                     </td>
                     <td
-                      className={`py-1 px-2 text-right font-mono tabular-nums ${rateColor(row.rate)}`}
+                      className={`py-1 px-2 text-right font-mono tabular-nums ${rateColor?.(row.rate) ?? ''}`}
                     >
                       {fmtRate(row.rate)}
                     </td>
@@ -150,7 +150,7 @@ function RoleColumn({ role, summary, subTab, rateColor }: RoleColumnProps) {
                   {fmtNum(summary.checked_in)}
                 </td>
                 <td
-                  className={`py-1 px-2 text-right font-mono tabular-nums text-xs ${rateColor(summary.checkin_rate)}`}
+                  className={`py-1 px-2 text-right font-mono tabular-nums text-xs ${rateColor?.(summary.checkin_rate) ?? ''}`}
                 >
                   {fmtRate(summary.checkin_rate)}
                 </td>

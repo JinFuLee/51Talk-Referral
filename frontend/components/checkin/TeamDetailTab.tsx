@@ -64,8 +64,8 @@ interface TeamCardData {
 
 interface TeamCardProps {
   card: TeamCardData;
-  rateColor: (r: number) => string;
-  rateBg: (r: number) => string;
+  rateColor?: (r: number) => string;
+  rateBg?: (r: number) => string;
 }
 
 function TeamCard({ card, rateColor, rateBg }: TeamCardProps) {
@@ -82,7 +82,7 @@ function TeamCard({ card, rateColor, rateBg }: TeamCardProps) {
             {fmtNum(card.totalCheckedIn)}/{fmtNum(card.totalStudents)}
           </span>
           <span
-            className={`px-1.5 py-0.5 rounded text-xs font-bold border ${rateBg(card.checkinRate)}`}
+            className={`px-1.5 py-0.5 rounded text-xs font-bold border ${rateBg?.(card.checkinRate) ?? ''}`}
           >
             {fmtRate(card.checkinRate)}
           </span>
@@ -122,7 +122,7 @@ function TeamCard({ card, rateColor, rateBg }: TeamCardProps) {
                   {fmtNum(m.checked_in)}
                 </td>
                 <td
-                  className={`py-1 px-2 text-right font-mono tabular-nums font-semibold ${rateColor(m.rate)}`}
+                  className={`py-1 px-2 text-right font-mono tabular-nums font-semibold ${rateColor?.(m.rate) ?? ''}`}
                 >
                   {fmtRate(m.rate)}
                 </td>
@@ -140,7 +140,7 @@ function TeamCard({ card, rateColor, rateBg }: TeamCardProps) {
                 {fmtNum(card.totalCheckedIn)}
               </td>
               <td
-                className={`py-1.5 px-2 text-right font-mono tabular-nums font-semibold ${rateColor(card.checkinRate)}`}
+                className={`py-1.5 px-2 text-right font-mono tabular-nums font-semibold ${rateColor?.(card.checkinRate) ?? ''}`}
               >
                 {fmtRate(card.checkinRate)}
               </td>
@@ -245,7 +245,7 @@ export function TeamDetailTab({ activeRoles: _ar, roleEnclosures: _re }: TeamDet
         {roleSummary && (
           <span className="ml-auto text-xs text-[var(--text-muted)] font-mono tabular-nums">
             {fmtNum(roleSummary.checked_in)}/{fmtNum(roleSummary.total_students)}{' '}
-            <span className={`font-semibold ${rateColor(roleSummary.checkin_rate)}`}>
+            <span className={`font-semibold ${rateColor?.(roleSummary.checkin_rate) ?? ''}`}>
               {fmtRate(roleSummary.checkin_rate)}
             </span>
           </span>

@@ -97,10 +97,10 @@ function ChannelColumn({ ch, rateColor, rateBg }: ChannelColumnProps) {
         <div
           className={cn(
             'inline-block text-sm font-semibold px-1.5 py-0.5 rounded',
-            rateBg(ch.checkin_rate)
+            rateBg(ch.checkin_rate ?? 0)
           )}
         >
-          {fmtRate(ch.checkin_rate)}
+          {fmtRate(ch.checkin_rate ?? 0)}
         </div>
         <div className="text-[10px] text-[var(--text-muted)]">有效学员 · 已打卡 · 打卡率</div>
       </div>
