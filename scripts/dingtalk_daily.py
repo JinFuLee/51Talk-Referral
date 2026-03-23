@@ -26,10 +26,10 @@ from datetime import datetime
 from pathlib import Path
 
 import matplotlib
+
 matplotlib.use("Agg")
-import matplotlib.pyplot as plt
-from matplotlib import colormaps  # noqa: E402
 import matplotlib.patches as mpatches  # noqa: E402
+import matplotlib.pyplot as plt
 
 # ── 配置 ──────────────────────────────────────────────────────────────────────
 
@@ -41,37 +41,61 @@ OUTPUT_DIR = PROJECT_ROOT / "output"
 GOOD_RATE = 0.6
 WARN_RATE = 0.4
 
+# 泰文文案集中字典（ICU MessageFormat 模式，单一信源）
+TH_STRINGS = {
+    "overview_title": "CC Check-in Report",  # 英文品牌名保留
+    "overview_card": "ภาพรวม CC",
+    "col_rank": "#",
+    "col_team": "ทีม",
+    "col_students": "นักเรียน",
+    "col_checkin": "เช็คอิน",
+    "col_rate": "อัตรา",
+    "col_name": "ชื่อ",
+    "legend_pass": "ผ่าน",
+    "legend_near": "ใกล้เคียง",
+    "legend_below": "ต่ำกว่า",
+    "top10_title": "บุคคล Top 10",
+    "team_rank_title": "จัดอันดับทีม",
+    "team_individual": "รายบุคคล",
+}
+
 # SEE Design System — Warm Neutral 色板
-C_BG       = "#FAFAF9"   # --n-50  bg-primary
-C_SURFACE  = "#F5F5F4"   # --n-100 bg-surface
-C_ELEVATED = "#E7E5E4"   # --n-200 bg-elevated / border-subtle
-C_BORDER   = "#E7E5E4"   # --border-subtle
-C_BORDER_H = "#D6D3D1"   # --n-300 border-hover
-C_MUTED    = "#78716C"    # --n-500 text-muted
-C_TEXT2    = "#57534E"    # --n-600 text-secondary
-C_TEXT     = "#1C1917"    # --n-900 text-primary
-C_HEADER   = "#1C1917"   # --n-900
-C_N800     = "#292524"    # --n-800 表头背景
-C_BRAND_P1 = "#92400E"   # --brand-p1 品牌棕
-C_BRAND_P2 = "#3730A3"   # --brand-p2 操作蓝
-C_ACCENT   = "#F59E0B"   # --accent-spark
-C_SUCCESS  = "#059669"   # --success
-C_WARNING  = "#D97706"   # --warning
-C_DANGER   = "#DC2626"   # --danger
+C_BG = "#FAFAF9"  # --n-50  bg-primary
+C_SURFACE = "#F5F5F4"  # --n-100 bg-surface
+C_ELEVATED = "#E7E5E4"  # --n-200 bg-elevated / border-subtle
+C_BORDER = "#E7E5E4"  # --border-subtle
+C_BORDER_H = "#D6D3D1"  # --n-300 border-hover
+C_MUTED = "#78716C"  # --n-500 text-muted
+C_TEXT2 = "#57534E"  # --n-600 text-secondary
+C_TEXT = "#1C1917"  # --n-900 text-primary
+C_HEADER = "#1C1917"  # --n-900
+C_N800 = "#292524"  # --n-800 表头背景
+C_BRAND_P1 = "#92400E"  # --brand-p1 品牌棕
+C_BRAND_P2 = "#3730A3"  # --brand-p2 操作蓝
+C_ACCENT = "#F59E0B"  # --accent-spark
+C_SUCCESS = "#059669"  # --success
+C_WARNING = "#D97706"  # --warning
+C_DANGER = "#DC2626"  # --danger
 # 状态浅底
-C_GREEN_BG  = "#ECFDF5"
+C_GREEN_BG = "#ECFDF5"
 C_YELLOW_BG = "#FFFBEB"
-C_RED_BG    = "#FEF2F2"
+C_RED_BG = "#FEF2F2"
 # 奖牌
-C_GOLD   = "#D4AF37"
+C_GOLD = "#D4AF37"
 C_SILVER = "#A0A0A0"
 C_BRONZE = "#CD7F32"
 
 # 泰文字体 fallback
 THAI_FONTS = [
-    "Tahoma", "Angsana New", "Browallia New", "Cordia New",
-    "TH Sarabun New", "Leelawadee", "Arial Unicode MS",
-    "DejaVu Sans", "sans-serif",
+    "Tahoma",
+    "Angsana New",
+    "Browallia New",
+    "Cordia New",
+    "TH Sarabun New",
+    "Leelawadee",
+    "Arial Unicode MS",
+    "DejaVu Sans",
+    "sans-serif",
 ]
 
 
@@ -95,11 +119,24 @@ def sign_url(webhook: str, secret: str) -> str:
 # ── 数据获取 ──────────────────────────────────────────────────────────────────
 
 
-def fetch_ranking() -> dict:
+def fetch_ranking(role_config: dict | None = None) -> dict:
     url = f"{API_BASE}/api/checkin/ranking"
-    req = urllib.request.Request(url, headers={"Accept": "application/json"})
-    with urllib.request.urlopen(req, timeout=10) as resp:
-        return json.loads(resp.read().decode("utf-8"))
+    if role_config is not None:
+        encoded = urllib.parse.quote(json.dumps(role_config, ensure_ascii=False))
+        url += f"?role_config={encoded}"
+
+    last_exc: Exception | None = None
+    for attempt in range(3):
+        if attempt > 0:
+            time.sleep(attempt * 1)  # 1s → 2s 指数退避
+        try:
+            req = urllib.request.Request(url, headers={"Accept": "application/json"})
+            with urllib.request.urlopen(req, timeout=15) as resp:
+                return json.loads(resp.read().decode("utf-8"))
+        except Exception as e:
+            last_exc = e
+            print(f"fetch_ranking 第 {attempt + 1} 次尝试失败: {e}")
+    raise RuntimeError("fetch_ranking 重试 3 次仍失败") from last_exc
 
 
 # ── 图片生成 ──────────────────────────────────────────────────────────────────
@@ -136,11 +173,21 @@ def _draw_medal(ax, x: float, y: float, rank: int):
     medal_colors = {1: C_GOLD, 2: C_SILVER, 3: C_BRONZE}
     if rank in medal_colors:
         _draw_circle(ax, x + 0.25, y, 0.12, medal_colors[rank])
-        ax.text(x + 0.25, y, str(rank), fontsize=8, fontweight="bold",
-                color="white", va="center", ha="center", zorder=6)
+        ax.text(
+            x + 0.25,
+            y,
+            str(rank),
+            fontsize=8,
+            fontweight="bold",
+            color="white",
+            va="center",
+            ha="center",
+            zorder=6,
+        )
     else:
-        ax.text(x + 0.25, y, str(rank), fontsize=10,
-                color=C_TEXT2, va="center", ha="center")
+        ax.text(
+            x + 0.25, y, str(rank), fontsize=10, color=C_TEXT2, va="center", ha="center"
+        )
 
 
 def _draw_status_dot(ax, x: float, y: float, rate: float):
@@ -181,71 +228,143 @@ def generate_report_image(data: dict) -> bytes:
     # ── 标题区 ──
     y -= 0.3
     # 品牌竖条
-    ax.add_patch(plt.Rectangle((0.2, y - 0.35), 0.08, 0.35,
-                               facecolor=C_BRAND_P2, edgecolor="none"))
-    ax.text(0.45, y, "CC Check-in Report", fontsize=18, fontweight="bold",
-            color=C_HEADER, va="top")
+    ax.add_patch(
+        plt.Rectangle(
+            (0.2, y - 0.35), 0.08, 0.35, facecolor=C_BRAND_P2, edgecolor="none"
+        )
+    )
+    ax.text(
+        0.45,
+        y,
+        TH_STRINGS["overview_title"],
+        fontsize=18,
+        fontweight="bold",
+        color=C_HEADER,
+        va="top",
+    )
     y -= 0.45
-    ax.text(0.45, y, f"{today}  |  {now_time}  |  T-1",
-            fontsize=10, color=C_TEXT2, va="top")
+    ax.text(
+        0.45, y, f"{today}  |  {now_time}  |  T-1", fontsize=10, color=C_TEXT2, va="top"
+    )
 
     # ── 总览卡片 ──
     y -= 0.7
     card_h = 1.2
-    ax.add_patch(mpatches.FancyBboxPatch(
-        (0.2, y - card_h), 9.6, card_h,
-        boxstyle="round,pad=0.1",
-        facecolor="white", edgecolor=C_BORDER, linewidth=1.2,
-    ))
+    ax.add_patch(
+        mpatches.FancyBboxPatch(
+            (0.2, y - card_h),
+            9.6,
+            card_h,
+            boxstyle="round,pad=0.1",
+            facecolor="white",
+            edgecolor=C_BORDER,
+            linewidth=1.2,
+        )
+    )
 
     cy = y - 0.3
     # 状态圆点 + 标题
     _draw_status_dot(ax, 0.55, cy, rate)
-    ax.text(0.75, cy, "CC Overview", fontsize=13, fontweight="bold",
-            color=C_HEADER, va="center")
-    ax.text(3.8, cy, f"{checked:,} / {total:,}", fontsize=12,
-            color=C_TEXT2, va="center")
+    ax.text(
+        0.75,
+        cy,
+        TH_STRINGS["overview_card"],
+        fontsize=13,
+        fontweight="bold",
+        color=C_HEADER,
+        va="center",
+    )
+    ax.text(
+        3.8, cy, f"{checked:,} / {total:,}", fontsize=12, color=C_TEXT2, va="center"
+    )
 
-    ax.text(7.0, cy, fmt_pct(rate), fontsize=22, fontweight="bold",
-            color=rate_color(rate), va="center", ha="center")
+    ax.text(
+        7.0,
+        cy,
+        fmt_pct(rate),
+        fontsize=22,
+        fontweight="bold",
+        color=rate_color(rate),
+        va="center",
+        ha="center",
+    )
 
     # 进度条
     bar_y = cy - 0.45
     bar_w = 6.0
-    ax.add_patch(mpatches.FancyBboxPatch(
-        (0.6, bar_y - 0.08), bar_w, 0.16,
-        boxstyle="round,pad=0.04",
-        facecolor=C_ELEVATED, edgecolor="none",
-    ))
+    ax.add_patch(
+        mpatches.FancyBboxPatch(
+            (0.6, bar_y - 0.08),
+            bar_w,
+            0.16,
+            boxstyle="round,pad=0.04",
+            facecolor=C_ELEVATED,
+            edgecolor="none",
+        )
+    )
     fill_w = bar_w * min(rate, 1.0)
     if fill_w > 0.05:
-        ax.add_patch(mpatches.FancyBboxPatch(
-            (0.6, bar_y - 0.08), fill_w, 0.16,
-            boxstyle="round,pad=0.04",
-            facecolor=rate_color(rate), edgecolor="none",
-        ))
+        ax.add_patch(
+            mpatches.FancyBboxPatch(
+                (0.6, bar_y - 0.08),
+                fill_w,
+                0.16,
+                boxstyle="round,pad=0.04",
+                facecolor=rate_color(rate),
+                edgecolor="none",
+            )
+        )
     # 阈值标记线
-    for threshold, lbl in [(GOOD_RATE, f"{int(GOOD_RATE*100)}%"), (WARN_RATE, "")]:
+    for threshold, _lbl in [(GOOD_RATE, f"{int(GOOD_RATE * 100)}%"), (WARN_RATE, "")]:
         tx = 0.6 + bar_w * threshold
-        ax.plot([tx, tx], [bar_y - 0.1, bar_y + 0.1], color=C_MUTED,
-                linewidth=0.8, linestyle="--", zorder=4)
+        ax.plot(
+            [tx, tx],
+            [bar_y - 0.1, bar_y + 0.1],
+            color=C_MUTED,
+            linewidth=0.8,
+            linestyle="--",
+            zorder=4,
+        )
 
     y -= card_h + 0.4
 
     # ── 团队排行表 ──
     # 节标题竖条
-    ax.add_patch(plt.Rectangle((0.2, y - 0.25), 0.06, 0.25,
-                               facecolor=C_ACCENT, edgecolor="none"))
-    ax.text(0.4, y, "Team Ranking", fontsize=13, fontweight="bold",
-            color=C_HEADER, va="top")
+    ax.add_patch(
+        plt.Rectangle((0.2, y - 0.25), 0.06, 0.25, facecolor=C_ACCENT, edgecolor="none")
+    )
+    ax.text(
+        0.4,
+        y,
+        TH_STRINGS["team_rank_title"],
+        fontsize=13,
+        fontweight="bold",
+        color=C_HEADER,
+        va="top",
+    )
     y -= 0.45
 
     cols_x = [0.3, 1.2, 3.5, 5.0, 6.5, 8.0]
-    headers = ["#", "Team", "Students", "Check-in", "Rate", ""]
+    headers = [
+        TH_STRINGS["col_rank"],
+        TH_STRINGS["col_team"],
+        TH_STRINGS["col_students"],
+        TH_STRINGS["col_checkin"],
+        TH_STRINGS["col_rate"],
+        "",
+    ]
     for i, h in enumerate(headers[:-1]):
         ha = "right" if i >= 2 else "left"
-        ax.text(cols_x[i], y, h, fontsize=9, fontweight="bold",
-                color=C_TEXT2, va="center", ha=ha)
+        ax.text(
+            cols_x[i],
+            y,
+            h,
+            fontsize=9,
+            fontweight="bold",
+            color=C_TEXT2,
+            va="center",
+            ha=ha,
+        )
 
     y -= 0.15
     ax.plot([0.2, 9.8], [y, y], color=C_BORDER, linewidth=0.8)
@@ -259,37 +378,77 @@ def generate_report_image(data: dict) -> bytes:
         gr = g.get("rate", 0)
 
         row_bg = rate_bg(gr) if gr < WARN_RATE else (C_BG if rank % 2 == 0 else "white")
-        ax.add_patch(plt.Rectangle(
-            (0.2, y - 0.15), 9.6, 0.32,
-            facecolor=row_bg, edgecolor="none",
-        ))
+        ax.add_patch(
+            plt.Rectangle(
+                (0.2, y - 0.15),
+                9.6,
+                0.32,
+                facecolor=row_bg,
+                edgecolor="none",
+            )
+        )
 
         _draw_medal(ax, cols_x[0], y, rank)
-        ax.text(cols_x[1], y, name, fontsize=10, fontweight="semibold",
-                color=C_TEXT, va="center")
-        ax.text(cols_x[2], y, str(students), fontsize=10,
-                color=C_TEXT2, va="center", ha="right")
-        ax.text(cols_x[3], y, str(ck), fontsize=10,
-                color=C_TEXT2, va="center", ha="right")
+        ax.text(
+            cols_x[1],
+            y,
+            name,
+            fontsize=10,
+            fontweight="semibold",
+            color=C_TEXT,
+            va="center",
+        )
+        ax.text(
+            cols_x[2],
+            y,
+            str(students),
+            fontsize=10,
+            color=C_TEXT2,
+            va="center",
+            ha="right",
+        )
+        ax.text(
+            cols_x[3], y, str(ck), fontsize=10, color=C_TEXT2, va="center", ha="right"
+        )
 
         # 打卡率 + 状态圆点
         _draw_status_dot(ax, cols_x[4] + 0.2, y, gr)
-        ax.text(cols_x[4], y, fmt_pct(gr), fontsize=10, fontweight="bold",
-                color=rate_color(gr), va="center", ha="right")
+        ax.text(
+            cols_x[4],
+            y,
+            fmt_pct(gr),
+            fontsize=10,
+            fontweight="bold",
+            color=rate_color(gr),
+            va="center",
+            ha="right",
+        )
 
         # 迷你进度条
         mini_x = cols_x[5]
         mini_w = 1.6
-        ax.add_patch(plt.Rectangle(
-            (mini_x, y - 0.06), mini_w, 0.12,
-            facecolor=C_ELEVATED, edgecolor="none", zorder=2,
-        ))
+        ax.add_patch(
+            plt.Rectangle(
+                (mini_x, y - 0.06),
+                mini_w,
+                0.12,
+                facecolor=C_ELEVATED,
+                edgecolor="none",
+                zorder=2,
+            )
+        )
         fill = mini_w * min(gr, 1.0)
         if fill > 0.02:
-            ax.add_patch(plt.Rectangle(
-                (mini_x, y - 0.06), fill, 0.12,
-                facecolor=rate_color(gr), edgecolor="none", zorder=3,
-            ))
+            ax.add_patch(
+                plt.Rectangle(
+                    (mini_x, y - 0.06),
+                    fill,
+                    0.12,
+                    facecolor=rate_color(gr),
+                    edgecolor="none",
+                    zorder=3,
+                )
+            )
 
         y -= 0.35
 
@@ -297,18 +456,42 @@ def generate_report_image(data: dict) -> bytes:
 
     # ── Top 10 个人 ──
     if persons:
-        ax.add_patch(plt.Rectangle((0.2, y - 0.25), 0.06, 0.25,
-                                   facecolor=C_BRAND_P2, edgecolor="none"))
-        ax.text(0.4, y, "Top 10 Individuals", fontsize=13, fontweight="bold",
-                color=C_HEADER, va="top")
+        ax.add_patch(
+            plt.Rectangle(
+                (0.2, y - 0.25), 0.06, 0.25, facecolor=C_BRAND_P2, edgecolor="none"
+            )
+        )
+        ax.text(
+            0.4,
+            y,
+            TH_STRINGS["top10_title"],
+            fontsize=13,
+            fontweight="bold",
+            color=C_HEADER,
+            va="top",
+        )
         y -= 0.45
 
         p_cols = [0.3, 1.2, 4.5, 6.0, 7.5]
-        p_headers = ["#", "Name", "Team", "Students", "Rate"]
+        p_headers = [
+            TH_STRINGS["col_rank"],
+            TH_STRINGS["col_name"],
+            TH_STRINGS["col_team"],
+            TH_STRINGS["col_students"],
+            TH_STRINGS["col_rate"],
+        ]
         for i, h in enumerate(p_headers):
             ha = "right" if i >= 3 else "left"
-            ax.text(p_cols[i], y, h, fontsize=9, fontweight="bold",
-                    color=C_TEXT2, va="center", ha=ha)
+            ax.text(
+                p_cols[i],
+                y,
+                h,
+                fontsize=9,
+                fontweight="bold",
+                color=C_TEXT2,
+                va="center",
+                ha=ha,
+            )
         y -= 0.15
         ax.plot([0.2, 9.8], [y, y], color=C_BORDER, linewidth=0.8)
         y -= 0.15
@@ -321,31 +504,53 @@ def generate_report_image(data: dict) -> bytes:
             pr = p.get("rate", 0)
 
             if rank % 2 == 0:
-                ax.add_patch(plt.Rectangle(
-                    (0.2, y - 0.15), 9.6, 0.32,
-                    facecolor=C_BG, edgecolor="none",
-                ))
+                ax.add_patch(
+                    plt.Rectangle(
+                        (0.2, y - 0.15),
+                        9.6,
+                        0.32,
+                        facecolor=C_BG,
+                        edgecolor="none",
+                    )
+                )
 
             _draw_medal(ax, p_cols[0], y, rank)
-            ax.text(p_cols[1], y, name, fontsize=9,
-                    color=C_TEXT, va="center")
-            ax.text(p_cols[2], y, team, fontsize=9,
-                    color=C_TEXT2, va="center")
-            ax.text(p_cols[3], y, str(students), fontsize=9,
-                    color=C_TEXT2, va="center", ha="right")
+            ax.text(p_cols[1], y, name, fontsize=9, color=C_TEXT, va="center")
+            ax.text(p_cols[2], y, team, fontsize=9, color=C_TEXT2, va="center")
+            ax.text(
+                p_cols[3],
+                y,
+                str(students),
+                fontsize=9,
+                color=C_TEXT2,
+                va="center",
+                ha="right",
+            )
 
             _draw_status_dot(ax, p_cols[4] + 0.2, y, pr)
-            ax.text(p_cols[4], y, fmt_pct(pr), fontsize=10, fontweight="bold",
-                    color=rate_color(pr), va="center", ha="right")
+            ax.text(
+                p_cols[4],
+                y,
+                fmt_pct(pr),
+                fontsize=10,
+                fontweight="bold",
+                color=rate_color(pr),
+                va="center",
+                ha="right",
+            )
 
             y -= 0.35
 
     # ── 图例 ──
     y -= 0.3
     legend_items = [
-        (C_SUCCESS, f"  >= {int(GOOD_RATE*100)}%  Pass"),
-        (C_WARNING, f"  {int(WARN_RATE*100)}-{int(GOOD_RATE*100)}%  Near"),
-        (C_DANGER, f"  < {int(WARN_RATE*100)}%  Below"),
+        (C_SUCCESS, f"  >= {int(GOOD_RATE * 100)}%  {TH_STRINGS['legend_pass']}"),
+        (
+            C_WARNING,
+            f"  {int(WARN_RATE * 100)}-{int(GOOD_RATE * 100)}%  "
+            f"{TH_STRINGS['legend_near']}",
+        ),
+        (C_DANGER, f"  < {int(WARN_RATE * 100)}%  {TH_STRINGS['legend_below']}"),
     ]
     lx = 0.5
     for color, label in legend_items:
@@ -356,20 +561,30 @@ def generate_report_image(data: dict) -> bytes:
     # ── 底部 ──
     y -= 0.4
     ax.plot([2.0, 8.0], [y + 0.15, y + 0.15], color=C_BORDER_H, linewidth=0.5)
-    ax.text(5.0, y, "ref-ops-engine  |  T-1 Data",
-            fontsize=8, color=C_MUTED, va="center", ha="center")
+    ax.text(
+        5.0,
+        y,
+        "ref-ops-engine  |  T-1 Data",
+        fontsize=8,
+        color=C_MUTED,
+        va="center",
+        ha="center",
+    )
 
     plt.tight_layout(pad=0.3)
 
     buf = io.BytesIO()
-    fig.savefig(buf, format="png", facecolor=fig.get_facecolor(),
-                bbox_inches="tight", dpi=150)
+    fig.savefig(
+        buf, format="png", facecolor=fig.get_facecolor(), bbox_inches="tight", dpi=150
+    )
     plt.close(fig)
     buf.seek(0)
     return buf.read()
 
 
-def generate_team_image(team_name: str, members: list[dict], team_total: int, team_checked: int) -> bytes:
+def generate_team_image(
+    team_name: str, members: list[dict], team_total: int, team_checked: int
+) -> bytes:
     """生成单个小组的个人打卡排行图片"""
     short_name = team_name.replace("TH-", "").replace("Team", "")
     team_rate = team_checked / team_total if team_total > 0 else 0
@@ -392,56 +607,114 @@ def generate_team_image(team_name: str, members: list[dict], team_total: int, te
 
     # ── 标题区 ──
     y -= 0.3
-    ax.add_patch(plt.Rectangle((0.2, y - 0.35), 0.08, 0.35,
-                               facecolor=rate_color(team_rate), edgecolor="none"))
-    ax.text(0.45, y, f"{short_name}  Individual Report", fontsize=16, fontweight="bold",
-            color=C_HEADER, va="top")
+    ax.add_patch(
+        plt.Rectangle(
+            (0.2, y - 0.35),
+            0.08,
+            0.35,
+            facecolor=rate_color(team_rate),
+            edgecolor="none",
+        )
+    )
+    title_txt = f"{short_name}  {TH_STRINGS['team_individual']}"
+    ax.text(
+        0.45, y, title_txt, fontsize=16, fontweight="bold", color=C_HEADER, va="top"
+    )
     y -= 0.4
     ax.text(0.45, y, f"{today}  |  T-1", fontsize=9, color=C_TEXT2, va="top")
 
     # ── 汇总条 ──
     y -= 0.55
-    ax.add_patch(mpatches.FancyBboxPatch(
-        (0.2, y - 0.5), 8.6, 0.5,
-        boxstyle="round,pad=0.08",
-        facecolor="white", edgecolor=C_BORDER, linewidth=1,
-    ))
+    ax.add_patch(
+        mpatches.FancyBboxPatch(
+            (0.2, y - 0.5),
+            8.6,
+            0.5,
+            boxstyle="round,pad=0.08",
+            facecolor="white",
+            edgecolor=C_BORDER,
+            linewidth=1,
+        )
+    )
 
     _draw_status_dot(ax, 0.5, y - 0.25, team_rate)
-    ax.text(0.7, y - 0.25, f"{team_checked}/{team_total}", fontsize=12,
-            color=C_TEXT, va="center", fontweight="bold")
-    ax.text(3.0, y - 0.25, fmt_pct(team_rate), fontsize=18, fontweight="bold",
-            color=rate_color(team_rate), va="center")
+    ax.text(
+        0.7,
+        y - 0.25,
+        f"{team_checked}/{team_total}",
+        fontsize=12,
+        color=C_TEXT,
+        va="center",
+        fontweight="bold",
+    )
+    ax.text(
+        3.0,
+        y - 0.25,
+        fmt_pct(team_rate),
+        fontsize=18,
+        fontweight="bold",
+        color=rate_color(team_rate),
+        va="center",
+    )
 
     # 迷你进度条
     bx, bw = 4.5, 4.0
-    ax.add_patch(mpatches.FancyBboxPatch(
-        (bx, y - 0.32), bw, 0.14,
-        boxstyle="round,pad=0.03", facecolor=C_ELEVATED, edgecolor="none",
-    ))
+    ax.add_patch(
+        mpatches.FancyBboxPatch(
+            (bx, y - 0.32),
+            bw,
+            0.14,
+            boxstyle="round,pad=0.03",
+            facecolor=C_ELEVATED,
+            edgecolor="none",
+        )
+    )
     fw = bw * min(team_rate, 1.0)
     if fw > 0.03:
-        ax.add_patch(mpatches.FancyBboxPatch(
-            (bx, y - 0.32), fw, 0.14,
-            boxstyle="round,pad=0.03", facecolor=rate_color(team_rate), edgecolor="none",
-        ))
+        ax.add_patch(
+            mpatches.FancyBboxPatch(
+                (bx, y - 0.32),
+                fw,
+                0.14,
+                boxstyle="round,pad=0.03",
+                facecolor=rate_color(team_rate),
+                edgecolor="none",
+            )
+        )
 
     y -= 0.7
 
     # ── 成员表 ──
     cols = [0.3, 1.1, 4.0, 5.3, 6.6, 7.8]
-    hdrs = ["#", "Name", "Students", "Check-in", "Rate", ""]
+    hdrs = [
+        TH_STRINGS["col_rank"],
+        TH_STRINGS["col_name"],
+        TH_STRINGS["col_students"],
+        TH_STRINGS["col_checkin"],
+        TH_STRINGS["col_rate"],
+        "",
+    ]
     for i, h in enumerate(hdrs[:-1]):
         ha = "right" if i >= 2 else "left"
-        ax.text(cols[i], y, h, fontsize=9, fontweight="bold",
-                color=C_TEXT2, va="center", ha=ha)
+        ax.text(
+            cols[i],
+            y,
+            h,
+            fontsize=9,
+            fontweight="bold",
+            color=C_TEXT2,
+            va="center",
+            ha=ha,
+        )
 
     y -= 0.15
     ax.plot([0.2, 8.8], [y, y], color=C_BORDER, linewidth=0.8)
     y -= 0.15
 
     # 按 rate DESC → checked_in DESC 排序（后端已排，保险起见再排一次）
-    sorted_members = sorted(members, key=lambda m: (-m.get("rate", 0), -m.get("checked_in", 0)))
+    sorted_members = sorted(
+        members, key=lambda m: (-m.get("rate", 0), -m.get("checked_in", 0))
+    )
 
     for idx, m in enumerate(sorted_members):
         rank = idx + 1
@@ -451,50 +724,90 @@ def generate_team_image(team_name: str, members: list[dict], team_total: int, te
         mr = m.get("rate", 0)
 
         if rank % 2 == 0:
-            ax.add_patch(plt.Rectangle(
-                (0.2, y - 0.15), 8.6, 0.34,
-                facecolor=C_SURFACE, edgecolor="none",
-            ))
+            ax.add_patch(
+                plt.Rectangle(
+                    (0.2, y - 0.15),
+                    8.6,
+                    0.34,
+                    facecolor=C_SURFACE,
+                    edgecolor="none",
+                )
+            )
 
         # 落后行高亮
         if mr < WARN_RATE and students > 0:
-            ax.add_patch(plt.Rectangle(
-                (0.2, y - 0.15), 8.6, 0.34,
-                facecolor=C_RED_BG, edgecolor="none",
-            ))
+            ax.add_patch(
+                plt.Rectangle(
+                    (0.2, y - 0.15),
+                    8.6,
+                    0.34,
+                    facecolor=C_RED_BG,
+                    edgecolor="none",
+                )
+            )
 
         _draw_medal(ax, cols[0], y, rank)
         ax.text(cols[1], y, name, fontsize=10, color=C_TEXT, va="center")
-        ax.text(cols[2], y, str(students), fontsize=10,
-                color=C_TEXT2, va="center", ha="right")
-        ax.text(cols[3], y, str(ck), fontsize=10,
-                color=C_TEXT2, va="center", ha="right")
+        ax.text(
+            cols[2],
+            y,
+            str(students),
+            fontsize=10,
+            color=C_TEXT2,
+            va="center",
+            ha="right",
+        )
+        ax.text(
+            cols[3], y, str(ck), fontsize=10, color=C_TEXT2, va="center", ha="right"
+        )
 
         _draw_status_dot(ax, cols[4] + 0.25, y, mr)
-        ax.text(cols[4], y, fmt_pct(mr), fontsize=10, fontweight="bold",
-                color=rate_color(mr), va="center", ha="right")
+        ax.text(
+            cols[4],
+            y,
+            fmt_pct(mr),
+            fontsize=10,
+            fontweight="bold",
+            color=rate_color(mr),
+            va="center",
+            ha="right",
+        )
 
         # 迷你进度条
         mx, mw = cols[5], 1.0
-        ax.add_patch(plt.Rectangle(
-            (mx, y - 0.05), mw, 0.1,
-            facecolor=C_ELEVATED, edgecolor="none", zorder=2,
-        ))
+        ax.add_patch(
+            plt.Rectangle(
+                (mx, y - 0.05),
+                mw,
+                0.1,
+                facecolor=C_ELEVATED,
+                edgecolor="none",
+                zorder=2,
+            )
+        )
         mf = mw * min(mr, 1.0)
         if mf > 0.02:
-            ax.add_patch(plt.Rectangle(
-                (mx, y - 0.05), mf, 0.1,
-                facecolor=rate_color(mr), edgecolor="none", zorder=3,
-            ))
+            ax.add_patch(
+                plt.Rectangle(
+                    (mx, y - 0.05),
+                    mf,
+                    0.1,
+                    facecolor=rate_color(mr),
+                    edgecolor="none",
+                    zorder=3,
+                )
+            )
 
         y -= 0.38
 
     # ── 图例 + 底部 ──
     y -= 0.25
+    g_pct = int(GOOD_RATE * 100)
+    w_pct = int(WARN_RATE * 100)
     legend_items = [
-        (C_SUCCESS, f">={int(GOOD_RATE*100)}% Pass"),
-        (C_WARNING, f"{int(WARN_RATE*100)}-{int(GOOD_RATE*100)}% Near"),
-        (C_DANGER, f"<{int(WARN_RATE*100)}% Below"),
+        (C_SUCCESS, f">={g_pct}% {TH_STRINGS['legend_pass']}"),
+        (C_WARNING, f"{w_pct}-{g_pct}% {TH_STRINGS['legend_near']}"),
+        (C_DANGER, f"<{w_pct}% {TH_STRINGS['legend_below']}"),
     ]
     lx = 0.5
     for color, label in legend_items:
@@ -504,8 +817,9 @@ def generate_team_image(team_name: str, members: list[dict], team_total: int, te
 
     plt.tight_layout(pad=0.3)
     buf = io.BytesIO()
-    fig.savefig(buf, format="png", facecolor=fig.get_facecolor(),
-                bbox_inches="tight", dpi=150)
+    fig.savefig(
+        buf, format="png", facecolor=fig.get_facecolor(), bbox_inches="tight", dpi=150
+    )
     plt.close(fig)
     buf.seek(0)
     return buf.read()
@@ -514,14 +828,18 @@ def generate_team_image(team_name: str, members: list[dict], team_total: int, te
 # ── 图片上传（sm.ms 免费图床）──────────────────────────────────────────────
 
 
-def upload_image(image_bytes: bytes) -> str | None:
+def upload_image(image_bytes: bytes, filename: str = "report.png") -> str | None:
     """上传图片到 sm.ms，返回公网 URL"""
     boundary = f"----PythonBoundary{int(time.time())}"
     body = (
-        f"--{boundary}\r\n"
-        f'Content-Disposition: form-data; name="smfile"; filename="report.png"\r\n'
-        f"Content-Type: image/png\r\n\r\n"
-    ).encode("utf-8") + image_bytes + f"\r\n--{boundary}--\r\n".encode("utf-8")
+        (
+            f"--{boundary}\r\n"
+            f'Content-Disposition: form-data; name="smfile"; filename="{filename}"\r\n'
+            f"Content-Type: image/png\r\n\r\n"
+        ).encode()
+        + image_bytes
+        + f"\r\n--{boundary}--\r\n".encode()
+    )
 
     req = urllib.request.Request(
         "https://sm.ms/api/v2/upload",
@@ -569,56 +887,75 @@ def build_text_markdown(data: dict) -> str:
     now_time = datetime.now().strftime("%H:%M")
 
     lines = [
-        f"## 📋 CC Check-in Report",
-        f"",
+        "## 📋 CC Check-in Report",
+        "",
         f"📅 **{today}**　⏰ {now_time}",
-        f"",
-        f"---",
-        f"",
+        "",
+        "---",
+        "",
         f"### {rate_icon(rate)} ภาพรวม CC　**{fmt_pct(rate)}**",
-        f"",
+        "",
         f"- 👥 นักเรียนทั้งหมด: **{total:,}** คน",
         f"- ✅ Check-in แล้ว: **{checked:,}** คน",
-        f"",
+        "",
     ]
 
     if groups:
-        lines += [f"---", f"", f"### 🏆 อันดับทีม", f"",
-                  f"| อันดับ | ทีม | นร. | เช็คอิน | อัตรา |",
-                  f"|:---:|------|:---:|:---:|------:|"]
+        lines += [
+            "---",
+            "",
+            "### 🏆 อันดับทีม",
+            "",
+            "| อันดับ | ทีม | นร. | เช็คอิน | อัตรา |",
+            "|:---:|------|:---:|:---:|------:|",
+        ]
         medals = {1: "🥇", 2: "🥈", 3: "🥉"}
         for g in groups:
             r = g.get("rank", 0)
             n = g.get("group", "").replace("TH-", "").replace("Team", "")
-            lines.append(
-                f"| {medals.get(r, str(r))} | {n} | {g['students']} | {g['checked_in']} | {rate_icon(g['rate'])} {fmt_pct(g['rate'])} |"
-            )
+            m = medals.get(r, str(r))
+            s = g["students"]
+            c = g["checked_in"]
+            ri = rate_icon(g["rate"])
+            rp = fmt_pct(g["rate"])
+            lines.append(f"| {m} | {n} | {s} | {c} | {ri} {rp} |")
         lines.append("")
 
     if persons:
-        lines += [f"---", f"", f"### 🌟 Top 10 พนักงาน", f"",
-                  f"| อันดับ | ชื่อ | ทีม | อัตรา |",
-                  f"|:---:|------|------|------:|"]
+        lines += [
+            "---",
+            "",
+            "### 🌟 Top 10 พนักงาน",
+            "",
+            "| อันดับ | ชื่อ | ทีม | อัตรา |",
+            "|:---:|------|------|------:|",
+        ]
         medals = {1: "🥇", 2: "🥈", 3: "🥉"}
         for p in persons:
             r = p.get("rank", 0)
             t = p.get("group", "").replace("TH-", "").replace("Team", "")
-            lines.append(
-                f"| {medals.get(r, str(r))} | {p['name']} | {t} | {rate_icon(p['rate'])} {fmt_pct(p['rate'])} |"
-            )
+            m = medals.get(r, str(r))
+            ri = rate_icon(p["rate"])
+            rp = fmt_pct(p["rate"])
+            lines.append(f"| {m} | {p['name']} | {t} | {ri} {rp} |")
         lines.append("")
 
-    behind = [g["group"].replace("TH-", "").replace("Team", "")
-              for g in groups if g.get("rate", 0) < WARN_RATE]
+    behind = [
+        g["group"].replace("TH-", "").replace("Team", "")
+        for g in groups
+        if g.get("rate", 0) < WARN_RATE
+    ]
     if behind:
-        lines += [f"---", f"", f"⚠️ **ทีมที่ต้องปรับปรุง**: {'、'.join(behind)}", f""]
+        lines += ["---", "", f"⚠️ **ทีมที่ต้องปรับปรุง**: {'、'.join(behind)}", ""]
 
     lines += [
-        f"---",
-        f"",
-        f"🟢 ≥{int(GOOD_RATE*100)}% ผ่านเกณฑ์　🟡 {int(WARN_RATE*100)}-{int(GOOD_RATE*100)}% ใกล้เกณฑ์　🔴 <{int(WARN_RATE*100)}% ต่ำกว่าเกณฑ์",
-        f"",
-        f"> ข้อมูล T-1 · ref-ops-engine",
+        "---",
+        "",
+        f"🟢 ≥{int(GOOD_RATE * 100)}% ผ่านเกณฑ์　"
+        f"🟡 {int(WARN_RATE * 100)}-{int(GOOD_RATE * 100)}% ใกล้เกณฑ์　"
+        f"🔴 <{int(WARN_RATE * 100)}% ต่ำกว่าเกณฑ์",
+        "",
+        "> ข้อมูล T-1 · ref-ops-engine",
     ]
     return "\n".join(lines)
 
@@ -628,13 +965,15 @@ def build_text_markdown(data: dict) -> str:
 
 def send_dingtalk(title: str, markdown_text: str, cred: dict) -> dict:
     url = sign_url(cred["webhook"], cred["secret"])
-    payload = json.dumps({
-        "msgtype": "markdown",
-        "markdown": {"title": title, "text": markdown_text},
-    }).encode("utf-8")
-    req = urllib.request.Request(url, data=payload,
-                                headers={"Content-Type": "application/json"},
-                                method="POST")
+    payload = json.dumps(
+        {
+            "msgtype": "markdown",
+            "markdown": {"title": title, "text": markdown_text},
+        }
+    ).encode("utf-8")
+    req = urllib.request.Request(
+        url, data=payload, headers={"Content-Type": "application/json"}, method="POST"
+    )
     with urllib.request.urlopen(req, timeout=10) as resp:
         return json.loads(resp.read().decode("utf-8"))
 
@@ -650,11 +989,17 @@ def main():
     args = parser.parse_args()
 
     cred = load_credentials()
+    thresholds = cred.get("thresholds", {})
+    global GOOD_RATE, WARN_RATE
+    GOOD_RATE = thresholds.get("good", 0.6)
+    WARN_RATE = thresholds.get("warning", 0.4)
 
     if args.test:
-        md = (f"## 🔔 ทดสอบระบบ\n\n"
-              f"ระบบรายงาน Check-in ทำงานปกติ ✅\n\n"
-              f"> {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+        md = (
+            f"## 🔔 ทดสอบระบบ\n\n"
+            f"ระบบรายงาน Check-in ทำงานปกติ ✅\n\n"
+            f"> {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
+        )
         if not args.dry_run:
             r = send_dingtalk("ทดสอบ", md, cred)
             print(f"结果: {json.dumps(r, ensure_ascii=False)}")
@@ -662,8 +1007,9 @@ def main():
             print(md)
         return
 
+    role_config = cred.get("role_config")
     try:
-        data = fetch_ranking()
+        data = fetch_ranking(role_config=role_config)
     except Exception as e:
         print(f"API 失败: {e}")
         return
@@ -729,8 +1075,13 @@ def main():
         return
 
     # ── 发送流程 ──
-    def upload_and_send(img_bytes: bytes, title: str, fallback_text: str = "") -> bool:
-        img_url = upload_image(img_bytes)
+    def upload_and_send(
+        img_bytes: bytes,
+        title: str,
+        fallback_text: str = "",
+        filename: str = "report.png",
+    ) -> bool:
+        img_url = upload_image(img_bytes, filename=filename)
         if img_url:
             md = f"## {title}\n\n![report]({img_url})"
             r = send_dingtalk(title, md, cred)
@@ -752,12 +1103,36 @@ def main():
         overview_bytes,
         f"CC Check-in Overview {today_str}",
         fallback_text=build_text_markdown(data),
+        filename=f"overview-{date_tag}.png",
     )
 
     # 发每个小组（间隔 1.5s 避免触发钉钉频率限制）
     for short, img, _ in team_images:
         time.sleep(1.5)
-        upload_and_send(img, f"{short} Check-in {today_str}")
+        # 小组图文本回退：简易 Markdown 摘要
+        team_group_data = next(
+            (
+                g
+                for g in groups
+                if g.get("group", "").replace("TH-", "").replace("Team", "") == short
+            ),
+            {},
+        )
+        t_total = team_group_data.get("students", 0)
+        t_checked = team_group_data.get("checked_in", 0)
+        t_rate = team_group_data.get("rate", 0)
+        fallback_md = (
+            f"## {short} Check-in {today_str}\n\n"
+            f"- นักเรียน: **{t_total}** คน\n"
+            f"- Check-in: **{t_checked}** คน\n"
+            f"- อัตรา: **{fmt_pct(t_rate)}**"
+        )
+        upload_and_send(
+            img,
+            f"{short} Check-in {today_str}",
+            fallback_text=fallback_md,
+            filename=f"checkin-{short}-{date_tag}.png",
+        )
 
     print(f"\n全部完成：1 张总览 + {len(team_images)} 张小组")
 
