@@ -15,11 +15,12 @@ export default function CheckinThresholdsCard() {
   const [saving, setSaving] = useState(false);
 
   // 当 SWR 数据加载完成后同步到本地编辑状态
+  // 依赖用原始值而非对象引用，避免无限循环
   useEffect(() => {
     if (!isLoading) {
-      setCfg(thresholds);
+      setCfg({ good: thresholds.good, warning: thresholds.warning });
     }
-  }, [isLoading, thresholds]);
+  }, [isLoading, thresholds.good, thresholds.warning]);
 
   async function handleSave() {
     // 确保 good > warning > 0
