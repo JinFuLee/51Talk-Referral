@@ -153,6 +153,13 @@ Excel 数据源 → XlsxReader → DataProcessor → AnalysisEngine → Markdown
 - 新增组件必须有 loading / error / empty 三态，empty 态必须有操作指引
 - `isMock` / `MOCK_DATA` / `fallback.*data` 模式禁止引入，代码审查红线
 
+## API 契约防漂移规则
+- 前端 `useSWR<T>` 泛型 T 必须精确匹配后端 `response_model` 类型
+- 后端返回 `list[Item]` → 前端用 `useSWR<Item[]>`，**禁止** `data?.items` 包装假设
+- 后端返回 `dict` → 前端用 `useSWR<ResponseType>`，字段名逐字段匹配后端 Pydantic 模型
+- 新建 Slide/组件前先 `curl` 目标端点确认实际返回格式，不依赖推测
+- 字段名 SSoT = 后端 Pydantic 模型（`backend/models/*.py`），前端 interface 必须跟随
+
 ## 指标矩阵系统
 
 配置驱动的全维度 KPI 指标矩阵。CC 为不可变超集（33 项），SS/LP 为可动态配置的子集。
