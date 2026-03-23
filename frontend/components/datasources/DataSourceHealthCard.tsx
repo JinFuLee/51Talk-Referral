@@ -85,12 +85,10 @@ function UtilizationBar({
       <div className="h-1 rounded-full bg-[var(--border-default)] overflow-hidden">
         {pct != null && (
           <div
-            className="h-full rounded-full transition-all"
-            style={{
-              width: `${Math.min(pct, 100)}%`,
-              backgroundColor:
-                variant === 'primary' ? 'hsl(var(--primary))' : 'var(--n-400, #a3a3a3)',
-            }}
+            className={`h-full rounded-full transition-all ${
+              variant === 'primary' ? 'ds-bar-primary' : 'ds-bar-muted'
+            }`}
+            style={{ width: `${Math.min(pct, 100)}%` }}
           />
         )}
       </div>

@@ -498,6 +498,15 @@ body.presentation-mode .presentation-watermark {
   color: var(--text-primary);
 }
 
+/* ── 数据源健康面板进度条 ────────────────────────── */
+/* 避免 Tailwind JIT arbitrary value bg-[var()] 在 Turbopack 下编译不稳定 */
+.ds-bar-primary {
+  background-color: hsl(var(--primary));
+}
+.ds-bar-muted {
+  background-color: var(--n-400, #a3a3a3);
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
