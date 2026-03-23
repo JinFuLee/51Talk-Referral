@@ -6,7 +6,7 @@
 from __future__ import annotations
 
 import json
-from datetime import datetime
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -141,7 +141,7 @@ def put_indicator_matrix(role: str, body: MatrixUpdateBody) -> dict[str, Any]:
     # 审计日志
     audit_path = PROJECT_ROOT / "output" / "indicator-matrix-changes.jsonl"
     audit_entry = {
-        "ts": datetime.now(datetime.UTC).isoformat(),
+        "ts": datetime.now(UTC).isoformat(),
         "action": "update",
         "role": role_upper,
         "active_count": len(body.active),
@@ -196,7 +196,7 @@ def reset_indicator_matrix(role: str) -> dict[str, Any]:
     # 审计日志
     audit_path = PROJECT_ROOT / "output" / "indicator-matrix-changes.jsonl"
     audit_entry = {
-        "ts": datetime.now(datetime.UTC).isoformat(),
+        "ts": datetime.now(UTC).isoformat(),
         "action": "reset",
         "role": role_upper,
     }
