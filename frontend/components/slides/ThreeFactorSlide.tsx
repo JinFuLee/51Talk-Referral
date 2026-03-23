@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import useSWR from "swr";
-import { swrFetcher } from "@/lib/api";
-import { SlideShell } from "@/components/presentation/SlideShell";
-import { Spinner } from "@/components/ui/Spinner";
+import useSWR from 'swr';
+import { swrFetcher } from '@/lib/api';
+import { SlideShell } from '@/components/presentation/SlideShell';
+import { Spinner } from '@/components/ui/Spinner';
 
 interface ChannelFactor {
   channel: string;
@@ -25,13 +25,13 @@ function GapBadge({ gap }: { gap: number }) {
     <span
       className={`inline-block px-2 py-0.5 rounded text-xs font-bold ${
         isPositive
-          ? "text-green-700 bg-green-50"
+          ? 'text-green-700 bg-green-50'
           : gap >= -5
-          ? "text-yellow-700 bg-yellow-50"
-          : "text-red-700 bg-red-50"
+            ? 'text-yellow-700 bg-yellow-50'
+            : 'text-red-700 bg-red-50'
       }`}
     >
-      {isPositive ? "+" : ""}
+      {isPositive ? '+' : ''}
       {gap}
     </span>
   );
@@ -40,10 +40,10 @@ function GapBadge({ gap }: { gap: number }) {
 function FactorBadge({ value }: { value: number }) {
   const color =
     value >= 1
-      ? "text-green-700 bg-green-50"
+      ? 'text-green-700 bg-green-50'
       : value >= 0.9
-      ? "text-yellow-700 bg-yellow-50"
-      : "text-red-700 bg-red-50";
+        ? 'text-yellow-700 bg-yellow-50'
+        : 'text-red-700 bg-red-50';
   return (
     <span className={`inline-block px-2 py-0.5 rounded text-xs font-semibold ${color}`}>
       {(value * 100).toFixed(1)}%
@@ -58,8 +58,8 @@ export function ThreeFactorSlide({
   slideNumber: number;
   totalSlides: number;
 }) {
-  const { data, isLoading } = useSWR<ThreeFactorResponse>(
-    "/api/channel/three-factor",
+  const { data, isLoading, error } = useSWR<ThreeFactorResponse>(
+    '/api/channel/three-factor',
     swrFetcher
   );
   const channels = data?.channels ?? [];
@@ -76,6 +76,13 @@ export function ThreeFactorSlide({
         <div className="flex justify-center items-center h-full">
           <Spinner size="lg" />
         </div>
+      ) : error ? (
+        <div className="flex items-center justify-center h-full">
+          <div className="text-center">
+            <p className="text-lg font-semibold text-red-600">数据加载失败</p>
+            <p className="text-sm text-[var(--text-muted)] mt-2">请检查后端服务是否正常运行</p>
+          </div>
+        </div>
       ) : channels.length === 0 ? (
         <div className="flex flex-col justify-center items-center h-full gap-3 text-[var(--text-muted)]">
           <p className="text-lg font-medium">暂无三因素数据</p>
@@ -89,16 +96,10 @@ export function ThreeFactorSlide({
                 <th className="text-left px-2 py-1.5" rowSpan={2}>
                   渠道
                 </th>
-                <th
-                  className="text-center px-2 py-1.5 border-b border-white/20"
-                  colSpan={3}
-                >
+                <th className="text-center px-2 py-1.5 border-b border-white/20" colSpan={3}>
                   单量
                 </th>
-                <th
-                  className="text-center px-2 py-1.5 border-b border-white/20"
-                  colSpan={3}
-                >
+                <th className="text-center px-2 py-1.5 border-b border-white/20" colSpan={3}>
                   三因素
                 </th>
               </tr>
@@ -115,7 +116,7 @@ export function ThreeFactorSlide({
               {channels.map((c, i) => (
                 <tr
                   key={c.channel}
-                  className={i % 2 === 0 ? "bg-[var(--bg-surface)]" : "bg-slate-50/50"}
+                  className={i % 2 === 0 ? 'bg-[var(--bg-surface)]' : 'bg-slate-50/50'}
                 >
                   <td className="px-2 py-1 text-xs font-semibold text-[var(--text-primary)]">
                     {c.channel}

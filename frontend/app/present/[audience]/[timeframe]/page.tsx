@@ -3,7 +3,7 @@
 import { useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { usePresentationStore } from '@/lib/stores/presentation-store';
-import type { Audience, Timeframe } from '@/lib/presentation/types';
+import type { Audience } from '@/lib/presentation/types';
 
 import { TargetGapSlide } from '@/components/slides/TargetGapSlide';
 import { ThreeFactorSlide } from '@/components/slides/ThreeFactorSlide';
@@ -60,6 +60,18 @@ export default function PresentationPage() {
   const { currentSlide, nextSlide, prevSlide, togglePresentationMode, exitPresentationMode } =
     usePresentationStore();
 
+  const exitPresentation = useCallback(() => {
+    exitPresentationMode();
+    try {
+      if (document.fullscreenElement) {
+        document.exitFullscreen?.();
+      }
+    } catch {
+      // 静默忽略
+    }
+    router.push('/present');
+  }, [exitPresentationMode, router]);
+
   const audience = params.audience as string;
   const timeframe = params.timeframe as string;
 
@@ -115,19 +127,11 @@ export default function PresentationPage() {
           break;
         case 'Escape':
           e.preventDefault();
-          exitPresentationMode();
-          try {
-            if (document.fullscreenElement) {
-              document.exitFullscreen?.();
-            }
-          } catch {
-            // 静默忽略
-          }
-          router.push('/present');
+          exitPresentation();
           break;
       }
     },
-    [nextSlide, prevSlide, exitPresentationMode, router, totalSlides]
+    [nextSlide, prevSlide, exitPresentation, totalSlides]
   );
 
   useEffect(() => {
@@ -139,18 +143,6 @@ export default function PresentationPage() {
     return null;
   }
 
-  function handleExit() {
-    exitPresentationMode();
-    try {
-      if (document.fullscreenElement) {
-        document.exitFullscreen?.();
-      }
-    } catch {
-      // 静默忽略
-    }
-    router.push('/present');
-  }
-
   return (
     <div className="relative w-full h-screen bg-[var(--bg-surface)] overflow-hidden">
       {/* 当前 Slide */}
@@ -158,7 +150,7 @@ export default function PresentationPage() {
 
       {/* 退出按钮（底部右下角小型悬浮按钮） */}
       <button
-        onClick={handleExit}
+        onClick={exitPresentation}
         className="absolute bottom-4 right-4 z-50 flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-black/10 hover:bg-black/20 text-[var(--text-muted)] text-xs font-medium transition-colors duration-200 backdrop-blur-sm"
         title="退出汇报模式"
       >

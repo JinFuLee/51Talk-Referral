@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
-import useSWR from "swr";
-import { swrFetcher } from "@/lib/api";
-import { formatRate } from "@/lib/utils";
-import { SlideShell } from "@/components/presentation/SlideShell";
-import { Spinner } from "@/components/ui/Spinner";
+import useSWR from 'swr';
+import { swrFetcher } from '@/lib/api';
+import { formatRate } from '@/lib/utils';
+import { SlideShell } from '@/components/presentation/SlideShell';
+import { Spinner } from '@/components/ui/Spinner';
 
 interface ChannelConversion {
   channel: string;
@@ -20,24 +20,19 @@ interface ChannelResponse {
   channels: ChannelConversion[];
 }
 
-function GapCell({
-  actual,
-  target,
-}: {
-  actual: number;
-  target: number;
-}) {
+function GapCell({ actual, target }: { actual: number; target: number }) {
   const gap = actual - target;
   const color =
     gap >= 0
-      ? "text-green-600 bg-green-50"
+      ? 'text-green-600 bg-green-50'
       : gap >= -0.05
-      ? "text-yellow-600 bg-yellow-50"
-      : "text-red-600 bg-red-50";
+        ? 'text-yellow-600 bg-yellow-50'
+        : 'text-red-600 bg-red-50';
   return (
     <td className="px-2 py-1 text-xs text-right font-mono tabular-nums">
       <span className={`inline-block px-1.5 py-0.5 rounded text-xs font-bold ${color}`}>
-        {gap >= 0 ? "+" : ""}{formatRate(gap)}
+        {gap >= 0 ? '+' : ''}
+        {formatRate(gap)}
       </span>
     </td>
   );
@@ -50,10 +45,7 @@ export function FunnelAttributionSlide({
   slideNumber: number;
   totalSlides: number;
 }) {
-  const { data, isLoading } = useSWR<ChannelResponse>(
-    "/api/channel",
-    swrFetcher
-  );
+  const { data, isLoading, error } = useSWR<ChannelResponse>('/api/channel', swrFetcher);
   const channels = data?.channels ?? [];
 
   return (
@@ -68,6 +60,13 @@ export function FunnelAttributionSlide({
         <div className="flex justify-center items-center h-full">
           <Spinner size="lg" />
         </div>
+      ) : error ? (
+        <div className="flex items-center justify-center h-full">
+          <div className="text-center">
+            <p className="text-lg font-semibold text-red-600">数据加载失败</p>
+            <p className="text-sm text-[var(--text-muted)] mt-2">请检查后端服务是否正常运行</p>
+          </div>
+        </div>
       ) : channels.length === 0 ? (
         <div className="flex flex-col justify-center items-center h-full gap-3 text-[var(--text-muted)]">
           <p className="text-lg font-medium">暂无渠道转化率数据</p>
@@ -78,10 +77,18 @@ export function FunnelAttributionSlide({
           <table className="w-full text-sm border-collapse">
             <thead>
               <tr className="bg-[var(--n-800)] text-white text-xs font-medium">
-                <th className="text-left px-2 py-1.5" rowSpan={2}>渠道</th>
-                <th className="text-center px-2 py-1.5 border-b border-white/20" colSpan={2}>预约率</th>
-                <th className="text-center px-2 py-1.5 border-b border-white/20" colSpan={2}>出席率</th>
-                <th className="text-center px-2 py-1.5 border-b border-white/20" colSpan={2}>付费率</th>
+                <th className="text-left px-2 py-1.5" rowSpan={2}>
+                  渠道
+                </th>
+                <th className="text-center px-2 py-1.5 border-b border-white/20" colSpan={2}>
+                  预约率
+                </th>
+                <th className="text-center px-2 py-1.5 border-b border-white/20" colSpan={2}>
+                  出席率
+                </th>
+                <th className="text-center px-2 py-1.5 border-b border-white/20" colSpan={2}>
+                  付费率
+                </th>
               </tr>
               <tr className="bg-[var(--n-800)] text-white/80 text-xs font-medium">
                 <th className="text-right px-2 py-1.5">实际</th>
@@ -96,7 +103,7 @@ export function FunnelAttributionSlide({
               {channels.map((c, i) => (
                 <tr
                   key={c.channel}
-                  className={i % 2 === 0 ? "bg-[var(--bg-surface)]" : "bg-slate-50/50"}
+                  className={i % 2 === 0 ? 'bg-[var(--bg-surface)]' : 'bg-slate-50/50'}
                 >
                   <td className="px-2 py-1 text-xs font-semibold text-[var(--text-primary)]">
                     {c.channel}
@@ -104,24 +111,15 @@ export function FunnelAttributionSlide({
                   <td className="px-2 py-1 text-xs text-right font-mono tabular-nums text-[var(--text-secondary)]">
                     {formatRate(c.appointment_rate)}
                   </td>
-                  <GapCell
-                    actual={c.appointment_rate}
-                    target={c.appointment_rate_target ?? 0}
-                  />
+                  <GapCell actual={c.appointment_rate} target={c.appointment_rate_target ?? 0} />
                   <td className="px-2 py-1 text-xs text-right font-mono tabular-nums text-[var(--text-secondary)]">
                     {formatRate(c.attendance_rate)}
                   </td>
-                  <GapCell
-                    actual={c.attendance_rate}
-                    target={c.attendance_rate_target ?? 0}
-                  />
+                  <GapCell actual={c.attendance_rate} target={c.attendance_rate_target ?? 0} />
                   <td className="px-2 py-1 text-xs text-right font-mono tabular-nums text-[var(--text-secondary)]">
                     {formatRate(c.paid_rate)}
                   </td>
-                  <GapCell
-                    actual={c.paid_rate}
-                    target={c.paid_rate_target ?? 0}
-                  />
+                  <GapCell actual={c.paid_rate} target={c.paid_rate_target ?? 0} />
                 </tr>
               ))}
             </tbody>

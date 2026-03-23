@@ -118,6 +118,11 @@ Excel 数据源 → XlsxReader → DataProcessor → AnalysisEngine → Markdown
 3. 修复后调用 `DELETE /api/system/error-log` 清空已修复的日志
 4. 用户说"修 bug" = 先读崩溃日志，按优先级（count 降序）逐个修复
 
+## Slide 组件三态铁律
+- 所有 Slide 组件（`frontend/components/slides/*.tsx`）必须处理 **loading/error/empty** 三态
+- `useSWR` 必须解构 `error`，API 失败时显示错误提示覆盖而非静默空白
+- 新增 Slide 组件不含 error 态 = 不合格，`scripts/check-slide-states.sh` 自动检测
+
 ## 去硬编码政策（SEE 铁律）
 - **有场景可配 = 禁止硬编码**，与变化频率无关
 - 所有业务阈值/权重/映射必须从 `config.json` 或 `dingtalk-channels.json` 读取

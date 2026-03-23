@@ -127,7 +127,7 @@ function ChannelColumn({ ch, rateColor, rateBg }: ChannelColumnProps) {
                 {row.team}
               </span>
               <span className="text-right text-[var(--text-primary)]">{row.students}</span>
-              <span className={cn('text-right font-medium', rateColor(row.rate))}>
+              <span className={cn('text-right font-medium', rateColor?.(row.rate) ?? '')}>
                 {fmtRate(row.rate)}
               </span>
             </div>
@@ -155,7 +155,7 @@ function ChannelColumn({ ch, rateColor, rateBg }: ChannelColumnProps) {
             >
               <span className="col-span-2 text-[var(--text-secondary)]">{row.enclosure}</span>
               <span className="text-right text-[var(--text-primary)]">{row.students}</span>
-              <span className={cn('text-right font-medium', rateColor(row.rate))}>
+              <span className={cn('text-right font-medium', rateColor?.(row.rate) ?? '')}>
                 {fmtRate(row.rate)}
               </span>
             </div>

@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
-import useSWR from "swr";
-import { swrFetcher } from "@/lib/api";
-import { formatRevenue } from "@/lib/utils";
-import { SlideShell } from "@/components/presentation/SlideShell";
-import { Spinner } from "@/components/ui/Spinner";
+import useSWR from 'swr';
+import { swrFetcher } from '@/lib/api';
+import { formatRevenue } from '@/lib/utils';
+import { SlideShell } from '@/components/presentation/SlideShell';
+import { Spinner } from '@/components/ui/Spinner';
 
 interface ChannelAttribution {
   channel: string;
@@ -24,8 +24,8 @@ export function NetAttributionSlide({
   slideNumber: number;
   totalSlides: number;
 }) {
-  const { data, isLoading } = useSWR<AttributionData>(
-    "/api/channel/attribution",
+  const { data, isLoading, error } = useSWR<AttributionData>(
+    '/api/channel/attribution',
     swrFetcher
   );
   const channels = data?.channels ?? [];
@@ -41,6 +41,13 @@ export function NetAttributionSlide({
       {isLoading ? (
         <div className="flex justify-center items-center h-full">
           <Spinner size="lg" />
+        </div>
+      ) : error ? (
+        <div className="flex items-center justify-center h-full">
+          <div className="text-center">
+            <p className="text-lg font-semibold text-red-600">数据加载失败</p>
+            <p className="text-sm text-[var(--text-muted)] mt-2">请检查后端服务是否正常运行</p>
+          </div>
         </div>
       ) : channels.length === 0 ? (
         <div className="flex flex-col justify-center items-center h-full gap-3 text-[var(--text-muted)]">
@@ -62,16 +69,12 @@ export function NetAttributionSlide({
             </thead>
             <tbody>
               {channels.map((c, i) => {
-                const perPaid =
-                  c.paid_count > 0 ? c.paid_amount_usd / c.paid_count : 0;
-                const perReg =
-                  c.registrations > 0
-                    ? c.paid_amount_usd / c.registrations
-                    : 0;
+                const perPaid = c.paid_count > 0 ? c.paid_amount_usd / c.paid_count : 0;
+                const perReg = c.registrations > 0 ? c.paid_amount_usd / c.registrations : 0;
                 return (
                   <tr
                     key={c.channel}
-                    className={i % 2 === 0 ? "bg-[var(--bg-surface)]" : "bg-slate-50/50"}
+                    className={i % 2 === 0 ? 'bg-[var(--bg-surface)]' : 'bg-slate-50/50'}
                   >
                     <td className="px-2 py-1 text-xs font-semibold text-[var(--text-primary)]">
                       {c.channel}
@@ -97,8 +100,7 @@ export function NetAttributionSlide({
             </tbody>
           </table>
           <p className="mt-4 px-4 text-xs text-[var(--text-muted)]">
-            人均业绩 = 总业绩 ÷ 付费人数 &nbsp;|&nbsp; 注册均价 = 总业绩 ÷
-            注册数（含未付费）
+            人均业绩 = 总业绩 ÷ 付费人数 &nbsp;|&nbsp; 注册均价 = 总业绩 ÷ 注册数（含未付费）
           </p>
         </div>
       )}

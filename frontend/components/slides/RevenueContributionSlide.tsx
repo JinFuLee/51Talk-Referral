@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
-import useSWR from "swr";
-import { swrFetcher } from "@/lib/api";
-import { formatRevenue, formatRate } from "@/lib/utils";
-import { SlideShell } from "@/components/presentation/SlideShell";
-import { Spinner } from "@/components/ui/Spinner";
+import useSWR from 'swr';
+import { swrFetcher } from '@/lib/api';
+import { formatRevenue, formatRate } from '@/lib/utils';
+import { SlideShell } from '@/components/presentation/SlideShell';
+import { Spinner } from '@/components/ui/Spinner';
 
 interface ChannelAttribution {
   channel: string;
@@ -24,8 +24,8 @@ export function RevenueContributionSlide({
   slideNumber: number;
   totalSlides: number;
 }) {
-  const { data, isLoading } = useSWR<AttributionData>(
-    "/api/channel/attribution",
+  const { data, isLoading, error } = useSWR<AttributionData>(
+    '/api/channel/attribution',
     swrFetcher
   );
   const channels = data?.channels ?? [];
@@ -43,6 +43,13 @@ export function RevenueContributionSlide({
       {isLoading ? (
         <div className="flex justify-center items-center h-full">
           <Spinner size="lg" />
+        </div>
+      ) : error ? (
+        <div className="flex items-center justify-center h-full">
+          <div className="text-center">
+            <p className="text-lg font-semibold text-red-600">数据加载失败</p>
+            <p className="text-sm text-[var(--text-muted)] mt-2">请检查后端服务是否正常运行</p>
+          </div>
         </div>
       ) : channels.length === 0 ? (
         <div className="flex flex-col justify-center items-center h-full gap-3 text-[var(--text-muted)]">
@@ -64,16 +71,12 @@ export function RevenueContributionSlide({
             </thead>
             <tbody>
               {channels.map((c, i) => {
-                const regPct =
-                  totalRegistrations > 0
-                    ? c.registrations / totalRegistrations
-                    : 0;
-                const amtPct =
-                  totalAmount > 0 ? c.paid_amount_usd / totalAmount : 0;
+                const regPct = totalRegistrations > 0 ? c.registrations / totalRegistrations : 0;
+                const amtPct = totalAmount > 0 ? c.paid_amount_usd / totalAmount : 0;
                 return (
                   <tr
                     key={c.channel}
-                    className={i % 2 === 0 ? "bg-[var(--bg-surface)]" : "bg-slate-50/50"}
+                    className={i % 2 === 0 ? 'bg-[var(--bg-surface)]' : 'bg-slate-50/50'}
                   >
                     <td className="px-2 py-1 text-xs font-semibold text-[var(--text-primary)]">
                       {c.channel}
@@ -94,10 +97,10 @@ export function RevenueContributionSlide({
                       <span
                         className={
                           c.paid_ratio >= 0.1
-                            ? "text-green-600 font-semibold"
+                            ? 'text-green-600 font-semibold'
                             : c.paid_ratio >= 0.05
-                            ? "text-yellow-600 font-semibold"
-                            : "text-red-500 font-semibold"
+                              ? 'text-yellow-600 font-semibold'
+                              : 'text-red-500 font-semibold'
                         }
                       >
                         {formatRate(c.paid_ratio)}
@@ -113,12 +116,18 @@ export function RevenueContributionSlide({
                 <td className="px-2 py-1 text-xs text-right font-mono tabular-nums">
                   {totalRegistrations.toLocaleString()}
                 </td>
-                <td className="px-2 py-1 text-xs text-right font-mono tabular-nums text-[var(--text-muted)]">100%</td>
+                <td className="px-2 py-1 text-xs text-right font-mono tabular-nums text-[var(--text-muted)]">
+                  100%
+                </td>
                 <td className="px-2 py-1 text-xs text-right font-mono tabular-nums">
                   {formatRevenue(totalAmount)}
                 </td>
-                <td className="px-2 py-1 text-xs text-right font-mono tabular-nums text-[var(--text-muted)]">100%</td>
-                <td className="px-2 py-1 text-xs text-right font-mono tabular-nums text-[var(--text-muted)]">—</td>
+                <td className="px-2 py-1 text-xs text-right font-mono tabular-nums text-[var(--text-muted)]">
+                  100%
+                </td>
+                <td className="px-2 py-1 text-xs text-right font-mono tabular-nums text-[var(--text-muted)]">
+                  —
+                </td>
               </tr>
             </tfoot>
           </table>

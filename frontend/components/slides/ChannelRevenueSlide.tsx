@@ -1,18 +1,11 @@
-"use client";
+'use client';
 
-import useSWR from "swr";
-import {
-  PieChart,
-  Pie,
-  Cell,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-} from "recharts";
-import { swrFetcher } from "@/lib/api";
-import { formatRevenue, formatRate } from "@/lib/utils";
-import { SlideShell } from "@/components/presentation/SlideShell";
-import { Spinner } from "@/components/ui/Spinner";
+import useSWR from 'swr';
+import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { swrFetcher } from '@/lib/api';
+import { formatRevenue, formatRate } from '@/lib/utils';
+import { SlideShell } from '@/components/presentation/SlideShell';
+import { Spinner } from '@/components/ui/Spinner';
 
 interface ChannelAttribution {
   channel: string;
@@ -25,7 +18,7 @@ interface AttributionData {
   channels: ChannelAttribution[];
 }
 
-const COLORS = ["#6366f1", "#22d3ee", "#f59e0b", "#10b981", "#f43f5e"];
+const COLORS = ['#6366f1', '#22d3ee', '#f59e0b', '#10b981', '#f43f5e'];
 
 export function ChannelRevenueSlide({
   slideNumber,
@@ -34,8 +27,8 @@ export function ChannelRevenueSlide({
   slideNumber: number;
   totalSlides: number;
 }) {
-  const { data, isLoading } = useSWR<AttributionData>(
-    "/api/channel/attribution",
+  const { data, isLoading, error } = useSWR<AttributionData>(
+    '/api/channel/attribution',
     swrFetcher
   );
   const channels = data?.channels ?? [];
@@ -58,6 +51,13 @@ export function ChannelRevenueSlide({
         <div className="flex justify-center items-center h-full">
           <Spinner size="lg" />
         </div>
+      ) : error ? (
+        <div className="flex items-center justify-center h-full">
+          <div className="text-center">
+            <p className="text-lg font-semibold text-red-600">数据加载失败</p>
+            <p className="text-sm text-[var(--text-muted)] mt-2">请检查后端服务是否正常运行</p>
+          </div>
+        </div>
       ) : channels.length === 0 ? (
         <div className="flex flex-col justify-center items-center h-full gap-3 text-[var(--text-muted)]">
           <p className="text-lg font-medium">暂无渠道金额数据</p>
@@ -79,18 +79,10 @@ export function ChannelRevenueSlide({
                   dataKey="value"
                 >
                   {pieData.map((_, index) => (
-                    <Cell
-                      key={`cell-${index}`}
-                      fill={COLORS[index % COLORS.length]}
-                    />
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>
-                <Tooltip
-                  formatter={(value: number) => [
-                    formatRevenue(value),
-                    "金额",
-                  ]}
-                />
+                <Tooltip formatter={(value: number) => [formatRevenue(value), '金额']} />
                 <Legend />
               </PieChart>
             </ResponsiveContainer>
@@ -109,12 +101,11 @@ export function ChannelRevenueSlide({
               </thead>
               <tbody>
                 {channels.map((c, i) => {
-                  const pct =
-                    totalAmount > 0 ? c.paid_amount_usd / totalAmount : 0;
+                  const pct = totalAmount > 0 ? c.paid_amount_usd / totalAmount : 0;
                   return (
                     <tr
                       key={c.channel}
-                      className={i % 2 === 0 ? "bg-[var(--bg-surface)]" : "bg-slate-50/50"}
+                      className={i % 2 === 0 ? 'bg-[var(--bg-surface)]' : 'bg-slate-50/50'}
                     >
                       <td className="px-2 py-1 text-xs font-semibold text-[var(--text-primary)] flex items-center gap-2">
                         <span
@@ -141,11 +132,15 @@ export function ChannelRevenueSlide({
               <tfoot>
                 <tr className="border-t-2 border-slate-200 bg-slate-100 font-bold text-[var(--text-primary)]">
                   <td className="px-2 py-1 text-xs">合计</td>
-                  <td className="px-2 py-1 text-xs text-right font-mono tabular-nums text-[var(--text-muted)]">—</td>
+                  <td className="px-2 py-1 text-xs text-right font-mono tabular-nums text-[var(--text-muted)]">
+                    —
+                  </td>
                   <td className="px-2 py-1 text-xs text-right font-mono tabular-nums">
                     {formatRevenue(totalAmount)}
                   </td>
-                  <td className="px-2 py-1 text-xs text-right font-mono tabular-nums text-[var(--text-muted)]">100%</td>
+                  <td className="px-2 py-1 text-xs text-right font-mono tabular-nums text-[var(--text-muted)]">
+                    100%
+                  </td>
                 </tr>
               </tfoot>
             </table>

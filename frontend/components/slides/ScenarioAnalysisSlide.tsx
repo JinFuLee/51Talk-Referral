@@ -1,11 +1,11 @@
-"use client";
+'use client';
 
-import useSWR from "swr";
-import { swrFetcher } from "@/lib/api";
-import { formatRate } from "@/lib/utils";
-import { SlideShell } from "@/components/presentation/SlideShell";
-import { Spinner } from "@/components/ui/Spinner";
-import type { ScenarioResult } from "@/lib/types/funnel";
+import useSWR from 'swr';
+import { swrFetcher } from '@/lib/api';
+import { formatRate } from '@/lib/utils';
+import { SlideShell } from '@/components/presentation/SlideShell';
+import { Spinner } from '@/components/ui/Spinner';
+import type { ScenarioResult } from '@/lib/types/funnel';
 
 interface ScenarioAnalysisSlideProps {
   slideNumber: number;
@@ -13,7 +13,7 @@ interface ScenarioAnalysisSlideProps {
 }
 
 export function ScenarioAnalysisSlide({ slideNumber, totalSlides }: ScenarioAnalysisSlideProps) {
-  const { data, isLoading } = useSWR<ScenarioResult[]>("/api/funnel/scenario", swrFetcher);
+  const { data, isLoading, error } = useSWR<ScenarioResult[]>('/api/funnel/scenario', swrFetcher);
   const scenarios = data ?? [];
 
   return (
@@ -27,6 +27,13 @@ export function ScenarioAnalysisSlide({ slideNumber, totalSlides }: ScenarioAnal
       {isLoading ? (
         <div className="flex justify-center items-center h-full">
           <Spinner size="lg" />
+        </div>
+      ) : error ? (
+        <div className="flex items-center justify-center h-full">
+          <div className="text-center">
+            <p className="text-lg font-semibold text-red-600">数据加载失败</p>
+            <p className="text-sm text-[var(--text-muted)] mt-2">请检查后端服务是否正常运行</p>
+          </div>
         </div>
       ) : (
         <div className="overflow-auto h-full">
@@ -45,11 +52,21 @@ export function ScenarioAnalysisSlide({ slideNumber, totalSlides }: ScenarioAnal
               {scenarios.map((s) => (
                 <tr key={s.stage} className="border-b border-slate-100">
                   <td className="py-1 px-2 text-xs font-semibold">{s.stage}</td>
-                  <td className="py-1 px-2 text-xs text-right font-mono tabular-nums text-[var(--text-secondary)]">{formatRate(s.current_rate)}</td>
-                  <td className="py-1 px-2 text-xs text-right font-mono tabular-nums text-blue-600 font-bold">{formatRate(s.scenario_rate)}</td>
-                  <td className="py-1 px-2 text-xs text-right font-mono tabular-nums">+{s.impact_registrations.toLocaleString()}</td>
-                  <td className="py-1 px-2 text-xs text-right font-mono tabular-nums">+{s.impact_payments.toLocaleString()}</td>
-                  <td className="py-1 px-2 text-xs text-right font-mono tabular-nums text-green-600 font-bold">+${s.impact_revenue.toLocaleString()}</td>
+                  <td className="py-1 px-2 text-xs text-right font-mono tabular-nums text-[var(--text-secondary)]">
+                    {formatRate(s.current_rate)}
+                  </td>
+                  <td className="py-1 px-2 text-xs text-right font-mono tabular-nums text-blue-600 font-bold">
+                    {formatRate(s.scenario_rate)}
+                  </td>
+                  <td className="py-1 px-2 text-xs text-right font-mono tabular-nums">
+                    +{s.impact_registrations.toLocaleString()}
+                  </td>
+                  <td className="py-1 px-2 text-xs text-right font-mono tabular-nums">
+                    +{s.impact_payments.toLocaleString()}
+                  </td>
+                  <td className="py-1 px-2 text-xs text-right font-mono tabular-nums text-green-600 font-bold">
+                    +${s.impact_revenue.toLocaleString()}
+                  </td>
                 </tr>
               ))}
             </tbody>

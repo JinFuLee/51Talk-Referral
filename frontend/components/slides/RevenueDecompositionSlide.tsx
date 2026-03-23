@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
-import useSWR from "swr";
-import { swrFetcher } from "@/lib/api";
-import { formatRevenue, formatRate } from "@/lib/utils";
-import { SlideShell } from "@/components/presentation/SlideShell";
-import { Spinner } from "@/components/ui/Spinner";
+import useSWR from 'swr';
+import { swrFetcher } from '@/lib/api';
+import { formatRevenue, formatRate } from '@/lib/utils';
+import { SlideShell } from '@/components/presentation/SlideShell';
+import { Spinner } from '@/components/ui/Spinner';
 
 interface ChannelData {
   channel: string;
@@ -25,10 +25,7 @@ export function RevenueDecompositionSlide({
   slideNumber: number;
   totalSlides: number;
 }) {
-  const { data, isLoading } = useSWR<ChannelResponse>(
-    "/api/channel",
-    swrFetcher
-  );
+  const { data, isLoading, error } = useSWR<ChannelResponse>('/api/channel', swrFetcher);
   const channels = data?.channels ?? [];
 
   return (
@@ -42,6 +39,13 @@ export function RevenueDecompositionSlide({
       {isLoading ? (
         <div className="flex justify-center items-center h-full">
           <Spinner size="lg" />
+        </div>
+      ) : error ? (
+        <div className="flex items-center justify-center h-full">
+          <div className="text-center">
+            <p className="text-lg font-semibold text-red-600">数据加载失败</p>
+            <p className="text-sm text-[var(--text-muted)] mt-2">请检查后端服务是否正常运行</p>
+          </div>
         </div>
       ) : channels.length === 0 ? (
         <div className="flex flex-col justify-center items-center h-full gap-3 text-[var(--text-muted)]">
@@ -68,7 +72,7 @@ export function RevenueDecompositionSlide({
                 return (
                   <tr
                     key={c.channel}
-                    className={i % 2 === 0 ? "bg-[var(--bg-surface)]" : "bg-slate-50/50"}
+                    className={i % 2 === 0 ? 'bg-[var(--bg-surface)]' : 'bg-slate-50/50'}
                   >
                     <td className="px-2 py-1 text-xs font-semibold text-[var(--text-primary)]">
                       {c.channel}
@@ -81,19 +85,19 @@ export function RevenueDecompositionSlide({
                     </td>
                     <td
                       className={`px-2 py-1 text-xs text-right font-mono tabular-nums font-bold ${
-                        isGood ? "text-green-600" : "text-red-500"
+                        isGood ? 'text-green-600' : 'text-red-500'
                       }`}
                     >
-                      {isGood ? "+" : ""}
+                      {isGood ? '+' : ''}
                       {formatRevenue(c.gap_usd)}
                     </td>
                     <td
                       className={`px-2 py-1 text-xs text-right font-mono tabular-nums font-semibold ${
                         c.achievement_rate >= 1
-                          ? "text-green-600"
+                          ? 'text-green-600'
                           : c.achievement_rate >= 0.8
-                          ? "text-yellow-600"
-                          : "text-red-500"
+                            ? 'text-yellow-600'
+                            : 'text-red-500'
                       }`}
                     >
                       {formatRate(c.achievement_rate)}
@@ -103,10 +107,10 @@ export function RevenueDecompositionSlide({
                         <div
                           className={`h-2 rounded-full ${
                             c.achievement_rate >= 1
-                              ? "bg-green-500"
+                              ? 'bg-green-500'
                               : c.achievement_rate >= 0.8
-                              ? "bg-yellow-400"
-                              : "bg-red-400"
+                                ? 'bg-yellow-400'
+                                : 'bg-red-400'
                           }`}
                           style={{ width: `${pct}%` }}
                         />
