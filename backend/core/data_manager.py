@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import threading
 from pathlib import Path
 from typing import Any
 
@@ -58,44 +59,66 @@ class DataManager:
         self.target_file = Path(target_file) if target_file else None
         self._cache: dict[str, Any] = {}
         self._dirty = True
+        self._lock = threading.RLock()
+        self._loaded_files: dict[str, Path | None] = {}
 
     def load_all(self) -> dict[str, Any]:
-        if not self._dirty and self._cache:
+        with self._lock:
+            if not self._dirty and self._cache:
+                return self._cache
+
+            logger.info("DataManager: 开始加载全部数据源...")
+
+            loaders = {
+                "result": ResultLoader(self.data_dir),
+                "enclosure_cc": EnclosureCCLoader(self.data_dir),
+                "detail": DetailLoader(self.data_dir),
+                "students": StudentLoader(self.data_dir),
+                "high_potential": HighPotentialLoader(self.data_dir),
+            }
+
+            new_cache: dict[str, Any] = {}
+            new_loaded_files: dict[str, Path | None] = {}
+
+            for key, loader in loaders.items():
+                new_cache[key] = loader.load()
+                new_loaded_files[key] = loader.last_loaded_file
+
+            new_cache["targets"] = (
+                TargetLoader(self.target_file).load() if self.target_file else {}
+            )
+
+            self._cache = new_cache
+            self._loaded_files = new_loaded_files
+            self._dirty = False
+
+            # 输出摘要
+            for key, val in self._cache.items():
+                if isinstance(val, pd.DataFrame):
+                    logger.info(f"  {key}: {len(val)} 行")
+                elif isinstance(val, dict):
+                    logger.info(f"  {key}: {len(val)} 个目标键")
+
             return self._cache
-
-        logger.info("DataManager: 开始加载全部数据源...")
-        self._cache = {
-            "result": ResultLoader(self.data_dir).load(),
-            "enclosure_cc": EnclosureCCLoader(self.data_dir).load(),
-            "detail": DetailLoader(self.data_dir).load(),
-            "students": StudentLoader(self.data_dir).load(),
-            "high_potential": HighPotentialLoader(self.data_dir).load(),
-            "targets": TargetLoader(self.target_file).load()
-            if self.target_file
-            else {},
-        }
-        self._dirty = False
-
-        # 输出摘要
-        for key, val in self._cache.items():
-            if isinstance(val, pd.DataFrame):
-                logger.info(f"  {key}: {len(val)} 行")
-            elif isinstance(val, dict):
-                logger.info(f"  {key}: {len(val)} 个目标键")
-
-        return self._cache
 
     def get(self, key: str) -> Any:
         """获取指定数据集（懒加载）"""
-        if self._dirty or key not in self._cache:
-            self.load_all()
-        return self._cache.get(key)
+        with self._lock:
+            if self._dirty or key not in self._cache:
+                self.load_all()
+            return self._cache.get(key)
 
     def invalidate(self) -> None:
         """清空缓存，下次请求时重新加载"""
-        self._dirty = True
-        self._cache = {}
-        logger.info("DataManager: 缓存已清空")
+        with self._lock:
+            self._dirty = True
+            self._cache = {}
+            logger.info("DataManager: 缓存已清空")
+
+    def get_loaded_files(self) -> dict[str, Path | None]:
+        """返回当前已加载文件路径的副本（线程安全）"""
+        with self._lock:
+            return dict(self._loaded_files)
 
     def get_status(self) -> list[DataSourceStatus]:
         """返回 5 个数据文件的存在性与新鲜度状态"""

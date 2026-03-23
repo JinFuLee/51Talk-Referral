@@ -28,6 +28,7 @@ class BaseLoader:
     ) -> None:
         self.input_dir = Path(input_dir)
         self._project_config = project_config
+        self.last_loaded_file: Path | None = None
         # 有 config 时使用 config 的别名映射和默认团队名，否则保留硬编码值
         if project_config is not None:
             self.alias_map: dict = dict(project_config.role_aliases)

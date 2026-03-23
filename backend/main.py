@@ -6,6 +6,7 @@ ref-ops-engine FastAPI 主入口
 import importlib
 import logging
 import os
+from contextlib import asynccontextmanager
 from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -96,7 +97,26 @@ except Exception as _cfg_err:
 _rate_limit_str = os.getenv("RATE_LIMIT", "60/minute")
 limiter = Limiter(key_func=get_remote_address, default_limits=[_rate_limit_str])
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    from backend.api.dependencies import _create_data_manager
+    from backend.core.file_watcher import FileWatcher
+
+    dm = _create_data_manager()
+    app.state.data_manager = dm
+    dm.load_all()
+
+    watcher = FileWatcher(dm)
+    watcher.start()
+    app.state.file_watcher = watcher
+
+    yield
+
+    watcher.stop()
+
+
 app = FastAPI(
+    lifespan=lifespan,
     title=f"{_display_name} API",
     description="51Talk 泰国转介绍运营分析引擎 REST API",
     version="9.0.0",

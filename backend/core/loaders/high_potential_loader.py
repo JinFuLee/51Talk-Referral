@@ -20,6 +20,7 @@ class HighPotentialLoader(BaseLoader):
 
     def load(self) -> pd.DataFrame:
         file_path = self._find_file()
+        self.last_loaded_file = file_path
         if file_path is None:
             logger.warning("D5 高潜学员文件未找到")
             return pd.DataFrame()

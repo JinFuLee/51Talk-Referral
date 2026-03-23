@@ -20,6 +20,7 @@ class EnclosureCCLoader(BaseLoader):
 
     def load(self) -> pd.DataFrame:
         file_path = self._find_file()
+        self.last_loaded_file = file_path
         if file_path is None:
             logger.warning("D2 围场过程数据文件未找到")
             return pd.DataFrame()

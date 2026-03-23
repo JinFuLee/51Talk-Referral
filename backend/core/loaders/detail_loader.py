@@ -20,6 +20,7 @@ class DetailLoader(BaseLoader):
 
     def load(self) -> pd.DataFrame:
         file_path = self._find_file()
+        self.last_loaded_file = file_path
         if file_path is None:
             logger.warning("D3 明细数据文件未找到")
             return pd.DataFrame()
