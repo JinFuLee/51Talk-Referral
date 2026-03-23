@@ -459,6 +459,8 @@ def _aggregate_ops_channels(
         "checkin_rate": round(rate, 4),
         "channels": channels,
         "by_enclosure_segment": by_enclosure_segment,
+        "by_team": [],        # 兼容 SummaryTab ChannelColumn（运营无团队拆分）
+        "by_enclosure": [],   # 兼容 SummaryTab ChannelColumn（运营无围场拆分）
         "by_group": [],
         "by_person": [],
     }

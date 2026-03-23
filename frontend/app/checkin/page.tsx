@@ -112,10 +112,10 @@ function ChannelColumn({ ch, rateColor, rateBg }: ChannelColumnProps) {
           <span className="text-right">学员</span>
           <span className="text-right">打卡率</span>
         </div>
-        {ch.by_team.length === 0 ? (
+        {(ch.by_team ?? []).length === 0 ? (
           <div className="text-[10px] text-[var(--text-muted)] px-2 py-2">暂无团队数据</div>
         ) : (
-          ch.by_team.map((row, i) => (
+          (ch.by_team ?? []).map((row, i) => (
             <div
               key={row.team}
               className={cn(
@@ -142,10 +142,10 @@ function ChannelColumn({ ch, rateColor, rateBg }: ChannelColumnProps) {
           <span className="text-right">学员</span>
           <span className="text-right">打卡率</span>
         </div>
-        {ch.by_enclosure.length === 0 ? (
+        {(ch.by_enclosure ?? []).length === 0 ? (
           <div className="text-[10px] text-[var(--text-muted)] px-2 py-2">暂无围场数据</div>
         ) : (
-          ch.by_enclosure.map((row, i) => (
+          (ch.by_enclosure ?? []).map((row, i) => (
             <div
               key={row.enclosure}
               className={cn(
@@ -189,16 +189,18 @@ function SummaryTab() {
     return <EmptyState title="数据加载失败" description="无法获取打卡汇总数据，请检查后端服务" />;
   }
 
-  // 将后端 by_role 对象转为前端渲染列表
+  // 将后端 by_role 对象转为前端渲染列表（过滤运营：运营有独立 OpsChannelView）
   const byRole = data?.by_role ?? {};
-  const channels: CheckinChannelSummary[] = Object.entries(byRole).map(([role, v]) => ({
-    channel: role,
-    total_students: v.total_students,
-    total_checkin: v.checked_in,
-    checkin_rate: v.checkin_rate,
-    by_team: v.by_team,
-    by_enclosure: v.by_enclosure,
-  }));
+  const channels: CheckinChannelSummary[] = Object.entries(byRole)
+    .filter(([role]) => role !== '运营')
+    .map(([role, v]) => ({
+      channel: role,
+      total_students: v.total_students,
+      total_checkin: v.checked_in,
+      checkin_rate: v.checkin_rate,
+      by_team: v.by_team ?? [],
+      by_enclosure: v.by_enclosure ?? [],
+    }));
 
   if (channels.length === 0) {
     return <EmptyState title="暂无打卡数据" description="上传包含打卡记录的数据文件后自动刷新" />;
