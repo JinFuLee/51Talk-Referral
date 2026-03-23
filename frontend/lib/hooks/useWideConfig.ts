@@ -1,6 +1,8 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useMemo, useEffect, useCallback } from 'react';
+import useSWR from 'swr';
+import { swrFetcher } from '@/lib/api';
 
 const ENCLOSURE_KEYS = ['M0', 'M1', 'M2', 'M3', 'M4', 'M5', 'M6+'] as const;
 type EnclosureMonth = (typeof ENCLOSURE_KEYS)[number];
@@ -27,18 +29,32 @@ const M_TO_DAYS: Record<string, { min: number; max: number | null }> = {
   'M6+': { min: 181, max: null },
 };
 
-/** 从 localStorage 读取宽口径配置 → 后端格式 { role: {min_days, max_days} } */
-function loadWideConfig(): Record<string, { min_days: number; max_days: number | null }> {
-  let assignment: EnclosureRoleAssignment = DEFAULT_WIDE;
-  if (typeof window !== 'undefined') {
-    try {
-      const raw = localStorage.getItem('enclosure_role_wide');
-      if (raw) assignment = JSON.parse(raw) as EnclosureRoleAssignment;
-    } catch {
-      /* fallback */
+/** API 返回的围场配置结构 */
+interface EnclosureRoleApiResponse {
+  narrow?: Record<string, string[]>;
+  wide?: Record<string, string[]>;
+}
+
+/** 将 API 返回的 wide 配置安全转换为 EnclosureRoleAssignment */
+function parseWideFromApi(apiWide: Record<string, string[]>): EnclosureRoleAssignment {
+  const result: Record<string, Role[]> = {};
+  for (const month of ENCLOSURE_KEYS) {
+    const roles = apiWide[month];
+    if (Array.isArray(roles)) {
+      result[month] = roles.filter(
+        (r): r is Role => r === 'CC' || r === 'SS' || r === 'LP' || r === '运营'
+      );
+    } else {
+      result[month] = [];
     }
   }
+  return result as EnclosureRoleAssignment;
+}
 
+/** 将围场-岗位分配矩阵转为后端 role_config 格式 */
+function assignmentToConfig(
+  assignment: EnclosureRoleAssignment
+): Record<string, { min_days: number; max_days: number | null }> {
   const roleToMonths: Record<string, EnclosureMonth[]> = {};
   for (const month of ENCLOSURE_KEYS) {
     for (const role of assignment[month] ?? []) {
@@ -61,17 +77,8 @@ function loadWideConfig(): Record<string, { min_days: number; max_days: number |
   return result;
 }
 
-/** 从 localStorage 读取角色→围场M标签映射 */
-function getWideRoleEnclosures(): Record<string, string[]> {
-  let assignment: EnclosureRoleAssignment = DEFAULT_WIDE;
-  if (typeof window !== 'undefined') {
-    try {
-      const raw = localStorage.getItem('enclosure_role_wide');
-      if (raw) assignment = JSON.parse(raw) as EnclosureRoleAssignment;
-    } catch {
-      /* fallback */
-    }
-  }
+/** 将围场-岗位分配矩阵转为角色→围场M标签映射 */
+function assignmentToRoleEnclosures(assignment: EnclosureRoleAssignment): Record<string, string[]> {
   const result: Record<string, string[]> = {};
   for (const month of ENCLOSURE_KEYS) {
     for (const role of assignment[month] ?? []) {
@@ -83,31 +90,46 @@ function getWideRoleEnclosures(): Record<string, string[]> {
 }
 
 /**
- * 共享 hook：读取宽口径围场配置 + 自动监听 Settings 变更
- * 返回 { config: 后端格式, roleEnclosures: 角色→M标签映射, configJson: URL 编码用 }
+ * 共享 hook：从后端 API 读取宽口径围场配置（与 Settings 页面同源）
+ *
+ * 数据源变更历史：
+ *   旧版：localStorage('enclosure_role_wide') — Settings 迁移后已删除
+ *   新版：/api/config/enclosure-role → .wide 字段
+ *
+ * 返回 { config, roleEnclosures, activeRoles, configJson }
  */
 export function useWideConfig() {
-  const [config, setConfig] = useState(() => loadWideConfig());
-  const [roleEnclosures, setRoleEnclosures] = useState<Record<string, string[]>>({});
+  const { data: apiData, mutate } = useSWR<EnclosureRoleApiResponse>(
+    '/api/config/enclosure-role',
+    swrFetcher,
+    { refreshInterval: 60_000 }
+  );
 
-  const reload = useCallback(() => {
-    setConfig(loadWideConfig());
-    setRoleEnclosures(getWideRoleEnclosures());
-  }, []);
+  // 从 API 读取宽口径配置，类型安全转换，fallback 到默认值
+  const wideAssignment = useMemo<EnclosureRoleAssignment>(() => {
+    if (apiData?.wide && Object.keys(apiData.wide).length > 0) {
+      return parseWideFromApi(apiData.wide);
+    }
+    return DEFAULT_WIDE;
+  }, [apiData]);
+
+  const config = useMemo(() => assignmentToConfig(wideAssignment), [wideAssignment]);
+  const roleEnclosures = useMemo(
+    () => assignmentToRoleEnclosures(wideAssignment),
+    [wideAssignment]
+  );
+
+  // 监听 Settings 页面的 'enclosure-role-changed' 事件，即时刷新 SWR
+  const handleChange = useCallback(() => {
+    void mutate();
+  }, [mutate]);
 
   useEffect(() => {
-    reload(); // 初始加载
-    const onStorage = (e: StorageEvent) => {
-      if (e.key === 'enclosure_role_wide') reload();
-    };
-    const onCustom = () => reload();
-    window.addEventListener('storage', onStorage);
-    window.addEventListener('enclosure-role-changed', onCustom);
+    window.addEventListener('enclosure-role-changed', handleChange);
     return () => {
-      window.removeEventListener('storage', onStorage);
-      window.removeEventListener('enclosure-role-changed', onCustom);
+      window.removeEventListener('enclosure-role-changed', handleChange);
     };
-  }, [reload]);
+  }, [handleChange]);
 
   const configJson = JSON.stringify(config);
   const activeRoles = Object.keys(roleEnclosures).filter(
