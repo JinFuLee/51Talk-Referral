@@ -1154,9 +1154,20 @@ def main():
         action="store_true",
         help="沙箱模式：所有推送重定向到测试群（仅 --engine 模式有效）",
     )
+    parser.add_argument(
+        "--confirm",
+        action="store_true",
+        help="确认发送到正式群（不加此标志则默认 sandbox/拦截）",
+    )
     args = parser.parse_args()
 
-    # ── 引擎模式：委托给 NotificationEngine，现有逻辑完全不变 ──
+    # ── 安全防线：未加 --confirm 时，engine 模式强制 sandbox ──
+    if args.engine and not args.confirm and not args.sandbox and not args.dry_run and not args.test:
+        print("[安全] 未指定 --confirm，自动启用 --sandbox（发送到测试群）。")
+        print("       发正式群请加 --confirm 标志。")
+        args.sandbox = True
+
+    # ── 引擎模式：委托给 NotificationEngine ──
     if args.engine:
         import sys
 
@@ -1173,6 +1184,13 @@ def main():
             force=args.force,
             sandbox=args.sandbox,
         )
+        return
+
+    # ── 旧版单通道模式：也需 --confirm ──
+    if not args.confirm and not args.dry_run and not args.test:
+        print("[拦截] 旧版单通道模式发送正式群需要 --confirm 标志。")
+        print("       示例：uv run python scripts/dingtalk_daily.py --confirm")
+        print("       或先用 --dry-run 预览。")
         return
 
     cred = load_credentials()
