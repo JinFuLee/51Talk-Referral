@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { Fragment, useState, useMemo } from 'react';
 import useSWR from 'swr';
 import { swrFetcher } from '@/lib/api';
 import { Spinner } from '@/components/ui/Spinner';
@@ -345,9 +345,8 @@ function FollowupTable({ items, onDrawerOpen }: FollowupTableProps) {
               m.days_until_card_expiry <= 30;
 
             return (
-              <>
+              <Fragment key={m.id}>
                 <tr
-                  key={m.id}
                   onClick={() => {
                     if (expanded) {
                       setExpandedId(null);
@@ -426,7 +425,7 @@ function FollowupTable({ items, onDrawerOpen }: FollowupTableProps) {
                     onClose={() => setExpandedId(null)}
                   />
                 )}
-              </>
+              </Fragment>
             );
           })}
         </tbody>
