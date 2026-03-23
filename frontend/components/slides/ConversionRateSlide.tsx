@@ -22,13 +22,15 @@ export function ConversionRateSlide({ slideNumber, totalSlides }: SlideProps) {
   const { data, isLoading, error } = useSWR<FunnelResult>('/api/funnel', swrFetcher);
   const stages = data?.stages ?? [];
 
+  // 只取名称含"率"的 stage（注册预约率/预约出席率/出席付费率）
+  // actual = 实际转化率（0-1），target = 目标转化率（0-1），gap = actual - target
   const chartData = stages
-    .filter((s) => s.conversion_rate !== undefined)
+    .filter((s) => s.name.includes('率'))
     .map((s) => ({
       name: s.name,
-      actual: Number(((s.conversion_rate ?? 0) * 100).toFixed(1)),
-      target: Number(((s.target_rate ?? 0) * 100).toFixed(1)),
-      gap: s.rate_gap ?? 0,
+      actual: Number(((s.actual ?? 0) * 100).toFixed(1)),
+      target: Number(((s.target ?? 0) * 100).toFixed(1)),
+      gap: (s.actual ?? 0) - (s.target ?? 0),
     }));
 
   return (
