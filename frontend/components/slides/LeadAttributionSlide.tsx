@@ -40,7 +40,10 @@ export function LeadAttributionSlide({ slideNumber, totalSlides }: SlideProps) {
         <div className="overflow-auto h-full">
           <table className="w-full text-sm border-collapse">
             <thead>
-              <tr className="bg-[var(--n-800)] text-white text-xs font-medium">
+              <tr
+                className="text-white text-xs font-medium"
+                style={{ backgroundColor: 'var(--n-800)' }}
+              >
                 <th className="text-left px-2 py-1.5">渠道</th>
                 <th className="text-right px-2 py-1.5">注册数</th>
                 <th className="text-right px-2 py-1.5">预约数</th>
@@ -64,10 +67,10 @@ export function LeadAttributionSlide({ slideNumber, totalSlides }: SlideProps) {
                     {(c.appointments ?? 0).toLocaleString()}
                   </td>
                   <td className="px-2 py-1 text-xs text-right font-mono tabular-nums text-[var(--text-secondary)]">
-                    {(c.attendances ?? 0).toLocaleString()}
+                    {(c.attendance ?? 0).toLocaleString()}
                   </td>
                   <td className="px-2 py-1 text-xs text-right font-mono tabular-nums font-semibold text-[var(--text-primary)]">
-                    {(c.paid_count ?? 0).toLocaleString()}
+                    {(c.payments ?? 0).toLocaleString()}
                   </td>
                 </tr>
               ))}
@@ -82,10 +85,10 @@ export function LeadAttributionSlide({ slideNumber, totalSlides }: SlideProps) {
                   {channels.reduce((s, c) => s + (c.appointments ?? 0), 0).toLocaleString()}
                 </td>
                 <td className="px-2 py-1 text-xs text-right font-mono tabular-nums">
-                  {channels.reduce((s, c) => s + (c.attendances ?? 0), 0).toLocaleString()}
+                  {channels.reduce((s, c) => s + (c.attendance ?? 0), 0).toLocaleString()}
                 </td>
                 <td className="px-2 py-1 text-xs text-right font-mono tabular-nums">
-                  {channels.reduce((s, c) => s + (c.paid_count ?? 0), 0).toLocaleString()}
+                  {channels.reduce((s, c) => s + (c.payments ?? 0), 0).toLocaleString()}
                 </td>
               </tr>
             </tfoot>

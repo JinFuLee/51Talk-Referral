@@ -57,7 +57,10 @@ export function FunnelAttributionSlide({ slideNumber, totalSlides }: SlideProps)
         <div className="overflow-auto h-full">
           <table className="w-full text-sm border-collapse">
             <thead>
-              <tr className="bg-[var(--n-800)] text-white text-xs font-medium">
+              <tr
+                className="text-white text-xs font-medium"
+                style={{ backgroundColor: 'var(--n-800)' }}
+              >
                 <th className="text-left px-2 py-1.5" rowSpan={2}>
                   渠道
                 </th>
@@ -71,7 +74,10 @@ export function FunnelAttributionSlide({ slideNumber, totalSlides }: SlideProps)
                   付费率
                 </th>
               </tr>
-              <tr className="bg-[var(--n-800)] text-white/80 text-xs font-medium">
+              <tr
+                className="text-white/80 text-xs font-medium"
+                style={{ backgroundColor: 'var(--n-800)' }}
+              >
                 <th className="text-right px-2 py-1.5">实际</th>
                 <th className="text-right px-2 py-1.5">差距</th>
                 <th className="text-right px-2 py-1.5">实际</th>

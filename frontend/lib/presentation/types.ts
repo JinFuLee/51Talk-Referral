@@ -34,9 +34,11 @@ export interface ChannelAttribution {
 export interface ChannelFunnel {
   channel: string;
   registrations: number;
-  appointments: number;
-  attendances: number;
-  paid_count: number;
+  appointments: number | null;
+  attendance: number | null;
+  payments: number | null;
+  revenue_usd: number | null;
+  share_pct: number | null;
 }
 
 /**
@@ -57,9 +59,9 @@ export interface ChannelRevenue {
  */
 export interface ChannelFactor {
   channel: string;
-  expected_orders: number;
-  actual_orders: number;
-  gap_orders: number;
+  expected_volume: number;
+  actual_volume: number;
+  gap: number;
   appt_factor: number;
   show_factor: number;
   pay_factor: number;

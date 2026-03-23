@@ -76,7 +76,10 @@ export function ChannelRevenueSlide({ slideNumber, totalSlides }: SlideProps) {
           <div className="flex-1 overflow-auto">
             <table className="w-full text-sm border-collapse">
               <thead>
-                <tr className="bg-[var(--n-800)] text-white text-xs font-medium">
+                <tr
+                  className="text-white text-xs font-medium"
+                  style={{ backgroundColor: 'var(--n-800)' }}
+                >
                   <th className="text-left px-2 py-1.5">渠道</th>
                   <th className="text-right px-2 py-1.5">人均金额</th>
                   <th className="text-right px-2 py-1.5">总金额</th>
