@@ -380,14 +380,13 @@ def upload_image(img_bytes: bytes, filename: str = "report.png") -> str | None:
 
 def _lark_sign(secret: str) -> tuple[str, str]:
     """生成 Lark webhook 签名：返回 (timestamp, sign)
-    Lark 签名算法：HMAC-SHA256(key=secret, msg=timestamp+"\\n"+secret)
+    Lark 官方算法：HMAC-SHA256(key=timestamp+"\\n"+secret, msg="")
+    参考：https://open.larksuite.com/document/client-docs/bot-v3/add-custom-bot
     """
     timestamp = str(int(time.time()))
     string_to_sign = f"{timestamp}\n{secret}"
     hmac_val = hmac.new(
-        secret.encode("utf-8"),
-        string_to_sign.encode("utf-8"),
-        digestmod=hashlib.sha256,
+        string_to_sign.encode("utf-8"), b"", hashlib.sha256
     ).digest()
     sign = base64.b64encode(hmac_val).decode("utf-8")
     return timestamp, sign
@@ -538,43 +537,46 @@ def cmd_followup(args: argparse.Namespace) -> None:
         return
     print("3. 发送到 Lark...")
 
-    # 构建富文本消息（泰文主、中文辅）
-    content_blocks: list[list[dict]] = []
-
-    # 总摘要行
+    # 构建 interactive card（markdown 支持 **bold** 高亮负责人）
     total_count = sum(r["count"] for r in team_results)
-    content_blocks.append([
-        {"tag": "text", "text": (
-            f"{_th('total_summary')} {total_count} {_th('persons')}  "
-            f"({len(team_results)} {_th('teams')})\n"
-        )},
-    ])
+    elements: list[dict] = []
 
-    # 每个团队一段
+    # 总摘要
+    elements.append({
+        "tag": "markdown",
+        "content": (
+            f"{_th('total_summary')} **{total_count}** {_th('persons')}  "
+            f"({len(team_results)} {_th('teams')})"
+        ),
+    })
+    elements.append({"tag": "hr"})
+
+    # 每个团队一段（负责人名字加粗）
     for r in team_results:
         short = r["team"].replace("TH-", "").replace("Team", "")
-        owner_text = " | ".join(f"{name}({cnt})" for name, cnt in r["owners"][:4])
-        if len(r["owners"]) > 4:
-            owner_text += f" +{len(r['owners']) - 4}{_th('persons')}"
+        owner_parts = [f"**{name}**({cnt})" for name, cnt in r["owners"][:5]]
+        if len(r["owners"]) > 5:
+            owner_parts.append(f"+{len(r['owners']) - 5}{_th('persons')}")
+        owner_text = "  ".join(owner_parts)
 
-        block: list[dict] = [
-            {"tag": "text", "text": (
-                f"\n📊 {r['team']}：{_th('not_checked')} "
-                f"{r['count']} {_th('persons')}\n"
-            )},
-            {"tag": "text", "text": f"{_th('responsible')}: {owner_text}\n"},
-        ]
+        md = f"📊 **{r['team']}**：{_th('not_checked')} **{r['count']}** {_th('persons')}\n"
+        md += f"{_th('responsible')}: {owner_text}"
         if r["img_url"]:
-            block.append({
-                "tag": "a",
-                "text": f"📷 {_th('view_list')} {short}",
-                "href": r["img_url"],
-            })
-            block.append({"tag": "text", "text": "\n"})
-        content_blocks.append(block)
+            md += f"\n📷 [{_th('view_list')} {short}]({r['img_url']})"
+        elements.append({"tag": "markdown", "content": md})
 
     title = f"CC {_th('followup_title')} — {date_display}"
-    ok = send_lark_text(webhook, title, content_blocks, secret=secret)
+    payload = {
+        "msg_type": "interactive",
+        "card": {
+            "header": {
+                "title": {"tag": "plain_text", "content": title},
+                "template": "red",
+            },
+            "elements": elements,
+        },
+    }
+    ok = _send_lark(webhook, payload, secret)
     if ok:
         print("   ✓ 发送成功")
     else:
