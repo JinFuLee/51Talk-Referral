@@ -23,6 +23,7 @@ from __future__ import annotations
 
 import json
 import math
+from pathlib import Path
 from typing import Any
 
 import pandas as pd
@@ -33,9 +34,43 @@ from backend.core.data_manager import DataManager
 
 router = APIRouter()
 
+# ── Config 动态加载 ─────────────────────────────────────────────────────────
+
+_CONFIG_CACHE: dict | None = None
+_CONFIG_MTIME: float = 0.0
+_CONFIG_PATH = (
+    Path(__file__).resolve().parent.parent.parent
+    / "projects" / "referral" / "config.json"
+)
+_OVERRIDE_PATH = (
+    Path(__file__).resolve().parent.parent.parent
+    / "config" / "enclosure_role_override.json"
+)
+
+
+def _get_config() -> dict:
+    """Lazy load config.json，带 mtime 检查，文件更新时自动重载。
+    读取失败时返回空 dict，各调用方有 fallback。"""
+    global _CONFIG_CACHE, _CONFIG_MTIME
+    try:
+        current_mtime = _CONFIG_PATH.stat().st_mtime
+    except OSError:
+        current_mtime = 0.0
+
+    if _CONFIG_CACHE is None or current_mtime != _CONFIG_MTIME:
+        try:
+            with open(_CONFIG_PATH, encoding="utf-8") as f:
+                _CONFIG_CACHE = json.load(f)
+            _CONFIG_MTIME = current_mtime
+        except Exception:
+            _CONFIG_CACHE = {}
+    return _CONFIG_CACHE
+
+
 # ── 常量 ─────────────────────────────────────────────────────────────────────
 
 # D3 围场原始字符串 → M 标签
+# 纯数学映射（M0=0-30, M1=31-60...），与 config.json enclosure_role_wide 保持一致
 _M_MAP: dict[str, str] = {
     "0~30":    "M0",
     "31~60":   "M1",
@@ -47,20 +82,131 @@ _M_MAP: dict[str, str] = {
     "181+":    "M6+",  # 兼容写法
 }
 
-# 宽口径围场-岗位映射（D3 围场原始字符串）
-_WIDE_ROLE: dict[str, list[str]] = {
-    "CC": ["0~30", "31~60", "61~90"],
-    "SS": ["91~120"],
-    "LP": ["121~150", "151~180"],
-    "运营": ["M6+", "181+"],
-}
-
 # 围场段 → 天数映射（与前端 M_TO_DAYS 对齐）
 _M_TO_DAYS: dict[str, tuple[int, int]] = {
     "0~30": (0, 30), "31~60": (31, 60), "61~90": (61, 90),
     "91~120": (91, 120), "121~150": (121, 150), "151~180": (151, 180),
     "M6+": (181, 9999),
 }
+
+# ── 硬编码 fallback（当 config.json 读取失败时使用）─────────────────────────
+
+_WIDE_ROLE_FALLBACK: dict[str, list[str]] = {
+    "CC": ["0~30", "31~60", "61~90"],
+    "SS": ["91~120"],
+    "LP": ["121~150", "151~180"],
+    "运营": ["M6+", "181+"],
+}
+
+_ROLE_COLS_FALLBACK: dict[str, tuple[str, str]] = {
+    "CC": ("last_cc_name", "last_cc_group_name"),
+    "SS": ("last_ss_name", "last_ss_group_name"),
+    "LP": ("last_lp_name", "last_lp_group_name"),
+}
+
+_QUALITY_SCORE_FALLBACK: dict = {
+    "lesson_max": 15, "lesson_weight": 40,
+    "referral_max": 3, "referral_weight": 30,
+    "payment_max": 2, "payment_weight": 20,
+    "enclosure_weights": {"0": 10, "1": 8, "2": 6, "3": 4, "default": 2},
+}
+
+_INVALID_NAMES_FALLBACK: frozenset[str] = frozenset({"nan", "小计", "合计", ""})
+
+# ── 动态加载函数 ──────────────────────────────────────────────────────────────
+
+
+def _get_wide_role() -> dict[str, list[str]]:
+    """从 config/enclosure_role_override.json 的 wide 字段读取围场-角色映射。
+    override 不存在时 fallback 到 config.json enclosure_role_wide，再到硬编码。
+
+    override 格式: {"wide": {"M0": ["CC"], "M3": ["SS"], ...}}
+    返回格式: {"CC": ["0~30", "31~60"], "SS": ["91~120"], ...}
+    """
+    # M 标签 → 围场段映射（用于 override 格式转换）
+    _M_TO_BAND: dict[str, str] = {
+        "M0": "0~30", "M1": "31~60", "M2": "61~90",
+        "M3": "91~120", "M4": "121~150", "M5": "151~180", "M6+": "M6+",
+    }
+
+    # 优先读取 override 文件
+    try:
+        if _OVERRIDE_PATH.exists():
+            override_data = json.loads(_OVERRIDE_PATH.read_text(encoding="utf-8"))
+            wide: dict[str, list[str]] | None = override_data.get("wide")
+            if wide:
+                role_to_bands: dict[str, list[str]] = {}
+                for month, roles in wide.items():
+                    band = _M_TO_BAND.get(month)
+                    if not band:
+                        continue
+                    for role in roles:
+                        if role not in role_to_bands:
+                            role_to_bands[role] = []
+                        role_to_bands[role].append(band)
+                        # 运营特殊：M6+ 同时加 "181+"
+                        if month == "M6+" and role == "运营":
+                            bands_r = role_to_bands[role]
+                            if "181+" not in bands_r:
+                                bands_r.append("181+")
+                if role_to_bands:
+                    return role_to_bands
+    except Exception:
+        pass
+
+    # fallback：config.json enclosure_role_wide（原逻辑）
+    cfg = _get_config().get("enclosure_role_wide", {})
+    if not cfg:
+        return _WIDE_ROLE_FALLBACK
+    result: dict[str, list[str]] = {}
+    for role, spec in cfg.items():
+        min_d = spec.get("min_days", 0)
+        max_d = spec.get("max_days") or 9999
+        bands = [
+            band for band, (lo, hi) in _M_TO_DAYS.items()
+            if lo >= min_d and hi <= max_d
+        ]
+        # 运营角色（181+）特殊处理：包含 M6+ 和 181+
+        if max_d >= 9999:
+            for key in ("M6+", "181+"):
+                if key not in bands:
+                    bands.append(key)
+        if bands:
+            result[role] = bands
+    return result if result else _WIDE_ROLE_FALLBACK
+
+
+def _get_role_cols() -> dict[str, tuple[str, str]]:
+    """从 config.json role_columns 读取各岗位人员列映射。fallback 到硬编码。"""
+    cfg = _get_config().get("role_columns", {})
+    if not cfg:
+        return _ROLE_COLS_FALLBACK
+    result: dict[str, tuple[str, str]] = {}
+    for role, cols in cfg.items():
+        if isinstance(cols, list) and len(cols) >= 2:
+            result[role] = (cols[0], cols[1])
+    return result if result else _ROLE_COLS_FALLBACK
+
+
+def _get_invalid_names() -> frozenset[str]:
+    """从 config.json invalid_names 读取无效名称集合。fallback 到硬编码。"""
+    raw = _get_config().get("invalid_names")
+    if not raw:
+        return _INVALID_NAMES_FALLBACK
+    return frozenset(str(x) for x in raw)
+
+
+def _get_quality_score_config() -> dict:
+    """从 config.json quality_score_config 读取质量评分权重。fallback 到硬编码。"""
+    return _get_config().get("quality_score_config", _QUALITY_SCORE_FALLBACK)
+
+
+# 为保持向后兼容性，保留模块级常量（值在首次使用时从 config 派生）
+# 直接使用下面的 getter 函数，不依赖模块级绑定
+
+def _get_wide_role_cached() -> dict[str, list[str]]:
+    """模块级 _WIDE_ROLE 的兼容入口，每次从 getter 获取（config 热重载安全）。"""
+    return _get_wide_role()
 
 
 def _parse_role_enclosures(role_config: str | None, role: str) -> list[str] | None:
@@ -83,12 +229,11 @@ def _parse_role_enclosures(role_config: str | None, role: str) -> list[str] | No
     except (json.JSONDecodeError, AttributeError, TypeError):
         return None
 
-# 各岗位人员列（name_col, group_col）
-_ROLE_COLS: dict[str, tuple[str, str]] = {
-    "CC": ("last_cc_name", "last_cc_group_name"),
-    "SS": ("last_ss_name", "last_ss_group_name"),
-    "LP": ("last_lp_name", "last_lp_group_name"),
-}
+# 各岗位人员列（name_col, group_col）— 从 config.json role_columns 动态加载
+# 直接调用 _get_role_cols() 获取最新值
+def _get_role_cols_snapshot() -> dict[str, tuple[str, str]]:
+    """返回当前 config 的 role_cols 快照，供模块级 _ROLE_COLS 使用。"""
+    return _get_role_cols()
 
 # D3 列名
 _D3_CHECKIN_COL  = "有效打卡"
@@ -98,12 +243,6 @@ _D3_ENCLOSURE_COL = "围场"
 # D4 学员 ID 候选列（按优先级）
 _D4_STUDENT_ID_CANDIDATES = ["学员id", "stdt_id"]
 _D4_LIFECYCLE_COL = "生命周期"
-
-# 围场加权（质量评分用）
-_ENCLOSURE_WEIGHT: dict[int, int] = {0: 10, 1: 8, 2: 6, 3: 4}
-
-# 过滤掉聚合行的无效值
-_INVALID_NAMES: frozenset[str] = frozenset({"nan", "小计", "合计", ""})
 
 
 # ── 工具函数 ─────────────────────────────────────────────────────────────────
@@ -147,10 +286,12 @@ def _clean_names(
     name_col: str,
     group_col: str | None = None,
 ) -> pd.DataFrame:
-    """过滤 nan / 小计 / 合计 / 空值行"""
+    """过滤 nan / 小计 / 合计 / 空值行。
+    无效名称集从 config.json invalid_names 动态读取。"""
+    invalid = _get_invalid_names()
     df = df.copy()
     if name_col in df.columns:
-        mask = ~df[name_col].astype(str).str.strip().isin(_INVALID_NAMES)
+        mask = ~df[name_col].astype(str).str.strip().isin(invalid)
         mask &= df[name_col].notna()
         df = df[mask]
     if group_col and group_col in df.columns:
@@ -168,9 +309,21 @@ def _find_d4_id_col(df: pd.DataFrame) -> str | None:
 
 
 def _detect_role_from_team(team: str) -> str:
-    """从团队名推断岗位。含 SS → SS；含 LP → LP；其余 → CC。
+    """从团队名推断岗位。
+    优先从 config.json role_team_prefixes 读取各角色前缀列表（SS/LP/CC）；
+    fallback 到内置规则：含 SS → SS；含 LP → LP；其余 → CC。
     例：TH-SS01Team → SS, TH-LP02Team → LP, TH-CC01Team → CC"""
     t = team.strip().upper()
+    prefixes_cfg = _get_config().get("role_team_prefixes", {})
+    if prefixes_cfg:
+        # 按 SS → LP → CC 顺序匹配（CC 作为 fallback 最后处理）
+        for role in ("SS", "LP"):
+            patterns = prefixes_cfg.get(role, [])
+            if any(p.upper() in t for p in patterns):
+                return role
+        # CC 兜底
+        return "CC"
+    # fallback：内置硬编码规则
     if "SS" in t:
         return "SS"
     if "LP" in t:
@@ -180,12 +333,25 @@ def _detect_role_from_team(team: str) -> str:
 
 def _calc_quality_score(row_d3: pd.Series, d4_row: pd.Series | None) -> float:
     """
-    质量评分（满分 100）：
-      lesson_score   = min(本月课耗 / 15, 1.0) * 40
-      referral_score = min(当月推荐注册人数 / 3, 1.0) * 30
-      payment_score  = min(本月推荐付费数 / 2, 1.0) * 20
-      enclosure_score = {M0:10, M1:8, M2:6, M3:4, M4+:2}
+    质量评分（满分 100），权重从 config.json quality_score_config 动态读取：
+      lesson_score   = min(本月课耗 / lesson_max, 1.0) * lesson_weight
+      referral_score = min(当月推荐注册人数 / referral_max, 1.0) * referral_weight
+      payment_score  = min(本月推荐付费数 / payment_max, 1.0) * payment_weight
+      enclosure_score = enclosure_weights[m_idx] 或 enclosure_weights["default"]
     """
+    qsc = _get_quality_score_config()
+    enc_weights_raw: dict = qsc.get(
+        "enclosure_weights",
+        {"0": 10, "1": 8, "2": 6, "3": 4, "default": 2},
+    )
+    # 将字符串键转为 int 键（JSON 只能用字符串键），保留 "default"
+    enc_weights: dict[int | str, int] = {}
+    for k, v in enc_weights_raw.items():
+        try:
+            enc_weights[int(k)] = int(v)
+        except (ValueError, TypeError):
+            enc_weights[k] = int(v)  # "default" 等非数字键原样保留
+
     # 围场分
     enc_raw = None
     if d4_row is not None:
@@ -195,25 +361,32 @@ def _calc_quality_score(row_d3: pd.Series, d4_row: pd.Series | None) -> float:
     )
     m_label = _M_MAP.get(_safe_str(enc_raw), "M0") if enc_raw is not None else "M0"
     m_idx = _m_label_to_index(m_label)
-    enclosure_score = _ENCLOSURE_WEIGHT.get(m_idx, 2)
+    enclosure_score = enc_weights.get(m_idx, enc_weights.get("default", 2))
 
     if d4_row is None:
         return float(enclosure_score)
 
+    lesson_max = float(qsc.get("lesson_max", 15))
+    lesson_weight = float(qsc.get("lesson_weight", 40))
+    referral_max = float(qsc.get("referral_max", 3))
+    referral_weight = float(qsc.get("referral_weight", 30))
+    payment_max = float(qsc.get("payment_max", 2))
+    payment_weight = float(qsc.get("payment_weight", 20))
+
     lesson_val = _safe(d4_row.get("本月课耗")) or _safe(d4_row.get("课耗")) or 0.0
-    lesson_score = min(float(lesson_val) / 15.0, 1.0) * 40.0
+    lesson_score = min(float(lesson_val) / lesson_max, 1.0) * lesson_weight
 
     reg_val = (
         _safe(d4_row.get("当月推荐注册人数"))
         or _safe(d4_row.get("总推荐注册人数"))
         or 0.0
     )
-    referral_score = min(float(reg_val) / 3.0, 1.0) * 30.0
+    referral_score = min(float(reg_val) / referral_max, 1.0) * referral_weight
 
     pay_val = (
         _safe(d4_row.get("本月推荐付费数")) or _safe(d4_row.get("推荐付费")) or 0.0
     )
-    payment_score = min(float(pay_val) / 2.0, 1.0) * 20.0
+    payment_score = min(float(pay_val) / payment_max, 1.0) * payment_weight
 
     return round(lesson_score + referral_score + payment_score + enclosure_score, 1)
 
@@ -234,9 +407,11 @@ def _aggregate_role(
 
     enclosures_override: 外部传入的围场列表（来自前端 Settings），优先于硬编码默认值。
     """
-    name_col, group_col = _ROLE_COLS.get(role, ("last_cc_name", "last_cc_group_name"))
+    role_cols = _get_role_cols()
+    name_col, group_col = role_cols.get(role, ("last_cc_name", "last_cc_group_name"))
+    wide_role = _get_wide_role()
     enclosures = (
-        enclosures_override if enclosures_override else _WIDE_ROLE.get(role, [])
+        enclosures_override if enclosures_override else wide_role.get(role, [])
     )
 
     # 按围场筛选
@@ -267,7 +442,7 @@ def _aggregate_role(
     if total > 0 and group_col in subset.columns:
         for grp, g in subset.groupby(group_col, sort=False):
             grp_str = _safe_str(grp)
-            if grp_str.lower() in _INVALID_NAMES:
+            if grp_str.lower() in _get_invalid_names():
                 continue
             t = len(g)
             c = (
@@ -470,7 +645,8 @@ def _aggregate_team_members(df_d3: pd.DataFrame, team: str, role: str) -> list[d
     """
     按团队筛选 D3，按 name_col 分组，返回每个销售的打卡情况。
     """
-    name_col, group_col = _ROLE_COLS[role]
+    role_cols = _get_role_cols()
+    name_col, group_col = role_cols.get(role, ("last_cc_name", "last_cc_group_name"))
 
     if name_col not in df_d3.columns or group_col not in df_d3.columns:
         return []
@@ -551,11 +727,13 @@ def _build_followup_students(
         s = _safe_str(v)
         return _M_MAP.get(s, s) if s else "M?"
 
+    _wide_role_map = _get_wide_role()
+
     def _enc_to_role(enc: str) -> str:
-        for r, bands in _WIDE_ROLE.items():
+        for r, bands in _wide_role_map.items():
             if enc in [_M_MAP.get(b, b) for b in bands]:
                 return r
-        # M 标签直接对比
+        # M 标签直接对比（fallback）
         idx = _m_label_to_index(enc)
         if idx <= 2:
             return "CC"
@@ -572,8 +750,9 @@ def _build_followup_students(
 
     # 根据 role 决定人员列
     _role_key = (role or "").strip().upper()
-    if _role_key in _ROLE_COLS:
-        name_col, group_col = _ROLE_COLS[_role_key]
+    _current_role_cols = _get_role_cols()
+    if _role_key in _current_role_cols:
+        name_col, group_col = _current_role_cols[_role_key]
     else:
         # 未指定 role：按存在性探测（CC 优先）
         _name_candidates = ["last_cc_name", "last_ss_name", "last_lp_name"]
@@ -695,11 +874,11 @@ def get_checkin_summary(
 ) -> dict:
     """
     全部从 D3 明细表聚合。优先使用前端传来的 role_config（Settings 宽口径配置），
-    否则 fallback 到 _WIDE_ROLE 硬编码默认值。
+    否则 fallback 到 config.json enclosure_role_wide（动态加载）。
     """
     d3: pd.DataFrame = dm.load_all().get("detail", pd.DataFrame())
 
-    roles = list(_WIDE_ROLE.keys())
+    roles = list(_get_wide_role().keys())
     if role_config:
         try:
             parsed = json.loads(role_config)
@@ -712,7 +891,9 @@ def get_checkin_summary(
         override = _parse_role_enclosures(role_config, role)
         if role == "运营":
             d4: pd.DataFrame = dm.load_all().get("students", pd.DataFrame())
-            by_role[role] = _aggregate_ops_channels(d3, d4, enclosures_override=override)
+            by_role[role] = _aggregate_ops_channels(
+                d3, d4, enclosures_override=override
+            )
         else:
             by_role[role] = _aggregate_role(d3, role, enclosures_override=override)
 
@@ -803,7 +984,9 @@ def get_checkin_ranking(
     d3: pd.DataFrame = dm.load_all().get("detail", pd.DataFrame())
 
     # 确定角色列表
-    roles = list(_WIDE_ROLE.keys())
+    _wide_role_map = _get_wide_role()
+    _role_cols_map = _get_role_cols()
+    roles = list(_wide_role_map.keys())
     if role_config:
         try:
             parsed = json.loads(role_config)
@@ -818,13 +1001,15 @@ def get_checkin_ranking(
         # 运营角色：返回渠道推荐数据，不做 by_group/by_person 个人聚合
         if role == "运营":
             d4_ops: pd.DataFrame = dm.load_all().get("students", pd.DataFrame())
-            by_role[role] = _aggregate_ops_channels(d3, d4_ops, enclosures_override=override)
+            by_role[role] = _aggregate_ops_channels(
+                d3, d4_ops, enclosures_override=override
+            )
             continue
 
-        name_col, group_col = _ROLE_COLS.get(
+        name_col, group_col = _role_cols_map.get(
             role, ("last_cc_name", "last_cc_group_name")
         )
-        enclosures = override if override else _WIDE_ROLE.get(role, [])
+        enclosures = override if override else _wide_role_map.get(role, [])
 
         # 按围场筛选
         if _D3_ENCLOSURE_COL in d3.columns:
@@ -854,7 +1039,7 @@ def get_checkin_ranking(
         if total > 0 and group_col in subset.columns:
             for grp, g in subset.groupby(group_col, sort=False):
                 grp_str = _safe_str(grp)
-                if grp_str.lower() in _INVALID_NAMES:
+                if grp_str.lower() in _get_invalid_names():
                     continue
                 t = len(g)
                 c = int(g["_ck"].sum())
@@ -874,7 +1059,7 @@ def get_checkin_ranking(
         if total > 0 and name_col in subset.columns:
             for name, pf in subset.groupby(name_col, sort=False):
                 name_str = _safe_str(name)
-                if name_str.lower() in _INVALID_NAMES:
+                if name_str.lower() in _get_invalid_names():
                     continue
                 t = len(pf)
                 c = int(pf["_ck"].sum())
