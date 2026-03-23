@@ -558,8 +558,8 @@ class NotificationEngine:
 
         plt.rcParams["font.family"] = _THAI_FONTS
         n = len(items)
-        # 高度 = 标题区(1.4) + 每卡片(1.6) + 图例(0.5) + 底部(0.4)
-        fig_h = 1.4 + n * 1.6 + 0.5 + 0.4
+        # 高度 = 标题区(1.5) + 图例(0.5) + 每卡片(2.2) + 底部(0.5)
+        fig_h = 1.5 + 0.5 + n * 2.2 + 0.5
         fig, ax = plt.subplots(figsize=(7, fig_h), dpi=150)
         fig.patch.set_facecolor(_C_BG)
         ax.set_xlim(0, 9)
@@ -605,9 +605,9 @@ class NotificationEngine:
             lx += 2.8
         y -= 0.35
 
-        # ── KPI 卡片 ──
+        # ── KPI 卡片（SEE 4px 网格：充足留白）──
         card_w = 8.6
-        card_h = 1.35
+        card_h = 1.9  # 从 1.35 加大到 1.9（+40% 呼吸空间）
         card_x = 0.2
 
         for item in items:
@@ -621,72 +621,75 @@ class NotificationEngine:
             # 卡片背景（白底圆角边框）
             ax.add_patch(mpatches.FancyBboxPatch(
                 (card_x, y - card_h), card_w, card_h,
-                boxstyle="round,pad=0.1",
-                facecolor="white", edgecolor=_C_BORDER, linewidth=1.2,
+                boxstyle="round,pad=0.12",
+                facecolor="white", edgecolor=_C_BORDER, linewidth=1,
             ))
 
-            # 左侧状态色条（细线）
-            ax.add_patch(plt.Rectangle(
-                (card_x + 0.05, y - card_h + 0.15), 0.05, card_h - 0.3,
+            # 左侧状态色条（3px 细线，圆角感）
+            ax.add_patch(mpatches.FancyBboxPatch(
+                (card_x + 0.08, y - card_h + 0.25), 0.04, card_h - 0.5,
+                boxstyle="round,pad=0.02",
                 facecolor=col, edgecolor="none",
             ))
 
-            # 左区：指标名（上）+ 大数字（中）+ 目标（下）
-            lx = card_x + 0.6  # 左侧留更多间距
+            # 左区：指标名（上）→ 大数字（中）→ 目标（下）
+            lx = card_x + 0.7
+
+            # 指标名
             ax.text(
-                lx, y - 0.25, item["label_th"],
+                lx, y - 0.35, item["label_th"],
                 fontsize=9, color=_C_MUTED, va="center",
             )
+            # 大数字
             ax.text(
-                lx, y - 0.6, val_str,
-                fontsize=22, fontweight="bold", color=_C_TEXT, va="center",
+                lx, y - 0.8, val_str,
+                fontsize=24, fontweight="bold", color=_C_TEXT, va="center",
             )
+            # 目标
             ax.text(
-                lx, y - 0.92,
+                lx, y - 1.15,
                 f"เป้า {tgt_str}",
-                fontsize=8.5, color=_C_MUTED, va="center",
+                fontsize=9, color=_C_MUTED, va="center",
             )
 
-            # 右区：达成率百分比（垂直居中）
-            rx = card_x + card_w - 0.8
+            # 右区：达成率百分比
+            rx = card_x + card_w - 0.6
             ax.text(
-                rx, y - 0.5,
+                rx, y - 0.65,
                 f"{rate * 100:.0f}%",
-                fontsize=24, fontweight="bold", color=col,
+                fontsize=28, fontweight="bold", color=col,
                 va="center", ha="right",
             )
             ax.text(
-                rx, y - 0.82,
+                rx, y - 1.05,
                 "อัตราบรรลุ",
-                fontsize=7.5, color=_C_MUTED,
+                fontsize=8, color=_C_MUTED,
                 va="center", ha="right",
             )
 
-            # 进度条（底部，全宽）
+            # 进度条（底部，充足间距）
             bar_x = lx
-            bar_y = y - 1.15
-            bar_total_w = card_w - 2.0
+            bar_y = y - 1.55
+            bar_w = card_w - 2.2
             ax.add_patch(mpatches.FancyBboxPatch(
-                (bar_x, bar_y), bar_total_w, 0.14,
-                boxstyle="round,pad=0.04",
+                (bar_x, bar_y), bar_w, 0.12,
+                boxstyle="round,pad=0.03",
                 facecolor=_C_ELEVATED, edgecolor="none",
             ))
-            # 进度条（填充）
-            fill_w = min(rate, 1.0) * bar_total_w
+            fill_w = min(rate, 1.0) * bar_w
             if fill_w > 0.05:
                 ax.add_patch(mpatches.FancyBboxPatch(
-                    (bar_x, bar_y), fill_w, 0.14,
-                    boxstyle="round,pad=0.04",
+                    (bar_x, bar_y), fill_w, 0.12,
+                    boxstyle="round,pad=0.03",
                     facecolor=col, edgecolor="none",
                 ))
-            # 进度条右端达成率文字
             ax.text(
-                bar_x + bar_total_w + 0.15, bar_y + 0.07,
+                bar_x + bar_w + 0.15, bar_y + 0.06,
                 f"{rate * 100:.1f}%",
-                fontsize=8, color=col, va="center",
+                fontsize=7.5, color=col, va="center",
             )
 
-            y -= card_h + 0.2
+            y -= card_h + 0.25
 
         # ── 底部分隔线 + 品牌文字 ──
         y -= 0.1
