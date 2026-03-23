@@ -7,7 +7,8 @@
   uv run python scripts/lark_bot.py followup --dry-run     # 只生成图片不发送
   uv run python scripts/lark_bot.py --test                 # Lark webhook 连通性测试
 
-图片通过外部图床（freeimage.host → sm.ms fallback）上传，Lark 群发文本摘要 + 可点击图片链接。
+图片通过外部图床（freeimage.host → sm.ms fallback）上传。
+Lark 群发文本摘要 + 可点击图片链接。
 后续配置 app_id/app_secret 后可切换为 Lark 原生图片发送。
 """
 
@@ -24,7 +25,7 @@ import time
 import urllib.parse
 import urllib.request
 from collections import defaultdict
-from datetime import datetime, timedelta
+from datetime import datetime
 from pathlib import Path
 
 import matplotlib
@@ -112,7 +113,8 @@ def load_config() -> dict:
 def get_channel(config: dict, name: str) -> dict:
     ch = config.get("channels", {}).get(name)
     if not ch:
-        print(f"[错误] 通道 '{name}' 不存在，可用: {list(config.get('channels', {}).keys())}")
+        available = list(config.get("channels", {}).keys())
+        print(f"[错误] 通道 '{name}' 不存在，可用: {available}")
         sys.exit(1)
     return ch
 
@@ -377,11 +379,15 @@ def upload_image(img_bytes: bytes, filename: str = "report.png") -> str | None:
 # ── Lark Webhook 签名 + 发送 ──────────────────────────────────────────────────
 
 def _lark_sign(secret: str) -> tuple[str, str]:
-    """生成 Lark webhook 签名：返回 (timestamp, sign)"""
+    """生成 Lark webhook 签名：返回 (timestamp, sign)
+    Lark 签名算法：HMAC-SHA256(key=secret, msg=timestamp+"\\n"+secret)
+    """
     timestamp = str(int(time.time()))
     string_to_sign = f"{timestamp}\n{secret}"
     hmac_val = hmac.new(
-        string_to_sign.encode("utf-8"), b"", hashlib.sha256
+        secret.encode("utf-8"),
+        string_to_sign.encode("utf-8"),
+        digestmod=hashlib.sha256,
     ).digest()
     sign = base64.b64encode(hmac_val).decode("utf-8")
     return timestamp, sign
@@ -434,9 +440,10 @@ def send_lark_text(
 
 def send_lark_test(webhook: str, secret: str | None = None) -> bool:
     """连通性测试"""
+    ts = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     payload = {
         "msg_type": "text",
-        "content": {"text": f"🔔 Lark Bot 连通测试 — {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"},
+        "content": {"text": f"🔔 Lark Bot 连通测试 — {ts}"},
     }
     ok = _send_lark(webhook, payload, secret)
     print(f"{'✓' if ok else '✗'} 连通测试 {'成功' if ok else '失败'}")
@@ -454,14 +461,16 @@ def cmd_followup(args: argparse.Namespace) -> None:
 
     # ── 安全防线：非 test 通道 + 非 dry-run 必须 --confirm ──
     if args.channel != "test" and not args.confirm and not args.dry_run:
-        print(f"[拦截] 通道 '{args.channel}' 非测试群，需要 --confirm 标志才能发送。")
-        print(f"       安全模式：先用 --channel test 验证，确认后加 --confirm 发正式群。")
-        print(f"       示例：uv run python scripts/lark_bot.py followup --channel {args.channel} --confirm")
+        ch_name = args.channel
+        print(f"[拦截] 通道 '{ch_name}' 非测试群，需要 --confirm 标志才能发送。")
+        print("       安全模式：先用 --channel test 验证，确认后加 --confirm 发送。")
+        print(
+            f"       示例：uv run python scripts/lark_bot.py followup"
+            f" --channel {ch_name} --confirm"
+        )
         return
 
     today = datetime.now()
-    # T-1 数据
-    data_date = (today - timedelta(days=1)).strftime("%Y-%m-%d")
     date_display = f"{today.strftime('%Y年%m月%d日')} T-1"
 
     print(f"📋 Lark Bot — CC 未打卡跟进 ({date_display})")
@@ -494,7 +503,8 @@ def cmd_followup(args: argparse.Namespace) -> None:
         img_bytes = generate_followup_image(team_name, members, date_display)
         local_path = OUTPUT_DIR / filename
         local_path.write_bytes(img_bytes)
-        print(f"   [{team_name}] 图片已保存: output/{filename} ({len(img_bytes)//1024}KB)")
+        kb = len(img_bytes) // 1024
+        print(f"   [{team_name}] 图片已保存: output/{filename} ({kb}KB)")
 
         # 上传
         img_url = None
@@ -555,16 +565,20 @@ def cmd_followup(args: argparse.Namespace) -> None:
             {"tag": "text", "text": f"{_th('responsible')}: {owner_text}\n"},
         ]
         if r["img_url"]:
-            block.append({"tag": "a", "text": f"📷 {_th('view_list')} {short}", "href": r["img_url"]})
+            block.append({
+                "tag": "a",
+                "text": f"📷 {_th('view_list')} {short}",
+                "href": r["img_url"],
+            })
             block.append({"tag": "text", "text": "\n"})
         content_blocks.append(block)
 
     title = f"CC {_th('followup_title')} — {date_display}"
     ok = send_lark_text(webhook, title, content_blocks, secret=secret)
     if ok:
-        print(f"   ✓ 发送成功")
+        print("   ✓ 发送成功")
     else:
-        print(f"   ✗ 发送失败")
+        print("   ✗ 发送失败")
 
 
 # ── CLI ───────────────────────────────────────────────────────────────────────
@@ -575,8 +589,14 @@ def main() -> None:
 
     # followup 子命令
     p_followup = sub.add_parser("followup", help="发送未打卡跟进名单")
-    p_followup.add_argument("--channel", default="test", help="Lark 通道名 (default: test，安全模式)")
-    p_followup.add_argument("--confirm", action="store_true", help="确认发送到正式群（非 test 通道必须加此标志）")
+    p_followup.add_argument(
+        "--channel", default="test",
+        help="Lark 通道名 (default: test，安全模式)",
+    )
+    p_followup.add_argument(
+        "--confirm", action="store_true",
+        help="确认发送到正式群（非 test 通道必须加此标志）",
+    )
     p_followup.add_argument("--dry-run", action="store_true", help="只生成图片不发送")
 
     # test 连通性

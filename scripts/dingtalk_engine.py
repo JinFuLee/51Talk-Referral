@@ -1279,11 +1279,11 @@ class NotificationEngine:
             if isinstance(score, float):
                 score = f"{score:.1f}"
             line_th = (
-                f"{i}. นักเรียน `{sid}` | วงล้อม {enclosure} วัน"
+                f"{i}. รหัส {sid} | วงจร {enclosure}"
                 f" | คะแนน {score} | ผู้รับผิดชอบ: {owner}"
             )
             line_zh = (
-                f"   学员 `{sid}` | 围场 {enclosure}天"
+                f"   学员 {sid} | 围场 {enclosure}"
                 f" | 评分 {score} | 负责人: {owner}"
             )
             lines.append(line_th)
