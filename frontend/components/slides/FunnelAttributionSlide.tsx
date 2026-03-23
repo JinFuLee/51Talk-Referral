@@ -20,14 +20,6 @@ interface FunnelResponse {
   stages: FunnelStage[];
 }
 
-const TH_ROW: React.CSSProperties = { backgroundColor: '#28282a', color: '#ffffff' };
-const TH_CELL: React.CSSProperties = {
-  color: '#ffffff',
-  padding: '10px 12px',
-  fontSize: '12px',
-  fontWeight: 500,
-};
-
 export function FunnelAttributionSlide({ slideNumber, totalSlides }: SlideProps) {
   const { data, isLoading, error } = useSWR<FunnelResponse>('/api/funnel', swrFetcher);
   const allStages = data?.stages ?? [];
@@ -70,13 +62,13 @@ export function FunnelAttributionSlide({ slideNumber, totalSlides }: SlideProps)
         <div className="overflow-auto h-full">
           <table className="w-full text-sm border-collapse">
             <thead>
-              <tr style={TH_ROW}>
-                <th style={{ ...TH_CELL, textAlign: 'left' }}>环节</th>
-                <th style={{ ...TH_CELL, textAlign: 'right' }}>实际</th>
-                <th style={{ ...TH_CELL, textAlign: 'right' }}>目标</th>
-                <th style={{ ...TH_CELL, textAlign: 'right' }}>差距</th>
-                <th style={{ ...TH_CELL, textAlign: 'right' }}>达成率</th>
-                <th style={{ ...TH_CELL, textAlign: 'right' }}>环节转化率</th>
+              <tr className="slide-thead-row">
+                <th className="slide-th slide-th-left">环节</th>
+                <th className="slide-th slide-th-right">实际</th>
+                <th className="slide-th slide-th-right">目标</th>
+                <th className="slide-th slide-th-right">差距</th>
+                <th className="slide-th slide-th-right">达成率</th>
+                <th className="slide-th slide-th-right">环节转化率</th>
               </tr>
             </thead>
             <tbody>
@@ -87,7 +79,7 @@ export function FunnelAttributionSlide({ slideNumber, totalSlides }: SlideProps)
                 const rate = r.achievement_rate ?? 0;
                 const isGood = gap >= 0;
                 return (
-                  <tr key={r.name} className={i % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
+                  <tr key={r.name} className={i % 2 === 0 ? 'slide-row-even' : 'slide-row-odd'}>
                     <td className="px-3 py-2 text-sm font-semibold text-[var(--text-primary)]">
                       {r.name}
                     </td>

@@ -73,84 +73,46 @@ export function ThreeFactorSlide({ slideNumber, totalSlides }: SlideProps) {
         <div className="overflow-auto h-full">
           <table className="w-full text-sm border-collapse">
             <thead>
-              <tr
-                className="text-xs font-medium"
-                style={{ backgroundColor: '#28282a', color: 'white' }}
-              >
-                <th
-                  style={{
-                    color: '#ffffff',
-                    textAlign: 'left',
-                    padding: '4px 6px',
-                    fontSize: '12px',
-                    fontWeight: 500,
-                  }}
-                  rowSpan={2}
-                >
+              <tr className="slide-thead-row">
+                <th className="slide-th slide-th-left" rowSpan={2}>
                   渠道
                 </th>
-                <th
-                  style={{
-                    color: '#ffffff',
-                    textAlign: 'left',
-                    padding: '4px 6px',
-                    fontSize: '12px',
-                    fontWeight: 500,
-                  }}
-                  colSpan={3}
-                >
+                <th className="slide-th slide-th-center" colSpan={3}>
                   单量
                 </th>
-                <th
-                  style={{
-                    color: '#ffffff',
-                    textAlign: 'left',
-                    padding: '4px 6px',
-                    fontSize: '12px',
-                    fontWeight: 500,
-                  }}
-                  colSpan={3}
-                >
+                <th className="slide-th slide-th-center" colSpan={3}>
                   三因素
                 </th>
               </tr>
-              <tr
-                className="text-xs font-medium"
-                style={{ backgroundColor: '#28282a', color: 'rgba(255,255,255,0.8)' }}
-              >
-                <th className="text-right px-2 py-1.5">预期</th>
-                <th className="text-right px-2 py-1.5">实际</th>
-                <th className="text-right px-2 py-1.5">差距</th>
-                <th className="text-right px-2 py-1.5">预约</th>
-                <th className="text-right px-2 py-1.5">出席</th>
-                <th className="text-right px-2 py-1.5">付费</th>
+              <tr className="slide-thead-row">
+                <th className="slide-th-sub slide-th-right">预期</th>
+                <th className="slide-th-sub slide-th-right">实际</th>
+                <th className="slide-th-sub slide-th-right">差距</th>
+                <th className="slide-th-sub slide-th-right">预约</th>
+                <th className="slide-th-sub slide-th-right">出席</th>
+                <th className="slide-th-sub slide-th-right">付费</th>
               </tr>
             </thead>
             <tbody>
               {channels.map((c, i) => (
-                <tr
-                  key={c.channel}
-                  className={i % 2 === 0 ? 'bg-[var(--bg-surface)]' : 'bg-slate-50/50'}
-                >
-                  <td className="px-2 py-1 text-xs font-semibold text-[var(--text-primary)]">
-                    {c.channel}
-                  </td>
-                  <td className="px-2 py-1 text-xs text-right font-mono tabular-nums text-[var(--text-secondary)]">
+                <tr key={c.channel} className={i % 2 === 0 ? 'slide-row-even' : 'slide-row-odd'}>
+                  <td className="slide-td font-semibold text-[var(--text-primary)]">{c.channel}</td>
+                  <td className="slide-td text-right font-mono tabular-nums text-[var(--text-secondary)]">
                     {(c.expected_volume ?? 0).toLocaleString()}
                   </td>
-                  <td className="px-2 py-1 text-xs text-right font-mono tabular-nums font-medium text-[var(--text-primary)]">
+                  <td className="slide-td text-right font-mono tabular-nums font-medium text-[var(--text-primary)]">
                     {(c.actual_volume ?? 0).toLocaleString()}
                   </td>
-                  <td className="px-2 py-1 text-xs text-right font-mono tabular-nums">
+                  <td className="slide-td text-right">
                     <GapBadge gap={c.gap ?? 0} />
                   </td>
-                  <td className="px-2 py-1 text-xs text-right">
+                  <td className="slide-td text-right">
                     <FactorBadge value={c.appt_factor ?? 0} />
                   </td>
-                  <td className="px-2 py-1 text-xs text-right">
+                  <td className="slide-td text-right">
                     <FactorBadge value={c.show_factor ?? 0} />
                   </td>
-                  <td className="px-2 py-1 text-xs text-right">
+                  <td className="slide-td text-right">
                     <FactorBadge value={c.pay_factor ?? 0} />
                   </td>
                 </tr>

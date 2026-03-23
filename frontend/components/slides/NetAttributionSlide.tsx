@@ -42,62 +42,16 @@ export function NetAttributionSlide({ slideNumber, totalSlides }: SlideProps) {
         <div className="overflow-auto h-full">
           <table className="w-full text-sm border-collapse">
             <thead>
-              <tr
-                className="text-xs font-medium"
-                style={{ backgroundColor: '#28282a', color: 'white' }}
-              >
-                <th
-                  style={{
-                    color: '#ffffff',
-                    textAlign: 'left',
-                    padding: '4px 6px',
-                    fontSize: '12px',
-                    fontWeight: 500,
-                  }}
-                >
-                  渠道
-                </th>
-                <th
-                  style={{
-                    color: '#ffffff',
-                    textAlign: 'left',
-                    padding: '4px 6px',
-                    fontSize: '12px',
-                    fontWeight: 500,
-                  }}
-                >
-                  总业绩
-                </th>
-                <th
-                  style={{
-                    color: '#ffffff',
-                    textAlign: 'left',
-                    padding: '4px 6px',
-                    fontSize: '12px',
-                    fontWeight: 500,
-                  }}
-                >
-                  金额占比
-                </th>
-                <th
-                  style={{
-                    color: '#ffffff',
-                    textAlign: 'left',
-                    padding: '4px 6px',
-                    fontSize: '12px',
-                    fontWeight: 500,
-                  }}
-                >
-                  人均业绩
-                </th>
+              <tr className="slide-thead-row">
+                <th className="slide-th slide-th-left">渠道</th>
+                <th className="slide-th slide-th-left">总业绩</th>
+                <th className="slide-th slide-th-left">金额占比</th>
+                <th className="slide-th slide-th-left">人均业绩</th>
               </tr>
             </thead>
             <tbody>
               {channels.map((c, i) => (
-                <tr
-                  key={c.channel}
-                  className={i % 2 === 0 ? 'bg-[var(--bg-surface)]' : 'bg-slate-50/50'}
-                >
+                <tr key={c.channel} className={i % 2 === 0 ? 'slide-row-even' : 'slide-row-odd'}>
                   <td className="px-2 py-1 text-xs font-semibold text-[var(--text-primary)]">
                     {c.channel}
                   </td>

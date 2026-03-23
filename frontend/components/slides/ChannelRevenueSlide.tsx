@@ -76,62 +76,16 @@ export function ChannelRevenueSlide({ slideNumber, totalSlides }: SlideProps) {
           <div className="flex-1 overflow-auto">
             <table className="w-full text-sm border-collapse">
               <thead>
-                <tr
-                  className="text-xs font-medium"
-                  style={{ backgroundColor: '#28282a', color: 'white' }}
-                >
-                  <th
-                    style={{
-                      color: '#ffffff',
-                      textAlign: 'left',
-                      padding: '4px 6px',
-                      fontSize: '12px',
-                      fontWeight: 500,
-                    }}
-                  >
-                    渠道
-                  </th>
-                  <th
-                    style={{
-                      color: '#ffffff',
-                      textAlign: 'left',
-                      padding: '4px 6px',
-                      fontSize: '12px',
-                      fontWeight: 500,
-                    }}
-                  >
-                    人均金额
-                  </th>
-                  <th
-                    style={{
-                      color: '#ffffff',
-                      textAlign: 'left',
-                      padding: '4px 6px',
-                      fontSize: '12px',
-                      fontWeight: 500,
-                    }}
-                  >
-                    总金额
-                  </th>
-                  <th
-                    style={{
-                      color: '#ffffff',
-                      textAlign: 'left',
-                      padding: '4px 6px',
-                      fontSize: '12px',
-                      fontWeight: 500,
-                    }}
-                  >
-                    占比
-                  </th>
+                <tr className="slide-thead-row">
+                  <th className="slide-th slide-th-left">渠道</th>
+                  <th className="slide-th slide-th-left">人均金额</th>
+                  <th className="slide-th slide-th-left">总金额</th>
+                  <th className="slide-th slide-th-left">占比</th>
                 </tr>
               </thead>
               <tbody>
                 {channels.map((c, i) => (
-                  <tr
-                    key={c.channel}
-                    className={i % 2 === 0 ? 'bg-[var(--bg-surface)]' : 'bg-slate-50/50'}
-                  >
+                  <tr key={c.channel} className={i % 2 === 0 ? 'slide-row-even' : 'slide-row-odd'}>
                     <td className="px-2 py-1 text-xs font-semibold text-[var(--text-primary)] flex items-center gap-2">
                       <span
                         className="inline-block w-2 h-2 rounded-full"
@@ -154,7 +108,7 @@ export function ChannelRevenueSlide({ slideNumber, totalSlides }: SlideProps) {
                 ))}
               </tbody>
               <tfoot>
-                <tr className="border-t-2 border-slate-200 bg-slate-100 font-bold text-[var(--text-primary)]">
+                <tr className="slide-tfoot-row">
                   <td className="px-2 py-1 text-xs">合计</td>
                   <td className="px-2 py-1 text-xs text-right font-mono tabular-nums text-[var(--text-muted)]">
                     —

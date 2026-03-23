@@ -40,73 +40,17 @@ export function LeadAttributionSlide({ slideNumber, totalSlides }: SlideProps) {
         <div className="overflow-auto h-full">
           <table className="w-full text-sm border-collapse">
             <thead>
-              <tr
-                className="text-xs font-medium"
-                style={{ backgroundColor: '#28282a', color: 'white' }}
-              >
-                <th
-                  style={{
-                    color: '#ffffff',
-                    textAlign: 'left',
-                    padding: '4px 6px',
-                    fontSize: '12px',
-                    fontWeight: 500,
-                  }}
-                >
-                  渠道
-                </th>
-                <th
-                  style={{
-                    color: '#ffffff',
-                    textAlign: 'left',
-                    padding: '4px 6px',
-                    fontSize: '12px',
-                    fontWeight: 500,
-                  }}
-                >
-                  注册数
-                </th>
-                <th
-                  style={{
-                    color: '#ffffff',
-                    textAlign: 'left',
-                    padding: '4px 6px',
-                    fontSize: '12px',
-                    fontWeight: 500,
-                  }}
-                >
-                  预约数
-                </th>
-                <th
-                  style={{
-                    color: '#ffffff',
-                    textAlign: 'left',
-                    padding: '4px 6px',
-                    fontSize: '12px',
-                    fontWeight: 500,
-                  }}
-                >
-                  出席数
-                </th>
-                <th
-                  style={{
-                    color: '#ffffff',
-                    textAlign: 'left',
-                    padding: '4px 6px',
-                    fontSize: '12px',
-                    fontWeight: 500,
-                  }}
-                >
-                  付费数
-                </th>
+              <tr className="slide-thead-row">
+                <th className="slide-th slide-th-left">渠道</th>
+                <th className="slide-th slide-th-left">注册数</th>
+                <th className="slide-th slide-th-left">预约数</th>
+                <th className="slide-th slide-th-left">出席数</th>
+                <th className="slide-th slide-th-left">付费数</th>
               </tr>
             </thead>
             <tbody>
               {channels.map((c, i) => (
-                <tr
-                  key={c.channel}
-                  className={i % 2 === 0 ? 'bg-[var(--bg-surface)]' : 'bg-slate-50/50'}
-                >
+                <tr key={c.channel} className={i % 2 === 0 ? 'slide-row-even' : 'slide-row-odd'}>
                   <td className="px-2 py-1 text-xs font-semibold text-[var(--text-primary)]">
                     {c.channel}
                   </td>
@@ -126,7 +70,7 @@ export function LeadAttributionSlide({ slideNumber, totalSlides }: SlideProps) {
               ))}
             </tbody>
             <tfoot>
-              <tr className="border-t-2 border-slate-200 bg-slate-100 font-bold text-[var(--text-primary)]">
+              <tr className="slide-tfoot-row">
                 <td className="px-2 py-1 text-xs">合计</td>
                 <td className="px-2 py-1 text-xs text-right font-mono tabular-nums">
                   {channels.reduce((s, c) => s + c.registrations, 0).toLocaleString()}

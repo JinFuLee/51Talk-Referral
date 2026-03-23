@@ -56,76 +56,13 @@ export function RevenueDecompositionSlide({ slideNumber, totalSlides }: SlidePro
         <div className="overflow-auto h-full">
           <table className="w-full text-sm border-collapse">
             <thead>
-              <tr
-                className="text-xs font-medium"
-                style={{ backgroundColor: '#28282a', color: 'white' }}
-              >
-                <th
-                  style={{
-                    color: '#ffffff',
-                    textAlign: 'left',
-                    padding: '4px 6px',
-                    fontSize: '12px',
-                    fontWeight: 500,
-                  }}
-                >
-                  渠道
-                </th>
-                <th
-                  style={{
-                    color: '#ffffff',
-                    textAlign: 'left',
-                    padding: '4px 6px',
-                    fontSize: '12px',
-                    fontWeight: 500,
-                  }}
-                >
-                  注册数
-                </th>
-                <th
-                  style={{
-                    color: '#ffffff',
-                    textAlign: 'left',
-                    padding: '4px 6px',
-                    fontSize: '12px',
-                    fontWeight: 500,
-                  }}
-                >
-                  付费数
-                </th>
-                <th
-                  style={{
-                    color: '#ffffff',
-                    textAlign: 'left',
-                    padding: '4px 6px',
-                    fontSize: '12px',
-                    fontWeight: 500,
-                  }}
-                >
-                  付费金额
-                </th>
-                <th
-                  style={{
-                    color: '#ffffff',
-                    textAlign: 'left',
-                    padding: '4px 6px',
-                    fontSize: '12px',
-                    fontWeight: 500,
-                  }}
-                >
-                  金额占比
-                </th>
-                <th
-                  style={{
-                    color: '#ffffff',
-                    textAlign: 'left',
-                    padding: '4px 6px',
-                    fontSize: '12px',
-                    fontWeight: 500,
-                  }}
-                >
-                  占比
-                </th>
+              <tr className="slide-thead-row">
+                <th className="slide-th slide-th-left">渠道</th>
+                <th className="slide-th slide-th-left">注册数</th>
+                <th className="slide-th slide-th-left">付费数</th>
+                <th className="slide-th slide-th-left">付费金额</th>
+                <th className="slide-th slide-th-left">金额占比</th>
+                <th className="slide-th slide-th-left">占比</th>
               </tr>
             </thead>
             <tbody>
@@ -133,10 +70,7 @@ export function RevenueDecompositionSlide({ slideNumber, totalSlides }: SlidePro
                 const rev = c.revenue_usd ?? 0;
                 const share = c.share_pct ?? 0;
                 return (
-                  <tr
-                    key={c.channel}
-                    className={i % 2 === 0 ? 'bg-[var(--bg-surface)]' : 'bg-slate-50/50'}
-                  >
+                  <tr key={c.channel} className={i % 2 === 0 ? 'slide-row-even' : 'slide-row-odd'}>
                     <td className="px-3 py-1.5 text-xs font-semibold text-[var(--text-primary)]">
                       {c.channel}
                     </td>
@@ -165,7 +99,7 @@ export function RevenueDecompositionSlide({ slideNumber, totalSlides }: SlidePro
               })}
             </tbody>
             <tfoot>
-              <tr className="border-t-2 border-slate-200 bg-slate-100 font-bold text-[var(--text-primary)]">
+              <tr className="slide-tfoot-row">
                 <td className="px-3 py-1.5 text-xs">合计</td>
                 <td className="px-3 py-1.5 text-xs text-right font-mono tabular-nums">
                   {channels.reduce((s, c) => s + (c.registrations ?? 0), 0).toLocaleString()}

@@ -441,6 +441,58 @@ body.presentation-mode .presentation-watermark {
   }
 }
 
+/* ── Slide 演示模式 Design Token ────────────────── */
+/* 修改此处即全局生效于所有 Slide 表格组件 */
+
+.slide-thead-row {
+  background-color: var(--n-800);
+  color: #ffffff;
+}
+
+.slide-th {
+  color: #ffffff;
+  padding: 8px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.slide-th-left {
+  text-align: left;
+}
+.slide-th-right {
+  text-align: right;
+}
+.slide-th-center {
+  text-align: center;
+}
+
+.slide-th-sub {
+  color: rgba(255, 255, 255, 0.8);
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.slide-td {
+  padding: 6px 12px;
+  font-size: 13px;
+}
+
+.slide-row-even {
+  background-color: var(--bg-surface);
+}
+.slide-row-odd {
+  background-color: var(--n-50);
+}
+
+.slide-tfoot-row {
+  border-top: 2px solid var(--n-200);
+  background-color: var(--n-100);
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
