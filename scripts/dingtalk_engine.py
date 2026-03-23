@@ -526,12 +526,14 @@ class NotificationEngine:
             items = [
                 {
                     "label_th": "รายได้ (USD)",
+                    "label_zh": "付费金额 (USD)",
                     "actual": metrics.get("总带新付费金额USD", 0),
                     "target": kpi_pace.get("revenue", {}).get("target", 0),
                     "fmt": lambda v: f"${v:,.0f}",
                 },
                 {
                     "label_th": "จำนวนชำระ",
+                    "label_zh": "付费单量",
                     "actual": kpi_pace.get("paid", {}).get("actual", 0),
                     "target": kpi_pace.get("paid", {}).get("target", 0),
                     "fmt": lambda v: f"{v:,.0f}",
@@ -541,6 +543,7 @@ class NotificationEngine:
             items = [
                 {
                     "label_th": "Leads แคบ",
+                    "label_zh": "窄口 Leads",
                     "actual": metrics.get("转介绍注册数", 0),
                     "target": kpi_pace.get("register", {}).get("target", 0),
                     "fmt": lambda v: f"{v:,.0f}",
@@ -550,6 +553,7 @@ class NotificationEngine:
             items = [
                 {
                     "label_th": "Leads รวม",
+                    "label_zh": "窄+宽 Leads",
                     "actual": metrics.get("转介绍注册数", 0),
                     "target": kpi_pace.get("register", {}).get("target", 0),
                     "fmt": lambda v: f"{v:,.0f}",
@@ -577,9 +581,13 @@ class NotificationEngine:
         ))
         ax.text(
             0.45, y, f"ผลลัพธ์ · {role}",
-            fontsize=14, fontweight="bold", color=_C_TEXT, va="top",
+            fontsize=13, fontweight="bold", color=_C_TEXT, va="top",
         )
-        y -= 0.45
+        ax.text(
+            0.45, y - 0.30, f"结果指标 · {role}",
+            fontsize=8, color=_C_MUTED, va="top",
+        )
+        y -= 0.55
         ax.text(
             0.45, y, f"{today_str}  |  T-1",
             fontsize=9, color=_C_TEXT2, va="top",
@@ -588,9 +596,9 @@ class NotificationEngine:
 
         # ── 图例（状态圆点） ──
         legend_items = [
-            (_C_SUCCESS, ">= 100%  ผ่าน"),
-            (_C_WARNING, "80-99%  ใกล้เคียง"),
-            (_C_DANGER, "< 80%  ต่ำกว่า"),
+            (_C_SUCCESS, "ผ่าน/达标"),
+            (_C_WARNING, "ใกล้เคียง/接近"),
+            (_C_DANGER, "ต่ำกว่า/未达"),
         ]
         lx = 0.4
         for lc, ltxt in legend_items:
@@ -635,20 +643,24 @@ class NotificationEngine:
             # 左区：指标名（上）→ 大数字（中）→ 目标（下）
             lx = card_x + 0.7
 
-            # 指标名
+            # 指标名（泰文主，中文辅）
             ax.text(
-                lx, y - 0.35, item["label_th"],
+                lx, y - 0.28, item["label_th"],
                 fontsize=9, color=_C_MUTED, va="center",
+            )
+            ax.text(
+                lx, y - 0.48, item["label_zh"],
+                fontsize=7, color=_C_MUTED, va="center",
             )
             # 大数字
             ax.text(
-                lx, y - 0.8, val_str,
+                lx, y - 0.85, val_str,
                 fontsize=24, fontweight="bold", color=_C_TEXT, va="center",
             )
             # 目标
             ax.text(
-                lx, y - 1.15,
-                f"เป้า {tgt_str}",
+                lx, y - 1.22,
+                f"เป้า/目标 {tgt_str}",
                 fontsize=9, color=_C_MUTED, va="center",
             )
 
@@ -661,9 +673,9 @@ class NotificationEngine:
                 va="center", ha="right",
             )
             ax.text(
-                rx, y - 1.05,
-                "อัตราบรรลุ",
-                fontsize=8, color=_C_MUTED,
+                rx, y - 1.10,
+                "อัตราบรรลุ/达成率",
+                fontsize=7.5, color=_C_MUTED,
                 va="center", ha="right",
             )
 
@@ -713,27 +725,27 @@ class NotificationEngine:
         # 按 role 决定行（全泰文 label）
         if role == "CC":
             rows = [
-                ("อัตราบรรลุ Leads", "register"),
-                ("อัตราบรรลุนัดหมาย", "appointment"),
-                ("อัตราบรรลุเข้าเรียน", "showup"),
-                ("อัตราบรรลุชำระ", "paid"),
-                ("อัตราบรรลุรายได้", "revenue"),
-                ("อัตราบรรลุ AOV", "aov"),
-                ("อัตราเช็คอิน", "checkin"),
+                ("อัตราบรรลุ Leads", "Leads 达成率", "register"),
+                ("อัตราบรรลุนัดหมาย", "预约达成率", "appointment"),
+                ("อัตราบรรลุเข้าเรียน", "出席达成率", "showup"),
+                ("อัตราบรรลุชำระ", "付费达成率", "paid"),
+                ("อัตราบรรลุรายได้", "业绩达成率", "revenue"),
+                ("อัตราบรรลุ AOV", "客单价达成率", "aov"),
+                ("อัตราเช็คอิน", "打卡率", "checkin"),
             ]
         elif role == "SS":
             rows = [
-                ("อัตราบรรลุ Leads", "register"),
-                ("อัตราเช็คอิน", "checkin"),
+                ("อัตราบรรลุ Leads", "Leads 达成率", "register"),
+                ("อัตราเช็คอิน", "打卡率", "checkin"),
             ]
         else:  # LP
             rows = [
-                ("อัตราบรรลุ Leads", "register"),
-                ("อัตราเช็คอิน", "checkin"),
+                ("อัตราบรรลุ Leads", "Leads 达成率", "register"),
+                ("อัตราเช็คอิน", "打卡率", "checkin"),
             ]
 
         table_data = []
-        for label_th, key in rows:
+        for label_th, label_zh, key in rows:
             pace = kpi_pace.get(key, {})
             actual = pace.get("actual", 0) or 0
             target = pace.get("target", 0) or 0
@@ -742,11 +754,11 @@ class NotificationEngine:
                 continue
             rate = (actual / target) if target > 0 else 0
             gap = actual - target
-            table_data.append((label_th, target, actual, rate, gap))
+            table_data.append((label_th, label_zh, target, actual, rate, gap))
 
         plt.rcParams["font.family"] = _THAI_FONTS
         n = len(table_data)
-        row_unit = 0.42  # 每行高度（数据坐标系）
+        row_unit = 0.55  # 每行高度（双语行需要更多空间）
         header_h = 0.5
         title_h = 1.1
         footer_h = 0.5
@@ -769,9 +781,13 @@ class NotificationEngine:
         ))
         ax.text(
             0.45, y, f"การบรรลุเป้า · {role}",
-            fontsize=14, fontweight="bold", color=_C_TEXT, va="top",
+            fontsize=13, fontweight="bold", color=_C_TEXT, va="top",
         )
-        y -= 0.45
+        ax.text(
+            0.45, y - 0.30, f"达成指标 · {role}",
+            fontsize=8, color=_C_MUTED, va="top",
+        )
+        y -= 0.55
         ax.text(
             0.45, y, f"{today_str}  |  T-1",
             fontsize=9, color=_C_TEXT2, va="top",
@@ -781,7 +797,10 @@ class NotificationEngine:
         # ── 表头（深色背景） ──
         table_x = 0.2
         table_w = 8.6
-        col_labels_th = ["ตัวชี้วัด", "เป้า", "จริง", "อัตราบรรลุ", "ผลต่าง", ""]
+        col_labels_th = [
+            "ตัวชี้วัด (指标)", "เป้า (目标)", "จริง (实际)",
+            "อัตราบรรลุ (达成率)", "ผลต่าง (差额)", "",
+        ]
         col_xs = [0.35, 2.9, 4.2, 5.5, 7.0, 8.5]
         col_aligns = ["left", "right", "right", "right", "right", "left"]
 
@@ -798,7 +817,9 @@ class NotificationEngine:
         y -= header_h
 
         # ── 数据行（斑马纹 + 状态圆点 + 迷你进度条） ──
-        for idx, (label_th, target, actual, rate, gap) in enumerate(table_data):
+        for idx, (label_th, label_zh, target, actual, rate, gap) in enumerate(
+            table_data
+        ):
             row_bg = _C_SURFACE if idx % 2 == 0 else "white"
             ax.add_patch(plt.Rectangle(
                 (table_x, y - row_unit), table_w, row_unit,
@@ -808,10 +829,14 @@ class NotificationEngine:
             col = self._status_color(rate)
             cy = y - row_unit * 0.5  # 行中心 y
 
-            # 指标名
+            # 指标名（泰文主，中文辅小字）
             ax.text(
-                col_xs[0], cy, label_th,
+                col_xs[0], cy + 0.07, label_th,
                 fontsize=8.5, color=_C_TEXT, va="center", ha="left",
+            )
+            ax.text(
+                col_xs[0], cy - 0.12, label_zh,
+                fontsize=6.5, color=_C_MUTED, va="center", ha="left",
             )
             # 目标
             ax.text(
@@ -866,43 +891,43 @@ class NotificationEngine:
         # 按 role 决定过程/效率指标（全泰文 label → 数据字段 key）
         if role == "CC":
             process_items = [
-                ("ลงทะเบียน", "转介绍注册数"),
-                ("นัดหมาย", "预约数"),
-                ("เข้าเรียน", "出席数"),
-                ("ชำระ", "转介绍付费数"),
-                ("เช็คอิน", "打卡数"),
-                ("ติดต่อ (≥120s)", "触达数"),
-                ("แนะนำ", "带新数"),
-                ("สัดส่วน", "带货数"),
+                ("ลงทะเบียน (注册)", "转介绍注册数"),
+                ("นัดหมาย (预约)", "预约数"),
+                ("เข้าเรียน (出席)", "出席数"),
+                ("ชำระ (付费)", "转介绍付费数"),
+                ("เช็คอิน (打卡)", "打卡数"),
+                ("ติดต่อ ≥120s (触达)", "触达数"),
+                ("แนะนำ (带新)", "带新数"),
+                ("สัดส่วน (带货)", "带货数"),
             ]
             efficiency_items = [
-                ("อัตราติดต่อ", "触达率"),
-                ("สัดส่วนแนะนำ", "带货比"),
-                ("ค่าสัมประสิทธิ์แนะนำ", "带新系数"),
-                ("อัตราลงทะเบียน→ชำระ", "注册转化率"),
-                ("อัตรานัดหมาย→ชำระ", "预约出席率"),
-                ("อัตราเข้าเรียน→ชำระ", "出席付费率"),
+                ("อัตราติดต่อ (触达率)", "触达率"),
+                ("สัดส่วนแนะนำ (带货比)", "带货比"),
+                ("ค่าสัมประสิทธิ์แนะนำ (带新系数)", "带新系数"),
+                ("อัตราลงทะเบียน→ชำระ (注册转化率)", "注册转化率"),
+                ("อัตรานัดหมาย→ชำระ (预约出席率)", "预约出席率"),
+                ("อัตราเข้าเรียน→ชำระ (出席付费率)", "出席付费率"),
             ]
         elif role == "SS":
             process_items = [
-                ("ลงทะเบียน", "转介绍注册数"),
-                ("ติดต่อ", "触达数"),
-                ("แนะนำ", "带新数"),
+                ("ลงทะเบียน (注册)", "转介绍注册数"),
+                ("ติดต่อ (触达)", "触达数"),
+                ("แนะนำ (带新)", "带新数"),
             ]
             efficiency_items = [
-                ("อัตราติดต่อ", "触达率"),
-                ("ค่าสัมประสิทธิ์แนะนำ", "带新系数"),
+                ("อัตราติดต่อ (触达率)", "触达率"),
+                ("ค่าสัมประสิทธิ์แนะนำ (带新系数)", "带新系数"),
             ]
         else:  # LP
             process_items = [
-                ("ลงทะเบียน", "转介绍注册数"),
-                ("ติดต่อ", "触达数"),
-                ("แนะนำ", "带新数"),
-                ("เช็คอิน", "打卡数"),
+                ("ลงทะเบียน (注册)", "转介绍注册数"),
+                ("ติดต่อ (触达)", "触达数"),
+                ("แนะนำ (带新)", "带新数"),
+                ("เช็คอิน (打卡)", "打卡数"),
             ]
             efficiency_items = [
-                ("อัตราติดต่อ", "触达率"),
-                ("ค่าสัมประสิทธิ์แนะนำ", "带新系数"),
+                ("อัตราติดต่อ (触达率)", "触达率"),
+                ("ค่าสัมประสิทธิ์แนะนำ (带新系数)", "带新系数"),
             ]
 
         def _fmt_val(v: object) -> str:
@@ -946,7 +971,11 @@ class NotificationEngine:
             0.45, y, f"กระบวนการ & ประสิทธิภาพ · {role}",
             fontsize=13, fontweight="bold", color=_C_TEXT, va="top",
         )
-        y -= 0.45
+        ax.text(
+            0.45, y - 0.30, f"过程指标 & 效率指标 · {role}",
+            fontsize=8, color=_C_MUTED, va="top",
+        )
+        y -= 0.55
         ax.text(
             0.45, y, f"{today_str}  |  T-1",
             fontsize=9, color=_C_TEXT2, va="top",
@@ -1014,7 +1043,7 @@ class NotificationEngine:
 
             return sy
 
-        y = _draw_section("กระบวนการ", process_items, y, _C_ACCENT)
+        y = _draw_section("กระบวนการ  过程指标", process_items, y, _C_ACCENT)
         y -= section_gap * 0.3
 
         # 段落分隔线
@@ -1022,7 +1051,7 @@ class NotificationEngine:
                 color=_C_BORDER_H, linewidth=0.8, linestyle="--")
         y -= section_gap * 0.3
 
-        y = _draw_section("ประสิทธิภาพ", efficiency_items, y, _C_BRAND_P2)
+        y = _draw_section("ประสิทธิภาพ  效率指标", efficiency_items, y, _C_BRAND_P2)
 
         # ── 底部分隔线 + 品牌文字 ──
         y -= 0.15
@@ -1176,25 +1205,32 @@ class NotificationEngine:
         return self._fig_to_bytes(fig)
 
     def _generate_action_items_text(self, role: str) -> str:
-        """生成操作指令 Markdown 文本：未打卡高潜学员 top 5"""
+        """生成操作指令 Markdown 文本：未打卡高潜学员 top 5（泰中双语）"""
         followup = self._fetch_followup(role)
         today = datetime.now().strftime("%d/%m/%Y")
 
-        lines = [f"## 📋 คำแนะนำการดำเนินงาน · {role}"]
+        lines = [
+            f"### นักเรียนที่ต้องติดตาม Top 5 · {role}",
+            f"### 需跟进高潜学员 Top 5 · {role}",
+        ]
         lines.append(f"**{today}  |  T-1**\n")
 
         if not followup:
-            lines.append("⚠ ยังไม่มีข้อมูล (后端暂未提供跟进数据)")
-            lines.append("\n> 请相关人员跟进重点学员")
+            lines.append("⚠ ยังไม่มีข้อมูล")
+            lines.append("⚠ 后端暂未提供跟进数据")
+            lines.append("\n> กรุณาติดตามนักเรียนสำคัญ")
+            lines.append("> 请相关人员跟进重点学员")
             return "\n".join(lines)
 
         raw: object = followup.get("students", followup)
         students: list[dict] = raw if isinstance(raw, list) else []
         if not students:
-            lines.append("✅ ไม่มีนักเรียนที่ต้องติดตาม (暂无需跟进学员)")
+            lines.append("✅ ไม่มีนักเรียนที่ต้องติดตาม")
+            lines.append("✅ 暂无需跟进学员")
             return "\n".join(lines)
 
         top5 = students[:5]
+        lines.append("**นักเรียนที่มีศักยภาพสูงยังไม่ได้เช็คอิน Top 5：**")
         lines.append("**高潜未打卡学员 Top 5：**\n")
         for i, s in enumerate(top5, 1):
             sid = s.get("student_id", s.get("id", "--"))
@@ -1203,13 +1239,19 @@ class NotificationEngine:
             owner = s.get("owner", s.get("assigned_to", "--"))
             if isinstance(score, float):
                 score = f"{score:.1f}"
-            line = (
-                f"{i}. 学员 `{sid}` | 围场 {enclosure}天"
+            line_th = (
+                f"{i}. นักเรียน `{sid}` | วงล้อม {enclosure} วัน"
+                f" | คะแนน {score} | ผู้รับผิดชอบ: {owner}"
+            )
+            line_zh = (
+                f"   学员 `{sid}` | 围场 {enclosure}天"
                 f" | 评分 {score} | 负责人: {owner}"
             )
-            lines.append(line)
+            lines.append(line_th)
+            lines.append(line_zh)
 
-        lines.append(f"\n> 请相关人员尽快跟进以上 {len(top5)} 位学员")
+        lines.append(f"\n> กรุณาติดตาม {len(top5)} นักเรียนข้างต้นโดยเร็ว")
+        lines.append(f"> 请相关人员尽快跟进以上 {len(top5)} 位学员")
         return "\n".join(lines)
 
     # ── 内部：图片上传（双图床 fallback）────────────────────────────────────
@@ -1386,16 +1428,17 @@ class NotificationEngine:
     # ── 内部：连通测试 ────────────────────────────────────────────────────────
 
     def _send_test(self, channel: dict) -> None:
-        """向指定通道发送连通性测试消息"""
+        """向指定通道发送连通性测试消息（泰中双语）"""
         md = (
-            f"## ทดสอบระบบ\n\n"
-            f"ระบบรายงานทำงานปกติ\n\n"
-            f"- 通道: {channel.get('group_name', '?')}\n"
-            f"- 角色: {channel.get('role', '?')}\n"
-            f"- 受众: {channel.get('audience', '?')}\n\n"
+            f"## ทดสอบระบบ / 系统连通测试\n\n"
+            f"ระบบรายงานทำงานปกติ\n"
+            f"报告系统运行正常\n\n"
+            f"- ช่องทาง (通道): {channel.get('group_name', '?')}\n"
+            f"- บทบาท (角色): {channel.get('role', '?')}\n"
+            f"- กลุ่มเป้าหมาย (受众): {channel.get('audience', '?')}\n\n"
             f"> {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
         )
-        result = self._send_dingtalk("ทดสอบ", md, channel)
+        result = self._send_dingtalk("ทดสอบ / 连通测试", md, channel)
         print(f"  测试结果: {json.dumps(result, ensure_ascii=False)}")
 
     # ── 内部：推送日志 ────────────────────────────────────────────────────────
