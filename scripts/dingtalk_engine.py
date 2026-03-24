@@ -246,6 +246,10 @@ class NotificationEngine:
         try:
             role = channel.get("role", "CC")
 
+            # followup_per_cc：分组推送（8 条消息：1 总览 + 7 小组，每 CC 图片+ID）
+            if module_id == "followup_per_cc":
+                return self._process_followup_per_cc(role, channel, dry_run)
+
             # action_items 是文本消息，走独立分支
             if module_id == "action_items":
                 md_text = self._generate_action_items_text(role)
@@ -262,6 +266,10 @@ class NotificationEngine:
                         print(f"  ❌ {title}: {r}")
                         result["status"] = "error"
                 return result
+
+            # followup_per_cc：分组推送（总览 + 每团队），复用 lark_bot 图片生成
+            if module_id == "followup_per_cc":
+                return self._process_followup_per_cc(channel, dry_run, result)
 
             data = self._fetch_data(role)
             if not data:
@@ -474,6 +482,209 @@ class NotificationEngine:
             pass
 
         return images
+
+    # ── 内部：followup_per_cc 分组推送 ───────────────────────────────────────
+
+    def _process_followup_per_cc(
+        self, channel: dict, dry_run: bool, result: dict
+    ) -> dict:
+        """followup_per_cc 模块：分组推送未打卡名单
+        发 (1 + N_teams) 条钉钉消息：
+          1. 总览消息（总览图 + 各团队汇总行）
+          2-N. 每团队消息（每 CC 一段：图片 + 学员 ID）
+        复用 lark_bot 的图片生成函数和缓存逻辑，避免重复生成/上传。
+        """
+        import sys as _sys  # noqa: PLC0415
+
+        _scripts_dir = str(Path(__file__).resolve().parent)
+        if _scripts_dir not in _sys.path:
+            _sys.path.insert(0, _scripts_dir)
+        import lark_bot as _lb  # noqa: PLC0415
+
+        today = datetime.now()
+        date_short = today.strftime("%Y%m%d")
+        date_display = f"{today.strftime('%Y年%m月%d日')} T-1"
+
+        # 1. 获取数据
+        followup = self._fetch_followup(channel.get("role", "CC"))
+        students: list[dict] = followup.get("students", []) if followup else []
+        if not students:
+            result["status"] = "no_data"
+            print("  [followup_per_cc] 无未打卡学员数据")
+            return result
+
+        print(f"  [followup_per_cc] 共 {len(students)} 名未打卡学员")
+
+        # 2. 按团队 → 按 CC 分组
+        teams = _lb.group_students_by_team(students)
+
+        # 3. 构建 team_summary（用于总览图）
+        team_summary: list[dict] = []
+        for team_name, members in teams.items():
+            ccs = _lb.group_students_by_cc(members)
+            team_summary.append({
+                "team": team_name,
+                "count": len(members),
+                "cc_count": len(ccs),
+                "avg": round(len(members) / max(len(ccs), 1), 1),
+            })
+
+        # 4. 生成/读取总览图（缓存）
+        overview_filename = f"lark-overview-{date_short}.png"
+        overview_path = _lb.OUTPUT_DIR / overview_filename
+        if overview_path.exists():
+            overview_bytes = overview_path.read_bytes()
+            print(f"  [followup_per_cc] 总览图缓存: {overview_filename}")
+        else:
+            overview_bytes = _lb.generate_overview_image(team_summary, date_display)
+            overview_path.write_bytes(overview_bytes)
+            print(f"  [followup_per_cc] 总览图新生成: {overview_filename}")
+
+        # 5. 生成/读取 per-CC 图片（缓存）
+        team_cc_results: list[dict] = []
+        for ts_row in team_summary:
+            team_name = ts_row["team"]
+            members = teams[team_name]
+            ccs = _lb.group_students_by_cc(members)
+            cc_list: list[dict] = []
+            for cc_name, cc_students in ccs.items():
+                team_safe = team_name.replace("/", "-").replace(" ", "_")
+                cc_safe = cc_name.replace("/", "-").replace(" ", "_")
+                cc_filename = (
+                    f"lark-followup-{team_safe}-{cc_safe}-{date_short}.png"
+                )
+                cc_path = _lb.OUTPUT_DIR / cc_filename
+                if cc_path.exists():
+                    cc_bytes = cc_path.read_bytes()
+                else:
+                    cc_bytes = _lb.generate_cc_image(
+                        cc_name, team_name, cc_students, date_display
+                    )
+                    cc_path.write_bytes(cc_bytes)
+                student_ids = [
+                    str(s.get("student_id", "")) for s in cc_students
+                ]
+                cc_list.append({
+                    "cc": cc_name,
+                    "count": len(cc_students),
+                    "img_url": None,
+                    "student_ids": student_ids,
+                    "filename": cc_filename,
+                    "img_bytes": cc_bytes,
+                })
+            team_cc_results.append({
+                "team": team_name,
+                "count": len(members),
+                "cc_count": len(ccs),
+                "ccs": cc_list,
+            })
+
+        total_msgs = 1 + len(team_cc_results)
+
+        # 6. dry_run：只输出摘要
+        if dry_run:
+            print(
+                f"  [followup_per_cc] dry-run：共 {total_msgs} 条消息，"
+                f"图片已保存到 output/"
+            )
+            result["status"] = "dry_run"
+            result["messages_count"] = total_msgs
+            return result
+
+        # 7. 上传图片（复用 lark_bot URL 缓存，钉钉和 Lark 共享）
+        url_cache = _lb.load_url_cache(date_short)
+        overview_url = _lb.cached_upload(overview_bytes, overview_filename, url_cache)
+        for tr in team_cc_results:
+            for cc_entry in tr["ccs"]:
+                cc_entry["img_url"] = _lb.cached_upload(
+                    cc_entry["img_bytes"], cc_entry["filename"], url_cache
+                )
+        _lb.save_url_cache(date_short, url_cache)
+
+        # 8. 发送消息
+        sent = 0
+        total_count = sum(tr["count"] for tr in team_cc_results)
+
+        # 消息 1：总览
+        today_str = today.strftime("%d/%m")
+        overview_title = (
+            f"ภาพรวม CC ยังไม่เช็คอิน — {today_str}\n"
+            f"CC 未打卡总览"
+        )
+        overview_lines = [
+            f"## ภาพรวม CC ยังไม่เช็คอิน — {today_str}",
+            "CC 未打卡总览",
+            "",
+            f"**รวมยังไม่เช็คอิน {total_count} คน"
+            f" ({len(team_cc_results)} ทีม)**",
+            f"共未打卡 {total_count} 人（{len(team_cc_results)} 个小组）",
+            "",
+        ]
+        for tr in team_cc_results:
+            overview_lines.append(
+                f"📊 **{tr['team']}**  "
+                f"ยังไม่เช็คอิน {tr['count']} คน  |  CC {tr['cc_count']}"
+            )
+            overview_lines.append(
+                f"&nbsp;&nbsp;&nbsp;&nbsp;未打卡 {tr['count']} 人"
+                f"  |  CC数 {tr['cc_count']}"
+            )
+        if overview_url:
+            overview_lines.extend([
+                "",
+                f"![ภาพรวม]({overview_url})",
+            ])
+        overview_md = "\n".join(overview_lines)
+        r = self._send_dingtalk(overview_title, overview_md, channel)
+        if r.get("errcode") == 0:
+            sent += 1
+            print(f"  ✅ 消息 1/{total_msgs} 总览")
+        else:
+            print(f"  ❌ 消息 1/{total_msgs} 总览: {r}")
+
+        # 消息 2-N：每团队
+        for idx, tr in enumerate(team_cc_results, start=2):
+            time.sleep(5)  # 钉钉 20条/分钟，≥5s 间隔
+            team_lines = [
+                f"## {tr['team']} ยังไม่เช็คอิน — {today_str}",
+                "未打卡跟进",
+                "",
+                f"**ยังไม่เช็คอิน {tr['count']} คน  |  CC {tr['cc_count']}**",
+                f"未打卡 {tr['count']} 人  |  CC数 {tr['cc_count']}",
+                "",
+            ]
+            for cc_entry in tr["ccs"]:
+                team_lines.append(
+                    f"👤 **{cc_entry['cc']}**"
+                )
+                team_lines.append(
+                    f"ยังไม่เช็คอิน {cc_entry['count']} คน"
+                    f" / 未打卡 {cc_entry['count']} 人"
+                )
+                if cc_entry["img_url"]:
+                    team_lines.append(
+                        f"![{cc_entry['cc']}]({cc_entry['img_url']})"
+                    )
+                ids = cc_entry.get("student_ids", [])
+                if ids:
+                    team_lines.append(f"📋 ID: {', '.join(ids)}")
+                team_lines.append("")
+            team_title = (
+                f"{tr['team']} ยังไม่เช็คอิน — {today_str}\n"
+                f"未打卡跟进"
+            )
+            team_md = "\n".join(team_lines)
+            r = self._send_dingtalk(team_title, team_md, channel)
+            if r.get("errcode") == 0:
+                sent += 1
+                print(f"  ✅ 消息 {idx}/{total_msgs} {tr['team']}")
+            else:
+                print(f"  ❌ 消息 {idx}/{total_msgs} {tr['team']}: {r}")
+
+        result["status"] = "sent" if sent == total_msgs else "partial"
+        result["sent"] = sent
+        result["messages_count"] = total_msgs
+        return result
 
     # ── 内部：TL+ 专属图片生成器 ───────────────────────────────────────────────
 
@@ -1243,6 +1454,172 @@ class NotificationEngine:
         plt.tight_layout(pad=0.3)
         return self._fig_to_bytes(fig)
 
+    def _process_followup_per_cc(
+        self, role: str, channel: dict, dry_run: bool
+    ) -> dict:
+        """分组推送：8 条钉钉消息（1 总览 + 7 小组），复用 lark_bot 图片生成"""
+        import sys as _sys  # noqa: PLC0415
+
+        _sd = str(Path(__file__).resolve().parent)
+        if _sd not in _sys.path:
+            _sys.path.insert(0, _sd)
+        import lark_bot as _lb  # noqa: PLC0415
+
+        result: dict[str, Any] = {
+            "module": "followup_per_cc",
+            "status": "pending",
+            "images_count": 0,
+        }
+
+        # 1. 获取数据（followup 固定用 CC 角色）
+        followup = self._fetch_followup("CC")
+        students: list[dict] = (
+            followup.get("students", []) if followup else []
+        )
+        if not students:
+            print("  [followup_per_cc] 无未打卡数据")
+            result["status"] = "no_data"
+            return result
+
+        print(f"  [followup_per_cc] {len(students)} 名未打卡学员")
+
+        # 2. 分组 + 生成图片（复用 lark_bot 缓存）
+        teams = _lb.group_students_by_team(students)
+        today = datetime.now()
+        date_short = today.strftime("%Y%m%d")
+        date_display = f"{today.strftime('%Y年%m月%d日')} T-1"
+
+        # 总览数据
+        team_summary = []
+        team_cc_data: list[dict] = []
+        for team_name, members in teams.items():
+            ccs = _lb.group_students_by_cc(members)
+            team_summary.append({
+                "team": team_name,
+                "count": len(members),
+                "cc_count": len(ccs),
+                "avg": round(len(members) / max(len(ccs), 1), 1),
+            })
+            team_cc_data.append({
+                "team": team_name,
+                "count": len(members),
+                "cc_count": len(ccs),
+                "ccs": ccs,
+            })
+
+        # 总览图（缓存）
+        ov_fn = f"lark-overview-{date_short}.png"
+        ov_path = _lb.OUTPUT_DIR / ov_fn
+        if ov_path.exists():
+            ov_bytes = ov_path.read_bytes()
+        else:
+            ov_bytes = _lb.generate_overview_image(team_summary, date_display)
+            ov_path.write_bytes(ov_bytes)
+
+        # per-CC 图片（缓存）
+        cc_images: dict[str, dict] = {}  # key: "team/cc"
+        for td in team_cc_data:
+            for cc_name, cc_students in td["ccs"].items():
+                t_safe = td["team"].replace("/", "-").replace(" ", "_")
+                c_safe = cc_name.replace("/", "-").replace(" ", "_")
+                fn = f"lark-followup-{t_safe}-{c_safe}-{date_short}.png"
+                fp = _lb.OUTPUT_DIR / fn
+                if fp.exists():
+                    img_bytes = fp.read_bytes()
+                else:
+                    img_bytes = _lb.generate_cc_image(
+                        cc_name, td["team"], cc_students, date_display
+                    )
+                    fp.write_bytes(img_bytes)
+                ids = [str(s.get("student_id", "")) for s in cc_students]
+                cc_images[f"{td['team']}/{cc_name}"] = {
+                    "bytes": img_bytes,
+                    "filename": fn,
+                    "ids": ids,
+                    "count": len(cc_students),
+                }
+
+        img_count = 1 + len(cc_images)
+        result["images_count"] = img_count
+        print(f"  [followup_per_cc] {img_count} 张图片就绪")
+
+        if dry_run:
+            result["status"] = "dry_run"
+            return result
+
+        # 3. 上传（复用 lark_bot URL 缓存）
+        url_cache = _lb.load_url_cache(date_short)
+        ov_url = _lb.cached_upload(ov_bytes, ov_fn, url_cache)
+
+        for _key, ci in cc_images.items():
+            ci["url"] = _lb.cached_upload(
+                ci["bytes"], ci["filename"], url_cache
+            )
+
+        _lb.save_url_cache(date_short, url_cache)
+
+        # 4. 发 8 条钉钉消息
+        msg_total = 1 + len(team_cc_data)
+
+        # 消息 1：总览
+        ov_md = (
+            f"## ภาพรวม CC ยังไม่เช็คอิน\n"
+            f"## CC 未打卡总览\n\n"
+            f"**{date_display}**\n\n"
+        )
+        if ov_url:
+            ov_md += f"![总览]({ov_url})\n\n"
+        ov_md += "---\n\n"
+        for ts in team_summary:
+            ov_md += (
+                f"📊 **{ts['team']}**："
+                f"ยังไม่เช็คอิน **{ts['count']}** คน"
+                f" | CC {ts['cc_count']}\n\n"
+                f"   未打卡 **{ts['count']}** 人"
+                f" | CC数 {ts['cc_count']}\n\n"
+            )
+
+        ov_title = f"ภาพรวม CC ยังไม่เช็คอิน — {date_display}"
+        r = self._send_dingtalk(ov_title, ov_md, channel)
+        ok = r.get("errcode") == 0
+        print(f"  {'✅' if ok else '❌'} 消息 1/{msg_total}（总览）")
+        time.sleep(5)
+
+        # 消息 2-8：每团队
+        for idx, td in enumerate(team_cc_data, start=2):
+            team_md = (
+                f"## {td['team']} ยังไม่เช็คอิน\n"
+                f"## {td['team']} 未打卡跟进\n\n"
+                f"**{date_display}**\n\n"
+                f"ยังไม่เช็คอิน **{td['count']}** คน"
+                f" | CC {td['cc_count']}\n"
+                f"未打卡 **{td['count']}** 人"
+                f" | CC数 {td['cc_count']}\n\n"
+                f"---\n\n"
+            )
+            for cc_name in td["ccs"]:
+                ci = cc_images.get(f"{td['team']}/{cc_name}", {})
+                cnt = ci.get("count", 0)
+                team_md += (
+                    f"### 👤 {cc_name}\n"
+                    f"ยังไม่เช็คอิน **{cnt}** คน"
+                    f" / 未打卡 {cnt} 人\n\n"
+                )
+                if ci.get("url"):
+                    team_md += f"![{cc_name}]({ci['url']})\n\n"
+                ids = ci.get("ids", [])
+                if ids:
+                    team_md += f"📋 ID: {', '.join(ids)}\n\n"
+
+            t_title = f"{td['team']} ยังไม่เช็คอิน — {date_display}"
+            r = self._send_dingtalk(t_title, team_md, channel)
+            ok = r.get("errcode") == 0
+            print(f"  {'✅' if ok else '❌'} 消息 {idx}/{msg_total}（{td['team']}）")
+            time.sleep(8)  # 钉钉限频较严，8s 间隔
+
+        result["status"] = "sent"
+        return result
+
     def _generate_action_items_text(self, role: str) -> str:
         """生成操作指令 Markdown 文本：未打卡高潜学员 top 5（泰中双语）"""
         followup = self._fetch_followup(role)
@@ -1512,3 +1889,78 @@ class NotificationEngine:
         """加载 JSON 配置文件"""
         with open(path) as f:
             return json.load(f)
+
+
+# ── CLI（standalone followup 推送）────────────────────────────────────────────
+
+
+def _cli_followup(channel_id: str, dry_run: bool, confirm: bool) -> None:
+    """独立 CLI 入口：不依赖通道 modules 配置，直接触发 followup_per_cc 模块
+
+    用法：
+      uv run python scripts/dingtalk_engine.py followup --channel test [--dry-run]
+      uv run python scripts/dingtalk_engine.py followup --channel cc_all --confirm
+    """
+    engine = NotificationEngine()
+    ch = engine.channels.get(channel_id)
+    if not ch:
+        available = list(engine.channels.keys())
+        print(f"[错误] 通道 '{channel_id}' 不存在，可用通道: {available}")
+        return
+
+    # 安全防线：非 test 通道 + 非 dry-run 必须 --confirm
+    if channel_id != "test" and not confirm and not dry_run:
+        print(
+            f"[拦截] 通道 '{channel_id}' 非测试群，需要 --confirm 才能发送。\n"
+            f"       示例：uv run python scripts/dingtalk_engine.py followup"
+            f" --channel {channel_id} --confirm"
+        )
+        return
+
+    group_name = ch.get("group_name", channel_id)
+    print(f"📋 钉钉 followup_per_cc — {group_name}")
+    print(f"   通道: {channel_id} | dry_run: {dry_run}")
+    print()
+
+    result: dict[str, Any] = {"module": "followup_per_cc", "status": "pending"}
+    result = engine._process_followup_per_cc(ch, dry_run, result)
+    print(f"\n结果: {result['status']}")
+    if "sent" in result:
+        print(f"已发送: {result['sent']}/{result.get('messages_count', '?')} 条消息")
+
+
+def main() -> None:
+    """dingtalk_engine.py CLI 入口"""
+    import argparse  # noqa: PLC0415
+
+    parser = argparse.ArgumentParser(
+        description="钉钉通知引擎 CLI（独立模块调用）"
+    )
+    sub = parser.add_subparsers(dest="command")
+
+    p_fu = sub.add_parser("followup", help="发送 CC 未打卡跟进分组消息")
+    p_fu.add_argument(
+        "--channel",
+        default="test",
+        help="钉钉通道 ID（default: test）",
+    )
+    p_fu.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="只生成图片不发送",
+    )
+    p_fu.add_argument(
+        "--confirm",
+        action="store_true",
+        help="确认发送到正式群（非 test 通道必须加此标志）",
+    )
+
+    args = parser.parse_args()
+    if args.command == "followup":
+        _cli_followup(args.channel, args.dry_run, args.confirm)
+    else:
+        parser.print_help()
+
+
+if __name__ == "__main__":
+    main()

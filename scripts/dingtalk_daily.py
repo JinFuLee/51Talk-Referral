@@ -1159,13 +1159,50 @@ def main():
         action="store_true",
         help="确认发送到正式群（不加此标志则默认 sandbox/拦截）",
     )
+    parser.add_argument(
+        "--followup",
+        action="store_true",
+        help="发送未打卡分组推送（8条消息：1总览+7小组，每CC图片+ID）",
+    )
     args = parser.parse_args()
 
     # ── 安全防线：未加 --confirm 时，engine 模式强制 sandbox ──
-    if args.engine and not args.confirm and not args.sandbox and not args.dry_run and not args.test:
+    not_confirmed = (
+        args.engine and not args.confirm
+        and not args.sandbox and not args.dry_run and not args.test
+    )
+    if not_confirmed:
         print("[安全] 未指定 --confirm，自动启用 --sandbox（发送到测试群）。")
         print("       发正式群请加 --confirm 标志。")
         args.sandbox = True
+
+    # ── followup 分组推送模式 ──
+    if args.followup:
+        import sys  # noqa: PLC0415
+
+        _scripts_dir = str(Path(__file__).resolve().parent)
+        if _scripts_dir not in sys.path:
+            sys.path.insert(0, _scripts_dir)
+        from dingtalk_engine import NotificationEngine  # noqa: PLC0415
+
+        engine = NotificationEngine()
+        ch_id = args.channel or "test"
+        ch = engine.channels.get(ch_id)
+        if not ch:
+            print(f"[错误] 通道 '{ch_id}' 不存在")
+            return
+        # sandbox：非 test 通道 + 未 confirm → 重定向到测试群
+        if ch_id != "test" and not args.confirm and not args.dry_run:
+            sb_id = engine.defaults.get("sandbox_channel", "test")
+            sb_ch = engine.channels.get(sb_id)
+            if sb_ch:
+                print("[安全] 重定向到测试群。发正式群加 --confirm。")
+                ch = {**ch, "webhook": sb_ch["webhook"], "secret": sb_ch["secret"]}
+        result = engine._process_followup_per_cc(
+            ch.get("role", "CC"), ch, args.dry_run
+        )
+        print(f"\n完成：{result.get('status')}")
+        return
 
     # ── 引擎模式：委托给 NotificationEngine ──
     if args.engine:
