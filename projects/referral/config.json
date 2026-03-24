@@ -178,7 +178,9 @@
     "incentive_effect",
     "renewal_risk",
     "learning_heatmap",
-    "geo_distribution"
+    "geo_distribution",
+    "followup_quality",
+    "referral_contributor"
   ],
   "enclosure_role_assignment": {
     "CC": {

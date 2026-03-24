@@ -60,6 +60,9 @@ ROUTER_REGISTRY: dict = {
     # ── Wave 3 新增：学习热图 + 地理分布 ──────────────────────────────────────
     "learning_heatmap": ("backend.api.learning_heatmap", "/api", ["analysis"]),
     "geo_distribution": ("backend.api.geo_distribution", "/api", ["analysis"]),
+    # ── Wave 6 新增：跟进质量 + 推荐者贡献 ────────────────────────────────────
+    "followup_quality": ("backend.api.followup_quality", "/api", ["analysis"]),
+    "referral_contributor": ("backend.api.referral_contributor", "/api", ["analysis"]),
 }
 
 
