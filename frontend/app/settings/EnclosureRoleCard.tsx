@@ -258,7 +258,7 @@ export default function EnclosureRoleCard() {
             defaultVal={DEFAULT_NARROW}
             onSave={handleSaveNarrow}
           />
-          <div className="border-t border-slate-100" />
+          <div className="border-t border-[var(--border-subtle)]" />
           <AssignmentTable
             title="宽口径负责配置"
             subtitle="学员自主打卡场景（打卡面板使用）"

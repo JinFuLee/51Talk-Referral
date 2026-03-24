@@ -58,7 +58,7 @@ export default function ChannelSettingsCard({ v2, onUpdateChannel }: ChannelSett
               const paid = Math.round(c.user_count * c.conversion_rate);
               const rev = paid * c.asp;
               return (
-                <tr key={k} className="border-b border-slate-50">
+                <tr key={k} className="border-b border-[var(--border-subtle)]">
                   <td className="py-1 px-2 text-xs font-medium text-[var(--text-secondary)]">
                     {CHANNEL_LABELS[k]}
                   </td>
