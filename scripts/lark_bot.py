@@ -41,6 +41,45 @@ CRED_PATH = PROJECT_ROOT / "key" / "lark-channels.json"
 OUTPUT_DIR = PROJECT_ROOT / "output"
 OUTPUT_DIR.mkdir(exist_ok=True)
 
+
+# ── 日缓存（同日多群推送复用图片 + URL）─────────────────────────────────────
+
+def _url_cache_path(date_str_short: str) -> Path:
+    """URL 缓存文件路径：output/lark-url-cache-YYYYMMDD.json"""
+    return OUTPUT_DIR / f"lark-url-cache-{date_str_short}.json"
+
+
+def load_url_cache(date_str_short: str) -> dict[str, str]:
+    """加载当天 URL 缓存（{filename: url}），无则返回空 dict"""
+    p = _url_cache_path(date_str_short)
+    if p.exists():
+        try:
+            return json.loads(p.read_text("utf-8"))
+        except (json.JSONDecodeError, OSError):
+            return {}
+    return {}
+
+
+def save_url_cache(date_str_short: str, cache: dict[str, str]) -> None:
+    """保存 URL 缓存到 JSON 文件"""
+    p = _url_cache_path(date_str_short)
+    p.write_text(json.dumps(cache, ensure_ascii=False, indent=2), encoding="utf-8")
+
+
+def cached_upload(
+    img_bytes: bytes,
+    filename: str,
+    url_cache: dict[str, str],
+) -> str | None:
+    """上传图片，优先使用缓存 URL。上传成功后写入缓存。"""
+    if filename in url_cache:
+        print(f"  ✓ [缓存] {filename}")
+        return url_cache[filename]
+    url = upload_image(img_bytes, filename)
+    if url:
+        url_cache[filename] = url
+    return url
+
 # ── 色板（SEE Design System — Warm Neutral）─────────────────────────────────
 
 C_BG = "#FAFAF9"
@@ -949,8 +988,9 @@ def cmd_followup(args: argparse.Namespace) -> None:
     print(f"   ✓ {len(teams)} 个小组: {', '.join(teams.keys())}")
     print()
 
-    # ── 阶段 2：生成图片 ─────────────────────────────────────────────────────
+    # ── 阶段 2：生成图片（同日已存在则跳过）────────────────────────────────────
     print("2. 生成图片...")
+    date_short = today.strftime("%Y%m%d")
 
     # 2a. 构建 team_summary（用于总览图）
     team_summary: list[dict] = []
@@ -965,16 +1005,20 @@ def cmd_followup(args: argparse.Namespace) -> None:
             }
         )
 
-    # 2b. 总览图
-    overview_filename = f"lark-overview-{today.strftime('%Y%m%d')}.png"
-    overview_bytes = generate_overview_image(team_summary, date_display)
+    # 2b. 总览图（缓存：同日文件已存在则读取而非重新生成）
+    overview_filename = f"lark-overview-{date_short}.png"
     overview_path = OUTPUT_DIR / overview_filename
-    overview_path.write_bytes(overview_bytes)
-    kb_ov = len(overview_bytes) // 1024
-    print(f"   [总览] 图片已保存: output/{overview_filename} ({kb_ov}KB)")
+    if overview_path.exists():
+        overview_bytes = overview_path.read_bytes()
+        kb_ov = len(overview_bytes) // 1024
+        print(f"   [总览] 使用缓存: output/{overview_filename} ({kb_ov}KB)")
+    else:
+        overview_bytes = generate_overview_image(team_summary, date_display)
+        overview_path.write_bytes(overview_bytes)
+        kb_ov = len(overview_bytes) // 1024
+        print(f"   [总览] 新生成: output/{overview_filename} ({kb_ov}KB)")
 
-    # 2c. per-CC 图片（按团队→CC）
-    # team_cc_results: list of {team, count, cc_count, ccs: list of cc entries}
+    # 2c. per-CC 图片（缓存：同日文件已存在则读取）
     team_cc_results: list[dict] = []
     for ts_row in team_summary:
         team_name = ts_row["team"]
@@ -984,14 +1028,19 @@ def cmd_followup(args: argparse.Namespace) -> None:
         for cc_name, cc_students in ccs.items():
             team_safe = team_name.replace("/", "-").replace(" ", "_")
             cc_safe = cc_name.replace("/", "-").replace(" ", "_")
-            cc_filename = (
-                f"lark-followup-{team_safe}-{cc_safe}-{today.strftime('%Y%m%d')}.png"
-            )
-            cc_bytes = generate_cc_image(cc_name, team_name, cc_students, date_display)
+            cc_filename = f"lark-followup-{team_safe}-{cc_safe}-{date_short}.png"
             cc_path = OUTPUT_DIR / cc_filename
-            cc_path.write_bytes(cc_bytes)
-            kb_cc = len(cc_bytes) // 1024
-            print(f"   [{team_name}/{cc_name}] output/{cc_filename} ({kb_cc}KB)")
+            if cc_path.exists():
+                cc_bytes = cc_path.read_bytes()
+                kb_cc = len(cc_bytes) // 1024
+                print(f"   [{team_name}/{cc_name}] 缓存 ({kb_cc}KB)")
+            else:
+                cc_bytes = generate_cc_image(
+                    cc_name, team_name, cc_students, date_display
+                )
+                cc_path.write_bytes(cc_bytes)
+                kb_cc = len(cc_bytes) // 1024
+                print(f"   [{team_name}/{cc_name}] 新生成 ({kb_cc}KB)")
             cc_list.append(
                 {
                     "cc": cc_name,
@@ -1021,20 +1070,32 @@ def cmd_followup(args: argparse.Namespace) -> None:
         print("3. [跳过] 通道 webhook 为空（test 通道仅支持 --dry-run）")
         return
 
-    # ── 阶段 3：上传图片 ─────────────────────────────────────────────────────
+    # ── 阶段 3：上传图片（URL 缓存：同日已上传则复用 URL）─────────────────────
     print("3. 上传图片...")
+    url_cache = load_url_cache(date_short)
+    cache_hits_before = len(url_cache)
 
-    overview_url = upload_image(overview_bytes, overview_filename)
+    overview_url = cached_upload(overview_bytes, overview_filename, url_cache)
     if not overview_url:
         print("   ⚠ 总览图上传失败，将只发文本")
 
     for tr in team_cc_results:
         for cc_entry in tr["ccs"]:
-            cc_entry["img_url"] = upload_image(
-                cc_entry["img_bytes"], cc_entry["filename"]
+            cc_entry["img_url"] = cached_upload(
+                cc_entry["img_bytes"], cc_entry["filename"], url_cache
             )
             if not cc_entry["img_url"]:
                 print(f"   ⚠ [{tr['team']}/{cc_entry['cc']}] 图片上传失败")
+
+    # 持久化 URL 缓存
+    save_url_cache(date_short, url_cache)
+    cache_hits_after = len(url_cache)
+    new_uploads = cache_hits_after - cache_hits_before
+    cached_count = cache_hits_after - new_uploads
+    if cached_count > 0:
+        print(f"   ✓ 缓存命中 {cached_count} 张，新上传 {new_uploads} 张")
+    else:
+        print(f"   ✓ 全部新上传 {new_uploads} 张")
 
     print()
 
