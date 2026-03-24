@@ -12,14 +12,21 @@ from watchdog.observers import Observer
 
 logger = logging.getLogger(__name__)
 
-# 5 个数据源的文件名匹配模式（与各 Loader 的 FILE_PATTERN 一致）
+# 8 个数据源的文件名匹配模式（与各 Loader 的 FILE_PATTERN 一致）
+# 注意：pattern 必须精确，避免 byCC 匹配 byCC副本
 LOADER_PATTERNS: dict[str, str] = {
     "result": "*结果数据*.xlsx",
     "enclosure_cc": "*围场过程数据*byCC*.xlsx",
+    "enclosure_ss": "*围场过程数据*bySS*.xlsx",
+    "enclosure_lp": "*围场过程数据*byLP*.xlsx",
+    "d2b_summary": "*围场过程数据*byCC副本*.xlsx",
     "detail": "*明细*.xlsx",
     "students": "*已付费学员转介绍围场明细*.xlsx",
     "high_potential": "*高潜学员*.xlsx",
 }
+
+# enclosure_cc 排除"副本"的过滤函数（与 EnclosureCCLoader._find_file 一致）
+_ENCLOSURE_CC_EXCLUDE = "副本"
 
 
 class _ExcelFileHandler(FileSystemEventHandler):
@@ -74,6 +81,9 @@ class _ExcelFileHandler(FileSystemEventHandler):
                 if src_id == "detail" and (
                     "围场过程" in fname or "付费学员" in fname
                 ):
+                    continue
+                # enclosure_cc 排除副本（与 EnclosureCCLoader._find_file 一致）
+                if src_id == "enclosure_cc" and _ENCLOSURE_CC_EXCLUDE in fname:
                     continue
                 if fnmatch.fnmatch(fname, pattern):
                     affected_sources.add(src_id)
@@ -145,6 +155,11 @@ def cleanup_old_versions(data_dir: Path, keep_file: Path | None) -> list[Path]:
                 f
                 for f in all_files
                 if "围场过程" not in f.name and "付费学员" not in f.name
+            ]
+        # enclosure_cc 排除副本
+        if src_id == "enclosure_cc":
+            all_files = [
+                f for f in all_files if _ENCLOSURE_CC_EXCLUDE not in f.name
             ]
 
         if len(all_files) <= 1:

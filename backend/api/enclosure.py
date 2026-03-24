@@ -26,8 +26,16 @@ def _safe_float(val) -> Any:
         return None
 
 
-def _df_to_metrics(df: pd.DataFrame) -> list[EnclosureCCMetrics]:
-    """将 D2 DataFrame 按围场分组聚合成 EnclosureCCMetrics 列表"""
+def _df_to_metrics(
+    df: pd.DataFrame, group_by: str = "enclosure_x_group"
+) -> list[EnclosureCCMetrics]:
+    """将 D2 DataFrame 聚合成 EnclosureCCMetrics 列表。
+
+    group_by:
+      - "enclosure": 仅按围场聚合（7行，CC信息取众数）
+      - "enclosure_x_group": 围场 × CC组 矩阵（默认，真正的交叉矩阵）
+      - "individual": 围场 × CC个人（完整明细）
+    """
     if df.empty:
         return []
 
@@ -49,7 +57,6 @@ def _df_to_metrics(df: pd.DataFrame) -> list[EnclosureCCMetrics]:
         "revenue_usd": "总带新付费金额USD",
     }
 
-    # 数值列做聚合，字符串列取 first
     num_cols = [
         "学员数",
         "转介绍参与率",
@@ -64,9 +71,12 @@ def _df_to_metrics(df: pd.DataFrame) -> list[EnclosureCCMetrics]:
         "转介绍付费数",
         "总带新付费金额USD",
     ]
-    group_col = "围场"
-    if group_col not in df.columns:
-        # 若围场列缺失，返回单条汇总
+
+    enc_col = "围场"
+    grp_col = "last_cc_group_name"
+    name_col = "last_cc_name"
+
+    if enc_col not in df.columns:
         row_dict: dict[str, Any] = {"enclosure": "全部"}
         for field, col in col_map.items():
             if col in df.columns and col in num_cols:
@@ -75,19 +85,37 @@ def _df_to_metrics(df: pd.DataFrame) -> list[EnclosureCCMetrics]:
                 )
         return [EnclosureCCMetrics(**row_dict)]
 
+    # 确定 groupby 键
+    if group_by == "individual" and name_col in df.columns:
+        group_keys = [enc_col, grp_col, name_col]
+    elif group_by == "enclosure_x_group" and grp_col in df.columns:
+        group_keys = [enc_col, grp_col]
+    else:
+        group_keys = [enc_col]
+
     results = []
-    for enclosure, group in df.groupby(group_col, sort=False):
-        row_dict = {"enclosure": str(enclosure)}
-        # CC 名称取最多的（众数）
-        for str_field, col in [
-            ("cc_group", "last_cc_group_name"),
-            ("cc_name", "last_cc_name"),
-        ]:
-            if col in group.columns:
-                mode_val = group[col].mode()
-                row_dict[str_field] = (
-                    str(mode_val.iloc[0]) if not mode_val.empty else None
-                )
+    for keys, group in df.groupby(group_keys, sort=False):
+        if not isinstance(keys, tuple):
+            keys = (keys,)
+
+        row_dict = {"enclosure": str(keys[0])}
+
+        # 填充 CC 组名和个人名
+        if len(keys) >= 2:
+            row_dict["cc_group"] = str(keys[1]) if keys[1] else None
+        elif grp_col in group.columns:
+            mode_val = group[grp_col].mode()
+            row_dict["cc_group"] = (
+                str(mode_val.iloc[0]) if not mode_val.empty else None
+            )
+
+        if len(keys) >= 3:
+            row_dict["cc_name"] = str(keys[2]) if keys[2] else None
+        elif name_col in group.columns:
+            mode_val = group[name_col].mode()
+            row_dict["cc_name"] = (
+                str(mode_val.iloc[0]) if not mode_val.empty else None
+            )
 
         for field, col in col_map.items():
             if field in ("enclosure", "cc_group", "cc_name"):
@@ -107,14 +135,15 @@ def _df_to_metrics(df: pd.DataFrame) -> list[EnclosureCCMetrics]:
 @router.get(
     "/enclosure",
     response_model=list[EnclosureCCMetrics],
-    summary="围场过程数据（D2 有效围场汇总）",
+    summary="围场过程数据（D2 有效围场汇总，支持围场×CC组矩阵）",
 )
 def get_enclosure(
     request: Request,
     dm: DataManager = Depends(get_data_manager),
+    group_by: str = "enclosure_x_group",
 ) -> list[EnclosureCCMetrics]:
     data = dm.load_all()
-    return _df_to_metrics(data["enclosure_cc"])
+    return _df_to_metrics(data["enclosure_cc"], group_by=group_by)
 
 
 @router.get(
