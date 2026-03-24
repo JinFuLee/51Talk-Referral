@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import useSWR from 'swr';
 import { swrFetcher } from '@/lib/api';
 import { Spinner } from '@/components/ui/Spinner';
@@ -15,6 +16,13 @@ import type {
   CCContactRankItem,
   ContactConversionItem,
 } from '@/lib/types/cross-analysis';
+
+type RankingRole = 'cc' | 'ss' | 'lp';
+const RANKING_TABS: { key: RankingRole; label: string }[] = [
+  { key: 'cc', label: 'CC 排行' },
+  { key: 'ss', label: 'SS 排行' },
+  { key: 'lp', label: 'LP 排行' },
+];
 
 function FunnelBar({
   label,
@@ -47,6 +55,8 @@ function FunnelBar({
 }
 
 export default function DailyMonitorPage() {
+  const [rankingRole, setRankingRole] = useState<RankingRole>('cc');
+
   const { data: stats, isLoading: l1 } = useSWR<DailyMonitorStats>(
     '/api/daily-monitor/stats',
     swrFetcher
@@ -55,12 +65,27 @@ export default function DailyMonitorPage() {
     '/api/daily-monitor/cc-ranking?role=cc',
     swrFetcher
   );
+  const { data: ssRanking, isLoading: l4 } = useSWR<CCContactRankItem[]>(
+    '/api/daily-monitor/cc-ranking?role=ss',
+    swrFetcher
+  );
+  const { data: lpRanking, isLoading: l5 } = useSWR<CCContactRankItem[]>(
+    '/api/daily-monitor/cc-ranking?role=lp',
+    swrFetcher
+  );
   const { data: scatter, isLoading: l3 } = useSWR<ContactConversionItem[]>(
     '/api/daily-monitor/contact-vs-conversion',
     swrFetcher
   );
 
-  const isLoading = l1 || l2 || l3;
+  const isLoading = l1 || l2 || l3 || l4 || l5;
+
+  const rankingDataMap: Record<RankingRole, CCContactRankItem[]> = {
+    cc: Array.isArray(ccRanking) ? ccRanking : [],
+    ss: Array.isArray(ssRanking) ? ssRanking : [],
+    lp: Array.isArray(lpRanking) ? lpRanking : [],
+  };
+  const activeRankingData = rankingDataMap[rankingRole];
 
   if (isLoading) {
     return (
@@ -74,7 +99,6 @@ export default function DailyMonitorPage() {
     return <EmptyState title="暂无触达数据" description="上传包含通话记录的数据文件后自动刷新" />;
   }
 
-  const ranking = Array.isArray(ccRanking) ? ccRanking : [];
   const scatterData = Array.isArray(scatter) ? scatter : [];
   const funnelMax = stats.funnel.registrations || 1;
 
@@ -158,12 +182,32 @@ export default function DailyMonitorPage() {
         </Card>
       )}
 
-      {/* CC 接通排行 */}
-      {ranking.length > 0 && (
-        <Card title="CC 接通排行（触达率）">
-          <CCContactRanking data={ranking} />
-        </Card>
-      )}
+      {/* CC / SS / LP 接通排行（Tab 切换） */}
+      <Card title="接通排行（触达率）">
+        <div className="flex gap-1 bg-[var(--bg-subtle)] p-1 rounded-lg w-fit mb-3">
+          {RANKING_TABS.map((t) => (
+            <button
+              key={t.key}
+              onClick={() => setRankingRole(t.key)}
+              className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
+                rankingRole === t.key
+                  ? 'bg-[var(--bg-surface)] shadow-sm text-[var(--text-primary)]'
+                  : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+              }`}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
+        {activeRankingData.length === 0 ? (
+          <EmptyState
+            title={`暂无 ${rankingRole.toUpperCase()} 排行数据`}
+            description="上传含通话记录的数据文件后自动刷新"
+          />
+        ) : (
+          <CCContactRanking data={activeRankingData} />
+        )}
+      </Card>
 
       {/* 触达 × 转化散点图 */}
       {scatterData.length > 0 && (

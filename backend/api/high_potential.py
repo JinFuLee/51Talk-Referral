@@ -32,7 +32,6 @@ def _safe(val) -> Any:
 
 def _days_since_cc_contact(row: pd.Series) -> int | None:
     """计算 CC 末次接通日期距今天数"""
-    import datetime
     cc_last_call_candidates = ["CC末次接通日期", "末次CC接通日期", "cc_last_call_date"]
     for col in cc_last_call_candidates:
         val = row.get(col)
