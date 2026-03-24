@@ -81,7 +81,12 @@ def get_referral_contributor(
     )
     # 历史转码次数（参与深度）
     coding_col = next(
-        (c for c in ["历史转码次数", "总转码次数", "历史总转码次数"] if c in df.columns), None
+        (
+            c
+            for c in ["历史转码次数", "总转码次数", "历史总转码次数"]
+            if c in df.columns
+        ),
+        None,
     )
 
     # ── 汇总计算 ─────────────────────────────────────────────────────────────

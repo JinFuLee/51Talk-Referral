@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import math
-from datetime import datetime, timezone
 from typing import Any
 
 import pandas as pd
@@ -122,7 +121,6 @@ def get_followup_quality(
     note_date_col = next(
         (c for c in ["CC末次备注日期(day)", "CC末次备注日期"] if c in df.columns), None
     )
-    note_content_col = "CC末次备注内容" if "CC末次备注内容" in df.columns else None
     total_calls_col = next(
         (c for c in ["总CC拨打次数", "CC总拨打次数"] if c in df.columns), None
     )
@@ -155,11 +153,9 @@ def get_followup_quality(
 
     # 必须有接通时长列才能做质量分析
     if duration_col is None:
-        return {
-            "summary": None,
-            "by_person": [],
-            "message": f"D4 中未找到接通时长列（CC末次接通时长），当前列: {list(df.columns[:20])}",
-        }
+        cols_preview = list(df.columns[:20])
+        msg = f"D4 中未找到接通时长列（CC末次接通时长），当前列: {cols_preview}"
+        return {"summary": None, "by_person": [], "message": msg}
 
     today = pd.Timestamp.now(tz=None).normalize()
 
@@ -192,21 +188,33 @@ def get_followup_quality(
     total = len(df)
     valid_duration = df["_duration_sec"].dropna()
     high_count = int((valid_duration >= _HIGH_QUALITY_SEC).sum())
-    low_count = int(
-        ((valid_duration >= _LOW_QUALITY_SEC) & (valid_duration < _HIGH_QUALITY_SEC)).sum()
+    in_low_range = (valid_duration >= _LOW_QUALITY_SEC) & (
+        valid_duration < _HIGH_QUALITY_SEC
     )
+    low_count = int(in_low_range.sum())
     suspicious_count = int((valid_duration < _LOW_QUALITY_SEC).sum())
     valid_total = len(valid_duration)
 
-    lost_days_series = df["_lost_days"].dropna() if "_lost_days" in df.columns else pd.Series([], dtype=float)
-    avg_lost = round(float(lost_days_series.mean()), 1) if not lost_days_series.empty else None
-    lost_14d = int((lost_days_series > _LOST_CONTACT_DAYS).sum()) if not lost_days_series.empty else 0
+    _empty_f = pd.Series([], dtype=float)
+    lost_days_series = (
+        df["_lost_days"].dropna() if "_lost_days" in df.columns else _empty_f
+    )
+    avg_lost = (
+        round(float(lost_days_series.mean()), 1) if not lost_days_series.empty else None
+    )
+    lost_14d = (
+        int((lost_days_series > _LOST_CONTACT_DAYS).sum())
+        if not lost_days_series.empty
+        else 0
+    )
 
     summary: dict[str, Any] = {
         "total_students": total,
         "high_quality_pct": round(high_count / valid_total, 4) if valid_total else None,
         "low_quality_pct": round(low_count / valid_total, 4) if valid_total else None,
-        "suspicious_pct": round(suspicious_count / valid_total, 4) if valid_total else None,
+        "suspicious_pct": (
+            round(suspicious_count / valid_total, 4) if valid_total else None
+        ),
         "avg_lost_days": avg_lost,
         "lost_contact_count": lost_14d,
     }
@@ -227,14 +235,19 @@ def get_followup_quality(
         )
         g_suspicious = int((grp_dur < _LOW_QUALITY_SEC).sum())
 
-        g_lost = grp["_lost_days"].dropna() if "_lost_days" in grp.columns else pd.Series([], dtype=float)
+        _ef = pd.Series([], dtype=float)
+        g_lost = grp["_lost_days"].dropna() if "_lost_days" in grp.columns else _ef
         g_avg_lost = round(float(g_lost.mean()), 1) if not g_lost.empty else None
-        g_lost_14d = int((g_lost > _LOST_CONTACT_DAYS).sum()) if not g_lost.empty else 0
+        g_lost_14d = (
+            int((g_lost > _LOST_CONTACT_DAYS).sum()) if not g_lost.empty else 0
+        )
 
-        g_note = grp["_note_delay"].dropna() if "_note_delay" in grp.columns else pd.Series([], dtype=float)
+        g_note = grp["_note_delay"].dropna() if "_note_delay" in grp.columns else _ef
         g_avg_note_delay = round(float(g_note.mean()), 1) if not g_note.empty else None
 
-        g_calls = grp["_total_calls"].dropna() if "_total_calls" in grp.columns else pd.Series([], dtype=float)
+        g_calls = (
+            grp["_total_calls"].dropna() if "_total_calls" in grp.columns else _ef
+        )
         g_total_calls = int(g_calls.sum()) if not g_calls.empty else 0
 
         g_avg_dur = round(float(grp_dur.mean()), 1) if not grp_dur.empty else None
