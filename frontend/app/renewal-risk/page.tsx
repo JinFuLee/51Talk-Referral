@@ -12,17 +12,17 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  ResponsiveContainer,
   Cell,
+  ResponsiveContainer,
 } from 'recharts';
 
-interface RenewalSegment {
+export interface RenewalRiskSegment {
   label: string;
   count: number;
   percentage: number;
 }
 
-interface HighRiskStudent {
+export interface RenewalRiskStudent {
   stdt_id: string;
   days_since_renewal: number | null;
   enclosure: string | null;
@@ -30,17 +30,24 @@ interface HighRiskStudent {
   total_renewal_orders: number | null;
 }
 
-interface RenewalRiskData {
-  segments: RenewalSegment[];
-  high_risk_students: HighRiskStudent[];
+export interface RenewalRiskData {
+  segments: RenewalRiskSegment[];
+  high_risk_students: RenewalRiskStudent[];
 }
 
-// 按未续费天数着色
 function segmentColor(label: string): string {
-  if (label.startsWith('0')) return '#10b981'; // 绿色 — 安全
-  if (label.startsWith('31')) return '#f59e0b'; // 黄色 — 关注
-  if (label.startsWith('61')) return '#f97316'; // 橙色 — 预警
-  return '#ef4444'; // 红色 — 高风险 (90+)
+  if (label.includes('90')) return '#ef4444';
+  if (label.includes('61')) return '#f97316';
+  if (label.includes('31')) return '#f59e0b';
+  return '#10b981';
+}
+
+function riskBadge(days?: number | null): { label: string; cls: string } {
+  if (days == null) return { label: '未知', cls: 'bg-gray-100 text-gray-600' };
+  if (days > 90) return { label: '高风险', cls: 'bg-red-100 text-red-700' };
+  if (days > 60) return { label: '中高风险', cls: 'bg-orange-100 text-orange-700' };
+  if (days > 30) return { label: '关注', cls: 'bg-yellow-100 text-yellow-700' };
+  return { label: '正常', cls: 'bg-green-100 text-green-700' };
 }
 
 export default function RenewalRiskPage() {
@@ -64,71 +71,59 @@ export default function RenewalRiskPage() {
   const segments = data?.segments ?? [];
   const highRiskStudents = data?.high_risk_students ?? [];
 
-  if (segments.length === 0 && highRiskStudents.length === 0) {
-    return <EmptyState title="暂无续费风险数据" description="请上传含续费记录的数据文件后刷新" />;
-  }
-
-  const chartData = segments.map((s) => ({
-    name: s.label,
-    count: s.count,
-    percentage: s.percentage,
-  }));
-
   return (
     <div className="space-y-3">
       <div>
         <h1 className="text-lg font-bold text-[var(--text-primary)]">续费风险</h1>
         <p className="text-sm text-[var(--text-secondary)] mt-1">
-          学员未续费天数分布 · 高风险学员名单（90+ 天）
+          按未续费天数分布 · 高风险（90+ 天）学员列表
         </p>
       </div>
 
-      {/* 分布条形图 */}
-      {chartData.length > 0 && (
-        <Card title="未续费天数分布">
-          <ResponsiveContainer width="100%" height={240}>
-            <BarChart data={chartData} barCategoryGap="35%">
-              <CartesianGrid strokeDasharray="3 3" vertical={false} />
-              <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-              <YAxis
-                yAxisId="count"
-                tick={{ fontSize: 11 }}
-                label={{ value: '学员数', angle: -90, position: 'insideLeft', fontSize: 11 }}
-              />
-              <Tooltip
-                formatter={(value: number, name: string) =>
-                  name === 'count' ? [`${value} 人`, '学员数'] : [`${value}%`, '占比']
-                }
-              />
-              <Bar yAxisId="count" dataKey="count" name="count" radius={[4, 4, 0, 0]}>
-                {chartData.map((entry, i) => (
-                  <Cell key={i} fill={segmentColor(entry.name)} />
-                ))}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
-
-          {/* 分布占比汇总行 */}
-          <div className="grid grid-cols-4 gap-2 mt-3">
-            {segments.map((s, i) => (
-              <div key={i} className="text-center bg-[var(--bg-subtle)] rounded-lg p-2">
-                <p className="text-lg font-bold" style={{ color: segmentColor(s.label) }}>
-                  {s.count.toLocaleString()}
-                </p>
-                <p className="text-xs text-[var(--text-muted)]">{s.label}</p>
-                <p className="text-xs font-medium" style={{ color: segmentColor(s.label) }}>
-                  {s.percentage.toFixed(1)}%
-                </p>
-              </div>
-            ))}
+      {segments.length === 0 ? (
+        <EmptyState title="暂无续费风险数据" description="上传数据文件后自动分析" />
+      ) : (
+        <>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {segments.map((seg) => {
+              const color = segmentColor(seg.label);
+              return (
+                <Card key={seg.label} title="">
+                  <div className="pt-1">
+                    <p className="text-xs text-[var(--text-muted)] mb-1">{seg.label} 天</p>
+                    <p className="text-2xl font-bold" style={{ color }}>
+                      {seg.count.toLocaleString()}
+                    </p>
+                    <p className="text-xs text-[var(--text-secondary)] mt-1">
+                      占比 {seg.percentage.toFixed(1)}%
+                    </p>
+                  </div>
+                </Card>
+              );
+            })}
           </div>
-        </Card>
+
+          <Card title="未续费天数分布">
+            <ResponsiveContainer width="100%" height={220}>
+              <BarChart data={segments} barCategoryGap="35%">
+                <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                <XAxis dataKey="label" tick={{ fontSize: 12 }} />
+                <YAxis tick={{ fontSize: 11 }} />
+                <Tooltip formatter={(v: number) => [v.toLocaleString(), '学员数']} />
+                <Bar dataKey="count" name="学员数" radius={[4, 4, 0, 0]}>
+                  {segments.map((entry, i) => (
+                    <Cell key={i} fill={segmentColor(entry.label)} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </Card>
+        </>
       )}
 
-      {/* 高风险学员列表 */}
-      <Card title={`高风险学员（90+ 天未续费）— ${highRiskStudents.length} 人`}>
+      <Card title={`高风险学员（90+ 天未续费）· 共 ${highRiskStudents.length} 人`}>
         {highRiskStudents.length === 0 ? (
-          <EmptyState title="暂无高风险学员" description="90 天以上未续费学员列表为空" />
+          <EmptyState title="暂无高风险学员" description="90 天以上未续费学员为空，数据良好" />
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
@@ -136,31 +131,41 @@ export default function RenewalRiskPage() {
                 <tr className="slide-thead-row">
                   <th className="slide-th text-left">学员 ID</th>
                   <th className="slide-th text-right">未续费天数</th>
+                  <th className="slide-th text-center">风险等级</th>
                   <th className="slide-th text-left">围场</th>
-                  <th className="slide-th text-left">CC</th>
+                  <th className="slide-th text-left">负责 CC</th>
                   <th className="slide-th text-right">历史续费次数</th>
                 </tr>
               </thead>
               <tbody>
-                {highRiskStudents.map((s, i) => (
-                  <tr key={s.stdt_id} className={i % 2 === 0 ? 'slide-row-even' : 'slide-row-odd'}>
-                    <td className="slide-td font-mono text-xs">{s.stdt_id}</td>
-                    <td className="slide-td text-right font-mono tabular-nums">
-                      {s.days_since_renewal != null ? (
-                        <span className="font-bold text-red-600">{s.days_since_renewal} 天</span>
-                      ) : (
-                        '—'
-                      )}
-                    </td>
-                    <td className="slide-td text-xs">{s.enclosure ?? '—'}</td>
-                    <td className="slide-td text-xs">{s.cc_name ?? '—'}</td>
-                    <td className="slide-td text-right font-mono tabular-nums">
-                      {s.total_renewal_orders != null
-                        ? s.total_renewal_orders.toLocaleString()
-                        : '—'}
-                    </td>
-                  </tr>
-                ))}
+                {highRiskStudents.map((s, i) => {
+                  const badge = riskBadge(s.days_since_renewal);
+                  return (
+                    <tr
+                      key={s.stdt_id ?? i}
+                      className="even:bg-[var(--bg-subtle)] hover:bg-[var(--bg-subtle)]"
+                    >
+                      <td className="slide-td font-mono text-xs">{s.stdt_id}</td>
+                      <td className="slide-td text-right font-mono tabular-nums font-semibold text-red-600">
+                        {s.days_since_renewal ?? '—'}
+                      </td>
+                      <td className="slide-td text-center">
+                        <span
+                          className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${badge.cls}`}
+                        >
+                          {badge.label}
+                        </span>
+                      </td>
+                      <td className="slide-td text-[var(--text-secondary)]">
+                        {s.enclosure ?? '—'}
+                      </td>
+                      <td className="slide-td">{s.cc_name ?? '—'}</td>
+                      <td className="slide-td text-right font-mono tabular-nums">
+                        {s.total_renewal_orders ?? '—'}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>

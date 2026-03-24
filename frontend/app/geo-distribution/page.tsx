@@ -60,9 +60,7 @@ export default function GeoDistributionPage() {
       <div className="space-y-4">
         <div>
           <h1 className="text-lg font-bold text-[var(--text-primary)]">地理分布</h1>
-          <p className="text-sm text-[var(--text-secondary)] mt-1">
-            学员常登录国家分布及推荐效果
-          </p>
+          <p className="text-sm text-[var(--text-secondary)] mt-1">学员常登录国家分布及推荐效果</p>
         </div>
         <EmptyState
           title="暂无地理数据"
@@ -80,7 +78,8 @@ export default function GeoDistributionPage() {
       <div>
         <h1 className="text-lg font-bold text-[var(--text-primary)]">地理分布</h1>
         <p className="text-sm text-[var(--text-secondary)] mt-1">
-          学员常登录国家分布 · 共 {totalStudents.toLocaleString()} 位学员 · {data.length} 个国家/地区
+          学员常登录国家分布 · 共 {totalStudents.toLocaleString()} 位学员 · {data.length}{' '}
+          个国家/地区
         </p>
       </div>
 
@@ -95,9 +94,7 @@ export default function GeoDistributionPage() {
             <p className="text-2xl font-bold text-[var(--text-primary)]">
               {item.student_count.toLocaleString()}
             </p>
-            <p className="text-xs text-[var(--text-secondary)] mt-1">
-              占比 {item.pct.toFixed(1)}%
-            </p>
+            <p className="text-xs text-[var(--text-secondary)] mt-1">占比 {item.pct.toFixed(1)}%</p>
           </div>
         ))}
       </div>
@@ -109,7 +106,9 @@ export default function GeoDistributionPage() {
             <tr className="slide-thead-row">
               <th className="slide-th text-left">国家 / 地区</th>
               <th className="slide-th text-right">学员数</th>
-              <th className="slide-th" style={{ minWidth: '160px' }}>占比分布</th>
+              <th className="slide-th" style={{ minWidth: '160px' }}>
+                占比分布
+              </th>
               <th className="slide-th text-right">人均推荐注册</th>
               <th className="slide-th text-right">人均推荐付费</th>
             </tr>
@@ -117,9 +116,7 @@ export default function GeoDistributionPage() {
           <tbody>
             {data.map((item, i) => (
               <tr key={item.country} className={i % 2 === 0 ? 'slide-row-even' : 'slide-row-odd'}>
-                <td className="slide-td font-medium text-[var(--text-primary)]">
-                  {item.country}
-                </td>
+                <td className="slide-td font-medium text-[var(--text-primary)]">{item.country}</td>
                 <td className="slide-td text-right font-mono tabular-nums">
                   {item.student_count.toLocaleString()}
                 </td>
@@ -127,14 +124,18 @@ export default function GeoDistributionPage() {
                   <BarCell pct={item.pct} />
                 </td>
                 <td className="slide-td text-right font-mono tabular-nums">
-                  {item.avg_referral_registrations != null
-                    ? item.avg_referral_registrations.toFixed(2)
-                    : <span className="text-[var(--text-muted)]">—</span>}
+                  {item.avg_referral_registrations != null ? (
+                    item.avg_referral_registrations.toFixed(2)
+                  ) : (
+                    <span className="text-[var(--text-muted)]">—</span>
+                  )}
                 </td>
                 <td className="slide-td text-right font-mono tabular-nums">
-                  {item.avg_payments != null
-                    ? item.avg_payments.toFixed(2)
-                    : <span className="text-[var(--text-muted)]">—</span>}
+                  {item.avg_payments != null ? (
+                    item.avg_payments.toFixed(2)
+                  ) : (
+                    <span className="text-[var(--text-muted)]">—</span>
+                  )}
                 </td>
               </tr>
             ))}
@@ -144,7 +145,7 @@ export default function GeoDistributionPage() {
 
       {/* 说明 */}
       <p className="text-xs text-[var(--text-muted)]">
-        "常登录国家" 来自学员账号注册/登录地理信息 · 人均指标为该国家所有学员的月度平均值
+        「常登录国家」来自学员账号注册/登录地理信息 · 人均指标为该国家所有学员的月度平均值
       </p>
     </div>
   );
