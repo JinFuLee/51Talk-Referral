@@ -95,7 +95,7 @@ export function TodayStatus() {
     );
   }
 
-  if (error || !data) {
+  if (error) {
     return (
       <div className="flex items-center gap-2 py-3 text-amber-600">
         <AlertCircle className="w-4 h-4" />
@@ -104,11 +104,35 @@ export function TodayStatus() {
     );
   }
 
+  // API 返回 {channels: {channel_id: {...}}, date, total}
+  // 转换为前端需要的 lark/dingtalk RoleStatus[]
+  const larkStatuses: RoleStatus[] = data?.lark ?? [];
+  const dingtalkStatuses: RoleStatus[] = data?.dingtalk ?? [];
+
+  // 如果 API 返回旧格式 {channels: {...}}，也兼容
+  if (!data?.lark && !data?.dingtalk) {
+    // 无推送数据时显示空状态
+    const defaultRoles = ['CC', 'LP', 'SS', '运营'];
+    const emptyStatuses = defaultRoles.map((role) => ({
+      role,
+      sent: false,
+      channels: 0,
+      total: 0,
+    }));
+    return (
+      <div className="space-y-2.5">
+        <PlatformRow label="Lark" statuses={emptyStatuses} color="text-blue-600" />
+        <div className="border-t border-[var(--border-default)]" />
+        <PlatformRow label="钉钉" statuses={emptyStatuses} color="text-orange-600" />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-2.5">
-      <PlatformRow label="Lark" statuses={data.lark} color="text-blue-600" />
+      <PlatformRow label="Lark" statuses={larkStatuses} color="text-blue-600" />
       <div className="border-t border-[var(--border-default)]" />
-      <PlatformRow label="钉钉" statuses={data.dingtalk} color="text-orange-600" />
+      <PlatformRow label="钉钉" statuses={dingtalkStatuses} color="text-orange-600" />
     </div>
   );
 }
