@@ -45,10 +45,14 @@
   --n-800: #292521;
   --n-900: #1c1815;
 
-  /* SEE Brand Layer (forest-ops preset) */
-  --brand-p1: #3d8b6b;
-  --brand-p2: #2f6d53;
-  --accent-spark: #4da882;
+  /* SEE Brand Layer (51Talk preset: 金黄 + 深蓝) */
+  --brand-p1: #ffd100;
+  --brand-p2: #1b365d;
+  --brand-p1-hover: #ffda33;
+  --brand-p1-active: #e6bc00;
+  --brand-p2-hover: #234b82;
+  --brand-p2-active: #0f2440;
+  --accent-spark: #ffd100;
 
   /* 语义映射 */
   --bg-primary: var(--n-50);
@@ -183,26 +187,26 @@ td[class*='text-orange'] {
     --popover: 0 0% 100%;
     --popover-foreground: 240 3% 11%;
 
-    /* 核心点缀色（深暖灰绿，克制不跳，Apple/Notion 风格） */
-    --primary: 160 30% 38%; /* 深暖灰绿 #44806B */
-    --primary-foreground: 0 0% 100%;
-    --secondary: 38 15% 96%;
-    --secondary-foreground: 30 20% 20%;
+    /* 核心点缀色（51Talk 金黄主色 + 深蓝副色） */
+    --primary: 49 100% 50%; /* #FFD100 金黄 */
+    --primary-foreground: 214 54% 23%; /* #1B365D 深蓝（黄底用深蓝文字） */
+    --secondary: 214 54% 23%; /* #1B365D 深蓝副色 */
+    --secondary-foreground: 0 0% 100%;
     --muted: 38 15% 95%;
     --muted-foreground: 30 15% 35%; /* 暖灰次要文本，加深至 #52524A 级别 */
     --accent: 38 15% 96%;
     --accent-foreground: 30 20% 20%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 4 76% 58%; /* #E05545 暖珊瑚红，与金黄和谐 */
+    --destructive-foreground: 0 0% 100%;
     /* 暖灰边界（更温暖，不用冷蓝调） */
     --border: 38 20% 88%;
     --input: 38 20% 88%;
     --ring: 160 30% 38%;
 
-    --success: 142 71% 45%;
+    --success: 152 60% 42%; /* #2D9F6F 暖翡翠绿 */
     --success-foreground: 0 0% 100%;
-    --warning: 38 92% 50%;
+    --warning: 28 90% 55%; /* #E8932A 暖橙 */
     --warning-foreground: 0 0% 100%;
     --info: 210 80% 65%;
     --info-foreground: 0 0% 100%;
@@ -247,10 +251,10 @@ td[class*='text-orange'] {
     --card-foreground: 213 31% 91%;
     --popover: 224 71% 4%;
     --popover-foreground: 215 20.2% 65.1%;
-    --primary: 160 35% 52%; /* 深暖灰绿 dark 稍亮，确保对比度 */
-    --primary-foreground: 0 0% 100%;
-    --secondary: 222.2 47.4% 11.2%;
-    --secondary-foreground: 210 40% 98%;
+    --primary: 49 100% 55%; /* #FFD100 dark 稍亮 */
+    --primary-foreground: 214 54% 23%; /* 深蓝文字 */
+    --secondary: 214 54% 30%; /* 深蓝 dark 稍亮 */
+    --secondary-foreground: 0 0% 100%;
     --muted: 223 47% 11%;
     --muted-foreground: 215.4 16.3% 56.9%;
     --accent: 216 34% 17%;
@@ -260,9 +264,9 @@ td[class*='text-orange'] {
     --border: 216 34% 17%;
     --input: 216 34% 17%;
     --ring: 160 35% 52%;
-    --success: 142 71% 45%;
+    --success: 152 60% 42%; /* #2D9F6F 暖翡翠绿 */
     --success-foreground: 0 0% 100%;
-    --warning: 38 92% 50%;
+    --warning: 28 90% 55%; /* #E8932A 暖橙 */
     --warning-foreground: 0 0% 100%;
     --info: 210 80% 65%;
     --info-foreground: 0 0% 100%;
@@ -283,7 +287,7 @@ td[class*='text-orange'] {
     --chart-pink: 330 81% 60%;
     --chart-emerald: 160 84% 39%;
 
-    --brand-p1-dark: #5aa88a; /* forest-ops P1 亮化 15% */
+    --brand-p1-dark: #ffda33; /* 51Talk 金黄 dark 亮化 */
   }
 }
 
