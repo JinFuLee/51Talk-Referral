@@ -1,31 +1,26 @@
 'use client';
 
 import { useState } from 'react';
-import { Loader2, AlertCircle, ImageIcon, FileText, X } from 'lucide-react';
+import { Loader2, AlertCircle, ImageIcon } from 'lucide-react';
 import useSWR from 'swr';
 import { swrFetcher } from '@/lib/api';
 import { EmptyState } from '@/components/ui/EmptyState';
 
+/** 后端返回格式 */
 interface OutputItem {
-  id: string;
-  date: string;
-  role: string;
-  platform: 'lark' | 'dingtalk';
-  type: 'image' | 'text';
-  url?: string;
-  text?: string;
-  created_at: string;
+  filename: string;
+  size_kb: number;
+  modified: string;
 }
 
-const ROLE_COLORS: Record<string, string> = {
-  CC: 'bg-emerald-100 text-emerald-700',
-  LP: 'bg-purple-100 text-purple-700',
-  SS: 'bg-blue-100 text-blue-700',
-  运营: 'bg-stone-100 text-stone-600',
-  ALL: 'bg-gray-100 text-gray-600',
-};
-
 const ROLES = ['ALL', 'CC', 'SS', 'LP', '运营'];
+
+/** 从文件名提取 role 标签（格式：lark-xxx-ROLE-YYYYMMDD*.png） */
+function extractRole(filename: string): string {
+  const parts = filename.split('-');
+  if (parts.length >= 3) return parts[2];
+  return 'ALL';
+}
 
 function todayStr() {
   const d = new Date();
@@ -34,64 +29,24 @@ function todayStr() {
   ).padStart(2, '0')}`;
 }
 
-interface TextPreviewDrawerProps {
-  text: string;
-  role: string;
-  date: string;
-  onClose: () => void;
-}
-
-function TextPreviewDrawer({ text, role, date, onClose }: TextPreviewDrawerProps) {
-  return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center bg-black/40">
-      <div className="bg-white rounded-t-2xl sm:rounded-2xl shadow-xl w-full max-w-2xl max-h-[80vh] flex flex-col">
-        <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--border-default)] shrink-0">
-          <div>
-            <p className="text-sm font-semibold text-[var(--text-primary)]">文本预览</p>
-            <p className="text-xs text-[var(--text-muted)]">
-              {role} · {date}
-            </p>
-          </div>
-          <button
-            onClick={onClose}
-            className="p-1 rounded-md hover:bg-slate-100 text-[var(--text-muted)]"
-          >
-            <X className="w-4 h-4" />
-          </button>
-        </div>
-        <div className="flex-1 overflow-y-auto p-5">
-          <pre className="text-xs whitespace-pre-wrap font-sans text-[var(--text-primary)]">
-            {text}
-          </pre>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 interface OutputGalleryProps {
   platform: 'lark' | 'dingtalk';
 }
 
-export function OutputGallery({ platform }: OutputGalleryProps) {
+export function OutputGallery({ platform: _platform }: OutputGalleryProps) {
   const [date, setDate] = useState(todayStr);
   const [role, setRole] = useState('ALL');
-  const [previewText, setPreviewText] = useState<OutputItem | null>(null);
 
   const params = new URLSearchParams({ date, ...(role !== 'ALL' && { role }) });
   const {
     data: rawData,
     isLoading,
     error,
-  } = useSWR<{ files: OutputItem[] } | OutputItem[]>(
-    `/api/notifications/outputs?${params}&platform=${platform}`,
+  } = useSWR<{ files: OutputItem[]; total: number }>(
+    `/api/notifications/outputs?${params}`,
     swrFetcher
   );
-  const data: OutputItem[] | undefined = rawData
-    ? Array.isArray(rawData)
-      ? rawData
-      : (rawData as { files: OutputItem[] }).files
-    : undefined;
+  const data: OutputItem[] = rawData?.files ?? [];
 
   if (isLoading) {
     return (
@@ -110,8 +65,6 @@ export function OutputGallery({ platform }: OutputGalleryProps) {
       </div>
     );
   }
-
-  const items = data ?? [];
 
   return (
     <>
@@ -138,68 +91,65 @@ export function OutputGallery({ platform }: OutputGalleryProps) {
             </button>
           ))}
         </div>
-        <span className="text-xs text-[var(--text-muted)] ml-auto">{items.length} 个产出</span>
+        <span className="text-xs text-[var(--text-muted)] ml-auto">{data.length} 个产出</span>
       </div>
 
       {/* Gallery */}
-      {items.length === 0 ? (
+      {isLoading ? (
+        <div className="flex items-center gap-2 py-10 justify-center text-[var(--text-muted)]">
+          <Loader2 className="w-5 h-5 animate-spin" />
+          <span className="text-sm">加载产出档案…</span>
+        </div>
+      ) : error ? (
+        <div className="flex items-center gap-2 py-10 justify-center text-amber-600">
+          <AlertCircle className="w-5 h-5" />
+          <span className="text-sm">无法加载产出档案</span>
+        </div>
+      ) : data.length === 0 ? (
         <EmptyState
           title="暂无产出档案"
           description={`${date} 无 ${role !== 'ALL' ? role + ' ' : ''}推送产出`}
         />
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-          {items.map((item) => {
-            const roleColor = ROLE_COLORS[item.role] ?? 'bg-gray-100 text-gray-600';
+          {data.map((item) => {
+            const itemRole = extractRole(item.filename);
             return (
               <div
-                key={item.id}
+                key={item.filename}
                 className="rounded-xl border border-[var(--border-default)] overflow-hidden bg-white hover:shadow-md transition-shadow cursor-pointer group"
-                onClick={() => {
-                  if (item.type === 'text' && item.text) {
-                    setPreviewText(item);
-                  } else if (item.type === 'image' && item.url) {
-                    window.open(item.url, '_blank');
-                  }
-                }}
+                onClick={() =>
+                  window.open(`/api/notifications/outputs/image/${item.filename}`, '_blank')
+                }
               >
-                {item.type === 'image' && item.url ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={item.url}
-                    alt={`${item.role} 推送图片`}
-                    className="w-full aspect-video object-cover group-hover:opacity-90 transition-opacity"
-                  />
-                ) : (
-                  <div className="w-full aspect-video bg-slate-50 flex items-center justify-center">
-                    {item.type === 'image' ? (
-                      <ImageIcon className="w-8 h-8 text-slate-300" />
-                    ) : (
-                      <FileText className="w-8 h-8 text-slate-300" />
-                    )}
-                  </div>
-                )}
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={`/api/notifications/outputs/image/${item.filename}`}
+                  alt={`${itemRole} 推送图片`}
+                  className="w-full aspect-video object-cover group-hover:opacity-90 transition-opacity"
+                  onError={(e) => {
+                    (e.currentTarget as HTMLImageElement).style.display = 'none';
+                    (e.currentTarget.nextSibling as HTMLElement | null)?.removeAttribute('hidden');
+                  }}
+                />
+                <div
+                  hidden
+                  className="w-full aspect-video bg-slate-50 flex items-center justify-center"
+                >
+                  <ImageIcon className="w-8 h-8 text-slate-300" />
+                </div>
                 <div className="px-2.5 py-2 flex items-center justify-between gap-2">
-                  <span className={`text-xs px-1.5 py-0.5 rounded-full font-medium ${roleColor}`}>
-                    {item.role}
-                  </span>
                   <span className="text-xs text-[var(--text-muted)] truncate">
-                    {item.created_at?.slice(11, 16) ?? ''}
+                    {item.filename.slice(0, 20)}…
+                  </span>
+                  <span className="text-xs text-[var(--text-muted)] shrink-0">
+                    {item.size_kb}KB
                   </span>
                 </div>
               </div>
             );
           })}
         </div>
-      )}
-
-      {previewText && (
-        <TextPreviewDrawer
-          text={previewText.text ?? ''}
-          role={previewText.role}
-          date={previewText.date}
-          onClose={() => setPreviewText(null)}
-        />
       )}
     </>
   );

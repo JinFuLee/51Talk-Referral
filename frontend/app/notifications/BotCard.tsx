@@ -6,13 +6,18 @@ import { Edit2, Trash2, Eye, EyeOff } from 'lucide-react';
 export interface BotChannel {
   id: string;
   name: string;
-  platform: 'lark' | 'dingtalk';
+  platform?: 'lark' | 'dingtalk';
   group_name: string;
-  role: string;
+  role?: string;
   enabled: boolean;
-  webhook_url: string;
+  /** 后端返回的脱敏预览字段（读展示用） */
+  webhook_preview?: string;
+  secret_preview?: string;
+  /** 本地表单字段（新建/编辑时填写真实值） */
+  webhook?: string;
   secret?: string;
   is_test: boolean;
+  description?: string;
   last_sent?: string;
 }
 
@@ -33,7 +38,7 @@ interface BotCardProps {
 
 export function BotCard({ bot, onEdit, onDelete, onToggle }: BotCardProps) {
   const [showSecret, setShowSecret] = useState(false);
-  const roleColor = ROLE_COLORS[bot.role] ?? 'bg-gray-100 text-gray-600';
+  const roleColor = ROLE_COLORS[bot.role ?? ''] ?? 'bg-gray-100 text-gray-600';
   const borderColor = bot.platform === 'lark' ? 'border-l-blue-500' : 'border-l-orange-500';
 
   return (
@@ -78,7 +83,7 @@ export function BotCard({ bot, onEdit, onDelete, onToggle }: BotCardProps) {
       {/* Role badge + enable toggle */}
       <div className="flex items-center justify-between">
         <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${roleColor}`}>
-          {bot.role}
+          {bot.role ?? 'ALL'}
         </span>
         <label className="flex items-center gap-2 cursor-pointer select-none">
           <span className="text-xs text-[var(--text-muted)]">{bot.enabled ? '启用' : '停用'}</span>
@@ -103,7 +108,7 @@ export function BotCard({ bot, onEdit, onDelete, onToggle }: BotCardProps) {
         <div className="flex items-center gap-1">
           <input
             type={showSecret ? 'text' : 'password'}
-            value={bot.webhook_url}
+            value={bot.webhook_preview ?? bot.webhook ?? ''}
             readOnly
             className="flex-1 text-xs bg-slate-50 border border-slate-200 rounded px-2 py-1 font-mono text-[var(--text-secondary)] outline-none"
           />

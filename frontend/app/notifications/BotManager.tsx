@@ -34,13 +34,15 @@ export function BotManager({ platform }: BotManagerProps) {
 
   async function handleSave(payload: Omit<BotChannel, 'id' | 'last_sent'>) {
     if (editTarget) {
-      await fetch(`/api/notifications/channels/${editTarget.id}`, {
+      // PUT /api/notifications/channels/{platform}/{channel_id}
+      await fetch(`/api/notifications/channels/${platform}/${editTarget.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
     } else {
-      await fetch(`/api/notifications/channels`, {
+      // POST /api/notifications/channels/{platform}
+      await fetch(`/api/notifications/channels/${platform}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
@@ -50,13 +52,14 @@ export function BotManager({ platform }: BotManagerProps) {
   }
 
   async function handleDelete(id: string) {
-    await fetch(`/api/notifications/channels/${id}`, { method: 'DELETE' });
+    await fetch(`/api/notifications/channels/${platform}/${id}`, { method: 'DELETE' });
     await mutate();
   }
 
   async function handleToggle(id: string, enabled: boolean) {
-    await fetch(`/api/notifications/channels/${id}/toggle`, {
-      method: 'PATCH',
+    // 后端无 /toggle 端点，用 PUT 更新 enabled 字段
+    await fetch(`/api/notifications/channels/${platform}/${id}`, {
+      method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ enabled }),
     });

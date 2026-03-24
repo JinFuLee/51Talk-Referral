@@ -12,9 +12,13 @@ interface PreviewModalProps {
 }
 
 interface PreviewData {
-  text?: string;
-  image_url?: string;
-  card_json?: Record<string, unknown>;
+  ok: boolean;
+  role: string;
+  template: string;
+  images_count: number;
+  overview_image?: string | null;
+  sample_images: string[];
+  stdout_tail?: string;
 }
 
 export function PreviewModal({ open, template, role, platform, onClose }: PreviewModalProps) {
@@ -85,30 +89,66 @@ export function PreviewModal({ open, template, role, platform, onClose }: Previe
 
           {preview && !loading && (
             <div className="space-y-4">
-              {preview.image_url && (
+              {/* 状态摘要 */}
+              <div className="flex items-center gap-2 text-sm">
+                <span
+                  className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                    preview.ok ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'
+                  }`}
+                >
+                  {preview.ok ? '生成成功' : '生成失败'}
+                </span>
+                <span className="text-[var(--text-muted)] text-xs">
+                  {preview.role} 角色 · 共 {preview.images_count} 张图片
+                </span>
+              </div>
+
+              {/* 总览图片 */}
+              {preview.overview_image && (
                 <div>
-                  <p className="text-xs text-[var(--text-muted)] mb-2 font-medium">图片效果</p>
+                  <p className="text-xs text-[var(--text-muted)] mb-2 font-medium">总览图片</p>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
-                    src={preview.image_url}
-                    alt="推送图片预览"
+                    src={`/api/notifications/outputs/image/${preview.overview_image}`}
+                    alt="总览图片预览"
                     className="w-full rounded-xl border border-[var(--border-default)] shadow-sm"
                   />
                 </div>
               )}
-              {preview.text && (
+
+              {/* 样本图片 */}
+              {preview.sample_images.length > 0 && (
                 <div>
-                  <p className="text-xs text-[var(--text-muted)] mb-2 font-medium">文字内容</p>
-                  <pre className="text-xs bg-slate-50 rounded-xl p-4 whitespace-pre-wrap font-sans border border-slate-100 overflow-auto max-h-60">
-                    {preview.text}
-                  </pre>
+                  <p className="text-xs text-[var(--text-muted)] mb-2 font-medium">
+                    跟进图片样本（{preview.sample_images.length} 张）
+                  </p>
+                  <div className="space-y-2">
+                    {preview.sample_images.map((img) => (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        key={img}
+                        src={`/api/notifications/outputs/image/${img}`}
+                        alt={img}
+                        className="w-full rounded-xl border border-[var(--border-default)] shadow-sm"
+                      />
+                    ))}
+                  </div>
                 </div>
               )}
-              {preview.card_json && (
+
+              {/* 无图片时提示 */}
+              {preview.images_count === 0 && (
+                <div className="py-8 text-center text-sm text-[var(--text-muted)]">
+                  暂无图片产出，请确认数据文件已上传
+                </div>
+              )}
+
+              {/* 脚本输出 */}
+              {preview.stdout_tail && (
                 <div>
-                  <p className="text-xs text-[var(--text-muted)] mb-2 font-medium">卡片 JSON</p>
-                  <pre className="text-xs bg-slate-50 rounded-xl p-4 font-mono border border-slate-100 overflow-auto max-h-60">
-                    {JSON.stringify(preview.card_json, null, 2)}
+                  <p className="text-xs text-[var(--text-muted)] mb-2 font-medium">脚本输出</p>
+                  <pre className="text-xs bg-slate-50 rounded-xl p-4 whitespace-pre-wrap font-sans border border-slate-100 overflow-auto max-h-40">
+                    {preview.stdout_tail}
                   </pre>
                 </div>
               )}

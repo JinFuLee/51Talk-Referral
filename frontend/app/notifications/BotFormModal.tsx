@@ -19,7 +19,7 @@ const EMPTY_FORM = {
   group_name: '',
   role: 'CC',
   enabled: true,
-  webhook_url: '',
+  webhook: '',
   secret: '',
   is_test: false,
 };
@@ -37,9 +37,9 @@ export function BotFormModal({ open, platform, initial, onClose, onSave }: BotFo
         setForm({
           name: initial.name,
           group_name: initial.group_name,
-          role: initial.role,
+          role: initial.role ?? 'CC',
           enabled: initial.enabled,
-          webhook_url: initial.webhook_url,
+          webhook: initial.webhook ?? '',
           secret: initial.secret ?? '',
           is_test: initial.is_test,
         });
@@ -54,7 +54,7 @@ export function BotFormModal({ open, platform, initial, onClose, onSave }: BotFo
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!form.webhook_url.trim()) {
+    if (!form.webhook.trim()) {
       setError('Webhook URL 不能为空');
       return;
     }
@@ -168,8 +168,8 @@ export function BotFormModal({ open, platform, initial, onClose, onSave }: BotFo
             <div className="flex items-center gap-1">
               <input
                 type={showWebhook ? 'text' : 'password'}
-                value={form.webhook_url}
-                onChange={(e) => setForm((v) => ({ ...v, webhook_url: e.target.value }))}
+                value={form.webhook}
+                onChange={(e) => setForm((v) => ({ ...v, webhook: e.target.value }))}
                 required
                 placeholder="https://..."
                 className="flex-1 text-sm border border-slate-200 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-brand-500 font-mono"

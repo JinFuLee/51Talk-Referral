@@ -10,9 +10,12 @@ import type { BotChannel } from './BotCard';
 
 interface PushTemplate {
   id: string;
-  name: string;
+  role: string;
+  enclosures: string[];
+  enclosures_label: string;
+  messages: string;
+  enabled: boolean;
   description: string;
-  roles: string[];
 }
 
 interface PushControlProps {
@@ -101,38 +104,61 @@ export function PushControl({ platform }: PushControlProps) {
     const targetChannels = (channels ?? []).filter((c) => channelIds.includes(c.id));
     const items: PushProgressItem[] = targetChannels.map((c) => ({
       channel: c.name,
-      role: c.role,
-      status: 'pending',
+      role: c.role ?? '',
+      status: 'pending' as const,
     }));
     setProgressItems(items);
     setPushState('pushing');
 
     try {
+      // 后端接收字段为 channels（非 channel_ids），且异步返回 job_id
       const response = await fetch('/api/notifications/push', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           platform,
           template,
-          channel_ids: channelIds,
+          channels: channelIds,
         }),
       });
 
       if (!response.ok) throw new Error(`推送失败：${response.status}`);
-      const result = await response.json();
+      const job = await response.json();
 
-      // Update progress items from server response
-      const updatedItems = items.map((item) => {
-        const serverItem = result.results?.find(
-          (r: { channel: string; success: boolean; error?: string }) => r.channel === item.channel
-        );
-        return {
-          ...item,
-          status: serverItem?.success ? ('success' as const) : ('error' as const),
-          message: serverItem?.error,
-        };
-      });
-      setProgressItems(updatedItems);
+      // 轮询 job 状态直到完成
+      const jobId = job.job_id;
+      let attempts = 0;
+      while (attempts < 60) {
+        await new Promise((r) => setTimeout(r, 2000));
+        attempts++;
+        const statusRes = await fetch(`/api/notifications/push/status/${jobId}`);
+        if (!statusRes.ok) break;
+        const statusData = await statusRes.json();
+
+        // 更新进度：每个通道实时刷新
+        const updatedItems = items.map((item) => {
+          const serverItem = statusData.results?.find(
+            (r: { channel: string; ok: boolean; error?: string }) => r.channel === item.channel
+          );
+          if (!serverItem) {
+            // 判断是否是 current（推送中）
+            const isCurrent = statusData.progress?.current === item.channel;
+            return { ...item, status: isCurrent ? ('pending' as const) : item.status };
+          }
+          return {
+            ...item,
+            status: serverItem.ok ? ('success' as const) : ('error' as const),
+            message: serverItem.error,
+          };
+        });
+        setProgressItems(updatedItems);
+
+        if (statusData.status === 'done') {
+          setPushState('done');
+          return;
+        }
+      }
+      // 超时
       setPushState('done');
     } catch (err) {
       const updatedItems = items.map((item) => ({
@@ -189,10 +215,20 @@ export function PushControl({ platform }: PushControlProps) {
           className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-brand-500"
         >
           {(
-            templates ?? [{ id: 'daily_report', name: '每日运营日报', description: '', roles: [] }]
+            templates ?? [
+              {
+                id: 'cc_followup',
+                role: 'CC',
+                enclosures: [],
+                enclosures_label: '',
+                messages: '',
+                enabled: true,
+                description: 'CC 前端销售未打卡跟进',
+              },
+            ]
           ).map((t) => (
             <option key={t.id} value={t.id}>
-              {t.name}
+              {t.role} — {t.description}
             </option>
           ))}
         </select>

@@ -4,81 +4,18 @@ import { CheckCircle2, Clock, AlertCircle, Loader2 } from 'lucide-react';
 import useSWR from 'swr';
 import { swrFetcher } from '@/lib/api';
 
-interface RoleStatus {
-  role: string;
-  sent: boolean;
-  time?: string;
-  channels: number;
-  total: number;
+/** 后端 /api/notifications/today 实际返回格式 */
+interface ChannelRecord {
+  pushed: boolean;
+  time: string;
+  result: string;
+  platform: string;
 }
 
 interface TodayData {
-  lark: RoleStatus[];
-  dingtalk: RoleStatus[];
   date: string;
-}
-
-const ROLE_COLORS: Record<string, string> = {
-  CC: 'bg-emerald-100 text-emerald-700',
-  LP: 'bg-purple-100 text-purple-700',
-  SS: 'bg-blue-100 text-blue-700',
-  运营: 'bg-stone-100 text-stone-600',
-  ALL: 'bg-gray-100 text-gray-600',
-};
-
-function RoleChip({ role, sent, time }: { role: string; sent: boolean; time?: string }) {
-  const color = ROLE_COLORS[role] ?? 'bg-gray-100 text-gray-600';
-  return (
-    <div className="flex items-center gap-1.5">
-      <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${color}`}>{role}</span>
-      {sent ? (
-        <>
-          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
-          {time && <span className="text-xs text-[var(--text-muted)]">{time}</span>}
-        </>
-      ) : (
-        <Clock className="w-3.5 h-3.5 text-[var(--text-muted)]" />
-      )}
-    </div>
-  );
-}
-
-function PlatformRow({
-  label,
-  statuses,
-  color,
-}: {
-  label: string;
-  statuses: RoleStatus[];
-  color: string;
-}) {
-  const sent = statuses.filter((s) => s.sent).length;
-  const total = statuses.length;
-  const allOk = sent === total;
-
-  return (
-    <div className="flex items-center gap-4">
-      <div className={`text-xs font-semibold w-12 ${color}`}>{label}</div>
-      <div className="flex items-center gap-3 flex-wrap">
-        {statuses.map((s) => (
-          <RoleChip key={s.role} role={s.role} sent={s.sent} time={s.time} />
-        ))}
-      </div>
-      <div className="ml-auto flex items-center gap-1">
-        {allOk ? (
-          <span className="text-xs text-emerald-600 font-medium">
-            {sent}/{total} 正常
-          </span>
-        ) : sent === 0 ? (
-          <span className="text-xs text-[var(--text-muted)]">今日未推送</span>
-        ) : (
-          <span className="text-xs text-amber-600 font-medium">
-            {sent}/{total} 已发
-          </span>
-        )}
-      </div>
-    </div>
-  );
+  channels: Record<string, ChannelRecord>;
+  total: number;
 }
 
 export function TodayStatus() {
@@ -104,35 +41,62 @@ export function TodayStatus() {
     );
   }
 
-  // API 返回 {channels: {channel_id: {...}}, date, total}
-  // 转换为前端需要的 lark/dingtalk RoleStatus[]
-  const larkStatuses: RoleStatus[] = data?.lark ?? [];
-  const dingtalkStatuses: RoleStatus[] = data?.dingtalk ?? [];
+  const channels = data?.channels ?? {};
+  const channelEntries = Object.entries(channels);
 
-  // 如果 API 返回旧格式 {channels: {...}}，也兼容
-  if (!data?.lark && !data?.dingtalk) {
-    // 无推送数据时显示空状态
-    const defaultRoles = ['CC', 'LP', 'SS', '运营'];
-    const emptyStatuses = defaultRoles.map((role) => ({
-      role,
-      sent: false,
-      channels: 0,
-      total: 0,
-    }));
+  // 无推送数据时显示空状态
+  if (channelEntries.length === 0) {
     return (
-      <div className="space-y-2.5">
-        <PlatformRow label="Lark" statuses={emptyStatuses} color="text-blue-600" />
-        <div className="border-t border-[var(--border-default)]" />
-        <PlatformRow label="钉钉" statuses={emptyStatuses} color="text-orange-600" />
+      <div className="flex items-center gap-2 py-3 text-[var(--text-muted)]">
+        <Clock className="w-4 h-4" />
+        <span className="text-sm">今日暂无推送记录（{data?.date ?? ''}）</span>
+      </div>
+    );
+  }
+
+  // 按平台分组
+  const larkEntries = channelEntries.filter(([, v]) => v.platform === 'lark');
+  const dingtalkEntries = channelEntries.filter(([, v]) => v.platform === 'dingtalk');
+
+  function renderEntries(entries: [string, ChannelRecord][]) {
+    return (
+      <div className="flex items-center gap-3 flex-wrap">
+        {entries.map(([id, rec]) => (
+          <div key={id} className="flex items-center gap-1.5">
+            <span className="text-xs font-medium text-[var(--text-primary)]">{id}</span>
+            {rec.pushed ? (
+              <>
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
+                <span className="text-xs text-[var(--text-muted)]">
+                  {rec.time} ({rec.result})
+                </span>
+              </>
+            ) : (
+              <Clock className="w-3.5 h-3.5 text-[var(--text-muted)]" />
+            )}
+          </div>
+        ))}
       </div>
     );
   }
 
   return (
     <div className="space-y-2.5">
-      <PlatformRow label="Lark" statuses={larkStatuses} color="text-blue-600" />
-      <div className="border-t border-[var(--border-default)]" />
-      <PlatformRow label="钉钉" statuses={dingtalkStatuses} color="text-orange-600" />
+      {larkEntries.length > 0 && (
+        <div className="flex items-center gap-4">
+          <span className="text-xs font-semibold w-12 text-blue-600">Lark</span>
+          {renderEntries(larkEntries)}
+        </div>
+      )}
+      {dingtalkEntries.length > 0 && (
+        <>
+          <div className="border-t border-[var(--border-default)]" />
+          <div className="flex items-center gap-4">
+            <span className="text-xs font-semibold w-12 text-orange-600">钉钉</span>
+            {renderEntries(dingtalkEntries)}
+          </div>
+        </>
+      )}
     </div>
   );
 }
