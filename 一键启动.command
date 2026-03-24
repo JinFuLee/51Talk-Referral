@@ -100,12 +100,9 @@ ls -t "${LOG_DIR}"/frontend_*.log 2>/dev/null | tail -n +6 | xargs rm -f 2>/dev/
 
 info "系统启动日志将双向持久化至: ${LOG_DIR}/"
 
-# ── 数据源自动更新（清理旧版本）────────────────────────────────────────────
-
-if [ -f "scripts/clean_old_datasources.sh" ]; then
-    info "扫描数据源，清理旧版本..."
-    bash scripts/clean_old_datasources.sh 2>/dev/null || true
-fi
+# ── 数据源清理已改为手动触发 ──────────────────────────────────────────────
+# 手动运行: bash scripts/clean_old_datasources.sh
+# 或预览:   bash scripts/clean_old_datasources.sh --dry-run
 
 # ── 唤醒逻辑模块 ──────────────────────────────────────────────────────────
 
