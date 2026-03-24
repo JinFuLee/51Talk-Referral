@@ -1162,7 +1162,12 @@ def main():
     parser.add_argument(
         "--followup",
         action="store_true",
-        help="发送未打卡分组推送（8条消息：1总览+7小组，每CC图片+ID）",
+        help="发送未打卡分组推送（1总览+N小组，每CC图片+围场分段ID）",
+    )
+    parser.add_argument(
+        "--role",
+        default="CC",
+        help="followup 推送角色：CC / LP / SS (default: CC)",
     )
     args = parser.parse_args()
 
@@ -1199,7 +1204,7 @@ def main():
                 print("[安全] 重定向到测试群。发正式群加 --confirm。")
                 ch = {**ch, "webhook": sb_ch["webhook"], "secret": sb_ch["secret"]}
         result = engine._process_followup_per_cc(
-            ch.get("role", "CC"), ch, args.dry_run
+            args.role.upper(), ch, args.dry_run
         )
         print(f"\n完成：{result.get('status')}")
         return
