@@ -21,12 +21,22 @@ import {
 // 带邀约节点的完整漏斗类型
 interface InvitationFunnelStage {
   name: string;
-  count: number;
-  conversion_rate?: number;
+  target: number | null;
+  actual: number | null;
+  gap: number | null;
+  achievement_rate: number | null;
+  conversion_rate?: number | null;
+}
+
+interface InvitationStats {
+  invitation_count: number | null;
+  registration_invitation_rate: number | null;
+  invitation_showup_rate: number | null;
 }
 
 interface InvitationFunnelResponse {
   stages: InvitationFunnelStage[];
+  invitation: InvitationStats | null;
 }
 
 const GAP_COLORS: Record<string, string> = {
@@ -106,6 +116,7 @@ export default function FunnelPage() {
 
   // 带邀约节点的完整漏斗
   const invitationStages = invitationData?.stages ?? [];
+  const invitationStats = invitationData?.invitation ?? null;
 
   return (
     <div className="space-y-3">
@@ -115,32 +126,77 @@ export default function FunnelPage() {
       </div>
 
       {/* 带邀约节点的完整 4 段漏斗 */}
-      {invitationStages.length > 0 && (
+      {(invitationStages.length > 0 || invitationStats) && (
         <Card title="完整邀约漏斗（注册 → 邀约 → 出席 → 付费）">
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="slide-thead-row">
-                  <th className="slide-th text-left">环节</th>
-                  <th className="slide-th text-right">数量</th>
-                  <th className="slide-th text-right">上段转化率</th>
-                </tr>
-              </thead>
-              <tbody>
-                {invitationStages.map((s, i) => (
-                  <tr key={s.name} className={i % 2 === 0 ? 'slide-row-even' : 'slide-row-odd'}>
-                    <td className="slide-td font-medium">{s.name}</td>
-                    <td className="slide-td text-right font-mono tabular-nums font-semibold">
-                      {(s.count ?? 0).toLocaleString()}
-                    </td>
-                    <td className="slide-td text-right font-mono tabular-nums">
-                      {s.conversion_rate != null ? `${(s.conversion_rate * 100).toFixed(1)}%` : '—'}
-                    </td>
+          {/* 邀约汇总指标 */}
+          {invitationStats && (
+            <div className="grid grid-cols-3 gap-3 mb-4">
+              <div className="bg-[var(--bg-subtle)] rounded-lg p-3">
+                <p className="text-xs text-[var(--text-muted)] mb-1">邀约总数</p>
+                <p className="text-xl font-bold text-[var(--text-primary)] font-mono tabular-nums">
+                  {(invitationStats.invitation_count ?? 0).toLocaleString()}
+                </p>
+              </div>
+              <div className="bg-[var(--bg-subtle)] rounded-lg p-3">
+                <p className="text-xs text-[var(--text-muted)] mb-1">注册→邀约率</p>
+                <p className="text-xl font-bold text-[var(--text-primary)] font-mono tabular-nums">
+                  {invitationStats.registration_invitation_rate != null
+                    ? `${(invitationStats.registration_invitation_rate * 100).toFixed(1)}%`
+                    : '—'}
+                </p>
+              </div>
+              <div className="bg-[var(--bg-subtle)] rounded-lg p-3">
+                <p className="text-xs text-[var(--text-muted)] mb-1">邀约→出席率</p>
+                <p className="text-xl font-bold text-[var(--text-primary)] font-mono tabular-nums">
+                  {invitationStats.invitation_showup_rate != null
+                    ? `${(invitationStats.invitation_showup_rate * 100).toFixed(1)}%`
+                    : '—'}
+                </p>
+              </div>
+            </div>
+          )}
+          {invitationStages.length > 0 && (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="slide-thead-row">
+                    <th className="slide-th text-left">环节</th>
+                    <th className="slide-th text-right">目标</th>
+                    <th className="slide-th text-right">实际</th>
+                    <th className="slide-th text-right">差距</th>
+                    <th className="slide-th text-right">达成率</th>
+                    <th className="slide-th text-right">转化率</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {invitationStages.map((s, i) => (
+                    <tr key={s.name} className={i % 2 === 0 ? 'slide-row-even' : 'slide-row-odd'}>
+                      <td className="slide-td font-medium">{s.name}</td>
+                      <td className="slide-td text-right font-mono tabular-nums text-[var(--text-secondary)]">
+                        {s.target != null ? s.target.toLocaleString() : '—'}
+                      </td>
+                      <td className="slide-td text-right font-mono tabular-nums font-semibold">
+                        {s.actual != null ? s.actual.toLocaleString() : '—'}
+                      </td>
+                      <td
+                        className={`slide-td text-right font-mono tabular-nums font-medium ${(s.gap ?? 0) >= 0 ? 'text-green-600' : 'text-red-500'}`}
+                      >
+                        {s.gap != null ? `${s.gap >= 0 ? '+' : ''}${s.gap.toLocaleString()}` : '—'}
+                      </td>
+                      <td className="slide-td text-right font-mono tabular-nums">
+                        {s.achievement_rate != null ? formatRate(s.achievement_rate) : '—'}
+                      </td>
+                      <td className="slide-td text-right font-mono tabular-nums">
+                        {s.conversion_rate != null
+                          ? `${(s.conversion_rate * 100).toFixed(1)}%`
+                          : '—'}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </Card>
       )}
 

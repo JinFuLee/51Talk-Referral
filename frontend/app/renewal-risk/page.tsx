@@ -17,28 +17,35 @@ import {
 } from 'recharts';
 
 export interface RenewalRiskSegment {
+  segment_id: string;
   label: string;
   count: number;
-  percentage: number;
+  days_range: string;
+  // percentage 由前端从 count / total 计算，后端不提供
 }
 
 export interface RenewalRiskStudent {
   stdt_id: string;
-  days_since_renewal: number | null;
+  days_since_last_renewal: number | null;
   enclosure: string | null;
   cc_name: string | null;
-  total_renewal_orders: number | null;
+  days_to_expiry: number | null;
+  monthly_referral_registrations: number | null;
+  monthly_referral_payments: number | null;
 }
 
 export interface RenewalRiskData {
   segments: RenewalRiskSegment[];
   high_risk_students: RenewalRiskStudent[];
+  total_students_with_data: number;
+  high_risk_rate: number;
+  renewal_col_used: string;
 }
 
 function segmentColor(label: string): string {
-  if (label.includes('90')) return '#ef4444';
-  if (label.includes('61')) return '#f97316';
-  if (label.includes('31')) return '#f59e0b';
+  if (label.includes('高风险') || label.includes('90')) return '#ef4444';
+  if (label.includes('中高') || label.includes('61')) return '#f97316';
+  if (label.includes('关注') || label.includes('31')) return '#f59e0b';
   return '#10b981';
 }
 
@@ -70,6 +77,8 @@ export default function RenewalRiskPage() {
 
   const segments = data?.segments ?? [];
   const highRiskStudents = data?.high_risk_students ?? [];
+  // percentage 由前端计算（后端不返回此字段）
+  const totalCount = segments.reduce((s, seg) => s + (seg.count ?? 0), 0);
 
   return (
     <div className="space-y-3">
@@ -87,15 +96,18 @@ export default function RenewalRiskPage() {
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             {segments.map((seg) => {
               const color = segmentColor(seg.label);
+              const pct = totalCount > 0 ? ((seg.count ?? 0) / totalCount) * 100 : 0;
               return (
-                <Card key={seg.label} title="">
+                <Card key={seg.segment_id ?? seg.label} title="">
                   <div className="pt-1">
-                    <p className="text-xs text-[var(--text-muted)] mb-1">{seg.label} 天</p>
+                    <p className="text-xs text-[var(--text-muted)] mb-1">
+                      {seg.label}（{seg.days_range ?? seg.label} 天）
+                    </p>
                     <p className="text-2xl font-bold" style={{ color }}>
-                      {seg.count.toLocaleString()}
+                      {(seg.count ?? 0).toLocaleString()}
                     </p>
                     <p className="text-xs text-[var(--text-secondary)] mt-1">
-                      占比 {seg.percentage.toFixed(1)}%
+                      占比 {pct.toFixed(1)}%
                     </p>
                   </div>
                 </Card>
@@ -134,20 +146,20 @@ export default function RenewalRiskPage() {
                   <th className="slide-th text-center">风险等级</th>
                   <th className="slide-th text-left">围场</th>
                   <th className="slide-th text-left">负责 CC</th>
-                  <th className="slide-th text-right">历史续费次数</th>
+                  <th className="slide-th text-right">本月推荐注册</th>
                 </tr>
               </thead>
               <tbody>
                 {highRiskStudents.map((s, i) => {
-                  const badge = riskBadge(s.days_since_renewal);
+                  const badge = riskBadge(s.days_since_last_renewal);
                   return (
                     <tr
                       key={s.stdt_id ?? i}
                       className="even:bg-[var(--bg-subtle)] hover:bg-[var(--bg-subtle)]"
                     >
-                      <td className="slide-td font-mono text-xs">{s.stdt_id}</td>
+                      <td className="slide-td font-mono text-xs">{s.stdt_id ?? '—'}</td>
                       <td className="slide-td text-right font-mono tabular-nums font-semibold text-red-600">
-                        {s.days_since_renewal ?? '—'}
+                        {s.days_since_last_renewal ?? '—'}
                       </td>
                       <td className="slide-td text-center">
                         <span
@@ -161,7 +173,7 @@ export default function RenewalRiskPage() {
                       </td>
                       <td className="slide-td">{s.cc_name ?? '—'}</td>
                       <td className="slide-td text-right font-mono tabular-nums">
-                        {s.total_renewal_orders ?? '—'}
+                        {s.monthly_referral_registrations ?? '—'}
                       </td>
                     </tr>
                   );

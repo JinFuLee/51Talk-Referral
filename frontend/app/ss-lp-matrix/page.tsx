@@ -114,7 +114,7 @@ function SSRankingTable({ rows }: { rows: EnclosureSSMetrics[] }) {
                 {safe(r.payments)}
               </td>
               <td className="slide-td py-1.5 px-2 text-right font-mono tabular-nums">
-                {r.revenue_usd !== null ? `$${r.revenue_usd.toLocaleString()}` : '—'}
+                {r.revenue_usd != null ? `$${r.revenue_usd.toLocaleString()}` : '—'}
               </td>
             </tr>
           ))}
@@ -244,7 +244,7 @@ function LPRankingTable({ rows }: { rows: EnclosureLPMetrics[] }) {
                 {safe(r.payments)}
               </td>
               <td className="slide-td py-1.5 px-2 text-right font-mono tabular-nums">
-                {r.revenue_usd !== null ? `$${r.revenue_usd.toLocaleString()}` : '—'}
+                {r.revenue_usd != null ? `$${r.revenue_usd.toLocaleString()}` : '—'}
               </td>
             </tr>
           ))}

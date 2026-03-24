@@ -65,7 +65,7 @@ function SummaryCards({ summary }: { summary: ExpiryAlertSummary }) {
               </span>
             </div>
             <div className={`text-3xl font-bold font-mono tabular-nums ${cfg.count}`}>
-              {count.toLocaleString()}
+              {(count ?? 0).toLocaleString()}
             </div>
             <div className={`text-xs ${cfg.text} opacity-70`}>名学员次卡即将到期</div>
           </div>
