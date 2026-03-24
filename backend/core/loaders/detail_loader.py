@@ -39,7 +39,7 @@ class DetailLoader(BaseLoader):
         return df
 
     def _find_file(self) -> Path | None:
-        # 明细文件需排除围场过程数据文件（都含"明细"字样）
+        # 明细文件需排除围场过程数据文件、围场明细、学员相关文件
         matches = sorted(
             [
                 f
@@ -47,6 +47,8 @@ class DetailLoader(BaseLoader):
                 if not f.name.startswith(".")
                 and "围场过程" not in f.name
                 and "付费学员" not in f.name
+                and "围场明细" not in f.name
+                and "学员" not in f.name
             ],
             key=lambda p: p.name,
             reverse=True,

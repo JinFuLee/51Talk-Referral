@@ -11,8 +11,11 @@ from typing import Any
 import pandas as pd
 
 from backend.core.loaders import (
+    D2bSummaryLoader,
     DetailLoader,
     EnclosureCCLoader,
+    EnclosureLPLoader,
+    EnclosureSSLoader,
     HighPotentialLoader,
     ResultLoader,
     StudentLoader,
@@ -26,7 +29,7 @@ logger = logging.getLogger(__name__)
 _last_empty_alert_ts: float = 0.0
 _ALERT_THROTTLE_SECONDS = 3600
 
-# 5 个数据源定义（用于状态查询）
+# 8 个数据源定义（用于状态查询）
 _DATA_SOURCE_META = [
     {
         "id": "result",
@@ -84,11 +87,38 @@ _DATA_SOURCE_META = [
         "system_consumed_columns": 14,
         "total_columns": 14,
     },
+    {
+        "id": "enclosure_ss",
+        "name": "围场过程数据_bySS(D2-SS)",
+        "pattern": "*围场过程数据*bySS*.xlsx",
+        "expected_rows_range": (50, 1000),
+        "critical_columns": ["统计日期", "围场", "last_ss_group_name", "转介绍参与率"],
+        "system_consumed_columns": 20,
+        "total_columns": 20,
+    },
+    {
+        "id": "enclosure_lp",
+        "name": "围场过程数据_byLP(D2-LP)",
+        "pattern": "*围场过程数据*byLP*.xlsx",
+        "expected_rows_range": (50, 1000),
+        "critical_columns": ["统计日期", "围场", "last_lp_group_name", "转介绍参与率"],
+        "system_consumed_columns": 20,
+        "total_columns": 20,
+    },
+    {
+        "id": "d2b_summary",
+        "name": "围场过程数据_byCC汇总(D2b)",
+        "pattern": "*围场过程数据*byCC副本*.xlsx",
+        "expected_rows_range": (1, 5),
+        "critical_columns": ["区域", "学员数", "带新系数"],
+        "system_consumed_columns": 7,
+        "total_columns": 7,
+    },
 ]
 
 
 class DataManager:
-    """统一加载并缓存 D1-D5 + 规划目标"""
+    """统一加载并缓存 D1-D5 + D2-SS/D2-LP/D2b + 规划目标"""
 
     def __init__(self, data_dir: str, target_file: str | None = None) -> None:
         self.data_dir = Path(data_dir)
@@ -108,6 +138,9 @@ class DataManager:
             loaders = {
                 "result": ResultLoader(self.data_dir),
                 "enclosure_cc": EnclosureCCLoader(self.data_dir),
+                "enclosure_ss": EnclosureSSLoader(self.data_dir),
+                "enclosure_lp": EnclosureLPLoader(self.data_dir),
+                "d2b_summary": D2bSummaryLoader(self.data_dir),
                 "detail": DetailLoader(self.data_dir),
                 "students": StudentLoader(self.data_dir),
                 "high_potential": HighPotentialLoader(self.data_dir),
@@ -135,13 +168,13 @@ class DataManager:
                 elif isinstance(val, dict):
                     logger.info(f"  {key}: {len(val)} 个目标键")
 
-            # 数据源全空检查（D1-D5，排除 targets 字典）
-            d1_to_d5 = {
+            # 数据源全空检查（全部 DataFrame，排除 targets 字典）
+            all_sources = {
                 k: v for k, v in new_cache.items()
                 if k != "targets" and isinstance(v, pd.DataFrame)
             }
-            if d1_to_d5 and all(df.empty for df in d1_to_d5.values()):
-                logger.warning("所有数据源为空（D1-D5），可能数据文件缺失或格式变更")
+            if all_sources and all(df.empty for df in all_sources.values()):
+                logger.warning("所有数据源为空（D1-D5+D2-SS/LP/D2b），可能数据文件缺失或格式变更")
                 self._alert_empty_data()
 
             return self._cache
@@ -282,7 +315,7 @@ class DataManager:
             logger.warning(f"数据源空态告警推送失败: {e}")
 
     def get_status(self) -> list[DataSourceStatus]:
-        """返回 5 个数据文件的详细健康状态"""
+        """返回 8 个数据文件的详细健康状态"""
         import re
         from datetime import datetime, timedelta
 
@@ -299,7 +332,7 @@ class DataManager:
             total_cols: int | None = meta.get("total_columns")
             sys_consumed: int | None = meta.get("system_consumed_columns")
 
-            # 找匹配文件
+            # 找匹配文件（与各 Loader._find_file 逻辑保持一致）
             if src_id == "detail":
                 files = [
                     f
@@ -307,6 +340,14 @@ class DataManager:
                     if not f.name.startswith(".")
                     and "围场过程" not in f.name
                     and "付费学员" not in f.name
+                    and "围场明细" not in f.name
+                    and "学员" not in f.name
+                ]
+            elif src_id == "enclosure_cc":
+                files = [
+                    f
+                    for f in self.data_dir.glob(pattern)
+                    if not f.name.startswith(".") and "副本" not in f.name
                 ]
             else:
                 files = [
