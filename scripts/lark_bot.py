@@ -633,11 +633,17 @@ def generate_cc_image(
         va="top",
     )
 
-    # ── 打卡率汇总条（新增）──
+    # ── 打卡率汇总条（只算角色对应围场）──
     y -= 0.55
-    total_students = cc_rate_info.get("total_students", 0)
-    checked_in = cc_rate_info.get("checked_in", 0)
-    overall_rate = cc_rate_info.get("rate", 0.0) or 0.0
+    by_enclosure = cc_rate_info.get("by_enclosure", [])
+    enc_rate_map = {item["enclosure"]: item for item in by_enclosure}
+    total_students = sum(
+        enc_rate_map.get(e, {}).get("students", 0) for e in enclosure_order
+    )
+    checked_in = sum(
+        enc_rate_map.get(e, {}).get("checked_in", 0) for e in enclosure_order
+    )
+    overall_rate = checked_in / total_students if total_students > 0 else 0.0
     not_checked_total = total_data_rows  # 未打卡学员数即各围场行数之和
 
     rate_bg = _rate_bg_color(overall_rate)
@@ -1593,62 +1599,57 @@ def cmd_followup(args: argparse.Namespace) -> None:
         enc_order = ["M0", "M1", "M2"]  # CC 默认，后续按 role 动态
 
         for cc_entry in tr["ccs"]:
-            cc_rate = cc_entry.get("rate", 0.0) or 0.0
+            # 只算角色对应围场的打卡率（CC=M0+M1+M2）
+            by_enc = cc_entry.get("by_enclosure", [])
+            enc_map = {ei["enclosure"]: ei for ei in by_enc}
+            role_total = sum(
+                enc_map.get(e, {}).get("students", 0)
+                for e in enc_order
+            )
+            role_checked = sum(
+                enc_map.get(e, {}).get("checked_in", 0)
+                for e in enc_order
+            )
             rate_pct = (
-                f"{cc_rate:.1%}"
-                if cc_entry.get("rate") is not None
+                f"{role_checked / role_total:.1%}"
+                if role_total > 0
                 else "—"
             )
 
-            # ── CC 标题行 ──
-            cc_md = f"👤 **{cc_entry['cc']}**"
-            cc_md += f"  ▸ **{rate_pct}**"
+            # ── 名字 + 打卡率 ──
+            cc_md = f"👤 **{cc_entry['cc']}**  ▸ **{rate_pct}**"
             if cc_entry["img_url"]:
                 cc_md += (
-                    f"  📷 [{_bi('view_list')}]"
+                    f"\n📷 [{_th('view_list')}"
+                    f" {cc_entry['cc']}]"
                     f"({cc_entry['img_url']})"
                 )
-            cc_md += "\n"
 
-            # ── 各围场：打卡率 + ID ──
+            # ── Mx + ID（每围场一组）──
             by_enc = cc_entry.get("by_enclosure", [])
             enc_map = {ei["enclosure"]: ei for ei in by_enc}
-            students_by_enc = cc_entry.get("students_by_enc", {})
+            s_by_enc = cc_entry.get("students_by_enc", {})
             for enc in enc_order:
                 ei = enc_map.get(enc, {})
-                enc_students = students_by_enc.get(enc, [])
-                unchecked_n = len(enc_students)
-                if ei.get("students", 0) > 0 or unchecked_n > 0:
-                    enc_r = (
-                        f"**{ei['rate']:.1%}**"
+                enc_students = s_by_enc.get(enc, [])
+                n = len(enc_students)
+                if ei.get("students", 0) > 0 or n > 0:
+                    r = (
+                        f"{ei['rate']:.1%}"
                         if ei.get("rate") is not None
                         else "—"
                     )
-                    checked = ei.get("checked_in", 0)
-                    total = ei.get("students", 0)
-                    cc_md += (
-                        f"**{enc}** · "
-                        f"{_th('not_checked')} "
-                        f"**{unchecked_n}** {_th('persons')}"
-                        f"  ({enc_r}"
-                    )
-                    if total > 0:
-                        cc_md += f" · {checked}/{total}"
-                    cc_md += ")\n"
-
-                    # 该围场的学员 ID
+                    cc_md += f"\n\n**{enc}** · {n} {_th('persons')} ({r})"
                     if enc_students:
-                        enc_ids = [
+                        ids = [
                             str(s.get("student_id", ""))
                             for s in enc_students
                         ]
                         chunks = [
-                            ", ".join(enc_ids[i:i + 8])
-                            for i in range(0, len(enc_ids), 8)
+                            ", ".join(ids[i:i + 8])
+                            for i in range(0, len(ids), 8)
                         ]
-                        cc_md += (
-                            "▪ " + "\n".join(chunks) + "\n"
-                        )
+                        cc_md += "\n" + "\n".join(chunks)
 
             team_elements.append(
                 {"tag": "markdown", "content": cc_md}
