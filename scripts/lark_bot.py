@@ -1484,11 +1484,17 @@ def cmd_followup(args: argparse.Namespace) -> None:
                     "img_bytes": cc_bytes,
                 }
             )
+        # 从 team_summary 取该团队的打卡率+围场率
+        ts_match = next(
+            (t for t in team_summary if t["team"] == team_name), {}
+        )
         team_cc_results.append(
             {
                 "team": team_name,
                 "count": len(members),
                 "cc_count": len(ccs),
+                "rate": ts_match.get("rate", 0.0),
+                "by_enc": ts_match.get("by_enc", {}),
                 "ccs": cc_list,
             }
         )
@@ -1539,28 +1545,49 @@ def cmd_followup(args: argparse.Namespace) -> None:
 
     total_count = sum(tr["count"] for tr in team_cc_results)
 
-    # 消息 1：总览 card（泰文主 + 中文辅）
+    # 消息 1：总览 card（泰文主 + 中文辅 + 围场率）
     overview_elements: list[dict] = []
-    overview_elements.append(
-        {
-            "tag": "markdown",
-            "content": (
-                f"{_th('total_summary')} **{total_count}** {_th('persons')}  "
-                f"({len(team_cc_results)} {_th('teams')})\n"
-                f"{_zh('total_summary')} **{total_count}** {_zh('persons')}  "
-                f"({len(team_cc_results)} {_zh('teams')})"
-            ),
-        }
+
+    # 角色总打卡率 + 各围场率
+    role_enc_rates = []
+    role_by_enc = role_summary.get("by_enclosure", [])
+    role_enc_map = {e["enclosure"]: e for e in role_by_enc}
+    r_total = sum(role_enc_map.get(e, {}).get("students", 0) for e in enc_order)
+    r_checked = sum(role_enc_map.get(e, {}).get("checked_in", 0) for e in enc_order)
+    r_rate = f"{r_checked / r_total:.1%}" if r_total > 0 else "—"
+    for enc in enc_order:
+        ei = role_enc_map.get(enc, {})
+        if ei.get("students", 0) > 0:
+            role_enc_rates.append(f"{enc}: **{ei['rate']:.1%}**")
+
+    summary_md = (
+        f"{_th('total_summary')} **{total_count}** {_th('persons')}"
+        f"  ({len(team_cc_results)} {_th('teams')})"
+        f"  ▸ **{r_rate}**\n"
+        f"{_zh('total_summary')} **{total_count}** {_zh('persons')}"
+        f"  ({len(team_cc_results)} {_zh('teams')})"
     )
+    if role_enc_rates:
+        summary_md += "\n" + "  |  ".join(role_enc_rates)
+
+    overview_elements.append({"tag": "markdown", "content": summary_md})
     overview_elements.append({"tag": "hr"})
+
     for tr in team_cc_results:
+        # 团队围场率
+        team_enc_parts = []
+        for enc in enc_order:
+            te = tr.get("by_enc", {}).get(enc)
+            if te and te > 0:
+                team_enc_parts.append(f"{enc}: **{te:.1%}**")
         md = (
-            f"📊 **{tr['team']}**\n"
+            f"📊 **{tr['team']}**"
+            f"  ▸ **{tr.get('rate', 0):.1%}**\n"
             f"{_th('not_checked')} **{tr['count']}** {_th('persons')}"
-            f"  |  {_th('cc_count')} {tr['cc_count']}\n"
-            f"{_zh('not_checked')} **{tr['count']}** {_zh('persons')}"
-            f"  |  {_zh('cc_count')} {tr['cc_count']}"
+            f"  |  {role} {tr['cc_count']}"
         )
+        if team_enc_parts:
+            md += "\n" + "  |  ".join(team_enc_parts)
         overview_elements.append({"tag": "markdown", "content": md})
     if overview_url:
         overview_elements.append(
@@ -1597,21 +1624,25 @@ def cmd_followup(args: argparse.Namespace) -> None:
     # 消息 2-N：每团队 card（泰文主 + 中文辅，每 CC 一段）
     for idx, tr in enumerate(team_cc_results, start=2):
         team_elements: list[dict] = []
-        team_elements.append(
-            {
-                "tag": "markdown",
-                "content": (
-                    f"{_th('not_checked')} **{tr['count']}** {_th('persons')}"
-                    f"  |  {_th('cc_count')} {tr['cc_count']}\n"
-                    f"{_zh('not_checked')} **{tr['count']}** {_zh('persons')}"
-                    f"  |  {_zh('cc_count')} {tr['cc_count']}"
-                ),
-            }
+        # 团队头部：打卡率 + 围场率
+        t_rate = f"{tr.get('rate', 0):.1%}"
+        t_enc_parts = []
+        for enc in enc_order:
+            te = tr.get("by_enc", {}).get(enc)
+            if te is not None and te > 0:
+                t_enc_parts.append(f"{enc}: **{te:.1%}**")
+        team_hdr = (
+            f"{_th('not_checked')} **{tr['count']}** {_th('persons')}"
+            f"  |  {role} {tr['cc_count']}"
+            f"  ▸ **{t_rate}**"
         )
+        if t_enc_parts:
+            team_hdr += "\n" + "  |  ".join(t_enc_parts)
+        team_elements.append({"tag": "markdown", "content": team_hdr})
         team_elements.append({"tag": "hr"})
 
         # 围场过滤：只显示该角色对应的围场
-        enc_order = ["M0", "M1", "M2"]  # CC 默认，后续按 role 动态
+        # enc_order 已在函数顶部按 role 动态设置
 
         for cc_entry in tr["ccs"]:
             # 只算角色对应围场的打卡率（CC=M0+M1+M2）
