@@ -6,25 +6,30 @@
   --foreground-rgb: 15, 23, 42;
   --background-rgb: 248, 250, 252;
 
-  /* ── SEE Warm Neutral Tokens ─────────────────────── */
-  --n-50: #fafaf5;
-  --n-100: #f5f5eb;
-  --n-200: #e8e8d8;
+  /* ── SEE Warm Neutral Tokens (v2.0) ─────────────── */
+  --n-50: #fafaf8;
+  --n-100: #f4f4f0;
+  --n-200: #e8e7e1;
   --n-300: #d4d4c4;
   --n-400: #a3a38e;
   --n-500: #737360;
   --n-600: #52524a;
   --n-700: #3d3d37;
-  --n-800: #28282a;
-  --n-900: #1a1a1c;
+  --n-800: #292521;
+  --n-900: #1c1815;
+
+  /* SEE Brand Layer (forest-ops preset) */
+  --brand-p1: #3d8b6b;
+  --brand-p2: #2f6d53;
+  --accent-spark: #4da882;
 
   /* 语义映射 */
   --bg-primary: var(--n-50);
   --bg-surface: #ffffff;
   --bg-subtle: var(--n-100);
   --text-primary: var(--n-900);
-  --text-secondary: #28282a; /* n-800，表格数据/数字，高对比可读 */
-  --text-muted: #3d3d37; /* n-700，辅助标签/提示，比 n-600(#52524A) 更深 */
+  --text-secondary: var(--n-800); /* 表格数据/数字，高对比可读 */
+  --text-muted: var(--n-700); /* 辅助标签/提示 */
   --border-default: var(--n-200);
   --border-subtle: var(--n-100);
 
@@ -45,22 +50,43 @@
   --chart-4-hex: #6b21a8;
   --chart-5-hex: #9a3412;
 
-  /* ── SEE 排版 5 级 Token ─────────────────────────── */
+  /* ── SEE Spacing ──────────────────────────────── */
+  --space-0-5: 2px;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-14: 56px;
+  --space-16: 64px;
+
+  /* ── SEE Font Stack ──────────────────────────── */
+  --font-display: 'Space Grotesk', 'Noto Serif SC', 'Noto Serif Thai', Georgia, serif;
+  --font-sans:
+    'Inter', 'IBM Plex Sans Thai', 'Prompt', 'PingFang SC', 'Noto Sans SC', 'Noto Sans Thai',
+    system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', 'SF Mono', 'Fira Code', monospace;
+
+  /* ── SEE 排版 5 级 Token (v2.0) ──────────────── */
   --text-display-size: 2rem;
-  --text-display-weight: 800;
-  --text-display-lh: 1.1;
+  --text-display-weight: 700;
+  --text-display-lh: 1.15;
 
   --text-heading-size: 1.125rem;
   --text-heading-weight: 700;
   --text-heading-lh: 1.3;
 
-  --text-body-size: 0.875rem;
+  --text-body-size: 0.9375rem;
   --text-body-weight: 400;
-  --text-body-lh: 1.65;
+  --text-body-lh: 1.7;
 
-  --text-caption-size: 0.75rem;
+  --text-caption-size: 0.8125rem;
   --text-caption-weight: 500;
-  --text-caption-lh: 1.5;
+  --text-caption-lh: 1.55;
 
   --text-overline-size: 0.6875rem;
   --text-overline-weight: 700;
@@ -220,6 +246,8 @@ td[class*='text-orange'] {
     --chart-lime: 84 81% 44%;
     --chart-pink: 330 81% 60%;
     --chart-emerald: 160 84% 39%;
+
+    --brand-p1-dark: #5aa88a; /* forest-ops P1 亮化 15% */
   }
 }
 
@@ -516,4 +544,52 @@ body.presentation-mode .presentation-watermark {
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+/* ══════════════════════════════════════════════════
+   SEE Design System — Brand Dot v2.0.0
+   渐进式披露 L1 触发器 + 品牌微标志
+   ══════════════════════════════════════════════════ */
+
+.brand-dot {
+  display: inline-block;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background-color: var(--brand-p1);
+  opacity: 0.4;
+  transition:
+    opacity 150ms ease-out,
+    transform 150ms ease-out;
+  cursor: help;
+  vertical-align: middle;
+  margin-left: var(--space-1, 4px);
+  flex-shrink: 0;
+}
+
+.brand-dot:hover,
+.brand-dot:focus-visible {
+  opacity: 1;
+  transform: scale(1.5);
+}
+
+.dark .brand-dot {
+  background-color: var(--brand-p1-dark, var(--brand-p1));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .brand-dot:hover,
+  .brand-dot:focus-visible {
+    transform: none;
+  }
+}
+
+.brand-watermark {
+  opacity: 0.12;
+  pointer-events: none;
+  user-select: none;
+}
+
+.dark .brand-watermark {
+  opacity: 0.08;
 }
