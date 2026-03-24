@@ -115,7 +115,10 @@ limiter = Limiter(key_func=get_remote_address, default_limits=[_rate_limit_str])
 async def lifespan(app: FastAPI):
     import shutil
 
+    from apscheduler.schedulers.asyncio import AsyncIOScheduler
+
     from backend.api.dependencies import _create_data_manager
+    from backend.api.notifications import _sync_scheduler
     from backend.core.file_watcher import FileWatcher
 
     dm = _create_data_manager()
@@ -142,6 +145,13 @@ async def lifespan(app: FastAPI):
                     shutil.copy2(backups[0], config_dir / f)
                     logger.info(f"✓ 从备份恢复: {f} ← {backups[0].name}")
 
+    # APScheduler 启动并加载持久化排程
+    scheduler = AsyncIOScheduler(timezone="Asia/Bangkok")
+    scheduler.start()
+    app.state.scheduler = scheduler
+    _sync_scheduler(app.state)
+    logger.info("✓ APScheduler 已启动，加载持久化排程完成")
+
     watcher = FileWatcher(dm)
     watcher.start()
     app.state.file_watcher = watcher
@@ -149,6 +159,8 @@ async def lifespan(app: FastAPI):
     yield
 
     watcher.stop()
+    scheduler.shutdown(wait=False)
+    logger.info("✓ APScheduler 已关闭")
 
 
 app = FastAPI(

@@ -10,6 +10,7 @@ import { TodayStatus } from './TodayStatus';
 import { BotManager } from './BotManager';
 import { PushControl } from './PushControl';
 import { OutputGallery } from './OutputGallery';
+import { ScheduleManager } from './ScheduleManager';
 
 const I18N = {
   zh: {
@@ -18,6 +19,7 @@ const I18N = {
     todayStatus: '今日推送状态',
     bots: '机器人管理',
     push: '推送控制',
+    schedule: '定时排程',
     outputs: '产出档案',
     lark: 'Lark',
     dingtalk: '钉钉',
@@ -29,6 +31,7 @@ const I18N = {
     todayStatus: "Today's Status",
     bots: 'Bot Management',
     push: 'Push Control',
+    schedule: 'Scheduled Tasks',
     outputs: 'Output Archive',
     lark: 'Lark',
     dingtalk: 'DingTalk',
@@ -82,6 +85,11 @@ export default function NotificationsPage() {
       {/* Push Control */}
       <Card title={t.push}>
         <PushControl platform={platform} />
+      </Card>
+
+      {/* Schedule Manager */}
+      <Card title={t.schedule}>
+        <ScheduleManager lang={lang} />
       </Card>
 
       {/* Output Gallery */}

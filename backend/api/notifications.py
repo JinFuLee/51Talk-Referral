@@ -15,19 +15,21 @@ from typing import Any
 
 from fastapi import APIRouter, HTTPException, Query
 from fastapi.responses import FileResponse
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 KEY_DIR = PROJECT_ROOT / "key"
 OUTPUT_DIR = PROJECT_ROOT / "output"
 CONFIG_DIR = PROJECT_ROOT / "config"
 OUTPUT_DIR.mkdir(exist_ok=True)
+CONFIG_DIR.mkdir(exist_ok=True)
 
 LARK_CRED_PATH = KEY_DIR / "lark-channels.json"
 DINGTALK_CRED_PATH = KEY_DIR / "dingtalk-channels.json"
 NOTIFICATION_LOG_PATH = OUTPUT_DIR / "notification-log.jsonl"
 ENCLOSURE_ROLE_OVERRIDE_PATH = CONFIG_DIR / "enclosure_role_override.json"
 MAIN_CONFIG_PATH = PROJECT_ROOT / "projects" / "referral" / "config.json"
+SCHEDULE_CONFIG_PATH = CONFIG_DIR / "notification-schedule.json"
 
 router = APIRouter()
 
@@ -632,3 +634,209 @@ def update_output_text(date: str, role: str, body: TextUpdateRequest) -> dict:
         return {"ok": True, "filename": filename, "date": date, "role": role}
     except OSError as e:
         raise HTTPException(status_code=500, detail=f"写入失败: {e}") from e
+
+
+# ── 定时排程 ──────────────────────────────────────────────────────────────────
+
+class ScheduleIn(BaseModel):
+    name: str
+    platform: str  # lark / dingtalk
+    template: str  # cc_followup / lp_followup / ss_followup / ops_followup
+    channels: list[str]
+    cron_hour: int
+    cron_minute: int
+    force: bool = False
+    dry_run: bool = False
+    enabled: bool = True
+    description: str = ""
+
+    @field_validator("platform")
+    @classmethod
+    def _validate_platform(cls, v: str) -> str:
+        if v not in ("lark", "dingtalk"):
+            raise ValueError("platform 必须是 lark 或 dingtalk")
+        return v
+
+    @field_validator("cron_hour")
+    @classmethod
+    def _validate_hour(cls, v: int) -> int:
+        if not 0 <= v <= 23:
+            raise ValueError("cron_hour 必须在 0-23 之间")
+        return v
+
+    @field_validator("cron_minute")
+    @classmethod
+    def _validate_minute(cls, v: int) -> int:
+        if not 0 <= v <= 59:
+            raise ValueError("cron_minute 必须在 0-59 之间")
+        return v
+
+
+class ScheduleUpdate(BaseModel):
+    name: str | None = None
+    platform: str | None = None
+    template: str | None = None
+    channels: list[str] | None = None
+    cron_hour: int | None = None
+    cron_minute: int | None = None
+    force: bool | None = None
+    dry_run: bool | None = None
+    enabled: bool | None = None
+    description: str | None = None
+
+
+def _read_schedules() -> list[dict]:
+    data = _read_json(SCHEDULE_CONFIG_PATH, [])
+    return data if isinstance(data, list) else []
+
+
+def _write_schedules(schedules: list[dict]) -> None:
+    _write_json(SCHEDULE_CONFIG_PATH, schedules)
+
+
+def _sync_scheduler(app_state: Any | None = None) -> None:
+    """将 config 中 enabled=True 的排程同步到 APScheduler。
+    app_state 为 FastAPI app.state，含 scheduler 实例。
+    """
+    if app_state is None:
+        return
+    scheduler = getattr(app_state, "scheduler", None)
+    if scheduler is None:
+        return
+
+    schedules = _read_schedules()
+    # 移除所有 notification_schedule_* 的旧 job
+    for job in scheduler.get_jobs():
+        if job.id.startswith("notification_schedule_"):
+            scheduler.remove_job(job.id)
+
+    # 重新注册 enabled job
+    for sch in schedules:
+        if not sch.get("enabled", True):
+            continue
+        job_id = f"notification_schedule_{sch['id']}"
+        scheduler.add_job(
+            _execute_schedule_job,
+            trigger="cron",
+            hour=sch.get("cron_hour", 9),
+            minute=sch.get("cron_minute", 0),
+            id=job_id,
+            replace_existing=True,
+            kwargs={"schedule_id": sch["id"]},
+        )
+
+
+def _execute_schedule_job(schedule_id: str) -> None:
+    """APScheduler 回调：执行指定排程的推送"""
+    schedules = _read_schedules()
+    sch = next((s for s in schedules if s["id"] == schedule_id), None)
+    if sch is None or not sch.get("enabled", True):
+        return
+
+    push_body = PushRequest(
+        platform=sch["platform"],
+        template=sch["template"],
+        channels=sch.get("channels", []),
+        force=sch.get("force", False),
+        dry_run=sch.get("dry_run", False),
+    )
+    job_id = f"sched_{schedule_id}_{datetime.now().strftime('%H%M%S')}"
+    _job_status[job_id] = {
+        "job_id": job_id,
+        "status": "queued",
+        "platform": push_body.platform,
+        "template": push_body.template,
+        "channels": push_body.channels,
+        "created_at": datetime.now().isoformat(),
+        "schedule_id": schedule_id,
+        "progress": {"sent": 0, "total": len(push_body.channels), "current": None},
+        "results": [],
+    }
+    _run_push_job(job_id, push_body)
+
+
+# ── 排程 CRUD ─────────────────────────────────────────────────────────────────
+
+from fastapi import Request as _Request  # noqa: E402
+
+
+@router.get("/notifications/schedule")
+def list_schedules() -> dict:
+    """排程列表"""
+    schedules = _read_schedules()
+    return {"schedules": schedules, "total": len(schedules)}
+
+
+@router.post("/notifications/schedule", status_code=201)
+def create_schedule(body: ScheduleIn, request: _Request) -> dict:
+    """新建排程"""
+    schedules = _read_schedules()
+    new_id = str(uuid.uuid4())[:8]
+    entry: dict = {
+        "id": new_id,
+        "name": body.name,
+        "platform": body.platform,
+        "template": body.template,
+        "channels": body.channels,
+        "cron_hour": body.cron_hour,
+        "cron_minute": body.cron_minute,
+        "force": body.force,
+        "dry_run": body.dry_run,
+        "enabled": body.enabled,
+        "description": body.description,
+        "created_at": datetime.now().isoformat(),
+    }
+    schedules.append(entry)
+    _write_schedules(schedules)
+    _sync_scheduler(getattr(request.app, "state", None))
+    return {"ok": True, "id": new_id}
+
+
+@router.put("/notifications/schedule/{schedule_id}")
+def update_schedule(
+    schedule_id: str, body: ScheduleUpdate, request: _Request
+) -> dict:
+    """编辑排程"""
+    schedules = _read_schedules()
+    idx = next(
+        (i for i, s in enumerate(schedules) if s["id"] == schedule_id), None
+    )
+    if idx is None:
+        raise HTTPException(status_code=404, detail=f"排程 '{schedule_id}' 不存在")
+
+    update = body.model_dump(exclude_none=True)
+    schedules[idx].update(update)
+    schedules[idx]["updated_at"] = datetime.now().isoformat()
+    _write_schedules(schedules)
+    _sync_scheduler(getattr(request.app, "state", None))
+    return {"ok": True, "id": schedule_id}
+
+
+@router.delete("/notifications/schedule/{schedule_id}")
+def delete_schedule(schedule_id: str, request: _Request) -> dict:
+    """删除排程"""
+    schedules = _read_schedules()
+    before_len = len(schedules)
+    schedules = [s for s in schedules if s["id"] != schedule_id]
+    if len(schedules) == before_len:
+        raise HTTPException(status_code=404, detail=f"排程 '{schedule_id}' 不存在")
+    _write_schedules(schedules)
+    _sync_scheduler(getattr(request.app, "state", None))
+    return {"ok": True, "deleted": schedule_id}
+
+
+@router.post("/notifications/schedule/{schedule_id}/toggle")
+def toggle_schedule(schedule_id: str, request: _Request) -> dict:
+    """启停排程"""
+    schedules = _read_schedules()
+    idx = next(
+        (i for i, s in enumerate(schedules) if s["id"] == schedule_id), None
+    )
+    if idx is None:
+        raise HTTPException(status_code=404, detail=f"排程 '{schedule_id}' 不存在")
+
+    schedules[idx]["enabled"] = not schedules[idx].get("enabled", True)
+    schedules[idx]["updated_at"] = datetime.now().isoformat()
+    _write_schedules(schedules)
+    _sync_scheduler(getattr(request.app, "state", None))
+    return {"ok": True, "id": schedule_id, "enabled": schedules[idx]["enabled"]}

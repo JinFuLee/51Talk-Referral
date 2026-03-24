@@ -24,6 +24,7 @@ dependencies = [
     "python-dateutil>=2.8.0",
     "matplotlib>=3.10.8",
     "dingtalk-stream>=0.24.3",
+    "apscheduler>=3.11.2",
 ]
 
 [dependency-groups]
