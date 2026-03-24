@@ -27,6 +27,9 @@ import {
   Radio,
   Search,
   LayoutGrid,
+  PhoneCall,
+  Gift,
+  AlertTriangle,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
@@ -55,6 +58,9 @@ const MAIN_GROUPS: NavGroup[] = [
       { href: '/checkin', label: '打卡管理', Icon: CheckCircle },
       { href: '/daily-monitor', label: '触达监控', Icon: Radio },
       { href: '/students/360', label: '学员360档案', Icon: Search },
+      { href: '/outreach-quality', label: '接通质量分析', Icon: PhoneCall },
+      { href: '/incentive-tracking', label: '激励追踪', Icon: Gift },
+      { href: '/renewal-risk', label: '续费风险', Icon: AlertTriangle },
     ],
   },
   {
