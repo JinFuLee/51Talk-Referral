@@ -5,35 +5,29 @@ import { swrFetcher } from '@/lib/api';
 import { Card } from '@/components/ui/Card';
 import { Spinner } from '@/components/ui/Spinner';
 import { EmptyState } from '@/components/ui/EmptyState';
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-} from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
-export interface IncentiveEffectData {
-  has_reward: { count: number; avg_registrations: number; avg_payments: number };
-  no_reward: { count: number; avg_registrations: number; avg_payments: number };
-  lift_pct: { registrations: number; payments: number };
+interface IncentiveGroup {
+  reward_status: string;
+  student_count: number;
+  avg_referral_registrations: number | null;
+  avg_referral_payments: number | null;
+  avg_new_coefficient: number | null;
+  total_referral_registrations: number | null;
+  total_referral_payments: number | null;
 }
 
-function liftColor(pct: number): string {
-  if (pct > 0) return 'text-green-600';
-  if (pct < 0) return 'text-red-500';
-  return 'text-[var(--text-secondary)]';
+interface IncentiveResponse {
+  groups: IncentiveGroup[];
 }
 
-function liftPrefix(pct: number): string {
-  return pct >= 0 ? '+' : '';
+function safeNum(v: number | null | undefined, decimals = 2): string {
+  if (v == null) return '—';
+  return v.toFixed(decimals);
 }
 
 export default function IncentiveTrackingPage() {
-  const { data, isLoading, error } = useSWR<IncentiveEffectData>(
+  const { data, isLoading, error } = useSWR<IncentiveResponse>(
     '/api/analysis/incentive-effect',
     swrFetcher
   );
@@ -50,169 +44,120 @@ export default function IncentiveTrackingPage() {
     return <EmptyState title="数据加载失败" description="无法获取激励追踪数据，请检查后端服务" />;
   }
 
-  if (!data) {
-    return <EmptyState title="暂无激励数据" description="上传数据文件后自动识别激励效果" />;
+  const groups = data?.groups ?? [];
+
+  if (groups.length === 0) {
+    return (
+      <EmptyState
+        title="暂无激励数据"
+        description="推荐奖励领取状态字段为空，上传含该字段的数据后自动识别"
+      />
+    );
   }
 
-  const { has_reward, no_reward, lift_pct } = data;
+  // 按学员数降序排列
+  const sorted = [...groups].sort((a, b) => (b.student_count ?? 0) - (a.student_count ?? 0));
 
-  const comparisonData = [
-    {
-      name: '平均注册数',
-      领奖学员: Number(has_reward.avg_registrations.toFixed(2)),
-      未领奖学员: Number(no_reward.avg_registrations.toFixed(2)),
-    },
-    {
-      name: '平均付费数',
-      领奖学员: Number(has_reward.avg_payments.toFixed(2)),
-      未领奖学员: Number(no_reward.avg_payments.toFixed(2)),
-    },
-  ];
+  // 图表数据：各组付费数对比
+  const chartData = sorted.map((g) => ({
+    name: g.reward_status.length > 12 ? g.reward_status.slice(0, 12) + '…' : g.reward_status,
+    学员数: g.student_count ?? 0,
+    平均付费数: Number(safeNum(g.avg_referral_payments)) || 0,
+    总付费数: g.total_referral_payments ?? 0,
+  }));
+
+  const totalStudents = sorted.reduce((sum, g) => sum + (g.student_count ?? 0), 0);
 
   return (
     <div className="space-y-3">
       <div>
         <h1 className="text-lg font-bold text-[var(--text-primary)]">激励追踪</h1>
         <p className="text-sm text-[var(--text-secondary)] mt-1">
-          领奖 vs 未领奖学员对比 · 激励 Lift 效果量化
+          按奖励领取状态分组 · 转介绍产出对比
         </p>
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
+      {/* 汇总卡片 */}
+      <div className="grid grid-cols-3 gap-3">
         <Card title="">
-          <div className="pt-1 text-center py-4">
-            <p className="text-xs text-[var(--text-muted)] mb-2">注册数提升 (Lift)</p>
-            <p className={`text-4xl font-bold ${liftColor(lift_pct.registrations)}`}>
-              {liftPrefix(lift_pct.registrations)}
-              {lift_pct.registrations.toFixed(1)}%
-            </p>
-            <p className="text-xs text-[var(--text-secondary)] mt-2">
-              领奖学员相对未领奖学员的注册数提升比例
+          <div className="text-center py-3">
+            <p className="text-xs text-[var(--text-muted)] mb-1">奖励状态分组</p>
+            <p className="text-3xl font-bold text-[var(--text-primary)]">{sorted.length}</p>
+          </div>
+        </Card>
+        <Card title="">
+          <div className="text-center py-3">
+            <p className="text-xs text-[var(--text-muted)] mb-1">总学员数</p>
+            <p className="text-3xl font-bold text-[var(--text-primary)]">
+              {totalStudents.toLocaleString()}
             </p>
           </div>
         </Card>
         <Card title="">
-          <div className="pt-1 text-center py-4">
-            <p className="text-xs text-[var(--text-muted)] mb-2">付费数提升 (Lift)</p>
-            <p className={`text-4xl font-bold ${liftColor(lift_pct.payments)}`}>
-              {liftPrefix(lift_pct.payments)}
-              {lift_pct.payments.toFixed(1)}%
-            </p>
-            <p className="text-xs text-[var(--text-secondary)] mt-2">
-              领奖学员相对未领奖学员的付费数提升比例
+          <div className="text-center py-3">
+            <p className="text-xs text-[var(--text-muted)] mb-1">总推荐付费</p>
+            <p className="text-3xl font-bold text-green-600">
+              {sorted
+                .reduce((sum, g) => sum + (g.total_referral_payments ?? 0), 0)
+                .toLocaleString()}
             </p>
           </div>
         </Card>
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
-        {[
-          {
-            label: '领奖学员',
-            group: has_reward,
-            accent: 'text-green-600',
-            badge: 'bg-green-100 text-green-700',
-          },
-          {
-            label: '未领奖学员',
-            group: no_reward,
-            accent: 'text-[var(--text-secondary)]',
-            badge: 'bg-[var(--bg-subtle)] text-[var(--text-secondary)]',
-          },
-        ].map(({ label, group, accent, badge }) => (
-          <Card key={label} title="">
-            <div className="pt-1 space-y-3">
-              <div className="flex items-center gap-2">
-                <span className={`text-sm font-semibold px-2 py-0.5 rounded ${badge}`}>
-                  {label}
-                </span>
-                <span className="text-xs text-[var(--text-muted)]">
-                  共 {group.count.toLocaleString()} 人
-                </span>
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <p className="text-xs text-[var(--text-muted)] mb-1">平均注册数</p>
-                  <p className={`text-2xl font-bold ${accent}`}>
-                    {group.avg_registrations.toFixed(2)}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-xs text-[var(--text-muted)] mb-1">平均付费数</p>
-                  <p className={`text-2xl font-bold ${accent}`}>{group.avg_payments.toFixed(2)}</p>
-                </div>
-              </div>
-            </div>
-          </Card>
-        ))}
-      </div>
-
-      <Card title="领奖 vs 未领奖对比">
-        <ResponsiveContainer width="100%" height={220}>
-          <BarChart data={comparisonData} barCategoryGap="40%">
-            <CartesianGrid strokeDasharray="3 3" vertical={false} />
-            <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-            <YAxis tick={{ fontSize: 11 }} />
+      {/* 各组付费数条形图 */}
+      <Card title="各奖励状态组 — 总推荐付费数">
+        <ResponsiveContainer width="100%" height={Math.max(180, sorted.length * 40)}>
+          <BarChart data={chartData} layout="vertical" barCategoryGap="30%">
+            <CartesianGrid strokeDasharray="3 3" horizontal={false} />
+            <XAxis type="number" tick={{ fontSize: 11 }} />
+            <YAxis dataKey="name" type="category" tick={{ fontSize: 11 }} width={120} />
             <Tooltip />
-            <Legend wrapperStyle={{ fontSize: 12 }} />
-            <Bar dataKey="领奖学员" fill="#10b981" radius={[4, 4, 0, 0]} />
-            <Bar dataKey="未领奖学员" fill="#94a3b8" radius={[4, 4, 0, 0]} />
+            <Bar dataKey="总付费数" fill="#10b981" radius={[0, 4, 4, 0]} />
           </BarChart>
         </ResponsiveContainer>
       </Card>
 
-      <Card title="指标对比明细">
+      {/* 明细表格 */}
+      <Card title="分组明细">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="slide-thead-row">
-                <th className="slide-th text-left">指标</th>
-                <th className="slide-th text-right">领奖学员</th>
-                <th className="slide-th text-right">未领奖学员</th>
-                <th className="slide-th text-right">Lift</th>
+                <th className="slide-th text-left">奖励状态</th>
+                <th className="slide-th text-right">学员数</th>
+                <th className="slide-th text-right">占比</th>
+                <th className="slide-th text-right">均注册数</th>
+                <th className="slide-th text-right">均付费数</th>
+                <th className="slide-th text-right">总付费数</th>
               </tr>
             </thead>
             <tbody>
-              <tr className="even:bg-[var(--bg-subtle)]">
-                <td className="slide-td font-medium">学员数</td>
-                <td className="slide-td text-right font-mono tabular-nums">
-                  {has_reward.count.toLocaleString()}
-                </td>
-                <td className="slide-td text-right font-mono tabular-nums">
-                  {no_reward.count.toLocaleString()}
-                </td>
-                <td className="slide-td text-right text-[var(--text-muted)]">—</td>
-              </tr>
-              <tr className="even:bg-[var(--bg-subtle)]">
-                <td className="slide-td font-medium">平均注册数</td>
-                <td className="slide-td text-right font-mono tabular-nums font-semibold text-green-600">
-                  {has_reward.avg_registrations.toFixed(2)}
-                </td>
-                <td className="slide-td text-right font-mono tabular-nums">
-                  {no_reward.avg_registrations.toFixed(2)}
-                </td>
-                <td
-                  className={`slide-td text-right font-mono tabular-nums font-medium ${liftColor(lift_pct.registrations)}`}
+              {sorted.map((g, i) => (
+                <tr
+                  key={g.reward_status}
+                  className={i % 2 === 0 ? 'slide-row-even' : 'slide-row-odd'}
                 >
-                  {liftPrefix(lift_pct.registrations)}
-                  {lift_pct.registrations.toFixed(1)}%
-                </td>
-              </tr>
-              <tr className="even:bg-[var(--bg-subtle)]">
-                <td className="slide-td font-medium">平均付费数</td>
-                <td className="slide-td text-right font-mono tabular-nums font-semibold text-green-600">
-                  {has_reward.avg_payments.toFixed(2)}
-                </td>
-                <td className="slide-td text-right font-mono tabular-nums">
-                  {no_reward.avg_payments.toFixed(2)}
-                </td>
-                <td
-                  className={`slide-td text-right font-mono tabular-nums font-medium ${liftColor(lift_pct.payments)}`}
-                >
-                  {liftPrefix(lift_pct.payments)}
-                  {lift_pct.payments.toFixed(1)}%
-                </td>
-              </tr>
+                  <td className="slide-td font-medium">{g.reward_status}</td>
+                  <td className="slide-td text-right font-mono tabular-nums">
+                    {(g.student_count ?? 0).toLocaleString()}
+                  </td>
+                  <td className="slide-td text-right font-mono tabular-nums text-[var(--text-muted)]">
+                    {totalStudents > 0
+                      ? (((g.student_count ?? 0) / totalStudents) * 100).toFixed(1) + '%'
+                      : '—'}
+                  </td>
+                  <td className="slide-td text-right font-mono tabular-nums">
+                    {safeNum(g.avg_referral_registrations)}
+                  </td>
+                  <td className="slide-td text-right font-mono tabular-nums font-semibold">
+                    {safeNum(g.avg_referral_payments)}
+                  </td>
+                  <td className="slide-td text-right font-mono tabular-nums font-semibold text-green-600">
+                    {(g.total_referral_payments ?? 0).toLocaleString()}
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>
