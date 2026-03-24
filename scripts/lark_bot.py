@@ -80,6 +80,58 @@ def cached_upload(
         url_cache[filename] = url
     return url
 
+
+def upload_paste(text: str, title: str = "followup") -> str | None:
+    """上传文本到 bytebin（lucko.me），返回可直接访问的 raw URL"""
+    data = text.encode("utf-8")
+    req = urllib.request.Request(
+        "https://bytebin.lucko.me/post",
+        data=data,
+        headers={
+            "Content-Type": "text/plain; charset=utf-8",
+            "User-Agent": "ref-ops-engine/1.0",
+        },
+        method="POST",
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=15) as resp:
+            result = json.loads(resp.read().decode("utf-8"))
+            key = result.get("key")
+            if key:
+                return f"https://bytebin.lucko.me/{key}"
+    except Exception as e:
+        print(f"  ✗ [bytebin] 上传失败: {e}")
+        # 429 限频时等待后重试一次
+        if "429" in str(e):
+            time.sleep(3)
+            try:
+                with urllib.request.urlopen(req, timeout=15) as resp:
+                    result = json.loads(resp.read().decode("utf-8"))
+                    key = result.get("key")
+                    if key:
+                        return f"https://bytebin.lucko.me/{key}"
+            except Exception:
+                pass
+    return None
+
+
+def cached_paste(
+    text: str,
+    cache_key: str,
+    url_cache: dict[str, str],
+    title: str = "followup",
+) -> str | None:
+    """上传文本到 paste 服务，优先使用缓存 URL。"""
+    if cache_key in url_cache:
+        print(f"  ✓ [缓存] {cache_key}")
+        return url_cache[cache_key]
+    url = upload_paste(text, title)
+    if url:
+        url_cache[cache_key] = url
+        print(f"  ✓ [bytebin] {cache_key}")
+    return url
+
+
 # ── 色板（SEE Design System — Warm Neutral）─────────────────────────────────
 
 C_BG = "#FAFAF9"
@@ -1041,11 +1093,26 @@ def cmd_followup(args: argparse.Namespace) -> None:
                 cc_path.write_bytes(cc_bytes)
                 kb_cc = len(cc_bytes) // 1024
                 print(f"   [{team_name}/{cc_name}] 新生成 ({kb_cc}KB)")
+            # 构建 TSV 文本（供 paste 上传）
+            tsv_lines = [
+                f"{cc_name} — {team_name}",
+                "รหัส(学员ID)\tคอก(围场)\t★(评分)\tโทรล่าสุด(末次拨打)\tคลาส(课耗)",
+            ]
+            for s in cc_students:
+                sid = s.get("student_id", "")
+                enc = s.get("enclosure", "")
+                score = int(s.get("quality_score", 0) or 0)
+                lc = (s.get("cc_last_call_date") or "—")[:10]
+                les = s.get("lesson_consumption_3m")
+                les_str = str(int(les)) if les is not None else "—"
+                tsv_lines.append(f"{sid}\t{enc}\t{score}\t{lc}\t{les_str}")
             cc_list.append(
                 {
                     "cc": cc_name,
                     "count": len(cc_students),
                     "img_url": None,
+                    "tsv_url": None,
+                    "tsv_text": "\n".join(tsv_lines),
                     "filename": cc_filename,
                     "img_bytes": cc_bytes,
                 }
@@ -1070,8 +1137,8 @@ def cmd_followup(args: argparse.Namespace) -> None:
         print("3. [跳过] 通道 webhook 为空（test 通道仅支持 --dry-run）")
         return
 
-    # ── 阶段 3：上传图片（URL 缓存：同日已上传则复用 URL）─────────────────────
-    print("3. 上传图片...")
+    # ── 阶段 3：上传图片 + TSV（缓存：同日已上传则复用 URL）──────────────────
+    print("3. 上传图片 + 数据...")
     url_cache = load_url_cache(date_short)
     cache_hits_before = len(url_cache)
 
@@ -1086,6 +1153,13 @@ def cmd_followup(args: argparse.Namespace) -> None:
             )
             if not cc_entry["img_url"]:
                 print(f"   ⚠ [{tr['team']}/{cc_entry['cc']}] 图片上传失败")
+            # 上传 TSV 到 paste 服务（间隔 0.5s 防限频）
+            paste_key = f"tsv-{cc_entry['filename'].replace('.png', '')}"
+            title = f"{cc_entry['cc']} - {tr['team']} ({date_short})"
+            cc_entry["tsv_url"] = cached_paste(
+                cc_entry["tsv_text"], paste_key, url_cache, title
+            )
+            time.sleep(0.5)
 
     # 持久化 URL 缓存
     save_url_cache(date_short, url_cache)
@@ -1093,9 +1167,9 @@ def cmd_followup(args: argparse.Namespace) -> None:
     new_uploads = cache_hits_after - cache_hits_before
     cached_count = cache_hits_after - new_uploads
     if cached_count > 0:
-        print(f"   ✓ 缓存命中 {cached_count} 张，新上传 {new_uploads} 张")
+        print(f"   ✓ 缓存命中 {cached_count}，新上传 {new_uploads}")
     else:
-        print(f"   ✓ 全部新上传 {new_uploads} 张")
+        print(f"   ✓ 全部新上传 {new_uploads}")
 
     print()
 
@@ -1104,36 +1178,44 @@ def cmd_followup(args: argparse.Namespace) -> None:
 
     total_count = sum(tr["count"] for tr in team_cc_results)
 
-    # 消息 1：总览 card
+    # 消息 1：总览 card（泰文主 + 中文辅）
     overview_elements: list[dict] = []
     overview_elements.append(
         {
             "tag": "markdown",
             "content": (
                 f"{_th('total_summary')} **{total_count}** {_th('persons')}  "
-                f"({len(team_cc_results)} {_th('teams')})"
+                f"({len(team_cc_results)} {_th('teams')})\n"
+                f"{_zh('total_summary')} **{total_count}** {_zh('persons')}  "
+                f"({len(team_cc_results)} {_zh('teams')})"
             ),
         }
     )
     overview_elements.append({"tag": "hr"})
     for tr in team_cc_results:
-        not_checked_th = _th("not_checked")
-        persons_th = _th("persons")
-        cc_count_th = _th("cc_count")
         md = (
-            f"📊 **{tr['team']}**：{not_checked_th} **{tr['count']}** {persons_th}"
-            f"  |  {cc_count_th} {tr['cc_count']}"
+            f"📊 **{tr['team']}**\n"
+            f"{_th('not_checked')} **{tr['count']}** {_th('persons')}"
+            f"  |  {_th('cc_count')} {tr['cc_count']}\n"
+            f"{_zh('not_checked')} **{tr['count']}** {_zh('persons')}"
+            f"  |  {_zh('cc_count')} {tr['cc_count']}"
         )
         overview_elements.append({"tag": "markdown", "content": md})
     if overview_url:
         overview_elements.append(
             {
                 "tag": "markdown",
-                "content": f"📷 [{_th('overview_title')}]({overview_url})",
+                "content": (
+                    f"📷 [{_th('overview_title')}]({overview_url})\n"
+                    f"      {_zh('overview_title')}"
+                ),
             }
         )
 
-    overview_title = f"{_th('overview_title')} — {date_display}"
+    overview_title = (
+        f"{_th('overview_title')} — {date_display}\n"
+        f"{_zh('overview_title')}"
+    )
     _send_lark(
         webhook,
         {
@@ -1151,7 +1233,7 @@ def cmd_followup(args: argparse.Namespace) -> None:
     print(f"   ✓ 消息 1/{1 + len(team_cc_results)} 已发送（总览）")
     time.sleep(3)
 
-    # 消息 2-N：每团队 card（每 CC 一段）
+    # 消息 2-N：每团队 card（泰文主 + 中文辅，每 CC 一段）
     for idx, tr in enumerate(team_cc_results, start=2):
         team_elements: list[dict] = []
         team_elements.append(
@@ -1159,7 +1241,9 @@ def cmd_followup(args: argparse.Namespace) -> None:
                 "tag": "markdown",
                 "content": (
                     f"{_th('not_checked')} **{tr['count']}** {_th('persons')}"
-                    f"  |  {_th('cc_count')} {tr['cc_count']}"
+                    f"  |  {_th('cc_count')} {tr['cc_count']}\n"
+                    f"{_zh('not_checked')} **{tr['count']}** {_zh('persons')}"
+                    f"  |  {_zh('cc_count')} {tr['cc_count']}"
                 ),
             }
         )
@@ -1167,16 +1251,24 @@ def cmd_followup(args: argparse.Namespace) -> None:
 
         for cc_entry in tr["ccs"]:
             cc_md = (
-                f"👤 **{cc_entry['cc']}**: "
+                f"👤 **{cc_entry['cc']}**\n"
                 f"{_th('not_checked')} **{cc_entry['count']}** {_th('persons')}"
+                f" / {_zh('not_checked')} {cc_entry['count']} {_zh('persons')}"
             )
             if cc_entry["img_url"]:
                 cc_md += (
-                    f"\n📷 [{_th('view_list')} {cc_entry['cc']}]({cc_entry['img_url']})"
+                    f"\n📷 [{_bi('view_list')} {cc_entry['cc']}]"
+                    f"({cc_entry['img_url']})"
                 )
+            # 📋 User ID 链接（dpaste 托管，关机后仍可访问）
+            if cc_entry.get("tsv_url"):
+                cc_md += f"\n📋 [User ID]({cc_entry['tsv_url']})"
             team_elements.append({"tag": "markdown", "content": cc_md})
 
-        team_title = f"{tr['team']} {_th('followup_title')} — {date_display}"
+        team_title = (
+            f"{tr['team']} {_th('followup_title')} — {date_display}\n"
+            f"{_zh('followup_title')}"
+        )
         ok = _send_lark(
             webhook,
             {

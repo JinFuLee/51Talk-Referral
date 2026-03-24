@@ -27,7 +27,7 @@ from pathlib import Path
 from typing import Any
 
 import pandas as pd
-from fastapi import APIRouter, Depends, Query, Request
+from fastapi import APIRouter, Depends, Query, Request, Response
 
 from backend.api.dependencies import get_data_manager
 from backend.core.data_manager import DataManager
@@ -969,6 +969,43 @@ def get_checkin_followup(
         "total":        len(students),
         "score_formula": "课耗(40%) + 推荐活跃(30%) + 付费贡献(20%) + 围场加权(10%)",
     }
+
+
+@router.get(
+    "/checkin/followup/tsv",
+    summary="未打卡学员 TSV — 纯文本 tab 分隔，供复制粘贴到表格",
+)
+def get_checkin_followup_tsv(
+    request: Request,
+    cc_name: str | None = Query(default=None, description="CC 姓名筛选"),
+    team: str | None = Query(default=None, description="团队筛选"),
+    role: str = Query(default="CC", description="角色"),
+    dm: DataManager = Depends(get_data_manager),
+) -> Response:
+    """返回纯文本 TSV 格式的未打卡学员列表，浏览器可直接复制粘贴到 Excel。"""
+    data = dm.load_all()
+    df_d3: pd.DataFrame = data.get("detail", pd.DataFrame())
+    df_d4: pd.DataFrame = data.get("students", pd.DataFrame())
+
+    students = _build_followup_students(df_d3, df_d4, role, team, cc_name)
+
+    # 构建 TSV：学员ID\t围场\t评分\t末次拨打\t课耗
+    lines = ["学员ID\t围场\t评分\t末次拨打\t课耗"]
+    for s in students:
+        sid = s.get("student_id", "")
+        enc = s.get("enclosure", "")
+        score = int(s.get("quality_score", 0) or 0)
+        last_call = (s.get("cc_last_call_date") or "—")[:10]
+        lesson = s.get("lesson_consumption_3m")
+        lesson_str = str(int(lesson)) if lesson is not None else "—"
+        lines.append(f"{sid}\t{enc}\t{score}\t{last_call}\t{lesson_str}")
+
+    tsv_text = "\n".join(lines)
+    return Response(
+        content=tsv_text,
+        media_type="text/plain; charset=utf-8",
+        headers={"Content-Disposition": "inline"},
+    )
 
 
 @router.get(
