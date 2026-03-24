@@ -131,7 +131,7 @@ export default function FunnelPage() {
                   <tr key={s.name} className={i % 2 === 0 ? 'slide-row-even' : 'slide-row-odd'}>
                     <td className="slide-td font-medium">{s.name}</td>
                     <td className="slide-td text-right font-mono tabular-nums font-semibold">
-                      {s.count.toLocaleString()}
+                      {(s.count ?? 0).toLocaleString()}
                     </td>
                     <td className="slide-td text-right font-mono tabular-nums">
                       {s.conversion_rate != null ? `${(s.conversion_rate * 100).toFixed(1)}%` : '—'}
