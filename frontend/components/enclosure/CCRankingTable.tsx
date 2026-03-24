@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { formatRate } from "@/lib/utils";
+import { useState } from 'react';
+import { formatRate } from '@/lib/utils';
 
 interface CCRankingItem {
   cc_name: string;
@@ -14,22 +14,25 @@ interface CCRankingItem {
   revenue_usd?: number;
 }
 
-type SortKey = keyof Pick<CCRankingItem, "participation_rate" | "cargo_ratio" | "registrations" | "payments" | "revenue_usd">;
+type SortKey = keyof Pick<
+  CCRankingItem,
+  'participation_rate' | 'cargo_ratio' | 'registrations' | 'payments' | 'revenue_usd'
+>;
 
 interface CCRankingTableProps {
   rankings: CCRankingItem[];
 }
 
 const COLUMNS: { key: SortKey; label: string; format: (v: number) => string }[] = [
-  { key: "participation_rate", label: "参与率", format: (v) => formatRate(v) },
-  { key: "cargo_ratio", label: "带货比", format: (v) => formatRate(v) },
-  { key: "registrations", label: "注册数", format: (v) => v.toLocaleString() },
-  { key: "payments", label: "付费数", format: (v) => v.toLocaleString() },
-  { key: "revenue_usd", label: "业绩(USD)", format: (v) => `$${v.toLocaleString()}` },
+  { key: 'participation_rate', label: '参与率', format: (v) => formatRate(v) },
+  { key: 'cargo_ratio', label: '带货比', format: (v) => formatRate(v) },
+  { key: 'registrations', label: '注册数', format: (v) => v.toLocaleString() },
+  { key: 'payments', label: '付费数', format: (v) => v.toLocaleString() },
+  { key: 'revenue_usd', label: '业绩(USD)', format: (v) => `$${v.toLocaleString()}` },
 ];
 
 export function CCRankingTable({ rankings }: CCRankingTableProps) {
-  const [sortKey, setSortKey] = useState<SortKey>("participation_rate");
+  const [sortKey, setSortKey] = useState<SortKey>('participation_rate');
   const [sortAsc, setSortAsc] = useState(false);
 
   const sorted = [...rankings].sort((a, b) => {
@@ -48,9 +51,7 @@ export function CCRankingTable({ rankings }: CCRankingTableProps) {
 
   if (rankings.length === 0) {
     return (
-      <div className="text-center py-8 text-sm text-[var(--text-muted)]">
-        暂无 CC 排名数据
-      </div>
+      <div className="text-center py-8 text-sm text-[var(--text-muted)]">暂无 CC 排名数据</div>
     );
   }
 
@@ -68,13 +69,11 @@ export function CCRankingTable({ rankings }: CCRankingTableProps) {
             {COLUMNS.map((col) => (
               <th
                 key={col.key}
-                className="py-1.5 px-2 border-0 text-right cursor-pointer hover:text-slate-300 select-none"
+                className="py-1.5 px-2 border-0 text-right cursor-pointer hover:text-[var(--text-muted)] select-none"
                 onClick={() => handleSort(col.key)}
               >
                 {col.label}
-                {sortKey === col.key && (
-                  <span className="ml-1">{sortAsc ? "↑" : "↓"}</span>
-                )}
+                {sortKey === col.key && <span className="ml-1">{sortAsc ? '↑' : '↓'}</span>}
               </th>
             ))}
           </tr>
@@ -86,12 +85,12 @@ export function CCRankingTable({ rankings }: CCRankingTableProps) {
                 <span
                   className={`inline-flex w-6 h-6 items-center justify-center rounded-full text-xs font-bold ${
                     i === 0
-                      ? "bg-yellow-100 text-yellow-700"
+                      ? 'bg-yellow-100 text-yellow-700'
                       : i === 1
-                      ? "bg-slate-100 text-[var(--text-secondary)]"
-                      : i === 2
-                      ? "bg-orange-50 text-orange-600"
-                      : "text-[var(--text-muted)] text-xs"
+                        ? 'bg-[var(--bg-surface)] text-[var(--text-secondary)]'
+                        : i === 2
+                          ? 'bg-orange-50 text-orange-600'
+                          : 'text-[var(--text-muted)] text-xs'
                   }`}
                 >
                   {i + 1}
@@ -100,13 +99,15 @@ export function CCRankingTable({ rankings }: CCRankingTableProps) {
               <td className="py-1 px-2 text-xs font-medium">{r.cc_name}</td>
               <td className="py-1 px-2 text-xs text-[var(--text-secondary)]">{r.cc_group}</td>
               {r.students !== undefined && (
-                <td className="py-1 px-2 text-xs text-right font-mono tabular-nums">{r.students.toLocaleString()}</td>
+                <td className="py-1 px-2 text-xs text-right font-mono tabular-nums">
+                  {r.students.toLocaleString()}
+                </td>
               )}
               {COLUMNS.map((col) => (
                 <td
                   key={col.key}
                   className={`py-1 px-2 text-xs text-right font-mono tabular-nums ${
-                    sortKey === col.key ? "font-semibold text-blue-600" : ""
+                    sortKey === col.key ? 'font-semibold text-blue-600' : ''
                   }`}
                 >
                   {col.format(r[col.key] ?? 0)}

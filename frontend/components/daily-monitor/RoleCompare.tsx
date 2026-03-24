@@ -10,6 +10,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts';
+import { CHART_PALETTE } from '@/lib/chart-palette';
 
 interface RoleCompareProps {
   ccRate: number;
@@ -48,9 +49,9 @@ export function RoleCompare({ ccRate, ssRate, lpRate }: RoleCompareProps) {
           }}
         />
         <Legend wrapperStyle={{ fontSize: 12 }} />
-        <Bar dataKey="CC" fill="#3b82f6" name="CC" radius={[4, 4, 0, 0]} />
-        <Bar dataKey="SS" fill="#8b5cf6" name="SS" radius={[4, 4, 0, 0]} />
-        <Bar dataKey="LP" fill="#f59e0b" name="LP" radius={[4, 4, 0, 0]} />
+        <Bar dataKey="CC" fill={CHART_PALETTE.series[0]} name="CC" radius={[4, 4, 0, 0]} />
+        <Bar dataKey="SS" fill={CHART_PALETTE.series[1]} name="SS" radius={[4, 4, 0, 0]} />
+        <Bar dataKey="LP" fill={CHART_PALETTE.series[2]} name="LP" radius={[4, 4, 0, 0]} />
       </BarChart>
     </ResponsiveContainer>
   );

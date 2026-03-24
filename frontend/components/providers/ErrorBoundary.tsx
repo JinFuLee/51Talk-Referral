@@ -28,8 +28,8 @@ export class ErrorBoundary extends Component<{ children: ReactNode }, State> {
       return (
         <div className="p-8 text-center">
           <h2 className="text-xl font-bold text-destructive mb-2">页面渲染错误</h2>
-          <p className="text-gray-600 mb-4">{this.state.error?.message}</p>
-          <pre className="text-left text-xs bg-gray-100 p-2 overflow-auto max-h-96">
+          <p className="text-[var(--text-secondary)] mb-4">{this.state.error?.message}</p>
+          <pre className="text-left text-xs bg-[var(--bg-surface)] p-2 overflow-auto max-h-96">
             {this.state.error?.stack}
           </pre>
           <button

@@ -11,6 +11,7 @@ import {
   Label,
 } from 'recharts';
 import type { ContactConversionItem } from '@/lib/types/cross-analysis';
+import { CHART_PALETTE } from '@/lib/chart-palette';
 
 interface ContactConversionScatterProps {
   data: ContactConversionItem[];
@@ -29,9 +30,9 @@ function CustomDot({ cx = 0, cy = 0, payload }: CustomDotProps) {
         cx={cx}
         cy={cy}
         r={6}
-        fill="#3b82f6"
+        fill={CHART_PALETTE.info}
         fillOpacity={0.7}
-        stroke="#2563eb"
+        stroke={CHART_PALETTE.secondary}
         strokeWidth={1}
       />
       <text

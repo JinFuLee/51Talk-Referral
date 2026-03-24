@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 interface AchievementGaugeProps {
   /** Achievement rate as a decimal, e.g. 0.85 = 85% */
@@ -7,11 +7,7 @@ interface AchievementGaugeProps {
   size?: number;
 }
 
-export function AchievementGauge({
-  value,
-  label = "达成率",
-  size = 120,
-}: AchievementGaugeProps) {
+export function AchievementGauge({ value, label = '达成率', size = 120 }: AchievementGaugeProps) {
   const pct = Math.min(1, Math.max(0, value));
   const percentage = pct * 100;
 
@@ -26,12 +22,12 @@ export function AchievementGauge({
 
   const color =
     percentage >= 100
-      ? "#10b981" // green-500
+      ? '#10b981' // success
       : percentage >= 80
-      ? "#f59e0b" // yellow-500
-      : "#ef4444"; // red-500
+        ? '#F59E0B' // warning
+        : '#EF4444'; // danger
 
-  const trackColor = "#e2e8f0"; // slate-200
+  const trackColor = '#E8E7E1'; // --n-200
 
   // Transform: rotate so arc starts at 135° (bottom-left), going clockwise
   const rotation = 135;
@@ -41,12 +37,7 @@ export function AchievementGauge({
       className="flex flex-col items-center justify-center gap-1"
       style={{ width: size, height: size }}
     >
-      <svg
-        width={size}
-        height={size}
-        viewBox="0 0 120 120"
-        className="overflow-visible"
-      >
+      <svg width={size} height={size} viewBox="0 0 120 120" className="overflow-visible">
         {/* Track arc */}
         <circle
           cx={cx}
@@ -71,7 +62,7 @@ export function AchievementGauge({
           strokeDashoffset={0}
           strokeLinecap="round"
           transform={`rotate(${rotation} ${cx} ${cy})`}
-          style={{ transition: "stroke-dasharray 0.6s ease" }}
+          style={{ transition: 'stroke-dasharray 0.6s ease' }}
         />
         {/* Center text */}
         <text
@@ -91,7 +82,7 @@ export function AchievementGauge({
           textAnchor="middle"
           dominantBaseline="middle"
           fontSize={10}
-          fill="#94a3b8"
+          fill="#A3A38E"
         >
           {label}
         </text>

@@ -11,6 +11,7 @@ import {
   ResponsiveContainer,
   Label,
 } from 'recharts';
+import { CHART_PALETTE } from '@/lib/chart-palette';
 
 interface ScatterPoint {
   cc_name: string;
@@ -35,9 +36,9 @@ function CustomDot({ cx = 0, cy = 0, payload }: CustomDotProps) {
         cx={cx}
         cy={cy}
         r={5}
-        fill="#3b82f6"
+        fill={CHART_PALETTE.info}
         fillOpacity={0.7}
-        stroke="#2563eb"
+        stroke={CHART_PALETTE.secondary}
         strokeWidth={1}
       />
       <text x={cx + 7} y={cy + 4} fontSize={9} fill="var(--text-muted)" textAnchor="start">
@@ -60,10 +61,10 @@ export function EfficiencyScatter({ data }: EfficiencyScatterProps) {
   const yMid = data.reduce((s, d) => s + d.y, 0) / data.length;
 
   const quadrantLabels = [
-    { x: xMid * 0.5, y: yMid * 1.5, text: '低效高收', color: '#f59e0b' },
-    { x: xMid * 1.5, y: yMid * 1.5, text: '明星CC', color: '#22c55e' },
-    { x: xMid * 0.5, y: yMid * 0.5, text: '待激活', color: '#ef4444' },
-    { x: xMid * 1.5, y: yMid * 0.5, text: '潜力CC', color: '#3b82f6' },
+    { x: xMid * 0.5, y: yMid * 1.5, text: '低效高收', color: CHART_PALETTE.quadrant.lowEff },
+    { x: xMid * 1.5, y: yMid * 1.5, text: '明星CC', color: CHART_PALETTE.quadrant.star },
+    { x: xMid * 0.5, y: yMid * 0.5, text: '待激活', color: CHART_PALETTE.quadrant.inactive },
+    { x: xMid * 1.5, y: yMid * 0.5, text: '潜力CC', color: CHART_PALETTE.quadrant.latent },
   ];
 
   return (
@@ -104,7 +105,7 @@ export function EfficiencyScatter({ data }: EfficiencyScatterProps) {
               if (!active || !payload?.length) return null;
               const d = payload[0]?.payload as ScatterPoint;
               return (
-                <div className="bg-white border border-[var(--border-default)] rounded p-2 text-xs shadow">
+                <div className="bg-[var(--bg-surface)] border border-[var(--border-default)] rounded p-2 text-xs shadow">
                   <div className="font-semibold">{d.cc_name}</div>
                   <div>带新系数: {(d.x ?? 0).toFixed(2)}</div>
                   <div>付费金额: ${(d.y ?? 0).toLocaleString()}</div>

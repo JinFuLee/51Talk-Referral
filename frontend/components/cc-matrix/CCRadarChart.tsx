@@ -9,6 +9,7 @@ import {
   ResponsiveContainer,
   Tooltip,
 } from 'recharts';
+import { CHART_PALETTE } from '@/lib/chart-palette';
 
 export interface CCRadarData {
   cc_name: string;
@@ -41,7 +42,7 @@ export function CCRadarChart({ data, onClose }: CCRadarChartProps) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-      <div className="bg-white border border-[var(--border-default)] rounded-xl shadow-2xl p-5 w-[360px]">
+      <div className="bg-[var(--bg-surface)] border border-[var(--border-default)] rounded-xl shadow-2xl p-5 w-[360px]">
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-sm font-semibold text-[var(--text-primary)]">
             {data.cc_name} — 5 维战力图
@@ -71,8 +72,8 @@ export function CCRadarChart({ data, onClose }: CCRadarChartProps) {
             <Radar
               name={data.cc_name}
               dataKey="value"
-              stroke="#3b82f6"
-              fill="#3b82f6"
+              stroke={CHART_PALETTE.info}
+              fill={CHART_PALETTE.info}
               fillOpacity={0.3}
             />
             <Tooltip

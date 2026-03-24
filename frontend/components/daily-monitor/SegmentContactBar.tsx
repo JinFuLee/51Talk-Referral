@@ -11,6 +11,7 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 import type { SegmentContactItem } from '@/lib/types/cross-analysis';
+import { CHART_PALETTE } from '@/lib/chart-palette';
 
 interface SegmentContactBarProps {
   data: SegmentContactItem[];
@@ -48,9 +49,15 @@ export function SegmentContactBar({ data }: SegmentContactBarProps) {
           }}
         />
         <Legend wrapperStyle={{ fontSize: 12 }} />
-        <Bar dataKey="CC" stackId="a" fill="#3b82f6" name="CC 触达率" />
-        <Bar dataKey="SS" stackId="a" fill="#8b5cf6" name="SS 触达率" />
-        <Bar dataKey="LP" stackId="a" fill="#f59e0b" name="LP 触达率" radius={[4, 4, 0, 0]} />
+        <Bar dataKey="CC" stackId="a" fill={CHART_PALETTE.series[0]} name="CC 触达率" />
+        <Bar dataKey="SS" stackId="a" fill={CHART_PALETTE.series[1]} name="SS 触达率" />
+        <Bar
+          dataKey="LP"
+          stackId="a"
+          fill={CHART_PALETTE.series[2]}
+          name="LP 触达率"
+          radius={[4, 4, 0, 0]}
+        />
       </BarChart>
     </ResponsiveContainer>
   );

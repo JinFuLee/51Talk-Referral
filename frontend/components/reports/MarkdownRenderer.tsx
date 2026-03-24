@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 // Charts removed in refactor — inline Recharts used in pages directly
 // TrendLineChart, PieChart, FunnelChart stubs for report rendering
 const TrendLineChart = (_props: Record<string, unknown>) => null;
@@ -24,34 +24,37 @@ function parseXyChart(body: string): {
   lines: { key: string; values: number[] }[];
   title: string;
 } {
-  const lines = body.split("\n").map((l) => l.trim()).filter(Boolean);
+  const lines = body
+    .split('\n')
+    .map((l) => l.trim())
+    .filter(Boolean);
   let labels: string[] = [];
   const bars: { key: string; values: number[] }[] = [];
   const lineData: { key: string; values: number[] }[] = [];
-  let title = "";
+  let title = '';
   let barIdx = 0;
   let lineIdx = 0;
 
   for (const line of lines) {
-    if (line.startsWith("title ")) {
-      title = line.slice(6).replace(/^"|"$/g, "");
-    } else if (line.startsWith("x-axis")) {
+    if (line.startsWith('title ')) {
+      title = line.slice(6).replace(/^"|"$/g, '');
+    } else if (line.startsWith('x-axis')) {
       const match = line.match(/\[(.+)\]/);
       if (match) {
-        labels = match[1].split(",").map((s) => s.trim().replace(/^"|"$/g, ""));
+        labels = match[1].split(',').map((s) => s.trim().replace(/^"|"$/g, ''));
       }
-    } else if (line.startsWith("bar")) {
+    } else if (line.startsWith('bar')) {
       const match = line.match(/\[(.+)\]/);
       if (match) {
-        const values = match[1].split(",").map((s) => parseFloat(s.trim()));
-        bars.push({ key: `柱${barIdx > 0 ? barIdx + 1 : ""}`, values });
+        const values = match[1].split(',').map((s) => parseFloat(s.trim()));
+        bars.push({ key: `柱${barIdx > 0 ? barIdx + 1 : ''}`, values });
         barIdx++;
       }
-    } else if (line.startsWith("line")) {
+    } else if (line.startsWith('line')) {
       const match = line.match(/\[(.+)\]/);
       if (match) {
-        const values = match[1].split(",").map((s) => parseFloat(s.trim()));
-        lineData.push({ key: lineIdx === 0 ? "基准线" : `折线${lineIdx + 1}`, values });
+        const values = match[1].split(',').map((s) => parseFloat(s.trim()));
+        lineData.push({ key: lineIdx === 0 ? '基准线' : `折线${lineIdx + 1}`, values });
         lineIdx++;
       }
     }
@@ -65,15 +68,19 @@ function xyChartToProps(body: string) {
 
   const data = labels.map((label, i) => {
     const point: Record<string, string | number> = { label };
-    bars.forEach((b) => { point[b.key] = b.values[i] ?? 0; });
-    lines.forEach((l) => { point[l.key] = l.values[i] ?? 0; });
+    bars.forEach((b) => {
+      point[b.key] = b.values[i] ?? 0;
+    });
+    lines.forEach((l) => {
+      point[l.key] = l.values[i] ?? 0;
+    });
     return point;
   });
 
   return {
     data,
-    xKey: "label",
-    yKey: bars[0]?.key ?? lines[0]?.key ?? "value",
+    xKey: 'label',
+    yKey: bars[0]?.key ?? lines[0]?.key ?? 'value',
     title: title || undefined,
     barKeys: bars.map((b) => b.key),
     lineKeys: lines.map((l) => l.key),
@@ -87,9 +94,12 @@ function xyChartToProps(body: string) {
  *   "Label" : 123
  */
 function parsePieChart(body: string): { data: { name: string; value: number }[]; title: string } {
-  const lines = body.split("\n").map((l) => l.trim()).filter(Boolean);
+  const lines = body
+    .split('\n')
+    .map((l) => l.trim())
+    .filter(Boolean);
   const data: { name: string; value: number }[] = [];
-  let title = "";
+  let title = '';
 
   for (const line of lines) {
     const titleMatch = line.match(/^(?:pie\s+)?title\s+"?(.+?)"?\s*$/);
@@ -140,7 +150,7 @@ interface CodeProps {
 function MermaidBlock({ body }: { body: string }) {
   const trimmed = body.trim();
 
-  if (trimmed.startsWith("xychart-beta")) {
+  if (trimmed.startsWith('xychart-beta')) {
     const props = xyChartToProps(trimmed);
     return (
       <div className="my-4 p-4 bg-[var(--bg-surface)] backdrop-blur-md rounded-[var(--radius-xl)] border border-[var(--border-default)] shadow-[var(--shadow-md)] transition-all duration-200 hover:shadow-[var(--shadow-lg)] hover:-translate-y-1">
@@ -149,7 +159,7 @@ function MermaidBlock({ body }: { body: string }) {
     );
   }
 
-  if (trimmed.startsWith("pie")) {
+  if (trimmed.startsWith('pie')) {
     const { data, title } = parsePieChart(trimmed);
     return (
       <div className="my-4 p-4 bg-[var(--bg-surface)] backdrop-blur-md rounded-[var(--radius-xl)] border border-[var(--border-default)] shadow-[var(--shadow-md)] transition-all duration-200 hover:shadow-[var(--shadow-lg)] hover:-translate-y-1">
@@ -158,7 +168,7 @@ function MermaidBlock({ body }: { body: string }) {
     );
   }
 
-  if (trimmed.startsWith("flowchart") || trimmed.startsWith("graph")) {
+  if (trimmed.startsWith('flowchart') || trimmed.startsWith('graph')) {
     const stages = parseFlowchart(trimmed);
     return (
       <div className="my-4 p-4 bg-[var(--bg-surface)] backdrop-blur-md rounded-[var(--radius-xl)] border border-[var(--border-default)] shadow-[var(--shadow-md)] transition-all duration-200 hover:shadow-[var(--shadow-lg)] hover:-translate-y-1">
@@ -169,23 +179,23 @@ function MermaidBlock({ body }: { body: string }) {
 
   // Unknown mermaid — render as code
   return (
-    <pre className="my-4 p-4 bg-gray-100 rounded-lg overflow-x-auto text-xs text-gray-700">
+    <pre className="my-4 p-4 bg-[var(--bg-surface)] rounded-lg overflow-x-auto text-xs text-[var(--text-primary)]">
       <code>{body}</code>
     </pre>
   );
 }
 
 function CodeRenderer({ className, children }: CodeProps) {
-  const lang = className?.replace("language-", "") ?? "";
-  const raw = String(children ?? "").replace(/\n$/, "");
+  const lang = className?.replace('language-', '') ?? '';
+  const raw = String(children ?? '').replace(/\n$/, '');
 
-  if (lang === "mermaid") {
+  if (lang === 'mermaid') {
     return <MermaidBlock body={raw} />;
   }
 
   return (
     <pre className="my-3 p-4 bg-gray-900 rounded-lg overflow-x-auto">
-      <code className={`text-xs text-gray-100 ${className ?? ""}`}>{raw}</code>
+      <code className={`text-xs text-gray-100 ${className ?? ''}`}>{raw}</code>
     </pre>
   );
 }
@@ -199,7 +209,7 @@ interface MarkdownRendererProps {
 
 export function MarkdownRenderer({ content, className }: MarkdownRendererProps) {
   return (
-    <div className={`prose prose-sm max-w-none ${className ?? ""}`}>
+    <div className={`prose prose-sm max-w-none ${className ?? ''}`}>
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         components={{
@@ -207,46 +217,42 @@ export function MarkdownRenderer({ content, className }: MarkdownRendererProps) 
           // Style tables
           table: ({ children }) => (
             <div className="overflow-x-auto my-4">
-              <table className="w-full text-sm border-collapse border border-gray-200">
+              <table className="w-full text-sm border-collapse border border-[var(--border-subtle)]">
                 {children}
               </table>
             </div>
           ),
-          thead: ({ children }) => (
-            <thead className="bg-gray-50">{children}</thead>
-          ),
+          thead: ({ children }) => <thead className="bg-[var(--bg-primary)]">{children}</thead>,
           th: ({ children }) => (
-            <th className="border border-gray-200 px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">
+            <th className="border border-[var(--border-subtle)] px-3 py-2 text-left text-xs font-medium text-[var(--text-muted)] uppercase tracking-wide">
               {children}
             </th>
           ),
           td: ({ children }) => (
-            <td className="border border-gray-200 px-3 py-2 text-sm text-gray-700">
+            <td className="border border-[var(--border-subtle)] px-3 py-2 text-sm text-[var(--text-secondary)]">
               {children}
             </td>
           ),
-          tr: ({ children }) => (
-            <tr className="even:bg-gray-50">{children}</tr>
-          ),
+          tr: ({ children }) => <tr className="even:bg-[var(--bg-primary)]">{children}</tr>,
           // Headings
           h1: ({ children }) => (
-            <h1 className="text-xl font-bold text-gray-900 mt-6 mb-3 border-b border-gray-200 pb-2">
+            <h1 className="text-xl font-bold text-[var(--text-primary)] mt-6 mb-3 border-b border-[var(--border-subtle)] pb-2">
               {children}
             </h1>
           ),
           h2: ({ children }) => (
-            <h2 className="text-lg font-semibold text-gray-800 mt-5 mb-2">
+            <h2 className="text-lg font-semibold text-[var(--text-primary)] mt-5 mb-2">
               {children}
             </h2>
           ),
           h3: ({ children }) => (
-            <h3 className="text-base font-semibold text-gray-700 mt-4 mb-2">
+            <h3 className="text-base font-semibold text-[var(--text-secondary)] mt-4 mb-2">
               {children}
             </h3>
           ),
           // Blockquotes
           blockquote: ({ children }) => (
-            <blockquote className="border-l-4 border-blue-400 pl-4 my-3 text-gray-600 italic">
+            <blockquote className="border-l-4 border-blue-400 pl-4 my-3 text-[var(--text-secondary)] italic">
               {children}
             </blockquote>
           ),

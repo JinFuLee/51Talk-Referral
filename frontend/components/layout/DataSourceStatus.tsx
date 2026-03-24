@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
-import { DataSourceStatus as DSStatus } from "@/lib/types";
+import { DataSourceStatus as DSStatus } from '@/lib/types';
 
 interface DataSourceStatusProps {
   source: DSStatus;
-  lang: "zh" | "th";
+  lang: 'zh' | 'th';
 }
 
 function StatusBadge({ isFresh, hasFile }: { isFresh: boolean; hasFile: boolean }) {
@@ -31,14 +31,14 @@ function StatusBadge({ isFresh, hasFile }: { isFresh: boolean; hasFile: boolean 
 
 export function DataSourceStatus({ source, lang }: DataSourceStatusProps) {
   return (
-    <div className="flex items-center justify-between py-1.5 px-2 rounded hover:bg-gray-50">
-      <span className="text-xs text-gray-700 truncate flex-1 mr-2">
+    <div className="flex items-center justify-between py-1.5 px-2 rounded hover:bg-[var(--bg-primary)]">
+      <span className="text-xs text-[var(--text-primary)] truncate flex-1 mr-2">
         {source.name_zh}
       </span>
       <div className="flex items-center gap-1.5 shrink-0">
         <StatusBadge isFresh={source.is_fresh} hasFile={source.has_file} />
         {source.latest_date && (
-          <span className="text-xs text-gray-400">{source.latest_date}</span>
+          <span className="text-xs text-[var(--text-muted)]">{source.latest_date}</span>
         )}
       </div>
     </div>
