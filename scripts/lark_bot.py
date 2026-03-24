@@ -173,7 +173,7 @@ TH = {
     "view_list": {"th": "ดูรายชื่อ", "zh": "查看名单"},
     "total_summary": {"th": "รวมยังไม่เช็คอิน", "zh": "共未打卡"},
     "teams": {"th": "ทีม", "zh": "个小组"},
-    "overview_title": {"th": "ภาพรวม CC ยังไม่เช็คอิน", "zh": "CC 未打卡总览"},
+    "overview_title": {"th": "ภาพรวม ยังไม่เช็คอิน", "zh": "未打卡总览"},
     "cc_count": {"th": "CC", "zh": "CC数"},
     "avg_per_cc": {"th": "เฉลี่ย/CC", "zh": "人均"},
     "col_team": {"th": "ทีม", "zh": "团队"},
@@ -902,17 +902,17 @@ def generate_overview_image(
     ax.text(
         0.35,
         y,
-        _th("overview_title"),
+        f"{role} {_th('overview_title')}",
         fontsize=15,
         fontweight="bold",
         color=C_HEADER,
         va="top",
     )
-    y -= 0.25
+    y -= 0.45
     ax.text(
         0.35,
         y,
-        _zh("overview_title"),
+        f"{role} {_zh('overview_title')}",
         fontsize=8,
         color=C_MUTED,
         va="top",
@@ -1303,34 +1303,49 @@ def cmd_followup(args: argparse.Namespace) -> None:
     today = datetime.now()
     date_display = f"{today.strftime('%Y年%m月%d日')} T-1"
 
-    print(f"📋 Lark Bot — CC 未打卡跟进 ({date_display})")
-    print(f"   通道: {channel.get('name', args.channel)}")
-    print()
+    # ── 角色配置 ──
+    role = args.role.upper()
+    role_enc_map = {
+        "CC": ["M0", "M1", "M2"],
+        "LP": ["M3", "M4", "M5"],
+        "SS": ["M3"],
+    }
+    enc_order = role_enc_map.get(role, ["M0", "M1", "M2"])
+    # LP 排除 Region 团队
+    team_exclude = {"LP": {"TH-LP01Region"}}
 
-    # CC 围场顺序（暂时硬编码，后续支持动态配置）
-    enc_order = ["M0", "M1", "M2"]
+    print(f"📋 Lark Bot — {role} 未打卡跟进 ({date_display})")
+    print(f"   通道: {channel.get('name', args.channel)}")
+    print(f"   围场: {', '.join(enc_order)}")
+    print()
 
     # 获取数据
     print("1. 获取未打卡数据...")
-    students = fetch_followup(api_base, role="CC")
+    students = fetch_followup(api_base, role=role)
     if not students:
         print("   ⚠ 无未打卡学员数据（可能后端未启动或无数据）")
         return
 
-    print(f"   ✓ 共 {len(students)} 名未打卡学员")
+    # 过滤：只保留角色对应围场的学员
+    valid_encs = set(enc_order)
+    students = [s for s in students if s.get("enclosure") in valid_encs]
+    print(f"   ✓ 共 {len(students)} 名未打卡学员（{role} 围场）")
 
     # 获取打卡率汇总数据
     print("   获取打卡率汇总...")
     summary_by_role = fetch_summary(api_base)
-    role_summary = summary_by_role.get("CC", {})
+    role_summary = summary_by_role.get(role, {})
     if role_summary:
         role_rate = role_summary.get("checkin_rate", 0.0) or 0.0
-        print(f"   ✓ CC 打卡率: {role_rate:.1%}")
+        print(f"   ✓ {role} 打卡率: {role_rate:.1%}")
     else:
         print("   ⚠ 无打卡率汇总数据（API 可能不支持）")
 
-    # 按团队分组
+    # 按团队分组 + 过滤排除团队
     teams = group_students_by_team(students)
+    exclude = team_exclude.get(role, set())
+    if exclude:
+        teams = {k: v for k, v in teams.items() if k not in exclude}
     print(f"   ✓ {len(teams)} 个小组: {', '.join(teams.keys())}")
 
     # 获取各团队 per-CC 打卡率详情
@@ -1401,7 +1416,7 @@ def cmd_followup(args: argparse.Namespace) -> None:
         )
 
     # 2b. 总览图（缓存：同日文件已存在则读取而非重新生成）
-    overview_filename = f"lark-overview-{date_short}.png"
+    overview_filename = f"lark-overview-{role}-{date_short}.png"
     overview_path = OUTPUT_DIR / overview_filename
     if overview_path.exists():
         overview_bytes = overview_path.read_bytes()
@@ -1409,7 +1424,7 @@ def cmd_followup(args: argparse.Namespace) -> None:
         print(f"   [总览] 使用缓存: output/{overview_filename} ({kb_ov}KB)")
     else:
         overview_bytes = generate_overview_image(
-            team_summary, role_summary, date_display, role="CC",
+            team_summary, role_summary, date_display, role=role,
             enclosure_order=enc_order
         )
         overview_path.write_bytes(overview_bytes)
@@ -1552,15 +1567,15 @@ def cmd_followup(args: argparse.Namespace) -> None:
             {
                 "tag": "markdown",
                 "content": (
-                    f"📷 [{_th('overview_title')}]({overview_url})\n"
-                    f"      {_zh('overview_title')}"
+                    f"📷 [{role} {_th('overview_title')}]({overview_url})\n"
+                    f"      {role} {_zh('overview_title')}"
                 ),
             }
         )
 
     overview_title = (
-        f"{_th('overview_title')} — {date_display}\n"
-        f"{_zh('overview_title')}"
+        f"{role} {_th('overview_title')} — {date_display}\n"
+        f"{role} {_zh('overview_title')}"
     )
     _send_lark(
         webhook,
@@ -1700,6 +1715,10 @@ def main() -> None:
         help="确认发送到正式群（非 test 通道必须加此标志）",
     )
     p_followup.add_argument("--dry-run", action="store_true", help="只生成图片不发送")
+    p_followup.add_argument(
+        "--role", default="CC",
+        help="角色：CC / LP (default: CC)",
+    )
 
     # test 连通性
     parser.add_argument("--test", action="store_true", help="Lark webhook 连通性测试")
