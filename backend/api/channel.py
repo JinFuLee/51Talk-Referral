@@ -1,8 +1,10 @@
-"""渠道归因 API"""
+"""渠道归因 API — 消费 Settings 围场配置做多口径归因"""
 
 from __future__ import annotations
 
+import json
 import math
+from pathlib import Path
 from typing import Any
 
 import pandas as pd
@@ -19,8 +21,69 @@ from backend.models.channel import (
 
 router = APIRouter()
 
+_PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
+_OVERRIDE_PATH = _PROJECT_ROOT / "config" / "enclosure_role_override.json"
+_CONFIG_PATH = _PROJECT_ROOT / "projects" / "referral" / "config.json"
 
-def _safe_val(val) -> Any:
+# 围场天数 → M 标签映射（与 checkin.py 对齐）
+_M_TO_DAYS: dict[str, tuple[int, int]] = {
+    "M0": (0, 30),
+    "M1": (31, 60),
+    "M2": (61, 90),
+    "M3": (91, 120),
+    "M4": (121, 150),
+    "M5": (151, 180),
+    "M6+": (181, 9999),
+}
+
+
+def _get_wide_role_config() -> dict[str, list[str]]:
+    """读取宽口围场→角色配置。
+
+    优先级：enclosure_role_override.json wide → config.json enclosure_role_wide → 默认值
+    返回格式: {"M0": ["CC"], "M3": ["LP"], "M6+": ["运营"], ...}
+    """
+    # 1. 优先读 override 文件
+    try:
+        if _OVERRIDE_PATH.exists():
+            data = json.loads(_OVERRIDE_PATH.read_text(encoding="utf-8"))
+            wide = data.get("wide")
+            if wide and isinstance(wide, dict):
+                return wide
+    except Exception:
+        pass
+
+    # 2. fallback: config.json enclosure_role_wide（天数范围格式 → M 标签格式）
+    try:
+        if _CONFIG_PATH.exists():
+            cfg = json.loads(_CONFIG_PATH.read_text(encoding="utf-8"))
+            wide_cfg = cfg.get("enclosure_role_wide", {})
+            if wide_cfg:
+                result: dict[str, list[str]] = {}
+                for role, spec in wide_cfg.items():
+                    min_d = spec.get("min_days", 0)
+                    max_d = spec.get("max_days") or 9999
+                    for m_label, (lo, hi) in _M_TO_DAYS.items():
+                        if lo >= min_d and hi <= max_d:
+                            result.setdefault(m_label, []).append(role)
+                if result:
+                    return result
+    except Exception:
+        pass
+
+    # 3. 硬编码默认值（最终 fallback）
+    return {
+        "M0": ["CC"],
+        "M1": ["CC"],
+        "M2": ["CC"],
+        "M3": ["LP"],
+        "M4": ["LP"],
+        "M5": ["LP"],
+        "M6+": ["运营"],
+    }
+
+
+def _safe_val(val: object) -> Any:
     if val is None:
         return None
     try:
@@ -40,6 +103,7 @@ def _get_engine(dm: DataManager) -> AttributionEngine:
     return AttributionEngine(
         enclosure_cc_df=data["enclosure_cc"],
         detail_df=data["detail"],
+        wide_role_config=_get_wide_role_config(),
     )
 
 
@@ -100,8 +164,12 @@ def get_channel_detail(
 
     if df.empty:
         return {
-            "items": [], "total": 0, "page": page,
-            "size": size, "pages": 0, "columns": [],
+            "items": [],
+            "total": 0,
+            "page": page,
+            "size": size,
+            "pages": 0,
+            "columns": [],
         }
 
     if channel and "转介绍类型_新" in df.columns:

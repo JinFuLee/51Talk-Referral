@@ -58,9 +58,7 @@ def _backup_config_file(path: Path) -> None:
     try:
         shutil.copy2(path, backup_path)
         # 保留最近 10 个备份，删除旧的
-        backups = sorted(
-            BACKUP_DIR.glob(f"{path.stem}_*{path.suffix}"), reverse=True
-        )
+        backups = sorted(BACKUP_DIR.glob(f"{path.stem}_*{path.suffix}"), reverse=True)
         for old in backups[10:]:
             old.unlink(missing_ok=True)
     except Exception:
@@ -222,9 +220,7 @@ def put_targets_v2(month: str, body: MonthlyTargetV2Body) -> dict[str, Any]:
     try:
         v2_model = MonthlyTargetV2(**body.model_dump())
     except Exception as exc:
-        raise HTTPException(
-            status_code=400, detail=f"数据格式错误: {exc}"
-        ) from exc
+        raise HTTPException(status_code=400, detail=f"数据格式错误: {exc}") from exc
 
     body_dict = v2_model.model_dump()
     body_dict["version"] = 2
@@ -484,19 +480,23 @@ def get_target_recommendations(
 
 @router.get("/enclosure-role", summary="获取围场-岗位负责配置")
 def get_enclosure_role() -> dict[str, Any]:
-    """返回围场角色配置（narrow + wide），含 override 合并"""
+    """返回围场角色配置（narrow + wide），含 override 合并。
+
+    数据源优先级：enclosure_role_override.json > config.json > Pydantic 默认值
+    """
     from backend.core.project_config import load_project_config
 
     cfg = load_project_config("referral")
-    assignment = (
-        cfg.enclosure_role_assignment
-        if hasattr(cfg, "enclosure_role_assignment")
-        else {}
-    )
-    base = {
-        "narrow": assignment.get("enclosure_role_narrow", {}),
-        "wide": assignment.get("enclosure_role_wide", {}),
+
+    # 从 config.json 读取基线（enclosure_role_narrow/wide 是独立顶层字段）
+    base: dict[str, Any] = {
+        "narrow": cfg.enclosure_role_narrow
+        if hasattr(cfg, "enclosure_role_narrow")
+        else {},
+        "wide": cfg.enclosure_role_wide if hasattr(cfg, "enclosure_role_wide") else {},
     }
+
+    # override 文件覆盖（Settings UI 写入）
     override = _read_json(ENCLOSURE_ROLE_FILE, {})
     if override:
         for key in ("narrow", "wide"):

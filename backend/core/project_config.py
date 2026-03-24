@@ -85,6 +85,24 @@ class ProjectConfig(BaseModel):
         description="围场×岗位负责边界（天数可配置，禁止硬编码）",
     )
 
+    enclosure_role_narrow: dict[str, Any] = Field(
+        default_factory=lambda: {
+            "CC": {"min_days": 0, "max_days": 90},
+            "SS": {"min_days": 91, "max_days": 120},
+            "LP": {"min_days": 121, "max_days": None},
+        },
+        description="窄口围场×岗位边界（天数范围）",
+    )
+
+    enclosure_role_wide: dict[str, Any] = Field(
+        default_factory=lambda: {
+            "CC": {"min_days": 0, "max_days": 90},
+            "LP": {"min_days": 121, "max_days": 180},
+            "运营": {"min_days": 181, "max_days": None},
+        },
+        description="宽口围场×岗位边界（天数范围，Settings UI 写入 override 优先）",
+    )
+
     channel_metric_scope: dict[str, Any] = Field(
         default_factory=lambda: {
             "total": {
