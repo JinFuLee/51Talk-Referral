@@ -2,167 +2,194 @@
 
 import useSWR from 'swr';
 import { swrFetcher } from '@/lib/api';
-import { Card } from '@/components/ui/Card';
 import { Spinner } from '@/components/ui/Spinner';
 import { EmptyState } from '@/components/ui/EmptyState';
 
 interface HeatmapRow {
   enclosure: string;
-  total_students: number;
   week1_avg: number | null;
   week2_avg: number | null;
   week3_avg: number | null;
   week4_avg: number | null;
 }
 
-interface HeatmapResponse {
-  rows: HeatmapRow[];
-  week_cols_found: Record<string, string | null>;
-  summary: string;
+const WEEKS = [
+  { key: 'week1_avg' as const, label: '第1周' },
+  { key: 'week2_avg' as const, label: '第2周' },
+  { key: 'week3_avg' as const, label: '第3周' },
+  { key: 'week4_avg' as const, label: '第4周' },
+];
+
+/** 根据 0-1 强度值映射 CSS 背景色（Warm Neutral 深浅） */
+function intensityBg(ratio: number): string {
+  if (ratio >= 0.85) return 'var(--n-800)';
+  if (ratio >= 0.65) return 'var(--n-600)';
+  if (ratio >= 0.45) return 'var(--n-400)';
+  if (ratio >= 0.25) return 'var(--n-300)';
+  if (ratio >= 0.05) return 'var(--n-200)';
+  return 'var(--n-100)';
 }
 
-function cellColor(val: number | null, max: number): string {
-  if (val == null) return 'bg-[var(--n-100)] text-[var(--text-muted)]';
-  if (max === 0) return 'bg-[var(--n-100)] text-[var(--text-muted)]';
-  const intensity = val / max;
-  if (intensity >= 0.8) return 'bg-emerald-700 text-white';
-  if (intensity >= 0.6) return 'bg-emerald-500 text-white';
-  if (intensity >= 0.4) return 'bg-emerald-300 text-[var(--text-primary)]';
-  if (intensity >= 0.2) return 'bg-emerald-100 text-[var(--text-primary)]';
-  return 'bg-[var(--n-100)] text-[var(--text-muted)]';
+function intensityText(ratio: number): string {
+  return ratio >= 0.45 ? '#fff' : 'var(--text-primary)';
+}
+
+function HeatCell({
+  value,
+  maxVal,
+}: {
+  value: number | null;
+  maxVal: number;
+}) {
+  if (value == null) {
+    return (
+      <td className="slide-td text-center">
+        <span className="text-xs text-[var(--text-muted)]">—</span>
+      </td>
+    );
+  }
+  const ratio = maxVal > 0 ? value / maxVal : 0;
+  return (
+    <td className="slide-td text-center p-1">
+      <div
+        className="rounded-md px-2 py-1.5 text-xs font-mono tabular-nums font-semibold"
+        style={{
+          backgroundColor: intensityBg(ratio),
+          color: intensityText(ratio),
+        }}
+      >
+        {value.toFixed(2)}
+      </div>
+    </td>
+  );
 }
 
 export default function LearningHeatmapPage() {
-  const { data, isLoading, error } = useSWR<HeatmapResponse>(
+  const { data, isLoading, error } = useSWR<HeatmapRow[]>(
     '/api/analysis/learning-heatmap',
     swrFetcher
   );
 
-  // 计算每周最大值（用于颜色归一化）
-  const weekMaxes = {
-    week1: 0,
-    week2: 0,
-    week3: 0,
-    week4: 0,
-  };
-  if (data?.rows) {
-    for (const row of data.rows) {
-      if ((row.week1_avg ?? 0) > weekMaxes.week1) weekMaxes.week1 = row.week1_avg ?? 0;
-      if ((row.week2_avg ?? 0) > weekMaxes.week2) weekMaxes.week2 = row.week2_avg ?? 0;
-      if ((row.week3_avg ?? 0) > weekMaxes.week3) weekMaxes.week3 = row.week3_avg ?? 0;
-      if ((row.week4_avg ?? 0) > weekMaxes.week4) weekMaxes.week4 = row.week4_avg ?? 0;
-    }
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Spinner size="lg" />
+      </div>
+    );
   }
+
+  if (error) {
+    return (
+      <EmptyState
+        title="数据加载失败"
+        description="无法获取学习热图数据，请检查后端服务是否正常运行"
+      />
+    );
+  }
+
+  if (!data || data.length === 0) {
+    return (
+      <div className="space-y-4">
+        <div>
+          <h1 className="text-lg font-bold text-[var(--text-primary)]">学习热图</h1>
+          <p className="text-sm text-[var(--text-secondary)] mt-1">
+            各围场每周平均转码次数热力图
+          </p>
+        </div>
+        <EmptyState
+          title="暂无转码数据"
+          description="数据源中未找到"第N周转码"列，请上传包含周转码信息的学员数据文件"
+        />
+      </div>
+    );
+  }
+
+  // 求全局最大值用于归一化
+  const allValues = data.flatMap((row) =>
+    WEEKS.map((w) => row[w.key]).filter((v): v is number => v != null)
+  );
+  const maxVal = Math.max(...allValues, 0.001);
 
   return (
     <div className="space-y-6">
       {/* 页面标题 */}
       <div>
         <h1 className="text-lg font-bold text-[var(--text-primary)]">学习热图</h1>
-        <p className="text-sm text-[var(--text-muted)] mt-1">
-          按围场 × 周次 分布转码率 · 颜色越深表示转码次数越高
-        </p>
-        <p className="text-xs text-[var(--text-muted)] mt-0.5">
-          定义：围场 = 围场（生命周期）分段 | 转码 = 第1～4周学员转码次数均值
+        <p className="text-sm text-[var(--text-secondary)] mt-1">
+          各围场每周平均转码次数 · 颜色越深代表学习活跃度越高
         </p>
       </div>
 
-      <Card title={data ? `学习热图 — ${data.summary}` : '学习热图'}>
-        {isLoading ? (
-          <div className="flex justify-center py-8">
-            <Spinner size="lg" />
+      {/* 图例 */}
+      <div className="flex items-center gap-3 text-xs text-[var(--text-muted)]">
+        <span>活跃度：</span>
+        {[
+          { label: '极低', bg: 'var(--n-100)' },
+          { label: '低', bg: 'var(--n-200)' },
+          { label: '中', bg: 'var(--n-300)' },
+          { label: '较高', bg: 'var(--n-400)' },
+          { label: '高', bg: 'var(--n-600)' },
+          { label: '极高', bg: 'var(--n-800)' },
+        ].map(({ label, bg }) => (
+          <div key={label} className="flex items-center gap-1">
+            <div
+              className="w-4 h-4 rounded"
+              style={{ backgroundColor: bg }}
+            />
+            <span>{label}</span>
           </div>
-        ) : error ? (
-          <EmptyState title="加载失败" description="请检查后端服务是否正常运行" />
-        ) : !data || data.rows.length === 0 ? (
-          <EmptyState title="暂无热图数据" description="需要 D4 学员数据中包含 第1~4周转码 列" />
-        ) : (
-          <div className="overflow-x-auto">
-            {/* 列可用性提示 */}
-            {Object.values(data.week_cols_found).some((v) => v === null) && (
-              <div className="mb-3 px-3 py-2 rounded-lg bg-yellow-50 border border-yellow-200 text-xs text-yellow-700">
-                部分周次列未在数据中找到，对应格显示为灰色。 已找到：
-                {Object.entries(data.week_cols_found)
-                  .filter(([, v]) => v !== null)
-                  .map(([k]) => k)
-                  .join('、') || '无'}
-              </div>
-            )}
+        ))}
+      </div>
 
-            <table className="w-full text-sm border-collapse">
-              <thead>
-                <tr className="border-b border-[var(--border-default)]">
-                  <th className="text-left py-2.5 px-3 text-xs font-semibold text-[var(--text-muted)] w-32">
-                    围场
-                  </th>
-                  <th className="text-center py-2.5 px-2 text-xs font-semibold text-[var(--text-muted)]">
-                    第1周转码
-                  </th>
-                  <th className="text-center py-2.5 px-2 text-xs font-semibold text-[var(--text-muted)]">
-                    第2周转码
-                  </th>
-                  <th className="text-center py-2.5 px-2 text-xs font-semibold text-[var(--text-muted)]">
-                    第3周转码
-                  </th>
-                  <th className="text-center py-2.5 px-2 text-xs font-semibold text-[var(--text-muted)]">
-                    第4周转码
-                  </th>
-                  <th className="text-right py-2.5 px-3 text-xs font-semibold text-[var(--text-muted)]">
-                    学员数
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.rows.map((row) => (
-                  <tr
-                    key={row.enclosure}
-                    className="border-b border-[var(--border-subtle)] hover:bg-[var(--bg-subtle)] transition-colors"
-                  >
-                    <td className="py-2.5 px-3 text-xs font-medium text-[var(--text-primary)]">
-                      {row.enclosure}
-                    </td>
-                    {(
-                      [
-                        [row.week1_avg, weekMaxes.week1],
-                        [row.week2_avg, weekMaxes.week2],
-                        [row.week3_avg, weekMaxes.week3],
-                        [row.week4_avg, weekMaxes.week4],
-                      ] as [number | null, number][]
-                    ).map(([val, max], i) => (
-                      <td key={i} className="py-1 px-2 text-center">
-                        <span
-                          className={`inline-block rounded px-2 py-0.5 text-xs font-mono tabular-nums min-w-[3rem] ${cellColor(val, max)}`}
-                        >
-                          {val != null ? val.toFixed(2) : '—'}
-                        </span>
-                      </td>
-                    ))}
-                    <td className="py-2.5 px-3 text-xs font-mono tabular-nums text-right text-[var(--text-secondary)]">
-                      {row.total_students.toLocaleString()}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-
-            {/* 颜色图例 */}
-            <div className="mt-4 flex items-center gap-3 px-1">
-              <span className="text-xs text-[var(--text-muted)]">低</span>
-              {[
-                'bg-[var(--n-100)]',
-                'bg-emerald-100',
-                'bg-emerald-300',
-                'bg-emerald-500',
-                'bg-emerald-700',
-              ].map((cls, i) => (
-                <div key={i} className={`w-6 h-3 rounded ${cls}`} />
+      {/* 热图表格 */}
+      <div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-lg overflow-hidden">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="slide-thead-row">
+              <th className="slide-th text-left">围场 / 生命周期</th>
+              {WEEKS.map((w) => (
+                <th key={w.key} className="slide-th text-center">{w.label}</th>
               ))}
-              <span className="text-xs text-[var(--text-muted)]">高</span>
-              <span className="ml-2 text-xs text-[var(--text-muted)]">（周均转码次数）</span>
-            </div>
-          </div>
-        )}
-      </Card>
+              <th className="slide-th text-center">周均</th>
+            </tr>
+          </thead>
+          <tbody>
+            {data.map((row, i) => {
+              const vals = WEEKS.map((w) => row[w.key]).filter(
+                (v): v is number => v != null
+              );
+              const avg =
+                vals.length > 0
+                  ? vals.reduce((a, b) => a + b, 0) / vals.length
+                  : null;
+              return (
+                <tr key={row.enclosure} className={i % 2 === 0 ? 'slide-row-even' : 'slide-row-odd'}>
+                  <td className="slide-td font-medium text-[var(--text-primary)]">
+                    {row.enclosure}
+                  </td>
+                  {WEEKS.map((w) => (
+                    <HeatCell key={w.key} value={row[w.key]} maxVal={maxVal} />
+                  ))}
+                  <td className="slide-td text-center">
+                    {avg != null ? (
+                      <span className="text-xs font-mono tabular-nums text-[var(--text-secondary)]">
+                        {avg.toFixed(2)}
+                      </span>
+                    ) : (
+                      <span className="text-xs text-[var(--text-muted)]">—</span>
+                    )}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+
+      {/* 说明 */}
+      <p className="text-xs text-[var(--text-muted)]">
+        数值 = 该围场所有学员在对应周内的平均转码次数（转码 = 学员分享推荐链接的行为）
+      </p>
     </div>
   );
 }
