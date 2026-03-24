@@ -81,6 +81,17 @@ def _group_stats(group: pd.DataFrame) -> dict[str, Any]:
     ):
         avg_coeff = round(avg_reg / avg_pay, 4)
 
+    # 历史转码次数均值（参与深度指标）
+    coding_col = next(
+        (
+            c
+            for c in ["历史转码次数", "总转码次数", "历史总转码次数"]
+            if c in group.columns
+        ),
+        None,
+    )
+    avg_historical_coding = _mean(coding_col) if coding_col else None
+
     return {
         "student_count": count,
         "avg_referral_registrations": avg_reg,
@@ -88,6 +99,7 @@ def _group_stats(group: pd.DataFrame) -> dict[str, Any]:
         "avg_new_coefficient": avg_coeff,
         "total_referral_registrations": _sum(reg_col) if reg_col else None,
         "total_referral_payments": _sum(pay_col) if pay_col else None,
+        "avg_historical_coding": avg_historical_coding,
     }
 
 

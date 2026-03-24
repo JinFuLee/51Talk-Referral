@@ -32,6 +32,8 @@ export interface RenewalRiskStudent {
   days_to_expiry: number | null;
   monthly_referral_registrations: number | null;
   monthly_referral_payments: number | null;
+  total_lesson_packages: number | null;
+  total_renewal_orders: number | null;
 }
 
 export interface RenewalRiskData {
@@ -146,6 +148,34 @@ export default function RenewalRiskPage() {
                   <th className="slide-th text-center">风险等级</th>
                   <th className="slide-th text-left">围场</th>
                   <th className="slide-th text-left">负责 CC</th>
+                  <th className="slide-th text-right">
+                    <span className="inline-flex items-center gap-1 group relative cursor-default">
+                      总次卡数
+                      <span
+                        className="text-[10px] opacity-50 group-hover:opacity-100 transition-opacity"
+                        title="历史购买次卡总数，衡量学员历史购买规模"
+                      >
+                        ⓘ
+                      </span>
+                      <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 hidden group-hover:block z-10 bg-gray-900 text-white text-[10px] rounded px-2 py-1 whitespace-nowrap pointer-events-none shadow-lg">
+                        历史购买次卡总数
+                      </span>
+                    </span>
+                  </th>
+                  <th className="slide-th text-right">
+                    <span className="inline-flex items-center gap-1 group relative cursor-default">
+                      总续费订单
+                      <span
+                        className="text-[10px] opacity-50 group-hover:opacity-100 transition-opacity"
+                        title="1v1续费订单总数，高续费=高价值学员"
+                      >
+                        ⓘ
+                      </span>
+                      <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 hidden group-hover:block z-10 bg-gray-900 text-white text-[10px] rounded px-2 py-1 whitespace-nowrap pointer-events-none shadow-lg">
+                        1v1续费订单总数，高续费=高价值
+                      </span>
+                    </span>
+                  </th>
                   <th className="slide-th text-right">本月推荐注册</th>
                 </tr>
               </thead>
@@ -172,6 +202,16 @@ export default function RenewalRiskPage() {
                         {s.enclosure ?? '—'}
                       </td>
                       <td className="slide-td">{s.cc_name ?? '—'}</td>
+                      <td className="slide-td text-right font-mono tabular-nums">
+                        {s.total_lesson_packages != null
+                          ? s.total_lesson_packages.toLocaleString()
+                          : '—'}
+                      </td>
+                      <td className="slide-td text-right font-mono tabular-nums">
+                        {s.total_renewal_orders != null
+                          ? s.total_renewal_orders.toLocaleString()
+                          : '—'}
+                      </td>
                       <td className="slide-td text-right font-mono tabular-nums">
                         {s.monthly_referral_registrations ?? '—'}
                       </td>

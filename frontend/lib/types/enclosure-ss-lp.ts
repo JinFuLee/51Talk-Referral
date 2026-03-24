@@ -46,7 +46,10 @@ export interface ExpiryAlertItem {
   enclosure: string | null;
   cc_name: string | null;
   days_to_expiry: number | null;
+  days_since_last_contact: number | null;
+  risk_level: 'high' | 'medium' | 'low' | null;
   current_cards: number | null;
   monthly_referral_registrations: number | null;
   monthly_referral_payments: number | null;
+  urgency_tier: string | null;
 }

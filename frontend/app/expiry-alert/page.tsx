@@ -75,6 +75,36 @@ function SummaryCards({ summary }: { summary: ExpiryAlertSummary }) {
   );
 }
 
+/* ── 失联天数颜色 ──────────────────────────────────────────── */
+
+function contactDaysBadge(days: number | null) {
+  if (days === null) return <span className="text-[var(--text-muted)]">无记录</span>;
+  if (days <= 7)
+    return (
+      <span className="inline-block px-1.5 py-0.5 rounded text-[11px] font-semibold bg-green-100 text-green-700">
+        {days}天
+      </span>
+    );
+  if (days <= 14)
+    return (
+      <span className="inline-block px-1.5 py-0.5 rounded text-[11px] font-semibold bg-yellow-100 text-yellow-700">
+        {days}天
+      </span>
+    );
+  return (
+    <span className="inline-block px-1.5 py-0.5 rounded text-[11px] font-semibold bg-red-100 text-red-700">
+      {days}天
+    </span>
+  );
+}
+
+const RISK_BADGE: Record<string, string> = {
+  high: 'bg-red-100 text-red-700',
+  medium: 'bg-orange-100 text-orange-700',
+  low: 'bg-green-100 text-green-700',
+};
+const RISK_LABEL: Record<string, string> = { high: '高风险', medium: '中风险', low: '低风险' };
+
 /* ── 到期预警表格 ──────────────────────────────────────────── */
 
 function ExpiryTable({ items }: { items: ExpiryAlertItem[] }) {
@@ -91,10 +121,12 @@ function ExpiryTable({ items }: { items: ExpiryAlertItem[] }) {
       <table className="w-full text-xs">
         <thead>
           <tr className="slide-thead-row">
+            <th className="slide-th slide-th-left py-2 px-2">风险</th>
             <th className="slide-th slide-th-left py-2 px-2">学员 ID</th>
             <th className="slide-th slide-th-left py-2 px-2">围场段</th>
             <th className="slide-th slide-th-left py-2 px-2">CC</th>
             <th className="slide-th slide-th-right py-2 px-2">剩余天数</th>
+            <th className="slide-th slide-th-right py-2 px-2">失联天数</th>
             <th className="slide-th slide-th-right py-2 px-2">当前次卡</th>
             <th className="slide-th slide-th-right py-2 px-2">本月注册</th>
             <th className="slide-th slide-th-right py-2 px-2">本月付费</th>
@@ -104,11 +136,19 @@ function ExpiryTable({ items }: { items: ExpiryAlertItem[] }) {
           {sorted.map((item, i) => {
             const level = urgencyLevel(item.days_to_expiry);
             const cfg = URGENCY_CONFIG[level];
+            const rl = item.risk_level ?? 'low';
             return (
               <tr
                 key={`${item.stdt_id}-${i}`}
                 className={i % 2 === 0 ? 'slide-row-even' : 'slide-row-odd'}
               >
+                <td className="slide-td py-1.5 px-2">
+                  <span
+                    className={`inline-block px-1.5 py-0.5 rounded text-[11px] font-semibold ${RISK_BADGE[rl] ?? ''}`}
+                  >
+                    {RISK_LABEL[rl] ?? '—'}
+                  </span>
+                </td>
                 <td className="slide-td py-1.5 px-2 font-mono">{item.stdt_id}</td>
                 <td className="slide-td py-1.5 px-2 text-[var(--text-secondary)]">
                   {item.enclosure ?? '—'}
@@ -124,6 +164,9 @@ function ExpiryTable({ items }: { items: ExpiryAlertItem[] }) {
                   ) : (
                     '—'
                   )}
+                </td>
+                <td className="slide-td py-1.5 px-2 text-right">
+                  {contactDaysBadge(item.days_since_last_contact ?? null)}
                 </td>
                 <td className="slide-td py-1.5 px-2 text-right font-mono tabular-nums">
                   {item.current_cards ?? '—'}

@@ -15,6 +15,7 @@ interface IncentiveGroup {
   avg_new_coefficient: number | null;
   total_referral_registrations: number | null;
   total_referral_payments: number | null;
+  avg_historical_coding: number | null;
 }
 
 interface IncentiveResponse {
@@ -130,6 +131,20 @@ export default function IncentiveTrackingPage() {
                 <th className="slide-th text-right">均注册数</th>
                 <th className="slide-th text-right">均付费数</th>
                 <th className="slide-th text-right">总付费数</th>
+                <th className="slide-th text-right">
+                  <span className="inline-flex items-center gap-1 group relative cursor-default">
+                    均历史转码
+                    <span
+                      className="text-[10px] opacity-50 group-hover:opacity-100 transition-opacity"
+                      title="平均历史转码次数，衡量激励是否触达高活跃群体"
+                    >
+                      ⓘ
+                    </span>
+                    <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 hidden group-hover:block z-10 bg-gray-900 text-white text-[10px] rounded px-2 py-1 whitespace-nowrap pointer-events-none shadow-lg">
+                      平均历史转码次数，高转码=高活跃，验证激励有效性
+                    </span>
+                  </span>
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -155,6 +170,9 @@ export default function IncentiveTrackingPage() {
                   </td>
                   <td className="slide-td text-right font-mono tabular-nums font-semibold text-green-600">
                     {(g.total_referral_payments ?? 0).toLocaleString()}
+                  </td>
+                  <td className="slide-td text-right font-mono tabular-nums text-[var(--text-secondary)]">
+                    {g.avg_historical_coding != null ? g.avg_historical_coding.toFixed(1) : '—'}
                   </td>
                 </tr>
               ))}

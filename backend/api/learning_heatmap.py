@@ -44,6 +44,7 @@ def get_learning_heatmap(
     result = []
     for _, row in grouped.iterrows():
         item: dict = {"enclosure": str(row["生命周期"])}
+        week_values: list[float] = []
         for wc in week_cols:
             key = (
                 wc.replace("第", "week")
@@ -51,9 +52,23 @@ def get_learning_heatmap(
             )
             if wc in available:
                 val = row[wc]
-                item[key] = round(float(val), 2) if pd.notna(val) else None
+                v = round(float(val), 2) if pd.notna(val) else None
+                item[key] = v
+                if v is not None:
+                    week_values.append(v)
             else:
                 item[key] = None
+
+        # 参与衰减比 = 历史转码总量 / max(本月转码，1)
+        # 用周4（最近）作为"本月"，用前3周均值作为"历史"
+        if len(week_values) >= 2:
+            current = week_values[-1]
+            historical_avg = sum(week_values[:-1]) / len(week_values[:-1])
+            trend_ratio = round(historical_avg / max(current, 0.01), 3)
+            item["trend_ratio"] = trend_ratio
+        else:
+            item["trend_ratio"] = None
+
         result.append(item)
 
     return result

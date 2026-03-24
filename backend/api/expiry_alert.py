@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import math
+from datetime import date
 from typing import Any
 
 import pandas as pd
@@ -37,6 +38,32 @@ def _tier(days: float) -> str:
         return "warning"
     else:
         return "watch"
+
+
+def _contact_days(raw_date) -> float | None:
+    """计算 CC末次接通距今天数，返回 None 表示无记录"""
+    if raw_date is None:
+        return None
+    s = str(raw_date)
+    if s.startswith("1970") or not s or s == "nan":
+        return None
+    try:
+        d = pd.to_datetime(s[:10]).date()
+        return (date.today() - d).days
+    except Exception:
+        return None
+
+
+def _risk_level(days_to_expiry: float | None, days_since_contact: float | None) -> str:
+    """综合风险等级：到期近 + 失联久 = 高风险"""
+    expiry_urgent = days_to_expiry is not None and days_to_expiry <= 14
+    contact_lost = days_since_contact is not None and days_since_contact >= 15
+    contact_none = days_since_contact is None
+    if expiry_urgent and (contact_lost or contact_none):
+        return "high"
+    if expiry_urgent or contact_lost:
+        return "medium"
+    return "low"
 
 
 @router.get(
@@ -77,12 +104,17 @@ def get_expiry_alert(
     items = []
     for _, row in filtered.iterrows():
         d = _safe(row["_expiry_days"])
+        # 失联天数：支持两种列名
+        contact_raw = row.get("CC末次接通日期(day)") or row.get("CC末次拨打日期(day)")
+        days_contact = _contact_days(contact_raw)
         items.append(
             ExpiryAlertItem(
                 stdt_id=str(row.get("学员id", "") or row.get("stdt_id", "") or ""),
                 enclosure=str(row.get("生命周期", "") or ""),
                 cc_name=str(row.get("末次CC员工姓名", "") or ""),
                 days_to_expiry=d,
+                days_since_last_contact=days_contact,
+                risk_level=_risk_level(d, days_contact),
                 current_cards=_safe(row.get("当前有效次卡数") or row.get("次卡数")),
                 monthly_referral_registrations=_safe(
                     row.get("当月推荐注册人数") or row.get("本月推荐注册数")

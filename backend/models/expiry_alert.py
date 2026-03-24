@@ -10,6 +10,8 @@ class ExpiryAlertItem(BaseModel):
     enclosure: str | None = None
     cc_name: str | None = None
     days_to_expiry: float | None = None
+    days_since_last_contact: float | None = None  # 失联天数（CC末次接通距今）
+    risk_level: str | None = None  # high / medium / low（综合到期+失联）
     current_cards: float | None = None
     monthly_referral_registrations: float | None = None
     monthly_referral_payments: float | None = None

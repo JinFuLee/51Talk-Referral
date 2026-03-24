@@ -16,6 +16,7 @@ import {
   Briefcase,
   Phone,
   Clock,
+  AlertTriangle,
 } from 'lucide-react';
 
 interface HighPotentialResponse {
@@ -127,6 +128,35 @@ function HighPotentialCard({
               业务线
             </span>
             <span className="font-medium">{student.business_line}</span>
+          </div>
+        )}
+        {/* 失联天数 */}
+        {student.days_since_last_cc_contact != null && (
+          <div className="flex items-center justify-between text-xs">
+            <span className="flex items-center gap-1 text-[var(--text-muted)]">
+              <AlertTriangle className="w-3 h-3" />
+              失联天数
+            </span>
+            <span
+              className={`font-semibold ${
+                student.days_since_last_cc_contact > 14
+                  ? 'text-red-500'
+                  : student.days_since_last_cc_contact > 7
+                    ? 'text-orange-500'
+                    : 'text-green-600'
+              }`}
+            >
+              {student.days_since_last_cc_contact} 天
+            </span>
+          </div>
+        )}
+        {/* 出席数标签 */}
+        {student.deep_engagement && (
+          <div className="flex items-center justify-between text-xs">
+            <span className="text-[var(--text-muted)]">参与深度</span>
+            <span className="text-[10px] px-1.5 py-0.5 rounded font-medium bg-green-100 text-green-700">
+              深度参与
+            </span>
           </div>
         )}
         {student.cc_name && (

@@ -61,3 +61,5 @@ class HighPotentialStudent(BaseModel):
     stat_date: str | None = None
     region: str | None = None
     business_line: str | None = None
+    days_since_last_cc_contact: int | None = None
+    deep_engagement: bool | None = None

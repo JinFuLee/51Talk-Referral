@@ -30,12 +30,31 @@ def _safe(val) -> Any:
         return str(val) if val else None
 
 
+def _days_since_cc_contact(row: pd.Series) -> int | None:
+    """计算 CC 末次接通日期距今天数"""
+    import datetime
+    cc_last_call_candidates = ["CC末次接通日期", "末次CC接通日期", "cc_last_call_date"]
+    for col in cc_last_call_candidates:
+        val = row.get(col)
+        if val is not None and str(val).strip():
+            try:
+                dt = pd.to_datetime(val)
+                if pd.notna(dt):
+                    today = pd.Timestamp.today().normalize()
+                    delta = (today - dt.normalize()).days
+                    return int(delta)
+            except (ValueError, TypeError):
+                pass
+    return None
+
+
 def _row_to_hp(row: pd.Series) -> HighPotentialStudent:
+    attendance = _safe(row.get("出席数"))
     return HighPotentialStudent(
         id=str(row.get("stdt_id", "") or ""),
         enclosure=str(row.get("围场", "") or ""),
         total_new=_safe(row.get("总带新人数")),
-        attendance=_safe(row.get("出席数")),
+        attendance=attendance,
         payments=_safe(row.get("转介绍付费数")),
         cc_name=str(row.get("last_cc_name", "") or ""),
         cc_group=str(row.get("last_cc_group_name", "") or ""),
@@ -46,6 +65,8 @@ def _row_to_hp(row: pd.Series) -> HighPotentialStudent:
         stat_date=str(row.get("统计日期", "") or "") or None,
         region=str(row.get("区域", "") or "") or None,
         business_line=str(row.get("业务线", "") or "") or None,
+        days_since_last_cc_contact=_days_since_cc_contact(row),
+        deep_engagement=bool(attendance is not None and attendance >= 2),
     )
 
 

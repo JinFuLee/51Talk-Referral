@@ -132,12 +132,23 @@ interface KPI8Item {
   current_daily_avg: number | null;
 }
 
+interface D2bSummary {
+  total_students: number | null;
+  new_coefficient: number | null;
+  cargo_ratio: number | null;
+  participation_count: number | null;
+  participation_rate: number | null;
+  checkin_rate: number | null;
+  cc_reach_rate: number | null;
+}
+
 interface OverviewResponse {
   metrics: Record<string, number | string | null>;
   data_sources: { id: string; name: string; has_file: boolean; row_count: number }[];
   time_progress?: TimeProgressInfo;
   kpi_pace?: Record<string, KpiPaceItem | null>;
   kpi_8item?: Record<string, KPI8Item | null>;
+  d2b_summary?: D2bSummary | null;
 }
 
 /* ── KPI 8项卡片 ─────────────────────────────────────────────── */
@@ -583,6 +594,7 @@ export default function DashboardPage() {
   const sources = data?.data_sources ?? [];
   const tp = data?.time_progress;
   const kpiPace = data?.kpi_pace ?? {};
+  const d2b = data?.d2b_summary;
   const hasMetrics = Object.keys(metrics).length > 0;
 
   if (!hasMetrics && sources.length === 0) {
@@ -674,6 +686,58 @@ export default function DashboardPage() {
 
       {/* 月度目标达成 */}
       <MonthlyAchievementSection />
+
+      {/* D2b 全站基准 */}
+      {d2b && (
+        <Card title="全站基准（D2b）">
+          <p className="text-[11px] text-[var(--text-muted)] mb-3">
+            全站学员参与效率快照 · 财务模型参与率与运营口径相同（待确认）
+          </p>
+          <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-3">
+            {[
+              { label: '有效学员数', value: (d2b.total_students ?? 0).toLocaleString() },
+              {
+                label: '带新系数',
+                value: d2b.new_coefficient != null ? d2b.new_coefficient.toFixed(2) : '—',
+              },
+              {
+                label: '带货比',
+                value: d2b.cargo_ratio != null ? d2b.cargo_ratio.toFixed(2) : '—',
+              },
+              {
+                label: '带新参与数',
+                value:
+                  d2b.participation_count != null ? d2b.participation_count.toLocaleString() : '—',
+              },
+              {
+                label: '参与率',
+                value:
+                  d2b.participation_rate != null
+                    ? `${(d2b.participation_rate * 100).toFixed(1)}%`
+                    : '—',
+              },
+              {
+                label: '打卡率',
+                value: d2b.checkin_rate != null ? `${(d2b.checkin_rate * 100).toFixed(1)}%` : '—',
+              },
+              {
+                label: 'CC触达率',
+                value: d2b.cc_reach_rate != null ? `${(d2b.cc_reach_rate * 100).toFixed(1)}%` : '—',
+              },
+            ].map(({ label, value }) => (
+              <div
+                key={label}
+                className="bg-[var(--bg-subtle)] rounded-lg px-3 py-2.5 flex flex-col gap-0.5"
+              >
+                <span className="text-[10px] text-[var(--text-muted)]">{label}</span>
+                <span className="text-base font-bold font-mono tabular-nums text-[var(--text-primary)]">
+                  {value}
+                </span>
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
 
       {/* 数据源状态 */}
       <Card title="数据源状态">

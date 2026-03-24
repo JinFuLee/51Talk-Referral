@@ -14,6 +14,34 @@ import type {
 } from '@/lib/types/channel';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 
+interface TopContributor {
+  stdt_id: string;
+  enclosure: string;
+  cc_new_count: number;
+  ss_new_count: number;
+  lp_new_count: number;
+  wide_new_count: number;
+  cc_paid_count: number;
+  ss_paid_count: number;
+  lp_paid_count: number;
+  wide_paid_count: number;
+  total_new: number;
+  total_paid: number;
+}
+
+interface ContributorResponse {
+  total_contributors: number;
+  top_contributors: TopContributor[];
+  channel_summary: Record<string, { new_total: number; paid_total: number }>;
+}
+
+const CHANNEL_KEY_MAP: Record<string, { paid: keyof TopContributor; label: string }> = {
+  CC窄: { paid: 'cc_paid_count', label: 'CC窄' },
+  SS窄: { paid: 'ss_paid_count', label: 'SS窄' },
+  LP窄: { paid: 'lp_paid_count', label: 'LP窄' },
+  宽口: { paid: 'wide_paid_count', label: '宽口' },
+};
+
 const CHANNEL_COLORS = [
   '#92400E',
   '#065F46',
@@ -23,7 +51,7 @@ const CHANNEL_COLORS = [
   '#B45309',
   '#047857',
 ];
-const TABS = ['业绩贡献', '净拆解', '三因素对标'] as const;
+const TABS = ['业绩贡献', '净拆解', '三因素对标', '渠道推荐者'] as const;
 type Tab = (typeof TABS)[number];
 
 // Render a cell: null → "—", number → formatted
@@ -89,8 +117,12 @@ export default function ChannelPage() {
     '/api/channel/three-factor',
     swrFetcher
   );
+  const { data: contributorData, isLoading: c4 } = useSWR<ContributorResponse>(
+    '/api/analysis/referral-contributor?top=200',
+    swrFetcher
+  );
 
-  const isLoading = c1 || c2 || c3;
+  const isLoading = c1 || c2 || c3 || c4;
 
   if (isLoading) {
     return (
@@ -103,6 +135,7 @@ export default function ChannelPage() {
   const channels = Array.isArray(channelData) ? channelData : (channelData?.channels ?? []);
   const contributions = Array.isArray(attrData) ? attrData : (attrData?.contributions ?? []);
   const comparisons = Array.isArray(threeData) ? threeData : (threeData?.comparisons ?? []);
+  const allContributors: TopContributor[] = contributorData?.top_contributors ?? [];
 
   const pieData = channels
     .filter((c) => c.revenue_usd != null && c.revenue_usd > 0)
@@ -267,6 +300,58 @@ export default function ChannelPage() {
             </div>
           )}
         </Card>
+      )}
+
+      {tab === '渠道推荐者' && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          {Object.entries(CHANNEL_KEY_MAP).map(([channelLabel, { paid }]) => {
+            const top5 = [...allContributors]
+              .filter((c) => (c[paid] as number) > 0)
+              .sort((a, b) => (b[paid] as number) - (a[paid] as number))
+              .slice(0, 5);
+            return (
+              <Card key={channelLabel} title={`${channelLabel} · TOP5 推荐者`}>
+                {top5.length === 0 ? (
+                  <EmptyState title="暂无数据" description="该渠道尚无带新付费记录" />
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="slide-thead-row">
+                          <th className="slide-th text-left">#</th>
+                          <th className="slide-th text-left">学员 ID</th>
+                          <th className="slide-th text-left">围场</th>
+                          <th className="slide-th text-right">该渠道带新付费</th>
+                          <th className="slide-th text-right">总带新</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {top5.map((c, i) => (
+                          <tr
+                            key={c.stdt_id || i}
+                            className={i % 2 === 0 ? 'slide-row-even' : 'slide-row-odd'}
+                          >
+                            <td className="slide-td text-[var(--text-muted)] font-mono">{i + 1}</td>
+                            <td className="slide-td font-mono text-xs">{c.stdt_id || '—'}</td>
+                            <td className="slide-td text-[var(--text-secondary)]">
+                              {c.enclosure || '—'}
+                            </td>
+                            <td className="slide-td text-right font-mono tabular-nums font-semibold text-blue-600">
+                              {fmtNum(c[paid] as number)}
+                            </td>
+                            <td className="slide-td text-right font-mono tabular-nums text-[var(--text-secondary)]">
+                              {fmtNum(c.total_new)}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </Card>
+            );
+          })}
+        </div>
       )}
 
       {tab === '三因素对标' && (

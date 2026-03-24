@@ -38,6 +38,17 @@ def _safe(val) -> Any:
 
 
 def _row_to_item(row: pd.Series, days_since_renewal: float | None) -> dict[str, Any]:
+    # 总次卡数（历史购买规模）
+    total_lesson_packages = _safe(
+        row.get("总次卡数") or row.get("历史总次卡数") or row.get("累计次卡数")
+    )
+    # 总1v1续费订单数（高续费=高价值）
+    total_renewal_orders = _safe(
+        row.get("总1v1续费订单数")
+        or row.get("1v1续费订单数")
+        or row.get("续费订单总数")
+        or row.get("历史续费次数")
+    )
     return {
         "stdt_id": str(row.get("学员id", "") or row.get("stdt_id", "") or ""),
         "enclosure": str(row.get("生命周期", "") or ""),
@@ -50,6 +61,8 @@ def _row_to_item(row: pd.Series, days_since_renewal: float | None) -> dict[str, 
         "monthly_referral_payments": _safe(
             row.get("本月推荐付费数") or row.get("当月推荐付费数")
         ),
+        "total_lesson_packages": total_lesson_packages,
+        "total_renewal_orders": total_renewal_orders,
     }
 
 

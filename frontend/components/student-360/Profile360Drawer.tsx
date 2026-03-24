@@ -72,11 +72,18 @@ function NewResultRow({
   newCount: number | null | undefined;
   paidCount: number | null | undefined;
 }) {
+  const rate =
+    newCount != null && paidCount != null && newCount > 0
+      ? ((paidCount / newCount) * 100).toFixed(1) + '%'
+      : '—';
   return (
-    <div className="grid grid-cols-[80px_1fr_1fr] gap-2 py-1.5 border-b border-[var(--border-subtle)] last:border-0">
+    <div className="grid grid-cols-[80px_1fr_1fr_60px] gap-2 py-1.5 border-b border-[var(--border-subtle)] last:border-0">
       <span className="text-xs text-[var(--text-muted)]">{role}</span>
       <span className="text-xs font-mono tabular-nums">{newCount ?? '—'}</span>
       <span className="text-xs font-mono tabular-nums">{paidCount ?? '—'}</span>
+      <span className="text-xs font-mono tabular-nums text-right text-[var(--text-secondary)]">
+        {rate}
+      </span>
     </div>
   );
 }
@@ -382,10 +389,11 @@ export function Profile360Drawer({ stdtId, onClose }: Profile360DrawerProps) {
                 {/* Tab 6: 带新成果 */}
                 <TabsContent value="new_result">
                   <div className="mb-3">
-                    <div className="grid grid-cols-[80px_1fr_1fr] gap-2 py-1 text-[10px] uppercase tracking-wider text-[var(--text-muted)] font-semibold">
+                    <div className="grid grid-cols-[80px_1fr_1fr_60px] gap-2 py-1 text-[10px] uppercase tracking-wider text-[var(--text-muted)] font-semibold">
                       <span>渠道</span>
                       <span>带新数</span>
                       <span>付费数</span>
+                      <span className="text-right">转化率</span>
                     </div>
                   </div>
                   <NewResultRow role="CC" newCount={p?.cc_new} paidCount={p?.cc_paid} />

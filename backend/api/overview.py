@@ -187,10 +187,38 @@ def get_overview(
             time_progress=time_progress,
         )
 
+    # D2b 全站基准（1 行 7 列）
+    d2b_df = data.get("d2b_summary")
+    d2b_summary: dict[str, Any] | None = None
+    if d2b_df is not None and not d2b_df.empty:
+        row = d2b_df.iloc[0]
+        # 兼容多种列名
+        def _d2b_val(candidates: list[str]) -> float | None:
+            for c in candidates:
+                if c in row.index:
+                    v = row[c]
+                    try:
+                        f = float(v)
+                        return None if math.isnan(f) else f
+                    except (ValueError, TypeError):
+                        pass
+            return None
+
+        d2b_summary = {
+            "total_students": _d2b_val(["学员数", "有效学员数", "总学员数"]),
+            "new_coefficient": _d2b_val(["带新系数", "转介绍带新系数"]),
+            "cargo_ratio": _d2b_val(["带货比", "带货比例"]),
+            "participation_count": _d2b_val(["带新参与数", "参与带新学员数"]),
+            "participation_rate": _d2b_val(["参与率", "转介绍参与率"]),
+            "checkin_rate": _d2b_val(["当月有效打卡率", "打卡率"]),
+            "cc_reach_rate": _d2b_val(["CC触达率", "有效触达率"]),
+        }
+
     return {
         "metrics": metrics,
         "data_sources": statuses,
         "time_progress": time_progress_info,
         "kpi_pace": kpi_pace,
         "kpi_8item": kpi_8item,
+        "d2b_summary": d2b_summary,
     }

@@ -11,6 +11,7 @@ interface HeatmapRow {
   week2_avg: number | null;
   week3_avg: number | null;
   week4_avg: number | null;
+  trend_ratio: number | null;
 }
 
 const WEEKS = [
@@ -34,13 +35,7 @@ function intensityText(ratio: number): string {
   return ratio >= 0.45 ? '#fff' : 'var(--text-primary)';
 }
 
-function HeatCell({
-  value,
-  maxVal,
-}: {
-  value: number | null;
-  maxVal: number;
-}) {
+function HeatCell({ value, maxVal }: { value: number | null; maxVal: number }) {
   if (value == null) {
     return (
       <td className="slide-td text-center">
@@ -92,9 +87,7 @@ export default function LearningHeatmapPage() {
       <div className="space-y-4">
         <div>
           <h1 className="text-lg font-bold text-[var(--text-primary)]">学习热图</h1>
-          <p className="text-sm text-[var(--text-secondary)] mt-1">
-            各围场每周平均转码次数热力图
-          </p>
+          <p className="text-sm text-[var(--text-secondary)] mt-1">各围场每周平均转码次数热力图</p>
         </div>
         <EmptyState
           title="暂无转码数据"
@@ -132,10 +125,7 @@ export default function LearningHeatmapPage() {
           { label: '极高', bg: 'var(--n-800)' },
         ].map(({ label, bg }) => (
           <div key={label} className="flex items-center gap-1">
-            <div
-              className="w-4 h-4 rounded"
-              style={{ backgroundColor: bg }}
-            />
+            <div className="w-4 h-4 rounded" style={{ backgroundColor: bg }} />
             <span>{label}</span>
           </div>
         ))}
@@ -148,22 +138,36 @@ export default function LearningHeatmapPage() {
             <tr className="slide-thead-row">
               <th className="slide-th text-left">围场 / 生命周期</th>
               {WEEKS.map((w) => (
-                <th key={w.key} className="slide-th text-center">{w.label}</th>
+                <th key={w.key} className="slide-th text-center">
+                  {w.label}
+                </th>
               ))}
               <th className="slide-th text-center">周均</th>
+              <th className="slide-th text-center">
+                <span className="inline-flex items-center gap-1 group relative cursor-default">
+                  趋势
+                  <span
+                    className="text-[10px] opacity-50 group-hover:opacity-100 transition-opacity"
+                    title="历史均值/本周转码比，>1=衰减，<1=增长，≈1=稳定"
+                  >
+                    ⓘ
+                  </span>
+                  <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 hidden group-hover:block z-10 bg-gray-900 text-white text-[10px] rounded px-2 py-1 whitespace-nowrap pointer-events-none shadow-lg">
+                    衰减比 = 前几周均值/本周，&gt;1表示本周低于历史
+                  </span>
+                </span>
+              </th>
             </tr>
           </thead>
           <tbody>
             {data.map((row, i) => {
-              const vals = WEEKS.map((w) => row[w.key]).filter(
-                (v): v is number => v != null
-              );
-              const avg =
-                vals.length > 0
-                  ? vals.reduce((a, b) => a + b, 0) / vals.length
-                  : null;
+              const vals = WEEKS.map((w) => row[w.key]).filter((v): v is number => v != null);
+              const avg = vals.length > 0 ? vals.reduce((a, b) => a + b, 0) / vals.length : null;
               return (
-                <tr key={row.enclosure} className={i % 2 === 0 ? 'slide-row-even' : 'slide-row-odd'}>
+                <tr
+                  key={row.enclosure}
+                  className={i % 2 === 0 ? 'slide-row-even' : 'slide-row-odd'}
+                >
                   <td className="slide-td font-medium text-[var(--text-primary)]">
                     {row.enclosure}
                   </td>
@@ -174,6 +178,24 @@ export default function LearningHeatmapPage() {
                     {avg != null ? (
                       <span className="text-xs font-mono tabular-nums text-[var(--text-secondary)]">
                         {avg.toFixed(2)}
+                      </span>
+                    ) : (
+                      <span className="text-xs text-[var(--text-muted)]">—</span>
+                    )}
+                  </td>
+                  <td className="slide-td text-center">
+                    {row.trend_ratio != null ? (
+                      <span
+                        className={`text-xs font-medium ${
+                          row.trend_ratio > 1.15
+                            ? 'text-red-500'
+                            : row.trend_ratio < 0.85
+                              ? 'text-green-600'
+                              : 'text-[var(--text-secondary)]'
+                        }`}
+                        title={`衰减比: ${row.trend_ratio}`}
+                      >
+                        {row.trend_ratio > 1.15 ? '↓' : row.trend_ratio < 0.85 ? '↑' : '→'}
                       </span>
                     ) : (
                       <span className="text-xs text-[var(--text-muted)]">—</span>
