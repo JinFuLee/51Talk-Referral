@@ -175,7 +175,9 @@
     "enclosure_ss_lp",
     "expiry_alert",
     "incentive_effect",
-    "renewal_risk"
+    "renewal_risk",
+    "learning_heatmap",
+    "geo_distribution"
   ],
   "enclosure_role_assignment": {
     "CC": {

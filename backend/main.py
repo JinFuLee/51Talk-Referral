@@ -57,6 +57,9 @@ ROUTER_REGISTRY: dict = {
     "expiry_alert": ("backend.api.expiry_alert", "/api", ["students"]),
     "incentive_effect": ("backend.api.incentive_effect", "/api", ["analysis"]),
     "renewal_risk": ("backend.api.renewal_risk", "/api", ["analysis"]),
+    # ── Wave 3 新增：学习热图 + 地理分布 ──────────────────────────────────────
+    "learning_heatmap": ("backend.api.learning_heatmap", "/api", ["analysis"]),
+    "geo_distribution": ("backend.api.geo_distribution", "/api", ["analysis"]),
 }
 
 

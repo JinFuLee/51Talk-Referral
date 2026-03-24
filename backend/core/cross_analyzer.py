@@ -1136,6 +1136,12 @@ class CrossAnalyzer:
             "referral_paid_count": _safe(d4_row.get("转介绍付费数")) if d4_row is not None else None,  # noqa: E501
             "referral_revenue_usd": _safe(d4_row.get("总带新付费金额USD")) if d4_row is not None else None,  # noqa: E501
             "channel": str(d4_row.get("三级渠道", d4_row.get("转介绍类型_新", "")) or "") if d4_row is not None else None,  # noqa: E501
+            # D4 补全字段
+            "referral_reward_status": str(d4_row.get("推荐奖励领取状态", "") or "") or None if d4_row is not None else None,  # noqa: E501
+            "avg_lesson_consumed_3m": _safe(d4_row.get("近3个月平均课耗")) if d4_row is not None else None,  # noqa: E501
+            "days_to_card_expiry": _safe(d4_row.get("次卡距到期天数")) if d4_row is not None else None,  # noqa: E501
+            "days_since_last_renewal": _safe(d4_row.get("末次续费日期距今天数")) if d4_row is not None else None,  # noqa: E501
+            "total_renewal_orders": _safe(d4_row.get("总续费订单数")) if d4_row is not None else None,  # noqa: E501
             "is_high_potential": is_hp,
             "hp_info": hp_info,
             "timeline": timeline,

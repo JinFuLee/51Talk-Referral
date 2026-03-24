@@ -58,6 +58,12 @@ class StudentDetail(BaseModel):
     referral_paid_count: float | None = None
     referral_revenue_usd: float | None = None
     channel: str | None = None
+    # D4 补全字段
+    referral_reward_status: str | None = None
+    avg_lesson_consumed_3m: float | None = None
+    days_to_card_expiry: float | None = None
+    days_since_last_renewal: float | None = None
+    total_renewal_orders: float | None = None
     # D5 高潜标签
     is_high_potential: bool = False
     hp_info: dict[str, Any] = {}

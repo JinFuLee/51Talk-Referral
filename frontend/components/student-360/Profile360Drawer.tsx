@@ -250,13 +250,39 @@ export function Profile360Drawer({ stdtId, onClose }: Profile360DrawerProps) {
                     current={p?.lesson_consumed}
                     lastMonth={p?.lesson_consumed_last_month}
                   />
+                  {detail.avg_lesson_consumed_3m != null && (
+                    <div className="grid grid-cols-[120px_1fr] gap-2 py-1.5 border-b border-[var(--border-subtle)] last:border-0">
+                      <span className="text-xs text-[var(--text-muted)]">近3月均课耗</span>
+                      <span className="text-xs font-mono tabular-nums">
+                        {detail.avg_lesson_consumed_3m.toFixed(1)}
+                      </span>
+                    </div>
+                  )}
                 </TabsContent>
 
                 {/* Tab 3: 推荐行为 */}
                 <TabsContent value="referral">
                   <div className="space-y-0">
                     <InfoRow label="推荐付费数" value={p?.referral_paid_count} />
-                    <InfoRow label="奖励状态" value={p?.referral_reward_status} />
+                    <InfoRow
+                      label="奖励状态"
+                      value={
+                        detail.referral_reward_status ? (
+                          <span
+                            className={
+                              detail.referral_reward_status.includes('已') ||
+                              detail.referral_reward_status.includes('领')
+                                ? 'text-green-600 font-medium'
+                                : 'text-[var(--text-muted)]'
+                            }
+                          >
+                            {detail.referral_reward_status}
+                          </span>
+                        ) : (
+                          '—'
+                        )
+                      }
+                    />
                     <InfoRow label="推荐人ID" value={p?.referrer_stdt_id} />
                   </div>
 
@@ -292,6 +318,64 @@ export function Profile360Drawer({ stdtId, onClose }: Profile360DrawerProps) {
                       value={p?.paid_amount != null ? `$${p.paid_amount.toLocaleString()}` : '—'}
                     />
                     <InfoRow label="三级渠道" value={p?.channel_l3} />
+                    <InfoRow
+                      label="近3月均课耗"
+                      value={
+                        detail.avg_lesson_consumed_3m != null
+                          ? `${detail.avg_lesson_consumed_3m.toFixed(1)} 节/月`
+                          : '—'
+                      }
+                    />
+                    <InfoRow
+                      label="次卡距到期"
+                      value={
+                        detail.days_to_card_expiry != null ? (
+                          <span
+                            className={
+                              detail.days_to_card_expiry <= 7
+                                ? 'text-red-500 font-medium'
+                                : detail.days_to_card_expiry <= 14
+                                  ? 'text-yellow-600 font-medium'
+                                  : detail.days_to_card_expiry <= 30
+                                    ? 'text-green-600 font-medium'
+                                    : 'text-[var(--text-primary)]'
+                            }
+                          >
+                            {detail.days_to_card_expiry} 天
+                          </span>
+                        ) : (
+                          '—'
+                        )
+                      }
+                    />
+                    <InfoRow
+                      label="末次续费距今"
+                      value={
+                        detail.days_since_last_renewal != null ? (
+                          <span
+                            className={
+                              detail.days_since_last_renewal > 60
+                                ? 'text-red-500 font-medium'
+                                : detail.days_since_last_renewal > 30
+                                  ? 'text-yellow-600 font-medium'
+                                  : 'text-[var(--text-primary)]'
+                            }
+                          >
+                            {detail.days_since_last_renewal} 天前
+                          </span>
+                        ) : (
+                          '—'
+                        )
+                      }
+                    />
+                    <InfoRow
+                      label="总续费订单"
+                      value={
+                        detail.total_renewal_orders != null
+                          ? `${detail.total_renewal_orders} 单`
+                          : '—'
+                      }
+                    />
                   </div>
                 </TabsContent>
 

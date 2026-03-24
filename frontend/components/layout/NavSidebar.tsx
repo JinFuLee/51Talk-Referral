@@ -30,6 +30,8 @@ import {
   PhoneCall,
   Gift,
   AlertTriangle,
+  Flame,
+  Globe,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
@@ -72,6 +74,8 @@ const MAIN_GROUPS: NavGroup[] = [
       { href: '/cc-matrix', label: 'CC 围场战力图', Icon: Grid3X3 },
       { href: '/enclosure-health', label: '围场健康扫描仪', Icon: HeartPulse },
       { href: '/ss-lp-matrix', label: 'SS / LP 矩阵', Icon: Grid3X3 },
+      { href: '/learning-heatmap', label: '学习热图', Icon: Flame },
+      { href: '/geo-distribution', label: '地理分布', Icon: Globe },
     ],
   },
   {

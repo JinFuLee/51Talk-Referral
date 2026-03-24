@@ -1,0 +1,93 @@
+{
+  "schedule": {
+    "time": "11:00",
+    "timezone": "Asia/Bangkok",
+    "utc_hour": 4,
+    "utc_minute": 0
+  },
+  "content_modules": {
+    "team_ranking": {
+      "image_generator": "generate_report_image",
+      "description": "ภาพรวมจัดอันดับทีม"
+    },
+    "individual_ranking": {
+      "image_generator": "generate_team_image",
+      "per_team": true,
+      "description": "จัดอันดับรายบุคคลแยกตามทีม"
+    },
+    "result_metrics": {
+      "description": "ตัวชี้วัดผลลัพธ์",
+      "metrics_by_role": {
+        "CC": ["revenue_usd", "referral_share"],
+        "SS": ["narrow_leads"],
+        "LP": ["narrow_wide_leads"]
+      }
+    },
+    "achievement_metrics": {
+      "description": "ตัวชี้วัดการบรรลุเป้า",
+      "metrics_by_role": {
+        "CC": ["leads_rate", "appointment_rate", "showup_rate", "order_rate", "revenue_rate", "aov_rate", "checkin_rate"],
+        "SS": ["leads_rate"],
+        "LP": ["leads_rate", "checkin_rate"]
+      }
+    },
+    "process_metrics": {
+      "description": "ตัวชี้วัดกระบวนการ (ลงทะเบียน/นัดหมาย/เข้าเรียน/ติดต่อ/เช็คอิน/แนะนำ)"
+    },
+    "efficiency_metrics": {
+      "description": "ตัวชี้วัดประสิทธิภาพ (อัตราแปลง/อัตราติดต่อ/สัดส่วนแนะนำ)"
+    },
+    "service_metrics": {
+      "description": "ตัวชี้วัดบริการ (โทรก่อน/หลังชำระ: จำนวนโทร/ติดต่อได้/มีประสิทธิผล)"
+    },
+    "action_items": {
+      "format": "markdown",
+      "description": "คำแนะนำการดำเนินงาน (ติดตาม/นักเรียนสำคัญ)"
+    }
+  },
+  "routing": {
+    "all": ["team_ranking", "individual_ranking"],
+    "tl": ["team_ranking", "individual_ranking", "result_metrics", "achievement_metrics", "process_metrics", "efficiency_metrics", "service_metrics", "action_items"],
+    "ops": ["team_ranking", "result_metrics", "achievement_metrics"]
+  },
+  "role_metrics": {
+    "CC": {
+      "enclosure": "M0-M2",
+      "scope": "narrow+wide, responsible for conversion",
+      "result": ["付费金额", "转介绍占比"],
+      "achievement": ["leads达成率", "预约达成率", "出席达成率", "单量达成率", "业绩达成率", "客单价达成率", "打卡率"],
+      "process": ["转介绍注册数", "预约数", "出席数", "客单价", "付费数", "触达数", "打卡数", "带新数", "带货数"],
+      "efficiency": ["触达率", "带货比", "带新系数", "注册付费率", "预约付费率", "出席付费率"],
+      "wide_process": ["打卡数"],
+      "service": {
+        "pre_payment": ["外呼数", "接通数", "有效接通数"],
+        "post_payment": ["外呼数", "接通数", "有效接通数"]
+      }
+    },
+    "SS": {
+      "enclosure": "M2 narrow only",
+      "scope": "narrow leads only",
+      "result": ["窄口leads数"],
+      "achievement": ["leads达成率"],
+      "process": ["转介绍注册数", "触达数", "带新数"],
+      "efficiency": ["触达率", "带新系数"],
+      "service": {
+        "pre_payment": ["外呼数", "接通数", "有效接通数"],
+        "post_payment": ["外呼数", "接通数", "有效接通数"]
+      }
+    },
+    "LP": {
+      "enclosure": "M3-M5 narrow+wide",
+      "scope": "narrow+wide leads",
+      "result": ["窄宽leads数"],
+      "achievement": ["leads达成率", "打卡率"],
+      "process": ["转介绍注册数", "触达数", "带新数"],
+      "efficiency": ["触达率", "带新系数"],
+      "wide_process": ["打卡数"],
+      "service": {
+        "pre_payment": ["外呼数", "接通数", "有效接通数"],
+        "post_payment": ["外呼数", "接通数", "有效接通数"]
+      }
+    }
+  }
+}

@@ -297,6 +297,12 @@ export interface Student360Detail {
   daily_log: Student360DailyLog[];
   is_high_potential: boolean;
   hp_info: Student360HpInfo | null;
+  /** D4 补全字段 */
+  referral_reward_status: string | null;
+  avg_lesson_consumed_3m: number | null;
+  days_to_card_expiry: number | null;
+  days_since_last_renewal: number | null;
+  total_renewal_orders: number | null;
 }
 
 export interface Student360NetworkNode {
