@@ -26,7 +26,10 @@ import IndicatorMatrixCard from './IndicatorMatrixCard';
 import { defaultV2, MONTHS } from './defaultV2';
 
 export default function SettingsPage() {
-  const [selectedMonth, setSelectedMonth] = useState('202602');
+  const [selectedMonth, setSelectedMonth] = useState(() => {
+    const now = new Date();
+    return `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}`;
+  });
   const { data: rate, mutate: mutateRate } = useExchangeRate();
   const { data: serverV2, mutate: mutateV2 } = useTargetsV2(selectedMonth);
   const { data: recommendation } = useTargetRecommendation(selectedMonth);

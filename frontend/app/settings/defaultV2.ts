@@ -1,4 +1,4 @@
-import type { MonthlyTargetV2, ChannelTarget, EnclosureTarget } from "@/lib/types";
+import type { MonthlyTargetV2, ChannelTarget, EnclosureTarget } from '@/lib/types';
 
 export function defaultV2(month: string): MonthlyTargetV2 {
   const emptyChannel = (): ChannelTarget => ({
@@ -21,8 +21,8 @@ export function defaultV2(month: string): MonthlyTargetV2 {
       total_revenue: 0,
       referral_pct: 0,
       referral_revenue: 0,
-      display_currency: "THB",
-      lock_field: "pct",
+      display_currency: 'THB',
+      lock_field: 'pct',
     },
     channels: {
       cc_narrow: emptyChannel(),
@@ -48,4 +48,8 @@ export function defaultV2(month: string): MonthlyTargetV2 {
   };
 }
 
-export const MONTHS = ["202601", "202602", "202603", "202604", "202605", "202606"];
+// 动态生成月份列表：当前年份的 12 个月
+export const MONTHS = (() => {
+  const year = new Date().getFullYear();
+  return Array.from({ length: 12 }, (_, i) => `${year}${String(i + 1).padStart(2, '0')}`);
+})();
