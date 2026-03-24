@@ -82,6 +82,12 @@ TH = {
     "view_list":       {"th": "ดูรายชื่อ",              "zh": "查看名单"},
     "total_summary":   {"th": "รวมยังไม่เช็คอิน",      "zh": "共未打卡"},
     "teams":           {"th": "ทีม",                    "zh": "个小组"},
+    "overview_title":  {"th": "ภาพรวม CC ยังไม่เช็คอิน", "zh": "CC 未打卡总览"},
+    "cc_count":        {"th": "CC",                       "zh": "CC数"},
+    "avg_per_cc":      {"th": "เฉลี่ย/CC",                "zh": "人均"},
+    "col_team":        {"th": "ทีม",                       "zh": "团队"},
+    "col_not_checked": {"th": "ยังไม่เช็คอิน",              "zh": "未打卡"},
+    "total_row":       {"th": "รวม",                       "zh": "合计"},
 }
 
 
@@ -132,6 +138,17 @@ def fetch_followup(api_base: str, role: str = "CC") -> list[dict]:
     except Exception as e:
         print(f"[错误] 获取未打卡数据失败: {e}")
         return []
+
+
+def group_students_by_cc(students: list[dict]) -> dict[str, list[dict]]:
+    """按 cc_name 字段分组，空/None 归入 unknown 组"""
+    groups: dict[str, list[dict]] = defaultdict(list)
+    for s in students:
+        cc = (s.get("cc_name") or "").strip()
+        if not cc:
+            cc = _bi("unknown")
+        groups[cc].append(s)
+    return dict(sorted(groups.items()))
 
 
 def group_students_by_team(students: list[dict]) -> dict[str, list[dict]]:
@@ -305,6 +322,263 @@ def generate_followup_image(
         y -= row_h
 
     # ── 保存 ──
+    buf = io.BytesIO()
+    fig.savefig(buf, format="png", dpi=150, bbox_inches="tight", pad_inches=0.1)
+    plt.close(fig)
+    buf.seek(0)
+    return buf.read()
+
+
+def generate_cc_image(
+    cc_name: str,
+    team_name: str,
+    students: list[dict],
+    date_str: str,
+) -> bytes:
+    """生成单个 CC 负责学员的未打卡图片（去掉负责人列）"""
+    plt.rcParams["font.family"] = CJK_FONTS
+    plt.rcParams["font.size"] = 10
+
+    # 列定义（去掉 col_owner，共 6 列）
+    cols = [
+        (0.2,  0.5,  _bi("col_rank"),       "center"),
+        (0.7,  0.5,  _bi("col_score"),      "center"),
+        (1.2,  1.8,  _bi("col_student_id"), "left"),
+        (3.1,  0.8,  _bi("col_enclosure"),  "center"),
+        (4.0,  2.0,  _bi("col_last_call"),  "center"),
+        (6.1,  0.9,  _bi("col_lesson"),     "center"),
+    ]
+    table_width = 7.2
+
+    n = len(students)
+    row_h = 0.35
+    header_h = 2.1
+    table_h = n * row_h
+    total_h = header_h + table_h + 0.4
+    total_h = max(total_h, 3.5)
+
+    fig, ax = plt.subplots(figsize=(table_width + 0.4, total_h), dpi=150)
+    fig.patch.set_facecolor(C_BG)
+    ax.set_xlim(0, table_width + 0.4)
+    ax.set_ylim(0, total_h)
+    ax.set_aspect("equal")
+    ax.axis("off")
+
+    y = total_h
+
+    # ── 标题区 ──
+    y -= 0.25
+    ax.add_patch(plt.Rectangle(
+        (0.15, y - 0.45), 0.07, 0.45,
+        facecolor=C_DANGER, edgecolor="none",
+    ))
+    ax.text(
+        0.35, y, f"{cc_name}  {_th('followup_title')}",
+        fontsize=15, fontweight="bold", color=C_HEADER, va="top",
+    )
+    y -= 0.25
+    ax.text(
+        0.35, y, f"{cc_name}  {_zh('followup_title')}",
+        fontsize=8, color=C_MUTED, va="top",
+    )
+    y -= 0.2
+    ax.text(
+        0.35, y, f"{date_str}  |  {team_name}",
+        fontsize=8, color=C_MUTED, va="top",
+    )
+
+    # ── 汇总条（只显示未打卡数，无负责人分布）──
+    y -= 0.5
+    ax.add_patch(mpatches.FancyBboxPatch(
+        (0.15, y - 0.45), table_width, 0.45,
+        boxstyle="round,pad=0.06",
+        facecolor=C_RED_BG, edgecolor=C_BORDER, linewidth=0.8,
+    ))
+    ax.text(
+        0.35, y - 0.12,
+        f"{_th('not_checked')} {n} {_th('persons')}",
+        fontsize=13, fontweight="bold", color=C_DANGER, va="center",
+    )
+
+    # ── 表头 ──
+    y -= 0.65
+    ax.add_patch(plt.Rectangle(
+        (0.15, y - row_h), table_width, row_h,
+        facecolor=C_N800, edgecolor="none",
+    ))
+    for cx, _cw, title, align in cols:
+        ha = "center" if align == "center" else "left"
+        ax.text(
+            cx + 0.05, y - row_h / 2,
+            title,
+            fontsize=9, fontweight="bold", color="white",
+            va="center", ha=ha,
+        )
+    y -= row_h
+
+    # ── 数据行 ──
+    for i, s in enumerate(students):
+        bg = C_SURFACE if i % 2 == 0 else C_BG
+        ax.add_patch(plt.Rectangle(
+            (0.15, y - row_h), table_width, row_h,
+            facecolor=bg, edgecolor="none",
+        ))
+        ax.plot(
+            [0.15, 0.15 + table_width], [y - row_h, y - row_h],
+            color=C_BORDER, linewidth=0.3,
+        )
+
+        ym = y - row_h / 2
+        score = s.get("quality_score", 0) or 0
+        sid = s.get("student_id", "")
+        enc = s.get("enclosure", "")
+        last_call = s.get("cc_last_call_date") or "—"
+        lesson = s.get("lesson_consumption_3m")
+        lesson_str = str(int(lesson)) if lesson is not None else "—"
+
+        row_data = [
+            (cols[0][0], str(i + 1),     "center", C_MUTED,  "normal"),
+            (cols[1][0], str(int(score)), "center", _score_color(score), "bold"),
+            (cols[2][0], str(sid),        "left",   C_TEXT,   "normal"),
+            (cols[3][0], enc,             "center", C_TEXT2,  "normal"),
+            (cols[4][0], last_call[:10] if len(last_call) > 10 else last_call,
+             "center", C_MUTED, "normal"),
+            (cols[5][0], lesson_str,      "center", C_TEXT2,  "normal"),
+        ]
+
+        for cx, val, align, color, weight in row_data:
+            ha = "center" if align == "center" else "left"
+            ax.text(
+                cx + 0.05, ym, val,
+                fontsize=8.5, color=color, fontweight=weight,
+                va="center", ha=ha,
+            )
+        y -= row_h
+
+    buf = io.BytesIO()
+    fig.savefig(buf, format="png", dpi=150, bbox_inches="tight", pad_inches=0.1)
+    plt.close(fig)
+    buf.seek(0)
+    return buf.read()
+
+
+def generate_overview_image(
+    team_summary: list[dict],
+    date_str: str,
+) -> bytes:
+    """生成各团队汇总总览图片
+    team_summary: [{"team": str, "count": int, "cc_count": int, "avg": float}]
+    """
+    plt.rcParams["font.family"] = CJK_FONTS
+    plt.rcParams["font.size"] = 10
+
+    # 4 列：ทีม | ยังไม่เช็คอิน | CC | เฉลี่ย/CC
+    cols = [
+        (0.2,  2.8,  f"{_th('col_team')}({_zh('col_team')})",               "left"),
+        (3.1,  1.3,  f"{_th('col_not_checked')}({_zh('col_not_checked')})", "center"),
+        (4.5,  0.8,  f"{_th('cc_count')}({_zh('cc_count')})",               "center"),
+        (5.4,  1.4,  f"{_th('avg_per_cc')}({_zh('avg_per_cc')})",           "center"),
+    ]
+    table_width = 7.0
+
+    n = len(team_summary)
+    row_h = 0.38
+    header_h = 1.8
+    table_h = (n + 1) * row_h  # +1 for totals row
+    total_h = header_h + table_h + 0.4
+    total_h = max(total_h, 3.5)
+
+    fig, ax = plt.subplots(figsize=(table_width + 0.4, total_h), dpi=150)
+    fig.patch.set_facecolor(C_BG)
+    ax.set_xlim(0, table_width + 0.4)
+    ax.set_ylim(0, total_h)
+    ax.set_aspect("equal")
+    ax.axis("off")
+
+    y = total_h
+
+    # ── 标题区 ──
+    y -= 0.25
+    ax.add_patch(plt.Rectangle(
+        (0.15, y - 0.45), 0.07, 0.45,
+        facecolor=C_DANGER, edgecolor="none",
+    ))
+    ax.text(
+        0.35, y, _th("overview_title"),
+        fontsize=15, fontweight="bold", color=C_HEADER, va="top",
+    )
+    y -= 0.25
+    ax.text(
+        0.35, y, _zh("overview_title"),
+        fontsize=8, color=C_MUTED, va="top",
+    )
+    y -= 0.2
+    ax.text(
+        0.35, y, f"{date_str}  |  {_th('data_label')}",
+        fontsize=8, color=C_MUTED, va="top",
+    )
+
+    # ── 表头 ──
+    y -= 0.55
+    ax.add_patch(plt.Rectangle(
+        (0.15, y - row_h), table_width, row_h,
+        facecolor=C_N800, edgecolor="none",
+    ))
+    for cx, _cw, title, align in cols:
+        ha = "center" if align == "center" else "left"
+        ax.text(
+            cx + 0.05, y - row_h / 2,
+            title,
+            fontsize=8.5, fontweight="bold", color="white",
+            va="center", ha=ha,
+        )
+    y -= row_h
+
+    # ── 数据行 ──
+    total_count = sum(r["count"] for r in team_summary)
+    total_cc = sum(r["cc_count"] for r in team_summary)
+    avg_total = round(total_count / max(total_cc, 1), 1)
+
+    for i, r in enumerate(team_summary):
+        bg = C_SURFACE if i % 2 == 0 else C_BG
+        ax.add_patch(plt.Rectangle(
+            (0.15, y - row_h), table_width, row_h,
+            facecolor=bg, edgecolor="none",
+        ))
+        ax.plot(
+            [0.15, 0.15 + table_width], [y - row_h, y - row_h],
+            color=C_BORDER, linewidth=0.3,
+        )
+        ym = y - row_h / 2
+        row_data = [
+            (cols[0][0], r["team"],           "left",   C_TEXT,   "normal"),
+            (cols[1][0], str(r["count"]),      "center", C_DANGER, "bold"),
+            (cols[2][0], str(r["cc_count"]),   "center", C_TEXT2,  "normal"),
+            (cols[3][0], str(r["avg"]),        "center", C_TEXT2,  "normal"),
+        ]
+        for cx, val, align, color, weight in row_data:
+            ha = "center" if align == "center" else "left"
+            ax.text(cx + 0.05, ym, val, fontsize=8.5, color=color,
+                    fontweight=weight, va="center", ha=ha)
+        y -= row_h
+
+    # ── 合计行（深色背景）──
+    ax.add_patch(plt.Rectangle(
+        (0.15, y - row_h), table_width, row_h,
+        facecolor=C_N800, edgecolor="none",
+    ))
+    ym = y - row_h / 2
+    total_row_data = [
+        (cols[0][0], f"{_th('total_row')}({_zh('total_row')})", "left",   "white", "bold"),
+        (cols[1][0], str(total_count),                           "center", C_DANGER, "bold"),
+        (cols[2][0], str(total_cc),                              "center", "white", "normal"),
+        (cols[3][0], str(avg_total),                             "center", "white", "normal"),
+    ]
+    for cx, val, align, color, weight in total_row_data:
+        ha = "center" if align == "center" else "left"
+        ax.text(cx + 0.05, ym, val, fontsize=8.5, color=color,
+                fontweight=weight, va="center", ha=ha)
+
     buf = io.BytesIO()
     fig.savefig(buf, format="png", dpi=150, bbox_inches="tight", pad_inches=0.1)
     plt.close(fig)
@@ -490,39 +764,55 @@ def cmd_followup(args: argparse.Namespace) -> None:
     print(f"   ✓ {len(teams)} 个小组: {', '.join(teams.keys())}")
     print()
 
-    # 生成图片 + 上传
-    print("2. 生成图片并上传...")
-    team_results: list[dict] = []
+    # ── 阶段 2：生成图片 ─────────────────────────────────────────────────────
+    print("2. 生成图片...")
 
+    # 2a. 构建 team_summary（用于总览图）
+    team_summary: list[dict] = []
     for team_name, members in teams.items():
-        safe_name = team_name.replace("/", "-").replace(" ", "_")
-        filename = f"lark-followup-{safe_name}-{today.strftime('%Y%m%d')}.png"
-
-        # 生成图片
-        img_bytes = generate_followup_image(team_name, members, date_display)
-        local_path = OUTPUT_DIR / filename
-        local_path.write_bytes(img_bytes)
-        kb = len(img_bytes) // 1024
-        print(f"   [{team_name}] 图片已保存: output/{filename} ({kb}KB)")
-
-        # 上传
-        img_url = None
-        if not args.dry_run:
-            img_url = upload_image(img_bytes, filename)
-            if not img_url:
-                print(f"   ⚠ [{team_name}] 图片上传失败，将只发文本")
-
-        # 负责人统计
-        owner_counts: dict[str, int] = defaultdict(int)
-        for s in members:
-            owner_counts[s.get("cc_name") or "未知"] += 1
-        owner_sorted = sorted(owner_counts.items(), key=lambda x: -x[1])
-
-        team_results.append({
+        ccs = group_students_by_cc(members)
+        team_summary.append({
             "team": team_name,
             "count": len(members),
-            "img_url": img_url,
-            "owners": owner_sorted,
+            "cc_count": len(ccs),
+            "avg": round(len(members) / max(len(ccs), 1), 1),
+        })
+
+    # 2b. 总览图
+    overview_filename = f"lark-overview-{today.strftime('%Y%m%d')}.png"
+    overview_bytes = generate_overview_image(team_summary, date_display)
+    overview_path = OUTPUT_DIR / overview_filename
+    overview_path.write_bytes(overview_bytes)
+    print(f"   [总览] 图片已保存: output/{overview_filename} ({len(overview_bytes)//1024}KB)")
+
+    # 2c. per-CC 图片（按团队→CC）
+    # team_cc_results: [{team, count, cc_count, team_img: None, ccs: [{cc, count, img_url, img_bytes, filename}]}]
+    team_cc_results: list[dict] = []
+    for ts_row in team_summary:
+        team_name = ts_row["team"]
+        members = teams[team_name]
+        ccs = group_students_by_cc(members)
+        cc_list = []
+        for cc_name, cc_students in ccs.items():
+            team_safe = team_name.replace("/", "-").replace(" ", "_")
+            cc_safe = cc_name.replace("/", "-").replace(" ", "_")
+            cc_filename = f"lark-followup-{team_safe}-{cc_safe}-{today.strftime('%Y%m%d')}.png"
+            cc_bytes = generate_cc_image(cc_name, team_name, cc_students, date_display)
+            cc_path = OUTPUT_DIR / cc_filename
+            cc_path.write_bytes(cc_bytes)
+            print(f"   [{team_name}/{cc_name}] output/{cc_filename} ({len(cc_bytes)//1024}KB)")
+            cc_list.append({
+                "cc": cc_name,
+                "count": len(cc_students),
+                "img_url": None,
+                "filename": cc_filename,
+                "img_bytes": cc_bytes,
+            })
+        team_cc_results.append({
+            "team": team_name,
+            "count": len(members),
+            "cc_count": len(ccs),
+            "ccs": cc_list,
         })
 
     print()
@@ -535,52 +825,98 @@ def cmd_followup(args: argparse.Namespace) -> None:
     if not webhook:
         print("3. [跳过] 通道 webhook 为空（test 通道仅支持 --dry-run）")
         return
-    print("3. 发送到 Lark...")
 
-    # 构建 interactive card（markdown 支持 **bold** 高亮负责人）
-    total_count = sum(r["count"] for r in team_results)
-    elements: list[dict] = []
+    # ── 阶段 3：上传图片 ─────────────────────────────────────────────────────
+    print("3. 上传图片...")
 
-    # 总摘要
-    elements.append({
+    overview_url = upload_image(overview_bytes, overview_filename)
+    if not overview_url:
+        print("   ⚠ 总览图上传失败，将只发文本")
+
+    for tr in team_cc_results:
+        for cc_entry in tr["ccs"]:
+            cc_entry["img_url"] = upload_image(cc_entry["img_bytes"], cc_entry["filename"])
+            if not cc_entry["img_url"]:
+                print(f"   ⚠ [{tr['team']}/{cc_entry['cc']}] 图片上传失败")
+
+    print()
+
+    # ── 阶段 4：发送 8 条 Lark 消息 ──────────────────────────────────────────
+    print("4. 发送 Lark 消息...")
+
+    total_count = sum(tr["count"] for tr in team_cc_results)
+
+    # 消息 1：总览 card
+    overview_elements: list[dict] = []
+    overview_elements.append({
         "tag": "markdown",
         "content": (
             f"{_th('total_summary')} **{total_count}** {_th('persons')}  "
-            f"({len(team_results)} {_th('teams')})"
+            f"({len(team_cc_results)} {_th('teams')})"
         ),
     })
-    elements.append({"tag": "hr"})
+    overview_elements.append({"tag": "hr"})
+    for tr in team_cc_results:
+        md = (
+            f"📊 **{tr['team']}**：{_th('not_checked')} **{tr['count']}** {_th('persons')}"
+            f"  |  {_th('cc_count')} {tr['cc_count']}"
+        )
+        overview_elements.append({"tag": "markdown", "content": md})
+    if overview_url:
+        overview_elements.append({
+            "tag": "markdown",
+            "content": f"📷 [{_th('overview_title')}]({overview_url})",
+        })
 
-    # 每个团队一段（负责人名字加粗）
-    for r in team_results:
-        short = r["team"].replace("TH-", "").replace("Team", "")
-        owner_parts = [f"**{name}**({cnt})" for name, cnt in r["owners"][:5]]
-        if len(r["owners"]) > 5:
-            owner_parts.append(f"+{len(r['owners']) - 5}{_th('persons')}")
-        owner_text = "  ".join(owner_parts)
-
-        md = f"📊 **{r['team']}**：{_th('not_checked')} **{r['count']}** {_th('persons')}\n"
-        md += f"{_th('responsible')}: {owner_text}"
-        if r["img_url"]:
-            md += f"\n📷 [{_th('view_list')} {short}]({r['img_url']})"
-        elements.append({"tag": "markdown", "content": md})
-
-    title = f"CC {_th('followup_title')} — {date_display}"
-    payload = {
+    overview_title = f"{_th('overview_title')} — {date_display}"
+    _send_lark(webhook, {
         "msg_type": "interactive",
         "card": {
             "header": {
-                "title": {"tag": "plain_text", "content": title},
+                "title": {"tag": "plain_text", "content": overview_title},
                 "template": "red",
             },
-            "elements": elements,
+            "elements": overview_elements,
         },
-    }
-    ok = _send_lark(webhook, payload, secret)
-    if ok:
-        print("   ✓ 发送成功")
-    else:
-        print("   ✗ 发送失败")
+    }, secret)
+    print(f"   ✓ 消息 1/{ 1 + len(team_cc_results)} 已发送（总览）")
+    time.sleep(3)
+
+    # 消息 2-N：每团队 card（每 CC 一段）
+    for idx, tr in enumerate(team_cc_results, start=2):
+        team_elements: list[dict] = []
+        team_elements.append({
+            "tag": "markdown",
+            "content": (
+                f"{_th('not_checked')} **{tr['count']}** {_th('persons')}"
+                f"  |  {_th('cc_count')} {tr['cc_count']}"
+            ),
+        })
+        team_elements.append({"tag": "hr"})
+
+        for cc_entry in tr["ccs"]:
+            cc_md = (
+                f"👤 **{cc_entry['cc']}**: "
+                f"{_th('not_checked')} **{cc_entry['count']}** {_th('persons')}"
+            )
+            if cc_entry["img_url"]:
+                cc_md += f"\n📷 [{_th('view_list')} {cc_entry['cc']}]({cc_entry['img_url']})"
+            team_elements.append({"tag": "markdown", "content": cc_md})
+
+        team_title = f"{tr['team']} {_th('followup_title')} — {date_display}"
+        ok = _send_lark(webhook, {
+            "msg_type": "interactive",
+            "card": {
+                "header": {
+                    "title": {"tag": "plain_text", "content": team_title},
+                    "template": "red",
+                },
+                "elements": team_elements,
+            },
+        }, secret)
+        status = "✓" if ok else "✗"
+        print(f"   {status} 消息 {idx}/{1 + len(team_cc_results)} 已发送（{tr['team']}）")
+        time.sleep(3)
 
 
 # ── CLI ───────────────────────────────────────────────────────────────────────
