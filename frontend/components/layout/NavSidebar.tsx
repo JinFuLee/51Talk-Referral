@@ -156,7 +156,7 @@ function SidebarContent() {
   return (
     <>
       <div className="px-4 py-4 border-b border-[var(--border-subtle)]">
-        <p className="text-xs font-bold text-primary tracking-wide">ref-ops-engine</p>
+        <p className="text-xs font-bold text-primary tracking-wide font-display">ref-ops-engine</p>
         <p className="text-xs text-[var(--text-muted)] mt-0.5">51Talk 泰国转介绍运营</p>
       </div>
 
