@@ -73,7 +73,8 @@ fi
 kill_port() {
     local port=$1
     local pids
-    pids=$(lsof -ti tcp:"$port" 2>/dev/null)
+    # 仅杀 LISTEN 状态的进程（避免误杀浏览器等 ESTABLISHED 连接）
+    pids=$(lsof -nP -iTCP:"$port" -sTCP:LISTEN -t 2>/dev/null)
     if [ -n "$pids" ]; then
         warn "端口 $port 被残留进程占用，正在执行清理协议..."
         echo "$pids" | xargs kill -9 2>/dev/null
@@ -126,25 +127,25 @@ if [ "$BACKEND_READY" -eq 0 ]; then
     exit 1
 fi
 
-info "向中央处理器下达批处理分析指令..."
-ANALYSIS_STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
-    -X POST -H "Content-Type: application/json" -d '{}' \
-    http://localhost:8100/api/analysis/run)
-if [ "$ANALYSIS_STATUS" = "200" ] || [ "$ANALYSIS_STATUS" = "202" ]; then
-    ok "洞察引擎状态码: [$ANALYSIS_STATUS]。分析运算准备就绪。"
+# 数据预热（首次请求触发 DataManager 加载，后续请求零延迟）
+info "预热数据引擎..."
+HEALTH_RESP=$(curl -s http://localhost:8100/api/health 2>/dev/null)
+OVERVIEW_STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8100/api/overview 2>/dev/null)
+if [ "$OVERVIEW_STATUS" = "200" ]; then
+    ok "数据引擎预热完成"
 else
-    warn "洞察引擎报告异常状态码: [$ANALYSIS_STATUS]。非致命错误可能导致部分分析不准。"
+    warn "数据引擎预热返回 $OVERVIEW_STATUS（首次访问页面时自动加载）"
 fi
 
 # ── 拉起视图层 ────────────────────────────────────────────────────────────
 
-info "唤醒流体视角引擎 (Frontend/Next.js UI)..."
-(cd frontend && pnpm dev --port 3100 > "../$FRONTEND_LOG" 2>&1) &
+info "唤醒流体视角引擎 (Frontend/Next.js + Turbopack)..."
+(cd frontend && npx next dev --turbo --port 3100 > "../$FRONTEND_LOG" 2>&1) &
 FRONTEND_PID=$!
 
 FRONTEND_READY=0
-for ((i=1; i<=30; i++)); do
-    sleep 1.5
+for ((i=1; i<=60; i++)); do
+    sleep 1
     if curl -s http://localhost:3100 > /dev/null 2>&1; then
         ok "流体视角层编译通过并就绪 (http://localhost:3100)"
         FRONTEND_READY=1
