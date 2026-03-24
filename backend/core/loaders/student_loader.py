@@ -25,22 +25,8 @@ class StudentLoader(BaseLoader):
             logger.warning("D4 已付费学员数据文件未找到")
             return pd.DataFrame()
 
-        # D4 体量大，强制 pandas+openpyxl（性能更优）
-        try:
-            import warnings
-
-            with warnings.catch_warnings():
-                warnings.filterwarnings(
-                    "ignore", category=UserWarning, module="openpyxl"
-                )
-                df = pd.read_excel(
-                    file_path,
-                    sheet_name=self.SHEET_NAME,
-                    engine="openpyxl",
-                )
-        except Exception as e:
-            logger.error(f"D4 读取失败: {e}")
-            return pd.DataFrame()
+        # D4 体量大，使用 base 类的 _read_xlsx_pandas（含 sheet 名 fallback + Parquet 缓存）
+        df = self._read_xlsx_pandas(file_path, sheet_name=self.SHEET_NAME)
 
         if df.empty:
             return df
