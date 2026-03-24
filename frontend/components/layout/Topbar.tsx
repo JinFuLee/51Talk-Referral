@@ -1,22 +1,23 @@
-"use client";
+'use client';
 
-import { useHealth } from "@/lib/hooks";
-import { usePathname } from "next/navigation";
-import { usePresentationStore } from "@/lib/stores/presentation-store";
-import { MonitorPlay } from "lucide-react";
-import clsx from "clsx";
-import { TimePeriodSelector } from "@/components/shared/TimePeriodSelector";
-import { CompareToggle } from "@/components/shared/CompareToggle";
+import { useHealth } from '@/lib/hooks';
+import { usePathname } from 'next/navigation';
+import { usePresentationStore } from '@/lib/stores/presentation-store';
+import { MonitorPlay } from 'lucide-react';
+import clsx from 'clsx';
+import { TimePeriodSelector } from '@/components/shared/TimePeriodSelector';
+import { CompareToggle } from '@/components/shared/CompareToggle';
+import { BrandMark } from '@/components/ui/BrandMark';
 
 function ViewModeBadge({ pathname }: { pathname: string }) {
-  if (pathname.startsWith("/ops")) {
+  if (pathname.startsWith('/ops')) {
     return (
       <span className="text-xs px-2 py-0.5 rounded-full bg-slate-700 text-white font-medium">
         运营视图
       </span>
     );
   }
-  if (pathname.startsWith("/biz")) {
+  if (pathname.startsWith('/biz')) {
     return (
       <span className="text-xs px-2 py-0.5 rounded-full bg-primary text-primary-foreground font-medium">
         业务视图
@@ -29,18 +30,18 @@ function ViewModeBadge({ pathname }: { pathname: string }) {
 export function Topbar() {
   const { data: health } = useHealth();
   const pathname = usePathname();
-  const togglePresentationMode = usePresentationStore(s => s.togglePresentationMode);
+  const togglePresentationMode = usePresentationStore((s) => s.togglePresentationMode);
 
-  const isOnline = health?.status === "ok";
+  const isOnline = health?.status === 'ok';
 
   return (
     <header className="h-14 bg-[var(--bg-surface)]/80 backdrop-blur-md border-b border-[var(--border-subtle)] flex items-center justify-between px-6 shrink-0 relative z-40">
       <div className="flex items-center gap-3">
         <div className="text-sm font-medium text-[var(--text-secondary)]">
-          {new Date().toLocaleDateString("zh-CN", {
-            year: "numeric",
-            month: "long",
-            day: "numeric",
+          {new Date().toLocaleDateString('zh-CN', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
           })}
           <span className="text-[var(--text-muted)] mx-2">|</span>
           T-1 数据
@@ -67,11 +68,18 @@ export function Topbar() {
         <div className="flex items-center gap-1.5 text-xs font-medium text-[var(--text-secondary)]">
           <span
             className={clsx(
-              "inline-block w-2.5 h-2.5 rounded-full shadow-sm",
-              isOnline ? "bg-success" : "bg-destructive"
+              'inline-block w-2.5 h-2.5 rounded-full shadow-sm',
+              isOnline ? 'bg-success' : 'bg-destructive'
             )}
           />
-          {isOnline ? "后端在线" : "后端连接断开"}
+          {isOnline ? '后端在线' : '后端连接断开'}
+        </div>
+
+        <span className="text-[var(--text-muted)]">|</span>
+
+        {/* SEE Brand Mark */}
+        <div className="flex items-center gap-2" title="SEE — Self-Evolving Ecosystem">
+          <BrandMark size={18} className="text-[var(--brand-p1)] brand-mark-enter" />
         </div>
       </div>
     </header>
