@@ -179,6 +179,10 @@ TH = {
     "col_team": {"th": "ทีม", "zh": "团队"},
     "col_not_checked": {"th": "ยังไม่เช็คอิน", "zh": "未打卡"},
     "total_row": {"th": "รวม", "zh": "合计"},
+    "checkin_rate": {"th": "อัตราเช็คอิน", "zh": "打卡率"},
+    "total_rate": {"th": "รวม", "zh": "总"},
+    "col_rate": {"th": "เช็คอิน%", "zh": "打卡率"},
+    "col_not_checked_count": {"th": "ยังไม่เช็คอิน", "zh": "未打卡"},
 }
 
 
@@ -231,6 +235,39 @@ def fetch_followup(api_base: str, role: str = "CC") -> list[dict]:
     except Exception as e:
         print(f"[错误] 获取未打卡数据失败: {e}")
         return []
+
+
+def fetch_team_detail(api_base: str, team: str) -> list[dict]:
+    """调用后端 /api/checkin/team-detail 获取团队内每个 CC 的 per-围场打卡率
+    返回 members 列表，每项含 name/total_students/checked_in/rate/by_enclosure
+    """
+    encoded_team = urllib.parse.quote(team)
+    url = f"{api_base}/api/checkin/team-detail?team={encoded_team}"
+    req = urllib.request.Request(url, headers={"Accept": "application/json"})
+    try:
+        with urllib.request.urlopen(req, timeout=15) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+            return data.get("members", [])
+    except Exception as e:
+        print(f"[警告] 获取团队详情失败 ({team}): {e}")
+        return []
+
+
+def fetch_summary(api_base: str) -> dict:
+    """调用后端 /api/checkin/summary 获取角色级别打卡率汇总
+
+    返回 by_role dict，含 CC/SS/LP 各角色的
+    total_students/checked_in/checkin_rate/by_enclosure
+    """
+    url = f"{api_base}/api/checkin/summary"
+    req = urllib.request.Request(url, headers={"Accept": "application/json"})
+    try:
+        with urllib.request.urlopen(req, timeout=15) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+            return data.get("by_role", {})
+    except Exception as e:
+        print(f"[警告] 获取打卡汇总失败: {e}")
+        return {}
 
 
 def group_students_by_cc(students: list[dict]) -> dict[str, list[dict]]:
@@ -481,33 +518,72 @@ def generate_followup_image(
     return buf.read()
 
 
+def _rate_bg_color(rate: float) -> str:
+    """根据打卡率返回背景色"""
+    if rate >= 0.75:
+        return C_GREEN_BG
+    if rate >= 0.5:
+        return C_YELLOW_BG
+    return C_RED_BG
+
+
+def _rate_text_color(rate: float) -> str:
+    """根据打卡率返回文字色"""
+    if rate >= 0.75:
+        return C_SUCCESS
+    if rate >= 0.5:
+        return C_WARNING
+    return C_DANGER
+
+
 def generate_cc_image(
     cc_name: str,
     team_name: str,
-    students: list[dict],
+    students_by_enc: dict[str, list[dict]],
+    cc_rate_info: dict,
     date_str: str,
+    enclosure_order: list[str] | None = None,
 ) -> bytes:
-    """生成单个 CC 负责学员的未打卡图片（去掉负责人列）"""
+    """生成单个 CC 负责学员的未打卡图片（按围场分段，含打卡率汇总条）
+
+    Args:
+        cc_name: CC 姓名
+        team_name: 团队名
+        students_by_enc: {"M0": [...], "M1": [...]} 按围场分组的未打卡学员
+        cc_rate_info: 来自 /api/checkin/team-detail 的打卡率详情
+                      含 total_students/checked_in/rate/by_enclosure，无数据传 {}
+        date_str: 显示日期
+        enclosure_order: 围场顺序，默认 ["M0", "M1", "M2"]
+    """
+    if enclosure_order is None:
+        enclosure_order = ["M0", "M1", "M2"]
+
     plt.rcParams["font.family"] = CJK_FONTS
     plt.rcParams["font.size"] = 10
 
-    # 列定义（去掉 col_owner，共 6 列）
+    # 列定义（去掉围场列，共 5 列：#/★/学员ID/末次拨打/课耗）
     cols = [
         (0.2, 0.5, _bi("col_rank"), "center"),
         (0.7, 0.5, _bi("col_score"), "center"),
-        (1.2, 1.8, _bi("col_student_id"), "left"),
-        (3.1, 0.8, _bi("col_enclosure"), "center"),
-        (4.0, 2.0, _bi("col_last_call"), "center"),
-        (6.1, 0.9, _bi("col_lesson"), "center"),
+        (1.2, 2.0, _bi("col_student_id"), "left"),
+        (3.3, 2.2, _bi("col_last_call"), "center"),
+        (5.6, 1.0, _bi("col_lesson"), "center"),
     ]
-    table_width = 7.2
+    table_width = 6.8
 
-    n = len(students)
+    # 计算总行数（含各围场分段标题行 + 表头行 + 数据行）
+    active_encs = [enc for enc in enclosure_order if students_by_enc.get(enc)]
+    total_data_rows = sum(len(students_by_enc.get(enc, [])) for enc in active_encs)
+    # 每个围场段：1 分段标题 + 1 表头 + N 数据行
+    segment_overhead = len(active_encs) * 2
+    total_rows = total_data_rows + segment_overhead
+
     row_h = 0.35
-    header_h = 2.1
-    table_h = n * row_h
+    # 标题区 + 打卡率汇总条（含两行）
+    header_h = 2.8
+    table_h = total_rows * row_h
     total_h = header_h + table_h + 0.4
-    total_h = max(total_h, 3.5)
+    total_h = max(total_h, 4.0)
 
     fig, ax = plt.subplots(figsize=(table_width + 0.4, total_h), dpi=150)
     fig.patch.set_facecolor(C_BG)
@@ -557,109 +633,188 @@ def generate_cc_image(
         va="top",
     )
 
-    # ── 汇总条（只显示未打卡数，无负责人分布）──
-    y -= 0.5
+    # ── 打卡率汇总条（新增）──
+    y -= 0.55
+    total_students = cc_rate_info.get("total_students", 0)
+    checked_in = cc_rate_info.get("checked_in", 0)
+    overall_rate = cc_rate_info.get("rate", 0.0) or 0.0
+    not_checked_total = total_data_rows  # 未打卡学员数即各围场行数之和
+
+    rate_bg = _rate_bg_color(overall_rate)
+    rate_fg = _rate_text_color(overall_rate)
+
     ax.add_patch(
         mpatches.FancyBboxPatch(
-            (0.15, y - 0.45),
+            (0.15, y - 0.75),
             table_width,
-            0.45,
+            0.75,
             boxstyle="round,pad=0.06",
-            facecolor=C_RED_BG,
+            facecolor=rate_bg,
             edgecolor=C_BORDER,
             linewidth=0.8,
         )
     )
+
+    # 第一行：总打卡率
+    if total_students > 0:
+        rate_text = (
+            f"{_th('total_rate')}({_zh('total_rate')}) "
+            f"{_th('checkin_rate')}({_zh('checkin_rate')}) "
+            f"{overall_rate:.1%}  ({checked_in}/{total_students})"
+        )
+    else:
+        rate_text = (
+            f"{_th('not_checked')} {not_checked_total} {_th('persons')}"
+            f"  /  {_zh('not_checked')} {not_checked_total} {_zh('persons')}"
+        )
     ax.text(
         0.35,
-        y - 0.12,
-        f"{_th('not_checked')} {n} {_th('persons')}",
-        fontsize=13,
+        y - 0.18,
+        rate_text,
+        fontsize=11,
         fontweight="bold",
-        color=C_DANGER,
+        color=rate_fg,
         va="center",
     )
 
-    # ── 表头 ──
-    y -= 0.65
-    ax.add_patch(
-        plt.Rectangle(
-            (0.15, y - row_h),
-            table_width,
-            row_h,
-            facecolor=C_N800,
-            edgecolor="none",
-        )
-    )
-    for cx, _cw, title, align in cols:
-        ha = "center" if align == "center" else "left"
+    # 第二行：各围场打卡率
+    by_enclosure = cc_rate_info.get("by_enclosure", [])
+    enc_rate_map = {item["enclosure"]: item for item in by_enclosure}
+    enc_parts = []
+    for enc in enclosure_order:
+        if enc in enc_rate_map:
+            ei = enc_rate_map[enc]
+            enc_parts.append(
+                f"{enc}: {ei['rate']:.1%} ({ei['checked_in']}/{ei['students']})"
+            )
+    if enc_parts:
         ax.text(
-            cx + 0.05,
-            y - row_h / 2,
-            title,
-            fontsize=9,
-            fontweight="bold",
-            color="white",
+            0.35,
+            y - 0.52,
+            "  |  ".join(enc_parts),
+            fontsize=8,
+            color=C_TEXT2,
             va="center",
-            ha=ha,
         )
-    y -= row_h
+    y -= 0.85
 
-    # ── 数据行 ──
-    for i, s in enumerate(students):
-        bg = C_SURFACE if i % 2 == 0 else C_BG
+    # ── 围场分段 ──
+    global_row_idx = 0
+    for enc in enclosure_order:
+        enc_students = students_by_enc.get(enc, [])
+        if not enc_students:
+            continue
+
+        # 分段标题（深灰背景）
+        enc_count = len(enc_students)
+        enc_info = enc_rate_map.get(enc, {})
+        enc_rate_val = enc_info.get("rate", 0.0) or 0.0
+        enc_rate_str = f"{enc_rate_val:.1%}" if enc_info else "—"
+
         ax.add_patch(
             plt.Rectangle(
                 (0.15, y - row_h),
                 table_width,
                 row_h,
-                facecolor=bg,
+                facecolor="#4A4540",
                 edgecolor="none",
             )
         )
-        ax.plot(
-            [0.15, 0.15 + table_width],
-            [y - row_h, y - row_h],
-            color=C_BORDER,
-            linewidth=0.3,
+        seg_title = (
+            f"{enc}  "
+            f"{_th('not_checked')} {enc_count} {_th('persons')}"
+            f" / 未打卡 {enc_count} 人"
+            f"  ({_th('checkin_rate')} {enc_rate_str})"
         )
+        ax.text(
+            0.35,
+            y - row_h / 2,
+            seg_title,
+            fontsize=9,
+            fontweight="bold",
+            color="white",
+            va="center",
+        )
+        y -= row_h
 
-        ym = y - row_h / 2
-        score = s.get("quality_score", 0) or 0
-        sid = s.get("student_id", "")
-        enc = s.get("enclosure", "")
-        last_call = s.get("cc_last_call_date") or "—"
-        lesson = s.get("lesson_consumption_3m")
-        lesson_str = str(int(lesson)) if lesson is not None else "—"
-
-        row_data = [
-            (cols[0][0], str(i + 1), "center", C_MUTED, "normal"),
-            (cols[1][0], str(int(score)), "center", _score_color(score), "bold"),
-            (cols[2][0], str(sid), "left", C_TEXT, "normal"),
-            (cols[3][0], enc, "center", C_TEXT2, "normal"),
-            (
-                cols[4][0],
-                last_call[:10] if len(last_call) > 10 else last_call,
-                "center",
-                C_MUTED,
-                "normal",
-            ),
-            (cols[5][0], lesson_str, "center", C_TEXT2, "normal"),
-        ]
-
-        for cx, val, align, color, weight in row_data:
+        # 表头（黑色背景）
+        ax.add_patch(
+            plt.Rectangle(
+                (0.15, y - row_h),
+                table_width,
+                row_h,
+                facecolor=C_N800,
+                edgecolor="none",
+            )
+        )
+        for cx, _cw, title, align in cols:
             ha = "center" if align == "center" else "left"
             ax.text(
                 cx + 0.05,
-                ym,
-                val,
+                y - row_h / 2,
+                title,
                 fontsize=8.5,
-                color=color,
-                fontweight=weight,
+                fontweight="bold",
+                color="white",
                 va="center",
                 ha=ha,
             )
         y -= row_h
+
+        # 数据行
+        for i, s in enumerate(enc_students):
+            bg = C_SURFACE if i % 2 == 0 else C_BG
+            ax.add_patch(
+                plt.Rectangle(
+                    (0.15, y - row_h),
+                    table_width,
+                    row_h,
+                    facecolor=bg,
+                    edgecolor="none",
+                )
+            )
+            ax.plot(
+                [0.15, 0.15 + table_width],
+                [y - row_h, y - row_h],
+                color=C_BORDER,
+                linewidth=0.3,
+            )
+
+            ym = y - row_h / 2
+            score = s.get("quality_score", 0) or 0
+            sid = s.get("student_id", "")
+            last_call = s.get("cc_last_call_date") or "—"
+            lesson = s.get("lesson_consumption_3m")
+            lesson_str = str(int(lesson)) if lesson is not None else "—"
+
+            global_row_idx += 1
+            row_data = [
+                (cols[0][0], str(global_row_idx), "center", C_MUTED, "normal"),
+                (cols[1][0], str(int(score)), "center", _score_color(score), "bold"),
+                (cols[2][0], str(sid), "left", C_TEXT, "normal"),
+                (
+                    cols[3][0],
+                    last_call[:10] if len(last_call) > 10 else last_call,
+                    "center",
+                    C_MUTED,
+                    "normal",
+                ),
+                (cols[4][0], lesson_str, "center", C_TEXT2, "normal"),
+            ]
+
+            for cx, val, align, color, weight in row_data:
+                ha = "center" if align == "center" else "left"
+                ax.text(
+                    cx + 0.05,
+                    ym,
+                    val,
+                    fontsize=8.5,
+                    color=color,
+                    fontweight=weight,
+                    va="center",
+                    ha=ha,
+                )
+            y -= row_h
 
     buf = io.BytesIO()
     fig.savefig(buf, format="png", dpi=150, bbox_inches="tight", pad_inches=0.1)
@@ -670,29 +825,53 @@ def generate_cc_image(
 
 def generate_overview_image(
     team_summary: list[dict],
+    role_summary: dict,
     date_str: str,
+    role: str = "CC",
+    enclosure_order: list[str] | None = None,
 ) -> bytes:
-    """生成各团队汇总总览图片
-    team_summary: [{"team": str, "count": int, "cc_count": int, "avg": float}]
+    """生成各团队汇总总览图片（含打卡率列）
+
+    Args:
+        team_summary: [{"team": str, "count": int, "cc_count": int, "avg": float,
+                        "rate": float, "by_enc": {"M0": rate, "M1": rate, ...}}]
+        role_summary: {total_students, checked_in, checkin_rate, by_enclosure: [...]}
+                      来自 /api/checkin/summary，无数据时传 {}
+        date_str: 显示日期
+        role: 角色名（CC/SS/LP）
+        enclosure_order: 围场顺序，默认 ["M0", "M1", "M2"]
     """
+    if enclosure_order is None:
+        enclosure_order = ["M0", "M1", "M2"]
+
     plt.rcParams["font.family"] = CJK_FONTS
     plt.rcParams["font.size"] = 10
 
-    # 4 列：ทีม | ยังไม่เช็คอิน | CC | เฉลี่ย/CC
-    cols = [
-        (0.2, 2.8, f"{_th('col_team')}({_zh('col_team')})", "left"),
-        (3.1, 1.3, f"{_th('col_not_checked')}({_zh('col_not_checked')})", "center"),
-        (4.5, 0.8, f"{_th('cc_count')}({_zh('cc_count')})", "center"),
-        (5.4, 1.4, f"{_th('avg_per_cc')}({_zh('avg_per_cc')})", "center"),
+    # 动态列：ทีม | 打卡率 | 未打卡 | CC | M0 | M1 | M2
+    # 固定前4列 + 每个围场1列
+    enc_col_width = 0.85
+    base_cols = [
+        (0.2,  2.5, f"{_th('col_team')}({_zh('col_team')})", "left"),
+        (2.8,  1.1, f"{_th('col_rate')}({_zh('col_rate')})", "center"),
+        (4.0,  1.0, f"{_th('col_not_checked_count')}"
+                   f"({_zh('col_not_checked_count')})", "center"),
+        (5.1,  0.7, f"{_th('cc_count')}({_zh('cc_count')})", "center"),
     ]
-    table_width = 7.0
+    enc_start_x = 5.9
+    enc_cols = [
+        (enc_start_x + i * enc_col_width, enc_col_width, enc, "center")
+        for i, enc in enumerate(enclosure_order)
+    ]
+    cols = base_cols + enc_cols
+    table_width = enc_start_x + len(enclosure_order) * enc_col_width + 0.1
 
     n = len(team_summary)
     row_h = 0.38
-    header_h = 1.8
+    # 标题区 + 角色打卡率条
+    header_h = 2.6
     table_h = (n + 1) * row_h  # +1 for totals row
     total_h = header_h + table_h + 0.4
-    total_h = max(total_h, 3.5)
+    total_h = max(total_h, 4.0)
 
     fig, ax = plt.subplots(figsize=(table_width + 0.4, total_h), dpi=150)
     fig.patch.set_facecolor(C_BG)
@@ -742,8 +921,72 @@ def generate_overview_image(
         va="top",
     )
 
-    # ── 表头 ──
+    # ── 角色总打卡率条（新增）──
     y -= 0.55
+    role_total = role_summary.get("total_students", 0)
+    role_checked = role_summary.get("checked_in", 0)
+    role_rate = role_summary.get("checkin_rate", 0.0) or 0.0
+    role_by_enc = {
+        item["enclosure"]: item
+        for item in role_summary.get("by_enclosure", [])
+    }
+
+    rate_bg = _rate_bg_color(role_rate)
+    rate_fg = _rate_text_color(role_rate)
+
+    ax.add_patch(
+        mpatches.FancyBboxPatch(
+            (0.15, y - 0.75),
+            table_width,
+            0.75,
+            boxstyle="round,pad=0.06",
+            facecolor=rate_bg,
+            edgecolor=C_BORDER,
+            linewidth=0.8,
+        )
+    )
+
+    if role_total > 0:
+        role_rate_text = (
+            f"{_th('total_rate')}({_zh('total_rate')}) "
+            f"{_th('checkin_rate')}({_zh('checkin_rate')}) "
+            f"{role_rate:.1%}  ({role_checked}/{role_total})"
+        )
+    else:
+        total_not_checked = sum(r["count"] for r in team_summary)
+        role_rate_text = (
+            f"{_th('not_checked')} {total_not_checked} {_th('persons')}"
+            f"  /  {_zh('not_checked')} {total_not_checked} {_zh('persons')}"
+        )
+    ax.text(
+        0.35,
+        y - 0.18,
+        role_rate_text,
+        fontsize=11,
+        fontweight="bold",
+        color=rate_fg,
+        va="center",
+    )
+
+    enc_parts = []
+    for enc in enclosure_order:
+        if enc in role_by_enc:
+            ei = role_by_enc[enc]
+            enc_parts.append(
+                f"{enc}: {ei['rate']:.1%} ({ei['checked_in']}/{ei['students']})"
+            )
+    if enc_parts:
+        ax.text(
+            0.35,
+            y - 0.52,
+            "  |  ".join(enc_parts),
+            fontsize=8,
+            color=C_TEXT2,
+            va="center",
+        )
+    y -= 0.85
+
+    # ── 表头 ──
     ax.add_patch(
         plt.Rectangle(
             (0.15, y - row_h),
@@ -759,7 +1002,7 @@ def generate_overview_image(
             cx + 0.05,
             y - row_h / 2,
             title,
-            fontsize=8.5,
+            fontsize=8,
             fontweight="bold",
             color="white",
             va="center",
@@ -770,7 +1013,11 @@ def generate_overview_image(
     # ── 数据行 ──
     total_count = sum(r["count"] for r in team_summary)
     total_cc = sum(r["cc_count"] for r in team_summary)
-    avg_total = round(total_count / max(total_cc, 1), 1)
+
+    # 计算加权平均打卡率
+    total_students_all = sum(r.get("total_students", 0) for r in team_summary)
+    total_checked_all = sum(r.get("checked_in_count", 0) for r in team_summary)
+    overall_rate_all = total_checked_all / max(total_students_all, 1)
 
     for i, r in enumerate(team_summary):
         bg = C_SURFACE if i % 2 == 0 else C_BG
@@ -790,12 +1037,28 @@ def generate_overview_image(
             linewidth=0.3,
         )
         ym = y - row_h / 2
+        team_rate = r.get("rate", 0.0) or 0.0
+        rate_color = _rate_text_color(team_rate)
+        rate_display = f"{team_rate:.1%}" if r.get("total_students", 0) > 0 else "—"
+
         row_data = [
             (cols[0][0], r["team"], "left", C_TEXT, "normal"),
-            (cols[1][0], str(r["count"]), "center", C_DANGER, "bold"),
-            (cols[2][0], str(r["cc_count"]), "center", C_TEXT2, "normal"),
-            (cols[3][0], str(r["avg"]), "center", C_TEXT2, "normal"),
+            (cols[1][0], rate_display, "center", rate_color, "bold"),
+            (cols[2][0], str(r["count"]), "center", C_DANGER, "bold"),
+            (cols[3][0], str(r["cc_count"]), "center", C_TEXT2, "normal"),
         ]
+        # 各围场打卡率列
+        by_enc = r.get("by_enc", {})
+        for j, enc in enumerate(enclosure_order):
+            enc_rate = by_enc.get(enc)
+            enc_display = f"{enc_rate:.1%}" if enc_rate is not None else "—"
+            enc_color = (
+                _rate_text_color(enc_rate) if enc_rate is not None else C_MUTED
+            )
+            row_data.append(
+                (enc_cols[j][0], enc_display, "center", enc_color, "normal")
+            )
+
         for cx, val, align, color, weight in row_data:
             ha = "center" if align == "center" else "left"
             ax.text(
@@ -821,7 +1084,8 @@ def generate_overview_image(
         )
     )
     ym = y - row_h / 2
-    total_row_data = [
+    overall_rate_display = f"{overall_rate_all:.1%}" if total_students_all > 0 else "—"
+    total_row_data: list[tuple] = [
         (
             cols[0][0],
             f"{_th('total_row')}({_zh('total_row')})",
@@ -829,10 +1093,21 @@ def generate_overview_image(
             "white",
             "bold",
         ),
-        (cols[1][0], str(total_count), "center", C_DANGER, "bold"),
-        (cols[2][0], str(total_cc), "center", "white", "normal"),
-        (cols[3][0], str(avg_total), "center", "white", "normal"),
+        (cols[1][0], overall_rate_display, "center", "white", "bold"),
+        (cols[2][0], str(total_count), "center", C_DANGER, "bold"),
+        (cols[3][0], str(total_cc), "center", "white", "normal"),
     ]
+    # 合计行各围场汇总（从 role_summary 取）
+    for j, enc in enumerate(enclosure_order):
+        if enc in role_by_enc:
+            ei = role_by_enc[enc]
+            enc_total_rate = f"{ei['rate']:.1%}"
+        else:
+            enc_total_rate = "—"
+        total_row_data.append(
+            (enc_cols[j][0], enc_total_rate, "center", "white", "normal")
+        )
+
     for cx, val, align, color, weight in total_row_data:
         ha = "center" if align == "center" else "left"
         ax.text(
@@ -1026,6 +1301,9 @@ def cmd_followup(args: argparse.Namespace) -> None:
     print(f"   通道: {channel.get('name', args.channel)}")
     print()
 
+    # CC 围场顺序（暂时硬编码，后续支持动态配置）
+    enc_order = ["M0", "M1", "M2"]
+
     # 获取数据
     print("1. 获取未打卡数据...")
     students = fetch_followup(api_base, role="CC")
@@ -1035,25 +1313,84 @@ def cmd_followup(args: argparse.Namespace) -> None:
 
     print(f"   ✓ 共 {len(students)} 名未打卡学员")
 
+    # 获取打卡率汇总数据
+    print("   获取打卡率汇总...")
+    summary_by_role = fetch_summary(api_base)
+    role_summary = summary_by_role.get("CC", {})
+    if role_summary:
+        role_rate = role_summary.get("checkin_rate", 0.0) or 0.0
+        print(f"   ✓ CC 打卡率: {role_rate:.1%}")
+    else:
+        print("   ⚠ 无打卡率汇总数据（API 可能不支持）")
+
     # 按团队分组
     teams = group_students_by_team(students)
     print(f"   ✓ {len(teams)} 个小组: {', '.join(teams.keys())}")
+
+    # 获取各团队 per-CC 打卡率详情
+    print("   获取各团队打卡率详情...")
+    team_details: dict[str, dict[str, dict]] = {}
+    for team_name in teams:
+        detail_members = fetch_team_detail(api_base, team_name)
+        if detail_members:
+            team_details[team_name] = {m["name"]: m for m in detail_members}
+            print(f"   ✓ [{team_name}] {len(detail_members)} 个 CC 的打卡率已获取")
+        else:
+            team_details[team_name] = {}
+
     print()
 
     # ── 阶段 2：生成图片（同日已存在则跳过）────────────────────────────────────
     print("2. 生成图片...")
     date_short = today.strftime("%Y%m%d")
 
-    # 2a. 构建 team_summary（用于总览图）
+    # 2a. 构建 team_summary（用于总览图，含打卡率）
     team_summary: list[dict] = []
     for team_name, members in teams.items():
         ccs = group_students_by_cc(members)
+        cc_details = team_details.get(team_name, {})
+
+        # 汇总团队打卡率（从各 CC 详情聚合）
+        team_total_students = sum(
+            cc_details.get(cc_name, {}).get("total_students", 0)
+            for cc_name in ccs
+        )
+        team_checked_in = sum(
+            cc_details.get(cc_name, {}).get("checked_in", 0)
+            for cc_name in ccs
+        )
+        team_rate = (
+            team_checked_in / max(team_total_students, 1)
+            if team_total_students > 0
+            else 0.0
+        )
+
+        # 各围场打卡率（聚合）
+        enc_students_agg: dict[str, int] = defaultdict(int)
+        enc_checked_agg: dict[str, int] = defaultdict(int)
+        for cc_name in ccs:
+            cc_detail = cc_details.get(cc_name, {})
+            for enc_item in cc_detail.get("by_enclosure", []):
+                enc = enc_item["enclosure"]
+                enc_students_agg[enc] += enc_item.get("students", 0)
+                enc_checked_agg[enc] += enc_item.get("checked_in", 0)
+
+        by_enc_rates = {
+            enc: enc_checked_agg[enc] / max(enc_students_agg[enc], 1)
+            for enc in enc_students_agg
+            if enc_students_agg[enc] > 0
+        }
+
         team_summary.append(
             {
                 "team": team_name,
                 "count": len(members),
                 "cc_count": len(ccs),
                 "avg": round(len(members) / max(len(ccs), 1), 1),
+                "rate": team_rate,
+                "total_students": team_total_students,
+                "checked_in_count": team_checked_in,
+                "by_enc": by_enc_rates,
             }
         )
 
@@ -1065,7 +1402,10 @@ def cmd_followup(args: argparse.Namespace) -> None:
         kb_ov = len(overview_bytes) // 1024
         print(f"   [总览] 使用缓存: output/{overview_filename} ({kb_ov}KB)")
     else:
-        overview_bytes = generate_overview_image(team_summary, date_display)
+        overview_bytes = generate_overview_image(
+            team_summary, role_summary, date_display, role="CC",
+            enclosure_order=enc_order
+        )
         overview_path.write_bytes(overview_bytes)
         kb_ov = len(overview_bytes) // 1024
         print(f"   [总览] 新生成: output/{overview_filename} ({kb_ov}KB)")
@@ -1076,8 +1416,18 @@ def cmd_followup(args: argparse.Namespace) -> None:
         team_name = ts_row["team"]
         members = teams[team_name]
         ccs = group_students_by_cc(members)
+        cc_details_map = team_details.get(team_name, {})
         cc_list = []
-        for cc_name, cc_students in ccs.items():
+        for cc_name, cc_students_flat in ccs.items():
+            # 按围场分组未打卡学员
+            students_by_enc: dict[str, list[dict]] = defaultdict(list)
+            for s in cc_students_flat:
+                enc_key = s.get("enclosure", "?")
+                students_by_enc[enc_key].append(s)
+
+            # 获取该 CC 的打卡率详情
+            cc_rate_info = cc_details_map.get(cc_name, {})
+
             team_safe = team_name.replace("/", "-").replace(" ", "_")
             cc_safe = cc_name.replace("/", "-").replace(" ", "_")
             cc_filename = f"lark-followup-{team_safe}-{cc_safe}-{date_short}.png"
@@ -1088,19 +1438,25 @@ def cmd_followup(args: argparse.Namespace) -> None:
                 print(f"   [{team_name}/{cc_name}] 缓存 ({kb_cc}KB)")
             else:
                 cc_bytes = generate_cc_image(
-                    cc_name, team_name, cc_students, date_display
+                    cc_name, team_name,
+                    dict(students_by_enc), cc_rate_info,
+                    date_display, enclosure_order=enc_order
                 )
                 cc_path.write_bytes(cc_bytes)
                 kb_cc = len(cc_bytes) // 1024
                 print(f"   [{team_name}/{cc_name}] 新生成 ({kb_cc}KB)")
+
             # 收集学员 ID（内嵌到消息中供复制）
             student_ids = [
-                str(s.get("student_id", "")) for s in cc_students
+                str(s.get("student_id", "")) for s in cc_students_flat
             ]
             cc_list.append(
                 {
                     "cc": cc_name,
-                    "count": len(cc_students),
+                    "count": len(cc_students_flat),
+                    "rate": cc_rate_info.get("rate", 0.0) or 0.0,
+                    "by_enclosure": cc_rate_info.get("by_enclosure", []),
+                    "students_by_enc": dict(students_by_enc),
                     "img_url": None,
                     "student_ids": student_ids,
                     "filename": cc_filename,
@@ -1234,11 +1590,27 @@ def cmd_followup(args: argparse.Namespace) -> None:
         team_elements.append({"tag": "hr"})
 
         for cc_entry in tr["ccs"]:
+            cc_rate = cc_entry.get("rate", 0.0) or 0.0
+            rate_display = f"{cc_rate:.1%}" if cc_entry.get("rate") is not None else "—"
             cc_md = (
-                f"👤 **{cc_entry['cc']}**\n"
+                f"👤 **{cc_entry['cc']}**  "
+                f"{_th('checkin_rate')}({_zh('checkin_rate')}) {rate_display}\n"
                 f"{_th('not_checked')} **{cc_entry['count']}** {_th('persons')}"
                 f" / {_zh('not_checked')} {cc_entry['count']} {_zh('persons')}"
             )
+            # 各围场打卡率（文字）
+            by_enc = cc_entry.get("by_enclosure", [])
+            if by_enc:
+                enc_parts = []
+                for ei in by_enc:
+                    if ei.get("students", 0) > 0:
+                        enc_parts.append(
+                            f"{ei['enclosure']}: {ei['rate']:.1%}"
+                            f" ({ei['checked_in']}/{ei['students']})"
+                        )
+                if enc_parts:
+                    cc_md += "\n" + "  |  ".join(enc_parts)
+
             if cc_entry["img_url"]:
                 cc_md += (
                     f"\n📷 [{_bi('view_list')} {cc_entry['cc']}]"
