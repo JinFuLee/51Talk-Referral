@@ -172,6 +172,14 @@ function gapColor(v: number | null): string {
   return 'text-[var(--text-secondary)]';
 }
 
+// KPI8 各行的 L1 副标题说明
+const KPI8_SUBTITLES: Record<string, string> = {
+  时间进度差: '实际达成率 - 时间进度，正值=跑赢进度线，负值=落后于时间',
+  达标需日均: '完成月目标每天需新增量，基于剩余工作日均摊',
+  追进度需日均: '追上时间进度线每天需新增量（比达标更紧迫）',
+  效率提升需求: '当前日均速度需提升的百分比才能完成月目标',
+};
+
 function KPI8Card({ label, item, format = 'count' }: KPI8CardProps) {
   const rows: { label: string; value: string; colorFn?: (v: number | null) => string }[] = [
     { label: '当前实际', value: fmt8(item.actual, format) },
@@ -200,7 +208,9 @@ function KPI8Card({ label, item, format = 'count' }: KPI8CardProps) {
       <div className="grid grid-cols-2 gap-x-3 gap-y-1">
         {rows.map((r) => (
           <div key={r.label} className="flex flex-col">
-            <span className="text-[10px] text-[var(--text-muted)]">{r.label}</span>
+            <span className="text-[10px] text-[var(--text-muted)]" title={KPI8_SUBTITLES[r.label]}>
+              {r.label}
+            </span>
             <span
               className={`text-sm font-mono tabular-nums font-semibold ${
                 r.colorFn
@@ -216,6 +226,11 @@ function KPI8Card({ label, item, format = 'count' }: KPI8CardProps) {
             >
               {r.value}
             </span>
+            {KPI8_SUBTITLES[r.label] && (
+              <span className="text-[9px] text-[var(--text-muted)] leading-tight mt-0.5 opacity-70">
+                {KPI8_SUBTITLES[r.label]}
+              </span>
+            )}
           </div>
         ))}
       </div>
@@ -695,19 +710,26 @@ export default function DashboardPage() {
           </p>
           <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-3">
             {[
-              { label: '有效学员数', value: (d2b.total_students ?? 0).toLocaleString() },
+              {
+                label: '有效学员数',
+                value: (d2b.total_students ?? 0).toLocaleString(),
+                subtitle: '已付费且在有效期内的学员，是本月转介绍运营的基数',
+              },
               {
                 label: '带新系数',
                 value: d2b.new_coefficient != null ? d2b.new_coefficient.toFixed(2) : '—',
+                subtitle: '每个参与的A学员平均带来的B注册数，>2为优质',
               },
               {
                 label: '带货比',
                 value: d2b.cargo_ratio != null ? d2b.cargo_ratio.toFixed(2) : '—',
+                subtitle: '带来注册的学员数/有效学员总数，衡量整体转介绍渗透率',
               },
               {
                 label: '带新参与数',
                 value:
                   d2b.participation_count != null ? d2b.participation_count.toLocaleString() : '—',
+                subtitle: '带来≥1个注册的有效学员数',
               },
               {
                 label: '参与率',
@@ -715,16 +737,19 @@ export default function DashboardPage() {
                   d2b.participation_rate != null
                     ? `${(d2b.participation_rate * 100).toFixed(1)}%`
                     : '—',
+                subtitle: '带来注册的学员/有效学员总数',
               },
               {
                 label: '打卡率',
                 value: d2b.checkin_rate != null ? `${(d2b.checkin_rate * 100).toFixed(1)}%` : '—',
+                subtitle: '转码且分享的学员/有效学员，绿≥50%，橙30-50%，红<30%',
               },
               {
                 label: 'CC触达率',
                 value: d2b.cc_reach_rate != null ? `${(d2b.cc_reach_rate * 100).toFixed(1)}%` : '—',
+                subtitle: 'CC有效通话(≥120s)学员数/有效学员总数',
               },
-            ].map(({ label, value }) => (
+            ].map(({ label, value, subtitle }) => (
               <div
                 key={label}
                 className="bg-[var(--bg-subtle)] rounded-lg px-3 py-2.5 flex flex-col gap-0.5"
@@ -732,6 +757,9 @@ export default function DashboardPage() {
                 <span className="text-[10px] text-[var(--text-muted)]">{label}</span>
                 <span className="text-base font-bold font-mono tabular-nums text-[var(--text-primary)]">
                   {value}
+                </span>
+                <span className="text-[9px] text-[var(--text-muted)] leading-tight opacity-75">
+                  {subtitle}
                 </span>
               </div>
             ))}

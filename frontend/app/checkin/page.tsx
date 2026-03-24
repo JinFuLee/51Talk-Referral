@@ -102,7 +102,12 @@ function ChannelColumn({ ch, rateColor, rateBg }: ChannelColumnProps) {
         >
           {fmtRate(ch.checkin_rate ?? 0)}
         </div>
-        <div className="text-[10px] text-[var(--text-muted)]">有效学员 · 已打卡 · 打卡率</div>
+        <div className="text-[10px] text-[var(--text-muted)]">
+          已打卡学员数 / 本渠道有效学员数（付费且在有效期）
+        </div>
+        <div className="text-[10px] text-[var(--text-muted)] opacity-75">
+          颜色：绿≥50% · 橙30-50% · 红&lt;30%（可在设置调整）
+        </div>
       </div>
 
       {/* 按团队 */}

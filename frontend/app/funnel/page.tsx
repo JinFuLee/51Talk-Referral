@@ -6,6 +6,7 @@ import { formatRate } from '@/lib/utils';
 import { Card } from '@/components/ui/Card';
 import { Spinner } from '@/components/ui/Spinner';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { BrandDot } from '@/components/ui/BrandDot';
 import type { FunnelResult, ScenarioResult } from '@/lib/types/funnel';
 import {
   BarChart,
@@ -164,8 +165,18 @@ export default function FunnelPage() {
                     <th className="slide-th text-right">目标</th>
                     <th className="slide-th text-right">实际</th>
                     <th className="slide-th text-right">差距</th>
-                    <th className="slide-th text-right">达成率</th>
-                    <th className="slide-th text-right">转化率</th>
+                    <th className="slide-th text-right">
+                      <span className="inline-flex items-center justify-end gap-1">
+                        达成率
+                        <BrandDot tooltip="≥100%=绿（已达标）、80-100%=橙（追进）、<80%=红（落后）" />
+                      </span>
+                    </th>
+                    <th className="slide-th text-right">
+                      <span className="inline-flex items-center justify-end gap-1">
+                        转化率
+                        <BrandDot tooltip="上一环节→下一环节的转化比例，越高越好；出席付费率行业参考≥25%" />
+                      </span>
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -208,13 +219,23 @@ export default function FunnelPage() {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="bg-[var(--n-800)] text-white text-xs font-medium">
+                <tr className="slide-thead-row text-xs">
                   <th className="py-1.5 px-2 border-0 text-left">环节</th>
                   <th className="py-1.5 px-2 border-0 text-right">目标</th>
                   <th className="py-1.5 px-2 border-0 text-right">实际</th>
                   <th className="py-1.5 px-2 border-0 text-right">差距</th>
-                  <th className="py-1.5 px-2 border-0 text-right">达成率</th>
-                  <th className="py-1.5 px-2 border-0 text-right">转化率</th>
+                  <th className="py-1.5 px-2 border-0 text-right">
+                    <span className="inline-flex items-center justify-end gap-1">
+                      达成率
+                      <BrandDot tooltip="≥100%=绿（已达标）、80-100%=橙（追进）、<80%=红（落后）" />
+                    </span>
+                  </th>
+                  <th className="py-1.5 px-2 border-0 text-right">
+                    <span className="inline-flex items-center justify-end gap-1">
+                      转化率
+                      <BrandDot tooltip="上一环节→下一环节的转化比例，越高越好；出席付费率行业参考≥25%" />
+                    </span>
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -286,13 +307,23 @@ export default function FunnelPage() {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="bg-[var(--n-800)] text-white text-xs font-medium">
+                <tr className="slide-thead-row text-xs">
                   <th className="py-1.5 px-2 border-0 text-left">环节</th>
                   <th className="py-1.5 px-2 border-0 text-right">当前转化率</th>
-                  <th className="py-1.5 px-2 border-0 text-right">场景转化率</th>
+                  <th className="py-1.5 px-2 border-0 text-right">
+                    <span className="inline-flex items-center justify-end gap-1">
+                      场景转化率
+                      <BrandDot tooltip="目标提升率，基于历史优秀水位或行业基准，非当前实际值" />
+                    </span>
+                  </th>
                   <th className="py-1.5 px-2 border-0 text-right">影响注册数</th>
                   <th className="py-1.5 px-2 border-0 text-right">影响付费数</th>
-                  <th className="py-1.5 px-2 border-0 text-right">影响业绩</th>
+                  <th className="py-1.5 px-2 border-0 text-right">
+                    <span className="inline-flex items-center justify-end gap-1">
+                      影响业绩
+                      <BrandDot tooltip="若转化率达到场景率，预计月度额外增加的业绩（基于当前漏斗乘算）" />
+                    </span>
+                  </th>
                 </tr>
               </thead>
               <tbody>

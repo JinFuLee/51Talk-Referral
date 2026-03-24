@@ -5,6 +5,7 @@ import useSWR from 'swr';
 import { swrFetcher } from '@/lib/api';
 import { Spinner } from '@/components/ui/Spinner';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { BrandDot } from '@/components/ui/BrandDot';
 import { useWideConfig } from '@/lib/hooks/useWideConfig';
 import { useCheckinThresholds } from '@/lib/hooks/useCheckinThresholds';
 
@@ -92,9 +93,19 @@ function RoleColumn({ role, summary, subTab, rateColor }: RoleColumnProps) {
                 {subTab === 'person' && (
                   <th className="py-1 px-2 text-left whitespace-nowrap">团队</th>
                 )}
-                <th className="py-1 px-2 text-right whitespace-nowrap">有效学员</th>
+                <th className="py-1 px-2 text-right whitespace-nowrap">
+                  <span className="inline-flex items-center justify-end gap-1">
+                    有效学员
+                    <BrandDot tooltip="已付费且在有效期内的学员数，是打卡运营的基数" />
+                  </span>
+                </th>
                 <th className="py-1 px-2 text-right whitespace-nowrap">已打卡</th>
-                <th className="py-1 px-2 text-right whitespace-nowrap">打卡率</th>
+                <th className="py-1 px-2 text-right whitespace-nowrap">
+                  <span className="inline-flex items-center justify-end gap-1">
+                    打卡率
+                    <BrandDot tooltip="转码且分享的学员/有效学员。绿≥50%，橙30-50%，红<30%" />
+                  </span>
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -138,7 +149,7 @@ function RoleColumn({ role, summary, subTab, rateColor }: RoleColumnProps) {
             </tbody>
             {/* 合计行 */}
             <tfoot>
-              <tr className="bg-slate-100 font-semibold border-t border-slate-200">
+              <tr className="bg-[var(--bg-subtle)] font-semibold border-t border-[var(--border-subtle)]">
                 <td className="py-1 px-2 text-center text-[var(--text-muted)] text-xs">—</td>
                 <td className="py-1 px-2 text-xs" colSpan={subTab === 'person' ? 2 : 1}>
                   合计
