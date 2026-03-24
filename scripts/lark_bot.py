@@ -1594,43 +1594,65 @@ def cmd_followup(args: argparse.Namespace) -> None:
 
         for cc_entry in tr["ccs"]:
             cc_rate = cc_entry.get("rate", 0.0) or 0.0
-            rate_pct = f"{cc_rate:.1%}" if cc_entry.get("rate") is not None else "—"
+            rate_pct = (
+                f"{cc_rate:.1%}"
+                if cc_entry.get("rate") is not None
+                else "—"
+            )
 
-            # 标题行：CC 名 + 总打卡率
-            cc_md = f"👤 **{cc_entry['cc']}**  {rate_pct}\n"
+            # ── CC 标题行 ──
+            cc_md = f"👤 **{cc_entry['cc']}**"
+            cc_md += f"  ▸ **{rate_pct}**"
+            if cc_entry["img_url"]:
+                cc_md += (
+                    f"  📷 [{_bi('view_list')}]"
+                    f"({cc_entry['img_url']})"
+                )
+            cc_md += "\n"
 
-            # 各围场分行（只显示角色对应围场）
+            # ── 各围场：打卡率 + ID ──
             by_enc = cc_entry.get("by_enclosure", [])
             enc_map = {ei["enclosure"]: ei for ei in by_enc}
             students_by_enc = cc_entry.get("students_by_enc", {})
             for enc in enc_order:
                 ei = enc_map.get(enc, {})
-                unchecked_n = len(students_by_enc.get(enc, []))
+                enc_students = students_by_enc.get(enc, [])
+                unchecked_n = len(enc_students)
                 if ei.get("students", 0) > 0 or unchecked_n > 0:
-                    enc_r = f"{ei['rate']:.1%}" if ei.get("rate") is not None else "—"
-                    cc_md += (
-                        f"{enc}: {_th('not_checked')} "
-                        f"**{unchecked_n}** {_th('persons')}"
-                        f"  ({enc_r})\n"
+                    enc_r = (
+                        f"**{ei['rate']:.1%}**"
+                        if ei.get("rate") is not None
+                        else "—"
                     )
+                    checked = ei.get("checked_in", 0)
+                    total = ei.get("students", 0)
+                    cc_md += (
+                        f"**{enc}** · "
+                        f"{_th('not_checked')} "
+                        f"**{unchecked_n}** {_th('persons')}"
+                        f"  ({enc_r}"
+                    )
+                    if total > 0:
+                        cc_md += f" · {checked}/{total}"
+                    cc_md += ")\n"
 
-            # 图片链接
-            if cc_entry["img_url"]:
-                cc_md += (
-                    f"📷 [{_bi('view_list')}]"
-                    f"({cc_entry['img_url']})\n"
-                )
+                    # 该围场的学员 ID
+                    if enc_students:
+                        enc_ids = [
+                            str(s.get("student_id", ""))
+                            for s in enc_students
+                        ]
+                        chunks = [
+                            ", ".join(enc_ids[i:i + 8])
+                            for i in range(0, len(enc_ids), 8)
+                        ]
+                        cc_md += (
+                            "▪ " + "\n".join(chunks) + "\n"
+                        )
 
-            # 学员 ID（每 10 个换行，避免一长串）
-            ids = cc_entry.get("student_ids", [])
-            if ids:
-                chunks = [
-                    ", ".join(ids[i:i + 10])
-                    for i in range(0, len(ids), 10)
-                ]
-                cc_md += "📋 " + "\n".join(chunks)
-
-            team_elements.append({"tag": "markdown", "content": cc_md})
+            team_elements.append(
+                {"tag": "markdown", "content": cc_md}
+            )
 
         team_title = (
             f"{tr['team']} {_th('followup_title')} — {date_display}\n"
