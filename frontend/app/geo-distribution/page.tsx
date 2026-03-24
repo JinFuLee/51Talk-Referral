@@ -66,7 +66,7 @@ export default function GeoDistributionPage() {
         </div>
         <EmptyState
           title="暂无地理数据"
-          description="数据源中未找到"常登录国家"列，请上传包含地理信息的学员数据文件"
+          description={'数据源中未找到「常登录国家」列，请上传包含地理信息的学员数据文件'}
         />
       </div>
     );

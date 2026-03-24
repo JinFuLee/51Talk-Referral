@@ -98,7 +98,7 @@ export default function LearningHeatmapPage() {
         </div>
         <EmptyState
           title="暂无转码数据"
-          description="数据源中未找到"第N周转码"列，请上传包含周转码信息的学员数据文件"
+          description={'数据源中未找到「第N周转码」列，请上传包含周转码信息的学员数据文件'}
         />
       </div>
     );
