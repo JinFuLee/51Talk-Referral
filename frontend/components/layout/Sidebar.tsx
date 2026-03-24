@@ -11,6 +11,8 @@ const NAV_ITEMS = [
   { href: '/trend', label: '趋势分析' },
   { href: '/funnel', label: '漏斗分析' },
   { href: '/outreach-quality', label: '接通质量' },
+  { href: '/followup-quality', label: '跟进质量' },
+  { href: '/referral-contributor', label: '推荐者贡献' },
   { href: '/incentive-tracking', label: '激励追踪' },
   { href: '/renewal-risk', label: '续费风险' },
   { href: '/reports', label: '分析报告' },
