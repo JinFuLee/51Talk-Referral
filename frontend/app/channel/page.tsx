@@ -1,48 +1,50 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import useSWR from "swr";
-import { swrFetcher } from "@/lib/api";
-import { formatRate } from "@/lib/utils";
-import { Card } from "@/components/ui/Card";
-import { Spinner } from "@/components/ui/Spinner";
-import { EmptyState } from "@/components/ui/EmptyState";
-import type { ChannelMetrics, RevenueContribution, ThreeFactorComparison } from "@/lib/types/channel";
-import {
-  PieChart,
-  Pie,
-  Cell,
-  Tooltip,
-  ResponsiveContainer,
-  Legend,
-} from "recharts";
+import { useState } from 'react';
+import useSWR from 'swr';
+import { swrFetcher } from '@/lib/api';
+import { formatRate } from '@/lib/utils';
+import { Card } from '@/components/ui/Card';
+import { Spinner } from '@/components/ui/Spinner';
+import { EmptyState } from '@/components/ui/EmptyState';
+import type {
+  ChannelMetrics,
+  RevenueContribution,
+  ThreeFactorComparison,
+} from '@/lib/types/channel';
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 
-const CHANNEL_COLORS = ['#92400E', '#065F46', '#1E40AF', '#6B21A8'];
-const TABS = ["业绩贡献", "净拆解", "三因素对标"] as const;
+const CHANNEL_COLORS = [
+  '#92400E',
+  '#065F46',
+  '#1E40AF',
+  '#6B21A8',
+  '#9D174D',
+  '#B45309',
+  '#047857',
+];
+const TABS = ['业绩贡献', '净拆解', '三因素对标'] as const;
 type Tab = (typeof TABS)[number];
-
-// Channels that only have participation data (no full funnel)
-const LIMITED_CHANNELS = new Set(["SS窄", "LP窄", "宽口"]);
 
 // Render a cell: null → "—", number → formatted
 function fmtNum(v: number | null | undefined): string {
-  if (v == null) return "—";
+  if (v == null) return '—';
   return v.toLocaleString();
 }
 
 function fmtUsd(v: number | null | undefined): string {
-  if (v == null) return "—";
+  if (v == null) return '—';
   return `$${v.toLocaleString()}`;
 }
 
 function fmtPct(v: number | null | undefined): string {
-  if (v == null) return "—";
+  if (v == null) return '—';
   return formatRate(v);
 }
 
 function fmtGap(v: number | null | undefined): string {
-  if (v == null) return "—";
-  return `${v >= 0 ? "+" : ""}${v.toLocaleString()}`;
+  if (v == null) return '—';
+  return `${v >= 0 ? '+' : ''}${v.toLocaleString()}`;
 }
 
 // Tooltip for limited-scope columns
@@ -56,8 +58,10 @@ function HeaderWithTip({ children, tip }: { children: React.ReactNode; tip: stri
       >
         ⓘ
       </span>
-      <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 hidden group-hover:block z-10
-        bg-gray-900 text-white text-[10px] rounded px-2 py-1 whitespace-nowrap pointer-events-none shadow-lg">
+      <span
+        className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 hidden group-hover:block z-10
+        bg-gray-900 text-white text-[10px] rounded px-2 py-1 whitespace-nowrap pointer-events-none shadow-lg"
+      >
         {tip}
       </span>
     </span>
@@ -75,10 +79,16 @@ interface ThreeFactorResponse {
 }
 
 export default function ChannelPage() {
-  const [tab, setTab] = useState<Tab>("业绩贡献");
-  const { data: channelData, isLoading: c1 } = useSWR<ChannelResponse>("/api/channel", swrFetcher);
-  const { data: attrData, isLoading: c2 } = useSWR<AttributionResponse>("/api/channel/attribution", swrFetcher);
-  const { data: threeData, isLoading: c3 } = useSWR<ThreeFactorResponse>("/api/channel/three-factor", swrFetcher);
+  const [tab, setTab] = useState<Tab>('业绩贡献');
+  const { data: channelData, isLoading: c1 } = useSWR<ChannelResponse>('/api/channel', swrFetcher);
+  const { data: attrData, isLoading: c2 } = useSWR<AttributionResponse>(
+    '/api/channel/attribution',
+    swrFetcher
+  );
+  const { data: threeData, isLoading: c3 } = useSWR<ThreeFactorResponse>(
+    '/api/channel/three-factor',
+    swrFetcher
+  );
 
   const isLoading = c1 || c2 || c3;
 
@@ -105,7 +115,9 @@ export default function ChannelPage() {
     <div className="space-y-3">
       <div>
         <h1 className="text-lg font-bold text-[var(--text-primary)]">渠道分析</h1>
-        <p className="text-sm text-[var(--text-secondary)] mt-1">CC窄/SS窄/LP窄/宽口 · 业绩归因</p>
+        <p className="text-sm text-[var(--text-secondary)] mt-1">
+          CC窄/SS窄/LP窄 + CC宽/LP宽/运营宽 · 业绩归因
+        </p>
       </div>
 
       {/* Tab 切换 */}
@@ -116,8 +128,8 @@ export default function ChannelPage() {
             onClick={() => setTab(t)}
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
               tab === t
-                ? "bg-[var(--bg-surface)] shadow-sm text-[var(--text-primary)]"
-                : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+                ? 'bg-[var(--bg-surface)] shadow-sm text-[var(--text-primary)]'
+                : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
             }`}
           >
             {t}
@@ -125,7 +137,7 @@ export default function ChannelPage() {
         ))}
       </div>
 
-      {tab === "业绩贡献" && (
+      {tab === '业绩贡献' && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <Card title="渠道业绩汇总">
             {channels.length === 0 ? (
@@ -133,7 +145,8 @@ export default function ChannelPage() {
             ) : (
               <>
                 <p className="text-[11px] text-[var(--text-secondary)] mb-2">
-                  「—」表示该渠道不统计此指标。SS/LP/宽口 口径仅统计带新参与数，预约/出席/付费/业绩为 CC 完整漏斗专属。
+                  各渠道业绩按带新参与数占比分摊。宽口按围场-岗位配置拆分为
+                  CC宽/LP宽/运营宽（Settings 可调）。
                 </p>
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
@@ -142,38 +155,48 @@ export default function ChannelPage() {
                         <th className="py-1.5 px-2 border-0 text-left">渠道</th>
                         <th className="py-1.5 px-2 border-0 text-right">注册 / 参与</th>
                         <th className="py-1.5 px-2 border-0 text-right">
-                          <HeaderWithTip tip="CC窄 完整漏斗数据；SS/LP/宽口 无此指标">预约</HeaderWithTip>
+                          <HeaderWithTip tip="CC窄 完整漏斗数据；SS/LP/宽口 无此指标">
+                            预约
+                          </HeaderWithTip>
                         </th>
                         <th className="py-1.5 px-2 border-0 text-right">
-                          <HeaderWithTip tip="CC窄 完整漏斗数据；SS/LP/宽口 无此指标">出席</HeaderWithTip>
+                          <HeaderWithTip tip="CC窄 完整漏斗数据；SS/LP/宽口 无此指标">
+                            出席
+                          </HeaderWithTip>
                         </th>
                         <th className="py-1.5 px-2 border-0 text-right">
-                          <HeaderWithTip tip="CC窄 完整漏斗数据；SS/LP/宽口 无此指标">付费</HeaderWithTip>
+                          <HeaderWithTip tip="CC窄 完整漏斗数据；SS/LP/宽口 无此指标">
+                            付费
+                          </HeaderWithTip>
                         </th>
                         <th className="py-1.5 px-2 border-0 text-right">
-                          <HeaderWithTip tip="CC窄 完整漏斗数据；SS/LP/宽口 无此指标">业绩</HeaderWithTip>
+                          <HeaderWithTip tip="CC窄 完整漏斗数据；SS/LP/宽口 无此指标">
+                            业绩
+                          </HeaderWithTip>
                         </th>
                       </tr>
                     </thead>
                     <tbody>
-                      {channels.map((c) => {
-                        const isLimited = LIMITED_CHANNELS.has(c.channel);
-                        return (
-                          <tr key={c.channel} className="even:bg-[var(--bg-subtle)]">
-                            <td className="py-1 px-2 text-xs font-medium">
-                              {c.channel}
-                              {isLimited && (
-                                <span className="ml-1 text-[10px] text-[var(--text-secondary)] font-normal">仅参与</span>
-                              )}
-                            </td>
-                            <td className="py-1 px-2 text-xs text-right font-mono tabular-nums">{fmtNum(c.registrations)}</td>
-                            <td className="py-1 px-2 text-xs text-right font-mono tabular-nums text-[var(--text-secondary)]">{fmtNum(c.appointments)}</td>
-                            <td className="py-1 px-2 text-xs text-right font-mono tabular-nums text-[var(--text-secondary)]">{fmtNum(c.attendance)}</td>
-                            <td className="py-1 px-2 text-xs text-right font-mono tabular-nums text-[var(--text-secondary)]">{fmtNum(c.payments)}</td>
-                            <td className="py-1 px-2 text-xs text-right font-mono tabular-nums text-[var(--text-secondary)]">{fmtUsd(c.revenue_usd)}</td>
-                          </tr>
-                        );
-                      })}
+                      {channels.map((c) => (
+                        <tr key={c.channel} className="even:bg-[var(--bg-subtle)]">
+                          <td className="py-1 px-2 text-xs font-medium">{c.channel}</td>
+                          <td className="py-1 px-2 text-xs text-right font-mono tabular-nums">
+                            {fmtNum(c.registrations)}
+                          </td>
+                          <td className="py-1 px-2 text-xs text-right font-mono tabular-nums text-[var(--text-secondary)]">
+                            {fmtNum(c.appointments)}
+                          </td>
+                          <td className="py-1 px-2 text-xs text-right font-mono tabular-nums text-[var(--text-secondary)]">
+                            {fmtNum(c.attendance)}
+                          </td>
+                          <td className="py-1 px-2 text-xs text-right font-mono tabular-nums text-[var(--text-secondary)]">
+                            {fmtNum(c.payments)}
+                          </td>
+                          <td className="py-1 px-2 text-xs text-right font-mono tabular-nums text-[var(--text-secondary)]">
+                            {fmtUsd(c.revenue_usd)}
+                          </td>
+                        </tr>
+                      ))}
                     </tbody>
                   </table>
                 </div>
@@ -200,7 +223,7 @@ export default function ChannelPage() {
                       <Cell key={index} fill={CHANNEL_COLORS[index % CHANNEL_COLORS.length]} />
                     ))}
                   </Pie>
-                  <Tooltip formatter={(v: number) => [`$${v.toLocaleString()}`, "业绩"]} />
+                  <Tooltip formatter={(v: number) => [`$${v.toLocaleString()}`, '业绩']} />
                   <Legend />
                 </PieChart>
               </ResponsiveContainer>
@@ -209,7 +232,7 @@ export default function ChannelPage() {
         </div>
       )}
 
-      {tab === "净拆解" && (
+      {tab === '净拆解' && (
         <Card title="渠道净业绩拆解">
           {contributions.length === 0 ? (
             <EmptyState title="暂无归因数据" description="上传数据后自动刷新" />
@@ -231,7 +254,9 @@ export default function ChannelPage() {
                       <td className="py-1 px-2 text-xs text-right font-mono tabular-nums font-semibold">
                         {fmtUsd(c.revenue)}
                       </td>
-                      <td className="py-1 px-2 text-xs text-right font-mono tabular-nums">{fmtPct(c.share)}</td>
+                      <td className="py-1 px-2 text-xs text-right font-mono tabular-nums">
+                        {fmtPct(c.share)}
+                      </td>
                       <td className="py-1 px-2 text-xs text-right font-mono tabular-nums text-[var(--text-secondary)]">
                         {fmtUsd(c.per_capita)}
                       </td>
@@ -244,7 +269,7 @@ export default function ChannelPage() {
         </Card>
       )}
 
-      {tab === "三因素对标" && (
+      {tab === '三因素对标' && (
         <Card title="三因素对标：预约 × 出席 × 付费">
           {comparisons.length === 0 ? (
             <EmptyState title="暂无三因素数据" description="上传数据后自动刷新" />
@@ -268,16 +293,32 @@ export default function ChannelPage() {
                     return (
                       <tr key={c.channel} className="even:bg-[var(--bg-subtle)]">
                         <td className="py-1 px-2 text-xs font-medium">{c.channel}</td>
-                        <td className="py-1 px-2 text-xs text-right font-mono tabular-nums">{fmtNum(c.expected_volume)}</td>
-                        <td className="py-1 px-2 text-xs text-right font-mono tabular-nums font-semibold">{fmtNum(c.actual_volume)}</td>
-                        <td className={`py-1 px-2 text-xs text-right font-mono tabular-nums font-medium ${
-                          gap == null ? "text-[var(--text-secondary)]" : gap >= 0 ? "text-green-600" : "text-red-500"
-                        }`}>
+                        <td className="py-1 px-2 text-xs text-right font-mono tabular-nums">
+                          {fmtNum(c.expected_volume)}
+                        </td>
+                        <td className="py-1 px-2 text-xs text-right font-mono tabular-nums font-semibold">
+                          {fmtNum(c.actual_volume)}
+                        </td>
+                        <td
+                          className={`py-1 px-2 text-xs text-right font-mono tabular-nums font-medium ${
+                            gap == null
+                              ? 'text-[var(--text-secondary)]'
+                              : gap >= 0
+                                ? 'text-green-600'
+                                : 'text-red-500'
+                          }`}
+                        >
                           {fmtGap(gap)}
                         </td>
-                        <td className="py-1 px-2 text-xs text-right font-mono tabular-nums">{fmtPct(c.appt_factor)}</td>
-                        <td className="py-1 px-2 text-xs text-right font-mono tabular-nums">{fmtPct(c.show_factor)}</td>
-                        <td className="py-1 px-2 text-xs text-right font-mono tabular-nums">{fmtPct(c.pay_factor)}</td>
+                        <td className="py-1 px-2 text-xs text-right font-mono tabular-nums">
+                          {fmtPct(c.appt_factor)}
+                        </td>
+                        <td className="py-1 px-2 text-xs text-right font-mono tabular-nums">
+                          {fmtPct(c.show_factor)}
+                        </td>
+                        <td className="py-1 px-2 text-xs text-right font-mono tabular-nums">
+                          {fmtPct(c.pay_factor)}
+                        </td>
                       </tr>
                     );
                   })}

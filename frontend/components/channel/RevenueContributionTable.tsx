@@ -1,5 +1,5 @@
-import { formatRevenue, formatRate } from "@/lib/utils";
-import type { RevenueContribution } from "@/lib/types/channel";
+import { formatRevenue, formatRate } from '@/lib/utils';
+import type { RevenueContribution } from '@/lib/types/channel';
 
 interface RevenueContributionTableProps {
   contributions: RevenueContribution[];
@@ -7,9 +7,7 @@ interface RevenueContributionTableProps {
 
 export function RevenueContributionTable({ contributions }: RevenueContributionTableProps) {
   if (contributions.length === 0) {
-    return (
-      <p className="text-sm text-[var(--text-muted)] text-center py-6">暂无贡献数据</p>
-    );
+    return <p className="text-sm text-[var(--text-muted)] text-center py-6">暂无贡献数据</p>;
   }
 
   const totalRevenue = contributions.reduce((sum, c) => sum + (c.revenue ?? 0), 0);
@@ -27,13 +25,9 @@ export function RevenueContributionTable({ contributions }: RevenueContributionT
         </thead>
         <tbody>
           {contributions.map((c) => {
-            const sharePct = (c.share ?? 0) / 100;
             const barWidth = Math.min(100, ((c.revenue ?? 0) / (totalRevenue || 1)) * 100);
             return (
-              <tr
-                key={c.channel}
-                className="even:bg-[var(--bg-subtle)]"
-              >
+              <tr key={c.channel} className="even:bg-[var(--bg-subtle)]">
                 <td className="py-1 px-2 text-xs">
                   <span className="font-medium text-[var(--text-primary)]">{c.channel}</span>
                   {/* Mini bar */}
@@ -48,7 +42,7 @@ export function RevenueContributionTable({ contributions }: RevenueContributionT
                   {formatRevenue(c.revenue)}
                 </td>
                 <td className="py-1 px-2 text-xs text-right font-mono tabular-nums text-[var(--text-secondary)]">
-                  {formatRate(sharePct)}
+                  {formatRate(c.share)}
                 </td>
                 <td className="py-1 px-2 text-xs text-right font-mono tabular-nums text-[var(--text-secondary)]">
                   {formatRevenue(c.per_capita)}
@@ -62,8 +56,12 @@ export function RevenueContributionTable({ contributions }: RevenueContributionT
             <td className="py-1 px-2 text-xs text-right font-mono tabular-nums text-[var(--text-primary)]">
               {formatRevenue(totalRevenue)}
             </td>
-            <td className="py-1 px-2 text-xs text-right font-mono tabular-nums text-[var(--text-secondary)]">100%</td>
-            <td className="py-1 px-2 text-xs text-right font-mono tabular-nums text-[var(--text-muted)]">—</td>
+            <td className="py-1 px-2 text-xs text-right font-mono tabular-nums text-[var(--text-secondary)]">
+              100%
+            </td>
+            <td className="py-1 px-2 text-xs text-right font-mono tabular-nums text-[var(--text-muted)]">
+              —
+            </td>
           </tr>
         </tbody>
       </table>

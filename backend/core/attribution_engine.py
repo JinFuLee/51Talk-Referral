@@ -99,164 +99,119 @@ class AttributionEngine:
             return "运营宽"
         return f"{roles[0]}宽"
 
+    # ── 按围场分组归因核心方法 ──────────────────────────────────────────────
+
+    def _attribute_by_enclosure(
+        self,
+    ) -> dict[str, dict[str, float]]:
+        """按围场分组，将 D2 每组的 reg/pay/rev 按参与数占比分摊到各渠道。
+
+        返回: {channel: {"part": N, "reg": N, "pay": N, "rev": N}}
+        不同围场 revenue 密度不同 → 各渠道 per_capita 自然分化。
+        """
+        accum: dict[str, dict[str, float]] = {}
+        has_enclosure = "围场" in self._d2.columns
+
+        for enc_val, group in (
+            self._d2.groupby("围场") if has_enclosure else [("ALL", self._d2)]
+        ):
+            enc_str = str(enc_val).strip()
+            if enc_str in ("未付费非有效", "已付费非有效"):
+                continue
+
+            g_total = self._sum_col(group, "带新参与数") or 0
+            g_reg = self._sum_col(group, "转介绍注册数") or 0
+            g_pay = self._sum_col(group, "转介绍付费数") or 0
+            g_rev = self._sum_col(group, "总带新付费金额USD") or 0
+
+            if g_total == 0:
+                continue
+
+            # 窄口
+            for ch, col in _NARROW_PARTICIPATION_COLS.items():
+                p = self._sum_col(group, col) or 0
+                if p <= 0:
+                    continue
+                ratio = p / g_total
+                d = accum.setdefault(ch, {"part": 0, "reg": 0, "pay": 0, "rev": 0})
+                d["part"] += p
+                d["reg"] += g_reg * ratio
+                d["pay"] += g_pay * ratio
+                d["rev"] += g_rev * ratio
+
+            # 宽口 → 围场→角色
+            wp = self._sum_col(group, "宽口径带新参与数") or 0
+            if wp > 0:
+                ratio = wp / g_total
+                wide_ch = (
+                    self._enclosure_to_wide_channel(enc_str)
+                    if has_enclosure
+                    else "宽口"
+                )
+                d = accum.setdefault(wide_ch, {"part": 0, "reg": 0, "pay": 0, "rev": 0})
+                d["part"] += wp
+                d["reg"] += g_reg * ratio
+                d["pay"] += g_pay * ratio
+                d["rev"] += g_rev * ratio
+
+        return accum
+
     # ── compute_channel_metrics ──────────────────────────────────────────────
 
     def compute_channel_metrics(self) -> list[ChannelMetrics]:
-        """D2 聚合：各渠道注册数/付费数/金额（含宽口按围场拆分）"""
+        """D2 聚合：各渠道注册数/付费数/金额（按围场分组归因 + 宽口拆分）"""
         if self._d2.empty:
             return []
 
+        accum = self._attribute_by_enclosure()
+        total_part = sum(d["part"] for d in accum.values())
+
         results: list[ChannelMetrics] = []
-        has_enclosure = "围场" in self._d2.columns
-
-        # ── 窄口渠道（CC窄/SS窄/LP窄）──────────────────────────────────────
-        # 注册/付费/金额按参与数占比分摊（D2 仅有总量列，无窄口拆分列）
-        total_participation = self._sum_col(self._d2, "带新参与数") or 0
-        total_reg = self._sum_col(self._d2, "转介绍注册数") or 0
-        total_pay = self._sum_col(self._d2, "转介绍付费数") or 0
-        total_rev = self._sum_col(self._d2, "总带新付费金额USD") or 0
-
-        for channel, part_col in _NARROW_PARTICIPATION_COLS.items():
-            part = self._sum_col(self._d2, part_col) or 0
-            share = _safe_div(part, total_participation)
+        # 固定渠道顺序：窄口在前，宽口在后
+        order = ["CC窄", "SS窄", "LP窄"]
+        wide_keys = sorted(k for k in accum if k not in order)
+        for ch in order + wide_keys:
+            d = accum.get(ch)
+            if not d or d["part"] == 0:
+                continue
             results.append(
                 ChannelMetrics(
-                    channel=channel,
-                    registrations=round(total_reg * share, 1) if share else None,
-                    payments=round(total_pay * share, 1) if share else None,
-                    revenue_usd=round(total_rev * share, 2) if share else None,
-                    share_pct=share,
+                    channel=ch,
+                    registrations=round(d["reg"], 1),
+                    payments=round(d["pay"], 1),
+                    revenue_usd=round(d["rev"], 2),
+                    share_pct=_safe_div(d["part"], total_part),
                 )
             )
-
-        # ── 宽口渠道（按围场→角色拆分）──────────────────────────────────────
-        wide_total_part = self._sum_col(self._d2, "宽口径带新参与数") or 0
-        wide_share = _safe_div(wide_total_part, total_participation)
-
-        if has_enclosure and wide_total_part > 0:
-            # 按围场分组计算宽口参与数
-            wide_by_role: dict[str, float] = {}
-            for enc_val, group in self._d2.groupby("围场"):
-                enc_str = str(enc_val).strip()
-                if enc_str in ("未付费非有效", "已付费非有效"):
-                    continue
-                wide_ch = self._enclosure_to_wide_channel(enc_str)
-                part = self._sum_col(group, "宽口径带新参与数") or 0
-                wide_by_role[wide_ch] = wide_by_role.get(wide_ch, 0) + part
-
-            # 宽口总金额按参与占比分摊
-            wide_rev = total_rev * (wide_share or 0)
-            wide_reg = total_reg * (wide_share or 0)
-            wide_pay = total_pay * (wide_share or 0)
-
-            for wide_ch, part in sorted(wide_by_role.items()):
-                ch_share = _safe_div(part, wide_total_part)
-                results.append(
-                    ChannelMetrics(
-                        channel=wide_ch,
-                        registrations=round(wide_reg * ch_share, 1)
-                        if ch_share
-                        else None,
-                        payments=round(wide_pay * ch_share, 1) if ch_share else None,
-                        revenue_usd=round(wide_rev * ch_share, 2) if ch_share else None,
-                        share_pct=_safe_div(part, total_participation),
-                    )
-                )
-        else:
-            # 无围场列或宽口为 0 → 输出合并宽口
-            results.append(
-                ChannelMetrics(
-                    channel="宽口",
-                    registrations=round(total_reg * wide_share, 1)
-                    if wide_share
-                    else None,
-                    payments=round(total_pay * wide_share, 1) if wide_share else None,
-                    revenue_usd=round(total_rev * wide_share, 2)
-                    if wide_share
-                    else None,
-                    share_pct=wide_share,
-                )
-            )
-
         return results
 
     # ── compute_revenue_contribution ─────────────────────────────────────────
 
     def compute_revenue_contribution(self) -> list[RevenueContribution]:
-        """各渠道收入贡献 — 按参与数占比归因（CC窄/SS窄/LP窄 + 宽口拆分）
-
-        D2 金额列为全口径总量，按参与数占比分摊到各渠道。
-        宽口进一步按围场→角色配置拆分。
-        """
+        """各渠道收入贡献 — 按围场分组归因，per_capita 按实际围场 revenue 密度分化"""
         if self._d2.empty:
             return []
 
-        total_rev = self._sum_col(self._d2, "总带新付费金额USD") or 0
+        accum = self._attribute_by_enclosure()
+        total_rev = sum(d["rev"] for d in accum.values())
         if total_rev == 0:
             return []
 
-        total_participation = self._sum_col(self._d2, "带新参与数") or 0
-        if total_participation == 0:
-            return []
-
         results: list[RevenueContribution] = []
-        has_enclosure = "围场" in self._d2.columns
-
-        # ── 窄口渠道收入归因 ───────────────────────────────────────────────
-        for channel, part_col in _NARROW_PARTICIPATION_COLS.items():
-            part = self._sum_col(self._d2, part_col) or 0
-            rev = total_rev * _safe_div(part, total_participation) if part > 0 else 0
-            if rev and rev > 0:
-                results.append(
-                    RevenueContribution(
-                        channel=channel,
-                        revenue=round(rev, 2),
-                        share=_safe_div(rev, total_rev),
-                        per_capita=_safe_div(rev, part),
-                    )
-                )
-
-        # ── 宽口渠道收入归因（按围场拆分）──────────────────────────────────
-        wide_total_part = self._sum_col(self._d2, "宽口径带新参与数") or 0
-        wide_rev = total_rev * (_safe_div(wide_total_part, total_participation) or 0)
-
-        if has_enclosure and wide_total_part > 0 and wide_rev > 0:
-            wide_by_role: dict[str, dict[str, float]] = {}
-            for enc_val, group in self._d2.groupby("围场"):
-                enc_str = str(enc_val).strip()
-                if enc_str in ("未付费非有效", "已付费非有效"):
-                    continue
-                wide_ch = self._enclosure_to_wide_channel(enc_str)
-                part = self._sum_col(group, "宽口径带新参与数") or 0
-                if wide_ch not in wide_by_role:
-                    wide_by_role[wide_ch] = {"participation": 0}
-                wide_by_role[wide_ch]["participation"] += part
-
-            for wide_ch, info in sorted(wide_by_role.items()):
-                part = info["participation"]
-                ch_share = _safe_div(part, wide_total_part)
-                ch_rev = wide_rev * (ch_share or 0)
-                if ch_rev > 0:
-                    results.append(
-                        RevenueContribution(
-                            channel=wide_ch,
-                            revenue=round(ch_rev, 2),
-                            share=_safe_div(ch_rev, total_rev),
-                            per_capita=_safe_div(ch_rev, part),
-                        )
-                    )
-        elif wide_rev > 0:
+        order = ["CC窄", "SS窄", "LP窄"]
+        wide_keys = sorted(k for k in accum if k not in order)
+        for ch in order + wide_keys:
+            d = accum.get(ch)
+            if not d or d["rev"] <= 0:
+                continue
             results.append(
                 RevenueContribution(
-                    channel="宽口",
-                    revenue=round(wide_rev, 2),
-                    share=_safe_div(wide_rev, total_rev),
-                    per_capita=_safe_div(wide_rev, wide_total_part)
-                    if wide_total_part
-                    else None,
+                    channel=ch,
+                    revenue=round(d["rev"], 2),
+                    share=_safe_div(d["rev"], total_rev),
+                    per_capita=_safe_div(d["rev"], d["part"]),
                 )
             )
-
         return results
 
     # ── compute_three_factor ─────────────────────────────────────────────────

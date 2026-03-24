@@ -217,6 +217,8 @@ Excel 数据源 → XlsxReader → DataProcessor → AnalysisEngine → Markdown
 - **三级 fallback**: override 文件 → config.json `enclosure_role_wide` → 硬编码 `_WIDE_ROLE_FALLBACK`
 - **前端 `useWideConfig()` 从 API `/api/config/enclosure-role` 读取**，禁止直接读 localStorage（Settings 迁移后已删除）
 - **新增配置项时必须对齐三方**：Settings UI 写入路径 = API GET 读取路径 = 后端 consumer 读取路径。三方不一致 = SSoT 违规
+- **渠道归因必须消费 Settings 配置**：`attribution_engine.py` 接收 `wide_role_config` 参数（围场→角色映射），从 `enclosure_role_override.json` 读取。禁止硬编码渠道列表或 share=1.0。检查脚本：`bash scripts/check-channel-attribution.sh`
+- **渠道归因 6 维度**：CC窄/SS窄/LP窄（窄口按绑定关系）+ CC宽/LP宽/运营宽（宽口按围场→角色配置拆分）。D2 revenue 按参与数占比分摊，per-围场分组以反映 revenue 密度差异
 - **数据地域过滤**: DataManager `_filter_thai_only()` 在数据加载后统一过滤非 TH- 前缀团队，全站 API 自动生效。禁止在单个 API 中手动过滤
 
 ## 关键约定
