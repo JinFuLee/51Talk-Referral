@@ -108,26 +108,43 @@ interface ThreeFactorResponse {
 
 export default function ChannelPage() {
   const [tab, setTab] = useState<Tab>('业绩贡献');
-  const { data: channelData, isLoading: c1 } = useSWR<ChannelResponse>('/api/channel', swrFetcher);
-  const { data: attrData, isLoading: c2 } = useSWR<AttributionResponse>(
-    '/api/channel/attribution',
-    swrFetcher
-  );
-  const { data: threeData, isLoading: c3 } = useSWR<ThreeFactorResponse>(
-    '/api/channel/three-factor',
-    swrFetcher
-  );
-  const { data: contributorData, isLoading: c4 } = useSWR<ContributorResponse>(
-    '/api/analysis/referral-contributor?top=200',
-    swrFetcher
-  );
+  const {
+    data: channelData,
+    isLoading: c1,
+    error: cerr1,
+  } = useSWR<ChannelResponse>('/api/channel', swrFetcher);
+  const {
+    data: attrData,
+    isLoading: c2,
+    error: cerr2,
+  } = useSWR<AttributionResponse>('/api/channel/attribution', swrFetcher);
+  const {
+    data: threeData,
+    isLoading: c3,
+    error: cerr3,
+  } = useSWR<ThreeFactorResponse>('/api/channel/three-factor', swrFetcher);
+  const {
+    data: contributorData,
+    isLoading: c4,
+    error: cerr4,
+  } = useSWR<ContributorResponse>('/api/analysis/referral-contributor?top=200', swrFetcher);
 
   const isLoading = c1 || c2 || c3 || c4;
+  const pageError = cerr1 || cerr2 || cerr3 || cerr4;
 
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
         <Spinner size="lg" />
+      </div>
+    );
+  }
+
+  if (pageError) {
+    return (
+      <div className="p-8 text-center text-[var(--text-muted)]">
+        <p>数据加载失败</p>
+        <p className="text-xs mt-1">{pageError.message ?? '请检查后端服务是否正常运行'}</p>
       </div>
     );
   }
@@ -184,7 +201,7 @@ export default function ChannelPage() {
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
-                      <tr className="bg-[var(--n-800)] text-white text-xs font-medium">
+                      <tr className="slide-thead-row text-xs">
                         <th className="py-1.5 px-2 border-0 text-left">渠道</th>
                         <th className="py-1.5 px-2 border-0 text-right">注册 / 参与</th>
                         <th className="py-1.5 px-2 border-0 text-right">
@@ -273,7 +290,7 @@ export default function ChannelPage() {
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="bg-[var(--n-800)] text-white text-xs font-medium">
+                  <tr className="slide-thead-row text-xs">
                     <th className="py-1.5 px-2 border-0 text-left">渠道</th>
                     <th className="py-1.5 px-2 border-0 text-right">净业绩 (USD)</th>
                     <th className="py-1.5 px-2 border-0 text-right">占比</th>
@@ -362,7 +379,7 @@ export default function ChannelPage() {
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="bg-[var(--n-800)] text-white text-xs font-medium">
+                  <tr className="slide-thead-row text-xs">
                     <th className="py-1.5 px-2 border-0 text-left">渠道</th>
                     <th className="py-1.5 px-2 border-0 text-right">预期量</th>
                     <th className="py-1.5 px-2 border-0 text-right">实际量</th>

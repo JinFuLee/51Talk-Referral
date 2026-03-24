@@ -1,7 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { Rocket, Eye, Send, AlertTriangle } from 'lucide-react';
+import { toast } from 'sonner';
+import { Rocket, Eye, Send, AlertTriangle, RefreshCw } from 'lucide-react';
 import useSWR from 'swr';
 import { swrFetcher } from '@/lib/api';
 import { PreviewModal } from './PreviewModal';
@@ -23,7 +24,12 @@ interface PushControlProps {
 }
 
 export function PushControl({ platform }: PushControlProps) {
-  const { data: rawTemplates } = useSWR<{ templates: PushTemplate[] } | PushTemplate[]>(
+  const {
+    data: rawTemplates,
+    isLoading: templatesLoading,
+    error: templatesError,
+    mutate: mutateTemplates,
+  } = useSWR<{ templates: PushTemplate[] } | PushTemplate[]>(
     '/api/notifications/templates',
     swrFetcher
   );
@@ -33,7 +39,12 @@ export function PushControl({ platform }: PushControlProps) {
       : (rawTemplates as { templates: PushTemplate[] }).templates
     : undefined;
 
-  const { data: rawChannels } = useSWR<{ channels: BotChannel[] } | BotChannel[]>(
+  const {
+    data: rawChannels,
+    isLoading: channelsLoading,
+    error: channelsError,
+    mutate: mutateChannels,
+  } = useSWR<{ channels: BotChannel[] } | BotChannel[]>(
     `/api/notifications/channels/${platform}`,
     swrFetcher
   );
@@ -42,6 +53,9 @@ export function PushControl({ platform }: PushControlProps) {
       ? rawChannels
       : (rawChannels as { channels: BotChannel[] }).channels
     : undefined;
+
+  const isLoading = templatesLoading || channelsLoading;
+  const loadError = templatesError || channelsError;
 
   const [selectedTemplate, setSelectedTemplate] = useState<string>('daily_report');
   const [selectedChannelIds, setSelectedChannelIds] = useState<string[]>([]);
@@ -155,19 +169,23 @@ export function PushControl({ platform }: PushControlProps) {
 
         if (statusData.status === 'done') {
           setPushState('done');
+          toast.success('推送完成');
           return;
         }
       }
       // 超时
       setPushState('done');
+      toast.success('推送任务已提交');
     } catch (err) {
+      const errMsg = err instanceof Error ? err.message : '推送失败';
       const updatedItems = items.map((item) => ({
         ...item,
         status: 'error' as const,
-        message: err instanceof Error ? err.message : '推送失败',
+        message: errMsg,
       }));
       setProgressItems(updatedItems);
       setPushState('error');
+      toast.error(errMsg);
     }
   }
 
@@ -177,6 +195,52 @@ export function PushControl({ platform }: PushControlProps) {
   }
 
   const ROLE_OPTIONS = ['ALL', 'CC', 'SS', 'LP', '运营'];
+
+  // loading 态
+  if (isLoading) {
+    return (
+      <div className="space-y-3 animate-pulse">
+        <div className="h-16 bg-[var(--bg-subtle)] rounded-xl" />
+        <div className="h-10 bg-[var(--bg-subtle)] rounded-lg" />
+        <div className="h-24 bg-[var(--bg-subtle)] rounded-lg" />
+      </div>
+    );
+  }
+
+  // error 态
+  if (loadError) {
+    return (
+      <div className="flex flex-col items-center justify-center gap-3 py-10 text-center">
+        <AlertTriangle className="w-8 h-8 text-red-400" />
+        <p className="text-sm font-medium text-[var(--text-primary)]">推送配置加载失败</p>
+        <p className="text-xs text-[var(--text-muted)]">
+          {loadError.message ?? '请检查后端服务是否正常运行'}
+        </p>
+        <button
+          onClick={() => {
+            mutateTemplates();
+            mutateChannels();
+          }}
+          className="flex items-center gap-1.5 px-3 py-1.5 text-xs border border-[var(--border-default)] rounded-lg text-[var(--text-secondary)] hover:bg-[var(--bg-primary)] transition-colors"
+        >
+          <RefreshCw className="w-3.5 h-3.5" />
+          重试
+        </button>
+      </div>
+    );
+  }
+
+  // empty 态：channels 加载完但没有任何通道
+  if (!channels || channels.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center gap-2 py-10 text-center">
+        <p className="text-sm font-medium text-[var(--text-primary)]">暂无推送配置</p>
+        <p className="text-xs text-[var(--text-muted)]">
+          前往「通知管理」添加通道后，此处将显示推送控制面板
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">

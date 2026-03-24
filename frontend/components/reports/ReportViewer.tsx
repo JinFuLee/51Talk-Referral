@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import dynamic from "next/dynamic";
-import type { ComponentType } from "react";
-import type { Options } from "react-markdown";
+import dynamic from 'next/dynamic';
+import type { ComponentType } from 'react';
+import type { Options } from 'react-markdown';
 
 // Dynamically import the entire rendering chunk — react-markdown + remark-gfm
 // are heavy (remark AST, unified pipeline). Deferring them keeps the initial
@@ -10,15 +10,18 @@ import type { Options } from "react-markdown";
 const MarkdownRenderer = dynamic<Options>(
   () =>
     Promise.all([
-      import("react-markdown").then((m) => m.default),
-      import("remark-gfm").then((m) => m.default),
+      import('react-markdown').then((m) => m.default),
+      import('remark-gfm').then((m) => m.default),
     ]).then(([ReactMarkdown, remarkGfm]) => {
       const Renderer: ComponentType<Options> = (props) => (
         <ReactMarkdown {...props} remarkPlugins={[remarkGfm, ...(props.remarkPlugins ?? [])]} />
       );
       return Renderer;
     }),
-  { ssr: false, loading: () => <div className="animate-pulse text-[var(--text-muted)] text-sm">加载中…</div> }
+  {
+    ssr: false,
+    loading: () => <div className="animate-pulse text-[var(--text-muted)] text-sm">加载中…</div>,
+  }
 );
 
 interface ReportViewerProps {
@@ -29,8 +32,8 @@ interface ReportViewerProps {
 
 export function ReportViewer({ content, filename, downloadURL }: ReportViewerProps) {
   return (
-    <div className="rounded-xl border border-slate-200 bg-[var(--bg-surface)] overflow-hidden">
-      <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100 bg-slate-50">
+    <div className="rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface)] overflow-hidden">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--border-subtle)] bg-slate-50">
         <span className="text-sm font-medium text-[var(--text-primary)] truncate">{filename}</span>
         <a
           href={downloadURL}

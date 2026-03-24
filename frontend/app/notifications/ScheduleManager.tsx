@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { toast } from 'sonner';
 import useSWR, { mutate } from 'swr';
 import { Clock, Plus, Pencil, Trash2, Power, PowerOff, Calendar } from 'lucide-react';
 
@@ -217,6 +218,7 @@ export function ScheduleManager({ lang }: ScheduleManagerProps) {
         });
       }
       await mutate(`${API_BASE}/notifications/schedule`);
+      toast.success(editTarget ? '排程已更新' : '排程已创建');
       closeForm();
     } finally {
       setSaving(false);
@@ -229,6 +231,7 @@ export function ScheduleManager({ lang }: ScheduleManagerProps) {
     try {
       await fetch(`${API_BASE}/notifications/schedule/${id}`, { method: 'DELETE' });
       await mutate(`${API_BASE}/notifications/schedule`);
+      toast.success('已删除');
     } finally {
       setActionId(null);
     }
@@ -282,7 +285,7 @@ export function ScheduleManager({ lang }: ScheduleManagerProps) {
         {schedules.map((sch) => (
           <div
             key={sch.id}
-            className={`flex items-start justify-between p-3.5 rounded-xl border transition-colors ${
+            className={`flex items-start justify-between p-3.5 rounded-lg border transition-colors ${
               sch.enabled
                 ? 'bg-[var(--bg-surface)] border-[var(--border-subtle)]'
                 : 'bg-[var(--bg-primary)] border-[var(--border-subtle)] opacity-60'

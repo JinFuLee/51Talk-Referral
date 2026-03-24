@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import React from "react";
+import React from 'react';
 
 interface RateCardProps {
   label: string;
@@ -14,33 +14,33 @@ function RateCardBase({ label, rate, sub, target }: RateCardProps) {
   const targetPct = target !== undefined ? Math.round(target * 100) : undefined;
   const status =
     targetPct === undefined
-      ? "slate"
+      ? 'slate'
       : pct >= targetPct
-      ? "green"
-      : pct >= targetPct * 0.85
-      ? "yellow"
-      : "red";
+        ? 'green'
+        : pct >= targetPct * 0.85
+          ? 'yellow'
+          : 'red';
 
   const textColor =
-    status === "green"
-      ? "text-success"
-      : status === "yellow"
-      ? "text-warning"
-      : status === "red"
-      ? "text-destructive"
-      : "text-[var(--text-primary)]";
+    status === 'green'
+      ? 'text-success'
+      : status === 'yellow'
+        ? 'text-warning'
+        : status === 'red'
+          ? 'text-destructive'
+          : 'text-[var(--text-primary)]';
 
   const barColor =
-    status === "green"
-      ? "bg-success"
-      : status === "yellow"
-      ? "bg-warning"
-      : status === "red"
-      ? "bg-destructive"
-      : "bg-primary";
+    status === 'green'
+      ? 'bg-success'
+      : status === 'yellow'
+        ? 'bg-warning'
+        : status === 'red'
+          ? 'bg-destructive'
+          : 'bg-primary';
 
   return (
-    <div className="rounded-xl border border-slate-200 bg-[var(--bg-surface)] p-4">
+    <div className="rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-4">
       <p className="text-xs text-[var(--text-secondary)] mb-2">{label}</p>
       <p className={`text-3xl font-bold ${textColor}`}>{pct}%</p>
       {sub && <p className="text-xs text-[var(--text-muted)] mt-1">{sub}</p>}

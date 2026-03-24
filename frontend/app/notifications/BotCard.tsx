@@ -44,7 +44,7 @@ export function BotCard({ bot, onEdit, onDelete, onToggle }: BotCardProps) {
 
   return (
     <div
-      className={`rounded-xl bg-[var(--bg-surface)] shadow-sm border border-[var(--border-default)] border-l-4 ${borderColor} p-4 flex flex-col gap-3`}
+      className={`rounded-lg bg-[var(--bg-surface)] shadow-sm border border-[var(--border-default)] border-l-4 ${borderColor} p-4 flex flex-col gap-3`}
     >
       {/* Header */}
       <div className="flex items-start justify-between">

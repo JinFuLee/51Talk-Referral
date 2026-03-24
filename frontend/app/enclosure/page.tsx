@@ -130,11 +130,16 @@ function CCTabContent({
   const apiUrl = filter
     ? `/api/enclosure?enclosure=${encodeURIComponent(filter)}`
     : '/api/enclosure';
-  const { data: enclosureData, isLoading: e1 } = useSWR<EnclosureResponse>(apiUrl, swrFetcher);
-  const { data: rankingData, isLoading: e2 } = useSWR<CCRankingResponse>(
-    '/api/enclosure/ranking',
-    swrFetcher
-  );
+  const {
+    data: enclosureData,
+    isLoading: e1,
+    error: err1,
+  } = useSWR<EnclosureResponse>(apiUrl, swrFetcher);
+  const {
+    data: rankingData,
+    isLoading: e2,
+    error: err2,
+  } = useSWR<CCRankingResponse>('/api/enclosure/ranking', swrFetcher);
   const { data: benchmarkData } = useSWR<EnclosureBenchmarkRow[]>(
     '/api/enclosure-health/benchmark',
     swrFetcher
@@ -144,6 +149,15 @@ function CCTabContent({
     return (
       <div className="flex items-center justify-center h-48">
         <Spinner size="lg" />
+      </div>
+    );
+  }
+
+  if (err1 || err2) {
+    return (
+      <div className="p-8 text-center text-[var(--text-muted)]">
+        <p>数据加载失败</p>
+        <p className="text-xs mt-1">{(err1 ?? err2)?.message ?? '请检查后端服务是否正常运行'}</p>
       </div>
     );
   }
@@ -693,7 +707,7 @@ function AllTabContent() {
         {summaryItems.map((item) => (
           <div
             key={item.role}
-            className={`bg-[var(--bg-surface)] rounded-xl border border-[var(--border-default)] border-l-4 ${item.color} p-4 space-y-2`}
+            className={`bg-[var(--bg-surface)] rounded-lg border border-[var(--border-default)] border-l-4 ${item.color} p-4 space-y-2`}
           >
             <div className="text-sm font-semibold text-[var(--text-primary)]">{item.role}</div>
             <div className="grid grid-cols-2 gap-2 text-xs">

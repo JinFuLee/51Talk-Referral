@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useCallback, useEffect } from 'react';
+import { toast } from 'sonner';
 import { useExchangeRate, useTargetsV2, useTargetRecommendation } from '@/lib/hooks';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { BIZ_PAGE } from '@/lib/layout';
@@ -123,8 +124,11 @@ export default function SettingsPage() {
       await configAPI.putTargetsV2(selectedMonth, v2);
       await mutateV2();
       setMsg('保存成功');
+      toast.success('目标已保存');
     } catch (e: unknown) {
-      setMsg(e instanceof Error ? e.message : '保存失败');
+      const errMsg = e instanceof Error ? e.message : '保存失败';
+      setMsg(errMsg);
+      toast.error(errMsg);
     } finally {
       setSaving(false);
     }
@@ -143,8 +147,11 @@ export default function SettingsPage() {
       await mutateRate();
       setRateMsg('保存成功');
       setRateInput('');
+      toast.success('汇率已保存');
     } catch (e: unknown) {
-      setRateMsg(e instanceof Error ? e.message : '保存失败');
+      const errMsg = e instanceof Error ? e.message : '保存失败';
+      setRateMsg(errMsg);
+      toast.error(errMsg);
     } finally {
       setRateSaving(false);
     }

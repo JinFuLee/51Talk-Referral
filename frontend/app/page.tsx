@@ -72,7 +72,7 @@ function IndicatorMatrixSummary({ role }: { role: RoleView }) {
   const categories = Object.entries(categoryCount) as [IndicatorCategory, number][];
 
   return (
-    <div className="rounded-xl border border-[var(--border-default)] bg-[var(--bg-subtle)] px-4 py-3">
+    <div className="rounded-lg border border-[var(--border-default)] bg-[var(--bg-subtle)] px-4 py-3">
       <div className="flex items-center justify-between mb-2">
         <span className="text-xs font-semibold text-[var(--text-primary)]">
           {ROLE_LABELS[role]} 活跃指标
@@ -359,7 +359,7 @@ function TimeProgressBar({ tp }: { tp: TimeProgressInfo }) {
   const month = tp.month_start.slice(0, 7).replace('-', ' 年 ') + ' 月';
 
   return (
-    <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-xs text-[var(--text-secondary)]">
+    <div className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-xs text-[var(--text-secondary)]">
       <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
         <span className="font-medium text-[var(--text-primary)]">时间进度</span>
         <span className="text-[var(--text-muted)]">{month}</span>

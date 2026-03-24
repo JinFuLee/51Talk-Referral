@@ -57,7 +57,7 @@ function SummaryCards({ summary }: { summary: ExpiryAlertSummary }) {
               ? summary.warning_count
               : summary.watch_count;
         return (
-          <div key={level} className={`rounded-xl border p-4 flex flex-col gap-1 ${cfg.bg}`}>
+          <div key={level} className={`rounded-lg border p-4 flex flex-col gap-1 ${cfg.bg}`}>
             <div className="flex items-center justify-between">
               <span className={`text-xs font-semibold ${cfg.text}`}>{cfg.label}</span>
               <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${cfg.badge}`}>
