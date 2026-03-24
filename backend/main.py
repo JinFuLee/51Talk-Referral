@@ -63,6 +63,8 @@ ROUTER_REGISTRY: dict = {
     # ── Wave 6 新增：跟进质量 + 推荐者贡献 ────────────────────────────────────
     "followup_quality": ("backend.api.followup_quality", "/api", ["analysis"]),
     "referral_contributor": ("backend.api.referral_contributor", "/api", ["analysis"]),
+    # ── 通知推送管理 ────────────────────────────────────────────────────────────
+    "notifications": ("backend.api.notifications", "/api", ["notifications"]),
 }
 
 
