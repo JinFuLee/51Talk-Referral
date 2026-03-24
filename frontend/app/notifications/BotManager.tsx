@@ -102,7 +102,7 @@ export function BotManager({ platform }: BotManagerProps) {
         <h3 className="text-sm font-semibold text-[var(--text-primary)]">机器人管理</h3>
         <button
           onClick={openAdd}
-          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium border border-slate-200 rounded-lg hover:bg-slate-50 text-[var(--text-secondary)] transition-colors"
+          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium border border-[var(--border-subtle)] rounded-lg hover:bg-[var(--bg-primary)] text-[var(--text-secondary)] transition-colors"
         >
           <Plus className="w-3.5 h-3.5" />
           添加机器人
@@ -116,7 +116,7 @@ export function BotManager({ platform }: BotManagerProps) {
           icon={
             <button
               onClick={openAdd}
-              className="mb-4 flex items-center gap-2 px-4 py-2 rounded-lg border border-dashed border-slate-300 text-sm text-[var(--text-muted)] hover:bg-slate-50 transition-colors"
+              className="mb-4 flex items-center gap-2 px-4 py-2 rounded-lg border border-dashed border-[var(--border-hover)] text-sm text-[var(--text-muted)] hover:bg-[var(--bg-primary)] transition-colors"
             >
               <Plus className="w-4 h-4" />
               添加机器人

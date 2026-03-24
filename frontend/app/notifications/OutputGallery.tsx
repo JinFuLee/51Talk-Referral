@@ -74,7 +74,7 @@ export function OutputGallery({ platform: _platform }: OutputGalleryProps) {
           type="date"
           value={date}
           onChange={(e) => setDate(e.target.value)}
-          className="text-sm border border-slate-200 rounded-lg px-3 py-1.5 outline-none focus:ring-2 focus:ring-brand-500"
+          className="text-sm border border-[var(--border-subtle)] rounded-lg px-3 py-1.5 outline-none focus:ring-2 focus:ring-brand-500"
         />
         <div className="flex gap-1.5 flex-wrap">
           {ROLES.map((r) => (
@@ -84,7 +84,7 @@ export function OutputGallery({ platform: _platform }: OutputGalleryProps) {
               className={`px-2.5 py-1 rounded-full text-xs font-medium transition-colors ${
                 role === r
                   ? 'bg-[var(--brand-600,#0284c7)] text-white'
-                  : 'bg-slate-100 text-[var(--text-secondary)] hover:bg-slate-200'
+                  : 'bg-[var(--bg-subtle)] text-[var(--text-secondary)] hover:bg-[var(--bg-elevated)]'
               }`}
             >
               {r}
@@ -117,7 +117,7 @@ export function OutputGallery({ platform: _platform }: OutputGalleryProps) {
             return (
               <div
                 key={item.filename}
-                className="rounded-xl border border-[var(--border-default)] overflow-hidden bg-white hover:shadow-md transition-shadow cursor-pointer group"
+                className="rounded-xl border border-[var(--border-default)] overflow-hidden bg-[var(--bg-surface)] hover:shadow-md transition-shadow cursor-pointer group"
                 onClick={() =>
                   window.open(`/api/notifications/outputs/image/${item.filename}`, '_blank')
                 }
@@ -134,7 +134,7 @@ export function OutputGallery({ platform: _platform }: OutputGalleryProps) {
                 />
                 <div
                   hidden
-                  className="w-full aspect-video bg-slate-50 flex items-center justify-center"
+                  className="w-full aspect-video bg-[var(--bg-primary)] flex items-center justify-center"
                 >
                   <ImageIcon className="w-8 h-8 text-slate-300" />
                 </div>

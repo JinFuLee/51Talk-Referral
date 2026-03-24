@@ -14,7 +14,7 @@ interface PushProgressProps {
 }
 
 const STATUS_ICON = {
-  pending: <div className="w-4 h-4 rounded-full border-2 border-slate-300" />,
+  pending: <div className="w-4 h-4 rounded-full border-2 border-[var(--border-hover)]" />,
   sending: <Loader2 className="w-4 h-4 animate-spin text-blue-500" />,
   success: <CheckCircle2 className="w-4 h-4 text-emerald-500" />,
   error: <XCircle className="w-4 h-4 text-red-500" />,
@@ -42,7 +42,7 @@ export function PushProgress({ items }: PushProgressProps) {
             {done}/{total}
           </span>
         </div>
-        <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+        <div className="w-full h-1.5 bg-[var(--bg-subtle)] rounded-full overflow-hidden">
           <div
             className="h-full bg-brand-500 rounded-full transition-all duration-300"
             style={{ width: `${pct}%` }}
@@ -55,7 +55,7 @@ export function PushProgress({ items }: PushProgressProps) {
         {items.map((item) => (
           <div
             key={`${item.channel}-${item.role}`}
-            className="flex items-center gap-3 py-1.5 px-2 rounded-lg bg-slate-50"
+            className="flex items-center gap-3 py-1.5 px-2 rounded-lg bg-[var(--bg-primary)]"
           >
             {STATUS_ICON[item.status]}
             <div className="flex-1 min-w-0">

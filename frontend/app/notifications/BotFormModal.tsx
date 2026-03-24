@@ -78,7 +78,7 @@ export function BotFormModal({ open, platform, initial, onClose, onSave }: BotFo
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md mx-4 overflow-hidden">
+      <div className="bg-[var(--bg-surface)] rounded-2xl shadow-xl w-full max-w-md mx-4 overflow-hidden">
         <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--border-default)]">
           <h2 className="text-sm font-semibold text-[var(--text-primary)]">
             {initial ? '编辑机器人' : '添加机器人'}
@@ -88,7 +88,7 @@ export function BotFormModal({ open, platform, initial, onClose, onSave }: BotFo
           </h2>
           <button
             onClick={onClose}
-            className="p-1 rounded-md hover:bg-slate-100 text-[var(--text-muted)]"
+            className="p-1 rounded-md hover:bg-[var(--bg-subtle)] text-[var(--text-muted)]"
           >
             <X className="w-4 h-4" />
           </button>
@@ -105,7 +105,7 @@ export function BotFormModal({ open, platform, initial, onClose, onSave }: BotFo
                 onChange={(e) => setForm((v) => ({ ...v, name: e.target.value }))}
                 required
                 placeholder="如：Lark CC日报"
-                className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                className="w-full text-sm border border-[var(--border-subtle)] rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
               />
             </div>
             <div>
@@ -117,7 +117,7 @@ export function BotFormModal({ open, platform, initial, onClose, onSave }: BotFo
                 onChange={(e) => setForm((v) => ({ ...v, group_name: e.target.value }))}
                 required
                 placeholder="如：CC 转介绍运营群"
-                className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                className="w-full text-sm border border-[var(--border-subtle)] rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
               />
             </div>
           </div>
@@ -130,7 +130,7 @@ export function BotFormModal({ open, platform, initial, onClose, onSave }: BotFo
               <select
                 value={form.role}
                 onChange={(e) => setForm((v) => ({ ...v, role: e.target.value }))}
-                className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-brand-500"
+                className="w-full text-sm border border-[var(--border-subtle)] rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-brand-500"
               >
                 {ROLES.map((r) => (
                   <option key={r} value={r}>
@@ -172,7 +172,7 @@ export function BotFormModal({ open, platform, initial, onClose, onSave }: BotFo
                 onChange={(e) => setForm((v) => ({ ...v, webhook: e.target.value }))}
                 required
                 placeholder="https://..."
-                className="flex-1 text-sm border border-slate-200 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-brand-500 font-mono"
+                className="flex-1 text-sm border border-[var(--border-subtle)] rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-brand-500 font-mono"
               />
               <button
                 type="button"
@@ -194,7 +194,7 @@ export function BotFormModal({ open, platform, initial, onClose, onSave }: BotFo
                 value={form.secret}
                 onChange={(e) => setForm((v) => ({ ...v, secret: e.target.value }))}
                 placeholder="留空表示无签名"
-                className="flex-1 text-sm border border-slate-200 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-brand-500 font-mono"
+                className="flex-1 text-sm border border-[var(--border-subtle)] rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-brand-500 font-mono"
               />
               <button
                 type="button"
@@ -212,7 +212,7 @@ export function BotFormModal({ open, platform, initial, onClose, onSave }: BotFo
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 px-4 py-2 border border-slate-200 rounded-lg text-sm text-[var(--text-secondary)] hover:bg-slate-50 transition-colors"
+              className="flex-1 px-4 py-2 border border-[var(--border-subtle)] rounded-lg text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-primary)] transition-colors"
             >
               取消
             </button>

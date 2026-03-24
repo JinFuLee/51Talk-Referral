@@ -1,8 +1,13 @@
-"use client";
+'use client';
 
-import { Card } from "@/components/ui/Card";
-import { NumInput, PctInput } from "@/components/ui/NumInput";
-import type { HardTarget, MonthlyTargetV2, TargetRecommendation, TargetScenario } from "@/lib/types";
+import { Card } from '@/components/ui/Card';
+import { NumInput, PctInput } from '@/components/ui/NumInput';
+import type {
+  HardTarget,
+  MonthlyTargetV2,
+  TargetRecommendation,
+  TargetScenario,
+} from '@/lib/types';
 
 interface TargetSettingsCardProps {
   v2: MonthlyTargetV2;
@@ -26,17 +31,17 @@ export default function TargetSettingsCard({
         <Card title="智能推荐">
           <div className="space-y-2">
             <div className="text-xs text-[var(--text-secondary)]">
-              历史增长率：注册 {(recommendation.growth_rates.reg * 100).toFixed(1)}% ·{" "}
-              付费 {(recommendation.growth_rates.paid * 100).toFixed(1)}% ·{" "}
-              收入 {(recommendation.growth_rates.revenue * 100).toFixed(1)}%
+              历史增长率：注册 {(recommendation.growth_rates.reg * 100).toFixed(1)}% · 付费{' '}
+              {(recommendation.growth_rates.paid * 100).toFixed(1)}% · 收入{' '}
+              {(recommendation.growth_rates.revenue * 100).toFixed(1)}%
             </div>
             <div className="grid grid-cols-3 gap-2">
-              {(["conservative", "base", "aggressive"] as const).map((key) => {
+              {(['conservative', 'base', 'aggressive'] as const).map((key) => {
                 const s = recommendation.scenarios[key];
                 const colors: Record<typeof key, string> = {
-                  conservative: "border-blue-200 bg-blue-50",
-                  base: "border-green-200 bg-green-50",
-                  aggressive: "border-orange-200 bg-orange-50",
+                  conservative: 'border-blue-200 bg-blue-50',
+                  base: 'border-green-200 bg-green-50',
+                  aggressive: 'border-orange-200 bg-orange-50',
                 };
                 return (
                   <div key={key} className={`rounded-lg border p-3 ${colors[key]}`}>
@@ -49,7 +54,7 @@ export default function TargetSettingsCard({
                     </div>
                     <button
                       onClick={() => onApplyScenario(s)}
-                      className="mt-2 w-full px-2 py-1 text-xs font-medium rounded bg-[var(--bg-surface)] border border-slate-200 hover:bg-slate-50 transition-colors focus-visible:ring-2 focus-visible:ring-brand-500"
+                      className="mt-2 w-full px-2 py-1 text-xs font-medium rounded bg-[var(--bg-surface)] border border-[var(--border-subtle)] hover:bg-[var(--bg-primary)] transition-colors focus-visible:ring-2 focus-visible:ring-brand-500"
                     >
                       应用此方案
                     </button>
@@ -80,27 +85,32 @@ export default function TargetSettingsCard({
               recommendation?.feasibility.score !== undefined && (
                 <div
                   className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium mt-1 ${
-                    recommendation.feasibility.confidence === "high"
-                      ? "bg-green-100 text-green-700"
-                      : recommendation.feasibility.confidence === "medium"
-                      ? "bg-yellow-100 text-yellow-700"
-                      : "bg-red-100 text-red-700"
+                    recommendation.feasibility.confidence === 'high'
+                      ? 'bg-green-100 text-green-700'
+                      : recommendation.feasibility.confidence === 'medium'
+                        ? 'bg-yellow-100 text-yellow-700'
+                        : 'bg-red-100 text-red-700'
                   }`}
                 >
                   <span>{recommendation.feasibility.label}</span>
-                  <span className="text-[var(--text-secondary)]">({recommendation.feasibility.probability})</span>
+                  <span className="text-[var(--text-secondary)]">
+                    ({recommendation.feasibility.probability})
+                  </span>
                 </div>
               )}
             {recommendation?.feasibility.detail &&
               Object.keys(recommendation.feasibility.detail).length > 0 && (
                 <div className="mt-2 space-y-1">
                   {Object.entries(recommendation.feasibility.detail).map(([metric, d]) => (
-                    <div key={metric} className="flex items-center gap-2 text-xs text-[var(--text-secondary)]">
+                    <div
+                      key={metric}
+                      className="flex items-center gap-2 text-xs text-[var(--text-secondary)]"
+                    >
                       <span>{metric}:</span>
                       <span>
                         {d.actual.toLocaleString()} / {d.target.toLocaleString()}
                       </span>
-                      <span className={d.pace_ratio >= 1 ? "text-green-600" : "text-yellow-600"}>
+                      <span className={d.pace_ratio >= 1 ? 'text-green-600' : 'text-yellow-600'}>
                         (节奏 {(d.pace_ratio * 100).toFixed(0)}%)
                       </span>
                     </div>
@@ -112,10 +122,8 @@ export default function TargetSettingsCard({
             <label className="text-xs text-[var(--text-secondary)] mb-1 block">显示币种</label>
             <select
               value={v2.hard.display_currency}
-              onChange={(e) =>
-                onUpdateHard({ display_currency: e.target.value as "THB" | "USD" })
-              }
-              className="px-2 py-1 border border-slate-200 rounded text-sm focus-visible:ring-2 focus-visible:ring-brand-500"
+              onChange={(e) => onUpdateHard({ display_currency: e.target.value as 'THB' | 'USD' })}
+              className="px-2 py-1 border border-[var(--border-subtle)] rounded text-sm focus-visible:ring-2 focus-visible:ring-brand-500"
             >
               <option value="THB">THB</option>
               <option value="USD">USD</option>
@@ -126,8 +134,8 @@ export default function TargetSettingsCard({
             <div className="flex items-center gap-2">
               <input
                 type="radio"
-                checked={v2.hard.lock_field === "pct"}
-                onChange={() => onUpdateHard({ lock_field: "pct" })}
+                checked={v2.hard.lock_field === 'pct'}
+                onChange={() => onUpdateHard({ lock_field: 'pct' })}
                 className="focus-visible:ring-2 focus-visible:ring-brand-500"
               />
               <PctInput
@@ -141,8 +149,8 @@ export default function TargetSettingsCard({
             <div className="flex items-center gap-2">
               <input
                 type="radio"
-                checked={v2.hard.lock_field === "amount"}
-                onChange={() => onUpdateHard({ lock_field: "amount" })}
+                checked={v2.hard.lock_field === 'amount'}
+                onChange={() => onUpdateHard({ lock_field: 'amount' })}
                 className="focus-visible:ring-2 focus-visible:ring-brand-500"
               />
               <NumInput

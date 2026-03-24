@@ -157,7 +157,7 @@ export default function SettingsPage() {
           <select
             value={selectedMonth}
             onChange={(e) => setSelectedMonth(e.target.value)}
-            className="px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+            className="px-3 py-2 border border-[var(--border-subtle)] rounded-lg text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
           >
             {MONTHS.map((m) => (
               <option key={m} value={m}>

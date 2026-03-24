@@ -1,21 +1,21 @@
-"use client";
+'use client';
 
-import { Card } from "@/components/ui/Card";
-import { NumInput, PctInput } from "@/components/ui/NumInput";
-import type { ChannelDecomposition, ChannelTarget, MonthlyTargetV2 } from "@/lib/types";
+import { Card } from '@/components/ui/Card';
+import { NumInput, PctInput } from '@/components/ui/NumInput';
+import type { ChannelDecomposition, ChannelTarget, MonthlyTargetV2 } from '@/lib/types';
 
 const CHANNEL_KEYS: (keyof ChannelDecomposition)[] = [
-  "cc_narrow",
-  "ss_narrow",
-  "lp_narrow",
-  "wide",
+  'cc_narrow',
+  'ss_narrow',
+  'lp_narrow',
+  'wide',
 ];
 
 const CHANNEL_LABELS: Record<string, string> = {
-  cc_narrow: "CC窄口",
-  ss_narrow: "SS窄口",
-  lp_narrow: "LP窄口",
-  wide: "宽口",
+  cc_narrow: 'CC窄口',
+  ss_narrow: 'SS窄口',
+  lp_narrow: 'LP窄口',
+  wide: '宽口',
 };
 
 interface ChannelSettingsCardProps {
@@ -59,7 +59,9 @@ export default function ChannelSettingsCard({ v2, onUpdateChannel }: ChannelSett
               const rev = paid * c.asp;
               return (
                 <tr key={k} className="border-b border-slate-50">
-                  <td className="py-1 px-2 text-xs font-medium text-[var(--text-secondary)]">{CHANNEL_LABELS[k]}</td>
+                  <td className="py-1 px-2 text-xs font-medium text-[var(--text-secondary)]">
+                    {CHANNEL_LABELS[k]}
+                  </td>
                   <td className="py-1 px-2 text-xs text-right">
                     <NumInput
                       value={c.user_count}
@@ -80,30 +82,40 @@ export default function ChannelSettingsCard({ v2, onUpdateChannel }: ChannelSett
                       onChange={(v) => onUpdateChannel(k, { conversion_rate: v })}
                     />
                   </td>
-                  <td className="py-1 px-2 text-xs text-right font-mono tabular-nums text-[var(--text-secondary)]">{paid}</td>
-                  <td className="py-1 px-2 text-xs text-right font-mono tabular-nums text-[var(--text-secondary)]">${rev.toLocaleString()}</td>
+                  <td className="py-1 px-2 text-xs text-right font-mono tabular-nums text-[var(--text-secondary)]">
+                    {paid}
+                  </td>
+                  <td className="py-1 px-2 text-xs text-right font-mono tabular-nums text-[var(--text-secondary)]">
+                    ${rev.toLocaleString()}
+                  </td>
                 </tr>
               );
             })}
-            <tr className="border-t-2 border-slate-200 font-semibold">
+            <tr className="border-t-2 border-[var(--border-subtle)] font-semibold">
               <td className="py-1 px-2 text-xs text-[var(--text-primary)]">合计</td>
-              <td className="py-1 px-2 text-xs text-right font-mono tabular-nums text-[var(--text-primary)]">{totalReg}</td>
-              <td className="py-1 px-2 text-xs text-right font-mono tabular-nums text-[var(--text-muted)]">—</td>
-              <td className="py-1 px-2 text-xs text-right font-mono tabular-nums text-[var(--text-muted)]">
-                {totalReg > 0 ? `${((totalPaid / totalReg) * 100).toFixed(1)}%` : "—"}
+              <td className="py-1 px-2 text-xs text-right font-mono tabular-nums text-[var(--text-primary)]">
+                {totalReg}
               </td>
-              <td className="py-1 px-2 text-xs text-right font-mono tabular-nums text-[var(--text-primary)]">{totalPaid}</td>
+              <td className="py-1 px-2 text-xs text-right font-mono tabular-nums text-[var(--text-muted)]">
+                —
+              </td>
+              <td className="py-1 px-2 text-xs text-right font-mono tabular-nums text-[var(--text-muted)]">
+                {totalReg > 0 ? `${((totalPaid / totalReg) * 100).toFixed(1)}%` : '—'}
+              </td>
+              <td className="py-1 px-2 text-xs text-right font-mono tabular-nums text-[var(--text-primary)]">
+                {totalPaid}
+              </td>
               <td
                 className={`py-1 px-2 text-xs text-right font-mono tabular-nums ${
                   revenueGap !== 0 && v2.hard.referral_revenue > 0
-                    ? "text-yellow-600"
-                    : "text-[var(--text-primary)]"
+                    ? 'text-yellow-600'
+                    : 'text-[var(--text-primary)]'
                 }`}
               >
                 ${totalChannelRevenue.toLocaleString()}
                 {revenueGap !== 0 && v2.hard.referral_revenue > 0 && (
                   <span className="text-xs ml-1">
-                    ({revenueGap > 0 ? "+" : ""}
+                    ({revenueGap > 0 ? '+' : ''}
                     {revenueGap.toLocaleString()})
                   </span>
                 )}

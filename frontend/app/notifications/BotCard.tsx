@@ -26,7 +26,7 @@ const ROLE_COLORS: Record<string, string> = {
   LP: 'bg-purple-100 text-purple-700',
   SS: 'bg-blue-100 text-blue-700',
   运营: 'bg-stone-100 text-stone-600',
-  ALL: 'bg-gray-100 text-gray-600',
+  ALL: 'bg-[var(--bg-subtle)] text-[var(--text-secondary)]',
 };
 
 interface BotCardProps {
@@ -38,12 +38,13 @@ interface BotCardProps {
 
 export function BotCard({ bot, onEdit, onDelete, onToggle }: BotCardProps) {
   const [showSecret, setShowSecret] = useState(false);
-  const roleColor = ROLE_COLORS[bot.role ?? ''] ?? 'bg-gray-100 text-gray-600';
+  const roleColor =
+    ROLE_COLORS[bot.role ?? ''] ?? 'bg-[var(--bg-subtle)] text-[var(--text-secondary)]';
   const borderColor = bot.platform === 'lark' ? 'border-l-blue-500' : 'border-l-orange-500';
 
   return (
     <div
-      className={`rounded-xl bg-white shadow-sm border border-[var(--border-default)] border-l-4 ${borderColor} p-4 flex flex-col gap-3`}
+      className={`rounded-xl bg-[var(--bg-surface)] shadow-sm border border-[var(--border-default)] border-l-4 ${borderColor} p-4 flex flex-col gap-3`}
     >
       {/* Header */}
       <div className="flex items-start justify-between">
@@ -61,7 +62,7 @@ export function BotCard({ bot, onEdit, onDelete, onToggle }: BotCardProps) {
         <div className="flex items-center gap-1">
           <button
             onClick={() => onEdit(bot)}
-            className="p-1.5 rounded-md hover:bg-slate-100 transition-colors text-[var(--text-secondary)]"
+            className="p-1.5 rounded-md hover:bg-[var(--bg-subtle)] transition-colors text-[var(--text-secondary)]"
             title="编辑"
           >
             <Edit2 className="w-3.5 h-3.5" />
@@ -90,7 +91,7 @@ export function BotCard({ bot, onEdit, onDelete, onToggle }: BotCardProps) {
           <div
             onClick={() => onToggle(bot.id, !bot.enabled)}
             className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
-              bot.enabled ? 'bg-emerald-500' : 'bg-slate-200'
+              bot.enabled ? 'bg-emerald-500' : 'bg-[var(--bg-elevated)]'
             }`}
           >
             <span
@@ -110,7 +111,7 @@ export function BotCard({ bot, onEdit, onDelete, onToggle }: BotCardProps) {
             type={showSecret ? 'text' : 'password'}
             value={bot.webhook_preview ?? bot.webhook ?? ''}
             readOnly
-            className="flex-1 text-xs bg-slate-50 border border-slate-200 rounded px-2 py-1 font-mono text-[var(--text-secondary)] outline-none"
+            className="flex-1 text-xs bg-[var(--bg-primary)] border border-[var(--border-subtle)] rounded px-2 py-1 font-mono text-[var(--text-secondary)] outline-none"
           />
           <button
             onClick={() => setShowSecret((v) => !v)}

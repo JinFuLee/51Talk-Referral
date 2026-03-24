@@ -52,7 +52,8 @@ function segmentColor(label: string): string {
 }
 
 function riskBadge(days?: number | null): { label: string; cls: string } {
-  if (days == null) return { label: '未知', cls: 'bg-gray-100 text-gray-600' };
+  if (days == null)
+    return { label: '未知', cls: 'bg-[var(--bg-subtle)] text-[var(--text-secondary)]' };
   if (days > 90) return { label: '高风险', cls: 'bg-red-100 text-red-700' };
   if (days > 60) return { label: '中高风险', cls: 'bg-orange-100 text-orange-700' };
   if (days > 30) return { label: '关注', cls: 'bg-yellow-100 text-yellow-700' };

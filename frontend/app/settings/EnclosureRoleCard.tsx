@@ -147,7 +147,7 @@ function AssignmentTable({
             {ENCLOSURE_KEYS.map((month, i) => (
               <tr
                 key={month}
-                className={`border-b border-slate-50 ${i % 2 === 1 ? 'bg-slate-50/50' : ''}`}
+                className={`border-b border-[var(--border-subtle)] ${i % 2 === 1 ? 'bg-[var(--bg-primary)]/50' : ''}`}
               >
                 <td className="py-2 px-3 text-xs font-medium text-[var(--text-primary)]">
                   {month}
@@ -160,7 +160,7 @@ function AssignmentTable({
                         type="checkbox"
                         checked={checked}
                         onChange={() => toggle(month, role)}
-                        className="w-4 h-4 rounded border-slate-300 text-brand-600 accent-[var(--brand-600)] cursor-pointer focus-visible:ring-2 focus-visible:ring-brand-500"
+                        className="w-4 h-4 rounded border-[var(--border-hover)] text-brand-600 accent-[var(--brand-600)] cursor-pointer focus-visible:ring-2 focus-visible:ring-brand-500"
                         aria-label={`${month} 由 ${role} 服务`}
                       />
                     </td>

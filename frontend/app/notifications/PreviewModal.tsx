@@ -57,7 +57,7 @@ export function PreviewModal({ open, template, role, platform, onClose }: Previe
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg mx-4 overflow-hidden max-h-[80vh] flex flex-col">
+      <div className="bg-[var(--bg-surface)] rounded-2xl shadow-xl w-full max-w-lg mx-4 overflow-hidden max-h-[80vh] flex flex-col">
         <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--border-default)] shrink-0">
           <div>
             <h2 className="text-sm font-semibold text-[var(--text-primary)]">推送预览</h2>
@@ -71,7 +71,7 @@ export function PreviewModal({ open, template, role, platform, onClose }: Previe
               setPreview(null);
               onClose();
             }}
-            className="p-1 rounded-md hover:bg-slate-100 text-[var(--text-muted)]"
+            className="p-1 rounded-md hover:bg-[var(--bg-subtle)] text-[var(--text-muted)]"
           >
             <X className="w-4 h-4" />
           </button>
@@ -147,7 +147,7 @@ export function PreviewModal({ open, template, role, platform, onClose }: Previe
               {preview.stdout_tail && (
                 <div>
                   <p className="text-xs text-[var(--text-muted)] mb-2 font-medium">脚本输出</p>
-                  <pre className="text-xs bg-slate-50 rounded-xl p-4 whitespace-pre-wrap font-sans border border-slate-100 overflow-auto max-h-40">
+                  <pre className="text-xs bg-[var(--bg-primary)] rounded-xl p-4 whitespace-pre-wrap font-sans border border-[var(--border-subtle)] overflow-auto max-h-40">
                     {preview.stdout_tail}
                   </pre>
                 </div>

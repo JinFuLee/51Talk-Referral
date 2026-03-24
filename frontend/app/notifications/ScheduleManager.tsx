@@ -272,7 +272,7 @@ export function ScheduleManager({ lang }: ScheduleManagerProps) {
 
       {/* 排程卡片列表 */}
       {!isLoading && !error && schedules.length === 0 && (
-        <div className="py-10 text-center text-sm text-[var(--text-secondary)] border border-dashed border-slate-200 rounded-xl">
+        <div className="py-10 text-center text-sm text-[var(--text-secondary)] border border-dashed border-[var(--border-subtle)] rounded-xl">
           <Clock className="w-8 h-8 mx-auto mb-2 text-slate-300" />
           <p>{t.noSchedules}</p>
         </div>
@@ -283,7 +283,9 @@ export function ScheduleManager({ lang }: ScheduleManagerProps) {
           <div
             key={sch.id}
             className={`flex items-start justify-between p-3.5 rounded-xl border transition-colors ${
-              sch.enabled ? 'bg-white border-slate-200' : 'bg-slate-50 border-slate-100 opacity-60'
+              sch.enabled
+                ? 'bg-[var(--bg-surface)] border-[var(--border-subtle)]'
+                : 'bg-[var(--bg-primary)] border-[var(--border-subtle)] opacity-60'
             }`}
           >
             {/* 左侧信息 */}
@@ -298,7 +300,9 @@ export function ScheduleManager({ lang }: ScheduleManagerProps) {
                   <span className="text-sm font-medium text-[var(--text-primary)]">{sch.name}</span>
                   <span
                     className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${
-                      sch.enabled ? 'bg-green-50 text-green-600' : 'bg-slate-100 text-slate-500'
+                      sch.enabled
+                        ? 'bg-green-50 text-green-600'
+                        : 'bg-[var(--bg-subtle)] text-[var(--text-muted)]'
                     }`}
                   >
                     {sch.enabled ? t.enabled : t.disabled}
@@ -335,7 +339,7 @@ export function ScheduleManager({ lang }: ScheduleManagerProps) {
                 onClick={() => handleToggle(sch.id)}
                 disabled={actionId === sch.id}
                 title={sch.enabled ? t.disable : t.enable}
-                className="p-1.5 rounded-lg hover:bg-slate-100 transition-colors disabled:opacity-50"
+                className="p-1.5 rounded-lg hover:bg-[var(--bg-subtle)] transition-colors disabled:opacity-50"
               >
                 {sch.enabled ? (
                   <PowerOff className="w-3.5 h-3.5 text-amber-500" />
@@ -346,7 +350,7 @@ export function ScheduleManager({ lang }: ScheduleManagerProps) {
               <button
                 onClick={() => openEdit(sch)}
                 title={t.edit}
-                className="p-1.5 rounded-lg hover:bg-slate-100 transition-colors"
+                className="p-1.5 rounded-lg hover:bg-[var(--bg-subtle)] transition-colors"
               >
                 <Pencil className="w-3.5 h-3.5 text-[var(--text-secondary)]" />
               </button>
@@ -406,7 +410,7 @@ function ScheduleFormModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 p-6 space-y-4">
+      <div className="bg-[var(--bg-surface)] rounded-2xl shadow-2xl w-full max-w-md mx-4 p-6 space-y-4">
         <h3 className="text-base font-semibold text-[var(--text-primary)]">
           {isEdit ? t.edit : t.addSchedule}
         </h3>
@@ -418,7 +422,7 @@ function ScheduleFormModal({
             type="text"
             value={form.name}
             onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-            className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--brand)]/30"
+            className="w-full border border-[var(--border-subtle)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--brand)]/30"
             placeholder={t.name}
           />
         </div>
@@ -432,7 +436,7 @@ function ScheduleFormModal({
               onChange={(e) =>
                 setForm((f) => ({ ...f, platform: e.target.value as 'lark' | 'dingtalk' }))
               }
-              className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--brand)]/30"
+              className="w-full border border-[var(--border-subtle)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--brand)]/30"
             >
               <option value="lark">{t.lark}</option>
               <option value="dingtalk">{t.dingtalk}</option>
@@ -443,7 +447,7 @@ function ScheduleFormModal({
             <select
               value={form.template}
               onChange={(e) => setForm((f) => ({ ...f, template: e.target.value }))}
-              className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--brand)]/30"
+              className="w-full border border-[var(--border-subtle)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--brand)]/30"
             >
               {Object.entries(t.templates).map(([k, v]) => (
                 <option key={k} value={k}>
@@ -469,7 +473,7 @@ function ScheduleFormModal({
                   cron_hour: Math.max(0, Math.min(23, Number(e.target.value))),
                 }))
               }
-              className="w-20 border border-slate-200 rounded-lg px-3 py-2 text-sm text-center focus:outline-none focus:ring-2 focus:ring-[var(--brand)]/30"
+              className="w-20 border border-[var(--border-subtle)] rounded-lg px-3 py-2 text-sm text-center focus:outline-none focus:ring-2 focus:ring-[var(--brand)]/30"
             />
             <span className="text-[var(--text-secondary)] text-sm">{t.hour}</span>
             <input
@@ -483,7 +487,7 @@ function ScheduleFormModal({
                   cron_minute: Math.max(0, Math.min(59, Number(e.target.value))),
                 }))
               }
-              className="w-20 border border-slate-200 rounded-lg px-3 py-2 text-sm text-center focus:outline-none focus:ring-2 focus:ring-[var(--brand)]/30"
+              className="w-20 border border-[var(--border-subtle)] rounded-lg px-3 py-2 text-sm text-center focus:outline-none focus:ring-2 focus:ring-[var(--brand)]/30"
             />
             <span className="text-[var(--text-secondary)] text-sm">{t.minute}</span>
           </div>
@@ -504,7 +508,7 @@ function ScheduleFormModal({
                   .filter(Boolean),
               }))
             }
-            className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--brand)]/30"
+            className="w-full border border-[var(--border-subtle)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--brand)]/30"
             placeholder="cc_all, cc_team_a"
           />
         </div>
@@ -516,7 +520,7 @@ function ScheduleFormModal({
             type="text"
             value={form.description}
             onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
-            className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--brand)]/30"
+            className="w-full border border-[var(--border-subtle)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--brand)]/30"
             placeholder={t.description}
           />
         </div>
@@ -556,7 +560,7 @@ function ScheduleFormModal({
         <div className="flex justify-end gap-2 pt-1">
           <button
             onClick={onCancel}
-            className="px-4 py-2 text-sm border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors"
+            className="px-4 py-2 text-sm border border-[var(--border-subtle)] rounded-lg hover:bg-[var(--bg-primary)] transition-colors"
           >
             {t.cancel}
           </button>

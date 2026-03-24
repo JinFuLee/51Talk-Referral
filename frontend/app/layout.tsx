@@ -68,7 +68,7 @@ export default function RootLayout({
       >
         <ErrorBoundary>
           <SWRProvider>
-            <div className="flex h-screen overflow-hidden bg-slate-50 presentation-expand relative">
+            <div className="flex h-screen overflow-hidden bg-[var(--bg-primary)] presentation-expand relative">
               <div className="hide-in-presentation shrink-0 h-full">
                 <NavSidebar />
               </div>

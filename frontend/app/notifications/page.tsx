@@ -59,7 +59,7 @@ export default function NotificationsPage() {
       <PageHeader title={t.title} subtitle={t.subtitle} icon={Bell}>
         <button
           onClick={() => setLang((l) => (l === 'zh' ? 'en' : 'zh'))}
-          className="px-3 py-1.5 text-xs border border-slate-200 rounded-lg text-[var(--text-secondary)] hover:bg-slate-50 transition-colors"
+          className="px-3 py-1.5 text-xs border border-[var(--border-subtle)] rounded-lg text-[var(--text-secondary)] hover:bg-[var(--bg-primary)] transition-colors"
         >
           {t.lang}
         </button>
