@@ -557,21 +557,28 @@ def generate_followup_image(
 
 
 def _rate_bg_color(rate: float) -> str:
-    """根据打卡率返回背景色"""
-    if rate >= 0.75:
+    """根据打卡率返回背景色（≥60% 绿，40-60% 黄，<40% 红）"""
+    if rate >= 0.60:
         return C_GREEN_BG
-    if rate >= 0.5:
+    if rate >= 0.40:
         return C_YELLOW_BG
     return C_RED_BG
 
 
 def _rate_text_color(rate: float) -> str:
-    """根据打卡率返回文字色"""
-    if rate >= 0.75:
+    """根据打卡率返回文字色（≥60% 绿，40-60% 黄，<40% 红）"""
+    if rate >= 0.60:
         return C_SUCCESS
-    if rate >= 0.5:
+    if rate >= 0.40:
         return C_WARNING
     return C_DANGER
+
+
+def _truncate_name(name: str, max_len: int = 20) -> str:
+    """截断超长名字，超过 max_len 字符时末尾加省略号"""
+    if len(name) <= max_len:
+        return name
+    return name[:max_len - 1] + "…"
 
 
 def generate_cc_image(
@@ -616,9 +623,10 @@ def generate_cc_image(
     segment_overhead = len(active_encs) * 2
     total_rows = total_data_rows + segment_overhead
 
-    row_h = 0.35
+    # 超 30 行时缩小行高防止图片过高
+    row_h = 0.30 if total_data_rows > 30 else 0.35
     # 标题区 + 打卡率汇总条（含两行）
-    header_h = 3.0
+    header_h = 3.2  # 增加标题区高度确保三行不重叠
     table_h = total_rows * row_h
     total_h = header_h + table_h + 0.4
     total_h = max(total_h, 4.0)
@@ -632,13 +640,17 @@ def generate_cc_image(
 
     y = total_h
 
+    # CC 名超长时自适应字号
+    display_cc_name = _truncate_name(cc_name, 22)
+    cc_title_fontsize = 13 if len(cc_name) > 18 else 15
+
     # ── 标题区 ──
-    y -= 0.25
+    y -= 0.28
     ax.add_patch(
         plt.Rectangle(
-            (0.15, y - 0.45),
+            (0.15, y - 0.50),
             0.07,
-            0.45,
+            0.50,
             facecolor=C_DANGER,
             edgecolor="none",
         )
@@ -646,33 +658,33 @@ def generate_cc_image(
     ax.text(
         0.35,
         y,
-        f"{cc_name}  {_th('followup_title')}",
-        fontsize=15,
+        f"{display_cc_name}  {_th('followup_title')}",
+        fontsize=cc_title_fontsize,
         fontweight="bold",
         color=C_HEADER,
         va="top",
     )
-    y -= 0.45  # 泰文 15pt 需要更大间距
+    y -= 0.50  # 泰文主标题需要足够间距（15pt 约 0.45 单位高）
     ax.text(
         0.35,
         y,
-        f"{cc_name}  {_zh('followup_title')}",
+        f"{display_cc_name}  {_zh('followup_title')}",
         fontsize=8,
         color=C_MUTED,
         va="top",
     )
-    y -= 0.2
+    y -= 0.28  # 中文副标题到日期行的间距
     ax.text(
         0.35,
         y,
-        f"{date_str}  |  {team_name}",
+        f"{date_str[:10]}  |  {team_name}",
         fontsize=8,
         color=C_MUTED,
         va="top",
     )
 
     # ── 打卡率汇总条（只算角色对应围场）──
-    y -= 0.55
+    y -= 0.60  # 汇总条与日期行之间留足间距
     by_enclosure = cc_rate_info.get("by_enclosure", [])
     enc_rate_map = {item["enclosure"]: item for item in by_enclosure}
     total_students = sum(
@@ -740,7 +752,7 @@ def generate_cc_image(
             color=C_TEXT2,
             va="center",
         )
-    y -= 0.85
+    y -= 0.90  # 汇总条结束 + 与第一围场段之间的间距
 
     # ── 围场分段 ──
     global_row_idx = 0
@@ -755,12 +767,14 @@ def generate_cc_image(
         enc_rate_val = enc_info.get("rate", 0.0) or 0.0
         enc_rate_str = f"{enc_rate_val:.1%}" if enc_info else "—"
 
+        # 分段标题行高固定 0.35（视觉需要比数据行稍大）
+        seg_row_h = 0.35
         ax.add_patch(
             plt.Rectangle(
-                (0.15, y - row_h),
+                (0.15, y - seg_row_h),
                 table_width,
-                row_h,
-                facecolor="#4A4540",
+                seg_row_h,
+                facecolor="#44403C",
                 edgecolor="none",
             )
         )
@@ -772,14 +786,14 @@ def generate_cc_image(
         )
         ax.text(
             0.35,
-            y - row_h / 2,
+            y - seg_row_h / 2,
             seg_title,
             fontsize=9,
             fontweight="bold",
             color="white",
             va="center",
         )
-        y -= row_h
+        y -= seg_row_h
 
         # 表头（黑色背景）
         ax.add_patch(
@@ -791,13 +805,15 @@ def generate_cc_image(
                 edgecolor="none",
             )
         )
+        # 表头字号随行高自适应
+        header_fontsize = 7.5 if row_h < 0.33 else 8.5
         for cx, _cw, title, align in cols:
             ha = "center" if align == "center" else "left"
             ax.text(
                 cx + 0.05,
                 y - row_h / 2,
                 title,
-                fontsize=8.5,
+                fontsize=header_fontsize,
                 fontweight="bold",
                 color="white",
                 va="center",
@@ -806,6 +822,7 @@ def generate_cc_image(
         y -= row_h
 
         # 数据行
+        data_fontsize = 7.5 if row_h < 0.33 else 8.5
         for i, s in enumerate(enc_students):
             bg = C_SURFACE if i % 2 == 0 else C_BG
             ax.add_patch(
@@ -826,8 +843,10 @@ def generate_cc_image(
 
             ym = y - row_h / 2
             score = s.get("quality_score", 0) or 0
-            sid = s.get("student_id", "")
+            sid = str(s.get("student_id", ""))[:12]  # 学员ID固定最多12字符
             last_call = s.get("cc_last_call_date") or "—"
+            # 日期列固定10字符（YYYY-MM-DD 格式）
+            last_call_disp = last_call[:10] if last_call != "—" else "—"
             lesson = s.get("lesson_consumption_3m")
             lesson_str = str(int(lesson)) if lesson is not None else "—"
 
@@ -835,14 +854,8 @@ def generate_cc_image(
             row_data = [
                 (cols[0][0], str(global_row_idx), "center", C_MUTED, "normal"),
                 (cols[1][0], str(int(score)), "center", _score_color(score), "bold"),
-                (cols[2][0], str(sid), "left", C_TEXT, "normal"),
-                (
-                    cols[3][0],
-                    last_call[:10] if len(last_call) > 10 else last_call,
-                    "center",
-                    C_MUTED,
-                    "normal",
-                ),
+                (cols[2][0], sid, "left", C_TEXT, "normal"),
+                (cols[3][0], last_call_disp, "center", C_MUTED, "normal"),
                 (cols[4][0], lesson_str, "center", C_TEXT2, "normal"),
             ]
 
@@ -852,7 +865,7 @@ def generate_cc_image(
                     cx + 0.05,
                     ym,
                     val,
-                    fontsize=8.5,
+                    fontsize=data_fontsize,
                     color=color,
                     fontweight=weight,
                     va="center",
@@ -911,8 +924,8 @@ def generate_overview_image(
 
     n = len(team_summary)
     row_h = 0.38
-    # 标题区 + 角色打卡率条
-    header_h = 2.6
+    # 标题区 + 角色打卡率条（0.28 + 0.50 + 0.28 + 0.60 + 0.75 + 0.85 = 3.26，向上取整）
+    header_h = 3.3
     table_h = (n + 1) * row_h  # +1 for totals row
     total_h = header_h + table_h + 0.4
     total_h = max(total_h, 4.0)
@@ -927,12 +940,12 @@ def generate_overview_image(
     y = total_h
 
     # ── 标题区 ──
-    y -= 0.25
+    y -= 0.28
     ax.add_patch(
         plt.Rectangle(
-            (0.15, y - 0.45),
+            (0.15, y - 0.50),
             0.07,
-            0.45,
+            0.50,
             facecolor=C_DANGER,
             edgecolor="none",
         )
@@ -946,7 +959,7 @@ def generate_overview_image(
         color=C_HEADER,
         va="top",
     )
-    y -= 0.45
+    y -= 0.50  # 泰文 15pt 主标题需要充足间距
     ax.text(
         0.35,
         y,
@@ -955,18 +968,18 @@ def generate_overview_image(
         color=C_MUTED,
         va="top",
     )
-    y -= 0.2
+    y -= 0.28  # 中文副标题到日期行的间距
     ax.text(
         0.35,
         y,
-        f"{date_str}  |  {_th('data_label')}",
+        f"{date_str[:10]}  |  {_th('data_label')}",
         fontsize=8,
         color=C_MUTED,
         va="top",
     )
 
-    # ── 角色总打卡率条（新增）──
-    y -= 0.55
+    # ── 角色总打卡率条 ──
+    y -= 0.60  # 日期行与汇总条之间留足间距
     role_total = role_summary.get("total_students", 0)
     role_checked = role_summary.get("checked_in", 0)
     role_rate = role_summary.get("checkin_rate", 0.0) or 0.0
