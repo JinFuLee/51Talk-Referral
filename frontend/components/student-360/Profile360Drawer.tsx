@@ -10,6 +10,7 @@ import { DailyLogTab } from './DailyLogTab';
 import { ReferralNetwork } from './ReferralNetwork';
 import type { Student360Detail, Student360Network } from '@/lib/types/cross-analysis';
 import { X } from 'lucide-react';
+import { formatRevenue } from '@/lib/utils';
 
 interface Profile360DrawerProps {
   stdtId: string | null;
@@ -320,10 +321,7 @@ export function Profile360Drawer({ stdtId, onClose }: Profile360DrawerProps) {
                 {/* Tab 5: 付费信息 */}
                 <TabsContent value="payment">
                   <div className="space-y-0">
-                    <InfoRow
-                      label="付费金额"
-                      value={p?.paid_amount != null ? `$${p.paid_amount.toLocaleString()}` : '—'}
-                    />
+                    <InfoRow label="付费金额" value={formatRevenue(p?.paid_amount)} />
                     <InfoRow label="三级渠道" value={p?.channel_l3} />
                     <InfoRow
                       label="近3月均课耗"

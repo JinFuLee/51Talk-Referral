@@ -3,6 +3,7 @@
 import { Fragment, useState, useMemo } from 'react';
 import useSWR from 'swr';
 import { swrFetcher } from '@/lib/api';
+import { formatRevenue } from '@/lib/utils';
 import { Spinner } from '@/components/ui/Spinner';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { MemberDetailDrawer } from '@/components/members/MemberDetailDrawer';
@@ -71,8 +72,7 @@ function daysSince(dateStr: string | null | undefined): number | null {
 }
 
 function fmtRevenue(usd: number | null | undefined): string {
-  if (usd === null || usd === undefined) return '—';
-  return `$${usd.toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
+  return formatRevenue(usd);
 }
 
 function fmtNum(n: number | null | undefined): string {
@@ -320,7 +320,7 @@ function FollowupTable({ items, onDrawerOpen }: FollowupTableProps) {
     <div className="overflow-x-auto">
       <table className="w-full text-xs">
         <thead>
-          <tr className="bg-[var(--n-800)] text-white font-medium">
+          <tr className="slide-thead-row text-xs">
             <th className="py-1.5 px-2 text-center whitespace-nowrap w-8">排名</th>
             <th className="py-1.5 px-2 text-center whitespace-nowrap">⭐评分</th>
             <th className="py-1.5 px-2 text-left whitespace-nowrap">学员ID</th>

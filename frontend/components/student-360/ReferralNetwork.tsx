@@ -2,6 +2,7 @@
 
 import type { Student360Network } from '@/lib/types/cross-analysis';
 import { ArrowDown, ArrowUp, Users } from 'lucide-react';
+import { formatRevenue } from '@/lib/utils';
 
 interface ReferralNetworkProps {
   network: Student360Network | null;
@@ -32,9 +33,7 @@ function NetworkNode({
         <div className="font-medium text-xs font-mono">{stdt_id}</div>
         <div className="text-[var(--text-secondary)] text-xs">{name || '未知'}</div>
         {paid_amount != null && (
-          <div className="text-[var(--text-muted)] text-[10px]">
-            ${paid_amount.toLocaleString()}
-          </div>
+          <div className="text-[var(--text-muted)] text-[10px]">{formatRevenue(paid_amount)}</div>
         )}
       </div>
     </div>

@@ -1,6 +1,7 @@
 'use client';
 
 import type { Student360Brief } from '@/lib/types/cross-analysis';
+import { formatRevenue } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { ChevronUp, ChevronDown, ChevronsUpDown } from 'lucide-react';
 
@@ -76,7 +77,7 @@ export function StudentTable({
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
-            <tr className="bg-[var(--n-800)] text-white text-xs font-medium">
+            <tr className="slide-thead-row text-xs">
               <th className="py-1.5 px-2 border-0 text-left whitespace-nowrap">学员ID</th>
               <th className="py-1.5 px-2 border-0 text-left whitespace-nowrap">姓名</th>
               <th className="py-1.5 px-2 border-0 text-left whitespace-nowrap">围场</th>
@@ -127,7 +128,7 @@ export function StudentTable({
                   </td>
                   <td className="py-1 px-2 text-xs whitespace-nowrap">{m.cc_name || '—'}</td>
                   <td className="py-1 px-2 text-xs text-right font-mono tabular-nums">
-                    {m.paid_amount != null ? `$${m.paid_amount.toLocaleString()}` : '—'}
+                    {formatRevenue(m.paid_amount)}
                   </td>
                   <td className="py-1 px-2 text-xs text-right font-mono tabular-nums">
                     {m.total_new ?? '—'}

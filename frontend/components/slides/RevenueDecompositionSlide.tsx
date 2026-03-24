@@ -2,7 +2,7 @@
 
 import useSWR from 'swr';
 import { swrFetcher } from '@/lib/api';
-import { formatRate } from '@/lib/utils';
+import { formatRate, formatRevenue } from '@/lib/utils';
 import { SlideShell } from '@/components/presentation/SlideShell';
 import { Spinner } from '@/components/ui/Spinner';
 import type { SlideProps } from '@/lib/presentation/types';
@@ -16,11 +16,6 @@ interface ChannelRow {
   payments: number | null;
   revenue_usd: number | null;
   share_pct: number | null;
-}
-
-function formatUSD(v: number | null): string {
-  if (v == null || v === 0) return '-';
-  return `$${v.toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
 }
 
 export function RevenueDecompositionSlide({ slideNumber, totalSlides }: SlideProps) {
@@ -81,7 +76,7 @@ export function RevenueDecompositionSlide({ slideNumber, totalSlides }: SlidePro
                       {(c.payments ?? 0).toLocaleString()}
                     </td>
                     <td className="px-3 py-1.5 text-xs text-right font-mono tabular-nums font-medium text-[var(--text-primary)]">
-                      {formatUSD(rev)}
+                      {formatRevenue(rev)}
                     </td>
                     <td className="px-3 py-1.5 text-xs text-right font-mono tabular-nums text-[var(--text-secondary)]">
                       {formatRate(share)}
@@ -108,7 +103,7 @@ export function RevenueDecompositionSlide({ slideNumber, totalSlides }: SlidePro
                   {channels.reduce((s, c) => s + (c.payments ?? 0), 0).toLocaleString()}
                 </td>
                 <td className="px-3 py-1.5 text-xs text-right font-mono tabular-nums">
-                  {formatUSD(totalRevenue)}
+                  {formatRevenue(totalRevenue)}
                 </td>
                 <td className="px-3 py-1.5 text-xs text-right font-mono tabular-nums">100%</td>
                 <td />

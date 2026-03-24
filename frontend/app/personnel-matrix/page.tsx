@@ -19,7 +19,7 @@ import { CCRadarChart } from '@/components/cc-matrix/CCRadarChart';
 import { EfficiencyScatter } from '@/components/cc-matrix/EfficiencyScatter';
 import type { CCHeatmapResponse, CCRadarData, CCDrilldownRow } from '@/lib/types/cross-analysis';
 import type { EnclosureSSMetrics, EnclosureLPMetrics } from '@/lib/types/enclosure-ss-lp';
-import { formatRate } from '@/lib/utils';
+import { formatRate, formatRevenue } from '@/lib/utils';
 
 /* ── 常量 ──────────────────────────────────────────────────── */
 
@@ -228,7 +228,7 @@ function CCTabContent() {
                       <td className="slide-td py-1 px-2 font-mono">{row.stdt_id}</td>
                       <td className="slide-td py-1 px-2">{row.name}</td>
                       <td className="slide-td py-1 px-2 text-right font-mono tabular-nums">
-                        ${(row.paid_amount ?? 0).toLocaleString()}
+                        {formatRevenue(row.paid_amount)}
                       </td>
                     </tr>
                   ))}
