@@ -65,29 +65,29 @@ CJK_FONTS = ["Arial Unicode MS", "Heiti TC", "Songti SC", "Tahoma", "DejaVu Sans
 
 # ── 泰中双语文案（泰文主行 + 中文副行，单一信源）────────────────────────────────
 TH = {
-    "followup_title":  {"th": "รายชื่อยังไม่เช็คอิน", "zh": "未打卡跟进"},
-    "not_checked":     {"th": "ยังไม่เช็คอิน",        "zh": "未打卡"},
-    "persons":         {"th": "คน",                    "zh": "人"},
-    "responsible":     {"th": "ผู้รับผิดชอบ",          "zh": "负责人"},
-    "col_rank":        {"th": "#",                     "zh": "#"},
-    "col_score":       {"th": "★",                     "zh": "★"},
-    "col_student_id":  {"th": "รหัส",                  "zh": "学员ID"},
-    "col_enclosure":   {"th": "คอก",                   "zh": "围场"},
-    "col_owner":       {"th": "ผู้รับผิดชอบ",          "zh": "负责人"},
-    "col_last_call":   {"th": "โทรล่าสุด",             "zh": "末次拨打"},
-    "col_lesson":      {"th": "คลาส",                  "zh": "课耗"},
-    "unassigned":      {"th": "ไม่ระบุ",               "zh": "未分配"},
-    "unknown":         {"th": "ไม่ทราบ",               "zh": "未知"},
-    "data_label":      {"th": "ข้อมูล T-1",            "zh": "T-1 数据"},
-    "view_list":       {"th": "ดูรายชื่อ",              "zh": "查看名单"},
-    "total_summary":   {"th": "รวมยังไม่เช็คอิน",      "zh": "共未打卡"},
-    "teams":           {"th": "ทีม",                    "zh": "个小组"},
-    "overview_title":  {"th": "ภาพรวม CC ยังไม่เช็คอิน", "zh": "CC 未打卡总览"},
-    "cc_count":        {"th": "CC",                       "zh": "CC数"},
-    "avg_per_cc":      {"th": "เฉลี่ย/CC",                "zh": "人均"},
-    "col_team":        {"th": "ทีม",                       "zh": "团队"},
-    "col_not_checked": {"th": "ยังไม่เช็คอิน",              "zh": "未打卡"},
-    "total_row":       {"th": "รวม",                       "zh": "合计"},
+    "followup_title": {"th": "รายชื่อยังไม่เช็คอิน", "zh": "未打卡跟进"},
+    "not_checked": {"th": "ยังไม่เช็คอิน", "zh": "未打卡"},
+    "persons": {"th": "คน", "zh": "人"},
+    "responsible": {"th": "ผู้รับผิดชอบ", "zh": "负责人"},
+    "col_rank": {"th": "#", "zh": "#"},
+    "col_score": {"th": "★", "zh": "★"},
+    "col_student_id": {"th": "รหัส", "zh": "学员ID"},
+    "col_enclosure": {"th": "คอก", "zh": "围场"},
+    "col_owner": {"th": "ผู้รับผิดชอบ", "zh": "负责人"},
+    "col_last_call": {"th": "โทรล่าสุด", "zh": "末次拨打"},
+    "col_lesson": {"th": "คลาส", "zh": "课耗"},
+    "unassigned": {"th": "ไม่ระบุ", "zh": "未分配"},
+    "unknown": {"th": "ไม่ทราบ", "zh": "未知"},
+    "data_label": {"th": "ข้อมูล T-1", "zh": "T-1 数据"},
+    "view_list": {"th": "ดูรายชื่อ", "zh": "查看名单"},
+    "total_summary": {"th": "รวมยังไม่เช็คอิน", "zh": "共未打卡"},
+    "teams": {"th": "ทีม", "zh": "个小组"},
+    "overview_title": {"th": "ภาพรวม CC ยังไม่เช็คอิน", "zh": "CC 未打卡总览"},
+    "cc_count": {"th": "CC", "zh": "CC数"},
+    "avg_per_cc": {"th": "เฉลี่ย/CC", "zh": "人均"},
+    "col_team": {"th": "ทีม", "zh": "团队"},
+    "col_not_checked": {"th": "ยังไม่เช็คอิน", "zh": "未打卡"},
+    "total_row": {"th": "รวม", "zh": "合计"},
 }
 
 
@@ -109,6 +109,7 @@ def _bi(key: str) -> str:
 
 # ── 凭证 ─────────────────────────────────────────────────────────────────────
 
+
 def load_config() -> dict:
     if not CRED_PATH.exists():
         print(f"[错误] 凭证文件不存在: {CRED_PATH}")
@@ -126,6 +127,7 @@ def get_channel(config: dict, name: str) -> dict:
 
 
 # ── API 数据获取 ──────────────────────────────────────────────────────────────
+
 
 def fetch_followup(api_base: str, role: str = "CC") -> list[dict]:
     """调用后端 /api/checkin/followup 获取未打卡学员列表"""
@@ -165,6 +167,7 @@ def group_students_by_team(students: list[dict]) -> dict[str, list[dict]]:
 
 # ── 图片生成 ──────────────────────────────────────────────────────────────────
 
+
 def _score_color(score: float) -> str:
     if score >= 7:
         return C_SUCCESS
@@ -186,13 +189,13 @@ def generate_followup_image(
 
     # 列定义: x位置, 宽度, 标题（双语）, 对齐
     cols = [
-        (0.2,  0.5,  _bi("col_rank"),       "center"),
-        (0.7,  0.5,  _bi("col_score"),      "center"),
-        (1.2,  1.5,  _bi("col_student_id"), "left"),
-        (2.8,  0.7,  _bi("col_enclosure"),  "center"),
-        (3.6,  2.0,  _bi("col_owner"),      "left"),
-        (5.7,  1.6,  _bi("col_last_call"),  "center"),
-        (7.4,  0.8,  _bi("col_lesson"),     "center"),
+        (0.2, 0.5, _bi("col_rank"), "center"),
+        (0.7, 0.5, _bi("col_score"), "center"),
+        (1.2, 1.5, _bi("col_student_id"), "left"),
+        (2.8, 0.7, _bi("col_enclosure"), "center"),
+        (3.6, 2.0, _bi("col_owner"), "left"),
+        (5.7, 1.6, _bi("col_last_call"), "center"),
+        (7.4, 0.8, _bi("col_lesson"), "center"),
     ]
     table_width = 8.4
 
@@ -215,23 +218,41 @@ def generate_followup_image(
     # ── 标题区（泰文主行 + 中文副行）──
     y -= 0.25
     # 左侧竖条
-    ax.add_patch(plt.Rectangle(
-        (0.15, y - 0.45), 0.07, 0.45,
-        facecolor=C_DANGER, edgecolor="none",
-    ))
+    ax.add_patch(
+        plt.Rectangle(
+            (0.15, y - 0.45),
+            0.07,
+            0.45,
+            facecolor=C_DANGER,
+            edgecolor="none",
+        )
+    )
     ax.text(
-        0.35, y, f"{short_name}  {_th('followup_title')}",
-        fontsize=15, fontweight="bold", color=C_HEADER, va="top",
+        0.35,
+        y,
+        f"{short_name}  {_th('followup_title')}",
+        fontsize=15,
+        fontweight="bold",
+        color=C_HEADER,
+        va="top",
     )
     y -= 0.25
     ax.text(
-        0.35, y, f"{short_name}  {_zh('followup_title')}",
-        fontsize=8, color=C_MUTED, va="top",
+        0.35,
+        y,
+        f"{short_name}  {_zh('followup_title')}",
+        fontsize=8,
+        color=C_MUTED,
+        va="top",
     )
     y -= 0.2
     ax.text(
-        0.35, y, f"{date_str}  |  {_th('data_label')}",
-        fontsize=8, color=C_MUTED, va="top",
+        0.35,
+        y,
+        f"{date_str}  |  {_th('data_label')}",
+        fontsize=8,
+        color=C_MUTED,
+        va="top",
     )
 
     # ── 汇总条 ──
@@ -243,53 +264,83 @@ def generate_followup_image(
         owner_counts[name] += 1
     owner_sorted = sorted(owner_counts.items(), key=lambda x: -x[1])
 
-    ax.add_patch(mpatches.FancyBboxPatch(
-        (0.15, y - 0.45), table_width, 0.45,
-        boxstyle="round,pad=0.06",
-        facecolor=C_RED_BG, edgecolor=C_BORDER, linewidth=0.8,
-    ))
+    ax.add_patch(
+        mpatches.FancyBboxPatch(
+            (0.15, y - 0.45),
+            table_width,
+            0.45,
+            boxstyle="round,pad=0.06",
+            facecolor=C_RED_BG,
+            edgecolor=C_BORDER,
+            linewidth=0.8,
+        )
+    )
     ax.text(
-        0.35, y - 0.12,
+        0.35,
+        y - 0.12,
         f"{_th('not_checked')} {n} {_th('persons')}",
-        fontsize=13, fontweight="bold", color=C_DANGER, va="center",
+        fontsize=13,
+        fontweight="bold",
+        color=C_DANGER,
+        va="center",
     )
     # 负责人分布（右侧）
     owner_text = "  ".join(f"{name}({cnt})" for name, cnt in owner_sorted[:5])
     if len(owner_sorted) > 5:
         owner_text += f"  +{len(owner_sorted) - 5}{_th('persons')}"
     ax.text(
-        table_width, y - 0.12,
+        table_width,
+        y - 0.12,
         owner_text,
-        fontsize=8, color=C_TEXT2, va="center", ha="right",
+        fontsize=8,
+        color=C_TEXT2,
+        va="center",
+        ha="right",
     )
 
     # ── 表头 ──
     y -= 0.65
-    ax.add_patch(plt.Rectangle(
-        (0.15, y - row_h), table_width, row_h,
-        facecolor=C_N800, edgecolor="none",
-    ))
+    ax.add_patch(
+        plt.Rectangle(
+            (0.15, y - row_h),
+            table_width,
+            row_h,
+            facecolor=C_N800,
+            edgecolor="none",
+        )
+    )
     for cx, _cw, title, align in cols:
         ha = "center" if align == "center" else "left"
         ax.text(
-            cx + 0.05, y - row_h / 2,
+            cx + 0.05,
+            y - row_h / 2,
             title,
-            fontsize=9, fontweight="bold", color="white",
-            va="center", ha=ha,
+            fontsize=9,
+            fontweight="bold",
+            color="white",
+            va="center",
+            ha=ha,
         )
     y -= row_h
 
     # ── 数据行 ──
     for i, s in enumerate(students):
         bg = C_SURFACE if i % 2 == 0 else C_BG
-        ax.add_patch(plt.Rectangle(
-            (0.15, y - row_h), table_width, row_h,
-            facecolor=bg, edgecolor="none",
-        ))
+        ax.add_patch(
+            plt.Rectangle(
+                (0.15, y - row_h),
+                table_width,
+                row_h,
+                facecolor=bg,
+                edgecolor="none",
+            )
+        )
         # 底部细线
         ax.plot(
-            [0.15, 0.15 + table_width], [y - row_h, y - row_h],
-            color=C_BORDER, linewidth=0.3,
+            [0.15, 0.15 + table_width],
+            [y - row_h, y - row_h],
+            color=C_BORDER,
+            linewidth=0.3,
         )
 
         ym = y - row_h / 2
@@ -302,22 +353,32 @@ def generate_followup_image(
         lesson_str = str(int(lesson)) if lesson is not None else "—"
 
         row_data = [
-            (cols[0][0], str(i + 1),     "center", C_MUTED, "normal"),
+            (cols[0][0], str(i + 1), "center", C_MUTED, "normal"),
             (cols[1][0], str(int(score)), "center", _score_color(score), "bold"),
-            (cols[2][0], str(sid),        "left",   C_TEXT,  "normal"),
-            (cols[3][0], enc,             "center", C_TEXT2, "normal"),
-            (cols[4][0], owner,           "left",   C_TEXT,  "normal"),
-            (cols[5][0], last_call[:10] if len(last_call) > 10 else last_call,
-             "center", C_MUTED, "normal"),
-            (cols[6][0], lesson_str,      "center", C_TEXT2, "normal"),
+            (cols[2][0], str(sid), "left", C_TEXT, "normal"),
+            (cols[3][0], enc, "center", C_TEXT2, "normal"),
+            (cols[4][0], owner, "left", C_TEXT, "normal"),
+            (
+                cols[5][0],
+                last_call[:10] if len(last_call) > 10 else last_call,
+                "center",
+                C_MUTED,
+                "normal",
+            ),
+            (cols[6][0], lesson_str, "center", C_TEXT2, "normal"),
         ]
 
         for cx, val, align, color, weight in row_data:
             ha = "center" if align == "center" else "left"
             ax.text(
-                cx + 0.05, ym, val,
-                fontsize=8.5, color=color, fontweight=weight,
-                va="center", ha=ha,
+                cx + 0.05,
+                ym,
+                val,
+                fontsize=8.5,
+                color=color,
+                fontweight=weight,
+                va="center",
+                ha=ha,
             )
         y -= row_h
 
@@ -341,12 +402,12 @@ def generate_cc_image(
 
     # 列定义（去掉 col_owner，共 6 列）
     cols = [
-        (0.2,  0.5,  _bi("col_rank"),       "center"),
-        (0.7,  0.5,  _bi("col_score"),      "center"),
-        (1.2,  1.8,  _bi("col_student_id"), "left"),
-        (3.1,  0.8,  _bi("col_enclosure"),  "center"),
-        (4.0,  2.0,  _bi("col_last_call"),  "center"),
-        (6.1,  0.9,  _bi("col_lesson"),     "center"),
+        (0.2, 0.5, _bi("col_rank"), "center"),
+        (0.7, 0.5, _bi("col_score"), "center"),
+        (1.2, 1.8, _bi("col_student_id"), "left"),
+        (3.1, 0.8, _bi("col_enclosure"), "center"),
+        (4.0, 2.0, _bi("col_last_call"), "center"),
+        (6.1, 0.9, _bi("col_lesson"), "center"),
     ]
     table_width = 7.2
 
@@ -368,64 +429,108 @@ def generate_cc_image(
 
     # ── 标题区 ──
     y -= 0.25
-    ax.add_patch(plt.Rectangle(
-        (0.15, y - 0.45), 0.07, 0.45,
-        facecolor=C_DANGER, edgecolor="none",
-    ))
+    ax.add_patch(
+        plt.Rectangle(
+            (0.15, y - 0.45),
+            0.07,
+            0.45,
+            facecolor=C_DANGER,
+            edgecolor="none",
+        )
+    )
     ax.text(
-        0.35, y, f"{cc_name}  {_th('followup_title')}",
-        fontsize=15, fontweight="bold", color=C_HEADER, va="top",
+        0.35,
+        y,
+        f"{cc_name}  {_th('followup_title')}",
+        fontsize=15,
+        fontweight="bold",
+        color=C_HEADER,
+        va="top",
     )
     y -= 0.25
     ax.text(
-        0.35, y, f"{cc_name}  {_zh('followup_title')}",
-        fontsize=8, color=C_MUTED, va="top",
+        0.35,
+        y,
+        f"{cc_name}  {_zh('followup_title')}",
+        fontsize=8,
+        color=C_MUTED,
+        va="top",
     )
     y -= 0.2
     ax.text(
-        0.35, y, f"{date_str}  |  {team_name}",
-        fontsize=8, color=C_MUTED, va="top",
+        0.35,
+        y,
+        f"{date_str}  |  {team_name}",
+        fontsize=8,
+        color=C_MUTED,
+        va="top",
     )
 
     # ── 汇总条（只显示未打卡数，无负责人分布）──
     y -= 0.5
-    ax.add_patch(mpatches.FancyBboxPatch(
-        (0.15, y - 0.45), table_width, 0.45,
-        boxstyle="round,pad=0.06",
-        facecolor=C_RED_BG, edgecolor=C_BORDER, linewidth=0.8,
-    ))
+    ax.add_patch(
+        mpatches.FancyBboxPatch(
+            (0.15, y - 0.45),
+            table_width,
+            0.45,
+            boxstyle="round,pad=0.06",
+            facecolor=C_RED_BG,
+            edgecolor=C_BORDER,
+            linewidth=0.8,
+        )
+    )
     ax.text(
-        0.35, y - 0.12,
+        0.35,
+        y - 0.12,
         f"{_th('not_checked')} {n} {_th('persons')}",
-        fontsize=13, fontweight="bold", color=C_DANGER, va="center",
+        fontsize=13,
+        fontweight="bold",
+        color=C_DANGER,
+        va="center",
     )
 
     # ── 表头 ──
     y -= 0.65
-    ax.add_patch(plt.Rectangle(
-        (0.15, y - row_h), table_width, row_h,
-        facecolor=C_N800, edgecolor="none",
-    ))
+    ax.add_patch(
+        plt.Rectangle(
+            (0.15, y - row_h),
+            table_width,
+            row_h,
+            facecolor=C_N800,
+            edgecolor="none",
+        )
+    )
     for cx, _cw, title, align in cols:
         ha = "center" if align == "center" else "left"
         ax.text(
-            cx + 0.05, y - row_h / 2,
+            cx + 0.05,
+            y - row_h / 2,
             title,
-            fontsize=9, fontweight="bold", color="white",
-            va="center", ha=ha,
+            fontsize=9,
+            fontweight="bold",
+            color="white",
+            va="center",
+            ha=ha,
         )
     y -= row_h
 
     # ── 数据行 ──
     for i, s in enumerate(students):
         bg = C_SURFACE if i % 2 == 0 else C_BG
-        ax.add_patch(plt.Rectangle(
-            (0.15, y - row_h), table_width, row_h,
-            facecolor=bg, edgecolor="none",
-        ))
+        ax.add_patch(
+            plt.Rectangle(
+                (0.15, y - row_h),
+                table_width,
+                row_h,
+                facecolor=bg,
+                edgecolor="none",
+            )
+        )
         ax.plot(
-            [0.15, 0.15 + table_width], [y - row_h, y - row_h],
-            color=C_BORDER, linewidth=0.3,
+            [0.15, 0.15 + table_width],
+            [y - row_h, y - row_h],
+            color=C_BORDER,
+            linewidth=0.3,
         )
 
         ym = y - row_h / 2
@@ -437,21 +542,31 @@ def generate_cc_image(
         lesson_str = str(int(lesson)) if lesson is not None else "—"
 
         row_data = [
-            (cols[0][0], str(i + 1),     "center", C_MUTED,  "normal"),
+            (cols[0][0], str(i + 1), "center", C_MUTED, "normal"),
             (cols[1][0], str(int(score)), "center", _score_color(score), "bold"),
-            (cols[2][0], str(sid),        "left",   C_TEXT,   "normal"),
-            (cols[3][0], enc,             "center", C_TEXT2,  "normal"),
-            (cols[4][0], last_call[:10] if len(last_call) > 10 else last_call,
-             "center", C_MUTED, "normal"),
-            (cols[5][0], lesson_str,      "center", C_TEXT2,  "normal"),
+            (cols[2][0], str(sid), "left", C_TEXT, "normal"),
+            (cols[3][0], enc, "center", C_TEXT2, "normal"),
+            (
+                cols[4][0],
+                last_call[:10] if len(last_call) > 10 else last_call,
+                "center",
+                C_MUTED,
+                "normal",
+            ),
+            (cols[5][0], lesson_str, "center", C_TEXT2, "normal"),
         ]
 
         for cx, val, align, color, weight in row_data:
             ha = "center" if align == "center" else "left"
             ax.text(
-                cx + 0.05, ym, val,
-                fontsize=8.5, color=color, fontweight=weight,
-                va="center", ha=ha,
+                cx + 0.05,
+                ym,
+                val,
+                fontsize=8.5,
+                color=color,
+                fontweight=weight,
+                va="center",
+                ha=ha,
             )
         y -= row_h
 
@@ -474,10 +589,10 @@ def generate_overview_image(
 
     # 4 列：ทีม | ยังไม่เช็คอิน | CC | เฉลี่ย/CC
     cols = [
-        (0.2,  2.8,  f"{_th('col_team')}({_zh('col_team')})",               "left"),
-        (3.1,  1.3,  f"{_th('col_not_checked')}({_zh('col_not_checked')})", "center"),
-        (4.5,  0.8,  f"{_th('cc_count')}({_zh('cc_count')})",               "center"),
-        (5.4,  1.4,  f"{_th('avg_per_cc')}({_zh('avg_per_cc')})",           "center"),
+        (0.2, 2.8, f"{_th('col_team')}({_zh('col_team')})", "left"),
+        (3.1, 1.3, f"{_th('col_not_checked')}({_zh('col_not_checked')})", "center"),
+        (4.5, 0.8, f"{_th('cc_count')}({_zh('cc_count')})", "center"),
+        (5.4, 1.4, f"{_th('avg_per_cc')}({_zh('avg_per_cc')})", "center"),
     ]
     table_width = 7.0
 
@@ -499,38 +614,65 @@ def generate_overview_image(
 
     # ── 标题区 ──
     y -= 0.25
-    ax.add_patch(plt.Rectangle(
-        (0.15, y - 0.45), 0.07, 0.45,
-        facecolor=C_DANGER, edgecolor="none",
-    ))
+    ax.add_patch(
+        plt.Rectangle(
+            (0.15, y - 0.45),
+            0.07,
+            0.45,
+            facecolor=C_DANGER,
+            edgecolor="none",
+        )
+    )
     ax.text(
-        0.35, y, _th("overview_title"),
-        fontsize=15, fontweight="bold", color=C_HEADER, va="top",
+        0.35,
+        y,
+        _th("overview_title"),
+        fontsize=15,
+        fontweight="bold",
+        color=C_HEADER,
+        va="top",
     )
     y -= 0.25
     ax.text(
-        0.35, y, _zh("overview_title"),
-        fontsize=8, color=C_MUTED, va="top",
+        0.35,
+        y,
+        _zh("overview_title"),
+        fontsize=8,
+        color=C_MUTED,
+        va="top",
     )
     y -= 0.2
     ax.text(
-        0.35, y, f"{date_str}  |  {_th('data_label')}",
-        fontsize=8, color=C_MUTED, va="top",
+        0.35,
+        y,
+        f"{date_str}  |  {_th('data_label')}",
+        fontsize=8,
+        color=C_MUTED,
+        va="top",
     )
 
     # ── 表头 ──
     y -= 0.55
-    ax.add_patch(plt.Rectangle(
-        (0.15, y - row_h), table_width, row_h,
-        facecolor=C_N800, edgecolor="none",
-    ))
+    ax.add_patch(
+        plt.Rectangle(
+            (0.15, y - row_h),
+            table_width,
+            row_h,
+            facecolor=C_N800,
+            edgecolor="none",
+        )
+    )
     for cx, _cw, title, align in cols:
         ha = "center" if align == "center" else "left"
         ax.text(
-            cx + 0.05, y - row_h / 2,
+            cx + 0.05,
+            y - row_h / 2,
             title,
-            fontsize=8.5, fontweight="bold", color="white",
-            va="center", ha=ha,
+            fontsize=8.5,
+            fontweight="bold",
+            color="white",
+            va="center",
+            ha=ha,
         )
     y -= row_h
 
@@ -541,43 +683,77 @@ def generate_overview_image(
 
     for i, r in enumerate(team_summary):
         bg = C_SURFACE if i % 2 == 0 else C_BG
-        ax.add_patch(plt.Rectangle(
-            (0.15, y - row_h), table_width, row_h,
-            facecolor=bg, edgecolor="none",
-        ))
+        ax.add_patch(
+            plt.Rectangle(
+                (0.15, y - row_h),
+                table_width,
+                row_h,
+                facecolor=bg,
+                edgecolor="none",
+            )
+        )
         ax.plot(
-            [0.15, 0.15 + table_width], [y - row_h, y - row_h],
-            color=C_BORDER, linewidth=0.3,
+            [0.15, 0.15 + table_width],
+            [y - row_h, y - row_h],
+            color=C_BORDER,
+            linewidth=0.3,
         )
         ym = y - row_h / 2
         row_data = [
-            (cols[0][0], r["team"],           "left",   C_TEXT,   "normal"),
-            (cols[1][0], str(r["count"]),      "center", C_DANGER, "bold"),
-            (cols[2][0], str(r["cc_count"]),   "center", C_TEXT2,  "normal"),
-            (cols[3][0], str(r["avg"]),        "center", C_TEXT2,  "normal"),
+            (cols[0][0], r["team"], "left", C_TEXT, "normal"),
+            (cols[1][0], str(r["count"]), "center", C_DANGER, "bold"),
+            (cols[2][0], str(r["cc_count"]), "center", C_TEXT2, "normal"),
+            (cols[3][0], str(r["avg"]), "center", C_TEXT2, "normal"),
         ]
         for cx, val, align, color, weight in row_data:
             ha = "center" if align == "center" else "left"
-            ax.text(cx + 0.05, ym, val, fontsize=8.5, color=color,
-                    fontweight=weight, va="center", ha=ha)
+            ax.text(
+                cx + 0.05,
+                ym,
+                val,
+                fontsize=8.5,
+                color=color,
+                fontweight=weight,
+                va="center",
+                ha=ha,
+            )
         y -= row_h
 
     # ── 合计行（深色背景）──
-    ax.add_patch(plt.Rectangle(
-        (0.15, y - row_h), table_width, row_h,
-        facecolor=C_N800, edgecolor="none",
-    ))
+    ax.add_patch(
+        plt.Rectangle(
+            (0.15, y - row_h),
+            table_width,
+            row_h,
+            facecolor=C_N800,
+            edgecolor="none",
+        )
+    )
     ym = y - row_h / 2
     total_row_data = [
-        (cols[0][0], f"{_th('total_row')}({_zh('total_row')})", "left",   "white", "bold"),
-        (cols[1][0], str(total_count),                           "center", C_DANGER, "bold"),
-        (cols[2][0], str(total_cc),                              "center", "white", "normal"),
-        (cols[3][0], str(avg_total),                             "center", "white", "normal"),
+        (
+            cols[0][0],
+            f"{_th('total_row')}({_zh('total_row')})",
+            "left",
+            "white",
+            "bold",
+        ),
+        (cols[1][0], str(total_count), "center", C_DANGER, "bold"),
+        (cols[2][0], str(total_cc), "center", "white", "normal"),
+        (cols[3][0], str(avg_total), "center", "white", "normal"),
     ]
     for cx, val, align, color, weight in total_row_data:
         ha = "center" if align == "center" else "left"
-        ax.text(cx + 0.05, ym, val, fontsize=8.5, color=color,
-                fontweight=weight, va="center", ha=ha)
+        ax.text(
+            cx + 0.05,
+            ym,
+            val,
+            fontsize=8.5,
+            color=color,
+            fontweight=weight,
+            va="center",
+            ha=ha,
+        )
 
     buf = io.BytesIO()
     fig.savefig(buf, format="png", dpi=150, bbox_inches="tight", pad_inches=0.1)
@@ -588,13 +764,16 @@ def generate_overview_image(
 
 # ── 图片上传（双图床 fallback） ───────────────────────────────────────────────
 
+
 def _upload_freeimage(img_bytes: bytes, filename: str) -> str | None:
     encoded = base64.b64encode(img_bytes).decode("utf-8")
-    data = urllib.parse.urlencode({
-        "key": "6d207e02198a847aa98d0a2a901485a5",
-        "source": encoded,
-        "format": "json",
-    }).encode("utf-8")
+    data = urllib.parse.urlencode(
+        {
+            "key": "6d207e02198a847aa98d0a2a901485a5",
+            "source": encoded,
+            "format": "json",
+        }
+    ).encode("utf-8")
     req = urllib.request.Request(
         "https://freeimage.host/api/1/upload",
         data=data,
@@ -611,10 +790,14 @@ def _upload_freeimage(img_bytes: bytes, filename: str) -> str | None:
 def _upload_smms(img_bytes: bytes, filename: str) -> str | None:
     boundary = f"----Py{int(time.time())}"
     body = (
-        f"--{boundary}\r\n"
-        f'Content-Disposition: form-data; name="smfile"; filename="{filename}"\r\n'
-        f"Content-Type: image/png\r\n\r\n"
-    ).encode() + img_bytes + f"\r\n--{boundary}--\r\n".encode()
+        (
+            f"--{boundary}\r\n"
+            f'Content-Disposition: form-data; name="smfile"; filename="{filename}"\r\n'
+            f"Content-Type: image/png\r\n\r\n"
+        ).encode()
+        + img_bytes
+        + f"\r\n--{boundary}--\r\n".encode()
+    )
     req = urllib.request.Request(
         "https://s.ee/api/v1/file/upload",
         data=body,
@@ -652,6 +835,7 @@ def upload_image(img_bytes: bytes, filename: str = "report.png") -> str | None:
 
 # ── Lark Webhook 签名 + 发送 ──────────────────────────────────────────────────
 
+
 def _lark_sign(secret: str) -> tuple[str, str]:
     """生成 Lark webhook 签名：返回 (timestamp, sign)
     Lark 官方算法：HMAC-SHA256(key=timestamp+"\\n"+secret, msg="")
@@ -659,9 +843,7 @@ def _lark_sign(secret: str) -> tuple[str, str]:
     """
     timestamp = str(int(time.time()))
     string_to_sign = f"{timestamp}\n{secret}"
-    hmac_val = hmac.new(
-        string_to_sign.encode("utf-8"), b"", hashlib.sha256
-    ).digest()
+    hmac_val = hmac.new(string_to_sign.encode("utf-8"), b"", hashlib.sha256).digest()
     sign = base64.b64encode(hmac_val).decode("utf-8")
     return timestamp, sign
 
@@ -693,7 +875,9 @@ def _send_lark(webhook: str, payload: dict, secret: str | None = None) -> bool:
 
 
 def send_lark_text(
-    webhook: str, title: str, content_blocks: list[list[dict]],
+    webhook: str,
+    title: str,
+    content_blocks: list[list[dict]],
     secret: str | None = None,
 ) -> bool:
     """发送 Lark post（富文本）消息"""
@@ -724,6 +908,7 @@ def send_lark_test(webhook: str, secret: str | None = None) -> bool:
 
 
 # ── 主流程：未打卡跟进 ────────────────────────────────────────────────────────
+
 
 def cmd_followup(args: argparse.Namespace) -> None:
     config = load_config()
@@ -771,22 +956,25 @@ def cmd_followup(args: argparse.Namespace) -> None:
     team_summary: list[dict] = []
     for team_name, members in teams.items():
         ccs = group_students_by_cc(members)
-        team_summary.append({
-            "team": team_name,
-            "count": len(members),
-            "cc_count": len(ccs),
-            "avg": round(len(members) / max(len(ccs), 1), 1),
-        })
+        team_summary.append(
+            {
+                "team": team_name,
+                "count": len(members),
+                "cc_count": len(ccs),
+                "avg": round(len(members) / max(len(ccs), 1), 1),
+            }
+        )
 
     # 2b. 总览图
     overview_filename = f"lark-overview-{today.strftime('%Y%m%d')}.png"
     overview_bytes = generate_overview_image(team_summary, date_display)
     overview_path = OUTPUT_DIR / overview_filename
     overview_path.write_bytes(overview_bytes)
-    print(f"   [总览] 图片已保存: output/{overview_filename} ({len(overview_bytes)//1024}KB)")
+    kb_ov = len(overview_bytes) // 1024
+    print(f"   [总览] 图片已保存: output/{overview_filename} ({kb_ov}KB)")
 
     # 2c. per-CC 图片（按团队→CC）
-    # team_cc_results: [{team, count, cc_count, team_img: None, ccs: [{cc, count, img_url, img_bytes, filename}]}]
+    # team_cc_results: list of {team, count, cc_count, ccs: list of cc entries}
     team_cc_results: list[dict] = []
     for ts_row in team_summary:
         team_name = ts_row["team"]
@@ -796,24 +984,31 @@ def cmd_followup(args: argparse.Namespace) -> None:
         for cc_name, cc_students in ccs.items():
             team_safe = team_name.replace("/", "-").replace(" ", "_")
             cc_safe = cc_name.replace("/", "-").replace(" ", "_")
-            cc_filename = f"lark-followup-{team_safe}-{cc_safe}-{today.strftime('%Y%m%d')}.png"
+            cc_filename = (
+                f"lark-followup-{team_safe}-{cc_safe}-{today.strftime('%Y%m%d')}.png"
+            )
             cc_bytes = generate_cc_image(cc_name, team_name, cc_students, date_display)
             cc_path = OUTPUT_DIR / cc_filename
             cc_path.write_bytes(cc_bytes)
-            print(f"   [{team_name}/{cc_name}] output/{cc_filename} ({len(cc_bytes)//1024}KB)")
-            cc_list.append({
-                "cc": cc_name,
-                "count": len(cc_students),
-                "img_url": None,
-                "filename": cc_filename,
-                "img_bytes": cc_bytes,
-            })
-        team_cc_results.append({
-            "team": team_name,
-            "count": len(members),
-            "cc_count": len(ccs),
-            "ccs": cc_list,
-        })
+            kb_cc = len(cc_bytes) // 1024
+            print(f"   [{team_name}/{cc_name}] output/{cc_filename} ({kb_cc}KB)")
+            cc_list.append(
+                {
+                    "cc": cc_name,
+                    "count": len(cc_students),
+                    "img_url": None,
+                    "filename": cc_filename,
+                    "img_bytes": cc_bytes,
+                }
+            )
+        team_cc_results.append(
+            {
+                "team": team_name,
+                "count": len(members),
+                "cc_count": len(ccs),
+                "ccs": cc_list,
+            }
+        )
 
     print()
 
@@ -835,7 +1030,9 @@ def cmd_followup(args: argparse.Namespace) -> None:
 
     for tr in team_cc_results:
         for cc_entry in tr["ccs"]:
-            cc_entry["img_url"] = upload_image(cc_entry["img_bytes"], cc_entry["filename"])
+            cc_entry["img_url"] = upload_image(
+                cc_entry["img_bytes"], cc_entry["filename"]
+            )
             if not cc_entry["img_url"]:
                 print(f"   ⚠ [{tr['team']}/{cc_entry['cc']}] 图片上传失败")
 
@@ -848,50 +1045,63 @@ def cmd_followup(args: argparse.Namespace) -> None:
 
     # 消息 1：总览 card
     overview_elements: list[dict] = []
-    overview_elements.append({
-        "tag": "markdown",
-        "content": (
-            f"{_th('total_summary')} **{total_count}** {_th('persons')}  "
-            f"({len(team_cc_results)} {_th('teams')})"
-        ),
-    })
+    overview_elements.append(
+        {
+            "tag": "markdown",
+            "content": (
+                f"{_th('total_summary')} **{total_count}** {_th('persons')}  "
+                f"({len(team_cc_results)} {_th('teams')})"
+            ),
+        }
+    )
     overview_elements.append({"tag": "hr"})
     for tr in team_cc_results:
+        not_checked_th = _th("not_checked")
+        persons_th = _th("persons")
+        cc_count_th = _th("cc_count")
         md = (
-            f"📊 **{tr['team']}**：{_th('not_checked')} **{tr['count']}** {_th('persons')}"
-            f"  |  {_th('cc_count')} {tr['cc_count']}"
+            f"📊 **{tr['team']}**：{not_checked_th} **{tr['count']}** {persons_th}"
+            f"  |  {cc_count_th} {tr['cc_count']}"
         )
         overview_elements.append({"tag": "markdown", "content": md})
     if overview_url:
-        overview_elements.append({
-            "tag": "markdown",
-            "content": f"📷 [{_th('overview_title')}]({overview_url})",
-        })
+        overview_elements.append(
+            {
+                "tag": "markdown",
+                "content": f"📷 [{_th('overview_title')}]({overview_url})",
+            }
+        )
 
     overview_title = f"{_th('overview_title')} — {date_display}"
-    _send_lark(webhook, {
-        "msg_type": "interactive",
-        "card": {
-            "header": {
-                "title": {"tag": "plain_text", "content": overview_title},
-                "template": "red",
+    _send_lark(
+        webhook,
+        {
+            "msg_type": "interactive",
+            "card": {
+                "header": {
+                    "title": {"tag": "plain_text", "content": overview_title},
+                    "template": "red",
+                },
+                "elements": overview_elements,
             },
-            "elements": overview_elements,
         },
-    }, secret)
-    print(f"   ✓ 消息 1/{ 1 + len(team_cc_results)} 已发送（总览）")
+        secret,
+    )
+    print(f"   ✓ 消息 1/{1 + len(team_cc_results)} 已发送（总览）")
     time.sleep(3)
 
     # 消息 2-N：每团队 card（每 CC 一段）
     for idx, tr in enumerate(team_cc_results, start=2):
         team_elements: list[dict] = []
-        team_elements.append({
-            "tag": "markdown",
-            "content": (
-                f"{_th('not_checked')} **{tr['count']}** {_th('persons')}"
-                f"  |  {_th('cc_count')} {tr['cc_count']}"
-            ),
-        })
+        team_elements.append(
+            {
+                "tag": "markdown",
+                "content": (
+                    f"{_th('not_checked')} **{tr['count']}** {_th('persons')}"
+                    f"  |  {_th('cc_count')} {tr['cc_count']}"
+                ),
+            }
+        )
         team_elements.append({"tag": "hr"})
 
         for cc_entry in tr["ccs"]:
@@ -900,26 +1110,35 @@ def cmd_followup(args: argparse.Namespace) -> None:
                 f"{_th('not_checked')} **{cc_entry['count']}** {_th('persons')}"
             )
             if cc_entry["img_url"]:
-                cc_md += f"\n📷 [{_th('view_list')} {cc_entry['cc']}]({cc_entry['img_url']})"
+                cc_md += (
+                    f"\n📷 [{_th('view_list')} {cc_entry['cc']}]({cc_entry['img_url']})"
+                )
             team_elements.append({"tag": "markdown", "content": cc_md})
 
         team_title = f"{tr['team']} {_th('followup_title')} — {date_display}"
-        ok = _send_lark(webhook, {
-            "msg_type": "interactive",
-            "card": {
-                "header": {
-                    "title": {"tag": "plain_text", "content": team_title},
-                    "template": "red",
+        ok = _send_lark(
+            webhook,
+            {
+                "msg_type": "interactive",
+                "card": {
+                    "header": {
+                        "title": {"tag": "plain_text", "content": team_title},
+                        "template": "red",
+                    },
+                    "elements": team_elements,
                 },
-                "elements": team_elements,
             },
-        }, secret)
+            secret,
+        )
         status = "✓" if ok else "✗"
-        print(f"   {status} 消息 {idx}/{1 + len(team_cc_results)} 已发送（{tr['team']}）")
+        print(
+            f"   {status} 消息 {idx}/{1 + len(team_cc_results)} 已发送（{tr['team']}）"
+        )
         time.sleep(3)
 
 
 # ── CLI ───────────────────────────────────────────────────────────────────────
+
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Lark Bot — CC 运营推送")
@@ -928,11 +1147,13 @@ def main() -> None:
     # followup 子命令
     p_followup = sub.add_parser("followup", help="发送未打卡跟进名单")
     p_followup.add_argument(
-        "--channel", default="test",
+        "--channel",
+        default="test",
         help="Lark 通道名 (default: test，安全模式)",
     )
     p_followup.add_argument(
-        "--confirm", action="store_true",
+        "--confirm",
+        action="store_true",
         help="确认发送到正式群（非 test 通道必须加此标志）",
     )
     p_followup.add_argument("--dry-run", action="store_true", help="只生成图片不发送")
