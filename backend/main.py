@@ -52,6 +52,11 @@ ROUTER_REGISTRY: dict = {
     "enclosure_health": ("backend.api.enclosure_health", "/api", ["enclosure-health"]),
     "student_360": ("backend.api.student_360", "/api", ["students"]),
     "indicator_matrix": ("backend.api.indicator_matrix", "/api", ["indicator-matrix"]),
+    # ── Wave 5 新增：SS/LP 围场 + 次卡预警 + 激励效果 + 续费风险 ──────────────
+    "enclosure_ss_lp": ("backend.api.enclosure_ss_lp", "/api", ["enclosure-ss-lp"]),
+    "expiry_alert": ("backend.api.expiry_alert", "/api", ["students"]),
+    "incentive_effect": ("backend.api.incentive_effect", "/api", ["analysis"]),
+    "renewal_risk": ("backend.api.renewal_risk", "/api", ["analysis"]),
 }
 
 

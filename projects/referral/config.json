@@ -171,7 +171,11 @@
     "cc_matrix",
     "enclosure_health",
     "student_360",
-    "indicator_matrix"
+    "indicator_matrix",
+    "enclosure_ss_lp",
+    "expiry_alert",
+    "incentive_effect",
+    "renewal_risk"
   ],
   "enclosure_role_assignment": {
     "CC": {
@@ -457,6 +461,26 @@
     {"id": "post_valid_connect", "name_zh": "付费后有效接通数", "name_th": "จำนวนติดต่อมีประสิทธิภาพหลังชำระ", "category": "service_post_paid", "unit": "count", "formula": "sum(有效接通) where student already paid", "data_source": "D3", "has_target": false, "availability": "partial"}
   ],
 
+  "quality_score_config": {
+    "lesson_max": 15,
+    "lesson_weight": 40,
+    "referral_max": 3,
+    "referral_weight": 30,
+    "payment_max": 2,
+    "payment_weight": 20,
+    "enclosure_weights": {"0": 10, "1": 8, "2": 6, "3": 4, "default": 2}
+  },
+  "invalid_names": ["nan", "小计", "合计", ""],
+  "role_team_prefixes": {
+    "SS": ["SS"],
+    "LP": ["LP"],
+    "CC": ["CC"]
+  },
+  "role_columns": {
+    "CC": ["last_cc_name", "last_cc_group_name"],
+    "SS": ["last_ss_name", "last_ss_group_name"],
+    "LP": ["last_lp_name", "last_lp_group_name"]
+  },
   "indicator_matrix": {
     "CC": {
       "readonly": true,
