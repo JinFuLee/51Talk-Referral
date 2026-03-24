@@ -71,9 +71,8 @@ const MAIN_GROUPS: NavGroup[] = [
     items: [
       { href: '/attribution', label: '达成归因分析', Icon: GitMerge },
       { href: '/high-potential/warroom', label: '高潜作战室', Icon: Swords },
-      { href: '/cc-matrix', label: 'CC 围场战力图', Icon: Grid3X3 },
+      { href: '/personnel-matrix', label: '人员战力图', Icon: Grid3X3 },
       { href: '/enclosure-health', label: '围场健康扫描仪', Icon: HeartPulse },
-      { href: '/ss-lp-matrix', label: 'SS / LP 矩阵', Icon: Grid3X3 },
       { href: '/learning-heatmap', label: '学习热图', Icon: Flame },
       { href: '/geo-distribution', label: '地理分布', Icon: Globe },
     ],
