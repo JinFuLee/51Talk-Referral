@@ -1621,6 +1621,10 @@ def cmd_followup(args: argparse.Namespace) -> None:
     print(f"   ✓ 消息 1/{1 + len(team_cc_results)} 已发送（总览）")
     time.sleep(3)
 
+    # --overview-only：只发总览，跳过小组明细
+    if args.overview_only:
+        return
+
     # 消息 2-N：每团队 card（泰文主 + 中文辅，每 CC 一段）
     for idx, tr in enumerate(team_cc_results, start=2):
         team_elements: list[dict] = []
@@ -1749,6 +1753,10 @@ def main() -> None:
     p_followup.add_argument(
         "--role", default="CC",
         help="角色：CC / LP (default: CC)",
+    )
+    p_followup.add_argument(
+        "--overview-only", action="store_true",
+        help="只发总览，不发小组明细（适用于管理层群）",
     )
 
     # test 连通性
