@@ -180,7 +180,8 @@
     "learning_heatmap",
     "geo_distribution",
     "followup_quality",
-    "referral_contributor"
+    "referral_contributor",
+    "notifications"
   ],
   "enclosure_role_assignment": {
     "CC": {
