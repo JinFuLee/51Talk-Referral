@@ -23,22 +23,43 @@ def _compute_kpi_8item(
     time_progress: float | None,
 ) -> dict[str, Any]:
     """计算 KPI 8 项标准格式（CLAUDE.md 指标显示规范）"""
-    daily_avg = (actual / elapsed_days) if (actual is not None and elapsed_days and elapsed_days > 0) else None
-    absolute_gap = (actual - target) if (actual is not None and target is not None) else None
+    daily_avg = (
+        (actual / elapsed_days)
+        if (actual is not None and elapsed_days and elapsed_days > 0)
+        else None
+    )
+    absolute_gap = (
+        (actual - target) if (actual is not None and target is not None) else None
+    )
     pace_gap = (
         (actual / target - time_progress)
-        if (actual is not None and target is not None and target > 0 and time_progress is not None)
+        if (
+            actual is not None
+            and target is not None
+            and target > 0
+            and time_progress is not None
+        )
         else None
     )
     remaining_daily_avg = (
         (target - actual) / remaining_days
-        if (remaining_days is not None and remaining_days > 0 and target is not None and actual is not None)
+        if (
+            remaining_days is not None
+            and remaining_days > 0
+            and target is not None
+            and actual is not None
+        )
         else None
     )
     pace_daily_needed = (
         max(0, target * time_progress - actual) / remaining_days
-        if (remaining_days is not None and remaining_days > 0 and target is not None
-            and actual is not None and time_progress is not None)
+        if (
+            remaining_days is not None
+            and remaining_days > 0
+            and target is not None
+            and actual is not None
+            and time_progress is not None
+        )
         else None
     )
     efficiency_needed = (
@@ -51,9 +72,15 @@ def _compute_kpi_8item(
         "target": target,
         "absolute_gap": round(absolute_gap, 2) if absolute_gap is not None else None,
         "pace_gap": round(pace_gap, 4) if pace_gap is not None else None,
-        "remaining_daily_avg": round(remaining_daily_avg, 2) if remaining_daily_avg is not None else None,
-        "pace_daily_needed": round(pace_daily_needed, 2) if pace_daily_needed is not None else None,
-        "efficiency_needed": round(efficiency_needed, 4) if efficiency_needed is not None else None,
+        "remaining_daily_avg": round(remaining_daily_avg, 2)
+        if remaining_daily_avg is not None
+        else None,
+        "pace_daily_needed": round(pace_daily_needed, 2)
+        if pace_daily_needed is not None
+        else None,
+        "efficiency_needed": round(efficiency_needed, 4)
+        if efficiency_needed is not None
+        else None,
         "current_daily_avg": round(daily_avg, 2) if daily_avg is not None else None,
     }
 

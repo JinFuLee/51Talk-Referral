@@ -42,7 +42,9 @@ def _get_invitation_stats(detail_df: pd.DataFrame | None) -> dict[str, Any]:
         return {}
 
     inv_col = "邀约数"
-    reg_col = next((c for c in ["转介绍注册数", "注册数"] if c in detail_df.columns), None)
+    reg_col = next(
+        (c for c in ["转介绍注册数", "注册数"] if c in detail_df.columns), None
+    )
     show_col = next((c for c in ["出席数", "到场数"] if c in detail_df.columns), None)
 
     if inv_col not in detail_df.columns:
@@ -60,9 +62,7 @@ def _get_invitation_stats(detail_df: pd.DataFrame | None) -> dict[str, Any]:
 
     showups = None
     if show_col:
-        showups = _safe_float(
-            pd.to_numeric(detail_df[show_col], errors="coerce").sum()
-        )
+        showups = _safe_float(pd.to_numeric(detail_df[show_col], errors="coerce").sum())
 
     # 注册→邀约率（registration_invitation_rate）：注册数 / 邀约数
     reg_inv_rate = (

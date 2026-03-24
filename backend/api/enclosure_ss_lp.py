@@ -50,9 +50,18 @@ def _df_to_ss_metrics(df: pd.DataFrame) -> list[EnclosureSSMetrics]:
     }
 
     num_cols = {
-        "学员数", "转介绍参与率", "带新系数", "带货比", "当月有效打卡率",
-        "CC触达率", "SS触达率", "LP触达率", "转介绍注册数", "转介绍付费数",
-        "总带新付费金额USD", "注册转化率",
+        "学员数",
+        "转介绍参与率",
+        "带新系数",
+        "带货比",
+        "当月有效打卡率",
+        "CC触达率",
+        "SS触达率",
+        "LP触达率",
+        "转介绍注册数",
+        "转介绍付费数",
+        "总带新付费金额USD",
+        "注册转化率",
     }
 
     group_col = "围场"
@@ -70,10 +79,15 @@ def _df_to_ss_metrics(df: pd.DataFrame) -> list[EnclosureSSMetrics]:
         row_dict = {"enclosure": str(enclosure)}
 
         # SS 姓名取众数
-        for str_field, col in [("ss_group", "last_ss_group_name"), ("ss_name", "last_ss_name")]:
+        for str_field, col in [
+            ("ss_group", "last_ss_group_name"),
+            ("ss_name", "last_ss_name"),
+        ]:
             if col in group.columns:
                 mode_val = group[col].mode()
-                row_dict[str_field] = str(mode_val.iloc[0]) if not mode_val.empty else None
+                row_dict[str_field] = (
+                    str(mode_val.iloc[0]) if not mode_val.empty else None
+                )
 
         for field, col in col_map.items():
             if field in ("enclosure", "ss_group", "ss_name"):
@@ -128,10 +142,15 @@ def _df_to_lp_metrics(df: pd.DataFrame) -> list[EnclosureLPMetrics]:
         row_dict = {"enclosure": str(enclosure)}
 
         # LP 姓名取众数
-        for str_field, col in [("lp_group", "last_lp_group_name"), ("lp_name", "last_lp_name")]:
+        for str_field, col in [
+            ("lp_group", "last_lp_group_name"),
+            ("lp_name", "last_lp_name"),
+        ]:
             if col in group.columns:
                 mode_val = group[col].mode()
-                row_dict[str_field] = str(mode_val.iloc[0]) if not mode_val.empty else None
+                row_dict[str_field] = (
+                    str(mode_val.iloc[0]) if not mode_val.empty else None
+                )
 
         for field, col in col_map.items():
             if field in ("enclosure", "lp_group", "lp_name"):
@@ -223,8 +242,16 @@ def get_ss_ranking(
 
     results = []
     num_sum_cols = ["学员数", "转介绍注册数", "转介绍付费数", "总带新付费金额USD"]
-    num_mean_cols = ["转介绍参与率", "带新系数", "带货比", "当月有效打卡率",
-                     "CC触达率", "SS触达率", "LP触达率", "注册转化率"]
+    num_mean_cols = [
+        "转介绍参与率",
+        "带新系数",
+        "带货比",
+        "当月有效打卡率",
+        "CC触达率",
+        "SS触达率",
+        "LP触达率",
+        "注册转化率",
+    ]
 
     for ss_name, group in df.groupby(name_col, sort=False):
         row_dict: dict[str, Any] = {"enclosure": "全部", "ss_name": str(ss_name)}
@@ -270,8 +297,16 @@ def get_lp_ranking(
 
     results = []
     num_sum_cols = ["学员数", "转介绍注册数", "转介绍付费数", "总带新付费金额USD"]
-    num_mean_cols = ["转介绍参与率", "带新系数", "带货比", "当月有效打卡率",
-                     "CC触达率", "SS触达率", "LP触达率", "注册转化率"]
+    num_mean_cols = [
+        "转介绍参与率",
+        "带新系数",
+        "带货比",
+        "当月有效打卡率",
+        "CC触达率",
+        "SS触达率",
+        "LP触达率",
+        "注册转化率",
+    ]
 
     for lp_name, group in df.groupby(name_col, sort=False):
         row_dict: dict[str, Any] = {"enclosure": "全部", "lp_name": str(lp_name)}

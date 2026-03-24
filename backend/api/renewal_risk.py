@@ -96,12 +96,14 @@ def get_renewal_risk(
         seg_df = valid[mask]
         seg_count = len(seg_df)
 
-        segments_out.append({
-            "segment_id": seg_id,
-            "label": label,
-            "count": seg_count,
-            "days_range": f"{lo}-{hi}" if hi is not None else f">{lo}",
-        })
+        segments_out.append(
+            {
+                "segment_id": seg_id,
+                "label": label,
+                "count": seg_count,
+                "days_range": f"{lo}-{hi}" if hi is not None else f">{lo}",
+            }
+        )
 
         if seg_id == "high_risk":
             # 按续费天数降序（风险最高在前）
@@ -110,12 +112,16 @@ def get_renewal_risk(
                 all_high_risk.append(_row_to_item(row, _safe(row["_renewal_days"])))
 
     total_valid = len(valid)
-    high_risk_count = next((s["count"] for s in segments_out if s["segment_id"] == "high_risk"), 0)
+    high_risk_count = next(
+        (s["count"] for s in segments_out if s["segment_id"] == "high_risk"), 0
+    )
 
     return {
         "segments": segments_out,
         "high_risk_students": all_high_risk,
         "total_students_with_data": total_valid,
-        "high_risk_rate": round(high_risk_count / total_valid, 4) if total_valid > 0 else None,
+        "high_risk_rate": round(high_risk_count / total_valid, 4)
+        if total_valid > 0
+        else None,
         "renewal_col_used": renewal_col,
     }

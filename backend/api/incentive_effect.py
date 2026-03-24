@@ -38,17 +38,34 @@ def _group_stats(group: pd.DataFrame) -> dict[str, Any]:
             return None
         s = pd.to_numeric(group[col], errors="coerce")
         v = s.mean()
-        return None if (v is None or (isinstance(v, float) and math.isnan(v))) else round(float(v), 4)
+        return (
+            None
+            if (v is None or (isinstance(v, float) and math.isnan(v)))
+            else round(float(v), 4)
+        )
 
     def _sum(col: str) -> float | None:
         if col not in group.columns:
             return None
         s = pd.to_numeric(group[col], errors="coerce")
         v = s.sum()
-        return None if (v is None or (isinstance(v, float) and math.isnan(v))) else round(float(v), 2)
+        return (
+            None
+            if (v is None or (isinstance(v, float) and math.isnan(v)))
+            else round(float(v), 2)
+        )
 
-    reg_col = next((c for c in ["当月推荐注册人数", "本月推荐注册数", "总推荐注册人数"] if c in group.columns), None)
-    pay_col = next((c for c in ["本月推荐付费数", "当月推荐付费数"] if c in group.columns), None)
+    reg_col = next(
+        (
+            c
+            for c in ["当月推荐注册人数", "本月推荐注册数", "总推荐注册人数"]
+            if c in group.columns
+        ),
+        None,
+    )
+    pay_col = next(
+        (c for c in ["本月推荐付费数", "当月推荐付费数"] if c in group.columns), None
+    )
     coeff_col = "带新系数" if "带新系数" in group.columns else None
 
     avg_reg = _mean(reg_col) if reg_col else None
@@ -56,7 +73,12 @@ def _group_stats(group: pd.DataFrame) -> dict[str, Any]:
     avg_coeff = _mean(coeff_col) if coeff_col else None
 
     # 带新系数从 avg_reg/avg_pay 推导（若字段缺失）
-    if avg_coeff is None and avg_reg is not None and avg_pay is not None and avg_pay > 0:
+    if (
+        avg_coeff is None
+        and avg_reg is not None
+        and avg_pay is not None
+        and avg_pay > 0
+    ):
         avg_coeff = round(avg_reg / avg_pay, 4)
 
     return {
@@ -108,11 +130,21 @@ def get_incentive_effect(
     groups_out.sort(key=_sort_key)
 
     # 对比摘要（领奖 vs 未领奖）
-    rewarded = next((g for g in groups_out if "已" in g.get("reward_status", "") or "领" in g.get("reward_status", "")), None)
-    not_rewarded = next((g for g in groups_out if "未" in g.get("reward_status", "")), None)
+    rewarded = next(
+        (
+            g
+            for g in groups_out
+            if "已" in g.get("reward_status", "") or "领" in g.get("reward_status", "")
+        ),
+        None,
+    )
+    not_rewarded = next(
+        (g for g in groups_out if "未" in g.get("reward_status", "")), None
+    )
 
     comparison: dict[str, Any] = {}
     if rewarded and not_rewarded:
+
         def _lift(a: float | None, b: float | None) -> float | None:
             if a is None or b is None or b == 0:
                 return None
