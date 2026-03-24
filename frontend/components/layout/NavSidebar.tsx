@@ -61,6 +61,7 @@ const MAIN_GROUPS: NavGroup[] = [
       { href: '/outreach-quality', label: '接通质量分析', Icon: PhoneCall },
       { href: '/incentive-tracking', label: '激励追踪', Icon: Gift },
       { href: '/renewal-risk', label: '续费风险', Icon: AlertTriangle },
+      { href: '/expiry-alert', label: '次卡到期预警', Icon: AlertTriangle },
     ],
   },
   {
@@ -70,6 +71,7 @@ const MAIN_GROUPS: NavGroup[] = [
       { href: '/high-potential/warroom', label: '高潜作战室', Icon: Swords },
       { href: '/cc-matrix', label: 'CC 围场战力图', Icon: Grid3X3 },
       { href: '/enclosure-health', label: '围场健康扫描仪', Icon: HeartPulse },
+      { href: '/ss-lp-matrix', label: 'SS / LP 矩阵', Icon: Grid3X3 },
     ],
   },
   {

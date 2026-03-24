@@ -121,11 +121,173 @@ interface KpiPaceItem {
   pace_daily_needed: number | null;
 }
 
+interface KPI8Item {
+  actual: number | null;
+  target: number | null;
+  absolute_gap: number | null;
+  pace_gap: number | null;
+  remaining_daily_avg: number | null;
+  pace_daily_needed: number | null;
+  efficiency_needed: number | null;
+  current_daily_avg: number | null;
+}
+
 interface OverviewResponse {
   metrics: Record<string, number | string | null>;
   data_sources: { id: string; name: string; has_file: boolean; row_count: number }[];
   time_progress?: TimeProgressInfo;
   kpi_pace?: Record<string, KpiPaceItem | null>;
+  kpi_8item?: Record<string, KPI8Item | null>;
+}
+
+/* ── KPI 8项卡片 ─────────────────────────────────────────────── */
+
+interface KPI8CardProps {
+  label: string;
+  item: KPI8Item;
+  format?: 'currency' | 'count';
+}
+
+function fmt8(v: number | null, format: 'currency' | 'count' = 'count'): string {
+  if (v === null || v === undefined) return '—';
+  if (format === 'currency') return formatRevenue(v);
+  return v % 1 === 0 ? v.toLocaleString() : v.toFixed(1);
+}
+
+function gapColor(v: number | null): string {
+  if (v === null) return 'text-[var(--text-muted)]';
+  if (v > 0) return 'text-green-600';
+  if (v < 0) return 'text-red-500';
+  return 'text-[var(--text-secondary)]';
+}
+
+function KPI8Card({ label, item, format = 'count' }: KPI8CardProps) {
+  const rows: { label: string; value: string; colorFn?: (v: number | null) => string }[] = [
+    { label: '当前实际', value: fmt8(item.actual, format) },
+    { label: '本月目标', value: fmt8(item.target, format) },
+    { label: '目标绝对差', value: fmt8(item.absolute_gap, format), colorFn: gapColor },
+    {
+      label: '时间进度差',
+      value: item.pace_gap !== null ? `${(item.pace_gap * 100).toFixed(1)}%` : '—',
+      colorFn: gapColor,
+    },
+    { label: '达标需日均', value: fmt8(item.remaining_daily_avg, format) },
+    { label: '追进度需日均', value: fmt8(item.pace_daily_needed, format) },
+    {
+      label: '效率提升需求',
+      value:
+        item.efficiency_needed !== null ? `${(item.efficiency_needed * 100).toFixed(1)}%` : '—',
+    },
+    { label: '当前日均', value: fmt8(item.current_daily_avg, format) },
+  ];
+
+  return (
+    <div className="bg-[var(--bg-surface)] rounded-lg border border-[var(--border-default)] shadow-[var(--shadow-subtle)] p-3">
+      <p className="text-xs font-semibold text-[var(--text-primary)] uppercase tracking-wide mb-2">
+        {label}
+      </p>
+      <div className="grid grid-cols-2 gap-x-3 gap-y-1">
+        {rows.map((r) => (
+          <div key={r.label} className="flex flex-col">
+            <span className="text-[10px] text-[var(--text-muted)]">{r.label}</span>
+            <span
+              className={`text-sm font-mono tabular-nums font-semibold ${
+                r.colorFn
+                  ? r.colorFn(
+                      r.label === '时间进度差'
+                        ? item.pace_gap
+                        : r.label === '目标绝对差'
+                          ? item.absolute_gap
+                          : null
+                    )
+                  : 'text-[var(--text-primary)]'
+              }`}
+            >
+              {r.value}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* ── 效率类 RateCard8（5 项） ─────────────────────────────────── */
+
+interface RateCard8Props {
+  label: string;
+  actual: number | null;
+  target: number | null;
+  lossDesc?: string;
+  rootCause?: string;
+}
+
+function RateCard8({ label, actual, target, lossDesc, rootCause }: RateCard8Props) {
+  const pct = actual !== null ? Math.round(actual * 100) : null;
+  const targetPct = target !== null ? Math.round(target * 100) : null;
+  const gap = actual !== null && target !== null ? actual - target : null;
+
+  const gapClass =
+    gap === null ? 'text-[var(--text-muted)]' : gap >= 0 ? 'text-green-600' : 'text-red-500';
+
+  return (
+    <div className="bg-[var(--bg-surface)] rounded-lg border border-[var(--border-default)] shadow-[var(--shadow-subtle)] p-3">
+      <p className="text-xs font-semibold text-[var(--text-primary)] uppercase tracking-wide mb-2">
+        {label}
+      </p>
+      <div className="grid grid-cols-2 gap-x-3 gap-y-1 mb-2">
+        <div className="flex flex-col">
+          <span className="text-[10px] text-[var(--text-muted)]">实际率</span>
+          <span className="text-sm font-mono font-semibold text-[var(--text-primary)]">
+            {pct !== null ? `${pct}%` : '—'}
+          </span>
+        </div>
+        <div className="flex flex-col">
+          <span className="text-[10px] text-[var(--text-muted)]">目标率</span>
+          <span className="text-sm font-mono font-semibold text-[var(--text-secondary)]">
+            {targetPct !== null ? `${targetPct}%` : '—'}
+          </span>
+        </div>
+        <div className="flex flex-col col-span-2">
+          <span className="text-[10px] text-[var(--text-muted)]">目标差</span>
+          <span className={`text-sm font-mono font-semibold ${gapClass}`}>
+            {gap !== null ? `${gap >= 0 ? '+' : ''}${(gap * 100).toFixed(1)}%` : '—'}
+          </span>
+        </div>
+      </div>
+      {lossDesc && <p className="text-[10px] text-red-500 mt-1 leading-relaxed">{lossDesc}</p>}
+      {rootCause && (
+        <p className="text-[10px] text-[var(--text-muted)] mt-0.5 leading-relaxed">{rootCause}</p>
+      )}
+    </div>
+  );
+}
+
+/* ── KPI 8 项展示区 ──────────────────────────────────────────── */
+
+const KPI8_DEFS: { key: string; label: string; format?: 'currency' | 'count' }[] = [
+  { key: 'register', label: '注册数' },
+  { key: 'appointment', label: '预约数' },
+  { key: 'showup', label: '出席数' },
+  { key: 'paid', label: '付费数' },
+  { key: 'revenue', label: '业绩 (USD)', format: 'currency' },
+];
+
+function KPI8Section({ kpi8item }: { kpi8item: Record<string, KPI8Item | null> }) {
+  const defs = KPI8_DEFS.filter((d) => kpi8item[d.key]);
+  if (defs.length === 0) return null;
+
+  return (
+    <Card title="KPI 指标（8 项全维度）">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
+        {defs.map(({ key, label, format }) => {
+          const item = kpi8item[key];
+          if (!item) return null;
+          return <KPI8Card key={key} label={label} item={item} format={format} />;
+        })}
+      </div>
+    </Card>
+  );
 }
 
 /* ── KPI 卡片定义 ─────────────────────────────────────────────── */
@@ -486,6 +648,11 @@ export default function DashboardPage() {
             );
           })}
         </div>
+      )}
+
+      {/* KPI 8 项全维度 */}
+      {data?.kpi_8item && Object.keys(data.kpi_8item).length > 0 && (
+        <KPI8Section kpi8item={data.kpi_8item} />
       )}
 
       {/* 漏斗转化率 */}
