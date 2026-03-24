@@ -1093,26 +1093,16 @@ def cmd_followup(args: argparse.Namespace) -> None:
                 cc_path.write_bytes(cc_bytes)
                 kb_cc = len(cc_bytes) // 1024
                 print(f"   [{team_name}/{cc_name}] 新生成 ({kb_cc}KB)")
-            # 构建 TSV 文本（供 paste 上传）
-            tsv_lines = [
-                f"{cc_name} — {team_name}",
-                "รหัส(学员ID)\tคอก(围场)\t★(评分)\tโทรล่าสุด(末次拨打)\tคลาส(课耗)",
+            # 收集学员 ID（内嵌到消息中供复制）
+            student_ids = [
+                str(s.get("student_id", "")) for s in cc_students
             ]
-            for s in cc_students:
-                sid = s.get("student_id", "")
-                enc = s.get("enclosure", "")
-                score = int(s.get("quality_score", 0) or 0)
-                lc = (s.get("cc_last_call_date") or "—")[:10]
-                les = s.get("lesson_consumption_3m")
-                les_str = str(int(les)) if les is not None else "—"
-                tsv_lines.append(f"{sid}\t{enc}\t{score}\t{lc}\t{les_str}")
             cc_list.append(
                 {
                     "cc": cc_name,
                     "count": len(cc_students),
                     "img_url": None,
-                    "tsv_url": None,
-                    "tsv_text": "\n".join(tsv_lines),
+                    "student_ids": student_ids,
                     "filename": cc_filename,
                     "img_bytes": cc_bytes,
                 }
@@ -1147,19 +1137,13 @@ def cmd_followup(args: argparse.Namespace) -> None:
         print("   ⚠ 总览图上传失败，将只发文本")
 
     for tr in team_cc_results:
+        # 上传 per-CC 图片
         for cc_entry in tr["ccs"]:
             cc_entry["img_url"] = cached_upload(
                 cc_entry["img_bytes"], cc_entry["filename"], url_cache
             )
             if not cc_entry["img_url"]:
                 print(f"   ⚠ [{tr['team']}/{cc_entry['cc']}] 图片上传失败")
-            # 上传 TSV 到 paste 服务（间隔 0.5s 防限频）
-            paste_key = f"tsv-{cc_entry['filename'].replace('.png', '')}"
-            title = f"{cc_entry['cc']} - {tr['team']} ({date_short})"
-            cc_entry["tsv_url"] = cached_paste(
-                cc_entry["tsv_text"], paste_key, url_cache, title
-            )
-            time.sleep(0.5)
 
     # 持久化 URL 缓存
     save_url_cache(date_short, url_cache)
@@ -1260,9 +1244,11 @@ def cmd_followup(args: argparse.Namespace) -> None:
                     f"\n📷 [{_bi('view_list')} {cc_entry['cc']}]"
                     f"({cc_entry['img_url']})"
                 )
-            # 📋 User ID 链接（dpaste 托管，关机后仍可访问）
-            if cc_entry.get("tsv_url"):
-                cc_md += f"\n📋 [User ID]({cc_entry['tsv_url']})"
+            # 📋 学员 ID（内嵌，销售可直接复制）
+            ids = cc_entry.get("student_ids", [])
+            if ids:
+                ids_text = ", ".join(ids)
+                cc_md += f"\n📋 ID: {ids_text}"
             team_elements.append({"tag": "markdown", "content": cc_md})
 
         team_title = (
