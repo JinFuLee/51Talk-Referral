@@ -107,11 +107,12 @@ export default function EnclosureHealthPage() {
               <div className="text-sm text-[var(--text-secondary)]">
                 <p>
                   围场段 <strong>{seg.segment}</strong> 健康分{' '}
-                  <strong>{seg.health_score.toFixed(0)}</strong>
+                  <strong>{(seg.health_score ?? 0).toFixed(0)}</strong>
                 </p>
                 <p className="text-xs mt-1 text-[var(--text-muted)]">
-                  参与率 {(seg.participation * 100).toFixed(1)}% · 转化率{' '}
-                  {(seg.conversion * 100).toFixed(1)}% · 打卡率 {(seg.checkin * 100).toFixed(1)}%
+                  参与率 {((seg.participation ?? 0) * 100).toFixed(1)}% · 转化率{' '}
+                  {((seg.conversion ?? 0) * 100).toFixed(1)}% · 打卡率{' '}
+                  {((seg.checkin ?? 0) * 100).toFixed(1)}%
                 </p>
                 <p className="text-xs mt-2 text-[var(--text-muted)]">
                   点击围场健康卡片可在此展开 CC 明细（需后端

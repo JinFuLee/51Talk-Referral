@@ -53,7 +53,7 @@ function HeatCell({ value, maxVal }: { value: number | null; maxVal: number }) {
           color: intensityText(ratio),
         }}
       >
-        {value.toFixed(2)}
+        {(value ?? 0).toFixed(2)}
       </div>
     </td>
   );

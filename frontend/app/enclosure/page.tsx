@@ -201,7 +201,7 @@ function CCTabContent({
                     </td>
                     <td className="slide-td py-1 px-2 font-medium">{r.cc_name}</td>
                     <td className="slide-td py-1 px-2 text-right font-mono tabular-nums">
-                      {r.students.toLocaleString()}
+                      {(r.students ?? 0).toLocaleString()}
                     </td>
                     <td
                       className={`slide-td py-1 px-2 text-right font-mono tabular-nums ${metricColor(r.participation_rate, [0.1, 0.2])}`}
@@ -209,7 +209,7 @@ function CCTabContent({
                       {formatRate(r.participation_rate)}
                     </td>
                     <td className="slide-td py-1 px-2 text-right font-mono tabular-nums">
-                      {r.new_coefficient.toFixed(2)}
+                      {(r.new_coefficient ?? 0).toFixed(2)}
                     </td>
                     <td
                       className={`slide-td py-1 px-2 text-right font-mono tabular-nums ${metricColor(r.cargo_ratio, [0.05, 0.1])}`}
@@ -222,7 +222,7 @@ function CCTabContent({
                       {formatRate(r.checkin_rate)}
                     </td>
                     <td className="slide-td py-1 px-2 text-right font-mono tabular-nums">
-                      {r.registrations.toLocaleString()}
+                      {(r.registrations ?? 0).toLocaleString()}
                     </td>
                     <td
                       className={`slide-td py-1 px-2 text-right font-mono tabular-nums ${metricColor(r.ss_reach_rate ?? 0, [0.3, 0.5])}`}
@@ -336,10 +336,10 @@ function CCTabContent({
                       {formatRate(r.cargo_ratio)}
                     </td>
                     <td className="slide-td py-1 px-2 text-right font-mono tabular-nums">
-                      {r.registrations.toLocaleString()}
+                      {(r.registrations ?? 0).toLocaleString()}
                     </td>
                     <td className="slide-td py-1 px-2 text-right font-mono tabular-nums">
-                      {r.payments.toLocaleString()}
+                      {(r.payments ?? 0).toLocaleString()}
                     </td>
                   </tr>
                 ))}
@@ -480,13 +480,13 @@ function SSTabContent() {
                   <tr key={enc} className={i % 2 === 0 ? 'slide-row-even' : 'slide-row-odd'}>
                     <td className="slide-td py-1.5 px-2 text-[var(--text-secondary)]">{enc}</td>
                     <td className="slide-td py-1.5 px-2 text-right font-mono tabular-nums">
-                      {data.students.toLocaleString()}
+                      {(data.students ?? 0).toLocaleString()}
                     </td>
                     <td className="slide-td py-1.5 px-2 text-right font-mono tabular-nums">
-                      {data.registrations.toLocaleString()}
+                      {(data.registrations ?? 0).toLocaleString()}
                     </td>
                     <td className="slide-td py-1.5 px-2 text-right font-mono tabular-nums">
-                      {data.payments.toLocaleString()}
+                      {(data.payments ?? 0).toLocaleString()}
                     </td>
                   </tr>
                 ))}
@@ -627,13 +627,13 @@ function LPTabContent() {
                   <tr key={enc} className={i % 2 === 0 ? 'slide-row-even' : 'slide-row-odd'}>
                     <td className="slide-td py-1.5 px-2 text-[var(--text-secondary)]">{enc}</td>
                     <td className="slide-td py-1.5 px-2 text-right font-mono tabular-nums">
-                      {data.students.toLocaleString()}
+                      {(data.students ?? 0).toLocaleString()}
                     </td>
                     <td className="slide-td py-1.5 px-2 text-right font-mono tabular-nums">
-                      {data.registrations.toLocaleString()}
+                      {(data.registrations ?? 0).toLocaleString()}
                     </td>
                     <td className="slide-td py-1.5 px-2 text-right font-mono tabular-nums">
-                      {data.payments.toLocaleString()}
+                      {(data.payments ?? 0).toLocaleString()}
                     </td>
                   </tr>
                 ))}
@@ -700,25 +700,25 @@ function AllTabContent() {
               <div>
                 <div className="text-[var(--text-muted)]">有效学员</div>
                 <div className="font-mono font-semibold text-[var(--text-primary)]">
-                  {item.students.toLocaleString()}
+                  {(item.students ?? 0).toLocaleString()}
                 </div>
               </div>
               <div>
                 <div className="text-[var(--text-muted)]">注册数</div>
                 <div className="font-mono font-semibold text-[var(--text-primary)]">
-                  {item.registrations.toLocaleString()}
+                  {(item.registrations ?? 0).toLocaleString()}
                 </div>
               </div>
               <div>
                 <div className="text-[var(--text-muted)]">付费数</div>
                 <div className="font-mono font-semibold text-[var(--text-primary)]">
-                  {item.payments.toLocaleString()}
+                  {(item.payments ?? 0).toLocaleString()}
                 </div>
               </div>
               <div>
                 <div className="text-[var(--text-muted)]">业绩(USD)</div>
                 <div className="font-mono font-semibold text-[var(--text-primary)]">
-                  ${item.revenue.toLocaleString()}
+                  ${(item.revenue ?? 0).toLocaleString()}
                 </div>
               </div>
             </div>

@@ -151,10 +151,10 @@ function CCContent() {
             <div className="text-center py-3">
               <p className="text-xs text-[var(--text-muted)] mb-1">失联 &gt;14 天</p>
               <p className="text-3xl font-bold text-red-500">
-                {summary.lost_contact_count.toLocaleString()}
+                {(summary.lost_contact_count ?? 0).toLocaleString()}
               </p>
               <p className="text-xs text-[var(--text-muted)] mt-1">
-                人 / 共 {summary.total_students.toLocaleString()} 名学员
+                人 / 共 {(summary.total_students ?? 0).toLocaleString()} 名学员
               </p>
             </div>
           </Card>
@@ -226,7 +226,7 @@ function CCContent() {
                     <td className="slide-td font-medium">{p.cc_name}</td>
                     <td className="slide-td text-[var(--text-secondary)] text-xs">{p.cc_group}</td>
                     <td className="slide-td text-right font-mono tabular-nums">
-                      {p.students.toLocaleString()}
+                      {(p.students ?? 0).toLocaleString()}
                     </td>
                     <td className="slide-td text-right font-mono tabular-nums">
                       {fmtDuration(p.avg_call_duration_sec)}
@@ -272,7 +272,7 @@ function CCContent() {
                       </span>
                     </td>
                     <td className="slide-td text-right font-mono tabular-nums text-[var(--text-muted)]">
-                      {p.total_calls.toLocaleString()}
+                      {(p.total_calls ?? 0).toLocaleString()}
                     </td>
                   </tr>
                 );

@@ -92,9 +92,11 @@ export default function GeoDistributionPage() {
           >
             <p className="text-xs text-[var(--text-muted)] mb-1">{item.country}</p>
             <p className="text-2xl font-bold text-[var(--text-primary)]">
-              {item.student_count.toLocaleString()}
+              {(item.student_count ?? 0).toLocaleString()}
             </p>
-            <p className="text-xs text-[var(--text-secondary)] mt-1">占比 {item.pct.toFixed(1)}%</p>
+            <p className="text-xs text-[var(--text-secondary)] mt-1">
+              占比 {(item.pct ?? 0).toFixed(1)}%
+            </p>
           </div>
         ))}
       </div>
@@ -118,21 +120,21 @@ export default function GeoDistributionPage() {
               <tr key={item.country} className={i % 2 === 0 ? 'slide-row-even' : 'slide-row-odd'}>
                 <td className="slide-td font-medium text-[var(--text-primary)]">{item.country}</td>
                 <td className="slide-td text-right font-mono tabular-nums">
-                  {item.student_count.toLocaleString()}
+                  {(item.student_count ?? 0).toLocaleString()}
                 </td>
                 <td className="slide-td" style={{ minWidth: '160px' }}>
                   <BarCell pct={item.pct} />
                 </td>
                 <td className="slide-td text-right font-mono tabular-nums">
                   {item.avg_referral_registrations != null ? (
-                    item.avg_referral_registrations.toFixed(2)
+                    (item.avg_referral_registrations ?? 0).toFixed(2)
                   ) : (
                     <span className="text-[var(--text-muted)]">—</span>
                   )}
                 </td>
                 <td className="slide-td text-right font-mono tabular-nums">
                   {item.avg_payments != null ? (
-                    item.avg_payments.toFixed(2)
+                    (item.avg_payments ?? 0).toFixed(2)
                   ) : (
                     <span className="text-[var(--text-muted)]">—</span>
                   )}
