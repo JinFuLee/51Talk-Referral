@@ -20,11 +20,25 @@ interface PushControlProps {
 }
 
 export function PushControl({ platform }: PushControlProps) {
-  const { data: templates } = useSWR<PushTemplate[]>('/api/notifications/templates', swrFetcher);
-  const { data: channels } = useSWR<BotChannel[]>(
+  const { data: rawTemplates } = useSWR<{ templates: PushTemplate[] } | PushTemplate[]>(
+    '/api/notifications/templates',
+    swrFetcher
+  );
+  const templates: PushTemplate[] | undefined = rawTemplates
+    ? Array.isArray(rawTemplates)
+      ? rawTemplates
+      : (rawTemplates as { templates: PushTemplate[] }).templates
+    : undefined;
+
+  const { data: rawChannels } = useSWR<{ channels: BotChannel[] } | BotChannel[]>(
     `/api/notifications/channels/${platform}`,
     swrFetcher
   );
+  const channels: BotChannel[] | undefined = rawChannels
+    ? Array.isArray(rawChannels)
+      ? rawChannels
+      : (rawChannels as { channels: BotChannel[] }).channels
+    : undefined;
 
   const [selectedTemplate, setSelectedTemplate] = useState<string>('daily_report');
   const [selectedChannelIds, setSelectedChannelIds] = useState<string[]>([]);

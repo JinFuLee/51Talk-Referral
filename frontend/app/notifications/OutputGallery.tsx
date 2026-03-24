@@ -79,10 +79,19 @@ export function OutputGallery({ platform }: OutputGalleryProps) {
   const [previewText, setPreviewText] = useState<OutputItem | null>(null);
 
   const params = new URLSearchParams({ date, ...(role !== 'ALL' && { role }) });
-  const { data, isLoading, error } = useSWR<OutputItem[]>(
+  const {
+    data: rawData,
+    isLoading,
+    error,
+  } = useSWR<{ files: OutputItem[] } | OutputItem[]>(
     `/api/notifications/outputs?${params}&platform=${platform}`,
     swrFetcher
   );
+  const data: OutputItem[] | undefined = rawData
+    ? Array.isArray(rawData)
+      ? rawData
+      : (rawData as { files: OutputItem[] }).files
+    : undefined;
 
   if (isLoading) {
     return (

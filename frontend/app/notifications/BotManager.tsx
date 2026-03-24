@@ -13,10 +13,21 @@ interface BotManagerProps {
 }
 
 export function BotManager({ platform }: BotManagerProps) {
-  const { data, isLoading, error, mutate } = useSWR<BotChannel[]>(
+  const {
+    data: rawData,
+    isLoading,
+    error,
+    mutate,
+  } = useSWR<{ channels: BotChannel[]; total: number } | BotChannel[]>(
     `/api/notifications/channels/${platform}`,
     swrFetcher
   );
+  // API 返回 {channels: [...], total: N}，兼容直接数组
+  const data: BotChannel[] | undefined = rawData
+    ? Array.isArray(rawData)
+      ? rawData
+      : (rawData as { channels: BotChannel[] }).channels
+    : undefined;
 
   const [formOpen, setFormOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<BotChannel | null>(null);
