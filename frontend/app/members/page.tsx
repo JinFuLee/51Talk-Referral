@@ -185,7 +185,7 @@ export default function MembersPage() {
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="bg-[var(--n-800)] text-white text-xs font-medium">
+                  <tr className="slide-thead-row text-xs">
                     <th className="py-1.5 px-2 border-0 text-left whitespace-nowrap">ID</th>
                     <th className="py-1.5 px-2 border-0 text-left whitespace-nowrap">围场</th>
                     <th className="py-1.5 px-2 border-0 text-left whitespace-nowrap">生命周期</th>

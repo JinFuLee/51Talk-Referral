@@ -1,5 +1,5 @@
-import { formatRate } from "@/lib/utils";
-import type { ScenarioResult } from "@/lib/types/funnel";
+import { formatRate } from '@/lib/utils';
+import type { ScenarioResult } from '@/lib/types/funnel';
 
 interface ScenarioTableProps {
   stages: ScenarioResult[];
@@ -7,16 +7,14 @@ interface ScenarioTableProps {
 
 export function ScenarioTable({ stages }: ScenarioTableProps) {
   if (stages.length === 0) {
-    return (
-      <p className="text-sm text-[var(--text-muted)] text-center py-6">暂无场景推演数据</p>
-    );
+    return <p className="text-sm text-[var(--text-muted)] text-center py-6">暂无场景推演数据</p>;
   }
 
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-sm">
         <thead>
-          <tr className="bg-[var(--n-800)] text-white text-xs font-medium">
+          <tr className="slide-thead-row text-xs">
             <th className="py-1.5 px-2 border-0 text-left">环节</th>
             <th className="py-1.5 px-2 border-0 text-right">当前转化率</th>
             <th className="py-1.5 px-2 border-0 text-right">场景转化率</th>

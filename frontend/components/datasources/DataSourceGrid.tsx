@@ -1,17 +1,17 @@
-"use client";
+'use client';
 
-import type { DataSourceStatus } from "@/lib/types";
+import type { DataSourceStatus } from '@/lib/types';
 
 const statusStyle: Record<string, string> = {
-  ok: "bg-success/10 text-success",
-  missing: "bg-destructive/10 text-destructive",
-  outdated: "bg-warning/10 text-warning",
+  ok: 'bg-success/10 text-success',
+  missing: 'bg-destructive/10 text-destructive',
+  outdated: 'bg-warning/10 text-warning',
 };
 
 const statusLabel: Record<string, string> = {
-  ok: "正常",
-  missing: "缺失",
-  outdated: "过期",
+  ok: '正常',
+  missing: '缺失',
+  outdated: '过期',
 };
 
 interface DataSourceGridProps {
@@ -27,11 +27,16 @@ export function DataSourceGrid({ sources, showDetail }: DataSourceGridProps) {
   return (
     <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">
       {sources.map((src) => (
-        <div key={src.id} className="rounded-lg border border-slate-200 bg-[var(--bg-surface)] p-3 text-xs">
+        <div
+          key={src.id}
+          className="rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-3 text-xs"
+        >
           <div className="flex items-center justify-between mb-1">
             <span className="font-medium text-[var(--text-primary)] truncate">{src.name_zh}</span>
-            <span className={`ml-1 px-1.5 py-0.5 rounded text-xs font-medium ${statusStyle[src.has_file ? (src.is_fresh ? "ok" : "outdated") : "missing"]}`}>
-              {statusLabel[src.has_file ? (src.is_fresh ? "ok" : "outdated") : "missing"]}
+            <span
+              className={`ml-1 px-1.5 py-0.5 rounded text-xs font-medium ${statusStyle[src.has_file ? (src.is_fresh ? 'ok' : 'outdated') : 'missing']}`}
+            >
+              {statusLabel[src.has_file ? (src.is_fresh ? 'ok' : 'outdated') : 'missing']}
             </span>
           </div>
           <div className="text-[var(--text-muted)] space-y-0.5">

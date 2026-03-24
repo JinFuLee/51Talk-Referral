@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { useState, useRef, useEffect } from "react";
-import { Download, FileSpreadsheet, FileText } from "lucide-react";
+import { useState, useRef, useEffect } from 'react';
+import { Download, FileSpreadsheet, FileText } from 'lucide-react';
 
 interface ExportButtonProps {
   onExportCsv?: () => void;
@@ -19,8 +19,8 @@ export function ExportButton({ onExportCsv, onExportExcel, isExporting }: Export
         setIsOpen(false);
       }
     }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   return (
@@ -28,14 +28,14 @@ export function ExportButton({ onExportCsv, onExportExcel, isExporting }: Export
       <button
         onClick={() => setIsOpen(!isOpen)}
         disabled={isExporting}
-        className="flex items-center gap-2 px-3 py-1.5 bg-[var(--bg-surface)] border border-slate-200 text-[var(--text-secondary)] rounded-lg hover:bg-brand-50 hover:text-brand-600 hover:border-brand-200 transition-colors shadow-sm disabled:opacity-50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-brand-500/20"
+        className="flex items-center gap-2 px-3 py-1.5 bg-[var(--bg-surface)] border border-[var(--border-subtle)] text-[var(--text-secondary)] rounded-lg hover:bg-brand-50 hover:text-brand-600 hover:border-brand-200 transition-colors shadow-sm disabled:opacity-50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-brand-500/20"
       >
         <Download className="w-4 h-4" />
-        {isExporting ? "导出中..." : "数据导出"}
+        {isExporting ? '导出中...' : '数据导出'}
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-36 bg-[var(--bg-surface)] border border-slate-200 shadow-xl rounded-lg overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 focus:outline-none origin-top-right">
+        <div className="absolute right-0 mt-2 w-36 bg-[var(--bg-surface)] border border-[var(--border-subtle)] shadow-xl rounded-lg overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 focus:outline-none origin-top-right">
           <button
             onClick={() => {
               setIsOpen(false);

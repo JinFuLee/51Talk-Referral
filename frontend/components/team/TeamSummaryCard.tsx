@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import { formatRate } from "@/lib/utils";
+import { formatRate } from '@/lib/utils';
 
 interface TeamSummaryCardProps {
   cc_name: string;
@@ -26,7 +26,7 @@ export function TeamSummaryCard({
   cc_reach_rate,
 }: TeamSummaryCardProps) {
   return (
-    <div className="bg-[var(--bg-surface)] rounded-[var(--radius-xl)] border border-slate-200/60 shadow-sm p-5">
+    <div className="bg-[var(--bg-surface)] rounded-[var(--radius-xl)] border border-[var(--border-subtle)] shadow-sm p-5">
       <div className="flex items-start justify-between mb-3">
         <div>
           <p className="text-base font-bold text-[var(--text-primary)]">{cc_name}</p>
@@ -38,7 +38,7 @@ export function TeamSummaryCard({
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-2 pt-3 border-t border-slate-100">
+      <div className="grid grid-cols-3 gap-2 pt-3 border-t border-[var(--border-subtle)]">
         <div className="text-center">
           <div className="text-sm font-semibold text-[var(--text-primary)]">
             {formatRate(participation_rate)}
@@ -59,7 +59,7 @@ export function TeamSummaryCard({
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-2 mt-3 pt-3 border-t border-slate-100">
+      <div className="grid grid-cols-2 gap-2 mt-3 pt-3 border-t border-[var(--border-subtle)]">
         <div className="text-center">
           <div className="text-sm font-semibold text-[var(--text-primary)]">
             {formatRate(checkin_rate ?? 0)}
@@ -77,7 +77,11 @@ export function TeamSummaryCard({
       <div className="mt-3 pt-2 border-t border-slate-50 text-right">
         <span className="text-xs text-[var(--text-muted)]">业绩 </span>
         <span className="text-sm font-semibold text-[var(--text-primary)]">
-          ${(revenue_usd ?? 0).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+          $
+          {(revenue_usd ?? 0).toLocaleString(undefined, {
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0,
+          })}
         </span>
       </div>
     </div>

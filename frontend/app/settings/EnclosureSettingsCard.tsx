@@ -65,7 +65,7 @@ export default function EnclosureSettingsCard({
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="bg-[var(--n-800)] text-white text-xs font-medium">
+              <tr className="slide-thead-row text-xs">
                 <th className="text-left py-1.5 px-2">指标</th>
                 {ENCLOSURE_KEYS.map((k) => (
                   <th key={k} className="text-right py-1.5 px-2">

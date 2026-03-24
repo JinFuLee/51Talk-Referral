@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import type { LucideIcon } from "lucide-react";
-import type { ReactNode } from "react";
+import type { LucideIcon } from 'lucide-react';
+import type { ReactNode } from 'react';
 
 interface PageHeaderProps {
   title: string;
@@ -17,14 +17,14 @@ export function PageHeader({
   subtitle,
   icon: Icon,
   badge,
-  badgeColor = "bg-slate-100 text-[var(--text-secondary)]",
+  badgeColor = 'bg-slate-100 text-[var(--text-secondary)]',
   children,
 }: PageHeaderProps) {
   return (
     <div className="flex items-center justify-between">
       <div className="flex items-center gap-3">
         {Icon && (
-          <div className="p-2 rounded-lg bg-slate-50 border border-slate-100">
+          <div className="p-2 rounded-lg bg-slate-50 border border-[var(--border-subtle)]">
             <Icon className="w-5 h-5 text-[var(--text-secondary)]" aria-hidden="true" />
           </div>
         )}
@@ -32,21 +32,15 @@ export function PageHeader({
           <div className="flex items-center gap-2">
             <h1 className="text-lg font-bold text-[var(--text-primary)]">{title}</h1>
             {badge && (
-              <span
-                className={`text-xs px-2 py-0.5 rounded-full font-medium ${badgeColor}`}
-              >
+              <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${badgeColor}`}>
                 {badge}
               </span>
             )}
           </div>
-          {subtitle && (
-            <p className="text-xs text-[var(--text-muted)] mt-0.5">{subtitle}</p>
-          )}
+          {subtitle && <p className="text-xs text-[var(--text-muted)] mt-0.5">{subtitle}</p>}
         </div>
       </div>
-      {children && (
-        <div className="flex items-center gap-2">{children}</div>
-      )}
+      {children && <div className="flex items-center gap-2">{children}</div>}
     </div>
   );
 }

@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 export interface PaginationProps {
   currentPage: number;
@@ -13,13 +13,15 @@ export function Pagination({ currentPage, totalPages, totalItems, onPageChange }
   return (
     <div className="flex items-center gap-3 text-sm">
       {totalItems !== undefined && (
-        <span className="text-[var(--text-secondary)] hidden sm:inline-block">共 {totalItems.toLocaleString()} 条记录</span>
+        <span className="text-[var(--text-secondary)] hidden sm:inline-block">
+          共 {totalItems.toLocaleString()} 条记录
+        </span>
       )}
-      <div className="flex items-center bg-[var(--bg-surface)] border border-slate-200 rounded-lg shadow-sm">
+      <div className="flex items-center bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-lg shadow-sm">
         <button
           onClick={() => onPageChange(currentPage - 1)}
           disabled={currentPage <= 1}
-          className="p-1 text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-slate-50 disabled:opacity-30 disabled:hover:bg-transparent rounded-l-lg transition-colors border-r border-slate-200"
+          className="p-1 text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-slate-50 disabled:opacity-30 disabled:hover:bg-transparent rounded-l-lg transition-colors border-r border-[var(--border-subtle)]"
           aria-label="上一页"
         >
           <ChevronLeft className="w-5 h-5 mx-0.5" />
@@ -30,7 +32,7 @@ export function Pagination({ currentPage, totalPages, totalItems, onPageChange }
         <button
           onClick={() => onPageChange(currentPage + 1)}
           disabled={currentPage >= totalPages}
-          className="p-1 text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-slate-50 disabled:opacity-30 disabled:hover:bg-transparent rounded-r-lg transition-colors border-l border-slate-200"
+          className="p-1 text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-slate-50 disabled:opacity-30 disabled:hover:bg-transparent rounded-r-lg transition-colors border-l border-[var(--border-subtle)]"
           aria-label="下一页"
         >
           <ChevronRight className="w-5 h-5 mx-0.5" />

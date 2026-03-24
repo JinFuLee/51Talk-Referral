@@ -134,7 +134,7 @@ function AssignmentTable({
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
-            <tr className="bg-[var(--n-800)] text-white text-xs font-medium">
+            <tr className="slide-thead-row text-xs">
               <th className="text-left py-1.5 px-3">围场</th>
               {ROLES.map((role) => (
                 <th key={role} className="text-center py-1.5 px-3">

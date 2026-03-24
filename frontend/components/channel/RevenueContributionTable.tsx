@@ -16,7 +16,7 @@ export function RevenueContributionTable({ contributions }: RevenueContributionT
     <div className="overflow-x-auto">
       <table className="w-full text-sm">
         <thead>
-          <tr className="bg-[var(--n-800)] text-white text-xs font-medium">
+          <tr className="slide-thead-row text-xs">
             <th className="py-1.5 px-2 border-0 text-left">渠道</th>
             <th className="py-1.5 px-2 border-0 text-right">净业绩</th>
             <th className="py-1.5 px-2 border-0 text-right">占比</th>

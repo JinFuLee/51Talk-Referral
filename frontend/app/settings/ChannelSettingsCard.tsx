@@ -43,7 +43,7 @@ export default function ChannelSettingsCard({ v2, onUpdateChannel }: ChannelSett
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
-            <tr className="bg-[var(--n-800)] text-white text-xs font-medium">
+            <tr className="slide-thead-row text-xs">
               <th className="text-left py-1.5 px-2 w-20">渠道</th>
               <th className="text-right py-1.5 px-2">注册目标</th>
               <th className="text-right py-1.5 px-2">客单价</th>

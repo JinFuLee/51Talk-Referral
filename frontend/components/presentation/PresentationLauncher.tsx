@@ -1,11 +1,11 @@
-"use client";
+'use client';
 
-import React, { useState } from "react";
-import { clsx } from "clsx";
-import { useRouter } from "next/navigation";
-import { Users, TrendingUp, Handshake, Play, Clock } from "lucide-react";
-import { usePresentationStore } from "@/lib/stores/presentation-store";
-import type { Audience, Timeframe } from "@/lib/presentation/types";
+import React, { useState } from 'react';
+import { clsx } from 'clsx';
+import { useRouter } from 'next/navigation';
+import { Users, TrendingUp, Handshake, Play, Clock } from 'lucide-react';
+import { usePresentationStore } from '@/lib/stores/presentation-store';
+import type { Audience, Timeframe } from '@/lib/presentation/types';
 
 interface SceneConfig {
   id: Audience;
@@ -23,34 +23,34 @@ interface TimeframeConfig {
 
 const SCENES: SceneConfig[] = [
   {
-    id: "gm",
+    id: 'gm',
     icon: <TrendingUp className="w-8 h-8" />,
-    title: "GM 汇报",
-    description: "面向总经理的战略级汇报，聚焦核心 KPI 与业务趋势",
-    allowedTimeframes: ["daily", "weekly", "monthly", "quarterly", "yearly"],
+    title: 'GM 汇报',
+    description: '面向总经理的战略级汇报，聚焦核心 KPI 与业务趋势',
+    allowedTimeframes: ['daily', 'weekly', 'monthly', 'quarterly', 'yearly'],
   },
   {
-    id: "ops-director",
+    id: 'ops-director',
     icon: <Users className="w-8 h-8" />,
-    title: "运营总监汇报",
-    description: "运营层面深度分析，含漏斗拆解、CC 排名与行动追踪",
-    allowedTimeframes: ["daily", "weekly", "monthly"],
+    title: '运营总监汇报',
+    description: '运营层面深度分析，含漏斗拆解、CC 排名与行动追踪',
+    allowedTimeframes: ['daily', 'weekly', 'monthly'],
   },
   {
-    id: "crosscheck",
+    id: 'crosscheck',
     icon: <Handshake className="w-8 h-8" />,
-    title: "对等会议",
-    description: "运营与业务双方对等协商，承诺追踪与联合行动",
-    allowedTimeframes: ["weekly", "monthly", "quarterly"],
+    title: '对等会议',
+    description: '运营与业务双方对等协商，承诺追踪与联合行动',
+    allowedTimeframes: ['weekly', 'monthly', 'quarterly'],
   },
 ];
 
 const TIMEFRAMES: TimeframeConfig[] = [
-  { id: "daily", label: "日报", sublabel: "T-1 数据" },
-  { id: "weekly", label: "周报", sublabel: "WoW 对比" },
-  { id: "monthly", label: "月报", sublabel: "MoM 对比" },
-  { id: "quarterly", label: "季报", sublabel: "QoQ 对比" },
-  { id: "yearly", label: "年报", sublabel: "YoY 对比" },
+  { id: 'daily', label: '日报', sublabel: 'T-1 数据' },
+  { id: 'weekly', label: '周报', sublabel: 'WoW 对比' },
+  { id: 'monthly', label: '月报', sublabel: 'MoM 对比' },
+  { id: 'quarterly', label: '季报', sublabel: 'QoQ 对比' },
+  { id: 'yearly', label: '年报', sublabel: 'YoY 对比' },
 ];
 
 export function PresentationLauncher() {
@@ -87,25 +87,34 @@ export function PresentationLauncher() {
                   setSelectedTimeframe(null);
                 }}
                 className={clsx(
-                  "flex flex-col items-start gap-3 rounded-[var(--radius-xl)] border-2 p-6 text-left transition-all duration-200",
+                  'flex flex-col items-start gap-3 rounded-[var(--radius-xl)] border-2 p-6 text-left transition-all duration-200',
                   isSelected
-                    ? "border-primary bg-primary/5 shadow-md shadow-primary/10"
-                    : "border-slate-200 bg-[var(--bg-surface)] hover:border-slate-300 hover:shadow-sm"
+                    ? 'border-primary bg-primary/5 shadow-md shadow-primary/10'
+                    : 'border-[var(--border-subtle)] bg-[var(--bg-surface)] hover:border-[var(--border-hover)] hover:shadow-sm'
                 )}
               >
                 <div
                   className={clsx(
-                    "rounded-xl p-3",
-                    isSelected ? "bg-primary text-white" : "bg-slate-100 text-[var(--text-secondary)]"
+                    'rounded-xl p-3',
+                    isSelected
+                      ? 'bg-primary text-white'
+                      : 'bg-slate-100 text-[var(--text-secondary)]'
                   )}
                 >
                   {scene.icon}
                 </div>
                 <div>
-                  <p className={clsx("text-lg font-bold", isSelected ? "text-primary" : "text-[var(--text-primary)]")}>
+                  <p
+                    className={clsx(
+                      'text-lg font-bold',
+                      isSelected ? 'text-primary' : 'text-[var(--text-primary)]'
+                    )}
+                  >
                     {scene.title}
                   </p>
-                  <p className="text-sm text-[var(--text-secondary)] mt-1 leading-snug">{scene.description}</p>
+                  <p className="text-sm text-[var(--text-secondary)] mt-1 leading-snug">
+                    {scene.description}
+                  </p>
                 </div>
               </button>
             );
@@ -115,9 +124,7 @@ export function PresentationLauncher() {
 
       {/* Timeframe selection (only shown after scene selected) */}
       {selectedScene && (
-        <div
-          style={{ animation: "fadeInUp 0.3s ease forwards" }}
-        >
+        <div style={{ animation: 'fadeInUp 0.3s ease forwards' }}>
           <style>{`
             @keyframes fadeInUp {
               from { opacity: 0; transform: translateY(8px); }
@@ -138,11 +145,11 @@ export function PresentationLauncher() {
                   onClick={() => allowed && setSelectedTimeframe(tf.id)}
                   disabled={!allowed}
                   className={clsx(
-                    "flex flex-col items-center gap-1 px-5 py-3 rounded-xl border-2 transition-all duration-200",
-                    !allowed && "opacity-30 cursor-not-allowed",
+                    'flex flex-col items-center gap-1 px-5 py-3 rounded-xl border-2 transition-all duration-200',
+                    !allowed && 'opacity-30 cursor-not-allowed',
                     isSelected
-                      ? "border-primary bg-primary/5 text-primary"
-                      : "border-slate-200 bg-[var(--bg-surface)] hover:border-slate-300 text-[var(--text-primary)]"
+                      ? 'border-primary bg-primary/5 text-primary'
+                      : 'border-[var(--border-subtle)] bg-[var(--bg-surface)] hover:border-[var(--border-hover)] text-[var(--text-primary)]'
                   )}
                 >
                   <span className="text-base font-bold">{tf.label}</span>
@@ -160,10 +167,10 @@ export function PresentationLauncher() {
           onClick={handleStart}
           disabled={!selectedScene || !selectedTimeframe}
           className={clsx(
-            "flex items-center gap-3 px-8 py-4 rounded-[var(--radius-xl)] text-lg font-bold transition-all duration-200",
+            'flex items-center gap-3 px-8 py-4 rounded-[var(--radius-xl)] text-lg font-bold transition-all duration-200',
             selectedScene && selectedTimeframe
-              ? "bg-primary text-white shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 hover:-translate-y-0.5"
-              : "bg-slate-100 text-[var(--text-muted)] cursor-not-allowed"
+              ? 'bg-primary text-white shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 hover:-translate-y-0.5'
+              : 'bg-slate-100 text-[var(--text-muted)] cursor-not-allowed'
           )}
         >
           <Play className="w-5 h-5" />
