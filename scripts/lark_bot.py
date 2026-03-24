@@ -580,7 +580,7 @@ def generate_cc_image(
 
     row_h = 0.35
     # 标题区 + 打卡率汇总条（含两行）
-    header_h = 2.8
+    header_h = 3.0
     table_h = total_rows * row_h
     total_h = header_h + table_h + 0.4
     total_h = max(total_h, 4.0)
@@ -614,7 +614,7 @@ def generate_cc_image(
         color=C_HEADER,
         va="top",
     )
-    y -= 0.25
+    y -= 0.45  # 泰文 15pt 需要更大间距
     ax.text(
         0.35,
         y,
@@ -1589,38 +1589,47 @@ def cmd_followup(args: argparse.Namespace) -> None:
         )
         team_elements.append({"tag": "hr"})
 
+        # 围场过滤：只显示该角色对应的围场
+        enc_order = ["M0", "M1", "M2"]  # CC 默认，后续按 role 动态
+
         for cc_entry in tr["ccs"]:
             cc_rate = cc_entry.get("rate", 0.0) or 0.0
-            rate_display = f"{cc_rate:.1%}" if cc_entry.get("rate") is not None else "—"
-            cc_md = (
-                f"👤 **{cc_entry['cc']}**  "
-                f"{_th('checkin_rate')}({_zh('checkin_rate')}) {rate_display}\n"
-                f"{_th('not_checked')} **{cc_entry['count']}** {_th('persons')}"
-                f" / {_zh('not_checked')} {cc_entry['count']} {_zh('persons')}"
-            )
-            # 各围场打卡率（文字）
-            by_enc = cc_entry.get("by_enclosure", [])
-            if by_enc:
-                enc_parts = []
-                for ei in by_enc:
-                    if ei.get("students", 0) > 0:
-                        enc_parts.append(
-                            f"{ei['enclosure']}: {ei['rate']:.1%}"
-                            f" ({ei['checked_in']}/{ei['students']})"
-                        )
-                if enc_parts:
-                    cc_md += "\n" + "  |  ".join(enc_parts)
+            rate_pct = f"{cc_rate:.1%}" if cc_entry.get("rate") is not None else "—"
 
+            # 标题行：CC 名 + 总打卡率
+            cc_md = f"👤 **{cc_entry['cc']}**  {rate_pct}\n"
+
+            # 各围场分行（只显示角色对应围场）
+            by_enc = cc_entry.get("by_enclosure", [])
+            enc_map = {ei["enclosure"]: ei for ei in by_enc}
+            students_by_enc = cc_entry.get("students_by_enc", {})
+            for enc in enc_order:
+                ei = enc_map.get(enc, {})
+                unchecked_n = len(students_by_enc.get(enc, []))
+                if ei.get("students", 0) > 0 or unchecked_n > 0:
+                    enc_r = f"{ei['rate']:.1%}" if ei.get("rate") is not None else "—"
+                    cc_md += (
+                        f"{enc}: {_th('not_checked')} "
+                        f"**{unchecked_n}** {_th('persons')}"
+                        f"  ({enc_r})\n"
+                    )
+
+            # 图片链接
             if cc_entry["img_url"]:
                 cc_md += (
-                    f"\n📷 [{_bi('view_list')} {cc_entry['cc']}]"
-                    f"({cc_entry['img_url']})"
+                    f"📷 [{_bi('view_list')}]"
+                    f"({cc_entry['img_url']})\n"
                 )
-            # 📋 学员 ID（内嵌，销售可直接复制）
+
+            # 学员 ID（每 10 个换行，避免一长串）
             ids = cc_entry.get("student_ids", [])
             if ids:
-                ids_text = ", ".join(ids)
-                cc_md += f"\n📋 ID: {ids_text}"
+                chunks = [
+                    ", ".join(ids[i:i + 10])
+                    for i in range(0, len(ids), 10)
+                ]
+                cc_md += "📋 " + "\n".join(chunks)
+
             team_elements.append({"tag": "markdown", "content": cc_md})
 
         team_title = (
