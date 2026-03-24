@@ -1457,7 +1457,7 @@ class NotificationEngine:
     def _process_followup_per_cc(
         self, role: str, channel: dict, dry_run: bool
     ) -> dict:
-        """分组推送：钉钉消息（1 总览 + N 小组），同步 Lark 最新格式（围场分段+打卡率+角色动态）"""
+        """分组推送：钉钉消息（1总览+N小组），同步Lark最新格式（围场分段+角色动态）"""
         import sys as _sys  # noqa: PLC0415
         from collections import defaultdict as _dd  # noqa: PLC0415
 
@@ -1514,7 +1514,9 @@ class NotificationEngine:
                     "cc": cc_name,
                     "count": len(cc_students_flat),
                     "students_by_enc": dict(s_by_enc),
-                    "student_ids": [str(s.get("student_id", "")) for s in cc_students_flat],
+                    "student_ids": [
+                        str(s.get("student_id", "")) for s in cc_students_flat
+                    ],
                 })
             team_summary.append({
                 "team": team_name,
@@ -1534,7 +1536,9 @@ class NotificationEngine:
         if ov_path.exists():
             ov_bytes = ov_path.read_bytes()
         else:
-            ov_bytes = _lb.generate_overview_image(team_summary, {}, date_display, role=role)
+            ov_bytes = _lb.generate_overview_image(
+                team_summary, {}, date_display, role=role
+            )
             ov_path.write_bytes(ov_bytes)
 
         cc_images: dict[str, dict] = {}  # key: "team/cc"
@@ -1571,7 +1575,7 @@ class NotificationEngine:
         url_cache = _lb.load_url_cache(date_short)
         ov_url = _lb.cached_upload(ov_bytes, ov_fn, url_cache)
 
-        for key, ci in cc_images.items():
+        for _key, ci in cc_images.items():
             ci["url"] = _lb.cached_upload(ci["bytes"], ci["filename"], url_cache)
 
         _lb.save_url_cache(date_short, url_cache)
