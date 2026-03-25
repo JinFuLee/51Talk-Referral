@@ -628,6 +628,41 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-3">
+      {/* 异常警报横幅 */}
+      {hasMetrics && (
+        <AnomalyBanner
+          paceGap={data?.kpi_8item?.paid?.pace_gap ?? data?.kpi_8item?.revenue?.pace_gap ?? null}
+          checkinRate={d2b?.checkin_rate ?? null}
+          achievementRate={
+            data?.kpi_8item?.paid?.actual != null && data?.kpi_8item?.paid?.target
+              ? (data.kpi_8item.paid.actual ?? 0) / (data.kpi_8item.paid.target ?? 1)
+              : null
+          }
+          timeProgress={tp?.time_progress ?? null}
+          worstMoM={(() => {
+            const moms = ['register', 'paid', 'revenue']
+              .map((k) => kpiMom[k] ?? null)
+              .filter((v): v is number => v !== null);
+            return moms.length > 0 ? Math.min(...moms) : null;
+          })()}
+          worstMoMLabel={(() => {
+            const pairs: [string, string][] = [
+              ['paid', '付费数'],
+              ['revenue', '业绩'],
+              ['register', '注册数'],
+            ];
+            const worst = pairs.reduce<[string, string] | null>((acc, [k, label]) => {
+              const v = kpiMom[k];
+              if (v === undefined || v === null) return acc;
+              if (!acc) return [k, label];
+              const accV = kpiMom[acc[0]];
+              return accV === undefined || accV === null || v < accV ? [k, label] : acc;
+            }, null);
+            return worst ? worst[1] : null;
+          })()}
+        />
+      )}
+
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h1 className="text-lg font-bold text-[var(--text-primary)]">运营总览</h1>
@@ -782,6 +817,9 @@ export default function DashboardPage() {
       <Card title="数据源状态">
         <DataSourceSection sources={fullSources ?? []} />
       </Card>
+
+      {/* CC 个人工作台 */}
+      <PersonalWorkbench />
     </div>
   );
 }
