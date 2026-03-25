@@ -69,13 +69,22 @@ export function SegmentBenchmark({ data }: SegmentBenchmarkProps) {
           contentStyle={{
             background: 'var(--bg-surface)',
             border: '1px solid var(--border-default)',
-            borderRadius: 6,
+            borderRadius: 'var(--radius-md, 10px)',
+            boxShadow: 'var(--shadow-medium)',
             fontSize: 12,
           }}
+          cursor={{ stroke: 'var(--border-hover)', strokeDasharray: '4 4' }}
         />
-        <Legend wrapperStyle={{ fontSize: 11 }} />
+        <Legend wrapperStyle={{ paddingTop: 12 }} iconType="circle" iconSize={8} />
         {METRICS.map(({ key, label, color }) => (
-          <Bar key={key} dataKey={label} fill={color} radius={[2, 2, 0, 0]} />
+          <Bar
+            key={key}
+            dataKey={label}
+            fill={color}
+            radius={[4, 4, 0, 0]}
+            animationDuration={600}
+            animationEasing="ease-out"
+          />
         ))}
       </BarChart>
     </ResponsiveContainer>
