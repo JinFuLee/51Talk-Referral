@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import useSWR from 'swr';
 import { swrFetcher } from '@/lib/api';
 import { useFilteredSWR } from '@/lib/hooks/use-filtered-swr';
-import { formatRate, formatRevenue } from '@/lib/utils';
+import { formatRate, formatRevenue, metricColor } from '@/lib/utils';
 import { Card } from '@/components/ui/Card';
 import { SkeletonCard } from '@/components/ui/Skeleton';
 import { Spinner } from '@/components/ui/Spinner';
@@ -69,12 +69,7 @@ interface RankingResponse {
 
 /* ── 工具函数 ───────────────────────────────────────────────── */
 
-function metricColor(value: number | null | undefined, thresholds: [number, number]) {
-  if (value === null || value === undefined) return 'text-[var(--text-muted)]';
-  if (value >= thresholds[1]) return 'text-green-600 font-semibold';
-  if (value >= thresholds[0]) return 'text-yellow-600';
-  return 'text-red-500';
-}
+// metricColor 已移至 lib/utils.ts 共享
 
 function RankBadge({ rank }: { rank: number }) {
   const cls =

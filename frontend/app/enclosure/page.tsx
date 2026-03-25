@@ -4,7 +4,7 @@ import { useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import useSWR from 'swr';
 import { swrFetcher } from '@/lib/api';
-import { formatRate } from '@/lib/utils';
+import { formatRate, metricColor } from '@/lib/utils';
 import { Card } from '@/components/ui/Card';
 import { Spinner } from '@/components/ui/Spinner';
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -48,12 +48,7 @@ const ENCLOSURE_FILTERS = [
 
 /* ── 工具函数 ───────────────────────────────────────────────── */
 
-function metricColor(value: number | null | undefined, thresholds: [number, number]) {
-  if (value === null || value === undefined) return 'text-[var(--text-muted)]';
-  if (value >= thresholds[1]) return 'text-emerald-700 font-semibold';
-  if (value >= thresholds[0]) return 'text-amber-700';
-  return 'text-red-600';
-}
+// metricColor 已移至 lib/utils.ts 共享
 
 function safe(v: number | null | undefined, decimals = 0): string {
   if (v === null || v === undefined) return '—';

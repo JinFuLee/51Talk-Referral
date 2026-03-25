@@ -19,7 +19,7 @@ import { CCRadarChart } from '@/components/cc-matrix/CCRadarChart';
 import { EfficiencyScatter } from '@/components/cc-matrix/EfficiencyScatter';
 import type { CCHeatmapResponse, CCRadarData, CCDrilldownRow } from '@/lib/types/cross-analysis';
 import type { EnclosureSSMetrics, EnclosureLPMetrics } from '@/lib/types/enclosure-ss-lp';
-import { formatRate, formatRevenue } from '@/lib/utils';
+import { formatRate, formatRevenue, metricColor } from '@/lib/utils';
 import { ExportButton } from '@/components/ui/ExportButton';
 import { useExport } from '@/lib/use-export';
 import { SegmentedTabs } from '@/components/ui/PageTabs';
@@ -44,12 +44,7 @@ const METRIC_OPTIONS = [
 
 /* ── 工具函数 ───────────────────────────────────────────────── */
 
-function metricColor(value: number | null | undefined, thresholds: [number, number]) {
-  if (value === null || value === undefined) return 'text-[var(--text-muted)]';
-  if (value >= thresholds[1]) return 'text-green-600 font-semibold';
-  if (value >= thresholds[0]) return 'text-yellow-600';
-  return 'text-red-500';
-}
+// metricColor 已移至 lib/utils.ts 共享
 
 function safe(v: number | null | undefined, decimals = 0): string {
   if (v === null || v === undefined) return '—';

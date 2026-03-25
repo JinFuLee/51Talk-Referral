@@ -60,3 +60,18 @@ export function formatValue(v: number | null | undefined, isRate = false, decima
 
 export const CHART_FONT_SIZE = { sm: 10, md: 11, lg: 12 } as const;
 export const CHART_HEIGHT = { sm: 220, md: 260, lg: 320 } as const;
+
+/**
+ * 率指标条件着色 — 深色高对比（白底可读）
+ * thresholds: [低阈值, 高阈值]，例 [0.3, 0.5]
+ * ≥高阈值=深绿, ≥低阈值=深琥珀, <低阈值=深红
+ */
+export function metricColor(
+  value: number | null | undefined,
+  thresholds: [number, number]
+): string {
+  if (value === null || value === undefined) return 'text-[var(--text-muted)]';
+  if (value >= thresholds[1]) return 'text-emerald-800 font-semibold';
+  if (value >= thresholds[0]) return 'text-amber-800';
+  return 'text-red-700';
+}
