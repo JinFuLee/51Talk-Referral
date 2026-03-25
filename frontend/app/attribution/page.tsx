@@ -4,6 +4,7 @@ import { useState } from 'react';
 import useSWR from 'swr';
 import { swrFetcher } from '@/lib/api';
 import type { AttributionSummary, AttributionBreakdownItem } from '@/lib/types/cross-analysis';
+import { formatRate } from '@/lib/utils';
 import { Card } from '@/components/ui/Card';
 import { Spinner } from '@/components/ui/Spinner';
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -117,7 +118,7 @@ export default function AttributionPage() {
                     : 'text-red-600'
               }`}
             >
-              {(summary.revenue_achievement_rate * 100).toFixed(1)}%
+              {formatRate(summary.revenue_achievement_rate)}
             </span>
           </span>
           <span className="text-[var(--text-muted)]">
@@ -131,19 +132,19 @@ export default function AttributionPage() {
                     : 'text-red-600'
               }`}
             >
-              {(summary.order_value_achievement_rate * 100).toFixed(1)}%
+              {formatRate(summary.order_value_achievement_rate)}
             </span>
           </span>
           <span className="text-[var(--text-muted)]">
             注册转化率{' '}
             <span className="font-semibold text-[var(--text-primary)]">
-              {(summary.registration_conversion_rate * 100).toFixed(1)}%
+              {formatRate(summary.registration_conversion_rate)}
             </span>
           </span>
           <span className="text-[var(--text-muted)]">
             出席→付费率{' '}
             <span className="font-semibold text-[var(--text-primary)]">
-              {(summary.attend_to_pay_rate * 100).toFixed(1)}%
+              {formatRate(summary.attend_to_pay_rate)}
             </span>
           </span>
         </div>

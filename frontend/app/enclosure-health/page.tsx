@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import useSWR from 'swr';
 import { swrFetcher } from '@/lib/api';
+import { formatRate } from '@/lib/utils';
 import { Card } from '@/components/ui/Card';
 import { Spinner } from '@/components/ui/Spinner';
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -110,9 +111,8 @@ export default function EnclosureHealthPage() {
                   <strong>{(seg.health_score ?? 0).toFixed(0)}</strong>
                 </p>
                 <p className="text-xs mt-1 text-[var(--text-muted)]">
-                  参与率 {((seg.participation ?? 0) * 100).toFixed(1)}% · 转化率{' '}
-                  {((seg.conversion ?? 0) * 100).toFixed(1)}% · 打卡率{' '}
-                  {((seg.checkin ?? 0) * 100).toFixed(1)}%
+                  参与率 {formatRate(seg.participation)} · 转化率 {formatRate(seg.conversion)} ·
+                  打卡率 {formatRate(seg.checkin)}
                 </p>
                 <p className="text-xs mt-2 text-[var(--text-muted)]">
                   点击围场健康卡片可在此展开 CC 明细（需后端

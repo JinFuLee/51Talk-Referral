@@ -259,7 +259,7 @@ export default function ChannelPage() {
                     cy="50%"
                     outerRadius={90}
                     dataKey="value"
-                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                    label={({ name, percent }) => `${name} ${formatRate(percent, 0)}`}
                     labelLine={false}
                   >
                     {pieData.map((_, index) => (

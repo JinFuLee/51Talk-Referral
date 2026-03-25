@@ -142,7 +142,7 @@ export default function FunnelPage() {
                 <p className="text-xs text-[var(--text-muted)] mb-1">注册→邀约率</p>
                 <p className="text-xl font-bold text-[var(--text-primary)] font-mono tabular-nums">
                   {invitationStats.registration_invitation_rate != null
-                    ? `${(invitationStats.registration_invitation_rate * 100).toFixed(1)}%`
+                    ? formatRate(invitationStats.registration_invitation_rate)
                     : '—'}
                 </p>
               </div>
@@ -150,7 +150,7 @@ export default function FunnelPage() {
                 <p className="text-xs text-[var(--text-muted)] mb-1">邀约→出席率</p>
                 <p className="text-xl font-bold text-[var(--text-primary)] font-mono tabular-nums">
                   {invitationStats.invitation_showup_rate != null
-                    ? `${(invitationStats.invitation_showup_rate * 100).toFixed(1)}%`
+                    ? formatRate(invitationStats.invitation_showup_rate)
                     : '—'}
                 </p>
               </div>
@@ -198,9 +198,7 @@ export default function FunnelPage() {
                         {s.achievement_rate != null ? formatRate(s.achievement_rate) : '—'}
                       </td>
                       <td className="slide-td text-right font-mono tabular-nums">
-                        {s.conversion_rate != null
-                          ? `${(s.conversion_rate * 100).toFixed(1)}%`
-                          : '—'}
+                        {s.conversion_rate != null ? formatRate(s.conversion_rate) : '—'}
                       </td>
                     </tr>
                   ))}

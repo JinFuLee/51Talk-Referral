@@ -39,10 +39,12 @@ export function formatUSDShort(value: number): string {
   return `$${value.toFixed(0)}`;
 }
 
-/** 百分比格式化：0.7532 → "75.3%"，null/NaN/Infinity → "—" */
-export function formatRate(v: number | null | undefined): string {
+/** 百分比格式化：0.7532 → "75.3%"，null/NaN/Infinity → "—"
+ * @param decimals 小数位数，默认 1
+ */
+export function formatRate(v: number | null | undefined, decimals = 1): string {
   if (v == null || Number.isNaN(Number(v)) || !isFinite(Number(v))) return '—';
-  return `${(Number(v) * 100).toFixed(1)}%`;
+  return `${(Number(v) * 100).toFixed(decimals)}%`;
 }
 
 export const CHART_FONT_SIZE = { sm: 10, md: 11, lg: 12 } as const;

@@ -6,6 +6,7 @@ import { swrFetcher } from '@/lib/api';
 import { Card } from '@/components/ui/Card';
 import { Spinner } from '@/components/ui/Spinner';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { formatRate } from '@/lib/utils';
 
 /* ── 类型定义 ─────────────────────────────────────────────── */
 
@@ -55,8 +56,7 @@ function fmtDuration(sec: number | null | undefined): string {
 }
 
 function pct(v: number | null | undefined): string {
-  if (v == null) return '—';
-  return (v * 100).toFixed(1) + '%';
+  return formatRate(v);
 }
 
 /* ── Tab 按钮 ─────────────────────────────────────────────── */

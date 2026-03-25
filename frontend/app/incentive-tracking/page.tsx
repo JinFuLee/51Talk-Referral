@@ -7,6 +7,7 @@ import { Spinner } from '@/components/ui/Spinner';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { CHART_PALETTE } from '@/lib/chart-palette';
+import { formatRate } from '@/lib/utils';
 
 interface IncentiveGroup {
   reward_status: string;
@@ -159,9 +160,7 @@ export default function IncentiveTrackingPage() {
                     {(g.student_count ?? 0).toLocaleString()}
                   </td>
                   <td className="slide-td text-right font-mono tabular-nums text-[var(--text-muted)]">
-                    {totalStudents > 0
-                      ? (((g.student_count ?? 0) / totalStudents) * 100).toFixed(1) + '%'
-                      : '—'}
+                    {totalStudents > 0 ? formatRate((g.student_count ?? 0) / totalStudents) : '—'}
                   </td>
                   <td className="slide-td text-right font-mono tabular-nums">
                     {safeNum(g.avg_referral_registrations)}

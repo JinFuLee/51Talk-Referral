@@ -10,6 +10,7 @@ import {
   Tooltip,
 } from 'recharts';
 import { CHART_PALETTE } from '@/lib/chart-palette';
+import { formatRate } from '@/lib/utils';
 
 export interface CCRadarData {
   cc_name: string;
@@ -93,7 +94,7 @@ export function CCRadarChart({ data, onClose }: CCRadarChartProps) {
             <div key={key} className="text-center">
               <div className="text-xs text-[var(--text-muted)]">{label}</div>
               <div className="text-sm font-semibold font-mono text-[var(--text-primary)]">
-                {((data[key] ?? 0) * 100).toFixed(1)}%
+                {formatRate(data[key] ?? 0)}
               </div>
             </div>
           ))}

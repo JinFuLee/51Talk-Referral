@@ -1,7 +1,7 @@
 'use client';
 
 import { PieChart, Pie, Cell } from 'recharts';
-import { cn } from '@/lib/utils';
+import { cn, formatRate } from '@/lib/utils';
 
 interface AchievementRingProps {
   label: string;
@@ -25,7 +25,7 @@ function rateLabel(rate: number): string {
 export function AchievementRing({ label, actual, target, rate }: AchievementRingProps) {
   const pct = Math.min(rate, 1); // cap at 100% for ring display
   const color = rateColor(rate);
-  const pctDisplay = `${(rate * 100).toFixed(1)}%`;
+  const pctDisplay = formatRate(rate);
 
   const data = [{ value: pct }, { value: 1 - pct }];
 

@@ -2,6 +2,7 @@
 
 import useSWR from 'swr';
 import { swrFetcher } from '@/lib/api';
+import { formatRate } from '@/lib/utils';
 import { SlideShell } from '@/components/presentation/SlideShell';
 import { Spinner } from '@/components/ui/Spinner';
 import type { ChannelFactor, SlideProps } from '@/lib/presentation/types';
@@ -33,7 +34,7 @@ function FactorBadge({ value }: { value: number }) {
         : 'text-red-700 bg-red-50';
   return (
     <span className={`inline-block px-2 py-0.5 rounded text-xs font-semibold ${color}`}>
-      {(value * 100).toFixed(1)}%
+      {formatRate(value)}
     </span>
   );
 }

@@ -1,3 +1,5 @@
+import { formatRate } from '@/lib/utils';
+
 interface TargetGapCardProps {
   name: string;
   target: number;
@@ -19,7 +21,9 @@ export function TargetGapCard({ name, target, actual, gap, achievement_rate }: T
         <span className="text-2xl font-bold text-[var(--text-primary)]">
           {actual.toLocaleString()}
         </span>
-        <span className={`text-sm font-semibold ${achieveColor}`}>{achievePct.toFixed(1)}%</span>
+        <span className={`text-sm font-semibold ${achieveColor}`}>
+          {formatRate(achievement_rate)}
+        </span>
       </div>
       <div className="mt-2 flex items-center justify-between text-xs text-[var(--text-muted)]">
         <span>目标 {target.toLocaleString()}</span>

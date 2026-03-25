@@ -92,7 +92,7 @@ export function StudentSearch({ filters, onChange }: StudentSearchProps) {
       <div className="flex flex-wrap gap-2 items-center">
         {/* 围场 */}
         <Select
-          value={filters.segment}
+          value={filters.segment || 'all'}
           onValueChange={(v) => onChange({ ...filters, segment: v === 'all' ? '' : v })}
         >
           <SelectTrigger className="h-8 text-xs w-36">
@@ -109,7 +109,7 @@ export function StudentSearch({ filters, onChange }: StudentSearchProps) {
 
         {/* 生命周期 */}
         <Select
-          value={filters.lifecycle}
+          value={filters.lifecycle || 'all'}
           onValueChange={(v) => onChange({ ...filters, lifecycle: v === 'all' ? '' : v })}
         >
           <SelectTrigger className="h-8 text-xs w-36">

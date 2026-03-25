@@ -1,5 +1,7 @@
 'use client';
 
+import { formatRate } from '@/lib/utils';
+
 export interface VarianceRow {
   segment: string;
   mean: number;
@@ -11,10 +13,6 @@ export interface VarianceRow {
 
 interface CCVarianceBoxProps {
   data: VarianceRow[];
-}
-
-function formatPct(v: number) {
-  return `${(v * 100).toFixed(1)}%`;
 }
 
 export function CCVarianceBox({ data }: CCVarianceBoxProps) {
@@ -38,11 +36,11 @@ export function CCVarianceBox({ data }: CCVarianceBoxProps) {
             <div className="flex items-center justify-between mb-1">
               <span className="text-xs font-medium text-[var(--text-primary)]">{row.segment}</span>
               <div className="flex gap-3 text-[10px] text-[var(--text-muted)] font-mono">
-                <span>min {formatPct(row.min)}</span>
-                <span>中位 {formatPct(row.median)}</span>
-                <span>均值 {formatPct(row.mean)}</span>
-                <span>max {formatPct(row.max)}</span>
-                <span className="text-yellow-500">±{formatPct(row.std)}</span>
+                <span>min {formatRate(row.min)}</span>
+                <span>中位 {formatRate(row.median)}</span>
+                <span>均值 {formatRate(row.mean)}</span>
+                <span>max {formatRate(row.max)}</span>
+                <span className="text-yellow-500">±{formatRate(row.std)}</span>
               </div>
             </div>
 

@@ -4,7 +4,7 @@ import useSWR from 'swr';
 import { swrFetcher } from '@/lib/api';
 import { Spinner } from '@/components/ui/Spinner';
 import { EmptyState } from '@/components/ui/EmptyState';
-import { cn } from '@/lib/utils';
+import { cn, formatRate } from '@/lib/utils';
 
 // ── 类型定义 ──────────────────────────────────────────────────────────────────
 
@@ -42,11 +42,6 @@ interface RankingResponse {
 }
 
 // ── 工具函数 ──────────────────────────────────────────────────────────────────
-
-function fmtRate(rate: number | null | undefined): string {
-  if (rate == null) return '—';
-  return `${(rate * 100).toFixed(1)}%`;
-}
 
 function fmtNum(n: number | null | undefined): string {
   if (n == null) return '—';
@@ -121,7 +116,7 @@ function ChannelCard({ channel }: { channel: OpsChannel }) {
           <div className="flex items-center justify-between text-xs mb-1">
             <span className="text-[var(--text-muted)]">预估触达率</span>
             <span className="font-semibold tabular-nums text-[var(--text-primary)]">
-              {fmtRate(channel.estimated_contact_rate)}
+              {formatRate(channel.estimated_contact_rate)}
             </span>
           </div>
           <div className="h-1.5 rounded-full bg-[var(--bg-subtle)] overflow-hidden">
@@ -175,7 +170,7 @@ function EnclosureSegmentBar({ segments }: { segments: EnclosureSegment[] }) {
                 <span className="font-mono tabular-nums text-[var(--text-secondary)]">
                   {fmtNum(seg.checked_in)}/{fmtNum(seg.students)}{' '}
                   <span className="font-semibold text-[var(--text-primary)]">
-                    {fmtRate(seg.rate)}
+                    {formatRate(seg.rate)}
                   </span>
                 </span>
               </div>
@@ -269,7 +264,7 @@ export function OpsChannelView({ configJson }: OpsChannelViewProps) {
         </div>
         <div className="card-compact text-center">
           <div className="text-2xl font-bold tabular-nums text-[var(--text-primary)]">
-            {fmtRate(opsData.checkin_rate)}
+            {formatRate(opsData.checkin_rate)}
           </div>
           <div className="text-xs text-[var(--text-muted)] mt-0.5">打卡率</div>
         </div>
@@ -298,7 +293,7 @@ export function OpsChannelView({ configJson }: OpsChannelViewProps) {
             <span className="font-medium text-[var(--text-primary)]">{segments[0].label}</span>
             <span className="text-xs font-mono tabular-nums text-[var(--text-secondary)]">
               {fmtNum(segments[0].checked_in)}/{fmtNum(segments[0].students)} ·{' '}
-              {fmtRate(segments[0].rate)}
+              {formatRate(segments[0].rate)}
             </span>
           </div>
         </div>

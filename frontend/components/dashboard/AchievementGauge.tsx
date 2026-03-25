@@ -1,5 +1,7 @@
 'use client';
 
+import { formatRate } from '@/lib/utils';
+
 interface AchievementGaugeProps {
   /** Achievement rate as a decimal, e.g. 0.85 = 85% */
   value: number;
@@ -74,7 +76,7 @@ export function AchievementGauge({ value, label = '达成率', size = 160 }: Ach
           fontWeight="700"
           fill={color}
         >
-          {percentage.toFixed(0)}%
+          {formatRate(pct, 0)}
         </text>
         <text
           x={cx}

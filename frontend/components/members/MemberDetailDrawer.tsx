@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { formatRate } from '@/lib/utils';
 
 interface StudentDetail {
   id: string | number;
@@ -110,7 +111,7 @@ function formatRawValue(key: string, value: unknown): string {
       return `$${value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
     }
     if (isRateKey(key)) {
-      return `${(value * 100).toFixed(1)}%`;
+      return formatRate(value);
     }
     // Large integers (IDs etc) — no decimals
     if (Number.isInteger(value) || Math.abs(value) >= 1000) {

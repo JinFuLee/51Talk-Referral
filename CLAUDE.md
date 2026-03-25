@@ -153,6 +153,16 @@ Excel 数据源 → XlsxReader → DataProcessor → AnalysisEngine → Markdown
 - 新增组件必须有 loading / error / empty 三态，empty 态必须有操作指引
 - `isMock` / `MOCK_DATA` / `fallback.*data` 模式禁止引入，代码审查红线
 
+## SEE Design System v2.0（2026-03-25 落地）
+- **字体**：Space Grotesk（标题/EN）+ Inter（正文/EN）+ IBM Plex Sans Thai（TH）+ PingFang SC/Noto Sans SC（ZH）
+- **品牌标志**：递归环 Recursive Loop（`public/brand-mark.svg`），Topbar 右侧 18px
+- **色板预设**：当前用 51Talk preset（金黄 `#FFD100` + 深蓝 `#1B365D`）
+- **渐进式披露**：2 层默认（L0 扫视 + L1 副标题/tooltip），L2 按需。BrandDot 组件触发 L1
+- **Token 源**：`~/.claude/design-tokens/`（全局 CSS token 文件 + 5 套预设 + init-tokens.sh）
+- **组件语义类**：`globals.css` 底部定义 `card-base/btn-primary/input-base/state-*` 等，组件统一引用
+- **图表色板**：`frontend/lib/chart-palette.ts`（共享常量，Recharts 消费）
+- **百分比格式**：统一用 `formatRate(value)`，null/NaN→"—"，禁止直接 `.toFixed()%`
+
 ## Slide 设计体系 SSoT 规则
 - Slide 表格样式统一引用 `globals.css` 中的 `slide-*` Design Token 类（`slide-thead-row/slide-th/slide-td/slide-row-*/slide-tfoot-row`）
 - **禁止在 Slide 组件中内联 `style={{ color/backgroundColor }}`**，所有视觉属性从中央 CSS 类继承

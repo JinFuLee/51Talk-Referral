@@ -1,6 +1,7 @@
 'use client';
 
 import { Card } from '@/components/ui/Card';
+import { formatRate } from '@/lib/utils';
 import { NumInput, PctInput } from '@/components/ui/NumInput';
 import type {
   HardTarget,
@@ -31,9 +32,9 @@ export default function TargetSettingsCard({
         <Card title="智能推荐">
           <div className="space-y-2">
             <div className="text-xs text-[var(--text-secondary)]">
-              历史增长率：注册 {(recommendation.growth_rates.reg * 100).toFixed(1)}% · 付费{' '}
-              {(recommendation.growth_rates.paid * 100).toFixed(1)}% · 收入{' '}
-              {(recommendation.growth_rates.revenue * 100).toFixed(1)}%
+              历史增长率：注册 {formatRate(recommendation.growth_rates.reg)} · 付费{' '}
+              {formatRate(recommendation.growth_rates.paid)} · 收入{' '}
+              {formatRate(recommendation.growth_rates.revenue)}
             </div>
             <div className="grid grid-cols-3 gap-2">
               {(['conservative', 'base', 'aggressive'] as const).map((key) => {
@@ -111,7 +112,7 @@ export default function TargetSettingsCard({
                         {d.actual.toLocaleString()} / {d.target.toLocaleString()}
                       </span>
                       <span className={d.pace_ratio >= 1 ? 'text-green-600' : 'text-yellow-600'}>
-                        (节奏 {(d.pace_ratio * 100).toFixed(0)}%)
+                        (节奏 {formatRate(d.pace_ratio, 0)})
                       </span>
                     </div>
                   ))}

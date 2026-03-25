@@ -10,7 +10,7 @@ import { DailyLogTab } from './DailyLogTab';
 import { ReferralNetwork } from './ReferralNetwork';
 import type { Student360Detail, Student360Network } from '@/lib/types/cross-analysis';
 import { X } from 'lucide-react';
-import { formatRevenue } from '@/lib/utils';
+import { formatRevenue, formatRate } from '@/lib/utils';
 
 interface Profile360DrawerProps {
   stdtId: string | null;
@@ -74,9 +74,7 @@ function NewResultRow({
   paidCount: number | null | undefined;
 }) {
   const rate =
-    newCount != null && paidCount != null && newCount > 0
-      ? ((paidCount / newCount) * 100).toFixed(1) + '%'
-      : '—';
+    newCount != null && paidCount != null && newCount > 0 ? formatRate(paidCount / newCount) : '—';
   return (
     <div className="grid grid-cols-[80px_1fr_1fr_60px] gap-2 py-1.5 border-b border-[var(--border-subtle)] last:border-0">
       <span className="text-xs text-[var(--text-muted)]">{role}</span>

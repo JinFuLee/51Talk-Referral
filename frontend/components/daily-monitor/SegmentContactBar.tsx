@@ -17,10 +17,6 @@ interface SegmentContactBarProps {
   data: SegmentContactItem[];
 }
 
-function fmtPct(v: number) {
-  return `${(v * 100).toFixed(1)}%`;
-}
-
 export function SegmentContactBar({ data }: SegmentContactBarProps) {
   const chartData = data.map((d) => ({
     name: d.segment,

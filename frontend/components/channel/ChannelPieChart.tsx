@@ -1,7 +1,7 @@
 'use client';
 
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recharts';
-import { formatRevenue } from '@/lib/utils';
+import { formatRevenue, formatRate } from '@/lib/utils';
 import { CHART_PALETTE } from '@/lib/chart-palette';
 
 interface ChannelPieEntry {
@@ -36,7 +36,7 @@ export function ChannelPieChart({ channels, height = 240 }: ChannelPieChartProps
           outerRadius={85}
           innerRadius={45}
           dataKey="value"
-          label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+          label={({ name, percent }) => `${name} ${formatRate(percent, 0)}`}
           labelLine={false}
         >
           {pieData.map((_, index) => (

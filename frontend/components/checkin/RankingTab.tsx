@@ -8,6 +8,7 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { BrandDot } from '@/components/ui/BrandDot';
 import { useWideConfig } from '@/lib/hooks/useWideConfig';
 import { useCheckinThresholds } from '@/lib/hooks/useCheckinThresholds';
+import { formatRate } from '@/lib/utils';
 
 // ── 类型定义 ──────────────────────────────────────────────────────────────────
 
@@ -42,11 +43,6 @@ interface RankingResponse {
 
 // ── 工具函数 ──────────────────────────────────────────────────────────────────
 
-function fmtRate(rate: number | null | undefined): string {
-  if (rate == null) return '—';
-  return `${(rate * 100).toFixed(1)}%`;
-}
-
 function fmtNum(n: number | null | undefined): string {
   if (n == null) return '—';
   return n.toLocaleString();
@@ -76,7 +72,7 @@ function RoleColumn({ role, summary, subTab, rateColor }: RoleColumnProps) {
           <span className="opacity-70">
             {fmtNum(summary.checked_in)}/{fmtNum(summary.total_students)}
           </span>
-          <span className="ml-1.5">{fmtRate(summary.checkin_rate)}</span>
+          <span className="ml-1.5">{formatRate(summary.checkin_rate)}</span>
         </span>
       </div>
 
@@ -144,7 +140,7 @@ function RoleColumn({ role, summary, subTab, rateColor }: RoleColumnProps) {
                     <td
                       className={`py-1 px-2 text-right font-mono tabular-nums ${rateColor?.(row.rate) ?? ''}`}
                     >
-                      {fmtRate(row.rate)}
+                      {formatRate(row.rate)}
                     </td>
                   </tr>
                 );
@@ -166,7 +162,7 @@ function RoleColumn({ role, summary, subTab, rateColor }: RoleColumnProps) {
                 <td
                   className={`py-1 px-2 text-right font-mono tabular-nums text-xs ${rateColor?.(summary.checkin_rate) ?? ''}`}
                 >
-                  {fmtRate(summary.checkin_rate)}
+                  {formatRate(summary.checkin_rate)}
                 </td>
               </tr>
             </tfoot>

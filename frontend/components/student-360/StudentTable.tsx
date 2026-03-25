@@ -1,7 +1,7 @@
 'use client';
 
 import type { Student360Brief } from '@/lib/types/cross-analysis';
-import { formatRevenue } from '@/lib/utils';
+import { formatRevenue, formatRate } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { ChevronUp, ChevronDown, ChevronsUpDown } from 'lucide-react';
 
@@ -139,7 +139,7 @@ export function StudentTable({
                     {m.total_new ?? '—'}
                   </td>
                   <td className="py-1 px-2 text-xs text-right font-mono tabular-nums">
-                    {m.checkin_rate != null ? `${(m.checkin_rate * 100).toFixed(1)}%` : '—'}
+                    {formatRate(m.checkin_rate)}
                   </td>
                   <td className="py-1 px-2 text-xs text-center">
                     {m.is_high_potential ? (

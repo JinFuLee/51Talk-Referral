@@ -3,6 +3,7 @@
 import { Card } from '@/components/ui/Card';
 import { NumInput, PctInput } from '@/components/ui/NumInput';
 import type { ChannelDecomposition, ChannelTarget, MonthlyTargetV2 } from '@/lib/types';
+import { formatRate } from '@/lib/utils';
 
 const CHANNEL_KEYS: (keyof ChannelDecomposition)[] = [
   'cc_narrow',
@@ -100,7 +101,7 @@ export default function ChannelSettingsCard({ v2, onUpdateChannel }: ChannelSett
                 —
               </td>
               <td className="py-1 px-2 text-xs text-right font-mono tabular-nums text-[var(--text-muted)]">
-                {totalReg > 0 ? `${((totalPaid / totalReg) * 100).toFixed(1)}%` : '—'}
+                {totalReg > 0 ? formatRate(totalPaid / totalReg) : '—'}
               </td>
               <td className="py-1 px-2 text-xs text-right font-mono tabular-nums text-[var(--text-primary)]">
                 {totalPaid}

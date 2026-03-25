@@ -17,6 +17,7 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 import { CHART_PALETTE } from '@/lib/chart-palette';
+import { formatRate } from '@/lib/utils';
 
 /* ── 类型定义 ─────────────────────────────────────────────── */
 
@@ -53,8 +54,7 @@ function fmt(v: number | null | undefined, decimals = 0): string {
 }
 
 function pct(v: number | null | undefined): string {
-  if (v == null) return '—';
-  return (v * 100).toFixed(1) + '%';
+  return formatRate(v);
 }
 
 /* ── 主页面 ─────────────────────────────────────────────── */
@@ -174,7 +174,7 @@ export default function ReferralContributorPage() {
             <p className="text-xs text-[var(--text-muted)] mb-1">总带新注册</p>
             <p className="text-3xl font-bold text-action-accent">{totalNew.toLocaleString()}</p>
             <p className="text-xs text-[var(--text-muted)] mt-1">
-              整体转化率 {totalNew > 0 ? ((totalPaid / totalNew) * 100).toFixed(1) + '%' : '—'}
+              整体转化率 {totalNew > 0 ? formatRate(totalPaid / totalNew) : '—'}
             </p>
           </div>
         </Card>

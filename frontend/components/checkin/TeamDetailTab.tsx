@@ -8,6 +8,7 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { useWideConfig } from '@/lib/hooks/useWideConfig';
 import { useCheckinThresholds } from '@/lib/hooks/useCheckinThresholds';
 import { OpsChannelView } from './OpsChannelView';
+import { formatRate } from '@/lib/utils';
 
 // ── 类型定义 ──────────────────────────────────────────────────────────────────
 
@@ -41,11 +42,6 @@ interface RankingResponse {
 }
 
 // ── 工具函数 ──────────────────────────────────────────────────────────────────
-
-function fmtRate(rate: number | null | undefined): string {
-  if (rate == null) return '—';
-  return `${(rate * 100).toFixed(1)}%`;
-}
 
 function fmtNum(n: number | null | undefined): string {
   if (n == null) return '—';
@@ -84,7 +80,7 @@ function TeamCard({ card, rateColor, rateBg }: TeamCardProps) {
           <span
             className={`px-1.5 py-0.5 rounded text-xs font-bold border ${rateBg?.(card.checkinRate) ?? ''}`}
           >
-            {fmtRate(card.checkinRate)}
+            {formatRate(card.checkinRate)}
           </span>
         </div>
       </div>
@@ -127,7 +123,7 @@ function TeamCard({ card, rateColor, rateBg }: TeamCardProps) {
                 <td
                   className={`py-1 px-2 text-right font-mono tabular-nums font-semibold ${rateColor?.(m.rate) ?? ''}`}
                 >
-                  {fmtRate(m.rate)}
+                  {formatRate(m.rate)}
                 </td>
               </tr>
             ))}
@@ -145,7 +141,7 @@ function TeamCard({ card, rateColor, rateBg }: TeamCardProps) {
               <td
                 className={`py-1.5 px-2 text-right font-mono tabular-nums font-semibold ${rateColor?.(card.checkinRate) ?? ''}`}
               >
-                {fmtRate(card.checkinRate)}
+                {formatRate(card.checkinRate)}
               </td>
             </tr>
           </tfoot>
@@ -249,7 +245,7 @@ export function TeamDetailTab({ activeRoles: _ar, roleEnclosures: _re }: TeamDet
           <span className="ml-auto text-xs text-[var(--text-muted)] font-mono tabular-nums">
             {fmtNum(roleSummary.checked_in)}/{fmtNum(roleSummary.total_students)}{' '}
             <span className={`font-semibold ${rateColor?.(roleSummary.checkin_rate) ?? ''}`}>
-              {fmtRate(roleSummary.checkin_rate)}
+              {formatRate(roleSummary.checkin_rate)}
             </span>
           </span>
         )}

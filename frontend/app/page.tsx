@@ -187,15 +187,14 @@ function KPI8Card({ label, item, format = 'count' }: KPI8CardProps) {
     { label: '目标绝对差', value: fmt8(item.absolute_gap, format), colorFn: gapColor },
     {
       label: '时间进度差',
-      value: item.pace_gap !== null ? `${(item.pace_gap * 100).toFixed(1)}%` : '—',
+      value: item.pace_gap !== null ? formatRate(item.pace_gap) : '—',
       colorFn: gapColor,
     },
     { label: '达标需日均', value: fmt8(item.remaining_daily_avg, format) },
     { label: '追进度需日均', value: fmt8(item.pace_daily_needed, format) },
     {
       label: '效率提升需求',
-      value:
-        item.efficiency_needed !== null ? `${(item.efficiency_needed * 100).toFixed(1)}%` : '—',
+      value: item.efficiency_needed !== null ? formatRate(item.efficiency_needed) : '—',
     },
     { label: '当前日均', value: fmt8(item.current_daily_avg, format) },
   ];
@@ -733,20 +732,17 @@ export default function DashboardPage() {
               },
               {
                 label: '参与率',
-                value:
-                  d2b.participation_rate != null
-                    ? `${(d2b.participation_rate * 100).toFixed(1)}%`
-                    : '—',
+                value: d2b.participation_rate != null ? formatRate(d2b.participation_rate) : '—',
                 subtitle: '带来注册的学员/有效学员总数',
               },
               {
                 label: '打卡率',
-                value: d2b.checkin_rate != null ? `${(d2b.checkin_rate * 100).toFixed(1)}%` : '—',
+                value: d2b.checkin_rate != null ? formatRate(d2b.checkin_rate) : '—',
                 subtitle: '转码且分享的学员/有效学员，绿≥50%，橙30-50%，红<30%',
               },
               {
                 label: 'CC触达率',
-                value: d2b.cc_reach_rate != null ? `${(d2b.cc_reach_rate * 100).toFixed(1)}%` : '—',
+                value: d2b.cc_reach_rate != null ? formatRate(d2b.cc_reach_rate) : '—',
                 subtitle: 'CC有效通话(≥120s)学员数/有效学员总数',
               },
             ].map(({ label, value, subtitle }) => (

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { formatRate } from '@/lib/utils';
 
 export interface HeatmapCell {
   cc_name: string;
@@ -114,12 +115,12 @@ export function CCHeatmap({ rows, cols, data, onCCClick, onCellClick }: CCHeatma
                     setTooltip({
                       x: e.clientX,
                       y: e.clientY,
-                      text: `${cc} · ${seg}: ${(val! * 100).toFixed(1)}%`,
+                      text: `${cc} · ${seg}: ${formatRate(val)}`,
                     })
                   }
                   onMouseLeave={() => setTooltip(null)}
                 >
-                  {hasVal ? `${(val! * 100).toFixed(0)}%` : '-'}
+                  {hasVal ? formatRate(val, 0) : '-'}
                 </div>
               );
             })}

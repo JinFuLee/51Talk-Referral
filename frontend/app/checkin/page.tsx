@@ -7,7 +7,7 @@ import { Spinner } from '@/components/ui/Spinner';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { PageTabs } from '@/components/ui/PageTabs';
 import { Card } from '@/components/ui/Card';
-import { cn } from '@/lib/utils';
+import { cn, formatRate } from '@/lib/utils';
 import { TeamDetailTab } from '@/components/checkin/TeamDetailTab';
 import { FollowupTab } from '@/components/checkin/FollowupTab';
 import { RankingTab } from '@/components/checkin/RankingTab';
@@ -68,10 +68,6 @@ type TabId = (typeof TABS)[number]['id'];
 
 // ── 工具函数 ──────────────────────────────────────────────────────────────────
 
-function fmtRate(rate: number): string {
-  return `${(rate * 100).toFixed(1)}%`;
-}
-
 // ── 单个渠道列 ────────────────────────────────────────────────────────────────
 
 interface ChannelColumnProps {
@@ -100,7 +96,7 @@ function ChannelColumn({ ch, rateColor, rateBg }: ChannelColumnProps) {
             rateBg(ch.checkin_rate ?? 0)
           )}
         >
-          {fmtRate(ch.checkin_rate ?? 0)}
+          {formatRate(ch.checkin_rate ?? 0)}
         </div>
         <div className="text-[10px] text-[var(--text-muted)]">
           已打卡学员数 / 本渠道有效学员数（付费且在有效期）
@@ -133,7 +129,7 @@ function ChannelColumn({ ch, rateColor, rateBg }: ChannelColumnProps) {
               </span>
               <span className="text-right text-[var(--text-primary)]">{row.students}</span>
               <span className={cn('text-right font-medium', rateColor?.(row.rate) ?? '')}>
-                {fmtRate(row.rate)}
+                {formatRate(row.rate)}
               </span>
             </div>
           ))
@@ -161,7 +157,7 @@ function ChannelColumn({ ch, rateColor, rateBg }: ChannelColumnProps) {
               <span className="col-span-2 text-[var(--text-secondary)]">{row.enclosure}</span>
               <span className="text-right text-[var(--text-primary)]">{row.students}</span>
               <span className={cn('text-right font-medium', rateColor?.(row.rate) ?? '')}>
-                {fmtRate(row.rate)}
+                {formatRate(row.rate)}
               </span>
             </div>
           ))

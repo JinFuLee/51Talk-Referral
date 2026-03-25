@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import useSWR from 'swr';
 import { swrFetcher } from '@/lib/api';
+import { formatRate } from '@/lib/utils';
 import { Spinner } from '@/components/ui/Spinner';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Card } from '@/components/ui/Card';
@@ -166,9 +167,7 @@ export default function DailyMonitorPage() {
               </div>
               <div className="flex justify-between text-xs mt-1">
                 <span className="text-[var(--text-muted)]">打卡率</span>
-                <span className="font-mono font-medium">
-                  {(stats.checkin_rate * 100).toFixed(1)}%
-                </span>
+                <span className="font-mono font-medium">{formatRate(stats.checkin_rate)}</span>
               </div>
             </div>
           </div>

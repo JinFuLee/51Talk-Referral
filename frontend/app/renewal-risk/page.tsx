@@ -2,6 +2,7 @@
 
 import useSWR from 'swr';
 import { swrFetcher } from '@/lib/api';
+import { formatRate } from '@/lib/utils';
 import { Card } from '@/components/ui/Card';
 import { Spinner } from '@/components/ui/Spinner';
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -99,7 +100,7 @@ export default function RenewalRiskPage() {
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             {segments.map((seg) => {
               const color = segmentColor(seg.label);
-              const pct = totalCount > 0 ? ((seg.count ?? 0) / totalCount) * 100 : 0;
+              const pct = totalCount > 0 ? (seg.count ?? 0) / totalCount : 0;
               return (
                 <Card key={seg.segment_id ?? seg.label} title="">
                   <div className="pt-1">
@@ -110,7 +111,7 @@ export default function RenewalRiskPage() {
                       {(seg.count ?? 0).toLocaleString()}
                     </p>
                     <p className="text-xs text-[var(--text-secondary)] mt-1">
-                      占比 {pct.toFixed(1)}%
+                      占比 {formatRate(pct)}
                     </p>
                   </div>
                 </Card>
