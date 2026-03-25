@@ -386,7 +386,7 @@ export function PushControl({ platform }: PushControlProps) {
         <button
           onClick={handlePushTest}
           disabled={pushState === 'pushing' || testChannels.length === 0}
-          className="flex items-center gap-1.5 px-3 py-2 border border-emerald-500 text-emerald-600 rounded-lg text-xs font-medium hover:bg-emerald-50 transition-colors disabled:opacity-40"
+          className="flex items-center gap-1.5 px-3 py-2 border border-brand-400 text-brand-500 rounded-lg text-xs font-medium hover:bg-brand-50 transition-colors disabled:opacity-40"
         >
           <Send className="w-3.5 h-3.5" />
           发送测试群

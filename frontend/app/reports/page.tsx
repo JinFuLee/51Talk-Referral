@@ -1,15 +1,15 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { useReportList, useTranslation } from "@/lib/hooks";
-import { PageHeader } from "@/components/layout/PageHeader";
-import { BIZ_PAGE } from "@/lib/layout";
-import { reportsAPI } from "@/lib/api";
-import { ReportViewer } from "@/components/reports/ReportViewer";
-import { Card } from "@/components/ui/Card";
-import { Skeleton } from "@/components/ui/Skeleton";
-import { ErrorBoundary } from "@/components/providers/ErrorBoundary";
-import type { ReportFile } from "@/lib/types";
+import { useState } from 'react';
+import { useReportList, useTranslation } from '@/lib/hooks';
+import { PageHeader } from '@/components/layout/PageHeader';
+import { BIZ_PAGE } from '@/lib/layout';
+import { reportsAPI } from '@/lib/api';
+import { ReportViewer } from '@/components/reports/ReportViewer';
+import { Card } from '@/components/ui/Card';
+import { Skeleton } from '@/components/ui/Skeleton';
+import { ErrorBoundary } from '@/components/providers/ErrorBoundary';
+import type { ReportFile } from '@/lib/types';
 
 export default function ReportsPage() {
   const { t } = useTranslation();
@@ -21,16 +21,13 @@ export default function ReportsPage() {
   async function handleSelect(report: ReportFile) {
     setSelected(report);
     setContent(null);
-    if (!report.date || report.report_type === "unknown") return;
+    if (!report.date || report.report_type === 'unknown') return;
     setContentLoading(true);
     try {
-      const res = await reportsAPI.getContent(
-        report.report_type as "ops" | "exec",
-        report.date
-      );
+      const res = await reportsAPI.getContent(report.report_type as 'ops' | 'exec', report.date);
       setContent(res.content);
     } catch {
-      setContent("加载失败");
+      setContent('加载失败');
     } finally {
       setContentLoading(false);
     }
@@ -38,80 +35,90 @@ export default function ReportsPage() {
 
   return (
     <div className={BIZ_PAGE}>
-      <PageHeader title={t("reports.title")} />
+      <PageHeader title={t('reports.title')} />
 
       <ErrorBoundary>
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 h-[calc(100vh-160px)]">
-        {/* File list */}
-        <Card title={t("reports.card.list")} className="overflow-auto">
-          {isLoading ? (
-            <Skeleton className="h-32 w-full" />
-          ) : reports && reports.length > 0 ? (
-            <ul className="space-y-1">
-              {reports.map((r) => (
-                <li key={r.filename}>
-                  <button
-                    onClick={() => handleSelect(r)}
-                    className={`w-full text-left px-3 py-2.5 rounded-lg text-sm transition-colors ${
-                      selected?.filename === r.filename
-                        ? "bg-brand-100 text-brand-700 font-medium"
-                        : "hover:bg-[var(--bg-subtle)] text-[var(--text-secondary)]"
-                    }`}
-                  >
-                    <div className="font-medium truncate">{r.filename}</div>
-                    <div className="flex gap-2 mt-0.5">
-                      <span
-                        className={`text-xs px-1.5 py-0.5 rounded ${
-                          r.report_type === "ops"
-                            ? "bg-blue-100 text-blue-700"
-                            : r.report_type === "exec"
-                            ? "bg-purple-100 text-purple-700"
-                            : "bg-[var(--bg-subtle)] text-[var(--text-secondary)]"
-                        }`}
-                      >
-                        {r.report_type}
-                      </span>
-                      {r.date && (
-                        <span className="text-xs text-[var(--text-muted)]">{r.date}</span>
-                      )}
-                    </div>
-                  </button>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <div className="text-sm text-[var(--text-muted)] text-center py-8">
-              {t("reports.label.noReports")}
-            </div>
-          )}
-        </Card>
-
-        {/* Report content */}
-        <div className="lg:col-span-2 overflow-auto">
-          {selected ? (
-            contentLoading ? (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 h-[calc(100vh-160px)]">
+          {/* File list */}
+          <Card title={t('reports.card.list')} className="overflow-auto">
+            {isLoading ? (
               <Skeleton className="h-32 w-full" />
-            ) : content ? (
-              <ReportViewer
-                content={content}
-                filename={selected.filename}
-                downloadURL={reportsAPI.downloadURL(selected.filename)}
-              />
+            ) : reports && reports.length > 0 ? (
+              <ul className="space-y-1">
+                {reports.map((r) => (
+                  <li key={r.filename}>
+                    <button
+                      onClick={() => handleSelect(r)}
+                      className={`w-full text-left px-3 py-2.5 rounded-lg text-sm transition-colors ${
+                        selected?.filename === r.filename
+                          ? 'bg-brand-100 text-brand-700 font-medium'
+                          : 'hover:bg-[var(--bg-subtle)] text-[var(--text-secondary)]'
+                      }`}
+                    >
+                      <div className="font-medium truncate">{r.filename}</div>
+                      <div className="flex gap-2 mt-0.5">
+                        <span
+                          className={`text-xs px-1.5 py-0.5 rounded ${
+                            r.report_type === 'ops'
+                              ? 'bg-navy-100 text-navy-600'
+                              : r.report_type === 'exec'
+                                ? 'bg-purple-100 text-purple-700'
+                                : 'bg-[var(--bg-subtle)] text-[var(--text-secondary)]'
+                          }`}
+                        >
+                          {r.report_type}
+                        </span>
+                        {r.date && (
+                          <span className="text-xs text-[var(--text-muted)]">{r.date}</span>
+                        )}
+                      </div>
+                    </button>
+                  </li>
+                ))}
+              </ul>
             ) : (
-              <div className="text-sm text-[var(--text-muted)] text-center py-20">
-                {t("reports.label.loading")}
+              <div className="text-sm text-[var(--text-muted)] text-center py-8">
+                {t('reports.label.noReports')}
               </div>
-            )
-          ) : (
-            <div className="flex flex-col items-center justify-center h-full text-[var(--text-muted)]">
-              <svg className="w-12 h-12 mb-3 opacity-30" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-              <span className="text-sm">{t("reports.label.selectReport")}</span>
-            </div>
-          )}
+            )}
+          </Card>
+
+          {/* Report content */}
+          <div className="lg:col-span-2 overflow-auto">
+            {selected ? (
+              contentLoading ? (
+                <Skeleton className="h-32 w-full" />
+              ) : content ? (
+                <ReportViewer
+                  content={content}
+                  filename={selected.filename}
+                  downloadURL={reportsAPI.downloadURL(selected.filename)}
+                />
+              ) : (
+                <div className="text-sm text-[var(--text-muted)] text-center py-20">
+                  {t('reports.label.loading')}
+                </div>
+              )
+            ) : (
+              <div className="flex flex-col items-center justify-center h-full text-[var(--text-muted)]">
+                <svg
+                  className="w-12 h-12 mb-3 opacity-30"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={1.5}
+                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                  />
+                </svg>
+                <span className="text-sm">{t('reports.label.selectReport')}</span>
+              </div>
+            )}
+          </div>
         </div>
-      </div>
       </ErrorBoundary>
     </div>
   );

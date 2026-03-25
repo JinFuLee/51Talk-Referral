@@ -12,13 +12,13 @@ interface AchievementRingProps {
 
 function rateColor(rate: number): string {
   if (rate >= 1) return '#16a34a'; // green-600
-  if (rate >= 0.5) return '#2563eb'; // blue-600
+  if (rate >= 0.5) return '#234B82'; // navy-400 (mid-achievement)
   return '#dc2626'; // red-600
 }
 
 function rateLabel(rate: number): string {
   if (rate >= 1) return 'text-green-600';
-  if (rate >= 0.5) return 'text-blue-600';
+  if (rate >= 0.5) return 'text-navy-400';
   return 'text-red-600';
 }
 

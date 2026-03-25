@@ -126,7 +126,7 @@ function ChannelCard({ channel }: { channel: OpsChannel }) {
           </div>
           <div className="h-1.5 rounded-full bg-[var(--bg-subtle)] overflow-hidden">
             <div
-              className="h-full rounded-full bg-blue-500 transition-all"
+              className="h-full rounded-full bg-navy-400 transition-all"
               style={{ width: `${ratePercent}%` }}
             />
           </div>
@@ -182,12 +182,12 @@ function EnclosureSegmentBar({ segments }: { segments: EnclosureSegment[] }) {
               {/* 学员数量条 */}
               <div className="h-4 rounded bg-[var(--bg-subtle)] overflow-hidden relative">
                 <div
-                  className="h-full rounded bg-blue-200 transition-all"
+                  className="h-full rounded bg-navy-100 transition-all"
                   style={{ width: `${barWidth}%` }}
                 />
                 {/* 打卡率覆盖层 */}
                 <div
-                  className="absolute top-0 left-0 h-full rounded bg-blue-500 opacity-70 transition-all"
+                  className="absolute top-0 left-0 h-full rounded bg-navy-400 opacity-70 transition-all"
                   style={{ width: `${Math.round((barWidth * ratePercent) / 100)}%` }}
                 />
               </div>
@@ -196,11 +196,11 @@ function EnclosureSegmentBar({ segments }: { segments: EnclosureSegment[] }) {
         })}
         <div className="flex items-center gap-4 text-xs text-[var(--text-muted)] pt-1">
           <span className="flex items-center gap-1">
-            <span className="inline-block w-3 h-3 rounded-sm bg-blue-200" />
+            <span className="inline-block w-3 h-3 rounded-sm bg-navy-100" />
             总学员数
           </span>
           <span className="flex items-center gap-1">
-            <span className="inline-block w-3 h-3 rounded-sm bg-blue-500 opacity-70" />
+            <span className="inline-block w-3 h-3 rounded-sm bg-navy-400 opacity-70" />
             已打卡
           </span>
         </div>

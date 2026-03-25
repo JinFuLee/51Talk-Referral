@@ -696,7 +696,7 @@ function AllTabContent() {
   });
 
   const summaryItems = [
-    { role: 'CC 前端', color: 'border-blue-500', ...ccTotal },
+    { role: 'CC 前端', color: 'border-navy-400', ...ccTotal },
     { role: 'SS 后端', color: 'border-green-500', ...ssTotal },
     { role: 'LP 服务', color: 'border-purple-500', ...lpTotal },
   ];

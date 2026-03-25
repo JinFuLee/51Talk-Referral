@@ -32,7 +32,7 @@ export function ScenarioTable({ stages }: ScenarioTableProps) {
               <td className="py-1 px-2 text-xs text-right font-mono tabular-nums text-[var(--text-secondary)]">
                 {formatRate(s.current_rate)}
               </td>
-              <td className="py-1 px-2 text-xs text-right font-mono tabular-nums font-medium text-blue-600">
+              <td className="py-1 px-2 text-xs text-right font-mono tabular-nums font-medium text-navy-500">
                 {formatRate(s.scenario_rate)}
               </td>
               <td className="py-1 px-2 text-xs text-right font-mono tabular-nums text-[var(--text-primary)]">

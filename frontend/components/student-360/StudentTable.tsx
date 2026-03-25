@@ -110,11 +110,11 @@ export function StudentTable({
                 <tr
                   key={m.stdt_id}
                   onClick={() => onRowClick(m.stdt_id)}
-                  className={`even:bg-[var(--bg-subtle)] cursor-pointer hover:bg-blue-50 transition-colors ${
+                  className={`even:bg-[var(--bg-subtle)] cursor-pointer hover:bg-navy-50 transition-colors ${
                     m.is_high_potential ? 'border-l-2 border-l-orange-400' : ''
                   }`}
                 >
-                  <td className="py-1 px-2 text-xs text-blue-600 font-medium font-mono tabular-nums whitespace-nowrap">
+                  <td className="py-1 px-2 text-xs text-navy-500 font-medium font-mono tabular-nums whitespace-nowrap">
                     {m.stdt_id}
                   </td>
                   <td className="py-1 px-2 text-xs whitespace-nowrap">{m.name || '—'}</td>

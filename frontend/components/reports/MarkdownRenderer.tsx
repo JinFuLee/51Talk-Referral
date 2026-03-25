@@ -252,7 +252,7 @@ export function MarkdownRenderer({ content, className }: MarkdownRendererProps) 
           ),
           // Blockquotes
           blockquote: ({ children }) => (
-            <blockquote className="border-l-4 border-blue-400 pl-4 my-3 text-[var(--text-secondary)] italic">
+            <blockquote className="border-l-4 border-navy-300 pl-4 my-3 text-[var(--text-secondary)] italic">
               {children}
             </blockquote>
           ),

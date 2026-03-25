@@ -39,7 +39,7 @@ export default function TargetSettingsCard({
               {(['conservative', 'base', 'aggressive'] as const).map((key) => {
                 const s = recommendation.scenarios[key];
                 const colors: Record<typeof key, string> = {
-                  conservative: 'border-blue-200 bg-blue-50',
+                  conservative: 'border-navy-100 bg-navy-50',
                   base: 'border-green-200 bg-green-50',
                   aggressive: 'border-orange-200 bg-orange-50',
                 };

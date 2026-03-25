@@ -85,7 +85,7 @@ export function StudentSearch({ filters, onChange }: StudentSearchProps) {
         placeholder="搜索学员ID / 姓名 / CC姓名..."
         value={queryInput}
         onChange={(e) => handleQueryChange(e.target.value)}
-        className="w-full px-3 py-2 border border-[var(--border-subtle)] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+        className="w-full px-3 py-2 border border-[var(--border-subtle)] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-navy-400"
       />
 
       {/* 筛选器一行 */}
@@ -152,7 +152,7 @@ export function StudentSearch({ filters, onChange }: StudentSearchProps) {
           placeholder="CC姓名"
           value={filters.cc_name}
           onChange={(e) => onChange({ ...filters, cc_name: e.target.value })}
-          className="h-8 px-3 border border-[var(--border-subtle)] rounded-md text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 w-28"
+          className="h-8 px-3 border border-[var(--border-subtle)] rounded-md text-xs focus:outline-none focus:ring-2 focus:ring-navy-400 w-28"
         />
 
         {hasFilters && (

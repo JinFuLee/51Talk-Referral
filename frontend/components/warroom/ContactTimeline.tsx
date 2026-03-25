@@ -105,7 +105,7 @@ export function ContactTimeline({ stdtId }: ContactTimelineProps) {
                 <div className="flex items-center justify-center h-5 w-5">
                   <span
                     className={`w-3 h-3 rounded ${
-                      d.valid_checkin ? 'bg-blue-400' : 'bg-gray-200 dark:bg-gray-700'
+                      d.valid_checkin ? 'bg-navy-300' : 'bg-gray-200 dark:bg-gray-700'
                     }`}
                     title={d.valid_checkin ? '有效打卡' : '未打卡'}
                   />
@@ -125,7 +125,7 @@ export function ContactTimeline({ stdtId }: ContactTimelineProps) {
               未接通
             </span>
             <span className="flex items-center gap-1">
-              <span className="w-2.5 h-2.5 rounded bg-blue-400 inline-block" />
+              <span className="w-2.5 h-2.5 rounded bg-navy-300 inline-block" />
               有效打卡
             </span>
           </div>

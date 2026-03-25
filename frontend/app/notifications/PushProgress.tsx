@@ -15,7 +15,7 @@ interface PushProgressProps {
 
 const STATUS_ICON = {
   pending: <div className="w-4 h-4 rounded-full border-2 border-[var(--border-hover)]" />,
-  sending: <Loader2 className="w-4 h-4 animate-spin text-blue-500" />,
+  sending: <Loader2 className="w-4 h-4 animate-spin text-navy-400" />,
   success: <CheckCircle2 className="w-4 h-4 text-emerald-500" />,
   error: <XCircle className="w-4 h-4 text-red-500" />,
 };

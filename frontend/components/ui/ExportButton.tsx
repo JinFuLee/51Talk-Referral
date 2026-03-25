@@ -43,7 +43,7 @@ export function ExportButton({ onExportCsv, onExportExcel, isExporting }: Export
             }}
             className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-[var(--text-primary)] hover:bg-slate-50 transition-colors text-left border-b border-slate-50 last:border-0"
           >
-            <FileText className="w-4 h-4 text-emerald-600" />
+            <FileText className="w-4 h-4 text-brand-500" />
             CSV 格式
           </button>
           <button
@@ -53,7 +53,7 @@ export function ExportButton({ onExportCsv, onExportExcel, isExporting }: Export
             }}
             className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-[var(--text-primary)] hover:bg-slate-50 transition-colors text-left"
           >
-            <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
+            <FileSpreadsheet className="w-4 h-4 text-brand-500" />
             Excel 格式
           </button>
         </div>

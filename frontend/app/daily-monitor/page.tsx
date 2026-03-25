@@ -28,7 +28,7 @@ function FunnelBar({
   label,
   value,
   max,
-  color = 'bg-blue-500',
+  color = 'bg-navy-400',
 }: {
   label: string;
   value: number;
@@ -137,7 +137,7 @@ export default function DailyMonitorPage() {
               label="注册数"
               value={stats.funnel.registrations}
               max={funnelMax}
-              color="bg-blue-500"
+              color="bg-navy-400"
             />
             <FunnelBar
               label="邀约数"

@@ -33,7 +33,7 @@ export function TeamSummaryCard({
           <p className="text-xs text-[var(--text-muted)] mt-0.5">{cc_group}</p>
         </div>
         <div className="text-right">
-          <div className="text-lg font-bold text-blue-600">{students.toLocaleString()}</div>
+          <div className="text-lg font-bold text-navy-400">{students.toLocaleString()}</div>
           <div className="text-xs text-[var(--text-muted)]">有效学员</div>
         </div>
       </div>

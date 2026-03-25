@@ -150,7 +150,7 @@ function FilterBar({
         <select
           value={team}
           onChange={(e) => onTeamChange(e.target.value)}
-          className="px-2.5 py-1.5 border border-[var(--border-subtle)] rounded-lg text-xs bg-[var(--bg-surface)] text-[var(--text-secondary)] focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="px-2.5 py-1.5 border border-[var(--border-subtle)] rounded-lg text-xs bg-[var(--bg-surface)] text-[var(--text-secondary)] focus:outline-none focus:ring-2 focus:ring-navy-400"
         >
           <option value="">全部团队</option>
           {teams.map((t) => (
@@ -170,7 +170,7 @@ function FilterBar({
             placeholder="销售姓名搜索"
             value={salesSearch}
             onChange={(e) => onSalesSearch(e.target.value)}
-            className="pl-7 pr-3 py-1.5 border border-[var(--border-subtle)] rounded-lg text-xs bg-[var(--bg-surface)] focus:outline-none focus:ring-2 focus:ring-blue-500 w-36"
+            className="pl-7 pr-3 py-1.5 border border-[var(--border-subtle)] rounded-lg text-xs bg-[var(--bg-surface)] focus:outline-none focus:ring-2 focus:ring-navy-400 w-36"
           />
         </div>
       </div>
@@ -186,8 +186,8 @@ function FilterBar({
               onClick={() => toggleEnclosure(enc)}
               className={`px-2.5 py-1 rounded-full text-xs border transition-colors ${
                 active
-                  ? 'bg-blue-600 text-white border-blue-600'
-                  : 'bg-[var(--bg-surface)] text-[var(--text-secondary)] border-[var(--border-subtle)] hover:border-blue-400'
+                  ? 'bg-navy-500 text-white border-navy-500'
+                  : 'bg-[var(--bg-surface)] text-[var(--text-secondary)] border-[var(--border-subtle)] hover:border-navy-300'
               }`}
             >
               {enc}
@@ -354,8 +354,8 @@ function FollowupTable({ items, onDrawerOpen }: FollowupTableProps) {
                       setExpandedId(m.id);
                     }
                   }}
-                  className={`cursor-pointer transition-colors even:bg-[var(--bg-subtle)] hover:bg-blue-50 relative ${
-                    expanded ? 'bg-blue-50' : ''
+                  className={`cursor-pointer transition-colors even:bg-[var(--bg-subtle)] hover:bg-navy-50 relative ${
+                    expanded ? 'bg-navy-50' : ''
                   }`}
                   style={
                     isHighQuality
@@ -379,7 +379,7 @@ function FollowupTable({ items, onDrawerOpen }: FollowupTableProps) {
                       {m.quality_score}
                     </span>
                   </td>
-                  <td className="py-1 px-2 text-blue-600 font-medium font-mono tabular-nums whitespace-nowrap">
+                  <td className="py-1 px-2 text-navy-500 font-medium font-mono tabular-nums whitespace-nowrap">
                     {m.id}
                   </td>
                   <td className="py-1 px-2 text-[var(--text-secondary)] whitespace-nowrap">

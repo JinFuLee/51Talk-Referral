@@ -22,9 +22,9 @@ export interface BotChannel {
 }
 
 const ROLE_COLORS: Record<string, string> = {
-  CC: 'bg-emerald-100 text-emerald-700',
+  CC: 'bg-brand-100 text-brand-600',
   LP: 'bg-purple-100 text-purple-700',
-  SS: 'bg-blue-100 text-blue-700',
+  SS: 'bg-navy-100 text-navy-600',
   运营: 'bg-stone-100 text-stone-600',
   ALL: 'bg-[var(--bg-subtle)] text-[var(--text-secondary)]',
 };
@@ -40,7 +40,7 @@ export function BotCard({ bot, onEdit, onDelete, onToggle }: BotCardProps) {
   const [showSecret, setShowSecret] = useState(false);
   const roleColor =
     ROLE_COLORS[bot.role ?? ''] ?? 'bg-[var(--bg-subtle)] text-[var(--text-secondary)]';
-  const borderColor = bot.platform === 'lark' ? 'border-l-blue-500' : 'border-l-orange-500';
+  const borderColor = bot.platform === 'lark' ? 'border-l-navy-400' : 'border-l-orange-500';
 
   return (
     <div
@@ -91,7 +91,7 @@ export function BotCard({ bot, onEdit, onDelete, onToggle }: BotCardProps) {
           <div
             onClick={() => onToggle(bot.id, !bot.enabled)}
             className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
-              bot.enabled ? 'bg-emerald-500' : 'bg-[var(--bg-elevated)]'
+              bot.enabled ? 'bg-brand-400' : 'bg-[var(--bg-elevated)]'
             }`}
           >
             <span

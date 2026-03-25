@@ -181,7 +181,7 @@ export function Profile360Drawer({ stdtId, onClose }: Profile360DrawerProps) {
                   <TabsTrigger
                     key={tab.value}
                     value={tab.value}
-                    className="rounded-none border-b-2 border-transparent data-[state=active]:border-blue-500 data-[state=active]:bg-transparent data-[state=active]:text-blue-600 data-[state=active]:shadow-none px-3 py-2.5 text-xs shrink-0"
+                    className="rounded-none border-b-2 border-transparent data-[state=active]:border-navy-400 data-[state=active]:bg-transparent data-[state=active]:text-navy-400 data-[state=active]:shadow-none px-3 py-2.5 text-xs shrink-0"
                   >
                     {tab.label}
                   </TabsTrigger>

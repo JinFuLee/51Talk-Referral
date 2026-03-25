@@ -107,7 +107,7 @@ function TeamCard({ card, rateColor, rateBg }: TeamCardProps) {
             {card.members.map((m, i) => (
               <tr
                 key={m.name}
-                className="even:bg-[var(--bg-subtle)] hover:bg-blue-50/50 transition-colors"
+                className="even:bg-[var(--bg-subtle)] hover:bg-navy-50/50 transition-colors"
               >
                 <td className="py-1 px-2 text-center text-[var(--text-muted)] font-mono tabular-nums">
                   {i + 1}

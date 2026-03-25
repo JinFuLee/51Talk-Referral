@@ -50,7 +50,7 @@ export function CCVarianceBox({ data }: CCVarianceBoxProps) {
             <div className="relative h-5 bg-[var(--bg-subtle)] rounded overflow-hidden">
               {/* min → max 全程条 */}
               <div
-                className="absolute inset-y-0 bg-blue-100 dark:bg-blue-900/30 rounded"
+                className="absolute inset-y-0 bg-navy-100 dark:bg-navy-900/30 rounded"
                 style={{ left: '0%', right: '0%' }}
               />
 
@@ -63,7 +63,7 @@ export function CCVarianceBox({ data }: CCVarianceBoxProps) {
                 );
                 return (
                   <div
-                    className="absolute inset-y-0 bg-blue-400/50 dark:bg-blue-500/40 rounded"
+                    className="absolute inset-y-0 bg-navy-300/50 dark:bg-navy-400/40 rounded"
                     style={{ left: `${left}%`, right: `${right}%` }}
                   />
                 );
@@ -71,7 +71,7 @@ export function CCVarianceBox({ data }: CCVarianceBoxProps) {
 
               {/* 均值竖线 */}
               <div
-                className="absolute inset-y-0 w-0.5 bg-blue-600"
+                className="absolute inset-y-0 w-0.5 bg-navy-500"
                 style={{ left: `${meanPos}%` }}
               />
 
@@ -87,7 +87,7 @@ export function CCVarianceBox({ data }: CCVarianceBoxProps) {
 
       <div className="flex items-center gap-4 text-[10px] text-[var(--text-muted)] mt-1">
         <div className="flex items-center gap-1">
-          <div className="w-3 h-0.5 bg-blue-600" />
+          <div className="w-3 h-0.5 bg-navy-500" />
           <span>均值</span>
         </div>
         <div className="flex items-center gap-1">
@@ -95,7 +95,7 @@ export function CCVarianceBox({ data }: CCVarianceBoxProps) {
           <span>中位数</span>
         </div>
         <div className="flex items-center gap-1">
-          <div className="w-3 h-2 bg-blue-400/50 rounded" />
+          <div className="w-3 h-2 bg-navy-300/50 rounded" />
           <span>均值±1σ</span>
         </div>
       </div>
