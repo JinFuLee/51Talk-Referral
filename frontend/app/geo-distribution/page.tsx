@@ -33,7 +33,7 @@ function BarCell({ pct }: { pct: number }) {
 }
 
 export default function GeoDistributionPage() {
-  const { data, isLoading, error } = useSWR<GeoItem[]>(
+  const { data, isLoading, error, mutate } = useSWR<GeoItem[]>(
     '/api/analysis/geo-distribution',
     swrFetcher
   );
@@ -51,6 +51,7 @@ export default function GeoDistributionPage() {
       <EmptyState
         title="数据加载失败"
         description="无法获取地理分布数据，请检查后端服务是否正常运行"
+        action={{ label: '重试', onClick: () => mutate() }}
       />
     );
   }

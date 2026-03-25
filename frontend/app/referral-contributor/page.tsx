@@ -62,7 +62,7 @@ function pct(v: number | null | undefined): string {
 /* ── 主页面 ─────────────────────────────────────────────── */
 
 export default function ReferralContributorPage() {
-  const { data, isLoading, error } = useSWR<ReferralContributorResponse>(
+  const { data, isLoading, error, mutate } = useSWR<ReferralContributorResponse>(
     '/api/analysis/referral-contributor',
     swrFetcher
   );
@@ -84,6 +84,7 @@ export default function ReferralContributorPage() {
       <EmptyState
         title="数据加载失败"
         description="无法获取推荐者贡献数据，请检查后端服务是否正常运行"
+        action={{ label: '重试', onClick: () => mutate() }}
       />
     );
   }

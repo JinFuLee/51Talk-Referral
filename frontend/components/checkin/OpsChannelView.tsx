@@ -211,7 +211,7 @@ interface OpsChannelViewProps {
 }
 
 export function OpsChannelView({ configJson }: OpsChannelViewProps) {
-  const { data, isLoading, error } = useSWR<RankingResponse>(
+  const { data, isLoading, error, mutate } = useSWR<RankingResponse>(
     `/api/checkin/ranking?role_config=${encodeURIComponent(configJson)}`,
     swrFetcher,
     { refreshInterval: 30_000 }
@@ -230,7 +230,13 @@ export function OpsChannelView({ configJson }: OpsChannelViewProps) {
 
   // 错误态
   if (error) {
-    return <EmptyState title="数据加载失败" description="无法获取运营渠道数据，请检查后端服务" />;
+    return (
+      <EmptyState
+        title="数据加载失败"
+        description="无法获取运营渠道数据，请检查后端服务"
+        action={{ label: '重试', onClick: () => mutate() }}
+      />
+    );
   }
 
   // 空态

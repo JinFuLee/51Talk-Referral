@@ -71,7 +71,7 @@ const TABS: { key: TabKey; label: string }[] = [
 /* ── CC 内容 ─────────────────────────────────────────────── */
 
 function CCContent() {
-  const { data, isLoading, error } = useSWR<FollowupQualityResponse>(
+  const { data, isLoading, error, mutate } = useSWR<FollowupQualityResponse>(
     '/api/analysis/followup-quality?role=cc',
     swrFetcher
   );
@@ -92,6 +92,7 @@ function CCContent() {
       <EmptyState
         title="数据加载失败"
         description="无法获取跟进质量数据，请检查后端服务是否正常运行"
+        action={{ label: '重试', onClick: () => mutate() }}
       />
     );
   }

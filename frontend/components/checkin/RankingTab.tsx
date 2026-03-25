@@ -180,7 +180,7 @@ export function RankingTab() {
   const { rateColor, legend } = useCheckinThresholds();
   const [subTab, setSubTab] = useState<'group' | 'person'>('group');
 
-  const { data, isLoading, error } = useSWR<RankingResponse>(
+  const { data, isLoading, error, mutate } = useSWR<RankingResponse>(
     `/api/checkin/ranking?role_config=${encodeURIComponent(configJson)}`,
     swrFetcher,
     { refreshInterval: 30_000 }
@@ -218,6 +218,7 @@ export function RankingTab() {
         <EmptyState
           title="加载失败"
           description="无法获取打卡排行数据，请检查后端服务是否正常运行"
+          action={{ label: '重试', onClick: () => mutate() }}
         />
       )}
 

@@ -47,7 +47,7 @@ function safeNum(v?: number | null): string {
 }
 
 export default function OutreachQualityPage() {
-  const { data, isLoading, error } = useSWR<OutreachQualitySummary>(
+  const { data, isLoading, error, mutate } = useSWR<OutreachQualitySummary>(
     '/api/analysis/outreach-quality',
     swrFetcher
   );
@@ -61,7 +61,13 @@ export default function OutreachQualityPage() {
   }
 
   if (error) {
-    return <EmptyState title="数据加载失败" description="无法获取接通质量数据，请检查后端服务" />;
+    return (
+      <EmptyState
+        title="数据加载失败"
+        description="无法获取接通质量数据，请检查后端服务"
+        action={{ label: '重试', onClick: () => mutate() }}
+      />
+    );
   }
 
   const summary = data?.summary ?? {};
