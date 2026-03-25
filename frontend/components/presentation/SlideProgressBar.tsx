@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import React, { useState } from "react";
+import React, { useState } from 'react';
 
 interface Section {
   name: string;
@@ -18,7 +18,7 @@ export function SlideProgressBar({ current, total, sections = [] }: SlideProgres
   const progressPct = total > 0 ? (current / total) * 100 : 0;
 
   return (
-    <div className="fixed top-0 left-0 right-0 z-50 h-1 bg-slate-200">
+    <div className="fixed top-0 left-0 right-0 z-50 h-1 bg-[var(--bg-subtle)]">
       {/* Main progress fill */}
       <div
         className="h-full bg-primary transition-all duration-200 ease-in-out"

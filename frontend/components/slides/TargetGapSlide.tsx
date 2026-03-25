@@ -66,7 +66,12 @@ export function TargetGapSlide({ slideNumber, totalSlides }: SlideProps) {
           <div className="text-center space-y-2">
             <p className="text-base font-semibold text-red-600">数据加载失败</p>
             <p className="text-sm text-[var(--text-muted)]">请检查后端服务是否正常运行</p>
-            <button onClick={() => mutate()} className="mt-1 px-4 py-1.5 rounded-lg text-sm border border-[var(--border-default)] text-[var(--text-secondary)] hover:bg-[var(--bg-subtle)] transition-colors">重试</button>
+            <button
+              onClick={() => mutate()}
+              className="mt-1 px-4 py-1.5 rounded-lg text-sm border border-[var(--border-default)] text-[var(--text-secondary)] hover:bg-[var(--bg-subtle)] transition-colors"
+            >
+              重试
+            </button>
           </div>
         </div>
       ) : stages.length === 0 ? (
@@ -85,7 +90,7 @@ export function TargetGapSlide({ slideNumber, totalSlides }: SlideProps) {
               <div
                 key={s.name}
                 className={`flex flex-col gap-2 rounded-[var(--radius-xl)] p-6 ${
-                  isAtRisk ? 'bg-red-50 border-2 border-red-300' : 'bg-slate-50'
+                  isAtRisk ? 'bg-red-50 border-2 border-red-300' : 'bg-[var(--bg-subtle)]'
                 }`}
               >
                 <p className="text-sm font-medium text-[var(--text-secondary)]">{s.name}</p>
@@ -103,19 +108,19 @@ export function TargetGapSlide({ slideNumber, totalSlides }: SlideProps) {
                 {target > 0 && (
                   <>
                     <div
-                      className={`text-lg font-bold ${gap >= 0 ? 'text-green-600' : 'text-red-500'}`}
+                      className={`text-lg font-bold ${gap >= 0 ? 'text-emerald-800' : 'text-[var(--color-danger)]'}`}
                     >
                       {gap >= 0 ? '+' : ''}
                       {gap.toLocaleString()}
                     </div>
-                    <div className="w-full bg-slate-200 rounded-full h-2">
+                    <div className="w-full bg-[var(--bg-subtle)] rounded-full h-2">
                       <div
-                        className={`h-2 rounded-full ${rate >= 1 ? 'bg-green-500' : rate >= 0.8 ? 'bg-yellow-400' : 'bg-red-400'}`}
+                        className={`h-2 rounded-full ${rate >= 1 ? 'bg-emerald-600' : rate >= 0.8 ? 'bg-amber-500' : 'bg-[var(--color-danger)]'}`}
                         style={{ width: `${Math.min(100, rate * 100)}%` }}
                       />
                     </div>
                     <p
-                      className={`text-sm font-semibold ${rate >= 1 ? 'text-green-600' : rate >= 0.8 ? 'text-yellow-600' : 'text-red-500'}`}
+                      className={`text-sm font-semibold ${rate >= 1 ? 'text-emerald-800' : rate >= 0.8 ? 'text-amber-800' : 'text-[var(--color-danger)]'}`}
                     >
                       {formatRate(rate)}
                     </p>

@@ -189,14 +189,14 @@ function CCTabContent() {
           <div className="text-xs text-[var(--text-secondary)]">
             参与率最高：
             <span className="font-semibold text-[var(--text-primary)]">{topCC.cc_name}</span>{' '}
-            <span className="text-green-600 font-semibold">
+            <span className="text-emerald-800 font-semibold">
               {formatRate(topCC.participation_rate)}
             </span>
             ；参与率最低：
             <span className="font-semibold text-[var(--text-primary)]">
               {bottomCC.cc_name}
             </span>{' '}
-            <span className="text-red-500 font-semibold">
+            <span className="text-[var(--color-danger)] font-semibold">
               {formatRate(bottomCC.participation_rate)}
             </span>
             {topCC.participation_rate != null && bottomCC.participation_rate != null && (
@@ -271,7 +271,7 @@ function CCTabContent() {
                       {(t.registrations ?? 0).toLocaleString()}
                     </td>
                     <td
-                      className={`slide-td py-1.5 px-2 text-right font-mono tabular-nums ${(t.payments ?? 0) >= 1 ? 'text-green-600 font-semibold' : ''}`}
+                      className={`slide-td py-1.5 px-2 text-right font-mono tabular-nums ${(t.payments ?? 0) >= 1 ? 'text-emerald-800 font-semibold' : ''}`}
                     >
                       {(t.payments ?? 0).toLocaleString()}
                     </td>
@@ -384,14 +384,14 @@ function RoleRankingContent({ role, apiUrl }: { role: 'SS' | 'LP'; apiUrl: strin
           <div className="text-xs text-[var(--text-secondary)]">
             参与率最高：
             <span className="font-semibold text-[var(--text-primary)]">{topMember.name}</span>{' '}
-            <span className="text-green-600 font-semibold">
+            <span className="text-emerald-800 font-semibold">
               {formatRate(topMember.participation_rate)}
             </span>
             ；参与率最低：
             <span className="font-semibold text-[var(--text-primary)]">
               {bottomMember.name}
             </span>{' '}
-            <span className="text-red-500 font-semibold">
+            <span className="text-[var(--color-danger)] font-semibold">
               {formatRate(bottomMember.participation_rate)}
             </span>
             。

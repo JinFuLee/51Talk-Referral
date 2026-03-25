@@ -7,9 +7,9 @@ interface ContactGaugeProps {
 }
 
 function rateColor(rate: number): string {
-  if (rate >= 0.6) return 'text-green-600';
-  if (rate >= 0.4) return 'text-yellow-600';
-  return 'text-red-500';
+  if (rate >= 0.6) return 'text-emerald-800';
+  if (rate >= 0.4) return 'text-amber-800';
+  return 'text-[var(--color-danger)]';
 }
 
 function barColor(rate: number): string {

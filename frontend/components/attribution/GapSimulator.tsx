@@ -14,9 +14,9 @@ const SEGMENTS = [
 ];
 
 function achievementColor(rate: number): string {
-  if (rate >= 1) return 'text-green-600';
+  if (rate >= 1) return 'text-emerald-800';
   if (rate >= 0.5) return 'text-action-accent';
-  return 'text-red-600';
+  return 'text-[var(--color-danger)]';
 }
 
 export function GapSimulator() {
@@ -75,7 +75,9 @@ export function GapSimulator() {
         </div>
       )}
 
-      {error && <p className="text-xs text-red-500">无法加载模拟数据，请检查后端服务</p>}
+      {error && (
+        <p className="text-xs text-[var(--color-danger)]">无法加载模拟数据，请检查后端服务</p>
+      )}
 
       {data && !isLoading && (
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -102,7 +104,7 @@ export function GapSimulator() {
 
           <div className="card-subtle">
             <p className="text-xs text-[var(--text-muted)]">预测付费</p>
-            <p className="text-lg font-bold tabular-nums text-green-600">
+            <p className="text-lg font-bold tabular-nums text-emerald-800">
               {(data.new_paid ?? 0).toLocaleString()} 人
             </p>
           </div>
@@ -121,7 +123,7 @@ export function GapSimulator() {
               将 <strong className="text-[var(--text-primary)]">{segmentLabel}</strong> 从{' '}
               <strong>{formatRate(data.current_rate)}</strong> 提升到{' '}
               <strong>{formatRate(data.new_rate)}</strong>， 预计付费增加{' '}
-              <strong className="text-green-600">
+              <strong className="text-emerald-800">
                 +{((data.new_paid ?? 0) - (data.current_paid ?? 0)).toLocaleString()} 人
               </strong>
             </div>

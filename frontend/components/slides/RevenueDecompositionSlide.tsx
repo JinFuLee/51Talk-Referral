@@ -50,7 +50,12 @@ export function RevenueDecompositionSlide({ slideNumber, totalSlides }: SlidePro
           <div className="text-center space-y-2">
             <p className="text-base font-semibold text-red-600">数据加载失败</p>
             <p className="text-sm text-[var(--text-muted)]">请检查后端服务是否正常运行</p>
-            <button onClick={() => mutate()} className="mt-1 px-4 py-1.5 rounded-lg text-sm border border-[var(--border-default)] text-[var(--text-secondary)] hover:bg-[var(--bg-subtle)] transition-colors">重试</button>
+            <button
+              onClick={() => mutate()}
+              className="mt-1 px-4 py-1.5 rounded-lg text-sm border border-[var(--border-default)] text-[var(--text-secondary)] hover:bg-[var(--bg-subtle)] transition-colors"
+            >
+              重试
+            </button>
           </div>
         </div>
       ) : channels.length === 0 ? (
@@ -92,7 +97,7 @@ export function RevenueDecompositionSlide({ slideNumber, totalSlides }: SlidePro
                       {formatRate(share)}
                     </td>
                     <td className="px-3 py-1.5 w-28">
-                      <div className="w-full bg-slate-200 rounded-full h-2">
+                      <div className="w-full bg-[var(--bg-subtle)] rounded-full h-2">
                         <div
                           className="h-2 rounded-full bg-primary"
                           style={{ width: `${Math.min(100, share * 100)}%` }}

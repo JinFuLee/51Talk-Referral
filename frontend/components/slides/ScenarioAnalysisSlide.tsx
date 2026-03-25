@@ -9,7 +9,10 @@ import type { ScenarioResult } from '@/lib/types/funnel';
 import type { SlideProps } from '@/lib/presentation/types';
 
 export function ScenarioAnalysisSlide({ slideNumber, totalSlides }: SlideProps) {
-  const { data, isLoading, error, mutate } = useSWR<ScenarioResult>('/api/funnel/scenario', swrFetcher);
+  const { data, isLoading, error, mutate } = useSWR<ScenarioResult>(
+    '/api/funnel/scenario',
+    swrFetcher
+  );
 
   // 一句话结论
   const insight = (() => {
@@ -41,7 +44,12 @@ export function ScenarioAnalysisSlide({ slideNumber, totalSlides }: SlideProps) 
           <div className="text-center space-y-2">
             <p className="text-base font-semibold text-red-600">数据加载失败</p>
             <p className="text-sm text-[var(--text-muted)]">请检查后端服务是否正常运行</p>
-            <button onClick={() => mutate()} className="mt-1 px-4 py-1.5 rounded-lg text-sm border border-[var(--border-default)] text-[var(--text-secondary)] hover:bg-[var(--bg-subtle)] transition-colors">重试</button>
+            <button
+              onClick={() => mutate()}
+              className="mt-1 px-4 py-1.5 rounded-lg text-sm border border-[var(--border-default)] text-[var(--text-secondary)] hover:bg-[var(--bg-subtle)] transition-colors"
+            >
+              重试
+            </button>
           </div>
         </div>
       ) : !data ? (
@@ -52,7 +60,7 @@ export function ScenarioAnalysisSlide({ slideNumber, totalSlides }: SlideProps) 
       ) : (
         <div className="overflow-auto h-full">
           <div className="grid grid-cols-2 gap-4 mb-4">
-            <div className="bg-slate-50 rounded-lg p-4">
+            <div className="bg-[var(--bg-subtle)] rounded-lg p-4">
               <p className="text-xs text-[var(--text-muted)] mb-1">当前转化率</p>
               <p className="text-2xl font-bold text-[var(--text-primary)]">
                 {formatRate(data.current_rate)}
@@ -66,21 +74,21 @@ export function ScenarioAnalysisSlide({ slideNumber, totalSlides }: SlideProps) 
             </div>
           </div>
           <div className="grid grid-cols-3 gap-3">
-            <div className="bg-slate-50 rounded-lg p-3 text-center">
+            <div className="bg-[var(--bg-subtle)] rounded-lg p-3 text-center">
               <p className="text-xs text-[var(--text-muted)] mb-1">影响注册数</p>
               <p className="text-lg font-bold text-[var(--text-primary)]">
                 +{data.impact_registrations.toLocaleString()}
               </p>
             </div>
-            <div className="bg-slate-50 rounded-lg p-3 text-center">
+            <div className="bg-[var(--bg-subtle)] rounded-lg p-3 text-center">
               <p className="text-xs text-[var(--text-muted)] mb-1">影响付费数</p>
               <p className="text-lg font-bold text-[var(--text-primary)]">
                 +{data.impact_payments.toLocaleString()}
               </p>
             </div>
-            <div className="bg-green-50 rounded-lg p-3 text-center">
+            <div className="bg-[var(--color-success-surface)] rounded-lg p-3 text-center">
               <p className="text-xs text-[var(--text-muted)] mb-1">影响业绩</p>
-              <p className="text-lg font-bold text-green-600">
+              <p className="text-lg font-bold text-emerald-800">
                 +${data.impact_revenue.toLocaleString()}
               </p>
             </div>

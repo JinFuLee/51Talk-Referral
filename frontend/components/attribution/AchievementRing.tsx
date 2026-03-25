@@ -17,9 +17,9 @@ function rateColor(rate: number): string {
 }
 
 function rateLabel(rate: number): string {
-  if (rate >= 1) return 'text-green-600';
+  if (rate >= 1) return 'text-emerald-800';
   if (rate >= 0.5) return 'text-action-accent';
-  return 'text-red-600';
+  return 'text-[var(--color-danger)]';
 }
 
 export function AchievementRing({ label, actual, target, rate }: AchievementRingProps) {

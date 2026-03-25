@@ -98,7 +98,7 @@ export function PresentationLauncher() {
                     'rounded-xl p-3',
                     isSelected
                       ? 'bg-primary text-white'
-                      : 'bg-slate-100 text-[var(--text-secondary)]'
+                      : 'bg-[var(--bg-subtle)] text-[var(--text-secondary)]'
                   )}
                 >
                   {scene.icon}
@@ -170,7 +170,7 @@ export function PresentationLauncher() {
             'flex items-center gap-3 px-8 py-4 rounded-[var(--radius-xl)] text-lg font-bold transition-all duration-200',
             selectedScene && selectedTimeframe
               ? 'bg-primary text-white shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 hover:-translate-y-0.5'
-              : 'bg-slate-100 text-[var(--text-muted)] cursor-not-allowed'
+              : 'bg-[var(--bg-subtle)] text-[var(--text-muted)] cursor-not-allowed'
           )}
         >
           <Play className="w-5 h-5" />

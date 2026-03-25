@@ -62,7 +62,7 @@ export function SlideShell({
       {/* Footer */}
       <div className="flex-none px-10 pb-4 flex items-center justify-between">
         <div className="w-full mr-6">
-          <div className="w-full bg-slate-100 rounded-full h-1">
+          <div className="w-full bg-[var(--bg-subtle)] rounded-full h-1">
             <div
               className="h-1 rounded-full bg-primary transition-all duration-700"
               style={{ width: `${progressPct}%` }}

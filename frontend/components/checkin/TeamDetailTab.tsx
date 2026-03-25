@@ -92,7 +92,7 @@ function TeamCard({ card, rateColor, rateBg }: TeamCardProps) {
         <div className="overflow-x-auto">
           <table className="w-full text-xs">
             <thead>
-              <tr className="slide-thead-row">
+              <tr className="bg-[var(--bg-subtle)] text-[var(--text-muted)] text-xs font-semibold">
                 <th className="py-1 px-2 text-center w-7">#</th>
                 <th className="py-1 px-2 text-left">销售</th>
                 <th className="py-1 px-2 text-right">学员</th>

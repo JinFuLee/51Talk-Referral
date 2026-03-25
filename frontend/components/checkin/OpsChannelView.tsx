@@ -70,10 +70,10 @@ const COST_LABELS: Record<string, string> = {
 };
 
 const COST_STYLES: Record<string, string> = {
-  high: 'text-red-600',
-  medium: 'text-amber-600',
-  low: 'text-green-600',
-  lowest: 'text-green-700',
+  high: 'text-[var(--color-danger)]',
+  medium: 'text-amber-800',
+  low: 'text-emerald-800',
+  lowest: 'text-emerald-900',
 };
 
 // ── 渠道卡片 ─────────────────────────────────────────────────────────────────

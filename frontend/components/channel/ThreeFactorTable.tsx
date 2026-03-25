@@ -59,8 +59,8 @@ export function ThreeFactorTable({ comparisons }: ThreeFactorTableProps) {
                   c.gap == null
                     ? 'text-[var(--text-secondary)]'
                     : c.gap >= 0
-                      ? 'text-green-600'
-                      : 'text-red-500'
+                      ? 'text-emerald-800'
+                      : 'text-[var(--color-danger)]'
                 }`}
               >
                 {c.gap == null ? '—' : `${c.gap >= 0 ? '+' : ''}${c.gap.toLocaleString()}`}

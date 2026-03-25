@@ -137,21 +137,21 @@ function CCContent() {
           <Card title="">
             <div className="text-center py-3">
               <p className="text-xs text-[var(--text-muted)] mb-1">高质量通话占比</p>
-              <p className="text-3xl font-bold text-green-600">{pct(summary.high_quality_pct)}</p>
+              <p className="text-3xl font-bold text-emerald-800">{pct(summary.high_quality_pct)}</p>
               <p className="text-xs text-[var(--text-muted)] mt-1">通话时长 ≥120s</p>
             </div>
           </Card>
           <Card title="">
             <div className="text-center py-3">
               <p className="text-xs text-[var(--text-muted)] mb-1">可疑通话占比</p>
-              <p className="text-3xl font-bold text-yellow-500">{pct(summary.suspicious_pct)}</p>
+              <p className="text-3xl font-bold text-amber-800">{pct(summary.suspicious_pct)}</p>
               <p className="text-xs text-[var(--text-muted)] mt-1">通话时长 &lt;30s</p>
             </div>
           </Card>
           <Card title="">
             <div className="text-center py-3">
               <p className="text-xs text-[var(--text-muted)] mb-1">失联 &gt;14 天</p>
-              <p className="text-3xl font-bold text-red-500">
+              <p className="text-3xl font-bold text-[var(--color-danger)]">
                 {(summary.lost_contact_count ?? 0).toLocaleString()}
               </p>
               <p className="text-xs text-[var(--text-muted)] mt-1">
@@ -236,10 +236,10 @@ function CCContent() {
                       <span
                         className={
                           highRate >= 0.6
-                            ? 'text-green-600 font-semibold'
+                            ? 'text-emerald-800 font-semibold'
                             : highRate >= 0.4
-                              ? 'text-yellow-600'
-                              : 'text-red-500'
+                              ? 'text-amber-800'
+                              : 'text-[var(--color-danger)]'
                         }
                       >
                         {p.high_quality_count}
@@ -249,9 +249,9 @@ function CCContent() {
                       <span
                         className={
                           suspRate > 0.3
-                            ? 'text-red-500 font-semibold'
+                            ? 'text-[var(--color-danger)] font-semibold'
                             : suspRate > 0.1
-                              ? 'text-yellow-600'
+                              ? 'text-amber-800'
                               : 'text-[var(--text-secondary)]'
                         }
                       >
@@ -265,7 +265,7 @@ function CCContent() {
                       <span
                         className={
                           p.lost_14d_count > 5
-                            ? 'text-red-500 font-semibold'
+                            ? 'text-[var(--color-danger)] font-semibold'
                             : 'text-[var(--text-secondary)]'
                         }
                       >

@@ -180,7 +180,7 @@ export default function FunnelPage() {
             转化瓶颈在{' '}
             <span className="font-semibold text-[var(--text-primary)]">{bottleneckStage.name}</span>{' '}
             环节，达成率{' '}
-            <span className="text-red-500 font-semibold">
+            <span className="text-[var(--color-danger)] font-semibold">
               {bottleneckStage.achievement_rate != null
                 ? `${Math.round(bottleneckStage.achievement_rate * 100)}%`
                 : '—'}
@@ -188,7 +188,7 @@ export default function FunnelPage() {
             {bestStage && bestStage.name !== bottleneckStage.name && (
               <>
                 ；{bestStage.name} 环节达成率最高（
-                <span className="text-green-600 font-semibold">
+                <span className="text-emerald-800 font-semibold">
                   {bestStage.achievement_rate != null
                     ? `${Math.round(bestStage.achievement_rate * 100)}%`
                     : '—'}
@@ -278,7 +278,7 @@ export default function FunnelPage() {
                           : '—'}
                       </td>
                       <td
-                        className={`slide-td text-right font-mono tabular-nums font-medium ${(s.gap ?? 0) >= 0 ? 'text-green-600' : 'text-red-500'}`}
+                        className={`slide-td text-right font-mono tabular-nums font-medium ${(s.gap ?? 0) >= 0 ? 'text-emerald-800' : 'text-[var(--color-danger)]'}`}
                       >
                         {s.gap != null ? `${s.gap >= 0 ? '+' : ''}${s.gap.toLocaleString()}` : '—'}
                       </td>
@@ -344,7 +344,7 @@ export default function FunnelPage() {
                     </td>
                     <td
                       className={`py-1 px-2 text-xs text-right font-mono tabular-nums font-medium ${
-                        (s.gap ?? 0) >= 0 ? 'text-green-600' : 'text-red-500'
+                        (s.gap ?? 0) >= 0 ? 'text-emerald-800' : 'text-[var(--color-danger)]'
                       }`}
                     >
                       {s.gap != null
@@ -357,10 +357,10 @@ export default function FunnelPage() {
                       <span
                         className={`font-medium ${
                           (s.achievement_rate ?? 0) >= 1
-                            ? 'text-green-600'
+                            ? 'text-emerald-800'
                             : (s.achievement_rate ?? 0) >= 0.8
-                              ? 'text-yellow-600'
-                              : 'text-red-500'
+                              ? 'text-amber-800'
+                              : 'text-[var(--color-danger)]'
                         }`}
                       >
                         {formatRate(s.achievement_rate)}
@@ -455,7 +455,7 @@ export default function FunnelPage() {
                     <td className="py-2 px-2 text-xs text-right font-mono tabular-nums">
                       +{(s.impact_payments ?? 0).toLocaleString()}
                     </td>
-                    <td className="py-2 px-2 text-xs text-right font-mono tabular-nums text-green-600 font-medium">
+                    <td className="py-2 px-2 text-xs text-right font-mono tabular-nums text-emerald-800 font-medium">
                       +${(s.impact_revenue ?? 0).toLocaleString()}
                     </td>
                   </tr>

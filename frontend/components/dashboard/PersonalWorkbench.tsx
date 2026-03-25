@@ -79,7 +79,7 @@ function ProgressBar({ value, target }: { value: number; target: number }) {
           目标 <span className="font-semibold text-[var(--text-secondary)]">{target}</span>
         </span>
         <span
-          className={`font-semibold ${overTarget ? 'text-green-600' : 'text-[var(--text-primary)]'}`}
+          className={`font-semibold ${overTarget ? 'text-emerald-800' : 'text-[var(--text-primary)]'}`}
         >
           {pct}%
         </span>

@@ -33,7 +33,7 @@ interface ReportViewerProps {
 export function ReportViewer({ content, filename, downloadURL }: ReportViewerProps) {
   return (
     <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] overflow-hidden shadow-[var(--shadow-subtle)]">
-      <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--border-subtle)] bg-slate-50">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--border-subtle)] bg-[var(--bg-subtle)]">
         <span className="text-sm font-medium text-[var(--text-primary)] truncate">{filename}</span>
         <a
           href={downloadURL}

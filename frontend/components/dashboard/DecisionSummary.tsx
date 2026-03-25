@@ -132,10 +132,10 @@ export function DecisionSummary({
 
   const accentTextColor =
     status === 'critical'
-      ? 'text-red-600'
+      ? 'text-[var(--color-danger)]'
       : status === 'at-risk'
-        ? 'text-amber-600'
-        : 'text-green-600';
+        ? 'text-amber-800'
+        : 'text-emerald-800';
 
   const statusIcon = status === 'critical' ? '🔴' : status === 'at-risk' ? '🟡' : '🟢';
 
@@ -184,7 +184,7 @@ export function DecisionSummary({
         <div className="text-xs text-[var(--text-secondary)]">
           业绩达成率{' '}
           <span
-            className={`font-semibold ${revAchievePct >= 80 ? 'text-green-600' : revAchievePct >= 60 ? 'text-amber-600' : 'text-red-500'}`}
+            className={`font-semibold ${revAchievePct >= 80 ? 'text-emerald-800' : revAchievePct >= 60 ? 'text-amber-800' : 'text-[var(--color-danger)]'}`}
           >
             {revAchievePct}%
           </span>
@@ -199,7 +199,7 @@ export function DecisionSummary({
             <span key={b.name}>
               {i > 0 && '，'}
               <span className="font-medium text-[var(--text-primary)]">{b.name}</span>{' '}
-              <span className="text-red-500 font-semibold">{b.actual}</span>
+              <span className="text-[var(--color-danger)] font-semibold">{b.actual}</span>
               <span className="text-[var(--text-muted)]">
                 （目标 {b.target}，差 {b.gap}）
               </span>

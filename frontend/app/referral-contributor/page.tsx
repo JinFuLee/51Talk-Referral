@@ -197,7 +197,7 @@ export default function ReferralContributorPage() {
         <Card title="">
           <div className="text-center py-3">
             <p className="text-xs text-[var(--text-muted)] mb-1">总带新付费</p>
-            <p className="text-3xl font-bold text-green-600">{totalPaid.toLocaleString()}</p>
+            <p className="text-3xl font-bold text-emerald-800">{totalPaid.toLocaleString()}</p>
           </div>
         </Card>
         <Card title="">
@@ -358,7 +358,7 @@ export default function ReferralContributorPage() {
                   <td className="slide-td text-right font-mono tabular-nums font-bold text-[var(--text-primary)]">
                     {r.total_new}
                   </td>
-                  <td className="slide-td text-right font-mono tabular-nums font-bold text-green-600">
+                  <td className="slide-td text-right font-mono tabular-nums font-bold text-emerald-800">
                     {r.total_paid > 0 ? (
                       r.total_paid
                     ) : (
@@ -369,9 +369,9 @@ export default function ReferralContributorPage() {
                     <span
                       className={
                         r.conversion_rate >= 0.3
-                          ? 'text-green-600 font-semibold'
+                          ? 'text-emerald-800 font-semibold'
                           : r.conversion_rate > 0
-                            ? 'text-yellow-600'
+                            ? 'text-amber-800'
                             : 'text-[var(--text-muted)]'
                       }
                     >

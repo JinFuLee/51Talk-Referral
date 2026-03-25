@@ -72,7 +72,7 @@ export function ComparisonBanner() {
           colorCls = 'text-action-text';
         } else if (pct < 0) {
           dirIcon = `▼${Math.abs(pct).toFixed(1)}%`;
-          colorCls = 'text-red-500';
+          colorCls = 'text-[var(--color-danger)]';
         }
 
         return (

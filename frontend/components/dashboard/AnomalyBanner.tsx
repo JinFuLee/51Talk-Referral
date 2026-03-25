@@ -99,7 +99,7 @@ export function AnomalyBanner({
     ? 'bg-red-50 border border-red-200 text-red-800'
     : 'bg-amber-50 border border-amber-200 text-amber-800';
 
-  const iconClass = hasCritical ? 'text-red-500' : 'text-amber-500';
+  const iconClass = hasCritical ? 'text-[var(--color-danger)]' : 'text-amber-800';
 
   function handleDismiss() {
     const today = new Date().toDateString();

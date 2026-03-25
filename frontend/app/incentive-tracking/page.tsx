@@ -99,7 +99,7 @@ export default function IncentiveTrackingPage() {
         <Card title="">
           <div className="text-center py-3">
             <p className="text-xs text-[var(--text-muted)] mb-1">总推荐付费</p>
-            <p className="text-3xl font-bold text-green-600">
+            <p className="text-3xl font-bold text-emerald-800">
               {sorted
                 .reduce((sum, g) => sum + (g.total_referral_payments ?? 0), 0)
                 .toLocaleString()}
@@ -183,7 +183,7 @@ export default function IncentiveTrackingPage() {
                   <td className="slide-td text-right font-mono tabular-nums font-semibold">
                     {safeNum(g.avg_referral_payments)}
                   </td>
-                  <td className="slide-td text-right font-mono tabular-nums font-semibold text-green-600">
+                  <td className="slide-td text-right font-mono tabular-nums font-semibold text-emerald-800">
                     {(g.total_referral_payments ?? 0).toLocaleString()}
                   </td>
                   <td className="slide-td text-right font-mono tabular-nums text-[var(--text-secondary)]">

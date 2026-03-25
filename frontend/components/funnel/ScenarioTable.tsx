@@ -41,7 +41,7 @@ export function ScenarioTable({ stages }: ScenarioTableProps) {
               <td className="py-1 px-2 text-xs text-right font-mono tabular-nums text-[var(--text-primary)]">
                 +{s.impact_payments.toLocaleString()}
               </td>
-              <td className="py-1 px-2 text-xs text-right font-mono tabular-nums font-semibold text-green-600">
+              <td className="py-1 px-2 text-xs text-right font-mono tabular-nums font-semibold text-emerald-800">
                 +${s.impact_revenue.toLocaleString()}
               </td>
             </tr>

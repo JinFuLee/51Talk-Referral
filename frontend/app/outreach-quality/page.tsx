@@ -129,7 +129,7 @@ export default function OutreachQualityPage() {
         <Card title="">
           <div className="pt-1">
             <p className="text-xs text-[var(--text-muted)] mb-1">带新付费金额</p>
-            <p className="text-2xl font-bold text-green-600">
+            <p className="text-2xl font-bold text-emerald-800">
               {summary.referral_revenue_usd != null
                 ? `$${summary.referral_revenue_usd.toLocaleString()}`
                 : '—'}
@@ -225,10 +225,10 @@ export default function OutreachQualityPage() {
                     <td className="slide-td text-right font-mono tabular-nums text-purple-600">
                       {safeNum(row.ss_connected)}
                     </td>
-                    <td className="slide-td text-right font-mono tabular-nums text-amber-600">
+                    <td className="slide-td text-right font-mono tabular-nums text-amber-800">
                       {safeNum(row.lp_connected)}
                     </td>
-                    <td className="slide-td text-right font-mono tabular-nums text-green-600">
+                    <td className="slide-td text-right font-mono tabular-nums text-emerald-800">
                       {safeNum(row.effective_checkin)}
                     </td>
                     <td className="slide-td text-right font-mono tabular-nums">

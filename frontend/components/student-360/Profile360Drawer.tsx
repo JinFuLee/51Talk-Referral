@@ -52,9 +52,9 @@ function CompareRow({
           diff == null
             ? ''
             : diff > 0
-              ? 'text-green-600'
+              ? 'text-emerald-800'
               : diff < 0
-                ? 'text-red-500'
+                ? 'text-[var(--color-danger)]'
                 : 'text-[var(--text-muted)]'
         }`}
       >
@@ -210,10 +210,10 @@ export function Profile360Drawer({ stdtId, onClose }: Profile360DrawerProps) {
                             <span
                               className={`font-medium ${
                                 detail.hp_info.urgency_level === 'red'
-                                  ? 'text-red-500'
+                                  ? 'text-[var(--color-danger)]'
                                   : detail.hp_info.urgency_level === 'yellow'
-                                    ? 'text-yellow-600'
-                                    : 'text-green-600'
+                                    ? 'text-amber-800'
+                                    : 'text-emerald-800'
                               }`}
                             >
                               {detail.hp_info.urgency_level === 'red'
@@ -278,7 +278,7 @@ export function Profile360Drawer({ stdtId, onClose }: Profile360DrawerProps) {
                             className={
                               detail.referral_reward_status.includes('已') ||
                               detail.referral_reward_status.includes('领')
-                                ? 'text-green-600 font-medium'
+                                ? 'text-emerald-800 font-medium'
                                 : 'text-[var(--text-muted)]'
                             }
                           >
@@ -336,11 +336,11 @@ export function Profile360Drawer({ stdtId, onClose }: Profile360DrawerProps) {
                           <span
                             className={
                               detail.days_to_card_expiry <= 7
-                                ? 'text-red-500 font-medium'
+                                ? 'text-[var(--color-danger)] font-medium'
                                 : detail.days_to_card_expiry <= 14
-                                  ? 'text-yellow-600 font-medium'
+                                  ? 'text-amber-800 font-medium'
                                   : detail.days_to_card_expiry <= 30
-                                    ? 'text-green-600 font-medium'
+                                    ? 'text-emerald-800 font-medium'
                                     : 'text-[var(--text-primary)]'
                             }
                           >
@@ -358,9 +358,9 @@ export function Profile360Drawer({ stdtId, onClose }: Profile360DrawerProps) {
                           <span
                             className={
                               detail.days_since_last_renewal > 60
-                                ? 'text-red-500 font-medium'
+                                ? 'text-[var(--color-danger)] font-medium'
                                 : detail.days_since_last_renewal > 30
-                                  ? 'text-yellow-600 font-medium'
+                                  ? 'text-amber-800 font-medium'
                                   : 'text-[var(--text-primary)]'
                             }
                           >

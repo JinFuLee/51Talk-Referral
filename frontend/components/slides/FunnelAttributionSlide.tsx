@@ -65,7 +65,12 @@ export function FunnelAttributionSlide({ slideNumber, totalSlides }: SlideProps)
           <div className="text-center space-y-2">
             <p className="text-base font-semibold text-red-600">数据加载失败</p>
             <p className="text-sm text-[var(--text-muted)]">请检查后端服务是否正常运行</p>
-            <button onClick={() => mutate()} className="mt-1 px-4 py-1.5 rounded-lg text-sm border border-[var(--border-default)] text-[var(--text-secondary)] hover:bg-[var(--bg-subtle)] transition-colors">重试</button>
+            <button
+              onClick={() => mutate()}
+              className="mt-1 px-4 py-1.5 rounded-lg text-sm border border-[var(--border-default)] text-[var(--text-secondary)] hover:bg-[var(--bg-subtle)] transition-colors"
+            >
+              重试
+            </button>
           </div>
         </div>
       ) : rows.length === 0 ? (
@@ -104,12 +109,12 @@ export function FunnelAttributionSlide({ slideNumber, totalSlides }: SlideProps)
                       {target > 0 ? target.toLocaleString() : '-'}
                     </td>
                     <td
-                      className={`px-3 py-2 text-sm text-right font-mono tabular-nums font-bold ${isGood ? 'text-green-600' : 'text-red-500'}`}
+                      className={`px-3 py-2 text-sm text-right font-mono tabular-nums font-bold ${isGood ? 'text-emerald-800' : 'text-[var(--color-danger)]'}`}
                     >
                       {target > 0 ? `${isGood ? '+' : ''}${gap.toLocaleString()}` : '-'}
                     </td>
                     <td
-                      className={`px-3 py-2 text-sm text-right font-semibold ${rate >= 1 ? 'text-green-600' : rate >= 0.8 ? 'text-yellow-600' : rate > 0 ? 'text-red-500' : 'text-[var(--text-muted)]'}`}
+                      className={`px-3 py-2 text-sm text-right font-semibold ${rate >= 1 ? 'text-emerald-800' : rate >= 0.8 ? 'text-amber-800' : rate > 0 ? 'text-[var(--color-danger)]' : 'text-[var(--text-muted)]'}`}
                     >
                       {rate > 0 ? formatRate(rate) : '-'}
                     </td>

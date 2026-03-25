@@ -176,8 +176,8 @@ function fmt8(v: number | null, format: 'currency' | 'count' = 'count'): string 
 
 function gapColor(v: number | null): string {
   if (v === null) return 'text-[var(--text-muted)]';
-  if (v > 0) return 'text-green-600';
-  if (v < 0) return 'text-red-500';
+  if (v > 0) return 'text-emerald-800';
+  if (v < 0) return 'text-[var(--color-danger)]';
   return 'text-[var(--text-secondary)]';
 }
 
@@ -262,7 +262,11 @@ function RateCard8({ label, actual, target, lossDesc, rootCause }: RateCard8Prop
   const gap = actual !== null && target !== null ? actual - target : null;
 
   const gapClass =
-    gap === null ? 'text-[var(--text-muted)]' : gap >= 0 ? 'text-green-600' : 'text-red-500';
+    gap === null
+      ? 'text-[var(--text-muted)]'
+      : gap >= 0
+        ? 'text-emerald-800'
+        : 'text-[var(--color-danger)]';
 
   return (
     <div className="card-base p-3">
@@ -289,7 +293,9 @@ function RateCard8({ label, actual, target, lossDesc, rootCause }: RateCard8Prop
           </span>
         </div>
       </div>
-      {lossDesc && <p className="text-[10px] text-red-500 mt-1 leading-relaxed">{lossDesc}</p>}
+      {lossDesc && (
+        <p className="text-[10px] text-[var(--color-danger)] mt-1 leading-relaxed">{lossDesc}</p>
+      )}
       {rootCause && (
         <p className="text-[10px] text-[var(--text-muted)] mt-0.5 leading-relaxed">{rootCause}</p>
       )}
@@ -398,7 +404,7 @@ function TimeProgressBar({ tp }: { tp: TimeProgressInfo }) {
         <span>
           时间进度{' '}
           <span
-            className={`font-semibold ${pct >= 80 ? 'text-red-500' : pct >= 50 ? 'text-amber-500' : 'text-action-accent'}`}
+            className={`font-semibold ${pct >= 80 ? 'text-[var(--color-danger)]' : pct >= 50 ? 'text-amber-800' : 'text-action-accent'}`}
           >
             {pct}%
           </span>
@@ -442,7 +448,9 @@ function PaceRow({ kpiPace, timeProgress }: PaceRowProps) {
       {items.map(({ key, label, display, isBehind }) => (
         <span key={key} className="flex items-center gap-1">
           <span className="text-[var(--text-muted)]">{label}</span>
-          <span className={`font-semibold ${isBehind ? 'text-red-500' : 'text-action-text'}`}>
+          <span
+            className={`font-semibold ${isBehind ? 'text-[var(--color-danger)]' : 'text-action-text'}`}
+          >
             {display}
           </span>
         </span>
@@ -499,7 +507,11 @@ function RingProgress({ label, value, color }: RingProps) {
   const dashOffset = circumference - (circumference * pct) / 100;
 
   const textColor =
-    value >= 1 ? 'text-green-600' : value >= 0.8 ? 'text-yellow-600' : 'text-red-500';
+    value >= 1
+      ? 'text-emerald-800'
+      : value >= 0.8
+        ? 'text-amber-800'
+        : 'text-[var(--color-danger)]';
 
   return (
     <div className="flex flex-col items-center gap-1">

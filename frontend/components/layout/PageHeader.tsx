@@ -17,14 +17,14 @@ export function PageHeader({
   subtitle,
   icon: Icon,
   badge,
-  badgeColor = 'bg-slate-100 text-[var(--text-secondary)]',
+  badgeColor = 'bg-[var(--bg-subtle)] text-[var(--text-secondary)]',
   children,
 }: PageHeaderProps) {
   return (
     <div className="flex items-center justify-between">
       <div className="flex items-center gap-3">
         {Icon && (
-          <div className="p-2 rounded-lg bg-slate-50 border border-[var(--border-subtle)]">
+          <div className="p-2 rounded-lg bg-[var(--bg-subtle)] border border-[var(--border-subtle)]">
             <Icon className="w-5 h-5 text-[var(--text-secondary)]" aria-hidden="true" />
           </div>
         )}

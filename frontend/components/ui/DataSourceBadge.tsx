@@ -69,7 +69,7 @@ export function DataSourceBadge({ source, className, isEstimated }: DataSourceBa
         variant === 'yellow' && 'bg-amber-50 text-amber-600 border-amber-200',
         variant === 'green' && 'bg-emerald-50 text-emerald-700 border-emerald-200',
         variant === 'gray' &&
-          'bg-slate-50 text-[var(--text-secondary)] border-[var(--border-subtle)]',
+          'bg-[var(--bg-subtle)] text-[var(--text-secondary)] border-[var(--border-subtle)]',
         className
       )}
       title={isEstimated ? '部分或全部基于业务目标的降级模型' : '系统可溯源真实记录表单'}

@@ -35,7 +35,7 @@ export function CompareToggle() {
             className={
               isActive
                 ? 'h-8 px-3 rounded-full text-xs font-semibold bg-slate-700 text-white transition-all'
-                : 'h-8 px-3 rounded-full text-xs font-semibold bg-slate-50 border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-all'
+                : 'h-8 px-3 rounded-full text-xs font-semibold bg-[var(--bg-subtle)] border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-all'
             }
           >
             {opt.label}

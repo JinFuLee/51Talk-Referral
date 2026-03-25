@@ -31,7 +31,7 @@ export function RevenueContributionTable({ contributions }: RevenueContributionT
                 <td className="py-1 px-2 text-xs">
                   <span className="font-medium text-[var(--text-primary)]">{c.channel}</span>
                   {/* Mini bar */}
-                  <div className="mt-0.5 w-full bg-slate-100 rounded-full h-1">
+                  <div className="mt-0.5 w-full bg-[var(--bg-subtle)] rounded-full h-1">
                     <div
                       className="h-1 rounded-full bg-action-accent-muted transition-all duration-200"
                       style={{ width: `${barWidth}%` }}
