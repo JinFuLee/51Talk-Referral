@@ -21,7 +21,7 @@ export function Pagination({ currentPage, totalPages, totalItems, onPageChange }
         <button
           onClick={() => onPageChange(currentPage - 1)}
           disabled={currentPage <= 1}
-          className="p-1 text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-subtle)] disabled:opacity-50 disabled:hover:bg-transparent rounded-l-lg transition-colors border-r border-[var(--border-subtle)]"
+          className="p-1 text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-subtle)] disabled:opacity-50 disabled:hover:bg-transparent rounded-l-lg transition-colors border-r border-[var(--border-subtle)] min-h-[44px] min-w-[44px] flex items-center justify-center"
           aria-label="上一页"
         >
           <ChevronLeft className="w-5 h-5 mx-0.5" />
@@ -32,7 +32,7 @@ export function Pagination({ currentPage, totalPages, totalItems, onPageChange }
         <button
           onClick={() => onPageChange(currentPage + 1)}
           disabled={currentPage >= totalPages}
-          className="p-1 text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-subtle)] disabled:opacity-50 disabled:hover:bg-transparent rounded-r-lg transition-colors border-l border-[var(--border-subtle)]"
+          className="p-1 text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-subtle)] disabled:opacity-50 disabled:hover:bg-transparent rounded-r-lg transition-colors border-l border-[var(--border-subtle)] min-h-[44px] min-w-[44px] flex items-center justify-center"
           aria-label="下一页"
         >
           <ChevronRight className="w-5 h-5 mx-0.5" />

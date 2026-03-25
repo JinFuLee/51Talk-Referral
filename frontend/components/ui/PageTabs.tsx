@@ -30,7 +30,7 @@ export function PageTabs({ tabs, activeId, onChange, className }: PageTabsProps)
             key={tab.id}
             onClick={() => onChange(tab.id)}
             className={cn(
-              'relative px-1 py-3 text-sm font-medium transition-colors outline-none whitespace-nowrap',
+              'relative px-1 py-3 text-sm font-medium transition-colors outline-none whitespace-nowrap min-h-[44px]',
               isActive
                 ? 'text-action'
                 : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
@@ -73,7 +73,7 @@ export function SegmentedTabs<T extends string = string>({
           key={t.key}
           onClick={() => onChange(t.key)}
           className={cn(
-            'px-4 py-1.5 rounded-md text-sm font-medium transition-colors outline-none',
+            'px-4 py-1.5 rounded-md text-sm font-medium transition-colors outline-none min-h-[44px] min-w-[44px]',
             active === t.key
               ? 'bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-sm'
               : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'

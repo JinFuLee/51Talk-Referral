@@ -145,7 +145,7 @@ function ExtraSection({ extra }: { extra: Record<string, unknown> }) {
         <span className="text-base leading-none">{expanded ? '▾' : '▸'}</span>
       </button>
       {expanded && (
-        <div className="rounded-md border border-[var(--border-subtle)] overflow-hidden">
+        <div className="rounded-md border border-[var(--border-subtle)] overflow-x-auto">
           <table className="w-full text-xs">
             <tbody>
               {entries.map(([key, val], idx) => (

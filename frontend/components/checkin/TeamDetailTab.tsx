@@ -89,63 +89,65 @@ function TeamCard({ card, rateColor, rateBg }: TeamCardProps) {
       {card.members.length === 0 ? (
         <div className="px-3 py-4 text-xs text-[var(--text-muted)] text-center">暂无成员数据</div>
       ) : (
-        <table className="w-full text-xs">
-          <thead>
-            <tr className="bg-[var(--bg-subtle)] text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">
-              <th className="py-1 px-2 text-center w-7">#</th>
-              <th className="py-1 px-2 text-left">销售</th>
-              <th className="py-1 px-2 text-right">学员</th>
-              <th className="py-1 px-2 text-right">打卡</th>
-              <th className="py-1 px-2 text-right">打卡率</th>
-            </tr>
-          </thead>
-          <tbody>
-            {card.members.map((m, i) => (
-              <tr
-                key={m.name}
-                className="even:bg-[var(--bg-subtle)] hover:bg-action-accent-surface/50 transition-colors"
-              >
-                <td className="py-1 px-2 text-center text-[var(--text-muted)] font-mono tabular-nums">
-                  {i + 1}
+        <div className="overflow-x-auto">
+          <table className="w-full text-xs">
+            <thead>
+              <tr className="bg-[var(--bg-subtle)] text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">
+                <th className="py-1 px-2 text-center w-7">#</th>
+                <th className="py-1 px-2 text-left">销售</th>
+                <th className="py-1 px-2 text-right">学员</th>
+                <th className="py-1 px-2 text-right">打卡</th>
+                <th className="py-1 px-2 text-right">打卡率</th>
+              </tr>
+            </thead>
+            <tbody>
+              {card.members.map((m, i) => (
+                <tr
+                  key={m.name}
+                  className="even:bg-[var(--bg-subtle)] hover:bg-action-accent-surface/50 transition-colors"
+                >
+                  <td className="py-1 px-2 text-center text-[var(--text-muted)] font-mono tabular-nums">
+                    {i + 1}
+                  </td>
+                  <td
+                    className="py-1 px-2 font-medium whitespace-nowrap min-w-[100px] text-[var(--text-primary)]"
+                    title={m.name}
+                  >
+                    {m.name}
+                  </td>
+                  <td className="py-1 px-2 text-right font-mono tabular-nums text-[var(--text-secondary)]">
+                    {fmtNum(m.students)}
+                  </td>
+                  <td className="py-1 px-2 text-right font-mono tabular-nums text-[var(--text-secondary)]">
+                    {fmtNum(m.checked_in)}
+                  </td>
+                  <td
+                    className={`py-1 px-2 text-right font-mono tabular-nums font-semibold ${rateColor?.(m.rate) ?? ''}`}
+                  >
+                    {formatRate(m.rate)}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+            <tfoot>
+              <tr className="border-t border-[var(--border-default)] font-semibold bg-[var(--bg-subtle)]">
+                <td className="py-1.5 px-2 text-center text-[var(--text-muted)]">—</td>
+                <td className="py-1.5 px-2 text-[var(--text-primary)]">小计</td>
+                <td className="py-1.5 px-2 text-right font-mono tabular-nums text-[var(--text-primary)]">
+                  {fmtNum(card.totalStudents)}
+                </td>
+                <td className="py-1.5 px-2 text-right font-mono tabular-nums text-[var(--text-primary)]">
+                  {fmtNum(card.totalCheckedIn)}
                 </td>
                 <td
-                  className="py-1 px-2 font-medium whitespace-nowrap min-w-[100px] text-[var(--text-primary)]"
-                  title={m.name}
+                  className={`py-1.5 px-2 text-right font-mono tabular-nums font-semibold ${rateColor?.(card.checkinRate) ?? ''}`}
                 >
-                  {m.name}
-                </td>
-                <td className="py-1 px-2 text-right font-mono tabular-nums text-[var(--text-secondary)]">
-                  {fmtNum(m.students)}
-                </td>
-                <td className="py-1 px-2 text-right font-mono tabular-nums text-[var(--text-secondary)]">
-                  {fmtNum(m.checked_in)}
-                </td>
-                <td
-                  className={`py-1 px-2 text-right font-mono tabular-nums font-semibold ${rateColor?.(m.rate) ?? ''}`}
-                >
-                  {formatRate(m.rate)}
+                  {formatRate(card.checkinRate)}
                 </td>
               </tr>
-            ))}
-          </tbody>
-          <tfoot>
-            <tr className="border-t border-[var(--border-default)] font-semibold bg-[var(--bg-subtle)]">
-              <td className="py-1.5 px-2 text-center text-[var(--text-muted)]">—</td>
-              <td className="py-1.5 px-2 text-[var(--text-primary)]">小计</td>
-              <td className="py-1.5 px-2 text-right font-mono tabular-nums text-[var(--text-primary)]">
-                {fmtNum(card.totalStudents)}
-              </td>
-              <td className="py-1.5 px-2 text-right font-mono tabular-nums text-[var(--text-primary)]">
-                {fmtNum(card.totalCheckedIn)}
-              </td>
-              <td
-                className={`py-1.5 px-2 text-right font-mono tabular-nums font-semibold ${rateColor?.(card.checkinRate) ?? ''}`}
-              >
-                {formatRate(card.checkinRate)}
-              </td>
-            </tr>
-          </tfoot>
-        </table>
+            </tfoot>
+          </table>
+        </div>
       )}
     </div>
   );

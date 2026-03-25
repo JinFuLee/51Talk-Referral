@@ -16,7 +16,7 @@ export function EmptyState({ title = '暂无数据', description, icon, action }
       {action && (
         <button
           onClick={action.onClick}
-          className="mt-3 px-4 py-1.5 rounded-lg text-xs font-medium bg-[var(--bg-subtle)] border border-[var(--border-default)] text-[var(--text-secondary)] hover:bg-[var(--border-default)] transition-colors"
+          className="mt-3 px-4 py-1.5 rounded-lg text-xs font-medium bg-[var(--bg-subtle)] border border-[var(--border-default)] text-[var(--text-secondary)] hover:bg-[var(--border-default)] transition-colors min-h-[44px] min-w-[44px]"
         >
           {action.label}
         </button>

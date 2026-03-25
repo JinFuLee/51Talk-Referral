@@ -94,60 +94,62 @@ export function EfficiencyScatter({ data }: EfficiencyScatterProps) {
 
   return (
     <div>
-      <ResponsiveContainer width="100%" height={450}>
-        <ScatterChart margin={{ top: 10, right: 30, bottom: 20, left: 10 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="var(--border-subtle)" />
-          <XAxis
-            type="number"
-            dataKey="x"
-            name="带新系数"
-            tick={{ fontSize: 10, fill: 'var(--text-muted)' }}
-          >
-            <Label
-              value="带新系数"
-              offset={-10}
-              position="insideBottom"
-              style={{ fontSize: 10, fill: 'var(--text-secondary)' }}
+      <div className="h-[280px] md:h-[450px]">
+        <ResponsiveContainer width="100%" height="100%">
+          <ScatterChart margin={{ top: 10, right: 30, bottom: 20, left: 10 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="var(--border-subtle)" />
+            <XAxis
+              type="number"
+              dataKey="x"
+              name="带新系数"
+              tick={{ fontSize: 10, fill: 'var(--text-muted)' }}
+            >
+              <Label
+                value="带新系数"
+                offset={-10}
+                position="insideBottom"
+                style={{ fontSize: 10, fill: 'var(--text-secondary)' }}
+              />
+            </XAxis>
+            <YAxis
+              type="number"
+              dataKey="y"
+              name="付费金额"
+              tick={{ fontSize: 10, fill: 'var(--text-muted)' }}
+            >
+              <Label
+                value="付费金额(USD)"
+                angle={-90}
+                position="insideLeft"
+                offset={15}
+                style={{ fontSize: 10, fill: 'var(--text-secondary)' }}
+              />
+            </YAxis>
+            <Tooltip
+              cursor={{ strokeDasharray: '3 3' }}
+              content={({ active, payload }) => {
+                if (!active || !payload?.length) return null;
+                const d = payload[0]?.payload as ScatterPoint;
+                return (
+                  <div className="bg-[var(--bg-surface)] border border-[var(--border-default)] rounded p-2 text-xs shadow">
+                    <div className="font-semibold">{d.cc_name}</div>
+                    <div>带新系数: {(d.x ?? 0).toFixed(2)}</div>
+                    <div>付费金额: ${(d.y ?? 0).toLocaleString()}</div>
+                  </div>
+                );
+              }}
             />
-          </XAxis>
-          <YAxis
-            type="number"
-            dataKey="y"
-            name="付费金额"
-            tick={{ fontSize: 10, fill: 'var(--text-muted)' }}
-          >
-            <Label
-              value="付费金额(USD)"
-              angle={-90}
-              position="insideLeft"
-              offset={15}
-              style={{ fontSize: 10, fill: 'var(--text-secondary)' }}
+            <ReferenceLine x={xMid} stroke="var(--border-default)" strokeDasharray="4 2" />
+            <ReferenceLine y={yMid} stroke="var(--border-default)" strokeDasharray="4 2" />
+            <Scatter
+              data={data}
+              shape={(props: CustomDotProps) => (
+                <CustomDot {...props} hoveredName={hoveredName} onHover={setHoveredName} />
+              )}
             />
-          </YAxis>
-          <Tooltip
-            cursor={{ strokeDasharray: '3 3' }}
-            content={({ active, payload }) => {
-              if (!active || !payload?.length) return null;
-              const d = payload[0]?.payload as ScatterPoint;
-              return (
-                <div className="bg-[var(--bg-surface)] border border-[var(--border-default)] rounded p-2 text-xs shadow">
-                  <div className="font-semibold">{d.cc_name}</div>
-                  <div>带新系数: {(d.x ?? 0).toFixed(2)}</div>
-                  <div>付费金额: ${(d.y ?? 0).toLocaleString()}</div>
-                </div>
-              );
-            }}
-          />
-          <ReferenceLine x={xMid} stroke="var(--border-default)" strokeDasharray="4 2" />
-          <ReferenceLine y={yMid} stroke="var(--border-default)" strokeDasharray="4 2" />
-          <Scatter
-            data={data}
-            shape={(props: CustomDotProps) => (
-              <CustomDot {...props} hoveredName={hoveredName} onHover={setHoveredName} />
-            )}
-          />
-        </ScatterChart>
-      </ResponsiveContainer>
+          </ScatterChart>
+        </ResponsiveContainer>
+      </div>
 
       {/* 象限标注图例 */}
       <div className="flex flex-wrap gap-3 mt-1 justify-center">

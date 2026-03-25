@@ -133,7 +133,7 @@ export default function LearningHeatmapPage() {
       </div>
 
       {/* 热图表格 */}
-      <div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-lg overflow-hidden">
+      <div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-lg overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
             <tr className="slide-thead-row">

@@ -614,7 +614,7 @@ export default function DashboardPage() {
     return (
       <div className="space-y-5">
         <div className="h-8 w-48 animate-pulse rounded-md bg-[var(--n-200)]" />
-        <div className="grid grid-cols-2 xl:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
           {Array.from({ length: 8 }).map((_, i) => (
             <SkeletonCard key={i} className="h-24" />
           ))}
@@ -629,7 +629,9 @@ export default function DashboardPage() {
     return (
       <div className="flex flex-col items-center justify-center py-16 gap-3">
         <p className="text-sm font-medium text-[var(--text-primary)]">数据加载失败</p>
-        <p className="text-xs text-[var(--text-muted)]">无法获取概览数据，请检查后端服务是否正常运行</p>
+        <p className="text-xs text-[var(--text-muted)]">
+          无法获取概览数据，请检查后端服务是否正常运行
+        </p>
         <button
           onClick={() => window.location.reload()}
           className="mt-1 px-4 py-1.5 rounded-lg text-xs font-medium bg-[var(--bg-subtle)] border border-[var(--border-default)] text-[var(--text-secondary)] hover:bg-[var(--border-default)] transition-colors"
@@ -650,7 +652,12 @@ export default function DashboardPage() {
   const hasMetrics = Object.keys(metrics).length > 0;
 
   if (!hasMetrics && sources.length === 0) {
-    return <EmptyState title="暂无数据" description="请将 Excel 数据文件放入数据源目录，完成后刷新页面即可自动加载" />;
+    return (
+      <EmptyState
+        title="暂无数据"
+        description="请将 Excel 数据文件放入数据源目录，完成后刷新页面即可自动加载"
+      />
+    );
   }
 
   const allSourcesOk = sources.length > 0 && sources.every((s) => s.has_file);
@@ -729,47 +736,47 @@ export default function DashboardPage() {
             <span className="text-yellow-600 font-medium">橙80-100%</span> ·{' '}
             <span className="text-red-500 font-medium">红&lt;80%</span>
           </p>
-          <div className="grid grid-cols-2 xl:grid-cols-3 gap-4">
-          {visibleKpiCards.map(({ key, label, format, targetKey, paceKey }) => {
-            const v = num(metrics[key]);
-            const display =
-              format === 'currency'
-                ? formatRevenue(v)
-                : format === 'rate'
-                  ? formatRate(v)
-                  : v.toLocaleString();
-
-            const targetRaw = targetKey != null ? num(metrics[targetKey]) : undefined;
-            const targetDisplay =
-              targetRaw != null && targetRaw > 0
-                ? format === 'currency'
-                  ? formatRevenue(targetRaw)
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+            {visibleKpiCards.map(({ key, label, format, targetKey, paceKey }) => {
+              const v = num(metrics[key]);
+              const display =
+                format === 'currency'
+                  ? formatRevenue(v)
                   : format === 'rate'
-                    ? formatRate(targetRaw)
-                    : targetRaw.toLocaleString()
-                : undefined;
-            const achievement = targetRaw != null && targetRaw > 0 ? v / targetRaw : undefined;
+                    ? formatRate(v)
+                    : v.toLocaleString();
 
-            // 是否落后时间进度（达成率 < 时间进度）
-            const isBehindTime = tp && achievement != null && achievement < tp.time_progress;
+              const targetRaw = targetKey != null ? num(metrics[targetKey]) : undefined;
+              const targetDisplay =
+                targetRaw != null && targetRaw > 0
+                  ? format === 'currency'
+                    ? formatRevenue(targetRaw)
+                    : format === 'rate'
+                      ? formatRate(targetRaw)
+                      : targetRaw.toLocaleString()
+                  : undefined;
+              const achievement = targetRaw != null && targetRaw > 0 ? v / targetRaw : undefined;
 
-            // sparkline 与 MoM（通过 paceKey 关联）
-            const sparkline = paceKey ? kpiSparklines[paceKey] : undefined;
-            const momChange = paceKey ? kpiMom[paceKey] : undefined;
+              // 是否落后时间进度（达成率 < 时间进度）
+              const isBehindTime = tp && achievement != null && achievement < tp.time_progress;
 
-            return (
-              <StatCard
-                key={key}
-                label={label}
-                value={display}
-                target={targetDisplay}
-                achievement={achievement}
-                highlight={isBehindTime ? 'warn' : undefined}
-                sparkline={sparkline}
-                momChange={momChange}
-              />
-            );
-          })}
+              // sparkline 与 MoM（通过 paceKey 关联）
+              const sparkline = paceKey ? kpiSparklines[paceKey] : undefined;
+              const momChange = paceKey ? kpiMom[paceKey] : undefined;
+
+              return (
+                <StatCard
+                  key={key}
+                  label={label}
+                  value={display}
+                  target={targetDisplay}
+                  achievement={achievement}
+                  highlight={isBehindTime ? 'warn' : undefined}
+                  sparkline={sparkline}
+                  momChange={momChange}
+                />
+              );
+            })}
           </div>
         </>
       )}
@@ -782,7 +789,10 @@ export default function DashboardPage() {
       {/* 漏斗转化率 */}
       <Card title="漏斗转化率">
         {!hasMetrics ? (
-          <EmptyState title="暂无漏斗数据" description="请确认已上传本月 Excel 数据源（A1 当月快照），上传后自动刷新" />
+          <EmptyState
+            title="暂无漏斗数据"
+            description="请确认已上传本月 Excel 数据源（A1 当月快照），上传后自动刷新"
+          />
         ) : (
           <>
             <FunnelSnapshot metrics={metrics} timeProgress={tp?.time_progress ?? 0} />
@@ -805,7 +815,7 @@ export default function DashboardPage() {
           <p className="text-[11px] text-[var(--text-muted)] mb-3">
             全站学员参与效率快照 · 财务模型参与率与运营口径相同（待确认）
           </p>
-          <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
             {[
               {
                 label: '有效学员数',
