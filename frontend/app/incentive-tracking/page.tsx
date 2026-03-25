@@ -81,7 +81,7 @@ export default function IncentiveTrackingPage() {
       </div>
 
       {/* 汇总卡片 */}
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <Card title="">
           <div className="text-center py-3">
             <p className="text-xs text-[var(--text-muted)] mb-1">奖励状态分组</p>

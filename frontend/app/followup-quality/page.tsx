@@ -133,7 +133,7 @@ function CCContent() {
     <div className="space-y-3">
       {/* 汇总卡片 */}
       {summary && (
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <Card title="">
             <div className="text-center py-3">
               <p className="text-xs text-[var(--text-muted)] mb-1">高质量通话占比</p>

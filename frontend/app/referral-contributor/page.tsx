@@ -185,7 +185,7 @@ export default function ReferralContributorPage() {
       </div>
 
       {/* 汇总卡片 */}
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <Card title="">
           <div className="text-center py-3">
             <p className="text-xs text-[var(--text-muted)] mb-1">贡献者总数</p>

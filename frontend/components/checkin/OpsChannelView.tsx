@@ -255,7 +255,7 @@ export function OpsChannelView({ configJson }: OpsChannelViewProps) {
   return (
     <div className="space-y-5">
       {/* 区域 A — 顶部总览卡片 */}
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <div className="card-compact text-center">
           <div className="text-2xl font-bold tabular-nums text-[var(--text-primary)]">
             {fmtNum(opsData.total_students)}

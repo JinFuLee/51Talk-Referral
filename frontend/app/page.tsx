@@ -634,7 +634,7 @@ export default function DashboardPage() {
         </p>
         <button
           onClick={() => window.location.reload()}
-          className="mt-1 px-4 py-1.5 rounded-lg text-xs font-medium bg-[var(--bg-subtle)] border border-[var(--border-default)] text-[var(--text-secondary)] hover:bg-[var(--border-default)] transition-colors"
+          className="mt-1 px-4 py-1.5 rounded-lg text-xs font-medium bg-[var(--bg-subtle)] border border-[var(--border-default)] text-[var(--text-secondary)] hover:bg-[var(--border-default)] transition-colors min-h-[44px] min-w-[44px]"
         >
           重试
         </button>

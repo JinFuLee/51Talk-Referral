@@ -109,7 +109,7 @@ export default function OutreachQualityPage() {
         ))}
       </div>
 
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <Card title="">
           <div className="pt-1">
             <p className="text-xs text-[var(--text-muted)] mb-1">转介绍注册数</p>

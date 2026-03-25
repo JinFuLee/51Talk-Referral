@@ -47,7 +47,7 @@ const URGENCY_CONFIG = {
 
 function SummaryCards({ summary }: { summary: ExpiryAlertSummary }) {
   return (
-    <div className="grid grid-cols-3 gap-3">
+    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
       {(['urgent', 'warning', 'watch'] as const).map((level) => {
         const cfg = URGENCY_CONFIG[level];
         const count =

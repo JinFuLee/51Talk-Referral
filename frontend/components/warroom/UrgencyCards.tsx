@@ -46,7 +46,7 @@ export function UrgencyCards({ students, activeFilter, onFilterChange }: Urgency
   };
 
   return (
-    <div className="grid grid-cols-3 gap-3">
+    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
       {(['red', 'yellow', 'green'] as const).map((level) => {
         const cfg = URGENCY_CONFIG[level];
         const isActive = activeFilter === level;
@@ -55,7 +55,7 @@ export function UrgencyCards({ students, activeFilter, onFilterChange }: Urgency
             key={level}
             onClick={() => onFilterChange(isActive ? null : level)}
             className={[
-              'flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all cursor-pointer',
+              'flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all cursor-pointer min-h-[44px]',
               cfg.bg,
               isActive ? cfg.activeBorder : cfg.border,
             ].join(' ')}
