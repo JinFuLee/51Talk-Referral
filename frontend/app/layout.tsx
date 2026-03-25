@@ -13,6 +13,7 @@ import {
   CoPilotTerminalClient,
   PresentationOverlayClient,
 } from '@/components/providers/ClientOnlyDynamics';
+import { BrandMark } from '@/components/ui/BrandMark';
 import './globals.css';
 
 const spaceGrotesk = Space_Grotesk({
@@ -46,6 +47,8 @@ export default function RootLayout({
   return (
     <html lang="zh-CN" suppressHydrationWarning>
       <head>
+        <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+        <link rel="apple-touch-icon" href="/favicon.svg" />
         <script
           dangerouslySetInnerHTML={{
             __html: `
@@ -83,6 +86,9 @@ export default function RootLayout({
                 </div>
                 <main className="flex-1 overflow-auto p-3 md:p-6 presentation-expand relative">
                   {children}
+                  <div className="brand-watermark fixed bottom-4 right-4 pointer-events-none">
+                    <BrandMark size={32} className="text-[var(--brand-p1)]" />
+                  </div>
                 </main>
               </div>
             </div>

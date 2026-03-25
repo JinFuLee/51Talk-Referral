@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { clsx } from 'clsx';
 import { useState, useEffect } from 'react';
+import { BrandMark } from '@/components/ui/BrandMark';
 import {
   BarChart3,
   ChevronDown,
@@ -148,7 +149,7 @@ function NavLink({ href, label, Icon }: NavItem) {
         'flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
         isActive
-          ? 'bg-primary text-primary-foreground font-medium'
+          ? 'bg-[var(--color-accent)] text-white font-medium'
           : 'text-[var(--text-secondary)] hover:bg-[var(--bg-subtle)]'
       )}
     >
@@ -244,8 +245,11 @@ function SidebarContent() {
   return (
     <>
       <div className="px-4 py-4 border-b border-[var(--border-subtle)]">
-        <p className="text-xs font-bold text-primary tracking-wide font-display">ref-ops-engine</p>
-        <p className="text-xs text-[var(--text-muted)] mt-0.5">51Talk 泰国转介绍运营</p>
+        <div className="flex items-center gap-2">
+          <BrandMark size={20} className="text-[var(--brand-p1)] shrink-0" />
+          <p className="text-sm font-bold text-primary tracking-wide font-display">51Talk</p>
+        </div>
+        <p className="text-xs text-[var(--text-muted)] mt-0.5 pl-7">转介绍运营</p>
       </div>
 
       <nav className="flex-1 p-2 overflow-y-auto" aria-label="主导航">
