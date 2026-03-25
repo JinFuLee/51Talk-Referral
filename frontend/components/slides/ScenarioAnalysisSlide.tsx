@@ -11,6 +11,18 @@ import type { SlideProps } from '@/lib/presentation/types';
 export function ScenarioAnalysisSlide({ slideNumber, totalSlides }: SlideProps) {
   const { data, isLoading, error } = useSWR<ScenarioResult>('/api/funnel/scenario', swrFetcher);
 
+  // 一句话结论
+  const insight = (() => {
+    if (!data) return undefined;
+    const revUp =
+      data.impact_revenue > 0 ? `业绩可提升 +$${data.impact_revenue.toLocaleString()}` : null;
+    const paidUp = data.impact_payments > 0 ? `付费 +${data.impact_payments}` : null;
+    const parts = [paidUp, revUp].filter(Boolean);
+    return parts.length
+      ? `优化场景：${parts.join('，')}（转化率 ${formatRate(data.current_rate)} → ${formatRate(data.scenario_rate)}）`
+      : undefined;
+  })();
+
   return (
     <SlideShell
       slideNumber={slideNumber}
@@ -18,6 +30,7 @@ export function ScenarioAnalysisSlide({ slideNumber, totalSlides }: SlideProps) 
       title="漏斗场景推演"
       subtitle="提升各环节转化率的预期影响"
       section="漏斗分析"
+      insight={insight}
     >
       {isLoading ? (
         <div className="flex justify-center items-center h-full">

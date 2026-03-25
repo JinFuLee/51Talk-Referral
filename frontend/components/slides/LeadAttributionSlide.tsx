@@ -10,6 +10,16 @@ export function LeadAttributionSlide({ slideNumber, totalSlides }: SlideProps) {
   const { data, isLoading, error } = useSWR<ChannelFunnel[]>('/api/channel', swrFetcher);
   const channels = data ?? [];
 
+  // 一句话结论：总注册 & 付费
+  const insight = (() => {
+    if (!channels.length) return undefined;
+    const totalReg = channels.reduce((s, c) => s + c.registrations, 0);
+    const totalPaid = channels.reduce((s, c) => s + (c.payments ?? 0), 0);
+    // 付费最多的渠道
+    const topPaid = channels.reduce((a, b) => ((a.payments ?? 0) > (b.payments ?? 0) ? a : b));
+    return `合计 ${totalReg.toLocaleString()} 注册，${totalPaid.toLocaleString()} 付费；付费最多：${topPaid.channel} ${(topPaid.payments ?? 0).toLocaleString()} 人`;
+  })();
+
   return (
     <SlideShell
       slideNumber={slideNumber}
@@ -17,6 +27,7 @@ export function LeadAttributionSlide({ slideNumber, totalSlides }: SlideProps) {
       title="各渠道学员漏斗"
       subtitle="CC窄 / SS窄 / LP窄 / 宽口 × 注册 → 预约 → 出席 → 付费"
       section="渠道分析"
+      insight={insight}
     >
       {isLoading ? (
         <div className="flex justify-center items-center h-full">

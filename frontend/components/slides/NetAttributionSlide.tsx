@@ -14,6 +14,16 @@ export function NetAttributionSlide({ slideNumber, totalSlides }: SlideProps) {
   );
   const channels = data ?? [];
 
+  // 一句话结论：人均业绩最高渠道
+  const insight = (() => {
+    if (!channels.length) return undefined;
+    const withCap = channels.filter((c) => (c.per_capita ?? 0) > 0);
+    if (!withCap.length) return undefined;
+    const top = withCap.reduce((a, b) => ((a.per_capita ?? 0) > (b.per_capita ?? 0) ? a : b));
+    const low = withCap.reduce((a, b) => ((a.per_capita ?? 0) < (b.per_capita ?? 0) ? a : b));
+    return `人均最高：${top.channel} ${formatRevenue(top.per_capita ?? 0)}，人均最低：${low.channel} ${formatRevenue(low.per_capita ?? 0)}`;
+  })();
+
   return (
     <SlideShell
       slideNumber={slideNumber}
@@ -21,6 +31,7 @@ export function NetAttributionSlide({ slideNumber, totalSlides }: SlideProps) {
       title="净业绩拆解"
       subtitle="各渠道人均业绩 / 注册均价"
       section="渠道分析"
+      insight={insight}
     >
       {isLoading ? (
         <div className="flex justify-center items-center h-full">

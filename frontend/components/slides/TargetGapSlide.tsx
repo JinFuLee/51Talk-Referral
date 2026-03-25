@@ -28,6 +28,26 @@ export function TargetGapSlide({ slideNumber, totalSlides }: SlideProps) {
   const { data, isLoading, error } = useSWR<FunnelResponse>('/api/funnel', swrFetcher);
   const stages = data?.stages ?? [];
 
+  // 生成一句话结论
+  const insight = (() => {
+    if (!stages.length) return undefined;
+    // 找达成率最低的有目标环节
+    const withTarget = stages.filter((s) => (s.target ?? 0) > 0 && s.achievement_rate !== null);
+    if (!withTarget.length) return undefined;
+    const worst = withTarget.reduce((a, b) =>
+      (a.achievement_rate ?? 0) < (b.achievement_rate ?? 0) ? a : b
+    );
+    const best = withTarget.reduce((a, b) =>
+      (a.achievement_rate ?? 0) > (b.achievement_rate ?? 0) ? a : b
+    );
+    const worstRate = Math.round((worst.achievement_rate ?? 0) * 100);
+    const bestRate = Math.round((best.achievement_rate ?? 0) * 100);
+    if (worst.name === best.name) {
+      return `${worst.name} 达成率 ${worstRate}%${worstRate >= 100 ? '，超额完成' : worstRate >= 80 ? '，接近达标' : '，需重点关注'}`;
+    }
+    return `最弱环节：${worst.name} ${worstRate}%${worstRate < 80 ? ' ⚠' : ''}，最强：${best.name} ${bestRate}%`;
+  })();
+
   return (
     <SlideShell
       slideNumber={slideNumber}
@@ -35,6 +55,7 @@ export function TargetGapSlide({ slideNumber, totalSlides }: SlideProps) {
       title="目标差距总览"
       subtitle="各环节目标 vs 实际达成"
       section="漏斗分析"
+      insight={insight}
     >
       {isLoading ? (
         <div className="flex justify-center items-center h-full">
@@ -58,13 +79,21 @@ export function TargetGapSlide({ slideNumber, totalSlides }: SlideProps) {
             const target = s.target ?? 0;
             const gap = s.gap ?? 0;
             const rate = s.achievement_rate ?? 0;
+            const isAtRisk = target > 0 && rate < 0.8;
             return (
               <div
                 key={s.name}
-                className="flex flex-col gap-2 bg-slate-50 rounded-[var(--radius-xl)] p-6"
+                className={`flex flex-col gap-2 rounded-[var(--radius-xl)] p-6 ${
+                  isAtRisk ? 'bg-red-50 border-2 border-red-300' : 'bg-slate-50'
+                }`}
               >
                 <p className="text-sm font-medium text-[var(--text-secondary)]">{s.name}</p>
-                <div className="text-3xl font-bold text-[var(--text-primary)]">
+                <div
+                  className={`text-3xl font-bold ${
+                    isAtRisk ? 'text-red-600' : 'text-[var(--text-primary)]'
+                  }`}
+                  style={isAtRisk ? undefined : { color: 'var(--brand-p1, var(--text-primary))' }}
+                >
                   {actual.toLocaleString()}
                 </div>
                 {target > 0 && (
@@ -85,7 +114,7 @@ export function TargetGapSlide({ slideNumber, totalSlides }: SlideProps) {
                       />
                     </div>
                     <p
-                      className={`text-sm font-semibold ${rate >= 1 ? 'text-green-600' : 'text-red-500'}`}
+                      className={`text-sm font-semibold ${rate >= 1 ? 'text-green-600' : rate >= 0.8 ? 'text-yellow-600' : 'text-red-500'}`}
                     >
                       {formatRate(rate)}
                     </p>

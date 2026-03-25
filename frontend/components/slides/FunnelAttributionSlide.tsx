@@ -35,6 +35,18 @@ export function FunnelAttributionSlide({ slideNumber, totalSlides }: SlideProps)
     return { ...s, stepRate };
   });
 
+  // 一句话结论：找达成率最低的环节
+  const insight = (() => {
+    const withTarget = rows.filter((r) => (r.target ?? 0) > 0 && r.achievement_rate !== null);
+    if (!withTarget.length) return undefined;
+    const worst = withTarget.reduce((a, b) =>
+      (a.achievement_rate ?? 0) < (b.achievement_rate ?? 0) ? a : b
+    );
+    const rate = Math.round((worst.achievement_rate ?? 0) * 100);
+    const label = rate < 80 ? ' ⚠ 需重点关注' : rate >= 100 ? ' ✓ 超额' : '';
+    return `关键漏斗：${worst.name} 达成率 ${rate}%${label}`;
+  })();
+
   return (
     <SlideShell
       slideNumber={slideNumber}
@@ -42,6 +54,7 @@ export function FunnelAttributionSlide({ slideNumber, totalSlides }: SlideProps)
       title="全漏斗转化链"
       subtitle="注册 → 预约 → 出席 → 付费，逐环节达成 & 转化率"
       section="漏斗分析"
+      insight={insight}
     >
       {isLoading ? (
         <div className="flex justify-center items-center h-full">

@@ -46,6 +46,23 @@ export function ThreeFactorSlide({ slideNumber, totalSlides }: SlideProps) {
   );
   const channels = data ?? [];
 
+  // 一句话结论：找三因素最弱渠道
+  const insight = (() => {
+    if (!channels.length) return undefined;
+    // 三因素平均值最低的渠道
+    const scored = channels.map((c) => ({
+      channel: c.channel,
+      avg: ((c.appt_factor ?? 0) + (c.show_factor ?? 0) + (c.pay_factor ?? 0)) / 3,
+    }));
+    const worst = scored.reduce((a, b) => (a.avg < b.avg ? a : b));
+    const best = scored.reduce((a, b) => (a.avg > b.avg ? a : b));
+    const worstAvg = (worst.avg * 100).toFixed(0);
+    if (worst.channel === best.channel) {
+      return `${worst.channel} 三因素平均 ${worstAvg}%`;
+    }
+    return `三因素最弱：${worst.channel} ${worstAvg}%${worst.avg < 0.9 ? ' ⚠' : ''}，最强：${best.channel} ${(best.avg * 100).toFixed(0)}%`;
+  })();
+
   return (
     <SlideShell
       slideNumber={slideNumber}
@@ -53,6 +70,7 @@ export function ThreeFactorSlide({ slideNumber, totalSlides }: SlideProps) {
       title="渠道三因素对标"
       subtitle="各渠道 × 预期 / 实际 / 差距 × 预约因子 / 出席因子 / 付费因子"
       section="渠道分析"
+      insight={insight}
     >
       {isLoading ? (
         <div className="flex justify-center items-center h-full">

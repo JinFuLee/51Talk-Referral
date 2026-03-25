@@ -17,6 +17,7 @@ import type { IndicatorCategory } from '@/lib/types/indicator-matrix';
 import { CATEGORY_LABELS_ZH } from '@/lib/types/indicator-matrix';
 import { DataSourceSection } from '@/components/datasources/DataSourceSection';
 import { AnomalyBanner } from '@/components/dashboard/AnomalyBanner';
+import { DecisionSummary } from '@/components/dashboard/DecisionSummary';
 import { PersonalWorkbench } from '@/components/dashboard/PersonalWorkbench';
 
 /* ── 岗位视角类型 ──────────────────────────────────────────────── */
@@ -660,6 +661,18 @@ export default function DashboardPage() {
             }, null);
             return worst ? worst[1] : null;
           })()}
+        />
+      )}
+
+      {/* 决策摘要横幅：一句话结论 + 关键瓶颈 */}
+      {hasMetrics && (
+        <DecisionSummary
+          paidActual={data?.kpi_8item?.paid?.actual ?? null}
+          paidTarget={data?.kpi_8item?.paid?.target ?? null}
+          timeProgress={tp?.time_progress ?? null}
+          checkinRate={d2b?.checkin_rate ?? null}
+          participationRate={d2b?.participation_rate ?? null}
+          revenueAchievementRate={null}
         />
       )}
 

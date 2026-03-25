@@ -15,6 +15,14 @@ export function RevenueContributionSlide({ slideNumber, totalSlides }: SlideProp
   const channels = data ?? [];
   const totalAmount = channels.reduce((s, c) => s + c.revenue, 0);
 
+  // 一句话结论：最大贡献渠道
+  const insight = (() => {
+    if (!channels.length) return undefined;
+    const top = channels.reduce((a, b) => (a.revenue > b.revenue ? a : b));
+    const topShare = Math.round(top.share * 100);
+    return `最大贡献：${top.channel} 占 ${topShare}%（${formatRevenue(top.revenue)}），合计 ${formatRevenue(totalAmount)}`;
+  })();
+
   return (
     <SlideShell
       slideNumber={slideNumber}
@@ -22,6 +30,7 @@ export function RevenueContributionSlide({ slideNumber, totalSlides }: SlideProp
       title="渠道业绩贡献"
       subtitle="各渠道注册数 / 付费金额 / 占比"
       section="渠道分析"
+      insight={insight}
     >
       {isLoading ? (
         <div className="flex justify-center items-center h-full">

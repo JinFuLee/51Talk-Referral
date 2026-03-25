@@ -24,6 +24,14 @@ export function ChannelRevenueSlide({ slideNumber, totalSlides }: SlideProps) {
     value: c.revenue,
   }));
 
+  // 一句话结论
+  const insight = (() => {
+    if (!channels.length) return undefined;
+    const top = channels.reduce((a, b) => (a.revenue > b.revenue ? a : b));
+    const topShare = Math.round(top.share * 100);
+    return `${top.channel} 贡献最大（${topShare}%），总业绩 ${formatRevenue(totalAmount)}`;
+  })();
+
   return (
     <SlideShell
       slideNumber={slideNumber}
@@ -31,6 +39,7 @@ export function ChannelRevenueSlide({ slideNumber, totalSlides }: SlideProps) {
       title="渠道金额贡献图"
       subtitle="各渠道人均金额 / 总金额 / 占比"
       section="渠道分析"
+      insight={insight}
     >
       {isLoading ? (
         <div className="flex justify-center items-center h-full">

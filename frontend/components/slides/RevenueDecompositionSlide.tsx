@@ -24,6 +24,14 @@ export function RevenueDecompositionSlide({ slideNumber, totalSlides }: SlidePro
 
   const totalRevenue = channels.reduce((s, c) => s + (c.revenue_usd ?? 0), 0);
 
+  // 一句话结论：总业绩 & 最大渠道
+  const insight = (() => {
+    if (!channels.length) return undefined;
+    const top = channels.reduce((a, b) => ((a.revenue_usd ?? 0) > (b.revenue_usd ?? 0) ? a : b));
+    const topShare = top.share_pct !== null ? Math.round(top.share_pct * 100) : null;
+    return `合计 ${formatRevenue(totalRevenue)}；最大渠道：${top.channel}${topShare !== null ? ` 占 ${topShare}%` : ''}（${formatRevenue(top.revenue_usd ?? 0)}）`;
+  })();
+
   return (
     <SlideShell
       slideNumber={slideNumber}
@@ -31,6 +39,7 @@ export function RevenueDecompositionSlide({ slideNumber, totalSlides }: SlidePro
       title="渠道业绩拆解"
       subtitle="各渠道注册 → 付费 → 金额 → 占比"
       section="渠道分析"
+      insight={insight}
     >
       {isLoading ? (
         <div className="flex justify-center items-center h-full">

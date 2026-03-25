@@ -10,6 +10,8 @@ interface SlideShellProps {
   title: string;
   subtitle?: string;
   section?: string;
+  /** 顶部一句话结论（数据驱动自动生成） */
+  insight?: React.ReactNode;
 }
 
 export function SlideShell({
@@ -19,6 +21,7 @@ export function SlideShell({
   title,
   subtitle,
   section,
+  insight,
 }: SlideShellProps) {
   const progressPct = Math.round((slideNumber / totalSlides) * 100);
 
@@ -46,6 +49,11 @@ export function SlideShell({
         )}
         <h1 className="text-3xl font-bold text-[var(--text-primary)] leading-tight">{title}</h1>
         {subtitle && <p className="text-lg text-[var(--text-secondary)] mt-1">{subtitle}</p>}
+        {insight && (
+          <div className="mt-2 px-3 py-1.5 rounded-lg bg-[var(--bg-subtle)] border border-[var(--border-default)] inline-block max-w-full">
+            <span className="text-sm font-medium text-[var(--text-primary)]">{insight}</span>
+          </div>
+        )}
       </div>
 
       {/* Content area */}

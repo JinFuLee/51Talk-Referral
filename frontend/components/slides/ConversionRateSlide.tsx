@@ -33,6 +33,17 @@ export function ConversionRateSlide({ slideNumber, totalSlides }: SlideProps) {
       gap: (s.actual ?? 0) - (s.target ?? 0),
     }));
 
+  // 一句话结论
+  const insight = (() => {
+    if (!chartData.length) return undefined;
+    const below = chartData.filter((d) => d.gap < 0);
+    const above = chartData.filter((d) => d.gap >= 0);
+    if (!below.length) return `全部 ${chartData.length} 个转化率均超目标，漏斗效率健康`;
+    const worst = below.reduce((a, b) => (a.gap < b.gap ? a : b));
+    const worstGap = Math.abs(worst.gap * 100).toFixed(1);
+    return `${below.length} 个环节低于目标；最弱：${worst.name} ${worst.actual}%，差 ${worstGap}pp${above.length ? `；${above.length} 个超目标` : ''}`;
+  })();
+
   return (
     <SlideShell
       slideNumber={slideNumber}
@@ -40,6 +51,7 @@ export function ConversionRateSlide({ slideNumber, totalSlides }: SlideProps) {
       title="转化率 × 月达成"
       subtitle="各环节实际转化率 vs 目标"
       section="漏斗分析"
+      insight={insight}
     >
       {isLoading ? (
         <div className="flex justify-center items-center h-full">
