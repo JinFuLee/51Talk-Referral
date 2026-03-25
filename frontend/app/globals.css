@@ -74,12 +74,12 @@
   --shadow-medium: 0 4px 12px rgba(0, 0, 0, 0.06);
   --shadow-raised: 0 8px 24px rgba(0, 0, 0, 0.08);
 
-  /* 图表色板 */
-  --chart-1-hex: #92400e;
-  --chart-2-hex: #065f46;
-  --chart-3-hex: #1e40af;
-  --chart-4-hex: #6b21a8;
-  --chart-5-hex: #9a3412;
+  /* 图表色板（51Talk 金黄→深蓝系） */
+  --chart-1-hex: #ffd100;
+  --chart-2-hex: #1b365d;
+  --chart-3-hex: #e8932a;
+  --chart-4-hex: #2d9f6f;
+  --chart-5-hex: #e05545;
 
   /* ── SEE Spacing ──────────────────────────────── */
   --space-0-5: 2px;
@@ -212,11 +212,11 @@ td[class*='text-orange'] {
     --info-foreground: 0 0% 100%;
 
     /* 柔和化的图表色板（chart-1 对齐深暖灰绿主色） */
-    --chart-1: 160 30% 38%;
-    --chart-2: 210 80% 65%;
-    --chart-3: 142 71% 45%; /* 修改为翠绿色，适应图表积极向趋势 */
-    --chart-4: 250 60% 75%;
-    --chart-5: 340 60% 75%;
+    --chart-1: 49 100% 50%; /* #FFD100 金黄 */
+    --chart-2: 214 54% 23%; /* #1B365D 深蓝 */
+    --chart-3: 28 90% 55%; /* #E8932A 暖橙 */
+    --chart-4: 152 60% 42%; /* #2D9F6F 翡翠绿 */
+    --chart-5: 4 76% 58%; /* #E05545 珊瑚红 */
 
     /* 扩展图表色板 */
     --chart-amber: 38 92% 50%;
@@ -271,11 +271,11 @@ td[class*='text-orange'] {
     --info: 210 80% 65%;
     --info-foreground: 0 0% 100%;
 
-    --chart-1: 160 35% 52%;
-    --chart-2: 210 80% 65%;
-    --chart-3: 142 71% 45%; /* 与 light 保持逻辑一致的绿色 */
-    --chart-4: 250 60% 75%;
-    --chart-5: 340 60% 75%;
+    --chart-1: 49 100% 55%; /* 金黄 dark */
+    --chart-2: 214 54% 35%; /* 深蓝 dark */
+    --chart-3: 28 90% 60%; /* 暖橙 dark */
+    --chart-4: 152 60% 48%; /* 翡翠绿 dark */
+    --chart-5: 4 76% 62%; /* 珊瑚红 dark */
 
     /* 扩展图表色板 */
     --chart-amber: 38 92% 50%;
