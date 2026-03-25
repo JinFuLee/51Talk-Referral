@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import math
+from pathlib import Path
 from typing import Any
 
 import pandas as pd
@@ -13,6 +14,56 @@ from backend.core.data_manager import DataManager
 from backend.core.time_period import compute_month_progress
 
 router = APIRouter()
+
+# 历史快照目录（SQLite 或 JSONL，暂未实现时返回空）
+_SNAPSHOT_DIR = Path(__file__).resolve().parent.parent.parent / "output" / "snapshots"
+
+
+def _load_sparkline_data(metric_key: str, days: int = 7) -> list[float | None]:
+    """
+    尝试从历史快照加载 sparkline 数据（最近 N 天）。
+    # TODO: 需要 >=7 天快照数据（output/snapshots/ JSONL 格式）
+    当前无历史数据时返回空列表，前端不显示 sparkline。
+    """
+    # TODO: 实现快照读取逻辑，当积累 >=7 天快照后启用
+    # 快照格式：output/snapshots/YYYY-MM-DD.jsonl，每行 {"key": value}
+    snapshots_dir = _SNAPSHOT_DIR
+    if not snapshots_dir.exists():
+        return []
+
+    import json
+
+    snapshot_files = sorted(snapshots_dir.glob("*.jsonl"))[-days:]
+    if len(snapshot_files) < 2:
+        return []
+
+    points: list[float | None] = []
+    for f in snapshot_files:
+        try:
+            with f.open() as fp:
+                for line in fp:
+                    line = line.strip()
+                    if not line:
+                        continue
+                    obj = json.loads(line)
+                    val = obj.get(metric_key)
+                    if val is not None:
+                        try:
+                            points.append(float(val))
+                        except (ValueError, TypeError):
+                            points.append(None)
+                    break
+        except Exception:
+            points.append(None)
+
+    return points
+
+
+def _compute_mom_change(current: float | None, previous: float | None) -> float | None:
+    """计算 MoM 环比变化率（正=上涨，负=下跌）"""
+    if current is None or previous is None or previous == 0:
+        return None
+    return round((current - previous) / abs(previous), 4)
 
 
 def _compute_kpi_8item(
@@ -214,6 +265,28 @@ def get_overview(
             "cc_reach_rate": _d2b_val(["CC触达率", "有效触达率"]),
         }
 
+    # sparkline + MoM 数据
+    # KPI key → metrics dict key
+    sparkline_metric_keys = {
+        "register": "转介绍注册数",
+        "appointment": "预约数",
+        "showup": "出席数",
+        "paid": "转介绍付费数",
+        "revenue": "总带新付费金额USD",
+    }
+    kpi_sparklines: dict[str, list[float | None]] = {}
+    kpi_mom: dict[str, float | None] = {}
+    for pace_key, metric_key in sparkline_metric_keys.items():
+        points = _load_sparkline_data(metric_key, days=7)
+        kpi_sparklines[pace_key] = points
+        # MoM：若有快照数据，取最近与最早点的比值；无快照时返回 None
+        if len(points) >= 2:
+            first = next((p for p in points if p is not None), None)
+            last = next((p for p in reversed(points) if p is not None), None)
+            kpi_mom[pace_key] = _compute_mom_change(last, first)
+        else:
+            kpi_mom[pace_key] = None
+
     return {
         "metrics": metrics,
         "data_sources": statuses,
@@ -221,4 +294,6 @@ def get_overview(
         "kpi_pace": kpi_pace,
         "kpi_8item": kpi_8item,
         "d2b_summary": d2b_summary,
+        "kpi_sparklines": kpi_sparklines,
+        "kpi_mom": kpi_mom,
     }

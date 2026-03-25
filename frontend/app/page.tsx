@@ -16,6 +16,8 @@ import type { AttributionSummary } from '@/lib/types/cross-analysis';
 import type { IndicatorCategory } from '@/lib/types/indicator-matrix';
 import { CATEGORY_LABELS_ZH } from '@/lib/types/indicator-matrix';
 import { DataSourceSection } from '@/components/datasources/DataSourceSection';
+import { AnomalyBanner } from '@/components/dashboard/AnomalyBanner';
+import { PersonalWorkbench } from '@/components/dashboard/PersonalWorkbench';
 
 /* ── 岗位视角类型 ──────────────────────────────────────────────── */
 
@@ -150,6 +152,10 @@ interface OverviewResponse {
   kpi_pace?: Record<string, KpiPaceItem | null>;
   kpi_8item?: Record<string, KPI8Item | null>;
   d2b_summary?: D2bSummary | null;
+  /** 7 天 sparkline 数据，key = pace key（register/appointment/showup/paid/revenue） */
+  kpi_sparklines?: Record<string, (number | null)[]>;
+  /** MoM 环比变化率，key = pace key */
+  kpi_mom?: Record<string, number | null>;
 }
 
 /* ── KPI 8项卡片 ─────────────────────────────────────────────── */
@@ -610,6 +616,8 @@ export default function DashboardPage() {
   const tp = data?.time_progress;
   const kpiPace = data?.kpi_pace ?? {};
   const d2b = data?.d2b_summary;
+  const kpiSparklines = data?.kpi_sparklines ?? {};
+  const kpiMom = data?.kpi_mom ?? {};
   const hasMetrics = Object.keys(metrics).length > 0;
 
   if (!hasMetrics && sources.length === 0) {
@@ -663,6 +671,10 @@ export default function DashboardPage() {
             // 是否落后时间进度（达成率 < 时间进度）
             const isBehindTime = tp && achievement != null && achievement < tp.time_progress;
 
+            // sparkline 与 MoM（通过 paceKey 关联）
+            const sparkline = paceKey ? kpiSparklines[paceKey] : undefined;
+            const momChange = paceKey ? kpiMom[paceKey] : undefined;
+
             return (
               <StatCard
                 key={key}
@@ -671,6 +683,8 @@ export default function DashboardPage() {
                 target={targetDisplay}
                 achievement={achievement}
                 highlight={isBehindTime ? 'warn' : undefined}
+                sparkline={sparkline}
+                momChange={momChange}
               />
             );
           })}
