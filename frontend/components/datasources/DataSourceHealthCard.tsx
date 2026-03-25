@@ -106,7 +106,7 @@ export function DataSourceHealthCard({ source }: { source: DataSourceStatus }) {
   const tier: FreshnessTier = source.freshness_tier ?? 'missing';
 
   return (
-    <div className="rounded-lg border border-[var(--border-default)] bg-[var(--bg-surface)] p-3 text-xs flex flex-col gap-2">
+    <div className="rounded-xl border border-[var(--border-default)] bg-[var(--bg-surface)] p-3 text-xs flex flex-col gap-2">
       {/* Header */}
       <div className="flex items-start justify-between gap-2">
         <div className="flex flex-col gap-0.5 min-w-0">

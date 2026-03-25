@@ -30,7 +30,7 @@ export function AchievementRing({ label, actual, target, rate }: AchievementRing
   const data = [{ value: pct }, { value: 1 - pct }];
 
   return (
-    <div className="flex flex-col items-center gap-1 p-3 bg-[var(--bg-surface)] rounded-lg border border-[var(--border-default)] shadow-[var(--shadow-subtle)]">
+    <div className="flex flex-col items-center gap-1 p-3 bg-[var(--bg-surface)] rounded-xl border border-[var(--border-default)] shadow-[var(--shadow-subtle)]">
       <p className="text-xs text-[var(--text-secondary)] font-medium">{label}</p>
 
       {/* 环形图 */}

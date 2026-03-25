@@ -14,6 +14,7 @@ export interface PageTabsProps {
   className?: string;
 }
 
+/** 下划线式 Tab（用于页面级主导航） */
 export function PageTabs({ tabs, activeId, onChange, className }: PageTabsProps) {
   return (
     <div
@@ -42,6 +43,45 @@ export function PageTabs({ tabs, activeId, onChange, className }: PageTabsProps)
           </button>
         );
       })}
+    </div>
+  );
+}
+
+export interface SegmentedTabsProps<T extends string = string> {
+  tabs: { key: T; label: string }[];
+  active: T;
+  onChange: (key: T) => void;
+  className?: string;
+}
+
+/** 胶囊式 Tab（用于页面内 CC/SS/LP 切换） */
+export function SegmentedTabs<T extends string = string>({
+  tabs,
+  active,
+  onChange,
+  className,
+}: SegmentedTabsProps<T>) {
+  return (
+    <div
+      className={cn(
+        'flex items-center gap-1 bg-[var(--bg-subtle)] rounded-lg p-1 w-fit',
+        className
+      )}
+    >
+      {tabs.map((t) => (
+        <button
+          key={t.key}
+          onClick={() => onChange(t.key)}
+          className={cn(
+            'px-4 py-1.5 rounded-md text-sm font-medium transition-colors outline-none',
+            active === t.key
+              ? 'bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-sm'
+              : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+          )}
+        >
+          {t.label}
+        </button>
+      ))}
     </div>
   );
 }

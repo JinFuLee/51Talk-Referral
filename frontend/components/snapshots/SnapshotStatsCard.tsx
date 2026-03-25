@@ -25,7 +25,7 @@ export function SnapshotStatsCard({ stats }: { stats: SnapshotStats | undefined 
 
 function Stat({ label, value }: { label: string; value: string | number }) {
   return (
-    <div className="rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-4">
+    <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-4">
       <p className="text-xs text-[var(--text-secondary)] mb-1">{label}</p>
       <p className="text-xl font-bold text-[var(--text-primary)]">{value}</p>
     </div>

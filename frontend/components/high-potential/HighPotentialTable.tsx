@@ -82,7 +82,7 @@ export function HighPotentialTable({ students, warroomMap }: HighPotentialTableP
   });
 
   return (
-    <div className="overflow-x-auto rounded-lg border border-[var(--border-default)] shadow-[var(--shadow-subtle)]">
+    <div className="overflow-x-auto rounded-xl border border-[var(--border-default)] shadow-[var(--shadow-subtle)]">
       <table className="w-full min-w-[900px] border-collapse text-sm">
         <thead>
           <tr className="slide-thead-row">

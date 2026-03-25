@@ -37,7 +37,7 @@ export function FileUploadPanel({ onSuccess }: FileUploadPanelProps) {
   }
 
   return (
-    <div className="rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-4 space-y-3 max-w-lg">
+    <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-4 space-y-3 max-w-lg">
       <div className="flex gap-2">
         <input
           value={sourceId}

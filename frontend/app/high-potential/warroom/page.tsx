@@ -111,7 +111,7 @@ export default function WarroomPage() {
       <HPFunnel students={allStudents} />
 
       {/* 学员表格 */}
-      <div className="bg-[var(--bg-surface)] rounded-lg border border-[var(--border-default)] shadow-[var(--shadow-subtle)]">
+      <div className="bg-[var(--bg-surface)] rounded-xl border border-[var(--border-default)] shadow-[var(--shadow-subtle)]">
         <div className="px-3 py-2 border-b border-[var(--border-default)] flex items-center justify-between">
           <h3 className="text-sm font-semibold text-[var(--text-primary)]">
             学员列表

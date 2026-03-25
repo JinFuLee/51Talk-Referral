@@ -29,7 +29,7 @@ export function DataSourceGrid({ sources, showDetail }: DataSourceGridProps) {
       {sources.map((src) => (
         <div
           key={src.id}
-          className="rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-3 text-xs"
+          className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-3 text-xs"
         >
           <div className="flex items-center justify-between mb-1">
             <span className="font-medium text-[var(--text-primary)] truncate">{src.name_zh}</span>

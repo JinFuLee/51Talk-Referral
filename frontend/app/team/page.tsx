@@ -23,6 +23,7 @@ import { TeamSummaryCard } from '@/components/team/TeamSummaryCard';
 import { CHART_PALETTE } from '@/lib/chart-palette';
 import { ExportButton } from '@/components/ui/ExportButton';
 import { useExport } from '@/lib/use-export';
+import { SegmentedTabs } from '@/components/ui/PageTabs';
 
 /* ── 类型 ──────────────────────────────────────────────────── */
 
@@ -95,23 +96,7 @@ function RankBadge({ rank }: { rank: number }) {
 /* ── Tab Bar ──────────────────────────────────────────────── */
 
 function TabBar({ active, onChange }: { active: TabKey; onChange: (t: TabKey) => void }) {
-  return (
-    <div className="flex items-center gap-1 bg-[var(--bg-subtle)] rounded-lg p-1 w-fit">
-      {TABS.map((t) => (
-        <button
-          key={t.key}
-          onClick={() => onChange(t.key)}
-          className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors ${
-            active === t.key
-              ? 'bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-sm'
-              : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
-          }`}
-        >
-          {t.label}
-        </button>
-      ))}
-    </div>
-  );
+  return <SegmentedTabs tabs={TABS} active={active} onChange={onChange} />;
 }
 
 /* ── CC Tab：原有内容 ─────────────────────────────────────── */
