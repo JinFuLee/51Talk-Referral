@@ -7,7 +7,7 @@ interface GlossaryItem {
 
 export function GlossaryBanner({ terms }: { terms: GlossaryItem[] }) {
   return (
-    <div className="mb-4 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg text-xs text-[var(--text-secondary)] dark:text-[var(--text-muted)] border border-[var(--border-subtle)] dark:border-slate-700">
+    <div className="mb-4 p-3 bg-[var(--bg-subtle)] rounded-lg text-xs text-[var(--text-secondary)] border border-[var(--border-subtle)]">
       <div className="flex flex-wrap gap-x-4 gap-y-1">
         {terms.map((t) => (
           <span key={t.term}>

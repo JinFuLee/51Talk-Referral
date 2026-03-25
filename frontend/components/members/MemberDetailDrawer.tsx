@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import { useState } from "react";
+import { useState } from 'react';
 
 interface StudentDetail {
   id: string | number;
@@ -43,71 +43,69 @@ interface MemberDetailDrawerProps {
 
 const FIELD_GROUPS: { title: string; fields: [string, string][] }[] = [
   {
-    title: "基本信息",
+    title: '基本信息',
     fields: [
-      ["id", "学员 ID"],
-      ["name", "姓名"],
-      ["region", "区域"],
-      ["country", "国家"],
-      ["enclosure", "围场段"],
-      ["lifecycle", "生命周期"],
-      ["teacher_level", "菲教级别"],
-      ["first_paid_date", "首次付费日期"],
+      ['id', '学员 ID'],
+      ['name', '姓名'],
+      ['region', '区域'],
+      ['country', '国家'],
+      ['enclosure', '围场段'],
+      ['lifecycle', '生命周期'],
+      ['teacher_level', '菲教级别'],
+      ['first_paid_date', '首次付费日期'],
     ],
   },
   {
-    title: "跟进人员",
+    title: '跟进人员',
     fields: [
-      ["cc_name", "CC 姓名"],
-      ["cc_group", "CC 组别"],
-      ["ss_name", "SS 姓名"],
-      ["ss_group", "SS 组别"],
-      ["lp_name", "LP 姓名"],
-      ["lp_group", "LP 组别"],
-      ["cc_last_call_date", "CC 末次拨打日期"],
+      ['cc_name', 'CC 姓名'],
+      ['cc_group', 'CC 组别'],
+      ['ss_name', 'SS 姓名'],
+      ['ss_group', 'SS 组别'],
+      ['lp_name', 'LP 姓名'],
+      ['lp_group', 'LP 组别'],
+      ['cc_last_call_date', 'CC 末次拨打日期'],
     ],
   },
   {
-    title: "转介绍漏斗",
+    title: '转介绍漏斗',
     fields: [
-      ["registrations", "注册数"],
-      ["appointments", "预约数"],
-      ["attendance", "出席数"],
-      ["payments", "付费数"],
-      ["total_revenue_usd", "业绩 (USD)"],
+      ['registrations', '注册数'],
+      ['appointments', '预约数'],
+      ['attendance', '出席数'],
+      ['payments', '付费数'],
+      ['total_revenue_usd', '业绩 (USD)'],
     ],
   },
   {
-    title: "活跃度",
+    title: '活跃度',
     fields: [
-      ["checkin_last_month", "上月打卡天数"],
-      ["checkin_this_month", "本月打卡天数"],
-      ["lesson_consumed_this_month", "本月课耗"],
-      ["referral_code_count_this_month", "本月转码次数"],
-      ["referral_reward_status", "推荐奖励状态"],
-      ["days_until_card_expiry", "次卡距到期天数"],
+      ['checkin_last_month', '上月打卡天数'],
+      ['checkin_this_month', '本月打卡天数'],
+      ['lesson_consumed_this_month', '本月课耗'],
+      ['referral_code_count_this_month', '本月转码次数'],
+      ['referral_reward_status', '推荐奖励状态'],
+      ['days_until_card_expiry', '次卡距到期天数'],
     ],
   },
 ];
 
-const FIXED_KEYS = new Set(
-  FIELD_GROUPS.flatMap((g) => g.fields.map(([k]) => k)).concat(["extra"])
-);
+const FIXED_KEYS = new Set(FIELD_GROUPS.flatMap((g) => g.fields.map(([k]) => k)).concat(['extra']));
 
 function isRateKey(key: string): boolean {
-  const ratePatterns = ["rate", "ratio", "率", "比", "系数"];
+  const ratePatterns = ['rate', 'ratio', '率', '比', '系数'];
   return ratePatterns.some((p) => key.toLowerCase().includes(p));
 }
 
 function isRevenueKey(key: string): boolean {
-  const revenuePatterns = ["revenue", "usd", "金额", "付费金额"];
+  const revenuePatterns = ['revenue', 'usd', '金额', '付费金额'];
   return revenuePatterns.some((p) => key.toLowerCase().includes(p));
 }
 
 function formatRawValue(key: string, value: unknown): string {
-  if (value === undefined || value === null || value === "") return "—";
-  if (typeof value === "number") {
-    if (isNaN(value)) return "—";
+  if (value === undefined || value === null || value === '') return '—';
+  if (typeof value === 'number') {
+    if (isNaN(value)) return '—';
     if (isRevenueKey(key)) {
       return `$${value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
     }
@@ -124,8 +122,8 @@ function formatRawValue(key: string, value: unknown): string {
 }
 
 function formatValue(key: string, value: unknown): string {
-  if (value === undefined || value === null || value === "") return "—";
-  if ((key === "total_revenue_usd" || key === "revenue_usd") && typeof value === "number") {
+  if (value === undefined || value === null || value === '') return '—';
+  if ((key === 'total_revenue_usd' || key === 'revenue_usd') && typeof value === 'number') {
     return `$${value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   }
   return String(value);
@@ -143,7 +141,7 @@ function ExtraSection({ extra }: { extra: Record<string, unknown> }) {
         aria-expanded={expanded}
       >
         <span>完整档案（全部 {entries.length} 列）</span>
-        <span className="text-base leading-none">{expanded ? "▾" : "▸"}</span>
+        <span className="text-base leading-none">{expanded ? '▾' : '▸'}</span>
       </button>
       {expanded && (
         <div className="rounded-md border border-[var(--border-subtle)] overflow-hidden">
@@ -152,7 +150,9 @@ function ExtraSection({ extra }: { extra: Record<string, unknown> }) {
               {entries.map(([key, val], idx) => (
                 <tr
                   key={key}
-                  className={idx % 2 === 0 ? "bg-[var(--bg-surface)]" : "bg-[var(--bg-muted,#f9fafb)]"}
+                  className={
+                    idx % 2 === 0 ? 'bg-[var(--bg-surface)]' : 'bg-[var(--bg-muted,#f9fafb)]'
+                  }
                 >
                   <td
                     className="py-1.5 px-3 text-[var(--text-muted)] w-1/2 align-top break-words"
@@ -191,11 +191,11 @@ export function MemberDetailDrawer({ student, open, onClose }: MemberDetailDrawe
       >
         <div className="flex items-center justify-between px-5 py-4 border-b sticky top-0 bg-[var(--bg-surface)] z-10">
           <h2 className="font-semibold text-[var(--text-primary)]">
-            {student ? `学员 #${student.id}` : "学员详情"}
+            {student ? `学员 #${student.id}` : '学员详情'}
           </h2>
           <button
             onClick={onClose}
-            className="text-[var(--text-muted)] hover:text-[var(--text-secondary)] text-xl leading-none w-7 h-7 flex items-center justify-center rounded hover:bg-slate-100 transition-colors"
+            className="text-[var(--text-muted)] hover:text-[var(--text-secondary)] text-xl leading-none w-7 h-7 flex items-center justify-center rounded hover:bg-[var(--bg-subtle)] transition-colors"
             aria-label="关闭"
           >
             ×
@@ -227,9 +227,7 @@ export function MemberDetailDrawer({ student, open, onClose }: MemberDetailDrawe
 
               {/* Top-level fields not in any group and not extra */}
               {(() => {
-                const remaining = Object.entries(student).filter(
-                  ([key]) => !FIXED_KEYS.has(key)
-                );
+                const remaining = Object.entries(student).filter(([key]) => !FIXED_KEYS.has(key));
                 return remaining.length > 0 ? (
                   <section>
                     <h3 className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider mb-3">
@@ -238,7 +236,10 @@ export function MemberDetailDrawer({ student, open, onClose }: MemberDetailDrawe
                     <dl className="space-y-2">
                       {remaining.map(([key, val]) => (
                         <div key={key} className="flex items-start justify-between gap-3">
-                          <dt className="text-xs text-[var(--text-muted)] shrink-0 w-32 break-words" title={key}>
+                          <dt
+                            className="text-xs text-[var(--text-muted)] shrink-0 w-32 break-words"
+                            title={key}
+                          >
                             {key}
                           </dt>
                           <dd className="text-xs text-[var(--text-secondary)] text-right break-all">

@@ -150,7 +150,7 @@ function FilterBar({
         <select
           value={team}
           onChange={(e) => onTeamChange(e.target.value)}
-          className="px-2.5 py-1.5 border border-[var(--border-subtle)] rounded-lg text-xs bg-[var(--bg-surface)] text-[var(--text-secondary)] focus:outline-none focus:ring-2 focus:ring-action-accent"
+          className="px-2.5 py-1.5 border border-[var(--border-subtle)] rounded-lg text-xs bg-[var(--bg-surface)] text-[var(--text-secondary)] focus:outline-none focus:ring-2 focus:ring-action"
         >
           <option value="">全部团队</option>
           {teams.map((t) => (
@@ -170,7 +170,7 @@ function FilterBar({
             placeholder="销售姓名搜索"
             value={salesSearch}
             onChange={(e) => onSalesSearch(e.target.value)}
-            className="pl-7 pr-3 py-1.5 border border-[var(--border-subtle)] rounded-lg text-xs bg-[var(--bg-surface)] focus:outline-none focus:ring-2 focus:ring-action-accent w-36"
+            className="pl-7 pr-3 py-1.5 border border-[var(--border-subtle)] rounded-lg text-xs bg-[var(--bg-surface)] focus:outline-none focus:ring-2 focus:ring-action w-36"
           />
         </div>
       </div>
@@ -240,7 +240,7 @@ function ExpandedRow({ member, colSpan, onClose }: ExpandedRowProps) {
           </span>
           <button
             onClick={onClose}
-            className="text-[var(--text-muted)] hover:text-[var(--text-secondary)] text-xs px-2 py-0.5 rounded hover:bg-slate-200 transition-colors"
+            className="text-[var(--text-muted)] hover:text-[var(--text-secondary)] text-xs px-2 py-0.5 rounded hover:bg-[var(--n-200)] transition-colors"
           >
             收起 ▲
           </button>

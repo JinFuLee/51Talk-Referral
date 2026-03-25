@@ -425,7 +425,7 @@ function ScheduleFormModal({
             type="text"
             value={form.name}
             onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-            className="w-full border border-[var(--border-subtle)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--brand)]/30"
+            className="w-full border border-[var(--border-subtle)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-action/30"
             placeholder={t.name}
           />
         </div>
@@ -439,7 +439,7 @@ function ScheduleFormModal({
               onChange={(e) =>
                 setForm((f) => ({ ...f, platform: e.target.value as 'lark' | 'dingtalk' }))
               }
-              className="w-full border border-[var(--border-subtle)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--brand)]/30"
+              className="w-full border border-[var(--border-subtle)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-action/30"
             >
               <option value="lark">{t.lark}</option>
               <option value="dingtalk">{t.dingtalk}</option>
@@ -450,7 +450,7 @@ function ScheduleFormModal({
             <select
               value={form.template}
               onChange={(e) => setForm((f) => ({ ...f, template: e.target.value }))}
-              className="w-full border border-[var(--border-subtle)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--brand)]/30"
+              className="w-full border border-[var(--border-subtle)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-action/30"
             >
               {Object.entries(t.templates).map(([k, v]) => (
                 <option key={k} value={k}>
@@ -476,7 +476,7 @@ function ScheduleFormModal({
                   cron_hour: Math.max(0, Math.min(23, Number(e.target.value))),
                 }))
               }
-              className="w-20 border border-[var(--border-subtle)] rounded-lg px-3 py-2 text-sm text-center focus:outline-none focus:ring-2 focus:ring-[var(--brand)]/30"
+              className="w-20 border border-[var(--border-subtle)] rounded-lg px-3 py-2 text-sm text-center focus:outline-none focus:ring-2 focus:ring-action/30"
             />
             <span className="text-[var(--text-secondary)] text-sm">{t.hour}</span>
             <input
@@ -490,7 +490,7 @@ function ScheduleFormModal({
                   cron_minute: Math.max(0, Math.min(59, Number(e.target.value))),
                 }))
               }
-              className="w-20 border border-[var(--border-subtle)] rounded-lg px-3 py-2 text-sm text-center focus:outline-none focus:ring-2 focus:ring-[var(--brand)]/30"
+              className="w-20 border border-[var(--border-subtle)] rounded-lg px-3 py-2 text-sm text-center focus:outline-none focus:ring-2 focus:ring-action/30"
             />
             <span className="text-[var(--text-secondary)] text-sm">{t.minute}</span>
           </div>
@@ -511,7 +511,7 @@ function ScheduleFormModal({
                   .filter(Boolean),
               }))
             }
-            className="w-full border border-[var(--border-subtle)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--brand)]/30"
+            className="w-full border border-[var(--border-subtle)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-action/30"
             placeholder="cc_all, cc_team_a"
           />
         </div>
@@ -523,7 +523,7 @@ function ScheduleFormModal({
             type="text"
             value={form.description}
             onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
-            className="w-full border border-[var(--border-subtle)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--brand)]/30"
+            className="w-full border border-[var(--border-subtle)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-action/30"
             placeholder={t.description}
           />
         </div>

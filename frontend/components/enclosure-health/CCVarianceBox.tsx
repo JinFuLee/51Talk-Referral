@@ -95,7 +95,7 @@ export function CCVarianceBox({ data }: CCVarianceBoxProps) {
           <span>中位数</span>
         </div>
         <div className="flex items-center gap-1">
-          <div className="w-3 h-2 bg-navy-300/50 rounded" />
+          <div className="w-3 h-2 bg-action-accent-muted/50 rounded" />
           <span>均值±1σ</span>
         </div>
       </div>

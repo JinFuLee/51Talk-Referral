@@ -14,6 +14,8 @@ export const CHART_PALETTE = {
   axisLabel: '#737360', // --n-500
   axisTick: '#a3a38e', // --n-400
   grid: '#e8e7e1', // --n-200
+  secondary: '#a3a38e', // --n-400（次要文本/点/描边）
+  border: '#e8e7e1', // --n-200（图表内边框/网格线）
 
   // 语义状态（与品牌体系对齐）
   success: '#2d9f6f', // --color-success（翡翠绿）

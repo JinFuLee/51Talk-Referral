@@ -76,7 +76,7 @@ export default function CheckinThresholdsCard() {
                 step={1}
                 value={Math.round(cfg.good * 100)}
                 onChange={(e) => setCfg((p) => ({ ...p, good: Number(e.target.value) / 100 }))}
-                className="w-20 px-2 py-1.5 border border-[var(--border-subtle)] rounded text-sm font-mono tabular-nums bg-[var(--bg-surface)] focus:outline-none focus:ring-2 focus:ring-action-accent"
+                className="w-20 px-2 py-1.5 border border-[var(--border-subtle)] rounded text-sm font-mono tabular-nums bg-[var(--bg-surface)] focus:outline-none focus:ring-2 focus:ring-action"
               />
               <span className="text-xs text-[var(--text-muted)]">%</span>
             </div>
@@ -97,7 +97,7 @@ export default function CheckinThresholdsCard() {
                 step={1}
                 value={Math.round(cfg.warning * 100)}
                 onChange={(e) => setCfg((p) => ({ ...p, warning: Number(e.target.value) / 100 }))}
-                className="w-20 px-2 py-1.5 border border-[var(--border-subtle)] rounded text-sm font-mono tabular-nums bg-[var(--bg-surface)] focus:outline-none focus:ring-2 focus:ring-action-accent"
+                className="w-20 px-2 py-1.5 border border-[var(--border-subtle)] rounded text-sm font-mono tabular-nums bg-[var(--bg-surface)] focus:outline-none focus:ring-2 focus:ring-action"
               />
               <span className="text-xs text-[var(--text-muted)]">%</span>
             </div>

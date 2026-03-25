@@ -74,7 +74,7 @@ export function TeamSummaryCard({
         </div>
       </div>
 
-      <div className="mt-3 pt-2 border-t border-slate-50 text-right">
+      <div className="mt-3 pt-2 border-t border-[var(--border-subtle)] text-right">
         <span className="text-xs text-[var(--text-muted)]">业绩 </span>
         <span className="text-sm font-semibold text-[var(--text-primary)]">
           $

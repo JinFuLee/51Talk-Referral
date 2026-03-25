@@ -152,7 +152,7 @@ export function StudentSearch({ filters, onChange }: StudentSearchProps) {
           placeholder="CC姓名"
           value={filters.cc_name}
           onChange={(e) => onChange({ ...filters, cc_name: e.target.value })}
-          className="h-8 px-3 border border-[var(--border-subtle)] rounded-md text-xs focus:outline-none focus:ring-2 focus:ring-action-accent w-28"
+          className="h-8 px-3 border border-[var(--border-subtle)] rounded-md text-xs focus:outline-none focus:ring-2 focus:ring-action w-28"
         />
 
         {hasFilters && (
