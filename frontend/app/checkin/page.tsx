@@ -177,7 +177,7 @@ function SummaryTab() {
   const { configJson } = useWideConfig();
   const { rateColor, rateBg } = useCheckinThresholds();
 
-  const { data, isLoading, error } = useFilteredSWR<CheckinSummaryResponse>(
+  const { data, isLoading, error, mutate } = useFilteredSWR<CheckinSummaryResponse>(
     `/api/checkin/summary?role_config=${encodeURIComponent(configJson)}`
   );
 
@@ -190,7 +190,13 @@ function SummaryTab() {
   }
 
   if (error) {
-    return <EmptyState title="数据加载失败" description="无法获取打卡汇总数据，请检查后端服务" />;
+    return (
+      <EmptyState
+        title="数据加载失败"
+        description="无法获取打卡汇总数据，请检查后端服务"
+        action={{ label: '重试', onClick: () => mutate() }}
+      />
+    );
   }
 
   // 将后端 by_role 对象转为前端渲染列表（过滤运营：运营有独立 OpsChannelView）

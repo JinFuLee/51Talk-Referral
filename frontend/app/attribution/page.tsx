@@ -34,6 +34,7 @@ export default function AttributionPage() {
     data: summary,
     isLoading: loadingSummary,
     error: errSummary,
+    mutate: mutateSummary,
   } = useSWR<AttributionSummary>('/api/attribution/summary', swrFetcher);
 
   // 分组明细
@@ -58,6 +59,7 @@ export default function AttributionPage() {
       <EmptyState
         title="数据加载失败"
         description="无法获取归因汇总数据，请检查后端服务是否正常运行"
+        action={{ label: '重试', onClick: () => mutateSummary() }}
       />
     );
   }

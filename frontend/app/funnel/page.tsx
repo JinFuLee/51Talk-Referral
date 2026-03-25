@@ -4,8 +4,8 @@ import useSWR from 'swr';
 import { swrFetcher } from '@/lib/api';
 import { formatRate } from '@/lib/utils';
 import { Card } from '@/components/ui/Card';
-import { Spinner } from '@/components/ui/Spinner';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { SkeletonCard, SkeletonChart } from '@/components/ui/Skeleton';
 import { BrandDot } from '@/components/ui/BrandDot';
 import { ExportButton } from '@/components/ui/ExportButton';
 import { useExport } from '@/lib/use-export';
@@ -64,6 +64,7 @@ export default function FunnelPage() {
     data: funnelData,
     isLoading: fLoading,
     error: fError,
+    mutate: fMutate,
   } = useSWR<FunnelResult>('/api/funnel', swrFetcher);
   const { data: scenarioRaw, isLoading: sLoading } = useSWR('/api/funnel/scenario', swrFetcher);
   const { data: invitationData } = useSWR<InvitationFunnelResponse>(
@@ -76,14 +77,26 @@ export default function FunnelPage() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <Spinner size="lg" />
+      <div className="space-y-5">
+        <div className="h-8 w-40 animate-pulse rounded-md bg-[var(--n-200)]" />
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <SkeletonCard key={i} className="h-20" />
+          ))}
+        </div>
+        <SkeletonChart className="h-48 w-full" />
       </div>
     );
   }
 
   if (fError) {
-    return <EmptyState title="数据加载失败" description="无法获取漏斗数据，请检查后端服务" />;
+    return (
+      <EmptyState
+        title="数据加载失败"
+        description="无法获取漏斗数据，请检查后端服务"
+        action={{ label: '重试', onClick: () => fMutate() }}
+      />
+    );
   }
 
   const stages = (funnelData?.stages ?? []).filter((s) => s.target != null || s.actual != null);

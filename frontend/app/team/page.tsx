@@ -7,6 +7,7 @@ import { swrFetcher } from '@/lib/api';
 import { useFilteredSWR } from '@/lib/hooks/use-filtered-swr';
 import { formatRate } from '@/lib/utils';
 import { Card } from '@/components/ui/Card';
+import { SkeletonCard } from '@/components/ui/Skeleton';
 import { Spinner } from '@/components/ui/Spinner';
 import { EmptyState } from '@/components/ui/EmptyState';
 import {
@@ -103,17 +104,26 @@ function TabBar({ active, onChange }: { active: TabKey; onChange: (t: TabKey) =>
 /* ── CC Tab：原有内容 ─────────────────────────────────────── */
 
 function CCTabContent() {
-  const { data, isLoading, error } = useFilteredSWR<TeamSummaryResponse>('/api/team/summary');
+  const { data, isLoading, error, mutate } =
+    useFilteredSWR<TeamSummaryResponse>('/api/team/summary');
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <Spinner size="lg" />
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {Array.from({ length: 6 }).map((_, i) => (
+          <SkeletonCard key={i} className="h-28" />
+        ))}
       </div>
     );
   }
   if (error) {
-    return <EmptyState title="数据加载失败" description="无法获取团队数据，请检查后端服务" />;
+    return (
+      <EmptyState
+        title="数据加载失败"
+        description="无法获取团队数据，请检查后端服务"
+        action={{ label: '重试', onClick: () => mutate() }}
+      />
+    );
   }
 
   const teams = Array.isArray(data) ? data : (data?.teams ?? []);
@@ -138,13 +148,24 @@ function CCTabContent() {
         <div className="flex flex-col gap-1.5 rounded-lg border border-[var(--border-default)] border-l-4 border-l-green-500 bg-green-50 px-4 py-3">
           <div className="text-sm font-semibold text-[var(--text-primary)]">💡 团队效率摘要</div>
           <div className="text-xs text-[var(--text-secondary)]">
-            参与率最高：<span className="font-semibold text-[var(--text-primary)]">{topCC.cc_name}</span>{' '}
-            <span className="text-green-600 font-semibold">{formatRate(topCC.participation_rate)}</span>
-            ；参与率最低：<span className="font-semibold text-[var(--text-primary)]">{bottomCC.cc_name}</span>{' '}
-            <span className="text-red-500 font-semibold">{formatRate(bottomCC.participation_rate)}</span>
+            参与率最高：
+            <span className="font-semibold text-[var(--text-primary)]">{topCC.cc_name}</span>{' '}
+            <span className="text-green-600 font-semibold">
+              {formatRate(topCC.participation_rate)}
+            </span>
+            ；参与率最低：
+            <span className="font-semibold text-[var(--text-primary)]">{bottomCC.cc_name}</span>{' '}
+            <span className="text-red-500 font-semibold">
+              {formatRate(bottomCC.participation_rate)}
+            </span>
             {topCC.participation_rate != null && bottomCC.participation_rate != null && (
-              <>，差距 {Math.round(Math.abs(topCC.participation_rate - bottomCC.participation_rate) * 100)}pp</>
-            )}。
+              <>
+                ，差距{' '}
+                {Math.round(Math.abs(topCC.participation_rate - bottomCC.participation_rate) * 100)}
+                pp
+              </>
+            )}
+            。
           </div>
           <p className="text-[10px] text-[var(--text-muted)]">
             颜色：<span className="text-green-600 font-medium">绿≥50%</span> ·{' '}
@@ -221,18 +242,24 @@ function CCTabContent() {
 /* ── SS/LP 通用排名表格 ─────────────────────────────────── */
 
 function RoleRankingContent({ role, apiUrl }: { role: 'SS' | 'LP'; apiUrl: string }) {
-  const { data, isLoading, error } = useSWR<RankingResponse>(apiUrl, swrFetcher);
+  const { data, isLoading, error, mutate } = useSWR<RankingResponse>(apiUrl, swrFetcher);
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <Spinner size="lg" />
+      <div className="space-y-3">
+        {Array.from({ length: 5 }).map((_, i) => (
+          <SkeletonCard key={i} className="h-10" />
+        ))}
       </div>
     );
   }
   if (error) {
     return (
-      <EmptyState title="数据加载失败" description={`无法获取 ${role} 团队数据，请检查后端服务`} />
+      <EmptyState
+        title="数据加载失败"
+        description={`无法获取 ${role} 团队数据，请检查后端服务`}
+        action={{ label: '重试', onClick: () => mutate() }}
+      />
     );
   }
 
@@ -257,10 +284,17 @@ function RoleRankingContent({ role, apiUrl }: { role: 'SS' | 'LP'; apiUrl: strin
         <div className="flex flex-col gap-1 rounded-lg border border-[var(--border-default)] border-l-4 border-l-green-500 bg-green-50 px-4 py-3">
           <div className="text-sm font-semibold text-[var(--text-primary)]">💡 {role} 效率摘要</div>
           <div className="text-xs text-[var(--text-secondary)]">
-            参与率最高：<span className="font-semibold text-[var(--text-primary)]">{topMember.name}</span>{' '}
-            <span className="text-green-600 font-semibold">{formatRate(topMember.participation_rate)}</span>
-            ；参与率最低：<span className="font-semibold text-[var(--text-primary)]">{bottomMember.name}</span>{' '}
-            <span className="text-red-500 font-semibold">{formatRate(bottomMember.participation_rate)}</span>。
+            参与率最高：
+            <span className="font-semibold text-[var(--text-primary)]">{topMember.name}</span>{' '}
+            <span className="text-green-600 font-semibold">
+              {formatRate(topMember.participation_rate)}
+            </span>
+            ；参与率最低：
+            <span className="font-semibold text-[var(--text-primary)]">{bottomMember.name}</span>{' '}
+            <span className="text-red-500 font-semibold">
+              {formatRate(bottomMember.participation_rate)}
+            </span>
+            。
           </div>
           <p className="text-[10px] text-[var(--text-muted)]">
             颜色：<span className="text-green-600 font-medium">绿≥20%</span> ·{' '}

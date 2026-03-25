@@ -168,8 +168,14 @@ export default function IndicatorMatrixPage() {
           subtitle="CC/SS/LP 三岗位指标覆盖范围配置与对比"
           icon={LayoutGrid}
         />
-        <div className="py-12 text-center text-[var(--text-muted)]">
-          加载失败：{error.message || '无法连接后端'}
+        <div className="py-12 flex flex-col items-center gap-3 text-[var(--text-muted)]">
+          <p className="text-sm">加载失败：{error.message || '无法连接后端'}</p>
+          <button
+            onClick={() => mutate()}
+            className="px-4 py-1.5 rounded-lg text-xs font-medium bg-[var(--bg-subtle)] border border-[var(--border-default)] text-[var(--text-secondary)] hover:bg-[var(--border-default)] transition-colors"
+          >
+            重试
+          </button>
         </div>
       </div>
     );

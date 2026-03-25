@@ -237,6 +237,7 @@ function SSTabContent() {
     data: ssData,
     isLoading,
     error,
+    mutate,
   } = useSWR<EnclosureSSMetrics[]>('/api/enclosure-ss', swrFetcher);
 
   if (isLoading) {
@@ -247,7 +248,13 @@ function SSTabContent() {
     );
   }
   if (error) {
-    return <EmptyState title="数据加载失败" description="请检查后端服务是否正常运行" />;
+    return (
+      <EmptyState
+        title="数据加载失败"
+        description="请检查后端服务是否正常运行"
+        action={{ label: '重试', onClick: () => mutate() }}
+      />
+    );
   }
 
   const rows = ssData ?? [];
@@ -347,6 +354,7 @@ function LPTabContent() {
     data: lpData,
     isLoading,
     error,
+    mutate,
   } = useSWR<EnclosureLPMetrics[]>('/api/enclosure-lp', swrFetcher);
 
   if (isLoading) {
@@ -357,7 +365,13 @@ function LPTabContent() {
     );
   }
   if (error) {
-    return <EmptyState title="数据加载失败" description="请检查后端服务是否正常运行" />;
+    return (
+      <EmptyState
+        title="数据加载失败"
+        description="请检查后端服务是否正常运行"
+        action={{ label: '重试', onClick: () => mutate() }}
+      />
+    );
   }
 
   const rows = lpData ?? [];

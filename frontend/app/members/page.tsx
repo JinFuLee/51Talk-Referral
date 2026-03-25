@@ -77,7 +77,7 @@ export default function MembersPage() {
     ...(hasReferralFilter ? { has_referral: 'true' } : {}),
   });
 
-  const { data, isLoading, error } = useFilteredSWR<MembersResponse>(
+  const { data, isLoading, error, mutate } = useFilteredSWR<MembersResponse>(
     `/api/members?${qs.toString()}`
   );
 
@@ -212,7 +212,11 @@ export default function MembersPage() {
             <Spinner size="lg" />
           </div>
         ) : error ? (
-          <EmptyState title="加载失败" description="请检查后端服务" />
+          <EmptyState
+            title="加载失败"
+            description="请检查后端服务"
+            action={{ label: '重试', onClick: () => mutate() }}
+          />
         ) : !data || data.items.length === 0 ? (
           <EmptyState title="暂无学员数据" description="上传数据文件后自动刷新，或调整筛选条件" />
         ) : (
@@ -223,7 +227,8 @@ export default function MembersPage() {
                   <tr className="slide-thead-row text-xs">
                     <th className="py-1.5 px-2 border-0 text-left whitespace-nowrap">ID</th>
                     <th className="py-1.5 px-2 border-0 text-left whitespace-nowrap">
-                      围场 <BrandDot tooltip="学员付费起算天数分段（0-30/31-60/61-90/91-180/181+天）" />
+                      围场{' '}
+                      <BrandDot tooltip="学员付费起算天数分段（0-30/31-60/61-90/91-180/181+天）" />
                     </th>
                     <th className="py-1.5 px-2 border-0 text-left whitespace-nowrap">生命周期</th>
                     <th className="py-1.5 px-2 border-0 text-left whitespace-nowrap">CC</th>

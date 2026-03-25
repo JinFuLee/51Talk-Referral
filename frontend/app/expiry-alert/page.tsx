@@ -193,16 +193,22 @@ export default function ExpiryAlertPage() {
     data: summary,
     isLoading: summaryLoading,
     error: summaryError,
+    mutate: mutateSummary,
   } = useSWR<ExpiryAlertSummary>('/api/students/expiry-alert/summary', swrFetcher);
 
   const {
     data: items,
     isLoading: itemsLoading,
     error: itemsError,
+    mutate: mutateItems,
   } = useSWR<ExpiryAlertItem[]>('/api/students/expiry-alert?days=30', swrFetcher);
 
   const isLoading = summaryLoading || itemsLoading;
   const error = summaryError || itemsError;
+  function handleRetry() {
+    void mutateSummary();
+    void mutateItems();
+  }
 
   return (
     <div className="space-y-3">
@@ -221,6 +227,7 @@ export default function ExpiryAlertPage() {
         <EmptyState
           title="数据加载失败"
           description="请检查后端服务是否正常运行，或数据源是否已上传"
+          action={{ label: '重试', onClick: handleRetry }}
         />
       ) : (
         <>
