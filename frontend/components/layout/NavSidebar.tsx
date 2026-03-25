@@ -3,11 +3,11 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { clsx } from 'clsx';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   BarChart3,
   ChevronDown,
-  ChevronUp,
+  ChevronRight,
   Trophy,
   TrendingUp,
   Star,
@@ -43,13 +43,17 @@ interface NavItem {
 }
 
 interface NavGroup {
+  key: string;
   label: string;
+  defaultOpen: boolean;
   items: NavItem[];
 }
 
 const MAIN_GROUPS: NavGroup[] = [
   {
+    key: 'analysis',
     label: '分析',
+    defaultOpen: true,
     items: [
       { href: '/', label: '总览 Dashboard', Icon: BarChart3 },
       { href: '/funnel', label: '漏斗分析', Icon: TrendingUp },
@@ -58,9 +62,15 @@ const MAIN_GROUPS: NavGroup[] = [
       { href: '/members', label: '学员明细', Icon: Users },
       { href: '/high-potential', label: '高潜学员', Icon: Star },
       { href: '/team', label: '团队汇总', Icon: Trophy },
+    ],
+  },
+  {
+    key: 'operations',
+    label: '运营',
+    defaultOpen: true,
+    items: [
       { href: '/checkin', label: '打卡管理', Icon: CheckCircle },
       { href: '/daily-monitor', label: '触达监控', Icon: Radio },
-      { href: '/students/360', label: '学员360档案', Icon: Search },
       { href: '/outreach-quality', label: '接通质量分析', Icon: PhoneCall },
       { href: '/incentive-tracking', label: '激励追踪', Icon: Gift },
       { href: '/renewal-risk', label: '续费风险', Icon: AlertTriangle },
@@ -68,27 +78,63 @@ const MAIN_GROUPS: NavGroup[] = [
     ],
   },
   {
+    key: 'cross',
     label: '交叉分析',
+    defaultOpen: false,
     items: [
       { href: '/attribution', label: '达成归因分析', Icon: GitMerge },
       { href: '/high-potential/warroom', label: '高潜作战室', Icon: Swords },
       { href: '/personnel-matrix', label: '人员战力图', Icon: Grid3X3 },
       { href: '/enclosure-health', label: '围场健康扫描仪', Icon: HeartPulse },
+      { href: '/students/360', label: '学员360档案', Icon: Search },
       { href: '/learning-heatmap', label: '学习热图', Icon: Flame },
       { href: '/geo-distribution', label: '地理分布', Icon: Globe },
     ],
   },
   {
+    key: 'system',
     label: '系统',
+    defaultOpen: false,
     items: [
       { href: '/reports', label: '分析报告', Icon: FileText },
-      { href: '/settings', label: '设置', Icon: Settings },
       { href: '/notifications', label: '通知推送', Icon: Bot },
       { href: '/indicator-matrix', label: '指标矩阵', Icon: LayoutGrid },
+      { href: '/settings', label: '设置', Icon: Settings },
       { href: '/present', label: '汇报模式', Icon: Monitor },
     ],
   },
 ];
+
+const STORAGE_KEY = 'nav-group-open-state';
+
+function getInitialOpenState(pathname: string): Record<string, boolean> {
+  // 从 localStorage 读取用户偏好
+  let stored: Record<string, boolean> = {};
+  if (typeof window !== 'undefined') {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) stored = JSON.parse(raw);
+    } catch {
+      // 忽略解析错误
+    }
+  }
+
+  // 计算初始状态：用户偏好 > defaultOpen；但当前页所在分组强制展开
+  const result: Record<string, boolean> = {};
+  for (const group of MAIN_GROUPS) {
+    const hasActive = group.items.some(
+      (item) => pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href))
+    );
+    if (hasActive) {
+      result[group.key] = true;
+    } else if (group.key in stored) {
+      result[group.key] = stored[group.key];
+    } else {
+      result[group.key] = group.defaultOpen;
+    }
+  }
+  return result;
+}
 
 function NavLink({ href, label, Icon }: NavItem) {
   const pathname = usePathname();
@@ -112,47 +158,89 @@ function NavLink({ href, label, Icon }: NavItem) {
   );
 }
 
-function SectionHeader({
-  label,
+function CollapsibleGroup({
+  group,
   open,
   onToggle,
 }: {
-  label: string;
+  group: NavGroup;
   open: boolean;
   onToggle: () => void;
 }) {
   return (
-    <button
-      onClick={onToggle}
-      aria-expanded={open}
-      className="w-full flex items-center justify-between px-3 py-1.5 mb-2 mt-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground hover:text-[var(--text-secondary)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded"
-    >
-      <span>{label}</span>
-      {open ? (
-        <ChevronUp className="w-3 h-3" aria-hidden="true" />
-      ) : (
-        <ChevronDown className="w-3 h-3" aria-hidden="true" />
-      )}
-    </button>
-  );
-}
+    <div className="mb-1">
+      <button
+        onClick={onToggle}
+        aria-expanded={open}
+        className={clsx(
+          'w-full flex items-center justify-between px-3 py-1.5 rounded',
+          'text-[10px] font-semibold uppercase tracking-wider',
+          'text-[var(--text-muted)] hover:text-[var(--text-secondary)]',
+          'transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
+          'mt-3'
+        )}
+      >
+        <span>{group.label}</span>
+        {open ? (
+          <ChevronDown className="w-3 h-3 transition-transform duration-200" aria-hidden="true" />
+        ) : (
+          <ChevronRight className="w-3 h-3 transition-transform duration-200" aria-hidden="true" />
+        )}
+      </button>
 
-function SidebarGroup({ group }: { group: NavGroup }) {
-  return (
-    <div className="mb-3">
-      <div className="px-3 mb-1 text-[10px] uppercase tracking-wider text-[var(--text-muted)] font-semibold">
-        {group.label}
-      </div>
-      <div className="space-y-0.5">
-        {group.items.map((item) => (
-          <NavLink key={item.href} {...item} />
-        ))}
+      <div
+        className={clsx(
+          'overflow-hidden transition-all duration-200 ease-in-out',
+          open ? 'max-h-[600px] opacity-100' : 'max-h-0 opacity-0'
+        )}
+      >
+        <div className="space-y-0.5 pb-1">
+          {group.items.map((item) => (
+            <NavLink key={item.href} {...item} />
+          ))}
+        </div>
       </div>
     </div>
   );
 }
 
 function SidebarContent() {
+  const pathname = usePathname();
+  const [openState, setOpenState] = useState<Record<string, boolean>>(() =>
+    getInitialOpenState(pathname)
+  );
+
+  // 路由变更时，确保当前页所在分组展开
+  useEffect(() => {
+    setOpenState((prev) => {
+      const next = { ...prev };
+      let changed = false;
+      for (const group of MAIN_GROUPS) {
+        const hasActive = group.items.some(
+          (item) => pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href))
+        );
+        if (hasActive && !next[group.key]) {
+          next[group.key] = true;
+          changed = true;
+        }
+      }
+      return changed ? next : prev;
+    });
+  }, [pathname]);
+
+  // 持久化到 localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(openState));
+    } catch {
+      // 忽略存储错误
+    }
+  }, [openState]);
+
+  const toggle = (key: string) => {
+    setOpenState((prev) => ({ ...prev, [key]: !prev[key] }));
+  };
+
   return (
     <>
       <div className="px-4 py-4 border-b border-[var(--border-subtle)]">
@@ -162,7 +250,12 @@ function SidebarContent() {
 
       <nav className="flex-1 p-2 overflow-y-auto" aria-label="主导航">
         {MAIN_GROUPS.map((group) => (
-          <SidebarGroup key={group.label} group={group} />
+          <CollapsibleGroup
+            key={group.key}
+            group={group}
+            open={openState[group.key] ?? group.defaultOpen}
+            onToggle={() => toggle(group.key)}
+          />
         ))}
       </nav>
     </>
