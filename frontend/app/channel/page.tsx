@@ -155,8 +155,8 @@ export default function ChannelPage() {
     }));
 
   return (
-    <div className="space-y-3">
-      <div>
+    <div className="space-y-5 md:space-y-6">
+      <div className="mb-2">
         <h1 className="text-lg font-bold text-[var(--text-primary)]">渠道分析</h1>
         <p className="text-sm text-[var(--text-secondary)] mt-1">
           CC窄/SS窄/LP窄 + CC宽/LP宽/运营宽 · 业绩归因
@@ -181,7 +181,7 @@ export default function ChannelPage() {
       </div>
 
       {tab === '业绩贡献' && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
           <Card title="渠道业绩汇总">
             {channels.length === 0 ? (
               <EmptyState title="暂无渠道数据" description="上传数据后自动刷新" />
@@ -222,20 +222,20 @@ export default function ChannelPage() {
                     <tbody>
                       {channels.map((c) => (
                         <tr key={c.channel} className="even:bg-[var(--bg-subtle)]">
-                          <td className="py-1 px-2 text-xs font-medium">{c.channel}</td>
-                          <td className="py-1 px-2 text-xs text-right font-mono tabular-nums">
+                          <td className="py-2 px-2 text-xs font-medium">{c.channel}</td>
+                          <td className="py-2 px-2 text-xs text-right font-mono tabular-nums">
                             {fmtNum(c.registrations)}
                           </td>
-                          <td className="py-1 px-2 text-xs text-right font-mono tabular-nums text-[var(--text-secondary)]">
+                          <td className="py-2 px-2 text-xs text-right font-mono tabular-nums text-[var(--text-secondary)]">
                             {fmtNum(c.appointments)}
                           </td>
-                          <td className="py-1 px-2 text-xs text-right font-mono tabular-nums text-[var(--text-secondary)]">
+                          <td className="py-2 px-2 text-xs text-right font-mono tabular-nums text-[var(--text-secondary)]">
                             {fmtNum(c.attendance)}
                           </td>
-                          <td className="py-1 px-2 text-xs text-right font-mono tabular-nums text-[var(--text-secondary)]">
+                          <td className="py-2 px-2 text-xs text-right font-mono tabular-nums text-[var(--text-secondary)]">
                             {fmtNum(c.payments)}
                           </td>
-                          <td className="py-1 px-2 text-xs text-right font-mono tabular-nums text-[var(--text-secondary)]">
+                          <td className="py-2 px-2 text-xs text-right font-mono tabular-nums text-[var(--text-secondary)]">
                             {fmtUsd(c.revenue_usd)}
                           </td>
                         </tr>
@@ -293,14 +293,14 @@ export default function ChannelPage() {
                 <tbody>
                   {contributions.map((c) => (
                     <tr key={c.channel} className="even:bg-[var(--bg-subtle)]">
-                      <td className="py-1 px-2 text-xs font-medium">{c.channel}</td>
-                      <td className="py-1 px-2 text-xs text-right font-mono tabular-nums font-semibold">
+                      <td className="py-2 px-2 text-xs font-medium">{c.channel}</td>
+                      <td className="py-2 px-2 text-xs text-right font-mono tabular-nums font-semibold">
                         {fmtUsd(c.revenue)}
                       </td>
-                      <td className="py-1 px-2 text-xs text-right font-mono tabular-nums">
+                      <td className="py-2 px-2 text-xs text-right font-mono tabular-nums">
                         {fmtPct(c.share)}
                       </td>
-                      <td className="py-1 px-2 text-xs text-right font-mono tabular-nums text-[var(--text-secondary)]">
+                      <td className="py-2 px-2 text-xs text-right font-mono tabular-nums text-[var(--text-secondary)]">
                         {fmtUsd(c.per_capita)}
                       </td>
                     </tr>
@@ -313,7 +313,7 @@ export default function ChannelPage() {
       )}
 
       {tab === '渠道推荐者' && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
           {Object.entries(CHANNEL_KEY_MAP).map(([channelLabel, { paid }]) => {
             const top5 = [...allContributors]
               .filter((c) => (c[paid] as number) > 0)
@@ -387,15 +387,15 @@ export default function ChannelPage() {
                     const gap = c.gap;
                     return (
                       <tr key={c.channel} className="even:bg-[var(--bg-subtle)]">
-                        <td className="py-1 px-2 text-xs font-medium">{c.channel}</td>
-                        <td className="py-1 px-2 text-xs text-right font-mono tabular-nums">
+                        <td className="py-2 px-2 text-xs font-medium">{c.channel}</td>
+                        <td className="py-2 px-2 text-xs text-right font-mono tabular-nums">
                           {fmtNum(c.expected_volume)}
                         </td>
-                        <td className="py-1 px-2 text-xs text-right font-mono tabular-nums font-semibold">
+                        <td className="py-2 px-2 text-xs text-right font-mono tabular-nums font-semibold">
                           {fmtNum(c.actual_volume)}
                         </td>
                         <td
-                          className={`py-1 px-2 text-xs text-right font-mono tabular-nums font-medium ${
+                          className={`py-2 px-2 text-xs text-right font-mono tabular-nums font-medium ${
                             gap == null
                               ? 'text-[var(--text-secondary)]'
                               : gap >= 0
@@ -405,13 +405,13 @@ export default function ChannelPage() {
                         >
                           {fmtGap(gap)}
                         </td>
-                        <td className="py-1 px-2 text-xs text-right font-mono tabular-nums">
+                        <td className="py-2 px-2 text-xs text-right font-mono tabular-nums">
                           {fmtPct(c.appt_factor)}
                         </td>
-                        <td className="py-1 px-2 text-xs text-right font-mono tabular-nums">
+                        <td className="py-2 px-2 text-xs text-right font-mono tabular-nums">
                           {fmtPct(c.show_factor)}
                         </td>
-                        <td className="py-1 px-2 text-xs text-right font-mono tabular-nums">
+                        <td className="py-2 px-2 text-xs text-right font-mono tabular-nums">
                           {fmtPct(c.pay_factor)}
                         </td>
                       </tr>

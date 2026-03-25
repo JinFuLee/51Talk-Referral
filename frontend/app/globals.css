@@ -686,7 +686,7 @@ body.presentation-mode .presentation-watermark {
 
 /* 卡片 */
 .card-base {
-  @apply rounded-xl bg-[var(--bg-surface)] border border-[var(--border-default)] p-5;
+  @apply rounded-xl bg-[var(--bg-surface)] border border-[var(--border-default)] p-4 md:p-6;
   box-shadow: var(--shadow-subtle);
   transition:
     box-shadow 0.2s ease,
@@ -696,16 +696,16 @@ body.presentation-mode .presentation-watermark {
   box-shadow: var(--shadow-medium);
 }
 .card-compact {
-  @apply rounded-xl bg-[var(--bg-surface)] border border-[var(--border-default)] p-3;
+  @apply rounded-xl bg-[var(--bg-surface)] border border-[var(--border-default)] p-3 md:p-4;
   box-shadow: var(--shadow-subtle);
 }
 .card-subtle {
-  @apply rounded-xl bg-[var(--bg-subtle)] border border-[var(--border-default)] p-3;
+  @apply rounded-xl bg-[var(--bg-subtle)] border border-[var(--border-default)] p-3 md:p-4;
   box-shadow: var(--shadow-subtle);
 }
 /* 可交互卡片：hover 时阴影加深 + 微上移 */
 .card-interactive {
-  @apply rounded-xl bg-[var(--bg-surface)] border border-[var(--border-default)] p-5;
+  @apply rounded-xl bg-[var(--bg-surface)] border border-[var(--border-default)] p-4 md:p-6;
   box-shadow: var(--shadow-subtle);
   transition:
     box-shadow 0.2s ease,
@@ -718,10 +718,10 @@ body.presentation-mode .presentation-watermark {
 
 /* 区块间距 */
 .section-gap {
-  @apply space-y-8;
+  @apply space-y-8 md:space-y-10;
 }
 .card-gap {
-  @apply space-y-4;
+  @apply space-y-5 md:space-y-6;
 }
 .inline-gap {
   @apply space-y-2;

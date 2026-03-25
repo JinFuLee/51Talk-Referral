@@ -18,12 +18,12 @@ export function Card({ title, children, className, actions }: CardProps) {
       style={{ boxShadow: 'var(--shadow-subtle)' }}
     >
       {(title || actions) && (
-        <div className="flex items-center justify-between px-3 py-2 border-b border-[var(--border-default)]">
+        <div className="flex items-center justify-between px-4 md:px-5 py-3 border-b border-[var(--border-default)]">
           {title && <h3 className="text-sm font-semibold text-[var(--text-primary)]">{title}</h3>}
           {actions && <div className="flex items-center gap-2">{actions}</div>}
         </div>
       )}
-      <div className="p-3">{children}</div>
+      <div className="p-4 md:p-5">{children}</div>
     </div>
   );
 }

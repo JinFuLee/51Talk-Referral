@@ -365,8 +365,8 @@ function TeamPageInner() {
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-start justify-between">
+    <div className="space-y-5 md:space-y-6">
+      <div className="flex items-start justify-between mb-2">
         <div>
           <h1 className="text-lg font-bold text-[var(--text-primary)]">团队汇总</h1>
           <p className="text-sm text-[var(--text-secondary)] mt-1">

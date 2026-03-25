@@ -168,7 +168,7 @@ function CCTabContent({
   const rankings = Array.isArray(rankingData) ? rankingData : (rankingData?.rankings ?? []);
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-5 md:space-y-6">
       {/* 围场筛选器 */}
       <div className="flex flex-wrap gap-2">
         {ENCLOSURE_FILTERS.map((f) => (
@@ -408,7 +408,7 @@ function SSTabContent() {
   );
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-5 md:space-y-6">
       <Card title="SS 排名（按注册数降序）">
         {sorted.length === 0 ? (
           <EmptyState title="暂无 SS 数据" description="上传围场数据后自动生成" />
@@ -555,7 +555,7 @@ function LPTabContent() {
   );
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-5 md:space-y-6">
       <Card title="LP 排名（按注册数降序）">
         {sorted.length === 0 ? (
           <EmptyState title="暂无 LP 数据" description="上传围场数据后自动生成" />
@@ -704,7 +704,7 @@ function AllTabContent() {
   ];
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-5 md:space-y-6">
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         {summaryItems.map((item) => (
           <div
@@ -821,8 +821,8 @@ function EnclosurePageInner() {
   }
 
   return (
-    <div className="space-y-3">
-      <div className="flex items-start justify-between">
+    <div className="space-y-5 md:space-y-6">
+      <div className="flex items-start justify-between mb-2">
         <div>
           <h1 className="text-lg font-bold text-[var(--text-primary)]">围场分析</h1>
           <p className="text-sm text-[var(--text-secondary)] mt-1">

@@ -281,41 +281,41 @@ export default function MembersPage() {
                         onClick={() => setSelectedId(m.id)}
                         className="even:bg-[var(--bg-subtle)] cursor-pointer hover:bg-action-surface transition-colors"
                       >
-                        <td className="py-1 px-2 text-xs text-action-accent font-medium font-mono tabular-nums whitespace-nowrap">
+                        <td className="py-2 px-2 text-xs text-action-accent font-medium font-mono tabular-nums whitespace-nowrap">
                           {m.id}
                         </td>
-                        <td className="py-1 px-2 text-xs text-[var(--text-secondary)] whitespace-nowrap">
+                        <td className="py-2 px-2 text-xs text-[var(--text-secondary)] whitespace-nowrap">
                           {m.enclosure}
                         </td>
-                        <td className="py-1 px-2 text-xs whitespace-nowrap">
+                        <td className="py-2 px-2 text-xs whitespace-nowrap">
                           <span className="px-1.5 py-0.5 bg-[var(--bg-subtle)] rounded text-xs">
                             {m.lifecycle}
                           </span>
                         </td>
-                        <td className="py-1 px-2 text-xs whitespace-nowrap">{m.cc_name}</td>
-                        <td className="py-1 px-2 text-xs text-right font-mono tabular-nums">
+                        <td className="py-2 px-2 text-xs whitespace-nowrap">{m.cc_name}</td>
+                        <td className="py-2 px-2 text-xs text-right font-mono tabular-nums">
                           {m.registrations ?? '—'}
                         </td>
-                        <td className="py-1 px-2 text-xs text-right font-mono tabular-nums">
+                        <td className="py-2 px-2 text-xs text-right font-mono tabular-nums">
                           {m.appointments ?? '—'}
                         </td>
-                        <td className="py-1 px-2 text-xs text-right font-mono tabular-nums">
+                        <td className="py-2 px-2 text-xs text-right font-mono tabular-nums">
                           {m.attendance ?? '—'}
                         </td>
-                        <td className="py-1 px-2 text-xs text-right font-mono tabular-nums font-medium">
+                        <td className="py-2 px-2 text-xs text-right font-mono tabular-nums font-medium">
                           {m.payments ?? '—'}
                         </td>
-                        <td className="py-1 px-2 text-xs text-right font-mono tabular-nums">
+                        <td className="py-2 px-2 text-xs text-right font-mono tabular-nums">
                           {m.checkin_this_month ?? '—'}
                         </td>
-                        <td className="py-1 px-2 text-xs text-right font-mono tabular-nums">
+                        <td className="py-2 px-2 text-xs text-right font-mono tabular-nums">
                           {m.lesson_consumed_this_month ?? '—'}
                         </td>
-                        <td className="py-1 px-2 text-xs text-right font-mono tabular-nums">
+                        <td className="py-2 px-2 text-xs text-right font-mono tabular-nums">
                           {m.referral_code_count_this_month ?? '—'}
                         </td>
                         <td
-                          className="py-1 px-2 text-xs whitespace-nowrap max-w-[120px] truncate"
+                          className="py-2 px-2 text-xs whitespace-nowrap max-w-[120px] truncate"
                           title={m.referral_reward_status ?? ''}
                         >
                           {m.referral_reward_status || '—'}
@@ -329,7 +329,7 @@ export default function MembersPage() {
                               ? '—'
                               : String(Math.round(daysExpiry))}
                         </td>
-                        <td className="py-1 px-2 text-xs whitespace-nowrap text-[var(--text-secondary)]">
+                        <td className="py-2 px-2 text-xs whitespace-nowrap text-[var(--text-secondary)]">
                           {m.cc_last_call_date || '—'}
                         </td>
                       </tr>

@@ -129,7 +129,7 @@ function CCTabContent() {
     }) ?? [];
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-5 md:space-y-6">
       {/* 着色维度切换 */}
       <div className="flex items-center gap-3">
         <span className="text-xs text-[var(--text-muted)]">着色维度</span>
@@ -519,8 +519,8 @@ function PersonnelMatrixPageInner() {
   }
 
   return (
-    <div className="space-y-3">
-      <div className="flex items-start justify-between">
+    <div className="space-y-5 md:space-y-6">
+      <div className="flex items-start justify-between mb-2">
         <div>
           <h1 className="text-lg font-bold text-[var(--text-primary)]">人员战力图</h1>
           <p className="text-sm text-[var(--text-secondary)] mt-1">

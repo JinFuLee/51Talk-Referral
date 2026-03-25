@@ -212,7 +212,7 @@ function KPI8Card({ label, item, format = 'count' }: KPI8CardProps) {
       <p className="text-xs font-semibold text-[var(--text-primary)] uppercase tracking-wide mb-2">
         {label}
       </p>
-      <div className="grid grid-cols-2 gap-x-3 gap-y-1">
+      <div className="grid grid-cols-2 gap-x-3 gap-y-2">
         {rows.map((r) => (
           <div key={r.label} className="flex flex-col">
             <span className="text-[10px] text-[var(--text-muted)]" title={KPI8_SUBTITLES[r.label]}>
@@ -268,7 +268,7 @@ function RateCard8({ label, actual, target, lossDesc, rootCause }: RateCard8Prop
       <p className="text-xs font-semibold text-[var(--text-primary)] uppercase tracking-wide mb-2">
         {label}
       </p>
-      <div className="grid grid-cols-2 gap-x-3 gap-y-1 mb-2">
+      <div className="grid grid-cols-2 gap-x-3 gap-y-2 mb-2">
         <div className="flex flex-col">
           <span className="text-[10px] text-[var(--text-muted)]">实际率</span>
           <span className="text-sm font-mono font-semibold text-[var(--text-primary)]">
@@ -463,7 +463,7 @@ function FunnelSnapshot({
   timeProgress: number;
 }) {
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
       {RATE_PAIRS.map(({ from, to, rateKey }) => {
         const rate = num(metrics[rateKey]);
         return (
@@ -628,7 +628,7 @@ export default function DashboardPage() {
   const allSourcesOk = sources.length > 0 && sources.every((s) => s.has_file);
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-5 md:space-y-6">
       {/* 异常警报横幅 */}
       {hasMetrics && (
         <AnomalyBanner
