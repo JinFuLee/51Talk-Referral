@@ -141,6 +141,14 @@ export default function FunnelPage() {
     );
   }
 
+  // 找转化率最低的环节作为瓶颈
+  const bottleneckStage = stages
+    .filter((s) => s.achievement_rate != null)
+    .sort((a, b) => (a.achievement_rate ?? 1) - (b.achievement_rate ?? 1))[0];
+  const bestStage = stages
+    .filter((s) => s.achievement_rate != null)
+    .sort((a, b) => (b.achievement_rate ?? 0) - (a.achievement_rate ?? 0))[0];
+
   return (
     <div className="space-y-5 md:space-y-6">
       <div className="flex items-start justify-between mb-2">
@@ -150,6 +158,40 @@ export default function FunnelPage() {
         </div>
         <ExportButton onExportCsv={handleExport} />
       </div>
+
+      {/* 漏斗 insight 卡片 */}
+      {bottleneckStage && (
+        <div className="flex flex-col gap-1.5 rounded-lg border border-[var(--border-default)] border-l-4 border-l-amber-400 bg-amber-50 px-4 py-3">
+          <div className="text-sm font-semibold text-[var(--text-primary)]">💡 漏斗诊断</div>
+          <div className="text-xs text-[var(--text-secondary)]">
+            转化瓶颈在{' '}
+            <span className="font-semibold text-[var(--text-primary)]">{bottleneckStage.name}</span>{' '}
+            环节，达成率{' '}
+            <span className="text-red-500 font-semibold">
+              {bottleneckStage.achievement_rate != null
+                ? `${Math.round(bottleneckStage.achievement_rate * 100)}%`
+                : '—'}
+            </span>
+            {bestStage && bestStage.name !== bottleneckStage.name && (
+              <>
+                ；{bestStage.name} 环节达成率最高（
+                <span className="text-green-600 font-semibold">
+                  {bestStage.achievement_rate != null
+                    ? `${Math.round(bestStage.achievement_rate * 100)}%`
+                    : '—'}
+                </span>
+                ）
+              </>
+            )}
+            。
+          </div>
+          <p className="text-[10px] text-[var(--text-muted)]">
+            颜色：<span className="text-green-600 font-medium">绿≥100%</span> ·{' '}
+            <span className="text-yellow-600 font-medium">橙80-100%</span> ·{' '}
+            <span className="text-red-500 font-medium">红&lt;80%</span>（达成率）
+          </p>
+        </div>
+      )}
 
       {/* 带邀约节点的完整 4 段漏斗 */}
       {(invitationStages.length > 0 || invitationStats) && (

@@ -74,6 +74,9 @@ export default function AttributionPage() {
         <p className="text-sm text-[var(--text-secondary)] mt-1">
           漏斗各阶段达成率 · 贡献拆解 · 缺口模拟
         </p>
+        <p className="text-sm text-[var(--text-muted)] mt-0.5">
+          各渠道对整体业绩的贡献度分解：围场 / CC / 渠道 / 生命周期四维视角
+        </p>
       </div>
 
       {/* 区域1：4个漏斗阶段达成率环形图 */}

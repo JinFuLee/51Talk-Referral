@@ -1,6 +1,7 @@
 'use client';
 
 import { formatRate } from '@/lib/utils';
+import { BrandDot } from '@/components/ui/BrandDot';
 
 interface TeamSummaryCardProps {
   cc_name: string;
@@ -42,7 +43,7 @@ export function TeamSummaryCard({
               {students.toLocaleString()}
             </div>
             <div className="text-[10px]" style={{ color: 'var(--n-500)' }}>
-              有效学员
+              有效学员 <BrandDot tooltip="已付费且次卡在有效期内的学员" />
             </div>
           </div>
         </div>
@@ -53,7 +54,9 @@ export function TeamSummaryCard({
           <div className="text-sm font-semibold text-[var(--text-primary)]">
             {formatRate(participation_rate)}
           </div>
-          <div className="text-[10px] text-[var(--text-muted)] mt-0.5">参与率</div>
+          <div className="text-[10px] text-[var(--text-muted)] mt-0.5">
+            参与率 <BrandDot tooltip="带来≥1注册的学员 / 有效学员" />
+          </div>
         </div>
         <div className="text-center">
           <div className="text-sm font-semibold text-[var(--text-primary)]">
@@ -74,13 +77,17 @@ export function TeamSummaryCard({
           <div className="text-sm font-semibold text-[var(--text-primary)]">
             {formatRate(checkin_rate ?? 0)}
           </div>
-          <div className="text-[10px] text-[var(--text-muted)] mt-0.5">打卡率</div>
+          <div className="text-[10px] text-[var(--text-muted)] mt-0.5">
+            打卡率 <BrandDot tooltip="转码且分享的学员 / 有效学员" />
+          </div>
         </div>
         <div className="text-center">
           <div className="text-sm font-semibold text-[var(--text-primary)]">
             {formatRate(cc_reach_rate ?? 0)}
           </div>
-          <div className="text-[10px] text-[var(--text-muted)] mt-0.5">CC触达率</div>
+          <div className="text-[10px] text-[var(--text-muted)] mt-0.5">
+            CC触达率 <BrandDot tooltip="有效通话(≥120s)学员 / 有效学员" />
+          </div>
         </div>
       </div>
 

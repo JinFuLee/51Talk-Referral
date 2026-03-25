@@ -347,6 +347,24 @@ export default function HighPotentialPage() {
           <p className="text-sm text-[var(--text-secondary)] mt-0.5">
             带新数高 · 出席活跃 · 付费意向强 · 共 {allStudents.length} 人
           </p>
+          <p className="text-[10px] text-[var(--text-muted)] mt-1">
+            紧急状态：
+            <span className="inline-flex items-center gap-1 mx-1">
+              <span className="w-2 h-2 rounded-full bg-red-500 inline-block" />
+              <span className="text-red-600 font-medium">紧急</span>
+            </span>
+            = 窗口期&lt;7天或&gt;14天未联系；
+            <span className="inline-flex items-center gap-1 mx-1">
+              <span className="w-2 h-2 rounded-full bg-amber-400 inline-block" />
+              <span className="text-amber-600 font-medium">关注</span>
+            </span>
+            = 7-14天未联系；
+            <span className="inline-flex items-center gap-1 mx-1">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" />
+              <span className="text-emerald-600 font-medium">稳定</span>
+            </span>
+            = 近期有联系
+          </p>
         </div>
 
         {/* 右侧操作 */}

@@ -4,7 +4,7 @@ import useSWR from 'swr';
 import { swrFetcher } from '@/lib/api';
 import { formatRevenue, formatRate } from '@/lib/utils';
 import { SlideShell } from '@/components/presentation/SlideShell';
-import { Spinner } from '@/components/ui/Spinner';
+import { SkeletonChart } from '@/components/ui/Skeleton';
 import type { ChannelAttribution, SlideProps } from '@/lib/presentation/types';
 
 export function RevenueContributionSlide({ slideNumber, totalSlides }: SlideProps) {

@@ -23,6 +23,7 @@ import { formatRate, formatRevenue } from '@/lib/utils';
 import { ExportButton } from '@/components/ui/ExportButton';
 import { useExport } from '@/lib/use-export';
 import { SegmentedTabs } from '@/components/ui/PageTabs';
+import { BrandDot } from '@/components/ui/BrandDot';
 
 /* ── 常量 ──────────────────────────────────────────────────── */
 
@@ -266,11 +267,21 @@ function SSTabContent() {
                 <th className="slide-th slide-th-left py-2 px-2">排名</th>
                 <th className="slide-th slide-th-left py-2 px-2">姓名</th>
                 <th className="slide-th slide-th-left py-2 px-2">组别</th>
-                <th className="slide-th slide-th-left py-2 px-2">围场段</th>
-                <th className="slide-th slide-th-right py-2 px-2">学员数</th>
-                <th className="slide-th slide-th-right py-2 px-2">参与率</th>
-                <th className="slide-th slide-th-right py-2 px-2">打卡率</th>
-                <th className="slide-th slide-th-right py-2 px-2">触达率</th>
+                <th className="slide-th slide-th-left py-2 px-2">
+                  围场段 <BrandDot tooltip="学员付费起算天数分段" />
+                </th>
+                <th className="slide-th slide-th-right py-2 px-2">
+                  学员数 <BrandDot tooltip="已付费且在有效期内的学员" />
+                </th>
+                <th className="slide-th slide-th-right py-2 px-2">
+                  参与率 <BrandDot tooltip="带来≥1注册的学员 / 有效学员" />
+                </th>
+                <th className="slide-th slide-th-right py-2 px-2">
+                  打卡率 <BrandDot tooltip="转码且分享的学员 / 有效学员" />
+                </th>
+                <th className="slide-th slide-th-right py-2 px-2">
+                  触达率 <BrandDot tooltip="有效通话(≥120s)学员 / 有效学员" />
+                </th>
                 <th className="slide-th slide-th-right py-2 px-2">注册数</th>
                 <th className="slide-th slide-th-right py-2 px-2">付费数</th>
                 <th className="slide-th slide-th-right py-2 px-2">业绩(USD)</th>
@@ -366,11 +377,21 @@ function LPTabContent() {
                 <th className="slide-th slide-th-left py-2 px-2">排名</th>
                 <th className="slide-th slide-th-left py-2 px-2">姓名</th>
                 <th className="slide-th slide-th-left py-2 px-2">组别</th>
-                <th className="slide-th slide-th-left py-2 px-2">围场段</th>
-                <th className="slide-th slide-th-right py-2 px-2">学员数</th>
-                <th className="slide-th slide-th-right py-2 px-2">参与率</th>
-                <th className="slide-th slide-th-right py-2 px-2">打卡率</th>
-                <th className="slide-th slide-th-right py-2 px-2">触达率</th>
+                <th className="slide-th slide-th-left py-2 px-2">
+                  围场段 <BrandDot tooltip="学员付费起算天数分段" />
+                </th>
+                <th className="slide-th slide-th-right py-2 px-2">
+                  学员数 <BrandDot tooltip="已付费且在有效期内的学员" />
+                </th>
+                <th className="slide-th slide-th-right py-2 px-2">
+                  参与率 <BrandDot tooltip="带来≥1注册的学员 / 有效学员" />
+                </th>
+                <th className="slide-th slide-th-right py-2 px-2">
+                  打卡率 <BrandDot tooltip="转码且分享的学员 / 有效学员" />
+                </th>
+                <th className="slide-th slide-th-right py-2 px-2">
+                  触达率 <BrandDot tooltip="有效通话(≥120s)学员 / 有效学员" />
+                </th>
                 <th className="slide-th slide-th-right py-2 px-2">注册数</th>
                 <th className="slide-th slide-th-right py-2 px-2">付费数</th>
                 <th className="slide-th slide-th-right py-2 px-2">业绩(USD)</th>
@@ -510,6 +531,9 @@ function PersonnelMatrixPageInner() {
           <h1 className="page-title">人员战力图</h1>
           <p className="text-sm text-[var(--text-secondary)] mt-1">
             CC / SS / LP 三岗个人战力 · 热力矩阵 · 围场分布
+          </p>
+          <p className="text-sm text-[var(--text-muted)] mt-0.5">
+            CC 热力矩阵按围场段×个人展示带新系数；SS/LP 按注册数排名
           </p>
         </div>
         <ExportButton onExportCsv={handleExport} />

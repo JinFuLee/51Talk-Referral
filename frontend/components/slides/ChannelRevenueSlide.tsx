@@ -5,14 +5,14 @@ import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recha
 import { swrFetcher } from '@/lib/api';
 import { formatRevenue, formatRate } from '@/lib/utils';
 import { SlideShell } from '@/components/presentation/SlideShell';
-import { Spinner } from '@/components/ui/Spinner';
+import { SkeletonChart } from '@/components/ui/Skeleton';
 import type { ChannelAttribution, SlideProps } from '@/lib/presentation/types';
 import { CHART_PALETTE } from '@/lib/chart-palette';
 
 const COLORS = CHART_PALETTE.series;
 
 export function ChannelRevenueSlide({ slideNumber, totalSlides }: SlideProps) {
-  const { data, isLoading, error } = useSWR<ChannelAttribution[]>(
+  const { data, isLoading, error, mutate } = useSWR<ChannelAttribution[]>(
     '/api/channel/attribution',
     swrFetcher
   );
@@ -42,20 +42,21 @@ export function ChannelRevenueSlide({ slideNumber, totalSlides }: SlideProps) {
       insight={insight}
     >
       {isLoading ? (
-        <div className="flex justify-center items-center h-full">
-          <Spinner size="lg" />
+        <div className="flex items-center justify-center h-full px-4">
+          <SkeletonChart className="h-4/5 w-full" />
         </div>
       ) : error ? (
         <div className="flex items-center justify-center h-full">
-          <div className="text-center">
-            <p className="text-lg font-semibold text-red-600">数据加载失败</p>
-            <p className="text-sm text-[var(--text-muted)] mt-2">请检查后端服务是否正常运行</p>
+          <div className="text-center space-y-2">
+            <p className="text-base font-semibold text-red-600">数据加载失败</p>
+            <p className="text-sm text-[var(--text-muted)]">请检查后端服务是否正常运行</p>
+            <button onClick={() => mutate()} className="mt-1 px-4 py-1.5 rounded-lg text-sm border border-[var(--border-default)] text-[var(--text-secondary)] hover:bg-[var(--bg-subtle)] transition-colors">重试</button>
           </div>
         </div>
       ) : channels.length === 0 ? (
         <div className="flex flex-col justify-center items-center h-full gap-3 text-[var(--text-muted)]">
-          <p className="text-lg font-medium">暂无渠道金额数据</p>
-          <p className="text-sm">请确认 /api/channel/attribution 已返回数据</p>
+          <p className="text-base font-medium">暂无渠道金额数据</p>
+          <p className="text-sm">请上传本月 Excel 数据源后自动刷新</p>
         </div>
       ) : (
         <div className="flex gap-8 h-full items-center">

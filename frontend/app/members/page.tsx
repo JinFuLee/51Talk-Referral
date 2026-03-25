@@ -11,6 +11,7 @@ import { MemberDetailDrawer } from '@/components/members/MemberDetailDrawer';
 import { ExportButton } from '@/components/ui/ExportButton';
 import { useExport } from '@/lib/use-export';
 import type { StudentBrief } from '@/lib/types/member';
+import { BrandDot } from '@/components/ui/BrandDot';
 
 interface MembersResponse {
   items: StudentBrief[];
@@ -115,6 +116,9 @@ export default function MembersPage() {
           <p className="text-sm text-[var(--text-secondary)] mt-1">
             有效学员列表 · 点击行查看 59 字段详情
           </p>
+          <p className="text-sm text-[var(--text-muted)] mt-0.5">
+            有效学员 = 已付费且次卡在有效期内的学员，不含过期或未付费用户
+          </p>
         </div>
         <ExportButton onExportCsv={handleExport} />
       </div>
@@ -218,13 +222,19 @@ export default function MembersPage() {
                 <thead>
                   <tr className="slide-thead-row text-xs">
                     <th className="py-1.5 px-2 border-0 text-left whitespace-nowrap">ID</th>
-                    <th className="py-1.5 px-2 border-0 text-left whitespace-nowrap">围场</th>
+                    <th className="py-1.5 px-2 border-0 text-left whitespace-nowrap">
+                      围场 <BrandDot tooltip="学员付费起算天数分段（0-30/31-60/61-90/91-180/181+天）" />
+                    </th>
                     <th className="py-1.5 px-2 border-0 text-left whitespace-nowrap">生命周期</th>
                     <th className="py-1.5 px-2 border-0 text-left whitespace-nowrap">CC</th>
-                    <th className="py-1.5 px-2 border-0 text-right whitespace-nowrap">注册</th>
+                    <th className="py-1.5 px-2 border-0 text-right whitespace-nowrap">
+                      注册 <BrandDot tooltip="该学员带来的转介绍注册数" />
+                    </th>
                     <th className="py-1.5 px-2 border-0 text-right whitespace-nowrap">预约</th>
                     <th className="py-1.5 px-2 border-0 text-right whitespace-nowrap">出席</th>
-                    <th className="py-1.5 px-2 border-0 text-right whitespace-nowrap">付费</th>
+                    <th className="py-1.5 px-2 border-0 text-right whitespace-nowrap">
+                      付费 <BrandDot tooltip="该学员带来的转介绍付费数" />
+                    </th>
                     <th
                       className="py-1.5 px-2 border-0 text-right whitespace-nowrap"
                       title="本月打卡天数"

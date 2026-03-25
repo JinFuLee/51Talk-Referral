@@ -161,6 +161,9 @@ export default function ChannelPage() {
         <p className="text-sm text-[var(--text-secondary)] mt-1">
           CC窄/SS窄/LP窄 + CC宽/LP宽/运营宽 · 业绩归因
         </p>
+        <p className="text-sm text-[var(--text-muted)] mt-0.5">
+          CC窄/SS窄/LP窄 = 学员直接绑定关系；宽口按围场-岗位配置拆分为 CC宽/LP宽/运营宽（Settings 可调）
+        </p>
       </div>
 
       {/* Tab 切换 */}

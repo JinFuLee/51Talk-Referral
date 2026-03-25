@@ -24,6 +24,7 @@ import { CHART_PALETTE } from '@/lib/chart-palette';
 import { ExportButton } from '@/components/ui/ExportButton';
 import { useExport } from '@/lib/use-export';
 import { SegmentedTabs } from '@/components/ui/PageTabs';
+import { BrandDot } from '@/components/ui/BrandDot';
 
 /* ── 类型 ──────────────────────────────────────────────────── */
 
@@ -123,8 +124,35 @@ function CCTabContent() {
     学员: t.students,
   }));
 
+  // Top/Bottom CC（按参与率）
+  const sortedByParticipation = [...teams].sort(
+    (a, b) => (b.participation_rate ?? 0) - (a.participation_rate ?? 0)
+  );
+  const topCC = sortedByParticipation[0];
+  const bottomCC = sortedByParticipation[sortedByParticipation.length - 1];
+
   return (
     <div className="space-y-6">
+      {/* 团队效率 insight 卡片 */}
+      {topCC && bottomCC && topCC.cc_name !== bottomCC.cc_name && (
+        <div className="flex flex-col gap-1.5 rounded-lg border border-[var(--border-default)] border-l-4 border-l-green-500 bg-green-50 px-4 py-3">
+          <div className="text-sm font-semibold text-[var(--text-primary)]">💡 团队效率摘要</div>
+          <div className="text-xs text-[var(--text-secondary)]">
+            参与率最高：<span className="font-semibold text-[var(--text-primary)]">{topCC.cc_name}</span>{' '}
+            <span className="text-green-600 font-semibold">{formatRate(topCC.participation_rate)}</span>
+            ；参与率最低：<span className="font-semibold text-[var(--text-primary)]">{bottomCC.cc_name}</span>{' '}
+            <span className="text-red-500 font-semibold">{formatRate(bottomCC.participation_rate)}</span>
+            {topCC.participation_rate != null && bottomCC.participation_rate != null && (
+              <>，差距 {Math.round(Math.abs(topCC.participation_rate - bottomCC.participation_rate) * 100)}pp</>
+            )}。
+          </div>
+          <p className="text-[10px] text-[var(--text-muted)]">
+            颜色：<span className="text-green-600 font-medium">绿≥50%</span> ·{' '}
+            <span className="text-yellow-600 font-medium">橙30-50%</span> ·{' '}
+            <span className="text-red-500 font-medium">红&lt;30%</span>（参与率/打卡率/触达率）
+          </p>
+        </div>
+      )}
       {/* 团队汇总卡片 */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {teams.length === 0 ? (
@@ -215,8 +243,35 @@ function RoleRankingContent({ role, apiUrl }: { role: 'SS' | 'LP'; apiUrl: strin
     付费: r.payments,
   }));
 
+  // Top/Bottom（按参与率）
+  const sortedByParticipation = [...rankings].sort(
+    (a, b) => (b.participation_rate ?? 0) - (a.participation_rate ?? 0)
+  );
+  const topMember = sortedByParticipation[0];
+  const bottomMember = sortedByParticipation[sortedByParticipation.length - 1];
+
   return (
     <div className="space-y-4">
+      {/* 效率 insight 卡片 */}
+      {topMember && bottomMember && topMember.name !== bottomMember.name && (
+        <div className="flex flex-col gap-1 rounded-lg border border-[var(--border-default)] border-l-4 border-l-green-500 bg-green-50 px-4 py-3">
+          <div className="text-sm font-semibold text-[var(--text-primary)]">💡 {role} 效率摘要</div>
+          <div className="text-xs text-[var(--text-secondary)]">
+            参与率最高：<span className="font-semibold text-[var(--text-primary)]">{topMember.name}</span>{' '}
+            <span className="text-green-600 font-semibold">{formatRate(topMember.participation_rate)}</span>
+            ；参与率最低：<span className="font-semibold text-[var(--text-primary)]">{bottomMember.name}</span>{' '}
+            <span className="text-red-500 font-semibold">{formatRate(bottomMember.participation_rate)}</span>。
+          </div>
+          <p className="text-[10px] text-[var(--text-muted)]">
+            颜色：<span className="text-green-600 font-medium">绿≥20%</span> ·{' '}
+            <span className="text-yellow-600 font-medium">橙10-20%</span> ·{' '}
+            <span className="text-red-500 font-medium">红&lt;10%</span>（参与率），
+            <span className="text-green-600 font-medium">绿≥50%</span> ·{' '}
+            <span className="text-yellow-600 font-medium">橙30-50%</span> ·{' '}
+            <span className="text-red-500 font-medium">红&lt;30%</span>（打卡率）
+          </p>
+        </div>
+      )}
       {/* 排名表格 */}
       <Card title={`${role} 组级绩效排名`}>
         {rankings.length === 0 ? (
@@ -229,9 +284,15 @@ function RoleRankingContent({ role, apiUrl }: { role: 'SS' | 'LP'; apiUrl: strin
                   <th className="slide-th slide-th-left py-2 px-2">排名</th>
                   <th className="slide-th slide-th-left py-2 px-2">姓名</th>
                   <th className="slide-th slide-th-left py-2 px-2">组名</th>
-                  <th className="slide-th slide-th-right py-2 px-2">学员数</th>
-                  <th className="slide-th slide-th-right py-2 px-2">参与率</th>
-                  <th className="slide-th slide-th-right py-2 px-2">打卡率</th>
+                  <th className="slide-th slide-th-right py-2 px-2">
+                    学员数 <BrandDot tooltip="已付费且在有效期内的学员" />
+                  </th>
+                  <th className="slide-th slide-th-right py-2 px-2">
+                    参与率 <BrandDot tooltip="带来≥1注册的学员 / 有效学员" />
+                  </th>
+                  <th className="slide-th slide-th-right py-2 px-2">
+                    打卡率 <BrandDot tooltip="转码且分享的学员 / 有效学员" />
+                  </th>
                   <th className="slide-th slide-th-right py-2 px-2">注册数</th>
                   <th className="slide-th slide-th-right py-2 px-2">付费数</th>
                   <th className="slide-th slide-th-right py-2 px-2">业绩(USD)</th>
@@ -398,6 +459,9 @@ function TeamPageInner() {
           <h1 className="page-title">团队汇总</h1>
           <p className="text-sm text-[var(--text-secondary)] mt-1">
             CC / SS / LP 三岗团队绩效 · 学员数 · 参与率 · 注册 · 付费
+          </p>
+          <p className="text-sm text-[var(--text-muted)] mt-0.5">
+            CC 负责 0-90 天围场全漏斗；SS/LP 负责 91 天+ 围场过程指标
           </p>
         </div>
         <ExportButton onExportCsv={handleExport} />

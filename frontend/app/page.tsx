@@ -7,6 +7,7 @@ import { useFilteredSWR } from '@/lib/hooks/use-filtered-swr';
 import { formatRevenue, formatRate } from '@/lib/utils';
 import { Card } from '@/components/ui/Card';
 import { Spinner } from '@/components/ui/Spinner';
+import { SkeletonCard, SkeletonChart } from '@/components/ui/Skeleton';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { StatCard } from '@/components/shared/StatCard';
 import { PercentBar } from '@/components/shared/PercentBar';
@@ -542,10 +543,16 @@ function MonthlyAchievementSection() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center gap-2 py-4">
-        <Spinner size="sm" />
-        <span className="text-xs text-[var(--text-muted)]">加载月度达成...</span>
-      </div>
+      <Card title="月度目标达成">
+        <div className="flex items-center justify-around py-2 gap-4">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="flex flex-col items-center gap-2">
+              <div className="w-16 h-16 rounded-full animate-pulse bg-[var(--n-200)]" />
+              <div className="h-3 w-16 rounded animate-pulse bg-[var(--n-200)]" />
+            </div>
+          ))}
+        </div>
+      </Card>
     );
   }
 
@@ -564,6 +571,11 @@ function MonthlyAchievementSection() {
           <RingProgress key={r.label} {...r} />
         ))}
       </div>
+      <p className="text-[10px] text-[var(--text-muted)] text-center mt-1">
+        颜色：<span className="text-green-600 font-medium">绿≥100%</span> ·{' '}
+        <span className="text-yellow-600 font-medium">橙80-100%</span> ·{' '}
+        <span className="text-red-500 font-medium">红&lt;80%</span>
+      </p>
     </Card>
   );
 }
@@ -600,15 +612,31 @@ export default function DashboardPage() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <Spinner size="lg" />
+      <div className="space-y-5">
+        <div className="h-8 w-48 animate-pulse rounded-md bg-[var(--n-200)]" />
+        <div className="grid grid-cols-2 xl:grid-cols-3 gap-4">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <SkeletonCard key={i} className="h-24" />
+          ))}
+        </div>
+        <SkeletonChart className="h-40 w-full" />
+        <SkeletonChart className="h-32 w-full" />
       </div>
     );
   }
 
   if (error) {
     return (
-      <EmptyState title="数据加载失败" description="无法获取概览数据，请检查后端服务是否正常运行" />
+      <div className="flex flex-col items-center justify-center py-16 gap-3">
+        <p className="text-sm font-medium text-[var(--text-primary)]">数据加载失败</p>
+        <p className="text-xs text-[var(--text-muted)]">无法获取概览数据，请检查后端服务是否正常运行</p>
+        <button
+          onClick={() => window.location.reload()}
+          className="mt-1 px-4 py-1.5 rounded-lg text-xs font-medium bg-[var(--bg-subtle)] border border-[var(--border-default)] text-[var(--text-secondary)] hover:bg-[var(--border-default)] transition-colors"
+        >
+          重试
+        </button>
+      </div>
     );
   }
 
@@ -622,7 +650,7 @@ export default function DashboardPage() {
   const hasMetrics = Object.keys(metrics).length > 0;
 
   if (!hasMetrics && sources.length === 0) {
-    return <EmptyState title="暂无数据" description="请先上传数据文件，然后刷新页面" />;
+    return <EmptyState title="暂无数据" description="请将 Excel 数据文件放入数据源目录，完成后刷新页面即可自动加载" />;
   }
 
   const allSourcesOk = sources.length > 0 && sources.every((s) => s.has_file);
@@ -695,7 +723,13 @@ export default function DashboardPage() {
 
       {/* KPI 卡片 */}
       {hasMetrics && (
-        <div className="grid grid-cols-2 xl:grid-cols-3 gap-4">
+        <>
+          <p className="text-[10px] text-[var(--text-muted)] -mb-2">
+            达成率颜色：<span className="text-green-600 font-medium">绿≥100%</span> ·{' '}
+            <span className="text-yellow-600 font-medium">橙80-100%</span> ·{' '}
+            <span className="text-red-500 font-medium">红&lt;80%</span>
+          </p>
+          <div className="grid grid-cols-2 xl:grid-cols-3 gap-4">
           {visibleKpiCards.map(({ key, label, format, targetKey, paceKey }) => {
             const v = num(metrics[key]);
             const display =
@@ -736,7 +770,8 @@ export default function DashboardPage() {
               />
             );
           })}
-        </div>
+          </div>
+        </>
       )}
 
       {/* KPI 8 项全维度 */}
@@ -747,7 +782,7 @@ export default function DashboardPage() {
       {/* 漏斗转化率 */}
       <Card title="漏斗转化率">
         {!hasMetrics ? (
-          <EmptyState title="暂无漏斗数据" description="上传数据后自动刷新" />
+          <EmptyState title="暂无漏斗数据" description="请确认已上传本月 Excel 数据源（A1 当月快照），上传后自动刷新" />
         ) : (
           <>
             <FunnelSnapshot metrics={metrics} timeProgress={tp?.time_progress ?? 0} />

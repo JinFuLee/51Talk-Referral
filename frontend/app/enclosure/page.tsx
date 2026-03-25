@@ -24,6 +24,7 @@ import type { EnclosureSSMetrics, EnclosureLPMetrics } from '@/lib/types/enclosu
 import { ExportButton } from '@/components/ui/ExportButton';
 import { useExport } from '@/lib/use-export';
 import { SegmentedTabs } from '@/components/ui/PageTabs';
+import { BrandDot } from '@/components/ui/BrandDot';
 
 /* ── 常量 ──────────────────────────────────────────────────── */
 
@@ -176,20 +177,40 @@ function CCTabContent({
         {rows.length === 0 ? (
           <EmptyState title="暂无围场数据" description="上传数据后自动刷新" />
         ) : (
+          <>
+            <p className="text-[10px] text-[var(--text-muted)] mb-2">
+              颜色：<span className="text-green-600 font-medium">绿≥50%</span> ·{' '}
+              <span className="text-yellow-600 font-medium">橙30-50%</span> ·{' '}
+              <span className="text-red-500 font-medium">红&lt;30%</span>（参与率/打卡率/触达率）
+            </p>
           <div className="overflow-x-auto">
             <table className="w-full text-xs">
               <thead>
                 <tr className="slide-thead-row">
                   <th className="slide-th slide-th-left py-1.5 px-2">围场段</th>
                   <th className="slide-th slide-th-left py-1.5 px-2">CC</th>
-                  <th className="slide-th slide-th-right py-1.5 px-2">有效学员</th>
-                  <th className="slide-th slide-th-right py-1.5 px-2">参与率</th>
-                  <th className="slide-th slide-th-right py-1.5 px-2">带新系数</th>
-                  <th className="slide-th slide-th-right py-1.5 px-2">带货比</th>
-                  <th className="slide-th slide-th-right py-1.5 px-2">打卡率</th>
+                  <th className="slide-th slide-th-right py-1.5 px-2">
+                    有效学员 <BrandDot tooltip="已付费且在有效期内的学员" />
+                  </th>
+                  <th className="slide-th slide-th-right py-1.5 px-2">
+                    参与率 <BrandDot tooltip="带来≥1注册的学员 / 有效学员" />
+                  </th>
+                  <th className="slide-th slide-th-right py-1.5 px-2">
+                    带新系数 <BrandDot tooltip="每个参与学员平均带来的注册数（>2为优质）" />
+                  </th>
+                  <th className="slide-th slide-th-right py-1.5 px-2">
+                    带货比 <BrandDot tooltip="推荐注册数 / 有效学员，衡量整体渗透率" />
+                  </th>
+                  <th className="slide-th slide-th-right py-1.5 px-2">
+                    打卡率 <BrandDot tooltip="转码且分享的学员 / 有效学员" />
+                  </th>
                   <th className="slide-th slide-th-right py-1.5 px-2">注册数</th>
-                  <th className="slide-th slide-th-right py-1.5 px-2">SS触达率</th>
-                  <th className="slide-th slide-th-right py-1.5 px-2">LP触达率</th>
+                  <th className="slide-th slide-th-right py-1.5 px-2">
+                    SS触达率 <BrandDot tooltip="SS有效通话(≥120s)学员 / 有效学员" />
+                  </th>
+                  <th className="slide-th slide-th-right py-1.5 px-2">
+                    LP触达率 <BrandDot tooltip="LP有效通话(≥120s)学员 / 有效学员" />
+                  </th>
                   <th className="slide-th slide-th-right py-1.5 px-2">付费数</th>
                   <th className="slide-th slide-th-right py-1.5 px-2">业绩(USD)</th>
                 </tr>
@@ -246,6 +267,7 @@ function CCTabContent({
               </tbody>
             </table>
           </div>
+          </>
         )}
       </Card>
 
@@ -405,10 +427,18 @@ function SSTabContent() {
                   <th className="slide-th slide-th-left py-2 px-2">排名</th>
                   <th className="slide-th slide-th-left py-2 px-2">姓名</th>
                   <th className="slide-th slide-th-left py-2 px-2">组别</th>
-                  <th className="slide-th slide-th-right py-2 px-2">学员数</th>
-                  <th className="slide-th slide-th-right py-2 px-2">参与率</th>
-                  <th className="slide-th slide-th-right py-2 px-2">打卡率</th>
-                  <th className="slide-th slide-th-right py-2 px-2">触达率</th>
+                  <th className="slide-th slide-th-right py-2 px-2">
+                    学员数 <BrandDot tooltip="已付费且在有效期内的学员" />
+                  </th>
+                  <th className="slide-th slide-th-right py-2 px-2">
+                    参与率 <BrandDot tooltip="带来≥1注册的学员 / 有效学员" />
+                  </th>
+                  <th className="slide-th slide-th-right py-2 px-2">
+                    打卡率 <BrandDot tooltip="转码且分享的学员 / 有效学员" />
+                  </th>
+                  <th className="slide-th slide-th-right py-2 px-2">
+                    触达率 <BrandDot tooltip="有效通话(≥120s)学员 / 有效学员" />
+                  </th>
                   <th className="slide-th slide-th-right py-2 px-2">注册数</th>
                   <th className="slide-th slide-th-right py-2 px-2">付费数</th>
                   <th className="slide-th slide-th-right py-2 px-2">业绩(USD)</th>
@@ -552,10 +582,18 @@ function LPTabContent() {
                   <th className="slide-th slide-th-left py-2 px-2">排名</th>
                   <th className="slide-th slide-th-left py-2 px-2">姓名</th>
                   <th className="slide-th slide-th-left py-2 px-2">组别</th>
-                  <th className="slide-th slide-th-right py-2 px-2">学员数</th>
-                  <th className="slide-th slide-th-right py-2 px-2">参与率</th>
-                  <th className="slide-th slide-th-right py-2 px-2">打卡率</th>
-                  <th className="slide-th slide-th-right py-2 px-2">触达率</th>
+                  <th className="slide-th slide-th-right py-2 px-2">
+                    学员数 <BrandDot tooltip="已付费且在有效期内的学员" />
+                  </th>
+                  <th className="slide-th slide-th-right py-2 px-2">
+                    参与率 <BrandDot tooltip="带来≥1注册的学员 / 有效学员" />
+                  </th>
+                  <th className="slide-th slide-th-right py-2 px-2">
+                    打卡率 <BrandDot tooltip="转码且分享的学员 / 有效学员" />
+                  </th>
+                  <th className="slide-th slide-th-right py-2 px-2">
+                    触达率 <BrandDot tooltip="有效通话(≥120s)学员 / 有效学员" />
+                  </th>
                   <th className="slide-th slide-th-right py-2 px-2">注册数</th>
                   <th className="slide-th slide-th-right py-2 px-2">付费数</th>
                   <th className="slide-th slide-th-right py-2 px-2">业绩(USD)</th>
@@ -688,8 +726,43 @@ function AllTabContent() {
     { role: 'LP 服务', color: 'border-purple-500', ...lpTotal },
   ];
 
+  // 围场效率 insight：按围场段汇总 CC 参与率，找最高/最低
+  const enclosureParticipation = ccRows.reduce<Record<string, { rate: number; count: number }>>(
+    (acc, r) => {
+      if (!r.enclosure) return acc;
+      if (!acc[r.enclosure]) acc[r.enclosure] = { rate: 0, count: 0 };
+      acc[r.enclosure].rate += r.participation_rate ?? 0;
+      acc[r.enclosure].count += 1;
+      return acc;
+    },
+    {}
+  );
+  const enclosureAvgs = Object.entries(enclosureParticipation)
+    .map(([seg, v]) => ({ seg, avg: v.count > 0 ? v.rate / v.count : 0 }))
+    .sort((a, b) => b.avg - a.avg);
+  const topEnclosure = enclosureAvgs[0];
+  const lowEnclosures = enclosureAvgs.filter((e) => e.avg < 0.1 && e.avg > 0);
+
   return (
     <div className="space-y-5 md:space-y-6">
+      {/* 围场效率 insight 卡片 */}
+      {topEnclosure && (
+        <div className="flex flex-col gap-1.5 rounded-lg border border-[var(--border-default)] border-l-4 border-l-blue-400 bg-blue-50 px-4 py-3">
+          <div className="text-sm font-semibold text-[var(--text-primary)]">
+            💡 围场效率概览
+          </div>
+          <div className="text-xs text-[var(--text-secondary)]">
+            <span className="font-medium text-[var(--text-primary)]">{topEnclosure.seg}</span> 围场参与率最高（
+            <span className="font-semibold text-green-600">{Math.round(topEnclosure.avg * 100)}%</span>）
+            {lowEnclosures.length > 0 && (
+              <>
+                ，{lowEnclosures.map((e) => e.seg).join('、')} 围场参与率低于 10%，需重点关注
+              </>
+            )}
+            。
+          </div>
+        </div>
+      )}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         {summaryItems.map((item) => (
           <div
@@ -812,6 +885,9 @@ function EnclosurePageInner() {
           <h1 className="page-title">围场分析</h1>
           <p className="text-sm text-[var(--text-secondary)] mt-1">
             围场分段 × 三岗矩阵 · CC / SS / LP 全维度视图
+          </p>
+          <p className="text-sm text-[var(--text-muted)] mt-0.5">
+            按学员付费时长分段（0-30 / 31-60 / 61-90 / 91-180 / 181+天）对比各围场效率
           </p>
         </div>
         <ExportButton onExportCsv={handleExport} />
