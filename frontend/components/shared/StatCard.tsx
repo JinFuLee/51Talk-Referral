@@ -58,12 +58,25 @@ export function StatCard({
   return (
     <div
       className={cn(
-        'bg-[var(--bg-surface)] rounded-lg border shadow-[var(--shadow-subtle)] p-3',
+        'rounded-xl border p-3',
         highlight === 'warn'
           ? 'border-orange-400 dark:border-orange-500'
           : 'border-[var(--border-default)]',
         className
       )}
+      style={{
+        background: 'var(--bg-surface)',
+        boxShadow: 'var(--shadow-subtle)',
+        transition: 'box-shadow 0.2s ease, transform 0.15s ease',
+      }}
+      onMouseEnter={(e) => {
+        (e.currentTarget as HTMLDivElement).style.boxShadow = 'var(--shadow-medium)';
+        (e.currentTarget as HTMLDivElement).style.transform = 'translateY(-1px)';
+      }}
+      onMouseLeave={(e) => {
+        (e.currentTarget as HTMLDivElement).style.boxShadow = 'var(--shadow-subtle)';
+        (e.currentTarget as HTMLDivElement).style.transform = 'translateY(0)';
+      }}
     >
       <p className="text-xs text-[var(--text-secondary)] uppercase tracking-wide mb-1">{label}</p>
 

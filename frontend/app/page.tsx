@@ -208,7 +208,7 @@ function KPI8Card({ label, item, format = 'count' }: KPI8CardProps) {
   ];
 
   return (
-    <div className="bg-[var(--bg-surface)] rounded-lg border border-[var(--border-default)] shadow-[var(--shadow-subtle)] p-3">
+    <div className="card-base p-3">
       <p className="text-xs font-semibold text-[var(--text-primary)] uppercase tracking-wide mb-2">
         {label}
       </p>
@@ -264,7 +264,7 @@ function RateCard8({ label, actual, target, lossDesc, rootCause }: RateCard8Prop
     gap === null ? 'text-[var(--text-muted)]' : gap >= 0 ? 'text-green-600' : 'text-red-500';
 
   return (
-    <div className="bg-[var(--bg-surface)] rounded-lg border border-[var(--border-default)] shadow-[var(--shadow-subtle)] p-3">
+    <div className="card-base p-3">
       <p className="text-xs font-semibold text-[var(--text-primary)] uppercase tracking-wide mb-2">
         {label}
       </p>

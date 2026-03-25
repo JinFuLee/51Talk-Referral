@@ -44,7 +44,14 @@ export function BotCard({ bot, onEdit, onDelete, onToggle }: BotCardProps) {
 
   return (
     <div
-      className={`rounded-lg bg-[var(--bg-surface)] shadow-sm border border-[var(--border-default)] border-l-4 ${borderColor} p-4 flex flex-col gap-3`}
+      className={`rounded-xl bg-[var(--bg-surface)] border border-[var(--border-default)] border-l-4 ${borderColor} p-4 flex flex-col gap-3`}
+      style={{ boxShadow: 'var(--shadow-subtle)', transition: 'box-shadow 0.2s ease' }}
+      onMouseEnter={(e) => {
+        (e.currentTarget as HTMLDivElement).style.boxShadow = 'var(--shadow-medium)';
+      }}
+      onMouseLeave={(e) => {
+        (e.currentTarget as HTMLDivElement).style.boxShadow = 'var(--shadow-subtle)';
+      }}
     >
       {/* Header */}
       <div className="flex items-start justify-between">

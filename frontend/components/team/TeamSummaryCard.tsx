@@ -26,19 +26,29 @@ export function TeamSummaryCard({
   cc_reach_rate,
 }: TeamSummaryCardProps) {
   return (
-    <div className="bg-[var(--bg-surface)] rounded-[var(--radius-xl)] border border-[var(--border-subtle)] shadow-sm p-5">
+    <div className="card-interactive" style={{ cursor: 'default' }}>
       <div className="flex items-start justify-between mb-3">
         <div>
           <p className="text-base font-bold text-[var(--text-primary)]">{cc_name}</p>
           <p className="text-xs text-[var(--text-muted)] mt-0.5">{cc_group}</p>
         </div>
+        {/* 学员数：金色背景块衬托 */}
         <div className="text-right">
-          <div className="text-lg font-bold text-action-accent">{students.toLocaleString()}</div>
-          <div className="text-xs text-[var(--text-muted)]">有效学员</div>
+          <div
+            className="inline-flex flex-col items-end px-2.5 py-1.5 rounded-lg"
+            style={{ background: 'var(--color-action-surface)' }}
+          >
+            <div className="text-lg font-bold" style={{ color: 'var(--brand-p2)' }}>
+              {students.toLocaleString()}
+            </div>
+            <div className="text-[10px]" style={{ color: 'var(--n-500)' }}>
+              有效学员
+            </div>
+          </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-2 pt-3 border-t border-[var(--border-subtle)]">
+      <div className="grid grid-cols-3 gap-2 pt-3 border-t border-[var(--border-default)]">
         <div className="text-center">
           <div className="text-sm font-semibold text-[var(--text-primary)]">
             {formatRate(participation_rate)}
@@ -59,7 +69,7 @@ export function TeamSummaryCard({
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-2 mt-3 pt-3 border-t border-[var(--border-subtle)]">
+      <div className="grid grid-cols-2 gap-2 mt-3 pt-3 border-t border-[var(--border-default)]">
         <div className="text-center">
           <div className="text-sm font-semibold text-[var(--text-primary)]">
             {formatRate(checkin_rate ?? 0)}
@@ -74,9 +84,10 @@ export function TeamSummaryCard({
         </div>
       </div>
 
-      <div className="mt-3 pt-2 border-t border-[var(--border-subtle)] text-right">
-        <span className="text-xs text-[var(--text-muted)]">业绩 </span>
-        <span className="text-sm font-semibold text-[var(--text-primary)]">
+      {/* 业绩行：底部分隔 + 深色强调 */}
+      <div className="mt-3 pt-2.5 border-t border-[var(--border-default)] flex items-baseline justify-end gap-1.5">
+        <span className="text-xs text-[var(--text-muted)]">业绩</span>
+        <span className="text-base font-bold text-[var(--text-primary)]">
           $
           {(revenue_usd ?? 0).toLocaleString(undefined, {
             minimumFractionDigits: 0,

@@ -12,9 +12,10 @@ export function Card({ title, children, className, actions }: CardProps) {
   return (
     <div
       className={cn(
-        'bg-[var(--bg-surface)] text-card-foreground rounded-xl border border-[var(--border-default)] shadow-[var(--shadow-subtle)]',
+        'bg-[var(--bg-surface)] text-card-foreground rounded-xl border border-[var(--border-default)]',
         className
       )}
+      style={{ boxShadow: 'var(--shadow-subtle)' }}
     >
       {(title || actions) && (
         <div className="flex items-center justify-between px-3 py-2 border-b border-[var(--border-default)]">

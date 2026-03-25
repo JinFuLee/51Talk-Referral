@@ -55,7 +55,7 @@
   --accent-spark: #ffd100;
 
   /* 语义映射 */
-  --bg-primary: var(--n-50);
+  --bg-primary: var(--n-100); /* 页面背景：暖灰（比卡片白色有明显对比） */
   --bg-surface: #ffffff;
   --bg-subtle: var(--n-100);
   --text-primary: var(--n-900);
@@ -686,13 +686,34 @@ body.presentation-mode .presentation-watermark {
 
 /* 卡片 */
 .card-base {
-  @apply rounded-lg bg-[var(--bg-surface)] border border-[var(--border-default)] shadow-subtle p-5;
+  @apply rounded-xl bg-[var(--bg-surface)] border border-[var(--border-default)] p-5;
+  box-shadow: var(--shadow-subtle);
+  transition:
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+.card-base:hover {
+  box-shadow: var(--shadow-medium);
 }
 .card-compact {
-  @apply rounded-lg bg-[var(--bg-surface)] border border-[var(--border-default)] p-3;
+  @apply rounded-xl bg-[var(--bg-surface)] border border-[var(--border-default)] p-3;
+  box-shadow: var(--shadow-subtle);
 }
 .card-subtle {
-  @apply rounded-lg bg-[var(--bg-subtle)] border border-[var(--border-default)] p-3;
+  @apply rounded-xl bg-[var(--bg-subtle)] border border-[var(--border-default)] p-3;
+  box-shadow: var(--shadow-subtle);
+}
+/* 可交互卡片：hover 时阴影加深 + 微上移 */
+.card-interactive {
+  @apply rounded-xl bg-[var(--bg-surface)] border border-[var(--border-default)] p-5;
+  box-shadow: var(--shadow-subtle);
+  transition:
+    box-shadow 0.2s ease,
+    transform 0.15s ease;
+}
+.card-interactive:hover {
+  box-shadow: var(--shadow-medium);
+  transform: translateY(-2px);
 }
 
 /* 区块间距 */
