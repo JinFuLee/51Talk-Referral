@@ -65,7 +65,7 @@ export function ConversionRateSlide({ slideNumber, totalSlides }: SlideProps) {
             <Tooltip formatter={(v: number) => `${v}%`} />
             <Bar dataKey="actual" name="实际转化率" radius={[6, 6, 0, 0]}>
               {chartData.map((entry, i) => (
-                <Cell key={i} fill={entry.gap >= 0 ? '#10b981' : '#ef4444'} />
+                <Cell key={i} fill={entry.gap >= 0 ? 'var(--chart-4-hex)' : 'var(--chart-5-hex)'} />
               ))}
             </Bar>
           </BarChart>

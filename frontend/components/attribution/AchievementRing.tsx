@@ -11,9 +11,9 @@ interface AchievementRingProps {
 }
 
 function rateColor(rate: number): string {
-  if (rate >= 1) return '#16a34a'; // green-600
-  if (rate >= 0.5) return 'var(--color-accent)'; // action-accent (mid-achievement)
-  return '#dc2626'; // red-600
+  if (rate >= 1) return 'var(--chart-4-hex)'; // success
+  if (rate >= 0.5) return 'var(--chart-1-hex)'; // mid
+  return 'var(--chart-5-hex)'; // danger
 }
 
 function rateLabel(rate: number): string {

@@ -45,10 +45,10 @@ export interface RenewalRiskData {
 }
 
 function segmentColor(label: string): string {
-  if (label.includes('高风险') || label.includes('90')) return '#ef4444';
-  if (label.includes('中高') || label.includes('61')) return '#f97316';
-  if (label.includes('关注') || label.includes('31')) return '#f59e0b';
-  return '#10b981';
+  if (label.includes('高风险') || label.includes('90')) return 'var(--chart-5-hex)';
+  if (label.includes('中高') || label.includes('61')) return 'var(--chart-3-hex)';
+  if (label.includes('关注') || label.includes('31')) return 'var(--chart-1-hex)';
+  return 'var(--chart-4-hex)';
 }
 
 function riskBadge(days?: number | null): { label: string; cls: string } {

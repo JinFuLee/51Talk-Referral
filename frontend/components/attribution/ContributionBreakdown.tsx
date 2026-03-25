@@ -20,9 +20,9 @@ interface ContributionBreakdownProps {
 }
 
 function barColor(pct: number): string {
-  if (pct >= 1) return '#16a34a';
-  if (pct >= 0.5) return '#2563eb';
-  return '#dc2626';
+  if (pct >= 1) return 'var(--chart-4-hex)';
+  if (pct >= 0.5) return 'var(--chart-2-hex)';
+  return 'var(--chart-5-hex)';
 }
 
 export function ContributionBreakdown({ data, title }: ContributionBreakdownProps) {

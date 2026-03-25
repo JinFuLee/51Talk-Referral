@@ -302,9 +302,9 @@ function CCTabContent({
                 }}
               />
               <Legend wrapperStyle={{ fontSize: 11 }} />
-              <Bar dataKey="参与率" fill="#3b82f6" radius={[2, 2, 0, 0]} />
-              <Bar dataKey="转化率" fill="#22c55e" radius={[2, 2, 0, 0]} />
-              <Bar dataKey="触达率" fill="#a855f7" radius={[2, 2, 0, 0]} />
+              <Bar dataKey="参与率" fill="var(--chart-2-hex)" radius={[2, 2, 0, 0]} />
+              <Bar dataKey="转化率" fill="var(--chart-4-hex)" radius={[2, 2, 0, 0]} />
+              <Bar dataKey="触达率" fill="var(--chart-3-hex)" radius={[2, 2, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         )}
