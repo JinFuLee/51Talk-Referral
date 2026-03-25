@@ -1,11 +1,11 @@
 'use client';
 
-import { Suspense } from 'react';
+import { Suspense, useState, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import useSWR from 'swr';
 import { swrFetcher } from '@/lib/api';
 import { useFilteredSWR } from '@/lib/hooks/use-filtered-swr';
-import { formatRate } from '@/lib/utils';
+import { formatRate, formatRevenue } from '@/lib/utils';
 import { Card } from '@/components/ui/Card';
 import { SkeletonCard } from '@/components/ui/Skeleton';
 import { Spinner } from '@/components/ui/Spinner';
@@ -20,7 +20,6 @@ import {
   ResponsiveContainer,
   Legend,
 } from 'recharts';
-import { TeamSummaryCard } from '@/components/team/TeamSummaryCard';
 import { CHART_PALETTE } from '@/lib/chart-palette';
 import { ExportButton } from '@/components/ui/ExportButton';
 import { useExport } from '@/lib/use-export';
@@ -101,17 +100,41 @@ function TabBar({ active, onChange }: { active: TabKey; onChange: (t: TabKey) =>
   return <SegmentedTabs tabs={TABS} active={active} onChange={onChange} />;
 }
 
-/* ── CC Tab：原有内容 ─────────────────────────────────────── */
+/* ── 排序 hook（CC Tab 专用）──────────────────────────────── */
+
+type SortDir = 'asc' | 'desc';
+
+function useSortState(defaultKey: string, defaultDir: SortDir = 'desc') {
+  const [sortKey, setSortKey] = useState(defaultKey);
+  const [sortDir, setSortDir] = useState<SortDir>(defaultDir);
+
+  const handleSort = useCallback(
+    (key: string) => {
+      if (key === sortKey) {
+        setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
+      } else {
+        setSortKey(key);
+        setSortDir('desc');
+      }
+    },
+    [sortKey]
+  );
+
+  return { sortKey, sortDir, handleSort };
+}
+
+/* ── CC Tab：表格（与 SS/LP 统一样式）───────────────────── */
 
 function CCTabContent() {
   const { data, isLoading, error, mutate } =
     useFilteredSWR<TeamSummaryResponse>('/api/team/summary');
+  const { sortKey, sortDir, handleSort } = useSortState('participation_rate');
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="space-y-3">
         {Array.from({ length: 6 }).map((_, i) => (
-          <SkeletonCard key={i} className="h-28" />
+          <SkeletonCard key={i} className="h-10" />
         ))}
       </div>
     );
@@ -126,24 +149,45 @@ function CCTabContent() {
     );
   }
 
-  const teams = Array.isArray(data) ? data : (data?.teams ?? []);
+  const rawTeams = Array.isArray(data) ? data : (data?.teams ?? []);
+
+  // 排序
+  const teams = [...rawTeams].sort((a, b) => {
+    const va = (a as Record<string, unknown>)[sortKey] ?? 0;
+    const vb = (b as Record<string, unknown>)[sortKey] ?? 0;
+    const diff = (va as number) - (vb as number);
+    return sortDir === 'asc' ? diff : -diff;
+  });
+
   const chartData = teams.map((t) => ({
     name: t.cc_name,
     注册: t.registrations,
     付费: t.payments,
-    学员: t.students,
   }));
 
-  // Top/Bottom CC（按参与率）
-  const sortedByParticipation = [...teams].sort(
+  // insight：按参与率 top/bottom
+  const sortedByPart = [...rawTeams].sort(
     (a, b) => (b.participation_rate ?? 0) - (a.participation_rate ?? 0)
   );
-  const topCC = sortedByParticipation[0];
-  const bottomCC = sortedByParticipation[sortedByParticipation.length - 1];
+  const topCC = sortedByPart[0];
+  const bottomCC = sortedByPart[sortedByPart.length - 1];
+
+  function sortIcon(key: string) {
+    if (sortKey !== key) return null;
+    return sortDir === 'asc' ? ' ↑' : ' ↓';
+  }
+
+  function thProps(key: string, align: 'left' | 'right' = 'right') {
+    return {
+      onClick: () => handleSort(key),
+      title: `点击排序`,
+      className: `slide-th ${align === 'right' ? 'slide-th-right' : 'slide-th-left'} py-2 px-2 cursor-pointer select-none hover:opacity-80`,
+    };
+  }
 
   return (
-    <div className="space-y-6">
-      {/* 团队效率 insight 卡片 */}
+    <div className="space-y-4">
+      {/* insight 卡片 */}
       {topCC && bottomCC && topCC.cc_name !== bottomCC.cc_name && (
         <div className="flex flex-col gap-1.5 rounded-lg border border-[var(--border-default)] border-l-4 border-l-green-500 bg-green-50 px-4 py-3">
           <div className="text-sm font-semibold text-[var(--text-primary)]">💡 团队效率摘要</div>
@@ -154,7 +198,9 @@ function CCTabContent() {
               {formatRate(topCC.participation_rate)}
             </span>
             ；参与率最低：
-            <span className="font-semibold text-[var(--text-primary)]">{bottomCC.cc_name}</span>{' '}
+            <span className="font-semibold text-[var(--text-primary)]">
+              {bottomCC.cc_name}
+            </span>{' '}
             <span className="text-red-500 font-semibold">
               {formatRate(bottomCC.participation_rate)}
             </span>
@@ -174,33 +220,90 @@ function CCTabContent() {
           </p>
         </div>
       )}
-      {/* 团队汇总卡片 */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {teams.length === 0 ? (
-          <div className="col-span-full">
-            <EmptyState title="暂无团队数据" description="上传数据文件后自动刷新" />
-          </div>
-        ) : (
-          teams.map((t) => (
-            <TeamSummaryCard
-              key={t.cc_name}
-              cc_name={t.cc_name}
-              cc_group={t.cc_group}
-              students={t.students}
-              participation_rate={t.participation_rate}
-              registrations={t.registrations}
-              payments={t.payments}
-              revenue_usd={t.revenue_usd ?? 0}
-              checkin_rate={t.checkin_rate}
-              cc_reach_rate={t.cc_reach_rate}
-            />
-          ))
-        )}
-      </div>
 
-      {/* 团队对比柱状图 */}
+      {/* 排名表格 */}
+      <Card title="CC 个人绩效排名">
+        {teams.length === 0 ? (
+          <EmptyState title="暂无 CC 数据" description="上传数据文件后自动刷新" />
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs">
+              <thead>
+                <tr className="slide-thead-row">
+                  <th className="slide-th slide-th-left py-2 px-2">排名</th>
+                  <th className="slide-th slide-th-left py-2 px-2">姓名</th>
+                  <th className="slide-th slide-th-left py-2 px-2">团队</th>
+                  <th {...thProps('students')}>
+                    学员数 <BrandDot tooltip="已付费且在有效期内的学员" />
+                    {sortIcon('students')}
+                  </th>
+                  <th {...thProps('participation_rate')}>
+                    参与率 <BrandDot tooltip="带来≥1注册的学员 / 有效学员" />
+                    {sortIcon('participation_rate')}
+                  </th>
+                  <th {...thProps('registrations')}>注册数{sortIcon('registrations')}</th>
+                  <th {...thProps('payments')}>付费数{sortIcon('payments')}</th>
+                  <th {...thProps('checkin_rate')}>
+                    打卡率 <BrandDot tooltip="转码且分享的学员 / 有效学员" />
+                    {sortIcon('checkin_rate')}
+                  </th>
+                  <th {...thProps('cc_reach_rate')}>
+                    CC触达率 <BrandDot tooltip="有效通话(≥120s)学员 / 有效学员" />
+                    {sortIcon('cc_reach_rate')}
+                  </th>
+                  <th {...thProps('revenue_usd')}>业绩{sortIcon('revenue_usd')}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {teams.map((t, i) => (
+                  <tr key={t.cc_name} className={i % 2 === 0 ? 'slide-row-even' : 'slide-row-odd'}>
+                    <td className="slide-td py-1.5 px-2">
+                      <RankBadge rank={i + 1} />
+                    </td>
+                    <td className="slide-td py-1.5 px-2 font-medium">{t.cc_name}</td>
+                    <td className="slide-td py-1.5 px-2 text-[var(--text-secondary)]">
+                      {t.cc_group}
+                    </td>
+                    <td className="slide-td py-1.5 px-2 text-right font-mono tabular-nums">
+                      {(t.students ?? 0).toLocaleString()}
+                    </td>
+                    <td
+                      className={`slide-td py-1.5 px-2 text-right font-mono tabular-nums ${metricColor(t.participation_rate, [0.3, 0.5])}`}
+                    >
+                      {t.participation_rate != null ? formatRate(t.participation_rate) : '—'}
+                    </td>
+                    <td className="slide-td py-1.5 px-2 text-right font-mono tabular-nums">
+                      {(t.registrations ?? 0).toLocaleString()}
+                    </td>
+                    <td
+                      className={`slide-td py-1.5 px-2 text-right font-mono tabular-nums ${(t.payments ?? 0) >= 1 ? 'text-green-600 font-semibold' : ''}`}
+                    >
+                      {(t.payments ?? 0).toLocaleString()}
+                    </td>
+                    <td
+                      className={`slide-td py-1.5 px-2 text-right font-mono tabular-nums ${metricColor(t.checkin_rate, [0.3, 0.5])}`}
+                    >
+                      {t.checkin_rate != null ? formatRate(t.checkin_rate) : '—'}
+                    </td>
+                    <td
+                      className={`slide-td py-1.5 px-2 text-right font-mono tabular-nums ${metricColor(t.cc_reach_rate, [0.3, 0.5])}`}
+                    >
+                      {t.cc_reach_rate != null ? formatRate(t.cc_reach_rate) : '—'}
+                    </td>
+                    <td className="slide-td py-1.5 px-2 text-right font-mono tabular-nums">
+                      {formatRevenue(t.revenue_usd ?? 0)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </Card>
+
+      {/* 对比柱状图 */}
       {chartData.length > 0 && (
-        <Card title="团队注册 vs 付费对比">
+        <Card title="CC 注册 vs 付费对比">
           <ResponsiveContainer width="100%" height={280}>
             <BarChart data={chartData}>
               <CartesianGrid strokeDasharray="3 3" vertical={false} />
@@ -290,7 +393,9 @@ function RoleRankingContent({ role, apiUrl }: { role: 'SS' | 'LP'; apiUrl: strin
               {formatRate(topMember.participation_rate)}
             </span>
             ；参与率最低：
-            <span className="font-semibold text-[var(--text-primary)]">{bottomMember.name}</span>{' '}
+            <span className="font-semibold text-[var(--text-primary)]">
+              {bottomMember.name}
+            </span>{' '}
             <span className="text-red-500 font-semibold">
               {formatRate(bottomMember.participation_rate)}
             </span>
