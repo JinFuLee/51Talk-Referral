@@ -69,7 +69,7 @@ function TeamCard({ card, rateColor, rateBg }: TeamCardProps) {
   const shortName = card.team.replace(/^TH-/i, '').replace(/Team$/i, '');
 
   return (
-    <div className="border border-[var(--border-default)] rounded-lg overflow-hidden bg-[var(--bg-surface)]">
+    <div className="card-base overflow-hidden !p-0">
       {/* 卡片头部：团队名 + 汇总 */}
       <div className="bg-[var(--n-800,#1e293b)] text-white px-3 py-2 flex items-center justify-between">
         <span className="text-sm font-bold">{shortName}</span>
@@ -92,7 +92,7 @@ function TeamCard({ card, rateColor, rateBg }: TeamCardProps) {
         <div className="overflow-x-auto">
           <table className="w-full text-xs">
             <thead>
-              <tr className="bg-[var(--bg-subtle)] text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">
+              <tr className="slide-thead-row">
                 <th className="py-1 px-2 text-center w-7">#</th>
                 <th className="py-1 px-2 text-left">销售</th>
                 <th className="py-1 px-2 text-right">学员</th>

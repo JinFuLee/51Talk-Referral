@@ -61,9 +61,9 @@ function RoleColumn({ role, summary, subTab, rateColor }: RoleColumnProps) {
   const rows = subTab === 'group' ? summary.by_group : summary.by_person;
 
   return (
-    <div className="flex flex-col min-w-[320px] flex-1">
+    <div className="card-base flex flex-col min-w-[320px] flex-1 !p-0 overflow-hidden">
       {/* 角色标题 + 汇总 */}
-      <div className="bg-[var(--n-800,#1e293b)] text-white text-xs font-semibold px-2 py-1.5 rounded-t-md flex items-center justify-between">
+      <div className="bg-[var(--n-800,#1e293b)] text-white text-xs font-semibold px-3 py-2 flex items-center justify-between">
         <span>{role}</span>
         <span
           className={`font-mono tabular-nums ${rateColor?.(summary.checkin_rate) ?? ''}`}
@@ -77,13 +77,13 @@ function RoleColumn({ role, summary, subTab, rateColor }: RoleColumnProps) {
       </div>
 
       {/* 排行表 */}
-      <div className="border border-[var(--border-default)] border-t-0 rounded-b-md overflow-hidden">
+      <div className="overflow-hidden">
         {rows.length === 0 ? (
           <div className="py-6 text-center text-xs text-[var(--text-muted)]">暂无数据</div>
         ) : (
           <table className="w-full text-xs">
             <thead>
-              <tr className="bg-[var(--bg-subtle)] text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">
+              <tr className="slide-thead-row">
                 <th className="py-1 px-2 text-center w-8">排名</th>
                 <th className="py-1 px-2 text-left">{subTab === 'group' ? '团队' : '销售'}</th>
                 {subTab === 'person' && (
