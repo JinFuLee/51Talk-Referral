@@ -60,7 +60,7 @@ function HeatCell({ value, maxVal }: { value: number | null; maxVal: number }) {
 }
 
 export default function LearningHeatmapPage() {
-  const { data, isLoading, error } = useSWR<HeatmapRow[]>(
+  const { data, isLoading, error, mutate } = useSWR<HeatmapRow[]>(
     '/api/analysis/learning-heatmap',
     swrFetcher
   );
@@ -78,6 +78,7 @@ export default function LearningHeatmapPage() {
       <EmptyState
         title="数据加载失败"
         description="无法获取学习热图数据，请检查后端服务是否正常运行"
+        action={{ label: '重试', onClick: () => mutate() }}
       />
     );
   }

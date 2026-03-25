@@ -62,7 +62,7 @@ function riskBadge(days?: number | null): { label: string; cls: string } {
 }
 
 export default function RenewalRiskPage() {
-  const { data, isLoading, error } = useSWR<RenewalRiskData>(
+  const { data, isLoading, error, mutate } = useSWR<RenewalRiskData>(
     '/api/analysis/renewal-risk',
     swrFetcher
   );
@@ -76,7 +76,13 @@ export default function RenewalRiskPage() {
   }
 
   if (error) {
-    return <EmptyState title="数据加载失败" description="无法获取续费风险数据，请检查后端服务" />;
+    return (
+      <EmptyState
+        title="数据加载失败"
+        description="无法获取续费风险数据，请检查后端服务"
+        action={{ label: '重试', onClick: () => mutate() }}
+      />
+    );
   }
 
   const segments = data?.segments ?? [];
