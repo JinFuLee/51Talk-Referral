@@ -274,18 +274,29 @@ export default function FunnelPage() {
                   <tr key={s.name} className="even:bg-[var(--bg-subtle)]">
                     <td className="py-1 px-2 text-xs font-medium">{s.name}</td>
                     <td className="py-1 px-2 text-xs text-right font-mono tabular-nums text-[var(--text-secondary)]">
-                      {(s.target ?? 0).toLocaleString()}
+                      {s.target != null
+                        ? s.name.includes('率')
+                          ? formatRate(s.target)
+                          : s.target.toLocaleString()
+                        : '—'}
                     </td>
                     <td className="py-1 px-2 text-xs text-right font-mono tabular-nums font-semibold">
-                      {(s.actual ?? 0).toLocaleString()}
+                      {s.actual != null
+                        ? s.name.includes('率')
+                          ? formatRate(s.actual)
+                          : s.actual.toLocaleString()
+                        : '—'}
                     </td>
                     <td
                       className={`py-1 px-2 text-xs text-right font-mono tabular-nums font-medium ${
                         (s.gap ?? 0) >= 0 ? 'text-green-600' : 'text-red-500'
                       }`}
                     >
-                      {(s.gap ?? 0) >= 0 ? '+' : ''}
-                      {(s.gap ?? 0).toLocaleString()}
+                      {s.gap != null
+                        ? s.name.includes('率')
+                          ? `${(s.gap * 100).toFixed(1)}pp`
+                          : `${s.gap >= 0 ? '+' : ''}${s.gap.toLocaleString()}`
+                        : '—'}
                     </td>
                     <td className="py-1 px-2 text-xs text-right font-mono tabular-nums">
                       <span
