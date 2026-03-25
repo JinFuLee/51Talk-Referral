@@ -111,7 +111,7 @@ export default function MembersPage() {
     <div className="space-y-6">
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-lg font-bold text-[var(--text-primary)]">学员明细</h1>
+          <h1 className="page-title">学员明细</h1>
           <p className="text-sm text-[var(--text-secondary)] mt-1">
             有效学员列表 · 点击行查看 59 字段详情
           </p>

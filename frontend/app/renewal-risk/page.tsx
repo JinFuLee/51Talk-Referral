@@ -87,7 +87,7 @@ export default function RenewalRiskPage() {
   return (
     <div className="space-y-3">
       <div>
-        <h1 className="text-lg font-bold text-[var(--text-primary)]">续费风险</h1>
+        <h1 className="page-title">续费风险</h1>
         <p className="text-sm text-[var(--text-secondary)] mt-1">
           按未续费天数分布 · 高风险（90+ 天）学员列表
         </p>

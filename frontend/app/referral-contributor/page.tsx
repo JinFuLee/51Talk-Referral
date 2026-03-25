@@ -172,7 +172,7 @@ export default function ReferralContributorPage() {
       {/* 页头 */}
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-lg font-bold text-[var(--text-primary)]">推荐者价值贡献</h1>
+          <h1 className="page-title">推荐者价值贡献</h1>
           <p className="text-sm text-[var(--text-secondary)] mt-1">
             高价值推荐者识别 · 四渠道贡献拆分 · 历史转码汇总
           </p>
@@ -217,10 +217,31 @@ export default function ReferralContributorPage() {
             <CartesianGrid strokeDasharray="3 3" vertical={false} />
             <XAxis dataKey="channel" tick={{ fontSize: 12 }} />
             <YAxis tick={{ fontSize: 11 }} />
-            <Tooltip />
-            <Legend wrapperStyle={{ fontSize: 12 }} />
-            <Bar dataKey="带新" fill="var(--chart-2-hex)" radius={[3, 3, 0, 0]} />
-            <Bar dataKey="付费" fill="var(--chart-4-hex)" radius={[3, 3, 0, 0]} />
+            <Tooltip
+              contentStyle={{
+                background: 'var(--bg-surface)',
+                border: '1px solid var(--border-default)',
+                borderRadius: 'var(--radius-md, 10px)',
+                boxShadow: 'var(--shadow-medium)',
+                fontSize: '12px',
+              }}
+              cursor={{ stroke: 'var(--border-hover)', strokeDasharray: '4 4' }}
+            />
+            <Legend wrapperStyle={{ paddingTop: 12 }} iconType="circle" iconSize={8} />
+            <Bar
+              dataKey="带新"
+              fill="var(--chart-2-hex)"
+              radius={[3, 3, 0, 0]}
+              animationDuration={600}
+              animationEasing="ease-out"
+            />
+            <Bar
+              dataKey="付费"
+              fill="var(--chart-4-hex)"
+              radius={[3, 3, 0, 0]}
+              animationDuration={600}
+              animationEasing="ease-out"
+            />
           </BarChart>
         </ResponsiveContainer>
       </Card>

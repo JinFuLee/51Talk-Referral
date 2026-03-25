@@ -59,7 +59,7 @@ export default function GeoDistributionPage() {
     return (
       <div className="space-y-4">
         <div>
-          <h1 className="text-lg font-bold text-[var(--text-primary)]">地理分布</h1>
+          <h1 className="page-title">地理分布</h1>
           <p className="text-sm text-[var(--text-secondary)] mt-1">学员常登录国家分布及推荐效果</p>
         </div>
         <EmptyState
@@ -76,7 +76,7 @@ export default function GeoDistributionPage() {
     <div className="space-y-6">
       {/* 页面标题 */}
       <div>
-        <h1 className="text-lg font-bold text-[var(--text-primary)]">地理分布</h1>
+        <h1 className="page-title">地理分布</h1>
         <p className="text-sm text-[var(--text-secondary)] mt-1">
           学员常登录国家分布 · 共 {totalStudents.toLocaleString()} 位学员 · {data.length}{' '}
           个国家/地区

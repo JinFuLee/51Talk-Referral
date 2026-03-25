@@ -86,7 +86,7 @@ export default function WarroomPage() {
       {/* 标题 */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-lg font-bold text-[var(--text-primary)]">高潜学员作战室</h1>
+          <h1 className="page-title">高潜学员作战室</h1>
           <p className="text-sm text-[var(--text-secondary)] mt-0.5">
             实时跟进高潜学员触达状态 · 共 {allStudents.length} 人
           </p>

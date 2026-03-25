@@ -343,7 +343,7 @@ export default function HighPotentialPage() {
       {/* ── 标题行 ── */}
       <div className="flex items-center justify-between gap-4 flex-wrap">
         <div>
-          <h1 className="text-lg font-bold text-[var(--text-primary)]">高潜学员</h1>
+          <h1 className="page-title">高潜学员</h1>
           <p className="text-sm text-[var(--text-secondary)] mt-0.5">
             带新数高 · 出席活跃 · 付费意向强 · 共 {allStudents.length} 人
           </p>

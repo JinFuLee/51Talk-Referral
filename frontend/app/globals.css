@@ -101,6 +101,10 @@
   --color-warning: #e8932a;
   --color-danger: #e05545;
   --color-info: var(--brand-p2);
+  /* 状态色浅底（条件行着色用） */
+  --color-success-surface: #ecfdf5;
+  --color-warning-surface: #fffbeb;
+  --color-danger-surface: #fef2f2;
   /* 品牌边框 */
   --color-border-brand: var(--brand-p1);
 
@@ -733,9 +737,20 @@ body.presentation-mode .presentation-watermark {
 }
 .page-title {
   @apply text-xl font-semibold text-[var(--text-primary)];
+  position: relative;
+  display: inline-block;
+}
+.page-title::after {
+  content: '';
+  display: block;
+  width: 60px;
+  height: 3px;
+  background: var(--brand-p1);
+  border-radius: 2px;
+  margin-top: 6px;
 }
 .page-subtitle {
-  @apply text-sm text-[var(--text-muted)];
+  @apply text-sm text-[var(--text-muted)] mt-1;
 }
 
 /* 表头 */
@@ -806,3 +821,20 @@ body.presentation-mode .presentation-watermark {
 
 /* ── focus ring 统一（替代 focus:ring-navy-400 / focus:ring-action-accent）── */
 /* 已通过 input-base 类提供，直接引用 input-base 即可 */
+
+/* ── 进度条填充：金色渐变 ─────────────────────────── */
+.progress-fill-brand {
+  background: linear-gradient(90deg, var(--brand-p1) 0%, var(--brand-p1-hover) 100%);
+  border-radius: 9999px;
+}
+
+/* ── 表格行条件着色（达标/落后/告警）──────────────── */
+.row-success {
+  background-color: var(--color-success-surface) !important;
+}
+.row-warning {
+  background-color: var(--color-warning-surface) !important;
+}
+.row-danger {
+  background-color: var(--color-danger-surface) !important;
+}

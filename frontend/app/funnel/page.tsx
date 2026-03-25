@@ -145,7 +145,7 @@ export default function FunnelPage() {
     <div className="space-y-5 md:space-y-6">
       <div className="flex items-start justify-between mb-2">
         <div>
-          <h1 className="text-lg font-bold text-[var(--text-primary)]">漏斗分析</h1>
+          <h1 className="page-title">漏斗分析</h1>
           <p className="text-sm text-[var(--text-secondary)] mt-1">各环节目标 vs 实际 · 场景推演</p>
         </div>
         <ExportButton onExportCsv={handleExport} />
@@ -330,8 +330,24 @@ export default function FunnelPage() {
               <CartesianGrid strokeDasharray="3 3" vertical={false} />
               <XAxis dataKey="name" tick={{ fontSize: 12 }} />
               <YAxis tickFormatter={(v) => `${v}%`} tick={{ fontSize: 11 }} />
-              <Tooltip formatter={(v: number) => `${v}%`} />
-              <Bar dataKey="actual" name="实际" radius={[4, 4, 0, 0]}>
+              <Tooltip
+                formatter={(v: number) => `${v}%`}
+                contentStyle={{
+                  background: 'var(--bg-surface)',
+                  border: '1px solid var(--border-default)',
+                  borderRadius: 'var(--radius-md, 10px)',
+                  boxShadow: 'var(--shadow-medium)',
+                  fontSize: '12px',
+                }}
+                cursor={{ stroke: 'var(--border-hover)', strokeDasharray: '4 4' }}
+              />
+              <Bar
+                dataKey="actual"
+                name="实际"
+                radius={[4, 4, 0, 0]}
+                animationDuration={600}
+                animationEasing="ease-out"
+              >
                 {conversionChartData.map((entry, i) => (
                   <Cell key={i} fill={gapColor(entry.gap)} />
                 ))}

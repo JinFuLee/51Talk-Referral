@@ -157,7 +157,7 @@ export default function ChannelPage() {
   return (
     <div className="space-y-5 md:space-y-6">
       <div className="mb-2">
-        <h1 className="text-lg font-bold text-[var(--text-primary)]">渠道分析</h1>
+        <h1 className="page-title">渠道分析</h1>
         <p className="text-sm text-[var(--text-secondary)] mt-1">
           CC窄/SS窄/LP窄 + CC宽/LP宽/运营宽 · 业绩归因
         </p>
@@ -261,13 +261,30 @@ export default function ChannelPage() {
                     dataKey="value"
                     label={({ name, percent }) => `${name} ${formatRate(percent, 0)}`}
                     labelLine={false}
+                    animationDuration={600}
+                    animationEasing="ease-out"
                   >
                     {pieData.map((_, index) => (
                       <Cell key={index} fill={CHANNEL_COLORS[index % CHANNEL_COLORS.length]} />
                     ))}
                   </Pie>
-                  <Tooltip formatter={(v: number) => [`$${v.toLocaleString()}`, '业绩']} />
-                  <Legend verticalAlign="bottom" />
+                  <Tooltip
+                    formatter={(v: number) => [`$${v.toLocaleString()}`, '业绩']}
+                    contentStyle={{
+                      background: 'var(--bg-surface)',
+                      border: '1px solid var(--border-default)',
+                      borderRadius: 'var(--radius-md, 10px)',
+                      boxShadow: 'var(--shadow-medium)',
+                      fontSize: '12px',
+                    }}
+                    cursor={{ stroke: 'var(--border-hover)', strokeDasharray: '4 4' }}
+                  />
+                  <Legend
+                    verticalAlign="bottom"
+                    wrapperStyle={{ paddingTop: 12 }}
+                    iconType="circle"
+                    iconSize={8}
+                  />
                 </PieChart>
               </ResponsiveContainer>
             )}

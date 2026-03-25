@@ -297,7 +297,7 @@ export default function FollowupQualityPage() {
     <div className="space-y-3">
       {/* 页头 */}
       <div>
-        <h1 className="text-lg font-bold text-[var(--text-primary)]">跟进质量分析</h1>
+        <h1 className="page-title">跟进质量分析</h1>
         <p className="text-sm text-[var(--text-secondary)] mt-1">
           通话质量分层 · 失联风险预警 · 跟进行为评估
         </p>

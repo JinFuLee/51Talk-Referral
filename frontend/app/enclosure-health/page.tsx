@@ -45,7 +45,7 @@ export default function EnclosureHealthPage() {
   return (
     <div className="space-y-3">
       <div>
-        <h1 className="text-lg font-bold text-[var(--text-primary)]">围场健康扫描仪</h1>
+        <h1 className="page-title">围场健康扫描仪</h1>
         <p className="text-sm text-[var(--text-secondary)] mt-1">
           7段围场 · 健康分 · 对标分析 · CC方差诊断
         </p>

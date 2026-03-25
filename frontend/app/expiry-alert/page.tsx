@@ -207,7 +207,7 @@ export default function ExpiryAlertPage() {
   return (
     <div className="space-y-3">
       <div>
-        <h1 className="text-lg font-bold text-[var(--text-primary)]">次卡到期预警</h1>
+        <h1 className="page-title">次卡到期预警</h1>
         <p className="text-sm text-[var(--text-secondary)] mt-1">
           30 天内次卡即将到期学员 · 按紧急度分层展示
         </p>

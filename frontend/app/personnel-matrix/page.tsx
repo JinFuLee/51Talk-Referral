@@ -507,7 +507,7 @@ function PersonnelMatrixPageInner() {
     <div className="space-y-5 md:space-y-6">
       <div className="flex items-start justify-between mb-2">
         <div>
-          <h1 className="text-lg font-bold text-[var(--text-primary)]">人员战力图</h1>
+          <h1 className="page-title">人员战力图</h1>
           <p className="text-sm text-[var(--text-secondary)] mt-1">
             CC / SS / LP 三岗个人战力 · 热力矩阵 · 围场分布
           </p>

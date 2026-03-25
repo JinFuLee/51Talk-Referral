@@ -272,7 +272,7 @@ function CheckinPageInner() {
     <div className="space-y-5 md:space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-2 mb-2">
         <div>
-          <h1 className="text-lg font-bold text-[var(--text-primary)]">打卡管理</h1>
+          <h1 className="page-title">打卡管理</h1>
           <p className="text-sm text-[var(--text-secondary)] mt-0.5">
             有效学员打卡率 · 按岗位 / 团队 / 围场拆分
           </p>

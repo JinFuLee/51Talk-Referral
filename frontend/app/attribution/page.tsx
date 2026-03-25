@@ -70,7 +70,7 @@ export default function AttributionPage() {
     <div className="space-y-3">
       {/* 页面标题 */}
       <div>
-        <h1 className="text-lg font-bold text-[var(--text-primary)]">达成率归因分析</h1>
+        <h1 className="page-title">达成率归因分析</h1>
         <p className="text-sm text-[var(--text-secondary)] mt-1">
           漏斗各阶段达成率 · 贡献拆解 · 缺口模拟
         </p>

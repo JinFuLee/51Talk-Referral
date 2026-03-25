@@ -86,7 +86,7 @@ export default function LearningHeatmapPage() {
     return (
       <div className="space-y-4">
         <div>
-          <h1 className="text-lg font-bold text-[var(--text-primary)]">学习热图</h1>
+          <h1 className="page-title">学习热图</h1>
           <p className="text-sm text-[var(--text-secondary)] mt-1">各围场每周平均转码次数热力图</p>
         </div>
         <EmptyState
@@ -107,7 +107,7 @@ export default function LearningHeatmapPage() {
     <div className="space-y-6">
       {/* 页面标题 */}
       <div>
-        <h1 className="text-lg font-bold text-[var(--text-primary)]">学习热图</h1>
+        <h1 className="page-title">学习热图</h1>
         <p className="text-sm text-[var(--text-secondary)] mt-1">
           各围场每周平均转码次数 · 颜色越深代表学习活跃度越高
         </p>

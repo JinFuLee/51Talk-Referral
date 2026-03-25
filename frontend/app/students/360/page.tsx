@@ -83,7 +83,7 @@ export default function Students360Page() {
       {/* 页面标题 */}
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div>
-          <h1 className="text-lg font-bold text-[var(--text-primary)]">学员360全景档案</h1>
+          <h1 className="page-title">学员360全景档案</h1>
           <p className="text-sm text-[var(--text-secondary)] mt-1">
             多维搜索学员 · 点击行查看全景档案（学习/推荐/CC/付费/日报）
           </p>

@@ -74,7 +74,7 @@ export default function IncentiveTrackingPage() {
   return (
     <div className="space-y-3">
       <div>
-        <h1 className="text-lg font-bold text-[var(--text-primary)]">激励追踪</h1>
+        <h1 className="page-title">激励追踪</h1>
         <p className="text-sm text-[var(--text-secondary)] mt-1">
           按奖励领取状态分组 · 转介绍产出对比
         </p>
@@ -115,8 +115,23 @@ export default function IncentiveTrackingPage() {
             <CartesianGrid strokeDasharray="3 3" horizontal={false} />
             <XAxis type="number" tick={{ fontSize: 11 }} />
             <YAxis dataKey="name" type="category" tick={{ fontSize: 11 }} width={120} />
-            <Tooltip />
-            <Bar dataKey="总付费数" fill="var(--chart-4-hex)" radius={[0, 4, 4, 0]} />
+            <Tooltip
+              contentStyle={{
+                background: 'var(--bg-surface)',
+                border: '1px solid var(--border-default)',
+                borderRadius: 'var(--radius-md, 10px)',
+                boxShadow: 'var(--shadow-medium)',
+                fontSize: '12px',
+              }}
+              cursor={{ stroke: 'var(--border-hover)', strokeDasharray: '4 4' }}
+            />
+            <Bar
+              dataKey="总付费数"
+              fill="var(--chart-4-hex)"
+              radius={[0, 4, 4, 0]}
+              animationDuration={600}
+              animationEasing="ease-out"
+            />
           </BarChart>
         </ResponsiveContainer>
       </Card>

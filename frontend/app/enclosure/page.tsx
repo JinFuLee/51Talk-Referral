@@ -809,7 +809,7 @@ function EnclosurePageInner() {
     <div className="space-y-5 md:space-y-6">
       <div className="flex items-start justify-between mb-2">
         <div>
-          <h1 className="text-lg font-bold text-[var(--text-primary)]">围场分析</h1>
+          <h1 className="page-title">围场分析</h1>
           <p className="text-sm text-[var(--text-secondary)] mt-1">
             围场分段 × 三岗矩阵 · CC / SS / LP 全维度视图
           </p>

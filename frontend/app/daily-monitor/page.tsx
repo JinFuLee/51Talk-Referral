@@ -107,7 +107,7 @@ export default function DailyMonitorPage() {
     <div className="space-y-4">
       {/* 页头 */}
       <div>
-        <h1 className="text-lg font-bold text-[var(--text-primary)]">日常触达监控</h1>
+        <h1 className="page-title">日常触达监控</h1>
         <p className="text-sm text-[var(--text-secondary)] mt-0.5">
           CC / SS / LP 每日触达率 · 围场分布 · 排行 · 漏斗
         </p>

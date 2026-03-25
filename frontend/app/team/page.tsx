@@ -157,10 +157,31 @@ function CCTabContent() {
               <CartesianGrid strokeDasharray="3 3" vertical={false} />
               <XAxis dataKey="name" tick={{ fontSize: 11 }} />
               <YAxis tick={{ fontSize: 11 }} />
-              <Tooltip />
-              <Legend />
-              <Bar dataKey="注册" fill={CHART_PALETTE.c2} radius={[4, 4, 0, 0]} />
-              <Bar dataKey="付费" fill={CHART_PALETTE.c4} radius={[4, 4, 0, 0]} />
+              <Tooltip
+                contentStyle={{
+                  background: 'var(--bg-surface)',
+                  border: '1px solid var(--border-default)',
+                  borderRadius: 'var(--radius-md, 10px)',
+                  boxShadow: 'var(--shadow-medium)',
+                  fontSize: '12px',
+                }}
+                cursor={{ stroke: 'var(--border-hover)', strokeDasharray: '4 4' }}
+              />
+              <Legend wrapperStyle={{ paddingTop: 12 }} iconType="circle" iconSize={8} />
+              <Bar
+                dataKey="注册"
+                fill={CHART_PALETTE.c2}
+                radius={[4, 4, 0, 0]}
+                animationDuration={600}
+                animationEasing="ease-out"
+              />
+              <Bar
+                dataKey="付费"
+                fill={CHART_PALETTE.c4}
+                radius={[4, 4, 0, 0]}
+                animationDuration={600}
+                animationEasing="ease-out"
+              />
             </BarChart>
           </ResponsiveContainer>
         </Card>
@@ -265,10 +286,31 @@ function RoleRankingContent({ role, apiUrl }: { role: 'SS' | 'LP'; apiUrl: strin
               <CartesianGrid strokeDasharray="3 3" vertical={false} />
               <XAxis dataKey="name" tick={{ fontSize: 11 }} />
               <YAxis tick={{ fontSize: 11 }} />
-              <Tooltip />
-              <Legend />
-              <Bar dataKey="注册" fill={CHART_PALETTE.c2} radius={[4, 4, 0, 0]} />
-              <Bar dataKey="付费" fill={CHART_PALETTE.c4} radius={[4, 4, 0, 0]} />
+              <Tooltip
+                contentStyle={{
+                  background: 'var(--bg-surface)',
+                  border: '1px solid var(--border-default)',
+                  borderRadius: 'var(--radius-md, 10px)',
+                  boxShadow: 'var(--shadow-medium)',
+                  fontSize: '12px',
+                }}
+                cursor={{ stroke: 'var(--border-hover)', strokeDasharray: '4 4' }}
+              />
+              <Legend wrapperStyle={{ paddingTop: 12 }} iconType="circle" iconSize={8} />
+              <Bar
+                dataKey="注册"
+                fill={CHART_PALETTE.c2}
+                radius={[4, 4, 0, 0]}
+                animationDuration={600}
+                animationEasing="ease-out"
+              />
+              <Bar
+                dataKey="付费"
+                fill={CHART_PALETTE.c4}
+                radius={[4, 4, 0, 0]}
+                animationDuration={600}
+                animationEasing="ease-out"
+              />
             </BarChart>
           </ResponsiveContainer>
         </Card>
@@ -353,7 +395,7 @@ function TeamPageInner() {
     <div className="space-y-5 md:space-y-6">
       <div className="flex items-start justify-between mb-2">
         <div>
-          <h1 className="text-lg font-bold text-[var(--text-primary)]">团队汇总</h1>
+          <h1 className="page-title">团队汇总</h1>
           <p className="text-sm text-[var(--text-secondary)] mt-1">
             CC / SS / LP 三岗团队绩效 · 学员数 · 参与率 · 注册 · 付费
           </p>

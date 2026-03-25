@@ -78,7 +78,7 @@ export default function OutreachQualityPage() {
   return (
     <div className="space-y-3">
       <div>
-        <h1 className="text-lg font-bold text-[var(--text-primary)]">接通质量</h1>
+        <h1 className="page-title">接通质量</h1>
         <p className="text-sm text-[var(--text-secondary)] mt-1">
           CC / SS / LP 各角色接通数 · 有效打卡 · 转介绍产出
         </p>
