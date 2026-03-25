@@ -247,7 +247,7 @@ export default function EnclosureRoleCard() {
         <div className="py-4 text-center text-xs text-[var(--text-muted)]">加载中…</div>
       )}
       {error && !isLoading && (
-        <div className="py-2 text-xs text-red-500">加载配置失败，使用本地默认值</div>
+        <div className="py-2 text-xs text-[var(--color-danger)]">加载配置失败，使用本地默认值</div>
       )}
       {!isLoading && (
         <div className="space-y-6">

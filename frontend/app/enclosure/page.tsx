@@ -174,9 +174,9 @@ function CCTabContent({
         ) : (
           <>
             <p className="text-[10px] text-[var(--text-muted)] mb-2">
-              颜色：<span className="text-green-600 font-medium">绿≥50%</span> ·{' '}
-              <span className="text-yellow-600 font-medium">橙30-50%</span> ·{' '}
-              <span className="text-red-500 font-medium">红&lt;30%</span>（参与率/打卡率/触达率）
+              颜色：<span className="text-emerald-700 font-medium">绿≥50%</span> ·{' '}
+              <span className="text-amber-700 font-medium">橙30-50%</span> ·{' '}
+              <span className="text-red-600 font-medium">红&lt;30%</span>（参与率/打卡率/触达率）
             </p>
             <div className="overflow-x-auto">
               <table className="w-full text-xs">
@@ -747,7 +747,7 @@ function AllTabContent() {
           <div className="text-xs text-[var(--text-secondary)]">
             <span className="font-medium text-[var(--text-primary)]">{topEnclosure.seg}</span>{' '}
             围场参与率最高（
-            <span className="font-semibold text-green-600">
+            <span className="font-semibold text-[var(--color-success)]">
               {Math.round(topEnclosure.avg * 100)}%
             </span>
             ）

@@ -199,9 +199,9 @@ export default function FunnelPage() {
             。
           </div>
           <p className="text-[10px] text-[var(--text-muted)]">
-            颜色：<span className="text-green-600 font-medium">绿≥100%</span> ·{' '}
-            <span className="text-yellow-600 font-medium">橙80-100%</span> ·{' '}
-            <span className="text-red-500 font-medium">红&lt;80%</span>（达成率）
+            颜色：<span className="text-emerald-700 font-medium">绿≥100%</span> ·{' '}
+            <span className="text-amber-700 font-medium">橙80-100%</span> ·{' '}
+            <span className="text-red-600 font-medium">红&lt;80%</span>（达成率）
           </p>
         </div>
       )}

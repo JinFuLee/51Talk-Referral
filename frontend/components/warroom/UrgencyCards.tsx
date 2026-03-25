@@ -25,7 +25,7 @@ const URGENCY_CONFIG = {
     activeBorder: 'border-yellow-500 ring-2 ring-yellow-300',
     dot: 'bg-yellow-500',
     text: 'text-yellow-700 dark:text-yellow-400',
-    countText: 'text-yellow-600 dark:text-yellow-400',
+    countText: 'text-[var(--color-warning)]',
   },
   green: {
     label: '正常',
@@ -34,7 +34,7 @@ const URGENCY_CONFIG = {
     activeBorder: 'border-green-500 ring-2 ring-green-300',
     dot: 'bg-green-500',
     text: 'text-green-700 dark:text-green-400',
-    countText: 'text-green-600 dark:text-green-400',
+    countText: 'text-[var(--color-success)]',
   },
 } as const;
 

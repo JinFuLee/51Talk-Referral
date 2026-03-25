@@ -93,7 +93,7 @@ export default function WarroomPage() {
         </div>
         {redCount > 0 && (
           <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-50 border border-red-200 dark:bg-red-900/20 dark:border-red-700">
-            <AlertTriangle className="w-4 h-4 text-red-500" />
+            <AlertTriangle className="w-4 h-4 text-[var(--color-danger)]" />
             <span className="text-sm font-semibold text-red-600 dark:text-red-400">今日紧急</span>
             <Badge className="bg-red-500 text-white text-xs px-1.5 py-0 ml-0.5">{redCount}</Badge>
           </div>

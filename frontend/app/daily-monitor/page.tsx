@@ -161,7 +161,7 @@ export default function DailyMonitorPage() {
             <div className="pt-1 border-t border-[var(--border-subtle)]">
               <div className="flex justify-between text-xs">
                 <span className="text-[var(--text-muted)]">业绩 (USD)</span>
-                <span className="font-mono font-semibold text-green-600">
+                <span className="font-mono font-semibold text-[var(--color-success)]">
                   ${stats.funnel.revenue_usd.toLocaleString()}
                 </span>
               </div>

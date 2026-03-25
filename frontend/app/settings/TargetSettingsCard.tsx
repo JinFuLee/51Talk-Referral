@@ -111,7 +111,13 @@ export default function TargetSettingsCard({
                       <span>
                         {d.actual.toLocaleString()} / {d.target.toLocaleString()}
                       </span>
-                      <span className={d.pace_ratio >= 1 ? 'text-green-600' : 'text-yellow-600'}>
+                      <span
+                        className={
+                          d.pace_ratio >= 1
+                            ? 'text-[var(--color-success)]'
+                            : 'text-[var(--color-warning)]'
+                        }
+                      >
                         (节奏 {formatRate(d.pace_ratio, 0)})
                       </span>
                     </div>

@@ -183,7 +183,9 @@ export default function SettingsPage() {
       </PageHeader>
 
       {msg && (
-        <p className={`text-sm ${msg.includes('成功') ? 'text-green-600' : 'text-red-500'}`}>
+        <p
+          className={`text-sm ${msg.includes('成功') ? 'text-[var(--color-success)]' : 'text-[var(--color-danger)]'}`}
+        >
           {msg}
         </p>
       )}

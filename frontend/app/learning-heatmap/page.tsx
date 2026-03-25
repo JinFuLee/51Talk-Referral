@@ -189,9 +189,9 @@ export default function LearningHeatmapPage() {
                       <span
                         className={`text-xs font-medium ${
                           row.trend_ratio > 1.15
-                            ? 'text-red-500'
+                            ? 'text-[var(--color-danger)]'
                             : row.trend_ratio < 0.85
-                              ? 'text-green-600'
+                              ? 'text-[var(--color-success)]'
                               : 'text-[var(--text-secondary)]'
                         }`}
                         title={`衰减比: ${row.trend_ratio}`}

@@ -80,7 +80,7 @@ export function BotCard({ bot, onEdit, onDelete, onToggle }: BotCardProps) {
                 onDelete(bot.id);
               }
             }}
-            className="p-1.5 rounded-md hover:bg-red-50 transition-colors text-[var(--text-secondary)] hover:text-red-500"
+            className="p-1.5 rounded-md hover:bg-[var(--color-danger-surface)] transition-colors text-[var(--text-secondary)] hover:text-[var(--color-danger)]"
             title="删除"
           >
             <Trash2 className="w-3.5 h-3.5" />
@@ -102,7 +102,7 @@ export function BotCard({ bot, onEdit, onDelete, onToggle }: BotCardProps) {
             }`}
           >
             <span
-              className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow transition-transform ${
+              className={`inline-block h-3.5 w-3.5 transform rounded-full bg-[var(--bg-surface)] shadow transition-transform ${
                 bot.enabled ? 'translate-x-4' : 'translate-x-1'
               }`}
             />

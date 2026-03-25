@@ -30,7 +30,7 @@ const URGENCY_CONFIG = {
     sub: '8~14天',
     bg: 'bg-yellow-50 border-yellow-200',
     text: 'text-yellow-700',
-    count: 'text-yellow-600',
+    count: 'text-[var(--color-warning)]',
     badge: 'bg-yellow-100 text-yellow-700',
   },
   watch: {
@@ -38,7 +38,7 @@ const URGENCY_CONFIG = {
     sub: '15~30天',
     bg: 'bg-green-50 border-green-200',
     text: 'text-green-700',
-    count: 'text-green-600',
+    count: 'text-[var(--color-success)]',
     badge: 'bg-green-100 text-green-700',
   },
 } as const;

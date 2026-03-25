@@ -162,7 +162,8 @@ export default function ChannelPage() {
           CC窄/SS窄/LP窄 + CC宽/LP宽/运营宽 · 业绩归因
         </p>
         <p className="text-sm text-[var(--text-muted)] mt-0.5">
-          CC窄/SS窄/LP窄 = 学员直接绑定关系；宽口按围场-岗位配置拆分为 CC宽/LP宽/运营宽（Settings 可调）
+          CC窄/SS窄/LP窄 = 学员直接绑定关系；宽口按围场-岗位配置拆分为 CC宽/LP宽/运营宽（Settings
+          可调）
         </p>
       </div>
 
@@ -419,8 +420,8 @@ export default function ChannelPage() {
                             gap == null
                               ? 'text-[var(--text-secondary)]'
                               : gap >= 0
-                                ? 'text-green-600'
-                                : 'text-red-500'
+                                ? 'text-[var(--color-success)]'
+                                : 'text-[var(--color-danger)]'
                           }`}
                         >
                           {fmtGap(gap)}

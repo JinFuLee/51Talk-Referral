@@ -372,7 +372,7 @@ function FollowupTable({ items, onDrawerOpen }: FollowupTableProps) {
                         m.quality_score >= 70
                           ? 'text-orange-500'
                           : m.quality_score >= 50
-                            ? 'text-yellow-600'
+                            ? 'text-[var(--color-warning)]'
                             : 'text-[var(--text-muted)]'
                       }`}
                     >

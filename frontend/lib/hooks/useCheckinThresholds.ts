@@ -86,16 +86,18 @@ export function useCheckinThresholds() {
 
   /** 打卡率文字颜色 class */
   function rateColor(rate: number): string {
-    if (rate >= thresholds.good) return 'text-green-600';
-    if (rate >= thresholds.warning) return 'text-yellow-600';
-    return 'text-red-600';
+    if (rate >= thresholds.good) return 'text-[var(--color-success)]';
+    if (rate >= thresholds.warning) return 'text-[var(--color-warning)]';
+    return 'text-[var(--color-danger)]';
   }
 
   /** 打卡率背景色 class (用于 badge) */
   function rateBg(rate: number): string {
-    if (rate >= thresholds.good) return 'bg-green-50 text-green-700 border-green-200';
-    if (rate >= thresholds.warning) return 'bg-yellow-50 text-yellow-700 border-yellow-200';
-    return 'bg-red-50 text-red-600 border-red-200';
+    if (rate >= thresholds.good)
+      return 'bg-[var(--color-success-surface)] text-[var(--color-success)] border-[var(--color-success)]';
+    if (rate >= thresholds.warning)
+      return 'bg-[var(--color-warning-surface)] text-[var(--color-warning)] border-[var(--color-warning)]';
+    return 'bg-[var(--color-danger-surface)] text-[var(--color-danger)] border-[var(--color-danger)]';
   }
 
   /** 图例文案 */

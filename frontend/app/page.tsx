@@ -584,9 +584,9 @@ function MonthlyAchievementSection() {
         ))}
       </div>
       <p className="text-[10px] text-[var(--text-muted)] text-center mt-1">
-        颜色：<span className="text-green-600 font-medium">绿≥100%</span> ·{' '}
-        <span className="text-yellow-600 font-medium">橙80-100%</span> ·{' '}
-        <span className="text-red-500 font-medium">红&lt;80%</span>
+        颜色：<span className="text-emerald-700 font-medium">绿≥100%</span> ·{' '}
+        <span className="text-amber-700 font-medium">橙80-100%</span> ·{' '}
+        <span className="text-red-600 font-medium">红&lt;80%</span>
       </p>
     </Card>
   );
@@ -744,9 +744,9 @@ export default function DashboardPage() {
       {hasMetrics && (
         <>
           <p className="text-[10px] text-[var(--text-muted)] -mb-2">
-            达成率颜色：<span className="text-green-600 font-medium">绿≥100%</span> ·{' '}
-            <span className="text-yellow-600 font-medium">橙80-100%</span> ·{' '}
-            <span className="text-red-500 font-medium">红&lt;80%</span>
+            达成率颜色：<span className="text-emerald-700 font-medium">绿≥100%</span> ·{' '}
+            <span className="text-amber-700 font-medium">橙80-100%</span> ·{' '}
+            <span className="text-red-600 font-medium">红&lt;80%</span>
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
             {visibleKpiCards.map(({ key, label, format, targetKey, paceKey }) => {

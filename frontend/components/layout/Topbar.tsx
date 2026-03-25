@@ -12,7 +12,7 @@ import { BrandMark } from '@/components/ui/BrandMark';
 function ViewModeBadge({ pathname }: { pathname: string }) {
   if (pathname.startsWith('/ops')) {
     return (
-      <span className="text-xs px-2 py-0.5 rounded-full bg-slate-700 text-white font-medium">
+      <span className="text-xs px-2 py-0.5 rounded-full bg-[var(--color-accent)] text-white font-medium">
         运营视图
       </span>
     );

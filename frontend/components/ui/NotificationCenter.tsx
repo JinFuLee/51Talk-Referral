@@ -76,7 +76,7 @@ export function NotificationCenter() {
               </button>
               <button
                 onClick={clearAll}
-                className="p-1 text-[var(--text-muted)] hover:text-red-500 rounded"
+                className="p-1 text-[var(--text-muted)] hover:text-[var(--color-danger)] rounded"
               >
                 <Trash2 className="w-3.5 h-3.5" />
               </button>
@@ -112,7 +112,9 @@ export function NotificationCenter() {
                   >
                     <div className="flex gap-3">
                       <div className="shrink-0 mt-0.5">
-                        {n.type === 'alert' && <ShieldAlert className="w-4 h-4 text-red-500" />}
+                        {n.type === 'alert' && (
+                          <ShieldAlert className="w-4 h-4 text-[var(--color-danger)]" />
+                        )}
                         {n.type === 'warning' && (
                           <AlertTriangle className="w-4 h-4 text-amber-500" />
                         )}

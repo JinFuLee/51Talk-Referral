@@ -109,7 +109,7 @@ export default function ChannelSettingsCard({ v2, onUpdateChannel }: ChannelSett
               <td
                 className={`py-1 px-2 text-xs text-right font-mono tabular-nums ${
                   revenueGap !== 0 && v2.hard.referral_revenue > 0
-                    ? 'text-yellow-600'
+                    ? 'text-[var(--color-warning)]'
                     : 'text-[var(--text-primary)]'
                 }`}
               >

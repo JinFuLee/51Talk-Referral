@@ -206,7 +206,11 @@ export function BotFormModal({ open, platform, initial, onClose, onSave }: BotFo
             </div>
           </div>
 
-          {error && <p className="text-xs text-red-500 bg-red-50 px-3 py-2 rounded-lg">{error}</p>}
+          {error && (
+            <p className="text-xs text-[var(--color-danger)] bg-[var(--color-danger-surface)] px-3 py-2 rounded-lg">
+              {error}
+            </p>
+          )}
 
           <div className="flex gap-3 pt-1">
             <button

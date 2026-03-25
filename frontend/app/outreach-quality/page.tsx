@@ -237,7 +237,7 @@ export default function OutreachQualityPage() {
                     <td className="slide-td text-right font-mono tabular-nums">
                       {safeNum(row.referral_payments)}
                     </td>
-                    <td className="slide-td text-right font-mono tabular-nums text-green-600 font-medium">
+                    <td className="slide-td text-right font-mono tabular-nums text-[var(--color-success)] font-medium">
                       {row.referral_revenue_usd != null
                         ? `$${row.referral_revenue_usd.toLocaleString()}`
                         : '—'}

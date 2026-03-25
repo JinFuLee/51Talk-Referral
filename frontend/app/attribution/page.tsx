@@ -117,10 +117,10 @@ export default function AttributionPage() {
             <span
               className={`font-semibold ${
                 summary.revenue_achievement_rate >= 1
-                  ? 'text-green-600'
+                  ? 'text-[var(--color-success)]'
                   : summary.revenue_achievement_rate >= 0.5
                     ? 'text-action-accent'
-                    : 'text-red-600'
+                    : 'text-[var(--color-danger)]'
               }`}
             >
               {formatRate(summary.revenue_achievement_rate)}
@@ -131,10 +131,10 @@ export default function AttributionPage() {
             <span
               className={`font-semibold ${
                 summary.order_value_achievement_rate >= 1
-                  ? 'text-green-600'
+                  ? 'text-[var(--color-success)]'
                   : summary.order_value_achievement_rate >= 0.5
                     ? 'text-action-accent'
-                    : 'text-red-600'
+                    : 'text-[var(--color-danger)]'
               }`}
             >
               {formatRate(summary.order_value_achievement_rate)}

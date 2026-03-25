@@ -47,7 +47,9 @@ export default function ExchangeRateCard({
           </button>
         </div>
         {rateMsg && (
-          <p className={`text-xs ${rateMsg.includes('成功') ? 'text-green-600' : 'text-red-500'}`}>
+          <p
+            className={`text-xs ${rateMsg.includes('成功') ? 'text-[var(--color-success)]' : 'text-[var(--color-danger)]'}`}
+          >
             {rateMsg}
           </p>
         )}

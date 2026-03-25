@@ -209,9 +209,9 @@ function CCTabContent() {
             。
           </div>
           <p className="text-[10px] text-[var(--text-muted)]">
-            颜色：<span className="text-green-600 font-medium">绿≥50%</span> ·{' '}
-            <span className="text-yellow-600 font-medium">橙30-50%</span> ·{' '}
-            <span className="text-red-500 font-medium">红&lt;30%</span>（参与率/打卡率/触达率）
+            颜色：<span className="text-emerald-700 font-medium">绿≥50%</span> ·{' '}
+            <span className="text-amber-700 font-medium">橙30-50%</span> ·{' '}
+            <span className="text-red-600 font-medium">红&lt;30%</span>（参与率/打卡率/触达率）
           </p>
         </div>
       )}
@@ -397,12 +397,12 @@ function RoleRankingContent({ role, apiUrl }: { role: 'SS' | 'LP'; apiUrl: strin
             。
           </div>
           <p className="text-[10px] text-[var(--text-muted)]">
-            颜色：<span className="text-green-600 font-medium">绿≥20%</span> ·{' '}
-            <span className="text-yellow-600 font-medium">橙10-20%</span> ·{' '}
-            <span className="text-red-500 font-medium">红&lt;10%</span>（参与率），
-            <span className="text-green-600 font-medium">绿≥50%</span> ·{' '}
-            <span className="text-yellow-600 font-medium">橙30-50%</span> ·{' '}
-            <span className="text-red-500 font-medium">红&lt;30%</span>（打卡率）
+            颜色：<span className="text-emerald-700 font-medium">绿≥20%</span> ·{' '}
+            <span className="text-amber-700 font-medium">橙10-20%</span> ·{' '}
+            <span className="text-red-600 font-medium">红&lt;10%</span>（参与率），
+            <span className="text-emerald-700 font-medium">绿≥50%</span> ·{' '}
+            <span className="text-amber-700 font-medium">橙30-50%</span> ·{' '}
+            <span className="text-red-600 font-medium">红&lt;30%</span>（打卡率）
           </p>
         </div>
       )}

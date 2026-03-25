@@ -271,12 +271,12 @@ export function ScheduleManager({ lang }: ScheduleManagerProps) {
       {isLoading && (
         <p className="text-sm text-[var(--text-secondary)] py-4 text-center">{t.loading}</p>
       )}
-      {error && <p className="text-sm text-red-500 py-4 text-center">{t.error}</p>}
+      {error && <p className="text-sm text-[var(--color-danger)] py-4 text-center">{t.error}</p>}
 
       {/* 排程卡片列表 */}
       {!isLoading && !error && schedules.length === 0 && (
         <div className="py-10 text-center text-sm text-[var(--text-secondary)] border border-dashed border-[var(--border-subtle)] rounded-xl">
-          <Clock className="w-8 h-8 mx-auto mb-2 text-slate-300" />
+          <Clock className="w-8 h-8 mx-auto mb-2 text-[var(--border-default)]" />
           <p>{t.noSchedules}</p>
         </div>
       )}
@@ -295,7 +295,7 @@ export function ScheduleManager({ lang }: ScheduleManagerProps) {
             <div className="flex items-start gap-3 min-w-0">
               <div
                 className={`mt-0.5 w-2 h-2 rounded-full flex-shrink-0 ${
-                  sch.enabled ? 'bg-green-400' : 'bg-slate-300'
+                  sch.enabled ? 'bg-[var(--color-success)]' : 'bg-[var(--border-default)]'
                 }`}
               />
               <div className="min-w-0">
@@ -304,7 +304,7 @@ export function ScheduleManager({ lang }: ScheduleManagerProps) {
                   <span
                     className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${
                       sch.enabled
-                        ? 'bg-green-50 text-green-600'
+                        ? 'bg-[var(--color-success-surface)] text-[var(--color-success)]'
                         : 'bg-[var(--bg-subtle)] text-[var(--text-muted)]'
                     }`}
                   >
