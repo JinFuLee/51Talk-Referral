@@ -35,9 +35,10 @@ export function Topbar() {
   const isOnline = health?.status === 'ok';
 
   return (
-    <header className="h-14 bg-[var(--bg-surface)]/80 backdrop-blur-md border-b border-[var(--border-subtle)] flex items-center justify-between px-6 shrink-0 relative z-40">
-      <div className="flex items-center gap-3">
-        <div className="text-sm font-medium text-[var(--text-secondary)]">
+    <header className="h-14 bg-[var(--bg-surface)]/80 backdrop-blur-md border-b border-[var(--border-subtle)] flex items-center justify-between px-3 lg:px-6 shrink-0 relative z-40">
+      {/* 移动端左侧为汉堡按钮留出空间（固定定位在 left-4，宽约 44px） */}
+      <div className="flex items-center gap-2 lg:gap-3 pl-10 lg:pl-0">
+        <div className="hidden sm:block text-sm font-medium text-[var(--text-secondary)]">
           {new Date().toLocaleDateString('zh-CN', {
             year: 'numeric',
             month: 'long',
@@ -47,22 +48,22 @@ export function Topbar() {
           T-1 数据
         </div>
         <TimePeriodSelector />
-        <span className="text-[var(--text-muted)]">|</span>
+        <span className="hidden sm:inline text-[var(--text-muted)]">|</span>
         <CompareToggle />
         <ViewModeBadge pathname={pathname} />
       </div>
 
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-2 lg:gap-4">
         {/* Presentation Mode Toggle */}
         <button
           onClick={togglePresentationMode}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[var(--bg-subtle)] border border-[var(--border-subtle)] text-xs font-semibold text-[var(--text-secondary)] hover:text-action-text hover:bg-action-surface hover:border-action transition-all"
+          className="flex items-center gap-1.5 px-2 lg:px-3 py-1.5 rounded-full bg-[var(--bg-subtle)] border border-[var(--border-subtle)] text-xs font-semibold text-[var(--text-secondary)] hover:text-action-text hover:bg-action-surface hover:border-action transition-all"
         >
           <MonitorPlay className="w-3.5 h-3.5" />
-          <span>汇报沉浸模式</span>
+          <span className="hidden sm:inline">汇报沉浸模式</span>
         </button>
 
-        <span className="text-[var(--text-muted)]">|</span>
+        <span className="hidden sm:inline text-[var(--text-muted)]">|</span>
 
         {/* Backend status indicator */}
         <div className="flex items-center gap-1.5 text-xs font-medium text-[var(--text-secondary)]">
@@ -72,10 +73,10 @@ export function Topbar() {
               isOnline ? 'bg-success' : 'bg-destructive'
             )}
           />
-          {isOnline ? '后端在线' : '后端连接断开'}
+          <span className="hidden sm:inline">{isOnline ? '后端在线' : '后端连接断开'}</span>
         </div>
 
-        <span className="text-[var(--text-muted)]">|</span>
+        <span className="hidden sm:inline text-[var(--text-muted)]">|</span>
 
         {/* SEE Brand Mark */}
         <div className="flex items-center gap-2" title="SEE — Self-Evolving Ecosystem">

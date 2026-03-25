@@ -81,7 +81,7 @@ export default function Students360Page() {
   return (
     <div className="space-y-6">
       {/* 页面标题 */}
-      <div className="flex items-start justify-between">
+      <div className="flex flex-wrap items-start justify-between gap-2">
         <div>
           <h1 className="text-lg font-bold text-[var(--text-primary)]">学员360全景档案</h1>
           <p className="text-sm text-[var(--text-secondary)] mt-1">

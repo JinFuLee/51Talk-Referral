@@ -81,7 +81,7 @@ export default function RootLayout({
                   <GlobalFilterBar />
                   <FilterSyncActivator />
                 </div>
-                <main className="flex-1 overflow-auto p-6 presentation-expand relative">
+                <main className="flex-1 overflow-auto p-3 md:p-6 presentation-expand relative">
                   {children}
                 </main>
               </div>

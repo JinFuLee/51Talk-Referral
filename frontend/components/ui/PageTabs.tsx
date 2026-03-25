@@ -17,7 +17,10 @@ export interface PageTabsProps {
 export function PageTabs({ tabs, activeId, onChange, className }: PageTabsProps) {
   return (
     <div
-      className={cn('flex items-center gap-8 border-b border-[var(--border-subtle)]', className)}
+      className={cn(
+        'flex items-center gap-8 border-b border-[var(--border-subtle)] overflow-x-auto scrollbar-none',
+        className
+      )}
     >
       {tabs.map((tab) => {
         const isActive = activeId === tab.id;
