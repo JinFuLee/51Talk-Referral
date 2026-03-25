@@ -7,6 +7,8 @@ import { Card } from '@/components/ui/Card';
 import { Spinner } from '@/components/ui/Spinner';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { BrandDot } from '@/components/ui/BrandDot';
+import { ExportButton } from '@/components/ui/ExportButton';
+import { useExport } from '@/lib/use-export';
 import type { FunnelResult, ScenarioResult } from '@/lib/types/funnel';
 import {
   BarChart,
@@ -68,6 +70,7 @@ export default function FunnelPage() {
     '/api/funnel/with-invitation',
     swrFetcher
   );
+  const { exportCSV } = useExport();
 
   const isLoading = fLoading || sLoading;
 
@@ -119,11 +122,33 @@ export default function FunnelPage() {
   const invitationStages = invitationData?.stages ?? [];
   const invitationStats = invitationData?.invitation ?? null;
 
+  function handleExport() {
+    const today = new Date().toISOString().slice(0, 10);
+    const exportStages = (funnelData?.stages ?? []).filter(
+      (s) => s.target != null || s.actual != null
+    );
+    exportCSV(
+      exportStages as unknown as Record<string, unknown>[],
+      [
+        { key: 'name', label: '环节' },
+        { key: 'target', label: '目标' },
+        { key: 'actual', label: '实际' },
+        { key: 'gap', label: '差距' },
+        { key: 'achievement_rate', label: '达成率' },
+        { key: 'conversion_rate', label: '转化率' },
+      ],
+      `漏斗分析_${today}`
+    );
+  }
+
   return (
     <div className="space-y-3">
-      <div>
-        <h1 className="text-lg font-bold text-[var(--text-primary)]">漏斗分析</h1>
-        <p className="text-sm text-[var(--text-secondary)] mt-1">各环节目标 vs 实际 · 场景推演</p>
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="text-lg font-bold text-[var(--text-primary)]">漏斗分析</h1>
+          <p className="text-sm text-[var(--text-secondary)] mt-1">各环节目标 vs 实际 · 场景推演</p>
+        </div>
+        <ExportButton onExportCsv={handleExport} />
       </div>
 
       {/* 带邀约节点的完整 4 段漏斗 */}

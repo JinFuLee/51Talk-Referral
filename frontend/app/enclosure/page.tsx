@@ -752,6 +752,11 @@ function EnclosurePageInner() {
   const searchParams = useSearchParams();
   const activeTab = (searchParams.get('tab') ?? 'cc') as TabKey;
   const [ccFilter, setCcFilter] = useState('');
+  const { exportCSV } = useExport();
+
+  const { data: ccExportData } = useSWR<EnclosureResponse>('/api/enclosure', swrFetcher);
+  const { data: ssExportData } = useSWR<EnclosureSSMetrics[]>('/api/enclosure-ss', swrFetcher);
+  const { data: lpExportData } = useSWR<EnclosureLPMetrics[]>('/api/enclosure-lp', swrFetcher);
 
   function handleTabChange(t: TabKey) {
     const params = new URLSearchParams(searchParams.toString());
@@ -759,13 +764,72 @@ function EnclosurePageInner() {
     router.replace(`/enclosure?${params.toString()}`);
   }
 
+  function handleExport() {
+    const today = new Date().toISOString().slice(0, 10);
+    if (activeTab === 'cc' || activeTab === 'all') {
+      const rows = Array.isArray(ccExportData) ? ccExportData : (ccExportData?.data ?? []);
+      exportCSV(
+        rows as unknown as Record<string, unknown>[],
+        [
+          { key: 'enclosure', label: '围场' },
+          { key: 'cc_name', label: 'CC' },
+          { key: 'students', label: '有效学员' },
+          { key: 'participation_rate', label: '参与率' },
+          { key: 'new_coefficient', label: '带新系数' },
+          { key: 'cargo_ratio', label: '带货比' },
+          { key: 'checkin_rate', label: '打卡率' },
+          { key: 'registrations', label: '注册数' },
+          { key: 'payments', label: '付费数' },
+          { key: 'revenue_usd', label: '业绩(USD)' },
+        ],
+        `围场分析_CC_${today}`
+      );
+    } else if (activeTab === 'ss') {
+      const rows = ssExportData ?? [];
+      exportCSV(
+        rows as unknown as Record<string, unknown>[],
+        [
+          { key: 'enclosure', label: '围场' },
+          { key: 'ss_name', label: 'SS' },
+          { key: 'students', label: '有效学员' },
+          { key: 'participation_rate', label: '参与率' },
+          { key: 'checkin_rate', label: '打卡率' },
+          { key: 'registrations', label: '注册数' },
+          { key: 'payments', label: '付费数' },
+          { key: 'revenue_usd', label: '业绩(USD)' },
+        ],
+        `围场分析_SS_${today}`
+      );
+    } else {
+      const rows = lpExportData ?? [];
+      exportCSV(
+        rows as unknown as Record<string, unknown>[],
+        [
+          { key: 'enclosure', label: '围场' },
+          { key: 'lp_name', label: 'LP' },
+          { key: 'students', label: '有效学员' },
+          { key: 'participation_rate', label: '参与率' },
+          { key: 'checkin_rate', label: '打卡率' },
+          { key: 'lp_reach_rate', label: '触达率' },
+          { key: 'registrations', label: '注册数' },
+          { key: 'payments', label: '付费数' },
+          { key: 'revenue_usd', label: '业绩(USD)' },
+        ],
+        `围场分析_LP_${today}`
+      );
+    }
+  }
+
   return (
     <div className="space-y-3">
-      <div>
-        <h1 className="text-lg font-bold text-[var(--text-primary)]">围场分析</h1>
-        <p className="text-sm text-[var(--text-secondary)] mt-1">
-          围场分段 × 三岗矩阵 · CC / SS / LP 全维度视图
-        </p>
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="text-lg font-bold text-[var(--text-primary)]">围场分析</h1>
+          <p className="text-sm text-[var(--text-secondary)] mt-1">
+            围场分段 × 三岗矩阵 · CC / SS / LP 全维度视图
+          </p>
+        </div>
+        <ExportButton onExportCsv={handleExport} />
       </div>
 
       <TabBar active={activeTab} onChange={handleTabChange} />

@@ -18,6 +18,8 @@ import {
 } from 'recharts';
 import { CHART_PALETTE } from '@/lib/chart-palette';
 import { formatRate } from '@/lib/utils';
+import { ExportButton } from '@/components/ui/ExportButton';
+import { useExport } from '@/lib/use-export';
 
 /* ── 类型定义 ─────────────────────────────────────────────── */
 
@@ -67,6 +69,7 @@ export default function ReferralContributorPage() {
 
   const [sortKey, setSortKey] = useState<SortKey>('total_new');
   const [sortAsc, setSortAsc] = useState(false);
+  const { exportCSV } = useExport();
 
   if (isLoading) {
     return (
@@ -140,17 +143,44 @@ export default function ReferralContributorPage() {
     return <span className="text-[var(--text-primary)] ml-0.5">{sortAsc ? '↑' : '↓'}</span>;
   }
 
+  function handleExport() {
+    const today = new Date().toISOString().slice(0, 10);
+    exportCSV(
+      sorted as unknown as Record<string, unknown>[],
+      [
+        { key: 'stdt_id', label: '学员ID' },
+        { key: 'enclosure', label: '围场' },
+        { key: 'cc_new_count', label: 'CC带新' },
+        { key: 'ss_new_count', label: 'SS带新' },
+        { key: 'lp_new_count', label: 'LP带新' },
+        { key: 'wide_new_count', label: '宽口带新' },
+        { key: 'total_new', label: '总带新' },
+        { key: 'cc_paid_count', label: 'CC付费' },
+        { key: 'ss_paid_count', label: 'SS付费' },
+        { key: 'lp_paid_count', label: 'LP付费' },
+        { key: 'wide_paid_count', label: '宽口付费' },
+        { key: 'total_paid', label: '总付费' },
+        { key: 'conversion_rate', label: '转化率' },
+        { key: 'historical_coding_count', label: '历史转码' },
+      ],
+      `转介绍贡献_${today}`
+    );
+  }
+
   return (
     <div className="space-y-3">
       {/* 页头 */}
-      <div>
-        <h1 className="text-lg font-bold text-[var(--text-primary)]">推荐者价值贡献</h1>
-        <p className="text-sm text-[var(--text-secondary)] mt-1">
-          高价值推荐者识别 · 四渠道贡献拆分 · 历史转码汇总
-        </p>
-        <p className="text-xs text-[var(--text-muted)] mt-0.5">
-          窄口：CC/SS/LP 绑定 UserB 推荐 · 宽口：UserA 学员链接绑定 UserB 推荐
-        </p>
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="text-lg font-bold text-[var(--text-primary)]">推荐者价值贡献</h1>
+          <p className="text-sm text-[var(--text-secondary)] mt-1">
+            高价值推荐者识别 · 四渠道贡献拆分 · 历史转码汇总
+          </p>
+          <p className="text-xs text-[var(--text-muted)] mt-0.5">
+            窄口：CC/SS/LP 绑定 UserB 推荐 · 宽口：UserA 学员链接绑定 UserB 推荐
+          </p>
+        </div>
+        <ExportButton onExportCsv={handleExport} />
       </div>
 
       {/* 汇总卡片 */}

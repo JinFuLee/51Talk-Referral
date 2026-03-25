@@ -20,6 +20,8 @@ import { EfficiencyScatter } from '@/components/cc-matrix/EfficiencyScatter';
 import type { CCHeatmapResponse, CCRadarData, CCDrilldownRow } from '@/lib/types/cross-analysis';
 import type { EnclosureSSMetrics, EnclosureLPMetrics } from '@/lib/types/enclosure-ss-lp';
 import { formatRate, formatRevenue } from '@/lib/utils';
+import { ExportButton } from '@/components/ui/ExportButton';
+import { useExport } from '@/lib/use-export';
 
 /* ── 常量 ──────────────────────────────────────────────────── */
 
@@ -448,6 +450,14 @@ function PersonnelMatrixPageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const activeTab = (searchParams.get('tab') ?? 'cc') as TabKey;
+  const { exportCSV } = useExport();
+
+  const { data: ssExport } = useSWR<EnclosureSSMetrics[]>('/api/enclosure-ss', swrFetcher);
+  const { data: lpExport } = useSWR<EnclosureLPMetrics[]>('/api/enclosure-lp', swrFetcher);
+  const { data: ccExport } = useSWR<CCHeatmapResponse>(
+    '/api/cc-matrix/heatmap?metric=coefficient',
+    swrFetcher
+  );
 
   function handleTabChange(t: TabKey) {
     const params = new URLSearchParams(searchParams.toString());
@@ -455,13 +465,69 @@ function PersonnelMatrixPageInner() {
     router.replace(`/personnel-matrix?${params.toString()}`);
   }
 
+  function handleExport() {
+    const today = new Date().toISOString().slice(0, 10);
+    if (activeTab === 'ss') {
+      const rows = (ssExport ?? [])
+        .filter((r) => r.ss_name)
+        .sort((a, b) => (b.registrations ?? 0) - (a.registrations ?? 0));
+      exportCSV(
+        rows as unknown as Record<string, unknown>[],
+        [
+          { key: 'ss_name', label: 'SS' },
+          { key: 'enclosure', label: '围场' },
+          { key: 'students', label: '学员数' },
+          { key: 'participation_rate', label: '参与率' },
+          { key: 'checkin_rate', label: '打卡率' },
+          { key: 'registrations', label: '注册数' },
+          { key: 'payments', label: '付费数' },
+          { key: 'revenue_usd', label: '业绩(USD)' },
+        ],
+        `人员战力_SS_${today}`
+      );
+    } else if (activeTab === 'lp') {
+      const rows = (lpExport ?? [])
+        .filter((r) => r.lp_name)
+        .sort((a, b) => (b.registrations ?? 0) - (a.registrations ?? 0));
+      exportCSV(
+        rows as unknown as Record<string, unknown>[],
+        [
+          { key: 'lp_name', label: 'LP' },
+          { key: 'enclosure', label: '围场' },
+          { key: 'students', label: '学员数' },
+          { key: 'participation_rate', label: '参与率' },
+          { key: 'checkin_rate', label: '打卡率' },
+          { key: 'lp_reach_rate', label: '触达率' },
+          { key: 'registrations', label: '注册数' },
+          { key: 'payments', label: '付费数' },
+          { key: 'revenue_usd', label: '业绩(USD)' },
+        ],
+        `人员战力_LP_${today}`
+      );
+    } else {
+      const rows = ccExport?.data ?? [];
+      exportCSV(
+        rows as unknown as Record<string, unknown>[],
+        [
+          { key: 'cc_name', label: 'CC' },
+          { key: 'segment', label: '围场段' },
+          { key: 'value', label: '指标值' },
+        ],
+        `人员战力_CC_${today}`
+      );
+    }
+  }
+
   return (
     <div className="space-y-3">
-      <div>
-        <h1 className="text-lg font-bold text-[var(--text-primary)]">人员战力图</h1>
-        <p className="text-sm text-[var(--text-secondary)] mt-1">
-          CC / SS / LP 三岗个人战力 · 热力矩阵 · 围场分布
-        </p>
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="text-lg font-bold text-[var(--text-primary)]">人员战力图</h1>
+          <p className="text-sm text-[var(--text-secondary)] mt-1">
+            CC / SS / LP 三岗个人战力 · 热力矩阵 · 围场分布
+          </p>
+        </div>
+        <ExportButton onExportCsv={handleExport} />
       </div>
 
       <TabBar active={activeTab} onChange={handleTabChange} />
