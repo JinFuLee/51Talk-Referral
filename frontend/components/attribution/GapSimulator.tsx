@@ -15,7 +15,7 @@ const SEGMENTS = [
 
 function achievementColor(rate: number): string {
   if (rate >= 1) return 'text-green-600';
-  if (rate >= 0.5) return 'text-navy-400';
+  if (rate >= 0.5) return 'text-action-accent';
   return 'text-red-600';
 }
 
@@ -37,7 +37,7 @@ export function GapSimulator() {
           <select
             value={segment}
             onChange={(e) => setSegment(e.target.value)}
-            className="text-sm rounded-lg border border-[var(--border-default)] bg-[var(--bg-surface)] text-[var(--text-primary)] px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-navy-400"
+            className="text-sm rounded-lg border border-[var(--border-default)] bg-[var(--bg-surface)] text-[var(--text-primary)] px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-action"
           >
             {SEGMENTS.map((s) => (
               <option key={s.value} value={s.value}>
@@ -59,7 +59,7 @@ export function GapSimulator() {
             step={0.01}
             value={newRate}
             onChange={(e) => setNewRate(parseFloat(e.target.value))}
-            className="w-full accent-navy-400"
+            className="w-full accent-action-accent"
           />
           <div className="flex justify-between text-xs text-[var(--text-muted)]">
             <span>0%</span>
@@ -79,28 +79,28 @@ export function GapSimulator() {
 
       {data && !isLoading && (
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <div className="bg-[var(--bg-subtle)] rounded-lg p-3">
+          <div className="card-subtle">
             <p className="text-xs text-[var(--text-muted)]">当前 {segmentLabel}</p>
             <p className="text-lg font-bold tabular-nums text-[var(--text-primary)]">
               {formatRate(data.current_rate)}
             </p>
           </div>
 
-          <div className="bg-[var(--bg-subtle)] rounded-lg p-3">
+          <div className="card-subtle">
             <p className="text-xs text-[var(--text-muted)]">目标转化率</p>
-            <p className="text-lg font-bold tabular-nums text-navy-400">
+            <p className="text-lg font-bold tabular-nums text-action-accent">
               {formatRate(data.new_rate)}
             </p>
           </div>
 
-          <div className="bg-[var(--bg-subtle)] rounded-lg p-3">
+          <div className="card-subtle">
             <p className="text-xs text-[var(--text-muted)]">当前付费</p>
             <p className="text-lg font-bold tabular-nums text-[var(--text-primary)]">
               {(data.current_paid ?? 0).toLocaleString()} 人
             </p>
           </div>
 
-          <div className="bg-[var(--bg-subtle)] rounded-lg p-3">
+          <div className="card-subtle">
             <p className="text-xs text-[var(--text-muted)]">预测付费</p>
             <p className="text-lg font-bold tabular-nums text-green-600">
               {(data.new_paid ?? 0).toLocaleString()} 人
@@ -108,7 +108,7 @@ export function GapSimulator() {
           </div>
 
           {/* 预测达成率 */}
-          <div className="col-span-2 sm:col-span-4 bg-[var(--bg-subtle)] rounded-lg p-3 flex items-center gap-3">
+          <div className="col-span-2 sm:col-span-4 card-subtle flex items-center gap-3">
             <div>
               <p className="text-xs text-[var(--text-muted)]">预测达成率</p>
               <p

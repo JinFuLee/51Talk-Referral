@@ -31,8 +31,8 @@ export function SortableHeader({
       className={cn(
         'group cursor-pointer p-4 text-sm font-medium transition-colors select-none',
         isActive
-          ? 'bg-slate-50 text-[var(--text-primary)]'
-          : 'text-[var(--text-secondary)] hover:bg-slate-50 hover:text-[var(--text-primary)]',
+          ? 'bg-[var(--bg-subtle)] text-[var(--text-primary)]'
+          : 'text-[var(--text-secondary)] hover:bg-[var(--bg-subtle)] hover:text-[var(--text-primary)]',
         align === 'right' ? 'text-right' : align === 'center' ? 'text-center' : 'text-left',
         className
       )}

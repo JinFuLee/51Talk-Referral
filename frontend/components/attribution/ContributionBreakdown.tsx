@@ -81,7 +81,7 @@ export function ContributionBreakdown({ data, title }: ContributionBreakdownProp
           <span className="w-3 h-3 rounded-sm inline-block bg-green-600" /> &ge;100% 目标
         </span>
         <span className="flex items-center gap-1">
-          <span className="w-3 h-3 rounded-sm inline-block bg-navy-400" /> 50~99%
+          <span className="w-3 h-3 rounded-sm inline-block bg-action-accent" /> 50~99%
         </span>
         <span className="flex items-center gap-1">
           <span className="w-3 h-3 rounded-sm inline-block bg-red-600" /> &lt;50%

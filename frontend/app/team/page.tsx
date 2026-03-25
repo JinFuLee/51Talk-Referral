@@ -19,6 +19,7 @@ import {
   Legend,
 } from 'recharts';
 import { TeamSummaryCard } from '@/components/team/TeamSummaryCard';
+import { CHART_PALETTE } from '@/lib/chart-palette';
 
 /* ── 类型 ──────────────────────────────────────────────────── */
 
@@ -170,8 +171,8 @@ function CCTabContent() {
               <YAxis tick={{ fontSize: 11 }} />
               <Tooltip />
               <Legend />
-              <Bar dataKey="注册" fill="#3b82f6" radius={[4, 4, 0, 0]} />
-              <Bar dataKey="付费" fill="#10b981" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="注册" fill={CHART_PALETTE.c2} radius={[4, 4, 0, 0]} />
+              <Bar dataKey="付费" fill={CHART_PALETTE.c4} radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </Card>
@@ -278,8 +279,8 @@ function RoleRankingContent({ role, apiUrl }: { role: 'SS' | 'LP'; apiUrl: strin
               <YAxis tick={{ fontSize: 11 }} />
               <Tooltip />
               <Legend />
-              <Bar dataKey="注册" fill="#3b82f6" radius={[4, 4, 0, 0]} />
-              <Bar dataKey="付费" fill="#10b981" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="注册" fill={CHART_PALETTE.c2} radius={[4, 4, 0, 0]} />
+              <Bar dataKey="付费" fill={CHART_PALETTE.c4} radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </Card>

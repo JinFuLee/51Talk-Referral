@@ -7,8 +7,9 @@ import { formatRevenue, formatRate } from '@/lib/utils';
 import { SlideShell } from '@/components/presentation/SlideShell';
 import { Spinner } from '@/components/ui/Spinner';
 import type { ChannelAttribution, SlideProps } from '@/lib/presentation/types';
+import { CHART_PALETTE } from '@/lib/chart-palette';
 
-const COLORS = ['#6366f1', '#22d3ee', '#f59e0b', '#10b981', '#f43f5e'];
+const COLORS = CHART_PALETTE.series;
 
 export function ChannelRevenueSlide({ slideNumber, totalSlides }: SlideProps) {
   const { data, isLoading, error } = useSWR<ChannelAttribution[]>(

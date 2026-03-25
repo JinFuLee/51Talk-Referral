@@ -110,7 +110,7 @@ export function StudentTable({
                 <tr
                   key={m.stdt_id}
                   onClick={() => onRowClick(m.stdt_id)}
-                  className={`even:bg-[var(--bg-subtle)] cursor-pointer hover:bg-navy-50 transition-colors ${
+                  className={`even:bg-[var(--bg-subtle)] cursor-pointer hover:bg-action-accent-surface transition-colors ${
                     m.is_high_potential ? 'border-l-2 border-l-orange-400' : ''
                   }`}
                 >

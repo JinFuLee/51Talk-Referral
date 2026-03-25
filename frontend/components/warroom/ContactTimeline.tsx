@@ -50,7 +50,7 @@ export function ContactTimeline({ stdtId }: ContactTimelineProps) {
   const logs = data.daily_log.slice(-30);
 
   return (
-    <div className="mt-3 rounded-lg border border-[var(--border-default)] bg-[var(--bg-subtle)] p-3">
+    <div className="mt-3 rounded-xl border border-[var(--border-default)] bg-[var(--bg-subtle)] p-3">
       <div className="flex items-center gap-3 mb-2 text-xs text-[var(--text-muted)]">
         <span className="font-medium text-[var(--text-secondary)]">联系时间轴（近30天）</span>
         <span>围场：{data.profile.enclosure}</span>
@@ -105,7 +105,7 @@ export function ContactTimeline({ stdtId }: ContactTimelineProps) {
                 <div className="flex items-center justify-center h-5 w-5">
                   <span
                     className={`w-3 h-3 rounded ${
-                      d.valid_checkin ? 'bg-navy-300' : 'bg-gray-200 dark:bg-gray-700'
+                      d.valid_checkin ? 'bg-action-accent-muted' : 'bg-gray-200 dark:bg-gray-700'
                     }`}
                     title={d.valid_checkin ? '有效打卡' : '未打卡'}
                   />
@@ -125,7 +125,7 @@ export function ContactTimeline({ stdtId }: ContactTimelineProps) {
               未接通
             </span>
             <span className="flex items-center gap-1">
-              <span className="w-2.5 h-2.5 rounded bg-navy-300 inline-block" />
+              <span className="w-2.5 h-2.5 rounded bg-action-accent-muted inline-block" />
               有效打卡
             </span>
           </div>

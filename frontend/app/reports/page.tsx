@@ -60,7 +60,7 @@ export default function ReportsPage() {
                         <span
                           className={`text-xs px-1.5 py-0.5 rounded ${
                             r.report_type === 'ops'
-                              ? 'bg-navy-100 text-action-accent'
+                              ? 'bg-action-accent-subtle text-action-accent'
                               : r.report_type === 'exec'
                                 ? 'bg-purple-100 text-purple-700'
                                 : 'bg-[var(--bg-subtle)] text-[var(--text-secondary)]'

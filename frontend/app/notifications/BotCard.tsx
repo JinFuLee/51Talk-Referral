@@ -24,7 +24,7 @@ export interface BotChannel {
 const ROLE_COLORS: Record<string, string> = {
   CC: 'bg-action-surface text-action-text',
   LP: 'bg-purple-100 text-purple-700',
-  SS: 'bg-navy-100 text-action-accent',
+  SS: 'bg-action-accent-subtle text-action-accent',
   运营: 'bg-stone-100 text-stone-600',
   ALL: 'bg-[var(--bg-subtle)] text-[var(--text-secondary)]',
 };
@@ -40,7 +40,7 @@ export function BotCard({ bot, onEdit, onDelete, onToggle }: BotCardProps) {
   const [showSecret, setShowSecret] = useState(false);
   const roleColor =
     ROLE_COLORS[bot.role ?? ''] ?? 'bg-[var(--bg-subtle)] text-[var(--text-secondary)]';
-  const borderColor = bot.platform === 'lark' ? 'border-l-navy-400' : 'border-l-orange-500';
+  const borderColor = bot.platform === 'lark' ? 'border-l-action-accent' : 'border-l-orange-500';
 
   return (
     <div

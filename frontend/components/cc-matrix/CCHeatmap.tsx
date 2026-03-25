@@ -82,7 +82,7 @@ export function CCHeatmap({ rows, cols, data, onCCClick, onCellClick }: CCHeatma
           <div key={cc} className="flex items-center hover:bg-[var(--bg-subtle)] group">
             {/* CC 名称列 */}
             <div
-              className="flex-shrink-0 truncate text-xs font-medium text-[var(--text-primary)] cursor-pointer hover:text-navy-400 transition-colors pr-2 py-0.5"
+              className="flex-shrink-0 truncate text-xs font-medium text-[var(--text-primary)] cursor-pointer hover:text-action-accent transition-colors pr-2 py-0.5"
               style={{ width: CC_COL_W, minWidth: CC_COL_W }}
               onClick={() => onCCClick?.(cc)}
               title={cc}
@@ -101,7 +101,7 @@ export function CCHeatmap({ rows, cols, data, onCCClick, onCellClick }: CCHeatma
               return (
                 <div
                   key={seg}
-                  className="flex-shrink-0 flex items-center justify-center text-[10px] font-mono cursor-pointer border border-white/10 transition-all hover:ring-1 hover:ring-navy-300 hover:z-10"
+                  className="flex-shrink-0 flex items-center justify-center text-[10px] font-mono cursor-pointer border border-white/10 transition-all hover:ring-1 hover:ring-action-accent-muted hover:z-10"
                   style={{
                     width: CELL_W,
                     height: CELL_H,

@@ -1,0 +1,122 @@
+{
+  "_comment": "UI 语义类规范约束（非正式 ESLint 规则，供 code review 和 AI agent 参考）",
+  "forbidden_patterns": {
+    "card_container": {
+      "description": "禁止直接内联卡片样式，改用语义类",
+      "bad": [
+        "rounded-xl bg-white border border-*",
+        "rounded-lg bg-[var(--bg-surface)] border border-[var(--border-default)] shadow-* p-*",
+        "border border-[var(--border-default)] rounded-lg bg-[var(--bg-surface)] p-3",
+        "border border-[var(--border-default)] rounded-lg overflow-hidden bg-[var(--bg-surface)]"
+      ],
+      "good": [
+        "card-base     // 标准卡片：圆角+白底+边框+阴影+p-5",
+        "card-compact  // 紧凑卡片：圆角+白底+边框+p-3",
+        "card-subtle   // 浅灰底卡片：圆角+浅灰底+边框+p-3"
+      ]
+    },
+    "hardcoded_colors": {
+      "description": "禁止直接使用 Tailwind 色阶，改用语义 token",
+      "bad": [
+        "text-neutral-500",
+        "text-neutral-600",
+        "text-slate-500",
+        "text-slate-600",
+        "bg-neutral-50",
+        "bg-neutral-100",
+        "bg-slate-50",
+        "bg-slate-100",
+        "border-neutral-*",
+        "border-slate-*"
+      ],
+      "good": [
+        "text-[var(--text-muted)]    // 辅助文字",
+        "text-[var(--text-secondary)] // 次要文字",
+        "text-[var(--text-primary)]   // 主要文字",
+        "bg-[var(--bg-subtle)]        // 浅底背景",
+        "bg-[var(--bg-surface)]       // 白色面板背景",
+        "border-[var(--border-default)] // 默认边框"
+      ]
+    },
+    "state_patterns": {
+      "description": "loading/error/empty 态使用语义类",
+      "bad": [
+        "flex items-center gap-2 justify-center py-8 text-[var(--text-muted)]",
+        "flex flex-col items-center gap-2 justify-center py-12 text-[var(--text-muted)]"
+      ],
+      "good": ["state-loading  // 加载态", "state-empty    // 空态", "state-error    // 错误态"]
+    },
+    "button_patterns": {
+      "description": "按钮使用语义类",
+      "bad": [
+        "px-4 py-2 rounded-lg bg-action text-action-text font-medium text-sm hover:bg-action-hover transition-colors",
+        "px-4 py-2 rounded-lg border border-[var(--border-default)] text-[var(--text-secondary)] text-sm hover:bg-[var(--bg-subtle)] transition-colors"
+      ],
+      "good": [
+        "btn-primary    // 主按钮（金黄底色）",
+        "btn-secondary  // 次按钮（边框样式）",
+        "btn-danger     // 危险按钮（红色）"
+      ]
+    },
+    "badge_patterns": {
+      "description": "徽章状态使用语义类",
+      "bad": [
+        "text-xs px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 font-medium",
+        "text-xs px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 font-medium",
+        "text-xs px-2 py-0.5 rounded-full bg-red-100 text-red-700 font-medium"
+      ],
+      "good": [
+        "badge-success  // 绿色成功徽章",
+        "badge-warning  // 橙色警告徽章",
+        "badge-danger   // 红色危险徽章",
+        "badge-info     // 蓝色信息徽章（品牌色）"
+      ]
+    },
+    "input_patterns": {
+      "description": "输入框使用语义类",
+      "bad": [
+        "w-full px-3 py-2 text-sm rounded-lg border border-[var(--border-default)] bg-white focus:ring-2 focus:ring-action focus:border-action outline-none transition-colors"
+      ],
+      "good": ["input-base  // 标准输入框（含 focus ring）"]
+    }
+  },
+  "approved_semantic_classes": [
+    "card-base",
+    "card-compact",
+    "card-subtle",
+    "section-gap",
+    "card-gap",
+    "inline-gap",
+    "page-container",
+    "page-title",
+    "page-subtitle",
+    "table-header",
+    "table-cell",
+    "btn-primary",
+    "btn-secondary",
+    "btn-danger",
+    "badge-success",
+    "badge-warning",
+    "badge-danger",
+    "badge-info",
+    "input-base",
+    "state-loading",
+    "state-empty",
+    "state-error",
+    "slide-thead-row",
+    "slide-th",
+    "slide-th-left",
+    "slide-th-right",
+    "slide-th-center",
+    "slide-th-sub",
+    "slide-td",
+    "slide-row-even",
+    "slide-row-odd",
+    "slide-tfoot-row",
+    "ds-bar-primary",
+    "ds-bar-muted",
+    "brand-dot",
+    "brand-mark-enter",
+    "brand-watermark"
+  ]
+}

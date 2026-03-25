@@ -368,7 +368,7 @@ function TimeProgressBar({ tp }: { tp: TimeProgressInfo }) {
       {/* 进度条 */}
       <div className="relative h-2 rounded-full bg-[var(--border)] overflow-hidden mb-2">
         <div
-          className="absolute left-0 top-0 h-full rounded-full bg-navy-400 transition-all"
+          className="absolute left-0 top-0 h-full rounded-full bg-action-accent transition-all"
           style={{ width: `${Math.min(pct, 100)}%` }}
         />
       </div>
@@ -390,7 +390,7 @@ function TimeProgressBar({ tp }: { tp: TimeProgressInfo }) {
         <span>
           时间进度{' '}
           <span
-            className={`font-semibold ${pct >= 80 ? 'text-red-500' : pct >= 50 ? 'text-amber-500' : 'text-navy-400'}`}
+            className={`font-semibold ${pct >= 80 ? 'text-red-500' : pct >= 50 ? 'text-amber-500' : 'text-action-accent'}`}
           >
             {pct}%
           </span>

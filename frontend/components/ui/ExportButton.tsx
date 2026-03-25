@@ -41,7 +41,7 @@ export function ExportButton({ onExportCsv, onExportExcel, isExporting }: Export
               setIsOpen(false);
               onExportCsv?.();
             }}
-            className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-[var(--text-primary)] hover:bg-slate-50 transition-colors text-left border-b border-slate-50 last:border-0"
+            className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-[var(--text-primary)] hover:bg-[var(--bg-subtle)] transition-colors text-left border-b border-[var(--border-subtle)] last:border-0"
           >
             <FileText className="w-4 h-4 text-action-text" />
             CSV 格式
@@ -51,7 +51,7 @@ export function ExportButton({ onExportCsv, onExportExcel, isExporting }: Export
               setIsOpen(false);
               onExportExcel?.();
             }}
-            className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-[var(--text-primary)] hover:bg-slate-50 transition-colors text-left"
+            className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-[var(--text-primary)] hover:bg-[var(--bg-subtle)] transition-colors text-left"
           >
             <FileSpreadsheet className="w-4 h-4 text-action-text" />
             Excel 格式

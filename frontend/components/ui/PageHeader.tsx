@@ -24,7 +24,7 @@ export function PageHeader({ title, subtitle, icon: Icon, badge, children }: Pag
           <h1 className="text-xl font-bold text-[var(--text-primary)] flex items-center gap-2">
             {title}
             {badge && (
-              <span className="text-[10px] uppercase font-bold tracking-wider bg-slate-100 text-[var(--text-secondary)] px-2 py-0.5 rounded-full">
+              <span className="text-[10px] uppercase font-bold tracking-wider bg-[var(--bg-subtle)] text-[var(--text-secondary)] px-2 py-0.5 rounded-full">
                 {badge}
               </span>
             )}

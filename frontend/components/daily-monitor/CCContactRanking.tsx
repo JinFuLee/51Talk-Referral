@@ -11,12 +11,13 @@ import {
   Cell,
 } from 'recharts';
 import type { CCContactRankItem } from '@/lib/types/cross-analysis';
+import { CHART_PALETTE } from '@/lib/chart-palette';
 
 interface CCContactRankingProps {
   data: CCContactRankItem[];
 }
 
-const COLORS = ['#f59e0b', '#d1d5db', '#fbbf24', '#3b82f6', '#8b5cf6', '#10b981'];
+const COLORS = CHART_PALETTE.series;
 
 export function CCContactRanking({ data }: CCContactRankingProps) {
   const sorted = [...data].sort((a, b) => b.contact_rate - a.contact_rate);

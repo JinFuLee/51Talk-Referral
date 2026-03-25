@@ -13,6 +13,7 @@ import type {
   ThreeFactorComparison,
 } from '@/lib/types/channel';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import { CHART_PALETTE } from '@/lib/chart-palette';
 
 interface TopContributor {
   stdt_id: string;
@@ -42,15 +43,7 @@ const CHANNEL_KEY_MAP: Record<string, { paid: keyof TopContributor; label: strin
   宽口: { paid: 'wide_paid_count', label: '宽口' },
 };
 
-const CHANNEL_COLORS = [
-  '#92400E',
-  '#065F46',
-  '#1E40AF',
-  '#6B21A8',
-  '#9D174D',
-  '#B45309',
-  '#047857',
-];
+const CHANNEL_COLORS = CHART_PALETTE.series;
 const TABS = ['业绩贡献', '净拆解', '三因素对标', '渠道推荐者'] as const;
 type Tab = (typeof TABS)[number];
 
@@ -274,7 +267,7 @@ export default function ChannelPage() {
                     ))}
                   </Pie>
                   <Tooltip formatter={(v: number) => [`$${v.toLocaleString()}`, '业绩']} />
-                  <Legend />
+                  <Legend verticalAlign="bottom" />
                 </PieChart>
               </ResponsiveContainer>
             )}

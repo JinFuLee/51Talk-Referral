@@ -50,7 +50,7 @@ export function CCVarianceBox({ data }: CCVarianceBoxProps) {
             <div className="relative h-5 bg-[var(--bg-subtle)] rounded overflow-hidden">
               {/* min → max 全程条 */}
               <div
-                className="absolute inset-y-0 bg-navy-100 dark:bg-navy-900/30 rounded"
+                className="absolute inset-y-0 bg-action-accent-subtle dark:bg-action-accent/20 rounded"
                 style={{ left: '0%', right: '0%' }}
               />
 
@@ -63,7 +63,7 @@ export function CCVarianceBox({ data }: CCVarianceBoxProps) {
                 );
                 return (
                   <div
-                    className="absolute inset-y-0 bg-navy-300/50 dark:bg-navy-400/40 rounded"
+                    className="absolute inset-y-0 bg-action-accent-muted/50 dark:bg-action-accent/40 rounded"
                     style={{ left: `${left}%`, right: `${right}%` }}
                   />
                 );

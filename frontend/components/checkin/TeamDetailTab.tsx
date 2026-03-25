@@ -95,7 +95,7 @@ function TeamCard({ card, rateColor, rateBg }: TeamCardProps) {
       ) : (
         <table className="w-full text-xs">
           <thead>
-            <tr className="bg-[var(--bg-subtle)] text-[var(--text-muted)] font-medium">
+            <tr className="bg-[var(--bg-subtle)] text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">
               <th className="py-1 px-2 text-center w-7">#</th>
               <th className="py-1 px-2 text-left">销售</th>
               <th className="py-1 px-2 text-right">学员</th>
@@ -107,7 +107,7 @@ function TeamCard({ card, rateColor, rateBg }: TeamCardProps) {
             {card.members.map((m, i) => (
               <tr
                 key={m.name}
-                className="even:bg-[var(--bg-subtle)] hover:bg-navy-50/50 transition-colors"
+                className="even:bg-[var(--bg-subtle)] hover:bg-action-accent-surface/50 transition-colors"
               >
                 <td className="py-1 px-2 text-center text-[var(--text-muted)] font-mono tabular-nums">
                   {i + 1}

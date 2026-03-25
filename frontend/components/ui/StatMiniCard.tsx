@@ -20,9 +20,9 @@ const accentColor: Record<string, string> = {
 
 function StatMiniCardBase({ label, value, sub, subtitle, accent = 'slate' }: StatMiniCardProps) {
   return (
-    <div className="rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface)] px-4 py-3">
-      <p className="text-xs text-[var(--text-secondary)] mb-1">{label}</p>
-      <p className={`text-xl font-bold ${accentColor[accent]}`}>{value}</p>
+    <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] px-4 py-3 shadow-[var(--shadow-subtle)]">
+      <p className="text-xs text-[var(--text-muted)] mb-1">{label}</p>
+      <p className={`text-2xl font-bold ${accentColor[accent]}`}>{value}</p>
       {sub && <p className="text-xs text-[var(--text-muted)] mt-0.5">{sub}</p>}
       {subtitle && (
         <p className="text-[11px] text-[var(--text-muted)] mt-1 leading-relaxed">{subtitle}</p>

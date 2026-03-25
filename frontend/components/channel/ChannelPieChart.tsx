@@ -1,14 +1,8 @@
-"use client";
+'use client';
 
-import {
-  PieChart,
-  Pie,
-  Cell,
-  Tooltip,
-  ResponsiveContainer,
-  Legend,
-} from "recharts";
-import { formatRevenue } from "@/lib/utils";
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import { formatRevenue } from '@/lib/utils';
+import { CHART_PALETTE } from '@/lib/chart-palette';
 
 interface ChannelPieEntry {
   channel: string;
@@ -20,13 +14,11 @@ interface ChannelPieChartProps {
   height?: number;
 }
 
-const CHANNEL_COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#8b5cf6"];
+const CHANNEL_COLORS = CHART_PALETTE.series;
 
 export function ChannelPieChart({ channels, height = 240 }: ChannelPieChartProps) {
   if (channels.length === 0) {
-    return (
-      <p className="text-sm text-[var(--text-muted)] text-center py-6">暂无渠道数据</p>
-    );
+    return <p className="text-sm text-[var(--text-muted)] text-center py-6">暂无渠道数据</p>;
   }
 
   const pieData = channels.map((c) => ({
@@ -44,27 +36,18 @@ export function ChannelPieChart({ channels, height = 240 }: ChannelPieChartProps
           outerRadius={85}
           innerRadius={45}
           dataKey="value"
-          label={({ name, percent }) =>
-            `${name} ${(percent * 100).toFixed(0)}%`
-          }
+          label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
           labelLine={false}
         >
           {pieData.map((_, index) => (
-            <Cell
-              key={`cell-${index}`}
-              fill={CHANNEL_COLORS[index % CHANNEL_COLORS.length]}
-            />
+            <Cell key={`cell-${index}`} fill={CHANNEL_COLORS[index % CHANNEL_COLORS.length]} />
           ))}
         </Pie>
         <Tooltip
-          formatter={(val: number) => [formatRevenue(val), "业绩"]}
+          formatter={(val: number) => [formatRevenue(val), '业绩']}
           contentStyle={{ fontSize: 12 }}
         />
-        <Legend
-          formatter={(value) => (
-            <span style={{ fontSize: 12, color: "#475569" }}>{value}</span>
-          )}
-        />
+        <Legend verticalAlign="bottom" wrapperStyle={{ fontSize: 12 }} />
       </PieChart>
     </ResponsiveContainer>
   );

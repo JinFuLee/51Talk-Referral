@@ -158,7 +158,7 @@ export default function WarroomPage() {
                       className={[
                         'cursor-pointer transition-colors',
                         idx % 2 === 0 ? 'bg-[var(--bg-surface)]' : 'bg-[var(--bg-subtle)]',
-                        isExpanded ? 'bg-navy-50 dark:bg-navy-900/10' : '',
+                        isExpanded ? 'bg-action-accent-surface dark:bg-action-accent/10' : '',
                       ].join(' ')}
                       onClick={() => setExpandedId(isExpanded ? null : s.stdt_id)}
                     >

@@ -98,7 +98,7 @@ export default function MembersPage() {
             setEnclosureFilter(e.target.value);
             setPage(1);
           }}
-          className="px-3 py-2 border border-[var(--border-subtle)] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-navy-400 w-40"
+          className="px-3 py-2 border border-[var(--border-subtle)] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-action-accent w-40"
         />
         <input
           type="text"
@@ -108,7 +108,7 @@ export default function MembersPage() {
             setCcFilter(e.target.value);
             setPage(1);
           }}
-          className="px-3 py-2 border border-[var(--border-subtle)] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-navy-400 w-36"
+          className="px-3 py-2 border border-[var(--border-subtle)] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-action-accent w-36"
         />
         <select
           value={contactDaysFilter}
@@ -116,7 +116,7 @@ export default function MembersPage() {
             setContactDaysFilter(e.target.value);
             setPage(1);
           }}
-          className="px-3 py-2 border border-[var(--border-subtle)] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-navy-400 bg-[var(--bg-surface)] text-[var(--text-primary)]"
+          className="px-3 py-2 border border-[var(--border-subtle)] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-action-accent bg-[var(--bg-surface)] text-[var(--text-primary)]"
         >
           {CONTACT_DAY_OPTIONS.map((o) => (
             <option key={o.value} value={o.value}>
@@ -130,7 +130,7 @@ export default function MembersPage() {
             setCardHealthFilter(e.target.value);
             setPage(1);
           }}
-          className="px-3 py-2 border border-[var(--border-subtle)] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-navy-400 bg-[var(--bg-surface)] text-[var(--text-primary)]"
+          className="px-3 py-2 border border-[var(--border-subtle)] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-action-accent bg-[var(--bg-surface)] text-[var(--text-primary)]"
         >
           {CARD_HEALTH_OPTIONS.map((o) => (
             <option key={o.value} value={o.value}>

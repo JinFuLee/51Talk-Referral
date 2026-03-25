@@ -117,7 +117,7 @@ export function OutputGallery({ platform: _platform }: OutputGalleryProps) {
             return (
               <div
                 key={item.filename}
-                className="rounded-lg border border-[var(--border-default)] overflow-hidden bg-[var(--bg-surface)] hover:shadow-md transition-shadow cursor-pointer group"
+                className="card-compact overflow-hidden !p-0 hover:shadow-md transition-shadow cursor-pointer group"
                 onClick={() =>
                   window.open(`/api/notifications/outputs/image/${item.filename}`, '_blank')
                 }

@@ -87,7 +87,7 @@ function ChannelCard({ channel }: { channel: OpsChannel }) {
   const ratePercent = Math.min(100, Math.round(channel.estimated_contact_rate * 100));
 
   return (
-    <div className="border border-[var(--border-default)] rounded-lg overflow-hidden bg-[var(--bg-surface)] flex flex-col">
+    <div className="card-compact overflow-hidden flex flex-col !p-0">
       {/* 卡片头部 */}
       <div className="bg-[var(--n-800,#1e293b)] text-white px-3 py-2 flex items-center justify-between gap-2">
         <span className="text-sm font-bold truncate">{channel.channel_name}</span>
@@ -126,7 +126,7 @@ function ChannelCard({ channel }: { channel: OpsChannel }) {
           </div>
           <div className="h-1.5 rounded-full bg-[var(--bg-subtle)] overflow-hidden">
             <div
-              className="h-full rounded-full bg-navy-400 transition-all"
+              className="h-full rounded-full bg-action-accent transition-all"
               style={{ width: `${ratePercent}%` }}
             />
           </div>
@@ -160,7 +160,7 @@ function EnclosureSegmentBar({ segments }: { segments: EnclosureSegment[] }) {
   const maxStudents = Math.max(...segments.map((s) => s.students), 1);
 
   return (
-    <div className="border border-[var(--border-default)] rounded-lg bg-[var(--bg-surface)] overflow-hidden">
+    <div className="card-compact overflow-hidden !p-0">
       <div className="bg-[var(--n-800,#1e293b)] text-white px-3 py-2">
         <span className="text-sm font-bold">围场子段分布</span>
       </div>
@@ -182,12 +182,12 @@ function EnclosureSegmentBar({ segments }: { segments: EnclosureSegment[] }) {
               {/* 学员数量条 */}
               <div className="h-4 rounded bg-[var(--bg-subtle)] overflow-hidden relative">
                 <div
-                  className="h-full rounded bg-navy-100 transition-all"
+                  className="h-full rounded bg-action-accent-subtle transition-all"
                   style={{ width: `${barWidth}%` }}
                 />
                 {/* 打卡率覆盖层 */}
                 <div
-                  className="absolute top-0 left-0 h-full rounded bg-navy-400 opacity-70 transition-all"
+                  className="absolute top-0 left-0 h-full rounded bg-action-accent opacity-70 transition-all"
                   style={{ width: `${Math.round((barWidth * ratePercent) / 100)}%` }}
                 />
               </div>
@@ -196,11 +196,11 @@ function EnclosureSegmentBar({ segments }: { segments: EnclosureSegment[] }) {
         })}
         <div className="flex items-center gap-4 text-xs text-[var(--text-muted)] pt-1">
           <span className="flex items-center gap-1">
-            <span className="inline-block w-3 h-3 rounded-sm bg-navy-100" />
+            <span className="inline-block w-3 h-3 rounded-sm bg-action-accent-subtle" />
             总学员数
           </span>
           <span className="flex items-center gap-1">
-            <span className="inline-block w-3 h-3 rounded-sm bg-navy-400 opacity-70" />
+            <span className="inline-block w-3 h-3 rounded-sm bg-action-accent opacity-70" />
             已打卡
           </span>
         </div>
@@ -255,19 +255,19 @@ export function OpsChannelView({ configJson }: OpsChannelViewProps) {
     <div className="space-y-5">
       {/* 区域 A — 顶部总览卡片 */}
       <div className="grid grid-cols-3 gap-3">
-        <div className="border border-[var(--border-default)] rounded-lg bg-[var(--bg-surface)] p-3 text-center">
+        <div className="card-compact text-center">
           <div className="text-2xl font-bold tabular-nums text-[var(--text-primary)]">
             {fmtNum(opsData.total_students)}
           </div>
           <div className="text-xs text-[var(--text-muted)] mt-0.5">M6+ 总学员</div>
         </div>
-        <div className="border border-[var(--border-default)] rounded-lg bg-[var(--bg-surface)] p-3 text-center">
+        <div className="card-compact text-center">
           <div className="text-2xl font-bold tabular-nums text-[var(--text-primary)]">
             {fmtNum(opsData.checked_in)}
           </div>
           <div className="text-xs text-[var(--text-muted)] mt-0.5">已打卡</div>
         </div>
-        <div className="border border-[var(--border-default)] rounded-lg bg-[var(--bg-surface)] p-3 text-center">
+        <div className="card-compact text-center">
           <div className="text-2xl font-bold tabular-nums text-[var(--text-primary)]">
             {fmtRate(opsData.checkin_rate)}
           </div>
@@ -292,7 +292,7 @@ export function OpsChannelView({ configJson }: OpsChannelViewProps) {
       {segments.length > 1 && <EnclosureSegmentBar segments={segments} />}
 
       {segments.length === 1 && (
-        <div className="border border-[var(--border-default)] rounded-lg bg-[var(--bg-surface)] p-3">
+        <div className="card-compact">
           <div className="text-xs text-[var(--text-muted)] mb-1">围场子段</div>
           <div className="flex items-center gap-3">
             <span className="font-medium text-[var(--text-primary)]">{segments[0].label}</span>

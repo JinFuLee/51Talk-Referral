@@ -40,17 +40,15 @@ export function DailyLogTab({ logs }: DailyLogTabProps) {
       <div className="overflow-x-auto">
         <table className="text-xs border-collapse">
           <thead>
-            <tr>
-              <th className="text-left pr-3 py-1 text-[var(--text-muted)] font-medium whitespace-nowrap w-20">
-                日期
-              </th>
-              <th className="px-1 py-1 text-[var(--text-muted)] font-medium">CC</th>
-              <th className="px-1 py-1 text-[var(--text-muted)] font-medium">SS</th>
-              <th className="px-1 py-1 text-[var(--text-muted)] font-medium">LP</th>
-              <th className="px-1 py-1 text-[var(--text-muted)] font-medium">打卡</th>
-              <th className="px-2 py-1 text-right text-[var(--text-muted)] font-medium">注册</th>
-              <th className="px-2 py-1 text-right text-[var(--text-muted)] font-medium">出席</th>
-              <th className="px-2 py-1 text-right text-[var(--text-muted)] font-medium">付费</th>
+            <tr className="bg-[var(--bg-subtle)] text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">
+              <th className="text-left pr-3 py-1.5 whitespace-nowrap w-20">日期</th>
+              <th className="px-1 py-1.5">CC</th>
+              <th className="px-1 py-1.5">SS</th>
+              <th className="px-1 py-1.5">LP</th>
+              <th className="px-1 py-1.5">打卡</th>
+              <th className="px-2 py-1.5 text-right">注册</th>
+              <th className="px-2 py-1.5 text-right">出席</th>
+              <th className="px-2 py-1.5 text-right">付费</th>
             </tr>
           </thead>
           <tbody>

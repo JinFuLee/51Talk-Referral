@@ -37,7 +37,7 @@ export function HPFunnel({ students }: HPFunnelProps) {
   ];
 
   return (
-    <div className="bg-[var(--bg-surface)] rounded-lg border border-[var(--border-default)] shadow-[var(--shadow-subtle)] p-3">
+    <div className="bg-[var(--bg-surface)] rounded-xl border border-[var(--border-default)] shadow-[var(--shadow-subtle)] p-3">
       <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-3">高潜漏斗</h3>
       <div className="space-y-2">
         {steps.map((step) => (

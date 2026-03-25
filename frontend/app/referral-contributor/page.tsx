@@ -16,6 +16,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts';
+import { CHART_PALETTE } from '@/lib/chart-palette';
 
 /* ── 类型定义 ─────────────────────────────────────────────── */
 

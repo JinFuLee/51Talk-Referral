@@ -5,7 +5,7 @@ import type { SnapshotStats } from '@/lib/types';
 export function SnapshotStatsCard({ stats }: { stats: SnapshotStats | undefined }) {
   if (!stats) {
     return (
-      <div className="rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-4 text-xs text-[var(--text-muted)]">
+      <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-4 text-xs text-[var(--text-muted)]">
         加载快照统计中…
       </div>
     );

@@ -54,7 +54,7 @@ export function NotificationCenter() {
     <div className="relative">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="relative p-2 text-[var(--text-secondary)] hover:bg-slate-100 rounded-full transition-colors"
+        className="relative p-2 text-[var(--text-secondary)] hover:bg-[var(--bg-subtle)] rounded-full transition-colors"
       >
         <Bell className="w-5 h-5" />
         {unreadCount > 0 && (
@@ -65,7 +65,7 @@ export function NotificationCenter() {
       {isOpen && (
         <div className="absolute right-0 mt-2 w-80 bg-[var(--bg-surface)] shadow-xl rounded-xl border border-[var(--border-subtle)] overflow-hidden z-50 animate-in fade-in slide-in-from-top-2">
           {/* Header */}
-          <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--border-subtle)] bg-slate-50/50">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--border-subtle)] bg-[var(--bg-subtle)]">
             <h3 className="text-sm font-semibold text-[var(--text-primary)]">通知中心</h3>
             <div className="flex items-center gap-2">
               <button
@@ -104,11 +104,11 @@ export function NotificationCenter() {
             {filtered.length === 0 ? (
               <div className="p-8 text-center text-[var(--text-muted)] text-xs">暂无通知</div>
             ) : (
-              <div className="divide-y divide-slate-100">
+              <div className="divide-y divide-[var(--border-subtle)]">
                 {filtered.map((n) => (
                   <div
                     key={n.id}
-                    className={`p-4 transition-colors hover:bg-slate-50/50 ${!n.read ? 'bg-action-surface/30' : ''}`}
+                    className={`p-4 transition-colors hover:bg-[var(--bg-subtle)] ${!n.read ? 'bg-action-surface/30' : ''}`}
                   >
                     <div className="flex gap-3">
                       <div className="shrink-0 mt-0.5">

@@ -16,6 +16,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts';
+import { CHART_PALETTE } from '@/lib/chart-palette';
 
 interface OutreachQualityRow {
   enclosure?: string | null;
@@ -140,10 +141,10 @@ export default function OutreachQualityPage() {
               <YAxis tick={{ fontSize: 11 }} />
               <Tooltip />
               <Legend wrapperStyle={{ fontSize: 12 }} />
-              <Bar dataKey="CC接通" fill="#3b82f6" radius={[3, 3, 0, 0]} />
-              <Bar dataKey="SS接通" fill="#8b5cf6" radius={[3, 3, 0, 0]} />
-              <Bar dataKey="LP接通" fill="#f59e0b" radius={[3, 3, 0, 0]} />
-              <Bar dataKey="有效打卡" fill="#10b981" radius={[3, 3, 0, 0]} />
+              <Bar dataKey="CC接通" fill={CHART_PALETTE.c1} radius={[3, 3, 0, 0]} />
+              <Bar dataKey="SS接通" fill={CHART_PALETTE.c2} radius={[3, 3, 0, 0]} />
+              <Bar dataKey="LP接通" fill={CHART_PALETTE.c3} radius={[3, 3, 0, 0]} />
+              <Bar dataKey="有效打卡" fill={CHART_PALETTE.c4} radius={[3, 3, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </Card>

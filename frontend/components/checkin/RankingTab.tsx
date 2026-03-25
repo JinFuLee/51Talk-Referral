@@ -87,7 +87,7 @@ function RoleColumn({ role, summary, subTab, rateColor }: RoleColumnProps) {
         ) : (
           <table className="w-full text-xs">
             <thead>
-              <tr className="bg-[var(--bg-subtle)] text-[var(--text-muted)] font-medium">
+              <tr className="bg-[var(--bg-subtle)] text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">
                 <th className="py-1 px-2 text-center w-8">排名</th>
                 <th className="py-1 px-2 text-left">{subTab === 'group' ? '团队' : '销售'}</th>
                 {subTab === 'person' && (

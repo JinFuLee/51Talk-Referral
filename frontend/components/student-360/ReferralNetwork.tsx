@@ -22,7 +22,7 @@ function NetworkNode({
 }) {
   const bg =
     type === 'center'
-      ? 'bg-navy-50 border-navy-200'
+      ? 'bg-action-accent-surface border-action-accent-subtle'
       : type === 'referrer'
         ? 'bg-purple-50 border-purple-300'
         : 'bg-green-50 border-green-300';
