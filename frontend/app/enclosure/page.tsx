@@ -50,9 +50,9 @@ const ENCLOSURE_FILTERS = [
 
 function metricColor(value: number | null | undefined, thresholds: [number, number]) {
   if (value === null || value === undefined) return 'text-[var(--text-muted)]';
-  if (value >= thresholds[1]) return 'text-green-600 font-semibold';
-  if (value >= thresholds[0]) return 'text-yellow-600';
-  return 'text-red-500';
+  if (value >= thresholds[1]) return 'text-emerald-700 font-semibold';
+  if (value >= thresholds[0]) return 'text-amber-700';
+  return 'text-red-600';
 }
 
 function safe(v: number | null | undefined, decimals = 0): string {
@@ -183,90 +183,90 @@ function CCTabContent({
               <span className="text-yellow-600 font-medium">橙30-50%</span> ·{' '}
               <span className="text-red-500 font-medium">红&lt;30%</span>（参与率/打卡率/触达率）
             </p>
-          <div className="overflow-x-auto">
-            <table className="w-full text-xs">
-              <thead>
-                <tr className="slide-thead-row">
-                  <th className="slide-th slide-th-left py-1.5 px-2">围场段</th>
-                  <th className="slide-th slide-th-left py-1.5 px-2">CC</th>
-                  <th className="slide-th slide-th-right py-1.5 px-2">
-                    有效学员 <BrandDot tooltip="已付费且在有效期内的学员" />
-                  </th>
-                  <th className="slide-th slide-th-right py-1.5 px-2">
-                    参与率 <BrandDot tooltip="带来≥1注册的学员 / 有效学员" />
-                  </th>
-                  <th className="slide-th slide-th-right py-1.5 px-2">
-                    带新系数 <BrandDot tooltip="每个参与学员平均带来的注册数（>2为优质）" />
-                  </th>
-                  <th className="slide-th slide-th-right py-1.5 px-2">
-                    带货比 <BrandDot tooltip="推荐注册数 / 有效学员，衡量整体渗透率" />
-                  </th>
-                  <th className="slide-th slide-th-right py-1.5 px-2">
-                    打卡率 <BrandDot tooltip="转码且分享的学员 / 有效学员" />
-                  </th>
-                  <th className="slide-th slide-th-right py-1.5 px-2">注册数</th>
-                  <th className="slide-th slide-th-right py-1.5 px-2">
-                    SS触达率 <BrandDot tooltip="SS有效通话(≥120s)学员 / 有效学员" />
-                  </th>
-                  <th className="slide-th slide-th-right py-1.5 px-2">
-                    LP触达率 <BrandDot tooltip="LP有效通话(≥120s)学员 / 有效学员" />
-                  </th>
-                  <th className="slide-th slide-th-right py-1.5 px-2">付费数</th>
-                  <th className="slide-th slide-th-right py-1.5 px-2">业绩(USD)</th>
-                </tr>
-              </thead>
-              <tbody>
-                {rows.map((r, i) => (
-                  <tr key={i} className={i % 2 === 0 ? 'slide-row-even' : 'slide-row-odd'}>
-                    <td className="slide-td py-1 px-2 text-[var(--text-secondary)]">
-                      {r.enclosure}
-                    </td>
-                    <td className="slide-td py-1 px-2 font-medium">{r.cc_name}</td>
-                    <td className="slide-td py-1 px-2 text-right font-mono tabular-nums">
-                      {(r.students ?? 0).toLocaleString()}
-                    </td>
-                    <td
-                      className={`slide-td py-1 px-2 text-right font-mono tabular-nums ${metricColor(r.participation_rate, [0.1, 0.2])}`}
-                    >
-                      {formatRate(r.participation_rate)}
-                    </td>
-                    <td className="slide-td py-1 px-2 text-right font-mono tabular-nums">
-                      {(r.new_coefficient ?? 0).toFixed(2)}
-                    </td>
-                    <td
-                      className={`slide-td py-1 px-2 text-right font-mono tabular-nums ${metricColor(r.cargo_ratio, [0.05, 0.1])}`}
-                    >
-                      {formatRate(r.cargo_ratio)}
-                    </td>
-                    <td
-                      className={`slide-td py-1 px-2 text-right font-mono tabular-nums ${metricColor(r.checkin_rate, [0.3, 0.5])}`}
-                    >
-                      {formatRate(r.checkin_rate)}
-                    </td>
-                    <td className="slide-td py-1 px-2 text-right font-mono tabular-nums">
-                      {(r.registrations ?? 0).toLocaleString()}
-                    </td>
-                    <td
-                      className={`slide-td py-1 px-2 text-right font-mono tabular-nums ${metricColor(r.ss_reach_rate ?? 0, [0.3, 0.5])}`}
-                    >
-                      {formatRate(r.ss_reach_rate ?? 0)}
-                    </td>
-                    <td
-                      className={`slide-td py-1 px-2 text-right font-mono tabular-nums ${metricColor(r.lp_reach_rate ?? 0, [0.3, 0.5])}`}
-                    >
-                      {formatRate(r.lp_reach_rate ?? 0)}
-                    </td>
-                    <td className="slide-td py-1 px-2 text-right font-mono tabular-nums">
-                      {(r.payments ?? 0).toLocaleString()}
-                    </td>
-                    <td className="slide-td py-1 px-2 text-right font-mono tabular-nums">
-                      ${(r.revenue_usd ?? 0).toLocaleString()}
-                    </td>
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs">
+                <thead>
+                  <tr className="slide-thead-row">
+                    <th className="slide-th slide-th-left py-1.5 px-2">围场段</th>
+                    <th className="slide-th slide-th-left py-1.5 px-2">CC</th>
+                    <th className="slide-th slide-th-right py-1.5 px-2">
+                      有效学员 <BrandDot tooltip="已付费且在有效期内的学员" />
+                    </th>
+                    <th className="slide-th slide-th-right py-1.5 px-2">
+                      参与率 <BrandDot tooltip="带来≥1注册的学员 / 有效学员" />
+                    </th>
+                    <th className="slide-th slide-th-right py-1.5 px-2">
+                      带新系数 <BrandDot tooltip="每个参与学员平均带来的注册数（>2为优质）" />
+                    </th>
+                    <th className="slide-th slide-th-right py-1.5 px-2">
+                      带货比 <BrandDot tooltip="推荐注册数 / 有效学员，衡量整体渗透率" />
+                    </th>
+                    <th className="slide-th slide-th-right py-1.5 px-2">
+                      打卡率 <BrandDot tooltip="转码且分享的学员 / 有效学员" />
+                    </th>
+                    <th className="slide-th slide-th-right py-1.5 px-2">注册数</th>
+                    <th className="slide-th slide-th-right py-1.5 px-2">
+                      SS触达率 <BrandDot tooltip="SS有效通话(≥120s)学员 / 有效学员" />
+                    </th>
+                    <th className="slide-th slide-th-right py-1.5 px-2">
+                      LP触达率 <BrandDot tooltip="LP有效通话(≥120s)学员 / 有效学员" />
+                    </th>
+                    <th className="slide-th slide-th-right py-1.5 px-2">付费数</th>
+                    <th className="slide-th slide-th-right py-1.5 px-2">业绩(USD)</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {rows.map((r, i) => (
+                    <tr key={i} className={i % 2 === 0 ? 'slide-row-even' : 'slide-row-odd'}>
+                      <td className="slide-td py-1 px-2 text-[var(--text-secondary)]">
+                        {r.enclosure}
+                      </td>
+                      <td className="slide-td py-1 px-2 font-medium">{r.cc_name}</td>
+                      <td className="slide-td py-1 px-2 text-right font-mono tabular-nums">
+                        {(r.students ?? 0).toLocaleString()}
+                      </td>
+                      <td
+                        className={`slide-td py-1 px-2 text-right font-mono tabular-nums ${metricColor(r.participation_rate, [0.1, 0.2])}`}
+                      >
+                        {formatRate(r.participation_rate)}
+                      </td>
+                      <td className="slide-td py-1 px-2 text-right font-mono tabular-nums">
+                        {(r.new_coefficient ?? 0).toFixed(2)}
+                      </td>
+                      <td
+                        className={`slide-td py-1 px-2 text-right font-mono tabular-nums ${metricColor(r.cargo_ratio, [0.05, 0.1])}`}
+                      >
+                        {formatRate(r.cargo_ratio)}
+                      </td>
+                      <td
+                        className={`slide-td py-1 px-2 text-right font-mono tabular-nums ${metricColor(r.checkin_rate, [0.3, 0.5])}`}
+                      >
+                        {formatRate(r.checkin_rate)}
+                      </td>
+                      <td className="slide-td py-1 px-2 text-right font-mono tabular-nums">
+                        {(r.registrations ?? 0).toLocaleString()}
+                      </td>
+                      <td
+                        className={`slide-td py-1 px-2 text-right font-mono tabular-nums ${metricColor(r.ss_reach_rate ?? 0, [0.3, 0.5])}`}
+                      >
+                        {formatRate(r.ss_reach_rate ?? 0)}
+                      </td>
+                      <td
+                        className={`slide-td py-1 px-2 text-right font-mono tabular-nums ${metricColor(r.lp_reach_rate ?? 0, [0.3, 0.5])}`}
+                      >
+                        {formatRate(r.lp_reach_rate ?? 0)}
+                      </td>
+                      <td className="slide-td py-1 px-2 text-right font-mono tabular-nums">
+                        {(r.payments ?? 0).toLocaleString()}
+                      </td>
+                      <td className="slide-td py-1 px-2 text-right font-mono tabular-nums">
+                        ${(r.revenue_usd ?? 0).toLocaleString()}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </>
         )}
       </Card>
@@ -748,16 +748,16 @@ function AllTabContent() {
       {/* 围场效率 insight 卡片 */}
       {topEnclosure && (
         <div className="flex flex-col gap-1.5 rounded-lg border border-[var(--border-default)] border-l-4 border-l-blue-400 bg-blue-50 px-4 py-3">
-          <div className="text-sm font-semibold text-[var(--text-primary)]">
-            💡 围场效率概览
-          </div>
+          <div className="text-sm font-semibold text-[var(--text-primary)]">💡 围场效率概览</div>
           <div className="text-xs text-[var(--text-secondary)]">
-            <span className="font-medium text-[var(--text-primary)]">{topEnclosure.seg}</span> 围场参与率最高（
-            <span className="font-semibold text-green-600">{Math.round(topEnclosure.avg * 100)}%</span>）
+            <span className="font-medium text-[var(--text-primary)]">{topEnclosure.seg}</span>{' '}
+            围场参与率最高（
+            <span className="font-semibold text-green-600">
+              {Math.round(topEnclosure.avg * 100)}%
+            </span>
+            ）
             {lowEnclosures.length > 0 && (
-              <>
-                ，{lowEnclosures.map((e) => e.seg).join('、')} 围场参与率低于 10%，需重点关注
-              </>
+              <>，{lowEnclosures.map((e) => e.seg).join('、')} 围场参与率低于 10%，需重点关注</>
             )}
             。
           </div>

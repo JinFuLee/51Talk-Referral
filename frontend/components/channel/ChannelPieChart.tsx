@@ -16,7 +16,7 @@ interface ChannelPieChartProps {
 
 const CHANNEL_COLORS = CHART_PALETTE.series;
 
-export function ChannelPieChart({ channels, height = 240 }: ChannelPieChartProps) {
+export function ChannelPieChart({ channels, height = 320 }: ChannelPieChartProps) {
   if (channels.length === 0) {
     return <p className="text-sm text-[var(--text-muted)] text-center py-6">暂无渠道数据</p>;
   }
@@ -32,12 +32,23 @@ export function ChannelPieChart({ channels, height = 240 }: ChannelPieChartProps
         <Pie
           data={pieData}
           cx="50%"
-          cy="50%"
-          outerRadius={85}
-          innerRadius={45}
+          cy="45%"
+          outerRadius={90}
+          innerRadius={50}
           dataKey="value"
-          label={({ name, percent }) => `${name} ${formatRate(percent, 0)}`}
-          labelLine={false}
+          label={({ name, percent, x, y, textAnchor }) => (
+            <text
+              x={x}
+              y={y}
+              textAnchor={textAnchor}
+              fill="var(--text-secondary)"
+              fontSize={11}
+              fontWeight={500}
+            >
+              {`${name} ${formatRate(percent, 0)}`}
+            </text>
+          )}
+          labelLine={{ stroke: 'var(--border-hover)', strokeWidth: 1 }}
           animationDuration={600}
           animationEasing="ease-out"
         >
