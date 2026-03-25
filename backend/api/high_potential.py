@@ -77,8 +77,8 @@ def _row_to_hp(row: pd.Series) -> HighPotentialStudent:
 def get_high_potential(
     request: Request,
     dm: DataManager = Depends(get_data_manager),
-    team: str | None = Query(default=None, description="团队名称筛选，精确匹配 last_cc_group_name"),
-    cc: str | None = Query(default=None, description="CC 姓名模糊筛选，匹配 last_cc_name"),
+    team: str | None = Query(default=None, description="团队名称筛选"),
+    cc: str | None = Query(default=None, description="CC 姓名模糊筛选"),
 ) -> list[HighPotentialStudent]:
     data = dm.load_all()
     df = data.get("high_potential", pd.DataFrame())
