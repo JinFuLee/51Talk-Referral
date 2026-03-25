@@ -276,7 +276,7 @@ function RateCard8({ label, actual, target, lossDesc, rootCause }: RateCard8Prop
         <div className="flex flex-col col-span-2">
           <span className="text-[10px] text-[var(--text-muted)]">目标差</span>
           <span className={`text-sm font-mono font-semibold ${gapClass}`}>
-            {gap !== null ? `${gap >= 0 ? '+' : ''}${(gap * 100).toFixed(1)}%` : '—'}
+            {gap !== null ? `${gap >= 0 ? '+' : ''}${formatRate(Math.abs(gap))}` : '—'}
           </span>
         </div>
       </div>

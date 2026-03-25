@@ -47,5 +47,16 @@ export function formatRate(v: number | null | undefined, decimals = 1): string {
   return `${(Number(v) * 100).toFixed(decimals)}%`;
 }
 
+/** 智能格式化：自动判断数量型 vs 比率型
+ * @param v 值（数量型为整数，比率型为 0-1 小数）
+ * @param isRate 是否为比率型（0-1 小数），默认 false
+ * @param decimals 比率型小数位数，默认 1
+ */
+export function formatValue(v: number | null | undefined, isRate = false, decimals = 1): string {
+  if (v == null || Number.isNaN(Number(v)) || !isFinite(Number(v))) return '—';
+  if (isRate) return formatRate(v, decimals);
+  return Number(v).toLocaleString();
+}
+
 export const CHART_FONT_SIZE = { sm: 10, md: 11, lg: 12 } as const;
 export const CHART_HEIGHT = { sm: 220, md: 260, lg: 320 } as const;
