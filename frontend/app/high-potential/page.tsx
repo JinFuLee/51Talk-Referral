@@ -73,7 +73,7 @@ function HighPotentialCard({
           <p className="text-xs text-[var(--text-muted)] mt-0.5">围场：{student.enclosure}</p>
         </div>
         <div className="text-right">
-          <div className="text-lg font-bold text-navy-500">{student.payments}</div>
+          <div className="text-lg font-bold text-action-accent">{student.payments}</div>
           <div className="text-xs text-[var(--text-muted)]">付费次数</div>
         </div>
       </div>
@@ -188,7 +188,7 @@ function HighPotentialCard({
         {warroom && (
           <div className="mt-2 pt-2 border-t border-[var(--border-subtle)] grid grid-cols-3 gap-2 text-center">
             <div>
-              <div className="flex items-center justify-center gap-0.5 text-navy-500 mb-0.5">
+              <div className="flex items-center justify-center gap-0.5 text-action-accent mb-0.5">
                 <Phone className="w-3 h-3" />
                 <span className="text-xs font-bold">{warroom.checkin_7d}</span>
               </div>

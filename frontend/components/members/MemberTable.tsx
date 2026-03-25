@@ -102,7 +102,7 @@ export function MemberTable({
                     onRowClick ? 'cursor-pointer hover:bg-[var(--bg-subtle)]' : ''
                   }`}
                 >
-                  <td className="py-1 px-2 text-xs text-navy-500 font-medium tabular-nums whitespace-nowrap">
+                  <td className="py-1 px-2 text-xs text-action-accent font-medium tabular-nums whitespace-nowrap">
                     {m.id}
                   </td>
                   <td className="py-1 px-2 text-xs whitespace-nowrap">{m.name || '—'}</td>

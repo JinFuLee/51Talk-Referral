@@ -28,13 +28,13 @@ export function PageTabs({ tabs, activeId, onChange, className }: PageTabsProps)
             className={cn(
               'relative px-1 py-3 text-sm font-medium transition-colors outline-none whitespace-nowrap',
               isActive
-                ? 'text-brand-400'
+                ? 'text-action'
                 : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
             )}
           >
             {tab.label}
             {isActive && (
-              <div className="absolute left-0 right-0 bottom-[-1px] h-[2px] bg-brand-400 shadow-[0_0_8px_rgba(255,209,0,0.5)] transition-all animate-in fade-in" />
+              <div className="absolute left-0 right-0 bottom-[-1px] h-[2px] bg-action shadow-[0_0_8px_rgba(255,209,0,0.5)] transition-all animate-in fade-in" />
             )}
           </button>
         );

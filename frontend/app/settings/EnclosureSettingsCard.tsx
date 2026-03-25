@@ -31,7 +31,7 @@ function CollapseToggle({ open, onToggle }: CollapseToggleProps) {
   return (
     <button
       onClick={onToggle}
-      className="text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)] flex items-center gap-1 transition-colors focus-visible:ring-2 focus-visible:ring-brand-500 rounded"
+      className="text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)] flex items-center gap-1 transition-colors focus-visible:ring-2 focus-visible:ring-action rounded"
     >
       <span>{open ? '▼ 收起' : '▶ 展开'}</span>
     </button>

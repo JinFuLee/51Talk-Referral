@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
-import { cn } from "@/lib/utils";
+import { useState, useEffect } from 'react';
+import { cn } from '@/lib/utils';
 
 interface TypewriterTextProps {
   text: string;
@@ -11,13 +11,13 @@ interface TypewriterTextProps {
 }
 
 export function TypewriterText({ text, speed = 30, className, delay = 0 }: TypewriterTextProps) {
-  const [displayedText, setDisplayedText] = useState("");
+  const [displayedText, setDisplayedText] = useState('');
   const [isTyping, setIsTyping] = useState(false);
 
   useEffect(() => {
     let index = 0;
-    setDisplayedText(""); 
-    
+    setDisplayedText('');
+
     const startTyping = () => {
       setIsTyping(true);
       const interval = setInterval(() => {
@@ -28,7 +28,7 @@ export function TypewriterText({ text, speed = 30, className, delay = 0 }: Typew
           setIsTyping(false);
         }
       }, speed);
-      
+
       return interval;
     };
 
@@ -44,10 +44,10 @@ export function TypewriterText({ text, speed = 30, className, delay = 0 }: Typew
   }, [text, speed, delay]);
 
   return (
-    <span className={cn("relative whitespace-pre-wrap", className)}>
+    <span className={cn('relative whitespace-pre-wrap', className)}>
       {displayedText}
       {isTyping && (
-        <span className="inline-block w-1.5 h-4 ml-1 bg-brand-500 animate-pulse align-middle" />
+        <span className="inline-block w-1.5 h-4 ml-1 bg-action-active animate-pulse align-middle" />
       )}
     </span>
   );

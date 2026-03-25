@@ -95,7 +95,7 @@ export function ChannelRevenueSlide({ slideNumber, totalSlides }: SlideProps) {
                       />
                       {c.channel}
                     </td>
-                    <td className="px-2 py-1 text-xs text-right font-mono tabular-nums text-navy-500 font-semibold">
+                    <td className="px-2 py-1 text-xs text-right font-mono tabular-nums text-action-accent font-semibold">
                       {formatRevenue(c.per_capita ?? 0)}
                     </td>
                     <td className="px-2 py-1 text-xs text-right font-mono tabular-nums font-medium text-[var(--text-primary)]">

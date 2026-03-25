@@ -101,7 +101,7 @@ function CategorySection({
                     checked={ssActive.has(ind.id)}
                     disabled={disabled}
                     onChange={() => !disabled && onToggle('SS', ind.id)}
-                    className="w-4 h-4 rounded border-[var(--border-default)] accent-brand-400 cursor-pointer disabled:cursor-not-allowed disabled:opacity-40 focus-visible:ring-2 focus-visible:ring-brand-500"
+                    className="w-4 h-4 rounded border-[var(--border-default)] accent-action cursor-pointer disabled:cursor-not-allowed disabled:opacity-40 focus-visible:ring-2 focus-visible:ring-action"
                     aria-label={`SS 启用 ${name}`}
                   />
                 </div>
@@ -113,7 +113,7 @@ function CategorySection({
                     checked={lpActive.has(ind.id)}
                     disabled={disabled}
                     onChange={() => !disabled && onToggle('LP', ind.id)}
-                    className="w-4 h-4 rounded border-[var(--border-default)] accent-brand-400 cursor-pointer disabled:cursor-not-allowed disabled:opacity-40 focus-visible:ring-2 focus-visible:ring-brand-500"
+                    className="w-4 h-4 rounded border-[var(--border-default)] accent-action cursor-pointer disabled:cursor-not-allowed disabled:opacity-40 focus-visible:ring-2 focus-visible:ring-action"
                     aria-label={`LP 启用 ${name}`}
                   />
                 </div>
@@ -273,7 +273,7 @@ export default function IndicatorMatrixCard() {
               <button
                 onClick={handleSave}
                 disabled={saving}
-                className="px-3 py-1.5 bg-brand-400 text-white rounded-md text-xs font-medium hover:bg-brand-500 disabled:opacity-50 transition-colors focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-brand-500"
+                className="px-3 py-1.5 bg-action text-white rounded-md text-xs font-medium hover:bg-action-active disabled:opacity-50 transition-colors focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-action"
               >
                 {saving ? '保存中…' : '保存配置'}
               </button>

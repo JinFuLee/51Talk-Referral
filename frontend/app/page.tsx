@@ -434,7 +434,7 @@ function PaceRow({ kpiPace, timeProgress }: PaceRowProps) {
       {items.map(({ key, label, display, isBehind }) => (
         <span key={key} className="flex items-center gap-1">
           <span className="text-[var(--text-muted)]">{label}</span>
-          <span className={`font-semibold ${isBehind ? 'text-red-500' : 'text-brand-500'}`}>
+          <span className={`font-semibold ${isBehind ? 'text-red-500' : 'text-action-text'}`}>
             {display}
           </span>
         </span>

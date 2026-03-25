@@ -125,7 +125,7 @@ function AssignmentTable({
           <button
             onClick={handleSave}
             disabled={saving}
-            className="px-3 py-1 bg-brand-400 text-white rounded text-xs font-medium hover:bg-brand-500 transition-colors focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-brand-500 disabled:opacity-40"
+            className="px-3 py-1 bg-action text-white rounded text-xs font-medium hover:bg-action-active transition-colors focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-action disabled:opacity-40"
           >
             {saving ? '保存中…' : saved ? '已保存' : '保存'}
           </button>
@@ -160,7 +160,7 @@ function AssignmentTable({
                         type="checkbox"
                         checked={checked}
                         onChange={() => toggle(month, role)}
-                        className="w-4 h-4 rounded border-[var(--border-hover)] text-brand-400 accent-brand-400 cursor-pointer focus-visible:ring-2 focus-visible:ring-brand-500"
+                        className="w-4 h-4 rounded border-[var(--border-hover)] text-action accent-action cursor-pointer focus-visible:ring-2 focus-visible:ring-action"
                         aria-label={`${month} 由 ${role} 服务`}
                       />
                     </td>

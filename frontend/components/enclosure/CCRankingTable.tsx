@@ -107,7 +107,7 @@ export function CCRankingTable({ rankings }: CCRankingTableProps) {
                 <td
                   key={col.key}
                   className={`py-1 px-2 text-xs text-right font-mono tabular-nums ${
-                    sortKey === col.key ? 'font-semibold text-navy-500' : ''
+                    sortKey === col.key ? 'font-semibold text-action-accent' : ''
                   }`}
                 >
                   {col.format(r[col.key] ?? 0)}

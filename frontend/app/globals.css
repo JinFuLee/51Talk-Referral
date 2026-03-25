@@ -81,6 +81,26 @@
   --chart-4-hex: #2d9f6f;
   --chart-5-hex: #e05545;
 
+  /* ── 语义 Token（组件唯一引用层）── */
+  /* 品牌行动色（金黄系，按钮/徽章/高亮） */
+  --color-action: var(--brand-p1);
+  --color-action-hover: var(--brand-p1-hover);
+  --color-action-active: var(--brand-p1-active);
+  --color-action-text: var(--brand-p2); /* 金黄底用深蓝文字 */
+  --color-action-surface: #fffbeb; /* 金黄浅底背景 */
+  /* 品牌强调色（深蓝系，导航/标题/徽章） */
+  --color-accent: var(--brand-p2);
+  --color-accent-hover: var(--brand-p2-hover);
+  --color-accent-active: var(--brand-p2-active);
+  --color-accent-text: #ffffff; /* 深蓝底用白字 */
+  /* 语义功能色 */
+  --color-success: #2d9f6f;
+  --color-warning: #e8932a;
+  --color-danger: #e05545;
+  --color-info: var(--brand-p2);
+  /* 品牌边框 */
+  --color-border-brand: var(--brand-p1);
+
   /* ── SEE Spacing ──────────────────────────────── */
   --space-0-5: 2px;
   --space-1: 4px;

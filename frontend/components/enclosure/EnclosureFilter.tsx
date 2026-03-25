@@ -23,7 +23,7 @@ export function EnclosureFilter({ value, onChange }: EnclosureFilterProps) {
           onClick={() => onChange(f.value)}
           className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
             value === f.value
-              ? 'bg-navy-500 text-white shadow-sm'
+              ? 'bg-action-accent text-white shadow-sm'
               : 'bg-slate-100 text-[var(--text-secondary)] hover:bg-slate-200'
           }`}
           aria-pressed={value === f.value}

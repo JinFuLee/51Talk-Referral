@@ -105,7 +105,7 @@ export function BotFormModal({ open, platform, initial, onClose, onSave }: BotFo
                 onChange={(e) => setForm((v) => ({ ...v, name: e.target.value }))}
                 required
                 placeholder="如：Lark CC日报"
-                className="w-full text-sm border border-[var(--border-subtle)] rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                className="w-full text-sm border border-[var(--border-subtle)] rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-action focus:border-transparent"
               />
             </div>
             <div>
@@ -117,7 +117,7 @@ export function BotFormModal({ open, platform, initial, onClose, onSave }: BotFo
                 onChange={(e) => setForm((v) => ({ ...v, group_name: e.target.value }))}
                 required
                 placeholder="如：CC 转介绍运营群"
-                className="w-full text-sm border border-[var(--border-subtle)] rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                className="w-full text-sm border border-[var(--border-subtle)] rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-action focus:border-transparent"
               />
             </div>
           </div>
@@ -130,7 +130,7 @@ export function BotFormModal({ open, platform, initial, onClose, onSave }: BotFo
               <select
                 value={form.role}
                 onChange={(e) => setForm((v) => ({ ...v, role: e.target.value }))}
-                className="w-full text-sm border border-[var(--border-subtle)] rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-brand-500"
+                className="w-full text-sm border border-[var(--border-subtle)] rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-action"
               >
                 {ROLES.map((r) => (
                   <option key={r} value={r}>
@@ -172,7 +172,7 @@ export function BotFormModal({ open, platform, initial, onClose, onSave }: BotFo
                 onChange={(e) => setForm((v) => ({ ...v, webhook: e.target.value }))}
                 required
                 placeholder="https://..."
-                className="flex-1 text-sm border border-[var(--border-subtle)] rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-brand-500 font-mono"
+                className="flex-1 text-sm border border-[var(--border-subtle)] rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-action font-mono"
               />
               <button
                 type="button"
@@ -194,7 +194,7 @@ export function BotFormModal({ open, platform, initial, onClose, onSave }: BotFo
                 value={form.secret}
                 onChange={(e) => setForm((v) => ({ ...v, secret: e.target.value }))}
                 placeholder="留空表示无签名"
-                className="flex-1 text-sm border border-[var(--border-subtle)] rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-brand-500 font-mono"
+                className="flex-1 text-sm border border-[var(--border-subtle)] rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-action font-mono"
               />
               <button
                 type="button"
@@ -219,7 +219,7 @@ export function BotFormModal({ open, platform, initial, onClose, onSave }: BotFo
             <button
               type="submit"
               disabled={saving}
-              className="flex-1 px-4 py-2 bg-brand-400 text-white rounded-lg text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-50"
+              className="flex-1 px-4 py-2 bg-action text-white rounded-lg text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-50"
             >
               {saving ? '保存中…' : '保存'}
             </button>

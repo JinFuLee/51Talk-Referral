@@ -29,7 +29,7 @@ export function GlobalFilterBar() {
             <div className="p-1.5 bg-slate-50 text-[var(--text-secondary)] rounded hidden md:block">
               <Calendar className="w-4 h-4" />
             </div>
-            <select className="bg-[var(--bg-surface)] hover:bg-slate-50 cursor-pointer border border-[var(--border-subtle)] text-[var(--text-primary)] text-sm font-medium rounded-lg focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 block w-full md:w-auto px-3 py-1.5 outline-none transition-colors">
+            <select className="bg-[var(--bg-surface)] hover:bg-slate-50 cursor-pointer border border-[var(--border-subtle)] text-[var(--text-primary)] text-sm font-medium rounded-lg focus:ring-2 focus:ring-action/20 focus:border-action block w-full md:w-auto px-3 py-1.5 outline-none transition-colors">
               <option value="this_month">本月 (This Month)</option>
               <option value="this_week">本周 (This Week)</option>
               <option value="last_month">上月 (Last Month)</option>
@@ -42,7 +42,7 @@ export function GlobalFilterBar() {
             <div className="p-1.5 bg-slate-50 text-[var(--text-secondary)] rounded hidden md:block">
               <Users className="w-4 h-4" />
             </div>
-            <select className="bg-[var(--bg-surface)] hover:bg-slate-50 cursor-pointer border border-[var(--border-subtle)] text-[var(--text-primary)] text-sm font-medium rounded-lg focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 block w-full md:w-48 px-3 py-1.5 outline-none transition-colors">
+            <select className="bg-[var(--bg-surface)] hover:bg-slate-50 cursor-pointer border border-[var(--border-subtle)] text-[var(--text-primary)] text-sm font-medium rounded-lg focus:ring-2 focus:ring-action/20 focus:border-action block w-full md:w-48 px-3 py-1.5 outline-none transition-colors">
               <option value="all">所有团队 (All Teams)</option>
               <option value="team_a">A 组 / Team A</option>
               <option value="team_b">B 组 / Team B</option>
@@ -58,7 +58,7 @@ export function GlobalFilterBar() {
           </div>
           <input
             type="text"
-            className="bg-slate-50 border border-[var(--border-subtle)] text-[var(--text-primary)] text-sm rounded-full focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 block w-full pl-9 pr-4 py-1.5 outline-none transition-all placeholder:text-[var(--text-muted)]"
+            className="bg-slate-50 border border-[var(--border-subtle)] text-[var(--text-primary)] text-sm rounded-full focus:ring-2 focus:ring-action/20 focus:border-action block w-full pl-9 pr-4 py-1.5 outline-none transition-all placeholder:text-[var(--text-muted)]"
             placeholder="搜索/选择特定 CC..."
           />
         </div>

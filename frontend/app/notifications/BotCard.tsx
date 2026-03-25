@@ -22,9 +22,9 @@ export interface BotChannel {
 }
 
 const ROLE_COLORS: Record<string, string> = {
-  CC: 'bg-brand-100 text-brand-600',
+  CC: 'bg-action-surface text-action-text',
   LP: 'bg-purple-100 text-purple-700',
-  SS: 'bg-navy-100 text-navy-600',
+  SS: 'bg-navy-100 text-action-accent',
   运营: 'bg-stone-100 text-stone-600',
   ALL: 'bg-[var(--bg-subtle)] text-[var(--text-secondary)]',
 };
@@ -91,7 +91,7 @@ export function BotCard({ bot, onEdit, onDelete, onToggle }: BotCardProps) {
           <div
             onClick={() => onToggle(bot.id, !bot.enabled)}
             className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
-              bot.enabled ? 'bg-brand-400' : 'bg-[var(--bg-elevated)]'
+              bot.enabled ? 'bg-action' : 'bg-[var(--bg-elevated)]'
             }`}
           >
             <span

@@ -84,7 +84,7 @@ export function TodayStatus() {
     <div className="space-y-2.5">
       {larkEntries.length > 0 && (
         <div className="flex items-center gap-4">
-          <span className="text-xs font-semibold w-12 text-navy-500">Lark</span>
+          <span className="text-xs font-semibold w-12 text-action-accent">Lark</span>
           {renderEntries(larkEntries)}
         </div>
       )}

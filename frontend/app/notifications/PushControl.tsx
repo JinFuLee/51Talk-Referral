@@ -256,7 +256,7 @@ export function PushControl({ platform }: PushControlProps) {
         <button
           onClick={handlePushAll}
           disabled={pushState === 'pushing' || enabledChannels.length === 0}
-          className="px-4 py-2 bg-brand-400 text-white rounded-lg text-sm font-medium hover:opacity-90 disabled:opacity-40 transition-opacity shrink-0"
+          className="px-4 py-2 bg-action text-white rounded-lg text-sm font-medium hover:opacity-90 disabled:opacity-40 transition-opacity shrink-0"
         >
           立即推送
         </button>
@@ -276,7 +276,7 @@ export function PushControl({ platform }: PushControlProps) {
         <select
           value={selectedTemplate}
           onChange={(e) => setSelectedTemplate(e.target.value)}
-          className="w-full text-sm border border-[var(--border-subtle)] rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-brand-500"
+          className="w-full text-sm border border-[var(--border-subtle)] rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-action"
         >
           {(
             templates ?? [
@@ -310,7 +310,7 @@ export function PushControl({ platform }: PushControlProps) {
               onClick={() => setSelectedRole(r)}
               className={`px-2.5 py-1 rounded-full text-xs font-medium transition-colors ${
                 selectedRole === r
-                  ? 'bg-brand-400 text-white'
+                  ? 'bg-action text-white'
                   : 'bg-[var(--bg-subtle)] text-[var(--text-secondary)] hover:bg-[var(--bg-elevated)]'
               }`}
             >
@@ -386,7 +386,7 @@ export function PushControl({ platform }: PushControlProps) {
         <button
           onClick={handlePushTest}
           disabled={pushState === 'pushing' || testChannels.length === 0}
-          className="flex items-center gap-1.5 px-3 py-2 border border-brand-400 text-brand-500 rounded-lg text-xs font-medium hover:bg-brand-50 transition-colors disabled:opacity-40"
+          className="flex items-center gap-1.5 px-3 py-2 border border-action text-action-text rounded-lg text-xs font-medium hover:bg-action-surface transition-colors disabled:opacity-40"
         >
           <Send className="w-3.5 h-3.5" />
           发送测试群

@@ -171,7 +171,7 @@ export default function ReferralContributorPage() {
         <Card title="">
           <div className="text-center py-3">
             <p className="text-xs text-[var(--text-muted)] mb-1">总带新注册</p>
-            <p className="text-3xl font-bold text-navy-500">{totalNew.toLocaleString()}</p>
+            <p className="text-3xl font-bold text-action-accent">{totalNew.toLocaleString()}</p>
             <p className="text-xs text-[var(--text-muted)] mt-1">
               整体转化率 {totalNew > 0 ? ((totalPaid / totalNew) * 100).toFixed(1) + '%' : '—'}
             </p>
@@ -276,7 +276,7 @@ export default function ReferralContributorPage() {
                   </td>
                   <td className="slide-td text-right font-mono tabular-nums">
                     {r.cc_new_count > 0 ? (
-                      <span className="text-navy-500 font-semibold">{r.cc_new_count}</span>
+                      <span className="text-action-accent font-semibold">{r.cc_new_count}</span>
                     ) : (
                       <span className="text-[var(--text-muted)]">—</span>
                     )}

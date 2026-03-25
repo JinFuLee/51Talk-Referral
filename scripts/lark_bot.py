@@ -170,7 +170,35 @@ def cached_paste(
     return url
 
 
-# ── 色板（SEE Design System — Warm Neutral）─────────────────────────────────
+# ── 色板（从 config/theme.json 读取，fallback 到内联默认值）────────────────
+
+def _load_theme() -> dict:
+    """从 config/theme.json 加载品牌色板，不存在则使用内联默认值。"""
+    theme_path = PROJECT_ROOT / "config" / "theme.json"
+    if theme_path.exists():
+        try:
+            return json.loads(theme_path.read_text("utf-8"))
+        except Exception:
+            pass
+    return {
+        "brand": {
+            "primary": "#FFD100",
+            "primary_hover": "#FFDA33",
+            "primary_active": "#E6BC00",
+            "secondary": "#1B365D",
+            "secondary_hover": "#234B82",
+            "secondary_active": "#0F2440",
+        },
+        "semantic": {
+            "success": "#2D9F6F",
+            "warning": "#E8932A",
+            "danger": "#E05545",
+            "info": "#1B365D",
+        },
+    }
+
+
+_THEME = _load_theme()
 
 C_BG = "#FAFAF9"
 C_SURFACE = "#F5F5F4"
@@ -181,13 +209,14 @@ C_TEXT2 = "#57534E"
 C_TEXT = "#1C1917"
 C_HEADER = "#1C1917"
 C_N800 = "#292524"
-C_SUCCESS = "#059669"
-C_WARNING = "#D97706"
-C_DANGER = "#DC2626"
+C_SUCCESS = _THEME["semantic"]["success"]
+C_WARNING = _THEME["semantic"]["warning"]
+C_DANGER = _THEME["semantic"]["danger"]
 C_GREEN_BG = "#ECFDF5"
 C_YELLOW_BG = "#FFFBEB"
 C_RED_BG = "#FEF2F2"
-C_BRAND_P1 = "#92400E"
+C_BRAND_P1 = _THEME["brand"]["primary"]
+C_BRAND_P2 = _THEME["brand"]["secondary"]
 
 # 字体 fallback（中泰英全覆盖）
 CJK_FONTS = ["Arial Unicode MS", "Heiti TC", "Songti SC", "Tahoma", "DejaVu Sans"]

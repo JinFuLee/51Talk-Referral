@@ -74,7 +74,7 @@ export function OutputGallery({ platform: _platform }: OutputGalleryProps) {
           type="date"
           value={date}
           onChange={(e) => setDate(e.target.value)}
-          className="text-sm border border-[var(--border-subtle)] rounded-lg px-3 py-1.5 outline-none focus:ring-2 focus:ring-brand-500"
+          className="text-sm border border-[var(--border-subtle)] rounded-lg px-3 py-1.5 outline-none focus:ring-2 focus:ring-action"
         />
         <div className="flex gap-1.5 flex-wrap">
           {ROLES.map((r) => (
@@ -83,7 +83,7 @@ export function OutputGallery({ platform: _platform }: OutputGalleryProps) {
               onClick={() => setRole(r)}
               className={`px-2.5 py-1 rounded-full text-xs font-medium transition-colors ${
                 role === r
-                  ? 'bg-brand-400 text-white'
+                  ? 'bg-action text-white'
                   : 'bg-[var(--bg-subtle)] text-[var(--text-secondary)] hover:bg-[var(--bg-elevated)]'
               }`}
             >

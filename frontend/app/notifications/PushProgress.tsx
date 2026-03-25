@@ -44,7 +44,7 @@ export function PushProgress({ items }: PushProgressProps) {
         </div>
         <div className="w-full h-1.5 bg-[var(--bg-subtle)] rounded-full overflow-hidden">
           <div
-            className="h-full bg-brand-500 rounded-full transition-all duration-300"
+            className="h-full bg-action-active rounded-full transition-all duration-300"
             style={{ width: `${pct}%` }}
           />
         </div>

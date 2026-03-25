@@ -1,16 +1,16 @@
-"use client";
+'use client';
 
-import { Card } from "@/components/ui/Card";
-import { NumInput, PctInput } from "@/components/ui/NumInput";
-import type { SOPTargets, MonthlyTargetV2 } from "@/lib/types";
+import { Card } from '@/components/ui/Card';
+import { NumInput, PctInput } from '@/components/ui/NumInput';
+import type { SOPTargets, MonthlyTargetV2 } from '@/lib/types';
 
 function CollapseToggle({ open, onToggle }: { open: boolean; onToggle: () => void }) {
   return (
     <button
       onClick={onToggle}
-      className="text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)] flex items-center gap-1 transition-colors focus-visible:ring-2 focus-visible:ring-brand-500 rounded"
+      className="text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)] flex items-center gap-1 transition-colors focus-visible:ring-2 focus-visible:ring-action rounded"
     >
-      <span>{open ? "▼ 收起" : "▶ 展开"}</span>
+      <span>{open ? '▼ 收起' : '▶ 展开'}</span>
     </button>
   );
 }
@@ -22,17 +22,9 @@ interface SOPSettingsCardProps {
   onUpdateSOP: (patch: Partial<SOPTargets>) => void;
 }
 
-export default function SOPSettingsCard({
-  v2,
-  open,
-  onToggle,
-  onUpdateSOP,
-}: SOPSettingsCardProps) {
+export default function SOPSettingsCard({ v2, open, onToggle, onUpdateSOP }: SOPSettingsCardProps) {
   return (
-    <Card
-      title="SOP 过程指标"
-      actions={<CollapseToggle open={open} onToggle={onToggle} />}
-    >
+    <Card title="SOP 过程指标" actions={<CollapseToggle open={open} onToggle={onToggle} />}>
       {open ? (
         <div className="grid grid-cols-2 gap-2">
           <div>
@@ -44,10 +36,7 @@ export default function SOPSettingsCard({
           </div>
           <div>
             <label className="text-xs text-[var(--text-secondary)] mb-1 block">触达率</label>
-            <PctInput
-              value={v2.sop.reach_rate}
-              onChange={(v) => onUpdateSOP({ reach_rate: v })}
-            />
+            <PctInput value={v2.sop.reach_rate} onChange={(v) => onUpdateSOP({ reach_rate: v })} />
           </div>
           <div>
             <label className="text-xs text-[var(--text-secondary)] mb-1 block">参与率</label>

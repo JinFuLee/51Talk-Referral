@@ -36,6 +36,7 @@ input/
 output/
 logs/
 config/
+!config/theme.json
 data/
 key/
 *.xlsx

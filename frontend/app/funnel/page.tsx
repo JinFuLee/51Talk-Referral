@@ -333,7 +333,7 @@ export default function FunnelPage() {
                     <td className="py-1 px-2 text-xs text-right font-mono tabular-nums text-[var(--text-secondary)]">
                       {formatRate(s.current_rate)}
                     </td>
-                    <td className="py-1 px-2 text-xs text-right font-mono tabular-nums text-navy-500 font-medium">
+                    <td className="py-1 px-2 text-xs text-right font-mono tabular-nums text-action-accent font-medium">
                       {formatRate(s.scenario_rate)}
                     </td>
                     <td className="py-1 px-2 text-xs text-right font-mono tabular-nums">

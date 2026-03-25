@@ -66,7 +66,7 @@ export function CoPilotTerminal() {
           isOpen ? 'scale-0 opacity-0 pointer-events-none' : 'scale-100 opacity-100'
         )}
       >
-        <Sparkles className="w-6 h-6 animate-pulse text-brand-400" />
+        <Sparkles className="w-6 h-6 animate-pulse text-action" />
       </button>
 
       {/* Terminal Window */}
@@ -79,7 +79,7 @@ export function CoPilotTerminal() {
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 bg-slate-900 border-b border-slate-800">
           <div className="flex items-center gap-2">
-            <TerminalIcon className="w-4 h-4 text-brand-400" />
+            <TerminalIcon className="w-4 h-4 text-action" />
             <span className="text-sm font-semibold tracking-tight text-slate-200">
               Co-pilot Terminal
             </span>
@@ -103,12 +103,12 @@ export function CoPilotTerminal() {
                 className={cn(
                   'max-w-[85%] rounded-xl px-4 py-2.5 text-sm whitespace-pre-wrap',
                   msg.role === 'user'
-                    ? 'bg-brand-600 text-white'
+                    ? 'bg-action-active text-white'
                     : 'bg-slate-800 text-slate-300 font-mono tracking-tight'
                 )}
               >
                 {msg.role === 'assistant' && (
-                  <Bot className="w-3 h-3 text-brand-400 inline mr-2 mb-0.5" />
+                  <Bot className="w-3 h-3 text-action inline mr-2 mb-0.5" />
                 )}
                 {msg.content}
               </div>
@@ -135,12 +135,12 @@ export function CoPilotTerminal() {
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSend()}
               placeholder="Ask Team Agent..."
-              className="w-full bg-slate-950 text-slate-200 text-sm rounded-xl py-2.5 pl-4 pr-10 border border-slate-800 focus:outline-none focus:ring-1 focus:ring-brand-500 font-mono placeholder:text-slate-600"
+              className="w-full bg-slate-950 text-slate-200 text-sm rounded-xl py-2.5 pl-4 pr-10 border border-slate-800 focus:outline-none focus:ring-1 focus:ring-action font-mono placeholder:text-slate-600"
             />
             <button
               onClick={handleSend}
               disabled={!input.trim() || isTyping}
-              className="absolute right-2 text-[var(--text-muted)] hover:text-brand-400 disabled:opacity-50 transition-colors"
+              className="absolute right-2 text-[var(--text-muted)] hover:text-action disabled:opacity-50 transition-colors"
             >
               <Send className="w-4 h-4" />
             </button>

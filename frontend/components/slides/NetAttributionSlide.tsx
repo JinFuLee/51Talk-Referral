@@ -61,7 +61,7 @@ export function NetAttributionSlide({ slideNumber, totalSlides }: SlideProps) {
                   <td className="px-2 py-1 text-xs text-right font-mono tabular-nums text-[var(--text-muted)]">
                     {formatRate(c.share)}
                   </td>
-                  <td className="px-2 py-1 text-xs text-right font-mono tabular-nums font-semibold text-navy-500">
+                  <td className="px-2 py-1 text-xs text-right font-mono tabular-nums font-semibold text-action-accent">
                     {formatRevenue(c.per_capita)}
                   </td>
                 </tr>

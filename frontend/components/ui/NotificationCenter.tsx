@@ -70,7 +70,7 @@ export function NotificationCenter() {
             <div className="flex items-center gap-2">
               <button
                 onClick={markAllRead}
-                className="text-[11px] text-brand-600 hover:text-brand-700 font-medium"
+                className="text-[11px] text-action-text hover:text-action-text font-medium"
               >
                 全部已读
               </button>
@@ -87,13 +87,13 @@ export function NotificationCenter() {
           <div className="flex border-b border-[var(--border-subtle)]">
             <button
               onClick={() => setFilter('all')}
-              className={`flex-1 py-2 text-xs font-medium text-center ${filter === 'all' ? 'text-brand-600 border-b-2 border-brand-600' : 'text-[var(--text-secondary)]'}`}
+              className={`flex-1 py-2 text-xs font-medium text-center ${filter === 'all' ? 'text-action-text border-b-2 border-action-active' : 'text-[var(--text-secondary)]'}`}
             >
               全部
             </button>
             <button
               onClick={() => setFilter('unread')}
-              className={`flex-1 py-2 text-xs font-medium text-center ${filter === 'unread' ? 'text-brand-600 border-b-2 border-brand-600' : 'text-[var(--text-secondary)]'}`}
+              className={`flex-1 py-2 text-xs font-medium text-center ${filter === 'unread' ? 'text-action-text border-b-2 border-action-active' : 'text-[var(--text-secondary)]'}`}
             >
               未读 ({unreadCount})
             </button>
@@ -108,7 +108,7 @@ export function NotificationCenter() {
                 {filtered.map((n) => (
                   <div
                     key={n.id}
-                    className={`p-4 transition-colors hover:bg-slate-50/50 ${!n.read ? 'bg-brand-50/30' : ''}`}
+                    className={`p-4 transition-colors hover:bg-slate-50/50 ${!n.read ? 'bg-action-surface/30' : ''}`}
                   >
                     <div className="flex gap-3">
                       <div className="shrink-0 mt-0.5">
@@ -116,7 +116,7 @@ export function NotificationCenter() {
                         {n.type === 'warning' && (
                           <AlertTriangle className="w-4 h-4 text-amber-500" />
                         )}
-                        {n.type === 'info' && <Info className="w-4 h-4 text-brand-500" />}
+                        {n.type === 'info' && <Info className="w-4 h-4 text-action-text" />}
                       </div>
                       <div className="flex-1 space-y-1">
                         <div className="flex items-start justify-between">
@@ -142,7 +142,7 @@ export function NotificationCenter() {
                               )
                             );
                           }}
-                          className="shrink-0 p-1 text-[var(--text-muted)] hover:text-brand-600 self-center transition-colors"
+                          className="shrink-0 p-1 text-[var(--text-muted)] hover:text-action-text self-center transition-colors"
                           title="标记为已读"
                         >
                           <Check className="w-4 h-4" />

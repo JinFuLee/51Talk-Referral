@@ -175,7 +175,7 @@ function CCTabContent({
             onClick={() => onFilterChange(f.value)}
             className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${
               filter === f.value
-                ? 'bg-navy-500 text-white'
+                ? 'bg-action-accent text-white'
                 : 'bg-[var(--bg-subtle)] text-[var(--text-secondary)] hover:bg-[var(--bg-subtle)]'
             }`}
           >

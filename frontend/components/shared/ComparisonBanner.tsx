@@ -69,7 +69,7 @@ export function ComparisonBanner() {
           colorCls = 'text-[var(--text-muted)]';
         } else if (pct > 0) {
           dirIcon = `▲${Math.abs(pct).toFixed(1)}%`;
-          colorCls = 'text-brand-500';
+          colorCls = 'text-action-text';
         } else if (pct < 0) {
           dirIcon = `▼${Math.abs(pct).toFixed(1)}%`;
           colorCls = 'text-red-500';

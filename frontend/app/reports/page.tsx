@@ -51,7 +51,7 @@ export default function ReportsPage() {
                       onClick={() => handleSelect(r)}
                       className={`w-full text-left px-3 py-2.5 rounded-lg text-sm transition-colors ${
                         selected?.filename === r.filename
-                          ? 'bg-brand-100 text-brand-700 font-medium'
+                          ? 'bg-action-surface text-action-text font-medium'
                           : 'hover:bg-[var(--bg-subtle)] text-[var(--text-secondary)]'
                       }`}
                     >
@@ -60,7 +60,7 @@ export default function ReportsPage() {
                         <span
                           className={`text-xs px-1.5 py-0.5 rounded ${
                             r.report_type === 'ops'
-                              ? 'bg-navy-100 text-navy-600'
+                              ? 'bg-navy-100 text-action-accent'
                               : r.report_type === 'exec'
                                 ? 'bg-purple-100 text-purple-700'
                                 : 'bg-[var(--bg-subtle)] text-[var(--text-secondary)]'

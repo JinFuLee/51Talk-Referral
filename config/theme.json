@@ -1,0 +1,25 @@
+{
+  "brand": {
+    "primary": "#FFD100",
+    "primary_hover": "#FFDA33",
+    "primary_active": "#E6BC00",
+    "secondary": "#1B365D",
+    "secondary_hover": "#234B82",
+    "secondary_active": "#0F2440"
+  },
+  "semantic": {
+    "success": "#2D9F6F",
+    "warning": "#E8932A",
+    "danger": "#E05545",
+    "info": "#1B365D"
+  },
+  "chart_palette": ["#FFD100", "#1B365D", "#E8932A", "#2D9F6F", "#E05545"],
+  "neutral": {
+    "50": "#FAFAF5",
+    "100": "#F5F5F0",
+    "200": "#E8E8E0",
+    "700": "#3d3d37",
+    "800": "#292521",
+    "900": "#1c1815"
+  }
+}

@@ -46,7 +46,9 @@ export function ScenarioAnalysisSlide({ slideNumber, totalSlides }: SlideProps) 
             </div>
             <div className="bg-navy-50 rounded-lg p-4">
               <p className="text-xs text-[var(--text-muted)] mb-1">场景转化率</p>
-              <p className="text-2xl font-bold text-navy-500">{formatRate(data.scenario_rate)}</p>
+              <p className="text-2xl font-bold text-action-accent">
+                {formatRate(data.scenario_rate)}
+              </p>
             </div>
           </div>
           <div className="grid grid-cols-3 gap-3">

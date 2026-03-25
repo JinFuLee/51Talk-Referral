@@ -42,6 +42,20 @@ const config: Config = {
           '800': '#0F2440',
           '900': '#091527',
         },
+        /* ── 语义 Token Tailwind 类（组件唯一引用层）── */
+        action: {
+          DEFAULT: 'var(--color-action)',
+          hover: 'var(--color-action-hover)',
+          active: 'var(--color-action-active)',
+          text: 'var(--color-action-text)',
+          surface: 'var(--color-action-surface)',
+        },
+        'action-accent': {
+          DEFAULT: 'var(--color-accent)',
+          hover: 'var(--color-accent-hover)',
+          active: 'var(--color-accent-active)',
+          text: 'var(--color-accent-text)',
+        },
         background: 'hsl(var(--background))',
         foreground: 'hsl(var(--foreground))',
         card: {

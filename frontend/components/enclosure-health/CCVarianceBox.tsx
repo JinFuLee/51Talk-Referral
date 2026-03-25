@@ -71,7 +71,7 @@ export function CCVarianceBox({ data }: CCVarianceBoxProps) {
 
               {/* 均值竖线 */}
               <div
-                className="absolute inset-y-0 w-0.5 bg-navy-500"
+                className="absolute inset-y-0 w-0.5 bg-action-accent"
                 style={{ left: `${meanPos}%` }}
               />
 
@@ -87,7 +87,7 @@ export function CCVarianceBox({ data }: CCVarianceBoxProps) {
 
       <div className="flex items-center gap-4 text-[10px] text-[var(--text-muted)] mt-1">
         <div className="flex items-center gap-1">
-          <div className="w-3 h-0.5 bg-navy-500" />
+          <div className="w-3 h-0.5 bg-action-accent" />
           <span>均值</span>
         </div>
         <div className="flex items-center gap-1">

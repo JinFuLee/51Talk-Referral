@@ -54,7 +54,7 @@ export default function TargetSettingsCard({
                     </div>
                     <button
                       onClick={() => onApplyScenario(s)}
-                      className="mt-2 w-full px-2 py-1 text-xs font-medium rounded bg-[var(--bg-surface)] border border-[var(--border-subtle)] hover:bg-[var(--bg-primary)] transition-colors focus-visible:ring-2 focus-visible:ring-brand-500"
+                      className="mt-2 w-full px-2 py-1 text-xs font-medium rounded bg-[var(--bg-surface)] border border-[var(--border-subtle)] hover:bg-[var(--bg-primary)] transition-colors focus-visible:ring-2 focus-visible:ring-action"
                     >
                       应用此方案
                     </button>
@@ -123,7 +123,7 @@ export default function TargetSettingsCard({
             <select
               value={v2.hard.display_currency}
               onChange={(e) => onUpdateHard({ display_currency: e.target.value as 'THB' | 'USD' })}
-              className="px-2 py-1 border border-[var(--border-subtle)] rounded text-sm focus-visible:ring-2 focus-visible:ring-brand-500"
+              className="px-2 py-1 border border-[var(--border-subtle)] rounded text-sm focus-visible:ring-2 focus-visible:ring-action"
             >
               <option value="THB">THB</option>
               <option value="USD">USD</option>
@@ -136,7 +136,7 @@ export default function TargetSettingsCard({
                 type="radio"
                 checked={v2.hard.lock_field === 'pct'}
                 onChange={() => onUpdateHard({ lock_field: 'pct' })}
-                className="focus-visible:ring-2 focus-visible:ring-brand-500"
+                className="focus-visible:ring-2 focus-visible:ring-action"
               />
               <PctInput
                 value={v2.hard.referral_pct}
@@ -151,7 +151,7 @@ export default function TargetSettingsCard({
                 type="radio"
                 checked={v2.hard.lock_field === 'amount'}
                 onChange={() => onUpdateHard({ lock_field: 'amount' })}
-                className="focus-visible:ring-2 focus-visible:ring-brand-500"
+                className="focus-visible:ring-2 focus-visible:ring-action"
               />
               <NumInput
                 value={v2.hard.referral_revenue}

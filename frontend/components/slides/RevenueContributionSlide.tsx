@@ -62,7 +62,7 @@ export function RevenueContributionSlide({ slideNumber, totalSlides }: SlideProp
                   <td className="px-2 py-1 text-xs text-right font-mono tabular-nums text-[var(--text-muted)]">
                     {formatRate(c.share)}
                   </td>
-                  <td className="px-2 py-1 text-xs text-right font-mono tabular-nums text-navy-500 font-semibold">
+                  <td className="px-2 py-1 text-xs text-right font-mono tabular-nums text-action-accent font-semibold">
                     {formatRevenue(c.per_capita)}
                   </td>
                 </tr>

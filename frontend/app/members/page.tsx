@@ -248,9 +248,9 @@ export default function MembersPage() {
                       <tr
                         key={m.id}
                         onClick={() => setSelectedId(m.id)}
-                        className="even:bg-[var(--bg-subtle)] cursor-pointer hover:bg-brand-50 transition-colors"
+                        className="even:bg-[var(--bg-subtle)] cursor-pointer hover:bg-action-surface transition-colors"
                       >
-                        <td className="py-1 px-2 text-xs text-navy-500 font-medium font-mono tabular-nums whitespace-nowrap">
+                        <td className="py-1 px-2 text-xs text-action-accent font-medium font-mono tabular-nums whitespace-nowrap">
                           {m.id}
                         </td>
                         <td className="py-1 px-2 text-xs text-[var(--text-secondary)] whitespace-nowrap">

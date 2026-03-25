@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { ReactNode } from "react";
-import { LucideIcon } from "lucide-react";
+import { ReactNode } from 'react';
+import { LucideIcon } from 'lucide-react';
 
 export interface PageHeaderProps {
   title: string;
@@ -11,18 +11,12 @@ export interface PageHeaderProps {
   children?: ReactNode; // 用于放置页面级操作按钮 (e.g. RunAnalysisButton)
 }
 
-export function PageHeader({
-  title,
-  subtitle,
-  icon: Icon,
-  badge,
-  children,
-}: PageHeaderProps) {
+export function PageHeader({ title, subtitle, icon: Icon, badge, children }: PageHeaderProps) {
   return (
     <div className="flex flex-col sm:flex-row sm:items-center justify-between shadow-sm pb-2 mb-4 border-b border-transparent">
       <div className="flex items-start sm:items-center gap-3">
         {Icon && (
-          <div className="p-2 bg-brand-50 text-brand-600 rounded-lg">
+          <div className="p-2 bg-action-surface text-action-text rounded-lg">
             <Icon className="w-5 h-5" />
           </div>
         )}
@@ -35,18 +29,12 @@ export function PageHeader({
               </span>
             )}
           </h1>
-          {subtitle && (
-            <p className="text-xs text-[var(--text-muted)] mt-0.5">{subtitle}</p>
-          )}
+          {subtitle && <p className="text-xs text-[var(--text-muted)] mt-0.5">{subtitle}</p>}
         </div>
       </div>
-      
+
       {/* 操作按钮区 */}
-      {children && (
-        <div className="mt-3 sm:mt-0 flex items-center gap-2">
-          {children}
-        </div>
-      )}
+      {children && <div className="mt-3 sm:mt-0 flex items-center gap-2">{children}</div>}
     </div>
   );
 }

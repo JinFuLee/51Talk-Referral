@@ -56,7 +56,7 @@ export function Topbar() {
         {/* Presentation Mode Toggle */}
         <button
           onClick={togglePresentationMode}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[var(--bg-subtle)] border border-[var(--border-subtle)] text-xs font-semibold text-[var(--text-secondary)] hover:text-brand-600 hover:bg-brand-50 hover:border-brand-200 transition-all"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[var(--bg-subtle)] border border-[var(--border-subtle)] text-xs font-semibold text-[var(--text-secondary)] hover:text-action-text hover:bg-action-surface hover:border-action transition-all"
         >
           <MonitorPlay className="w-3.5 h-3.5" />
           <span>汇报沉浸模式</span>

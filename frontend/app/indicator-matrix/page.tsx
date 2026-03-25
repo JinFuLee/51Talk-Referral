@@ -208,7 +208,7 @@ export default function IndicatorMatrixPage() {
         <button
           onClick={handleSave}
           disabled={saving || isLoading}
-          className="px-4 py-2 bg-brand-400 text-white rounded-lg text-sm font-medium hover:bg-brand-500 disabled:opacity-50 transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-brand-500"
+          className="px-4 py-2 bg-action text-white rounded-lg text-sm font-medium hover:bg-action-active disabled:opacity-50 transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-action"
         >
           {saving ? '保存中…' : '保存配置'}
         </button>
@@ -227,7 +227,7 @@ export default function IndicatorMatrixPage() {
         <select
           value={filterCategory}
           onChange={(e) => setFilterCategory(e.target.value as IndicatorCategory | 'all')}
-          className="px-3 py-1.5 border border-[var(--border-default)] rounded-md text-sm bg-[var(--bg-surface)] text-[var(--text-primary)] focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+          className="px-3 py-1.5 border border-[var(--border-default)] rounded-md text-sm bg-[var(--bg-surface)] text-[var(--text-primary)] focus:outline-none focus-visible:ring-2 focus-visible:ring-action"
         >
           <option value="all">全部分类</option>
           {INDICATOR_CATEGORIES.map((cat) => (
@@ -240,7 +240,7 @@ export default function IndicatorMatrixPage() {
         <select
           value={filterRole}
           onChange={(e) => setFilterRole(e.target.value as typeof filterRole)}
-          className="px-3 py-1.5 border border-[var(--border-default)] rounded-md text-sm bg-[var(--bg-surface)] text-[var(--text-primary)] focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+          className="px-3 py-1.5 border border-[var(--border-default)] rounded-md text-sm bg-[var(--bg-surface)] text-[var(--text-primary)] focus:outline-none focus-visible:ring-2 focus-visible:ring-action"
         >
           <option value="all">全部角色</option>
           <option value="CC">CC</option>
@@ -251,7 +251,7 @@ export default function IndicatorMatrixPage() {
         <select
           value={filterAvailability}
           onChange={(e) => setFilterAvailability(e.target.value as IndicatorAvailability | 'all')}
-          className="px-3 py-1.5 border border-[var(--border-default)] rounded-md text-sm bg-[var(--bg-surface)] text-[var(--text-primary)] focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+          className="px-3 py-1.5 border border-[var(--border-default)] rounded-md text-sm bg-[var(--bg-surface)] text-[var(--text-primary)] focus:outline-none focus-visible:ring-2 focus-visible:ring-action"
         >
           <option value="all">全部状态</option>
           <option value="available">可用</option>
@@ -330,8 +330,8 @@ export default function IndicatorMatrixPage() {
 
                         {/* CC — 系统锁定全量 */}
                         <div className="w-14 flex justify-center">
-                          <div className="w-4 h-4 rounded border-2 border-brand-400 bg-brand-100 flex items-center justify-center">
-                            <div className="w-2 h-2 rounded-sm bg-brand-400" />
+                          <div className="w-4 h-4 rounded border-2 border-action bg-action-surface flex items-center justify-center">
+                            <div className="w-2 h-2 rounded-sm bg-action" />
                           </div>
                         </div>
 
@@ -342,7 +342,7 @@ export default function IndicatorMatrixPage() {
                             checked={ssActive.has(ind.id)}
                             disabled={disabled}
                             onChange={() => !disabled && toggleSS(ind.id)}
-                            className="w-4 h-4 rounded border-[var(--border-default)] accent-brand-400 cursor-pointer disabled:cursor-not-allowed disabled:opacity-40 focus-visible:ring-2 focus-visible:ring-brand-500"
+                            className="w-4 h-4 rounded border-[var(--border-default)] accent-action cursor-pointer disabled:cursor-not-allowed disabled:opacity-40 focus-visible:ring-2 focus-visible:ring-action"
                             aria-label={`SS 启用 ${name}`}
                           />
                         </div>
@@ -354,7 +354,7 @@ export default function IndicatorMatrixPage() {
                             checked={lpActive.has(ind.id)}
                             disabled={disabled}
                             onChange={() => !disabled && toggleLP(ind.id)}
-                            className="w-4 h-4 rounded border-[var(--border-default)] accent-brand-400 cursor-pointer disabled:cursor-not-allowed disabled:opacity-40 focus-visible:ring-2 focus-visible:ring-brand-500"
+                            className="w-4 h-4 rounded border-[var(--border-default)] accent-action cursor-pointer disabled:cursor-not-allowed disabled:opacity-40 focus-visible:ring-2 focus-visible:ring-action"
                             aria-label={`LP 启用 ${name}`}
                           />
                         </div>
