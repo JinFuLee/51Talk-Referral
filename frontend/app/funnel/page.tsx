@@ -184,10 +184,18 @@ export default function FunnelPage() {
                     <tr key={s.name} className={i % 2 === 0 ? 'slide-row-even' : 'slide-row-odd'}>
                       <td className="slide-td font-medium">{s.name}</td>
                       <td className="slide-td text-right font-mono tabular-nums text-[var(--text-secondary)]">
-                        {s.target != null ? s.target.toLocaleString() : '—'}
+                        {s.target != null
+                          ? s.name.includes('率')
+                            ? formatRate(s.target)
+                            : s.target.toLocaleString()
+                          : '—'}
                       </td>
                       <td className="slide-td text-right font-mono tabular-nums font-semibold">
-                        {s.actual != null ? s.actual.toLocaleString() : '—'}
+                        {s.actual != null
+                          ? s.name.includes('率')
+                            ? formatRate(s.actual)
+                            : s.actual.toLocaleString()
+                          : '—'}
                       </td>
                       <td
                         className={`slide-td text-right font-mono tabular-nums font-medium ${(s.gap ?? 0) >= 0 ? 'text-green-600' : 'text-red-500'}`}
