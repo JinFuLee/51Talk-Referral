@@ -74,8 +74,24 @@ export function ConversionRateSlide({ slideNumber, totalSlides }: SlideProps) {
             <CartesianGrid strokeDasharray="3 3" vertical={false} />
             <XAxis dataKey="name" tick={{ fontSize: 14 }} />
             <YAxis tickFormatter={(v) => `${v}%`} tick={{ fontSize: 12 }} />
-            <Tooltip formatter={(v: number) => `${v}%`} />
-            <Bar dataKey="actual" name="实际转化率" radius={[6, 6, 0, 0]}>
+            <Tooltip
+              formatter={(v: number) => `${v}%`}
+              contentStyle={{
+                background: 'var(--bg-surface)',
+                border: '1px solid var(--border-default)',
+                borderRadius: 'var(--radius-md, 10px)',
+                boxShadow: 'var(--shadow-medium)',
+                fontSize: '12px',
+              }}
+              cursor={{ stroke: 'var(--border-hover)', strokeDasharray: '4 4' }}
+            />
+            <Bar
+              dataKey="actual"
+              name="实际转化率"
+              radius={[6, 6, 0, 0]}
+              animationDuration={600}
+              animationEasing="ease-out"
+            >
               {chartData.map((entry, i) => (
                 <Cell key={i} fill={entry.gap >= 0 ? 'var(--chart-4-hex)' : 'var(--chart-5-hex)'} />
               ))}

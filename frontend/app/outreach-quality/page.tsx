@@ -139,12 +139,45 @@ export default function OutreachQualityPage() {
               <CartesianGrid strokeDasharray="3 3" vertical={false} />
               <XAxis dataKey="name" tick={{ fontSize: 11 }} />
               <YAxis tick={{ fontSize: 11 }} />
-              <Tooltip />
-              <Legend wrapperStyle={{ fontSize: 12 }} />
-              <Bar dataKey="CC接通" fill={CHART_PALETTE.c1} radius={[3, 3, 0, 0]} />
-              <Bar dataKey="SS接通" fill={CHART_PALETTE.c2} radius={[3, 3, 0, 0]} />
-              <Bar dataKey="LP接通" fill={CHART_PALETTE.c3} radius={[3, 3, 0, 0]} />
-              <Bar dataKey="有效打卡" fill={CHART_PALETTE.c4} radius={[3, 3, 0, 0]} />
+              <Tooltip
+                contentStyle={{
+                  background: 'var(--bg-surface)',
+                  border: '1px solid var(--border-default)',
+                  borderRadius: 'var(--radius-md, 10px)',
+                  boxShadow: 'var(--shadow-medium)',
+                  fontSize: '12px',
+                }}
+                cursor={{ stroke: 'var(--border-hover)', strokeDasharray: '4 4' }}
+              />
+              <Legend wrapperStyle={{ paddingTop: 12 }} iconType="circle" iconSize={8} />
+              <Bar
+                dataKey="CC接通"
+                fill={CHART_PALETTE.c1}
+                radius={[3, 3, 0, 0]}
+                animationDuration={600}
+                animationEasing="ease-out"
+              />
+              <Bar
+                dataKey="SS接通"
+                fill={CHART_PALETTE.c2}
+                radius={[3, 3, 0, 0]}
+                animationDuration={600}
+                animationEasing="ease-out"
+              />
+              <Bar
+                dataKey="LP接通"
+                fill={CHART_PALETTE.c3}
+                radius={[3, 3, 0, 0]}
+                animationDuration={600}
+                animationEasing="ease-out"
+              />
+              <Bar
+                dataKey="有效打卡"
+                fill={CHART_PALETTE.c4}
+                radius={[3, 3, 0, 0]}
+                animationDuration={600}
+                animationEasing="ease-out"
+              />
             </BarChart>
           </ResponsiveContainer>
         </Card>

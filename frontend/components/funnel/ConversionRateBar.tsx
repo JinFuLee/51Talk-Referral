@@ -61,9 +61,22 @@ export function ConversionRateBar({ stages, height = 240 }: ConversionRateBarPro
         />
         <Tooltip
           formatter={(v: number, name: string) => [`${v}%`, name === 'actual' ? '实际' : '目标']}
-          contentStyle={{ fontSize: 12 }}
+          contentStyle={{
+            background: 'var(--bg-surface)',
+            border: '1px solid var(--border-default)',
+            borderRadius: 'var(--radius-md, 10px)',
+            boxShadow: 'var(--shadow-medium)',
+            fontSize: '12px',
+          }}
+          cursor={{ stroke: 'var(--border-hover)', strokeDasharray: '4 4' }}
         />
-        <Bar dataKey="actual" name="actual" radius={[4, 4, 0, 0]}>
+        <Bar
+          dataKey="actual"
+          name="actual"
+          radius={[4, 4, 0, 0]}
+          animationDuration={600}
+          animationEasing="ease-out"
+        >
           {chartData.map((entry, i) => (
             <Cell key={i} fill={gapColor(entry.gap)} />
           ))}
@@ -76,6 +89,8 @@ export function ConversionRateBar({ stages, height = 240 }: ConversionRateBarPro
           radius={[4, 4, 0, 0]}
           fill={CHART_PALETTE.info}
           opacity={0.25}
+          animationDuration={600}
+          animationEasing="ease-out"
         />
       </BarChart>
     </ResponsiveContainer>

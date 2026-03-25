@@ -53,11 +53,18 @@ export function CCContactRanking({ data }: CCContactRankingProps) {
           contentStyle={{
             background: 'var(--bg-surface)',
             border: '1px solid var(--border-default)',
-            borderRadius: 8,
-            fontSize: 12,
+            borderRadius: 'var(--radius-md, 10px)',
+            boxShadow: 'var(--shadow-medium)',
+            fontSize: '12px',
           }}
+          cursor={{ stroke: 'var(--border-hover)', strokeDasharray: '4 4' }}
         />
-        <Bar dataKey="触达率" radius={[0, 4, 4, 0]}>
+        <Bar
+          dataKey="触达率"
+          radius={[0, 4, 4, 0]}
+          animationDuration={600}
+          animationEasing="ease-out"
+        >
           {chartData.map((_, i) => (
             <Cell key={i} fill={COLORS[i % COLORS.length]} />
           ))}

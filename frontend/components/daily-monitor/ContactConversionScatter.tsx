@@ -109,13 +109,14 @@ export function ContactConversionScatter({ data }: ContactConversionScatterProps
           />
         </YAxis>
         <Tooltip
-          cursor={{ strokeDasharray: '3 3' }}
+          cursor={{ stroke: 'var(--border-hover)', strokeDasharray: '4 4' }}
           formatter={(v: number, name: string) => [`${v}%`, name]}
           contentStyle={{
             background: 'var(--bg-surface)',
             border: '1px solid var(--border-default)',
-            borderRadius: 8,
-            fontSize: 12,
+            borderRadius: 'var(--radius-md, 10px)',
+            boxShadow: 'var(--shadow-medium)',
+            fontSize: '12px',
           }}
         />
         <Scatter

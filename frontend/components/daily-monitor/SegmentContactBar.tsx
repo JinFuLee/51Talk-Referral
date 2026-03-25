@@ -40,19 +40,37 @@ export function SegmentContactBar({ data }: SegmentContactBarProps) {
           contentStyle={{
             background: 'var(--bg-surface)',
             border: '1px solid var(--border-default)',
-            borderRadius: 8,
-            fontSize: 12,
+            borderRadius: 'var(--radius-md, 10px)',
+            boxShadow: 'var(--shadow-medium)',
+            fontSize: '12px',
           }}
+          cursor={{ stroke: 'var(--border-hover)', strokeDasharray: '4 4' }}
         />
-        <Legend wrapperStyle={{ fontSize: 12 }} />
-        <Bar dataKey="CC" stackId="a" fill={CHART_PALETTE.series[0]} name="CC 触达率" />
-        <Bar dataKey="SS" stackId="a" fill={CHART_PALETTE.series[1]} name="SS 触达率" />
+        <Legend wrapperStyle={{ paddingTop: 12 }} iconType="circle" iconSize={8} />
+        <Bar
+          dataKey="CC"
+          stackId="a"
+          fill={CHART_PALETTE.series[0]}
+          name="CC 触达率"
+          animationDuration={600}
+          animationEasing="ease-out"
+        />
+        <Bar
+          dataKey="SS"
+          stackId="a"
+          fill={CHART_PALETTE.series[1]}
+          name="SS 触达率"
+          animationDuration={600}
+          animationEasing="ease-out"
+        />
         <Bar
           dataKey="LP"
           stackId="a"
           fill={CHART_PALETTE.series[2]}
           name="LP 触达率"
           radius={[4, 4, 0, 0]}
+          animationDuration={600}
+          animationEasing="ease-out"
         />
       </BarChart>
     </ResponsiveContainer>

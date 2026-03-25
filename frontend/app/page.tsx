@@ -678,7 +678,7 @@ export default function DashboardPage() {
 
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="text-lg font-bold text-[var(--text-primary)]">运营总览</h1>
+          <h1 className="page-title">运营总览</h1>
           <p className="text-sm text-[var(--text-secondary)] mt-1">
             转介绍漏斗达成情况 · 数据源状态
           </p>

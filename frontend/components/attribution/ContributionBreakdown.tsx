@@ -55,13 +55,20 @@ export function ContributionBreakdown({ data, title }: ContributionBreakdownProp
               return [val, name];
             }}
             contentStyle={{
-              fontSize: 12,
               background: 'var(--bg-surface)',
               border: '1px solid var(--border-default)',
-              borderRadius: 8,
+              borderRadius: 'var(--radius-md, 10px)',
+              boxShadow: 'var(--shadow-medium)',
+              fontSize: '12px',
             }}
+            cursor={{ stroke: 'var(--border-hover)', strokeDasharray: '4 4' }}
           />
-          <Bar dataKey="paid_count" radius={[0, 4, 4, 0]}>
+          <Bar
+            dataKey="paid_count"
+            radius={[0, 4, 4, 0]}
+            animationDuration={600}
+            animationEasing="ease-out"
+          >
             {sorted.map((entry, idx) => (
               <Cell key={idx} fill={barColor(entry.pct_of_target)} />
             ))}

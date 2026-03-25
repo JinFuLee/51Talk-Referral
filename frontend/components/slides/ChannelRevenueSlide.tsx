@@ -71,13 +71,25 @@ export function ChannelRevenueSlide({ slideNumber, totalSlides }: SlideProps) {
                   outerRadius={100}
                   paddingAngle={3}
                   dataKey="value"
+                  animationDuration={600}
+                  animationEasing="ease-out"
                 >
                   {pieData.map((_, index) => (
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>
-                <Tooltip formatter={(value: number) => [formatRevenue(value), '金额']} />
-                <Legend />
+                <Tooltip
+                  formatter={(value: number) => [formatRevenue(value), '金额']}
+                  contentStyle={{
+                    background: 'var(--bg-surface)',
+                    border: '1px solid var(--border-default)',
+                    borderRadius: 'var(--radius-md, 10px)',
+                    boxShadow: 'var(--shadow-medium)',
+                    fontSize: '12px',
+                  }}
+                  cursor={{ stroke: 'var(--border-hover)', strokeDasharray: '4 4' }}
+                />
+                <Legend wrapperStyle={{ paddingTop: 12 }} iconType="circle" iconSize={8} />
               </PieChart>
             </ResponsiveContainer>
           </div>

@@ -38,6 +38,8 @@ export function ChannelPieChart({ channels, height = 240 }: ChannelPieChartProps
           dataKey="value"
           label={({ name, percent }) => `${name} ${formatRate(percent, 0)}`}
           labelLine={false}
+          animationDuration={600}
+          animationEasing="ease-out"
         >
           {pieData.map((_, index) => (
             <Cell key={`cell-${index}`} fill={CHANNEL_COLORS[index % CHANNEL_COLORS.length]} />
@@ -45,9 +47,21 @@ export function ChannelPieChart({ channels, height = 240 }: ChannelPieChartProps
         </Pie>
         <Tooltip
           formatter={(val: number) => [formatRevenue(val), '业绩']}
-          contentStyle={{ fontSize: 12 }}
+          contentStyle={{
+            background: 'var(--bg-surface)',
+            border: '1px solid var(--border-default)',
+            borderRadius: 'var(--radius-md, 10px)',
+            boxShadow: 'var(--shadow-medium)',
+            fontSize: '12px',
+          }}
+          cursor={{ stroke: 'var(--border-hover)', strokeDasharray: '4 4' }}
         />
-        <Legend verticalAlign="bottom" wrapperStyle={{ fontSize: 12 }} />
+        <Legend
+          verticalAlign="bottom"
+          wrapperStyle={{ paddingTop: 12 }}
+          iconType="circle"
+          iconSize={8}
+        />
       </PieChart>
     </ResponsiveContainer>
   );

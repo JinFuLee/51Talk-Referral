@@ -44,14 +44,37 @@ export function RoleCompare({ ccRate, ssRate, lpRate }: RoleCompareProps) {
           contentStyle={{
             background: 'var(--bg-surface)',
             border: '1px solid var(--border-default)',
-            borderRadius: 8,
-            fontSize: 12,
+            borderRadius: 'var(--radius-md, 10px)',
+            boxShadow: 'var(--shadow-medium)',
+            fontSize: '12px',
           }}
+          cursor={{ stroke: 'var(--border-hover)', strokeDasharray: '4 4' }}
         />
-        <Legend wrapperStyle={{ fontSize: 12 }} />
-        <Bar dataKey="CC" fill={CHART_PALETTE.series[0]} name="CC" radius={[4, 4, 0, 0]} />
-        <Bar dataKey="SS" fill={CHART_PALETTE.series[1]} name="SS" radius={[4, 4, 0, 0]} />
-        <Bar dataKey="LP" fill={CHART_PALETTE.series[2]} name="LP" radius={[4, 4, 0, 0]} />
+        <Legend wrapperStyle={{ paddingTop: 12 }} iconType="circle" iconSize={8} />
+        <Bar
+          dataKey="CC"
+          fill={CHART_PALETTE.series[0]}
+          name="CC"
+          radius={[4, 4, 0, 0]}
+          animationDuration={600}
+          animationEasing="ease-out"
+        />
+        <Bar
+          dataKey="SS"
+          fill={CHART_PALETTE.series[1]}
+          name="SS"
+          radius={[4, 4, 0, 0]}
+          animationDuration={600}
+          animationEasing="ease-out"
+        />
+        <Bar
+          dataKey="LP"
+          fill={CHART_PALETTE.series[2]}
+          name="LP"
+          radius={[4, 4, 0, 0]}
+          animationDuration={600}
+          animationEasing="ease-out"
+        />
       </BarChart>
     </ResponsiveContainer>
   );

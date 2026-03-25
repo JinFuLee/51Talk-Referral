@@ -82,8 +82,9 @@ export function CCRadarChart({ data, onClose }: CCRadarChartProps) {
               contentStyle={{
                 background: 'var(--bg-surface)',
                 border: '1px solid var(--border-default)',
-                borderRadius: 6,
-                fontSize: 12,
+                borderRadius: 'var(--radius-md, 10px)',
+                boxShadow: 'var(--shadow-medium)',
+                fontSize: '12px',
               }}
             />
           </RadarChart>

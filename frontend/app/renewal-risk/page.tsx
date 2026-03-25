@@ -125,8 +125,24 @@ export default function RenewalRiskPage() {
                 <CartesianGrid strokeDasharray="3 3" vertical={false} />
                 <XAxis dataKey="label" tick={{ fontSize: 12 }} />
                 <YAxis tick={{ fontSize: 11 }} />
-                <Tooltip formatter={(v: number) => [v.toLocaleString(), '学员数']} />
-                <Bar dataKey="count" name="学员数" radius={[4, 4, 0, 0]}>
+                <Tooltip
+                  formatter={(v: number) => [v.toLocaleString(), '学员数']}
+                  contentStyle={{
+                    background: 'var(--bg-surface)',
+                    border: '1px solid var(--border-default)',
+                    borderRadius: 'var(--radius-md, 10px)',
+                    boxShadow: 'var(--shadow-medium)',
+                    fontSize: '12px',
+                  }}
+                  cursor={{ stroke: 'var(--border-hover)', strokeDasharray: '4 4' }}
+                />
+                <Bar
+                  dataKey="count"
+                  name="学员数"
+                  radius={[4, 4, 0, 0]}
+                  animationDuration={600}
+                  animationEasing="ease-out"
+                >
                   {segments.map((entry, i) => (
                     <Cell key={i} fill={segmentColor(entry.label)} />
                   ))}
