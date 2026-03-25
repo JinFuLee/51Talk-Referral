@@ -30,26 +30,46 @@ function RateCardBase({ label, rate, sub, target }: RateCardProps) {
           ? 'text-destructive'
           : 'text-[var(--text-primary)]';
 
-  const barColor =
-    status === 'green'
-      ? 'bg-success'
-      : status === 'yellow'
-        ? 'bg-warning'
-        : status === 'red'
-          ? 'bg-destructive'
-          : 'bg-primary';
+  // vs 目标差值
+  const vsDiff =
+    targetPct !== undefined && pct !== null ? ((pct - targetPct) / targetPct) * 100 : null;
+  const vsIsPositive = vsDiff !== null && vsDiff >= 0;
+  const vsColor =
+    vsDiff === null
+      ? 'var(--text-muted)'
+      : vsIsPositive
+        ? 'var(--color-success)'
+        : 'var(--color-danger)';
 
   return (
     <div className="card-interactive p-4">
       <p className="text-xs text-[var(--text-secondary)] mb-2">{label}</p>
-      <p className={`text-3xl font-bold ${textColor}`}>{pct}%</p>
+      <div className="flex items-baseline">
+        <p className={`text-3xl font-bold ${textColor}`}>{pct}%</p>
+        {vsDiff !== null && (
+          <span className="text-xs font-medium ml-2" style={{ color: vsColor }}>
+            {vsIsPositive ? '↑' : '↓'}
+            {Math.abs(vsDiff).toFixed(1)}%
+          </span>
+        )}
+      </div>
       {sub && <p className="text-xs text-[var(--text-muted)] mt-1">{sub}</p>}
       {targetPct !== undefined && (
         <>
-          <div className="mt-3 w-full bg-slate-100 rounded-full h-1.5">
+          <div className="mt-3 h-1 rounded-full bg-[var(--n-200)]">
             <div
-              className={`h-1.5 rounded-full ${barColor}`}
-              style={{ width: `${Math.min(pct, 100)}%` }}
+              className="h-1 rounded-full transition-all duration-500"
+              style={{
+                width: `${Math.min(pct ?? 0, 100)}%`,
+                backgroundColor:
+                  status === 'green'
+                    ? 'var(--color-success)'
+                    : status === 'yellow'
+                      ? 'var(--color-warning)'
+                      : status === 'red'
+                        ? 'var(--color-danger)'
+                        : 'var(--color-primary)',
+              }}
             />
           </div>
           <p className="text-xs text-[var(--text-muted)] mt-1">目标 {targetPct}%</p>

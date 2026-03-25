@@ -15,10 +15,16 @@ interface StatCardProps {
   momChange?: number | null;
 }
 
-function achievementClass(rate: number) {
-  if (rate >= 1) return 'text-green-600';
-  if (rate >= 0.8) return 'text-yellow-600';
-  return 'text-red-500';
+function achievementBarColor(rate: number): string {
+  if (rate >= 1) return 'var(--color-success)';
+  if (rate >= 0.8) return 'var(--color-warning)';
+  return 'var(--color-danger)';
+}
+
+function achievementTextColor(rate: number): string {
+  if (rate >= 1) return 'var(--color-success)';
+  if (rate >= 0.8) return 'var(--color-warning)';
+  return 'var(--color-danger)';
 }
 
 function MomBadge({ change }: { change: number }) {
@@ -101,25 +107,40 @@ export function StatCard({
       )}
 
       {target !== undefined && (
-        <p className="text-xs text-[var(--text-muted)] mt-1">目标 {target}</p>
+        <div className="flex items-center gap-1 mt-1">
+          <span className="text-xs text-[var(--text-muted)]">目标 {target}</span>
+          {pct !== null && (
+            <span
+              className="text-xs font-medium"
+              style={{ color: achievementTextColor(achievement ?? 0) }}
+            >
+              {achievement !== undefined && achievement >= 1
+                ? `↑${((achievement - 1) * 100).toFixed(1)}%`
+                : achievement !== undefined
+                  ? `↓${((1 - achievement) * 100).toFixed(1)}%`
+                  : ''}
+            </span>
+          )}
+        </div>
       )}
       {pct !== null && (
-        <div className="mt-3">
+        <div className="mt-2">
           <div className="flex justify-between text-xs mb-1">
             <span className="text-[var(--text-muted)]">达成率</span>
-            <span className={cn('font-semibold', achievementClass(achievement ?? 0))}>{pct}%</span>
+            <span
+              className="font-semibold"
+              style={{ color: achievementTextColor(achievement ?? 0) }}
+            >
+              {pct}%
+            </span>
           </div>
-          <div className="w-full bg-[var(--bg-subtle)] rounded-full h-1.5">
+          <div className="h-1 rounded-full bg-[var(--n-200)]">
             <div
-              className={cn(
-                'h-1.5 rounded-full transition-all',
-                achievement !== undefined && achievement >= 1
-                  ? 'bg-green-500'
-                  : achievement !== undefined && achievement >= 0.8
-                    ? 'bg-yellow-400'
-                    : 'bg-red-400'
-              )}
-              style={{ width: `${Math.min(100, pct)}%` }}
+              className="h-1 rounded-full transition-all duration-500"
+              style={{
+                width: `${Math.min(100, pct)}%`,
+                backgroundColor: achievementBarColor(achievement ?? 0),
+              }}
             />
           </div>
         </div>
