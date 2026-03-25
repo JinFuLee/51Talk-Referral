@@ -121,12 +121,15 @@ function RoleColumn({ role, summary, subTab, rateColor }: RoleColumnProps) {
                     <td className="py-1 px-2 text-center text-[var(--text-muted)] font-mono tabular-nums">
                       {row.rank}
                     </td>
-                    <td className="py-1 px-2 font-medium whitespace-nowrap" title={nameField}>
+                    <td
+                      className="py-1 px-2 font-medium whitespace-nowrap min-w-[100px]"
+                      title={nameField}
+                    >
                       {nameField}
                     </td>
                     {subTab === 'person' && (
                       <td
-                        className="py-1 px-2 text-[var(--text-muted)] whitespace-nowrap"
+                        className="py-1 px-2 text-[var(--text-muted)] whitespace-nowrap min-w-[80px]"
                         title={teamField ?? ''}
                       >
                         {teamField || '—'}

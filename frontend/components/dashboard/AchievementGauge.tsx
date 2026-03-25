@@ -7,7 +7,7 @@ interface AchievementGaugeProps {
   size?: number;
 }
 
-export function AchievementGauge({ value, label = '达成率', size = 120 }: AchievementGaugeProps) {
+export function AchievementGauge({ value, label = '达成率', size = 160 }: AchievementGaugeProps) {
   const pct = Math.min(1, Math.max(0, value));
   const percentage = pct * 100;
 
@@ -67,10 +67,10 @@ export function AchievementGauge({ value, label = '达成率', size = 120 }: Ach
         {/* Center text */}
         <text
           x={cx}
-          y={cy - 4}
+          y={cy - 5}
           textAnchor="middle"
           dominantBaseline="middle"
-          fontSize={18}
+          fontSize={22}
           fontWeight="700"
           fill={color}
         >
@@ -78,10 +78,10 @@ export function AchievementGauge({ value, label = '达成率', size = 120 }: Ach
         </text>
         <text
           x={cx}
-          y={cy + 14}
+          y={cy + 15}
           textAnchor="middle"
           dominantBaseline="middle"
-          fontSize={10}
+          fontSize={11}
           fill="var(--n-400)"
         >
           {label}

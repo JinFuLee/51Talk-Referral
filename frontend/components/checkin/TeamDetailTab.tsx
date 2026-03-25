@@ -112,7 +112,10 @@ function TeamCard({ card, rateColor, rateBg }: TeamCardProps) {
                 <td className="py-1 px-2 text-center text-[var(--text-muted)] font-mono tabular-nums">
                   {i + 1}
                 </td>
-                <td className="py-1 px-2 font-medium whitespace-nowrap text-[var(--text-primary)]">
+                <td
+                  className="py-1 px-2 font-medium whitespace-nowrap min-w-[100px] text-[var(--text-primary)]"
+                  title={m.name}
+                >
                   {m.name}
                 </td>
                 <td className="py-1 px-2 text-right font-mono tabular-nums text-[var(--text-secondary)]">

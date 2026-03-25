@@ -35,13 +35,13 @@ export function AchievementRing({ label, actual, target, rate }: AchievementRing
 
       {/* 环形图 */}
       <div className="relative">
-        <PieChart width={96} height={96}>
+        <PieChart width={120} height={120}>
           <Pie
             data={data}
-            cx={44}
-            cy={44}
-            innerRadius={32}
-            outerRadius={44}
+            cx={56}
+            cy={56}
+            innerRadius={40}
+            outerRadius={54}
             startAngle={90}
             endAngle={-270}
             dataKey="value"
@@ -54,7 +54,7 @@ export function AchievementRing({ label, actual, target, rate }: AchievementRing
 
         {/* 中心数字 */}
         <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <span className={cn('text-sm font-bold tabular-nums', rateLabel(rate))}>
+          <span className={cn('text-base font-bold tabular-nums', rateLabel(rate))}>
             {pctDisplay}
           </span>
         </div>

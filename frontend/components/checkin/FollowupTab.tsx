@@ -325,7 +325,7 @@ function FollowupTable({ items, onDrawerOpen }: FollowupTableProps) {
             <th className="py-1.5 px-2 text-center whitespace-nowrap">⭐评分</th>
             <th className="py-1.5 px-2 text-left whitespace-nowrap">学员ID</th>
             <th className="py-1.5 px-2 text-left whitespace-nowrap">围场</th>
-            <th className="py-1.5 px-2 text-left whitespace-nowrap">负责人</th>
+            <th className="py-1.5 px-2 text-left whitespace-nowrap min-w-[100px]">负责人</th>
             <th className="py-1.5 px-2 text-right whitespace-nowrap">📚课耗(3月均)</th>
             <th className="py-1.5 px-2 text-right whitespace-nowrap">👥本月推荐</th>
             <th className="py-1.5 px-2 text-right whitespace-nowrap">💰历史付费</th>
@@ -385,7 +385,12 @@ function FollowupTable({ items, onDrawerOpen }: FollowupTableProps) {
                   <td className="py-1 px-2 text-[var(--text-secondary)] whitespace-nowrap">
                     {m.enclosure || '—'}
                   </td>
-                  <td className="py-1 px-2 whitespace-nowrap">{m.responsible || '—'}</td>
+                  <td
+                    className="py-1 px-2 whitespace-nowrap min-w-[100px]"
+                    title={m.responsible ?? ''}
+                  >
+                    {m.responsible || '—'}
+                  </td>
                   <td className="py-1 px-2 text-right font-mono tabular-nums">
                     {fmtNum(m.lesson_avg_3m)}
                   </td>

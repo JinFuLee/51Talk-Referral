@@ -39,7 +39,7 @@ export function MemberTable({
               <th className="py-1.5 px-2 border-0 text-left whitespace-nowrap">姓名</th>
               <th className="py-1.5 px-2 border-0 text-left whitespace-nowrap">围场</th>
               <th className="py-1.5 px-2 border-0 text-left whitespace-nowrap">生命周期</th>
-              <th className="py-1.5 px-2 border-0 text-left whitespace-nowrap">CC</th>
+              <th className="py-1.5 px-2 border-0 text-left whitespace-nowrap min-w-[100px]">CC</th>
               <th className="py-1.5 px-2 border-0 text-right whitespace-nowrap">注册</th>
               <th className="py-1.5 px-2 border-0 text-right whitespace-nowrap">预约</th>
               <th className="py-1.5 px-2 border-0 text-right whitespace-nowrap">出席</th>
@@ -114,7 +114,12 @@ export function MemberTable({
                       {m.lifecycle}
                     </span>
                   </td>
-                  <td className="py-1 px-2 text-xs whitespace-nowrap">{m.cc_name}</td>
+                  <td
+                    className="py-1 px-2 text-xs whitespace-nowrap min-w-[100px]"
+                    title={m.cc_name ?? ''}
+                  >
+                    <span className="truncate block max-w-[140px]">{m.cc_name}</span>
+                  </td>
                   <td className="py-1 px-2 text-xs text-right font-mono tabular-nums">
                     {m.registrations ?? '—'}
                   </td>

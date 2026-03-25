@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import {
   ScatterChart,
   Scatter,
@@ -27,28 +28,52 @@ interface CustomDotProps {
   cx?: number;
   cy?: number;
   payload?: ScatterPoint;
+  hoveredName?: string | null;
+  onHover?: (name: string | null) => void;
 }
 
-function CustomDot({ cx = 0, cy = 0, payload }: CustomDotProps) {
+function CustomDot({ cx = 0, cy = 0, payload, hoveredName, onHover }: CustomDotProps) {
+  const isHovered = hoveredName === payload?.cc_name;
+  const r = isHovered ? 10 : 6;
+  const opacity = hoveredName && !isHovered ? 0.4 : 0.85;
+
   return (
-    <g>
+    <g
+      onMouseEnter={() => onHover?.(payload?.cc_name ?? null)}
+      onMouseLeave={() => onHover?.(null)}
+      style={{ cursor: 'pointer' }}
+    >
       <circle
         cx={cx}
         cy={cy}
-        r={5}
+        r={r}
         fill={CHART_PALETTE.info}
-        fillOpacity={0.7}
-        stroke={CHART_PALETTE.secondary}
-        strokeWidth={1}
+        fillOpacity={opacity}
+        stroke={isHovered ? CHART_PALETTE.secondary : CHART_PALETTE.secondary}
+        strokeWidth={isHovered ? 2 : 1}
+        style={{ transition: 'r 0.15s ease, fill-opacity 0.15s ease' }}
       />
-      <text x={cx + 7} y={cy + 4} fontSize={9} fill="var(--text-muted)" textAnchor="start">
-        {payload?.cc_name?.split('_')[0] ?? ''}
-      </text>
+      {/* 仅 hover 时显示名字标签 */}
+      {isHovered && (
+        <text
+          x={cx + 13}
+          y={cy + 4}
+          fontSize={10}
+          fill="var(--text-primary)"
+          fontWeight="600"
+          textAnchor="start"
+          style={{ pointerEvents: 'none', userSelect: 'none' }}
+        >
+          {payload?.cc_name?.split('_')[0] ?? ''}
+        </text>
+      )}
     </g>
   );
 }
 
 export function EfficiencyScatter({ data }: EfficiencyScatterProps) {
+  const [hoveredName, setHoveredName] = useState<string | null>(null);
+
   if (!data.length) {
     return (
       <div className="flex items-center justify-center h-48 text-sm text-[var(--text-muted)]">
@@ -69,8 +94,8 @@ export function EfficiencyScatter({ data }: EfficiencyScatterProps) {
 
   return (
     <div>
-      <ResponsiveContainer width="100%" height={300}>
-        <ScatterChart margin={{ top: 10, right: 20, bottom: 20, left: 10 }}>
+      <ResponsiveContainer width="100%" height={450}>
+        <ScatterChart margin={{ top: 10, right: 30, bottom: 20, left: 10 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="var(--border-subtle)" />
           <XAxis
             type="number"
@@ -115,7 +140,12 @@ export function EfficiencyScatter({ data }: EfficiencyScatterProps) {
           />
           <ReferenceLine x={xMid} stroke="var(--border-default)" strokeDasharray="4 2" />
           <ReferenceLine y={yMid} stroke="var(--border-default)" strokeDasharray="4 2" />
-          <Scatter data={data} shape={<CustomDot />} />
+          <Scatter
+            data={data}
+            shape={(props: CustomDotProps) => (
+              <CustomDot {...props} hoveredName={hoveredName} onHover={setHoveredName} />
+            )}
+          />
         </ScatterChart>
       </ResponsiveContainer>
 
@@ -128,6 +158,7 @@ export function EfficiencyScatter({ data }: EfficiencyScatterProps) {
           </div>
         ))}
       </div>
+      <p className="text-center text-xs text-[var(--text-muted)] mt-1">鼠标悬停查看 CC 名称</p>
     </div>
   );
 }

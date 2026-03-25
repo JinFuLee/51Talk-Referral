@@ -61,8 +61,10 @@ export function CCRankingTable({ rankings }: CCRankingTableProps) {
         <thead>
           <tr className="slide-thead-row text-xs">
             <th className="py-1.5 px-2 border-0 text-left">排名</th>
-            <th className="py-1.5 px-2 border-0 text-left">CC 姓名</th>
-            <th className="py-1.5 px-2 border-0 text-left">组别</th>
+            <th className="py-1.5 px-2 border-0 text-left whitespace-nowrap min-w-[100px]">
+              CC 姓名
+            </th>
+            <th className="py-1.5 px-2 border-0 text-left whitespace-nowrap min-w-[80px]">组别</th>
             {rankings[0]?.students !== undefined && (
               <th className="py-1.5 px-2 border-0 text-right">学员数</th>
             )}
@@ -96,8 +98,15 @@ export function CCRankingTable({ rankings }: CCRankingTableProps) {
                   {i + 1}
                 </span>
               </td>
-              <td className="py-1 px-2 text-xs font-medium">{r.cc_name}</td>
-              <td className="py-1 px-2 text-xs text-[var(--text-secondary)]">{r.cc_group}</td>
+              <td
+                className="py-1 px-2 text-xs font-medium whitespace-nowrap min-w-[100px]"
+                title={r.cc_name}
+              >
+                <span className="truncate block max-w-[150px]">{r.cc_name}</span>
+              </td>
+              <td className="py-1 px-2 text-xs text-[var(--text-secondary)] whitespace-nowrap">
+                {r.cc_group}
+              </td>
               {r.students !== undefined && (
                 <td className="py-1 px-2 text-xs text-right font-mono tabular-nums">
                   {r.students.toLocaleString()}
