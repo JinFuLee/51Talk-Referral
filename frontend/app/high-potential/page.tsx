@@ -6,34 +6,30 @@ import { Spinner } from '@/components/ui/Spinner';
 import { EmptyState } from '@/components/ui/EmptyState';
 import type { HighPotentialStudent } from '@/lib/types/member';
 import type { WarroomStudent } from '@/lib/types/cross-analysis';
-import {
-  Star,
-  Users,
-  TrendingUp,
-  DollarSign,
-  Calendar,
-  MapPin,
-  Briefcase,
-  Phone,
-  Clock,
-  AlertTriangle,
-} from 'lucide-react';
+import { Star, Phone, Clock } from 'lucide-react';
 
 interface HighPotentialResponse {
   students: HighPotentialStudent[];
 }
 
-function urgencyBorder(level?: 'red' | 'yellow' | 'green'): string {
-  if (level === 'red') return 'border-l-4 border-l-red-500';
-  if (level === 'yellow') return 'border-l-4 border-l-yellow-400';
-  if (level === 'green') return 'border-l-4 border-l-green-500';
-  return '';
+/** nan / null / 空字符串 → 不显示 */
+function isValidValue(v: string | null | undefined): boolean {
+  if (v == null) return false;
+  const s = String(v).trim().toLowerCase();
+  return s !== '' && s !== 'nan' && s !== 'none';
 }
 
-function urgencyBadge(level?: 'red' | 'yellow' | 'green'): string {
-  if (level === 'red') return 'bg-red-100 text-red-700';
-  if (level === 'yellow') return 'bg-yellow-100 text-yellow-700';
-  if (level === 'green') return 'bg-green-100 text-green-700';
+function urgencyBorderClass(level?: 'red' | 'yellow' | 'green'): string {
+  if (level === 'red') return 'border-l-4 border-l-[var(--color-danger)]';
+  if (level === 'yellow') return 'border-l-4 border-l-[var(--color-warning)]';
+  if (level === 'green') return 'border-l-4 border-l-[var(--color-success)]';
+  return 'border-l-4 border-l-transparent';
+}
+
+function urgencyBadgeClass(level?: 'red' | 'yellow' | 'green'): string {
+  if (level === 'red') return 'bg-red-50 text-[var(--color-danger)]';
+  if (level === 'yellow') return 'bg-amber-50 text-[var(--color-warning)]';
+  if (level === 'green') return 'bg-emerald-50 text-[var(--color-success)]';
   return '';
 }
 
@@ -42,6 +38,54 @@ function urgencyLabel(level?: 'red' | 'yellow' | 'green'): string {
   if (level === 'yellow') return '关注';
   if (level === 'green') return '稳定';
   return '';
+}
+
+function EnclosureBadge({ enclosure }: { enclosure: string }) {
+  return (
+    <span className="text-[10px] px-1.5 py-0.5 rounded-md font-semibold bg-[var(--color-accent-surface)] text-[var(--color-accent)]">
+      {enclosure}
+    </span>
+  );
+}
+
+function PaymentsBadge({ payments }: { payments: number }) {
+  const hasPayment = payments > 0;
+  return (
+    <span
+      className={`text-[10px] px-1.5 py-0.5 rounded-md font-semibold ${
+        hasPayment
+          ? 'bg-emerald-50 text-[var(--color-success)]'
+          : 'bg-[var(--bg-subtle)] text-[var(--text-muted)]'
+      }`}
+    >
+      付费 {payments}
+    </span>
+  );
+}
+
+function EngagementBadge({ deep }: { deep: boolean }) {
+  return (
+    <span
+      className={`text-[10px] px-1.5 py-0.5 rounded-md font-semibold ${
+        deep
+          ? 'bg-emerald-50 text-[var(--color-success)]'
+          : 'bg-[var(--bg-subtle)] text-[var(--text-muted)]'
+      }`}
+    >
+      {deep ? '深度参与' : '浅度参与'}
+    </span>
+  );
+}
+
+function OwnerRow({ role, group, name }: { role: string; group: string; name: string }) {
+  if (!isValidValue(name)) return null;
+  const display = isValidValue(group) ? `${group} · ${name}` : name;
+  return (
+    <div className="flex justify-between items-center text-xs">
+      <span className="text-[var(--text-muted)] font-medium w-6 shrink-0">{role}</span>
+      <span className="text-[var(--text-secondary)] truncate text-right">{display}</span>
+    </div>
+  );
 }
 
 function HighPotentialCard({
@@ -53,159 +97,106 @@ function HighPotentialCard({
 }) {
   return (
     <div
-      className={`bg-[var(--bg-surface)] rounded-[var(--radius-md)] border border-[var(--border-subtle)] shadow-[var(--shadow-subtle)] hover:shadow-[var(--shadow-medium)] transition-all duration-200 p-5 ${urgencyBorder(warroom?.urgency_level)}`}
+      className={`card-base hover:shadow-[var(--shadow-medium)] transition-shadow duration-200 ${urgencyBorderClass(warroom?.urgency_level)}`}
     >
+      {/* ── 标题行 ── */}
       <div className="flex items-start justify-between mb-3">
-        <div>
-          <div className="flex items-center gap-2">
-            <Star className="w-4 h-4 text-yellow-500" />
-            <span className="text-sm font-semibold text-[var(--text-primary)]">
-              学员 #{student.id}
+        <div className="flex items-center gap-1.5 flex-wrap">
+          <Star className="w-3.5 h-3.5 text-[var(--color-warning)] shrink-0" />
+          <span className="text-sm font-semibold text-[var(--text-primary)]">#{student.id}</span>
+          <EnclosureBadge enclosure={student.enclosure} />
+          {warroom?.urgency_level && (
+            <span
+              className={`text-[10px] px-1.5 py-0.5 rounded-md font-semibold ${urgencyBadgeClass(warroom.urgency_level)}`}
+            >
+              {urgencyLabel(warroom.urgency_level)}
             </span>
-            {warroom?.urgency_level && (
-              <span
-                className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${urgencyBadge(warroom.urgency_level)}`}
-              >
-                {urgencyLabel(warroom.urgency_level)}
-              </span>
-            )}
-          </div>
-          <p className="text-xs text-[var(--text-muted)] mt-0.5">围场：{student.enclosure}</p>
+          )}
         </div>
-        <div className="text-right">
-          <div className="text-lg font-bold text-action-accent">{student.payments}</div>
-          <div className="text-xs text-[var(--text-muted)]">付费次数</div>
+        <PaymentsBadge payments={student.payments} />
+      </div>
+
+      {/* ── 核心指标行 ── */}
+      <div className="grid grid-cols-3 gap-2 mb-4 rounded-lg bg-[var(--bg-subtle)] px-3 py-2.5">
+        <div className="text-center">
+          <div className="text-base font-bold text-[var(--text-primary)]">{student.total_new}</div>
+          <p className="text-[10px] text-[var(--text-muted)] mt-0.5">带新</p>
+        </div>
+        <div className="text-center border-x border-[var(--border-default)]">
+          <div className="text-base font-bold text-[var(--text-primary)]">{student.attendance}</div>
+          <p className="text-[10px] text-[var(--text-muted)] mt-0.5">出席</p>
+        </div>
+        <div className="text-center">
+          <div
+            className={`text-base font-bold ${student.payments > 0 ? 'text-[var(--color-success)]' : 'text-[var(--text-primary)]'}`}
+          >
+            {student.payments}
+          </div>
+          <p className="text-[10px] text-[var(--text-muted)] mt-0.5">付费</p>
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-3 mb-4">
-        <div className="text-center">
-          <div className="flex items-center justify-center gap-1 text-green-600 mb-1">
-            <Users className="w-3.5 h-3.5" />
-            <span className="text-base font-bold">{student.total_new}</span>
-          </div>
-          <p className="text-[10px] text-[var(--text-muted)]">带新数</p>
-        </div>
-        <div className="text-center">
-          <div className="flex items-center justify-center gap-1 text-purple-600 mb-1">
-            <TrendingUp className="w-3.5 h-3.5" />
-            <span className="text-base font-bold">{student.attendance}</span>
-          </div>
-          <p className="text-[10px] text-[var(--text-muted)]">出席数</p>
-        </div>
-        <div className="text-center">
-          <div className="flex items-center justify-center gap-1 text-orange-600 mb-1">
-            <DollarSign className="w-3.5 h-3.5" />
-            <span className="text-base font-bold">{student.payments}</span>
-          </div>
-          <p className="text-[10px] text-[var(--text-muted)]">付费数</p>
-        </div>
+      {/* ── 负责人区块 ── */}
+      <div className="space-y-1 mb-3">
+        <OwnerRow role="CC" group={student.cc_group} name={student.cc_name} />
+        <OwnerRow role="SS" group={student.ss_group} name={student.ss_name} />
+        <OwnerRow role="LP" group={student.lp_group} name={student.lp_name} />
       </div>
 
-      <div className="pt-3 border-t border-[var(--border-subtle)] space-y-1.5">
-        {student.stat_date && (
-          <div className="flex items-center justify-between text-xs">
-            <span className="flex items-center gap-1 text-[var(--text-muted)]">
-              <Calendar className="w-3 h-3" />
-              统计日期
-            </span>
-            <span className="font-medium">{student.stat_date}</span>
+      {/* ── 底部行 ── */}
+      <div className="pt-2.5 border-t border-[var(--border-subtle)] space-y-1.5">
+        {/* 参与深度 */}
+        {student.deep_engagement != null && (
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-[var(--text-muted)]">参与深度</span>
+            <EngagementBadge deep={!!student.deep_engagement} />
           </div>
         )}
-        {student.region && (
-          <div className="flex items-center justify-between text-xs">
-            <span className="flex items-center gap-1 text-[var(--text-muted)]">
-              <MapPin className="w-3 h-3" />
-              区域
-            </span>
-            <span className="font-medium">{student.region}</span>
-          </div>
-        )}
-        {student.business_line && (
-          <div className="flex items-center justify-between text-xs">
-            <span className="flex items-center gap-1 text-[var(--text-muted)]">
-              <Briefcase className="w-3 h-3" />
-              业务线
-            </span>
-            <span className="font-medium">{student.business_line}</span>
-          </div>
-        )}
+
         {/* 失联天数 */}
         {student.days_since_last_cc_contact != null && (
           <div className="flex items-center justify-between text-xs">
-            <span className="flex items-center gap-1 text-[var(--text-muted)]">
-              <AlertTriangle className="w-3 h-3" />
-              失联天数
-            </span>
+            <span className="text-[var(--text-muted)]">失联</span>
             <span
               className={`font-semibold ${
                 student.days_since_last_cc_contact > 14
-                  ? 'text-red-500'
+                  ? 'text-[var(--color-danger)]'
                   : student.days_since_last_cc_contact > 7
-                    ? 'text-orange-500'
-                    : 'text-green-600'
+                    ? 'text-[var(--color-warning)]'
+                    : 'text-[var(--color-success)]'
               }`}
             >
               {student.days_since_last_cc_contact} 天
             </span>
           </div>
         )}
-        {/* 出席数标签 */}
-        {student.deep_engagement && (
-          <div className="flex items-center justify-between text-xs">
-            <span className="text-[var(--text-muted)]">参与深度</span>
-            <span className="text-[10px] px-1.5 py-0.5 rounded font-medium bg-green-100 text-green-700">
-              深度参与
-            </span>
-          </div>
-        )}
-        {student.cc_name && (
-          <div className="flex justify-between text-xs">
-            <span className="text-[var(--text-muted)]">CC</span>
-            <span className="font-medium">
-              {student.cc_group} · {student.cc_name}
-            </span>
-          </div>
-        )}
-        {student.ss_name && (
-          <div className="flex justify-between text-xs">
-            <span className="text-[var(--text-muted)]">SS</span>
-            <span className="font-medium">
-              {student.ss_group} · {student.ss_name}
-            </span>
-          </div>
-        )}
-        {student.lp_name && (
-          <div className="flex justify-between text-xs">
-            <span className="text-[var(--text-muted)]">LP</span>
-            <span className="font-medium">
-              {student.lp_group} · {student.lp_name}
-            </span>
-          </div>
-        )}
 
-        {/* Warroom 增强信息 */}
+        {/* Warroom 打卡 / 窗口期 / 最后接通 */}
         {warroom && (
-          <div className="mt-2 pt-2 border-t border-[var(--border-subtle)] grid grid-cols-3 gap-2 text-center">
+          <div className="grid grid-cols-3 gap-1 pt-1.5 mt-1 border-t border-[var(--border-subtle)] text-center">
             <div>
-              <div className="flex items-center justify-center gap-0.5 text-action-accent mb-0.5">
-                <Phone className="w-3 h-3" />
-                <span className="text-xs font-bold">{warroom.checkin_7d}</span>
+              <div className="flex items-center justify-center gap-0.5 mb-0.5">
+                <Phone className="w-3 h-3 text-[var(--text-muted)]" />
+                <span className="text-xs font-bold text-[var(--text-primary)]">
+                  {warroom.checkin_7d}
+                </span>
               </div>
-              <p className="text-[10px] text-[var(--text-muted)]">近7日打卡</p>
+              <p className="text-[10px] text-[var(--text-muted)]">打卡</p>
             </div>
             <div>
-              <div className="flex items-center justify-center gap-0.5 text-purple-600 mb-0.5">
-                <Clock className="w-3 h-3" />
-                <span className="text-xs font-bold">{warroom.days_remaining}天</span>
+              <div className="flex items-center justify-center gap-0.5 mb-0.5">
+                <Clock className="w-3 h-3 text-[var(--text-muted)]" />
+                <span className="text-xs font-bold text-[var(--text-primary)]">
+                  {warroom.days_remaining}天
+                </span>
               </div>
-              <p className="text-[10px] text-[var(--text-muted)]">窗口期</p>
+              <p className="text-[10px] text-[var(--text-muted)]">窗口</p>
             </div>
             <div>
               <div className="text-xs font-bold text-[var(--text-primary)] mb-0.5">
                 {warroom.last_contact_date ?? '—'}
               </div>
-              <p className="text-[10px] text-[var(--text-muted)]">最后接通</p>
+              <p className="text-[10px] text-[var(--text-muted)]">接通</p>
             </div>
           </div>
         )}
@@ -236,7 +227,6 @@ export default function HighPotentialPage() {
   const students = Array.isArray(data) ? data : (data?.students ?? []);
   const warroomList: WarroomStudent[] = Array.isArray(warroomData) ? warroomData : [];
 
-  // 建立 warroom 查找表：stdt_id → WarroomStudent
   const warroomMap = new Map<string, WarroomStudent>(warroomList.map((w) => [w.stdt_id, w]));
 
   return (
@@ -251,7 +241,7 @@ export default function HighPotentialPage() {
       {students.length === 0 ? (
         <EmptyState title="暂无高潜学员数据" description="上传数据文件后自动识别高潜学员" />
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {students.map((s) => (
             <HighPotentialCard key={s.id} student={s} warroom={warroomMap.get(String(s.id))} />
           ))}
