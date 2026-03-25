@@ -73,7 +73,7 @@ function StatMiniCardBase({
     <div className="card-interactive px-4 py-3">
       <p className="text-xs text-[var(--text-muted)] mb-1">{label}</p>
       <div className="flex items-baseline">
-        <p className={`text-2xl font-bold ${accentColor[accent]}`}>{value}</p>
+        <p className={`stat-number text-2xl font-bold ${accentColor[accent]}`}>{value}</p>
         {hasTarget && <VsTargetBadge ratio={ratio} />}
       </div>
       {hasTarget && <ProgressBar ratio={ratio} />}

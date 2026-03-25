@@ -838,3 +838,45 @@ body.presentation-mode .presentation-watermark {
 .row-danger {
   background-color: var(--color-danger-surface) !important;
 }
+
+/* ── W3A 交互动效 ─────────────────────────────────── */
+
+/* 1. 滚动平滑 */
+html {
+  scroll-behavior: smooth;
+}
+
+/* 2. 筛选切换内容区过渡 */
+.content-transition {
+  transition: opacity 150ms ease-out;
+}
+.content-transition[data-loading='true'] {
+  opacity: 0.5;
+}
+
+/* 3. 数字变化 scale 脉冲 */
+.stat-number {
+  transition: transform 200ms ease-out;
+  display: inline-block;
+}
+.stat-number.stat-pulse {
+  transform: scale(1.05);
+}
+
+/* 4. 页面切换 fade-in */
+@keyframes page-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+main > * {
+  animation: page-fade-in 200ms ease-out;
+}
+
+/* prefers-reduced-motion 已在上方全局归零块处理，无需重复 */

@@ -9,6 +9,7 @@ import { FilterSyncActivator } from '@/components/providers/FilterSyncActivator'
 import { ErrorBoundary } from '@/components/providers/ErrorBoundary';
 import { ToastProvider } from '@/components/providers/ToastProvider';
 import { HtmlLangUpdater } from '@/components/providers/HtmlLangUpdater';
+import { ContentTransitionWrapper } from '@/components/providers/ContentTransitionWrapper';
 import {
   CoPilotTerminalClient,
   PresentationOverlayClient,
@@ -85,7 +86,7 @@ export default function RootLayout({
                   <FilterSyncActivator />
                 </div>
                 <main className="flex-1 overflow-auto p-3 md:p-6 presentation-expand relative">
-                  {children}
+                  <ContentTransitionWrapper>{children}</ContentTransitionWrapper>
                   <div className="brand-watermark fixed bottom-4 right-4 pointer-events-none">
                     <BrandMark size={32} className="text-[var(--brand-p1)]" />
                   </div>

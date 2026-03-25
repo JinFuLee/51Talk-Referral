@@ -88,7 +88,7 @@ export function StatCard({
 
       {/* 数值行：数字 + sparkline 并排 */}
       <div className="flex items-end justify-between gap-2">
-        <div className="text-xl font-bold font-mono tabular-nums text-[var(--text-primary)]">
+        <div className="stat-number text-xl font-bold font-mono tabular-nums text-[var(--text-primary)]">
           {value}
         </div>
         {hasSparkline && (
