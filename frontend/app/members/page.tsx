@@ -3,10 +3,13 @@
 import { useState } from 'react';
 import useSWR from 'swr';
 import { swrFetcher } from '@/lib/api';
+import { useFilteredSWR } from '@/lib/hooks/use-filtered-swr';
 import { Card } from '@/components/ui/Card';
 import { Spinner } from '@/components/ui/Spinner';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { MemberDetailDrawer } from '@/components/members/MemberDetailDrawer';
+import { ExportButton } from '@/components/ui/ExportButton';
+import { useExport } from '@/lib/use-export';
 import type { StudentBrief } from '@/lib/types/member';
 
 interface MembersResponse {
@@ -61,6 +64,7 @@ export default function MembersPage() {
   const [cardHealthFilter, setCardHealthFilter] = useState('');
   const [hasReferralFilter, setHasReferralFilter] = useState(false);
   const [selectedId, setSelectedId] = useState<string | number | null>(null);
+  const { exportCSV } = useExport();
 
   const qs = new URLSearchParams({
     page: String(page),
@@ -72,20 +76,47 @@ export default function MembersPage() {
     ...(hasReferralFilter ? { has_referral: 'true' } : {}),
   });
 
-  const { data, isLoading, error } = useSWR<MembersResponse>(
-    `/api/members?${qs.toString()}`,
-    swrFetcher
+  const { data, isLoading, error } = useFilteredSWR<MembersResponse>(
+    `/api/members?${qs.toString()}`
   );
 
   const totalPages = data ? Math.ceil(data.total / 20) : 1;
 
+  function handleExport() {
+    const items = data?.items ?? [];
+    const today = new Date().toISOString().slice(0, 10);
+    exportCSV(
+      items as unknown as Record<string, unknown>[],
+      [
+        { key: 'id', label: '学员ID' },
+        { key: 'enclosure', label: '围场' },
+        { key: 'lifecycle', label: '生命周期' },
+        { key: 'cc_name', label: 'CC' },
+        { key: 'registrations', label: '注册' },
+        { key: 'appointments', label: '预约' },
+        { key: 'attendance', label: '出席' },
+        { key: 'payments', label: '付费' },
+        { key: 'checkin_this_month', label: '打卡天' },
+        { key: 'lesson_consumed_this_month', label: '课耗' },
+        { key: 'referral_code_count_this_month', label: '转码' },
+        { key: 'referral_reward_status', label: '奖励状态' },
+        { key: 'days_until_card_expiry', label: '卡到期天数' },
+        { key: 'cc_last_call_date', label: '末次拨打' },
+      ],
+      `学员明细_${today}`
+    );
+  }
+
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-lg font-bold text-[var(--text-primary)]">学员明细</h1>
-        <p className="text-sm text-[var(--text-secondary)] mt-1">
-          有效学员列表 · 点击行查看 59 字段详情
-        </p>
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="text-lg font-bold text-[var(--text-primary)]">学员明细</h1>
+          <p className="text-sm text-[var(--text-secondary)] mt-1">
+            有效学员列表 · 点击行查看 59 字段详情
+          </p>
+        </div>
+        <ExportButton onExportCsv={handleExport} />
       </div>
 
       {/* 筛选器 */}

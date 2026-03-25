@@ -21,6 +21,8 @@ import {
 import type { EnclosureCCMetrics } from '@/lib/types/enclosure';
 import type { EnclosureBenchmarkRow } from '@/lib/types/cross-analysis';
 import type { EnclosureSSMetrics, EnclosureLPMetrics } from '@/lib/types/enclosure-ss-lp';
+import { ExportButton } from '@/components/ui/ExportButton';
+import { useExport } from '@/lib/use-export';
 
 /* ── 常量 ──────────────────────────────────────────────────── */
 

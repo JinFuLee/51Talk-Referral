@@ -1,18 +1,28 @@
 'use client';
 
-import useSWR from 'swr';
-import { swrFetcher } from '@/lib/api';
+import { useState, useMemo } from 'react';
+import { useFilteredSWR } from '@/lib/hooks/use-filtered-swr';
 import { Spinner } from '@/components/ui/Spinner';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { Pagination } from '@/components/ui/Pagination';
+import { ExportButton } from '@/components/ui/ExportButton';
+import {
+  HighPotentialFilters,
+  type FilterState,
+} from '@/components/high-potential/HighPotentialFilters';
+import { HighPotentialTable } from '@/components/high-potential/HighPotentialTable';
 import type { HighPotentialStudent } from '@/lib/types/member';
 import type { WarroomStudent } from '@/lib/types/cross-analysis';
-import { Star, Phone, Clock } from 'lucide-react';
+import { LayoutGrid, List, Star, Phone, Clock } from 'lucide-react';
+
+const PAGE_SIZE = 20;
 
 interface HighPotentialResponse {
   students: HighPotentialStudent[];
 }
 
-/** nan / null / 空字符串 → 不显示 */
+// ── 卡片视图子组件（保留备选）────────────────────────────────────────
+
 function isValidValue(v: string | null | undefined): boolean {
   if (v == null) return false;
   const s = String(v).trim().toLowerCase();
@@ -99,7 +109,6 @@ function HighPotentialCard({
     <div
       className={`card-base hover:shadow-[var(--shadow-medium)] transition-shadow duration-200 ${urgencyBorderClass(warroom?.urgency_level)}`}
     >
-      {/* ── 标题行 ── */}
       <div className="flex items-start justify-between mb-3">
         <div className="flex items-center gap-1.5 flex-wrap">
           <Star className="w-3.5 h-3.5 text-[var(--color-warning)] shrink-0" />
@@ -116,7 +125,6 @@ function HighPotentialCard({
         <PaymentsBadge payments={student.payments} />
       </div>
 
-      {/* ── 核心指标行 ── */}
       <div className="grid grid-cols-3 gap-2 mb-4 rounded-lg bg-[var(--bg-subtle)] px-3 py-2.5">
         <div className="text-center">
           <div className="text-base font-bold text-[var(--text-primary)]">{student.total_new}</div>
@@ -136,16 +144,13 @@ function HighPotentialCard({
         </div>
       </div>
 
-      {/* ── 负责人区块 ── */}
       <div className="space-y-1 mb-3">
         <OwnerRow role="CC" group={student.cc_group} name={student.cc_name} />
         <OwnerRow role="SS" group={student.ss_group} name={student.ss_name} />
         <OwnerRow role="LP" group={student.lp_group} name={student.lp_name} />
       </div>
 
-      {/* ── 底部行 ── */}
       <div className="pt-2.5 border-t border-[var(--border-subtle)] space-y-1.5">
-        {/* 参与深度 */}
         {student.deep_engagement != null && (
           <div className="flex items-center justify-between">
             <span className="text-xs text-[var(--text-muted)]">参与深度</span>
@@ -153,7 +158,6 @@ function HighPotentialCard({
           </div>
         )}
 
-        {/* 失联天数 */}
         {student.days_since_last_cc_contact != null && (
           <div className="flex items-center justify-between text-xs">
             <span className="text-[var(--text-muted)]">失联</span>
@@ -171,7 +175,6 @@ function HighPotentialCard({
           </div>
         )}
 
-        {/* Warroom 打卡 / 窗口期 / 最后接通 */}
         {warroom && (
           <div className="grid grid-cols-3 gap-1 pt-1.5 mt-1 border-t border-[var(--border-subtle)] text-center">
             <div>
@@ -205,12 +208,123 @@ function HighPotentialCard({
   );
 }
 
+// ── CSV 导出 ─────────────────────────────────────────────────────────
+
+function exportCsv(students: HighPotentialStudent[], warroomMap: Map<string, WarroomStudent>) {
+  const headers = [
+    '学员ID',
+    '围场',
+    'CC姓名',
+    'CC团队',
+    'SS姓名',
+    'SS团队',
+    'LP姓名',
+    'LP团队',
+    '带新数',
+    '出席数',
+    '付费数',
+    '参与深度',
+    '失联天数',
+    '打卡次数（7天）',
+    '窗口期天数',
+  ];
+  const rows = students.map((s) => {
+    const w = warroomMap.get(String(s.id));
+    return [
+      s.id,
+      s.enclosure,
+      s.cc_name,
+      s.cc_group,
+      s.ss_name,
+      s.ss_group,
+      s.lp_name,
+      s.lp_group,
+      s.total_new,
+      s.attendance,
+      s.payments,
+      s.deep_engagement == null ? '' : s.deep_engagement ? '深度' : '浅度',
+      s.days_since_last_cc_contact ?? '',
+      w?.checkin_7d ?? '',
+      w?.days_remaining ?? '',
+    ]
+      .map((v) => `"${String(v ?? '').replace(/"/g, '""')}"`)
+      .join(',');
+  });
+  const blob = new Blob(['\uFEFF' + [headers.join(','), ...rows].join('\n')], {
+    type: 'text/csv;charset=utf-8;',
+  });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `高潜学员_${new Date().toISOString().slice(0, 10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ── 主页面 ────────────────────────────────────────────────────────────
+
+const DEFAULT_FILTERS: FilterState = {
+  search: '',
+  enclosure: 'all',
+  deepEngagement: 'all',
+  hasPaid: 'all',
+  ccGroup: 'all',
+};
+
 export default function HighPotentialPage() {
-  const { data, isLoading, error } = useSWR<HighPotentialResponse>(
-    '/api/high-potential',
-    swrFetcher
-  );
-  const { data: warroomData } = useSWR<WarroomStudent[]>('/api/high-potential/warroom', swrFetcher);
+  const [viewMode, setViewMode] = useState<'table' | 'card'>('table');
+  const [filters, setFilters] = useState<FilterState>(DEFAULT_FILTERS);
+  const [page, setPage] = useState(1);
+
+  const { data, isLoading, error } = useFilteredSWR<HighPotentialResponse>('/api/high-potential');
+  const { data: warroomData } = useFilteredSWR<WarroomStudent[]>('/api/high-potential/warroom');
+
+  const allStudents: HighPotentialStudent[] = useMemo(() => {
+    return Array.isArray(data) ? data : (data?.students ?? []);
+  }, [data]);
+
+  const warroomMap = useMemo(() => {
+    const list: WarroomStudent[] = Array.isArray(warroomData) ? warroomData : [];
+    return new Map<string, WarroomStudent>(list.map((w) => [w.stdt_id, w]));
+  }, [warroomData]);
+
+  // 前端筛选
+  const filtered = useMemo(() => {
+    const q = filters.search.trim().toLowerCase();
+    return allStudents.filter((s) => {
+      if (q) {
+        const idStr = String(s.id ?? '').toLowerCase();
+        const ccStr = String(s.cc_name ?? '').toLowerCase();
+        if (!idStr.includes(q) && !ccStr.includes(q)) return false;
+      }
+      if (filters.enclosure !== 'all' && s.enclosure !== filters.enclosure) return false;
+      if (filters.deepEngagement !== 'all') {
+        const isDeep = !!s.deep_engagement;
+        if (filters.deepEngagement === 'deep' && !isDeep) return false;
+        if (filters.deepEngagement === 'shallow' && isDeep) return false;
+      }
+      if (filters.hasPaid !== 'all') {
+        const paid = (s.payments ?? 0) > 0;
+        if (filters.hasPaid === 'yes' && !paid) return false;
+        if (filters.hasPaid === 'no' && paid) return false;
+      }
+      if (filters.ccGroup !== 'all' && s.cc_group !== filters.ccGroup) return false;
+      return true;
+    });
+  }, [allStudents, filters]);
+
+  // 分页
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages);
+  const pageSlice = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+
+  // 筛选变化时重置页码
+  function handleFiltersChange(f: FilterState) {
+    setFilters(f);
+    setPage(1);
+  }
+
+  // ── 三态 ────────────────────────────────────────────────────────
 
   if (isLoading) {
     return (
@@ -224,28 +338,101 @@ export default function HighPotentialPage() {
     return <EmptyState title="数据加载失败" description="无法获取高潜学员数据，请检查后端服务" />;
   }
 
-  const students = Array.isArray(data) ? data : (data?.students ?? []);
-  const warroomList: WarroomStudent[] = Array.isArray(warroomData) ? warroomData : [];
-
-  const warroomMap = new Map<string, WarroomStudent>(warroomList.map((w) => [w.stdt_id, w]));
-
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-lg font-bold text-[var(--text-primary)]">高潜学员</h1>
-        <p className="text-sm text-[var(--text-secondary)] mt-1">
-          带新数高 + 出席活跃 + 付费意向强的学员 · 共 {students.length} 人
-        </p>
+    <div className="space-y-5">
+      {/* ── 标题行 ── */}
+      <div className="flex items-center justify-between gap-4 flex-wrap">
+        <div>
+          <h1 className="text-lg font-bold text-[var(--text-primary)]">高潜学员</h1>
+          <p className="text-sm text-[var(--text-secondary)] mt-0.5">
+            带新数高 · 出席活跃 · 付费意向强 · 共 {allStudents.length} 人
+          </p>
+        </div>
+
+        {/* 右侧操作 */}
+        <div className="flex items-center gap-2">
+          {/* 视图切换 */}
+          <div className="flex items-center bg-[var(--bg-surface)] border border-[var(--border-default)] rounded-lg p-0.5 shadow-sm">
+            <button
+              onClick={() => setViewMode('table')}
+              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium transition-colors ${
+                viewMode === 'table'
+                  ? 'bg-[var(--color-accent)] text-white'
+                  : 'text-[var(--text-secondary)] hover:bg-[var(--bg-subtle)]'
+              }`}
+            >
+              <List className="w-3.5 h-3.5" />
+              表格
+            </button>
+            <button
+              onClick={() => setViewMode('card')}
+              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium transition-colors ${
+                viewMode === 'card'
+                  ? 'bg-[var(--color-accent)] text-white'
+                  : 'text-[var(--text-secondary)] hover:bg-[var(--bg-subtle)]'
+              }`}
+            >
+              <LayoutGrid className="w-3.5 h-3.5" />
+              卡片
+            </button>
+          </div>
+
+          {/* 导出 */}
+          <ExportButton onExportCsv={() => exportCsv(filtered, warroomMap)} />
+        </div>
       </div>
 
-      {students.length === 0 ? (
-        <EmptyState title="暂无高潜学员数据" description="上传数据文件后自动识别高潜学员" />
+      {/* ── 筛选栏 ── */}
+      <div className="card-compact">
+        <HighPotentialFilters
+          filters={filters}
+          onChange={handleFiltersChange}
+          students={allStudents}
+          totalFiltered={filtered.length}
+          totalAll={allStudents.length}
+        />
+      </div>
+
+      {/* ── 内容区 ── */}
+      {filtered.length === 0 ? (
+        <EmptyState
+          title={allStudents.length === 0 ? '暂无高潜学员数据' : '无匹配结果'}
+          description={
+            allStudents.length === 0 ? '上传数据文件后自动识别高潜学员' : '尝试调整筛选条件'
+          }
+        />
+      ) : viewMode === 'table' ? (
+        <>
+          <HighPotentialTable students={pageSlice} warroomMap={warroomMap} />
+          {totalPages > 1 && (
+            <div className="flex justify-end">
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                totalItems={filtered.length}
+                onPageChange={setPage}
+              />
+            </div>
+          )}
+        </>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {students.map((s) => (
-            <HighPotentialCard key={s.id} student={s} warroom={warroomMap.get(String(s.id))} />
-          ))}
-        </div>
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {pageSlice.map((s) => (
+              <HighPotentialCard key={s.id} student={s} warroom={warroomMap.get(String(s.id))} />
+            ))}
+          </div>
+          {totalPages > 1 && (
+            <div className="flex justify-end">
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                totalItems={filtered.length}
+                onPageChange={setPage}
+              />
+            </div>
+          )}
+        </>
       )}
     </div>
   );

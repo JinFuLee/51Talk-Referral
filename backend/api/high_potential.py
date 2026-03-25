@@ -6,7 +6,7 @@ import math
 from typing import Any
 
 import pandas as pd
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, Query, Request
 
 from backend.api.dependencies import get_data_manager
 from backend.core.data_manager import DataManager
@@ -77,12 +77,22 @@ def _row_to_hp(row: pd.Series) -> HighPotentialStudent:
 def get_high_potential(
     request: Request,
     dm: DataManager = Depends(get_data_manager),
+    team: str | None = Query(default=None, description="团队名称筛选，精确匹配 last_cc_group_name"),
+    cc: str | None = Query(default=None, description="CC 姓名模糊筛选，匹配 last_cc_name"),
 ) -> list[HighPotentialStudent]:
     data = dm.load_all()
     df = data.get("high_potential", pd.DataFrame())
 
     if df.empty:
         return []
+
+    # 团队筛选（精确匹配）
+    if team and "last_cc_group_name" in df.columns:
+        df = df[df["last_cc_group_name"].astype(str) == team]
+
+    # CC 姓名模糊筛选
+    if cc and "last_cc_name" in df.columns:
+        df = df[df["last_cc_name"].astype(str).str.contains(cc, case=False, na=False)]
 
     students = [_row_to_hp(row) for _, row in df.iterrows()]
     return sorted(students, key=lambda s: s.total_new or 0, reverse=True)

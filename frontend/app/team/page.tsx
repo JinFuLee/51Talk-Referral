@@ -4,6 +4,7 @@ import { Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import useSWR from 'swr';
 import { swrFetcher } from '@/lib/api';
+import { useFilteredSWR } from '@/lib/hooks/use-filtered-swr';
 import { formatRate } from '@/lib/utils';
 import { Card } from '@/components/ui/Card';
 import { Spinner } from '@/components/ui/Spinner';
@@ -20,6 +21,8 @@ import {
 } from 'recharts';
 import { TeamSummaryCard } from '@/components/team/TeamSummaryCard';
 import { CHART_PALETTE } from '@/lib/chart-palette';
+import { ExportButton } from '@/components/ui/ExportButton';
+import { useExport } from '@/lib/use-export';
 
 /* ── 类型 ──────────────────────────────────────────────────── */
 
@@ -114,7 +117,7 @@ function TabBar({ active, onChange }: { active: TabKey; onChange: (t: TabKey) =>
 /* ── CC Tab：原有内容 ─────────────────────────────────────── */
 
 function CCTabContent() {
-  const { data, isLoading, error } = useSWR<TeamSummaryResponse>('/api/team/summary', swrFetcher);
+  const { data, isLoading, error } = useFilteredSWR<TeamSummaryResponse>('/api/team/summary');
 
   if (isLoading) {
     return (
@@ -295,6 +298,11 @@ function TeamPageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const activeTab = (searchParams.get('tab') ?? 'cc') as TabKey;
+  const { exportCSV } = useExport();
+
+  const { data: ccData } = useFilteredSWR<TeamSummaryResponse>('/api/team/summary');
+  const { data: ssData } = useSWR<RankingResponse>('/api/team/ss-ranking', swrFetcher);
+  const { data: lpData } = useSWR<RankingResponse>('/api/team/lp-ranking', swrFetcher);
 
   function handleTabChange(t: TabKey) {
     const params = new URLSearchParams(searchParams.toString());
@@ -302,13 +310,70 @@ function TeamPageInner() {
     router.replace(`/team?${params.toString()}`);
   }
 
+  function handleExport() {
+    const today = new Date().toISOString().slice(0, 10);
+    if (activeTab === 'cc') {
+      const teams = Array.isArray(ccData) ? ccData : (ccData?.teams ?? []);
+      exportCSV(
+        teams as unknown as Record<string, unknown>[],
+        [
+          { key: 'cc_name', label: 'CC' },
+          { key: 'cc_group', label: '组别' },
+          { key: 'students', label: '学员数' },
+          { key: 'participation_rate', label: '参与率' },
+          { key: 'registrations', label: '注册数' },
+          { key: 'payments', label: '付费数' },
+          { key: 'revenue_usd', label: '业绩(USD)' },
+          { key: 'checkin_rate', label: '打卡率' },
+          { key: 'cc_reach_rate', label: '触达率' },
+        ],
+        `团队汇总_CC_${today}`
+      );
+    } else if (activeTab === 'ss') {
+      const rankings = Array.isArray(ssData) ? ssData : (ssData?.rankings ?? []);
+      exportCSV(
+        rankings as unknown as Record<string, unknown>[],
+        [
+          { key: 'name', label: '姓名' },
+          { key: 'group', label: '组别' },
+          { key: 'students', label: '学员数' },
+          { key: 'participation_rate', label: '参与率' },
+          { key: 'checkin_rate', label: '打卡率' },
+          { key: 'registrations', label: '注册数' },
+          { key: 'payments', label: '付费数' },
+          { key: 'revenue_usd', label: '业绩(USD)' },
+        ],
+        `团队汇总_SS_${today}`
+      );
+    } else {
+      const rankings = Array.isArray(lpData) ? lpData : (lpData?.rankings ?? []);
+      exportCSV(
+        rankings as unknown as Record<string, unknown>[],
+        [
+          { key: 'name', label: '姓名' },
+          { key: 'group', label: '组别' },
+          { key: 'students', label: '学员数' },
+          { key: 'participation_rate', label: '参与率' },
+          { key: 'checkin_rate', label: '打卡率' },
+          { key: 'registrations', label: '注册数' },
+          { key: 'payments', label: '付费数' },
+          { key: 'revenue_usd', label: '业绩(USD)' },
+        ],
+        `团队汇总_LP_${today}`
+      );
+    }
+  }
+
   return (
     <div className="space-y-4">
-      <div>
-        <h1 className="text-lg font-bold text-[var(--text-primary)]">团队汇总</h1>
-        <p className="text-sm text-[var(--text-secondary)] mt-1">
-          CC / SS / LP 三岗团队绩效 · 学员数 · 参与率 · 注册 · 付费
-        </p>
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="text-lg font-bold text-[var(--text-primary)]">团队汇总</h1>
+          <p className="text-sm text-[var(--text-secondary)] mt-1">
+            CC / SS / LP 三岗团队绩效 · 学员数 · 参与率 · 注册 · 付费
+          </p>
+        </div>
+        <ExportButton onExportCsv={handleExport} />
       </div>
 
       <TabBar active={activeTab} onChange={handleTabChange} />

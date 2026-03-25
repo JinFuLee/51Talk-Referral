@@ -3,6 +3,7 @@
 import useSWR from 'swr';
 import { useState, useMemo } from 'react';
 import { swrFetcher } from '@/lib/api';
+import { useFilteredSWR } from '@/lib/hooks/use-filtered-swr';
 import { formatRevenue, formatRate } from '@/lib/utils';
 import { Card } from '@/components/ui/Card';
 import { Spinner } from '@/components/ui/Spinner';
@@ -580,7 +581,7 @@ const KPI_CARD_INDICATOR_IDS: Record<string, string[]> = {
 
 export default function DashboardPage() {
   const [roleView, setRoleView] = useState<RoleView>('all');
-  const { data, isLoading, error } = useSWR<OverviewResponse>('/api/overview', swrFetcher);
+  const { data, isLoading, error } = useFilteredSWR<OverviewResponse>('/api/overview');
   const { data: fullSources } = useDataSources();
 
   // 根据岗位视角过滤 KPI 卡片（all = 全部显示）

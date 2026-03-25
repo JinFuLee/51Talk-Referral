@@ -1,8 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import useSWR from 'swr';
 import { swrFetcher } from '@/lib/api';
+import { useFilteredSWR } from '@/lib/hooks/use-filtered-swr';
 import { Spinner } from '@/components/ui/Spinner';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { PageTabs } from '@/components/ui/PageTabs';
@@ -14,6 +16,8 @@ import { RankingTab } from '@/components/checkin/RankingTab';
 import { useWideConfig } from '@/lib/hooks/useWideConfig';
 import { useCheckinThresholds } from '@/lib/hooks/useCheckinThresholds';
 import { ContactConversionScatter } from '@/components/daily-monitor/ContactConversionScatter';
+import { ExportButton } from '@/components/ui/ExportButton';
+import { useExport } from '@/lib/use-export';
 import type { ContactConversionItem } from '@/lib/types/cross-analysis';
 
 // ── 类型定义 ───────────────────────────────────────────────────────────────────
@@ -173,9 +177,8 @@ function SummaryTab() {
   const { configJson } = useWideConfig();
   const { rateColor, rateBg } = useCheckinThresholds();
 
-  const { data, isLoading, error } = useSWR<CheckinSummaryResponse>(
-    `/api/checkin/summary?role_config=${encodeURIComponent(configJson)}`,
-    swrFetcher
+  const { data, isLoading, error } = useFilteredSWR<CheckinSummaryResponse>(
+    `/api/checkin/summary?role_config=${encodeURIComponent(configJson)}`
   );
 
   if (isLoading) {
@@ -216,30 +219,71 @@ function SummaryTab() {
   );
 }
 
-// ── 主页面 ────────────────────────────────────────────────────────────────────
+// ── 主页面（内部，需要 useSearchParams）────────────────────────────────────────
 
-export default function CheckinPage() {
-  const [activeTab, setActiveTab] = useState<TabId>('summary');
+function CheckinPageInner() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const activeTab = (searchParams.get('tab') ?? 'followup') as TabId;
   const { activeRoles, roleEnclosures } = useWideConfig();
+  const { exportCSV } = useExport();
 
-  const { data: scatterData } = useSWR<ContactConversionItem[]>(
-    '/api/daily-monitor/contact-vs-conversion',
-    swrFetcher
+  const { data: summaryData } = useSWR<CheckinSummaryResponse>(`/api/checkin/summary`, swrFetcher);
+
+  const { data: scatterData } = useFilteredSWR<ContactConversionItem[]>(
+    '/api/daily-monitor/contact-vs-conversion'
   );
+
+  function handleTabChange(id: string) {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('tab', id);
+    router.replace(`/checkin?${params.toString()}`);
+  }
+
+  function handleExportSummary() {
+    const byRole = summaryData?.by_role ?? {};
+    const rows: Record<string, unknown>[] = [];
+    Object.entries(byRole).forEach(([role, v]) => {
+      (v.by_team ?? []).forEach((t) => {
+        rows.push({
+          role,
+          team: t.team,
+          students: t.students,
+          checked_in: t.checked_in,
+          rate: t.rate,
+        });
+      });
+    });
+    const today = new Date().toISOString().slice(0, 10);
+    exportCSV(
+      rows,
+      [
+        { key: 'role', label: '岗位' },
+        { key: 'team', label: '团队' },
+        { key: 'students', label: '学员数' },
+        { key: 'checked_in', label: '打卡数' },
+        { key: 'rate', label: '打卡率' },
+      ],
+      `打卡汇总_${today}`
+    );
+  }
 
   return (
     <div className="space-y-4">
-      <div>
-        <h1 className="text-lg font-bold text-[var(--text-primary)]">打卡管理</h1>
-        <p className="text-sm text-[var(--text-secondary)] mt-0.5">
-          有效学员打卡率 · 按岗位 / 团队 / 围场拆分
-        </p>
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="text-lg font-bold text-[var(--text-primary)]">打卡管理</h1>
+          <p className="text-sm text-[var(--text-secondary)] mt-0.5">
+            有效学员打卡率 · 按岗位 / 团队 / 围场拆分
+          </p>
+        </div>
+        {activeTab === 'summary' && <ExportButton onExportCsv={handleExportSummary} />}
       </div>
 
       <PageTabs
         tabs={TABS.map((t) => ({ id: t.id, label: t.label }))}
         activeId={activeTab}
-        onChange={(id) => setActiveTab(id as TabId)}
+        onChange={handleTabChange}
       />
 
       <div className="mt-2">
@@ -265,5 +309,21 @@ export default function CheckinPage() {
         </div>
       )}
     </div>
+  );
+}
+
+// ── 导出 ────────────────────────────────────────────────────────────────────
+
+export default function CheckinPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex items-center justify-center h-64">
+          <Spinner size="lg" />
+        </div>
+      }
+    >
+      <CheckinPageInner />
+    </Suspense>
   );
 }

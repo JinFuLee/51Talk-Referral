@@ -9,6 +9,8 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { StudentSearch, type SearchFilters } from '@/components/student-360/StudentSearch';
 import { StudentTable } from '@/components/student-360/StudentTable';
 import { Profile360Drawer } from '@/components/student-360/Profile360Drawer';
+import { ExportButton } from '@/components/ui/ExportButton';
+import { useExport } from '@/lib/use-export';
 import type { Student360SearchResponse } from '@/lib/types/cross-analysis';
 
 const DEFAULT_FILTERS: SearchFilters = {
@@ -24,6 +26,7 @@ export default function Students360Page() {
   const [page, setPage] = useState(1);
   const [sort, setSort] = useState('paid_amount:desc');
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const { exportCSV } = useExport();
 
   const PAGE_SIZE = 20;
 
@@ -53,14 +56,39 @@ export default function Students360Page() {
     setPage(1);
   }, []);
 
+  function handleExport() {
+    const items = data?.items ?? [];
+    const today = new Date().toISOString().slice(0, 10);
+    exportCSV(
+      items as unknown as Record<string, unknown>[],
+      [
+        { key: 'stdt_id', label: '学员ID' },
+        { key: 'name', label: '姓名' },
+        { key: 'region', label: '地区' },
+        { key: 'enclosure', label: '围场' },
+        { key: 'lifecycle', label: '生命周期' },
+        { key: 'cc_name', label: 'CC' },
+        { key: 'paid_amount', label: '付费金额' },
+        { key: 'total_new', label: '带新数' },
+        { key: 'checkin_rate', label: '打卡率' },
+        { key: 'is_high_potential', label: '高潜' },
+        { key: 'last_contact_date', label: '末次联系' },
+      ],
+      `学员360_${today}`
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* 页面标题 */}
-      <div>
-        <h1 className="text-lg font-bold text-[var(--text-primary)]">学员360全景档案</h1>
-        <p className="text-sm text-[var(--text-secondary)] mt-1">
-          多维搜索学员 · 点击行查看全景档案（学习/推荐/CC/付费/日报）
-        </p>
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="text-lg font-bold text-[var(--text-primary)]">学员360全景档案</h1>
+          <p className="text-sm text-[var(--text-secondary)] mt-1">
+            多维搜索学员 · 点击行查看全景档案（学习/推荐/CC/付费/日报）
+          </p>
+        </div>
+        <ExportButton onExportCsv={handleExport} />
       </div>
 
       {/* 搜索与筛选 */}
