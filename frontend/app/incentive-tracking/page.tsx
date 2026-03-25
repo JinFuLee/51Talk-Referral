@@ -115,7 +115,7 @@ export default function IncentiveTrackingPage() {
             <XAxis type="number" tick={{ fontSize: 11 }} />
             <YAxis dataKey="name" type="category" tick={{ fontSize: 11 }} width={120} />
             <Tooltip />
-            <Bar dataKey="总付费数" fill="#10b981" radius={[0, 4, 4, 0]} />
+            <Bar dataKey="总付费数" fill="var(--chart-4-hex)" radius={[0, 4, 4, 0]} />
           </BarChart>
         </ResponsiveContainer>
       </Card>

@@ -82,7 +82,7 @@ export function AchievementGauge({ value, label = '达成率', size = 120 }: Ach
           textAnchor="middle"
           dominantBaseline="middle"
           fontSize={10}
-          fill="#A3A38E"
+          fill="var(--n-400)"
         >
           {label}
         </text>

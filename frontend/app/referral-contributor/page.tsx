@@ -189,8 +189,8 @@ export default function ReferralContributorPage() {
             <YAxis tick={{ fontSize: 11 }} />
             <Tooltip />
             <Legend wrapperStyle={{ fontSize: 12 }} />
-            <Bar dataKey="带新" fill="#3b82f6" radius={[3, 3, 0, 0]} />
-            <Bar dataKey="付费" fill="#10b981" radius={[3, 3, 0, 0]} />
+            <Bar dataKey="带新" fill="var(--chart-2-hex)" radius={[3, 3, 0, 0]} />
+            <Bar dataKey="付费" fill="var(--chart-4-hex)" radius={[3, 3, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>
       </Card>
