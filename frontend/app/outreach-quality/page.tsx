@@ -176,7 +176,7 @@ export default function OutreachQualityPage() {
                     <td className="slide-td text-right font-mono tabular-nums">
                       {safeNum(row.students)}
                     </td>
-                    <td className="slide-td text-right font-mono tabular-nums font-semibold text-blue-600">
+                    <td className="slide-td text-right font-mono tabular-nums font-semibold text-navy-500">
                       {safeNum(row.cc_connected)}
                     </td>
                     <td className="slide-td text-right font-mono tabular-nums text-[var(--text-secondary)]">

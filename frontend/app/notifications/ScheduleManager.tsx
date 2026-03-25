@@ -310,7 +310,7 @@ export function ScheduleManager({ lang }: ScheduleManagerProps) {
                   >
                     {sch.enabled ? t.enabled : t.disabled}
                   </span>
-                  <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-blue-50 text-blue-600 font-medium">
+                  <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-brand-50 text-navy-500 font-medium">
                     {sch.platform === 'lark' ? t.lark : t.dingtalk}
                   </span>
                 </div>

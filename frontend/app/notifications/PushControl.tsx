@@ -256,7 +256,7 @@ export function PushControl({ platform }: PushControlProps) {
         <button
           onClick={handlePushAll}
           disabled={pushState === 'pushing' || enabledChannels.length === 0}
-          className="px-4 py-2 bg-[var(--brand-600,#0284c7)] text-white rounded-lg text-sm font-medium hover:opacity-90 disabled:opacity-40 transition-opacity shrink-0"
+          className="px-4 py-2 bg-brand-400 text-white rounded-lg text-sm font-medium hover:opacity-90 disabled:opacity-40 transition-opacity shrink-0"
         >
           立即推送
         </button>
@@ -310,7 +310,7 @@ export function PushControl({ platform }: PushControlProps) {
               onClick={() => setSelectedRole(r)}
               className={`px-2.5 py-1 rounded-full text-xs font-medium transition-colors ${
                 selectedRole === r
-                  ? 'bg-[var(--brand-600,#0284c7)] text-white'
+                  ? 'bg-brand-400 text-white'
                   : 'bg-[var(--bg-subtle)] text-[var(--text-secondary)] hover:bg-[var(--bg-elevated)]'
               }`}
             >

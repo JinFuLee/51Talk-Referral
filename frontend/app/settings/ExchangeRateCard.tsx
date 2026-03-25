@@ -41,7 +41,7 @@ export default function ExchangeRateCard({
           <button
             onClick={onSave}
             disabled={rateSaving || !rateInput}
-            className="px-4 py-2 bg-brand-600 text-white rounded-lg text-sm font-medium hover:bg-brand-700 disabled:opacity-50 transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-brand-500"
+            className="px-4 py-2 bg-brand-400 text-white rounded-lg text-sm font-medium hover:bg-brand-500 disabled:opacity-50 transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-brand-500"
           >
             {rateSaving ? <Spinner size="sm" /> : '保存'}
           </button>

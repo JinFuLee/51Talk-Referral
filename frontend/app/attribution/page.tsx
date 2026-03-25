@@ -113,7 +113,7 @@ export default function AttributionPage() {
                 summary.revenue_achievement_rate >= 1
                   ? 'text-green-600'
                   : summary.revenue_achievement_rate >= 0.5
-                    ? 'text-blue-600'
+                    ? 'text-navy-500'
                     : 'text-red-600'
               }`}
             >
@@ -127,7 +127,7 @@ export default function AttributionPage() {
                 summary.order_value_achievement_rate >= 1
                   ? 'text-green-600'
                   : summary.order_value_achievement_rate >= 0.5
-                    ? 'text-blue-600'
+                    ? 'text-navy-500'
                     : 'text-red-600'
               }`}
             >

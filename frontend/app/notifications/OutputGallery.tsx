@@ -83,7 +83,7 @@ export function OutputGallery({ platform: _platform }: OutputGalleryProps) {
               onClick={() => setRole(r)}
               className={`px-2.5 py-1 rounded-full text-xs font-medium transition-colors ${
                 role === r
-                  ? 'bg-[var(--brand-600,#0284c7)] text-white'
+                  ? 'bg-brand-400 text-white'
                   : 'bg-[var(--bg-subtle)] text-[var(--text-secondary)] hover:bg-[var(--bg-elevated)]'
               }`}
             >

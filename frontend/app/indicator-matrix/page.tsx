@@ -208,7 +208,7 @@ export default function IndicatorMatrixPage() {
         <button
           onClick={handleSave}
           disabled={saving || isLoading}
-          className="px-4 py-2 bg-brand-600 text-white rounded-lg text-sm font-medium hover:bg-brand-700 disabled:opacity-50 transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-brand-500"
+          className="px-4 py-2 bg-brand-400 text-white rounded-lg text-sm font-medium hover:bg-brand-500 disabled:opacity-50 transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-brand-500"
         >
           {saving ? '保存中…' : '保存配置'}
         </button>
@@ -331,7 +331,7 @@ export default function IndicatorMatrixPage() {
                         {/* CC — 系统锁定全量 */}
                         <div className="w-14 flex justify-center">
                           <div className="w-4 h-4 rounded border-2 border-brand-400 bg-brand-100 flex items-center justify-center">
-                            <div className="w-2 h-2 rounded-sm bg-brand-600" />
+                            <div className="w-2 h-2 rounded-sm bg-brand-400" />
                           </div>
                         </div>
 
@@ -342,7 +342,7 @@ export default function IndicatorMatrixPage() {
                             checked={ssActive.has(ind.id)}
                             disabled={disabled}
                             onChange={() => !disabled && toggleSS(ind.id)}
-                            className="w-4 h-4 rounded border-[var(--border-default)] accent-brand-600 cursor-pointer disabled:cursor-not-allowed disabled:opacity-40 focus-visible:ring-2 focus-visible:ring-brand-500"
+                            className="w-4 h-4 rounded border-[var(--border-default)] accent-brand-400 cursor-pointer disabled:cursor-not-allowed disabled:opacity-40 focus-visible:ring-2 focus-visible:ring-brand-500"
                             aria-label={`SS 启用 ${name}`}
                           />
                         </div>
@@ -354,7 +354,7 @@ export default function IndicatorMatrixPage() {
                             checked={lpActive.has(ind.id)}
                             disabled={disabled}
                             onChange={() => !disabled && toggleLP(ind.id)}
-                            className="w-4 h-4 rounded border-[var(--border-default)] accent-brand-600 cursor-pointer disabled:cursor-not-allowed disabled:opacity-40 focus-visible:ring-2 focus-visible:ring-brand-500"
+                            className="w-4 h-4 rounded border-[var(--border-default)] accent-brand-400 cursor-pointer disabled:cursor-not-allowed disabled:opacity-40 focus-visible:ring-2 focus-visible:ring-brand-500"
                             aria-label={`LP 启用 ${name}`}
                           />
                         </div>

@@ -353,7 +353,7 @@ export default function ChannelPage() {
                             <td className="slide-td text-[var(--text-secondary)]">
                               {c.enclosure || '—'}
                             </td>
-                            <td className="slide-td text-right font-mono tabular-nums font-semibold text-blue-600">
+                            <td className="slide-td text-right font-mono tabular-nums font-semibold text-navy-500">
                               {fmtNum(c[paid] as number)}
                             </td>
                             <td className="slide-td text-right font-mono tabular-nums text-[var(--text-secondary)]">

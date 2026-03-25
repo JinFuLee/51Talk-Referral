@@ -219,7 +219,7 @@ export function BotFormModal({ open, platform, initial, onClose, onSave }: BotFo
             <button
               type="submit"
               disabled={saving}
-              className="flex-1 px-4 py-2 bg-[var(--brand-600,#0284c7)] text-white rounded-lg text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-50"
+              className="flex-1 px-4 py-2 bg-brand-400 text-white rounded-lg text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-50"
             >
               {saving ? '保存中…' : '保存'}
             </button>

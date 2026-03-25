@@ -136,7 +136,7 @@ export default function CheckinThresholdsCard() {
           <button
             onClick={handleSave}
             disabled={saving || isLoading}
-            className="px-3 py-1 bg-brand-600 text-white rounded text-xs font-medium hover:bg-brand-700 transition-colors focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-brand-500 disabled:opacity-40"
+            className="px-3 py-1 bg-brand-400 text-white rounded text-xs font-medium hover:bg-brand-500 transition-colors focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-brand-500 disabled:opacity-40"
           >
             {saving ? '保存中…' : saved ? '已保存' : '保存'}
           </button>
