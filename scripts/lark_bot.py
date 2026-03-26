@@ -339,6 +339,52 @@ def _bi(key: str) -> str:
 # ── 凭证 ─────────────────────────────────────────────────────────────────────
 
 
+NOTIFICATION_LOG = OUTPUT_DIR / "lark-notification-log.jsonl"
+
+
+def _is_already_sent(channel: str, role: str) -> bool:
+    """检查同日同通道同角色是否已发送（幂等）。"""
+    if not NOTIFICATION_LOG.exists():
+        return False
+    today_tag = datetime.now().strftime("%Y%m%d")
+    try:
+        for line in NOTIFICATION_LOG.read_text("utf-8").strip().split("\n"):
+            if not line.strip():
+                continue
+            entry = json.loads(line)
+            ts = entry.get("ts", "")[:10].replace("-", "")
+            if (
+                ts == today_tag
+                and entry.get("channel") == channel
+                and entry.get("role") == role
+                and entry.get("status") == "sent"
+            ):
+                return True
+    except Exception:
+        pass
+    return False
+
+
+def _log_sent(
+    channel: str, role: str, msgs: int, honor: int, warning: int
+) -> None:
+    """记录发送日志到 lark-notification-log.jsonl。"""
+    entry = json.dumps(
+        {
+            "ts": datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "channel": channel,
+            "role": role,
+            "status": "sent",
+            "messages": msgs,
+            "honor_cards": honor,
+            "warning_cards": warning,
+        },
+        ensure_ascii=False,
+    )
+    with open(NOTIFICATION_LOG, "a", encoding="utf-8") as f:
+        f.write(entry + "\n")
+
+
 def load_config() -> dict:
     if not CRED_PATH.exists():
         print(f"[错误] 凭证文件不存在: {CRED_PATH}")
@@ -1490,19 +1536,35 @@ def _send_honor_and_warning(
         for cc_entry in tr["ccs"]:
             all_cc_entries.append(cc_entry)
 
-    # ── 正向分桶 ──
+    # ── 正向分桶（含 ranking 中有但 followup 中无的 CC，如 100% 打卡者）──
     tiers: dict[str, list[tuple]] = {
         "hall_of_fame": [],
         "excellent": [],
         "pass": [],
     }
+    seen_cc_names: set[str] = set()
     for cc_entry in all_cc_entries:
         cc_name = cc_entry["cc"]
+        seen_cc_names.add(cc_name)
         rk = cc_ranking_map.get(cc_name, {})
         rate = rk.get("rate", cc_entry.get("rate", 0.0))
         rank = rk.get("rank", 999)
         students = rk.get("students", 0)
 
+        if rate >= hof_thresh:
+            tiers["hall_of_fame"].append((cc_name, rate, rank, students))
+        elif rate >= exc_thresh:
+            tiers["excellent"].append((cc_name, rate, rank, students))
+        elif rate >= pass_thresh:
+            tiers["pass"].append((cc_name, rate, rank, students))
+
+    # 补全 ranking 中有但 followup 中无的 CC（如 100% 打卡者无未打卡学员）
+    for cc_name, rk in cc_ranking_map.items():
+        if cc_name in seen_cc_names:
+            continue
+        rate = rk.get("rate", 0.0)
+        rank = rk.get("rank", 999)
+        students = rk.get("students", 0)
         if rate >= hof_thresh:
             tiers["hall_of_fame"].append((cc_name, rate, rank, students))
         elif rate >= exc_thresh:
@@ -1831,8 +1893,20 @@ def cmd_followup(args: argparse.Namespace) -> None:
     today = datetime.now()
     date_display = f"{today.strftime('%Y年%m月%d日')} T-1"
 
-    # ── 角色配置（从 Settings 读取围场映射）──
+    # ── 幂等检查：同日同通道同角色不重复发送 ──
     role = args.role.upper()
+    if (
+        not args.dry_run
+        and not getattr(args, "force", False)
+        and _is_already_sent(args.channel, role)
+    ):
+        print(
+            f"[跳过] 今日已向 {args.channel}({role}) 发送过，"
+            f"用 --force 覆盖"
+        )
+        return
+
+    # ── 角色配置（从 Settings 读取围场映射）──
     enc_order = _get_role_enclosures(role)
     # LP 排除 Region 团队
     team_exclude = {"LP": {"TH-LP01Region"}}
@@ -2263,6 +2337,16 @@ def cmd_followup(args: argparse.Namespace) -> None:
         date_display=date_display,
     )
 
+    # ── 阶段 6：记录发送日志（幂等依据）──────────────────────────────────────
+    _log_sent(
+        channel=args.channel,
+        role=role,
+        msgs=1 + len(team_cc_results),
+        honor=0,
+        warning=0,
+    )
+    print(f"\n✓ 全部完成，已记录到 lark-notification-log.jsonl")
+
 
 # ── CLI ───────────────────────────────────────────────────────────────────────
 
@@ -2291,6 +2375,10 @@ def main() -> None:
     p_followup.add_argument(
         "--overview-only", action="store_true",
         help="只发总览，不发小组明细（适用于管理层群）",
+    )
+    p_followup.add_argument(
+        "--force", action="store_true",
+        help="忽略幂等检查，强制重发",
     )
 
     # test 连通性
