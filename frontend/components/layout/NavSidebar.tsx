@@ -35,6 +35,7 @@ import {
   Globe,
   Bot,
   BookOpen,
+  LineChart,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
@@ -98,6 +99,7 @@ const MAIN_GROUPS: NavGroup[] = [
     label: '系统',
     defaultOpen: false,
     items: [
+      { href: '/analytics', label: '运营分析报告', Icon: LineChart },
       { href: '/reports', label: '分析报告', Icon: FileText },
       { href: '/notifications', label: '通知推送', Icon: Bot },
       { href: '/indicator-matrix', label: '指标矩阵', Icon: LayoutGrid },
