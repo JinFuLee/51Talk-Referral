@@ -108,9 +108,16 @@ if [ "${1:-}" = "--force" ]; then
     exit 0
 fi
 
+MIN_HOUR=9  # 09:00 前不启动（防止凌晨开机误触发）
+
 # 轮询循环
 while true; do
     current_hour=$(date +%H)
+    if [ "${current_hour}" -lt "${MIN_HOUR}" ]; then
+        log "未到 ${MIN_HOUR}:00，等待..."
+        sleep "${POLL_INTERVAL}"
+        continue
+    fi
     if [ "${current_hour}" -ge "${MAX_HOUR}" ]; then
         log "已过 ${MAX_HOUR}:00，停止轮询（今日数据未更新）"
         exit 0

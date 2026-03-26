@@ -1784,45 +1784,108 @@ def _send_honor_and_warning(
         if enc in enc_warn_map
     )
 
+    # ── 构建警示卡片（呼吸感排版）──
+    summary_line = (
+        f"⚠️ **{total_at_risk}** CC"
+        f" {_th('warn_at_risk')}"
+        f" — แสดง {_WARN_DISPLAY_LIMIT} อันดับแรก"
+        if truncated
+        else f"⚠️ **{total_at_risk}** CC {_th('warn_at_risk')}"
+    )
+
     warn_elements: list[dict] = [
         {
             "tag": "markdown",
             "content": (
-                f"<at id=all></at>\n"
+                f"<at id=all></at>\n\n"
                 f"**{_th('warn_body')}**\n"
-                f"{_zh('warn_body')}\n"
-                f"{warn_thresholds_desc}"
-                + (
-                    f"\n\n⚠️ **{total_at_risk}** CC"
-                    f" {_th('warn_at_risk')}"
-                    f" — แสดง {_WARN_DISPLAY_LIMIT}"
-                    f" อันดับแรก"
-                    if truncated
-                    else ""
-                )
+                f"{_zh('warn_body')}\n\n"
+                f"{warn_thresholds_desc}\n\n"
+                f"{summary_line}"
             ),
         },
         {"tag": "hr"},
     ]
-    for cc_warn in display_ccs:
-        lines = [f"⚠️ **{cc_warn['cc']}**"]
+
+    for idx, cc_warn in enumerate(display_ccs):
+        # CC 名称（独立一段，视觉锚点）
+        warn_elements.append(
+            {
+                "tag": "markdown",
+                "content": f"⚠️ **{cc_warn['cc']}**",
+            }
+        )
+
+        # 每个围场用 column_set 对齐
         for ew in cc_warn["enc_warnings"]:
             thresh_pct = f"{ew['threshold']:.0%}"
-            lines.append(
-                f"**{ew['enc']}** · {ew['rate']:.1%}"
-                f" ({_th('warn_threshold')} {thresh_pct})"
-                f" · {_th('warn_at_risk')}"
-                f" **{ew['risk_count']}** {_th('persons')}"
+            warn_elements.append(
+                {
+                    "tag": "column_set",
+                    "flex_mode": "none",
+                    "background_style": "grey",
+                    "columns": [
+                        {
+                            "tag": "column",
+                            "width": "weighted",
+                            "weight": 1,
+                            "elements": [
+                                {
+                                    "tag": "markdown",
+                                    "content": f"**{ew['enc']}**",
+                                }
+                            ],
+                        },
+                        {
+                            "tag": "column",
+                            "width": "weighted",
+                            "weight": 2,
+                            "elements": [
+                                {
+                                    "tag": "markdown",
+                                    "content": (
+                                        f"{ew['rate']:.1%}"
+                                        f"  ({_th('warn_threshold')}"
+                                        f" {thresh_pct})"
+                                    ),
+                                }
+                            ],
+                        },
+                        {
+                            "tag": "column",
+                            "width": "weighted",
+                            "weight": 1,
+                            "elements": [
+                                {
+                                    "tag": "markdown",
+                                    "content": (
+                                        f"**{ew['risk_count']}**"
+                                        f" {_th('persons')}"
+                                    ),
+                                }
+                            ],
+                        },
+                    ],
+                }
             )
+
+            # 学员 ID：每行 5 个，留白呼吸
             ids = ew["risk_ids"]
-            chunks = [
-                ", ".join(ids[i : i + 8])
-                for i in range(0, len(ids), 8)
-            ]
-            lines.extend(chunks)
-        warn_elements.append(
-            {"tag": "markdown", "content": "\n".join(lines)}
-        )
+            if ids:
+                chunks = [
+                    "  ".join(ids[i : i + 5])
+                    for i in range(0, len(ids), 5)
+                ]
+                warn_elements.append(
+                    {
+                        "tag": "markdown",
+                        "content": "\n".join(chunks),
+                    }
+                )
+
+        # CC 之间加分隔线（最后一个不加）
+        if idx < len(display_ccs) - 1:
+            warn_elements.append({"tag": "hr"})
 
     if truncated:
         remaining = total_at_risk - _WARN_DISPLAY_LIMIT
