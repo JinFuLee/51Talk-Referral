@@ -3,10 +3,13 @@
 import { clsx } from 'clsx';
 
 export interface Book {
+  book_id: string;
   id: string;
   title: string;
   chapter_count: number;
-  updated_at: string; // ISO date string
+  last_updated: string | null;
+  updated_at?: string;
+  file?: string;
   description?: string;
 }
 
@@ -37,11 +40,12 @@ export function BookShelf({ books, activeId, onSelect }: BookShelfProps) {
   return (
     <div className="flex gap-2 flex-wrap px-1 py-2">
       {books.map((book) => {
-        const isActive = book.id === activeId;
+        const bookId = book.book_id ?? book.id;
+        const isActive = bookId === activeId;
         return (
           <button
-            key={book.id}
-            onClick={() => onSelect(book.id)}
+            key={bookId}
+            onClick={() => onSelect(bookId)}
             className={clsx(
               'flex flex-col items-start px-3 py-2 rounded-lg border transition-colors text-left',
               'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)]',
@@ -50,11 +54,22 @@ export function BookShelf({ books, activeId, onSelect }: BookShelfProps) {
                 : 'bg-[var(--bg-surface)] border-[var(--border-default)] text-[var(--text-secondary)] hover:bg-[var(--bg-subtle)]'
             )}
           >
-            <span className={clsx('text-sm font-medium', isActive ? 'text-white' : 'text-[var(--text-primary)]')}>
+            <span
+              className={clsx(
+                'text-sm font-medium',
+                isActive ? 'text-white' : 'text-[var(--text-primary)]'
+              )}
+            >
               {book.title}
             </span>
-            <span className={clsx('text-[11px] mt-0.5', isActive ? 'text-white/70' : 'text-[var(--text-muted)]')}>
-              {book.chapter_count} 章 · 更新于 {formatDate(book.updated_at)}
+            <span
+              className={clsx(
+                'text-[11px] mt-0.5',
+                isActive ? 'text-white/70' : 'text-[var(--text-muted)]'
+              )}
+            >
+              {book.chapter_count} 章 · 更新于{' '}
+              {formatDate(book.last_updated ?? book.updated_at ?? '')}
             </span>
           </button>
         );

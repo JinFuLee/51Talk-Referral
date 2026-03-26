@@ -19,10 +19,16 @@ function slugify(text: string): string {
 }
 
 export function MarkdownReader({ content, bookmarks, onToggleBookmark }: MarkdownReaderProps) {
+  // 计数器与 API _parse_chapters 对齐：h2 → chapter-{N}, h3 → chapter-{parentN}-{childN}
+  let h2Index = -1;
+  let h3Index = -1;
+
   const components: Components = {
     h2: ({ children }) => {
+      h2Index++;
+      h3Index = -1; // reset h3 counter for each h2
       const text = String(children);
-      const id = slugify(text);
+      const id = `chapter-${h2Index}`;
       const isBookmarked = bookmarks.includes(id);
       return (
         <h2
@@ -47,7 +53,8 @@ export function MarkdownReader({ content, bookmarks, onToggleBookmark }: Markdow
     },
 
     h3: ({ children }) => {
-      const id = slugify(String(children));
+      h3Index++;
+      const id = `chapter-${h2Index}-${h3Index}`;
       return (
         <h3
           id={id}
@@ -64,9 +71,7 @@ export function MarkdownReader({ content, bookmarks, onToggleBookmark }: Markdow
       </div>
     ),
 
-    thead: ({ children }) => (
-      <thead className="slide-thead-row">{children}</thead>
-    ),
+    thead: ({ children }) => <thead className="slide-thead-row">{children}</thead>,
 
     th: ({ children }) => (
       <th className="slide-th px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wide">
@@ -140,9 +145,7 @@ export function MarkdownReader({ content, bookmarks, onToggleBookmark }: Markdow
       </a>
     ),
 
-    hr: () => (
-      <hr className="my-8 border-[var(--border-default)]" />
-    ),
+    hr: () => <hr className="my-8 border-[var(--border-default)]" />,
   };
 
   return (

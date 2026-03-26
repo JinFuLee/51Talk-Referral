@@ -5,7 +5,8 @@ import { ChevronDown, ChevronRight } from 'lucide-react';
 import { clsx } from 'clsx';
 
 export interface Chapter {
-  id: string;
+  chapter_id: string;
+  id?: string;
   title: string;
   level: 2 | 3;
   children?: Chapter[];
@@ -24,15 +25,20 @@ interface ChapterNodeProps {
   depth?: number;
 }
 
+function chId(ch: Chapter): string {
+  return ch.chapter_id ?? ch.id ?? '';
+}
+
 function ChapterNode({ chapter, activeId, onSelect, depth = 0 }: ChapterNodeProps) {
   const hasChildren = chapter.children && chapter.children.length > 0;
   const [open, setOpen] = useState(true);
-  const isActive = chapter.id === activeId;
+  const cid = chId(chapter);
+  const isActive = cid === activeId;
 
   const handleClick = () => {
     if (hasChildren) setOpen((v) => !v);
-    onSelect(chapter.id);
-    const el = document.getElementById(chapter.id);
+    onSelect(cid);
+    const el = document.getElementById(cid);
     if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
@@ -65,7 +71,7 @@ function ChapterNode({ chapter, activeId, onSelect, depth = 0 }: ChapterNodeProp
         <div className="mt-0.5">
           {chapter.children!.map((child) => (
             <ChapterNode
-              key={child.id}
+              key={chId(child)}
               chapter={child}
               activeId={activeId}
               onSelect={onSelect}
@@ -80,16 +86,14 @@ function ChapterNode({ chapter, activeId, onSelect, depth = 0 }: ChapterNodeProp
 
 export function ChapterTree({ chapters, activeId, onSelect }: ChapterTreeProps) {
   if (chapters.length === 0) {
-    return (
-      <div className="px-2 py-3 text-xs text-[var(--text-muted)]">暂无章节</div>
-    );
+    return <div className="px-2 py-3 text-xs text-[var(--text-muted)]">暂无章节</div>;
   }
 
   return (
     <nav aria-label="章节导航" className="space-y-0.5">
       {chapters.map((chapter) => (
         <ChapterNode
-          key={chapter.id}
+          key={chId(chapter)}
           chapter={chapter}
           activeId={activeId}
           onSelect={onSelect}

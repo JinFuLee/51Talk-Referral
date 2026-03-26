@@ -22,10 +22,12 @@ const BOOKMARKS_KEY = 'knowledge-bookmarks';
 // ── Types from API ──────────────────────────────────────────────────────────
 
 interface BookContent {
-  id: string;
+  book_id: string;
+  id?: string;
   title: string;
   content: string;
   chapters: Chapter[];
+  last_updated?: string | null;
 }
 
 // ── Bookmark helpers ─────────────────────────────────────────────────────────
@@ -79,7 +81,7 @@ export default function KnowledgePage() {
   // Auto-select first book
   useEffect(() => {
     if (!activeBook && books && books.length > 0) {
-      setActiveBook(books[0].id);
+      setActiveBook(books[0].book_id ?? books[0].id);
     }
   }, [books, activeBook]);
 
