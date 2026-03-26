@@ -4,15 +4,39 @@ import { Card } from '@/components/ui/Card';
 import { PctInput } from '@/components/ui/NumInput';
 import type { EnclosureTarget, MonthlyTargetV2 } from '@/lib/types';
 
-const ENCLOSURE_KEYS = ['d0_30', 'd31_60', 'd61_90', 'd91_180', 'd181_plus'] as const;
+const ENCLOSURE_KEYS = [
+  'd0_30',
+  'd31_60',
+  'd61_90',
+  'd91_120',
+  'd121_150',
+  'd151_180',
+  'd6M',
+  'd7M',
+  'd8M',
+  'd9M',
+  'd10M',
+  'd11M',
+  'd12M',
+  'd12M_plus',
+] as const;
 type EnclosureKey = (typeof ENCLOSURE_KEYS)[number];
 
 const ENCLOSURE_LABELS: Record<EnclosureKey, string> = {
   d0_30: '0-30天',
   d31_60: '31-60天',
   d61_90: '61-90天',
-  d91_180: '91-180天',
-  d181_plus: '181+天',
+  d91_120: '91-120天',
+  d121_150: '121-150天',
+  d151_180: '151-180天',
+  d6M: '6M',
+  d7M: '7M',
+  d8M: '8M',
+  d9M: '9M',
+  d10M: '10M',
+  d11M: '11M',
+  d12M: '12M',
+  d12M_plus: '12M+',
 };
 
 const ENCLOSURE_METRICS: { key: keyof EnclosureTarget; label: string }[] = [

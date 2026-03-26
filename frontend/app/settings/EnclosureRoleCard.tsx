@@ -5,7 +5,22 @@ import useSWR from 'swr';
 import { Card } from '@/components/ui/Card';
 import { configAPI, swrFetcher } from '@/lib/api';
 
-const ENCLOSURE_KEYS = ['M0', 'M1', 'M2', 'M3', 'M4', 'M5', 'M6+'] as const;
+const ENCLOSURE_KEYS = [
+  'M0',
+  'M1',
+  'M2',
+  'M3',
+  'M4',
+  'M5',
+  'M6',
+  'M7',
+  'M8',
+  'M9',
+  'M10',
+  'M11',
+  'M12',
+  'M12+',
+] as const;
 type EnclosureMonth = (typeof ENCLOSURE_KEYS)[number];
 
 const ROLES = ['CC', 'SS', 'LP', '运营'] as const;
@@ -21,7 +36,14 @@ const DEFAULT_NARROW: EnclosureRoleAssignment = {
   M3: ['LP'],
   M4: ['LP'],
   M5: ['LP'],
-  'M6+': ['LP'],
+  M6: ['LP'],
+  M7: ['LP'],
+  M8: ['LP'],
+  M9: ['LP'],
+  M10: ['LP'],
+  M11: ['LP'],
+  M12: ['LP'],
+  'M12+': ['LP'],
 };
 
 // 宽口径默认：学员自主打卡，M0-M2→CC, M3→SS, M4-M5→LP, M6+→运营
@@ -32,7 +54,14 @@ const DEFAULT_WIDE: EnclosureRoleAssignment = {
   M3: ['SS'],
   M4: ['LP'],
   M5: ['LP'],
-  'M6+': ['运营'],
+  M6: ['运营'],
+  M7: ['运营'],
+  M8: ['运营'],
+  M9: ['运营'],
+  M10: ['运营'],
+  M11: ['运营'],
+  M12: ['运营'],
+  'M12+': ['运营'],
 };
 
 // 旧 localStorage keys（一次性迁移用）

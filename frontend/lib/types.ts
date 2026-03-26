@@ -474,8 +474,17 @@ export interface EnclosureDecomposition {
   d0_30: EnclosureTarget;
   d31_60: EnclosureTarget;
   d61_90: EnclosureTarget;
-  d91_180: EnclosureTarget;
-  d181_plus: EnclosureTarget;
+  d91_120: EnclosureTarget;
+  d121_150: EnclosureTarget;
+  d151_180: EnclosureTarget;
+  d6M: EnclosureTarget;
+  d7M: EnclosureTarget;
+  d8M: EnclosureTarget;
+  d9M: EnclosureTarget;
+  d10M: EnclosureTarget;
+  d11M: EnclosureTarget;
+  d12M: EnclosureTarget;
+  d12M_plus: EnclosureTarget;
   [key: string]: EnclosureTarget;
 }
 

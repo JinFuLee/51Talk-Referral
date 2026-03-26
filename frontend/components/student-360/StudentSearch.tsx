@@ -27,8 +27,17 @@ const SEGMENT_OPTIONS = [
   { value: '0-30', label: '0-30天' },
   { value: '31-60', label: '31-60天' },
   { value: '61-90', label: '61-90天' },
-  { value: '91-180', label: '91-180天' },
-  { value: '181+', label: '181+天' },
+  { value: '91-120', label: '91-120天' },
+  { value: '121-150', label: '121-150天' },
+  { value: '151-180', label: '151-180天' },
+  { value: '6M', label: '6M' },
+  { value: '7M', label: '7M' },
+  { value: '8M', label: '8M' },
+  { value: '9M', label: '9M' },
+  { value: '10M', label: '10M' },
+  { value: '11M', label: '11M' },
+  { value: '12M', label: '12M' },
+  { value: '12M+', label: '12M+' },
 ];
 
 const LIFECYCLE_OPTIONS = [

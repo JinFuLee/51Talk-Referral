@@ -83,7 +83,22 @@ function fmtNum(n: number | null | undefined): string {
 // ── Filter Bar ─────────────────────────────────────────────────────────────────
 
 const ROLES: Role[] = ['CC', 'SS', 'LP', '运营'];
-const ENCLOSURE_OPTIONS = ['M0', 'M1', 'M2', 'M3', 'M4', 'M5', 'M6+'];
+const ENCLOSURE_OPTIONS = [
+  'M0',
+  'M1',
+  'M2',
+  'M3',
+  'M4',
+  'M5',
+  'M6',
+  'M7',
+  'M8',
+  'M9',
+  'M10',
+  'M11',
+  'M12',
+  'M12+',
+];
 
 interface FilterBarProps {
   role: Role;
