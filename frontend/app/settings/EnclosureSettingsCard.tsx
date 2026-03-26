@@ -23,20 +23,20 @@ const ENCLOSURE_KEYS = [
 type EnclosureKey = (typeof ENCLOSURE_KEYS)[number];
 
 const ENCLOSURE_LABELS: Record<EnclosureKey, string> = {
-  d0_30: '0-30天',
-  d31_60: '31-60天',
-  d61_90: '61-90天',
-  d91_120: '91-120天',
-  d121_150: '121-150天',
-  d151_180: '151-180天',
-  d6M: '6M',
-  d7M: '7M',
-  d8M: '8M',
-  d9M: '9M',
-  d10M: '10M',
-  d11M: '11M',
-  d12M: '12M',
-  d12M_plus: '12M+',
+  d0_30: 'M0（0~30）',
+  d31_60: 'M1（31~60）',
+  d61_90: 'M2（61~90）',
+  d91_120: 'M3（91~120）',
+  d121_150: 'M4（121~150）',
+  d151_180: 'M5（151~180）',
+  d6M: 'M6（181~210）',
+  d7M: 'M7（211~240）',
+  d8M: 'M8（241~270）',
+  d9M: 'M9（271~300）',
+  d10M: 'M10（301~330）',
+  d11M: 'M11（331~360）',
+  d12M: 'M12（361~390）',
+  d12M_plus: 'M12+（391+）',
 };
 
 const ENCLOSURE_METRICS: { key: keyof EnclosureTarget; label: string }[] = [

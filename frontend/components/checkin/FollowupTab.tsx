@@ -99,6 +99,22 @@ const ENCLOSURE_OPTIONS = [
   'M12',
   'M12+',
 ];
+const ENCLOSURE_LABEL: Record<string, string> = {
+  M0: 'M0（0~30）',
+  M1: 'M1（31~60）',
+  M2: 'M2（61~90）',
+  M3: 'M3（91~120）',
+  M4: 'M4（121~150）',
+  M5: 'M5（151~180）',
+  M6: 'M6（181~210）',
+  M7: 'M7（211~240）',
+  M8: 'M8（241~270）',
+  M9: 'M9（271~300）',
+  M10: 'M10（301~330）',
+  M11: 'M11（331~360）',
+  M12: 'M12（361~390）',
+  'M12+': 'M12+（391+）',
+};
 
 interface FilterBarProps {
   role: Role;
@@ -205,7 +221,7 @@ function FilterBar({
                   : 'bg-[var(--bg-surface)] text-[var(--text-secondary)] border-[var(--border-subtle)] hover:border-action-accent-muted'
               }`}
             >
-              {enc}
+              {ENCLOSURE_LABEL[enc] ?? enc}
             </button>
           );
         })}

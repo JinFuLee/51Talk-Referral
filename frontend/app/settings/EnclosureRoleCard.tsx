@@ -23,6 +23,23 @@ const ENCLOSURE_KEYS = [
 ] as const;
 type EnclosureMonth = (typeof ENCLOSURE_KEYS)[number];
 
+const ENCLOSURE_DISPLAY: Record<string, string> = {
+  M0: 'M0（0~30）',
+  M1: 'M1（31~60）',
+  M2: 'M2（61~90）',
+  M3: 'M3（91~120）',
+  M4: 'M4（121~150）',
+  M5: 'M5（151~180）',
+  M6: 'M6（181~210）',
+  M7: 'M7（211~240）',
+  M8: 'M8（241~270）',
+  M9: 'M9（271~300）',
+  M10: 'M10（301~330）',
+  M11: 'M11（331~360）',
+  M12: 'M12（361~390）',
+  'M12+': 'M12+（391+）',
+};
+
 const ROLES = ['CC', 'SS', 'LP', '运营'] as const;
 type Role = (typeof ROLES)[number];
 
@@ -179,7 +196,7 @@ function AssignmentTable({
                 className={`border-b border-[var(--border-subtle)] ${i % 2 === 1 ? 'bg-[var(--bg-primary)]/50' : ''}`}
               >
                 <td className="py-2 px-3 text-xs font-medium text-[var(--text-primary)]">
-                  {month}
+                  {ENCLOSURE_DISPLAY[month] ?? month}
                 </td>
                 {ROLES.map((role) => {
                   const checked = (assignment[month] ?? []).includes(role);

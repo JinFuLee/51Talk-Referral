@@ -141,12 +141,16 @@ def get_enclosure(
     request: Request,
     dm: DataManager = Depends(get_data_manager),
     group_by: str = "enclosure_x_group",
-    enclosure: str | None = Query(None, description="围场段筛选，如 0~30 / 6M / 12M+"),
+    enclosure: str | None = Query(None, description="生命周期筛选，如 0M / 6M / 12M+"),
 ) -> list[EnclosureCCMetrics]:
     data = dm.load_all()
     df = data["enclosure_cc"]
-    if enclosure and "围场" in df.columns:
-        df = df[df["围场"].astype(str).str.strip() == enclosure].copy()
+    if enclosure and not df.empty:
+        # 优先用"生命周期"列（14段细粒度），fallback "围场"列（7段粗粒度）
+        if "生命周期" in df.columns:
+            df = df[df["生命周期"].astype(str).str.strip() == enclosure].copy()
+        elif "围场" in df.columns:
+            df = df[df["围场"].astype(str).str.strip() == enclosure].copy()
     return _df_to_metrics(df, group_by=group_by)
 
 

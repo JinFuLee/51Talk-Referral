@@ -175,12 +175,15 @@ def _df_to_lp_metrics(df: pd.DataFrame) -> list[EnclosureLPMetrics]:
 def get_enclosure_ss(
     request: Request,
     dm: DataManager = Depends(get_data_manager),
-    enclosure: str | None = Query(None, description="围场段筛选"),
+    enclosure: str | None = Query(None, description="生命周期筛选，如 0M / 6M / 12M+"),
 ) -> list[EnclosureSSMetrics]:
     data = dm.load_all()
     df = data.get("enclosure_ss", pd.DataFrame())
-    if enclosure and not df.empty and "围场" in df.columns:
-        df = df[df["围场"].astype(str).str.strip() == enclosure].copy()
+    if enclosure and not df.empty:
+        if "生命周期" in df.columns:
+            df = df[df["生命周期"].astype(str).str.strip() == enclosure].copy()
+        elif "围场" in df.columns:
+            df = df[df["围场"].astype(str).str.strip() == enclosure].copy()
     return _df_to_ss_metrics(df)
 
 
@@ -206,12 +209,15 @@ def get_enclosure_ss_ranking(
 def get_enclosure_lp(
     request: Request,
     dm: DataManager = Depends(get_data_manager),
-    enclosure: str | None = Query(None, description="围场段筛选"),
+    enclosure: str | None = Query(None, description="生命周期筛选，如 0M / 6M / 12M+"),
 ) -> list[EnclosureLPMetrics]:
     data = dm.load_all()
     df = data.get("enclosure_lp", pd.DataFrame())
-    if enclosure and not df.empty and "围场" in df.columns:
-        df = df[df["围场"].astype(str).str.strip() == enclosure].copy()
+    if enclosure and not df.empty:
+        if "生命周期" in df.columns:
+            df = df[df["生命周期"].astype(str).str.strip() == enclosure].copy()
+        elif "围场" in df.columns:
+            df = df[df["围场"].astype(str).str.strip() == enclosure].copy()
     return _df_to_lp_metrics(df)
 
 
