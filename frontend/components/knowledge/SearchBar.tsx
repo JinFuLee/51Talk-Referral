@@ -10,7 +10,8 @@ export interface SearchResult {
   book_title: string;
   chapter_id: string;
   chapter_title: string;
-  excerpt: string;
+  snippet: string;
+  excerpt?: string;
   score: number;
 }
 
@@ -162,7 +163,9 @@ export function SearchBar({ onResultClick }: SearchBarProps) {
                     />
                     <div
                       className="text-xs text-[var(--text-muted)] mt-0.5 line-clamp-2"
-                      dangerouslySetInnerHTML={{ __html: highlight(r.excerpt, debouncedQuery) }}
+                      dangerouslySetInnerHTML={{
+                        __html: highlight(r.snippet ?? r.excerpt ?? '', debouncedQuery),
+                      }}
                     />
                   </button>
                 ))}

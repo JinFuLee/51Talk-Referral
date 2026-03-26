@@ -43,7 +43,7 @@ export function MarkdownReader({ content, bookmarks, onToggleBookmark }: Markdow
         >
           <span>{cleanText}</span>
           <button
-            onClick={() => onToggleBookmark(id, text)}
+            onClick={() => onToggleBookmark(id, cleanText)}
             className="opacity-0 group-hover:opacity-100 transition-opacity text-[var(--text-muted)] hover:text-[var(--color-accent)] focus-visible:outline-none focus-visible:opacity-100"
             aria-label={isBookmarked ? '取消收藏' : '收藏此章节'}
             title={isBookmarked ? '取消收藏' : '收藏此章节'}

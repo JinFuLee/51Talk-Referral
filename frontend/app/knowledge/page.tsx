@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import useSWR from 'swr';
-import { BookOpen, Loader2, AlertCircle, BookMarked } from 'lucide-react';
+import { BookOpen, Loader2, AlertCircle, BookMarked, Globe } from 'lucide-react';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { BookShelf } from '@/components/knowledge/BookShelf';
 import { ChapterTree } from '@/components/knowledge/ChapterTree';
@@ -52,6 +52,12 @@ function saveBookmarks(items: BookmarkItem[]) {
 
 // ── Main page ────────────────────────────────────────────────────────────────
 
+const LANGS = [
+  { code: 'zh', label: '中文' },
+  { code: 'th', label: 'ไทย' },
+  { code: 'en', label: 'EN' },
+] as const;
+
 export default function KnowledgePage() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -60,6 +66,17 @@ export default function KnowledgePage() {
   // Active state
   const [activeBook, setActiveBook] = useState<string | null>(searchParams.get('book'));
   const [activeChapter, setActiveChapter] = useState<string | null>(null);
+  const [lang, setLang] = useState<string>(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('knowledge-lang') ?? 'zh';
+    }
+    return 'zh';
+  });
+
+  // Persist lang
+  useEffect(() => {
+    localStorage.setItem('knowledge-lang', lang);
+  }, [lang]);
 
   // Bookmarks
   const [bookmarks, setBookmarks] = useState<BookmarkItem[]>([]);
@@ -72,11 +89,12 @@ export default function KnowledgePage() {
   }, []);
 
   // Fetch book list
+  const langParam = lang !== 'zh' ? `?lang=${lang}` : '';
   const {
     data: books,
     isLoading: booksLoading,
     error: booksError,
-  } = useSWR<Book[]>('/api/knowledge/books', swrFetcher);
+  } = useSWR<Book[]>(`/api/knowledge/books${langParam}`, swrFetcher);
 
   // Auto-select first book
   useEffect(() => {
@@ -92,12 +110,48 @@ export default function KnowledgePage() {
     }
   }, [activeBook, router]);
 
-  // Fetch book content
+  // Fetch book content (with lang)
+  const bookUrl = activeBook ? `/api/knowledge/book/${activeBook}${langParam}` : null;
   const {
     data: bookContent,
     isLoading: contentLoading,
     error: contentError,
-  } = useSWR<BookContent>(activeBook ? `/api/knowledge/book/${activeBook}` : null, swrFetcher);
+  } = useSWR<BookContent>(bookUrl, swrFetcher);
+
+  // Filter out "目录" chapter from sidebar (it's the inline TOC, not a real chapter)
+  const filteredChapters = useMemo(() => {
+    if (!bookContent?.chapters) return [];
+    return bookContent.chapters.filter((ch) => ch.title !== '目录' && ch.chapter_id !== '目录');
+  }, [bookContent]);
+
+  // Scroll-based chapter tracking
+  useEffect(() => {
+    const container = readerRef.current;
+    if (!container || !filteredChapters.length) return;
+
+    const allIds = filteredChapters.flatMap((ch) => {
+      const ids = [ch.chapter_id];
+      if (ch.children) {
+        for (const sub of ch.children) ids.push(sub.chapter_id);
+      }
+      return ids;
+    });
+
+    const handleScroll = () => {
+      let currentId: string | null = null;
+      for (const id of allIds) {
+        const el = document.getElementById(id);
+        if (el) {
+          const rect = el.getBoundingClientRect();
+          if (rect.top <= 120) currentId = id;
+        }
+      }
+      if (currentId) setActiveChapter(currentId);
+    };
+
+    container.addEventListener('scroll', handleScroll, { passive: true });
+    return () => container.removeEventListener('scroll', handleScroll);
+  }, [filteredChapters]);
 
   // ── Bookmark handlers ──────────────────────────────────────────────────────
 
@@ -170,6 +224,23 @@ export default function KnowledgePage() {
         <div className="flex items-center justify-between gap-4 flex-wrap">
           <PageHeader icon={BookOpen} title="知识库" subtitle="业务知识百科全书" />
           <div className="flex items-center gap-3">
+            {/* Language switcher */}
+            <div className="flex items-center gap-1 border border-[var(--border-default)] rounded-lg p-0.5">
+              <Globe className="w-3.5 h-3.5 text-[var(--text-muted)] ml-1.5" />
+              {LANGS.map((l) => (
+                <button
+                  key={l.code}
+                  onClick={() => setLang(l.code)}
+                  className={`px-2 py-1 rounded text-xs font-medium transition-colors ${
+                    lang === l.code
+                      ? 'bg-[var(--color-accent)] text-white'
+                      : 'text-[var(--text-secondary)] hover:bg-[var(--bg-subtle)]'
+                  }`}
+                >
+                  {l.label}
+                </button>
+              ))}
+            </div>
             <SearchBar onResultClick={handleSearchResult} />
             <BookmarkPanel
               bookmarks={bookmarks}
@@ -214,7 +285,7 @@ export default function KnowledgePage() {
             </div>
           ) : bookContent ? (
             <ChapterTree
-              chapters={bookContent.chapters}
+              chapters={filteredChapters}
               activeId={activeChapter}
               onSelect={setActiveChapter}
             />
@@ -248,7 +319,7 @@ export default function KnowledgePage() {
                 bookmarks={bookmarkIds}
                 onToggleBookmark={toggleBookmark}
               />
-              <GlossaryCard containerRef={readerRef} />
+              <GlossaryCard key={`${activeBook}-${lang}`} containerRef={readerRef} />
             </>
           )}
         </main>
