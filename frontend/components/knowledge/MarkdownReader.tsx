@@ -20,18 +20,21 @@ function extractAnchor(text: string): [string, string | null] {
   return [text, null];
 }
 
-export function MarkdownReader({ content, bookmarks, onToggleBookmark }: MarkdownReaderProps) {
-  // 计数器与 API _parse_chapters 对齐：h2 → chapter-{N}, h3 → chapter-{parentN}-{childN}
-  let h2Index = -1;
-  let h3Index = -1;
+/** 与后端 _slugify 完全一致的 ID 生成（保留中文/泰文） */
+function slugify(text: string): string {
+  return text
+    .toLowerCase()
+    .trim()
+    .replace(/[^\w\u4e00-\u9fff\u0e00-\u0e7f]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
 
+export function MarkdownReader({ content, bookmarks, onToggleBookmark }: MarkdownReaderProps) {
   const components: Components = {
     h2: ({ children }) => {
-      h2Index++;
-      h3Index = -1;
       const rawText = String(children);
       const [cleanText, anchor] = extractAnchor(rawText);
-      const id = anchor ?? `chapter-${h2Index}`;
+      const id = anchor ?? slugify(cleanText);
       const isBookmarked = bookmarks.includes(id);
       return (
         <h2
@@ -56,10 +59,9 @@ export function MarkdownReader({ content, bookmarks, onToggleBookmark }: Markdow
     },
 
     h3: ({ children }) => {
-      h3Index++;
       const rawText = String(children);
       const [cleanText, anchor] = extractAnchor(rawText);
-      const id = anchor ?? `chapter-${h2Index}-${h3Index}`;
+      const id = anchor ?? slugify(cleanText);
       return (
         <h3
           id={id}
