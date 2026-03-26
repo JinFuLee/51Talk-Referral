@@ -65,6 +65,8 @@ ROUTER_REGISTRY: dict = {
     "referral_contributor": ("backend.api.referral_contributor", "/api", ["analysis"]),
     # ── 通知推送管理 ────────────────────────────────────────────────────────────
     "notifications": ("backend.api.notifications", "/api", ["notifications"]),
+    # ── 知识库 ──────────────────────────────────────────────────────────────────
+    "knowledge": ("backend.api.knowledge", "/api", ["knowledge"]),
 }
 
 
