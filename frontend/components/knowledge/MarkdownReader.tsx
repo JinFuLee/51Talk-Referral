@@ -11,11 +11,13 @@ interface MarkdownReaderProps {
   onToggleBookmark: (id: string, title: string) => void;
 }
 
-function slugify(text: string): string {
-  return text
-    .toLowerCase()
-    .replace(/[^\w\u4e00-\u9fff\u0e00-\u0e7f]+/g, '-')
-    .replace(/^-+|-+$/g, '');
+/** 从标题文本中提取 {#xxx} 锚点 ID 并返回 [cleanText, anchorId | null] */
+function extractAnchor(text: string): [string, string | null] {
+  const match = text.match(/\s*\{#([\w-]+)\}\s*$/);
+  if (match) {
+    return [text.replace(match[0], '').trim(), match[1]];
+  }
+  return [text, null];
 }
 
 export function MarkdownReader({ content, bookmarks, onToggleBookmark }: MarkdownReaderProps) {
@@ -26,16 +28,17 @@ export function MarkdownReader({ content, bookmarks, onToggleBookmark }: Markdow
   const components: Components = {
     h2: ({ children }) => {
       h2Index++;
-      h3Index = -1; // reset h3 counter for each h2
-      const text = String(children);
-      const id = `chapter-${h2Index}`;
+      h3Index = -1;
+      const rawText = String(children);
+      const [cleanText, anchor] = extractAnchor(rawText);
+      const id = anchor ?? `chapter-${h2Index}`;
       const isBookmarked = bookmarks.includes(id);
       return (
         <h2
           id={id}
           className="group flex items-center gap-2 text-xl font-bold text-[var(--text-primary)] mt-10 mb-4 pb-2 border-b border-[var(--border-default)] scroll-mt-6"
         >
-          <span>{children}</span>
+          <span>{cleanText}</span>
           <button
             onClick={() => onToggleBookmark(id, text)}
             className="opacity-0 group-hover:opacity-100 transition-opacity text-[var(--text-muted)] hover:text-[var(--color-accent)] focus-visible:outline-none focus-visible:opacity-100"
@@ -54,13 +57,15 @@ export function MarkdownReader({ content, bookmarks, onToggleBookmark }: Markdow
 
     h3: ({ children }) => {
       h3Index++;
-      const id = `chapter-${h2Index}-${h3Index}`;
+      const rawText = String(children);
+      const [cleanText, anchor] = extractAnchor(rawText);
+      const id = anchor ?? `chapter-${h2Index}-${h3Index}`;
       return (
         <h3
           id={id}
           className="text-base font-semibold text-[var(--text-primary)] mt-7 mb-3 scroll-mt-6"
         >
-          {children}
+          {cleanText}
         </h3>
       );
     },
@@ -134,16 +139,28 @@ export function MarkdownReader({ content, bookmarks, onToggleBookmark }: Markdow
       <strong className="font-semibold text-[var(--text-primary)]">{children}</strong>
     ),
 
-    a: ({ href, children }) => (
-      <a
-        href={href}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="text-[var(--color-accent)] underline decoration-dotted hover:decoration-solid transition-all"
-      >
-        {children}
-      </a>
-    ),
+    a: ({ href, children }) => {
+      const isAnchor = href?.startsWith('#');
+      const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+        if (isAnchor && !e.ctrlKey && !e.metaKey) {
+          e.preventDefault();
+          const targetId = href!.slice(1);
+          const el = document.getElementById(targetId);
+          if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      };
+      return (
+        <a
+          href={href}
+          onClick={handleClick}
+          target={isAnchor ? undefined : '_blank'}
+          rel={isAnchor ? undefined : 'noopener noreferrer'}
+          className="text-[var(--color-accent)] underline decoration-dotted hover:decoration-solid transition-all cursor-pointer"
+        >
+          {children}
+        </a>
+      );
+    },
 
     hr: () => <hr className="my-8 border-[var(--border-default)]" />,
   };
