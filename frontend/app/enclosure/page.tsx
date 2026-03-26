@@ -55,6 +55,36 @@ const ENCLOSURE_FILTERS = [
   { label: 'M12+（391+）', value: '12M+' },
 ];
 
+/* ── 围场显示格式化 ────────────────────────────────────────── */
+
+const ENC_DISPLAY: Record<string, string> = {
+  '0~30': 'M0（0~30）',
+  '31~60': 'M1（31~60）',
+  '61~90': 'M2（61~90）',
+  '91~120': 'M3（91~120）',
+  '121~150': 'M4（121~150）',
+  '151~180': 'M5（151~180）',
+  'M6+': 'M6+（181+）',
+  '0M': 'M0（0~30）',
+  '1M': 'M1（31~60）',
+  '2M': 'M2（61~90）',
+  '3M': 'M3（91~120）',
+  '4M': 'M4（121~150）',
+  '5M': 'M5（151~180）',
+  '6M': 'M6（181~210）',
+  '7M': 'M7（211~240）',
+  '8M': 'M8（241~270）',
+  '9M': 'M9（271~300）',
+  '10M': 'M10（301~330）',
+  '11M': 'M11（331~360）',
+  '12M': 'M12（361~390）',
+  '12M+': 'M12+（391+）',
+};
+function fmtEnc(raw: string | null | undefined): string {
+  if (!raw) return '—';
+  return ENC_DISPLAY[raw] ?? raw;
+}
+
 /* ── 工具函数 ───────────────────────────────────────────────── */
 
 // metricColor 已移至 lib/utils.ts 共享
@@ -411,6 +441,7 @@ function SSTabContent({ filter }: { filter: string }) {
               <thead>
                 <tr className="slide-thead-row">
                   <th className="slide-th slide-th-left py-2 px-2">排名</th>
+                  <th className="slide-th slide-th-left py-2 px-2">围场段</th>
                   <th className="slide-th slide-th-left py-2 px-2">姓名</th>
                   <th className="slide-th slide-th-left py-2 px-2">组别</th>
                   <th className="slide-th slide-th-right py-2 px-2">
@@ -438,6 +469,9 @@ function SSTabContent({ filter }: { filter: string }) {
                   >
                     <td className="slide-td py-1.5 px-2">
                       <RankBadge rank={i + 1} />
+                    </td>
+                    <td className="slide-td py-1.5 px-2 text-[var(--text-secondary)]">
+                      {fmtEnc(r.enclosure)}
                     </td>
                     <td className="slide-td py-1.5 px-2 font-medium">{r.ss_name ?? '—'}</td>
                     <td className="slide-td py-1.5 px-2 text-[var(--text-secondary)]">
@@ -495,7 +529,9 @@ function SSTabContent({ filter }: { filter: string }) {
               <tbody>
                 {enclosureSummary.map(([enc, data], i) => (
                   <tr key={enc} className={i % 2 === 0 ? 'slide-row-even' : 'slide-row-odd'}>
-                    <td className="slide-td py-1.5 px-2 text-[var(--text-secondary)]">{enc}</td>
+                    <td className="slide-td py-1.5 px-2 text-[var(--text-secondary)]">
+                      {fmtEnc(enc)}
+                    </td>
                     <td className="slide-td py-1.5 px-2 text-right font-mono tabular-nums">
                       {(data.students ?? 0).toLocaleString()}
                     </td>
@@ -565,6 +601,7 @@ function LPTabContent({ filter }: { filter: string }) {
               <thead>
                 <tr className="slide-thead-row">
                   <th className="slide-th slide-th-left py-2 px-2">排名</th>
+                  <th className="slide-th slide-th-left py-2 px-2">围场段</th>
                   <th className="slide-th slide-th-left py-2 px-2">姓名</th>
                   <th className="slide-th slide-th-left py-2 px-2">组别</th>
                   <th className="slide-th slide-th-right py-2 px-2">
@@ -592,6 +629,9 @@ function LPTabContent({ filter }: { filter: string }) {
                   >
                     <td className="slide-td py-1.5 px-2">
                       <RankBadge rank={i + 1} />
+                    </td>
+                    <td className="slide-td py-1.5 px-2 text-[var(--text-secondary)]">
+                      {fmtEnc(r.enclosure)}
                     </td>
                     <td className="slide-td py-1.5 px-2 font-medium">{r.lp_name ?? '—'}</td>
                     <td className="slide-td py-1.5 px-2 text-[var(--text-secondary)]">
@@ -649,7 +689,9 @@ function LPTabContent({ filter }: { filter: string }) {
               <tbody>
                 {enclosureSummary.map(([enc, data], i) => (
                   <tr key={enc} className={i % 2 === 0 ? 'slide-row-even' : 'slide-row-odd'}>
-                    <td className="slide-td py-1.5 px-2 text-[var(--text-secondary)]">{enc}</td>
+                    <td className="slide-td py-1.5 px-2 text-[var(--text-secondary)]">
+                      {fmtEnc(enc)}
+                    </td>
                     <td className="slide-td py-1.5 px-2 text-right font-mono tabular-nums">
                       {(data.students ?? 0).toLocaleString()}
                     </td>
