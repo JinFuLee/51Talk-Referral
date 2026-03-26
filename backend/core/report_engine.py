@@ -19,7 +19,7 @@ from pathlib import Path
 from typing import Any
 
 from backend.core.channel_funnel_engine import ChannelFunnelEngine
-from backend.core.comparison_engine import ComparisonEngine, VALID_CHANNELS
+from backend.core.comparison_engine import VALID_CHANNELS, ComparisonEngine
 from backend.core.daily_snapshot_service import DB_PATH, DailySnapshotService
 from backend.core.decomposition_engine import DecompositionEngine
 from backend.core.leverage_engine import (
@@ -89,7 +89,9 @@ class ReportEngine:
 
     # ── 公共入口 ────────────────────────────────────────────────────────────────
 
-    def generate_daily_report(self, reference_date: date | None = None) -> dict[str, Any]:
+    def generate_daily_report(
+        self, reference_date: date | None = None
+    ) -> dict[str, Any]:
         """生成完整 11 区块日报
 
         Args:
@@ -138,12 +140,8 @@ class ReportEngine:
                 total_metrics, targets, reference_date
             ),
             "lead_attribution": self._block_lead_attribution(channel_funnel),
-            "decomposition": self._block_decomposition(
-                total_metrics, reference_date
-            ),
-            "funnel_leverage": self._block_funnel_leverage(
-                channel_funnel, targets
-            ),
+            "decomposition": self._block_decomposition(total_metrics, reference_date),
+            "funnel_leverage": self._block_funnel_leverage(channel_funnel, targets),
             "channel_revenue": self._block_channel_revenue(
                 channel_funnel, reference_date
             ),
@@ -199,7 +197,11 @@ class ReportEngine:
             targets=targets,
         )
         top_bn = leverage.get("top_bottleneck", {})
-        stage_map = {"appt_rate": "预约率", "attend_rate": "出席率", "paid_rate": "付费率"}
+        stage_map = {
+            "appt_rate": "预约率",
+            "attend_rate": "出席率",
+            "paid_rate": "付费率",
+        }
         bn_stage = stage_map.get(top_bn.get("stage", ""), top_bn.get("stage", ""))
         bn_channel = top_bn.get("channel", "")
         bn_impact = _safe_float(top_bn.get("revenue_impact"))
@@ -239,14 +241,23 @@ class ReportEngine:
     def _build_channel_funnel(self, data: dict[str, Any]) -> dict[str, dict[str, Any]]:
         """构建按口径分的漏斗指标"""
         import pandas as pd
+
         detail_df = data.get("detail")
-        if detail_df is None or (isinstance(detail_df, pd.DataFrame) and detail_df.empty):
+        if detail_df is None or (
+            isinstance(detail_df, pd.DataFrame) and detail_df.empty
+        ):
             # 返回空结构
             empty: dict[str, Any] = {
-                "registrations": None, "appointments": None,
-                "attendance": None, "payments": None, "revenue_usd": None,
-                "asp": None, "appt_rate": None, "attend_rate": None,
-                "paid_rate": None, "reg_to_pay_rate": None,
+                "registrations": None,
+                "appointments": None,
+                "attendance": None,
+                "payments": None,
+                "revenue_usd": None,
+                "asp": None,
+                "appt_rate": None,
+                "attend_rate": None,
+                "paid_rate": None,
+                "reg_to_pay_rate": None,
             }
             return {ch: dict(empty) for ch in _CHANNEL_ORDER}
 
@@ -257,7 +268,13 @@ class ReportEngine:
         self, channel_funnel: dict[str, dict[str, Any]]
     ) -> dict[str, Any]:
         """从口径漏斗合计总计指标"""
-        count_keys = ("registrations", "appointments", "attendance", "payments", "revenue_usd")
+        count_keys = (
+            "registrations",
+            "appointments",
+            "attendance",
+            "payments",
+            "revenue_usd",
+        )
         totals: dict[str, float] = {k: 0.0 for k in count_keys}
 
         for ch, metrics in channel_funnel.items():
@@ -287,7 +304,8 @@ class ReportEngine:
 
     def _normalize_targets(self, month_key: str) -> dict[str, Any]:
         """归一化目标：从中文 key 转英文，并合并 override"""
-        from backend.core.config import get_targets as _get_targets, MONTHLY_TARGETS
+        from backend.core.config import MONTHLY_TARGETS
+        from backend.core.config import get_targets as _get_targets
 
         base_targets: dict[str, Any] = {}
 
@@ -329,6 +347,7 @@ class ReportEngine:
         total_wd = 0
         elapsed_wd = 0
         import calendar
+
         days_in_month = calendar.monthrange(y, m)[1]
         for d in range(1, days_in_month + 1):
             wd = date(y, m, d).weekday()
@@ -341,15 +360,27 @@ class ReportEngine:
 
     def _build_comparisons(self, ref_date: date) -> dict[str, Any]:
         """构建 7 维环比（revenue_usd 总计口径）"""
-        dim_keys = ["day", "week_td", "week_roll", "month_td", "month_roll", "year_td", "year_roll"]
+        dim_keys = [
+            "day",
+            "week_td",
+            "week_roll",
+            "month_td",
+            "month_roll",
+            "year_td",
+            "year_roll",
+        ]
         try:
-            result = self._comparison_engine.compute(
-                "revenue_usd", "total", ref_date
-            )
+            result = self._comparison_engine.compute("revenue_usd", "total", ref_date)
             return {k: result.get(k, {}) for k in dim_keys}
         except Exception as exc:
             logger.warning("环比计算失败: %s", exc)
-            empty = {"current": None, "previous": None, "delta": None, "delta_pct": None, "judgment": "→"}
+            empty = {
+                "current": None,
+                "previous": None,
+                "delta": None,
+                "delta_pct": None,
+                "judgment": "→",
+            }
             return {k: empty for k in dim_keys}
 
     def _build_target_recommendations(self) -> list[dict[str, Any]]:
@@ -371,7 +402,14 @@ class ReportEngine:
         bm_pct: float,
     ) -> dict[str, Any]:
         """区块 1: 月度总览"""
-        metrics = ["registrations", "payments", "revenue_usd", "appt_rate", "attend_rate", "paid_rate"]
+        metrics = [
+            "registrations",
+            "payments",
+            "revenue_usd",
+            "appt_rate",
+            "attend_rate",
+            "paid_rate",
+        ]
 
         actuals_out: dict[str, float] = {}
         targets_out: dict[str, float] = {}
@@ -440,7 +478,7 @@ class ReportEngine:
         # 各渠道注册缺口 = 目标 - 实际（以总目标比例分配）
         reg_tgt = _safe_float(targets.get("registrations"))
         reg_act = _safe_float(actuals.get("registrations"))
-        total_reg_gap = max(reg_tgt - reg_act, 0)
+        _ = max(reg_tgt - reg_act, 0)  # gap reserved for future use
 
         # 渠道注册目标（从 targets 读取或按历史比例）
         channel_targets: dict[str, float] = {}
@@ -492,13 +530,32 @@ class ReportEngine:
     ) -> dict[str, Any]:
         """区块 5: 当月业绩贡献"""
         channels_out: list[dict[str, Any]] = []
-        narrow_agg = {k: 0.0 for k in ("registrations", "appointments", "attendance", "payments", "revenue_usd")}
+        narrow_agg = {
+            k: 0.0
+            for k in (
+                "registrations",
+                "appointments",
+                "attendance",
+                "payments",
+                "revenue_usd",
+            )
+        }
 
         for ch in _CHANNEL_ORDER:
             m = channel_funnel.get(ch, {})
             row = {"channel": ch}
-            for key in ("registrations", "appointments", "attendance", "payments", "revenue_usd",
-                        "asp", "appt_rate", "attend_rate", "paid_rate", "reg_to_pay_rate"):
+            for key in (
+                "registrations",
+                "appointments",
+                "attendance",
+                "payments",
+                "revenue_usd",
+                "asp",
+                "appt_rate",
+                "attend_rate",
+                "paid_rate",
+                "reg_to_pay_rate",
+            ):
                 row[key] = _safe_float(m.get(key))
             channels_out.append(row)
             if ch in ("CC窄口", "SS窄口", "LP窄口"):
@@ -527,7 +584,16 @@ class ReportEngine:
 
         # 合计（含宽口）
         all_channels = list(channel_funnel.keys())
-        total_agg = {k: 0.0 for k in ("registrations", "appointments", "attendance", "payments", "revenue_usd")}
+        total_agg = {
+            k: 0.0
+            for k in (
+                "registrations",
+                "appointments",
+                "attendance",
+                "payments",
+                "revenue_usd",
+            )
+        }
         for ch in all_channels:
             if ch == "其它":
                 continue
@@ -581,7 +647,9 @@ class ReportEngine:
         try:
             # 从数据库取上月同期累计
             comp_results = {
-                m: self._comparison_engine.compute(m, "total", ref_date).get("month_td", {})
+                m: self._comparison_engine.compute(m, "total", ref_date).get(
+                    "month_td", {}
+                )
                 for m in metrics_map
             }
         except Exception:
@@ -596,16 +664,18 @@ class ReportEngine:
             delta_pct = _safe_div(delta, last_month) if last_month != 0 else 0.0
             vs_target = act - tgt
 
-            rows.append({
-                "metric": key,
-                "last_month": round(last_month, 4),
-                "this_month": round(act, 4),
-                "target": round(tgt, 4),
-                "delta": round(delta, 4),
-                "delta_pct": round(delta_pct, 4),
-                "vs_target": round(vs_target, 4),
-                "judgment": _judgment(delta),
-            })
+            rows.append(
+                {
+                    "metric": key,
+                    "last_month": round(last_month, 4),
+                    "this_month": round(act, 4),
+                    "target": round(tgt, 4),
+                    "delta": round(delta, 4),
+                    "delta_pct": round(delta_pct, 4),
+                    "vs_target": round(vs_target, 4),
+                    "judgment": _judgment(delta),
+                }
+            )
 
         return {"rows": rows}
 
@@ -633,35 +703,56 @@ class ReportEngine:
             reg = _safe_float(m.get("registrations"))
             pay = _safe_float(m.get("payments"))
             rev = _safe_float(m.get("revenue_usd"))
-            rows.append({
-                "channel": ch,
-                "registrations": reg,
-                "reg_share": round(_safe_div(reg, total_reg), 4) if total_reg > 0 else 0.0,
-                "appt_rate": _safe_float(m.get("appt_rate")),
-                "attend_rate": _safe_float(m.get("attend_rate")),
-                "paid_rate": _safe_float(m.get("paid_rate")),
-                "reg_to_pay_rate": _safe_float(m.get("reg_to_pay_rate")),
-                "payments": pay,
-                "payment_share": round(_safe_div(pay, total_pay), 4) if total_pay > 0 else 0.0,
-                "revenue_usd": rev,
-                "revenue_share": round(_safe_div(rev, total_rev), 4) if total_rev > 0 else 0.0,
-            })
+            rows.append(
+                {
+                    "channel": ch,
+                    "registrations": reg,
+                    "reg_share": round(_safe_div(reg, total_reg), 4)
+                    if total_reg > 0
+                    else 0.0,
+                    "appt_rate": _safe_float(m.get("appt_rate")),
+                    "attend_rate": _safe_float(m.get("attend_rate")),
+                    "paid_rate": _safe_float(m.get("paid_rate")),
+                    "reg_to_pay_rate": _safe_float(m.get("reg_to_pay_rate")),
+                    "payments": pay,
+                    "payment_share": round(_safe_div(pay, total_pay), 4)
+                    if total_pay > 0
+                    else 0.0,
+                    "revenue_usd": rev,
+                    "revenue_share": round(_safe_div(rev, total_rev), 4)
+                    if total_rev > 0
+                    else 0.0,
+                }
+            )
 
         total_row: dict[str, Any] = {
             "channel": "total",
             "registrations": total_reg,
             "reg_share": 1.0,
             "appt_rate": _safe_div(
-                sum(_safe_float(channel_funnel.get(ch, {}).get("appointments")) for ch in _CHANNEL_ORDER),
+                sum(
+                    _safe_float(channel_funnel.get(ch, {}).get("appointments"))
+                    for ch in _CHANNEL_ORDER
+                ),
                 total_reg,
             ),
             "attend_rate": _safe_div(
-                sum(_safe_float(channel_funnel.get(ch, {}).get("attendance")) for ch in _CHANNEL_ORDER),
-                sum(_safe_float(channel_funnel.get(ch, {}).get("appointments")) for ch in _CHANNEL_ORDER),
+                sum(
+                    _safe_float(channel_funnel.get(ch, {}).get("attendance"))
+                    for ch in _CHANNEL_ORDER
+                ),
+                sum(
+                    _safe_float(channel_funnel.get(ch, {}).get("appointments"))
+                    for ch in _CHANNEL_ORDER
+                ),
             ),
-            "paid_rate": _safe_div(total_pay, sum(
-                _safe_float(channel_funnel.get(ch, {}).get("attendance")) for ch in _CHANNEL_ORDER
-            )),
+            "paid_rate": _safe_div(
+                total_pay,
+                sum(
+                    _safe_float(channel_funnel.get(ch, {}).get("attendance"))
+                    for ch in _CHANNEL_ORDER
+                ),
+            ),
             "reg_to_pay_rate": _safe_div(total_pay, total_reg),
             "payments": total_pay,
             "payment_share": 1.0,
@@ -687,9 +778,13 @@ class ReportEngine:
 
         # 取上月同期 registrations / reg_to_pay_rate / asp
         try:
-            comp_reg = self._comparison_engine.compute("registrations", "total", ref_date)
+            comp_reg = self._comparison_engine.compute(
+                "registrations", "total", ref_date
+            )
             prev_reg = _safe_float(comp_reg.get("month_td", {}).get("previous"))
-            comp_conv = self._comparison_engine.compute("reg_to_pay_rate", "total", ref_date)
+            comp_conv = self._comparison_engine.compute(
+                "reg_to_pay_rate", "total", ref_date
+            )
             prev_conv = _safe_float(comp_conv.get("month_td", {}).get("previous"))
             comp_asp = self._comparison_engine.compute("asp", "total", ref_date)
             prev_asp = _safe_float(comp_asp.get("month_td", {}).get("previous"))
@@ -755,19 +850,21 @@ class ReportEngine:
             reg = _safe_float(m.get("registrations"))
             appt = _safe_float(m.get("appt_rate"))
             if reg > 0:
-                driver = f"注册 {reg:.0f}，预约率 {appt*100:.1f}%"
+                driver = f"注册 {reg:.0f}，预约率 {appt * 100:.1f}%"
             else:
                 driver = "暂无数据"
 
-            rows.append({
-                "channel": ch,
-                "last_month_revenue": round(prev_rev, 2),
-                "this_month_revenue": round(this_rev, 2),
-                "delta_revenue": round(delta, 2),
-                "delta_pct": round(delta_pct, 4),
-                "driver_text": driver,
-                "judgment": _judgment(delta),
-            })
+            rows.append(
+                {
+                    "channel": ch,
+                    "last_month_revenue": round(prev_rev, 2),
+                    "this_month_revenue": round(this_rev, 2),
+                    "delta_revenue": round(delta, 2),
+                    "delta_pct": round(delta_pct, 4),
+                    "driver_text": driver,
+                    "judgment": _judgment(delta),
+                }
+            )
 
         return {"rows": rows}
 
@@ -782,45 +879,53 @@ class ReportEngine:
 
         for ch in _CHANNEL_ORDER:
             m = channel_funnel.get(ch, {})
-            current_channels.append({
-                "channel": ch,
-                "registrations": _safe_float(m.get("registrations")),
-                "reg_to_pay_rate": _safe_float(m.get("reg_to_pay_rate")),
-                "asp": _safe_float(m.get("asp")),
-                "revenue_usd": _safe_float(m.get("revenue_usd")),
-            })
+            current_channels.append(
+                {
+                    "channel": ch,
+                    "registrations": _safe_float(m.get("registrations")),
+                    "reg_to_pay_rate": _safe_float(m.get("reg_to_pay_rate")),
+                    "asp": _safe_float(m.get("asp")),
+                    "revenue_usd": _safe_float(m.get("revenue_usd")),
+                }
+            )
 
             # 从快照数据库取上月基期
             try:
                 if ch in VALID_CHANNELS:
                     prev_reg = _safe_float(
                         self._comparison_engine.compute("registrations", ch, ref_date)
-                        .get("month_td", {}).get("previous")
+                        .get("month_td", {})
+                        .get("previous")
                     )
                     prev_conv = _safe_float(
                         self._comparison_engine.compute("reg_to_pay_rate", ch, ref_date)
-                        .get("month_td", {}).get("previous")
+                        .get("month_td", {})
+                        .get("previous")
                     )
                     prev_asp = _safe_float(
                         self._comparison_engine.compute("asp", ch, ref_date)
-                        .get("month_td", {}).get("previous")
+                        .get("month_td", {})
+                        .get("previous")
                     )
                     prev_rev = _safe_float(
                         self._comparison_engine.compute("revenue_usd", ch, ref_date)
-                        .get("month_td", {}).get("previous")
+                        .get("month_td", {})
+                        .get("previous")
                     )
                 else:
                     prev_reg = prev_conv = prev_asp = prev_rev = 0.0
             except Exception:
                 prev_reg = prev_conv = prev_asp = prev_rev = 0.0
 
-            previous_channels.append({
-                "channel": ch,
-                "registrations": prev_reg,
-                "reg_to_pay_rate": prev_conv,
-                "asp": prev_asp,
-                "revenue_usd": prev_rev,
-            })
+            previous_channels.append(
+                {
+                    "channel": ch,
+                    "registrations": prev_reg,
+                    "reg_to_pay_rate": prev_conv,
+                    "asp": prev_asp,
+                    "revenue_usd": prev_rev,
+                }
+            )
 
         return self._decomposition_engine.decompose_by_channel(
             current_channels, previous_channels
