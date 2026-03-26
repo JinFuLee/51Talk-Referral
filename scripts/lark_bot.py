@@ -1468,7 +1468,11 @@ def _send_honor_and_warning(
     enc_order: list[str],
     date_display: str,
 ) -> None:
-    """发送打卡荣耀卡片（3 档正向）+ CC 围场警示卡片。"""
+    """发送打卡荣耀卡片（3 档正向）+ CC 围场警示卡片。仅 CC 角色触发。"""
+    if role != "CC":
+        print("   — 荣耀/警示仅 CC 角色，跳过")
+        return
+
     honor_cfg = _get_honor_config()
     hof_thresh = honor_cfg["honor"]["hall_of_fame"]
     exc_thresh = honor_cfg["honor"]["excellent"]
@@ -1479,9 +1483,6 @@ def _send_honor_and_warning(
     cc_ranking_map = fetch_ranking_lark(api_base, role)
     if not cc_ranking_map:
         print("   ⚠ 无排行数据，跳过荣耀推送")
-        # 警示不需要 ranking 数据，继续执行
-        if role != "CC":
-            return
 
     # ── 汇总所有 CC（跨团队）──
     all_cc_entries: list[dict] = []
@@ -1701,6 +1702,19 @@ def _send_honor_and_warning(
         print("   ✓ 无 CC 围场警示（所有围场打卡率达标）")
         return
 
+    # 按总风险数降序排序（最差的排前面）
+    for cc_warn in at_risk_ccs:
+        cc_warn["total_risk"] = sum(
+            ew["risk_count"] for ew in cc_warn["enc_warnings"]
+        )
+    at_risk_ccs.sort(key=lambda x: -x["total_risk"])
+
+    # >10 人汇总模式：只列 top 10 最差
+    _WARN_DISPLAY_LIMIT = 10
+    total_at_risk = len(at_risk_ccs)
+    display_ccs = at_risk_ccs[:_WARN_DISPLAY_LIMIT]
+    truncated = total_at_risk > _WARN_DISPLAY_LIMIT
+
     # 构建警示阈值描述
     warn_thresholds_desc = "  ·  ".join(
         f"{enc} < {int(enc_warn_map[enc] * 100)}%"
@@ -1716,23 +1730,49 @@ def _send_honor_and_warning(
                 f"**{_th('warn_body')}**\n"
                 f"{_zh('warn_body')}\n"
                 f"{warn_thresholds_desc}"
+                + (
+                    f"\n\n⚠️ **{total_at_risk}** CC"
+                    f" {_th('warn_at_risk')}"
+                    f" — แสดง {_WARN_DISPLAY_LIMIT}"
+                    f" อันดับแรก"
+                    if truncated
+                    else ""
+                )
             ),
         },
         {"tag": "hr"},
     ]
-    for cc_warn in at_risk_ccs:
+    for cc_warn in display_ccs:
         lines = [f"⚠️ **{cc_warn['cc']}**"]
         for ew in cc_warn["enc_warnings"]:
             thresh_pct = f"{ew['threshold']:.0%}"
             lines.append(
                 f"**{ew['enc']}** · {ew['rate']:.1%}"
                 f" ({_th('warn_threshold')} {thresh_pct})"
-                f" · {_th('warn_at_risk')} **{ew['risk_count']}** {_th('persons')}"
+                f" · {_th('warn_at_risk')}"
+                f" **{ew['risk_count']}** {_th('persons')}"
             )
             ids = ew["risk_ids"]
-            chunks = [", ".join(ids[i : i + 8]) for i in range(0, len(ids), 8)]
+            chunks = [
+                ", ".join(ids[i : i + 8])
+                for i in range(0, len(ids), 8)
+            ]
             lines.extend(chunks)
-        warn_elements.append({"tag": "markdown", "content": "\n".join(lines)})
+        warn_elements.append(
+            {"tag": "markdown", "content": "\n".join(lines)}
+        )
+
+    if truncated:
+        remaining = total_at_risk - _WARN_DISPLAY_LIMIT
+        warn_elements.append(
+            {
+                "tag": "markdown",
+                "content": (
+                    f"_... อีก {remaining} CC"
+                    f" / 另有 {remaining} 人未列出_"
+                ),
+            }
+        )
 
     warn_elements.append({"tag": "hr"})
     warn_elements.append(

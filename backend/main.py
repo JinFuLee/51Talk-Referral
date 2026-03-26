@@ -165,6 +165,34 @@ async def lifespan(app: FastAPI):
     _sync_scheduler(app.state)
     logger.info("✓ APScheduler 已启动，加载持久化排程完成")
 
+    # M33: 每日 09:30 自动写入 T-1 快照（兜底，防止无人访问导致当天数据丢失）
+    def _daily_snapshot_job():
+        try:
+            from datetime import date as _date
+            from datetime import timedelta as _td
+
+            from backend.core.channel_funnel_engine import ChannelFunnelEngine
+            from backend.core.daily_snapshot_service import DailySnapshotService
+
+            ref = _date.today() - _td(days=1)
+            svc = DailySnapshotService()
+            if svc.query_by_date(ref) and svc.query_by_date(ref).get("total"):
+                return  # 已有快照，跳过
+            funnel = ChannelFunnelEngine(dm)
+            snap = funnel.compute_as_snapshot_format(dm.load_all())
+            if snap:
+                svc.write_daily(snap, snapshot_date=ref)
+                logger.info("✓ 定时快照写入: %s", ref.isoformat())
+        except Exception as exc:
+            logger.warning("定时快照失败（非致命）: %s", exc)
+
+    scheduler.add_job(
+        _daily_snapshot_job, "cron",
+        hour=9, minute=30, id="m33_daily_snapshot",
+        replace_existing=True,
+    )
+    logger.info("✓ M33 日快照定时任务已注册（每日 09:30）")
+
     watcher = FileWatcher(dm)
     watcher.start()
     app.state.file_watcher = watcher
