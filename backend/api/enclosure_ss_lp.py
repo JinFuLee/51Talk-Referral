@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 import pandas as pd
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, Query, Request
 
 from backend.api.dependencies import get_data_manager
 from backend.core.data_manager import DataManager
@@ -175,9 +175,13 @@ def _df_to_lp_metrics(df: pd.DataFrame) -> list[EnclosureLPMetrics]:
 def get_enclosure_ss(
     request: Request,
     dm: DataManager = Depends(get_data_manager),
+    enclosure: str | None = Query(None, description="围场段筛选"),
 ) -> list[EnclosureSSMetrics]:
     data = dm.load_all()
-    return _df_to_ss_metrics(data.get("enclosure_ss", pd.DataFrame()))
+    df = data.get("enclosure_ss", pd.DataFrame())
+    if enclosure and not df.empty and "围场" in df.columns:
+        df = df[df["围场"].astype(str).str.strip() == enclosure].copy()
+    return _df_to_ss_metrics(df)
 
 
 @router.get(
@@ -202,9 +206,13 @@ def get_enclosure_ss_ranking(
 def get_enclosure_lp(
     request: Request,
     dm: DataManager = Depends(get_data_manager),
+    enclosure: str | None = Query(None, description="围场段筛选"),
 ) -> list[EnclosureLPMetrics]:
     data = dm.load_all()
-    return _df_to_lp_metrics(data.get("enclosure_lp", pd.DataFrame()))
+    df = data.get("enclosure_lp", pd.DataFrame())
+    if enclosure and not df.empty and "围场" in df.columns:
+        df = df[df["围场"].astype(str).str.strip() == enclosure].copy()
+    return _df_to_lp_metrics(df)
 
 
 @router.get(

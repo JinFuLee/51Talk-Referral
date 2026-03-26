@@ -159,23 +159,6 @@ function CCTabContent({
 
   return (
     <div className="space-y-5 md:space-y-6">
-      {/* 围场筛选器 */}
-      <div className="flex flex-wrap gap-2">
-        {ENCLOSURE_FILTERS.map((f) => (
-          <button
-            key={f.value}
-            onClick={() => onFilterChange(f.value)}
-            className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${
-              filter === f.value
-                ? 'bg-action-accent text-white'
-                : 'bg-[var(--bg-subtle)] text-[var(--text-secondary)] hover:bg-[var(--bg-subtle)]'
-            }`}
-          >
-            {f.label}
-          </button>
-        ))}
-      </div>
-
       {/* 围场×CC 表格 */}
       <Card title="围场 × CC 矩阵">
         {rows.length === 0 ? (
@@ -381,12 +364,11 @@ function CCTabContent({
 
 /* ── SS Tab 内容 ──────────────────────────────────────────── */
 
-function SSTabContent() {
-  const {
-    data: ssData,
-    isLoading,
-    error,
-  } = useSWR<EnclosureSSMetrics[]>('/api/enclosure-ss', swrFetcher);
+function SSTabContent({ filter }: { filter: string }) {
+  const apiUrl = filter
+    ? `/api/enclosure-ss?enclosure=${encodeURIComponent(filter)}`
+    : '/api/enclosure-ss';
+  const { data: ssData, isLoading, error } = useSWR<EnclosureSSMetrics[]>(apiUrl, swrFetcher);
 
   if (isLoading) {
     return (
@@ -536,12 +518,11 @@ function SSTabContent() {
 
 /* ── LP Tab 内容 ──────────────────────────────────────────── */
 
-function LPTabContent() {
-  const {
-    data: lpData,
-    isLoading,
-    error,
-  } = useSWR<EnclosureLPMetrics[]>('/api/enclosure-lp', swrFetcher);
+function LPTabContent({ filter }: { filter: string }) {
+  const apiUrl = filter
+    ? `/api/enclosure-lp?enclosure=${encodeURIComponent(filter)}`
+    : '/api/enclosure-lp';
+  const { data: lpData, isLoading, error } = useSWR<EnclosureLPMetrics[]>(apiUrl, swrFetcher);
 
   if (isLoading) {
     return (
@@ -691,10 +672,19 @@ function LPTabContent() {
 
 /* ── 全部汇总 Tab ─────────────────────────────────────────── */
 
-function AllTabContent() {
-  const { data: ccData } = useSWR<EnclosureResponse>('/api/enclosure', swrFetcher);
-  const { data: ssData } = useSWR<EnclosureSSMetrics[]>('/api/enclosure-ss', swrFetcher);
-  const { data: lpData } = useSWR<EnclosureLPMetrics[]>('/api/enclosure-lp', swrFetcher);
+function AllTabContent({ filter }: { filter: string }) {
+  const ccUrl = filter
+    ? `/api/enclosure?enclosure=${encodeURIComponent(filter)}`
+    : '/api/enclosure';
+  const ssUrl = filter
+    ? `/api/enclosure-ss?enclosure=${encodeURIComponent(filter)}`
+    : '/api/enclosure-ss';
+  const lpUrl = filter
+    ? `/api/enclosure-lp?enclosure=${encodeURIComponent(filter)}`
+    : '/api/enclosure-lp';
+  const { data: ccData } = useSWR<EnclosureResponse>(ccUrl, swrFetcher);
+  const { data: ssData } = useSWR<EnclosureSSMetrics[]>(ssUrl, swrFetcher);
+  const { data: lpData } = useSWR<EnclosureLPMetrics[]>(lpUrl, swrFetcher);
 
   const ccRows = Array.isArray(ccData) ? ccData : (ccData?.data ?? []);
   const ssRows = ssData ?? [];
@@ -813,7 +803,7 @@ function EnclosurePageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const activeTab = (searchParams.get('tab') ?? 'cc') as TabKey;
-  const [ccFilter, setCcFilter] = useState('');
+  const [encFilter, setEncFilter] = useState('');
   const { exportCSV } = useExport();
 
   const { data: ccExportData } = useSWR<EnclosureResponse>('/api/enclosure', swrFetcher);
@@ -891,7 +881,7 @@ function EnclosurePageInner() {
             围场分段 × 三岗矩阵 · CC / SS / LP 全维度视图
           </p>
           <p className="text-sm text-[var(--text-muted)] mt-0.5">
-            按学员付费时长分段（0-30 / 31-60 / 61-90 / 91-180 / 181+天）对比各围场效率
+            按学员付费时长分段（M0~M12+）对比各围场效率
           </p>
         </div>
         <ExportButton onExportCsv={handleExport} />
@@ -899,10 +889,27 @@ function EnclosurePageInner() {
 
       <TabBar active={activeTab} onChange={handleTabChange} />
 
-      {activeTab === 'all' && <AllTabContent />}
-      {activeTab === 'cc' && <CCTabContent filter={ccFilter} onFilterChange={setCcFilter} />}
-      {activeTab === 'ss' && <SSTabContent />}
-      {activeTab === 'lp' && <LPTabContent />}
+      {/* 围场筛选器（全 tab 共享） */}
+      <div className="flex flex-wrap gap-2">
+        {ENCLOSURE_FILTERS.map((f) => (
+          <button
+            key={f.value}
+            onClick={() => setEncFilter(f.value)}
+            className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${
+              encFilter === f.value
+                ? 'bg-action-accent text-white'
+                : 'bg-[var(--bg-subtle)] text-[var(--text-secondary)] hover:bg-[var(--n-200)]'
+            }`}
+          >
+            {f.label}
+          </button>
+        ))}
+      </div>
+
+      {activeTab === 'all' && <AllTabContent filter={encFilter} />}
+      {activeTab === 'cc' && <CCTabContent filter={encFilter} onFilterChange={setEncFilter} />}
+      {activeTab === 'ss' && <SSTabContent filter={encFilter} />}
+      {activeTab === 'lp' && <LPTabContent filter={encFilter} />}
     </div>
   );
 }
