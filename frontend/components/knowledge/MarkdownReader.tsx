@@ -78,22 +78,9 @@ export function MarkdownReader({ content, bookmarks, onToggleBookmark }: Markdow
       </div>
     ),
 
-    thead: ({ children }) => <thead className="bg-[var(--n-800)]">{children}</thead>,
-
-    th: ({ children }) => (
-      <th className="px-4 py-2.5 text-left text-xs font-semibold tracking-wide text-white">
-        {children}
-      </th>
-    ),
-
-    td: ({ children }) => (
-      <td className="px-4 py-2.5 text-sm text-[var(--text-secondary)] border-b border-[var(--border-subtle)]">
-        {children}
-      </td>
-    ),
-
-    // tr: no custom component — let thead/tbody CSS handle row styling
-    // tbody tr hover is handled by .kb-table CSS below
+    // thead/th/td/tr: 全部由 globals.css .kb-table 类统一管理
+    // 后代选择器 + !important 覆盖 Tailwind Preflight th color:inherit
+    // 不在组件中写 inline style 或 Tailwind utility —— 防止 specificity 问题复发
 
     blockquote: ({ children }) => (
       <blockquote className="border-l-4 border-[var(--color-accent)] bg-[var(--color-accent-surface)] pl-4 pr-4 py-3 my-5 rounded-r-lg text-[var(--text-secondary)] italic">
@@ -170,18 +157,6 @@ export function MarkdownReader({ content, bookmarks, onToggleBookmark }: Markdow
 
   return (
     <article className="max-w-3xl mx-auto kb-reader">
-      <style>{`
-        .kb-reader .kb-table thead th {
-          color: #fff !important;
-          background-color: var(--n-800) !important;
-        }
-        .kb-reader .kb-table tbody tr:hover {
-          background: var(--color-accent-surface);
-        }
-        .kb-reader .kb-table tbody tr {
-          transition: background-color 0.15s ease;
-        }
-      `}</style>
       <ReactMarkdown remarkPlugins={[remarkGfm]} components={components}>
         {content}
       </ReactMarkdown>

@@ -592,6 +592,31 @@ body.presentation-mode .presentation-watermark {
   color: var(--text-primary);
 }
 
+/* ── 知识库表格 Design Token ─────────────────────── */
+/* 与 slide-thead-row 同模式：后代选择器 + !important 覆盖 Preflight th color:inherit */
+.kb-table thead {
+  background-color: var(--n-800) !important;
+}
+.kb-table thead th {
+  color: #ffffff !important;
+  padding: 10px 16px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-align: left;
+}
+.kb-table tbody tr:hover {
+  background-color: var(--color-accent-surface);
+}
+.kb-table tbody tr {
+  transition: background-color 0.15s ease;
+}
+.kb-table td {
+  padding: 10px 16px;
+  font-size: 14px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
 /* ── 数据源健康面板进度条 ────────────────────────── */
 /* 避免 Tailwind JIT arbitrary value bg-[var()] 在 Turbopack 下编译不稳定 */
 .ds-bar-primary {
