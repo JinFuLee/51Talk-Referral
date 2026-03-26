@@ -41,6 +41,30 @@ CRED_PATH = PROJECT_ROOT / "key" / "lark-channels.json"
 OUTPUT_DIR = PROJECT_ROOT / "output"
 OUTPUT_DIR.mkdir(exist_ok=True)
 _ENC_OVERRIDE = PROJECT_ROOT / "config" / "enclosure_role_override.json"
+_CHECKIN_THRESHOLDS_PATH = PROJECT_ROOT / "config" / "checkin_thresholds.json"
+
+# ── 打卡率阈值（从 Settings 配置读取）────────────────────────────────────────
+
+_CHECKIN_THRESHOLDS_CACHE: dict[str, float] | None = None
+
+
+def _get_checkin_thresholds() -> tuple[float, float]:
+    """返回 (good, warning) 阈值。从 config/checkin_thresholds.json 读取，fallback 到 0.85/0.70。"""
+    global _CHECKIN_THRESHOLDS_CACHE
+    if _CHECKIN_THRESHOLDS_CACHE is None:
+        try:
+            if _CHECKIN_THRESHOLDS_PATH.exists():
+                _CHECKIN_THRESHOLDS_CACHE = json.loads(
+                    _CHECKIN_THRESHOLDS_PATH.read_text("utf-8")
+                )
+        except Exception:
+            pass
+        if _CHECKIN_THRESHOLDS_CACHE is None:
+            _CHECKIN_THRESHOLDS_CACHE = {"good": 0.85, "warning": 0.70}
+    return (
+        _CHECKIN_THRESHOLDS_CACHE.get("good", 0.85),
+        _CHECKIN_THRESHOLDS_CACHE.get("warning", 0.70),
+    )
 
 # ── 围场-角色映射（从 Settings 读取）────────────────────────────────────────
 
@@ -586,19 +610,21 @@ def generate_followup_image(
 
 
 def _rate_bg_color(rate: float) -> str:
-    """根据打卡率返回背景色（≥60% 绿，40-60% 黄，<40% 红）"""
-    if rate >= 0.60:
+    """根据打卡率返回背景色（阈值从 config/checkin_thresholds.json 读取）"""
+    good, warning = _get_checkin_thresholds()
+    if rate >= good:
         return C_GREEN_BG
-    if rate >= 0.40:
+    if rate >= warning:
         return C_YELLOW_BG
     return C_RED_BG
 
 
 def _rate_text_color(rate: float) -> str:
-    """根据打卡率返回文字色（≥60% 绿，40-60% 黄，<40% 红）"""
-    if rate >= 0.60:
+    """根据打卡率返回文字色（阈值从 config/checkin_thresholds.json 读取）"""
+    good, warning = _get_checkin_thresholds()
+    if rate >= good:
         return C_SUCCESS
-    if rate >= 0.40:
+    if rate >= warning:
         return C_WARNING
     return C_DANGER
 
