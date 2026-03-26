@@ -70,10 +70,19 @@ def _mtime_to_iso(filepath: Path) -> str | None:
         return None
 
 
+def _extract_anchor(title: str, fallback_id: str) -> tuple[str, str]:
+    """从标题中提取 {#xxx} 锚点，返回 (clean_title, anchor_id)"""
+    m = re.search(r"\s*\{#([\w-]+)\}\s*$", title)
+    if m:
+        return title[: m.start()].strip(), m.group(1)
+    return title, fallback_id
+
+
 def _parse_chapters(content: str) -> list[dict]:
     """
     按 ## (h2) 拆分一级章节，### (h3) 拆分二级
     返回树形结构 [{"chapter_id": ..., "title": ..., "level": ..., "children": [...]}]
+    提取 {#xxx} 锚点作为 chapter_id，标题中剥离锚点语法
     """
     lines = content.split("\n")
     chapters: list[dict] = []
@@ -81,23 +90,28 @@ def _parse_chapters(content: str) -> list[dict]:
 
     for line in lines:
         if line.startswith("## ") and not line.startswith("### "):
-            title = line[3:].strip()
+            raw_title = line[3:].strip()
             parent_index += 1
+            title, cid = _extract_anchor(
+                raw_title, f"chapter-{parent_index}"
+            )
             chapters.append(
                 {
-                    "chapter_id": f"chapter-{parent_index}",
+                    "chapter_id": cid,
                     "title": title,
                     "level": 2,
                     "children": [],
                 }
             )
         elif line.startswith("### "):
-            title = line[4:].strip()
+            raw_title = line[4:].strip()
             if parent_index >= 0:
                 child_index = len(chapters[parent_index]["children"])
+                fallback = f"chapter-{parent_index}-{child_index}"
+                title, cid = _extract_anchor(raw_title, fallback)
                 chapters[parent_index]["children"].append(
                     {
-                        "chapter_id": f"chapter-{parent_index}-{child_index}",
+                        "chapter_id": cid,
                         "title": title,
                         "level": 3,
                         "children": [],
