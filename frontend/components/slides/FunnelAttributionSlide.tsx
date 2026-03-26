@@ -54,6 +54,7 @@ export function FunnelAttributionSlide({ slideNumber, totalSlides }: SlideProps)
       title="全漏斗转化链"
       subtitle="注册 → 预约 → 出席 → 付费，逐环节达成 & 转化率"
       section="漏斗分析"
+      knowledgeChapter="chapter-2"
       insight={insight}
     >
       {isLoading ? (

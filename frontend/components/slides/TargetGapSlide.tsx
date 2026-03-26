@@ -55,6 +55,7 @@ export function TargetGapSlide({ slideNumber, totalSlides }: SlideProps) {
       title="目标差距总览"
       subtitle="各环节目标 vs 实际达成"
       section="漏斗分析"
+      knowledgeChapter="chapter-4"
       insight={insight}
     >
       {isLoading ? (

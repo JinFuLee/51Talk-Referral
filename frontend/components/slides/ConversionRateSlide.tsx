@@ -51,6 +51,7 @@ export function ConversionRateSlide({ slideNumber, totalSlides }: SlideProps) {
       title="转化率 × 月达成"
       subtitle="各环节实际转化率 vs 目标"
       section="漏斗分析"
+      knowledgeChapter="chapter-8"
       insight={insight}
     >
       {isLoading ? (
@@ -62,7 +63,12 @@ export function ConversionRateSlide({ slideNumber, totalSlides }: SlideProps) {
           <div className="text-center space-y-2">
             <p className="text-base font-semibold text-red-600">数据加载失败</p>
             <p className="text-sm text-[var(--text-muted)]">请检查后端服务是否正常运行</p>
-            <button onClick={() => mutate()} className="mt-1 px-4 py-1.5 rounded-lg text-sm border border-[var(--border-default)] text-[var(--text-secondary)] hover:bg-[var(--bg-subtle)] transition-colors">重试</button>
+            <button
+              onClick={() => mutate()}
+              className="mt-1 px-4 py-1.5 rounded-lg text-sm border border-[var(--border-default)] text-[var(--text-secondary)] hover:bg-[var(--bg-subtle)] transition-colors"
+            >
+              重试
+            </button>
           </div>
         </div>
       ) : chartData.length === 0 ? (

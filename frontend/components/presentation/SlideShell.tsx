@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { clsx } from 'clsx';
+import { KnowledgeLink } from '@/components/ui/KnowledgeLink';
 
 interface SlideShellProps {
   children: React.ReactNode;
@@ -12,6 +13,10 @@ interface SlideShellProps {
   section?: string;
   /** 顶部一句话结论（数据驱动自动生成） */
   insight?: React.ReactNode;
+  /** 知识库跳转（章节 ID），传入后标题旁显示 ⓘ 图标 */
+  knowledgeChapter?: string;
+  /** 知识库书籍 ID（默认 business-bible） */
+  knowledgeBook?: string;
 }
 
 export function SlideShell({
@@ -22,6 +27,8 @@ export function SlideShell({
   subtitle,
   section,
   insight,
+  knowledgeChapter,
+  knowledgeBook,
 }: SlideShellProps) {
   const progressPct = Math.round((slideNumber / totalSlides) * 100);
 
@@ -47,7 +54,12 @@ export function SlideShell({
             {section}
           </p>
         )}
-        <h1 className="text-3xl font-bold text-[var(--text-primary)] leading-tight">{title}</h1>
+        <h1 className="text-3xl font-bold text-[var(--text-primary)] leading-tight inline-flex items-center">
+          {title}
+          {knowledgeChapter && (
+            <KnowledgeLink chapter={knowledgeChapter} book={knowledgeBook} className="w-5 h-5" />
+          )}
+        </h1>
         {subtitle && <p className="text-lg text-[var(--text-secondary)] mt-1">{subtitle}</p>}
         {insight && (
           <div className="mt-2 px-3 py-1.5 rounded-lg bg-[var(--bg-subtle)] border border-[var(--border-default)] inline-block max-w-full">

@@ -33,6 +33,8 @@ export function ScenarioAnalysisSlide({ slideNumber, totalSlides }: SlideProps) 
       title="漏斗场景推演"
       subtitle="提升各环节转化率的预期影响"
       section="漏斗分析"
+      knowledgeChapter="chapter-7"
+      knowledgeBook="business-bible"
       insight={insight}
     >
       {isLoading ? (

@@ -39,6 +39,7 @@ export function ChannelRevenueSlide({ slideNumber, totalSlides }: SlideProps) {
       title="渠道金额贡献图"
       subtitle="各渠道人均金额 / 总金额 / 占比"
       section="渠道分析"
+      knowledgeChapter="chapter-1"
       insight={insight}
     >
       {isLoading ? (
@@ -50,7 +51,12 @@ export function ChannelRevenueSlide({ slideNumber, totalSlides }: SlideProps) {
           <div className="text-center space-y-2">
             <p className="text-base font-semibold text-red-600">数据加载失败</p>
             <p className="text-sm text-[var(--text-muted)]">请检查后端服务是否正常运行</p>
-            <button onClick={() => mutate()} className="mt-1 px-4 py-1.5 rounded-lg text-sm border border-[var(--border-default)] text-[var(--text-secondary)] hover:bg-[var(--bg-subtle)] transition-colors">重试</button>
+            <button
+              onClick={() => mutate()}
+              className="mt-1 px-4 py-1.5 rounded-lg text-sm border border-[var(--border-default)] text-[var(--text-secondary)] hover:bg-[var(--bg-subtle)] transition-colors"
+            >
+              重试
+            </button>
           </div>
         </div>
       ) : channels.length === 0 ? (
