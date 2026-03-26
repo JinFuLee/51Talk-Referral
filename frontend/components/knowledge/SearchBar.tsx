@@ -3,8 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Search, X, Loader2 } from 'lucide-react';
 import useSWR from 'swr';
-
-const fetcher = (url: string) => fetch(url).then((r) => r.json());
+import { swrFetcher } from '@/lib/api';
 
 export interface SearchResult {
   book_id: string;
@@ -22,7 +21,11 @@ interface SearchBarProps {
 function highlight(text: string, query: string): string {
   if (!query.trim()) return text;
   const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  return text.replace(new RegExp(escaped, 'gi'), (m) => `<mark class="bg-[var(--color-action)] text-[var(--color-action-text)] rounded-sm px-0.5">${m}</mark>`);
+  return text.replace(
+    new RegExp(escaped, 'gi'),
+    (m) =>
+      `<mark class="bg-[var(--color-action)] text-[var(--color-action-text)] rounded-sm px-0.5">${m}</mark>`
+  );
 }
 
 function groupByBook(results: SearchResult[]): Record<string, SearchResult[]> {
@@ -65,8 +68,10 @@ export function SearchBar({ onResultClick }: SearchBarProps) {
   }, [query]);
 
   const { data, isLoading } = useSWR<SearchResult[]>(
-    debouncedQuery.length >= 2 ? `/api/knowledge/search?q=${encodeURIComponent(debouncedQuery)}` : null,
-    fetcher
+    debouncedQuery.length >= 2
+      ? `/api/knowledge/search?q=${encodeURIComponent(debouncedQuery)}`
+      : null,
+    swrFetcher
   );
 
   const handleResultClick = useCallback(
@@ -96,7 +101,10 @@ export function SearchBar({ onResultClick }: SearchBarProps) {
   return (
     <div ref={containerRef} className="relative w-full max-w-md">
       <div className="relative flex items-center">
-        <Search className="absolute left-3 w-4 h-4 text-[var(--text-muted)] pointer-events-none" aria-hidden="true" />
+        <Search
+          className="absolute left-3 w-4 h-4 text-[var(--text-muted)] pointer-events-none"
+          aria-hidden="true"
+        />
         <input
           ref={inputRef}
           type="search"
@@ -111,7 +119,10 @@ export function SearchBar({ onResultClick }: SearchBarProps) {
         />
         {query && (
           <button
-            onClick={() => { setQuery(''); setDebouncedQuery(''); }}
+            onClick={() => {
+              setQuery('');
+              setDebouncedQuery('');
+            }}
             className="absolute right-2.5 text-[var(--text-muted)] hover:text-[var(--text-secondary)] focus-visible:outline-none"
             aria-label="清空搜索"
           >
@@ -145,7 +156,9 @@ export function SearchBar({ onResultClick }: SearchBarProps) {
                   >
                     <div
                       className="text-sm font-medium text-[var(--text-primary)]"
-                      dangerouslySetInnerHTML={{ __html: highlight(r.chapter_title, debouncedQuery) }}
+                      dangerouslySetInnerHTML={{
+                        __html: highlight(r.chapter_title, debouncedQuery),
+                      }}
                     />
                     <div
                       className="text-xs text-[var(--text-muted)] mt-0.5 line-clamp-2"

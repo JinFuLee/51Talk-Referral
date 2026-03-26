@@ -2,8 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import useSWR from 'swr';
-
-const fetcher = (url: string) => fetch(url).then((r) => r.json());
+import { swrFetcher } from '@/lib/api';
 
 export interface GlossaryTerm {
   term: string;
@@ -23,7 +22,7 @@ interface GlossaryCardProps {
 }
 
 export function GlossaryCard({ containerRef }: GlossaryCardProps) {
-  const { data: terms } = useSWR<GlossaryTerm[]>('/api/knowledge/glossary', fetcher);
+  const { data: terms } = useSWR<GlossaryTerm[]>('/api/knowledge/glossary', swrFetcher);
   const [tooltip, setTooltip] = useState<TooltipState | null>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
 
@@ -51,7 +50,10 @@ export function GlossaryCard({ containerRef }: GlossaryCardProps) {
         for (const key of keys) {
           const escaped = key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
           html = html.replace(
-            new RegExp(`(?<![\\w\\u4e00-\\u9fff\\u0e00-\\u0e7f])(${escaped})(?![\\w\\u4e00-\\u9fff\\u0e00-\\u0e7f])`, 'g'),
+            new RegExp(
+              `(?<![\\w\\u4e00-\\u9fff\\u0e00-\\u0e7f])(${escaped})(?![\\w\\u4e00-\\u9fff\\u0e00-\\u0e7f])`,
+              'g'
+            ),
             `<span class="glossary-term" data-term="${key}" style="border-bottom:1px dashed var(--color-accent);cursor:help;">$1</span>`
           );
         }
@@ -65,7 +67,11 @@ export function GlossaryCard({ containerRef }: GlossaryCardProps) {
       }
 
       // Skip code, pre, and already-wrapped elements
-      if (node.nodeName === 'CODE' || node.nodeName === 'PRE' || (node as Element).classList?.contains('glossary-term')) {
+      if (
+        node.nodeName === 'CODE' ||
+        node.nodeName === 'PRE' ||
+        (node as Element).classList?.contains('glossary-term')
+      ) {
         return;
       }
 
@@ -132,14 +138,18 @@ export function GlossaryCard({ containerRef }: GlossaryCardProps) {
       style={{ left: tooltip.x, top: tooltip.y }}
     >
       <div className="flex items-start justify-between gap-2 mb-1">
-        <span className="text-sm font-semibold text-[var(--text-primary)]">{tooltip.term.term}</span>
+        <span className="text-sm font-semibold text-[var(--text-primary)]">
+          {tooltip.term.term}
+        </span>
         {tooltip.term.category && (
           <span className="text-[10px] px-1.5 py-0.5 rounded bg-[var(--color-accent-surface)] text-[var(--color-accent)] font-medium shrink-0">
             {tooltip.term.category}
           </span>
         )}
       </div>
-      <p className="text-xs text-[var(--text-secondary)] leading-relaxed">{tooltip.term.definition}</p>
+      <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
+        {tooltip.term.definition}
+      </p>
     </div>
   );
 }

@@ -15,9 +15,9 @@ import { ReadingGuide, shouldShowGuide } from '@/components/knowledge/ReadingGui
 import type { Book } from '@/components/knowledge/BookShelf';
 import type { Chapter } from '@/components/knowledge/ChapterTree';
 import type { BookmarkItem } from '@/components/knowledge/BookmarkPanel';
+import { swrFetcher } from '@/lib/api';
 
 const BOOKMARKS_KEY = 'knowledge-bookmarks';
-const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
 // ── Types from API ──────────────────────────────────────────────────────────
 
@@ -65,13 +65,16 @@ export default function KnowledgePage() {
 
   // Reading guide
   const [showGuide, setShowGuide] = useState(false);
-  useEffect(() => { if (shouldShowGuide()) setShowGuide(true); }, []);
+  useEffect(() => {
+    if (shouldShowGuide()) setShowGuide(true);
+  }, []);
 
   // Fetch book list
-  const { data: books, isLoading: booksLoading, error: booksError } = useSWR<Book[]>(
-    '/api/knowledge/books',
-    fetcher
-  );
+  const {
+    data: books,
+    isLoading: booksLoading,
+    error: booksError,
+  } = useSWR<Book[]>('/api/knowledge/books', swrFetcher);
 
   // Auto-select first book
   useEffect(() => {
@@ -88,10 +91,11 @@ export default function KnowledgePage() {
   }, [activeBook, router]);
 
   // Fetch book content
-  const { data: bookContent, isLoading: contentLoading, error: contentError } = useSWR<BookContent>(
-    activeBook ? `/api/knowledge/book/${activeBook}` : null,
-    fetcher
-  );
+  const {
+    data: bookContent,
+    isLoading: contentLoading,
+    error: contentError,
+  } = useSWR<BookContent>(activeBook ? `/api/knowledge/book/${activeBook}` : null, swrFetcher);
 
   // ── Bookmark handlers ──────────────────────────────────────────────────────
 
@@ -162,11 +166,7 @@ export default function KnowledgePage() {
       {/* Page header */}
       <div className="px-6 py-4 border-b border-[var(--border-default)] bg-[var(--bg-surface)]">
         <div className="flex items-center justify-between gap-4 flex-wrap">
-          <PageHeader
-            icon={BookOpen}
-            title="知识库"
-            subtitle="业务知识百科全书"
-          />
+          <PageHeader icon={BookOpen} title="知识库" subtitle="业务知识百科全书" />
           <div className="flex items-center gap-3">
             <SearchBar onResultClick={handleSearchResult} />
             <BookmarkPanel
@@ -193,7 +193,10 @@ export default function KnowledgePage() {
           <BookShelf
             books={books ?? []}
             activeId={activeBook}
-            onSelect={(id) => { setActiveBook(id); setActiveChapter(null); }}
+            onSelect={(id) => {
+              setActiveBook(id);
+              setActiveChapter(null);
+            }}
           />
         )}
       </div>
@@ -250,12 +253,7 @@ export default function KnowledgePage() {
       </div>
 
       {/* Reading guide modal */}
-      {showGuide && (
-        <ReadingGuide
-          onNavigate={navigateTo}
-          onDismiss={() => setShowGuide(false)}
-        />
-      )}
+      {showGuide && <ReadingGuide onNavigate={navigateTo} onDismiss={() => setShowGuide(false)} />}
     </div>
   );
 }
