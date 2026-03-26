@@ -19,7 +19,9 @@ router = APIRouter(tags=["knowledge"])
 
 
 @router.get("/knowledge/books", response_model=list[BookMeta], summary="书架目录")
-def list_books(lang: str = Query(default="zh", description="语言（zh/th）")) -> list[BookMeta]:
+def list_books(
+    lang: str = Query(default="zh", description="语言（zh/th）"),
+) -> list[BookMeta]:
     """返回所有可用书籍的元数据列表"""
     books = get_books(lang=lang)
     return [BookMeta(**b) for b in books]

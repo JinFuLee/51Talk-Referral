@@ -8,7 +8,7 @@ from __future__ import annotations
 import logging
 import os
 import re
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 logger = logging.getLogger(__name__)
@@ -60,7 +60,7 @@ def _get_file_path(book_id: str, lang: str = "zh") -> Path | None:
 def _mtime_to_iso(filepath: Path) -> str | None:
     try:
         mtime = os.path.getmtime(filepath)
-        return datetime.fromtimestamp(mtime, tz=timezone.utc).isoformat()
+        return datetime.fromtimestamp(mtime, tz=UTC).isoformat()
     except Exception:
         return None
 
@@ -197,7 +197,8 @@ def search_books(query: str, lang: str = "zh") -> list[dict]:
                 # 找到第一个关键词位置居中截取
                 idx = snippet.lower().find(query_lower)
                 start = max(0, idx - 100)
-                snippet = ("..." if start > 0 else "") + snippet[start : start + 400] + "..."
+                prefix = "..." if start > 0 else ""
+                snippet = prefix + snippet[start : start + 400] + "..."
 
             # 尝试定位章节（简单匹配：段落所在行之前的最近 ## 标题）
             chapter_id = None
@@ -275,7 +276,8 @@ def get_glossary() -> list[dict]:
         term = term.strip()
 
         # 跳过表头行（term 含"层级"/"代码"/"术语"/"类型"等）
-        if not term or term in ("层级", "代码", "术语", "类型", "Term", "---", "字段", "指标"):
+        _skip_terms = {"层级", "代码", "术语", "类型", "Term", "---", "字段", "指标"}
+        if not term or term in _skip_terms:
             continue
         if term.startswith("-"):
             continue
