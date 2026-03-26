@@ -6,7 +6,9 @@ from pydantic import BaseModel
 
 
 class EnclosureCCMetrics(BaseModel):
-    enclosure: str  # 0~30 / 31~60 / 61~90 / 91~180 / 181+
+    # 0~30 / 31~60 / 61~90 / 91~120 / 121~150 / 151~180
+    # 6M / 7M / 8M / 9M / 10M / 11M / 12M / 12M+
+    enclosure: str
     cc_group: str | None = None
     cc_name: str | None = None
     students: float | None = None

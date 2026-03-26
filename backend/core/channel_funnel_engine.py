@@ -207,7 +207,9 @@ class ChannelFunnelEngine:
                 cc_range = encl in ("M0", "M1", "M2", "0~30", "31~60", "61~90")
                 ss_range = encl in ("M3", "M4", "91~120", "91~180")
                 lp_range = encl in (
-                    "M5", "M6", "M6+", "121~180", "181+", "181~365", "365+",
+                    "M5", "M6", "M6+", "M7", "M8", "M9", "M10", "M11", "M12", "M12+",
+                    "6M", "7M", "8M", "9M", "10M", "11M", "12M", "12M+",
+                    "121~180", "181+", "181~365", "365+",
                 )
 
                 cc_name = str(row.get(cc_col, "")) if cc_col else ""

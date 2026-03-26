@@ -13,7 +13,7 @@ D3 列：stdt_id, 围场, 有效打卡(1/0),
   CC:  0~30, 31~60, 61~90
   SS:  91~120
   LP:  121~150, 151~180
-  运营: M6+, 181+
+  运营: 6M, 7M, 8M, 9M, 10M, 11M, 12M, 12M+
 
 当前 D3 只有 0~30 的数据 → SS/LP 显示 0 是数据源限制，代码正确。
 未来 D3 覆盖更多围场时自动生效。
@@ -78,15 +78,27 @@ _M_MAP: dict[str, str] = {
     "91~120":  "M3",
     "121~150": "M4",
     "151~180": "M5",
+    "6M":      "M6",
+    "7M":      "M7",
+    "8M":      "M8",
+    "9M":      "M9",
+    "10M":     "M10",
+    "11M":     "M11",
+    "12M":     "M12",
+    "12M+":    "M12+",
+    # 旧数据兼容
     "M6+":     "M6+",
-    "181+":    "M6+",  # 兼容写法
+    "181+":    "M6+",
 }
 
 # 围场段 → 天数映射（与前端 M_TO_DAYS 对齐）
 _M_TO_DAYS: dict[str, tuple[int, int]] = {
     "0~30": (0, 30), "31~60": (31, 60), "61~90": (61, 90),
     "91~120": (91, 120), "121~150": (121, 150), "151~180": (151, 180),
-    "M6+": (181, 9999),
+    "6M": (181, 210), "7M": (211, 240), "8M": (241, 270),
+    "9M": (271, 300), "10M": (301, 330), "11M": (331, 360),
+    "12M": (361, 390), "12M+": (391, 9999),
+    "M6+": (181, 9999),  # 旧数据兼容
 }
 
 # ── 硬编码 fallback（当 config.json 读取失败时使用）─────────────────────────
@@ -95,7 +107,7 @@ _WIDE_ROLE_FALLBACK: dict[str, list[str]] = {
     "CC": ["0~30", "31~60", "61~90"],
     "SS": ["91~120"],
     "LP": ["121~150", "151~180"],
-    "运营": ["M6+", "181+"],
+    "运营": ["6M", "7M", "8M", "9M", "10M", "11M", "12M", "12M+", "M6+", "181+"],
 }
 
 _ROLE_COLS_FALLBACK: dict[str, tuple[str, str]] = {
@@ -126,7 +138,10 @@ def _get_wide_role() -> dict[str, list[str]]:
     # M 标签 → 围场段映射（用于 override 格式转换）
     _M_TO_BAND: dict[str, str] = {
         "M0": "0~30", "M1": "31~60", "M2": "61~90",
-        "M3": "91~120", "M4": "121~150", "M5": "151~180", "M6+": "M6+",
+        "M3": "91~120", "M4": "121~150", "M5": "151~180",
+        "M6": "6M", "M7": "7M", "M8": "8M", "M9": "9M",
+        "M10": "10M", "M11": "11M", "M12": "12M", "M12+": "12M+",
+        "M6+": "M6+",
     }
 
     # 优先读取 override 文件
@@ -274,9 +289,17 @@ def _safe_str(val) -> str:
 
 
 def _m_label_to_index(m_label: str) -> int:
-    """M0→0, M1→1, ... M6+→6"""
+    """M0→0, M1→1, ... M12→12, M12+→13, M6+→6"""
+    s = m_label.lstrip("M")
+    if s.endswith("+"):
+        # M12+ → 13, M6+ → 6
+        try:
+            base = int(s.rstrip("+"))
+            return base + 1 if base == 12 else base
+        except ValueError:
+            return 99
     try:
-        return int(m_label.lstrip("M").rstrip("+"))
+        return int(s)
     except ValueError:
         return 99
 
@@ -521,7 +544,7 @@ _OPS_CHANNELS: list[dict[str, Any]] = [
         "priority": "medium",
         "cost_level": "low",
         "description": "自动化批量触达",
-        "target_criteria": "全部 M6+ 未打卡",
+        "target_criteria": "全部 6M+ 未打卡",
         "estimated_contact_rate": 0.18,
     },
     {
@@ -530,7 +553,7 @@ _OPS_CHANNELS: list[dict[str, Any]] = [
         "priority": "low",
         "cost_level": "lowest",
         "description": "兜底广撒网",
-        "target_criteria": "全部 M6+ 未打卡",
+        "target_criteria": "全部 6M+ 未打卡",
         "estimated_contact_rate": 0.10,
     },
 ]
@@ -542,7 +565,9 @@ def _aggregate_ops_channels(
     enclosures_override: list[str] | None = None,
 ) -> dict[str, Any]:
     """运营角色聚合：按渠道推荐 + 围场子段，不使用 CC/SS/LP 人员列。"""
-    enclosures = enclosures_override or ["M6+", "181+"]
+    enclosures = enclosures_override or [
+        "6M", "7M", "8M", "9M", "10M", "11M", "12M", "12M+", "M6+", "181+",
+    ]
 
     # 筛选 M6+ 围场学员
     if _D3_ENCLOSURE_COL in df_d3.columns:
