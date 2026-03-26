@@ -66,6 +66,19 @@ def _get_checkin_thresholds() -> tuple[float, float]:
         _CHECKIN_THRESHOLDS_CACHE.get("warning", 0.70),
     )
 
+def _get_honor_config() -> dict:
+    """返回荣耀阈值 + 各围场警示阈值（复用全局缓存）。"""
+    global _CHECKIN_THRESHOLDS_CACHE
+    if _CHECKIN_THRESHOLDS_CACHE is None:
+        _get_checkin_thresholds()
+    c = _CHECKIN_THRESHOLDS_CACHE or {}
+    honor = c.get("honor", {"hall_of_fame": 1.0, "excellent": 0.95, "pass": 0.85})
+    enc_warn = c.get(
+        "cc_warning_by_enclosure", {"M0": 0.90, "M1": 0.85, "M2": 0.80}
+    )
+    return {"honor": honor, "cc_warning_by_enclosure": enc_warn}
+
+
 # ── 围场-角色映射（从 Settings 读取）────────────────────────────────────────
 
 _ROLE_ENC_FALLBACK: dict[str, list[str]] = {
@@ -274,6 +287,36 @@ TH = {
     "total_rate": {"th": "รวม", "zh": "总"},
     "col_rate": {"th": "เช็คอิน%", "zh": "打卡率"},
     "col_not_checked_count": {"th": "ยังไม่เช็คอิน", "zh": "未打卡"},
+    # ── 荣耀 + 警示文案 ──
+    "honor_hall_title": {"th": "หอเกียรติยศ", "zh": "荣耀殿堂"},
+    "honor_exc_title": {"th": "ยอดเยี่ยม", "zh": "卓越"},
+    "honor_pass_title": {"th": "ผ่านเกณฑ์", "zh": "达标"},
+    "honor_hall_body": {
+        "th": "เช็คอินครบ 100% สมบูรณ์แบบ! 🎊",
+        "zh": "月度打卡率 100%，完美纪录！",
+    },
+    "honor_exc_body": {
+        "th": "อัตราเช็คอิน ≥95% ยอดเยี่ยมมาก! 💪",
+        "zh": "打卡率 ≥95%，近乎完美！",
+    },
+    "honor_pass_body": {
+        "th": "อัตราเช็คอิน ≥85% ทำได้ดีมาก! ✅",
+        "zh": "打卡率 ≥85%，表现优秀！",
+    },
+    "honor_rank": {"th": "อันดับ", "zh": "排名"},
+    "honor_students": {"th": "นักเรียน", "zh": "学员"},
+    "warn_title": {"th": "แจ้งเตือน CC", "zh": "CC 围场警示"},
+    "warn_body": {
+        "th": "นักเรียนเสี่ยงถูกโอนเดือนหน้า",
+        "zh": "以下学员下月有转出风险",
+    },
+    "warn_threshold": {"th": "เกณฑ์", "zh": "警戒线"},
+    "warn_at_risk": {"th": "เสี่ยงโอน", "zh": "风险"},
+    "warn_footer": {
+        "th": "นักเรียนที่ขาดเกินจำนวนที่อนุญาต มีความเสี่ยงถูกโอนเดือนหน้า",
+        "zh": "超出允许缺卡数的学员，下月有转出风险",
+    },
+    "data_note": {"th": "ข้อมูล T-1", "zh": "T-1 数据"},
 }
 
 
@@ -358,6 +401,34 @@ def fetch_summary(api_base: str) -> dict:
             return data.get("by_role", {})
     except Exception as e:
         print(f"[警告] 获取打卡汇总失败: {e}")
+        return {}
+
+
+def fetch_ranking_lark(api_base: str, role: str) -> dict[str, dict]:
+    """调用 /api/checkin/ranking 获取 per-CC 月累计打卡率+排名。
+    返回 {cc_name: {"rate", "rank", "students", "checked_in"}}。
+    失败返回空 dict（不中断 followup 流程）。
+    """
+    url = f"{api_base}/api/checkin/ranking"
+    req = urllib.request.Request(url, headers={"Accept": "application/json"})
+    try:
+        with urllib.request.urlopen(req, timeout=15) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+        persons: list[dict] = (
+            data.get("by_role", {}).get(role, {}).get("by_person", [])
+        )
+        return {
+            p["name"]: {
+                "rate": p.get("rate", 0.0),
+                "rank": p.get("rank", 999),
+                "students": p.get("students", 0),
+                "checked_in": p.get("checked_in", 0),
+            }
+            for p in persons
+            if p.get("name")
+        }
+    except Exception as e:
+        print(f"  [荣耀] 排行数据获取失败，跳过荣耀推送: {e}")
         return {}
 
 
@@ -1385,6 +1456,239 @@ def send_lark_test(webhook: str, secret: str | None = None) -> bool:
     return ok
 
 
+# ── 阶段 5：荣耀 + 警示卡片 ────────────────────────────────────────────────────
+
+
+def _send_honor_and_warning(
+    webhook: str,
+    secret: str | None,
+    role: str,
+    api_base: str,
+    team_cc_results: list[dict],
+    enc_order: list[str],
+    date_display: str,
+) -> None:
+    """发送打卡荣耀卡片（3 档正向）+ CC 围场警示卡片。"""
+    honor_cfg = _get_honor_config()
+    hof_thresh = honor_cfg["honor"]["hall_of_fame"]
+    exc_thresh = honor_cfg["honor"]["excellent"]
+    pass_thresh = honor_cfg["honor"]["pass"]
+    enc_warn_map = honor_cfg["cc_warning_by_enclosure"]
+
+    # ── 获取排行数据（月累计打卡率）──
+    cc_ranking_map = fetch_ranking_lark(api_base, role)
+    if not cc_ranking_map:
+        print("   ⚠ 无排行数据，跳过荣耀推送")
+        # 警示不需要 ranking 数据，继续执行
+        if role != "CC":
+            return
+
+    # ── 汇总所有 CC（跨团队）──
+    all_cc_entries: list[dict] = []
+    for tr in team_cc_results:
+        for cc_entry in tr["ccs"]:
+            all_cc_entries.append(cc_entry)
+
+    # ── 正向分桶 ──
+    tiers: dict[str, list[tuple]] = {
+        "hall_of_fame": [],
+        "excellent": [],
+        "pass": [],
+    }
+    for cc_entry in all_cc_entries:
+        cc_name = cc_entry["cc"]
+        rk = cc_ranking_map.get(cc_name, {})
+        rate = rk.get("rate", cc_entry.get("rate", 0.0))
+        rank = rk.get("rank", 999)
+        students = rk.get("students", 0)
+
+        if rate >= hof_thresh:
+            tiers["hall_of_fame"].append((cc_name, rate, rank, students))
+        elif rate >= exc_thresh:
+            tiers["excellent"].append((cc_name, rate, rank, students))
+        elif rate >= pass_thresh:
+            tiers["pass"].append((cc_name, rate, rank, students))
+
+    for t in tiers:
+        tiers[t].sort(key=lambda x: x[2])
+
+    # ── 发送荣耀卡片 ──
+    tier_config = [
+        ("hall_of_fame", "🏆", "honor_hall_title", "honor_hall_body", "yellow"),
+        ("excellent", "🌟", "honor_exc_title", "honor_exc_body", "purple"),
+        ("pass", "✅", "honor_pass_title", "honor_pass_body", "green"),
+    ]
+    honor_sent = 0
+    for tier_key, emoji, title_key, body_key, template in tier_config:
+        honorees = tiers[tier_key]
+        if not honorees:
+            continue
+
+        elements: list[dict] = [
+            {
+                "tag": "markdown",
+                "content": f"**{_th(body_key)}**\n{_zh(body_key)}",
+            },
+            {"tag": "hr"},
+        ]
+        for cc_name, rate, rank, students in honorees:
+            rate_str = "100%" if rate >= 1.0 else f"{rate:.1%}"
+            line = (
+                f"{emoji} **{cc_name}**"
+                f"  ·  {rate_str}"
+                f"  ·  {_th('honor_rank')} #{rank}"
+                f"  ·  {students} {_th('honor_students')}"
+            )
+            elements.append({"tag": "markdown", "content": line})
+
+        elements.append({"tag": "hr"})
+        elements.append(
+            {
+                "tag": "markdown",
+                "content": f"_{date_display}  |  {_th('data_note')}_",
+            }
+        )
+
+        card_title = f"{emoji} {_th(title_key)} | {_zh(title_key)}"
+        _send_lark(
+            webhook,
+            {
+                "msg_type": "interactive",
+                "card": {
+                    "header": {
+                        "title": {"tag": "plain_text", "content": card_title},
+                        "template": template,
+                    },
+                    "elements": elements,
+                },
+            },
+            secret,
+        )
+        print(f"   ✓ 荣耀卡片: {tier_key} ({len(honorees)} 人)")
+        honor_sent += 1
+        time.sleep(2)
+
+    if honor_sent == 0 and cc_ranking_map:
+        print("   — 无人达到荣耀门槛")
+
+    # ── CC 围场警示（仅 CC 角色）──
+    if role != "CC":
+        return
+
+    at_risk_ccs: list[dict] = []
+    for cc_entry in all_cc_entries:
+        cc_name = cc_entry["cc"]
+        by_enc_list = cc_entry.get("by_enclosure", [])
+        enc_rate_map = {e["enclosure"]: e for e in by_enc_list}
+        students_by_enc = cc_entry.get("students_by_enc", {})
+
+        enc_warnings: list[dict] = []
+        for enc in enc_order:
+            threshold = enc_warn_map.get(enc)
+            if threshold is None:
+                continue
+            enc_info = enc_rate_map.get(enc, {})
+            total_enc = enc_info.get("students", 0)
+            if total_enc == 0:
+                continue
+            enc_rate = enc_info.get("rate", 0.0) or 0.0
+            if enc_rate >= threshold:
+                continue
+
+            checked_in_enc = enc_info.get("checked_in", 0)
+            unchecked_enc = total_enc - checked_in_enc
+            allowed_unchecked = int(total_enc * (1 - threshold))
+            risk_count = max(0, unchecked_enc - allowed_unchecked)
+            if risk_count == 0:
+                continue
+
+            enc_students = students_by_enc.get(enc, [])
+            risk_ids = [
+                str(s.get("student_id", "")) for s in enc_students[:risk_count]
+            ]
+            enc_warnings.append(
+                {
+                    "enc": enc,
+                    "rate": enc_rate,
+                    "threshold": threshold,
+                    "risk_count": risk_count,
+                    "risk_ids": risk_ids,
+                    "total": total_enc,
+                }
+            )
+
+        if enc_warnings:
+            at_risk_ccs.append({"cc": cc_name, "enc_warnings": enc_warnings})
+
+    if not at_risk_ccs:
+        print("   ✓ 无 CC 围场警示（所有围场打卡率达标）")
+        return
+
+    # 构建警示阈值描述
+    warn_thresholds_desc = "  ·  ".join(
+        f"{enc} < {int(enc_warn_map[enc] * 100)}%"
+        for enc in enc_order
+        if enc in enc_warn_map
+    )
+
+    warn_elements: list[dict] = [
+        {
+            "tag": "markdown",
+            "content": (
+                f"**{_th('warn_body')}**\n"
+                f"{_zh('warn_body')}\n"
+                f"{warn_thresholds_desc}"
+            ),
+        },
+        {"tag": "hr"},
+    ]
+    for cc_warn in at_risk_ccs:
+        lines = [f"⚠️ **{cc_warn['cc']}**"]
+        for ew in cc_warn["enc_warnings"]:
+            thresh_pct = f"{ew['threshold']:.0%}"
+            lines.append(
+                f"**{ew['enc']}** · {ew['rate']:.1%}"
+                f" ({_th('warn_threshold')} {thresh_pct})"
+                f" · {_th('warn_at_risk')} **{ew['risk_count']}** {_th('persons')}"
+            )
+            ids = ew["risk_ids"]
+            chunks = [", ".join(ids[i : i + 8]) for i in range(0, len(ids), 8)]
+            lines.extend(chunks)
+        warn_elements.append({"tag": "markdown", "content": "\n".join(lines)})
+
+    warn_elements.append({"tag": "hr"})
+    warn_elements.append(
+        {
+            "tag": "markdown",
+            "content": f"💡 {_th('warn_footer')}\n{_zh('warn_footer')}",
+        }
+    )
+    warn_elements.append(
+        {"tag": "markdown", "content": f"_{date_display}  |  {_th('data_note')}_"}
+    )
+
+    _send_lark(
+        webhook,
+        {
+            "msg_type": "interactive",
+            "card": {
+                "header": {
+                    "title": {
+                        "tag": "plain_text",
+                        "content": (
+                            f"⚠️ {_th('warn_title')} | {_zh('warn_title')}"
+                        ),
+                    },
+                    "template": "red",
+                },
+                "elements": warn_elements,
+            },
+        },
+        secret,
+    )
+    print(f"   ✓ 警示卡片已发送 ({len(at_risk_ccs)} 个 CC)")
+
+
 # ── 主流程：未打卡跟进 ────────────────────────────────────────────────────────
 
 
@@ -1827,6 +2131,19 @@ def cmd_followup(args: argparse.Namespace) -> None:
             f"   {status} 消息 {idx}/{1 + len(team_cc_results)} 已发送（{tr['team']}）"
         )
         time.sleep(3)
+
+    # ── 阶段 5：荣耀 + 警示推送 ──────────────────────────────────────────────
+    print()
+    print("5. 发送荣耀 + 警示卡片...")
+    _send_honor_and_warning(
+        webhook=webhook,
+        secret=secret,
+        role=role,
+        api_base=api_base,
+        team_cc_results=team_cc_results,
+        enc_order=enc_order,
+        date_display=date_display,
+    )
 
 
 # ── CLI ───────────────────────────────────────────────────────────────────────
