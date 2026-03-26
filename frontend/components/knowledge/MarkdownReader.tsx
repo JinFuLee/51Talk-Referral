@@ -171,6 +171,10 @@ export function MarkdownReader({ content, bookmarks, onToggleBookmark }: Markdow
   return (
     <article className="max-w-3xl mx-auto kb-reader">
       <style>{`
+        .kb-reader .kb-table thead th {
+          color: #fff !important;
+          background-color: var(--n-800) !important;
+        }
         .kb-reader .kb-table tbody tr:hover {
           background: var(--color-accent-surface);
         }
