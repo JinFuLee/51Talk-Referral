@@ -477,6 +477,26 @@ class NotificationEngine:
             else:
                 print("  [service_metrics] ข้ามเนื่องจากไม่มีข้อมูล")
 
+        elif module_id == "honor_ranking":
+            persons = role_data.get("by_person", [])
+            img_bytes = self._gen_honor_image(persons, role, today_str)
+            if img_bytes is not None:
+                path = OUTPUT_DIR / f"honor-ranking-{role}-{date_tag}.png"
+                path.write_bytes(img_bytes)
+                images.append(
+                    (f"🏆 เกียรติยศเช็คอิน {role} {today_str}", img_bytes, path)
+                )
+
+        elif module_id == "cc_enc_warning":
+            if role == "CC":
+                img_bytes = self._gen_warning_image(role_data, role, today_str)
+                if img_bytes is not None:
+                    path = OUTPUT_DIR / f"cc-enc-warning-{date_tag}.png"
+                    path.write_bytes(img_bytes)
+                    images.append(
+                        (f"⚠️ แจ้งเตือน CC {today_str}", img_bytes, path)
+                    )
+
         # action_items 由 _process_module 直接处理文本，不走图片流程
         else:
             pass
@@ -1873,6 +1893,420 @@ class NotificationEngine:
             return result  # 非繁忙错误或重试耗尽
 
         return {"errcode": -1, "errmsg": "重试耗尽"}
+
+    # ── 荣耀 + 警示图片生成器 ─────────────────────────────────────────────────
+
+    def _get_honor_thresholds(self) -> dict:
+        """从 config/checkin_thresholds.json 读取荣耀+警示阈值。"""
+        cfg_path = PROJECT_ROOT / "config" / "checkin_thresholds.json"
+        try:
+            cfg = json.loads(cfg_path.read_text("utf-8"))
+        except Exception:
+            cfg = {}
+        honor = cfg.get(
+            "honor",
+            {"hall_of_fame": 1.0, "excellent": 0.95, "pass": 0.85},
+        )
+        enc_warn = cfg.get(
+            "cc_warning_by_enclosure",
+            {"M0": 0.90, "M1": 0.85, "M2": 0.80},
+        )
+        return {"honor": honor, "cc_warning_by_enclosure": enc_warn}
+
+    def _checkin_rate_color(self, rate: float) -> str:
+        """打卡率 → 文字颜色（≥85%绿 / ≥70%黄 / <70%红）"""
+        cfg_path = PROJECT_ROOT / "config" / "checkin_thresholds.json"
+        try:
+            cfg = json.loads(cfg_path.read_text("utf-8"))
+            good = cfg.get("good", 0.85)
+            warn = cfg.get("warning", 0.7)
+        except Exception:
+            good, warn = 0.85, 0.7
+        if rate >= good:
+            return _C_SUCCESS
+        if rate >= warn:
+            return _C_WARNING
+        return _C_DANGER
+
+    def _gen_honor_image(
+        self,
+        persons: list[dict],
+        role: str,
+        today_str: str,
+    ) -> bytes | None:
+        """生成荣耀排行图（🏆100% / 🌟≥95% / ✅≥85% 三档）。
+        无人达标返回 None。
+        """
+        cfg = self._get_honor_thresholds()
+        hof_t = cfg["honor"]["hall_of_fame"]
+        exc_t = cfg["honor"]["excellent"]
+        pass_t = cfg["honor"]["pass"]
+
+        tiers: dict[str, list[dict]] = {
+            "hall_of_fame": [],
+            "excellent": [],
+            "pass": [],
+        }
+        for p in persons:
+            rate = p.get("rate", 0.0)
+            if rate >= hof_t:
+                tiers["hall_of_fame"].append(p)
+            elif rate >= exc_t:
+                tiers["excellent"].append(p)
+            elif rate >= pass_t:
+                tiers["pass"].append(p)
+
+        total_honorees = sum(len(v) for v in tiers.values())
+        if total_honorees == 0:
+            print("  [honor_ranking] 无人达标")
+            return None
+
+        _MEDAL = ["🥇", "🥈", "🥉"]
+        _TIER_CFG = {
+            "hall_of_fame": (
+                "#F59E0B", "🏆",
+                "หอเกียรติยศ", "荣耀殿堂 · 100%",
+            ),
+            "excellent": (
+                "#7C3AED", "🌟",
+                "ยอดเยี่ยม", "卓越 · ≥95%",
+            ),
+            "pass": (
+                "#059669", "✅",
+                "ผ่านเกณฑ์", "达标 · ≥85%",
+            ),
+        }
+
+        row_h = 0.38
+        sec_h = 0.45
+        header_h = 0.30
+        sections = sum(1 for v in tiers.values() if v)
+        fig_h = (
+            1.2
+            + sections * (sec_h + header_h + 0.15)
+            + total_honorees * row_h
+            + 0.5
+        )
+
+        plt.rcParams["font.family"] = _THAI_FONTS
+        fig, ax = plt.subplots(figsize=(7, fig_h), dpi=150)
+        fig.patch.set_facecolor(_C_BG)
+        ax.set_xlim(0, 9)
+        ax.set_ylim(0, fig_h)
+        ax.set_aspect("equal")
+        ax.axis("off")
+
+        y = fig_h
+
+        # ── 标题 ──
+        y -= 0.3
+        ax.add_patch(plt.Rectangle(
+            (0.2, y - 0.50), 0.08, 0.50,
+            facecolor=_C_ACCENT, edgecolor="none",
+        ))
+        ax.text(
+            0.45, y, "เกียรติยศเช็คอิน",
+            fontsize=13, fontweight="bold",
+            color=_C_TEXT, va="top",
+        )
+        y -= 0.30
+        ax.text(
+            0.45, y,
+            f"打卡荣耀榜 · {role} · {today_str}",
+            fontsize=8, color=_C_MUTED, va="top",
+        )
+        y -= 0.50
+
+        # ── 各档分区 ──
+        for tier_key in ("hall_of_fame", "excellent", "pass"):
+            honorees = tiers[tier_key]
+            if not honorees:
+                continue
+
+            color, emoji, t_th, t_zh = _TIER_CFG[tier_key]
+
+            # 档位标题条
+            ax.add_patch(plt.Rectangle(
+                (0.2, y - sec_h), 8.6, sec_h,
+                facecolor=color, edgecolor="none", alpha=0.15,
+            ))
+            ax.add_patch(plt.Rectangle(
+                (0.2, y - sec_h), 0.06, sec_h,
+                facecolor=color, edgecolor="none",
+            ))
+            ax.text(
+                0.45, y - sec_h / 2,
+                f"{emoji} {t_th}  {t_zh}",
+                fontsize=10, fontweight="bold",
+                color=color, va="center",
+            )
+            y -= sec_h
+
+            # 表头
+            ax.add_patch(plt.Rectangle(
+                (0.2, y - header_h), 8.6, header_h,
+                facecolor=_C_N800, edgecolor="none",
+            ))
+            for cx, lbl in [
+                (0.4, "#"),
+                (1.2, "ชื่อ / 姓名"),
+                (5.5, "อัตรา / 率"),
+                (7.0, "นร. / 学员"),
+            ]:
+                ax.text(
+                    cx, y - header_h / 2, lbl,
+                    fontsize=7.5, fontweight="bold",
+                    color="white", va="center",
+                )
+            y -= header_h
+
+            # 数据行
+            for i, p in enumerate(honorees):
+                bg = _C_SURFACE if i % 2 == 0 else _C_BG
+                ax.add_patch(plt.Rectangle(
+                    (0.2, y - row_h), 8.6, row_h,
+                    facecolor=bg, edgecolor="none",
+                ))
+                ax.plot(
+                    [0.2, 8.8], [y - row_h, y - row_h],
+                    color=_C_BORDER, linewidth=0.3,
+                )
+                m = _MEDAL[i] if i < len(_MEDAL) else emoji
+                rank = p.get("rank", i + 1)
+                name = p.get("name", "?")
+                rate = p.get("rate", 0.0)
+                students = p.get("students", 0)
+                r_str = "100%" if rate >= 1.0 else f"{rate:.1%}"
+
+                ax.text(
+                    0.4, y - row_h / 2, f"{m} #{rank}",
+                    fontsize=8, color=_C_TEXT, va="center",
+                )
+                ax.text(
+                    1.2, y - row_h / 2, name,
+                    fontsize=8.5, fontweight="bold",
+                    color=_C_TEXT, va="center",
+                )
+                ax.text(
+                    5.5, y - row_h / 2, r_str,
+                    fontsize=8.5, fontweight="bold",
+                    color=self._checkin_rate_color(rate),
+                    va="center",
+                )
+                ax.text(
+                    7.0, y - row_h / 2, str(students),
+                    fontsize=8.5, color=_C_TEXT2, va="center",
+                )
+                y -= row_h
+
+            y -= 0.15
+
+        return self._fig_to_bytes(fig)
+
+    def _gen_warning_image(
+        self,
+        role_data: dict,
+        role: str,
+        today_str: str,
+    ) -> bytes | None:
+        """生成 CC 围场警示图（仅 CC 角色）。
+        无人触发返回 None。
+        """
+        cfg = self._get_honor_thresholds()
+        enc_warn_map = cfg["cc_warning_by_enclosure"]
+        enc_order = ["M0", "M1", "M2"]
+
+        groups = role_data.get("by_group", [])
+        team_names = [
+            g.get("group", "") for g in groups if g.get("group")
+        ]
+
+        at_risk_ccs: list[dict] = []
+        for team_name in team_names:
+            try:
+                url = (
+                    f"{self.api_base}/api/checkin/team-detail"
+                    f"?team={urllib.parse.quote(team_name)}"
+                )
+                req = urllib.request.Request(
+                    url, headers={"Accept": "application/json"},
+                )
+                with urllib.request.urlopen(req, timeout=10) as resp:
+                    detail = json.loads(resp.read().decode("utf-8"))
+                members = detail.get("members", [])
+            except Exception:
+                continue
+
+            for member in members:
+                cc_name = member.get("name", "?")
+                enc_warnings: list[dict] = []
+                for enc in enc_order:
+                    threshold = enc_warn_map.get(enc)
+                    if threshold is None:
+                        continue
+                    enc_info = None
+                    for e in member.get("by_enclosure", []):
+                        if e.get("enclosure") == enc:
+                            enc_info = e
+                            break
+                    if (
+                        not enc_info
+                        or enc_info.get("students", 0) == 0
+                    ):
+                        continue
+                    total_enc = enc_info["students"]
+                    enc_rate = enc_info.get("rate", 0.0) or 0.0
+                    if enc_rate >= threshold:
+                        continue
+                    checked = enc_info.get("checked_in", 0)
+                    unchecked = total_enc - checked
+                    allowed = int(total_enc * (1 - threshold))
+                    risk_count = max(0, unchecked - allowed)
+                    if risk_count > 0:
+                        enc_warnings.append({
+                            "enc": enc,
+                            "rate": enc_rate,
+                            "threshold": threshold,
+                            "risk_count": risk_count,
+                            "total": total_enc,
+                        })
+
+                if enc_warnings:
+                    total_risk = sum(
+                        ew["risk_count"] for ew in enc_warnings
+                    )
+                    at_risk_ccs.append({
+                        "cc": cc_name,
+                        "team": team_name,
+                        "enc_warnings": enc_warnings,
+                        "total_risk": total_risk,
+                    })
+
+        if not at_risk_ccs:
+            print("  [cc_enc_warning] 无 CC 触发围场警示")
+            return None
+
+        at_risk_ccs.sort(key=lambda x: -x["total_risk"])
+        _LIMIT = 10
+        display_ccs = at_risk_ccs[:_LIMIT]
+        truncated = len(at_risk_ccs) > _LIMIT
+        total_n = len(at_risk_ccs)
+
+        row_h = 0.30
+        cc_rows = sum(
+            len(c["enc_warnings"]) for c in display_ccs
+        )
+        fig_h = (
+            1.5
+            + len(display_ccs) * 0.40
+            + cc_rows * (row_h + 0.05)
+            + (0.4 if truncated else 0)
+            + 0.5
+        )
+
+        plt.rcParams["font.family"] = _THAI_FONTS
+        fig, ax = plt.subplots(figsize=(7, fig_h), dpi=150)
+        fig.patch.set_facecolor(_C_BG)
+        ax.set_xlim(0, 9)
+        ax.set_ylim(0, fig_h)
+        ax.set_aspect("equal")
+        ax.axis("off")
+
+        y = fig_h
+
+        # 标题
+        y -= 0.3
+        ax.add_patch(plt.Rectangle(
+            (0.2, y - 0.50), 0.08, 0.50,
+            facecolor=_C_DANGER, edgecolor="none",
+        ))
+        ax.text(
+            0.45, y, "⚠️ แจ้งเตือน CC",
+            fontsize=13, fontweight="bold",
+            color=_C_DANGER, va="top",
+        )
+        y -= 0.30
+        ax.text(
+            0.45, y, f"CC 围场警示 · {today_str}",
+            fontsize=8, color=_C_MUTED, va="top",
+        )
+        y -= 0.35
+
+        thresh_desc = "  ·  ".join(
+            f"{e} < {int(enc_warn_map[e] * 100)}%"
+            for e in enc_order
+            if e in enc_warn_map
+        )
+        ax.text(
+            0.45, y, thresh_desc,
+            fontsize=8, color=_C_TEXT2, va="top",
+        )
+        y -= 0.25
+        if truncated:
+            ax.text(
+                0.45, y,
+                f"⚠️ {total_n} CC 触发"
+                f" — 显示 top {_LIMIT}",
+                fontsize=8, fontweight="bold",
+                color=_C_DANGER, va="top",
+            )
+            y -= 0.25
+
+        # CC 明细
+        for cc_warn in display_ccs:
+            ax.text(
+                0.35, y - 0.15,
+                f"⚠️ {cc_warn['cc']}",
+                fontsize=9, fontweight="bold",
+                color=_C_TEXT, va="top",
+            )
+            y -= 0.40
+            for ew in cc_warn["enc_warnings"]:
+                ax.add_patch(plt.Rectangle(
+                    (0.3, y - row_h), 8.4, row_h,
+                    facecolor=_C_SURFACE, edgecolor="none",
+                ))
+                ax.text(
+                    0.5, y - row_h / 2,
+                    f"{ew['enc']}",
+                    fontsize=8.5, fontweight="bold",
+                    color=_C_TEXT, va="center",
+                )
+                ax.text(
+                    2.0, y - row_h / 2,
+                    (
+                        f"{ew['rate']:.1%}"
+                        f"  (เกณฑ์ {ew['threshold']:.0%})"
+                    ),
+                    fontsize=8,
+                    color=self._checkin_rate_color(ew["rate"]),
+                    va="center",
+                )
+                ax.text(
+                    6.5, y - row_h / 2,
+                    f"เสี่ยง {ew['risk_count']} คน",
+                    fontsize=8, fontweight="bold",
+                    color=_C_DANGER, va="center",
+                )
+                y -= row_h + 0.05
+
+            ax.plot(
+                [0.3, 8.7], [y, y],
+                color=_C_BORDER, linewidth=0.5,
+            )
+            y -= 0.05
+
+        if truncated:
+            remaining = total_n - _LIMIT
+            ax.text(
+                0.45, y - 0.1,
+                f"... อีก {remaining} CC"
+                f" / 另有 {remaining} 人未列出",
+                fontsize=8, color=_C_MUTED, va="top",
+                style="italic",
+            )
+
+        return self._fig_to_bytes(fig)
 
     # ── 内部：连通测试 ────────────────────────────────────────────────────────
 

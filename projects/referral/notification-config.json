@@ -43,12 +43,19 @@
     "action_items": {
       "format": "markdown",
       "description": "คำแนะนำการดำเนินงาน (ติดตาม/นักเรียนสำคัญ)"
+    },
+    "honor_ranking": {
+      "description": "เกียรติยศเช็คอิน (100%/95%/85% สามระดับ)"
+    },
+    "cc_enc_warning": {
+      "description": "แจ้งเตือนคอก CC (ความเสี่ยงโอนย้าย)",
+      "cc_only": true
     }
   },
   "routing": {
-    "all": ["team_ranking", "individual_ranking"],
-    "tl": ["team_ranking", "individual_ranking", "result_metrics", "achievement_metrics", "process_metrics", "efficiency_metrics", "service_metrics", "action_items"],
-    "ops": ["team_ranking", "result_metrics", "achievement_metrics"]
+    "all": ["team_ranking", "individual_ranking", "honor_ranking"],
+    "tl": ["team_ranking", "individual_ranking", "result_metrics", "achievement_metrics", "process_metrics", "efficiency_metrics", "service_metrics", "action_items", "honor_ranking", "cc_enc_warning"],
+    "ops": ["team_ranking", "result_metrics", "achievement_metrics", "honor_ranking"]
   },
   "role_metrics": {
     "CC": {
