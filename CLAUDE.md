@@ -91,6 +91,11 @@ Excel 数据源 → XlsxReader → DataProcessor → AnalysisEngine → Markdown
 - **Lark 未打卡跟进**: `uv run python scripts/lark_bot.py followup --channel cc_all --confirm`（需 --confirm 发正式群）
 - **Lark dry-run**: `uv run python scripts/lark_bot.py followup --dry-run`（只生成图片不发送）
 - **Lark 连通测试**: `uv run python scripts/lark_bot.py --test`
+- **运营日报API**: `curl http://localhost:8100/api/report/daily`（11区块完整JSON）
+- **运营摘要API**: `curl http://localhost:8100/api/report/summary`（钉钉消费）
+- **钉钉日报推送**: `uv run python scripts/dingtalk_report.py --dry-run`（预览）/ `--confirm`（正式）
+- **手动写入快照**: `curl -X POST http://localhost:8100/api/report/snapshot`
+- **三档目标推荐**: `curl http://localhost:8100/api/config/targets/202603/recommend`
 
 ## 通知推送防错规则（全平台统一）
 
@@ -323,6 +328,7 @@ CC 排名算法详见 [docs/cc-ranking-spec.md](docs/cc-ranking-spec.md)（3类1
 | M30 | 2026-02-23 | God Class 拆分 | AnalysisEngineV2 2109→309行、6 Analyzer + context + utils | 9 files new, 1 file rewrite |
 | M31 | 2026-02-23 | 测试体系 + CI/CD | pytest 105 case + vitest 42 case + GitHub Actions | 12 test files new, ci.yml new |
 | M32 | 2026-02-23 | 性能+收尾 | useMemo 36处 + ESLint 防退化 + smoke 迁移 | 10 components mod, .eslintrc.json new |
+| M33 | 2026-03-26 | 运营分析报告引擎 | 11区块报告+8维环比+三因素分解+杠杆矩阵+三档目标+钉钉推送 | 23 files new/mod, +2900 lines |
 
 ## 已知问题与技术债
 
