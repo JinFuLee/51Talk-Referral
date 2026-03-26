@@ -73,30 +73,27 @@ export function MarkdownReader({ content, bookmarks, onToggleBookmark }: Markdow
     },
 
     table: ({ children }) => (
-      <div className="overflow-x-auto my-6">
-        <table className="w-full text-sm border-collapse">{children}</table>
+      <div className="overflow-x-auto my-6 rounded-lg border border-[var(--border-default)]">
+        <table className="kb-table w-full text-sm border-collapse">{children}</table>
       </div>
     ),
 
-    thead: ({ children }) => <thead className="slide-thead-row">{children}</thead>,
+    thead: ({ children }) => <thead className="bg-[var(--n-800)]">{children}</thead>,
 
     th: ({ children }) => (
-      <th className="slide-th px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wide">
+      <th className="px-4 py-2.5 text-left text-xs font-semibold tracking-wide text-white">
         {children}
       </th>
     ),
 
     td: ({ children }) => (
-      <td className="slide-td px-4 py-2.5 text-sm text-[var(--text-secondary)] border-b border-[var(--border-subtle)]">
+      <td className="px-4 py-2.5 text-sm text-[var(--text-secondary)] border-b border-[var(--border-subtle)]">
         {children}
       </td>
     ),
 
-    tr: ({ children }) => (
-      <tr className="slide-row-even hover:bg-[var(--color-accent-surface)] transition-colors">
-        {children}
-      </tr>
-    ),
+    // tr: no custom component — let thead/tbody CSS handle row styling
+    // tbody tr hover is handled by .kb-table CSS below
 
     blockquote: ({ children }) => (
       <blockquote className="border-l-4 border-[var(--color-accent)] bg-[var(--color-accent-surface)] pl-4 pr-4 py-3 my-5 rounded-r-lg text-[var(--text-secondary)] italic">
@@ -164,11 +161,23 @@ export function MarkdownReader({ content, bookmarks, onToggleBookmark }: Markdow
       );
     },
 
-    hr: () => <hr className="my-8 border-[var(--border-default)]" />,
+    // h1: 隐藏（标题已在书架 tab 显示，正文不重复渲染）
+    h1: () => null,
+
+    // hr: 隐藏分隔线（知识库阅读模式下不需要）
+    hr: () => null,
   };
 
   return (
-    <article className="max-w-3xl mx-auto">
+    <article className="max-w-3xl mx-auto kb-reader">
+      <style>{`
+        .kb-reader .kb-table tbody tr:hover {
+          background: var(--color-accent-surface);
+        }
+        .kb-reader .kb-table tbody tr {
+          transition: background-color 0.15s ease;
+        }
+      `}</style>
       <ReactMarkdown remarkPlugins={[remarkGfm]} components={components}>
         {content}
       </ReactMarkdown>
