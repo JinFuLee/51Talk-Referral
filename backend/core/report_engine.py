@@ -235,54 +235,41 @@ class ReportEngine:
 
     def _build_channel_funnel(self, data: dict[str, Any]) -> dict[str, dict[str, Any]]:
         """构建按口径分的漏斗指标"""
-        import pandas as pd
 
-        detail_df = data.get("detail")
-        if detail_df is None or (
-            isinstance(detail_df, pd.DataFrame) and detail_df.empty
-        ):
-            # 返回空结构
+        engine = ChannelFunnelEngine.from_data_dict(data)
+        result = engine.compute()
+        if not result:
             empty: dict[str, Any] = {
-                "registrations": None,
-                "appointments": None,
-                "attendance": None,
-                "payments": None,
-                "revenue_usd": None,
-                "asp": None,
-                "appt_rate": None,
-                "attend_rate": None,
-                "paid_rate": None,
-                "reg_to_pay_rate": None,
+                "registrations": None, "appointments": None,
+                "attendance": None, "payments": None,
+                "revenue_usd": None, "asp": None,
+                "appt_rate": None, "attend_rate": None,
+                "paid_rate": None, "reg_to_pay_rate": None,
             }
             return {ch: dict(empty) for ch in _CHANNEL_ORDER}
-
-        engine = ChannelFunnelEngine(detail_df)
-        return engine.compute()
+        return result
 
     def _build_total_metrics(
         self, channel_funnel: dict[str, dict[str, Any]]
     ) -> dict[str, Any]:
-        """从口径漏斗合计总计指标"""
-        count_keys = (
-            "registrations",
-            "appointments",
-            "attendance",
-            "payments",
-            "revenue_usd",
-        )
-        totals: dict[str, float] = {k: 0.0 for k in count_keys}
+        """从 D1 直接取总计指标（而非口径加总，避免 D2 覆盖不全）"""
+        data = self._get_data()
+        d1 = data.get("result")
+        if d1 is not None and hasattr(d1, "columns"):
+            df = d1
+            if "区域" in df.columns:
+                th = df[df["区域"].astype(str).str.contains("泰")]
+                if len(th) > 0:
+                    df = th
+            from backend.core.channel_funnel_engine import _sum_col
 
-        for ch, metrics in channel_funnel.items():
-            if ch == "其它":
-                continue
-            for k in count_keys:
-                totals[k] += _safe_float(metrics.get(k))
-
-        reg = totals["registrations"]
-        appt = totals["appointments"]
-        attend = totals["attendance"]
-        pay = totals["payments"]
-        rev = totals["revenue_usd"]
+            reg = _sum_col(df, "转介绍注册数")
+            appt = _sum_col(df, "预约数")
+            attend = _sum_col(df, "出席数")
+            pay = _sum_col(df, "转介绍付费数")
+            rev = _sum_col(df, "总带新付费金额USD")
+        else:
+            reg = appt = attend = pay = rev = 0.0
 
         return {
             "registrations": reg,
@@ -399,6 +386,8 @@ class ReportEngine:
         """区块 1: 月度总览"""
         metrics = [
             "registrations",
+            "appointments",
+            "attendance",
             "payments",
             "revenue_usd",
             "appt_rate",

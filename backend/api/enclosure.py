@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 import pandas as pd
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, Query, Request
 
 from backend.api.dependencies import get_data_manager
 from backend.core.data_manager import DataManager
@@ -141,9 +141,13 @@ def get_enclosure(
     request: Request,
     dm: DataManager = Depends(get_data_manager),
     group_by: str = "enclosure_x_group",
+    enclosure: str | None = Query(None, description="围场段筛选，如 0~30 / 6M / 12M+"),
 ) -> list[EnclosureCCMetrics]:
     data = dm.load_all()
-    return _df_to_metrics(data["enclosure_cc"], group_by=group_by)
+    df = data["enclosure_cc"]
+    if enclosure and "围场" in df.columns:
+        df = df[df["围场"].astype(str).str.strip() == enclosure].copy()
+    return _df_to_metrics(df, group_by=group_by)
 
 
 @router.get(

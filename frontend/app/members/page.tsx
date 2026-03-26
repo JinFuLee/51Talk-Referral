@@ -127,7 +127,7 @@ export default function MembersPage() {
       <div className="flex gap-3 flex-wrap items-center">
         <input
           type="text"
-          placeholder="围场筛选（如 0-30）"
+          placeholder="围场筛选（如 0~30 / 6M）"
           value={enclosureFilter}
           onChange={(e) => {
             setEnclosureFilter(e.target.value);

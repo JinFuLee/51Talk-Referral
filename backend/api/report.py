@@ -32,9 +32,9 @@ def _auto_snapshot(dm: DataManager, ref: date | None = None) -> None:
             return  # 已存在，跳过
 
         # 构建口径漏斗并写入
-        funnel_engine = ChannelFunnelEngine(dm)
         data = dm.load_all()
-        snapshot_data = funnel_engine.compute_as_snapshot_format(data)
+        engine = ChannelFunnelEngine.from_data_dict(data)
+        snapshot_data = engine.compute_as_snapshot_format(data)
         if snapshot_data:
             svc.write_daily(ref_date, snapshot_data)
             logger.info("✓ 自动写入日快照: %s", ref_date.isoformat())
