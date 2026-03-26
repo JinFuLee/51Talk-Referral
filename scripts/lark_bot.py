@@ -1512,12 +1512,13 @@ def _send_honor_and_warning(
     for t in tiers:
         tiers[t].sort(key=lambda x: x[2])
 
-    # ── 发送荣耀卡片 ──
+    # ── 发送荣耀卡片（column_set 表格对齐）──
     tier_config = [
         ("hall_of_fame", "🏆", "honor_hall_title", "honor_hall_body", "yellow"),
         ("excellent", "🌟", "honor_exc_title", "honor_exc_body", "purple"),
         ("pass", "✅", "honor_pass_title", "honor_pass_body", "green"),
     ]
+    _MEDAL = ["🥇", "🥈", "🥉"]
     honor_sent = 0
     for tier_key, emoji, title_key, body_key, template in tier_config:
         honorees = tiers[tier_key]
@@ -1527,19 +1528,95 @@ def _send_honor_and_warning(
         elements: list[dict] = [
             {
                 "tag": "markdown",
-                "content": f"**{_th(body_key)}**\n{_zh(body_key)}",
+                "content": (
+                    f"<at id=all></at>\n"
+                    f"**{_th(body_key)}**\n{_zh(body_key)}"
+                ),
             },
             {"tag": "hr"},
+            # 表头
+            {
+                "tag": "column_set",
+                "flex_mode": "none",
+                "background_style": "grey",
+                "columns": [
+                    {
+                        "tag": "column",
+                        "width": "60px",
+                        "elements": [
+                            {"tag": "markdown", "content": "**#**"}
+                        ],
+                    },
+                    {
+                        "tag": "column",
+                        "width": "weighted",
+                        "weight": 3,
+                        "elements": [
+                            {"tag": "markdown", "content": "**ชื่อ / 姓名**"}
+                        ],
+                    },
+                    {
+                        "tag": "column",
+                        "width": "weighted",
+                        "weight": 1,
+                        "elements": [
+                            {"tag": "markdown", "content": "**อัตรา / 率**"}
+                        ],
+                    },
+                    {
+                        "tag": "column",
+                        "width": "weighted",
+                        "weight": 1,
+                        "elements": [
+                            {"tag": "markdown", "content": "**นร. / 学员**"}
+                        ],
+                    },
+                ],
+            },
         ]
-        for cc_name, rate, rank, students in honorees:
+        # 数据行
+        for i, (cc_name, rate, rank, students) in enumerate(honorees):
+            m = _MEDAL[i] if i < len(_MEDAL) else emoji
             rate_str = "100%" if rate >= 1.0 else f"{rate:.1%}"
-            line = (
-                f"{emoji} **{cc_name}**"
-                f"  ·  {rate_str}"
-                f"  ·  {_th('honor_rank')} #{rank}"
-                f"  ·  {students} {_th('honor_students')}"
+            elements.append(
+                {
+                    "tag": "column_set",
+                    "flex_mode": "none",
+                    "columns": [
+                        {
+                            "tag": "column",
+                            "width": "60px",
+                            "elements": [
+                                {"tag": "markdown", "content": f"{m} #{rank}"}
+                            ],
+                        },
+                        {
+                            "tag": "column",
+                            "width": "weighted",
+                            "weight": 3,
+                            "elements": [
+                                {"tag": "markdown", "content": f"**{cc_name}**"}
+                            ],
+                        },
+                        {
+                            "tag": "column",
+                            "width": "weighted",
+                            "weight": 1,
+                            "elements": [
+                                {"tag": "markdown", "content": f"**{rate_str}**"}
+                            ],
+                        },
+                        {
+                            "tag": "column",
+                            "width": "weighted",
+                            "weight": 1,
+                            "elements": [
+                                {"tag": "markdown", "content": f"{students}"}
+                            ],
+                        },
+                    ],
+                }
             )
-            elements.append({"tag": "markdown", "content": line})
 
         elements.append({"tag": "hr"})
         elements.append(
@@ -1635,6 +1712,7 @@ def _send_honor_and_warning(
         {
             "tag": "markdown",
             "content": (
+                f"<at id=all></at>\n"
                 f"**{_th('warn_body')}**\n"
                 f"{_zh('warn_body')}\n"
                 f"{warn_thresholds_desc}"
