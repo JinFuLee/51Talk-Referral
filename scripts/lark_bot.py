@@ -1472,22 +1472,7 @@ def cmd_followup(args: argparse.Namespace) -> None:
         ccs = group_students_by_cc(members)
         cc_details = team_details.get(team_name, {})
 
-        # 汇总团队打卡率（从各 CC 详情聚合）
-        team_total_students = sum(
-            cc_details.get(cc_name, {}).get("total_students", 0)
-            for cc_name in ccs
-        )
-        team_checked_in = sum(
-            cc_details.get(cc_name, {}).get("checked_in", 0)
-            for cc_name in ccs
-        )
-        team_rate = (
-            team_checked_in / max(team_total_students, 1)
-            if team_total_students > 0
-            else 0.0
-        )
-
-        # 各围场打卡率（聚合）
+        # 各围场打卡率（聚合）— 必须先算，团队率依赖此数据
         enc_students_agg: dict[str, int] = defaultdict(int)
         enc_checked_agg: dict[str, int] = defaultdict(int)
         for cc_name in ccs:
@@ -1502,6 +1487,19 @@ def cmd_followup(args: argparse.Namespace) -> None:
             for enc in enc_students_agg
             if enc_students_agg[enc] > 0
         }
+
+        # 汇总团队打卡率（仅计算角色对应围场，CC=M0/M1/M2，LP=M3/M4/M5）
+        team_total_students = sum(
+            enc_students_agg.get(enc, 0) for enc in enc_order
+        )
+        team_checked_in = sum(
+            enc_checked_agg.get(enc, 0) for enc in enc_order
+        )
+        team_rate = (
+            team_checked_in / max(team_total_students, 1)
+            if team_total_students > 0
+            else 0.0
+        )
 
         team_summary.append(
             {

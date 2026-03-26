@@ -181,7 +181,8 @@
     "geo_distribution",
     "followup_quality",
     "referral_contributor",
-    "notifications"
+    "notifications",
+    "report"
   ],
   "enclosure_role_assignment": {
     "CC": {
