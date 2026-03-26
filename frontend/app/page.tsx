@@ -20,6 +20,7 @@ import { DataSourceSection } from '@/components/datasources/DataSourceSection';
 import { AnomalyBanner } from '@/components/dashboard/AnomalyBanner';
 import { DecisionSummary } from '@/components/dashboard/DecisionSummary';
 import { PersonalWorkbench } from '@/components/dashboard/PersonalWorkbench';
+import { KnowledgeLink } from '@/components/ui/KnowledgeLink';
 
 /* ── 岗位视角类型 ──────────────────────────────────────────────── */
 
@@ -338,22 +339,36 @@ interface KpiCardDef {
   format?: 'rate' | 'currency';
   targetKey?: string; // 对应目标字段 key
   paceKey?: string; // 对应 kpi_pace key
+  knowledgeChapter?: string; // 知识库章节跳转
 }
 
 const KPI_CARDS: KpiCardDef[] = [
-  { key: '转介绍注册数', label: '注册', paceKey: 'register' },
-  { key: '预约数', label: '预约', paceKey: 'appointment' },
-  { key: '出席数', label: '出席', paceKey: 'showup' },
-  { key: '转介绍付费数', label: '付费', targetKey: '转介绍基础业绩单量标', paceKey: 'paid' },
+  { key: '转介绍注册数', label: '注册', paceKey: 'register', knowledgeChapter: 'chapter-2' },
+  { key: '预约数', label: '预约', paceKey: 'appointment', knowledgeChapter: 'chapter-2' },
+  { key: '出席数', label: '出席', paceKey: 'showup', knowledgeChapter: 'chapter-2' },
+  {
+    key: '转介绍付费数',
+    label: '付费',
+    targetKey: '转介绍基础业绩单量标',
+    paceKey: 'paid',
+    knowledgeChapter: 'chapter-4',
+  },
   {
     key: '总带新付费金额USD',
     label: '业绩 (USD)',
     format: 'currency',
     targetKey: '转介绍基础业绩标USD',
     paceKey: 'revenue',
+    knowledgeChapter: 'chapter-4',
   },
-  { key: '客单价', label: '客单价', format: 'currency', targetKey: '转介绍基础业绩客单价标USD' },
-  { key: '注册转化率', label: '注册转化率', format: 'rate' },
+  {
+    key: '客单价',
+    label: '客单价',
+    format: 'currency',
+    targetKey: '转介绍基础业绩客单价标USD',
+    knowledgeChapter: 'chapter-2-1',
+  },
+  { key: '注册转化率', label: '注册转化率', format: 'rate', knowledgeChapter: 'chapter-8' },
 ];
 
 const RATE_PAIRS: { from: string; to: string; rateKey: string }[] = [
@@ -749,7 +764,7 @@ export default function DashboardPage() {
             <span className="text-red-600 font-medium">红&lt;80%</span>
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
-            {visibleKpiCards.map(({ key, label, format, targetKey, paceKey }) => {
+            {visibleKpiCards.map(({ key, label, format, targetKey, paceKey, knowledgeChapter }) => {
               const v = num(metrics[key]);
               const display =
                 format === 'currency'
@@ -786,6 +801,7 @@ export default function DashboardPage() {
                   highlight={isBehindTime ? 'warn' : undefined}
                   sparkline={sparkline}
                   momChange={momChange}
+                  knowledgeChapter={knowledgeChapter}
                 />
               );
             })}
@@ -833,44 +849,54 @@ export default function DashboardPage() {
                 label: '有效学员数',
                 value: (d2b.total_students ?? 0).toLocaleString(),
                 subtitle: '已付费且在有效期内的学员，是本月转介绍运营的基数',
+                chapter: 'chapter-1',
               },
               {
                 label: '带新系数',
                 value: d2b.new_coefficient != null ? d2b.new_coefficient.toFixed(2) : '—',
                 subtitle: '每个参与的A学员平均带来的B注册数，>2为优质',
+                chapter: 'chapter-2-0',
               },
               {
                 label: '带货比',
                 value: d2b.cargo_ratio != null ? d2b.cargo_ratio.toFixed(2) : '—',
                 subtitle: '带来注册的学员数/有效学员总数，衡量整体转介绍渗透率',
+                chapter: 'chapter-2-0',
               },
               {
                 label: '带新参与数',
                 value:
                   d2b.participation_count != null ? d2b.participation_count.toLocaleString() : '—',
                 subtitle: '带来≥1个注册的有效学员数',
+                chapter: 'chapter-2-0',
               },
               {
                 label: '参与率',
                 value: d2b.participation_rate != null ? formatRate(d2b.participation_rate) : '—',
                 subtitle: '带来注册的学员/有效学员总数',
+                chapter: 'chapter-2-0',
               },
               {
                 label: '打卡率',
                 value: d2b.checkin_rate != null ? formatRate(d2b.checkin_rate) : '—',
                 subtitle: '转码且分享的学员/有效学员，绿≥50%，橙30-50%，红<30%',
+                chapter: 'chapter-2-0',
               },
               {
                 label: 'CC触达率',
                 value: d2b.cc_reach_rate != null ? formatRate(d2b.cc_reach_rate) : '—',
-                subtitle: 'CC有效通话(≥120s)学员数/有效学员总数',
+                subtitle: 'CC有效通话(≥20s)学员数/有效学员总数',
+                chapter: 'chapter-2-0',
               },
-            ].map(({ label, value, subtitle }) => (
+            ].map(({ label, value, subtitle, chapter }) => (
               <div
                 key={label}
                 className="bg-[var(--bg-subtle)] rounded-lg px-3 py-2.5 flex flex-col gap-0.5"
               >
-                <span className="text-[10px] text-[var(--text-muted)]">{label}</span>
+                <span className="text-[10px] text-[var(--text-muted)] inline-flex items-center">
+                  {label}
+                  {chapter && <KnowledgeLink chapter={chapter} className="w-3 h-3" />}
+                </span>
                 <span className="text-base font-bold font-mono tabular-nums text-[var(--text-primary)]">
                   {value}
                 </span>

@@ -661,16 +661,16 @@ anomaly_config: std_threshold = 2.0, decline_threshold = 0.3
 
 | 参数 | 值 | 配置字段 |
 |------|-----|---------|
-| 次卡成本单价 | **1.31 USD / 张** | `roi_cost_config.CARD_COST_PER_UNIT` |
-| 现金佣金（小单，签约金额 < 850 USD） | **38 USD / 人** | `roi_cost_config.CASH_COMMISSION_SMALL` |
-| 现金佣金（大单，签约金额 ≥ 850 USD） | **68 USD / 人** | `roi_cost_config.CASH_COMMISSION_LARGE` |
-| 大小单分界线 | **850 USD** | `roi_cost_config.CASH_THRESHOLD` |
+| 次卡成本单价 | **{{config.card_cost}} USD / 张** | `roi_cost_config.CARD_COST_PER_UNIT` |
+| 现金佣金（小单，签约金额 < {{config.cash_threshold}} USD） | **{{config.commission_small}} USD / 人** | `roi_cost_config.CASH_COMMISSION_SMALL` |
+| 现金佣金（大单，签约金额 ≥ {{config.cash_threshold}} USD） | **{{config.commission_large}} USD / 人** | `roi_cost_config.CASH_COMMISSION_LARGE` |
+| 大小单分界线 | **{{config.cash_threshold}} USD** | `roi_cost_config.CASH_THRESHOLD` |
 
 ### 8.2 三类 ROI 公式
 
 ```python
 # 次卡 ROI
-次卡ROI = 实际营收 / (赠送次卡总数 × 1.31 USD)
+次卡ROI = 实际营收 / (赠送次卡总数 × {{config.card_cost}} USD)
 
 # 现金 ROI
 现金ROI = 实际营收 / (佣金支出 + 实物兑换 + 激励奖金)
@@ -687,8 +687,8 @@ anomaly_config: std_threshold = 2.0, decline_threshold = 0.3
 |---------|------------|------------|------|
 | 推荐注册 | 送 1 次次卡 | — | 上限 3 人 |
 | 推荐出席 | 送 3 次次卡 | — | 上限 10 人 |
-| 推荐付费（小单 < 850 USD） | 送 5 次次卡 | 38 USD | — |
-| 推荐付费（大单 ≥ 850 USD） | 送 8 次次卡 | 68 USD | — |
+| 推荐付费（小单 < {{config.cash_threshold}} USD） | 送 5 次次卡 | {{config.commission_small}} USD | — |
+| 推荐付费（大单 ≥ {{config.cash_threshold}} USD） | 送 8 次次卡 | {{config.commission_large}} USD | — |
 
 ### 8.4 打卡奖励规则
 
@@ -708,8 +708,8 @@ anomaly_config: std_threshold = 2.0, decline_threshold = 0.3
 
 | 货币对 | 汇率 | 配置字段 |
 |--------|------|---------|
-| USD : THB | 1 : 34 | `exchange_rate.THB_USD` |
-| USD : CNY | 1 : 8 | `exchange_rate.CNY_USD` |
+| USD : THB | 1 : {{config.rate_thb}} | `exchange_rate.THB_USD` |
+| USD : CNY | 1 : {{config.rate_cny}} | `exchange_rate.CNY_USD` |
 
 > **注意**：汇率可在 Settings 页面修改，存入 `config/exchange_rate.json`。
 

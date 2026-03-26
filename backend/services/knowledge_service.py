@@ -1,10 +1,12 @@
 """
 知识库服务层
 读取 docs/ 目录下的 Markdown 文件，提供书架、章节解析、搜索、术语提取功能
+支持 {{config.xxx}} 模板变量实时注入 config.json 值
 """
 
 from __future__ import annotations
 
+import json
 import logging
 import os
 import re
@@ -16,6 +18,9 @@ logger = logging.getLogger(__name__)
 # 项目根目录
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 _DOCS_DIR = _PROJECT_ROOT / "docs"
+_CONFIG_PATH = _PROJECT_ROOT / "projects" / "referral" / "config.json"
+_EXCHANGE_RATE_PATH = _PROJECT_ROOT / "config" / "exchange_rate.json"
+_CHECKIN_PATH = _PROJECT_ROOT / "config" / "checkin_thresholds.json"
 
 # 书架配置
 BOOKS: dict[str, dict[str, str]] = {
@@ -128,8 +133,64 @@ def get_books(lang: str = "zh") -> list[dict]:
     return result
 
 
+def _load_config_vars() -> dict[str, str]:
+    """从 config.json / exchange_rate.json / checkin_thresholds.json 加载模板变量"""
+    variables: dict[str, str] = {}
+
+    # 主配置
+    try:
+        if _CONFIG_PATH.exists():
+            cfg = json.loads(_CONFIG_PATH.read_text(encoding="utf-8"))
+            roi = cfg.get("roi_cost_config", {})
+            variables["config.card_cost"] = str(roi.get("CARD_COST_PER_UNIT", "1.31"))
+            variables["config.commission_small"] = str(roi.get("CASH_COMMISSION_SMALL", "38"))
+            variables["config.commission_large"] = str(roi.get("CASH_COMMISSION_LARGE", "68"))
+            variables["config.cash_threshold"] = str(roi.get("CASH_THRESHOLD", "850"))
+
+            ex = cfg.get("exchange_rate", {})
+            variables["config.rate_thb"] = str(int(ex.get("THB_USD", 34)))
+            variables["config.rate_cny"] = str(int(ex.get("CNY_USD", 8)))
+
+            checkin = cfg.get("checkin_thresholds", {})
+            if checkin:
+                variables["config.checkin_good"] = str(checkin.get("good", "0.85"))
+                variables["config.checkin_warning"] = str(checkin.get("warning", "0.70"))
+    except Exception as e:
+        logger.warning(f"加载 config.json 模板变量失败: {e}")
+
+    # exchange_rate override
+    try:
+        if _EXCHANGE_RATE_PATH.exists():
+            ex_override = json.loads(_EXCHANGE_RATE_PATH.read_text(encoding="utf-8"))
+            if "rate" in ex_override:
+                variables["config.rate_thb"] = str(int(ex_override["rate"]))
+    except Exception:
+        pass
+
+    # checkin_thresholds override
+    try:
+        if _CHECKIN_PATH.exists():
+            ct = json.loads(_CHECKIN_PATH.read_text(encoding="utf-8"))
+            if "good" in ct:
+                variables["config.checkin_good"] = str(ct["good"])
+            if "warning" in ct:
+                variables["config.checkin_warning"] = str(ct["warning"])
+    except Exception:
+        pass
+
+    return variables
+
+
+def _inject_config_vars(content: str) -> str:
+    """替换 {{config.xxx}} 模板变量为实时配置值"""
+    variables = _load_config_vars()
+    for key, value in variables.items():
+        content = content.replace("{{" + key + "}}", value)
+    return content
+
+
 def get_book_content(book_id: str, lang: str = "zh") -> dict | None:
-    """返回完整内容 + 章节树（BookContent）"""
+    """返回完整内容 + 章节树（BookContent），模板变量已注入实时值"""
     filepath = _get_file_path(book_id, lang)
     if filepath is None or not filepath.exists():
         return None
@@ -139,6 +200,9 @@ def get_book_content(book_id: str, lang: str = "zh") -> dict | None:
     except Exception as e:
         logger.error(f"读取书籍内容失败 {book_id}: {e}")
         return None
+
+    # 注入实时配置值
+    content = _inject_config_vars(content)
 
     chapters = _parse_chapters(content)
     last_updated = _mtime_to_iso(filepath)

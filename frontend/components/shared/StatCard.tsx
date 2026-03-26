@@ -1,5 +1,6 @@
 import { cn } from '@/lib/utils';
 import { MiniSparkline } from '@/components/ui/MiniSparkline';
+import { KnowledgeLink } from '@/components/ui/KnowledgeLink';
 
 interface StatCardProps {
   label: string;
@@ -13,6 +14,10 @@ interface StatCardProps {
   sparkline?: (number | null)[];
   /** MoM 环比变化率（正=上涨，负=下跌，null=无数据） */
   momChange?: number | null;
+  /** 知识库章节跳转（传入后 label 旁显示 ⓘ） */
+  knowledgeChapter?: string;
+  /** 知识库书籍 ID（默认 business-bible） */
+  knowledgeBook?: string;
 }
 
 function achievementBarColor(rate: number): string {
@@ -57,6 +62,8 @@ export function StatCard({
   highlight,
   sparkline,
   momChange,
+  knowledgeChapter,
+  knowledgeBook,
 }: StatCardProps) {
   const pct = achievement !== undefined ? Math.round(achievement * 100) : null;
   const hasSparkline = sparkline && sparkline.filter((v) => v !== null).length >= 2;
@@ -84,7 +91,12 @@ export function StatCard({
         (e.currentTarget as HTMLDivElement).style.transform = 'translateY(0)';
       }}
     >
-      <p className="text-xs text-[var(--text-secondary)] uppercase tracking-wide mb-1">{label}</p>
+      <p className="text-xs text-[var(--text-secondary)] uppercase tracking-wide mb-1 inline-flex items-center">
+        {label}
+        {knowledgeChapter && (
+          <KnowledgeLink chapter={knowledgeChapter} book={knowledgeBook} className="w-3 h-3" />
+        )}
+      </p>
 
       {/* 数值行：数字 + sparkline 并排 */}
       <div className="flex items-end justify-between gap-2">
