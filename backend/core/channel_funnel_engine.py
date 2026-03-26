@@ -180,18 +180,63 @@ class ChannelFunnelEngine:
 
         # 检查 `转介绍类型_新` 列是否存在
         type_col = _find_col(self._df, "转介绍类型_新", "三级渠道", "转介绍类型")
-        if type_col is None:
-            logger.warning(
-                "ChannelFunnelEngine: D3 中未找到口径列（转介绍类型_新），按总计聚合"
-            )
-            return self._compute_total_only()
 
-        # 规范化口径列
-        normalized = self._df[type_col].astype(str).str.strip().map(
-            lambda x: _CHANNEL_NORMALIZE.get(x, x)
-        )
         df_with_ch = self._df.copy()
-        df_with_ch["_channel_norm"] = normalized
+
+        if type_col is not None:
+            # 方案 A：直接用口径列 groupby
+            normalized = df_with_ch[type_col].astype(str).str.strip().map(
+                lambda x: _CHANNEL_NORMALIZE.get(x, x)
+            )
+            df_with_ch["_channel_norm"] = normalized
+        else:
+            # 方案 B：从 last_cc/ss/lp_name 推导口径归属
+            # 优先级：CC > SS > LP > 宽口（基于围场负责边界）
+            logger.info(
+                "ChannelFunnelEngine: 转介绍类型_新 列不存在，"
+                "从 last_cc/ss/lp_name 推导口径"
+            )
+            cc_col = _find_col(df_with_ch, "last_cc_name")
+            ss_col = _find_col(df_with_ch, "last_ss_name")
+            lp_col = _find_col(df_with_ch, "last_lp_name")
+            encl_col = _find_col(df_with_ch, "围场")
+
+            def _infer_channel(row: pd.Series) -> str:
+                encl = str(row.get(encl_col, "")) if encl_col else ""
+                # 围场→角色映射：M0-M2(0-90天)=CC, M3-M4(91-120天)=SS, M5+(121+天)=LP
+                cc_range = encl in ("M0", "M1", "M2", "0~30", "31~60", "61~90")
+                ss_range = encl in ("M3", "M4", "91~120", "91~180")
+                lp_range = encl in (
+                    "M5", "M6", "M6+", "121~180", "181+", "181~365", "365+",
+                )
+
+                cc_name = str(row.get(cc_col, "")) if cc_col else ""
+                ss_name = str(row.get(ss_col, "")) if ss_col else ""
+                lp_name = str(row.get(lp_col, "")) if lp_col else ""
+
+                has_cc = cc_name and cc_name not in ("", "nan", "None", "-")
+                has_ss = ss_name and ss_name not in ("", "nan", "None", "-")
+                has_lp = lp_name and lp_name not in ("", "nan", "None", "-")
+
+                # 窄口判定：有绑定人 + 围场在对应负责范围
+                if has_cc and cc_range:
+                    return "CC窄口"
+                if has_ss and ss_range:
+                    return "SS窄口"
+                if has_lp and lp_range:
+                    return "LP窄口"
+                # fallback：有绑定人但围场不在标准范围 → 按绑定人判定
+                if has_cc:
+                    return "CC窄口"
+                if has_ss:
+                    return "SS窄口"
+                if has_lp:
+                    return "LP窄口"
+                return "宽口"
+
+            df_with_ch["_channel_norm"] = df_with_ch.apply(
+                _infer_channel, axis=1
+            )
 
         result: dict[str, dict[str, float | None]] = {}
         narrow_totals: dict[str, dict[str, float]] = {}

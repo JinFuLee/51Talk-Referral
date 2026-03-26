@@ -228,12 +228,7 @@ class ReportEngine:
     def _get_data(self) -> dict[str, Any]:
         """从 DataManager 取得最新数据，失败时返回空 dict"""
         try:
-            result = self._dm.get_cached_result()
-            if result:
-                return result
-            # 尝试加载
-            self._dm.load_all()
-            return self._dm.get_cached_result() or {}
+            return self._dm.load_all() or {}
         except Exception as exc:
             logger.warning("DataManager 取数失败: %s", exc)
             return {}
