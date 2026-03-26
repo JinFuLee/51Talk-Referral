@@ -143,9 +143,12 @@ def _load_config_vars() -> dict[str, str]:
             cfg = json.loads(_CONFIG_PATH.read_text(encoding="utf-8"))
             roi = cfg.get("roi_cost_config", {})
             variables["config.card_cost"] = str(roi.get("CARD_COST_PER_UNIT", "1.31"))
-            variables["config.commission_small"] = str(roi.get("CASH_COMMISSION_SMALL", "38"))
-            variables["config.commission_large"] = str(roi.get("CASH_COMMISSION_LARGE", "68"))
-            variables["config.cash_threshold"] = str(roi.get("CASH_THRESHOLD", "850"))
+            comm_s = roi.get("CASH_COMMISSION_SMALL", "38")
+            comm_l = roi.get("CASH_COMMISSION_LARGE", "68")
+            variables["config.commission_small"] = str(comm_s)
+            variables["config.commission_large"] = str(comm_l)
+            thresh = roi.get("CASH_THRESHOLD", "850")
+            variables["config.cash_threshold"] = str(thresh)
 
             ex = cfg.get("exchange_rate", {})
             variables["config.rate_thb"] = str(int(ex.get("THB_USD", 34)))
@@ -153,8 +156,10 @@ def _load_config_vars() -> dict[str, str]:
 
             checkin = cfg.get("checkin_thresholds", {})
             if checkin:
-                variables["config.checkin_good"] = str(checkin.get("good", "0.85"))
-                variables["config.checkin_warning"] = str(checkin.get("warning", "0.70"))
+                good = checkin.get("good", "0.85")
+                warn = checkin.get("warning", "0.70")
+                variables["config.checkin_good"] = str(good)
+                variables["config.checkin_warning"] = str(warn)
     except Exception as e:
         logger.warning(f"加载 config.json 模板变量失败: {e}")
 
