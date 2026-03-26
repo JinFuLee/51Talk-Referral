@@ -17,6 +17,30 @@ from backend.core.report_engine import ReportEngine
 router = APIRouter(tags=["report"])
 logger = logging.getLogger(__name__)
 
+
+def _auto_snapshot(dm: DataManager, ref: date | None = None) -> None:
+    """每次生成日报时自动写入当日快照（幂等）"""
+    try:
+        from backend.core.channel_funnel_engine import ChannelFunnelEngine
+
+        svc = DailySnapshotService(db_path=DB_PATH)
+        ref_date = ref or (date.today() - timedelta(days=1))
+
+        # 检查是否已有当日快照
+        existing = svc.query_by_date(ref_date.isoformat())
+        if existing:
+            return  # 已存在，跳过
+
+        # 构建口径漏斗并写入
+        funnel_engine = ChannelFunnelEngine(dm)
+        data = dm.load_all()
+        snapshot_data = funnel_engine.compute_as_snapshot_format(data)
+        if snapshot_data:
+            svc.write_daily(ref_date, snapshot_data)
+            logger.info("✓ 自动写入日快照: %s", ref_date.isoformat())
+    except Exception as exc:
+        logger.warning("自动日快照失败（非致命）: %s", exc)
+
 # 有效的环比 level / type
 _VALID_LEVELS = {"day", "week", "month", "year"}
 _VALID_TYPES = {"td", "rolling"}
@@ -62,7 +86,10 @@ def get_daily_report(
     ref = _parse_date_param(reference_date)
     try:
         engine = _get_engine(dm)
-        return engine.generate_daily_report(reference_date=ref)
+        report = engine.generate_daily_report(reference_date=ref)
+        # 自动写入当日快照（幂等，同日不重复）
+        _auto_snapshot(dm, ref)
+        return report
     except Exception as exc:
         logger.error("generate_daily_report 失败: %s", exc, exc_info=True)
         raise HTTPException(status_code=500, detail=str(exc)) from exc
