@@ -182,7 +182,8 @@
     "followup_quality",
     "referral_contributor",
     "notifications",
-    "report"
+    "report",
+    "knowledge"
   ],
   "enclosure_role_assignment": {
     "CC": {
