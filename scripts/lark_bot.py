@@ -85,7 +85,7 @@ _ROLE_ENC_FALLBACK: dict[str, list[str]] = {
     "CC": ["M0", "M1", "M2"],
     "LP": ["M3", "M4", "M5"],
     "SS": ["M3"],
-    "运营": ["M6+"],
+    "运营": ["M6", "M7", "M8", "M9", "M10", "M11", "M12", "M12+"],
 }
 
 
@@ -2595,7 +2595,7 @@ def cmd_followup(args: argparse.Namespace) -> None:
         honor=0,
         warning=0,
     )
-    print(f"\n✓ 全部完成，已记录到 lark-notification-log.jsonl")
+    print("\n✓ 全部完成，已记录到 lark-notification-log.jsonl")
 
 
 # ── CLI ───────────────────────────────────────────────────────────────────────

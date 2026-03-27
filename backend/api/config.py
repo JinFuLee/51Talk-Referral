@@ -322,13 +322,67 @@ def _synthesize_v2_from_flat(month: str, flat: dict) -> dict:
                 "conversion_rate": 0.0,
                 "checkin_rate": 0.0,
             },
-            "d91_180": {
+            "d91_120": {
                 "reach_rate": 0.0,
                 "participation_rate": 0.0,
                 "conversion_rate": 0.0,
                 "checkin_rate": 0.0,
             },
-            "d181_plus": {
+            "d121_150": {
+                "reach_rate": 0.0,
+                "participation_rate": 0.0,
+                "conversion_rate": 0.0,
+                "checkin_rate": 0.0,
+            },
+            "d151_180": {
+                "reach_rate": 0.0,
+                "participation_rate": 0.0,
+                "conversion_rate": 0.0,
+                "checkin_rate": 0.0,
+            },
+            "d6M": {
+                "reach_rate": 0.0,
+                "participation_rate": 0.0,
+                "conversion_rate": 0.0,
+                "checkin_rate": 0.0,
+            },
+            "d7M": {
+                "reach_rate": 0.0,
+                "participation_rate": 0.0,
+                "conversion_rate": 0.0,
+                "checkin_rate": 0.0,
+            },
+            "d8M": {
+                "reach_rate": 0.0,
+                "participation_rate": 0.0,
+                "conversion_rate": 0.0,
+                "checkin_rate": 0.0,
+            },
+            "d9M": {
+                "reach_rate": 0.0,
+                "participation_rate": 0.0,
+                "conversion_rate": 0.0,
+                "checkin_rate": 0.0,
+            },
+            "d10M": {
+                "reach_rate": 0.0,
+                "participation_rate": 0.0,
+                "conversion_rate": 0.0,
+                "checkin_rate": 0.0,
+            },
+            "d11M": {
+                "reach_rate": 0.0,
+                "participation_rate": 0.0,
+                "conversion_rate": 0.0,
+                "checkin_rate": 0.0,
+            },
+            "d12M": {
+                "reach_rate": 0.0,
+                "participation_rate": 0.0,
+                "conversion_rate": 0.0,
+                "checkin_rate": 0.0,
+            },
+            "d12M_plus": {
                 "reach_rate": 0.0,
                 "participation_rate": 0.0,
                 "conversion_rate": 0.0,
@@ -344,6 +398,42 @@ def _synthesize_v2_from_flat(month: str, flat: dict) -> dict:
             "outreach_calls_per_day": 0,
         },
     }
+
+
+# ── 全链路目标自动拆解 ─────────────────────────────────────────────────────────
+
+
+@router.get("/targets/decompose", summary="全链路目标自动拆解（基于上月实际转化率）")
+def get_targets_decompose(
+    revenue_target: float = 200444,
+    svc=Depends(get_service),
+) -> dict:
+    """按上月各口径实际 revenue share 将总营收目标拆解到各漏斗层级。
+
+    Args:
+        revenue_target: 总收入目标（USD），如 200444
+
+    Returns:
+        {
+            "total": {registrations, appointments, attendance, payments,
+                      revenue_usd, conversion_rate, asp},
+            "channels": {
+                "CC窄口": {...}, "SS窄口": {...},
+                "LP窄口": {...}, "宽口": {...}
+            },
+            "basis": "YYYYMM",
+            "message": str | None,
+        }
+    """
+    if revenue_target <= 0:
+        raise HTTPException(status_code=400, detail="revenue_target 必须大于 0")
+
+    from backend.core.daily_snapshot_service import DB_PATH, DailySnapshotService
+    from backend.core.target_recommender import decompose_targets_from_last_month
+
+    snapshot_svc = DailySnapshotService(DB_PATH)
+    result = decompose_targets_from_last_month(snapshot_svc, revenue_target)
+    return result
 
 
 # ── 智能目标推荐 ────────────────────────────────────────────────────────────────

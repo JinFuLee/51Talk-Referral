@@ -104,9 +104,9 @@ _M_TO_DAYS: dict[str, tuple[int, int]] = {
 # ── 硬编码 fallback（当 config.json 读取失败时使用）─────────────────────────
 
 _WIDE_ROLE_FALLBACK: dict[str, list[str]] = {
-    "CC": ["0~30", "31~60", "61~90"],
-    "SS": ["91~120"],
-    "LP": ["121~150", "151~180"],
+    "CC": ["0~30", "31~60", "61~90", "0M", "1M", "2M"],
+    "SS": ["91~120", "3M"],
+    "LP": ["121~150", "151~180", "4M", "5M"],
     "运营": ["6M", "7M", "8M", "9M", "10M", "11M", "12M", "12M+", "M6+", "181+"],
 }
 
@@ -645,8 +645,8 @@ def _aggregate_ops_channels(
     if not by_enclosure_segment:
         by_enclosure_segment = [
             {
-                "segment": "M6+",
-                "label": "181天+",
+                "segment": "M6~M12+",
+                "label": "181天+围场",
                 "students": total,
                 "checked_in": checked,
                 "rate": round(rate, 4),
