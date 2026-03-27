@@ -1040,10 +1040,24 @@ def get_checkin_followup_tsv(
 def get_checkin_ranking(
     request: Request,
     role_config: str | None = Query(default=None, description="前端宽口径配置 JSON"),
+    enclosure: str | None = Query(
+        default=None, description="围场过滤（M 标签，如 M0），为空时不过滤"
+    ),
     dm: DataManager = Depends(get_data_manager),
 ) -> dict:
-    """按角色返回打卡排行，小组+个人双维度，按打卡率降序→同率按已打卡人数降序。"""
+    """按角色返回打卡排行，小组+个人双维度，按打卡率降序→同率按已打卡人数降序。
+
+    enclosure 参数：前端统一筛选栏传入的围场 M 标签（如 M0/M1/M2），
+    用于在角色默认围场范围内进一步交叉过滤，不影响无参数时的行为。
+    """
     d3: pd.DataFrame = dm.load_all().get("detail", pd.DataFrame())
+
+    # 解析围场过滤：将 M 标签转回原始围场值列表
+    enc_filter_raws: list[str] | None = None
+    if enclosure and _D3_ENCLOSURE_COL in d3.columns:
+        m_to_raw = {v: k for k, v in _M_MAP.items()}
+        enc_labels = [e.strip() for e in enclosure.split(",") if e.strip()]
+        enc_filter_raws = [m_to_raw[m] for m in enc_labels if m in m_to_raw]
 
     # 确定角色列表
     _wide_role_map = _get_wide_role()
@@ -1073,11 +1087,15 @@ def get_checkin_ranking(
         )
         enclosures = override if override else _wide_role_map.get(role, [])
 
-        # 按围场筛选
+        # 按角色默认围场筛选
         if _D3_ENCLOSURE_COL in d3.columns:
             subset = d3[d3[_D3_ENCLOSURE_COL].isin(enclosures)].copy()
         else:
             subset = d3.copy()
+
+        # 额外围场交叉过滤（来自前端统一筛选栏 enclosure 参数）
+        if enc_filter_raws and _D3_ENCLOSURE_COL in subset.columns:
+            subset = subset[subset[_D3_ENCLOSURE_COL].isin(enc_filter_raws)].copy()
 
         # 过滤无效行
         if name_col in subset.columns:

@@ -242,6 +242,7 @@ function CheckinPageInner() {
             roleFilter={roleFilter}
             activeRoles={activeRoles}
             roleEnclosures={roleEnclosures}
+            enclosureFilter={enclosureFilter}
           />
         )}
         {activeTab === 'action' && (

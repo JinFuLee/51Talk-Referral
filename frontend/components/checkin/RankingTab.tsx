@@ -300,18 +300,25 @@ interface RankingTabProps {
   roleFilter?: string;
   activeRoles?: string[];
   roleEnclosures?: Record<string, string[]>;
+  enclosureFilter?: string | null;
 }
 
-export function RankingTab({ roleFilter = 'CC' }: RankingTabProps) {
+export function RankingTab({ roleFilter = 'CC', enclosureFilter }: RankingTabProps) {
   const { configJson, activeRoles } = useWideConfig();
   const { rateColor, rateBg, legend } = useCheckinThresholds();
   const [subTab, setSubTab] = useState<'group' | 'person'>('group');
 
-  const { data, isLoading, error, mutate } = useSWR<RankingResponse>(
-    `/api/checkin/ranking?role_config=${encodeURIComponent(configJson)}`,
-    swrFetcher,
-    { refreshInterval: 30_000 }
-  );
+  const rankingUrl = useMemo(() => {
+    let url = `/api/checkin/ranking?role_config=${encodeURIComponent(configJson)}`;
+    if (enclosureFilter) {
+      url += `&enclosure=${encodeURIComponent(enclosureFilter)}`;
+    }
+    return url;
+  }, [configJson, enclosureFilter]);
+
+  const { data, isLoading, error, mutate } = useSWR<RankingResponse>(rankingUrl, swrFetcher, {
+    refreshInterval: 30_000,
+  });
 
   // 团队卡片数据（仅当 subTab === 'person' 时渲染）
   const teamCards: TeamCardData[] = useMemo(() => {
