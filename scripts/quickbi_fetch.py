@@ -89,7 +89,7 @@ def run_fetch(
             slow_mo=200 if not headless else 50,
         )
         context = browser.new_context(
-            viewport={"width": 1440, "height": 900},
+            viewport={"width": 1440, "height": 4000},
             accept_downloads=True,
             locale="zh-CN",
         )
@@ -173,6 +173,13 @@ def _fetch_one_table(
 
     # ── 2. 定位表格 widget 并滚动到可见 ──
     log.info("  定位表格: %s", caption_text[:40])
+
+    # 先滚动到页面底部再回来，确保所有 widget 加载
+    page.evaluate("() => window.scrollTo(0, document.body.scrollHeight)")
+    page.wait_for_timeout(1500)
+    page.evaluate("() => window.scrollTo(0, 0)")
+    page.wait_for_timeout(500)
+
     scrolled = page.evaluate(
         """(term) => {
         const caps = document.querySelectorAll(
@@ -180,10 +187,12 @@ def _fetch_one_table(
         );
         for (const c of caps) {
             const t = c.textContent?.trim() || '';
-            if (t.includes(term) || term.includes(t)) {
-                c.scrollIntoView({block: 'center'});
-                return true;
-            }
+            if (!(t.includes(term) || term.includes(t))) continue;
+            // 只选可见的（x > 0，排除 Tab 切换后隐藏的 widget）
+            const r = c.getBoundingClientRect();
+            if (r.x < -100) continue;
+            c.scrollIntoView({block: 'center'});
+            return true;
         }
         return false;
     }""",
@@ -204,12 +213,16 @@ def _fetch_one_table(
         for (const c of caps) {
             const t = c.textContent?.trim() || '';
             if (!(t.includes(term) || term.includes(t))) continue;
+            const cr = c.getBoundingClientRect();
+            if (cr.x < -100) continue; // 跳过隐藏的
             let w = c.parentElement;
             for (let i = 0; i < 15 && w; i++) {
                 const tr = w.querySelector('i.ant-dropdown-trigger');
                 if (tr) {
                     const r = tr.getBoundingClientRect();
-                    return {x: r.x + r.width/2, y: r.y + r.height/2};
+                    if (r.x > 0) {
+                        return {x: r.x+r.width/2, y: r.y+r.height/2};
+                    }
                 }
                 w = w.parentElement;
             }
@@ -338,7 +351,7 @@ def _download_latest(page, out_file: str) -> Path | None:
         icon = dl_icons.nth(idx)
         if icon.is_visible():
             box = icon.bounding_box()
-            if box and box["y"] > 100 and box["y"] < 850:
+            if box and box["y"] > 100 and box["y"] < 3900:
                 target_icon = icon
                 log.info(
                     "  使用下载图标 #%d (y=%.0f)",
@@ -356,7 +369,7 @@ def _download_latest(page, out_file: str) -> Path | None:
         return None
 
     try:
-        with page.expect_download(timeout=30000) as dl_info:
+        with page.expect_download(timeout=60000) as dl_info:
             target_icon.click(force=True)
         download = dl_info.value
         save_path = DOWNLOAD_TMP / out_file
