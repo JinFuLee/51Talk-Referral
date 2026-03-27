@@ -386,7 +386,9 @@ class ReportEngine:
                         base_targets.setdefault("ss_contact_rate", r)
                         base_targets.setdefault("lp_contact_rate", r)
                     if sop.get("participation_rate", 0) > 0:
-                        base_targets["participation_rate"] = _safe_float(sop["participation_rate"])
+                        base_targets["participation_rate"] = _safe_float(
+                            sop["participation_rate"]
+                        )
                     # channels conversion_rate = 注册付费率（非出席付费率）
                     if channels_v2 and "reg_to_pay_rate" not in base_targets:
                         rates = [
