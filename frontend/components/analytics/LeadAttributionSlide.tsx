@@ -55,7 +55,7 @@ const I18N = {
     empty: 'No lead attribution data',
     emptyHint: 'Upload monthly Excel data to refresh',
   },
-} as const;
+};
 
 type DailyReportSlice = { blocks: { lead_attribution: LeadAttribution } };
 

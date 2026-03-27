@@ -69,7 +69,7 @@ const I18N = {
     emptyHint: 'Upload monthly Excel data to refresh',
     usd: 'USD',
   },
-} as const;
+};
 
 type DailyReportSlice = { blocks: { decomposition: Decomposition } };
 

@@ -112,31 +112,10 @@ const MAIN_GROUPS: NavGroup[] = [
 
 const STORAGE_KEY = 'nav-group-open-state';
 
-function getInitialOpenState(pathname: string): Record<string, boolean> {
-  // 从 localStorage 读取用户偏好
-  let stored: Record<string, boolean> = {};
-  if (typeof window !== 'undefined') {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) stored = JSON.parse(raw);
-    } catch {
-      // 忽略解析错误
-    }
-  }
-
-  // 计算初始状态：用户偏好 > defaultOpen；但当前页所在分组强制展开
+function getDefaultOpenState(): Record<string, boolean> {
   const result: Record<string, boolean> = {};
   for (const group of MAIN_GROUPS) {
-    const hasActive = group.items.some(
-      (item) => pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href))
-    );
-    if (hasActive) {
-      result[group.key] = true;
-    } else if (group.key in stored) {
-      result[group.key] = stored[group.key];
-    } else {
-      result[group.key] = group.defaultOpen;
-    }
+    result[group.key] = group.defaultOpen;
   }
   return result;
 }
@@ -211,12 +190,39 @@ function CollapsibleGroup({
 
 function SidebarContent() {
   const pathname = usePathname();
-  const [openState, setOpenState] = useState<Record<string, boolean>>(() =>
-    getInitialOpenState(pathname)
-  );
+  const [openState, setOpenState] = useState<Record<string, boolean>>(getDefaultOpenState);
+  const [hydrated, setHydrated] = useState(false);
+
+  // 挂载后从 localStorage 恢复 + 当前路由分组展开
+  useEffect(() => {
+    let stored: Record<string, boolean> = {};
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) stored = JSON.parse(raw);
+    } catch {
+      // 忽略解析错误
+    }
+
+    const next: Record<string, boolean> = {};
+    for (const group of MAIN_GROUPS) {
+      const hasActive = group.items.some(
+        (item) => pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href))
+      );
+      if (hasActive) {
+        next[group.key] = true;
+      } else if (group.key in stored) {
+        next[group.key] = stored[group.key];
+      } else {
+        next[group.key] = group.defaultOpen;
+      }
+    }
+    setOpenState(next);
+    setHydrated(true);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // 路由变更时，确保当前页所在分组展开
   useEffect(() => {
+    if (!hydrated) return;
     setOpenState((prev) => {
       const next = { ...prev };
       let changed = false;
@@ -231,16 +237,17 @@ function SidebarContent() {
       }
       return changed ? next : prev;
     });
-  }, [pathname]);
+  }, [pathname, hydrated]);
 
   // 持久化到 localStorage
   useEffect(() => {
+    if (!hydrated) return;
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(openState));
     } catch {
       // 忽略存储错误
     }
-  }, [openState]);
+  }, [openState, hydrated]);
 
   const toggle = (key: string) => {
     setOpenState((prev) => ({ ...prev, [key]: !prev[key] }));

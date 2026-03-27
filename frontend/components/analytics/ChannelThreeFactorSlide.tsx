@@ -49,7 +49,7 @@ const I18N = {
     empty: 'No three-factor data',
     emptyHint: 'Upload monthly Excel data to refresh',
   },
-} as const;
+};
 
 type DailyReportSlice = { blocks: { channel_three_factor: ChannelThreeFactor } };
 

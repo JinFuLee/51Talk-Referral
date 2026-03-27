@@ -49,7 +49,10 @@ _CHECKIN_THRESHOLDS_CACHE: dict[str, float] | None = None
 
 
 def _get_checkin_thresholds() -> tuple[float, float]:
-    """返回 (good, warning) 阈值。从 config/checkin_thresholds.json 读取，fallback 到 0.85/0.70。"""
+    """返回 (good, warning) 阈值。
+
+    从 config/checkin_thresholds.json 读取，fallback 到 0.85/0.70。
+    """
     global _CHECKIN_THRESHOLDS_CACHE
     if _CHECKIN_THRESHOLDS_CACHE is None:
         try:
@@ -1652,13 +1655,13 @@ def _send_honor_and_warning(
         elements_team: list[dict] = [
             {"tag": "markdown", "content": "<at id=all></at>"},
         ]
-        for tier_key, emoji, title_key, body_key, template in tier_config:
+        for tier_key, emoji, title_key, _body_key, _template in tier_config:
             honorees = tiers[tier_key]
             if not honorees:
                 continue
             # 按团队分组
             by_team: dict[str, list[tuple]] = {}
-            for cc_name, rate, rank, students in honorees:
+            for cc_name, rate, rank, _students in honorees:
                 team = cc_team_map.get(cc_name, "?")
                 by_team.setdefault(team, []).append(
                     (cc_name, rate, rank)
