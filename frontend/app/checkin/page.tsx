@@ -60,8 +60,8 @@ function CheckinPageInner() {
   const searchParams = useSearchParams();
   const { activeRoles, roleEnclosures } = useWideConfig();
 
-  // URL → Zustand 同步（mount 时触发一次）
-  useMyView();
+  // URL → Zustand 同步（mount 时触发一次），同时获取视角状态
+  const { focusCC, isActive } = useMyView();
 
   // 智能默认 Tab：有 cc 参数 → followup；有 team 但无 cc → team_detail；否则 → summary
   function resolveDefaultTab(): TabId {
@@ -120,7 +120,9 @@ function CheckinPageInner() {
         <div>
           <h1 className="page-title">打卡管理</h1>
           <p className="text-sm text-[var(--text-secondary)] mt-0.5">
-            有效学员打卡率 · 按岗位 / 团队 / 围场拆分
+            {isActive && focusCC
+              ? `当前聚焦: ${focusCC} 的学员`
+              : '有效学员打卡率 · 按岗位 / 团队 / 围场拆分'}
           </p>
         </div>
         {activeTab === 'summary' && <ExportButton onExportCsv={handleExportSummary} />}
