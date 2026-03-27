@@ -26,6 +26,7 @@ import CheckinThresholdsCard from './CheckinThresholdsCard';
 import IndicatorMatrixCard from './IndicatorMatrixCard';
 import { TargetRecommender } from '@/components/settings/TargetRecommender';
 import DataSourceCard from './DataSourceCard';
+import IncentiveBudgetCard from './IncentiveBudgetCard';
 import { defaultV2, MONTHS } from './defaultV2';
 
 export default function SettingsPage() {
@@ -224,6 +225,7 @@ export default function SettingsPage() {
       />
       <EnclosureRoleCard />
       <CheckinThresholdsCard />
+      <IncentiveBudgetCard month={selectedMonth} />
       <IndicatorMatrixCard />
     </div>
   );
