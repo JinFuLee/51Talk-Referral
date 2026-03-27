@@ -292,6 +292,24 @@ def _get_role_metrics(role: str, dm: DataManager) -> dict[str, dict[str, Any]]:
                     row[field] = _sf(pd.to_numeric(g[col], errors="coerce").mean())
             result[str(cc_name)] = row
 
+        # 合并 D4 数据（showup = 当月推荐出席人数）
+        df_d4: pd.DataFrame = data.get("students", pd.DataFrame())
+        if not df_d4.empty:
+            d4_cc_col: str | None = None
+            for c in ["last_cc_name", "末次CC员工姓名", "末次（当前）分配CC员工姓名"]:
+                if c in df_d4.columns:
+                    d4_cc_col = c
+                    break
+            if d4_cc_col:
+                showup_col = "当月推荐出席人数"
+                if showup_col in df_d4.columns:
+                    for cc_name, g in df_d4.groupby(d4_cc_col, sort=False):
+                        key = str(cc_name)
+                        if key in result:
+                            result[key]["showup"] = _sf(
+                                pd.to_numeric(g[showup_col], errors="coerce").sum()
+                            )
+
     elif role == "SS":
         df = data.get("enclosure_ss", pd.DataFrame())
         if df.empty:
@@ -545,10 +563,25 @@ def get_recommendations(
 # ── 活动 CRUD ─────────────────────────────────────────────────────────────────
 
 
+_OP_FUNCS: dict[str, Any] = {
+    "gte": lambda v, t: v >= t,
+    "lte": lambda v, t: v <= t,
+    "gt": lambda v, t: v > t,
+    "lt": lambda v, t: v < t,
+}
+
+
+def _check_condition(value: float, operator: str, threshold: float) -> bool:
+    """判断 value 是否满足 operator+threshold 条件。"""
+    fn = _OP_FUNCS.get(operator)
+    return fn(value, threshold) if fn is not None else False
+
+
 @router.get("/campaigns", summary="读取活动列表")
 def list_campaigns(
     month: str | None = None,
     status: str | None = None,
+    dm: DataManager = Depends(get_data_manager),
 ) -> list[dict[str, Any]]:
     campaigns = _load_campaigns_raw()
     result = []
@@ -560,11 +593,50 @@ def list_campaigns(
         if status and c.get("status") != status:
             continue
         result.append(c)
+
+    # 为每个活动计算轻量 qualified_count / total_count
+    for c in result:
+        try:
+            metrics = _get_role_metrics(c.get("role", "CC"), dm)
+            metric_key = c.get("metric", "leads")
+            op = c.get("operator", "gte")
+            thr = float(c.get("threshold", 0))
+            c["qualified_count"] = sum(
+                1
+                for _, m in metrics.items()
+                if m.get(metric_key) is not None
+                and _check_condition(float(m[metric_key]), op, thr)
+            )
+            c["total_count"] = len(metrics)
+        except Exception:
+            c["qualified_count"] = None
+            c["total_count"] = None
+
     return result
 
 
 @router.post("/campaigns", summary="新建激励活动")
 def create_campaign(body: CampaignCreateBody) -> dict[str, Any]:
+    campaigns = _load_campaigns_raw()
+
+    # 去重校验：同月 + 同角色 + 同指标 不可重复创建 active/paused 活动
+    existing = [
+        c for c in campaigns
+        if c.get("month") == body.month
+        and c.get("role") == body.role
+        and c.get("metric") == body.metric
+        and c.get("status") in ("active", "paused")
+    ]
+    if existing:
+        existing_id = existing[0]["id"]
+        raise HTTPException(
+            status_code=409,
+            detail=(
+                f"该月份已有 {body.role} {body.metric} 的进行中活动"
+                f"（ID: {existing_id}）"
+            ),
+        )
+
     now = _now_iso()
     campaign = {
         "id": str(uuid.uuid4())[:8],
@@ -584,7 +656,6 @@ def create_campaign(body: CampaignCreateBody) -> dict[str, Any]:
         "created_at": now,
         "updated_at": now,
     }
-    campaigns = _load_campaigns_raw()
     campaigns.append(campaign)
     _save_campaigns_raw(campaigns)
     return campaign
