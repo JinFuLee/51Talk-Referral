@@ -151,9 +151,9 @@ export interface MonthlyOverview {
   targets: Record<string, number>;
   /** 当前实际值（按指标名索引） */
   actuals: Record<string, number>;
-  /** 效率进度 = actual / (target × bm_pct)，1.0 = 恰好跟上进度 */
+  /** 量类指标: actual/(target×bm_pct) BM效率 · 率类指标: actual/target 达成率 */
   bm_efficiency: Record<string, number>;
-  /** 进度 GAP = bm_efficiency - 1.0（负值=落后） */
+  /** 量类: bm_efficiency-1.0 (ratio) · 率类: actual-target (pp差) */
   gap: Record<string, number>;
   /** 达标需日均（按指标） */
   remaining_daily_avg: Record<string, number>;
