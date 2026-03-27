@@ -368,24 +368,37 @@ def _download_latest(page, out_file: str) -> Path | None:
         _go_back_to_dashboard(page)
         return None
 
-    try:
-        with page.expect_download(timeout=60000) as dl_info:
-            target_icon.click(force=True)
-        download = dl_info.value
-        save_path = DOWNLOAD_TMP / out_file
-        download.save_as(str(save_path))
-        log.info(
-            "  ✓ 已保存: %s (%s)", save_path.name, _fmt_size(save_path)
-        )
-        _go_back_to_dashboard(page)
-        return save_path
-    except Exception as e:
-        log.warning("  下载超时: %s", e)
-        page.screenshot(
-            path=str(PROJECT_ROOT / f"quickbi_dl_timeout_{out_file}.png")
-        )
-        _go_back_to_dashboard(page)
-        return None
+    # 重试下载（大文件任务生成需要时间）
+    for attempt in range(3):
+        try:
+            with page.expect_download(timeout=60000) as dl_info:
+                target_icon.click(force=True)
+            download = dl_info.value
+            save_path = DOWNLOAD_TMP / out_file
+            download.save_as(str(save_path))
+            log.info(
+                "  ✓ 已保存: %s (%s)",
+                save_path.name, _fmt_size(save_path),
+            )
+            _go_back_to_dashboard(page)
+            return save_path
+        except Exception:
+            if attempt < 2:
+                wait = (attempt + 1) * 15
+                log.info(
+                    "  文件生成中，等待 %ds 后重试 (%d/3)...",
+                    wait, attempt + 2,
+                )
+                page.wait_for_timeout(wait * 1000)
+            else:
+                log.warning("  3 次下载均超时")
+                page.screenshot(
+                    path=str(
+                        PROJECT_ROOT / f"quickbi_dl_timeout_{out_file}.png"
+                    )
+                )
+                _go_back_to_dashboard(page)
+                return None
 
 
 def _ensure_dashboard(page, url: str) -> None:
