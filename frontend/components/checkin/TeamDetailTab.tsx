@@ -175,11 +175,12 @@ function TeamCard({ card, rateColor, rateBg }: TeamCardProps) {
 interface TeamDetailTabProps {
   activeRoles?: string[];
   roleEnclosures?: Record<string, string[]>;
+  roleFilter?: string;
 }
 
 const ROLE_OPTIONS = ['CC', 'SS', 'LP', '运营'] as const;
 
-export function TeamDetailTab({ activeRoles: _ar, roleEnclosures: _re }: TeamDetailTabProps) {
+export function TeamDetailTab({ activeRoles: _ar, roleEnclosures: _re, roleFilter }: TeamDetailTabProps) {
   const { configJson, activeRoles } = useWideConfig();
   const { rateColor, rateBg, legend } = useCheckinThresholds();
 
@@ -192,7 +193,12 @@ export function TeamDetailTab({ activeRoles: _ar, roleEnclosures: _re }: TeamDet
     [activeRoles]
   );
 
-  const [selectedRole, setSelectedRole] = useState<string>(visibleRoles[0] ?? 'CC');
+  // 优先使用 page 级传入的 roleFilter，否则使用内部状态
+  const [internalRole, setInternalRole] = useState<string>(visibleRoles[0] ?? 'CC');
+  const selectedRole = roleFilter ?? internalRole;
+  const setSelectedRole = (r: string) => {
+    if (!roleFilter) setInternalRole(r);
+  };
 
   // 一次请求获取全部数据（ranking API 已按角色/团队/个人聚合）
   const { data, isLoading, error } = useSWR<RankingResponse>(

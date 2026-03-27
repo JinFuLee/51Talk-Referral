@@ -183,7 +183,8 @@
     "referral_contributor",
     "notifications",
     "report",
-    "knowledge"
+    "knowledge",
+    "cc_performance"
   ],
   "enclosure_role_assignment": {
     "CC": {

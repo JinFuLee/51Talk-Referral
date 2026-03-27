@@ -139,86 +139,119 @@ def _fetch_one_table(
 
     # ── 0. 确保在仪表板页面 ──
     if "token3rd/dashboard" not in page.url:
-        page.goto(dashboard_url, wait_until="domcontentloaded", timeout=30000)
+        page.goto(
+            dashboard_url,
+            wait_until="domcontentloaded",
+            timeout=30000,
+        )
         page.wait_for_timeout(5000)
 
     # ── 1. 如果需要切 Tab（SS/LP/区域） ──
-    if tab_name and tab_name not in ("CC",):
-        # CC 是默认 tab，不需要点击
+    if tab_name and tab_name != "CC":
         log.info("  切换 Tab: %s", tab_name)
-        tab_btn = page.locator(f'text="{tab_name}"').first
-        if tab_btn.is_visible():
-            tab_btn.click()
-            page.wait_for_timeout(2000)
-        else:
-            log.warning("  Tab '%s' 不可见，尝试滚动查找...", tab_name)
-            page.evaluate(
-                f'() => {{ const el = [...document.querySelectorAll("*")].find(e => e.textContent?.trim() === "{tab_name}" && e.offsetHeight > 0 && e.children.length === 0); if(el) el.click(); }}'
-            )
-            page.wait_for_timeout(2000)
+        page.evaluate("""() => {
+            const tabs = document.querySelectorAll(
+                '[class*="tab"], [role="tab"]'
+            );
+            for (const t of tabs) {
+                t.scrollIntoView({block: 'center'});
+                break;
+            }
+        }""")
+        page.wait_for_timeout(500)
+        tab_btn = page.get_by_text(tab_name, exact=True).first
+        tab_btn.click(timeout=5000)
+        page.wait_for_timeout(2000)
 
-    # ── 2. 找到表格并 hover（触发菜单可见） ──
-    log.info("  定位表格: %s", caption_text[:30])
-
-    # 滚动到表格标题
-    page.evaluate(
-        f"""() => {{
-        const caps = document.querySelectorAll('div.caption, [class*="caption"]');
-        for (const c of caps) {{
-            if (c.textContent?.trim().includes("{caption_text.split('-')[-1]}")) {{
-                c.scrollIntoView({{ block: 'center' }});
+    # ── 2. 定位表格 widget 并滚动到可见 ──
+    log.info("  定位表格: %s", caption_text[:40])
+    scrolled = page.evaluate(
+        """(term) => {
+        const caps = document.querySelectorAll(
+            'div.caption, [class*="caption-wrapper"]'
+        );
+        for (const c of caps) {
+            const t = c.textContent?.trim() || '';
+            if (t.includes(term) || term.includes(t)) {
+                c.scrollIntoView({block: 'center'});
                 return true;
-            }}
-        }}
+            }
+        }
         return false;
-    }}"""
+    }""",
+        caption_text,
     )
+    if not scrolled:
+        log.warning("  标题未找到: %s", caption_text)
+        return None
     page.wait_for_timeout(1000)
 
-    # Hover 表格区域（让菜单按钮从 card-menu-hide 变为可见）
-    caption_loc = page.locator(f'div.caption:has-text("{caption_text.split("-")[-1]}")').first
-    if caption_loc.is_visible():
-        # hover 标题附近的容器
-        box = caption_loc.bounding_box()
-        if box:
-            page.mouse.move(box["x"] + box["width"] + 50, box["y"])
-            page.wait_for_timeout(800)
-
-    # ── 3. 点击 ⋮ 菜单 ──
-    log.info("  点击菜单 ⋮...")
-    # 找到最近的 card-menu-hide 触发器并 force click
-    menu_clicked = page.evaluate(
-        f"""() => {{
-        const caps = document.querySelectorAll('div.caption, [class*="caption"]');
-        for (const c of caps) {{
-            if (c.textContent?.trim().includes("{caption_text.split('-')[-1]}")) {{
-                const widget = c.closest('[class*="widget"], [class*="Widget"], [class*="card-container"]');
-                if (widget) {{
-                    const trigger = widget.querySelector('.ant-dropdown-trigger');
-                    if (trigger) {{
-                        trigger.click();
-                        return true;
-                    }}
-                }}
-            }}
-        }}
-        return false;
-    }}"""
+    # ── 3. Hover widget → force click ⋮ ──
+    log.info("  hover + 点击菜单 ⋮...")
+    trigger_pos = page.evaluate(
+        """(term) => {
+        const caps = document.querySelectorAll(
+            'div.caption, [class*="caption-wrapper"]'
+        );
+        for (const c of caps) {
+            const t = c.textContent?.trim() || '';
+            if (!(t.includes(term) || term.includes(t))) continue;
+            let w = c.parentElement;
+            for (let i = 0; i < 15 && w; i++) {
+                const tr = w.querySelector('i.ant-dropdown-trigger');
+                if (tr) {
+                    const r = tr.getBoundingClientRect();
+                    return {x: r.x + r.width/2, y: r.y + r.height/2};
+                }
+                w = w.parentElement;
+            }
+        }
+        return null;
+    }""",
+        caption_text,
     )
-
-    if not menu_clicked:
-        log.warning("  菜单按钮未找到")
+    if not trigger_pos:
+        log.warning("  菜单触发器未找到")
         return None
 
+    # hover 激活 card-menu-hide → 点击
+    page.mouse.move(trigger_pos["x"], trigger_pos["y"] - 30)
+    page.wait_for_timeout(400)
+    page.mouse.move(trigger_pos["x"], trigger_pos["y"])
+    page.wait_for_timeout(400)
+    page.mouse.click(trigger_pos["x"], trigger_pos["y"])
     page.wait_for_timeout(1500)
 
     # ── 4. 点击「自助取数」 ──
     log.info("  点击「自助取数」...")
-    selfservice = page.locator('span.control-menu-item:has-text("自助取数")').first
-    if not selfservice.is_visible():
-        # fallback
-        selfservice = page.locator('text="自助取数"').first
-    selfservice.click()
+    # antd dropdown portal: 试多个选择器
+    for selector in [
+        'span.control-menu-item:has-text("自助取数")',
+        '.ant-dropdown-menu-item:has-text("自助取数")',
+        'li:has-text("自助取数")',
+    ]:
+        loc = page.locator(selector).first
+        try:
+            if loc.is_visible(timeout=2000):
+                loc.click()
+                break
+        except Exception:
+            continue
+    else:
+        # 最后 fallback: JS 点击
+        page.evaluate("""() => {
+            const all = document.querySelectorAll('*');
+            for (const el of all) {
+                if (el.textContent?.trim() === '自助取数'
+                    && el.offsetHeight > 0
+                    && el.children.length <= 2) {
+                    el.click();
+                    return true;
+                }
+            }
+            return false;
+        }""")
+    log.info("  等待自助取数页面...")
     page.wait_for_timeout(5000)
     log.info("  自助取数页面已加载")
 
@@ -271,61 +304,63 @@ def _download_latest(page, out_file: str) -> Path | None:
     """下载任务列表中最新的文件。"""
     log.info("  下载文件...")
 
-    # 找下载按钮（任务列表中每个任务右侧的下载图标）
-    download_btn = page.evaluate("""() => {
-        // 方式1: anticon-download
-        const dl = document.querySelector('.anticon-download');
-        if (dl) { dl.closest('span, button, a')?.click(); return 'anticon'; }
+    # Quick BI 下载图标: i.offline-task-icon.common-download-outlined
+    # 任务面板中第 1 个（nth=1，nth=0 是底部其他区域的按钮）
+    # 等待任务面板渲染
+    page.wait_for_timeout(2000)
 
-        // 方式2: 任务列表第一项的操作按钮
-        const items = document.querySelectorAll('[class*="task-item"], [class*="offline-task"]');
-        if (items.length > 0) {
-            const btns = items[0].querySelectorAll('button, a, [role="button"], svg');
-            for (const b of btns) {
-                const rect = b.getBoundingClientRect();
-                if (rect.x > 1300) { // 右侧的操作按钮
-                    b.click();
-                    return 'position';
-                }
-            }
-        }
+    # 用 Playwright locator 直接定位（比 JS 坐标更稳定）
+    dl_icons = page.locator("i.offline-task-icon")
+    count = dl_icons.count()
+    log.info("  找到 %d 个下载图标", count)
 
-        // 方式3: 下载类 SVG 图标
-        const svgs = document.querySelectorAll('svg');
-        for (const s of svgs) {
-            if (s.closest('[class*="download"]') || s.getAttribute('data-icon') === 'download') {
-                s.closest('span, button, a')?.click();
-                return 'svg';
-            }
-        }
-
-        return null;
-    }""")
-
-    if not download_btn:
-        log.warning("  未找到下载按钮")
-        page.screenshot(path=str(PROJECT_ROOT / f"quickbi_dl_debug_{out_file}.png"))
+    if count < 1:
+        log.warning("  未找到下载图标")
+        page.screenshot(
+            path=str(PROJECT_ROOT / f"quickbi_dl_debug_{out_file}.png")
+        )
         _go_back_to_dashboard(page)
         return None
 
-    log.info("  下载按钮已点击（方式: %s）", download_btn)
+    # 点击第一个可见的下载图标（跳过 index=0 如果不可见）
+    target_icon = None
+    for idx in range(min(count, 5)):
+        icon = dl_icons.nth(idx)
+        if icon.is_visible():
+            box = icon.bounding_box()
+            if box and box["y"] > 100 and box["y"] < 850:
+                target_icon = icon
+                log.info(
+                    "  使用下载图标 #%d (y=%.0f)",
+                    idx,
+                    box["y"],
+                )
+                break
 
-    # 等待下载（Playwright download event）
-    # 由于点击已经通过 evaluate 完成，需要监听下一个下载
+    if not target_icon:
+        log.warning("  无可见下载图标")
+        page.screenshot(
+            path=str(PROJECT_ROOT / f"quickbi_dl_debug_{out_file}.png")
+        )
+        _go_back_to_dashboard(page)
+        return None
+
     try:
         with page.expect_download(timeout=30000) as dl_info:
-            # 如果 evaluate 的 click 没触发下载，再点一次
-            page.wait_for_timeout(2000)
+            target_icon.click(force=True)
         download = dl_info.value
         save_path = DOWNLOAD_TMP / out_file
         download.save_as(str(save_path))
-        log.info("  ✓ 已保存: %s (%s)", save_path.name, _fmt_size(save_path))
+        log.info(
+            "  ✓ 已保存: %s (%s)", save_path.name, _fmt_size(save_path)
+        )
         _go_back_to_dashboard(page)
         return save_path
     except Exception as e:
-        log.warning("  下载超时或失败: %s", e)
-        # 可能文件已通过浏览器直接下载到默认目录
-        page.screenshot(path=str(PROJECT_ROOT / f"quickbi_dl_timeout_{out_file}.png"))
+        log.warning("  下载超时: %s", e)
+        page.screenshot(
+            path=str(PROJECT_ROOT / f"quickbi_dl_timeout_{out_file}.png")
+        )
         _go_back_to_dashboard(page)
         return None
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useCallback } from 'react';
+import { Suspense, useCallback, useState, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import useSWR from 'swr';
 import { swrFetcher } from '@/lib/api';
@@ -8,11 +8,11 @@ import { useFilteredSWR } from '@/lib/hooks/use-filtered-swr';
 import { Spinner } from '@/components/ui/Spinner';
 import { PageTabs } from '@/components/ui/PageTabs';
 import { Card } from '@/components/ui/Card';
-import { TeamDetailTab } from '@/components/checkin/TeamDetailTab';
 import { FollowupTab } from '@/components/checkin/FollowupTab';
 import { RankingTab } from '@/components/checkin/RankingTab';
 import SummaryTab from '@/components/checkin/SummaryTab';
-import { MyViewBanner } from '@/components/checkin/MyViewBanner';
+import { StudentInsightsTab } from '@/components/checkin/StudentInsightsTab';
+import { UnifiedFilterBar } from '@/components/checkin/UnifiedFilterBar';
 import { useWideConfig } from '@/lib/hooks/useWideConfig';
 import { useMyView } from '@/lib/hooks/useMyView';
 import { ContactConversionScatter } from '@/components/daily-monitor/ContactConversionScatter';
@@ -20,7 +20,7 @@ import { ExportButton } from '@/components/ui/ExportButton';
 import { useExport } from '@/lib/use-export';
 import type { ContactConversionItem } from '@/lib/types/cross-analysis';
 
-// ── 类型定义（仅保留 page 层需要的类型）──────────────────────────────────────
+// ── 类型定义 ──────────────────────────────────────────────────────────────────
 
 interface CheckinTeamRow {
   team: string;
@@ -37,7 +37,6 @@ interface CheckinRoleSummary {
   by_enclosure: Array<{ enclosure: string; students: number; checked_in: number; rate: number }>;
 }
 
-// 后端返回 { by_role: { CC: {...}, SS: {...}, LP: {...} } }
 interface CheckinSummaryResponse {
   by_role: Record<string, CheckinRoleSummary>;
 }
@@ -45,31 +44,15 @@ interface CheckinSummaryResponse {
 // ── Tab 定义 ──────────────────────────────────────────────────────────────────
 
 const TABS = [
-  { id: 'summary', label: '汇总视图' },
-  { id: 'ranking', label: '打卡排行' },
-  { id: 'team_detail', label: '团队明细' },
-  { id: 'followup', label: '未打卡跟进' },
+  { id: 'overview', label: '概览' },
+  { id: 'insights', label: '学员洞察' },
+  { id: 'leaderboard', label: '排行榜' },
+  { id: 'action', label: '行动中心' },
 ] as const;
 
-// ── 围场筛选选项 ────────────────────────────────────────────────────────────
-
-interface EnclosureOption {
-  id: string | null;
-  label: string;
-}
-
-const ENCLOSURE_OPTIONS: EnclosureOption[] = [
-  { id: null, label: '全部围场' },
-  { id: 'M0', label: 'M0 (0-30天)' },
-  { id: 'M1', label: 'M1 (31-60天)' },
-  { id: 'M2', label: 'M2 (61-90天)' },
-  { id: 'M3', label: 'M3 (91-120天)' },
-  { id: 'M4', label: 'M4 (121-150天)' },
-  { id: 'M5', label: 'M5 (151-180天)' },
-  { id: 'M6+', label: 'M6+ (181天+)' },
-];
-
 type TabId = (typeof TABS)[number]['id'];
+
+const ROLES_ALL = ['CC', 'SS', 'LP', '运营'] as const;
 
 // ── 主页面（内部，需要 useSearchParams）────────────────────────────────────────
 
@@ -78,38 +61,104 @@ function CheckinPageInner() {
   const searchParams = useSearchParams();
   const { activeRoles, roleEnclosures } = useWideConfig();
 
-  // URL → Zustand 同步（mount 时触发一次），同时获取视角状态
-  const { focusCC, isActive } = useMyView();
+  const { focusCC, clearMyView } = useMyView();
 
-  // 智能默认 Tab：有 cc 参数 → followup；有 team 但无 cc → team_detail；否则 → summary
+  // ── 智能默认 Tab ──────────────────────────────────────────────────────────
   function resolveDefaultTab(): TabId {
     const explicit = searchParams.get('tab');
     if (explicit) return explicit as TabId;
-    if (searchParams.get('cc')) return 'followup';
-    if (searchParams.get('team') && !searchParams.get('cc')) return 'team_detail';
-    return 'summary';
+    if (searchParams.get('cc')) return 'action';
+    if (searchParams.get('team') && !searchParams.get('cc')) return 'leaderboard';
+    return 'overview';
   }
   const activeTab = resolveDefaultTab();
 
-  // 围场筛选：从 URL 读取，null = 全部
+  // ── 筛选状态（集中管理）──────────────────────────────────────────────────
+
+  // 角色：URL 持久化
+  const roleFilter: string = searchParams.get('role') || 'CC';
+
+  // 团队：URL 持久化
+  const teamFilter: string = searchParams.get('team') || '';
+
+  // 围场：URL 持久化
   const enclosureFilter: string | null = searchParams.get('enclosure') || null;
+
+  // CC 搜索：page 级 state（初始值来自 URL cc 参数）
+  const [ccSearch, setCCSearch] = useState<string>(
+    () => searchParams.get('cc') || focusCC || ''
+  );
+
+  // KPI 围场（当前角色负责的围场列表）
+  const kpiEnclosures = useMemo(
+    () => (roleEnclosures[roleFilter] ?? []) as string[],
+    [roleEnclosures, roleFilter]
+  );
+
+  // ── URL 更新函数 ──────────────────────────────────────────────────────────
 
   const handleEnclosureChange = useCallback(
     (enc: string | null) => {
       const params = new URLSearchParams(searchParams.toString());
-      if (enc) {
-        params.set('enclosure', enc);
-      } else {
-        params.delete('enclosure');
-      }
+      if (enc) params.set('enclosure', enc);
+      else params.delete('enclosure');
       router.replace(`/checkin?${params.toString()}`);
     },
     [router, searchParams]
   );
 
-  const { exportCSV } = useExport();
+  const handleRoleChange = useCallback(
+    (role: string) => {
+      const params = new URLSearchParams(searchParams.toString());
+      params.set('role', role);
+      params.delete('team'); // 切换角色时清除团队筛选
+      router.replace(`/checkin?${params.toString()}`);
+    },
+    [router, searchParams]
+  );
 
-  const { data: summaryData } = useSWR<CheckinSummaryResponse>(`/api/checkin/summary`, swrFetcher);
+  const handleTeamChange = useCallback(
+    (team: string) => {
+      const params = new URLSearchParams(searchParams.toString());
+      if (team) params.set('team', team);
+      else params.delete('team');
+      router.replace(`/checkin?${params.toString()}`);
+    },
+    [router, searchParams]
+  );
+
+  const handleClearAll = useCallback(() => {
+    clearMyView();
+    setCCSearch('');
+    const params = new URLSearchParams();
+    if (searchParams.get('tab')) params.set('tab', searchParams.get('tab')!);
+    router.replace(`/checkin?${params.toString()}`);
+  }, [clearMyView, router, searchParams]);
+
+  // ── 是否有筛选激活 ────────────────────────────────────────────────────────
+  const hasAnyFilter = Boolean(
+    enclosureFilter || roleFilter !== 'CC' || teamFilter || ccSearch
+  );
+
+  // ── 团队列表（从 summary 数据提取）────────────────────────────────────────
+  const { data: summaryData } = useSWR<CheckinSummaryResponse>('/api/checkin/summary', swrFetcher);
+
+  const teams = useMemo(() => {
+    const roleData = summaryData?.by_role?.[roleFilter];
+    return roleData?.by_team?.map((t) => t.team).sort() ?? [];
+  }, [summaryData, roleFilter]);
+
+  // ── 可见角色列表 ──────────────────────────────────────────────────────────
+  const visibleRoles = useMemo(
+    () =>
+      activeRoles.length > 0
+        ? ROLES_ALL.filter((r) => activeRoles.includes(r))
+        : (ROLES_ALL as unknown as string[]),
+    [activeRoles]
+  );
+
+  // ── 导出 ──────────────────────────────────────────────────────────────────
+  const { exportCSV } = useExport();
 
   const { data: scatterData } = useFilteredSWR<ContactConversionItem[]>(
     '/api/daily-monitor/contact-vs-conversion'
@@ -150,55 +199,66 @@ function CheckinPageInner() {
   }
 
   return (
-    <div className="space-y-5 md:space-y-6">
-      <div className="flex flex-wrap items-start justify-between gap-2 mb-2">
+    <div className="space-y-4 md:space-y-5">
+      {/* 标题行 */}
+      <div className="flex flex-wrap items-start justify-between gap-2">
         <div>
           <h1 className="page-title">打卡管理</h1>
           <p className="text-sm text-[var(--text-secondary)] mt-0.5">
-            {isActive && focusCC
-              ? `当前聚焦: ${focusCC} 的学员`
-              : '有效学员打卡率 · 按岗位 / 团队 / 围场拆分'}
+            有效学员打卡率 · 按岗位 / 团队 / 围场拆分
           </p>
         </div>
-        {activeTab === 'summary' && <ExportButton onExportCsv={handleExportSummary} />}
+        {activeTab === 'overview' && <ExportButton onExportCsv={handleExportSummary} />}
       </div>
 
-      <MyViewBanner />
+      {/* ── 统一筛选栏（2层架构 L1）── */}
+      <UnifiedFilterBar
+        role={roleFilter}
+        onRoleChange={handleRoleChange}
+        activeRoles={visibleRoles as string[]}
+        team={teamFilter}
+        onTeamChange={handleTeamChange}
+        teams={teams}
+        ccSearch={ccSearch}
+        onCCSearchChange={setCCSearch}
+        enclosure={enclosureFilter}
+        onEnclosureChange={handleEnclosureChange}
+        kpiEnclosures={kpiEnclosures}
+        onClearAll={handleClearAll}
+        hasFilter={hasAnyFilter}
+      />
 
-      {/* 围场筛选器 */}
-      <div className="flex items-center gap-1.5 px-0.5 overflow-x-auto pb-0.5">
-        {ENCLOSURE_OPTIONS.map((opt) => (
-          <button
-            key={opt.id ?? 'all'}
-            onClick={() => handleEnclosureChange(opt.id)}
-            className={`px-3 py-1 rounded-full text-xs whitespace-nowrap transition-colors flex-shrink-0 ${
-              enclosureFilter === opt.id
-                ? 'bg-[var(--color-action,#1B365D)] text-white font-medium'
-                : 'bg-[var(--bg-subtle)] text-[var(--text-secondary)] hover:bg-[var(--bg-surface)] border border-[var(--border-default)]'
-            }`}
-          >
-            {opt.label}
-          </button>
-        ))}
-      </div>
-
+      {/* ── Tab 导航（L2）── */}
       <PageTabs
         tabs={TABS.map((t) => ({ id: t.id, label: t.label }))}
         activeId={activeTab}
         onChange={handleTabChange}
       />
 
+      {/* ── Tab 内容 ── */}
       <div className="mt-2">
-        {activeTab === 'summary' && <SummaryTab enclosureFilter={enclosureFilter} />}
-        {activeTab === 'ranking' && <RankingTab enclosureFilter={enclosureFilter} />}
-        {activeTab === 'team_detail' && (
-          <TeamDetailTab activeRoles={activeRoles} roleEnclosures={roleEnclosures} />
+        {activeTab === 'overview' && (
+          <SummaryTab enclosureFilter={enclosureFilter} roleFilter={roleFilter} />
         )}
-        {activeTab === 'followup' && (
+        {activeTab === 'insights' && (
+          <StudentInsightsTab enclosureFilter={enclosureFilter} />
+        )}
+        {activeTab === 'leaderboard' && (
+          <RankingTab
+            enclosureFilter={enclosureFilter}
+            roleFilter={roleFilter}
+            activeRoles={activeRoles}
+            roleEnclosures={roleEnclosures}
+          />
+        )}
+        {activeTab === 'action' && (
           <FollowupTab
             activeRoles={activeRoles}
             roleEnclosures={roleEnclosures}
             enclosureFilter={enclosureFilter}
+            roleFilter={roleFilter}
+            teamFilter={teamFilter}
+            salesSearch={ccSearch}
           />
         )}
       </div>

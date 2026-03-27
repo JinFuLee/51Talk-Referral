@@ -1,6 +1,6 @@
 'use client';
 
-import { Fragment, useState, useMemo, useEffect } from 'react';
+import { Fragment, useState, useMemo } from 'react';
 import useSWR from 'swr';
 import { swrFetcher } from '@/lib/api';
 import { formatRevenue } from '@/lib/utils';
@@ -9,7 +9,6 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { MemberDetailDrawer } from '@/components/members/MemberDetailDrawer';
 import { StudentTagBadge } from '@/components/checkin/StudentTagBadge';
 import { useWideConfig } from '@/lib/hooks/useWideConfig';
-import { useConfigStore } from '@/lib/stores/config-store';
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -115,163 +114,7 @@ function fmtNum(n: number | null | undefined): string {
   return n.toLocaleString();
 }
 
-// ── Filter Bar ─────────────────────────────────────────────────────────────────
-
-const ROLES: Role[] = ['CC', 'SS', 'LP', '运营'];
-const ENCLOSURE_OPTIONS = [
-  'M0',
-  'M1',
-  'M2',
-  'M3',
-  'M4',
-  'M5',
-  'M6',
-  'M7',
-  'M8',
-  'M9',
-  'M10',
-  'M11',
-  'M12',
-  'M12+',
-];
-const ENCLOSURE_LABEL: Record<string, string> = {
-  M0: 'M0（0~30）',
-  M1: 'M1（31~60）',
-  M2: 'M2（61~90）',
-  M3: 'M3（91~120）',
-  M4: 'M4（121~150）',
-  M5: 'M5（151~180）',
-  M6: 'M6（181~210）',
-  M7: 'M7（211~240）',
-  M8: 'M8（241~270）',
-  M9: 'M9（271~300）',
-  M10: 'M10（301~330）',
-  M11: 'M11（331~360）',
-  M12: 'M12（361~390）',
-  'M12+': 'M12+（391+）',
-};
-
-interface FilterBarProps {
-  role: Role;
-  onRoleChange: (r: Role) => void;
-  team: string;
-  onTeamChange: (t: string) => void;
-  teams: string[];
-  salesSearch: string;
-  onSalesSearch: (s: string) => void;
-  enclosures: string[];
-  onEnclosuresChange: (e: string[]) => void;
-  visibleRoles?: Role[];
-  roleEnclosures?: string[];
-}
-
-function FilterBar({
-  role,
-  onRoleChange,
-  team,
-  onTeamChange,
-  teams,
-  salesSearch,
-  onSalesSearch,
-  enclosures,
-  onEnclosuresChange,
-  visibleRoles: visibleRolesProp,
-  roleEnclosures: roleEnclosuresProp,
-}: FilterBarProps) {
-  const displayRoles = visibleRolesProp && visibleRolesProp.length > 0 ? visibleRolesProp : ROLES;
-  const displayEnclosures =
-    roleEnclosuresProp && roleEnclosuresProp.length > 0
-      ? ENCLOSURE_OPTIONS.filter((e) => roleEnclosuresProp.includes(e))
-      : ENCLOSURE_OPTIONS;
-  function toggleEnclosure(enc: string) {
-    if (enclosures.includes(enc)) {
-      onEnclosuresChange(enclosures.filter((e) => e !== enc));
-    } else {
-      onEnclosuresChange([...enclosures, enc]);
-    }
-  }
-
-  return (
-    <div className="space-y-3 pb-3 border-b border-[var(--border-subtle)]">
-      {/* Row 1: role + team + search */}
-      <div className="flex flex-wrap items-center gap-3">
-        {/* Role toggle group */}
-        <div className="flex rounded-lg border border-[var(--border-subtle)] overflow-hidden text-xs font-medium">
-          {displayRoles.map((r) => (
-            <button
-              key={r}
-              onClick={() => onRoleChange(r)}
-              className={`px-3 py-1.5 transition-colors whitespace-nowrap ${
-                role === r
-                  ? 'bg-[var(--n-800)] text-white'
-                  : 'bg-[var(--bg-surface)] text-[var(--text-secondary)] hover:bg-[var(--bg-subtle)]'
-              }`}
-            >
-              {r}
-            </button>
-          ))}
-        </div>
-
-        {/* Team dropdown */}
-        <select
-          value={team}
-          onChange={(e) => onTeamChange(e.target.value)}
-          className="px-2.5 py-1.5 border border-[var(--border-subtle)] rounded-lg text-xs bg-[var(--bg-surface)] text-[var(--text-secondary)] focus:outline-none focus:ring-2 focus:ring-action"
-        >
-          <option value="">全部团队</option>
-          {teams.map((t) => (
-            <option key={t} value={t}>
-              {t}
-            </option>
-          ))}
-        </select>
-
-        {/* Sales search */}
-        <div className="relative">
-          <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[var(--text-muted)] text-xs select-none">
-            🔍
-          </span>
-          <input
-            type="text"
-            placeholder="销售姓名搜索"
-            value={salesSearch}
-            onChange={(e) => onSalesSearch(e.target.value)}
-            className="pl-7 pr-3 py-1.5 border border-[var(--border-subtle)] rounded-lg text-xs bg-[var(--bg-surface)] focus:outline-none focus:ring-2 focus:ring-action w-36"
-          />
-        </div>
-      </div>
-
-      {/* Row 2: enclosure multi-select */}
-      <div className="flex flex-wrap items-center gap-1.5">
-        <span className="text-xs text-[var(--text-muted)] mr-1">围场:</span>
-        {displayEnclosures.map((enc) => {
-          const active = enclosures.includes(enc);
-          return (
-            <button
-              key={enc}
-              onClick={() => toggleEnclosure(enc)}
-              className={`px-2.5 py-1 rounded-full text-xs border transition-colors ${
-                active
-                  ? 'bg-action-accent text-white border-action-accent'
-                  : 'bg-[var(--bg-surface)] text-[var(--text-secondary)] border-[var(--border-subtle)] hover:border-action-accent-muted'
-              }`}
-            >
-              {ENCLOSURE_LABEL[enc] ?? enc}
-            </button>
-          );
-        })}
-        {enclosures.length > 0 && (
-          <button
-            onClick={() => onEnclosuresChange([])}
-            className="px-2.5 py-1 rounded-full text-xs text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors"
-          >
-            清除
-          </button>
-        )}
-      </div>
-    </div>
-  );
-}
+// ── Filter Bar（已移至 checkin/page.tsx 统一筛选栏，此处仅保留 GroupFilterBar）──
 
 // ── Row expand ─────────────────────────────────────────────────────────────────
 
@@ -638,49 +481,39 @@ interface FollowupTabProps {
   activeRoles?: string[];
   roleEnclosures?: Record<string, string[]>;
   enclosureFilter?: string | null;
+  roleFilter?: string;
+  teamFilter?: string;
+  salesSearch?: string;
 }
 
-export function FollowupTab({ activeRoles: activeRolesProp, enclosureFilter }: FollowupTabProps) {
-  const { configJson, activeRoles: hookActiveRoles, roleEnclosures: wideRoleEnc } = useWideConfig();
+export function FollowupTab({
+  activeRoles: activeRolesProp,
+  enclosureFilter,
+  roleFilter = 'CC',
+  teamFilter = '',
+  salesSearch = '',
+}: FollowupTabProps) {
+  const { configJson, activeRoles: hookActiveRoles } = useWideConfig();
 
   // 优先使用 hook 内部读取的值，props 作为备用
   const activeRoles = hookActiveRoles.length > 0 ? hookActiveRoles : (activeRolesProp ?? []);
-
-  const visibleRoles: Role[] =
-    activeRoles.length > 0 ? ROLES.filter((r) => activeRoles.includes(r)) : ROLES;
-  const [role, setRole] = useState<Role>(visibleRoles[0] ?? 'CC');
-  const [team, setTeam] = useState('');
-  const [salesSearch, setSalesSearch] = useState('');
-  // 全局围场筛选器选中时，自动初始化内部 enclosures
-  const [enclosures, setEnclosures] = useState<string[]>(enclosureFilter ? [enclosureFilter] : []);
+  void activeRoles; // 仅用于类型保留，实际 role 由 page 级 roleFilter 控制
 
   const [groupFilter, setGroupFilter] = useState<GroupFilter>('all');
-
-  // 全局围场筛选器变化时同步到内部 enclosures
-  useEffect(() => {
-    if (enclosureFilter) {
-      setEnclosures([enclosureFilter]);
-    } else {
-      setEnclosures([]);
-    }
-  }, [enclosureFilter]);
 
   // Drawer state
   const [drawerMember, setDrawerMember] = useState<FollowupMember | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
 
-  // focusCC from global store（"只看我的"功能）
-  const focusCC = useConfigStore((s) => s.focusCC);
-
-  // Build query string
+  // Build query string — 使用 page 级传入的筛选状态
   const qs = useMemo(() => {
-    const p = new URLSearchParams({ role });
-    if (team) p.set('team', team);
+    const p = new URLSearchParams({ role: roleFilter });
+    if (teamFilter) p.set('team', teamFilter);
     if (salesSearch.trim()) p.set('sales', salesSearch.trim());
-    if (enclosures.length > 0) p.set('enclosure', enclosures.join(','));
+    if (enclosureFilter) p.set('enclosure', enclosureFilter);
     p.set('role_config', configJson);
     return p.toString();
-  }, [role, team, salesSearch, enclosures, configJson]);
+  }, [roleFilter, teamFilter, salesSearch, enclosureFilter, configJson]);
 
   const {
     data: raw,
@@ -725,8 +558,6 @@ export function FollowupTab({ activeRoles: activeRolesProp, enclosureFilter }: F
       })()
     : undefined;
 
-  const teams = data?.teams ?? [];
-
   // 分群过滤（纯前端）
   const filteredItems = useMemo(() => {
     if (!data?.items) return [];
@@ -747,53 +578,9 @@ export function FollowupTab({ activeRoles: activeRolesProp, enclosureFilter }: F
     return items;
   }, [data?.items, groupFilter]);
 
-  // Reset team when role changes and the current team is no longer available
-  const handleRoleChange = (r: Role) => {
-    setRole(r);
-    setTeam('');
-    setEnclosures([]);
-    setGroupFilter('all');
-  };
-
-  // "只看我的" — 将 focusCC 填入 salesSearch 筛选
-  const handleMyViewClick = () => {
-    if (focusCC) {
-      setSalesSearch(focusCC);
-    }
-  };
-
   return (
     <div className="space-y-4">
-      {/* 只看我的 Banner */}
-      {focusCC && (
-        <div className="flex items-center gap-2 px-3 py-2 bg-amber-50 border border-amber-200 rounded-lg text-xs">
-          <span className="text-amber-600">
-            当前全局视角: <strong>{focusCC}</strong>
-          </span>
-          <button
-            onClick={handleMyViewClick}
-            className="ml-auto px-2.5 py-1 bg-amber-100 hover:bg-amber-200 text-amber-800 rounded-md font-medium transition-colors"
-          >
-            只看我的 ({focusCC})
-          </button>
-        </div>
-      )}
-
-      <FilterBar
-        role={role}
-        onRoleChange={handleRoleChange}
-        team={team}
-        onTeamChange={setTeam}
-        teams={teams}
-        salesSearch={salesSearch}
-        onSalesSearch={setSalesSearch}
-        enclosures={enclosures}
-        onEnclosuresChange={setEnclosures}
-        visibleRoles={visibleRoles}
-        roleEnclosures={wideRoleEnc?.[role]}
-      />
-
-      {/* 分群子 Tab */}
+      {/* L2 分群筛选（Tab 专属，紧凑 pill 行）*/}
       <GroupFilterBar active={groupFilter} onChange={setGroupFilter} />
 
       {isLoading ? (

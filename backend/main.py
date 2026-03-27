@@ -69,6 +69,8 @@ ROUTER_REGISTRY: dict = {
     "notifications": ("backend.api.notifications", "/api", ["notifications"]),
     # ── 知识库 ──────────────────────────────────────────────────────────────────
     "knowledge": ("backend.api.knowledge", "/api", ["knowledge"]),
+    # ── CC 个人业绩全维度 ────────────────────────────────────────────────────────
+    "cc_performance": ("backend.api.cc_performance", "/api", ["cc-performance"]),
 }
 
 
