@@ -896,12 +896,26 @@ def get_checkin_summary(
     request: Request,
     dm: DataManager = Depends(get_data_manager),
     role_config: str | None = Query(default=None, description="前端宽口径配置 JSON"),
+    enclosure: str | None = Query(
+        default=None, description="围场过滤（M 标签，如 M0），为空时不过滤"
+    ),
 ) -> dict:
     """
     全部从 D3 明细表聚合。优先使用前端传来的 role_config（Settings 宽口径配置），
     否则 fallback 到 config.json enclosure_role_wide（动态加载）。
+
+    enclosure 参数：前端统一筛选栏传入的围场 M 标签（如 M0/M1/M2），
+    用于在角色默认围场范围内进一步交叉过滤，不影响无参数时的行为。
     """
     d3: pd.DataFrame = dm.load_all().get("detail", pd.DataFrame())
+
+    # 解析围场过滤：将 M 标签转回原始围场值，对 d3 做全局交叉过滤
+    if enclosure and _D3_ENCLOSURE_COL in d3.columns:
+        m_to_raw = {v: k for k, v in _M_MAP.items()}
+        enc_labels = [e.strip() for e in enclosure.split(",") if e.strip()]
+        enc_filter_raws = [m_to_raw[m] for m in enc_labels if m in m_to_raw]
+        if enc_filter_raws:
+            d3 = d3[d3[_D3_ENCLOSURE_COL].isin(enc_filter_raws)].copy()
 
     roles = list(_get_wide_role().keys())
     if role_config:

@@ -67,9 +67,7 @@ function ChannelColumn({ ch, rateColor, rateBg, isSelected }: ChannelColumnProps
       {/* 渠道标题 */}
       <div className="bg-[var(--n-800,#1e293b)] text-white text-xs font-semibold px-2 py-1.5 rounded-t-md">
         {ch.channel}
-        {isSelected && (
-          <span className="ml-1.5 opacity-70 text-[10px]">▶ 当前角色</span>
-        )}
+        {isSelected && <span className="ml-1.5 opacity-70 text-[10px]">▶ 当前角色</span>}
       </div>
 
       {/* 总体大数字 */}
@@ -168,9 +166,10 @@ export default function SummaryTab({ enclosureFilter, roleFilter }: SummaryTabPr
   const { configJson } = useWideConfig();
   const { rateColor, rateBg } = useCheckinThresholds();
 
-  const { data, isLoading, error, mutate } = useFilteredSWR<CheckinSummaryResponse>(
-    `/api/checkin/summary?role_config=${encodeURIComponent(configJson)}`
-  );
+  const summaryUrl = `/api/checkin/summary?role_config=${encodeURIComponent(configJson)}${
+    enclosureFilter ? `&enclosure=${encodeURIComponent(enclosureFilter)}` : ''
+  }`;
+  const { data, isLoading, error, mutate } = useFilteredSWR<CheckinSummaryResponse>(summaryUrl);
 
   // KPI 卡片数据（来自学员分析）
   const { data: studentData } = useStudentAnalysis(
