@@ -11,10 +11,12 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel
 
-from .dependencies import get_service
+from backend.core.data_manager import DataManager
+
+from .dependencies import get_data_manager, get_service
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 
@@ -655,9 +657,10 @@ def get_targets_recommend(
 
 @router.get("/targets/tiers", summary="三档目标场景预览（稳达标/占比达标/自定义）")
 def get_target_tiers(
+    request: Request,
     company_revenue: float = 0,
     referral_share: float = 0.30,
-    svc=Depends(get_service),
+    dm: DataManager = Depends(get_data_manager),
 ) -> dict[str, Any]:
     """返回三档目标场景预览。
 
@@ -678,10 +681,8 @@ def get_target_tiers(
     bm_pct: float = 0.5
 
     try:
-        from backend.api.dependencies import get_data_manager
         from backend.core.channel_funnel_engine import ChannelFunnelEngine
 
-        dm = get_data_manager()
         data = dm.load_all()
 
         # D1 泰国行
