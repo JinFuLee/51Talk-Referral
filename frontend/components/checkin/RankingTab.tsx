@@ -366,21 +366,28 @@ export function RankingTab({ roleFilter = 'CC', enclosureFilter }: RankingTabPro
 
   return (
     <div className="space-y-4">
-      {/* 子 Tab 切换 */}
-      <div className="flex rounded-lg border border-[var(--border-subtle)] overflow-hidden text-xs font-medium w-fit">
-        {SUB_TABS.map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => setSubTab(tab.id)}
-            className={`px-4 py-1.5 transition-colors whitespace-nowrap ${
-              subTab === tab.id
-                ? 'bg-[var(--n-800,#1e293b)] text-white'
-                : 'bg-[var(--bg-surface)] text-[var(--text-secondary)] hover:bg-[var(--bg-subtle)]'
-            }`}
-          >
-            {tab.label}
-          </button>
-        ))}
+      {/* 子 Tab 切换 + 围场徽章 */}
+      <div className="flex items-center gap-3">
+        <div className="flex rounded-lg border border-[var(--border-subtle)] overflow-hidden text-xs font-medium w-fit">
+          {SUB_TABS.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setSubTab(tab.id)}
+              className={`px-4 py-1.5 transition-colors whitespace-nowrap ${
+                subTab === tab.id
+                  ? 'bg-[var(--n-800,#1e293b)] text-white'
+                  : 'bg-[var(--bg-surface)] text-[var(--text-secondary)] hover:bg-[var(--bg-subtle)]'
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+        {enclosureFilter && (
+          <span className="ml-2 px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 text-xs font-medium">
+            {enclosureFilter}
+          </span>
+        )}
       </div>
 
       {/* 加载态 */}

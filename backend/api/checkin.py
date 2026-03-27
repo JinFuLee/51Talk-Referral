@@ -1074,7 +1074,10 @@ def get_checkin_ranking(
     for role in roles:
         override = _parse_role_enclosures(role_config, role)
 
-        # 运营角色：返回渠道推荐数据，不做 by_group/by_person 个人聚合
+        # 运营角色：返回渠道推荐数据，不做 by_group/by_person 个人聚合。
+        # 运营负责 M6+（181天+）围场，属于固定范围，不响应前端 enclosure 筛选栏
+        # 的交叉过滤（enc_filter_raws）——运营视图看全局 M6+ 而非单个围场切片，
+        # 围场徽章仅对 CC/SS/LP 有语义。如需单围场过滤，传 enclosures_override。
         if role == "运营":
             d4_ops: pd.DataFrame = dm.load_all().get("students", pd.DataFrame())
             by_role[role] = _aggregate_ops_channels(
@@ -1837,7 +1840,9 @@ def get_enclosure_thresholds(
         if subset_d4.empty or "本月打卡天数" not in subset_d4.columns:
             continue
 
-        days_series = pd.to_numeric(subset_d4["本月打卡天数"], errors="coerce").fillna(0)
+        days_series = (
+            pd.to_numeric(subset_d4["本月打卡天数"], errors="coerce").fillna(0)
+        )
         n = len(days_series)
         if n < 5:
             # 样本量太小，跳过动态计算
