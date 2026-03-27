@@ -30,8 +30,9 @@ ref-ops-engine/
 │   │   │   ├── dashboard/       # 运营面板
 │   │   │   ├── reports/         # 报告管理
 │   │   │   ├── settings/        # 系统配置
-│   │   │   └── ...              # 12 个页面总计
-│   ├── components/              # 43 个 React 组件（表格/图表/表单/布局）
+│   │   │   ├── cc-performance/  # CC 个人业绩看板（新）
+│   │   │   └── ...              # 13 个页面总计
+│   ├── components/              # 47 个 React 组件（表格/图表/表单/布局）
 │   ├── lib/                     # 工具库
 │   │   ├── types/               # TypeScript 定义（与后端 models 对应）
 │   │   ├── api/                 # API client（自动生成或手写）
@@ -96,6 +97,9 @@ Excel 数据源 → XlsxReader → DataProcessor → AnalysisEngine → Markdown
 - **钉钉日报推送**: `uv run python scripts/dingtalk_report.py --dry-run`（预览）/ `--confirm`（正式）
 - **手动写入快照**: `curl -X POST http://localhost:8100/api/report/snapshot`
 - **三档目标推荐**: `curl http://localhost:8100/api/config/targets/202603/recommend`
+- **CC个人业绩**: `curl http://localhost:8100/api/cc-performance`
+- **CC目标模板下载**: `curl -O "http://localhost:8100/api/cc-performance/targets/template?month=202603"`
+- **CC目标上传**: `curl -X POST -F file=@cc_targets.csv "http://localhost:8100/api/cc-performance/targets/upload?month=202603"`
 
 ## 通知推送防错规则（全平台统一）
 
@@ -330,7 +334,8 @@ CC 排名算法详见 [docs/cc-ranking-spec.md](docs/cc-ranking-spec.md)（3类1
 | M31 | 2026-02-23 | 测试体系 + CI/CD | pytest 105 case + vitest 42 case + GitHub Actions | 12 test files new, ci.yml new |
 | M32 | 2026-02-23 | 性能+收尾 | useMemo 36处 + ESLint 防退化 + smoke 迁移 | 10 components mod, .eslintrc.json new |
 | M33 | 2026-03-26 | 运营分析报告引擎 | 11区块报告+8维环比+三因素分解+杠杆矩阵+WMA三档目标+钉钉6通道+Lark3级粒度 | 23+ files, +4000 lines |
-| M33.5 | 2026-03-27 | 打卡管理页重构 | 学员视角9维度+10新组件+岗位沉浸式+智能路由+学员标签体系(6类) | 12 new + 4 mod, +1600 lines |
+| M34 | 2026-03-27 | 打卡管理页重构 | 学员视角9维度+10新组件+岗位沉浸式+智能路由+学员标签体系(6类) | 12 new + 4 mod, +1600 lines |
+| M35 | 2026-03-27 | CC 个人业绩看板 | 后端 D2+D3+D4 三源聚合+目标上传 + 前端 3 层渐进式+8 列组表格+雷达图 | 6 new + 2 mod, +1400 lines |
 | M34 | 2026-03-27 | 打卡管理页重构（学员视角+岗位沉浸式+围场联动+页面整合）| 后端9维度API+UnifiedFilterBar+4Tab重构+12共享组件+关键洞察（80.5%零打卡/CC触达参与率49.6%）| 后端+800行 / 前端新建15+修改6 |
 
 ## 已知问题与技术债

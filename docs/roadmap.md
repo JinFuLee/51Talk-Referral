@@ -417,11 +417,25 @@
 - 数据洞察: 80.5% 学员零打卡 | 沉睡高潜 3,863 人（有课耗无打卡 7,013 激活池）| 5-6 次打卡付费率 4.7% vs 零打卡 0.4%（11.8x）| CC 触达后参与率 49.6% vs 未触达 6.3%
 - 待完成: Phase 5 后手（P2/P3 维度 + RFM 分层 + 跨页联动）
 
+### M35: CC 个人业绩全维度看板（2026-03-27）
+- [x] 后端 API（`backend/api/cc_performance.py`）：D2+D3+D4 三源聚合，个人目标上传/下载/删除
+- [x] Pydantic 数据模型（7 个字段组：revenue/referral_share/paid/asp/showup/leads/outreach，snake_case 全链路对齐）
+- [x] TypeScript 类型定义（`frontend/lib/types/cc-performance.ts`，CCPerformanceRecord + CCPerformanceTeamSummary + CCPerformanceResponse）
+- [x] 前端页面（`frontend/app/cc-performance/page.tsx`）：3 层渐进式（L0 汇总卡片 + L1 明细表 + L2 展开详情）
+- [x] CCPerformanceSummaryCards：4 个 KPI 卡片（总业绩/达成率/转介绍占比/时间进度）
+- [x] CCPerformanceTable：8 列组可切换 + 排序 + 搜索 + 团队筛选 + USD/THB 切换 + CSV 导出 + 团队小计
+- [x] CCPerformanceDetail：雷达图（5 维战力）+ 行动建议卡片（业绩缺口/达标日均/追进度日均/效率提升）
+- [x] CCTargetUpload：拖拽上传弹窗（CSV/XLSX 预览 + 上传 + 清除当前月目标）
+- [x] 路由注册（`backend/main.py` 已加入 cc_performance router）
+- [x] ruff 零错误，Python import 链路验证通过（4 个端点正确注册）
+- 统计: 6 files new (cc_performance.py + 4 组件 + cc-performance/page.tsx), 2 files mod (main.py + types), +1400 lines
+- QA 结果: ruff PASS, Python import PASS, TypeScript 字段 snake_case 全链路一致
+
 ---
 
 ## 规划中
 
-### M35: 话术迭代系统（待规划）
+### M36: 话术迭代系统（待规划）
 - 运营贴入当前话术 → AI 评分 → 多方案生成 → A/B 追踪 → 自动迭代
 - 依赖 M33 瓶颈识别结果做输入
 
@@ -440,8 +454,8 @@ M18.2(✅) ──► M18.3(✅) ──► M19(✅)
 
 关键路径：M26(✅) ──► M27(✅) ──► M28-M32(✅) — 项目质量 73→100，测试/CI/拆分/性能全完成
 
-M32(✅) ──► M33(✅) ──► M34(✅) ──► M35(规划中)
-                         运营报告引擎   学员视角重构   话术迭代系统
+M32(✅) ──► M33(✅) ──► M34(✅) ──► M35(✅) ──► M36(规划中)
+                         运营报告引擎   学员视角重构   CC个人业绩    话术迭代系统
 ```
 
 ---
