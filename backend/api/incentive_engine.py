@@ -738,22 +738,92 @@ _MONTH_TH_FULL = [
 ]
 
 
+# ── 海报主题系统 ─────────────────────────────────────────────────────────────
+
+_POSTER_THEMES: dict[str, dict[str, Any]] = {
+    "fire": {  # 🔥 冲刺型（paid/revenue）
+        "grad_top": (180, 40, 0),
+        "grad_bot": (60, 10, 30),
+        "accent": (255, 180, 0),
+        "card_bg": (120, 30, 10, 180),
+        "emoji": "🔥",
+        "subtitle": "Sprint Challenge",
+    },
+    "target": {  # 🎯 达标型（showup/checkin_rate）
+        "grad_top": (0, 80, 60),
+        "grad_bot": (10, 35, 50),
+        "accent": (0, 230, 160),
+        "card_bg": (0, 60, 50, 180),
+        "emoji": "🎯",
+        "subtitle": "Target Achievement",
+    },
+    "growth": {  # 🚀 爆发型（leads/registrations）
+        "grad_top": (60, 20, 120),
+        "grad_bot": (15, 20, 80),
+        "accent": (160, 120, 255),
+        "card_bg": (50, 20, 100, 180),
+        "emoji": "🚀",
+        "subtitle": "Growth Boost",
+    },
+    "honor": {  # ⭐ 荣耀型（participation_rate）
+        "grad_top": (50, 40, 10),
+        "grad_bot": (15, 12, 5),
+        "accent": (255, 209, 0),
+        "card_bg": (60, 50, 15, 180),
+        "emoji": "⭐",
+        "subtitle": "Honor Reward",
+    },
+    "compete": {  # 🏆 竞赛型（默认）
+        "grad_top": (27, 54, 93),
+        "grad_bot": (10, 20, 45),
+        "accent": (255, 209, 0),
+        "card_bg": (35, 70, 120, 180),
+        "emoji": "🏆",
+        "subtitle": "Team Challenge",
+    },
+}
+
+_METRIC_TO_THEME: dict[str, str] = {
+    "paid": "fire",
+    "revenue": "fire",
+    "revenue_usd": "fire",
+    "payments": "fire",
+    "showup": "target",
+    "checkin_rate": "target",
+    "leads": "growth",
+    "registrations": "growth",
+    "participation_rate": "honor",
+}
+
+
+def _draw_gradient(img, c1: tuple, c2: tuple) -> None:
+    """垂直线性渐变"""
+    from PIL import ImageDraw
+
+    draw = ImageDraw.Draw(img)
+    w, h = img.size
+    for y in range(h):
+        r = int(c1[0] + (c2[0] - c1[0]) * y / h)
+        g = int(c1[1] + (c2[1] - c1[1]) * y / h)
+        b = int(c1[2] + (c2[2] - c1[2]) * y / h)
+        draw.line([(0, y), (w, y)], fill=(r, g, b))
+
+
 def _build_poster_image(camp: dict[str, Any]) -> bytes:
-    """Pillow 海报：51Talk 品牌色、纯泰英、专业排版"""
+    """多主题 Pillow 海报：按指标类型自动选视觉风格"""
     from PIL import Image, ImageDraw, ImageFont
 
-    W, H = 1080, 1350  # 4:5 比例（适合手机+群聊）
+    W, H = 1080, 1350
 
     # ── 字体 ──
-    # 字体优先级：Tahoma（泰英主力）→ Arial Unicode（泰英中全覆盖）→ STHeiti（中文兜底）
-    _FONTS = [
+    _FONT_CHAIN = [
         ("/System/Library/Fonts/Supplemental/Tahoma Bold.ttf", True),
         ("/System/Library/Fonts/Supplemental/Tahoma.ttf", False),
         ("/System/Library/Fonts/Supplemental/Arial Unicode.ttf", None),
         ("/System/Library/Fonts/STHeiti Medium.ttc", None),
     ]
     bold_path = reg_path = ""
-    for fp, is_bold in _FONTS:
+    for fp, is_bold in _FONT_CHAIN:
         if Path(fp).exists():
             if is_bold is True and not bold_path:
                 bold_path = fp
@@ -769,123 +839,154 @@ def _build_poster_image(camp: dict[str, Any]) -> bytes:
     if not bold_path:
         bold_path = reg_path
 
-    def font(size: int, bold: bool = False) -> ImageFont.FreeTypeFont:
-        return ImageFont.truetype(bold_path if bold else reg_path, size)
+    def font(size: int, bold: bool = False):
+        return ImageFont.truetype(
+            bold_path if bold else reg_path, size
+        )
 
-    # ── 颜色 ──
-    BG_DARK = (27, 54, 93)         # #1B365D 51Talk 深蓝
-    BG_CARD = (35, 70, 120)        # 卡片区域稍亮
-    GOLD = (255, 209, 0)           # #FFD100 品牌金
+    # ── 主题选择 ──
+    metric = camp.get("metric", "")
+    theme_key = _METRIC_TO_THEME.get(metric, "compete")
+    theme = _POSTER_THEMES[theme_key]
+    accent = theme["accent"]
     WHITE = (255, 255, 255)
-    LIGHT = (200, 210, 230)
-    MUTED = (140, 160, 190)
-    # ACCENT_GREEN = (72, 199, 142)  # 达标绿（预留进度条用）
+    MUTED = (180, 180, 180)
+    SHADOW = (0, 0, 0)
 
-    # ── 画布 ──
-    img = Image.new("RGB", (W, H), BG_DARK)
+    # ── 渐变背景 ──
+    img = Image.new("RGB", (W, H))
+    _draw_gradient(img, theme["grad_top"], theme["grad_bot"])
     draw = ImageDraw.Draw(img)
 
-    # ── 顶部金色装饰线 ──
-    draw.rectangle([0, 0, W, 8], fill=GOLD)
-
-    # ── 品牌标识区 ──
-    draw.text(
-        (W // 2, 60), "51Talk Thailand",
-        font=font(22), fill=MUTED, anchor="mm",
-    )
-    draw.text(
-        (W // 2, 90), "Referral Incentive Program",
-        font=font(16), fill=MUTED, anchor="mm",
-    )
-
-    # ── 主标题（泰文活动名）──
-    title = camp.get("name_th") or camp.get("name", "")
-    draw.text(
-        (W // 2, 200), title,
-        font=font(52, bold=True), fill=GOLD, anchor="mm",
-    )
-
-    # ── 分隔线 ──
-    line_y = 260
-    draw.rectangle([W // 2 - 60, line_y, W // 2 + 60, line_y + 3], fill=GOLD)
-
-    # ── 中央卡片区域 ──
-    card_margin = 60
-    card_top, card_bottom = 310, 950
-    draw.rounded_rectangle(
-        [card_margin, card_top, W - card_margin, card_bottom],
-        radius=24, fill=BG_CARD,
-    )
+    # ── 顶部装饰线 ──
+    draw.rectangle([0, 0, W, 6], fill=accent)
 
     cx = W // 2
 
+    # ── 品牌+主题标识 ──
+    draw.text(
+        (cx, 50), "51Talk Thailand",
+        font=font(22), fill=MUTED, anchor="mm",
+    )
+    draw.text(
+        (cx, 80), theme["subtitle"],
+        font=font(16), fill=MUTED, anchor="mm",
+    )
+
+    # ── 装饰 emoji ──
+    draw.text(
+        (cx, 145), theme["emoji"],
+        font=font(48), fill=WHITE, anchor="mm",
+    )
+
+    # ── 主标题（泰文 + 文字阴影）──
+    title = camp.get("name_th") or camp.get("name", "")
+    # shadow
+    draw.text(
+        (cx + 2, 232), title,
+        font=font(48, bold=True), fill=SHADOW, anchor="mm",
+    )
+    draw.text(
+        (cx, 230), title,
+        font=font(48, bold=True), fill=accent, anchor="mm",
+    )
+
+    # ── 分隔线 ──
+    draw.rectangle(
+        [cx - 50, 280, cx + 50, 283], fill=accent
+    )
+
+    # ── 卡片 ──
+    cm = 60
+    ct, cb = 320, 960
+    card_rgb = theme["card_bg"][:3]
+    draw.rounded_rectangle(
+        [cm, ct, W - cm, cb], radius=20, fill=card_rgb,
+    )
+
     # ── 参与对象 ──
     role = camp.get("role", "CC")
-    role_th = {"CC": "CC (ฝ่ายขายหน้าบ้าน)", "SS": "SS (ฝ่ายขายหลังบ้าน)",
-               "LP": "LP (ฝ่ายบริการ)"}.get(role, role)
-    draw.text((cx, card_top + 50), "สำหรับ", font=font(20), fill=MUTED, anchor="mm")
+    role_th = {
+        "CC": "CC (ฝ่ายขายหน้าบ้าน)",
+        "SS": "SS (ฝ่ายขายหลังบ้าน)",
+        "LP": "LP (ฝ่ายบริการ)",
+    }.get(role, role)
     draw.text(
-        (cx, card_top + 90), role_th,
-        font=font(32, bold=True), fill=WHITE, anchor="mm",
+        (cx, ct + 45), "สำหรับ",
+        font=font(18), fill=MUTED, anchor="mm",
+    )
+    draw.text(
+        (cx, ct + 85), role_th,
+        font=font(30, bold=True), fill=WHITE, anchor="mm",
     )
 
     # ── 条件 ──
-    metric = camp.get("metric", "")
     metric_label = _METRIC_TH_POSTER.get(metric, metric)
     op = _OP_TH.get(camp.get("operator", "gte"), "≥")
     threshold = camp.get("threshold", 0)
-    thr_str = str(int(threshold)) if threshold == int(threshold) else str(threshold)
-
-    draw.text((cx, card_top + 170), "เป้าหมาย", font=font(20), fill=MUTED, anchor="mm")
+    thr_s = (
+        str(int(threshold))
+        if threshold == int(threshold)
+        else str(threshold)
+    )
     draw.text(
-        (cx, card_top + 220),
-        f"{metric_label} {op} {thr_str}",
-        font=font(36, bold=True), fill=WHITE, anchor="mm",
+        (cx, ct + 160), "เป้าหมาย",
+        font=font(18), fill=MUTED, anchor="mm",
+    )
+    draw.text(
+        (cx, ct + 205),
+        f"{metric_label} {op} {thr_s}",
+        font=font(34, bold=True), fill=WHITE, anchor="mm",
     )
 
-    # ── 奖励（大金字）──
+    # ── 奖励（大字+阴影）──
     reward = camp.get("reward_thb", 0)
-    draw.text((cx, card_top + 320), "รางวัล", font=font(20), fill=MUTED, anchor="mm")
     draw.text(
-        (cx, card_top + 390),
-        f"฿{reward:,.0f}",
-        font=font(72, bold=True), fill=GOLD, anchor="mm",
+        (cx, ct + 300), "รางวัล",
+        font=font(18), fill=MUTED, anchor="mm",
+    )
+    reward_str = f"฿{reward:,.0f}"
+    draw.text(
+        (cx + 3, ct + 378), reward_str,
+        font=font(68, bold=True), fill=SHADOW, anchor="mm",
     )
     draw.text(
-        (cx, card_top + 440), "ต่อคน",
-        font=font(20), fill=LIGHT, anchor="mm",
+        (cx, ct + 375), reward_str,
+        font=font(68, bold=True), fill=accent, anchor="mm",
+    )
+    draw.text(
+        (cx, ct + 425), "ต่อคน",
+        font=font(18), fill=MUTED, anchor="mm",
     )
 
     # ── 日期 ──
+    month_str = camp.get("month", "")
     start = camp.get("start_date", "")
     end = camp.get("end_date", "")
-    month_str = camp.get("month", "")
     if month_str and len(month_str) == 6:
-        m_num = int(month_str[4:6])
-        month_label = _MONTH_TH_FULL[m_num] if m_num <= 12 else ""
-        year_be = int(month_str[:4]) + 543  # Buddhist Era
-        period = f"{month_label} {year_be}"
+        mn = int(month_str[4:6])
+        ml = _MONTH_TH_FULL[mn] if mn <= 12 else ""
+        yr = int(month_str[:4]) + 543
+        period = f"{ml} {yr}"
     elif start and end:
         period = f"{start} — {end}"
     else:
         period = ""
-
     if period:
         draw.text(
-            (cx, card_top + 530),
-            "ระยะเวลา",
-            font=font(18), fill=MUTED, anchor="mm",
+            (cx, ct + 520), "ระยะเวลา",
+            font=font(16), fill=MUTED, anchor="mm",
         )
         draw.text(
-            (cx, card_top + 570),
-            period,
-            font=font(28, bold=True), fill=WHITE, anchor="mm",
+            (cx, ct + 555), period,
+            font=font(26, bold=True), fill=WHITE, anchor="mm",
         )
 
-    # ── 底部装饰 ──
-    draw.rectangle([0, H - 8, W, H], fill=GOLD)
+    # ── 底部 ──
+    draw.rectangle([0, H - 6, W, H], fill=accent)
     draw.text(
-        (cx, H - 40), "51Talk · Referral Operations",
+        (cx, H - 35),
+        "51Talk · Referral Operations",
         font=font(14), fill=MUTED, anchor="mm",
     )
 
