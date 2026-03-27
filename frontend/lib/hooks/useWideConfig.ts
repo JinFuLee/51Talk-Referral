@@ -4,7 +4,22 @@ import { useMemo, useEffect, useCallback } from 'react';
 import useSWR from 'swr';
 import { swrFetcher } from '@/lib/api';
 
-const ENCLOSURE_KEYS = ['M0', 'M1', 'M2', 'M3', 'M4', 'M5', 'M6+'] as const;
+const ENCLOSURE_KEYS = [
+  'M0',
+  'M1',
+  'M2',
+  'M3',
+  'M4',
+  'M5',
+  'M6',
+  'M7',
+  'M8',
+  'M9',
+  'M10',
+  'M11',
+  'M12',
+  'M12+',
+] as const;
 type EnclosureMonth = (typeof ENCLOSURE_KEYS)[number];
 type Role = 'CC' | 'SS' | 'LP' | '运营';
 type EnclosureRoleAssignment = Record<EnclosureMonth, Role[]>;
@@ -16,7 +31,14 @@ const DEFAULT_WIDE: EnclosureRoleAssignment = {
   M3: ['SS'],
   M4: ['LP'],
   M5: ['LP'],
-  'M6+': ['运营'],
+  M6: ['运营'],
+  M7: ['运营'],
+  M8: ['运营'],
+  M9: ['运营'],
+  M10: ['运营'],
+  M11: ['运营'],
+  M12: ['运营'],
+  'M12+': ['运营'],
 };
 
 const M_TO_DAYS: Record<string, { min: number; max: number | null }> = {
@@ -26,7 +48,14 @@ const M_TO_DAYS: Record<string, { min: number; max: number | null }> = {
   M3: { min: 91, max: 120 },
   M4: { min: 121, max: 150 },
   M5: { min: 151, max: 180 },
-  'M6+': { min: 181, max: null },
+  M6: { min: 181, max: 210 },
+  M7: { min: 211, max: 240 },
+  M8: { min: 241, max: 270 },
+  M9: { min: 271, max: 300 },
+  M10: { min: 301, max: 330 },
+  M11: { min: 331, max: 360 },
+  M12: { min: 361, max: 390 },
+  'M12+': { min: 391, max: null },
 };
 
 /** API 返回的围场配置结构 */

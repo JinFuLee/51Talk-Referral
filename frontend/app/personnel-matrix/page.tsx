@@ -19,7 +19,7 @@ import { CCRadarChart } from '@/components/cc-matrix/CCRadarChart';
 import { EfficiencyScatter } from '@/components/cc-matrix/EfficiencyScatter';
 import type { CCHeatmapResponse, CCRadarData, CCDrilldownRow } from '@/lib/types/cross-analysis';
 import type { EnclosureSSMetrics, EnclosureLPMetrics } from '@/lib/types/enclosure-ss-lp';
-import { formatRate, formatRevenue, metricColor } from '@/lib/utils';
+import { formatRate, formatRevenue, metricColor, fmtEnc } from '@/lib/utils';
 import { ExportButton } from '@/components/ui/ExportButton';
 import { useExport } from '@/lib/use-export';
 import { SegmentedTabs } from '@/components/ui/PageTabs';
@@ -303,7 +303,7 @@ function SSTabContent() {
                     {r.ss_group ?? '—'}
                   </td>
                   <td className="slide-td py-1.5 px-2 text-[var(--text-secondary)]">
-                    {r.enclosure}
+                    {fmtEnc(r.enclosure)}
                   </td>
                   <td className="slide-td py-1.5 px-2 text-right font-mono tabular-nums">
                     {safe(r.students)}
@@ -420,7 +420,7 @@ function LPTabContent() {
                     {r.lp_group ?? '—'}
                   </td>
                   <td className="slide-td py-1.5 px-2 text-[var(--text-secondary)]">
-                    {r.enclosure}
+                    {fmtEnc(r.enclosure)}
                   </td>
                   <td className="slide-td py-1.5 px-2 text-right font-mono tabular-nums">
                     {safe(r.students)}

@@ -243,7 +243,7 @@ export function OpsChannelView({ configJson }: OpsChannelViewProps) {
   if (!opsData || opsData.total_students === 0) {
     return (
       <EmptyState
-        title="M6+ 围场暂无学员数据"
+        title="M6~M12+ 围场暂无学员数据"
         description="上传包含 M6+ 围场的过程数据（D3）后自动刷新"
       />
     );
@@ -260,7 +260,7 @@ export function OpsChannelView({ configJson }: OpsChannelViewProps) {
           <div className="text-2xl font-bold tabular-nums text-[var(--text-primary)]">
             {fmtNum(opsData.total_students)}
           </div>
-          <div className="text-xs text-[var(--text-muted)] mt-0.5">M6+ 总学员</div>
+          <div className="text-xs text-[var(--text-muted)] mt-0.5">M6~M12+ 总学员</div>
         </div>
         <div className="card-compact text-center">
           <div className="text-2xl font-bold tabular-nums text-[var(--text-primary)]">

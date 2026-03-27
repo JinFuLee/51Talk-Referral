@@ -17,7 +17,7 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 import { CHART_PALETTE } from '@/lib/chart-palette';
-import { formatRate } from '@/lib/utils';
+import { formatRate, fmtEnc } from '@/lib/utils';
 import { ExportButton } from '@/components/ui/ExportButton';
 import { useExport } from '@/lib/use-export';
 
@@ -324,7 +324,7 @@ export default function ReferralContributorPage() {
                   </td>
                   <td className="slide-td text-center">
                     <span className="text-xs bg-[var(--bg-subtle)] text-[var(--text-secondary)] px-1.5 py-0.5 rounded">
-                      {r.enclosure}
+                      {fmtEnc(r.enclosure)}
                     </span>
                   </td>
                   <td className="slide-td text-right font-mono tabular-nums">

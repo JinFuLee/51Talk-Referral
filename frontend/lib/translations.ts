@@ -422,8 +422,7 @@ export const zhTranslations: Record<string, string> = {
   'biz.enclosure-detail.title': '围场详情分析',
   'biz.enclosure-detail.subtitle': '按付费起算天数分段 · 市场 vs 转介绍渠道对比 · 多维效率指标',
   'biz.enclosure-detail.context.def': '围场定义',
-  'biz.enclosure-detail.context.defDesc':
-    '用户付费当日起算天数分段：0-30 / 31-60 / 61-90 / 91-180 / 181+',
+  'biz.enclosure-detail.context.defDesc': '用户付费当日起算天数分段（M0~M12+ 共14段，每段30天）',
   'biz.enclosure-detail.context.compare': 'D2×D3 对比视角',
   'biz.enclosure-detail.context.compareDesc':
     '同一围场内：市场渠道 vs 转介绍渠道转化率/参与率/学员数对比',
@@ -1008,7 +1007,7 @@ export const thTranslations: Record<string, string> = {
   'biz.enclosure-detail.subtitle':
     'แบ่งตามวันหลังชำระ · เปรียบเทียบตลาด vs การแนะนำ · ตัวชี้วัดหลายมิติ',
   'biz.enclosure-detail.context.def': 'นิยามช่วงวัน',
-  'biz.enclosure-detail.context.defDesc': 'นับจากวันชำระเงิน: 0-30 / 31-60 / 61-90 / 91-180 / 181+',
+  'biz.enclosure-detail.context.defDesc': 'นับจากวันชำระเงิน: M0~M12+ รวม 14 ช่วง ทุก 30 วัน',
   'biz.enclosure-detail.context.compare': 'มุมมองเปรียบเทียบ D2×D3',
   'biz.enclosure-detail.context.compareDesc':
     'ช่วงวันเดียวกัน: อัตราแปลง/มีส่วนร่วม/จำนวนนักเรียน ตลาด vs การแนะนำ',

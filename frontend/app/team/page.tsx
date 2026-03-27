@@ -595,7 +595,8 @@ function TeamPageInner() {
             CC / SS / LP 三岗团队绩效 · 学员数 · 参与率 · 注册 · 付费
           </p>
           <p className="text-sm text-[var(--text-muted)] mt-0.5">
-            CC 负责 0-90 天围场全漏斗；SS/LP 负责 91 天+ 围场过程指标
+            CC 负责 M0~M2（0-90天）全漏斗；SS 负责 M3（91-120天）；LP 负责
+            M4~M5（121-180天）；运营负责 M6~M12+（181天+）
           </p>
         </div>
         <ExportButton onExportCsv={handleExport} />

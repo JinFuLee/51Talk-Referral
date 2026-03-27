@@ -9,7 +9,7 @@ import { Spinner } from '@/components/ui/Spinner';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { PageTabs } from '@/components/ui/PageTabs';
 import { Card } from '@/components/ui/Card';
-import { cn, formatRate } from '@/lib/utils';
+import { cn, formatRate, fmtEnc } from '@/lib/utils';
 import { TeamDetailTab } from '@/components/checkin/TeamDetailTab';
 import { FollowupTab } from '@/components/checkin/FollowupTab';
 import { RankingTab } from '@/components/checkin/RankingTab';
@@ -158,7 +158,9 @@ function ChannelColumn({ ch, rateColor, rateBg }: ChannelColumnProps) {
                 i % 2 === 0 ? 'bg-[var(--bg-subtle)]' : 'bg-[var(--bg-surface)]'
               )}
             >
-              <span className="col-span-2 text-[var(--text-secondary)]">{row.enclosure}</span>
+              <span className="col-span-2 text-[var(--text-secondary)]">
+                {fmtEnc(row.enclosure)}
+              </span>
               <span className="text-right text-[var(--text-primary)]">{row.students}</span>
               <span className={cn('text-right font-medium', rateColor?.(row.rate) ?? '')}>
                 {formatRate(row.rate)}

@@ -2,6 +2,7 @@
 
 import useSWR from 'swr';
 import { swrFetcher } from '@/lib/api';
+import { fmtEnc } from '@/lib/utils';
 import { Spinner } from '@/components/ui/Spinner';
 import { EmptyState } from '@/components/ui/EmptyState';
 
@@ -170,7 +171,7 @@ export default function LearningHeatmapPage() {
                   className={i % 2 === 0 ? 'slide-row-even' : 'slide-row-odd'}
                 >
                   <td className="slide-td font-medium text-[var(--text-primary)]">
-                    {row.enclosure}
+                    {fmtEnc(row.enclosure)}
                   </td>
                   {WEEKS.map((w) => (
                     <HeatCell key={w.key} value={row[w.key]} maxVal={maxVal} />

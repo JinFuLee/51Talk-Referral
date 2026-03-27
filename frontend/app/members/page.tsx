@@ -127,7 +127,7 @@ export default function MembersPage() {
       <div className="flex gap-3 flex-wrap items-center">
         <input
           type="text"
-          placeholder="围场筛选（如 0~30 / 6M）"
+          placeholder="围场筛选（如 0M / 6M / 12M+）"
           value={enclosureFilter}
           onChange={(e) => {
             setEnclosureFilter(e.target.value);
@@ -227,8 +227,7 @@ export default function MembersPage() {
                   <tr className="slide-thead-row text-xs">
                     <th className="py-1.5 px-2 border-0 text-left whitespace-nowrap">ID</th>
                     <th className="py-1.5 px-2 border-0 text-left whitespace-nowrap">
-                      围场{' '}
-                      <BrandDot tooltip="学员付费起算天数分段（0-30/31-60/61-90/91-180/181+天）" />
+                      围场 <BrandDot tooltip="学员付费起算天数分段（M0~M12+，每30天一段）" />
                     </th>
                     <th className="py-1.5 px-2 border-0 text-left whitespace-nowrap">生命周期</th>
                     <th className="py-1.5 px-2 border-0 text-left whitespace-nowrap">CC</th>

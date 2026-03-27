@@ -1,6 +1,6 @@
 'use client';
 
-import { formatRate } from '@/lib/utils';
+import { formatRate, fmtEnc } from '@/lib/utils';
 import type { EnclosureCCMetrics } from '@/lib/types/enclosure';
 
 interface EnclosureHeatmapProps {
@@ -44,7 +44,9 @@ export function EnclosureHeatmap({ metrics }: EnclosureHeatmapProps) {
         <tbody>
           {metrics.map((r, i) => (
             <tr key={i} className="even:bg-[var(--bg-subtle)]">
-              <td className="py-1 px-2 text-xs text-[var(--text-secondary)]">{r.enclosure}</td>
+              <td className="py-1 px-2 text-xs text-[var(--text-secondary)]">
+                {fmtEnc(r.enclosure)}
+              </td>
               <td className="py-1 px-2 text-xs font-medium">{r.cc_name}</td>
               <td className="py-1 px-2 text-xs text-right font-mono tabular-nums">
                 {r.students.toLocaleString()}

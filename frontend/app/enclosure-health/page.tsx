@@ -47,7 +47,7 @@ export default function EnclosureHealthPage() {
       <div>
         <h1 className="page-title">围场健康扫描仪</h1>
         <p className="text-sm text-[var(--text-secondary)] mt-1">
-          7段围场 · 健康分 · 对标分析 · CC方差诊断
+          14段围场 · 健康分 · 对标分析 · CC方差诊断
         </p>
       </div>
 
@@ -73,7 +73,7 @@ export default function EnclosureHealthPage() {
       )}
 
       {/* 健康分卡片 */}
-      <Card title="围场健康分（7 段）">
+      <Card title="围场健康分（14 段）">
         {loadingScores ? (
           <div className="flex items-center justify-center h-32">
             <Spinner size="lg" />
