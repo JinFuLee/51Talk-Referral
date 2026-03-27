@@ -319,9 +319,12 @@ def _build_record(
     if revenue_target is None:
         revenue_target = (
             team_revenue_target * alloc_ratio
-            if team_revenue_target is not None
-            else None
+            if (team_revenue_target is not None and team_revenue_target > 0)
+            else None  # 团队目标=0 时不分配 0（显示未设置）
         )
+    # referral 目标 fallback：无上传时按 revenue_target * referral_share 估算
+    if referral_usd_target is None and revenue_target is not None:
+        referral_usd_target = revenue_target * referral_share_target
 
     # ── 实际值 ──
     revenue_actual = _sf(row.get("revenue_actual"))
@@ -340,14 +343,17 @@ def _build_record(
     # ── 从 referral_usd_target 推算其余目标 ──
     # paid_target = referral_usd_target / ASP（优先用团队目标 ASP，fallback 实际 ASP）
     asp_for_derive = asp_target or asp_actual
-    paid_target = (
+    paid_target_raw = (
         referral_usd_target / asp_for_derive
         if (referral_usd_target is not None and asp_for_derive and asp_for_derive > 0)
         else None
     )
+    paid_target = round(paid_target_raw) if paid_target_raw is not None else None
     if paid_target is None:
         paid_target = (
-            team_paid_target * alloc_ratio if team_paid_target is not None else None
+            round(team_paid_target * alloc_ratio)
+            if (team_paid_target is not None and team_paid_target > 0)
+            else None
         )
 
     # lead_target = paid_target / leads→paid 转化率（实际值 fallback 团队目标）
@@ -454,8 +460,8 @@ def _build_record(
     return CCPerformanceRecord(
         team=team,
         cc_name=cc_name,
-        revenue=_metric(revenue_actual, revenue_target),
-        referral_revenue=_metric(revenue_actual, revenue_target),  # D2 本身是转介绍口径
+        revenue=_metric(revenue_actual, revenue_target),  # actual=D2(转介绍口径), target=usd_target(总)
+        referral_revenue=_metric(revenue_actual, referral_usd_target),  # target=referral_usd_target
         pace_gap_pct=_sf(pace_gap_pct),
         referral_share=_metric(referral_share_actual, referral_share_target),
         paid=_metric(paid_actual, paid_target),
