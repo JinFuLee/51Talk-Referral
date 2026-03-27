@@ -25,6 +25,7 @@ import EnclosureRoleCard from './EnclosureRoleCard';
 import CheckinThresholdsCard from './CheckinThresholdsCard';
 import IndicatorMatrixCard from './IndicatorMatrixCard';
 import { TargetRecommender } from '@/components/settings/TargetRecommender';
+import DataSourceCard from './DataSourceCard';
 import { defaultV2, MONTHS } from './defaultV2';
 
 export default function SettingsPage() {
@@ -191,6 +192,7 @@ export default function SettingsPage() {
         </p>
       )}
 
+      <DataSourceCard />
       <ExchangeRateCard
         rate={rate}
         rateInput={rateInput}

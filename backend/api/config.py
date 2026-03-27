@@ -31,6 +31,7 @@ TARGETS_OVERRIDE_FILE = CONFIG_DIR / "targets_override.json"
 EXCHANGE_RATE_FILE = CONFIG_DIR / "exchange_rate.json"
 ENCLOSURE_ROLE_FILE = CONFIG_DIR / "enclosure_role_override.json"
 CHECKIN_THRESHOLDS_FILE = CONFIG_DIR / "checkin_thresholds.json"
+QUICKBI_SOURCE_FILE = CONFIG_DIR / "quickbi_source.json"
 
 router = APIRouter()
 
@@ -627,6 +628,45 @@ def put_checkin_thresholds(body: dict[str, Any]) -> dict[str, Any]:
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc)) from exc
     return {"status": "ok"}
+
+
+# ── Quick BI 数据源配置 ──────────────────────────────────────────────────────
+
+
+class QuickBIUrlUpdate(BaseModel):
+    dashboard_url: str
+
+
+@router.get("/quickbi-source", summary="读取 Quick BI 数据源配置")
+def get_quickbi_source() -> dict[str, Any]:
+    """返回 Quick BI 仪表板 URL 和表格配置。"""
+    cfg = _read_json(QUICKBI_SOURCE_FILE, {})
+    return {
+        "dashboard_url": cfg.get("dashboard_url", ""),
+        "tables": cfg.get("tables", []),
+        "last_updated": cfg.get("last_updated"),
+    }
+
+
+@router.put("/quickbi-source", summary="更新 Quick BI 仪表板 URL")
+def put_quickbi_source(body: QuickBIUrlUpdate) -> dict[str, Any]:
+    """更新 accessTicket 过期后的新链接。"""
+    url = body.dashboard_url.strip()
+    if not url.startswith("https://bi.aliyuncs.com/"):
+        raise HTTPException(
+            status_code=400,
+            detail="URL 必须以 https://bi.aliyuncs.com/ 开头",
+        )
+    cfg = _read_json(QUICKBI_SOURCE_FILE, {})
+    old_url = cfg.get("dashboard_url", "")
+    cfg["dashboard_url"] = url
+    cfg["last_updated"] = datetime.now(UTC).isoformat()
+    _backup_config_file(QUICKBI_SOURCE_FILE)
+    _write_json(QUICKBI_SOURCE_FILE, cfg)
+    return {
+        "status": "ok",
+        "url_changed": url != old_url,
+    }
 
 
 # ── 围场过程指标目标（从 D2 推导）──────────────────────────────────────────────
