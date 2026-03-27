@@ -303,10 +303,13 @@ def _build_record(
         else 0.0
     )
 
-    # 个人目标（上传 CSV：仅 referral_usd_target）
+    # 个人目标（上传或按学员数分配）
     cc_target = cc_targets.get(cc_name, {}) if cc_targets else {}
     revenue_target = _sf(cc_target.get("referral_usd_target"))
-    target_source = "manual" if revenue_target is not None else "allocated"
+    is_allocated = cc_target.get("_allocated", False)
+    target_source = (
+        "allocated" if (is_allocated or revenue_target is None) else "manual"
+    )
 
     # ── 实际值 ──
     revenue_actual = _sf(row.get("revenue_actual"))
@@ -718,6 +721,57 @@ def get_cc_performance(
     calls_per_day = _load_outreach_calls_per_day()
     call_target = int(calls_per_day * mp.total_workdays)
 
+    # ── 团队转介绍目标（铁数字，来自 config hard.referral_revenue）──
+    hard = targets.get("hard", {})
+    team_referral_target = _sf(hard.get("referral_revenue"))
+
+    # ── 构建 case-insensitive 上传目标查找 ──
+    # 上传 CC 名大小写可能与 D2 不一致，统一 lower 匹配
+    uploaded_lower: dict[str, dict] = {}
+    for cc_name_key, cc_t in (cc_targets or {}).items():
+        val = _sf(cc_t.get("referral_usd_target"))
+        if val is not None:
+            uploaded_lower[cc_name_key.lower()] = cc_t
+
+    sum_uploaded = sum(
+        _sf(v.get("referral_usd_target")) or 0.0
+        for v in uploaded_lower.values()
+    )
+
+    # ── 未上传 CC 按学员数分配剩余额度 ──
+    remaining_budget = (
+        max(0.0, team_referral_target - sum_uploaded)
+        if team_referral_target is not None
+        else 0.0
+    )
+    unassigned_students = 0.0
+    for cc_name_iter in merged.index:
+        if str(cc_name_iter).lower() not in uploaded_lower:
+            s = _sf(merged.at[cc_name_iter, "students_count"])
+            unassigned_students += s if s else 0.0
+
+    # 构建 enriched_cc_targets（key = D2 原名，大小写匹配 D2）
+    enriched_cc_targets: dict[str, dict] = {}
+    for cc_name_iter in merged.index:
+        cc_str = str(cc_name_iter)
+        cc_lower = cc_str.lower()
+        if cc_lower in uploaded_lower:
+            # 已上传：原样使用
+            enriched_cc_targets[cc_str] = uploaded_lower[cc_lower]
+        else:
+            # 未上传：按学员数分配剩余
+            s = _sf(merged.at[cc_name_iter, "students_count"])
+            alloc = (
+                remaining_budget * (s / unassigned_students)
+                if (s and unassigned_students > 0)
+                else None
+            )
+            if alloc is not None:
+                enriched_cc_targets[cc_str] = {
+                    "referral_usd_target": round(alloc, 2),
+                    "_allocated": True,  # 标记为自动分配
+                }
+
     # 构建个人记录
     all_records: list[CCPerformanceRecord] = []
     for cc_name, row in merged.iterrows():
@@ -728,7 +782,7 @@ def get_cc_performance(
             total_students=total_students,
             call_target=call_target,
             mp=mp,
-            cc_targets=cc_targets,
+            cc_targets=enriched_cc_targets,
         )
         all_records.append(rec)
 
@@ -745,7 +799,10 @@ def get_cc_performance(
         # 直接用所有 records 聚合出一个伪 grand_total
         gt_students = sum(r.students_count or 0 for r in all_records) or None
         gt_revenue_actual = sum(r.revenue.actual or 0 for r in all_records) or None
-        gt_revenue_target = sum(r.revenue.target or 0 for r in all_records) or None
+        # 团队目标用 config hard.referral_revenue（铁数字），不用个人之和
+        gt_revenue_target = team_referral_target or (
+            sum(r.revenue.target or 0 for r in all_records) or None
+        )
         gt_paid_actual = sum(r.paid.actual or 0 for r in all_records) or None
         gt_paid_target = sum(r.paid.target or 0 for r in all_records) or None
         gt_leads_actual = sum(r.leads.actual or 0 for r in all_records) or None
