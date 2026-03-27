@@ -374,7 +374,8 @@ class ReportEngine:
                     # V2 channels 推导付费目标 = sum(user_count × conversion_rate)
                     if channels_v2 and "payments" not in base_targets:
                         total_paid = sum(
-                            (ch.get("user_count") or 0) * (ch.get("conversion_rate") or 0)
+                            (ch.get("user_count") or 0)
+                            * (ch.get("conversion_rate") or 0)
                             for ch in channels_v2.values()
                         )
                         if total_paid > 0:
