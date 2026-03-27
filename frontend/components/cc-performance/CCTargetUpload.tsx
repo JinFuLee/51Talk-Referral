@@ -41,6 +41,8 @@ export function CCTargetUpload({ month, onUploadSuccess }: CCTargetUploadProps) 
   const [pasteText, setPasteText] = useState('');
   const [previewRows, setPreviewRows] = useState<PreviewRow[]>([]);
   const [previewHeaders, setPreviewHeaders] = useState<string[]>([]);
+  const [totalRowCount, setTotalRowCount] = useState(0);
+  const [invalidRowIndices, setInvalidRowIndices] = useState<Set<number>>(new Set());
   const [uploading, setUploading] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -48,17 +50,46 @@ export function CCTargetUpload({ month, onUploadSuccess }: CCTargetUploadProps) 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
   const [uploadStatus, setUploadStatus] = useState<UploadStatus | null>(null);
+  // 粘贴模式下保存全量行（用于上传，previewRows 仅前 10 条）
+  const [allPastedRows, setAllPastedRows] = useState<PreviewRow[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const reset = () => {
     setPreviewRows([]);
     setPreviewHeaders([]);
+    setTotalRowCount(0);
+    setInvalidRowIndices(new Set());
+    setAllPastedRows([]);
     setError(null);
     setUploadResult(null);
     setSelectedFile(null);
     setIsDragOver(false);
     setPasteText('');
     setInputMode('file');
+  };
+
+  /**
+   * 校验数字列：空值允许，非空则必须是有效数字
+   */
+  const isValidNumber = (val: string): boolean => {
+    if (!val || val.trim() === '') return true;
+    return !isNaN(Number(val.trim()));
+  };
+
+  /**
+   * 计算无效行索引（基于全量行数组）
+   */
+  const computeInvalidIndices = (rows: PreviewRow[]): Set<number> => {
+    const invalid = new Set<number>();
+    rows.forEach((row, i) => {
+      const name = row['cc_name'] ?? '';
+      const usd = row['usd_target'] ?? '';
+      const ref = row['referral_usd_target'] ?? '';
+      if (!name.trim() || !isValidNumber(usd) || !isValidNumber(ref)) {
+        invalid.add(i);
+      }
+    });
+    return invalid;
   };
 
   const handleClose = () => {
@@ -84,48 +115,62 @@ export function CCTargetUpload({ month, onUploadSuccess }: CCTargetUploadProps) 
   /**
    * 解析粘贴文本，自动检测分隔符（Tab 或逗号）和表头
    */
-  const parsePastedText = useCallback((text: string): { headers: string[]; rows: PreviewRow[] } => {
-    const lines = text
-      .trim()
-      .split('\n')
-      .filter((l) => l.trim() !== '');
-    if (lines.length === 0) return { headers: [], rows: [] };
+  const parsePastedText = useCallback(
+    (text: string): { headers: string[]; rows: PreviewRow[]; invalidIndices: number[] } => {
+      const lines = text
+        .trim()
+        .split('\n')
+        .filter((l) => l.trim() !== '');
+      if (lines.length === 0) return { headers: [], rows: [], invalidIndices: [] };
 
-    // 检测分隔符：含 Tab 则用 Tab，否则用逗号
-    const separator = lines[0].includes('\t') ? '\t' : ',';
+      // 检测分隔符：含 Tab 则用 Tab，否则用逗号
+      const separator = lines[0].includes('\t') ? '\t' : ',';
 
-    const splitLine = (line: string) =>
-      line.split(separator).map((v) => v.trim().replace(/^"|"$/g, ''));
+      const splitLine = (line: string) =>
+        line.split(separator).map((v) => v.trim().replace(/^"|"$/g, ''));
 
-    const firstLineCells = splitLine(lines[0]);
+      const firstLineCells = splitLine(lines[0]);
 
-    // 检测是否含表头：首行第一个单元格含 cc_name（不区分大小写）
-    const hasHeader = firstLineCells.some((c) => c.toLowerCase().includes('cc_name'));
+      // 检测是否含表头：首行第一个单元格含 cc_name（不区分大小写）
+      const hasHeader = firstLineCells.some((c) => c.toLowerCase().includes('cc_name'));
 
-    let headers: string[];
-    let dataLines: string[];
+      let headers: string[];
+      let dataLines: string[];
 
-    if (hasHeader) {
-      headers = firstLineCells;
-      dataLines = lines.slice(1);
-    } else {
-      headers = DEFAULT_PASTE_HEADERS;
-      dataLines = lines;
-    }
+      if (hasHeader) {
+        headers = firstLineCells;
+        dataLines = lines.slice(1);
+      } else {
+        headers = DEFAULT_PASTE_HEADERS;
+        dataLines = lines;
+      }
 
-    const rows = dataLines
-      .filter((l) => l.trim() !== '')
-      .map((line) => {
-        const values = splitLine(line);
-        const row: PreviewRow = {};
-        headers.forEach((h, i) => {
-          row[h] = values[i] ?? '';
+      const rows = dataLines
+        .filter((l) => l.trim() !== '')
+        .map((line) => {
+          const values = splitLine(line);
+          const row: PreviewRow = {};
+          headers.forEach((h, i) => {
+            row[h] = values[i] ?? '';
+          });
+          return row;
         });
-        return row;
+
+      const invalid: number[] = [];
+      rows.forEach((row, i) => {
+        const name = row['cc_name'] ?? '';
+        const usd = row['usd_target'] ?? '';
+        const ref = row['referral_usd_target'] ?? '';
+        const isValidNum = (val: string) => !val.trim() || !isNaN(Number(val.trim()));
+        if (!name.trim() || !isValidNum(usd) || !isValidNum(ref)) {
+          invalid.push(i);
+        }
       });
 
-    return { headers, rows };
-  }, []);
+      return { headers, rows, invalidIndices: invalid };
+    },
+    []
+  );
 
   const handlePasteTextChange = useCallback(
     (text: string) => {
@@ -135,11 +180,17 @@ export function CCTargetUpload({ month, onUploadSuccess }: CCTargetUploadProps) 
       if (text.trim() === '') {
         setPreviewHeaders([]);
         setPreviewRows([]);
+        setTotalRowCount(0);
+        setInvalidRowIndices(new Set());
+        setAllPastedRows([]);
         return;
       }
-      const { headers, rows } = parsePastedText(text);
+      const { headers, rows, invalidIndices } = parsePastedText(text);
       setPreviewHeaders(headers);
+      setTotalRowCount(rows.length);
+      setAllPastedRows(rows);
       setPreviewRows(rows.slice(0, 10));
+      setInvalidRowIndices(new Set(invalidIndices));
     },
     [parsePastedText]
   );
@@ -155,7 +206,9 @@ export function CCTargetUpload({ month, onUploadSuccess }: CCTargetUploadProps) 
         const text = e.target?.result as string;
         const { headers, rows } = parseCSV(text);
         setPreviewHeaders(headers);
+        setTotalRowCount(rows.length);
         setPreviewRows(rows.slice(0, 10));
+        setInvalidRowIndices(computeInvalidIndices(rows));
       };
       reader.readAsText(file, 'utf-8');
     } else if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
@@ -194,6 +247,9 @@ export function CCTargetUpload({ month, onUploadSuccess }: CCTargetUploadProps) 
     }
     setPreviewHeaders([]);
     setPreviewRows([]);
+    setTotalRowCount(0);
+    setInvalidRowIndices(new Set());
+    setAllPastedRows([]);
     setError(null);
     setUploadResult(null);
   };
@@ -204,10 +260,10 @@ export function CCTargetUpload({ month, onUploadSuccess }: CCTargetUploadProps) 
     let fileToUpload: File | null = selectedFile;
 
     if (inputMode === 'paste') {
-      if (previewRows.length === 0) return;
-      // 将粘贴数据构造为 CSV File 对象
+      if (allPastedRows.length === 0) return;
+      // 将全量粘贴数据构造为 CSV File 对象（不受前 10 条预览限制）
       const csvLines = [previewHeaders.join(',')];
-      previewRows.forEach((row) => {
+      allPastedRows.forEach((row) => {
         csvLines.push(previewHeaders.map((h) => row[h] ?? '').join(','));
       });
       const csvString = csvLines.join('\n');
@@ -261,8 +317,9 @@ export function CCTargetUpload({ month, onUploadSuccess }: CCTargetUploadProps) 
 
   const isXlsx = selectedFile?.name.endsWith('.xlsx') || selectedFile?.name.endsWith('.xls');
 
-  // 确认上传按钮可用条件
-  const canUpload = !uploading && (inputMode === 'file' ? !!selectedFile : previewRows.length > 0);
+  // 确认上传按钮可用条件（有无效行时仍允许上传，后端会忽略无效 cc_name）
+  const canUpload =
+    !uploading && (inputMode === 'file' ? !!selectedFile : allPastedRows.length > 0);
 
   // 是否展示预览表格
   const showPreview =
@@ -420,7 +477,7 @@ export function CCTargetUpload({ month, onUploadSuccess }: CCTargetUploadProps) 
               {showPreview && (
                 <div className="space-y-2">
                   <p className="text-sm font-medium text-[var(--text-primary)]">
-                    步骤 3：预览（前 {previewRows.length} 条）
+                    步骤 3：预览（前 {Math.min(totalRowCount, 10)} 条）
                   </p>
                   <div className="overflow-x-auto rounded-lg border border-[var(--border-default)]">
                     <table className="w-full text-left text-sm">
@@ -435,9 +492,23 @@ export function CCTargetUpload({ month, onUploadSuccess }: CCTargetUploadProps) 
                       </thead>
                       <tbody>
                         {previewRows.map((row, i) => (
-                          <tr key={i} className={i % 2 === 0 ? 'slide-row-even' : 'slide-row-odd'}>
+                          <tr
+                            key={i}
+                            className={
+                              invalidRowIndices.has(i)
+                                ? 'bg-red-50'
+                                : i % 2 === 0
+                                  ? 'slide-row-even'
+                                  : 'slide-row-odd'
+                            }
+                          >
                             {previewHeaders.map((h) => (
-                              <td key={h} className="slide-td whitespace-nowrap">
+                              <td
+                                key={h}
+                                className={`slide-td whitespace-nowrap${
+                                  h === 'cc_name' && invalidRowIndices.has(i) ? ' text-red-600' : ''
+                                }`}
+                              >
                                 {row[h]}
                               </td>
                             ))}
@@ -447,8 +518,13 @@ export function CCTargetUpload({ month, onUploadSuccess }: CCTargetUploadProps) 
                     </table>
                   </div>
                   <p className="text-xs text-[var(--text-muted)]">
-                    共 {previewRows.length} 条记录（预览前 10 条）
+                    共 {totalRowCount} 条记录（预览前 {Math.min(totalRowCount, 10)} 条）
                   </p>
+                  {invalidRowIndices.size > 0 && (
+                    <p className="text-xs text-red-600">
+                      ⚠ {invalidRowIndices.size} 条数据有误（高亮行），请检查后重新粘贴
+                    </p>
+                  )}
                 </div>
               )}
 
