@@ -1512,10 +1512,10 @@ def _send_honor_and_warning(
     team_cc_results: list[dict],
     enc_order: list[str],
     date_display: str,
-    honor_only: bool = False,
+    detail_level: str = "individual",
 ) -> None:
     """发送打卡荣耀卡片（3 档正向）+ CC 围场警示卡片。
-    honor_only=True 时仅发荣耀卡（总览模式，TL/管理层群用）。
+    detail_level: overview=汇总数字, team=按团队分组, individual=完整排行。
     仅 CC 角色触发。
     """
     if role != "CC":
@@ -1578,15 +1578,157 @@ def _send_honor_and_warning(
     for t in tiers:
         tiers[t].sort(key=lambda x: x[2])
 
-    # ── 发送荣耀卡片（column_set 表格对齐）──
+    # ── 发送荣耀卡片（3 级粒度）──
     tier_config = [
         ("hall_of_fame", "🏆", "honor_hall_title", "honor_hall_body", "yellow"),
         ("excellent", "🌟", "honor_exc_title", "honor_exc_body", "purple"),
         ("pass", "✅", "honor_pass_title", "honor_pass_body", "green"),
     ]
     _MEDAL = ["🥇", "🥈", "🥉"]
+
+    # overview 模式：一张汇总卡（只有数字，不列人名）
+    if detail_level == "overview":
+        summary_lines = []
+        for tier_key, emoji, title_key, _, _ in tier_config:
+            n = len(tiers[tier_key])
+            if n > 0:
+                summary_lines.append(
+                    f"{emoji} **{_th(title_key)}** — **{n}** {_th('persons')}"
+                )
+        if summary_lines:
+            _send_lark(
+                webhook,
+                {
+                    "msg_type": "interactive",
+                    "card": {
+                        "header": {
+                            "title": {
+                                "tag": "plain_text",
+                                "content": (
+                                    "🏆 เกียรติยศเช็คอิน | 打卡荣耀"
+                                ),
+                            },
+                            "template": "yellow",
+                        },
+                        "elements": [
+                            {
+                                "tag": "markdown",
+                                "content": "\n\n".join(summary_lines),
+                            },
+                            {"tag": "hr"},
+                            {
+                                "tag": "markdown",
+                                "content": (
+                                    f"_{date_display}"
+                                    f"  |  {_th('data_note')}_"
+                                ),
+                            },
+                        ],
+                    },
+                },
+                secret,
+            )
+            print("   ✓ 荣耀卡片: 总览汇总")
+        else:
+            print("   — 无人达到荣耀门槛")
+        # overview 不发警示
+        return
+
+    # team 模式：按团队分组列人名（一张卡）
+    if detail_level == "team":
+        # 需要 cc_name → team 映射
+        cc_team_map: dict[str, str] = {}
+        for tr in team_cc_results:
+            for cc_entry in tr["ccs"]:
+                cc_team_map[cc_entry["cc"]] = tr["team"]
+        # 也补全 ranking 中的 CC
+        for cc_name in cc_ranking_map:
+            if cc_name not in cc_team_map:
+                rk = cc_ranking_map[cc_name]
+                # ranking 里没有 team 信息，用 group
+                # 从 ranking API 的 by_person 中查 group
+                pass  # 无法获取，跳过
+
+        elements_team: list[dict] = [
+            {"tag": "markdown", "content": "<at id=all></at>"},
+        ]
+        for tier_key, emoji, title_key, body_key, template in tier_config:
+            honorees = tiers[tier_key]
+            if not honorees:
+                continue
+            # 按团队分组
+            by_team: dict[str, list[tuple]] = {}
+            for cc_name, rate, rank, students in honorees:
+                team = cc_team_map.get(cc_name, "?")
+                by_team.setdefault(team, []).append(
+                    (cc_name, rate, rank)
+                )
+            elements_team.append(
+                {
+                    "tag": "markdown",
+                    "content": (
+                        f"\n{emoji} **{_th(title_key)}"
+                        f" | {_zh(title_key)}**"
+                    ),
+                }
+            )
+            for team_name in sorted(by_team.keys()):
+                members = by_team[team_name]
+                names = ", ".join(
+                    f"**{n}** {r:.1%}" if r < 1.0 else f"**{n}**"
+                    for n, r, _ in members
+                )
+                elements_team.append(
+                    {
+                        "tag": "markdown",
+                        "content": f"📊 {team_name}: {names}",
+                    }
+                )
+        elements_team.append({"tag": "hr"})
+        elements_team.append(
+            {
+                "tag": "markdown",
+                "content": (
+                    f"_{date_display}  |  {_th('data_note')}_"
+                ),
+            }
+        )
+        if len(elements_team) > 3:
+            _send_lark(
+                webhook,
+                {
+                    "msg_type": "interactive",
+                    "card": {
+                        "header": {
+                            "title": {
+                                "tag": "plain_text",
+                                "content": (
+                                    "🏆 เกียรติยศเช็คอิน"
+                                    " | 打卡荣耀"
+                                ),
+                            },
+                            "template": "yellow",
+                        },
+                        "elements": elements_team,
+                    },
+                },
+                secret,
+            )
+            print("   ✓ 荣耀卡片: 小组级")
+        else:
+            print("   — 无人达到荣耀门槛")
+
+        # team 模式：警示也按团队汇总（不列学员 ID）
+        # fall through to warning section below
+        # (detail_level != "overview" so won't be blocked)
+        # But we need team-level warning, handled below
+        pass
+
+    # individual 模式：完整排行表（column_set）— 每档一张卡
     honor_sent = 0
     for tier_key, emoji, title_key, body_key, template in tier_config:
+        if detail_level != "individual":
+            break  # overview/team 已在上方处理完荣耀
         honorees = tiers[tier_key]
         if not honorees:
             continue
@@ -1714,8 +1856,8 @@ def _send_honor_and_warning(
     if honor_sent == 0 and cc_ranking_map:
         print("   — 无人达到荣耀门槛")
 
-    # ── CC 围场警示（仅 CC 角色，honor_only 模式跳过）──
-    if role != "CC" or honor_only:
+    # ── CC 围场警示（仅 CC 角色，overview 模式跳过）──
+    if role != "CC" or detail_level == "overview":
         return
 
     at_risk_ccs: list[dict] = []
@@ -1787,7 +1929,78 @@ def _send_honor_and_warning(
         if enc in enc_warn_map
     )
 
-    # ── 构建警示卡片（呼吸感排版）──
+    # ── team 模式：按团队汇总（无学员 ID）──
+    if detail_level == "team":
+        # 按团队聚合
+        team_risk: dict[str, int] = {}
+        for cc_warn in at_risk_ccs:
+            # 从 team_cc_results 找到该 CC 的团队
+            cc_team = "?"
+            for tr in team_cc_results:
+                for ce in tr["ccs"]:
+                    if ce["cc"] == cc_warn["cc"]:
+                        cc_team = tr["team"]
+                        break
+            team_risk[cc_team] = (
+                team_risk.get(cc_team, 0) + 1
+            )
+        team_lines = [
+            f"📊 **{t}** — **{n}** CC {_th('warn_at_risk')}"
+            for t, n in sorted(
+                team_risk.items(), key=lambda x: -x[1]
+            )
+        ]
+        _send_lark(
+            webhook,
+            {
+                "msg_type": "interactive",
+                "card": {
+                    "header": {
+                        "title": {
+                            "tag": "plain_text",
+                            "content": (
+                                f"⚠️ {_th('warn_title')}"
+                                f" | {_zh('warn_title')}"
+                            ),
+                        },
+                        "template": "red",
+                    },
+                    "elements": [
+                        {
+                            "tag": "markdown",
+                            "content": (
+                                f"**{_th('warn_body')}**\n"
+                                f"{_zh('warn_body')}\n\n"
+                                f"{warn_thresholds_desc}\n\n"
+                                f"⚠️ **{total_at_risk}** CC"
+                                f" {_th('warn_at_risk')}"
+                            ),
+                        },
+                        {"tag": "hr"},
+                        {
+                            "tag": "markdown",
+                            "content": "\n\n".join(team_lines),
+                        },
+                        {"tag": "hr"},
+                        {
+                            "tag": "markdown",
+                            "content": (
+                                f"_{date_display}"
+                                f"  |  {_th('data_note')}_"
+                            ),
+                        },
+                    ],
+                },
+            },
+            secret,
+        )
+        print(
+            f"   ✓ 警示卡片: 小组级"
+            f" ({total_at_risk} CC, {len(team_risk)} 团队)"
+        )
+        return
+
+    # ── individual 模式：完整警示卡（呼吸感排版 + 学员 ID）──
     summary_line = (
         f"⚠️ **{total_at_risk}** CC"
         f" {_th('warn_at_risk')}"
@@ -2405,10 +2618,126 @@ def cmd_followup(args: argparse.Namespace) -> None:
     print(f"   ✓ 消息 1/{1 + len(team_cc_results)} 已发送（总览）")
     time.sleep(3)
 
-    # --overview-only：跳过小组明细，但仍发荣耀卡（Phase 5）
+    # ── 推送粒度分级 ──
+    detail = args.detail
     if args.overview_only:
+        detail = "overview"
+
+    # overview / team 模式：跳到 Phase 5，不发完整团队明细
+    if detail in ("overview", "team"):
+        # team 模式：发简化版团队卡（CC 名+率，无学员 ID）
+        if detail == "team":
+            for idx, tr in enumerate(team_cc_results, start=2):
+                team_el: list[dict] = []
+                t_rate = f"{tr.get('rate', 0):.1%}"
+                team_el.append(
+                    {
+                        "tag": "markdown",
+                        "content": (
+                            f"📊 **{tr['team']}**  ▸ **{t_rate}**\n"
+                            f"{_th('not_checked')}"
+                            f" **{tr['count']}** {_th('persons')}"
+                            f"  |  {role} {tr['cc_count']}"
+                        ),
+                    }
+                )
+                team_el.append({"tag": "hr"})
+                # 每 CC 一行（名字+率，无学员 ID）
+                for cc_entry in tr["ccs"]:
+                    by_enc = cc_entry.get("by_enclosure", [])
+                    enc_map = {
+                        ei["enclosure"]: ei for ei in by_enc
+                    }
+                    r_tot = sum(
+                        enc_map.get(e, {}).get("students", 0)
+                        for e in enc_order
+                    )
+                    r_chk = sum(
+                        enc_map.get(e, {}).get("checked_in", 0)
+                        for e in enc_order
+                    )
+                    r_pct = (
+                        f"{r_chk / r_tot:.1%}" if r_tot > 0 else "—"
+                    )
+                    n = cc_entry.get("count", 0)
+                    team_el.append(
+                        {
+                            "tag": "column_set",
+                            "flex_mode": "none",
+                            "columns": [
+                                {
+                                    "tag": "column",
+                                    "width": "weighted",
+                                    "weight": 3,
+                                    "elements": [
+                                        {
+                                            "tag": "markdown",
+                                            "content": (
+                                                f"**{cc_entry['cc']}**"
+                                            ),
+                                        }
+                                    ],
+                                },
+                                {
+                                    "tag": "column",
+                                    "width": "weighted",
+                                    "weight": 1,
+                                    "elements": [
+                                        {
+                                            "tag": "markdown",
+                                            "content": f"**{r_pct}**",
+                                        }
+                                    ],
+                                },
+                                {
+                                    "tag": "column",
+                                    "width": "weighted",
+                                    "weight": 1,
+                                    "elements": [
+                                        {
+                                            "tag": "markdown",
+                                            "content": (
+                                                f"{n} {_th('persons')}"
+                                            ),
+                                        }
+                                    ],
+                                },
+                            ],
+                        }
+                    )
+                team_title = (
+                    f"{tr['team']}"
+                    f" {_th('followup_title')}"
+                    f" — {date_display}"
+                )
+                _send_lark(
+                    webhook,
+                    {
+                        "msg_type": "interactive",
+                        "card": {
+                            "header": {
+                                "title": {
+                                    "tag": "plain_text",
+                                    "content": team_title,
+                                },
+                                "template": "red",
+                            },
+                            "elements": team_el,
+                        },
+                    },
+                    secret,
+                )
+                print(
+                    f"   ✓ 消息 {idx}/"
+                    f"{1 + len(team_cc_results)}"
+                    f" 已发送（{tr['team']} 小组级）"
+                )
+                time.sleep(3)
+
+        # Phase 5：荣耀+警示
         print()
-        print("5. 发送荣耀卡片（总览模式）...")
+        detail_label = "总览" if detail == "overview" else "小组"
+        print(f"5. 发送荣耀 + 警示卡片（{detail_label}模式）...")
         _send_honor_and_warning(
             webhook=webhook,
             secret=secret,
@@ -2417,15 +2746,17 @@ def cmd_followup(args: argparse.Namespace) -> None:
             team_cc_results=team_cc_results,
             enc_order=enc_order,
             date_display=date_display,
-            honor_only=True,
+            detail_level=detail,
         )
         _log_sent(
             channel=args.channel, role=role,
-            msgs=1, honor=0, warning=0,
+            msgs=1 + (len(team_cc_results) if detail == "team" else 0),
+            honor=0, warning=0,
         )
-        print("\n✓ 总览模式完成")
+        print(f"\n✓ {detail_label}模式完成")
         return
 
+    # ── individual 模式：完整团队明细（含学员 ID）──
     # 消息 2-N：每团队 card（泰文主 + 中文辅，每 CC 一段）
     for idx, tr in enumerate(team_cc_results, start=2):
         team_elements: list[dict] = []
@@ -2627,7 +2958,16 @@ def main() -> None:
     )
     p_followup.add_argument(
         "--overview-only", action="store_true",
-        help="只发总览，不发小组明细（适用于管理层群）",
+        help="[兼容] 等同 --detail overview",
+    )
+    p_followup.add_argument(
+        "--detail",
+        choices=["overview", "team", "individual"],
+        default="individual",
+        help=(
+            "推送粒度：overview=管理层总览, "
+            "team=TL小组级, individual=ALL个人级 (default)"
+        ),
     )
     p_followup.add_argument(
         "--force", action="store_true",

@@ -77,21 +77,22 @@ stop_backend() {
 # ── 推送执行 ─────────────────────────────────────────────────────────────────
 do_push() {
     log "=== 开始推送 ==="
-    # 注：SS/LP 无宽口围场，不推送打卡内容（仅 CC）
+    # SS/LP 无宽口围场，仅推 CC
+    # 三层分级：individual(ALL群) / team(TL群) / overview(管理层)
 
-    # 1. cc_all（CC 总览+明细+荣耀+警示）
-    log "-> cc_all (CC 全量)"
-    uv run python scripts/lark_bot.py followup --channel cc_all --role CC --confirm 2>&1 | tail -5
+    # 1. cc_all — individual（总览+团队明细+学员ID+荣耀+警示）
+    log "-> cc_all (individual 全量)"
+    uv run python scripts/lark_bot.py followup --channel cc_all --role CC --detail individual --confirm 2>&1 | tail -5
     sleep 3
 
-    # 2. ops（CC 总览+荣耀）
-    log "-> ops (CC 总览)"
-    uv run python scripts/lark_bot.py followup --channel ops --role CC --overview-only --confirm 2>&1 | tail -3
+    # 2. cc_tl — team（总览+小组级CC名+率+荣耀按团队+警示按团队）
+    log "-> cc_tl (team 小组级)"
+    uv run python scripts/lark_bot.py followup --channel cc_tl --role CC --detail team --confirm 2>&1 | tail -3
     sleep 3
 
-    # 3. cc_tl（CC 总览+荣耀）
-    log "-> cc_tl (CC 总览)"
-    uv run python scripts/lark_bot.py followup --channel cc_tl --role CC --overview-only --confirm 2>&1 | tail -3
+    # 3. ops — overview（总览+荣耀汇总数字）
+    log "-> ops (overview 管理层)"
+    uv run python scripts/lark_bot.py followup --channel ops --role CC --detail overview --confirm 2>&1 | tail -3
 
     log "=== 推送完成 ==="
 }
