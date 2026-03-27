@@ -1,13 +1,18 @@
 'use client';
 
+import { useState } from 'react';
 import { formatUSD, formatValue } from '@/lib/utils';
 import type { GapDashboard } from '@/lib/types/report';
+
+type GapView = 'bm' | 'monthly';
 
 // ── I18N ──────────────────────────────────────────────────────────────────────
 const I18N = {
   zh: {
     title: '缺口仪表盘',
     subtitle: '各类缺口数值 · 从业绩倒推到注册数',
+    viewBm: 'BM 进度',
+    viewMonthly: '月度达标',
     gapItems: {
       revenue_gap: '业绩缺口',
       asp_gap: '客单价缺口',
@@ -18,6 +23,8 @@ const I18N = {
     } as Record<string, string>,
     channelTargets: '渠道口径目标',
     channelGaps: '各渠道注册缺口',
+    bmDesc: '相对 BM 进度线的超额/缺口',
+    monthlyDesc: '相对月度目标 100% 的超额/缺口',
     noData: '暂无数据',
     noDataDesc: '请上传本月 Excel 数据源',
     channel: '渠道',
@@ -39,6 +46,10 @@ const I18N = {
     } as Record<string, string>,
     channelTargets: 'Channel Targets',
     channelGaps: 'Channel Registration Gaps',
+    viewBm: 'BM Pace',
+    viewMonthly: 'Monthly Target',
+    bmDesc: 'Surplus/gap vs BM pace line',
+    monthlyDesc: 'Surplus/gap vs 100% monthly target',
     noData: 'No data available',
     noDataDesc: "Please upload this month's Excel data source",
     channel: 'Channel',
@@ -77,11 +88,14 @@ function gapStatusColor(val: number | null | undefined): string {
 
 interface Props {
   data: GapDashboard | null | undefined;
+  /** 月度达标视角的 gap 数据（actual - target，无 BM 调整） */
+  monthlyData?: GapDashboard | null;
   lang: Lang;
 }
 
-export function GapDashboardSlide({ data, lang }: Props) {
+export function GapDashboardSlide({ data, monthlyData, lang }: Props) {
   const t = I18N[lang];
+  const [view, setView] = useState<GapView>('bm');
 
   if (!data) {
     return (
@@ -92,15 +106,43 @@ export function GapDashboardSlide({ data, lang }: Props) {
     );
   }
 
-  const { gaps, channel_targets } = data;
+  // 选择当前视角的数据
+  const activeData = view === 'monthly' && monthlyData ? monthlyData : data;
+  const { gaps, channel_targets } = activeData;
   const channelKeys = Object.keys(channel_targets ?? {});
 
   return (
     <div className="card-base p-5 flex flex-col gap-4">
-      {/* Header */}
-      <div>
-        <h3 className="text-sm font-bold text-[var(--text-primary)] font-display">{t.title}</h3>
-        <p className="text-xs text-[var(--text-muted)] mt-0.5">{t.subtitle}</p>
+      {/* Header + Toggle */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h3 className="text-sm font-bold text-[var(--text-primary)] font-display">{t.title}</h3>
+          <p className="text-xs text-[var(--text-muted)] mt-0.5">
+            {view === 'bm' ? t.bmDesc : t.monthlyDesc}
+          </p>
+        </div>
+        <div className="flex rounded-lg border border-[var(--border-default)] overflow-hidden">
+          <button
+            onClick={() => setView('bm')}
+            className={`px-3 py-1 text-[10px] font-semibold transition-colors ${
+              view === 'bm'
+                ? 'bg-[var(--action)] text-white'
+                : 'bg-white text-[var(--text-muted)] hover:bg-[var(--bg-subtle)]'
+            }`}
+          >
+            {t.viewBm}
+          </button>
+          <button
+            onClick={() => setView('monthly')}
+            className={`px-3 py-1 text-[10px] font-semibold transition-colors ${
+              view === 'monthly'
+                ? 'bg-[var(--action)] text-white'
+                : 'bg-white text-[var(--text-muted)] hover:bg-[var(--bg-subtle)]'
+            }`}
+          >
+            {t.viewMonthly}
+          </button>
+        </div>
       </div>
 
       {/* 主缺口卡片组 */}

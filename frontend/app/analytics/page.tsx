@@ -156,7 +156,11 @@ export default function AnalyticsPage() {
           {/* Row 1: 区块 1 + 区块 2 */}
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
             <MonthlyOverviewSlide data={data.blocks.monthly_overview} lang={lang} />
-            <GapDashboardSlide data={data.blocks.gap_dashboard} lang={lang} />
+            <GapDashboardSlide
+              data={data.blocks.gap_dashboard}
+              monthlyData={data.blocks.gap_dashboard?.monthly}
+              lang={lang}
+            />
           </div>
 
           {/* Row 2: 区块 3 + 区块 4 */}

@@ -131,7 +131,7 @@ class ReportEngine:
                 total_metrics, targets, bm_pct
             ),
             "gap_dashboard": self._block_gap_dashboard(
-                total_metrics, targets, channel_funnel
+                total_metrics, targets, channel_funnel, bm_pct
             ),
             "scenario_analysis": self._block_scenario_analysis(total_metrics, targets),
             "projection": self._block_projection(total_metrics, bm_pct, targets),
@@ -592,55 +592,69 @@ class ReportEngine:
         actuals: dict[str, Any],
         targets: dict[str, Any],
         channel_funnel: dict[str, dict[str, Any]],
+        bm_pct: float = 1.0,
     ) -> dict[str, Any]:
-        """区块 2: 目标分解 + 各类缺口"""
+        """区块 2: 目标分解 + 各类缺口（含 BM 视角 + 月度达标视角）"""
         rev_act = _safe_float(actuals.get("revenue_usd"))
         rev_tgt = _safe_float(targets.get("revenue_usd"))
-        asp = _safe_float(actuals.get("asp")) or 850.0
+        asp_tgt = _safe_float(targets.get("asp"))
+        asp_act = _safe_float(actuals.get("asp")) or 850.0
         paid_rate = _safe_float(actuals.get("paid_rate")) or 0.23
         attend_rate = _safe_float(actuals.get("attend_rate")) or 0.66
         appt_rate = _safe_float(actuals.get("appt_rate")) or 0.77
-
-        revenue_gap = rev_act - rev_tgt
-        asp_gap = asp - _safe_float(targets.get("asp"))
-
-        # 逐级倒推缺口
-        bill_gap = _safe_div(max(-revenue_gap, 0), asp)
-        showup_gap = _safe_div(bill_gap, paid_rate)
-        appt_gap = _safe_div(showup_gap, attend_rate)
-        lead_gap = _safe_div(appt_gap, appt_rate)
-
-        # 各渠道注册缺口 = 目标 - 实际（以总目标比例分配）
         reg_tgt = _safe_float(targets.get("registrations"))
-        reg_act = _safe_float(actuals.get("registrations"))
-        _ = max(reg_tgt - reg_act, 0)  # gap reserved for future use
 
-        # 渠道注册目标（从 targets 读取或按历史比例）
-        channel_targets: dict[str, float] = {}
-        channel_lead_gaps: dict[str, float] = {}
-        total_ch_reg = sum(
-            _safe_float(channel_funnel.get(ch, {}).get("registrations"))
-            for ch in _CHANNEL_ORDER
-        )
-        for ch in _CHANNEL_ORDER:
-            ch_reg = _safe_float(channel_funnel.get(ch, {}).get("registrations"))
-            ch_ratio = _safe_div(ch_reg, total_ch_reg) if total_ch_reg > 0 else 0.25
-            ch_tgt = round(reg_tgt * ch_ratio, 1) if reg_tgt > 0 else 0.0
-            channel_targets[ch] = ch_tgt
-            channel_lead_gaps[ch] = round(max(ch_tgt - ch_reg, 0), 1)
+        def _calc_gaps(
+            multiplier: float,
+        ) -> dict[str, Any]:
+            """计算缺口，multiplier=bm_pct 为 BM 视角，=1.0 为月度达标"""
+            adj_rev_tgt = rev_tgt * multiplier
+            adj_reg_tgt = reg_tgt * multiplier
 
-        return {
-            "channel_targets": channel_targets,
-            "gaps": {
-                "revenue_gap": round(revenue_gap, 2),
-                "asp_gap": round(asp_gap, 2),
-                "bill_gap": round(bill_gap, 1),
-                "showup_gap": round(showup_gap, 1),
-                "appt_gap": round(appt_gap, 1),
-                "lead_gap": round(lead_gap, 1),
-                "channel_lead_gaps": channel_lead_gaps,
-            },
-        }
+            rev_gap = rev_act - adj_rev_tgt
+            asp_gap = asp_act - (asp_tgt or asp_act)
+
+            bill_gap = _safe_div(max(-rev_gap, 0), asp_act)
+            showup_gap = _safe_div(bill_gap, paid_rate)
+            appt_gap = _safe_div(showup_gap, attend_rate)
+            lead_gap = _safe_div(appt_gap, appt_rate)
+
+            # 渠道缺口
+            ch_targets: dict[str, float] = {}
+            ch_gaps: dict[str, float] = {}
+            total_ch = sum(
+                _safe_float(channel_funnel.get(c, {}).get("registrations"))
+                for c in _CHANNEL_ORDER
+            )
+            for ch in _CHANNEL_ORDER:
+                ch_reg = _safe_float(
+                    channel_funnel.get(ch, {}).get("registrations")
+                )
+                ratio = _safe_div(ch_reg, total_ch) if total_ch > 0 else 0.25
+                ct = round(adj_reg_tgt * ratio, 1) if adj_reg_tgt > 0 else 0
+                ch_targets[ch] = ct
+                ch_gaps[ch] = round(ch_reg - ct, 1)
+
+            return {
+                "channel_targets": ch_targets,
+                "gaps": {
+                    "revenue_gap": round(rev_gap, 2),
+                    "asp_gap": round(asp_gap, 2),
+                    "bill_gap": round(bill_gap, 1),
+                    "showup_gap": round(showup_gap, 1),
+                    "appt_gap": round(appt_gap, 1),
+                    "lead_gap": round(lead_gap, 1),
+                    "channel_lead_gaps": ch_gaps,
+                },
+            }
+
+        bm_gaps = _calc_gaps(bm_pct)
+        monthly_gaps = _calc_gaps(1.0)
+
+        # 默认返回 BM 视角（兼容旧前端），额外附加 monthly 视角
+        result = bm_gaps
+        result["monthly"] = monthly_gaps
+        return result
 
     def _block_scenario_analysis(
         self,
