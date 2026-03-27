@@ -26,6 +26,9 @@ interface UploadResult {
   total_rows: number;
   duplicates: number;
   duplicate_names: string[];
+  matched: number;
+  orphaned: Array<{ name: string; target: number | null }>;
+  unmatched_d2: string[];
   month: string;
 }
 
@@ -311,6 +314,9 @@ export function CCTargetUpload({ month, onUploadSuccess }: CCTargetUploadProps) 
         total_rows: data.total_rows ?? 0,
         duplicates: data.duplicates ?? 0,
         duplicate_names: data.duplicate_names ?? [],
+        matched: data.matched ?? data.count ?? 0,
+        orphaned: data.orphaned ?? [],
+        unmatched_d2: data.unmatched_d2 ?? [],
         month: data.month ?? month,
       });
       onUploadSuccess();
@@ -561,21 +567,64 @@ export function CCTargetUpload({ month, onUploadSuccess }: CCTargetUploadProps) 
                 </div>
               )}
 
-              {/* 上传成功 */}
+              {/* 上传成功：对账报告 */}
               {uploadResult && (
-                <div className="rounded-lg bg-emerald-50 border border-emerald-200 px-4 py-3 space-y-1">
-                  <div className="flex items-start gap-2">
-                    <CheckCircle className="w-4 h-4 text-emerald-600 mt-0.5 flex-shrink-0" />
-                    <p className="text-sm text-emerald-700">
-                      上传成功！共 <strong>{uploadResult.total_rows}</strong> 条数据，写入{' '}
-                      <strong>{uploadResult.count}</strong> 条个人目标（{uploadResult.month}）
-                    </p>
+                <div className="space-y-2">
+                  {/* 匹配成功块 */}
+                  <div className="rounded-lg bg-emerald-50 border border-emerald-200 px-4 py-3">
+                    <div className="flex items-start gap-2">
+                      <CheckCircle className="w-4 h-4 text-emerald-600 mt-0.5 flex-shrink-0" />
+                      <p className="text-sm text-emerald-700">
+                        <strong>{uploadResult.matched}</strong> 个匹配成功（已写入）
+                      </p>
+                    </div>
+                    {uploadResult.duplicates > 0 && (
+                      <p className="text-xs text-amber-600 ml-6 mt-1">
+                        {uploadResult.duplicates} 条重名被合并（同名取最后一条）：
+                        {uploadResult.duplicate_names.join('、')}
+                      </p>
+                    )}
                   </div>
-                  {uploadResult.duplicates > 0 && (
-                    <p className="text-xs text-amber-600 ml-6">
-                      {uploadResult.duplicates} 条重名被合并（同名取最后一条）：
-                      {uploadResult.duplicate_names.join('、')}
-                    </p>
+
+                  {/* 孤儿名单块（上传名字在数据中找不到） */}
+                  {uploadResult.orphaned.length > 0 && (
+                    <div className="rounded-lg bg-amber-50 border border-amber-200 px-4 py-3">
+                      <div className="flex items-start gap-2">
+                        <AlertCircle className="w-4 h-4 text-amber-500 mt-0.5 flex-shrink-0" />
+                        <div className="space-y-1">
+                          <p className="text-sm text-amber-600">
+                            <strong>{uploadResult.orphaned.length}</strong>{' '}
+                            个未在数据中找到（目标已并入分配池）：
+                          </p>
+                          <p className="font-mono text-xs text-amber-700 leading-relaxed">
+                            {uploadResult.orphaned
+                              .map((o) => `${o.name}（$${(o.target ?? 0).toLocaleString()}）`)
+                              .join('、')}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* 无目标 CC 块（D2 中有但未上传目标） */}
+                  {uploadResult.unmatched_d2.length > 0 && (
+                    <div className="rounded-lg bg-[var(--bg-subtle)] border border-[var(--border-default)] px-4 py-3">
+                      <div className="flex items-start gap-2">
+                        <AlertCircle className="w-4 h-4 text-[var(--text-muted)] mt-0.5 flex-shrink-0" />
+                        <div className="space-y-1">
+                          <p className="text-sm text-[var(--text-muted)]">
+                            <strong>{uploadResult.unmatched_d2.length}</strong> 个 CC
+                            无上传目标（系统按学员数自动分配）：
+                          </p>
+                          <p className="font-mono text-xs text-[var(--text-muted)] leading-relaxed">
+                            {uploadResult.unmatched_d2.slice(0, 5).join('、')}
+                            {uploadResult.unmatched_d2.length > 5 && (
+                              <>等 {uploadResult.unmatched_d2.length - 5} 人</>
+                            )}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
                   )}
                 </div>
               )}
