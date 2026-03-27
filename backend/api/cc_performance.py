@@ -460,8 +460,8 @@ def _build_record(
     return CCPerformanceRecord(
         team=team,
         cc_name=cc_name,
-        revenue=_metric(revenue_actual, revenue_target),  # actual=D2(转介绍口径), target=usd_target(总)
-        referral_revenue=_metric(revenue_actual, referral_usd_target),  # target=referral_usd_target
+        revenue=_metric(revenue_actual, revenue_target),
+        referral_revenue=_metric(revenue_actual, referral_usd_target),
         pace_gap_pct=_sf(pace_gap_pct),
         referral_share=_metric(referral_share_actual, referral_share_target),
         paid=_metric(paid_actual, paid_target),
