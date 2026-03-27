@@ -11,7 +11,6 @@ from __future__ import annotations
 
 from pydantic import BaseModel
 
-
 # ── 复用子模型 ──────────────────────────────────────────
 
 
@@ -52,17 +51,11 @@ class CCPerformanceRecord(BaseModel):
     team: str  # TH-CC01Team
     cc_name: str  # thcc-Zen（CRM 账号，= 系统 last_cc_name）
 
-    # ── B+C 组：业绩 (USD) ──
-    revenue: PerformanceMetric  # 个人总业绩（USD Target / MTD Cash）
-    referral_revenue: PerformanceMetric  # 转介绍业绩
+    # ── B 组：转介绍业绩 (USD) ── D2 只有转介绍口径
+    revenue: PerformanceMetric  # 转介绍业绩（target=上传目标, actual=D2）
 
-    # ── D 组：业绩差额（含在 revenue/referral_revenue 的 gap 字段）──
-    # sales_gap = revenue.gap, sales_achievement = revenue.achievement_pct
-    # BM% 进度差额单独字段：
+    # ── D 组：业绩差额 ──
     pace_gap_pct: float | None = None  # actual/target - time_progress
-
-    # ── E 组：转介绍占比 ──
-    referral_share: PerformanceMetric  # target=0.30, actual=当前占比
 
     # ── F 组：付费单量 ──
     paid: PerformanceMetric  # Paid Target / Paid / Gap / Achievement
@@ -125,9 +118,7 @@ class CCPerformanceTeamSummary(BaseModel):
     headcount: int  # 团队人数
 
     # 团队聚合指标（与个人记录相同结构）
-    revenue: PerformanceMetric
-    referral_revenue: PerformanceMetric
-    referral_share: PerformanceMetric
+    revenue: PerformanceMetric  # 转介绍业绩
     paid: PerformanceMetric
     asp: PerformanceMetric  # 团队平均客单价
     showup: PerformanceMetric

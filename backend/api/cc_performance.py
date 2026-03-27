@@ -101,11 +101,6 @@ def _load_cc_targets(month: str) -> dict:
     return data.get("targets", {}) if isinstance(data, dict) else {}
 
 
-def _load_referral_share_target() -> float:
-    proj_cfg = _read_json(_PROJECT_CONFIG_PATH, {})
-    return float(proj_cfg.get("referral_share", 0.30))
-
-
 def _load_outreach_calls_per_day() -> int:
     proj_cfg = _read_json(_PROJECT_CONFIG_PATH, {})
     return int(proj_cfg.get("ranking_targets", {}).get("outreach_calls_per_day", 30))
@@ -288,43 +283,30 @@ def _build_record(
     row: pd.Series,
     targets: dict,
     total_students: float,
-    d1_total_revenue: float,
-    referral_share_target: float,
     call_target: int,
     mp,  # MonthProgress
     cc_targets: dict | None = None,
 ) -> CCPerformanceRecord:
-    """将合并后的行数据构建为 CCPerformanceRecord"""
+    """将合并后的行数据构建为 CCPerformanceRecord
+
+    D2 数据源只有转介绍口径，所有业绩指标 = 转介绍业绩。
+    """
 
     team = str(row.get("team") or "")
     students_count = _si(row.get("students_count"))
 
-    # ── 目标分配（三级 fallback） ──
-    team_revenue_target = _sf(targets.get("金额目标"))
+    # ── 目标 ──
     team_paid_target = _si(targets.get("付费目标"))
-
     alloc_ratio = (
         (students_count / total_students)
         if (students_count and total_students > 0)
         else 0.0
     )
 
-    # 1. 个人目标（上传的 CSV：仅 usd_target + referral_usd_target）
+    # 个人目标（上传 CSV：仅 referral_usd_target）
     cc_target = cc_targets.get(cc_name, {}) if cc_targets else {}
-    revenue_target = _sf(cc_target.get("usd_target"))
-    referral_usd_target = _sf(cc_target.get("referral_usd_target"))
+    revenue_target = _sf(cc_target.get("referral_usd_target"))
     target_source = "manual" if revenue_target is not None else "allocated"
-
-    # 2. 加权分配 fallback（当个人目标缺失时）
-    if revenue_target is None:
-        revenue_target = (
-            team_revenue_target * alloc_ratio
-            if (team_revenue_target is not None and team_revenue_target > 0)
-            else None  # 团队目标=0 时不分配 0（显示未设置）
-        )
-    # referral 目标 fallback：无上传时按 revenue_target * referral_share 估算
-    if referral_usd_target is None and revenue_target is not None:
-        referral_usd_target = revenue_target * referral_share_target
 
     # ── 实际值 ──
     revenue_actual = _sf(row.get("revenue_actual"))
@@ -340,12 +322,11 @@ def _build_record(
     )
     asp_target = _sf(targets.get("客单价"))
 
-    # ── 从 referral_usd_target 推算其余目标 ──
-    # paid_target = referral_usd_target / ASP（优先用团队目标 ASP，fallback 实际 ASP）
+    # ── 从 revenue_target 推算其余目标 ──
     asp_for_derive = asp_target or asp_actual
     paid_target_raw = (
-        referral_usd_target / asp_for_derive
-        if (referral_usd_target is not None and asp_for_derive and asp_for_derive > 0)
+        revenue_target / asp_for_derive
+        if (revenue_target is not None and asp_for_derive and asp_for_derive > 0)
         else None
     )
     paid_target = round(paid_target_raw) if paid_target_raw is not None else None
@@ -454,24 +435,11 @@ def _build_record(
     connected_count = _si(row.get("connected_count"))
     effective_count = _si(row.get("effective_count"))
 
-    # ── 转介绍占比 ──
-    referral_share_actual = (
-        (revenue_actual / d1_total_revenue)
-        if (revenue_actual is not None and d1_total_revenue and d1_total_revenue > 0)
-        else None
-    )
-
     return CCPerformanceRecord(
         team=team,
         cc_name=cc_name,
-        # D2 actual = 转介绍口径 → target 也用转介绍目标（苹果比苹果）
-        revenue=_metric(
-            revenue_actual,
-            referral_usd_target or revenue_target,
-        ),
-        referral_revenue=_metric(revenue_actual, referral_usd_target),
+        revenue=_metric(revenue_actual, revenue_target),
         pace_gap_pct=_sf(pace_gap_pct),
-        referral_share=_metric(referral_share_actual, referral_share_target),
         paid=_metric(paid_actual, paid_target),
         asp=_metric(asp_actual, asp_target),
         showup=_metric(showup_actual, showup_target_val),
@@ -492,7 +460,7 @@ def _build_record(
         coefficient=_sf(row.get("coefficient")),
         students_count=students_count,
         target_source=target_source,
-        team_revenue_target=team_revenue_target,
+        team_revenue_target=None,
         team_paid_target=team_paid_target,
         remaining_daily_avg=_sf(remaining_daily_avg),
         pace_daily_needed=_sf(pace_daily_needed),
@@ -564,8 +532,6 @@ def _build_team_summary(
         team=team,
         headcount=headcount,
         revenue=_sum_metric(records, "revenue"),
-        referral_revenue=_sum_metric(records, "referral_revenue"),
-        referral_share=_sum_metric(records, "referral_share"),
         paid=_sum_metric(records, "paid"),
         asp=_sum_metric(records, "asp"),
         showup=_sum_metric(records, "showup"),
@@ -612,8 +578,8 @@ def get_cc_targets_template(
         ]
     cc_names.sort()
 
-    header = "cc_name,usd_target,referral_usd_target\n"
-    rows = "".join(f"{name},,\n" for name in cc_names)
+    header = "cc_name,referral_usd_target\n"
+    rows = "".join(f"{name},\n" for name in cc_names)
     content = header + rows
 
     disposition = f'attachment; filename="cc_targets_template_{month}.csv"'
@@ -644,7 +610,7 @@ def upload_cc_targets(
     if "cc_name" not in df.columns:
         raise HTTPException(status_code=400, detail="缺少 cc_name 列")
 
-    numeric_cols = ["usd_target", "referral_usd_target"]
+    numeric_cols = ["referral_usd_target"]
     targets: dict[str, dict] = {}
     for _, row in df.iterrows():
         cc_name = str(row["cc_name"]).strip()
@@ -715,23 +681,6 @@ def get_cc_performance(
     df_d3 = data.get("detail", pd.DataFrame())
     df_d4 = data.get("students", pd.DataFrame())
 
-    # D2 — 全局 D1 总业绩（所有口径之和）
-    d1_total_revenue = 0.0
-    df_d1 = data.get("monthly_summary", pd.DataFrame())
-    if not df_d1.empty and "总带新付费金额USD" in df_d1.columns:
-        d1_total_revenue = float(
-            pd.to_numeric(df_d1["总带新付费金额USD"], errors="coerce").sum()
-        )
-    # fallback：用 D2 全口径之和
-    if (
-        d1_total_revenue == 0.0
-        and not df_d2.empty
-        and "总带新付费金额USD" in df_d2.columns
-    ):
-        d1_total_revenue = float(
-            pd.to_numeric(df_d2["总带新付费金额USD"], errors="coerce").sum()
-        )
-
     # 聚合三个数据源
     agg_d2 = _agg_d2(df_d2) if not df_d2.empty else pd.DataFrame()
     agg_d4 = _agg_d4(df_d4, month) if not df_d4.empty else pd.DataFrame()
@@ -766,7 +715,6 @@ def get_cc_performance(
     # 配置
     targets = _load_targets(month)
     cc_targets = _load_cc_targets(month)
-    referral_share_target = _load_referral_share_target()
     calls_per_day = _load_outreach_calls_per_day()
     call_target = int(calls_per_day * mp.total_workdays)
 
@@ -778,8 +726,6 @@ def get_cc_performance(
             row=row,
             targets=targets,
             total_students=total_students,
-            d1_total_revenue=d1_total_revenue,
-            referral_share_target=referral_share_target,
             call_target=call_target,
             mp=mp,
             cc_targets=cc_targets,
@@ -818,13 +764,6 @@ def get_cc_performance(
             ]
             return sum(vals) / len(vals) if vals else None
 
-        # D1 有独立总业绩才算占比，D2 fallback = 恒 1.0 无意义
-        _has_real_d1 = not df_d1.empty and "总带新付费金额USD" in df_d1.columns
-        _gt_ref = (
-            gt_revenue_actual / d1_total_revenue
-            if (_has_real_d1 and gt_revenue_actual and d1_total_revenue)
-            else None
-        )
         _gt_asp = (
             gt_revenue_actual / gt_paid_actual
             if (gt_revenue_actual and gt_paid_actual and gt_paid_actual > 0)
@@ -854,9 +793,7 @@ def get_cc_performance(
             team="合计",
             cc_name="全体",
             revenue=_metric(gt_revenue_actual, gt_revenue_target),
-            referral_revenue=_metric(gt_revenue_actual, gt_revenue_target),
             pace_gap_pct=_avg_field("pace_gap_pct"),
-            referral_share=_metric(_gt_ref, referral_share_target),
             paid=_metric(gt_paid_actual, gt_paid_target),
             asp=_metric(_gt_asp, _sf(targets.get("客单价"))),
             showup=_metric(gt_showup_actual, None),
@@ -879,7 +816,7 @@ def get_cc_performance(
             coefficient=_avg_field("coefficient"),
             students_count=_si(gt_students),
             target_source="allocated",
-            team_revenue_target=_sf(targets.get("金额目标")),
+            team_revenue_target=None,
             team_paid_target=_si(targets.get("付费目标")),
             remaining_daily_avg=_avg_field("remaining_daily_avg"),
             pace_daily_needed=_avg_field("pace_daily_needed"),
