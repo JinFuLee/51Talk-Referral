@@ -1513,8 +1513,12 @@ def _send_honor_and_warning(
     team_cc_results: list[dict],
     enc_order: list[str],
     date_display: str,
+    honor_only: bool = False,
 ) -> None:
-    """发送打卡荣耀卡片（3 档正向）+ CC 围场警示卡片。仅 CC 角色触发。"""
+    """发送打卡荣耀卡片（3 档正向）+ CC 围场警示卡片。
+    honor_only=True 时仅发荣耀卡（总览模式，TL/管理层群用）。
+    仅 CC 角色触发。
+    """
     if role != "CC":
         print("   — 荣耀/警示仅 CC 角色，跳过")
         return
@@ -1711,8 +1715,8 @@ def _send_honor_and_warning(
     if honor_sent == 0 and cc_ranking_map:
         print("   — 无人达到荣耀门槛")
 
-    # ── CC 围场警示（仅 CC 角色）──
-    if role != "CC":
+    # ── CC 围场警示（仅 CC 角色，honor_only 模式跳过）──
+    if role != "CC" or honor_only:
         return
 
     at_risk_ccs: list[dict] = []
@@ -2398,8 +2402,25 @@ def cmd_followup(args: argparse.Namespace) -> None:
     print(f"   ✓ 消息 1/{1 + len(team_cc_results)} 已发送（总览）")
     time.sleep(3)
 
-    # --overview-only：只发总览，跳过小组明细
+    # --overview-only：跳过小组明细，但仍发荣耀卡（Phase 5）
     if args.overview_only:
+        print()
+        print("5. 发送荣耀卡片（总览模式）...")
+        _send_honor_and_warning(
+            webhook=webhook,
+            secret=secret,
+            role=role,
+            api_base=api_base,
+            team_cc_results=team_cc_results,
+            enc_order=enc_order,
+            date_display=date_display,
+            honor_only=True,
+        )
+        _log_sent(
+            channel=args.channel, role=role,
+            msgs=1, honor=0, warning=0,
+        )
+        print("\n✓ 总览模式完成")
         return
 
     # 消息 2-N：每团队 card（泰文主 + 中文辅，每 CC 一段）
