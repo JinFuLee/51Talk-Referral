@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import useSWR from 'swr';
 import { swrFetcher } from '@/lib/api';
 import { Spinner } from '@/components/ui/Spinner';
@@ -229,9 +229,8 @@ function TeamCard({ card, rateColor, rateBg }: TeamCardProps) {
             </thead>
             <tbody>
               {card.members.map((m, i) => (
-                <>
+                <React.Fragment key={m.name}>
                   <tr
-                    key={m.name}
                     onClick={() => setExpandedCC(expandedCC === m.name ? null : m.name)}
                     className={`cursor-pointer even:bg-[var(--bg-subtle)] hover:bg-action-accent-surface/50 transition-colors ${
                       expandedCC === m.name ? 'border-l-2 border-[var(--color-accent)]' : ''
@@ -262,13 +261,13 @@ function TeamCard({ card, rateColor, rateBg }: TeamCardProps) {
                     </td>
                   </tr>
                   {expandedCC === m.name && (
-                    <tr key={`${m.name}-drilldown`}>
+                    <tr>
                       <td colSpan={5}>
                         <CCStudentDrilldown ccName={expandedCC} />
                       </td>
                     </tr>
                   )}
-                </>
+                </React.Fragment>
               ))}
             </tbody>
             <tfoot>
@@ -304,10 +303,7 @@ interface RankingTabProps {
   roleEnclosures?: Record<string, string[]>;
 }
 
-export function RankingTab({
-  enclosureFilter,
-  roleFilter = 'CC',
-}: RankingTabProps) {
+export function RankingTab({ enclosureFilter, roleFilter = 'CC' }: RankingTabProps) {
   const { configJson, activeRoles } = useWideConfig();
   const { rateColor, rateBg, legend } = useCheckinThresholds();
   const [subTab, setSubTab] = useState<'group' | 'person'>('group');
@@ -400,10 +396,7 @@ export function RankingTab({
 
       {/* 空态 */}
       {!isLoading && !error && !data && (
-        <EmptyState
-          title="暂无排行数据"
-          description="上传围场打卡数据（D2）并完成分析后自动刷新"
-        />
+        <EmptyState title="暂无排行数据" description="上传围场打卡数据（D2）并完成分析后自动刷新" />
       )}
 
       {/* 排行数据 */}

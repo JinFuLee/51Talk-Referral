@@ -1,5 +1,7 @@
 'use client';
 
+import { useState } from 'react';
+
 // ── 统一筛选栏 ─────────────────────────────────────────────────────────────────
 // 单行水平排列，4 组用竖线分隔：
 // [围场 pills] | [角色 toggle] | [团队 select] | [CC搜索 + 清除]
@@ -22,9 +24,20 @@ interface UnifiedFilterBarProps {
 
 // 全量围场列表（M0～M12+）
 const ALL_ENCLOSURES = [
-  'M0', 'M1', 'M2',
-  'M3', 'M4', 'M5',
-  'M6', 'M7', 'M8', 'M9', 'M10', 'M11', 'M12', 'M12+',
+  'M0',
+  'M1',
+  'M2',
+  'M3',
+  'M4',
+  'M5',
+  'M6',
+  'M7',
+  'M8',
+  'M9',
+  'M10',
+  'M11',
+  'M12',
+  'M12+',
 ] as const;
 
 // 围场分组（视觉分组，用间距隔开）
@@ -49,10 +62,23 @@ export function UnifiedFilterBar({
   onClearAll,
   hasFilter,
 }: UnifiedFilterBarProps) {
+  const [showAllEnclosures, setShowAllEnclosures] = useState<boolean>(false);
+
+  // 默认只展示 KPI 围场；展开时展示全部
+  const visibleGroups = showAllEnclosures
+    ? ENCLOSURE_GROUPS
+    : ENCLOSURE_GROUPS.map((group) => group.filter((enc) => kpiEnclosures.includes(enc))).filter(
+        (group) => group.length > 0
+      );
+
   return (
     <div className="flex flex-wrap items-center gap-2 py-2 border-b border-[var(--border-subtle)]">
       {/* ── 围场 pills ─────────────────────────────────────────────── */}
-      <div className="flex items-center gap-1 overflow-x-auto pb-0.5 flex-shrink-0">
+      <div
+        className={`flex items-center gap-1 pb-0.5 flex-shrink-0 ${
+          showAllEnclosures ? 'overflow-x-auto' : ''
+        }`}
+      >
         {/* 全部围场按钮 */}
         <button
           onClick={() => onEnclosureChange(null)}
@@ -65,10 +91,9 @@ export function UnifiedFilterBar({
           全部
         </button>
 
-        {/* 分组围场 pills */}
-        {ENCLOSURE_GROUPS.map((group, gi) => (
+        {/* 围场 pills（默认仅 KPI 围场，展开后全量） */}
+        {visibleGroups.map((group, gi) => (
           <div key={gi} className="flex items-center gap-1 flex-shrink-0">
-            {/* 组间隔：非第一组前加小间距 */}
             {gi > 0 && <span className="w-1.5 flex-shrink-0" />}
             {group.map((enc) => {
               const isKpi = kpiEnclosures.includes(enc);
@@ -94,6 +119,15 @@ export function UnifiedFilterBar({
             })}
           </div>
         ))}
+
+        {/* 更多 / 收起 按钮 */}
+        <button
+          onClick={() => setShowAllEnclosures((v) => !v)}
+          className="ml-1 px-2 py-1 rounded-full text-xs whitespace-nowrap transition-colors flex-shrink-0 border border-dashed border-[var(--border-default)] text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:border-[var(--border-subtle)]"
+          title={showAllEnclosures ? '收起围场' : '展开全部围场'}
+        >
+          {showAllEnclosures ? '收起 ▴' : '更多 ▾'}
+        </button>
       </div>
 
       {/* 分隔线 */}
