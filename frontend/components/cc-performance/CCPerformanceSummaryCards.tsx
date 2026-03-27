@@ -2,11 +2,13 @@
 
 import { formatRevenue, formatRate } from '@/lib/utils';
 import type { CCPerformanceRecord } from '@/lib/types/cc-performance';
+import type { ViewMode } from './CCPerformanceTable';
 
 interface CCPerformanceSummaryCardsProps {
   grandTotal: CCPerformanceRecord | null;
   timeProgressPct: number;
   exchangeRate: number;
+  viewMode: ViewMode;
 }
 
 function achievementColor(pct: number | null): string {
@@ -82,15 +84,26 @@ export function CCPerformanceSummaryCards({
   grandTotal,
   timeProgressPct,
   exchangeRate,
+  viewMode,
 }: CCPerformanceSummaryCardsProps) {
   const gt = grandTotal;
 
-  // 总业绩卡片
+  // 总业绩卡片：根据 viewMode 切换参照系
   const revenueActual = formatRevenue(gt?.revenue?.actual ?? null, exchangeRate);
-  const revenueTarget =
-    gt?.revenue?.target != null
-      ? `目标 ${formatRevenue(gt.revenue.target, exchangeRate)}`
-      : undefined;
+  const revenueReference =
+    viewMode === 'bm'
+      ? gt?.revenue?.bm_expected != null
+        ? `BM ${formatRevenue(gt.revenue.bm_expected, exchangeRate)}`
+        : undefined
+      : gt?.revenue?.target != null
+        ? `目标 ${formatRevenue(gt.revenue.target, exchangeRate)}`
+        : undefined;
+
+  // 达成率卡片：根据 viewMode 切换
+  const achievementPct =
+    viewMode === 'bm'
+      ? (gt?.revenue?.bm_pct ?? null)
+      : (gt?.revenue?.achievement_pct ?? null);
 
   // 时间进度卡片
   const progressPct = Math.round(timeProgressPct * 100);
@@ -102,42 +115,20 @@ export function CCPerformanceSummaryCards({
       {/* 总业绩 */}
       <KPICard
         label="团队总业绩"
-        tooltip="本月 CC 前端 + 新单 + 转介绍渠道 + 市场渠道 合计"
+        tooltip={viewMode === 'bm' ? '本月 CC 前端合计 vs BM 节奏期望' : '本月 CC 前端 + 新单 + 转介绍渠道 + 市场渠道 合计'}
         value={revenueActual}
-        targetLabel={revenueTarget}
-        achievementPct={gt?.revenue?.achievement_pct ?? null}
+        targetLabel={revenueReference}
+        achievementPct={achievementPct}
       />
 
       {/* 达成率 */}
       <KPICard
-        label="业绩达成率"
-        tooltip="实际业绩 / 月度目标"
-        value={
-          gt?.revenue?.achievement_pct != null
-            ? formatRate(gt.revenue.achievement_pct)
-            : '—'
-        }
-        targetLabel="目标 100%"
-        achievementPct={gt?.revenue?.achievement_pct ?? null}
-      >
-        {/* BM 节奏达成行 */}
-        {gt?.revenue?.bm_pct != null && (
-          <div className="flex items-center gap-1 mt-1">
-            <span className="text-xs text-[var(--text-muted)]">
-              BM {(gt.revenue.bm_pct * 100).toFixed(1)}%
-            </span>
-            <span
-              className={`text-xs font-semibold ${
-                gt.revenue.bm_pct >= 1 ? 'text-emerald-600' : 'text-red-600'
-              }`}
-            >
-              {gt.revenue.bm_pct >= 1
-                ? `↑${((gt.revenue.bm_pct - 1) * 100).toFixed(1)}%`
-                : `↓${((1 - gt.revenue.bm_pct) * 100).toFixed(1)}%`}
-            </span>
-          </div>
-        )}
-      </KPICard>
+        label={viewMode === 'bm' ? 'BM 达成率' : '业绩达成率'}
+        tooltip={viewMode === 'bm' ? '实际业绩 / BM 节奏期望' : '实际业绩 / 月度目标'}
+        value={achievementPct != null ? formatRate(achievementPct) : '—'}
+        targetLabel={viewMode === 'bm' ? 'BM 节奏线' : '目标 100%'}
+        achievementPct={achievementPct}
+      />
 
       {/* 时间进度 */}
       <div

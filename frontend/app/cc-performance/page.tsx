@@ -1,10 +1,12 @@
 'use client';
 
+import { useState } from 'react';
 import useSWR from 'swr';
 import { swrFetcher } from '@/lib/api';
 import type { CCPerformanceResponse } from '@/lib/types/cc-performance';
 import { CCPerformanceSummaryCards } from '@/components/cc-performance/CCPerformanceSummaryCards';
 import { CCPerformanceTable } from '@/components/cc-performance/CCPerformanceTable';
+import type { ViewMode } from '@/components/cc-performance/CCPerformanceTable';
 import { CCTargetUpload } from '@/components/cc-performance/CCTargetUpload';
 
 export default function CCPerformancePage() {
@@ -12,6 +14,9 @@ export default function CCPerformancePage() {
     '/api/cc-performance',
     swrFetcher
   );
+
+  // 达标 / BM 参照系，全局同步到卡片和表格
+  const [viewMode, setViewMode] = useState<ViewMode>('target');
 
   return (
     <div className="space-y-6 px-6 py-6">
@@ -34,20 +39,23 @@ export default function CCPerformancePage() {
         </div>
       </div>
 
-      {/* L0：汇总 KPI 卡片 */}
+      {/* L0：汇总 KPI 卡片（跟随 viewMode 切换） */}
       <CCPerformanceSummaryCards
         grandTotal={data?.grand_total ?? null}
         timeProgressPct={data?.time_progress_pct ?? 0}
         exchangeRate={data?.exchange_rate ?? 34}
+        viewMode={viewMode}
       />
 
-      {/* L1：个人业绩明细表（含 L2 展开详情） */}
+      {/* L1：个人业绩明细表（含 L2 展开详情，含 达标/BM 切换按钮） */}
       <CCPerformanceTable
         teams={data?.teams ?? []}
         exchangeRate={data?.exchange_rate ?? 34}
         isLoading={isLoading}
         error={error}
         onRetry={() => mutate()}
+        viewMode={viewMode}
+        onViewModeChange={setViewMode}
       />
     </div>
   );
