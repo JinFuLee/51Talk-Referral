@@ -1,7 +1,16 @@
 'use client';
 
 import { useState, useRef, useCallback } from 'react';
-import { Upload, X, Download, Trash2, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
+import {
+  Upload,
+  X,
+  Download,
+  Trash2,
+  CheckCircle,
+  AlertCircle,
+  Loader2,
+  ClipboardPaste,
+} from 'lucide-react';
 
 interface CCTargetUploadProps {
   month: string; // YYYYMM
@@ -22,8 +31,14 @@ interface UploadStatus {
   month: string;
 }
 
+type InputMode = 'file' | 'paste';
+
+const DEFAULT_PASTE_HEADERS = ['cc_name', 'usd_target', 'referral_usd_target'];
+
 export function CCTargetUpload({ month, onUploadSuccess }: CCTargetUploadProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [inputMode, setInputMode] = useState<InputMode>('file');
+  const [pasteText, setPasteText] = useState('');
   const [previewRows, setPreviewRows] = useState<PreviewRow[]>([]);
   const [previewHeaders, setPreviewHeaders] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
@@ -42,6 +57,8 @@ export function CCTargetUpload({ month, onUploadSuccess }: CCTargetUploadProps) 
     setUploadResult(null);
     setSelectedFile(null);
     setIsDragOver(false);
+    setPasteText('');
+    setInputMode('file');
   };
 
   const handleClose = () => {
@@ -63,6 +80,69 @@ export function CCTargetUpload({ month, onUploadSuccess }: CCTargetUploadProps) 
     });
     return { headers, rows };
   };
+
+  /**
+   * 解析粘贴文本，自动检测分隔符（Tab 或逗号）和表头
+   */
+  const parsePastedText = useCallback((text: string): { headers: string[]; rows: PreviewRow[] } => {
+    const lines = text
+      .trim()
+      .split('\n')
+      .filter((l) => l.trim() !== '');
+    if (lines.length === 0) return { headers: [], rows: [] };
+
+    // 检测分隔符：含 Tab 则用 Tab，否则用逗号
+    const separator = lines[0].includes('\t') ? '\t' : ',';
+
+    const splitLine = (line: string) =>
+      line.split(separator).map((v) => v.trim().replace(/^"|"$/g, ''));
+
+    const firstLineCells = splitLine(lines[0]);
+
+    // 检测是否含表头：首行第一个单元格含 cc_name（不区分大小写）
+    const hasHeader = firstLineCells.some((c) => c.toLowerCase().includes('cc_name'));
+
+    let headers: string[];
+    let dataLines: string[];
+
+    if (hasHeader) {
+      headers = firstLineCells;
+      dataLines = lines.slice(1);
+    } else {
+      headers = DEFAULT_PASTE_HEADERS;
+      dataLines = lines;
+    }
+
+    const rows = dataLines
+      .filter((l) => l.trim() !== '')
+      .map((line) => {
+        const values = splitLine(line);
+        const row: PreviewRow = {};
+        headers.forEach((h, i) => {
+          row[h] = values[i] ?? '';
+        });
+        return row;
+      });
+
+    return { headers, rows };
+  }, []);
+
+  const handlePasteTextChange = useCallback(
+    (text: string) => {
+      setPasteText(text);
+      setError(null);
+      setUploadResult(null);
+      if (text.trim() === '') {
+        setPreviewHeaders([]);
+        setPreviewRows([]);
+        return;
+      }
+      const { headers, rows } = parsePastedText(text);
+      setPreviewHeaders(headers);
+      setPreviewRows(rows.slice(0, 10));
+    },
+    [parsePastedText]
+  );
 
   const handleFile = useCallback((file: File) => {
     setError(null);
@@ -102,13 +182,45 @@ export function CCTargetUpload({ month, onUploadSuccess }: CCTargetUploadProps) 
     if (file) handleFile(file);
   };
 
+  const switchMode = (mode: InputMode) => {
+    if (mode === inputMode) return;
+    setInputMode(mode);
+    // 切换时清空另一种输入方式的数据
+    if (mode === 'file') {
+      setPasteText('');
+    } else {
+      setSelectedFile(null);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+    setPreviewHeaders([]);
+    setPreviewRows([]);
+    setError(null);
+    setUploadResult(null);
+  };
+
   const handleUpload = async () => {
-    if (!selectedFile || !month) return;
+    if (!month) return;
+
+    let fileToUpload: File | null = selectedFile;
+
+    if (inputMode === 'paste') {
+      if (previewRows.length === 0) return;
+      // 将粘贴数据构造为 CSV File 对象
+      const csvLines = [previewHeaders.join(',')];
+      previewRows.forEach((row) => {
+        csvLines.push(previewHeaders.map((h) => row[h] ?? '').join(','));
+      });
+      const csvString = csvLines.join('\n');
+      fileToUpload = new File([csvString], 'pasted.csv', { type: 'text/csv' });
+    }
+
+    if (!fileToUpload) return;
+
     setUploading(true);
     setError(null);
     try {
       const form = new FormData();
-      form.append('file', selectedFile);
+      form.append('file', fileToUpload);
       const res = await fetch(`/api/cc-performance/targets/upload?month=${month}`, {
         method: 'POST',
         body: form,
@@ -148,6 +260,13 @@ export function CCTargetUpload({ month, onUploadSuccess }: CCTargetUploadProps) 
   };
 
   const isXlsx = selectedFile?.name.endsWith('.xlsx') || selectedFile?.name.endsWith('.xls');
+
+  // 确认上传按钮可用条件
+  const canUpload = !uploading && (inputMode === 'file' ? !!selectedFile : previewRows.length > 0);
+
+  // 是否展示预览表格
+  const showPreview =
+    previewRows.length > 0 && (inputMode === 'paste' || (inputMode === 'file' && !isXlsx));
 
   return (
     <>
@@ -196,54 +315,109 @@ export function CCTargetUpload({ month, onUploadSuccess }: CCTargetUploadProps) 
                   下载 CSV 模板
                 </button>
                 <p className="text-xs text-[var(--text-muted)]">
-                  模板已预填 CC 名字，填入各项目标后保存并上传
+                  模板已预填 CC 名字，只需填写总业绩目标和转介绍业绩目标，付费/出席/leads
+                  目标由系统自动推算
                 </p>
               </div>
 
-              {/* 步骤 2：上传文件 */}
-              <div className="space-y-2">
-                <p className="text-sm font-medium text-[var(--text-primary)]">
-                  步骤 2：上传已填写的文件
-                </p>
-                <div
-                  className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
-                    isDragOver
-                      ? 'border-[var(--color-action)] bg-[var(--color-action-surface)]'
-                      : 'border-[var(--border-default)] hover:border-[var(--color-action)] hover:bg-[var(--color-action-surface)]'
-                  }`}
-                  onDragOver={(e) => {
-                    e.preventDefault();
-                    setIsDragOver(true);
-                  }}
-                  onDragLeave={() => setIsDragOver(false)}
-                  onDrop={handleDrop}
-                  onClick={() => fileInputRef.current?.click()}
-                >
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept=".csv,.xlsx,.xls"
-                    className="hidden"
-                    onChange={handleInputChange}
-                  />
-                  <Upload className="w-8 h-8 mx-auto mb-2 text-[var(--text-muted)]" />
-                  {selectedFile ? (
-                    <p className="text-sm font-medium text-[var(--color-action-text)]">
-                      已选择：{selectedFile.name}
-                    </p>
-                  ) : (
-                    <>
-                      <p className="text-sm text-[var(--text-secondary)]">
-                        拖拽文件到此处或点击选择
-                      </p>
-                      <p className="text-xs text-[var(--text-muted)] mt-1">支持 .csv 和 .xlsx</p>
-                    </>
-                  )}
+              {/* 步骤 2：输入数据（文件上传 / 粘贴数据） */}
+              <div className="space-y-3">
+                <p className="text-sm font-medium text-[var(--text-primary)]">步骤 2：输入数据</p>
+
+                {/* Tab 切换 */}
+                <div className="flex border-b border-[var(--border-default)]">
+                  <button
+                    onClick={() => switchMode('file')}
+                    className={`flex items-center gap-1.5 px-4 py-2 text-sm font-medium transition-colors -mb-px ${
+                      inputMode === 'file'
+                        ? 'text-[var(--text-primary)] border-b-2 border-[var(--color-accent)]'
+                        : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'
+                    }`}
+                  >
+                    <Upload className="w-3.5 h-3.5" />
+                    上传文件
+                  </button>
+                  <button
+                    onClick={() => switchMode('paste')}
+                    className={`flex items-center gap-1.5 px-4 py-2 text-sm font-medium transition-colors -mb-px ${
+                      inputMode === 'paste'
+                        ? 'text-[var(--text-primary)] border-b-2 border-[var(--color-accent)]'
+                        : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'
+                    }`}
+                  >
+                    <ClipboardPaste className="w-3.5 h-3.5" />
+                    粘贴数据
+                  </button>
                 </div>
+
+                {/* 上传文件区域 */}
+                {inputMode === 'file' && (
+                  <div
+                    className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
+                      isDragOver
+                        ? 'border-[var(--color-action)] bg-[var(--color-action-surface)]'
+                        : 'border-[var(--border-default)] hover:border-[var(--color-action)] hover:bg-[var(--color-action-surface)]'
+                    }`}
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                      setIsDragOver(true);
+                    }}
+                    onDragLeave={() => setIsDragOver(false)}
+                    onDrop={handleDrop}
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept=".csv,.xlsx,.xls"
+                      className="hidden"
+                      onChange={handleInputChange}
+                    />
+                    <Upload className="w-8 h-8 mx-auto mb-2 text-[var(--text-muted)]" />
+                    {selectedFile ? (
+                      <p className="text-sm font-medium text-[var(--color-action-text)]">
+                        已选择：{selectedFile.name}
+                      </p>
+                    ) : (
+                      <>
+                        <p className="text-sm text-[var(--text-secondary)]">
+                          拖拽文件到此处或点击选择
+                        </p>
+                        <p className="text-xs text-[var(--text-muted)] mt-1">支持 .csv 和 .xlsx</p>
+                      </>
+                    )}
+                  </div>
+                )}
+
+                {/* 粘贴数据区域 */}
+                {inputMode === 'paste' && (
+                  <div className="space-y-2">
+                    <textarea
+                      className="w-full min-h-[9rem] rounded-lg border border-[var(--border-default)] bg-[var(--bg-subtle)] px-3 py-2 font-mono text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]/30 focus:border-[var(--color-accent)] resize-y transition-colors"
+                      placeholder={`从 Excel / Google Sheets 复制后粘贴，示例：\ncc_name\tusd_target\treferral_usd_target\nthcc-Zen\t10000\t3000\nthcc-Leo\t8000\t2500`}
+                      value={pasteText}
+                      onChange={(e) => handlePasteTextChange(e.target.value)}
+                      spellCheck={false}
+                    />
+                    <p className="text-xs text-[var(--text-muted)]">
+                      自动检测分隔符（Tab 或逗号）。含 <code className="font-mono">cc_name</code>{' '}
+                      表头行会自动识别跳过；不含表头则按列序补全。
+                    </p>
+                  </div>
+                )}
               </div>
 
-              {/* 步骤 3：预览（CSV 才显示） */}
-              {selectedFile && !isXlsx && previewRows.length > 0 && (
+              {/* xlsx 提示 */}
+              {inputMode === 'file' && selectedFile && isXlsx && (
+                <div className="rounded-lg bg-[var(--bg-subtle)] border border-[var(--border-default)] px-4 py-3">
+                  <p className="text-sm text-[var(--text-secondary)]">
+                    Excel 文件将由服务端解析，点击「确认上传」后预览结果
+                  </p>
+                </div>
+              )}
+
+              {/* 步骤 3：预览 */}
+              {showPreview && (
                 <div className="space-y-2">
                   <p className="text-sm font-medium text-[var(--text-primary)]">
                     步骤 3：预览（前 {previewRows.length} 条）
@@ -278,15 +452,6 @@ export function CCTargetUpload({ month, onUploadSuccess }: CCTargetUploadProps) 
                 </div>
               )}
 
-              {/* xlsx 提示 */}
-              {selectedFile && isXlsx && (
-                <div className="rounded-lg bg-[var(--bg-subtle)] border border-[var(--border-default)] px-4 py-3">
-                  <p className="text-sm text-[var(--text-secondary)]">
-                    Excel 文件将由服务端解析，点击「确认上传」后预览结果
-                  </p>
-                </div>
-              )}
-
               {/* 错误提示 */}
               {error && (
                 <div className="flex items-start gap-2 rounded-lg bg-red-50 border border-red-200 px-4 py-3">
@@ -313,7 +478,7 @@ export function CCTargetUpload({ month, onUploadSuccess }: CCTargetUploadProps) 
                 </button>
                 <button
                   onClick={handleUpload}
-                  disabled={!selectedFile || uploading}
+                  disabled={!canUpload}
                   className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[var(--color-accent)] text-white font-medium text-sm hover:bg-[var(--color-accent-hover)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {uploading ? (
