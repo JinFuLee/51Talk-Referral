@@ -27,7 +27,10 @@ export default function CCPerformancePage() {
           </p>
         </div>
         <div className="flex items-center gap-2 flex-shrink-0 pt-1">
-          <CCTargetUpload month={data?.month ?? ''} onUploadSuccess={() => mutate()} />
+          <CCTargetUpload
+            month={data?.month || new Date().toISOString().slice(0, 7).replace('-', '')}
+            onUploadSuccess={() => mutate()}
+          />
         </div>
       </div>
 
