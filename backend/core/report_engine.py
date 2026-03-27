@@ -413,6 +413,33 @@ class ReportEngine:
         base_targets.setdefault("paid_rate", 0.23)
         base_targets.setdefault("asp", 850.0)
 
+        # ── 5. 自动推导可算目标（预约/出席/客单价/注册付费率）──
+        reg_tgt = base_targets.get("registrations", 0)
+        pay_tgt = base_targets.get("payments", 0)
+        rev_tgt = base_targets.get("revenue_usd", 0)
+        appt_r = base_targets.get("appt_rate", 0)
+        attend_r = base_targets.get("attend_rate", 0)
+
+        # 预约目标 = 注册 × 预约率
+        if reg_tgt > 0 and appt_r > 0:
+            base_targets.setdefault(
+                "appointments", round(reg_tgt * appt_r)
+            )
+        # 出席目标 = 预约 × 出席率
+        appt_tgt = base_targets.get("appointments", 0)
+        if appt_tgt > 0 and attend_r > 0:
+            base_targets.setdefault(
+                "attendance", round(appt_tgt * attend_r)
+            )
+        # 客单价目标 = 业绩 / 付费
+        if rev_tgt > 0 and pay_tgt > 0:
+            base_targets.setdefault("asp", round(rev_tgt / pay_tgt, 2))
+        # 注册付费率 = 付费 / 注册
+        if pay_tgt > 0 and reg_tgt > 0:
+            base_targets.setdefault(
+                "reg_to_pay_rate", round(pay_tgt / reg_tgt, 4)
+            )
+
         return base_targets
 
     def _get_bm_pct(self, data: dict[str, Any], ref_date: date) -> float:
