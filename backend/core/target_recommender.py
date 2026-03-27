@@ -317,3 +317,186 @@ def recommend_targets(
         "message": None,
         "data_months": data_months,
     }
+
+
+def decompose_targets_from_last_month(
+    snapshot_service: Any,
+    total_revenue_target: float,
+) -> dict[str, Any]:
+    """将总收入目标按上月各口径实际 revenue share 拆解到各漏斗层级。
+
+    Args:
+        snapshot_service:     DailySnapshotService 实例
+        total_revenue_target: 总收入目标（USD），如 200444
+
+    Returns:
+        {
+            "total": {registrations, appointments, attendance, payments, revenue_usd,
+                      conversion_rate, asp},
+            "channels": {
+                "CC窄口": {registrations, appointments, attendance, payments,
+                           revenue_usd, appt_rate, attend_rate, paid_rate,
+                           reg_to_pay_rate, asp, revenue_share},
+                "SS窄口": {...}, "LP窄口": {...}, "宽口": {...},
+            },
+            "basis": "YYYYMM",   # 参考月份
+            "message": str | None,  # 数据不足时说明
+        }
+    """
+    from datetime import date
+
+    today = date.today()
+    # 计算上月 month_key
+    y, m = today.year, today.month - 1
+    if m <= 0:
+        m += 12
+        y -= 1
+    last_month_key = f"{y:04d}{m:02d}"
+
+    # ── 查询上月 monthly_archives ──────────────────────────────────────────────
+    rows = snapshot_service.query_monthly_archive(last_month_key)
+    if not rows:
+        return {
+            "total": {},
+            "channels": {},
+            "basis": last_month_key,
+            "message": f"上月（{last_month_key}）无归档数据，无法自动拆解目标",
+        }
+
+    # 建立 channel → row 映射
+    row_by_channel: dict[str, dict[str, Any]] = {}
+    for row in rows:
+        ch = row.get("channel", "")
+        row_by_channel[ch] = row
+
+    total_row = row_by_channel.get("total", {})
+
+    # 渠道名映射（monthly_archives 用"其它"存宽口数据）
+    channel_map = {
+        "CC窄口": "CC窄口",
+        "SS窄口": "SS窄口",
+        "LP窄口": "LP窄口",
+        "宽口": "其它",  # monthly_archives 中宽口存为"其它"
+    }
+
+    # ── 计算各口径 revenue share（基于上月实际营收）──────────────────────────
+    # 用 narrow channels（CC/SS/LP）+ 宽口 的合计作为分母
+    channel_revenues: dict[str, float] = {}
+    for display_name, archive_name in channel_map.items():
+        ch_row = row_by_channel.get(archive_name, {})
+        rev = _safe_float(ch_row.get("final_revenue_usd"))
+        channel_revenues[display_name] = rev if rev is not None else 0.0
+
+    total_ch_rev = sum(channel_revenues.values())
+
+    # 如果渠道合计为 0，降级到 total 口径数据
+    if total_ch_rev <= 0:
+        total_rev = _safe_float(total_row.get("final_revenue_usd")) or 0.0
+        if total_rev <= 0:
+            return {
+                "total": {},
+                "channels": {},
+                "basis": last_month_key,
+                "message": f"上月（{last_month_key}）营收数据为空，无法拆解",
+            }
+        # 按注册数比例估算
+        total_reg_archive = _safe_float(total_row.get("final_registrations")) or 0.0
+        channel_revenues = {}
+        for display_name, archive_name in channel_map.items():
+            ch_row = row_by_channel.get(archive_name, {})
+            ch_reg = _safe_float(ch_row.get("final_registrations")) or 0.0
+            if total_reg_archive > 0:
+                channel_revenues[display_name] = (
+                    ch_reg / total_reg_archive * total_rev
+                )
+            else:
+                channel_revenues[display_name] = 0.0
+        total_ch_rev = sum(channel_revenues.values()) or total_rev
+
+    # ── 按 revenue share 拆解各口径目标 ───────────────────────────────────────
+    channels_out: dict[str, dict[str, Any]] = {}
+    total_reg_target = 0.0
+    total_appt_target = 0.0
+    total_attend_target = 0.0
+    total_pay_target = 0.0
+
+    for display_name, archive_name in channel_map.items():
+        ch_row = row_by_channel.get(archive_name, {})
+        rev_share = channel_revenues[display_name] / total_ch_rev
+
+        # 该口径收入目标
+        ch_rev_target = total_revenue_target * rev_share
+
+        # 上月实际转化率（用于反推各漏斗层级目标）
+        ch_asp = _safe_float(ch_row.get("final_asp")) or 0.0
+        ch_paid_rate = _safe_float(ch_row.get("final_paid_rate")) or 0.0
+        ch_attend_rate = _safe_float(ch_row.get("final_attend_rate")) or 0.0
+        ch_appt_rate = _safe_float(ch_row.get("final_appt_rate")) or 0.0
+
+        # 降级：用 total 口径数据
+        if ch_asp <= 0:
+            ch_asp = _safe_float(total_row.get("final_asp")) or 850.0
+        if ch_paid_rate <= 0:
+            ch_paid_rate = _safe_float(total_row.get("final_paid_rate")) or 0.23
+        if ch_attend_rate <= 0:
+            ch_attend_rate = _safe_float(total_row.get("final_attend_rate")) or 0.66
+        if ch_appt_rate <= 0:
+            ch_appt_rate = _safe_float(total_row.get("final_appt_rate")) or 0.77
+
+        # 全链路反推
+        ch_pay_target = ch_rev_target / ch_asp if ch_asp > 0 else 0.0
+        ch_attend_target = ch_pay_target / ch_paid_rate if ch_paid_rate > 0 else 0.0
+        ch_appt_target = (
+            ch_attend_target / ch_attend_rate if ch_attend_rate > 0 else 0.0
+        )
+        ch_reg_target = ch_appt_target / ch_appt_rate if ch_appt_rate > 0 else 0.0
+        ch_reg_to_pay = ch_paid_rate * ch_attend_rate * ch_appt_rate
+
+        channels_out[display_name] = {
+            "registrations": round(ch_reg_target, 1),
+            "appointments": round(ch_appt_target, 1),
+            "attendance": round(ch_attend_target, 1),
+            "payments": round(ch_pay_target, 1),
+            "revenue_usd": round(ch_rev_target, 2),
+            "appt_rate": round(ch_appt_rate, 6),
+            "attend_rate": round(ch_attend_rate, 6),
+            "paid_rate": round(ch_paid_rate, 6),
+            "reg_to_pay_rate": round(ch_reg_to_pay, 6),
+            "asp": round(ch_asp, 2),
+            "revenue_share": round(rev_share, 6),
+        }
+
+        total_reg_target += ch_reg_target
+        total_appt_target += ch_appt_target
+        total_attend_target += ch_attend_target
+        total_pay_target += ch_pay_target
+
+    # ── 汇总 total 层 ──────────────────────────────────────────────────────────
+    total_asp = (
+        total_revenue_target / total_pay_target if total_pay_target > 0 else 0.0
+    )
+    total_conv = (
+        total_pay_target / total_reg_target if total_reg_target > 0 else 0.0
+    )
+
+    total_out = {
+        "registrations": round(total_reg_target, 1),
+        "appointments": round(total_appt_target, 1),
+        "attendance": round(total_attend_target, 1),
+        "payments": round(total_pay_target, 1),
+        "revenue_usd": round(total_revenue_target, 2),
+        "conversion_rate": round(total_conv, 6),
+        "asp": round(total_asp, 2),
+    }
+
+    logger.info(
+        f"目标拆解完成：基于 {last_month_key} 历史数据，"
+        f"总目标 ${total_revenue_target:,.0f} → 注册 {total_reg_target:.0f}"
+    )
+
+    return {
+        "total": total_out,
+        "channels": channels_out,
+        "basis": last_month_key,
+        "message": None,
+    }

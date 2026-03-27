@@ -285,35 +285,133 @@ class ReportEngine:
         }
 
     def _normalize_targets(self, month_key: str) -> dict[str, Any]:
-        """归一化目标：从中文 key 转英文，并合并 override"""
+        """归一化目标：从中文 key 转英文，并合并 override。
+
+        读取优先级（高→低）：
+        1. 实例初始化时传入的 targets
+        2. targets_override.json（含 V2 结构）中当月中文 key
+        3. MONTHLY_TARGETS 静态配置中当月中文 key
+        4. decompose_targets_from_last_month() 自动拆解（上月归档数据 fallback）
+        """
+        import json
+        from pathlib import Path
+
         from backend.core.config import MONTHLY_TARGETS
-        from backend.core.config import get_targets as _get_targets
+
+        # 中文 key → 英文 key 映射
+        _KEY_MAP = {
+            "注册目标": "registrations",
+            "付费目标": "payments",
+            "金额目标": "revenue_usd",
+            "约课率目标": "appt_rate",
+            "出席率目标": "attend_rate",
+            "转化率目标": "paid_rate",
+            "客单价": "asp",
+        }
 
         base_targets: dict[str, Any] = {}
 
-        # 从 MONTHLY_TARGETS 取当月基线
+        def _apply_chinese_dict(raw: dict) -> None:
+            """将含中文 key 的目标 dict 合并到 base_targets。"""
+            for zh_key, en_key in _KEY_MAP.items():
+                if zh_key in raw:
+                    v = _safe_float(raw[zh_key])
+                    if v > 0:
+                        base_targets[en_key] = v
+
+        # ── 1. MONTHLY_TARGETS 基线 ────────────────────────────────────────
         if month_key in MONTHLY_TARGETS:
-            raw = MONTHLY_TARGETS[month_key]
-            base_targets["registrations"] = _safe_float(raw.get("注册目标", 0))
-            base_targets["payments"] = _safe_float(raw.get("付费目标", 0))
-            base_targets["revenue_usd"] = _safe_float(raw.get("金额目标", 0))
-            base_targets["appt_rate"] = _safe_float(raw.get("约课率目标", 0.77))
-            base_targets["attend_rate"] = _safe_float(raw.get("出席率目标", 0.66))
-            base_targets["paid_rate"] = _safe_float(raw.get("转化率目标", 0.23))
-            base_targets["asp"] = _safe_float(raw.get("客单价", 850))
+            _apply_chinese_dict(MONTHLY_TARGETS[month_key])
 
-        # 用 get_targets()（含 override）覆盖
-        try:
-            overrides = _get_targets()
-            for k, v in overrides.items():
-                if k in base_targets:
-                    base_targets[k] = _safe_float(v)
-        except Exception:
-            pass
+        # ── 2. targets_override.json（覆盖基线）─────────────────────────────
+        _cfg_dir = Path(__file__).resolve().parent.parent.parent / "config"
+        override_file = _cfg_dir / "targets_override.json"
+        if override_file.exists():
+            try:
+                overrides = json.loads(override_file.read_text(encoding="utf-8"))
+                month_data = overrides.get(month_key, {})
+                if month_data:
+                    _apply_chinese_dict(month_data)
+                    # V2 结构：从 hard.referral_revenue 补 revenue_usd
+                    hard = month_data.get("hard", {})
+                    ref_rev = hard.get("referral_revenue", 0)
+                    if ref_rev > 0:
+                        # override 始终优先（含 V2 结构）
+                        base_targets["revenue_usd"] = _safe_float(ref_rev)
+                    # V2 channels 结构：提取注册目标（各口径 user_count 之和）
+                    channels_v2 = month_data.get("channels", {})
+                    if channels_v2 and "registrations" not in base_targets:
+                        total_users = sum(
+                            (ch.get("user_count") or 0) for ch in channels_v2.values()
+                        )
+                        if total_users > 0:
+                            base_targets["registrations"] = float(total_users)
+                    # V2 sop 结构：提取率目标
+                    sop = month_data.get("sop", {})
+                    if sop.get("reserve_rate", 0) > 0:
+                        base_targets["appt_rate"] = _safe_float(sop["reserve_rate"])
+                    if sop.get("attend_rate", 0) > 0:
+                        base_targets["attend_rate"] = _safe_float(sop["attend_rate"])
+                    # channels conversion_rate → paid_rate
+                    if channels_v2 and "paid_rate" not in base_targets:
+                        rates = [
+                            ch.get("conversion_rate", 0)
+                            for ch in channels_v2.values()
+                            if ch.get("conversion_rate", 0) > 0
+                        ]
+                        if rates:
+                            base_targets["paid_rate"] = sum(rates) / len(rates)
+                    # asp
+                    if channels_v2 and "asp" not in base_targets:
+                        asps = [
+                            ch.get("asp", 0)
+                            for ch in channels_v2.values()
+                            if ch.get("asp", 0) > 0
+                        ]
+                        if asps:
+                            base_targets["asp"] = sum(asps) / len(asps)
+            except Exception as exc:
+                logger.warning("读取 targets_override.json 失败: %s", exc)
 
-        # 合并实例初始化时传入的 targets
+        # ── 3. 实例传入的 targets 最高优先级 ────────────────────────────────
         for k, v in self._targets.items():
             base_targets[k] = _safe_float(v)
+
+        # ── 4. Fallback：decompose_targets_from_last_month() ──────────────
+        # 当 revenue_usd / registrations / payments 仍为 0 时，用上月归档数据自动拆解
+        if base_targets.get("revenue_usd", 0) <= 0:
+            try:
+                from backend.core.target_recommender import (
+                    decompose_targets_from_last_month,
+                )
+
+                decomposed = decompose_targets_from_last_month(
+                    self._snapshot_svc,
+                    total_revenue_target=200444.0,  # 默认目标值，数据不足时的保底
+                )
+                if not decomposed.get("message") and decomposed.get("total"):
+                    t = decomposed["total"]
+                    if t.get("revenue_usd", 0) > 0:
+                        base_targets.setdefault("revenue_usd", t["revenue_usd"])
+                    if t.get("registrations", 0) > 0:
+                        base_targets.setdefault("registrations", t["registrations"])
+                    if t.get("payments", 0) > 0:
+                        base_targets.setdefault("payments", t["payments"])
+                    if t.get("asp", 0) > 0:
+                        base_targets.setdefault("asp", t["asp"])
+                    if t.get("conversion_rate", 0) > 0:
+                        base_targets.setdefault("paid_rate", t["conversion_rate"])
+                    logger.info("使用上月归档数据自动拆解目标作为 fallback")
+            except Exception as exc:
+                logger.warning(
+                    "decompose_targets_from_last_month fallback 失败: %s", exc
+                )
+
+        # 确保必要字段有默认值
+        base_targets.setdefault("appt_rate", 0.77)
+        base_targets.setdefault("attend_rate", 0.66)
+        base_targets.setdefault("paid_rate", 0.23)
+        base_targets.setdefault("asp", 850.0)
 
         return base_targets
 
@@ -339,6 +437,32 @@ class ReportEngine:
                     elapsed_wd += 1
 
         return round(_safe_div(elapsed_wd, total_wd), 4) if total_wd > 0 else 0.0
+
+    def _get_last_month_archive(
+        self, ref_date: date, channel: str = "total"
+    ) -> dict[str, Any]:
+        """直接从 monthly_archives 查上月终值（绕过 daily_snapshots 稀疏问题）。
+
+        Args:
+            ref_date: 参考日期
+            channel:  口径名，如 "total"/"CC窄口"/"SS窄口"/"LP窄口"/"宽口"
+
+        Returns:
+            上月归档行 dict，字段前缀为 final_xxx；无数据返回空 dict
+        """
+        y, m = ref_date.year, ref_date.month - 1
+        if m <= 0:
+            m += 12
+            y -= 1
+        last_month_key = f"{y:04d}{m:02d}"
+
+        # monthly_archives 中宽口存储为"其它"
+        archive_channel = "其它" if channel == "宽口" else channel
+
+        rows = self._snapshot_svc.query_monthly_archive(last_month_key, archive_channel)
+        if rows:
+            return rows[0]
+        return {}
 
     def _build_comparisons(self, ref_date: date) -> dict[str, Any]:
         """构建 7 维环比（revenue_usd 总计口径）"""
@@ -616,34 +740,42 @@ class ReportEngine:
         targets: dict[str, Any],
         ref_date: date,
     ) -> dict[str, Any]:
-        """区块 6: MoM 增量归因（月累计维度）"""
-        metrics_map = {
-            "revenue_usd": "revenue_usd",
-            "registrations": "registrations",
-            "payments": "payments",
-            "appt_rate": "appt_rate",
-            "attend_rate": "attend_rate",
-            "paid_rate": "paid_rate",
-            "asp": "asp",
+        """区块 6: MoM 增量归因（月累计维度）
+
+        上月数据优先从 monthly_archives 读取终值（精确），
+        daily_snapshots 同期比较仅在归档数据缺失时作为降级方案。
+        """
+        # 上月 monthly_archives 终值（total 口径）
+        last_archive = self._get_last_month_archive(ref_date, "total")
+
+        # monthly_archives 字段映射（final_xxx → 英文 key）
+        archive_field_map = {
+            "revenue_usd": "final_revenue_usd",
+            "registrations": "final_registrations",
+            "payments": "final_payments",
+            "appt_rate": "final_appt_rate",
+            "attend_rate": "final_attend_rate",
+            "paid_rate": "final_paid_rate",
+            "asp": "final_asp",
         }
+
         rows = []
-
-        try:
-            # 从数据库取上月同期累计
-            comp_results = {
-                m: self._comparison_engine.compute(m, "total", ref_date).get(
-                    "month_td", {}
-                )
-                for m in metrics_map
-            }
-        except Exception:
-            comp_results = {}
-
-        for key in metrics_map:
+        for key, archive_field in archive_field_map.items():
             act = _safe_float(actuals.get(key))
             tgt = _safe_float(targets.get(key))
-            comp = comp_results.get(key, {})
-            last_month = _safe_float(comp.get("previous"))
+
+            # 优先用 monthly_archives 终值，否则降级到 ComparisonEngine
+            last_month = 0.0
+            field_val = last_archive.get(archive_field) if last_archive else None
+            if field_val is not None:
+                last_month = _safe_float(field_val)
+            else:
+                try:
+                    comp = self._comparison_engine.compute(key, "total", ref_date)
+                    last_month = _safe_float(comp.get("month_td", {}).get("previous"))
+                except Exception:
+                    last_month = 0.0
+
             delta = act - last_month
             delta_pct = _safe_div(delta, last_month) if last_month != 0 else 0.0
             vs_target = act - tgt
@@ -751,29 +883,36 @@ class ReportEngine:
         actuals: dict[str, Any],
         ref_date: date,
     ) -> dict[str, Any]:
-        """区块 8: 增量归因分解（Laspeyres + LMDI）"""
-        # 取上月同期快照作基期
-        try:
-            comp = self._comparison_engine.compute("revenue_usd", "total", ref_date)
-            month_td = comp.get("month_td", {})
-            prev_rev = _safe_float(month_td.get("previous"))
-        except Exception:
-            prev_rev = 0.0
+        """区块 8: 增量归因分解（Laspeyres + LMDI）
 
-        # 取上月同期 registrations / reg_to_pay_rate / asp
-        try:
-            comp_reg = self._comparison_engine.compute(
-                "registrations", "total", ref_date
-            )
-            prev_reg = _safe_float(comp_reg.get("month_td", {}).get("previous"))
-            comp_conv = self._comparison_engine.compute(
-                "reg_to_pay_rate", "total", ref_date
-            )
-            prev_conv = _safe_float(comp_conv.get("month_td", {}).get("previous"))
-            comp_asp = self._comparison_engine.compute("asp", "total", ref_date)
-            prev_asp = _safe_float(comp_asp.get("month_td", {}).get("previous"))
-        except Exception:
-            prev_reg = prev_conv = prev_asp = 0.0
+        上月基期优先从 monthly_archives 读取终值，更精确。
+        """
+        last_archive = self._get_last_month_archive(ref_date, "total")
+
+        def _archive_val(field: str, fallback_metric: str) -> float:
+            """从 monthly_archives 取值，失败时降级到 ComparisonEngine。"""
+            if last_archive and last_archive.get(field) is not None:
+                return _safe_float(last_archive[field])
+            try:
+                comp = self._comparison_engine.compute(
+                    fallback_metric, "total", ref_date
+                )
+                return _safe_float(comp.get("month_td", {}).get("previous"))
+            except Exception:
+                return 0.0
+
+        prev_rev = _archive_val("final_revenue_usd", "revenue_usd")
+        prev_reg = _archive_val("final_registrations", "registrations")
+        prev_asp = _archive_val("final_asp", "asp")
+        # reg_to_pay_rate 需从 payments/registrations 推导
+        prev_pay = (
+            _safe_float(last_archive.get("final_payments")) if last_archive else 0.0
+        )
+        prev_conv = (
+            _safe_div(prev_pay, prev_reg)
+            if prev_reg > 0
+            else _archive_val("final_reg_to_pay_rate", "reg_to_pay_rate")
+        )
 
         previous = {
             "registrations": prev_reg,
@@ -811,21 +950,31 @@ class ReportEngine:
         channel_funnel: dict[str, dict[str, Any]],
         ref_date: date,
     ) -> dict[str, Any]:
-        """区块 10: 渠道级业绩增量归因"""
+        """区块 10: 渠道级业绩增量归因
+
+        上月数据优先从 monthly_archives 终值读取。
+        """
         rows: list[dict[str, Any]] = []
 
         for ch in _CHANNEL_ORDER:
             m = channel_funnel.get(ch, {})
             this_rev = _safe_float(m.get("revenue_usd"))
 
-            try:
-                if ch not in VALID_CHANNELS:
+            # 优先用 monthly_archives 终值
+            last_archive = self._get_last_month_archive(ref_date, ch)
+            if last_archive and last_archive.get("final_revenue_usd") is not None:
+                prev_rev = _safe_float(last_archive["final_revenue_usd"])
+            else:
+                try:
+                    if ch in VALID_CHANNELS:
+                        comp = self._comparison_engine.compute(
+                            "revenue_usd", ch, ref_date
+                        )
+                        prev_rev = _safe_float(comp.get("month_td", {}).get("previous"))
+                    else:
+                        prev_rev = 0.0
+                except Exception:
                     prev_rev = 0.0
-                else:
-                    comp = self._comparison_engine.compute("revenue_usd", ch, ref_date)
-                    prev_rev = _safe_float(comp.get("month_td", {}).get("previous"))
-            except Exception:
-                prev_rev = 0.0
 
             delta = this_rev - prev_rev
             delta_pct = _safe_div(delta, prev_rev) if prev_rev != 0 else 0.0
@@ -857,7 +1006,10 @@ class ReportEngine:
         channel_funnel: dict[str, dict[str, Any]],
         ref_date: date,
     ) -> dict[str, Any]:
-        """区块 11: 渠道三因素分解"""
+        """区块 11: 渠道三因素分解
+
+        上月基期优先从 monthly_archives 读取终值，更精确。
+        """
         current_channels: list[dict[str, Any]] = []
         previous_channels: list[dict[str, Any]] = []
 
@@ -873,33 +1025,44 @@ class ReportEngine:
                 }
             )
 
-            # 从快照数据库取上月基期
-            try:
-                if ch in VALID_CHANNELS:
-                    prev_reg = _safe_float(
-                        self._comparison_engine.compute("registrations", ch, ref_date)
-                        .get("month_td", {})
-                        .get("previous")
-                    )
-                    prev_conv = _safe_float(
-                        self._comparison_engine.compute("reg_to_pay_rate", ch, ref_date)
-                        .get("month_td", {})
-                        .get("previous")
-                    )
-                    prev_asp = _safe_float(
-                        self._comparison_engine.compute("asp", ch, ref_date)
-                        .get("month_td", {})
-                        .get("previous")
-                    )
-                    prev_rev = _safe_float(
-                        self._comparison_engine.compute("revenue_usd", ch, ref_date)
-                        .get("month_td", {})
-                        .get("previous")
-                    )
-                else:
+            # 优先用 monthly_archives 终值
+            last_archive = self._get_last_month_archive(ref_date, ch)
+            if last_archive and last_archive.get("final_revenue_usd") is not None:
+                prev_reg = _safe_float(last_archive.get("final_registrations"))
+                prev_pay = _safe_float(last_archive.get("final_payments"))
+                prev_asp = _safe_float(last_archive.get("final_asp"))
+                prev_rev = _safe_float(last_archive.get("final_revenue_usd"))
+                # reg_to_pay_rate 从 payments / registrations 推导，更精确
+                prev_conv = (
+                    _safe_div(prev_pay, prev_reg) if prev_reg > 0
+                    else _safe_float(last_archive.get("final_reg_to_pay_rate"))
+                )
+            else:
+                # 降级到 ComparisonEngine（daily_snapshots 同期比较）
+                try:
+                    if ch in VALID_CHANNELS:
+                        prev_reg = _safe_float(
+                            self._comparison_engine.compute(
+                                "registrations", ch, ref_date
+                            ).get("month_td", {}).get("previous")
+                        )
+                        prev_conv = _safe_float(
+                            self._comparison_engine.compute(
+                                "reg_to_pay_rate", ch, ref_date
+                            ).get("month_td", {}).get("previous")
+                        )
+                        prev_asp = _safe_float(
+                            self._comparison_engine.compute("asp", ch, ref_date)
+                            .get("month_td", {}).get("previous")
+                        )
+                        prev_rev = _safe_float(
+                            self._comparison_engine.compute("revenue_usd", ch, ref_date)
+                            .get("month_td", {}).get("previous")
+                        )
+                    else:
+                        prev_reg = prev_conv = prev_asp = prev_rev = 0.0
+                except Exception:
                     prev_reg = prev_conv = prev_asp = prev_rev = 0.0
-            except Exception:
-                prev_reg = prev_conv = prev_asp = prev_rev = 0.0
 
             previous_channels.append(
                 {
