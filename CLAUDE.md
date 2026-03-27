@@ -64,11 +64,16 @@ ref-ops-engine/
 
 ## 数据流
 ```
-Excel 数据源 → XlsxReader → DataProcessor → AnalysisEngine → MarkdownReportGenerator → .md 报告
-                                                                     ↓
-                                                              Streamlit Web 面板
-                                                                     ↓
-                                                              i18n 系统（中/泰）
+Quick BI 仪表板（8 表）
+    ↓ quickbi_fetch.py（Playwright 全自动，launchd 每天 10:00）
+    ↓ 失败 → 钉钉告警「请更新 BI 链接」
+input/*.xlsx（8 个 Excel，146K+ 行）
+    ↓ DataManager（BaseLoader glob 匹配）
+FastAPI 后端（30+ API 端点）
+    ↓
+Next.js 前端（34 页面 + 43 组件）
+    ↓
+钉钉/Lark 推送（6 通道 + 3 级粒度）
 ```
 
 ## 常用命令
@@ -97,6 +102,10 @@ Excel 数据源 → XlsxReader → DataProcessor → AnalysisEngine → Markdown
 - **钉钉日报推送**: `uv run python scripts/dingtalk_report.py --dry-run`（预览）/ `--confirm`（正式）
 - **手动写入快照**: `curl -X POST http://localhost:8100/api/report/snapshot`
 - **三档目标推荐**: `curl http://localhost:8100/api/config/targets/202603/recommend`
+- **Quick BI 自动取数**: `uv run python scripts/quickbi_fetch.py --headless`（8 表全自动，~5 分钟）
+- **Quick BI 更新链接**: `uv run python scripts/quickbi_fetch.py --url '新URL'`
+- **Quick BI 调试模式**: `uv run python scripts/quickbi_fetch.py --debug`
+- **Quick BI 定时任务**: launchd `com.refops.quickbi-fetch`（每天 10:00 泰国时间，关机补跑，失败钉钉告警）
 - **CC个人业绩**: `curl http://localhost:8100/api/cc-performance`
 - **CC目标模板下载**: `curl -O "http://localhost:8100/api/cc-performance/targets/template?month=202603"`
 - **CC目标上传**: `curl -X POST -F file=@cc_targets.csv "http://localhost:8100/api/cc-performance/targets/upload?month=202603"`

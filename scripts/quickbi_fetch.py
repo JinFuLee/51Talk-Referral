@@ -60,15 +60,16 @@ def save_config(cfg: dict) -> None:
 # 有些表格需要先切 Tab（CC/SS/LP/区域汇关键指标）
 TABLE_DEFS = [
     # (caption_search, tab_to_click, output_filename)
-    # caption_search: 用 includes 匹配，切 Tab 后标题会变
-    ("结果数据", None, "D1_结果数据.xlsx"),
-    ("围场过程数据", None, "D4_围场过程数据_byCC.xlsx"),
-    ("围场过程数据", "SS", "D4_围场过程数据_bySS.xlsx"),
-    ("围场过程数据", "LP", "D4_围场过程数据_byLP.xlsx"),
-    ("围场过程数据", "区域汇关键指标", "D1_区域汇关键指标.xlsx"),
-    ("明细", None, "D3_明细.xlsx"),
-    ("围场明细", None, "D2_围场明细.xlsx"),
-    ("高潜学员", None, "D5_高潜学员.xlsx"),
+    # output_filename 必须匹配 DataManager._DATA_SOURCE_META 的 glob pattern
+    # pattern 参考: backend/core/data_manager.py L33-116
+    ("结果数据", None, "转介绍中台检测_结果数据.xlsx"),
+    ("围场过程数据", None, "转介绍中台检测_围场过程数据_byCC.xlsx"),
+    ("围场过程数据", "SS", "转介绍中台检测_围场过程数据_bySS.xlsx"),
+    ("围场过程数据", "LP", "转介绍中台检测_围场过程数据_byLP.xlsx"),
+    ("围场过程数据", "区域汇关键指标", "区域汇_围场过程数据_byCC副本.xlsx"),
+    ("明细", None, "转介绍中台检测_明细.xlsx"),
+    ("围场明细", None, "已付费学员转介绍围场明细.xlsx"),
+    ("高潜学员", None, "转介绍中台监测_高潜学员.xlsx"),
 ]
 
 
