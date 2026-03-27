@@ -186,6 +186,12 @@ function CampaignModal({ onClose, onSaved, prefill, editCampaign }: CampaignModa
           end_date: form.end_date || null,
         }),
       });
+      if (res.status === 409) {
+        const body = await res.json().catch(() => ({}));
+        setError(body?.detail || '该指标已有进行中的活动');
+        setSaving(false);
+        return;
+      }
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
         throw new Error(body?.detail ?? `HTTP ${res.status}`);
@@ -393,8 +399,17 @@ function LeverageTab() {
     error,
   } = useSWR<{ levers: LeverRecommendation[] }>('/api/incentive/recommend', swrFetcher);
   const data = raw?.levers ?? [];
+  const month = getCurrentMonth();
+  const { data: campaigns, mutate: mutateCampaigns } = useSWR<Campaign[]>(
+    `/api/incentive/campaigns?month=${month}`,
+    swrFetcher
+  );
   const [modalOpen, setModalOpen] = useState(false);
   const [prefill, setPrefill] = useState<Partial<CampaignFormValues>>({});
+
+  function hasExisting(metric: string): boolean {
+    return (campaigns ?? []).some((c) => c.metric === metric && c.status === 'active');
+  }
 
   function openCreateFromRec(rec: LeverRecommendation) {
     const sg = rec.suggested_campaign;
@@ -436,6 +451,7 @@ function LeverageTab() {
   }
 
   const top3 = data.slice(0, 3);
+  const maxScore = Math.max(...top3.map((r) => r.leverage_score), 1);
 
   return (
     <div className="space-y-3">
@@ -445,6 +461,7 @@ function LeverageTab() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
         {top3.map((rec) => {
           const sg = rec.suggested_campaign;
+          const alreadyCreated = hasExisting(sg?.metric ?? '');
           return (
             <div key={rec.rank} className="card-base p-4 space-y-3">
               {/* 排名 + 阶段 */}
@@ -453,7 +470,7 @@ function LeverageTab() {
                   {rec.rank}
                 </span>
                 <span className="text-sm font-semibold text-[var(--text-primary)]">
-                  {rec.stage}
+                  {rec.stage_label ?? rec.stage}
                 </span>
               </div>
 
@@ -468,7 +485,7 @@ function LeverageTab() {
                 <div className="h-1.5 bg-[var(--bg-subtle)] rounded-full overflow-hidden">
                   <div
                     className="h-full bg-action rounded-full transition-all"
-                    style={{ width: `${Math.min(100, rec.leverage_score * 10)}%` }}
+                    style={{ width: `${(rec.leverage_score / maxScore) * 100}%` }}
                   />
                 </div>
               </div>
@@ -502,12 +519,18 @@ function LeverageTab() {
               )}
 
               {/* 创建活动按钮 */}
-              <button
-                onClick={() => openCreateFromRec(rec)}
-                className="w-full py-1.5 text-xs font-medium text-action border border-action rounded-lg hover:bg-action hover:text-white transition-colors"
-              >
-                创建活动
-              </button>
+              {alreadyCreated ? (
+                <div className="w-full py-1.5 text-xs font-medium text-[var(--text-muted)] border border-[var(--border-default)] rounded-lg text-center">
+                  ✓ 已创建
+                </div>
+              ) : (
+                <button
+                  onClick={() => openCreateFromRec(rec)}
+                  className="w-full py-1.5 text-xs font-medium text-action border border-action rounded-lg hover:bg-action hover:text-white transition-colors"
+                >
+                  创建活动
+                </button>
+              )}
             </div>
           );
         })}
@@ -517,7 +540,10 @@ function LeverageTab() {
         <CampaignModal
           prefill={prefill}
           onClose={() => setModalOpen(false)}
-          onSaved={() => setModalOpen(false)}
+          onSaved={async () => {
+            setModalOpen(false);
+            await mutateCampaigns();
+          }}
         />
       )}
     </div>
@@ -630,6 +656,7 @@ function CampaignsTab() {
                 <th className="slide-th text-left">指标</th>
                 <th className="slide-th text-left">条件</th>
                 <th className="slide-th text-right">奖励</th>
+                <th className="slide-th text-center">进度</th>
                 <th className="slide-th text-center">状态</th>
                 <th className="slide-th text-center">操作</th>
               </tr>
@@ -663,6 +690,22 @@ function CampaignsTab() {
                   </td>
                   <td className="slide-td text-right font-mono font-semibold text-emerald-700">
                     ฿{c.reward_thb.toLocaleString()}
+                  </td>
+                  <td className="slide-td text-center text-xs">
+                    {(c as Campaign & { qualified_count?: number; total_count?: number })
+                      .qualified_count != null ? (
+                      <span className="font-mono">
+                        {
+                          (c as Campaign & { qualified_count?: number; total_count?: number })
+                            .qualified_count
+                        }
+                        /
+                        {(c as Campaign & { qualified_count?: number; total_count?: number })
+                          .total_count ?? '—'}
+                      </span>
+                    ) : (
+                      <span className="text-[var(--text-muted)]">—</span>
+                    )}
                   </td>
                   <td className="slide-td text-center">
                     <span
@@ -725,7 +768,7 @@ function CampaignsTab() {
 function ProgressBar({ pct, status }: { pct: number; status: PersonProgress['status'] }) {
   const clampedPct = Math.min(100, Math.max(0, pct));
   return (
-    <div className="h-1.5 bg-[var(--bg-subtle)] rounded-full overflow-hidden flex-1">
+    <div className="h-2 bg-[var(--bg-subtle)] rounded-full overflow-hidden flex-1">
       <div
         className={`h-full rounded-full transition-all ${progressStatusColor(status)}`}
         style={{ width: `${clampedPct}%` }}
@@ -882,6 +925,11 @@ function ProgressTab() {
           </div>
         </Card>
       )}
+
+      {/* 数据口径说明 */}
+      <p className="text-xs text-[var(--text-muted)]">
+        数据为当月累计（ข้อมูลเป็นยอดสะสมทั้งเดือน），并非从活动开始日起算
+      </p>
 
       {/* 活动进度列表 */}
       {progressLoading && (

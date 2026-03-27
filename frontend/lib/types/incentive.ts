@@ -43,6 +43,7 @@ export interface CampaignProgress {
 export interface LeverRecommendation {
   rank: number;
   stage: string;
+  stage_label?: string;
   leverage_score: number;
   revenue_impact_usd: number;
   current_rate: number | null;
