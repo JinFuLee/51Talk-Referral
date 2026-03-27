@@ -7,7 +7,9 @@ import { formatRevenue } from '@/lib/utils';
 import { Spinner } from '@/components/ui/Spinner';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { MemberDetailDrawer } from '@/components/members/MemberDetailDrawer';
+import { StudentTagBadge } from '@/components/checkin/StudentTagBadge';
 import { useWideConfig } from '@/lib/hooks/useWideConfig';
+import { useConfigStore } from '@/lib/stores/config-store';
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -24,6 +26,7 @@ interface FollowupMember {
   total_revenue_usd: number | null;
   cc_last_contact_date: string | null; // CC末次联系
   days_until_card_expiry: number | null;
+  extra?: Record<string, unknown>; // D4 extra 字段（含本月/上月打卡天数）
   // allow full D4 extra fields for drawer
   [key: string]: unknown;
 }
@@ -60,6 +63,38 @@ interface FollowupResponse {
   avg_quality_score: number;
   high_quality_count: number;
   teams: string[];
+}
+
+// ── Tag Logic ──────────────────────────────────────────────────────────────────
+
+type GroupFilter = 'all' | 'never' | 'was_active' | 'partial';
+
+const GROUP_FILTER_LABELS: Record<GroupFilter, string> = {
+  all: '全部',
+  never: '从未打卡',
+  was_active: '曾打卡本月未打',
+  partial: '打过但今天没打',
+};
+
+function computeClientTags(
+  daysThis: number,
+  daysLast: number,
+  lesson: number,
+  registrations: number
+): string[] {
+  const tags: string[] = [];
+  if (daysThis >= 6) tags.push('满勤');
+  else if (daysThis >= 4) tags.push('活跃');
+  const delta = daysThis - daysLast;
+  if (delta >= 2 && daysLast > 0) tags.push('进步明显');
+  if (delta <= -2) tags.push('在退步');
+  if (daysThis === 0 && lesson >= 10) tags.push('沉睡高潜');
+  if (daysThis >= 4 && registrations >= 2) tags.push('超级转化');
+  return tags;
+}
+
+function computeActivationScore(daysLast: number, lesson: number): number {
+  return Math.round(Math.min(daysLast / 6, 1) * 60 + Math.min(lesson / 15, 1) * 40);
 }
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
@@ -329,6 +364,67 @@ function ExpandedRow({ member, colSpan, onClose }: ExpandedRowProps) {
   );
 }
 
+// ── Activation Score Dot ───────────────────────────────────────────────────────
+
+function ActivationDot({ score }: { score: number }) {
+  const color = score >= 70 ? 'bg-emerald-500' : score >= 40 ? 'bg-amber-400' : 'bg-red-400';
+  return (
+    <div className="flex items-center gap-1.5 justify-center">
+      <span
+        className={`w-2.5 h-2.5 rounded-full inline-block ${color}`}
+        title={`激活概率 ${score}`}
+      />
+      <span className="font-mono tabular-nums text-[var(--text-secondary)]">{score}</span>
+    </div>
+  );
+}
+
+// ── CC Contact Badge ────────────────────────────────────────────────────────────
+
+function ContactBadge({ days }: { days: number | null }) {
+  if (days === null) return <span className="text-[var(--text-muted)]">—</span>;
+  if (days > 14)
+    return (
+      <span className="text-red-600 font-medium">
+        {days}天前
+        <span className="ml-1 px-1 py-0.5 bg-red-100 text-red-600 rounded text-xs">需联系</span>
+      </span>
+    );
+  if (days > 7) return <span className="text-amber-500 font-medium">{days}天前</span>;
+  return <span className="text-emerald-600">{days}天前</span>;
+}
+
+// ── Group Filter Bar ────────────────────────────────────────────────────────────
+
+interface GroupFilterBarProps {
+  active: GroupFilter;
+  onChange: (g: GroupFilter) => void;
+}
+
+function GroupFilterBar({ active, onChange }: GroupFilterBarProps) {
+  const groups: GroupFilter[] = ['all', 'never', 'was_active', 'partial'];
+  return (
+    <div className="flex flex-wrap items-center gap-2 pb-2">
+      <span className="text-xs text-[var(--text-muted)]">分群:</span>
+      <div className="flex rounded-lg border border-[var(--border-subtle)] overflow-hidden text-xs font-medium">
+        {groups.map((g) => (
+          <button
+            key={g}
+            onClick={() => onChange(g)}
+            className={`px-3 py-1.5 transition-colors whitespace-nowrap ${
+              active === g
+                ? 'bg-[var(--n-800)] text-white'
+                : 'bg-[var(--bg-surface)] text-[var(--text-secondary)] hover:bg-[var(--bg-subtle)]'
+            }`}
+          >
+            {GROUP_FILTER_LABELS[g]}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 // ── Main Table ─────────────────────────────────────────────────────────────────
 
 interface FollowupTableProps {
@@ -345,7 +441,8 @@ function FollowupTable({ items, onDrawerOpen }: FollowupTableProps) {
     );
   }
 
-  const COL_SPAN = 9;
+  // 新增列后共 14 列
+  const COL_SPAN = 14;
 
   return (
     <div className="overflow-x-auto">
@@ -354,9 +451,13 @@ function FollowupTable({ items, onDrawerOpen }: FollowupTableProps) {
           <tr className="slide-thead-row text-xs">
             <th className="py-1.5 px-2 text-center whitespace-nowrap w-8">排名</th>
             <th className="py-1.5 px-2 text-center whitespace-nowrap">⭐评分</th>
+            <th className="py-1.5 px-2 text-center whitespace-nowrap">激活</th>
             <th className="py-1.5 px-2 text-left whitespace-nowrap">学员ID</th>
             <th className="py-1.5 px-2 text-left whitespace-nowrap">围场</th>
             <th className="py-1.5 px-2 text-left whitespace-nowrap min-w-[100px]">负责人</th>
+            <th className="py-1.5 px-2 text-center whitespace-nowrap">本月打卡</th>
+            <th className="py-1.5 px-2 text-center whitespace-nowrap">上月打卡</th>
+            <th className="py-1.5 px-2 text-left whitespace-nowrap min-w-[120px]">标签</th>
             <th className="py-1.5 px-2 text-right whitespace-nowrap">📚课耗(3月均)</th>
             <th className="py-1.5 px-2 text-right whitespace-nowrap">👥本月推荐</th>
             <th className="py-1.5 px-2 text-right whitespace-nowrap">💰历史付费</th>
@@ -369,11 +470,21 @@ function FollowupTable({ items, onDrawerOpen }: FollowupTableProps) {
             const isHighQuality = m.quality_score >= 70;
             const expanded = expandedId === m.id;
             const daysSinceContact = daysSince(m.cc_last_contact_date);
-            const contactOverdue = daysSinceContact !== null && daysSinceContact > 7;
             const cardExpirySoon =
               m.days_until_card_expiry !== null &&
               m.days_until_card_expiry !== undefined &&
               m.days_until_card_expiry <= 30;
+
+            // 新增字段：本月/上月打卡天数
+            const daysThis = Number(m.extra?.['本月打卡天数'] ?? 0);
+            const daysLast = Number(m.extra?.['上月打卡天数'] ?? 0);
+            const lessonVal = m.lesson_avg_3m ?? 0;
+            const regsVal = m.referrals_this_month ?? 0;
+
+            // 客户端标签计算
+            const clientTags = computeClientTags(daysThis, daysLast, lessonVal, regsVal);
+            // 激活概率
+            const activationScore = computeActivationScore(daysLast, lessonVal);
 
             return (
               <Fragment key={m.id}>
@@ -410,6 +521,9 @@ function FollowupTable({ items, onDrawerOpen }: FollowupTableProps) {
                       {m.quality_score}
                     </span>
                   </td>
+                  <td className="py-1 px-2">
+                    <ActivationDot score={activationScore} />
+                  </td>
                   <td className="py-1 px-2 text-action-accent font-medium font-mono tabular-nums whitespace-nowrap">
                     {m.id}
                   </td>
@@ -422,6 +536,29 @@ function FollowupTable({ items, onDrawerOpen }: FollowupTableProps) {
                   >
                     {m.responsible || '—'}
                   </td>
+                  <td className="py-1 px-2 text-center font-mono tabular-nums">
+                    <span
+                      className={
+                        daysThis === 0
+                          ? 'text-[var(--text-muted)]'
+                          : daysThis >= 5
+                            ? 'text-emerald-600 font-semibold'
+                            : 'text-[var(--text-secondary)]'
+                      }
+                    >
+                      {daysThis}/6
+                    </span>
+                  </td>
+                  <td className="py-1 px-2 text-center font-mono tabular-nums text-[var(--text-muted)]">
+                    {daysLast}/6
+                  </td>
+                  <td className="py-1 px-2 min-w-[120px]">
+                    {clientTags.length > 0 ? (
+                      <StudentTagBadge tags={clientTags} maxVisible={2} />
+                    ) : (
+                      <span className="text-[var(--text-muted)]">—</span>
+                    )}
+                  </td>
                   <td className="py-1 px-2 text-right font-mono tabular-nums">
                     {fmtNum(m.lesson_avg_3m)}
                   </td>
@@ -431,13 +568,8 @@ function FollowupTable({ items, onDrawerOpen }: FollowupTableProps) {
                   <td className="py-1 px-2 text-right font-mono tabular-nums">
                     {fmtRevenue(m.total_revenue_usd)}
                   </td>
-                  <td
-                    className={`py-1 px-2 whitespace-nowrap ${
-                      contactOverdue ? 'text-red-600 font-medium' : 'text-[var(--text-secondary)]'
-                    }`}
-                    title={m.cc_last_contact_date || ''}
-                  >
-                    {contactOverdue ? `超7天` : m.cc_last_contact_date || '—'}
+                  <td className="py-1 px-2 whitespace-nowrap">
+                    <ContactBadge days={daysSinceContact} />
                   </td>
                   <td
                     className={`py-1 px-2 text-right font-mono tabular-nums ${
@@ -455,11 +587,7 @@ function FollowupTable({ items, onDrawerOpen }: FollowupTableProps) {
                 </tr>
 
                 {expanded && (
-                  <ExpandedRow
-                    member={m}
-                    colSpan={COL_SPAN + 1}
-                    onClose={() => setExpandedId(null)}
-                  />
+                  <ExpandedRow member={m} colSpan={COL_SPAN} onClose={() => setExpandedId(null)} />
                 )}
               </Fragment>
             );
@@ -523,10 +651,14 @@ export function FollowupTab({ activeRoles: activeRolesProp }: FollowupTabProps) 
   const [team, setTeam] = useState('');
   const [salesSearch, setSalesSearch] = useState('');
   const [enclosures, setEnclosures] = useState<string[]>([]);
+  const [groupFilter, setGroupFilter] = useState<GroupFilter>('all');
 
   // Drawer state
   const [drawerMember, setDrawerMember] = useState<FollowupMember | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
+
+  // focusCC from global store（"只看我的"功能）
+  const focusCC = useConfigStore((s) => s.focusCC);
 
   // Build query string
   const qs = useMemo(() => {
@@ -553,15 +685,16 @@ export function FollowupTab({ activeRoles: activeRolesProp }: FollowupTabProps) 
         const items: FollowupMember[] = backendStudents.map((s, idx) => ({
           rank: idx + 1,
           quality_score: s.quality_score ?? 0,
-          id: s.student_id, // student_id → id
+          id: s.student_id,
           enclosure: s.enclosure,
-          responsible: s.cc_name, // cc_name → responsible
-          lesson_avg_3m: s.lesson_consumption_3m, // lesson_consumption_3m → lesson_avg_3m
-          referrals_this_month: s.referral_registrations ?? 0, // referral_registrations → referrals_this_month
-          total_revenue_usd: null, // 后端无此字段
-          cc_last_contact_date: s.cc_last_call_date, // cc_last_call_date → cc_last_contact_date
-          days_until_card_expiry: s.card_days_remaining, // card_days_remaining → days_until_card_expiry
+          responsible: s.cc_name,
+          lesson_avg_3m: s.lesson_consumption_3m,
+          referrals_this_month: s.referral_registrations ?? 0,
+          total_revenue_usd: null,
+          cc_last_contact_date: s.cc_last_call_date,
+          days_until_card_expiry: s.card_days_remaining,
           team: s.team,
+          extra: s.extra ?? {},
           // 展开 extra 字段（D4 全量字段，用于 ExpandedRow 展示）
           ...(s.extra ?? {}),
         }));
@@ -582,15 +715,58 @@ export function FollowupTab({ activeRoles: activeRolesProp }: FollowupTabProps) 
 
   const teams = data?.teams ?? [];
 
+  // 分群过滤（纯前端）
+  const filteredItems = useMemo(() => {
+    if (!data?.items) return [];
+    let items = data.items;
+
+    // 分群逻辑
+    if (groupFilter !== 'all') {
+      items = items.filter((m) => {
+        const daysThis = Number(m.extra?.['本月打卡天数'] ?? 0);
+        const daysLast = Number(m.extra?.['上月打卡天数'] ?? 0);
+        if (groupFilter === 'never') return daysThis === 0 && daysLast === 0;
+        if (groupFilter === 'was_active') return daysLast > 0 && daysThis === 0;
+        if (groupFilter === 'partial') return daysThis > 0;
+        return true;
+      });
+    }
+
+    return items;
+  }, [data?.items, groupFilter]);
+
   // Reset team when role changes and the current team is no longer available
   const handleRoleChange = (r: Role) => {
     setRole(r);
     setTeam('');
-    setEnclosures([]); // 清空围场筛选（新角色负责不同围场）
+    setEnclosures([]);
+    setGroupFilter('all');
+  };
+
+  // "只看我的" — 将 focusCC 填入 salesSearch 筛选
+  const handleMyViewClick = () => {
+    if (focusCC) {
+      setSalesSearch(focusCC);
+    }
   };
 
   return (
     <div className="space-y-4">
+      {/* 只看我的 Banner */}
+      {focusCC && (
+        <div className="flex items-center gap-2 px-3 py-2 bg-amber-50 border border-amber-200 rounded-lg text-xs">
+          <span className="text-amber-600">
+            当前全局视角: <strong>{focusCC}</strong>
+          </span>
+          <button
+            onClick={handleMyViewClick}
+            className="ml-auto px-2.5 py-1 bg-amber-100 hover:bg-amber-200 text-amber-800 rounded-md font-medium transition-colors"
+          >
+            只看我的 ({focusCC})
+          </button>
+        </div>
+      )}
+
       <FilterBar
         role={role}
         onRoleChange={handleRoleChange}
@@ -605,25 +781,28 @@ export function FollowupTab({ activeRoles: activeRolesProp }: FollowupTabProps) 
         roleEnclosures={wideRoleEnc?.[role]}
       />
 
+      {/* 分群子 Tab */}
+      <GroupFilterBar active={groupFilter} onChange={setGroupFilter} />
+
       {isLoading ? (
         <div className="flex justify-center py-10">
           <Spinner size="lg" />
         </div>
       ) : error ? (
         <EmptyState title="加载失败" description="请检查后端服务是否正常运行" />
-      ) : !data || data.items.length === 0 ? (
+      ) : !data || filteredItems.length === 0 ? (
         <EmptyState title="暂无未打卡学员" description="当前筛选条件下无数据，或数据文件尚未上传" />
       ) : (
         <>
           <FollowupTable
-            items={data.items}
+            items={filteredItems}
             onDrawerOpen={(m) => {
               setDrawerMember(m);
               setDrawerOpen(true);
             }}
           />
           <BottomStats
-            total={data.total}
+            total={filteredItems.length}
             avgScore={data.avg_quality_score}
             highQualityCount={data.high_quality_count}
           />

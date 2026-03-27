@@ -12,7 +12,9 @@ import { TeamDetailTab } from '@/components/checkin/TeamDetailTab';
 import { FollowupTab } from '@/components/checkin/FollowupTab';
 import { RankingTab } from '@/components/checkin/RankingTab';
 import SummaryTab from '@/components/checkin/SummaryTab';
+import { MyViewBanner } from '@/components/checkin/MyViewBanner';
 import { useWideConfig } from '@/lib/hooks/useWideConfig';
+import { useMyView } from '@/lib/hooks/useMyView';
 import { ContactConversionScatter } from '@/components/daily-monitor/ContactConversionScatter';
 import { ExportButton } from '@/components/ui/ExportButton';
 import { useExport } from '@/lib/use-export';
@@ -56,8 +58,20 @@ type TabId = (typeof TABS)[number]['id'];
 function CheckinPageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const activeTab = (searchParams.get('tab') ?? 'followup') as TabId;
   const { activeRoles, roleEnclosures } = useWideConfig();
+
+  // URL → Zustand 同步（mount 时触发一次）
+  useMyView();
+
+  // 智能默认 Tab：有 cc 参数 → followup；有 team 但无 cc → team_detail；否则 → summary
+  function resolveDefaultTab(): TabId {
+    const explicit = searchParams.get('tab');
+    if (explicit) return explicit as TabId;
+    if (searchParams.get('cc')) return 'followup';
+    if (searchParams.get('team') && !searchParams.get('cc')) return 'team_detail';
+    return 'followup';
+  }
+  const activeTab = resolveDefaultTab();
   const { exportCSV } = useExport();
 
   const { data: summaryData } = useSWR<CheckinSummaryResponse>(`/api/checkin/summary`, swrFetcher);
@@ -111,6 +125,8 @@ function CheckinPageInner() {
         </div>
         {activeTab === 'summary' && <ExportButton onExportCsv={handleExportSummary} />}
       </div>
+
+      <MyViewBanner />
 
       <PageTabs
         tabs={TABS.map((t) => ({ id: t.id, label: t.label }))}
