@@ -24,6 +24,7 @@ import SOPSettingsCard from './SOPSettingsCard';
 import EnclosureRoleCard from './EnclosureRoleCard';
 import CheckinThresholdsCard from './CheckinThresholdsCard';
 import IndicatorMatrixCard from './IndicatorMatrixCard';
+import { TargetRecommender } from '@/components/settings/TargetRecommender';
 import { defaultV2, MONTHS } from './defaultV2';
 
 export default function SettingsPage() {
@@ -205,6 +206,7 @@ export default function SettingsPage() {
         onUpdateHard={updateHard}
         onApplyScenario={applyScenario}
       />
+      <TargetRecommender />
       <ChannelSettingsCard v2={v2} onUpdateChannel={updateChannel} />
       <EnclosureSettingsCard
         v2={v2}
