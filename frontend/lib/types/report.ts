@@ -34,7 +34,7 @@ export interface ChannelMetrics {
   reg_to_pay_rate: number;
 }
 
-/** 三档目标推荐（单档） */
+/** 三档目标推荐（单档，旧格式兼容 DailyReport） */
 export interface TargetRecommendation {
   /** 档位：conservative=保守 | moderate=持平 | aggressive=激进 */
   tier: 'conservative' | 'moderate' | 'aggressive';
@@ -46,8 +46,49 @@ export interface TargetRecommendation {
   attend_rate: number;
   paid_rate: number;
   asp: number;
-  /** 口径拆分目标 */
+  /** 口径拆分目标（注册数） */
   channel_targets: Record<string, number>;
+}
+
+/** WMA 三档推荐 — 单档各口径全链路数据 */
+export interface WmaTierChannel {
+  registrations: number;
+  appointments: number;
+  attendance: number;
+  payments: number;
+  revenue_usd: number;
+  revenue_share: number;
+  appt_rate: number;
+  attend_rate: number;
+  paid_rate: number;
+  asp: number;
+}
+
+export interface WmaTierTotal {
+  registrations: number;
+  appointments: number;
+  attendance: number;
+  payments: number;
+  revenue_usd: number;
+  asp: number;
+  reg_to_pay_rate: number;
+}
+
+export interface WmaTier {
+  multiplier: number;
+  label: string;
+  total: WmaTierTotal;
+  channels: Record<string, WmaTierChannel>;
+}
+
+/** GET /api/config/targets/recommend 完整响应 */
+export interface WmaRecommendResult {
+  basis_months: string[];
+  method: string;
+  tiers: Record<'stable' | 'stretch' | 'ambitious', WmaTier>;
+  default_tier: 'stable';
+  data_months: number;
+  message: string | null;
 }
 
 /** 收入杠杆评分（区块 9 单条目） */

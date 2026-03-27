@@ -627,6 +627,127 @@ def put_checkin_thresholds(body: dict[str, Any]) -> dict[str, Any]:
     return {"status": "ok"}
 
 
+# ── WMA 三档推荐（新） ──────────────────────────────────────────────────────
+
+
+@router.get("/targets/recommend", summary="WMA 三档目标推荐（Holt 1957）")
+def get_targets_recommend(
+    n_months: int = 6,
+) -> dict[str, Any]:
+    """基于 WMA+线性趋势生成三档目标推荐（稳达标/冲刺/大票）。
+
+    返回完整全链路拆解：总目标 → 各口径（CC窄口/SS窄口/LP窄口/宽口）
+    × 漏斗（注册→预约→出席→付费→业绩）。
+
+    Args:
+        n_months: 使用最近 n 个月历史数据，默认 6
+    """
+    if n_months < 3 or n_months > 24:
+        raise HTTPException(status_code=400, detail="n_months 范围 3-24")
+
+    from backend.core.daily_snapshot_service import DB_PATH, DailySnapshotService
+    from backend.core.target_recommender import recommend_targets_wma
+
+    snapshot_svc = DailySnapshotService(DB_PATH)
+    result = recommend_targets_wma(snapshot_svc, n_months)
+    return result
+
+
+@router.post("/targets/apply", summary="一键应用目标档位写入 targets_override")
+def post_targets_apply(
+    tier: str = "stable",
+    month: str | None = None,
+) -> dict[str, Any]:
+    """将 WMA 推荐的指定档位写入本月（或指定月份）targets_override.json。
+
+    Args:
+        tier:  stable（稳达标）| stretch（冲刺）| ambitious（大票）
+        month: YYYYMM，不传则使用当前自然月
+    """
+    valid_tiers = {"stable", "stretch", "ambitious"}
+    if tier not in valid_tiers:
+        raise HTTPException(
+            status_code=400,
+            detail=f"tier 必须为 {valid_tiers} 之一",
+        )
+
+    from datetime import date
+
+    if month is None:
+        today = date.today()
+        month = f"{today.year:04d}{today.month:02d}"
+
+    if len(month) != 6 or not month.isdigit():
+        raise HTTPException(status_code=400, detail="month 格式应为 YYYYMM")
+
+    from backend.core.daily_snapshot_service import DB_PATH, DailySnapshotService
+    from backend.core.target_recommender import recommend_targets_wma
+
+    snapshot_svc = DailySnapshotService(DB_PATH)
+    wma_result = recommend_targets_wma(snapshot_svc)
+
+    if not wma_result.get("tiers"):
+        raise HTTPException(
+            status_code=422,
+            detail=wma_result.get("message", "历史数据不足，无法生成推荐"),
+        )
+
+    tier_data = wma_result["tiers"].get(tier)
+    if tier_data is None:
+        raise HTTPException(status_code=404, detail=f"档位 {tier!r} 不存在")
+
+    total = tier_data["total"]
+    channels = tier_data["channels"]
+
+    # 构建写入 targets_override 的扁平结构
+    # 兼容现有 MONTHLY_TARGETS 字段名
+    sub_口径: dict[str, Any] = {}
+    for ch_name, ch_data in channels.items():
+        # 旧字段名映射
+        key_map = {
+            "CC窄口": "CC窄口径",
+            "SS窄口": "SS窄口径",
+            "LP窄口": "LP窄口径",
+            "宽口":   "宽口径",
+        }
+        legacy_key = key_map.get(ch_name, ch_name)
+        sub_口径[legacy_key] = {
+            "倒子目标": round(ch_data.get("registrations", 0)),
+        }
+
+    override_payload: dict[str, Any] = {
+        "注册目标":   round(total.get("registrations", 0)),
+        "付费目标":   round(total.get("payments", 0)),
+        "金额目标":   round(total.get("revenue_usd", 0), 2),
+        "客单价":     round(total.get("asp", 0), 2),
+        "目标转化率": round(total.get("reg_to_pay_rate", 0), 6),
+        "子口径":     sub_口径,
+        # 元信息
+        "_wma_tier":     tier,
+        "_wma_tier_label": tier_data.get("label", ""),
+        "_wma_applied_at": __import__("datetime").datetime.utcnow().isoformat() + "Z",
+    }
+
+    _backup_config_file(TARGETS_OVERRIDE_FILE)
+    overrides = _read_json(TARGETS_OVERRIDE_FILE, {})
+    overrides[month] = {**(overrides.get(month) or {}), **override_payload}
+    try:
+        _write_json(TARGETS_OVERRIDE_FILE, overrides)
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
+
+    return {
+        "status": "ok",
+        "month": month,
+        "tier": tier,
+        "label": tier_data.get("label", ""),
+        "applied": {
+            "total": total,
+            "channels": {ch: v["registrations"] for ch, v in channels.items()},
+        },
+    }
+
+
 def _calculate_feasibility(svc: Any, month: str, targets: dict) -> dict:
     """计算当月目标可行性"""
     result: dict[str, Any] = {
