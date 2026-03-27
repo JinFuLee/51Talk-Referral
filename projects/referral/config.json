@@ -478,6 +478,16 @@
     "payment_weight": 20,
     "enclosure_weights": {"0": 10, "1": 8, "2": 6, "3": 4, "default": 2}
   },
+  "checkin_student_tags": {
+    "superfan_min": 6,
+    "active_min": 4,
+    "improver_delta": 2,
+    "declining_delta": -2,
+    "sleeping_hp_days_max": 0,
+    "sleeping_hp_lesson_min": 10,
+    "super_converter_days_min": 4,
+    "super_converter_referrals_min": 2
+  },
   "invalid_names": ["nan", "小计", "合计", ""],
   "role_team_prefixes": {
     "SS": ["SS"],
