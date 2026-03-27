@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense } from 'react';
+import { Suspense, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import useSWR from 'swr';
 import { swrFetcher } from '@/lib/api';
@@ -51,6 +51,24 @@ const TABS = [
   { id: 'followup', label: '未打卡跟进' },
 ] as const;
 
+// ── 围场筛选选项 ────────────────────────────────────────────────────────────
+
+interface EnclosureOption {
+  id: string | null;
+  label: string;
+}
+
+const ENCLOSURE_OPTIONS: EnclosureOption[] = [
+  { id: null, label: '全部围场' },
+  { id: 'M0', label: 'M0 (0-30天)' },
+  { id: 'M1', label: 'M1 (31-60天)' },
+  { id: 'M2', label: 'M2 (61-90天)' },
+  { id: 'M3', label: 'M3 (91-120天)' },
+  { id: 'M4', label: 'M4 (121-150天)' },
+  { id: 'M5', label: 'M5 (151-180天)' },
+  { id: 'M6+', label: 'M6+ (181天+)' },
+];
+
 type TabId = (typeof TABS)[number]['id'];
 
 // ── 主页面（内部，需要 useSearchParams）────────────────────────────────────────
@@ -72,6 +90,23 @@ function CheckinPageInner() {
     return 'summary';
   }
   const activeTab = resolveDefaultTab();
+
+  // 围场筛选：从 URL 读取，null = 全部
+  const enclosureFilter: string | null = searchParams.get('enclosure') || null;
+
+  const handleEnclosureChange = useCallback(
+    (enc: string | null) => {
+      const params = new URLSearchParams(searchParams.toString());
+      if (enc) {
+        params.set('enclosure', enc);
+      } else {
+        params.delete('enclosure');
+      }
+      router.replace(`/checkin?${params.toString()}`);
+    },
+    [router, searchParams]
+  );
+
   const { exportCSV } = useExport();
 
   const { data: summaryData } = useSWR<CheckinSummaryResponse>(`/api/checkin/summary`, swrFetcher);
@@ -130,6 +165,23 @@ function CheckinPageInner() {
 
       <MyViewBanner />
 
+      {/* 围场筛选器 */}
+      <div className="flex items-center gap-1.5 px-0.5 overflow-x-auto pb-0.5">
+        {ENCLOSURE_OPTIONS.map((opt) => (
+          <button
+            key={opt.id ?? 'all'}
+            onClick={() => handleEnclosureChange(opt.id)}
+            className={`px-3 py-1 rounded-full text-xs whitespace-nowrap transition-colors flex-shrink-0 ${
+              enclosureFilter === opt.id
+                ? 'bg-[var(--color-action,#1B365D)] text-white font-medium'
+                : 'bg-[var(--bg-subtle)] text-[var(--text-secondary)] hover:bg-[var(--bg-surface)] border border-[var(--border-default)]'
+            }`}
+          >
+            {opt.label}
+          </button>
+        ))}
+      </div>
+
       <PageTabs
         tabs={TABS.map((t) => ({ id: t.id, label: t.label }))}
         activeId={activeTab}
@@ -137,13 +189,17 @@ function CheckinPageInner() {
       />
 
       <div className="mt-2">
-        {activeTab === 'summary' && <SummaryTab />}
-        {activeTab === 'ranking' && <RankingTab />}
+        {activeTab === 'summary' && <SummaryTab enclosureFilter={enclosureFilter} />}
+        {activeTab === 'ranking' && <RankingTab enclosureFilter={enclosureFilter} />}
         {activeTab === 'team_detail' && (
           <TeamDetailTab activeRoles={activeRoles} roleEnclosures={roleEnclosures} />
         )}
         {activeTab === 'followup' && (
-          <FollowupTab activeRoles={activeRoles} roleEnclosures={roleEnclosures} />
+          <FollowupTab
+            activeRoles={activeRoles}
+            roleEnclosures={roleEnclosures}
+            enclosureFilter={enclosureFilter}
+          />
         )}
       </div>
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { Fragment, useState, useMemo } from 'react';
+import { Fragment, useState, useMemo, useEffect } from 'react';
 import useSWR from 'swr';
 import { swrFetcher } from '@/lib/api';
 import { formatRevenue } from '@/lib/utils';
@@ -637,9 +637,10 @@ function BottomStats({ total, avgScore, highQualityCount }: BottomStatsProps) {
 interface FollowupTabProps {
   activeRoles?: string[];
   roleEnclosures?: Record<string, string[]>;
+  enclosureFilter?: string | null;
 }
 
-export function FollowupTab({ activeRoles: activeRolesProp }: FollowupTabProps) {
+export function FollowupTab({ activeRoles: activeRolesProp, enclosureFilter }: FollowupTabProps) {
   const { configJson, activeRoles: hookActiveRoles, roleEnclosures: wideRoleEnc } = useWideConfig();
 
   // 优先使用 hook 内部读取的值，props 作为备用
@@ -650,8 +651,19 @@ export function FollowupTab({ activeRoles: activeRolesProp }: FollowupTabProps) 
   const [role, setRole] = useState<Role>(visibleRoles[0] ?? 'CC');
   const [team, setTeam] = useState('');
   const [salesSearch, setSalesSearch] = useState('');
-  const [enclosures, setEnclosures] = useState<string[]>([]);
+  // 全局围场筛选器选中时，自动初始化内部 enclosures
+  const [enclosures, setEnclosures] = useState<string[]>(enclosureFilter ? [enclosureFilter] : []);
+
   const [groupFilter, setGroupFilter] = useState<GroupFilter>('all');
+
+  // 全局围场筛选器变化时同步到内部 enclosures
+  useEffect(() => {
+    if (enclosureFilter) {
+      setEnclosures([enclosureFilter]);
+    } else {
+      setEnclosures([]);
+    }
+  }, [enclosureFilter]);
 
   // Drawer state
   const [drawerMember, setDrawerMember] = useState<FollowupMember | null>(null);

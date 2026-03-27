@@ -145,9 +145,15 @@ function SectionTable({ sections, flatMode = false }: SectionTableProps) {
  * 使用示例：
  *   <StudentRankingPanel />
  */
-export function StudentRankingPanel() {
+interface StudentRankingPanelProps {
+  enclosureFilter?: string | null;
+}
+
+export function StudentRankingPanel({ enclosureFilter }: StudentRankingPanelProps) {
   const [mode, setMode] = useState<RankingMode>('frequency');
-  const { data, error, isLoading } = useStudentAnalysis();
+  const { data, error, isLoading } = useStudentAnalysis(
+    enclosureFilter ? { enclosure: enclosureFilter } : undefined
+  );
 
   const sections = useMemo<Section[]>(() => {
     if (!data) return [];

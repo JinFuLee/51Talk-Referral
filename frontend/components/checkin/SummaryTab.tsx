@@ -274,8 +274,10 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
   );
 }
 
-function StudentPanoramaSection() {
-  const { data, isLoading, error } = useStudentAnalysis();
+function StudentPanoramaSection({ enclosureFilter }: { enclosureFilter?: string | null }) {
+  const { data, isLoading, error } = useStudentAnalysis(
+    enclosureFilter ? { enclosure: enclosureFilter } : undefined
+  );
 
   if (isLoading) {
     return (
@@ -442,7 +444,11 @@ function StudentPanoramaSection() {
  * 1. 按岗位（CC/SS/LP）展示打卡率的渠道列汇总
  * 2. 学员打卡行为全景（5 行：KPI卡片 + 频次图 + 围场参与率 + 转化漏斗 + 触达/续费）
  */
-export default function SummaryTab() {
+interface SummaryTabProps {
+  enclosureFilter?: string | null;
+}
+
+export default function SummaryTab({ enclosureFilter }: SummaryTabProps) {
   const { configJson } = useWideConfig();
   const { rateColor, rateBg } = useCheckinThresholds();
 
@@ -498,7 +504,7 @@ export default function SummaryTab() {
       <div className="h-px bg-[var(--border-default)]" />
 
       {/* 学员行为全景 */}
-      <StudentPanoramaSection />
+      <StudentPanoramaSection enclosureFilter={enclosureFilter} />
     </div>
   );
 }

@@ -34,6 +34,7 @@ dev = [
     "httpx>=0.24",
     "pytest-cov>=4.0",
     "ruff>=0.9.0",
+    "playwright>=1.58.0",
 ]
 terminal = [
     "anthropic>=0.40.0",

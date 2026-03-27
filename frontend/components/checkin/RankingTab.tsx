@@ -176,7 +176,11 @@ function RoleColumn({ role, summary, subTab, rateColor }: RoleColumnProps) {
 
 // ── 主组件 ────────────────────────────────────────────────────────────────────
 
-export function RankingTab() {
+interface RankingTabProps {
+  enclosureFilter?: string | null;
+}
+
+export function RankingTab({ enclosureFilter }: RankingTabProps) {
   const { configJson, activeRoles } = useWideConfig();
   const { rateColor, legend } = useCheckinThresholds();
   const [subTab, setSubTab] = useState<'group' | 'person' | 'student'>('group');
@@ -213,7 +217,7 @@ export function RankingTab() {
       </div>
 
       {/* 学员排行面板（独立 Tab） */}
-      {subTab === 'student' && <StudentRankingPanel />}
+      {subTab === 'student' && <StudentRankingPanel enclosureFilter={enclosureFilter} />}
 
       {/* 小组/个人排行（共用数据） */}
       {subTab !== 'student' && (

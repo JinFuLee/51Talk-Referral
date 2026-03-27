@@ -1729,3 +1729,116 @@ async def student_analysis(
         "top_students": top_students,
         "improvement_ranking": improvement_ranking,
     }
+
+
+# ── 围场动态阈值 ──────────────────────────────────────────────────────────────
+
+_THRESHOLDS_PATH = (
+    Path(__file__).resolve().parent.parent.parent
+    / "config" / "checkin_thresholds.json"
+)
+
+
+def _load_checkin_thresholds_config() -> dict:
+    """读取 config/checkin_thresholds.json，返回其内容。失败时返回空 dict。"""
+    try:
+        return json.loads(_THRESHOLDS_PATH.read_text(encoding="utf-8"))
+    except Exception:
+        return {}
+
+
+@router.get(
+    "/checkin/enclosure-thresholds",
+    summary="围场动态打卡阈值 — M0/M1/M2 读 config，M3+ 动态计算 P75/P50/P25",
+)
+def get_enclosure_thresholds(
+    dm: DataManager = Depends(get_data_manager),
+) -> dict:
+    """
+    返回各围场打卡率阈值：
+    - M0/M1/M2：来自 config/checkin_thresholds.json cc_warning_by_enclosure
+    - M3+：从 D4（本月打卡天数/6）计算参与率，取 P75/P50/P25
+
+    响应格式：
+    {
+      "thresholds": {
+        "M0": {"good": 0.90, "warning": 0.80, "source": "config"},
+        "M3": {"good": 0.45, "warning": 0.30, "bad_below": 0.15,
+               "source": "dynamic", "method": "percentile", "sample_size": 431}
+      }
+    }
+    """
+    import numpy as np
+
+    # 读取 config 中已配置的阈值（M0/M1/M2）
+    thresholds_cfg = _load_checkin_thresholds_config()
+    config_by_enc: dict[str, float] = thresholds_cfg.get("cc_warning_by_enclosure", {})
+
+    # 加载 D4 学员数据
+    df_d4: pd.DataFrame = dm.load_all().get("students", pd.DataFrame())
+
+    thresholds: dict[str, dict] = {}
+
+    # M 标签顺序
+    m_labels_ordered = [
+        "M0", "M1", "M2", "M3", "M4", "M5",
+        "M6", "M7", "M8", "M9", "M10", "M11", "M12", "M12+",
+    ]
+
+    for m_label in m_labels_ordered:
+        # 已有 config 配置的围场
+        if m_label in config_by_enc:
+            warning_val = float(config_by_enc[m_label])
+            # good ≈ warning + 0.1（向上取整一档）
+            good_val = min(warning_val + 0.10, 1.0)
+            thresholds[m_label] = {
+                "good": round(good_val, 4),
+                "warning": round(warning_val, 4),
+                "source": "config",
+            }
+            continue
+
+        # 动态计算：从 D4 拿该围场学员的打卡天数
+        if df_d4.empty or _D4_LIFECYCLE_COL not in df_d4.columns:
+            continue
+
+        # 找出该围场对应的原始围场值（D4 生命周期列存的是原始 band，如 "0~30"）
+        # 先获取所有 D4 中能映射到此 m_label 的原始值
+        target_raws = [
+            raw for raw, mapped in _M_MAP.items() if mapped == m_label
+        ]
+        if not target_raws:
+            # M 标签直接存在于 D4（部分数据源）
+            target_raws = [m_label]
+
+        mask = df_d4[_D4_LIFECYCLE_COL].astype(str).str.strip().isin(
+            set(target_raws) | {m_label}
+        )
+        subset_d4 = df_d4[mask]
+
+        if subset_d4.empty or "本月打卡天数" not in subset_d4.columns:
+            continue
+
+        days_series = pd.to_numeric(subset_d4["本月打卡天数"], errors="coerce").fillna(0)
+        n = len(days_series)
+        if n < 5:
+            # 样本量太小，跳过动态计算
+            continue
+
+        # 参与率 = 打卡天数 / 6（上限 1.0）
+        rates = (days_series / 6.0).clip(0.0, 1.0).values
+
+        p75 = float(np.percentile(rates, 75))
+        p50 = float(np.percentile(rates, 50))
+        p25 = float(np.percentile(rates, 25))
+
+        thresholds[m_label] = {
+            "good": round(p75, 4),
+            "warning": round(p50, 4),
+            "bad_below": round(p25, 4),
+            "source": "dynamic",
+            "method": "percentile",
+            "sample_size": n,
+        }
+
+    return {"thresholds": thresholds}
