@@ -33,7 +33,6 @@ interface ColGroup {
 const COL_GROUPS: ColGroup[] = [
   { key: 'identity', label: '基础信息', defaultVisible: true },
   { key: 'revenue', label: '业绩', defaultVisible: true },
-  { key: 'referral', label: '转介绍占比', defaultVisible: true },
   { key: 'funnel', label: '漏斗', defaultVisible: true },
   { key: 'conversion', label: '转化率', defaultVisible: true },
   { key: 'process', label: '过程指标', defaultVisible: true },
@@ -243,7 +242,6 @@ export function CCPerformanceTable({
         { key: 'revenue.actual', label: '业绩(USD)' },
         { key: 'revenue.target', label: '业绩目标(USD)' },
         { key: 'revenue.achievement_pct', label: '业绩达成率' },
-        { key: 'referral_share.actual', label: '转介绍占比' },
         { key: 'leads.actual', label: '注册数' },
         { key: 'paid.actual', label: '付费数' },
         { key: 'participation_rate', label: '参与率' },
@@ -386,15 +384,6 @@ export function CCPerformanceTable({
                 </>
               )}
 
-              {/* referral */}
-              {show.referral && (
-                <>
-                  <th {...sp}>转介绍占比目标</th>
-                  <SortTh label="实际占比" sortKey="referral_share.actual" currentSort={sortKey} currentDir={sortDir} onSort={handleSort} />
-                  <th {...sp}>差额</th>
-                </>
-              )}
-
               {/* funnel */}
               {show.funnel && (
                 <>
@@ -499,21 +488,6 @@ export function CCPerformanceTable({
                       </td>
                       <td className={`slide-td py-1.5 px-2 text-right font-mono tabular-nums ${achievementTextClass(record.revenue?.achievement_pct ?? null)}`}>
                         {formatRate(record.revenue?.achievement_pct)}
-                      </td>
-                    </>
-                  )}
-
-                  {/* referral */}
-                  {show.referral && (
-                    <>
-                      <td className="slide-td py-1.5 px-2 text-right font-mono tabular-nums text-[var(--text-secondary)]">
-                        {formatRate(record.referral_share?.target ?? 0.3)}
-                      </td>
-                      <td className={`slide-td py-1.5 px-2 text-right font-mono tabular-nums ${achievementTextClass(record.referral_share?.achievement_pct ?? null)}`}>
-                        {formatRate(record.referral_share?.actual)}
-                      </td>
-                      <td className="slide-td py-1.5 px-2 text-right font-mono tabular-nums">
-                        <RateGapCell gap={record.referral_share?.gap ?? null} />
                       </td>
                     </>
                   )}
@@ -666,19 +640,6 @@ export function CCPerformanceTable({
                       </td>
                       <td className={`slide-td py-2 px-2 text-right font-mono tabular-nums ${achievementTextClass(team.revenue?.achievement_pct ?? null)}`}>
                         {formatRate(team.revenue?.achievement_pct)}
-                      </td>
-                    </>
-                  )}
-                  {show.referral && (
-                    <>
-                      <td className="slide-td py-2 px-2 text-right font-mono tabular-nums text-[var(--text-secondary)]">
-                        {formatRate(team.referral_share?.target ?? 0.3)}
-                      </td>
-                      <td className={`slide-td py-2 px-2 text-right font-mono tabular-nums ${achievementTextClass(team.referral_share?.achievement_pct ?? null)}`}>
-                        {formatRate(team.referral_share?.actual)}
-                      </td>
-                      <td className="slide-td py-2 px-2 text-right font-mono tabular-nums">
-                        <RateGapCell gap={team.referral_share?.gap ?? null} />
                       </td>
                     </>
                   )}

@@ -98,7 +98,7 @@ export function CCPerformanceSummaryCards({
     progressPct >= 80 ? 'var(--color-success)' : progressPct >= 50 ? 'var(--color-warning)' : 'var(--color-danger)';
 
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
       {/* 总业绩 */}
       <KPICard
         label="团队总业绩"
@@ -119,17 +119,6 @@ export function CCPerformanceSummaryCards({
         }
         targetLabel="目标 100%"
         achievementPct={gt?.revenue?.achievement_pct ?? null}
-      />
-
-      {/* 转介绍占比 */}
-      <KPICard
-        label="转介绍业绩占比"
-        tooltip="转介绍业绩 / 总业绩，目标 30%"
-        value={
-          gt?.referral_share?.actual != null ? formatRate(gt.referral_share.actual) : '—'
-        }
-        targetLabel={`目标 ${formatRate(gt?.referral_share?.target ?? 0.3)}`}
-        achievementPct={gt?.referral_share?.achievement_pct ?? null}
       />
 
       {/* 时间进度 */}

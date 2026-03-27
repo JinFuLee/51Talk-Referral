@@ -40,15 +40,11 @@ export interface CCPerformanceRecord {
   team: string; // TH-CC01Team
   cc_name: string; // thcc-Zen (CRM 账号)
 
-  // B+C 组：业绩 (USD)
+  // B 组：业绩 (USD)
   revenue: PerformanceMetric; // 个人总业绩
-  referral_revenue: PerformanceMetric; // 转介绍业绩
 
   // D 组：BM% 进度差额
   pace_gap_pct: number | null; // actual/target - time_progress
-
-  // E 组：转介绍占比
-  referral_share: PerformanceMetric; // target=0.30
 
   // F 组：付费单量
   paid: PerformanceMetric;
@@ -110,8 +106,6 @@ export interface CCPerformanceTeamSummary {
 
   // 团队聚合
   revenue: PerformanceMetric;
-  referral_revenue: PerformanceMetric;
-  referral_share: PerformanceMetric;
   paid: PerformanceMetric;
   asp: PerformanceMetric;
   showup: PerformanceMetric;

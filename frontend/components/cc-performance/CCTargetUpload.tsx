@@ -33,7 +33,7 @@ interface UploadStatus {
 
 type InputMode = 'file' | 'paste';
 
-const DEFAULT_PASTE_HEADERS = ['cc_name', 'usd_target', 'referral_usd_target'];
+const DEFAULT_PASTE_HEADERS = ['cc_name', 'referral_usd_target'];
 
 /** 模块级纯函数：去除千分位/货币符号/空格，返回纯数字字符串 */
 function cleanNumber(val: string): string {
@@ -88,7 +88,6 @@ export function CCTargetUpload({ month, onUploadSuccess }: CCTargetUploadProps) 
   /** 清洗一整行的数字列，返回新行 */
   const cleanRow = (row: PreviewRow): PreviewRow => ({
     ...row,
-    usd_target: cleanNumber(row['usd_target'] ?? ''),
     referral_usd_target: cleanNumber(row['referral_usd_target'] ?? ''),
   });
 
@@ -100,9 +99,8 @@ export function CCTargetUpload({ month, onUploadSuccess }: CCTargetUploadProps) 
     rows.forEach((row, i) => {
       const name = row['cc_name'] ?? '';
       if (!name.trim()) return; // 空名行静默跳过，不算无效
-      const usd = row['usd_target'] ?? '';
       const ref = row['referral_usd_target'] ?? '';
-      if (!isCleanNumber(usd) || !isCleanNumber(ref)) {
+      if (!isCleanNumber(ref)) {
         invalid.add(i);
       }
     });
@@ -176,9 +174,8 @@ export function CCTargetUpload({ month, onUploadSuccess }: CCTargetUploadProps) 
 
       const invalid: number[] = [];
       rows.forEach((row, i) => {
-        const usd = row['usd_target'] ?? '';
         const ref = row['referral_usd_target'] ?? '';
-        if (!isCleanNumber(usd) || !isCleanNumber(ref)) {
+        if (!isCleanNumber(ref)) {
           invalid.push(i);
         }
       });
@@ -392,7 +389,7 @@ export function CCTargetUpload({ month, onUploadSuccess }: CCTargetUploadProps) 
                   下载 CSV 模板
                 </button>
                 <p className="text-xs text-[var(--text-muted)]">
-                  模板已预填 CC 名字，只需填写总业绩目标和转介绍业绩目标，付费/出席/leads
+                  模板已预填 CC 名字，只需填写转介绍业绩目标，付费/出席/leads
                   目标由系统自动推算
                 </p>
               </div>
@@ -471,7 +468,7 @@ export function CCTargetUpload({ month, onUploadSuccess }: CCTargetUploadProps) 
                   <div className="space-y-2">
                     <textarea
                       className="w-full min-h-[9rem] rounded-lg border border-[var(--border-default)] bg-[var(--bg-subtle)] px-3 py-2 font-mono text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]/30 focus:border-[var(--color-accent)] resize-y transition-colors"
-                      placeholder={`从 Excel / Google Sheets 复制后粘贴，示例：\ncc_name\tusd_target\treferral_usd_target\nthcc-Zen\t10000\t3000\nthcc-Leo\t8000\t2500`}
+                      placeholder={`从 Excel / Google Sheets 复制后粘贴，示例：\ncc_name\treferral_usd_target\nthcc-Zen\t3000\nthcc-Leo\t2500`}
                       value={pasteText}
                       onChange={(e) => handlePasteTextChange(e.target.value)}
                       spellCheck={false}
