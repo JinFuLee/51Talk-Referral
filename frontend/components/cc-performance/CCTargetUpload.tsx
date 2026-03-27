@@ -73,7 +73,9 @@ export function CCTargetUpload({ month, onUploadSuccess }: CCTargetUploadProps) 
    */
   const isValidNumber = (val: string): boolean => {
     if (!val || val.trim() === '') return true;
-    return !isNaN(Number(val.trim()));
+    // 去除千分位逗号后校验（Excel/Sheets 复制的数字格式含逗号）
+    const cleaned = val.trim().replace(/,/g, '');
+    return cleaned !== '' && !isNaN(Number(cleaned));
   };
 
   /**
@@ -263,7 +265,15 @@ export function CCTargetUpload({ month, onUploadSuccess }: CCTargetUploadProps) 
       // 将全量粘贴数据构造为 CSV File 对象（不受前 10 条预览限制）
       const csvLines = [previewHeaders.join(',')];
       allPastedRows.forEach((row) => {
-        csvLines.push(previewHeaders.map((h) => row[h] ?? '').join(','));
+        csvLines.push(
+          previewHeaders
+            .map((h) => {
+              const val = row[h] ?? '';
+              // 数字列去除千分位逗号（Excel 格式 → 纯数字）
+              return h === 'cc_name' ? val : val.replace(/,/g, '');
+            })
+            .join(',')
+        );
       });
       const csvString = csvLines.join('\n');
       fileToUpload = new File([csvString], 'pasted.csv', { type: 'text/csv' });
