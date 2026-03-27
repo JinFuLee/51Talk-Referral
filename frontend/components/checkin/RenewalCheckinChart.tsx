@@ -1,14 +1,6 @@
 'use client';
 
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-} from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import type { TooltipProps } from 'recharts';
 import { CHART_PALETTE } from '@/lib/chart-palette';
 import type { RenewalCorrelation } from '@/lib/types/checkin-student';
@@ -49,9 +41,7 @@ function CustomTooltip({ active, payload, label }: TooltipProps<number, string>)
           {row.avg_renewals.toFixed(2)}
         </span>
       </p>
-      <p className="text-[var(--text-muted)]">
-        该频段学员数：{row.students.toLocaleString()}
-      </p>
+      <p className="text-[var(--text-muted)]">该频段学员数：{row.students.toLocaleString()}</p>
     </div>
   );
 }
@@ -88,7 +78,7 @@ export function RenewalCheckinChart({ data }: RenewalCheckinChartProps) {
   if (!hasData) {
     return (
       <div className="flex items-center justify-center h-[280px] text-sm text-[var(--text-muted)]">
-        暂无续费数据（需要"总续费订单数"字段）
+        暂无续费数据（需要&ldquo;总续费订单数&rdquo;字段）
       </div>
     );
   }
