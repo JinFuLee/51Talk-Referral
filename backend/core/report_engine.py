@@ -377,6 +377,16 @@ class ReportEngine:
                         base_targets["appt_rate"] = _safe_float(sop["reserve_rate"])
                     if sop.get("attend_rate", 0) > 0:
                         base_targets["attend_rate"] = _safe_float(sop["attend_rate"])
+                    if sop.get("checkin_rate", 0) > 0:
+                        base_targets["checkin_rate"] = _safe_float(sop["checkin_rate"])
+                    if sop.get("reach_rate", 0) > 0:
+                        # SOP 统一触达率 → CC/SS/LP 共用同一目标
+                        r = _safe_float(sop["reach_rate"])
+                        base_targets.setdefault("cc_contact_rate", r)
+                        base_targets.setdefault("ss_contact_rate", r)
+                        base_targets.setdefault("lp_contact_rate", r)
+                    if sop.get("participation_rate", 0) > 0:
+                        base_targets["participation_rate"] = _safe_float(sop["participation_rate"])
                     # channels conversion_rate = 注册付费率（非出席付费率）
                     if channels_v2 and "reg_to_pay_rate" not in base_targets:
                         rates = [
