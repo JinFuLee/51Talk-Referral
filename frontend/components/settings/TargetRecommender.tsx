@@ -83,7 +83,7 @@ const I18N = {
     errorHint: 'Check backend service',
     retry: 'Retry',
   },
-} as const;
+};
 
 type Lang = 'zh' | 'en';
 type T = (typeof I18N)['zh'];
