@@ -103,10 +103,19 @@ function gapColor(gap: number | null | undefined): string {
   return 'text-red-700 font-semibold';
 }
 
-/** BM效率颜色：≥100% 已达标(绿) / ≥BM% 领先(绿) / <BM% 落后(红) */
-function bmEffColor(eff: number | null | undefined, bmPct: number): string {
-  if (eff == null) return 'text-[var(--text-muted)]';
+/** 效率列颜色
+ *  量类：≥100% 已达标(绿) / ≥BM% 领先(绿) / <BM% 落后(红)
+ *  率类：≥100% 达标(绿) / ≥95% 接近(黄) / <95% 落后(红) — 不用 BM 阈值
+ */
+function bmEffColor(eff: number | null | undefined, bmPct: number, isRate = false): string {
+  if (eff == null || eff === 0) return 'text-[var(--text-muted)]';
   if (eff >= 1.0) return 'text-emerald-800 font-semibold';
+  if (isRate) {
+    // 率类：纯粹看达成率离 100% 多远
+    if (eff >= 0.95) return 'text-amber-800 font-semibold';
+    return 'text-red-700 font-semibold';
+  }
+  // 量类：BM 进度阈值
   if (eff >= bmPct) return 'text-emerald-800 font-semibold';
   return 'text-red-700 font-semibold';
 }
@@ -191,7 +200,7 @@ export function MonthlyOverviewSlide({ data, lang }: Props) {
                     {fmtVal(key, actual)}
                   </td>
                   <td className="slide-td text-right font-mono tabular-nums">
-                    <span className={bmEffColor(eff, data.bm_pct)}>
+                    <span className={bmEffColor(eff, data.bm_pct, isRate)}>
                       {eff != null && eff !== 0 ? formatRate(eff) : '—'}
                     </span>
                   </td>

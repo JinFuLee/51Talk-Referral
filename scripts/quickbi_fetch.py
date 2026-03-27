@@ -59,15 +59,16 @@ def save_config(cfg: dict) -> None:
 # 表格标题 → 在仪表板中的 caption 文本（用于定位）
 # 有些表格需要先切 Tab（CC/SS/LP/区域汇关键指标）
 TABLE_DEFS = [
-    # (caption_text, tab_to_click, output_filename)
-    ("转介绍中台检测-结果数据", None, "D1_结果数据.xlsx"),
-    ("转介绍中台检测-围场过程数据-byCC", "CC", "D4_围场过程数据_byCC.xlsx"),
-    ("转介绍中台检测-围场过程数据-byCC", "SS", "D4_围场过程数据_bySS.xlsx"),
-    ("转介绍中台检测-围场过程数据-byCC", "LP", "D4_围场过程数据_byLP.xlsx"),
-    ("转介绍中台检测-围场过程数据-byCC", "区域汇关键指标", "D1_区域汇关键指标.xlsx"),
-    ("转介绍中台检测-明细", None, "D3_明细.xlsx"),
-    ("已付费学员转介绍围场明细", None, "D2_围场明细.xlsx"),
-    ("转介绍中台监测-高潜学员", None, "D5_高潜学员.xlsx"),
+    # (caption_search, tab_to_click, output_filename)
+    # caption_search: 用 includes 匹配，切 Tab 后标题会变
+    ("结果数据", None, "D1_结果数据.xlsx"),
+    ("围场过程数据", None, "D4_围场过程数据_byCC.xlsx"),
+    ("围场过程数据", "SS", "D4_围场过程数据_bySS.xlsx"),
+    ("围场过程数据", "LP", "D4_围场过程数据_byLP.xlsx"),
+    ("围场过程数据", "区域汇关键指标", "D1_区域汇关键指标.xlsx"),
+    ("明细", None, "D3_明细.xlsx"),
+    ("围场明细", None, "D2_围场明细.xlsx"),
+    ("高潜学员", None, "D5_高潜学员.xlsx"),
 ]
 
 
@@ -102,12 +103,20 @@ def run_fetch(
 
         # ── 逐个表格处理 ──────────────────────────────────────────────
         for i, (caption_text, tab_name, out_file) in enumerate(TABLE_DEFS):
-            label = tab_name or caption_text.split("-")[-1]
-            log.info("━━━ [%d/%d] %s ━━━", i + 1, len(TABLE_DEFS), label)
+            label = tab_name or caption_text
+            log.info(
+                "━━━ [%d/%d] %s ━━━",
+                i + 1, len(TABLE_DEFS), label,
+            )
+
+            # 每个表格前确保回到仪表板
+            if i > 0:
+                _ensure_dashboard(page, url)
 
             try:
                 dl_path = _fetch_one_table(
-                    page, url, caption_text, tab_name, out_file, download_only
+                    page, url, caption_text, tab_name,
+                    out_file, download_only,
                 )
                 if dl_path:
                     results.append((label, dl_path))
@@ -116,10 +125,9 @@ def run_fetch(
                     log.warning("  ✗ 下载失败")
             except Exception as e:
                 log.error("  ✗ 异常: %s", e)
-                page.screenshot(path=str(PROJECT_ROOT / f"quickbi_err_{i}.png"))
-                # 返回仪表板重试下一个
-                page.goto(url, wait_until="domcontentloaded", timeout=30000)
-                page.wait_for_timeout(5000)
+                page.screenshot(
+                    path=str(PROJECT_ROOT / f"quickbi_err_{i}.png")
+                )
 
         browser.close()
 
@@ -290,6 +298,8 @@ def _fetch_one_table(
         }""")
         if status == "done":
             log.info("  ✓ 任务完成（第 %d 次检查）", attempt + 1)
+            # 等待文件生成完毕
+            page.wait_for_timeout(3000)
             break
         if attempt % 5 == 0 and attempt > 0:
             log.info("  ... 等待中（状态: %s）", status)
@@ -363,6 +373,22 @@ def _download_latest(page, out_file: str) -> Path | None:
         )
         _go_back_to_dashboard(page)
         return None
+
+
+def _ensure_dashboard(page, url: str) -> None:
+    """确保回到仪表板页面并滚动到顶部。"""
+    # 如果还在自助取数页面，先退出
+    exit_btn = page.locator('text="退出取数"').first
+    try:
+        if exit_btn.is_visible(timeout=2000):
+            exit_btn.click()
+            page.wait_for_timeout(3000)
+            return
+    except Exception:
+        pass
+    # 直接重新加载仪表板（最可靠）
+    page.goto(url, wait_until="domcontentloaded", timeout=30000)
+    page.wait_for_timeout(5000)
 
 
 def _go_back_to_dashboard(page) -> None:
