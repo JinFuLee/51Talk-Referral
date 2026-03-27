@@ -309,12 +309,10 @@ def _build_record(
         else 0.0
     )
 
-    # 1. 个人目标（上传的 CSV）
+    # 1. 个人目标（上传的 CSV：仅 usd_target + referral_usd_target）
     cc_target = cc_targets.get(cc_name, {}) if cc_targets else {}
     revenue_target = _sf(cc_target.get("usd_target"))
-    paid_target = _sf(cc_target.get("paid_target"))
-    showup_target_val = _sf(cc_target.get("showup_target"))
-    lead_target_val = _sf(cc_target.get("lead_target"))
+    referral_usd_target = _sf(cc_target.get("referral_usd_target"))
     target_source = "manual" if revenue_target is not None else "allocated"
 
     # 2. 加权分配 fallback（当个人目标缺失时）
@@ -324,11 +322,6 @@ def _build_record(
             if team_revenue_target is not None
             else None
         )
-    if paid_target is None:
-        paid_target = (
-            team_paid_target * alloc_ratio if team_paid_target is not None else None
-        )
-    # showup/leads 个人目标只有上传才有，fallback = None（保持原值）
 
     # ── 实际值 ──
     revenue_actual = _sf(row.get("revenue_actual"))
@@ -343,6 +336,44 @@ def _build_record(
         else None
     )
     asp_target = _sf(targets.get("客单价"))
+
+    # ── 从 referral_usd_target 推算其余目标 ──
+    # paid_target = referral_usd_target / ASP（优先用团队目标 ASP，fallback 实际 ASP）
+    asp_for_derive = asp_target or asp_actual
+    paid_target = (
+        referral_usd_target / asp_for_derive
+        if (referral_usd_target is not None and asp_for_derive and asp_for_derive > 0)
+        else None
+    )
+    if paid_target is None:
+        paid_target = (
+            team_paid_target * alloc_ratio if team_paid_target is not None else None
+        )
+
+    # lead_target = paid_target / leads→paid 转化率（实际值 fallback 团队目标）
+    l2p_actual = (
+        paid_actual / leads_actual
+        if (paid_actual is not None and leads_actual and leads_actual > 0)
+        else None
+    )
+    l2p_rate = l2p_actual or _sf(targets.get("目标转化率"))
+    lead_target_val = (
+        paid_target / l2p_rate
+        if (paid_target is not None and l2p_rate and l2p_rate > 0)
+        else None
+    )
+
+    # showup_target = paid_target / showup→paid 转化率（实际值）
+    s2p_actual = (
+        paid_actual / showup_actual
+        if (paid_actual is not None and showup_actual and showup_actual > 0)
+        else None
+    )
+    showup_target_val = (
+        paid_target / s2p_actual
+        if (paid_target is not None and s2p_actual and s2p_actual > 0)
+        else None
+    )
 
     # ── 转化率 ──
     showup_to_paid_actual = (
@@ -565,10 +596,8 @@ def get_cc_targets_template(
         ]
     cc_names.sort()
 
-    cols = "cc_name,usd_target,referral_usd_target,"
-    cols += "paid_target,showup_target,lead_target"
-    header = cols + "\n"
-    rows = "".join(f"{name},,,,, \n" for name in cc_names)
+    header = "cc_name,usd_target,referral_usd_target\n"
+    rows = "".join(f"{name},,\n" for name in cc_names)
     content = header + rows
 
     disposition = f'attachment; filename="cc_targets_template_{month}.csv"'
@@ -599,10 +628,7 @@ def upload_cc_targets(
     if "cc_name" not in df.columns:
         raise HTTPException(status_code=400, detail="缺少 cc_name 列")
 
-    numeric_cols = [
-        "usd_target", "referral_usd_target",
-        "paid_target", "showup_target", "lead_target",
-    ]
+    numeric_cols = ["usd_target", "referral_usd_target"]
     targets: dict[str, dict] = {}
     for _, row in df.iterrows():
         cc_name = str(row["cc_name"]).strip()
