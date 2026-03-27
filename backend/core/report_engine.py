@@ -622,7 +622,7 @@ class ReportEngine:
             else:
                 eff = 0.0
             bm_efficiency[m] = round(eff, 4)
-            gap[m] = round(eff - 1.0, 4)
+            gap[m] = round(eff - 1.0, 4) if tgt > 0 else 0.0
 
             if remaining_workdays > 0 and tgt > 0:
                 rdaily = _safe_div(max(tgt - act, 0), remaining_workdays)
