@@ -718,109 +718,201 @@ _THAI_FONTS = [
 ]
 
 
-@router.post("/campaigns/{campaign_id}/poster", summary="生成活动海报（PNG）")
-def generate_poster(campaign_id: str) -> StreamingResponse:
-    import matplotlib
-    matplotlib.use("Agg")
-    import matplotlib.pyplot as plt
+_METRIC_TH_POSTER = {
+    "paid": "ยอดชำระ (Paid)",
+    "leads": "ยอดลงทะเบียน (Leads)",
+    "showup": "ยอดเข้าเรียน (Showup)",
+    "revenue": "ยอดขาย (Revenue)",
+    "checkin_rate": "อัตราเช็คอิน (Check-in Rate)",
+    "participation_rate": "อัตราการมีส่วนร่วม",
+    "registrations": "ยอดลงทะเบียน (Registrations)",
+    "payments": "ยอดชำระ (Payments)",
+}
 
-    camp = _find_campaign(campaign_id)
+_OP_TH = {"gte": "≥", "lte": "≤", "gt": ">", "lt": "<"}
 
-    fig, ax = plt.subplots(figsize=(8, 6))
-    fig.patch.set_facecolor("#1B365D")
-    ax.set_facecolor("#1B365D")
-    ax.set_axis_off()
+_MONTH_TH_FULL = [
+    "", "มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน",
+    "พฤษภาคม", "มิถุนายน", "กรกฎาคม", "สิงหาคม",
+    "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม",
+]
 
-    # 泰文标题（大字）
+
+def _build_poster_image(camp: dict[str, Any]) -> bytes:
+    """Pillow 海报：51Talk 品牌色、纯泰英、专业排版"""
+    from PIL import Image, ImageDraw, ImageFont
+
+    W, H = 1080, 1350  # 4:5 比例（适合手机+群聊）
+
+    # ── 字体 ──
+    # 字体优先级：Tahoma（泰英主力）→ Arial Unicode（泰英中全覆盖）→ STHeiti（中文兜底）
+    _FONTS = [
+        ("/System/Library/Fonts/Supplemental/Tahoma Bold.ttf", True),
+        ("/System/Library/Fonts/Supplemental/Tahoma.ttf", False),
+        ("/System/Library/Fonts/Supplemental/Arial Unicode.ttf", None),
+        ("/System/Library/Fonts/STHeiti Medium.ttc", None),
+    ]
+    bold_path = reg_path = ""
+    for fp, is_bold in _FONTS:
+        if Path(fp).exists():
+            if is_bold is True and not bold_path:
+                bold_path = fp
+            elif is_bold is False and not reg_path:
+                reg_path = fp
+            elif is_bold is None:
+                if not reg_path:
+                    reg_path = fp
+                if not bold_path:
+                    bold_path = fp
+    if not reg_path:
+        reg_path = bold_path or "arial.ttf"
+    if not bold_path:
+        bold_path = reg_path
+
+    def font(size: int, bold: bool = False) -> ImageFont.FreeTypeFont:
+        return ImageFont.truetype(bold_path if bold else reg_path, size)
+
+    # ── 颜色 ──
+    BG_DARK = (27, 54, 93)         # #1B365D 51Talk 深蓝
+    BG_CARD = (35, 70, 120)        # 卡片区域稍亮
+    GOLD = (255, 209, 0)           # #FFD100 品牌金
+    WHITE = (255, 255, 255)
+    LIGHT = (200, 210, 230)
+    MUTED = (140, 160, 190)
+    # ACCENT_GREEN = (72, 199, 142)  # 达标绿（预留进度条用）
+
+    # ── 画布 ──
+    img = Image.new("RGB", (W, H), BG_DARK)
+    draw = ImageDraw.Draw(img)
+
+    # ── 顶部金色装饰线 ──
+    draw.rectangle([0, 0, W, 8], fill=GOLD)
+
+    # ── 品牌标识区 ──
+    draw.text(
+        (W // 2, 60), "51Talk Thailand",
+        font=font(22), fill=MUTED, anchor="mm",
+    )
+    draw.text(
+        (W // 2, 90), "Referral Incentive Program",
+        font=font(16), fill=MUTED, anchor="mm",
+    )
+
+    # ── 主标题（泰文活动名）──
     title = camp.get("name_th") or camp.get("name", "")
-    ax.text(
-        0.5, 0.85, title,
-        fontsize=32, color="#FFD100", ha="center", va="center",
-        fontfamily=_THAI_FONTS, weight="bold",
-        transform=ax.transAxes,
+    draw.text(
+        (W // 2, 200), title,
+        font=font(52, bold=True), fill=GOLD, anchor="mm",
     )
 
-    # 中文标题（小字）
-    ax.text(
-        0.5, 0.76, camp.get("name", ""),
-        fontsize=16, color="#cccccc", ha="center", va="center",
-        transform=ax.transAxes,
+    # ── 分隔线 ──
+    line_y = 260
+    draw.rectangle([W // 2 - 60, line_y, W // 2 + 60, line_y + 3], fill=GOLD)
+
+    # ── 中央卡片区域 ──
+    card_margin = 60
+    card_top, card_bottom = 310, 950
+    draw.rounded_rectangle(
+        [card_margin, card_top, W - card_margin, card_bottom],
+        radius=24, fill=BG_CARD,
     )
 
-    # 条件
+    cx = W // 2
+
+    # ── 参与对象 ──
+    role = camp.get("role", "CC")
+    role_th = {"CC": "CC (ฝ่ายขายหน้าบ้าน)", "SS": "SS (ฝ่ายขายหลังบ้าน)",
+               "LP": "LP (ฝ่ายบริการ)"}.get(role, role)
+    draw.text((cx, card_top + 50), "สำหรับ", font=font(20), fill=MUTED, anchor="mm")
+    draw.text(
+        (cx, card_top + 90), role_th,
+        font=font(32, bold=True), fill=WHITE, anchor="mm",
+    )
+
+    # ── 条件 ──
     metric = camp.get("metric", "")
-    operator_labels = {"gte": "≥", "lte": "≤", "gt": ">", "lt": "<"}
-    op_label = operator_labels.get(camp.get("operator", "gte"), "≥")
+    metric_label = _METRIC_TH_POSTER.get(metric, metric)
+    op = _OP_TH.get(camp.get("operator", "gte"), "≥")
     threshold = camp.get("threshold", 0)
-    condition_th = f"เป้าหมาย: {metric} {op_label} {threshold}"
-    ax.text(
-        0.5, 0.62, condition_th,
-        fontsize=20, color="white", ha="center", va="center",
-        fontfamily=_THAI_FONTS,
-        transform=ax.transAxes,
+    thr_str = str(int(threshold)) if threshold == int(threshold) else str(threshold)
+
+    draw.text((cx, card_top + 170), "เป้าหมาย", font=font(20), fill=MUTED, anchor="mm")
+    draw.text(
+        (cx, card_top + 220),
+        f"{metric_label} {op} {thr_str}",
+        font=font(36, bold=True), fill=WHITE, anchor="mm",
     )
 
-    # 奖励
-    reward_thb = camp.get("reward_thb", 0)
-    reward_th = f"รางวัล: ฿{reward_thb:,.0f}"
-    ax.text(
-        0.5, 0.47, reward_th,
-        fontsize=28, color="#FFD100", ha="center", va="center",
-        fontfamily=_THAI_FONTS, weight="bold",
-        transform=ax.transAxes,
+    # ── 奖励（大金字）──
+    reward = camp.get("reward_thb", 0)
+    draw.text((cx, card_top + 320), "รางวัล", font=font(20), fill=MUTED, anchor="mm")
+    draw.text(
+        (cx, card_top + 390),
+        f"฿{reward:,.0f}",
+        font=font(72, bold=True), fill=GOLD, anchor="mm",
+    )
+    draw.text(
+        (cx, card_top + 440), "ต่อคน",
+        font=font(20), fill=LIGHT, anchor="mm",
     )
 
-    # 日期
+    # ── 日期 ──
     start = camp.get("start_date", "")
     end = camp.get("end_date", "")
-    if start or end:
-        date_str = f"{start} — {end}" if (start and end) else (start or end)
-        ax.text(
-            0.5, 0.34, date_str,
-            fontsize=15, color="white", ha="center", va="center",
-            fontfamily=_THAI_FONTS,
-            transform=ax.transAxes,
+    month_str = camp.get("month", "")
+    if month_str and len(month_str) == 6:
+        m_num = int(month_str[4:6])
+        month_label = _MONTH_TH_FULL[m_num] if m_num <= 12 else ""
+        year_be = int(month_str[:4]) + 543  # Buddhist Era
+        period = f"{month_label} {year_be}"
+    elif start and end:
+        period = f"{start} — {end}"
+    else:
+        period = ""
+
+    if period:
+        draw.text(
+            (cx, card_top + 530),
+            "ระยะเวลา",
+            font=font(18), fill=MUTED, anchor="mm",
+        )
+        draw.text(
+            (cx, card_top + 570),
+            period,
+            font=font(28, bold=True), fill=WHITE, anchor="mm",
         )
 
-    # 中文参与描述
-    role = camp.get("role", "CC")
-    month = camp.get("month", "")
-    desc_zh = (
-        f"参与对象: {role} | 月份: {month} | "
-        f"条件: {metric} {op_label} {threshold} | 奖励: ฿{reward_thb:,.0f}"
-    )
-    ax.text(
-        0.5, 0.13, desc_zh,
-        fontsize=11, color="#999999", ha="center", va="center",
-        transform=ax.transAxes,
-    )
-
-    # 水印
-    ax.text(
-        0.5, 0.04, "ref-ops-engine · 51Talk Thailand",
-        fontsize=9, color="#555555", ha="center", va="center",
-        transform=ax.transAxes,
+    # ── 底部装饰 ──
+    draw.rectangle([0, H - 8, W, H], fill=GOLD)
+    draw.text(
+        (cx, H - 40), "51Talk · Referral Operations",
+        font=font(14), fill=MUTED, anchor="mm",
     )
 
     buf = BytesIO()
-    fig.savefig(buf, format="png", dpi=150, bbox_inches="tight",
-                pad_inches=0.3, facecolor="#1B365D")
-    plt.close(fig)
-    buf.seek(0)
+    img.save(buf, format="PNG", quality=95)
+    return buf.getvalue()
+
+
+@router.post("/campaigns/{campaign_id}/poster", summary="生成活动海报（PNG）")
+def generate_poster(campaign_id: str) -> StreamingResponse:
+    camp = _find_campaign(campaign_id)
+    png_bytes = _build_poster_image(camp)
 
     # 持久化
     poster_dir = _PROJECT_ROOT / "output" / "posters"
     poster_dir.mkdir(parents=True, exist_ok=True)
     poster_path = poster_dir / f"{campaign_id}.png"
-    poster_path.write_bytes(buf.getvalue())
+    poster_path.write_bytes(png_bytes)
     _update_campaign(campaign_id, {"poster_path": str(poster_path)})
 
-    buf.seek(0)
     return StreamingResponse(
-        buf,
+        BytesIO(png_bytes),
         media_type="image/png",
         headers={
-            "Content-Disposition": f'attachment; filename="poster_{campaign_id}.png"'
+            "Content-Disposition": (
+                f'attachment; filename="poster_{campaign_id}.png"'
+            )
         },
     )
 
