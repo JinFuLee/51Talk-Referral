@@ -356,22 +356,24 @@ def _build_record(
         if (paid_actual is not None and leads_actual and leads_actual > 0)
         else None
     )
-    l2p_rate = l2p_actual or _sf(targets.get("目标转化率"))
+    l2p_rate = _sf(targets.get("目标转化率")) or l2p_actual
     lead_target_val = (
         paid_target / l2p_rate
         if (paid_target is not None and l2p_rate and l2p_rate > 0)
         else None
     )
 
-    # showup_target = paid_target / showup→paid 转化率（实际值）
+    # showup_target = paid_target / showup→paid 转化率（优先团队目标，fallback 实际值）
+    s2p_target = _sf(targets.get("出席转化率"))
     s2p_actual = (
         paid_actual / showup_actual
         if (paid_actual is not None and showup_actual and showup_actual > 0)
         else None
     )
+    s2p_rate = s2p_target or s2p_actual
     showup_target_val = (
-        paid_target / s2p_actual
-        if (paid_target is not None and s2p_actual and s2p_actual > 0)
+        paid_target / s2p_rate
+        if (paid_target is not None and s2p_rate and s2p_rate > 0)
         else None
     )
 

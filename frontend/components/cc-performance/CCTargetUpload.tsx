@@ -161,8 +161,7 @@ export function CCTargetUpload({ month, onUploadSuccess }: CCTargetUploadProps) 
         const name = row['cc_name'] ?? '';
         const usd = row['usd_target'] ?? '';
         const ref = row['referral_usd_target'] ?? '';
-        const isValidNum = (val: string) => !val.trim() || !isNaN(Number(val.trim()));
-        if (!name.trim() || !isValidNum(usd) || !isValidNum(ref)) {
+        if (!name.trim() || !isValidNumber(usd) || !isValidNumber(ref)) {
           invalid.push(i);
         }
       });
