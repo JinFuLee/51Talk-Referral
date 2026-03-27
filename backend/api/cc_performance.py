@@ -626,13 +626,21 @@ def upload_cc_targets(
         total_rows += 1
         if cc_name in targets:
             duplicates.append(cc_name)
-        entry: dict[str, Any] = {}
-        for col in numeric_cols:
-            if col in row.index:
-                val = _sf(row[col])
-                if val is not None:
-                    entry[col] = val
-        targets[cc_name] = entry
+            # 重名求和（如 6 个 Newbie × $2100 = $12600）
+            for col in numeric_cols:
+                if col in row.index:
+                    val = _sf(row[col])
+                    if val is not None:
+                        prev = _sf(targets[cc_name].get(col))
+                        targets[cc_name][col] = (prev or 0) + val
+        else:
+            entry: dict[str, Any] = {}
+            for col in numeric_cols:
+                if col in row.index:
+                    val = _sf(row[col])
+                    if val is not None:
+                        entry[col] = val
+            targets[cc_name] = entry
 
     payload = {
         "month": month,
@@ -748,14 +756,17 @@ def get_cc_performance(
         if val is not None:
             uploaded_lower[cc_name_key.lower()] = cc_t
 
-    sum_uploaded = sum(
+    # 只有匹配 D2 的上传才扣预算；Newbie 等不匹配的流入分配池
+    d2_names_lower = {str(n).lower() for n in merged.index}
+    sum_matched = sum(
         _sf(v.get("referral_usd_target")) or 0.0
-        for v in uploaded_lower.values()
+        for k, v in uploaded_lower.items()
+        if k in d2_names_lower
     )
 
-    # ── 未上传 CC 按学员数分配剩余额度 ──
+    # ── 未匹配 D2 CC 按学员数分配剩余额度 ──
     remaining_budget = (
-        max(0.0, team_referral_target - sum_uploaded)
+        max(0.0, team_referral_target - sum_matched)
         if team_referral_target is not None
         else 0.0
     )
