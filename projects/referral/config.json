@@ -184,7 +184,8 @@
     "notifications",
     "report",
     "knowledge",
-    "cc_performance"
+    "cc_performance",
+    "incentive"
   ],
   "enclosure_role_assignment": {
     "CC": {

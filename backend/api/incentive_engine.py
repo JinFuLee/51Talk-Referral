@@ -395,7 +395,8 @@ def get_recommendations(
         month = date.today().strftime("%Y%m")
 
     # 1. 构建漏斗数据
-    funnel_engine = ChannelFunnelEngine(dm)
+    data = dm.load_all()
+    funnel_engine = ChannelFunnelEngine.from_data_dict(data)
     try:
         channel_funnel = funnel_engine.compute()
     except Exception as e:
@@ -442,7 +443,6 @@ def get_recommendations(
 
     # 5. 估算 CC 人数（用于奖励金额均摊）
     try:
-        data = dm.load_all()
         cc_df: pd.DataFrame = data.get("enclosure_cc", pd.DataFrame())
         if "last_cc_name" in cc_df.columns:
             cc_count = max(1, int(cc_df["last_cc_name"].dropna().nunique()))
