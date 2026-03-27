@@ -458,6 +458,489 @@ def recommend_targets(
     }
 
 
+# ── 三档场景引擎（TargetTierEngine） ─────────────────────────────────────────
+
+
+class TargetTierEngine:
+    """三档目标场景引擎（M33 新架构）
+
+    三档业务含义：
+      pace   — 稳达标：当前效率照跑到月底，保证达标
+      share  — 占比达标：公司总业绩 × 转介绍占比，反推全链路
+      custom — 自定义：用户填若干字段，系统 WMA 推算其余
+
+    所有档均返回统一结构：
+        {
+            "tier": str,
+            "label": str,
+            "total": {registrations, appointments, attendance,
+                      payments, revenue_usd, asp,
+                      appt_rate, attend_rate, paid_rate, reg_to_pay_rate},
+            "channels": {
+                "CC窄口": {registrations, appointments, attendance,
+                           payments, revenue_usd, revenue_share,
+                           appt_rate, attend_rate, paid_rate, asp},
+                ...
+            }
+        }
+    """
+
+    def __init__(self, snapshot_service: Any, data_manager: Any = None) -> None:
+        self._svc = snapshot_service
+        self._dm = data_manager
+        self._wma_cache: dict[str, Any] | None = None
+
+    # ── 公开 API ──────────────────────────────────────────────────────────────
+
+    def tier_pace(
+        self, current_actuals: dict[str, Any], bm_pct: float
+    ) -> dict[str, Any]:
+        """一档：稳达标 — 当前效率外推到月底
+
+        Args:
+            current_actuals: 当前累计实绩（含各口径 channel 字段）
+            bm_pct:          当前工作日进度（0-1），如 0.815
+        """
+        if bm_pct <= 0:
+            bm_pct = 0.01
+
+        wma = self._get_wma_data()
+
+        # 总量外推：注册 / bm_pct
+        reg_actual = float(current_actuals.get("registrations") or 0)
+        appt_actual = float(current_actuals.get("appointments") or 0)
+        attend_actual = float(current_actuals.get("attendance") or 0)
+        pay_actual = float(current_actuals.get("payments") or 0)
+        rev_actual = float(current_actuals.get("revenue_usd") or 0)
+
+        appt_rate = float(
+            current_actuals.get("appt_rate")
+            or (_safe_float(appt_actual / reg_actual) if reg_actual > 0 else 0)
+            or wma.get("total_appt_rate", 0.77)
+        )
+        attend_rate = float(
+            current_actuals.get("attend_rate")
+            or (_safe_float(attend_actual / appt_actual) if appt_actual > 0 else 0)
+            or wma.get("total_attend_rate", 0.66)
+        )
+        paid_rate = float(
+            current_actuals.get("paid_rate")
+            or (_safe_float(pay_actual / attend_actual) if attend_actual > 0 else 0)
+            or wma.get("total_paid_rate", 0.40)
+        )
+        asp = float(
+            current_actuals.get("asp")
+            or (_safe_float(rev_actual / pay_actual) if pay_actual > 0 else 0)
+            or wma.get("total_asp", 850.0)
+        )
+
+        proj_reg = reg_actual / bm_pct
+        proj_appt = proj_reg * appt_rate
+        proj_attend = proj_appt * attend_rate
+        proj_pay = proj_attend * paid_rate
+        proj_rev = proj_pay * asp
+
+        # 口径拆分：按当前各口径实际占比
+        channel_actuals = current_actuals.get("channels", {})
+        total_ch_reg = sum(
+            float(v.get("registrations", 0)) for v in channel_actuals.values()
+        )
+        if total_ch_reg <= 0:
+            total_ch_reg = reg_actual or 1.0
+
+        channels_out: dict[str, Any] = {}
+        for ch_name in _CHANNEL_DISPLAY_TO_ARCHIVE:
+            ch_data = channel_actuals.get(ch_name, {})
+            ch_reg_actual = float(ch_data.get("registrations") or 0)
+            ch_share = ch_reg_actual / total_ch_reg if total_ch_reg > 0 else 0.25
+
+            ch_proj_reg = proj_reg * ch_share
+            ch_appt_r = float(ch_data.get("appt_rate") or appt_rate)
+            ch_attend_r = float(ch_data.get("attend_rate") or attend_rate)
+            ch_paid_r = float(ch_data.get("paid_rate") or paid_rate)
+            ch_asp = float(ch_data.get("asp") or asp)
+
+            ch_proj_appt = ch_proj_reg * ch_appt_r
+            ch_proj_attend = ch_proj_appt * ch_attend_r
+            ch_proj_pay = ch_proj_attend * ch_paid_r
+            ch_proj_rev = ch_proj_pay * ch_asp
+
+            channels_out[ch_name] = {
+                "registrations": round(ch_proj_reg, 1),
+                "appointments":  round(ch_proj_appt, 1),
+                "attendance":    round(ch_proj_attend, 1),
+                "payments":      round(ch_proj_pay, 1),
+                "revenue_usd":   round(ch_proj_rev, 2),
+                "revenue_share": round(ch_share, 6),
+                "appt_rate":     round(ch_appt_r, 6),
+                "attend_rate":   round(ch_attend_r, 6),
+                "paid_rate":     round(ch_paid_r, 6),
+                "asp":           round(ch_asp, 2),
+            }
+
+        reg_to_pay = paid_rate * attend_rate * appt_rate
+
+        return {
+            "tier":  "pace",
+            "label": "稳达标",
+            "total": {
+                "registrations": round(proj_reg, 1),
+                "appointments":  round(proj_appt, 1),
+                "attendance":    round(proj_attend, 1),
+                "payments":      round(proj_pay, 1),
+                "revenue_usd":   round(proj_rev, 2),
+                "asp":           round(asp, 2),
+                "appt_rate":     round(appt_rate, 6),
+                "attend_rate":   round(attend_rate, 6),
+                "paid_rate":     round(paid_rate, 6),
+                "reg_to_pay_rate": round(reg_to_pay, 6),
+            },
+            "channels": channels_out,
+        }
+
+    def tier_share(
+        self,
+        company_revenue: float,
+        referral_share: float = 0.30,
+    ) -> dict[str, Any]:
+        """二档：占比达标 — 公司总业绩 × 转介绍占比，WMA 历史率反推全链路
+
+        Args:
+            company_revenue: 公司总业绩目标（USD）
+            referral_share:  转介绍占比（0-1），默认 0.30
+        """
+        wma = self._get_wma_data()
+        referral_rev = company_revenue * referral_share
+        return self._decompose_to_channels(referral_rev, wma, "share", "占比达标")
+
+    def tier_custom(self, user_inputs: dict[str, Any]) -> dict[str, Any]:
+        """三档：自定义 — 用户填若干字段，系统 WMA 推算其余
+
+        user_inputs 可填任意组合（至少一个）：
+          revenue_target, asp, reg_to_pay_rate, appt_rate, attend_rate,
+          paid_rate, registrations, company_revenue, referral_share_pct
+        冲突处理：revenue_target 优先，重算 payments = revenue / asp
+        """
+        wma = self._get_wma_data()
+
+        # 1. 确定 revenue_target
+        rev = _safe_float(user_inputs.get("revenue_target"))
+        if rev is None or rev <= 0:
+            company_rev = _safe_float(user_inputs.get("company_revenue"))
+            share_pct = _safe_float(user_inputs.get("referral_share_pct")) or 0.30
+            if company_rev and company_rev > 0:
+                rev = company_rev * share_pct
+            else:
+                rev = wma.get("total_revenue", 0.0)
+
+        # 2. ASP（用户 > WMA fallback）
+        asp = _safe_float(user_inputs.get("asp")) or wma.get("total_asp") or 850.0
+
+        # 3. 全局转化率（用户 > WMA fallback）
+        appt_rate = (
+            _safe_float(user_inputs.get("appt_rate"))
+            or wma.get("total_appt_rate") or 0.77
+        )
+        attend_rate = (
+            _safe_float(user_inputs.get("attend_rate"))
+            or wma.get("total_attend_rate") or 0.66
+        )
+        paid_rate = (
+            _safe_float(user_inputs.get("paid_rate"))
+            or wma.get("total_paid_rate") or 0.40
+        )
+        reg_to_pay = (
+            _safe_float(user_inputs.get("reg_to_pay_rate"))
+            or (appt_rate * attend_rate * paid_rate)
+        )
+
+        # 4. 付费数（revenue 优先，避免 revenue ≠ payments × asp 冲突）
+        payments = rev / asp if asp > 0 else 0.0
+
+        # 5. 注册数（用户填 > reg / reg_to_pay）
+        user_reg = _safe_float(user_inputs.get("registrations"))
+        registrations = user_reg if (user_reg and user_reg > 0) else (
+            payments / reg_to_pay if reg_to_pay > 0 else 0.0
+        )
+
+        # 6. 全链路反推
+        appointments = registrations * appt_rate
+        attendance = appointments * attend_rate
+
+        total_out: dict[str, Any] = {
+            "registrations": round(registrations, 1),
+            "appointments":  round(appointments, 1),
+            "attendance":    round(attendance, 1),
+            "payments":      round(payments, 1),
+            "revenue_usd":   round(rev, 2),
+            "asp":           round(asp, 2),
+            "appt_rate":     round(appt_rate, 6),
+            "attend_rate":   round(attend_rate, 6),
+            "paid_rate":     round(paid_rate, 6),
+            "reg_to_pay_rate": round(reg_to_pay, 6),
+        }
+
+        channels_out = self._decompose_to_channels(
+            rev, wma, "custom", "自定义"
+        )["channels"]
+
+        return {
+            "tier":     "custom",
+            "label":    "自定义",
+            "total":    total_out,
+            "channels": channels_out,
+        }
+
+    def get_all_tiers(
+        self,
+        current_actuals: dict[str, Any],
+        bm_pct: float,
+        company_revenue: float = 0,
+        referral_share: float = 0.30,
+        custom_inputs: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        """返回三档完整预览
+
+        Args:
+            current_actuals: 当前实绩（含 channels 子字典）
+            bm_pct:          当前工作日进度
+            company_revenue: 公司总业绩目标（二档需要）
+            referral_share:  转介绍占比（二档）
+            custom_inputs:   用户自定义输入（三档）
+        """
+        pace = self.tier_pace(current_actuals, bm_pct)
+        share = (
+            self.tier_share(company_revenue, referral_share)
+            if company_revenue > 0
+            else None
+        )
+        custom = (
+            self.tier_custom(custom_inputs)
+            if custom_inputs
+            else None
+        )
+
+        return {
+            "tiers": {
+                "pace":   pace,
+                "share":  share,
+                "custom": custom,
+            },
+            "default_tier": "pace",
+        }
+
+    # ── 内部方法 ──────────────────────────────────────────────────────────────
+
+    def _decompose_to_channels(
+        self,
+        total_revenue: float,
+        wma: dict[str, Any],
+        tier_key: str,
+        tier_label: str,
+    ) -> dict[str, Any]:
+        """全链路口径拆分（三档共用）
+
+        用 WMA 历史各口径 revenue_share 分配总目标，
+        再用各口径自己的历史转化率反推注册→预约→出席→付费。
+        """
+        channel_wma: dict[str, dict[str, float]] = wma.get("channels", {})
+        revenue_shares: dict[str, float] = wma.get("revenue_shares", {})
+
+        # fallback 等分
+        if not revenue_shares:
+            equal = 1.0 / len(_CHANNEL_DISPLAY_TO_ARCHIVE)
+            revenue_shares = {k: equal for k in _CHANNEL_DISPLAY_TO_ARCHIVE}
+
+        total_asp_f = wma.get("total_asp") or 850.0
+        total_appt_r = wma.get("total_appt_rate") or 0.77
+        total_attend_r = wma.get("total_attend_rate") or 0.66
+        total_paid_r = wma.get("total_paid_rate") or 0.40
+
+        channels_out: dict[str, Any] = {}
+        total_reg_t = total_appt_t = total_attend_t = total_pay_t = 0.0
+
+        for ch_name in _CHANNEL_DISPLAY_TO_ARCHIVE:
+            ch_wma = channel_wma.get(ch_name, {})
+            ch_count = len(_CHANNEL_DISPLAY_TO_ARCHIVE)
+            rev_share = revenue_shares.get(ch_name, 1.0 / ch_count)
+
+            ch_rev_t = total_revenue * rev_share
+            ch_appt   = ch_wma.get("appt_rate")   or total_appt_r
+            ch_attend  = ch_wma.get("attend_rate") or total_attend_r
+            ch_paid    = ch_wma.get("paid_rate")   or total_paid_r
+            ch_asp     = ch_wma.get("asp")         or total_asp_f
+
+            ch_pay_t    = ch_rev_t / ch_asp if ch_asp > 0 else 0.0
+            ch_attend_t = ch_pay_t / ch_paid if ch_paid > 0 else 0.0
+            ch_appt_t   = ch_attend_t / ch_attend if ch_attend > 0 else 0.0
+            ch_reg_t    = ch_appt_t / ch_appt if ch_appt > 0 else 0.0
+
+            channels_out[ch_name] = {
+                "registrations": round(ch_reg_t, 1),
+                "appointments":  round(ch_appt_t, 1),
+                "attendance":    round(ch_attend_t, 1),
+                "payments":      round(ch_pay_t, 1),
+                "revenue_usd":   round(ch_rev_t, 2),
+                "revenue_share": round(rev_share, 6),
+                "appt_rate":     round(ch_appt, 6),
+                "attend_rate":   round(ch_attend, 6),
+                "paid_rate":     round(ch_paid, 6),
+                "asp":           round(ch_asp, 2),
+            }
+
+            total_reg_t    += ch_reg_t
+            total_appt_t   += ch_appt_t
+            total_attend_t += ch_attend_t
+            total_pay_t    += ch_pay_t
+
+        total_asp_t  = total_revenue / total_pay_t if total_pay_t > 0 else 0.0
+        total_r2p_t  = total_pay_t / total_reg_t if total_reg_t > 0 else 0.0
+        total_appt_r_t = total_appt_t / total_reg_t if total_reg_t > 0 else 0.0
+        total_attend_r_t = total_attend_t / total_appt_t if total_appt_t > 0 else 0.0
+        total_paid_r_t = total_pay_t / total_attend_t if total_attend_t > 0 else 0.0
+
+        return {
+            "tier":  tier_key,
+            "label": tier_label,
+            "total": {
+                "registrations": round(total_reg_t, 1),
+                "appointments":  round(total_appt_t, 1),
+                "attendance":    round(total_attend_t, 1),
+                "payments":      round(total_pay_t, 1),
+                "revenue_usd":   round(total_revenue, 2),
+                "asp":           round(total_asp_t, 2),
+                "appt_rate":     round(total_appt_r_t, 6),
+                "attend_rate":   round(total_attend_r_t, 6),
+                "paid_rate":     round(total_paid_r_t, 6),
+                "reg_to_pay_rate": round(total_r2p_t, 6),
+            },
+            "channels": channels_out,
+        }
+
+    def _get_wma_data(self, n_months: int = 6) -> dict[str, Any]:
+        """从 monthly_archives 读取近 N 月数据，计算 WMA 汇总
+
+        Returns 结构：
+          {
+            "total_revenue": float,
+            "total_asp": float,
+            "total_appt_rate": float,
+            "total_attend_rate": float,
+            "total_paid_rate": float,
+            "revenue_shares": {"CC窄口": float, ...},
+            "channels": {"CC窄口": {appt_rate, attend_rate, paid_rate, asp}, ...}
+          }
+        """
+        if self._wma_cache is not None:
+            return self._wma_cache
+
+        from datetime import date as _date
+
+        today = _date.today()
+        month_keys: list[str] = []
+        for i in range(1, n_months + 1):
+            y, m = today.year, today.month - i
+            while m <= 0:
+                m += 12
+                y -= 1
+            month_keys.append(f"{y:04d}{m:02d}")
+        month_keys = list(reversed(month_keys))
+
+        total_rows: list[dict[str, Any]] = []
+        channel_rows_by_month: dict[str, dict[str, dict[str, Any]]] = {}
+
+        for mk in month_keys:
+            rows = self._svc.query_monthly_archive(mk)
+            for row in rows:
+                row_d = dict(row)
+                ch = row_d.get("channel", "total")
+                if ch == "total":
+                    total_rows.append(row_d)
+                else:
+                    if mk not in channel_rows_by_month:
+                        channel_rows_by_month[mk] = {}
+                    channel_rows_by_month[mk][ch] = row_d
+
+        basis_months = [r["month_key"] for r in total_rows]
+
+        # Total 口径 WMA
+        def _t_wma(field: str) -> float:
+            vals = [_safe_float(r.get(field)) or 0.0 for r in total_rows]
+            nonzero = [v for v in vals if v > 0]
+            return _wma(nonzero) if nonzero else 0.0
+
+        total_revenue = _t_wma("final_revenue_usd")
+        total_asp = _t_wma("final_asp")
+        total_appt_rate = _t_wma("final_appt_rate")
+        total_attend_rate = _t_wma("final_attend_rate")
+        total_paid_rate = _t_wma("final_paid_rate")
+
+        # 各口径 WMA 转化率
+        channel_wma: dict[str, dict[str, float]] = {}
+        for display_name, archive_name in _CHANNEL_DISPLAY_TO_ARCHIVE.items():
+            series: dict[str, list[float]] = {
+                "appt_rate": [], "attend_rate": [], "paid_rate": [], "asp": [],
+            }
+            rev_series: list[float] = []
+
+            for mk in basis_months:
+                ch_data = channel_rows_by_month.get(mk, {})
+                row = ch_data.get(archive_name)
+                if row:
+                    for f in series:
+                        v = _safe_float(row.get(f"final_{f}"))
+                        series[f].append(v if v and v > 0 else 0.0)
+                    rev = _safe_float(row.get("final_revenue_usd"))
+                    rev_series.append(rev if rev else 0.0)
+                else:
+                    for f in series:
+                        series[f].append(0.0)
+                    rev_series.append(0.0)
+
+            def _wma_nz(vals: list[float]) -> float:
+                nz = [v for v in vals if v > 0]
+                return _wma(nz) if nz else 0.0
+
+            channel_wma[display_name] = {
+                "appt_rate":   _wma_nz(series["appt_rate"]),
+                "attend_rate": _wma_nz(series["attend_rate"]),
+                "paid_rate":   _wma_nz(series["paid_rate"]),
+                "asp":         _wma_nz(series["asp"]),
+                "rev_wma":     _wma_nz(rev_series),
+            }
+
+        # Revenue shares：取上月各口径占比
+        last_mk = basis_months[-1] if basis_months else ""
+        last_ch_rows = channel_rows_by_month.get(last_mk, {})
+        channel_last_rev: dict[str, float] = {}
+        for display_name, archive_name in _CHANNEL_DISPLAY_TO_ARCHIVE.items():
+            row = last_ch_rows.get(archive_name, {})
+            rev = _safe_float(row.get("final_revenue_usd")) if row else None
+            channel_last_rev[display_name] = rev if rev and rev > 0 else 0.0
+
+        total_last_rev = sum(channel_last_rev.values())
+        if total_last_rev <= 0:
+            equal = 1.0 / len(_CHANNEL_DISPLAY_TO_ARCHIVE)
+            revenue_shares = {k: equal for k in _CHANNEL_DISPLAY_TO_ARCHIVE}
+        else:
+            revenue_shares = {
+                k: v / total_last_rev for k, v in channel_last_rev.items()
+            }
+
+        result: dict[str, Any] = {
+            "total_revenue":     total_revenue,
+            "total_asp":         total_asp,
+            "total_appt_rate":   total_appt_rate,
+            "total_attend_rate": total_attend_rate,
+            "total_paid_rate":   total_paid_rate,
+            "revenue_shares":    revenue_shares,
+            "channels":          channel_wma,
+            "basis_months":      basis_months,
+        }
+        self._wma_cache = result
+        return result
+
+
 # ── 旧函数保留（decompose_targets_from_last_month 被 config API 消费） ────────
 
 

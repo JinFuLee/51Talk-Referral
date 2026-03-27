@@ -653,18 +653,112 @@ def get_targets_recommend(
     return result
 
 
-@router.post("/targets/apply", summary="一键应用目标档位写入 targets_override")
-def post_targets_apply(
-    tier: str = "stable",
-    month: str | None = None,
+@router.get("/targets/tiers", summary="三档目标场景预览（稳达标/占比达标/自定义）")
+def get_target_tiers(
+    company_revenue: float = 0,
+    referral_share: float = 0.30,
+    svc=Depends(get_service),
 ) -> dict[str, Any]:
-    """将 WMA 推荐的指定档位写入本月（或指定月份）targets_override.json。
+    """返回三档目标场景预览。
+
+    一档（pace）全自动；二档（share）需 company_revenue；三档（custom）返回 WMA 基线。
 
     Args:
-        tier:  stable（稳达标）| stretch（冲刺）| ambitious（大票）
-        month: YYYYMM，不传则使用当前自然月
+        company_revenue: 公司总业绩目标（USD），0 表示不计算二档
+        referral_share:  转介绍占比（0-1），默认 0.30
     """
-    valid_tiers = {"stable", "stretch", "ambitious"}
+    from backend.core.daily_snapshot_service import DB_PATH, DailySnapshotService
+    from backend.core.target_recommender import TargetTierEngine
+
+    snapshot_svc = DailySnapshotService(DB_PATH)
+    engine = TargetTierEngine(snapshot_svc)
+
+    # 从缓存结果获取当前实绩和 bm_pct
+    current_actuals: dict[str, Any] = {}
+    bm_pct: float = 0.5
+
+    if svc is not None:
+        cached = svc.get_cached_result()
+        if cached:
+            summary = cached.get("summary", {})
+            bm_pct = float(cached.get("time_progress") or 0.5)
+
+            # 总口径
+            def _pick(key: str, sub: str = "actual") -> float:
+                block = summary.get(key, {})
+                return float(block.get(sub, 0) if isinstance(block, dict) else 0)
+
+            current_actuals = {
+                "registrations": _pick("registrations"),
+                "appointments":  _pick("appointments"),
+                "attendance":    _pick("attendance"),
+                "payments":      _pick("payments"),
+                "revenue_usd":   _pick("revenue"),
+            }
+            # 从 summary 补充率和 ASP
+            for rate_key in ("appt_rate", "attend_rate", "paid_rate", "asp"):
+                v = summary.get(rate_key)
+                if isinstance(v, dict):
+                    current_actuals[rate_key] = float(v.get("actual", 0))
+                elif v is not None:
+                    current_actuals[rate_key] = float(v)
+
+            # 渠道子口径
+            channel_summary = cached.get("channel_summary", {})
+            if channel_summary:
+                def _ch_val(d: dict, k: str, dk: str | None = None) -> float:
+                    src = d.get(dk or k, {})
+                    if isinstance(src, dict):
+                        return float(src.get("actual", 0))
+                    return float(src or 0)
+
+                current_actuals["channels"] = {
+                    ch: {
+                        "registrations": _ch_val(d, "registrations"),
+                        "appointments":  _ch_val(d, "appointments"),
+                        "attendance":    _ch_val(d, "attendance"),
+                        "payments":      _ch_val(d, "payments"),
+                        "revenue_usd":   _ch_val(d, "revenue_usd", "revenue"),
+                        "appt_rate":     _ch_val(d, "appt_rate"),
+                        "attend_rate":   _ch_val(d, "attend_rate"),
+                        "paid_rate":     _ch_val(d, "paid_rate"),
+                        "asp":           _ch_val(d, "asp"),
+                    }
+                    for ch, d in channel_summary.items()
+                }
+
+    result = engine.get_all_tiers(
+        current_actuals=current_actuals,
+        bm_pct=bm_pct,
+        company_revenue=company_revenue,
+        referral_share=referral_share,
+    )
+    result["bm_pct"] = round(bm_pct, 4)
+    return result
+
+
+@router.post(
+    "/targets/apply",
+    summary="一键应用三档目标（pace/share/custom）写入 targets_override",
+)
+def post_targets_apply_tiers(
+    tier: str = "pace",
+    month: str | None = None,
+    company_revenue: float = 0,
+    referral_share: float = 0.30,
+    custom_inputs: dict[str, Any] | None = None,
+    svc=Depends(get_service),
+) -> dict[str, Any]:
+    """将三档（pace/share/custom）目标写入本月 targets_override.json。
+
+    Args:
+        tier:            pace（稳达标）| share（占比达标）| custom（自定义）
+        month:           YYYYMM，不传则使用当前自然月
+        company_revenue: 二档专用，公司总业绩目标
+        referral_share:  二档专用，转介绍占比
+        custom_inputs:   三档自定义字段（revenue_target/asp/reg_to_pay_rate 等）
+    """
+    valid_tiers = {"pace", "share", "custom"}
     if tier not in valid_tiers:
         raise HTTPException(
             status_code=400,
@@ -681,29 +775,56 @@ def post_targets_apply(
         raise HTTPException(status_code=400, detail="month 格式应为 YYYYMM")
 
     from backend.core.daily_snapshot_service import DB_PATH, DailySnapshotService
-    from backend.core.target_recommender import recommend_targets_wma
+    from backend.core.target_recommender import TargetTierEngine
 
     snapshot_svc = DailySnapshotService(DB_PATH)
-    wma_result = recommend_targets_wma(snapshot_svc)
+    engine = TargetTierEngine(snapshot_svc)
 
-    if not wma_result.get("tiers"):
-        raise HTTPException(
-            status_code=422,
-            detail=wma_result.get("message", "历史数据不足，无法生成推荐"),
-        )
+    # 生成指定档位数据
+    if tier == "pace":
+        current_actuals: dict[str, Any] = {}
+        bm_pct = 0.5
+        if svc is not None:
+            cached = svc.get_cached_result()
+            if cached:
+                summary = cached.get("summary", {})
+                bm_pct = float(cached.get("time_progress") or 0.5)
 
-    tier_data = wma_result["tiers"].get(tier)
-    if tier_data is None:
-        raise HTTPException(status_code=404, detail=f"档位 {tier!r} 不存在")
+                def _pick(key: str, sub: str = "actual") -> float:
+                    block = summary.get(key, {})
+                    return float(block.get(sub, 0) if isinstance(block, dict) else 0)
+
+                current_actuals = {
+                    "registrations": _pick("registrations"),
+                    "appointments":  _pick("appointments"),
+                    "attendance":    _pick("attendance"),
+                    "payments":      _pick("payments"),
+                    "revenue_usd":   _pick("revenue"),
+                }
+                for rate_key in ("appt_rate", "attend_rate", "paid_rate", "asp"):
+                    v = summary.get(rate_key)
+                    if isinstance(v, dict):
+                        current_actuals[rate_key] = float(v.get("actual", 0))
+                    elif v is not None:
+                        current_actuals[rate_key] = float(v)
+        tier_data = engine.tier_pace(current_actuals, bm_pct)
+
+    elif tier == "share":
+        if company_revenue <= 0:
+            raise HTTPException(
+                status_code=400, detail="share 档需要 company_revenue > 0"
+            )
+        tier_data = engine.tier_share(company_revenue, referral_share)
+
+    else:  # custom
+        tier_data = engine.tier_custom(custom_inputs or {})
 
     total = tier_data["total"]
     channels = tier_data["channels"]
 
-    # 构建写入 targets_override 的扁平结构
-    # 兼容现有 MONTHLY_TARGETS 字段名
+    # 构建写入 targets_override 的扁平结构（兼容现有格式）
     sub_口径: dict[str, Any] = {}
     for ch_name, ch_data in channels.items():
-        # 旧字段名映射
         key_map = {
             "CC窄口": "CC窄口径",
             "SS窄口": "SS窄口径",
@@ -715,6 +836,8 @@ def post_targets_apply(
             "倒子目标": round(ch_data.get("registrations", 0)),
         }
 
+    import datetime as _dt
+
     override_payload: dict[str, Any] = {
         "注册目标":   round(total.get("registrations", 0)),
         "付费目标":   round(total.get("payments", 0)),
@@ -722,10 +845,10 @@ def post_targets_apply(
         "客单价":     round(total.get("asp", 0), 2),
         "目标转化率": round(total.get("reg_to_pay_rate", 0), 6),
         "子口径":     sub_口径,
-        # 元信息
-        "_wma_tier":     tier,
-        "_wma_tier_label": tier_data.get("label", ""),
-        "_wma_applied_at": __import__("datetime").datetime.utcnow().isoformat() + "Z",
+        "_tier_engine":    "TargetTierEngine",
+        "_tier":           tier,
+        "_tier_label":     tier_data.get("label", ""),
+        "_applied_at":     _dt.datetime.utcnow().isoformat() + "Z",
     }
 
     _backup_config_file(TARGETS_OVERRIDE_FILE)
@@ -737,12 +860,12 @@ def post_targets_apply(
         raise HTTPException(status_code=500, detail=str(exc)) from exc
 
     return {
-        "status": "ok",
-        "month": month,
-        "tier": tier,
-        "label": tier_data.get("label", ""),
+        "status":  "ok",
+        "month":   month,
+        "tier":    tier,
+        "label":   tier_data.get("label", ""),
         "applied": {
-            "total": total,
+            "total":    total,
             "channels": {ch: v["registrations"] for ch, v in channels.items()},
         },
     }
