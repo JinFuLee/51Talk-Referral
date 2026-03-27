@@ -673,59 +673,92 @@ def get_target_tiers(
     snapshot_svc = DailySnapshotService(DB_PATH)
     engine = TargetTierEngine(snapshot_svc)
 
-    # 从缓存结果获取当前实绩和 bm_pct
+    # 从 DataManager + D1 直接获取当前实绩和 bm_pct
     current_actuals: dict[str, Any] = {}
     bm_pct: float = 0.5
 
-    if svc is not None:
-        cached = svc.get_cached_result()
-        if cached:
-            summary = cached.get("summary", {})
-            bm_pct = float(cached.get("time_progress") or 0.5)
+    try:
+        from backend.api.dependencies import get_data_manager
+        from backend.core.channel_funnel_engine import ChannelFunnelEngine
 
-            # 总口径
-            def _pick(key: str, sub: str = "actual") -> float:
-                block = summary.get(key, {})
-                return float(block.get(sub, 0) if isinstance(block, dict) else 0)
+        dm = get_data_manager()
+        data = dm.load_all()
+
+        # D1 泰国行
+        d1 = data.get("result")
+        if d1 is not None and hasattr(d1, "columns"):
+            import pandas as pd
+
+            df = d1
+            if "区域" in df.columns:
+                th = df[df["区域"].astype(str).str.contains("泰")]
+                if len(th) > 0:
+                    df = th
+
+            def _s(col: str) -> float:
+                return float(
+                    pd.to_numeric(df[col], errors="coerce").sum()
+                ) if col in df.columns else 0.0
+
+            reg = _s("转介绍注册数")
+            appt = _s("预约数")
+            attend = _s("出席数")
+            pay = _s("转介绍付费数")
+            rev = _s("总带新付费金额USD")
 
             current_actuals = {
-                "registrations": _pick("registrations"),
-                "appointments":  _pick("appointments"),
-                "attendance":    _pick("attendance"),
-                "payments":      _pick("payments"),
-                "revenue_usd":   _pick("revenue"),
+                "registrations": reg,
+                "appointments": appt,
+                "attendance": attend,
+                "payments": pay,
+                "revenue_usd": rev,
+                "appt_rate": appt / reg if reg > 0 else 0,
+                "attend_rate": attend / appt if appt > 0 else 0,
+                "paid_rate": pay / attend if attend > 0 else 0,
+                "asp": rev / pay if pay > 0 else 0,
+                "reg_to_pay_rate": pay / reg if reg > 0 else 0,
             }
-            # 从 summary 补充率和 ASP
-            for rate_key in ("appt_rate", "attend_rate", "paid_rate", "asp"):
-                v = summary.get(rate_key)
-                if isinstance(v, dict):
-                    current_actuals[rate_key] = float(v.get("actual", 0))
-                elif v is not None:
-                    current_actuals[rate_key] = float(v)
 
-            # 渠道子口径
-            channel_summary = cached.get("channel_summary", {})
-            if channel_summary:
-                def _ch_val(d: dict, k: str, dk: str | None = None) -> float:
-                    src = d.get(dk or k, {})
-                    if isinstance(src, dict):
-                        return float(src.get("actual", 0))
-                    return float(src or 0)
+            # BM% 从工作日计算
+            from datetime import date, timedelta
 
+            ref = date.today() - timedelta(days=1)
+            from backend.core.daily_snapshot_service import _workday_index
+
+            wi = _workday_index(ref)
+            # 当月总工作日（近似 22）
+            import calendar
+
+            _, days_in_month = calendar.monthrange(ref.year, ref.month)
+            total_wd = sum(
+                1
+                for d in range(1, days_in_month + 1)
+                if date(ref.year, ref.month, d).weekday() != 2
+            )
+            bm_pct = wi / total_wd if total_wd > 0 else 0.5
+
+            # 渠道口径
+            funnel = ChannelFunnelEngine.from_data_dict(data)
+            ch_data = funnel.compute()
+            if ch_data:
                 current_actuals["channels"] = {
                     ch: {
-                        "registrations": _ch_val(d, "registrations"),
-                        "appointments":  _ch_val(d, "appointments"),
-                        "attendance":    _ch_val(d, "attendance"),
-                        "payments":      _ch_val(d, "payments"),
-                        "revenue_usd":   _ch_val(d, "revenue_usd", "revenue"),
-                        "appt_rate":     _ch_val(d, "appt_rate"),
-                        "attend_rate":   _ch_val(d, "attend_rate"),
-                        "paid_rate":     _ch_val(d, "paid_rate"),
-                        "asp":           _ch_val(d, "asp"),
+                        k: float(m.get(k) or 0)
+                        for k in (
+                            "registrations", "appointments",
+                            "attendance", "payments",
+                            "revenue_usd", "appt_rate",
+                            "attend_rate", "paid_rate", "asp",
+                        )
                     }
-                    for ch, d in channel_summary.items()
+                    for ch, m in ch_data.items()
+                    if ch != "其它"
                 }
+    except Exception as exc:
+        import logging
+        logging.getLogger(__name__).warning(
+            "获取当前实绩失败，使用空值: %s", exc
+        )
 
     result = engine.get_all_tiers(
         current_actuals=current_actuals,
