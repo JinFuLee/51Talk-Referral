@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import math
+from datetime import datetime
 from pathlib import Path
 from typing import Any
 
@@ -10,8 +11,17 @@ import pandas as pd
 from fastapi import APIRouter, Depends, Request
 
 from backend.api.dependencies import get_data_manager
+from backend.core.config import get_targets
 from backend.core.data_manager import DataManager
 from backend.core.time_period import compute_month_progress
+
+# Excel target_field → targets_override.json 中文 key 映射
+# 用于统一 kpi_8item 和 kpi_pace 的目标来源
+_OVERRIDE_KEY_MAP: dict[str, str] = {
+    "转介绍基础业绩单量标": "付费目标",
+    "转介绍基础业绩标USD": "金额目标",
+    "转介绍基础业绩客单价标USD": "客单价",
+}
 
 router = APIRouter()
 
@@ -179,6 +189,30 @@ def get_overview(
     remaining = mp.remaining_workdays or 1.0
     time_progress = mp.time_progress
 
+    # 统一目标源：优先读 targets_override.json，fallback Excel metrics
+    # get_targets 接受 datetime 对象，用当月第 1 天定位月份
+    override_tgts: dict[str, Any] = {}
+    try:
+        ref_dt = datetime(mp.today.year, mp.today.month, 1)
+        override_tgts = get_targets(ref_dt)
+    except Exception:
+        pass
+
+    def _get_target(target_field: str | None) -> float | None:
+        """优先从 override 读取目标，fallback 到 Excel metrics"""
+        if target_field is None:
+            return None
+        override_key = _OVERRIDE_KEY_MAP.get(target_field)
+        if override_key:
+            v = override_tgts.get(override_key)
+            if v is not None and v != 0:
+                try:
+                    return float(v)
+                except (ValueError, TypeError):
+                    pass
+        # fallback：从 Excel result 行读取
+        return metrics.get(target_field)
+
     # 旧版 kpi_pace（向后兼容）
     kpi_pace: dict[str, Any] = {}
     kpi_keys = {
@@ -196,7 +230,7 @@ def get_overview(
     for metric_key, pace_key in kpi_keys.items():
         actual = metrics.get(metric_key)
         target_field = target_keys.get(metric_key)
-        target = metrics.get(target_field) if target_field else None
+        target = _get_target(target_field)
 
         if actual is None:
             kpi_pace[pace_key] = None
@@ -229,7 +263,7 @@ def get_overview(
     kpi_8item: dict[str, Any] = {}
     for metric_key, (pace_key, target_field) in kpi_8item_keys.items():
         actual = metrics.get(metric_key)
-        target = metrics.get(target_field) if target_field else None
+        target = _get_target(target_field)
         kpi_8item[pace_key] = _compute_kpi_8item(
             actual=actual,
             target=target,
