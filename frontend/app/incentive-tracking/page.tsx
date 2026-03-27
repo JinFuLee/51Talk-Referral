@@ -387,10 +387,12 @@ function CampaignModal({ onClose, onSaved, prefill, editCampaign }: CampaignModa
 // ─── Tab 1: 杠杆分析 ───────────────────────────────────────────────────────
 
 function LeverageTab() {
-  const { data, isLoading, error } = useSWR<LeverRecommendation[]>(
-    '/api/incentive/recommend',
-    swrFetcher
-  );
+  const {
+    data: raw,
+    isLoading,
+    error,
+  } = useSWR<{ levers: LeverRecommendation[] }>('/api/incentive/recommend', swrFetcher);
+  const data = raw?.levers ?? [];
   const [modalOpen, setModalOpen] = useState(false);
   const [prefill, setPrefill] = useState<Partial<CampaignFormValues>>({});
 
