@@ -69,25 +69,46 @@ export function CCTargetUpload({ month, onUploadSuccess }: CCTargetUploadProps) 
   };
 
   /**
-   * 校验数字列：空值允许，非空则必须是有效数字
+   * 贴心清洗：去除千分位/货币符号/空格，返回纯数字字符串。
+   * 空值原样返回。清洗后仍无法解析 → 返回原值（由校验标记）。
    */
-  const isValidNumber = (val: string): boolean => {
-    if (!val || val.trim() === '') return true;
-    // 去除千分位逗号后校验（Excel/Sheets 复制的数字格式含逗号）
-    const cleaned = val.trim().replace(/,/g, '');
-    return cleaned !== '' && !isNaN(Number(cleaned));
+  const cleanNumber = (val: string): string => {
+    if (!val || val.trim() === '') return '';
+    // 去除：$ ¥ ฿ USD THB 千分位逗号 空格
+    const cleaned = val
+      .trim()
+      .replace(/[$¥฿]|USD|THB/gi, '')
+      .replace(/[,\s]/g, '')
+      .trim();
+    if (cleaned === '') return '';
+    return !isNaN(Number(cleaned)) ? cleaned : val.trim();
+  };
+
+  const isCleanNumber = (val: string): boolean => {
+    if (!val) return true; // 空=允许
+    return !isNaN(Number(val));
   };
 
   /**
-   * 计算无效行索引（基于全量行数组）
+   * 清洗一整行的数字列，返回新行
+   */
+  const cleanRow = (row: PreviewRow): PreviewRow => ({
+    ...row,
+    usd_target: cleanNumber(row['usd_target'] ?? ''),
+    referral_usd_target: cleanNumber(row['referral_usd_target'] ?? ''),
+  });
+
+  /**
+   * 标记真正有问题的行（清洗后仍无法解析）
    */
   const computeInvalidIndices = (rows: PreviewRow[]): Set<number> => {
     const invalid = new Set<number>();
     rows.forEach((row, i) => {
       const name = row['cc_name'] ?? '';
+      if (!name.trim()) return; // 空名行静默跳过，不算无效
       const usd = row['usd_target'] ?? '';
       const ref = row['referral_usd_target'] ?? '';
-      if (!name.trim() || !isValidNumber(usd) || !isValidNumber(ref)) {
+      if (!isCleanNumber(usd) || !isCleanNumber(ref)) {
         invalid.add(i);
       }
     });
@@ -155,15 +176,15 @@ export function CCTargetUpload({ month, onUploadSuccess }: CCTargetUploadProps) 
           headers.forEach((h, i) => {
             row[h] = values[i] ?? '';
           });
-          return row;
-        });
+          return cleanRow(row); // 贴心清洗：千分位/货币符号/空格
+        })
+        .filter((row) => (row['cc_name'] ?? '').trim() !== ''); // 静默跳过空名行
 
       const invalid: number[] = [];
       rows.forEach((row, i) => {
-        const name = row['cc_name'] ?? '';
         const usd = row['usd_target'] ?? '';
         const ref = row['referral_usd_target'] ?? '';
-        if (!name.trim() || !isValidNumber(usd) || !isValidNumber(ref)) {
+        if (!isCleanNumber(usd) || !isCleanNumber(ref)) {
           invalid.push(i);
         }
       });
@@ -265,15 +286,7 @@ export function CCTargetUpload({ month, onUploadSuccess }: CCTargetUploadProps) 
       // 将全量粘贴数据构造为 CSV File 对象（不受前 10 条预览限制）
       const csvLines = [previewHeaders.join(',')];
       allPastedRows.forEach((row) => {
-        csvLines.push(
-          previewHeaders
-            .map((h) => {
-              const val = row[h] ?? '';
-              // 数字列去除千分位逗号（Excel 格式 → 纯数字）
-              return h === 'cc_name' ? val : val.replace(/,/g, '');
-            })
-            .join(',')
-        );
+        csvLines.push(previewHeaders.map((h) => row[h] ?? '').join(','));
       });
       const csvString = csvLines.join('\n');
       fileToUpload = new File([csvString], 'pasted.csv', { type: 'text/csv' });
@@ -530,8 +543,8 @@ export function CCTargetUpload({ month, onUploadSuccess }: CCTargetUploadProps) 
                     共 {totalRowCount} 条记录（预览前 {Math.min(totalRowCount, 10)} 条）
                   </p>
                   {invalidRowIndices.size > 0 && (
-                    <p className="text-xs text-red-600">
-                      ⚠ {invalidRowIndices.size} 条数据有误（高亮行），请检查后重新粘贴
+                    <p className="text-xs text-amber-600">
+                      {invalidRowIndices.size} 行数字格式无法识别（已高亮），其余数据可正常上传
                     </p>
                   )}
                 </div>
