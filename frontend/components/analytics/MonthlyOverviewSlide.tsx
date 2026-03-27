@@ -15,10 +15,11 @@ const I18N = {
       payments: '付费数',
       revenue_usd: '业绩',
       asp: '客单价',
-      appt_rate: '预约率',
-      attend_rate: '出席率',
-      paid_rate: '付费率',
-      reg_to_pay_rate: '注册付费率',
+      appt_rate: '预约率（注册→预约）',
+      attend_rate: '出席率（预约→出席）',
+      paid_rate: '出席付费率（出席→付费）',
+      appt_to_pay_rate: '预约付费率（预约→付费）',
+      reg_to_pay_rate: '注册付费率（注册→付费）',
     } as Record<string, string>,
     target: '月目标',
     actual: '当前',
@@ -41,10 +42,11 @@ const I18N = {
       payments: 'Payments',
       revenue_usd: 'Revenue',
       asp: 'ASP',
-      appt_rate: 'Appt Rate',
-      attend_rate: 'Attend Rate',
-      paid_rate: 'Paid Rate',
-      reg_to_pay_rate: 'Reg→Pay Rate',
+      appt_rate: 'Appt Rate (Reg→Appt)',
+      attend_rate: 'Attend Rate (Appt→Attend)',
+      paid_rate: 'Paid Rate (Attend→Pay)',
+      appt_to_pay_rate: 'Appt→Pay Rate',
+      reg_to_pay_rate: 'Conv Rate (Reg→Pay)',
     } as Record<string, string>,
     target: 'Target',
     actual: 'Actual',
@@ -62,7 +64,13 @@ const I18N = {
 type Lang = keyof typeof I18N;
 
 // 率类指标（0-1 小数，需用 formatRate）
-const RATE_METRICS = new Set(['appt_rate', 'attend_rate', 'paid_rate', 'reg_to_pay_rate']);
+const RATE_METRICS = new Set([
+  'appt_rate',
+  'attend_rate',
+  'paid_rate',
+  'appt_to_pay_rate',
+  'reg_to_pay_rate',
+]);
 // 金额类指标
 const MONEY_METRICS = new Set(['revenue_usd', 'asp']);
 
@@ -103,6 +111,7 @@ const DISPLAY_METRICS = [
   'appt_rate',
   'attend_rate',
   'paid_rate',
+  'appt_to_pay_rate',
   'reg_to_pay_rate',
 ];
 

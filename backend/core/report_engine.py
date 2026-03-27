@@ -281,6 +281,7 @@ class ReportEngine:
             "appt_rate": _safe_div(appt, reg),
             "attend_rate": _safe_div(attend, appt),
             "paid_rate": _safe_div(pay, attend),
+            "appt_to_pay_rate": _safe_div(pay, appt),
             "reg_to_pay_rate": _safe_div(pay, reg),
         }
 
@@ -305,7 +306,7 @@ class ReportEngine:
             "金额目标": "revenue_usd",
             "约课率目标": "appt_rate",
             "出席率目标": "attend_rate",
-            "转化率目标": "paid_rate",
+            "转化率目标": "reg_to_pay_rate",  # 23% 是注册付费率，非出席付费率
             "客单价": "asp",
         }
 
@@ -352,15 +353,15 @@ class ReportEngine:
                         base_targets["appt_rate"] = _safe_float(sop["reserve_rate"])
                     if sop.get("attend_rate", 0) > 0:
                         base_targets["attend_rate"] = _safe_float(sop["attend_rate"])
-                    # channels conversion_rate → paid_rate
-                    if channels_v2 and "paid_rate" not in base_targets:
+                    # channels conversion_rate = 注册付费率（非出席付费率）
+                    if channels_v2 and "reg_to_pay_rate" not in base_targets:
                         rates = [
                             ch.get("conversion_rate", 0)
                             for ch in channels_v2.values()
                             if ch.get("conversion_rate", 0) > 0
                         ]
                         if rates:
-                            base_targets["paid_rate"] = sum(rates) / len(rates)
+                            base_targets["reg_to_pay_rate"] = sum(rates) / len(rates)
                     # asp
                     if channels_v2 and "asp" not in base_targets:
                         asps = [
@@ -410,8 +411,17 @@ class ReportEngine:
         # 确保必要字段有默认值
         base_targets.setdefault("appt_rate", 0.77)
         base_targets.setdefault("attend_rate", 0.66)
-        base_targets.setdefault("paid_rate", 0.23)
+        base_targets.setdefault("reg_to_pay_rate", 0.23)  # 注册付费率 23%
         base_targets.setdefault("asp", 850.0)
+        # 出席付费率 = 注册付费率 / (预约率 × 出席率)
+        rtp = base_targets.get("reg_to_pay_rate", 0.23)
+        ar = base_targets.get("appt_rate", 0.77)
+        atr = base_targets.get("attend_rate", 0.66)
+        if ar > 0 and atr > 0:
+            base_targets.setdefault("paid_rate", round(rtp / (ar * atr), 4))
+        # 预约付费率 = 注册付费率 / 预约率
+        if ar > 0:
+            base_targets.setdefault("appt_to_pay_rate", round(rtp / ar, 4))
 
         # ── 5. 自动推导可算目标（预约/出席/客单价/注册付费率）──
         reg_tgt = base_targets.get("registrations", 0)
@@ -544,6 +554,8 @@ class ReportEngine:
             "appt_rate",
             "attend_rate",
             "paid_rate",
+            "appt_to_pay_rate",
+            "reg_to_pay_rate",
         ]
 
         actuals_out: dict[str, float] = {}
