@@ -125,12 +125,19 @@ def _safe_mode(series: pd.Series):
     return str(m.iloc[0]) if not m.empty else None
 
 
-def _metric(actual, target) -> PerformanceMetric:
+def _metric(actual, target, tp: float | None = None) -> PerformanceMetric:
+    """tp = time_progress (0~1)，传入时自动计算 BM 节奏字段"""
     a = _sf(actual)
     t = _sf(target)
     gap = (a - t) if (a is not None and t is not None) else None
     ach = (a / t) if (a is not None and t is not None and t > 0) else None
-    return PerformanceMetric(target=t, actual=a, gap=gap, achievement_pct=ach)
+    bm = (t * tp) if (t is not None and tp is not None) else None
+    bm_gap = (a - bm) if (a is not None and bm is not None) else None
+    bm_pct = (a / bm) if (a is not None and bm is not None and bm > 0) else None
+    return PerformanceMetric(
+        target=t, actual=a, gap=gap, achievement_pct=ach,
+        bm_expected=_sf(bm), bm_gap=_sf(bm_gap), bm_pct=_sf(bm_pct),
+    )
 
 
 def _conv_rate(actual, target=None) -> ConversionRate:
@@ -441,12 +448,12 @@ def _build_record(
     return CCPerformanceRecord(
         team=team,
         cc_name=cc_name,
-        revenue=_metric(revenue_actual, revenue_target),
+        revenue=_metric(revenue_actual, revenue_target, time_progress),
         pace_gap_pct=_sf(pace_gap_pct),
-        paid=_metric(paid_actual, paid_target),
-        asp=_metric(asp_actual, asp_target),
-        showup=_metric(showup_actual, showup_target_val),
-        leads=_metric(leads_actual, lead_target_val),
+        paid=_metric(paid_actual, paid_target, time_progress),
+        asp=_metric(asp_actual, asp_target),  # ASP 不按 BM 线性
+        showup=_metric(showup_actual, showup_target_val, time_progress),
+        leads=_metric(leads_actual, lead_target_val, time_progress),
         leads_user_a=_si(row.get("leads_user_a")),
         showup_to_paid=_conv_rate(showup_to_paid_actual),
         leads_to_paid=_conv_rate(leads_to_paid_actual, _sf(targets.get("目标转化率"))),
@@ -472,8 +479,12 @@ def _build_record(
     )
 
 
-def _sum_metric(records: list[CCPerformanceRecord], field: str) -> PerformanceMetric:
-    """跨 records 求和 PerformanceMetric"""
+def _sum_metric(
+    records: list[CCPerformanceRecord],
+    field: str,
+    tp: float | None = None,
+) -> PerformanceMetric:
+    """跨 records 求和 PerformanceMetric，tp=time_progress 时计算 BM"""
     actuals = [
         getattr(r, field).actual
         for r in records
@@ -488,7 +499,13 @@ def _sum_metric(records: list[CCPerformanceRecord], field: str) -> PerformanceMe
     t = sum(targets) if targets else None
     gap = (a - t) if (a is not None and t is not None) else None
     ach = (a / t) if (a is not None and t is not None and t > 0) else None
-    return PerformanceMetric(target=t, actual=a, gap=gap, achievement_pct=ach)
+    bm = (t * tp) if (t is not None and tp is not None) else None
+    bm_gap = (a - bm) if (a is not None and bm is not None) else None
+    bm_pct = (a / bm) if (a is not None and bm is not None and bm > 0) else None
+    return PerformanceMetric(
+        target=t, actual=a, gap=gap, achievement_pct=ach,
+        bm_expected=_sf(bm), bm_gap=_sf(bm_gap), bm_pct=_sf(bm_pct),
+    )
 
 
 def _avg_conversion(records: list[CCPerformanceRecord], field: str) -> ConversionRate:
@@ -502,7 +519,9 @@ def _avg_conversion(records: list[CCPerformanceRecord], field: str) -> Conversio
 
 
 def _build_team_summary(
-    team: str, records: list[CCPerformanceRecord]
+    team: str,
+    records: list[CCPerformanceRecord],
+    tp: float | None = None,
 ) -> CCPerformanceTeamSummary:
     """将团队所有 records 聚合为 CCPerformanceTeamSummary"""
     headcount = len(records)
@@ -534,11 +553,11 @@ def _build_team_summary(
     return CCPerformanceTeamSummary(
         team=team,
         headcount=headcount,
-        revenue=_sum_metric(records, "revenue"),
-        paid=_sum_metric(records, "paid"),
-        asp=_sum_metric(records, "asp"),
-        showup=_sum_metric(records, "showup"),
-        leads=_sum_metric(records, "leads"),
+        revenue=_sum_metric(records, "revenue", tp),
+        paid=_sum_metric(records, "paid", tp),
+        asp=_sum_metric(records, "asp"),  # ASP 不按 BM
+        showup=_sum_metric(records, "showup", tp),
+        leads=_sum_metric(records, "leads", tp),
         showup_to_paid=_avg_conversion(records, "showup_to_paid"),
         leads_to_paid=_avg_conversion(records, "leads_to_paid"),
         calls_total=calls_total,
@@ -858,7 +877,10 @@ def get_cc_performance(
     for rec in all_records:
         team_map.setdefault(rec.team or "未知团队", []).append(rec)
 
-    teams = [_build_team_summary(team, recs) for team, recs in sorted(team_map.items())]
+    teams = [
+        _build_team_summary(team, recs, tp=mp.time_progress)
+        for team, recs in sorted(team_map.items())
+    ]
 
     # 全局汇总行
     grand_total: CCPerformanceRecord | None = None
@@ -916,12 +938,12 @@ def get_cc_performance(
         grand_total = CCPerformanceRecord(
             team="合计",
             cc_name="全体",
-            revenue=_metric(gt_revenue_actual, gt_revenue_target),
+            revenue=_metric(gt_revenue_actual, gt_revenue_target, mp.time_progress),
             pace_gap_pct=_avg_field("pace_gap_pct"),
-            paid=_metric(gt_paid_actual, gt_paid_target),
+            paid=_metric(gt_paid_actual, gt_paid_target, mp.time_progress),
             asp=_metric(_gt_asp, _sf(targets.get("客单价"))),
-            showup=_metric(gt_showup_actual, None),
-            leads=_metric(gt_leads_actual, None),
+            showup=_metric(gt_showup_actual, None, mp.time_progress),
+            leads=_metric(gt_leads_actual, None, mp.time_progress),
             leads_user_a=_si(
                 sum(r.leads_user_a or 0 for r in all_records) or None
             ),

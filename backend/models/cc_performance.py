@@ -15,12 +15,17 @@ from pydantic import BaseModel
 
 
 class PerformanceMetric(BaseModel):
-    """通用绩效指标：目标 -> 实际 -> 差额 -> 达成率"""
+    """通用绩效指标：目标 -> 实际 -> 差额 -> 达成率 + BM 节奏"""
 
     target: float | None = None
     actual: float | None = None
     gap: float | None = None  # actual - target（绝对差，负=落后）
     achievement_pct: float | None = None  # actual / target（0~1+，>1=超额）
+
+    # BM 节奏（target × time_progress）
+    bm_expected: float | None = None  # 期望值
+    bm_gap: float | None = None  # actual - bm_expected（正=领先）
+    bm_pct: float | None = None  # actual / bm_expected
 
 
 class ConversionRate(BaseModel):
