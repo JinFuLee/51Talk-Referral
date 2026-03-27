@@ -363,11 +363,12 @@ def _build_record(
         else None
     )
     l2p_rate = _sf(targets.get("目标转化率")) or l2p_actual
-    lead_target_val = (
+    lead_target_raw = (
         paid_target / l2p_rate
         if (paid_target is not None and l2p_rate and l2p_rate > 0)
         else None
     )
+    lead_target_val = round(lead_target_raw) if lead_target_raw is not None else None
 
     # showup_target = paid_target / showup→paid 转化率（优先团队目标，fallback 实际值）
     s2p_target = _sf(targets.get("出席转化率"))
@@ -377,10 +378,13 @@ def _build_record(
         else None
     )
     s2p_rate = s2p_target or s2p_actual
-    showup_target_val = (
+    showup_target_raw = (
         paid_target / s2p_rate
         if (paid_target is not None and s2p_rate and s2p_rate > 0)
         else None
+    )
+    showup_target_val = (
+        round(showup_target_raw) if showup_target_raw is not None else None
     )
 
     # ── 转化率 ──
@@ -460,7 +464,11 @@ def _build_record(
     return CCPerformanceRecord(
         team=team,
         cc_name=cc_name,
-        revenue=_metric(revenue_actual, revenue_target),
+        # D2 actual = 转介绍口径 → target 也用转介绍目标（苹果比苹果）
+        revenue=_metric(
+            revenue_actual,
+            referral_usd_target or revenue_target,
+        ),
         referral_revenue=_metric(revenue_actual, referral_usd_target),
         pace_gap_pct=_sf(pace_gap_pct),
         referral_share=_metric(referral_share_actual, referral_share_target),
@@ -810,9 +818,11 @@ def get_cc_performance(
             ]
             return sum(vals) / len(vals) if vals else None
 
+        # D1 有独立总业绩才算占比，D2 fallback = 恒 1.0 无意义
+        _has_real_d1 = not df_d1.empty and "总带新付费金额USD" in df_d1.columns
         _gt_ref = (
             gt_revenue_actual / d1_total_revenue
-            if (gt_revenue_actual and d1_total_revenue)
+            if (_has_real_d1 and gt_revenue_actual and d1_total_revenue)
             else None
         )
         _gt_asp = (
