@@ -569,8 +569,9 @@ function CampaignsTab() {
         method: 'POST',
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const { poster_url } = await res.json();
-      window.open(poster_url, '_blank');
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      window.open(url, '_blank');
     } catch {
       alert('海报生成失败，请稍后重试');
     }
