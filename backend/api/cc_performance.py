@@ -615,10 +615,17 @@ def upload_cc_targets(
 
     numeric_cols = ["referral_usd_target"]
     targets: dict[str, dict] = {}
+    total_rows = 0
+    skipped_empty = 0
+    duplicates: list[str] = []
     for _, row in df.iterrows():
         cc_name = str(row["cc_name"]).strip()
         if not cc_name or cc_name in ("nan", "NaN"):
+            skipped_empty += 1
             continue
+        total_rows += 1
+        if cc_name in targets:
+            duplicates.append(cc_name)
         entry: dict[str, Any] = {}
         for col in numeric_cols:
             if col in row.index:
@@ -640,7 +647,15 @@ def upload_cc_targets(
     tmp_path.write_text(json_str, encoding="utf-8")
     tmp_path.rename(target_path)
 
-    return {"status": "ok", "count": len(targets), "month": month}
+    return {
+        "status": "ok",
+        "count": len(targets),
+        "total_rows": total_rows,
+        "duplicates": len(duplicates),
+        "duplicate_names": sorted(set(duplicates)),
+        "skipped_empty": skipped_empty,
+        "month": month,
+    }
 
 
 @router.delete(

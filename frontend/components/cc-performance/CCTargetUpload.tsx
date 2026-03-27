@@ -23,6 +23,9 @@ interface PreviewRow {
 
 interface UploadResult {
   count: number;
+  total_rows: number;
+  duplicates: number;
+  duplicate_names: string[];
   month: string;
 }
 
@@ -303,7 +306,13 @@ export function CCTargetUpload({ month, onUploadSuccess }: CCTargetUploadProps) 
         throw new Error(text || `上传失败 (${res.status})`);
       }
       const data = await res.json();
-      setUploadResult({ count: data.count ?? 0, month: data.month ?? month });
+      setUploadResult({
+        count: data.count ?? 0,
+        total_rows: data.total_rows ?? 0,
+        duplicates: data.duplicates ?? 0,
+        duplicate_names: data.duplicate_names ?? [],
+        month: data.month ?? month,
+      });
       onUploadSuccess();
     } catch (err) {
       setError(err instanceof Error ? err.message : '上传失败，请重试');
@@ -389,8 +398,7 @@ export function CCTargetUpload({ month, onUploadSuccess }: CCTargetUploadProps) 
                   下载 CSV 模板
                 </button>
                 <p className="text-xs text-[var(--text-muted)]">
-                  模板已预填 CC 名字，只需填写转介绍业绩目标，付费/出席/leads
-                  目标由系统自动推算
+                  模板已预填 CC 名字，只需填写转介绍业绩目标，付费/出席/leads 目标由系统自动推算
                 </p>
               </div>
 
@@ -555,12 +563,20 @@ export function CCTargetUpload({ month, onUploadSuccess }: CCTargetUploadProps) 
 
               {/* 上传成功 */}
               {uploadResult && (
-                <div className="flex items-start gap-2 rounded-lg bg-emerald-50 border border-emerald-200 px-4 py-3">
-                  <CheckCircle className="w-4 h-4 text-emerald-600 mt-0.5 flex-shrink-0" />
-                  <p className="text-sm text-emerald-700">
-                    上传成功！共写入 <strong>{uploadResult.count}</strong> 条个人目标（
-                    {uploadResult.month}）
-                  </p>
+                <div className="rounded-lg bg-emerald-50 border border-emerald-200 px-4 py-3 space-y-1">
+                  <div className="flex items-start gap-2">
+                    <CheckCircle className="w-4 h-4 text-emerald-600 mt-0.5 flex-shrink-0" />
+                    <p className="text-sm text-emerald-700">
+                      上传成功！共 <strong>{uploadResult.total_rows}</strong> 条数据，写入{' '}
+                      <strong>{uploadResult.count}</strong> 条个人目标（{uploadResult.month}）
+                    </p>
+                  </div>
+                  {uploadResult.duplicates > 0 && (
+                    <p className="text-xs text-amber-600 ml-6">
+                      {uploadResult.duplicates} 条重名被合并（同名取最后一条）：
+                      {uploadResult.duplicate_names.join('、')}
+                    </p>
+                  )}
                 </div>
               )}
 
