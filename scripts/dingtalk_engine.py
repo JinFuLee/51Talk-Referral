@@ -1781,8 +1781,8 @@ class NotificationEngine:
             lines.append("|---|----|----|---:|---:|---|")
             for i, s in enumerate(top5, 1):
                 sid = s.get("student_id", s.get("id", "--"))
-                enclosure = s.get("enclosure_days", s.get("enclosure", "--"))
-                checkins = s.get("current_month_checkins", s.get("checkin_count", "--"))
+                enclosure = s.get("enclosure", s.get("enclosure_days", "--"))
+                checkins = s.get("days_this_month", "--")
                 improvement = s.get("improvement", s.get("delta", "--"))
                 tags_raw = s.get("tags", [])
                 if isinstance(tags_raw, list):

@@ -85,9 +85,7 @@ function CheckinPageInner() {
   const enclosureFilter: string | null = searchParams.get('enclosure') || null;
 
   // CC 搜索：page 级 state（初始值来自 URL cc 参数）
-  const [ccSearch, setCCSearch] = useState<string>(
-    () => searchParams.get('cc') || focusCC || ''
-  );
+  const [ccSearch, setCCSearch] = useState<string>(() => searchParams.get('cc') || focusCC || '');
 
   // KPI 围场（当前角色负责的围场列表）
   const kpiEnclosures = useMemo(
@@ -136,9 +134,7 @@ function CheckinPageInner() {
   }, [clearMyView, router, searchParams]);
 
   // ── 是否有筛选激活 ────────────────────────────────────────────────────────
-  const hasAnyFilter = Boolean(
-    enclosureFilter || roleFilter !== 'CC' || teamFilter || ccSearch
-  );
+  const hasAnyFilter = Boolean(enclosureFilter || roleFilter !== 'CC' || teamFilter || ccSearch);
 
   // ── 团队列表（从 summary 数据提取）────────────────────────────────────────
   const { data: summaryData } = useSWR<CheckinSummaryResponse>('/api/checkin/summary', swrFetcher);
@@ -240,12 +236,9 @@ function CheckinPageInner() {
         {activeTab === 'overview' && (
           <SummaryTab enclosureFilter={enclosureFilter} roleFilter={roleFilter} />
         )}
-        {activeTab === 'insights' && (
-          <StudentInsightsTab enclosureFilter={enclosureFilter} />
-        )}
+        {activeTab === 'insights' && <StudentInsightsTab enclosureFilter={enclosureFilter} />}
         {activeTab === 'leaderboard' && (
           <RankingTab
-            enclosureFilter={enclosureFilter}
             roleFilter={roleFilter}
             activeRoles={activeRoles}
             roleEnclosures={roleEnclosures}

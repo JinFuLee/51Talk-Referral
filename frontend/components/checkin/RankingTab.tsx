@@ -297,13 +297,12 @@ function TeamCard({ card, rateColor, rateBg }: TeamCardProps) {
 // ── 主组件 ────────────────────────────────────────────────────────────────────
 
 interface RankingTabProps {
-  enclosureFilter?: string | null;
   roleFilter?: string;
   activeRoles?: string[];
   roleEnclosures?: Record<string, string[]>;
 }
 
-export function RankingTab({ enclosureFilter, roleFilter = 'CC' }: RankingTabProps) {
+export function RankingTab({ roleFilter = 'CC' }: RankingTabProps) {
   const { configJson, activeRoles } = useWideConfig();
   const { rateColor, rateBg, legend } = useCheckinThresholds();
   const [subTab, setSubTab] = useState<'group' | 'person'>('group');

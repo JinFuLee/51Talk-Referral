@@ -65,11 +65,13 @@ export function UnifiedFilterBar({
   const [showAllEnclosures, setShowAllEnclosures] = useState<boolean>(false);
 
   // 默认只展示 KPI 围场；展开时展示全部
+  // kpiEnclosures 为空时 fallback 到 M0/M1/M2（避免折叠视图只显示"全部"）
+  const effectiveKpiEnclosures = kpiEnclosures.length > 0 ? kpiEnclosures : ['M0', 'M1', 'M2'];
   const visibleGroups = showAllEnclosures
     ? ENCLOSURE_GROUPS
-    : ENCLOSURE_GROUPS.map((group) => group.filter((enc) => kpiEnclosures.includes(enc))).filter(
-        (group) => group.length > 0
-      );
+    : ENCLOSURE_GROUPS.map((group) =>
+        group.filter((enc) => effectiveKpiEnclosures.includes(enc))
+      ).filter((group) => group.length > 0);
 
   return (
     <div className="flex flex-wrap items-center gap-2 py-2 border-b border-[var(--border-subtle)]">
