@@ -446,6 +446,8 @@ M32(✅) ──► M33(✅) ──► M34(规划中)
 | #30 | 全局 Skill 骨架缺失通用版本，跨项目复用需手动复制 | P2 | M22+ | 🟡 待处理 |
 | #31 | DuckDB dual-track 后手：评估报告 82/100 完成，待 M22+ 数据量增长后决策切换 | P3 | M22+ | 🟡 待处理 |
 | #32 | 前端 analysis.ts 领域类型未泛化（转介绍专用接口，多项目场景需泛型化） | P2 | M27 | ✅ 已解决（M27 核心类型提取到 core.ts，领域类型 Record 化泛型化） |
+| #39 | dingtalk_engine.py `cc_warning_by_enclosure` 只配了 M0/M1/M2 阈值，M3~M12+ 推送无告警 | P2 | M34+ | 🟡 待处理 |
+| #40 | channel_funnel_engine.py `_infer_channel` 围场→角色推导硬编码集合，应改为从 config 动态读取 | P2 | M34+ | 🟡 待处理 |
 
 ### 本地化资产整理：PM Pipeline 三合一 + Agent/Skill 生态建设（2026-02-22）
 - [x] `.agents/pm-pipeline.md` 创建（统一里程碑收尾规范）
