@@ -1,10 +1,7 @@
 'use client';
 
-import { useState } from 'react';
 import { formatUSD, formatValue } from '@/lib/utils';
 import type { GapDashboard } from '@/lib/types/report';
-
-type GapView = 'bm' | 'monthly';
 
 // ── I18N ──────────────────────────────────────────────────────────────────────
 const I18N = {
@@ -95,7 +92,6 @@ interface Props {
 
 export function GapDashboardSlide({ data, monthlyData, lang }: Props) {
   const t = I18N[lang];
-  const [view, setView] = useState<GapView>('monthly');
 
   if (!data) {
     return (
@@ -106,114 +102,112 @@ export function GapDashboardSlide({ data, monthlyData, lang }: Props) {
     );
   }
 
-  // 选择当前视角的数据
-  const activeData = view === 'monthly' && monthlyData ? monthlyData : data;
-  const { gaps, channel_targets } = activeData;
+  // BM 视角数据
+  const bmData = data;
+  // 月度视角数据（优先用 monthlyData，无则 fallback 到 data）
+  const monthlyViewData = monthlyData ?? data;
+  const { gaps: monthlyGaps, channel_targets } = monthlyViewData;
   const channelKeys = Object.keys(channel_targets ?? {});
+
+  function renderGapCard(key: GapKey, val: number | null | undefined, compact = false) {
+    const isNeg = (val ?? 0) < 0;
+    const label = isNeg ? t.shortfall : t.surplus;
+    const isRevOrAsp = key === 'revenue_gap' || key === 'asp_gap';
+    return (
+      <div
+        key={key}
+        className={`rounded-lg border ${compact ? 'p-2' : 'p-3'} ${
+          isNeg
+            ? 'bg-red-50 border-red-200'
+            : 'bg-[var(--color-success-surface)] border-[var(--border-subtle)]'
+        }`}
+      >
+        <p className="text-[9px] font-semibold text-[var(--text-muted)] uppercase tracking-wide mb-1">
+          {t.gapItems[key]}
+        </p>
+        <p
+          className={`${compact ? 'text-sm' : 'text-base'} font-bold font-mono tabular-nums ${gapStatusColor(val)}`}
+        >
+          {isNeg ? '▼ ' : isRevOrAsp ? '+' : '+'}
+          {formatGapValue(key, val)}
+        </p>
+        <p className={`text-[9px] mt-0.5 ${isNeg ? 'text-red-600' : 'text-emerald-700'}`}>
+          {label}
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="card-base p-5 flex flex-col gap-4">
-      {/* Header + Toggle */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h3 className="text-sm font-bold text-[var(--text-primary)] font-display">{t.title}</h3>
-          <p className="text-xs text-[var(--text-muted)] mt-0.5">
-            {view === 'bm' ? t.bmDesc : t.monthlyDesc}
-          </p>
-        </div>
-        <div className="flex rounded-lg border border-[var(--border-default)] overflow-hidden">
-          <button
-            onClick={() => setView('bm')}
-            className={`px-3 py-1 text-[10px] font-semibold transition-colors ${
-              view === 'bm'
-                ? 'bg-[var(--action)] text-white'
-                : 'bg-white text-[var(--text-muted)] hover:bg-[var(--bg-subtle)]'
-            }`}
-          >
-            {t.viewBm}
-          </button>
-          <button
-            onClick={() => setView('monthly')}
-            className={`px-3 py-1 text-[10px] font-semibold transition-colors ${
-              view === 'monthly'
-                ? 'bg-[var(--action)] text-white'
-                : 'bg-white text-[var(--text-muted)] hover:bg-[var(--bg-subtle)]'
-            }`}
-          >
-            {t.viewMonthly}
-          </button>
-        </div>
+      {/* Header */}
+      <div>
+        <h3 className="text-sm font-bold text-[var(--text-primary)] font-display">{t.title}</h3>
+        <p className="text-xs text-[var(--text-muted)] mt-0.5">{t.subtitle}</p>
       </div>
 
-      {/* 主缺口卡片组 */}
-      <div className="grid grid-cols-2 gap-3">
-        {GAP_KEYS.map((key) => {
-          const val = gaps[key];
-          const isNeg = (val ?? 0) < 0;
-          const label = isNeg ? t.shortfall : t.surplus;
-          const isRevOrAsp = key === 'revenue_gap' || key === 'asp_gap';
-          return (
-            <div
-              key={key}
-              className={`rounded-lg p-3 border ${
-                isNeg
-                  ? 'bg-red-50 border-red-200'
-                  : 'bg-[var(--color-success-surface)] border-[var(--border-subtle)]'
-              }`}
-            >
-              <p className="text-[10px] font-semibold text-[var(--text-muted)] uppercase tracking-wide mb-1">
-                {t.gapItems[key]}
-              </p>
-              <p className={`text-base font-bold font-mono tabular-nums ${gapStatusColor(val)}`}>
-                {isNeg ? '▼ ' : isRevOrAsp ? '+' : '+'}
-                {formatGapValue(key, val)}
-              </p>
-              <p className={`text-[10px] mt-0.5 ${isNeg ? 'text-red-600' : 'text-emerald-700'}`}>
-                {label}
-              </p>
-            </div>
-          );
-        })}
+      {/* Section 1: 月度达标视角（主要） */}
+      <div>
+        <p className="text-[10px] font-semibold text-[var(--text-secondary)] uppercase tracking-wide mb-2">
+          {t.monthlyDesc}
+        </p>
+        {!monthlyData ? (
+          <p className="text-xs text-[var(--text-muted)] py-2">{t.noData}</p>
+        ) : (
+          <div className="grid grid-cols-2 gap-3">
+            {GAP_KEYS.map((key) => renderGapCard(key, monthlyGaps[key]))}
+          </div>
+        )}
+
+        {/* 渠道缺口表格 - 仅月度视角 */}
+        {channelKeys.length > 0 && (
+          <div className="mt-3">
+            <p className="text-[10px] font-semibold text-[var(--text-muted)] uppercase tracking-wide mb-2">
+              {t.channelGaps}
+            </p>
+            <table className="w-full text-xs border-collapse">
+              <thead>
+                <tr className="slide-thead-row">
+                  <th className="slide-th slide-th-left">{t.channel}</th>
+                  <th className="slide-th slide-th-right">{t.target}</th>
+                  <th className="slide-th slide-th-right">{t.gap}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {channelKeys.map((ch, i) => {
+                  const tgt = channel_targets[ch];
+                  const gapVal = monthlyGaps.channel_lead_gaps?.[ch];
+                  return (
+                    <tr key={ch} className={i % 2 === 0 ? 'slide-row-even' : 'slide-row-odd'}>
+                      <td className="slide-td font-medium text-[var(--text-primary)]">{ch}</td>
+                      <td className="slide-td text-right font-mono tabular-nums text-[var(--text-muted)]">
+                        {tgt != null ? tgt.toLocaleString() : '—'}
+                      </td>
+                      <td
+                        className={`slide-td text-right font-mono tabular-nums ${gapStatusColor(gapVal)}`}
+                      >
+                        {gapVal != null
+                          ? `${gapVal >= 0 ? '+' : ''}${Math.ceil(gapVal).toLocaleString()}`
+                          : '—'}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
 
-      {/* 各渠道注册缺口表格 */}
-      {channelKeys.length > 0 && (
-        <div>
-          <p className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wide mb-2">
-            {t.channelGaps}
-          </p>
-          <table className="w-full text-xs border-collapse">
-            <thead>
-              <tr className="slide-thead-row">
-                <th className="slide-th slide-th-left">{t.channel}</th>
-                <th className="slide-th slide-th-right">{t.target}</th>
-                <th className="slide-th slide-th-right">{t.gap}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {channelKeys.map((ch, i) => {
-                const tgt = channel_targets[ch];
-                const gapVal = gaps.channel_lead_gaps?.[ch];
-                return (
-                  <tr key={ch} className={i % 2 === 0 ? 'slide-row-even' : 'slide-row-odd'}>
-                    <td className="slide-td font-medium text-[var(--text-primary)]">{ch}</td>
-                    <td className="slide-td text-right font-mono tabular-nums text-[var(--text-muted)]">
-                      {tgt != null ? tgt.toLocaleString() : '—'}
-                    </td>
-                    <td
-                      className={`slide-td text-right font-mono tabular-nums ${gapStatusColor(gapVal)}`}
-                    >
-                      {gapVal != null
-                        ? `${gapVal >= 0 ? '+' : ''}${Math.ceil(gapVal).toLocaleString()}`
-                        : '—'}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+      {/* Section 2: BM 进度视角（次要，更紧凑） */}
+      <div className="pt-3 border-t border-[var(--border-subtle)]">
+        <p className="text-[10px] font-semibold text-[var(--text-secondary)] uppercase tracking-wide mb-2">
+          {t.bmDesc}
+        </p>
+        <div className="grid grid-cols-3 gap-2">
+          {GAP_KEYS.map((key) => renderGapCard(key, bmData.gaps[key], true))}
         </div>
-      )}
+      </div>
     </div>
   );
 }
