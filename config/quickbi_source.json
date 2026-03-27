@@ -1,0 +1,15 @@
+{
+  "dashboard_url": "https://bi.aliyuncs.com/token3rd/dashboard/view/pc.htm?pageId=fc785e72-b0e0-40b0-9e7b-d587adc3dc9a&accessTicket=0dcb84ea-4bd3-4ee1-83c0-6cb6313d2652&dd_orientation=auto",
+  "comment": "Quick BI 转介绍中台监测指标仪表板。accessTicket 会过期，群里发新链接后更新 dashboard_url 即可。",
+  "download_dir": "input",
+  "tables": [
+    {"index": 0, "name": "转介绍中台检测-结果数据", "file": "D1_结果数据.xlsx", "tab": null},
+    {"index": 1, "name": "转介绍中台检测-围场过程数据-byCC", "file": "D4_围场过程数据_byCC.xlsx", "tab": "CC"},
+    {"index": 2, "name": "转介绍中台检测-围场过程数据-bySS", "file": "D4_围场过程数据_bySS.xlsx", "tab": "SS"},
+    {"index": 3, "name": "转介绍中台检测-围场过程数据-byLP", "file": "D4_围场过程数据_byLP.xlsx", "tab": "LP"},
+    {"index": 4, "name": "区域汇关键指标-转介绍中台检测-围场过程数据-byCC副本", "file": "D1_区域汇关键指标.xlsx", "tab": "区域汇关键指标"},
+    {"index": 5, "name": "转介绍中台检测-明细", "file": "D3_明细.xlsx", "tab": null},
+    {"index": 6, "name": "已付费学员转介绍围场明细", "file": "D2_围场明细.xlsx", "tab": null},
+    {"index": 7, "name": "转介绍中台监测-高潜学员", "file": "D5_高潜学员.xlsx", "tab": null}
+  ]
+}
