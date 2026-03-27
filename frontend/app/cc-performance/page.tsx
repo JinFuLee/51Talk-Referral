@@ -5,6 +5,7 @@ import { swrFetcher } from '@/lib/api';
 import type { CCPerformanceResponse } from '@/lib/types/cc-performance';
 import { CCPerformanceSummaryCards } from '@/components/cc-performance/CCPerformanceSummaryCards';
 import { CCPerformanceTable } from '@/components/cc-performance/CCPerformanceTable';
+import { CCTargetUpload } from '@/components/cc-performance/CCTargetUpload';
 
 export default function CCPerformancePage() {
   const { data, isLoading, error, mutate } = useSWR<CCPerformanceResponse>(
@@ -15,14 +16,19 @@ export default function CCPerformancePage() {
   return (
     <div className="space-y-6 px-6 py-6">
       {/* 页头 */}
-      <div>
-        <h1 className="page-title">CC 个人业绩</h1>
-        <p className="text-sm text-[var(--text-secondary)] mt-1">
-          CC 前端销售全维度业绩 · 漏斗 · 过程指标 · 节奏分析
-        </p>
-        <p className="text-sm text-[var(--text-muted)] mt-0.5">
-          CC 负责 M0~M2（0-90天）全漏斗转化 · 业绩 = CC 前端 + 新单 + 转介绍渠道
-        </p>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="page-title">CC 个人业绩</h1>
+          <p className="text-sm text-[var(--text-secondary)] mt-1">
+            CC 前端销售全维度业绩 · 漏斗 · 过程指标 · 节奏分析
+          </p>
+          <p className="text-sm text-[var(--text-muted)] mt-0.5">
+            CC 负责 M0~M2（0-90天）全漏斗转化 · 业绩 = CC 前端 + 新单 + 转介绍渠道
+          </p>
+        </div>
+        <div className="flex items-center gap-2 flex-shrink-0 pt-1">
+          <CCTargetUpload month={data?.month ?? ''} onUploadSuccess={() => mutate()} />
+        </div>
       </div>
 
       {/* L0：汇总 KPI 卡片 */}
