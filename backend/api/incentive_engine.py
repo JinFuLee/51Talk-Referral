@@ -557,72 +557,8 @@ def get_recommendations(
         "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค.",
     ]
 
-    # ── 月末收尾：不推荐新活动 ──
-    if phase == "closing":
-        return {
-            "analysis_date": today.isoformat(),
-            "month": month,
-            "phase": phase,
-            "phase_label": phase_label,
-            "remaining_workdays": remaining,
-            "levers": [],
-            "note": (
-                f"本月仅剩 {remaining} 个工作日，"
-                "活动窗口已关闭。建议开始规划下月激励方案。"
-            ),
-        }
-
-    # ── 月末：只推荐过程指标 ──
-    if phase == "late":
-        levers_out: list[dict[str, Any]] = []
-        for i, prec in enumerate(_PROCESS_RECOMMENDATIONS[:3]):
-            mk = prec["metric"]
-            vals = sorted(metric_values.get(mk, []))
-            if vals:
-                p60 = int(len(vals) * 0.6)
-                thr = round(vals[min(p60, len(vals) - 1)], 2)
-            else:
-                thr = 0.5 if "rate" in mk else 5
-            mzh = _METRIC_ZH.get(mk, mk)
-            mth = _METRIC_TH.get(mk, mk)
-            month_th = _MONTH_TH[m_num] if m_num <= 12 else ""
-            levers_out.append({
-                "rank": i + 1,
-                "stage": mk,
-                "stage_label": f"{mzh}（过程指标）",
-                "leverage_score": 0,
-                "revenue_impact_usd": 0,
-                "current_rate": None,
-                "target_rate": None,
-                "suggested_campaign": {
-                    "role": prec["role"],
-                    "metric": mk,
-                    "threshold": thr,
-                    "reward_thb": 200.0,
-                    "name": f"{m_num}月最终冲刺 — {mzh}",
-                    "name_th": (
-                        f"Push สุดท้าย — {mth} {month_th}"
-                    ),
-                    "start_date": start,
-                    "end_date": month_end,
-                    "rationale": prec["rationale_zh"],
-                },
-            })
-        return {
-            "analysis_date": today.isoformat(),
-            "month": month,
-            "phase": phase,
-            "phase_label": phase_label,
-            "remaining_workdays": remaining,
-            "levers": levers_out,
-            "note": (
-                f"本月仅剩 {remaining} 个工作日，"
-                "付费/业绩等结果指标已无转化周期。"
-                "推荐过程指标冲刺（行为可立即改变）。"
-            ),
-        }
-
-    # ── 月初/月中：按杠杆矩阵推荐 ──
+    # ── 所有月段都展示真实杠杆分析 ──
+    # 月末：杠杆数据不变，但标记 actionable=false（下月初创建）
     levers: list[dict[str, Any]] = []
     for i, score in enumerate(sorted_stages[:3]):
         stage = score["stage"]
@@ -633,9 +569,13 @@ def get_recommendations(
             metric_key = mapping.get("metric", "paid")
             role = mapping.get("role", "CC")
 
-            # 月中过滤：排除结果指标
-            if phase == "mid" and metric_key in _OUTCOME_METRICS:
-                continue
+            # 判断当前月段是否可立即创建
+            if metric_key in _OUTCOME_METRICS:
+                actionable = phase == "early"
+            elif metric_key in _MID_METRICS:
+                actionable = phase in ("early", "mid")
+            else:
+                actionable = True  # 过程指标随时可创建
 
             # Smart threshold: P60
             vals = sorted(metric_values.get(metric_key, []))
@@ -671,6 +611,19 @@ def get_recommendations(
                 "rationale": mapping.get("rationale_zh", ""),
             }
 
+        # actionable 标记：月末结果指标→下月创建
+        is_actionable = (
+            actionable if mapping else False
+        )
+        action_note = ""
+        if not is_actionable and mapping:
+            if phase == "closing":
+                action_note = "建议下月初创建"
+            elif phase == "late":
+                action_note = "结果指标需 2-3 周转化，建议下月初"
+            elif phase == "mid":
+                action_note = "月中可创建冲刺版"
+
         levers.append({
             "rank": i + 1,
             "stage": stage,
@@ -680,6 +633,8 @@ def get_recommendations(
             "current_rate": score.get("actual_rate"),
             "target_rate": score.get("target_rate"),
             "suggested_campaign": suggested,
+            "actionable": is_actionable,
+            "action_note": action_note,
         })
 
     # 重编号（月中可能 skip 了结果指标）

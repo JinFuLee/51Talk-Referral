@@ -59,6 +59,8 @@ export interface LeverRecommendation {
     start_date: string;
     end_date: string;
   } | null;
+  actionable?: boolean;
+  action_note?: string;
 }
 
 export interface IncentiveBudget {

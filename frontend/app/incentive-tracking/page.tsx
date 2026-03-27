@@ -397,7 +397,13 @@ function LeverageTab() {
     data: raw,
     isLoading,
     error,
-  } = useSWR<{ levers: LeverRecommendation[] }>('/api/incentive/recommend', swrFetcher);
+  } = useSWR<{
+    levers: LeverRecommendation[];
+    phase?: string;
+    phase_label?: string;
+    remaining_workdays?: number;
+    note?: string;
+  }>('/api/incentive/recommend', swrFetcher);
   const data = raw?.levers ?? [];
   const month = getCurrentMonth();
   const { data: campaigns, mutate: mutateCampaigns } = useSWR<Campaign[]>(
@@ -455,9 +461,16 @@ function LeverageTab() {
 
   return (
     <div className="space-y-3">
-      <p className="text-xs text-[var(--text-muted)]">
-        以下阶段对转介绍业绩的杠杆效应最强，建议优先在此设置激励活动。
-      </p>
+      <div className="text-xs text-[var(--text-muted)] space-y-1">
+        <p>以下阶段对转介绍业绩的杠杆效应最强，建议优先在此设置激励活动。</p>
+        {raw?.phase_label && (
+          <p className="font-medium text-[var(--text-secondary)]">
+            当前阶段：{raw.phase_label}
+            {raw.remaining_workdays != null && ` · 剩余 ${raw.remaining_workdays} 个工作日`}
+          </p>
+        )}
+        {raw?.note && <p className="text-amber-600">{raw.note}</p>}
+      </div>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
         {top3.map((rec) => {
           const sg = rec.suggested_campaign;
@@ -518,10 +531,19 @@ function LeverageTab() {
                 </p>
               )}
 
-              {/* 创建活动按钮 */}
+              {/* 创建活动按钮（时间感知） */}
               {alreadyCreated ? (
                 <div className="w-full py-1.5 text-xs font-medium text-[var(--text-muted)] border border-[var(--border-default)] rounded-lg text-center">
                   ✓ 已创建
+                </div>
+              ) : rec.actionable === false ? (
+                <div className="w-full py-1.5 text-xs text-center space-y-0.5">
+                  <div className="font-medium text-[var(--text-muted)] border border-[var(--border-default)] rounded-lg py-1.5">
+                    下月初创建
+                  </div>
+                  {rec.action_note && (
+                    <p className="text-[10px] text-[var(--text-muted)]">{rec.action_note}</p>
+                  )}
                 </div>
               ) : (
                 <button
