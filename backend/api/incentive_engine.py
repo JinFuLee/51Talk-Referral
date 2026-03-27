@@ -452,6 +452,36 @@ def get_recommendations(
         cc_count = 30
 
     # 6. 生成推荐列表
+    # 6. 计算各指标当前值分布（用于 smart threshold）
+    cc_metrics = _get_role_metrics("CC", dm)
+    metric_values: dict[str, list[float]] = {}
+    for _pname, pdata in cc_metrics.items():
+        for mk in ("paid", "leads", "showup", "revenue"):
+            v = pdata.get(mk)
+            if v is not None and v > 0:
+                metric_values.setdefault(mk, []).append(float(v))
+
+    # 月份信息
+    today = date.today()
+    y, m_num = int(month[:4]), int(month[4:6])
+    import calendar
+    month_last = calendar.monthrange(y, m_num)[1]
+    month_start = f"{y}-{m_num:02d}-01"
+    month_end = f"{y}-{m_num:02d}-{month_last}"
+    start = max(today.isoformat(), month_start)
+
+    _METRIC_ZH = {
+        "paid": "付费", "leads": "注册", "showup": "出席", "revenue": "业绩",
+    }
+    _METRIC_TH = {
+        "paid": "ยอดชำระ", "leads": "ยอดลงทะเบียน",
+        "showup": "ยอดเข้าเรียน", "revenue": "ยอดขาย",
+    }
+    _MONTH_TH = [
+        "", "ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.",
+        "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค.",
+    ]
+
     levers: list[dict[str, Any]] = []
     for i, score in enumerate(sorted_stages[:3]):
         stage = score["stage"]
@@ -459,15 +489,38 @@ def get_recommendations(
         suggested: dict[str, Any] | None = None
 
         if mapping and score["revenue_impact"] > 0:
-            # 奖励 = revenue_impact 的 5%（成本控制）转 THB 均摊给 CC
+            metric_key = mapping.get("metric", "paid")
+            role = mapping.get("role", "CC")
+
+            # Smart threshold: P60 of current values (achievable stretch)
+            vals = sorted(metric_values.get(metric_key, []))
+            if vals:
+                p60_idx = int(len(vals) * 0.6)
+                threshold = max(1, round(vals[min(p60_idx, len(vals) - 1)]))
+            else:
+                threshold = 5
+
+            # 奖励 = revenue_impact 的 5%（成本控制）转 THB 均摊
             total_reward_thb = score["revenue_impact"] * 0.05 * 34
             per_person = round(total_reward_thb / cc_count / 100) * 100
             reward_thb = float(max(200, min(per_person, 2000)))
+
+            # 自动生成名称
+            mzh = _METRIC_ZH.get(metric_key, metric_key)
+            mth = _METRIC_TH.get(metric_key, metric_key)
+            month_th = _MONTH_TH[m_num] if m_num <= 12 else ""
+            name = f"{m_num}月{role}{mzh}冲刺奖"
+            name_th = f"โบนัสเป้า{mth} {role} {month_th}"
+
             suggested = {
-                "role": mapping.get("role", "CC"),
-                "metric": mapping.get("metric", "paid"),
-                "threshold": 5,
+                "role": role,
+                "metric": metric_key,
+                "threshold": threshold,
                 "reward_thb": reward_thb,
+                "name": name,
+                "name_th": name_th,
+                "start_date": start,
+                "end_date": month_end,
                 "rationale": mapping.get("rationale_zh", ""),
             }
 

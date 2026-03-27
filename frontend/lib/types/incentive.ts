@@ -53,6 +53,10 @@ export interface LeverRecommendation {
     threshold: number;
     reward_thb: number;
     rationale: string;
+    name: string;
+    name_th: string;
+    start_date: string;
+    end_date: string;
   } | null;
 }
 

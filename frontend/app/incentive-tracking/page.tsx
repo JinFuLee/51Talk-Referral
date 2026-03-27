@@ -130,8 +130,8 @@ function CampaignModal({ onClose, onSaved, prefill, editCampaign }: CampaignModa
       editCampaign?.reward_thb != null
         ? String(editCampaign.reward_thb)
         : (prefill?.reward_thb ?? ''),
-    start_date: editCampaign?.start_date ?? '',
-    end_date: editCampaign?.end_date ?? '',
+    start_date: editCampaign?.start_date ?? prefill?.start_date ?? '',
+    end_date: editCampaign?.end_date ?? prefill?.end_date ?? '',
   });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -400,10 +400,14 @@ function LeverageTab() {
     const sg = rec.suggested_campaign;
     const role = sg?.role as 'CC' | 'SS' | 'LP' | undefined;
     setPrefill({
+      name: sg?.name ?? '',
+      name_th: sg?.name_th ?? '',
       role: role,
       metric: sg?.metric,
       threshold: sg?.threshold != null ? String(sg.threshold) : undefined,
       reward_thb: sg?.reward_thb != null ? String(sg.reward_thb) : undefined,
+      start_date: sg?.start_date ?? '',
+      end_date: sg?.end_date ?? '',
     });
     setModalOpen(true);
   }
