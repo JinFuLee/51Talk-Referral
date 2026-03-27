@@ -35,6 +35,23 @@ type InputMode = 'file' | 'paste';
 
 const DEFAULT_PASTE_HEADERS = ['cc_name', 'usd_target', 'referral_usd_target'];
 
+/** 模块级纯函数：去除千分位/货币符号/空格，返回纯数字字符串 */
+function cleanNumber(val: string): string {
+  if (!val || val.trim() === '') return '';
+  const cleaned = val
+    .trim()
+    .replace(/[$¥฿]|USD|THB/gi, '')
+    .replace(/[,\s]/g, '')
+    .trim();
+  if (cleaned === '') return '';
+  return !isNaN(Number(cleaned)) ? cleaned : val.trim();
+}
+
+function isCleanNumber(val: string): boolean {
+  if (!val) return true;
+  return !isNaN(Number(val));
+}
+
 export function CCTargetUpload({ month, onUploadSuccess }: CCTargetUploadProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [inputMode, setInputMode] = useState<InputMode>('file');
@@ -68,30 +85,7 @@ export function CCTargetUpload({ month, onUploadSuccess }: CCTargetUploadProps) 
     setInputMode('file');
   };
 
-  /**
-   * 贴心清洗：去除千分位/货币符号/空格，返回纯数字字符串。
-   * 空值原样返回。清洗后仍无法解析 → 返回原值（由校验标记）。
-   */
-  const cleanNumber = (val: string): string => {
-    if (!val || val.trim() === '') return '';
-    // 去除：$ ¥ ฿ USD THB 千分位逗号 空格
-    const cleaned = val
-      .trim()
-      .replace(/[$¥฿]|USD|THB/gi, '')
-      .replace(/[,\s]/g, '')
-      .trim();
-    if (cleaned === '') return '';
-    return !isNaN(Number(cleaned)) ? cleaned : val.trim();
-  };
-
-  const isCleanNumber = (val: string): boolean => {
-    if (!val) return true; // 空=允许
-    return !isNaN(Number(val));
-  };
-
-  /**
-   * 清洗一整行的数字列，返回新行
-   */
+  /** 清洗一整行的数字列，返回新行 */
   const cleanRow = (row: PreviewRow): PreviewRow => ({
     ...row,
     usd_target: cleanNumber(row['usd_target'] ?? ''),
@@ -286,7 +280,11 @@ export function CCTargetUpload({ month, onUploadSuccess }: CCTargetUploadProps) 
       // 将全量粘贴数据构造为 CSV File 对象（不受前 10 条预览限制）
       const csvLines = [previewHeaders.join(',')];
       allPastedRows.forEach((row) => {
-        csvLines.push(previewHeaders.map((h) => row[h] ?? '').join(','));
+        csvLines.push(
+          previewHeaders
+            .map((h) => (h === 'cc_name' ? (row[h] ?? '') : cleanNumber(row[h] ?? '')))
+            .join(',')
+        );
       });
       const csvString = csvLines.join('\n');
       fileToUpload = new File([csvString], 'pasted.csv', { type: 'text/csv' });
