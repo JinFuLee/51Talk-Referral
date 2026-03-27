@@ -329,7 +329,8 @@ CC 排名算法详见 [docs/cc-ranking-spec.md](docs/cc-ranking-spec.md)（3类1
 | M30 | 2026-02-23 | God Class 拆分 | AnalysisEngineV2 2109→309行、6 Analyzer + context + utils | 9 files new, 1 file rewrite |
 | M31 | 2026-02-23 | 测试体系 + CI/CD | pytest 105 case + vitest 42 case + GitHub Actions | 12 test files new, ci.yml new |
 | M32 | 2026-02-23 | 性能+收尾 | useMemo 36处 + ESLint 防退化 + smoke 迁移 | 10 components mod, .eslintrc.json new |
-| M33 | 2026-03-26 | 运营分析报告引擎 | 11区块报告+8维环比+三因素分解+杠杆矩阵+三档目标+钉钉推送 | 23 files new/mod, +2900 lines |
+| M33 | 2026-03-26 | 运营分析报告引擎 | 11区块报告+8维环比+三因素分解+杠杆矩阵+WMA三档目标+钉钉6通道+Lark3级粒度 | 23+ files, +4000 lines |
+| M33.5 | 2026-03-27 | 打卡管理页重构 | 学员视角9维度+10新组件+岗位沉浸式+智能路由+学员标签体系(6类) | 12 new + 4 mod, +1600 lines |
 
 ## 已知问题与技术债
 

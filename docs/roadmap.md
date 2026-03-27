@@ -369,17 +369,47 @@
 - [x] 三因素分解引擎（Laspeyres 主 + LMDI 校验，残差>3%自动切换）
 - [x] 全月推算 + 客单价敏感性测试
 - [x] 收入杠杆矩阵（影响×可行性×紧迫度 → 瓶颈识别 + 潜力判定）
-- [x] 三档目标推荐器（P25/P50/P75 × 季节系数，口径自动拆分）
+- [x] 三档目标推荐器（WMA+Holt 1957 指数平滑，稳达标×1.0/冲刺×1.15/大票×1.50，口径自动拆分）
+- [x] 三档目标 v2（Pace/Share/Custom 三场景：当前效率照跑/公司占比反推/自定义参数推算）
 - [x] 报告组装引擎（11 区块统一生成）
-- [x] API 路由（daily/summary/comparison/snapshot）
+- [x] API 路由（daily/summary/comparison/snapshot/targets/recommend/targets/apply）
 - [x] 前端 analytics 页面（11 个 Slide 组件 + 瀑布图 + 热力图）
-- [x] 钉钉核心摘要推送（--dry-run/--confirm）
+- [x] 前端 TargetRecommender 重构（三档卡片+全链路拆解+一键应用）
+- [x] 钉钉核心摘要推送（--dry-run/--confirm，6 通道）
+- [x] Lark 荣耀卡片 3 级粒度（overview/team/individual）
 - [x] TypeScript 报告类型定义（352 行，11 区块全覆盖）
-- [x] 学术调研（Laspeyres/LMDI Index Decomposition Analysis）
-- 统计: 23 files new/modified, +2900 lines
-- QA 结果: 3/8 PASS → bug 修复后全功能可用（5 FAIL 均为 config 缺 router 注册，已修复）
-- 执行团队: 11 MK（3 Phase 并行）
-- 待激活: 历史快照导入后环比 + 三档推荐启用
+- [x] 学术调研（Laspeyres/LMDI Index Decomposition Analysis + Holt 1957）
+- [x] i18n 4 Slide 类型修复（as const 字面量联合 → 去掉 as const）
+- [x] NavSidebar hydration 修复（localStorage 读取移至 useEffect）
+- 统计: 23+ files new/modified, +4000 lines
+- QA 结果: tsc 零错误，ruff 零错误，API 全端点验证通过
+- 执行团队: 11 MK（3 Phase 并行）+ 后续迭代 2 MK
+
+### M33.5: 打卡管理页重构 — 学员视角 + 岗位沉浸式（2026-03-27）
+- [x] Phase 1: 后端 `GET /api/checkin/student-analysis`（9 维度：频次分布/月度对比/转化漏斗/围场分布/标签体系/课耗交叉/CC触达/续费关联/学员明细）
+- [x] Phase 2: 学员视角 10 个新组件
+  - SummaryTab 学员全景（KPI 卡片行 + 频次直方图 + 课耗×打卡四象限 + 围场参与率 + 三级转化漏斗 + CC触达效果 + 续费关联）
+  - StudentFrequencyChart（7 段精确频次柱图）
+  - LessonCheckinCross（课耗×打卡四象限，激活池 7,013 人高亮）
+  - ConversionFunnelProof（三级漏斗证明：5-6 次付费率是零打卡 11.8 倍）
+  - ContactCheckinChart（CC 触达×打卡响应 4 分组）
+  - RenewalCheckinChart（续费×打卡关联柱图）
+  - StudentRankingPanel（频次/进步/转化 3 维度排行 + 分区展示）
+  - CCStudentDrilldown（CC→学员懒加载展开 + 摘要行）
+  - StudentTagBadge（6 标签徽章：满勤/活跃/进步/退步/沉睡高潜/超级转化）
+  - useStudentAnalysis hook（SWR 封装 + 全局筛选自动附加）
+- [x] Phase 3: 岗位沉浸式
+  - useMyView hook（URL ↔ Zustand focusCC 双向同步）
+  - MyViewBanner（当前视角横幅 + 清除按钮）
+  - 智能默认 Tab（CC→跟进 / TL→团队 / 经理→全景）
+  - RankingTab 新增"学员"子 Tab
+  - TeamDetailTab CC 行点击展开学员明细
+- [x] 学员标签体系（基于 6 次/月上限校准：满勤13/活跃388/进步128/退步452/沉睡高潜3863/超级转化112）
+- [x] checkin-student.ts 类型定义（211 行，完整响应类型覆盖）
+- 统计: 12 files new, 4 files modified, +1600 lines
+- QA 结果: tsc 零错误，API 验证 7 段频次 + 200 人排行 + 14 段围场
+- 数据洞察: 80.5% 学员零打卡 | 沉睡高潜 3,863 人（有课耗无打卡 7,013 激活池）| 5-6 次打卡付费率 4.7% vs 零打卡 0.4%（11.8x）
+- 待完成: Phase 4 后手（P2/P3 维度 + RFM 分层 + 跨页联动）
 
 ---
 
