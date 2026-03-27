@@ -77,25 +77,19 @@ stop_backend() {
 # ── 推送执行 ─────────────────────────────────────────────────────────────────
 do_push() {
     log "=== 开始推送 ==="
+    # 注：SS/LP 无宽口围场，不推送打卡内容（仅 CC）
 
     # 1. cc_all（CC 总览+明细+荣耀+警示）
-    log "-> cc_all (CC 总览+明细)"
+    log "-> cc_all (CC 全量)"
     uv run python scripts/lark_bot.py followup --channel cc_all --role CC --confirm 2>&1 | tail -5
     sleep 3
 
-    # 2. lp_all（LP 总览+明细）
-    log "-> lp_all (LP 总览+明细)"
-    uv run python scripts/lark_bot.py followup --channel lp_all --role LP --confirm 2>&1 | tail -5
-    sleep 3
-
-    # 3. ops（CC 总览 + LP 总览）
-    log "-> ops (CC+LP 总览)"
+    # 2. ops（CC 总览+荣耀）
+    log "-> ops (CC 总览)"
     uv run python scripts/lark_bot.py followup --channel ops --role CC --overview-only --confirm 2>&1 | tail -3
-    sleep 5
-    uv run python scripts/lark_bot.py followup --channel ops --role LP --overview-only --confirm 2>&1 | tail -3
     sleep 3
 
-    # 4. cc_tl（CC 总览）
+    # 3. cc_tl（CC 总览+荣耀）
     log "-> cc_tl (CC 总览)"
     uv run python scripts/lark_bot.py followup --channel cc_tl --role CC --overview-only --confirm 2>&1 | tail -3
 

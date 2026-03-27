@@ -271,6 +271,15 @@ class NotificationEngine:
             if module_id == "followup_per_cc":
                 return self._process_followup_per_cc(channel, dry_run, result)
 
+            # cc_enc_warning：图片 + 文本（学员 ID 方便复制）
+            if module_id == "cc_enc_warning":
+                if role != "CC":
+                    result["status"] = "skipped"
+                    return result
+                return self._process_warning_with_ids(
+                    role, channel, dry_run, result,
+                )
+
             data = self._fetch_data(role)
             if not data:
                 result["status"] = "no_data"
@@ -487,16 +496,7 @@ class NotificationEngine:
                     (f"🏆 เกียรติยศเช็คอิน {role} {today_str}", img_bytes, path)
                 )
 
-        elif module_id == "cc_enc_warning":
-            if role == "CC":
-                img_bytes = self._gen_warning_image(role_data, role, today_str)
-                if img_bytes is not None:
-                    path = OUTPUT_DIR / f"cc-enc-warning-{date_tag}.png"
-                    path.write_bytes(img_bytes)
-                    images.append(
-                        (f"⚠️ แจ้งเตือน CC {today_str}", img_bytes, path)
-                    )
-
+        # cc_enc_warning 由 _process_module 直接处理（图片+文本双发）
         # action_items 由 _process_module 直接处理文本，不走图片流程
         else:
             pass
@@ -1893,6 +1893,182 @@ class NotificationEngine:
             return result  # 非繁忙错误或重试耗尽
 
         return {"errcode": -1, "errmsg": "重试耗尽"}
+
+    # ── CC 围场警示（图片+文本双发）──────────────────────────────────────────
+
+    def _process_warning_with_ids(
+        self, role: str, channel: dict, dry_run: bool, result: dict,
+    ) -> dict:
+        """cc_enc_warning: 发图片（总览）+ markdown 文本（含学员 ID 方便复制）。"""
+        data = self._fetch_data(role)
+        if not data:
+            result["status"] = "no_data"
+            return result
+
+        role_data = data.get("by_role", {}).get(role, {})
+        today_str = datetime.now().strftime("%d/%m")
+        date_tag = datetime.now().strftime("%Y%m%d")
+
+        # 生成图片
+        img_bytes = self._gen_warning_image(role_data, role, today_str)
+
+        # 同时构建文本版（含学员 ID）
+        cfg = self._get_honor_thresholds()
+        enc_warn_map = cfg["cc_warning_by_enclosure"]
+        enc_order = ["M0", "M1", "M2"]
+
+        groups = role_data.get("by_group", [])
+        team_names = [
+            g.get("group", "") for g in groups if g.get("group")
+        ]
+
+        # 获取未打卡学员列表
+        followup_by_cc: dict[str, dict[str, list[str]]] = {}
+        try:
+            url = f"{self.api_base}/api/checkin/followup?role={role}"
+            req = urllib.request.Request(
+                url, headers={"Accept": "application/json"},
+            )
+            with urllib.request.urlopen(req, timeout=15) as resp:
+                fdata = json.loads(resp.read().decode("utf-8"))
+            for s in fdata.get("students", []):
+                cc = s.get("cc_name", "?")
+                enc = s.get("enclosure", "?")
+                sid = str(s.get("student_id", ""))
+                followup_by_cc.setdefault(cc, {}).setdefault(
+                    enc, []
+                ).append(sid)
+        except Exception:
+            pass
+
+        # 构建与图片同逻辑的 at-risk 列表（含 ID）
+        at_risk_ccs: list[dict] = []
+        for team_name in team_names:
+            try:
+                url = (
+                    f"{self.api_base}/api/checkin/team-detail"
+                    f"?team={urllib.parse.quote(team_name)}"
+                )
+                req = urllib.request.Request(
+                    url, headers={"Accept": "application/json"},
+                )
+                with urllib.request.urlopen(req, timeout=10) as resp:
+                    detail = json.loads(resp.read().decode("utf-8"))
+                members = detail.get("members", [])
+            except Exception:
+                continue
+
+            for member in members:
+                cc_name = member.get("name", "?")
+                enc_warnings: list[dict] = []
+                for enc in enc_order:
+                    threshold = enc_warn_map.get(enc)
+                    if threshold is None:
+                        continue
+                    enc_info = None
+                    for e in member.get("by_enclosure", []):
+                        if e.get("enclosure") == enc:
+                            enc_info = e
+                            break
+                    if (
+                        not enc_info
+                        or enc_info.get("students", 0) == 0
+                    ):
+                        continue
+                    total_enc = enc_info["students"]
+                    enc_rate = enc_info.get("rate", 0.0) or 0.0
+                    if enc_rate >= threshold:
+                        continue
+                    checked = enc_info.get("checked_in", 0)
+                    unchecked = total_enc - checked
+                    allowed = int(total_enc * (1 - threshold))
+                    risk_count = max(0, unchecked - allowed)
+                    if risk_count > 0:
+                        # 取风险学员 ID
+                        cc_ids = followup_by_cc.get(cc_name, {})
+                        enc_ids = cc_ids.get(enc, [])[:risk_count]
+                        enc_warnings.append({
+                            "enc": enc,
+                            "rate": enc_rate,
+                            "threshold": threshold,
+                            "risk_count": risk_count,
+                            "risk_ids": enc_ids,
+                        })
+
+                if enc_warnings:
+                    total_risk = sum(
+                        ew["risk_count"] for ew in enc_warnings
+                    )
+                    at_risk_ccs.append({
+                        "cc": cc_name,
+                        "enc_warnings": enc_warnings,
+                        "total_risk": total_risk,
+                    })
+
+        if not at_risk_ccs:
+            result["status"] = "no_data"
+            print("  [cc_enc_warning] 无 CC 触发围场警示")
+            return result
+
+        at_risk_ccs.sort(key=lambda x: -x["total_risk"])
+        _LIMIT = 10
+        display_ccs = at_risk_ccs[:_LIMIT]
+        truncated = len(at_risk_ccs) > _LIMIT
+
+        if dry_run:
+            if img_bytes:
+                kb = len(img_bytes) / 1024
+                print(f"  [cc_enc_warning] 图片 ({kb:.0f} KB)")
+            print(f"  [cc_enc_warning] {len(at_risk_ccs)} CC 触发")
+            result["status"] = "dry_run"
+            return result
+
+        # 发图片
+        if img_bytes:
+            path = OUTPUT_DIR / f"cc-enc-warning-{date_tag}.png"
+            path.write_bytes(img_bytes)
+            self._upload_and_send(
+                img_bytes,
+                f"⚠️ แจ้งเตือน CC {today_str}",
+                channel, path.name,
+            )
+            time.sleep(5)
+
+        # 发文本（含学员 ID，方便复制）
+        md_lines = [
+            f"## ⚠️ CC 围场警示 — 学员 ID",
+            "",
+        ]
+        for cc_warn in display_ccs:
+            md_lines.append(f"### ⚠️ {cc_warn['cc']}")
+            for ew in cc_warn["enc_warnings"]:
+                thresh = f"{ew['threshold']:.0%}"
+                md_lines.append(
+                    f"**{ew['enc']}** · {ew['rate']:.1%}"
+                    f" (เกณฑ์ {thresh})"
+                    f" · เสี่ยง **{ew['risk_count']}** คน"
+                )
+                if ew.get("risk_ids"):
+                    for i in range(0, len(ew["risk_ids"]), 5):
+                        chunk = "  ".join(ew["risk_ids"][i : i + 5])
+                        md_lines.append(f"> {chunk}")
+                md_lines.append("")
+
+        if truncated:
+            remaining = len(at_risk_ccs) - _LIMIT
+            md_lines.append(f"_... อีก {remaining} CC_")
+
+        md_text = "\n".join(md_lines)
+        r = self._send_dingtalk(
+            "⚠️ CC 围场警示 — 学员 ID", md_text, channel,
+        )
+        if r.get("errcode") == 0:
+            print(f"  ✅ ⚠️ CC 围场警示（图片+文本）")
+            result["status"] = "sent"
+        else:
+            result["status"] = "partial"
+
+        return result
 
     # ── 荣耀 + 警示图片生成器 ─────────────────────────────────────────────────
 

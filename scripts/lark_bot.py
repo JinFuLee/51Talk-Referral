@@ -90,31 +90,30 @@ _ROLE_ENC_FALLBACK: dict[str, list[str]] = {
 
 
 def _get_role_enclosures(role: str) -> list[str]:
-    """从 Settings 配置读取角色对应的围场列表。
-    读 config/enclosure_role_override.json 的 wide 字段（格式：{"M0": ["CC"], ...}），
-    反转为 role→[M标签] 映射。fallback 到硬编码默认值。
+    """从 Settings 配置读取角色对应的宽口围场列表。
+    读 config/enclosure_role_override.json 的 wide 字段，
+    反转为 role→[M标签] 映射。wide 中不存在的角色返回空列表（不 fallback）。
+    仅当配置文件不存在或读取失败时才用 fallback。
     """
     try:
         if _ENC_OVERRIDE.exists():
             data = json.loads(_ENC_OVERRIDE.read_text("utf-8"))
             wide = data.get("wide", {})
             if wide:
-                # 反转：{M标签: [角色]} → {角色: [M标签]}
                 role_map: dict[str, list[str]] = {}
                 for m_tag, roles in wide.items():
                     for r in roles:
                         role_map.setdefault(r, []).append(m_tag)
-                if role in role_map:
-                    # 按 M 数字排序
-                    return sorted(
-                        role_map[role],
-                        key=lambda x: int(x[1:].replace("+", "99"))
-                        if x[1:].replace("+", "99").isdigit()
-                        else 99,
-                    )
+                # wide 配置有效：角色不在其中 = 无宽口围场 → 返回空
+                return sorted(
+                    role_map.get(role, []),
+                    key=lambda x: int(x[1:].replace("+", "99"))
+                    if x[1:].replace("+", "99").isdigit()
+                    else 99,
+                )
     except Exception:
         pass
-    return _ROLE_ENC_FALLBACK.get(role, ["M0", "M1", "M2"])
+    return _ROLE_ENC_FALLBACK.get(role, [])
 
 
 # ── 日缓存（同日多群推送复用图片 + URL）─────────────────────────────────────
@@ -1975,6 +1974,10 @@ def cmd_followup(args: argparse.Namespace) -> None:
 
     # ── 角色配置（从 Settings 读取围场映射）──
     enc_order = _get_role_enclosures(role)
+    if not enc_order:
+        print(f"[跳过] {role} 无宽口围场配置，不推送打卡内容")
+        return
+
     # LP 排除 Region 团队
     team_exclude = {"LP": {"TH-LP01Region"}}
 
