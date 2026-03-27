@@ -553,7 +553,7 @@ def _build_team_summary(
         referral_revenue=_sum_metric(records, "referral_revenue"),
         referral_share=_sum_metric(records, "referral_share"),
         paid=_sum_metric(records, "paid"),
-        asp=_avg_conversion(records, "showup_to_paid"),  # 使用平均 ASP
+        asp=_sum_metric(records, "asp"),
         showup=_sum_metric(records, "showup"),
         leads=_sum_metric(records, "leads"),
         showup_to_paid=_avg_conversion(records, "showup_to_paid"),
