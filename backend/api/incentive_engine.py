@@ -381,6 +381,16 @@ _STAGE_LABEL = {
     "paid_rate": "出席付费率",
 }
 
+# ── 运营时间感知：不同月段可激励的指标 ──────────────────────────
+# 结果指标（付费/业绩）需要 2-3 周漏斗周期
+# 过程指标（触达/打卡/拨打）行为可立即改变
+_OUTCOME_METRICS = {"paid", "revenue", "revenue_usd", "payments"}
+_MID_METRICS = {"leads", "showup", "registrations"}  # 注册/出席
+_PROCESS_METRICS = {
+    "checkin_rate", "participation_rate", "cc_reach_rate",
+    "ss_reach_rate", "lp_reach_rate",
+}
+
 _STAGE_TO_METRIC = {
     "appt_rate": {
         "role": "CC",
@@ -398,6 +408,46 @@ _STAGE_TO_METRIC = {
         "rationale_zh": "提升出席→付费转化，缩短成交周期",
     },
 }
+
+# 月末过程指标推荐（杠杆分析无法覆盖的纯行为指标）
+_PROCESS_RECOMMENDATIONS = [
+    {
+        "role": "CC",
+        "metric": "checkin_rate",
+        "rationale_zh": "提升打卡率，增加学员触达基础",
+        "name_suffix": "打卡",
+        "name_th_suffix": "เช็คอิน",
+    },
+    {
+        "role": "CC",
+        "metric": "participation_rate",
+        "rationale_zh": "提升参与率，扩大转介绍漏斗入口",
+        "name_suffix": "参与",
+        "name_th_suffix": "การมีส่วนร่วม",
+    },
+    {
+        "role": "CC",
+        "metric": "cc_reach_rate",
+        "rationale_zh": "提升触达率，增加有效沟通覆盖",
+        "name_suffix": "触达",
+        "name_th_suffix": "การติดต่อ",
+    },
+]
+
+
+def _get_month_phase(month: str) -> tuple[str, int, str]:
+    """返回 (phase, remaining_workdays, phase_label_zh)"""
+    from backend.core.time_period import compute_month_progress
+
+    mp = compute_month_progress()
+    remaining = int(mp.remaining_workdays)
+    if remaining > 20:
+        return "early", remaining, "月初（全维度可激励）"
+    if remaining > 10:
+        return "mid", remaining, "月中（漏斗中段冲刺）"
+    if remaining > 3:
+        return "late", remaining, "月末（仅过程指标可激励）"
+    return "closing", remaining, "月末收尾（建议规划下月）"
 
 
 @router.get("/recommend", summary="AI 杠杆分析 — 返回 top 3 内场激励推荐")
@@ -469,12 +519,15 @@ def get_recommendations(
     except Exception:
         cc_count = 30
 
-    # 6. 生成推荐列表
-    # 6. 计算各指标当前值分布（用于 smart threshold）
+    # 6. 时间感知 + 指标分布
+    phase, remaining, phase_label = _get_month_phase(month)
     cc_metrics = _get_role_metrics("CC", dm)
     metric_values: dict[str, list[float]] = {}
     for _pname, pdata in cc_metrics.items():
-        for mk in ("paid", "leads", "showup", "revenue"):
+        for mk in (
+            "paid", "leads", "showup", "revenue",
+            "checkin_rate", "participation_rate", "cc_reach_rate",
+        ):
             v = pdata.get(mk)
             if v is not None and v > 0:
                 metric_values.setdefault(mk, []).append(float(v))
@@ -484,22 +537,92 @@ def get_recommendations(
     y, m_num = int(month[:4]), int(month[4:6])
     import calendar
     month_last = calendar.monthrange(y, m_num)[1]
-    month_start = f"{y}-{m_num:02d}-01"
     month_end = f"{y}-{m_num:02d}-{month_last}"
-    start = max(today.isoformat(), month_start)
+    start = max(today.isoformat(), f"{y}-{m_num:02d}-01")
 
     _METRIC_ZH = {
-        "paid": "付费", "leads": "注册", "showup": "出席", "revenue": "业绩",
+        "paid": "付费", "leads": "注册", "showup": "出席",
+        "revenue": "业绩", "checkin_rate": "打卡率",
+        "participation_rate": "参与率", "cc_reach_rate": "触达率",
     }
     _METRIC_TH = {
         "paid": "ยอดชำระ", "leads": "ยอดลงทะเบียน",
         "showup": "ยอดเข้าเรียน", "revenue": "ยอดขาย",
+        "checkin_rate": "อัตราเช็คอิน",
+        "participation_rate": "อัตราการมีส่วนร่วม",
+        "cc_reach_rate": "อัตราการติดต่อ",
     }
     _MONTH_TH = [
         "", "ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.",
         "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค.",
     ]
 
+    # ── 月末收尾：不推荐新活动 ──
+    if phase == "closing":
+        return {
+            "analysis_date": today.isoformat(),
+            "month": month,
+            "phase": phase,
+            "phase_label": phase_label,
+            "remaining_workdays": remaining,
+            "levers": [],
+            "note": (
+                f"本月仅剩 {remaining} 个工作日，"
+                "活动窗口已关闭。建议开始规划下月激励方案。"
+            ),
+        }
+
+    # ── 月末：只推荐过程指标 ──
+    if phase == "late":
+        levers_out: list[dict[str, Any]] = []
+        for i, prec in enumerate(_PROCESS_RECOMMENDATIONS[:3]):
+            mk = prec["metric"]
+            vals = sorted(metric_values.get(mk, []))
+            if vals:
+                p60 = int(len(vals) * 0.6)
+                thr = round(vals[min(p60, len(vals) - 1)], 2)
+            else:
+                thr = 0.5 if "rate" in mk else 5
+            mzh = _METRIC_ZH.get(mk, mk)
+            mth = _METRIC_TH.get(mk, mk)
+            month_th = _MONTH_TH[m_num] if m_num <= 12 else ""
+            levers_out.append({
+                "rank": i + 1,
+                "stage": mk,
+                "stage_label": f"{mzh}（过程指标）",
+                "leverage_score": 0,
+                "revenue_impact_usd": 0,
+                "current_rate": None,
+                "target_rate": None,
+                "suggested_campaign": {
+                    "role": prec["role"],
+                    "metric": mk,
+                    "threshold": thr,
+                    "reward_thb": 200.0,
+                    "name": f"{m_num}月最终冲刺 — {mzh}",
+                    "name_th": (
+                        f"Push สุดท้าย — {mth} {month_th}"
+                    ),
+                    "start_date": start,
+                    "end_date": month_end,
+                    "rationale": prec["rationale_zh"],
+                },
+            })
+        return {
+            "analysis_date": today.isoformat(),
+            "month": month,
+            "phase": phase,
+            "phase_label": phase_label,
+            "remaining_workdays": remaining,
+            "levers": levers_out,
+            "note": (
+                f"本月仅剩 {remaining} 个工作日，"
+                "付费/业绩等结果指标已无转化周期。"
+                "推荐过程指标冲刺（行为可立即改变）。"
+            ),
+        }
+
+    # ── 月初/月中：按杠杆矩阵推荐 ──
     levers: list[dict[str, Any]] = []
     for i, score in enumerate(sorted_stages[:3]):
         stage = score["stage"]
@@ -510,11 +633,17 @@ def get_recommendations(
             metric_key = mapping.get("metric", "paid")
             role = mapping.get("role", "CC")
 
-            # Smart threshold: P60 of current values (achievable stretch)
+            # 月中过滤：排除结果指标
+            if phase == "mid" and metric_key in _OUTCOME_METRICS:
+                continue
+
+            # Smart threshold: P60
             vals = sorted(metric_values.get(metric_key, []))
             if vals:
                 p60_idx = int(len(vals) * 0.6)
-                threshold = max(1, round(vals[min(p60_idx, len(vals) - 1)]))
+                threshold = max(
+                    1, round(vals[min(p60_idx, len(vals) - 1)])
+                )
             else:
                 threshold = 5
 
@@ -553,9 +682,22 @@ def get_recommendations(
             "suggested_campaign": suggested,
         })
 
+    # 重编号（月中可能 skip 了结果指标）
+    for idx, lev in enumerate(levers):
+        lev["rank"] = idx + 1
+
+    campaign_type = {
+        "early": "โบนัสประจำเดือน（月度基础）",
+        "mid": "Sprint สัปดาห์（冲刺）",
+    }.get(phase, "")
+
     return {
-        "analysis_date": date.today().isoformat(),
+        "analysis_date": today.isoformat(),
         "month": month,
+        "phase": phase,
+        "phase_label": phase_label,
+        "remaining_workdays": remaining,
+        "campaign_type": campaign_type,
         "levers": levers,
     }
 
