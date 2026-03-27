@@ -116,8 +116,9 @@ class ReportEngine:
         # ── 3. 归一化目标 ───────────────────────────────────────────────────
         targets = self._normalize_targets(month_key)
 
-        # ── 4. bm_pct（工作日进度）────────────────────────────────────────
+        # ── 4. bm_pct（工作日进度）+ 剩余工作日天数 ──────────────────────
         bm_pct = self._get_bm_pct(data, reference_date)
+        remaining_wd = self._get_remaining_workdays(reference_date)
 
         # ── 5. 8 维环比（总计口径，revenue_usd 为代表指标）──────────────────
         comparisons = self._build_comparisons(reference_date)
@@ -128,7 +129,7 @@ class ReportEngine:
         # ── 7. 组装 11 区块 ────────────────────────────────────────────────
         blocks = {
             "monthly_overview": self._block_monthly_overview(
-                total_metrics, targets, bm_pct
+                total_metrics, targets, bm_pct, remaining_wd
             ),
             "gap_dashboard": self._block_gap_dashboard(
                 total_metrics, targets, channel_funnel, bm_pct
@@ -473,37 +474,8 @@ class ReportEngine:
                 "reg_to_pay_rate", round(pay_tgt / reg_tgt, 4)
             )
 
-        # ── 6. 过程指标目标：从 D2 当月均值推导 ────────────────────────────
-        # 若 override/targets 未指定，则使用 D2 实际均值作为基线目标
-        try:
-            import pandas as pd
-
-            data = self._get_data()
-            d2 = data.get("enclosure_cc")
-            if d2 is not None and hasattr(d2, "columns"):
-                def _d2_mean(col: str) -> float:
-                    if col in d2.columns:
-                        v = pd.to_numeric(d2[col], errors="coerce").mean()
-                        return float(v) if not pd.isna(v) else 0.0
-                    return 0.0
-
-                base_targets.setdefault(
-                    "checkin_rate", round(_d2_mean("当月有效打卡率"), 4)
-                )
-                base_targets.setdefault(
-                    "cc_contact_rate", round(_d2_mean("CC触达率"), 4)
-                )
-                base_targets.setdefault(
-                    "ss_contact_rate", round(_d2_mean("SS触达率"), 4)
-                )
-                base_targets.setdefault(
-                    "lp_contact_rate", round(_d2_mean("LP触达率"), 4)
-                )
-                base_targets.setdefault(
-                    "participation_rate", round(_d2_mean("转介绍参与率"), 4)
-                )
-        except Exception as exc:
-            logger.warning("过程指标目标推导失败: %s", exc)
+        # 过程指标目标（checkin_rate/cc_contact_rate 等）不设 setdefault fallback
+        # 若 targets_override 未配置则保留 0，BM效率不计算，避免 target==actual 自引用
 
         return base_targets
 
@@ -529,6 +501,18 @@ class ReportEngine:
                     elapsed_wd += 1
 
         return round(_safe_div(elapsed_wd, total_wd), 4) if total_wd > 0 else 0.0
+
+    def _get_remaining_workdays(self, ref_date: date) -> int:
+        """计算当月剩余工作日天数（非周三视为工作日，不含 ref_date 当天）"""
+        import calendar
+
+        y, m = ref_date.year, ref_date.month
+        days_in_month = calendar.monthrange(y, m)[1]
+        remaining = 0
+        for d in range(ref_date.day + 1, days_in_month + 1):
+            if date(y, m, d).weekday() != 2:  # 非周三
+                remaining += 1
+        return remaining
 
     def _get_last_month_archive(
         self, ref_date: date, channel: str = "total"
@@ -598,6 +582,7 @@ class ReportEngine:
         actuals: dict[str, Any],
         targets: dict[str, Any],
         bm_pct: float,
+        remaining_workdays: int = 0,
     ) -> dict[str, Any]:
         """区块 1: 月度总览"""
         metrics = [
@@ -639,10 +624,9 @@ class ReportEngine:
             bm_efficiency[m] = round(eff, 4)
             gap[m] = round(eff - 1.0, 4)
 
-            remaining = 1.0 - bm_pct
-            if remaining > 0 and tgt > 0:
-                rdaily = _safe_div(max(tgt - act, 0), remaining)
-                pdaily = _safe_div(max(tgt * bm_pct - act, 0), remaining)
+            if remaining_workdays > 0 and tgt > 0:
+                rdaily = _safe_div(max(tgt - act, 0), remaining_workdays)
+                pdaily = _safe_div(max(tgt * bm_pct - act, 0), remaining_workdays)
             else:
                 rdaily = 0.0
                 pdaily = 0.0
