@@ -8,6 +8,7 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { useWideConfig } from '@/lib/hooks/useWideConfig';
 import { useCheckinThresholds } from '@/lib/hooks/useCheckinThresholds';
 import { OpsChannelView } from './OpsChannelView';
+import { CCStudentDrilldown } from './CCStudentDrilldown';
 import { formatRate } from '@/lib/utils';
 
 // ── 类型定义 ──────────────────────────────────────────────────────────────────
@@ -67,6 +68,7 @@ interface TeamCardProps {
 function TeamCard({ card, rateColor, rateBg }: TeamCardProps) {
   // 短名：TH-CC01Team → CC01
   const shortName = card.team.replace(/^TH-/i, '').replace(/Team$/i, '');
+  const [expandedCC, setExpandedCC] = useState<string | null>(null);
 
   return (
     <div className="card-base overflow-hidden !p-0">
@@ -102,31 +104,46 @@ function TeamCard({ card, rateColor, rateBg }: TeamCardProps) {
             </thead>
             <tbody>
               {card.members.map((m, i) => (
-                <tr
-                  key={m.name}
-                  className="even:bg-[var(--bg-subtle)] hover:bg-action-accent-surface/50 transition-colors"
-                >
-                  <td className="py-1 px-2 text-center text-[var(--text-muted)] font-mono tabular-nums">
-                    {i + 1}
-                  </td>
-                  <td
-                    className="py-1 px-2 font-medium whitespace-nowrap min-w-[100px] text-[var(--text-primary)]"
-                    title={m.name}
+                <>
+                  <tr
+                    key={m.name}
+                    onClick={() => setExpandedCC(expandedCC === m.name ? null : m.name)}
+                    className={`cursor-pointer even:bg-[var(--bg-subtle)] hover:bg-action-accent-surface/50 transition-colors ${
+                      expandedCC === m.name ? 'border-l-2 border-[var(--color-accent)]' : ''
+                    }`}
                   >
-                    {m.name}
-                  </td>
-                  <td className="py-1 px-2 text-right font-mono tabular-nums text-[var(--text-secondary)]">
-                    {fmtNum(m.students)}
-                  </td>
-                  <td className="py-1 px-2 text-right font-mono tabular-nums text-[var(--text-secondary)]">
-                    {fmtNum(m.checked_in)}
-                  </td>
-                  <td
-                    className={`py-1 px-2 text-right font-mono tabular-nums font-semibold ${rateColor?.(m.rate) ?? ''}`}
-                  >
-                    {formatRate(m.rate)}
-                  </td>
-                </tr>
+                    <td className="py-1 px-2 text-center text-[var(--text-muted)] font-mono tabular-nums">
+                      {i + 1}
+                    </td>
+                    <td
+                      className="py-1 px-2 font-medium whitespace-nowrap min-w-[100px] text-[var(--text-primary)]"
+                      title={m.name}
+                    >
+                      {m.name}
+                      {expandedCC === m.name && (
+                        <span className="ml-1.5 text-[var(--text-muted)]">▲</span>
+                      )}
+                    </td>
+                    <td className="py-1 px-2 text-right font-mono tabular-nums text-[var(--text-secondary)]">
+                      {fmtNum(m.students)}
+                    </td>
+                    <td className="py-1 px-2 text-right font-mono tabular-nums text-[var(--text-secondary)]">
+                      {fmtNum(m.checked_in)}
+                    </td>
+                    <td
+                      className={`py-1 px-2 text-right font-mono tabular-nums font-semibold ${rateColor?.(m.rate) ?? ''}`}
+                    >
+                      {formatRate(m.rate)}
+                    </td>
+                  </tr>
+                  {expandedCC === m.name && (
+                    <tr key={`${m.name}-drilldown`}>
+                      <td colSpan={5}>
+                        <CCStudentDrilldown ccName={expandedCC} />
+                      </td>
+                    </tr>
+                  )}
+                </>
               ))}
             </tbody>
             <tfoot>

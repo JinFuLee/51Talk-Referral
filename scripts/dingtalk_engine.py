@@ -1913,9 +1913,11 @@ class NotificationEngine:
         img_bytes = self._gen_warning_image(role_data, role, today_str)
 
         # 同时构建文本版（含学员 ID）
+        import lark_bot as _lb  # noqa: PLC0415
+
         cfg = self._get_honor_thresholds()
         enc_warn_map = cfg["cc_warning_by_enclosure"]
-        enc_order = ["M0", "M1", "M2"]
+        enc_order = _lb._get_role_enclosures(role) or ["M0", "M1", "M2"]
 
         groups = role_data.get("by_group", [])
         team_names = [
@@ -2085,7 +2087,12 @@ class NotificationEngine:
         )
         enc_warn = cfg.get(
             "cc_warning_by_enclosure",
-            {"M0": 0.90, "M1": 0.85, "M2": 0.80},
+            {
+                "M0": 0.90, "M1": 0.85, "M2": 0.80,
+                "M3": 0.75, "M4": 0.70, "M5": 0.65,
+                "M6": 0.60, "M7": 0.60, "M8": 0.60, "M9": 0.60,
+                "M10": 0.60, "M11": 0.60, "M12": 0.60, "M12+": 0.60,
+            },
         )
         return {"honor": honor, "cc_warning_by_enclosure": enc_warn}
 
@@ -2288,9 +2295,12 @@ class NotificationEngine:
         """生成 CC 围场警示图（仅 CC 角色）。
         无人触发返回 None。
         """
+        import lark_bot as _lb  # noqa: PLC0415
+
         cfg = self._get_honor_thresholds()
         enc_warn_map = cfg["cc_warning_by_enclosure"]
-        enc_order = ["M0", "M1", "M2"]
+        # 动态读取角色负责的围场（从 Settings 配置）
+        enc_order = _lb._get_role_enclosures(role) or ["M0", "M1", "M2"]
 
         groups = role_data.get("by_group", [])
         team_names = [

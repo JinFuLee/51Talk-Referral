@@ -77,7 +77,13 @@ def _get_honor_config() -> dict:
     c = _CHECKIN_THRESHOLDS_CACHE or {}
     honor = c.get("honor", {"hall_of_fame": 1.0, "excellent": 0.95, "pass": 0.85})
     enc_warn = c.get(
-        "cc_warning_by_enclosure", {"M0": 0.90, "M1": 0.85, "M2": 0.80}
+        "cc_warning_by_enclosure",
+        {
+            "M0": 0.90, "M1": 0.85, "M2": 0.80,
+            "M3": 0.75, "M4": 0.70, "M5": 0.65,
+            "M6": 0.60, "M7": 0.60, "M8": 0.60, "M9": 0.60,
+            "M10": 0.60, "M11": 0.60, "M12": 0.60, "M12+": 0.60,
+        },
     )
     return {"honor": honor, "cc_warning_by_enclosure": enc_warn}
 

@@ -69,7 +69,7 @@ function CheckinPageInner() {
     if (explicit) return explicit as TabId;
     if (searchParams.get('cc')) return 'followup';
     if (searchParams.get('team') && !searchParams.get('cc')) return 'team_detail';
-    return 'followup';
+    return 'summary';
   }
   const activeTab = resolveDefaultTab();
   const { exportCSV } = useExport();
