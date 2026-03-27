@@ -192,20 +192,16 @@ export function MonthlyOverviewSlide({ data, lang }: Props) {
                   </td>
                   <td className="slide-td text-right font-mono tabular-nums">
                     <span className={bmEffColor(eff, data.bm_pct)}>
-                      {eff != null ? formatRate(eff) : '—'}
+                      {eff != null && eff !== 0 ? formatRate(eff) : '—'}
                     </span>
                   </td>
                   <td className="slide-td text-right font-mono tabular-nums">
                     <span className={gapColor(gap)}>
-                      {gap != null
-                        ? isRate
-                          ? `${gap >= 0 ? '+' : ''}${(gap * 100).toFixed(1)}pp`
-                          : `${gap >= 0 ? '+' : ''}${formatRate(gap)}`
-                        : '—'}
+                      {gap != null ? `${gap >= 0 ? '+' : ''}${formatRate(gap)}` : '—'}
                     </span>
                   </td>
                   <td className="slide-td text-right font-mono tabular-nums text-[var(--text-muted)]">
-                    {fmtVal(key, dailyAvg)}
+                    {dailyAvg != null && dailyAvg !== 0 ? fmtVal(key, dailyAvg) : '—'}
                   </td>
                 </tr>
               );

@@ -95,7 +95,7 @@ interface Props {
 
 export function GapDashboardSlide({ data, monthlyData, lang }: Props) {
   const t = I18N[lang];
-  const [view, setView] = useState<GapView>('bm');
+  const [view, setView] = useState<GapView>('monthly');
 
   if (!data) {
     return (

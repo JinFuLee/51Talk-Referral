@@ -181,6 +181,8 @@ export interface GapDashboard {
     /** 各渠道注册缺口 */
     channel_lead_gaps: Record<string, number>;
   };
+  /** 月度达标视角数据（actual - target，无 BM 调整） */
+  monthly?: GapDashboard;
 }
 
 /** 区块 3: 效率提升推演（复用 ScenarioEngine） */
