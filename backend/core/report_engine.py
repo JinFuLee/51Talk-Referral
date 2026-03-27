@@ -253,6 +253,8 @@ class ReportEngine:
         self, channel_funnel: dict[str, dict[str, Any]]
     ) -> dict[str, Any]:
         """从 D1 直接取总计指标（而非口径加总，避免 D2 覆盖不全）"""
+        import pandas as pd
+
         data = self._get_data()
         d1 = data.get("result")
         if d1 is not None and hasattr(d1, "columns"):
@@ -271,6 +273,22 @@ class ReportEngine:
         else:
             reg = appt = attend = pay = rev = 0.0
 
+        # 从 D2 获取过程指标实际均值
+        d2 = data.get("enclosure_cc")
+        checkin_rate = cc_contact_rate = ss_contact_rate = 0.0
+        lp_contact_rate = participation_rate = 0.0
+        if d2 is not None and hasattr(d2, "columns"):
+            def _mean_col(df_: Any, col: str) -> float:
+                if col in df_.columns:
+                    return float(pd.to_numeric(df_[col], errors="coerce").mean() or 0.0)
+                return 0.0
+
+            checkin_rate = _mean_col(d2, "当月有效打卡率")
+            cc_contact_rate = _mean_col(d2, "CC触达率")
+            ss_contact_rate = _mean_col(d2, "SS触达率")
+            lp_contact_rate = _mean_col(d2, "LP触达率")
+            participation_rate = _mean_col(d2, "转介绍参与率")
+
         return {
             "registrations": reg,
             "appointments": appt,
@@ -283,6 +301,11 @@ class ReportEngine:
             "paid_rate": _safe_div(pay, attend),
             "appt_to_pay_rate": _safe_div(pay, appt),
             "reg_to_pay_rate": _safe_div(pay, reg),
+            "checkin_rate": round(checkin_rate, 4),
+            "cc_contact_rate": round(cc_contact_rate, 4),
+            "ss_contact_rate": round(ss_contact_rate, 4),
+            "lp_contact_rate": round(lp_contact_rate, 4),
+            "participation_rate": round(participation_rate, 4),
         }
 
     def _normalize_targets(self, month_key: str) -> dict[str, Any]:
@@ -450,6 +473,38 @@ class ReportEngine:
                 "reg_to_pay_rate", round(pay_tgt / reg_tgt, 4)
             )
 
+        # ── 6. 过程指标目标：从 D2 当月均值推导 ────────────────────────────
+        # 若 override/targets 未指定，则使用 D2 实际均值作为基线目标
+        try:
+            import pandas as pd
+
+            data = self._get_data()
+            d2 = data.get("enclosure_cc")
+            if d2 is not None and hasattr(d2, "columns"):
+                def _d2_mean(col: str) -> float:
+                    if col in d2.columns:
+                        v = pd.to_numeric(d2[col], errors="coerce").mean()
+                        return float(v) if not pd.isna(v) else 0.0
+                    return 0.0
+
+                base_targets.setdefault(
+                    "checkin_rate", round(_d2_mean("当月有效打卡率"), 4)
+                )
+                base_targets.setdefault(
+                    "cc_contact_rate", round(_d2_mean("CC触达率"), 4)
+                )
+                base_targets.setdefault(
+                    "ss_contact_rate", round(_d2_mean("SS触达率"), 4)
+                )
+                base_targets.setdefault(
+                    "lp_contact_rate", round(_d2_mean("LP触达率"), 4)
+                )
+                base_targets.setdefault(
+                    "participation_rate", round(_d2_mean("转介绍参与率"), 4)
+                )
+        except Exception as exc:
+            logger.warning("过程指标目标推导失败: %s", exc)
+
         return base_targets
 
     def _get_bm_pct(self, data: dict[str, Any], ref_date: date) -> float:
@@ -556,6 +611,11 @@ class ReportEngine:
             "paid_rate",
             "appt_to_pay_rate",
             "reg_to_pay_rate",
+            "checkin_rate",
+            "cc_contact_rate",
+            "ss_contact_rate",
+            "lp_contact_rate",
+            "participation_rate",
         ]
 
         actuals_out: dict[str, float] = {}

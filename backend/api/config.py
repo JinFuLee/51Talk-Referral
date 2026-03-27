@@ -629,6 +629,65 @@ def put_checkin_thresholds(body: dict[str, Any]) -> dict[str, Any]:
     return {"status": "ok"}
 
 
+# ── 围场过程指标目标（从 D2 推导）──────────────────────────────────────────────
+
+
+@router.get("/enclosure-targets", summary="获取围场级过程指标目标（D2 均值推导）")
+def get_enclosure_targets(
+    dm: DataManager = Depends(get_data_manager),
+) -> dict[str, Any]:
+    """返回各围场的过程指标均值，用于 Settings 页面"围场目标"展示。
+
+    从 D2（围场过程数据_byCC）按围场 groupby，取每个围场的平均值。
+
+    Returns:
+        {
+            "overall": {checkin_rate, cc_contact_rate, ss_contact_rate,
+                        lp_contact_rate, participation_rate},
+            "by_enclosure": {
+                "0~30": {checkin_rate, ...},
+                ...
+            }
+        }
+    """
+    import pandas as pd
+
+    try:
+        data = dm.load_all()
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"数据加载失败: {exc}") from exc
+
+    d2 = data.get("enclosure_cc")
+    if d2 is None or not hasattr(d2, "columns"):
+        return {"overall": {}, "by_enclosure": {}}
+
+    _COLS = {
+        "checkin_rate": "当月有效打卡率",
+        "cc_contact_rate": "CC触达率",
+        "ss_contact_rate": "SS触达率",
+        "lp_contact_rate": "LP触达率",
+        "participation_rate": "转介绍参与率",
+    }
+
+    def _safe_mean(df_: Any, col: str) -> float:
+        if col not in df_.columns:
+            return 0.0
+        v = pd.to_numeric(df_[col], errors="coerce").mean()
+        return round(float(v), 4) if not pd.isna(v) else 0.0
+
+    overall = {en_key: _safe_mean(d2, zh_col) for en_key, zh_col in _COLS.items()}
+
+    by_enclosure: dict[str, dict[str, float]] = {}
+    if "围场" in d2.columns:
+        for enc, group in d2.groupby("围场"):
+            by_enclosure[str(enc)] = {
+                en_key: _safe_mean(group, zh_col)
+                for en_key, zh_col in _COLS.items()
+            }
+
+    return {"overall": overall, "by_enclosure": by_enclosure}
+
+
 # ── WMA 三档推荐（新） ──────────────────────────────────────────────────────
 
 
@@ -660,15 +719,25 @@ def get_target_tiers(
     request: Request,
     company_revenue: float = 0,
     referral_share: float = 0.30,
+    include_custom: bool = False,
+    revenue_target: float = 0,
+    asp: float = 0,
+    reg_to_pay_rate: float = 0,
+    registrations: float = 0,
     dm: DataManager = Depends(get_data_manager),
 ) -> dict[str, Any]:
     """返回三档目标场景预览。
 
-    一档（pace）全自动；二档（share）需 company_revenue；三档（custom）返回 WMA 基线。
+    一档（pace）全自动；二档（share）需 company_revenue；三档（custom）需传自定义参数。
 
     Args:
         company_revenue: 公司总业绩目标（USD），0 表示不计算二档
         referral_share:  转介绍占比（0-1），默认 0.30
+        include_custom:  是否计算三档（需同时传入至少一个自定义参数）
+        revenue_target:  三档：总收入目标（USD）
+        asp:             三档：客单价（USD）
+        reg_to_pay_rate: 三档：注册付费率（0-1）
+        registrations:   三档：注册目标数量
     """
     from backend.core.daily_snapshot_service import DB_PATH, DailySnapshotService
     from backend.core.target_recommender import TargetTierEngine
@@ -761,11 +830,28 @@ def get_target_tiers(
             "获取当前实绩失败，使用空值: %s", exc
         )
 
+    # 三档自定义参数（至少传一个才触发计算）
+    custom_inputs: dict[str, Any] | None = None
+    has_custom = (
+        revenue_target > 0 or asp > 0 or reg_to_pay_rate > 0 or registrations > 0
+    )
+    if include_custom and has_custom:
+        custom_inputs = {}
+        if revenue_target > 0:
+            custom_inputs["revenue_target"] = revenue_target
+        if asp > 0:
+            custom_inputs["asp"] = asp
+        if reg_to_pay_rate > 0:
+            custom_inputs["reg_to_pay_rate"] = reg_to_pay_rate
+        if registrations > 0:
+            custom_inputs["registrations"] = registrations
+
     result = engine.get_all_tiers(
         current_actuals=current_actuals,
         bm_pct=bm_pct,
         company_revenue=company_revenue,
         referral_share=referral_share,
+        custom_inputs=custom_inputs,
     )
     result["bm_pct"] = round(bm_pct, 4)
     return result

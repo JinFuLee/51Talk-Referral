@@ -20,6 +20,11 @@ const I18N = {
       paid_rate: '出席付费率（出席→付费）',
       appt_to_pay_rate: '预约付费率（预约→付费）',
       reg_to_pay_rate: '注册付费率（注册→付费）',
+      checkin_rate: '打卡率',
+      cc_contact_rate: 'CC触达率',
+      ss_contact_rate: 'SS触达率',
+      lp_contact_rate: 'LP触达率',
+      participation_rate: '参与率',
     } as Record<string, string>,
     target: '月目标',
     actual: '当前',
@@ -47,6 +52,11 @@ const I18N = {
       paid_rate: 'Paid Rate (Attend→Pay)',
       appt_to_pay_rate: 'Appt→Pay Rate',
       reg_to_pay_rate: 'Conv Rate (Reg→Pay)',
+      checkin_rate: 'Check-in Rate',
+      cc_contact_rate: 'CC Contact Rate',
+      ss_contact_rate: 'SS Contact Rate',
+      lp_contact_rate: 'LP Contact Rate',
+      participation_rate: 'Participation Rate',
     } as Record<string, string>,
     target: 'Target',
     actual: 'Actual',
@@ -70,6 +80,11 @@ const RATE_METRICS = new Set([
   'paid_rate',
   'appt_to_pay_rate',
   'reg_to_pay_rate',
+  'checkin_rate',
+  'cc_contact_rate',
+  'ss_contact_rate',
+  'lp_contact_rate',
+  'participation_rate',
 ]);
 // 金额类指标
 const MONEY_METRICS = new Set(['revenue_usd', 'asp']);
@@ -113,6 +128,11 @@ const DISPLAY_METRICS = [
   'paid_rate',
   'appt_to_pay_rate',
   'reg_to_pay_rate',
+  'checkin_rate',
+  'cc_contact_rate',
+  'ss_contact_rate',
+  'lp_contact_rate',
+  'participation_rate',
 ];
 
 export function MonthlyOverviewSlide({ data, lang }: Props) {
