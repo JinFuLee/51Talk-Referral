@@ -600,6 +600,7 @@ def get_cc_targets_template(
 def upload_cc_targets(
     month: str = Query(..., description="YYYYMM 格式月份"),
     file: UploadFile = File(...),
+    dm: DataManager = Depends(get_data_manager),
 ) -> dict:
     """解析上传的 CSV/Excel，写入 config/cc_targets_YYYYMM.json"""
     content = file.file.read()
@@ -655,6 +656,43 @@ def upload_cc_targets(
     tmp_path.write_text(json_str, encoding="utf-8")
     tmp_path.rename(target_path)
 
+    # ── 对账：上传名 vs D2 数据中的 CC 名 ──
+    data = dm.load_all()
+    df_d2 = data.get("enclosure_cc", pd.DataFrame())
+    d2_names_lower: set[str] = set()
+    if not df_d2.empty and "last_cc_name" in df_d2.columns:
+        d2_names_lower = {
+            str(n).lower()
+            for n in df_d2["last_cc_name"].dropna().unique()
+            if str(n).strip() not in ("nan", "NaN", "")
+        }
+
+    uploaded_lower = {k.lower(): k for k in targets}
+
+    # 上传了但 D2 没有的（幽灵）
+    orphaned = [
+        {
+            "name": uploaded_lower[lk],
+            "target": _sf(targets[uploaded_lower[lk]].get(
+                "referral_usd_target"
+            )),
+        }
+        for lk in sorted(uploaded_lower)
+        if lk not in d2_names_lower
+    ]
+
+    # D2 有但没上传的
+    unmatched_d2 = sorted(
+        n
+        for n in (
+            str(x) for x in df_d2["last_cc_name"].dropna().unique()
+            if str(x).strip() not in ("nan", "NaN", "")
+        )
+        if n.lower() not in uploaded_lower
+    ) if not df_d2.empty and "last_cc_name" in df_d2.columns else []
+
+    matched_count = len(targets) - len(orphaned)
+
     return {
         "status": "ok",
         "count": len(targets),
@@ -663,6 +701,9 @@ def upload_cc_targets(
         "duplicate_names": sorted(set(duplicates)),
         "skipped_empty": skipped_empty,
         "month": month,
+        "matched": matched_count,
+        "orphaned": orphaned,
+        "unmatched_d2": unmatched_d2,
     }
 
 
