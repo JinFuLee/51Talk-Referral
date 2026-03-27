@@ -10,14 +10,16 @@
 
 from __future__ import annotations
 
+import io
 import json
 import math
-from datetime import date
+from datetime import UTC, date, datetime
 from pathlib import Path
 from typing import Any
 
 import pandas as pd
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, File, HTTPException, Query, Request, UploadFile
+from fastapi.responses import StreamingResponse
 
 from backend.api.dependencies import get_data_manager
 from backend.core.data_manager import DataManager
@@ -87,6 +89,16 @@ def _load_targets(month: str) -> dict:
     overrides = _read_json(_CONFIG_DIR / "targets_override.json", {})
     base.update(overrides.get(month, {}))
     return base
+
+
+def _load_cc_targets(month: str) -> dict:
+    """读取 config/cc_targets_YYYYMM.json，返回 dict[cc_name → target_dict]。
+
+    文件不存在时返回空 dict。
+    """
+    path = _CONFIG_DIR / f"cc_targets_{month}.json"
+    data = _read_json(path, {})
+    return data.get("targets", {}) if isinstance(data, dict) else {}
 
 
 def _load_referral_share_target() -> float:
@@ -280,13 +292,14 @@ def _build_record(
     referral_share_target: float,
     call_target: int,
     mp,  # MonthProgress
+    cc_targets: dict | None = None,
 ) -> CCPerformanceRecord:
     """将合并后的行数据构建为 CCPerformanceRecord"""
 
     team = str(row.get("team") or "")
     students_count = _si(row.get("students_count"))
 
-    # ── 目标分配（按学员数权重） ──
+    # ── 目标分配（三级 fallback） ──
     team_revenue_target = _sf(targets.get("金额目标"))
     team_paid_target = _si(targets.get("付费目标"))
 
@@ -295,12 +308,27 @@ def _build_record(
         if (students_count and total_students > 0)
         else 0.0
     )
-    revenue_target = (
-        team_revenue_target * alloc_ratio if team_revenue_target is not None else None
-    )
-    paid_target = (
-        team_paid_target * alloc_ratio if team_paid_target is not None else None
-    )
+
+    # 1. 个人目标（上传的 CSV）
+    cc_target = cc_targets.get(cc_name, {}) if cc_targets else {}
+    revenue_target = _sf(cc_target.get("usd_target"))
+    paid_target = _sf(cc_target.get("paid_target"))
+    showup_target_val = _sf(cc_target.get("showup_target"))
+    lead_target_val = _sf(cc_target.get("lead_target"))
+    target_source = "manual" if revenue_target is not None else "allocated"
+
+    # 2. 加权分配 fallback（当个人目标缺失时）
+    if revenue_target is None:
+        revenue_target = (
+            team_revenue_target * alloc_ratio
+            if team_revenue_target is not None
+            else None
+        )
+    if paid_target is None:
+        paid_target = (
+            team_paid_target * alloc_ratio if team_paid_target is not None else None
+        )
+    # showup/leads 个人目标只有上传才有，fallback = None（保持原值）
 
     # ── 实际值 ──
     revenue_actual = _sf(row.get("revenue_actual"))
@@ -399,8 +427,8 @@ def _build_record(
         referral_share=_metric(referral_share_actual, referral_share_target),
         paid=_metric(paid_actual, paid_target),
         asp=_metric(asp_actual, asp_target),
-        showup=_metric(showup_actual, None),
-        leads=_metric(leads_actual, None),
+        showup=_metric(showup_actual, showup_target_val),
+        leads=_metric(leads_actual, lead_target_val),
         leads_user_a=_si(row.get("leads_user_a")),
         showup_to_paid=_conv_rate(showup_to_paid_actual),
         leads_to_paid=_conv_rate(leads_to_paid_actual, _sf(targets.get("目标转化率"))),
@@ -416,7 +444,7 @@ def _build_record(
         cc_reach_rate=_sf(row.get("cc_reach_rate")),
         coefficient=_sf(row.get("coefficient")),
         students_count=students_count,
-        target_source="allocated",
+        target_source=target_source,
         team_revenue_target=team_revenue_target,
         team_paid_target=team_paid_target,
         remaining_daily_avg=_sf(remaining_daily_avg),
@@ -517,6 +545,106 @@ def _build_team_summary(
 
 
 @router.get(
+    "/cc-performance/targets/template",
+    summary="下载 CC 个人目标上传模板（CSV）",
+)
+def get_cc_targets_template(
+    month: str = Query(..., description="YYYYMM 格式月份"),
+    dm: DataManager = Depends(get_data_manager),
+) -> StreamingResponse:
+    """生成 CC 个人目标上传模板，预填 CC 名字，目标列为空"""
+    data = dm.load_all()
+    df_d2 = data.get("enclosure_cc", pd.DataFrame())
+
+    cc_names: list[str] = []
+    if not df_d2.empty and "last_cc_name" in df_d2.columns:
+        cc_names = [
+            str(n)
+            for n in df_d2["last_cc_name"].dropna().unique()
+            if str(n).strip() not in ("nan", "NaN", "")
+        ]
+    cc_names.sort()
+
+    cols = "cc_name,usd_target,referral_usd_target,"
+    cols += "paid_target,showup_target,lead_target"
+    header = cols + "\n"
+    rows = "".join(f"{name},,,,, \n" for name in cc_names)
+    content = header + rows
+
+    disposition = f'attachment; filename="cc_targets_template_{month}.csv"'
+    return StreamingResponse(
+        io.BytesIO(content.encode("utf-8-sig")),  # utf-8-sig 保证 Excel 正确显示中文
+        media_type="text/csv",
+        headers={"Content-Disposition": disposition},
+    )
+
+
+@router.post(
+    "/cc-performance/targets/upload",
+    summary="上传 CC 个人目标（CSV 或 Excel）",
+)
+def upload_cc_targets(
+    month: str = Query(..., description="YYYYMM 格式月份"),
+    file: UploadFile = File(...),
+) -> dict:
+    """解析上传的 CSV/Excel，写入 config/cc_targets_YYYYMM.json"""
+    content = file.file.read()
+    filename = file.filename or ""
+
+    if filename.endswith(".xlsx") or filename.endswith(".xls"):
+        df = pd.read_excel(io.BytesIO(content))
+    else:
+        df = pd.read_csv(io.BytesIO(content))
+
+    if "cc_name" not in df.columns:
+        raise HTTPException(status_code=400, detail="缺少 cc_name 列")
+
+    numeric_cols = [
+        "usd_target", "referral_usd_target",
+        "paid_target", "showup_target", "lead_target",
+    ]
+    targets: dict[str, dict] = {}
+    for _, row in df.iterrows():
+        cc_name = str(row["cc_name"]).strip()
+        if not cc_name or cc_name in ("nan", "NaN"):
+            continue
+        entry: dict[str, Any] = {}
+        for col in numeric_cols:
+            if col in row.index:
+                val = _sf(row[col])
+                if val is not None:
+                    entry[col] = val
+        targets[cc_name] = entry
+
+    payload = {
+        "month": month,
+        "updated_at": datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "targets": targets,
+    }
+
+    _CONFIG_DIR.mkdir(parents=True, exist_ok=True)
+    target_path = _CONFIG_DIR / f"cc_targets_{month}.json"
+    tmp_path = target_path.with_suffix(".tmp")
+    json_str = json.dumps(payload, ensure_ascii=False, indent=2)
+    tmp_path.write_text(json_str, encoding="utf-8")
+    tmp_path.rename(target_path)
+
+    return {"status": "ok", "count": len(targets), "month": month}
+
+
+@router.delete(
+    "/cc-performance/targets/{month}",
+    summary="删除 CC 个人目标配置",
+)
+def delete_cc_targets(month: str) -> dict:
+    """删除 config/cc_targets_YYYYMM.json"""
+    target_path = _CONFIG_DIR / f"cc_targets_{month}.json"
+    if target_path.exists():
+        target_path.unlink()
+    return {"status": "ok", "deleted": True}
+
+
+@router.get(
     "/cc-performance",
     response_model=CCPerformanceResponse,
     summary="CC 个人业绩全维度报表",
@@ -595,6 +723,7 @@ def get_cc_performance(
 
     # 配置
     targets = _load_targets(month)
+    cc_targets = _load_cc_targets(month)
     referral_share_target = _load_referral_share_target()
     calls_per_day = _load_outreach_calls_per_day()
     call_target = int(calls_per_day * mp.total_workdays)
@@ -611,6 +740,7 @@ def get_cc_performance(
             referral_share_target=referral_share_target,
             call_target=call_target,
             mp=mp,
+            cc_targets=cc_targets,
         )
         all_records.append(rec)
 
