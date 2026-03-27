@@ -351,8 +351,12 @@ def _build_record(
     )
     pace_daily_needed = pace_daily_needed_val if remaining > 0 else None
     efficiency_lift_pct = (
-        (remaining_daily_avg / current_daily_avg - 1)
-        if (remaining_daily_avg is not None and current_daily_avg and current_daily_avg > 0)
+        remaining_daily_avg / current_daily_avg - 1
+        if (
+            remaining_daily_avg is not None
+            and current_daily_avg
+            and current_daily_avg > 0
+        )
         else None
     )
     pace_gap_pct = (
@@ -451,7 +455,9 @@ def _avg_conversion(records: list[CCPerformanceRecord], field: str) -> Conversio
     return ConversionRate(actual=a)
 
 
-def _build_team_summary(team: str, records: list[CCPerformanceRecord]) -> CCPerformanceTeamSummary:
+def _build_team_summary(
+    team: str, records: list[CCPerformanceRecord]
+) -> CCPerformanceTeamSummary:
     """将团队所有 records 聚合为 CCPerformanceTeamSummary"""
     headcount = len(records)
     students_total = sum(r.students_count or 0 for r in records) or None
@@ -633,38 +639,64 @@ def get_cc_performance(
         gt_effective = sum(r.effective.count or 0 for r in all_records) or None
 
         def _avg_field(attr):
-            vals = [getattr(r, attr) for r in all_records if getattr(r, attr) is not None]
+            vals = [
+                getattr(r, attr)
+                for r in all_records
+                if getattr(r, attr) is not None
+            ]
             return sum(vals) / len(vals) if vals else None
 
+        _gt_ref = (
+            gt_revenue_actual / d1_total_revenue
+            if (gt_revenue_actual and d1_total_revenue)
+            else None
+        )
+        _gt_asp = (
+            gt_revenue_actual / gt_paid_actual
+            if (gt_revenue_actual and gt_paid_actual and gt_paid_actual > 0)
+            else None
+        )
+        _gt_s2p = (
+            gt_paid_actual / gt_showup_actual
+            if (gt_paid_actual and gt_showup_actual and gt_showup_actual > 0)
+            else None
+        )
+        _gt_l2p = (
+            gt_paid_actual / gt_leads_actual
+            if (gt_paid_actual and gt_leads_actual and gt_leads_actual > 0)
+            else None
+        )
+        _gt_cp = (
+            gt_called / gt_students
+            if (gt_called and gt_students and gt_students > 0)
+            else None
+        )
+        _gt_ca = (
+            gt_called / gt_call_target
+            if (gt_called and gt_call_target and gt_call_target > 0)
+            else None
+        )
         grand_total = CCPerformanceRecord(
             team="合计",
             cc_name="全体",
             revenue=_metric(gt_revenue_actual, gt_revenue_target),
             referral_revenue=_metric(gt_revenue_actual, gt_revenue_target),
             pace_gap_pct=_avg_field("pace_gap_pct"),
-            referral_share=_metric(
-                (gt_revenue_actual / d1_total_revenue) if (gt_revenue_actual and d1_total_revenue) else None,
-                referral_share_target,
-            ),
+            referral_share=_metric(_gt_ref, referral_share_target),
             paid=_metric(gt_paid_actual, gt_paid_target),
-            asp=_metric(
-                (gt_revenue_actual / gt_paid_actual) if (gt_revenue_actual and gt_paid_actual and gt_paid_actual > 0) else None,
-                _sf(targets.get("客单价")),
-            ),
+            asp=_metric(_gt_asp, _sf(targets.get("客单价"))),
             showup=_metric(gt_showup_actual, None),
             leads=_metric(gt_leads_actual, None),
-            leads_user_a=_si(sum(r.leads_user_a or 0 for r in all_records) or None),
-            showup_to_paid=_conv_rate(
-                (gt_paid_actual / gt_showup_actual) if (gt_paid_actual and gt_showup_actual and gt_showup_actual > 0) else None
+            leads_user_a=_si(
+                sum(r.leads_user_a or 0 for r in all_records) or None
             ),
-            leads_to_paid=_conv_rate(
-                (gt_paid_actual / gt_leads_actual) if (gt_paid_actual and gt_leads_actual and gt_leads_actual > 0) else None
-            ),
+            showup_to_paid=_conv_rate(_gt_s2p),
+            leads_to_paid=_conv_rate(_gt_l2p),
             calls_total=gt_calls_total,
             called_this_month=gt_called,
             call_target=gt_call_target,
-            call_proportion=_sf((gt_called / gt_students) if (gt_called and gt_students and gt_students > 0) else None),
-            call_achievement_pct=_sf((gt_called / gt_call_target) if (gt_called and gt_call_target and gt_call_target > 0) else None),
+            call_proportion=_sf(_gt_cp),
+            call_achievement_pct=_sf(_gt_ca),
             connected=_outreach(gt_connected, gt_students),
             effective=_outreach(gt_effective, gt_students),
             participation_rate=_avg_field("participation_rate"),
