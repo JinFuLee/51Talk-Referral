@@ -577,6 +577,14 @@ class ReportEngine:
 
     # ── 11 区块组装方法 ─────────────────────────────────────────────────────────
 
+    # 率类指标集合：不随时间累积，BM 时间进度调整不适用
+    _RATE_METRICS = frozenset({
+        "appt_rate", "attend_rate", "paid_rate",
+        "appt_to_pay_rate", "reg_to_pay_rate",
+        "checkin_rate", "cc_contact_rate", "ss_contact_rate",
+        "lp_contact_rate", "participation_rate",
+    })
+
     def _block_monthly_overview(
         self,
         actuals: dict[str, Any],
@@ -616,20 +624,37 @@ class ReportEngine:
             actuals_out[m] = round(act, 4)
             targets_out[m] = round(tgt, 4)
 
-            if tgt > 0 and bm_pct > 0:
-                pace_target = tgt * bm_pct
-                eff = _safe_div(act, pace_target)
-            else:
-                eff = 0.0
-            bm_efficiency[m] = round(eff, 4)
-            gap[m] = round(eff - 1.0, 4) if tgt > 0 else 0.0
+            is_rate = m in self._RATE_METRICS
 
-            if remaining_workdays > 0 and tgt > 0:
-                rdaily = _safe_div(max(tgt - act, 0), remaining_workdays)
-                pdaily = _safe_div(max(tgt * bm_pct - act, 0), remaining_workdays)
-            else:
-                rdaily = 0.0
+            if is_rate:
+                # 率类指标：直接对比目标，不用 BM 时间调整
+                # BM效率 = actual / target（达成率），GAP = actual - target（pp 差）
+                if tgt > 0:
+                    eff = _safe_div(act, tgt)
+                    g = round(act - tgt, 4)
+                else:
+                    eff = 0.0
+                    g = 0.0
+                rdaily = 0.0  # 率不累积，无"日均"概念
                 pdaily = 0.0
+            else:
+                # 量类指标：BM 时间进度调整
+                if tgt > 0 and bm_pct > 0:
+                    pace_target = tgt * bm_pct
+                    eff = _safe_div(act, pace_target)
+                else:
+                    eff = 0.0
+                g = round(eff - 1.0, 4) if tgt > 0 else 0.0
+
+                if remaining_workdays > 0 and tgt > 0:
+                    rdaily = _safe_div(max(tgt - act, 0), remaining_workdays)
+                    pdaily = _safe_div(max(tgt * bm_pct - act, 0), remaining_workdays)
+                else:
+                    rdaily = 0.0
+                    pdaily = 0.0
+
+            bm_efficiency[m] = round(eff, 4)
+            gap[m] = g
             remaining_daily_avg[m] = round(rdaily, 4)
             pace_daily_needed[m] = round(pdaily, 4)
 

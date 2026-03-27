@@ -197,7 +197,11 @@ export function MonthlyOverviewSlide({ data, lang }: Props) {
                   </td>
                   <td className="slide-td text-right font-mono tabular-nums">
                     <span className={gapColor(gap)}>
-                      {gap != null ? `${gap >= 0 ? '+' : ''}${formatRate(gap)}` : '—'}
+                      {gap != null
+                        ? isRate
+                          ? `${gap >= 0 ? '+' : ''}${(gap * 100).toFixed(1)}pp`
+                          : `${gap >= 0 ? '+' : ''}${formatRate(gap)}`
+                        : '—'}
                     </span>
                   </td>
                   <td className="slide-td text-right font-mono tabular-nums text-[var(--text-muted)]">
@@ -214,7 +218,7 @@ export function MonthlyOverviewSlide({ data, lang }: Props) {
       <div className="flex items-center justify-between pt-1 border-t border-[var(--border-subtle)]">
         <span className="text-[10px] text-[var(--text-muted)]">BM = {formatRate(data.bm_pct)}</span>
         <span className="text-[10px] text-[var(--text-muted)]">
-          BM效率 ≥ BM% = 领先进度 · ≥ 100% = 已达标
+          数量指标：BM效率 ≥ BM% = 领先进度 · 效率指标：达成率 = 实际/目标，GAP = pp差
         </span>
       </div>
     </div>
