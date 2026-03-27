@@ -6,13 +6,7 @@ import { formatRevenue, formatRate } from '@/lib/utils';
 import type { CCPerformanceRecord } from '@/lib/types/cc-performance';
 import type { CCRadarData } from '@/lib/types/cross-analysis';
 import { Spinner } from '@/components/ui/Spinner';
-import {
-  Radar,
-  RadarChart,
-  PolarGrid,
-  PolarAngleAxis,
-  ResponsiveContainer,
-} from 'recharts';
+import { Radar, RadarChart, PolarGrid, PolarAngleAxis, ResponsiveContainer } from 'recharts';
 import { CHART_PALETTE } from '@/lib/chart-palette';
 
 interface CCPerformanceDetailProps {
@@ -55,13 +49,20 @@ export function CCPerformanceDetail({ record, exchangeRate }: CCPerformanceDetai
     swrFetcher
   );
 
-  // 雷达图数据格式转换
-  const radarChartData =
-    radarData?.dimensions?.map((d) => ({
-      subject: d.label ?? d.key,
-      value: d.score ?? 0,
-      fullMark: 100,
-    })) ?? [];
+  // 雷达图数据格式转换（CCRadarData 为扁平字段，手动映射）
+  const radarChartData = radarData
+    ? [
+        {
+          subject: '参与率',
+          value: Math.round((radarData.participation ?? 0) * 100),
+          fullMark: 100,
+        },
+        { subject: '转化率', value: Math.round((radarData.conversion ?? 0) * 100), fullMark: 100 },
+        { subject: '打卡率', value: Math.round((radarData.checkin ?? 0) * 100), fullMark: 100 },
+        { subject: '触达率', value: Math.round((radarData.reach ?? 0) * 100), fullMark: 100 },
+        { subject: '带货比', value: Math.round((radarData.cargo_ratio ?? 0) * 100), fullMark: 100 },
+      ]
+    : [];
 
   const revenueGap = record.revenue?.gap ?? null;
   const remainingDaily = record.remaining_daily_avg ?? null;
@@ -146,7 +147,10 @@ export function CCPerformanceDetail({ record, exchangeRate }: CCPerformanceDetai
             { label: '参与率', value: formatRate(record.participation_rate) },
             { label: '打卡率', value: formatRate(record.checkin_rate) },
             { label: '触达率', value: formatRate(record.cc_reach_rate) },
-            { label: '带新系数', value: record.coefficient != null ? record.coefficient.toFixed(2) : '—' },
+            {
+              label: '带新系数',
+              value: record.coefficient != null ? record.coefficient.toFixed(2) : '—',
+            },
             { label: '注册', value: record.leads?.actual?.toLocaleString() ?? '—' },
             { label: '付费', value: record.paid?.actual?.toLocaleString() ?? '—' },
           ].map((item) => (

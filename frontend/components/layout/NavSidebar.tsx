@@ -36,6 +36,7 @@ import {
   Bot,
   BookOpen,
   LineChart,
+  UserCheck,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
@@ -78,6 +79,7 @@ const MAIN_GROUPS: NavGroup[] = [
       { href: '/incentive-tracking', label: '激励追踪', Icon: Gift },
       { href: '/renewal-risk', label: '续费风险', Icon: AlertTriangle },
       { href: '/expiry-alert', label: '次卡到期预警', Icon: AlertTriangle },
+      { href: '/cc-performance', label: 'CC 个人业绩', Icon: UserCheck },
     ],
   },
   {
