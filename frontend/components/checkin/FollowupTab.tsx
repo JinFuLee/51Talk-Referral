@@ -1,8 +1,7 @@
 'use client';
 
 import { Fragment, useState, useMemo } from 'react';
-import useSWR from 'swr';
-import { swrFetcher } from '@/lib/api';
+import { useFilteredSWR } from '@/lib/hooks/use-filtered-swr';
 import { formatRevenue } from '@/lib/utils';
 import { Spinner } from '@/components/ui/Spinner';
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -505,21 +504,24 @@ export function FollowupTab({
   const [drawerMember, setDrawerMember] = useState<FollowupMember | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
 
-  // Build query string — 使用 page 级传入的筛选状态
-  const qs = useMemo(() => {
+  // Build base path — role/sales/enclosure/role_config 由 basePath 携带
+  // teamFilter 和全局 focusCC 由 useFilteredSWR 从 config-store 自动注入
+  // 若 page 传入 teamFilter，通过 extraParams 覆盖 store 的值（最终优先级最高）
+  const basePath = useMemo(() => {
     const p = new URLSearchParams({ role: roleFilter });
-    if (teamFilter) p.set('team', teamFilter);
     if (salesSearch.trim()) p.set('sales', salesSearch.trim());
     if (enclosureFilter) p.set('enclosure', enclosureFilter);
     p.set('role_config', configJson);
-    return p.toString();
-  }, [roleFilter, teamFilter, salesSearch, enclosureFilter, configJson]);
+    return `/api/checkin/followup?${p.toString()}`;
+  }, [roleFilter, salesSearch, enclosureFilter, configJson]);
+
+  const extraParams = useMemo(() => (teamFilter ? { team: teamFilter } : undefined), [teamFilter]);
 
   const {
     data: raw,
     isLoading,
     error,
-  } = useSWR<FollowupResponseRaw>(`/api/checkin/followup?${qs}`, swrFetcher);
+  } = useFilteredSWR<FollowupResponseRaw>(basePath, undefined, extraParams);
 
   // 适配后端字段名 → 前端 FollowupMember 接口
   const data: FollowupResponse | undefined = raw
