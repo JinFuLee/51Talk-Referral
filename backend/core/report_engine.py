@@ -371,6 +371,14 @@ class ReportEngine:
                         )
                         if total_users > 0:
                             base_targets["registrations"] = float(total_users)
+                    # V2 channels 推导付费目标 = sum(user_count × conversion_rate)
+                    if channels_v2 and "payments" not in base_targets:
+                        total_paid = sum(
+                            (ch.get("user_count") or 0) * (ch.get("conversion_rate") or 0)
+                            for ch in channels_v2.values()
+                        )
+                        if total_paid > 0:
+                            base_targets["payments"] = round(total_paid, 1)
                     # V2 sop 结构：提取率目标
                     sop = month_data.get("sop", {})
                     if sop.get("reserve_rate", 0) > 0:

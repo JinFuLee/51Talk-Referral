@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import math
 from datetime import datetime
 from pathlib import Path
@@ -21,6 +22,7 @@ _OVERRIDE_KEY_MAP: dict[str, str] = {
     "转介绍基础业绩单量标": "付费目标",
     "转介绍基础业绩标USD": "金额目标",
     "转介绍基础业绩客单价标USD": "客单价",
+    "_override_注册目标": "注册目标",
 }
 
 router = APIRouter()
@@ -195,8 +197,36 @@ def get_overview(
     try:
         ref_dt = datetime(mp.today.year, mp.today.month, 1)
         override_tgts = get_targets(ref_dt)
-    except Exception:
-        pass
+        # V2 结构解析（与 report_engine._normalize_targets 对齐）
+        _cfg_dir = Path(__file__).resolve().parent.parent.parent / "config"
+        _ovr_file = _cfg_dir / "targets_override.json"
+        if _ovr_file.exists():
+            _ovr = json.loads(_ovr_file.read_text(encoding="utf-8"))
+            _month_key = f"{mp.today.year:04d}{mp.today.month:02d}"
+            _month_data = _ovr.get(_month_key, {})
+            # V2 hard.referral_revenue → 金额目标
+            _hard = _month_data.get("hard", {})
+            if _hard.get("referral_revenue", 0) > 0:
+                override_tgts["金额目标"] = float(_hard["referral_revenue"])
+            # V2 channels → 注册目标（user_count 之和）
+            _channels = _month_data.get("channels", {})
+            if _channels:
+                _total_users = sum(
+                    (ch.get("user_count") or 0) for ch in _channels.values()
+                )
+                if _total_users > 0:
+                    override_tgts["注册目标"] = float(_total_users)
+                # 付费目标 = sum(user_count × conversion_rate)
+                _total_paid = sum(
+                    (ch.get("user_count") or 0) * (ch.get("conversion_rate") or 0)
+                    for ch in _channels.values()
+                )
+                if _total_paid > 0:
+                    override_tgts["付费目标"] = round(_total_paid, 1)
+    except Exception as _e:
+        import logging
+        logging.getLogger(__name__).warning("V2 target parse error: %s", _e)
+
 
     def _get_target(target_field: str | None) -> float | None:
         """优先从 override 读取目标，fallback 到 Excel metrics"""
@@ -253,7 +283,7 @@ def get_overview(
 
     # 新版 kpi_8item：8 项标准格式（CLAUDE.md 指标显示规范）
     kpi_8item_keys = {
-        "转介绍注册数": ("register", None),
+        "转介绍注册数": ("register", "_override_注册目标"),
         "预约数": ("appointment", None),
         "出席数": ("showup", None),
         "转介绍付费数": ("paid", "转介绍基础业绩单量标"),
