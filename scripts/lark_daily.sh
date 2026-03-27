@@ -15,6 +15,9 @@
 
 set -euo pipefail
 
+# launchd 环境 PATH 不含 ~/.local/bin（uv 安装路径），补全
+export PATH="$HOME/.local/bin:/opt/homebrew/bin:$PATH"
+
 PROJECT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$PROJECT_DIR"
 
