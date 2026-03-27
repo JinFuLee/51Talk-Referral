@@ -82,6 +82,28 @@ function GapCell({ gap }: { gap: number | null }) {
   );
 }
 
+/** BM gap 金额单元格（USD，带正负号颜色，绝对值 < 100 显示 $0） */
+function BmGapAmtCell({ gap }: { gap: number | null }) {
+  if (gap == null || gap === 0) return <span className="text-[var(--text-muted)]">—</span>;
+  const absVal = Math.abs(gap);
+  const display = absVal < 100 ? '$0' : `$${Math.round(absVal).toLocaleString()}`;
+  return (
+    <span className={gap > 0 ? 'text-emerald-600 font-semibold' : 'text-red-600'}>
+      {gap > 0 ? '+' : '-'}{display}
+    </span>
+  );
+}
+
+/** BM gap 整数单元格（注册/出席/付费等量，带正负号颜色） */
+function BmGapCountCell({ gap }: { gap: number | null }) {
+  if (gap == null || gap === 0) return <span className="text-[var(--text-muted)]">—</span>;
+  return (
+    <span className={gap > 0 ? 'text-emerald-600 font-semibold' : 'text-red-600'}>
+      {gap > 0 ? '+' : ''}{Math.round(gap).toLocaleString()}
+    </span>
+  );
+}
+
 function RateGapCell({ gap }: { gap: number | null }) {
   if (gap == null) return <span className="text-[var(--text-muted)]">—</span>;
   const isPos = gap >= 0;
@@ -381,6 +403,8 @@ export function CCPerformanceTable({
                   <SortTh label="实际业绩" sortKey="revenue.actual" currentSort={sortKey} currentDir={sortDir} onSort={handleSort} />
                   <th {...sp}>差额</th>
                   <SortTh label="达成率" sortKey="revenue.achievement_pct" currentSort={sortKey} currentDir={sortDir} onSort={handleSort} />
+                  <SortTh label="BM 期望" sortKey="revenue.bm_expected" currentSort={sortKey} currentDir={sortDir} onSort={handleSort} tooltip="目标 × 当前时间进度" />
+                  <th {...sp} title="实际 − BM 期望（正=领先，负=落后）">vs BM</th>
                 </>
               )}
 
@@ -389,10 +413,13 @@ export function CCPerformanceTable({
                 <>
                   <SortTh label="注册目标" sortKey="leads.target" currentSort={sortKey} currentDir={sortDir} onSort={handleSort} />
                   <SortTh label="注册实际" sortKey="leads.actual" currentSort={sortKey} currentDir={sortDir} onSort={handleSort} />
+                  <th {...sp} title="注册实际 − BM 期望">注册 vs BM</th>
                   <SortTh label="出席目标" sortKey="showup.target" currentSort={sortKey} currentDir={sortDir} onSort={handleSort} />
                   <SortTh label="出席实际" sortKey="showup.actual" currentSort={sortKey} currentDir={sortDir} onSort={handleSort} />
+                  <th {...sp} title="出席实际 − BM 期望">出席 vs BM</th>
                   <SortTh label="付费目标" sortKey="paid.target" currentSort={sortKey} currentDir={sortDir} onSort={handleSort} />
                   <SortTh label="付费实际" sortKey="paid.actual" currentSort={sortKey} currentDir={sortDir} onSort={handleSort} />
+                  <th {...sp} title="付费实际 − BM 期望">付费 vs BM</th>
                   <SortTh label="客单价" sortKey="asp.actual" currentSort={sortKey} currentDir={sortDir} onSort={handleSort} tooltip="平均订单金额 (USD)" />
                 </>
               )}
@@ -489,6 +516,12 @@ export function CCPerformanceTable({
                       <td className={`slide-td py-1.5 px-2 text-right font-mono tabular-nums ${achievementTextClass(record.revenue?.achievement_pct ?? null)}`}>
                         {formatRate(record.revenue?.achievement_pct)}
                       </td>
+                      <td className="slide-td py-1.5 px-2 text-right font-mono tabular-nums text-[var(--text-secondary)]">
+                        {fmtAmt(record.revenue?.bm_expected)}
+                      </td>
+                      <td className="slide-td py-1.5 px-2 text-right font-mono tabular-nums">
+                        <BmGapAmtCell gap={record.revenue?.bm_gap ?? null} />
+                      </td>
                     </>
                   )}
 
@@ -501,17 +534,26 @@ export function CCPerformanceTable({
                       <td className="slide-td py-1.5 px-2 text-right font-mono tabular-nums">
                         {record.leads?.actual?.toLocaleString() ?? '—'}
                       </td>
+                      <td className="slide-td py-1.5 px-2 text-right font-mono tabular-nums">
+                        <BmGapCountCell gap={record.leads?.bm_gap ?? null} />
+                      </td>
                       <td className="slide-td py-1.5 px-2 text-right font-mono tabular-nums text-[var(--text-secondary)]">
                         {record.showup?.target?.toLocaleString() ?? '—'}
                       </td>
                       <td className="slide-td py-1.5 px-2 text-right font-mono tabular-nums">
                         {record.showup?.actual?.toLocaleString() ?? '—'}
                       </td>
+                      <td className="slide-td py-1.5 px-2 text-right font-mono tabular-nums">
+                        <BmGapCountCell gap={record.showup?.bm_gap ?? null} />
+                      </td>
                       <td className="slide-td py-1.5 px-2 text-right font-mono tabular-nums text-[var(--text-secondary)]">
                         {record.paid?.target?.toLocaleString() ?? '—'}
                       </td>
                       <td className="slide-td py-1.5 px-2 text-right font-mono tabular-nums">
                         {record.paid?.actual?.toLocaleString() ?? '—'}
+                      </td>
+                      <td className="slide-td py-1.5 px-2 text-right font-mono tabular-nums">
+                        <BmGapCountCell gap={record.paid?.bm_gap ?? null} />
                       </td>
                       <td className="slide-td py-1.5 px-2 text-right font-mono tabular-nums">
                         {fmtAmt(record.asp?.actual)}
@@ -641,16 +683,25 @@ export function CCPerformanceTable({
                       <td className={`slide-td py-2 px-2 text-right font-mono tabular-nums ${achievementTextClass(team.revenue?.achievement_pct ?? null)}`}>
                         {formatRate(team.revenue?.achievement_pct)}
                       </td>
+                      <td className="slide-td py-2 px-2 text-right font-mono tabular-nums text-[var(--text-secondary)]">
+                        {fmtAmt(team.revenue?.bm_expected)}
+                      </td>
+                      <td className="slide-td py-2 px-2 text-right font-mono tabular-nums">
+                        <BmGapAmtCell gap={team.revenue?.bm_gap ?? null} />
+                      </td>
                     </>
                   )}
                   {show.funnel && (
                     <>
                       <td className="slide-td py-2 px-2 text-right font-mono tabular-nums text-[var(--text-secondary)]">{team.leads?.target?.toLocaleString() ?? '—'}</td>
                       <td className="slide-td py-2 px-2 text-right font-mono tabular-nums">{team.leads?.actual?.toLocaleString() ?? '—'}</td>
+                      <td className="slide-td py-2 px-2 text-right font-mono tabular-nums"><BmGapCountCell gap={team.leads?.bm_gap ?? null} /></td>
                       <td className="slide-td py-2 px-2 text-right font-mono tabular-nums text-[var(--text-secondary)]">{team.showup?.target?.toLocaleString() ?? '—'}</td>
                       <td className="slide-td py-2 px-2 text-right font-mono tabular-nums">{team.showup?.actual?.toLocaleString() ?? '—'}</td>
+                      <td className="slide-td py-2 px-2 text-right font-mono tabular-nums"><BmGapCountCell gap={team.showup?.bm_gap ?? null} /></td>
                       <td className="slide-td py-2 px-2 text-right font-mono tabular-nums text-[var(--text-secondary)]">{team.paid?.target?.toLocaleString() ?? '—'}</td>
                       <td className="slide-td py-2 px-2 text-right font-mono tabular-nums">{team.paid?.actual?.toLocaleString() ?? '—'}</td>
+                      <td className="slide-td py-2 px-2 text-right font-mono tabular-nums"><BmGapCountCell gap={team.paid?.bm_gap ?? null} /></td>
                       <td className="slide-td py-2 px-2 text-right font-mono tabular-nums">{fmtAmt(team.asp?.actual)}</td>
                     </>
                   )}

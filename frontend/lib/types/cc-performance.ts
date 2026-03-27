@@ -11,12 +11,16 @@
 
 // ── 复用子类型 ──────────────────────────────────────────
 
-/** 通用绩效指标：目标 → 实际 → 差额 → 达成率 */
+/** 通用绩效指标：目标 → 实际 → 差额 → 达成率 → BM 节奏 */
 export interface PerformanceMetric {
   target: number | null;
   actual: number | null;
   gap: number | null; // actual - target（负=落后）
   achievement_pct: number | null; // actual / target（>1=超额）
+  // BM（Budget Month）节奏字段——asp 没有（不按时间线性），其余指标均有
+  bm_expected: number | null; // target × time_progress（当前时间进度对应的期望值）
+  bm_gap: number | null; // actual - bm_expected（正=领先，负=落后）
+  bm_pct: number | null; // actual / bm_expected（BM 达成率）
 }
 
 /** 转化率指标 */
@@ -158,7 +162,7 @@ export function toTHB(usd: number | null, rate: number): number | null {
   return usd != null ? usd * rate : null;
 }
 
-/** PerformanceMetric 的 THB 版本（百分比不换算） */
+/** PerformanceMetric 的 THB 版本（百分比/BM率不换算，金额字段换算） */
 export function metricToTHB(
   m: PerformanceMetric,
   rate: number
@@ -168,5 +172,8 @@ export function metricToTHB(
     actual: toTHB(m.actual, rate),
     gap: toTHB(m.gap, rate),
     achievement_pct: m.achievement_pct, // 百分比不换算
+    bm_expected: toTHB(m.bm_expected, rate),
+    bm_gap: toTHB(m.bm_gap, rate),
+    bm_pct: m.bm_pct, // BM 达成率不换算
   };
 }

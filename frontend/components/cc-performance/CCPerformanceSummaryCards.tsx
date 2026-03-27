@@ -119,7 +119,25 @@ export function CCPerformanceSummaryCards({
         }
         targetLabel="目标 100%"
         achievementPct={gt?.revenue?.achievement_pct ?? null}
-      />
+      >
+        {/* BM 节奏达成行 */}
+        {gt?.revenue?.bm_pct != null && (
+          <div className="flex items-center gap-1 mt-1">
+            <span className="text-xs text-[var(--text-muted)]">
+              BM {(gt.revenue.bm_pct * 100).toFixed(1)}%
+            </span>
+            <span
+              className={`text-xs font-semibold ${
+                gt.revenue.bm_pct >= 1 ? 'text-emerald-600' : 'text-red-600'
+              }`}
+            >
+              {gt.revenue.bm_pct >= 1
+                ? `↑${((gt.revenue.bm_pct - 1) * 100).toFixed(1)}%`
+                : `↓${((1 - gt.revenue.bm_pct) * 100).toFixed(1)}%`}
+            </span>
+          </div>
+        )}
+      </KPICard>
 
       {/* 时间进度 */}
       <div
