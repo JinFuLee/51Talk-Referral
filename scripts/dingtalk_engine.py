@@ -271,6 +271,26 @@ class NotificationEngine:
             if module_id == "followup_per_cc":
                 return self._process_followup_per_cc(channel, dry_run, result)
 
+            # student_improvement：学员打卡进步 Top5 + 沉睡高潜统计（文本消息）
+            if module_id == "student_improvement":
+                md_text = self._generate_student_improvement_text()
+                if dry_run:
+                    preview = md_text[:300]
+                    print(
+                        f"  [student_improvement] (文本消息 dry-run):\n{preview}..."
+                    )
+                    result["status"] = "dry_run"
+                else:
+                    title = "📈 นักเรียนพัฒนาการ Top5"
+                    r = self._send_dingtalk(title, md_text, channel)
+                    if r.get("errcode") == 0:
+                        print(f"  ✅ {title}")
+                        result["status"] = "sent"
+                    else:
+                        print(f"  ❌ {title}: {r}")
+                        result["status"] = "error"
+                return result
+
             # cc_enc_warning：图片 + 文本（学员 ID 方便复制）
             if module_id == "cc_enc_warning":
                 if role != "CC":
@@ -383,6 +403,12 @@ class NotificationEngine:
         """获取 /api/checkin/followup?role={role} 未打卡高潜学员数据"""
         return self._fetch_url(
             f"{self.api_base}/api/checkin/followup?role={urllib.parse.quote(role)}"
+        )
+
+    def _fetch_student_analysis(self, limit: int = 5) -> dict | None:
+        """获取 /api/checkin/student-analysis?limit=N 学员打卡分析数据"""
+        return self._fetch_url(
+            f"{self.api_base}/api/checkin/student-analysis?limit={limit}"
         )
 
     # ── 内部：图片生成 ────────────────────────────────────────────────────────
@@ -1723,6 +1749,85 @@ class NotificationEngine:
         lines.append(f"> 请相关人员尽快跟进以上 {len(top5)} 位学员")
         return "\n".join(lines)
 
+    def _generate_student_improvement_text(self) -> str:
+        """生成学员打卡进步 Top5 + 沉睡高潜统计 Markdown 文本（泰中双语）
+
+        数据来源：GET /api/checkin/student-analysis?limit=5
+        字段：improvement_ranking（进步排行）、tags_summary.沉睡高潜（沉睡高潜计数）
+        """
+        today = datetime.now().strftime("%d/%m/%Y")
+        analysis = self._fetch_student_analysis(limit=5)
+
+        lines = [
+            "### 📈 นักเรียนพัฒนาการ Top 5 เดือนนี้",
+            "### 学员打卡进步 Top5（本月）",
+            f"**{today}  |  T-1**\n",
+        ]
+
+        if not analysis:
+            lines.append("⚠ ยังไม่มีข้อมูลการวิเคราะห์นักเรียน")
+            lines.append("⚠ 后端暂未提供学员分析数据")
+            return "\n".join(lines)
+
+        # ── 进步 Top5 ──
+        improvement_ranking: list[dict] = analysis.get("improvement_ranking", [])
+        top5 = improvement_ranking[:5]
+
+        if top5:
+            lines.append("**นักเรียนที่มีพัฒนาการโดดเด่น Top 5：**")
+            lines.append("**打卡进步最快 Top 5：**\n")
+            lines.append("| # | ID | วงจร | เช็คอินเดือนนี้ | พัฒนาการ | แท็ก |")
+            lines.append("| # | ID | 围场 | 本月打卡 | 进步幅度 | 标签 |")
+            lines.append("|---|----|----|---:|---:|---|")
+            for i, s in enumerate(top5, 1):
+                sid = s.get("student_id", s.get("id", "--"))
+                enclosure = s.get("enclosure_days", s.get("enclosure", "--"))
+                checkins = s.get("current_month_checkins", s.get("checkin_count", "--"))
+                improvement = s.get("improvement", s.get("delta", "--"))
+                tags_raw = s.get("tags", [])
+                if isinstance(tags_raw, list):
+                    tag_str = "/".join(tags_raw[:2]) if tags_raw else "—"
+                else:
+                    tag_str = str(tags_raw) or "—"
+                # 进步值格式化：正数加 +
+                if isinstance(improvement, (int, float)):
+                    imp_str = f"+{improvement}" if improvement > 0 else str(improvement)
+                else:
+                    imp_str = str(improvement)
+                row = (
+                    f"| {i} | {sid} | {enclosure}"
+                    f" | {checkins} | {imp_str} | {tag_str} |"
+                )
+                lines.append(row)
+            lines.append("")
+        else:
+            lines.append("✅ ยังไม่มีข้อมูลการพัฒนา")
+            lines.append("✅ 暂无进步排行数据")
+            lines.append("")
+
+        # ── 沉睡高潜统计 ──
+        tags_summary: dict = analysis.get("tags_summary", {})
+        # 兼容中文 key 和英文 key
+        sleeping_high_potential = (
+            tags_summary.get("沉睡高潜")
+            or tags_summary.get("sleeping_high_potential")
+            or 0
+        )
+
+        lines.append("---")
+        lines.append(
+            f"**นักเรียนศักยภาพสูงที่หลับอยู่ (มีคาบเรียนแต่ไม่เช็คอิน)："
+            f" {sleeping_high_potential} คน**"
+        )
+        lines.append(
+            f"**沉睡高潜（有课耗无打卡）：{sleeping_high_potential} 人**"
+        )
+        lines.append("")
+        lines.append("> ข้อมูล T-1 · ref-ops-engine · student-analysis")
+        lines.append("> 数据来源 T-1 · 学员打卡分析")
+
+        return "\n".join(lines)
+
     # ── 内部：图片上传（双图床 fallback）────────────────────────────────────
 
     @staticmethod
@@ -2038,7 +2143,7 @@ class NotificationEngine:
 
         # 发文本（含学员 ID，方便复制）
         md_lines = [
-            f"## ⚠️ CC 围场警示 — 学员 ID",
+            "## ⚠️ CC 围场警示 — 学员 ID",
             "",
         ]
         for cc_warn in display_ccs:
@@ -2065,7 +2170,7 @@ class NotificationEngine:
             "⚠️ CC 围场警示 — 学员 ID", md_text, channel,
         )
         if r.get("errcode") == 0:
-            print(f"  ✅ ⚠️ CC 围场警示（图片+文本）")
+            print("  ✅ ⚠️ CC 围场警示（图片+文本）")
             result["status"] = "sent"
         else:
             result["status"] = "partial"

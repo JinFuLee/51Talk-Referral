@@ -50,10 +50,16 @@
     "cc_enc_warning": {
       "description": "แจ้งเตือนคอก CC (ความเสี่ยงโอนย้าย)",
       "cc_only": true
+    },
+    "student_improvement": {
+      "format": "markdown",
+      "description": "นักเรียนพัฒนาการ Top5 + นักเรียนศักยภาพสูงที่หลับอยู่（学员打卡进步 Top5 + 沉睡高潜统计）",
+      "api": "/api/checkin/student-analysis?limit=5",
+      "fields": ["improvement_ranking", "tags_summary"]
     }
   },
   "routing": {
-    "all": ["team_ranking", "individual_ranking", "result_metrics", "achievement_metrics", "process_metrics", "efficiency_metrics", "service_metrics", "action_items", "honor_ranking", "cc_enc_warning"],
+    "all": ["team_ranking", "individual_ranking", "result_metrics", "achievement_metrics", "process_metrics", "efficiency_metrics", "service_metrics", "action_items", "student_improvement", "honor_ranking", "cc_enc_warning"],
     "tl": ["team_ranking", "honor_ranking"],
     "ops": ["team_ranking", "honor_ranking"]
   },
