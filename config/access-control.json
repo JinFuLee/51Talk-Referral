@@ -102,14 +102,14 @@
     {
       "email": "renhang@51talk.com",
       "name": "Zoe",
-      "role": "sales_lead",
+      "role": "ops_manager",
       "addedAt": "2026-03-28T00:00:00Z",
       "addedBy": "system"
     },
     {
       "email": "panawat@51talk.com",
       "name": "Golf",
-      "role": "sales_lead",
+      "role": "ops_manager",
       "addedAt": "2026-03-28T00:00:00Z",
       "addedBy": "system"
     },
@@ -161,10 +161,16 @@
       "role": "sales_lead",
       "addedAt": "2026-03-28T00:00:00Z",
       "addedBy": "system"
+    },
+    {
+      "email": "chayanai@51talk.com",
+      "name": "chayanai",
+      "role": "sales_lead",
+      "addedAt": "2026-03-28T12:30:00Z",
+      "addedBy": "system"
     }
   ],
   "publicPages": [
-    "/",
     "/cc-performance",
     "/daily-monitor",
     "/checkin"

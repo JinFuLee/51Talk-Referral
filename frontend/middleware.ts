@@ -23,7 +23,7 @@ import { routing } from './i18n/routing';
 const intlMiddleware = createMiddleware(routing);
 
 // 默认公开页面兜底（后端 API 不可达时使用）
-const DEFAULT_PUBLIC_PAGES = ['/', '/cc-performance', '/daily-monitor', '/checkin'];
+const DEFAULT_PUBLIC_PAGES = ['/cc-performance', '/daily-monitor', '/checkin'];
 
 // 特殊页面：不参与 RBAC，直接放行（防止 login/access-denied 重定向死循环）
 const BYPASS_PAGES = ['/login', '/access-denied'];
