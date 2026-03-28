@@ -119,10 +119,10 @@ _ROOT_CAUSE_PATTERNS: list[tuple[str, str]] = [
     ("day_comparison.*", "历史快照不足"),
     # ── D2B 数据列名（部分指标需 D4 学员级数据计算）──
     ("d2b_summary.*", "D2B 数据"),
-    # ── CC 过程指标（打卡/触达/参与率依赖 D4 学员级数据）──
-    ("*.participation_rate", "D4 学员数据"),
-    ("*.checkin_rate", "D4 学员数据"),
-    ("*.cc_reach_rate", "D4 学员数据"),
+    # ── CC 过程指标（D2 围场聚合，无有效围场时为 null）──
+    ("*.participation_rate", "CC 无有效围场"),
+    ("*.checkin_rate", "CC 无有效围场"),
+    ("*.cc_reach_rate", "CC 无有效围场"),
     ("*.leads_user_a", "D4 学员数据"),
     # ── D2 围场数据 ──
     ("*.enclosure*", "D2 围场数据"),
@@ -156,6 +156,10 @@ _REMEDIATION: dict[str, dict] = {
     "历史快照不足": {"action": "等待数据积累", "manual": "需 ≥7 天快照（自动积累）"},
     "激励活动配置": {"action": "配置激励活动", "link": "/settings"},
     "打卡角色数据": {"action": "下载 BI 数据", "manual": "运营角色无数据为正常"},
+    "CC 无有效围场": {
+        "action": "正常现象",
+        "manual": "CC 名下无有效围场学员，过程指标为空",
+    },
 }
 
 

@@ -268,8 +268,13 @@ def _agg_d4(df: pd.DataFrame, month: str) -> pd.DataFrame:
         else:
             row["effective_count"] = None
 
-        # 学员总数（=该 CC 名下所有行数）
-        row["leads_user_a"] = len(g)
+        # 宽口径带新人数（User A 学员链接绑定 User B）
+        ua_col = "宽口径带新人数"
+        row["leads_user_a"] = (
+            _si(pd.to_numeric(g[ua_col], errors="coerce").sum())
+            if ua_col in g.columns
+            else None
+        )
 
         rows.append(row)
 
@@ -309,6 +314,7 @@ def _build_record(
     call_target: int,
     mp,  # MonthProgress
     cc_targets: dict | None = None,
+    team_referral_target: float | None = None,
 ) -> CCPerformanceRecord:
     """将合并后的行数据构建为 CCPerformanceRecord
 
@@ -486,7 +492,7 @@ def _build_record(
         coefficient=_sf(row.get("coefficient")),
         students_count=students_count,
         target_source=target_source,
-        team_revenue_target=None,
+        team_revenue_target=_sf(team_referral_target),
         team_paid_target=team_paid_target,
         remaining_daily_avg=_sf(remaining_daily_avg),
         pace_daily_needed=_sf(pace_daily_needed),
@@ -885,6 +891,7 @@ def get_cc_performance(
             call_target=call_target,
             mp=mp,
             cc_targets=enriched_cc_targets,
+            team_referral_target=team_referral_target,
         )
         all_records.append(rec)
 
@@ -978,7 +985,7 @@ def get_cc_performance(
             coefficient=_avg_field("coefficient"),
             students_count=_si(gt_students),
             target_source="allocated",
-            team_revenue_target=None,
+            team_revenue_target=_sf(team_referral_target),
             team_paid_target=_si(targets.get("付费目标")),
             remaining_daily_avg=_avg_field("remaining_daily_avg"),
             pace_daily_needed=_avg_field("pace_daily_needed"),
@@ -992,6 +999,9 @@ def get_cc_performance(
         elapsed_workdays=int(mp.elapsed_workdays),
         remaining_workdays=int(mp.remaining_workdays),
         exchange_rate=_load_exchange_rate(),
+        has_targets=bool(cc_targets),
+        target_month=month if cc_targets else None,
+        target_count=len(cc_targets),
         teams=teams,
         grand_total=grand_total,
     )

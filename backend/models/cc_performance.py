@@ -170,5 +170,8 @@ class CCPerformanceResponse(BaseModel):
     remaining_workdays: int  # 剩余工作日
     exchange_rate: float  # USD->THB 汇率（从 config/exchange_rate.json 读取）
 
+    has_targets: bool = False  # 是否已上传 CC 个人目标
+    target_month: str | None = None  # 目标文件对应月份
+    target_count: int = 0  # 已上传目标的 CC 人数
     teams: list[CCPerformanceTeamSummary] = []
     grand_total: CCPerformanceRecord | None = None  # 全局汇总行
