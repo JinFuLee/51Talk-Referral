@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import useSWR from 'swr';
+import { useLocale } from 'next-intl';
 import { swrFetcher } from '@/lib/api';
 import { formatRevenue, formatRate } from '@/lib/utils';
 import { SlideShell } from '@/components/presentation/SlideShell';
@@ -10,7 +11,27 @@ import type { ChannelRevenue, ChannelRevenueRow } from '@/lib/types/report';
 import type { SlideProps } from '@/lib/presentation/types';
 
 // ── 国际化 ───────────────────────────────────────
-const I18N = {
+const I18N: Record<
+  string,
+  {
+    title: string;
+    subtitle: string;
+    section: string;
+    channel: string;
+    lastMonth: string;
+    thisMonth: string;
+    delta: string;
+    deltaPct: string;
+    driver: string;
+    judgment: string;
+    totalRow: string;
+    error: string;
+    errorHint: string;
+    retry: string;
+    empty: string;
+    emptyHint: string;
+  }
+> = {
   zh: {
     title: '渠道业绩 MoM 对比',
     subtitle: '各渠道上月 / 本月 / 增量 / 增量% / 核心驱动 / 判断',
@@ -28,6 +49,24 @@ const I18N = {
     retry: '重试',
     empty: '暂无渠道 MoM 对比数据',
     emptyHint: '请上传本月 Excel 数据源后自动刷新',
+  },
+  'zh-TW': {
+    title: '渠道業績 MoM 對比',
+    subtitle: '各渠道上月 / 本月 / 增量 / 增量% / 核心驅動 / 判斷',
+    section: '渠道對比',
+    channel: '渠道',
+    lastMonth: '上月',
+    thisMonth: '本月',
+    delta: '增量',
+    deltaPct: '增量%',
+    driver: '核心驅動',
+    judgment: '判斷',
+    totalRow: '合計',
+    error: '資料載入失敗',
+    errorHint: '請檢查後端服務是否正常運行',
+    retry: '重試',
+    empty: '暫無渠道 MoM 對比資料',
+    emptyHint: '請上傳本月 Excel 資料源後自動刷新',
   },
   en: {
     title: 'Channel Revenue MoM',
@@ -47,7 +86,25 @@ const I18N = {
     empty: 'No channel MoM data',
     emptyHint: 'Upload monthly Excel data to refresh',
   },
-} as const;
+  th: {
+    title: 'การเปรียบเทียบรายได้ MoM ตามช่องทาง',
+    subtitle: 'ช่องทาง × เดือนก่อน / เดือนนี้ / Δ / Δ% / ตัวขับเคลื่อน / การตัดสิน',
+    section: 'การเปรียบเทียบช่องทาง',
+    channel: 'ช่องทาง',
+    lastMonth: 'เดือนก่อน',
+    thisMonth: 'เดือนนี้',
+    delta: 'Δ',
+    deltaPct: 'Δ%',
+    driver: 'ตัวขับเคลื่อนหลัก',
+    judgment: 'การตัดสิน',
+    totalRow: 'รวม',
+    error: 'โหลดข้อมูลล้มเหลว',
+    errorHint: 'กรุณาตรวจสอบบริการแบ็กเอนด์',
+    retry: 'ลองใหม่',
+    empty: 'ไม่มีข้อมูล MoM ของช่องทาง',
+    emptyHint: 'กรุณาอัปโหลดไฟล์ Excel ประจำเดือน',
+  },
+};
 
 type DailyReportSlice = { blocks: { channel_revenue: ChannelRevenue } };
 
@@ -62,8 +119,8 @@ function JudgmentBadge({ judgment }: { judgment: '↑' | '↓' | '→' }) {
 }
 
 export function ChannelRevenueSlide({ slideNumber, totalSlides }: SlideProps) {
-  const [lang, setLang] = useState<'zh' | 'en'>('zh');
-  const t = I18N[lang];
+  const locale = useLocale();
+  const t = I18N[locale] ?? I18N['zh'];
 
   const { data, isLoading, error, mutate } = useSWR<ChannelRevenue>(
     '/api/report/daily',
@@ -95,23 +152,6 @@ export function ChannelRevenueSlide({ slideNumber, totalSlides }: SlideProps) {
       section={t.section}
       insight={insight}
     >
-      {/* 语言切换 */}
-      <div className="absolute top-6 right-14 flex gap-1">
-        {(['zh', 'en'] as const).map((l) => (
-          <button
-            key={l}
-            onClick={() => setLang(l)}
-            className={`px-2 py-0.5 text-xs rounded border transition-colors ${
-              lang === l
-                ? 'border-[var(--brand-p2)] bg-[var(--color-accent-surface)] text-[var(--brand-p2)] font-semibold'
-                : 'border-[var(--border-default)] text-[var(--text-muted)] hover:bg-[var(--bg-subtle)]'
-            }`}
-          >
-            {l.toUpperCase()}
-          </button>
-        ))}
-      </div>
-
       {isLoading ? (
         <div className="flex items-center justify-center h-full px-4">
           <SkeletonChart className="h-4/5 w-full" />

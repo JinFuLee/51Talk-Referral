@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import useSWR from 'swr';
+import { useLocale } from 'next-intl';
 import { swrFetcher } from '@/lib/api';
 import { formatRate, formatRevenue } from '@/lib/utils';
 import { SlideShell } from '@/components/presentation/SlideShell';
@@ -10,7 +11,27 @@ import type { MomAttribution, MomAttributionRow } from '@/lib/types/report';
 import type { SlideProps } from '@/lib/presentation/types';
 
 // ── 国际化 ───────────────────────────────────────
-const I18N = {
+const I18N: Record<
+  string,
+  {
+    title: string;
+    subtitle: string;
+    section: string;
+    metric: string;
+    lastMonth: string;
+    thisMonth: string;
+    target: string;
+    delta: string;
+    deltaPct: string;
+    vsTarget: string;
+    judgment: string;
+    error: string;
+    errorHint: string;
+    retry: string;
+    empty: string;
+    emptyHint: string;
+  }
+> = {
   zh: {
     title: 'MoM 增量归因',
     subtitle: '7 指标 × 上月 / 本月 / 目标 / 增量 / 增量% / vs目标 / 判断',
@@ -28,6 +49,24 @@ const I18N = {
     retry: '重试',
     empty: '暂无 MoM 归因数据',
     emptyHint: '请上传本月 Excel 数据源后自动刷新',
+  },
+  'zh-TW': {
+    title: 'MoM 增量歸因',
+    subtitle: '7 指標 × 上月 / 本月 / 目標 / 增量 / 增量% / vs目標 / 判斷',
+    section: '環比分析',
+    metric: '指標',
+    lastMonth: '上月',
+    thisMonth: '本月',
+    target: '目標',
+    delta: '增量',
+    deltaPct: '增量%',
+    vsTarget: 'vs目標',
+    judgment: '判斷',
+    error: '資料載入失敗',
+    errorHint: '請檢查後端服務是否正常運行',
+    retry: '重試',
+    empty: '暫無 MoM 歸因資料',
+    emptyHint: '請上傳本月 Excel 資料源後自動刷新',
   },
   en: {
     title: 'MoM Attribution',
@@ -47,17 +86,35 @@ const I18N = {
     empty: 'No MoM attribution data',
     emptyHint: 'Upload monthly Excel data to refresh',
   },
-} as const;
+  th: {
+    title: 'การวิเคราะห์ MoM',
+    subtitle: '7 ตัวชี้วัด × เดือนก่อน / เดือนนี้ / เป้าหมาย / Δ / Δ% / vs เป้า / การตัดสิน',
+    section: 'การวิเคราะห์ MoM',
+    metric: 'ตัวชี้วัด',
+    lastMonth: 'เดือนก่อน',
+    thisMonth: 'เดือนนี้',
+    target: 'เป้าหมาย',
+    delta: 'Δ',
+    deltaPct: 'Δ%',
+    vsTarget: 'vs เป้า',
+    judgment: 'การตัดสิน',
+    error: 'โหลดข้อมูลล้มเหลว',
+    errorHint: 'กรุณาตรวจสอบบริการแบ็กเอนด์',
+    retry: 'ลองใหม่',
+    empty: 'ไม่มีข้อมูล MoM',
+    emptyHint: 'กรุณาอัปโหลดไฟล์ Excel ประจำเดือน',
+  },
+};
 
-const METRIC_LABELS: Record<string, { zh: string; en: string }> = {
-  revenue: { zh: '业绩 (USD)', en: 'Revenue' },
-  registrations: { zh: '注册数', en: 'Registrations' },
-  appointments: { zh: '预约数', en: 'Appointments' },
-  attendance: { zh: '出席数', en: 'Attendance' },
-  payments: { zh: '付费数', en: 'Payments' },
-  appt_rate: { zh: '预约率', en: 'Appt Rate' },
-  attend_rate: { zh: '出席率', en: 'Attend Rate' },
-  paid_rate: { zh: '付费率', en: 'Paid Rate' },
+const METRIC_LABELS: Record<string, { zh: string; 'zh-TW': string; en: string; th: string }> = {
+  revenue: { zh: '业绩 (USD)', 'zh-TW': '業績 (USD)', en: 'Revenue', th: 'รายได้ (USD)' },
+  registrations: { zh: '注册数', 'zh-TW': '註冊數', en: 'Registrations', th: 'ลงทะเบียน' },
+  appointments: { zh: '预约数', 'zh-TW': '預約數', en: 'Appointments', th: 'นัดหมาย' },
+  attendance: { zh: '出席数', 'zh-TW': '出席數', en: 'Attendance', th: 'เข้าร่วม' },
+  payments: { zh: '付费数', 'zh-TW': '付費數', en: 'Payments', th: 'ชำระ' },
+  appt_rate: { zh: '预约率', 'zh-TW': '預約率', en: 'Appt Rate', th: 'อัตรานัดหมาย' },
+  attend_rate: { zh: '出席率', 'zh-TW': '出席率', en: 'Attend Rate', th: 'อัตราเข้าร่วม' },
+  paid_rate: { zh: '付费率', 'zh-TW': '付費率', en: 'Paid Rate', th: 'อัตราชำระ' },
 };
 
 function isRateMetric(metric: string) {
@@ -86,8 +143,9 @@ function deltaColor(delta: number): string {
 type DailyReportSlice = { blocks: { mom_attribution: MomAttribution } };
 
 export function MomAttributionSlide({ slideNumber, totalSlides }: SlideProps) {
-  const [lang, setLang] = useState<'zh' | 'en'>('zh');
-  const t = I18N[lang];
+  const locale = useLocale();
+  const lang = locale as 'zh' | 'zh-TW' | 'en' | 'th';
+  const t = I18N[locale] ?? I18N['zh'];
 
   const { data, isLoading, error, mutate } = useSWR<MomAttribution>(
     '/api/report/daily',
@@ -101,7 +159,8 @@ export function MomAttributionSlide({ slideNumber, totalSlides }: SlideProps) {
     const rateRows = rows.filter((r) => isRateMetric(r.metric));
     if (!rateRows.length) return undefined;
     const worst = rateRows.reduce((a, b) => (a.vs_target < b.vs_target ? a : b));
-    const label = METRIC_LABELS[worst.metric]?.[lang] ?? worst.metric;
+    const label =
+      METRIC_LABELS[worst.metric]?.[lang as keyof (typeof METRIC_LABELS)[string]] ?? worst.metric;
     return `${label} vs 目标 ${formatRate(worst.vs_target)}，需重点关注`;
   })();
 
@@ -114,23 +173,6 @@ export function MomAttributionSlide({ slideNumber, totalSlides }: SlideProps) {
       section={t.section}
       insight={insight}
     >
-      {/* 语言切换 */}
-      <div className="absolute top-6 right-14 flex gap-1">
-        {(['zh', 'en'] as const).map((l) => (
-          <button
-            key={l}
-            onClick={() => setLang(l)}
-            className={`px-2 py-0.5 text-xs rounded border transition-colors ${
-              lang === l
-                ? 'border-[var(--brand-p2)] bg-[var(--color-accent-surface)] text-[var(--brand-p2)] font-semibold'
-                : 'border-[var(--border-default)] text-[var(--text-muted)] hover:bg-[var(--bg-subtle)]'
-            }`}
-          >
-            {l.toUpperCase()}
-          </button>
-        ))}
-      </div>
-
       {isLoading ? (
         <div className="flex items-center justify-center h-full px-4">
           <SkeletonChart className="h-4/5 w-full" />
@@ -174,7 +216,8 @@ export function MomAttributionSlide({ slideNumber, totalSlides }: SlideProps) {
                 return (
                   <tr key={row.metric} className={i % 2 === 0 ? 'slide-row-even' : 'slide-row-odd'}>
                     <td className="px-3 py-2 text-xs font-semibold text-[var(--text-primary)]">
-                      {METRIC_LABELS[row.metric]?.[lang] ?? row.metric}
+                      {METRIC_LABELS[row.metric]?.[lang as keyof (typeof METRIC_LABELS)[string]] ??
+                        row.metric}
                     </td>
                     <td className="px-3 py-2 text-xs text-right font-mono tabular-nums text-[var(--text-secondary)]">
                       {formatMetricValue(row.metric, row.last_month)}

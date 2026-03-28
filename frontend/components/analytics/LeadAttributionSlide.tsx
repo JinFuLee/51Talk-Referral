@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import useSWR from 'swr';
+import { useLocale } from 'next-intl';
 import { swrFetcher } from '@/lib/api';
 import { formatRate, formatRevenue } from '@/lib/utils';
 import { SlideShell } from '@/components/presentation/SlideShell';
@@ -10,9 +11,33 @@ import type { LeadAttribution, LeadAttributionRow } from '@/lib/types/report';
 import type { SlideProps } from '@/lib/presentation/types';
 
 // ── 国际化 ───────────────────────────────────────
-const I18N = {
+const I18N: Record<
+  string,
+  {
+    title: string;
+    subtitle: string;
+    section: string;
+    channel: string;
+    reg: string;
+    regShare: string;
+    apptRate: string;
+    attendRate: string;
+    paidRate: string;
+    regToPayRate: string;
+    payments: string;
+    payShare: string;
+    revenue: string;
+    revShare: string;
+    total: string;
+    error: string;
+    errorHint: string;
+    retry: string;
+    empty: string;
+    emptyHint: string;
+  }
+> = {
   zh: {
-    title: '例子归因分析',
+    title: '线索归因分析',
     subtitle: '4 口径 × 注册/占比/预约率/出席率/付费率/注册→付费率/付费数/占比/业绩/占比',
     section: '渠道分析',
     channel: '渠道',
@@ -30,8 +55,30 @@ const I18N = {
     error: '数据加载失败',
     errorHint: '请检查后端服务是否正常运行',
     retry: '重试',
-    empty: '暂无例子归因数据',
+    empty: '暂无线索归因数据',
     emptyHint: '请上传本月 Excel 数据源后自动刷新',
+  },
+  'zh-TW': {
+    title: '線索歸因分析',
+    subtitle: '4 口徑 × 註冊/占比/預約率/出席率/付費率/註冊→付費率/付費數/占比/業績/占比',
+    section: '渠道分析',
+    channel: '渠道',
+    reg: '註冊數',
+    regShare: '註冊%',
+    apptRate: '預約率',
+    attendRate: '出席率',
+    paidRate: '付費率',
+    regToPayRate: '註冊→付費',
+    payments: '付費數',
+    payShare: '付費%',
+    revenue: '業績',
+    revShare: '業績%',
+    total: '合計',
+    error: '資料載入失敗',
+    errorHint: '請檢查後端服務是否正常運行',
+    retry: '重試',
+    empty: '暫無線索歸因資料',
+    emptyHint: '請上傳本月 Excel 資料源後自動刷新',
   },
   en: {
     title: 'Lead Attribution',
@@ -54,6 +101,29 @@ const I18N = {
     retry: 'Retry',
     empty: 'No lead attribution data',
     emptyHint: 'Upload monthly Excel data to refresh',
+  },
+  th: {
+    title: 'การวิเคราะห์แหล่งที่มาของลูกค้า',
+    subtitle:
+      '4 ช่องทาง × ลงทะเบียน/สัดส่วน/นัดหมาย/เข้าร่วม/ชำระ/ลงทะเบียน→ชำระ/ชำระ/สัดส่วน/รายได้/สัดส่วน',
+    section: 'การวิเคราะห์ช่องทาง',
+    channel: 'ช่องทาง',
+    reg: 'ลงทะเบียน',
+    regShare: 'ลงทะเบียน%',
+    apptRate: 'อัตรานัดหมาย',
+    attendRate: 'อัตราเข้าร่วม',
+    paidRate: 'อัตราชำระ',
+    regToPayRate: 'ลง→ชำระ',
+    payments: 'ชำระ',
+    payShare: 'ชำระ%',
+    revenue: 'รายได้',
+    revShare: 'รายได้%',
+    total: 'รวม',
+    error: 'โหลดข้อมูลล้มเหลว',
+    errorHint: 'กรุณาตรวจสอบบริการแบ็กเอนด์',
+    retry: 'ลองใหม่',
+    empty: 'ไม่มีข้อมูลการวิเคราะห์',
+    emptyHint: 'กรุณาอัปโหลดไฟล์ Excel ประจำเดือน',
   },
 };
 
@@ -118,8 +188,8 @@ function AttributionRow({
 }
 
 export function LeadAttributionSlide({ slideNumber, totalSlides }: SlideProps) {
-  const [lang, setLang] = useState<'zh' | 'en'>('zh');
-  const t = I18N[lang];
+  const locale = useLocale();
+  const t = I18N[locale] ?? I18N['zh'];
 
   const { data, isLoading, error, mutate } = useSWR<LeadAttribution>(
     '/api/report/daily',
@@ -144,23 +214,6 @@ export function LeadAttributionSlide({ slideNumber, totalSlides }: SlideProps) {
       section={t.section}
       insight={insight}
     >
-      {/* 语言切换 */}
-      <div className="absolute top-6 right-14 flex gap-1">
-        {(['zh', 'en'] as const).map((l) => (
-          <button
-            key={l}
-            onClick={() => setLang(l)}
-            className={`px-2 py-0.5 text-xs rounded border transition-colors ${
-              lang === l
-                ? 'border-[var(--brand-p2)] bg-[var(--color-accent-surface)] text-[var(--brand-p2)] font-semibold'
-                : 'border-[var(--border-default)] text-[var(--text-muted)] hover:bg-[var(--bg-subtle)]'
-            }`}
-          >
-            {l.toUpperCase()}
-          </button>
-        ))}
-      </div>
-
       {isLoading ? (
         <div className="flex items-center justify-center h-full px-4">
           <SkeletonChart className="h-4/5 w-full" />

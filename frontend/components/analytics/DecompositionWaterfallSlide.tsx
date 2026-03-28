@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import useSWR from 'swr';
+import { useLocale } from 'next-intl';
 import {
   BarChart,
   Bar,
@@ -22,7 +23,32 @@ import type { Decomposition } from '@/lib/types/report';
 import type { SlideProps } from '@/lib/presentation/types';
 
 // ── 国际化 ───────────────────────────────────────
-const I18N = {
+const I18N: Record<
+  string,
+  {
+    title: string;
+    subtitle: string;
+    section: string;
+    volDelta: string;
+    convDelta: string;
+    priceDelta: string;
+    residual: string;
+    baseLine: string;
+    currentLine: string;
+    lmdiNote: string;
+    laspNote: string;
+    residualPct: string;
+    actualDelta: string;
+    basePeriod: string;
+    currentPeriod: string;
+    error: string;
+    errorHint: string;
+    retry: string;
+    empty: string;
+    emptyHint: string;
+    usd: string;
+  }
+> = {
   zh: {
     title: '增量分解瀑布图',
     subtitle: '量贡献 / 率贡献 / 价贡献 / 残差（Laspeyres / LMDI 自动切换）',
@@ -46,6 +72,29 @@ const I18N = {
     emptyHint: '请上传本月 Excel 数据源后自动刷新',
     usd: '金额 (USD)',
   },
+  'zh-TW': {
+    title: '增量分解瀑布圖',
+    subtitle: '量貢獻 / 率貢獻 / 價貢獻 / 殘差（Laspeyres / LMDI 自動切換）',
+    section: '增量分析',
+    volDelta: '量貢獻',
+    convDelta: '率貢獻',
+    priceDelta: '價貢獻',
+    residual: '殘差',
+    baseLine: '上月業績',
+    currentLine: '本月業績',
+    lmdiNote: '殘差率 > 3%，已自動切換至 LMDI 分解（零殘差）',
+    laspNote: 'Laspeyres 加法分解',
+    residualPct: '殘差率',
+    actualDelta: '實際總增量',
+    basePeriod: '基期',
+    currentPeriod: '當期',
+    error: '資料載入失敗',
+    errorHint: '請檢查後端服務是否正常運行',
+    retry: '重試',
+    empty: '暫無分解資料',
+    emptyHint: '請上傳本月 Excel 資料源後自動刷新',
+    usd: '金額 (USD)',
+  },
   en: {
     title: 'Revenue Decomposition Waterfall',
     subtitle: 'Vol / Conv / Price / Residual (Laspeyres / LMDI auto-switch)',
@@ -67,6 +116,29 @@ const I18N = {
     retry: 'Retry',
     empty: 'No decomposition data',
     emptyHint: 'Upload monthly Excel data to refresh',
+    usd: 'USD',
+  },
+  th: {
+    title: 'แผนภูมิน้ำตกการแยกย่อยรายได้',
+    subtitle: 'ปริมาณ / อัตรา / ราคา / ส่วนเหลือ (Laspeyres / LMDI อัตโนมัติ)',
+    section: 'การวิเคราะห์ส่วนเพิ่ม',
+    volDelta: 'ปริมาณ',
+    convDelta: 'อัตราConv',
+    priceDelta: 'ราคา',
+    residual: 'ส่วนเหลือ',
+    baseLine: 'เดือนก่อน',
+    currentLine: 'เดือนนี้',
+    lmdiNote: 'ส่วนเหลือ > 3%, เปลี่ยนเป็น LMDI',
+    laspNote: 'การแยกย่อย Laspeyres',
+    residualPct: 'ส่วนเหลือ %',
+    actualDelta: 'Δ จริง',
+    basePeriod: 'ช่วงฐาน',
+    currentPeriod: 'ช่วงปัจจุบัน',
+    error: 'โหลดข้อมูลล้มเหลว',
+    errorHint: 'กรุณาตรวจสอบบริการแบ็กเอนด์',
+    retry: 'ลองใหม่',
+    empty: 'ไม่มีข้อมูลการแยกย่อย',
+    emptyHint: 'กรุณาอัปโหลดไฟล์ Excel ประจำเดือน',
     usd: 'USD',
   },
 };
@@ -105,8 +177,8 @@ function buildWaterfallData(
 }
 
 export function DecompositionWaterfallSlide({ slideNumber, totalSlides }: SlideProps) {
-  const [lang, setLang] = useState<'zh' | 'en'>('zh');
-  const t = I18N[lang];
+  const locale = useLocale();
+  const t = I18N[locale] ?? I18N['zh'];
 
   const { data, isLoading, error, mutate } = useSWR<Decomposition>(
     '/api/report/daily',
@@ -146,23 +218,6 @@ export function DecompositionWaterfallSlide({ slideNumber, totalSlides }: SlideP
       section={t.section}
       insight={insight}
     >
-      {/* 语言切换 */}
-      <div className="absolute top-6 right-14 flex gap-1">
-        {(['zh', 'en'] as const).map((l) => (
-          <button
-            key={l}
-            onClick={() => setLang(l)}
-            className={`px-2 py-0.5 text-xs rounded border transition-colors ${
-              lang === l
-                ? 'border-[var(--brand-p2)] bg-[var(--color-accent-surface)] text-[var(--brand-p2)] font-semibold'
-                : 'border-[var(--border-default)] text-[var(--text-muted)] hover:bg-[var(--bg-subtle)]'
-            }`}
-          >
-            {l.toUpperCase()}
-          </button>
-        ))}
-      </div>
-
       {isLoading ? (
         <div className="flex items-center justify-center h-full px-4">
           <SkeletonChart className="h-4/5 w-full" />

@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import useSWR from 'swr';
+import { useLocale } from 'next-intl';
 import { swrFetcher } from '@/lib/api';
 import { formatRate, formatRevenue } from '@/lib/utils';
 import { SlideShell } from '@/components/presentation/SlideShell';
@@ -10,7 +11,31 @@ import type { FunnelLeverage, LeverageScore } from '@/lib/types/report';
 import type { SlideProps } from '@/lib/presentation/types';
 
 // ── 国际化 ───────────────────────────────────────
-const I18N = {
+const I18N: Record<
+  string,
+  {
+    title: string;
+    subtitle: string;
+    section: string;
+    channel: string;
+    stage: string;
+    actual: string;
+    target: string;
+    gap: string;
+    impact: string;
+    feasibility: string;
+    urgency: string;
+    score: string;
+    potential: string;
+    bottleneck: string;
+    error: string;
+    errorHint: string;
+    retry: string;
+    empty: string;
+    emptyHint: string;
+    stageLabels: Record<string, string>;
+  }
+> = {
   zh: {
     title: '漏斗杠杆矩阵',
     subtitle: '渠道 × 阶段 × 收入杠杆分（impact × feasibility × urgency）',
@@ -35,7 +60,33 @@ const I18N = {
       appt_rate: '预约率',
       attend_rate: '出席率',
       paid_rate: '付费率',
-    } as Record<string, string>,
+    },
+  },
+  'zh-TW': {
+    title: '漏斗槓桿矩陣',
+    subtitle: '渠道 × 階段 × 收入槓桿分（impact × feasibility × urgency）',
+    section: '槓桿分析',
+    channel: '渠道',
+    stage: '階段',
+    actual: '實際率',
+    target: '目標率',
+    gap: 'GAP',
+    impact: '增量收入',
+    feasibility: '可行性',
+    urgency: '緊迫度',
+    score: '槓桿分',
+    potential: '評級',
+    bottleneck: '最大瓶頸',
+    error: '資料載入失敗',
+    errorHint: '請檢查後端服務是否正常運行',
+    retry: '重試',
+    empty: '暫無槓桿矩陣資料',
+    emptyHint: '請上傳本月 Excel 資料源後自動刷新',
+    stageLabels: {
+      appt_rate: '預約率',
+      attend_rate: '出席率',
+      paid_rate: '付費率',
+    },
   },
   en: {
     title: 'Funnel Leverage Matrix',
@@ -61,9 +112,35 @@ const I18N = {
       appt_rate: 'Appt Rate',
       attend_rate: 'Attend Rate',
       paid_rate: 'Paid Rate',
-    } as Record<string, string>,
+    },
   },
-} as const;
+  th: {
+    title: 'เมทริกซ์แรงงัดช่องทาง',
+    subtitle: 'ช่องทาง × ขั้นตอน × คะแนนแรงงัด (impact × feasibility × urgency)',
+    section: 'การวิเคราะห์แรงงัด',
+    channel: 'ช่องทาง',
+    stage: 'ขั้นตอน',
+    actual: 'อัตราจริง',
+    target: 'อัตราเป้าหมาย',
+    gap: 'GAP',
+    impact: 'รายได้เพิ่ม',
+    feasibility: 'ความเป็นไปได้',
+    urgency: 'ความเร่งด่วน',
+    score: 'คะแนน',
+    potential: 'ศักยภาพ',
+    bottleneck: 'คอขวดหลัก',
+    error: 'โหลดข้อมูลล้มเหลว',
+    errorHint: 'กรุณาตรวจสอบบริการแบ็กเอนด์',
+    retry: 'ลองใหม่',
+    empty: 'ไม่มีข้อมูลเมทริกซ์',
+    emptyHint: 'กรุณาอัปโหลดไฟล์ Excel ประจำเดือน',
+    stageLabels: {
+      appt_rate: 'อัตรานัดหมาย',
+      attend_rate: 'อัตราเข้าร่วม',
+      paid_rate: 'อัตราชำระ',
+    },
+  },
+};
 
 type DailyReportSlice = { blocks: { funnel_leverage: FunnelLeverage } };
 
@@ -102,8 +179,8 @@ function PotentialBadge({ label }: { label: string }) {
 }
 
 export function FunnelLeverageSlide({ slideNumber, totalSlides }: SlideProps) {
-  const [lang, setLang] = useState<'zh' | 'en'>('zh');
-  const t = I18N[lang];
+  const locale = useLocale();
+  const t = I18N[locale] ?? I18N['zh'];
 
   const { data, isLoading, error, mutate } = useSWR<FunnelLeverage>(
     '/api/report/daily',
@@ -128,23 +205,6 @@ export function FunnelLeverageSlide({ slideNumber, totalSlides }: SlideProps) {
       section={t.section}
       insight={insight}
     >
-      {/* 语言切换 */}
-      <div className="absolute top-6 right-14 flex gap-1">
-        {(['zh', 'en'] as const).map((l) => (
-          <button
-            key={l}
-            onClick={() => setLang(l)}
-            className={`px-2 py-0.5 text-xs rounded border transition-colors ${
-              lang === l
-                ? 'border-[var(--brand-p2)] bg-[var(--color-accent-surface)] text-[var(--brand-p2)] font-semibold'
-                : 'border-[var(--border-default)] text-[var(--text-muted)] hover:bg-[var(--bg-subtle)]'
-            }`}
-          >
-            {l.toUpperCase()}
-          </button>
-        ))}
-      </div>
-
       {isLoading ? (
         <div className="flex items-center justify-center h-full px-4">
           <SkeletonChart className="h-4/5 w-full" />

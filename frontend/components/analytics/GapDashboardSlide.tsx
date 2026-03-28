@@ -4,7 +4,27 @@ import { formatUSD, formatValue } from '@/lib/utils';
 import type { GapDashboard } from '@/lib/types/report';
 
 // ── I18N ──────────────────────────────────────────────────────────────────────
-const I18N = {
+const I18N: Record<
+  string,
+  {
+    title: string;
+    subtitle: string;
+    viewBm: string;
+    viewMonthly: string;
+    gapItems: Record<string, string>;
+    channelTargets: string;
+    channelGaps: string;
+    bmDesc: string;
+    monthlyDesc: string;
+    noData: string;
+    noDataDesc: string;
+    channel: string;
+    target: string;
+    gap: string;
+    shortfall: string;
+    surplus: string;
+  }
+> = {
   zh: {
     title: '缺口仪表盘',
     subtitle: '各类缺口数值 · 从业绩倒推到注册数',
@@ -17,7 +37,7 @@ const I18N = {
       showup_gap: '出席缺口（人）',
       appt_gap: '预约缺口（人）',
       lead_gap: '注册缺口（人）',
-    } as Record<string, string>,
+    },
     channelTargets: '渠道口径目标',
     channelGaps: '各渠道注册缺口',
     bmDesc: '相对 BM 进度线的超额/缺口',
@@ -30,6 +50,31 @@ const I18N = {
     shortfall: '缺口',
     surplus: '超额',
   },
+  'zh-TW': {
+    title: '缺口儀表板',
+    subtitle: '各類缺口數值 · 從業績倒推到註冊數',
+    viewBm: 'BM 進度',
+    viewMonthly: '月度達標',
+    gapItems: {
+      revenue_gap: '業績缺口',
+      asp_gap: '客單價缺口',
+      bill_gap: '付費缺口（筆）',
+      showup_gap: '出席缺口（人）',
+      appt_gap: '預約缺口（人）',
+      lead_gap: '註冊缺口（人）',
+    },
+    channelTargets: '渠道口徑目標',
+    channelGaps: '各渠道註冊缺口',
+    bmDesc: '相對 BM 進度線的超額/缺口',
+    monthlyDesc: '相對月度目標 100% 的超額/缺口',
+    noData: '暫無資料',
+    noDataDesc: '請上傳本月 Excel 資料源',
+    channel: '渠道',
+    target: '目標',
+    gap: '缺口',
+    shortfall: '缺口',
+    surplus: '超額',
+  },
   en: {
     title: 'Gap Dashboard',
     subtitle: 'Key gaps · Revenue down to registrations',
@@ -40,7 +85,7 @@ const I18N = {
       showup_gap: 'Attendance Gap (pax)',
       appt_gap: 'Appointment Gap (pax)',
       lead_gap: 'Registration Gap (pax)',
-    } as Record<string, string>,
+    },
     channelTargets: 'Channel Targets',
     channelGaps: 'Channel Registration Gaps',
     viewBm: 'BM Pace',
@@ -55,9 +100,34 @@ const I18N = {
     shortfall: 'Short',
     surplus: 'Surplus',
   },
-} as const;
+  th: {
+    title: 'แดชบอร์ดช่องว่าง',
+    subtitle: 'ช่องว่างหลัก · จากรายได้ถึงการลงทะเบียน',
+    viewBm: 'ความคืบหน้า BM',
+    viewMonthly: 'เป้าประจำเดือน',
+    gapItems: {
+      revenue_gap: 'ช่องว่างรายได้',
+      asp_gap: 'ช่องว่าง ASP',
+      bill_gap: 'ช่องว่างชำระ (ครั้ง)',
+      showup_gap: 'ช่องว่างเข้าร่วม (คน)',
+      appt_gap: 'ช่องว่างนัดหมาย (คน)',
+      lead_gap: 'ช่องว่างลงทะเบียน (คน)',
+    },
+    channelTargets: 'เป้าหมายช่องทาง',
+    channelGaps: 'ช่องว่างลงทะเบียนแต่ละช่องทาง',
+    bmDesc: 'ส่วนเกิน/ช่องว่าง vs แนว BM',
+    monthlyDesc: 'ส่วนเกิน/ช่องว่าง vs เป้า 100%',
+    noData: 'ไม่มีข้อมูล',
+    noDataDesc: 'กรุณาอัปโหลดไฟล์ Excel ประจำเดือน',
+    channel: 'ช่องทาง',
+    target: 'เป้าหมาย',
+    gap: 'ช่องว่าง',
+    shortfall: 'ขาด',
+    surplus: 'เกิน',
+  },
+};
 
-type Lang = keyof typeof I18N;
+type Lang = string;
 
 const GAP_KEYS = [
   'revenue_gap',

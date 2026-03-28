@@ -3,8 +3,79 @@
 import { useState } from 'react';
 import { toast } from 'sonner';
 import useSWR, { mutate } from 'swr';
-import { useTranslations } from 'next-intl';
 import { Clock, Plus, Pencil, Trash2, Power, PowerOff, Calendar } from 'lucide-react';
+import { useConfigStore } from '@/lib/stores/config-store';
+
+const I18N = {
+  zh: {
+    title: '定时任务',
+    subtitle: '管理自动推送计划',
+    addSchedule: '新建任务',
+    loading: '加载中...',
+    error: '加载失败',
+    noSchedules: '暂无定时任务',
+    enabled: '启用',
+    disabled: '停用',
+    lark: 'Lark',
+    dingtalk: '钉钉',
+    enable: '启用',
+    disable: '停用',
+    edit: '编辑',
+    delete: '删除',
+    confirmDelete: '确认删除此定时任务？',
+    name: '任务名称',
+    platform: '推送平台',
+    template: '消息模板',
+    time: '执行时间',
+    hour: '时',
+    minute: '分',
+    channels: '推送通道',
+    description: '备注',
+    force: '强制推送',
+    dryRun: '仅预览',
+    cancel: '取消',
+    save: '保存',
+    templates: {
+      cc_followup: 'CC 跟进',
+      daily_report: '日报',
+      checkin_reminder: '打卡提醒',
+    } as Record<string, string>,
+  },
+  en: {
+    title: 'Schedules',
+    subtitle: 'Manage automated push tasks',
+    addSchedule: 'New Schedule',
+    loading: 'Loading...',
+    error: 'Load failed',
+    noSchedules: 'No schedules yet',
+    enabled: 'Enabled',
+    disabled: 'Disabled',
+    lark: 'Lark',
+    dingtalk: 'DingTalk',
+    enable: 'Enable',
+    disable: 'Disable',
+    edit: 'Edit',
+    delete: 'Delete',
+    confirmDelete: 'Delete this schedule?',
+    name: 'Name',
+    platform: 'Platform',
+    template: 'Template',
+    time: 'Run time',
+    hour: 'h',
+    minute: 'm',
+    channels: 'Channels',
+    description: 'Description',
+    force: 'Force send',
+    dryRun: 'Dry run',
+    cancel: 'Cancel',
+    save: 'Save',
+    templates: {
+      cc_followup: 'CC Followup',
+      daily_report: 'Daily Report',
+      checkin_reminder: 'Checkin Reminder',
+    } as Record<string, string>,
+  },
+} as const;
 
 const API_BASE = '/api';
 
@@ -59,7 +130,8 @@ const DEFAULT_FORM: SchedulePayload = {
 // ── 主组件 ────────────────────────────────────────────────────────────────────
 
 export function ScheduleManager() {
-  const t = useTranslations('scheduleManager');
+  const lang = useConfigStore((s) => s.language) === 'zh' ? 'zh' : 'en';
+  const t = I18N[lang as keyof typeof I18N];
 
   const { data, error, isLoading } = useSWR<{ schedules: Schedule[]; total: number }>(
     `${API_BASE}/notifications/schedule`,
@@ -303,6 +375,8 @@ export function ScheduleManager() {
 }
 
 // ── 表单弹窗 ──────────────────────────────────────────────────────────────────
+
+type Lang = keyof typeof I18N;
 
 interface ScheduleFormModalProps {
   lang: Lang;

@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import useSWR from 'swr';
+import { useLocale } from 'next-intl';
 import { swrFetcher } from '@/lib/api';
 import { formatRevenue, formatRate } from '@/lib/utils';
 import { SlideShell } from '@/components/presentation/SlideShell';
@@ -10,7 +11,28 @@ import type { ChannelThreeFactor, ChannelThreeFactorRow } from '@/lib/types/repo
 import type { SlideProps } from '@/lib/presentation/types';
 
 // ── 国际化 ───────────────────────────────────────
-const I18N = {
+const I18N: Record<
+  string,
+  {
+    title: string;
+    subtitle: string;
+    section: string;
+    channel: string;
+    method: string;
+    volDelta: string;
+    convDelta: string;
+    priceDelta: string;
+    residual: string;
+    actualDelta: string;
+    laspLabel: string;
+    lmdiLabel: string;
+    error: string;
+    errorHint: string;
+    retry: string;
+    empty: string;
+    emptyHint: string;
+  }
+> = {
   zh: {
     title: '渠道三因素分解',
     subtitle: '各渠道量贡献 / 率贡献 / 价贡献（Laspeyres / LMDI 自动切换）',
@@ -30,6 +52,25 @@ const I18N = {
     empty: '暂无三因素分解数据',
     emptyHint: '请上传本月 Excel 数据源后自动刷新',
   },
+  'zh-TW': {
+    title: '渠道三因素分解',
+    subtitle: '各渠道量貢獻 / 率貢獻 / 價貢獻（Laspeyres / LMDI 自動切換）',
+    section: '三因素分析',
+    channel: '渠道',
+    method: '方法',
+    volDelta: '量貢獻',
+    convDelta: '率貢獻',
+    priceDelta: '價貢獻',
+    residual: '殘差',
+    actualDelta: '實際增量',
+    laspLabel: 'Lasp.',
+    lmdiLabel: 'LMDI',
+    error: '資料載入失敗',
+    errorHint: '請檢查後端服務是否正常運行',
+    retry: '重試',
+    empty: '暫無三因素分解資料',
+    emptyHint: '請上傳本月 Excel 資料源後自動刷新',
+  },
   en: {
     title: 'Channel Three-Factor Decomposition',
     subtitle: 'Volume / Conv Rate / Price per channel (Laspeyres / LMDI auto-switch)',
@@ -48,6 +89,25 @@ const I18N = {
     retry: 'Retry',
     empty: 'No three-factor data',
     emptyHint: 'Upload monthly Excel data to refresh',
+  },
+  th: {
+    title: 'การแยกย่อย 3 ปัจจัยตามช่องทาง',
+    subtitle: 'ปริมาณ / อัตราConv / ราคา ต่อช่องทาง (Laspeyres / LMDI อัตโนมัติ)',
+    section: 'การวิเคราะห์ 3 ปัจจัย',
+    channel: 'ช่องทาง',
+    method: 'วิธี',
+    volDelta: 'Δปริมาณ',
+    convDelta: 'ΔConv',
+    priceDelta: 'Δราคา',
+    residual: 'ส่วนเหลือ',
+    actualDelta: 'Δจริง',
+    laspLabel: 'Lasp.',
+    lmdiLabel: 'LMDI',
+    error: 'โหลดข้อมูลล้มเหลว',
+    errorHint: 'กรุณาตรวจสอบบริการแบ็กเอนด์',
+    retry: 'ลองใหม่',
+    empty: 'ไม่มีข้อมูล 3 ปัจจัย',
+    emptyHint: 'กรุณาอัปโหลดไฟล์ Excel ประจำเดือน',
   },
 };
 
@@ -109,8 +169,8 @@ function ChannelRow({
 }
 
 export function ChannelThreeFactorSlide({ slideNumber, totalSlides }: SlideProps) {
-  const [lang, setLang] = useState<'zh' | 'en'>('zh');
-  const t = I18N[lang];
+  const locale = useLocale();
+  const t = I18N[locale] ?? I18N['zh'];
 
   const { data, isLoading, error, mutate } = useSWR<ChannelThreeFactor>(
     '/api/report/daily',
@@ -144,23 +204,6 @@ export function ChannelThreeFactorSlide({ slideNumber, totalSlides }: SlideProps
       section={t.section}
       insight={insight}
     >
-      {/* 语言切换 */}
-      <div className="absolute top-6 right-14 flex gap-1">
-        {(['zh', 'en'] as const).map((l) => (
-          <button
-            key={l}
-            onClick={() => setLang(l)}
-            className={`px-2 py-0.5 text-xs rounded border transition-colors ${
-              lang === l
-                ? 'border-[var(--brand-p2)] bg-[var(--color-accent-surface)] text-[var(--brand-p2)] font-semibold'
-                : 'border-[var(--border-default)] text-[var(--text-muted)] hover:bg-[var(--bg-subtle)]'
-            }`}
-          >
-            {l.toUpperCase()}
-          </button>
-        ))}
-      </div>
-
       {isLoading ? (
         <div className="flex items-center justify-center h-full px-4">
           <SkeletonChart className="h-4/5 w-full" />
