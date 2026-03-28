@@ -389,11 +389,11 @@ def _calc_quality_score(row_d3: pd.Series, d4_row: pd.Series | None) -> float:
     if d4_row is None:
         return float(enclosure_score)
 
-    lesson_max = float(qsc.get("lesson_max", 15))
+    lesson_max = float(qsc.get("lesson_max", 15)) or 15.0
     lesson_weight = float(qsc.get("lesson_weight", 40))
-    referral_max = float(qsc.get("referral_max", 3))
+    referral_max = float(qsc.get("referral_max", 3)) or 3.0
     referral_weight = float(qsc.get("referral_weight", 30))
-    payment_max = float(qsc.get("payment_max", 2))
+    payment_max = float(qsc.get("payment_max", 2)) or 2.0
     payment_weight = float(qsc.get("payment_weight", 20))
 
     lesson_val = _safe(d4_row.get("本月课耗")) or _safe(d4_row.get("课耗")) or 0.0
