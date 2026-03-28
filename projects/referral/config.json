@@ -202,7 +202,8 @@
     "knowledge",
     "cc_performance",
     "incentive",
-    "data_health"
+    "data_health",
+    "access_control"
   ],
   "enclosure_role_assignment": {
     "CC": {
