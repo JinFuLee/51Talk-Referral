@@ -339,6 +339,10 @@ for _key, _mod, _prefix, _tags in _loaded_routers:
         kwargs["tags"] = _tags
     app.include_router(_mod.router, **kwargs)
 
+# ── 系统级路由（不受 enabled_routers 控制）────────────────────────────────────
+from backend.api import filter_options as _filter_options_mod  # noqa: E402
+app.include_router(_filter_options_mod.router, prefix="/api/filter", tags=["filter"])
+
 
 if __name__ == "__main__":
     import uvicorn
