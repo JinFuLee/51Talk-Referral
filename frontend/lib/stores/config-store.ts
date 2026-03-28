@@ -1,6 +1,15 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { useEffect, useState } from 'react';
+import type {
+  Country,
+  DataRole,
+  Granularity,
+  FunnelStage,
+  Channel,
+  BehaviorSegment,
+  BenchmarkMode,
+} from '@/lib/types/filters';
 
 /**
  * 在消费 persist store 的组件中调用，避免 SSR/CSR 水合不匹配。
@@ -24,6 +33,32 @@ const VALID_COMPARE_MODES: CompareMode[] = ['off', 'pop', 'yoy', 'peak', 'valley
 const VALID_SIMPLE_TIME_RANGES = ['this_week', 'this_month', 'last_month'] as const;
 const VALID_ROLES = ['ops', 'exec', 'finance'] as const;
 const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+
+const VALID_DATA_ROLES: DataRole[] = ['all', 'cc', 'ss', 'lp', 'ops'];
+const VALID_GRANULARITIES: Granularity[] = ['day', 'week', 'month', 'quarter'];
+const VALID_FUNNEL_STAGES: FunnelStage[] = [
+  'all',
+  'registration',
+  'appointment',
+  'attendance',
+  'payment',
+];
+const VALID_CHANNELS: Channel[] = [
+  'all',
+  'cc_narrow',
+  'ss_narrow',
+  'lp_narrow',
+  'cc_wide',
+  'lp_wide',
+  'ops_wide',
+];
+const VALID_BENCHMARKS: BenchmarkMode[] = [
+  'off',
+  'target',
+  'bm_progress',
+  'bm_today',
+  'prediction',
+];
 
 function validateCompareMode(v: unknown): CompareMode {
   return VALID_COMPARE_MODES.includes(v as CompareMode) ? (v as CompareMode) : 'off';
@@ -60,6 +95,56 @@ function validatePeriod(v: unknown): string {
   return 'this_month';
 }
 
+function validateDataRole(v: unknown): DataRole {
+  return VALID_DATA_ROLES.includes(v as DataRole) ? (v as DataRole) : 'all';
+}
+
+function validateGranularity(v: unknown): Granularity {
+  return VALID_GRANULARITIES.includes(v as Granularity) ? (v as Granularity) : 'month';
+}
+
+function validateFunnelStage(v: unknown): FunnelStage {
+  return VALID_FUNNEL_STAGES.includes(v as FunnelStage) ? (v as FunnelStage) : 'all';
+}
+
+function validateChannel(v: unknown): Channel {
+  return VALID_CHANNELS.includes(v as Channel) ? (v as Channel) : 'all';
+}
+
+function validateBenchmarks(v: unknown): BenchmarkMode[] {
+  if (!Array.isArray(v)) return ['target'];
+  const valid = v.filter((item) =>
+    VALID_BENCHMARKS.includes(item as BenchmarkMode)
+  ) as BenchmarkMode[];
+  return valid.length > 0 ? valid : ['target'];
+}
+
+function validateEnclosure(v: unknown): string[] | null {
+  if (v === null || v === undefined) return null;
+  if (!Array.isArray(v)) return null;
+  const items = v.filter((item) => typeof item === 'string') as string[];
+  return items.length > 0 ? items : null;
+}
+
+function validateBehavior(v: unknown): BehaviorSegment[] | null {
+  if (v === null || v === undefined) return null;
+  if (!Array.isArray(v)) return null;
+  const VALID_BEHAVIORS: BehaviorSegment[] = [
+    'gold',
+    'effective',
+    'stuck_pay',
+    'stuck_show',
+    'potential',
+    'freeloader',
+    'newcomer',
+    'casual',
+  ];
+  const items = v.filter((item) =>
+    VALID_BEHAVIORS.includes(item as BehaviorSegment)
+  ) as BehaviorSegment[];
+  return items.length > 0 ? items : null;
+}
+
 interface ConfigState {
   role: 'ops' | 'exec' | 'finance';
   input_dir: string;
@@ -76,6 +161,16 @@ interface ConfigState {
   focusCC: string | null;
   // Chart selection context for cross-chart linking
   selectionContext: SelectionContext;
+  // ── Dimension fields (M37) ───────────────────────────────────────────────────
+  country: Country;
+  dataRole: DataRole;
+  enclosure: string[] | null;
+  granularity: Granularity;
+  funnelStage: FunnelStage;
+  channel: Channel;
+  behavior: BehaviorSegment[] | null;
+  benchmarks: BenchmarkMode[];
+  // ── Setters ──────────────────────────────────────────────────────────────────
   setRole: (role: 'ops' | 'exec' | 'finance') => void;
   setConfig: (
     config: Partial<
@@ -90,6 +185,14 @@ interface ConfigState {
         | 'setFocusCC'
         | 'setSelectionContext'
         | 'clearSelectionContext'
+        | 'setCountry'
+        | 'setDataRole'
+        | 'setEnclosure'
+        | 'setGranularity'
+        | 'setFunnelStage'
+        | 'setChannel'
+        | 'setBehavior'
+        | 'setBenchmarks'
       >
     >
   ) => void;
@@ -100,6 +203,14 @@ interface ConfigState {
   setFocusCC: (cc: string | null) => void;
   setSelectionContext: (ctx: SelectionContext) => void;
   clearSelectionContext: () => void;
+  setCountry: (country: Country) => void;
+  setDataRole: (dataRole: DataRole) => void;
+  setEnclosure: (enclosure: string[] | null) => void;
+  setGranularity: (granularity: Granularity) => void;
+  setFunnelStage: (funnelStage: FunnelStage) => void;
+  setChannel: (channel: Channel) => void;
+  setBehavior: (behavior: BehaviorSegment[] | null) => void;
+  setBenchmarks: (benchmarks: BenchmarkMode[]) => void;
 }
 
 export const useConfigStore = create<ConfigState>()(
@@ -115,6 +226,15 @@ export const useConfigStore = create<ConfigState>()(
       teamFilter: null,
       focusCC: null,
       selectionContext: null,
+      // Dimension defaults
+      country: 'TH',
+      dataRole: 'all',
+      enclosure: null,
+      granularity: 'month',
+      funnelStage: 'all',
+      channel: 'all',
+      behavior: null,
+      benchmarks: ['target'],
       setRole: (role) => set({ role }),
       setConfig: (config) => set(config),
       setPeriod: (period, customStart, customEnd) => set({ period, customStart, customEnd }),
@@ -124,6 +244,14 @@ export const useConfigStore = create<ConfigState>()(
       setFocusCC: (focusCC) => set({ focusCC }),
       setSelectionContext: (selectionContext) => set({ selectionContext }),
       clearSelectionContext: () => set({ selectionContext: null }),
+      setCountry: (country) => set({ country }),
+      setDataRole: (dataRole) => set({ dataRole }),
+      setEnclosure: (enclosure) => set({ enclosure }),
+      setGranularity: (granularity) => set({ granularity }),
+      setFunnelStage: (funnelStage) => set({ funnelStage }),
+      setChannel: (channel) => set({ channel }),
+      setBehavior: (behavior) => set({ behavior }),
+      setBenchmarks: (benchmarks) => set({ benchmarks }),
     }),
     {
       name: 'panel-config',
@@ -156,6 +284,18 @@ export const useConfigStore = create<ConfigState>()(
           ) {
             state.selectionContext = null;
           }
+        }
+        // Dimension field validators
+        state.dataRole = validateDataRole(state.dataRole);
+        state.granularity = validateGranularity(state.granularity);
+        state.funnelStage = validateFunnelStage(state.funnelStage);
+        state.channel = validateChannel(state.channel);
+        state.benchmarks = validateBenchmarks(state.benchmarks);
+        state.enclosure = validateEnclosure(state.enclosure);
+        state.behavior = validateBehavior(state.behavior);
+        // country: must be string, default TH
+        if (typeof state.country !== 'string') {
+          state.country = 'TH';
         }
       },
     }
