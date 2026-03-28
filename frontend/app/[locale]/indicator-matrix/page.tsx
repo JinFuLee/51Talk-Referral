@@ -6,7 +6,7 @@ import { PageHeader } from '@/components/ui/PageHeader';
 import { BIZ_PAGE } from '@/lib/layout';
 import { useIndicatorMatrix } from '@/lib/hooks/useIndicatorMatrix';
 import { indicatorMatrixAPI } from '@/lib/api';
-import { useConfigStore } from '@/lib/stores/config-store';
+import { useLocale } from 'next-intl';
 import type { IndicatorCategory, IndicatorAvailability } from '@/lib/types/indicator-matrix';
 import {
   INDICATOR_CATEGORIES,
@@ -22,7 +22,8 @@ const AVAILABILITY_LABELS: Record<IndicatorAvailability, string> = {
 
 export default function IndicatorMatrixPage() {
   const { registry, matrix, mutate, isLoading, error } = useIndicatorMatrix();
-  const language = useConfigStore((s) => s.language) as 'zh' | 'th';
+  const locale = useLocale();
+  const language = (locale === 'th' ? 'th' : 'zh') as 'zh' | 'th';
 
   const [filterCategory, setFilterCategory] = useState<IndicatorCategory | 'all'>('all');
   const [filterRole, setFilterRole] = useState<'all' | 'CC' | 'SS' | 'LP'>('all');

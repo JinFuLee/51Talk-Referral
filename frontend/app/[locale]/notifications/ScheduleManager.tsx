@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 import useSWR, { mutate } from 'swr';
 import { Clock, Plus, Pencil, Trash2, Power, PowerOff, Calendar } from 'lucide-react';
-import { useConfigStore } from '@/lib/stores/config-store';
+import { useLocale } from 'next-intl';
 
 const I18N = {
   zh: {
@@ -130,8 +130,8 @@ const DEFAULT_FORM: SchedulePayload = {
 // ── 主组件 ────────────────────────────────────────────────────────────────────
 
 export function ScheduleManager() {
-  const lang = useConfigStore((s) => s.language) === 'zh' ? 'zh' : 'en';
-  const t = I18N[lang as keyof typeof I18N];
+  const locale = useLocale();
+  const t = (I18N as unknown as Record<string, (typeof I18N)['zh']>)[locale] ?? I18N['zh'];
 
   const { data, error, isLoading } = useSWR<{ schedules: Schedule[]; total: number }>(
     `${API_BASE}/notifications/schedule`,
@@ -361,7 +361,7 @@ export function ScheduleManager() {
       {/* 新增/编辑弹窗 */}
       {showForm && (
         <ScheduleFormModal
-          lang={lang}
+          lang={locale === 'zh' || locale === 'zh-TW' ? 'zh' : 'en'}
           form={form}
           setForm={setForm}
           onSave={handleSave}

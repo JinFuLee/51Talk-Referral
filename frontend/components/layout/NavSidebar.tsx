@@ -38,6 +38,7 @@ import {
   LineChart,
   UserCheck,
   Activity,
+  Lock,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
@@ -109,6 +110,7 @@ const MAIN_GROUPS: NavGroup[] = [
       { href: '/knowledge', label: '知识库', Icon: BookOpen },
       { href: '/data-health', label: '数据健康', Icon: Activity },
       { href: '/settings', label: '设置', Icon: Settings },
+      { href: '/access-control', label: '权限管理', Icon: Lock },
       { href: '/present', label: '汇报模式', Icon: Monitor },
     ],
   },

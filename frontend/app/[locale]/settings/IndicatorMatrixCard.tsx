@@ -5,7 +5,7 @@ import { ChevronDown, ChevronUp, Lock } from 'lucide-react';
 import { Card } from '@/components/ui/Card';
 import { useIndicatorMatrix } from '@/lib/hooks/useIndicatorMatrix';
 import { indicatorMatrixAPI } from '@/lib/api';
-import { useConfigStore } from '@/lib/stores/config-store';
+import { useLocale } from 'next-intl';
 import type { IndicatorCategory } from '@/lib/types/indicator-matrix';
 import {
   INDICATOR_CATEGORIES,
@@ -128,7 +128,8 @@ function CategorySection({
 
 export default function IndicatorMatrixCard() {
   const { registry, matrix, mutate, isLoading, error } = useIndicatorMatrix();
-  const language = useConfigStore((s) => s.language) as 'zh' | 'th';
+  const locale = useLocale();
+  const language = (locale === 'th' ? 'th' : 'zh') as 'zh' | 'th';
 
   // 本地编辑态
   const [ssActive, setSsActive] = useState<Set<string>>(() => new Set());
