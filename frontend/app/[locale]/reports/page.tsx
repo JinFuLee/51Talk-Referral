@@ -1,7 +1,10 @@
 'use client';
 
+export const dynamic = 'force-dynamic';
+
 import { useState } from 'react';
-import { useReportList, useTranslation } from '@/lib/hooks';
+import { useTranslations } from 'next-intl';
+import { useReportList } from '@/lib/hooks';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { BIZ_PAGE } from '@/lib/layout';
 import { reportsAPI } from '@/lib/api';
@@ -12,7 +15,7 @@ import { ErrorBoundary } from '@/components/providers/ErrorBoundary';
 import type { ReportFile } from '@/lib/types';
 
 export default function ReportsPage() {
-  const { t } = useTranslation();
+  const t = useTranslations();
   const { data: reports, isLoading } = useReportList();
   const [selected, setSelected] = useState<ReportFile | null>(null);
   const [content, setContent] = useState<string | null>(null);

@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { toast } from 'sonner';
 import useSWR, { mutate } from 'swr';
+import { useTranslations } from 'next-intl';
 import { Clock, Plus, Pencil, Trash2, Power, PowerOff, Calendar } from 'lucide-react';
 
 const API_BASE = '/api';
@@ -40,87 +41,6 @@ interface SchedulePayload {
   description: string;
 }
 
-// ── i18n ──────────────────────────────────────────────────────────────────────
-
-const I18N = {
-  zh: {
-    title: '定时排程',
-    subtitle: '配置自动定时推送任务，按时执行 Lark / 钉钉通知',
-    addSchedule: '新增排程',
-    name: '排程名称',
-    platform: '平台',
-    template: '模板',
-    channels: '通道（逗号分隔）',
-    time: '执行时间（24h）',
-    hour: '时',
-    minute: '分',
-    force: '强制重发',
-    dryRun: '仅预览（不实际发送）',
-    description: '备注',
-    save: '保存',
-    cancel: '取消',
-    delete: '删除',
-    enable: '启用',
-    disable: '停用',
-    edit: '编辑',
-    status: '状态',
-    enabled: '已启用',
-    disabled: '已停用',
-    lastRun: '创建时间',
-    noSchedules: '暂无排程，点击「新增排程」创建',
-    lark: 'Lark',
-    dingtalk: '钉钉',
-    templates: {
-      cc_followup: 'CC 未打卡跟进',
-      lp_followup: 'LP 未打卡跟进',
-      ss_followup: 'SS 未打卡跟进',
-      ops_followup: '运营未打卡跟进',
-    },
-    confirmDelete: '确认删除此排程？',
-    loading: '加载中...',
-    error: '加载排程失败',
-  },
-  en: {
-    title: 'Scheduled Tasks',
-    subtitle: 'Configure automated scheduled push tasks for Lark / DingTalk',
-    addSchedule: 'Add Schedule',
-    name: 'Name',
-    platform: 'Platform',
-    template: 'Template',
-    channels: 'Channels (comma-separated)',
-    time: 'Execution Time (24h)',
-    hour: 'Hour',
-    minute: 'Minute',
-    force: 'Force Resend',
-    dryRun: 'Dry Run Only',
-    description: 'Notes',
-    save: 'Save',
-    cancel: 'Cancel',
-    delete: 'Delete',
-    enable: 'Enable',
-    disable: 'Disable',
-    edit: 'Edit',
-    status: 'Status',
-    enabled: 'Enabled',
-    disabled: 'Disabled',
-    lastRun: 'Created At',
-    noSchedules: 'No schedules yet. Click "Add Schedule" to create one.',
-    lark: 'Lark',
-    dingtalk: 'DingTalk',
-    templates: {
-      cc_followup: 'CC Followup',
-      lp_followup: 'LP Followup',
-      ss_followup: 'SS Followup',
-      ops_followup: 'Ops Followup',
-    },
-    confirmDelete: 'Confirm delete this schedule?',
-    loading: 'Loading...',
-    error: 'Failed to load schedules',
-  },
-} as const;
-
-type Lang = keyof typeof I18N;
-
 // ── 默认表单值 ─────────────────────────────────────────────────────────────────
 
 const DEFAULT_FORM: SchedulePayload = {
@@ -138,12 +58,8 @@ const DEFAULT_FORM: SchedulePayload = {
 
 // ── 主组件 ────────────────────────────────────────────────────────────────────
 
-interface ScheduleManagerProps {
-  lang: Lang;
-}
-
-export function ScheduleManager({ lang }: ScheduleManagerProps) {
-  const t = I18N[lang];
+export function ScheduleManager() {
+  const t = useTranslations('scheduleManager');
 
   const { data, error, isLoading } = useSWR<{ schedules: Schedule[]; total: number }>(
     `${API_BASE}/notifications/schedule`,
