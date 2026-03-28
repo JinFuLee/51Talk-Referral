@@ -1,5 +1,6 @@
 'use client';
 
+import { useLocale } from 'next-intl';
 import { formatRate, formatUSD, formatValue } from '@/lib/utils';
 import type { MonthlyOverview } from '@/lib/types/report';
 
@@ -122,7 +123,6 @@ function bmEffColor(eff: number | null | undefined, bmPct: number, isRate = fals
 
 interface Props {
   data: MonthlyOverview | null | undefined;
-  lang: Lang;
 }
 
 const DISPLAY_METRICS = [
@@ -144,8 +144,9 @@ const DISPLAY_METRICS = [
   'participation_rate',
 ];
 
-export function MonthlyOverviewSlide({ data, lang }: Props) {
-  const t = I18N[lang];
+export function MonthlyOverviewSlide({ data }: Props) {
+  const locale = useLocale();
+  const t = I18N[locale as keyof typeof I18N] ?? I18N['zh'];
 
   if (!data) {
     return (
@@ -171,7 +172,13 @@ export function MonthlyOverviewSlide({ data, lang }: Props) {
         <table className="w-full text-xs border-collapse">
           <thead>
             <tr className="slide-thead-row">
-              <th className="slide-th slide-th-left">{lang === 'zh' ? '指标' : 'Metric'}</th>
+              <th className="slide-th slide-th-left">
+                {locale === 'zh' || locale === 'zh-TW'
+                  ? '指标'
+                  : locale === 'th'
+                    ? 'ตัวชี้วัด'
+                    : 'Metric'}
+              </th>
               <th className="slide-th slide-th-right">{t.target}</th>
               <th className="slide-th slide-th-right">{t.actual}</th>
               <th className="slide-th slide-th-right">{t.bmEff}</th>

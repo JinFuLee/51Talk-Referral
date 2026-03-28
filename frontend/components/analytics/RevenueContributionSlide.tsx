@@ -1,5 +1,6 @@
 'use client';
 
+import { useLocale } from 'next-intl';
 import { formatRate, formatUSD, formatRevenue } from '@/lib/utils';
 import type { RevenueContribution } from '@/lib/types/report';
 import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recharts';
@@ -45,11 +46,11 @@ const PIE_COLORS = ['#ffd100', '#1b365d', '#e8932a', '#2d9f6f', '#e05545'];
 
 interface Props {
   data: RevenueContribution | null | undefined;
-  lang: Lang;
 }
 
-export function RevenueContributionSlide({ data, lang }: Props) {
-  const t = I18N[lang];
+export function RevenueContributionSlide({ data }: Props) {
+  const locale = useLocale();
+  const t = (I18N as unknown as Record<string, (typeof I18N)['zh']>)[locale] ?? I18N['zh'];
   const channels = data?.channels ?? [];
   const total = data?.total;
   const narrowSubtotal = data?.narrow_subtotal;

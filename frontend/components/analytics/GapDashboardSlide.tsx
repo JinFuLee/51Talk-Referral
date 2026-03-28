@@ -1,5 +1,6 @@
 'use client';
 
+import { useLocale } from 'next-intl';
 import { formatUSD, formatValue } from '@/lib/utils';
 import type { GapDashboard } from '@/lib/types/report';
 
@@ -157,11 +158,11 @@ interface Props {
   data: GapDashboard | null | undefined;
   /** 月度达标视角的 gap 数据（actual - target，无 BM 调整） */
   monthlyData?: GapDashboard | null;
-  lang: Lang;
 }
 
-export function GapDashboardSlide({ data, monthlyData, lang }: Props) {
-  const t = I18N[lang];
+export function GapDashboardSlide({ data, monthlyData }: Props) {
+  const locale = useLocale();
+  const t = I18N[locale] ?? I18N['zh'];
 
   if (!data) {
     return (

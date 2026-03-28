@@ -1,5 +1,6 @@
 'use client';
 
+import { useLocale } from 'next-intl';
 import { formatRate, formatUSD, formatValue } from '@/lib/utils';
 import type { Projection } from '@/lib/types/report';
 
@@ -73,11 +74,11 @@ function projFmt(key: string, val: number | null | undefined): string {
 interface Props {
   data: Projection | null | undefined;
   bm_pct: number;
-  lang: Lang;
 }
 
-export function ProjectionSlide({ data, bm_pct, lang }: Props) {
-  const t = I18N[lang];
+export function ProjectionSlide({ data, bm_pct }: Props) {
+  const locale = useLocale();
+  const t = (I18N as unknown as Record<string, (typeof I18N)['zh']>)[locale] ?? I18N['zh'];
 
   if (!data) {
     return (

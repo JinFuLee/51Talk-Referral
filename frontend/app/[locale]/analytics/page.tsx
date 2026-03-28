@@ -16,7 +16,7 @@ import type { DailyReport } from '@/lib/types/report';
 export default function AnalyticsPage() {
   const t = useTranslations('analytics');
   const locale = useLocale();
-  const lang = locale === 'zh' || locale === 'zh-TW' ? ('zh' as const) : ('en' as const);
+  // lang variable removed — slides now use useLocale() internally
   const { data, isLoading, error, mutate } = useSWR<DailyReport>('/api/report/daily', swrFetcher);
 
   const bm = data?.bm_pct ?? 0;
@@ -94,22 +94,21 @@ export default function AnalyticsPage() {
         <div className="space-y-6">
           {/* Row 1: 区块 1 + 区块 2 */}
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-            <MonthlyOverviewSlide data={data.blocks.monthly_overview} lang={lang} />
+            <MonthlyOverviewSlide data={data.blocks.monthly_overview} />
             <GapDashboardSlide
               data={data.blocks.gap_dashboard}
               monthlyData={data.blocks.gap_dashboard?.monthly}
-              lang={lang}
             />
           </div>
 
           {/* Row 2: 区块 3 + 区块 4 */}
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-            <ScenarioCompareSlide data={data.blocks.scenario_analysis} lang={lang} />
-            <ProjectionSlide data={data.blocks.projection} bm_pct={data.bm_pct} lang={lang} />
+            <ScenarioCompareSlide data={data.blocks.scenario_analysis} />
+            <ProjectionSlide data={data.blocks.projection} bm_pct={data.bm_pct} />
           </div>
 
           {/* Row 3: 区块 5（全宽） */}
-          <RevenueContributionSlide data={data.blocks.revenue_contribution} lang={lang} />
+          <RevenueContributionSlide data={data.blocks.revenue_contribution} />
 
           {/* Row 4-6: 区块 6-11 占位（由 FE2 实现） */}
           <div className="card-base p-6 text-center text-sm text-[var(--text-muted)]">

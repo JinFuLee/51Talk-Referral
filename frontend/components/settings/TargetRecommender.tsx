@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useCallback } from 'react';
+import { useLocale } from 'next-intl';
 import useSWR from 'swr';
 import { swrFetcher } from '@/lib/api';
 import { formatUSD, formatRate, formatValue } from '@/lib/utils';
@@ -503,8 +504,8 @@ interface CustomInputs {
 
 // ── 主组件 ────────────────────────────────────────────────────────────────────
 export function TargetRecommender() {
-  const [lang, setLang] = useState<Lang>('zh');
-  const t = I18N[lang];
+  const locale = useLocale();
+  const t = I18N[locale as keyof typeof I18N] ?? I18N['zh'];
 
   // 顶部输入
   const [companyRevenue, setCompanyRevenue] = useState('');
@@ -626,19 +627,7 @@ export function TargetRecommender() {
           <p className="text-sm text-[var(--text-muted)] mt-0.5">{t.subtitle}</p>
         </div>
         <div className="flex gap-1 shrink-0">
-          {(['zh', 'en'] as const).map((l) => (
-            <button
-              key={l}
-              onClick={() => setLang(l)}
-              className={`px-2 py-0.5 text-xs rounded border transition-colors ${
-                lang === l
-                  ? 'border-[var(--brand-p2)] bg-[var(--color-accent-surface)] text-[var(--brand-p2)] font-semibold'
-                  : 'border-[var(--border-default)] text-[var(--text-muted)] hover:bg-[var(--bg-subtle)]'
-              }`}
-            >
-              {l.toUpperCase()}
-            </button>
-          ))}
+          {/* Language switching now handled by URL locale via next-intl */}
         </div>
       </div>
 

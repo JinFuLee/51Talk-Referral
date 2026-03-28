@@ -1,5 +1,6 @@
 'use client';
 
+import { useLocale } from 'next-intl';
 import { formatRate, formatUSD, formatValue } from '@/lib/utils';
 import type { ScenarioAnalysis } from '@/lib/types/report';
 
@@ -39,11 +40,11 @@ type Lang = keyof typeof I18N;
 
 interface Props {
   data: ScenarioAnalysis | null | undefined;
-  lang: Lang;
 }
 
-export function ScenarioCompareSlide({ data, lang }: Props) {
-  const t = I18N[lang];
+export function ScenarioCompareSlide({ data }: Props) {
+  const locale = useLocale();
+  const t = (I18N as unknown as Record<string, (typeof I18N)['zh']>)[locale] ?? I18N['zh'];
   const scenarios = data?.scenarios ?? [];
 
   const totalImpactRev = scenarios.reduce((s, sc) => s + (sc.impact_revenue ?? 0), 0);
