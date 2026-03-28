@@ -95,7 +95,7 @@ function ErrorState({ onRetry }: { onRetry: () => void }) {
     <div className="card-base flex flex-col items-center justify-center py-12 gap-3">
       <p className="text-base font-semibold text-red-600">诊断加载失败</p>
       <p className="text-sm text-[var(--text-muted)]">
-        后端服务未运行，或 /api/health/data-quality 端点不存在
+        后端服务未运行，或 /api/data-health/data-quality 端点不存在
       </p>
       <button onClick={onRetry} className="btn-secondary">
         重试
@@ -562,7 +562,7 @@ export default function DataHealthPage() {
   const [autoRefresh, setAutoRefresh] = useState(false);
 
   const { data, isLoading, error, mutate } = useSWR<DataHealthReport>(
-    '/api/health/data-quality',
+    '/api/data-health/data-quality',
     swrFetcher,
     { refreshInterval: autoRefresh ? 30000 : 0 }
   );
@@ -579,7 +579,7 @@ export default function DataHealthPage() {
         <div className="card-base flex flex-col items-center justify-center py-12 gap-3">
           <p className="text-base font-semibold text-[var(--text-secondary)]">暂无诊断数据</p>
           <p className="text-sm text-[var(--text-muted)]">
-            后端需实现 GET /api/health/data-quality 端点
+            后端需实现 GET /api/data-health/data-quality 端点
           </p>
           <button onClick={() => mutate()} className="btn-secondary">
             重试
