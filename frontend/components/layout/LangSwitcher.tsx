@@ -1,39 +1,46 @@
 'use client';
 
-interface LangSwitcherProps {
-  lang: 'zh' | 'th';
-  onLangChange: (lang: 'zh' | 'th') => void;
-}
+import { useRouter, usePathname } from '@/i18n/navigation';
+import { useLocale } from 'next-intl';
 
-export function LangSwitcher({ lang, onLangChange }: LangSwitcherProps) {
+const LANGS = [
+  { code: 'zh', label: '简体' },
+  { code: 'zh-TW', label: '繁體' },
+  { code: 'th', label: 'ไทย' },
+  { code: 'en', label: 'EN' },
+] as const;
+
+type LocaleCode = (typeof LANGS)[number]['code'];
+
+export function LangSwitcher() {
+  const locale = useLocale();
+  const router = useRouter();
+  const pathname = usePathname();
+
+  function handleSwitch(newLocale: LocaleCode) {
+    router.replace(pathname, { locale: newLocale });
+  }
+
   return (
     <div
       className="flex rounded-md border border-[var(--border-subtle)] overflow-hidden"
       role="group"
       aria-label="语言切换"
     >
-      <button
-        onClick={() => onLangChange('zh')}
-        aria-pressed={lang === 'zh'}
-        className={`px-3 py-1 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${
-          lang === 'zh'
-            ? 'bg-primary text-primary-foreground'
-            : 'bg-[var(--bg-surface)] text-[var(--text-secondary)] hover:bg-[var(--bg-primary)]'
-        }`}
-      >
-        ZH
-      </button>
-      <button
-        onClick={() => onLangChange('th')}
-        aria-pressed={lang === 'th'}
-        className={`px-3 py-1 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${
-          lang === 'th'
-            ? 'bg-primary text-primary-foreground'
-            : 'bg-[var(--bg-surface)] text-[var(--text-secondary)] hover:bg-[var(--bg-primary)]'
-        }`}
-      >
-        TH
-      </button>
+      {LANGS.map(({ code, label }) => (
+        <button
+          key={code}
+          onClick={() => handleSwitch(code)}
+          aria-pressed={locale === code}
+          className={`px-3 py-1 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${
+            locale === code
+              ? 'bg-primary text-primary-foreground'
+              : 'bg-[var(--bg-surface)] text-[var(--text-secondary)] hover:bg-[var(--bg-primary)]'
+          }`}
+        >
+          {label}
+        </button>
+      ))}
     </div>
   );
 }

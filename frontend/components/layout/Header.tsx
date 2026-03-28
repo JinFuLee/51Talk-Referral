@@ -31,7 +31,7 @@ export function Header({ lang, onLangChange, role, onRoleChange, lastUpdated }: 
           </span>
         )}
         <RoleSwitcher role={role} onRoleChange={onRoleChange} lang={lang} />
-        <LangSwitcher lang={lang} onLangChange={onLangChange} />
+        <LangSwitcher />
       </div>
     </header>
   );

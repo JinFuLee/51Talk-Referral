@@ -2,12 +2,14 @@
 
 import { useHealth } from '@/lib/hooks';
 import { usePathname } from 'next/navigation';
+import { useLocale } from 'next-intl';
 import { usePresentationStore } from '@/lib/stores/presentation-store';
 import { MonitorPlay } from 'lucide-react';
 import clsx from 'clsx';
 import { TimePeriodSelector } from '@/components/shared/TimePeriodSelector';
 import { CompareToggle } from '@/components/shared/CompareToggle';
 import { BrandMark } from '@/components/ui/BrandMark';
+import { formatDate } from '@/lib/date-format';
 
 function ViewModeBadge({ pathname }: { pathname: string }) {
   if (pathname.startsWith('/ops')) {
@@ -32,6 +34,7 @@ export function Topbar() {
   const pathname = usePathname();
   const togglePresentationMode = usePresentationStore((s) => s.togglePresentationMode);
 
+  const locale = useLocale();
   const isOnline = health?.status === 'ok';
 
   return (
@@ -39,11 +42,7 @@ export function Topbar() {
       {/* 移动端左侧为汉堡按钮留出空间（固定定位在 left-4，宽约 44px） */}
       <div className="flex items-center gap-2 lg:gap-3 pl-10 lg:pl-0">
         <div className="hidden sm:block text-sm font-medium text-[var(--text-secondary)]">
-          {new Date().toLocaleDateString('zh-CN', {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric',
-          })}
+          {formatDate(new Date(), locale)}
           <span className="text-[var(--text-muted)] mx-2">|</span>
           T-1 数据
         </div>

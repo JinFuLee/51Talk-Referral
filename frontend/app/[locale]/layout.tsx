@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import { NextIntlClientProvider, hasLocale } from 'next-intl';
 import { notFound } from 'next/navigation';
 import { setRequestLocale } from 'next-intl/server';
@@ -20,6 +21,34 @@ import { BottomTabBar } from '@/components/layout/BottomTabBar';
 
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
+}
+
+const TITLES: Record<string, string> = {
+  zh: 'ref-ops-engine — 运营分析面板',
+  'zh-TW': 'ref-ops-engine — 營運分析面板',
+  en: 'ref-ops-engine — Operations Dashboard',
+  th: 'ref-ops-engine — แดชบอร์ดวิเคราะห์',
+};
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  return {
+    title: TITLES[locale] || TITLES['zh'],
+    alternates: {
+      canonical: `/${locale}`,
+      languages: {
+        en: '/en',
+        zh: '/zh',
+        'zh-TW': '/zh-TW',
+        th: '/th',
+        'x-default': '/zh',
+      },
+    },
+  };
 }
 
 export default async function LocaleLayout({
