@@ -161,7 +161,7 @@ def get_overview(
 
     metrics: dict[str, Any] = {}
     if result_df is not None and not result_df.empty:
-        thai_df = DataManager.filter_thai_region(result_df)
+        thai_df = DataManager.filter_thai_region(result_df, fallback_to_all=True)
         row = thai_df.iloc[0]
         for col in result_df.columns:
             val = row[col]

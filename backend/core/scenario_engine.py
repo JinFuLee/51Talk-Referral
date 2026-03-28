@@ -51,7 +51,7 @@ class ScenarioEngine:
         if self._result.empty:
             return {}
         from backend.core.data_manager import DataManager
-        thai_df = DataManager.filter_thai_region(self._result)
+        thai_df = DataManager.filter_thai_region(self._result, fallback_to_all=True)
         row = thai_df.iloc[0]
         return {str(k): v for k, v in row.items()}
 

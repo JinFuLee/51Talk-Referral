@@ -2215,6 +2215,25 @@ def cmd_followup(args: argparse.Namespace) -> None:
         print("   ⚠ 无未打卡学员数据（可能后端未启动或无数据）")
         return
 
+    # ── Gate A: Pre-generate 数据验收 ──────────────────────────────────
+    import sys as _sys
+    _pr = str(Path(__file__).resolve().parent.parent)
+    if _pr not in _sys.path:
+        _sys.path.insert(0, _pr)
+    from backend.core.notification_validator import NotificationValidator, ValidationResult
+    _validator = NotificationValidator()
+    _vr = _validator.validate_pre_send("followup", {"students": students})
+    if not _vr.passed:
+        print("   [BLOCKED] 数据验收未通过:")
+        for v in _vr.violations:
+            print(f"     ✗ {v}")
+        _validator.log_failure(_vr, f"lark_bot.cmd_followup pre_generate channel={args.channel}")
+        if not getattr(args, "dry_run", False):
+            return
+        print("   [DRY-RUN] 继续执行")
+    else:
+        print("   ✓ 数据验收通过（泰国 TH- 团队）")
+
     # 过滤：只保留角色对应围场的学员
     valid_encs = set(enc_order)
     students = [s for s in students if s.get("enclosure") in valid_encs]
@@ -2236,6 +2255,21 @@ def cmd_followup(args: argparse.Namespace) -> None:
     if exclude:
         teams = {k: v for k, v in teams.items() if k not in exclude}
     print(f"   ✓ {len(teams)} 个小组: {', '.join(teams.keys())}")
+
+    # ── Gate B: Pre-send 团队名最终验收 ──────────────────────────────
+    non_th = [t for t in teams if t and not t.strip().upper().startswith("TH")]
+    if non_th:
+        print(f"   [BLOCKED] 以下团队非 TH- 前缀: {non_th}")
+        _validator.log_failure(
+            ValidationResult(
+                passed=False, stage="pre_send",
+                violations=[f"非 TH- 团队: {non_th}"],
+            ),
+            f"lark_bot.cmd_followup pre_send channel={args.channel}",
+        )
+        if not getattr(args, "dry_run", False):
+            return
+        print("   [DRY-RUN] 继续执行")
 
     # 获取各团队 per-CC 打卡率详情
     print("   获取各团队打卡率详情...")

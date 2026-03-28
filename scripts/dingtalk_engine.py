@@ -182,6 +182,28 @@ class NotificationEngine:
             print("没有可用的通道（检查 channels.json 和 enabled 状态）")
             return
 
+        # ── Stage 1: Pre-generate 数据验收 ────────────────────────────────
+        if not test:
+            _pr = str(Path(__file__).resolve().parent.parent)
+            if _pr not in sys.path:
+                sys.path.insert(0, _pr)
+            from backend.core.notification_validator import NotificationValidator
+            _validator = NotificationValidator()
+            overview = self._fetch_overview()
+            if overview:
+                _vr = _validator.validate_pre_send("overview", overview)
+                if not _vr.passed:
+                    print("\n[BLOCKED] 数据验收未通过（非泰国/数据过旧/指标异常）:")
+                    for v in _vr.violations:
+                        print(f"  ✗ {v}")
+                    _validator.log_failure(_vr, f"dingtalk_engine.run")
+                    if not dry_run:
+                        print("推送已阻止。请检查数据源后重试。")
+                        return
+                    print("[DRY-RUN] 继续执行（仅生成不发送）")
+                else:
+                    print("✓ 数据验收通过")
+
         for ch_idx, (ch_id, ch) in enumerate(targets):
             if ch_idx > 0 and not test:
                 time.sleep(5)  # 通道间间隔，避免跨群频率限制
@@ -560,6 +582,25 @@ class NotificationEngine:
             return result
 
         print(f"  [followup_per_cc] 共 {len(students)} 名未打卡学员")
+
+        # ── Stage 2: Pre-send 学员团队验收 ────────────────────────────
+        _pr2 = str(Path(__file__).resolve().parent.parent)
+        if _pr2 not in _sys.path:
+            _sys.path.insert(0, _pr2)
+        from backend.core.notification_validator import NotificationValidator
+        _v2 = NotificationValidator()
+        _vr2 = _v2.validate_pre_send("followup", {"students": students})
+        if not _vr2.passed:
+            print("  [BLOCKED] followup 数据验收未通过:")
+            for v in _vr2.violations:
+                print(f"    ✗ {v}")
+            _v2.log_failure(_vr2, "dingtalk_engine._process_followup_per_cc")
+            if not dry_run:
+                result["status"] = "blocked_validation"
+                return result
+            print("  [DRY-RUN] 继续执行")
+        else:
+            print("  ✓ followup 数据验收通过")
 
         # 2. 按团队 → 按 CC 分组
         teams = _lb.group_students_by_team(students)

@@ -145,12 +145,8 @@ class ChannelFunnelEngine:
         if self._d1 is None or not hasattr(self._d1, "columns"):
             return {}
 
-        df = self._d1
-        # 如果有区域列，过滤泰国
-        if "区域" in df.columns:
-            th_rows = df[df["区域"].astype(str).str.contains("泰")]
-            if len(th_rows) > 0:
-                df = th_rows
+        from backend.core.data_manager import DataManager
+        df = DataManager.filter_thai_region(self._d1, fallback_to_all=True)
 
         return {
             "registrations": _sum_col(df, _D1_REG_COL),

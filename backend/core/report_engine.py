@@ -259,11 +259,8 @@ class ReportEngine:
         data = self._get_data()
         d1 = data.get("result")
         if d1 is not None and hasattr(d1, "columns"):
-            df = d1
-            if "区域" in df.columns:
-                th = df[df["区域"].astype(str).str.contains("泰")]
-                if len(th) > 0:
-                    df = th
+            from backend.core.data_manager import DataManager
+            df = DataManager.filter_thai_region(d1, fallback_to_all=True)
             from backend.core.channel_funnel_engine import _sum_col
 
             reg = _sum_col(df, "转介绍注册数")

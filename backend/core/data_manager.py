@@ -216,13 +216,28 @@ class DataManager:
         return filtered
 
     @staticmethod
-    def filter_thai_region(df: pd.DataFrame) -> pd.DataFrame:
-        """若 DataFrame 含「区域」列，筛选泰国行；否则原样返回。"""
+    def filter_thai_region(
+        df: pd.DataFrame, *, fallback_to_all: bool = False
+    ) -> pd.DataFrame:
+        """若 DataFrame 含「区域」列，筛选泰国行。
+
+        Args:
+            fallback_to_all: True = 无泰国行时返回原 df（向后兼容）
+                             False（默认）= 无泰国行时返回空 df + 日志警告
+        """
         if df is None or df.empty:
             return df
         if "区域" in df.columns:
             thai = df[df["区域"] == "泰国"]
-            return thai if not thai.empty else df
+            if not thai.empty:
+                return thai
+            logger.warning(
+                "filter_thai_region: 区域列存在但无「泰国」行"
+                "（原始行数=%d，区域值=%s）",
+                len(df),
+                df["区域"].unique().tolist(),
+            )
+            return df if fallback_to_all else thai  # 默认返回空
         return df
 
     def get(self, key: str) -> Any:

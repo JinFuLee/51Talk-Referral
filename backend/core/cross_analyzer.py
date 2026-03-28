@@ -61,7 +61,7 @@ class CrossAnalyzer:
             return {}
 
         from backend.core.data_manager import DataManager
-        thai_df = DataManager.filter_thai_region(self._result)
+        thai_df = DataManager.filter_thai_region(self._result, fallback_to_all=True)
         row = thai_df.iloc[0]
 
         col_map = {
@@ -122,7 +122,7 @@ class CrossAnalyzer:
         if self._result.empty:
             return None
         from backend.core.data_manager import DataManager
-        thai_df = DataManager.filter_thai_region(self._result)
+        thai_df = DataManager.filter_thai_region(self._result, fallback_to_all=True)
         val = thai_df.iloc[0].get(col)
         return _safe(val)
 

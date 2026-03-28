@@ -804,12 +804,9 @@ def get_target_tiers(
         d1 = data.get("result")
         if d1 is not None and hasattr(d1, "columns"):
             import pandas as pd
+            from backend.core.data_manager import DataManager
 
-            df = d1
-            if "区域" in df.columns:
-                th = df[df["区域"].astype(str).str.contains("泰")]
-                if len(th) > 0:
-                    df = th
+            df = DataManager.filter_thai_region(d1, fallback_to_all=True)
 
             def _s(col: str) -> float:
                 return float(

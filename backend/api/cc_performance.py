@@ -969,12 +969,42 @@ def get_cc_performance(
     if all_records:
         # 直接用所有 records 聚合出一个伪 grand_total
         gt_students = sum(r.students_count or 0 for r in all_records) or None
-        gt_revenue_actual = sum(r.revenue.actual or 0 for r in all_records) or None
+        gt_revenue_actual = sum(r.revenue.actual or 0 for r in all_records) or 0
+        # 补偿：区域=泰国但 CC 名为空的行的业绩（未分配 CC 的付费）
+        if not df_d2.empty and "区域" in df_d2.columns:
+            _cc_col = "last_cc_name"
+            _rev_col = "总带新付费金额USD"
+            _paid_col = "转介绍付费数"
+            _area_mask = df_d2["区域"].astype(str) == "泰国"
+            _null_cc = df_d2[_cc_col].isna() | (
+                df_d2[_cc_col].astype(str).str.strip().isin(["", "nan", "NaN"])
+            )
+            _unassigned = df_d2[_area_mask & _null_cc]
+            _unassigned_rev = _sf(
+                pd.to_numeric(_unassigned[_rev_col], errors="coerce").sum()
+            )
+            _unassigned_paid = _si(
+                pd.to_numeric(_unassigned[_paid_col], errors="coerce").sum()
+            )
+            if _unassigned_rev:
+                gt_revenue_actual += _unassigned_rev
+            if _unassigned_paid:
+                gt_paid_actual = (
+                    sum(r.paid.actual or 0 for r in all_records) or 0
+                ) + _unassigned_paid
+            else:
+                gt_paid_actual = (
+                    sum(r.paid.actual or 0 for r in all_records) or None
+                )
+        else:
+            gt_paid_actual = (
+                sum(r.paid.actual or 0 for r in all_records) or None
+            )
+        gt_revenue_actual = gt_revenue_actual or None
         # 团队目标用 config hard.referral_revenue（铁数字），不用个人之和
         gt_revenue_target = team_referral_target or (
             sum(r.revenue.target or 0 for r in all_records) or None
         )
-        gt_paid_actual = sum(r.paid.actual or 0 for r in all_records) or None
         gt_paid_target = sum(r.paid.target or 0 for r in all_records) or None
         gt_leads_actual = sum(r.leads.actual or 0 for r in all_records) or None
         gt_showup_actual = sum(r.showup.actual or 0 for r in all_records) or None

@@ -282,6 +282,24 @@ def main() -> None:
         print("请确认后端服务已启动：uvicorn backend.main:app --port 8100")
         sys.exit(1)
 
+    # ── 数据验收门控 ────────────────────────────────────────────────────
+    _pr = str(Path(__file__).resolve().parent.parent)
+    if _pr not in sys.path:
+        sys.path.insert(0, _pr)
+    from backend.core.notification_validator import NotificationValidator
+    _validator = NotificationValidator()
+    _vr = _validator.validate_pre_send("report", summary)
+    if not _vr.passed:
+        print("\n[BLOCKED] 报告数据验收未通过:")
+        for v in _vr.violations:
+            print(f"  ✗ {v}")
+        _validator.log_failure(_vr, f"dingtalk_report.main channel={args.channel}")
+        if not args.dry_run:
+            sys.exit(2)
+        print("[DRY-RUN] 继续显示内容（不发送）")
+    else:
+        print("✓ 报告数据验收通过")
+
     title, markdown_body = _format_markdown(summary)
 
     if args.dry_run:
