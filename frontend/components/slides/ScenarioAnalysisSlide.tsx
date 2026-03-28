@@ -18,8 +18,10 @@ export function ScenarioAnalysisSlide({ slideNumber, totalSlides }: SlideProps) 
   const insight = (() => {
     if (!data) return undefined;
     const revUp =
-      data.impact_revenue > 0 ? `业绩可提升 +$${data.impact_revenue.toLocaleString()}` : null;
-    const paidUp = data.impact_payments > 0 ? `付费 +${data.impact_payments}` : null;
+      (data.impact_revenue ?? 0) > 0
+        ? `业绩可提升 +$${(data.impact_revenue ?? 0).toLocaleString()}`
+        : null;
+    const paidUp = (data.impact_payments ?? 0) > 0 ? `付费 +${data.impact_payments ?? 0}` : null;
     const parts = [paidUp, revUp].filter(Boolean);
     return parts.length
       ? `优化场景：${parts.join('，')}（转化率 ${formatRate(data.current_rate)} → ${formatRate(data.scenario_rate)}）`
@@ -79,19 +81,19 @@ export function ScenarioAnalysisSlide({ slideNumber, totalSlides }: SlideProps) 
             <div className="bg-[var(--bg-subtle)] rounded-lg p-3 text-center">
               <p className="text-xs text-[var(--text-muted)] mb-1">影响注册数</p>
               <p className="text-lg font-bold text-[var(--text-primary)]">
-                +{data.impact_registrations.toLocaleString()}
+                +{(data.impact_registrations ?? 0).toLocaleString()}
               </p>
             </div>
             <div className="bg-[var(--bg-subtle)] rounded-lg p-3 text-center">
               <p className="text-xs text-[var(--text-muted)] mb-1">影响付费数</p>
               <p className="text-lg font-bold text-[var(--text-primary)]">
-                +{data.impact_payments.toLocaleString()}
+                +{(data.impact_payments ?? 0).toLocaleString()}
               </p>
             </div>
             <div className="bg-[var(--color-success-surface)] rounded-lg p-3 text-center">
               <p className="text-xs text-[var(--text-muted)] mb-1">影响业绩</p>
               <p className="text-lg font-bold text-emerald-800">
-                +${data.impact_revenue.toLocaleString()}
+                +${(data.impact_revenue ?? 0).toLocaleString()}
               </p>
             </div>
           </div>
