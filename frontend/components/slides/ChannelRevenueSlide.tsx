@@ -17,7 +17,7 @@ export function ChannelRevenueSlide({ slideNumber, totalSlides }: SlideProps) {
     swrFetcher
   );
   const channels = data ?? [];
-  const totalAmount = channels.reduce((s, c) => s + c.revenue, 0);
+  const totalAmount = channels.reduce((s, c) => s + (c.revenue ?? 0), 0);
 
   const pieData = channels.map((c) => ({
     name: c.channel,

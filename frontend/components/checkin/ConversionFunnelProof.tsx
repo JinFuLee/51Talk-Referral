@@ -24,7 +24,7 @@ function CustomTooltip({ active, payload, label }: TooltipProps<number, string>)
       <p className="text-[var(--text-secondary)]">
         有推荐注册率：
         <span className="font-mono tabular-nums font-semibold text-[var(--text-primary)] ml-1">
-          {(item.has_registration_pct * 100).toFixed(1)}%
+          {((item.has_registration_pct ?? 0) * 100).toFixed(1)}%
         </span>
       </p>
       <p className="text-[var(--text-secondary)]">
@@ -73,8 +73,8 @@ export function ConversionFunnelProof({ data }: ConversionFunnelProofProps) {
 
   const chartData = data.map((item) => ({
     ...item,
-    reg_pct_display: parseFloat((item.has_registration_pct * 100).toFixed(1)),
-    pay_pct_display: parseFloat((item.has_payment_pct * 100).toFixed(1)),
+    reg_pct_display: parseFloat(((item.has_registration_pct ?? 0) * 100).toFixed(1)),
+    pay_pct_display: parseFloat(((item.has_payment_pct ?? 0) * 100).toFixed(1)),
   }));
 
   return (

@@ -73,7 +73,7 @@ function TodayRequiredCell({ value, format }: { value: number; format: RowFormat
 
 export function BmComparisonTable({ data, visibleKeys }: BmComparisonTableProps) {
   const { calendar, metrics } = data;
-  const bmMtdPct = (calendar.bm_mtd_pct * 100).toFixed(1);
+  const bmMtdPct = ((calendar.bm_mtd_pct ?? 0) * 100).toFixed(1);
 
   const rows = visibleKeys ? ALL_BM_ROWS.filter((r) => visibleKeys.includes(r.key)) : ALL_BM_ROWS;
 

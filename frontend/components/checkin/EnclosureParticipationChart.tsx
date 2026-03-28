@@ -57,7 +57,7 @@ export function EnclosureParticipationChart({ data }: { data: EnclosureDistItem[
 
   const chartData: EnclosureChartRow[] = data.map((item) => ({
     label: fmtEnc(item.enclosure),
-    participation_pct: parseFloat((item.participation_rate * 100).toFixed(1)),
+    participation_pct: parseFloat(((item.participation_rate ?? 0) * 100).toFixed(1)),
     avg_days: item.avg_days,
     total: item.total,
   }));

@@ -332,7 +332,7 @@ export default function BmCalendarCard({ selectedMonth }: BmCalendarCardProps) {
                   </div>
                   {dayData && (
                     <div className="text-[10px] text-[var(--text-muted)] mt-0.5 font-mono">
-                      {(dayData.bm_daily_pct * 100).toFixed(1)}%
+                      {((dayData.bm_daily_pct ?? 0) * 100).toFixed(1)}%
                     </div>
                   )}
                   {dayData?.label && (

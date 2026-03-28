@@ -32,7 +32,7 @@ function CustomTooltip({ active, payload, label }: TooltipProps<number, string>)
       <p className="text-[var(--text-secondary)]">
         有续费学员比例：
         <span className="font-mono tabular-nums font-semibold text-[var(--text-primary)] ml-1">
-          {(row.has_renewal_pct * 100).toFixed(1)}%
+          {((row.has_renewal_pct ?? 0) * 100).toFixed(1)}%
         </span>
       </p>
       <p className="text-[var(--text-secondary)]">
@@ -71,7 +71,7 @@ export function RenewalCheckinChart({ data }: RenewalCheckinChartProps) {
     band: item.band,
     avg_renewals: item.avg_renewals,
     has_renewal_pct: item.has_renewal_pct,
-    renewal_pct_display: parseFloat((item.has_renewal_pct * 100).toFixed(1)),
+    renewal_pct_display: parseFloat(((item.has_renewal_pct ?? 0) * 100).toFixed(1)),
     students: item.students,
   }));
 

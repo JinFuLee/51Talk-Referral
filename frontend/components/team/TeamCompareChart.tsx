@@ -34,7 +34,7 @@ export function TeamCompareChart({ teams }: TeamCompareChartProps) {
 
   const chartData = teams.map((t) => ({
     name: t.cc_name,
-    参与率: Math.round(t.participation_rate * 100),
+    参与率: Math.round((t.participation_rate ?? 0) * 100),
     注册数: t.registrations,
     付费数: t.payments,
   }));

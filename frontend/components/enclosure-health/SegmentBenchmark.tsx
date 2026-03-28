@@ -41,10 +41,10 @@ export function SegmentBenchmark({ data }: SegmentBenchmarkProps) {
 
   const chartData = data.map((row) => ({
     name: row.segment,
-    参与率: Math.round(row.participation * 100),
-    转化率: Math.round(row.conversion * 100),
-    打卡率: Math.round(row.checkin * 100),
-    触达率: Math.round(row.reach * 100),
+    参与率: Math.round((row.participation ?? 0) * 100),
+    转化率: Math.round((row.conversion ?? 0) * 100),
+    打卡率: Math.round((row.checkin ?? 0) * 100),
+    触达率: Math.round((row.reach ?? 0) * 100),
   }));
 
   return (

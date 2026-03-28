@@ -13,7 +13,7 @@ export function RevenueContributionSlide({ slideNumber, totalSlides }: SlideProp
     swrFetcher
   );
   const channels = data ?? [];
-  const totalAmount = channels.reduce((s, c) => s + c.revenue, 0);
+  const totalAmount = channels.reduce((s, c) => s + (c.revenue ?? 0), 0);
 
   // 一句话结论：最大贡献渠道
   const insight = (() => {

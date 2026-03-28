@@ -81,7 +81,7 @@ const COST_STYLES: Record<string, string> = {
 // ── 渠道卡片 ─────────────────────────────────────────────────────────────────
 
 function ChannelCard({ channel }: { channel: OpsChannel }) {
-  const ratePercent = Math.min(100, Math.round(channel.estimated_contact_rate * 100));
+  const ratePercent = Math.min(100, Math.round((channel.estimated_contact_rate ?? 0) * 100));
 
   return (
     <div className="card-compact overflow-hidden flex flex-col !p-0">
@@ -164,7 +164,7 @@ function EnclosureSegmentBar({ segments }: { segments: EnclosureSegment[] }) {
       <div className="p-3 space-y-3">
         {segments.map((seg) => {
           const barWidth = Math.round((seg.students / maxStudents) * 100);
-          const ratePercent = Math.min(100, Math.round(seg.rate * 100));
+          const ratePercent = Math.min(100, Math.round((seg.rate ?? 0) * 100));
           return (
             <div key={seg.segment}>
               <div className="flex items-center justify-between text-xs mb-1">
