@@ -1,8 +1,56 @@
 'use client';
 
+import { useLocale } from 'next-intl';
 import { Card } from '@/components/ui/Card';
 import { PctInput } from '@/components/ui/NumInput';
 import type { EnclosureTarget, MonthlyTargetV2 } from '@/lib/types';
+
+const I18N = {
+  zh: {
+    cardTitle: '围场目标',
+    expand: '▶ 展开',
+    collapse: '▼ 收起',
+    placeholder: '点击右上角展开配置',
+    metric: '指标',
+    reach_rate: '触达率',
+    participation_rate: '参与率',
+    conversion_rate: '转化率',
+    checkin_rate: '打卡率',
+  },
+  'zh-TW': {
+    cardTitle: '圍場目標',
+    expand: '▶ 展開',
+    collapse: '▼ 收起',
+    placeholder: '點擊右上角展開設定',
+    metric: '指標',
+    reach_rate: '觸達率',
+    participation_rate: '參與率',
+    conversion_rate: '轉化率',
+    checkin_rate: '打卡率',
+  },
+  en: {
+    cardTitle: 'Enclosure Targets',
+    expand: '▶ Expand',
+    collapse: '▼ Collapse',
+    placeholder: 'Click top-right to expand',
+    metric: 'Metric',
+    reach_rate: 'Reach Rate',
+    participation_rate: 'Participation Rate',
+    conversion_rate: 'Conversion Rate',
+    checkin_rate: 'Check-in Rate',
+  },
+  th: {
+    cardTitle: 'เป้าหมายระยะเวลา',
+    expand: '▶ ขยาย',
+    collapse: '▼ ยุบ',
+    placeholder: 'คลิกมุมขวาบนเพื่อขยาย',
+    metric: 'ตัวชี้วัด',
+    reach_rate: 'อัตราการเข้าถึง',
+    participation_rate: 'อัตราการมีส่วนร่วม',
+    conversion_rate: 'อัตราการแปลง',
+    checkin_rate: 'อัตราเช็คอิน',
+  },
+};
 
 const ENCLOSURE_KEYS = [
   'd0_30',
@@ -39,11 +87,12 @@ const ENCLOSURE_LABELS: Record<EnclosureKey, string> = {
   d12M_plus: 'M12+（391+）',
 };
 
-const ENCLOSURE_METRICS: { key: keyof EnclosureTarget; label: string }[] = [
-  { key: 'reach_rate', label: '触达率' },
-  { key: 'participation_rate', label: '参与率' },
-  { key: 'conversion_rate', label: '转化率' },
-  { key: 'checkin_rate', label: '打卡率' },
+// Labels resolved at render time via t(key) — see component body
+const ENCLOSURE_METRIC_KEYS: (keyof EnclosureTarget)[] = [
+  'reach_rate',
+  'participation_rate',
+  'conversion_rate',
+  'checkin_rate',
 ];
 
 interface CollapseToggleProps {
@@ -51,13 +100,13 @@ interface CollapseToggleProps {
   onToggle: () => void;
 }
 
-function CollapseToggle({ open, onToggle }: CollapseToggleProps) {
+function CollapseToggle({ open, onToggle, t }: CollapseToggleProps & { t: (typeof I18N)['zh'] }) {
   return (
     <button
       onClick={onToggle}
       className="text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)] flex items-center gap-1 transition-colors focus-visible:ring-2 focus-visible:ring-action rounded"
     >
-      <span>{open ? '▼ 收起' : '▶ 展开'}</span>
+      <span>{open ? t.collapse : t.expand}</span>
     </button>
   );
 }
@@ -82,15 +131,17 @@ export default function EnclosureSettingsCard({
   onToggle,
   onUpdateEnclosure,
 }: EnclosureSettingsCardProps) {
+  const locale = useLocale();
+  const t = (I18N as unknown as Record<string, (typeof I18N)['zh']>)[locale] ?? I18N['zh'];
   const enclosures = v2.enclosures ?? ({} as Record<string, EnclosureTarget>);
   return (
-    <Card title="围场目标" actions={<CollapseToggle open={open} onToggle={onToggle} />}>
+    <Card title={t.cardTitle} actions={<CollapseToggle open={open} onToggle={onToggle} t={t} />}>
       {open ? (
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="slide-thead-row text-xs">
-                <th className="text-left py-1.5 px-2">指标</th>
+                <th className="text-left py-1.5 px-2">{t.metric}</th>
                 {ENCLOSURE_KEYS.map((k) => (
                   <th key={k} className="text-right py-1.5 px-2">
                     {ENCLOSURE_LABELS[k]}
@@ -99,9 +150,11 @@ export default function EnclosureSettingsCard({
               </tr>
             </thead>
             <tbody>
-              {ENCLOSURE_METRICS.map(({ key: metric, label }) => (
+              {ENCLOSURE_METRIC_KEYS.map((metric) => (
                 <tr key={metric} className="border-b border-[var(--border-subtle)]">
-                  <td className="py-1 px-2 text-xs text-[var(--text-secondary)]">{label}</td>
+                  <td className="py-1 px-2 text-xs text-[var(--text-secondary)]">
+                    {t[metric as keyof typeof t]}
+                  </td>
                   {ENCLOSURE_KEYS.map((k) => (
                     <td key={k} className="py-1 px-2 text-xs text-right">
                       <PctInput
@@ -116,7 +169,7 @@ export default function EnclosureSettingsCard({
           </table>
         </div>
       ) : (
-        <p className="text-sm text-[var(--text-muted)]">点击右上角展开配置</p>
+        <p className="text-sm text-[var(--text-muted)]">{t.placeholder}</p>
       )}
     </Card>
   );
