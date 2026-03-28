@@ -37,6 +37,7 @@ import {
   BookOpen,
   LineChart,
   UserCheck,
+  Activity,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
@@ -106,6 +107,7 @@ const MAIN_GROUPS: NavGroup[] = [
       { href: '/notifications', label: '通知推送', Icon: Bot },
       { href: '/indicator-matrix', label: '指标矩阵', Icon: LayoutGrid },
       { href: '/knowledge', label: '知识库', Icon: BookOpen },
+      { href: '/data-health', label: '数据健康', Icon: Activity },
       { href: '/settings', label: '设置', Icon: Settings },
       { href: '/present', label: '汇报模式', Icon: Monitor },
     ],
