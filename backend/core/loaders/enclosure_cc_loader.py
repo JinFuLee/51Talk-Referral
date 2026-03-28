@@ -37,10 +37,19 @@ class EnclosureCCLoader(BaseLoader):
         if "day" in df.columns and "统计日期" not in df.columns:
             df = df.rename(columns={"day": "统计日期"})
 
-        # 过滤有效围场
+        # 标记有效围场（保留全部行，不过滤）
+        # 非有效围场（已付费非有效/未付费非有效）的业绩是真实收入，必须纳入 SUM 指标
+        # 过程指标（参与率/打卡率/触达率/带新系数）仅对有效围场求均值
         if "是否有效" in df.columns:
-            df = df[df["是否有效"].astype(str).str.strip() == "是"].copy()
-            logger.info(f"D2 有效围场过滤后: {len(df)} 行")
+            df["_is_active"] = df["是否有效"].astype(str).str.strip() == "是"
+            active_count = df["_is_active"].sum()
+            total_count = len(df)
+            logger.info(
+                f"D2 围场标记: {active_count} 行有效 / {total_count} 行总计"
+                f"（保留全部行，非有效围场参与 SUM 指标计算）"
+            )
+        else:
+            df["_is_active"] = True  # 无 是否有效 列时全部视为有效
 
         logger.info(f"D2 加载成功: {len(df)} 行, {file_path.name}")
         return df

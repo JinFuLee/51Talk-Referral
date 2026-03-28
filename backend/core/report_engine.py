@@ -274,21 +274,24 @@ class ReportEngine:
         else:
             reg = appt = attend = pay = rev = 0.0
 
-        # 从 D2 获取过程指标实际均值
+        # 从 D2 获取过程指标实际均值（仅使用有效围场行）
         d2 = data.get("enclosure_cc")
         checkin_rate = cc_contact_rate = ss_contact_rate = 0.0
         lp_contact_rate = participation_rate = 0.0
         if d2 is not None and hasattr(d2, "columns"):
+            # 过程指标仅对有效围场求均值，非有效围场过期学员不参与
+            d2_active = d2[d2["_is_active"]] if "_is_active" in d2.columns else d2
+
             def _mean_col(df_: Any, col: str) -> float:
                 if col in df_.columns:
                     return float(pd.to_numeric(df_[col], errors="coerce").mean() or 0.0)
                 return 0.0
 
-            checkin_rate = _mean_col(d2, "当月有效打卡率")
-            cc_contact_rate = _mean_col(d2, "CC触达率")
-            ss_contact_rate = _mean_col(d2, "SS触达率")
-            lp_contact_rate = _mean_col(d2, "LP触达率")
-            participation_rate = _mean_col(d2, "转介绍参与率")
+            checkin_rate = _mean_col(d2_active, "当月有效打卡率")
+            cc_contact_rate = _mean_col(d2_active, "CC触达率")
+            ss_contact_rate = _mean_col(d2_active, "SS触达率")
+            lp_contact_rate = _mean_col(d2_active, "LP触达率")
+            participation_rate = _mean_col(d2_active, "转介绍参与率")
 
         return {
             "registrations": reg,

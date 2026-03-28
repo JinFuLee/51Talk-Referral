@@ -157,12 +157,22 @@ def _outreach(count, base) -> OutreachMetric:
 
 
 def _agg_d2(df: pd.DataFrame) -> pd.DataFrame:
-    """D2 (enclosure_cc) groupby last_cc_name，返回 DataFrame，index=cc_name"""
+    """D2 (enclosure_cc) groupby last_cc_name，返回 DataFrame，index=cc_name
+
+    分层聚合策略（解决非有效围场业绩丢失问题）：
+    - SUM 指标（leads/paid/revenue/students）：使用全部行（含非有效围场），
+      非有效围场的转介绍付费是真实收入不可丢弃
+    - MEAN 指标（参与率/打卡率/触达率/带新系数）：仅使用有效围场行，
+      非有效围场学员已过期，其过程指标均值会拉低/误导当前活跃围场表现
+    """
     cc_col = "last_cc_name"
     if cc_col not in df.columns:
         return pd.DataFrame()
 
     grp_col = "last_cc_group_name"
+
+    # _is_active 列由 EnclosureCCLoader 写入（有效围场=True，非有效=False）
+    has_active_col = "_is_active" in df.columns
 
     sum_cols = {
         "leads_actual": "转介绍注册数",
@@ -183,6 +193,8 @@ def _agg_d2(df: pd.DataFrame) -> pd.DataFrame:
             continue
         row: dict[str, Any] = {"cc_name": str(cc_name)}
         row["team"] = _safe_mode(g[grp_col]) if grp_col in g.columns else None
+
+        # SUM 指标：使用该 CC 的全部行（含非有效围场）
         for field, col in sum_cols.items():
             s = (
                 pd.to_numeric(g[col], errors="coerce")
@@ -190,13 +202,17 @@ def _agg_d2(df: pd.DataFrame) -> pd.DataFrame:
                 else pd.Series(dtype=float)
             )
             row[field] = _sf(s.sum()) if not s.empty else None
+
+        # MEAN 指标：仅使用有效围场行（_is_active == True）
+        g_active = g[g["_is_active"]] if has_active_col else g
         for field, col in mean_cols.items():
             s = (
-                pd.to_numeric(g[col], errors="coerce")
-                if col in g.columns
+                pd.to_numeric(g_active[col], errors="coerce")
+                if col in g_active.columns
                 else pd.Series(dtype=float)
             )
             row[field] = _sf(s.mean()) if not s.empty else None
+
         rows.append(row)
 
     return pd.DataFrame(rows).set_index("cc_name") if rows else pd.DataFrame()

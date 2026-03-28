@@ -268,12 +268,17 @@ def _get_role_metrics(role: str, dm: DataManager) -> dict[str, dict[str, Any]]:
         grp_col = "last_cc_group_name"
         if cc_col not in df.columns:
             return result
+
+        # _is_active 列由 EnclosureCCLoader 写入
+        has_active_col = "_is_active" in df.columns
+
         for cc_name, g in df.groupby(cc_col, sort=False):
             if not cc_name or str(cc_name).strip() in ("nan", "NaN", ""):
                 continue
             row: dict[str, Any] = {}
             row["team"] = _safe_mode(g[grp_col]) if grp_col in g.columns else ""
-            # 求和型指标
+
+            # SUM 指标：使用全部行（含非有效围场），非有效围场业绩是真实收入
             for field, col in [
                 ("leads", "转介绍注册数"),
                 ("paid", "转介绍付费数"),
@@ -281,15 +286,18 @@ def _get_role_metrics(role: str, dm: DataManager) -> dict[str, dict[str, Any]]:
             ]:
                 if col in g.columns:
                     row[field] = _sf(pd.to_numeric(g[col], errors="coerce").sum())
-            # 均值型指标
+
+            # MEAN 指标：仅使用有效围场行，非有效围场过程指标不代表当前活跃状态
+            g_active = g[g["_is_active"]] if has_active_col else g
             for field, col in [
                 ("participation_rate", "转介绍参与率"),
                 ("checkin_rate", "当月有效打卡率"),
                 ("cc_reach_rate", "CC触达率"),
                 ("coefficient", "带新系数"),
             ]:
-                if col in g.columns:
-                    row[field] = _sf(pd.to_numeric(g[col], errors="coerce").mean())
+                if col in g_active.columns:
+                    s = pd.to_numeric(g_active[col], errors="coerce")
+                    row[field] = _sf(s.mean())
             result[str(cc_name)] = row
 
         # 合并 D4 数据（showup = 当月推荐出席人数）

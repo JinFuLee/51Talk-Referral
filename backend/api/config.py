@@ -715,11 +715,17 @@ def get_enclosure_targets(
         v = pd.to_numeric(df_[col], errors="coerce").mean()
         return round(float(v), 4) if not pd.isna(v) else 0.0
 
-    overall = {en_key: _safe_mean(d2, zh_col) for en_key, zh_col in _COLS.items()}
+    # 过程指标均值仅用有效围场行（非有效围场过期学员不代表当前状态）
+    d2_active = d2[d2["_is_active"]] if "_is_active" in d2.columns else d2
+
+    overall = {
+        en_key: _safe_mean(d2_active, zh_col)
+        for en_key, zh_col in _COLS.items()
+    }
 
     by_enclosure: dict[str, dict[str, float]] = {}
-    if "围场" in d2.columns:
-        for enc, group in d2.groupby("围场"):
+    if "围场" in d2_active.columns:
+        for enc, group in d2_active.groupby("围场"):
             by_enclosure[str(enc)] = {
                 en_key: _safe_mean(group, zh_col)
                 for en_key, zh_col in _COLS.items()

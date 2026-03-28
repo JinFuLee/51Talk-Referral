@@ -58,6 +58,9 @@ def get_team_summary(
         "cc_reach_rate": "CC触达率",
     }
 
+    # _is_active 列由 EnclosureCCLoader 写入（有效围场=True，非有效=False）
+    has_active_col = "_is_active" in df.columns
+
     results = []
     for cc_name, group in df.groupby(cc_col, sort=False):
         if not cc_name or str(cc_name).strip() in ("nan", "NaN", ""):
@@ -69,15 +72,23 @@ def get_team_summary(
             if group_col in group.columns and not group[group_col].mode().empty
             else None,
         }
+        # 有效围场子集（用于 MEAN 指标）
+        group_active = group[group["_is_active"]] if has_active_col else group
         for field, col in num_cols.items():
-            if col in group.columns:
-                series = pd.to_numeric(group[col], errors="coerce")
-                if "率" in col:
+            if "率" in col:
+                # MEAN 指标：仅对有效围场求均值，非有效围场过期学员不参与
+                if col in group_active.columns:
+                    series = pd.to_numeric(group_active[col], errors="coerce")
                     row[field] = _safe_float(series.mean())
                 else:
-                    row[field] = _safe_float(series.sum())
+                    row[field] = None
             else:
-                row[field] = None
+                # SUM 指标：使用全部行（含非有效围场），业绩是真实收入
+                if col in group.columns:
+                    series = pd.to_numeric(group[col], errors="coerce")
+                    row[field] = _safe_float(series.sum())
+                else:
+                    row[field] = None
 
         results.append(row)
 
