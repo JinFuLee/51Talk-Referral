@@ -6,13 +6,18 @@
 from __future__ import annotations
 
 import base64
+import hashlib
+import hmac
 import json
 import logging
+import secrets
+import time
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
 from fastapi import APIRouter, HTTPException, Request
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
 logger = logging.getLogger(__name__)
@@ -26,6 +31,7 @@ OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
 ACCESS_CONTROL_FILE = CONFIG_DIR / "access-control.json"
 AUDIT_LOG_FILE = OUTPUT_DIR / "access-audit.jsonl"
+SESSION_SECRET_FILE = CONFIG_DIR / "session-secret.key"
 
 router = APIRouter()
 
@@ -80,7 +86,82 @@ _DEFAULT_CONFIG: dict[str, Any] = {
 }
 
 
-# ── Helpers ───────────────────────────────────────────────────────────────────
+# ── Session Helpers ───────────────────────────────────────────────────────────
+
+
+def _get_session_secret() -> str:
+    """读取或自动生成 32 字节 hex 密钥，持久化到 config/session-secret.key。"""
+    if SESSION_SECRET_FILE.exists():
+        return SESSION_SECRET_FILE.read_text(encoding="utf-8").strip()
+    secret = secrets.token_hex(32)
+    SESSION_SECRET_FILE.write_text(secret, encoding="utf-8")
+    logger.info("session-secret.key 已自动生成")
+    return secret
+
+
+def _create_session_token(email: str) -> str:
+    """创建 HMAC-SHA256 签名的 session token，7 天过期。格式: payload_b64.sig"""
+    exp = int(time.time()) + 7 * 24 * 3600
+    payload = json.dumps({"email": email, "exp": exp}, separators=(",", ":"))
+    payload_b64 = base64.urlsafe_b64encode(payload.encode()).decode().rstrip("=")
+    secret = _get_session_secret()
+    sig = hmac.new(secret.encode(), payload_b64.encode(), hashlib.sha256).hexdigest()
+    return f"{payload_b64}.{sig}"
+
+
+def _verify_session_token(token: str) -> str | None:
+    """验签 + 过期检查 → 返回 email，失败返回 None。"""
+    try:
+        parts = token.split(".", 1)
+        if len(parts) != 2:
+            return None
+        payload_b64, sig = parts
+        secret = _get_session_secret()
+        expected_sig = hmac.new(
+            secret.encode(), payload_b64.encode(), hashlib.sha256
+        ).hexdigest()
+        if not hmac.compare_digest(sig, expected_sig):
+            return None
+        # base64url 解码（补 padding）
+        padded = payload_b64 + "=" * (-len(payload_b64) % 4)
+        payload = json.loads(base64.urlsafe_b64decode(padded).decode())
+        if payload.get("exp", 0) < int(time.time()):
+            return None
+        return payload.get("email")
+    except Exception:
+        return None
+
+
+def _get_email_from_request(request: Request) -> str | None:
+    """
+    从请求中提取认证邮箱，优先级：
+    1. X-Session-Token header
+    2. refops_session cookie
+    3. Cf-Access-Jwt-Assertion header
+    """
+    # 1. X-Session-Token header
+    header_token = request.headers.get("X-Session-Token", "")
+    if header_token:
+        email = _verify_session_token(header_token)
+        if email:
+            return email
+
+    # 2. refops_session cookie
+    cookie_token = request.cookies.get("refops_session", "")
+    if cookie_token:
+        email = _verify_session_token(cookie_token)
+        if email:
+            return email
+
+    # 3. Cf-Access-Jwt-Assertion header（兼容 Cloudflare Access）
+    cf_token = request.headers.get("Cf-Access-Jwt-Assertion", "")
+    if cf_token:
+        return _decode_jwt_email(cf_token)
+
+    return None
+
+
+# ── Config Helpers ────────────────────────────────────────────────────────────
 
 
 def _read_config() -> dict[str, Any]:
@@ -147,11 +228,7 @@ def _is_admin(request: Request, config: dict[str, Any]) -> bool:
         if host.startswith("localhost") or host.startswith("127.0.0.1"):
             return True
 
-    token = request.headers.get("Cf-Access-Jwt-Assertion", "")
-    if not token:
-        return False
-
-    email = _decode_jwt_email(token)
+    email = _get_email_from_request(request)
     if not email:
         return False
 
@@ -182,6 +259,10 @@ class AuditLogEntry(BaseModel):
     email: str = ""
     ip: str = ""
     granted: bool = True
+
+
+class LoginRequest(BaseModel):
+    email: str
 
 
 # ── Endpoints ─────────────────────────────────────────────────────────────────
@@ -217,8 +298,9 @@ def update_access_control(
 @router.get("/access-control/me")
 def get_my_access(request: Request) -> dict[str, Any]:
     """
-    根据 Cf-Access-Jwt-Assertion header 返回当前用户权限与可见页面列表。
-    本地开发（localhost）无 header 时返回 admin 权限。
+    返回当前用户权限与可见页面列表。
+    认证优先级：X-Session-Token header > refops_session cookie > CF JWT header。
+    本地开发（localhost）无任何认证时返回 admin 权限。
     """
     config = _read_config()
     roles = config.get("roles", {})
@@ -227,12 +309,13 @@ def get_my_access(request: Request) -> dict[str, Any]:
     settings = config.get("settings", {})
     allow_local = settings.get("allowLocalDev", False)
 
-    token = request.headers.get("Cf-Access-Jwt-Assertion", "")
     host = request.headers.get("host", "")
     is_local = host.startswith("localhost") or host.startswith("127.0.0.1")
 
-    # 本地开发且允许本地放行 → 返回 admin 权限
-    if is_local and allow_local and not token:
+    email = _get_email_from_request(request)
+
+    # 本地开发且允许本地放行，且无任何认证 → 返回 admin 权限
+    if is_local and allow_local and not email:
         admin_role = roles.get("admin", {})
         return {
             "email": "local@dev",
@@ -245,8 +328,8 @@ def get_my_access(request: Request) -> dict[str, Any]:
             "source": "local_dev",
         }
 
-    # 无 JWT → 未认证，只能访问公开页面
-    if not token:
+    # 无认证 → 未认证，只能访问公开页面
+    if not email:
         public_page_defs = [p for p in page_registry if p["path"] in public_pages]
         return {
             "email": None,
@@ -259,9 +342,15 @@ def get_my_access(request: Request) -> dict[str, Any]:
             "source": "unauthenticated",
         }
 
-    email = _decode_jwt_email(token)
-    if not email:
-        raise HTTPException(status_code=401, detail="JWT 解码失败，无法提取邮箱")
+    # 判断认证来源
+    header_token = request.headers.get("X-Session-Token", "")
+    cookie_token = request.cookies.get("refops_session", "")
+    if (header_token and _verify_session_token(header_token) == email) or (
+        cookie_token and _verify_session_token(cookie_token) == email
+    ):
+        source = "session_cookie"
+    else:
+        source = "cf_jwt"
 
     users = config.get("users", [])
     matched_user = next(
@@ -295,8 +384,58 @@ def get_my_access(request: Request) -> dict[str, Any]:
         "visiblePages": visible,
         "publicPages": public_pages,
         "isAdmin": bool(role_def.get("canManage", False)),
-        "source": "cf_jwt",
+        "source": source,
     }
+
+
+@router.post("/access-control/login")
+def login(request: Request, body: LoginRequest) -> JSONResponse:
+    """
+    邮箱登录：检查 email 在 users 白名单 → 创建 session token → Set-Cookie。
+    """
+    config = _read_config()
+    users = config.get("users", [])
+    email = body.email.strip().lower()
+
+    matched_user = next(
+        (u for u in users if u.get("email", "").lower() == email), None
+    )
+    if not matched_user:
+        raise HTTPException(status_code=403, detail="邮箱不在访问白名单中")
+
+    token = _create_session_token(email)
+    host = request.headers.get("host", "")
+    is_local = host.startswith("localhost") or host.startswith("127.0.0.1")
+
+    response = JSONResponse({"ok": True, "email": email})
+    response.set_cookie(
+        key="refops_session",
+        value=token,
+        httponly=True,
+        samesite="lax",
+        max_age=604800,  # 7 天
+        secure=not is_local,
+        path="/",
+    )
+    logger.info(f"用户登录成功: {email}")
+    return response
+
+
+@router.post("/access-control/logout")
+def logout() -> JSONResponse:
+    """
+    登出：清除 session cookie。
+    """
+    response = JSONResponse({"ok": True})
+    response.set_cookie(
+        key="refops_session",
+        value="",
+        httponly=True,
+        samesite="lax",
+        max_age=0,
+        path="/",
+    )
+    return response
 
 
 @router.get("/access-control/audit-log")
