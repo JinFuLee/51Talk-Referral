@@ -1,3 +1,7 @@
+import createNextIntlPlugin from 'next-intl/plugin';
+
+const withNextIntl = createNextIntlPlugin('./i18n/request.ts');
+
 /** @type {import('next').NextConfig} */
 const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8100';
 
@@ -12,4 +16,4 @@ const config = {
   },
 };
 
-export default config;
+export default withNextIntl(config);

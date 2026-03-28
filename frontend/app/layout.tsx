@@ -1,21 +1,5 @@
 import type { Metadata } from 'next';
 import { Space_Grotesk, Inter, IBM_Plex_Mono } from 'next/font/google';
-import { SWRProvider } from '@/components/providers/SWRProvider';
-import { NavSidebar } from '@/components/layout/NavSidebar';
-import { Topbar } from '@/components/layout/Topbar';
-import { ComparisonBanner } from '@/components/shared/ComparisonBanner';
-import { GlobalFilterBar } from '@/components/ui/GlobalFilterBar';
-import { FilterSyncActivator } from '@/components/providers/FilterSyncActivator';
-import { ErrorBoundary } from '@/components/providers/ErrorBoundary';
-import { ToastProvider } from '@/components/providers/ToastProvider';
-import { HtmlLangUpdater } from '@/components/providers/HtmlLangUpdater';
-import { ContentTransitionWrapper } from '@/components/providers/ContentTransitionWrapper';
-import {
-  CoPilotTerminalClient,
-  PresentationOverlayClient,
-} from '@/components/providers/ClientOnlyDynamics';
-import { BrandMark } from '@/components/ui/BrandMark';
-import { BottomTabBar } from '@/components/layout/BottomTabBar';
 import './globals.css';
 
 const spaceGrotesk = Space_Grotesk({
@@ -47,7 +31,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="zh-CN" suppressHydrationWarning>
+    <html suppressHydrationWarning>
       <head>
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
         <link rel="apple-touch-icon" href="/favicon.svg" />
@@ -73,36 +57,7 @@ export default function RootLayout({
             "var(--font-sans), 'IBM Plex Sans Thai', 'Prompt', 'Noto Sans Thai', 'PingFang SC', 'Noto Sans SC', system-ui, sans-serif",
         }}
       >
-        <ErrorBoundary>
-          <SWRProvider>
-            <div className="flex h-screen overflow-hidden bg-[var(--bg-primary)] presentation-expand relative">
-              <div className="hide-in-presentation shrink-0 h-full">
-                <NavSidebar />
-              </div>
-              <div className="flex flex-col flex-1 overflow-hidden presentation-expand">
-                <div className="hide-in-presentation shrink-0">
-                  <Topbar />
-                  <ComparisonBanner />
-                  <GlobalFilterBar />
-                  <FilterSyncActivator />
-                </div>
-                <main className="flex-1 overflow-auto p-3 md:p-6 pb-20 md:pb-6 presentation-expand relative">
-                  <ContentTransitionWrapper>{children}</ContentTransitionWrapper>
-                  <div className="brand-watermark fixed bottom-4 right-4 pointer-events-none">
-                    <BrandMark size={32} className="text-[var(--brand-p1)]" />
-                  </div>
-                </main>
-              </div>
-            </div>
-            <BottomTabBar />
-            <div className="hide-in-presentation">
-              <CoPilotTerminalClient />
-            </div>
-            <PresentationOverlayClient />
-            <ToastProvider />
-            <HtmlLangUpdater />
-          </SWRProvider>
-        </ErrorBoundary>
+        {children}
       </body>
     </html>
   );

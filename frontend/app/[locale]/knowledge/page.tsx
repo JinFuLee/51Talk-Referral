@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import useSWR from 'swr';
 import { BookOpen, Loader2, AlertCircle, BookMarked, Globe } from 'lucide-react';
@@ -58,7 +58,7 @@ const LANGS = [
   { code: 'en', label: 'EN' },
 ] as const;
 
-export default function KnowledgePage() {
+function KnowledgePageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const readerRef = useRef<HTMLElement>(null);
@@ -328,5 +328,13 @@ export default function KnowledgePage() {
       {/* Reading guide modal */}
       {showGuide && <ReadingGuide onNavigate={navigateTo} onDismiss={() => setShowGuide(false)} />}
     </div>
+  );
+}
+
+export default function KnowledgePage() {
+  return (
+    <Suspense fallback={<div className="state-loading">加载中…</div>}>
+      <KnowledgePageInner />
+    </Suspense>
   );
 }

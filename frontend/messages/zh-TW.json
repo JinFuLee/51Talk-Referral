@@ -1,0 +1,17 @@
+{
+  "common": {
+    "loading": "載入中...",
+    "error": "載入失敗",
+    "empty": "暫無資料",
+    "retry": "重試",
+    "close": "關閉",
+    "confirm": "確認",
+    "cancel": "取消",
+    "save": "儲存",
+    "edit": "編輯",
+    "delete": "刪除",
+    "search": "搜尋",
+    "export": "匯出",
+    "refresh": "重新整理"
+  }
+}
