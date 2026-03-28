@@ -18,6 +18,8 @@ from slowapi.middleware import SlowAPIMiddleware
 from slowapi.util import get_remote_address
 from starlette.middleware.base import BaseHTTPMiddleware
 
+from backend.api import filter_options as _filter_options_mod
+
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 BACKEND_DIR = Path(__file__).resolve().parent
 
@@ -340,7 +342,6 @@ for _key, _mod, _prefix, _tags in _loaded_routers:
     app.include_router(_mod.router, **kwargs)
 
 # ── 系统级路由（不受 enabled_routers 控制）────────────────────────────────────
-from backend.api import filter_options as _filter_options_mod  # noqa: E402
 app.include_router(_filter_options_mod.router, prefix="/api/filter", tags=["filter"])
 
 
