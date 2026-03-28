@@ -192,12 +192,68 @@ async def lifespan(app: FastAPI):
         except Exception as exc:
             logger.warning("定时快照失败（非致命）: %s", exc)
 
+    def _daily_thai_snapshot_job():
+        """泰国口径快照：写入 JSONL 供 overview sparkline/MoM 消费"""
+        try:
+            import json
+            import math
+            from pathlib import Path
+
+            import pandas as pd
+
+            data = dm.load_all()
+            result_df = data.get("result")
+            if result_df is None or result_df.empty:
+                return
+
+            thai_df = DataManager.filter_thai_region(
+                result_df, fallback_to_all=True
+            )
+            row = thai_df.iloc[0]
+
+            kpi_keys = {
+                "转介绍注册数": "转介绍注册数",
+                "预约数": "预约数",
+                "出席数": "出席数",
+                "转介绍付费数": "转介绍付费数",
+                "总带新付费金额USD": "总带新付费金额USD",
+            }
+            snap: dict = {}
+            for col, key in kpi_keys.items():
+                val = row.get(col)
+                if val is not None:
+                    try:
+                        f = float(val)
+                        if not math.isnan(f):
+                            snap[key] = f
+                    except (ValueError, TypeError):
+                        pass
+
+            if snap:
+                from datetime import date as _date
+
+                snap_dir = Path(__file__).resolve().parent.parent / "output" / "snapshots"
+                snap_dir.mkdir(parents=True, exist_ok=True)
+                snap_file = snap_dir / f"{_date.today().isoformat()}.jsonl"
+                snap_file.write_text(
+                    json.dumps(snap, ensure_ascii=False) + "\n",
+                    encoding="utf-8",
+                )
+                logger.info("✓ 泰国口径快照写入: %s", snap_file.name)
+        except Exception as exc:
+            logger.warning("泰国口径快照失败（非致命）: %s", exc)
+
     scheduler.add_job(
         _daily_snapshot_job, "cron",
         hour=9, minute=30, id="m33_daily_snapshot",
         replace_existing=True,
     )
-    logger.info("✓ M33 日快照定时任务已注册（每日 09:30）")
+    scheduler.add_job(
+        _daily_thai_snapshot_job, "cron",
+        hour=9, minute=35, id="m33_thai_snapshot",
+        replace_existing=True,
+    )
+    logger.info("✓ M33 日快照定时任务已注册（09:30 全站 + 09:35 泰国）")
 
     watcher = FileWatcher(dm)
     watcher.start()
