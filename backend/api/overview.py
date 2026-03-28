@@ -335,6 +335,32 @@ def get_overview(
             "cc_reach_rate": _d2b_val(["CC触达率", "有效触达率"]),
         }
 
+        # D2B 缺少打卡率/触达率时，从 D2 围场表有效围场行加权均值补充
+        d2_cc_df = data.get("enclosure_cc")
+        if d2_cc_df is not None and not d2_cc_df.empty:
+            _active = (
+                d2_cc_df[d2_cc_df["_is_active"]]
+                if "_is_active" in d2_cc_df.columns
+                else d2_cc_df
+            )
+            _stu = pd.to_numeric(_active.get("学员数"), errors="coerce")
+            _total_stu = _stu.sum()
+            if _total_stu > 0:
+                if d2b_summary.get("checkin_rate") is None:
+                    _v = pd.to_numeric(
+                        _active.get("当月有效打卡率"), errors="coerce"
+                    )
+                    d2b_summary["checkin_rate"] = round(
+                        float((_v * _stu).sum() / _total_stu), 4
+                    )
+                if d2b_summary.get("cc_reach_rate") is None:
+                    _v = pd.to_numeric(
+                        _active.get("CC触达率"), errors="coerce"
+                    )
+                    d2b_summary["cc_reach_rate"] = round(
+                        float((_v * _stu).sum() / _total_stu), 4
+                    )
+
     # sparkline + MoM 数据
     # KPI key → metrics dict key
     sparkline_metric_keys = {
@@ -356,6 +382,29 @@ def get_overview(
             kpi_mom[pace_key] = _compute_mom_change(last, first)
         else:
             kpi_mom[pace_key] = None
+
+    # 写入泰国专属每日快照（供 sparkline/MoM 积累，幂等覆盖同日）
+    try:
+        _SNAPSHOT_DIR.mkdir(parents=True, exist_ok=True)
+        snap_file = _SNAPSHOT_DIR / f"{mp.today.isoformat()}.jsonl"
+        snap_data = {
+            k: kpi_pace[v]["actual"]
+            for v, k in {
+                "register": "转介绍注册数",
+                "appointment": "预约数",
+                "showup": "出席数",
+                "paid": "转介绍付费数",
+                "revenue": "总带新付费金额USD",
+            }.items()
+            if v in kpi_pace and kpi_pace[v] is not None
+        }
+        if snap_data:
+            snap_file.write_text(
+                json.dumps(snap_data, ensure_ascii=False) + "\n",
+                encoding="utf-8",
+            )
+    except Exception:
+        pass  # 快照写入失败不影响 API 响应
 
     return {
         "metrics": metrics,
