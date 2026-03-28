@@ -308,13 +308,13 @@ def _agg_d4(df: pd.DataFrame, month: str) -> pd.DataFrame:
         else:
             row["effective_count"] = None
 
-        # 宽口径带新人数（User A 学员链接绑定 User B）
+        # 宽口径参与转介绍的老学员人数（count where 宽口径带新人数 > 0）
         ua_col = "宽口径带新人数"
-        row["leads_user_a"] = (
-            _si(pd.to_numeric(g[ua_col], errors="coerce").sum())
-            if ua_col in g.columns
-            else None
-        )
+        if ua_col in g.columns:
+            ua = pd.to_numeric(g[ua_col], errors="coerce").fillna(0)
+            row["leads_user_a"] = int((ua > 0).sum())
+        else:
+            row["leads_user_a"] = None
 
         rows.append(row)
 
