@@ -2,10 +2,10 @@
  * Next.js Middleware — RBAC 三层访问控制 + next-intl i18n 路由
  *
  * 三层逻辑：
- *   1. 公开页面（publicPages）→ 直接放行，交给 intlMiddleware
+ *   1. 特殊页面（login/access-denied）→ 直接放行，不参与 RBAC（防止死循环）
  *   2. 本地开发（localhost）→ 跳过 RBAC，直接放行
- *   3. 有 CF JWT → 解码 email → fetch /api/access-control/me → 检查权限
- *      无 JWT 且非 localhost → redirect /[locale]/access-denied
+ *   3. 有 session cookie → fetch /api/access-control/me 传 X-Session-Token → 检查权限
+ *      无 cookie 且非公开页 → redirect /[locale]/login?from=当前路径
  */
 
 import createMiddleware from 'next-intl/middleware';
@@ -24,6 +24,9 @@ const intlMiddleware = createMiddleware(routing);
 
 // 默认公开页面兜底（后端 API 不可达时使用）
 const DEFAULT_PUBLIC_PAGES = ['/', '/cc-performance', '/daily-monitor', '/checkin'];
+
+// 特殊页面：不参与 RBAC，直接放行（防止 login/access-denied 重定向死循环）
+const BYPASS_PAGES = ['/login', '/access-denied'];
 
 // 后端 API 基础 URL（SSR 场景用 127.0.0.1，避免 DNS 解析）
 const BACKEND_URL = process.env.BACKEND_URL ?? 'http://127.0.0.1:8100';
@@ -46,11 +49,11 @@ function redirectToDenied(request: NextRequest): NextResponse {
 }
 
 /**
- * 调用后端 /api/access-control/me，透传 CF JWT header。
+ * 调用后端 /api/access-control/me，透传 session cookie 为 X-Session-Token header。
  * 失败时返回 null（降级为拒绝访问）。
  */
 async function fetchMyAccess(
-  jwtToken: string | null,
+  sessionToken: string | null,
   host: string
 ): Promise<MyAccessResponse | null> {
   try {
@@ -58,14 +61,12 @@ async function fetchMyAccess(
       'Content-Type': 'application/json',
       host,
     };
-    if (jwtToken) {
-      headers['Cf-Access-Jwt-Assertion'] = jwtToken;
+    if (sessionToken) {
+      headers['X-Session-Token'] = sessionToken;
     }
 
     const response = await fetch(`${BACKEND_URL}/api/access-control/me`, {
       headers,
-      // Edge Runtime 不支持 next.revalidate，用标准 Cache-Control
-      // 60 秒缓存，避免每次请求都调后端
       cache: 'no-store', // 权限敏感，不走缓存
     });
 
@@ -84,6 +85,11 @@ export default async function middleware(request: NextRequest): Promise<NextResp
   // 提取实际页面路径（去掉 locale 前缀）
   const pagePath = extractPagePath(pathname);
 
+  // 特殊页面直接放行（login/access-denied 不参与 RBAC，防止重定向死循环）
+  if (BYPASS_PAGES.includes(pagePath)) {
+    return intlMiddleware(request);
+  }
+
   // 本地开发模式：跳过 RBAC，直接交给 intlMiddleware
   if (isLocalhost(request)) {
     const response = intlMiddleware(request);
@@ -92,54 +98,51 @@ export default async function middleware(request: NextRequest): Promise<NextResp
     return response;
   }
 
-  const jwtToken = request.headers.get('Cf-Access-Jwt-Assertion');
+  // 读取 session cookie
+  const sessionCookie = request.cookies.get('refops_session')?.value;
 
-  // 无 JWT 时先用兜底 publicPages 判断，避免后端不可达时全站锁死
-  if (!jwtToken) {
+  // 无 cookie
+  if (!sessionCookie) {
+    // 公开页放行
     if (isPublicPage(pagePath, DEFAULT_PUBLIC_PAGES)) {
-      const response = intlMiddleware(request);
-      response.headers.set('x-user-email', 'public');
-      return response;
+      return intlMiddleware(request);
     }
-    return redirectToDenied(request);
+    // 非公开页 → redirect /login（带 from 参数）
+    const locale = getDefaultLocale();
+    const loginUrl = new URL(`/${locale}/login`, request.url);
+    loginUrl.searchParams.set('from', pathname);
+    return NextResponse.redirect(loginUrl);
   }
 
-  // 有 JWT → 解码 email（快速本地校验，无需网络）
-  const email = decodeJwtEmail(jwtToken);
-  if (!email) {
-    return redirectToDenied(request);
-  }
-
-  // 获取用户权限信息
+  // 有 cookie → 传给后端验证
   const host = request.headers.get('host') ?? '';
-  const access = await fetchMyAccess(jwtToken, host);
+  const access = await fetchMyAccess(sessionCookie, host);
 
+  // 后端不可达 → 公开页放行，其余拒绝
   if (!access) {
-    // 后端不可达：公开页面放行，其余拒绝
     if (isPublicPage(pagePath, DEFAULT_PUBLIC_PAGES)) {
       return intlMiddleware(request);
     }
     return redirectToDenied(request);
   }
 
-  // 检查公开页面（以后端实时配置为准）
+  // 公开页放行（以后端配置为准）
   if (isPublicPage(pagePath, access.publicPages)) {
     const response = intlMiddleware(request);
-    response.headers.set('x-user-email', email);
+    if (access.email) response.headers.set('x-user-email', access.email);
     if (access.role) response.headers.set('x-user-role', access.role);
     return response;
   }
 
-  // 未认证用户（不在名单）→ 只允许访问 publicPages，已在上面处理
+  // 未在名单 → access-denied
   if (!access.role || !access.roleDef) {
     return redirectToDenied(request);
   }
 
-  // 检查角色页面权限
-  const rolePages = access.roleDef.pages ?? [];
-  if (isAllowedByRole(pagePath, rolePages)) {
+  // 角色页面权限检查
+  if (isAllowedByRole(pagePath, access.roleDef.pages ?? [])) {
     const response = intlMiddleware(request);
-    response.headers.set('x-user-email', email);
+    response.headers.set('x-user-email', access.email || '');
     response.headers.set('x-user-role', access.role);
     if (access.isAdmin) response.headers.set('x-user-is-admin', '1');
     return response;
