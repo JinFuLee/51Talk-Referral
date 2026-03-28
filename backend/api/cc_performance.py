@@ -218,6 +218,46 @@ def _agg_d2(df: pd.DataFrame) -> pd.DataFrame:
     return pd.DataFrame(rows).set_index("cc_name") if rows else pd.DataFrame()
 
 
+def _filter_active_ccs(agg: pd.DataFrame, raw_d2: pd.DataFrame) -> pd.DataFrame:
+    """过滤只保留活跃 CC：有有效围场 OR 当月有业绩（leads>0 or paid>0）。
+
+    自动排除：
+    - 全部围场均为非有效且零业绩的 CC（离职/调岗/裁撤）
+    - nan/空名 CC（未分配学员池，_agg_d2 已跳过）
+
+    设计原则：数据驱动过滤，不硬编码名字前缀或黑名单。
+    未来 TMK 类岗位裁撤、新岗位加入，都由 _is_active + 业绩自动判定。
+    """
+    if agg.empty:
+        return agg
+
+    # 从原始 D2 统计每个 CC 的有效围场数
+    has_active_col = "_is_active" in raw_d2.columns
+    if has_active_col:
+        active_counts = (
+            raw_d2.groupby("last_cc_name")["_is_active"]
+            .sum()
+            .rename("_active_enclosures")
+        )
+        agg = agg.join(active_counts, how="left")
+    else:
+        agg["_active_enclosures"] = 1  # 无标记时默认全部保留
+
+    # 保留条件：有效围场 > 0 OR leads > 0 OR paid > 0
+    leads = agg.get("leads_actual", pd.Series(0, index=agg.index))
+    paid = agg.get("paid_actual", pd.Series(0, index=agg.index))
+    active_enc = agg["_active_enclosures"].fillna(0)
+
+    mask = (active_enc > 0) | (leads.fillna(0) > 0) | (paid.fillna(0) > 0)
+    filtered = agg[mask].copy()
+
+    # 清理辅助列
+    if "_active_enclosures" in filtered.columns:
+        filtered = filtered.drop(columns=["_active_enclosures"])
+
+    return filtered
+
+
 def _agg_d4(df: pd.DataFrame, month: str) -> pd.DataFrame:
     """D4 (students) groupby CC 列，返回拨打/出席/有效接通指标"""
     cc_col = _detect_cc_col(df)
@@ -793,6 +833,9 @@ def get_cc_performance(
     agg_d2 = _agg_d2(df_d2) if not df_d2.empty else pd.DataFrame()
     agg_d4 = _agg_d4(df_d4, month) if not df_d4.empty else pd.DataFrame()
     agg_d3 = _agg_d3(df_d3) if not df_d3.empty else pd.DataFrame()
+
+    # 过滤非活跃 CC（离职/裁撤/零业绩，数据驱动）
+    agg_d2 = _filter_active_ccs(agg_d2, df_d2)
 
     # 合并
     merged = agg_d2
