@@ -121,7 +121,7 @@ export function RoiDashboard({ enclosureFilter }: Props) {
         <SummaryCard
           label="总活动成本"
           value={formatUSD(summary.total_cost_usd)}
-          sub="次卡成本（按 $1.34/张）"
+          sub="次卡成本（按 $1.31/张）"
         />
         <SummaryCard
           label="总转介绍收入"
