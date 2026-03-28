@@ -1,6 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+export const dynamic = 'force-dynamic';
+
+import { Suspense, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useLocale } from 'next-intl';
 import { BrandMark } from '@/components/ui/BrandMark';
@@ -29,6 +31,20 @@ const I18N = {
 } as const;
 
 export default function LoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className={`${BIZ_PAGE} flex items-center justify-center min-h-[calc(100vh-7rem)]`}>
+          <Loader2 className="w-6 h-6 animate-spin text-[var(--text-muted)]" />
+        </div>
+      }
+    >
+      <LoginForm />
+    </Suspense>
+  );
+}
+
+function LoginForm() {
   const locale = useLocale();
   const lang = locale === 'zh' || locale === 'zh-TW' ? 'zh' : 'en';
   const t = I18N[lang];

@@ -40,6 +40,7 @@ config/
 !config/access-control.json
 data/
 key/
+Google auth platform/
 *.xlsx
 *.log
 temp_upload.xlsx
