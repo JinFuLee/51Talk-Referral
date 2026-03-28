@@ -5,15 +5,39 @@ import type { BmComparison, BmMetricItem } from '@/lib/types/bm-calendar';
 
 interface BmComparisonTableProps {
   data: BmComparison;
+  visibleKeys?: string[];
 }
 
-const BM_ROWS = [
-  { key: 'register', label: '注册', format: 'count' },
-  { key: 'appointment', label: '预约', format: 'count' },
-  { key: 'showup', label: '出席', format: 'count' },
-  { key: 'paid', label: '付费', format: 'count' },
-  { key: 'revenue', label: '业绩 (USD)', format: 'currency' },
-] as const;
+const ALL_BM_ROWS = [
+  { key: 'register', label: '注册', format: 'count' as const },
+  { key: 'appointment', label: '预约', format: 'count' as const },
+  { key: 'showup', label: '出席', format: 'count' as const },
+  { key: 'paid', label: '付费', format: 'count' as const },
+  { key: 'revenue', label: '业绩 (USD)', format: 'currency' as const },
+];
+
+const COLUMNS = [
+  { label: '指标', align: 'left' as const, tooltip: '' },
+  { label: '月目标', align: 'right' as const, tooltip: '本月 KPI 目标值' },
+  {
+    label: '累计 BM',
+    align: 'right' as const,
+    tooltip: '月目标 × BM 进度%（截至 T-1 应达基准值）',
+  },
+  { label: 'T-1 实际', align: 'right' as const, tooltip: '截至昨日的实际累计完成量' },
+  { label: 'BM 差额', align: 'right' as const, tooltip: '实际 − 累计 BM：正值超前，负值落后' },
+  { label: '今日 BM', align: 'right' as const, tooltip: '月目标 × 今日 BM%（今日基准配额）' },
+  {
+    label: '今日需（含补差）',
+    align: 'right' as const,
+    tooltip: '剩余量 × (今日BM% ÷ 剩余BM%)：今日具体需完成量',
+  },
+  {
+    label: '达标日均',
+    align: 'right' as const,
+    tooltip: '(月目标 − 实际) ÷ 剩余工作日：平均每日需完成量',
+  },
+];
 
 type RowFormat = 'count' | 'currency';
 
@@ -47,9 +71,11 @@ function TodayRequiredCell({ value, format }: { value: number; format: RowFormat
   );
 }
 
-export function BmComparisonTable({ data }: BmComparisonTableProps) {
+export function BmComparisonTable({ data, visibleKeys }: BmComparisonTableProps) {
   const { calendar, metrics } = data;
   const bmMtdPct = (calendar.bm_mtd_pct * 100).toFixed(1);
+
+  const rows = visibleKeys ? ALL_BM_ROWS.filter((r) => visibleKeys.includes(r.key)) : ALL_BM_ROWS;
 
   return (
     <div className="card-base overflow-x-auto">
@@ -68,27 +94,26 @@ export function BmComparisonTable({ data }: BmComparisonTableProps) {
       <table className="w-full text-sm border-collapse">
         <thead>
           <tr className="border-b border-[var(--border-default)]">
-            {[
-              { label: '指标', align: 'left' },
-              { label: '月目标', align: 'right' },
-              { label: '累计 BM', align: 'right' },
-              { label: 'T-1 实际', align: 'right' },
-              { label: 'BM 差额', align: 'right' },
-              { label: '今日 BM', align: 'right' },
-              { label: '今日需（含补差）', align: 'right' },
-            ].map(({ label, align }) => (
-              <th key={label} className={`table-header py-2 px-3 text-${align} whitespace-nowrap`}>
-                {label}
+            {COLUMNS.map((col) => (
+              <th
+                key={col.label}
+                className={`table-header py-2 px-3 text-${col.align} whitespace-nowrap`}
+                title={col.tooltip || undefined}
+              >
+                {col.label}
+                {col.tooltip && (
+                  <span className="text-[var(--text-muted)] ml-0.5 cursor-help">ⓘ</span>
+                )}
               </th>
             ))}
           </tr>
         </thead>
         <tbody>
-          {BM_ROWS.map(({ key, label, format }, idx) => {
+          {rows.map(({ key, label, format }, idx) => {
             const item: BmMetricItem | undefined = metrics[key];
             if (!item) return null;
 
-            const isLast = idx === BM_ROWS.length - 1;
+            const isLast = idx === rows.length - 1;
             const rowClass = isLast
               ? 'border-t border-[var(--border-default)] bg-[var(--bg-subtle)]'
               : 'border-b border-[var(--border-default)]';
@@ -113,6 +138,9 @@ export function BmComparisonTable({ data }: BmComparisonTableProps) {
                 </td>
                 <td className="py-2.5 px-3 text-right">
                   <TodayRequiredCell value={item.today_required} format={format} />
+                </td>
+                <td className="py-2.5 px-3 text-right font-mono tabular-nums text-[var(--text-secondary)]">
+                  {item.target_daily_avg != null ? fmtNum(item.target_daily_avg, format) : '—'}
                 </td>
               </tr>
             );

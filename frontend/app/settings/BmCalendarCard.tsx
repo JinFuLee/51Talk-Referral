@@ -262,7 +262,7 @@ export default function BmCalendarCard({ selectedMonth }: BmCalendarCardProps) {
 
       <p className="text-[10px] text-[var(--text-muted)] mt-3">
         点击日期格子可修改当天类型。Kick Off 权重 2.0，调休权重 1.0，周末权重 5.0，普通工作日权重
-        1.0。
+        3.0，周三权重 1.0。
       </p>
     </div>
   );

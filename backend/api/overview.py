@@ -477,6 +477,10 @@ def get_overview(
                     2,
                 )
 
+            target_daily_avg: float | None = None
+            if remaining > 0 and target_val is not None and actual_val is not None:
+                target_daily_avg = round((target_val - actual_val) / remaining, 2)
+
             _bm_metrics[pace_key] = {
                 "actual": actual_val,
                 "target": target_val,
@@ -484,6 +488,7 @@ def get_overview(
                 "bm_gap": bm_gap,
                 "bm_today": round(bm_today, 2) if bm_today is not None else None,
                 "today_required": today_required,
+                "target_daily_avg": target_daily_avg,
             }
 
         bm_comparison = {

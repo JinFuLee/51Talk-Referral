@@ -18,6 +18,7 @@ export interface BmMetricItem {
   bm_gap: number;
   bm_today: number;
   today_required: number;
+  target_daily_avg: number | null;
 }
 
 /** Overview API 中 bm_comparison 顶层字段 */
