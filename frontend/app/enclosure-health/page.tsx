@@ -19,20 +19,23 @@ import type {
 export default function EnclosureHealthPage() {
   const [expandedSegment, setExpandedSegment] = useState<string | null>(null);
 
-  const { data: scoresData, isLoading: loadingScores } = useSWR<EnclosureHealthScore[]>(
-    '/api/enclosure-health/scores',
-    swrFetcher
-  );
+  const {
+    data: scoresData,
+    isLoading: loadingScores,
+    error: scoresError,
+  } = useSWR<EnclosureHealthScore[]>('/api/enclosure-health/scores', swrFetcher);
 
-  const { data: benchmarkData, isLoading: loadingBenchmark } = useSWR<EnclosureBenchmarkRow[]>(
-    '/api/enclosure-health/benchmark',
-    swrFetcher
-  );
+  const {
+    data: benchmarkData,
+    isLoading: loadingBenchmark,
+    error: benchmarkError,
+  } = useSWR<EnclosureBenchmarkRow[]>('/api/enclosure-health/benchmark', swrFetcher);
 
-  const { data: varianceData, isLoading: loadingVariance } = useSWR<EnclosureVarianceRow[]>(
-    '/api/enclosure-health/variance',
-    swrFetcher
-  );
+  const {
+    data: varianceData,
+    isLoading: loadingVariance,
+    error: varianceError,
+  } = useSWR<EnclosureVarianceRow[]>('/api/enclosure-health/variance', swrFetcher);
 
   const scores = Array.isArray(scoresData) ? scoresData : [];
   const benchmarks = Array.isArray(benchmarkData) ? benchmarkData : [];
@@ -77,6 +80,11 @@ export default function EnclosureHealthPage() {
         {loadingScores ? (
           <div className="flex items-center justify-center h-32">
             <Spinner size="lg" />
+          </div>
+        ) : scoresError ? (
+          <div className="text-center py-8">
+            <p className="text-base font-semibold text-red-600">数据加载失败</p>
+            <p className="text-sm text-[var(--text-muted)] mt-1">请检查后端服务是否正常运行</p>
           </div>
         ) : !scores.length ? (
           <EmptyState title="暂无围场健康数据" description="上传围场数据后自动生成" />
@@ -130,6 +138,11 @@ export default function EnclosureHealthPage() {
           <div className="flex items-center justify-center h-48">
             <Spinner />
           </div>
+        ) : benchmarkError ? (
+          <div className="text-center py-8">
+            <p className="text-base font-semibold text-red-600">数据加载失败</p>
+            <p className="text-sm text-[var(--text-muted)] mt-1">请检查后端服务是否正常运行</p>
+          </div>
         ) : !benchmarks.length ? (
           <EmptyState title="暂无对标数据" description="上传围场数据后自动生成" />
         ) : (
@@ -142,6 +155,11 @@ export default function EnclosureHealthPage() {
         {loadingVariance ? (
           <div className="flex items-center justify-center h-32">
             <Spinner />
+          </div>
+        ) : varianceError ? (
+          <div className="text-center py-8">
+            <p className="text-base font-semibold text-red-600">数据加载失败</p>
+            <p className="text-sm text-[var(--text-muted)] mt-1">请检查后端服务是否正常运行</p>
           </div>
         ) : !variances.length ? (
           <EmptyState title="暂无方差数据" description="上传围场数据后自动生成" />

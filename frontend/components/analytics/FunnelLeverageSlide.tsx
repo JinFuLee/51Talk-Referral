@@ -116,7 +116,7 @@ export function FunnelLeverageSlide({ slideNumber, totalSlides }: SlideProps) {
   const insight = (() => {
     if (!topBottleneck) return undefined;
     const stageLabel = t.stageLabels[topBottleneck.stage] ?? topBottleneck.stage;
-    return `最大瓶颈：${topBottleneck.channel} ${stageLabel}（杠杆分 ${topBottleneck.leverage_score.toFixed(2)}，增量收入 ${formatRevenue(topBottleneck.revenue_impact)}）`;
+    return `最大瓶颈：${topBottleneck.channel} ${stageLabel}（杠杆分 ${(topBottleneck.leverage_score ?? 0).toFixed(2)}，增量收入 ${formatRevenue(topBottleneck.revenue_impact)}）`;
   })();
 
   return (

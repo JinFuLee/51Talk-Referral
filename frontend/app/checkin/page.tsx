@@ -137,7 +137,11 @@ function CheckinPageInner() {
   const hasAnyFilter = Boolean(enclosureFilter || roleFilter !== 'CC' || teamFilter || ccSearch);
 
   // ── 团队列表（从 summary 数据提取）────────────────────────────────────────
-  const { data: summaryData } = useSWR<CheckinSummaryResponse>('/api/checkin/summary', swrFetcher);
+  const {
+    data: summaryData,
+    isLoading: summaryLoading,
+    error: summaryError,
+  } = useSWR<CheckinSummaryResponse>('/api/checkin/summary', swrFetcher);
 
   const teams = useMemo(() => {
     const roleData = summaryData?.by_role?.[roleFilter];
@@ -149,7 +153,7 @@ function CheckinPageInner() {
     () =>
       activeRoles.length > 0
         ? ROLES_ALL.filter((r) => activeRoles.includes(r))
-        : (ROLES_ALL as unknown as string[]),
+        : Array.from(ROLES_ALL),
     [activeRoles]
   );
 
@@ -206,6 +210,20 @@ function CheckinPageInner() {
         </div>
         {activeTab === 'overview' && <ExportButton onExportCsv={handleExportSummary} />}
       </div>
+
+      {/* ── 汇总数据状态提示 ── */}
+      {summaryLoading && (
+        <div className="flex items-center gap-2 text-xs text-[var(--text-muted)]">
+          <Spinner size="sm" />
+          <span>加载团队数据中…</span>
+        </div>
+      )}
+      {summaryError && (
+        <div className="text-center py-4">
+          <p className="text-sm font-semibold text-red-600">汇总数据加载失败</p>
+          <p className="text-xs text-[var(--text-muted)] mt-1">请检查后端服务是否正常运行</p>
+        </div>
+      )}
 
       {/* ── 统一筛选栏（2层架构 L1）── */}
       <UnifiedFilterBar

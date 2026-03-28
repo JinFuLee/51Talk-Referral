@@ -88,10 +88,11 @@ function CCTabContent() {
   const [drilldownCC, setDrilldownCC] = useState<string | null>(null);
   const [drilldownSeg, setDrilldownSeg] = useState<string | null>(null);
 
-  const { data: heatmapData, isLoading: loadingHeatmap } = useSWR<CCHeatmapResponse>(
-    `/api/cc-matrix/heatmap?metric=${metric}`,
-    swrFetcher
-  );
+  const {
+    data: heatmapData,
+    isLoading: loadingHeatmap,
+    error: heatmapError,
+  } = useSWR<CCHeatmapResponse>(`/api/cc-matrix/heatmap?metric=${metric}`, swrFetcher);
   const { data: radarData, isLoading: loadingRadar } = useSWR<CCRadarData>(
     selectedCC ? `/api/cc-matrix/radar/${encodeURIComponent(selectedCC)}` : null,
     swrFetcher
@@ -135,6 +136,11 @@ function CCTabContent() {
         {loadingHeatmap ? (
           <div className="flex items-center justify-center h-32">
             <Spinner size="lg" />
+          </div>
+        ) : heatmapError ? (
+          <div className="text-center py-8">
+            <p className="text-base font-semibold text-red-600">数据加载失败</p>
+            <p className="text-sm text-[var(--text-muted)] mt-1">请检查后端服务是否正常运行</p>
           </div>
         ) : !heatmapData?.rows?.length ? (
           <EmptyState title="暂无热力数据" description="上传围场数据后自动生成" />

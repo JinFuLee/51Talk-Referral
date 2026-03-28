@@ -49,7 +49,7 @@ export function EnclosureHeatmap({ metrics }: EnclosureHeatmapProps) {
               </td>
               <td className="py-1 px-2 text-xs font-medium">{r.cc_name}</td>
               <td className="py-1 px-2 text-xs text-right font-mono tabular-nums">
-                {r.students.toLocaleString()}
+                {(r.students ?? 0).toLocaleString()}
               </td>
               <td className="py-1 px-2 text-xs text-center">
                 <span
@@ -94,7 +94,7 @@ export function EnclosureHeatmap({ metrics }: EnclosureHeatmapProps) {
                 </span>
               </td>
               <td className="py-1 px-2 text-xs text-right font-mono tabular-nums">
-                {r.registrations.toLocaleString()}
+                {(r.registrations ?? 0).toLocaleString()}
               </td>
               <td className="py-1 px-2 text-xs text-right font-mono tabular-nums">
                 {(r.payments ?? 0).toLocaleString()}
