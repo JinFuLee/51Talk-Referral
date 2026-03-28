@@ -324,7 +324,7 @@ def get_overview(
             "new_coefficient": _d2b_val(["带新系数", "转介绍带新系数"]),
             "cargo_ratio": _d2b_val(["带货比", "带货比例"]),
             "participation_count": _d2b_val(["带新参与数", "参与带新学员数"]),
-            "participation_rate": _d2b_val(["参与率", "转介绍参与率"]),
+            "participation_rate": _d2b_val(["参与率", "转介绍参与率", "财务模型的参与率"]),
             "checkin_rate": _d2b_val(["当月有效打卡率", "打卡率"]),
             "cc_reach_rate": _d2b_val(["CC触达率", "有效触达率"]),
         }

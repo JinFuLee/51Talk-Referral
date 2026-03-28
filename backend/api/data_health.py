@@ -81,25 +81,81 @@ _ENDPOINTS_TO_CHECK: list[dict] = [
 
 # ── 根因映射 ────────────────────────────────────────────────────────────────────
 _ROOT_CAUSE_PATTERNS: list[tuple[str, str]] = [
+    # ── D4 学员数据（出席/通话/触达/带新系数等学员级指标）──
     ("*.showup.*", "D4 学员数据"),
     ("*.calls_total", "D4 学员数据"),
     ("*.effective.*", "D4 学员数据"),
     ("*.connected.*", "D4 学员数据"),
+    ("*.call_achievement_pct", "D4 学员数据"),
+    ("*.call_proportion", "D4 学员数据"),
+    ("*.called_this_month", "D4 学员数据"),
+    ("*.coefficient", "D4 学员数据"),
+    # ── CC 个人目标上传（revenue/ASP 直接依赖上传目标）──
     ("*.revenue.target", "CC 个人目标上传"),
     ("*.revenue.bm_expected", "CC 个人目标上传"),
-    ("*.paid.target", "CC 个人目标上传（推算）"),
-    ("*.leads.target", "CC 个人目标上传（推算）"),
+    ("*.asp.*", "CC 个人目标上传"),
+    ("*.team_revenue_target", "CC 个人目标上传"),
+    # ── CC 个人目标推算（paid/leads/转化率依赖目标推导）──
+    ("*.paid.*", "CC 个人目标上传（推算）"),
+    ("*.leads.*", "CC 个人目标上传（推算）"),
+    ("*.leads_to_paid.*", "CC 个人目标上传（推算）"),
+    ("*.showup_to_paid.*", "CC 个人目标上传（推算）"),
+    ("*.efficiency_lift_pct", "CC 个人目标上传（推算）"),
+    # ── 月度目标未配置（appointment/register 目标需在 Settings 设置）──
+    ("kpi_pace.appointment.*", "月度目标未配置"),
+    ("kpi_pace.register.*", "月度目标未配置"),
+    ("kpi_8item.appointment.*", "月度目标未配置"),
+    ("stages*.achievement_rate", "月度目标未配置"),
+    ("stages*.conversion_rate", "月度目标未配置"),
+    ("stages*.target", "月度目标未配置"),
+    ("stages*.gap", "月度目标未配置"),
+    ("target_revenue", "月度目标未配置"),
+    ("revenue_achievement", "月度目标未配置"),
+    ("revenue_gap", "月度目标未配置"),
+    # ── 历史快照不足（需积累 ≥7 天快照数据）──
+    ("kpi_mom.*", "历史快照不足"),
+    ("kpi_sparklines.*", "历史快照不足"),
+    ("comparisons.*", "历史快照不足"),
+    ("day_comparison.*", "历史快照不足"),
+    # ── D2B 数据列名（部分指标需 D4 学员级数据计算）──
+    ("d2b_summary.*", "D2B 数据"),
+    # ── CC 过程指标（打卡/触达/参与率依赖 D4 学员级数据）──
+    ("*.participation_rate", "D4 学员数据"),
+    ("*.checkin_rate", "D4 学员数据"),
+    ("*.cc_reach_rate", "D4 学员数据"),
+    ("*.leads_user_a", "D4 学员数据"),
+    # ── D2 围场数据 ──
     ("*.enclosure*", "D2 围场数据"),
+    ("*.finance_participation_rate", "D2 围场数据"),
+    ("*.new_coefficient", "D2 围场数据"),
+    # ── D1 汇总数据 ──
     ("*.register.*", "D1 汇总数据"),
     ("*.funnel.*", "D1 汇总数据"),
+    # ── 激励活动配置 ──
+    ("*.start_date", "激励活动配置"),
+    ("*.end_date", "激励活动配置"),
+    ("*.poster_path", "激励活动配置"),
+    ("*.leverage_source", "激励活动配置"),
+    # ── 打卡数据 ──
+    ("by_role.*.by_enclosure", "打卡角色数据"),
+    ("by_role.*.by_group", "打卡角色数据"),
+    ("by_role.*.by_person", "打卡角色数据"),
+    ("by_role.*.by_team", "打卡角色数据"),
+    # ── 漏斗日期 ──
+    ("date", "正常（非异常）"),
 ]
 
 _REMEDIATION: dict[str, dict] = {
     "D4 学员数据": {"action": "下载 BI 数据", "manual": "双击 下载BI数据.command"},
     "D2 围场数据": {"action": "下载 BI 数据", "manual": "双击 下载BI数据.command"},
     "D1 汇总数据": {"action": "下载 BI 数据", "manual": "双击 下载BI数据.command"},
+    "D2B 数据": {"action": "下载 BI 数据", "manual": "双击 下载BI数据.command"},
     "CC 个人目标上传": {"action": "上传个人目标", "link": "/cc-performance"},
     "CC 个人目标上传（推算）": {"action": "上传个人目标", "link": "/cc-performance"},
+    "月度目标未配置": {"action": "设置月度目标", "link": "/settings"},
+    "历史快照不足": {"action": "等待数据积累", "manual": "需 ≥7 天快照（自动积累）"},
+    "激励活动配置": {"action": "配置激励活动", "link": "/settings"},
+    "打卡角色数据": {"action": "下载 BI 数据", "manual": "运营角色无数据为正常"},
 }
 
 
@@ -334,19 +390,29 @@ def _match_pattern(path: str, pattern: str) -> bool:
     return fnmatch(path, pattern)
 
 
+def _classify_null_path(path: str) -> str:
+    """为单个 null 字段路径分类根因"""
+    for pat, cause in _ROOT_CAUSE_PATTERNS:
+        if _match_pattern(path, pat):
+            return cause
+    return "未知"
+
+
+# 根因分类中标记为"正常"的类别，不计入异常统计
+_NORMAL_CAUSES = {"正常（非异常）"}
+
+
 def _merge_root_causes(null_paths: list[str]) -> list[dict]:
-    """将 null 字段路径按根因归并"""
+    """将 null 字段路径按根因归并，排除正常类别"""
     causes: dict[str, list[str]] = {}
     for path in null_paths:
-        matched = "未知"
-        for pat, cause in _ROOT_CAUSE_PATTERNS:
-            if _match_pattern(path, pat):
-                matched = cause
-                break
+        matched = _classify_null_path(path)
         causes.setdefault(matched, []).append(path)
 
     result: list[dict] = []
     for cause, paths in sorted(causes.items(), key=lambda x: -len(x[1])):
+        if cause in _NORMAL_CAUSES:
+            continue
         entry: dict = {
             "cause": cause,
             "affected_fields": len(paths),
@@ -357,6 +423,11 @@ def _merge_root_causes(null_paths: list[str]) -> list[dict]:
             entry["remediation"] = rem
         result.append(entry)
     return result
+
+
+def _count_real_nulls(null_paths: list[str]) -> int:
+    """统计排除正常类别后的真实 null 数"""
+    return sum(1 for p in null_paths if _classify_null_path(p) not in _NORMAL_CAUSES)
 
 
 # ── 跨端点一致性 ───────────────────────────────────────────────────────────────
@@ -559,11 +630,11 @@ def check_data_quality(
     last = _load_last_check()
     vs_last = _compute_diff(all_null_paths, last)
 
-    # 汇总指标
+    # 汇总指标（排除正常类别的 null 字段）
     total_fields = sum(
         ep["total_fields"] for eps in module_results.values() for ep in eps
     )
-    total_nulls = len(all_null_paths)
+    total_nulls = _count_real_nulls(all_null_paths)
     total_endpoints = sum(len(eps) for eps in module_results.values())
     health_pct = (
         round((total_fields - total_nulls) / total_fields * 100, 1)

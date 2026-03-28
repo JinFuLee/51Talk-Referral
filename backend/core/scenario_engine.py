@@ -84,8 +84,9 @@ class ScenarioEngine:
         return None
 
     def compute_funnel(self) -> FunnelResult:
-        """计算漏斗各环节的目标/实际/差距/达成率"""
+        """计算漏斗各环节的目标/实际/差距/达成率/环节转化率"""
         stages: list[FunnelStage] = []
+        prev_actual: float | None = None
 
         for stage_name in FUNNEL_STAGES:
             actual = self._get_actual(stage_name)
@@ -96,6 +97,7 @@ class ScenarioEngine:
                 else None
             )
             ach = _safe_rate(actual, target)
+            conv = _safe_rate(actual, prev_actual) if prev_actual else None
 
             stages.append(
                 FunnelStage(
@@ -104,8 +106,10 @@ class ScenarioEngine:
                     actual=actual,
                     gap=gap,
                     achievement_rate=ach,
+                    conversion_rate=round(conv, 4) if conv is not None else None,
                 )
             )
+            prev_actual = actual
 
         # 转化率环节
         for rate_name, _num_col, _den_col in CONVERSION_PAIRS:
