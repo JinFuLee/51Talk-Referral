@@ -130,6 +130,10 @@ class ScenarioEngine:
                     actual=actual_rate,
                     gap=gap,
                     achievement_rate=round(ach, 4) if ach is not None else None,
+                    target_rate=(
+                        round(target_rate, 4) if target_rate is not None else None
+                    ),
+                    rate_gap=round(gap, 4) if gap is not None else None,
                 )
             )
 
@@ -208,23 +212,32 @@ class ScenarioEngine:
             FunnelStage(name="付费数(场景)", actual=sim_pays),
         ]
 
+        rate_current = (
+            actual_appt_rate
+            if scenario_stage == "注册预约率"
+            else actual_show_rate
+            if scenario_stage == "预约出席率"
+            else actual_pay_rate
+        )
+        rate_target = (
+            target_appt_rate
+            if scenario_stage == "注册预约率"
+            else target_show_rate
+            if scenario_stage == "预约出席率"
+            else target_pay_rate
+        )
         return ScenarioResult(
             scenario_stage=scenario_stage,
-            scenario_rate_current=(
-                actual_appt_rate
-                if scenario_stage == "注册预约率"
-                else actual_show_rate
-                if scenario_stage == "预约出席率"
-                else actual_pay_rate
-            ),
-            scenario_rate_target=(
-                target_appt_rate
-                if scenario_stage == "注册预约率"
-                else target_show_rate
-                if scenario_stage == "预约出席率"
-                else target_pay_rate
-            ),
+            scenario_rate_current=rate_current,
+            scenario_rate_target=rate_target,
             stages=stages,
             incremental_payments=incremental_payments,
             incremental_revenue=incremental_revenue,
+            # 前端兼容别名
+            stage=scenario_stage,
+            current_rate=rate_current,
+            scenario_rate=rate_target,
+            impact_registrations=0,  # 场景推演不改注册数，只改转化率
+            impact_payments=incremental_payments,
+            impact_revenue=incremental_revenue,
         )

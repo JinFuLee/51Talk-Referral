@@ -12,6 +12,9 @@ class FunnelStage(BaseModel):
     gap: float | None = None
     achievement_rate: float | None = None
     conversion_rate: float | None = None
+    # 转化率环节专用字段（前端期望）
+    target_rate: float | None = None
+    rate_gap: float | None = None
 
 
 class FunnelResult(BaseModel):
@@ -32,3 +35,10 @@ class ScenarioResult(BaseModel):
     stages: list[FunnelStage] = []
     incremental_payments: float | None = None
     incremental_revenue: float | None = None
+    # 前端兼容别名字段
+    stage: str | None = None
+    current_rate: float | None = None
+    scenario_rate: float | None = None
+    impact_registrations: float | None = None
+    impact_payments: float | None = None
+    impact_revenue: float | None = None

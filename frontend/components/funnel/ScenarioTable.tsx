@@ -36,13 +36,13 @@ export function ScenarioTable({ stages }: ScenarioTableProps) {
                 {formatRate(s.scenario_rate)}
               </td>
               <td className="py-1 px-2 text-xs text-right font-mono tabular-nums text-[var(--text-primary)]">
-                +{s.impact_registrations.toLocaleString()}
+                +{(s.impact_registrations ?? 0).toLocaleString()}
               </td>
               <td className="py-1 px-2 text-xs text-right font-mono tabular-nums text-[var(--text-primary)]">
-                +{s.impact_payments.toLocaleString()}
+                +{(s.impact_payments ?? 0).toLocaleString()}
               </td>
               <td className="py-1 px-2 text-xs text-right font-mono tabular-nums font-semibold text-emerald-800">
-                +${s.impact_revenue.toLocaleString()}
+                +${(s.impact_revenue ?? 0).toLocaleString()}
               </td>
             </tr>
           ))}

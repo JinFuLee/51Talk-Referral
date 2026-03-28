@@ -101,15 +101,15 @@ export default function FunnelPage() {
 
   const stages = (funnelData?.stages ?? []).filter((s) => s.target != null || s.actual != null);
 
-  // 后端返回单对象或数组；字段名映射到前端期望的 ScenarioResult 结构
+  // 后端直接返回兼容字段（stage/current_rate/scenario_rate/impact_*），无需 workaround 映射
   const scenarioList: ScenarioResult[] = scenarioRaw
     ? [scenarioRaw].flat().map((s: Record<string, unknown>) => ({
-        stage: (s.scenario_stage ?? s.stage ?? '') as string,
-        current_rate: (s.scenario_rate_current ?? s.current_rate ?? 0) as number,
-        scenario_rate: (s.scenario_rate_target ?? s.scenario_rate ?? 0) as number,
+        stage: (s.stage ?? '') as string,
+        current_rate: (s.current_rate ?? 0) as number,
+        scenario_rate: (s.scenario_rate ?? 0) as number,
         impact_registrations: (s.impact_registrations ?? 0) as number,
-        impact_payments: (s.incremental_payments ?? s.impact_payments ?? 0) as number,
-        impact_revenue: (s.incremental_revenue ?? s.impact_revenue ?? 0) as number,
+        impact_payments: (s.impact_payments ?? 0) as number,
+        impact_revenue: (s.impact_revenue ?? 0) as number,
       }))
     : [];
   // 仅展示有 stage 名称的条目（过滤无效空对象）
