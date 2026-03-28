@@ -492,7 +492,7 @@ function LeverageTab() {
                 <div className="flex items-center justify-between">
                   <span className="text-[10px] text-[var(--text-muted)]">杠杆评分</span>
                   <span className="text-xs font-mono font-semibold text-[var(--text-primary)]">
-                    {rec.leverage_score.toFixed(1)}
+                    {(rec.leverage_score ?? 0).toFixed(1)}
                   </span>
                 </div>
                 <div className="h-1.5 bg-[var(--bg-subtle)] rounded-full overflow-hidden">

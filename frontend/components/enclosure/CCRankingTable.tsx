@@ -109,7 +109,7 @@ export function CCRankingTable({ rankings }: CCRankingTableProps) {
               </td>
               {r.students !== undefined && (
                 <td className="py-1 px-2 text-xs text-right font-mono tabular-nums">
-                  {r.students.toLocaleString()}
+                  {(r.students ?? 0).toLocaleString()}
                 </td>
               )}
               {COLUMNS.map((col) => (
