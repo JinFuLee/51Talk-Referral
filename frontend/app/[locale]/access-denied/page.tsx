@@ -10,12 +10,14 @@ const I18N = {
     subtitle: '您没有访问此页面的权限，请联系管理员为您分配角色。',
     backHome: '返回首页',
     contact: '联系管理员',
+    login: '去登录',
   },
   en: {
     title: 'Access Denied',
     subtitle: 'You do not have permission to access this page. Please contact your administrator.',
     backHome: 'Back to Home',
     contact: 'Contact Admin',
+    login: 'Sign in',
   },
 } as const;
 
@@ -38,7 +40,10 @@ export default function AccessDeniedPage() {
           <Link href="/" className="btn-primary text-center">
             {t.backHome}
           </Link>
-          <Link href="/settings" className="btn-secondary text-center">
+          <Link href={`/${locale}/login`} className="btn-secondary text-center">
+            {t.login}
+          </Link>
+          <Link href="/access-control" className="btn-secondary text-center">
             {t.contact}
           </Link>
         </div>

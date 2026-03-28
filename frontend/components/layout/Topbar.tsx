@@ -4,12 +4,14 @@ import { useHealth } from '@/lib/hooks';
 import { usePathname } from 'next/navigation';
 import { useLocale } from 'next-intl';
 import { usePresentationStore } from '@/lib/stores/presentation-store';
-import { MonitorPlay } from 'lucide-react';
+import { MonitorPlay, User, LogOut } from 'lucide-react';
 import clsx from 'clsx';
+import useSWR from 'swr';
 import { TimePeriodSelector } from '@/components/shared/TimePeriodSelector';
 import { CompareToggle } from '@/components/shared/CompareToggle';
 import { BrandMark } from '@/components/ui/BrandMark';
 import { formatDate } from '@/lib/date-format';
+import { swrFetcher } from '@/lib/api';
 
 function ViewModeBadge({ pathname }: { pathname: string }) {
   if (pathname.startsWith('/ops')) {
@@ -29,6 +31,12 @@ function ViewModeBadge({ pathname }: { pathname: string }) {
   return null;
 }
 
+interface MeResponse {
+  email: string;
+  name?: string;
+  source?: string;
+}
+
 export function Topbar() {
   const { data: health } = useHealth();
   const pathname = usePathname();
@@ -36,6 +44,17 @@ export function Topbar() {
 
   const locale = useLocale();
   const isOnline = health?.status === 'ok';
+
+  const { data: me } = useSWR<MeResponse>('/api/access-control/me', swrFetcher, {
+    // 401 不上报错误日志，access-control/me 允许 401
+    onError: () => {},
+    shouldRetryOnError: false,
+  });
+
+  const handleLogout = async () => {
+    await fetch('/api/access-control/logout', { method: 'POST' });
+    window.location.href = `/${locale}/login`;
+  };
 
   return (
     <header className="h-14 bg-[var(--bg-surface)]/80 backdrop-blur-md border-b border-[var(--border-subtle)] flex items-center justify-between px-3 lg:px-6 shrink-0 relative z-40">
@@ -74,6 +93,28 @@ export function Topbar() {
           />
           <span className="hidden sm:inline">{isOnline ? '后端在线' : '后端连接断开'}</span>
         </div>
+
+        <span className="hidden sm:inline text-[var(--text-muted)]">|</span>
+
+        {/* 用户指示 */}
+        {me?.email && me.source !== 'local_dev' && (
+          <div className="flex items-center gap-1.5 text-sm text-[var(--text-muted)]">
+            <User className="w-3.5 h-3.5 shrink-0" />
+            <span className="hidden sm:inline max-w-[120px] truncate">{me.name || me.email}</span>
+            <button
+              onClick={handleLogout}
+              className="hover:text-[var(--text-primary)] transition-colors"
+              title="退出登录"
+            >
+              <LogOut className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        )}
+        {me?.source === 'local_dev' && (
+          <span className="text-xs px-1.5 py-0.5 rounded bg-[var(--color-accent-subtle)] text-[var(--color-accent)] font-mono">
+            DEV
+          </span>
+        )}
 
         <span className="hidden sm:inline text-[var(--text-muted)]">|</span>
 
