@@ -2,9 +2,6 @@
  * SWR hooks — 封装 API 请求，供页面使用
  */
 import useSWR, { type SWRConfiguration } from 'swr';
-import { useCallback } from 'react';
-// zhTranslations / thTranslations are now consumed via lib/i18n.ts getTranslations()
-import { getTranslations, createT } from './i18n';
 import {
   analysisAPI,
   datasourcesAPI,
@@ -461,13 +458,3 @@ export function useNotifications() {
 }
 
 // ── CC Drawer (legacy, removed in refactor) ──────────────────────────────────
-
-// ── i18n ──────────────────────────────────────────────────────────────────────
-// 内部改用 i18n.ts 纯函数，对外 API 不变（向后兼容所有 39 处调用）
-
-export function useTranslation() {
-  const language = useConfigStore((s) => s.language);
-  const translations = getTranslations(language);
-  const t = useCallback(createT(translations), [translations]);
-  return { t };
-}

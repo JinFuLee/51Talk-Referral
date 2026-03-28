@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { Space_Grotesk, Inter, IBM_Plex_Mono } from 'next/font/google';
+import { Space_Grotesk, Inter, IBM_Plex_Mono, IBM_Plex_Sans_Thai } from 'next/font/google';
 import './globals.css';
 
 const spaceGrotesk = Space_Grotesk({
@@ -18,6 +18,13 @@ const ibmPlexMono = IBM_Plex_Mono({
   subsets: ['latin'],
   weight: ['400', '500', '600'],
   variable: '--font-mono',
+});
+
+const ibmPlexSansThai = IBM_Plex_Sans_Thai({
+  subsets: ['thai'],
+  weight: ['400', '500', '600', '700'],
+  variable: '--font-thai',
+  display: 'swap',
 });
 
 export const metadata: Metadata = {
@@ -45,13 +52,9 @@ export default function RootLayout({
 `,
           }}
         />
-        <link
-          href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=Noto+Serif+Thai:wght@400;600;700&family=Noto+Serif+SC:wght@400;600;700&display=swap"
-          rel="stylesheet"
-        />
       </head>
       <body
-        className={`${spaceGrotesk.variable} ${inter.variable} ${ibmPlexMono.variable} font-sans`}
+        className={`${spaceGrotesk.variable} ${inter.variable} ${ibmPlexMono.variable} ${ibmPlexSansThai.variable} font-sans`}
         style={{
           fontFamily:
             "var(--font-sans), 'IBM Plex Sans Thai', 'Prompt', 'Noto Sans Thai', 'PingFang SC', 'Noto Sans SC', system-ui, sans-serif",
