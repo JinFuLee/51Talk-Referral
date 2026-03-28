@@ -1,84 +1,629 @@
 {
-  "version": 1,
+  "version": 3,
   "roles": {
     "admin": {
-      "name": {"zh": "管理员", "th": "ผู้ดูแลระบบ"},
+      "name": {
+        "zh": "管理员",
+        "th": "ผู้ดูแลระบบ"
+      },
       "color": "#ef4444",
-      "pages": ["*"],
+      "pages": [
+        "*"
+      ],
       "canManage": true
     },
     "ops_manager": {
-      "name": {"zh": "运营管理", "th": "ผู้จัดการปฏิบัติการ"},
+      "name": {
+        "zh": "运营管理",
+        "th": "ผู้จัดการปฏิบัติการ"
+      },
       "color": "#3b82f6",
-      "pages": ["/*"],
+      "pages": [
+        "/*"
+      ],
       "canManage": false
     },
     "sales_lead": {
-      "name": {"zh": "销售主管", "th": "หัวหน้าฝ่ายขาย"},
+      "name": {
+        "zh": "销售主管",
+        "th": "หัวหน้าฝ่ายขาย"
+      },
       "color": "#22c55e",
-      "pages": ["/cc-performance", "/checkin", "/daily-monitor", "/present/*", "/team", "/reports/*", "/funnel", "/enclosure", "/members"],
+      "pages": [
+        "/cc-performance",
+        "/checkin",
+        "/daily-monitor",
+        "/present/*",
+        "/team",
+        "/reports/*",
+        "/funnel",
+        "/enclosure",
+        "/members"
+      ],
       "canManage": false
     },
     "viewer": {
-      "name": {"zh": "查看者", "th": "ผู้ชม"},
+      "name": {
+        "zh": "查看者",
+        "th": "ผู้ชม"
+      },
       "color": "#a855f7",
-      "pages": ["/", "/daily-monitor", "/reports/ops"],
+      "pages": [
+        "/",
+        "/daily-monitor",
+        "/reports/ops"
+      ],
       "canManage": false
     }
   },
   "users": [
-    {"email": "athip@51talk.com", "name": "Felix", "role": "admin", "addedAt": "2026-03-28T00:00:00Z", "addedBy": "system"},
-    {"email": "wuhaoer01@51talk.com", "name": "wuhaoer", "role": "ops_manager", "addedAt": "2026-03-28T00:00:00Z", "addedBy": "system"},
-    {"email": "liqi001@51talk.com", "name": "李琦", "role": "ops_manager", "addedAt": "2026-03-28T00:00:00Z", "addedBy": "system"},
-    {"email": "chonradee@51talk.com", "name": "Chon_Shona", "role": "ops_manager", "addedAt": "2026-03-28T00:00:00Z", "addedBy": "system"},
-    {"email": "renhang@51talk.com", "name": "Zoe", "role": "sales_lead", "addedAt": "2026-03-28T00:00:00Z", "addedBy": "system"},
-    {"email": "panawat@51talk.com", "name": "Golf", "role": "sales_lead", "addedAt": "2026-03-28T00:00:00Z", "addedBy": "system"},
-    {"email": "sirikwan@51talk.com", "name": "Team6", "role": "sales_lead", "addedAt": "2026-03-28T00:00:00Z", "addedBy": "system"},
-    {"email": "Khatthaliya.Suk@51talk.com", "name": "team-5", "role": "sales_lead", "addedAt": "2026-03-28T00:00:00Z", "addedBy": "system"},
-    {"email": "zen@51talk.com", "name": "Team-1", "role": "sales_lead", "addedAt": "2026-03-28T00:00:00Z", "addedBy": "system"},
-    {"email": "chayanit@51talk.com", "name": "Team-2", "role": "sales_lead", "addedAt": "2026-03-28T00:00:00Z", "addedBy": "system"},
-    {"email": "muhammadfadil@51talk.com", "name": "Team3", "role": "sales_lead", "addedAt": "2026-03-28T00:00:00Z", "addedBy": "system"},
-    {"email": "apinun@51talk.com", "name": "Team-4", "role": "sales_lead", "addedAt": "2026-03-28T00:00:00Z", "addedBy": "system"},
-    {"email": "chonticha.j@51talk.com", "name": "Team-15", "role": "sales_lead", "addedAt": "2026-03-28T00:00:00Z", "addedBy": "system"}
+    {
+      "email": "athip@51talk.com",
+      "name": "Felix",
+      "role": "admin",
+      "addedAt": "2026-03-28T00:00:00Z",
+      "addedBy": "system"
+    },
+    {
+      "email": "wuhaoer01@51talk.com",
+      "name": "wuhaoer",
+      "role": "ops_manager",
+      "addedAt": "2026-03-28T00:00:00Z",
+      "addedBy": "system"
+    },
+    {
+      "email": "liqi001@51talk.com",
+      "name": "李琦",
+      "role": "ops_manager",
+      "addedAt": "2026-03-28T00:00:00Z",
+      "addedBy": "system"
+    },
+    {
+      "email": "chonradee@51talk.com",
+      "name": "Chon_Shona",
+      "role": "ops_manager",
+      "addedAt": "2026-03-28T00:00:00Z",
+      "addedBy": "system"
+    },
+    {
+      "email": "renhang@51talk.com",
+      "name": "Zoe",
+      "role": "sales_lead",
+      "addedAt": "2026-03-28T00:00:00Z",
+      "addedBy": "system"
+    },
+    {
+      "email": "panawat@51talk.com",
+      "name": "Golf",
+      "role": "sales_lead",
+      "addedAt": "2026-03-28T00:00:00Z",
+      "addedBy": "system"
+    },
+    {
+      "email": "sirikwan@51talk.com",
+      "name": "Team6",
+      "role": "sales_lead",
+      "addedAt": "2026-03-28T00:00:00Z",
+      "addedBy": "system"
+    },
+    {
+      "email": "Khatthaliya.Suk@51talk.com",
+      "name": "team-5",
+      "role": "sales_lead",
+      "addedAt": "2026-03-28T00:00:00Z",
+      "addedBy": "system"
+    },
+    {
+      "email": "zen@51talk.com",
+      "name": "Team-1",
+      "role": "sales_lead",
+      "addedAt": "2026-03-28T00:00:00Z",
+      "addedBy": "system"
+    },
+    {
+      "email": "chayanit@51talk.com",
+      "name": "Team-2",
+      "role": "sales_lead",
+      "addedAt": "2026-03-28T00:00:00Z",
+      "addedBy": "system"
+    },
+    {
+      "email": "muhammadfadil@51talk.com",
+      "name": "Team3",
+      "role": "sales_lead",
+      "addedAt": "2026-03-28T00:00:00Z",
+      "addedBy": "system"
+    },
+    {
+      "email": "apinun@51talk.com",
+      "name": "Team-4",
+      "role": "sales_lead",
+      "addedAt": "2026-03-28T00:00:00Z",
+      "addedBy": "system"
+    },
+    {
+      "email": "chonticha.j@51talk.com",
+      "name": "Team-15",
+      "role": "sales_lead",
+      "addedAt": "2026-03-28T00:00:00Z",
+      "addedBy": "system"
+    }
   ],
-  "publicPages": ["/", "/cc-performance", "/daily-monitor", "/checkin"],
+  "publicPages": [
+    "/",
+    "/cc-performance",
+    "/daily-monitor",
+    "/checkin"
+  ],
   "pageRegistry": [
-    {"path": "/", "category": "ops_core", "name": {"zh": "首页", "th": "หน้าหลัก"}, "icon": "Home", "description": {"zh": "运营数据总览", "th": "ภาพรวมข้อมูลปฏิบัติการ"}},
-    {"path": "/daily-monitor", "category": "ops_core", "name": {"zh": "日监控", "th": "ติดตามรายวัน"}, "icon": "Activity", "description": {"zh": "每日 KPI 追踪", "th": "ติดตาม KPI รายวัน"}},
-    {"path": "/analytics", "category": "ops_core", "name": {"zh": "运营分析", "th": "วิเคราะห์"}, "icon": "BarChart3", "description": {"zh": "11 区块运营报告", "th": "รายงานปฏิบัติการ 11 บล็อก"}},
-    {"path": "/funnel", "category": "ops_core", "name": {"zh": "转化漏斗", "th": "Funnel"}, "icon": "Filter", "description": {"zh": "注册→付费全链路", "th": "ลงทะเบียน→ชำระเงิน"}},
-    {"path": "/channel", "category": "ops_core", "name": {"zh": "渠道分析", "th": "ช่องทาง"}, "icon": "GitBranch", "description": {"zh": "CC/SS/LP/宽口四口径", "th": "CC/SS/LP/ช่องกว้าง 4 ช่อง"}},
-    {"path": "/attribution", "category": "ops_core", "name": {"zh": "渠道归因", "th": "การระบุแหล่งที่มา"}, "icon": "PieChart", "description": {"zh": "6 维度归因分析", "th": "วิเคราะห์ 6 มิติ"}},
-    {"path": "/cc-performance", "category": "performance", "name": {"zh": "CC 业绩", "th": "ผลงาน CC"}, "icon": "TrendingUp", "description": {"zh": "CC 个人业绩看板", "th": "แผงผลงาน CC"}},
-    {"path": "/cc-matrix", "category": "performance", "name": {"zh": "CC 矩阵", "th": "เมทริกซ์ CC"}, "icon": "Grid3x3", "description": {"zh": "CC 多维能力矩阵", "th": "เมทริกซ์ความสามารถ CC"}},
-    {"path": "/ss-lp-matrix", "category": "performance", "name": {"zh": "SS/LP 矩阵", "th": "เมทริกซ์ SS/LP"}, "icon": "Grid3x3", "description": {"zh": "SS/LP 多维能力矩阵", "th": "เมทริกซ์ SS/LP"}},
-    {"path": "/indicator-matrix", "category": "performance", "name": {"zh": "指标矩阵", "th": "เมทริกซ์ตัวชี้วัด"}, "icon": "LayoutGrid", "description": {"zh": "CC/SS/LP 指标配置", "th": "กำหนดตัวชี้วัด"}},
-    {"path": "/personnel-matrix", "category": "performance", "name": {"zh": "人员矩阵", "th": "เมทริกซ์บุคลากร"}, "icon": "Users", "description": {"zh": "人员能力评估", "th": "ประเมินบุคลากร"}},
-    {"path": "/incentive-tracking", "category": "performance", "name": {"zh": "激励追踪", "th": "ติดตามสิ่งจูงใจ"}, "icon": "Gift", "description": {"zh": "激励方案执行追踪", "th": "ติดตามแผนจูงใจ"}},
-    {"path": "/members", "category": "student", "name": {"zh": "学员管理", "th": "จัดการสมาชิก"}, "icon": "Users", "description": {"zh": "学员列表与筛选", "th": "รายชื่อสมาชิก"}},
-    {"path": "/students/360", "category": "student", "name": {"zh": "学员 360", "th": "สมาชิก 360"}, "icon": "CircleDot", "description": {"zh": "学员全维度画像", "th": "โปรไฟล์ 360 องศา"}},
-    {"path": "/checkin", "category": "student", "name": {"zh": "打卡管理", "th": "จัดการเช็คอิน"}, "icon": "CheckSquare", "description": {"zh": "学员打卡与跟进", "th": "เช็คอินและติดตาม"}},
-    {"path": "/enclosure", "category": "student", "name": {"zh": "围场分析", "th": "วิเคราะห์กลุ่ม"}, "icon": "Box", "description": {"zh": "围场维度数据", "th": "ข้อมูลกลุ่ม"}},
-    {"path": "/enclosure-health", "category": "student", "name": {"zh": "围场健康", "th": "สุขภาพกลุ่ม"}, "icon": "Heart", "description": {"zh": "围场健康度评估", "th": "ประเมินสุขภาพกลุ่ม"}},
-    {"path": "/learning-heatmap", "category": "student", "name": {"zh": "学习热力图", "th": "Heatmap การเรียน"}, "icon": "Flame", "description": {"zh": "学员学习活跃度", "th": "ความกระตือรือร้น"}},
-    {"path": "/referral-contributor", "category": "student", "name": {"zh": "转介绍贡献者", "th": "ผู้แนะนำ"}, "icon": "Award", "description": {"zh": "Top 转介绍学员", "th": "สมาชิกแนะนำยอดเยี่ยม"}},
-    {"path": "/data-health", "category": "risk", "name": {"zh": "数据健康", "th": "สุขภาพข้อมูล"}, "icon": "ShieldCheck", "description": {"zh": "数据质量监控", "th": "ตรวจสอบคุณภาพข้อมูล"}},
-    {"path": "/expiry-alert", "category": "risk", "name": {"zh": "到期预警", "th": "แจ้งเตือนหมดอายุ"}, "icon": "AlertTriangle", "description": {"zh": "学员到期提醒", "th": "แจ้งเตือนสมาชิกหมดอายุ"}},
-    {"path": "/renewal-risk", "category": "risk", "name": {"zh": "续费风险", "th": "ความเสี่ยงต่ออายุ"}, "icon": "AlertCircle", "description": {"zh": "续费风险预警", "th": "เตือนความเสี่ยง"}},
-    {"path": "/high-potential", "category": "risk", "name": {"zh": "高潜力", "th": "ศักยภาพสูง"}, "icon": "Star", "description": {"zh": "高潜力学员识别", "th": "ระบุสมาชิกศักยภาพสูง"}},
-    {"path": "/high-potential/warroom", "category": "risk", "name": {"zh": "作战室", "th": "ห้องปฏิบัติการ"}, "icon": "Target", "description": {"zh": "高潜力作战室", "th": "ห้องปฏิบัติการ"}},
-    {"path": "/followup-quality", "category": "risk", "name": {"zh": "跟进质量", "th": "คุณภาพติดตาม"}, "icon": "PhoneCall", "description": {"zh": "跟进通话质量", "th": "คุณภาพการติดตาม"}},
-    {"path": "/outreach-quality", "category": "risk", "name": {"zh": "触达质量", "th": "คุณภาพการเข้าถึง"}, "icon": "Radio", "description": {"zh": "触达效率分析", "th": "วิเคราะห์ประสิทธิภาพ"}},
-    {"path": "/reports", "category": "reports", "name": {"zh": "报告管理", "th": "จัดการรายงาน"}, "icon": "FileText", "description": {"zh": "运营/管理层报告", "th": "รายงานปฏิบัติการ/ผู้บริหาร"}},
-    {"path": "/reports/ops", "category": "reports", "name": {"zh": "运营报告", "th": "รายงานปฏิบัติการ"}, "icon": "FileText", "description": {"zh": "运营版日报/周报", "th": "รายงานรายวัน/สัปดาห์"}},
-    {"path": "/reports/exec", "category": "reports", "name": {"zh": "管理层报告", "th": "รายงานผู้บริหาร"}, "icon": "FileText", "description": {"zh": "管理层版报告", "th": "รายงานระดับผู้บริหาร"}},
-    {"path": "/present", "category": "reports", "name": {"zh": "汇报", "th": "การนำเสนอ"}, "icon": "Presentation", "description": {"zh": "定向汇报演示", "th": "การนำเสนอ"}},
-    {"path": "/settings", "category": "system", "name": {"zh": "系统设置", "th": "ตั้งค่าระบบ"}, "icon": "Settings", "description": {"zh": "目标/汇率/围场配置", "th": "ตั้งค่าเป้าหมาย/อัตราแลกเปลี่ยน"}},
-    {"path": "/notifications", "category": "system", "name": {"zh": "通知管理", "th": "จัดการการแจ้งเตือน"}, "icon": "Bell", "description": {"zh": "推送任务与通道", "th": "งานแจ้งเตือนและช่องทาง"}},
-    {"path": "/team", "category": "system", "name": {"zh": "团队管理", "th": "จัดการทีม"}, "icon": "Users", "description": {"zh": "团队结构与排名", "th": "โครงสร้างและอันดับทีม"}},
-    {"path": "/geo-distribution", "category": "system", "name": {"zh": "地域分布", "th": "การกระจายภูมิศาสตร์"}, "icon": "MapPin", "description": {"zh": "学员地域分布", "th": "กระจายสมาชิก"}},
-    {"path": "/knowledge", "category": "system", "name": {"zh": "知识库", "th": "ฐานความรู้"}, "icon": "BookOpen", "description": {"zh": "运营知识沉淀", "th": "ฐานความรู้"}},
-    {"path": "/access-control", "category": "system", "name": {"zh": "权限管理", "th": "จัดการสิทธิ์"}, "icon": "Shield", "description": {"zh": "用户角色与页面权限", "th": "จัดการบทบาทและสิทธิ์"}}
+    {
+      "path": "/",
+      "category": "ops_core",
+      "name": {
+        "zh": "首页",
+        "th": "หน้าหลัก"
+      },
+      "icon": "Home",
+      "description": {
+        "zh": "运营数据总览",
+        "th": "ภาพรวมข้อมูลปฏิบัติการ"
+      }
+    },
+    {
+      "path": "/daily-monitor",
+      "category": "ops_core",
+      "name": {
+        "zh": "日监控",
+        "th": "ติดตามรายวัน"
+      },
+      "icon": "Activity",
+      "description": {
+        "zh": "每日 KPI 追踪",
+        "th": "ติดตาม KPI รายวัน"
+      }
+    },
+    {
+      "path": "/analytics",
+      "category": "ops_core",
+      "name": {
+        "zh": "运营分析",
+        "th": "วิเคราะห์"
+      },
+      "icon": "BarChart3",
+      "description": {
+        "zh": "11 区块运营报告",
+        "th": "รายงานปฏิบัติการ 11 บล็อก"
+      }
+    },
+    {
+      "path": "/funnel",
+      "category": "ops_core",
+      "name": {
+        "zh": "转化漏斗",
+        "th": "Funnel"
+      },
+      "icon": "Filter",
+      "description": {
+        "zh": "注册→付费全链路",
+        "th": "ลงทะเบียน→ชำระเงิน"
+      }
+    },
+    {
+      "path": "/channel",
+      "category": "ops_core",
+      "name": {
+        "zh": "渠道分析",
+        "th": "ช่องทาง"
+      },
+      "icon": "GitBranch",
+      "description": {
+        "zh": "CC/SS/LP/宽口四口径",
+        "th": "CC/SS/LP/ช่องกว้าง 4 ช่อง"
+      }
+    },
+    {
+      "path": "/attribution",
+      "category": "ops_core",
+      "name": {
+        "zh": "渠道归因",
+        "th": "การระบุแหล่งที่มา"
+      },
+      "icon": "PieChart",
+      "description": {
+        "zh": "6 维度归因分析",
+        "th": "วิเคราะห์ 6 มิติ"
+      }
+    },
+    {
+      "path": "/cc-performance",
+      "category": "performance",
+      "name": {
+        "zh": "CC 业绩",
+        "th": "ผลงาน CC"
+      },
+      "icon": "TrendingUp",
+      "description": {
+        "zh": "CC 个人业绩看板",
+        "th": "แผงผลงาน CC"
+      }
+    },
+    {
+      "path": "/cc-matrix",
+      "category": "performance",
+      "name": {
+        "zh": "CC 矩阵",
+        "th": "เมทริกซ์ CC"
+      },
+      "icon": "Grid3x3",
+      "description": {
+        "zh": "CC 多维能力矩阵",
+        "th": "เมทริกซ์ความสามารถ CC"
+      }
+    },
+    {
+      "path": "/ss-lp-matrix",
+      "category": "performance",
+      "name": {
+        "zh": "SS/LP 矩阵",
+        "th": "เมทริกซ์ SS/LP"
+      },
+      "icon": "Grid3x3",
+      "description": {
+        "zh": "SS/LP 多维能力矩阵",
+        "th": "เมทริกซ์ SS/LP"
+      }
+    },
+    {
+      "path": "/indicator-matrix",
+      "category": "performance",
+      "name": {
+        "zh": "指标矩阵",
+        "th": "เมทริกซ์ตัวชี้วัด"
+      },
+      "icon": "LayoutGrid",
+      "description": {
+        "zh": "CC/SS/LP 指标配置",
+        "th": "กำหนดตัวชี้วัด"
+      }
+    },
+    {
+      "path": "/personnel-matrix",
+      "category": "performance",
+      "name": {
+        "zh": "人员矩阵",
+        "th": "เมทริกซ์บุคลากร"
+      },
+      "icon": "Users",
+      "description": {
+        "zh": "人员能力评估",
+        "th": "ประเมินบุคลากร"
+      }
+    },
+    {
+      "path": "/incentive-tracking",
+      "category": "performance",
+      "name": {
+        "zh": "激励追踪",
+        "th": "ติดตามสิ่งจูงใจ"
+      },
+      "icon": "Gift",
+      "description": {
+        "zh": "激励方案执行追踪",
+        "th": "ติดตามแผนจูงใจ"
+      }
+    },
+    {
+      "path": "/members",
+      "category": "student",
+      "name": {
+        "zh": "学员管理",
+        "th": "จัดการสมาชิก"
+      },
+      "icon": "Users",
+      "description": {
+        "zh": "学员列表与筛选",
+        "th": "รายชื่อสมาชิก"
+      }
+    },
+    {
+      "path": "/students/360",
+      "category": "student",
+      "name": {
+        "zh": "学员 360",
+        "th": "สมาชิก 360"
+      },
+      "icon": "CircleDot",
+      "description": {
+        "zh": "学员全维度画像",
+        "th": "โปรไฟล์ 360 องศา"
+      }
+    },
+    {
+      "path": "/checkin",
+      "category": "student",
+      "name": {
+        "zh": "打卡管理",
+        "th": "จัดการเช็คอิน"
+      },
+      "icon": "CheckSquare",
+      "description": {
+        "zh": "学员打卡与跟进",
+        "th": "เช็คอินและติดตาม"
+      }
+    },
+    {
+      "path": "/enclosure",
+      "category": "student",
+      "name": {
+        "zh": "围场分析",
+        "th": "วิเคราะห์กลุ่ม"
+      },
+      "icon": "Box",
+      "description": {
+        "zh": "围场维度数据",
+        "th": "ข้อมูลกลุ่ม"
+      }
+    },
+    {
+      "path": "/enclosure-health",
+      "category": "student",
+      "name": {
+        "zh": "围场健康",
+        "th": "สุขภาพกลุ่ม"
+      },
+      "icon": "Heart",
+      "description": {
+        "zh": "围场健康度评估",
+        "th": "ประเมินสุขภาพกลุ่ม"
+      }
+    },
+    {
+      "path": "/learning-heatmap",
+      "category": "student",
+      "name": {
+        "zh": "学习热力图",
+        "th": "Heatmap การเรียน"
+      },
+      "icon": "Flame",
+      "description": {
+        "zh": "学员学习活跃度",
+        "th": "ความกระตือรือร้น"
+      }
+    },
+    {
+      "path": "/referral-contributor",
+      "category": "student",
+      "name": {
+        "zh": "转介绍贡献者",
+        "th": "ผู้แนะนำ"
+      },
+      "icon": "Award",
+      "description": {
+        "zh": "Top 转介绍学员",
+        "th": "สมาชิกแนะนำยอดเยี่ยม"
+      }
+    },
+    {
+      "path": "/data-health",
+      "category": "risk",
+      "name": {
+        "zh": "数据健康",
+        "th": "สุขภาพข้อมูล"
+      },
+      "icon": "ShieldCheck",
+      "description": {
+        "zh": "数据质量监控",
+        "th": "ตรวจสอบคุณภาพข้อมูล"
+      }
+    },
+    {
+      "path": "/expiry-alert",
+      "category": "risk",
+      "name": {
+        "zh": "到期预警",
+        "th": "แจ้งเตือนหมดอายุ"
+      },
+      "icon": "AlertTriangle",
+      "description": {
+        "zh": "学员到期提醒",
+        "th": "แจ้งเตือนสมาชิกหมดอายุ"
+      }
+    },
+    {
+      "path": "/renewal-risk",
+      "category": "risk",
+      "name": {
+        "zh": "续费风险",
+        "th": "ความเสี่ยงต่ออายุ"
+      },
+      "icon": "AlertCircle",
+      "description": {
+        "zh": "续费风险预警",
+        "th": "เตือนความเสี่ยง"
+      }
+    },
+    {
+      "path": "/high-potential",
+      "category": "risk",
+      "name": {
+        "zh": "高潜力",
+        "th": "ศักยภาพสูง"
+      },
+      "icon": "Star",
+      "description": {
+        "zh": "高潜力学员识别",
+        "th": "ระบุสมาชิกศักยภาพสูง"
+      }
+    },
+    {
+      "path": "/high-potential/warroom",
+      "category": "risk",
+      "name": {
+        "zh": "作战室",
+        "th": "ห้องปฏิบัติการ"
+      },
+      "icon": "Target",
+      "description": {
+        "zh": "高潜力作战室",
+        "th": "ห้องปฏิบัติการ"
+      }
+    },
+    {
+      "path": "/followup-quality",
+      "category": "risk",
+      "name": {
+        "zh": "跟进质量",
+        "th": "คุณภาพติดตาม"
+      },
+      "icon": "PhoneCall",
+      "description": {
+        "zh": "跟进通话质量",
+        "th": "คุณภาพการติดตาม"
+      }
+    },
+    {
+      "path": "/outreach-quality",
+      "category": "risk",
+      "name": {
+        "zh": "触达质量",
+        "th": "คุณภาพการเข้าถึง"
+      },
+      "icon": "Radio",
+      "description": {
+        "zh": "触达效率分析",
+        "th": "วิเคราะห์ประสิทธิภาพ"
+      }
+    },
+    {
+      "path": "/reports",
+      "category": "reports",
+      "name": {
+        "zh": "报告管理",
+        "th": "จัดการรายงาน"
+      },
+      "icon": "FileText",
+      "description": {
+        "zh": "运营/管理层报告",
+        "th": "รายงานปฏิบัติการ/ผู้บริหาร"
+      }
+    },
+    {
+      "path": "/reports/ops",
+      "category": "reports",
+      "name": {
+        "zh": "运营报告",
+        "th": "รายงานปฏิบัติการ"
+      },
+      "icon": "FileText",
+      "description": {
+        "zh": "运营版日报/周报",
+        "th": "รายงานรายวัน/สัปดาห์"
+      }
+    },
+    {
+      "path": "/reports/exec",
+      "category": "reports",
+      "name": {
+        "zh": "管理层报告",
+        "th": "รายงานผู้บริหาร"
+      },
+      "icon": "FileText",
+      "description": {
+        "zh": "管理层版报告",
+        "th": "รายงานระดับผู้บริหาร"
+      }
+    },
+    {
+      "path": "/present",
+      "category": "reports",
+      "name": {
+        "zh": "汇报",
+        "th": "การนำเสนอ"
+      },
+      "icon": "Presentation",
+      "description": {
+        "zh": "定向汇报演示",
+        "th": "การนำเสนอ"
+      }
+    },
+    {
+      "path": "/settings",
+      "category": "system",
+      "name": {
+        "zh": "系统设置",
+        "th": "ตั้งค่าระบบ"
+      },
+      "icon": "Settings",
+      "description": {
+        "zh": "目标/汇率/围场配置",
+        "th": "ตั้งค่าเป้าหมาย/อัตราแลกเปลี่ยน"
+      }
+    },
+    {
+      "path": "/notifications",
+      "category": "system",
+      "name": {
+        "zh": "通知管理",
+        "th": "จัดการการแจ้งเตือน"
+      },
+      "icon": "Bell",
+      "description": {
+        "zh": "推送任务与通道",
+        "th": "งานแจ้งเตือนและช่องทาง"
+      }
+    },
+    {
+      "path": "/team",
+      "category": "system",
+      "name": {
+        "zh": "团队管理",
+        "th": "จัดการทีม"
+      },
+      "icon": "Users",
+      "description": {
+        "zh": "团队结构与排名",
+        "th": "โครงสร้างและอันดับทีม"
+      }
+    },
+    {
+      "path": "/geo-distribution",
+      "category": "system",
+      "name": {
+        "zh": "地域分布",
+        "th": "การกระจายภูมิศาสตร์"
+      },
+      "icon": "MapPin",
+      "description": {
+        "zh": "学员地域分布",
+        "th": "กระจายสมาชิก"
+      }
+    },
+    {
+      "path": "/knowledge",
+      "category": "system",
+      "name": {
+        "zh": "知识库",
+        "th": "ฐานความรู้"
+      },
+      "icon": "BookOpen",
+      "description": {
+        "zh": "运营知识沉淀",
+        "th": "ฐานความรู้"
+      }
+    },
+    {
+      "path": "/access-control",
+      "category": "system",
+      "name": {
+        "zh": "权限管理",
+        "th": "จัดการสิทธิ์"
+      },
+      "icon": "Shield",
+      "description": {
+        "zh": "用户角色与页面权限",
+        "th": "จัดการบทบาทและสิทธิ์"
+      }
+    }
   ],
   "settings": {
     "defaultDenyAll": true,
