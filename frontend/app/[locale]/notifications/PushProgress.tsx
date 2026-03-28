@@ -1,5 +1,6 @@
 'use client';
 
+import { useLocale } from 'next-intl';
 import { CheckCircle2, XCircle, Loader2 } from 'lucide-react';
 
 export interface PushProgressItem {
@@ -13,6 +14,37 @@ interface PushProgressProps {
   items: PushProgressItem[];
 }
 
+const STATUS_TEXT_I18N = {
+  zh: {
+    pending: '等待中',
+    sending: '发送中…',
+    success: '已发送',
+    error: '失败',
+    progress: '推送进度',
+  },
+  'zh-TW': {
+    pending: '等待中',
+    sending: '傳送中…',
+    success: '已傳送',
+    error: '失敗',
+    progress: '推送進度',
+  },
+  en: {
+    pending: 'Pending',
+    sending: 'Sending…',
+    success: 'Sent',
+    error: 'Failed',
+    progress: 'Push Progress',
+  },
+  th: {
+    pending: 'รอดำเนินการ',
+    sending: 'กำลังส่ง…',
+    success: 'ส่งแล้ว',
+    error: 'ล้มเหลว',
+    progress: 'ความคืบหน้าการส่ง',
+  },
+};
+
 const STATUS_ICON = {
   pending: <div className="w-4 h-4 rounded-full border-2 border-[var(--border-hover)]" />,
   sending: <Loader2 className="w-4 h-4 animate-spin text-action-accent" />,
@@ -20,14 +52,11 @@ const STATUS_ICON = {
   error: <XCircle className="w-4 h-4 text-[var(--color-danger)]" />,
 };
 
-const STATUS_TEXT = {
-  pending: '等待中',
-  sending: '发送中…',
-  success: '已发送',
-  error: '失败',
-};
-
 export function PushProgress({ items }: PushProgressProps) {
+  const locale = useLocale();
+  const STATUS_TEXT =
+    (STATUS_TEXT_I18N as unknown as Record<string, (typeof STATUS_TEXT_I18N)['zh']>)[locale] ??
+    STATUS_TEXT_I18N['zh'];
   const done = items.filter((i) => i.status === 'success' || i.status === 'error').length;
   const total = items.length;
   const pct = total > 0 ? Math.round((done / total) * 100) : 0;
@@ -37,7 +66,7 @@ export function PushProgress({ items }: PushProgressProps) {
       {/* Overall progress bar */}
       <div>
         <div className="flex items-center justify-between mb-1">
-          <span className="text-xs text-[var(--text-muted)]">推送进度</span>
+          <span className="text-xs text-[var(--text-muted)]">{STATUS_TEXT.progress}</span>
           <span className="text-xs font-medium text-[var(--text-primary)]">
             {done}/{total}
           </span>

@@ -2,6 +2,7 @@
 
 import { useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import { useLocale } from 'next-intl';
 import { usePresentationStore } from '@/lib/stores/presentation-store';
 import type { Audience } from '@/lib/presentation/types';
 
@@ -15,6 +16,13 @@ import { FunnelAttributionSlide } from '@/components/slides/FunnelAttributionSli
 import { LeadAttributionSlide } from '@/components/slides/LeadAttributionSlide';
 import { NetAttributionSlide } from '@/components/slides/NetAttributionSlide';
 import { ChannelRevenueSlide } from '@/components/slides/ChannelRevenueSlide';
+
+const I18N = {
+  zh: { exitBtn: '退出', exitTitle: '退出汇报模式' },
+  'zh-TW': { exitBtn: '退出', exitTitle: '退出匯報模式' },
+  en: { exitBtn: 'Exit', exitTitle: 'Exit Presentation Mode' },
+  th: { exitBtn: 'ออก', exitTitle: 'ออกจากโหมดนำเสนอ' },
+};
 
 // 有效组合：audience → 允许的 timeframe
 const VALID_COMBINATIONS: Record<string, string[]> = {
@@ -55,6 +63,8 @@ const PLAYLISTS: Record<Audience, SlideComponent[]> = {
 };
 
 export default function PresentationPage() {
+  const locale = useLocale();
+  const t = (I18N as unknown as Record<string, (typeof I18N)['zh']>)[locale] ?? I18N['zh'];
   const params = useParams();
   const router = useRouter();
   const { currentSlide, nextSlide, prevSlide, togglePresentationMode, exitPresentationMode } =
@@ -152,10 +162,10 @@ export default function PresentationPage() {
       <button
         onClick={exitPresentation}
         className="absolute bottom-4 right-4 z-50 flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-black/10 hover:bg-black/20 text-[var(--text-muted)] text-xs font-medium transition-colors duration-200 backdrop-blur-sm"
-        title="退出汇报模式"
+        title={t.exitTitle}
       >
         <span>ESC</span>
-        <span>退出</span>
+        <span>{t.exitBtn}</span>
       </button>
     </div>
   );

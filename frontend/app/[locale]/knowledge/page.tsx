@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback, useMemo, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
+import { useLocale } from 'next-intl';
 import useSWR from 'swr';
 import { BookOpen, Loader2, AlertCircle, BookMarked, Globe } from 'lucide-react';
 import { PageHeader } from '@/components/layout/PageHeader';
@@ -18,6 +19,53 @@ import type { BookmarkItem } from '@/components/knowledge/BookmarkPanel';
 import { swrFetcher } from '@/lib/api';
 
 const BOOKMARKS_KEY = 'knowledge-bookmarks';
+
+const I18N = {
+  zh: {
+    pageTitle: '知识库',
+    pageSubtitle: '业务知识百科全书',
+    loadingShelf: '加载书架…',
+    shelfError: '书架加载失败',
+    loadingChapter: '加载章节…',
+    loadingContent: '正在加载内容…',
+    contentError: '内容加载失败，请重试',
+    selectBook: '请从书架选择一本书开始阅读',
+    suspenseFallback: '加载中…',
+  },
+  'zh-TW': {
+    pageTitle: '知識庫',
+    pageSubtitle: '業務知識百科全書',
+    loadingShelf: '載入書架…',
+    shelfError: '書架載入失敗',
+    loadingChapter: '載入章節…',
+    loadingContent: '正在載入內容…',
+    contentError: '內容載入失敗，請重試',
+    selectBook: '請從書架選擇一本書開始閱讀',
+    suspenseFallback: '載入中…',
+  },
+  en: {
+    pageTitle: 'Knowledge Base',
+    pageSubtitle: 'Business Knowledge Encyclopedia',
+    loadingShelf: 'Loading shelf…',
+    shelfError: 'Failed to load shelf',
+    loadingChapter: 'Loading chapters…',
+    loadingContent: 'Loading content…',
+    contentError: 'Failed to load content, please retry',
+    selectBook: 'Select a book from the shelf to start reading',
+    suspenseFallback: 'Loading…',
+  },
+  th: {
+    pageTitle: 'คลังความรู้',
+    pageSubtitle: 'สารานุกรมความรู้ทางธุรกิจ',
+    loadingShelf: 'กำลังโหลดชั้นหนังสือ…',
+    shelfError: 'โหลดชั้นหนังสือล้มเหลว',
+    loadingChapter: 'กำลังโหลดบท…',
+    loadingContent: 'กำลังโหลดเนื้อหา…',
+    contentError: 'โหลดเนื้อหาล้มเหลว กรุณาลองใหม่',
+    selectBook: 'เลือกหนังสือจากชั้นเพื่อเริ่มอ่าน',
+    suspenseFallback: 'กำลังโหลด…',
+  },
+};
 
 // ── Types from API ──────────────────────────────────────────────────────────
 
@@ -59,6 +107,8 @@ const LANGS = [
 ] as const;
 
 function KnowledgePageInner() {
+  const locale = useLocale();
+  const t = (I18N as unknown as Record<string, (typeof I18N)['zh']>)[locale] ?? I18N['zh'];
   const router = useRouter();
   const searchParams = useSearchParams();
   const readerRef = useRef<HTMLElement>(null);
@@ -222,7 +272,7 @@ function KnowledgePageInner() {
       {/* Page header */}
       <div className="px-6 py-4 border-b border-[var(--border-default)] bg-[var(--bg-surface)]">
         <div className="flex items-center justify-between gap-4 flex-wrap">
-          <PageHeader icon={BookOpen} title="知识库" subtitle="业务知识百科全书" />
+          <PageHeader icon={BookOpen} title={t.pageTitle} subtitle={t.pageSubtitle} />
           <div className="flex items-center gap-3">
             {/* Language switcher */}
             <div className="flex items-center gap-1 border border-[var(--border-default)] rounded-lg p-0.5">
@@ -255,12 +305,12 @@ function KnowledgePageInner() {
         {booksLoading ? (
           <div className="flex items-center gap-2 py-3 text-sm text-[var(--text-muted)]">
             <Loader2 className="w-4 h-4 animate-spin" />
-            加载书架…
+            {t.loadingShelf}
           </div>
         ) : booksError ? (
           <div className="flex items-center gap-2 py-3 text-sm text-[var(--color-danger)]">
             <AlertCircle className="w-4 h-4" />
-            书架加载失败
+            {t.shelfError}
           </div>
         ) : (
           <BookShelf
@@ -281,7 +331,7 @@ function KnowledgePageInner() {
           {contentLoading ? (
             <div className="flex items-center gap-2 text-sm text-[var(--text-muted)] px-2 py-3">
               <Loader2 className="w-4 h-4 animate-spin" />
-              加载章节…
+              {t.loadingChapter}
             </div>
           ) : bookContent ? (
             <ChapterTree
@@ -300,17 +350,17 @@ function KnowledgePageInner() {
           {contentLoading ? (
             <div className="flex flex-col items-center justify-center py-24 gap-4 text-[var(--text-muted)]">
               <Loader2 className="w-8 h-8 animate-spin" />
-              <p className="text-sm">正在加载内容…</p>
+              <p className="text-sm">{t.loadingContent}</p>
             </div>
           ) : contentError ? (
             <div className="flex flex-col items-center justify-center py-24 gap-3">
               <AlertCircle className="w-8 h-8 text-[var(--color-danger)]" />
-              <p className="text-sm text-[var(--color-danger)]">内容加载失败，请重试</p>
+              <p className="text-sm text-[var(--color-danger)]">{t.contentError}</p>
             </div>
           ) : !activeBook || !bookContent ? (
             <div className="flex flex-col items-center justify-center py-24 gap-4 text-[var(--text-muted)]">
               <BookMarked className="w-12 h-12 opacity-30" />
-              <p className="text-sm">请从书架选择一本书开始阅读</p>
+              <p className="text-sm">{t.selectBook}</p>
             </div>
           ) : (
             <>
@@ -333,7 +383,7 @@ function KnowledgePageInner() {
 
 export default function KnowledgePage() {
   return (
-    <Suspense fallback={<div className="state-loading">加载中…</div>}>
+    <Suspense fallback={<div className="state-loading">Loading…</div>}>
       <KnowledgePageInner />
     </Suspense>
   );

@@ -2,7 +2,83 @@
 
 import { useState, useEffect } from 'react';
 import { X, Eye, EyeOff } from 'lucide-react';
+import { useLocale } from 'next-intl';
 import type { BotChannel } from './BotCard';
+
+const I18N = {
+  zh: {
+    titleEdit: '编辑机器人',
+    titleAdd: '添加机器人',
+    webhookRequired: 'Webhook URL 不能为空',
+    saveFailed: '保存失败',
+    nameLabel: '机器人名称',
+    namePlaceholder: '如：Lark CC日报',
+    groupLabel: '群名称',
+    groupPlaceholder: '如：CC 转介绍运营群',
+    roleLabel: '角色',
+    isTest: '测试群（默认发送）',
+    enabled: '启用',
+    secretHint: 'Secret（可选，用于签名验证）',
+    secretPlaceholder: '留空表示无签名',
+    cancel: '取消',
+    saving: '保存中…',
+    save: '保存',
+  },
+  'zh-TW': {
+    titleEdit: '編輯機器人',
+    titleAdd: '新增機器人',
+    webhookRequired: 'Webhook URL 不能為空',
+    saveFailed: '儲存失敗',
+    nameLabel: '機器人名稱',
+    namePlaceholder: '如：Lark CC日報',
+    groupLabel: '群名稱',
+    groupPlaceholder: '如：CC 轉介紹運營群',
+    roleLabel: '角色',
+    isTest: '測試群（預設發送）',
+    enabled: '啟用',
+    secretHint: 'Secret（選填，用於簽名驗證）',
+    secretPlaceholder: '留空表示無簽名',
+    cancel: '取消',
+    saving: '儲存中…',
+    save: '儲存',
+  },
+  en: {
+    titleEdit: 'Edit Bot',
+    titleAdd: 'Add Bot',
+    webhookRequired: 'Webhook URL is required',
+    saveFailed: 'Save failed',
+    nameLabel: 'Bot Name',
+    namePlaceholder: 'e.g. Lark CC Daily',
+    groupLabel: 'Group Name',
+    groupPlaceholder: 'e.g. CC Referral Group',
+    roleLabel: 'Role',
+    isTest: 'Test group (send by default)',
+    enabled: 'Enabled',
+    secretHint: 'Secret (optional, for signature verification)',
+    secretPlaceholder: 'Leave blank if no signing',
+    cancel: 'Cancel',
+    saving: 'Saving…',
+    save: 'Save',
+  },
+  th: {
+    titleEdit: 'แก้ไขบอท',
+    titleAdd: 'เพิ่มบอท',
+    webhookRequired: 'กรุณากรอก Webhook URL',
+    saveFailed: 'บันทึกล้มเหลว',
+    nameLabel: 'ชื่อบอท',
+    namePlaceholder: 'เช่น Lark CC รายวัน',
+    groupLabel: 'ชื่อกลุ่ม',
+    groupPlaceholder: 'เช่น กลุ่มปฏิบัติการ CC',
+    roleLabel: 'บทบาท',
+    isTest: 'กลุ่มทดสอบ (ส่งตามค่าเริ่มต้น)',
+    enabled: 'เปิดใช้งาน',
+    secretHint: 'Secret (ไม่บังคับ สำหรับตรวจสอบลายเซ็น)',
+    secretPlaceholder: 'เว้นว่างหากไม่มีการเซ็นชื่อ',
+    cancel: 'ยกเลิก',
+    saving: 'กำลังบันทึก…',
+    save: 'บันทึก',
+  },
+};
 
 interface BotFormModalProps {
   open: boolean;
@@ -25,6 +101,8 @@ const EMPTY_FORM = {
 };
 
 export function BotFormModal({ open, platform, initial, onClose, onSave }: BotFormModalProps) {
+  const locale = useLocale();
+  const t = (I18N as unknown as Record<string, (typeof I18N)['zh']>)[locale] ?? I18N['zh'];
   const [form, setForm] = useState(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
