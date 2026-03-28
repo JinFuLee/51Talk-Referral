@@ -65,6 +65,20 @@
       "addedBy": "system"
     },
     {
+      "email": "athipxiahu@gmail.com",
+      "name": "Felix (personal)",
+      "role": "admin",
+      "addedAt": "2026-03-28T10:00:00Z",
+      "addedBy": "system"
+    },
+    {
+      "email": "jinfuleestudio@gmail.com",
+      "name": "Felix (studio)",
+      "role": "admin",
+      "addedAt": "2026-03-28T10:00:00Z",
+      "addedBy": "system"
+    },
+    {
       "email": "wuhaoer01@51talk.com",
       "name": "wuhaoer",
       "role": "ops_manager",
