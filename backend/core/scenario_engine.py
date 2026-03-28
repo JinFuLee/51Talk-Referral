@@ -63,6 +63,7 @@ class ScenarioEngine:
         "预约数": "预约目标",
         "出席数": "出席目标",
         "转介绍付费数": "付费目标",
+        "总带新付费金额USD": "金额目标",
         "注册预约率": "约课率目标",
         "预约出席率": "出席率目标",
         "出席付费率": "目标转化率",
@@ -120,12 +121,14 @@ class ScenarioEngine:
                 if (actual_rate is not None and target_rate is not None)
                 else None
             )
+            ach = _safe_rate(actual_rate, target_rate)
             stages.append(
                 FunnelStage(
                     name=rate_name,
                     target=target_rate,
                     actual=actual_rate,
                     gap=gap,
+                    achievement_rate=round(ach, 4) if ach is not None else None,
                 )
             )
 

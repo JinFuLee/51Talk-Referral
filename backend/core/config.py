@@ -108,6 +108,49 @@ def get_targets(date: datetime = None) -> dict:
                 except Exception:
                     # flatten 失败时直接合并扁平键（注册目标/付费目标等）
                     base.update(month_data)
+
+                # V2 推导：从 channels 计算注册/付费/预约/出席目标
+                _channels = month_data.get("channels", {})
+                _hard = month_data.get("hard", {})
+                _sop = month_data.get("sop", {})
+                if _channels:
+                    _total_users = sum(
+                        (ch.get("user_count") or 0)
+                        for ch in _channels.values()
+                    )
+                    if _total_users > 0 and not base.get("注册目标"):
+                        base["注册目标"] = float(_total_users)
+                    _total_paid = sum(
+                        (ch.get("user_count") or 0)
+                        * (ch.get("conversion_rate") or 0)
+                        for ch in _channels.values()
+                    )
+                    if _total_paid > 0 and not base.get("付费目标"):
+                        base["付费目标"] = round(_total_paid, 1)
+                if _hard.get("referral_revenue", 0) > 0:
+                    if not base.get("金额目标"):
+                        base["金额目标"] = float(
+                            _hard["referral_revenue"]
+                        )
+
+                # 推导预约/出席目标（注册 × 约课率 × 出席率）
+                reg_tgt = base.get("注册目标", 0)
+                reserve_rate = (
+                    base.get("约课率目标")
+                    or _sop.get("reserve_rate")
+                    or 0.77
+                )
+                attend_rate = (
+                    base.get("出席率目标")
+                    or _sop.get("attend_rate")
+                    or 0.66
+                )
+                if reg_tgt and not base.get("预约目标"):
+                    base["预约目标"] = round(reg_tgt * reserve_rate, 1)
+                appt_tgt = base.get("预约目标", 0)
+                if appt_tgt and not base.get("出席目标"):
+                    base["出席目标"] = round(appt_tgt * attend_rate, 1)
+
             elif month_data:
                 # 普通扁平 override
                 base.update(month_data)

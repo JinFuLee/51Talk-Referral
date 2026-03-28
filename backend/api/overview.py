@@ -23,6 +23,8 @@ _OVERRIDE_KEY_MAP: dict[str, str] = {
     "转介绍基础业绩标USD": "金额目标",
     "转介绍基础业绩客单价标USD": "客单价",
     "_override_注册目标": "注册目标",
+    "_override_预约目标": "预约目标",
+    "_override_出席目标": "出席目标",
 }
 
 router = APIRouter()
@@ -253,6 +255,9 @@ def get_overview(
         "总带新付费金额USD": "revenue",
     }
     target_keys = {
+        "转介绍注册数": "_override_注册目标",
+        "预约数": "_override_预约目标",
+        "出席数": "_override_出席目标",
         "转介绍付费数": "转介绍基础业绩单量标",
         "总带新付费金额USD": "转介绍基础业绩标USD",
     }
@@ -284,8 +289,8 @@ def get_overview(
     # 新版 kpi_8item：8 项标准格式（CLAUDE.md 指标显示规范）
     kpi_8item_keys = {
         "转介绍注册数": ("register", "_override_注册目标"),
-        "预约数": ("appointment", None),
-        "出席数": ("showup", None),
+        "预约数": ("appointment", "_override_预约目标"),
+        "出席数": ("showup", "_override_出席目标"),
         "转介绍付费数": ("paid", "转介绍基础业绩单量标"),
         "总带新付费金额USD": ("revenue", "转介绍基础业绩标USD"),
         "客单价": ("asp", "转介绍基础业绩客单价标USD"),
