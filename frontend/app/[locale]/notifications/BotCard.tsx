@@ -2,6 +2,42 @@
 
 import { useState } from 'react';
 import { Edit2, Trash2, Eye, EyeOff } from 'lucide-react';
+import { useLocale } from 'next-intl';
+
+const I18N = {
+  zh: {
+    testBadge: '测试群',
+    enabled: '启用',
+    disabled: '停用',
+    webhookLabel: 'Webhook',
+    lastSent: (time: string) => `上次推送：${time}`,
+    confirmDelete: (name: string) => `确定删除机器人"${name}"？`,
+  },
+  'zh-TW': {
+    testBadge: '測試群',
+    enabled: '啟用',
+    disabled: '停用',
+    webhookLabel: 'Webhook',
+    lastSent: (time: string) => `上次推送：${time}`,
+    confirmDelete: (name: string) => `確定刪除機器人「${name}」？`,
+  },
+  en: {
+    testBadge: 'Test',
+    enabled: 'Enabled',
+    disabled: 'Disabled',
+    webhookLabel: 'Webhook',
+    lastSent: (time: string) => `Last sent: ${time}`,
+    confirmDelete: (name: string) => `Delete bot "${name}"?`,
+  },
+  th: {
+    testBadge: 'ทดสอบ',
+    enabled: 'เปิดใช้งาน',
+    disabled: 'ปิดใช้งาน',
+    webhookLabel: 'Webhook',
+    lastSent: (time: string) => `ส่งล่าสุด: ${time}`,
+    confirmDelete: (name: string) => `ลบบอท "${name}"?`,
+  },
+};
 
 export interface BotChannel {
   id: string;
@@ -37,6 +73,8 @@ interface BotCardProps {
 }
 
 export function BotCard({ bot, onEdit, onDelete, onToggle }: BotCardProps) {
+  const locale = useLocale();
+  const t = (I18N as unknown as Record<string, (typeof I18N)['zh']>)[locale] ?? I18N['zh'];
   const [showSecret, setShowSecret] = useState(false);
   const roleColor =
     ROLE_COLORS[bot.role ?? ''] ?? 'bg-[var(--bg-subtle)] text-[var(--text-secondary)]';
@@ -60,7 +98,7 @@ export function BotCard({ bot, onEdit, onDelete, onToggle }: BotCardProps) {
             <span className="text-sm font-semibold text-[var(--text-primary)]">{bot.name}</span>
             {bot.is_test && (
               <span className="text-xs px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 font-medium">
-                测试群
+                {t.testBadge}
               </span>
             )}
           </div>
@@ -76,7 +114,7 @@ export function BotCard({ bot, onEdit, onDelete, onToggle }: BotCardProps) {
           </button>
           <button
             onClick={() => {
-              if (window.confirm(`确定删除机器人"${bot.name}"？`)) {
+              if (window.confirm(t.confirmDelete(bot.name))) {
                 onDelete(bot.id);
               }
             }}
@@ -94,7 +132,9 @@ export function BotCard({ bot, onEdit, onDelete, onToggle }: BotCardProps) {
           {bot.role ?? 'ALL'}
         </span>
         <label className="flex items-center gap-2 cursor-pointer select-none">
-          <span className="text-xs text-[var(--text-muted)]">{bot.enabled ? '启用' : '停用'}</span>
+          <span className="text-xs text-[var(--text-muted)]">
+            {bot.enabled ? t.enabled : t.disabled}
+          </span>
           <div
             onClick={() => onToggle(bot.id, !bot.enabled)}
             className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
@@ -112,7 +152,7 @@ export function BotCard({ bot, onEdit, onDelete, onToggle }: BotCardProps) {
 
       {/* Webhook */}
       <div>
-        <p className="text-xs text-[var(--text-muted)] mb-1">Webhook</p>
+        <p className="text-xs text-[var(--text-muted)] mb-1">{t.webhookLabel}</p>
         <div className="flex items-center gap-1">
           <input
             type={showSecret ? 'text' : 'password'}
@@ -131,7 +171,7 @@ export function BotCard({ bot, onEdit, onDelete, onToggle }: BotCardProps) {
 
       {/* Last sent */}
       {bot.last_sent && (
-        <p className="text-xs text-[var(--text-muted)]">上次推送：{bot.last_sent}</p>
+        <p className="text-xs text-[var(--text-muted)]">{t.lastSent(bot.last_sent)}</p>
       )}
     </div>
   );

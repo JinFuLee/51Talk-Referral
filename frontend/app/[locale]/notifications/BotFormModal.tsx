@@ -133,7 +133,7 @@ export function BotFormModal({ open, platform, initial, onClose, onSave }: BotFo
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!form.webhook.trim()) {
-      setError('Webhook URL 不能为空');
+      setError(t.webhookRequired);
       return;
     }
     setSaving(true);
@@ -146,7 +146,7 @@ export function BotFormModal({ open, platform, initial, onClose, onSave }: BotFo
       });
       onClose();
     } catch (err) {
-      setError(err instanceof Error ? err.message : '保存失败');
+      setError(err instanceof Error ? err.message : t.saveFailed);
     } finally {
       setSaving(false);
     }
@@ -159,7 +159,7 @@ export function BotFormModal({ open, platform, initial, onClose, onSave }: BotFo
       <div className="bg-[var(--bg-surface)] rounded-2xl shadow-xl w-full max-w-md mx-4 overflow-hidden">
         <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--border-default)]">
           <h2 className="text-sm font-semibold text-[var(--text-primary)]">
-            {initial ? '编辑机器人' : '添加机器人'}
+            {initial ? t.titleEdit : t.titleAdd}
             <span className="ml-2 text-xs font-normal text-[var(--text-muted)]">
               {platform === 'lark' ? 'Lark' : '钉钉'}
             </span>
@@ -176,25 +176,25 @@ export function BotFormModal({ open, platform, initial, onClose, onSave }: BotFo
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1">
-                机器人名称
+                {t.nameLabel}
               </label>
               <input
                 value={form.name}
                 onChange={(e) => setForm((v) => ({ ...v, name: e.target.value }))}
                 required
-                placeholder="如：Lark CC日报"
+                placeholder={t.namePlaceholder}
                 className="w-full text-sm border border-[var(--border-subtle)] rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-action focus:border-transparent"
               />
             </div>
             <div>
               <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1">
-                群名称
+                {t.groupLabel}
               </label>
               <input
                 value={form.group_name}
                 onChange={(e) => setForm((v) => ({ ...v, group_name: e.target.value }))}
                 required
-                placeholder="如：CC 转介绍运营群"
+                placeholder={t.groupPlaceholder}
                 className="w-full text-sm border border-[var(--border-subtle)] rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-action focus:border-transparent"
               />
             </div>
@@ -203,7 +203,7 @@ export function BotFormModal({ open, platform, initial, onClose, onSave }: BotFo
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1">
-                角色
+                {t.roleLabel}
               </label>
               <select
                 value={form.role}
@@ -225,7 +225,7 @@ export function BotFormModal({ open, platform, initial, onClose, onSave }: BotFo
                   onChange={(e) => setForm((v) => ({ ...v, is_test: e.target.checked }))}
                   className="rounded"
                 />
-                <span className="text-xs text-[var(--text-secondary)]">测试群（默认发送）</span>
+                <span className="text-xs text-[var(--text-secondary)]">{t.isTest}</span>
               </label>
               <label className="flex items-center gap-2 cursor-pointer select-none">
                 <input
@@ -234,7 +234,7 @@ export function BotFormModal({ open, platform, initial, onClose, onSave }: BotFo
                   onChange={(e) => setForm((v) => ({ ...v, enabled: e.target.checked }))}
                   className="rounded"
                 />
-                <span className="text-xs text-[var(--text-secondary)]">启用</span>
+                <span className="text-xs text-[var(--text-secondary)]">{t.enabled}</span>
               </label>
             </div>
           </div>
@@ -264,14 +264,14 @@ export function BotFormModal({ open, platform, initial, onClose, onSave }: BotFo
 
           <div>
             <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1">
-              Secret（可选，用于签名验证）
+              {t.secretHint}
             </label>
             <div className="flex items-center gap-1">
               <input
                 type={showSecret ? 'text' : 'password'}
                 value={form.secret}
                 onChange={(e) => setForm((v) => ({ ...v, secret: e.target.value }))}
-                placeholder="留空表示无签名"
+                placeholder={t.secretPlaceholder}
                 className="flex-1 text-sm border border-[var(--border-subtle)] rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-action font-mono"
               />
               <button
@@ -296,14 +296,14 @@ export function BotFormModal({ open, platform, initial, onClose, onSave }: BotFo
               onClick={onClose}
               className="flex-1 px-4 py-2 border border-[var(--border-subtle)] rounded-lg text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-primary)] transition-colors"
             >
-              取消
+              {t.cancel}
             </button>
             <button
               type="submit"
               disabled={saving}
               className="flex-1 px-4 py-2 bg-action text-white rounded-lg text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-50"
             >
-              {saving ? '保存中…' : '保存'}
+              {saving ? t.saving : t.save}
             </button>
           </div>
         </form>

@@ -2,7 +2,31 @@
 
 import { CheckCircle2, Clock, AlertCircle, Loader2 } from 'lucide-react';
 import useSWR from 'swr';
+import { useLocale } from 'next-intl';
 import { swrFetcher } from '@/lib/api';
+
+const I18N = {
+  zh: {
+    loading: '加载今日推送状态…',
+    loadError: '无法获取今日推送状态',
+    noRecord: (date: string) => `今日暂无推送记录（${date}）`,
+  },
+  'zh-TW': {
+    loading: '載入今日推送狀態…',
+    loadError: '無法取得今日推送狀態',
+    noRecord: (date: string) => `今日暫無推送記錄（${date}）`,
+  },
+  en: {
+    loading: "Loading today's push status…",
+    loadError: "Failed to fetch today's push status",
+    noRecord: (date: string) => `No push records today (${date})`,
+  },
+  th: {
+    loading: 'กำลังโหลดสถานะการส่งวันนี้…',
+    loadError: 'ไม่สามารถดึงสถานะการส่งวันนี้',
+    noRecord: (date: string) => `ไม่มีบันทึกการส่งวันนี้ (${date})`,
+  },
+};
 
 /** 后端 /api/notifications/today 实际返回格式 */
 interface ChannelRecord {
@@ -19,6 +43,8 @@ interface TodayData {
 }
 
 export function TodayStatus() {
+  const locale = useLocale();
+  const t = (I18N as unknown as Record<string, (typeof I18N)['zh']>)[locale] ?? I18N['zh'];
   const { data, isLoading, error } = useSWR<TodayData>('/api/notifications/today', swrFetcher, {
     refreshInterval: 30000,
   });
@@ -27,7 +53,7 @@ export function TodayStatus() {
     return (
       <div className="flex items-center gap-2 py-3 text-[var(--text-muted)]">
         <Loader2 className="w-4 h-4 animate-spin" />
-        <span className="text-sm">加载今日推送状态…</span>
+        <span className="text-sm">{t.loading}</span>
       </div>
     );
   }
@@ -36,7 +62,7 @@ export function TodayStatus() {
     return (
       <div className="flex items-center gap-2 py-3 text-amber-600">
         <AlertCircle className="w-4 h-4" />
-        <span className="text-sm">无法获取今日推送状态</span>
+        <span className="text-sm">{t.loadError}</span>
       </div>
     );
   }
@@ -49,7 +75,7 @@ export function TodayStatus() {
     return (
       <div className="flex items-center gap-2 py-3 text-[var(--text-muted)]">
         <Clock className="w-4 h-4" />
-        <span className="text-sm">今日暂无推送记录（{data?.date ?? ''}）</span>
+        <span className="text-sm">{t.noRecord(data?.date ?? '')}</span>
       </div>
     );
   }
