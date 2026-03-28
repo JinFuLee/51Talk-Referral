@@ -199,14 +199,14 @@ async def lifespan(app: FastAPI):
             import math
             from pathlib import Path
 
-            import pandas as pd
+            from backend.core.data_manager import DataManager as _DM
 
             data = dm.load_all()
             result_df = data.get("result")
             if result_df is None or result_df.empty:
                 return
 
-            thai_df = DataManager.filter_thai_region(
+            thai_df = _DM.filter_thai_region(
                 result_df, fallback_to_all=True
             )
             row = thai_df.iloc[0]
@@ -232,7 +232,8 @@ async def lifespan(app: FastAPI):
             if snap:
                 from datetime import date as _date
 
-                snap_dir = Path(__file__).resolve().parent.parent / "output" / "snapshots"
+                _root = Path(__file__).resolve().parent.parent
+                snap_dir = _root / "output" / "snapshots"
                 snap_dir.mkdir(parents=True, exist_ok=True)
                 snap_file = snap_dir / f"{_date.today().isoformat()}.jsonl"
                 snap_file.write_text(
