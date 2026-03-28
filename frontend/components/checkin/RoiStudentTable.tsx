@@ -15,13 +15,14 @@ interface Props {
 
 const FILTER_OPTIONS: { id: RiskLevel | 'all'; label: string }[] = [
   { id: 'all', label: '全部' },
-  { id: 'high_value', label: '🟢 高价值' },
-  { id: 'normal', label: '🟡 正常' },
-  { id: 'focus', label: '🟠 重点关注' },
-  { id: 'pure_freeloader', label: '🔴 白嫖-低价值' },
-  { id: 'high_value_freeloader', label: '🔴 白嫖-高课耗' },
-  { id: 'newcomer', label: '🔴 新人观望' },
-  { id: 'no_cost', label: '⚪ 无成本' },
+  { id: 'gold', label: '⭐ 金牌推荐人' },
+  { id: 'effective', label: '✅ 有效推荐' },
+  { id: 'stuck_pay', label: '🔄 成交待跟进' },
+  { id: 'stuck_show', label: '🔄 出席待跟进' },
+  { id: 'potential', label: '👀 高潜待激活' },
+  { id: 'freeloader', label: '⚠️ 纯消耗' },
+  { id: 'newcomer', label: '🆕 新人观望' },
+  { id: 'casual', label: '💤 低频参与' },
 ];
 
 function RiskBadge({ level }: { level: RiskLevel }) {

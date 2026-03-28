@@ -2,13 +2,14 @@
 // 对应后端 backend/api/checkin_roi.py 返回结构
 
 export type RiskLevel =
-  | 'high_value' // 🟢 ROI ≥ 200%
-  | 'normal' // 🟡 ROI 0-200%
-  | 'focus' // 🟠 有推荐但入不敷出
-  | 'pure_freeloader' // 🔴-1 低价值白嫖
-  | 'high_value_freeloader' // 🔴-2 高课耗白嫖
-  | 'newcomer' // 🔴-3 新人观望
-  | 'no_cost'; // 灰 无成本
+  | 'gold' // ⭐ 金牌推荐人（付费≥2 或 二级裂变>0）
+  | 'effective' // ✅ 有效推荐（付费≥1）
+  | 'stuck_pay' // 🔄 漏斗卡在付费（出席>0 付费=0）
+  | 'stuck_show' // 🔄 漏斗卡在出席（注册>0 出席=0）
+  | 'potential' // 👀 高潜待激活（打卡≥4 课耗≥5 零推荐）
+  | 'freeloader' // ⚠️ 纯消耗（打卡≥4 课耗<5 连续2月零推荐）
+  | 'newcomer' // 🆕 新人观望（M0-M1）
+  | 'casual'; // 💤 低频参与
 
 export interface RiskDistributionItem {
   count: number;
@@ -60,62 +61,77 @@ export interface RoiAnalysisResponse {
   channel_roi: Record<string, ChannelRoiItem>;
 }
 
-// 风险等级展示配置
+// 风险等级展示配置（行为模式分层）
 export const RISK_LEVEL_CONFIG: Record<
   RiskLevel,
-  { label: string; color: string; bgColor: string; emoji: string }
+  { label: string; color: string; bgColor: string; emoji: string; action: string }
 > = {
-  high_value: {
-    label: '高价值',
+  gold: {
+    label: '金牌推荐人',
+    color: '#b45309',
+    bgColor: '#fef3c7',
+    emoji: '⭐',
+    action: 'VIP 专属活动 + 升级激励',
+  },
+  effective: {
+    label: '有效推荐',
     color: '#16a34a',
     bgColor: '#dcfce7',
-    emoji: '🟢',
+    emoji: '✅',
+    action: '维护关系 + 持续激励',
   },
-  normal: {
-    label: '正常',
+  stuck_pay: {
+    label: '成交待跟进',
     color: '#ca8a04',
     bgColor: '#fef9c3',
-    emoji: '🟡',
+    emoji: '🔄',
+    action: 'CC 加强 B 的成交话术',
   },
-  focus: {
-    label: '重点关注',
+  stuck_show: {
+    label: '出席待跟进',
     color: '#ea580c',
     bgColor: '#ffedd5',
-    emoji: '🟠',
+    emoji: '🔄',
+    action: 'CC 跟进 B 学员到场试听',
   },
-  pure_freeloader: {
-    label: '白嫖-低价值',
+  potential: {
+    label: '高潜待激活',
+    color: '#7c3aed',
+    bgColor: '#ede9fe',
+    emoji: '👀',
+    action: '话术引导推荐（认可产品但缺推荐动力）',
+  },
+  freeloader: {
+    label: '纯消耗',
     color: '#dc2626',
     bgColor: '#fee2e2',
-    emoji: '🔴',
-  },
-  high_value_freeloader: {
-    label: '白嫖-高课耗',
-    color: '#b91c1c',
-    bgColor: '#fecaca',
-    emoji: '🔴',
+    emoji: '⚠️',
+    action: '评估激励规则调整',
   },
   newcomer: {
     label: '新人观望',
-    color: '#9f1239',
-    bgColor: '#ffe4e6',
-    emoji: '🔴',
-  },
-  no_cost: {
-    label: '无成本',
     color: '#6b7280',
     bgColor: '#f3f4f6',
-    emoji: '⚪',
+    emoji: '🆕',
+    action: '正常观察期',
+  },
+  casual: {
+    label: '低频参与',
+    color: '#9ca3af',
+    bgColor: '#f9fafb',
+    emoji: '💤',
+    action: '标准沟通',
   },
 };
 
 // 图表用颜色（与 RISK_LEVEL_CONFIG 对齐，Recharts 需要 hex）
 export const RISK_PIE_COLORS: Record<RiskLevel, string> = {
-  high_value: '#22c55e',
-  normal: '#eab308',
-  focus: '#f97316',
-  pure_freeloader: '#ef4444',
-  high_value_freeloader: '#dc2626',
-  newcomer: '#9f1239',
-  no_cost: '#9ca3af',
+  gold: '#f59e0b',
+  effective: '#22c55e',
+  stuck_pay: '#eab308',
+  stuck_show: '#f97316',
+  potential: '#8b5cf6',
+  freeloader: '#ef4444',
+  newcomer: '#6b7280',
+  casual: '#d1d5db',
 };

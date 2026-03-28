@@ -159,11 +159,6 @@ def _calc_student_roi(
     binding_per_b = int(cost_config.get("binding_cards_per_user_b", 1))
     attendance_per_b = int(cost_config.get("attendance_cards_per_user_b", 2))
     payment_per_b = int(cost_config.get("payment_cards_per_user_b", 3))
-    hv_lesson_threshold = float(
-        cost_config.get("blacklist_thresholds", {}).get(
-            "high_value_lesson_threshold", 10
-        )
-    )
 
     # D4 字段读取
     days_checkin = _safe_int(d4_row.get("本月打卡天数"))
@@ -206,13 +201,20 @@ def _calc_student_roi(
     team = _safe_str(d4_row.get("末次（当前）分配CC员工组名称"))
     student_id = _safe_str(d4_row.get("学员id") or d4_row.get("stdt_id"))
 
-    # 四级风险分层
+    # 上月打卡天数（用于连续月判定）
+    days_last_checkin = _safe_int(d4_row.get("上月打卡天数"))
+
+    # 行为模式风险分层
     risk_level = _classify_risk(
-        total_cost_usd=total_cost_usd,
-        revenue_usd=revenue_usd,
-        lesson_this_month=lesson_this_month,
+        referral_reg=referral_reg,
+        referral_att=referral_att,
+        referral_pay=referral_pay,
+        secondary_referrals=0,  # 单学员级别暂无二级裂变索引，由 API 层补充
+        checkins=max(days_checkin, days_transcode),
+        lesson=lesson_this_month,
+        last_month_checkins=days_last_checkin,
         enc_m=enc_m,
-        hv_lesson_threshold=hv_lesson_threshold,
+        cost_config=cost_config,
     )
 
     # 累计 ROI（2 月滚动窗口，消除时间差偏差）
@@ -251,42 +253,63 @@ def _calc_student_roi(
 
 
 def _classify_risk(
-    total_cost_usd: float,
-    revenue_usd: float,
-    lesson_this_month: float,
+    *,
+    referral_reg: int,
+    referral_att: int,
+    referral_pay: int,
+    secondary_referrals: int,
+    checkins: int,
+    lesson: float,
+    last_month_checkins: int,
     enc_m: str,
-    hv_lesson_threshold: float,
+    cost_config: dict,
 ) -> str:
+    """行为模式分层（非 ROI 百分比，因成本/收入量级差 2 数量级）。
+
+    严格优先级顺序（首个匹配即终止）：
+    1. gold — 超级转化者（付费≥2 或 二级裂变>0）
+    2. effective — 有效推荐（付费≥1）
+    3. stuck_pay — 漏斗卡在付费（出席>0 但付费=0）
+    4. stuck_show — 漏斗卡在出席（注册>0 但出席=0）
+    5. newcomer — 新人观望（M0-M1）
+    6. potential — 高潜待激活（打卡≥4 + 课耗≥5 + 零推荐）
+    7. freeloader — 纯消耗（打卡≥4 + 课耗<5 + 零推荐 + 连续2月）
+    8. casual — 低频参与（兜底）
     """
-    四级风险分层：
-    - high_value: ROI ≥ 200%（收入 ≥ 成本 × 3）
-    - normal: ROI 0-200%（收入 ≥ 成本）
-    - focus: 有推荐但入不敷出（0 < 收入 < 成本）
-    - newcomer: 新人观望（M0/M1 围场，零推荐零付费）
-    - high_value_freeloader: 高课耗白嫖（不限制）
-    - pure_freeloader: 低价值白嫖（需关注）
-    - no_cost: 无成本（无活动参与）
-    """
-    if total_cost_usd <= 0:
-        return "no_cost"
+    rc = cost_config.get("risk_classification", {})
+    gold_min_pay = int(rc.get("gold_min_payments", 2))
+    pot_min_ck = int(rc.get("potential_min_checkins", 4))
+    pot_min_les = float(rc.get("potential_min_lesson", 5))
+    fl_min_ck = int(rc.get("freeloader_min_checkins", 4))
+    fl_max_les = float(rc.get("freeloader_max_lesson", 5))
+    fl_min_months = int(rc.get("freeloader_min_consecutive_months", 2))
+    newcomer_enc = set(rc.get("newcomer_enclosures", ["M0", "M1"]))
 
-    if revenue_usd >= total_cost_usd * 3:
-        return "high_value"
+    # ── 第一层：有产出 ──
+    if referral_pay >= gold_min_pay or secondary_referrals > 0:
+        return "gold"
+    if referral_pay >= 1:
+        return "effective"
 
-    if revenue_usd >= total_cost_usd:
-        return "normal"
+    # ── 第二层：有漏斗但未转化 ──
+    if referral_att > 0 and referral_pay == 0:
+        return "stuck_pay"
+    if referral_reg > 0 and referral_att == 0:
+        return "stuck_show"
 
-    if revenue_usd > 0 and revenue_usd < total_cost_usd:
-        return "focus"
-
-    # revenue_usd == 0 且 cost > 0 → 白嫖子分层
-    if enc_m in ("M0", "M1"):
+    # ── 第三层：零推荐，按参与度细分 ──
+    if enc_m in newcomer_enc:
         return "newcomer"
+    if checkins >= pot_min_ck and lesson >= pot_min_les:
+        return "potential"
+    consecutive = (
+        checkins >= fl_min_ck
+        and last_month_checkins >= fl_min_ck
+    ) if fl_min_months >= 2 else (checkins >= fl_min_ck)
+    if consecutive and lesson < fl_max_les:
+        return "freeloader"
 
-    if lesson_this_month >= hv_lesson_threshold:
-        return "high_value_freeloader"
-
-    return "pure_freeloader"
+    return "casual"
 
 
 # ── 渠道 ROI 聚合 ─────────────────────────────────────────────────────────────
