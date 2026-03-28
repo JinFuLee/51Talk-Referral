@@ -165,15 +165,13 @@ def _calc_student_roi(
     # D4 字段读取
     days_checkin = _safe_int(d4_row.get("本月打卡天数"))
     days_transcode = _safe_int(d4_row.get("本月转码次数"))
-    referral_reg = _safe_int(
-        d4_row.get("当月推荐注册人数") or d4_row.get("总推荐注册人数")
-    )
-    referral_att = _safe_int(
-        d4_row.get("当月推荐出席人数") or d4_row.get("本月推荐出席数")
-    )
-    referral_pay = _safe_int(
-        d4_row.get("本月推荐付费数") or d4_row.get("推荐付费")
-    )
+    # 风险分层用当月数据（不 fallback 到历史累计，0 是有效值不是 falsy）
+    _reg_raw = d4_row.get("当月推荐注册人数")
+    referral_reg = _safe_int(_reg_raw) if _reg_raw is not None else 0
+    _att_raw = d4_row.get("当月推荐出席人数")
+    referral_att = _safe_int(_att_raw) if _att_raw is not None else 0
+    _pay_raw = d4_row.get("本月推荐付费数")
+    referral_pay = _safe_int(_pay_raw) if _pay_raw is not None else 0
     lesson_raw = _safe(d4_row.get("本月课耗") or d4_row.get("课耗"))
     lesson_this_month = float(lesson_raw or 0.0)
 
