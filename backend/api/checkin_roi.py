@@ -332,8 +332,6 @@ def _aggregate_channel_roi(
     # 注：D4 实际有 CC/SS/LP/宽口 带新人数和付费数字段，但学生级数据已聚合到 student ROI
     # 渠道矩阵从整体学生数据中按 cc_name / team 归因（近似）
     card_unit = float(cost_config.get("card_unit_cost_usd", 1.31))
-    binding_per_b = int(cost_config.get("binding_cards_per_user_b", 1))
-    payment_per_b = int(cost_config.get("payment_cards_per_user_b", 3))
     avg_unit = float(cost_config.get("avg_unit_price_usd", 150.0))
 
     for ch in channels:
@@ -350,8 +348,13 @@ def _aggregate_channel_roi(
         reg = int(s.get("referral_registrations") or 0)
         pay = int(s.get("referral_payments") or 0)
         enc_m = s.get("enclosure", "")
+        act_cards = int(s.get("activity_cards") or 0)
+        bind_cards = int(s.get("binding_cards") or 0)
+        att_cards = int(s.get("attendance_cards") or 0)
+        pay_cards = int(s.get("payment_cards") or 0)
+        student_total_cards = act_cards + bind_cards + att_cards + pay_cards
 
-        # 按围场段简单归因到渠道（与 CLAUDE.md 围场-角色边界对齐）
+        # 按围场段归因到渠道（与 CLAUDE.md 围场-角色边界对齐）
         if enc_m in ("M0", "M1", "M2"):
             ch = "CC"
         elif enc_m == "M3":
@@ -363,10 +366,8 @@ def _aggregate_channel_roi(
 
         result[ch]["new_count"] += reg
         result[ch]["new_paid"] += pay
-        result[ch]["cost_cards"] += reg * binding_per_b + pay * payment_per_b
-        result[ch]["cost_usd"] += round(
-            (reg * binding_per_b + pay * payment_per_b) * card_unit, 2
-        )
+        result[ch]["cost_cards"] += student_total_cards
+        result[ch]["cost_usd"] += round(student_total_cards * card_unit, 2)
         result[ch]["revenue_approx_usd"] += pay * avg_unit
 
     # 计算各渠道 ROI
