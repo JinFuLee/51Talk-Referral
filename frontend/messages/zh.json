@@ -30,6 +30,14 @@
   },
   "analysis": {
     "title": "深度分析",
+    "subtitle": "11 区块分析报告 · T-1 数据",
+    "bmProgress": "BM 进度",
+    "dataDate": "数据日期",
+    "loadError": "数据加载失败",
+    "loadErrorDesc": "请检查后端服务是否正常运行",
+    "retry": "重试",
+    "noData": "暂无分析数据",
+    "noDataDesc": "请先上传数据并运行分析",
     "card": {
       "funnel": "转化漏斗",
       "channel": "渠道对比（窄口 vs 宽口）",
@@ -658,6 +666,16 @@
       "empty": "暂无数据，请确认数据源文件已上传",
       "error": "数据加载失败，请稍后重试"
     }
+  },
+  "notifications": {
+    "title": "通知推送",
+    "subtitle": "钉钉 / Lark 消息推送管理",
+    "lark": "Lark",
+    "dingtalk": "钉钉",
+    "todayStatus": "今日状态",
+    "push": "推送",
+    "schedule": "定时任务",
+    "outputs": "输出"
   },
   "nav": {
     "dashboard": "总览 Dashboard",

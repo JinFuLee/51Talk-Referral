@@ -18,13 +18,32 @@ interface FollowupMember {
   quality_score: number;
   id: string | number;
   enclosure: string;
-  responsible: string; // 负责人
+  responsible: string; // CC 负责人
   lesson_avg_3m: number | null; // 3月均课耗
   referrals_this_month: number | null;
   total_revenue_usd: number | null;
   cc_last_contact_date: string | null; // CC末次联系
   days_until_card_expiry: number | null;
   extra?: Record<string, unknown>; // D4 extra 字段（含本月/上月打卡天数）
+  // 新增字段
+  ss_name: string | null;
+  ss_group: string | null;
+  lp_name: string | null;
+  lp_group: string | null;
+  weeks_active: number;
+  days_this_week: number;
+  days_this_month: number;
+  cc_connected: number;
+  ss_connected: number;
+  lp_connected: number;
+  cc_last_note_date: string | null;
+  cc_last_note_content: string | null;
+  renewal_days_ago: number | null;
+  incentive_status: string | null;
+  action_priority_score: number;
+  recommended_channel: string;
+  golden_window: string[];
+  team?: string;
   // allow full D4 extra fields for drawer
   [key: string]: unknown;
 }
@@ -43,6 +62,24 @@ interface BackendStudent {
   cc_last_call_date: string | null;
   card_days_remaining: number | null;
   extra: Record<string, unknown>;
+  // 新增字段
+  ss_name: string | null;
+  ss_group: string | null;
+  lp_name: string | null;
+  lp_group: string | null;
+  weeks_active: number;
+  days_this_week: number;
+  days_this_month: number;
+  cc_connected: number;
+  ss_connected: number;
+  lp_connected: number;
+  cc_last_note_date: string | null;
+  cc_last_note_content: string | null;
+  renewal_days_ago: number | null;
+  incentive_status: string | null;
+  action_priority_score: number;
+  recommended_channel: string;
+  golden_window: string[];
 }
 
 interface FollowupResponseRaw {
@@ -65,13 +102,27 @@ interface FollowupResponse {
 
 // ── Tag Logic ──────────────────────────────────────────────────────────────────
 
-type GroupFilter = 'all' | 'never' | 'was_active' | 'partial';
+type GroupFilter =
+  | 'all'
+  | 'never'
+  | 'was_active'
+  | 'partial'
+  | 'this_week'
+  | 'card_expiry'
+  | 'dormant_hp'
+  | 'handover'
+  | 'renewal_risk';
 
 const GROUP_FILTER_LABELS: Record<GroupFilter, string> = {
   all: '全部',
   never: '从未打卡',
   was_active: '曾打卡本月未打',
-  partial: '打过但今天没打',
+  this_week: '本周未打卡',
+  partial: '打过今天没打',
+  card_expiry: '卡到期≤30天',
+  dormant_hp: '沉睡高潜',
+  handover: '即将交接',
+  renewal_risk: '续费风险',
 };
 
 function computeClientTags(
@@ -221,6 +272,92 @@ function ActivationDot({ score }: { score: number }) {
   );
 }
 
+// ── Priority Score Badge ────────────────────────────────────────────────────────
+
+function PriorityBadge({ score }: { score: number }) {
+  const color =
+    score >= 60
+      ? 'text-red-600 font-semibold'
+      : score >= 30
+        ? 'text-amber-500 font-medium'
+        : 'text-[var(--text-muted)]';
+  const dot = score >= 60 ? 'bg-red-500' : score >= 30 ? 'bg-amber-400' : 'bg-gray-300';
+  return (
+    <div className="flex items-center gap-1 justify-center">
+      <span className={`w-2 h-2 rounded-full inline-block ${dot}`} />
+      <span className={`font-mono tabular-nums text-xs ${color}`}>{score}</span>
+    </div>
+  );
+}
+
+// ── Channel Icon ────────────────────────────────────────────────────────────────
+
+const CHANNEL_ICON: Record<string, string> = {
+  line: '💬',
+  sms: '✉️',
+  phone: '📞',
+  app: '📱',
+};
+
+const CHANNEL_LABEL: Record<string, string> = {
+  line: 'LINE',
+  sms: '短信',
+  phone: '电话',
+  app: 'APP',
+};
+
+function ChannelBadge({ channel }: { channel: string }) {
+  return (
+    <span title={CHANNEL_LABEL[channel] ?? channel} className="text-base leading-none">
+      {CHANNEL_ICON[channel] ?? '📱'}
+    </span>
+  );
+}
+
+// ── Connection Status Dots ──────────────────────────────────────────────────────
+
+function ConnStatusDots({ cc, ss, lp }: { cc: number; ss: number; lp: number }) {
+  const dot = (val: number, label: string) => (
+    <span
+      title={`${label}: ${val === 1 ? '已接通' : '未接通'}`}
+      className={`w-2 h-2 rounded-full inline-block ${
+        val === 1 ? 'bg-emerald-500' : val === 0 ? 'bg-red-400' : 'bg-gray-300'
+      }`}
+    />
+  );
+  return (
+    <div className="flex items-center gap-1 justify-center">
+      {dot(cc, 'CC')}
+      {dot(ss, 'SS')}
+      {dot(lp, 'LP')}
+    </div>
+  );
+}
+
+// ── Golden Window Badges ────────────────────────────────────────────────────────
+
+const WINDOW_LABEL: Record<string, string> = {
+  first_checkin: '首次打卡',
+  lead_no_show: '有B未出席',
+  renewal_window: '续费窗口',
+};
+
+function GoldenWindowBadges({ windows }: { windows: string[] }) {
+  if (!windows || windows.length === 0) return <span className="text-[var(--text-muted)]">—</span>;
+  return (
+    <div className="flex flex-wrap gap-0.5">
+      {windows.map((w) => (
+        <span
+          key={w}
+          className="px-1 py-0.5 rounded text-[10px] bg-amber-100 text-amber-700 whitespace-nowrap"
+        >
+          {WINDOW_LABEL[w] ?? w}
+        </span>
+      ))}
+    </div>
+  );
+}
+
 // ── CC Contact Badge ────────────────────────────────────────────────────────────
 
 function ContactBadge({ days }: { days: number | null }) {
@@ -243,12 +380,26 @@ interface GroupFilterBarProps {
   onChange: (g: GroupFilter) => void;
 }
 
-function GroupFilterBar({ active, onChange }: GroupFilterBarProps) {
-  const groups: GroupFilter[] = ['all', 'never', 'was_active', 'partial'];
+function GroupFilterBar({
+  active,
+  onChange,
+  exportHref,
+}: GroupFilterBarProps & { exportHref?: string }) {
+  const groups: GroupFilter[] = [
+    'all',
+    'never',
+    'was_active',
+    'this_week',
+    'partial',
+    'card_expiry',
+    'dormant_hp',
+    'handover',
+    'renewal_risk',
+  ];
   return (
     <div className="flex flex-wrap items-center gap-2 pb-2">
       <span className="text-xs text-[var(--text-muted)]">分群:</span>
-      <div className="flex rounded-lg border border-[var(--border-subtle)] overflow-hidden text-xs font-medium">
+      <div className="flex flex-wrap rounded-lg border border-[var(--border-subtle)] overflow-hidden text-xs font-medium">
         {groups.map((g) => (
           <button
             key={g}
@@ -263,6 +414,15 @@ function GroupFilterBar({ active, onChange }: GroupFilterBarProps) {
           </button>
         ))}
       </div>
+      {exportHref && (
+        <a
+          href={exportHref}
+          download="followup.tsv"
+          className="ml-auto px-3 py-1.5 text-xs font-medium border border-[var(--border-default)] rounded-lg bg-[var(--bg-surface)] text-[var(--text-secondary)] hover:bg-[var(--bg-subtle)] transition-colors whitespace-nowrap"
+        >
+          导出 TSV ↓
+        </a>
+      )}
     </div>
   );
 }
@@ -283,8 +443,8 @@ function FollowupTable({ items, onDrawerOpen }: FollowupTableProps) {
     );
   }
 
-  // 新增列后共 14 列
-  const COL_SPAN = 14;
+  // 改造后共 20 列
+  const COL_SPAN = 20;
 
   return (
     <div className="overflow-x-auto">
@@ -292,18 +452,24 @@ function FollowupTable({ items, onDrawerOpen }: FollowupTableProps) {
         <thead>
           <tr className="slide-thead-row text-xs">
             <th className="py-1.5 px-2 text-center whitespace-nowrap w-8">排名</th>
-            <th className="py-1.5 px-2 text-center whitespace-nowrap">⭐评分</th>
+            <th className="py-1.5 px-2 text-center whitespace-nowrap">🔴优先级</th>
             <th className="py-1.5 px-2 text-center whitespace-nowrap">激活</th>
             <th className="py-1.5 px-2 text-left whitespace-nowrap">学员ID</th>
             <th className="py-1.5 px-2 text-left whitespace-nowrap">围场</th>
-            <th className="py-1.5 px-2 text-left whitespace-nowrap min-w-[100px]">负责人</th>
-            <th className="py-1.5 px-2 text-center whitespace-nowrap">本月打卡</th>
+            <th className="py-1.5 px-2 text-left whitespace-nowrap min-w-[80px]">CC负责</th>
+            <th className="py-1.5 px-2 text-left whitespace-nowrap min-w-[80px]">SS负责</th>
+            <th className="py-1.5 px-2 text-left whitespace-nowrap min-w-[80px]">LP负责</th>
+            <th className="py-1.5 px-2 text-center whitespace-nowrap">本周/月打卡</th>
             <th className="py-1.5 px-2 text-center whitespace-nowrap">上月打卡</th>
+            <th className="py-1.5 px-2 text-center whitespace-nowrap">CC/SS/LP 接通</th>
             <th className="py-1.5 px-2 text-left whitespace-nowrap min-w-[120px]">标签</th>
+            <th className="py-1.5 px-2 text-center whitespace-nowrap">渠道</th>
+            <th className="py-1.5 px-2 text-left whitespace-nowrap min-w-[80px]">黄金窗口</th>
             <th className="py-1.5 px-2 text-right whitespace-nowrap">📚课耗(3月均)</th>
             <th className="py-1.5 px-2 text-right whitespace-nowrap">👥本月推荐</th>
             <th className="py-1.5 px-2 text-right whitespace-nowrap">💰历史付费</th>
             <th className="py-1.5 px-2 text-left whitespace-nowrap">CC末次联系</th>
+            <th className="py-1.5 px-2 text-center whitespace-nowrap">激励</th>
             <th className="py-1.5 px-2 text-right whitespace-nowrap">卡到期</th>
           </tr>
         </thead>
@@ -317,9 +483,10 @@ function FollowupTable({ items, onDrawerOpen }: FollowupTableProps) {
               m.days_until_card_expiry !== undefined &&
               m.days_until_card_expiry <= 30;
 
-            // 新增字段：本月/上月打卡天数
-            const daysThis = Number(m.extra?.['本月打卡天数'] ?? 0);
+            // 打卡天数（优先从顶层字段，fallback extra）
+            const daysThis = m.days_this_month ?? Number(m.extra?.['本月打卡天数'] ?? 0);
             const daysLast = Number(m.extra?.['上月打卡天数'] ?? 0);
+            const daysThisWeek = m.days_this_week ?? 0;
             const lessonVal = m.lesson_avg_3m ?? 0;
             const regsVal = m.referrals_this_month ?? 0;
 
@@ -347,53 +514,84 @@ function FollowupTable({ items, onDrawerOpen }: FollowupTableProps) {
                       : { borderLeft: '4px solid transparent' }
                   }
                 >
+                  {/* 排名 */}
                   <td className="py-1 px-2 text-center font-mono tabular-nums text-[var(--text-muted)]">
                     {m.rank}
                   </td>
+                  {/* 优先级评分（新） */}
                   <td className="py-1 px-2 text-center">
-                    <span
-                      className={`inline-block font-semibold font-mono tabular-nums ${
-                        m.quality_score >= 70
-                          ? 'text-orange-500'
-                          : m.quality_score >= 50
-                            ? 'text-[var(--color-warning)]'
-                            : 'text-[var(--text-muted)]'
-                      }`}
-                    >
-                      {m.quality_score}
-                    </span>
+                    <PriorityBadge score={m.action_priority_score ?? 0} />
                   </td>
+                  {/* 激活概率 */}
                   <td className="py-1 px-2">
                     <ActivationDot score={activationScore} />
                   </td>
+                  {/* 学员ID */}
                   <td className="py-1 px-2 text-action-accent font-medium font-mono tabular-nums whitespace-nowrap">
                     {m.id}
                   </td>
+                  {/* 围场 */}
                   <td className="py-1 px-2 text-[var(--text-secondary)] whitespace-nowrap">
                     {m.enclosure || '—'}
                   </td>
-                  <td
-                    className="py-1 px-2 whitespace-nowrap min-w-[100px]"
-                    title={m.responsible ?? ''}
-                  >
+                  {/* CC 负责人 */}
+                  <td className="py-1 px-2 whitespace-nowrap" title={m.responsible ?? ''}>
                     {m.responsible || '—'}
                   </td>
-                  <td className="py-1 px-2 text-center font-mono tabular-nums">
-                    <span
-                      className={
-                        daysThis === 0
-                          ? 'text-[var(--text-muted)]'
-                          : daysThis >= 5
-                            ? 'text-emerald-600 font-semibold'
-                            : 'text-[var(--text-secondary)]'
-                      }
-                    >
-                      {daysThis}/6
-                    </span>
+                  {/* SS 负责人（新） */}
+                  <td
+                    className="py-1 px-2 whitespace-nowrap text-[var(--text-secondary)]"
+                    title={m.ss_name ?? ''}
+                  >
+                    {m.ss_name || '—'}
                   </td>
+                  {/* LP 负责人（新） */}
+                  <td
+                    className="py-1 px-2 whitespace-nowrap text-[var(--text-secondary)]"
+                    title={m.lp_name ?? ''}
+                  >
+                    {m.lp_name || '—'}
+                  </td>
+                  {/* 本周/月打卡（新：本周+本月双行） */}
+                  <td className="py-1 px-2 text-center font-mono tabular-nums">
+                    <div className="flex flex-col items-center leading-tight">
+                      <span
+                        className={
+                          daysThisWeek === 0
+                            ? 'text-[var(--text-muted)]'
+                            : 'text-emerald-600 font-semibold'
+                        }
+                        title="本周"
+                      >
+                        本周 {daysThisWeek}
+                      </span>
+                      <span
+                        className={`text-[10px] ${
+                          daysThis === 0
+                            ? 'text-[var(--text-muted)]'
+                            : daysThis >= 5
+                              ? 'text-emerald-600'
+                              : 'text-[var(--text-secondary)]'
+                        }`}
+                        title="本月"
+                      >
+                        本月 {daysThis}/6
+                      </span>
+                    </div>
+                  </td>
+                  {/* 上月打卡 */}
                   <td className="py-1 px-2 text-center font-mono tabular-nums text-[var(--text-muted)]">
                     {daysLast}/6
                   </td>
+                  {/* CC/SS/LP 接通状态（新） */}
+                  <td className="py-1 px-2">
+                    <ConnStatusDots
+                      cc={m.cc_connected ?? 0}
+                      ss={m.ss_connected ?? 0}
+                      lp={m.lp_connected ?? 0}
+                    />
+                  </td>
+                  {/* 标签 */}
                   <td className="py-1 px-2 min-w-[120px]">
                     {clientTags.length > 0 ? (
                       <StudentTagBadge tags={clientTags} maxVisible={2} />
@@ -401,18 +599,41 @@ function FollowupTable({ items, onDrawerOpen }: FollowupTableProps) {
                       <span className="text-[var(--text-muted)]">—</span>
                     )}
                   </td>
+                  {/* 推荐渠道（新） */}
+                  <td className="py-1 px-2 text-center">
+                    <ChannelBadge channel={m.recommended_channel ?? 'app'} />
+                  </td>
+                  {/* 黄金窗口（新） */}
+                  <td className="py-1 px-2 min-w-[80px]">
+                    <GoldenWindowBadges windows={m.golden_window ?? []} />
+                  </td>
+                  {/* 课耗 */}
                   <td className="py-1 px-2 text-right font-mono tabular-nums">
                     {fmtNum(m.lesson_avg_3m)}
                   </td>
+                  {/* 本月推荐 */}
                   <td className="py-1 px-2 text-right font-mono tabular-nums">
                     {fmtNum(m.referrals_this_month)}
                   </td>
+                  {/* 历史付费 */}
                   <td className="py-1 px-2 text-right font-mono tabular-nums">
                     {fmtRevenue(m.total_revenue_usd)}
                   </td>
+                  {/* CC末次联系 */}
                   <td className="py-1 px-2 whitespace-nowrap">
                     <ContactBadge days={daysSinceContact} />
                   </td>
+                  {/* 激励状态（新） */}
+                  <td className="py-1 px-2 text-center">
+                    {m.incentive_status ? (
+                      <span className="px-1 py-0.5 rounded text-[10px] bg-emerald-50 text-emerald-700 whitespace-nowrap">
+                        {m.incentive_status}
+                      </span>
+                    ) : (
+                      <span className="text-[var(--text-muted)]">—</span>
+                    )}
+                  </td>
+                  {/* 卡到期 */}
                   <td
                     className={`py-1 px-2 text-right font-mono tabular-nums ${
                       cardExpirySoon
@@ -542,6 +763,24 @@ export function FollowupTab({
           days_until_card_expiry: s.card_days_remaining,
           team: s.team,
           extra: s.extra ?? {},
+          // 新增字段
+          ss_name: s.ss_name ?? null,
+          ss_group: s.ss_group ?? null,
+          lp_name: s.lp_name ?? null,
+          lp_group: s.lp_group ?? null,
+          weeks_active: s.weeks_active ?? 0,
+          days_this_week: s.days_this_week ?? 0,
+          days_this_month: s.days_this_month ?? 0,
+          cc_connected: s.cc_connected ?? 0,
+          ss_connected: s.ss_connected ?? 0,
+          lp_connected: s.lp_connected ?? 0,
+          cc_last_note_date: s.cc_last_note_date ?? null,
+          cc_last_note_content: s.cc_last_note_content ?? null,
+          renewal_days_ago: s.renewal_days_ago ?? null,
+          incentive_status: s.incentive_status ?? null,
+          action_priority_score: s.action_priority_score ?? 0,
+          recommended_channel: s.recommended_channel ?? 'app',
+          golden_window: s.golden_window ?? [],
           // 展开 extra 字段（D4 全量字段，用于 ExpandedRow 展示）
           ...(s.extra ?? {}),
         }));
@@ -568,11 +807,25 @@ export function FollowupTab({
     // 分群逻辑
     if (groupFilter !== 'all') {
       items = items.filter((m) => {
-        const daysThis = Number(m.extra?.['本月打卡天数'] ?? 0);
+        const daysThis = m.days_this_month ?? Number(m.extra?.['本月打卡天数'] ?? 0);
         const daysLast = Number(m.extra?.['上月打卡天数'] ?? 0);
+        const daysThisWeek = m.days_this_week ?? 0;
+        const cardDays = m.days_until_card_expiry;
+        const lessonVal = m.lesson_avg_3m ?? 0;
+        const renewalDays = m.renewal_days_ago;
         if (groupFilter === 'never') return daysThis === 0 && daysLast === 0;
         if (groupFilter === 'was_active') return daysLast > 0 && daysThis === 0;
+        if (groupFilter === 'this_week') return daysThis > 0 && daysThisWeek === 0;
         if (groupFilter === 'partial') return daysThis > 0;
+        if (groupFilter === 'card_expiry')
+          return cardDays !== null && cardDays !== undefined && cardDays <= 30;
+        if (groupFilter === 'dormant_hp') return daysThis === 0 && lessonVal >= 10;
+        if (groupFilter === 'handover') {
+          // 围场边界：卡到期天数在 25-35 天附近（即将进入下一围场）
+          return cardDays !== null && cardDays !== undefined && cardDays >= 25 && cardDays <= 35;
+        }
+        if (groupFilter === 'renewal_risk')
+          return renewalDays !== null && renewalDays !== undefined && renewalDays > 180;
         return true;
       });
     }
@@ -580,10 +833,18 @@ export function FollowupTab({
     return items;
   }, [data?.items, groupFilter]);
 
+  // 导出 TSV 链接（携带当前 role/team/sales 筛选）
+  const exportHref = useMemo(() => {
+    const p = new URLSearchParams({ role: roleFilter });
+    if (teamFilter) p.set('team', teamFilter);
+    if (salesSearch.trim()) p.set('cc_name', salesSearch.trim());
+    return `/api/checkin/followup/tsv?${p.toString()}`;
+  }, [roleFilter, teamFilter, salesSearch]);
+
   return (
     <div className="space-y-4">
-      {/* L2 分群筛选（Tab 专属，紧凑 pill 行）*/}
-      <GroupFilterBar active={groupFilter} onChange={setGroupFilter} />
+      {/* L2 分群筛选（Tab 专属，紧凑 pill 行）+ 导出按钮 */}
+      <GroupFilterBar active={groupFilter} onChange={setGroupFilter} exportHref={exportHref} />
 
       {isLoading ? (
         <div className="flex justify-center py-10">

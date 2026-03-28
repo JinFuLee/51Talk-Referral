@@ -31,6 +31,14 @@
   },
   "analysis": {
     "title": "Deep Analysis",
+    "subtitle": "11-Block Analytics Report · T-1 Data",
+    "bmProgress": "BM Progress",
+    "dataDate": "Data Date",
+    "loadError": "Failed to load data",
+    "loadErrorDesc": "Please check if backend service is running",
+    "retry": "Retry",
+    "noData": "No analysis data",
+    "noDataDesc": "Please upload data and run analysis first",
     "card": {
       "funnel": "Conversion Funnel",
       "channel": "Channel Comparison (Narrow vs Wide)",
@@ -659,6 +667,16 @@
       "empty": "No data, please verify data source files are uploaded",
       "error": "Data load failed, please try again later"
     }
+  },
+  "notifications": {
+    "title": "Notifications",
+    "subtitle": "DingTalk / Lark Push Management",
+    "lark": "Lark",
+    "dingtalk": "DingTalk",
+    "todayStatus": "Today's Status",
+    "push": "Push",
+    "schedule": "Scheduled Tasks",
+    "outputs": "Outputs"
   },
   "nav": {
     "dashboard": "Dashboard",

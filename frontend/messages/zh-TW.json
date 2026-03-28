@@ -29,6 +29,14 @@
     }
   },
   "analysis": {
+    "subtitle": "11 區塊分析報告 · T-1 資料",
+    "bmProgress": "BM 進度",
+    "dataDate": "資料日期",
+    "loadError": "資料載入失敗",
+    "loadErrorDesc": "請檢查後端服務是否正常運行",
+    "retry": "重試",
+    "noData": "暫無分析資料",
+    "noDataDesc": "請先上傳資料並執行分析",
     "title": "深度分析",
     "card": {
       "funnel": "轉化漏斗",
@@ -658,6 +666,16 @@
       "empty": "暂无資料，請確認資料源檔案已上傳",
       "error": "資料載入失敗，請稍后重试"
     }
+  },
+  "notifications": {
+    "title": "通知推送",
+    "subtitle": "釘釘 / Lark 訊息推送管理",
+    "lark": "Lark",
+    "dingtalk": "釘釘",
+    "todayStatus": "今日狀態",
+    "push": "推送",
+    "schedule": "排程任務",
+    "outputs": "輸出"
   },
   "nav": {
     "dashboard": "總覽 Dashboard",

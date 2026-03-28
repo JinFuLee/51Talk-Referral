@@ -14,7 +14,7 @@ import { RevenueContributionSlide } from '@/components/analytics/RevenueContribu
 import type { DailyReport } from '@/lib/types/report';
 
 export default function AnalyticsPage() {
-  const t = useTranslations('analytics');
+  const t = useTranslations('analysis');
   const locale = useLocale();
   // lang variable removed — slides now use useLocale() internally
   const { data, isLoading, error, mutate } = useSWR<DailyReport>('/api/report/daily', swrFetcher);

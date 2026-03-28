@@ -857,8 +857,14 @@ def _build_followup_students(
                 extra[col] = _safe(d4_row[col])
 
         # ── 新增字段：SS/LP 负责人 ────────────────────────────────────────────
-        ss_name  = _safe_str(d4_row.get("末次（当前）分配SS员工姓名",  "")) if d4_row is not None else ""
-        ss_group = _safe_str(d4_row.get("末次（当前）分配SS员工组名称", "")) if d4_row is not None else ""
+        ss_name = (
+            _safe_str(d4_row.get("末次（当前）分配SS员工姓名", ""))
+            if d4_row is not None else ""
+        )
+        ss_group = (
+            _safe_str(d4_row.get("末次（当前）分配SS员工组名称", ""))
+            if d4_row is not None else ""
+        )
         lp_name  = _safe_str(row.get("last_lp_name",  ""))
         lp_group = _safe_str(row.get("last_lp_group_name", ""))
 
@@ -870,7 +876,9 @@ def _build_followup_students(
         _today = _date.today()
         _week_of_month = min(4, (_today.day - 1) // 7 + 1)
         _week_col = f"第{_week_of_month}周转码"
-        days_this_week = int(_safe(extra.get(_week_col)) or 0) if d4_row is not None else 0
+        days_this_week = (
+            int(_safe(extra.get(_week_col)) or 0) if d4_row is not None else 0
+        )
 
         # ── 活跃周数 0-4 ──────────────────────────────────────────────────────
         weeks_active = sum(
@@ -884,20 +892,38 @@ def _build_followup_students(
         lp_connected = int(_safe(row.get("LP接通")) or 0)
 
         # ── CC 末次备注 ───────────────────────────────────────────────────────
-        cc_last_note_date    = _safe_str(d4_row.get("CC末次备注日期(day)", "")) if d4_row is not None else ""
-        cc_last_note_content = _safe_str(d4_row.get("CC末次备注内容",       "")) if d4_row is not None else ""
+        cc_last_note_date = (
+            _safe_str(d4_row.get("CC末次备注日期(day)", ""))
+            if d4_row is not None else ""
+        )
+        cc_last_note_content = (
+            _safe_str(d4_row.get("CC末次备注内容", ""))
+            if d4_row is not None else ""
+        )
 
         # ── 续费距今天数 ─────────────────────────────────────────────────────
-        renewal_days_ago = _safe(d4_row.get("末次续费日期距今天数")) if d4_row is not None else None
+        renewal_days_ago = (
+            _safe(d4_row.get("末次续费日期距今天数")) if d4_row is not None else None
+        )
 
         # ── 激励状态 ─────────────────────────────────────────────────────────
-        incentive_status = _safe_str(d4_row.get("推荐奖励领取状态", "")) if d4_row is not None else ""
+        incentive_status = (
+            _safe_str(d4_row.get("推荐奖励领取状态", "")) if d4_row is not None else ""
+        )
 
         # ── 行动优先级评分（0-100）───────────────────────────────────────────
-        referral_reg_val = int(_safe(d4_row.get("当月推荐注册人数") or d4_row.get("总推荐注册人数") or 0) or 0) if d4_row is not None else 0
-        referral_pay_val = int(_safe(d4_row.get("本月推荐付费数") or 0) or 0) if d4_row is not None else 0
-        referral_att_val = int(_safe(d4_row.get("本月推荐出席数") or 0) or 0) if d4_row is not None else 0
-        cc_dial_count    = int(_safe(d4_row.get("总CC拨打次数") or 0) or 0) if d4_row is not None else 0
+        if d4_row is not None:
+            _reg_raw = (
+                d4_row.get("当月推荐注册人数")
+                or d4_row.get("总推荐注册人数")
+                or 0
+            )
+            referral_reg_val = int(_safe(_reg_raw) or 0)
+            referral_pay_val = int(_safe(d4_row.get("本月推荐付费数") or 0) or 0)
+            referral_att_val = int(_safe(d4_row.get("本月推荐出席数") or 0) or 0)
+            cc_dial_count    = int(_safe(d4_row.get("总CC拨打次数")   or 0) or 0)
+        else:
+            referral_reg_val = referral_pay_val = referral_att_val = cc_dial_count = 0
 
         _prio = 0
         if card_days is not None and card_days <= 15:
@@ -924,13 +950,20 @@ def _build_followup_students(
             except Exception:
                 cc_last_call_days_ago = None
 
-        cc_last_call_duration = _safe(d4_row.get("CC末次接通时长")) if d4_row is not None else None
+        cc_last_call_duration = (
+            _safe(d4_row.get("CC末次接通时长")) if d4_row is not None else None
+        )
 
+        _long_no_contact = (
+            cc_connected == 1
+            and cc_last_call_days_ago is not None
+            and cc_last_call_days_ago > 14
+        )
         if cc_dial_count >= 3 and cc_connected == 0:
             recommended_channel = "line"
         elif cc_last_call_duration is not None and cc_last_call_duration <= 30:
             recommended_channel = "sms"
-        elif cc_connected == 1 and cc_last_call_days_ago is not None and cc_last_call_days_ago > 14:
+        elif _long_no_contact:
             recommended_channel = "phone"
         else:
             recommended_channel = "app"
@@ -982,7 +1015,10 @@ def _build_followup_students(
         })
 
     # 默认按 action_priority_score 降序（同分时 quality_score 次排）
-    students.sort(key=lambda s: (s["action_priority_score"], s["quality_score"]), reverse=True)
+    students.sort(
+        key=lambda s: (s["action_priority_score"], s["quality_score"]),
+        reverse=True,
+    )
     return students
 
 

@@ -12,6 +12,7 @@ import { FollowupTab } from '@/components/checkin/FollowupTab';
 import { RankingTab } from '@/components/checkin/RankingTab';
 import SummaryTab from '@/components/checkin/SummaryTab';
 import { StudentInsightsTab } from '@/components/checkin/StudentInsightsTab';
+import { RoiAnalysisTab } from '@/components/checkin/RoiAnalysisTab';
 import { UnifiedFilterBar } from '@/components/checkin/UnifiedFilterBar';
 import { useWideConfig } from '@/lib/hooks/useWideConfig';
 import { useMyView } from '@/lib/hooks/useMyView';
@@ -48,6 +49,7 @@ const TABS = [
   { id: 'insights', label: '学员洞察' },
   { id: 'leaderboard', label: '排行榜' },
   { id: 'action', label: '行动中心' },
+  { id: 'roi', label: 'ROI 分析' },
 ] as const;
 
 type TabId = (typeof TABS)[number]['id'];
@@ -272,6 +274,9 @@ function CheckinPageInner() {
             teamFilter={teamFilter}
             salesSearch={ccSearch}
           />
+        )}
+        {activeTab === 'roi' && (
+          <RoiAnalysisTab roleFilter={roleFilter} enclosureFilter={enclosureFilter} />
         )}
       </div>
 
