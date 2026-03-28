@@ -359,6 +359,17 @@ export const configAPI = {
       method: 'PUT',
       body: JSON.stringify(data),
     }),
+  getBmCalendar: (month: string) =>
+    request<import('./types/bm-calendar').BmCalendarResponse>(`/config/bm-calendar?month=${month}`),
+  putBmCalendar: (body: {
+    month: string;
+    specials: { date: string; weight: number; label: string }[];
+    kickoff_date: string | null;
+  }) =>
+    request<{ status: string }>('/config/bm-calendar', {
+      method: 'PUT',
+      body: JSON.stringify(body),
+    }),
 };
 
 // ── Snapshots ─────────────────────────────────────────────────────────────────

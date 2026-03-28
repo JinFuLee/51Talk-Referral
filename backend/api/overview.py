@@ -12,6 +12,11 @@ import pandas as pd
 from fastapi import APIRouter, Depends, Request
 
 from backend.api.dependencies import get_data_manager
+from backend.core.bm_calendar import (
+    generate_bm_calendar,
+    get_bm_snapshot,
+    load_bm_config,
+)
 from backend.core.config import get_targets
 from backend.core.data_manager import DataManager
 from backend.core.time_period import compute_month_progress
@@ -406,6 +411,89 @@ def get_overview(
     except Exception:
         pass  # 快照写入失败不影响 API 响应
 
+    # BM 节奏对比
+    bm_comparison: dict[str, Any] = {}
+    try:
+        _project_dir = Path(__file__).resolve().parent.parent.parent
+        _bm_raw_weights, _bm_monthly_specials = load_bm_config(_project_dir)
+        _month_key = f"{mp.today.year:04d}{mp.today.month:02d}"
+        _bm_specials = _bm_monthly_specials.get(_month_key, [])
+        _bm_cfg_auto_kickoff = True
+        # 读取 auto_kickoff 配置
+        _bm_proj_cfg_path = _project_dir / "projects" / "referral" / "config.json"
+        if _bm_proj_cfg_path.exists():
+            import json as _json_bm
+            _bm_proj_raw = _json_bm.loads(
+                _bm_proj_cfg_path.read_text(encoding="utf-8")
+            )
+            _bm_cfg_auto_kickoff = (
+                _bm_proj_raw.get("bm_config", {}).get("auto_kickoff", True)
+            )
+
+        _bm_cal = generate_bm_calendar(
+            year=mp.today.year,
+            month=mp.today.month,
+            raw_weights=_bm_raw_weights,
+            specials=_bm_specials,
+            auto_kickoff=_bm_cfg_auto_kickoff,
+        )
+        _bm_snap = get_bm_snapshot(_bm_cal, mp.today)
+
+        # 5 个 KPI 的 BM 对比指标
+        _bm_kpi_map = {
+            "register": ("转介绍注册数", "_override_注册目标"),
+            "appointment": ("预约数", "_override_预约目标"),
+            "showup": ("出席数", "_override_出席目标"),
+            "paid": ("转介绍付费数", "转介绍基础业绩单量标"),
+            "revenue": ("总带新付费金额USD", "转介绍基础业绩标USD"),
+        }
+        _bm_metrics: dict[str, Any] = {}
+        for pace_key, (metric_key, target_field) in _bm_kpi_map.items():
+            actual_val = metrics.get(metric_key)
+            target_val = _get_target(target_field)
+
+            bm_mtd = (
+                target_val * _bm_snap["bm_mtd_pct"]
+                if target_val is not None else None
+            )
+            bm_gap = (
+                round(actual_val - bm_mtd, 2)
+                if actual_val is not None and bm_mtd is not None else None
+            )
+            bm_today = (
+                target_val * _bm_snap["bm_today_pct"]
+                if target_val is not None else None
+            )
+            bm_remaining = _bm_snap["bm_remaining_pct"]
+            today_required: float | None = None
+            if (
+                target_val is not None
+                and actual_val is not None
+                and bm_remaining > 0
+            ):
+                today_pct_ratio = _bm_snap["bm_today_pct"] / bm_remaining
+                today_required = round(
+                    (target_val - actual_val) * today_pct_ratio,
+                    2,
+                )
+
+            _bm_metrics[pace_key] = {
+                "actual": actual_val,
+                "target": target_val,
+                "bm_mtd": round(bm_mtd, 2) if bm_mtd is not None else None,
+                "bm_gap": bm_gap,
+                "bm_today": round(bm_today, 2) if bm_today is not None else None,
+                "today_required": today_required,
+            }
+
+        bm_comparison = {
+            "calendar": _bm_snap,
+            "metrics": _bm_metrics,
+        }
+    except Exception as _bm_err:
+        import logging
+        logging.getLogger(__name__).warning("BM comparison error: %s", _bm_err)
+
     return {
         "metrics": metrics,
         "data_sources": statuses,
@@ -415,4 +503,5 @@ def get_overview(
         "d2b_summary": d2b_summary,
         "kpi_sparklines": kpi_sparklines,
         "kpi_mom": kpi_mom,
+        "bm_comparison": bm_comparison,
     }

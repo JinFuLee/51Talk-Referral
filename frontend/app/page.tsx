@@ -21,6 +21,8 @@ import { AnomalyBanner } from '@/components/dashboard/AnomalyBanner';
 import { DecisionSummary } from '@/components/dashboard/DecisionSummary';
 import { PersonalWorkbench } from '@/components/dashboard/PersonalWorkbench';
 import { KnowledgeLink } from '@/components/ui/KnowledgeLink';
+import { BmComparisonTable } from '@/components/dashboard/BmComparisonTable';
+import type { BmComparison } from '@/lib/types/bm-calendar';
 
 /* ── 岗位视角类型 ──────────────────────────────────────────────── */
 
@@ -159,6 +161,8 @@ interface OverviewResponse {
   kpi_sparklines?: Record<string, (number | null)[]>;
   /** MoM 环比变化率，key = pace key */
   kpi_mom?: Record<string, number | null>;
+  /** BM 节奏对比数据 */
+  bm_comparison?: BmComparison;
 }
 
 /* ── KPI 8项卡片 ─────────────────────────────────────────────── */
@@ -813,6 +817,9 @@ export default function DashboardPage() {
       {data?.kpi_8item && Object.keys(data.kpi_8item).length > 0 && (
         <KPI8Section kpi8item={data.kpi_8item} />
       )}
+
+      {/* BM 节奏对比 */}
+      {data?.bm_comparison && <BmComparisonTable data={data.bm_comparison} />}
 
       {/* 漏斗转化率 */}
       <Card title="漏斗转化率">

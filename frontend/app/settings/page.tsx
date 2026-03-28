@@ -24,6 +24,7 @@ import SOPSettingsCard from './SOPSettingsCard';
 import EnclosureRoleCard from './EnclosureRoleCard';
 import CheckinThresholdsCard from './CheckinThresholdsCard';
 import IndicatorMatrixCard from './IndicatorMatrixCard';
+import BmCalendarCard from './BmCalendarCard';
 import { TargetRecommender } from '@/components/settings/TargetRecommender';
 import DataSourceCard from './DataSourceCard';
 import IncentiveBudgetCard from './IncentiveBudgetCard';
@@ -227,6 +228,7 @@ export default function SettingsPage() {
       <CheckinThresholdsCard />
       <IncentiveBudgetCard month={selectedMonth} />
       <IndicatorMatrixCard />
+      <BmCalendarCard selectedMonth={selectedMonth} />
     </div>
   );
 }

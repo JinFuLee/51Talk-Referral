@@ -85,15 +85,31 @@
     "rest_weekdays": [
       2
     ],
-    "weekend_multiplier": 1.4,
+    "weekend_multiplier": 1.67,
     "day_weights": {
       "0": 1.0,
       "1": 1.0,
-      "2": 0.0,
+      "2": 0.33,
       "3": 1.0,
       "4": 1.0,
-      "5": 1.4,
-      "6": 1.4
+      "5": 1.67,
+      "6": 1.67
+    }
+  },
+  "bm_config": {
+    "raw_weights": {
+      "weekday": 3.0,
+      "saturday": 5.0,
+      "sunday": 5.0,
+      "wednesday": 1.0,
+      "kickoff": 2.0,
+      "holiday_off": 1.0
+    },
+    "auto_kickoff": true,
+    "monthly_specials": {
+      "202603": [
+        {"date": "2026-03-05", "weight": 1.0, "label": "调休万佛节"}
+      ]
     }
   },
   "exchange_rate": {

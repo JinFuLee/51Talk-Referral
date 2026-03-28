@@ -22,16 +22,16 @@ class WorkScheduleConfig(BaseModel):
     rest_weekdays: list[int] = Field(
         default=[2], description="休息日星期编号列表（0=周一, 2=周三, ...）"
     )
-    weekend_multiplier: float = Field(default=1.4, description="周末权重倍数")
+    weekend_multiplier: float = Field(default=1.67, description="周末权重倍数")
     day_weights: dict[str, float] = Field(
         default_factory=lambda: {
             "0": 1.0,
             "1": 1.0,
-            "2": 0.0,
+            "2": 0.33,
             "3": 1.0,
             "4": 1.0,
-            "5": 1.4,
-            "6": 1.4,
+            "5": 1.67,
+            "6": 1.67,
         },
         description="每周各天权重（key 为星期编号字符串，0=周一）",
     )

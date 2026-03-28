@@ -804,6 +804,7 @@ def get_target_tiers(
         d1 = data.get("result")
         if d1 is not None and hasattr(d1, "columns"):
             import pandas as pd
+
             from backend.core.data_manager import DataManager
 
             df = DataManager.filter_thai_region(d1, fallback_to_all=True)
@@ -1031,6 +1032,165 @@ def post_targets_apply_tiers(
             "total":    total,
             "channels": {ch: v["registrations"] for ch, v in channels.items()},
         },
+    }
+
+
+# ── BM 节奏日历配置 ────────────────────────────────────────────────────────────
+
+BM_SPECIALS_OVERRIDE_FILE = CONFIG_DIR / "bm_specials_override.json"
+
+
+class BmSpecialDay(BaseModel):
+    date: str       # "YYYY-MM-DD"
+    weight: float
+    label: str = ""
+    day_type: str = "holiday_off"
+
+
+class BmCalendarUpdate(BaseModel):
+    month: str                          # "YYYYMM"
+    specials: list[BmSpecialDay] = []
+    kickoff_date: str | None = None     # "YYYY-MM-DD" 或 null（null = 自动检测）
+
+
+@router.get("/bm-calendar", summary="获取指定月份 BM 节奏日历")
+def get_bm_calendar(month: str | None = None) -> dict[str, Any]:
+    """返回指定月份的 BM 节奏日历（归一化权重 + 累计百分比）。
+
+    Args:
+        month: YYYYMM 格式，默认当自然月
+    """
+    from datetime import date as _date
+
+    from backend.core.bm_calendar import generate_bm_calendar, load_bm_config
+
+    if month is None:
+        today = _date.today()
+        month = f"{today.year:04d}{today.month:02d}"
+
+    if len(month) != 6 or not month.isdigit():
+        raise HTTPException(status_code=400, detail="month 格式应为 YYYYMM，如 202603")
+
+    year = int(month[:4])
+    mon = int(month[4:6])
+    if not (1 <= mon <= 12):
+        raise HTTPException(status_code=400, detail="月份超出范围 1-12")
+
+    raw_weights, monthly_specials = load_bm_config(PROJECT_ROOT)
+    specials = monthly_specials.get(month, [])
+
+    # 读取 auto_kickoff 配置
+    bm_proj_cfg = _read_json(
+        PROJECT_ROOT / "projects" / "referral" / "config.json", {}
+    )
+    auto_kickoff = bm_proj_cfg.get("bm_config", {}).get("auto_kickoff", True)
+
+    calendar = generate_bm_calendar(
+        year=year,
+        month=mon,
+        raw_weights=raw_weights,
+        specials=specials,
+        auto_kickoff=auto_kickoff,
+    )
+
+    return {
+        "month": calendar.month,
+        "total_raw_weight": calendar.total_raw_weight,
+        "days": [
+            {
+                "date": day.date.isoformat(),
+                "day_of_week": day.day_of_week,
+                "day_type": day.day_type,
+                "raw_weight": day.raw_weight,
+                "bm_daily_pct": day.bm_daily_pct,
+                "bm_mtd_pct": day.bm_mtd_pct,
+                "is_override": day.is_override,
+                "label": day.label,
+            }
+            for day in calendar.days
+        ],
+    }
+
+
+@router.put("/bm-calendar", summary="更新指定月份 BM 特殊日配置")
+def put_bm_calendar(body: BmCalendarUpdate) -> dict[str, Any]:
+    """写入月份特殊日配置（存入 bm_specials_override.json），并返回更新后日历。"""
+
+    from backend.core.bm_calendar import generate_bm_calendar, load_bm_config
+
+    month = body.month
+    if len(month) != 6 or not month.isdigit():
+        raise HTTPException(status_code=400, detail="month 格式应为 YYYYMM")
+
+    year = int(month[:4])
+    mon = int(month[4:6])
+    if not (1 <= mon <= 12):
+        raise HTTPException(status_code=400, detail="月份超出范围 1-12")
+
+    # 构建 specials 列表（含可选的 kickoff_date 覆盖）
+    specials: list[dict[str, Any]] = [
+        {
+            "date": sp.date,
+            "weight": sp.weight,
+            "label": sp.label,
+            "day_type": sp.day_type,
+        }
+        for sp in body.specials
+    ]
+
+    if body.kickoff_date:
+        # 用户指定 kickoff 日期 → 作为 kickoff 类型 special 写入
+        specials.append({
+            "date": body.kickoff_date,
+            "weight": None,  # 从 bm_config.raw_weights.kickoff 读取
+            "label": "Kick Off",
+            "day_type": "kickoff",
+        })
+
+    # 写入 override 文件
+    _backup_config_file(BM_SPECIALS_OVERRIDE_FILE)
+    overrides = _read_json(BM_SPECIALS_OVERRIDE_FILE, {})
+    overrides[month] = specials
+    try:
+        _write_json(BM_SPECIALS_OVERRIDE_FILE, overrides)
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
+
+    # 返回更新后日历
+    raw_weights, monthly_specials = load_bm_config(PROJECT_ROOT)
+    bm_proj_cfg = _read_json(
+        PROJECT_ROOT / "projects" / "referral" / "config.json", {}
+    )
+    auto_kickoff = (
+        body.kickoff_date is None
+        and bm_proj_cfg.get("bm_config", {}).get("auto_kickoff", True)
+    )
+
+    calendar = generate_bm_calendar(
+        year=year,
+        month=mon,
+        raw_weights=raw_weights,
+        specials=monthly_specials.get(month, []),
+        auto_kickoff=auto_kickoff,
+    )
+
+    return {
+        "status": "ok",
+        "month": calendar.month,
+        "total_raw_weight": calendar.total_raw_weight,
+        "days": [
+            {
+                "date": day.date.isoformat(),
+                "day_of_week": day.day_of_week,
+                "day_type": day.day_type,
+                "raw_weight": day.raw_weight,
+                "bm_daily_pct": day.bm_daily_pct,
+                "bm_mtd_pct": day.bm_mtd_pct,
+                "is_override": day.is_override,
+                "label": day.label,
+            }
+            for day in calendar.days
+        ],
     }
 
 
