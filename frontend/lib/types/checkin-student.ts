@@ -184,6 +184,82 @@ export type TagsSummary = Record<string, number>;
 
 // ── 完整响应 ──────────────────────────────────────────────────────────────────
 
+// ── 运营学员排行 ──────────────────────────────────────────────────────────────
+
+/** 运营围场学员排行行（14 维度 + 二级裂变） */
+export interface OpsStudentRankingRow {
+  /** 排名（1 起） */
+  rank: number;
+  /** 学员 ID */
+  student_id: string;
+  /** 围场标签，如 M6 / M7 */
+  enclosure: string;
+  /** 负责 CC 员工姓名 */
+  cc_name: string;
+  /** 负责团队名称 */
+  team: string;
+  /** 本月打卡天数 */
+  days_this_month: number;
+  /** 上月打卡天数 */
+  days_last_month: number;
+  /** 打卡变化（本月 - 上月） */
+  delta: number;
+  /** 综合质量评分（0-100） */
+  quality_score: number;
+  /** 当月推荐注册人数（D4） */
+  referral_registrations: number;
+  /** 当月推荐出席人数（D4） */
+  referral_attendance: number;
+  /** 本月推荐付费数（D4） */
+  referral_payments: number;
+  /** 推荐转化率（付费/注册） */
+  conversion_rate: number;
+  /** 二级裂变数（被推荐的 B 中当月又带注册的人数） */
+  secondary_referrals: number;
+  /** 总 CC 拨打次数（D4） */
+  cc_dial_count: number;
+  /** CC 带新注册人数 */
+  cc_new_count: number;
+  /** SS 带新注册人数 */
+  ss_new_count: number;
+  /** LP 带新注册人数 */
+  lp_new_count: number;
+  /** 宽口径带新注册人数 */
+  wide_new_count: number;
+  /** CC 带新付费人数 */
+  cc_new_paid: number;
+  /** SS 带新付费人数 */
+  ss_new_paid: number;
+  /** LP 带新付费人数 */
+  lp_new_paid: number;
+  /** 宽口径带新付费人数 */
+  wide_new_paid: number;
+  /** D3 邀约数 */
+  d3_invitations: number;
+  /** D3 出席数 */
+  d3_attendance: number;
+  /** D3 转介绍付费数 */
+  d3_payments: number;
+  /** 总推荐注册人数（历史累计） */
+  total_historical_registrations: number;
+  /** 总推荐 1v1 付费人数（历史累计） */
+  total_historical_payments: number;
+  /** 打卡稳定性（0-1，min/max 比值） */
+  engagement_stability: number;
+  /** 本月有打卡记录的周数（0-4） */
+  weeks_active: number;
+}
+
+/** /api/checkin/ops-student-ranking 完整响应 */
+export interface OpsStudentRankingResponse {
+  /** 当前排行维度 */
+  dimension: string;
+  /** 运营围场总学员数 */
+  total_students: number;
+  /** 排行列表（按维度降序，最多 limit 条） */
+  students: OpsStudentRankingRow[];
+}
+
 /** /api/checkin/student-analysis 完整响应类型 */
 export interface StudentAnalysisResponse {
   /** 0-6 次精确频次分布 */

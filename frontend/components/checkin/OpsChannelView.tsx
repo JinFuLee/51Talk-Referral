@@ -5,6 +5,8 @@ import { swrFetcher } from '@/lib/api';
 import { Spinner } from '@/components/ui/Spinner';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { cn, formatRate } from '@/lib/utils';
+import { useState } from 'react';
+import { OpsStudentRanking } from './OpsStudentRanking';
 
 // ── 类型定义 ──────────────────────────────────────────────────────────────────
 
@@ -206,11 +208,22 @@ function EnclosureSegmentBar({ segments }: { segments: EnclosureSegment[] }) {
 
 // ── 主组件 ────────────────────────────────────────────────────────────────────
 
+// ── 子 Tab 配置 ───────────────────────────────────────────────────────────────
+
+const SUB_TABS = [
+  { id: 'channel', label: '渠道触达' },
+  { id: 'student_ranking', label: '学员排行' },
+] as const;
+
+type SubTabId = (typeof SUB_TABS)[number]['id'];
+
 interface OpsChannelViewProps {
   configJson: string;
 }
 
 export function OpsChannelView({ configJson }: OpsChannelViewProps) {
+  const [subTab, setSubTab] = useState<SubTabId>('channel');
+
   const { data, isLoading, error, mutate } = useSWR<RankingResponse>(
     `/api/checkin/ranking?role_config=${encodeURIComponent(configJson)}`,
     swrFetcher,
@@ -239,13 +252,46 @@ export function OpsChannelView({ configJson }: OpsChannelViewProps) {
     );
   }
 
-  // 空态
+  // 子 Tab 切换条（独立渲染，不受加载/空态影响）
+  const SubTabBar = (
+    <div className="flex gap-1 border-b border-[var(--border-default)] mb-4">
+      {SUB_TABS.map((tab) => (
+        <button
+          key={tab.id}
+          onClick={() => setSubTab(tab.id)}
+          className={cn(
+            'px-4 py-2 text-sm font-medium transition-colors duration-150 border-b-2 -mb-px',
+            subTab === tab.id
+              ? 'border-[var(--action-accent,#1d4ed8)] text-[var(--action-accent,#1d4ed8)]'
+              : 'border-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+          )}
+        >
+          {tab.label}
+        </button>
+      ))}
+    </div>
+  );
+
+  // 学员排行子 Tab 独立渲染（不依赖渠道数据）
+  if (subTab === 'student_ranking') {
+    return (
+      <div className="space-y-0">
+        {SubTabBar}
+        <OpsStudentRanking configJson={configJson} />
+      </div>
+    );
+  }
+
+  // 空态（渠道触达 Tab）
   if (!opsData || opsData.total_students === 0) {
     return (
-      <EmptyState
-        title="M6~M12+ 围场暂无学员数据"
-        description="上传包含 M6+ 围场的过程数据（D3）后自动刷新"
-      />
+      <div className="space-y-0">
+        {SubTabBar}
+        <EmptyState
+          title="M6~M12+ 围场暂无学员数据"
+          description="上传包含 M6+ 围场的过程数据（D3）后自动刷新"
+        />
+      </div>
     );
   }
 
@@ -254,6 +300,8 @@ export function OpsChannelView({ configJson }: OpsChannelViewProps) {
 
   return (
     <div className="space-y-5">
+      {/* 子 Tab 切换 */}
+      {SubTabBar}
       {/* 区域 A — 顶部总览卡片 */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <div className="card-compact text-center">
