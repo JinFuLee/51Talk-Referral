@@ -249,6 +249,14 @@ Next.js 前端（34 页面 + 43 组件）
 - **渠道归因必须消费 Settings 配置**：`attribution_engine.py` 接收 `wide_role_config` 参数（围场→角色映射），从 `enclosure_role_override.json` 读取。禁止硬编码渠道列表或 share=1.0。检查脚本：`bash scripts/check-channel-attribution.sh`
 - **渠道归因 6 维度**：CC窄/SS窄/LP窄（窄口按绑定关系）+ CC宽/LP宽/运营宽（宽口按围场→角色配置拆分）。D2 revenue 按参与数占比分摊，per-围场分组以反映 revenue 密度差异
 - **数据地域过滤**: DataManager `_filter_thai_only()` 在数据加载后统一过滤非 TH- 前缀团队，全站 API 自动生效。禁止在单个 API 中手动过滤
+- **围场分层聚合规则（业绩 vs 过程指标）**:
+  - 有效围场（active）: `0~30, 31~60, 61~90, 91~120, 121~150, 151~180, M6+`
+  - 非有效围场（non-active）: `已付费非有效, 未付费非有效`
+  - **业绩类指标**（SUM）= 全部围场（含非有效）：转介绍注册数 / 转介绍付费数 / 总带新付费金额USD / 出席人数。理由：收入已发生，注册/出席是事实
+  - **过程类指标**（MEAN）= 仅有效围场：打卡率 / 参与率 / 触达率 / 带新系数。理由：非有效学员不能打卡/参与，纳入会稀释分母
+  - **学员数**（COUNT，用作过程指标分母）= 仅有效围场
+  - 违反此规则的表现：系统业绩总额 < Excel 业绩总额（如 $160K vs $175K），差额即为非有效围场被排除的金额
+  - 配置位置: `backend/api/cc_performance.py:_agg_d2()` 和 `backend/api/incentive_engine.py:_get_role_metrics()`
 
 ## 关键约定
 - **T-1 数据**: 今天处理的是昨天的数据

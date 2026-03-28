@@ -296,9 +296,12 @@ class DailySnapshotService:
         }
 
     def _extract_total(self, df: pd.DataFrame) -> dict[str, float | None]:
-        """从 D1 DataFrame 提取总计行指标。"""
+        """从 D1 DataFrame 提取总计行指标（仅泰国区域）。"""
         if df is None or df.empty:
             return {}
+
+        from backend.core.data_manager import DataManager
+        df = DataManager.filter_thai_region(df)
 
         registrations = _col_sum(df, "转介绍注册数", "registrations")
         appointments = _col_sum(df, "预约数", "appointments")

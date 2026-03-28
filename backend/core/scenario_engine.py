@@ -50,8 +50,9 @@ class ScenarioEngine:
         """提取 D1 第一行（当期数据行）"""
         if self._result.empty:
             return {}
-        # D1 只有 2 行（含标题），取第一个数据行
-        row = self._result.iloc[0]
+        from backend.core.data_manager import DataManager
+        thai_df = DataManager.filter_thai_region(self._result)
+        row = thai_df.iloc[0]
         return {str(k): v for k, v in row.items()}
 
     def _get_actual(self, col: str) -> float | None:

@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Quick BI 定时取数 — launchd 包装脚本
-# 每天泰国 10:00 执行（关机后开机自动补跑）
+# 每天泰国 10:00 执行（StartCalendarInterval 不补跑错过的任务）
+# 补跑机制在「一键启动.command」中：检测今日文件缺失时自动拉取
 # 失败时钉钉告警
 
 set -euo pipefail

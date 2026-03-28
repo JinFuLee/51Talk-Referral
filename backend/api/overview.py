@@ -161,7 +161,8 @@ def get_overview(
 
     metrics: dict[str, Any] = {}
     if result_df is not None and not result_df.empty:
-        row = result_df.iloc[0]
+        thai_df = DataManager.filter_thai_region(result_df)
+        row = thai_df.iloc[0]
         for col in result_df.columns:
             val = row[col]
             if pd.isna(val) if not isinstance(val, (list, dict)) else False:

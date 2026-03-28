@@ -127,6 +127,25 @@ if [ "$BACKEND_READY" -eq 0 ]; then
     exit 1
 fi
 
+# ── Quick BI 数据补跑（电脑睡眠错过 launchd 时自动补拉）──────────────────
+DATA_SOURCE_DIR_CHECK="$HOME/Desktop/转介绍中台监测指标"
+TODAY_TAG=$(date +%Y%m%d)
+HAS_TODAY_FILE=0
+for f in "$DATA_SOURCE_DIR_CHECK"/*_${TODAY_TAG}_*.xlsx; do
+    [ -f "$f" ] && HAS_TODAY_FILE=1 && break
+done
+
+if [ "$HAS_TODAY_FILE" -eq 0 ]; then
+    warn "今日 Quick BI 数据缺失（launchd 可能因睡眠未触发），自动补跑..."
+    if DATA_SOURCE_DIR="$DATA_SOURCE_DIR_CHECK" uv run python scripts/quickbi_fetch.py --headless 2>&1 | tee -a "output/logs/quickbi_fetch_${TODAY_TAG}.log"; then
+        ok "Quick BI 补跑成功，数据已更新"
+    else
+        warn "Quick BI 补跑失败，请检查 BI 链接是否过期（继续启动，使用缓存数据）"
+    fi
+else
+    ok "今日 Quick BI 数据已就绪（${TODAY_TAG}）"
+fi
+
 # 数据预热（首次请求触发 DataManager 加载，后续请求零延迟）
 info "预热数据引擎..."
 HEALTH_RESP=$(curl -s http://localhost:8100/api/health 2>/dev/null)

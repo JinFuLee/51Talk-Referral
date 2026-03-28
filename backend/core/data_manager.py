@@ -215,6 +215,16 @@ class DataManager:
             )
         return filtered
 
+    @staticmethod
+    def filter_thai_region(df: pd.DataFrame) -> pd.DataFrame:
+        """若 DataFrame 含「区域」列，筛选泰国行；否则原样返回。"""
+        if df is None or df.empty:
+            return df
+        if "区域" in df.columns:
+            thai = df[df["区域"] == "泰国"]
+            return thai if not thai.empty else df
+        return df
+
     def get(self, key: str) -> Any:
         """获取指定数据集（懒加载）"""
         with self._lock:

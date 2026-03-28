@@ -60,7 +60,9 @@ class CrossAnalyzer:
         if self._result.empty:
             return {}
 
-        row = self._result.iloc[0]
+        from backend.core.data_manager import DataManager
+        thai_df = DataManager.filter_thai_region(self._result)
+        row = thai_df.iloc[0]
 
         col_map = {
             "统计日期": "stat_date",
@@ -119,7 +121,9 @@ class CrossAnalyzer:
     def _d1_val(self, col: str) -> float | None:
         if self._result.empty:
             return None
-        val = self._result.iloc[0].get(col)
+        from backend.core.data_manager import DataManager
+        thai_df = DataManager.filter_thai_region(self._result)
+        val = thai_df.iloc[0].get(col)
         return _safe(val)
 
     def _breakdown_d2(
