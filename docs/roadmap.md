@@ -433,9 +433,22 @@
 
 ---
 
+### M36: 打卡管理升级 — 运营排行 + 行动中心强化 + ROI 分析（2026-03-28）
+- [x] **排行榜运营学员排行 14 维度**：打卡/连续性/质量分/绑定/出席/付费/转化率/二级裂变(A→B→C)/进步/CC触达/岗位拆分带新/岗位拆分付费/D3邀约链/历史累计
+- [x] **二级裂变 3 子字段**：secondary_referrals + secondary_b_paid + secondary_c_count（识别超级推荐人客群）
+- [x] **行动中心 10 项改造**：CC/SS/LP 三列负责人 + 三岗接通状态 + CC末次备注 + 9 分群筛选器（新增本周未打卡/卡到期/沉睡高潜/即将交接/续费风险）+ 优先级矩阵(0-100) + 渠道推荐(📞💬📱✉️) + 黄金窗口 + 激励状态 + TSV导出
+- [x] **ROI 分析模块（新 Tab）**：Per-Student 成本公式（活动分段映射+绑定+出席+付费次卡 × $1.31）+ 8级行为分层（gold/effective/stuck_pay/stuck_show/potential/freeloader/newcomer/casual）+ 渠道ROI矩阵(CC/SS/LP/宽口) + 累计ROI(2月滚动) + 全部阈值配置化
+- [x] **数据源全量利用**：8 数据源 137 列中 30+ 此前未用字段纳入（D4 推荐人学员ID/第1-4周转码/CC带新人数×4/总CC拨打次数/当月推荐出席人数/CC末次备注等）
+- [x] 新 API 端点：`/api/checkin/ops-student-ranking`（14维排行）+ `/api/checkin/roi-analysis`（ROI分析+行为分层+渠道矩阵）
+- [x] 新前端组件：OpsStudentRanking + RoiAnalysisTab + RoiDashboard + RoiStudentTable + RoiChannelMatrix（共 5 个）
+- [x] 配置文件：`config/roi_cost_rules.json`（次卡单价+活动映射+激励规则+分层阈值，全可调）
+- [x] Bug 修复：incentive_status nan→null / enabled_routers 白名单 / 渠道成本遗漏活动次卡 / risk_levels 旧名称 / secondary_referrals 硬编码 / referral_reg fallback 历史累计 / 前端次卡文案 $1.34→$1.31
+- 统计: 15 files (7 new + 8 mod), ~2500 lines, 11 commits, ROI 数据验证(54,874学员 $256K成本 $608K收入 ROI 137.1%)
+- QA: 后端 API 真实数据验证 ✓ / TypeScript 零错误 ✓ / ruff 零错误 ✓ / 行为分层分布合理 ✓
+
 ## 规划中
 
-### M36: 话术迭代系统（待规划）
+### M37: 话术迭代系统（待规划）
 - 运营贴入当前话术 → AI 评分 → 多方案生成 → A/B 追踪 → 自动迭代
 - 依赖 M33 瓶颈识别结果做输入
 
