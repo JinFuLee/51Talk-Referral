@@ -644,6 +644,8 @@ def get_recommendations(
     campaign_type = {
         "early": "โบนัสประจำเดือน（月度基础）",
         "mid": "Sprint สัปดาห์（冲刺）",
+        "late": "Push สุดท้าย（最终冲刺）",
+        "closing": "วางแผนเดือนหน้า（规划下月）",
     }.get(phase, "")
 
     return {

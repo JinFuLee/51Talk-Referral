@@ -587,7 +587,7 @@ function CampaignsTab() {
     const nextStatus = c.status === 'active' ? 'paused' : 'active';
     try {
       const res = await fetch(`/api/incentive/campaigns/${c.id}`, {
-        method: 'PATCH',
+        method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: nextStatus }),
       });
@@ -862,7 +862,7 @@ function CampaignProgressCard({ item }: { item: CampaignProgress }) {
               </div>
 
               {/* 进度条 */}
-              <ProgressBar pct={r.progress_pct} status={r.status} />
+              <ProgressBar pct={r.progress_pct * 100} status={r.status} />
 
               {/* 数值 */}
               <div className="w-12 text-right shrink-0">
