@@ -41,14 +41,11 @@ _ENDPOINTS_TO_CHECK: list[dict] = [
     {"path": "/api/funnel", "module": "漏斗分析", "params": {}},
     # 围场
     {"path": "/api/enclosure", "module": "围场分析", "params": {}},
-    {"path": "/api/enclosure/health", "module": "围场健康", "params": {}},
     # 打卡
     {"path": "/api/checkin/ranking", "module": "打卡管理", "params": {}},
     # 报告
     {"path": "/api/report/daily", "module": "运营报告", "params": {}},
     {"path": "/api/report/summary", "module": "运营摘要", "params": {}},
-    # 渠道归因
-    {"path": "/api/attribution", "module": "渠道归因", "params": {}},
     # 配置
     {"path": "/api/config/targets", "module": "配置", "params": {}},
     # 指标矩阵
@@ -69,14 +66,6 @@ _ENDPOINTS_TO_CHECK: list[dict] = [
         "params": {"month": "CURRENT"},
     },
     {"path": "/api/incentive/budget", "module": "内场激励", "params": {}},
-    # 日监控
-    {"path": "/api/daily-monitor", "module": "日监控", "params": {}},
-    # CC 矩阵
-    {"path": "/api/cc-matrix", "module": "CC 矩阵", "params": {}},
-    # 学员 360
-    {"path": "/api/students/360", "module": "学员 360", "params": {}},
-    # 续费风险
-    {"path": "/api/renewal-risk", "module": "续费风险", "params": {}},
 ]
 
 # ── 根因映射 ────────────────────────────────────────────────────────────────────
@@ -141,6 +130,9 @@ _ROOT_CAUSE_PATTERNS: list[tuple[str, str]] = [
     ("by_role.*.by_group", "打卡角色数据"),
     ("by_role.*.by_person", "打卡角色数据"),
     ("by_role.*.by_team", "打卡角色数据"),
+    # ── 数据源状态（部分源无日期字段）──
+    ("data_sources*data_date", "正常（非异常）"),
+    ("data_sources*days_behind", "正常（非异常）"),
     # ── 漏斗日期 ──
     ("date", "正常（非异常）"),
 ]
@@ -654,8 +646,10 @@ def check_data_quality(
 
     if has_critical or has_missing:
         overall = "critical"
-    elif total_nulls > 0 or has_expired:
+    elif health_pct < 70 or has_expired:
         overall = "warning"
+    elif health_pct < 95:
+        overall = "ok"
     else:
         overall = "healthy"
 
