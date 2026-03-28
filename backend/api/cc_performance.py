@@ -603,12 +603,24 @@ def _build_team_summary(
 ) -> CCPerformanceTeamSummary:
     """将团队所有 records 聚合为 CCPerformanceTeamSummary"""
     headcount = len(records)
-    students_total = sum(r.students_count or 0 for r in records) or None
+
+    def _sum_or_none(attr: str) -> int | float | None:
+        """sum 非 None 值；全部 None 时返回 None，全 0 时返回 0。"""
+        vals = [getattr(r, attr) for r in records if getattr(r, attr) is not None]
+        return sum(vals) if vals else None
+
+    def _sum_nested(attr: str, sub: str) -> int | float | None:
+        """sum 嵌套对象字段（如 r.connected.count）"""
+        vals = [getattr(getattr(r, attr), sub) for r in records
+                if getattr(getattr(r, attr), sub) is not None]
+        return sum(vals) if vals else None
+
+    students_total = _sum_or_none("students_count")
 
     # 聚合连续字段
-    calls_total = sum(r.calls_total or 0 for r in records) or None
-    called_this_month = sum(r.called_this_month or 0 for r in records) or None
-    call_target_sum = sum(r.call_target or 0 for r in records) or None
+    calls_total = _sum_or_none("calls_total")
+    called_this_month = _sum_or_none("called_this_month")
+    call_target_sum = _sum_or_none("call_target")
     call_prop = (
         called_this_month / students_total
         if (called_this_month and students_total and students_total > 0)
@@ -620,8 +632,8 @@ def _build_team_summary(
         else None
     )
 
-    connected_total = sum(r.connected.count or 0 for r in records) or None
-    effective_total = sum(r.effective.count or 0 for r in records) or None
+    connected_total = _sum_nested("connected", "count")
+    effective_total = _sum_nested("effective", "count")
 
     # 过程指标均值
     def _avg(attr):
@@ -968,7 +980,17 @@ def get_cc_performance(
     grand_total: CCPerformanceRecord | None = None
     if all_records:
         # 直接用所有 records 聚合出一个伪 grand_total
-        gt_students = sum(r.students_count or 0 for r in all_records) or None
+        def _gt_sum(attr: str):
+            vals = [getattr(r, attr) for r in all_records
+                    if getattr(r, attr) is not None]
+            return sum(vals) if vals else None
+
+        def _gt_sum_nested(attr: str, sub: str):
+            vals = [getattr(getattr(r, attr), sub) for r in all_records
+                    if getattr(getattr(r, attr), sub) is not None]
+            return sum(vals) if vals else None
+
+        gt_students = _gt_sum("students_count")
         gt_revenue_actual = sum(r.revenue.actual or 0 for r in all_records) or 0
         # 补偿：区域=泰国但 CC 名为空的行的业绩（未分配 CC 的付费）
         if not df_d2.empty and "区域" in df_d2.columns:
@@ -1006,13 +1028,15 @@ def get_cc_performance(
             sum(r.revenue.target or 0 for r in all_records) or None
         )
         gt_paid_target = sum(r.paid.target or 0 for r in all_records) or None
-        gt_leads_actual = sum(r.leads.actual or 0 for r in all_records) or None
-        gt_showup_actual = sum(r.showup.actual or 0 for r in all_records) or None
-        gt_calls_total = sum(r.calls_total or 0 for r in all_records) or None
-        gt_called = sum(r.called_this_month or 0 for r in all_records) or None
-        gt_call_target = sum(r.call_target or 0 for r in all_records) or None
-        gt_connected = sum(r.connected.count or 0 for r in all_records) or None
-        gt_effective = sum(r.effective.count or 0 for r in all_records) or None
+        gt_leads_actual = _gt_sum_nested("leads", "actual")
+        gt_leads_target = _gt_sum_nested("leads", "target")
+        gt_showup_actual = _gt_sum_nested("showup", "actual")
+        gt_showup_target = _gt_sum_nested("showup", "target")
+        gt_calls_total = _gt_sum("calls_total")
+        gt_called = _gt_sum("called_this_month")
+        gt_call_target = _gt_sum("call_target")
+        gt_connected = _gt_sum_nested("connected", "count")
+        gt_effective = _gt_sum_nested("effective", "count")
 
         def _avg_field(attr):
             vals = [
@@ -1054,13 +1078,17 @@ def get_cc_performance(
             pace_gap_pct=_avg_field("pace_gap_pct"),
             paid=_metric(gt_paid_actual, gt_paid_target, mp.time_progress),
             asp=_metric(_gt_asp, _sf(targets.get("客单价"))),
-            showup=_metric(gt_showup_actual, None, mp.time_progress),
-            leads=_metric(gt_leads_actual, None, mp.time_progress),
+            showup=_metric(gt_showup_actual, gt_showup_target, mp.time_progress),
+            leads=_metric(gt_leads_actual, gt_leads_target, mp.time_progress),
             leads_user_a=_si(
                 sum(r.leads_user_a or 0 for r in all_records) or None
             ),
-            showup_to_paid=_conv_rate(_gt_s2p),
-            leads_to_paid=_conv_rate(_gt_l2p),
+            showup_to_paid=_conv_rate(
+                _gt_s2p, _sf(targets.get("出席转化率"))
+            ),
+            leads_to_paid=_conv_rate(
+                _gt_l2p, _sf(targets.get("目标转化率"))
+            ),
             calls_total=gt_calls_total,
             called_this_month=gt_called,
             call_target=gt_call_target,
