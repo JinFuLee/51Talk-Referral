@@ -1,5 +1,18 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { useEffect, useState } from 'react';
+
+/**
+ * 在消费 persist store 的组件中调用，避免 SSR/CSR 水合不匹配。
+ * SSR 和首次客户端渲染均返回 false，localStorage 恢复后返回 true。
+ */
+export function useStoreHydrated(): boolean {
+  const [hydrated, setHydrated] = useState(false);
+  useEffect(() => {
+    setHydrated(true);
+  }, []);
+  return hydrated;
+}
 
 export type CompareMode = 'off' | 'pop' | 'yoy' | 'peak' | 'valley';
 export type TimeRange = 'this_week' | 'this_month' | 'last_month' | { start: string; end: string };

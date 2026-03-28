@@ -1,6 +1,6 @@
 'use client';
 
-import { useConfigStore } from '@/lib/stores/config-store';
+import { useConfigStore, useStoreHydrated } from '@/lib/stores/config-store';
 import { useCompareSummary } from '@/lib/hooks';
 
 const KPI_LABELS: Record<string, string> = {
@@ -18,10 +18,12 @@ function formatCompact(n: number | null | undefined): string {
 }
 
 export function ComparisonBanner() {
+  const hydrated = useStoreHydrated();
   const compareMode = useConfigStore((s) => s.compareMode);
   const { data, isLoading } = useCompareSummary();
 
-  if (compareMode === 'off') return null;
+  // 水合前 SSR 和客户端首次渲染保持一致（均不显示），避免 React #418 水合错误
+  if (!hydrated || compareMode === 'off') return null;
 
   if (isLoading) {
     return (

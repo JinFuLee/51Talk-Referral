@@ -3,7 +3,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import useSWR from 'swr';
 import { Filter, Users, Search, X, SlidersHorizontal } from 'lucide-react';
-import { useConfigStore } from '@/lib/stores/config-store';
+import { useConfigStore, useStoreHydrated } from '@/lib/stores/config-store';
 import { swrFetcher } from '@/lib/api';
 
 // 从 checkin summary 提取团队列表的响应类型（复用已有 API）
@@ -40,6 +40,7 @@ function useTeamList(): string[] {
 }
 
 export function GlobalFilterBar() {
+  const hydrated = useStoreHydrated();
   const [drawerOpen, setDrawerOpen] = useState(false);
 
   const teamFilter = useConfigStore((s) => s.teamFilter);
@@ -54,7 +55,8 @@ export function GlobalFilterBar() {
     setFocusCC(null);
   }, [setTeamFilter, setFocusCC]);
 
-  const hasActiveFilter = Boolean(teamFilter || focusCC);
+  // 水合前 persist store 值未恢复，使用默认值避免水合不匹配
+  const hasActiveFilter = hydrated && Boolean(teamFilter || focusCC);
 
   // 抽屉打开时禁止 body 滚动
   useEffect(() => {
