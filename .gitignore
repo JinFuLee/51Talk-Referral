@@ -37,6 +37,7 @@ output/
 logs/
 config/
 !config/theme.json
+!config/access-control.json
 data/
 key/
 *.xlsx
