@@ -11,7 +11,7 @@
     B 出席 → A 获 2 次卡
     B 付费 → A 获 N 次卡（可配置，默认 3）
 
-  次卡单价：$1.34 USD（可配置）
+  次卡单价：$1.31 USD（可配置）
 """
 
 from __future__ import annotations
@@ -55,7 +55,7 @@ def _get_roi_config() -> dict:
         except Exception:
             # fallback 默认值
             _ROI_CONFIG_CACHE = {
-                "card_unit_cost_usd": 1.34,
+                "card_unit_cost_usd": 1.31,
                 "activity_cost_mapping": {
                     "0": 0, "1": 1, "2": 2, "3": 3, "4": 4, "5": 6, "6": 8
                 },
@@ -155,7 +155,7 @@ def _calc_student_roi(
     计算单个学员的 ROI 相关指标。
     返回包含所有字段的 dict。
     """
-    card_unit = float(cost_config.get("card_unit_cost_usd", 1.34))
+    card_unit = float(cost_config.get("card_unit_cost_usd", 1.31))
     binding_per_b = int(cost_config.get("binding_cards_per_user_b", 1))
     attendance_per_b = int(cost_config.get("attendance_cards_per_user_b", 2))
     payment_per_b = int(cost_config.get("payment_cards_per_user_b", 3))
@@ -215,6 +215,19 @@ def _calc_student_roi(
         hv_lesson_threshold=hv_lesson_threshold,
     )
 
+    # 累计 ROI（2 月滚动窗口，消除时间差偏差）
+    days_last = _safe_int(d4_row.get("上月打卡天数"))
+    last_pay = _safe_int(d4_row.get("上月推荐付费数"))
+    last_activity_cards = _calc_activity_cards(days_last, days_last, cost_config)
+    last_cost = (last_activity_cards + last_pay * payment_per_b) * card_unit
+    cumulative_cost = total_cost_usd + last_cost
+    # 上月收入无精确数据，保守使用当月收入
+    cumulative_roi: float | None = None
+    if cumulative_cost > 0:
+        cumulative_roi = round(
+            (revenue_usd - cumulative_cost) / cumulative_cost * 100, 1
+        )
+
     return {
         "student_id": student_id,
         "enclosure": enc_m,
@@ -228,6 +241,7 @@ def _calc_student_roi(
         "total_cost_usd": total_cost_usd,
         "revenue_usd": revenue_usd,
         "roi": roi,
+        "cumulative_roi": cumulative_roi,
         "risk_level": risk_level,
         "days_this_month": max(days_checkin, days_transcode),
         "referral_registrations": referral_reg,
@@ -292,7 +306,7 @@ def _aggregate_channel_roi(
     # 从 students 列表汇总近似渠道分配
     # 注：D4 实际有 CC/SS/LP/宽口 带新人数和付费数字段，但学生级数据已聚合到 student ROI
     # 渠道矩阵从整体学生数据中按 cc_name / team 归因（近似）
-    card_unit = float(cost_config.get("card_unit_cost_usd", 1.34))
+    card_unit = float(cost_config.get("card_unit_cost_usd", 1.31))
     binding_per_b = int(cost_config.get("binding_cards_per_user_b", 1))
     payment_per_b = int(cost_config.get("payment_cards_per_user_b", 3))
     avg_unit = float(cost_config.get("avg_unit_price_usd", 150.0))

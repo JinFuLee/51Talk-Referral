@@ -36,6 +36,8 @@ export interface RoiStudentRow {
   total_cost_usd: number;
   revenue_usd: number;
   roi: number | null;
+  /** 2 月累计 ROI（消除时间差偏差） */
+  cumulative_roi: number | null;
   risk_level: RiskLevel;
   days_this_month: number;
   referral_registrations: number;
