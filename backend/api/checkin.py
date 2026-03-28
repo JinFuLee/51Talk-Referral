@@ -2059,11 +2059,6 @@ def get_ops_student_ranking(
     # 筛选运营围场学员（D4）
     if lifecycle_col:
         # D4 围场值可能是原始 band（6M）或 M 标签（M6），两者都支持
-        ops_raws_set = set(ops_enclosures)
-        # 补充 M 标签映射回的原始 band
-        m_label_to_raws: dict[str, list[str]] = {}
-        for raw, label in _M_MAP.items():
-            m_label_to_raws.setdefault(label, []).append(raw)
         # 同时支持两种格式
         all_ops_values: set[str] = set()
         for enc in ops_enclosures:
