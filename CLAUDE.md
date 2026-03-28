@@ -257,6 +257,8 @@ Next.js 前端（34 页面 + 43 组件）
   - **学员数**（COUNT，用作过程指标分母）= 仅有效围场
   - 违反此规则的表现：系统业绩总额 < Excel 业绩总额（如 $160K vs $175K），差额即为非有效围场被排除的金额
   - 配置位置: `backend/api/cc_performance.py:_agg_d2()` 和 `backend/api/incentive_engine.py:_get_role_metrics()`
+- **CC 销售团队识别**（层 2 过滤）：团队名匹配正则 `^TH-CC\w+Team$`（如 TH-CC01Team、TH-CC02Team、TH-CC-ATeam）。排除对象：TH-TMK-*、TH-CC-Training、TH-CC01Region、TH-SS* 等非 CC 销售团队。常量 `_CC_TEAM_PATTERN` 在 cc_performance.py 和 incentive_engine.py 中各自定义（两处保持一致）。
+- **活跃 CC 定义**（层 3 过滤）：在有效围场中持有 ≥1 学员（通过 `_filter_active_ccs()` 实现）。非活跃 CC（仅有非有效围场学员 + 零 leads/paid）不出现在排名表中。其业绩已在层 2 后聚合，仍计入团队总额（grand_total）。
 
 ## 关键约定
 - **T-1 数据**: 今天处理的是昨天的数据

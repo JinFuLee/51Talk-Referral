@@ -19,6 +19,7 @@ from __future__ import annotations
 import json
 import logging
 import math
+import re
 import uuid
 from datetime import UTC, date, datetime
 from io import BytesIO
@@ -44,6 +45,9 @@ _CONFIG_DIR = _PROJECT_ROOT / "config"
 _CAMPAIGNS_PATH = _CONFIG_DIR / "incentive_campaigns.json"
 _BUDGET_PATH = _CONFIG_DIR / "incentive_budget.json"
 _PROJECT_CONFIG_PATH = _PROJECT_ROOT / "projects" / "referral" / "config.json"
+
+# 层 2：CC 销售团队正则匹配（与 cc_performance.py 保持一致）
+_CC_TEAM_PATTERN = re.compile(r"^TH-CC\w+Team$")
 
 
 # ── Pydantic 模型 ─────────────────────────────────────────────────────────────
@@ -267,6 +271,16 @@ def _get_role_metrics(role: str, dm: DataManager) -> dict[str, dict[str, Any]]:
         cc_col = "last_cc_name"
         grp_col = "last_cc_group_name"
         if cc_col not in df.columns:
+            return result
+
+        # 层 2：只保留 CC 销售团队（排除 TH-TMK / TH-CC-Training / TH-SS* 等）
+        if grp_col in df.columns:
+            df = df[
+                df[grp_col].astype(str).apply(
+                    lambda x: bool(_CC_TEAM_PATTERN.match(x))
+                )
+            ]
+        if df.empty:
             return result
 
         # _is_active 列由 EnclosureCCLoader 写入

@@ -13,6 +13,7 @@ from __future__ import annotations
 import io
 import json
 import math
+import re
 from datetime import UTC, date, datetime
 from pathlib import Path
 from typing import Any
@@ -34,6 +35,10 @@ from backend.models.cc_performance import (
 )
 
 router = APIRouter()
+
+# 层 2：CC 销售团队正则匹配（排除 TMK / Training / Region / SS 等非 CC 销售团队）
+# 合法团队示例：TH-CC01Team, TH-CC02Team, TH-CC-ATeam（含字母编号）
+_CC_TEAM_PATTERN = re.compile(r"^TH-CC\w+Team$")
 
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 _CONFIG_DIR = _PROJECT_ROOT / "config"
@@ -170,6 +175,17 @@ def _agg_d2(df: pd.DataFrame) -> pd.DataFrame:
         return pd.DataFrame()
 
     grp_col = "last_cc_group_name"
+
+    # 层 2：只保留 CC 销售团队
+    # 排除 TH-TMK / TH-CC-Training / TH-CC01Region / TH-SS* 等非 CC 销售团队
+    # 合法团队名匹配 ^TH-CC\w+Team$，不匹配的行在聚合前直接剔除
+    if grp_col in df.columns:
+        team_mask = df[grp_col].astype(str).apply(
+            lambda x: bool(_CC_TEAM_PATTERN.match(x))
+        )
+        df = df[team_mask]
+        if df.empty:
+            return pd.DataFrame()
 
     # _is_active 列由 EnclosureCCLoader 写入（有效围场=True，非有效=False）
     has_active_col = "_is_active" in df.columns
