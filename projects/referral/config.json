@@ -185,7 +185,8 @@
     "report",
     "knowledge",
     "cc_performance",
-    "incentive"
+    "incentive",
+    "data_health"
   ],
   "enclosure_role_assignment": {
     "CC": {
