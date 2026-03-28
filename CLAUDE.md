@@ -7,7 +7,7 @@
 **工具链：** uv (包管理/虚拟环境) + ruff (lint/format) | **配置：** pyproject.toml 单文件
 **分析引擎：** Python AnalysisEngine (ROI/预测/异常检测) | **可视化：** Recharts + shadcn/ui
 **通讯：** WebMCP Tools (8 个，AI Agent 可调) + 钉钉多通道推送 | **容器化：** Docker + docker-compose
-**数据持久：** SQLite (快照存储) + Excel (遗留数据) | **国际化：** 中泰双语动态路由
+**数据持久：** SQLite (快照存储) + Excel (遗留数据) | **国际化：** next-intl 3.x（en/zh/zh-TW/th 四语，[locale] 路由 + middleware 自动检测）
 **钉钉推送：** `scripts/dingtalk_engine.py`（多通道引擎）+ `key/dingtalk-channels.json`（6 群凭证）
 
 ## 目录结构 (M9 改造后)
@@ -33,10 +33,21 @@ ref-ops-engine/
 │   │   │   ├── cc-performance/  # CC 个人业绩看板（新）
 │   │   │   └── ...              # 13 个页面总计
 │   ├── components/              # 47 个 React 组件（表格/图表/表单/布局）
+│   ├── i18n/                    # next-intl 配置
+│   │   ├── routing.ts           # 4 locale 定义（en/zh/zh-TW/th）
+│   │   ├── request.ts           # getRequestConfig（按 locale 加载 JSON）
+│   │   └── navigation.ts        # locale-aware Link/useRouter/usePathname
+│   ├── messages/                # 翻译 JSON（457+ keys × 4 语言）
+│   │   ├── en.json              # English
+│   │   ├── zh.json              # 简体中文
+│   │   ├── zh-TW.json           # 繁體中文
+│   │   └── th.json              # ภาษาไทย
+│   ├── middleware.ts             # next-intl locale 检测 + 路由
 │   ├── lib/                     # 工具库
 │   │   ├── types/               # TypeScript 定义（与后端 models 对应）
 │   │   ├── api/                 # API client（自动生成或手写）
 │   │   ├── webmcp/              # WebMCP Tool 定义 + Provider
+│   │   ├── date-format.ts       # locale-aware 日期格式化（含泰历 พ.ศ.）
 │   │   └── utils.ts             # 通用工具函数
 │   ├── stores/                  # Zustand 状态管理
 │   ├── package.json
@@ -148,14 +159,17 @@ Next.js 前端（34 页面 + 43 组件）
 - 配置读取函数：后端 `_get_config()` (lazy load + cache) / 前端 `useCheckinThresholds` hook / engine `self.defaults`
 - 布局数值（行高/间距/字号）不算业务硬编码，可保留
 
-## 双语输出政策
-- **所有面向用户的输出**（图片/Markdown/告警）必须泰中双语：泰文为主、中文为辅
-- 图片：泰文主行（大字深色）+ 中文副行（小字灰色 `_C_MUTED`），间距 ≥0.25
-- 表头：双行模式（泰文白字 + 中文灰字），禁止括号挤压模式
-- Markdown：双行标题 `### 泰文\n### 中文`
-- 图例：斜杠 `ผ่าน/达标`
-- 品牌名 CC/SS/LP/USD 不翻译
-- 文案集中管理：`TH_STRINGS` 字典（`{"th": "...", "zh": "..."}`），禁止散落硬编码
+## 国际化（i18n）规范
+- **前端 4 语言**：en / zh / zh-TW / th，由 next-intl 3.x 驱动，URL 路由 `/en/` `/zh/` `/zh-TW/` `/th/`
+- **翻译 SSoT**：`frontend/messages/{en,zh,zh-TW,th}.json`（457+ keys，嵌套命名空间）
+- **组件内获取 locale**：`import { useLocale } from 'next-intl'`（禁止从 Zustand configStore 读 language）
+- **组件内翻译**：`import { useTranslations } from 'next-intl'; const t = useTranslations('namespace')`
+- **locale-aware 路由**：`import { Link, useRouter, usePathname } from '@/i18n/navigation'`
+- **日期格式化**：`import { formatDate } from '@/lib/date-format'`（泰历 พ.ศ. 自动处理）
+- **新增语言**：① `messages/xx.json` ② `i18n/routing.ts` locales 数组加一行 ③ 完成
+- **钉钉/Lark 推送**（后端）：独立双语系统（`TH_STRINGS` 字典），不走 next-intl
+- **品牌名不翻译**：CC/SS/LP/USD/THB/ROI/KPI
+- **面板交付标准**：LangSwitcher 4 语言切换 + 所有面向用户文案走 next-intl t() 调用
 
 ## 代码规范
 - 类型注解必须（Python 3.11+ 语法）

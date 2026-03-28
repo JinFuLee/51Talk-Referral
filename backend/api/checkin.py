@@ -907,8 +907,14 @@ def _build_followup_students(
         )
 
         # ── 激励状态 ─────────────────────────────────────────────────────────
+        incentive_raw = (
+            d4_row.get("推荐奖励领取状态") if d4_row is not None else None
+        )
         incentive_status = (
-            _safe_str(d4_row.get("推荐奖励领取状态", "")) if d4_row is not None else ""
+            _safe_str(incentive_raw)
+            if incentive_raw is not None
+            and str(incentive_raw).strip().lower() not in ("nan", "")
+            else None
         )
 
         # ── 行动优先级评分（0-100）───────────────────────────────────────────
