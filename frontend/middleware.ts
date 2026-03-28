@@ -8,7 +8,7 @@
  *      无 JWT 且非 localhost → redirect /[locale]/access-denied
  */
 
-import createIntlMiddleware from 'next-intl/middleware';
+import createMiddleware from 'next-intl/middleware';
 import { type NextRequest, NextResponse } from 'next/server';
 
 import {
@@ -20,7 +20,7 @@ import {
 } from './lib/access-control';
 import { routing } from './i18n/routing';
 
-const intlMiddleware = createIntlMiddleware(routing);
+const intlMiddleware = createMiddleware(routing);
 
 // 默认公开页面兜底（后端 API 不可达时使用）
 const DEFAULT_PUBLIC_PAGES = ['/', '/cc-performance', '/daily-monitor', '/checkin'];
