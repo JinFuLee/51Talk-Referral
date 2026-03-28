@@ -260,12 +260,12 @@ export default function SummaryTab({ enclosureFilter, roleFilter }: SummaryTabPr
             />
             <StatMiniCard
               label="人均打卡天数"
-              value={mc.avg_days_this.toFixed(2)}
-              sub={`上月 ${mc.avg_days_last.toFixed(2)} 天`}
+              value={(mc.avg_days_this ?? 0).toFixed(2)}
+              sub={`上月 ${(mc.avg_days_last ?? 0).toFixed(2)} 天`}
               accent={
-                mc.avg_days_this > mc.avg_days_last
+                (mc.avg_days_this ?? 0) > (mc.avg_days_last ?? 0)
                   ? 'green'
-                  : mc.avg_days_this < mc.avg_days_last
+                  : (mc.avg_days_this ?? 0) < (mc.avg_days_last ?? 0)
                     ? 'red'
                     : 'slate'
               }
@@ -273,15 +273,15 @@ export default function SummaryTab({ enclosureFilter, roleFilter }: SummaryTabPr
             />
             <StatMiniCard
               label="零打卡学员"
-              value={mc.zero_this.toLocaleString()}
-              sub={`上月 ${mc.zero_last.toLocaleString()} 人`}
-              accent={mc.zero_this > mc.zero_last ? 'red' : 'green'}
+              value={(mc.zero_this ?? 0).toLocaleString()}
+              sub={`上月 ${(mc.zero_last ?? 0).toLocaleString()} 人`}
+              accent={(mc.zero_this ?? 0) > (mc.zero_last ?? 0) ? 'red' : 'green'}
               subtitle="本月一次都未打卡的有效学员数"
             />
             <StatMiniCard
               label="满勤学员（≥6次）"
-              value={mc.superfan_this.toLocaleString()}
-              sub={`上月 ${mc.superfan_last.toLocaleString()} 人`}
+              value={(mc.superfan_this ?? 0).toLocaleString()}
+              sub={`上月 ${(mc.superfan_last ?? 0).toLocaleString()} 人`}
               accent={mc.superfan_this >= mc.superfan_last ? 'green' : 'red'}
               subtitle="本月打卡次数达到 6 次（满勤）的学员数"
             />

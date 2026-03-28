@@ -1282,7 +1282,7 @@ function ProgressTab() {
                 />
               </div>
               <div className="flex items-center justify-between text-[10px] text-[var(--text-muted)]">
-                <span>{spentPct.toFixed(1)}% 已消耗</span>
+                <span>{(spentPct ?? 0).toFixed(1)}% 已消耗</span>
                 {indoorBudget > 0 && (
                   <span>剩余 ฿{Math.max(0, indoorBudget - totalSpent).toLocaleString()}</span>
                 )}

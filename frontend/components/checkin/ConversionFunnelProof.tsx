@@ -1,14 +1,6 @@
 'use client';
 
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-} from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import type { TooltipProps } from 'recharts';
 import { CHART_PALETTE } from '@/lib/chart-palette';
 import type { ConversionFunnelItem } from '@/lib/types/checkin-student';
@@ -38,14 +30,15 @@ function CustomTooltip({ active, payload, label }: TooltipProps<number, string>)
       <p className="text-[var(--text-secondary)]">
         有推荐付费率：
         <span className="font-mono tabular-nums font-semibold text-[var(--text-primary)] ml-1">
-          {(item.has_payment_pct * 100).toFixed(1)}%
+          {((item.has_payment_pct ?? 0) * 100).toFixed(1)}%
         </span>
       </p>
       <p className="text-[var(--text-muted)] border-t border-[var(--border-subtle)] pt-1 mt-1">
-        人均注册 {item.avg_registrations.toFixed(2)} | 人均付费 {item.avg_payments.toFixed(2)}
+        人均注册 {(item.avg_registrations ?? 0).toFixed(2)} | 人均付费{' '}
+        {(item.avg_payments ?? 0).toFixed(2)}
       </p>
       <p className="text-[var(--text-muted)]">
-        该频段学员数：{item.students.toLocaleString()}
+        该频段学员数：{(item.students ?? 0).toLocaleString()}
       </p>
     </div>
   );
@@ -89,7 +82,9 @@ export function ConversionFunnelProof({ data }: ConversionFunnelProofProps) {
       {/* Callout Banner */}
       {multiplier !== null && multiplier > 1.5 && (
         <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-emerald-50 border border-emerald-200 text-xs text-emerald-700">
-          <span className="text-base" aria-hidden="true">💡</span>
+          <span className="text-base" aria-hidden="true">
+            💡
+          </span>
           <span>
             <strong>{highFreqItem.band}</strong> 打卡学员推荐注册率是零打卡的{' '}
             <strong className="font-mono tabular-nums text-emerald-800">

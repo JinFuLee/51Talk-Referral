@@ -118,12 +118,11 @@ export default async function middleware(request: NextRequest): Promise<NextResp
   const host = request.headers.get('host') ?? '';
   const access = await fetchMyAccess(sessionCookie, host);
 
-  // 后端不可达 → 公开页放行，其余拒绝
+  // 后端不可达 → 有 session cookie 则降级放行（后端恢复后再校验）
   if (!access) {
-    if (isPublicPage(pagePath, DEFAULT_PUBLIC_PAGES)) {
-      return intlMiddleware(request);
-    }
-    return redirectToDenied(request);
+    const response = intlMiddleware(request);
+    response.headers.set('x-auth-degraded', '1'); // 标记降级模式，前端可展示提示
+    return response;
   }
 
   // 公开页放行（以后端配置为准）

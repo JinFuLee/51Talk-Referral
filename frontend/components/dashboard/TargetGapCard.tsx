@@ -23,19 +23,19 @@ export function TargetGapCard({ name, target, actual, gap, achievement_rate }: T
       <p className="text-xs font-medium text-[var(--text-secondary)] mb-2">{name}</p>
       <div className="flex items-end justify-between">
         <span className="text-2xl font-bold text-[var(--text-primary)]">
-          {actual.toLocaleString()}
+          {(actual ?? 0).toLocaleString()}
         </span>
         <span className={`text-sm font-semibold ${achieveColor}`}>
           {formatRate(achievement_rate)}
         </span>
       </div>
       <div className="mt-2 flex items-center justify-between text-xs text-[var(--text-muted)]">
-        <span>目标 {target.toLocaleString()}</span>
+        <span>目标 {(target ?? 0).toLocaleString()}</span>
         <span
           className={`font-medium ${isAbove ? 'text-emerald-800' : 'text-[var(--color-danger)]'}`}
         >
           {isAbove ? '+' : ''}
-          {gap.toLocaleString()}
+          {(gap ?? 0).toLocaleString()}
         </span>
       </div>
       {/* Achievement bar */}

@@ -162,7 +162,7 @@ function AttributionRow({
         {isTotalRow ? t.total : row.channel}
       </td>
       <td className="px-2 py-1.5 text-xs text-right font-mono tabular-nums text-[var(--text-secondary)]">
-        {row.registrations.toLocaleString()}
+        {(row.registrations ?? 0).toLocaleString()}
       </td>
       <td className="px-2 py-1.5 text-xs text-right font-mono tabular-nums text-[var(--text-muted)]">
         {formatRate(row.reg_share)}
@@ -172,7 +172,7 @@ function AttributionRow({
       <RateCell value={row.paid_rate} />
       <RateCell value={row.reg_to_pay_rate} />
       <td className="px-2 py-1.5 text-xs text-right font-mono tabular-nums font-semibold text-[var(--text-primary)]">
-        {row.payments.toLocaleString()}
+        {(row.payments ?? 0).toLocaleString()}
       </td>
       <td className="px-2 py-1.5 text-xs text-right font-mono tabular-nums text-[var(--text-muted)]">
         {formatRate(row.payment_share)}

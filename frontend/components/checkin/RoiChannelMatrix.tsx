@@ -128,8 +128,8 @@ export function RoiChannelMatrix({ enclosureFilter }: Props) {
                     <span>{ch}</span>
                     <ChannelHighlight best={bestChannel} worst={worstChannel} channel={ch} />
                   </td>
-                  <td className="slide-td text-right">{v.new_count.toLocaleString()}</td>
-                  <td className="slide-td text-right">{v.new_paid.toLocaleString()}</td>
+                  <td className="slide-td text-right">{(v.new_count ?? 0).toLocaleString()}</td>
+                  <td className="slide-td text-right">{(v.new_paid ?? 0).toLocaleString()}</td>
                   <td className="slide-td text-right">{formatUSD(v.cost_usd)}</td>
                   <td className="slide-td text-right">{formatUSD(v.revenue_approx_usd)}</td>
                   <td className="slide-td text-right">
@@ -142,8 +142,8 @@ export function RoiChannelMatrix({ enclosureFilter }: Props) {
           <tfoot>
             <tr className="slide-tfoot-row font-semibold">
               <td className="slide-td">合计</td>
-              <td className="slide-td text-right">{totals.new_count.toLocaleString()}</td>
-              <td className="slide-td text-right">{totals.new_paid.toLocaleString()}</td>
+              <td className="slide-td text-right">{(totals.new_count ?? 0).toLocaleString()}</td>
+              <td className="slide-td text-right">{(totals.new_paid ?? 0).toLocaleString()}</td>
               <td className="slide-td text-right">{formatUSD(totals.cost_usd)}</td>
               <td className="slide-td text-right">{formatUSD(totals.revenue_approx_usd)}</td>
               <td className="slide-td text-right">
@@ -190,7 +190,9 @@ export function RoiChannelMatrix({ enclosureFilter }: Props) {
               <div className="mt-2 pt-2 border-t border-[var(--border-default)] space-y-0.5">
                 <div className="flex justify-between text-xs">
                   <span className="text-[var(--text-muted)]">转化率</span>
-                  <span className="text-[var(--text-secondary)]">{convRate.toFixed(1)}%</span>
+                  <span className="text-[var(--text-secondary)]">
+                    {(convRate ?? 0).toFixed(1)}%
+                  </span>
                 </div>
                 <div className="flex justify-between text-xs">
                   <span className="text-[var(--text-muted)]">成本</span>

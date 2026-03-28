@@ -683,7 +683,7 @@ function BottomStats({ total, avgScore, highQualityCount }: BottomStatsProps) {
       <span>
         平均评分{' '}
         <strong className="text-[var(--text-primary)] font-semibold font-mono tabular-nums">
-          {avgScore.toFixed(1)}
+          {(avgScore ?? 0).toFixed(1)}
         </strong>
       </span>
       <span>

@@ -53,7 +53,7 @@ export interface MyAccessResponse {
   visiblePages: PageEntry[];
   publicPages: string[];
   isAdmin: boolean;
-  source: 'local_dev' | 'unauthenticated' | 'not_in_roster' | 'cf_jwt';
+  source: 'local_dev' | 'unauthenticated' | 'not_in_roster' | 'cf_jwt' | 'session_cookie';
 }
 
 // ── JWT 解码（Edge Runtime 兼容，不依赖 Node.js Buffer）──────────────────────

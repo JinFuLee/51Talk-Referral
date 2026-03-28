@@ -112,7 +112,7 @@ function BarCell({ pct }: { pct: number }) {
         />
       </div>
       <span className="text-xs font-mono tabular-nums text-[var(--text-secondary)] w-10 text-right shrink-0">
-        {pct.toFixed(1)}%
+        {(pct ?? 0).toFixed(1)}%
       </span>
     </div>
   );

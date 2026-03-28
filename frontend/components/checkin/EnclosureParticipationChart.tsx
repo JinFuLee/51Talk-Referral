@@ -34,14 +34,14 @@ function EnclosureTooltip({ active, payload, label }: TooltipProps<number, strin
       <p className="text-[var(--text-secondary)]">
         参与率：
         <span className="font-mono tabular-nums font-semibold text-[var(--text-primary)] ml-1">
-          {row.participation_pct.toFixed(1)}%
+          {(row.participation_pct ?? 0).toFixed(1)}%
         </span>
       </p>
       <p className="text-[var(--text-secondary)]">
         人均打卡：
-        <span className="font-mono tabular-nums ml-1">{row.avg_days.toFixed(2)} 天</span>
+        <span className="font-mono tabular-nums ml-1">{(row.avg_days ?? 0).toFixed(2)} 天</span>
       </p>
-      <p className="text-[var(--text-muted)]">该围场学员数：{row.total.toLocaleString()}</p>
+      <p className="text-[var(--text-muted)]">该围场学员数：{(row.total ?? 0).toLocaleString()}</p>
     </div>
   );
 }

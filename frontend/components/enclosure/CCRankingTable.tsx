@@ -26,9 +26,9 @@ interface CCRankingTableProps {
 const COLUMNS: { key: SortKey; label: string; format: (v: number) => string }[] = [
   { key: 'participation_rate', label: '参与率', format: (v) => formatRate(v) },
   { key: 'cargo_ratio', label: '带货比', format: (v) => formatRate(v) },
-  { key: 'registrations', label: '注册数', format: (v) => v.toLocaleString() },
-  { key: 'payments', label: '付费数', format: (v) => v.toLocaleString() },
-  { key: 'revenue_usd', label: '业绩(USD)', format: (v) => `$${v.toLocaleString()}` },
+  { key: 'registrations', label: '注册数', format: (v) => (v ?? 0).toLocaleString() },
+  { key: 'payments', label: '付费数', format: (v) => (v ?? 0).toLocaleString() },
+  { key: 'revenue_usd', label: '业绩(USD)', format: (v) => `$${(v ?? 0).toLocaleString()}` },
 ];
 
 export function CCRankingTable({ rankings }: CCRankingTableProps) {

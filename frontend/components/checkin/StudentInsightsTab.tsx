@@ -43,21 +43,11 @@ export function StudentInsightsTab({ enclosureFilter }: StudentInsightsTabProps)
   }
 
   if (error) {
-    return (
-      <EmptyState
-        title="数据加载失败"
-        description="无法获取学员分析数据，请检查后端服务"
-      />
-    );
+    return <EmptyState title="数据加载失败" description="无法获取学员分析数据，请检查后端服务" />;
   }
 
   if (!data) {
-    return (
-      <EmptyState
-        title="暂无学员数据"
-        description="上传包含打卡记录的数据文件后自动刷新"
-      />
-    );
+    return <EmptyState title="暂无学员数据" description="上传包含打卡记录的数据文件后自动刷新" />;
   }
 
   const mc = data.month_comparison;
@@ -97,8 +87,8 @@ export function StudentInsightsTab({ enclosureFilter }: StudentInsightsTabProps)
           />
           <StatMiniCard
             label="人均打卡天数"
-            value={mc.avg_days_this.toFixed(2)}
-            sub={`上月 ${mc.avg_days_last.toFixed(2)} 天`}
+            value={(mc.avg_days_this ?? 0).toFixed(2)}
+            sub={`上月 ${(mc.avg_days_last ?? 0).toFixed(2)} 天`}
             accent={avgDaysTrend === 'up' ? 'green' : avgDaysTrend === 'down' ? 'red' : 'slate'}
             subtitle="本月所有有效学员的平均打卡次数"
           />
@@ -130,9 +120,7 @@ export function StudentInsightsTab({ enclosureFilter }: StudentInsightsTabProps)
             <StudentFrequencyChart data={data.frequency_distribution} />
           </div>
           <div className="card-base p-5">
-            <p className="text-xs font-medium text-[var(--text-secondary)] mb-3">
-              课耗×打卡四象限
-            </p>
+            <p className="text-xs font-medium text-[var(--text-secondary)] mb-3">课耗×打卡四象限</p>
             <LessonCheckinCross data={data.lesson_checkin_cross} />
           </div>
         </div>

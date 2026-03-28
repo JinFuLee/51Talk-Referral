@@ -232,7 +232,7 @@ export function MomAttributionSlide({ slideNumber, totalSlides }: SlideProps) {
                       className={`px-3 py-2 text-xs text-right font-mono tabular-nums ${deltaColor(row.delta)}`}
                     >
                       {row.delta > 0 ? '+' : ''}
-                      {isRate ? formatRate(row.delta) : row.delta.toLocaleString()}
+                      {isRate ? formatRate(row.delta) : (row.delta ?? 0).toLocaleString()}
                     </td>
                     <td
                       className={`px-3 py-2 text-xs text-right font-mono tabular-nums ${deltaColor(row.delta_pct)}`}
@@ -244,7 +244,7 @@ export function MomAttributionSlide({ slideNumber, totalSlides }: SlideProps) {
                       className={`px-3 py-2 text-xs text-right font-mono tabular-nums ${deltaColor(row.vs_target)}`}
                     >
                       {row.vs_target > 0 ? '+' : ''}
-                      {isRate ? formatRate(row.vs_target) : row.vs_target.toLocaleString()}
+                      {isRate ? formatRate(row.vs_target) : (row.vs_target ?? 0).toLocaleString()}
                     </td>
                     <td className={`px-3 py-2 text-sm text-center ${judgmentColor(row.judgment)}`}>
                       {row.judgment}

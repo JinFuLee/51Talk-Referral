@@ -42,16 +42,16 @@ function CustomTooltip({ active, payload, label }: TooltipProps<number, string>)
       <p className="text-[var(--text-secondary)]">
         参与率：
         <span className="font-mono tabular-nums font-semibold text-[var(--text-primary)] ml-1">
-          {(row.participation_rate * 100).toFixed(1)}%
+          {((row.participation_rate ?? 0) * 100).toFixed(1)}%
         </span>
       </p>
       <p className="text-[var(--text-secondary)]">
         学员数：
-        <span className="font-mono tabular-nums ml-1">{row.students.toLocaleString()}</span>
+        <span className="font-mono tabular-nums ml-1">{(row.students ?? 0).toLocaleString()}</span>
       </p>
       <p className="text-[var(--text-secondary)]">
         人均打卡：
-        <span className="font-mono tabular-nums ml-1">{row.avg_days.toFixed(2)} 天</span>
+        <span className="font-mono tabular-nums ml-1">{(row.avg_days ?? 0).toFixed(2)} 天</span>
       </p>
     </div>
   );

@@ -154,7 +154,7 @@ function ScoreBar({ score }: { score: number }) {
         <div className={`h-1.5 rounded-full ${color}`} style={{ width: `${pct}%` }} />
       </div>
       <span className="text-xs font-mono tabular-nums text-[var(--text-secondary)] w-8 text-right">
-        {score.toFixed(2)}
+        {(score ?? 0).toFixed(2)}
       </span>
     </div>
   );

@@ -300,8 +300,8 @@ export default function AccessControlPage() {
 
           {activeTab === 'users' && (
             <UserManagement
-              users={config.users}
-              roles={config.roles}
+              users={config.users ?? []}
+              roles={config.roles ?? []}
               onAdd={handleAddUser}
               onDelete={handleDeleteUser}
               onChangeRole={handleChangeRole}
@@ -310,8 +310,8 @@ export default function AccessControlPage() {
 
           {activeTab === 'roles' && (
             <RoleEditor
-              roles={config.roles}
-              pages={config.pageRegistry}
+              roles={config.roles ?? []}
+              pages={config.pageRegistry ?? []}
               onSaveRole={handleSaveRole}
               onCreateRole={handleCreateRole}
             />
@@ -319,9 +319,9 @@ export default function AccessControlPage() {
 
           {activeTab === 'matrix' && (
             <PermissionMatrix
-              users={config.users}
-              pages={config.pageRegistry}
-              roles={config.roles}
+              users={config.users ?? []}
+              pages={config.pageRegistry ?? []}
+              roles={config.roles ?? []}
             />
           )}
         </>

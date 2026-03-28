@@ -38,10 +38,12 @@ function CustomTooltip({ active, payload, label }: TooltipProps<number, string>)
       <p className="text-[var(--text-secondary)]">
         人均续费订单数：
         <span className="font-mono tabular-nums font-semibold text-[var(--text-primary)] ml-1">
-          {row.avg_renewals.toFixed(2)}
+          {(row.avg_renewals ?? 0).toFixed(2)}
         </span>
       </p>
-      <p className="text-[var(--text-muted)]">该频段学员数：{row.students.toLocaleString()}</p>
+      <p className="text-[var(--text-muted)]">
+        该频段学员数：{(row.students ?? 0).toLocaleString()}
+      </p>
     </div>
   );
 }

@@ -13,7 +13,7 @@ export function LeadAttributionSlide({ slideNumber, totalSlides }: SlideProps) {
   // 一句话结论：总注册 & 付费
   const insight = (() => {
     if (!channels.length) return undefined;
-    const totalReg = channels.reduce((s, c) => s + c.registrations, 0);
+    const totalReg = channels.reduce((s, c) => s + (c.registrations ?? 0), 0);
     const totalPaid = channels.reduce((s, c) => s + (c.payments ?? 0), 0);
     // 付费最多的渠道
     const topPaid = channels.reduce((a, b) => ((a.payments ?? 0) > (b.payments ?? 0) ? a : b));
@@ -38,7 +38,12 @@ export function LeadAttributionSlide({ slideNumber, totalSlides }: SlideProps) {
           <div className="text-center space-y-2">
             <p className="text-base font-semibold text-red-600">数据加载失败</p>
             <p className="text-sm text-[var(--text-muted)]">请检查后端服务是否正常运行</p>
-            <button onClick={() => mutate()} className="mt-1 px-4 py-1.5 rounded-lg text-sm border border-[var(--border-default)] text-[var(--text-secondary)] hover:bg-[var(--bg-subtle)] transition-colors">重试</button>
+            <button
+              onClick={() => mutate()}
+              className="mt-1 px-4 py-1.5 rounded-lg text-sm border border-[var(--border-default)] text-[var(--text-secondary)] hover:bg-[var(--bg-subtle)] transition-colors"
+            >
+              重试
+            </button>
           </div>
         </div>
       ) : channels.length === 0 ? (
@@ -65,7 +70,7 @@ export function LeadAttributionSlide({ slideNumber, totalSlides }: SlideProps) {
                     {c.channel}
                   </td>
                   <td className="px-2 py-1 text-xs text-right font-mono tabular-nums text-[var(--text-secondary)]">
-                    {c.registrations.toLocaleString()}
+                    {(c.registrations ?? 0).toLocaleString()}
                   </td>
                   <td className="px-2 py-1 text-xs text-right font-mono tabular-nums text-[var(--text-secondary)]">
                     {(c.appointments ?? 0).toLocaleString()}
@@ -83,7 +88,7 @@ export function LeadAttributionSlide({ slideNumber, totalSlides }: SlideProps) {
               <tr className="slide-tfoot-row">
                 <td className="px-2 py-1 text-xs">合计</td>
                 <td className="px-2 py-1 text-xs text-right font-mono tabular-nums">
-                  {channels.reduce((s, c) => s + c.registrations, 0).toLocaleString()}
+                  {channels.reduce((s, c) => s + (c.registrations ?? 0), 0).toLocaleString()}
                 </td>
                 <td className="px-2 py-1 text-xs text-right font-mono tabular-nums">
                   {channels.reduce((s, c) => s + (c.appointments ?? 0), 0).toLocaleString()}
