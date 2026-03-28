@@ -2,6 +2,7 @@
 
 import { Fragment, useState } from 'react';
 import useSWR from 'swr';
+import { useLocale } from 'next-intl';
 import { swrFetcher } from '@/lib/api';
 import { Spinner } from '@/components/ui/Spinner';
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -20,19 +21,131 @@ import { HPFunnel } from '@/components/warroom/HPFunnel';
 import type { WarroomStudent } from '@/lib/types/cross-analysis';
 import { AlertTriangle } from 'lucide-react';
 
+// ── I18N ──────────────────────────────────────────────────────────────────────
+
+const I18N = {
+  zh: {
+    pageTitle: '高潜学员作战室',
+    pageSubtitle: (count: number) => `实时跟进高潜学员触达状态 · 共 ${count} 人`,
+    todayUrgent: '今日紧急',
+    studentList: '学员列表',
+    filteredLabel: (label: string) => `（已筛选：${label}）`,
+    emptyTitle: '暂无学员数据',
+    emptyNoFilter: '上传数据后自动识别高潜学员',
+    emptyFiltered: '当前筛选条件下无学员',
+    loadError: '数据加载失败',
+    loadErrorDesc: '无法获取作战室数据，请检查后端服务',
+    colStudentId: '学员ID',
+    colCC: 'CC',
+    colSS: 'SS',
+    colLP: 'LP',
+    colNew: '带新',
+    colAttendance: '出席',
+    colPayments: '付费',
+    colDaysLeft: '剩余天',
+    colLastContact: '最后接通',
+    colCheckin7d: '7日打卡',
+    colUrgency: '紧急度',
+    urgentRed: '紧急',
+    urgentYellow: '关注',
+    urgentGreen: '正常',
+  },
+  'zh-TW': {
+    pageTitle: '高潛學員作戰室',
+    pageSubtitle: (count: number) => `即時跟進高潛學員觸達狀態 · 共 ${count} 人`,
+    todayUrgent: '今日緊急',
+    studentList: '學員列表',
+    filteredLabel: (label: string) => `（已篩選：${label}）`,
+    emptyTitle: '暫無學員資料',
+    emptyNoFilter: '上傳資料後自動識別高潛學員',
+    emptyFiltered: '當前篩選條件下無學員',
+    loadError: '資料載入失敗',
+    loadErrorDesc: '無法獲取作戰室資料，請檢查後端服務',
+    colStudentId: '學員ID',
+    colCC: 'CC',
+    colSS: 'SS',
+    colLP: 'LP',
+    colNew: '帶新',
+    colAttendance: '出席',
+    colPayments: '付費',
+    colDaysLeft: '剩餘天',
+    colLastContact: '最後接通',
+    colCheckin7d: '7日打卡',
+    colUrgency: '緊急度',
+    urgentRed: '緊急',
+    urgentYellow: '關注',
+    urgentGreen: '正常',
+  },
+  en: {
+    pageTitle: 'High-Potential War Room',
+    pageSubtitle: (count: number) =>
+      `Real-time tracking of high-potential students · ${count} total`,
+    todayUrgent: "Today's Urgent",
+    studentList: 'Student List',
+    filteredLabel: (label: string) => ` (Filtered: ${label})`,
+    emptyTitle: 'No student data',
+    emptyNoFilter: 'High-potential students will be identified automatically after data upload',
+    emptyFiltered: 'No students match current filter',
+    loadError: 'Failed to load data',
+    loadErrorDesc: 'Unable to fetch war room data, please check the backend service',
+    colStudentId: 'Student ID',
+    colCC: 'CC',
+    colSS: 'SS',
+    colLP: 'LP',
+    colNew: 'New',
+    colAttendance: 'Attend.',
+    colPayments: 'Payments',
+    colDaysLeft: 'Days Left',
+    colLastContact: 'Last Contact',
+    colCheckin7d: '7d Check-in',
+    colUrgency: 'Urgency',
+    urgentRed: 'Urgent',
+    urgentYellow: 'Watch',
+    urgentGreen: 'Normal',
+  },
+  th: {
+    pageTitle: 'ห้องปฏิบัติการนักเรียนศักยภาพสูง',
+    pageSubtitle: (count: number) => `ติดตามสถานะการติดต่อแบบเรียลไทม์ · รวม ${count} คน`,
+    todayUrgent: 'เร่งด่วนวันนี้',
+    studentList: 'รายชื่อนักเรียน',
+    filteredLabel: (label: string) => ` (กรอง: ${label})`,
+    emptyTitle: 'ไม่มีข้อมูลนักเรียน',
+    emptyNoFilter: 'นักเรียนศักยภาพสูงจะถูกระบุอัตโนมัติหลังอัปโหลดข้อมูล',
+    emptyFiltered: 'ไม่มีนักเรียนตรงกับเงื่อนไขที่เลือก',
+    loadError: 'โหลดข้อมูลล้มเหลว',
+    loadErrorDesc: 'ไม่สามารถดึงข้อมูลห้องปฏิบัติการได้ กรุณาตรวจสอบบริการแบ็กเอนด์',
+    colStudentId: 'รหัสนักเรียน',
+    colCC: 'CC',
+    colSS: 'SS',
+    colLP: 'LP',
+    colNew: 'ใหม่',
+    colAttendance: 'เข้าร่วม',
+    colPayments: 'ชำระ',
+    colDaysLeft: 'วันที่เหลือ',
+    colLastContact: 'ติดต่อล่าสุด',
+    colCheckin7d: 'เช็คอิน 7 วัน',
+    colUrgency: 'ความเร่งด่วน',
+    urgentRed: 'เร่งด่วน',
+    urgentYellow: 'ติดตาม',
+    urgentGreen: 'ปกติ',
+  },
+};
+
+// ── UrgencyBadge ──────────────────────────────────────────────────────────────
+
 const URGENCY_COLORS: Record<string, string> = {
   red: '#ef4444',
   yellow: '#f59e0b',
   green: '#22c55e',
 };
 
-const URGENCY_LABELS: Record<string, string> = {
-  red: '紧急',
-  yellow: '关注',
-  green: '正常',
-};
-
-function UrgencyBadge({ level }: { level: 'red' | 'yellow' | 'green' }) {
+function UrgencyBadge({
+  level,
+  labels,
+}: {
+  level: 'red' | 'yellow' | 'green';
+  labels: { red: string; yellow: string; green: string };
+}) {
   const bg: Record<string, string> = {
     red: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
     yellow: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
@@ -46,12 +159,17 @@ function UrgencyBadge({ level }: { level: 'red' | 'yellow' | 'green' }) {
         className="w-1.5 h-1.5 rounded-full shrink-0"
         style={{ backgroundColor: URGENCY_COLORS[level] }}
       />
-      {URGENCY_LABELS[level]}
+      {labels[level]}
     </span>
   );
 }
 
+// ── 主页面 ────────────────────────────────────────────────────────────────────
+
 export default function WarroomPage() {
+  const locale = useLocale();
+  const t = (I18N as unknown as Record<string, (typeof I18N)['zh']>)[locale] ?? I18N['zh'];
+
   const [urgencyFilter, setUrgencyFilter] = useState<'red' | 'yellow' | 'green' | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
@@ -69,6 +187,12 @@ export default function WarroomPage() {
 
   const redCount = allStudents.filter((s) => s.urgency_level === 'red').length;
 
+  const urgencyLabels = {
+    red: t.urgentRed,
+    yellow: t.urgentYellow,
+    green: t.urgentGreen,
+  };
+
   if (isLoading && !data) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -78,7 +202,7 @@ export default function WarroomPage() {
   }
 
   if (error) {
-    return <EmptyState title="数据加载失败" description="无法获取作战室数据，请检查后端服务" />;
+    return <EmptyState title={t.loadError} description={t.loadErrorDesc} />;
   }
 
   return (
@@ -86,15 +210,17 @@ export default function WarroomPage() {
       {/* 标题 */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="page-title">高潜学员作战室</h1>
+          <h1 className="page-title">{t.pageTitle}</h1>
           <p className="text-sm text-[var(--text-secondary)] mt-0.5">
-            实时跟进高潜学员触达状态 · 共 {allStudents.length} 人
+            {t.pageSubtitle(allStudents.length)}
           </p>
         </div>
         {redCount > 0 && (
           <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-50 border border-red-200 dark:bg-red-900/20 dark:border-red-700">
             <AlertTriangle className="w-4 h-4 text-[var(--color-danger)]" />
-            <span className="text-sm font-semibold text-red-600 dark:text-red-400">今日紧急</span>
+            <span className="text-sm font-semibold text-red-600 dark:text-red-400">
+              {t.todayUrgent}
+            </span>
             <Badge className="bg-red-500 text-white text-xs px-1.5 py-0 ml-0.5">{redCount}</Badge>
           </div>
         )}
@@ -114,10 +240,10 @@ export default function WarroomPage() {
       <div className="bg-[var(--bg-surface)] rounded-xl border border-[var(--border-default)] shadow-[var(--shadow-subtle)]">
         <div className="px-3 py-2 border-b border-[var(--border-default)] flex items-center justify-between">
           <h3 className="text-sm font-semibold text-[var(--text-primary)]">
-            学员列表
+            {t.studentList}
             {urgencyFilter && (
               <span className="ml-2 text-xs font-normal text-[var(--text-muted)]">
-                （已筛选：{URGENCY_LABELS[urgencyFilter]}）
+                {t.filteredLabel(urgencyLabels[urgencyFilter])}
               </span>
             )}
           </h3>
@@ -127,25 +253,25 @@ export default function WarroomPage() {
         {students.length === 0 ? (
           <div className="p-6">
             <EmptyState
-              title="暂无学员数据"
-              description={urgencyFilter ? '当前筛选条件下无学员' : '上传数据后自动识别高潜学员'}
+              title={t.emptyTitle}
+              description={urgencyFilter ? t.emptyFiltered : t.emptyNoFilter}
             />
           </div>
         ) : (
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="text-xs">学员ID</TableHead>
-                <TableHead className="text-xs">CC</TableHead>
-                <TableHead className="text-xs">SS</TableHead>
-                <TableHead className="text-xs">LP</TableHead>
-                <TableHead className="text-xs text-center">带新</TableHead>
-                <TableHead className="text-xs text-center">出席</TableHead>
-                <TableHead className="text-xs text-center">付费</TableHead>
-                <TableHead className="text-xs text-center">剩余天</TableHead>
-                <TableHead className="text-xs">最后接通</TableHead>
-                <TableHead className="text-xs text-center">7日打卡</TableHead>
-                <TableHead className="text-xs text-center">紧急度</TableHead>
+                <TableHead className="text-xs">{t.colStudentId}</TableHead>
+                <TableHead className="text-xs">{t.colCC}</TableHead>
+                <TableHead className="text-xs">{t.colSS}</TableHead>
+                <TableHead className="text-xs">{t.colLP}</TableHead>
+                <TableHead className="text-xs text-center">{t.colNew}</TableHead>
+                <TableHead className="text-xs text-center">{t.colAttendance}</TableHead>
+                <TableHead className="text-xs text-center">{t.colPayments}</TableHead>
+                <TableHead className="text-xs text-center">{t.colDaysLeft}</TableHead>
+                <TableHead className="text-xs">{t.colLastContact}</TableHead>
+                <TableHead className="text-xs text-center">{t.colCheckin7d}</TableHead>
+                <TableHead className="text-xs text-center">{t.colUrgency}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -182,7 +308,7 @@ export default function WarroomPage() {
                       </TableCell>
                       <TableCell className="text-xs text-center">{s.checkin_7d}</TableCell>
                       <TableCell>
-                        <UrgencyBadge level={s.urgency_level} />
+                        <UrgencyBadge level={s.urgency_level} labels={urgencyLabels} />
                       </TableCell>
                     </TableRow>
                     {isExpanded && (

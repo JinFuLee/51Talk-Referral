@@ -2,6 +2,7 @@
 
 import { Suspense, useCallback, useState, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { useLocale } from 'next-intl';
 import useSWR from 'swr';
 import { swrFetcher } from '@/lib/api';
 import { useFilteredSWR } from '@/lib/hooks/use-filtered-swr';
@@ -20,6 +21,103 @@ import { ContactConversionScatter } from '@/components/daily-monitor/ContactConv
 import { ExportButton } from '@/components/ui/ExportButton';
 import { useExport } from '@/lib/use-export';
 import type { ContactConversionItem } from '@/lib/types/cross-analysis';
+
+// ── I18N ──────────────────────────────────────────────────────────────────────
+
+const I18N = {
+  zh: {
+    pageTitle: '打卡管理',
+    pageSubtitle: '有效学员打卡率 · 按岗位 / 团队 / 围场拆分',
+    loadingTeams: '加载团队数据中…',
+    summaryLoadFailed: '汇总数据加载失败',
+    checkBackend: '请检查后端服务是否正常运行',
+    contactAnalysis: '触达效果分析',
+    contactSubtitle: '触达率 × 转化率散点图 · 数据来源：日常触达监控',
+    tabs: {
+      overview: '概览',
+      insights: '学员洞察',
+      leaderboard: '排行榜',
+      action: '行动中心',
+      roi: 'ROI 分析',
+    },
+    exportCols: {
+      role: '岗位',
+      team: '团队',
+      students: '学员数',
+      checked_in: '打卡数',
+      rate: '打卡率',
+    },
+  },
+  'zh-TW': {
+    pageTitle: '打卡管理',
+    pageSubtitle: '有效學員打卡率 · 按崗位 / 團隊 / 圍場拆分',
+    loadingTeams: '載入團隊資料中…',
+    summaryLoadFailed: '匯總資料載入失敗',
+    checkBackend: '請檢查後端服務是否正常運行',
+    contactAnalysis: '觸達效果分析',
+    contactSubtitle: '觸達率 × 轉化率散點圖 · 資料來源：日常觸達監控',
+    tabs: {
+      overview: '概覽',
+      insights: '學員洞察',
+      leaderboard: '排行榜',
+      action: '行動中心',
+      roi: 'ROI 分析',
+    },
+    exportCols: {
+      role: '崗位',
+      team: '團隊',
+      students: '學員數',
+      checked_in: '打卡數',
+      rate: '打卡率',
+    },
+  },
+  en: {
+    pageTitle: 'Check-in Management',
+    pageSubtitle: 'Student Check-in Rate · By Role / Team / Enclosure',
+    loadingTeams: 'Loading team data…',
+    summaryLoadFailed: 'Summary data failed to load',
+    checkBackend: 'Please check if the backend service is running',
+    contactAnalysis: 'Contact Effect Analysis',
+    contactSubtitle: 'Reach Rate × Conversion Rate scatter · Source: daily contact monitor',
+    tabs: {
+      overview: 'Overview',
+      insights: 'Student Insights',
+      leaderboard: 'Leaderboard',
+      action: 'Action Center',
+      roi: 'ROI Analysis',
+    },
+    exportCols: {
+      role: 'Role',
+      team: 'Team',
+      students: 'Students',
+      checked_in: 'Checked-in',
+      rate: 'Check-in Rate',
+    },
+  },
+  th: {
+    pageTitle: 'จัดการการเช็คอิน',
+    pageSubtitle: 'อัตราเช็คอินของนักเรียนที่ใช้งาน · แยกตามตำแหน่ง / ทีม / ระยะเวลา',
+    loadingTeams: 'กำลังโหลดข้อมูลทีม…',
+    summaryLoadFailed: 'โหลดข้อมูลสรุปล้มเหลว',
+    checkBackend: 'กรุณาตรวจสอบว่าบริการแบ็กเอนด์ทำงานอยู่',
+    contactAnalysis: 'การวิเคราะห์ผลการติดต่อ',
+    contactSubtitle: 'กราฟกระจาย อัตราการเข้าถึง × อัตราการแปลง · แหล่งข้อมูล: การติดตามประจำวัน',
+    tabs: {
+      overview: 'ภาพรวม',
+      insights: 'ข้อมูลเชิงลึกนักเรียน',
+      leaderboard: 'กระดานผู้นำ',
+      action: 'ศูนย์ปฏิบัติการ',
+      roi: 'การวิเคราะห์ ROI',
+    },
+    exportCols: {
+      role: 'ตำแหน่ง',
+      team: 'ทีม',
+      students: 'นักเรียน',
+      checked_in: 'เช็คอินแล้ว',
+      rate: 'อัตราเช็คอิน',
+    },
+  },
+};
 
 // ── 类型定义 ──────────────────────────────────────────────────────────────────
 
@@ -59,6 +157,8 @@ const ROLES_ALL = ['CC', 'SS', 'LP', '运营'] as const;
 // ── 主页面（内部，需要 useSearchParams）────────────────────────────────────────
 
 function CheckinPageInner() {
+  const locale = useLocale();
+  const t = (I18N as unknown as Record<string, (typeof I18N)['zh']>)[locale] ?? I18N['zh'];
   const router = useRouter();
   const searchParams = useSearchParams();
   const { activeRoles, roleEnclosures } = useWideConfig();
@@ -190,11 +290,11 @@ function CheckinPageInner() {
     exportCSV(
       rows,
       [
-        { key: 'role', label: '岗位' },
-        { key: 'team', label: '团队' },
-        { key: 'students', label: '学员数' },
-        { key: 'checked_in', label: '打卡数' },
-        { key: 'rate', label: '打卡率' },
+        { key: 'role', label: t.exportCols.role },
+        { key: 'team', label: t.exportCols.team },
+        { key: 'students', label: t.exportCols.students },
+        { key: 'checked_in', label: t.exportCols.checked_in },
+        { key: 'rate', label: t.exportCols.rate },
       ],
       `打卡汇总_${today}`
     );
@@ -205,10 +305,8 @@ function CheckinPageInner() {
       {/* 标题行 */}
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div>
-          <h1 className="page-title">打卡管理</h1>
-          <p className="text-sm text-[var(--text-secondary)] mt-0.5">
-            有效学员打卡率 · 按岗位 / 团队 / 围场拆分
-          </p>
+          <h1 className="page-title">{t.pageTitle}</h1>
+          <p className="text-sm text-[var(--text-secondary)] mt-0.5">{t.pageSubtitle}</p>
         </div>
         {activeTab === 'overview' && <ExportButton onExportCsv={handleExportSummary} />}
       </div>
@@ -217,13 +315,13 @@ function CheckinPageInner() {
       {summaryLoading && (
         <div className="flex items-center gap-2 text-xs text-[var(--text-muted)]">
           <Spinner size="sm" />
-          <span>加载团队数据中…</span>
+          <span>{t.loadingTeams}</span>
         </div>
       )}
       {summaryError && (
         <div className="text-center py-4">
-          <p className="text-sm font-semibold text-red-600">汇总数据加载失败</p>
-          <p className="text-xs text-[var(--text-muted)] mt-1">请检查后端服务是否正常运行</p>
+          <p className="text-sm font-semibold text-red-600">{t.summaryLoadFailed}</p>
+          <p className="text-xs text-[var(--text-muted)] mt-1">{t.checkBackend}</p>
         </div>
       )}
 
@@ -283,10 +381,8 @@ function CheckinPageInner() {
       {/* 触达效果分析 */}
       {scatterData && scatterData.length > 0 && (
         <div className="mt-6">
-          <Card title="触达效果分析">
-            <p className="text-xs text-[var(--text-muted)] mb-3">
-              触达率 × 转化率散点图 · 数据来源：日常触达监控
-            </p>
+          <Card title={t.contactAnalysis}>
+            <p className="text-xs text-[var(--text-muted)] mb-3">{t.contactSubtitle}</p>
             <ContactConversionScatter data={scatterData} />
           </Card>
         </div>

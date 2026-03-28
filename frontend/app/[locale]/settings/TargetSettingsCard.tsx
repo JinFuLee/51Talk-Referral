@@ -1,8 +1,76 @@
 'use client';
 
+import { useLocale } from 'next-intl';
 import { Card } from '@/components/ui/Card';
 import { formatRate } from '@/lib/utils';
 import { NumInput, PctInput } from '@/components/ui/NumInput';
+
+const I18N = {
+  zh: {
+    smartRec: '智能推荐',
+    growthRates: '历史增长率：注册',
+    growthPaid: '· 付费',
+    growthRev: '· 收入',
+    applyPlan: '应用此方案',
+    hardTargets: '硬性目标 (L1)',
+    hqRevTarget: 'HQ总业绩目标',
+    displayCurrency: '显示币种',
+    referralPct: '转介绍占比',
+    referralRev: '转介绍收入',
+    regTarget: '注册:',
+    paidTarget: '付费:',
+    revTarget: '收入:',
+    rhythm: '节奏',
+  },
+  'zh-TW': {
+    smartRec: '智慧推薦',
+    growthRates: '歷史成長率：註冊',
+    growthPaid: '· 付費',
+    growthRev: '· 收入',
+    applyPlan: '套用此方案',
+    hardTargets: '硬性目標 (L1)',
+    hqRevTarget: 'HQ總業績目標',
+    displayCurrency: '顯示幣種',
+    referralPct: '轉介紹占比',
+    referralRev: '轉介紹收入',
+    regTarget: '註冊:',
+    paidTarget: '付費:',
+    revTarget: '收入:',
+    rhythm: '節奏',
+  },
+  en: {
+    smartRec: 'Smart Recommendation',
+    growthRates: 'Historical growth: Reg',
+    growthPaid: '· Paid',
+    growthRev: '· Revenue',
+    applyPlan: 'Apply This Plan',
+    hardTargets: 'Hard Targets (L1)',
+    hqRevTarget: 'HQ Total Revenue Target',
+    displayCurrency: 'Display Currency',
+    referralPct: 'Referral %',
+    referralRev: 'Referral Revenue',
+    regTarget: 'Reg:',
+    paidTarget: 'Paid:',
+    revTarget: 'Rev:',
+    rhythm: 'Pace',
+  },
+  th: {
+    smartRec: 'คำแนะนำอัจฉริยะ',
+    growthRates: 'อัตราการเติบโต: ลงทะเบียน',
+    growthPaid: '· ชำระเงิน',
+    growthRev: '· รายได้',
+    applyPlan: 'ใช้แผนนี้',
+    hardTargets: 'เป้าหมายหลัก (L1)',
+    hqRevTarget: 'เป้ารายได้รวม HQ',
+    displayCurrency: 'สกุลเงินที่แสดง',
+    referralPct: 'สัดส่วนการแนะนำ',
+    referralRev: 'รายได้การแนะนำ',
+    regTarget: 'ลงทะเบียน:',
+    paidTarget: 'ชำระเงิน:',
+    revTarget: 'รายได้:',
+    rhythm: 'จังหวะ',
+  },
+};
 import type {
   HardTarget,
   MonthlyTargetV2,
@@ -25,15 +93,17 @@ export default function TargetSettingsCard({
   onUpdateHard,
   onApplyScenario,
 }: TargetSettingsCardProps) {
+  const locale = useLocale();
+  const t = (I18N as unknown as Record<string, (typeof I18N)['zh']>)[locale] ?? I18N['zh'];
   return (
     <>
       {/* 智能推荐 */}
       {recommendation && (
-        <Card title="智能推荐">
+        <Card title={t.smartRec}>
           <div className="space-y-2">
             <div className="text-xs text-[var(--text-secondary)]">
-              历史增长率：注册 {formatRate(recommendation.growth_rates.reg)} · 付费{' '}
-              {formatRate(recommendation.growth_rates.paid)} · 收入{' '}
+              {t.growthRates} {formatRate(recommendation.growth_rates.reg)} {t.growthPaid}{' '}
+              {formatRate(recommendation.growth_rates.paid)} {t.growthRev}{' '}
               {formatRate(recommendation.growth_rates.revenue)}
             </div>
             <div className="grid grid-cols-3 gap-2">
@@ -49,15 +119,21 @@ export default function TargetSettingsCard({
                     <div className="font-medium text-sm text-[var(--text-primary)]">{s.label}</div>
                     <div className="text-xs text-[var(--text-secondary)] mb-2">×{s.multiplier}</div>
                     <div className="space-y-1 text-xs text-[var(--text-secondary)]">
-                      <div>注册: {s.summary.注册目标}</div>
-                      <div>付费: {s.summary.付费目标}</div>
-                      <div>收入: ${s.summary.金额目标.toLocaleString()}</div>
+                      <div>
+                        {t.regTarget} {s.summary.注册目标}
+                      </div>
+                      <div>
+                        {t.paidTarget} {s.summary.付费目标}
+                      </div>
+                      <div>
+                        {t.revTarget} ${s.summary.金额目标.toLocaleString()}
+                      </div>
                     </div>
                     <button
                       onClick={() => onApplyScenario(s)}
                       className="mt-2 w-full px-2 py-1 text-xs font-medium rounded bg-[var(--bg-surface)] border border-[var(--border-subtle)] hover:bg-[var(--bg-primary)] transition-colors focus-visible:ring-2 focus-visible:ring-action"
                     >
-                      应用此方案
+                      {t.applyPlan}
                     </button>
                   </div>
                 );
@@ -68,10 +144,12 @@ export default function TargetSettingsCard({
       )}
 
       {/* 硬性目标 */}
-      <Card title="硬性目标 (L1)">
+      <Card title={t.hardTargets}>
         <div className="grid grid-cols-2 gap-2">
           <div>
-            <label className="text-xs text-[var(--text-secondary)] mb-1 block">HQ总业绩目标</label>
+            <label className="text-xs text-[var(--text-secondary)] mb-1 block">
+              {t.hqRevTarget}
+            </label>
             <NumInput
               value={v2.hard.total_revenue}
               onChange={(v) => onUpdateHard({ total_revenue: v })}
@@ -118,7 +196,7 @@ export default function TargetSettingsCard({
                             : 'text-[var(--color-warning)]'
                         }
                       >
-                        (节奏 {formatRate(d.pace_ratio, 0)})
+                        ({t.rhythm} {formatRate(d.pace_ratio, 0)})
                       </span>
                     </div>
                   ))}
@@ -126,7 +204,9 @@ export default function TargetSettingsCard({
               )}
           </div>
           <div>
-            <label className="text-xs text-[var(--text-secondary)] mb-1 block">显示币种</label>
+            <label className="text-xs text-[var(--text-secondary)] mb-1 block">
+              {t.displayCurrency}
+            </label>
             <select
               value={v2.hard.display_currency}
               onChange={(e) => onUpdateHard({ display_currency: e.target.value as 'THB' | 'USD' })}
@@ -137,7 +217,9 @@ export default function TargetSettingsCard({
             </select>
           </div>
           <div>
-            <label className="text-xs text-[var(--text-secondary)] mb-1 block">转介绍占比</label>
+            <label className="text-xs text-[var(--text-secondary)] mb-1 block">
+              {t.referralPct}
+            </label>
             <div className="flex items-center gap-2">
               <input
                 type="radio"
@@ -152,7 +234,9 @@ export default function TargetSettingsCard({
             </div>
           </div>
           <div>
-            <label className="text-xs text-[var(--text-secondary)] mb-1 block">转介绍收入</label>
+            <label className="text-xs text-[var(--text-secondary)] mb-1 block">
+              {t.referralRev}
+            </label>
             <div className="flex items-center gap-2">
               <input
                 type="radio"

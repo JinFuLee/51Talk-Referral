@@ -1,9 +1,77 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { useLocale } from 'next-intl';
 import useSWR from 'swr';
 import { Card } from '@/components/ui/Card';
 import { configAPI, swrFetcher } from '@/lib/api';
+
+const I18N = {
+  zh: {
+    cardTitle: '围场-岗位负责配置',
+    loading: '加载中…',
+    loadError: '加载配置失败，使用本地默认值',
+    narrowTitle: '窄口径负责配置',
+    narrowSubtitle: 'CC/SS/LP 主动联系场景',
+    wideTitle: '宽口径负责配置',
+    wideSubtitle: '学员自主打卡场景（打卡面板使用）',
+    resetBtn: '重置默认',
+    savingBtn: '保存中…',
+    savedBtn: '已保存',
+    saveBtn: '保存',
+    enclosureCol: '围场',
+    ops: '运营',
+    hint: '勾选 = 该围场由该岗位服务；允许多选。配置持久化到服务端，打卡面板读取宽口径配置。',
+  },
+  'zh-TW': {
+    cardTitle: '圍場-職位負責設定',
+    loading: '載入中…',
+    loadError: '載入設定失敗，使用本地預設值',
+    narrowTitle: '窄口徑負責設定',
+    narrowSubtitle: 'CC/SS/LP 主動聯繫場景',
+    wideTitle: '寬口徑負責設定',
+    wideSubtitle: '學員自主打卡場景（打卡面板使用）',
+    resetBtn: '重置預設',
+    savingBtn: '儲存中…',
+    savedBtn: '已儲存',
+    saveBtn: '儲存',
+    enclosureCol: '圍場',
+    ops: '運營',
+    hint: '勾選 = 該圍場由該職位服務；允許多選。設定持久化到服務端，打卡面板讀取寬口徑設定。',
+  },
+  en: {
+    cardTitle: 'Enclosure-Role Assignment',
+    loading: 'Loading…',
+    loadError: 'Failed to load config, using local defaults',
+    narrowTitle: 'Narrow Channel Assignment',
+    narrowSubtitle: 'CC/SS/LP proactive contact scenarios',
+    wideTitle: 'Wide Channel Assignment',
+    wideSubtitle: 'Student self check-in scenarios (check-in panel)',
+    resetBtn: 'Reset Default',
+    savingBtn: 'Saving…',
+    savedBtn: 'Saved',
+    saveBtn: 'Save',
+    enclosureCol: 'Enclosure',
+    ops: 'Ops',
+    hint: 'Checked = that enclosure is served by that role; multiple allowed. Config persists to server; check-in panel reads wide channel config.',
+  },
+  th: {
+    cardTitle: 'การกำหนดระยะเวลา-บทบาท',
+    loading: 'กำลังโหลด…',
+    loadError: 'โหลดการตั้งค่าไม่สำเร็จ ใช้ค่าเริ่มต้น',
+    narrowTitle: 'การกำหนดช่องทางแคบ',
+    narrowSubtitle: 'สถานการณ์ติดต่อเชิงรุก CC/SS/LP',
+    wideTitle: 'การกำหนดช่องทางกว้าง',
+    wideSubtitle: 'สถานการณ์เช็คอินด้วยตนเอง (หน้าเช็คอิน)',
+    resetBtn: 'รีเซ็ตค่าเริ่มต้น',
+    savingBtn: 'กำลังบันทึก…',
+    savedBtn: 'บันทึกแล้ว',
+    saveBtn: 'บันทึก',
+    enclosureCol: 'ระยะเวลา',
+    ops: 'ปฏิบัติการ',
+    hint: 'เครื่องหมายถูก = ระยะเวลานั้นให้บริการโดยบทบาทนั้น สามารถเลือกหลายข้อ ตั้งค่าถาวรที่เซิร์ฟเวอร์',
+  },
+};
 
 const ENCLOSURE_KEYS = [
   'M0',
