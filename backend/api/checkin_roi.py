@@ -150,6 +150,8 @@ def _calc_student_roi(
     d4_row: pd.Series,
     d3_revenue: float,
     cost_config: dict,
+    *,
+    secondary_referrals: int = 0,
 ) -> dict[str, Any]:
     """
     计算单个学员的 ROI 相关指标。
@@ -209,7 +211,7 @@ def _calc_student_roi(
         referral_reg=referral_reg,
         referral_att=referral_att,
         referral_pay=referral_pay,
-        secondary_referrals=0,  # 单学员级别暂无二级裂变索引，由 API 层补充
+        secondary_referrals=secondary_referrals,
         checkins=max(days_checkin, days_transcode),
         lesson=lesson_this_month,
         last_month_checkins=days_last_checkin,
@@ -460,13 +462,41 @@ def get_checkin_roi_analysis(
                 )
             ]
 
+    # ── 二级裂变索引（推荐人ID → 被推荐学员ID列表）─────────────────────────
+    _ref_col_candidates = ["推荐人学员ID", "推荐人id", "推荐人学员id"]
+    ref_col = next((c for c in _ref_col_candidates if c in df_d4.columns), None)
+    _reg_col_candidates = ["当月推荐注册人数", "本月推荐注册人数"]
+    reg_col = next((c for c in _reg_col_candidates if c in df_d4.columns), None)
+
+    referrer_to_referred: dict[str, list[str]] = {}
+    if ref_col:
+        for _, r in df_d4.iterrows():
+            s = _safe_str(r.get(d4_id_col, ""))
+            ref = _safe_str(r.get(ref_col, ""))
+            if s and ref:
+                referrer_to_referred.setdefault(ref, []).append(s)
+
+    referred_regs: dict[str, int] = {}
+    if reg_col:
+        for _, r in df_d4.iterrows():
+            s = _safe_str(r.get(d4_id_col, ""))
+            if s:
+                referred_regs[s] = int(_safe(r.get(reg_col)) or 0)
+
     # ── 逐行计算 ROI ──────────────────────────────────────────────────────────
     students_result: list[dict[str, Any]] = []
 
     for _, row in df_d4.iterrows():
         sid = _safe_str(row.get(d4_id_col, ""))
         revenue = d3_revenue_index.get(sid, 0.0)
-        student_data = _calc_student_roi(row, revenue, cost_config)
+
+        # 二级裂变数（A 推荐的 B 中当月又推荐了人的数量）
+        referred_ids = referrer_to_referred.get(sid, [])
+        sec_ref = sum(1 for rid in referred_ids if referred_regs.get(rid, 0) > 0)
+
+        student_data = _calc_student_roi(
+            row, revenue, cost_config, secondary_referrals=sec_ref,
+        )
 
         # 只返回有实际参与的学员（有打卡或有推荐）
         has_activity = (
@@ -495,8 +525,8 @@ def get_checkin_roi_analysis(
     total_students = len(students_result)
     risk_distribution: dict[str, dict[str, Any]] = {}
     all_risk_levels = [
-        "high_value", "normal", "focus",
-        "pure_freeloader", "high_value_freeloader", "newcomer", "no_cost",
+        "gold", "effective", "stuck_pay", "stuck_show",
+        "potential", "freeloader", "newcomer", "casual",
     ]
     for rl in all_risk_levels:
         cnt = risk_counts.get(rl, 0)
