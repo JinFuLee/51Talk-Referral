@@ -216,6 +216,10 @@ export interface OpsStudentRankingRow {
   conversion_rate: number;
   /** 二级裂变数（被推荐的 B 中当月又带注册的人数） */
   secondary_referrals: number;
+  /** B 中已付费的数量 */
+  secondary_b_paid: number;
+  /** B 又推荐了 C 的总数量 */
+  secondary_c_count: number;
   /** 总 CC 拨打次数（D4） */
   cc_dial_count: number;
   /** CC 带新注册人数 */

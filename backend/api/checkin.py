@@ -2201,6 +2201,12 @@ def get_ops_student_ranking(
     # 构建：推荐人ID → [被推荐学员ID, ...]
     referrer_to_referred: dict[str, list[str]] = {}
     referred_monthly_regs: dict[str, int] = {}  # 被推荐学员 ID → 当月注册数
+    referred_monthly_pays: dict[str, int] = {}  # 被推荐学员 ID → 当月付费数
+
+    _D4_PAY_COL_CANDIDATES = ["本月推荐付费数", "当月推荐付费数"]
+    d4_pay_col = next(
+        (c for c in _D4_PAY_COL_CANDIDATES if c in df_d4.columns), None
+    )
 
     if d4_referrer_col:
         for _, row in df_d4.iterrows():
@@ -2214,6 +2220,10 @@ def get_ops_student_ranking(
                     _safe(row.get(d4_monthly_reg_col)) or 0
                 )
                 referred_monthly_regs[sid] = monthly_reg
+            # 记录每个学员当月推荐付费数（用于 B 付费判断）
+            if sid and d4_pay_col:
+                monthly_pay = int(_safe(row.get(d4_pay_col)) or 0)
+                referred_monthly_pays[sid] = monthly_pay
 
     # ── 主循环：构建每个运营学员的排行数据 ──────────────────────────────────
 
@@ -2283,11 +2293,21 @@ def get_ops_student_ranking(
             else 0.0
         )
 
-        # 二级裂变数
+        # 二级裂变数 + B 付费数 + C 数量
         referred_ids = referrer_to_referred.get(sid, [])
         secondary_referrals = sum(
             1 for rid in referred_ids
             if referred_monthly_regs.get(rid, 0) > 0
+        )
+        # B 中付费了的数量
+        secondary_b_paid = sum(
+            1 for rid in referred_ids
+            if referred_monthly_pays.get(rid, 0) > 0
+        )
+        # B 又推荐了 C 的总数量（B 的被推荐人数）
+        secondary_c_count = sum(
+            len(referrer_to_referred.get(rid, []))
+            for rid in referred_ids
         )
 
         # CC 拨打次数
@@ -2335,6 +2355,8 @@ def get_ops_student_ranking(
             "referral_payments":            referral_payments,
             "conversion_rate":              conversion_rate,
             "secondary_referrals":          secondary_referrals,
+            "secondary_b_paid":             secondary_b_paid,
+            "secondary_c_count":            secondary_c_count,
             "cc_dial_count":                cc_dial_count,
             "cc_new_count":                 cc_new_count,
             "ss_new_count":                 ss_new_count,

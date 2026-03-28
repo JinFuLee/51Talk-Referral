@@ -168,10 +168,17 @@ def _calc_student_roi(
     # D4 字段读取
     days_checkin = _safe_int(d4_row.get("本月打卡天数"))
     days_transcode = _safe_int(d4_row.get("本月转码次数"))
-    referral_reg = _safe_int(d4_row.get("当月推荐注册人数") or d4_row.get("总推荐注册人数"))
-    referral_att = _safe_int(d4_row.get("当月推荐出席人数") or d4_row.get("本月推荐出席数"))
-    referral_pay = _safe_int(d4_row.get("本月推荐付费数") or d4_row.get("推荐付费"))
-    lesson_this_month = float(_safe(d4_row.get("本月课耗") or d4_row.get("课耗")) or 0.0)
+    referral_reg = _safe_int(
+        d4_row.get("当月推荐注册人数") or d4_row.get("总推荐注册人数")
+    )
+    referral_att = _safe_int(
+        d4_row.get("当月推荐出席人数") or d4_row.get("本月推荐出席数")
+    )
+    referral_pay = _safe_int(
+        d4_row.get("本月推荐付费数") or d4_row.get("推荐付费")
+    )
+    lesson_raw = _safe(d4_row.get("本月课耗") or d4_row.get("课耗"))
+    lesson_this_month = float(lesson_raw or 0.0)
 
     # 次卡计算
     activity_cards = _calc_activity_cards(days_checkin, days_transcode, cost_config)
