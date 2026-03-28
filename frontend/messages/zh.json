@@ -1,17 +1,745 @@
 {
   "common": {
-    "loading": "加载中...",
-    "error": "加载失败",
-    "empty": "暂无数据",
-    "retry": "重试",
-    "close": "关闭",
-    "confirm": "确认",
-    "cancel": "取消",
-    "save": "保存",
-    "edit": "编辑",
-    "delete": "删除",
-    "search": "搜索",
-    "export": "导出",
-    "refresh": "刷新"
+    "button": {
+      "refresh": "刷新状态",
+      "import": "导入历史数据",
+      "search": "查询",
+      "collapse": "收起 ▲",
+      "expand": "展开 ▼",
+      "retry": "重试"
+    },
+    "label": {
+      "noData": "暂无数据",
+      "loading": "加载中…",
+      "loadFailed": "加载失败",
+      "runAnalysis": "请先运行分析",
+      "t1Data": "T-1 数据，30 秒自动刷新",
+      "demoData": "演示数据",
+      "realData": "真实数据"
+    }
+  },
+  "root": {
+    "title": "运营分析看板",
+    "subtitle": "51Talk 泰国转介绍运营 · T-1 数据",
+    "section": {
+      "datasources": "数据源状态"
+    },
+    "label": {
+      "noAnalysisData": "暂无分析数据 — 请点击右上角「运行分析」"
+    }
+  },
+  "analysis": {
+    "title": "深度分析",
+    "card": {
+      "funnel": "转化漏斗",
+      "channel": "渠道对比（窄口 vs 宽口）",
+      "attribution": "归因分析",
+      "roi": "ROI 估算",
+      "prediction": "月末预测"
+    },
+    "label": {
+      "noData": "暂无数据"
+    }
+  },
+  "ranking": {
+    "title": "绩效排名",
+    "label": {
+      "showTop": "显示前"
+    }
+  },
+  "reports": {
+    "title": "分析报告",
+    "card": {
+      "list": "报告列表"
+    },
+    "label": {
+      "noReports": "暂无报告文件",
+      "selectReport": "选择左侧报告查看内容",
+      "loading": "加载中…"
+    }
+  },
+  "datasources": {
+    "title": "数据源管理",
+    "button": {
+      "refresh": "刷新状态"
+    },
+    "section": {
+      "upload": "上传数据文件"
+    },
+    "label": {
+      "upload": "上传数据文件"
+    }
+  },
+  "snapshots": {
+    "title": "历史快照",
+    "button": {
+      "import": "导入历史数据"
+    },
+    "label": {
+      "importResult": "导入结果",
+      "noDailyKpi": "暂无日级快照（请先导入历史数据）",
+      "noWeeklyData": "暂无周对比数据，需累积至少 2 周快照"
+    },
+    "card": {
+      "dailyKpi": "日级 KPI 曲线",
+      "ccGrowth": "CC 成长曲线"
+    },
+    "input": {
+      "ccPlaceholder": "输入 CC 姓名查询"
+    }
+  },
+  "trend": {
+    "title": "趋势分析",
+    "card": {
+      "daily": "日级 KPI 曲线"
+    },
+    "label": {
+      "peak": "峰值",
+      "valley": "谷底"
+    },
+    "tab": {
+      "mom": "月环比",
+      "wow": "周环比 (WoW)",
+      "yoy": "月同比"
+    }
+  },
+  "ops": {
+    "dashboard": {
+      "title": "运营总览",
+      "subtitle": "T-1 数据，30 秒自动刷新",
+      "label": {
+        "aiLayout": "AI 排版生效中",
+        "perCapita": "人效日均（CC / SS / LP）",
+        "perCapitaUnit": "人均USD/月"
+      },
+      "kpi": {
+        "registrations": "注册人数 (Leads)",
+        "payments": "付费人数",
+        "revenue": "收入"
+      }
+    },
+    "channels": {
+      "title": "渠道趋势分析",
+      "subtitle": "F4 转介绍渠道月度环比 · 注册贡献 · 转化效率",
+      "table": {
+        "channel": "渠道",
+        "registrations": "注册数",
+        "mom": "环比",
+        "regPaidRate": "注册付费率",
+        "unitPrice": "客单价",
+        "attendPaidRate": "出席付费率"
+      },
+      "card": {
+        "channelCount": "渠道数",
+        "monthsCovered": "覆盖月份",
+        "latestTotal": "最新月总注册",
+        "latestMonth": "最新月份",
+        "streamChart": "渠道注册贡献河流图"
+      },
+      "label": {
+        "dataError": "数据加载异常。请先运行分析并确认 F4 数据文件已上传。",
+        "noData": "暂无数据"
+      }
+    },
+    "outreach-heatmap": {
+      "title": "CC 外呼热力图",
+      "subtitle": "CC × 日期二维矩阵 · 颜色=拨打量深浅 · 可切换维度",
+      "card": {
+        "monthly": "月总拨打量",
+        "daily": "日均拨打",
+        "topCC": "本月 Top CC",
+        "heatmap": "CC 外呼热力图（CC × 日期）"
+      },
+      "label": {
+        "loadFailed": "数据加载失败。请先运行分析后刷新。",
+        "colorLegend": "颜色图例："
+      }
+    },
+    "outreach": {
+      "title": "外呼监控",
+      "subtitle": "日历热力图 · CC 达标率 · 时段分布",
+      "card": {
+        "totalCalls": "总拨打量",
+        "contactRate": "接通率",
+        "effectiveRate": "有效通话率",
+        "avgDuration": "平均通话(s)",
+        "heatmap": "外呼日历热力图",
+        "ccDetail": "CC 姓名 外呼达标明细",
+        "trend": "外呼趋势"
+      }
+    },
+    "outreach-gap": {
+      "title": "课前外呼覆盖缺口",
+      "subtitle": "F11 覆盖率 vs 目标 · CC 粒度缺口排名 · 未覆盖学员预估 $ 损失"
+    },
+    "funnel-team": {
+      "title": "团队漏斗对比",
+      "subtitle": "A1 数据源 · 各团队注册 → 预约 → 出席 → 付费漏斗"
+    },
+    "funnel-detail": {
+      "title": "漏斗跟进效率",
+      "subtitle": "F1 CC 级别漏斗转化 · F2 截面效率四象限分析",
+      "card": {
+        "f1": "F1 各 CC 漏斗跟进效率",
+        "f2": "F2 截面效率四象限"
+      }
+    },
+    "funnel": {
+      "title": "转化漏斗",
+      "subtitle": "窄口 vs 宽口 · 学员旅程分析",
+      "card": {
+        "narrow": "转化漏斗（窄口）",
+        "channelCompare": "口径对比",
+        "journey": "学员旅程",
+        "detail": "口径明细"
+      }
+    },
+    "channel-mom": {
+      "title": "渠道月度环比",
+      "subtitle": "F4 各转介绍渠道注册/转化效率月度趋势对比",
+      "card": {
+        "trend": "渠道趋势折线图"
+      }
+    },
+    "retention-rank": {
+      "title": "CC 留存贡献排名",
+      "subtitle": "F9 各 CC 付费学员留存跟进效果 · 留存收入贡献占比",
+      "card": {
+        "rank": "留存贡献排名"
+      }
+    },
+    "productivity-history": {
+      "title": "产能历史趋势",
+      "subtitle": "E1/E2 CC+SS 出勤人数与产能利用率历史趋势",
+      "card": {
+        "chart": "产能历史趋势图"
+      }
+    },
+    "ranking": {
+      "title": "人员排名",
+      "subtitle": "CC / SS / LP 综合得分排行",
+      "table": {
+        "rank": "排名",
+        "name": "姓名",
+        "score": "综合分",
+        "registrations": "注册",
+        "payments": "付费",
+        "contactRate": "触达率",
+        "checkinRate": "打卡率",
+        "participationRate": "参与率",
+        "newCoeff": "带新系数",
+        "convRate": "转化率"
+      },
+      "label": {
+        "noData": "暂无排名数据，请先运行分析"
+      }
+    },
+    "followup-alert": {
+      "title": "跟进预警 & 课前课后对比",
+      "subtitle": "F7 零跟进付费学员预警 · F10 课前 vs 课后跟进效果 A/B 对比",
+      "section": {
+        "zeroAlert": "零跟进付费学员预警（F7）",
+        "prePost": "课前 vs 课后跟进效果对比（F10）"
+      }
+    },
+    "kpi-north-star": {
+      "title": "北极星 · 24H 打卡率",
+      "subtitle": "D1 打卡率排名 · D5 月度打卡系数 · D1×D5 散点分析",
+      "card": {
+        "teamAchievement": "团队达标率",
+        "teamAvg": "团队均值",
+        "target": "目标打卡率",
+        "d5Monthly": "D5 月均参与",
+        "ranking": "CC 24H 打卡率排名",
+        "scatter": "打卡率 × 带新系数 散点图",
+        "multiplier": "打卡倍率分析"
+      }
+    },
+    "trial": {
+      "title": "体验课跟进",
+      "subtitle": "课前/课后跟进率 · 外呼对出席率的影响",
+      "card": {
+        "preCallLift": "课前外呼 → 出席率",
+        "stageDetail": "跟进阶段明细",
+        "preClass": "课前外呼 — CC 明细",
+        "postClass": "课后跟进 — CC 明细"
+      },
+      "table": {
+        "stage": "阶段",
+        "count": "人数",
+        "rate": "达成率",
+        "ccName": "CC姓名",
+        "calls": "外呼数",
+        "followups": "跟进数",
+        "followupRate": "跟进率"
+      },
+      "label": {
+        "noDetail": "暂无明细数据，请先运行分析",
+        "hasOutreach": "已外呼出席率",
+        "noOutreach": "未外呼出席率",
+        "liftDesc": "课前外呼对出席率有显著正向影响"
+      }
+    },
+    "orders": {
+      "title": "订单分析",
+      "card": {
+        "trend": "日付费趋势",
+        "packageDist": "套餐分布",
+        "channelRevenue": "渠道收入对比（E8）",
+        "orderDetail": "订单明细"
+      },
+      "table": {
+        "channel": "渠道",
+        "revenueUSD": "收入 (USD)",
+        "revenueTHB": "收入 (THB)",
+        "pct": "占比",
+        "date": "日期",
+        "cc": "CC",
+        "student": "学员",
+        "package": "套餐",
+        "amount": "金额"
+      },
+      "input": {
+        "search": "搜索…"
+      },
+      "label": {
+        "noPackage": "暂无套餐数据",
+        "noOrders": "暂无订单数据，请先运行分析",
+        "noMatch": "无匹配结果",
+        "showFirst100": "仅显示前 100 条，共 {n} 条"
+      }
+    }
+  },
+  "biz": {
+    "overview": {
+      "title": "泰国转介绍业务总览",
+      "subtitle": "${getCurrentMonthLabel()} · 数据截至 T-1 · 业务视图",
+      "card": {
+        "risks": "主要风险",
+        "keyActions": "本周关键行动"
+      },
+      "metric": {
+        "registration": "本月注册",
+        "payment": "本月付费",
+        "revenue": "本月收入",
+        "prediction": "月底预测"
+      },
+      "label": {
+        "achieved": "达标",
+        "belowTarget": "略低于目标",
+        "seriousLag": "严重落后",
+        "onTrack": "有望达标",
+        "nearTarget": "接近目标",
+        "completionProgress": "完成进度",
+        "revenueProgress": "收入进度",
+        "gap": "缺口",
+        "target": "目标"
+      },
+      "action": {
+        "checkinLow": "24H 打卡率仅 31%，需推动 CC 执行",
+        "checkinTarget": "目标 60%",
+        "enclosureHigh": "0-30 围场转化率最高 (25%)，建议加大资源投入",
+        "preCallLift": "课前外呼→出席 lift 2.2x，强化课前触达"
+      }
+    },
+    "team": {
+      "title": "团队概况",
+      "subtitle": "${getCurrentMonthLabel()} · 人效 · 在岗 · 达标率",
+      "card": {
+        "ccEfficiency": "CC 人效",
+        "ssEfficiency": "SS 人效",
+        "trendNormal": "趋势正常",
+        "dailyTrend": "人效日趋势",
+        "achievement": "团队达标概览"
+      },
+      "table": {
+        "metric": "指标",
+        "target": "目标",
+        "status": "状态"
+      },
+      "label": {
+        "active": "人在岗",
+        "frontend": "前端销售",
+        "backend": "后端销售",
+        "noDailyTrend": "暂无日趋势数据",
+        "statusLegend": "达标   略低于目标 (-5%~0%)   严重落后 (<-5%)",
+        "perPerson": "/人"
+      }
+    },
+    "trend": {
+      "title": "趋势 & 预测",
+      "subtitle": "月度环比/预测区间 · 打卡因果分析",
+      "tab": {
+        "mom": "月环比",
+        "wow": "周环比",
+        "yoy": "月同比"
+      },
+      "card": {
+        "monthlyTrend": "月度趋势",
+        "prediction": "月底预测区间",
+        "checkinCausal": "打卡→带新因果",
+        "modelInfo": "预测模型说明"
+      },
+      "label": {
+        "predReg": "预测注册",
+        "predPay": "预测付费",
+        "confidence": "置信度",
+        "model": "模型：",
+        "predRevenue": "预测收入：",
+        "currentSelected": "当前选用",
+        "noWeekData": "暂无周对比数据，需累积至少 2 周快照"
+      }
+    },
+    "impact": {
+      "title": "影响链分析",
+      "subtitle": "效率指标缺口 → 收入损失量化 · What-if 模拟器",
+      "card": {
+        "totalLoss": "总收入损失",
+        "topLever": "最大杠杆指标",
+        "metricCount": "分析指标数",
+        "waterfall": "效率损失瀑布图",
+        "whatif": "What-if 模拟器"
+      },
+      "label": {
+        "whatifDesc": "拖动滑块调节效率指标，实时查看对付费单数和收入的预期影响",
+        "noData": "暂无影响链数据，请先运行分析引擎"
+      }
+    },
+    "attribution": {
+      "title": "归因分析",
+      "subtitle": "各驱动因素对转介绍业绩的贡献度拆解",
+      "card": {
+        "topFactor": "最大贡献因素",
+        "factorCount": "分析因素数",
+        "distribution": "贡献度分布",
+        "detail": "归因明细"
+      },
+      "table": {
+        "rank": "排名",
+        "factor": "因素",
+        "id": "标识",
+        "contribution": "贡献度"
+      },
+      "label": {
+        "contribution": "贡献度",
+        "noData": "暂无归因数据",
+        "noDetail": "暂无数据",
+        "loadFailed": "暂无归因数据，请先运行分析引擎"
+      }
+    },
+    "roi": {
+      "title": "ROI 分析",
+      "subtitle": "${getCurrentMonthLabel()} · 投资回报率全景",
+      "card": {
+        "overview": "ROI 全景",
+        "cohort": "Cohort 衰减曲线",
+        "costDetail": "成本明细"
+      },
+      "label": {
+        "totalRevenue": "总收入",
+        "totalCost": "总成本",
+        "netProfit": "净利润",
+        "cohortDesc": "触达率半衰期约 4 月，参与率半衰期约 2 月 — 前 2 月投入 ROI 最高",
+        "noCostData": "B1 数据文件未加载，暂无真实成本明细",
+        "noCostTable": "暂无数据 — 请上传 B1 ROI 数据文件后重新分析",
+        "good": "良好",
+        "low": "偏低",
+        "needImprove": "需改善",
+        "targetGap": "目标"
+      },
+      "table": {
+        "rewardType": "奖励类型",
+        "incentiveDetail": "激励详情",
+        "referralAction": "推荐动作",
+        "quantity": "数量",
+        "unitCost": "单价",
+        "totalCost": "总成本",
+        "total": "合计"
+      }
+    },
+    "orders": {
+      "title": "订单结构分析",
+      "subtitle": "套餐类型占比 (E6) · 小组套餐结构 (E7) · 渠道收入 Waterfall (E8)",
+      "card": {
+        "e6": "套餐结构分析 (E6)",
+        "e8": "渠道收入瀑布图 (E8)",
+        "e7": "小组套餐结构 (E7)"
+      },
+      "label": {
+        "e6NoData": "E6 数据未接入，请检查 BI-订单_套餐类型占比_D-1 文件",
+        "e7NoData": "E7 数据未接入，请检查 BI-订单_分小组套餐类型占比_D-1 文件",
+        "e8NoData": "E8 数据未接入，请检查 BI-订单_套餐分渠道金额_D-1 文件",
+        "loadFailed": "部分数据加载失败，请先运行分析引擎",
+        "byRevenue": "按套餐类型收入占比",
+        "e7pending": "E7 数据待接入"
+      },
+      "table": {
+        "group": "小组"
+      }
+    },
+    "orders-detail": {
+      "title": "订单高级分析",
+      "subtitle": "产品类型堆叠收入 (E4) · 小组套餐雷达对比 (E7) · 渠道收入瀑布图 (E8)"
+    },
+    "leads-detail": {
+      "title": "Leads 详情分析",
+      "subtitle": "围场×渠道转化热力矩阵 · 注册→付费时间间隔分布",
+      "card": {
+        "a2": "A2 围场×渠道转化矩阵",
+        "a3": "A3 注册→付费时间间隔分布"
+      },
+      "label": {
+        "a2Desc": "行 = 付费围场段 · 列 = 注册渠道 · 颜色 = 转化率",
+        "a3Desc": "X轴: 天数区间 · Y轴: 学员数"
+      }
+    },
+    "insights": {
+      "title": "运营洞察",
+      "subtitle": "金字塔报告 + 5-Why 根因分析 + 阶段评估",
+      "section": {
+        "conclusion": "核心结论",
+        "stagePillars": "重点行动支柱",
+        "fiveWhy": "5-Why 根因分析"
+      },
+      "label": {
+        "current": "当前",
+        "target": "目标",
+        "gap": "缺口",
+        "expectedLift": "预期收益提升",
+        "loadFailed": "数据加载失败，请确认后端服务正常运行。"
+      }
+    },
+    "enclosure": {
+      "title": "围场资源投放策略",
+      "subtitle": "${getCurrentMonthLabel()} · 按付费当日起算围场段 · 优化资源分配",
+      "card": {
+        "heatmap": "围场 × ROI 热力图",
+        "coverage": "围场跟进覆盖率",
+        "strategy": "策略建议",
+        "detail": "围场段明细",
+        "compare": "市场 vs 转介绍围场对比 (D2×D3)",
+        "combined": "合并围场总览 (D4)"
+      },
+      "label": {
+        "heatmapDesc": "色块深浅 = ROI 指数，数字 = 建议资源投入占比",
+        "compareDesc": "蓝色 = 市场渠道 · 紫色 = 转介绍渠道 · 切换指标查看不同维度差异",
+        "combinedDesc": "市场+转介绍合并视图 · 5 个围场段核心指标 + 转化漏斗",
+        "noData": "暂无数据 — 请先运行分析",
+        "days": "天"
+      },
+      "table": {
+        "segment": "围场段",
+        "students": "学员数",
+        "convRate": "转化率",
+        "followupRate": "跟进率",
+        "roiIndex": "ROI 指数",
+        "suggestion": "建议"
+      }
+    },
+    "enclosure-health": {
+      "title": "围场健康度仪表盘",
+      "subtitle": "${getCurrentMonthLabel()} · 跨源联动 F7 付费跟进 + F8 围场月度跟进 + D3 转介绍围场"
+    },
+    "enclosure-detail": {
+      "title": "围场详情分析",
+      "subtitle": "按付费起算天数分段 · 市场 vs 转介绍渠道对比 · 多维效率指标",
+      "context": {
+        "def": "围场定义",
+        "defDesc": "用户付费当日起算天数分段（M0~M12+ 共14段，每段30天）",
+        "compare": "D2×D3 对比视角",
+        "compareDesc": "同一围场内：市场渠道 vs 转介绍渠道转化率/参与率/学员数对比",
+        "combined": "D4 合并视角",
+        "combinedDesc": "全渠道合并，展示每围场的活跃学员、付费、参与率、动员率综合表现"
+      }
+    },
+    "cohort-heatmap": {
+      "title": "Cohort 留存热力图",
+      "subtitle": "按围场段（付费后天数）× 运营指标的矩阵热力图，颜色深浅反映各段相对表现",
+      "card": {
+        "northStar": "北极星 KPI — 达成率 Gauge",
+        "matrix": "Cohort 留存热力矩阵（M1 快照）"
+      }
+    },
+    "cohort-students": {
+      "title": "C6 学员明细分析",
+      "subtitle": "条学员记录 · 留存曲线 · CC带新排名 · 团队对比",
+      "card": {
+        "overview": "总览与团队对比",
+        "retention": "月龄留存曲线（有效留存率 M1-M12）",
+        "ccRanking": "CC 带新效率排名（按带新率降序）"
+      },
+      "label": {
+        "loadFailed": "数据加载失败，请先运行分析"
+      }
+    },
+    "cohort-decay": {
+      "title": "Cohort 衰减分析",
+      "subtitle": "C1-C5 指标月龄衰减曲线 · C4 带新系数黄金窗口识别",
+      "tab": {
+        "decay": "指标衰减曲线",
+        "coefficient": "C4 带新系数黄金窗口"
+      },
+      "label": {
+        "byMonth": "按入组月",
+        "byTeam": "按小组",
+        "loadFailed": "数据加载失败，请先运行分析"
+      }
+    },
+    "ranking-enhanced": {
+      "title": "增强排名",
+      "subtitle": "A4 CC 排名增强 — 约课率/出席率/综合评分维度",
+      "card": {
+        "table": "CC 增强排名表"
+      }
+    },
+    "coverage": {
+      "title": "课前外呼覆盖缺口",
+      "subtitle": "F11 课前外呼明细 · 未覆盖学员识别 · 预估收入损失量化"
+    },
+    "leads-overview": {
+      "title": "Leads 总览 / ภาพรวม Leads",
+      "subtitle": "漏斗全链路 · 目标分解 · 缺口追踪 · 围场效率",
+      "glossary": "窄口径=CC/SS/LP员工链接绑定 | 宽口径=UserA学员链接绑定",
+      "tab": {
+        "total": "总计",
+        "cc_narrow": "CC窄口径",
+        "ss_narrow": "SS窄口径",
+        "lp_narrow": "LP窄口径",
+        "wide": "宽口"
+      },
+      "section": {
+        "monthly_trend": "月度趋势",
+        "progress": "进度追踪",
+        "target_decomposition": "目标分解",
+        "gap_panel": "当前问题 Current Issue",
+        "team_matrix": "团队×口径效率矩阵 Team Channel Efficiency",
+        "enclosure_baseline": "围场效率历史偏差 Enclosure Efficiency vs Baseline"
+      },
+      "col": {
+        "month": "月份",
+        "register": "注册 Register",
+        "appointment": "预约 Appt.",
+        "showup": "出席 Show up",
+        "paid": "付费 Paid",
+        "revenue_usd": "美金金额 USD",
+        "leads_to_pay_rate": "注册付费率%"
+      },
+      "row": {
+        "mom_gap": "环比GAP",
+        "target": "月目标 Target",
+        "achievement": "月完成 Achievement",
+        "progress_bm": "月效率进度 BM",
+        "target_gap": "目标 GAP"
+      },
+      "label": {
+        "time_progress": "Today BM",
+        "revenue_target": "1月总标",
+        "unit_price": "1月客单价",
+        "unit_target": "单量目标",
+        "conversion_target": "转率目标",
+        "leads_target": "例子目标",
+        "cc_narrow": "CC窄口",
+        "ss_narrow": "SS窄口",
+        "lp_narrow": "LP窄口",
+        "wide": "宽口55%"
+      },
+      "gap": {
+        "performance": "业绩缺口 Performance gap",
+        "unit_price": "客单价缺口 Unit price Gap",
+        "bill": "单量缺口 Bill Gap",
+        "showup": "出席缺口 Show up Gap",
+        "appointment": "预约缺口 Apps. Gap",
+        "lead": "例子缺口 Lead Gap",
+        "cc_lead": "CC窄口缺口 CC Lead Gap",
+        "ss_lead": "SS窄口缺口 SS Lead Gap",
+        "lp_lead": "LP窄口缺口 LP Lead Gap",
+        "wide_lead": "宽口缺口 User Lead Gap"
+      },
+      "empty": "暂无数据，请确认数据源文件已上传",
+      "error": "数据加载失败，请稍后重试"
+    }
+  },
+  "nav": {
+    "dashboard": "总览 Dashboard",
+    "funnel": "漏斗分析",
+    "enclosure": "围场分析",
+    "channel": "渠道分析",
+    "members": "学员明细",
+    "highPotential": "高潜学员",
+    "team": "团队汇总",
+    "reports": "分析报告",
+    "settings": "设置"
+  },
+  "funnel": {
+    "title": "漏斗分析",
+    "subtitle": "各环节目标 vs 实际 · 场景推演",
+    "col": {
+      "stage": "环节",
+      "target": "目标",
+      "actual": "实际",
+      "gap": "差距",
+      "achievement": "达成率",
+      "convRate": "转化率"
+    },
+    "scenario": {
+      "title": "场景推演"
+    }
+  },
+  "channel": {
+    "title": "渠道分析",
+    "subtitle": "CC窄/SS窄/LP窄/宽口 · 业绩归因",
+    "tab": {
+      "contribution": "业绩贡献",
+      "net": "净拆解",
+      "threeFactor": "三因素对标"
+    }
+  },
+  "enclosure": {
+    "title": "围场分析",
+    "subtitle": "围场分段 × CC 矩阵 · 参与率/带新/带货",
+    "col": {
+      "enclosure": "围场段",
+      "cc": "CC",
+      "students": "有效学员",
+      "participationRate": "参与率",
+      "newCoeff": "带新系数",
+      "cargoRatio": "带货比",
+      "checkinRate": "打卡率"
+    }
+  },
+  "members": {
+    "title": "学员明细",
+    "subtitle": "有效学员列表 · 点击行查看详情",
+    "filter": {
+      "enclosure": "围场筛选",
+      "cc": "CC 筛选"
+    }
+  },
+  "highPotential": {
+    "title": "高潜学员",
+    "subtitle": "带新数高 + 出席活跃 + 付费意向强"
+  },
+  "team": {
+    "title": "团队汇总",
+    "subtitle": "各 CC 学员数 · 参与率 · 注册 · 付费对比"
+  },
+  "matrix": {
+    "title": "指标矩阵总览",
+    "subtitle": "CC/SS/LP 三岗位指标覆盖范围配置与对比",
+    "category": {
+      "result": "结果指标",
+      "achievement": "达成指标",
+      "process": "过程指标",
+      "efficiency": "效率指标",
+      "process_wide": "宽口过程指标",
+      "conversion": "转化效率",
+      "service_pre_paid": "服务指标-付费前外呼",
+      "service_post_paid": "服务指标-付费后外呼"
+    },
+    "pending": "数据待接入",
+    "cc_readonly": "CC 列由系统锁定，全量启用",
+    "save": "保存配置",
+    "reset": "重置",
+    "export": "导出 CSV"
   }
 }

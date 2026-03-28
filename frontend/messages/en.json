@@ -1,17 +1,746 @@
 {
   "common": {
-    "loading": "Loading...",
-    "error": "Failed to load",
-    "empty": "No data",
-    "retry": "Retry",
-    "close": "Close",
-    "confirm": "Confirm",
-    "cancel": "Cancel",
-    "save": "Save",
-    "edit": "Edit",
-    "delete": "Delete",
-    "search": "Search",
-    "export": "Export",
-    "refresh": "Refresh"
+    "button": {
+      "refresh": "Refresh",
+      "import": "Import Historical Data",
+      "search": "Search",
+      "collapse": "Collapse ▲",
+      "expand": "Expand ▼",
+      "retry": "Retry"
+    },
+    "label": {
+      "noData": "No Data",
+      "loading": "Loading…",
+      "loadFailed": "Load Failed",
+      "runAnalysis": "Please run analysis first",
+      "t1Data": "T-1 Data, auto-refresh every 30s",
+      "dataMonth": "",
+      "demoData": "Demo Data",
+      "realData": "Real Data"
+    }
+  },
+  "root": {
+    "title": "Operations Analytics Dashboard",
+    "subtitle": "51Talk Thailand Referral Operations · T-1 Data",
+    "section": {
+      "datasources": "Data Source Status"
+    },
+    "label": {
+      "noAnalysisData": "No analysis data — click \"Run Analysis\" in the top right"
+    }
+  },
+  "analysis": {
+    "title": "Deep Analysis",
+    "card": {
+      "funnel": "Conversion Funnel",
+      "channel": "Channel Comparison (Narrow vs Wide)",
+      "attribution": "Attribution Analysis",
+      "roi": "ROI Estimate",
+      "prediction": "Month-End Forecast"
+    },
+    "label": {
+      "noData": "No Data"
+    }
+  },
+  "ranking": {
+    "title": "Performance Ranking",
+    "label": {
+      "showTop": "Show Top"
+    }
+  },
+  "reports": {
+    "title": "Analysis Reports",
+    "card": {
+      "list": "Report List"
+    },
+    "label": {
+      "noReports": "No report files yet",
+      "selectReport": "Select a report on the left to view",
+      "loading": "Loading…"
+    }
+  },
+  "datasources": {
+    "title": "Data Source Management",
+    "button": {
+      "refresh": "Refresh Status"
+    },
+    "section": {
+      "upload": "Upload Data File"
+    },
+    "label": {
+      "upload": "Upload Data File"
+    }
+  },
+  "snapshots": {
+    "title": "Historical Snapshots",
+    "button": {
+      "import": "Import Historical Data"
+    },
+    "label": {
+      "importResult": "Import Result",
+      "noDailyKpi": "No daily snapshots yet (please import historical data first)",
+      "noWeeklyData": "No weekly comparison data, need at least 2 weeks of snapshots"
+    },
+    "card": {
+      "dailyKpi": "Daily KPI Chart",
+      "ccGrowth": "CC Growth Chart"
+    },
+    "input": {
+      "ccPlaceholder": "Enter CC name to search"
+    }
+  },
+  "trend": {
+    "title": "Trend Analysis",
+    "card": {
+      "daily": "Daily KPI Chart"
+    },
+    "label": {
+      "peak": "Peak",
+      "valley": "Valley"
+    },
+    "tab": {
+      "mom": "MoM",
+      "wow": "WoW",
+      "yoy": "YoY"
+    }
+  },
+  "ops": {
+    "dashboard": {
+      "title": "Operations Overview",
+      "subtitle": "T-1 Data, auto-refresh every 30s",
+      "label": {
+        "aiLayout": "AI Layout Active",
+        "perCapita": "Per-Capita Daily Avg (CC / SS / LP)",
+        "perCapitaUnit": "USD/person/month"
+      },
+      "kpi": {
+        "registrations": "Registrations (Leads)",
+        "payments": "Payments",
+        "revenue": "Revenue"
+      }
+    },
+    "channels": {
+      "title": "Channel Trend Analysis",
+      "subtitle": "F4 Referral Channel Monthly Trend · Registrations · Conversion Efficiency",
+      "table": {
+        "channel": "Channel",
+        "registrations": "Registrations",
+        "mom": "MoM",
+        "regPaidRate": "Reg→Paid Rate",
+        "unitPrice": "Unit Price",
+        "attendPaidRate": "Attend→Paid Rate"
+      },
+      "card": {
+        "channelCount": "Channel Count",
+        "monthsCovered": "Months Covered",
+        "latestTotal": "Latest Month Total Reg",
+        "latestMonth": "Latest Month",
+        "streamChart": "Channel Registration Stream Chart"
+      },
+      "label": {
+        "dataError": "Data load error. Please run analysis and verify F4 data file.",
+        "noData": "No Data"
+      }
+    },
+    "outreach-heatmap": {
+      "title": "CC Outreach Heatmap",
+      "subtitle": "CC × Date Matrix · Color = Call Volume · Switchable Dimensions",
+      "card": {
+        "monthly": "Monthly Total Calls",
+        "daily": "Daily Avg Calls",
+        "topCC": "Top CC This Month",
+        "heatmap": "CC Outreach Heatmap (CC × Date)"
+      },
+      "label": {
+        "loadFailed": "Data load failed. Please run analysis then refresh.",
+        "colorLegend": "Color Legend:"
+      }
+    },
+    "outreach": {
+      "title": "Outreach Monitoring",
+      "subtitle": "Daily Calendar Heatmap · CC Achievement Rate · Time Distribution",
+      "card": {
+        "totalCalls": "Total Calls",
+        "contactRate": "Contact Rate",
+        "effectiveRate": "Effective Call Rate",
+        "avgDuration": "Avg Duration (s)",
+        "heatmap": "Outreach Calendar Heatmap",
+        "ccDetail": "CC Outreach Achievement Detail",
+        "trend": "Outreach Trend"
+      }
+    },
+    "outreach-gap": {
+      "title": "Pre-Class Outreach Coverage Gap",
+      "subtitle": "F11 Coverage Rate vs Target · CC Gap Ranking · Estimated Revenue Loss"
+    },
+    "funnel-team": {
+      "title": "Team Funnel Comparison",
+      "subtitle": "A1 Data · Team Reg → Appt → Show up → Paid Funnel"
+    },
+    "funnel-detail": {
+      "title": "Funnel Follow-up Efficiency",
+      "subtitle": "F1 CC-Level Funnel · F2 Cross-Section Efficiency Quadrant",
+      "card": {
+        "f1": "F1 CC Individual Funnel Efficiency",
+        "f2": "F2 Cross-Section Efficiency Quadrant"
+      }
+    },
+    "funnel": {
+      "title": "Conversion Funnel",
+      "subtitle": "Narrow vs Wide Channel · Student Journey Analysis",
+      "card": {
+        "narrow": "Conversion Funnel (Narrow Channel)",
+        "channelCompare": "Channel Comparison",
+        "journey": "Student Journey",
+        "detail": "Channel Detail"
+      }
+    },
+    "channel-mom": {
+      "title": "Channel Monthly MoM",
+      "subtitle": "F4 Each Referral Channel Reg/Conversion Monthly Trend",
+      "card": {
+        "trend": "Channel Trend Line Chart"
+      }
+    },
+    "retention-rank": {
+      "title": "CC Retention Contribution Ranking",
+      "subtitle": "F9 CC Paid Student Retention · Retention Revenue Share",
+      "card": {
+        "rank": "Retention Contribution Ranking"
+      }
+    },
+    "productivity-history": {
+      "title": "Productivity History Trend",
+      "subtitle": "E1/E2 CC+SS Attendance & Productivity Utilization History",
+      "card": {
+        "chart": "Productivity History Chart"
+      }
+    },
+    "ranking": {
+      "title": "Personnel Ranking",
+      "subtitle": "CC / SS / LP Composite Score Ranking",
+      "table": {
+        "rank": "Rank",
+        "name": "Name",
+        "score": "Composite Score",
+        "registrations": "Registrations",
+        "payments": "Payments",
+        "contactRate": "Outreach Rate",
+        "checkinRate": "Check-in Rate",
+        "participationRate": "Participation Rate",
+        "newCoeff": "Referral Coefficient",
+        "convRate": "Conversion Rate"
+      },
+      "label": {
+        "noData": "No ranking data, please run analysis first"
+      }
+    },
+    "followup-alert": {
+      "title": "Follow-up Alert & Pre/Post-Class Comparison",
+      "subtitle": "F7 Zero-Follow-up Paid Students · F10 Pre/Post Class A/B Comparison",
+      "section": {
+        "zeroAlert": "Zero Follow-up Paid Student Alert (F7)",
+        "prePost": "Pre vs Post Class Follow-up Comparison (F10)"
+      }
+    },
+    "kpi-north-star": {
+      "title": "North Star KPI · 24H Check-in Rate",
+      "subtitle": "D1 Check-in Ranking · D5 Monthly Coefficient · D1×D5 Scatter",
+      "card": {
+        "teamAchievement": "Team Achievement Rate",
+        "teamAvg": "Team Average",
+        "target": "Target Check-in Rate",
+        "d5Monthly": "D5 Monthly Avg Participation",
+        "ranking": "CC 24H Check-in Rate Ranking",
+        "scatter": "Check-in Rate × Referral Coefficient Scatter",
+        "multiplier": "Check-in Multiplier Analysis"
+      }
+    },
+    "trial": {
+      "title": "Trial Class Follow-up",
+      "subtitle": "Pre/Post Class Follow-up Rate · Impact of Pre-Class Calls on Show-up",
+      "card": {
+        "preCallLift": "Pre-Class Call → Show-up Rate",
+        "stageDetail": "Follow-up Stage Detail",
+        "preClass": "Pre-Class Calls — CC Detail",
+        "postClass": "Post-Class Follow-up — CC Detail"
+      },
+      "table": {
+        "stage": "Stage",
+        "count": "Count",
+        "rate": "Achievement Rate",
+        "ccName": "CC Name",
+        "calls": "Calls",
+        "followups": "Follow-ups",
+        "followupRate": "Follow-up Rate"
+      },
+      "label": {
+        "noDetail": "No detail data, please run analysis first",
+        "hasOutreach": "Show-up Rate (Called)",
+        "noOutreach": "Show-up Rate (Not Called)",
+        "liftDesc": "Pre-class calls have significant positive impact on show-up rate"
+      }
+    },
+    "orders": {
+      "title": "Order Analysis",
+      "card": {
+        "trend": "Daily Payment Trend",
+        "packageDist": "Package Distribution",
+        "channelRevenue": "Channel Revenue Comparison (E8)",
+        "orderDetail": "Order Detail"
+      },
+      "table": {
+        "channel": "Channel",
+        "revenueUSD": "Revenue (USD)",
+        "revenueTHB": "Revenue (THB)",
+        "pct": "Share",
+        "date": "Date",
+        "cc": "CC",
+        "student": "Student",
+        "package": "Package",
+        "amount": "Amount"
+      },
+      "input": {
+        "search": "Search…"
+      },
+      "label": {
+        "noPackage": "No package data yet",
+        "noOrders": "No order data, please run analysis first",
+        "noMatch": "No matching results",
+        "showFirst100": "Showing first 100 of {n} total"
+      }
+    }
+  },
+  "biz": {
+    "overview": {
+      "title": "Thailand Referral Business Overview",
+      "subtitle": "${getCurrentMonthLabel()} · Data as of T-1 · Business View",
+      "card": {
+        "risks": "Key Risks",
+        "keyActions": "Key Actions This Week"
+      },
+      "metric": {
+        "registration": "Registrations This Month",
+        "payment": "Payments This Month",
+        "revenue": "Revenue This Month",
+        "prediction": "Month-End Forecast"
+      },
+      "label": {
+        "achieved": "On Target",
+        "belowTarget": "Slightly Below Target",
+        "seriousLag": "Seriously Behind",
+        "onTrack": "On Track",
+        "nearTarget": "Near Target",
+        "completionProgress": "Completion Progress",
+        "revenueProgress": "Revenue Progress",
+        "gap": "Gap",
+        "target": "Target"
+      },
+      "action": {
+        "checkinLow": "24H Check-in Rate only 31%, need to push CC execution",
+        "checkinTarget": "Target 60%",
+        "enclosureHigh": "0-30 day enclosure conversion highest (25%), recommend more resources",
+        "preCallLift": "Pre-class call → show-up 2.2x lift, strengthen pre-class outreach"
+      }
+    },
+    "team": {
+      "title": "Team Overview",
+      "subtitle": "${getCurrentMonthLabel()} · 人效 · 在岗 · 达标率",
+      "card": {
+        "ccEfficiency": "CC Efficiency",
+        "ssEfficiency": "SS Efficiency",
+        "trendNormal": "Trend Normal",
+        "dailyTrend": "Daily Efficiency Trend",
+        "achievement": "Team Achievement Overview"
+      },
+      "table": {
+        "metric": "Metric",
+        "target": "Target",
+        "status": "Status"
+      },
+      "label": {
+        "active": "Active Staff",
+        "frontend": "Front-end Sales",
+        "backend": "Back-end Sales",
+        "noDailyTrend": "No daily trend data yet",
+        "statusLegend": "On Target   Slightly Below (-5%~0%)   Seriously Behind (<-5%)",
+        "perPerson": "/person"
+      }
+    },
+    "trend": {
+      "title": "Trend & Forecast",
+      "subtitle": "MoM/Forecast Range · Check-in Causal Analysis",
+      "tab": {
+        "mom": "MoM",
+        "wow": "WoW",
+        "yoy": "YoY"
+      },
+      "card": {
+        "monthlyTrend": "Monthly Trend",
+        "prediction": "Month-End Forecast Range",
+        "checkinCausal": "Check-in → Referral (Causal)",
+        "modelInfo": "Forecast Model Info"
+      },
+      "label": {
+        "predReg": "Predicted Registrations",
+        "predPay": "Predicted Payments",
+        "confidence": "Confidence",
+        "model": "Model:",
+        "predRevenue": "Predicted Revenue:",
+        "currentSelected": "Currently Selected",
+        "noWeekData": "No weekly comparison data, need at least 2 weeks of snapshots"
+      }
+    },
+    "impact": {
+      "title": "Impact Chain Analysis",
+      "subtitle": "Efficiency Metric Gap → Revenue Loss Quantification · What-if Simulator",
+      "card": {
+        "totalLoss": "Total Revenue Loss",
+        "topLever": "Top Lever Metric",
+        "metricCount": "Metrics Analyzed",
+        "waterfall": "Efficiency Loss Waterfall",
+        "whatif": "What-if Simulator"
+      },
+      "label": {
+        "whatifDesc": "Drag sliders to adjust efficiency metrics and see real-time impact on payments and revenue",
+        "noData": "No impact data, please run analysis first"
+      }
+    },
+    "attribution": {
+      "title": "Attribution Analysis",
+      "subtitle": "Contribution Breakdown of Each Driver to Referral Performance",
+      "card": {
+        "topFactor": "Top Contributing Factor",
+        "factorCount": "Factors Analyzed",
+        "distribution": "Contribution Distribution",
+        "detail": "Attribution Detail"
+      },
+      "table": {
+        "rank": "Rank",
+        "factor": "Factor",
+        "id": "ID",
+        "contribution": "Contribution"
+      },
+      "label": {
+        "contribution": "Contribution",
+        "noData": "No attribution data yet",
+        "noDetail": "No data",
+        "loadFailed": "No attribution data, please run analysis first"
+      }
+    },
+    "roi": {
+      "title": "ROI Analysis",
+      "subtitle": "${getCurrentMonthLabel()} · 投资回报率全景 · ROI Overview",
+      "card": {
+        "overview": "ROI Overview",
+        "cohort": "Cohort Decay Curve",
+        "costDetail": "Cost Detail"
+      },
+      "label": {
+        "totalRevenue": "Total Revenue",
+        "totalCost": "Total Cost",
+        "netProfit": "Net Profit",
+        "cohortDesc": "Outreach Rate half-life ~4 months, Participation Rate half-life ~2 months — highest ROI in first 2 months",
+        "noCostData": "B1 data file not loaded, no real cost data available",
+        "noCostTable": "No data — please upload B1 ROI data file and re-analyze",
+        "good": "Good",
+        "low": "Low",
+        "needImprove": "Needs Improvement",
+        "targetGap": "Target"
+      },
+      "table": {
+        "rewardType": "Reward Type",
+        "incentiveDetail": "Incentive Detail",
+        "referralAction": "Referral Action",
+        "quantity": "Quantity",
+        "unitCost": "Unit Cost",
+        "totalCost": "Total Cost",
+        "total": "Total"
+      }
+    },
+    "orders": {
+      "title": "Order Structure Analysis",
+      "subtitle": "Package Type Share (E6) · Sub-Group Package Structure (E7) · Channel Revenue Waterfall (E8)",
+      "card": {
+        "e6": "Package Structure Analysis (E6)",
+        "e8": "Channel Revenue Waterfall (E8)",
+        "e7": "Sub-Group Package Structure (E7)"
+      },
+      "label": {
+        "e6NoData": "E6 not connected, check BI-订单_套餐类型占比_D-1 file",
+        "e7NoData": "E7 not connected, check BI-订单_分小组套餐类型占比_D-1 file",
+        "e8NoData": "E8 not connected, check BI-订单_套餐分渠道金额_D-1 file",
+        "loadFailed": "Some data failed to load, please run analysis first",
+        "byRevenue": "Revenue Share by Package Type",
+        "e7pending": "E7 data pending"
+      },
+      "table": {
+        "group": "Group"
+      }
+    },
+    "orders-detail": {
+      "title": "Advanced Order Analysis",
+      "subtitle": "Stacked Revenue by Product Type (E4) · Group Radar (E7) · Channel Waterfall (E8)"
+    },
+    "leads-detail": {
+      "title": "Leads Detail Analysis",
+      "subtitle": "Enclosure×Channel Conversion Heatmap · Reg→Paid Time Distribution",
+      "card": {
+        "a2": "A2 Enclosure×Channel Conversion Matrix",
+        "a3": "A3 Reg→Paid Time Distribution"
+      },
+      "label": {
+        "a2Desc": "Row = Paid Enclosure Segment · Col = Reg Channel · Color = Conversion Rate",
+        "a3Desc": "X-axis: Days Range · Y-axis: Student Count"
+      }
+    },
+    "insights": {
+      "title": "Operations Insights",
+      "subtitle": "Pyramid Report + 5-Why Root Cause + Stage Assessment",
+      "section": {
+        "conclusion": "Key Conclusions",
+        "stagePillars": "Key Action Pillars",
+        "fiveWhy": "5-Why Root Cause Analysis"
+      },
+      "label": {
+        "current": "Current",
+        "target": "Target",
+        "gap": "Gap",
+        "expectedLift": "Expected Revenue Lift",
+        "loadFailed": "Data load failed, please verify backend service is running."
+      }
+    },
+    "enclosure": {
+      "title": "Enclosure Period Resource Allocation Strategy",
+      "subtitle": "${getCurrentMonthLabel()} · 按付费当日起算围场段 · 优化资源分配 · Enclosure Period Analysis",
+      "card": {
+        "heatmap": "Enclosure × ROI Heatmap",
+        "coverage": "Enclosure Follow-up Coverage Rate",
+        "strategy": "Strategy Recommendations",
+        "detail": "Enclosure Detail",
+        "compare": "Market vs Referral Enclosure Comparison (D2×D3)",
+        "combined": "Combined Enclosure Overview (D4)"
+      },
+      "label": {
+        "heatmapDesc": "Color depth = ROI Index · Numbers = Suggested resource allocation %",
+        "compareDesc": "Blue = Market Channel · Purple = Referral Channel · Switch metrics for different views",
+        "combinedDesc": "All-channel combined view · 5 enclosure segment core metrics + conversion funnel",
+        "noData": "No data — please run analysis first",
+        "days": "Days"
+      },
+      "table": {
+        "segment": "Enclosure Segment",
+        "students": "Students",
+        "convRate": "Conversion Rate",
+        "followupRate": "Follow-up Rate",
+        "roiIndex": "ROI Index",
+        "suggestion": "Recommendation"
+      }
+    },
+    "enclosure-health": {
+      "title": "Enclosure Health Dashboard",
+      "subtitle": "${getCurrentMonthLabel()} · 跨源联动 F7 付费跟进 + F8 围场月度跟进 + D3 转介绍围场 · Paid Follow-up Tracking"
+    },
+    "enclosure-detail": {
+      "title": "Enclosure Period Detail Analysis",
+      "subtitle": "By Days Since Payment · Market vs Referral Comparison · Multi-dimension Metrics",
+      "context": {
+        "def": "Enclosure Definition",
+        "defDesc": "Days since payment segmented (M0~M12+, 14 segments, ~30 days each)",
+        "compare": "D2×D3 Comparison View",
+        "compareDesc": "Same enclosure period: Market vs Referral conversion/participation/student count",
+        "combined": "D4 Combined View",
+        "combinedDesc": "All-channel combined, showing active students/payments/participation/mobilization rate per enclosure"
+      }
+    },
+    "cohort-heatmap": {
+      "title": "Cohort Retention Heatmap",
+      "subtitle": "Enclosure × Metric Matrix Heatmap, color depth reflects relative performance",
+      "card": {
+        "northStar": "North Star KPI — Achievement Rate Gauge",
+        "matrix": "Cohort Retention Heatmap Matrix (M1 Snapshot)"
+      }
+    },
+    "cohort-students": {
+      "title": "C6 Student Detail Analysis",
+      "subtitle": "Student Records · Retention Curve · CC Referral Ranking · Team Comparison",
+      "card": {
+        "overview": "Overview & Team Comparison",
+        "retention": "Monthly Age Retention Curve (M1-M12)",
+        "ccRanking": "CC Referral Efficiency Ranking (by referral rate desc)"
+      },
+      "label": {
+        "loadFailed": "Data load failed, please run analysis first"
+      }
+    },
+    "cohort-decay": {
+      "title": "Cohort Decay Analysis",
+      "subtitle": "C1-C5 Metric Monthly Decay Curves · C4 Referral Coefficient Golden Window",
+      "tab": {
+        "decay": "Metric Decay Curves",
+        "coefficient": "C4 Referral Coefficient Golden Window"
+      },
+      "label": {
+        "byMonth": "By Cohort Month",
+        "byTeam": "By Sub-Group",
+        "loadFailed": "Data load failed, please run analysis first"
+      }
+    },
+    "ranking-enhanced": {
+      "title": "Enhanced Ranking",
+      "subtitle": "A4 CC Enhanced Ranking — Appointment/Show-up Rate/Composite Score",
+      "card": {
+        "table": "CC Enhanced Ranking Table"
+      }
+    },
+    "coverage": {
+      "title": "Pre-Class Outreach Coverage Gap",
+      "subtitle": "F11 Pre-Class Call Detail · Uncontacted Student Identification · Estimated Revenue Loss"
+    },
+    "leads-overview": {
+      "title": "Leads Overview",
+      "subtitle": "Full Funnel · Target Decomposition · Gap Tracking · Enclosure Efficiency",
+      "glossary": "Narrow Channel=CC/SS/LP employee link · Wide Channel=UserA student link",
+      "tab": {
+        "total": "Total",
+        "cc_narrow": "CC Narrow",
+        "ss_narrow": "SS Narrow",
+        "lp_narrow": "LP Narrow",
+        "wide": "Wide Channel"
+      },
+      "section": {
+        "monthly_trend": "Monthly Trend",
+        "progress": "Progress Tracking",
+        "target_decomposition": "Target Decomposition",
+        "gap_panel": "Current Issue",
+        "team_matrix": "Team Channel Efficiency Matrix",
+        "enclosure_baseline": "Enclosure Efficiency vs Baseline"
+      },
+      "col": {
+        "month": "Month",
+        "register": "Register",
+        "appointment": "Appt.",
+        "showup": "Show up",
+        "paid": "Paid",
+        "revenue_usd": "Revenue USD",
+        "leads_to_pay_rate": "Leads→Paid Rate%"
+      },
+      "row": {
+        "mom_gap": "MoM GAP",
+        "target": "Target",
+        "achievement": "Achievement",
+        "progress_bm": "Progress BM",
+        "target_gap": "Target GAP"
+      },
+      "label": {
+        "time_progress": "Today BM",
+        "revenue_target": "Monthly Revenue Target",
+        "unit_price": "Monthly Unit Price",
+        "unit_target": "Unit Target",
+        "conversion_target": "Conversion Target",
+        "leads_target": "Leads Target",
+        "cc_narrow": "CC Narrow",
+        "ss_narrow": "SS Narrow",
+        "lp_narrow": "LP Narrow",
+        "wide": "Wide Channel 55%"
+      },
+      "gap": {
+        "performance": "Performance Gap",
+        "unit_price": "Unit Price Gap",
+        "bill": "Bill Gap",
+        "showup": "Show up Gap",
+        "appointment": "Appointment Gap",
+        "lead": "Lead Gap",
+        "cc_lead": "CC Narrow Lead Gap",
+        "ss_lead": "SS Narrow Lead Gap",
+        "lp_lead": "LP Narrow Lead Gap",
+        "wide_lead": "Wide Channel Lead Gap"
+      },
+      "empty": "No data, please verify data source files are uploaded",
+      "error": "Data load failed, please try again later"
+    }
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "funnel": "Funnel Analysis",
+    "enclosure": "Enclosure Analysis",
+    "channel": "Channel Analysis",
+    "members": "Student Detail",
+    "highPotential": "High-Potential Students",
+    "team": "Team Summary",
+    "reports": "Reports",
+    "settings": "Settings"
+  },
+  "funnel": {
+    "title": "Funnel Analysis",
+    "subtitle": "Target vs Actual · Scenario Simulation",
+    "col": {
+      "stage": "Stage",
+      "target": "Target",
+      "actual": "Actual",
+      "gap": "Gap",
+      "achievement": "Achievement Rate",
+      "convRate": "Conversion Rate"
+    },
+    "scenario": {
+      "title": "Scenario Simulation"
+    }
+  },
+  "channel": {
+    "title": "Channel Analysis",
+    "subtitle": "CC Narrow/SS Narrow/LP Narrow/Wide · Attribution",
+    "tab": {
+      "contribution": "Performance Contribution",
+      "net": "Net Breakdown",
+      "threeFactor": "Three-Factor Benchmark"
+    }
+  },
+  "enclosure": {
+    "title": "Enclosure Analysis",
+    "subtitle": "Enclosure Segment × CC Matrix · Participation/Referral/Cargo",
+    "col": {
+      "enclosure": "Enclosure Segment",
+      "cc": "CC",
+      "students": "Active Students",
+      "participationRate": "Participation Rate",
+      "newCoeff": "Referral Coefficient",
+      "cargoRatio": "Referral Ratio",
+      "checkinRate": "Check-in Rate"
+    }
+  },
+  "members": {
+    "title": "Student Detail",
+    "subtitle": "Active Student List · Click row for details",
+    "filter": {
+      "enclosure": "Enclosure Filter",
+      "cc": "CC Filter"
+    }
+  },
+  "highPotential": {
+    "title": "High-Potential Students",
+    "subtitle": "High referrals + Active attendance + Strong payment intent"
+  },
+  "team": {
+    "title": "Team Summary",
+    "subtitle": "CC Students · Participation Rate · Registrations · Payments"
+  },
+  "matrix": {
+    "title": "Indicator Matrix Overview",
+    "subtitle": "CC/SS/LP Role Indicator Coverage Configuration & Comparison",
+    "category": {
+      "result": "Result Indicators",
+      "achievement": "Achievement Indicators",
+      "process": "Process Indicators",
+      "efficiency": "Efficiency Indicators",
+      "process_wide": "Wide-Channel Process Indicators",
+      "conversion": "Conversion Efficiency",
+      "service_pre_paid": "Service Indicators - Pre-Paid Outreach",
+      "service_post_paid": "Service Indicators - Post-Paid Outreach"
+    },
+    "pending": "Data Pending",
+    "cc_readonly": "CC column locked by system, all enabled",
+    "save": "Save Config",
+    "reset": "Reset",
+    "export": "Export CSV"
   }
 }
