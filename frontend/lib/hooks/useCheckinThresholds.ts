@@ -1,8 +1,8 @@
 'use client';
 
 import { useCallback } from 'react';
-import useSWR from 'swr';
-import { configAPI, swrFetcher } from '@/lib/api';
+import { useFilteredSWR } from '@/lib/hooks/use-filtered-swr';
+import { configAPI } from '@/lib/api';
 
 export interface CheckinThresholds {
   /** ≥ good = 绿色达标 (默认 0.6) */
@@ -45,9 +45,8 @@ function readLocalStorageThresholds(): CheckinThresholds | null {
  * 数据持久化到后端 API，localStorage 仅用于一次性迁移。
  */
 export function useCheckinThresholds() {
-  const { data, mutate, isLoading } = useSWR<CheckinThresholds>(
+  const { data, mutate, isLoading } = useFilteredSWR<CheckinThresholds>(
     '/api/config/checkin-thresholds',
-    swrFetcher,
     {
       // API 返回空时尝试一次性迁移 localStorage
       onSuccess: async (apiData) => {

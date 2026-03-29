@@ -1,8 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import useSWR from 'swr';
-import { swrFetcher } from '@/lib/api';
+import { useFilteredSWR } from '@/lib/hooks/use-filtered-swr';
 
 export interface GlossaryTerm {
   term: string;
@@ -22,7 +21,7 @@ interface GlossaryCardProps {
 }
 
 export function GlossaryCard({ containerRef }: GlossaryCardProps) {
-  const { data: terms } = useSWR<GlossaryTerm[]>('/api/knowledge/glossary', swrFetcher);
+  const { data: terms } = useFilteredSWR<GlossaryTerm[]>('/api/knowledge/glossary');
   const [tooltip, setTooltip] = useState<TooltipState | null>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
 

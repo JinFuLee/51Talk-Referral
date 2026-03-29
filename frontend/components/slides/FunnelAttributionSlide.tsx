@@ -20,7 +20,7 @@ interface FunnelResponse {
 }
 
 export function FunnelAttributionSlide({ slideNumber, totalSlides }: SlideProps) {
-  const { data, isLoading, error, mutate } = useSWR<FunnelResponse>('/api/funnel', swrFetcher);
+  const { data, isLoading, error, mutate } = useFilteredSWR<FunnelResponse>('/api/funnel');
   const allStages = data?.stages ?? [];
 
   // 只保留计数型 stage（过滤掉名称含"率"的率值 stage）

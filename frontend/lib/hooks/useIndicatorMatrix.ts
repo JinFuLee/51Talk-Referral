@@ -1,8 +1,7 @@
 'use client';
 
-import useSWR from 'swr';
 import { useCallback } from 'react';
-import { swrFetcher } from '@/lib/api';
+import { useFilteredSWR } from '@/lib/hooks/use-filtered-swr';
 import type { IndicatorDef, IndicatorMatrix } from '@/lib/types/indicator-matrix';
 
 export function useIndicatorMatrix() {
@@ -10,13 +9,13 @@ export function useIndicatorMatrix() {
     data: registry,
     isLoading: registryLoading,
     error: registryError,
-  } = useSWR<IndicatorDef[]>('/api/indicator-matrix/registry', swrFetcher);
+  } = useFilteredSWR<IndicatorDef[]>('/api/indicator-matrix/registry');
   const {
     data: matrix,
     mutate,
     isLoading: matrixLoading,
     error: matrixError,
-  } = useSWR<IndicatorMatrix>('/api/indicator-matrix/matrix', swrFetcher);
+  } = useFilteredSWR<IndicatorMatrix>('/api/indicator-matrix/matrix');
 
   const getActiveForRole = useCallback(
     (role: 'CC' | 'SS' | 'LP') => {

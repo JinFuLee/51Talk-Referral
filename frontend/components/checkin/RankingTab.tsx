@@ -1,8 +1,7 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
-import useSWR from 'swr';
-import { swrFetcher } from '@/lib/api';
+import { useFilteredSWR } from '@/lib/hooks/use-filtered-swr';
 import { Spinner } from '@/components/ui/Spinner';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { BrandDot } from '@/components/ui/BrandDot';
@@ -316,7 +315,7 @@ export function RankingTab({ roleFilter = 'CC', enclosureFilter }: RankingTabPro
     return url;
   }, [configJson, enclosureFilter]);
 
-  const { data, isLoading, error, mutate } = useSWR<RankingResponse>(rankingUrl, swrFetcher, {
+  const { data, isLoading, error, mutate } = useFilteredSWR<RankingResponse>(rankingUrl, {
     refreshInterval: 30_000,
   });
 

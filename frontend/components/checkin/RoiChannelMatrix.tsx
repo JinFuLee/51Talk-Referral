@@ -1,7 +1,6 @@
 'use client';
 
-import useSWR from 'swr';
-import { swrFetcher } from '@/lib/api';
+import { useFilteredSWR } from '@/lib/hooks/use-filtered-swr';
 import { Spinner } from '@/components/ui/Spinner';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { formatUSD } from '@/lib/utils';
@@ -43,9 +42,8 @@ export function RoiChannelMatrix({ enclosureFilter }: Props) {
   const params = new URLSearchParams();
   if (enclosureFilter) params.set('enclosure', enclosureFilter);
 
-  const { data, isLoading, error } = useSWR<RoiAnalysisResponse>(
-    `/api/checkin/roi-analysis${params.toString() ? '?' + params.toString() : ''}`,
-    swrFetcher
+  const { data, isLoading, error } = useFilteredSWR<RoiAnalysisResponse>(
+    `/api/checkin/roi-analysis${params.toString() ? '?' + params.toString() : ''}`
   );
 
   if (isLoading) {

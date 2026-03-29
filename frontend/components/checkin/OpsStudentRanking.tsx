@@ -1,7 +1,6 @@
 'use client';
 
-import useSWR from 'swr';
-import { swrFetcher } from '@/lib/api';
+import { useFilteredSWR } from '@/lib/hooks/use-filtered-swr';
 import { Spinner } from '@/components/ui/Spinner';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { cn, formatRate } from '@/lib/utils';
@@ -181,7 +180,7 @@ export function OpsStudentRanking({ configJson }: OpsStudentRankingProps) {
 
   const apiUrl = `/api/checkin/ops-student-ranking?dimension=${dimension}&role_config=${encodeURIComponent(configJson)}&limit=50`;
 
-  const { data, isLoading, error, mutate } = useSWR<OpsStudentRankingResponse>(apiUrl, swrFetcher, {
+  const { data, isLoading, error, mutate } = useFilteredSWR<OpsStudentRankingResponse>(apiUrl, {
     refreshInterval: 60_000,
   });
 

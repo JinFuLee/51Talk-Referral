@@ -1,7 +1,6 @@
 'use client';
 
-import useSWR from 'swr';
-import { swrFetcher } from '@/lib/api';
+import { useFilteredSWR } from '@/lib/hooks/use-filtered-swr';
 import { formatRevenue, formatRate } from '@/lib/utils';
 import type { CCPerformanceRecord } from '@/lib/types/cc-performance';
 import type { CCRadarData } from '@/lib/types/cross-analysis';
@@ -44,9 +43,8 @@ function ActionCard({
 }
 
 export function CCPerformanceDetail({ record, exchangeRate }: CCPerformanceDetailProps) {
-  const { data: radarData, isLoading: radarLoading } = useSWR<CCRadarData>(
-    record.cc_name ? `/api/cc-matrix/radar/${encodeURIComponent(record.cc_name)}` : null,
-    swrFetcher
+  const { data: radarData, isLoading: radarLoading } = useFilteredSWR<CCRadarData>(
+    record.cc_name ? `/api/cc-matrix/radar/${encodeURIComponent(record.cc_name)}` : null
   );
 
   // 雷达图数据格式转换（CCRadarData 为扁平字段，手动映射）

@@ -1,8 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import useSWR from 'swr';
-import { swrFetcher } from '@/lib/api';
+import { useFilteredSWR } from '@/lib/hooks/use-filtered-swr';
 import type { SimulationResult } from '@/lib/types/cross-analysis';
 import { formatRate } from '@/lib/utils';
 import { Spinner } from '@/components/ui/Spinner';
@@ -24,7 +23,7 @@ export function GapSimulator() {
   const [newRate, setNewRate] = useState(0.5);
 
   const url = `/api/attribution/simulation?segment=${encodeURIComponent(segment)}&new_rate=${newRate}`;
-  const { data, isLoading, error } = useSWR<SimulationResult>(url, swrFetcher);
+  const { data, isLoading, error } = useFilteredSWR<SimulationResult>(url);
 
   const segmentLabel = SEGMENTS.find((s) => s.value === segment)?.label ?? segment;
 

@@ -11,6 +11,7 @@ import {
   swrFetcher,
   periodQuery,
 } from './api';
+import { useFilteredSWR } from './hooks/use-filtered-swr';
 import { useConfigStore } from './stores/config-store';
 import type {
   DataSourceStatus,
@@ -38,7 +39,7 @@ const REFRESH_30S: SWRConfiguration = { refreshInterval: 30_000 };
 // ── Health ─────────────────────────────────────────────────────────────────────
 
 export function useHealth() {
-  return useSWR('/api/health', swrFetcher);
+  return useFilteredSWR<{ status: string }>('/api/health');
 }
 
 // ── Analysis summary ──────────────────────────────────────────────────────────

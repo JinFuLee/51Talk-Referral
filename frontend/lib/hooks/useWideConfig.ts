@@ -1,8 +1,7 @@
 'use client';
 
 import { useMemo, useEffect, useCallback } from 'react';
-import useSWR from 'swr';
-import { swrFetcher } from '@/lib/api';
+import { useFilteredSWR } from '@/lib/hooks/use-filtered-swr';
 
 const ENCLOSURE_KEYS = [
   'M0',
@@ -128,9 +127,8 @@ function assignmentToRoleEnclosures(assignment: EnclosureRoleAssignment): Record
  * 返回 { config, roleEnclosures, activeRoles, configJson }
  */
 export function useWideConfig() {
-  const { data: apiData, mutate } = useSWR<EnclosureRoleApiResponse>(
+  const { data: apiData, mutate } = useFilteredSWR<EnclosureRoleApiResponse>(
     '/api/config/enclosure-role',
-    swrFetcher,
     { refreshInterval: 60_000 }
   );
 

@@ -2,8 +2,7 @@
 
 import React, { useState, useCallback } from 'react';
 import { useLocale } from 'next-intl';
-import useSWR from 'swr';
-import { swrFetcher } from '@/lib/api';
+import { useFilteredSWR } from '@/lib/hooks/use-filtered-swr';
 import { formatUSD, formatRate, formatValue } from '@/lib/utils';
 import { SkeletonChart } from '@/components/ui/Skeleton';
 
@@ -625,7 +624,7 @@ export function TargetRecommender() {
     : '';
   const tiersUrl = `/api/config/targets/tiers?include_pace=true${shareParam}`;
 
-  const { data, isLoading, error, mutate } = useSWR<TiersResponse>(tiersUrl, swrFetcher);
+  const { data, isLoading, error, mutate } = useFilteredSWR<TiersResponse>(tiersUrl);
 
   // 处理自定义字段变更
   const handleCustomChange = useCallback((key: keyof CustomInputs, val: string) => {

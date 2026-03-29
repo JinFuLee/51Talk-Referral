@@ -1,7 +1,6 @@
 'use client';
 
-import useSWR from 'swr';
-import { swrFetcher } from '@/lib/api';
+import { useFilteredSWR } from '@/lib/hooks/use-filtered-swr';
 import { Spinner } from '@/components/ui/Spinner';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { cn, formatRate } from '@/lib/utils';
@@ -224,9 +223,8 @@ interface OpsChannelViewProps {
 export function OpsChannelView({ configJson }: OpsChannelViewProps) {
   const [subTab, setSubTab] = useState<SubTabId>('channel');
 
-  const { data, isLoading, error, mutate } = useSWR<RankingResponse>(
+  const { data, isLoading, error, mutate } = useFilteredSWR<RankingResponse>(
     `/api/checkin/ranking?role_config=${encodeURIComponent(configJson)}`,
-    swrFetcher,
     { refreshInterval: 30_000 }
   );
 

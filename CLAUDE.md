@@ -210,6 +210,59 @@ Next.js 前端（34 页面 + 43 组件）
 - 新建 Slide/组件前先 `curl` 目标端点确认实际返回格式，不依赖推测
 - 字段名 SSoT = 后端 Pydantic 模型（`backend/models/*.py`），前端 interface 必须跟随
 
+## 全维度分析框架铁律（M37，2026-03-29 确立）
+
+完整规格文档: `docs/specs/dimension-framework.md`（SSoT）
+
+**8 维筛选 + 4 基准对比，全站统一，不可绕过。**
+
+### 前端铁律
+- **禁止直接 `useSWR`**：所有数据获取必须使用 `useFilteredSWR`（自动附加全维度参数）。唯一豁免：hook 定义文件本身（`use-filtered-swr.ts` / `use-compare-data.ts`）和系统组件（`config-store.ts`）
+- **页面声明维度**：每个页面顶层调用 `usePageDimensions({...})`，声明支持哪些维度。UnifiedFilterBar 据此自动隐藏不适用筛选器
+- **类型 SSoT**：`frontend/lib/types/filters.ts` 定义 `DimensionState` / `PageDimensions` / `FilterOptions`。新增维度必须先改此文件
+
+### 后端铁律
+- **全部 API 必须 `Depends(parse_filters)`**：`backend/api/*.py` 中有路由定义的文件必须使用 `parse_filters` 依赖注入。豁免：`health.py` / `system.py` / `dependencies.py` / `filter_options.py` / `access_control.py`
+- **过滤用 `apply_filters`**：DataManager 返回原始 DataFrame 后，调用 `apply_filters(df, filters)` 统一过滤，不在各 API 中手写过滤逻辑
+- **类型 SSoT**：`backend/models/filters.py` 定义 `UnifiedFilter` / `parse_filters` / `apply_filters`。与前端 `filters.ts` 字段 1:1 匹配
+
+### 前后端契约
+- Query param 统一 **snake_case**（`data_role` / `funnel_stage`），前端 store 用 **camelCase**（`dataRole` / `funnelStage`），`useFilteredSWR` 内部转换
+- 列表值逗号分隔：`enclosure=M0,M1,M2`、`behavior=gold,effective`
+- 默认值不传（减少 URL 长度）
+
+### 新增维度 SOP（4 步）
+1. **定义** → 更新 `docs/specs/dimension-framework.md` §1 + §3 适用性矩阵
+2. **类型** → 同步更新 `filters.ts` + `filters.py` + `parse_filters` + `apply_filters`
+3. **数据层** → 更新 `/api/filter/options` 返回新维度可选值
+4. **UI** → 在 `UnifiedFilterBar` 中添加筛选器 + 页面声明 `usePageDimensions`
+
+### 合规检测
+- `bash scripts/check-dimension-compliance.sh`：3 类违规检测（直接 useSWR / 缺 parse_filters / 类型 drift），MK 交付前自验
+- 页面适用性矩阵见 `docs/specs/dimension-framework.md` §3（39 页面 × 8 维度）
+
+### 8 维筛选速查
+
+| 维度 | ID | 默认 | 数据层行为 |
+|------|-----|------|-----------|
+| 地区 | `country` | TH | 团队前缀过滤 |
+| 数据角色 | `data_role` | all | 围场角色配置过滤 |
+| 围场 | `enclosure` | active | 行级过滤 |
+| 团队 | `team` + `cc` | null | 团队/个人精确匹配 |
+| 时间粒度 | `granularity` | month | 聚合方式（不过滤） |
+| 漏斗阶段 | `funnel_stage` | all | 上下文（突出哪阶段指标） |
+| 渠道 | `channel` | all | 转介绍类型列过滤 |
+| 学员行为 | `behavior` | all | 行为分层过滤 |
+
+### 4 对比基准速查
+
+| 基准 | ID | 数据来源 |
+|------|-----|---------|
+| vs 月目标 | `target` | `monthly_targets` + `targets_override.json` |
+| vs T-1 BM 进度 | `bm_progress` | `bm_config` 权重 × 已过天数 |
+| vs 今天 BM | `bm_today` | `bm_config` 权重 × 今日 |
+| vs WMA 预测 | `prediction` | M33 三档推荐器 WMA/Holt |
+
 ## 指标矩阵系统
 
 配置驱动的全维度 KPI 指标矩阵。CC 为不可变超集（33 项），SS/LP 为可动态配置的子集。

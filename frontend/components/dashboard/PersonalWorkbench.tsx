@@ -1,9 +1,8 @@
 'use client';
 
-import useSWR from 'swr';
+import { useFilteredSWR } from '@/lib/hooks/use-filtered-swr';
 import Link from 'next/link';
 import { User, TrendingUp, Users, ExternalLink } from 'lucide-react';
-import { swrFetcher } from '@/lib/api';
 import { useConfigStore } from '@/lib/stores/config-store';
 import { Spinner } from '@/components/ui/Spinner';
 import { Card } from '@/components/ui/Card';
@@ -102,14 +101,11 @@ export function PersonalWorkbench() {
   const rankKey = focusCC
     ? `/api/analysis/cc-ranking?top_n=50&period=${period}&cc_name=${encodeURIComponent(focusCC)}`
     : null;
-  const { data: rankData, isLoading: rankLoading } = useSWR<RankingData>(rankKey, swrFetcher);
+  const { data: rankData, isLoading: rankLoading } = useFilteredSWR<RankingData>(rankKey);
 
   // 高潜学员数
   const hpKey = focusCC ? `/api/high-potential?cc=${encodeURIComponent(focusCC)}` : null;
-  const { data: hpData, isLoading: hpLoading } = useSWR<HighPotentialCountResponse>(
-    hpKey,
-    swrFetcher
-  );
+  const { data: hpData, isLoading: hpLoading } = useFilteredSWR<HighPotentialCountResponse>(hpKey);
 
   // 找出该 CC 在排名中的条目
   const myRankItem = rankData?.items?.find((item) => item.name === focusCC);

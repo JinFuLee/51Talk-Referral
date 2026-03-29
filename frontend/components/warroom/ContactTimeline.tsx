@@ -1,7 +1,6 @@
 'use client';
 
-import useSWR from 'swr';
-import { swrFetcher } from '@/lib/api';
+import { useFilteredSWR } from '@/lib/hooks/use-filtered-swr';
 import { Spinner } from '@/components/ui/Spinner';
 import type { WarroomTimeline } from '@/lib/types/cross-analysis';
 
@@ -27,9 +26,8 @@ function DotCell({ connected }: { connected: boolean }) {
 }
 
 export function ContactTimeline({ stdtId }: ContactTimelineProps) {
-  const { data, isLoading, error } = useSWR<WarroomTimeline>(
-    `/api/high-potential/${stdtId}/timeline`,
-    swrFetcher
+  const { data, isLoading, error } = useFilteredSWR<WarroomTimeline>(
+    `/api/high-potential/${stdtId}/timeline`
   );
 
   if (isLoading) {

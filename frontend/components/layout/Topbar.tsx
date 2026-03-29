@@ -6,12 +6,11 @@ import { useLocale } from 'next-intl';
 import { usePresentationStore } from '@/lib/stores/presentation-store';
 import { MonitorPlay, User, LogOut } from 'lucide-react';
 import clsx from 'clsx';
-import useSWR from 'swr';
+import { useFilteredSWR } from '@/lib/hooks/use-filtered-swr';
 import { TimePeriodSelector } from '@/components/shared/TimePeriodSelector';
 import { CompareToggle } from '@/components/shared/CompareToggle';
 import { BrandMark } from '@/components/ui/BrandMark';
 import { formatDate } from '@/lib/date-format';
-import { swrFetcher } from '@/lib/api';
 
 function ViewModeBadge({ pathname }: { pathname: string }) {
   if (pathname.startsWith('/ops')) {
@@ -45,7 +44,7 @@ export function Topbar() {
   const locale = useLocale();
   const isOnline = health?.status === 'ok';
 
-  const { data: me } = useSWR<MeResponse>('/api/access-control/me', swrFetcher, {
+  const { data: me } = useFilteredSWR<MeResponse>('/api/access-control/me', {
     // 401 不上报错误日志，access-control/me 允许 401
     onError: () => {},
     shouldRetryOnError: false,

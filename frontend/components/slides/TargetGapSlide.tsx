@@ -1,7 +1,6 @@
 'use client';
 
-import useSWR from 'swr';
-import { swrFetcher } from '@/lib/api';
+import { useFilteredSWR } from '@/lib/hooks/use-filtered-swr';
 import { formatRate } from '@/lib/utils';
 import { SlideShell } from '@/components/presentation/SlideShell';
 import { SkeletonChart } from '@/components/ui/Skeleton';
@@ -25,7 +24,7 @@ interface FunnelResponse {
 }
 
 export function TargetGapSlide({ slideNumber, totalSlides }: SlideProps) {
-  const { data, isLoading, error, mutate } = useSWR<FunnelResponse>('/api/funnel', swrFetcher);
+  const { data, isLoading, error, mutate } = useFilteredSWR<FunnelResponse>('/api/funnel');
   const stages = data?.stages ?? [];
 
   // 生成一句话结论

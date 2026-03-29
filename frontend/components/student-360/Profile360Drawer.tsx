@@ -1,8 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import useSWR from 'swr';
-import { swrFetcher } from '@/lib/api';
+import { useFilteredSWR } from '@/lib/hooks/use-filtered-swr';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Spinner } from '@/components/ui/Spinner';
@@ -97,14 +96,12 @@ export function Profile360Drawer({ stdtId, onClose }: Profile360DrawerProps) {
     return () => document.removeEventListener('keydown', handler);
   }, [onClose]);
 
-  const { data: detail, isLoading } = useSWR<Student360Detail>(
-    stdtId ? `/api/students/360/${encodeURIComponent(stdtId)}` : null,
-    swrFetcher
+  const { data: detail, isLoading } = useFilteredSWR<Student360Detail>(
+    stdtId ? `/api/students/360/${encodeURIComponent(stdtId)}` : null
   );
 
-  const { data: network, isLoading: networkLoading } = useSWR<Student360Network>(
-    stdtId ? `/api/students/360/${encodeURIComponent(stdtId)}/network?depth=2` : null,
-    swrFetcher
+  const { data: network, isLoading: networkLoading } = useFilteredSWR<Student360Network>(
+    stdtId ? `/api/students/360/${encodeURIComponent(stdtId)}/network?depth=2` : null
   );
 
   if (!stdtId) return null;

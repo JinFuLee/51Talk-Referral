@@ -2,8 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Search, X, Loader2 } from 'lucide-react';
-import useSWR from 'swr';
-import { swrFetcher } from '@/lib/api';
+import { useFilteredSWR } from '@/lib/hooks/use-filtered-swr';
 
 export interface SearchResult {
   book_id: string;
@@ -68,11 +67,10 @@ export function SearchBar({ onResultClick }: SearchBarProps) {
     return () => clearTimeout(timer);
   }, [query]);
 
-  const { data, isLoading } = useSWR<SearchResult[]>(
+  const { data, isLoading } = useFilteredSWR<SearchResult[]>(
     debouncedQuery.length >= 2
       ? `/api/knowledge/search?q=${encodeURIComponent(debouncedQuery)}`
-      : null,
-    swrFetcher
+      : null
   );
 
   const handleResultClick = useCallback(
