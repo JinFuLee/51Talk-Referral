@@ -31,7 +31,7 @@ from fastapi import APIRouter, Depends, Query, Request, Response
 
 from backend.api.dependencies import get_data_manager
 from backend.core.data_manager import DataManager
-from backend.models.filters import UnifiedFilter, parse_filters
+from backend.models.filters import UnifiedFilter, apply_filters, parse_filters
 
 router = APIRouter()
 
@@ -1094,7 +1094,9 @@ def get_checkin_summary(
     enclosure 参数：前端统一筛选栏传入的围场 M 标签（如 M0/M1/M2），
     用于在角色默认围场范围内进一步交叉过滤，不影响无参数时的行为。
     """
-    d3: pd.DataFrame = dm.load_all().get("detail", pd.DataFrame())
+    d3: pd.DataFrame = apply_filters(
+        dm.load_all().get("detail", pd.DataFrame()), filters
+    )
 
     # 解析围场过滤：将 M 标签转回原始围场值，对 d3 做全局交叉过滤
     if enclosure and _D3_ENCLOSURE_COL in d3.columns:
@@ -1116,7 +1118,9 @@ def get_checkin_summary(
     for role in roles:
         override = _parse_role_enclosures(role_config, role)
         if role == "运营":
-            d4: pd.DataFrame = dm.load_all().get("students", pd.DataFrame())
+            d4: pd.DataFrame = apply_filters(
+                dm.load_all().get("students", pd.DataFrame()), filters
+            )
             by_role[role] = _aggregate_ops_channels(
                 d3, d4, enclosures_override=override
             )
@@ -1145,7 +1149,9 @@ def get_checkin_team_detail(
 
     每个人的打卡率 = 该人负责学员中有效打卡数 / 总学员数
     """
-    d3: pd.DataFrame = dm.load_all().get("detail", pd.DataFrame())
+    d3: pd.DataFrame = apply_filters(
+        dm.load_all().get("detail", pd.DataFrame()), filters
+    )
     role = _detect_role_from_team(team)
     enclosures = _parse_role_enclosures(role_config, role)
     if enclosures and _D3_ENCLOSURE_COL in d3.columns:
@@ -1175,8 +1181,8 @@ def get_checkin_followup(
     JOIN D4 获取质量评分字段，降序返回。
     """
     data = dm.load_all()
-    df_d3: pd.DataFrame = data.get("detail", pd.DataFrame())
-    df_d4: pd.DataFrame = data.get("students", pd.DataFrame())
+    df_d3: pd.DataFrame = apply_filters(data.get("detail", pd.DataFrame()), filters)
+    df_d4: pd.DataFrame = apply_filters(data.get("students", pd.DataFrame()), filters)
 
     # 围场筛选：前端传 M 标签（M0,M3），转为 D3 原始值（0~30,91~120）
     if enclosure and _D3_ENCLOSURE_COL in df_d3.columns:
@@ -1213,8 +1219,8 @@ def get_checkin_followup_tsv(
 ) -> Response:
     """返回纯文本 TSV 格式的未打卡学员列表，浏览器可直接复制粘贴到 Excel。"""
     data = dm.load_all()
-    df_d3: pd.DataFrame = data.get("detail", pd.DataFrame())
-    df_d4: pd.DataFrame = data.get("students", pd.DataFrame())
+    df_d3: pd.DataFrame = apply_filters(data.get("detail", pd.DataFrame()), filters)
+    df_d4: pd.DataFrame = apply_filters(data.get("students", pd.DataFrame()), filters)
 
     students = _build_followup_students(df_d3, df_d4, role, team, cc_name)
 
@@ -1255,7 +1261,9 @@ def get_checkin_ranking(
     enclosure 参数：前端统一筛选栏传入的围场 M 标签（如 M0/M1/M2），
     用于在角色默认围场范围内进一步交叉过滤，不影响无参数时的行为。
     """
-    d3: pd.DataFrame = dm.load_all().get("detail", pd.DataFrame())
+    d3: pd.DataFrame = apply_filters(
+        dm.load_all().get("detail", pd.DataFrame()), filters
+    )
 
     # 解析围场过滤：将 M 标签转回原始围场值列表
     enc_filter_raws: list[str] | None = None
@@ -1284,7 +1292,9 @@ def get_checkin_ranking(
         # 的交叉过滤（enc_filter_raws）——运营视图看全局 M6+ 而非单个围场切片，
         # 围场徽章仅对 CC/SS/LP 有语义。如需单围场过滤，传 enclosures_override。
         if role == "运营":
-            d4_ops: pd.DataFrame = dm.load_all().get("students", pd.DataFrame())
+            d4_ops: pd.DataFrame = apply_filters(
+                dm.load_all().get("students", pd.DataFrame()), filters
+            )
             by_role[role] = _aggregate_ops_channels(
                 d3, d4_ops, enclosures_override=override
             )
@@ -1488,8 +1498,8 @@ async def student_analysis(
     from datetime import date
 
     data = dm.load_all()
-    df_d4: pd.DataFrame = data.get("students", pd.DataFrame())
-    df_d3: pd.DataFrame = data.get("detail", pd.DataFrame())
+    df_d4: pd.DataFrame = apply_filters(data.get("students", pd.DataFrame()), filters)
+    df_d3: pd.DataFrame = apply_filters(data.get("detail", pd.DataFrame()), filters)
 
     _empty_band_list = [{"band": b, "students": 0, "pct": 0.0} for b in _BAND_ORDER]
     _empty_result: dict = {
@@ -2033,7 +2043,9 @@ def get_enclosure_thresholds(
     config_by_enc: dict[str, float] = thresholds_cfg.get("cc_warning_by_enclosure", {})
 
     # 加载 D4 学员数据
-    df_d4: pd.DataFrame = dm.load_all().get("students", pd.DataFrame())
+    df_d4: pd.DataFrame = apply_filters(
+        dm.load_all().get("students", pd.DataFrame()), filters
+    )
 
     thresholds: dict[str, dict] = {}
 
@@ -2160,8 +2172,8 @@ def get_ops_student_ranking(
     支持二级裂变计算：查找 D4 中推荐人学员 ID 指向当前学员的其他学员。
     """
     data = dm.load_all()
-    df_d4: pd.DataFrame = data.get("students", pd.DataFrame())
-    df_d3: pd.DataFrame = data.get("detail", pd.DataFrame())
+    df_d4: pd.DataFrame = apply_filters(data.get("students", pd.DataFrame()), filters)
+    df_d3: pd.DataFrame = apply_filters(data.get("detail", pd.DataFrame()), filters)
 
     if df_d4.empty:
         return {

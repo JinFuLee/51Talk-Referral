@@ -12,7 +12,7 @@ from backend.api.dependencies import get_data_manager
 from backend.core.config import get_targets
 from backend.core.data_manager import DataManager
 from backend.core.scenario_engine import ScenarioEngine
-from backend.models.filters import UnifiedFilter, parse_filters
+from backend.models.filters import UnifiedFilter, apply_filters, parse_filters
 from backend.models.funnel import FunnelResult, ScenarioResult
 
 router = APIRouter()
@@ -94,6 +94,8 @@ def get_funnel(
     dm: DataManager = Depends(get_data_manager),
 ) -> FunnelResult:
     data = dm.load_all()
+    if "result" in data and isinstance(data["result"], pd.DataFrame):
+        data["result"] = apply_filters(data["result"], filters)
     engine = ScenarioEngine(data["result"], _merged_targets(data))
     return engine.compute_funnel()
 
@@ -109,6 +111,10 @@ def get_funnel_with_invitation(
 ) -> dict[str, Any]:
     """在标准漏斗基础上，增加 D3 邀约数 + 注册→邀约率 + 邀约→出席率"""
     data = dm.load_all()
+    if "result" in data and isinstance(data["result"], pd.DataFrame):
+        data["result"] = apply_filters(data["result"], filters)
+    if "detail" in data and isinstance(data["detail"], pd.DataFrame):
+        data["detail"] = apply_filters(data["detail"], filters)
     engine = ScenarioEngine(data["result"], _merged_targets(data))
     funnel = engine.compute_funnel()
 
@@ -136,5 +142,7 @@ def get_funnel_scenario(
     dm: DataManager = Depends(get_data_manager),
 ) -> ScenarioResult:
     data = dm.load_all()
+    if "result" in data and isinstance(data["result"], pd.DataFrame):
+        data["result"] = apply_filters(data["result"], filters)
     engine = ScenarioEngine(data["result"], _merged_targets(data))
     return engine.compute_scenario(stage)

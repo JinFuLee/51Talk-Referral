@@ -12,7 +12,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from backend.api.dependencies import get_data_manager
 from backend.core.data_manager import DataManager
 from backend.models.common import PaginatedResponse
-from backend.models.filters import UnifiedFilter, parse_filters
+from backend.models.filters import UnifiedFilter, apply_filters, parse_filters
 from backend.models.member import StudentBrief, StudentDetail
 
 router = APIRouter()
@@ -121,7 +121,7 @@ def get_members(
     dm: DataManager = Depends(get_data_manager),
 ) -> PaginatedResponse:
     data = dm.load_all()
-    df = data.get("students", pd.DataFrame())
+    df = apply_filters(data.get("students", pd.DataFrame()), filters)
 
     if df.empty:
         return PaginatedResponse(items=[], total=0, page=page, size=size, pages=0)
@@ -203,7 +203,7 @@ def get_member_detail(
     dm: DataManager = Depends(get_data_manager),
 ) -> StudentDetail:
     data = dm.load_all()
-    df = data.get("students", pd.DataFrame())
+    df = apply_filters(data.get("students", pd.DataFrame()), filters)
 
     if df.empty:
         raise HTTPException(status_code=404, detail="学员数据未加载")

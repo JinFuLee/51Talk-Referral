@@ -12,7 +12,7 @@ from fastapi import APIRouter, Depends, Query, Request
 from backend.api.dependencies import get_data_manager
 from backend.core.data_manager import DataManager
 from backend.models.expiry_alert import ExpiryAlertItem, ExpiryAlertSummary
-from backend.models.filters import UnifiedFilter, parse_filters
+from backend.models.filters import UnifiedFilter, apply_filters, parse_filters
 
 router = APIRouter()
 
@@ -81,8 +81,8 @@ def get_expiry_alert(
     dm: DataManager = Depends(get_data_manager),
 ) -> list[ExpiryAlertItem]:
     data = dm.load_all()
-    df = data.get("students")
-    if df is None or df.empty:
+    df = apply_filters(data.get("students", pd.DataFrame()), filters)
+    if df.empty:
         return []
 
     # 次卡距到期天数列

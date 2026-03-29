@@ -18,7 +18,7 @@ from backend.models.channel import (
     RevenueContribution,
     ThreeFactorComparison,
 )
-from backend.models.filters import UnifiedFilter, parse_filters
+from backend.models.filters import UnifiedFilter, apply_filters, parse_filters
 
 router = APIRouter()
 
@@ -115,8 +115,15 @@ def _safe_val(val: object) -> Any:
         return str(val) if val else None
 
 
-def _get_engine(dm: DataManager) -> AttributionEngine:
+def _get_engine(
+    dm: DataManager, filters: UnifiedFilter | None = None
+) -> AttributionEngine:
     data = dm.load_all()
+    if filters is not None:
+        if "enclosure_cc" in data and isinstance(data["enclosure_cc"], pd.DataFrame):
+            data["enclosure_cc"] = apply_filters(data["enclosure_cc"], filters)
+        if "detail" in data and isinstance(data["detail"], pd.DataFrame):
+            data["detail"] = apply_filters(data["detail"], filters)
     return AttributionEngine(
         enclosure_cc_df=data["enclosure_cc"],
         detail_df=data["detail"],
@@ -134,7 +141,7 @@ def get_channel(
     dm: DataManager = Depends(get_data_manager),
     filters: UnifiedFilter = Depends(parse_filters),
 ) -> list[ChannelMetrics]:
-    engine = _get_engine(dm)
+    engine = _get_engine(dm, filters)
     return engine.compute_channel_metrics()
 
 
@@ -148,7 +155,7 @@ def get_channel_attribution(
     dm: DataManager = Depends(get_data_manager),
     filters: UnifiedFilter = Depends(parse_filters),
 ) -> list[RevenueContribution]:
-    engine = _get_engine(dm)
+    engine = _get_engine(dm, filters)
     return engine.compute_revenue_contribution()
 
 
@@ -162,7 +169,7 @@ def get_channel_three_factor(
     dm: DataManager = Depends(get_data_manager),
     filters: UnifiedFilter = Depends(parse_filters),
 ) -> list[ThreeFactorComparison]:
-    engine = _get_engine(dm)
+    engine = _get_engine(dm, filters)
     return engine.compute_three_factor()
 
 
@@ -182,6 +189,7 @@ def get_channel_detail(
 ) -> dict[str, Any]:
     data = dm.load_all()
     df: pd.DataFrame = data.get("detail", pd.DataFrame())
+    df = apply_filters(df, filters)
 
     if df.empty:
         return {
@@ -227,6 +235,7 @@ def get_d2_columns(
 ) -> dict[str, Any]:
     data = dm.load_all()
     df: pd.DataFrame = data.get("enclosure_cc", pd.DataFrame())
+    df = apply_filters(df, filters)
 
     if df.empty:
         return {"columns": [], "sample": {}, "row_count": 0}

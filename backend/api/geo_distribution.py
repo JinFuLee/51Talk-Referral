@@ -10,7 +10,7 @@ from fastapi import APIRouter, Depends
 
 from backend.api.dependencies import get_data_manager
 from backend.core.data_manager import DataManager
-from backend.models.filters import UnifiedFilter, parse_filters
+from backend.models.filters import UnifiedFilter, apply_filters, parse_filters
 
 router = APIRouter()
 
@@ -27,8 +27,8 @@ def get_geo_distribution(
     返回各国家/地区的学员分布及平均推荐指标。
     字段: country, student_count, pct, avg_referral_registrations, avg_payments
     """
-    students = dm.get("students")
-    if students is None or students.empty:
+    students = apply_filters(dm.get("students") or pd.DataFrame(), filters)
+    if students.empty:
         return []
 
     col = "常登录国家"

@@ -10,7 +10,7 @@ from fastapi import APIRouter, Depends, Query, Request
 from backend.api.dependencies import get_data_manager
 from backend.core.data_manager import DataManager
 from backend.models.enclosure_ss_lp import EnclosureLPMetrics, EnclosureSSMetrics
-from backend.models.filters import UnifiedFilter, parse_filters
+from backend.models.filters import UnifiedFilter, apply_filters, parse_filters
 
 router = APIRouter()
 
@@ -180,7 +180,7 @@ def get_enclosure_ss(
     enclosure: str | None = Query(None, description="生命周期筛选，如 0M / 6M / 12M+"),
 ) -> list[EnclosureSSMetrics]:
     data = dm.load_all()
-    df = data.get("enclosure_ss", pd.DataFrame())
+    df = apply_filters(data.get("enclosure_ss", pd.DataFrame()), filters)
     if enclosure and not df.empty:
         if "生命周期" in df.columns:
             df = df[df["生命周期"].astype(str).str.strip() == enclosure].copy()
@@ -200,7 +200,9 @@ def get_enclosure_ss_ranking(
     dm: DataManager = Depends(get_data_manager),
 ) -> list[EnclosureSSMetrics]:
     data = dm.load_all()
-    metrics = _df_to_ss_metrics(data.get("enclosure_ss", pd.DataFrame()))
+    metrics = _df_to_ss_metrics(
+        apply_filters(data.get("enclosure_ss", pd.DataFrame()), filters)
+    )
     return sorted(metrics, key=lambda m: m.registrations or 0, reverse=True)
 
 
@@ -216,7 +218,7 @@ def get_enclosure_lp(
     enclosure: str | None = Query(None, description="生命周期筛选，如 0M / 6M / 12M+"),
 ) -> list[EnclosureLPMetrics]:
     data = dm.load_all()
-    df = data.get("enclosure_lp", pd.DataFrame())
+    df = apply_filters(data.get("enclosure_lp", pd.DataFrame()), filters)
     if enclosure and not df.empty:
         if "生命周期" in df.columns:
             df = df[df["生命周期"].astype(str).str.strip() == enclosure].copy()
@@ -236,7 +238,9 @@ def get_enclosure_lp_ranking(
     dm: DataManager = Depends(get_data_manager),
 ) -> list[EnclosureLPMetrics]:
     data = dm.load_all()
-    metrics = _df_to_lp_metrics(data.get("enclosure_lp", pd.DataFrame()))
+    metrics = _df_to_lp_metrics(
+        apply_filters(data.get("enclosure_lp", pd.DataFrame()), filters)
+    )
     return sorted(metrics, key=lambda m: m.registrations or 0, reverse=True)
 
 
@@ -252,7 +256,7 @@ def get_ss_ranking(
 ) -> list[EnclosureSSMetrics]:
     """按 SS 个人维度聚合（跨围场汇总），再按注册数降序"""
     data = dm.load_all()
-    df = data.get("enclosure_ss", pd.DataFrame())
+    df = apply_filters(data.get("enclosure_ss", pd.DataFrame()), filters)
     if df.empty:
         return []
 
@@ -308,7 +312,7 @@ def get_lp_ranking(
 ) -> list[EnclosureLPMetrics]:
     """按 LP 个人维度聚合（跨围场汇总），再按注册数降序"""
     data = dm.load_all()
-    df = data.get("enclosure_lp", pd.DataFrame())
+    df = apply_filters(data.get("enclosure_lp", pd.DataFrame()), filters)
     if df.empty:
         return []
 

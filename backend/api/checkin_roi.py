@@ -27,7 +27,7 @@ from fastapi.responses import JSONResponse
 
 from backend.api.dependencies import get_data_manager
 from backend.core.data_manager import DataManager
-from backend.models.filters import UnifiedFilter, parse_filters
+from backend.models.filters import UnifiedFilter, apply_filters, parse_filters
 
 router = APIRouter()
 
@@ -423,8 +423,8 @@ def get_checkin_roi_analysis(
     - D3（detail）：转介绍收入（总带新付费金额 USD）
     """
     data = dm.load_all()
-    df_d4: pd.DataFrame = data.get("students", pd.DataFrame())
-    df_d3: pd.DataFrame = data.get("detail", pd.DataFrame())
+    df_d4: pd.DataFrame = apply_filters(data.get("students", pd.DataFrame()), filters)
+    df_d3: pd.DataFrame = apply_filters(data.get("detail", pd.DataFrame()), filters)
 
     if df_d4.empty:
         return JSONResponse(

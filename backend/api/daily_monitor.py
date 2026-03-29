@@ -19,13 +19,24 @@ from backend.models.daily_monitor import (
     DailyContactStats,
     FunnelStat,
 )
-from backend.models.filters import UnifiedFilter, parse_filters
+from backend.models.filters import UnifiedFilter, apply_filters, parse_filters
 
 router = APIRouter()
 
+_FILTERABLE_KEYS = ("students", "detail", "enclosure_cc")
 
-def _get_analyzer(dm: DataManager) -> CrossAnalyzer:
-    return CrossAnalyzer(dm.load_all())
+
+def _get_analyzer(
+    dm: DataManager, filters: UnifiedFilter | None = None
+) -> CrossAnalyzer:
+    import pandas as pd
+
+    data = dm.load_all()
+    if filters is not None:
+        for key in _FILTERABLE_KEYS:
+            if key in data and isinstance(data[key], pd.DataFrame):
+                data[key] = apply_filters(data[key], filters)
+    return CrossAnalyzer(data)
 
 
 @router.get(
@@ -43,7 +54,7 @@ def get_daily_contact_stats(
     dm: DataManager = Depends(get_data_manager),
     filters: UnifiedFilter = Depends(parse_filters),
 ) -> DailyContactStats:
-    analyzer = _get_analyzer(dm)
+    analyzer = _get_analyzer(dm, filters)
     seg_list = [s.strip() for s in segments.split(",")] if segments else None
     data = analyzer.daily_contact_stats(date=date, segments=seg_list, role=role)
 
@@ -71,7 +82,7 @@ def get_daily_cc_ranking(
     dm: DataManager = Depends(get_data_manager),
     filters: UnifiedFilter = Depends(parse_filters),
 ) -> list[CCRankingItem]:
-    analyzer = _get_analyzer(dm)
+    analyzer = _get_analyzer(dm, filters)
     items = analyzer.daily_cc_ranking(role=role)
     return [CCRankingItem(**item) for item in items]
 
@@ -86,6 +97,6 @@ def get_contact_vs_conversion(
     dm: DataManager = Depends(get_data_manager),
     filters: UnifiedFilter = Depends(parse_filters),
 ) -> list[ContactConversionPoint]:
-    analyzer = _get_analyzer(dm)
+    analyzer = _get_analyzer(dm, filters)
     items = analyzer.contact_vs_conversion()
     return [ContactConversionPoint(**item) for item in items]

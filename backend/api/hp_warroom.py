@@ -11,7 +11,7 @@ from fastapi import APIRouter, Depends, Query, Request
 from backend.api.dependencies import get_data_manager
 from backend.core.cross_analyzer import CrossAnalyzer
 from backend.core.data_manager import DataManager
-from backend.models.filters import UnifiedFilter, parse_filters
+from backend.models.filters import UnifiedFilter, apply_filters, parse_filters
 from backend.models.warroom import (
     DailyContact,
     WarroomStudent,
@@ -22,8 +22,17 @@ from backend.models.warroom import (
 router = APIRouter()
 
 
-def _get_analyzer(dm: DataManager) -> CrossAnalyzer:
-    return CrossAnalyzer(dm.load_all())
+def _get_analyzer(
+    dm: DataManager, filters: UnifiedFilter | None = None
+) -> CrossAnalyzer:
+    import pandas as pd
+
+    data = dm.load_all()
+    if filters is not None:
+        for key in ("students", "detail", "enclosure_cc"):
+            if key in data and isinstance(data[key], pd.DataFrame):
+                data[key] = apply_filters(data[key], filters)
+    return CrossAnalyzer(data)
 
 
 @router.get(
@@ -44,7 +53,7 @@ def get_hp_warroom(
     filters: UnifiedFilter = Depends(parse_filters),
     dm: DataManager = Depends(get_data_manager),
 ) -> list[WarroomStudent]:
-    analyzer = _get_analyzer(dm)
+    analyzer = _get_analyzer(dm, filters)
 
     cc_list: list[str] | None = None
     if cc_names:
@@ -65,7 +74,7 @@ def get_hp_timeline(
     filters: UnifiedFilter = Depends(parse_filters),
     dm: DataManager = Depends(get_data_manager),
 ) -> WarroomTimeline:
-    analyzer = _get_analyzer(dm)
+    analyzer = _get_analyzer(dm, filters)
     result = analyzer.hp_timeline(stdt_id=stdt_id)
 
     # 将 daily_log list[dict] 转为 list[DailyContact]

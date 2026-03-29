@@ -14,7 +14,7 @@ from fastapi import APIRouter, Depends, Query, Request
 from backend.api.dependencies import get_data_manager
 from backend.core.cross_analyzer import CrossAnalyzer
 from backend.core.data_manager import DataManager
-from backend.models.filters import UnifiedFilter, parse_filters
+from backend.models.filters import UnifiedFilter, apply_filters, parse_filters
 from backend.models.student_360 import (
     DailyRecord,
     ReferralNetwork,
@@ -27,8 +27,17 @@ from backend.models.student_360 import (
 router = APIRouter()
 
 
-def _get_analyzer(dm: DataManager) -> CrossAnalyzer:
-    return CrossAnalyzer(dm.load_all())
+def _get_analyzer(
+    dm: DataManager, dimension_filters: UnifiedFilter | None = None
+) -> CrossAnalyzer:
+    import pandas as pd
+
+    data = dm.load_all()
+    if dimension_filters is not None:
+        for key in ("students", "detail", "enclosure_cc"):
+            if key in data and isinstance(data[key], pd.DataFrame):
+                data[key] = apply_filters(data[key], dimension_filters)
+    return CrossAnalyzer(data)
 
 
 @router.get(
@@ -51,7 +60,7 @@ def search_students(
     page_size: int = Query(default=20, ge=1, le=200, description="每页条数"),
     dm: DataManager = Depends(get_data_manager),
 ) -> StudentSearchResult:
-    analyzer = _get_analyzer(dm)
+    analyzer = _get_analyzer(dm, dimension_filters)
     filters_dict: dict | None = None
     if filters:
         try:
@@ -86,7 +95,7 @@ def get_student_detail(
     dimension_filters: UnifiedFilter = Depends(parse_filters),
     dm: DataManager = Depends(get_data_manager),
 ) -> StudentDetail:
-    analyzer = _get_analyzer(dm)
+    analyzer = _get_analyzer(dm, dimension_filters)
     data = analyzer.student_detail(stdt_id=stdt_id)
     timeline = [DailyRecord(**r) for r in data.pop("timeline", [])]
     return StudentDetail(**data, timeline=timeline)
@@ -104,7 +113,7 @@ def get_student_network(
     dimension_filters: UnifiedFilter = Depends(parse_filters),
     dm: DataManager = Depends(get_data_manager),
 ) -> ReferralNetwork:
-    analyzer = _get_analyzer(dm)
+    analyzer = _get_analyzer(dm, dimension_filters)
     data = analyzer.student_network(stdt_id=stdt_id, depth=depth)
     nodes = [ReferralNode(**n) for n in data.get("nodes", [])]
     return ReferralNetwork(

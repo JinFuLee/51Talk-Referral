@@ -10,7 +10,7 @@ from fastapi import APIRouter, Depends, Request
 
 from backend.api.dependencies import get_data_manager
 from backend.core.data_manager import DataManager
-from backend.models.filters import UnifiedFilter, parse_filters
+from backend.models.filters import UnifiedFilter, apply_filters, parse_filters
 
 router = APIRouter()
 
@@ -38,7 +38,7 @@ def get_team_summary(
 ) -> list[dict[str, Any]]:
     """按 CC 分组聚合 D2 围场数据，计算带新注册/付费/金额"""
     data = dm.load_all()
-    df = data.get("enclosure_cc", pd.DataFrame())
+    df = apply_filters(data.get("enclosure_cc", pd.DataFrame()), filters)
 
     if df.empty:
         return []

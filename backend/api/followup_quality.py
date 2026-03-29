@@ -10,7 +10,7 @@ from fastapi import APIRouter, Depends, Query, Request
 
 from backend.api.dependencies import get_data_manager
 from backend.core.data_manager import DataManager
-from backend.models.filters import UnifiedFilter, parse_filters
+from backend.models.filters import UnifiedFilter, apply_filters, parse_filters
 
 router = APIRouter()
 
@@ -107,8 +107,8 @@ def get_followup_quality(
         return _SS_LP_NOT_SUPPORTED
 
     data = dm.load_all()
-    df = data.get("students")
-    if df is None or df.empty:
+    df = apply_filters(data.get("students", pd.DataFrame()), filters)
+    if df.empty:
         return {"summary": None, "by_person": [], "message": "暂无数据"}
 
     df = df.copy()

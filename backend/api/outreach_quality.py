@@ -17,7 +17,7 @@ from pydantic import BaseModel
 
 from backend.api.dependencies import get_data_manager
 from backend.core.data_manager import DataManager
-from backend.models.filters import UnifiedFilter, parse_filters
+from backend.models.filters import UnifiedFilter, apply_filters, parse_filters
 
 router = APIRouter()
 
@@ -169,5 +169,5 @@ def get_outreach_quality(
     - `students`：当前分组学员数（可用作接通率分母）
     """
     data = dm.load_all()
-    df: pd.DataFrame = data.get("detail", pd.DataFrame())
+    df: pd.DataFrame = apply_filters(data.get("detail", pd.DataFrame()), filters)
     return _build_response(df)

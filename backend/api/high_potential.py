@@ -10,7 +10,7 @@ from fastapi import APIRouter, Depends, Query, Request
 
 from backend.api.dependencies import get_data_manager
 from backend.core.data_manager import DataManager
-from backend.models.filters import UnifiedFilter, parse_filters
+from backend.models.filters import UnifiedFilter, apply_filters, parse_filters
 from backend.models.member import HighPotentialStudent
 
 router = APIRouter()
@@ -83,7 +83,7 @@ def get_high_potential(
     cc: str | None = Query(default=None, description="CC 姓名模糊筛选"),
 ) -> list[HighPotentialStudent]:
     data = dm.load_all()
-    df = data.get("high_potential", pd.DataFrame())
+    df = apply_filters(data.get("high_potential", pd.DataFrame()), filters)
 
     if df.empty:
         return []

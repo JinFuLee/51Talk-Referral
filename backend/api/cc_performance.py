@@ -33,7 +33,7 @@ from backend.models.cc_performance import (
     OutreachMetric,
     PerformanceMetric,
 )
-from backend.models.filters import UnifiedFilter, parse_filters
+from backend.models.filters import UnifiedFilter, apply_filters, parse_filters
 
 router = APIRouter()
 
@@ -871,9 +871,9 @@ def get_cc_performance(
 
     # 加载数据
     data = dm.load_all()
-    df_d2 = data.get("enclosure_cc", pd.DataFrame())
-    df_d3 = data.get("detail", pd.DataFrame())
-    df_d4 = data.get("students", pd.DataFrame())
+    df_d2 = apply_filters(data.get("enclosure_cc", pd.DataFrame()), filters)
+    df_d3 = apply_filters(data.get("detail", pd.DataFrame()), filters)
+    df_d4 = apply_filters(data.get("students", pd.DataFrame()), filters)
 
     # 聚合三个数据源
     agg_d2 = _agg_d2(df_d2) if not df_d2.empty else pd.DataFrame()

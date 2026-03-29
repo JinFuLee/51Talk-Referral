@@ -10,7 +10,7 @@ from fastapi import APIRouter, Depends
 
 from backend.api.dependencies import get_data_manager
 from backend.core.data_manager import DataManager
-from backend.models.filters import UnifiedFilter, parse_filters
+from backend.models.filters import UnifiedFilter, apply_filters, parse_filters
 
 router = APIRouter()
 
@@ -27,8 +27,8 @@ def get_learning_heatmap(
     返回每个围场（生命周期段）的每周平均转码次数。
     字段: enclosure, week1_avg, week2_avg, week3_avg, week4_avg
     """
-    students = dm.get("students")
-    if students is None or students.empty:
+    students = apply_filters(dm.get("students") or pd.DataFrame(), filters)
+    if students.empty:
         return []
 
     week_cols = ["第1周转码", "第2周转码", "第3周转码", "第4周转码"]

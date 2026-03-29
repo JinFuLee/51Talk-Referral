@@ -10,7 +10,7 @@ from fastapi import APIRouter, Depends, Request
 
 from backend.api.dependencies import get_data_manager
 from backend.core.data_manager import DataManager
-from backend.models.filters import UnifiedFilter, parse_filters
+from backend.models.filters import UnifiedFilter, apply_filters, parse_filters
 
 router = APIRouter()
 
@@ -78,8 +78,8 @@ def get_renewal_risk(
     dm: DataManager = Depends(get_data_manager),
 ) -> dict[str, Any]:
     data = dm.load_all()
-    df = data.get("students")
-    if df is None or df.empty:
+    df = apply_filters(data.get("students", pd.DataFrame()), filters)
+    if df.empty:
         return {"segments": [], "high_risk_students": [], "summary": "暂无数据"}
 
     renewal_col = "末次续费日期距今天数"

@@ -33,7 +33,7 @@ from pydantic import BaseModel
 
 from backend.api.dependencies import get_data_manager
 from backend.core.data_manager import DataManager
-from backend.models.filters import UnifiedFilter, parse_filters
+from backend.models.filters import UnifiedFilter, apply_filters, parse_filters
 
 logger = logging.getLogger(__name__)
 
@@ -257,7 +257,9 @@ def _safe_mode(series: pd.Series) -> str:
     return str(m.iloc[0]) if not m.empty else ""
 
 
-def _get_role_metrics(role: str, dm: DataManager) -> dict[str, dict[str, Any]]:
+def _get_role_metrics(
+    role: str, dm: DataManager, filters: UnifiedFilter | None = None
+) -> dict[str, dict[str, Any]]:
     """按角色从 DataManager 聚合个人指标。
 
     返回：{person_name: {metric_key: value, "team": str}}
@@ -266,7 +268,11 @@ def _get_role_metrics(role: str, dm: DataManager) -> dict[str, dict[str, Any]]:
     result: dict[str, dict[str, Any]] = {}
 
     if role == "CC":
-        df: pd.DataFrame = data.get("enclosure_cc", pd.DataFrame())
+        df: pd.DataFrame = (
+            apply_filters(data.get("enclosure_cc", pd.DataFrame()), filters)
+            if filters is not None
+            else data.get("enclosure_cc", pd.DataFrame())
+        )
         if df.empty:
             return result
         cc_col = "last_cc_name"
@@ -489,6 +495,9 @@ def get_recommendations(
 
     # 1. 构建漏斗数据
     data = dm.load_all()
+    for key in ("enclosure_cc", "detail", "students"):
+        if key in data and isinstance(data[key], pd.DataFrame):
+            data[key] = apply_filters(data[key], filters)
     funnel_engine = ChannelFunnelEngine.from_data_dict(data)
     try:
         channel_funnel = funnel_engine.compute()
@@ -546,7 +555,7 @@ def get_recommendations(
 
     # 6. 时间感知 + 指标分布
     phase, remaining, phase_label = _get_month_phase(month)
-    cc_metrics = _get_role_metrics("CC", dm)
+    cc_metrics = _get_role_metrics("CC", dm, filters)
     metric_values: dict[str, list[float]] = {}
     for _pname, pdata in cc_metrics.items():
         for mk in (
@@ -743,7 +752,7 @@ def list_campaigns(
     # 为每个活动计算轻量 qualified_count / total_count
     for c in result:
         try:
-            metrics = _get_role_metrics(c.get("role", "CC"), dm)
+            metrics = _get_role_metrics(c.get("role", "CC"), dm, filters)
             metric_key = c.get("metric", "leads")
             op = c.get("operator", "gte")
             thr = float(c.get("threshold", 0))
@@ -897,7 +906,7 @@ def get_progress(
         operator: str = camp.get("operator", "gte")
         reward_thb: float = float(camp.get("reward_thb", 0))
 
-        persons = _get_role_metrics(role, dm)
+        persons = _get_role_metrics(role, dm, filters)
         records: list[dict[str, Any]] = []
 
         for name, pdata in persons.items():
