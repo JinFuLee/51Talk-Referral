@@ -10,6 +10,7 @@ import { ComparisonBanner } from '@/components/shared/ComparisonBanner';
 import { UnifiedFilterBar } from '@/components/ui/UnifiedFilterBar';
 import { FilterSyncActivator } from '@/components/providers/FilterSyncActivator';
 import { ErrorBoundary } from '@/components/providers/ErrorBoundary';
+import { ChunkErrorGuard } from '@/components/providers/ChunkErrorGuard';
 import { ToastProvider } from '@/components/providers/ToastProvider';
 import { ContentTransitionWrapper } from '@/components/providers/ContentTransitionWrapper';
 import {
@@ -71,6 +72,7 @@ export default async function LocaleLayout({
   return (
     <NextIntlClientProvider locale={locale} messages={messages}>
       <ErrorBoundary>
+        <ChunkErrorGuard />
         <SWRProvider>
           <div className="flex h-screen overflow-hidden bg-[var(--bg-primary)] presentation-expand relative">
             <div className="hide-in-presentation shrink-0 h-full">

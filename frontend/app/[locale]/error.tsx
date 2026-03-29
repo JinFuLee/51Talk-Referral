@@ -1,17 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-
-const CHUNK_RELOAD_KEY = 'chunk_reload_attempted';
-
-function isChunkLoadError(error: Error): boolean {
-  return (
-    error.name === 'ChunkLoadError' ||
-    error.message.includes('Loading chunk') ||
-    error.message.includes('Failed to fetch dynamically imported module') ||
-    (error.name === 'TypeError' && error.message.includes('Failed to fetch'))
-  );
-}
+import { isChunkLoadError, tryAutoReload, clearReloadFlag } from '@/lib/chunk-error';
 
 export default function Error({
   error,
@@ -21,21 +11,12 @@ export default function Error({
   reset: () => void;
 }) {
   useEffect(() => {
-    // ChunkLoadError: 部署后旧 chunk 失效，自动刷新一次
     if (isChunkLoadError(error)) {
-      const lastAttempt = sessionStorage.getItem(CHUNK_RELOAD_KEY);
-      const now = Date.now();
-      if (!lastAttempt || now - Number(lastAttempt) > 30_000) {
-        sessionStorage.setItem(CHUNK_RELOAD_KEY, String(now));
-        window.location.reload();
-        return;
-      }
+      tryAutoReload();
     }
   }, [error]);
 
-  const isChunk = isChunkLoadError(error);
-
-  if (isChunk) {
+  if (isChunkLoadError(error)) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="text-center max-w-md">
@@ -45,7 +26,7 @@ export default function Error({
           </p>
           <button
             onClick={() => {
-              sessionStorage.removeItem(CHUNK_RELOAD_KEY);
+              clearReloadFlag();
               window.location.reload();
             }}
             className="px-4 py-2 bg-primary text-primary-foreground rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
