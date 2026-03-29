@@ -446,9 +446,27 @@
 - 统计: 15 files (7 new + 8 mod), ~2500 lines, 11 commits, ROI 数据验证(54,874学员 $256K成本 $608K收入 ROI 137.1%)
 - QA: 后端 API 真实数据验证 ✓ / TypeScript 零错误 ✓ / ruff 零错误 ✓ / 行为分层分布合理 ✓
 
+### M37: 全维度分析框架（2026-03-29）
+- [x] Phase 0: 规格沉淀 — `docs/specs/dimension-framework.md`（8 维筛选 + 4 基准 + 页面适用性矩阵 + 新增维度 SOP）
+- [x] Phase 0: CLAUDE.md `§全维度框架铁律` 段落（项目级强制规则）
+- [x] Phase 0: `scripts/check-dimension-compliance.sh`（3 类违规检测：直接 useSWR / 缺 parse_filters / 类型 drift）
+- [x] Phase 1: 后端基础设施 — `backend/models/filters.py`（UnifiedFilter + parse_filters + apply_filters）+ `backend/api/filter_options.py`（/api/filter/options 端点）
+- [x] Phase 1: 前端类型 — `frontend/lib/types/filters.ts`（7 联合类型 + DimensionState + PageDimensions + FilterOptions + DIMENSION_DEFAULTS）
+- [x] Phase 1: Store 扩展 — config-store.ts（+8 维度字段 + 8 setter + 7 validator）
+- [x] Phase 1: Hooks 重写 — useFilteredSWR v2（全维度自动传参）+ useFilterSync v2（11 URL params）+ useCompareData v2 + usePageDimensions
+- [x] Phase 1: UI — UnifiedFilterBar（3 行：核心筛选 + 分析筛选折叠 + 基准选择）+ BenchmarkSelector（4 基准 Toggle）
+- [x] Phase 2: 核心页面迁移 — 15 高频页面 useSWR→useFilteredSWR + usePageDimensions + 14 后端 API +parse_filters
+- [x] Phase 3: 完成迁移 — 全部剩余页面/组件/hooks/slides 迁移 + 全部后端 API 接入
+- [x] 合规终验：`check-dimension-compliance.sh` **0 违规**（Before: 99 违规）
+- 统计: 80+ files modified, 10+ new files, 7 commits, 18 MK（3 Team sessions）
+- QA: tsc 零错误 / ruff 零错误 / compliance 0 violations / push 成功
+- 沉淀: 规格文档 + CLAUDE.md 规则 + 合规脚本 + Memory 条目（5 层防线全在位）
+
+---
+
 ## 规划中
 
-### M37: 话术迭代系统（待规划）
+### M38: 话术迭代系统（待规划）
 - 运营贴入当前话术 → AI 评分 → 多方案生成 → A/B 追踪 → 自动迭代
 - 依赖 M33 瓶颈识别结果做输入
 
@@ -467,8 +485,8 @@ M18.2(✅) ──► M18.3(✅) ──► M19(✅)
 
 关键路径：M26(✅) ──► M27(✅) ──► M28-M32(✅) — 项目质量 73→100，测试/CI/拆分/性能全完成
 
-M32(✅) ──► M33(✅) ──► M34(✅) ──► M35(✅) ──► M36(规划中)
-                         运营报告引擎   学员视角重构   CC个人业绩    话术迭代系统
+M32(✅) ──► M33(✅) ──► M34(✅) ──► M35(✅) ──► M36(✅) ──► M37(✅)
+                         运营报告引擎   学员视角重构   CC个人业绩   打卡升级    全维度框架
 ```
 
 ---
