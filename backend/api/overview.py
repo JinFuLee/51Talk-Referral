@@ -20,6 +20,7 @@ from backend.core.bm_calendar import (
 from backend.core.config import get_targets
 from backend.core.data_manager import DataManager
 from backend.core.time_period import compute_month_progress
+from backend.models.filters import UnifiedFilter, parse_filters
 
 # Excel target_field → targets_override.json 中文 key 映射
 # 用于统一 kpi_8item 和 kpi_pace 的目标来源
@@ -158,6 +159,7 @@ def _compute_kpi_8item(
 @router.get("/overview", summary="转介绍核心指标概览")
 def get_overview(
     request: Request,
+    filters: UnifiedFilter = Depends(parse_filters),
     dm: DataManager = Depends(get_data_manager),  # noqa: B008
 ) -> dict[str, Any]:
     """返回 D1 结果行的所有核心指标 + 数据源状态 + 时间进度 + KPI 8 项格式"""

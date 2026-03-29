@@ -10,9 +10,10 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 
 from backend.api.config import _backup_config_file
+from backend.models.filters import UnifiedFilter, parse_filters
 from backend.models.indicator_matrix import MatrixUpdateBody
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
@@ -38,9 +39,7 @@ def _read_json(path: Path, default: Any = None) -> Any:
 
 
 def _write_json(path: Path, data: Any) -> None:
-    path.write_text(
-        json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8"
-    )
+    path.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
 def _get_project_config() -> dict[str, Any]:
@@ -55,7 +54,9 @@ def _get_project_config() -> dict[str, Any]:
 
 
 @router.get("/indicator-matrix/registry", summary="获取指标注册表")
-def get_indicator_registry() -> list[dict[str, Any]]:
+def get_indicator_registry(
+    filters: UnifiedFilter = Depends(parse_filters),
+) -> list[dict[str, Any]]:
     """返回 config.json 中的 indicator_registry 全量列表"""
     config = _get_project_config()
     registry = config.get("indicator_registry", [])
@@ -63,7 +64,9 @@ def get_indicator_registry() -> list[dict[str, Any]]:
 
 
 @router.get("/indicator-matrix/matrix", summary="获取各岗位指标矩阵配置")
-def get_indicator_matrix() -> dict[str, Any]:
+def get_indicator_matrix(
+    filters: UnifiedFilter = Depends(parse_filters),
+) -> dict[str, Any]:
     """读取 config.json indicator_matrix，与 override 合并返回"""
     config = _get_project_config()
     base_matrix: dict[str, Any] = config.get("indicator_matrix", {})
@@ -93,9 +96,7 @@ def put_indicator_matrix(role: str, body: MatrixUpdateBody) -> dict[str, Any]:
     role_upper = role.upper()
 
     if role_upper == "CC":
-        raise HTTPException(
-            status_code=403, detail="CC 岗位指标矩阵为只读，不允许修改"
-        )
+        raise HTTPException(status_code=403, detail="CC 岗位指标矩阵为只读，不允许修改")
 
     if role_upper not in ("SS", "LP"):
         raise HTTPException(
@@ -169,9 +170,7 @@ def reset_indicator_matrix(role: str) -> dict[str, Any]:
     role_upper = role.upper()
 
     if role_upper == "CC":
-        raise HTTPException(
-            status_code=403, detail="CC 岗位指标矩阵为只读，不允许重置"
-        )
+        raise HTTPException(status_code=403, detail="CC 岗位指标矩阵为只读，不允许重置")
 
     if role_upper not in ("SS", "LP"):
         raise HTTPException(

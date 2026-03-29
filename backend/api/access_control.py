@@ -278,9 +278,7 @@ def get_access_control(request: Request) -> dict[str, Any]:
 
 
 @router.put("/access-control")
-def update_access_control(
-    request: Request, body: dict[str, Any]
-) -> dict[str, Any]:
+def update_access_control(request: Request, body: dict[str, Any]) -> dict[str, Any]:
     """更新权限配置（仅 admin 可调用）。"""
     config = _read_config()
     if not _is_admin(request, config):
@@ -397,9 +395,7 @@ def login(request: Request, body: LoginRequest) -> JSONResponse:
     users = config.get("users", [])
     email = body.email.strip().lower()
 
-    matched_user = next(
-        (u for u in users if u.get("email", "").lower() == email), None
-    )
+    matched_user = next((u for u in users if u.get("email", "").lower() == email), None)
     if not matched_user:
         raise HTTPException(status_code=403, detail="邮箱不在访问白名单中")
 

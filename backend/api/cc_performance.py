@@ -141,8 +141,13 @@ def _metric(actual, target, tp: float | None = None) -> PerformanceMetric:
     bm_gap = (a - bm) if (a is not None and bm is not None) else None
     bm_pct = (a / bm) if (a is not None and bm is not None and bm > 0) else None
     return PerformanceMetric(
-        target=t, actual=a, gap=gap, achievement_pct=ach,
-        bm_expected=_sf(bm), bm_gap=_sf(bm_gap), bm_pct=_sf(bm_pct),
+        target=t,
+        actual=a,
+        gap=gap,
+        achievement_pct=ach,
+        bm_expected=_sf(bm),
+        bm_gap=_sf(bm_gap),
+        bm_pct=_sf(bm_pct),
     )
 
 
@@ -181,8 +186,8 @@ def _agg_d2(df: pd.DataFrame) -> pd.DataFrame:
     # 排除 TH-TMK / TH-CC-Training / TH-CC01Region / TH-SS* 等非 CC 销售团队
     # 合法团队名匹配 ^TH-CC\w+Team$，不匹配的行在聚合前直接剔除
     if grp_col in df.columns:
-        team_mask = df[grp_col].astype(str).apply(
-            lambda x: bool(_CC_TEAM_PATTERN.match(x))
+        team_mask = (
+            df[grp_col].astype(str).apply(lambda x: bool(_CC_TEAM_PATTERN.match(x)))
         )
         df = df[team_mask]
         if df.empty:
@@ -486,9 +491,9 @@ def _build_record(
     )
     pace_daily_needed_val = max(
         0.0,
-        ((revenue_target * time_progress - revenue_actual) / remaining) if (
-            revenue_target is not None and revenue_actual is not None and remaining > 0
-        ) else 0.0,
+        ((revenue_target * time_progress - revenue_actual) / remaining)
+        if (revenue_target is not None and revenue_actual is not None and remaining > 0)
+        else 0.0,
     )
     pace_daily_needed = pace_daily_needed_val if remaining > 0 else None
     efficiency_lift_pct = (
@@ -582,8 +587,13 @@ def _sum_metric(
     bm_gap = (a - bm) if (a is not None and bm is not None) else None
     bm_pct = (a / bm) if (a is not None and bm is not None and bm > 0) else None
     return PerformanceMetric(
-        target=t, actual=a, gap=gap, achievement_pct=ach,
-        bm_expected=_sf(bm), bm_gap=_sf(bm_gap), bm_pct=_sf(bm_pct),
+        target=t,
+        actual=a,
+        gap=gap,
+        achievement_pct=ach,
+        bm_expected=_sf(bm),
+        bm_gap=_sf(bm_gap),
+        bm_pct=_sf(bm_pct),
     )
 
 
@@ -612,8 +622,11 @@ def _build_team_summary(
 
     def _sum_nested(attr: str, sub: str) -> int | float | None:
         """sum 嵌套对象字段（如 r.connected.count）"""
-        vals = [getattr(getattr(r, attr), sub) for r in records
-                if getattr(getattr(r, attr), sub) is not None]
+        vals = [
+            getattr(getattr(r, attr), sub)
+            for r in records
+            if getattr(getattr(r, attr), sub) is not None
+        ]
         return sum(vals) if vals else None
 
     students_total = _sum_or_none("students_count")
@@ -783,23 +796,26 @@ def upload_cc_targets(
     orphaned = [
         {
             "name": uploaded_lower[lk],
-            "target": _sf(targets[uploaded_lower[lk]].get(
-                "referral_usd_target"
-            )),
+            "target": _sf(targets[uploaded_lower[lk]].get("referral_usd_target")),
         }
         for lk in sorted(uploaded_lower)
         if lk not in d2_names_lower
     ]
 
     # D2 有但没上传的
-    unmatched_d2 = sorted(
-        n
-        for n in (
-            str(x) for x in df_d2["last_cc_name"].dropna().unique()
-            if str(x).strip() not in ("nan", "NaN", "")
+    unmatched_d2 = (
+        sorted(
+            n
+            for n in (
+                str(x)
+                for x in df_d2["last_cc_name"].dropna().unique()
+                if str(x).strip() not in ("nan", "NaN", "")
+            )
+            if n.lower() not in uploaded_lower
         )
-        if n.lower() not in uploaded_lower
-    ) if not df_d2.empty and "last_cc_name" in df_d2.columns else []
+        if not df_d2.empty and "last_cc_name" in df_d2.columns
+        else []
+    )
 
     matched_count = len(targets) - len(orphaned)
 
@@ -983,13 +999,17 @@ def get_cc_performance(
     if all_records:
         # 直接用所有 records 聚合出一个伪 grand_total
         def _gt_sum(attr: str):
-            vals = [getattr(r, attr) for r in all_records
-                    if getattr(r, attr) is not None]
+            vals = [
+                getattr(r, attr) for r in all_records if getattr(r, attr) is not None
+            ]
             return sum(vals) if vals else None
 
         def _gt_sum_nested(attr: str, sub: str):
-            vals = [getattr(getattr(r, attr), sub) for r in all_records
-                    if getattr(getattr(r, attr), sub) is not None]
+            vals = [
+                getattr(getattr(r, attr), sub)
+                for r in all_records
+                if getattr(getattr(r, attr), sub) is not None
+            ]
             return sum(vals) if vals else None
 
         gt_students = _gt_sum("students_count")
@@ -1017,13 +1037,9 @@ def get_cc_performance(
                     sum(r.paid.actual or 0 for r in all_records) or 0
                 ) + _unassigned_paid
             else:
-                gt_paid_actual = (
-                    sum(r.paid.actual or 0 for r in all_records) or None
-                )
+                gt_paid_actual = sum(r.paid.actual or 0 for r in all_records) or None
         else:
-            gt_paid_actual = (
-                sum(r.paid.actual or 0 for r in all_records) or None
-            )
+            gt_paid_actual = sum(r.paid.actual or 0 for r in all_records) or None
         gt_revenue_actual = gt_revenue_actual or None
         # 团队目标用 config hard.referral_revenue（铁数字），不用个人之和
         gt_revenue_target = team_referral_target or (
@@ -1042,9 +1058,7 @@ def get_cc_performance(
 
         def _avg_field(attr):
             vals = [
-                getattr(r, attr)
-                for r in all_records
-                if getattr(r, attr) is not None
+                getattr(r, attr) for r in all_records if getattr(r, attr) is not None
             ]
             return sum(vals) / len(vals) if vals else None
 
@@ -1082,15 +1096,9 @@ def get_cc_performance(
             asp=_metric(_gt_asp, _sf(targets.get("客单价"))),
             showup=_metric(gt_showup_actual, gt_showup_target, mp.time_progress),
             leads=_metric(gt_leads_actual, gt_leads_target, mp.time_progress),
-            leads_user_a=_si(
-                sum(r.leads_user_a or 0 for r in all_records) or None
-            ),
-            showup_to_paid=_conv_rate(
-                _gt_s2p, _sf(targets.get("出席转化率"))
-            ),
-            leads_to_paid=_conv_rate(
-                _gt_l2p, _sf(targets.get("目标转化率"))
-            ),
+            leads_user_a=_si(sum(r.leads_user_a or 0 for r in all_records) or None),
+            showup_to_paid=_conv_rate(_gt_s2p, _sf(targets.get("出席转化率"))),
+            leads_to_paid=_conv_rate(_gt_l2p, _sf(targets.get("目标转化率"))),
             calls_total=gt_calls_total,
             called_this_month=gt_called,
             call_target=gt_call_target,

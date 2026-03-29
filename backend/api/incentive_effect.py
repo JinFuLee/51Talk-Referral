@@ -10,6 +10,7 @@ from fastapi import APIRouter, Depends, Request
 
 from backend.api.dependencies import get_data_manager
 from backend.core.data_manager import DataManager
+from backend.models.filters import UnifiedFilter, parse_filters
 
 router = APIRouter()
 
@@ -109,6 +110,7 @@ def _group_stats(group: pd.DataFrame) -> dict[str, Any]:
 )
 def get_incentive_effect(
     request: Request,
+    filters: UnifiedFilter = Depends(parse_filters),
     dm: DataManager = Depends(get_data_manager),
 ) -> dict[str, Any]:
     data = dm.load_all()

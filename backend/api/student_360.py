@@ -14,6 +14,7 @@ from fastapi import APIRouter, Depends, Query, Request
 from backend.api.dependencies import get_data_manager
 from backend.core.cross_analyzer import CrossAnalyzer
 from backend.core.data_manager import DataManager
+from backend.models.filters import UnifiedFilter, parse_filters
 from backend.models.student_360 import (
     DailyRecord,
     ReferralNetwork,
@@ -37,7 +38,10 @@ def _get_analyzer(dm: DataManager) -> CrossAnalyzer:
 )
 def search_students(
     request: Request,
-    query: str | None = Query(default=None, description="文本搜索（学员ID/CC姓名/区域）"),  # noqa: E501
+    dimension_filters: UnifiedFilter = Depends(parse_filters),
+    query: str | None = Query(
+        default=None, description="文本搜索（学员ID/CC姓名/区域）"
+    ),  # noqa: E501
     filters: str | None = Query(
         default=None,
         description='JSON 过滤条件，如 {"segment":"0-30天","lifecycle":"有效","is_hp":true,"cc_name":"张三"}',  # noqa: E501
@@ -79,6 +83,7 @@ def search_students(
 def get_student_detail(
     stdt_id: str,
     request: Request,
+    dimension_filters: UnifiedFilter = Depends(parse_filters),
     dm: DataManager = Depends(get_data_manager),
 ) -> StudentDetail:
     analyzer = _get_analyzer(dm)
@@ -96,6 +101,7 @@ def get_student_network(
     stdt_id: str,
     request: Request,
     depth: int = Query(default=2, ge=1, le=5, description="递归深度（1-5）"),
+    dimension_filters: UnifiedFilter = Depends(parse_filters),
     dm: DataManager = Depends(get_data_manager),
 ) -> ReferralNetwork:
     analyzer = _get_analyzer(dm)

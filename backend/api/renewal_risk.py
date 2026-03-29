@@ -10,6 +10,7 @@ from fastapi import APIRouter, Depends, Request
 
 from backend.api.dependencies import get_data_manager
 from backend.core.data_manager import DataManager
+from backend.models.filters import UnifiedFilter, parse_filters
 
 router = APIRouter()
 
@@ -73,6 +74,7 @@ def _row_to_item(row: pd.Series, days_since_renewal: float | None) -> dict[str, 
 def get_renewal_risk(
     request: Request,
     top_n: int = 50,
+    filters: UnifiedFilter = Depends(parse_filters),
     dm: DataManager = Depends(get_data_manager),
 ) -> dict[str, Any]:
     data = dm.load_all()

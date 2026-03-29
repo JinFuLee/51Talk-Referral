@@ -12,6 +12,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from backend.api.dependencies import get_data_manager
 from backend.core.data_manager import DataManager
 from backend.models.common import PaginatedResponse
+from backend.models.filters import UnifiedFilter, parse_filters
 from backend.models.member import StudentBrief, StudentDetail
 
 router = APIRouter()
@@ -116,6 +117,7 @@ def get_members(
     has_referral: bool | None = Query(
         default=None, description="仅展示当月有带新记录的学员"
     ),
+    filters: UnifiedFilter = Depends(parse_filters),
     dm: DataManager = Depends(get_data_manager),
 ) -> PaginatedResponse:
     data = dm.load_all()
@@ -197,6 +199,7 @@ def get_members(
 def get_member_detail(
     student_id: str,
     request: Request,
+    filters: UnifiedFilter = Depends(parse_filters),
     dm: DataManager = Depends(get_data_manager),
 ) -> StudentDetail:
     data = dm.load_all()

@@ -181,9 +181,7 @@ def get_followup_quality(
     )
 
     df["_total_calls"] = (
-        pd.to_numeric(df[total_calls_col], errors="coerce")
-        if total_calls_col
-        else None
+        pd.to_numeric(df[total_calls_col], errors="coerce") if total_calls_col else None
     )
 
     # ── 全局汇总 ──────────────────────────────────────────────────────────────
@@ -240,16 +238,12 @@ def get_followup_quality(
         _ef = pd.Series([], dtype=float)
         g_lost = grp["_lost_days"].dropna() if "_lost_days" in grp.columns else _ef
         g_avg_lost = round(float(g_lost.mean()), 1) if not g_lost.empty else None
-        g_lost_14d = (
-            int((g_lost > _LOST_CONTACT_DAYS).sum()) if not g_lost.empty else 0
-        )
+        g_lost_14d = int((g_lost > _LOST_CONTACT_DAYS).sum()) if not g_lost.empty else 0
 
         g_note = grp["_note_delay"].dropna() if "_note_delay" in grp.columns else _ef
         g_avg_note_delay = round(float(g_note.mean()), 1) if not g_note.empty else None
 
-        g_calls = (
-            grp["_total_calls"].dropna() if "_total_calls" in grp.columns else _ef
-        )
+        g_calls = grp["_total_calls"].dropna() if "_total_calls" in grp.columns else _ef
         g_total_calls = int(g_calls.sum()) if not g_calls.empty else 0
 
         g_avg_dur = round(float(grp_dur.mean()), 1) if not grp_dur.empty else None

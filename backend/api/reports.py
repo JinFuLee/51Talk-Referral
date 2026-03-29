@@ -12,6 +12,8 @@ from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 
+from backend.models.filters import UnifiedFilter, parse_filters
+
 from .dependencies import get_service
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
@@ -116,9 +118,7 @@ def generate_report(
         report = gen.generate_report(force_run=req.force_run)
         return {"status": "ok", "report": report}
     except Exception as e:
-        raise HTTPException(
-            status_code=500, detail=f"报告生成失败: {e}"
-        ) from e
+        raise HTTPException(status_code=500, detail=f"报告生成失败: {e}") from e
 
 
 @router.get("/ai/latest", summary="获取最新 AI 生成报告")
@@ -145,7 +145,9 @@ def list_ai_reports() -> list[dict[str, Any]]:
 
 
 @router.get("/list", summary="列出所有报告文件")
-def list_reports() -> list[dict[str, Any]]:
+def list_reports(
+    filters: UnifiedFilter = Depends(parse_filters),
+) -> list[dict[str, Any]]:
     """扫描 output/ 目录，返回报告文件列表"""
     return _iter_report_files()
 

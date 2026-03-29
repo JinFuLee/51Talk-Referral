@@ -94,16 +94,18 @@ def get_error_summary() -> dict[str, Any]:
     for fp, count in fp_counter.most_common():
         first = fp_first[fp]
         stack_lines = (first.get("stack") or "").split("\n")[:5]
-        bugs.append({
-            "fingerprint": fp,
-            "count": count,
-            "type": first.get("type"),
-            "message": first.get("message"),
-            "source_file": first.get("source_file"),
-            "page": first.get("page"),
-            "stack_preview": "\n".join(stack_lines),
-            "first_seen": first.get("ts"),
-        })
+        bugs.append(
+            {
+                "fingerprint": fp,
+                "count": count,
+                "type": first.get("type"),
+                "message": first.get("message"),
+                "source_file": first.get("source_file"),
+                "page": first.get("page"),
+                "stack_preview": "\n".join(stack_lines),
+                "first_seen": first.get("ts"),
+            }
+        )
 
     return {
         "bugs": bugs,

@@ -8,6 +8,7 @@ from fastapi import APIRouter, Depends, Request
 
 from backend.api.dependencies import get_data_manager
 from backend.core.data_manager import DataManager
+from backend.models.filters import UnifiedFilter, parse_filters
 
 router = APIRouter()
 
@@ -15,6 +16,7 @@ router = APIRouter()
 @router.get("/status", summary="查询 5 个数据文件状态（含新鲜度）")
 def get_datasource_status(
     request: Request,
+    filters: UnifiedFilter = Depends(parse_filters),
     dm: DataManager = Depends(get_data_manager),
 ) -> list[dict[str, Any]]:
     """返回 D1-D5 数据文件的存在性与当月新鲜度"""

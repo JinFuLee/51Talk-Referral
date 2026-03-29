@@ -12,6 +12,7 @@ from fastapi import APIRouter, Depends, Query, Request
 from backend.api.dependencies import get_data_manager
 from backend.core.data_manager import DataManager
 from backend.models.expiry_alert import ExpiryAlertItem, ExpiryAlertSummary
+from backend.models.filters import UnifiedFilter, parse_filters
 
 router = APIRouter()
 
@@ -76,6 +77,7 @@ def get_expiry_alert(
     days: int = Query(
         default=30, ge=1, le=90, description="预警窗口天数（默认 30 天）"
     ),
+    filters: UnifiedFilter = Depends(parse_filters),
     dm: DataManager = Depends(get_data_manager),
 ) -> list[ExpiryAlertItem]:
     data = dm.load_all()
@@ -139,9 +141,10 @@ def get_expiry_alert_summary(
     days: int = Query(
         default=30, ge=1, le=90, description="预警窗口天数（默认 30 天）"
     ),
+    filters: UnifiedFilter = Depends(parse_filters),
     dm: DataManager = Depends(get_data_manager),
 ) -> ExpiryAlertSummary:
-    items = get_expiry_alert(request=request, days=days, dm=dm)
+    items = get_expiry_alert(request=request, days=days, filters=filters, dm=dm)
 
     urgent = sum(1 for i in items if i.urgency_tier == "urgent")
     warning = sum(1 for i in items if i.urgency_tier == "warning")

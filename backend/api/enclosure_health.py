@@ -24,6 +24,7 @@ router = APIRouter()
 
 def _get_analyzer(dm: DataManager, filters: UnifiedFilter) -> CrossAnalyzer:
     from backend.models.filters import apply_filters
+
     data = dm.load_all()
     filtered_data = dict(data)
     filtered_data["enclosure_cc"] = apply_filters(data["enclosure_cc"], filters)

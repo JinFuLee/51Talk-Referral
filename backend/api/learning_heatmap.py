@@ -10,6 +10,7 @@ from fastapi import APIRouter, Depends
 
 from backend.api.dependencies import get_data_manager
 from backend.core.data_manager import DataManager
+from backend.models.filters import UnifiedFilter, parse_filters
 
 router = APIRouter()
 
@@ -19,6 +20,7 @@ router = APIRouter()
     summary="按围场聚合各周转码率，用于学习活跃度热图",
 )
 def get_learning_heatmap(
+    filters: UnifiedFilter = Depends(parse_filters),
     dm: DataManager = Depends(get_data_manager),
 ) -> list[dict]:
     """
@@ -35,21 +37,14 @@ def get_learning_heatmap(
     if not available or "生命周期" not in students.columns:
         return []
 
-    grouped = (
-        students.groupby("生命周期")[available]
-        .mean()
-        .reset_index()
-    )
+    grouped = students.groupby("生命周期")[available].mean().reset_index()
 
     result = []
     for _, row in grouped.iterrows():
         item: dict = {"enclosure": str(row["生命周期"])}
         week_values: list[float] = []
         for wc in week_cols:
-            key = (
-                wc.replace("第", "week")
-                .replace("周转码", "_avg")
-            )
+            key = wc.replace("第", "week").replace("周转码", "_avg")
             if wc in available:
                 val = row[wc]
                 v = round(float(val), 2) if pd.notna(val) else None

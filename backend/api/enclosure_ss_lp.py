@@ -10,6 +10,7 @@ from fastapi import APIRouter, Depends, Query, Request
 from backend.api.dependencies import get_data_manager
 from backend.core.data_manager import DataManager
 from backend.models.enclosure_ss_lp import EnclosureLPMetrics, EnclosureSSMetrics
+from backend.models.filters import UnifiedFilter, parse_filters
 
 router = APIRouter()
 
@@ -174,6 +175,7 @@ def _df_to_lp_metrics(df: pd.DataFrame) -> list[EnclosureLPMetrics]:
 )
 def get_enclosure_ss(
     request: Request,
+    filters: UnifiedFilter = Depends(parse_filters),
     dm: DataManager = Depends(get_data_manager),
     enclosure: str | None = Query(None, description="生命周期筛选，如 0M / 6M / 12M+"),
 ) -> list[EnclosureSSMetrics]:
@@ -194,6 +196,7 @@ def get_enclosure_ss(
 )
 def get_enclosure_ss_ranking(
     request: Request,
+    filters: UnifiedFilter = Depends(parse_filters),
     dm: DataManager = Depends(get_data_manager),
 ) -> list[EnclosureSSMetrics]:
     data = dm.load_all()
@@ -208,6 +211,7 @@ def get_enclosure_ss_ranking(
 )
 def get_enclosure_lp(
     request: Request,
+    filters: UnifiedFilter = Depends(parse_filters),
     dm: DataManager = Depends(get_data_manager),
     enclosure: str | None = Query(None, description="生命周期筛选，如 0M / 6M / 12M+"),
 ) -> list[EnclosureLPMetrics]:
@@ -228,6 +232,7 @@ def get_enclosure_lp(
 )
 def get_enclosure_lp_ranking(
     request: Request,
+    filters: UnifiedFilter = Depends(parse_filters),
     dm: DataManager = Depends(get_data_manager),
 ) -> list[EnclosureLPMetrics]:
     data = dm.load_all()
@@ -242,6 +247,7 @@ def get_enclosure_lp_ranking(
 )
 def get_ss_ranking(
     request: Request,
+    filters: UnifiedFilter = Depends(parse_filters),
     dm: DataManager = Depends(get_data_manager),
 ) -> list[EnclosureSSMetrics]:
     """按 SS 个人维度聚合（跨围场汇总），再按注册数降序"""
@@ -297,6 +303,7 @@ def get_ss_ranking(
 )
 def get_lp_ranking(
     request: Request,
+    filters: UnifiedFilter = Depends(parse_filters),
     dm: DataManager = Depends(get_data_manager),
 ) -> list[EnclosureLPMetrics]:
     """按 LP 个人维度聚合（跨围场汇总），再按注册数降序"""

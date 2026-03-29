@@ -10,6 +10,7 @@ from fastapi import APIRouter, Depends
 
 from backend.api.dependencies import get_data_manager
 from backend.core.data_manager import DataManager
+from backend.models.filters import UnifiedFilter, parse_filters
 
 router = APIRouter()
 
@@ -19,6 +20,7 @@ router = APIRouter()
     summary="按常登录国家聚合学员分布及推荐效果",
 )
 def get_geo_distribution(
+    filters: UnifiedFilter = Depends(parse_filters),
     dm: DataManager = Depends(get_data_manager),
 ) -> list[dict]:
     """

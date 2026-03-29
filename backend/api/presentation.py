@@ -10,6 +10,8 @@ from typing import Any
 
 from fastapi import APIRouter, Depends
 
+from backend.models.filters import UnifiedFilter, parse_filters
+
 from .dependencies import get_service
 
 router = APIRouter()
@@ -25,7 +27,10 @@ def _get_cache(svc) -> dict[str, Any] | None:
 
 
 @router.get("/action-plan", summary="行动计划列表")
-def get_action_plan(svc=Depends(get_service)) -> dict[str, Any]:
+def get_action_plan(
+    filters: UnifiedFilter = Depends(parse_filters),
+    svc=Depends(get_service),
+) -> dict[str, Any]:
     """
     从 root_cause + impact_chain + outreach 数据派生行动项列表。
     按 priority (immediate > this-week > ongoing) 排序。
@@ -173,7 +178,10 @@ def _fallback_action_plan(error: str = "") -> dict:
 
 
 @router.get("/meeting-summary", summary="会议讨论要点")
-def get_meeting_summary(svc=Depends(get_service)) -> dict[str, Any]:
+def get_meeting_summary(
+    filters: UnifiedFilter = Depends(parse_filters),
+    svc=Depends(get_service),
+) -> dict[str, Any]:
     """
     从 pyramid_report + root_cause 派生会议讨论要点。
     返回共识、分歧点、待跟进项及下次会议信息。
@@ -321,7 +329,10 @@ def _fallback_meeting_summary(error: str = "") -> dict:
 
 
 @router.get("/resource-request", summary="资源需求建议")
-def get_resource_request(svc=Depends(get_service)) -> dict[str, Any]:
+def get_resource_request(
+    filters: UnifiedFilter = Depends(parse_filters),
+    svc=Depends(get_service),
+) -> dict[str, Any]:
     """
     从 impact_chain 派生资源需求建议。
     按人力/预算/工具分类，计算总预期收益。

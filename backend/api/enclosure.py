@@ -106,17 +106,13 @@ def _df_to_metrics(
             row_dict["cc_group"] = str(keys[1]) if keys[1] else None
         elif grp_col in group.columns:
             mode_val = group[grp_col].mode()
-            row_dict["cc_group"] = (
-                str(mode_val.iloc[0]) if not mode_val.empty else None
-            )
+            row_dict["cc_group"] = str(mode_val.iloc[0]) if not mode_val.empty else None
 
         if len(keys) >= 3:
             row_dict["cc_name"] = str(keys[2]) if keys[2] else None
         elif name_col in group.columns:
             mode_val = group[name_col].mode()
-            row_dict["cc_name"] = (
-                str(mode_val.iloc[0]) if not mode_val.empty else None
-            )
+            row_dict["cc_name"] = str(mode_val.iloc[0]) if not mode_val.empty else None
 
         for field, col in col_map.items():
             if field in ("enclosure", "cc_group", "cc_name"):

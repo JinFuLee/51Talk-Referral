@@ -13,6 +13,7 @@ from backend.core.config import get_targets
 from backend.core.daily_snapshot_service import DB_PATH, DailySnapshotService
 from backend.core.data_manager import DataManager
 from backend.core.report_engine import ReportEngine
+from backend.models.filters import UnifiedFilter, parse_filters
 
 router = APIRouter(tags=["report"])
 logger = logging.getLogger(__name__)
@@ -40,6 +41,7 @@ def _auto_snapshot(dm: DataManager, ref: date | None = None) -> None:
             logger.info("✓ 自动写入日快照: %s", ref_date.isoformat())
     except Exception as exc:
         logger.warning("自动日快照失败（非致命）: %s", exc)
+
 
 # 有效的环比 level / type
 _VALID_LEVELS = {"day", "week", "month", "year"}
@@ -74,6 +76,7 @@ def get_daily_report(
         default=None,
         description="T-1 参考日期，格式 YYYY-MM-DD，不传则取今天 -1 天",
     ),
+    filters: UnifiedFilter = Depends(parse_filters),
     dm: DataManager = Depends(get_data_manager),
 ) -> dict[str, Any]:
     """
@@ -105,6 +108,7 @@ def get_report_summary(
         default=None,
         description="T-1 参考日期，格式 YYYY-MM-DD，不传则取今天 -1 天",
     ),
+    filters: UnifiedFilter = Depends(parse_filters),
     dm: DataManager = Depends(get_data_manager),
 ) -> dict[str, Any]:
     """
@@ -148,6 +152,7 @@ def get_report_comparison(
         default=None,
         description="T-1 参考日期，格式 YYYY-MM-DD",
     ),
+    filters: UnifiedFilter = Depends(parse_filters),
     dm: DataManager = Depends(get_data_manager),
 ) -> dict[str, Any]:
     """

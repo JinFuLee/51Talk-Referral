@@ -11,6 +11,7 @@ from fastapi import APIRouter, Depends, Query, Request
 from backend.api.dependencies import get_data_manager
 from backend.core.cross_analyzer import CrossAnalyzer
 from backend.core.data_manager import DataManager
+from backend.models.filters import UnifiedFilter, parse_filters
 from backend.models.warroom import (
     DailyContact,
     WarroomStudent,
@@ -40,6 +41,7 @@ def get_hp_warroom(
         default=None,
         description="CC 姓名过滤，多个用英文逗号分隔（不传 = 全部）",
     ),
+    filters: UnifiedFilter = Depends(parse_filters),
     dm: DataManager = Depends(get_data_manager),
 ) -> list[WarroomStudent]:
     analyzer = _get_analyzer(dm)
@@ -60,6 +62,7 @@ def get_hp_warroom(
 def get_hp_timeline(
     request: Request,
     stdt_id: str,
+    filters: UnifiedFilter = Depends(parse_filters),
     dm: DataManager = Depends(get_data_manager),
 ) -> WarroomTimeline:
     analyzer = _get_analyzer(dm)

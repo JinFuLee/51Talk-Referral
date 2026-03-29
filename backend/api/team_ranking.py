@@ -10,6 +10,7 @@ from fastapi import APIRouter, Depends, Request
 
 from backend.api.dependencies import get_data_manager
 from backend.core.data_manager import DataManager
+from backend.models.filters import UnifiedFilter, parse_filters
 
 router = APIRouter()
 
@@ -32,6 +33,7 @@ def _safe_float(val) -> float | None:
 @router.get("/team/summary", summary="CC 团队/个人带新汇总排名")
 def get_team_summary(
     request: Request,
+    filters: UnifiedFilter = Depends(parse_filters),
     dm: DataManager = Depends(get_data_manager),
 ) -> list[dict[str, Any]]:
     """按 CC 分组聚合 D2 围场数据，计算带新注册/付费/金额"""

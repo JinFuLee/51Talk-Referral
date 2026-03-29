@@ -12,6 +12,7 @@ from backend.api.dependencies import get_data_manager
 from backend.core.config import get_targets
 from backend.core.data_manager import DataManager
 from backend.core.scenario_engine import ScenarioEngine
+from backend.models.filters import UnifiedFilter, parse_filters
 from backend.models.funnel import FunnelResult, ScenarioResult
 
 router = APIRouter()
@@ -89,6 +90,7 @@ def _get_invitation_stats(detail_df: pd.DataFrame | None) -> dict[str, Any]:
 )
 def get_funnel(
     request: Request,
+    filters: UnifiedFilter = Depends(parse_filters),
     dm: DataManager = Depends(get_data_manager),
 ) -> FunnelResult:
     data = dm.load_all()
@@ -102,6 +104,7 @@ def get_funnel(
 )
 def get_funnel_with_invitation(
     request: Request,
+    filters: UnifiedFilter = Depends(parse_filters),
     dm: DataManager = Depends(get_data_manager),
 ) -> dict[str, Any]:
     """在标准漏斗基础上，增加 D3 邀约数 + 注册→邀约率 + 邀约→出席率"""
@@ -129,6 +132,7 @@ def get_funnel_scenario(
         default="出席付费率",
         description="场景推演环节：注册预约率 / 预约出席率 / 出席付费率",
     ),
+    filters: UnifiedFilter = Depends(parse_filters),
     dm: DataManager = Depends(get_data_manager),
 ) -> ScenarioResult:
     data = dm.load_all()

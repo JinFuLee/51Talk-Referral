@@ -10,6 +10,7 @@ from fastapi import APIRouter, Depends, Query, Request
 
 from backend.api.dependencies import get_data_manager
 from backend.core.data_manager import DataManager
+from backend.models.filters import UnifiedFilter, parse_filters
 
 router = APIRouter()
 
@@ -44,6 +45,7 @@ def _int_col(df: pd.DataFrame, candidates: list[str]) -> pd.Series:
 def get_referral_contributor(
     request: Request,
     top: int = Query(default=50, ge=1, le=500, description="返回 Top N 推荐者"),
+    filters: UnifiedFilter = Depends(parse_filters),
     dm: DataManager = Depends(get_data_manager),
 ) -> dict[str, Any]:
     data = dm.load_all()

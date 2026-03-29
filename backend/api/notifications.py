@@ -39,6 +39,7 @@ _job_status: dict[str, dict[str, Any]] = {}
 
 # ── 工具函数 ──────────────────────────────────────────────────────────────────
 
+
 def _read_json(path: Path, default: Any = None) -> Any:
     if path.exists():
         try:
@@ -106,6 +107,7 @@ def _platform_cred_path(platform: str) -> Path:
 
 # ── Pydantic 模型 ─────────────────────────────────────────────────────────────
 
+
 class ChannelIn(BaseModel):
     id: str
     name: str
@@ -147,6 +149,7 @@ class TextUpdateRequest(BaseModel):
 
 # ── 通道管理 ──────────────────────────────────────────────────────────────────
 
+
 @router.get("/notifications/channels/{platform}")
 def get_channels(platform: str) -> dict:
     """获取通道列表，隐藏敏感凭证"""
@@ -156,16 +159,18 @@ def get_channels(platform: str) -> dict:
 
     result = []
     for ch_id, ch in channels.items():
-        result.append({
-            "id": ch_id,
-            "name": ch.get("name", ch_id),
-            "group_name": ch.get("group_name", ""),
-            "webhook_preview": _mask_secret(ch.get("webhook", "")),
-            "secret_preview": _mask_secret(ch.get("secret", "")),
-            "enabled": ch.get("enabled", True),
-            "is_test": ch.get("is_test", False),
-            "description": ch.get("description", ""),
-        })
+        result.append(
+            {
+                "id": ch_id,
+                "name": ch.get("name", ch_id),
+                "group_name": ch.get("group_name", ""),
+                "webhook_preview": _mask_secret(ch.get("webhook", "")),
+                "secret_preview": _mask_secret(ch.get("secret", "")),
+                "enabled": ch.get("enabled", True),
+                "is_test": ch.get("is_test", False),
+                "description": ch.get("description", ""),
+            }
+        )
 
     return {"platform": platform, "channels": result, "total": len(result)}
 
@@ -237,13 +242,24 @@ def test_channel(platform: str, channel_id: str) -> dict:
 
     if platform == "lark":
         cmd = [
-            "uv", "run", "python", "scripts/lark_bot.py",
-            "--test", "--channel", channel_id,
+            "uv",
+            "run",
+            "python",
+            "scripts/lark_bot.py",
+            "--test",
+            "--channel",
+            channel_id,
         ]
     else:
         cmd = [
-            "uv", "run", "python", "scripts/dingtalk_daily.py",
-            "--engine", "--test", "--channel", channel_id,
+            "uv",
+            "run",
+            "python",
+            "scripts/dingtalk_daily.py",
+            "--engine",
+            "--test",
+            "--channel",
+            channel_id,
         ]
 
     try:
@@ -269,6 +285,7 @@ def test_channel(platform: str, channel_id: str) -> dict:
 
 
 # ── 模板 ──────────────────────────────────────────────────────────────────────
+
 
 @router.get("/notifications/templates")
 def get_templates() -> dict:
@@ -332,6 +349,7 @@ def get_templates() -> dict:
 
 # ── 推送 ──────────────────────────────────────────────────────────────────────
 
+
 def _run_push_job(job_id: str, body: PushRequest) -> None:
     """后台推送任务（在线程池中执行）"""
     _job_status[job_id]["status"] = "running"
@@ -356,10 +374,15 @@ def _run_push_job(job_id: str, body: PushRequest) -> None:
 
         if body.platform == "lark":
             cmd = [
-                "uv", "run", "python", "scripts/lark_bot.py",
+                "uv",
+                "run",
+                "python",
+                "scripts/lark_bot.py",
                 "followup",
-                "--role", role,
-                "--channel", ch,
+                "--role",
+                role,
+                "--channel",
+                ch,
             ]
             if body.dry_run:
                 cmd.append("--dry-run")
@@ -369,9 +392,13 @@ def _run_push_job(job_id: str, body: PushRequest) -> None:
                 cmd.append("--force")
         else:
             cmd = [
-                "uv", "run", "python", "scripts/dingtalk_daily.py",
+                "uv",
+                "run",
+                "python",
+                "scripts/dingtalk_daily.py",
                 "--engine",
-                "--channel", ch,
+                "--channel",
+                ch,
             ]
             if body.dry_run:
                 cmd.append("--dry-run")
@@ -389,31 +416,39 @@ def _run_push_job(job_id: str, body: PushRequest) -> None:
                 timeout=120,
             )
             ok = result.returncode == 0
-            _job_status[job_id].setdefault("results", []).append({
-                "channel": ch,
-                "ok": ok,
-                "stdout_tail": result.stdout[-300:] if result.stdout else "",
-            })
+            _job_status[job_id].setdefault("results", []).append(
+                {
+                    "channel": ch,
+                    "ok": ok,
+                    "stdout_tail": result.stdout[-300:] if result.stdout else "",
+                }
+            )
             if ok:
                 sent += 1
         except subprocess.TimeoutExpired:
-            _job_status[job_id].setdefault("results", []).append({
-                "channel": ch,
-                "ok": False,
-                "error": "超时（120s）",
-            })
+            _job_status[job_id].setdefault("results", []).append(
+                {
+                    "channel": ch,
+                    "ok": False,
+                    "error": "超时（120s）",
+                }
+            )
         except Exception as e:
-            _job_status[job_id].setdefault("results", []).append({
-                "channel": ch,
-                "ok": False,
-                "error": str(e),
-            })
+            _job_status[job_id].setdefault("results", []).append(
+                {
+                    "channel": ch,
+                    "ok": False,
+                    "error": str(e),
+                }
+            )
 
-    _job_status[job_id].update({
-        "status": "done",
-        "progress": {"sent": sent, "total": total, "current": None},
-        "finished_at": datetime.now().isoformat(),
-    })
+    _job_status[job_id].update(
+        {
+            "status": "done",
+            "progress": {"sent": sent, "total": total, "current": None},
+            "finished_at": datetime.now().isoformat(),
+        }
+    )
 
 
 @router.post("/notifications/push")
@@ -449,9 +484,13 @@ def push_preview(body: PushPreviewRequest) -> dict:
     role = template_role_map.get(body.template, "CC")
 
     cmd = [
-        "uv", "run", "python", "scripts/lark_bot.py",
+        "uv",
+        "run",
+        "python",
+        "scripts/lark_bot.py",
         "followup",
-        "--role", role,
+        "--role",
+        role,
         "--dry-run",
     ]
 
@@ -535,6 +574,7 @@ def get_today_status() -> dict:
 
 # ── 产出档案 ──────────────────────────────────────────────────────────────────
 
+
 @router.get("/notifications/outputs")
 def list_outputs(
     date: str | None = Query(None, description="日期 YYYY-MM-DD"),
@@ -552,13 +592,15 @@ def list_outputs(
     files = sorted(OUTPUT_DIR.glob(pattern))
     result = []
     for f in files:
-        result.append({
-            "filename": f.name,
-            "size_kb": round(f.stat().st_size / 1024, 1),
-            "modified": datetime.fromtimestamp(f.stat().st_mtime).strftime(
-                "%Y-%m-%d %H:%M"
-            ),
-        })
+        result.append(
+            {
+                "filename": f.name,
+                "size_kb": round(f.stat().st_size / 1024, 1),
+                "modified": datetime.fromtimestamp(f.stat().st_mtime).strftime(
+                    "%Y-%m-%d %H:%M"
+                ),
+            }
+        )
 
     return {"files": result, "total": len(result)}
 
@@ -638,6 +680,7 @@ def update_output_text(date: str, role: str, body: TextUpdateRequest) -> dict:
 
 
 # ── 定时排程 ──────────────────────────────────────────────────────────────────
+
 
 class ScheduleIn(BaseModel):
     name: str
@@ -794,14 +837,10 @@ def create_schedule(body: ScheduleIn, request: _Request) -> dict:
 
 
 @router.put("/notifications/schedule/{schedule_id}")
-def update_schedule(
-    schedule_id: str, body: ScheduleUpdate, request: _Request
-) -> dict:
+def update_schedule(schedule_id: str, body: ScheduleUpdate, request: _Request) -> dict:
     """编辑排程"""
     schedules = _read_schedules()
-    idx = next(
-        (i for i, s in enumerate(schedules) if s["id"] == schedule_id), None
-    )
+    idx = next((i for i, s in enumerate(schedules) if s["id"] == schedule_id), None)
     if idx is None:
         raise HTTPException(status_code=404, detail=f"排程 '{schedule_id}' 不存在")
 
@@ -830,9 +869,7 @@ def delete_schedule(schedule_id: str, request: _Request) -> dict:
 def toggle_schedule(schedule_id: str, request: _Request) -> dict:
     """启停排程"""
     schedules = _read_schedules()
-    idx = next(
-        (i for i, s in enumerate(schedules) if s["id"] == schedule_id), None
-    )
+    idx = next((i for i, s in enumerate(schedules) if s["id"] == schedule_id), None)
     if idx is None:
         raise HTTPException(status_code=404, detail=f"排程 '{schedule_id}' 不存在")
 

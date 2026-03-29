@@ -209,7 +209,7 @@ _METRIC_LABELS_ZH = {
     "leads": "转介绍注册数",
     "paid": "转介绍付费数",
     "revenue": "总带新付费金额USD",
-    "showup": "转介绍付费数",         # showup 在 D2 没有独立列，用 paid 近似
+    "showup": "转介绍付费数",  # showup 在 D2 没有独立列，用 paid 近似
     "participation_rate": "转介绍参与率",
     "checkin_rate": "当月有效打卡率",
     "cc_reach_rate": "CC触达率",
@@ -276,9 +276,7 @@ def _get_role_metrics(role: str, dm: DataManager) -> dict[str, dict[str, Any]]:
         # 层 2：只保留 CC 销售团队（排除 TH-TMK / TH-CC-Training / TH-SS* 等）
         if grp_col in df.columns:
             df = df[
-                df[grp_col].astype(str).apply(
-                    lambda x: bool(_CC_TEAM_PATTERN.match(x))
-                )
+                df[grp_col].astype(str).apply(lambda x: bool(_CC_TEAM_PATTERN.match(x)))
             ]
         if df.empty:
             return result
@@ -409,8 +407,11 @@ _STAGE_LABEL = {
 _OUTCOME_METRICS = {"paid", "revenue", "revenue_usd", "payments"}
 _MID_METRICS = {"leads", "showup", "registrations"}  # 注册/出席
 _PROCESS_METRICS = {
-    "checkin_rate", "participation_rate", "cc_reach_rate",
-    "ss_reach_rate", "lp_reach_rate",
+    "checkin_rate",
+    "participation_rate",
+    "cc_reach_rate",
+    "ss_reach_rate",
+    "lp_reach_rate",
 }
 
 _STAGE_TO_METRIC = {
@@ -547,8 +548,13 @@ def get_recommendations(
     metric_values: dict[str, list[float]] = {}
     for _pname, pdata in cc_metrics.items():
         for mk in (
-            "paid", "leads", "showup", "revenue",
-            "checkin_rate", "participation_rate", "cc_reach_rate",
+            "paid",
+            "leads",
+            "showup",
+            "revenue",
+            "checkin_rate",
+            "participation_rate",
+            "cc_reach_rate",
         ):
             v = pdata.get(mk)
             if v is not None and v > 0:
@@ -558,25 +564,43 @@ def get_recommendations(
     today = date.today()
     y, m_num = int(month[:4]), int(month[4:6])
     import calendar
+
     month_last = calendar.monthrange(y, m_num)[1]
     month_end = f"{y}-{m_num:02d}-{month_last}"
     start = max(today.isoformat(), f"{y}-{m_num:02d}-01")
 
     _METRIC_ZH = {
-        "paid": "付费", "leads": "注册", "showup": "出席",
-        "revenue": "业绩", "checkin_rate": "打卡率",
-        "participation_rate": "参与率", "cc_reach_rate": "触达率",
+        "paid": "付费",
+        "leads": "注册",
+        "showup": "出席",
+        "revenue": "业绩",
+        "checkin_rate": "打卡率",
+        "participation_rate": "参与率",
+        "cc_reach_rate": "触达率",
     }
     _METRIC_TH = {
-        "paid": "ยอดชำระ", "leads": "ยอดลงทะเบียน",
-        "showup": "ยอดเข้าเรียน", "revenue": "ยอดขาย",
+        "paid": "ยอดชำระ",
+        "leads": "ยอดลงทะเบียน",
+        "showup": "ยอดเข้าเรียน",
+        "revenue": "ยอดขาย",
         "checkin_rate": "อัตราเช็คอิน",
         "participation_rate": "อัตราการมีส่วนร่วม",
         "cc_reach_rate": "อัตราการติดต่อ",
     }
     _MONTH_TH = [
-        "", "ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.",
-        "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค.",
+        "",
+        "ม.ค.",
+        "ก.พ.",
+        "มี.ค.",
+        "เม.ย.",
+        "พ.ค.",
+        "มิ.ย.",
+        "ก.ค.",
+        "ส.ค.",
+        "ก.ย.",
+        "ต.ค.",
+        "พ.ย.",
+        "ธ.ค.",
     ]
 
     # ── 所有月段都展示真实杠杆分析 ──
@@ -603,9 +627,7 @@ def get_recommendations(
             vals = sorted(metric_values.get(metric_key, []))
             if vals:
                 p60_idx = int(len(vals) * 0.6)
-                threshold = max(
-                    1, round(vals[min(p60_idx, len(vals) - 1)])
-                )
+                threshold = max(1, round(vals[min(p60_idx, len(vals) - 1)]))
             else:
                 threshold = 5
 
@@ -634,9 +656,7 @@ def get_recommendations(
             }
 
         # actionable 标记：月末结果指标→下月创建
-        is_actionable = (
-            actionable if mapping else False
-        )
+        is_actionable = actionable if mapping else False
         action_note = ""
         if not is_actionable and mapping:
             if phase == "closing":
@@ -646,18 +666,20 @@ def get_recommendations(
             elif phase == "mid":
                 action_note = "月中可创建冲刺版"
 
-        levers.append({
-            "rank": i + 1,
-            "stage": stage,
-            "stage_label": _STAGE_LABEL.get(stage, stage),
-            "leverage_score": score["leverage_score"],
-            "revenue_impact_usd": score["revenue_impact"],
-            "current_rate": score.get("actual_rate"),
-            "target_rate": score.get("target_rate"),
-            "suggested_campaign": suggested,
-            "actionable": is_actionable,
-            "action_note": action_note,
-        })
+        levers.append(
+            {
+                "rank": i + 1,
+                "stage": stage,
+                "stage_label": _STAGE_LABEL.get(stage, stage),
+                "leverage_score": score["leverage_score"],
+                "revenue_impact_usd": score["revenue_impact"],
+                "current_rate": score.get("actual_rate"),
+                "target_rate": score.get("target_rate"),
+                "suggested_campaign": suggested,
+                "actionable": is_actionable,
+                "action_note": action_note,
+            }
+        )
 
     # 重编号（月中可能 skip 了结果指标）
     for idx, lev in enumerate(levers):
@@ -742,7 +764,8 @@ def create_campaign(body: CampaignCreateBody) -> dict[str, Any]:
 
     # 去重校验：同月 + 同角色 + 同指标 不可重复创建 active/paused 活动
     existing = [
-        c for c in campaigns
+        c
+        for c in campaigns
         if c.get("month") == body.month
         and c.get("role") == body.role
         and c.get("metric") == body.metric
@@ -856,8 +879,11 @@ def get_progress(
         month = date.today().strftime("%Y%m")
 
     # 只取 active 活动
-    campaigns = [c for c in _load_campaigns_raw()
-                 if c.get("status") == "active" and c.get("month") == month]
+    campaigns = [
+        c
+        for c in _load_campaigns_raw()
+        if c.get("status") == "active" and c.get("month") == month
+    ]
 
     results: list[dict[str, Any]] = []
     for camp in campaigns:
@@ -875,16 +901,18 @@ def get_progress(
             gap, pct, status, earned = _evaluate_progress(
                 actual, threshold, operator, reward_thb
             )
-            records.append({
-                "person_name": name,
-                "team": pdata.get("team", ""),
-                "metric_value": actual,
-                "threshold": threshold,
-                "gap": gap,
-                "progress_pct": pct,
-                "status": status,
-                "reward_thb": earned,
-            })
+            records.append(
+                {
+                    "person_name": name,
+                    "team": pdata.get("team", ""),
+                    "metric_value": actual,
+                    "threshold": threshold,
+                    "gap": gap,
+                    "progress_pct": pct,
+                    "status": status,
+                    "reward_thb": earned,
+                }
+            )
 
         records.sort(key=lambda r: r["progress_pct"], reverse=True)
 
@@ -892,13 +920,15 @@ def get_progress(
         close_count = sum(1 for r in records if r["status"] == "close")
         total_thb = sum(r["reward_thb"] for r in records)
 
-        results.append({
-            "campaign": camp,
-            "records": records,
-            "qualified_count": qualified_count,
-            "close_count": close_count,
-            "total_estimated_thb": round(total_thb, 2),
-        })
+        results.append(
+            {
+                "campaign": camp,
+                "records": records,
+                "qualified_count": qualified_count,
+                "close_count": close_count,
+                "total_estimated_thb": round(total_thb, 2),
+            }
+        )
 
     return results
 
@@ -906,7 +936,11 @@ def get_progress(
 # ── 海报生成 ───────────────────────────────────────────────────────────────────
 
 _THAI_FONTS = [
-    "Tahoma", "Angsana New", "Browallia New", "Arial Unicode MS", "DejaVu Sans"
+    "Tahoma",
+    "Angsana New",
+    "Browallia New",
+    "Arial Unicode MS",
+    "DejaVu Sans",
 ]
 
 
@@ -924,9 +958,19 @@ _METRIC_TH_POSTER = {
 _OP_TH = {"gte": "≥", "lte": "≤", "gt": ">", "lt": "<"}
 
 _MONTH_TH_FULL = [
-    "", "มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน",
-    "พฤษภาคม", "มิถุนายน", "กรกฎาคม", "สิงหาคม",
-    "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม",
+    "",
+    "มกราคม",
+    "กุมภาพันธ์",
+    "มีนาคม",
+    "เมษายน",
+    "พฤษภาคม",
+    "มิถุนายน",
+    "กรกฎาคม",
+    "สิงหาคม",
+    "กันยายน",
+    "ตุลาคม",
+    "พฤศจิกายน",
+    "ธันวาคม",
 ]
 
 
@@ -958,7 +1002,7 @@ _POSTER_THEMES: dict[str, dict[str, Any]] = {
     "fire": {
         "bg": _DS["n900"],
         "card": _DS["n800"],
-        "stripe": _DS["warning"],       # 暖橙色带
+        "stripe": _DS["warning"],  # 暖橙色带
         "title_color": _DS["n50"],
         "accent": _DS["warning"],
         "label": "Sprint Challenge",
@@ -966,7 +1010,7 @@ _POSTER_THEMES: dict[str, dict[str, Any]] = {
     "target": {
         "bg": _DS["n900"],
         "card": _DS["n800"],
-        "stripe": _DS["success"],        # 翡翠绿色带
+        "stripe": _DS["success"],  # 翡翠绿色带
         "title_color": _DS["n50"],
         "accent": _DS["success"],
         "label": "Target Achievement",
@@ -974,7 +1018,7 @@ _POSTER_THEMES: dict[str, dict[str, Any]] = {
     "growth": {
         "bg": _DS["n900"],
         "card": _DS["n800"],
-        "stripe": _DS["brand_navy"],     # 深蓝色带
+        "stripe": _DS["brand_navy"],  # 深蓝色带
         "title_color": _DS["n50"],
         "accent": _DS["brand_gold"],
         "label": "Growth Boost",
@@ -982,7 +1026,7 @@ _POSTER_THEMES: dict[str, dict[str, Any]] = {
     "honor": {
         "bg": _DS["n900"],
         "card": _DS["n800"],
-        "stripe": _DS["brand_gold"],     # 金色带
+        "stripe": _DS["brand_gold"],  # 金色带
         "title_color": _DS["brand_gold"],
         "accent": _DS["brand_gold"],
         "label": "Honor Reward",
@@ -1064,19 +1108,28 @@ def _build_poster_image(camp: dict[str, Any]) -> bytes:
 
     # ── 品牌 ──
     draw.text(
-        (cx, 55), "51Talk Thailand",
-        font=font(20), fill=n500, anchor="mm",
+        (cx, 55),
+        "51Talk Thailand",
+        font=font(20),
+        fill=n500,
+        anchor="mm",
     )
     draw.text(
-        (cx, 82), th["label"],
-        font=font(14), fill=n500, anchor="mm",
+        (cx, 82),
+        th["label"],
+        font=font(14),
+        fill=n500,
+        anchor="mm",
     )
 
     # ── 主标题 ──
     title = camp.get("name_th") or camp.get("name", "")
     draw.text(
-        (cx, 180), title,
-        font=font(46, bold=True), fill=title_c, anchor="mm",
+        (cx, 180),
+        title,
+        font=font(46, bold=True),
+        fill=title_c,
+        anchor="mm",
     )
 
     # ── 细分隔线 ──
@@ -1085,7 +1138,9 @@ def _build_poster_image(camp: dict[str, Any]) -> bytes:
     # ── 卡片 ──
     cm, ct, cb = 72, 280, 920
     draw.rounded_rectangle(
-        [cm, ct, W - cm, cb], radius=16, fill=card,
+        [cm, ct, W - cm, cb],
+        radius=16,
+        fill=card,
     )
 
     # 卡片内左侧色条
@@ -1103,13 +1158,16 @@ def _build_poster_image(camp: dict[str, Any]) -> bytes:
     }.get(role, role)
     draw.text((lx, ct + 45), "สำหรับ", font=font(16), fill=n400)
     draw.text(
-        (lx, ct + 75), role_th,
-        font=font(28, bold=True), fill=n50,
+        (lx, ct + 75),
+        role_th,
+        font=font(28, bold=True),
+        fill=n50,
     )
 
     # 分隔
     draw.rectangle(
-        [lx, ct + 125, W - cm - 40, ct + 126], fill=n500,
+        [lx, ct + 125, W - cm - 40, ct + 126],
+        fill=n500,
     )
 
     # 条件
@@ -1118,39 +1176,49 @@ def _build_poster_image(camp: dict[str, Any]) -> bytes:
     thr = camp.get("threshold", 0)
     ts = str(int(thr)) if thr == int(thr) else str(thr)
     draw.text(
-        (lx, ct + 150), "เป้าหมาย",
-        font=font(16), fill=n400,
+        (lx, ct + 150),
+        "เป้าหมาย",
+        font=font(16),
+        fill=n400,
     )
     draw.text(
         (lx, ct + 185),
         f"{ml}  {op}  {ts}",
-        font=font(32, bold=True), fill=WHITE,
+        font=font(32, bold=True),
+        fill=WHITE,
     )
 
     # 分隔
     draw.rectangle(
-        [lx, ct + 245, W - cm - 40, ct + 246], fill=n500,
+        [lx, ct + 245, W - cm - 40, ct + 246],
+        fill=n500,
     )
 
     # 奖励
     reward = camp.get("reward_thb", 0)
     draw.text(
-        (lx, ct + 275), "รางวัล",
-        font=font(16), fill=n400,
+        (lx, ct + 275),
+        "รางวัล",
+        font=font(16),
+        fill=n400,
     )
     draw.text(
         (lx, ct + 320),
         f"฿{reward:,.0f}",
-        font=font(64, bold=True), fill=accent,
+        font=font(64, bold=True),
+        fill=accent,
     )
     draw.text(
-        (lx + 10, ct + 395), "ต่อคน",
-        font=font(16), fill=n400,
+        (lx + 10, ct + 395),
+        "ต่อคน",
+        font=font(16),
+        fill=n400,
     )
 
     # 分隔
     draw.rectangle(
-        [lx, ct + 440, W - cm - 40, ct + 441], fill=n500,
+        [lx, ct + 440, W - cm - 40, ct + 441],
+        fill=n500,
     )
 
     # 日期
@@ -1168,12 +1236,16 @@ def _build_poster_image(camp: dict[str, Any]) -> bytes:
         period = ""
     if period:
         draw.text(
-            (lx, ct + 470), "ระยะเวลา",
-            font=font(16), fill=n400,
+            (lx, ct + 470),
+            "ระยะเวลา",
+            font=font(16),
+            fill=n400,
         )
         draw.text(
-            (lx, ct + 505), period,
-            font=font(26, bold=True), fill=n50,
+            (lx, ct + 505),
+            period,
+            font=font(26, bold=True),
+            fill=n50,
         )
 
     # ── 底部 ──
@@ -1181,7 +1253,9 @@ def _build_poster_image(camp: dict[str, Any]) -> bytes:
     draw.text(
         (cx, H - 30),
         "51Talk  ·  Referral Operations",
-        font=font(13), fill=n500, anchor="mm",
+        font=font(13),
+        fill=n500,
+        anchor="mm",
     )
 
     buf = BytesIO()
@@ -1205,9 +1279,7 @@ def generate_poster(campaign_id: str) -> StreamingResponse:
         BytesIO(png_bytes),
         media_type="image/png",
         headers={
-            "Content-Disposition": (
-                f'attachment; filename="poster_{campaign_id}.png"'
-            )
+            "Content-Disposition": (f'attachment; filename="poster_{campaign_id}.png"')
         },
     )
 

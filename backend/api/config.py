@@ -720,16 +720,14 @@ def get_enclosure_targets(
     d2_active = d2[d2["_is_active"]] if "_is_active" in d2.columns else d2
 
     overall = {
-        en_key: _safe_mean(d2_active, zh_col)
-        for en_key, zh_col in _COLS.items()
+        en_key: _safe_mean(d2_active, zh_col) for en_key, zh_col in _COLS.items()
     }
 
     by_enclosure: dict[str, dict[str, float]] = {}
     if "围场" in d2_active.columns:
         for enc, group in d2_active.groupby("围场"):
             by_enclosure[str(enc)] = {
-                en_key: _safe_mean(group, zh_col)
-                for en_key, zh_col in _COLS.items()
+                en_key: _safe_mean(group, zh_col) for en_key, zh_col in _COLS.items()
             }
 
     return {"overall": overall, "by_enclosure": by_enclosure}
@@ -811,9 +809,11 @@ def get_target_tiers(
             df = DataManager.filter_thai_region(d1, fallback_to_all=True)
 
             def _s(col: str) -> float:
-                return float(
-                    pd.to_numeric(df[col], errors="coerce").sum()
-                ) if col in df.columns else 0.0
+                return (
+                    float(pd.to_numeric(df[col], errors="coerce").sum())
+                    if col in df.columns
+                    else 0.0
+                )
 
             reg = _s("转介绍注册数")
             appt = _s("预约数")
@@ -860,10 +860,15 @@ def get_target_tiers(
                     ch: {
                         k: float(m.get(k) or 0)
                         for k in (
-                            "registrations", "appointments",
-                            "attendance", "payments",
-                            "revenue_usd", "appt_rate",
-                            "attend_rate", "paid_rate", "asp",
+                            "registrations",
+                            "appointments",
+                            "attendance",
+                            "payments",
+                            "revenue_usd",
+                            "appt_rate",
+                            "attend_rate",
+                            "paid_rate",
+                            "asp",
                         )
                     }
                     for ch, m in ch_data.items()
@@ -871,9 +876,8 @@ def get_target_tiers(
                 }
     except Exception as exc:
         import logging
-        logging.getLogger(__name__).warning(
-            "获取当前实绩失败，使用空值: %s", exc
-        )
+
+        logging.getLogger(__name__).warning("获取当前实绩失败，使用空值: %s", exc)
 
     # 三档自定义参数（至少传一个才触发计算）
     custom_inputs: dict[str, Any] | None = None
@@ -961,10 +965,10 @@ def post_targets_apply_tiers(
 
                 current_actuals = {
                     "registrations": _pick("registrations"),
-                    "appointments":  _pick("appointments"),
-                    "attendance":    _pick("attendance"),
-                    "payments":      _pick("payments"),
-                    "revenue_usd":   _pick("revenue"),
+                    "appointments": _pick("appointments"),
+                    "attendance": _pick("attendance"),
+                    "payments": _pick("payments"),
+                    "revenue_usd": _pick("revenue"),
                 }
                 for rate_key in ("appt_rate", "attend_rate", "paid_rate", "asp"):
                     v = summary.get(rate_key)
@@ -994,7 +998,7 @@ def post_targets_apply_tiers(
             "CC窄口": "CC窄口径",
             "SS窄口": "SS窄口径",
             "LP窄口": "LP窄口径",
-            "宽口":   "宽口径",
+            "宽口": "宽口径",
         }
         legacy_key = key_map.get(ch_name, ch_name)
         sub_口径[legacy_key] = {
@@ -1004,16 +1008,16 @@ def post_targets_apply_tiers(
     import datetime as _dt
 
     override_payload: dict[str, Any] = {
-        "注册目标":   round(total.get("registrations", 0)),
-        "付费目标":   round(total.get("payments", 0)),
-        "金额目标":   round(total.get("revenue_usd", 0), 2),
-        "客单价":     round(total.get("asp", 0), 2),
+        "注册目标": round(total.get("registrations", 0)),
+        "付费目标": round(total.get("payments", 0)),
+        "金额目标": round(total.get("revenue_usd", 0), 2),
+        "客单价": round(total.get("asp", 0), 2),
         "目标转化率": round(total.get("reg_to_pay_rate", 0), 6),
-        "子口径":     sub_口径,
-        "_tier_engine":    "TargetTierEngine",
-        "_tier":           tier,
-        "_tier_label":     tier_data.get("label", ""),
-        "_applied_at":     _dt.datetime.utcnow().isoformat() + "Z",
+        "子口径": sub_口径,
+        "_tier_engine": "TargetTierEngine",
+        "_tier": tier,
+        "_tier_label": tier_data.get("label", ""),
+        "_applied_at": _dt.datetime.utcnow().isoformat() + "Z",
     }
 
     _backup_config_file(TARGETS_OVERRIDE_FILE)
@@ -1025,12 +1029,12 @@ def post_targets_apply_tiers(
         raise HTTPException(status_code=500, detail=str(exc)) from exc
 
     return {
-        "status":  "ok",
-        "month":   month,
-        "tier":    tier,
-        "label":   tier_data.get("label", ""),
+        "status": "ok",
+        "month": month,
+        "tier": tier,
+        "label": tier_data.get("label", ""),
         "applied": {
-            "total":    total,
+            "total": total,
             "channels": {ch: v["registrations"] for ch, v in channels.items()},
         },
     }
@@ -1042,16 +1046,16 @@ BM_SPECIALS_OVERRIDE_FILE = CONFIG_DIR / "bm_specials_override.json"
 
 
 class BmSpecialDay(BaseModel):
-    date: str       # "YYYY-MM-DD"
+    date: str  # "YYYY-MM-DD"
     weight: float
     label: str = ""
     day_type: str = "holiday_off"
 
 
 class BmCalendarUpdate(BaseModel):
-    month: str                          # "YYYYMM"
+    month: str  # "YYYYMM"
     specials: list[BmSpecialDay] = []
-    kickoff_date: str | None = None     # "YYYY-MM-DD" 或 null（null = 自动检测）
+    kickoff_date: str | None = None  # "YYYY-MM-DD" 或 null（null = 自动检测）
 
 
 @router.get("/bm-calendar", summary="获取指定月份 BM 节奏日历")
@@ -1081,9 +1085,7 @@ def get_bm_calendar(month: str | None = None) -> dict[str, Any]:
     specials = monthly_specials.get(month, [])
 
     # 读取 auto_kickoff 配置
-    bm_proj_cfg = _read_json(
-        PROJECT_ROOT / "projects" / "referral" / "config.json", {}
-    )
+    bm_proj_cfg = _read_json(PROJECT_ROOT / "projects" / "referral" / "config.json", {})
     auto_kickoff = bm_proj_cfg.get("bm_config", {}).get("auto_kickoff", True)
 
     calendar = generate_bm_calendar(
@@ -1141,12 +1143,14 @@ def put_bm_calendar(body: BmCalendarUpdate) -> dict[str, Any]:
 
     if body.kickoff_date:
         # 用户指定 kickoff 日期 → 作为 kickoff 类型 special 写入
-        specials.append({
-            "date": body.kickoff_date,
-            "weight": None,  # 从 bm_config.raw_weights.kickoff 读取
-            "label": "Kick Off",
-            "day_type": "kickoff",
-        })
+        specials.append(
+            {
+                "date": body.kickoff_date,
+                "weight": None,  # 从 bm_config.raw_weights.kickoff 读取
+                "label": "Kick Off",
+                "day_type": "kickoff",
+            }
+        )
 
     # 写入 override 文件
     _backup_config_file(BM_SPECIALS_OVERRIDE_FILE)
@@ -1159,12 +1163,9 @@ def put_bm_calendar(body: BmCalendarUpdate) -> dict[str, Any]:
 
     # 返回更新后日历
     raw_weights, monthly_specials = load_bm_config(PROJECT_ROOT)
-    bm_proj_cfg = _read_json(
-        PROJECT_ROOT / "projects" / "referral" / "config.json", {}
-    )
-    auto_kickoff = (
-        body.kickoff_date is None
-        and bm_proj_cfg.get("bm_config", {}).get("auto_kickoff", True)
+    bm_proj_cfg = _read_json(PROJECT_ROOT / "projects" / "referral" / "config.json", {})
+    auto_kickoff = body.kickoff_date is None and bm_proj_cfg.get("bm_config", {}).get(
+        "auto_kickoff", True
     )
 
     calendar = generate_bm_calendar(

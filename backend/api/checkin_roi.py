@@ -27,6 +27,7 @@ from fastapi.responses import JSONResponse
 
 from backend.api.dependencies import get_data_manager
 from backend.core.data_manager import DataManager
+from backend.models.filters import UnifiedFilter, parse_filters
 
 router = APIRouter()
 
@@ -57,7 +58,13 @@ def _get_roi_config() -> dict:
             _ROI_CONFIG_CACHE = {
                 "card_unit_cost_usd": 1.31,
                 "activity_cost_mapping": {
-                    "0": 0, "1": 1, "2": 2, "3": 3, "4": 4, "5": 6, "6": 8
+                    "0": 0,
+                    "1": 1,
+                    "2": 2,
+                    "3": 3,
+                    "4": 4,
+                    "5": 6,
+                    "6": 8,
                 },
                 "binding_cards_per_user_b": 1,
                 "attendance_cards_per_user_b": 2,
@@ -75,14 +82,28 @@ def _get_roi_config() -> dict:
 # ── 围场 M 标签映射 ───────────────────────────────────────────────────────────
 
 _M_MAP: dict[str, str] = {
-    "0~30": "M0", "31~60": "M1", "61~90": "M2",
-    "91~120": "M3", "121~150": "M4", "151~180": "M5",
-    "6M": "M6", "7M": "M7", "8M": "M8",
-    "9M": "M9", "10M": "M10", "11M": "M11",
-    "12M": "M12", "12M+": "M12+", "M6+": "M6+",
+    "0~30": "M0",
+    "31~60": "M1",
+    "61~90": "M2",
+    "91~120": "M3",
+    "121~150": "M4",
+    "151~180": "M5",
+    "6M": "M6",
+    "7M": "M7",
+    "8M": "M8",
+    "9M": "M9",
+    "10M": "M10",
+    "11M": "M11",
+    "12M": "M12",
+    "12M+": "M12+",
+    "M6+": "M6+",
     # 生命周期列格式
-    "0M": "M0", "1M": "M1", "2M": "M2", "3M": "M3",
-    "4M": "M4", "5M": "M5",
+    "0M": "M0",
+    "1M": "M1",
+    "2M": "M2",
+    "3M": "M3",
+    "4M": "M4",
+    "5M": "M5",
 }
 
 # ── 工具函数 ──────────────────────────────────────────────────────────────────
@@ -303,9 +324,10 @@ def _classify_risk(
     if checkins >= pot_min_ck and lesson >= pot_min_les:
         return "potential"
     consecutive = (
-        checkins >= fl_min_ck
-        and last_month_checkins >= fl_min_ck
-    ) if fl_min_months >= 2 else (checkins >= fl_min_ck)
+        (checkins >= fl_min_ck and last_month_checkins >= fl_min_ck)
+        if fl_min_months >= 2
+        else (checkins >= fl_min_ck)
+    )
     if consecutive and lesson < fl_max_les:
         return "freeloader"
 
@@ -390,6 +412,7 @@ def _aggregate_channel_roi(
 def get_checkin_roi_analysis(
     role_config: str | None = Query(None, description="围场配置 JSON"),
     enclosure: str | None = Query(None, description="围场过滤（M 标签，如 M0）"),
+    filters: UnifiedFilter = Depends(parse_filters),
     dm: DataManager = Depends(get_data_manager),
 ) -> JSONResponse:
     """
@@ -404,17 +427,19 @@ def get_checkin_roi_analysis(
     df_d3: pd.DataFrame = data.get("detail", pd.DataFrame())
 
     if df_d4.empty:
-        return JSONResponse(content={
-            "summary": {
-                "total_students": 0,
-                "total_cost_usd": 0.0,
-                "total_revenue_usd": 0.0,
-                "overall_roi": None,
-                "risk_distribution": {},
-            },
-            "students": [],
-            "channel_roi": {},
-        })
+        return JSONResponse(
+            content={
+                "summary": {
+                    "total_students": 0,
+                    "total_cost_usd": 0.0,
+                    "total_revenue_usd": 0.0,
+                    "overall_roi": None,
+                    "risk_distribution": {},
+                },
+                "students": [],
+                "channel_roi": {},
+            }
+        )
 
     cost_config = _get_roi_config()
 
@@ -438,17 +463,19 @@ def get_checkin_roi_analysis(
     # ── D4 处理 ───────────────────────────────────────────────────────────────
     d4_id_col = _find_d4_id_col(df_d4)
     if not d4_id_col:
-        return JSONResponse(content={
-            "summary": {
-                "total_students": 0,
-                "total_cost_usd": 0.0,
-                "total_revenue_usd": 0.0,
-                "overall_roi": None,
-                "risk_distribution": {},
-            },
-            "students": [],
-            "channel_roi": {},
-        })
+        return JSONResponse(
+            content={
+                "summary": {
+                    "total_students": 0,
+                    "total_cost_usd": 0.0,
+                    "total_revenue_usd": 0.0,
+                    "overall_roi": None,
+                    "risk_distribution": {},
+                },
+                "students": [],
+                "channel_roi": {},
+            }
+        )
 
     # 围场过滤
     if enclosure:
@@ -494,7 +521,10 @@ def get_checkin_roi_analysis(
         sec_ref = sum(1 for rid in referred_ids if referred_regs.get(rid, 0) > 0)
 
         student_data = _calc_student_roi(
-            row, revenue, cost_config, secondary_referrals=sec_ref,
+            row,
+            revenue,
+            cost_config,
+            secondary_referrals=sec_ref,
         )
 
         # 只返回有实际参与的学员（有打卡或有推荐）
@@ -524,8 +554,14 @@ def get_checkin_roi_analysis(
     total_students = len(students_result)
     risk_distribution: dict[str, dict[str, Any]] = {}
     all_risk_levels = [
-        "gold", "effective", "stuck_pay", "stuck_show",
-        "potential", "freeloader", "newcomer", "casual",
+        "gold",
+        "effective",
+        "stuck_pay",
+        "stuck_show",
+        "potential",
+        "freeloader",
+        "newcomer",
+        "casual",
     ]
     for rl in all_risk_levels:
         cnt = risk_counts.get(rl, 0)
@@ -538,18 +574,18 @@ def get_checkin_roi_analysis(
     channel_roi = _aggregate_channel_roi(students_result, cost_config)
 
     # 学员列表按 ROI 降序排（None ROI 放末尾）
-    students_result.sort(
-        key=lambda s: (s["roi"] is None, -(s["roi"] or 0))
-    )
+    students_result.sort(key=lambda s: (s["roi"] is None, -(s["roi"] or 0)))
 
-    return JSONResponse(content={
-        "summary": {
-            "total_students": total_students,
-            "total_cost_usd": total_cost,
-            "total_revenue_usd": total_revenue,
-            "overall_roi": overall_roi,
-            "risk_distribution": risk_distribution,
-        },
-        "students": students_result,
-        "channel_roi": channel_roi,
-    })
+    return JSONResponse(
+        content={
+            "summary": {
+                "total_students": total_students,
+                "total_cost_usd": total_cost,
+                "total_revenue_usd": total_revenue,
+                "overall_roi": overall_roi,
+                "risk_distribution": risk_distribution,
+            },
+            "students": students_result,
+            "channel_roi": channel_roi,
+        }
+    )
