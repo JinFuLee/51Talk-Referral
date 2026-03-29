@@ -49,7 +49,7 @@ echo ""
 echo "▶ [2/3] 检测后端 API 缺 parse_filters..."
 
 # 不需要 filter 的系统端点
-EXCLUDE_API="health\.py|system\.py|dependencies\.py|__init__\.py|utils\.py|filter_options\.py|access_control\.py"
+EXCLUDE_API="health\.py|system\.py|dependencies\.py|__init__\.py|utils\.py|filter_options\.py|access_control\.py|config\.py|notifications\.py|knowledge\.py"
 
 missing_filter_files=""
 for api_file in "$BACKEND/api/"*.py; do

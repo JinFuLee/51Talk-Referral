@@ -1,8 +1,8 @@
 'use client';
 
 import React from 'react';
-import useSWR from 'swr';
 import { useLocale } from 'next-intl';
+import { useFilteredSWR } from '@/lib/hooks/use-filtered-swr';
 import { swrFetcher } from '@/lib/api';
 import { formatRate, formatRevenue } from '@/lib/utils';
 import { SlideShell } from '@/components/presentation/SlideShell';
@@ -182,11 +182,10 @@ export function FunnelLeverageSlide({ slideNumber, totalSlides }: SlideProps) {
   const locale = useLocale();
   const t = I18N[locale] ?? I18N['zh'];
 
-  const { data, isLoading, error, mutate } = useSWR<FunnelLeverage>(
-    '/api/report/daily',
-    (url: string) =>
-      (swrFetcher(url) as Promise<DailyReportSlice>).then((d) => d?.blocks?.funnel_leverage)
-  );
+  const { data, isLoading, error, mutate } = useFilteredSWR<FunnelLeverage>('/api/report/daily', {
+    fetcher: (url: string) =>
+      (swrFetcher(url) as Promise<DailyReportSlice>).then((d) => d?.blocks?.funnel_leverage),
+  });
   const scores: LeverageScore[] = data?.scores ?? [];
   const topBottleneck = data?.top_bottleneck;
 

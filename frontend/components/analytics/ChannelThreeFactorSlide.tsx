@@ -1,8 +1,8 @@
 'use client';
 
 import React from 'react';
-import useSWR from 'swr';
 import { useLocale } from 'next-intl';
+import { useFilteredSWR } from '@/lib/hooks/use-filtered-swr';
 import { swrFetcher } from '@/lib/api';
 import { formatRevenue, formatRate } from '@/lib/utils';
 import { SlideShell } from '@/components/presentation/SlideShell';
@@ -172,10 +172,12 @@ export function ChannelThreeFactorSlide({ slideNumber, totalSlides }: SlideProps
   const locale = useLocale();
   const t = I18N[locale] ?? I18N['zh'];
 
-  const { data, isLoading, error, mutate } = useSWR<ChannelThreeFactor>(
+  const { data, isLoading, error, mutate } = useFilteredSWR<ChannelThreeFactor>(
     '/api/report/daily',
-    (url: string) =>
-      (swrFetcher(url) as Promise<DailyReportSlice>).then((d) => d?.blocks?.channel_three_factor)
+    {
+      fetcher: (url: string) =>
+        (swrFetcher(url) as Promise<DailyReportSlice>).then((d) => d?.blocks?.channel_three_factor),
+    }
   );
   const channels: ChannelThreeFactorRow[] = data?.channels ?? [];
 

@@ -1,8 +1,8 @@
 'use client';
 
 import React from 'react';
-import useSWR from 'swr';
 import { useLocale } from 'next-intl';
+import { useFilteredSWR } from '@/lib/hooks/use-filtered-swr';
 import { swrFetcher } from '@/lib/api';
 import { formatRate, formatRevenue } from '@/lib/utils';
 import { SlideShell } from '@/components/presentation/SlideShell';
@@ -147,11 +147,10 @@ export function MomAttributionSlide({ slideNumber, totalSlides }: SlideProps) {
   const lang = locale as 'zh' | 'zh-TW' | 'en' | 'th';
   const t = I18N[locale] ?? I18N['zh'];
 
-  const { data, isLoading, error, mutate } = useSWR<MomAttribution>(
-    '/api/report/daily',
-    (url: string) =>
-      (swrFetcher(url) as Promise<DailyReportSlice>).then((d) => d?.blocks?.mom_attribution)
-  );
+  const { data, isLoading, error, mutate } = useFilteredSWR<MomAttribution>('/api/report/daily', {
+    fetcher: (url: string) =>
+      (swrFetcher(url) as Promise<DailyReportSlice>).then((d) => d?.blocks?.mom_attribution),
+  });
   const rows: MomAttributionRow[] = data?.rows ?? [];
 
   const insight = (() => {

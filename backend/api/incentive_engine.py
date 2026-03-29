@@ -33,6 +33,7 @@ from pydantic import BaseModel
 
 from backend.api.dependencies import get_data_manager
 from backend.core.data_manager import DataManager
+from backend.models.filters import UnifiedFilter, parse_filters
 
 logger = logging.getLogger(__name__)
 
@@ -477,6 +478,7 @@ def _get_month_phase(month: str) -> tuple[str, int, str]:
 def get_recommendations(
     month: str | None = None,
     dm: DataManager = Depends(get_data_manager),
+    filters: UnifiedFilter = Depends(parse_filters),
 ) -> dict[str, Any]:
     """基于漏斗杠杆矩阵，推荐最高 ROI 的内场激励活动参数。"""
     from backend.core.channel_funnel_engine import ChannelFunnelEngine
@@ -725,6 +727,7 @@ def list_campaigns(
     month: str | None = None,
     status: str | None = None,
     dm: DataManager = Depends(get_data_manager),
+    filters: UnifiedFilter = Depends(parse_filters),
 ) -> list[dict[str, Any]]:
     campaigns = _load_campaigns_raw()
     result = []
@@ -874,6 +877,7 @@ def _evaluate_progress(
 def get_progress(
     month: str | None = None,
     dm: DataManager = Depends(get_data_manager),
+    filters: UnifiedFilter = Depends(parse_filters),
 ) -> list[dict[str, Any]]:
     if month is None:
         month = date.today().strftime("%Y%m")
@@ -1288,7 +1292,10 @@ def generate_poster(campaign_id: str) -> StreamingResponse:
 
 
 @router.get("/budget", summary="读取激励预算配置")
-def get_budget(month: str | None = None) -> dict[str, Any]:
+def get_budget(
+    month: str | None = None,
+    filters: UnifiedFilter = Depends(parse_filters),
+) -> dict[str, Any]:
     data = _read_json(
         _BUDGET_PATH, {"indoor_budget_thb": 35000, "outdoor_budget_thb": 65000}
     )

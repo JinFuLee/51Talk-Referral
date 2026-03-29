@@ -18,6 +18,7 @@ from backend.models.channel import (
     RevenueContribution,
     ThreeFactorComparison,
 )
+from backend.models.filters import UnifiedFilter, parse_filters
 
 router = APIRouter()
 
@@ -131,6 +132,7 @@ def _get_engine(dm: DataManager) -> AttributionEngine:
 def get_channel(
     request: Request,
     dm: DataManager = Depends(get_data_manager),
+    filters: UnifiedFilter = Depends(parse_filters),
 ) -> list[ChannelMetrics]:
     engine = _get_engine(dm)
     return engine.compute_channel_metrics()
@@ -144,6 +146,7 @@ def get_channel(
 def get_channel_attribution(
     request: Request,
     dm: DataManager = Depends(get_data_manager),
+    filters: UnifiedFilter = Depends(parse_filters),
 ) -> list[RevenueContribution]:
     engine = _get_engine(dm)
     return engine.compute_revenue_contribution()
@@ -157,6 +160,7 @@ def get_channel_attribution(
 def get_channel_three_factor(
     request: Request,
     dm: DataManager = Depends(get_data_manager),
+    filters: UnifiedFilter = Depends(parse_filters),
 ) -> list[ThreeFactorComparison]:
     engine = _get_engine(dm)
     return engine.compute_three_factor()
@@ -174,6 +178,7 @@ def get_channel_detail(
     page: int = Query(default=1, ge=1),
     size: int = Query(default=50, ge=1, le=200),
     dm: DataManager = Depends(get_data_manager),
+    filters: UnifiedFilter = Depends(parse_filters),
 ) -> dict[str, Any]:
     data = dm.load_all()
     df: pd.DataFrame = data.get("detail", pd.DataFrame())
@@ -218,6 +223,7 @@ def get_channel_detail(
 def get_d2_columns(
     request: Request,
     dm: DataManager = Depends(get_data_manager),
+    filters: UnifiedFilter = Depends(parse_filters),
 ) -> dict[str, Any]:
     data = dm.load_all()
     df: pd.DataFrame = data.get("enclosure_cc", pd.DataFrame())

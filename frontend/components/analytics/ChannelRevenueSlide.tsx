@@ -1,8 +1,8 @@
 'use client';
 
 import React from 'react';
-import useSWR from 'swr';
 import { useLocale } from 'next-intl';
+import { useFilteredSWR } from '@/lib/hooks/use-filtered-swr';
 import { swrFetcher } from '@/lib/api';
 import { formatRevenue, formatRate } from '@/lib/utils';
 import { SlideShell } from '@/components/presentation/SlideShell';
@@ -122,11 +122,10 @@ export function ChannelRevenueSlide({ slideNumber, totalSlides }: SlideProps) {
   const locale = useLocale();
   const t = I18N[locale] ?? I18N['zh'];
 
-  const { data, isLoading, error, mutate } = useSWR<ChannelRevenue>(
-    '/api/report/daily',
-    (url: string) =>
-      (swrFetcher(url) as Promise<DailyReportSlice>).then((d) => d?.blocks?.channel_revenue)
-  );
+  const { data, isLoading, error, mutate } = useFilteredSWR<ChannelRevenue>('/api/report/daily', {
+    fetcher: (url: string) =>
+      (swrFetcher(url) as Promise<DailyReportSlice>).then((d) => d?.blocks?.channel_revenue),
+  });
   const rows: ChannelRevenueRow[] = data?.rows ?? [];
 
   const totalLastMonth = rows.reduce((s, r) => s + r.last_month_revenue, 0);
