@@ -7,7 +7,7 @@ import { SWRProvider } from '@/components/providers/SWRProvider';
 import { NavSidebar } from '@/components/layout/NavSidebar';
 import { Topbar } from '@/components/layout/Topbar';
 import { ComparisonBanner } from '@/components/shared/ComparisonBanner';
-import { GlobalFilterBar } from '@/components/ui/GlobalFilterBar';
+import { UnifiedFilterBar } from '@/components/ui/UnifiedFilterBar';
 import { FilterSyncActivator } from '@/components/providers/FilterSyncActivator';
 import { ErrorBoundary } from '@/components/providers/ErrorBoundary';
 import { ToastProvider } from '@/components/providers/ToastProvider';
@@ -80,7 +80,7 @@ export default async function LocaleLayout({
               <div className="hide-in-presentation shrink-0">
                 <Topbar />
                 <ComparisonBanner />
-                <GlobalFilterBar />
+                <UnifiedFilterBar />
                 <FilterSyncActivator />
               </div>
               <main className="flex-1 overflow-auto p-3 md:p-6 pb-20 md:pb-6 presentation-expand relative">
