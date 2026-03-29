@@ -17,12 +17,17 @@ from backend.models.enclosure_health import (
     EnclosureBenchmark,
     EnclosureHealthScore,
 )
+from backend.models.filters import UnifiedFilter, parse_filters
 
 router = APIRouter()
 
 
-def _get_analyzer(dm: DataManager) -> CrossAnalyzer:
-    return CrossAnalyzer(dm.load_all())
+def _get_analyzer(dm: DataManager, filters: UnifiedFilter) -> CrossAnalyzer:
+    from backend.models.filters import apply_filters
+    data = dm.load_all()
+    filtered_data = dict(data)
+    filtered_data["enclosure_cc"] = apply_filters(data["enclosure_cc"], filters)
+    return CrossAnalyzer(filtered_data)
 
 
 @router.get(
@@ -33,8 +38,9 @@ def _get_analyzer(dm: DataManager) -> CrossAnalyzer:
 def get_enclosure_health_scores(
     request: Request,
     dm: DataManager = Depends(get_data_manager),
+    filters: UnifiedFilter = Depends(parse_filters),
 ) -> list[EnclosureHealthScore]:
-    analyzer = _get_analyzer(dm)
+    analyzer = _get_analyzer(dm, filters)
     items = analyzer.enclosure_health_scores()
     return [EnclosureHealthScore(**item) for item in items]
 
@@ -47,8 +53,9 @@ def get_enclosure_health_scores(
 def get_enclosure_benchmark(
     request: Request,
     dm: DataManager = Depends(get_data_manager),
+    filters: UnifiedFilter = Depends(parse_filters),
 ) -> list[EnclosureBenchmark]:
-    analyzer = _get_analyzer(dm)
+    analyzer = _get_analyzer(dm, filters)
     items = analyzer.enclosure_benchmark()
     return [EnclosureBenchmark(**item) for item in items]
 
@@ -61,7 +68,8 @@ def get_enclosure_benchmark(
 def get_enclosure_cc_variance(
     request: Request,
     dm: DataManager = Depends(get_data_manager),
+    filters: UnifiedFilter = Depends(parse_filters),
 ) -> list[CCVarianceData]:
-    analyzer = _get_analyzer(dm)
+    analyzer = _get_analyzer(dm, filters)
     items = analyzer.enclosure_cc_variance()
     return [CCVarianceData(**item) for item in items]

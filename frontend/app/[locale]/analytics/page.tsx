@@ -2,9 +2,9 @@
 
 export const dynamic = 'force-dynamic';
 
-import useSWR from 'swr';
 import { useTranslations, useLocale } from 'next-intl';
-import { swrFetcher } from '@/lib/api';
+import { useFilteredSWR } from '@/lib/hooks/use-filtered-swr';
+import { usePageDimensions } from '@/lib/hooks/use-page-dimensions';
 import { formatRate } from '@/lib/utils';
 import { MonthlyOverviewSlide } from '@/components/analytics/MonthlyOverviewSlide';
 import { GapDashboardSlide } from '@/components/analytics/GapDashboardSlide';
@@ -14,10 +14,19 @@ import { RevenueContributionSlide } from '@/components/analytics/RevenueContribu
 import type { DailyReport } from '@/lib/types/report';
 
 export default function AnalyticsPage() {
+  usePageDimensions({
+    country: true,
+    dataRole: true,
+    enclosure: true,
+    team: true,
+    granularity: true,
+    funnelStage: true,
+    channel: true,
+  });
   const t = useTranslations('analysis');
   const locale = useLocale();
   // lang variable removed — slides now use useLocale() internally
-  const { data, isLoading, error, mutate } = useSWR<DailyReport>('/api/report/daily', swrFetcher);
+  const { data, isLoading, error, mutate } = useFilteredSWR<DailyReport>('/api/report/daily');
 
   const bm = data?.bm_pct ?? 0;
   const date = data?.date ?? '—';

@@ -17,6 +17,7 @@ from pydantic import BaseModel
 
 from backend.api.dependencies import get_data_manager
 from backend.core.data_manager import DataManager
+from backend.models.filters import UnifiedFilter, parse_filters
 
 router = APIRouter()
 
@@ -155,6 +156,7 @@ def _build_response(df: pd.DataFrame) -> OutreachQualitySummary:
 def get_outreach_quality(
     request: Request,
     dm: DataManager = Depends(get_data_manager),  # noqa: B008
+    filters: UnifiedFilter = Depends(parse_filters),
 ) -> OutreachQualitySummary:
     """
     基于 D3 明细数据聚合触达质量指标。

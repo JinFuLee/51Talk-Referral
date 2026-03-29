@@ -2,7 +2,8 @@
 
 import { useLocale } from 'next-intl';
 import { useState } from 'react';
-import useSWR from 'swr';
+import { useFilteredSWR } from '@/lib/hooks/use-filtered-swr';
+import { usePageDimensions } from '@/lib/hooks/use-page-dimensions';
 
 const I18N = {
   zh: {
@@ -201,7 +202,6 @@ const I18N = {
     colPayFactor: 'ปัจจัยชำระเงิน',
   },
 } as const;
-import { swrFetcher } from '@/lib/api';
 import { formatRate } from '@/lib/utils';
 import { Card } from '@/components/ui/Card';
 import { Spinner } from '@/components/ui/Spinner';
@@ -297,6 +297,15 @@ interface ThreeFactorResponse {
 }
 
 export default function ChannelPage() {
+  usePageDimensions({
+    country: true,
+    dataRole: true,
+    enclosure: true,
+    team: true,
+    granularity: true,
+    funnelStage: true,
+    channel: true,
+  });
   const locale = useLocale();
   const t = (I18N as unknown as Record<string, (typeof I18N)['zh']>)[locale] ?? I18N['zh'];
   type Tab = 'perf' | 'net' | 'three' | 'contributor';
@@ -311,22 +320,22 @@ export default function ChannelPage() {
     data: channelData,
     isLoading: c1,
     error: cerr1,
-  } = useSWR<ChannelResponse>('/api/channel', swrFetcher);
+  } = useFilteredSWR<ChannelResponse>('/api/channel');
   const {
     data: attrData,
     isLoading: c2,
     error: cerr2,
-  } = useSWR<AttributionResponse>('/api/channel/attribution', swrFetcher);
+  } = useFilteredSWR<AttributionResponse>('/api/channel/attribution');
   const {
     data: threeData,
     isLoading: c3,
     error: cerr3,
-  } = useSWR<ThreeFactorResponse>('/api/channel/three-factor', swrFetcher);
+  } = useFilteredSWR<ThreeFactorResponse>('/api/channel/three-factor');
   const {
     data: contributorData,
     isLoading: c4,
     error: cerr4,
-  } = useSWR<ContributorResponse>('/api/analysis/referral-contributor?top=200', swrFetcher);
+  } = useFilteredSWR<ContributorResponse>('/api/analysis/referral-contributor?top=200');
 
   const isLoading = c1 || c2 || c3 || c4;
   const pageError = cerr1 || cerr2 || cerr3 || cerr4;

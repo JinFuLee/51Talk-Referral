@@ -3,7 +3,8 @@
 import { useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useLocale } from 'next-intl';
-import useSWR from 'swr';
+import { useFilteredSWR } from '@/lib/hooks/use-filtered-swr';
+import { usePageDimensions } from '@/lib/hooks/use-page-dimensions';
 
 /* ── i18n ───────────────────────────────────────────────────── */
 
@@ -297,7 +298,7 @@ const I18N = {
     chartReach: 'การเข้าถึง',
   },
 };
-import { swrFetcher } from '@/lib/api';
+
 import { formatRate, metricColor, fmtEnc } from '@/lib/utils';
 import { Card } from '@/components/ui/Card';
 import { Spinner } from '@/components/ui/Spinner';
@@ -440,22 +441,19 @@ function CCTabContent({
   onFilterChange: (v: string) => void;
   t: (typeof I18N)['zh'];
 }) {
-  const apiUrl = filter
-    ? `/api/enclosure?enclosure=${encodeURIComponent(filter)}`
-    : '/api/enclosure';
+  const enclosureExtra = filter ? { enclosure: filter } : undefined;
   const {
     data: enclosureData,
     isLoading: e1,
     error: err1,
-  } = useSWR<EnclosureResponse>(apiUrl, swrFetcher);
+  } = useFilteredSWR<EnclosureResponse>('/api/enclosure', undefined, enclosureExtra);
   const {
     data: rankingData,
     isLoading: e2,
     error: err2,
-  } = useSWR<CCRankingResponse>('/api/enclosure/ranking', swrFetcher);
-  const { data: benchmarkData } = useSWR<EnclosureBenchmarkRow[]>(
-    '/api/enclosure-health/benchmark',
-    swrFetcher
+  } = useFilteredSWR<CCRankingResponse>('/api/enclosure/ranking', undefined, enclosureExtra);
+  const { data: benchmarkData } = useFilteredSWR<EnclosureBenchmarkRow[]>(
+    '/api/enclosure-health/benchmark'
   );
 
   if (e1 || e2) {
@@ -688,10 +686,12 @@ function CCTabContent({
 /* ── SS Tab 内容 ──────────────────────────────────────────── */
 
 function SSTabContent({ filter, t }: { filter: string; t: (typeof I18N)['zh'] }) {
-  const apiUrl = filter
-    ? `/api/enclosure-ss?enclosure=${encodeURIComponent(filter)}`
-    : '/api/enclosure-ss';
-  const { data: ssData, isLoading, error } = useSWR<EnclosureSSMetrics[]>(apiUrl, swrFetcher);
+  const enclosureExtra = filter ? { enclosure: filter } : undefined;
+  const {
+    data: ssData,
+    isLoading,
+    error,
+  } = useFilteredSWR<EnclosureSSMetrics[]>('/api/enclosure-ss', undefined, enclosureExtra);
 
   if (isLoading) {
     return (
@@ -848,10 +848,12 @@ function SSTabContent({ filter, t }: { filter: string; t: (typeof I18N)['zh'] })
 /* ── LP Tab 内容 ──────────────────────────────────────────── */
 
 function LPTabContent({ filter, t }: { filter: string; t: (typeof I18N)['zh'] }) {
-  const apiUrl = filter
-    ? `/api/enclosure-lp?enclosure=${encodeURIComponent(filter)}`
-    : '/api/enclosure-lp';
-  const { data: lpData, isLoading, error } = useSWR<EnclosureLPMetrics[]>(apiUrl, swrFetcher);
+  const enclosureExtra = filter ? { enclosure: filter } : undefined;
+  const {
+    data: lpData,
+    isLoading,
+    error,
+  } = useFilteredSWR<EnclosureLPMetrics[]>('/api/enclosure-lp', undefined, enclosureExtra);
 
   if (isLoading) {
     return (
@@ -1008,18 +1010,22 @@ function LPTabContent({ filter, t }: { filter: string; t: (typeof I18N)['zh'] })
 /* ── 全部汇总 Tab ─────────────────────────────────────────── */
 
 function AllTabContent({ filter, t }: { filter: string; t: (typeof I18N)['zh'] }) {
-  const ccUrl = filter
-    ? `/api/enclosure?enclosure=${encodeURIComponent(filter)}`
-    : '/api/enclosure';
-  const ssUrl = filter
-    ? `/api/enclosure-ss?enclosure=${encodeURIComponent(filter)}`
-    : '/api/enclosure-ss';
-  const lpUrl = filter
-    ? `/api/enclosure-lp?enclosure=${encodeURIComponent(filter)}`
-    : '/api/enclosure-lp';
-  const { data: ccData } = useSWR<EnclosureResponse>(ccUrl, swrFetcher);
-  const { data: ssData } = useSWR<EnclosureSSMetrics[]>(ssUrl, swrFetcher);
-  const { data: lpData } = useSWR<EnclosureLPMetrics[]>(lpUrl, swrFetcher);
+  const enclosureExtra = filter ? { enclosure: filter } : undefined;
+  const { data: ccData } = useFilteredSWR<EnclosureResponse>(
+    '/api/enclosure',
+    undefined,
+    enclosureExtra
+  );
+  const { data: ssData } = useFilteredSWR<EnclosureSSMetrics[]>(
+    '/api/enclosure-ss',
+    undefined,
+    enclosureExtra
+  );
+  const { data: lpData } = useFilteredSWR<EnclosureLPMetrics[]>(
+    '/api/enclosure-lp',
+    undefined,
+    enclosureExtra
+  );
 
   const ccRows = Array.isArray(ccData) ? ccData : (ccData?.data ?? []);
   const ssRows = ssData ?? [];
@@ -1145,9 +1151,19 @@ function EnclosurePageInner() {
   const locale = useLocale();
   const t = (I18N as unknown as Record<string, (typeof I18N)['zh']>)[locale] ?? I18N['zh'];
 
-  const { data: ccExportData } = useSWR<EnclosureResponse>('/api/enclosure', swrFetcher);
-  const { data: ssExportData } = useSWR<EnclosureSSMetrics[]>('/api/enclosure-ss', swrFetcher);
-  const { data: lpExportData } = useSWR<EnclosureLPMetrics[]>('/api/enclosure-lp', swrFetcher);
+  usePageDimensions({
+    country: true,
+    dataRole: true,
+    enclosure: true,
+    team: true,
+    granularity: true,
+    channel: true,
+    behavior: true,
+  });
+
+  const { data: ccExportData } = useFilteredSWR<EnclosureResponse>('/api/enclosure');
+  const { data: ssExportData } = useFilteredSWR<EnclosureSSMetrics[]>('/api/enclosure-ss');
+  const { data: lpExportData } = useFilteredSWR<EnclosureLPMetrics[]>('/api/enclosure-lp');
 
   function handleTabChange(tab: TabKey) {
     const params = new URLSearchParams(searchParams.toString());

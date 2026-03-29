@@ -278,6 +278,7 @@ const I18N = {
 } as const;
 import { swrFetcher } from '@/lib/api';
 import { useFilteredSWR } from '@/lib/hooks/use-filtered-swr';
+import { usePageDimensions } from '@/lib/hooks/use-page-dimensions';
 import { Card } from '@/components/ui/Card';
 import { Spinner } from '@/components/ui/Spinner';
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -320,6 +321,7 @@ function DetailDrawerWrapper({
 // Options are built dynamically using t inside the component
 
 export default function MembersPage() {
+  usePageDimensions({ country: true, dataRole: true, enclosure: true, team: true });
   const locale = useLocale();
   const t = (I18N as unknown as Record<string, (typeof I18N)['zh']>)[locale] ?? I18N['zh'];
 

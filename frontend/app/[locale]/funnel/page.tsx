@@ -1,8 +1,8 @@
 'use client';
 
 import { useLocale } from 'next-intl';
-import useSWR from 'swr';
-import { swrFetcher } from '@/lib/api';
+import { useFilteredSWR } from '@/lib/hooks/use-filtered-swr';
+import { usePageDimensions } from '@/lib/hooks/use-page-dimensions';
 
 const I18N = {
   zh: {
@@ -256,6 +256,15 @@ interface FunnelResponse {
 }
 
 export default function FunnelPage() {
+  usePageDimensions({
+    country: true,
+    dataRole: true,
+    enclosure: true,
+    team: true,
+    granularity: true,
+    funnelStage: true,
+    channel: true,
+  });
   const locale = useLocale();
   const t = (I18N as unknown as Record<string, (typeof I18N)['zh']>)[locale] ?? I18N['zh'];
   const {
@@ -263,11 +272,10 @@ export default function FunnelPage() {
     isLoading: fLoading,
     error: fError,
     mutate: fMutate,
-  } = useSWR<FunnelResult>('/api/funnel', swrFetcher);
-  const { data: scenarioRaw, isLoading: sLoading } = useSWR('/api/funnel/scenario', swrFetcher);
-  const { data: invitationData } = useSWR<InvitationFunnelResponse>(
-    '/api/funnel/with-invitation',
-    swrFetcher
+  } = useFilteredSWR<FunnelResult>('/api/funnel');
+  const { data: scenarioRaw, isLoading: sLoading } = useFilteredSWR('/api/funnel/scenario');
+  const { data: invitationData } = useFilteredSWR<InvitationFunnelResponse>(
+    '/api/funnel/with-invitation'
   );
   const { exportCSV } = useExport();
 
@@ -301,7 +309,7 @@ export default function FunnelPage() {
 
   // 后端直接返回兼容字段（stage/current_rate/scenario_rate/impact_*），无需 workaround 映射
   const scenarioList: ScenarioResult[] = scenarioRaw
-    ? [scenarioRaw].flat().map((s: Record<string, unknown>) => ({
+    ? ([scenarioRaw].flat() as Record<string, unknown>[]).map((s) => ({
         stage: (s.stage ?? '') as string,
         current_rate: (s.current_rate ?? 0) as number,
         scenario_rate: (s.scenario_rate ?? 0) as number,

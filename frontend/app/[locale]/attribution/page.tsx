@@ -1,9 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import useSWR from 'swr';
 import { useLocale } from 'next-intl';
-import { swrFetcher } from '@/lib/api';
+import { useFilteredSWR } from '@/lib/hooks/use-filtered-swr';
+import { usePageDimensions } from '@/lib/hooks/use-page-dimensions';
 import type { AttributionSummary, AttributionBreakdownItem } from '@/lib/types/cross-analysis';
 import { formatRate } from '@/lib/utils';
 import { Card } from '@/components/ui/Card';
@@ -116,6 +116,16 @@ export default function AttributionPage() {
   const locale = useLocale();
   const t = (I18N as unknown as Record<string, (typeof I18N)['zh']>)[locale] ?? I18N['zh'];
 
+  usePageDimensions({
+    country: true,
+    dataRole: true,
+    enclosure: true,
+    team: true,
+    granularity: true,
+    funnelStage: true,
+    channel: true,
+  });
+
   const BREAKDOWN_TABS = [
     { value: 'enclosure' as GroupBy, label: t.breakdownTabs[0] },
     { value: 'cc' as GroupBy, label: t.breakdownTabs[1] },
@@ -131,12 +141,12 @@ export default function AttributionPage() {
     isLoading: loadingSummary,
     error: errSummary,
     mutate: mutateSummary,
-  } = useSWR<AttributionSummary>('/api/attribution/summary', swrFetcher);
+  } = useFilteredSWR<AttributionSummary>('/api/attribution/summary');
 
   // 分组明细
-  const { data: breakdownRaw, isLoading: loadingBreakdown } = useSWR<
+  const { data: breakdownRaw, isLoading: loadingBreakdown } = useFilteredSWR<
     BreakdownResponse | AttributionBreakdownItem[]
-  >(`/api/attribution/breakdown?group_by=${groupBy}`, swrFetcher);
+  >('/api/attribution/breakdown', undefined, { group_by: groupBy });
 
   const breakdown: AttributionBreakdownItem[] = Array.isArray(breakdownRaw)
     ? breakdownRaw

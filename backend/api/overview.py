@@ -233,8 +233,8 @@ def get_overview(
                     override_tgts["付费目标"] = round(_total_paid, 1)
     except Exception as _e:
         import logging
-        logging.getLogger(__name__).warning("V2 target parse error: %s", _e)
 
+        logging.getLogger(__name__).warning("V2 target parse error: %s", _e)
 
     def _get_target(target_field: str | None) -> float | None:
         """优先从 override 读取目标，fallback 到 Excel metrics"""
@@ -318,6 +318,7 @@ def get_overview(
     d2b_summary: dict[str, Any] | None = None
     if d2b_df is not None and not d2b_df.empty:
         row = d2b_df.iloc[0]
+
         # 兼容多种列名
         def _d2b_val(candidates: list[str]) -> float | None:
             for c in candidates:
@@ -335,7 +336,9 @@ def get_overview(
             "new_coefficient": _d2b_val(["带新系数", "转介绍带新系数"]),
             "cargo_ratio": _d2b_val(["带货比", "带货比例"]),
             "participation_count": _d2b_val(["带新参与数", "参与带新学员数"]),
-            "participation_rate": _d2b_val(["参与率", "转介绍参与率", "财务模型的参与率"]),
+            "participation_rate": _d2b_val(
+                ["参与率", "转介绍参与率", "财务模型的参与率"]
+            ),
             "checkin_rate": _d2b_val(["当月有效打卡率", "打卡率"]),
             "cc_reach_rate": _d2b_val(["CC触达率", "有效触达率"]),
         }
@@ -352,16 +355,12 @@ def get_overview(
             _total_stu = _stu.sum()
             if _total_stu > 0:
                 if d2b_summary.get("checkin_rate") is None:
-                    _v = pd.to_numeric(
-                        _active.get("当月有效打卡率"), errors="coerce"
-                    )
+                    _v = pd.to_numeric(_active.get("当月有效打卡率"), errors="coerce")
                     d2b_summary["checkin_rate"] = round(
                         float((_v * _stu).sum() / _total_stu), 4
                     )
                 if d2b_summary.get("cc_reach_rate") is None:
-                    _v = pd.to_numeric(
-                        _active.get("CC触达率"), errors="coerce"
-                    )
+                    _v = pd.to_numeric(_active.get("CC触达率"), errors="coerce")
                     d2b_summary["cc_reach_rate"] = round(
                         float((_v * _stu).sum() / _total_stu), 4
                     )
@@ -423,11 +422,10 @@ def get_overview(
         _bm_proj_cfg_path = _project_dir / "projects" / "referral" / "config.json"
         if _bm_proj_cfg_path.exists():
             import json as _json_bm
-            _bm_proj_raw = _json_bm.loads(
-                _bm_proj_cfg_path.read_text(encoding="utf-8")
-            )
-            _bm_cfg_auto_kickoff = (
-                _bm_proj_raw.get("bm_config", {}).get("auto_kickoff", True)
+
+            _bm_proj_raw = _json_bm.loads(_bm_proj_cfg_path.read_text(encoding="utf-8"))
+            _bm_cfg_auto_kickoff = _bm_proj_raw.get("bm_config", {}).get(
+                "auto_kickoff", True
             )
 
         _bm_cal = generate_bm_calendar(
@@ -453,24 +451,21 @@ def get_overview(
             target_val = _get_target(target_field)
 
             bm_mtd = (
-                target_val * _bm_snap["bm_mtd_pct"]
-                if target_val is not None else None
+                target_val * _bm_snap["bm_mtd_pct"] if target_val is not None else None
             )
             bm_gap = (
                 round(actual_val - bm_mtd, 2)
-                if actual_val is not None and bm_mtd is not None else None
+                if actual_val is not None and bm_mtd is not None
+                else None
             )
             bm_today = (
                 target_val * _bm_snap["bm_today_pct"]
-                if target_val is not None else None
+                if target_val is not None
+                else None
             )
             bm_remaining = _bm_snap["bm_remaining_pct"]
             today_required: float | None = None
-            if (
-                target_val is not None
-                and actual_val is not None
-                and bm_remaining > 0
-            ):
+            if target_val is not None and actual_val is not None and bm_remaining > 0:
                 today_pct_ratio = _bm_snap["bm_today_pct"] / bm_remaining
                 today_required = round(
                     (target_val - actual_val) * today_pct_ratio,
@@ -497,6 +492,7 @@ def get_overview(
         }
     except Exception as _bm_err:
         import logging
+
         logging.getLogger(__name__).warning("BM comparison error: %s", _bm_err)
 
     return {

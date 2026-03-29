@@ -3,9 +3,8 @@
 import { Suspense, useState, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useLocale } from 'next-intl';
-import useSWR from 'swr';
-import { swrFetcher } from '@/lib/api';
 import { useFilteredSWR } from '@/lib/hooks/use-filtered-swr';
+import { usePageDimensions } from '@/lib/hooks/use-page-dimensions';
 import { formatRate, formatRevenue, metricColor } from '@/lib/utils';
 import { Card } from '@/components/ui/Card';
 import { SkeletonCard } from '@/components/ui/Skeleton';
@@ -622,7 +621,7 @@ function CCTabContent() {
 function RoleRankingContent({ role, apiUrl }: { role: 'SS' | 'LP'; apiUrl: string }) {
   const locale = useLocale();
   const tr = (I18N as unknown as Record<string, (typeof I18N)['zh']>)[locale] ?? I18N['zh'];
-  const { data, isLoading, error, mutate } = useSWR<RankingResponse>(apiUrl, swrFetcher);
+  const { data, isLoading, error, mutate } = useFilteredSWR<RankingResponse>(apiUrl);
 
   if (isLoading) {
     return (
@@ -804,6 +803,13 @@ function RoleRankingContent({ role, apiUrl }: { role: 'SS' | 'LP'; apiUrl: strin
 /* ── 主页面内部 ──────────────────────────────────────────── */
 
 function TeamPageInner() {
+  usePageDimensions({
+    country: true,
+    dataRole: true,
+    enclosure: true,
+    team: true,
+    granularity: true,
+  });
   const locale = useLocale();
   const tr = (I18N as unknown as Record<string, (typeof I18N)['zh']>)[locale] ?? I18N['zh'];
   const router = useRouter();
@@ -812,8 +818,8 @@ function TeamPageInner() {
   const { exportCSV } = useExport();
 
   const { data: ccData } = useFilteredSWR<TeamSummaryResponse>('/api/team/summary');
-  const { data: ssData } = useSWR<RankingResponse>('/api/team/ss-ranking', swrFetcher);
-  const { data: lpData } = useSWR<RankingResponse>('/api/team/lp-ranking', swrFetcher);
+  const { data: ssData } = useFilteredSWR<RankingResponse>('/api/team/ss-ranking');
+  const { data: lpData } = useFilteredSWR<RankingResponse>('/api/team/lp-ranking');
 
   function handleTabChange(tab: TabKey) {
     const params = new URLSearchParams(searchParams.toString());

@@ -19,12 +19,20 @@ from backend.models.attribution import (
     AttributionSummary,
     SimulationResult,
 )
+from backend.models.filters import UnifiedFilter, apply_filters, parse_filters
 
 router = APIRouter()
 
 
-def _get_analyzer(dm: DataManager) -> CrossAnalyzer:
-    return CrossAnalyzer(dm.load_all())
+def _get_analyzer(dm: DataManager, filters: UnifiedFilter) -> CrossAnalyzer:
+    data = dm.load_all()
+    filtered_data = dict(data)
+    filtered_data["enclosure_cc"] = apply_filters(data["enclosure_cc"], filters)
+    if "detail" in data:
+        filtered_data["detail"] = apply_filters(
+            data["detail"], filters, col_enclosure="围场"
+        )
+    return CrossAnalyzer(filtered_data)
 
 
 @router.get(
@@ -35,8 +43,9 @@ def _get_analyzer(dm: DataManager) -> CrossAnalyzer:
 def get_attribution_summary(
     request: Request,
     dm: DataManager = Depends(get_data_manager),
+    filters: UnifiedFilter = Depends(parse_filters),
 ) -> AttributionSummary:
-    analyzer = _get_analyzer(dm)
+    analyzer = _get_analyzer(dm, filters)
     data = analyzer.attribution_summary()
     return AttributionSummary(**data)
 
@@ -53,8 +62,9 @@ def get_attribution_breakdown(
         description="分组维度：enclosure(围场) / cc(CC姓名) / channel(三级渠道) / lifecycle(生命周期)",  # noqa: E501
     ),
     dm: DataManager = Depends(get_data_manager),
+    filters: UnifiedFilter = Depends(parse_filters),
 ) -> list[AttributionBreakdownItem]:
-    analyzer = _get_analyzer(dm)
+    analyzer = _get_analyzer(dm, filters)
     items = analyzer.attribution_breakdown(group_by=group_by)
     return [AttributionBreakdownItem(**item) for item in items]
 
@@ -77,7 +87,8 @@ def get_attribution_simulation(
         description="假设的新注册转化率（0.0~1.0）",
     ),
     dm: DataManager = Depends(get_data_manager),
+    filters: UnifiedFilter = Depends(parse_filters),
 ) -> SimulationResult:
-    analyzer = _get_analyzer(dm)
+    analyzer = _get_analyzer(dm, filters)
     result = analyzer.attribution_simulation(segment=segment, new_rate=new_rate)
     return SimulationResult(**result)

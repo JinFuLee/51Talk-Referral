@@ -31,6 +31,7 @@ from fastapi import APIRouter, Depends, Query, Request, Response
 
 from backend.api.dependencies import get_data_manager
 from backend.core.data_manager import DataManager
+from backend.models.filters import UnifiedFilter, parse_filters
 
 router = APIRouter()
 
@@ -40,11 +41,14 @@ _CONFIG_CACHE: dict | None = None
 _CONFIG_MTIME: float = 0.0
 _CONFIG_PATH = (
     Path(__file__).resolve().parent.parent.parent
-    / "projects" / "referral" / "config.json"
+    / "projects"
+    / "referral"
+    / "config.json"
 )
 _OVERRIDE_PATH = (
     Path(__file__).resolve().parent.parent.parent
-    / "config" / "enclosure_role_override.json"
+    / "config"
+    / "enclosure_role_override.json"
 )
 
 
@@ -72,32 +76,41 @@ def _get_config() -> dict:
 # D3 围场原始字符串 → M 标签
 # 纯数学映射（M0=0-30, M1=31-60...），与 config.json enclosure_role_wide 保持一致
 _M_MAP: dict[str, str] = {
-    "0~30":    "M0",
-    "31~60":   "M1",
-    "61~90":   "M2",
-    "91~120":  "M3",
+    "0~30": "M0",
+    "31~60": "M1",
+    "61~90": "M2",
+    "91~120": "M3",
     "121~150": "M4",
     "151~180": "M5",
-    "6M":      "M6",
-    "7M":      "M7",
-    "8M":      "M8",
-    "9M":      "M9",
-    "10M":     "M10",
-    "11M":     "M11",
-    "12M":     "M12",
-    "12M+":    "M12+",
+    "6M": "M6",
+    "7M": "M7",
+    "8M": "M8",
+    "9M": "M9",
+    "10M": "M10",
+    "11M": "M11",
+    "12M": "M12",
+    "12M+": "M12+",
     # 旧数据兼容
-    "M6+":     "M6+",
-    "181+":    "M6+",
+    "M6+": "M6+",
+    "181+": "M6+",
 }
 
 # 围场段 → 天数映射（与前端 M_TO_DAYS 对齐）
 _M_TO_DAYS: dict[str, tuple[int, int]] = {
-    "0~30": (0, 30), "31~60": (31, 60), "61~90": (61, 90),
-    "91~120": (91, 120), "121~150": (121, 150), "151~180": (151, 180),
-    "6M": (181, 210), "7M": (211, 240), "8M": (241, 270),
-    "9M": (271, 300), "10M": (301, 330), "11M": (331, 360),
-    "12M": (361, 390), "12M+": (391, 9999),
+    "0~30": (0, 30),
+    "31~60": (31, 60),
+    "61~90": (61, 90),
+    "91~120": (91, 120),
+    "121~150": (121, 150),
+    "151~180": (151, 180),
+    "6M": (181, 210),
+    "7M": (211, 240),
+    "8M": (241, 270),
+    "9M": (271, 300),
+    "10M": (301, 330),
+    "11M": (331, 360),
+    "12M": (361, 390),
+    "12M+": (391, 9999),
     "M6+": (181, 9999),  # 旧数据兼容
 }
 
@@ -117,9 +130,12 @@ _ROLE_COLS_FALLBACK: dict[str, tuple[str, str]] = {
 }
 
 _QUALITY_SCORE_FALLBACK: dict = {
-    "lesson_max": 15, "lesson_weight": 40,
-    "referral_max": 3, "referral_weight": 30,
-    "payment_max": 2, "payment_weight": 20,
+    "lesson_max": 15,
+    "lesson_weight": 40,
+    "referral_max": 3,
+    "referral_weight": 30,
+    "payment_max": 2,
+    "payment_weight": 20,
     "enclosure_weights": {"0": 10, "1": 8, "2": 6, "3": 4, "default": 2},
 }
 
@@ -137,10 +153,20 @@ def _get_wide_role() -> dict[str, list[str]]:
     """
     # M 标签 → 围场段映射（用于 override 格式转换）
     _M_TO_BAND: dict[str, str] = {
-        "M0": "0~30", "M1": "31~60", "M2": "61~90",
-        "M3": "91~120", "M4": "121~150", "M5": "151~180",
-        "M6": "6M", "M7": "7M", "M8": "8M", "M9": "9M",
-        "M10": "10M", "M11": "11M", "M12": "12M", "M12+": "12M+",
+        "M0": "0~30",
+        "M1": "31~60",
+        "M2": "61~90",
+        "M3": "91~120",
+        "M4": "121~150",
+        "M5": "151~180",
+        "M6": "6M",
+        "M7": "7M",
+        "M8": "8M",
+        "M9": "9M",
+        "M10": "10M",
+        "M11": "11M",
+        "M12": "12M",
+        "M12+": "12M+",
         "M6+": "M6+",
     }
 
@@ -178,8 +204,7 @@ def _get_wide_role() -> dict[str, list[str]]:
         min_d = spec.get("min_days", 0)
         max_d = spec.get("max_days") or 9999
         bands = [
-            band for band, (lo, hi) in _M_TO_DAYS.items()
-            if lo >= min_d and hi <= max_d
+            band for band, (lo, hi) in _M_TO_DAYS.items() if lo >= min_d and hi <= max_d
         ]
         # 运营角色（181+）特殊处理：包含 M6+ 和 181+
         if max_d >= 9999:
@@ -219,6 +244,7 @@ def _get_quality_score_config() -> dict:
 # 为保持向后兼容性，保留模块级常量（值在首次使用时从 config 派生）
 # 直接使用下面的 getter 函数，不依赖模块级绑定
 
+
 def _get_wide_role_cached() -> dict[str, list[str]]:
     """模块级 _WIDE_ROLE 的兼容入口，每次从 getter 获取（config 热重载安全）。"""
     return _get_wide_role()
@@ -237,12 +263,12 @@ def _parse_role_enclosures(role_config: str | None, role: str) -> list[str] | No
         min_d = cfg.get("min_days", 0)
         max_d = cfg.get("max_days") or 9999
         bands = [
-            band for band, (lo, hi) in _M_TO_DAYS.items()
-            if lo >= min_d and hi <= max_d
+            band for band, (lo, hi) in _M_TO_DAYS.items() if lo >= min_d and hi <= max_d
         ]
         return bands if bands else None
     except (json.JSONDecodeError, AttributeError, TypeError):
         return None
+
 
 # 各岗位人员列（name_col, group_col）— 从 config.json role_columns 动态加载
 # 直接调用 _get_role_cols() 获取最新值
@@ -250,9 +276,10 @@ def _get_role_cols_snapshot() -> dict[str, tuple[str, str]]:
     """返回当前 config 的 role_cols 快照，供模块级 _ROLE_COLS 使用。"""
     return _get_role_cols()
 
+
 # D3 列名
-_D3_CHECKIN_COL  = "有效打卡"
-_D3_STUDENT_COL  = "stdt_id"
+_D3_CHECKIN_COL = "有效打卡"
+_D3_STUDENT_COL = "stdt_id"
 _D3_ENCLOSURE_COL = "围场"
 
 # D4 学员 ID 候选列（按优先级）
@@ -261,6 +288,7 @@ _D4_LIFECYCLE_COL = "生命周期"
 
 
 # ── 工具函数 ─────────────────────────────────────────────────────────────────
+
 
 def _safe(val) -> Any:
     if val is None:
@@ -379,8 +407,10 @@ def _calc_quality_score(row_d3: pd.Series, d4_row: pd.Series | None) -> float:
     enc_raw = None
     if d4_row is not None:
         enc_raw = d4_row.get(_D4_LIFECYCLE_COL) or d4_row.get("围场")
-    enc_raw = enc_raw if enc_raw is not None else (
-        row_d3.get("生命周期") or row_d3.get("围场")
+    enc_raw = (
+        enc_raw
+        if enc_raw is not None
+        else (row_d3.get("生命周期") or row_d3.get("围场"))
     )
     m_label = _M_MAP.get(_safe_str(enc_raw), "M0") if enc_raw is not None else "M0"
     m_idx = _m_label_to_index(m_label)
@@ -416,6 +446,7 @@ def _calc_quality_score(row_d3: pd.Series, d4_row: pd.Series | None) -> float:
 
 # ── 核心聚合 ──────────────────────────────────────────────────────────────────
 
+
 def _aggregate_role(
     df_d3: pd.DataFrame,
     role: str,
@@ -433,9 +464,7 @@ def _aggregate_role(
     role_cols = _get_role_cols()
     name_col, group_col = role_cols.get(role, ("last_cc_name", "last_cc_group_name"))
     wide_role = _get_wide_role()
-    enclosures = (
-        enclosures_override if enclosures_override else wide_role.get(role, [])
-    )
+    enclosures = enclosures_override if enclosures_override else wide_role.get(role, [])
 
     # 按围场筛选
     if _D3_ENCLOSURE_COL in df_d3.columns:
@@ -454,9 +483,7 @@ def _aggregate_role(
 
     if total > 0 and _D3_CHECKIN_COL in subset.columns:
         checked = int(
-            pd.to_numeric(subset[_D3_CHECKIN_COL], errors="coerce")
-            .fillna(0)
-            .sum()
+            pd.to_numeric(subset[_D3_CHECKIN_COL], errors="coerce").fillna(0).sum()
         )
         rate = checked / total
 
@@ -469,20 +496,18 @@ def _aggregate_role(
                 continue
             t = len(g)
             c = (
-                int(
-                    pd.to_numeric(g[_D3_CHECKIN_COL], errors="coerce")
-                    .fillna(0)
-                    .sum()
-                )
+                int(pd.to_numeric(g[_D3_CHECKIN_COL], errors="coerce").fillna(0).sum())
                 if _D3_CHECKIN_COL in g.columns
                 else 0
             )
-            by_team.append({
-                "team":       grp_str,
-                "students":   t,
-                "checked_in": c,
-                "rate":       round(c / t, 4) if t > 0 else 0.0,
-            })
+            by_team.append(
+                {
+                    "team": grp_str,
+                    "students": t,
+                    "checked_in": c,
+                    "rate": round(c / t, 4) if t > 0 else 0.0,
+                }
+            )
         by_team.sort(key=lambda x: x["rate"], reverse=True)
 
     # by_enclosure
@@ -494,27 +519,25 @@ def _aggregate_role(
             e = subset.iloc[0:0]
         t = len(e)
         c = (
-            int(
-                pd.to_numeric(e[_D3_CHECKIN_COL], errors="coerce")
-                .fillna(0)
-                .sum()
-            )
+            int(pd.to_numeric(e[_D3_CHECKIN_COL], errors="coerce").fillna(0).sum())
             if t > 0 and _D3_CHECKIN_COL in e.columns
             else 0
         )
-        by_enclosure.append({
-            "enclosure":  _M_MAP.get(enc, enc),
-            "students":   t,
-            "checked_in": c,
-            "rate":       round(c / t, 4) if t > 0 else 0.0,
-        })
+        by_enclosure.append(
+            {
+                "enclosure": _M_MAP.get(enc, enc),
+                "students": t,
+                "checked_in": c,
+                "rate": round(c / t, 4) if t > 0 else 0.0,
+            }
+        )
 
     return {
         "total_students": total,
-        "checked_in":     checked,
-        "checkin_rate":   round(rate, 4),
-        "by_team":        by_team,
-        "by_enclosure":   by_enclosure,
+        "checked_in": checked,
+        "checkin_rate": round(rate, 4),
+        "by_team": by_team,
+        "by_enclosure": by_enclosure,
     }
 
 
@@ -566,7 +589,16 @@ def _aggregate_ops_channels(
 ) -> dict[str, Any]:
     """运营角色聚合：按渠道推荐 + 围场子段，不使用 CC/SS/LP 人员列。"""
     enclosures = enclosures_override or [
-        "6M", "7M", "8M", "9M", "10M", "11M", "12M", "12M+", "M6+", "181+",
+        "6M",
+        "7M",
+        "8M",
+        "9M",
+        "10M",
+        "11M",
+        "12M",
+        "12M+",
+        "M6+",
+        "181+",
     ]
 
     # 筛选 M6+ 围场学员
@@ -626,21 +658,21 @@ def _aggregate_ops_channels(
             t = len(seg)
             c = (
                 int(
-                    pd.to_numeric(seg[_D3_CHECKIN_COL], errors="coerce")
-                    .fillna(0)
-                    .sum()
+                    pd.to_numeric(seg[_D3_CHECKIN_COL], errors="coerce").fillna(0).sum()
                 )
                 if _D3_CHECKIN_COL in seg.columns
                 else 0
             )
             label = _M_MAP.get(_safe_str(enc_val), _safe_str(enc_val))
-            by_enclosure_segment.append({
-                "segment": label,
-                "label": f"{label}围场",
-                "students": t,
-                "checked_in": c,
-                "rate": round(c / t, 4) if t > 0 else 0.0,
-            })
+            by_enclosure_segment.append(
+                {
+                    "segment": label,
+                    "label": f"{label}围场",
+                    "students": t,
+                    "checked_in": c,
+                    "rate": round(c / t, 4) if t > 0 else 0.0,
+                }
+            )
 
     if not by_enclosure_segment:
         by_enclosure_segment = [
@@ -659,8 +691,8 @@ def _aggregate_ops_channels(
         "checkin_rate": round(rate, 4),
         "channels": channels,
         "by_enclosure_segment": by_enclosure_segment,
-        "by_team": [],        # 兼容 SummaryTab ChannelColumn（运营无团队拆分）
-        "by_enclosure": [],   # 兼容 SummaryTab ChannelColumn（运营无围场拆分）
+        "by_team": [],  # 兼容 SummaryTab ChannelColumn（运营无团队拆分）
+        "by_enclosure": [],  # 兼容 SummaryTab ChannelColumn（运营无围场拆分）
         "by_group": [],
         "by_person": [],
     }
@@ -705,21 +737,25 @@ def _aggregate_team_members(df_d3: pd.DataFrame, team: str, role: str) -> list[d
         for enc, enc_df in person_df.groupby("_m_label", sort=False):
             et = len(enc_df)
             ec = int(enc_df["_checkin"].sum())
-            by_enc.append({
-                "enclosure":  str(enc),
-                "students":   et,
-                "checked_in": ec,
-                "rate":       round(ec / et, 4) if et > 0 else 0.0,
-            })
+            by_enc.append(
+                {
+                    "enclosure": str(enc),
+                    "students": et,
+                    "checked_in": ec,
+                    "rate": round(ec / et, 4) if et > 0 else 0.0,
+                }
+            )
         by_enc.sort(key=lambda x: _m_label_to_index(x["enclosure"]))
 
-        members.append({
-            "name":           _safe_str(name),
-            "total_students": t,
-            "checked_in":     c,
-            "rate":           round(r, 4),
-            "by_enclosure":   by_enc,
-        })
+        members.append(
+            {
+                "name": _safe_str(name),
+                "total_students": t,
+                "checked_in": c,
+                "rate": round(r, 4),
+                "by_enclosure": by_enc,
+            }
+        )
 
     members.sort(key=lambda x: x["rate"], reverse=True)
     return members
@@ -728,8 +764,8 @@ def _aggregate_team_members(df_d3: pd.DataFrame, team: str, role: str) -> list[d
 def _build_followup_students(
     df_d3: pd.DataFrame,
     df_d4: pd.DataFrame,
-    role:  str | None,
-    team:  str | None,
+    role: str | None,
+    team: str | None,
     sales: str | None,
 ) -> list[dict]:
     """
@@ -767,7 +803,7 @@ def _build_followup_students(
         return "LP"
 
     df["_m_label"] = df.apply(_row_enc, axis=1)
-    df["_role"]    = df["_m_label"].apply(_enc_to_role)
+    df["_role"] = df["_m_label"].apply(_enc_to_role)
 
     # 按 role 筛选
     if role and role not in ("全部", ""):
@@ -786,13 +822,13 @@ def _build_followup_students(
             "last_ss_group_name",
             "last_lp_group_name",
         ]
-        name_col  = next((c for c in _name_candidates  if c in df.columns), None)
+        name_col = next((c for c in _name_candidates if c in df.columns), None)
         group_col = next((c for c in _group_candidates if c in df.columns), None)
 
     real_group = group_col if group_col and group_col in df.columns else None
-    real_name  = name_col  if name_col  and name_col  in df.columns else None
+    real_name = name_col if name_col and name_col in df.columns else None
 
-    if team  and real_group:
+    if team and real_group:
         df = df[df[real_group].astype(str).str.strip() == team.strip()]
     if sales and real_name:
         df = df[df[real_name].astype(str).str.strip() == sales.strip()]
@@ -813,13 +849,13 @@ def _build_followup_students(
 
     students: list[dict] = []
     for _, row in df.iterrows():
-        sid   = _safe_str(row.get(d3_id_col, "")) if d3_id_col else ""
+        sid = _safe_str(row.get(d3_id_col, "")) if d3_id_col else ""
         d4_row = d4_index.get(sid)
 
-        enc       = row.get("_m_label", "M?")
-        role_val  = row.get("_role", "")
+        enc = row.get("_m_label", "M?")
+        role_val = row.get("_role", "")
 
-        cc_name  = _safe_str(row.get(real_name  or "", ""))
+        cc_name = _safe_str(row.get(real_name or "", ""))
         team_val = _safe_str(row.get(real_group or "", ""))
 
         # D4 fallback 姓名/团队
@@ -859,13 +895,15 @@ def _build_followup_students(
         # ── 新增字段：SS/LP 负责人 ────────────────────────────────────────────
         ss_name = (
             _safe_str(d4_row.get("末次（当前）分配SS员工姓名", ""))
-            if d4_row is not None else ""
+            if d4_row is not None
+            else ""
         )
         ss_group = (
             _safe_str(d4_row.get("末次（当前）分配SS员工组名称", ""))
-            if d4_row is not None else ""
+            if d4_row is not None
+            else ""
         )
-        lp_name  = _safe_str(row.get("last_lp_name",  ""))
+        lp_name = _safe_str(row.get("last_lp_name", ""))
         lp_group = _safe_str(row.get("last_lp_group_name", ""))
 
         # ── 本月/上月打卡天数（extra 中已有，同步到顶层字段）─────────────────
@@ -873,6 +911,7 @@ def _build_followup_students(
 
         # ── 本周打卡天数 ──────────────────────────────────────────────────────
         from datetime import date as _date
+
         _today = _date.today()
         _week_of_month = min(4, (_today.day - 1) // 7 + 1)
         _week_col = f"第{_week_of_month}周转码"
@@ -881,10 +920,13 @@ def _build_followup_students(
         )
 
         # ── 活跃周数 0-4 ──────────────────────────────────────────────────────
-        weeks_active = sum(
-            1 for w in range(1, 5)
-            if int(_safe(extra.get(f"第{w}周转码")) or 0) > 0
-        ) if d4_row is not None else 0
+        weeks_active = (
+            sum(
+                1 for w in range(1, 5) if int(_safe(extra.get(f"第{w}周转码")) or 0) > 0
+            )
+            if d4_row is not None
+            else 0
+        )
 
         # ── CC/SS/LP 接通状态（D3 行级字段）─────────────────────────────────
         cc_connected = int(_safe(row.get("CC接通")) or 0)
@@ -894,11 +936,11 @@ def _build_followup_students(
         # ── CC 末次备注 ───────────────────────────────────────────────────────
         cc_last_note_date = (
             _safe_str(d4_row.get("CC末次备注日期(day)", ""))
-            if d4_row is not None else ""
+            if d4_row is not None
+            else ""
         )
         cc_last_note_content = (
-            _safe_str(d4_row.get("CC末次备注内容", ""))
-            if d4_row is not None else ""
+            _safe_str(d4_row.get("CC末次备注内容", "")) if d4_row is not None else ""
         )
 
         # ── 续费距今天数 ─────────────────────────────────────────────────────
@@ -907,9 +949,7 @@ def _build_followup_students(
         )
 
         # ── 激励状态 ─────────────────────────────────────────────────────────
-        incentive_raw = (
-            d4_row.get("推荐奖励领取状态") if d4_row is not None else None
-        )
+        incentive_raw = d4_row.get("推荐奖励领取状态") if d4_row is not None else None
         incentive_status = (
             _safe_str(incentive_raw)
             if incentive_raw is not None
@@ -920,14 +960,12 @@ def _build_followup_students(
         # ── 行动优先级评分（0-100）───────────────────────────────────────────
         if d4_row is not None:
             _reg_raw = (
-                d4_row.get("当月推荐注册人数")
-                or d4_row.get("总推荐注册人数")
-                or 0
+                d4_row.get("当月推荐注册人数") or d4_row.get("总推荐注册人数") or 0
             )
             referral_reg_val = int(_safe(_reg_raw) or 0)
             referral_pay_val = int(_safe(d4_row.get("本月推荐付费数") or 0) or 0)
             referral_att_val = int(_safe(d4_row.get("本月推荐出席数") or 0) or 0)
-            cc_dial_count    = int(_safe(d4_row.get("总CC拨打次数")   or 0) or 0)
+            cc_dial_count = int(_safe(d4_row.get("总CC拨打次数") or 0) or 0)
         else:
             referral_reg_val = referral_pay_val = referral_att_val = cc_dial_count = 0
 
@@ -951,6 +989,7 @@ def _build_followup_students(
         if cc_last_call:
             try:
                 from datetime import datetime as _dt
+
                 _last = _dt.strptime(cc_last_call[:10], "%Y-%m-%d").date()
                 cc_last_call_days_ago = (_date.today() - _last).days
             except Exception:
@@ -983,42 +1022,46 @@ def _build_followup_students(
         if card_days is not None and 15 <= card_days <= 45:
             golden_window.append("renewal_window")
 
-        students.append({
-            "student_id":              sid,
-            "enclosure":               str(enc),
-            "role":                    str(role_val),
-            "cc_name":                 cc_name,
-            "team":                    team_val,
-            "quality_score":          quality_score,
-            "lesson_consumption_3m":  (
-                _safe(d4_row.get("本月课耗")) if d4_row is not None else None
-            ),
-            "referral_registrations": referral_reg_val if referral_reg_val else None,
-            "referral_payments": (
-                _safe(d4_row.get("本月推荐付费数")) if d4_row is not None else None
-            ),
-            "cc_last_call_date":       cc_last_call,
-            "card_days_remaining":     card_days,
-            "extra":                   extra,
-            # ── 新增字段 ──────────────────────────────────────────────────────
-            "ss_name":                 ss_name or None,
-            "ss_group":                ss_group or None,
-            "lp_name":                 lp_name or None,
-            "lp_group":                lp_group or None,
-            "weeks_active":            weeks_active,
-            "days_this_week":          days_this_week,
-            "days_this_month":         days_this_month,
-            "cc_connected":            cc_connected,
-            "ss_connected":            ss_connected,
-            "lp_connected":            lp_connected,
-            "cc_last_note_date":       cc_last_note_date or None,
-            "cc_last_note_content":    cc_last_note_content or None,
-            "renewal_days_ago":        renewal_days_ago,
-            "incentive_status":        incentive_status or None,
-            "action_priority_score":   action_priority_score,
-            "recommended_channel":     recommended_channel,
-            "golden_window":           golden_window,
-        })
+        students.append(
+            {
+                "student_id": sid,
+                "enclosure": str(enc),
+                "role": str(role_val),
+                "cc_name": cc_name,
+                "team": team_val,
+                "quality_score": quality_score,
+                "lesson_consumption_3m": (
+                    _safe(d4_row.get("本月课耗")) if d4_row is not None else None
+                ),
+                "referral_registrations": referral_reg_val
+                if referral_reg_val
+                else None,
+                "referral_payments": (
+                    _safe(d4_row.get("本月推荐付费数")) if d4_row is not None else None
+                ),
+                "cc_last_call_date": cc_last_call,
+                "card_days_remaining": card_days,
+                "extra": extra,
+                # ── 新增字段 ──────────────────────────────────────────────────────
+                "ss_name": ss_name or None,
+                "ss_group": ss_group or None,
+                "lp_name": lp_name or None,
+                "lp_group": lp_group or None,
+                "weeks_active": weeks_active,
+                "days_this_week": days_this_week,
+                "days_this_month": days_this_month,
+                "cc_connected": cc_connected,
+                "ss_connected": ss_connected,
+                "lp_connected": lp_connected,
+                "cc_last_note_date": cc_last_note_date or None,
+                "cc_last_note_content": cc_last_note_content or None,
+                "renewal_days_ago": renewal_days_ago,
+                "incentive_status": incentive_status or None,
+                "action_priority_score": action_priority_score,
+                "recommended_channel": recommended_channel,
+                "golden_window": golden_window,
+            }
+        )
 
     # 默认按 action_priority_score 降序（同分时 quality_score 次排）
     students.sort(
@@ -1030,6 +1073,7 @@ def _build_followup_students(
 
 # ── API 端点 ──────────────────────────────────────────────────────────────────
 
+
 @router.get(
     "/checkin/summary",
     summary="打卡汇总（Tab1）— D3 明细表，按角色 / 团队 / 围场分组",
@@ -1037,6 +1081,7 @@ def _build_followup_students(
 def get_checkin_summary(
     request: Request,
     dm: DataManager = Depends(get_data_manager),
+    filters: UnifiedFilter = Depends(parse_filters),
     role_config: str | None = Query(default=None, description="前端宽口径配置 JSON"),
     enclosure: str | None = Query(
         default=None, description="围场过滤（M 标签，如 M0），为空时不过滤"
@@ -1090,6 +1135,7 @@ def get_checkin_team_detail(
     team: str = Query(..., description="团队名称，例如 TH-CC01Team"),
     role_config: str | None = Query(default=None, description="前端宽口径配置 JSON"),
     dm: DataManager = Depends(get_data_manager),
+    filters: UnifiedFilter = Depends(parse_filters),
 ) -> dict:
     """
     根据 team 名前缀判断岗位：
@@ -1114,21 +1160,22 @@ def get_checkin_team_detail(
 )
 def get_checkin_followup(
     request: Request,
-    role:  str | None = Query(default=None, description="角色筛选：CC / SS / LP"),
-    team:  str | None = Query(default=None, description="团队筛选，例如 TH-CC01Team"),
+    role: str | None = Query(default=None, description="角色筛选：CC / SS / LP"),
+    team: str | None = Query(default=None, description="团队筛选，例如 TH-CC01Team"),
     sales: str | None = Query(default=None, description="销售姓名筛选，例如 thcc-Zen"),
     enclosure: str | None = Query(
         default=None, description="围场筛选，逗号分隔，例如 M0,M1"
     ),
     role_config: str | None = Query(default=None, description="前端宽口径配置 JSON"),
     dm: DataManager = Depends(get_data_manager),
+    filters: UnifiedFilter = Depends(parse_filters),
 ) -> dict:
     """
     筛选 D3 中 有效打卡==0 的行，按 role/team/sales/enclosure 过滤，
     JOIN D4 获取质量评分字段，降序返回。
     """
-    data  = dm.load_all()
-    df_d3: pd.DataFrame = data.get("detail",   pd.DataFrame())
+    data = dm.load_all()
+    df_d3: pd.DataFrame = data.get("detail", pd.DataFrame())
     df_d4: pd.DataFrame = data.get("students", pd.DataFrame())
 
     # 围场筛选：前端传 M 标签（M0,M3），转为 D3 原始值（0~30,91~120）
@@ -1146,8 +1193,8 @@ def get_checkin_followup(
 
     students = _build_followup_students(df_d3, df_d4, role, team, sales)
     return {
-        "students":     students,
-        "total":        len(students),
+        "students": students,
+        "total": len(students),
         "score_formula": "课耗(40%) + 推荐活跃(30%) + 付费贡献(20%) + 围场加权(10%)",
     }
 
@@ -1162,6 +1209,7 @@ def get_checkin_followup_tsv(
     team: str | None = Query(default=None, description="团队筛选"),
     role: str = Query(default="CC", description="角色"),
     dm: DataManager = Depends(get_data_manager),
+    filters: UnifiedFilter = Depends(parse_filters),
 ) -> Response:
     """返回纯文本 TSV 格式的未打卡学员列表，浏览器可直接复制粘贴到 Excel。"""
     data = dm.load_all()
@@ -1200,6 +1248,7 @@ def get_checkin_ranking(
         default=None, description="围场过滤（M 标签，如 M0），为空时不过滤"
     ),
     dm: DataManager = Depends(get_data_manager),
+    filters: UnifiedFilter = Depends(parse_filters),
 ) -> dict:
     """按角色返回打卡排行，小组+个人双维度，按打卡率降序→同率按已打卡人数降序。
 
@@ -1282,12 +1331,14 @@ def get_checkin_ranking(
                     continue
                 t = len(g)
                 c = int(g["_ck"].sum())
-                by_group.append({
-                    "group": grp_str,
-                    "students": t,
-                    "checked_in": c,
-                    "rate": round(c / t, 4) if t > 0 else 0.0,
-                })
+                by_group.append(
+                    {
+                        "group": grp_str,
+                        "students": t,
+                        "checked_in": c,
+                        "rate": round(c / t, 4) if t > 0 else 0.0,
+                    }
+                )
             # 排序：① rate DESC ② checked_in DESC
             by_group.sort(key=lambda x: (-x["rate"], -x["checked_in"]))
             for i, g in enumerate(by_group):
@@ -1305,13 +1356,15 @@ def get_checkin_ranking(
                 grp_val = ""
                 if group_col in pf.columns:
                     grp_val = _safe_str(pf[group_col].iloc[0])
-                by_person.append({
-                    "name": name_str,
-                    "group": grp_val,
-                    "students": t,
-                    "checked_in": c,
-                    "rate": round(c / t, 4) if t > 0 else 0.0,
-                })
+                by_person.append(
+                    {
+                        "name": name_str,
+                        "group": grp_val,
+                        "students": t,
+                        "checked_in": c,
+                        "rate": round(c / t, 4) if t > 0 else 0.0,
+                    }
+                )
             by_person.sort(key=lambda x: (-x["rate"], -x["checked_in"]))
             for i, p in enumerate(by_person):
                 p["rank"] = i + 1
@@ -1417,6 +1470,7 @@ async def student_analysis(
     ),
     limit: int = Query(default=200, description="top_students 返回条数上限"),
     dm: DataManager = Depends(get_data_manager),
+    filters: UnifiedFilter = Depends(parse_filters),
 ) -> dict:
     """
     基于 D4（已付费学员明细）提供学员维度打卡分析：
@@ -1444,10 +1498,14 @@ async def student_analysis(
         ],
         "frequency_bands": _empty_band_list,
         "month_comparison": {
-            "avg_days_this": 0.0, "avg_days_last": 0.0,
-            "zero_this": 0, "zero_last": 0,
-            "superfan_this": 0, "superfan_last": 0,
-            "active_this": 0, "active_last": 0,
+            "avg_days_this": 0.0,
+            "avg_days_last": 0.0,
+            "zero_this": 0,
+            "zero_last": 0,
+            "superfan_this": 0,
+            "superfan_last": 0,
+            "active_this": 0,
+            "active_last": 0,
             "total_students": 0,
             "participation_rate_this": 0.0,
             "participation_rate_last": 0.0,
@@ -1455,8 +1513,12 @@ async def student_analysis(
         "conversion_funnel": [],
         "by_enclosure": [],
         "tags_summary": {
-            "满勤": 0, "活跃": 0, "进步明显": 0,
-            "在退步": 0, "沉睡高潜": 0, "超级转化": 0,
+            "满勤": 0,
+            "活跃": 0,
+            "进步明显": 0,
+            "在退步": 0,
+            "沉睡高潜": 0,
+            "超级转化": 0,
         },
         "lesson_checkin_cross": {
             "has_lesson_no_checkin": 0,
@@ -1466,17 +1528,21 @@ async def student_analysis(
             "by_band": [],
         },
         "contact_checkin_response": {
-            "contacted_7d": {
-                "students": 0, "avg_days": 0.0, "participation_rate": 0.0
-            },
+            "contacted_7d": {"students": 0, "avg_days": 0.0, "participation_rate": 0.0},
             "contacted_14d": {
-                "students": 0, "avg_days": 0.0, "participation_rate": 0.0
+                "students": 0,
+                "avg_days": 0.0,
+                "participation_rate": 0.0,
             },
             "contacted_14d_plus": {
-                "students": 0, "avg_days": 0.0, "participation_rate": 0.0
+                "students": 0,
+                "avg_days": 0.0,
+                "participation_rate": 0.0,
             },
             "never_contacted": {
-                "students": 0, "avg_days": 0.0, "participation_rate": 0.0
+                "students": 0,
+                "avg_days": 0.0,
+                "participation_rate": 0.0,
             },
         },
         "renewal_checkin_correlation": {"by_band": []},
@@ -1622,23 +1688,25 @@ async def student_analysis(
 
         tags = _compute_student_tags(days_this, days_last, lesson, reg, tags_cfg)
 
-        students_data.append({
-            "student_id": sid,
-            "enclosure": enc_m,
-            "cc_name": cc_name_val,
-            "team": team_val,
-            "days_this_month": days_this,
-            "days_last_month": days_last,
-            "delta": days_this - days_last,
-            "lesson_this_month": lesson if lesson > 0 else None,
-            "referral_registrations": reg,
-            "referral_payments": pay,
-            "total_renewals": renewals,
-            "cc_last_call_days_ago": cc_days_ago,
-            "card_days_remaining": card_days_int,
-            "today_checked_in": today_checked,
-            "tags": tags,
-        })
+        students_data.append(
+            {
+                "student_id": sid,
+                "enclosure": enc_m,
+                "cc_name": cc_name_val,
+                "team": team_val,
+                "days_this_month": days_this,
+                "days_last_month": days_last,
+                "delta": days_this - days_last,
+                "lesson_this_month": lesson if lesson > 0 else None,
+                "referral_registrations": reg,
+                "referral_payments": pay,
+                "total_renewals": renewals,
+                "cc_last_call_days_ago": cc_days_ago,
+                "card_days_remaining": card_days_int,
+                "today_checked_in": today_checked,
+                "tags": tags,
+            }
+        )
 
     n = len(students_data)
 
@@ -1676,14 +1744,10 @@ async def student_analysis(
     active_min_v = int(tags_cfg.get("active_min", 4))
 
     avg_days_this = (
-        round(sum(s["days_this_month"] for s in students_data) / n, 4)
-        if n > 0
-        else 0.0
+        round(sum(s["days_this_month"] for s in students_data) / n, 4) if n > 0 else 0.0
     )
     avg_days_last = (
-        round(sum(s["days_last_month"] for s in students_data) / n, 4)
-        if n > 0
-        else 0.0
+        round(sum(s["days_last_month"] for s in students_data) / n, 4) if n > 0 else 0.0
     )
     zero_this = freq_count.get(0, 0)
     zero_last = sum(1 for s in students_data if s["days_last_month"] == 0)
@@ -1694,11 +1758,13 @@ async def student_analysis(
         1 for s in students_data if s["days_last_month"] >= superfan_min_v
     )
     active_this = sum(
-        1 for s in students_data
+        1
+        for s in students_data
         if active_min_v <= s["days_this_month"] < superfan_min_v
     )
     active_last = sum(
-        1 for s in students_data
+        1
+        for s in students_data
         if active_min_v <= s["days_last_month"] < superfan_min_v
     )
     participation_this = sum(1 for s in students_data if s["days_this_month"] > 0)
@@ -1736,18 +1802,18 @@ async def student_analysis(
             else 0.0
         )
         avg_pay = (
-            round(sum(s["referral_payments"] for s in grp) / cnt, 4)
-            if cnt > 0
-            else 0.0
+            round(sum(s["referral_payments"] for s in grp) / cnt, 4) if cnt > 0 else 0.0
         )
-        conversion_funnel.append({
-            "band": b,
-            "students": cnt,
-            "has_registration_pct": round(has_reg / cnt, 4) if cnt > 0 else 0.0,
-            "has_payment_pct": round(has_pay / cnt, 4) if cnt > 0 else 0.0,
-            "avg_registrations": avg_reg,
-            "avg_payments": avg_pay,
-        })
+        conversion_funnel.append(
+            {
+                "band": b,
+                "students": cnt,
+                "has_registration_pct": round(has_reg / cnt, 4) if cnt > 0 else 0.0,
+                "has_payment_pct": round(has_pay / cnt, 4) if cnt > 0 else 0.0,
+                "avg_registrations": avg_reg,
+                "avg_payments": avg_pay,
+            }
+        )
 
     # ── by_enclosure ─────────────────────────────────────────────────────────
     enc_groups: dict[str, list[dict]] = {}
@@ -1760,26 +1826,32 @@ async def student_analysis(
     ):
         cnt = len(grp)
         avg_days = (
-            round(sum(s["days_this_month"] for s in grp) / cnt, 4)
-            if cnt > 0
-            else 0.0
+            round(sum(s["days_this_month"] for s in grp) / cnt, 4) if cnt > 0 else 0.0
         )
         participation = sum(1 for s in grp if s["days_this_month"] > 0)
         enc_dist: dict[int, int] = {i: 0 for i in range(7)}
         for s in grp:
             enc_dist[min(max(s["days_this_month"], 0), 6)] += 1
-        by_enclosure.append({
-            "enclosure": enc_label,
-            "total": cnt,
-            "avg_days": avg_days,
-            "participation_rate": round(participation / cnt, 4) if cnt > 0 else 0.0,
-            "distribution": [{"count": i, "students": enc_dist[i]} for i in range(7)],
-        })
+        by_enclosure.append(
+            {
+                "enclosure": enc_label,
+                "total": cnt,
+                "avg_days": avg_days,
+                "participation_rate": round(participation / cnt, 4) if cnt > 0 else 0.0,
+                "distribution": [
+                    {"count": i, "students": enc_dist[i]} for i in range(7)
+                ],
+            }
+        )
 
     # ── tags_summary ─────────────────────────────────────────────────────────
     tags_summary: dict[str, int] = {
-        "满勤": 0, "活跃": 0, "进步明显": 0,
-        "在退步": 0, "沉睡高潜": 0, "超级转化": 0,
+        "满勤": 0,
+        "活跃": 0,
+        "进步明显": 0,
+        "在退步": 0,
+        "沉睡高潜": 0,
+        "超级转化": 0,
     }
     for s in students_data:
         for tag in s["tags"]:
@@ -1788,19 +1860,23 @@ async def student_analysis(
 
     # ── lesson_checkin_cross ─────────────────────────────────────────────────
     has_lesson_no_checkin = sum(
-        1 for s in students_data
+        1
+        for s in students_data
         if (s["lesson_this_month"] or 0) > 0 and s["days_this_month"] == 0
     )
     has_lesson_has_checkin = sum(
-        1 for s in students_data
+        1
+        for s in students_data
         if (s["lesson_this_month"] or 0) > 0 and s["days_this_month"] > 0
     )
     no_lesson_has_checkin = sum(
-        1 for s in students_data
+        1
+        for s in students_data
         if (s["lesson_this_month"] or 0) == 0 and s["days_this_month"] > 0
     )
     no_lesson_no_checkin = sum(
-        1 for s in students_data
+        1
+        for s in students_data
         if (s["lesson_this_month"] or 0) == 0 and s["days_this_month"] == 0
     )
     lesson_by_band: list[dict] = [
@@ -1842,16 +1918,19 @@ async def student_analysis(
         }
 
     c7 = [
-        s for s in students_data
+        s
+        for s in students_data
         if s["cc_last_call_days_ago"] is not None and s["cc_last_call_days_ago"] <= 7
     ]
     c14 = [
-        s for s in students_data
+        s
+        for s in students_data
         if s["cc_last_call_days_ago"] is not None
         and 8 <= s["cc_last_call_days_ago"] <= 14
     ]
     c14p = [
-        s for s in students_data
+        s
+        for s in students_data
         if s["cc_last_call_days_ago"] is not None and s["cc_last_call_days_ago"] > 14
     ]
     cnever = [s for s in students_data if s["cc_last_call_days_ago"] is None]
@@ -1872,12 +1951,14 @@ async def student_analysis(
             round(sum(s["total_renewals"] for s in grp) / cnt, 4) if cnt > 0 else 0.0
         )
         has_renewal = sum(1 for s in grp if s["total_renewals"] > 0)
-        renewal_by_band.append({
-            "band": b,
-            "avg_renewals": avg_renewals,
-            "has_renewal_pct": round(has_renewal / cnt, 4) if cnt > 0 else 0.0,
-            "students": cnt,
-        })
+        renewal_by_band.append(
+            {
+                "band": b,
+                "avg_renewals": avg_renewals,
+                "has_renewal_pct": round(has_renewal / cnt, 4) if cnt > 0 else 0.0,
+                "students": cnt,
+            }
+        )
 
     renewal_checkin_correlation = {"by_band": renewal_by_band}
 
@@ -1885,7 +1966,7 @@ async def student_analysis(
     top_students = sorted(
         students_data,
         key=lambda s: (-s["days_this_month"], -s["referral_registrations"]),
-    )[:max(1, limit)]
+    )[: max(1, limit)]
 
     # ── improvement_ranking ──────────────────────────────────────────────────
     improvement_ranking = sorted(
@@ -1911,8 +1992,7 @@ async def student_analysis(
 # ── 围场动态阈值 ──────────────────────────────────────────────────────────────
 
 _THRESHOLDS_PATH = (
-    Path(__file__).resolve().parent.parent.parent
-    / "config" / "checkin_thresholds.json"
+    Path(__file__).resolve().parent.parent.parent / "config" / "checkin_thresholds.json"
 )
 
 
@@ -1930,6 +2010,7 @@ def _load_checkin_thresholds_config() -> dict:
 )
 def get_enclosure_thresholds(
     dm: DataManager = Depends(get_data_manager),
+    filters: UnifiedFilter = Depends(parse_filters),
 ) -> dict:
     """
     返回各围场打卡率阈值：
@@ -1958,8 +2039,20 @@ def get_enclosure_thresholds(
 
     # M 标签顺序
     m_labels_ordered = [
-        "M0", "M1", "M2", "M3", "M4", "M5",
-        "M6", "M7", "M8", "M9", "M10", "M11", "M12", "M12+",
+        "M0",
+        "M1",
+        "M2",
+        "M3",
+        "M4",
+        "M5",
+        "M6",
+        "M7",
+        "M8",
+        "M9",
+        "M10",
+        "M11",
+        "M12",
+        "M12+",
     ]
 
     for m_label in m_labels_ordered:
@@ -1981,23 +2074,24 @@ def get_enclosure_thresholds(
 
         # 找出该围场对应的原始围场值（D4 生命周期列存的是原始 band，如 "0~30"）
         # 先获取所有 D4 中能映射到此 m_label 的原始值
-        target_raws = [
-            raw for raw, mapped in _M_MAP.items() if mapped == m_label
-        ]
+        target_raws = [raw for raw, mapped in _M_MAP.items() if mapped == m_label]
         if not target_raws:
             # M 标签直接存在于 D4（部分数据源）
             target_raws = [m_label]
 
-        mask = df_d4[_D4_LIFECYCLE_COL].astype(str).str.strip().isin(
-            set(target_raws) | {m_label}
+        mask = (
+            df_d4[_D4_LIFECYCLE_COL]
+            .astype(str)
+            .str.strip()
+            .isin(set(target_raws) | {m_label})
         )
         subset_d4 = df_d4[mask]
 
         if subset_d4.empty or "本月打卡天数" not in subset_d4.columns:
             continue
 
-        days_series = (
-            pd.to_numeric(subset_d4["本月打卡天数"], errors="coerce").fillna(0)
+        days_series = pd.to_numeric(subset_d4["本月打卡天数"], errors="coerce").fillna(
+            0
         )
         n = len(days_series)
         if n < 5:
@@ -2029,20 +2123,20 @@ _OPS_ENCLOSURES = ["6M", "7M", "8M", "9M", "10M", "11M", "12M", "12M+", "M6+", "
 
 # 14 维度定义：(排序字段, 是否需要计算)
 _RANKING_DIMENSIONS: dict[str, str] = {
-    "checkin_days":        "days_this_month",
+    "checkin_days": "days_this_month",
     "checkin_consistency": "engagement_stability",
-    "quality_score":       "quality_score",
-    "referral_bindings":   "referral_registrations",
+    "quality_score": "quality_score",
+    "referral_bindings": "referral_registrations",
     "referral_attendance": "referral_attendance",
-    "referral_payments":   "referral_payments",
-    "conversion_rate":     "conversion_rate",
+    "referral_payments": "referral_payments",
+    "conversion_rate": "conversion_rate",
     "secondary_referrals": "secondary_referrals",
-    "improvement":         "delta",
-    "cc_dial_depth":       "cc_dial_count",
-    "role_split_new":      "_role_split_new",
-    "role_split_paid":     "_role_split_paid",
-    "d3_funnel":           "d3_invitations",
-    "historical_total":    "_historical_total",
+    "improvement": "delta",
+    "cc_dial_depth": "cc_dial_count",
+    "role_split_new": "_role_split_new",
+    "role_split_paid": "_role_split_paid",
+    "d3_funnel": "d3_invitations",
+    "historical_total": "_historical_total",
 }
 
 
@@ -2053,10 +2147,13 @@ _RANKING_DIMENSIONS: dict[str, str] = {
 def get_ops_student_ranking(
     request: Request,
     role_config: str | None = Query(default=None, description="前端围场配置 JSON"),
-    enclosure: str | None = Query(default=None, description="围场过滤（M 标签，如 M6）"),
+    enclosure: str | None = Query(
+        default=None, description="围场过滤（M 标签，如 M6）"
+    ),
     dimension: str = Query(default="checkin_days", description="排行维度"),
     limit: int = Query(default=50, description="返回条数上限"),
     dm: DataManager = Depends(get_data_manager),
+    filters: UnifiedFilter = Depends(parse_filters),
 ) -> dict:
     """
     从 D4（students）聚合运营围场学员的 14 维度排行数据。
@@ -2171,11 +2268,11 @@ def get_ops_student_ranking(
     # 通过 D3 列名探测
     _D3_INVITE_CANDIDATES = ["邀约数", "本月邀约数"]
     _D3_ATTEND_CANDIDATES = ["出席数", "本月出席数"]
-    _D3_D3PAY_CANDIDATES  = ["转介绍付费数", "本月转介绍付费数"]
+    _D3_D3PAY_CANDIDATES = ["转介绍付费数", "本月转介绍付费数"]
 
     d3_invite_col = next((c for c in _D3_INVITE_CANDIDATES if c in df_d3.columns), None)
     d3_attend_col = next((c for c in _D3_ATTEND_CANDIDATES if c in df_d3.columns), None)
-    d3_d3pay_col  = next((c for c in _D3_D3PAY_CANDIDATES  if c in df_d3.columns), None)
+    d3_d3pay_col = next((c for c in _D3_D3PAY_CANDIDATES if c in df_d3.columns), None)
 
     if not df_d3.empty and _D3_STUDENT_COL in df_d3.columns:
         for _, d3row in df_d3.iterrows():
@@ -2184,12 +2281,16 @@ def get_ops_student_ranking(
                 continue
             inv = int(_safe(d3row.get(d3_invite_col, 0) if d3_invite_col else 0) or 0)
             att = int(_safe(d3row.get(d3_attend_col, 0) if d3_attend_col else 0) or 0)
-            pay = int(_safe(d3row.get(d3_d3pay_col, 0)  if d3_d3pay_col  else 0) or 0)
+            pay = int(_safe(d3row.get(d3_d3pay_col, 0) if d3_d3pay_col else 0) or 0)
             if sid not in d3_funnel_index:
-                d3_funnel_index[sid] = {"invitations": 0, "attendance": 0, "payments": 0}
+                d3_funnel_index[sid] = {
+                    "invitations": 0,
+                    "attendance": 0,
+                    "payments": 0,
+                }
             d3_funnel_index[sid]["invitations"] += inv
-            d3_funnel_index[sid]["attendance"]  += att
-            d3_funnel_index[sid]["payments"]    += pay
+            d3_funnel_index[sid]["attendance"] += att
+            d3_funnel_index[sid]["payments"] += pay
 
     # ── 二级裂变索引：推荐人学员 ID → 被推荐学员行列表 ──────────────────────
     # D4 col.10 = 推荐人学员ID
@@ -2210,9 +2311,7 @@ def get_ops_student_ranking(
     referred_monthly_pays: dict[str, int] = {}  # 被推荐学员 ID → 当月付费数
 
     _D4_PAY_COL_CANDIDATES = ["本月推荐付费数", "当月推荐付费数"]
-    d4_pay_col = next(
-        (c for c in _D4_PAY_COL_CANDIDATES if c in df_d4.columns), None
-    )
+    d4_pay_col = next((c for c in _D4_PAY_COL_CANDIDATES if c in df_d4.columns), None)
 
     if d4_referrer_col:
         for _, row in df_d4.iterrows():
@@ -2222,9 +2321,7 @@ def get_ops_student_ranking(
                 referrer_to_referred.setdefault(ref_id, []).append(sid)
             # 记录每个学员当月推荐注册数（用于二级裂变判断）
             if sid and d4_monthly_reg_col:
-                monthly_reg = int(
-                    _safe(row.get(d4_monthly_reg_col)) or 0
-                )
+                monthly_reg = int(_safe(row.get(d4_monthly_reg_col)) or 0)
                 referred_monthly_regs[sid] = monthly_reg
             # 记录每个学员当月推荐付费数（用于 B 付费判断）
             if sid and d4_pay_col:
@@ -2234,26 +2331,26 @@ def get_ops_student_ranking(
     # ── 主循环：构建每个运营学员的排行数据 ──────────────────────────────────
 
     # D4 列名候选（按任务规范）
-    _D4_CHECKIN_THIS  = "本月打卡天数"
-    _D4_CHECKIN_LAST  = "上月打卡天数"
-    _D4_CC_DIAL       = "总CC拨打次数"
-    _D4_MONTHLY_REG   = d4_monthly_reg_col or "当月推荐注册人数"
-    _D4_MONTHLY_ATT   = "当月推荐出席人数"
-    _D4_TOTAL_REG     = "总推荐注册人数"
-    _D4_TOTAL_PAY     = "总推荐1v1付费人数"
-    _D4_MONTHLY_PAY   = "本月推荐付费数"
-    _D4_CC_NEW        = "CC带新人数"
-    _D4_SS_NEW        = "SS带新人数"
-    _D4_LP_NEW        = "LP带新人数"
-    _D4_WIDE_NEW      = "宽口径带新人数"
-    _D4_CC_NEW_PAID   = "CC带新付费数"
-    _D4_SS_NEW_PAID   = "SS带新付费数"
-    _D4_LP_NEW_PAID   = "LP带新付费数"
+    _D4_CHECKIN_THIS = "本月打卡天数"
+    _D4_CHECKIN_LAST = "上月打卡天数"
+    _D4_CC_DIAL = "总CC拨打次数"
+    _D4_MONTHLY_REG = d4_monthly_reg_col or "当月推荐注册人数"
+    _D4_MONTHLY_ATT = "当月推荐出席人数"
+    _D4_TOTAL_REG = "总推荐注册人数"
+    _D4_TOTAL_PAY = "总推荐1v1付费人数"
+    _D4_MONTHLY_PAY = "本月推荐付费数"
+    _D4_CC_NEW = "CC带新人数"
+    _D4_SS_NEW = "SS带新人数"
+    _D4_LP_NEW = "LP带新人数"
+    _D4_WIDE_NEW = "宽口径带新人数"
+    _D4_CC_NEW_PAID = "CC带新付费数"
+    _D4_SS_NEW_PAID = "SS带新付费数"
+    _D4_LP_NEW_PAID = "LP带新付费数"
     _D4_WIDE_NEW_PAID = "宽口径带新付费数"
-    _D4_CC_NAME       = "末次（当前）分配CC员工姓名"
-    _D4_CC_GROUP      = "末次（当前）分配CC员工组名称"
+    _D4_CC_NAME = "末次（当前）分配CC员工姓名"
+    _D4_CC_GROUP = "末次（当前）分配CC员工组名称"
     # 周打卡数列（用于 weeks_active 计算）
-    _D4_WEEK_COLS     = ["第1周转码", "第2周转码", "第3周转码", "第4周转码"]
+    _D4_WEEK_COLS = ["第1周转码", "第2周转码", "第3周转码", "第4周转码"]
 
     students_list: list[dict[str, Any]] = []
 
@@ -2287,10 +2384,10 @@ def get_ops_student_ranking(
 
         # 推荐数据
         referral_registrations = int(_safe(row.get(_D4_MONTHLY_REG)) or 0)
-        referral_attendance     = int(_safe(row.get(_D4_MONTHLY_ATT)) or 0)
-        referral_payments       = int(_safe(row.get(_D4_MONTHLY_PAY)) or 0)
-        total_hist_reg          = int(_safe(row.get(_D4_TOTAL_REG)) or 0)
-        total_hist_pay          = int(_safe(row.get(_D4_TOTAL_PAY)) or 0)
+        referral_attendance = int(_safe(row.get(_D4_MONTHLY_ATT)) or 0)
+        referral_payments = int(_safe(row.get(_D4_MONTHLY_PAY)) or 0)
+        total_hist_reg = int(_safe(row.get(_D4_TOTAL_REG)) or 0)
+        total_hist_pay = int(_safe(row.get(_D4_TOTAL_PAY)) or 0)
 
         # 转化率（除零保护）
         conversion_rate = (
@@ -2302,88 +2399,87 @@ def get_ops_student_ranking(
         # 二级裂变数 + B 付费数 + C 数量
         referred_ids = referrer_to_referred.get(sid, [])
         secondary_referrals = sum(
-            1 for rid in referred_ids
-            if referred_monthly_regs.get(rid, 0) > 0
+            1 for rid in referred_ids if referred_monthly_regs.get(rid, 0) > 0
         )
         # B 中付费了的数量
         secondary_b_paid = sum(
-            1 for rid in referred_ids
-            if referred_monthly_pays.get(rid, 0) > 0
+            1 for rid in referred_ids if referred_monthly_pays.get(rid, 0) > 0
         )
         # B 又推荐了 C 的总数量（B 的被推荐人数）
         secondary_c_count = sum(
-            len(referrer_to_referred.get(rid, []))
-            for rid in referred_ids
+            len(referrer_to_referred.get(rid, [])) for rid in referred_ids
         )
 
         # CC 拨打次数
         cc_dial_count = int(_safe(row.get(_D4_CC_DIAL)) or 0)
 
         # 角色分拆带新人数
-        cc_new_count   = int(_safe(row.get(_D4_CC_NEW))   or 0)
-        ss_new_count   = int(_safe(row.get(_D4_SS_NEW))   or 0)
-        lp_new_count   = int(_safe(row.get(_D4_LP_NEW))   or 0)
+        cc_new_count = int(_safe(row.get(_D4_CC_NEW)) or 0)
+        ss_new_count = int(_safe(row.get(_D4_SS_NEW)) or 0)
+        lp_new_count = int(_safe(row.get(_D4_LP_NEW)) or 0)
         wide_new_count = int(_safe(row.get(_D4_WIDE_NEW)) or 0)
-        cc_new_paid    = int(_safe(row.get(_D4_CC_NEW_PAID))   or 0)
-        ss_new_paid    = int(_safe(row.get(_D4_SS_NEW_PAID))   or 0)
-        lp_new_paid    = int(_safe(row.get(_D4_LP_NEW_PAID))   or 0)
-        wide_new_paid  = int(_safe(row.get(_D4_WIDE_NEW_PAID)) or 0)
+        cc_new_paid = int(_safe(row.get(_D4_CC_NEW_PAID)) or 0)
+        ss_new_paid = int(_safe(row.get(_D4_SS_NEW_PAID)) or 0)
+        lp_new_paid = int(_safe(row.get(_D4_LP_NEW_PAID)) or 0)
+        wide_new_paid = int(_safe(row.get(_D4_WIDE_NEW_PAID)) or 0)
 
         # D3 漏斗数据（邀约/出席/付费）
         d3f = d3_funnel_index.get(sid, {})
         d3_invitations = d3f.get("invitations", 0)
-        d3_attendance  = d3f.get("attendance", 0)
-        d3_payments    = d3f.get("payments", 0)
+        d3_attendance = d3f.get("attendance", 0)
+        d3_payments = d3f.get("payments", 0)
 
         # 负责人姓名 & 团队
-        cc_name  = _safe_str(row.get(_D4_CC_NAME, ""))
+        cc_name = _safe_str(row.get(_D4_CC_NAME, ""))
         team_val = _safe_str(row.get(_D4_CC_GROUP, ""))
 
         # 质量评分（复用已有函数，传 D4 行作为 d4_row）
         quality_score = _calc_quality_score(pd.Series(dtype=object), row)
 
         # 派生排序字段
-        _role_split_new  = cc_new_count + ss_new_count + lp_new_count
-        _role_split_paid = cc_new_paid  + ss_new_paid  + lp_new_paid
+        _role_split_new = cc_new_count + ss_new_count + lp_new_count
+        _role_split_paid = cc_new_paid + ss_new_paid + lp_new_paid
         _historical_total = total_hist_reg + total_hist_pay
 
-        students_list.append({
-            "student_id":                   sid,
-            "enclosure":                    enc_label,
-            "cc_name":                      cc_name,
-            "team":                         team_val,
-            "days_this_month":              days_this,
-            "days_last_month":              days_last,
-            "delta":                        delta,
-            "quality_score":                quality_score,
-            "referral_registrations":       referral_registrations,
-            "referral_attendance":          referral_attendance,
-            "referral_payments":            referral_payments,
-            "conversion_rate":              conversion_rate,
-            "secondary_referrals":          secondary_referrals,
-            "secondary_b_paid":             secondary_b_paid,
-            "secondary_c_count":            secondary_c_count,
-            "cc_dial_count":                cc_dial_count,
-            "cc_new_count":                 cc_new_count,
-            "ss_new_count":                 ss_new_count,
-            "lp_new_count":                 lp_new_count,
-            "wide_new_count":               wide_new_count,
-            "cc_new_paid":                  cc_new_paid,
-            "ss_new_paid":                  ss_new_paid,
-            "lp_new_paid":                  lp_new_paid,
-            "wide_new_paid":                wide_new_paid,
-            "d3_invitations":               d3_invitations,
-            "d3_attendance":                d3_attendance,
-            "d3_payments":                  d3_payments,
-            "total_historical_registrations": total_hist_reg,
-            "total_historical_payments":    total_hist_pay,
-            "engagement_stability":         engagement_stability,
-            "weeks_active":                 weeks_active,
-            # 派生字段（仅排序用，不暴露给前端）
-            "_role_split_new":              _role_split_new,
-            "_role_split_paid":             _role_split_paid,
-            "_historical_total":            _historical_total,
-        })
+        students_list.append(
+            {
+                "student_id": sid,
+                "enclosure": enc_label,
+                "cc_name": cc_name,
+                "team": team_val,
+                "days_this_month": days_this,
+                "days_last_month": days_last,
+                "delta": delta,
+                "quality_score": quality_score,
+                "referral_registrations": referral_registrations,
+                "referral_attendance": referral_attendance,
+                "referral_payments": referral_payments,
+                "conversion_rate": conversion_rate,
+                "secondary_referrals": secondary_referrals,
+                "secondary_b_paid": secondary_b_paid,
+                "secondary_c_count": secondary_c_count,
+                "cc_dial_count": cc_dial_count,
+                "cc_new_count": cc_new_count,
+                "ss_new_count": ss_new_count,
+                "lp_new_count": lp_new_count,
+                "wide_new_count": wide_new_count,
+                "cc_new_paid": cc_new_paid,
+                "ss_new_paid": ss_new_paid,
+                "lp_new_paid": lp_new_paid,
+                "wide_new_paid": wide_new_paid,
+                "d3_invitations": d3_invitations,
+                "d3_attendance": d3_attendance,
+                "d3_payments": d3_payments,
+                "total_historical_registrations": total_hist_reg,
+                "total_historical_payments": total_hist_pay,
+                "engagement_stability": engagement_stability,
+                "weeks_active": weeks_active,
+                # 派生字段（仅排序用，不暴露给前端）
+                "_role_split_new": _role_split_new,
+                "_role_split_paid": _role_split_paid,
+                "_historical_total": _historical_total,
+            }
+        )
 
     # ── 排序 ────────────────────────────────────────────────────────────────
     sort_key = _RANKING_DIMENSIONS.get(dimension, "days_this_month")
@@ -2391,7 +2487,7 @@ def get_ops_student_ranking(
 
     # 加 rank 字段，移除内部派生字段
     result_students: list[dict[str, Any]] = []
-    for i, s in enumerate(students_list[:max(1, limit)]):
+    for i, s in enumerate(students_list[: max(1, limit)]):
         row_out = {k: v for k, v in s.items() if not k.startswith("_")}
         row_out["rank"] = i + 1
         result_students.append(row_out)

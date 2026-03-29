@@ -3,8 +3,8 @@
 import { useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useLocale } from 'next-intl';
-import useSWR from 'swr';
-import { swrFetcher } from '@/lib/api';
+import { useFilteredSWR } from '@/lib/hooks/use-filtered-swr';
+import { usePageDimensions } from '@/lib/hooks/use-page-dimensions';
 import { Card } from '@/components/ui/Card';
 import { Spinner } from '@/components/ui/Spinner';
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -338,16 +338,14 @@ function CCTabContent() {
     data: heatmapData,
     isLoading: loadingHeatmap,
     error: heatmapError,
-  } = useSWR<CCHeatmapResponse>(`/api/cc-matrix/heatmap?metric=${metric}`, swrFetcher);
-  const { data: radarData, isLoading: loadingRadar } = useSWR<CCRadarData>(
-    selectedCC ? `/api/cc-matrix/radar/${encodeURIComponent(selectedCC)}` : null,
-    swrFetcher
+  } = useFilteredSWR<CCHeatmapResponse>(`/api/cc-matrix/heatmap?metric=${metric}`);
+  const { data: radarData, isLoading: loadingRadar } = useFilteredSWR<CCRadarData>(
+    selectedCC ? `/api/cc-matrix/radar/${encodeURIComponent(selectedCC)}` : null
   );
-  const { data: drilldownData, isLoading: loadingDrilldown } = useSWR<CCDrilldownRow[]>(
+  const { data: drilldownData, isLoading: loadingDrilldown } = useFilteredSWR<CCDrilldownRow[]>(
     drilldownCC && drilldownSeg
       ? `/api/cc-matrix/drilldown?cc_name=${encodeURIComponent(drilldownCC)}&segment=${encodeURIComponent(drilldownSeg)}`
-      : null,
-    swrFetcher
+      : null
   );
 
   const scatterPoints =
@@ -485,7 +483,7 @@ function SSTabContent() {
     isLoading,
     error,
     mutate,
-  } = useSWR<EnclosureSSMetrics[]>('/api/enclosure-ss', swrFetcher);
+  } = useFilteredSWR<EnclosureSSMetrics[]>('/api/enclosure-ss');
 
   if (isLoading) {
     return (
@@ -604,7 +602,7 @@ function LPTabContent() {
     isLoading,
     error,
     mutate,
-  } = useSWR<EnclosureLPMetrics[]>('/api/enclosure-lp', swrFetcher);
+  } = useFilteredSWR<EnclosureLPMetrics[]>('/api/enclosure-lp');
 
   if (isLoading) {
     return (
@@ -716,6 +714,13 @@ function LPTabContent() {
 /* ── 主页面内部 ──────────────────────────────────────────── */
 
 function PersonnelMatrixPageInner() {
+  usePageDimensions({
+    country: true,
+    dataRole: true,
+    enclosure: true,
+    team: true,
+    granularity: true,
+  });
   const locale = useLocale();
   const t = (I18N as unknown as Record<string, (typeof I18N)['zh']>)[locale] ?? I18N['zh'];
   const router = useRouter();
@@ -723,11 +728,10 @@ function PersonnelMatrixPageInner() {
   const activeTab = (searchParams.get('tab') ?? 'cc') as TabKey;
   const { exportCSV } = useExport();
 
-  const { data: ssExport } = useSWR<EnclosureSSMetrics[]>('/api/enclosure-ss', swrFetcher);
-  const { data: lpExport } = useSWR<EnclosureLPMetrics[]>('/api/enclosure-lp', swrFetcher);
-  const { data: ccExport } = useSWR<CCHeatmapResponse>(
-    '/api/cc-matrix/heatmap?metric=coefficient',
-    swrFetcher
+  const { data: ssExport } = useFilteredSWR<EnclosureSSMetrics[]>('/api/enclosure-ss');
+  const { data: lpExport } = useFilteredSWR<EnclosureLPMetrics[]>('/api/enclosure-lp');
+  const { data: ccExport } = useFilteredSWR<CCHeatmapResponse>(
+    '/api/cc-matrix/heatmap?metric=coefficient'
   );
 
   function handleTabChange(tab: TabKey) {

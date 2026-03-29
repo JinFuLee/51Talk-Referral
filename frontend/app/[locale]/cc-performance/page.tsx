@@ -2,8 +2,8 @@
 
 import { useState } from 'react';
 import { useLocale } from 'next-intl';
-import useSWR from 'swr';
-import { swrFetcher } from '@/lib/api';
+import { useFilteredSWR } from '@/lib/hooks/use-filtered-swr';
+import { usePageDimensions } from '@/lib/hooks/use-page-dimensions';
 import type { CCPerformanceResponse } from '@/lib/types/cc-performance';
 import { CCPerformanceSummaryCards } from '@/components/cc-performance/CCPerformanceSummaryCards';
 import { CCPerformanceTable } from '@/components/cc-performance/CCPerformanceTable';
@@ -36,12 +36,17 @@ const I18N = {
 };
 
 export default function CCPerformancePage() {
+  usePageDimensions({
+    country: true,
+    dataRole: 'cc',
+    enclosure: true,
+    team: true,
+    granularity: true,
+  });
   const locale = useLocale();
   const t = (I18N as unknown as Record<string, (typeof I18N)['zh']>)[locale] ?? I18N['zh'];
-  const { data, isLoading, error, mutate } = useSWR<CCPerformanceResponse>(
-    '/api/cc-performance',
-    swrFetcher
-  );
+  const { data, isLoading, error, mutate } =
+    useFilteredSWR<CCPerformanceResponse>('/api/cc-performance');
 
   // 达标 / BM 参照系，全局同步到卡片和表格
   const [viewMode, setViewMode] = useState<ViewMode>('target');

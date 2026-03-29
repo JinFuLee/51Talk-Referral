@@ -3,9 +3,8 @@
 import { Suspense, useCallback, useState, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useLocale } from 'next-intl';
-import useSWR from 'swr';
-import { swrFetcher } from '@/lib/api';
 import { useFilteredSWR } from '@/lib/hooks/use-filtered-swr';
+import { usePageDimensions } from '@/lib/hooks/use-page-dimensions';
 import { Spinner } from '@/components/ui/Spinner';
 import { PageTabs } from '@/components/ui/PageTabs';
 import { Card } from '@/components/ui/Card';
@@ -163,6 +162,15 @@ function CheckinPageInner() {
   const searchParams = useSearchParams();
   const { activeRoles, roleEnclosures } = useWideConfig();
 
+  usePageDimensions({
+    country: true,
+    dataRole: true,
+    enclosure: true,
+    team: true,
+    granularity: true,
+    behavior: true,
+  });
+
   const { focusCC, clearMyView } = useMyView();
 
   // ── 智能默认 Tab ──────────────────────────────────────────────────────────
@@ -243,7 +251,7 @@ function CheckinPageInner() {
     data: summaryData,
     isLoading: summaryLoading,
     error: summaryError,
-  } = useSWR<CheckinSummaryResponse>('/api/checkin/summary', swrFetcher);
+  } = useFilteredSWR<CheckinSummaryResponse>('/api/checkin/summary');
 
   const teams = useMemo(() => {
     const roleData = summaryData?.by_role?.[roleFilter];

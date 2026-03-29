@@ -1,9 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import useSWR from 'swr';
 import { useLocale } from 'next-intl';
-import { swrFetcher } from '@/lib/api';
+import { useFilteredSWR } from '@/lib/hooks/use-filtered-swr';
+import { usePageDimensions } from '@/lib/hooks/use-page-dimensions';
 import { formatRate } from '@/lib/utils';
 import { Card } from '@/components/ui/Card';
 import { Spinner } from '@/components/ui/Spinner';
@@ -132,25 +132,33 @@ export default function EnclosureHealthPage() {
   const locale = useLocale();
   const t = (I18N as unknown as Record<string, (typeof I18N)['zh']>)[locale] ?? I18N['zh'];
 
+  usePageDimensions({
+    country: true,
+    dataRole: true,
+    enclosure: true,
+    team: true,
+    granularity: true,
+  });
+
   const [expandedSegment, setExpandedSegment] = useState<string | null>(null);
 
   const {
     data: scoresData,
     isLoading: loadingScores,
     error: scoresError,
-  } = useSWR<EnclosureHealthScore[]>('/api/enclosure-health/scores', swrFetcher);
+  } = useFilteredSWR<EnclosureHealthScore[]>('/api/enclosure-health/scores');
 
   const {
     data: benchmarkData,
     isLoading: loadingBenchmark,
     error: benchmarkError,
-  } = useSWR<EnclosureBenchmarkRow[]>('/api/enclosure-health/benchmark', swrFetcher);
+  } = useFilteredSWR<EnclosureBenchmarkRow[]>('/api/enclosure-health/benchmark');
 
   const {
     data: varianceData,
     isLoading: loadingVariance,
     error: varianceError,
-  } = useSWR<EnclosureVarianceRow[]>('/api/enclosure-health/variance', swrFetcher);
+  } = useFilteredSWR<EnclosureVarianceRow[]>('/api/enclosure-health/variance');
 
   const scores = Array.isArray(scoresData) ? scoresData : [];
   const benchmarks = Array.isArray(benchmarkData) ? benchmarkData : [];

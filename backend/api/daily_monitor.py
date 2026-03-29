@@ -19,6 +19,7 @@ from backend.models.daily_monitor import (
     DailyContactStats,
     FunnelStat,
 )
+from backend.models.filters import UnifiedFilter, parse_filters
 
 router = APIRouter()
 
@@ -40,6 +41,7 @@ def get_daily_contact_stats(
     ),
     role: str | None = Query(default=None, description="角色过滤 cc/ss/lp"),
     dm: DataManager = Depends(get_data_manager),
+    filters: UnifiedFilter = Depends(parse_filters),
 ) -> DailyContactStats:
     analyzer = _get_analyzer(dm)
     seg_list = [s.strip() for s in segments.split(",")] if segments else None
@@ -69,6 +71,7 @@ def get_daily_cc_ranking(
     request: Request,
     role: str = Query(default="cc", description="角色：cc / ss / lp"),
     dm: DataManager = Depends(get_data_manager),
+    filters: UnifiedFilter = Depends(parse_filters),
 ) -> list[CCRankingItem]:
     analyzer = _get_analyzer(dm)
     items = analyzer.daily_cc_ranking(role=role)
@@ -83,6 +86,7 @@ def get_daily_cc_ranking(
 def get_contact_vs_conversion(
     request: Request,
     dm: DataManager = Depends(get_data_manager),
+    filters: UnifiedFilter = Depends(parse_filters),
 ) -> list[ContactConversionPoint]:
     analyzer = _get_analyzer(dm)
     items = analyzer.contact_vs_conversion()

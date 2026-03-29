@@ -10,6 +10,7 @@ from fastapi import APIRouter, Depends, Query, Request
 
 from backend.api.dependencies import get_data_manager
 from backend.core.data_manager import DataManager
+from backend.models.filters import UnifiedFilter, parse_filters
 
 router = APIRouter()
 
@@ -97,6 +98,7 @@ def get_followup_quality(
     request: Request,
     role: str = Query(default="cc", description="岗位筛选: cc / ss / lp"),
     dm: DataManager = Depends(get_data_manager),
+    filters: UnifiedFilter = Depends(parse_filters),
 ) -> dict[str, Any]:
     role = role.lower().strip()
 

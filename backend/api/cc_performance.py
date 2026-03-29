@@ -33,6 +33,7 @@ from backend.models.cc_performance import (
     OutreachMetric,
     PerformanceMetric,
 )
+from backend.models.filters import UnifiedFilter, parse_filters
 
 router = APIRouter()
 
@@ -837,6 +838,7 @@ def get_cc_performance(
     request: Request,
     month: str | None = None,
     dm: DataManager = Depends(get_data_manager),
+    filters: UnifiedFilter = Depends(parse_filters),
 ) -> CCPerformanceResponse:
     """
     CC 个人业绩全维度 API。

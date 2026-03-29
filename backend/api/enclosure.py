@@ -10,6 +10,7 @@ from fastapi import APIRouter, Depends, Query, Request
 from backend.api.dependencies import get_data_manager
 from backend.core.data_manager import DataManager
 from backend.models.enclosure import EnclosureCCMetrics
+from backend.models.filters import UnifiedFilter, apply_filters, parse_filters
 
 router = APIRouter()
 
@@ -140,11 +141,13 @@ def _df_to_metrics(
 def get_enclosure(
     request: Request,
     dm: DataManager = Depends(get_data_manager),
+    filters: UnifiedFilter = Depends(parse_filters),
     group_by: str = "enclosure_x_group",
     enclosure: str | None = Query(None, description="生命周期筛选，如 0M / 6M / 12M+"),
 ) -> list[EnclosureCCMetrics]:
     data = dm.load_all()
     df = data["enclosure_cc"]
+    df = apply_filters(df, filters)
     if enclosure and not df.empty:
         # 优先用"生命周期"列（14段细粒度），fallback "围场"列（7段粗粒度）
         if "生命周期" in df.columns:
@@ -162,9 +165,11 @@ def get_enclosure(
 def get_enclosure_ranking(
     request: Request,
     dm: DataManager = Depends(get_data_manager),
+    filters: UnifiedFilter = Depends(parse_filters),
 ) -> list[EnclosureCCMetrics]:
     data = dm.load_all()
-    metrics = _df_to_metrics(data["enclosure_cc"])
+    df = apply_filters(data["enclosure_cc"], filters)
+    metrics = _df_to_metrics(df)
     # 按注册数降序
     return sorted(
         metrics,

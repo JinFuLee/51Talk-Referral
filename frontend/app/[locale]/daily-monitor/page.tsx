@@ -1,9 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import useSWR from 'swr';
 import { useLocale } from 'next-intl';
-import { swrFetcher } from '@/lib/api';
+import { useFilteredSWR } from '@/lib/hooks/use-filtered-swr';
+import { usePageDimensions } from '@/lib/hooks/use-page-dimensions';
 import { formatRate } from '@/lib/utils';
 import { Spinner } from '@/components/ui/Spinner';
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -160,27 +160,37 @@ export default function DailyMonitorPage() {
     { key: 'lp', label: t.rankingTabs[2] },
   ];
 
+  usePageDimensions({
+    country: true,
+    dataRole: true,
+    team: true,
+    granularity: 'day',
+    funnelStage: true,
+    channel: true,
+  });
+
   const [rankingRole, setRankingRole] = useState<RankingRole>('cc');
 
-  const { data: stats, isLoading: l1 } = useSWR<DailyMonitorStats>(
-    '/api/daily-monitor/stats',
-    swrFetcher
+  const { data: stats, isLoading: l1 } = useFilteredSWR<DailyMonitorStats>(
+    '/api/daily-monitor/stats'
   );
-  const { data: ccRanking, isLoading: l2 } = useSWR<CCContactRankItem[]>(
-    '/api/daily-monitor/cc-ranking?role=cc',
-    swrFetcher
+  const { data: ccRanking, isLoading: l2 } = useFilteredSWR<CCContactRankItem[]>(
+    '/api/daily-monitor/cc-ranking',
+    undefined,
+    { role: 'cc' }
   );
-  const { data: ssRanking, isLoading: l4 } = useSWR<CCContactRankItem[]>(
-    '/api/daily-monitor/cc-ranking?role=ss',
-    swrFetcher
+  const { data: ssRanking, isLoading: l4 } = useFilteredSWR<CCContactRankItem[]>(
+    '/api/daily-monitor/cc-ranking',
+    undefined,
+    { role: 'ss' }
   );
-  const { data: lpRanking, isLoading: l5 } = useSWR<CCContactRankItem[]>(
-    '/api/daily-monitor/cc-ranking?role=lp',
-    swrFetcher
+  const { data: lpRanking, isLoading: l5 } = useFilteredSWR<CCContactRankItem[]>(
+    '/api/daily-monitor/cc-ranking',
+    undefined,
+    { role: 'lp' }
   );
-  const { data: scatter, isLoading: l3 } = useSWR<ContactConversionItem[]>(
-    '/api/daily-monitor/contact-vs-conversion',
-    swrFetcher
+  const { data: scatter, isLoading: l3 } = useFilteredSWR<ContactConversionItem[]>(
+    '/api/daily-monitor/contact-vs-conversion'
   );
 
   const isLoading = l1 || l2 || l3 || l4 || l5;

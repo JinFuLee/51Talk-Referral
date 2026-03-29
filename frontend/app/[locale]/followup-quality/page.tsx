@@ -1,8 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import useSWR from 'swr';
-import { swrFetcher } from '@/lib/api';
+import { useFilteredSWR } from '@/lib/hooks/use-filtered-swr';
+import { usePageDimensions } from '@/lib/hooks/use-page-dimensions';
 import { Card } from '@/components/ui/Card';
 import { Spinner } from '@/components/ui/Spinner';
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -223,9 +223,10 @@ function CCContent() {
   const locale = useLocale();
   const t = (I18N as unknown as Record<string, (typeof I18N)['zh']>)[locale] ?? I18N['zh'];
 
-  const { data, isLoading, error, mutate } = useSWR<FollowupQualityResponse>(
-    '/api/analysis/followup-quality?role=cc',
-    swrFetcher
+  const { data, isLoading, error, mutate } = useFilteredSWR<FollowupQualityResponse>(
+    '/api/analysis/followup-quality',
+    undefined,
+    { role: 'cc' }
   );
 
   const [sortKey, setSortKey] = useState<SortKey>('students');
@@ -446,6 +447,14 @@ function CCContent() {
 /* ── 主页面 ─────────────────────────────────────────────── */
 
 export default function FollowupQualityPage() {
+  usePageDimensions({
+    country: true,
+    dataRole: true,
+    enclosure: true,
+    team: true,
+    granularity: true,
+  });
+
   const [tab, setTab] = useState<TabKey>('cc');
 
   return (
