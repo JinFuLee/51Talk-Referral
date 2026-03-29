@@ -52,8 +52,8 @@ def parse_filters(
     granularity: str = Query("month"),
     funnel_stage: str = Query("all"),
     channel: str = Query("all"),
-    behavior: str | None = Query(None),   # 逗号分隔: "gold,effective"
-    benchmarks: str = Query("target"),    # 逗号分隔: "target,bm_progress"
+    behavior: str | None = Query(None),  # 逗号分隔: "gold,effective"
+    benchmarks: str = Query("target"),  # 逗号分隔: "target,bm_progress"
 ) -> UnifiedFilter:
     """FastAPI Depends — 从 query params 解析为 UnifiedFilter"""
     return UnifiedFilter(
@@ -70,16 +70,34 @@ def parse_filters(
     )
 
 
+def _resolve_col(df: pd.DataFrame, candidates: list[str]) -> str | None:
+    """从候选列名列表中找到 DataFrame 实际存在的第一个。"""
+    for c in candidates:
+        if c in df.columns:
+            return c
+    return None
+
+
+# 每个维度的候选列名（按优先级排列，覆盖已知数据源的列名变体）
+_TEAM_CANDIDATES = ["团队", "last_cc_group_name", "team", "Team", "cc_group"]
+_CC_CANDIDATES = ["CC", "last_cc_name", "cc_name", "cc", "seller"]
+_ENCLOSURE_CANDIDATES = ["围场", "生命周期", "enclosure", "Enclosure"]
+_CHANNEL_CANDIDATES = ["转介绍类型_新", "channel", "渠道", "Channel"]
+
+
 def apply_filters(
     df: pd.DataFrame,
     filters: UnifiedFilter,
     *,
-    col_team: str = "团队",
-    col_cc: str = "CC",
-    col_enclosure: str = "围场",
-    col_channel: str = "转介绍类型_新",
+    col_team: str | None = None,
+    col_cc: str | None = None,
+    col_enclosure: str | None = None,
+    col_channel: str | None = None,
 ) -> pd.DataFrame:
     """统一数据过滤。在 DataManager 返回原始 DataFrame 之后调用。
+
+    列名自动推断：如果不传 col_* 参数，会从 DataFrame 实际列中自动匹配。
+    也可显式传入 col_team="xxx" 覆盖自动推断。
 
     过滤顺序（确定性，不可乱序）：
     1. country → 团队名前缀
@@ -95,49 +113,52 @@ def apply_filters(
     if df is None or df.empty:
         return df
 
+    # 自动推断列名（显式传入优先）
+    team_col = col_team or _resolve_col(df, _TEAM_CANDIDATES)
+    cc_col = col_cc or _resolve_col(df, _CC_CANDIDATES)
+    enc_col = col_enclosure or _resolve_col(df, _ENCLOSURE_CANDIDATES)
+    ch_col = col_channel or _resolve_col(df, _CHANNEL_CANDIDATES)
+
     # 1. country — 团队名前缀过滤
     if filters.country and filters.country.lower() != "all":
         prefix = filters.country.upper() + "-"
-        if col_team in df.columns:
-            mask = df[col_team].astype(str).str.upper().str.startswith(prefix)
+        if team_col and team_col in df.columns:
+            mask = df[team_col].astype(str).str.upper().str.startswith(prefix)
             df = df[mask]
             if df.empty:
                 return df
 
     # 2. team — 团队名精确匹配
-    if filters.team and col_team in df.columns:
-        df = df[df[col_team].astype(str) == filters.team]
+    if filters.team and team_col and team_col in df.columns:
+        df = df[df[team_col].astype(str) == filters.team]
         if df.empty:
             return df
 
     # 3. cc — CC 姓名精确匹配
-    if filters.cc and col_cc in df.columns:
-        df = df[df[col_cc].astype(str) == filters.cc]
+    if filters.cc and cc_col and cc_col in df.columns:
+        df = df[df[cc_col].astype(str) == filters.cc]
         if df.empty:
             return df
 
     # 4. data_role — 围场角色映射过滤
     if filters.data_role and filters.data_role != "all":
         role_enclosures = _ROLE_ENCLOSURE_MAP.get(filters.data_role)
-        if role_enclosures and col_enclosure in df.columns:
-            df = df[df[col_enclosure].isin(role_enclosures)]
+        if role_enclosures and enc_col and enc_col in df.columns:
+            df = df[df[enc_col].isin(role_enclosures)]
             if df.empty:
                 return df
 
-    # 5. enclosure — 行级围场过滤（None = ACTIVE_ENCLOSURES）
-    if col_enclosure in df.columns:
-        selected = (
-            filters.enclosure if filters.enclosure is not None else ACTIVE_ENCLOSURES
-        )
-        df = df[df[col_enclosure].isin(selected)]
+    # 5. enclosure — 行级围场过滤（None = 不过滤，保留全部）
+    if filters.enclosure is not None and enc_col and enc_col in df.columns:
+        df = df[df[enc_col].isin(filters.enclosure)]
         if df.empty:
             return df
 
     # 6. channel — 渠道列过滤
     if filters.channel and filters.channel != "all":
         mapped_value = _CHANNEL_MAP.get(filters.channel)
-        if mapped_value and col_channel in df.columns:
-            df = df[df[col_channel].astype(str) == mapped_value]
+        if mapped_value and ch_col and ch_col in df.columns:
+            df = df[df[ch_col].astype(str) == mapped_value]
             if df.empty:
                 return df
 
