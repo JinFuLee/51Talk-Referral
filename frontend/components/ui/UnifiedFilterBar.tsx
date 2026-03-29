@@ -14,6 +14,7 @@ import type {
   FunnelStage,
   Channel,
   BehaviorSegment,
+  PageDimensions,
 } from '@/lib/types/filters';
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -351,13 +352,56 @@ function BehaviorChips({ value, onChange, behaviors }: BehaviorChipsProps) {
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
+// FilterSlot — 统一控制 enabled / disabled / locked 三态
+// ──────────────────────────────────────────────────────────────────────────────
+
+type SlotState = 'enabled' | 'disabled' | 'locked';
+
+/**
+ * 根据 PageDimensions 中该维度的值判断状态：
+ * - undefined / false → disabled（灰色不可交互 + tooltip）
+ * - true → enabled（正常）
+ * - string (如 'cc') → locked（显示固定值 + 🔒）
+ */
+function resolveSlotState(dimValue: boolean | string | undefined): SlotState {
+  if (dimValue === undefined || dimValue === false) return 'disabled';
+  if (typeof dimValue === 'string') return 'locked';
+  return 'enabled';
+}
+
+function FilterSlot({
+  state,
+  tooltip,
+  children,
+}: {
+  state: SlotState;
+  tooltip?: string;
+  children: React.ReactNode;
+}) {
+  if (state === 'disabled') {
+    return (
+      <div className="relative group" title={tooltip ?? '此页面不适用'}>
+        <div className="opacity-35 pointer-events-none select-none">{children}</div>
+      </div>
+    );
+  }
+  return <>{children}</>;
+}
+
+/**
+ * 检测是否为系统页面（所有维度均未声明）→ 隐藏整个 filter bar
+ */
+function isSystemPage(dims: PageDimensions): boolean {
+  return Object.keys(dims).length === 0;
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
 // 主组件：UnifiedFilterBar
 // ──────────────────────────────────────────────────────────────────────────────
 
 export function UnifiedFilterBar() {
   const hydrated = useStoreHydrated();
   const dims = useCurrentPageDimensions();
-
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [advancedOpen, setAdvancedOpen] = useState(false);
 
@@ -428,6 +472,19 @@ export function UnifiedFilterBar() {
     };
   }, [drawerOpen]);
 
+  // 系统页面（dims 为空对象）→ 隐藏整个 filter bar
+  if (isSystemPage(dims)) return null;
+
+  // 每个维度的状态
+  const countryState = resolveSlotState(dims.country);
+  const dataRoleState = resolveSlotState(dims.dataRole);
+  const enclosureState = resolveSlotState(dims.enclosure);
+  const teamState = resolveSlotState(dims.team);
+  const granularityState = resolveSlotState(dims.granularity);
+  const funnelState = resolveSlotState(dims.funnelStage);
+  const channelState = resolveSlotState(dims.channel);
+  const behaviorState = resolveSlotState(dims.behavior);
+
   // 国家选项
   const countries = filterOptions?.countries ?? [{ value: 'TH', label: '🌏 泰国 (TH)' }];
   const isSingleCountry = countries.length <= 1;
@@ -463,9 +520,8 @@ export function UnifiedFilterBar() {
   const desktopRow1 = (
     <div className="hidden md:flex items-center gap-2 flex-wrap px-4 py-2">
       {/* 国家 */}
-      {dims.country !== false &&
-        dims.country !== undefined &&
-        (isSingleCountry ? (
+      <FilterSlot state={countryState} tooltip="地区筛选在此页面不适用">
+        {isSingleCountry ? (
           <span className="flex items-center gap-1 px-2.5 py-1 h-8 rounded-lg bg-[var(--bg-subtle)] border border-[var(--border-subtle)] text-xs text-[var(--text-muted)] select-none">
             <Globe className="w-3.5 h-3.5" />
             {countries[0]?.label ?? 'TH'}
@@ -482,14 +538,21 @@ export function UnifiedFilterBar() {
               </option>
             ))}
           </select>
-        ))}
+        )}
+      </FilterSlot>
 
       {/* 数据角色分段 */}
-      {dims.dataRole !== false &&
-        dims.dataRole !== undefined &&
-        (dataRoleFixed ? (
-          <span className="flex items-center px-2.5 py-1 h-8 rounded-full bg-[var(--bg-subtle)] border border-[var(--border-subtle)] text-xs text-[var(--text-muted)] select-none uppercase">
-            {dataRoleFixed}
+      <FilterSlot
+        state={dataRoleState}
+        tooltip={
+          dataRoleState === 'locked'
+            ? `本页面固定为 ${dataRoleFixed?.toUpperCase()}`
+            : '数据角色在此页面不适用'
+        }
+      >
+        {dataRoleFixed ? (
+          <span className="flex items-center gap-1 px-2.5 py-1 h-8 rounded-full bg-[var(--bg-subtle)] border border-[var(--border-subtle)] text-xs text-[var(--text-muted)] select-none uppercase">
+            🔒 {dataRoleFixed}
           </span>
         ) : (
           <SegmentedControl
@@ -497,19 +560,20 @@ export function UnifiedFilterBar() {
             value={hydrated ? dataRole : 'all'}
             onChange={setDataRole}
           />
-        ))}
+        )}
+      </FilterSlot>
 
       {/* 围场 */}
-      {dims.enclosure !== false && dims.enclosure !== undefined && (
+      <FilterSlot state={enclosureState} tooltip="围场筛选在此页面不适用">
         <EnclosureDropdown
           value={hydrated ? enclosure : null}
           onChange={setEnclosure}
           enclosures={enclosures}
         />
-      )}
+      </FilterSlot>
 
       {/* 团队下拉 */}
-      {dims.team !== false && dims.team !== undefined && (
+      <FilterSlot state={teamState} tooltip="团队筛选在此页面不适用">
         <select
           value={teamFilter ?? ''}
           onChange={(e) => setTeamFilter(e.target.value || null)}
@@ -522,10 +586,10 @@ export function UnifiedFilterBar() {
             </option>
           ))}
         </select>
-      )}
+      </FilterSlot>
 
       {/* CC 搜索 */}
-      {dims.team !== false && dims.team !== undefined && (
+      <FilterSlot state={teamState} tooltip="CC 搜索在此页面不适用">
         <div className="relative">
           <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3 h-3 text-[var(--text-muted)] pointer-events-none" />
           <input
@@ -536,7 +600,7 @@ export function UnifiedFilterBar() {
             className="h-8 pl-7 pr-3 rounded-full bg-[var(--bg-subtle)] border border-[var(--border-subtle)] text-xs text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:ring-1 focus:ring-[var(--brand-p1)] focus:border-[var(--brand-p1)] outline-none transition-all w-32 focus:w-44"
           />
         </div>
-      )}
+      </FilterSlot>
 
       {/* 清除按钮 */}
       {hasActiveFilter && (
@@ -549,97 +613,102 @@ export function UnifiedFilterBar() {
         </button>
       )}
 
-      {/* 更多筛选切换（仅当第二行有内容时显示） */}
-      {showAdvancedRow && (
-        <button
-          onClick={() => setAdvancedOpen((v) => !v)}
-          className={[
-            'flex items-center gap-1 px-2.5 py-1 h-8 rounded-lg text-xs font-medium border transition-colors',
-            advancedOpen
-              ? 'bg-[var(--bg-subtle)] border-[var(--border-default)] text-[var(--text-primary)]'
-              : 'border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--border-default)]',
-          ].join(' ')}
-        >
-          {advancedOpen ? (
-            <>
-              收起 <ChevronUp className="w-3 h-3" />
-            </>
-          ) : (
-            <>
-              更多筛选 <ChevronDown className="w-3 h-3" />
-            </>
-          )}
-        </button>
-      )}
+      {/* 更多筛选切换 */}
+      <button
+        onClick={() => setAdvancedOpen((v) => !v)}
+        className={[
+          'flex items-center gap-1 px-2.5 py-1 h-8 rounded-lg text-xs font-medium border transition-colors',
+          advancedOpen
+            ? 'bg-[var(--bg-subtle)] border-[var(--border-default)] text-[var(--text-primary)]'
+            : 'border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--border-default)]',
+        ].join(' ')}
+      >
+        {advancedOpen ? (
+          <>
+            收起 <ChevronUp className="w-3 h-3" />
+          </>
+        ) : (
+          <>
+            更多筛选 <ChevronDown className="w-3 h-3" />
+          </>
+        )}
+      </button>
     </div>
   );
 
-  const desktopRow2 =
-    showAdvancedRow && advancedOpen ? (
-      <div className="hidden md:flex items-center gap-2 flex-wrap px-4 pb-2 pt-0">
-        {/* 时间粒度 */}
-        {dims.granularity !== false &&
-          dims.granularity !== undefined &&
-          (granularityFixed ? (
-            <span className="flex items-center px-2.5 py-1 h-8 rounded-full bg-[var(--bg-subtle)] border border-[var(--border-subtle)] text-xs text-[var(--text-muted)] select-none">
-              {GRANULARITY_OPTIONS.find((g) => g.value === granularityFixed)?.label ??
-                granularityFixed}
-            </span>
-          ) : (
-            <SegmentedControl
-              options={GRANULARITY_OPTIONS}
-              value={hydrated ? granularity : 'month'}
-              onChange={setGranularity}
-            />
-          ))}
-
-        {/* 漏斗阶段 */}
-        {dims.funnelStage !== false && dims.funnelStage !== undefined && (
-          <select
-            value={hydrated ? funnelStage : 'all'}
-            onChange={(e) => setFunnelStage(e.target.value as FunnelStage)}
-            className="h-8 px-2.5 rounded-lg bg-[var(--bg-subtle)] border border-[var(--border-subtle)] text-xs text-[var(--text-primary)] focus:ring-1 focus:ring-[var(--brand-p1)] outline-none cursor-pointer transition-colors"
-          >
-            {FUNNEL_STAGE_OPTIONS.map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label}
-              </option>
-            ))}
-          </select>
-        )}
-
-        {/* 渠道 */}
-        {dims.channel !== false && dims.channel !== undefined && (
-          <select
-            value={hydrated ? channel : 'all'}
-            onChange={(e) => setChannel(e.target.value as Channel)}
-            className="h-8 px-2.5 rounded-lg bg-[var(--bg-subtle)] border border-[var(--border-subtle)] text-xs text-[var(--text-primary)] focus:ring-1 focus:ring-[var(--brand-p1)] outline-none cursor-pointer transition-colors"
-          >
-            {(channels.length > 0
-              ? channels
-              : (Object.entries(CHANNEL_LABELS) as [Channel, string][]).map(([v, l]) => ({
-                  value: v,
-                  label: l,
-                  available_sources: [],
-                }))
-            ).map((c) => (
-              <option key={c.value} value={c.value}>
-                {c.label || CHANNEL_LABELS[c.value as Channel] || c.value}
-              </option>
-            ))}
-          </select>
-        )}
-
-        {/* 学员行为多选 */}
-        {dims.behavior !== false && dims.behavior !== undefined && (
-          <BehaviorChips
-            value={hydrated ? behavior : null}
-            onChange={setBehavior}
-            behaviors={behaviors}
+  const desktopRow2 = advancedOpen ? (
+    <div className="hidden md:flex items-center gap-2 flex-wrap px-4 pb-2 pt-0">
+      {/* 时间粒度 */}
+      <FilterSlot
+        state={granularityState}
+        tooltip={
+          granularityState === 'locked'
+            ? `本页面固定为 ${granularityFixed}`
+            : '时间粒度在此页面不适用'
+        }
+      >
+        {granularityFixed ? (
+          <span className="flex items-center gap-1 px-2.5 py-1 h-8 rounded-full bg-[var(--bg-subtle)] border border-[var(--border-subtle)] text-xs text-[var(--text-muted)] select-none">
+            🔒{' '}
+            {GRANULARITY_OPTIONS.find((g) => g.value === granularityFixed)?.label ??
+              granularityFixed}
+          </span>
+        ) : (
+          <SegmentedControl
+            options={GRANULARITY_OPTIONS}
+            value={hydrated ? granularity : 'month'}
+            onChange={setGranularity}
           />
         )}
-      </div>
-    ) : null;
+      </FilterSlot>
+
+      {/* 漏斗阶段 */}
+      <FilterSlot state={funnelState} tooltip="漏斗阶段在此页面不适用">
+        <select
+          value={hydrated ? funnelStage : 'all'}
+          onChange={(e) => setFunnelStage(e.target.value as FunnelStage)}
+          className="h-8 px-2.5 rounded-lg bg-[var(--bg-subtle)] border border-[var(--border-subtle)] text-xs text-[var(--text-primary)] focus:ring-1 focus:ring-[var(--brand-p1)] outline-none cursor-pointer transition-colors"
+        >
+          {FUNNEL_STAGE_OPTIONS.map((opt) => (
+            <option key={opt.value} value={opt.value}>
+              {opt.label}
+            </option>
+          ))}
+        </select>
+      </FilterSlot>
+
+      {/* 渠道 */}
+      <FilterSlot state={channelState} tooltip="渠道筛选在此页面不适用">
+        <select
+          value={hydrated ? channel : 'all'}
+          onChange={(e) => setChannel(e.target.value as Channel)}
+          className="h-8 px-2.5 rounded-lg bg-[var(--bg-subtle)] border border-[var(--border-subtle)] text-xs text-[var(--text-primary)] focus:ring-1 focus:ring-[var(--brand-p1)] outline-none cursor-pointer transition-colors"
+        >
+          {(channels.length > 0
+            ? channels
+            : (Object.entries(CHANNEL_LABELS) as [Channel, string][]).map(([v, l]) => ({
+                value: v,
+                label: l,
+                available_sources: [],
+              }))
+          ).map((c) => (
+            <option key={c.value} value={c.value}>
+              {c.label || CHANNEL_LABELS[c.value as Channel] || c.value}
+            </option>
+          ))}
+        </select>
+      </FilterSlot>
+
+      {/* 学员行为多选 */}
+      <FilterSlot state={behaviorState} tooltip="学员行为筛选在此页面不适用">
+        <BehaviorChips
+          value={hydrated ? behavior : null}
+          onChange={setBehavior}
+          behaviors={behaviors}
+        />
+      </FilterSlot>
+    </div>
+  ) : null;
 
   const desktopRow3 = (
     <div className="hidden md:flex items-center px-4 pb-2 pt-0">
