@@ -2,8 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useLocale } from 'next-intl';
-import useSWR from 'swr';
-import { swrFetcher } from '@/lib/api';
+import { useFilteredSWR } from '@/lib/hooks/use-filtered-swr';
 import { Card } from '@/components/ui/Card';
 import { Spinner } from '@/components/ui/Spinner';
 
@@ -95,7 +94,7 @@ interface QuickBISource {
 export default function DataSourceCard() {
   const locale = useLocale();
   const t = (I18N as unknown as Record<string, (typeof I18N)['zh']>)[locale] ?? I18N['zh'];
-  const { data, mutate } = useSWR<QuickBISource>('/api/config/quickbi-source', swrFetcher);
+  const { data, mutate } = useFilteredSWR<QuickBISource>('/api/config/quickbi-source');
   const [urlInput, setUrlInput] = useState('');
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
@@ -218,10 +217,10 @@ export default function DataSourceCard() {
               {data.tables.length} {t.tablesExpand}
             </summary>
             <ul className="mt-1.5 space-y-0.5 pl-4 text-[var(--text-secondary)]">
-              {data.tables.map((t, i) => (
+              {data.tables.map((tbl: { name: string; file: string }, i: number) => (
                 <li key={i} className="flex gap-2">
-                  <span className="font-mono text-[var(--text-muted)]">{t.file}</span>
-                  <span>← {t.name}</span>
+                  <span className="font-mono text-[var(--text-muted)]">{tbl.file}</span>
+                  <span>← {tbl.name}</span>
                 </li>
               ))}
             </ul>

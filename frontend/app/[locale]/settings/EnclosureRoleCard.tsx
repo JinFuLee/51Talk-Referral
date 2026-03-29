@@ -2,9 +2,9 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useLocale } from 'next-intl';
-import useSWR from 'swr';
 import { Card } from '@/components/ui/Card';
-import { configAPI, swrFetcher } from '@/lib/api';
+import { configAPI } from '@/lib/api';
+import { useFilteredSWR } from '@/lib/hooks/use-filtered-swr';
 
 const I18N = {
   zh: {
@@ -290,10 +290,9 @@ function AssignmentTable({
 }
 
 export default function EnclosureRoleCard() {
-  const { data, mutate, isLoading, error } = useSWR<Record<string, Record<string, string[]>>>(
-    '/api/config/enclosure-role',
-    swrFetcher
-  );
+  const { data, mutate, isLoading, error } = useFilteredSWR<
+    Record<string, Record<string, string[]>>
+  >('/api/config/enclosure-role');
 
   // 一次性 localStorage→API 迁移
   useEffect(() => {

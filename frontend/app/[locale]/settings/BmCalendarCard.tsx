@@ -2,9 +2,9 @@
 
 import { useState } from 'react';
 import { useLocale } from 'next-intl';
-import useSWR from 'swr';
 import { toast } from 'sonner';
-import { swrFetcher, configAPI } from '@/lib/api';
+import { configAPI } from '@/lib/api';
+import { useFilteredSWR } from '@/lib/hooks/use-filtered-swr';
 import { Spinner } from '@/components/ui/Spinner';
 import type { BmCalendarResponse, BmCalendarDay } from '@/lib/types/bm-calendar';
 
@@ -135,9 +135,8 @@ export default function BmCalendarCard({ selectedMonth }: BmCalendarCardProps) {
     { value: 'holiday_off', label: t.dayTypeHolidayOff, weight: 1 },
   ];
 
-  const { data, isLoading, mutate } = useSWR<BmCalendarResponse>(
-    `/api/config/bm-calendar?month=${selectedMonth}`,
-    swrFetcher
+  const { data, isLoading, mutate } = useFilteredSWR<BmCalendarResponse>(
+    `/api/config/bm-calendar?month=${selectedMonth}`
   );
 
   const [activeDate, setActiveDate] = useState<string | null>(null);

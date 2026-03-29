@@ -2,10 +2,9 @@
 
 import { useState, useCallback } from 'react';
 import { toast } from 'sonner';
-import useSWR from 'swr';
 import { Shield } from 'lucide-react';
 import { useLocale } from 'next-intl';
-import { swrFetcher } from '@/lib/api';
+import { useFilteredSWR } from '@/lib/hooks/use-filtered-swr';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { BIZ_PAGE } from '@/lib/layout';
 import PageOverview from './PageOverview';
@@ -127,7 +126,7 @@ export default function AccessControlPage() {
     error,
     isLoading,
     mutate,
-  } = useSWR<AccessControlConfig>('/api/access-control', swrFetcher);
+  } = useFilteredSWR<AccessControlConfig>('/api/access-control');
 
   // ── 页面公开 Toggle ───────────────────────────────────────────────────────
 

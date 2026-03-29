@@ -1,8 +1,7 @@
 'use client';
 
-import useSWR from 'swr';
 import { useLocale } from 'next-intl';
-import { swrFetcher } from '@/lib/api';
+import { useFilteredSWR } from '@/lib/hooks/use-filtered-swr';
 import { fmtEnc } from '@/lib/utils';
 import { Spinner } from '@/components/ui/Spinner';
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -140,9 +139,8 @@ export default function LearningHeatmapPage() {
   const locale = useLocale();
   const t = (I18N as unknown as Record<string, (typeof I18N)['zh']>)[locale] ?? I18N['zh'];
 
-  const { data, isLoading, error, mutate } = useSWR<HeatmapRow[]>(
-    '/api/analysis/learning-heatmap',
-    swrFetcher
+  const { data, isLoading, error, mutate } = useFilteredSWR<HeatmapRow[]>(
+    '/api/analysis/learning-heatmap'
   );
 
   const weeks = WEEK_KEYS.map((key, i) => ({ key, label: t.weeks[i] }));

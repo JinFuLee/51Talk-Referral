@@ -2,9 +2,8 @@
 
 import { useState } from 'react';
 import { Loader2, AlertCircle, ImageIcon } from 'lucide-react';
-import useSWR from 'swr';
 import { useLocale } from 'next-intl';
-import { swrFetcher } from '@/lib/api';
+import { useFilteredSWR } from '@/lib/hooks/use-filtered-swr';
 import { EmptyState } from '@/components/ui/EmptyState';
 
 const I18N = {
@@ -89,9 +88,8 @@ export function OutputGallery({ platform: _platform }: OutputGalleryProps) {
     data: rawData,
     isLoading,
     error,
-  } = useSWR<{ files: OutputItem[]; total: number }>(
-    `/api/notifications/outputs?${params}`,
-    swrFetcher
+  } = useFilteredSWR<{ files: OutputItem[]; total: number }>(
+    `/api/notifications/outputs?${params}`
   );
   const data: OutputItem[] = rawData?.files ?? [];
 

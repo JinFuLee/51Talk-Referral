@@ -1,9 +1,8 @@
 'use client';
 
 import { CheckCircle2, Clock, AlertCircle, Loader2 } from 'lucide-react';
-import useSWR from 'swr';
 import { useLocale } from 'next-intl';
-import { swrFetcher } from '@/lib/api';
+import { useFilteredSWR } from '@/lib/hooks/use-filtered-swr';
 
 const I18N = {
   zh: {
@@ -45,7 +44,7 @@ interface TodayData {
 export function TodayStatus() {
   const locale = useLocale();
   const t = (I18N as unknown as Record<string, (typeof I18N)['zh']>)[locale] ?? I18N['zh'];
-  const { data, isLoading, error } = useSWR<TodayData>('/api/notifications/today', swrFetcher, {
+  const { data, isLoading, error } = useFilteredSWR<TodayData>('/api/notifications/today', {
     refreshInterval: 30000,
   });
 

@@ -1,7 +1,6 @@
 'use client';
 
-import useSWR from 'swr';
-import { swrFetcher } from '@/lib/api';
+import { useFilteredSWR } from '@/lib/hooks/use-filtered-swr';
 import { formatRate } from '@/lib/utils';
 import { SlideShell } from '@/components/presentation/SlideShell';
 import { SkeletonChart } from '@/components/ui/Skeleton';

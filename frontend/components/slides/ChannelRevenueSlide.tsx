@@ -1,8 +1,7 @@
 'use client';
 
-import useSWR from 'swr';
 import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { swrFetcher } from '@/lib/api';
+import { useFilteredSWR } from '@/lib/hooks/use-filtered-swr';
 import { formatRevenue, formatRate } from '@/lib/utils';
 import { SlideShell } from '@/components/presentation/SlideShell';
 import { SkeletonChart } from '@/components/ui/Skeleton';
@@ -12,9 +11,8 @@ import { CHART_PALETTE } from '@/lib/chart-palette';
 const COLORS = CHART_PALETTE.series;
 
 export function ChannelRevenueSlide({ slideNumber, totalSlides }: SlideProps) {
-  const { data, isLoading, error, mutate } = useSWR<ChannelAttribution[]>(
-    '/api/channel/attribution',
-    swrFetcher
+  const { data, isLoading, error, mutate } = useFilteredSWR<ChannelAttribution[]>(
+    '/api/channel/attribution'
   );
   const channels = data ?? [];
   const totalAmount = channels.reduce((s, c) => s + (c.revenue ?? 0), 0);

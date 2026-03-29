@@ -1,9 +1,8 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import useSWR from 'swr';
 import { useLocale } from 'next-intl';
-import { swrFetcher } from '@/lib/api';
+import { useFilteredSWR } from '@/lib/hooks/use-filtered-swr';
 import { Card } from '@/components/ui/Card';
 import { Spinner } from '@/components/ui/Spinner';
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -150,9 +149,8 @@ export default function Students360Page() {
   qs.set('page', String(page));
   qs.set('page_size', String(PAGE_SIZE));
 
-  const { data, isLoading, error } = useSWR<Student360SearchResponse>(
-    `/api/students/360/search?${qs.toString()}`,
-    swrFetcher
+  const { data, isLoading, error } = useFilteredSWR<Student360SearchResponse>(
+    `/api/students/360/search?${qs.toString()}`
   );
 
   const handleFiltersChange = useCallback((newFilters: SearchFilters) => {

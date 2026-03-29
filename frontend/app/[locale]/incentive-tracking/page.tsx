@@ -2,8 +2,7 @@
 
 import { useState } from 'react';
 import { useLocale } from 'next-intl';
-import useSWR from 'swr';
-import { swrFetcher } from '@/lib/api';
+import { useFilteredSWR } from '@/lib/hooks/use-filtered-swr';
 import { Card } from '@/components/ui/Card';
 import { Spinner } from '@/components/ui/Spinner';
 import type {
@@ -741,18 +740,17 @@ function LeverageTab() {
     data: raw,
     isLoading,
     error,
-  } = useSWR<{
+  } = useFilteredSWR<{
     levers: LeverRecommendation[];
     phase?: string;
     phase_label?: string;
     remaining_workdays?: number;
     note?: string;
-  }>('/api/incentive/recommend', swrFetcher);
+  }>('/api/incentive/recommend');
   const data = raw?.levers ?? [];
   const month = getCurrentMonth();
-  const { data: campaigns, mutate: mutateCampaigns } = useSWR<Campaign[]>(
-    `/api/incentive/campaigns?month=${month}`,
-    swrFetcher
+  const { data: campaigns, mutate: mutateCampaigns } = useFilteredSWR<Campaign[]>(
+    `/api/incentive/campaigns?month=${month}`
   );
   const [modalOpen, setModalOpen] = useState(false);
   const [prefill, setPrefill] = useState<Partial<CampaignFormValues>>({});
@@ -920,9 +918,8 @@ function LeverageTab() {
 
 function CampaignsTab() {
   const month = getCurrentMonth();
-  const { data, isLoading, error, mutate } = useSWR<Campaign[]>(
-    `/api/incentive/campaigns?month=${month}`,
-    swrFetcher
+  const { data, isLoading, error, mutate } = useFilteredSWR<Campaign[]>(
+    `/api/incentive/campaigns?month=${month}`
   );
   const [modalOpen, setModalOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<Campaign | undefined>();
@@ -1241,11 +1238,9 @@ function ProgressTab() {
     data: progressData,
     isLoading: progressLoading,
     error: progressError,
-  } = useSWR<CampaignProgress[]>(`/api/incentive/progress?month=${month}`, swrFetcher);
-  const { data: budget, isLoading: budgetLoading } = useSWR<IncentiveBudget>(
-    '/api/incentive/budget',
-    swrFetcher
-  );
+  } = useFilteredSWR<CampaignProgress[]>(`/api/incentive/progress?month=${month}`);
+  const { data: budget, isLoading: budgetLoading } =
+    useFilteredSWR<IncentiveBudget>('/api/incentive/budget');
 
   // 计算内场已消耗（所有活动 qualified_count × reward_thb 之和）
   const totalSpent = progressData

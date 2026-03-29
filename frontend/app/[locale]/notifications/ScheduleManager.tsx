@@ -2,9 +2,10 @@
 
 import { useState } from 'react';
 import { toast } from 'sonner';
-import useSWR, { mutate } from 'swr';
+import { mutate } from 'swr';
 import { Clock, Plus, Pencil, Trash2, Power, PowerOff, Calendar } from 'lucide-react';
 import { useLocale } from 'next-intl';
+import { useFilteredSWR } from '@/lib/hooks/use-filtered-swr';
 
 const I18N = {
   zh: {
@@ -79,8 +80,6 @@ const I18N = {
 
 const API_BASE = '/api';
 
-const swrFetcher = (url: string) => fetch(url).then((r) => r.json());
-
 // ── 类型定义 ──────────────────────────────────────────────────────────────────
 
 interface Schedule {
@@ -133,9 +132,8 @@ export function ScheduleManager() {
   const locale = useLocale();
   const t = (I18N as unknown as Record<string, (typeof I18N)['zh']>)[locale] ?? I18N['zh'];
 
-  const { data, error, isLoading } = useSWR<{ schedules: Schedule[]; total: number }>(
+  const { data, error, isLoading } = useFilteredSWR<{ schedules: Schedule[]; total: number }>(
     `${API_BASE}/notifications/schedule`,
-    swrFetcher,
     { refreshInterval: 30000 }
   );
 

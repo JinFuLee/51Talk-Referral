@@ -1,8 +1,7 @@
 'use client';
 
-import useSWR from 'swr';
 import { useLocale } from 'next-intl';
-import { swrFetcher } from '@/lib/api';
+import { useFilteredSWR } from '@/lib/hooks/use-filtered-swr';
 import { Card } from '@/components/ui/Card';
 import { Spinner } from '@/components/ui/Spinner';
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -339,14 +338,14 @@ export default function ExpiryAlertPage() {
     isLoading: summaryLoading,
     error: summaryError,
     mutate: mutateSummary,
-  } = useSWR<ExpiryAlertSummary>('/api/students/expiry-alert/summary', swrFetcher);
+  } = useFilteredSWR<ExpiryAlertSummary>('/api/students/expiry-alert/summary');
 
   const {
     data: items,
     isLoading: itemsLoading,
     error: itemsError,
     mutate: mutateItems,
-  } = useSWR<ExpiryAlertItem[]>('/api/students/expiry-alert?days=30', swrFetcher);
+  } = useFilteredSWR<ExpiryAlertItem[]>('/api/students/expiry-alert?days=30');
 
   const isLoading = summaryLoading || itemsLoading;
   const error = summaryError || itemsError;

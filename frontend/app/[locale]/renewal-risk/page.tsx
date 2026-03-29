@@ -1,8 +1,7 @@
 'use client';
 
-import useSWR from 'swr';
 import { useLocale } from 'next-intl';
-import { swrFetcher } from '@/lib/api';
+import { useFilteredSWR } from '@/lib/hooks/use-filtered-swr';
 import { formatRate } from '@/lib/utils';
 import { Card } from '@/components/ui/Card';
 import { Spinner } from '@/components/ui/Spinner';
@@ -202,9 +201,8 @@ export default function RenewalRiskPage() {
   const locale = useLocale();
   const t = (I18N as unknown as Record<string, (typeof I18N)['zh']>)[locale] ?? I18N['zh'];
 
-  const { data, isLoading, error, mutate } = useSWR<RenewalRiskData>(
-    '/api/analysis/renewal-risk',
-    swrFetcher
+  const { data, isLoading, error, mutate } = useFilteredSWR<RenewalRiskData>(
+    '/api/analysis/renewal-risk'
   );
 
   function riskBadge(days?: number | null): { label: string; cls: string } {

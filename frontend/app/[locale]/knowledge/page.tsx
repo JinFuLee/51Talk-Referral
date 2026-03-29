@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback, useMemo, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useLocale } from 'next-intl';
-import useSWR from 'swr';
+import { useFilteredSWR } from '@/lib/hooks/use-filtered-swr';
 import { BookOpen, Loader2, AlertCircle, BookMarked, Globe } from 'lucide-react';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { BookShelf } from '@/components/knowledge/BookShelf';
@@ -16,7 +16,6 @@ import { ReadingGuide, shouldShowGuide } from '@/components/knowledge/ReadingGui
 import type { Book } from '@/components/knowledge/BookShelf';
 import type { Chapter } from '@/components/knowledge/ChapterTree';
 import type { BookmarkItem } from '@/components/knowledge/BookmarkPanel';
-import { swrFetcher } from '@/lib/api';
 
 const BOOKMARKS_KEY = 'knowledge-bookmarks';
 
@@ -144,7 +143,7 @@ function KnowledgePageInner() {
     data: books,
     isLoading: booksLoading,
     error: booksError,
-  } = useSWR<Book[]>(`/api/knowledge/books${langParam}`, swrFetcher);
+  } = useFilteredSWR<Book[]>(`/api/knowledge/books${langParam}`);
 
   // Auto-select first book
   useEffect(() => {
@@ -166,7 +165,7 @@ function KnowledgePageInner() {
     data: bookContent,
     isLoading: contentLoading,
     error: contentError,
-  } = useSWR<BookContent>(bookUrl, swrFetcher);
+  } = useFilteredSWR<BookContent>(bookUrl);
 
   // Filter out "目录" chapter from sidebar (it's the inline TOC, not a real chapter)
   const filteredChapters = useMemo(() => {

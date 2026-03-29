@@ -2,7 +2,7 @@
 
 import { useLocale } from 'next-intl';
 import { useState } from 'react';
-import useSWR from 'swr';
+import { useFilteredSWR } from '@/lib/hooks/use-filtered-swr';
 
 const I18N = {
   zh: {
@@ -196,7 +196,6 @@ const I18N = {
     exportHistCoding: 'ประวัติการแปลงรหัส',
   },
 } as const;
-import { swrFetcher } from '@/lib/api';
 import { Card } from '@/components/ui/Card';
 import { Spinner } from '@/components/ui/Spinner';
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -258,9 +257,8 @@ function pct(v: number | null | undefined): string {
 export default function ReferralContributorPage() {
   const locale = useLocale();
   const t = (I18N as unknown as Record<string, (typeof I18N)['zh']>)[locale] ?? I18N['zh'];
-  const { data, isLoading, error, mutate } = useSWR<ReferralContributorResponse>(
-    '/api/analysis/referral-contributor',
-    swrFetcher
+  const { data, isLoading, error, mutate } = useFilteredSWR<ReferralContributorResponse>(
+    '/api/analysis/referral-contributor'
   );
 
   const [sortKey, setSortKey] = useState<SortKey>('total_new');

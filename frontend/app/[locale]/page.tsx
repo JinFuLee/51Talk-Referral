@@ -1,9 +1,7 @@
 'use client';
 
 import { useLocale } from 'next-intl';
-import useSWR from 'swr';
 import { useState, useMemo } from 'react';
-import { swrFetcher } from '@/lib/api';
 
 /* ── 多语言 ─────────────────────────────────────────────────── */
 
@@ -854,7 +852,7 @@ function RingProgress({ label, value, color }: RingProps) {
 }
 
 function MonthlyAchievementSection() {
-  const { data, isLoading } = useSWR<AttributionSummary>('/api/attribution/summary', swrFetcher);
+  const { data, isLoading } = useFilteredSWR<AttributionSummary>('/api/attribution/summary');
 
   if (isLoading) {
     return (

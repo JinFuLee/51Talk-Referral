@@ -3,9 +3,8 @@
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { Rocket, Eye, Send, AlertTriangle, RefreshCw } from 'lucide-react';
-import useSWR from 'swr';
 import { useLocale } from 'next-intl';
-import { swrFetcher } from '@/lib/api';
+import { useFilteredSWR } from '@/lib/hooks/use-filtered-swr';
 import { PreviewModal } from './PreviewModal';
 import { PushProgress, type PushProgressItem } from './PushProgress';
 import type { BotChannel } from './BotCard';
@@ -147,9 +146,8 @@ export function PushControl({ platform }: PushControlProps) {
     isLoading: templatesLoading,
     error: templatesError,
     mutate: mutateTemplates,
-  } = useSWR<{ templates: PushTemplate[] } | PushTemplate[]>(
-    '/api/notifications/templates',
-    swrFetcher
+  } = useFilteredSWR<{ templates: PushTemplate[] } | PushTemplate[]>(
+    '/api/notifications/templates'
   );
   const templates: PushTemplate[] | undefined = rawTemplates
     ? Array.isArray(rawTemplates)
@@ -162,9 +160,8 @@ export function PushControl({ platform }: PushControlProps) {
     isLoading: channelsLoading,
     error: channelsError,
     mutate: mutateChannels,
-  } = useSWR<{ channels: BotChannel[] } | BotChannel[]>(
-    `/api/notifications/channels/${platform}`,
-    swrFetcher
+  } = useFilteredSWR<{ channels: BotChannel[] } | BotChannel[]>(
+    `/api/notifications/channels/${platform}`
   );
   const channels: BotChannel[] | undefined = rawChannels
     ? Array.isArray(rawChannels)

@@ -2,9 +2,8 @@
 
 import { useState } from 'react';
 import { Plus, Loader2, AlertCircle } from 'lucide-react';
-import useSWR from 'swr';
 import { useLocale } from 'next-intl';
-import { swrFetcher } from '@/lib/api';
+import { useFilteredSWR } from '@/lib/hooks/use-filtered-swr';
 import { BotCard, type BotChannel } from './BotCard';
 import { BotFormModal } from './BotFormModal';
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -56,9 +55,8 @@ export function BotManager({ platform }: BotManagerProps) {
     isLoading,
     error,
     mutate,
-  } = useSWR<{ channels: BotChannel[]; total: number } | BotChannel[]>(
-    `/api/notifications/channels/${platform}`,
-    swrFetcher
+  } = useFilteredSWR<{ channels: BotChannel[]; total: number } | BotChannel[]>(
+    `/api/notifications/channels/${platform}`
   );
   // API 返回 {channels: [...], total: N}，兼容直接数组
   const data: BotChannel[] | undefined = rawData

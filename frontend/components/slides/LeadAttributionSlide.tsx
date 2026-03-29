@@ -1,13 +1,12 @@
 'use client';
 
-import useSWR from 'swr';
-import { swrFetcher } from '@/lib/api';
+import { useFilteredSWR } from '@/lib/hooks/use-filtered-swr';
 import { SlideShell } from '@/components/presentation/SlideShell';
 import { SkeletonChart } from '@/components/ui/Skeleton';
 import type { ChannelFunnel, SlideProps } from '@/lib/presentation/types';
 
 export function LeadAttributionSlide({ slideNumber, totalSlides }: SlideProps) {
-  const { data, isLoading, error, mutate } = useSWR<ChannelFunnel[]>('/api/channel', swrFetcher);
+  const { data, isLoading, error, mutate } = useFilteredSWR<ChannelFunnel[]>('/api/channel');
   const channels = data ?? [];
 
   // 一句话结论：总注册 & 付费

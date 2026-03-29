@@ -1,7 +1,6 @@
 'use client';
 
-import useSWR from 'swr';
-import { swrFetcher } from '@/lib/api';
+import { useFilteredSWR } from '@/lib/hooks/use-filtered-swr';
 import { formatRate } from '@/lib/utils';
 import { SlideShell } from '@/components/presentation/SlideShell';
 import { SkeletonChart } from '@/components/ui/Skeleton';
@@ -19,7 +18,7 @@ import type { FunnelResult } from '@/lib/types/funnel';
 import type { SlideProps } from '@/lib/presentation/types';
 
 export function ConversionRateSlide({ slideNumber, totalSlides }: SlideProps) {
-  const { data, isLoading, error, mutate } = useSWR<FunnelResult>('/api/funnel', swrFetcher);
+  const { data, isLoading, error, mutate } = useFilteredSWR<FunnelResult>('/api/funnel');
   const stages = data?.stages ?? [];
 
   // 只取名称含"率"的 stage（注册预约率/预约出席率/出席付费率）

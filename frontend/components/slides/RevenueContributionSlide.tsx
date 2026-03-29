@@ -1,16 +1,14 @@
 'use client';
 
-import useSWR from 'swr';
-import { swrFetcher } from '@/lib/api';
+import { useFilteredSWR } from '@/lib/hooks/use-filtered-swr';
 import { formatRevenue, formatRate } from '@/lib/utils';
 import { SlideShell } from '@/components/presentation/SlideShell';
 import { SkeletonChart } from '@/components/ui/Skeleton';
 import type { ChannelAttribution, SlideProps } from '@/lib/presentation/types';
 
 export function RevenueContributionSlide({ slideNumber, totalSlides }: SlideProps) {
-  const { data, isLoading, error, mutate } = useSWR<ChannelAttribution[]>(
-    '/api/channel/attribution',
-    swrFetcher
+  const { data, isLoading, error, mutate } = useFilteredSWR<ChannelAttribution[]>(
+    '/api/channel/attribution'
   );
   const channels = data ?? [];
   const totalAmount = channels.reduce((s, c) => s + (c.revenue ?? 0), 0);

@@ -2,9 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { useLocale } from 'next-intl';
-import useSWR from 'swr';
 import { Card } from '@/components/ui/Card';
-import { swrFetcher } from '@/lib/api';
+import { useFilteredSWR } from '@/lib/hooks/use-filtered-swr';
 import type { IncentiveBudget } from '@/lib/types/incentive';
 
 const I18N = {
@@ -81,7 +80,7 @@ interface Props {
 export default function IncentiveBudgetCard({ month }: Props) {
   const locale = useLocale();
   const t = (I18N as unknown as Record<string, (typeof I18N)['zh']>)[locale] ?? I18N['zh'];
-  const { data, mutate, isLoading } = useSWR<IncentiveBudget>('/api/incentive/budget', swrFetcher);
+  const { data, mutate, isLoading } = useFilteredSWR<IncentiveBudget>('/api/incentive/budget');
 
   const [indoorBudget, setIndoorBudget] = useState('');
   const [outdoorBudget, setOutdoorBudget] = useState('');

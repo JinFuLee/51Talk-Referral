@@ -1,9 +1,8 @@
 'use client';
 
 import { Fragment, useState } from 'react';
-import useSWR from 'swr';
 import { useLocale } from 'next-intl';
-import { swrFetcher } from '@/lib/api';
+import { useFilteredSWR } from '@/lib/hooks/use-filtered-swr';
 import { Spinner } from '@/components/ui/Spinner';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Badge } from '@/components/ui/badge';
@@ -177,10 +176,10 @@ export default function WarroomPage() {
     ? `/api/high-potential/warroom?urgency=${urgencyFilter}`
     : '/api/high-potential/warroom';
 
-  const { data, isLoading, error } = useSWR<WarroomStudent[]>(url, swrFetcher);
+  const { data, isLoading, error } = useFilteredSWR<WarroomStudent[]>(url);
 
   const allStudentsUrl = '/api/high-potential/warroom';
-  const { data: allData } = useSWR<WarroomStudent[]>(allStudentsUrl, swrFetcher);
+  const { data: allData } = useFilteredSWR<WarroomStudent[]>(allStudentsUrl);
 
   const students: WarroomStudent[] = Array.isArray(data) ? data : [];
   const allStudents: WarroomStudent[] = Array.isArray(allData) ? allData : [];

@@ -1,8 +1,7 @@
 'use client';
 
-import useSWR from 'swr';
 import { useLocale } from 'next-intl';
-import { swrFetcher } from '@/lib/api';
+import { useFilteredSWR } from '@/lib/hooks/use-filtered-swr';
 import { Spinner } from '@/components/ui/Spinner';
 import { EmptyState } from '@/components/ui/EmptyState';
 
@@ -122,9 +121,8 @@ export default function GeoDistributionPage() {
   const locale = useLocale();
   const t = (I18N as unknown as Record<string, (typeof I18N)['zh']>)[locale] ?? I18N['zh'];
 
-  const { data, isLoading, error, mutate } = useSWR<GeoItem[]>(
-    '/api/analysis/geo-distribution',
-    swrFetcher
+  const { data, isLoading, error, mutate } = useFilteredSWR<GeoItem[]>(
+    '/api/analysis/geo-distribution'
   );
 
   if (isLoading) {

@@ -1,7 +1,6 @@
 'use client';
 
-import useSWR from 'swr';
-import { swrFetcher } from '@/lib/api';
+import { useFilteredSWR } from '@/lib/hooks/use-filtered-swr';
 import { formatRate } from '@/lib/utils';
 import { SlideShell } from '@/components/presentation/SlideShell';
 import { SkeletonChart } from '@/components/ui/Skeleton';
@@ -9,10 +8,7 @@ import type { ScenarioResult } from '@/lib/types/funnel';
 import type { SlideProps } from '@/lib/presentation/types';
 
 export function ScenarioAnalysisSlide({ slideNumber, totalSlides }: SlideProps) {
-  const { data, isLoading, error, mutate } = useSWR<ScenarioResult>(
-    '/api/funnel/scenario',
-    swrFetcher
-  );
+  const { data, isLoading, error, mutate } = useFilteredSWR<ScenarioResult>('/api/funnel/scenario');
 
   // 一句话结论
   const insight = (() => {

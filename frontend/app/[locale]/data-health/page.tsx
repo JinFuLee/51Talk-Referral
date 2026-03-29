@@ -1,8 +1,8 @@
 'use client';
 
-import useSWR from 'swr';
 import { useState, Fragment } from 'react';
 import { useLocale } from 'next-intl';
+import { useFilteredSWR } from '@/lib/hooks/use-filtered-swr';
 import type {
   DataHealthReport,
   ModuleResult,
@@ -15,7 +15,6 @@ import type {
   DataFreshness,
   DiffFromLast,
 } from '@/lib/types/data-health';
-import { swrFetcher } from '@/lib/api';
 
 // ── I18N ──────────────────────────────────────────────────────────────────────
 
@@ -765,9 +764,8 @@ export default function DataHealthPage() {
   const t = (I18N as unknown as Record<string, (typeof I18N)['zh']>)[locale] ?? I18N['zh'];
   const [autoRefresh, setAutoRefresh] = useState(false);
 
-  const { data, isLoading, error, mutate } = useSWR<DataHealthReport>(
+  const { data, isLoading, error, mutate } = useFilteredSWR<DataHealthReport>(
     '/api/data-health/data-quality',
-    swrFetcher,
     { refreshInterval: autoRefresh ? 30000 : 0 }
   );
 

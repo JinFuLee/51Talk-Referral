@@ -2,7 +2,6 @@
 
 import { useLocale } from 'next-intl';
 import { useState } from 'react';
-import useSWR from 'swr';
 
 const I18N = {
   zh: {
@@ -276,7 +275,6 @@ const I18N = {
     exportLastCall: 'วันโทรล่าสุด',
   },
 } as const;
-import { swrFetcher } from '@/lib/api';
 import { useFilteredSWR } from '@/lib/hooks/use-filtered-swr';
 import { usePageDimensions } from '@/lib/hooks/use-page-dimensions';
 import { Card } from '@/components/ui/Card';
@@ -302,7 +300,7 @@ function DetailDrawerWrapper({
   memberId: string | number;
   onClose: () => void;
 }) {
-  const { data, isLoading } = useSWR(`/api/members/${memberId}`, swrFetcher);
+  const { data, isLoading } = useFilteredSWR<Record<string, unknown>>(`/api/members/${memberId}`);
 
   if (isLoading) {
     return (
@@ -315,7 +313,13 @@ function DetailDrawerWrapper({
     );
   }
 
-  return <MemberDetailDrawer student={data ?? null} open={true} onClose={onClose} />;
+  return (
+    <MemberDetailDrawer
+      student={(data as Record<string, unknown> & { id: string }) ?? null}
+      open={true}
+      onClose={onClose}
+    />
+  );
 }
 
 // Options are built dynamically using t inside the component
