@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useEffect } from 'react';
 import { LayoutGrid, Download } from 'lucide-react';
+import { usePageDimensions } from '@/lib/hooks/use-page-dimensions';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { BIZ_PAGE } from '@/lib/layout';
 import { useIndicatorMatrix } from '@/lib/hooks/useIndicatorMatrix';
@@ -21,6 +22,7 @@ const AVAILABILITY_LABELS: Record<IndicatorAvailability, string> = {
 };
 
 export default function IndicatorMatrixPage() {
+  usePageDimensions({});
   const { registry, matrix, mutate, isLoading, error } = useIndicatorMatrix();
   const locale = useLocale();
   const language = (locale === 'th' ? 'th' : 'zh') as 'zh' | 'th';

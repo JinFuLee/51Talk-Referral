@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback, useMemo, Suspense } from 'rea
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useLocale } from 'next-intl';
 import { useFilteredSWR } from '@/lib/hooks/use-filtered-swr';
+import { usePageDimensions } from '@/lib/hooks/use-page-dimensions';
 import { BookOpen, Loader2, AlertCircle, BookMarked, Globe } from 'lucide-react';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { BookShelf } from '@/components/knowledge/BookShelf';
@@ -381,6 +382,7 @@ function KnowledgePageInner() {
 }
 
 export default function KnowledgePage() {
+  usePageDimensions({});
   return (
     <Suspense fallback={<div className="state-loading">Loading…</div>}>
       <KnowledgePageInner />

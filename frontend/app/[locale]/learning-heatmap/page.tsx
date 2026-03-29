@@ -2,6 +2,7 @@
 
 import { useLocale } from 'next-intl';
 import { useFilteredSWR } from '@/lib/hooks/use-filtered-swr';
+import { usePageDimensions } from '@/lib/hooks/use-page-dimensions';
 import { fmtEnc } from '@/lib/utils';
 import { Spinner } from '@/components/ui/Spinner';
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -136,6 +137,13 @@ function HeatCell({ value, maxVal }: { value: number | null; maxVal: number }) {
 }
 
 export default function LearningHeatmapPage() {
+  usePageDimensions({
+    country: true,
+    enclosure: true,
+    team: true,
+    granularity: true,
+    behavior: true,
+  });
   const locale = useLocale();
   const t = (I18N as unknown as Record<string, (typeof I18N)['zh']>)[locale] ?? I18N['zh'];
 

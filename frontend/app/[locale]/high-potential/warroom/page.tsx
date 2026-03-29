@@ -3,6 +3,7 @@
 import { Fragment, useState } from 'react';
 import { useLocale } from 'next-intl';
 import { useFilteredSWR } from '@/lib/hooks/use-filtered-swr';
+import { usePageDimensions } from '@/lib/hooks/use-page-dimensions';
 import { Spinner } from '@/components/ui/Spinner';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Badge } from '@/components/ui/badge';
@@ -166,6 +167,7 @@ function UrgencyBadge({
 // ── 主页面 ────────────────────────────────────────────────────────────────────
 
 export default function WarroomPage() {
+  usePageDimensions({ country: true, enclosure: true, team: true, behavior: true });
   const locale = useLocale();
   const t = (I18N as unknown as Record<string, (typeof I18N)['zh']>)[locale] ?? I18N['zh'];
 

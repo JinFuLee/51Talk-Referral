@@ -42,6 +42,7 @@ const I18N = {
     plan: 'แผน',
   },
 };
+import { usePageDimensions } from '@/lib/hooks/use-page-dimensions';
 import { useExchangeRate, useTargetsV2, useTargetRecommendation } from '@/lib/hooks';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { BIZ_PAGE } from '@/lib/layout';
@@ -71,6 +72,7 @@ import IncentiveBudgetCard from './IncentiveBudgetCard';
 import { defaultV2, MONTHS } from './defaultV2';
 
 export default function SettingsPage() {
+  usePageDimensions({});
   const locale = useLocale();
   const t = (I18N as unknown as Record<string, (typeof I18N)['zh']>)[locale] ?? I18N['zh'];
   const [selectedMonth, setSelectedMonth] = useState(() => {

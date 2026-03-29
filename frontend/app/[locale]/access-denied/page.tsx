@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { Shield } from 'lucide-react';
 import { useLocale } from 'next-intl';
+import { usePageDimensions } from '@/lib/hooks/use-page-dimensions';
 
 const I18N = {
   zh: {
@@ -22,6 +23,7 @@ const I18N = {
 } as const;
 
 export default function AccessDeniedPage() {
+  usePageDimensions({});
   const locale = useLocale();
   const lang = locale === 'zh' || locale === 'zh-TW' ? 'zh' : 'en';
   const t = I18N[lang];

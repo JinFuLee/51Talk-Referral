@@ -2,6 +2,7 @@
 
 import { useLocale } from 'next-intl';
 import { useFilteredSWR } from '@/lib/hooks/use-filtered-swr';
+import { usePageDimensions } from '@/lib/hooks/use-page-dimensions';
 import { formatRate } from '@/lib/utils';
 import { Card } from '@/components/ui/Card';
 import { Spinner } from '@/components/ui/Spinner';
@@ -198,6 +199,7 @@ function segmentColor(label: string): string {
 }
 
 export default function RenewalRiskPage() {
+  usePageDimensions({ country: true, enclosure: true, team: true, behavior: true });
   const locale = useLocale();
   const t = (I18N as unknown as Record<string, (typeof I18N)['zh']>)[locale] ?? I18N['zh'];
 

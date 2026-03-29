@@ -5,6 +5,7 @@ export const dynamic = 'force-dynamic';
 import { Suspense, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useLocale } from 'next-intl';
+import { usePageDimensions } from '@/lib/hooks/use-page-dimensions';
 import { BrandMark } from '@/components/ui/BrandMark';
 import { BIZ_PAGE } from '@/lib/layout';
 import { Loader2 } from 'lucide-react';
@@ -31,6 +32,7 @@ const I18N = {
 } as const;
 
 export default function LoginPage() {
+  usePageDimensions({});
   return (
     <Suspense
       fallback={

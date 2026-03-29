@@ -3,6 +3,7 @@
 import { useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useLocale } from 'next-intl';
+import { usePageDimensions } from '@/lib/hooks/use-page-dimensions';
 import { usePresentationStore } from '@/lib/stores/presentation-store';
 import type { Audience } from '@/lib/presentation/types';
 
@@ -63,6 +64,15 @@ const PLAYLISTS: Record<Audience, SlideComponent[]> = {
 };
 
 export default function PresentationPage() {
+  usePageDimensions({
+    country: true,
+    dataRole: true,
+    enclosure: true,
+    team: true,
+    granularity: true,
+    funnelStage: true,
+    channel: true,
+  });
   const locale = useLocale();
   const t = (I18N as unknown as Record<string, (typeof I18N)['zh']>)[locale] ?? I18N['zh'];
   const params = useParams();

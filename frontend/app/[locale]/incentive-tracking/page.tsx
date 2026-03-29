@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useLocale } from 'next-intl';
 import { useFilteredSWR } from '@/lib/hooks/use-filtered-swr';
+import { usePageDimensions } from '@/lib/hooks/use-page-dimensions';
 import { Card } from '@/components/ui/Card';
 import { Spinner } from '@/components/ui/Spinner';
 import type {
@@ -1335,6 +1336,13 @@ const TABS: { key: TabKey; label: string }[] = [
 ];
 
 export default function IncentiveTrackingPage() {
+  usePageDimensions({
+    country: true,
+    dataRole: true,
+    enclosure: true,
+    team: true,
+    granularity: true,
+  });
   const [activeTab, setActiveTab] = useState<TabKey>('leverage');
 
   return (

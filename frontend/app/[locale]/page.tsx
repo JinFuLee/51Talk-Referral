@@ -286,6 +286,7 @@ const I18N = {
   },
 } as const;
 import { useFilteredSWR } from '@/lib/hooks/use-filtered-swr';
+import { usePageDimensions } from '@/lib/hooks/use-page-dimensions';
 import { formatRevenue, formatRate } from '@/lib/utils';
 import { Card } from '@/components/ui/Card';
 import { Spinner } from '@/components/ui/Spinner';
@@ -912,6 +913,15 @@ const KPI_CARD_INDICATOR_IDS: Record<string, string[]> = {
 /* ── 主页面 ───────────────────────────────────────────────────── */
 
 export default function DashboardPage() {
+  usePageDimensions({
+    country: true,
+    dataRole: true,
+    enclosure: true,
+    team: true,
+    granularity: true,
+    funnelStage: true,
+    channel: true,
+  });
   const [roleView, setRoleView] = useState<RoleView>('all');
   const { data, isLoading, error } = useFilteredSWR<OverviewResponse>('/api/overview');
   const { data: fullSources } = useDataSources();

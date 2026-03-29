@@ -3,6 +3,7 @@
 import { useState, Fragment } from 'react';
 import { useLocale } from 'next-intl';
 import { useFilteredSWR } from '@/lib/hooks/use-filtered-swr';
+import { usePageDimensions } from '@/lib/hooks/use-page-dimensions';
 import type {
   DataHealthReport,
   ModuleResult,
@@ -760,6 +761,7 @@ function FrontendErrorsSection({ errors, t }: { errors: FrontendErrors; t: (type
 // ── 主页面 ────────────────────────────────────────────────────────────────────
 
 export default function DataHealthPage() {
+  usePageDimensions({});
   const locale = useLocale();
   const t = (I18N as unknown as Record<string, (typeof I18N)['zh']>)[locale] ?? I18N['zh'];
   const [autoRefresh, setAutoRefresh] = useState(false);

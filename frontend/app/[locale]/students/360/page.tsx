@@ -3,6 +3,7 @@
 import { useState, useCallback } from 'react';
 import { useLocale } from 'next-intl';
 import { useFilteredSWR } from '@/lib/hooks/use-filtered-swr';
+import { usePageDimensions } from '@/lib/hooks/use-page-dimensions';
 import { Card } from '@/components/ui/Card';
 import { Spinner } from '@/components/ui/Spinner';
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -128,6 +129,7 @@ const DEFAULT_FILTERS: SearchFilters = {
 // ── 主页面 ────────────────────────────────────────────────────────────────────
 
 export default function Students360Page() {
+  usePageDimensions({ country: true, enclosure: true, team: true, behavior: true });
   const locale = useLocale();
   const t = (I18N as unknown as Record<string, (typeof I18N)['zh']>)[locale] ?? I18N['zh'];
 

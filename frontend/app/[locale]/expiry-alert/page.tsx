@@ -2,6 +2,7 @@
 
 import { useLocale } from 'next-intl';
 import { useFilteredSWR } from '@/lib/hooks/use-filtered-swr';
+import { usePageDimensions } from '@/lib/hooks/use-page-dimensions';
 import { Card } from '@/components/ui/Card';
 import { Spinner } from '@/components/ui/Spinner';
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -330,6 +331,7 @@ function ExpiryTable({ items, t }: { items: ExpiryAlertItem[]; t: (typeof I18N)[
 /* ── 主页面 ───────────────────────────────────────────────── */
 
 export default function ExpiryAlertPage() {
+  usePageDimensions({ country: true, enclosure: true, team: true });
   const locale = useLocale();
   const t = (I18N as unknown as Record<string, (typeof I18N)['zh']>)[locale] ?? I18N['zh'];
 

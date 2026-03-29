@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import { Shield } from 'lucide-react';
 import { useLocale } from 'next-intl';
 import { useFilteredSWR } from '@/lib/hooks/use-filtered-swr';
+import { usePageDimensions } from '@/lib/hooks/use-page-dimensions';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { BIZ_PAGE } from '@/lib/layout';
 import PageOverview from './PageOverview';
@@ -115,6 +116,7 @@ function TabButton({
 // ── 主页面 ────────────────────────────────────────────────────────────────────
 
 export default function AccessControlPage() {
+  usePageDimensions({});
   const locale = useLocale();
   const lang = locale === 'zh' || locale === 'zh-TW' ? 'zh' : 'en';
   const t = I18N[lang];

@@ -5,6 +5,7 @@ export const dynamic = 'force-dynamic';
 import { useState } from 'react';
 import { Bell } from 'lucide-react';
 import { useTranslations } from 'next-intl';
+import { usePageDimensions } from '@/lib/hooks/use-page-dimensions';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { PageTabs } from '@/components/ui/PageTabs';
 import { Card } from '@/components/ui/Card';
@@ -18,6 +19,7 @@ import { ScheduleManager } from './ScheduleManager';
 type Platform = 'lark' | 'dingtalk';
 
 export default function NotificationsPage() {
+  usePageDimensions({});
   const t = useTranslations('notifications');
   const [platform, setPlatform] = useState<Platform>('lark');
 

@@ -3,6 +3,7 @@
 import { useLocale } from 'next-intl';
 import { useState } from 'react';
 import { useFilteredSWR } from '@/lib/hooks/use-filtered-swr';
+import { usePageDimensions } from '@/lib/hooks/use-page-dimensions';
 
 const I18N = {
   zh: {
@@ -255,6 +256,14 @@ function pct(v: number | null | undefined): string {
 /* ── 主页面 ─────────────────────────────────────────────── */
 
 export default function ReferralContributorPage() {
+  usePageDimensions({
+    country: true,
+    dataRole: true,
+    enclosure: true,
+    team: true,
+    granularity: true,
+    channel: true,
+  });
   const locale = useLocale();
   const t = (I18N as unknown as Record<string, (typeof I18N)['zh']>)[locale] ?? I18N['zh'];
   const { data, isLoading, error, mutate } = useFilteredSWR<ReferralContributorResponse>(

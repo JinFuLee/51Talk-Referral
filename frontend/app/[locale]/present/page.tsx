@@ -1,6 +1,7 @@
 'use client';
 
 import { useLocale } from 'next-intl';
+import { usePageDimensions } from '@/lib/hooks/use-page-dimensions';
 import { PresentationLauncher } from '@/components/presentation/PresentationLauncher';
 
 const I18N = {
@@ -14,6 +15,15 @@ const I18N = {
 };
 
 export default function PresentPage() {
+  usePageDimensions({
+    country: true,
+    dataRole: true,
+    enclosure: true,
+    team: true,
+    granularity: true,
+    funnelStage: true,
+    channel: true,
+  });
   const locale = useLocale();
   const t = (I18N as unknown as Record<string, (typeof I18N)['zh']>)[locale] ?? I18N['zh'];
 

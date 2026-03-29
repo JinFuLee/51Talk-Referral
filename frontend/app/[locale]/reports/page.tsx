@@ -4,6 +4,7 @@ export const dynamic = 'force-dynamic';
 
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
+import { usePageDimensions } from '@/lib/hooks/use-page-dimensions';
 import { useReportList } from '@/lib/hooks';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { BIZ_PAGE } from '@/lib/layout';
@@ -15,6 +16,14 @@ import { ErrorBoundary } from '@/components/providers/ErrorBoundary';
 import type { ReportFile } from '@/lib/types';
 
 export default function ReportsPage() {
+  usePageDimensions({
+    country: true,
+    dataRole: true,
+    enclosure: true,
+    team: true,
+    granularity: true,
+    channel: true,
+  });
   const t = useTranslations();
   const { data: reports, isLoading } = useReportList();
   const [selected, setSelected] = useState<ReportFile | null>(null);
