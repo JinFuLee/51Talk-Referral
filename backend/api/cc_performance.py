@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import io
 import json
+import logging
 import math
 import re
 from datetime import UTC, date, datetime
@@ -36,10 +37,21 @@ from backend.models.cc_performance import (
 from backend.models.filters import UnifiedFilter, apply_filters, parse_filters
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
 
 # 层 2：CC 销售团队正则匹配（排除 TMK / Training / Region / SS 等非 CC 销售团队）
 # 合法团队示例：TH-CC01Team, TH-CC02Team, TH-CC-ATeam（含字母编号）
 _CC_TEAM_PATTERN = re.compile(r"^TH-CC\w+Team$")
+
+# 层 2 阈值（来源：PCAOB AS 2105 A 级 + Pointblank B 级）
+# trivial < 1%：明显无关紧要（PCAOB Clearly Trivial）
+# warning 1-5%：Performance Materiality 区
+# critical > 5%：Overall Materiality，P0 阻断
+_CALIBER_THRESHOLDS = {
+    "trivial": 0.01,
+    "warning": 0.05,
+    "critical": 0.10,
+}
 
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 _CONFIG_DIR = _PROJECT_ROOT / "config"
@@ -238,6 +250,208 @@ def _agg_d2(df: pd.DataFrame) -> pd.DataFrame:
         rows.append(row)
 
     return pd.DataFrame(rows).set_index("cc_name") if rows else pd.DataFrame()
+
+
+# ── 层 3：过滤覆盖率 + 分布集中度校验 ──────────────────────────────────────────
+
+def _validate_filter_coverage(
+    original_df: pd.DataFrame,
+    filtered_df: pd.DataFrame,
+    kept_teams: list[str],
+) -> list[dict]:
+    """层 3 统计分布校验，返回告警列表。
+
+    R7 覆盖率 3 档（Pointblank B 级）：
+      - < 40% → P0 critical
+      - < 60% → P1 error
+      - < 80% → advisory
+    R7 扩展：排除团队中有 revenue > 0 = 疑似误过滤
+    R7 分布：Shannon Entropy < 0.4 或 HHI > 0.25（A 级）
+    """
+    alerts: list[dict] = []
+    grp_col = "last_cc_group_name"
+
+    if grp_col not in original_df.columns:
+        return alerts
+
+    total = len(original_df[grp_col].dropna().unique())
+    if total == 0:
+        return alerts
+
+    kept = len(kept_teams)
+    coverage = kept / total
+
+    if coverage < 0.40:
+        alerts.append({
+            "level": "P0",
+            "type": "R7_coverage_critical",
+            "coverage": round(coverage, 3),
+            "detail": (
+                f"CC 团队过滤覆盖率 {coverage:.0%} < 40%，"
+                "大量团队被排除（Pointblank critical 阈值）"
+            ),
+        })
+    elif coverage < 0.60:
+        alerts.append({
+            "level": "P1",
+            "type": "R7_coverage_error",
+            "coverage": round(coverage, 3),
+            "detail": f"CC 团队过滤覆盖率 {coverage:.0%} < 60%",
+        })
+    elif coverage < 0.80:
+        alerts.append({
+            "level": "advisory",
+            "type": "R7_coverage_warning",
+            "coverage": round(coverage, 3),
+            "detail": f"CC 团队过滤覆盖率 {coverage:.0%} < 80%（advisory）",
+        })
+
+    # R7 扩展：被排除团队中是否有 revenue > 0
+    rev_col = "总带新付费金额USD"
+    excl_df = original_df[~original_df[grp_col].isin(kept_teams)]
+    if rev_col in excl_df.columns and not excl_df.empty:
+        excl_revenue = pd.to_numeric(excl_df[rev_col], errors="coerce").sum()
+        if excl_revenue > 0:
+            alerts.append({
+                "level": "P1",
+                "type": "R7_excluded_has_revenue",
+                "excluded_revenue": round(float(excl_revenue), 2),
+                "detail": f"被排除团队包含业绩 ${excl_revenue:,.0f}，疑似误过滤",
+            })
+
+    # R7 分布：Shannon Entropy + HHI（A 级科学标准）
+    leads_col = "转介绍注册数"
+    has_leads = leads_col in filtered_df.columns
+    has_grp = grp_col in filtered_df.columns
+    if has_leads and has_grp and len(kept_teams) > 1:
+        team_leads = (
+            pd.to_numeric(filtered_df[leads_col], errors="coerce")
+            .groupby(filtered_df[grp_col]).sum()
+        )
+        total_leads = team_leads.sum()
+        if total_leads > 0 and len(team_leads) > 1:
+            p = team_leads / total_leads
+            max_entropy = math.log(len(p))
+            if max_entropy > 0:
+                entropy = -sum(pi * math.log(pi) for pi in p if pi > 0)
+                normalized_entropy = entropy / max_entropy
+                hhi = float((p ** 2).sum())
+
+                if normalized_entropy < 0.4 or hhi > 0.25:
+                    alerts.append({
+                        "level": "P1",
+                        "type": "R7_distribution_skewed",
+                        "entropy": round(normalized_entropy, 3),
+                        "hhi": round(hhi, 3),
+                        "detail": (
+                            f"leads 分布集中度异常："
+                            f"Shannon H={normalized_entropy:.2f}(<0.4) "
+                            f"HHI={hhi:.2f}(>0.25)"
+                            "（Shannon 1948 A 级 + Hirschman 1964 A 级）"
+                        ),
+                    })
+
+    return alerts
+
+
+# ── 层 2：D1 vs D2 业务逻辑交叉校验 ─────────────────────────────────────────────
+
+def _cross_validate(dm: DataManager) -> list[dict]:
+    """层 2：D1 (result) vs D2 (enclosure_cc) 交叉校验。
+
+    阈值来源：
+    - PCAOB AS 2105 A 级：Overall Materiality 5%
+    - Pointblank B 级：warn=1%、error=5%、critical=10%
+
+    R4: D2 > D1（非转介绍数据混入，P0）
+    R5: 偏差超过阈值（分 3 档）
+    """
+    alerts: list[dict] = []
+
+    result_df = dm.get("result")
+    enclosure_cc = dm.get("enclosure_cc")
+    if result_df is None or result_df.empty:
+        return alerts
+    if enclosure_cc is None or enclosure_cc.empty:
+        return alerts
+
+    # D1 汇总（泰国口径，取所有行聚合）
+    d1_df = DataManager.filter_thai_region(result_df, fallback_to_all=True)
+    d1_revenue = pd.to_numeric(
+        d1_df.get("总带新付费金额USD", pd.Series()), errors="coerce"
+    ).sum()
+    d1_leads = pd.to_numeric(
+        d1_df.get("转介绍注册数", pd.Series()), errors="coerce"
+    ).sum()
+
+    # D2 聚合（仅 CC 团队，与 _agg_d2 逻辑一致）
+    agg = _agg_d2(enclosure_cc.copy())
+    if agg.empty:
+        return alerts
+
+    d2_revenue = pd.to_numeric(
+        agg.get("revenue_actual", pd.Series()), errors="coerce"
+    ).sum()
+    d2_leads = pd.to_numeric(
+        agg.get("leads_actual", pd.Series()), errors="coerce"
+    ).sum()
+
+    for metric, d1_val, d2_val in [
+        ("revenue", float(d1_revenue), float(d2_revenue)),
+        ("leads", float(d1_leads), float(d2_leads)),
+    ]:
+        if d1_val <= 0:
+            continue
+        ratio = d2_val / d1_val
+        diff_pct = abs(1 - ratio)
+
+        if diff_pct < _CALIBER_THRESHOLDS["trivial"]:
+            continue  # Clearly Trivial，不告警
+
+        if ratio > 1.0:
+            # R4: D2 超过 D1 = 非转介绍数据混入
+            alerts.append({
+                "level": "P0",
+                "type": "R4_d2_exceeds_d1",
+                "metric": metric,
+                "d1": round(d1_val, 2),
+                "d2": round(d2_val, 2),
+                "diff_pct": round(diff_pct, 4),
+                "detail": (
+                    f"{metric}: D2({d2_val:,.0f}) > D1({d1_val:,.0f})，"
+                    f"差异 {diff_pct:.1%}，疑似非转介绍数据混入"
+                ),
+            })
+        elif diff_pct > _CALIBER_THRESHOLDS["critical"]:
+            # R5: 严重口径偏差（> 5% PCAOB Overall Materiality）
+            alerts.append({
+                "level": "P0",
+                "type": "R5_caliber_critical",
+                "metric": metric,
+                "d1": round(d1_val, 2),
+                "d2": round(d2_val, 2),
+                "diff_pct": round(diff_pct, 4),
+                "detail": (
+                    f"{metric}: D1/D2 偏差 {diff_pct:.1%} > 5%"
+                    "（PCAOB Overall Materiality，A 级）"
+                ),
+            })
+        elif diff_pct > _CALIBER_THRESHOLDS["warning"]:
+            # R5: 警告级偏差（1-5% Performance Materiality 区）
+            alerts.append({
+                "level": "P1",
+                "type": "R5_caliber_warning",
+                "metric": metric,
+                "d1": round(d1_val, 2),
+                "d2": round(d2_val, 2),
+                "diff_pct": round(diff_pct, 4),
+                "detail": (
+                    f"{metric}: D1/D2 偏差 {diff_pct:.1%} "
+                    "在 1-5% Performance Materiality 区（PCAOB A 级）"
+                ),
+            })
+
+    return alerts
 
 
 def _filter_active_ccs(agg: pd.DataFrame, raw_d2: pd.DataFrame) -> pd.DataFrame:
@@ -1119,6 +1333,35 @@ def get_cc_performance(
             current_daily_avg=_avg_field("current_daily_avg"),
             efficiency_lift_pct=_avg_field("efficiency_lift_pct"),
         )
+
+    # ── 层 2：D1 vs D2 交叉校验（聚合后、返回前）──────────────────────────────
+    try:
+        layer2_alerts = _cross_validate(dm)
+        if layer2_alerts:
+            from backend.core.caliber_guard import emit_caliber_alert
+            emit_caliber_alert("layer2_business", layer2_alerts)
+    except Exception as _l2_exc:
+        logger.warning("层 2 校验失败（非致命）: %s", _l2_exc)
+
+    # ── 层 3：过滤覆盖率 + 分布校验（_agg_d2 执行后）─────────────────────────
+    try:
+        if not df_d2.empty and "last_cc_group_name" in df_d2.columns:
+            kept_teams_list = (
+                agg_d2.get("team", pd.Series()).dropna().unique().tolist()
+                if not agg_d2.empty and "team" in agg_d2.columns
+                else []
+            )
+            filtered_for_l3 = (
+                agg_d2.reset_index() if not agg_d2.empty else df_d2
+            )
+            layer3_alerts = _validate_filter_coverage(
+                df_d2, filtered_for_l3, kept_teams_list
+            )
+            if layer3_alerts:
+                from backend.core.caliber_guard import emit_caliber_alert
+                emit_caliber_alert("layer3_distribution", layer3_alerts)
+    except Exception as _l3_exc:
+        logger.warning("层 3 校验失败（非致命）: %s", _l3_exc)
 
     return CCPerformanceResponse(
         month=month,

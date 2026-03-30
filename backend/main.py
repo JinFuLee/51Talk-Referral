@@ -78,6 +78,8 @@ ROUTER_REGISTRY: dict = {
     "incentive": ("backend.api.incentive_engine", "/api/incentive", ["incentive"]),
     # ── 数据管线诊断 ─────────────────────────────────────────────────────────────
     "data_health": ("backend.api.data_health", "/api/data-health", ["data-health"]),
+    # ── 数据口径守卫 Dashboard ─────────────────────────────────────────────────
+    "caliber_guard": ("backend.api.caliber_guard", "/api", ["caliber-guard"]),
     # ── 权限管理 ─────────────────────────────────────────────────────────────────
     "access_control": ("backend.api.access_control", "/api", ["access-control"]),
 }

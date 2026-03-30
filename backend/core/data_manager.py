@@ -25,6 +25,21 @@ from backend.models.common import DataSourceStatus
 
 logger = logging.getLogger(__name__)
 
+
+def _edit_distance(a: str, b: str) -> int:
+    """计算两字符串编辑距离（插入/删除/替换各计 1）"""
+    if len(a) > len(b):
+        a, b = b, a
+    row = list(range(len(a) + 1))
+    for j, cb in enumerate(b):
+        new_row = [j + 1]
+        for i, ca in enumerate(a):
+            cost = 0 if ca == cb else 1
+            new_row.append(min(row[i + 1] + 1, new_row[i] + 1, row[i] + cost))
+        row = new_row
+    return row[-1]
+
+
 # 数据源空态告警节流（每小时最多 1 次，避免 reload 循环刷屏）
 _last_empty_alert_ts: float = 0.0
 _ALERT_THROTTLE_SECONDS = 3600
@@ -149,9 +164,20 @@ class DataManager:
             new_cache: dict[str, Any] = {}
             new_loaded_files: dict[str, Path | None] = {}
 
+            layer1_alerts: list[dict] = []
             for key, loader in loaders.items():
-                new_cache[key] = self._filter_thai_only(loader.load())
+                df = self._filter_thai_only(loader.load())
+                new_cache[key] = df
                 new_loaded_files[key] = loader.last_loaded_file
+                # 层 1：Schema 契约校验（列存在性/类型/相似度/新鲜度）
+                meta = next((m for m in _DATA_SOURCE_META if m["id"] == key), {})
+                if meta and not df.empty:
+                    alerts = self._validate_schema(key, df, meta)
+                    layer1_alerts.extend(alerts)
+
+            if layer1_alerts:
+                from backend.core.caliber_guard import emit_caliber_alert
+                emit_caliber_alert("layer1_schema", layer1_alerts)
 
             new_cache["targets"] = (
                 TargetLoader(self.target_file).load() if self.target_file else {}
@@ -178,6 +204,81 @@ class DataManager:
                 self._alert_empty_data()
 
             return self._cache
+
+    # ── 层 1：Schema 契约校验 ─────────────────────────────────────────────────
+
+    def _validate_schema(self, key: str, df: pd.DataFrame, meta: dict) -> list[dict]:
+        """层 1 Schema 校验，返回告警列表。
+
+        R1 列名存在性（P0）— 核心列缺失
+        R2 列类型检查（P1）— 数值列解析失败率 > 20%（GE 默认阈值，B 级来源）
+        R3 列名相似度（advisory）— 编辑距离 ≤ 2，辅助排查
+        R6 数据新鲜度（P1）— 最新数据 ≥ 2 天前
+        """
+        alerts: list[dict] = []
+        critical_cols: list[str] = meta.get("critical_columns", [])
+
+        # R1: 列名存在性（P0）
+        missing = [c for c in critical_cols if c not in df.columns]
+        if missing:
+            alerts.append({
+                "level": "P0",
+                "type": "R1_column_missing",
+                "detail": f"[{key}] 缺失关键列: {missing}",
+            })
+
+        # R2: 数值列类型漂移（P1）
+        # 阈值 20%：GE expect_column_values_to_not_be_null mostly=0.8（B 级）
+        numeric_candidate_cols = [
+            "转介绍注册数", "转介绍付费数", "总带新付费金额USD",
+            "预约数", "出席数", "学员数",
+        ]
+        for col in numeric_candidate_cols:
+            if col in df.columns:
+                parsed = pd.to_numeric(df[col], errors="coerce")
+                null_rate = parsed.isna().mean()
+                if null_rate > 0.20:
+                    alerts.append({
+                        "level": "P1",
+                        "type": "R2_column_type_drift",
+                        "detail": (
+                            f"[{key}] {col} 解析失败率={null_rate:.1%} > 20%"
+                            "（疑似 BI 导出格式变更，GE mostly=0.8 阈值）"
+                        ),
+                    })
+
+        # R3: 列名相似度 — 仅对缺失列查近似，advisory 辅助排查
+        for req in critical_cols:
+            if req not in df.columns:
+                similar = [c for c in df.columns if _edit_distance(req, c) <= 2]
+                if similar:
+                    alerts.append({
+                        "level": "advisory",
+                        "type": "R3_near_miss",
+                        "detail": f"[{key}] 缺失列 '{req}' 的相似列: {similar[:3]}",
+                    })
+
+        # R6: 数据新鲜度（P1）— 支持两种日期列名
+        date_col = None
+        for candidate in ("统计日期(day)", "统计日期"):
+            if candidate in df.columns:
+                date_col = candidate
+                break
+        if date_col:
+            latest = pd.to_datetime(df[date_col], errors="coerce").max()
+            if latest is not pd.NaT and not pd.isna(latest):
+                days_old = (pd.Timestamp.now() - latest).days
+                if days_old >= 2:
+                    alerts.append({
+                        "level": "P1",
+                        "type": "R6_stale_data",
+                        "detail": (
+                            f"[{key}] 最新数据为 {days_old} 天前"
+                            f"（{latest.date()}），当前应为 T-1 数据"
+                        ),
+                    })
+
+        return alerts
 
     # ── 泰国数据过滤 ───────────────────────────────────────────────────────────
 
