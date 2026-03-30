@@ -204,7 +204,8 @@
     "cc_performance",
     "incentive",
     "data_health",
-    "access_control"
+    "access_control",
+    "caliber_guard"
   ],
   "enclosure_role_assignment": {
     "CC": {

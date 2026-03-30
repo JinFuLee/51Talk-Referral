@@ -219,7 +219,15 @@ class DataManager:
         critical_cols: list[str] = meta.get("critical_columns", [])
 
         # R1: 列名存在性（P0）
-        missing = [c for c in critical_cols if c not in df.columns]
+        # 已知别名：统计日期 ↔ 统计日期(day)（BI 导出命名差异）
+        _COL_ALIASES = {"统计日期": "统计日期(day)"}
+        missing = []
+        for c in critical_cols:
+            if c not in df.columns:
+                alias = _COL_ALIASES.get(c)
+                if alias and alias in df.columns:
+                    continue  # 别名存在，不算缺失
+                missing.append(c)
         if missing:
             alerts.append({
                 "level": "P0",
@@ -265,7 +273,11 @@ class DataManager:
                 date_col = candidate
                 break
         if date_col:
-            latest = pd.to_datetime(df[date_col], errors="coerce").max()
+            raw = df[date_col]
+            # BI 导出日期可能是整数 20260329 或字符串，统一转
+            latest = pd.to_datetime(
+                raw.astype(str), format="%Y%m%d", errors="coerce"
+            ).max()
             if latest is not pd.NaT and not pd.isna(latest):
                 days_old = (pd.Timestamp.now() - latest).days
                 if days_old >= 2:

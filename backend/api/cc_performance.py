@@ -274,36 +274,27 @@ def _validate_filter_coverage(
     if grp_col not in original_df.columns:
         return alerts
 
-    total = len(original_df[grp_col].dropna().unique())
-    if total == 0:
-        return alerts
-
     kept = len(kept_teams)
-    coverage = kept / total
-
-    if coverage < 0.40:
+    # 团队数量绝对值检测（非比率）
+    # 全球团队 120+ 中泰国 CC 仅 7 个，比率天然 <10%
+    # 监控：团队数 = 0 → P0 | 团队数骤降 → P1
+    _EXPECTED_MIN_TEAMS = 5  # 来源③经验值，30 天复审
+    if kept == 0:
         alerts.append({
             "level": "P0",
             "type": "R7_coverage_critical",
-            "coverage": round(coverage, 3),
-            "detail": (
-                f"CC 团队过滤覆盖率 {coverage:.0%} < 40%，"
-                "大量团队被排除（Pointblank critical 阈值）"
-            ),
+            "coverage": 0,
+            "detail": "CC 团队过滤后为 0，regex 可能失效",
         })
-    elif coverage < 0.60:
+    elif kept < _EXPECTED_MIN_TEAMS:
         alerts.append({
             "level": "P1",
-            "type": "R7_coverage_error",
-            "coverage": round(coverage, 3),
-            "detail": f"CC 团队过滤覆盖率 {coverage:.0%} < 60%",
-        })
-    elif coverage < 0.80:
-        alerts.append({
-            "level": "advisory",
-            "type": "R7_coverage_warning",
-            "coverage": round(coverage, 3),
-            "detail": f"CC 团队过滤覆盖率 {coverage:.0%} < 80%（advisory）",
+            "type": "R7_coverage_low",
+            "coverage": kept,
+            "detail": (
+                f"CC 团队仅 {kept} 个 < {_EXPECTED_MIN_TEAMS}"
+                "（预期 ≥5，可能有团队改名未匹配 regex）"
+            ),
         })
 
     # R7 扩展：被排除团队中是否有 revenue > 0
@@ -396,9 +387,10 @@ def _cross_validate(dm: DataManager) -> list[dict]:
         agg.get("leads_actual", pd.Series()), errors="coerce"
     ).sum()
 
+    # 只比 revenue（两边都是转介绍口径，预期差 ~1.5%）
+    # leads 不比：D1 含 SS/LP/运营 leads，D2 仅 CC，结构性差异 ~11%
     for metric, d1_val, d2_val in [
         ("revenue", float(d1_revenue), float(d2_revenue)),
-        ("leads", float(d1_leads), float(d2_leads)),
     ]:
         if d1_val <= 0:
             continue
