@@ -59,9 +59,9 @@
     }
   },
   "routing": {
-    "all": ["team_ranking", "individual_ranking", "result_metrics", "achievement_metrics", "process_metrics", "efficiency_metrics", "service_metrics", "action_items", "student_improvement", "honor_ranking", "cc_enc_warning"],
-    "tl": ["team_ranking", "honor_ranking"],
-    "ops": ["team_ranking", "honor_ranking"]
+    "all": ["team_ranking", "honor_ranking"],
+    "tl": ["team_ranking", "individual_ranking", "result_metrics", "achievement_metrics", "process_metrics", "efficiency_metrics", "service_metrics", "action_items", "student_improvement", "honor_ranking", "cc_enc_warning"],
+    "ops": ["team_ranking", "individual_ranking", "result_metrics", "achievement_metrics", "process_metrics", "efficiency_metrics", "service_metrics", "action_items", "student_improvement", "honor_ranking", "cc_enc_warning"]
   },
   "role_metrics": {
     "CC": {
