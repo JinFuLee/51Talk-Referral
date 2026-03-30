@@ -137,7 +137,7 @@ function FunnelBar({
       <div className="flex justify-between text-xs">
         <span className="text-[var(--text-secondary)]">{label}</span>
         <span className="font-mono font-medium text-[var(--text-primary)]">
-          {value.toLocaleString()}
+          {(value ?? 0).toLocaleString()}
         </span>
       </div>
       <div className="w-full bg-[var(--bg-subtle)] rounded-full h-2">
@@ -274,7 +274,7 @@ export default function DailyMonitorPage() {
               <div className="flex justify-between text-xs">
                 <span className="text-[var(--text-muted)]">{t.funnelRevenue}</span>
                 <span className="font-mono font-semibold text-[var(--color-success)]">
-                  ${stats.funnel.revenue_usd.toLocaleString()}
+                  ${(stats.funnel?.revenue_usd ?? 0).toLocaleString()}
                 </span>
               </div>
               <div className="flex justify-between text-xs mt-1">
