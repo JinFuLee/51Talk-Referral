@@ -80,47 +80,59 @@ function buildKey(
 
   const params = new URLSearchParams();
 
-  // Preserve existing query params from basePath
+  // Preserve existing query params from basePath — these are page-local params
+  // that take priority over global store dimensions.
   const [path, existingQuery] = basePath.split('?');
+  const localKeys = new Set<string>();
   if (existingQuery) {
-    new URLSearchParams(existingQuery).forEach((v, k) => params.set(k, v));
+    new URLSearchParams(existingQuery).forEach((v, k) => {
+      params.set(k, v);
+      localKeys.add(k);
+    });
   }
 
+  // Helper: only set global dimension param if page-local didn't already set it
+  const setIfNotLocal = (key: string, value: string) => {
+    if (!localKeys.has(key)) params.set(key, value);
+  };
+
   // team / cc — backwards compat mapping
-  if (dims.teamFilter) params.set('team', dims.teamFilter);
-  if (dims.focusCC) params.set('cc', dims.focusCC);
+  if (dims.teamFilter) setIfNotLocal('team', dims.teamFilter);
+  if (dims.focusCC) setIfNotLocal('cc', dims.focusCC);
 
   // country: skip default 'TH'
-  if (dims.country && dims.country !== 'TH') params.set('country', dims.country);
+  if (dims.country && dims.country !== 'TH') setIfNotLocal('country', dims.country);
 
   // dataRole → data_role: skip default 'all'
-  if (dims.dataRole && dims.dataRole !== 'all') params.set('data_role', dims.dataRole);
+  if (dims.dataRole && dims.dataRole !== 'all') setIfNotLocal('data_role', dims.dataRole);
 
   // enclosure: null = not sent, array = comma-joined
   if (dims.enclosure !== null && dims.enclosure.length > 0) {
-    params.set('enclosure', dims.enclosure.join(','));
+    setIfNotLocal('enclosure', dims.enclosure.join(','));
   }
 
   // granularity: skip default 'month'
-  if (dims.granularity && dims.granularity !== 'month') params.set('granularity', dims.granularity);
+  if (dims.granularity && dims.granularity !== 'month')
+    setIfNotLocal('granularity', dims.granularity);
 
   // funnelStage → funnel_stage: skip default 'all'
-  if (dims.funnelStage && dims.funnelStage !== 'all') params.set('funnel_stage', dims.funnelStage);
+  if (dims.funnelStage && dims.funnelStage !== 'all')
+    setIfNotLocal('funnel_stage', dims.funnelStage);
 
   // channel: skip default 'all'
-  if (dims.channel && dims.channel !== 'all') params.set('channel', dims.channel);
+  if (dims.channel && dims.channel !== 'all') setIfNotLocal('channel', dims.channel);
 
   // behavior: null = not sent, array = comma-joined
   if (dims.behavior !== null && dims.behavior.length > 0) {
-    params.set('behavior', dims.behavior.join(','));
+    setIfNotLocal('behavior', dims.behavior.join(','));
   }
 
-  // benchmarks: always sent
+  // benchmarks: always sent (unless page explicitly passes it)
   if (dims.benchmarks && dims.benchmarks.length > 0) {
-    params.set('benchmarks', dims.benchmarks.join(','));
+    setIfNotLocal('benchmarks', dims.benchmarks.join(','));
   }
 
-  // Extra caller-provided params (override dimension params if same key)
+  // Extra caller-provided params (override everything — caller knows best)
   if (extra) {
     for (const [k, v] of Object.entries(extra)) {
       if (v != null && v !== '') params.set(k, v);

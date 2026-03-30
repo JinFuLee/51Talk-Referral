@@ -421,6 +421,21 @@ export function usePageDimensions(dims: PageDimensions): void;
 - 列表值逗号拼接：`enclosure=M0,M1,M2`
 - `null` 值不传
 
+**参数优先级（铁律，2026-03-30 确立）：**
+```
+页面本地参数（basePath 中的 query params）> 全局 store 维度 > 默认值
+```
+- `basePath` 中已包含某 dimension 参数时，全局 store **不覆盖**（本地优先）
+- `extraParams` 覆盖一切（调用者明确意图）
+- 实现：`buildKey` 中 `localKeys` Set 跟踪已有参数，`setIfNotLocal` 跳过已有
+
+**为什么需要这个规则：** 许多页面组件有自己的本地 filter 状态（如 checkin 的 enclosureFilter、roleFilter），这些状态会拼入 basePath URL。如果全局 store 无条件覆盖，会破坏页面本地 filter 的行为（用户点本地 tab 无响应，或数据显示异常）。
+
+**测试用例（防回归）：**
+- basePath 含 `?enclosure=M0`，store 有 `enclosure=['M1','M2']` → key 中 enclosure 必须是 M0（本地优先）
+- basePath 不含 enclosure，store 有 `data_role=cc` → key 中 data_role 必须是 cc（全局生效）
+- store 从 cc 变为 ss → key 必须变化（触发 SWR refetch）
+
 ### 5.4 BenchmarkSelector
 
 独立组件，渲染 4 个 Toggle：vs目标 / vs BM进度 / vs 今日BM / vs 预测。

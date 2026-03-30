@@ -231,6 +231,14 @@ Next.js 前端（34 页面 + 43 组件）
 - 列表值逗号分隔：`enclosure=M0,M1,M2`、`behavior=gold,effective`
 - 默认值不传（减少 URL 长度）
 
+### 参数优先级铁律
+```
+页面本地参数（basePath query params）> 全局 store 维度 > 默认值
+```
+- `basePath` 中已包含某 dimension 参数时，`useFilteredSWR` 的全局 store **不覆盖**（`setIfNotLocal` 逻辑）
+- 页面组件传入 `basePath` 含 `?enclosure=M0` → 全局 enclosure 不附加
+- 这保证页面本地 tab 切换仍正常工作，不被全局 filter 覆盖
+
 ### 新增维度 SOP（4 步）
 1. **定义** → 更新 `docs/specs/dimension-framework.md` §1 + §3 适用性矩阵
 2. **类型** → 同步更新 `filters.ts` + `filters.py` + `parse_filters` + `apply_filters`
