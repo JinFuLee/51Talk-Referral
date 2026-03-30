@@ -445,8 +445,40 @@ def _fmt_size(p: Path) -> str:
 
 # ── 后处理 ───────────────────────────────────────────────────────────────────
 
+def _sync_to_data_source_dir(moved: list[Path]) -> None:
+    """将 input/ 中的新文件同步到 DATA_SOURCE_DIR（后端数据读取目录）。
+
+    文件命名遵循 DATA_SOURCE_DIR 的约定：
+      转介绍中台监测指标_{原文件名去扩展名}_{YYYYMMDD}_{HH_MM_00}.xlsx
+    这样 DataManager 的 glob pattern 能正确匹配并按文件名倒序选最新。
+    """
+    import os
+
+    data_source_dir = os.environ.get("DATA_SOURCE_DIR", "")
+    if not data_source_dir:
+        data_source_dir = str(
+            Path.home() / "Desktop" / "转介绍中台监测指标"
+        )
+    ds_path = Path(data_source_dir)
+    if not ds_path.exists():
+        log.warning("  DATA_SOURCE_DIR 不存在: %s，跳过同步", ds_path)
+        return
+
+    ts = datetime.now().strftime("%Y%m%d_%H_%M_00")
+    synced = 0
+    for src in moved:
+        stem = src.stem  # e.g. 转介绍中台检测_结果数据
+        dest_name = f"转介绍中台监测指标_{stem}_{ts}.xlsx"
+        dest = ds_path / dest_name
+        shutil.copy2(str(src), str(dest))
+        synced += 1
+
+    if synced:
+        log.info("  📤 同步 %d 个文件到 DATA_SOURCE_DIR", synced)
+
+
 def post_process(results: list[tuple[str, Path]]) -> list[Path]:
-    """移动下载文件到 input/，备份旧文件。"""
+    """移动下载文件到 input/，备份旧文件，同步到 DATA_SOURCE_DIR。"""
     INPUT_DIR.mkdir(exist_ok=True)
     today = datetime.now().strftime("%Y%m%d")
     moved: list[Path] = []
@@ -460,6 +492,9 @@ def post_process(results: list[tuple[str, Path]]) -> list[Path]:
         shutil.move(str(src), str(dest))
         moved.append(dest)
         log.info("  📁 %s → input/%s", label, src.name)
+
+    # 同步到 DATA_SOURCE_DIR（后端读取目录）
+    _sync_to_data_source_dir(moved)
 
     # 清理临时目录
     if DOWNLOAD_TMP.exists():
