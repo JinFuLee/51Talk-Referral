@@ -371,9 +371,6 @@ def _cross_validate(dm: DataManager) -> list[dict]:
     d1_revenue = pd.to_numeric(
         d1_df.get("总带新付费金额USD", pd.Series()), errors="coerce"
     ).sum()
-    d1_leads = pd.to_numeric(
-        d1_df.get("转介绍注册数", pd.Series()), errors="coerce"
-    ).sum()
 
     # D2 聚合（仅 CC 团队，与 _agg_d2 逻辑一致）
     agg = _agg_d2(enclosure_cc.copy())
@@ -382,9 +379,6 @@ def _cross_validate(dm: DataManager) -> list[dict]:
 
     d2_revenue = pd.to_numeric(
         agg.get("revenue_actual", pd.Series()), errors="coerce"
-    ).sum()
-    d2_leads = pd.to_numeric(
-        agg.get("leads_actual", pd.Series()), errors="coerce"
     ).sum()
 
     # 只比 revenue（两边都是转介绍口径，预期差 ~1.5%）
