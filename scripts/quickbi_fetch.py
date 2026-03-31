@@ -54,6 +54,137 @@ def save_config(cfg: dict) -> None:
         json.dump(cfg, f, ensure_ascii=False, indent=2)
 
 
+# ── 告警 ─────────────────────────────────────────────────────────────────────
+
+NOTIFY_CONFIG = PROJECT_ROOT / "config" / "quickbi_notify.json"
+
+
+def _alert_failed_sources(failed_files: list[str]) -> None:
+    """部分数据源下载失败时发送钉钉告警（2026-03-31 新增永久防线）。"""
+    import base64
+    import hashlib
+    import hmac
+    import urllib.parse
+    import urllib.request
+
+    if not NOTIFY_CONFIG.exists():
+        log.warning("  告警配置不存在: %s，跳过告警", NOTIFY_CONFIG)
+        return
+
+    try:
+        with open(NOTIFY_CONFIG) as f:
+            notify_cfg = json.load(f)
+        webhook = notify_cfg["dingtalk_webhook"]
+        secret = notify_cfg["dingtalk_secret"]
+    except (KeyError, json.JSONDecodeError) as e:
+        log.warning("  告警配置读取失败: %s", e)
+        return
+
+    # 签名
+    timestamp = str(int(time.time() * 1000))
+    string_to_sign = f"{timestamp}\n{secret}"
+    hmac_code = hmac.new(
+        secret.encode("utf-8"),
+        string_to_sign.encode("utf-8"),
+        digestmod=hashlib.sha256,
+    ).digest()
+    sign = urllib.parse.quote_plus(base64.b64encode(hmac_code).decode("utf-8"))
+    signed_url = f"{webhook}&timestamp={timestamp}&sign={sign}"
+
+    # 消息内容
+    failed_list = "\n".join(f"- {f}" for f in failed_files)
+    now_str = datetime.now().strftime("%Y-%m-%d %H:%M")
+    text = (
+        f"### ⚠️ Quick BI 部分数据源下载失败\n\n"
+        f"**时间**: {now_str}\n\n"
+        f"**成功**: {len(TABLE_DEFS) - len(failed_files)}/{len(TABLE_DEFS)}\n\n"
+        f"**失败源**:\n{failed_list}\n\n"
+        f"**已自动重试 2 轮仍失败**\n\n"
+        f"**操作**: 检查 Quick BI 仪表板对应 Tab 是否正常"
+    )
+
+    payload = json.dumps(
+        {"msgtype": "markdown", "markdown": {"title": "Quick BI 部分取数失败", "text": text}},
+        ensure_ascii=False,
+    ).encode("utf-8")
+
+    try:
+        req = urllib.request.Request(
+            signed_url, data=payload,
+            headers={"Content-Type": "application/json"}, method="POST",
+        )
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            result = json.loads(resp.read().decode("utf-8"))
+            if result.get("errcode") == 0:
+                log.info("  📢 钉钉告警已发送（%d 个失败源）", len(failed_files))
+            else:
+                log.warning("  钉钉告警失败: %s", result)
+    except Exception as e:
+        log.warning("  钉钉告警发送异常: %s", e)
+
+
+# ── 数据新鲜度检测 ────────────────────────────────────────────────────────────
+
+
+def _detect_stale_sources() -> list[int]:
+    """检测 DATA_SOURCE_DIR 中日期落后于今天的数据源。
+
+    返回 TABLE_DEFS 中需要补抓的索引列表。
+    """
+    import os
+    import re
+
+    data_source_dir = os.environ.get("DATA_SOURCE_DIR", "")
+    if not data_source_dir:
+        data_source_dir = str(Path.home() / "Desktop" / "转介绍中台监测指标")
+    ds_path = Path(data_source_dir)
+    if not ds_path.exists():
+        log.warning("  DATA_SOURCE_DIR 不存在: %s", ds_path)
+        return list(range(len(TABLE_DEFS)))
+
+    today_str = datetime.now().strftime("%Y%m%d")
+
+    # 每个 TABLE_DEF 对应的 glob 匹配关键词
+    source_patterns = [
+        ("*结果数据*.xlsx", None),                         # D1
+        ("*围场过程数据*byCC*.xlsx", "副本"),               # D2 (排除副本)
+        ("*围场过程数据*bySS*.xlsx", None),                 # D2-SS
+        ("*围场过程数据*byLP*.xlsx", None),                 # D2-LP
+        ("*围场过程数据*byCC副本*.xlsx", None),              # D2b
+        ("*明细*.xlsx", "围场"),                            # D3 (排除围场)
+        ("*已付费学员转介绍围场明细*.xlsx", None),            # D4
+        ("*高潜学员*.xlsx", None),                          # D5
+    ]
+
+    stale_indices = []
+    for i, (pattern, exclude_keyword) in enumerate(source_patterns):
+        files = sorted(
+            [f for f in ds_path.glob(pattern)
+             if not f.name.startswith(".")
+             and (exclude_keyword is None or exclude_keyword not in f.name)],
+            key=lambda p: p.name,
+            reverse=True,
+        )
+        if not files:
+            log.info("  [%d] %s: 无文件 → 需补抓", i, TABLE_DEFS[i][2])
+            stale_indices.append(i)
+            continue
+
+        latest = files[0]
+        m = re.search(r"(\d{8})", latest.name)
+        if m and m.group(1) == today_str:
+            log.info("  [%d] %s: ✓ 今日数据", i, TABLE_DEFS[i][2])
+        else:
+            date_str = m.group(1) if m else "未知"
+            log.info(
+                "  [%d] %s: 日期 %s → 需补抓",
+                i, TABLE_DEFS[i][2], date_str,
+            )
+            stale_indices.append(i)
+
+    return stale_indices
+
+
 # ── 核心逻辑 ─────────────────────────────────────────────────────────────────
 
 # 表格标题 → 在仪表板中的 caption 文本（用于定位）
@@ -77,8 +208,8 @@ def run_fetch(
     url: str,
     headless: bool = False,
     download_only: bool = False,
-) -> list[tuple[str, Path]]:
-    """执行完整取数流程。返回 [(表名, 下载路径)] 列表。"""
+) -> tuple[list[tuple[str, Path]], list[str]]:
+    """执行完整取数流程。返回 (成功列表, 失败文件名列表)。"""
     from playwright.sync_api import sync_playwright
 
     DOWNLOAD_TMP.mkdir(exist_ok=True)
@@ -130,10 +261,55 @@ def run_fetch(
                     path=str(PROJECT_ROOT / f"quickbi_err_{i}.png")
                 )
 
+        # ── 失败源自动重试（最多 2 轮，每轮刷新页面）──────────────
+        succeeded_files = {Path(p).name for _, p in results}
+        failed_defs = [
+            (i, d) for i, d in enumerate(TABLE_DEFS)
+            if d[2] not in succeeded_files
+        ]
+
+        if failed_defs and not download_only:
+            for retry_round in range(1, 3):  # 最多重试 2 轮
+                if not failed_defs:
+                    break
+                log.warning(
+                    "━━━ 重试第 %d 轮: %d 个失败源 ━━━",
+                    retry_round, len(failed_defs),
+                )
+                # 刷新页面以获得干净状态
+                page.goto(url, wait_until="domcontentloaded", timeout=30000)
+                page.wait_for_timeout(8000)  # 更长等待确保完全加载
+
+                still_failed = []
+                for orig_idx, (cap, tab, out_f) in failed_defs:
+                    label = tab or cap
+                    log.info("  重试 [%s] (原 #%d)", label, orig_idx + 1)
+                    _ensure_dashboard(page, url)
+                    try:
+                        dl_path = _fetch_one_table(
+                            page, url, cap, tab, out_f, download_only,
+                        )
+                        if dl_path:
+                            results.append((label, dl_path))
+                            log.info("  ✓ 重试成功: %s", dl_path.name)
+                        else:
+                            still_failed.append((orig_idx, (cap, tab, out_f)))
+                            log.warning("  ✗ 重试仍失败: %s", label)
+                    except Exception as e:
+                        still_failed.append((orig_idx, (cap, tab, out_f)))
+                        log.error("  ✗ 重试异常: %s", e)
+                failed_defs = still_failed
+
         browser.close()
 
     log.info("━━━ 完成: %d/%d 成功 ━━━", len(results), len(TABLE_DEFS))
-    return results
+
+    # 返回失败源列表供告警使用
+    final_failed = [d[2] for _, d in failed_defs] if failed_defs else []
+    if final_failed:
+        log.error("━━━ 最终失败源: %s ━━━", ", ".join(final_failed))
+
+    return results, final_failed
 
 
 def _fetch_one_table(
@@ -170,7 +346,9 @@ def _fetch_one_table(
         page.wait_for_timeout(500)
         tab_btn = page.get_by_text(tab_name, exact=True).first
         tab_btn.click(timeout=5000)
-        page.wait_for_timeout(2000)
+        # 区域汇关键指标 tab 渲染较慢，需要更长等待（2026-03-31 修复 D2b 日期滞后）
+        wait_ms = 5000 if "区域" in (tab_name or "") else 3000
+        page.wait_for_timeout(wait_ms)
 
     # ── 2. 定位表格 widget 并滚动到可见 ──
     log.info("  定位表格: %s", caption_text[:40])
@@ -558,6 +736,10 @@ def main():
     parser.add_argument("--headless", action="store_true", help="无头模式")
     parser.add_argument("--download-only", action="store_true", help="仅下载最新任务")
     parser.add_argument("--debug", action="store_true", help="调试模式")
+    parser.add_argument(
+        "--catchup", action="store_true",
+        help="补抓模式：检查 DATA_SOURCE_DIR 中日期落后的数据源，仅重新获取落后源",
+    )
     args = parser.parse_args()
 
     cfg = load_config()
@@ -585,12 +767,28 @@ def main():
             b.close()
         return
 
-    log.info("━━━ Quick BI 自动取数 ━━━")
-    log.info("URL: %s...%s", url[:50], url[-20:])
-    log.info("表格: %d 个", len(TABLE_DEFS))
-    log.info("模式: %s", "无头" if args.headless else "交互")
-
-    results = run_fetch(url, args.headless, args.download_only)
+    # ── 补抓模式：只获取日期落后的数据源 ──
+    if args.catchup:
+        stale_indices = _detect_stale_sources()
+        if not stale_indices:
+            log.info("━━━ 所有数据源均为最新，无需补抓 ━━━")
+            return
+        log.info("━━━ 补抓模式: %d 个落后源 ━━━", len(stale_indices))
+        # 只获取落后的源
+        original_table_defs = TABLE_DEFS.copy()
+        stale_defs = [TABLE_DEFS[i] for i in stale_indices]
+        # 临时替换 TABLE_DEFS 仅获取落后源
+        TABLE_DEFS.clear()
+        TABLE_DEFS.extend(stale_defs)
+        results, failed_sources = run_fetch(url, headless=True, download_only=False)
+        TABLE_DEFS.clear()
+        TABLE_DEFS.extend(original_table_defs)
+    else:
+        log.info("━━━ Quick BI 自动取数 ━━━")
+        log.info("URL: %s...%s", url[:50], url[-20:])
+        log.info("表格: %d 个", len(TABLE_DEFS))
+        log.info("模式: %s", "无头" if args.headless else "交互")
+        results, failed_sources = run_fetch(url, args.headless, args.download_only)
 
     if results:
         moved = post_process(results)
@@ -601,6 +799,10 @@ def main():
         log.info("  1. uv run python scripts/quickbi_fetch.py --debug")
         log.info("  2. 检查 accessTicket 是否过期")
         log.info("  3. 查看 quickbi_err_*.png 截图")
+
+    # ── 失败源钉钉告警（2026-03-31 新增，永久防线）──────────────────
+    if failed_sources:
+        _alert_failed_sources(failed_sources)
 
 
 if __name__ == "__main__":

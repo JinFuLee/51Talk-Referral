@@ -77,7 +77,8 @@ ref-ops-engine/
 ```
 Quick BI 仪表板（8 表）
     ↓ quickbi_fetch.py（Playwright 全自动，launchd 每天 10:00）
-    ↓ 失败 → 钉钉告警「请更新 BI 链接」
+    ↓ 失败源自动重试 2 轮 → 仍失败 → 钉钉告警
+    ↓ 11:00 补抓安全网（quickbi_catchup.sh 检测落后源并补抓）
 input/*.xlsx（8 个 Excel，146K+ 行）
     ↓ DataManager（BaseLoader glob 匹配）
 FastAPI 后端（30+ API 端点）
@@ -116,6 +117,8 @@ Next.js 前端（34 页面 + 43 组件）
 - **Quick BI 自动取数**: `uv run python scripts/quickbi_fetch.py --headless`（8 表全自动，~5 分钟）
 - **Quick BI 更新链接**: `uv run python scripts/quickbi_fetch.py --url '新URL'`
 - **Quick BI 调试模式**: `uv run python scripts/quickbi_fetch.py --debug`
+- **Quick BI 补抓落后源**: `uv run python scripts/quickbi_fetch.py --catchup`（自动检测日期落后源并补抓）
+- **Quick BI 补抓定时**: launchd `com.refops.quickbi-catchup`（每天 11:00，10:00 主取数的安全网）
 - **Quick BI 定时任务**: launchd `com.refops.quickbi-fetch`（每天 10:00 泰国时间，关机补跑，失败钉钉告警）
 - **CC个人业绩**: `curl http://localhost:8100/api/cc-performance`
 - **CC目标模板下载**: `curl -O "http://localhost:8100/api/cc-performance/targets/template?month=202603"`
