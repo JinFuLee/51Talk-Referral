@@ -269,6 +269,28 @@ class NotificationEngine:
         try:
             role = channel.get("role", "CC")
 
+            # role=ALL（ops 通道）：循环 CC/SS/LP 各走一遍，每角色独立生成
+            if role == "ALL":
+                combined: list[dict] = []
+                for sub_role in ["CC", "SS", "LP"]:
+                    sub_ch = {**channel, "role": sub_role}
+                    sub_result = self._process_module(
+                        module_id, sub_ch, dry_run
+                    )
+                    combined.append(sub_result)
+                sent = any(
+                    r.get("status") == "sent" for r in combined
+                )
+                result["status"] = (
+                    "sent" if sent
+                    else combined[0].get("status", "pending")
+                )
+                result["images_count"] = sum(
+                    r.get("images_count", 0) for r in combined
+                )
+                result["sub_results"] = combined
+                return result
+
             # followup_per_cc：分组推送（8 条消息：1 总览 + 7 小组，每 CC 图片+ID）
             if module_id == "followup_per_cc":
                 return self._process_followup_per_cc(role, channel, dry_run)

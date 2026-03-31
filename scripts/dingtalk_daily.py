@@ -1016,8 +1016,8 @@ def build_text_markdown(data: dict, role: str = "CC") -> str:
     now_time = datetime.now().strftime("%H:%M")
 
     lines = [
-        "## 📋 CC Check-in Report",
-        "## 📋 CC 打卡报告",
+        f"## 📋 {role} Check-in Report",
+        f"## 📋 {role} 打卡报告",
         "",
         f"📅 **{today}**　⏰ {now_time}",
         "",
