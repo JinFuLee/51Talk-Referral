@@ -220,9 +220,9 @@ def _draw_status_dot(ax, x: float, y: float, rate: float):
     _draw_circle(ax, x, y, 0.07, rate_color(rate))
 
 
-def generate_report_image(data: dict) -> bytes:
-    """生成 CC 打卡日报 PNG 图片（纯矢量图形，无 emoji）"""
-    cc = data.get("by_role", {}).get("CC", {})
+def generate_report_image(data: dict, role: str = "CC") -> bytes:
+    """生成打卡日报 PNG 图片（按角色，纯矢量图形，无 emoji）"""
+    cc = data.get("by_role", {}).get(role, {})
     total = cc.get("total_students", 0)
     checked = cc.get("checked_in", 0)
     rate = cc.get("checkin_rate", 0)
@@ -1005,8 +1005,8 @@ def rate_icon(rate: float) -> str:
     return "🔴"
 
 
-def build_text_markdown(data: dict) -> str:
-    cc = data.get("by_role", {}).get("CC", {})
+def build_text_markdown(data: dict, role: str = "CC") -> str:
+    cc = data.get("by_role", {}).get(role, {})
     total = cc.get("total_students", 0)
     checked = cc.get("checked_in", 0)
     rate = cc.get("checkin_rate", 0)
@@ -1263,26 +1263,28 @@ def main():
 
     today_str = datetime.now().strftime("%d/%m")
 
+    legacy_role = args.role.upper() if args.role else "CC"
+
     if args.text:
-        md = build_text_markdown(data)
+        md = build_text_markdown(data, role=legacy_role)
         if args.dry_run:
             print(md)
         else:
-            r = send_dingtalk(f"CC Check-in {today_str}", md, cred)
+            r = send_dingtalk(f"{legacy_role} Check-in {today_str}", md, cred)
             print("✅ 文本发送成功" if r.get("errcode") == 0 else f"❌ {r}")
         return
 
     # 图片模式
     OUTPUT_DIR.mkdir(exist_ok=True)
     date_tag = datetime.now().strftime("%Y%m%d")
-    cc = data.get("by_role", {}).get("CC", {})
-    persons = cc.get("by_person", [])
-    groups = cc.get("by_group", [])
+    role_data = data.get("by_role", {}).get(legacy_role, {})
+    persons = role_data.get("by_person", [])
+    groups = role_data.get("by_group", [])
 
     # ── 1) 总览图 ──
     print("生成总览图…")
-    overview_bytes = generate_report_image(data)
-    overview_path = OUTPUT_DIR / f"checkin-overview-{date_tag}.png"
+    overview_bytes = generate_report_image(data, role=legacy_role)
+    overview_path = OUTPUT_DIR / f"checkin-overview-{legacy_role}-{date_tag}.png"
     overview_path.write_bytes(overview_bytes)
     print(f"  总览: {overview_path} ({len(overview_bytes) / 1024:.0f} KB)")
 

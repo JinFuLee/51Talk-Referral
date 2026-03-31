@@ -58,6 +58,8 @@
       "fields": ["improvement_ranking", "tags_summary"]
     }
   },
+  "scope": "narrow",
+  "scope_description": "通知只发送窄口径数据（CC/SS/LP，无运营），来源 config.json enclosure_role_narrow",
   "routing": {
     "all": ["team_ranking", "honor_ranking"],
     "tl": ["team_ranking", "individual_ranking", "result_metrics", "achievement_metrics", "process_metrics", "efficiency_metrics", "service_metrics", "action_items", "student_improvement", "honor_ranking", "cc_enc_warning"],

@@ -59,6 +59,7 @@ _THAI_FONTS = [
 ]
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
+PROJECT_CONFIG_PATH = PROJECT_ROOT / "projects" / "referral" / "config.json"
 DEFAULT_CHANNELS_PATH = PROJECT_ROOT / "key" / "dingtalk-channels.json"
 DEFAULT_CONFIG_PATH = (
     PROJECT_ROOT / "projects" / "referral" / "notification-config.json"
@@ -289,10 +290,6 @@ class NotificationEngine:
                         result["status"] = "error"
                 return result
 
-            # followup_per_cc：分组推送（总览 + 每团队），复用 lark_bot 图片生成
-            if module_id == "followup_per_cc":
-                return self._process_followup_per_cc(channel, dry_run, result)
-
             # student_improvement：学员打卡进步 Top5 + 沉睡高潜统计（文本消息）
             if module_id == "student_improvement":
                 md_text = self._generate_student_improvement_text()
@@ -375,9 +372,27 @@ class NotificationEngine:
 
     # ── 内部：数据获取 ────────────────────────────────────────────────────────
 
+    def _build_narrow_role_config(self) -> dict | None:
+        """从 config.json 读取 enclosure_role_narrow 构建窄口径 role_config。
+        通知机器人只发送窄口径数据（CC/SS/LP，无运营）。"""
+        try:
+            with open(PROJECT_CONFIG_PATH) as f:
+                cfg = json.load(f)
+            narrow = cfg.get("enclosure_role_narrow")
+            if narrow:
+                return narrow
+        except (FileNotFoundError, json.JSONDecodeError):
+            pass
+        return None
+
     def _fetch_data(self, role: str) -> dict | None:
-        """从后端 API 获取打卡排行数据（含重试）"""
-        role_config = self.defaults.get("role_config")
+        """从后端 API 获取打卡排行数据（含重试）
+        默认使用窄口径（enclosure_role_narrow），channels.json 的 role_config 覆盖。
+        """
+        role_config = (
+            self.defaults.get("role_config")
+            or self._build_narrow_role_config()
+        )
         url = f"{self.api_base}/api/checkin/ranking"
         if role_config:
             encoded = urllib.parse.quote(json.dumps(role_config, ensure_ascii=False))
@@ -464,7 +479,7 @@ class NotificationEngine:
         role_data = data.get("by_role", {}).get(role, {})
 
         if module_id == "team_ranking":
-            img = generate_report_image(data)
+            img = generate_report_image(data, role)
             path = OUTPUT_DIR / f"checkin-overview-{role}-{date_tag}.png"
             path.write_bytes(img)
             images.append((f"{role} Check-in Overview {today_str}", img, path))
@@ -554,7 +569,7 @@ class NotificationEngine:
     # ── 内部：followup_per_cc 分组推送 ───────────────────────────────────────
 
     def _process_followup_per_cc(
-        self, channel: dict, dry_run: bool, result: dict
+        self, role: str, channel: dict, dry_run: bool,
     ) -> dict:
         """followup_per_cc 模块：分组推送未打卡名单
         发 (1 + N_teams) 条钉钉消息：
@@ -573,8 +588,10 @@ class NotificationEngine:
         date_short = today.strftime("%Y%m%d")
         date_display = f"{today.strftime('%Y年%m月%d日')} T-1"
 
+        result: dict[str, Any] = {"module": "followup_per_cc", "status": "pending"}
+
         # 1. 获取数据
-        followup = self._fetch_followup(channel.get("role", "CC"))
+        followup = self._fetch_followup(role)
         students: list[dict] = followup.get("students", []) if followup else []
         if not students:
             result["status"] = "no_data"
