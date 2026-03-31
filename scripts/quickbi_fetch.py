@@ -476,6 +476,51 @@ def _sync_to_data_source_dir(moved: list[Path]) -> None:
     if synced:
         log.info("  📤 同步 %d 个文件到 DATA_SOURCE_DIR", synced)
 
+    # 清理旧文件：每个 pattern 保留最新 2 个，超 7 天的删除
+    _cleanup_old_data_source_files(ds_path)
+
+
+def _cleanup_old_data_source_files(
+    ds_path: Path, keep: int = 2, max_age_days: int = 7
+) -> None:
+    """清理 DATA_SOURCE_DIR 中的旧数据文件。
+
+    每个数据源 pattern 保留最新 keep 个文件，
+    并删除超过 max_age_days 天的旧文件。
+    """
+    import time
+
+    now = time.time()
+    cutoff = now - max_age_days * 86400
+
+    # 8 个数据源 pattern 关键词（与 DataManager._DATA_SOURCE_META 对应）
+    patterns = [
+        "*结果数据*.xlsx",
+        "*围场过程数据*byCC副本*.xlsx",
+        "*围场过程数据*byCC*.xlsx",
+        "*围场过程数据*bySS*.xlsx",
+        "*围场过程数据*byLP*.xlsx",
+        "*明细*.xlsx",
+        "*已付费学员转介绍围场明细*.xlsx",
+        "*高潜学员*.xlsx",
+    ]
+
+    total_deleted = 0
+    for pattern in patterns:
+        matched = sorted(
+            ds_path.glob(pattern), key=lambda p: p.stat().st_mtime, reverse=True
+        )
+        for i, f in enumerate(matched):
+            if i < keep:
+                continue  # 保留最新 keep 个
+            if f.stat().st_mtime < cutoff:
+                log.info("  🗑️  清理旧文件: %s", f.name)
+                f.unlink()
+                total_deleted += 1
+
+    if total_deleted:
+        log.info("  清理完成: 删除 %d 个旧数据文件", total_deleted)
+
 
 def post_process(results: list[tuple[str, Path]]) -> list[Path]:
     """移动下载文件到 input/，备份旧文件，同步到 DATA_SOURCE_DIR。"""

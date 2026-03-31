@@ -178,6 +178,13 @@ Next.js 前端（34 页面 + 43 组件）
 - 月度目标定义在 config.py 的 MONTHLY_TARGETS
 - all_rows 使用原始列名（A/B/C...），monthly_summaries 使用中文字段名
 
+## 口径守卫铁律
+- **🔴 任何修改 `DataManager.load_all()`、`_agg_d2()`、`_filter_thai_only()` 的变更，必须同时确认 `_validate_schema()` 的 `critical_columns` 覆盖新增/修改列**
+- 修改后执行 `bash scripts/check-caliber-guard.sh` 验证防线完整性
+- 新增数据源时必须在 `_DATA_SOURCE_META` 添加 `critical_columns` 条目
+- `/api/caliber-guard/status` 返回 `overall_status` 必须为 `healthy`，否则排查告警
+- 违反 = 口径漂移不被检测，运营数据可能静默错误
+
 ## 数据真实性政策（铁律）
 - **禁止 mock/模拟/虚拟/placeholder 数据**，除非用户明确要求
 - API 无数据时：后端返回空结构（`[]` / `{}`）+ HTTP 200，不返回 demo 数据
