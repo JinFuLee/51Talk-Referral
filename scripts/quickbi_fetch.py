@@ -123,6 +123,33 @@ def _alert_failed_sources(failed_files: list[str]) -> None:
         log.warning("  钉钉告警发送异常: %s", e)
 
 
+# ── 后端缓存刷新 ─────────────────────────────────────────────────────────────
+
+BACKEND_URL = "http://localhost:8100"
+
+
+def _notify_backend_refresh() -> None:
+    """通知后端刷新数据缓存（2026-03-31 新增永久防线）。
+
+    解决问题：文件同步后后端仍用旧缓存，Dashboard 显示 0 行。
+    """
+    import urllib.request
+
+    url = f"{BACKEND_URL}/api/datasources/refresh"
+    try:
+        req = urllib.request.Request(url, data=b"", method="POST")
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            result = json.loads(resp.read().decode("utf-8"))
+            if result.get("status") == "ok":
+                reloaded = result.get("reloaded", {})
+                total_rows = sum(v for v in reloaded.values() if isinstance(v, int))
+                log.info("  🔄 后端缓存已刷新（%d 数据集，%d 总行数）", len(reloaded), total_rows)
+            else:
+                log.warning("  后端刷新响应异常: %s", result)
+    except Exception as e:
+        log.info("  后端未运行或不可达，跳过缓存刷新: %s", e)
+
+
 # ── 数据新鲜度检测 ────────────────────────────────────────────────────────────
 
 
@@ -653,6 +680,8 @@ def _sync_to_data_source_dir(moved: list[Path]) -> None:
 
     if synced:
         log.info("  📤 同步 %d 个文件到 DATA_SOURCE_DIR", synced)
+        # 通知后端刷新缓存（2026-03-31 新增：防止缓存与文件不一致）
+        _notify_backend_refresh()
 
     # 清理旧文件：每个 pattern 保留最新 2 个，超 7 天的删除
     _cleanup_old_data_source_files(ds_path)

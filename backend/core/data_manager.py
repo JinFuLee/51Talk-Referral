@@ -367,6 +367,47 @@ class DataManager:
             self._cache = {}
             logger.info("DataManager: 缓存已清空")
 
+    def _auto_invalidate_if_files_changed(self) -> None:
+        """检测数据文件是否比缓存更新，是则自动刷新（2026-03-31 新增）。
+
+        防止 quickbi_fetch 同步新文件后 DataManager 仍用旧缓存的问题。
+        对比已加载文件路径与当前磁盘最新文件：文件名不同 = 有新数据。
+        """
+        with self._lock:
+            if self._dirty or not self._loaded_files:
+                return  # 已标记脏或未初始化，无需检测
+
+        changed = False
+        for meta in _DATA_SOURCE_META:
+            src_id = meta["id"]
+            pattern = meta["pattern"]
+            old_path = self._loaded_files.get(src_id)
+
+            # 复用 get_status 的文件查找逻辑（简化版）
+            if src_id == "enclosure_cc":
+                files = [
+                    f for f in self.data_dir.glob(pattern)
+                    if not f.name.startswith(".") and "副本" not in f.name
+                ]
+            else:
+                files = [
+                    f for f in self.data_dir.glob(pattern)
+                    if not f.name.startswith(".")
+                ]
+            files = sorted(files, key=lambda p: p.name, reverse=True)
+            current_latest = files[0] if files else None
+
+            if current_latest and old_path and current_latest.name != old_path.name:
+                logger.info(
+                    "DataManager: 检测到 %s 文件变更 (%s → %s)，自动刷新缓存",
+                    src_id, old_path.name[-30:], current_latest.name[-30:],
+                )
+                changed = True
+                break
+
+        if changed:
+            self.invalidate()
+
     def get_loaded_files(self) -> dict[str, Path | None]:
         """返回当前已加载文件路径的副本（线程安全）"""
         with self._lock:
@@ -456,6 +497,9 @@ class DataManager:
         """返回 8 个数据文件的详细健康状态"""
         import re
         from datetime import datetime, timedelta
+
+        # 文件变更自动刷新缓存（2026-03-31 新增：防止文件更新后缓存陈旧）
+        self._auto_invalidate_if_files_changed()
 
         today = datetime.now().date()
         yesterday = today - timedelta(days=1)
