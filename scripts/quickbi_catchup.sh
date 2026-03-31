@@ -19,3 +19,8 @@ cd "$PROJECT_DIR"
 "$HOME/.local/bin/uv" run python scripts/quickbi_fetch.py --catchup >> "$LOG_FILE" 2>&1
 
 echo "[$(date '+%H:%M:%S')] ✓ 补抓检查完成" >> "$LOG_FILE"
+
+# 补抓后写入日快照
+echo "[$(date '+%H:%M:%S')] 写入日快照..." >> "$LOG_FILE"
+"$HOME/.local/bin/uv" run python -m scripts.snapshot_daily >> "$LOG_FILE" 2>&1 || \
+    echo "[$(date '+%H:%M:%S')] ⚠ 日快照写入失败（非致命）" >> "$LOG_FILE"

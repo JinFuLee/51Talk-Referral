@@ -40,6 +40,12 @@ cd "$PROJECT_DIR"
 
 if "$HOME/.local/bin/uv" run python scripts/quickbi_fetch.py --headless >> "$LOG_FILE" 2>&1; then
     echo "[$(date '+%H:%M:%S')] ✓ 取数成功" >> "$LOG_FILE"
+
+    # 取数成功后自动写入 T-1 日快照
+    echo "[$(date '+%H:%M:%S')] 写入日快照..." >> "$LOG_FILE"
+    "$HOME/.local/bin/uv" run python -m scripts.snapshot_daily >> "$LOG_FILE" 2>&1 || \
+        echo "[$(date '+%H:%M:%S')] ⚠ 日快照写入失败（非致命）" >> "$LOG_FILE"
+
     touch "$DONE_FILE"
 
     # 成功通知（可选，默认不发）

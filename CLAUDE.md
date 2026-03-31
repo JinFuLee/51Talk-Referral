@@ -79,6 +79,7 @@ Quick BI 仪表板（8 表）
     ↓ quickbi_fetch.py（Playwright 全自动，launchd 每天 10:00）
     ↓ 失败源自动重试 2 轮 → 仍失败 → 钉钉告警
     ↓ 11:00 补抓安全网（quickbi_catchup.sh 检测落后源并补抓）
+    ↓ snapshot_daily.py（取数/补抓成功后自动写入 T-1 日快照到 SQLite）
 input/*.xlsx（8 个 Excel，146K+ 行）
     ↓ DataManager（BaseLoader glob 匹配）
 FastAPI 后端（30+ API 端点）
@@ -117,6 +118,9 @@ Next.js 前端（34 页面 + 43 组件）
 - **Quick BI 自动取数**: `uv run python scripts/quickbi_fetch.py --headless`（8 表全自动，~5 分钟）
 - **Quick BI 更新链接**: `uv run python scripts/quickbi_fetch.py --url '新URL'`
 - **Quick BI 调试模式**: `uv run python scripts/quickbi_fetch.py --debug`
+- **日快照写入**: `uv run python -m scripts.snapshot_daily`（写入 T-1 快照到 SQLite）
+- **日快照回填**: `uv run python -m scripts.snapshot_daily --backfill 30`（回填最近 30 天）
+- **日快照指定日期**: `uv run python -m scripts.snapshot_daily --date 2026-03-15`
 - **Quick BI 补抓落后源**: `uv run python scripts/quickbi_fetch.py --catchup`（自动检测日期落后源并补抓）
 - **Quick BI 补抓定时**: launchd `com.refops.quickbi-catchup`（每天 11:00，10:00 主取数的安全网）
 - **Quick BI 定时任务**: launchd `com.refops.quickbi-fetch`（每天 10:00 泰国时间，关机补跑，失败钉钉告警）
@@ -458,7 +462,7 @@ CC 排名算法详见 [docs/cc-ranking-spec.md](docs/cc-ranking-spec.md)（3类1
 | 19 | 新增技术债 | Cohort/Enclosure 数据源需要历史队列数据完整性验证 | P2 | M17 | M16 初版完成，数据质量优化 |
 | 22 | 数据源补全 | D2/D3 围场对比 Excel 文件为空，需补充实际围场分布数据 | P2 | M18 | M17 发现，影响围场对比分析 |
 | 23 | 数据依赖 | F4 渠道 MoM 流图依赖历史渠道趋势数据文件，当前仅一期数据 | P2 | M18 | M17 发现，需补充历史数据 |
-| 24 | 数据依赖 | 历史对比体系（YoY/WoW）依赖 SQLite 快照数据充分性，需 >=2 周期数据 | P2 | M18 | M17 发现，需积累历史快照 |
+| 24 | 数据依赖 | 历史对比体系（YoY/WoW）依赖 SQLite 快照数据充分性，需 >=2 周期数据 | 已解决 | M33 | M17 发现，M33 日快照已自动化，2026-03-31 修复，每日取数后自动写入 |
 | 28 | 新增技术债 | presentation.py fallback 数据仍为规则派生非真实 PDCA 系统对接 | P3 | M21+ | M18.3 新识别，影响汇报准确性（低优） |
 | 30 | 全局 Skill 缺失 | 全局 Skill 骨架缺失通用版本，跨项目复用需手动复制（仅有项目级适配版） | P2 | M21+ | 本地化资产新识别，建议建立 ~/.claude/skills-lib/ 跨项目共用库 |
 | 31 | DuckDB dual-track 后手 | DuckDB 替换 Parquet+pandas 的可行性评估已完成（82/100），待 M22+ 数据量增长后决策切换时机 | P3 | M22+ | M21 新识别，评估报告已完成，当前 Parquet 方案满足需求 |

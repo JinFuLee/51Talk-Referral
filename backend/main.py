@@ -253,15 +253,15 @@ async def lifespan(app: FastAPI):
 
     scheduler.add_job(
         _daily_snapshot_job, "cron",
-        hour=9, minute=30, id="m33_daily_snapshot",
+        hour=10, minute=30, id="m33_daily_snapshot",
         replace_existing=True,
     )
     scheduler.add_job(
         _daily_thai_snapshot_job, "cron",
-        hour=9, minute=35, id="m33_thai_snapshot",
+        hour=10, minute=35, id="m33_thai_snapshot",
         replace_existing=True,
     )
-    logger.info("✓ M33 日快照定时任务已注册（09:30 全站 + 09:35 泰国）")
+    logger.info("✓ M33 日快照定时任务已注册（10:30 全站 + 10:35 泰国）")
 
     watcher = FileWatcher(dm)
     watcher.start()
