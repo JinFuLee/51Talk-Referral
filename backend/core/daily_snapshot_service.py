@@ -19,9 +19,9 @@ import pandas as pd
 
 logger = logging.getLogger(__name__)
 
-# SQLite 数据库路径（项目根 data/ 目录）
+# SQLite 数据库路径（统一到 output/snapshots/ref_ops.db）
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
-DB_PATH = _PROJECT_ROOT / "data" / "snapshots.db"
+DB_PATH = _PROJECT_ROOT / "output" / "snapshots" / "ref_ops.db"
 
 
 # ── DDL ────────────────────────────────────────────────────────────────────────
