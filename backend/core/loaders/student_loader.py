@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from .base import BaseLoader
+from .base import BaseLoader, sort_files_by_date
 
 logger = logging.getLogger(__name__)
 
@@ -42,13 +42,11 @@ class StudentLoader(BaseLoader):
         return df
 
     def _find_file(self) -> Path | None:
-        matches = sorted(
+        matches = sort_files_by_date(
             [
                 f
                 for f in self.input_dir.glob(self.FILE_PATTERN)
                 if not f.name.startswith(".")
             ],
-            key=lambda p: p.name,
-            reverse=True,
         )
         return matches[0] if matches else None

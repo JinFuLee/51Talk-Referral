@@ -21,6 +21,7 @@ from backend.core.loaders import (
     StudentLoader,
     TargetLoader,
 )
+from backend.core.loaders.base import sort_files_by_date
 from backend.models.common import DataSourceStatus
 
 logger = logging.getLogger(__name__)
@@ -394,7 +395,7 @@ class DataManager:
                     f for f in self.data_dir.glob(pattern)
                     if not f.name.startswith(".")
                 ]
-            files = sorted(files, key=lambda p: p.name, reverse=True)
+            files = sort_files_by_date(files)
             current_latest = files[0] if files else None
 
             if current_latest and old_path and current_latest.name != old_path.name:
@@ -536,7 +537,7 @@ class DataManager:
                     f for f in self.data_dir.glob(pattern) if not f.name.startswith(".")
                 ]
 
-            files = sorted(files, key=lambda p: p.name, reverse=True)
+            files = sort_files_by_date(files)
             latest = files[0] if files else None
 
             # 缓存读取（加锁保护）

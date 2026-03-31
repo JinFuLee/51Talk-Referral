@@ -3,6 +3,7 @@
 import hashlib
 import logging
 import math
+import re
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Optional
 
@@ -15,6 +16,24 @@ if TYPE_CHECKING:
     from backend.core.project_config import ProjectConfig
 
 logger = logging.getLogger(__name__)
+
+# 文件名中 YYYYMMDD 日期提取（用于按日期排序而非全名排序）
+_DATE_RE = re.compile(r"(\d{8})")
+
+
+def sort_files_by_date(files: list[Path]) -> list[Path]:
+    """按文件名中嵌入的日期降序排序（最新在前）。
+
+    修复：全名排序在文件前缀变更时会选中旧文件（2026-03-31 D2b 事故）。
+    日期排序确保 20260331 > 20260330 无论前缀如何。
+    同日期则按全名降序（兜底）。
+    """
+    def _sort_key(p: Path) -> tuple[str, str]:
+        m = _DATE_RE.search(p.name)
+        date_str = m.group(1) if m else "00000000"
+        return (date_str, p.name)
+
+    return sorted(files, key=_sort_key, reverse=True)
 
 
 class BaseLoader:
@@ -62,10 +81,8 @@ class BaseLoader:
         if not target_dir.exists():
             logger.warning(f"目录不存在: {target_dir}")
             return None
-        xlsx_files = sorted(
+        xlsx_files = sort_files_by_date(
             [f for f in target_dir.glob("*.xlsx") if not f.name.startswith(".")],
-            key=lambda p: p.name,
-            reverse=True,
         )
         return xlsx_files[0] if xlsx_files else None
 

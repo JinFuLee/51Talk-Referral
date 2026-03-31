@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from .base import BaseLoader
+from .base import BaseLoader, sort_files_by_date
 
 logger = logging.getLogger(__name__)
 
@@ -40,7 +40,7 @@ class DetailLoader(BaseLoader):
 
     def _find_file(self) -> Path | None:
         # 明细文件需排除围场过程数据文件、围场明细、学员相关文件
-        matches = sorted(
+        matches = sort_files_by_date(
             [
                 f
                 for f in self.input_dir.glob(self.FILE_PATTERN)
@@ -50,7 +50,5 @@ class DetailLoader(BaseLoader):
                 and "围场明细" not in f.name
                 and "学员" not in f.name
             ],
-            key=lambda p: p.name,
-            reverse=True,
         )
         return matches[0] if matches else None
