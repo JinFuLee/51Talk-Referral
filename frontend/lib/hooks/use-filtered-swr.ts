@@ -4,6 +4,11 @@ import useSWR, { type SWRConfiguration } from 'swr';
 import { useConfigStore } from '@/lib/stores/config-store';
 import { swrFetcher } from '@/lib/api';
 
+/** 返回 YYYYMM 格式的当前月，例如 "202604" */
+function getCurrentYYYYMM(): string {
+  return new Date().toISOString().slice(0, 7).replace('-', '');
+}
+
 /**
  * useFilteredSWR v2 — Drop-in replacement for useSWR that automatically appends
  * all dimension params from the global config store to every request.
@@ -18,6 +23,7 @@ import { swrFetcher } from '@/lib/api';
  * - camelCase → snake_case: dataRole → data_role, funnelStage → funnel_stage
  * - benchmarks always sent (backend needs it)
  * - teamFilter → 'team', focusCC → 'cc' (backwards compat)
+ * - selectedMonth: only sent if not null and not current month (YYYYMM)
  *
  * Usage:
  *   const { data } = useFilteredSWR<MyType>('/api/some/endpoint');
@@ -37,6 +43,13 @@ export function useFilteredSWR<T>(
   const channel = useConfigStore((s) => s.channel);
   const behavior = useConfigStore((s) => s.behavior);
   const benchmarks = useConfigStore((s) => s.benchmarks);
+  const selectedMonth = useConfigStore((s) => s.selectedMonth);
+
+  // 历史月份时自动关闭 focus-revalidate（数据不再变化）
+  const isHistoricalMonth = selectedMonth !== null && selectedMonth !== getCurrentYYYYMM();
+  const mergedConfig: SWRConfiguration<T> = isHistoricalMonth
+    ? { revalidateOnFocus: false, dedupingInterval: 60000, ...config }
+    : (config ?? {});
 
   const key = buildKey(
     basePath,
@@ -51,11 +64,12 @@ export function useFilteredSWR<T>(
       channel,
       behavior,
       benchmarks,
+      selectedMonth,
     },
     extraParams
   );
 
-  return useSWR<T>(key, swrFetcher, config);
+  return useSWR<T>(key, swrFetcher, mergedConfig);
 }
 
 interface DimensionParams {
@@ -69,6 +83,7 @@ interface DimensionParams {
   channel: string;
   behavior: string[] | null;
   benchmarks: string[];
+  selectedMonth: string | null;
 }
 
 function buildKey(
@@ -130,6 +145,11 @@ function buildKey(
   // benchmarks: always sent (unless page explicitly passes it)
   if (dims.benchmarks && dims.benchmarks.length > 0) {
     setIfNotLocal('benchmarks', dims.benchmarks.join(','));
+  }
+
+  // month: only send if non-null and not equal to current month
+  if (dims.selectedMonth !== null && dims.selectedMonth !== getCurrentYYYYMM()) {
+    setIfNotLocal('month', dims.selectedMonth);
   }
 
   // Extra caller-provided params (override everything — caller knows best)

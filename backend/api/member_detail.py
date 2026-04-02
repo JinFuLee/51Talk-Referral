@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import math
-from backend.core.date_override import get_today
 from typing import Any
 
 import pandas as pd
@@ -11,6 +10,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Request
 
 from backend.api.dependencies import get_data_manager
 from backend.core.data_manager import DataManager
+from backend.core.date_override import get_today
 from backend.models.common import PaginatedResponse
 from backend.models.filters import UnifiedFilter, apply_filters, parse_filters
 from backend.models.member import StudentBrief, StudentDetail

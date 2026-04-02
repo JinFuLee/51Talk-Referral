@@ -759,5 +759,13 @@
     "save": "儲存配置",
     "reset": "重置",
     "export": "匯出 CSV"
+  },
+  "monthSelector": {
+    "currentMonth": "當月",
+    "historicalBanner": "正在查看 {month} 歷史數據 — 部分操作已停用",
+    "backToCurrent": "返回當月",
+    "selectMonth": "選擇月份",
+    "historicalData": "歷史數據"
   }
+}
 }

@@ -759,5 +759,13 @@
     "save": "บันทึกการตั้งค่า",
     "reset": "รีเซ็ต",
     "export": "ส่งออก CSV"
+  },
+  "monthSelector": {
+    "currentMonth": "เดือนปัจจุบัน",
+    "historicalBanner": "กำลังดูข้อมูลประวัติเดือน {month} — บางฟีเจอร์ถูกปิดใช้งาน",
+    "backToCurrent": "กลับเดือนปัจจุบัน",
+    "selectMonth": "เลือกเดือน",
+    "historicalData": "ข้อมูลประวัติ"
   }
+}
 }

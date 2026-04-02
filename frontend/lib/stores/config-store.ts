@@ -34,6 +34,8 @@ const VALID_SIMPLE_TIME_RANGES = ['this_week', 'this_month', 'last_month'] as co
 const VALID_ROLES = ['ops', 'exec', 'finance'] as const;
 const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
+const YYYYMM_RE = /^\d{6}$/;
+
 const VALID_DATA_ROLES: DataRole[] = ['all', 'cc', 'ss', 'lp', 'ops'];
 const VALID_GRANULARITIES: Granularity[] = ['day', 'week', 'month', 'quarter'];
 const VALID_FUNNEL_STAGES: FunnelStage[] = [
@@ -126,6 +128,12 @@ function validateEnclosure(v: unknown): string[] | null {
   return items.length > 0 ? items : null;
 }
 
+function validateSelectedMonth(v: unknown): string | null {
+  if (v === null || v === undefined) return null;
+  if (typeof v === 'string' && YYYYMM_RE.test(v)) return v;
+  return null;
+}
+
 function validateBehavior(v: unknown): BehaviorSegment[] | null {
   if (v === null || v === undefined) return null;
   if (!Array.isArray(v)) return null;
@@ -170,6 +178,9 @@ interface ConfigState {
   channel: Channel;
   behavior: BehaviorSegment[] | null;
   benchmarks: BenchmarkMode[];
+  // ── Month selector (M38) ────────────────────────────────────────────────────
+  /** YYYYMM 格式的历史月份，null = 当前月 */
+  selectedMonth: string | null;
   // ── Setters ──────────────────────────────────────────────────────────────────
   setRole: (role: 'ops' | 'exec' | 'finance') => void;
   setConfig: (
@@ -193,6 +204,7 @@ interface ConfigState {
         | 'setChannel'
         | 'setBehavior'
         | 'setBenchmarks'
+        | 'setSelectedMonth'
       >
     >
   ) => void;
@@ -211,6 +223,7 @@ interface ConfigState {
   setChannel: (channel: Channel) => void;
   setBehavior: (behavior: BehaviorSegment[] | null) => void;
   setBenchmarks: (benchmarks: BenchmarkMode[]) => void;
+  setSelectedMonth: (month: string | null) => void;
 }
 
 export const useConfigStore = create<ConfigState>()(
@@ -235,6 +248,7 @@ export const useConfigStore = create<ConfigState>()(
       channel: 'all',
       behavior: null,
       benchmarks: ['target'],
+      selectedMonth: null,
       setRole: (role) => set({ role }),
       setConfig: (config) => set(config),
       setPeriod: (period, customStart, customEnd) => set({ period, customStart, customEnd }),
@@ -252,6 +266,7 @@ export const useConfigStore = create<ConfigState>()(
       setChannel: (channel) => set({ channel }),
       setBehavior: (behavior) => set({ behavior }),
       setBenchmarks: (benchmarks) => set({ benchmarks }),
+      setSelectedMonth: (selectedMonth) => set({ selectedMonth }),
     }),
     {
       name: 'panel-config',
@@ -293,6 +308,7 @@ export const useConfigStore = create<ConfigState>()(
         state.benchmarks = validateBenchmarks(state.benchmarks);
         state.enclosure = validateEnclosure(state.enclosure);
         state.behavior = validateBehavior(state.behavior);
+        state.selectedMonth = validateSelectedMonth(state.selectedMonth);
         // country: must be string, default TH
         if (typeof state.country !== 'string') {
           state.country = 'TH';

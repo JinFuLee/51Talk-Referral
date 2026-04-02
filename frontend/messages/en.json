@@ -760,5 +760,13 @@
     "save": "Save Config",
     "reset": "Reset",
     "export": "Export CSV"
+  },
+  "monthSelector": {
+    "currentMonth": "Current Month",
+    "historicalBanner": "Viewing historical data for {month} — some actions disabled",
+    "backToCurrent": "Back to Current",
+    "selectMonth": "Select Month",
+    "historicalData": "Historical Data"
   }
+}
 }

@@ -7,6 +7,7 @@ import { SWRProvider } from '@/components/providers/SWRProvider';
 import { NavSidebar } from '@/components/layout/NavSidebar';
 import { Topbar } from '@/components/layout/Topbar';
 import { ComparisonBanner } from '@/components/shared/ComparisonBanner';
+import { HistoricalMonthBanner } from '@/components/shared/HistoricalMonthBanner';
 import { UnifiedFilterBar } from '@/components/ui/UnifiedFilterBar';
 import { FilterSyncActivator } from '@/components/providers/FilterSyncActivator';
 import { ErrorBoundary } from '@/components/providers/ErrorBoundary';
@@ -83,6 +84,7 @@ export default async function LocaleLayout({
                 <Topbar />
                 <ComparisonBanner />
                 <UnifiedFilterBar />
+                <HistoricalMonthBanner />
                 <FilterSyncActivator />
               </div>
               <main className="flex-1 overflow-auto p-3 md:p-6 pb-20 md:pb-6 presentation-expand relative">

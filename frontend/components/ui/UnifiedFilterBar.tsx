@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect, useRef } from 'react';
 import useSWR from 'swr';
-import { Globe, Search, X, SlidersHorizontal, ChevronDown, ChevronUp } from 'lucide-react';
+import { Globe, Search, X, SlidersHorizontal, ChevronDown, ChevronUp, CalendarDays } from 'lucide-react';
 import { useConfigStore, useStoreHydrated } from '@/lib/stores/config-store';
 import { swrFetcher } from '@/lib/api';
 import { useCurrentPageDimensions } from '@/lib/hooks/use-page-dimensions';
@@ -16,6 +16,23 @@ import type {
   BehaviorSegment,
   PageDimensions,
 } from '@/lib/types/filters';
+
+// ──────────────────────────────────────────────────────────────────────────────
+// 工具函数
+// ──────────────────────────────────────────────────────────────────────────────
+
+/** 返回 YYYYMM 格式的当前月 */
+function getCurrentYYYYMM(): string {
+  return new Date().toISOString().slice(0, 7).replace('-', '');
+}
+
+/** 将 YYYYMM 格式转成 "2026年3月" 形式 */
+function formatYYYYMMtoLabel(yyyymm: string, isCurrent: boolean): string {
+  const year = parseInt(yyyymm.slice(0, 4), 10);
+  const month = parseInt(yyyymm.slice(4, 6), 10);
+  if (isCurrent) return `${year}年${month}月（当月）`;
+  return `${year}年${month}月`;
+}
 
 // ──────────────────────────────────────────────────────────────────────────────
 // 数据角色分段
@@ -415,6 +432,7 @@ export function UnifiedFilterBar() {
   const funnelStage = useConfigStore((s) => s.funnelStage);
   const channel = useConfigStore((s) => s.channel);
   const behavior = useConfigStore((s) => s.behavior);
+  const selectedMonth = useConfigStore((s) => s.selectedMonth);
 
   const setCountry = useConfigStore((s) => s.setCountry);
   const setDataRole = useConfigStore((s) => s.setDataRole);
@@ -425,12 +443,29 @@ export function UnifiedFilterBar() {
   const setFunnelStage = useConfigStore((s) => s.setFunnelStage);
   const setChannel = useConfigStore((s) => s.setChannel);
   const setBehavior = useConfigStore((s) => s.setBehavior);
+  const setSelectedMonth = useConfigStore((s) => s.setSelectedMonth);
 
   // 从 /api/filter/options 获取可选值
   const { data: filterOptions } = useSWR<FilterOptions>('/api/filter/options', swrFetcher, {
     revalidateOnFocus: false,
     revalidateOnReconnect: false,
   });
+
+  // 从 /api/archives/months 获取已归档的历史月份列表
+  const { data: archivedMonths } = useSWR<string[]>('/api/archives/months', swrFetcher, {
+    revalidateOnFocus: false,
+    revalidateOnReconnect: false,
+  });
+
+  // 当月始终排在第一位，历史月份按降序排列（最近的优先）
+  const currentYYYYMM = getCurrentYYYYMM();
+  const availableMonths: string[] = [
+    currentYYYYMM,
+    ...(archivedMonths ? [...archivedMonths].reverse().filter((m) => m !== currentYYYYMM) : []),
+  ];
+
+  // 是否正在查看历史月份
+  const isHistoricalView = hydrated && selectedMonth !== null && selectedMonth !== currentYYYYMM;
 
   // 是否有激活的筛选器
   const hasActiveFilter =
@@ -445,6 +480,7 @@ export function UnifiedFilterBar() {
     );
 
   const handleClearAll = useCallback(() => {
+    setSelectedMonth(null);
     setTeamFilter(null);
     setFocusCC(null);
     setDataRole('all');
@@ -454,6 +490,7 @@ export function UnifiedFilterBar() {
     setChannel('all');
     setBehavior(null);
   }, [
+    setSelectedMonth,
     setTeamFilter,
     setFocusCC,
     setDataRole,
@@ -519,6 +556,33 @@ export function UnifiedFilterBar() {
 
   const desktopRow1 = (
     <div className="hidden md:flex items-center gap-2 flex-wrap px-4 py-2">
+      {/* 月份选择器 */}
+      <div className="flex items-center gap-1.5">
+        <CalendarDays className="w-3.5 h-3.5 text-[var(--text-muted)] shrink-0" />
+        <select
+          value={hydrated ? (selectedMonth ?? currentYYYYMM) : currentYYYYMM}
+          onChange={(e) => {
+            const val = e.target.value;
+            setSelectedMonth(val === currentYYYYMM ? null : val);
+          }}
+          className={[
+            'h-8 px-2.5 rounded-lg border text-xs font-medium outline-none cursor-pointer transition-all',
+            isHistoricalView
+              ? 'bg-amber-50 border-amber-400 text-amber-700 focus:ring-1 focus:ring-amber-400'
+              : 'bg-[var(--bg-subtle)] border-[var(--border-subtle)] text-[var(--text-primary)] focus:ring-1 focus:ring-[var(--brand-p1)]',
+          ].join(' ')}
+        >
+          {(availableMonths ?? [currentYYYYMM]).map((ym) => {
+            const isCurrent = ym === currentYYYYMM;
+            return (
+              <option key={ym} value={ym}>
+                {formatYYYYMMtoLabel(ym, isCurrent)}
+              </option>
+            );
+          })}
+        </select>
+      </div>
+
       {/* 国家 */}
       <FilterSlot state={countryState} tooltip="地区筛选在此页面不适用">
         {isSingleCountry ? (
