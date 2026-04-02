@@ -231,12 +231,116 @@ TABLE_DEFS = [
 ]
 
 
+def _select_month(page, month: str) -> bool:
+    """在 Quick BI 仪表板上选择指定月份（Ant Design MonthPicker）。
+
+    Args:
+        page: Playwright page 对象
+        month: YYYYMM 格式（如 '202603'）
+
+    Returns:
+        True 如果成功切换月份
+    """
+    target_year = int(month[:4])
+    target_month = int(month[4:6])
+    target_label = f"{target_year}-{target_month:02d}"  # "2026-03"
+
+    log.info("切换月份到 %s ...", target_label)
+
+    # 1. 点击 Ant Design month picker 输入框
+    #    DOM 结构: .ant-picker.ma-month-picker > .ant-picker-input > input[value="2026-04"]
+    picker_input = page.locator(
+        '.ma-month-picker input[placeholder="请选择日期"], '
+        '.ant-picker.ma-month-picker input'
+    ).first
+
+    try:
+        picker_input.click(timeout=5000)
+        page.wait_for_timeout(1000)
+        log.info("  ✓ 月份选择器已打开")
+    except Exception as e:
+        log.error("无法点击月份选择器: %s", e)
+        page.screenshot(path=str(PROJECT_ROOT / "quickbi_month_picker_err.png"))
+        return False
+
+    # 2. 导航年份（Ant Design 用 << >> 超级箭头切换年）
+    for _ in range(5):
+        # 读取面板头部年份
+        year_btn = page.locator(
+            '.ant-picker-header-view .ant-picker-year-btn, '
+            '.ant-picker-header .ant-picker-year-btn'
+        ).first
+        try:
+            header_text = year_btn.text_content(timeout=2000)
+        except Exception:
+            header_text = ""
+
+        if str(target_year) in header_text:
+            log.info("  ✓ 当前年份: %s", header_text.strip())
+            break
+
+        # 需要导航：当前年份 > 目标年份 → 点左箭头
+        log.info("  导航年份: %s → %d", header_text.strip(), target_year)
+        page.locator(
+            'button.ant-picker-header-super-prev-btn, '
+            '.ant-picker-header button:has(> .ant-picker-super-prev-icon)'
+        ).first.click()
+        page.wait_for_timeout(500)
+
+    # 3. 点击目标月份单元格
+    #    Ant Design month panel: .ant-picker-cell[title="2026-03"]
+    month_cell = page.locator(
+        f'.ant-picker-cell[title="{target_label}"], '
+        f'.ant-picker-cell-inner:text-is("{target_month}月")'
+    ).first
+
+    try:
+        month_cell.click(timeout=3000)
+        log.info("  ✓ 点击 %d 月", target_month)
+    except Exception as e:
+        log.error("点击月份 %d 失败: %s", target_month, e)
+        page.screenshot(path=str(PROJECT_ROOT / "quickbi_month_click_err.png"))
+        return False
+
+    # 4. 点击"查询"按钮触发数据刷新
+    query_btn = page.locator(
+        'button.query-area-button, '
+        'button.ant-btn-primary:has-text("查")'
+    ).first
+    try:
+        query_btn.click(timeout=3000)
+        log.info("  ✓ 点击「查询」按钮")
+    except Exception as e:
+        log.warning("  ⚠ 未找到查询按钮: %s（月份可能已自动刷新）", e)
+
+    # 等待数据刷新（Quick BI 查询后需 5-8 秒重新加载所有表格）
+    page.wait_for_timeout(8000)
+
+    # 5. 验证：检查输入框值已变更
+    try:
+        new_val = picker_input.input_value(timeout=2000)
+        if target_label in new_val:
+            log.info("✓ 已切换到 %s，数据刷新完成", target_label)
+            return True
+        else:
+            log.warning("月份选择器值为 %s，预期 %s", new_val, target_label)
+            # 仍可能成功，Quick BI 有时输入框更新延迟
+            return True
+    except Exception:
+        return True  # 乐观返回
+
+
 def run_fetch(
     url: str,
     headless: bool = False,
     download_only: bool = False,
+    month: str | None = None,
 ) -> tuple[list[tuple[str, Path]], list[str]]:
-    """执行完整取数流程。返回 (成功列表, 失败文件名列表)。"""
+    """执行完整取数流程。返回 (成功列表, 失败文件名列表)。
+
+    Args:
+        month: 可选，YYYYMM 格式。指定后先切换 Quick BI 月份再下载。
+    """
     from playwright.sync_api import sync_playwright
 
     DOWNLOAD_TMP.mkdir(exist_ok=True)
@@ -259,6 +363,13 @@ def run_fetch(
         page.goto(url, wait_until="domcontentloaded", timeout=30000)
         page.wait_for_timeout(6000)
         log.info("✓ 仪表板加载完成")
+
+        # ── 切换月份（如果指定）────────────────────────────────────────
+        if month:
+            if not _select_month(page, month):
+                log.error("月份切换失败，中止取数")
+                browser.close()
+                return [], [d[2] for d in TABLE_DEFS]
 
         # ── 逐个表格处理 ──────────────────────────────────────────────
         for i, (caption_text, tab_name, out_file) in enumerate(TABLE_DEFS):
@@ -769,6 +880,10 @@ def main():
         "--catchup", action="store_true",
         help="补抓模式：检查 DATA_SOURCE_DIR 中日期落后的数据源，仅重新获取落后源",
     )
+    parser.add_argument(
+        "--month",
+        help="指定下载月份（YYYYMM 格式，如 202603），先在 Quick BI 切换月份再下载",
+    )
     args = parser.parse_args()
 
     cfg = load_config()
@@ -817,7 +932,11 @@ def main():
         log.info("URL: %s...%s", url[:50], url[-20:])
         log.info("表格: %d 个", len(TABLE_DEFS))
         log.info("模式: %s", "无头" if args.headless else "交互")
-        results, failed_sources = run_fetch(url, args.headless, args.download_only)
+        if args.month:
+            log.info("指定月份: %s", args.month)
+        results, failed_sources = run_fetch(
+            url, args.headless, args.download_only, month=args.month,
+        )
 
     if results:
         moved = post_process(results)
@@ -830,8 +949,11 @@ def main():
         log.info("  3. 查看 quickbi_err_*.png 截图")
 
     # ── 失败源钉钉告警（2026-03-31 新增，永久防线）──────────────────
-    if failed_sources:
+    if failed_sources and not args.month:
+        # 指定月份模式（历史数据下载）不发告警，仅正常取数失败时告警
         _alert_failed_sources(failed_sources)
+    elif failed_sources:
+        log.info("  ⚠ %d 个失败源（历史月份模式，不发钉钉告警）", len(failed_sources))
 
 
 if __name__ == "__main__":

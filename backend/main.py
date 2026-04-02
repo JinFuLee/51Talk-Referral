@@ -327,21 +327,31 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
 app.add_middleware(SecurityHeadersMiddleware)
 
 
-class MonthMiddleware(BaseHTTPMiddleware):
-    """从请求 query param ?month=YYYYMM 提取月份并注入 contextvars。
+class MonthMiddleware:
+    """纯 ASGI middleware：从 ?month=YYYYMM 注入 contextvars。
 
-    保证同一进程内并发请求各自持有独立月份上下文（contextvars 请求级隔离）。
-    finally 块确保请求结束后清除上下文，防止跨请求污染。
+    不使用 BaseHTTPMiddleware，因为 BaseHTTPMiddleware.dispatch 在独立 async task
+    中执行，contextvars 不传播到 endpoint handler（Starlette #1315）。
+    纯 ASGI middleware 在同一 async context 运行，contextvars 正确传播。
     """
 
-    async def dispatch(self, request: Request, call_next):
-        month = request.query_params.get("month")
-        set_request_month(month)
-        try:
-            response = await call_next(request)
-            return response
-        finally:
-            set_request_month(None)
+    def __init__(self, app):
+        self.app = app
+
+    async def __call__(self, scope, receive, send):
+        if scope["type"] == "http":
+            from urllib.parse import parse_qs
+
+            qs = parse_qs(scope.get("query_string", b"").decode())
+            month_values = qs.get("month", [])
+            month = month_values[0] if month_values else None
+            set_request_month(month)
+            try:
+                await self.app(scope, receive, send)
+            finally:
+                set_request_month(None)
+        else:
+            await self.app(scope, receive, send)
 
 
 app.add_middleware(MonthMiddleware)

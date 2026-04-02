@@ -152,6 +152,18 @@ class DataManager:
         self._month_caches: dict[str, dict] = {}  # YYYYMM → data dict（LRU maxsize=3）
 
     def load_all(self) -> dict[str, Any]:
+        # M38: 自动检测请求级月份覆盖 — 历史月份时委托给 load_for_month()
+        # 这样全站 55 处 dm.load_all() 零修改即可支持历史月份浏览
+        # 注意：_loading_archive 标志防止 load_for_month → DataManager.load_all 递归
+        if not getattr(self, "_loading_archive", False):
+            from backend.core.date_override import _request_month
+            req_month = _request_month.get()
+            if req_month:
+                from datetime import date as _d
+                current = _d.today().strftime("%Y%m")
+                if req_month != current:
+                    return self.load_for_month(req_month)
+
         with self._lock:
             if not self._dirty and self._cache:
                 return self._cache
@@ -700,6 +712,7 @@ class DataManager:
 
         logger.info("DataManager: 从归档目录加载 %s ...", month)
         archive_dm = DataManager(str(archive_dir), self.target_file)
+        archive_dm._loading_archive = True  # 防 load_all → load_for_month 递归
         data = archive_dm.load_all()
 
         # LRU 写入（maxsize=3，淘汰最旧）
