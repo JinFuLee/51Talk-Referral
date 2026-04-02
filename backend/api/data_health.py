@@ -25,6 +25,7 @@ from fastapi import APIRouter, Depends, Request
 
 from backend.api.dependencies import get_data_manager
 from backend.core.data_manager import DataManager
+from backend.core.date_override import get_today
 
 router = APIRouter(tags=["data-health"])
 
@@ -592,10 +593,8 @@ def check_data_quality(
     - 层 4：字段 null 检测 + 根因归并
     - 层 5：前端崩溃日志（24h）
     """
-    from datetime import date
-
     t0 = time.time()
-    current_month = date.today().strftime("%Y%m")
+    current_month = get_today().strftime("%Y%m")
 
     # 层 1
     freshness = _check_file_freshness()

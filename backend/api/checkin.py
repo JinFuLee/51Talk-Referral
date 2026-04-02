@@ -31,6 +31,7 @@ from fastapi import APIRouter, Depends, Query, Request, Response
 
 from backend.api.dependencies import get_data_manager
 from backend.core.data_manager import DataManager
+from backend.core.date_override import get_today
 from backend.models.filters import UnifiedFilter, apply_filters, parse_filters
 
 router = APIRouter()
@@ -910,9 +911,7 @@ def _build_followup_students(
         days_this_month = int(_safe(extra.get("本月打卡天数")) or 0)
 
         # ── 本周打卡天数 ──────────────────────────────────────────────────────
-        from datetime import date as _date
-
-        _today = _date.today()
+        _today = get_today()
         _week_of_month = min(4, (_today.day - 1) // 7 + 1)
         _week_col = f"第{_week_of_month}周转码"
         days_this_week = (
@@ -991,7 +990,7 @@ def _build_followup_students(
                 from datetime import datetime as _dt
 
                 _last = _dt.strptime(cc_last_call[:10], "%Y-%m-%d").date()
-                cc_last_call_days_ago = (_date.today() - _last).days
+                cc_last_call_days_ago = (get_today() - _last).days
             except Exception:
                 cc_last_call_days_ago = None
 
@@ -1495,8 +1494,6 @@ async def student_analysis(
     - Top 学员列表（按本月打卡降序）
     - 进步榜（按 delta 降序，仅 delta>0）
     """
-    from datetime import date
-
     data = dm.load_all()
     df_d4: pd.DataFrame = apply_filters(data.get("students", pd.DataFrame()), filters)
     df_d3: pd.DataFrame = apply_filters(data.get("detail", pd.DataFrame()), filters)
@@ -1642,7 +1639,7 @@ async def student_analysis(
         except (ValueError, TypeError):
             return default
 
-    today = date.today()
+    today = get_today()
 
     def _cc_call_days_ago(row: pd.Series) -> int | None:
         raw = row.get(_COL_CC_CALL_DATE)

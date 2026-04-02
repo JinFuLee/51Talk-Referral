@@ -7,6 +7,8 @@ import os
 from datetime import datetime, timedelta
 from pathlib import Path
 
+from backend.core.date_override import get_month_key
+
 # 基础路径 (core/ 的上两级是项目根目录: backend/core/ -> backend/ -> project_root/)
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
@@ -85,9 +87,9 @@ def get_targets(date: datetime = None) -> dict:
     import json
 
     if date is None:
-        date = datetime.now()
-
-    month_key = date.strftime("%Y%m")
+        month_key = get_month_key()
+    else:
+        month_key = date.strftime("%Y%m")
 
     # 1. 读基础扁平目标
     base = MONTHLY_TARGETS.get(month_key, MONTHLY_TARGETS.get("202601", {})).copy()

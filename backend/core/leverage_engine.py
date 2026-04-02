@@ -30,6 +30,8 @@ import logging
 import math
 from typing import Any
 
+from backend.core.date_override import get_today
+
 logger = logging.getLogger(__name__)
 
 # 漏斗三个转化阶段
@@ -300,13 +302,11 @@ def query_historical_best(
     Returns:
         {"{stage}": best_value, "{channel}.{stage}": best_value, ...}
     """
-    from datetime import date
-
     historical_best: dict[str, float] = {}
 
     try:
         # 查询最近 N 期月度归档
-        today = date.today()
+        today = get_today()
         queried_months: list[str] = []
         for i in range(n_months):
             y = today.year
@@ -354,12 +354,10 @@ def query_recent_trend(
     Returns:
         [{渠道名: {stage: value}}, ...]，按时间升序
     """
-    from datetime import date
-
     trend_list: list[dict[str, Any]] = []
 
     try:
-        today = date.today()
+        today = get_today()
         month_keys: list[str] = []
         for i in range(n_months, 0, -1):
             y = today.year

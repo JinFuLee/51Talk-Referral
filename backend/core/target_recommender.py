@@ -27,6 +27,8 @@ import logging
 import math
 from typing import Any
 
+from backend.core.date_override import get_today
+
 logger = logging.getLogger(__name__)
 
 # ── 三档配置 ──────────────────────────────────────────────────────────────────
@@ -146,9 +148,7 @@ def recommend_targets_wma(
             "message": null | str,  # 数据不足时说明
         }
     """
-    from datetime import date
-
-    today = date.today()
+    today = get_today()
 
     # ── 1. 计算目标月份列表（近 n 个自然月，不含当月） ─────────────────────
     month_keys: list[str] = []
@@ -834,9 +834,7 @@ class TargetTierEngine:
         if self._wma_cache is not None:
             return self._wma_cache
 
-        from datetime import date as _date
-
-        today = _date.today()
+        today = get_today()
         month_keys: list[str] = []
         for i in range(1, n_months + 1):
             y, m = today.year, today.month - i
@@ -974,9 +972,7 @@ def decompose_targets_from_last_month(
             "message": str | None,
         }
     """
-    from datetime import date
-
-    today = date.today()
+    today = get_today()
     y, m = today.year, today.month - 1
     if m <= 0:
         m += 12

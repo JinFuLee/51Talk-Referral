@@ -8,6 +8,8 @@ from __future__ import annotations
 import json
 import shutil
 from datetime import UTC, datetime
+
+from backend.core.date_override import get_today
 from pathlib import Path
 from typing import Any
 
@@ -835,9 +837,9 @@ def get_target_tiers(
             }
 
             # BM% 从工作日计算
-            from datetime import date, timedelta
+            from datetime import timedelta
 
-            ref = date.today() - timedelta(days=1)
+            ref = get_today() - timedelta(days=1)
             from backend.core.daily_snapshot_service import _workday_index
 
             wi = _workday_index(ref)
@@ -934,10 +936,8 @@ def post_targets_apply_tiers(
             detail=f"tier 必须为 {valid_tiers} 之一",
         )
 
-    from datetime import date
-
     if month is None:
-        today = date.today()
+        today = get_today()
         month = f"{today.year:04d}{today.month:02d}"
 
     if len(month) != 6 or not month.isdigit():
@@ -1065,12 +1065,10 @@ def get_bm_calendar(month: str | None = None) -> dict[str, Any]:
     Args:
         month: YYYYMM 格式，默认当自然月
     """
-    from datetime import date as _date
-
     from backend.core.bm_calendar import generate_bm_calendar, load_bm_config
 
     if month is None:
-        today = _date.today()
+        today = get_today()
         month = f"{today.year:04d}{today.month:02d}"
 
     if len(month) != 6 or not month.isdigit():

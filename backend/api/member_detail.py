@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import math
-from datetime import date
+from backend.core.date_override import get_today
 from typing import Any
 
 import pandas as pd
@@ -94,7 +94,7 @@ def _contact_days_int(raw_date) -> float | None:
         return None
     try:
         d = pd.to_datetime(s[:10]).date()
-        return (date.today() - d).days
+        return (get_today() - d).days
     except Exception:
         return None
 
