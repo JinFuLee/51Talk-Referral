@@ -587,8 +587,12 @@ export function UnifiedFilterBar() {
           onChange={(e) => {
             const val = e.target.value;
             if (val === 'custom') {
+              // 选中自定义范围时，立即初始化为当月范围
+              const now = new Date();
+              const firstDay = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`;
+              const today = now.toISOString().slice(0, 10);
+              setCustomDateRange({ start: firstDay, end: today });
               setSelectedMonth(null);
-              // 保持 customDateRange，等 date inputs 填完再写入
             } else {
               setCustomDateRange(null);
               setSelectedMonth(val === currentYYYYMM ? null : val);
@@ -632,21 +636,6 @@ export function UnifiedFilterBar() {
               className="h-8 px-2 rounded-lg border border-amber-400 bg-amber-50 text-xs text-amber-700 outline-none focus:ring-1 focus:ring-amber-400"
             />
           </div>
-        )}
-        {/* 首次选择自定义时显示初始化按钮 */}
-        {hydrated && customDateRange === null && (
-          <button
-            onClick={() => {
-              const now = new Date();
-              const firstDay = new Date(now.getFullYear(), now.getMonth(), 1)
-                .toISOString()
-                .slice(0, 10);
-              const today = now.toISOString().slice(0, 10);
-              setCustomDateRange({ start: firstDay, end: today });
-            }}
-            className="hidden"
-            id="custom-date-init"
-          />
         )}
       </div>
 
