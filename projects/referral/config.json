@@ -108,7 +108,11 @@
     "auto_kickoff": true,
     "monthly_specials": {
       "202603": [
-        {"date": "2026-03-05", "weight": 1.0, "label": "调休万佛节"}
+        {
+          "date": "2026-03-05",
+          "weight": 1.0,
+          "label": "调休万佛节"
+        }
       ]
     }
   },
@@ -205,7 +209,8 @@
     "incentive",
     "data_health",
     "access_control",
-    "caliber_guard"
+    "caliber_guard",
+    "archives"
   ],
   "enclosure_role_assignment": {
     "CC": {
@@ -447,50 +452,377 @@
       ]
     }
   },
-
   "indicator_registry": [
-    {"id": "paid_revenue", "name_zh": "付费金额", "name_th": "ยอดชำระเงิน", "category": "result", "unit": "currency_usd", "formula": "sum(paid_amount_usd) for CC新单转介绍", "data_source": "D1", "has_target": true, "target_key": "金额目标", "availability": "available"},
-    {"id": "referral_pct", "name_zh": "转介绍占比", "name_th": "สัดส่วนการแนะนำ", "category": "result", "unit": "percent", "formula": "referral_revenue / total_frontend_revenue", "data_source": "D1", "has_target": false, "availability": "available"},
-    {"id": "narrow_leads_count", "name_zh": "窄口例子数", "name_th": "จำนวน Leads แคบ", "category": "result", "unit": "count", "formula": "count(narrow_channel_leads)", "data_source": "D1", "has_target": true, "target_key": "注册目标", "availability": "available"},
-    {"id": "narrow_wide_leads_count", "name_zh": "窄宽例子数", "name_th": "จำนวน Leads แคบ+กว้าง", "category": "result", "unit": "count", "formula": "narrow_leads + wide_leads", "data_source": "D1", "has_target": true, "availability": "available"},
-
-    {"id": "leads_achievement", "name_zh": "例子达成率", "name_th": "อัตราบรรลุเป้า Leads", "category": "achievement", "unit": "percent", "formula": "actual_leads / target_leads", "data_source": "D1", "has_target": true, "availability": "available"},
-    {"id": "appt_achievement", "name_zh": "预约达成率", "name_th": "อัตราบรรลุเป้านัดหมาย", "category": "achievement", "unit": "percent", "formula": "actual_appointments / target_appointments", "data_source": "D1", "has_target": true, "availability": "available"},
-    {"id": "showup_achievement", "name_zh": "出席达成率", "name_th": "อัตราบรรลุเป้าเข้าเรียน", "category": "achievement", "unit": "percent", "formula": "actual_showups / target_showups", "data_source": "D1", "has_target": true, "availability": "available"},
-    {"id": "order_achievement", "name_zh": "单量达成率", "name_th": "อัตราบรรลุเป้ายอดสั่งซื้อ", "category": "achievement", "unit": "percent", "formula": "actual_orders / target_orders", "data_source": "D1", "has_target": true, "availability": "available"},
-    {"id": "revenue_achievement", "name_zh": "业绩达成率", "name_th": "อัตราบรรลุเป้ารายได้", "category": "achievement", "unit": "percent", "formula": "actual_revenue / target_revenue", "data_source": "D1", "has_target": true, "availability": "available"},
-    {"id": "asp_achievement", "name_zh": "客单价达成率", "name_th": "อัตราบรรลุเป้าราคาเฉลี่ย", "category": "achievement", "unit": "percent", "formula": "actual_asp / target_asp", "data_source": "D1", "has_target": true, "availability": "available"},
-    {"id": "checkin_rate_achievement", "name_zh": "打卡率", "name_th": "อัตราเช็คอิน", "category": "achievement", "unit": "percent", "formula": "checkin_students / effective_students", "data_source": "D2", "has_target": true, "availability": "available"},
-
-    {"id": "reg_count", "name_zh": "转介绍注册数", "name_th": "จำนวนลงทะเบียนแนะนำ", "category": "process", "unit": "count", "formula": "count(referral_registrations)", "data_source": "D1", "has_target": true, "target_key": "注册目标", "availability": "available"},
-    {"id": "appt_count", "name_zh": "预约数", "name_th": "จำนวนนัดหมาย", "category": "process", "unit": "count", "formula": "count(appointments)", "data_source": "D1", "has_target": true, "availability": "available"},
-    {"id": "showup_count", "name_zh": "出席数", "name_th": "จำนวนเข้าเรียน", "category": "process", "unit": "count", "formula": "count(showups)", "data_source": "D1", "has_target": true, "availability": "available"},
-    {"id": "asp", "name_zh": "客单价", "name_th": "ราคาเฉลี่ยต่อออเดอร์", "category": "process", "unit": "currency_usd", "formula": "total_revenue / total_orders", "data_source": "D1", "has_target": true, "target_key": "客单价", "availability": "available"},
-    {"id": "paid_count", "name_zh": "付费数", "name_th": "จำนวนชำระเงิน", "category": "process", "unit": "count", "formula": "count(paid_students)", "data_source": "D1", "has_target": true, "target_key": "付费目标", "availability": "available"},
-    {"id": "contact_count", "name_zh": "触达数", "name_th": "จำนวนติดต่อ", "category": "process", "unit": "count", "formula": "count(contacted_students where call>=120s)", "data_source": "D3", "has_target": false, "availability": "available"},
-    {"id": "checkin_count", "name_zh": "打卡数", "name_th": "จำนวนเช็คอิน", "category": "process", "unit": "count", "formula": "count(checkin_students)", "data_source": "D3", "has_target": false, "availability": "available"},
-    {"id": "new_count", "name_zh": "带新数", "name_th": "จำนวนแนะนำใหม่", "category": "process", "unit": "count", "formula": "count(students_with_new_referrals)", "data_source": "D2", "has_target": false, "availability": "available"},
-    {"id": "cargo_count", "name_zh": "带货数", "name_th": "จำนวนสินค้าแนะนำ", "category": "process", "unit": "count", "formula": "sum(referral_registrations_per_student)", "data_source": "D2", "has_target": false, "availability": "available"},
-
-    {"id": "contact_rate", "name_zh": "触达率", "name_th": "อัตราการติดต่อ", "category": "efficiency", "unit": "percent", "formula": "contacted_students(call>=120s) / effective_students", "data_source": "D2", "has_target": true, "availability": "available"},
-    {"id": "cargo_ratio", "name_zh": "带货比", "name_th": "อัตราสินค้าแนะนำ", "category": "efficiency", "unit": "ratio", "formula": "referral_registrations / effective_students", "data_source": "D2", "has_target": false, "availability": "available"},
-    {"id": "new_coefficient", "name_zh": "带新系数", "name_th": "ค่าสัมประสิทธิ์แนะนำใหม่", "category": "efficiency", "unit": "ratio", "formula": "referral_registrations / students_with_referrals", "data_source": "D2", "has_target": false, "availability": "available"},
-
-    {"id": "wide_checkin_count", "name_zh": "宽口打卡数", "name_th": "จำนวนเช็คอินช่องทางกว้าง", "category": "process_wide", "unit": "count", "formula": "count(wide_channel_checkins)", "data_source": "D3", "has_target": false, "availability": "available"},
-
-    {"id": "reg_to_pay_rate", "name_zh": "注册付费率", "name_th": "อัตราลงทะเบียนสู่ชำระ", "category": "conversion", "unit": "percent", "formula": "paid_count / registration_count", "data_source": "D1", "has_target": true, "target_key": "目标转化率", "availability": "available"},
-    {"id": "appt_to_pay_rate", "name_zh": "预约付费率", "name_th": "อัตรานัดหมายสู่ชำระ", "category": "conversion", "unit": "percent", "formula": "paid_count / appointment_count", "data_source": "D1", "has_target": false, "availability": "available"},
-    {"id": "show_to_pay_rate", "name_zh": "出席付费率", "name_th": "อัตราเข้าเรียนสู่ชำระ", "category": "conversion", "unit": "percent", "formula": "paid_count / showup_count", "data_source": "D1", "has_target": false, "availability": "available"},
-
-    {"id": "pre_outbound_count", "name_zh": "付费前外呼数", "name_th": "จำนวนโทรออกก่อนชำระ", "category": "service_pre_paid", "unit": "count", "formula": null, "data_source": "D3", "has_target": false, "availability": "partial"},
-    {"id": "pre_connect_count", "name_zh": "付费前接通数", "name_th": "จำนวนติดต่อได้ก่อนชำระ", "category": "service_pre_paid", "unit": "count", "formula": "sum(CC接通) where student not yet paid", "data_source": "D3", "has_target": false, "availability": "partial"},
-    {"id": "pre_valid_connect", "name_zh": "付费前有效接通数", "name_th": "จำนวนติดต่อมีประสิทธิภาพก่อนชำระ", "category": "service_pre_paid", "unit": "count", "formula": "sum(有效接通) where student not yet paid", "data_source": "D3", "has_target": false, "availability": "partial"},
-
-    {"id": "post_outbound_count", "name_zh": "付费后外呼数", "name_th": "จำนวนโทรออกหลังชำระ", "category": "service_post_paid", "unit": "count", "formula": null, "data_source": "D3", "has_target": false, "availability": "partial"},
-    {"id": "post_connect_count", "name_zh": "付费后接通数", "name_th": "จำนวนติดต่อได้หลังชำระ", "category": "service_post_paid", "unit": "count", "formula": "sum(CC接通) where student already paid", "data_source": "D3", "has_target": false, "availability": "partial"},
-    {"id": "post_valid_connect", "name_zh": "付费后有效接通数", "name_th": "จำนวนติดต่อมีประสิทธิภาพหลังชำระ", "category": "service_post_paid", "unit": "count", "formula": "sum(有效接通) where student already paid", "data_source": "D3", "has_target": false, "availability": "partial"}
+    {
+      "id": "paid_revenue",
+      "name_zh": "付费金额",
+      "name_th": "ยอดชำระเงิน",
+      "category": "result",
+      "unit": "currency_usd",
+      "formula": "sum(paid_amount_usd) for CC新单转介绍",
+      "data_source": "D1",
+      "has_target": true,
+      "target_key": "金额目标",
+      "availability": "available"
+    },
+    {
+      "id": "referral_pct",
+      "name_zh": "转介绍占比",
+      "name_th": "สัดส่วนการแนะนำ",
+      "category": "result",
+      "unit": "percent",
+      "formula": "referral_revenue / total_frontend_revenue",
+      "data_source": "D1",
+      "has_target": false,
+      "availability": "available"
+    },
+    {
+      "id": "narrow_leads_count",
+      "name_zh": "窄口例子数",
+      "name_th": "จำนวน Leads แคบ",
+      "category": "result",
+      "unit": "count",
+      "formula": "count(narrow_channel_leads)",
+      "data_source": "D1",
+      "has_target": true,
+      "target_key": "注册目标",
+      "availability": "available"
+    },
+    {
+      "id": "narrow_wide_leads_count",
+      "name_zh": "窄宽例子数",
+      "name_th": "จำนวน Leads แคบ+กว้าง",
+      "category": "result",
+      "unit": "count",
+      "formula": "narrow_leads + wide_leads",
+      "data_source": "D1",
+      "has_target": true,
+      "availability": "available"
+    },
+    {
+      "id": "leads_achievement",
+      "name_zh": "例子达成率",
+      "name_th": "อัตราบรรลุเป้า Leads",
+      "category": "achievement",
+      "unit": "percent",
+      "formula": "actual_leads / target_leads",
+      "data_source": "D1",
+      "has_target": true,
+      "availability": "available"
+    },
+    {
+      "id": "appt_achievement",
+      "name_zh": "预约达成率",
+      "name_th": "อัตราบรรลุเป้านัดหมาย",
+      "category": "achievement",
+      "unit": "percent",
+      "formula": "actual_appointments / target_appointments",
+      "data_source": "D1",
+      "has_target": true,
+      "availability": "available"
+    },
+    {
+      "id": "showup_achievement",
+      "name_zh": "出席达成率",
+      "name_th": "อัตราบรรลุเป้าเข้าเรียน",
+      "category": "achievement",
+      "unit": "percent",
+      "formula": "actual_showups / target_showups",
+      "data_source": "D1",
+      "has_target": true,
+      "availability": "available"
+    },
+    {
+      "id": "order_achievement",
+      "name_zh": "单量达成率",
+      "name_th": "อัตราบรรลุเป้ายอดสั่งซื้อ",
+      "category": "achievement",
+      "unit": "percent",
+      "formula": "actual_orders / target_orders",
+      "data_source": "D1",
+      "has_target": true,
+      "availability": "available"
+    },
+    {
+      "id": "revenue_achievement",
+      "name_zh": "业绩达成率",
+      "name_th": "อัตราบรรลุเป้ารายได้",
+      "category": "achievement",
+      "unit": "percent",
+      "formula": "actual_revenue / target_revenue",
+      "data_source": "D1",
+      "has_target": true,
+      "availability": "available"
+    },
+    {
+      "id": "asp_achievement",
+      "name_zh": "客单价达成率",
+      "name_th": "อัตราบรรลุเป้าราคาเฉลี่ย",
+      "category": "achievement",
+      "unit": "percent",
+      "formula": "actual_asp / target_asp",
+      "data_source": "D1",
+      "has_target": true,
+      "availability": "available"
+    },
+    {
+      "id": "checkin_rate_achievement",
+      "name_zh": "打卡率",
+      "name_th": "อัตราเช็คอิน",
+      "category": "achievement",
+      "unit": "percent",
+      "formula": "checkin_students / effective_students",
+      "data_source": "D2",
+      "has_target": true,
+      "availability": "available"
+    },
+    {
+      "id": "reg_count",
+      "name_zh": "转介绍注册数",
+      "name_th": "จำนวนลงทะเบียนแนะนำ",
+      "category": "process",
+      "unit": "count",
+      "formula": "count(referral_registrations)",
+      "data_source": "D1",
+      "has_target": true,
+      "target_key": "注册目标",
+      "availability": "available"
+    },
+    {
+      "id": "appt_count",
+      "name_zh": "预约数",
+      "name_th": "จำนวนนัดหมาย",
+      "category": "process",
+      "unit": "count",
+      "formula": "count(appointments)",
+      "data_source": "D1",
+      "has_target": true,
+      "availability": "available"
+    },
+    {
+      "id": "showup_count",
+      "name_zh": "出席数",
+      "name_th": "จำนวนเข้าเรียน",
+      "category": "process",
+      "unit": "count",
+      "formula": "count(showups)",
+      "data_source": "D1",
+      "has_target": true,
+      "availability": "available"
+    },
+    {
+      "id": "asp",
+      "name_zh": "客单价",
+      "name_th": "ราคาเฉลี่ยต่อออเดอร์",
+      "category": "process",
+      "unit": "currency_usd",
+      "formula": "total_revenue / total_orders",
+      "data_source": "D1",
+      "has_target": true,
+      "target_key": "客单价",
+      "availability": "available"
+    },
+    {
+      "id": "paid_count",
+      "name_zh": "付费数",
+      "name_th": "จำนวนชำระเงิน",
+      "category": "process",
+      "unit": "count",
+      "formula": "count(paid_students)",
+      "data_source": "D1",
+      "has_target": true,
+      "target_key": "付费目标",
+      "availability": "available"
+    },
+    {
+      "id": "contact_count",
+      "name_zh": "触达数",
+      "name_th": "จำนวนติดต่อ",
+      "category": "process",
+      "unit": "count",
+      "formula": "count(contacted_students where call>=120s)",
+      "data_source": "D3",
+      "has_target": false,
+      "availability": "available"
+    },
+    {
+      "id": "checkin_count",
+      "name_zh": "打卡数",
+      "name_th": "จำนวนเช็คอิน",
+      "category": "process",
+      "unit": "count",
+      "formula": "count(checkin_students)",
+      "data_source": "D3",
+      "has_target": false,
+      "availability": "available"
+    },
+    {
+      "id": "new_count",
+      "name_zh": "带新数",
+      "name_th": "จำนวนแนะนำใหม่",
+      "category": "process",
+      "unit": "count",
+      "formula": "count(students_with_new_referrals)",
+      "data_source": "D2",
+      "has_target": false,
+      "availability": "available"
+    },
+    {
+      "id": "cargo_count",
+      "name_zh": "带货数",
+      "name_th": "จำนวนสินค้าแนะนำ",
+      "category": "process",
+      "unit": "count",
+      "formula": "sum(referral_registrations_per_student)",
+      "data_source": "D2",
+      "has_target": false,
+      "availability": "available"
+    },
+    {
+      "id": "contact_rate",
+      "name_zh": "触达率",
+      "name_th": "อัตราการติดต่อ",
+      "category": "efficiency",
+      "unit": "percent",
+      "formula": "contacted_students(call>=120s) / effective_students",
+      "data_source": "D2",
+      "has_target": true,
+      "availability": "available"
+    },
+    {
+      "id": "cargo_ratio",
+      "name_zh": "带货比",
+      "name_th": "อัตราสินค้าแนะนำ",
+      "category": "efficiency",
+      "unit": "ratio",
+      "formula": "referral_registrations / effective_students",
+      "data_source": "D2",
+      "has_target": false,
+      "availability": "available"
+    },
+    {
+      "id": "new_coefficient",
+      "name_zh": "带新系数",
+      "name_th": "ค่าสัมประสิทธิ์แนะนำใหม่",
+      "category": "efficiency",
+      "unit": "ratio",
+      "formula": "referral_registrations / students_with_referrals",
+      "data_source": "D2",
+      "has_target": false,
+      "availability": "available"
+    },
+    {
+      "id": "wide_checkin_count",
+      "name_zh": "宽口打卡数",
+      "name_th": "จำนวนเช็คอินช่องทางกว้าง",
+      "category": "process_wide",
+      "unit": "count",
+      "formula": "count(wide_channel_checkins)",
+      "data_source": "D3",
+      "has_target": false,
+      "availability": "available"
+    },
+    {
+      "id": "reg_to_pay_rate",
+      "name_zh": "注册付费率",
+      "name_th": "อัตราลงทะเบียนสู่ชำระ",
+      "category": "conversion",
+      "unit": "percent",
+      "formula": "paid_count / registration_count",
+      "data_source": "D1",
+      "has_target": true,
+      "target_key": "目标转化率",
+      "availability": "available"
+    },
+    {
+      "id": "appt_to_pay_rate",
+      "name_zh": "预约付费率",
+      "name_th": "อัตรานัดหมายสู่ชำระ",
+      "category": "conversion",
+      "unit": "percent",
+      "formula": "paid_count / appointment_count",
+      "data_source": "D1",
+      "has_target": false,
+      "availability": "available"
+    },
+    {
+      "id": "show_to_pay_rate",
+      "name_zh": "出席付费率",
+      "name_th": "อัตราเข้าเรียนสู่ชำระ",
+      "category": "conversion",
+      "unit": "percent",
+      "formula": "paid_count / showup_count",
+      "data_source": "D1",
+      "has_target": false,
+      "availability": "available"
+    },
+    {
+      "id": "pre_outbound_count",
+      "name_zh": "付费前外呼数",
+      "name_th": "จำนวนโทรออกก่อนชำระ",
+      "category": "service_pre_paid",
+      "unit": "count",
+      "formula": null,
+      "data_source": "D3",
+      "has_target": false,
+      "availability": "partial"
+    },
+    {
+      "id": "pre_connect_count",
+      "name_zh": "付费前接通数",
+      "name_th": "จำนวนติดต่อได้ก่อนชำระ",
+      "category": "service_pre_paid",
+      "unit": "count",
+      "formula": "sum(CC接通) where student not yet paid",
+      "data_source": "D3",
+      "has_target": false,
+      "availability": "partial"
+    },
+    {
+      "id": "pre_valid_connect",
+      "name_zh": "付费前有效接通数",
+      "name_th": "จำนวนติดต่อมีประสิทธิภาพก่อนชำระ",
+      "category": "service_pre_paid",
+      "unit": "count",
+      "formula": "sum(有效接通) where student not yet paid",
+      "data_source": "D3",
+      "has_target": false,
+      "availability": "partial"
+    },
+    {
+      "id": "post_outbound_count",
+      "name_zh": "付费后外呼数",
+      "name_th": "จำนวนโทรออกหลังชำระ",
+      "category": "service_post_paid",
+      "unit": "count",
+      "formula": null,
+      "data_source": "D3",
+      "has_target": false,
+      "availability": "partial"
+    },
+    {
+      "id": "post_connect_count",
+      "name_zh": "付费后接通数",
+      "name_th": "จำนวนติดต่อได้หลังชำระ",
+      "category": "service_post_paid",
+      "unit": "count",
+      "formula": "sum(CC接通) where student already paid",
+      "data_source": "D3",
+      "has_target": false,
+      "availability": "partial"
+    },
+    {
+      "id": "post_valid_connect",
+      "name_zh": "付费后有效接通数",
+      "name_th": "จำนวนติดต่อมีประสิทธิภาพหลังชำระ",
+      "category": "service_post_paid",
+      "unit": "count",
+      "formula": "sum(有效接通) where student already paid",
+      "data_source": "D3",
+      "has_target": false,
+      "availability": "partial"
+    }
   ],
-
   "quality_score_config": {
     "lesson_max": 15,
     "lesson_weight": 40,
@@ -498,7 +830,13 @@
     "referral_weight": 30,
     "payment_max": 2,
     "payment_weight": 20,
-    "enclosure_weights": {"0": 10, "1": 8, "2": 6, "3": 4, "default": 2}
+    "enclosure_weights": {
+      "0": 10,
+      "1": 8,
+      "2": 6,
+      "3": 4,
+      "default": 2
+    }
   },
   "checkin_student_tags": {
     "superfan_min": 6,
@@ -510,16 +848,36 @@
     "super_converter_days_min": 4,
     "super_converter_referrals_min": 2
   },
-  "invalid_names": ["nan", "小计", "合计", ""],
+  "invalid_names": [
+    "nan",
+    "小计",
+    "合计",
+    ""
+  ],
   "role_team_prefixes": {
-    "SS": ["SS"],
-    "LP": ["LP"],
-    "CC": ["CC"]
+    "SS": [
+      "SS"
+    ],
+    "LP": [
+      "LP"
+    ],
+    "CC": [
+      "CC"
+    ]
   },
   "role_columns": {
-    "CC": ["last_cc_name", "last_cc_group_name"],
-    "SS": ["last_ss_name", "last_ss_group_name"],
-    "LP": ["last_lp_name", "last_lp_group_name"]
+    "CC": [
+      "last_cc_name",
+      "last_cc_group_name"
+    ],
+    "SS": [
+      "last_ss_name",
+      "last_ss_group_name"
+    ],
+    "LP": [
+      "last_lp_name",
+      "last_lp_group_name"
+    ]
   },
   "indicator_matrix": {
     "CC": {
@@ -527,16 +885,39 @@
       "enclosure": "M0-M2",
       "scope": "full_funnel",
       "active": [
-        "paid_revenue", "referral_pct", "narrow_leads_count", "narrow_wide_leads_count",
-        "leads_achievement", "appt_achievement", "showup_achievement", "order_achievement",
-        "revenue_achievement", "asp_achievement", "checkin_rate_achievement",
-        "reg_count", "appt_count", "showup_count", "asp", "paid_count",
-        "contact_count", "checkin_count", "new_count", "cargo_count",
-        "contact_rate", "cargo_ratio", "new_coefficient",
+        "paid_revenue",
+        "referral_pct",
+        "narrow_leads_count",
+        "narrow_wide_leads_count",
+        "leads_achievement",
+        "appt_achievement",
+        "showup_achievement",
+        "order_achievement",
+        "revenue_achievement",
+        "asp_achievement",
+        "checkin_rate_achievement",
+        "reg_count",
+        "appt_count",
+        "showup_count",
+        "asp",
+        "paid_count",
+        "contact_count",
+        "checkin_count",
+        "new_count",
+        "cargo_count",
+        "contact_rate",
+        "cargo_ratio",
+        "new_coefficient",
         "wide_checkin_count",
-        "reg_to_pay_rate", "appt_to_pay_rate", "show_to_pay_rate",
-        "pre_outbound_count", "pre_connect_count", "pre_valid_connect",
-        "post_outbound_count", "post_connect_count", "post_valid_connect"
+        "reg_to_pay_rate",
+        "appt_to_pay_rate",
+        "show_to_pay_rate",
+        "pre_outbound_count",
+        "pre_connect_count",
+        "pre_valid_connect",
+        "post_outbound_count",
+        "post_connect_count",
+        "post_valid_connect"
       ]
     },
     "SS": {
@@ -546,10 +927,17 @@
       "active": [
         "narrow_leads_count",
         "leads_achievement",
-        "reg_count", "contact_count", "new_count",
-        "contact_rate", "new_coefficient",
-        "pre_outbound_count", "pre_connect_count", "pre_valid_connect",
-        "post_outbound_count", "post_connect_count", "post_valid_connect"
+        "reg_count",
+        "contact_count",
+        "new_count",
+        "contact_rate",
+        "new_coefficient",
+        "pre_outbound_count",
+        "pre_connect_count",
+        "pre_valid_connect",
+        "post_outbound_count",
+        "post_connect_count",
+        "post_valid_connect"
       ]
     },
     "LP": {
@@ -558,12 +946,20 @@
       "scope": "leads_and_process",
       "active": [
         "narrow_wide_leads_count",
-        "leads_achievement", "checkin_rate_achievement",
-        "reg_count", "contact_count", "new_count",
-        "contact_rate", "new_coefficient",
+        "leads_achievement",
+        "checkin_rate_achievement",
+        "reg_count",
+        "contact_count",
+        "new_count",
+        "contact_rate",
+        "new_coefficient",
         "wide_checkin_count",
-        "pre_outbound_count", "pre_connect_count", "pre_valid_connect",
-        "post_outbound_count", "post_connect_count", "post_valid_connect"
+        "pre_outbound_count",
+        "pre_connect_count",
+        "pre_valid_connect",
+        "post_outbound_count",
+        "post_connect_count",
+        "post_valid_connect"
       ]
     }
   }

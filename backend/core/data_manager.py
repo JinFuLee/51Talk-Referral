@@ -143,6 +143,13 @@ class DataManager:
         self._dirty = True
         self._lock = threading.RLock()
         self._loaded_files: dict[str, Path | None] = {}
+        # M38: 历史归档目录 & LRU 缓存（maxsize=3）
+        self._archive_base: Path = Path(data_dir).parent / "data" / "archives"
+        if not self._archive_base.exists():
+            # 兼容不同工作目录：尝试项目根下的 data/archives/
+            project_root = Path(__file__).resolve().parent.parent.parent
+            self._archive_base = project_root / "data" / "archives"
+        self._month_caches: dict[str, dict] = {}  # YYYYMM → data dict（LRU maxsize=3）
 
     def load_all(self) -> dict[str, Any]:
         with self._lock:
@@ -652,3 +659,57 @@ class DataManager:
             )
 
         return statuses
+
+    # ── M38: 历史归档加载 ──────────────────────────────────────────────────────
+
+    def load_for_month(self, month: str | None) -> dict[str, Any]:
+        """按月份加载数据：None/当月 → load_all()；历史月 → 从归档目录加载。
+
+        Args:
+            month: "YYYYMM" 格式字符串，None 表示使用当前数据（load_all）。
+
+        Returns:
+            与 load_all() 相同结构的数据字典。
+
+        Notes:
+            - LRU maxsize=3：超出时淘汰最早的缓存键（按 _month_caches 插入顺序）。
+            - 线程安全：_lock 保护 _month_caches 读写。
+            - 归档目录结构：data/archives/{YYYYMM}/*.xlsx + _meta.json
+        """
+        from datetime import date as _date
+
+        # 当月或无 month → 走现有 load_all()
+        if not month:
+            return self.load_all()
+
+        current_month = _date.today().strftime("%Y%m")
+        if month == current_month:
+            return self.load_all()
+
+        # 检查 LRU 缓存
+        with self._lock:
+            if month in self._month_caches:
+                logger.debug("DataManager: 归档月份 %s 命中缓存", month)
+                return self._month_caches[month]
+
+        # 从归档目录加载
+        archive_dir = self._archive_base / month
+        if not archive_dir.exists():
+            logger.warning("DataManager: 归档月份 %s 不存在: %s", month, archive_dir)
+            return {}
+
+        logger.info("DataManager: 从归档目录加载 %s ...", month)
+        archive_dm = DataManager(str(archive_dir), self.target_file)
+        data = archive_dm.load_all()
+
+        # LRU 写入（maxsize=3，淘汰最旧）
+        with self._lock:
+            if month not in self._month_caches:
+                if len(self._month_caches) >= 3:
+                    oldest_key = next(iter(self._month_caches))
+                    del self._month_caches[oldest_key]
+                    logger.debug("DataManager: 归档 LRU 淘汰 %s", oldest_key)
+                self._month_caches[month] = data
+                logger.info("DataManager: 归档月份 %s 加载完成，写入 LRU 缓存", month)
+
+        return data

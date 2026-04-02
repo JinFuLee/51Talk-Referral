@@ -19,6 +19,7 @@ from slowapi.util import get_remote_address
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from backend.api import filter_options as _filter_options_mod
+from backend.core.date_override import set_request_month
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 BACKEND_DIR = Path(__file__).resolve().parent
@@ -82,6 +83,8 @@ ROUTER_REGISTRY: dict = {
     "caliber_guard": ("backend.api.caliber_guard", "/api", ["caliber-guard"]),
     # ── 权限管理 ─────────────────────────────────────────────────────────────────
     "access_control": ("backend.api.access_control", "/api", ["access-control"]),
+    # ── M38 新增：历史归档 ────────────────────────────────────────────────────────
+    "archives": ("backend.api.archives", "/api", ["archives"]),
 }
 
 
@@ -187,7 +190,8 @@ async def lifespan(app: FastAPI):
             from backend.core.channel_funnel_engine import ChannelFunnelEngine
             from backend.core.daily_snapshot_service import DailySnapshotService
 
-            ref = _date.today() - _td(days=1)
+            from backend.core.date_override import get_today as _get_today
+            ref = _get_today() - _td(days=1)
             svc = DailySnapshotService()
             if svc.query_by_date(ref) and svc.query_by_date(ref).get("total"):
                 return  # 已有快照，跳过
@@ -321,6 +325,26 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
 
 
 app.add_middleware(SecurityHeadersMiddleware)
+
+
+class MonthMiddleware(BaseHTTPMiddleware):
+    """从请求 query param ?month=YYYYMM 提取月份并注入 contextvars。
+
+    保证同一进程内并发请求各自持有独立月份上下文（contextvars 请求级隔离）。
+    finally 块确保请求结束后清除上下文，防止跨请求污染。
+    """
+
+    async def dispatch(self, request: Request, call_next):
+        month = request.query_params.get("month")
+        set_request_month(month)
+        try:
+            response = await call_next(request)
+            return response
+        finally:
+            set_request_month(None)
+
+
+app.add_middleware(MonthMiddleware)
 
 
 @app.exception_handler(Exception)
