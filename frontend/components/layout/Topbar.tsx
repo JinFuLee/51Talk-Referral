@@ -2,7 +2,7 @@
 
 import { useHealth } from '@/lib/hooks';
 import { usePathname } from 'next/navigation';
-import { useLocale } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { LangSwitcher } from '@/components/layout/LangSwitcher';
 import { usePresentationStore } from '@/lib/stores/presentation-store';
 import { MonitorPlay, User, LogOut } from 'lucide-react';
@@ -11,18 +11,18 @@ import { useFilteredSWR } from '@/lib/hooks/use-filtered-swr';
 import { BrandMark } from '@/components/ui/BrandMark';
 import { formatDate } from '@/lib/date-format';
 
-function ViewModeBadge({ pathname }: { pathname: string }) {
+function ViewModeBadge({ pathname, t }: { pathname: string; t: (key: string) => string }) {
   if (pathname.startsWith('/ops')) {
     return (
       <span className="text-xs px-2 py-0.5 rounded-full bg-[var(--color-accent)] text-white font-medium">
-        运营视图
+        {t('opsView')}
       </span>
     );
   }
   if (pathname.startsWith('/biz')) {
     return (
       <span className="text-xs px-2 py-0.5 rounded-full bg-primary text-primary-foreground font-medium">
-        业务视图
+        {t('bizView')}
       </span>
     );
   }
@@ -39,6 +39,7 @@ export function Topbar() {
   const { data: health } = useHealth();
   const pathname = usePathname();
   const togglePresentationMode = usePresentationStore((s) => s.togglePresentationMode);
+  const t = useTranslations('topbar');
 
   const locale = useLocale();
   const isOnline = health?.status === 'ok';
@@ -61,9 +62,9 @@ export function Topbar() {
         <div className="hidden sm:block text-sm font-medium text-[var(--text-secondary)]">
           {formatDate(new Date(), locale)}
           <span className="text-[var(--text-muted)] mx-2">|</span>
-          T-1 数据
+          {t('t1Data')}
         </div>
-        <ViewModeBadge pathname={pathname} />
+        <ViewModeBadge pathname={pathname} t={t} />
       </div>
 
       <div className="flex items-center gap-2 lg:gap-4">
@@ -73,7 +74,7 @@ export function Topbar() {
           className="flex items-center gap-1.5 px-2 lg:px-3 py-1.5 rounded-full bg-[var(--bg-subtle)] border border-[var(--border-subtle)] text-xs font-semibold text-[var(--text-secondary)] hover:text-action-text hover:bg-action-surface hover:border-action transition-all"
         >
           <MonitorPlay className="w-3.5 h-3.5" />
-          <span className="hidden sm:inline">汇报沉浸模式</span>
+          <span className="hidden sm:inline">{t('presentMode')}</span>
         </button>
 
         <span className="hidden sm:inline text-[var(--text-muted)]">|</span>
@@ -86,7 +87,7 @@ export function Topbar() {
               isOnline ? 'bg-success' : 'bg-destructive'
             )}
           />
-          <span className="hidden sm:inline">{isOnline ? '后端在线' : '后端连接断开'}</span>
+          <span className="hidden sm:inline">{isOnline ? t('backendOnline') : t('backendOffline')}</span>
         </div>
 
         <span className="hidden sm:inline text-[var(--text-muted)]">|</span>
@@ -99,7 +100,7 @@ export function Topbar() {
             <button
               onClick={handleLogout}
               className="hover:text-[var(--text-primary)] transition-colors"
-              title="退出登录"
+              title={t('logout')}
             >
               <LogOut className="w-3.5 h-3.5" />
             </button>

@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useEffect, useRef } from 'react';
 import useSWR from 'swr';
+import { useTranslations } from 'next-intl';
 import {
   Globe,
   Search,
@@ -35,11 +36,11 @@ function getCurrentYYYYMM(): string {
   return new Date().toISOString().slice(0, 7).replace('-', '');
 }
 
-/** 将 YYYYMM 格式转成 "2026年3月" 形式 */
-function formatYYYYMMtoLabel(yyyymm: string, isCurrent: boolean): string {
+/** 将 YYYYMM 格式转成 "2026年3月" 形式，currentMonthSuffix 为 i18n 化的"（当月）"后缀 */
+function formatYYYYMMtoLabel(yyyymm: string, isCurrent: boolean, currentMonthSuffix: string): string {
   const year = parseInt(yyyymm.slice(0, 4), 10);
   const month = parseInt(yyyymm.slice(4, 6), 10);
-  if (isCurrent) return `${year}年${month}月（当月）`;
+  if (isCurrent) return `${year}年${month}月${currentMonthSuffix}`;
   return `${year}年${month}月`;
 }
 
@@ -47,49 +48,34 @@ function formatYYYYMMtoLabel(yyyymm: string, isCurrent: boolean): string {
 // 数据角色分段
 // ──────────────────────────────────────────────────────────────────────────────
 
-const DATA_ROLE_OPTIONS: { value: DataRole; label: string }[] = [
-  { value: 'all', label: '全部' },
-  { value: 'cc', label: 'CC' },
-  { value: 'ss', label: 'SS' },
-  { value: 'lp', label: 'LP' },
-  { value: 'ops', label: '运营' },
-];
+// 静态 value 列表，label 在主组件内通过 t() 动态生成（品牌名 CC/SS/LP 不翻译）
+const DATA_ROLE_VALUES: DataRole[] = ['all', 'cc', 'ss', 'lp', 'ops'];
 
 // ──────────────────────────────────────────────────────────────────────────────
 // 时间粒度分段
 // ──────────────────────────────────────────────────────────────────────────────
 
-const GRANULARITY_OPTIONS: { value: Granularity; label: string }[] = [
-  { value: 'day', label: '日' },
-  { value: 'week', label: '周' },
-  { value: 'month', label: '月' },
-  { value: 'quarter', label: '季' },
-];
+const GRANULARITY_VALUES: Granularity[] = ['day', 'week', 'month', 'quarter'];
 
 // ──────────────────────────────────────────────────────────────────────────────
 // 漏斗阶段选项
 // ──────────────────────────────────────────────────────────────────────────────
 
-const FUNNEL_STAGE_OPTIONS: { value: FunnelStage; label: string }[] = [
-  { value: 'all', label: '全部阶段' },
-  { value: 'registration', label: '注册' },
-  { value: 'appointment', label: '预约' },
-  { value: 'attendance', label: '出席' },
-  { value: 'payment', label: '付费' },
-];
+const FUNNEL_STAGE_VALUES: FunnelStage[] = ['all', 'registration', 'appointment', 'attendance', 'payment'];
 
 // ──────────────────────────────────────────────────────────────────────────────
 // 渠道选项（静态标签，实际可选值来自 /api/filter/options）
 // ──────────────────────────────────────────────────────────────────────────────
 
-const CHANNEL_LABELS: Record<Channel, string> = {
-  all: '全部渠道',
-  cc_narrow: 'CC 窄口',
-  ss_narrow: 'SS 窄口',
-  lp_narrow: 'LP 窄口',
-  cc_wide: 'CC 宽口',
-  lp_wide: 'LP 宽口',
-  ops_wide: '运营宽口',
+// channel i18n key 映射（cc_narrow → ccNarrow 等）
+const CHANNEL_I18N_KEYS: Record<Channel, string> = {
+  all: 'channel.all',
+  cc_narrow: 'channel.ccNarrow',
+  ss_narrow: 'channel.ssNarrow',
+  lp_narrow: 'channel.lpNarrow',
+  cc_wide: 'channel.ccWide',
+  lp_wide: 'channel.lpWide',
+  ops_wide: 'channel.opsWide',
 };
 
 // 有效围场（active）的 slug 列表（业务定义：M0-M6+）
@@ -150,6 +136,7 @@ interface EnclosureDropdownProps {
 function EnclosureDropdown({ value, onChange, enclosures }: EnclosureDropdownProps) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const t = useTranslations('filterBar');
 
   // 关闭逻辑：点击外部关闭
   useEffect(() => {
@@ -165,10 +152,10 @@ function EnclosureDropdown({ value, onChange, enclosures }: EnclosureDropdownPro
 
   // 计算显示标签
   function getLabel(): string {
-    if (value === null) return '有效围场';
-    if (value.length === 0) return '全部围场';
+    if (value === null) return t('enclosure.active');
+    if (value.length === 0) return t('enclosure.all');
     if (value.length === 1) return value[0];
-    return `${value.length} 个围场`;
+    return t('enclosure.count', { n: value.length });
   }
 
   function handleQuick(type: 'all' | 'active') {
@@ -206,7 +193,7 @@ function EnclosureDropdown({ value, onChange, enclosures }: EnclosureDropdownPro
                   : 'bg-[var(--bg-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]',
               ].join(' ')}
             >
-              全部
+              {t('enclosure.selectAll')}
             </button>
             <button
               onClick={() => handleQuick('active')}
@@ -217,7 +204,7 @@ function EnclosureDropdown({ value, onChange, enclosures }: EnclosureDropdownPro
                   : 'bg-[var(--bg-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]',
               ].join(' ')}
             >
-              有效
+              {t('enclosure.selectActive')}
             </button>
           </div>
           <div className="h-px bg-[var(--border-subtle)] mx-2 mb-1" />
@@ -239,7 +226,7 @@ function EnclosureDropdown({ value, onChange, enclosures }: EnclosureDropdownPro
                 />
                 <span className="text-xs text-[var(--text-primary)]">{enc.label || enc.value}</span>
                 {!enc.is_active && (
-                  <span className="ml-auto text-[10px] text-[var(--text-muted)]">非有效</span>
+                  <span className="ml-auto text-[10px] text-[var(--text-muted)]">{t('enclosure.nonActive')}</span>
                 )}
               </label>
             ))}
@@ -265,15 +252,16 @@ const BEHAVIOR_COLORS: Record<string, string> = {
   casual: '#94a3b8',
 };
 
-const BEHAVIOR_LABELS: Record<string, string> = {
-  gold: '黄金',
-  effective: '有效',
-  stuck_pay: '卡付费',
-  stuck_show: '卡出席',
-  potential: '潜力',
-  freeloader: '摆烂',
-  newcomer: '新入',
-  casual: '随机',
+// behavior i18n key 映射（stuck_pay → behavior.stuckPay 等）
+const BEHAVIOR_I18N_KEYS: Record<string, string> = {
+  gold: 'behavior.gold',
+  effective: 'behavior.effective',
+  stuck_pay: 'behavior.stuckPay',
+  stuck_show: 'behavior.stuckShow',
+  potential: 'behavior.potential',
+  freeloader: 'behavior.freeloader',
+  newcomer: 'behavior.newcomer',
+  casual: 'behavior.casual',
 };
 
 interface BehaviorChipsProps {
@@ -285,6 +273,7 @@ interface BehaviorChipsProps {
 function BehaviorChips({ value, onChange, behaviors }: BehaviorChipsProps) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const t = useTranslations('filterBar');
 
   useEffect(() => {
     if (!open) return;
@@ -298,7 +287,9 @@ function BehaviorChips({ value, onChange, behaviors }: BehaviorChipsProps) {
   }, [open]);
 
   const activeCount = value?.length ?? 0;
-  const label = activeCount === 0 || value === null ? '行为分层' : `${activeCount} 分层`;
+  const label = activeCount === 0 || value === null
+    ? t('behavior.label')
+    : t('behavior.count', { n: activeCount });
 
   function toggleBehavior(slug: BehaviorSegment) {
     const current = value ?? [];
@@ -311,9 +302,9 @@ function BehaviorChips({ value, onChange, behaviors }: BehaviorChipsProps) {
   const displayBehaviors =
     behaviors.length > 0
       ? behaviors
-      : Object.keys(BEHAVIOR_LABELS).map((key) => ({
+      : Object.keys(BEHAVIOR_I18N_KEYS).map((key) => ({
           value: key,
-          label: BEHAVIOR_LABELS[key],
+          label: t(BEHAVIOR_I18N_KEYS[key] as Parameters<typeof t>[0]),
           color: BEHAVIOR_COLORS[key] ?? '#94a3b8',
           count: 0,
         }));
@@ -354,7 +345,7 @@ function BehaviorChips({ value, onChange, behaviors }: BehaviorChipsProps) {
                     style={{ backgroundColor: color }}
                   />
                   <span className="text-[var(--text-primary)]">
-                    {beh.label || BEHAVIOR_LABELS[beh.value] || beh.value}
+                    {beh.label || (BEHAVIOR_I18N_KEYS[beh.value] ? t(BEHAVIOR_I18N_KEYS[beh.value] as Parameters<typeof t>[0]) : beh.value)}
                   </span>
                 </button>
               );
@@ -368,7 +359,7 @@ function BehaviorChips({ value, onChange, behaviors }: BehaviorChipsProps) {
               }}
               className="mt-2 w-full text-[10px] text-[var(--text-muted)] hover:text-[var(--text-primary)] text-center transition-colors"
             >
-              清除选择
+              {t('clear')}
             </button>
           )}
         </div>
@@ -406,7 +397,7 @@ function FilterSlot({
 }) {
   if (state === 'disabled') {
     return (
-      <div className="relative group" title={tooltip ?? '此页面不适用'}>
+      <div className="relative group" title={tooltip}>
         <div className="opacity-35 pointer-events-none select-none">{children}</div>
       </div>
     );
@@ -430,6 +421,7 @@ export function UnifiedFilterBar() {
   const dims = useCurrentPageDimensions();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [advancedOpen, setAdvancedOpen] = useState(false);
+  const t = useTranslations('filterBar');
 
   // Store 状态
   const country = useConfigStore((s) => s.country);
@@ -562,6 +554,35 @@ export function UnifiedFilterBar() {
   const granularityFixed =
     typeof dims.granularity === 'string' ? (dims.granularity as Granularity) : null;
 
+  // 动态构建 options（通过 t() 获取 i18n 标签，品牌名 CC/SS/LP 不翻译）
+  const DATA_ROLE_OPTIONS: { value: DataRole; label: string }[] = DATA_ROLE_VALUES.map((v) => ({
+    value: v,
+    label: v === 'all' ? t('allRoles') : v === 'ops' ? t('ops') : v.toUpperCase(),
+  }));
+
+  const GRANULARITY_OPTIONS: { value: Granularity; label: string }[] = GRANULARITY_VALUES.map((v) => ({
+    value: v,
+    label: t(`granularity.${v}` as Parameters<typeof t>[0]),
+  }));
+
+  const FUNNEL_STAGE_OPTIONS: { value: FunnelStage; label: string }[] = FUNNEL_STAGE_VALUES.map((v) => ({
+    value: v,
+    label: t(`funnelStage.${v}` as Parameters<typeof t>[0]),
+  }));
+
+  // channel label 辅助函数（通过 i18n key 获取翻译）
+  const getChannelLabel = (ch: Channel): string => t(CHANNEL_I18N_KEYS[ch] as Parameters<typeof t>[0]);
+
+  // 当月后缀（用于月份选择器 formatYYYYMMtoLabel）
+  const currentMonthSuffix = t('currentMonth');
+
+  // 时间对比选项
+  const TEMPORAL_OPTIONS: { value: Exclude<CompareMode, 'off' | 'pop'>; label: string }[] = [
+    { value: 'yoy', label: t('temporal.yoy') },
+    { value: 'peak', label: t('temporal.peak') },
+    { value: 'valley', label: t('temporal.valley') },
+  ];
+
   // 是否显示第二行（有任一分析维度适用当前页面）
   const showAdvancedRow =
     dims.granularity !== undefined ||
@@ -609,11 +630,11 @@ export function UnifiedFilterBar() {
             const isCurrent = ym === currentYYYYMM;
             return (
               <option key={ym} value={ym}>
-                {formatYYYYMMtoLabel(ym, isCurrent)}
+                {formatYYYYMMtoLabel(ym, isCurrent, currentMonthSuffix)}
               </option>
             );
           })}
-          <option value="custom">自定义范围</option>
+          <option value="custom">{t('customRange')}</option>
         </select>
         {/* 自定义日期范围输入框 */}
         {hydrated && customDateRange !== null && (
@@ -640,7 +661,7 @@ export function UnifiedFilterBar() {
       </div>
 
       {/* 国家 */}
-      <FilterSlot state={countryState} tooltip="地区筛选在此页面不适用">
+      <FilterSlot state={countryState} tooltip={t('countryNotApplicable')}>
         {isSingleCountry ? (
           <span className="flex items-center gap-1 px-2.5 py-1 h-8 rounded-lg bg-[var(--bg-subtle)] border border-[var(--border-subtle)] text-xs text-[var(--text-muted)] select-none">
             <Globe className="w-3.5 h-3.5" />
@@ -666,8 +687,8 @@ export function UnifiedFilterBar() {
         state={dataRoleState}
         tooltip={
           dataRoleState === 'locked'
-            ? `本页面固定为 ${dataRoleFixed?.toUpperCase()}`
-            : '数据角色在此页面不适用'
+            ? t('lockedToRole', { role: dataRoleFixed?.toUpperCase() ?? '' })
+            : t('dataRoleNotApplicable')
         }
       >
         {dataRoleFixed ? (
@@ -684,7 +705,7 @@ export function UnifiedFilterBar() {
       </FilterSlot>
 
       {/* 围场 */}
-      <FilterSlot state={enclosureState} tooltip="围场筛选在此页面不适用">
+      <FilterSlot state={enclosureState} tooltip={t('enclosureNotApplicable')}>
         <EnclosureDropdown
           value={hydrated ? enclosure : null}
           onChange={setEnclosure}
@@ -693,13 +714,13 @@ export function UnifiedFilterBar() {
       </FilterSlot>
 
       {/* 团队下拉 */}
-      <FilterSlot state={teamState} tooltip="团队筛选在此页面不适用">
+      <FilterSlot state={teamState} tooltip={t('teamNotApplicable')}>
         <select
           value={teamFilter ?? ''}
           onChange={(e) => setTeamFilter(e.target.value || null)}
           className="h-8 px-2.5 rounded-lg bg-[var(--bg-subtle)] border border-[var(--border-subtle)] text-xs text-[var(--text-primary)] focus:ring-1 focus:ring-[var(--brand-p1)] outline-none cursor-pointer transition-colors"
         >
-          <option value="">所有团队</option>
+          <option value="">{t('allTeams')}</option>
           {teams.map((t) => (
             <option key={t.value} value={t.value}>
               {t.label || t.value}
@@ -709,14 +730,14 @@ export function UnifiedFilterBar() {
       </FilterSlot>
 
       {/* CC 搜索 */}
-      <FilterSlot state={teamState} tooltip="CC 搜索在此页面不适用">
+      <FilterSlot state={teamState} tooltip={t('ccSearchNotApplicable')}>
         <div className="relative">
           <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3 h-3 text-[var(--text-muted)] pointer-events-none" />
           <input
             type="text"
             value={focusCC ?? ''}
             onChange={(e) => setFocusCC(e.target.value || null)}
-            placeholder="搜索 CC..."
+            placeholder={t('searchCC')}
             className="h-8 pl-7 pr-3 rounded-full bg-[var(--bg-subtle)] border border-[var(--border-subtle)] text-xs text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:ring-1 focus:ring-[var(--brand-p1)] focus:border-[var(--brand-p1)] outline-none transition-all w-32 focus:w-44"
           />
         </div>
@@ -729,7 +750,7 @@ export function UnifiedFilterBar() {
           className="flex items-center gap-1 px-2 py-1 h-8 rounded-full text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)] border border-[var(--border-subtle)] hover:border-[var(--border-default)] transition-colors ml-auto"
         >
           <X className="w-3 h-3" />
-          清除
+          {t('clearFilter')}
         </button>
       )}
 
@@ -745,11 +766,11 @@ export function UnifiedFilterBar() {
       >
         {advancedOpen ? (
           <>
-            收起 <ChevronUp className="w-3 h-3" />
+            {t('lessFilters')} <ChevronUp className="w-3 h-3" />
           </>
         ) : (
           <>
-            更多筛选 <ChevronDown className="w-3 h-3" />
+            {t('moreFilters')} <ChevronDown className="w-3 h-3" />
           </>
         )}
       </button>
@@ -763,8 +784,8 @@ export function UnifiedFilterBar() {
         state={granularityState}
         tooltip={
           granularityState === 'locked'
-            ? `本页面固定为 ${granularityFixed}`
-            : '时间粒度在此页面不适用'
+            ? t('lockedToGranularity', { granularity: granularityFixed ?? '' })
+            : t('granularityNotApplicable')
         }
       >
         {granularityFixed ? (
@@ -783,7 +804,7 @@ export function UnifiedFilterBar() {
       </FilterSlot>
 
       {/* 漏斗阶段 */}
-      <FilterSlot state={funnelState} tooltip="漏斗阶段在此页面不适用">
+      <FilterSlot state={funnelState} tooltip={t('funnelNotApplicable')}>
         <select
           value={hydrated ? funnelStage : 'all'}
           onChange={(e) => setFunnelStage(e.target.value as FunnelStage)}
@@ -798,7 +819,7 @@ export function UnifiedFilterBar() {
       </FilterSlot>
 
       {/* 渠道 */}
-      <FilterSlot state={channelState} tooltip="渠道筛选在此页面不适用">
+      <FilterSlot state={channelState} tooltip={t('channelNotApplicable')}>
         <select
           value={hydrated ? channel : 'all'}
           onChange={(e) => setChannel(e.target.value as Channel)}
@@ -806,21 +827,21 @@ export function UnifiedFilterBar() {
         >
           {(channels.length > 0
             ? channels
-            : (Object.entries(CHANNEL_LABELS) as [Channel, string][]).map(([v, l]) => ({
+            : (Object.keys(CHANNEL_I18N_KEYS) as Channel[]).map((v) => ({
                 value: v,
-                label: l,
+                label: getChannelLabel(v),
                 available_sources: [],
               }))
           ).map((c) => (
             <option key={c.value} value={c.value}>
-              {c.label || CHANNEL_LABELS[c.value as Channel] || c.value}
+              {c.label || getChannelLabel(c.value as Channel) || c.value}
             </option>
           ))}
         </select>
       </FilterSlot>
 
       {/* 学员行为多选 */}
-      <FilterSlot state={behaviorState} tooltip="学员行为筛选在此页面不适用">
+      <FilterSlot state={behaviorState} tooltip={t('behaviorNotApplicable')}>
         <BehaviorChips
           value={hydrated ? behavior : null}
           onChange={setBehavior}
@@ -829,13 +850,6 @@ export function UnifiedFilterBar() {
       </FilterSlot>
     </div>
   ) : null;
-
-  // 时间对比选项
-  const TEMPORAL_OPTIONS: { value: Exclude<CompareMode, 'off' | 'pop'>; label: string }[] = [
-    { value: 'yoy', label: '同比' },
-    { value: 'peak', label: '巅峰' },
-    { value: 'valley', label: '低谷' },
-  ];
 
   function handleTemporalToggle(mode: Exclude<CompareMode, 'off' | 'pop'>) {
     setCompareMode(compareMode === mode ? 'off' : mode);
@@ -849,7 +863,7 @@ export function UnifiedFilterBar() {
       <div className="h-4 w-px bg-[var(--border-subtle)]" />
       {/* 时间对比 */}
       <div className="flex items-center gap-1.5">
-        <span className="text-xs text-[var(--text-muted)] shrink-0 mr-0.5">时间</span>
+        <span className="text-xs text-[var(--text-muted)] shrink-0 mr-0.5">{t('time')}</span>
         {TEMPORAL_OPTIONS.map((opt) => {
           const isActive = compareMode === opt.value;
           return (
@@ -880,7 +894,7 @@ export function UnifiedFilterBar() {
         className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[var(--bg-subtle)] border border-[var(--border-default)] text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors min-h-[44px]"
       >
         <SlidersHorizontal className="w-4 h-4" />
-        筛选
+        {t('filter')}
         {hasActiveFilter && (
           <span className="ml-1 w-2 h-2 rounded-full bg-[var(--brand-p1)] inline-block" />
         )}
@@ -891,7 +905,7 @@ export function UnifiedFilterBar() {
           className="flex items-center gap-1 px-2 py-1 rounded-full text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
         >
           <X className="w-3 h-3" />
-          清除
+          {t('clearFilter')}
         </button>
       )}
     </div>
@@ -908,7 +922,7 @@ export function UnifiedFilterBar() {
           <div className="w-10 h-1 rounded-full bg-[var(--border-default)]" />
         </div>
         <div className="px-4 pb-2 flex items-center justify-between">
-          <span className="text-base font-semibold text-[var(--text-primary)]">数据筛选</span>
+          <span className="text-base font-semibold text-[var(--text-primary)]">{t('dataFilter')}</span>
           <button
             onClick={() => setDrawerOpen(false)}
             className="p-1.5 rounded-full hover:bg-[var(--bg-subtle)] text-[var(--text-muted)] transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
@@ -922,7 +936,7 @@ export function UnifiedFilterBar() {
           {dims.dataRole !== false && dims.dataRole !== undefined && !dataRoleFixed && (
             <div className="space-y-2">
               <label className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">
-                数据角色
+                {t('dataRole')}
               </label>
               <div className="flex flex-wrap gap-2">
                 {DATA_ROLE_OPTIONS.map((opt) => (
@@ -947,7 +961,7 @@ export function UnifiedFilterBar() {
           {dims.enclosure !== false && dims.enclosure !== undefined && (
             <div className="space-y-2">
               <label className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">
-                围场
+                {t('enclosureLabel')}
               </label>
               <div className="flex gap-2 mb-2">
                 <button
@@ -959,7 +973,7 @@ export function UnifiedFilterBar() {
                       : 'border-[var(--border-default)] text-[var(--text-secondary)]',
                   ].join(' ')}
                 >
-                  全部
+                  {t('enclosure.selectAll')}
                 </button>
                 <button
                   onClick={() => setEnclosure(null)}
@@ -970,7 +984,7 @@ export function UnifiedFilterBar() {
                       : 'border-[var(--border-default)] text-[var(--text-secondary)]',
                   ].join(' ')}
                 >
-                  有效
+                  {t('enclosure.selectActive')}
                 </button>
               </div>
               <div className="flex flex-wrap gap-1.5">
@@ -1011,14 +1025,14 @@ export function UnifiedFilterBar() {
           {dims.team !== false && dims.team !== undefined && (
             <div className="space-y-1.5">
               <label className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">
-                团队
+                {t('teamLabel')}
               </label>
               <select
                 value={teamFilter ?? ''}
                 onChange={(e) => setTeamFilter(e.target.value || null)}
                 className="w-full bg-[var(--bg-subtle)] border border-[var(--border-subtle)] text-[var(--text-primary)] text-sm font-medium rounded-lg focus:ring-2 focus:ring-[var(--brand-p1)] focus:border-[var(--brand-p1)] block px-3 py-2.5 outline-none transition-colors"
               >
-                <option value="">所有团队</option>
+                <option value="">{t('allTeams')}</option>
                 {teams.map((t) => (
                   <option key={t.value} value={t.value}>
                     {t.label || t.value}
@@ -1032,7 +1046,7 @@ export function UnifiedFilterBar() {
           {dims.team !== false && dims.team !== undefined && (
             <div className="space-y-1.5">
               <label className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">
-                搜索 CC
+                {t('searchCCLabel')}
               </label>
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)] pointer-events-none" />
@@ -1040,7 +1054,7 @@ export function UnifiedFilterBar() {
                   type="text"
                   value={focusCC ?? ''}
                   onChange={(e) => setFocusCC(e.target.value || null)}
-                  placeholder="搜索特定 CC..."
+                  placeholder={t('searchCCSpecific')}
                   className="w-full bg-[var(--bg-subtle)] border border-[var(--border-subtle)] text-[var(--text-primary)] text-sm rounded-lg focus:ring-2 focus:ring-[var(--brand-p1)] focus:border-[var(--brand-p1)] block pl-9 pr-4 py-2.5 outline-none transition-all placeholder:text-[var(--text-muted)]"
                   autoFocus
                 />
@@ -1052,7 +1066,7 @@ export function UnifiedFilterBar() {
           {dims.granularity !== false && dims.granularity !== undefined && !granularityFixed && (
             <div className="space-y-2">
               <label className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">
-                时间粒度
+                {t('granularityLabel')}
               </label>
               <div className="flex gap-2">
                 {GRANULARITY_OPTIONS.map((opt) => (
@@ -1077,7 +1091,7 @@ export function UnifiedFilterBar() {
           {dims.funnelStage !== false && dims.funnelStage !== undefined && (
             <div className="space-y-1.5">
               <label className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">
-                漏斗阶段
+                {t('funnelStageLabel')}
               </label>
               <select
                 value={funnelStage}
@@ -1097,7 +1111,7 @@ export function UnifiedFilterBar() {
           {dims.channel !== false && dims.channel !== undefined && (
             <div className="space-y-1.5">
               <label className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">
-                渠道
+                {t('channelLabel')}
               </label>
               <select
                 value={channel}
@@ -1106,14 +1120,14 @@ export function UnifiedFilterBar() {
               >
                 {(channels.length > 0
                   ? channels
-                  : (Object.entries(CHANNEL_LABELS) as [Channel, string][]).map(([v, l]) => ({
+                  : (Object.keys(CHANNEL_I18N_KEYS) as Channel[]).map((v) => ({
                       value: v,
-                      label: l,
+                      label: getChannelLabel(v),
                       available_sources: [],
                     }))
                 ).map((c) => (
                   <option key={c.value} value={c.value}>
-                    {c.label || CHANNEL_LABELS[c.value as Channel] || c.value}
+                    {c.label || getChannelLabel(c.value as Channel) || c.value}
                   </option>
                 ))}
               </select>
@@ -1123,7 +1137,7 @@ export function UnifiedFilterBar() {
           {/* 对比基准 */}
           <div className="space-y-2">
             <label className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">
-              对比基准
+              {t('compareLabel')}
             </label>
             <BenchmarkSelector />
           </div>
@@ -1131,7 +1145,7 @@ export function UnifiedFilterBar() {
           {/* 时间对比 */}
           <div className="space-y-2">
             <label className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">
-              时间对比
+              {t('temporalLabel')}
             </label>
             <div className="flex gap-2">
               {TEMPORAL_OPTIONS.map((opt) => {
@@ -1164,14 +1178,14 @@ export function UnifiedFilterBar() {
                 }}
                 className="flex-1 py-2.5 rounded-lg text-sm font-medium border border-[var(--border-default)] text-[var(--text-secondary)] hover:bg-[var(--bg-subtle)] transition-colors"
               >
-                清除筛选
+                {t('clearFilters')}
               </button>
             )}
             <button
               onClick={() => setDrawerOpen(false)}
               className="flex-1 py-2.5 rounded-lg text-sm font-medium bg-[var(--brand-p1)] text-white hover:opacity-90 transition-opacity"
             >
-              确认
+              {t('confirm')}
             </button>
           </div>
         </div>

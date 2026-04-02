@@ -1,17 +1,20 @@
 'use client';
 
 import { Link, usePathname } from '@/i18n/navigation';
+import { useTranslations } from 'next-intl';
 import { Home, CheckCircle, Star, Settings } from 'lucide-react';
 
+// label 字段存储 translation key
 const TABS = [
-  { href: '/', icon: Home, label: '首页' },
-  { href: '/checkin', icon: CheckCircle, label: '打卡' },
-  { href: '/high-potential', icon: Star, label: '高潜' },
-  { href: '/settings', icon: Settings, label: '设置' },
+  { href: '/', icon: Home, label: 'home' },
+  { href: '/checkin', icon: CheckCircle, label: 'checkin' },
+  { href: '/high-potential', icon: Star, label: 'highPotential' },
+  { href: '/settings', icon: Settings, label: 'settings' },
 ] as const;
 
 export function BottomTabBar() {
   const pathname = usePathname();
+  const t = useTranslations('bottomTab');
 
   return (
     <nav
@@ -32,7 +35,7 @@ export function BottomTabBar() {
               }`}
             >
               <Icon size={20} strokeWidth={isActive ? 2.5 : 1.75} />
-              <span className="text-[10px] font-medium leading-none">{label}</span>
+              <span className="text-[10px] font-medium leading-none">{t(label)}</span>
             </Link>
           );
         })}

@@ -3,6 +3,7 @@
 import { Link, usePathname } from '@/i18n/navigation';
 import { clsx } from 'clsx';
 import { useState, useEffect } from 'react';
+import { useTranslations } from 'next-intl';
 import { BrandMark } from '@/components/ui/BrandMark';
 import {
   BarChart3,
@@ -54,63 +55,64 @@ interface NavGroup {
   items: NavItem[];
 }
 
+// label 字段存储 translation key（在组件内通过 t(key) 渲染）
 const MAIN_GROUPS: NavGroup[] = [
   {
     key: 'analysis',
-    label: '分析',
+    label: 'group.analysis',
     defaultOpen: true,
     items: [
-      { href: '/', label: '总览 Dashboard', Icon: BarChart3 },
-      { href: '/funnel', label: '漏斗分析', Icon: TrendingUp },
-      { href: '/enclosure', label: '围场分析', Icon: Target },
-      { href: '/channel', label: '渠道分析', Icon: DollarSign },
-      { href: '/members', label: '学员明细', Icon: Users },
-      { href: '/high-potential', label: '高潜学员', Icon: Star },
-      { href: '/team', label: '团队汇总', Icon: Trophy },
+      { href: '/', label: 'dashboard', Icon: BarChart3 },
+      { href: '/funnel', label: 'funnel', Icon: TrendingUp },
+      { href: '/enclosure', label: 'enclosure', Icon: Target },
+      { href: '/channel', label: 'channel', Icon: DollarSign },
+      { href: '/members', label: 'members', Icon: Users },
+      { href: '/high-potential', label: 'highPotential', Icon: Star },
+      { href: '/team', label: 'team', Icon: Trophy },
     ],
   },
   {
     key: 'operations',
-    label: '运营',
+    label: 'group.operations',
     defaultOpen: true,
     items: [
-      { href: '/checkin', label: '打卡管理', Icon: CheckCircle },
-      { href: '/daily-monitor', label: '触达监控', Icon: Radio },
-      { href: '/outreach-quality', label: '接通质量分析', Icon: PhoneCall },
-      { href: '/incentive-tracking', label: '激励追踪', Icon: Gift },
-      { href: '/renewal-risk', label: '续费风险', Icon: AlertTriangle },
-      { href: '/expiry-alert', label: '次卡到期预警', Icon: AlertTriangle },
-      { href: '/cc-performance', label: 'CC 个人业绩', Icon: UserCheck },
+      { href: '/checkin', label: 'checkin', Icon: CheckCircle },
+      { href: '/daily-monitor', label: 'dailyMonitor', Icon: Radio },
+      { href: '/outreach-quality', label: 'outreachQuality', Icon: PhoneCall },
+      { href: '/incentive-tracking', label: 'incentiveTracking', Icon: Gift },
+      { href: '/renewal-risk', label: 'renewalRisk', Icon: AlertTriangle },
+      { href: '/expiry-alert', label: 'expiryAlert', Icon: AlertTriangle },
+      { href: '/cc-performance', label: 'ccPerformance', Icon: UserCheck },
     ],
   },
   {
     key: 'cross',
-    label: '交叉分析',
+    label: 'group.cross',
     defaultOpen: false,
     items: [
-      { href: '/attribution', label: '达成归因分析', Icon: GitMerge },
-      { href: '/high-potential/warroom', label: '高潜作战室', Icon: Swords },
-      { href: '/personnel-matrix', label: '人员战力图', Icon: Grid3X3 },
-      { href: '/enclosure-health', label: '围场健康扫描仪', Icon: HeartPulse },
-      { href: '/students/360', label: '学员360档案', Icon: Search },
-      { href: '/learning-heatmap', label: '学习热图', Icon: Flame },
-      { href: '/geo-distribution', label: '地理分布', Icon: Globe },
+      { href: '/attribution', label: 'attribution', Icon: GitMerge },
+      { href: '/high-potential/warroom', label: 'highPotentialWarroom', Icon: Swords },
+      { href: '/personnel-matrix', label: 'personnelMatrix', Icon: Grid3X3 },
+      { href: '/enclosure-health', label: 'enclosureHealth', Icon: HeartPulse },
+      { href: '/students/360', label: 'students360', Icon: Search },
+      { href: '/learning-heatmap', label: 'learningHeatmap', Icon: Flame },
+      { href: '/geo-distribution', label: 'geoDistribution', Icon: Globe },
     ],
   },
   {
     key: 'system',
-    label: '系统',
+    label: 'group.system',
     defaultOpen: false,
     items: [
-      { href: '/analytics', label: '运营分析报告', Icon: LineChart },
-      { href: '/reports', label: '分析报告', Icon: FileText },
-      { href: '/notifications', label: '通知推送', Icon: Bot },
-      { href: '/indicator-matrix', label: '指标矩阵', Icon: LayoutGrid },
-      { href: '/knowledge', label: '知识库', Icon: BookOpen },
-      { href: '/data-health', label: '数据健康', Icon: Activity },
-      { href: '/settings', label: '设置', Icon: Settings },
-      { href: '/access-control', label: '权限管理', Icon: Lock },
-      { href: '/present', label: '汇报模式', Icon: Monitor },
+      { href: '/analytics', label: 'analytics', Icon: LineChart },
+      { href: '/reports', label: 'reports', Icon: FileText },
+      { href: '/notifications', label: 'notifications', Icon: Bot },
+      { href: '/indicator-matrix', label: 'indicatorMatrix', Icon: LayoutGrid },
+      { href: '/knowledge', label: 'knowledge', Icon: BookOpen },
+      { href: '/data-health', label: 'dataHealth', Icon: Activity },
+      { href: '/settings', label: 'settings', Icon: Settings },
+      { href: '/access-control', label: 'accessControl', Icon: Lock },
+      { href: '/present', label: 'present', Icon: Monitor },
     ],
   },
 ];
@@ -125,7 +127,7 @@ function getDefaultOpenState(): Record<string, boolean> {
   return result;
 }
 
-function NavLink({ href, label, Icon }: NavItem) {
+function NavLink({ href, label, Icon, t }: NavItem & { t: (key: string) => string }) {
   const pathname = usePathname();
   const isActive = pathname === href || (href !== '/' && pathname.startsWith(href));
 
@@ -142,7 +144,7 @@ function NavLink({ href, label, Icon }: NavItem) {
       )}
     >
       <Icon className="w-4 h-4 shrink-0" aria-hidden="true" />
-      <span>{label}</span>
+      <span>{t(label)}</span>
     </Link>
   );
 }
@@ -151,10 +153,12 @@ function CollapsibleGroup({
   group,
   open,
   onToggle,
+  t,
 }: {
   group: NavGroup;
   open: boolean;
   onToggle: () => void;
+  t: (key: string) => string;
 }) {
   return (
     <div className="mb-1">
@@ -169,7 +173,7 @@ function CollapsibleGroup({
           'mt-3'
         )}
       >
-        <span>{group.label}</span>
+        <span>{t(group.label)}</span>
         {open ? (
           <ChevronDown className="w-3 h-3 transition-transform duration-200" aria-hidden="true" />
         ) : (
@@ -185,7 +189,7 @@ function CollapsibleGroup({
       >
         <div className="space-y-0.5 pb-1">
           {group.items.map((item) => (
-            <NavLink key={item.href} {...item} />
+            <NavLink key={item.href} {...item} t={t} />
           ))}
         </div>
       </div>
@@ -195,6 +199,7 @@ function CollapsibleGroup({
 
 function SidebarContent() {
   const pathname = usePathname();
+  const t = useTranslations('nav');
   const [openState, setOpenState] = useState<Record<string, boolean>>(getDefaultOpenState);
   const [hydrated, setHydrated] = useState(false);
 
@@ -265,16 +270,17 @@ function SidebarContent() {
           <BrandMark size={20} className="text-[var(--brand-p1)] shrink-0" />
           <p className="text-sm font-bold text-primary tracking-wide font-display">51Talk</p>
         </div>
-        <p className="text-xs text-[var(--text-muted)] mt-0.5 pl-7">转介绍运营</p>
+        <p className="text-xs text-[var(--text-muted)] mt-0.5 pl-7">{t('subtitle')}</p>
       </div>
 
-      <nav className="flex-1 p-2 overflow-y-auto" aria-label="主导航">
+      <nav className="flex-1 p-2 overflow-y-auto" aria-label={t('mainNav')}>
         {MAIN_GROUPS.map((group) => (
           <CollapsibleGroup
             key={group.key}
             group={group}
             open={openState[group.key] ?? group.defaultOpen}
             onToggle={() => toggle(group.key)}
+            t={t}
           />
         ))}
       </nav>
@@ -284,6 +290,7 @@ function SidebarContent() {
 
 export function NavSidebar() {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const tNav = useTranslations('nav');
 
   return (
     <>
@@ -291,7 +298,7 @@ export function NavSidebar() {
       <button
         className="lg:hidden fixed top-4 left-4 z-50 p-2 rounded-lg bg-[var(--bg-surface)] border border-[var(--border-subtle)] shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
         onClick={() => setMobileOpen(true)}
-        aria-label="打开导航菜单"
+        aria-label={tNav('openMenu')}
       >
         <Menu className="w-5 h-5 text-[var(--text-secondary)]" aria-hidden="true" />
       </button>
@@ -302,7 +309,7 @@ export function NavSidebar() {
           className="lg:hidden fixed inset-0 z-50 flex"
           role="dialog"
           aria-modal="true"
-          aria-label="导航菜单"
+          aria-label={tNav('mainNav')}
         >
           {/* Backdrop */}
           <div
@@ -315,7 +322,7 @@ export function NavSidebar() {
             <button
               className="absolute top-3 right-3 p-1.5 rounded-lg text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-[var(--bg-subtle)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
               onClick={() => setMobileOpen(false)}
-              aria-label="关闭导航菜单"
+              aria-label={tNav('closeMenu')}
             >
               <X className="w-4 h-4" aria-hidden="true" />
             </button>
