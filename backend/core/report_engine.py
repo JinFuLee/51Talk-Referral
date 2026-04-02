@@ -101,7 +101,8 @@ class ReportEngine:
             符合 frontend/lib/types/report.ts DailyReport 的 dict
         """
         if reference_date is None:
-            reference_date = date.today() - timedelta(days=1)
+            from backend.core.date_override import get_today
+            reference_date = get_today() - timedelta(days=1)
 
         ref_str = reference_date.isoformat()
         month_key = reference_date.strftime("%Y%m")
@@ -166,7 +167,8 @@ class ReportEngine:
             符合 ReportSummary 接口的 dict
         """
         if reference_date is None:
-            reference_date = date.today() - timedelta(days=1)
+            from backend.core.date_override import get_today
+            reference_date = get_today() - timedelta(days=1)
 
         month_key = reference_date.strftime("%Y%m")
         data = self._get_data()

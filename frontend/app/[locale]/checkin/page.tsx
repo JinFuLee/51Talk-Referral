@@ -13,7 +13,6 @@ import { RankingTab } from '@/components/checkin/RankingTab';
 import SummaryTab from '@/components/checkin/SummaryTab';
 import { StudentInsightsTab } from '@/components/checkin/StudentInsightsTab';
 import { RoiAnalysisTab } from '@/components/checkin/RoiAnalysisTab';
-import { UnifiedFilterBar } from '@/components/checkin/UnifiedFilterBar';
 import { useWideConfig } from '@/lib/hooks/useWideConfig';
 import { useMyView } from '@/lib/hooks/useMyView';
 import { ContactConversionScatter } from '@/components/daily-monitor/ContactConversionScatter';
@@ -332,23 +331,6 @@ function CheckinPageInner() {
           <p className="text-xs text-[var(--text-muted)] mt-1">{t.checkBackend}</p>
         </div>
       )}
-
-      {/* ── 统一筛选栏（2层架构 L1）── */}
-      <UnifiedFilterBar
-        role={roleFilter}
-        onRoleChange={handleRoleChange}
-        activeRoles={visibleRoles as string[]}
-        team={teamFilter}
-        onTeamChange={handleTeamChange}
-        teams={teams}
-        ccSearch={ccSearch}
-        onCCSearchChange={setCCSearch}
-        enclosure={enclosureFilter}
-        onEnclosureChange={handleEnclosureChange}
-        kpiEnclosures={kpiEnclosures}
-        onClearAll={handleClearAll}
-        hasFilter={hasAnyFilter}
-      />
 
       {/* ── Tab 导航（L2）── */}
       <PageTabs

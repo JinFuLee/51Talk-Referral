@@ -10,6 +10,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Request
 
 from backend.api.dependencies import get_data_manager
 from backend.core.config import get_targets
+from backend.core.date_override import get_today
 from backend.core.daily_snapshot_service import DB_PATH, DailySnapshotService
 from backend.core.data_manager import DataManager
 from backend.core.report_engine import ReportEngine
@@ -25,7 +26,7 @@ def _auto_snapshot(dm: DataManager, ref: date | None = None) -> None:
         from backend.core.channel_funnel_engine import ChannelFunnelEngine
 
         svc = DailySnapshotService(db_path=DB_PATH)
-        ref_date = ref or (date.today() - timedelta(days=1))
+        ref_date = ref or (get_today() - timedelta(days=1))
 
         # 检查是否已有当日快照
         existing = svc.query_by_date(ref_date.isoformat())
@@ -174,7 +175,7 @@ def get_report_comparison(
             detail=f"type 无效：{type}，合法值：{sorted(_VALID_TYPES)}",
         )
 
-    ref = _parse_date_param(reference_date) or (date.today() - timedelta(days=1))
+    ref = _parse_date_param(reference_date) or (get_today() - timedelta(days=1))
     _metric = metric or "revenue_usd"
     _channel = channel or "total"
 
@@ -224,7 +225,7 @@ def create_snapshot(
     手动触发将当日 T-1 数据写入 SQLite snapshots.db。
     幂等操作——重复调用同一日期会更新已有快照。
     """
-    ref = _parse_date_param(reference_date) or (date.today() - timedelta(days=1))
+    ref = _parse_date_param(reference_date) or (get_today() - timedelta(days=1))
     try:
         data = dm.load_all()
         result_df = data.get("result")

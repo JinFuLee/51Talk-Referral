@@ -1,7 +1,7 @@
 'use client';
 
 import { useConfigStore, useStoreHydrated } from '@/lib/stores/config-store';
-import { useCompareSummary } from '@/lib/hooks';
+import { useFilteredSWR } from '@/lib/hooks/use-filtered-swr';
 
 const KPI_LABELS: Record<string, string> = {
   registrations: '注册',
@@ -17,10 +17,22 @@ function formatCompact(n: number | null | undefined): string {
   return n.toLocaleString();
 }
 
+interface CompareSummaryResponse {
+  available: boolean;
+  label: string;
+  unavailable_reason?: string;
+  metrics: Record<
+    string,
+    { current: number | null; compare: number | null; change_pct: number | null }
+  >;
+}
+
 export function ComparisonBanner() {
   const hydrated = useStoreHydrated();
   const compareMode = useConfigStore((s) => s.compareMode);
-  const { data, isLoading } = useCompareSummary();
+  const { data, isLoading } = useFilteredSWR<CompareSummaryResponse>(
+    compareMode !== 'off' ? `/api/report/compare-summary?mode=${compareMode}` : null
+  );
 
   // 水合前 SSR 和客户端首次渲染保持一致（均不显示），避免 React #418 水合错误
   if (!hydrated || compareMode === 'off') return null;

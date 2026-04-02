@@ -490,8 +490,9 @@ def get_recommendations(
     from backend.core.channel_funnel_engine import ChannelFunnelEngine
     from backend.core.leverage_engine import compute_leverage_matrix
 
+    from backend.core.date_override import get_today
     if month is None:
-        month = date.today().strftime("%Y%m")
+        month = get_today().strftime("%Y%m")
 
     # 1. 构建漏斗数据
     data = dm.load_all()
@@ -507,7 +508,7 @@ def get_recommendations(
 
     if not channel_funnel:
         return {
-            "analysis_date": date.today().isoformat(),
+            "analysis_date": get_today().isoformat(),
             "month": month,
             "levers": [],
             "note": "暂无漏斗数据，请确认数据源已加载",
@@ -572,7 +573,7 @@ def get_recommendations(
                 metric_values.setdefault(mk, []).append(float(v))
 
     # 月份信息
-    today = date.today()
+    today = get_today()
     y, m_num = int(month[:4]), int(month[4:6])
     import calendar
 
@@ -889,7 +890,8 @@ def get_progress(
     filters: UnifiedFilter = Depends(parse_filters),
 ) -> list[dict[str, Any]]:
     if month is None:
-        month = date.today().strftime("%Y%m")
+        from backend.core.date_override import get_today
+        month = get_today().strftime("%Y%m")
 
     # 只取 active 活动
     campaigns = [

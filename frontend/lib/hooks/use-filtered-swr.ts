@@ -44,6 +44,7 @@ export function useFilteredSWR<T>(
   const behavior = useConfigStore((s) => s.behavior);
   const benchmarks = useConfigStore((s) => s.benchmarks);
   const selectedMonth = useConfigStore((s) => s.selectedMonth);
+  const customDateRange = useConfigStore((s) => s.customDateRange);
 
   // 历史月份时自动关闭 focus-revalidate（数据不再变化）
   const isHistoricalMonth = selectedMonth !== null && selectedMonth !== getCurrentYYYYMM();
@@ -65,6 +66,7 @@ export function useFilteredSWR<T>(
       behavior,
       benchmarks,
       selectedMonth,
+      customDateRange,
     },
     extraParams
   );
@@ -84,6 +86,7 @@ interface DimensionParams {
   behavior: string[] | null;
   benchmarks: string[];
   selectedMonth: string | null;
+  customDateRange: { start: string; end: string } | null;
 }
 
 function buildKey(
@@ -147,8 +150,12 @@ function buildKey(
     setIfNotLocal('benchmarks', dims.benchmarks.join(','));
   }
 
-  // month: only send if non-null and not equal to current month
-  if (dims.selectedMonth !== null && dims.selectedMonth !== getCurrentYYYYMM()) {
+  // 自定义日期范围优先于月份
+  if (dims.customDateRange) {
+    setIfNotLocal('date_from', dims.customDateRange.start);
+    setIfNotLocal('date_to', dims.customDateRange.end);
+  } else if (dims.selectedMonth !== null && dims.selectedMonth !== getCurrentYYYYMM()) {
+    // month: only send if non-null and not equal to current month
     setIfNotLocal('month', dims.selectedMonth);
   }
 

@@ -7,8 +7,6 @@ import { usePresentationStore } from '@/lib/stores/presentation-store';
 import { MonitorPlay, User, LogOut } from 'lucide-react';
 import clsx from 'clsx';
 import { useFilteredSWR } from '@/lib/hooks/use-filtered-swr';
-import { TimePeriodSelector } from '@/components/shared/TimePeriodSelector';
-import { CompareToggle } from '@/components/shared/CompareToggle';
 import { BrandMark } from '@/components/ui/BrandMark';
 import { formatDate } from '@/lib/date-format';
 
@@ -64,9 +62,6 @@ export function Topbar() {
           <span className="text-[var(--text-muted)] mx-2">|</span>
           T-1 数据
         </div>
-        <TimePeriodSelector />
-        <span className="hidden sm:inline text-[var(--text-muted)]">|</span>
-        <CompareToggle />
         <ViewModeBadge pathname={pathname} />
       </div>
 

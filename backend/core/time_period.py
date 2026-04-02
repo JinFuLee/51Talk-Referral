@@ -6,6 +6,8 @@ from dataclasses import dataclass
 from datetime import date, timedelta
 from enum import StrEnum
 
+from backend.core.date_override import get_today
+
 
 class TimePeriod(StrEnum):
     THIS_WEEK = "this_week"  # 本周T-1
@@ -35,7 +37,7 @@ def resolve_period(
     custom_end: str | None = None,
 ) -> PeriodRange:
     """将 TimePeriod 枚举解析为具体日期范围，T-1 基准"""
-    ref = reference_date or date.today()
+    ref = reference_date or get_today()
     t1 = ref - timedelta(days=1)  # T-1
 
     if period == TimePeriod.THIS_MONTH:
@@ -146,7 +148,7 @@ def compute_month_progress(
     Returns:
         MonthProgress dataclass
     """
-    today = reference_date or date.today()
+    today = reference_date or get_today()
     t1 = today - timedelta(days=1)  # T-1 数据截止日
 
     month_start = today.replace(day=1)

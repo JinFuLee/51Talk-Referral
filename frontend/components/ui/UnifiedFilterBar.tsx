@@ -2,8 +2,17 @@
 
 import { useState, useCallback, useEffect, useRef } from 'react';
 import useSWR from 'swr';
-import { Globe, Search, X, SlidersHorizontal, ChevronDown, ChevronUp, CalendarDays } from 'lucide-react';
+import {
+  Globe,
+  Search,
+  X,
+  SlidersHorizontal,
+  ChevronDown,
+  ChevronUp,
+  CalendarDays,
+} from 'lucide-react';
 import { useConfigStore, useStoreHydrated } from '@/lib/stores/config-store';
+import type { CompareMode } from '@/lib/stores/config-store';
 import { swrFetcher } from '@/lib/api';
 import { useCurrentPageDimensions } from '@/lib/hooks/use-page-dimensions';
 import { BenchmarkSelector } from './BenchmarkSelector';
@@ -433,6 +442,8 @@ export function UnifiedFilterBar() {
   const channel = useConfigStore((s) => s.channel);
   const behavior = useConfigStore((s) => s.behavior);
   const selectedMonth = useConfigStore((s) => s.selectedMonth);
+  const customDateRange = useConfigStore((s) => s.customDateRange);
+  const compareMode = useConfigStore((s) => s.compareMode);
 
   const setCountry = useConfigStore((s) => s.setCountry);
   const setDataRole = useConfigStore((s) => s.setDataRole);
@@ -444,6 +455,8 @@ export function UnifiedFilterBar() {
   const setChannel = useConfigStore((s) => s.setChannel);
   const setBehavior = useConfigStore((s) => s.setBehavior);
   const setSelectedMonth = useConfigStore((s) => s.setSelectedMonth);
+  const setCustomDateRange = useConfigStore((s) => s.setCustomDateRange);
+  const setCompareMode = useConfigStore((s) => s.setCompareMode);
 
   // 从 /api/filter/options 获取可选值
   const { data: filterOptions } = useSWR<FilterOptions>('/api/filter/options', swrFetcher, {
@@ -464,8 +477,10 @@ export function UnifiedFilterBar() {
     ...(archivedMonths ? [...archivedMonths].reverse().filter((m) => m !== currentYYYYMM) : []),
   ];
 
-  // 是否正在查看历史月份
-  const isHistoricalView = hydrated && selectedMonth !== null && selectedMonth !== currentYYYYMM;
+  // 是否正在查看历史月份或自定义范围
+  const isHistoricalView =
+    hydrated &&
+    ((selectedMonth !== null && selectedMonth !== currentYYYYMM) || customDateRange !== null);
 
   // 是否有激活的筛选器
   const hasActiveFilter =
@@ -481,6 +496,7 @@ export function UnifiedFilterBar() {
 
   const handleClearAll = useCallback(() => {
     setSelectedMonth(null);
+    setCustomDateRange(null);
     setTeamFilter(null);
     setFocusCC(null);
     setDataRole('all');
@@ -491,6 +507,7 @@ export function UnifiedFilterBar() {
     setBehavior(null);
   }, [
     setSelectedMonth,
+    setCustomDateRange,
     setTeamFilter,
     setFocusCC,
     setDataRole,
@@ -560,10 +577,22 @@ export function UnifiedFilterBar() {
       <div className="flex items-center gap-1.5">
         <CalendarDays className="w-3.5 h-3.5 text-[var(--text-muted)] shrink-0" />
         <select
-          value={hydrated ? (selectedMonth ?? currentYYYYMM) : currentYYYYMM}
+          value={
+            hydrated
+              ? customDateRange
+                ? 'custom'
+                : (selectedMonth ?? currentYYYYMM)
+              : currentYYYYMM
+          }
           onChange={(e) => {
             const val = e.target.value;
-            setSelectedMonth(val === currentYYYYMM ? null : val);
+            if (val === 'custom') {
+              setSelectedMonth(null);
+              // 保持 customDateRange，等 date inputs 填完再写入
+            } else {
+              setCustomDateRange(null);
+              setSelectedMonth(val === currentYYYYMM ? null : val);
+            }
           }}
           className={[
             'h-8 px-2.5 rounded-lg border text-xs font-medium outline-none cursor-pointer transition-all',
@@ -580,7 +609,45 @@ export function UnifiedFilterBar() {
               </option>
             );
           })}
+          <option value="custom">自定义范围</option>
         </select>
+        {/* 自定义日期范围输入框 */}
+        {hydrated && customDateRange !== null && (
+          <div className="flex items-center gap-1">
+            <input
+              type="date"
+              value={customDateRange.start}
+              onChange={(e) =>
+                setCustomDateRange({ start: e.target.value, end: customDateRange.end })
+              }
+              className="h-8 px-2 rounded-lg border border-amber-400 bg-amber-50 text-xs text-amber-700 outline-none focus:ring-1 focus:ring-amber-400"
+            />
+            <span className="text-xs text-[var(--text-muted)]">~</span>
+            <input
+              type="date"
+              value={customDateRange.end}
+              onChange={(e) =>
+                setCustomDateRange({ start: customDateRange.start, end: e.target.value })
+              }
+              className="h-8 px-2 rounded-lg border border-amber-400 bg-amber-50 text-xs text-amber-700 outline-none focus:ring-1 focus:ring-amber-400"
+            />
+          </div>
+        )}
+        {/* 首次选择自定义时显示初始化按钮 */}
+        {hydrated && customDateRange === null && (
+          <button
+            onClick={() => {
+              const now = new Date();
+              const firstDay = new Date(now.getFullYear(), now.getMonth(), 1)
+                .toISOString()
+                .slice(0, 10);
+              const today = now.toISOString().slice(0, 10);
+              setCustomDateRange({ start: firstDay, end: today });
+            }}
+            className="hidden"
+            id="custom-date-init"
+          />
+        )}
       </div>
 
       {/* 国家 */}
@@ -774,9 +841,44 @@ export function UnifiedFilterBar() {
     </div>
   ) : null;
 
+  // 时间对比选项
+  const TEMPORAL_OPTIONS: { value: Exclude<CompareMode, 'off' | 'pop'>; label: string }[] = [
+    { value: 'yoy', label: '同比' },
+    { value: 'peak', label: '巅峰' },
+    { value: 'valley', label: '低谷' },
+  ];
+
+  function handleTemporalToggle(mode: Exclude<CompareMode, 'off' | 'pop'>) {
+    setCompareMode(compareMode === mode ? 'off' : mode);
+  }
+
   const desktopRow3 = (
-    <div className="hidden md:flex items-center px-4 pb-2 pt-0">
+    <div className="hidden md:flex items-center gap-3 px-4 pb-2 pt-0">
+      {/* 基准对比 */}
       <BenchmarkSelector />
+      {/* 分隔线 */}
+      <div className="h-4 w-px bg-[var(--border-subtle)]" />
+      {/* 时间对比 */}
+      <div className="flex items-center gap-1.5">
+        <span className="text-xs text-[var(--text-muted)] shrink-0 mr-0.5">时间</span>
+        {TEMPORAL_OPTIONS.map((opt) => {
+          const isActive = compareMode === opt.value;
+          return (
+            <button
+              key={opt.value}
+              onClick={() => handleTemporalToggle(opt.value)}
+              className={[
+                'px-2.5 py-1 rounded-full text-xs font-medium transition-colors border',
+                isActive
+                  ? 'bg-[var(--color-accent)] text-white border-[var(--color-accent)]'
+                  : 'bg-transparent text-[var(--text-secondary)] border-[var(--border-default)] hover:border-[var(--color-accent)] hover:text-[var(--text-primary)]',
+              ].join(' ')}
+            >
+              {opt.label}
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 
@@ -1035,6 +1137,32 @@ export function UnifiedFilterBar() {
               对比基准
             </label>
             <BenchmarkSelector />
+          </div>
+
+          {/* 时间对比 */}
+          <div className="space-y-2">
+            <label className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">
+              时间对比
+            </label>
+            <div className="flex gap-2">
+              {TEMPORAL_OPTIONS.map((opt) => {
+                const isActive = compareMode === opt.value;
+                return (
+                  <button
+                    key={opt.value}
+                    onClick={() => handleTemporalToggle(opt.value)}
+                    className={[
+                      'flex-1 py-1.5 rounded text-sm font-medium border transition-colors',
+                      isActive
+                        ? 'bg-[var(--color-accent)] text-white border-[var(--color-accent)]'
+                        : 'border-[var(--border-default)] text-[var(--text-secondary)]',
+                    ].join(' ')}
+                  >
+                    {opt.label}
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
           {/* 操作按钮 */}

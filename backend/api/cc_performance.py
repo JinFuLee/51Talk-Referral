@@ -1062,7 +1062,8 @@ def get_cc_performance(
     - month: YYYYMM，默认当前月份
     - 返回按团队分组的 CC 个人记录 + 各团队汇总 + 全局汇总
     """
-    today = date.today()
+    from backend.core.date_override import get_today
+    today = get_today()
     if not month:
         month = today.strftime("%Y%m")
 

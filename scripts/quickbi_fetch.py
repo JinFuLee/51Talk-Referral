@@ -884,6 +884,10 @@ def main():
         "--month",
         help="指定下载月份（YYYYMM 格式，如 202603），先在 Quick BI 切换月份再下载",
     )
+    parser.add_argument(
+        "--no-alert", action="store_true",
+        help="禁用失败源钉钉告警（手动操作时使用）",
+    )
     args = parser.parse_args()
 
     cfg = load_config()
@@ -949,11 +953,10 @@ def main():
         log.info("  3. 查看 quickbi_err_*.png 截图")
 
     # ── 失败源钉钉告警（2026-03-31 新增，永久防线）──────────────────
-    if failed_sources and not args.month:
-        # 指定月份模式（历史数据下载）不发告警，仅正常取数失败时告警
+    if failed_sources and not args.month and not args.no_alert:
         _alert_failed_sources(failed_sources)
     elif failed_sources:
-        log.info("  ⚠ %d 个失败源（历史月份模式，不发钉钉告警）", len(failed_sources))
+        log.info("  ⚠ %d 个失败源（告警已禁用）", len(failed_sources))
 
 
 if __name__ == "__main__":

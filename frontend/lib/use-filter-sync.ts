@@ -1,7 +1,7 @@
 'use client';
 
 import { useSearchParams, useRouter } from 'next/navigation';
-import { useConfigStore, type TimeRange } from './stores/config-store';
+import { useConfigStore } from './stores/config-store';
 import type {
   Country,
   DataRole,
@@ -13,11 +13,13 @@ import type {
 } from './types/filters';
 import { useEffect, useRef } from 'react';
 
+const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+
 /**
- * useFilterSync v2 — Bidirectional sync between URL search params and config-store.
+ * useFilterSync v3 — Bidirectional sync between URL search params and config-store.
  *
- * Syncs all 8 dimension params + existing time/team/cc:
- *   ?time=this_month&team=THCC-A&cc=张伟
+ * Syncs all 8 dimension params + team/cc + customDateRange:
+ *   ?date_from=2026-01-01&date_to=2026-01-31&team=THCC-A&cc=张伟
  *   &country=TH&data_role=all&enclosure=M0,M1&granularity=month
  *   &funnel_stage=all&channel=all&behavior=gold,effective&benchmarks=target
  *
@@ -28,7 +30,7 @@ export function useFilterSync(): void {
   const searchParams = useSearchParams();
   const router = useRouter();
 
-  const timeRange = useConfigStore((s) => s.timeRange);
+  const customDateRange = useConfigStore((s) => s.customDateRange);
   const teamFilter = useConfigStore((s) => s.teamFilter);
   const focusCC = useConfigStore((s) => s.focusCC);
   const country = useConfigStore((s) => s.country);
@@ -40,7 +42,7 @@ export function useFilterSync(): void {
   const behavior = useConfigStore((s) => s.behavior);
   const benchmarks = useConfigStore((s) => s.benchmarks);
 
-  const setTimeRange = useConfigStore((s) => s.setTimeRange);
+  const setCustomDateRange = useConfigStore((s) => s.setCustomDateRange);
   const setTeamFilter = useConfigStore((s) => s.setTeamFilter);
   const setFocusCC = useConfigStore((s) => s.setFocusCC);
   const setCountry = useConfigStore((s) => s.setCountry);
@@ -60,7 +62,8 @@ export function useFilterSync(): void {
     if (initializedRef.current) return;
     initializedRef.current = true;
 
-    const timeParam = searchParams.get('time');
+    const dateFromParam = searchParams.get('date_from');
+    const dateToParam = searchParams.get('date_to');
     const teamParam = searchParams.get('team');
     const ccParam = searchParams.get('cc');
     const countryParam = searchParams.get('country');
@@ -72,9 +75,14 @@ export function useFilterSync(): void {
     const behaviorParam = searchParams.get('behavior');
     const benchmarksParam = searchParams.get('benchmarks');
 
-    if (timeParam) {
-      const parsed = parseTimeParam(timeParam);
-      if (parsed !== null) setTimeRange(parsed);
+    // customDateRange from URL
+    if (
+      dateFromParam &&
+      dateToParam &&
+      ISO_DATE_RE.test(dateFromParam) &&
+      ISO_DATE_RE.test(dateToParam)
+    ) {
+      setCustomDateRange({ start: dateFromParam, end: dateToParam });
     }
 
     setTeamFilter(teamParam ?? null);
@@ -98,8 +106,14 @@ export function useFilterSync(): void {
 
     const params = new URLSearchParams(searchParams.toString());
 
-    // time
-    params.set('time', serializeTimeRange(timeRange));
+    // customDateRange → date_from + date_to
+    if (customDateRange) {
+      params.set('date_from', customDateRange.start);
+      params.set('date_to', customDateRange.end);
+    } else {
+      params.delete('date_from');
+      params.delete('date_to');
+    }
 
     // team / cc
     if (teamFilter) {
@@ -142,7 +156,7 @@ export function useFilterSync(): void {
     router.replace(`?${params.toString()}`, { scroll: false });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
-    timeRange,
+    customDateRange,
     teamFilter,
     focusCC,
     country,
@@ -154,22 +168,4 @@ export function useFilterSync(): void {
     behavior,
     benchmarks,
   ]);
-}
-
-function serializeTimeRange(range: TimeRange): string {
-  if (typeof range === 'string') return range;
-  return `custom:${range.start}:${range.end}`;
-}
-
-function parseTimeParam(param: string): TimeRange | null {
-  if (param === 'this_week' || param === 'this_month' || param === 'last_month') {
-    return param;
-  }
-  if (param.startsWith('custom:')) {
-    const parts = param.split(':');
-    if (parts.length === 3 && parts[1] && parts[2]) {
-      return { start: parts[1], end: parts[2] };
-    }
-  }
-  return null;
 }

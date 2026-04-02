@@ -95,11 +95,11 @@ function ProgressBar({ value, target }: { value: number; target: number }) {
 
 export function PersonalWorkbench() {
   const focusCC = useConfigStore((s) => s.focusCC);
-  const period = useConfigStore((s) => s.period);
+  const selectedMonth = useConfigStore((s) => s.selectedMonth);
 
-  // CC 排名数据
+  // CC 排名数据（selectedMonth null = 当前月，后端默认处理）
   const rankKey = focusCC
-    ? `/api/analysis/cc-ranking?top_n=50&period=${period}&cc_name=${encodeURIComponent(focusCC)}`
+    ? `/api/analysis/cc-ranking?top_n=50${selectedMonth ? `&month=${selectedMonth}` : ''}&cc_name=${encodeURIComponent(focusCC)}`
     : null;
   const { data: rankData, isLoading: rankLoading } = useFilteredSWR<RankingData>(rankKey);
 

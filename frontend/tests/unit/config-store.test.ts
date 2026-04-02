@@ -8,9 +8,9 @@ function resetStore() {
     input_dir: './input',
     output_dir: './output',
     exchange_rate: 35,
-    period: 'this_month',
     compareMode: 'off',
-    timeRange: 'this_month',
+    selectedMonth: null,
+    customDateRange: null,
     teamFilter: null,
     focusCC: null,
     selectionContext: null,
@@ -28,8 +28,12 @@ describe('useConfigStore', () => {
       expect(useConfigStore.getState().role).toBe('ops');
     });
 
-    it('has default period this_month', () => {
-      expect(useConfigStore.getState().period).toBe('this_month');
+    it('has default selectedMonth null (current month)', () => {
+      expect(useConfigStore.getState().selectedMonth).toBeNull();
+    });
+
+    it('has default customDateRange null', () => {
+      expect(useConfigStore.getState().customDateRange).toBeNull();
     });
 
     it('has default compareMode off', () => {
@@ -55,19 +59,32 @@ describe('useConfigStore', () => {
     });
   });
 
-  // ── setPeriod ────────────────────────────────────────────────────────────────
-  describe('setPeriod', () => {
-    it('sets period string', () => {
-      useConfigStore.getState().setPeriod('last_month');
-      expect(useConfigStore.getState().period).toBe('last_month');
+  // ── setSelectedMonth ──────────────────────────────────────────────────────────
+  describe('setSelectedMonth', () => {
+    it('sets a historical month in YYYYMM format', () => {
+      useConfigStore.getState().setSelectedMonth('202603');
+      expect(useConfigStore.getState().selectedMonth).toBe('202603');
     });
 
-    it('sets custom period with date range', () => {
-      useConfigStore.getState().setPeriod('custom', '2026-01-01', '2026-01-31');
+    it('resets selectedMonth to null (current month)', () => {
+      useConfigStore.getState().setSelectedMonth('202603');
+      useConfigStore.getState().setSelectedMonth(null);
+      expect(useConfigStore.getState().selectedMonth).toBeNull();
+    });
+  });
+
+  // ── setCustomDateRange ────────────────────────────────────────────────────────
+  describe('setCustomDateRange', () => {
+    it('sets a valid date range', () => {
+      useConfigStore.getState().setCustomDateRange({ start: '2026-01-01', end: '2026-01-31' });
       const state = useConfigStore.getState();
-      expect(state.period).toBe('custom');
-      expect(state.customStart).toBe('2026-01-01');
-      expect(state.customEnd).toBe('2026-01-31');
+      expect(state.customDateRange).toEqual({ start: '2026-01-01', end: '2026-01-31' });
+    });
+
+    it('clears customDateRange to null', () => {
+      useConfigStore.getState().setCustomDateRange({ start: '2026-01-01', end: '2026-01-31' });
+      useConfigStore.getState().setCustomDateRange(null);
+      expect(useConfigStore.getState().customDateRange).toBeNull();
     });
   });
 

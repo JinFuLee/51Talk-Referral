@@ -24,13 +24,11 @@ export function useStoreHydrated(): boolean {
 }
 
 export type CompareMode = 'off' | 'pop' | 'yoy' | 'peak' | 'valley';
-export type TimeRange = 'this_week' | 'this_month' | 'last_month' | { start: string; end: string };
 export type SelectionContext = { type: 'cc' | 'segment' | 'channel'; value: string } | null;
 
 // ── Hydration validators ──────────────────────────────────────────────────────
 
 const VALID_COMPARE_MODES: CompareMode[] = ['off', 'pop', 'yoy', 'peak', 'valley'];
-const VALID_SIMPLE_TIME_RANGES = ['this_week', 'this_month', 'last_month'] as const;
 const VALID_ROLES = ['ops', 'exec', 'finance'] as const;
 const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -66,35 +64,10 @@ function validateCompareMode(v: unknown): CompareMode {
   return VALID_COMPARE_MODES.includes(v as CompareMode) ? (v as CompareMode) : 'off';
 }
 
-function validateTimeRange(v: unknown): TimeRange {
-  if (
-    typeof v === 'string' &&
-    VALID_SIMPLE_TIME_RANGES.includes(v as (typeof VALID_SIMPLE_TIME_RANGES)[number])
-  ) {
-    return v as TimeRange;
-  }
-  if (
-    v !== null &&
-    typeof v === 'object' &&
-    'start' in (v as object) &&
-    'end' in (v as object) &&
-    ISO_DATE_RE.test((v as { start: string }).start) &&
-    ISO_DATE_RE.test((v as { end: string }).end)
-  ) {
-    return v as TimeRange;
-  }
-  return 'this_month';
-}
-
 function validateRole(v: unknown): 'ops' | 'exec' | 'finance' {
   return VALID_ROLES.includes(v as 'ops' | 'exec' | 'finance')
     ? (v as 'ops' | 'exec' | 'finance')
     : 'ops';
-}
-
-function validatePeriod(v: unknown): string {
-  if (typeof v === 'string' && v.length > 0 && v.length <= 64) return v;
-  return 'this_month';
 }
 
 function validateDataRole(v: unknown): DataRole {
@@ -159,12 +132,7 @@ interface ConfigState {
   output_dir: string;
   exchange_rate: number;
   selected_month?: string;
-  period: string;
-  customStart?: string;
-  customEnd?: string;
   compareMode: CompareMode;
-  // Global filter bar state
-  timeRange: TimeRange;
   teamFilter: string | null;
   focusCC: string | null;
   // Chart selection context for cross-chart linking
@@ -181,6 +149,8 @@ interface ConfigState {
   // ── Month selector (M38) ────────────────────────────────────────────────────
   /** YYYYMM 格式的历史月份，null = 当前月 */
   selectedMonth: string | null;
+  /** 自定义日期范围，非 null 时覆盖 selectedMonth */
+  customDateRange: { start: string; end: string } | null;
   // ── Setters ──────────────────────────────────────────────────────────────────
   setRole: (role: 'ops' | 'exec' | 'finance') => void;
   setConfig: (
@@ -189,9 +159,7 @@ interface ConfigState {
         ConfigState,
         | 'setRole'
         | 'setConfig'
-        | 'setPeriod'
         | 'setCompareMode'
-        | 'setTimeRange'
         | 'setTeamFilter'
         | 'setFocusCC'
         | 'setSelectionContext'
@@ -205,12 +173,11 @@ interface ConfigState {
         | 'setBehavior'
         | 'setBenchmarks'
         | 'setSelectedMonth'
+        | 'setCustomDateRange'
       >
     >
   ) => void;
-  setPeriod: (period: string, customStart?: string, customEnd?: string) => void;
   setCompareMode: (mode: CompareMode) => void;
-  setTimeRange: (range: TimeRange) => void;
   setTeamFilter: (team: string | null) => void;
   setFocusCC: (cc: string | null) => void;
   setSelectionContext: (ctx: SelectionContext) => void;
@@ -224,6 +191,7 @@ interface ConfigState {
   setBehavior: (behavior: BehaviorSegment[] | null) => void;
   setBenchmarks: (benchmarks: BenchmarkMode[]) => void;
   setSelectedMonth: (month: string | null) => void;
+  setCustomDateRange: (range: { start: string; end: string } | null) => void;
 }
 
 export const useConfigStore = create<ConfigState>()(
@@ -233,9 +201,7 @@ export const useConfigStore = create<ConfigState>()(
       input_dir: './input',
       output_dir: './output',
       exchange_rate: 35,
-      period: 'this_month',
       compareMode: 'off',
-      timeRange: 'this_month',
       teamFilter: null,
       focusCC: null,
       selectionContext: null,
@@ -249,11 +215,10 @@ export const useConfigStore = create<ConfigState>()(
       behavior: null,
       benchmarks: ['target'],
       selectedMonth: null,
+      customDateRange: null,
       setRole: (role) => set({ role }),
       setConfig: (config) => set(config),
-      setPeriod: (period, customStart, customEnd) => set({ period, customStart, customEnd }),
       setCompareMode: (compareMode) => set({ compareMode }),
-      setTimeRange: (timeRange) => set({ timeRange }),
       setTeamFilter: (teamFilter) => set({ teamFilter }),
       setFocusCC: (focusCC) => set({ focusCC }),
       setSelectionContext: (selectionContext) => set({ selectionContext }),
@@ -267,6 +232,7 @@ export const useConfigStore = create<ConfigState>()(
       setBehavior: (behavior) => set({ behavior }),
       setBenchmarks: (benchmarks) => set({ benchmarks }),
       setSelectedMonth: (selectedMonth) => set({ selectedMonth }),
+      setCustomDateRange: (customDateRange) => set({ customDateRange }),
     }),
     {
       name: 'panel-config',
@@ -280,8 +246,6 @@ export const useConfigStore = create<ConfigState>()(
         if (!state) return;
         state.role = validateRole(state.role);
         state.compareMode = validateCompareMode(state.compareMode);
-        state.timeRange = validateTimeRange(state.timeRange);
-        state.period = validatePeriod(state.period);
         // teamFilter and focusCC: must be string or null
         if (state.teamFilter !== null && typeof state.teamFilter !== 'string') {
           state.teamFilter = null;
@@ -309,6 +273,19 @@ export const useConfigStore = create<ConfigState>()(
         state.enclosure = validateEnclosure(state.enclosure);
         state.behavior = validateBehavior(state.behavior);
         state.selectedMonth = validateSelectedMonth(state.selectedMonth);
+        // customDateRange validator
+        if (state.customDateRange !== null && state.customDateRange !== undefined) {
+          const cdr = state.customDateRange;
+          if (
+            typeof cdr !== 'object' ||
+            !ISO_DATE_RE.test(cdr?.start ?? '') ||
+            !ISO_DATE_RE.test(cdr?.end ?? '')
+          ) {
+            state.customDateRange = null;
+          }
+        } else {
+          state.customDateRange = null;
+        }
         // country: must be string, default TH
         if (typeof state.country !== 'string') {
           state.country = 'TH';
