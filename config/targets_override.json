@@ -1,0 +1,286 @@
+{
+  "202602": {
+    "version": 2,
+    "month": "202602",
+    "hard": {
+      "total_revenue": 589500,
+      "referral_pct": 0.2880407124681934,
+      "referral_revenue": 169800,
+      "display_currency": "USD",
+      "lock_field": "amount"
+    },
+    "channels": {
+      "cc_narrow": {
+        "user_count": 217,
+        "asp": 850,
+        "conversion_rate": 0.23,
+        "reserve_rate": 0,
+        "attend_rate": 0
+      },
+      "ss_narrow": {
+        "user_count": 87,
+        "asp": 850,
+        "conversion_rate": 0.23,
+        "reserve_rate": 0,
+        "attend_rate": 0
+      },
+      "lp_narrow": {
+        "user_count": 87,
+        "asp": 850,
+        "conversion_rate": 0.23,
+        "reserve_rate": 0,
+        "attend_rate": 0
+      },
+      "wide": {
+        "user_count": 478,
+        "asp": 850,
+        "conversion_rate": 0.23,
+        "reserve_rate": 0,
+        "attend_rate": 0
+      }
+    },
+    "enclosures": {
+      "d0_30": {
+        "reach_rate": 0,
+        "participation_rate": 0,
+        "conversion_rate": 0,
+        "checkin_rate": 0
+      },
+      "d31_60": {
+        "reach_rate": 0,
+        "participation_rate": 0,
+        "conversion_rate": 0,
+        "checkin_rate": 0
+      },
+      "d61_90": {
+        "reach_rate": 0,
+        "participation_rate": 0,
+        "conversion_rate": 0,
+        "checkin_rate": 0
+      },
+      "d91_120": {
+        "reach_rate": 0,
+        "participation_rate": 0,
+        "conversion_rate": 0,
+        "checkin_rate": 0
+      },
+      "d121_150": {
+        "reach_rate": 0,
+        "participation_rate": 0,
+        "conversion_rate": 0,
+        "checkin_rate": 0
+      },
+      "d151_180": {
+        "reach_rate": 0,
+        "participation_rate": 0,
+        "conversion_rate": 0,
+        "checkin_rate": 0
+      },
+      "d6M": {
+        "reach_rate": 0,
+        "participation_rate": 0,
+        "conversion_rate": 0,
+        "checkin_rate": 0
+      },
+      "d7M": {
+        "reach_rate": 0,
+        "participation_rate": 0,
+        "conversion_rate": 0,
+        "checkin_rate": 0
+      },
+      "d8M": {
+        "reach_rate": 0,
+        "participation_rate": 0,
+        "conversion_rate": 0,
+        "checkin_rate": 0
+      },
+      "d9M": {
+        "reach_rate": 0,
+        "participation_rate": 0,
+        "conversion_rate": 0,
+        "checkin_rate": 0
+      },
+      "d10M": {
+        "reach_rate": 0,
+        "participation_rate": 0,
+        "conversion_rate": 0,
+        "checkin_rate": 0
+      },
+      "d11M": {
+        "reach_rate": 0,
+        "participation_rate": 0,
+        "conversion_rate": 0,
+        "checkin_rate": 0
+      },
+      "d12M": {
+        "reach_rate": 0,
+        "participation_rate": 0,
+        "conversion_rate": 0,
+        "checkin_rate": 0
+      },
+      "d12M_plus": {
+        "reach_rate": 0,
+        "participation_rate": 0,
+        "conversion_rate": 0,
+        "checkin_rate": 0
+      }
+    },
+    "sop": {
+      "checkin_rate": 0,
+      "reach_rate": 0,
+      "participation_rate": 0,
+      "reserve_rate": 0.77,
+      "attend_rate": 0.66,
+      "outreach_calls_per_day": 0
+    }
+  },
+  "202603": {
+    "注册目标": 0,
+    "付费目标": 0,
+    "金额目标": 0.0,
+    "客单价": 930.96,
+    "目标转化率": 0.193099,
+    "约课率目标": 0.77,
+    "出席率目标": 0.66,
+    "子口径": {
+      "CC窄口径": {
+        "倒子目标": 0
+      },
+      "SS窄口径": {
+        "倒子目标": 0
+      },
+      "LP窄口径": {
+        "倒子目标": 0
+      },
+      "宽口径": {
+        "倒子目标": 0
+      }
+    },
+    "version": 2,
+    "month": "202603",
+    "hard": {
+      "referral_revenue": 200444,
+      "display_currency": "USD",
+      "lock_field": "amount"
+    },
+    "channels": {
+      "cc_narrow": {
+        "user_count": 248,
+        "asp": 950,
+        "conversion_rate": 0.23,
+        "reserve_rate": 0.77,
+        "attend_rate": 0.66
+      },
+      "ss_narrow": {
+        "user_count": 73,
+        "asp": 950,
+        "conversion_rate": 0.23,
+        "reserve_rate": 0.77,
+        "attend_rate": 0.66
+      },
+      "lp_narrow": {
+        "user_count": 92,
+        "asp": 950,
+        "conversion_rate": 0.23,
+        "reserve_rate": 0.77,
+        "attend_rate": 0.66
+      },
+      "wide": {
+        "user_count": 505,
+        "asp": 950,
+        "conversion_rate": 0.23,
+        "reserve_rate": 0.77,
+        "attend_rate": 0.66
+      }
+    },
+    "sop": {
+      "reserve_rate": 0.77,
+      "attend_rate": 0.66
+    },
+    "_wma_tier": "stable",
+    "_wma_tier_label": "稳达标",
+    "_wma_applied_at": "2026-03-27T03:58:21.415679Z",
+    "_tier_engine": "TargetTierEngine",
+    "_tier": "pace",
+    "_tier_label": "稳达标",
+    "_applied_at": "2026-03-27T08:39:35.630607Z"
+  },
+  "202604": {
+    "注册目标": 975,
+    "付费目标": 218,
+    "金额目标": 209035,
+    "客单价": 958,
+    "目标转化率": 0.224,
+    "约课率目标": 0.77,
+    "出席率目标": 0.66,
+    "子口径": {
+      "CC窄口径": { "倒子目标": 270 },
+      "SS窄口径": { "倒子目标": 75 },
+      "LP窄口径": { "倒子目标": 140 },
+      "宽口径": { "倒子目标": 490 }
+    },
+    "version": 2,
+    "month": "202604",
+    "hard": {
+      "referral_revenue": 209035,
+      "display_currency": "USD",
+      "lock_field": "amount"
+    },
+    "channels": {
+      "cc_narrow": {
+        "user_count": 270,
+        "asp": 950,
+        "conversion_rate": 0.253,
+        "reserve_rate": 0.77,
+        "attend_rate": 0.66
+      },
+      "ss_narrow": {
+        "user_count": 75,
+        "asp": 980,
+        "conversion_rate": 0.183,
+        "reserve_rate": 0.77,
+        "attend_rate": 0.66
+      },
+      "lp_narrow": {
+        "user_count": 140,
+        "asp": 1000,
+        "conversion_rate": 0.202,
+        "reserve_rate": 0.77,
+        "attend_rate": 0.66
+      },
+      "wide": {
+        "user_count": 490,
+        "asp": 950,
+        "conversion_rate": 0.220,
+        "reserve_rate": 0.77,
+        "attend_rate": 0.66
+      }
+    },
+    "enclosures": {
+      "d0_30": { "reach_rate": 0, "participation_rate": 0.0834, "conversion_rate": 0, "checkin_rate": 0 },
+      "d31_60": { "reach_rate": 0, "participation_rate": 0.0834, "conversion_rate": 0, "checkin_rate": 0 },
+      "d61_90": { "reach_rate": 0, "participation_rate": 0.0834, "conversion_rate": 0, "checkin_rate": 0 },
+      "d91_120": { "reach_rate": 0, "participation_rate": 0.0796, "conversion_rate": 0, "checkin_rate": 0 },
+      "d121_150": { "reach_rate": 0, "participation_rate": 0.0617, "conversion_rate": 0, "checkin_rate": 0 },
+      "d151_180": { "reach_rate": 0, "participation_rate": 0.0617, "conversion_rate": 0, "checkin_rate": 0 },
+      "d6M": { "reach_rate": 0, "participation_rate": 0.0424, "conversion_rate": 0, "checkin_rate": 0 },
+      "d7M": { "reach_rate": 0, "participation_rate": 0.0424, "conversion_rate": 0, "checkin_rate": 0 },
+      "d8M": { "reach_rate": 0, "participation_rate": 0.0424, "conversion_rate": 0, "checkin_rate": 0 },
+      "d9M": { "reach_rate": 0, "participation_rate": 0.0424, "conversion_rate": 0, "checkin_rate": 0 },
+      "d10M": { "reach_rate": 0, "participation_rate": 0.0424, "conversion_rate": 0, "checkin_rate": 0 },
+      "d11M": { "reach_rate": 0, "participation_rate": 0.0424, "conversion_rate": 0, "checkin_rate": 0 },
+      "d12M": { "reach_rate": 0, "participation_rate": 0.0424, "conversion_rate": 0, "checkin_rate": 0 },
+      "d12M_plus": { "reach_rate": 0, "participation_rate": 0.0424, "conversion_rate": 0, "checkin_rate": 0 }
+    },
+    "sop": {
+      "checkin_rate": 0.35,
+      "reach_rate": 0.20,
+      "participation_rate": 0.0535,
+      "reserve_rate": 0.77,
+      "attend_rate": 0.66,
+      "outreach_calls_per_day": 30
+    },
+    "_source": "manual_calibration_from_march_actuals",
+    "_applied_at": "2026-04-02T13:30:00Z"
+  }
+}
