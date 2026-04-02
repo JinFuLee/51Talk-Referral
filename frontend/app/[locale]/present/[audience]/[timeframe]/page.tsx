@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect, useCallback } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
+import { useRouter } from '@/i18n/navigation';
 import { useLocale } from 'next-intl';
 import { usePageDimensions } from '@/lib/hooks/use-page-dimensions';
 import { usePresentationStore } from '@/lib/stores/presentation-store';

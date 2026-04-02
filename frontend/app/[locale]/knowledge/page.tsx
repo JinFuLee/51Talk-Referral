@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback, useMemo, Suspense } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
+import { useRouter } from '@/i18n/navigation';
 import { useLocale } from 'next-intl';
 import { useFilteredSWR } from '@/lib/hooks/use-filtered-swr';
 import { usePageDimensions } from '@/lib/hooks/use-page-dimensions';

@@ -1,7 +1,6 @@
 'use client';
 
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { Link, usePathname } from '@/i18n/navigation';
 import { clsx } from 'clsx';
 import { useState, useEffect } from 'react';
 import { BrandMark } from '@/components/ui/BrandMark';

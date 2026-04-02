@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { clsx } from 'clsx';
-import { useRouter } from 'next/navigation';
+import { useRouter } from '@/i18n/navigation';
 import { Users, TrendingUp, Handshake, Play, Clock } from 'lucide-react';
 import { usePresentationStore } from '@/lib/stores/presentation-store';
 import type { Audience, Timeframe } from '@/lib/presentation/types';

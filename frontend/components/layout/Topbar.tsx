@@ -3,6 +3,7 @@
 import { useHealth } from '@/lib/hooks';
 import { usePathname } from 'next/navigation';
 import { useLocale } from 'next-intl';
+import { LangSwitcher } from '@/components/layout/LangSwitcher';
 import { usePresentationStore } from '@/lib/stores/presentation-store';
 import { MonitorPlay, User, LogOut } from 'lucide-react';
 import clsx from 'clsx';
@@ -109,6 +110,11 @@ export function Topbar() {
             DEV
           </span>
         )}
+
+        <span className="hidden sm:inline text-[var(--text-muted)]">|</span>
+
+        {/* Language switcher */}
+        <LangSwitcher />
 
         <span className="hidden sm:inline text-[var(--text-muted)]">|</span>
 

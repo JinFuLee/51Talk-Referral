@@ -3,7 +3,8 @@
 // "我的视角" hook — URL searchParams ↔ Zustand focusCC / teamFilter 双向同步
 
 import { useEffect, useCallback } from 'react';
-import { useSearchParams, useRouter, usePathname } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
+import { useRouter, usePathname } from '@/i18n/navigation';
 import { useConfigStore } from '@/lib/stores/config-store';
 
 /**
