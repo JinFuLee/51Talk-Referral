@@ -1195,8 +1195,8 @@ export function UnifiedFilterBar() {
       <div className="sticky top-0 z-40 w-full bg-[var(--bg-surface)]/90 backdrop-blur-md border-b border-[var(--border-subtle)] shadow-sm flex-shrink-0">
         {mobileBar}
         {desktopRow1}
-        {desktopRow2}
         {desktopRow3}
+        {desktopRow2}
       </div>
       {mobileDrawer}
     </>
