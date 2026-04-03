@@ -46,6 +46,7 @@ const I18N = {
       checked_in: '打卡数',
       rate: '打卡率',
     },
+    exportFilename: '打卡汇总',
   },
   'zh-TW': {
     pageTitle: '打卡管理',
@@ -69,6 +70,7 @@ const I18N = {
       checked_in: '打卡數',
       rate: '打卡率',
     },
+    exportFilename: '打卡匯總',
   },
   en: {
     pageTitle: 'Check-in Management',
@@ -92,6 +94,7 @@ const I18N = {
       checked_in: 'Checked-in',
       rate: 'Check-in Rate',
     },
+    exportFilename: 'checkin-summary',
   },
   th: {
     pageTitle: 'จัดการการเช็คอิน',
@@ -115,6 +118,7 @@ const I18N = {
       checked_in: 'เช็คอินแล้ว',
       rate: 'อัตราเช็คอิน',
     },
+    exportFilename: 'checkin-summary',
   },
 };
 
@@ -142,11 +146,11 @@ interface CheckinSummaryResponse {
 // ── Tab 定义 ──────────────────────────────────────────────────────────────────
 
 const TABS = [
-  { id: 'overview', label: '概览' },
-  { id: 'insights', label: '学员洞察' },
-  { id: 'leaderboard', label: '排行榜' },
-  { id: 'action', label: '行动中心' },
-  { id: 'roi', label: 'ROI 分析' },
+  { id: 'overview' },
+  { id: 'insights' },
+  { id: 'leaderboard' },
+  { id: 'action' },
+  { id: 'roi' },
 ] as const;
 
 type TabId = (typeof TABS)[number]['id'];
@@ -304,7 +308,7 @@ function CheckinPageInner() {
         { key: 'checked_in', label: t.exportCols.checked_in },
         { key: 'rate', label: t.exportCols.rate },
       ],
-      `打卡汇总_${today}`
+      `${t.exportFilename}_${today}`
     );
   }
 
@@ -335,7 +339,7 @@ function CheckinPageInner() {
 
       {/* ── Tab 导航（L2）── */}
       <PageTabs
-        tabs={TABS.map((t) => ({ id: t.id, label: t.label }))}
+        tabs={TABS.map((tab) => ({ id: tab.id, label: t.tabs[tab.id as keyof typeof t.tabs] }))}
         activeId={activeTab}
         onChange={handleTabChange}
       />
