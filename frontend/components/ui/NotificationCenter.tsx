@@ -2,6 +2,47 @@
 
 import { useState } from 'react';
 import { Bell, Check, Trash2, ShieldAlert, Info, AlertTriangle } from 'lucide-react';
+import { useLocale } from 'next-intl';
+
+const I18N = {
+  zh: {
+    center: '通知中心',
+    markAllRead: '全部已读',
+    all: '全部',
+    unread: '未读',
+    empty: '暂无通知',
+    markRead: '标记为已读',
+  },
+  'zh-TW': {
+    center: '通知中心',
+    markAllRead: '全部已讀',
+    all: '全部',
+    unread: '未讀',
+    empty: '暫無通知',
+    markRead: '標記為已讀',
+  },
+  en: {
+    center: 'Notification Center',
+    markAllRead: 'Mark all read',
+    all: 'All',
+    unread: 'Unread',
+    empty: 'No notifications',
+    markRead: 'Mark as read',
+  },
+  th: {
+    center: 'ศูนย์การแจ้งเตือน',
+    markAllRead: 'อ่านทั้งหมด',
+    all: 'ทั้งหมด',
+    unread: 'ยังไม่ได้อ่าน',
+    empty: 'ไม่มีการแจ้งเตือน',
+    markRead: 'ทำเครื่องหมายว่าอ่านแล้ว',
+  },
+} as const;
+type I18NKey = keyof typeof I18N;
+function useT() {
+  const locale = useLocale();
+  return I18N[(locale as I18NKey) in I18N ? (locale as I18NKey) : 'zh'];
+}
 
 export interface NotificationItem {
   id: string;
@@ -13,6 +54,7 @@ export interface NotificationItem {
 }
 
 export function NotificationCenter() {
+  const t = useT();
   const [isOpen, setIsOpen] = useState(false);
   const [filter, setFilter] = useState<'all' | 'unread'>('all');
 
@@ -66,13 +108,13 @@ export function NotificationCenter() {
         <div className="absolute right-0 mt-2 w-80 bg-[var(--bg-surface)] shadow-xl rounded-xl border border-[var(--border-subtle)] overflow-hidden z-50 animate-in fade-in slide-in-from-top-2">
           {/* Header */}
           <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--border-subtle)] bg-[var(--bg-subtle)]">
-            <h3 className="text-sm font-semibold text-[var(--text-primary)]">通知中心</h3>
+            <h3 className="text-sm font-semibold text-[var(--text-primary)]">{t.center}</h3>
             <div className="flex items-center gap-2">
               <button
                 onClick={markAllRead}
                 className="text-[11px] text-action-text hover:text-action-text font-medium"
               >
-                全部已读
+                {t.markAllRead}
               </button>
               <button
                 onClick={clearAll}
@@ -89,20 +131,20 @@ export function NotificationCenter() {
               onClick={() => setFilter('all')}
               className={`flex-1 py-2 text-xs font-medium text-center ${filter === 'all' ? 'text-action-text border-b-2 border-action-active' : 'text-[var(--text-secondary)]'}`}
             >
-              全部
+              {t.all}
             </button>
             <button
               onClick={() => setFilter('unread')}
               className={`flex-1 py-2 text-xs font-medium text-center ${filter === 'unread' ? 'text-action-text border-b-2 border-action-active' : 'text-[var(--text-secondary)]'}`}
             >
-              未读 ({unreadCount})
+              {t.unread} ({unreadCount})
             </button>
           </div>
 
           {/* List */}
           <div className="max-h-[320px] overflow-y-auto">
             {filtered.length === 0 ? (
-              <div className="p-8 text-center text-[var(--text-muted)] text-xs">暂无通知</div>
+              <div className="p-8 text-center text-[var(--text-muted)] text-xs">{t.empty}</div>
             ) : (
               <div className="divide-y divide-[var(--border-subtle)]">
                 {filtered.map((n) => (
@@ -145,7 +187,7 @@ export function NotificationCenter() {
                             );
                           }}
                           className="shrink-0 p-1 text-[var(--text-muted)] hover:text-action-text self-center transition-colors"
-                          title="标记为已读"
+                          title={t.markRead}
                         >
                           <Check className="w-4 h-4" />
                         </button>

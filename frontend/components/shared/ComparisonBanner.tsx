@@ -2,6 +2,19 @@
 
 import { useConfigStore, useStoreHydrated } from '@/lib/stores/config-store';
 import { useFilteredSWR } from '@/lib/hooks/use-filtered-swr';
+import { useLocale } from 'next-intl';
+
+const I18N = {
+  zh: { noCompareData: '暂无对比数据', noData: '暂无数据' },
+  'zh-TW': { noCompareData: '暫無對比數據', noData: '暫無數據' },
+  en: { noCompareData: 'No comparison data', noData: 'No data' },
+  th: { noCompareData: 'ไม่มีข้อมูลเปรียบเทียบ', noData: 'ไม่มีข้อมูล' },
+} as const;
+type I18NKey = keyof typeof I18N;
+function useT() {
+  const locale = useLocale();
+  return I18N[(locale as I18NKey) in I18N ? (locale as I18NKey) : 'zh'];
+}
 
 const KPI_LABELS: Record<string, string> = {
   registrations: '注册',
@@ -51,11 +64,13 @@ export function ComparisonBanner() {
 
   if (!data) return null;
 
+  const t = useT();
+
   if (!data.available) {
     return (
       <div className="h-9 bg-amber-50/80 border-b border-amber-100 flex items-center justify-center px-6">
         <span className="text-xs text-amber-600">
-          ⚠ {data.label}：{data.unavailable_reason ?? '暂无对比数据'}
+          ⚠ {data.label}：{data.unavailable_reason ?? t.noCompareData}
         </span>
       </div>
     );
@@ -79,7 +94,7 @@ export function ComparisonBanner() {
         let colorCls = 'text-[var(--text-muted)]';
 
         if (pct === null || pct === undefined) {
-          dirIcon = '暂无数据';
+          dirIcon = t.noData;
           colorCls = 'text-[var(--text-muted)]';
         } else if (pct > 0) {
           dirIcon = `▲${Math.abs(pct).toFixed(1)}%`;

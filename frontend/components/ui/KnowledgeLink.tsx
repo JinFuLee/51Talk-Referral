@@ -2,6 +2,19 @@
 
 import Link from 'next/link';
 import { Info } from 'lucide-react';
+import { useLocale } from 'next-intl';
+
+const I18N = {
+  zh: { defaultLabel: '查看定义' },
+  'zh-TW': { defaultLabel: '查看定義' },
+  en: { defaultLabel: 'View definition' },
+  th: { defaultLabel: 'ดูคำจำกัดความ' },
+} as const;
+type I18NKey = keyof typeof I18N;
+function useDefaultLabel() {
+  const locale = useLocale();
+  return I18N[(locale as I18NKey) in I18N ? (locale as I18NKey) : 'zh'].defaultLabel;
+}
 
 interface KnowledgeLinkProps {
   /** 目标章节 ID（如 "chapter-2"） */
@@ -17,17 +30,19 @@ interface KnowledgeLinkProps {
 export function KnowledgeLink({
   chapter,
   book = 'business-bible',
-  label = '查看定义',
+  label,
   className = 'w-4 h-4',
 }: KnowledgeLinkProps) {
+  const defaultLabel = useDefaultLabel();
+  const resolvedLabel = label ?? defaultLabel;
   const href = chapter ? `/knowledge?book=${book}#${chapter}` : `/knowledge?book=${book}`;
 
   return (
     <Link
       href={href}
-      title={label}
+      title={resolvedLabel}
       className="inline-flex items-center justify-center ml-1.5 text-[var(--text-muted)] hover:text-[var(--color-accent)] transition-colors"
-      aria-label={label}
+      aria-label={resolvedLabel}
     >
       <Info className={className} />
     </Link>
