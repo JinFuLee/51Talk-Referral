@@ -76,10 +76,21 @@ interface RoleDef {
 }
 
 interface AccessControlConfig {
-  roles: RoleDef[];
+  roles:
+    | RoleDef[]
+    | Record<
+        string,
+        {
+          name?: { zh?: string; en?: string };
+          color?: string;
+          pages?: string[];
+          canManage?: boolean;
+        }
+      >;
   users: UserEntry[];
-  publicPages: string[];
-  pageRegistry: PageEntry[];
+  publicPages?: string[];
+  public_pages?: string[];
+  pageRegistry?: PageEntry[];
   settings: {
     require_auth: boolean;
     admin_emails: string[];
@@ -124,11 +135,36 @@ export default function AccessControlPage() {
   const [activeTab, setActiveTab] = useState<Tab>('pages');
 
   const {
-    data: config,
+    data: rawConfig,
     error,
     isLoading,
     mutate,
   } = useFilteredSWR<AccessControlConfig>('/api/access-control');
+
+  // 后端 roles 是对象 {admin:{...}}，前端期望数组 RoleDef[]，这里做格式规范化
+  const config = rawConfig
+    ? {
+        ...rawConfig,
+        roles: Array.isArray(rawConfig.roles)
+          ? rawConfig.roles
+          : Object.entries(rawConfig.roles ?? {}).map(([id, def]) => {
+              const d = def as Record<string, unknown>;
+              const nameObj = (d.name ?? {}) as Record<string, string>;
+              return {
+                id,
+                name_zh: nameObj.zh ?? id,
+                name_en: nameObj.en ?? id,
+                color: (d.color as string) ?? '#6b7280',
+                is_preset: true,
+                allowed_pages: (d.pages as string[]) ?? [],
+                page_count: ((d.pages as string[]) ?? []).length,
+              } satisfies RoleDef;
+            }),
+        pageRegistry: rawConfig.pageRegistry ?? [],
+        publicPages: rawConfig.publicPages ?? rawConfig.public_pages ?? [],
+        users: rawConfig.users ?? [],
+      }
+    : undefined;
 
   // ── 页面公开 Toggle ───────────────────────────────────────────────────────
 
