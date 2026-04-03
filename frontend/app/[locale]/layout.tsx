@@ -20,6 +20,7 @@ import {
 } from '@/components/providers/ClientOnlyDynamics';
 import { BrandMark } from '@/components/ui/BrandMark';
 import { BottomTabBar } from '@/components/layout/BottomTabBar';
+import { AuthShellGuard } from '@/components/layout/AuthShellGuard';
 
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
@@ -75,31 +76,39 @@ export default async function LocaleLayout({
       <ErrorBoundary>
         <ChunkErrorGuard />
         <SWRProvider>
-          <div className="flex h-screen overflow-hidden bg-[var(--bg-primary)] presentation-expand relative">
-            <div className="hide-in-presentation shrink-0 h-full">
-              <NavSidebar />
-            </div>
-            <div className="flex flex-col flex-1 overflow-hidden presentation-expand">
-              <div className="hide-in-presentation shrink-0">
-                <Topbar />
-                <ComparisonBanner />
-                <UnifiedFilterBar />
-                <HistoricalMonthBanner />
-                <FilterSyncActivator />
-              </div>
-              <main className="flex-1 overflow-auto p-3 md:p-6 pb-20 md:pb-6 presentation-expand relative">
-                <ContentTransitionWrapper>{children}</ContentTransitionWrapper>
-                <div className="brand-watermark fixed bottom-4 right-4 pointer-events-none">
-                  <BrandMark size={32} className="text-[var(--brand-p1)]" />
+          <AuthShellGuard
+            shell={
+              <>
+                <div className="flex h-screen overflow-hidden bg-[var(--bg-primary)] presentation-expand relative">
+                  <div className="hide-in-presentation shrink-0 h-full">
+                    <NavSidebar />
+                  </div>
+                  <div className="flex flex-col flex-1 overflow-hidden presentation-expand">
+                    <div className="hide-in-presentation shrink-0">
+                      <Topbar />
+                      <ComparisonBanner />
+                      <UnifiedFilterBar />
+                      <HistoricalMonthBanner />
+                      <FilterSyncActivator />
+                    </div>
+                    <main className="flex-1 overflow-auto p-3 md:p-6 pb-20 md:pb-6 presentation-expand relative">
+                      <ContentTransitionWrapper>{children}</ContentTransitionWrapper>
+                      <div className="brand-watermark fixed bottom-4 right-4 pointer-events-none">
+                        <BrandMark size={32} className="text-[var(--brand-p1)]" />
+                      </div>
+                    </main>
+                  </div>
                 </div>
-              </main>
-            </div>
-          </div>
-          <BottomTabBar />
-          <div className="hide-in-presentation">
-            <CoPilotTerminalClient />
-          </div>
-          <PresentationOverlayClient />
+                <BottomTabBar />
+                <div className="hide-in-presentation">
+                  <CoPilotTerminalClient />
+                </div>
+                <PresentationOverlayClient />
+              </>
+            }
+          >
+            {children}
+          </AuthShellGuard>
           <ToastProvider />
         </SWRProvider>
       </ErrorBoundary>
