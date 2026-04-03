@@ -1,25 +1,41 @@
 'use client';
 
 import { useState } from 'react';
+import { useLocale } from 'next-intl';
 import { RoiDashboard } from '@/components/checkin/RoiDashboard';
 import { RoiStudentTable } from '@/components/checkin/RoiStudentTable';
 import { RoiChannelMatrix } from '@/components/checkin/RoiChannelMatrix';
+
+const I18N = {
+  zh: {
+    dashboard: '全局仪表盘',
+    students: '学员 ROI 排行',
+    channels: '渠道 ROI 矩阵',
+  },
+  en: {
+    dashboard: 'Overview Dashboard',
+    students: 'Student ROI Ranking',
+    channels: 'Channel ROI Matrix',
+  },
+} as const;
 
 interface Props {
   roleFilter?: string;
   enclosureFilter?: string | null;
 }
 
-const SUB_TABS = [
-  { id: 'dashboard' as const, label: '全局仪表盘' },
-  { id: 'students' as const, label: '学员 ROI 排行' },
-  { id: 'channels' as const, label: '渠道 ROI 矩阵' },
-];
-
-type SubTabId = (typeof SUB_TABS)[number]['id'];
+type SubTabId = 'dashboard' | 'students' | 'channels';
 
 export function RoiAnalysisTab({ enclosureFilter }: Props) {
+  const locale = useLocale();
+  const t = I18N[locale === 'en' ? 'en' : 'zh'];
   const [activeSubTab, setActiveSubTab] = useState<SubTabId>('dashboard');
+
+  const SUB_TABS: { id: SubTabId; label: string }[] = [
+    { id: 'dashboard', label: t.dashboard },
+    { id: 'students', label: t.students },
+    { id: 'channels', label: t.channels },
+  ];
 
   return (
     <div className="space-y-4">

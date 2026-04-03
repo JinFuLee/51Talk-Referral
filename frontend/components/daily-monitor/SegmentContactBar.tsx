@@ -10,14 +10,23 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts';
+import { useLocale } from 'next-intl';
 import type { SegmentContactItem } from '@/lib/types/cross-analysis';
 import { CHART_PALETTE } from '@/lib/chart-palette';
+
+const I18N = {
+  zh: { ccRate: 'CC 触达率', ssRate: 'SS 触达率', lpRate: 'LP 触达率' },
+  en: { ccRate: 'CC Contact Rate', ssRate: 'SS Contact Rate', lpRate: 'LP Contact Rate' },
+} as const;
 
 interface SegmentContactBarProps {
   data: SegmentContactItem[];
 }
 
 export function SegmentContactBar({ data }: SegmentContactBarProps) {
+  const locale = useLocale();
+  const t = I18N[locale === 'en' ? 'en' : 'zh'];
+
   const chartData = data.map((d) => ({
     name: d.segment,
     CC: Math.round(d.cc_rate * 100),
@@ -51,7 +60,7 @@ export function SegmentContactBar({ data }: SegmentContactBarProps) {
           dataKey="CC"
           stackId="a"
           fill={CHART_PALETTE.series[0]}
-          name="CC 触达率"
+          name={t.ccRate}
           animationDuration={600}
           animationEasing="ease-out"
         />
@@ -59,7 +68,7 @@ export function SegmentContactBar({ data }: SegmentContactBarProps) {
           dataKey="SS"
           stackId="a"
           fill={CHART_PALETTE.series[1]}
-          name="SS 触达率"
+          name={t.ssRate}
           animationDuration={600}
           animationEasing="ease-out"
         />
@@ -67,7 +76,7 @@ export function SegmentContactBar({ data }: SegmentContactBarProps) {
           dataKey="LP"
           stackId="a"
           fill={CHART_PALETTE.series[2]}
-          name="LP 触达率"
+          name={t.lpRate}
           radius={[4, 4, 0, 0]}
           animationDuration={600}
           animationEasing="ease-out"

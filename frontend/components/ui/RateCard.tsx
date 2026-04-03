@@ -1,6 +1,12 @@
 'use client';
 
 import React from 'react';
+import { useLocale } from 'next-intl';
+
+const I18N = {
+  zh: { target: (n: number) => `目标 ${n}%` },
+  en: { target: (n: number) => `Target ${n}%` },
+} as const;
 
 interface RateCardProps {
   label: string;
@@ -10,6 +16,7 @@ interface RateCardProps {
 }
 
 function RateCardBase({ label, rate, sub, target }: RateCardProps) {
+  const locale = useLocale();
   const pct = Math.round(rate * 100);
   const targetPct = target !== undefined ? Math.round(target * 100) : undefined;
   const status =
@@ -31,6 +38,7 @@ function RateCardBase({ label, rate, sub, target }: RateCardProps) {
           : 'text-[var(--text-primary)]';
 
   // vs 目标差值
+  const t = I18N[locale === 'en' ? 'en' : 'zh'];
   const vsDiff =
     targetPct !== undefined && pct !== null ? ((pct - targetPct) / targetPct) * 100 : null;
   const vsIsPositive = vsDiff !== null && vsDiff >= 0;
@@ -72,7 +80,7 @@ function RateCardBase({ label, rate, sub, target }: RateCardProps) {
               }}
             />
           </div>
-          <p className="text-xs text-[var(--text-muted)] mt-1">目标 {targetPct}%</p>
+          <p className="text-xs text-[var(--text-muted)] mt-1">{t.target(targetPct)}</p>
         </>
       )}
     </div>

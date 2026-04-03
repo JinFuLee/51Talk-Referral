@@ -11,9 +11,29 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 import type { TooltipProps } from 'recharts';
+import { useLocale } from 'next-intl';
 import { fmtEnc } from '@/lib/utils';
 import { CHART_PALETTE } from '@/lib/chart-palette';
 import type { EnclosureDistItem } from '@/lib/types/checkin-student';
+
+const I18N = {
+  zh: {
+    enclosureLabel: '围场：',
+    participationRate: '参与率：',
+    avgCheckin: '人均打卡：',
+    daysSuffix: ' 天',
+    enclosureStudents: '该围场学员数：',
+    noData: '暂无围场分布数据',
+  },
+  en: {
+    enclosureLabel: 'Enclosure: ',
+    participationRate: 'Participation: ',
+    avgCheckin: 'Avg Check-ins: ',
+    daysSuffix: ' days',
+    enclosureStudents: 'Students: ',
+    noData: 'No enclosure distribution data',
+  },
+} as const;
 
 interface EnclosureChartRow {
   label: string;
@@ -22,35 +42,52 @@ interface EnclosureChartRow {
   total: number;
 }
 
-function EnclosureTooltip({ active, payload, label }: TooltipProps<number, string>) {
+type TStrings = (typeof I18N)[keyof typeof I18N];
+
+function EnclosureTooltip({
+  active,
+  payload,
+  label,
+  t,
+}: TooltipProps<number, string> & { t: TStrings }) {
   if (!active || !payload || payload.length === 0) return null;
   const row = payload[0]?.payload as EnclosureChartRow | undefined;
   if (!row) return null;
   return (
     <div className="bg-white border border-[var(--border-default)] rounded-lg shadow-md px-3 py-2 text-xs space-y-1">
       <p className="font-semibold text-[var(--text-primary)] border-b border-[var(--border-subtle)] pb-1 mb-1">
-        围场：{label}
+        {t.enclosureLabel}
+        {label}
       </p>
       <p className="text-[var(--text-secondary)]">
-        参与率：
+        {t.participationRate}
         <span className="font-mono tabular-nums font-semibold text-[var(--text-primary)] ml-1">
           {(row.participation_pct ?? 0).toFixed(1)}%
         </span>
       </p>
       <p className="text-[var(--text-secondary)]">
-        人均打卡：
-        <span className="font-mono tabular-nums ml-1">{(row.avg_days ?? 0).toFixed(2)} 天</span>
+        {t.avgCheckin}
+        <span className="font-mono tabular-nums ml-1">
+          {(row.avg_days ?? 0).toFixed(2)}
+          {t.daysSuffix}
+        </span>
       </p>
-      <p className="text-[var(--text-muted)]">该围场学员数：{(row.total ?? 0).toLocaleString()}</p>
+      <p className="text-[var(--text-muted)]">
+        {t.enclosureStudents}
+        {(row.total ?? 0).toLocaleString()}
+      </p>
     </div>
   );
 }
 
 export function EnclosureParticipationChart({ data }: { data: EnclosureDistItem[] }) {
+  const locale = useLocale();
+  const t = I18N[locale === 'en' ? 'en' : 'zh'];
+
   if (!data || data.length === 0) {
     return (
       <div className="flex items-center justify-center h-[240px] text-sm text-[var(--text-muted)]">
-        暂无围场分布数据
+        {t.noData}
       </div>
     );
   }
@@ -86,7 +123,7 @@ export function EnclosureParticipationChart({ data }: { data: EnclosureDistItem[
           tickLine={false}
           width={52}
         />
-        <Tooltip content={<EnclosureTooltip />} cursor={{ fill: 'rgba(0,0,0,0.04)' }} />
+        <Tooltip content={<EnclosureTooltip t={t} />} cursor={{ fill: 'rgba(0,0,0,0.04)' }} />
         <Bar dataKey="participation_pct" radius={[0, 4, 4, 0]}>
           {chartData.map((row, index) => (
             <Cell

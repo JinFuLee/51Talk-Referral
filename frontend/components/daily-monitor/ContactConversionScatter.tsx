@@ -11,8 +11,24 @@ import {
   ResponsiveContainer,
   Label,
 } from 'recharts';
+import { useLocale } from 'next-intl';
 import type { ContactConversionItem } from '@/lib/types/cross-analysis';
 import { CHART_PALETTE } from '@/lib/chart-palette';
+
+const I18N = {
+  zh: {
+    contactRate: '触达率',
+    conversionRate: '转化率',
+    contactRateLabel: '触达率 (%)',
+    conversionRateLabel: '转化率 (%)',
+  },
+  en: {
+    contactRate: 'Contact Rate',
+    conversionRate: 'Conversion Rate',
+    contactRateLabel: 'Contact Rate (%)',
+    conversionRateLabel: 'Conversion Rate (%)',
+  },
+} as const;
 
 interface ContactConversionScatterProps {
   data: ContactConversionItem[];
@@ -65,6 +81,8 @@ function CustomDot({ cx = 0, cy = 0, payload, hoveredName, onHover }: CustomDotP
 }
 
 export function ContactConversionScatter({ data }: ContactConversionScatterProps) {
+  const locale = useLocale();
+  const t = I18N[locale === 'en' ? 'en' : 'zh'];
   const [hoveredName, setHoveredName] = useState<string | null>(null);
 
   const chartData = data.map((d) => ({
@@ -84,10 +102,10 @@ export function ContactConversionScatter({ data }: ContactConversionScatterProps
             domain={[0, 100]}
             tickFormatter={(v) => `${v}%`}
             tick={{ fontSize: 11, fill: 'var(--text-secondary)' }}
-            name="触达率"
+            name={t.contactRate}
           >
             <Label
-              value="触达率 (%)"
+              value={t.contactRateLabel}
               offset={-8}
               position="insideBottom"
               style={{ fontSize: 11, fill: 'var(--text-muted)' }}
@@ -100,10 +118,10 @@ export function ContactConversionScatter({ data }: ContactConversionScatterProps
             tickFormatter={(v) => `${v}%`}
             tick={{ fontSize: 11, fill: 'var(--text-secondary)' }}
             width={36}
-            name="转化率"
+            name={t.conversionRate}
           >
             <Label
-              value="转化率 (%)"
+              value={t.conversionRateLabel}
               angle={-90}
               position="insideLeft"
               style={{ fontSize: 11, fill: 'var(--text-muted)' }}
