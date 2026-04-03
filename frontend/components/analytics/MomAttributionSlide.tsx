@@ -30,6 +30,8 @@ const I18N: Record<
     retry: string;
     empty: string;
     emptyHint: string;
+    insightVsTarget: string;
+    insightNeedsAttention: string;
   }
 > = {
   zh: {
@@ -49,6 +51,8 @@ const I18N: Record<
     retry: '重试',
     empty: '暂无 MoM 归因数据',
     emptyHint: '请上传本月 Excel 数据源后自动刷新',
+    insightVsTarget: 'vs 目标',
+    insightNeedsAttention: '需重点关注',
   },
   'zh-TW': {
     title: 'MoM 增量歸因',
@@ -67,6 +71,8 @@ const I18N: Record<
     retry: '重試',
     empty: '暫無 MoM 歸因資料',
     emptyHint: '請上傳本月 Excel 資料源後自動刷新',
+    insightVsTarget: 'vs 目標',
+    insightNeedsAttention: '需重點關注',
   },
   en: {
     title: 'MoM Attribution',
@@ -85,6 +91,8 @@ const I18N: Record<
     retry: 'Retry',
     empty: 'No MoM attribution data',
     emptyHint: 'Upload monthly Excel data to refresh',
+    insightVsTarget: 'vs target',
+    insightNeedsAttention: 'needs attention',
   },
   th: {
     title: 'การวิเคราะห์ MoM',
@@ -103,6 +111,8 @@ const I18N: Record<
     retry: 'ลองใหม่',
     empty: 'ไม่มีข้อมูล MoM',
     emptyHint: 'กรุณาอัปโหลดไฟล์ Excel ประจำเดือน',
+    insightVsTarget: 'vs เป้าหมาย',
+    insightNeedsAttention: 'ต้องให้ความสนใจ',
   },
 };
 
@@ -160,7 +170,7 @@ export function MomAttributionSlide({ slideNumber, totalSlides }: SlideProps) {
     const worst = rateRows.reduce((a, b) => (a.vs_target < b.vs_target ? a : b));
     const label =
       METRIC_LABELS[worst.metric]?.[lang as keyof (typeof METRIC_LABELS)[string]] ?? worst.metric;
-    return `${label} vs 目标 ${formatRate(worst.vs_target)}，需重点关注`;
+    return `${label} ${t.insightVsTarget} ${formatRate(worst.vs_target)}，${t.insightNeedsAttention}`;
   })();
 
   return (

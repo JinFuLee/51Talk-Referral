@@ -30,6 +30,7 @@ const I18N: Record<
     retry: string;
     empty: string;
     emptyHint: string;
+    insightLargest: string;
   }
 > = {
   zh: {
@@ -49,6 +50,7 @@ const I18N: Record<
     retry: '重试',
     empty: '暂无渠道 MoM 对比数据',
     emptyHint: '请上传本月 Excel 数据源后自动刷新',
+    insightLargest: '增量最大',
   },
   'zh-TW': {
     title: '渠道業績 MoM 對比',
@@ -67,6 +69,7 @@ const I18N: Record<
     retry: '重試',
     empty: '暫無渠道 MoM 對比資料',
     emptyHint: '請上傳本月 Excel 資料源後自動刷新',
+    insightLargest: '增量最大',
   },
   en: {
     title: 'Channel Revenue MoM',
@@ -85,6 +88,7 @@ const I18N: Record<
     retry: 'Retry',
     empty: 'No channel MoM data',
     emptyHint: 'Upload monthly Excel data to refresh',
+    insightLargest: 'largest delta',
   },
   th: {
     title: 'การเปรียบเทียบรายได้ MoM ตามช่องทาง',
@@ -103,6 +107,7 @@ const I18N: Record<
     retry: 'ลองใหม่',
     empty: 'ไม่มีข้อมูล MoM ของช่องทาง',
     emptyHint: 'กรุณาอัปโหลดไฟล์ Excel ประจำเดือน',
+    insightLargest: 'Δมากที่สุด',
   },
 };
 
@@ -139,7 +144,7 @@ export function ChannelRevenueSlide({ slideNumber, totalSlides }: SlideProps) {
       Math.abs(a.delta_revenue) > Math.abs(b.delta_revenue) ? a : b
     );
     const sign = top.delta_revenue > 0 ? '+' : '';
-    return `${top.channel} 增量最大（${sign}${formatRevenue(top.delta_revenue)}，${sign}${formatRate(top.delta_pct)}）：${top.driver_text}`;
+    return `${top.channel} ${t.insightLargest}（${sign}${formatRevenue(top.delta_revenue)}，${sign}${formatRate(top.delta_pct)}）：${top.driver_text}`;
   })();
 
   return (

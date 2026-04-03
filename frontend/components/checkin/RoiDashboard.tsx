@@ -1,5 +1,6 @@
 'use client';
 
+import { useLocale } from 'next-intl';
 import { useFilteredSWR } from '@/lib/hooks/use-filtered-swr';
 import {
   PieChart,
@@ -18,6 +19,101 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { formatUSD } from '@/lib/utils';
 import type { RoiAnalysisResponse, RiskLevel } from '@/lib/types/checkin-roi';
 import { RISK_LEVEL_CONFIG, RISK_PIE_COLORS } from '@/lib/types/checkin-roi';
+
+// ── 内联 I18N ────────────────────────────────────────────────────────────────
+
+const I18N = {
+  zh: {
+    loadFailed: 'ROI 数据加载失败',
+    loadFailedDesc: '请检查后端服务是否正常运行',
+    noData: '暂无 ROI 数据',
+    noDataDesc: '当前围场过滤下无活动参与学员，请调整筛选条件',
+    totalStudents: '参与学员数',
+    totalStudentsSub: '有活动参与或有收入的学员',
+    totalCost: '总活动成本',
+    totalCostSub: '次卡成本（按 $1.31/张）',
+    totalRevenue: '总转介绍收入',
+    totalRevenueSub: 'D3 带新付费金额',
+    overallRoi: '整体 ROI',
+    overallRoiSub: '(收入−成本)/成本',
+    riskDistTitle: '风险分层分布',
+    noLayerData: '暂无分层数据',
+    channelTitle: '渠道成本 vs 收入对比',
+    noChannelData: '暂无渠道数据',
+    countUnit: (n: number) => `${n.toLocaleString()} 人`,
+    riskLegendTitle: '风险等级说明',
+    countPct: (count: number, pct: number) => `${count} 人（${(pct * 100).toFixed(1)}%）`,
+  },
+  'zh-TW': {
+    loadFailed: 'ROI 資料載入失敗',
+    loadFailedDesc: '請檢查後端服務是否正常執行',
+    noData: '暫無 ROI 資料',
+    noDataDesc: '目前圍場篩選下無活動參與學員，請調整篩選條件',
+    totalStudents: '參與學員數',
+    totalStudentsSub: '有活動參與或有收入的學員',
+    totalCost: '總活動成本',
+    totalCostSub: '次卡成本（按 $1.31/張）',
+    totalRevenue: '總轉介紹收入',
+    totalRevenueSub: 'D3 帶新付費金額',
+    overallRoi: '整體 ROI',
+    overallRoiSub: '(收入−成本)/成本',
+    riskDistTitle: '風險分層分佈',
+    noLayerData: '暫無分層資料',
+    channelTitle: '渠道成本 vs 收入對比',
+    noChannelData: '暫無渠道資料',
+    countUnit: (n: number) => `${n.toLocaleString()} 人`,
+    riskLegendTitle: '風險等級說明',
+    countPct: (count: number, pct: number) => `${count} 人（${(pct * 100).toFixed(1)}%）`,
+  },
+  en: {
+    loadFailed: 'Failed to Load ROI Data',
+    loadFailedDesc: 'Please check whether the backend service is running.',
+    noData: 'No ROI Data',
+    noDataDesc: 'No active students under the current enclosure filter. Adjust filters.',
+    totalStudents: 'Participating Students',
+    totalStudentsSub: 'Students with activity or revenue',
+    totalCost: 'Total Activity Cost',
+    totalCostSub: 'Lesson card cost ($1.31 each)',
+    totalRevenue: 'Total Referral Revenue',
+    totalRevenueSub: 'D3 paid amount from new referrals',
+    overallRoi: 'Overall ROI',
+    overallRoiSub: '(Revenue − Cost) / Cost',
+    riskDistTitle: 'Risk Tier Distribution',
+    noLayerData: 'No tier data',
+    channelTitle: 'Channel Cost vs Revenue',
+    noChannelData: 'No channel data',
+    countUnit: (n: number) => `${n.toLocaleString()} students`,
+    riskLegendTitle: 'Risk Level Legend',
+    countPct: (count: number, pct: number) => `${count} (${(pct * 100).toFixed(1)}%)`,
+  },
+  th: {
+    loadFailed: 'โหลดข้อมูล ROI ล้มเหลว',
+    loadFailedDesc: 'กรุณาตรวจสอบว่าบริการแบ็คเอนด์ทำงานอยู่',
+    noData: 'ไม่มีข้อมูล ROI',
+    noDataDesc: 'ไม่มีนักเรียนที่มีส่วนร่วมภายใต้ตัวกรองคอกปัจจุบัน กรุณาปรับตัวกรอง',
+    totalStudents: 'นักเรียนที่เข้าร่วม',
+    totalStudentsSub: 'นักเรียนที่มีกิจกรรมหรือมีรายได้',
+    totalCost: 'ต้นทุนกิจกรรมรวม',
+    totalCostSub: 'ต้นทุนบัตรเรียน ($1.31/ใบ)',
+    totalRevenue: 'รายได้แนะนำรวม',
+    totalRevenueSub: 'ยอดชำระจากผู้แนะนำใหม่ D3',
+    overallRoi: 'ROI รวม',
+    overallRoiSub: '(รายได้ − ต้นทุน) / ต้นทุน',
+    riskDistTitle: 'การกระจายตัวตามระดับความเสี่ยง',
+    noLayerData: 'ไม่มีข้อมูลระดับ',
+    channelTitle: 'ต้นทุน vs รายได้ตามช่องทาง',
+    noChannelData: 'ไม่มีข้อมูลช่องทาง',
+    countUnit: (n: number) => `${n.toLocaleString()} คน`,
+    riskLegendTitle: 'คำอธิบายระดับความเสี่ยง',
+    countPct: (count: number, pct: number) => `${count} คน (${(pct * 100).toFixed(1)}%)`,
+  },
+} as const;
+
+type Locale = keyof typeof I18N;
+function useT() {
+  const locale = useLocale();
+  return I18N[(locale as Locale) in I18N ? (locale as Locale) : 'zh'];
+}
 
 interface Props {
   enclosureFilter?: string | null;
@@ -47,6 +143,7 @@ function SummaryCard({
 }
 
 export function RoiDashboard({ enclosureFilter }: Props) {
+  const t = useT();
   const params = new URLSearchParams();
   if (enclosureFilter) params.set('enclosure', enclosureFilter);
 
@@ -63,16 +160,11 @@ export function RoiDashboard({ enclosureFilter }: Props) {
   }
 
   if (error) {
-    return <EmptyState title="ROI 数据加载失败" description="请检查后端服务是否正常运行" />;
+    return <EmptyState title={t.loadFailed} description={t.loadFailedDesc} />;
   }
 
   if (!data || data.summary.total_students === 0) {
-    return (
-      <EmptyState
-        title="暂无 ROI 数据"
-        description="当前围场过滤下无活动参与学员，请调整筛选条件"
-      />
-    );
+    return <EmptyState title={t.noData} description={t.noDataDesc} />;
   }
 
   const { summary, channel_roi } = data;
@@ -112,24 +204,24 @@ export function RoiDashboard({ enclosureFilter }: Props) {
       {/* 汇总卡片行 */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <SummaryCard
-          label="参与学员数"
+          label={t.totalStudents}
           value={summary.total_students.toLocaleString()}
-          sub="有活动参与或有收入的学员"
+          sub={t.totalStudentsSub}
         />
         <SummaryCard
-          label="总活动成本"
+          label={t.totalCost}
           value={formatUSD(summary.total_cost_usd)}
-          sub="次卡成本（按 $1.31/张）"
+          sub={t.totalCostSub}
         />
         <SummaryCard
-          label="总转介绍收入"
+          label={t.totalRevenue}
           value={formatUSD(summary.total_revenue_usd)}
-          sub="D3 带新付费金额"
+          sub={t.totalRevenueSub}
         />
         <SummaryCard
-          label="整体 ROI"
+          label={t.overallRoi}
           value={summary.overall_roi != null ? `${summary.overall_roi.toFixed(1)}%` : '—'}
-          sub="(收入−成本)/成本"
+          sub={t.overallRoiSub}
           color={roiColor}
         />
       </div>
@@ -138,7 +230,7 @@ export function RoiDashboard({ enclosureFilter }: Props) {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* 风险分层饼图 */}
         <div className="card-base p-4">
-          <h3 className="text-sm font-medium text-[var(--text-primary)] mb-3">风险分层分布</h3>
+          <h3 className="text-sm font-medium text-[var(--text-primary)] mb-3">{t.riskDistTitle}</h3>
           {pieData.length > 0 ? (
             <ResponsiveContainer width="100%" height={260}>
               <PieChart>
@@ -156,12 +248,7 @@ export function RoiDashboard({ enclosureFilter }: Props) {
                     <Cell key={idx} fill={entry.color} />
                   ))}
                 </Pie>
-                <Tooltip
-                  formatter={(value: number, name: string) => [
-                    `${value.toLocaleString()} 人`,
-                    name,
-                  ]}
-                />
+                <Tooltip formatter={(value: number, name: string) => [t.countUnit(value), name]} />
                 <Legend
                   layout="horizontal"
                   verticalAlign="bottom"
@@ -171,15 +258,13 @@ export function RoiDashboard({ enclosureFilter }: Props) {
               </PieChart>
             </ResponsiveContainer>
           ) : (
-            <EmptyState title="暂无分层数据" />
+            <EmptyState title={t.noLayerData} />
           )}
         </div>
 
         {/* 渠道 ROI 条形图 */}
         <div className="card-base p-4">
-          <h3 className="text-sm font-medium text-[var(--text-primary)] mb-3">
-            渠道成本 vs 收入对比
-          </h3>
+          <h3 className="text-sm font-medium text-[var(--text-primary)] mb-3">{t.channelTitle}</h3>
           {barData.length > 0 ? (
             <ResponsiveContainer width="100%" height={260}>
               <BarChart data={barData} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
@@ -194,7 +279,7 @@ export function RoiDashboard({ enclosureFilter }: Props) {
               </BarChart>
             </ResponsiveContainer>
           ) : (
-            <EmptyState title="暂无渠道数据" />
+            <EmptyState title={t.noChannelData} />
           )}
 
           {/* 渠道 ROI 数字快览 */}
@@ -225,7 +310,7 @@ export function RoiDashboard({ enclosureFilter }: Props) {
 
       {/* 风险等级说明 */}
       <div className="card-base p-4">
-        <h3 className="text-sm font-medium text-[var(--text-primary)] mb-3">风险等级说明</h3>
+        <h3 className="text-sm font-medium text-[var(--text-primary)] mb-3">{t.riskLegendTitle}</h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
           {(
             Object.entries(RISK_LEVEL_CONFIG) as [
@@ -246,7 +331,7 @@ export function RoiDashboard({ enclosureFilter }: Props) {
                     {cfg.label}
                   </p>
                   <p className="text-xs text-[var(--text-muted)]">
-                    {dist?.count ?? 0} 人（{((dist?.pct ?? 0) * 100).toFixed(1)}%）
+                    {t.countPct(dist?.count ?? 0, dist?.pct ?? 0)}
                   </p>
                 </div>
               </div>

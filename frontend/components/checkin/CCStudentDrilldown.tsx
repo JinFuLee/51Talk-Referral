@@ -2,10 +2,98 @@
 
 // CC 学员明细展开面板 — 懒加载，用于 TeamDetailTab 中 CC 行点击展开
 
+import { useLocale } from 'next-intl';
 import { useStudentAnalysis } from '@/lib/hooks/useStudentAnalysis';
 import { StudentTagBadge } from './StudentTagBadge';
 import { fmtEnc } from '@/lib/utils';
 import type { StudentRow } from '@/lib/types/checkin-student';
+
+// ── 内联 I18N ────────────────────────────────────────────────────────────────
+
+const I18N = {
+  zh: {
+    loading: '加载中…',
+    loadFailed: '数据加载失败',
+    noData: '该 CC 暂无学员数据',
+    totalLabel: '共',
+    totalUnit: (n: number) => `${n} 学员`,
+    checkedInLabel: '已打卡',
+    checkedInValue: (n: number, pct: number) => `${n}（${pct}%）`,
+    sleepHighLabel: '沉睡高潜',
+    sleepHighValue: (n: number) => `${n} 人`,
+    studentIdHeader: '学员 ID',
+    enclosureHeader: '围场',
+    thisMonthHeader: '本月',
+    lastMonthHeader: '上月',
+    deltaHeader: '△',
+    lessonHeader: '课耗',
+    referralHeader: '推荐注册',
+    tagsHeader: '标签',
+  },
+  'zh-TW': {
+    loading: '載入中…',
+    loadFailed: '資料載入失敗',
+    noData: '此 CC 暫無學員資料',
+    totalLabel: '共',
+    totalUnit: (n: number) => `${n} 學員`,
+    checkedInLabel: '已打卡',
+    checkedInValue: (n: number, pct: number) => `${n}（${pct}%）`,
+    sleepHighLabel: '沉睡高潛',
+    sleepHighValue: (n: number) => `${n} 人`,
+    studentIdHeader: '學員 ID',
+    enclosureHeader: '圍場',
+    thisMonthHeader: '本月',
+    lastMonthHeader: '上月',
+    deltaHeader: '△',
+    lessonHeader: '課耗',
+    referralHeader: '推薦注冊',
+    tagsHeader: '標籤',
+  },
+  en: {
+    loading: 'Loading…',
+    loadFailed: 'Failed to load data',
+    noData: 'No student data for this CC',
+    totalLabel: 'Total',
+    totalUnit: (n: number) => `${n} students`,
+    checkedInLabel: 'Checked In',
+    checkedInValue: (n: number, pct: number) => `${n} (${pct}%)`,
+    sleepHighLabel: 'Dormant High-Potential',
+    sleepHighValue: (n: number) => `${n}`,
+    studentIdHeader: 'Student ID',
+    enclosureHeader: 'Enclosure',
+    thisMonthHeader: 'This Month',
+    lastMonthHeader: 'Last Month',
+    deltaHeader: '△',
+    lessonHeader: 'Lessons',
+    referralHeader: 'Referrals',
+    tagsHeader: 'Tags',
+  },
+  th: {
+    loading: 'กำลังโหลด…',
+    loadFailed: 'โหลดข้อมูลล้มเหลว',
+    noData: 'ไม่มีข้อมูลนักเรียนสำหรับ CC นี้',
+    totalLabel: 'ทั้งหมด',
+    totalUnit: (n: number) => `${n} คน`,
+    checkedInLabel: 'เช็คอินแล้ว',
+    checkedInValue: (n: number, pct: number) => `${n} (${pct}%)`,
+    sleepHighLabel: 'ศักยภาพสูงที่ไม่ใช้งาน',
+    sleepHighValue: (n: number) => `${n} คน`,
+    studentIdHeader: 'รหัสนักเรียน',
+    enclosureHeader: 'คอก',
+    thisMonthHeader: 'เดือนนี้',
+    lastMonthHeader: 'เดือนที่แล้ว',
+    deltaHeader: '△',
+    lessonHeader: 'บทเรียน',
+    referralHeader: 'แนะนำ',
+    tagsHeader: 'แท็ก',
+  },
+} as const;
+
+type Locale = keyof typeof I18N;
+function useT() {
+  const locale = useLocale();
+  return I18N[(locale as Locale) in I18N ? (locale as Locale) : 'zh'];
+}
 
 interface CCStudentDrilldownProps {
   ccName: string;
@@ -49,19 +137,22 @@ function DeltaCell({ delta }: DeltaCellProps) {
  *   <CCStudentDrilldown ccName="小明" />
  */
 export function CCStudentDrilldown({ ccName }: CCStudentDrilldownProps) {
+  const t = useT();
   const { data, error, isLoading } = useStudentAnalysis({ cc: ccName });
 
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-16 text-xs text-[var(--text-muted)]">
-        加载中…
+        {t.loading}
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="flex items-center justify-center h-16 text-xs text-red-600">数据加载失败</div>
+      <div className="flex items-center justify-center h-16 text-xs text-red-600">
+        {t.loadFailed}
+      </div>
     );
   }
 
@@ -70,7 +161,7 @@ export function CCStudentDrilldown({ ccName }: CCStudentDrilldownProps) {
   if (students.length === 0) {
     return (
       <div className="flex items-center justify-center h-16 text-xs text-[var(--text-muted)]">
-        该 CC 暂无学员数据
+        {t.noData}
       </div>
     );
   }
@@ -88,11 +179,11 @@ export function CCStudentDrilldown({ ccName }: CCStudentDrilldownProps) {
     <div className="border-t border-[var(--border-default)] bg-[var(--bg-subtle)]">
       {/* 摘要行 */}
       <div className="flex items-center gap-4 px-4 py-2 border-b border-[var(--border-default)]">
-        <SummaryStat label="共" value={`${total} 学员`} />
+        <SummaryStat label={t.totalLabel} value={t.totalUnit(total)} />
         <span className="text-[var(--border-default)]">·</span>
-        <SummaryStat label="已打卡" value={`${checkedIn}（${checkedInPct}%）`} />
+        <SummaryStat label={t.checkedInLabel} value={t.checkedInValue(checkedIn, checkedInPct)} />
         <span className="text-[var(--border-default)]">·</span>
-        <SummaryStat label="沉睡高潜" value={`${sleepHighPotential} 人`} />
+        <SummaryStat label={t.sleepHighLabel} value={t.sleepHighValue(sleepHighPotential)} />
       </div>
 
       {/* 紧凑表格，最大高度 400px */}
@@ -100,14 +191,14 @@ export function CCStudentDrilldown({ ccName }: CCStudentDrilldownProps) {
         <table className="w-full border-collapse text-xs">
           <thead className="sticky top-0 z-10">
             <tr className="slide-thead-row">
-              <th className="slide-th slide-th-left">学员 ID</th>
-              <th className="slide-th slide-th-center">围场</th>
-              <th className="slide-th slide-th-center">本月</th>
-              <th className="slide-th slide-th-center">上月</th>
-              <th className="slide-th slide-th-center">△</th>
-              <th className="slide-th slide-th-center">课耗</th>
-              <th className="slide-th slide-th-center">推荐注册</th>
-              <th className="slide-th slide-th-left">标签</th>
+              <th className="slide-th slide-th-left">{t.studentIdHeader}</th>
+              <th className="slide-th slide-th-center">{t.enclosureHeader}</th>
+              <th className="slide-th slide-th-center">{t.thisMonthHeader}</th>
+              <th className="slide-th slide-th-center">{t.lastMonthHeader}</th>
+              <th className="slide-th slide-th-center">{t.deltaHeader}</th>
+              <th className="slide-th slide-th-center">{t.lessonHeader}</th>
+              <th className="slide-th slide-th-center">{t.referralHeader}</th>
+              <th className="slide-th slide-th-left">{t.tagsHeader}</th>
             </tr>
           </thead>
           <tbody>

@@ -1,10 +1,102 @@
 'use client';
 
+import { useLocale } from 'next-intl';
 import { useFilteredSWR } from '@/lib/hooks/use-filtered-swr';
 import { Spinner } from '@/components/ui/Spinner';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { formatUSD } from '@/lib/utils';
 import type { RoiAnalysisResponse, ChannelRoiItem } from '@/lib/types/checkin-roi';
+
+// ── 内联 I18N ────────────────────────────────────────────────────────────────
+
+const I18N = {
+  zh: {
+    loadFailed: '渠道数据加载失败',
+    loadFailedDesc: '请检查后端服务是否正常运行',
+    noData: '暂无渠道 ROI 数据',
+    noDataDesc: '当前条件下无渠道活动数据',
+    calibrationNote: '口径说明：',
+    calibrationDesc:
+      '渠道归因按围场段分配（CC=M0-M2，SS=M3，LP=M4-M5，宽口=M6+）。 收入为近似值（带新付费数 × 平均客单价 $150）。',
+    channelHeader: '渠道',
+    newCountHeader: '带新人数',
+    newPaidHeader: '带新付费数',
+    costHeader: '成本 (USD)',
+    revenueHeader: '收入 (USD)',
+    roiHeader: 'ROI',
+    totalLabel: '合计',
+    best: '最优',
+    worst: '待改善',
+    convRate: '转化率',
+    cost: '成本',
+  },
+  'zh-TW': {
+    loadFailed: '渠道資料載入失敗',
+    loadFailedDesc: '請檢查後端服務是否正常執行',
+    noData: '暫無渠道 ROI 資料',
+    noDataDesc: '目前條件下無渠道活動資料',
+    calibrationNote: '口徑說明：',
+    calibrationDesc:
+      '渠道歸因按圍場段分配（CC=M0-M2，SS=M3，LP=M4-M5，寬口=M6+）。收入為近似值（帶新付費數 × 平均客單價 $150）。',
+    channelHeader: '渠道',
+    newCountHeader: '帶新人數',
+    newPaidHeader: '帶新付費數',
+    costHeader: '成本 (USD)',
+    revenueHeader: '收入 (USD)',
+    roiHeader: 'ROI',
+    totalLabel: '合計',
+    best: '最優',
+    worst: '待改善',
+    convRate: '轉化率',
+    cost: '成本',
+  },
+  en: {
+    loadFailed: 'Failed to Load Channel Data',
+    loadFailedDesc: 'Please check whether the backend service is running.',
+    noData: 'No Channel ROI Data',
+    noDataDesc: 'No channel activity data under current filters.',
+    calibrationNote: 'Note: ',
+    calibrationDesc:
+      'Channel attribution by enclosure segment (CC=M0-M2, SS=M3, LP=M4-M5, Wide=M6+). Revenue is approximate (new paid × avg $150 per order).',
+    channelHeader: 'Channel',
+    newCountHeader: 'New Count',
+    newPaidHeader: 'New Paid',
+    costHeader: 'Cost (USD)',
+    revenueHeader: 'Revenue (USD)',
+    roiHeader: 'ROI',
+    totalLabel: 'Total',
+    best: 'Best',
+    worst: 'Needs Work',
+    convRate: 'Conv. Rate',
+    cost: 'Cost',
+  },
+  th: {
+    loadFailed: 'โหลดข้อมูลช่องทางล้มเหลว',
+    loadFailedDesc: 'กรุณาตรวจสอบว่าบริการแบ็คเอนด์ทำงานอยู่',
+    noData: 'ไม่มีข้อมูล ROI ช่องทาง',
+    noDataDesc: 'ไม่มีข้อมูลกิจกรรมช่องทางภายใต้เงื่อนไขปัจจุบัน',
+    calibrationNote: 'หมายเหตุ: ',
+    calibrationDesc:
+      'การระบุแหล่งที่มาตามช่วงคอก (CC=M0-M2, SS=M3, LP=M4-M5, กว้าง=M6+) รายได้เป็นค่าประมาณ (ชำระใหม่ × $150 เฉลี่ย)',
+    channelHeader: 'ช่องทาง',
+    newCountHeader: 'จำนวนใหม่',
+    newPaidHeader: 'ชำระใหม่',
+    costHeader: 'ต้นทุน (USD)',
+    revenueHeader: 'รายได้ (USD)',
+    roiHeader: 'ROI',
+    totalLabel: 'รวม',
+    best: 'ดีที่สุด',
+    worst: 'ต้องปรับปรุง',
+    convRate: 'อัตราแปลง',
+    cost: 'ต้นทุน',
+  },
+} as const;
+
+type Locale = keyof typeof I18N;
+function useT() {
+  const locale = useLocale();
+  return I18N[(locale as Locale) in I18N ? (locale as Locale) : 'zh'];
+}
 
 interface Props {
   enclosureFilter?: string | null;
@@ -26,19 +118,26 @@ function ChannelHighlight({
   best,
   worst,
   channel,
+  bestLabel,
+  worstLabel,
 }: {
   best: string;
   worst: string;
   channel: string;
+  bestLabel: string;
+  worstLabel: string;
 }) {
   if (channel === best)
-    return <span className="ml-1 text-xs text-green-700 bg-green-100 px-1 rounded">最优</span>;
+    return (
+      <span className="ml-1 text-xs text-green-700 bg-green-100 px-1 rounded">{bestLabel}</span>
+    );
   if (channel === worst)
-    return <span className="ml-1 text-xs text-red-700 bg-red-100 px-1 rounded">待改善</span>;
+    return <span className="ml-1 text-xs text-red-700 bg-red-100 px-1 rounded">{worstLabel}</span>;
   return null;
 }
 
 export function RoiChannelMatrix({ enclosureFilter }: Props) {
+  const t = useT();
   const params = new URLSearchParams();
   if (enclosureFilter) params.set('enclosure', enclosureFilter);
 
@@ -55,11 +154,11 @@ export function RoiChannelMatrix({ enclosureFilter }: Props) {
   }
 
   if (error) {
-    return <EmptyState title="渠道数据加载失败" description="请检查后端服务是否正常运行" />;
+    return <EmptyState title={t.loadFailed} description={t.loadFailedDesc} />;
   }
 
   if (!data || Object.keys(data.channel_roi).length === 0) {
-    return <EmptyState title="暂无渠道 ROI 数据" description="当前条件下无渠道活动数据" />;
+    return <EmptyState title={t.noData} description={t.noDataDesc} />;
   }
 
   const channelRoi = data.channel_roi;
@@ -97,9 +196,8 @@ export function RoiChannelMatrix({ enclosureFilter }: Props) {
       {/* 说明 */}
       <div className="card-base p-3 bg-[var(--bg-subtle)]">
         <p className="text-xs text-[var(--text-secondary)]">
-          <strong>口径说明：</strong>
-          渠道归因按围场段分配（CC=M0-M2，SS=M3，LP=M4-M5，宽口=M6+）。 收入为近似值（带新付费数 ×
-          平均客单价 $150）。
+          <strong>{t.calibrationNote}</strong>
+          {t.calibrationDesc}
         </p>
       </div>
 
@@ -108,12 +206,12 @@ export function RoiChannelMatrix({ enclosureFilter }: Props) {
         <table className="w-full text-sm">
           <thead>
             <tr className="slide-thead-row">
-              <th className="slide-th">渠道</th>
-              <th className="slide-th text-right">带新人数</th>
-              <th className="slide-th text-right">带新付费数</th>
-              <th className="slide-th text-right">成本 (USD)</th>
-              <th className="slide-th text-right">收入 (USD)</th>
-              <th className="slide-th text-right">ROI</th>
+              <th className="slide-th">{t.channelHeader}</th>
+              <th className="slide-th text-right">{t.newCountHeader}</th>
+              <th className="slide-th text-right">{t.newPaidHeader}</th>
+              <th className="slide-th text-right">{t.costHeader}</th>
+              <th className="slide-th text-right">{t.revenueHeader}</th>
+              <th className="slide-th text-right">{t.roiHeader}</th>
             </tr>
           </thead>
           <tbody>
@@ -124,7 +222,13 @@ export function RoiChannelMatrix({ enclosureFilter }: Props) {
                 <tr key={ch} className={i % 2 === 0 ? 'slide-row-even' : 'slide-row-odd'}>
                   <td className="slide-td font-medium">
                     <span>{ch}</span>
-                    <ChannelHighlight best={bestChannel} worst={worstChannel} channel={ch} />
+                    <ChannelHighlight
+                      best={bestChannel}
+                      worst={worstChannel}
+                      channel={ch}
+                      bestLabel={t.best}
+                      worstLabel={t.worst}
+                    />
                   </td>
                   <td className="slide-td text-right">{(v.new_count ?? 0).toLocaleString()}</td>
                   <td className="slide-td text-right">{(v.new_paid ?? 0).toLocaleString()}</td>
@@ -139,7 +243,7 @@ export function RoiChannelMatrix({ enclosureFilter }: Props) {
           </tbody>
           <tfoot>
             <tr className="slide-tfoot-row font-semibold">
-              <td className="slide-td">合计</td>
+              <td className="slide-td">{t.totalLabel}</td>
               <td className="slide-td text-right">{(totals.new_count ?? 0).toLocaleString()}</td>
               <td className="slide-td text-right">{(totals.new_paid ?? 0).toLocaleString()}</td>
               <td className="slide-td text-right">{formatUSD(totals.cost_usd)}</td>
@@ -172,28 +276,28 @@ export function RoiChannelMatrix({ enclosureFilter }: Props) {
                 <span className="text-sm font-medium text-[var(--text-primary)]">{ch}</span>
                 {ch === bestChannel && (
                   <span className="text-xs text-green-700 bg-green-100 px-1.5 py-0.5 rounded-full">
-                    最优
+                    {t.best}
                   </span>
                 )}
                 {ch === worstChannel && ch !== bestChannel && (
                   <span className="text-xs text-red-700 bg-red-100 px-1.5 py-0.5 rounded-full">
-                    待改善
+                    {t.worst}
                   </span>
                 )}
               </div>
               <p className="text-xl font-semibold" style={{ color: roiColor }}>
                 {v.roi != null ? `${v.roi.toFixed(1)}%` : '—'}
               </p>
-              <p className="text-xs text-[var(--text-muted)] mt-1">ROI</p>
+              <p className="text-xs text-[var(--text-muted)] mt-1">{t.roiHeader}</p>
               <div className="mt-2 pt-2 border-t border-[var(--border-default)] space-y-0.5">
                 <div className="flex justify-between text-xs">
-                  <span className="text-[var(--text-muted)]">转化率</span>
+                  <span className="text-[var(--text-muted)]">{t.convRate}</span>
                   <span className="text-[var(--text-secondary)]">
                     {(convRate ?? 0).toFixed(1)}%
                   </span>
                 </div>
                 <div className="flex justify-between text-xs">
-                  <span className="text-[var(--text-muted)]">成本</span>
+                  <span className="text-[var(--text-muted)]">{t.cost}</span>
                   <span className="text-[var(--text-secondary)]">{formatUSD(v.cost_usd)}</span>
                 </div>
               </div>

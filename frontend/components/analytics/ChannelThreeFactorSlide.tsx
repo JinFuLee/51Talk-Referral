@@ -31,6 +31,10 @@ const I18N: Record<
     retry: string;
     empty: string;
     emptyHint: string;
+    insightLargest: string;
+    lmdiNotice: (n: number) => string;
+    legendLasp: string;
+    legendLmdi: string;
   }
 > = {
   zh: {
@@ -51,6 +55,10 @@ const I18N: Record<
     retry: '重试',
     empty: '暂无三因素分解数据',
     emptyHint: '请上传本月 Excel 数据源后自动刷新',
+    insightLargest: '实际增量最大',
+    lmdiNotice: (n: number) => `${n} 个渠道残差率 > 3%，已自动切换为 LMDI 分解（零残差）`,
+    legendLasp: 'Lasp. = Laspeyres 加法分解（残差率 ≤ 3%）',
+    legendLmdi: 'LMDI = 对数分解（残差率 > 3%，零残差）',
   },
   'zh-TW': {
     title: '渠道三因素分解',
@@ -70,6 +78,10 @@ const I18N: Record<
     retry: '重試',
     empty: '暫無三因素分解資料',
     emptyHint: '請上傳本月 Excel 資料源後自動刷新',
+    insightLargest: '實際增量最大',
+    lmdiNotice: (n: number) => `${n} 個渠道殘差率 > 3%，已自動切換為 LMDI 分解（零殘差）`,
+    legendLasp: 'Lasp. = Laspeyres 加法分解（殘差率 ≤ 3%）',
+    legendLmdi: 'LMDI = 對數分解（殘差率 > 3%，零殘差）',
   },
   en: {
     title: 'Channel Three-Factor Decomposition',
@@ -89,6 +101,11 @@ const I18N: Record<
     retry: 'Retry',
     empty: 'No three-factor data',
     emptyHint: 'Upload monthly Excel data to refresh',
+    insightLargest: 'largest actual delta',
+    lmdiNotice: (n: number) =>
+      `${n} channel(s) residual > 3%, auto-switched to LMDI (zero residual)`,
+    legendLasp: 'Lasp. = Laspeyres additive decomposition (residual ≤ 3%)',
+    legendLmdi: 'LMDI = Log-mean decomposition (residual > 3%, zero residual)',
   },
   th: {
     title: 'การแยกย่อย 3 ปัจจัยตามช่องทาง',
@@ -108,6 +125,11 @@ const I18N: Record<
     retry: 'ลองใหม่',
     empty: 'ไม่มีข้อมูล 3 ปัจจัย',
     emptyHint: 'กรุณาอัปโหลดไฟล์ Excel ประจำเดือน',
+    insightLargest: 'Δจริงมากที่สุด',
+    lmdiNotice: (n: number) =>
+      `${n} ช่องทางมีค่าคลาดเคลื่อน > 3% เปลี่ยนเป็น LMDI อัตโนมัติ (ไม่มีค่าคลาดเคลื่อน)`,
+    legendLasp: 'Lasp. = การแยกย่อยแบบ Laspeyres (คลาดเคลื่อน ≤ 3%)',
+    legendLmdi: 'LMDI = การแยกย่อยแบบลอการิทึม (คลาดเคลื่อน > 3%, ไม่มีค่าคลาดเคลื่อน)',
   },
 };
 
@@ -191,7 +213,7 @@ export function ChannelThreeFactorSlide({ slideNumber, totalSlides }: SlideProps
     const delta =
       top.display_method === 'lmdi' ? top.lmdi.actual_delta : top.laspeyres.actual_delta;
     const sign = delta > 0 ? '+' : '';
-    return `${top.channel} 实际增量最大（${sign}${formatRevenue(delta)}）`;
+    return `${top.channel} ${t.insightLargest}（${sign}${formatRevenue(delta)}）`;
   })();
 
   // 统计哪些渠道使用 LMDI（用于说明）
@@ -233,7 +255,7 @@ export function ChannelThreeFactorSlide({ slideNumber, totalSlides }: SlideProps
           {/* 方法说明 */}
           {lmdiCount > 0 && (
             <div className="flex-shrink-0 px-3 py-1.5 bg-amber-50 rounded-lg border border-amber-200 text-xs text-amber-700">
-              {lmdiCount} 个渠道残差率 &gt; 3%，已自动切换为 LMDI 分解（零残差）
+              {t.lmdiNotice(lmdiCount)}
             </div>
           )}
 
@@ -262,11 +284,11 @@ export function ChannelThreeFactorSlide({ slideNumber, totalSlides }: SlideProps
           <div className="flex-shrink-0 flex gap-4 text-xs text-[var(--text-muted)] px-1">
             <span>
               <span className="inline-block w-2 h-2 rounded-sm bg-[var(--color-accent-surface)] mr-1" />
-              Lasp. = Laspeyres 加法分解（残差率 ≤ 3%）
+              {t.legendLasp}
             </span>
             <span>
               <span className="inline-block w-2 h-2 rounded-sm bg-amber-100 mr-1" />
-              LMDI = 对数分解（残差率 &gt; 3%，零残差）
+              {t.legendLmdi}
             </span>
           </div>
         </div>
