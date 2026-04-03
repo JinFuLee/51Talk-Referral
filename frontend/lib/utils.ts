@@ -110,6 +110,53 @@ export function formatValue(v: number | null | undefined, isRate = false, decima
 export const CHART_FONT_SIZE = { sm: 10, md: 11, lg: 12 } as const;
 export const CHART_HEIGHT = { sm: 220, md: 260, lg: 320 } as const;
 
+/* ── 指标公式中文术语翻译 ─────────────────────────────────────── */
+
+/**
+ * 后端 config.json indicator_registry.formula 字段可能含中文数据列名。
+ * 此函数按 locale 将中文术语替换为对应语言文本。
+ *
+ * 中文来源（projects/referral/config.json）：
+ *   CC接通, 有效接通, CC新单转介绍
+ */
+const FORMULA_TERMS: Record<string, Record<string, string>> = {
+  CC接通: {
+    zh: 'CC接通',
+    'zh-TW': 'CC接通',
+    en: 'CC Connected',
+    th: 'CC สายที่ติดต่อได้',
+  },
+  有效接通: {
+    zh: '有效接通',
+    'zh-TW': '有效接通',
+    en: 'Valid Connected',
+    th: 'สายที่ติดต่อได้จริง',
+  },
+  CC新单转介绍: {
+    zh: 'CC新单转介绍',
+    'zh-TW': 'CC新單轉介紹',
+    en: 'CC New Order Referral',
+    th: 'CC ออเดอร์ใหม่แนะนำ',
+  },
+};
+
+/**
+ * 将 formula 字符串中的中文数据列名翻译为目标 locale 文本。
+ * 不认识的术语保持原样。
+ *
+ * @param formula 原始公式字符串（可为 null/undefined）
+ * @param locale  'zh' | 'zh-TW' | 'en' | 'th'
+ */
+export function translateFormula(formula: string | null | undefined, locale: string): string {
+  if (!formula) return '';
+  let result = formula;
+  for (const [term, translations] of Object.entries(FORMULA_TERMS)) {
+    const translation = translations[locale] ?? translations['zh'] ?? term;
+    result = result.split(term).join(translation);
+  }
+  return result;
+}
+
 /**
  * 率指标条件着色 — 深色高对比（白底可读）
  * thresholds: [低阈值, 高阈值]，例 [0.3, 0.5]

@@ -14,6 +14,7 @@ import {
   CATEGORY_LABELS_ZH,
   CATEGORY_LABELS_TH,
 } from '@/lib/types/indicator-matrix';
+import { translateFormula } from '@/lib/utils';
 
 const I18N = {
   zh: {
@@ -475,7 +476,7 @@ export default function IndicatorMatrixPage() {
                           )}
                           {ind.formula && (
                             <p className="text-[11px] text-[var(--text-muted)] mt-0.5 font-mono truncate">
-                              {ind.formula}
+                              {translateFormula(ind.formula, locale)}
                             </p>
                           )}
                         </div>
