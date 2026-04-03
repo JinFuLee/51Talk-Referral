@@ -61,13 +61,29 @@ export interface RoiAnalysisResponse {
   channel_roi: Record<string, ChannelRoiItem>;
 }
 
+type RiskLocale = 'zh' | 'zh-TW' | 'en' | 'th';
+
 // 风险等级展示配置（行为模式分层）
 export const RISK_LEVEL_CONFIG: Record<
   RiskLevel,
-  { label: string; color: string; bgColor: string; emoji: string; action: string }
+  {
+    /** 中文标签（后端 key 原文，供 BEHAVIOR_TIER_LABELS 映射使用） */
+    label: string;
+    labels: Record<RiskLocale, string>;
+    color: string;
+    bgColor: string;
+    emoji: string;
+    action: string;
+  }
 > = {
   gold: {
     label: '金牌推荐人',
+    labels: {
+      zh: '金牌推荐人',
+      'zh-TW': '金牌推薦人',
+      en: 'Gold Referrer',
+      th: 'ผู้แนะนำระดับทอง',
+    },
     color: '#b45309',
     bgColor: '#fef3c7',
     emoji: '⭐',
@@ -75,6 +91,12 @@ export const RISK_LEVEL_CONFIG: Record<
   },
   effective: {
     label: '有效推荐',
+    labels: {
+      zh: '有效推荐',
+      'zh-TW': '有效推薦',
+      en: 'Effective Referrer',
+      th: 'ผู้แนะนำที่มีประสิทธิภาพ',
+    },
     color: '#16a34a',
     bgColor: '#dcfce7',
     emoji: '✅',
@@ -82,6 +104,12 @@ export const RISK_LEVEL_CONFIG: Record<
   },
   stuck_pay: {
     label: '成交待跟进',
+    labels: {
+      zh: '成交待跟进',
+      'zh-TW': '成交待跟進',
+      en: 'Pending Conversion',
+      th: 'รอปิดการขาย',
+    },
     color: '#ca8a04',
     bgColor: '#fef9c3',
     emoji: '🔄',
@@ -89,6 +117,12 @@ export const RISK_LEVEL_CONFIG: Record<
   },
   stuck_show: {
     label: '出席待跟进',
+    labels: {
+      zh: '出席待跟进',
+      'zh-TW': '出席待跟進',
+      en: 'Pending Attendance',
+      th: 'รอติดตามเข้าร่วม',
+    },
     color: '#ea580c',
     bgColor: '#ffedd5',
     emoji: '🔄',
@@ -96,6 +130,12 @@ export const RISK_LEVEL_CONFIG: Record<
   },
   potential: {
     label: '高潜待激活',
+    labels: {
+      zh: '高潜待激活',
+      'zh-TW': '高潛待激活',
+      en: 'High-Pot to Activate',
+      th: 'ศักยภาพสูงรอกระตุ้น',
+    },
     color: '#7c3aed',
     bgColor: '#ede9fe',
     emoji: '👀',
@@ -103,6 +143,7 @@ export const RISK_LEVEL_CONFIG: Record<
   },
   freeloader: {
     label: '纯消耗',
+    labels: { zh: '纯消耗', 'zh-TW': '純消耗', en: 'Pure Consumer', th: 'บริโภคอย่างเดียว' },
     color: '#dc2626',
     bgColor: '#fee2e2',
     emoji: '⚠️',
@@ -110,6 +151,7 @@ export const RISK_LEVEL_CONFIG: Record<
   },
   newcomer: {
     label: '新人观望',
+    labels: { zh: '新人观望', 'zh-TW': '新人觀望', en: 'New Observer', th: 'มือใหม่รอดู' },
     color: '#6b7280',
     bgColor: '#f3f4f6',
     emoji: '🆕',
@@ -117,12 +159,21 @@ export const RISK_LEVEL_CONFIG: Record<
   },
   casual: {
     label: '低频参与',
+    labels: { zh: '低频参与', 'zh-TW': '低頻參與', en: 'Low Frequency', th: 'มีส่วนร่วมน้อย' },
     color: '#9ca3af',
     bgColor: '#f9fafb',
     emoji: '💤',
     action: '标准沟通',
   },
 };
+
+/** 取当前 locale 的风险等级标签，无匹配回退到中文 */
+export function getRiskLabel(level: RiskLevel, locale: string): string {
+  const cfg = RISK_LEVEL_CONFIG[level];
+  if (!cfg) return level;
+  const l = locale as RiskLocale;
+  return cfg.labels[l] ?? cfg.labels.zh;
+}
 
 // 图表用颜色（与 RISK_LEVEL_CONFIG 对齐，Recharts 需要 hex）
 export const RISK_PIE_COLORS: Record<RiskLevel, string> = {

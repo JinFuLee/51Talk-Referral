@@ -38,6 +38,47 @@ export const FEASIBILITY_LABELS: LabelMap = {
   难度极高: { zh: '难度极高', 'zh-TW': '難度極高', en: 'Very Hard', th: 'ยากมาก' },
 };
 
+export const BEHAVIOR_TIER_LABELS: LabelMap = {
+  金牌推荐人: {
+    zh: '金牌推荐人',
+    'zh-TW': '金牌推薦人',
+    en: 'Gold Referrer',
+    th: 'ผู้แนะนำระดับทอง',
+  },
+  有效推荐: {
+    zh: '有效推荐',
+    'zh-TW': '有效推薦',
+    en: 'Effective Referrer',
+    th: 'ผู้แนะนำที่มีประสิทธิภาพ',
+  },
+  成交待跟进: {
+    zh: '成交待跟进',
+    'zh-TW': '成交待跟進',
+    en: 'Pending Conversion',
+    th: 'รอปิดการขาย',
+  },
+  出席待跟进: {
+    zh: '出席待跟进',
+    'zh-TW': '出席待跟進',
+    en: 'Pending Attendance',
+    th: 'รอติดตามเข้าร่วม',
+  },
+  高潜待激活: {
+    zh: '高潜待激活',
+    'zh-TW': '高潛待激活',
+    en: 'High-Pot to Activate',
+    th: 'ศักยภาพสูงรอกระตุ้น',
+  },
+  纯消耗: { zh: '纯消耗', 'zh-TW': '純消耗', en: 'Pure Consumer', th: 'บริโภคอย่างเดียว' },
+  新人观望: { zh: '新人观望', 'zh-TW': '新人觀望', en: 'New Observer', th: 'มือใหม่รอดู' },
+  低频参与: { zh: '低频参与', 'zh-TW': '低頻參與', en: 'Low Frequency', th: 'มีส่วนร่วมน้อย' },
+};
+
+export const CHART_LEGEND_LABELS: LabelMap = {
+  成本: { zh: '成本', 'zh-TW': '成本', en: 'Cost', th: 'ต้นทุน' },
+  收入: { zh: '收入', 'zh-TW': '收入', en: 'Revenue', th: 'รายได้' },
+};
+
 export const OPS_CHANNEL_LABELS: LabelMap = {
   电话: { zh: '电话', 'zh-TW': '電話', en: 'Phone', th: 'โทรศัพท์' },
   短信: { zh: '短信', 'zh-TW': '短信', en: 'SMS', th: 'SMS' },

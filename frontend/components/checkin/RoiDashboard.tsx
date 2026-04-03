@@ -18,7 +18,7 @@ import { Spinner } from '@/components/ui/Spinner';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { formatUSD } from '@/lib/utils';
 import type { RoiAnalysisResponse, RiskLevel } from '@/lib/types/checkin-roi';
-import { RISK_LEVEL_CONFIG, RISK_PIE_COLORS } from '@/lib/types/checkin-roi';
+import { RISK_LEVEL_CONFIG, RISK_PIE_COLORS, getRiskLabel } from '@/lib/types/checkin-roi';
 
 // ── 内联 I18N ────────────────────────────────────────────────────────────────
 
@@ -43,6 +43,8 @@ const I18N = {
     countUnit: (n: number) => `${n.toLocaleString()} 人`,
     riskLegendTitle: '风险等级说明',
     countPct: (count: number, pct: number) => `${count} 人（${(pct * 100).toFixed(1)}%）`,
+    legendCost: '成本',
+    legendRevenue: '收入',
   },
   'zh-TW': {
     loadFailed: 'ROI 資料載入失敗',
@@ -64,6 +66,8 @@ const I18N = {
     countUnit: (n: number) => `${n.toLocaleString()} 人`,
     riskLegendTitle: '風險等級說明',
     countPct: (count: number, pct: number) => `${count} 人（${(pct * 100).toFixed(1)}%）`,
+    legendCost: '成本',
+    legendRevenue: '收入',
   },
   en: {
     loadFailed: 'Failed to Load ROI Data',
@@ -85,6 +89,8 @@ const I18N = {
     countUnit: (n: number) => `${n.toLocaleString()} students`,
     riskLegendTitle: 'Risk Level Legend',
     countPct: (count: number, pct: number) => `${count} (${(pct * 100).toFixed(1)}%)`,
+    legendCost: 'Cost',
+    legendRevenue: 'Revenue',
   },
   th: {
     loadFailed: 'โหลดข้อมูล ROI ล้มเหลว',
@@ -106,6 +112,8 @@ const I18N = {
     countUnit: (n: number) => `${n.toLocaleString()} คน`,
     riskLegendTitle: 'คำอธิบายระดับความเสี่ยง',
     countPct: (count: number, pct: number) => `${count} คน (${(pct * 100).toFixed(1)}%)`,
+    legendCost: 'ต้นทุน',
+    legendRevenue: 'รายได้',
   },
 } as const;
 
@@ -144,6 +152,7 @@ function SummaryCard({
 
 export function RoiDashboard({ enclosureFilter }: Props) {
   const t = useT();
+  const locale = useLocale();
   const params = new URLSearchParams();
   if (enclosureFilter) params.set('enclosure', enclosureFilter);
 
@@ -169,23 +178,23 @@ export function RoiDashboard({ enclosureFilter }: Props) {
 
   const { summary, channel_roi } = data;
 
-  // 饼图数据
+  // 饼图数据（name 用当前 locale 翻译，Recharts Legend 自动取 name）
   const pieData = (
     Object.entries(summary.risk_distribution) as [RiskLevel, { count: number; pct: number }][]
   )
     .filter(([, v]) => v.count > 0)
     .map(([key, v]) => ({
-      name: RISK_LEVEL_CONFIG[key].label,
+      name: getRiskLabel(key, locale),
       value: v.count,
       pct: v.pct,
       color: RISK_PIE_COLORS[key],
     }));
 
-  // 渠道条形图数据
+  // 渠道条形图数据（用 locale 无关 key: cost / revenue）
   const barData = Object.entries(channel_roi).map(([ch, v]) => ({
     channel: ch,
-    成本: Math.round(v.cost_usd),
-    收入: Math.round(v.revenue_approx_usd),
+    cost: Math.round(v.cost_usd),
+    revenue: Math.round(v.revenue_approx_usd),
     roi: v.roi,
   }));
 
@@ -274,8 +283,13 @@ export function RoiDashboard({ enclosureFilter }: Props) {
                   formatter={(value: number, name: string) => [`$${value.toLocaleString()}`, name]}
                 />
                 <Legend wrapperStyle={{ fontSize: 11 }} />
-                <Bar dataKey="成本" fill="#e05545" radius={[3, 3, 0, 0]} />
-                <Bar dataKey="收入" fill="#2d9f6f" radius={[3, 3, 0, 0]} />
+                <Bar dataKey="cost" name={t.legendCost} fill="#e05545" radius={[3, 3, 0, 0]} />
+                <Bar
+                  dataKey="revenue"
+                  name={t.legendRevenue}
+                  fill="#2d9f6f"
+                  radius={[3, 3, 0, 0]}
+                />
               </BarChart>
             </ResponsiveContainer>
           ) : (
@@ -286,7 +300,17 @@ export function RoiDashboard({ enclosureFilter }: Props) {
           <div className="mt-3 grid grid-cols-4 gap-2">
             {barData.map((b) => (
               <div key={b.channel} className="text-center">
-                <p className="text-xs text-[var(--text-muted)]">{b.channel}</p>
+                <p className="text-xs text-[var(--text-muted)]">
+                  {/* CHANNEL_LABELS 映射，未命中回退原文 */}
+                  {b.channel === '宽口'
+                    ? ((
+                        { zh: '宽口', 'zh-TW': '寬口', en: 'Wide', th: 'กว้าง' } as Record<
+                          string,
+                          string
+                        >
+                      )[locale] ?? b.channel)
+                    : b.channel}
+                </p>
                 <p
                   className="text-sm font-semibold"
                   style={{
@@ -328,7 +352,7 @@ export function RoiDashboard({ enclosureFilter }: Props) {
                 <span className="text-sm">{cfg.emoji}</span>
                 <div>
                   <p className="text-xs font-medium" style={{ color: cfg.color }}>
-                    {cfg.label}
+                    {getRiskLabel(key, locale)}
                   </p>
                   <p className="text-xs text-[var(--text-muted)]">
                     {t.countPct(dist?.count ?? 0, dist?.pct ?? 0)}

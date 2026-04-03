@@ -6,6 +6,7 @@ import { Spinner } from '@/components/ui/Spinner';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { formatUSD } from '@/lib/utils';
 import type { RoiAnalysisResponse, ChannelRoiItem } from '@/lib/types/checkin-roi';
+import { CHANNEL_LABELS, useLabel } from '@/lib/label-maps';
 
 // ── 内联 I18N ────────────────────────────────────────────────────────────────
 
@@ -138,6 +139,7 @@ function ChannelHighlight({
 
 export function RoiChannelMatrix({ enclosureFilter }: Props) {
   const t = useT();
+  const label = useLabel();
   const params = new URLSearchParams();
   if (enclosureFilter) params.set('enclosure', enclosureFilter);
 
@@ -221,7 +223,7 @@ export function RoiChannelMatrix({ enclosureFilter }: Props) {
               return (
                 <tr key={ch} className={i % 2 === 0 ? 'slide-row-even' : 'slide-row-odd'}>
                   <td className="slide-td font-medium">
-                    <span>{ch}</span>
+                    <span>{label(CHANNEL_LABELS, ch) || ch}</span>
                     <ChannelHighlight
                       best={bestChannel}
                       worst={worstChannel}
@@ -273,7 +275,9 @@ export function RoiChannelMatrix({ enclosureFilter }: Props) {
           return (
             <div key={ch} className="card-base p-4">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-[var(--text-primary)]">{ch}</span>
+                <span className="text-sm font-medium text-[var(--text-primary)]">
+                  {label(CHANNEL_LABELS, ch) || ch}
+                </span>
                 {ch === bestChannel && (
                   <span className="text-xs text-green-700 bg-green-100 px-1.5 py-0.5 rounded-full">
                     {t.best}

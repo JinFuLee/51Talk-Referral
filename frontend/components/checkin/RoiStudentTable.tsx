@@ -6,7 +6,7 @@ import { Spinner } from '@/components/ui/Spinner';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { formatUSD, formatRate } from '@/lib/utils';
 import type { RoiAnalysisResponse, RoiStudentRow, RiskLevel } from '@/lib/types/checkin-roi';
-import { RISK_LEVEL_CONFIG } from '@/lib/types/checkin-roi';
+import { RISK_LEVEL_CONFIG, getRiskLabel } from '@/lib/types/checkin-roi';
 import { useLocale } from 'next-intl';
 
 // ── i18n ──────────────────────────────────────────────────────────────────────
@@ -236,13 +236,14 @@ interface Props {
 }
 
 function RiskBadge({ level }: { level: RiskLevel }) {
+  const locale = useLocale();
   const cfg = RISK_LEVEL_CONFIG[level];
   return (
     <span
       className="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium"
       style={{ backgroundColor: cfg.bgColor, color: cfg.color }}
     >
-      {cfg.emoji} {cfg.label}
+      {cfg.emoji} {getRiskLabel(level, locale)}
     </span>
   );
 }
@@ -307,7 +308,8 @@ function exportToCSV(students: RoiStudentRow[], t: (typeof I18N)[keyof typeof I1
 }
 
 export function RoiStudentTable({ enclosureFilter }: Props) {
-  const locale = useLocale() as Locale;
+  const rawLocale = useLocale();
+  const locale = rawLocale as Locale;
   const t = I18N[locale] ?? I18N.zh;
   const [riskFilter, setRiskFilter] = useState<RiskLevel | 'all'>('all');
   const [sortKey, setSortKey] = useState<'roi' | 'cost' | 'revenue'>('roi');
@@ -408,7 +410,7 @@ export function RoiStudentTable({ enclosureFilter }: Props) {
       <p className="text-xs text-[var(--text-muted)]">
         {filtered.length.toLocaleString()} {t.studentCount}
         {riskFilter !== 'all' &&
-          `${t.filteredBy}${RISK_LEVEL_CONFIG[riskFilter as RiskLevel]?.label}${t.filteredBySuffix}`}
+          `${t.filteredBy}${getRiskLabel(riskFilter as RiskLevel, rawLocale)}${t.filteredBySuffix}`}
       </p>
 
       {/* 表格 */}

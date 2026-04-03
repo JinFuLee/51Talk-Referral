@@ -12,12 +12,24 @@ const I18N = {
     students: '学员 ROI 排行',
     channels: '渠道 ROI 矩阵',
   },
+  'zh-TW': {
+    dashboard: '全局儀表板',
+    students: '學員 ROI 排行',
+    channels: '渠道 ROI 矩陣',
+  },
   en: {
     dashboard: 'Overview Dashboard',
     students: 'Student ROI Ranking',
     channels: 'Channel ROI Matrix',
   },
+  th: {
+    dashboard: 'ภาพรวม Dashboard',
+    students: 'อันดับ ROI นักเรียน',
+    channels: 'เมทริกซ์ ROI ช่องทาง',
+  },
 } as const;
+
+type TabLocale = keyof typeof I18N;
 
 interface Props {
   roleFilter?: string;
@@ -28,7 +40,7 @@ type SubTabId = 'dashboard' | 'students' | 'channels';
 
 export function RoiAnalysisTab({ enclosureFilter }: Props) {
   const locale = useLocale();
-  const t = I18N[locale === 'en' ? 'en' : 'zh'];
+  const t = I18N[(locale as TabLocale) in I18N ? (locale as TabLocale) : 'zh'];
   const [activeSubTab, setActiveSubTab] = useState<SubTabId>('dashboard');
 
   const SUB_TABS: { id: SubTabId; label: string }[] = [
