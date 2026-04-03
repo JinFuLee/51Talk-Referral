@@ -122,3 +122,193 @@ export const OPS_CHANNEL_LABELS: LabelMap = {
   },
   邮件: { zh: '邮件', 'zh-TW': '郵件', en: 'Email', th: 'อีเมล' },
 };
+
+// ── Data Health page ─────────────────────────────────────────────────────────
+
+/** 后端 pipeline_status[].layer 字段（固定 4 个值） */
+export const PIPELINE_LAYER_LABELS: LabelMap = {
+  'Excel 文件': { zh: 'Excel 文件', 'zh-TW': 'Excel 文件', en: 'Excel Files', th: 'ไฟล์ Excel' },
+  'Python 引擎': {
+    zh: 'Python 引擎',
+    'zh-TW': 'Python 引擎',
+    en: 'Python Engine',
+    th: 'Python Engine',
+  },
+  'API 响应': { zh: 'API 响应', 'zh-TW': 'API 回應', en: 'API Response', th: 'API Response' },
+  前端渲染: { zh: '前端渲染', 'zh-TW': '前端渲染', en: 'Frontend Render', th: 'Frontend Render' },
+};
+
+/** 后端 modules[].name 字段（来自 _ENDPOINTS_TO_CHECK module） */
+export const DATA_MODULE_LABELS: LabelMap = {
+  健康检查: { zh: '健康检查', 'zh-TW': '健康檢查', en: 'Health Check', th: 'Health Check' },
+  总览: { zh: '总览', 'zh-TW': '總覽', en: 'Overview', th: 'ภาพรวม' },
+  漏斗分析: {
+    zh: '漏斗分析',
+    'zh-TW': '漏斗分析',
+    en: 'Funnel Analysis',
+    th: 'การวิเคราะห์ Funnel',
+  },
+  围场分析: {
+    zh: '围场分析',
+    'zh-TW': '圍場分析',
+    en: 'Enclosure Analysis',
+    th: 'การวิเคราะห์ Enclosure',
+  },
+  打卡管理: { zh: '打卡管理', 'zh-TW': '打卡管理', en: 'Check-in Mgmt', th: 'จัดการการเช็คอิน' },
+  运营报告: { zh: '运营报告', 'zh-TW': '運營報告', en: 'Ops Report', th: 'รายงานปฏิบัติการ' },
+  运营摘要: { zh: '运营摘要', 'zh-TW': '運營摘要', en: 'Ops Summary', th: 'สรุปปฏิบัติการ' },
+  配置: { zh: '配置', 'zh-TW': '配置', en: 'Configuration', th: 'การตั้งค่า' },
+  指标矩阵: {
+    zh: '指标矩阵',
+    'zh-TW': '指標矩陣',
+    en: 'Indicator Matrix',
+    th: 'เมทริกซ์ตัวชี้วัด',
+  },
+  'CC 个人业绩': {
+    zh: 'CC 个人业绩',
+    'zh-TW': 'CC 個人業績',
+    en: 'CC Performance',
+    th: 'ผลงาน CC',
+  },
+  内场激励: { zh: '内场激励', 'zh-TW': '內場激勵', en: 'Incentive', th: 'แรงจูงใจ' },
+};
+
+/** 后端 root_causes[].cause 字段 */
+export const ROOT_CAUSE_LABELS: LabelMap = {
+  'D4 学员数据': {
+    zh: 'D4 学员数据',
+    'zh-TW': 'D4 學員數據',
+    en: 'D4 Student Data',
+    th: 'ข้อมูลนักเรียน D4',
+  },
+  'CC 个人目标上传': {
+    zh: 'CC 个人目标上传',
+    'zh-TW': 'CC 個人目標上傳',
+    en: 'CC Target Upload',
+    th: 'อัปโหลดเป้าหมาย CC',
+  },
+  'CC 个人目标上传（推算）': {
+    zh: 'CC 个人目标上传（推算）',
+    'zh-TW': 'CC 個人目標上傳（推算）',
+    en: 'CC Target Upload (Derived)',
+    th: 'อัปโหลดเป้าหมาย CC (คำนวณ)',
+  },
+  月度目标未配置: {
+    zh: '月度目标未配置',
+    'zh-TW': '月度目標未配置',
+    en: 'Monthly Target Not Set',
+    th: 'ยังไม่ได้ตั้งเป้าหมายรายเดือน',
+  },
+  历史快照不足: {
+    zh: '历史快照不足',
+    'zh-TW': '歷史快照不足',
+    en: 'Insufficient Snapshots',
+    th: 'ข้อมูลประวัติไม่เพียงพอ',
+  },
+  'D2B 数据': { zh: 'D2B 数据', 'zh-TW': 'D2B 數據', en: 'D2B Data', th: 'ข้อมูล D2B' },
+  'CC 无有效围场': {
+    zh: 'CC 无有效围场',
+    'zh-TW': 'CC 無有效圍場',
+    en: 'CC No Active Enclosure',
+    th: 'CC ไม่มี Enclosure ที่ใช้งาน',
+  },
+  'D2 围场数据': {
+    zh: 'D2 围场数据',
+    'zh-TW': 'D2 圍場數據',
+    en: 'D2 Enclosure Data',
+    th: 'ข้อมูล Enclosure D2',
+  },
+  'D1 汇总数据': {
+    zh: 'D1 汇总数据',
+    'zh-TW': 'D1 匯總數據',
+    en: 'D1 Summary Data',
+    th: 'ข้อมูลสรุป D1',
+  },
+  激励活动配置: {
+    zh: '激励活动配置',
+    'zh-TW': '激勵活動配置',
+    en: 'Incentive Config',
+    th: 'การตั้งค่ากิจกรรมจูงใจ',
+  },
+  打卡角色数据: {
+    zh: '打卡角色数据',
+    'zh-TW': '打卡角色數據',
+    en: 'Check-in Role Data',
+    th: 'ข้อมูลบทบาทการเช็คอิน',
+  },
+  未知: { zh: '未知', 'zh-TW': '未知', en: 'Unknown', th: 'ไม่ทราบ' },
+};
+
+/** 后端 root_causes[].remediation.action 字段 */
+export const REMEDIATION_ACTION_LABELS: LabelMap = {
+  '下载 BI 数据': {
+    zh: '下载 BI 数据',
+    'zh-TW': '下載 BI 數據',
+    en: 'Download BI Data',
+    th: 'ดาวน์โหลดข้อมูล BI',
+  },
+  上传个人目标: {
+    zh: '上传个人目标',
+    'zh-TW': '上傳個人目標',
+    en: 'Upload Personal Target',
+    th: 'อัปโหลดเป้าหมายส่วนตัว',
+  },
+  设置月度目标: {
+    zh: '设置月度目标',
+    'zh-TW': '設置月度目標',
+    en: 'Set Monthly Target',
+    th: 'ตั้งเป้าหมายรายเดือน',
+  },
+  等待数据积累: {
+    zh: '等待数据积累',
+    'zh-TW': '等待數據積累',
+    en: 'Awaiting Data Accumulation',
+    th: 'รอสะสมข้อมูล',
+  },
+  配置激励活动: {
+    zh: '配置激励活动',
+    'zh-TW': '配置激勵活動',
+    en: 'Configure Incentive',
+    th: 'ตั้งค่ากิจกรรมจูงใจ',
+  },
+  正常现象: { zh: '正常现象', 'zh-TW': '正常現象', en: 'Normal', th: 'ปกติ' },
+};
+
+/** 后端 root_causes[].remediation.manual 字段（固定文本） */
+export const REMEDIATION_MANUAL_LABELS: LabelMap = {
+  '双击 下载BI数据.command': {
+    zh: '双击 下载BI数据.command',
+    'zh-TW': '雙擊 下載BI數據.command',
+    en: 'Double-click 下载BI数据.command',
+    th: 'ดับเบิลคลิก 下载BI数据.command',
+  },
+  '需 ≥7 天快照（自动积累）': {
+    zh: '需 ≥7 天快照（自动积累）',
+    'zh-TW': '需 ≥7 天快照（自動積累）',
+    en: 'Requires ≥7 days of snapshots (auto-accumulated)',
+    th: 'ต้องการ ≥7 วันของ snapshot (สะสมอัตโนมัติ)',
+  },
+  运营角色无数据为正常: {
+    zh: '运营角色无数据为正常',
+    'zh-TW': '運營角色無數據為正常',
+    en: 'No data for ops role is normal',
+    th: 'ไม่มีข้อมูลสำหรับบทบาท ops ถือเป็นปกติ',
+  },
+  'CC 名下无有效围场学员，过程指标为空': {
+    zh: 'CC 名下无有效围场学员，过程指标为空',
+    'zh-TW': 'CC 名下無有效圍場學員，過程指標為空',
+    en: 'CC has no active enclosure students; process metrics are empty',
+    th: 'CC ไม่มีนักเรียน enclosure ที่ใช้งาน ตัวชี้วัดกระบวนการว่างเปล่า',
+  },
+};
+
+/** 后端 cross_checks[].name 字段 */
+export const CROSS_CHECK_LABELS: LabelMap = {
+  'CC 人数': { zh: 'CC 人数', 'zh-TW': 'CC 人數', en: 'CC Headcount', th: 'จำนวน CC' },
+  '注册数（总览 vs 漏斗）': {
+    zh: '注册数（总览 vs 漏斗）',
+    'zh-TW': '註冊數（總覽 vs 漏斗）',
+    en: 'Register Count (Overview vs Funnel)',
+    th: 'จำนวนลงทะเบียน (ภาพรวม vs Funnel)',
+  },
+};

@@ -4,6 +4,15 @@ import { useState, Fragment } from 'react';
 import { useLocale } from 'next-intl';
 import { useFilteredSWR } from '@/lib/hooks/use-filtered-swr';
 import { usePageDimensions } from '@/lib/hooks/use-page-dimensions';
+import {
+  useLabel,
+  PIPELINE_LAYER_LABELS,
+  DATA_MODULE_LABELS,
+  ROOT_CAUSE_LABELS,
+  REMEDIATION_ACTION_LABELS,
+  REMEDIATION_MANUAL_LABELS,
+  CROSS_CHECK_LABELS,
+} from '@/lib/label-maps';
 import type {
   DataHealthReport,
   ModuleResult,
@@ -368,6 +377,7 @@ function L0Banner({
 // ── 管线状态条 ────────────────────────────────────────────────────────────────
 
 function PipelineBar({ pipeline }: { pipeline: PipelineLayer[] }) {
+  const label = useLabel();
   if (!pipeline || pipeline.length === 0) return null;
   return (
     <div className="flex items-center gap-2 overflow-x-auto py-1">
@@ -377,7 +387,7 @@ function PipelineBar({ pipeline }: { pipeline: PipelineLayer[] }) {
           <div
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium shrink-0 ${layerBadgeClass(layer.status)}`}
           >
-            <span>{layer.layer}</span>
+            <span>{label(PIPELINE_LAYER_LABELS, layer.layer)}</span>
             <span className="font-mono text-[10px] opacity-75">{layer.detail}</span>
           </div>
         </Fragment>
@@ -389,6 +399,7 @@ function PipelineBar({ pipeline }: { pipeline: PipelineLayer[] }) {
 // ── 根因卡片 ──────────────────────────────────────────────────────────────────
 
 function RootCauseCards({ causes, t }: { causes: RootCause[]; t: (typeof I18N)['zh'] }) {
+  const label = useLabel();
   if (!causes || causes.length === 0) return null;
   return (
     <div className="space-y-2">
@@ -401,7 +412,9 @@ function RootCauseCards({ causes, t }: { causes: RootCause[]; t: (typeof I18N)['
           className="card-base p-3 flex items-center justify-between gap-3 border-l-4 border-amber-400"
         >
           <div className="min-w-0">
-            <span className="text-sm font-medium text-[var(--text-primary)]">{rc.cause}</span>
+            <span className="text-sm font-medium text-[var(--text-primary)]">
+              {label(ROOT_CAUSE_LABELS, rc.cause)}
+            </span>
             <span className="ml-2 text-xs text-[var(--text-muted)]">
               → {rc.affected_fields} {t.fieldAffected}
             </span>
@@ -415,11 +428,11 @@ function RootCauseCards({ causes, t }: { causes: RootCause[]; t: (typeof I18N)['
           {rc.remediation &&
             (rc.remediation.link ? (
               <a href={rc.remediation.link} className="btn-primary text-xs px-3 py-1 shrink-0">
-                {rc.remediation.action}
+                {label(REMEDIATION_ACTION_LABELS, rc.remediation.action)}
               </a>
             ) : (
               <span className="text-xs text-[var(--text-muted)] shrink-0">
-                {rc.remediation.manual}
+                {label(REMEDIATION_MANUAL_LABELS, rc.remediation.manual ?? '')}
               </span>
             ))}
         </div>
@@ -666,6 +679,7 @@ function EndpointList({ endpoints, t }: { endpoints: EndpointResult[]; t: (typeo
 
 function ModuleCards({ modules, t }: { modules: ModuleResult[]; t: (typeof I18N)['zh'] }) {
   const [expandedModule, setExpandedModule] = useState<string | null>(null);
+  const label = useLabel();
 
   if (!modules || modules.length === 0) return null;
 
@@ -687,7 +701,9 @@ function ModuleCards({ modules, t }: { modules: ModuleResult[]; t: (typeof I18N)
                 <div
                   className={`w-2.5 h-2.5 rounded-full shrink-0 ${mod.all_ok ? 'bg-emerald-500' : 'bg-red-500'}`}
                 />
-                <span className="text-sm font-medium text-[var(--text-primary)]">{mod.name}</span>
+                <span className="text-sm font-medium text-[var(--text-primary)]">
+                  {label(DATA_MODULE_LABELS, mod.name)}
+                </span>
               </div>
               <div className="flex items-center gap-3 text-xs text-[var(--text-muted)] shrink-0">
                 <span>
@@ -715,6 +731,7 @@ function ModuleCards({ modules, t }: { modules: ModuleResult[]; t: (typeof I18N)
 // ── 跨端点一致性 ──────────────────────────────────────────────────────────────
 
 function CrossChecks({ checks, t }: { checks: CrossCheck[]; t: (typeof I18N)['zh'] }) {
+  const label = useLabel();
   if (!checks || checks.length === 0) return null;
   return (
     <div className="space-y-2">
@@ -726,7 +743,9 @@ function CrossChecks({ checks, t }: { checks: CrossCheck[]; t: (typeof I18N)['zh
           key={i}
           className={`card-base p-3 border-l-4 ${c.passed ? 'border-emerald-400' : 'border-red-400'}`}
         >
-          <span className="text-sm text-[var(--text-primary)]">{c.name}</span>
+          <span className="text-sm text-[var(--text-primary)]">
+            {label(CROSS_CHECK_LABELS, c.name)}
+          </span>
           {c.note && <span className="ml-2 text-xs text-[var(--text-muted)]">{c.note}</span>}
         </div>
       ))}
