@@ -12,19 +12,21 @@ export function useLabel() {
 }
 
 export const CHANNEL_LABELS: LabelMap = {
-  CC窄: { zh: 'CC窄', 'zh-TW': 'CC窄', en: 'CC Narrow', th: 'CC แคบ' },
-  SS窄: { zh: 'SS窄', 'zh-TW': 'SS窄', en: 'SS Narrow', th: 'SS แคบ' },
-  LP窄: { zh: 'LP窄', 'zh-TW': 'LP窄', en: 'LP Narrow', th: 'LP แคบ' },
+  // 窄口径 = Lead 来自特定销售岗位（CC/SS/LP 员工绑定学员带来的 lead）
+  CC窄: { zh: 'CC窄', 'zh-TW': 'CC窄', en: 'CC Narrow', th: 'Lead จาก CC' },
+  SS窄: { zh: 'SS窄', 'zh-TW': 'SS窄', en: 'SS Narrow', th: 'Lead จาก SS' },
+  LP窄: { zh: 'LP窄', 'zh-TW': 'LP窄', en: 'LP Narrow', th: 'Lead จาก LP' },
   // 带"口"后缀变体（后端有时返回这些 key）
-  CC窄口: { zh: 'CC窄口', 'zh-TW': 'CC窄口', en: 'CC Narrow', th: 'CC แคบ' },
-  SS窄口: { zh: 'SS窄口', 'zh-TW': 'SS窄口', en: 'SS Narrow', th: 'SS แคบ' },
-  LP窄口: { zh: 'LP窄口', 'zh-TW': 'LP窄口', en: 'LP Narrow', th: 'LP แคบ' },
-  宽口: { zh: '宽口', 'zh-TW': '寬口', en: 'Wide', th: 'กว้าง' },
-  CC宽: { zh: 'CC宽', 'zh-TW': 'CC寬', en: 'CC Wide', th: 'CC กว้าง' },
-  LP宽: { zh: 'LP宽', 'zh-TW': 'LP寬', en: 'LP Wide', th: 'LP กว้าง' },
-  运营宽: { zh: '运营宽', 'zh-TW': '運營寬', en: 'Ops Wide', th: 'ปฏิบัติการ กว้าง' },
+  CC窄口: { zh: 'CC窄口', 'zh-TW': 'CC窄口', en: 'CC Narrow', th: 'Lead จาก CC' },
+  SS窄口: { zh: 'SS窄口', 'zh-TW': 'SS窄口', en: 'SS Narrow', th: 'Lead จาก SS' },
+  LP窄口: { zh: 'LP窄口', 'zh-TW': 'LP窄口', en: 'LP Narrow', th: 'Lead จาก LP' },
+  // 宽口径 = Lead 来自学员自发分享（非员工绑定）
+  宽口: { zh: '宽口', 'zh-TW': '寬口', en: 'Wide', th: 'Lead จาก User' },
+  CC宽: { zh: 'CC宽', 'zh-TW': 'CC寬', en: 'CC Wide', th: 'Lead จาก User (CC)' },
+  LP宽: { zh: 'LP宽', 'zh-TW': 'LP寬', en: 'LP Wide', th: 'Lead จาก User (LP)' },
+  运营宽: { zh: '运营宽', 'zh-TW': '運營寬', en: 'Ops Wide', th: 'Lead จาก User (Ops)' },
   总计: { zh: '总计', 'zh-TW': '總計', en: 'Total', th: 'รวม' },
-  รวมช่องทางแคบ: { zh: '总窄口', 'zh-TW': '總窄口', en: 'Total Narrow', th: 'รวมช่องทางแคบ' },
+  รวมช่องทางแคบ: { zh: '总窄口', 'zh-TW': '總窄口', en: 'Total Narrow', th: 'รวม Lead จาก Staff' },
 };
 
 /** 后端 projection_engine 返回的场景名称 → 当前 locale */
