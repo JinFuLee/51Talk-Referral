@@ -38,6 +38,34 @@ const I18N = {
     selectAll: '全选',
     clearAll: '清空',
     namePlaceholder: '输入角色名称',
+    roleCount: (n: number) => `${n} 个角色`,
+    toastSaved: '权限已保存',
+    toastSaveFailed: '保存失败',
+    toastCreated: '角色已创建',
+    toastCreateFailed: '创建失败',
+  },
+  'zh-TW': {
+    createRole: '新建角色',
+    editRole: '編輯權限',
+    roleName: '角色名稱',
+    color: '顏色',
+    pages: '個頁面',
+    users: '個用戶',
+    preset: '預設',
+    custom: '自定義',
+    cannotDelete: '預設角色不可刪除',
+    save: '儲存',
+    cancel: '取消',
+    saving: '儲存中…',
+    noRoles: '暫無角色',
+    selectAll: '全選',
+    clearAll: '清空',
+    namePlaceholder: '輸入角色名稱',
+    roleCount: (n: number) => `${n} 個角色`,
+    toastSaved: '權限已儲存',
+    toastSaveFailed: '儲存失敗',
+    toastCreated: '角色已建立',
+    toastCreateFailed: '建立失敗',
   },
   en: {
     createRole: 'New Role',
@@ -56,18 +84,85 @@ const I18N = {
     selectAll: 'Select all',
     clearAll: 'Clear',
     namePlaceholder: 'Enter role name',
+    roleCount: (n: number) => `${n} roles`,
+    toastSaved: 'Permissions saved',
+    toastSaveFailed: 'Save failed',
+    toastCreated: 'Role created',
+    toastCreateFailed: 'Create failed',
+  },
+  th: {
+    createRole: 'สร้างบทบาท',
+    editRole: 'แก้ไขสิทธิ์',
+    roleName: 'ชื่อบทบาท',
+    color: 'สี',
+    pages: ' หน้า',
+    users: ' ผู้ใช้',
+    preset: 'ค่าเริ่มต้น',
+    custom: 'กำหนดเอง',
+    cannotDelete: 'บทบาทค่าเริ่มต้นไม่สามารถลบได้',
+    save: 'บันทึก',
+    cancel: 'ยกเลิก',
+    saving: 'กำลังบันทึก…',
+    noRoles: 'ไม่มีบทบาท',
+    selectAll: 'เลือกทั้งหมด',
+    clearAll: 'ล้างทั้งหมด',
+    namePlaceholder: 'กรอกชื่อบทบาท',
+    roleCount: (n: number) => `${n} บทบาท`,
+    toastSaved: 'บันทึกสิทธิ์แล้ว',
+    toastSaveFailed: 'บันทึกล้มเหลว',
+    toastCreated: 'สร้างบทบาทแล้ว',
+    toastCreateFailed: 'สร้างล้มเหลว',
   },
 } as const;
 
 // ── 分类配置（与 PageOverview 保持一致）────────────────────────────────────
 
-const CATEGORY_INFO: Record<string, { zh: string; icon: React.ReactNode }> = {
-  ops_core: { zh: '运营核心', icon: <BarChart3 className="w-3.5 h-3.5" /> },
-  performance: { zh: '业绩管理', icon: <TrendingUp className="w-3.5 h-3.5" /> },
-  student: { zh: '学员管理', icon: <Users className="w-3.5 h-3.5" /> },
-  risk: { zh: '风险与质量', icon: <Shield className="w-3.5 h-3.5" /> },
-  reports: { zh: '报告汇报', icon: <FileText className="w-3.5 h-3.5" /> },
-  system: { zh: '系统管理', icon: <Settings className="w-3.5 h-3.5" /> },
+const CATEGORY_INFO: Record<
+  string,
+  { zh: string; 'zh-TW': string; en: string; th: string; icon: React.ReactNode }
+> = {
+  ops_core: {
+    zh: '运营核心',
+    'zh-TW': '運營核心',
+    en: 'Ops Core',
+    th: 'แกนปฏิบัติการ',
+    icon: <BarChart3 className="w-3.5 h-3.5" />,
+  },
+  performance: {
+    zh: '业绩管理',
+    'zh-TW': '業績管理',
+    en: 'Performance',
+    th: 'การจัดการผลงาน',
+    icon: <TrendingUp className="w-3.5 h-3.5" />,
+  },
+  student: {
+    zh: '学员管理',
+    'zh-TW': '學員管理',
+    en: 'Student Mgmt',
+    th: 'จัดการนักเรียน',
+    icon: <Users className="w-3.5 h-3.5" />,
+  },
+  risk: {
+    zh: '风险与质量',
+    'zh-TW': '風險與品質',
+    en: 'Risk & Quality',
+    th: 'ความเสี่ยงและคุณภาพ',
+    icon: <Shield className="w-3.5 h-3.5" />,
+  },
+  reports: {
+    zh: '报告汇报',
+    'zh-TW': '報告匯報',
+    en: 'Reports',
+    th: 'รายงาน',
+    icon: <FileText className="w-3.5 h-3.5" />,
+  },
+  system: {
+    zh: '系统管理',
+    'zh-TW': '系統管理',
+    en: 'System',
+    th: 'ระบบ',
+    icon: <Settings className="w-3.5 h-3.5" />,
+  },
 };
 
 const PRESET_COLORS = ['#1B365D', '#2D9F6F', '#E8932A', '#E05545', '#5576A8', '#7C3AED'];
@@ -100,6 +195,8 @@ interface RoleEditorProps {
 
 // ── 页面 Checkbox 分组 ────────────────────────────────────────────────────────
 
+type Lang = keyof typeof I18N;
+
 function PageChecklist({
   pages,
   selectedPaths,
@@ -109,7 +206,7 @@ function PageChecklist({
   pages: PageEntry[];
   selectedPaths: Set<string>;
   onToggle: (path: string) => void;
-  lang: 'zh' | 'en';
+  lang: Lang;
 }) {
   const [openCats, setOpenCats] = useState<Record<string, boolean>>({});
   const t = I18N[lang];
@@ -160,7 +257,7 @@ function PageChecklist({
                   className="flex items-center gap-2 text-sm font-medium text-[var(--text-primary)]"
                 >
                   <span className="text-[var(--text-muted)]">{catInfo.icon}</span>
-                  <span>{catInfo.zh}</span>
+                  <span>{catInfo[lang] ?? catInfo.zh}</span>
                   <span className="text-xs text-[var(--text-muted)]">
                     ({catPages.filter((p) => selectedPaths.has(p.path)).length}/{catPages.length})
                   </span>
@@ -215,7 +312,7 @@ function PageChecklist({
 
 export default function RoleEditor({ roles, pages, onSaveRole, onCreateRole }: RoleEditorProps) {
   const locale = useLocale();
-  const lang = locale === 'zh' || locale === 'zh-TW' ? 'zh' : 'en';
+  const lang: Lang = (locale in I18N ? locale : 'en') as Lang;
   const t = I18N[lang];
 
   const [editingRoleId, setEditingRoleId] = useState<string | null>(null);
@@ -254,10 +351,10 @@ export default function RoleEditor({ roles, pages, onSaveRole, onCreateRole }: R
         id: editingRoleId,
         allowed_pages: Array.from(selectedPages),
       });
-      toast.success('权限已保存');
+      toast.success(t.toastSaved);
       cancelEdit();
     } catch (e: unknown) {
-      toast.error(e instanceof Error ? e.message : '保存失败');
+      toast.error(e instanceof Error ? e.message : t.toastSaveFailed);
     } finally {
       setSaving(false);
     }

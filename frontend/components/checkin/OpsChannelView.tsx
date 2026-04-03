@@ -6,6 +6,127 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { cn, formatRate } from '@/lib/utils';
 import { useState } from 'react';
 import { OpsStudentRanking } from './OpsStudentRanking';
+import { useLocale } from 'next-intl';
+
+// ── I18N ────────────────────────────────────────────────────────────────────
+
+const I18N = {
+  zh: {
+    priorityHigh: '高优先',
+    priorityMedium: '中优先',
+    priorityLow: '低优先',
+    costHigh: '高成本',
+    costMedium: '中成本',
+    costLow: '低成本',
+    costLowest: '极低成本',
+    recommendedCount: '推荐触达人数',
+    estimatedContactRate: '预估触达率',
+    costLevel: '成本级别',
+    enclosureSegDist: '围场子段分布',
+    totalStudents: '总学员数',
+    checkedIn: '已打卡',
+    tabChannel: '渠道触达',
+    tabStudentRanking: '学员排行',
+    loadError: '数据加载失败',
+    loadErrorDesc: '无法获取运营渠道数据，请检查后端服务',
+    retry: '重试',
+    emptyTitle: 'M6~M12+ 围场暂无学员数据',
+    emptyDesc: '上传包含 M6+ 围场的过程数据（D3）后自动刷新',
+    noChannelTitle: '暂无渠道配置',
+    noChannelDesc: '后端尚未返回渠道触达数据',
+    m6TotalStudents: 'M6~M12+ 总学员',
+    checkinRate: '打卡率',
+    enclosureSegLabel: '围场子段',
+  },
+  'zh-TW': {
+    priorityHigh: '高優先',
+    priorityMedium: '中優先',
+    priorityLow: '低優先',
+    costHigh: '高成本',
+    costMedium: '中成本',
+    costLow: '低成本',
+    costLowest: '極低成本',
+    recommendedCount: '推薦觸達人數',
+    estimatedContactRate: '預估觸達率',
+    costLevel: '成本級別',
+    enclosureSegDist: '圍場子段分佈',
+    totalStudents: '總學員數',
+    checkedIn: '已打卡',
+    tabChannel: '渠道觸達',
+    tabStudentRanking: '學員排行',
+    loadError: '資料載入失敗',
+    loadErrorDesc: '無法取得運營渠道資料，請檢查後端服務',
+    retry: '重試',
+    emptyTitle: 'M6~M12+ 圍場暫無學員資料',
+    emptyDesc: '上傳包含 M6+ 圍場的過程資料（D3）後自動刷新',
+    noChannelTitle: '暫無渠道設定',
+    noChannelDesc: '後端尚未回傳渠道觸達資料',
+    m6TotalStudents: 'M6~M12+ 總學員',
+    checkinRate: '打卡率',
+    enclosureSegLabel: '圍場子段',
+  },
+  en: {
+    priorityHigh: 'High Priority',
+    priorityMedium: 'Medium Priority',
+    priorityLow: 'Low Priority',
+    costHigh: 'High Cost',
+    costMedium: 'Medium Cost',
+    costLow: 'Low Cost',
+    costLowest: 'Minimal Cost',
+    recommendedCount: 'Recommended Contacts',
+    estimatedContactRate: 'Est. Contact Rate',
+    costLevel: 'Cost Level',
+    enclosureSegDist: 'Enclosure Segment Distribution',
+    totalStudents: 'Total Students',
+    checkedIn: 'Checked In',
+    tabChannel: 'Channel Outreach',
+    tabStudentRanking: 'Student Ranking',
+    loadError: 'Failed to Load Data',
+    loadErrorDesc: 'Unable to fetch ops channel data, please check backend service',
+    retry: 'Retry',
+    emptyTitle: 'No M6~M12+ Enclosure Data',
+    emptyDesc: 'Upload process data (D3) containing M6+ enclosures to refresh automatically',
+    noChannelTitle: 'No Channel Config',
+    noChannelDesc: 'Backend has not returned channel outreach data yet',
+    m6TotalStudents: 'M6~M12+ Students',
+    checkinRate: 'Check-in Rate',
+    enclosureSegLabel: 'Enclosure Segment',
+  },
+  th: {
+    priorityHigh: 'ลำดับความสำคัญสูง',
+    priorityMedium: 'ลำดับความสำคัญปานกลาง',
+    priorityLow: 'ลำดับความสำคัญต่ำ',
+    costHigh: 'ต้นทุนสูง',
+    costMedium: 'ต้นทุนปานกลาง',
+    costLow: 'ต้นทุนต่ำ',
+    costLowest: 'ต้นทุนต่ำมาก',
+    recommendedCount: 'จำนวนที่แนะนำให้ติดต่อ',
+    estimatedContactRate: 'อัตราการติดต่อโดยประมาณ',
+    costLevel: 'ระดับต้นทุน',
+    enclosureSegDist: 'การกระจายส่วน Enclosure',
+    totalStudents: 'นักเรียนทั้งหมด',
+    checkedIn: 'เช็คอินแล้ว',
+    tabChannel: 'การติดต่อผ่านช่องทาง',
+    tabStudentRanking: 'อันดับนักเรียน',
+    loadError: 'โหลดข้อมูลล้มเหลว',
+    loadErrorDesc: 'ไม่สามารถดึงข้อมูลช่องทาง ops กรุณาตรวจสอบบริการ backend',
+    retry: 'ลองใหม่',
+    emptyTitle: 'ไม่มีข้อมูล Enclosure M6~M12+',
+    emptyDesc: 'อัปโหลดข้อมูลกระบวนการ (D3) ที่มี M6+ enclosure เพื่อรีเฟรชอัตโนมัติ',
+    noChannelTitle: 'ไม่มีการตั้งค่าช่องทาง',
+    noChannelDesc: 'Backend ยังไม่ได้ส่งข้อมูลการติดต่อผ่านช่องทาง',
+    m6TotalStudents: 'นักเรียน M6~M12+',
+    checkinRate: 'อัตราเช็คอิน',
+    enclosureSegLabel: 'ส่วน Enclosure',
+  },
+} as const;
+
+type OpsLocale = keyof typeof I18N;
+
+function useT() {
+  const locale = useLocale();
+  return I18N[(locale as OpsLocale) in I18N ? (locale as OpsLocale) : 'zh'];
+}
 
 // ── 类型定义 ──────────────────────────────────────────────────────────────────
 
@@ -57,18 +178,7 @@ const PRIORITY_STYLES: Record<string, string> = {
   low: 'bg-[var(--bg-surface)] text-[var(--text-secondary)] border border-[var(--border-subtle)]',
 };
 
-const PRIORITY_LABELS: Record<string, string> = {
-  high: '高优先',
-  medium: '中优先',
-  low: '低优先',
-};
-
-const COST_LABELS: Record<string, string> = {
-  high: '高成本',
-  medium: '中成本',
-  low: '低成本',
-  lowest: '极低成本',
-};
+// PRIORITY_LABELS and COST_LABELS are now derived from I18N inside components
 
 const COST_STYLES: Record<string, string> = {
   high: 'text-[var(--color-danger)]',
@@ -80,7 +190,20 @@ const COST_STYLES: Record<string, string> = {
 // ── 渠道卡片 ─────────────────────────────────────────────────────────────────
 
 function ChannelCard({ channel }: { channel: OpsChannel }) {
+  const t = useT();
   const ratePercent = Math.min(100, Math.round((channel.estimated_contact_rate ?? 0) * 100));
+
+  const priorityLabels: Record<string, string> = {
+    high: t.priorityHigh,
+    medium: t.priorityMedium,
+    low: t.priorityLow,
+  };
+  const costLabels: Record<string, string> = {
+    high: t.costHigh,
+    medium: t.costMedium,
+    low: t.costLow,
+    lowest: t.costLowest,
+  };
 
   return (
     <div className="card-compact overflow-hidden flex flex-col !p-0">
@@ -93,7 +216,7 @@ function ChannelCard({ channel }: { channel: OpsChannel }) {
             PRIORITY_STYLES[channel.priority] ?? PRIORITY_STYLES.low
           )}
         >
-          {PRIORITY_LABELS[channel.priority] ?? channel.priority}
+          {priorityLabels[channel.priority] ?? channel.priority}
         </span>
       </div>
 
@@ -104,7 +227,7 @@ function ChannelCard({ channel }: { channel: OpsChannel }) {
           <div className="text-3xl font-bold tabular-nums text-[var(--text-primary)]">
             {fmtNum(channel.recommended_count)}
           </div>
-          <div className="text-xs text-[var(--text-muted)] mt-0.5">推荐触达人数</div>
+          <div className="text-xs text-[var(--text-muted)] mt-0.5">{t.recommendedCount}</div>
         </div>
 
         {/* 目标条件 */}
@@ -115,7 +238,7 @@ function ChannelCard({ channel }: { channel: OpsChannel }) {
         {/* 预估触达率 */}
         <div>
           <div className="flex items-center justify-between text-xs mb-1">
-            <span className="text-[var(--text-muted)]">预估触达率</span>
+            <span className="text-[var(--text-muted)]">{t.estimatedContactRate}</span>
             <span className="font-semibold tabular-nums text-[var(--text-primary)]">
               {formatRate(channel.estimated_contact_rate)}
             </span>
@@ -130,14 +253,14 @@ function ChannelCard({ channel }: { channel: OpsChannel }) {
 
         {/* 成本级别 */}
         <div className="flex items-center justify-between text-xs">
-          <span className="text-[var(--text-muted)]">成本级别</span>
+          <span className="text-[var(--text-muted)]">{t.costLevel}</span>
           <span
             className={cn(
               'font-semibold',
               COST_STYLES[channel.cost_level] ?? 'text-[var(--text-secondary)]'
             )}
           >
-            {COST_LABELS[channel.cost_level] ?? channel.cost_level}
+            {costLabels[channel.cost_level] ?? channel.cost_level}
           </span>
         </div>
 
@@ -153,12 +276,13 @@ function ChannelCard({ channel }: { channel: OpsChannel }) {
 // ── 围场子段条形图 ──────────────────────────────────────────────────────────────
 
 function EnclosureSegmentBar({ segments }: { segments: EnclosureSegment[] }) {
+  const t = useT();
   const maxStudents = Math.max(...segments.map((s) => s.students), 1);
 
   return (
     <div className="card-compact overflow-hidden !p-0">
       <div className="bg-[var(--n-800,#1e293b)] text-white px-3 py-2">
-        <span className="text-sm font-bold">围场子段分布</span>
+        <span className="text-sm font-bold">{t.enclosureSegDist}</span>
       </div>
       <div className="p-3 space-y-3">
         {segments.map((seg) => {
@@ -193,11 +317,11 @@ function EnclosureSegmentBar({ segments }: { segments: EnclosureSegment[] }) {
         <div className="flex items-center gap-4 text-xs text-[var(--text-muted)] pt-1">
           <span className="flex items-center gap-1">
             <span className="inline-block w-3 h-3 rounded-sm bg-action-accent-subtle" />
-            总学员数
+            {t.totalStudents}
           </span>
           <span className="flex items-center gap-1">
             <span className="inline-block w-3 h-3 rounded-sm bg-action-accent opacity-70" />
-            已打卡
+            {t.checkedIn}
           </span>
         </div>
       </div>
@@ -209,12 +333,9 @@ function EnclosureSegmentBar({ segments }: { segments: EnclosureSegment[] }) {
 
 // ── 子 Tab 配置 ───────────────────────────────────────────────────────────────
 
-const SUB_TABS = [
-  { id: 'channel', label: '渠道触达' },
-  { id: 'student_ranking', label: '学员排行' },
-] as const;
+const SUB_TAB_IDS = ['channel', 'student_ranking'] as const;
 
-type SubTabId = (typeof SUB_TABS)[number]['id'];
+type SubTabId = (typeof SUB_TAB_IDS)[number];
 
 interface OpsChannelViewProps {
   configJson: string;
