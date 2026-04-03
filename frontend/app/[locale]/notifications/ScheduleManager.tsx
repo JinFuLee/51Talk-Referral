@@ -36,9 +36,49 @@ const I18N = {
     dryRun: '仅预览',
     cancel: '取消',
     save: '保存',
+    savedUpdated: '排程已更新',
+    savedCreated: '排程已创建',
+    deleted: '已删除',
     templates: {
       cc_followup: 'CC 跟进',
       daily_report: '日报',
+      checkin_reminder: '打卡提醒',
+    } as Record<string, string>,
+  },
+  'zh-TW': {
+    title: '定時任務',
+    subtitle: '管理自動推送計畫',
+    addSchedule: '新建任務',
+    loading: '載入中...',
+    error: '載入失敗',
+    noSchedules: '尚無定時任務',
+    enabled: '啟用',
+    disabled: '停用',
+    lark: 'Lark',
+    dingtalk: '釘釘',
+    enable: '啟用',
+    disable: '停用',
+    edit: '編輯',
+    delete: '刪除',
+    confirmDelete: '確認刪除此定時任務？',
+    name: '任務名稱',
+    platform: '推送平台',
+    template: '訊息模板',
+    time: '執行時間',
+    hour: '時',
+    minute: '分',
+    channels: '推送通道',
+    description: '備註',
+    force: '強制推送',
+    dryRun: '僅預覽',
+    cancel: '取消',
+    save: '儲存',
+    savedUpdated: '排程已更新',
+    savedCreated: '排程已建立',
+    deleted: '已刪除',
+    templates: {
+      cc_followup: 'CC 跟進',
+      daily_report: '日報',
       checkin_reminder: '打卡提醒',
     } as Record<string, string>,
   },
@@ -70,10 +110,50 @@ const I18N = {
     dryRun: 'Dry run',
     cancel: 'Cancel',
     save: 'Save',
+    savedUpdated: 'Schedule updated',
+    savedCreated: 'Schedule created',
+    deleted: 'Deleted',
     templates: {
       cc_followup: 'CC Followup',
       daily_report: 'Daily Report',
       checkin_reminder: 'Checkin Reminder',
+    } as Record<string, string>,
+  },
+  th: {
+    title: 'งานตามกำหนดเวลา',
+    subtitle: 'จัดการงานส่งอัตโนมัติ',
+    addSchedule: 'สร้างงานใหม่',
+    loading: 'กำลังโหลด...',
+    error: 'โหลดล้มเหลว',
+    noSchedules: 'ยังไม่มีงานตามกำหนดเวลา',
+    enabled: 'เปิดใช้งาน',
+    disabled: 'ปิดใช้งาน',
+    lark: 'Lark',
+    dingtalk: 'DingTalk',
+    enable: 'เปิดใช้งาน',
+    disable: 'ปิดใช้งาน',
+    edit: 'แก้ไข',
+    delete: 'ลบ',
+    confirmDelete: 'ยืนยันการลบงานตามกำหนดเวลานี้?',
+    name: 'ชื่องาน',
+    platform: 'แพลตฟอร์มการส่ง',
+    template: 'เทมเพลตข้อความ',
+    time: 'เวลาดำเนินการ',
+    hour: 'ชม.',
+    minute: 'นาที',
+    channels: 'ช่องทางการส่ง',
+    description: 'หมายเหตุ',
+    force: 'บังคับส่ง',
+    dryRun: 'ดูตัวอย่างเท่านั้น',
+    cancel: 'ยกเลิก',
+    save: 'บันทึก',
+    savedUpdated: 'อัปเดตกำหนดการแล้ว',
+    savedCreated: 'สร้างกำหนดการแล้ว',
+    deleted: 'ลบแล้ว',
+    templates: {
+      cc_followup: 'ติดตาม CC',
+      daily_report: 'รายงานประจำวัน',
+      checkin_reminder: 'แจ้งเตือนเช็คอิน',
     } as Record<string, string>,
   },
 } as const;
@@ -204,7 +284,7 @@ export function ScheduleManager() {
         });
       }
       await mutate(`${API_BASE}/notifications/schedule`);
-      toast.success(editTarget ? '排程已更新' : '排程已创建');
+      toast.success(editTarget ? t.savedUpdated : t.savedCreated);
       closeForm();
     } finally {
       setSaving(false);
@@ -217,7 +297,7 @@ export function ScheduleManager() {
     try {
       await fetch(`${API_BASE}/notifications/schedule/${id}`, { method: 'DELETE' });
       await mutate(`${API_BASE}/notifications/schedule`);
-      toast.success('已删除');
+      toast.success(t.deleted);
     } finally {
       setActionId(null);
     }
@@ -359,7 +439,7 @@ export function ScheduleManager() {
       {/* 新增/编辑弹窗 */}
       {showForm && (
         <ScheduleFormModal
-          lang={locale === 'zh' || locale === 'zh-TW' ? 'zh' : 'en'}
+          lang={locale in I18N ? (locale as Lang) : 'zh'}
           form={form}
           setForm={setForm}
           onSave={handleSave}
