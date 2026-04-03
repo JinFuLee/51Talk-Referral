@@ -16,6 +16,7 @@ const I18N = {
     addBot: '添加机器人',
     emptyTitle: '尚未添加机器人',
     emptyDesc: (platform: string) => `点击"添加机器人"配置 ${platform} 通道`,
+    dingtalk: '钉钉',
   },
   'zh-TW': {
     loading: '載入機器人清單…',
@@ -24,6 +25,7 @@ const I18N = {
     addBot: '新增機器人',
     emptyTitle: '尚未新增機器人',
     emptyDesc: (platform: string) => `點擊「新增機器人」設定 ${platform} 通道`,
+    dingtalk: '釘釘',
   },
   en: {
     loading: 'Loading bots…',
@@ -32,6 +34,7 @@ const I18N = {
     addBot: 'Add Bot',
     emptyTitle: 'No bots added yet',
     emptyDesc: (platform: string) => `Click "Add Bot" to configure a ${platform} channel`,
+    dingtalk: 'DingTalk',
   },
   th: {
     loading: 'กำลังโหลดรายการบอท…',
@@ -40,6 +43,7 @@ const I18N = {
     addBot: 'เพิ่มบอท',
     emptyTitle: 'ยังไม่มีบอท',
     emptyDesc: (platform: string) => `คลิก "เพิ่มบอท" เพื่อตั้งค่าช่อง ${platform}`,
+    dingtalk: 'DingTalk',
   },
 };
 
@@ -148,7 +152,7 @@ export function BotManager({ platform }: BotManagerProps) {
       {bots.length === 0 ? (
         <EmptyState
           title={t.emptyTitle}
-          description={t.emptyDesc(platform === 'lark' ? 'Lark' : '钉钉')}
+          description={t.emptyDesc(platform === 'lark' ? 'Lark' : t.dingtalk)}
           icon={
             <button
               onClick={openAdd}

@@ -17,6 +17,7 @@ const I18N = {
     scriptOutput: '脚本输出',
     previewFailed: (status: number) => `预览失败：${status}`,
     loadFailed: '加载预览失败',
+    dingtalk: '钉钉',
   },
   'zh-TW': {
     title: '推送預覽',
@@ -30,6 +31,7 @@ const I18N = {
     scriptOutput: '腳本輸出',
     previewFailed: (status: number) => `預覽失敗：${status}`,
     loadFailed: '載入預覽失敗',
+    dingtalk: '釘釘',
   },
   en: {
     title: 'Push Preview',
@@ -43,6 +45,7 @@ const I18N = {
     scriptOutput: 'Script output',
     previewFailed: (status: number) => `Preview failed: ${status}`,
     loadFailed: 'Failed to load preview',
+    dingtalk: 'DingTalk',
   },
   th: {
     title: 'ดูตัวอย่างการส่ง',
@@ -56,6 +59,7 @@ const I18N = {
     scriptOutput: 'ผลลัพธ์สคริปต์',
     previewFailed: (status: number) => `ดูตัวอย่างล้มเหลว: ${status}`,
     loadFailed: 'โหลดตัวอย่างล้มเหลว',
+    dingtalk: 'DingTalk',
   },
 };
 
@@ -120,7 +124,7 @@ export function PreviewModal({ open, template, role, platform, onClose }: Previe
           <div>
             <h2 className="text-sm font-semibold text-[var(--text-primary)]">{t.title}</h2>
             <p className="text-xs text-[var(--text-muted)] mt-0.5">
-              {platform === 'lark' ? 'Lark' : '钉钉'} · {role} · {template}
+              {platform === 'lark' ? 'Lark' : t.dingtalk} · {role} · {template}
             </p>
           </div>
           <button

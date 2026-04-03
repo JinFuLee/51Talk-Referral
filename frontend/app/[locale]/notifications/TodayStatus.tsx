@@ -9,21 +9,25 @@ const I18N = {
     loading: '加载今日推送状态…',
     loadError: '无法获取今日推送状态',
     noRecord: (date: string) => `今日暂无推送记录（${date}）`,
+    dingtalk: '钉钉',
   },
   'zh-TW': {
     loading: '載入今日推送狀態…',
     loadError: '無法取得今日推送狀態',
     noRecord: (date: string) => `今日暫無推送記錄（${date}）`,
+    dingtalk: '釘釘',
   },
   en: {
     loading: "Loading today's push status…",
     loadError: "Failed to fetch today's push status",
     noRecord: (date: string) => `No push records today (${date})`,
+    dingtalk: 'DingTalk',
   },
   th: {
     loading: 'กำลังโหลดสถานะการส่งวันนี้…',
     loadError: 'ไม่สามารถดึงสถานะการส่งวันนี้',
     noRecord: (date: string) => `ไม่มีบันทึกการส่งวันนี้ (${date})`,
+    dingtalk: 'DingTalk',
   },
 };
 
@@ -117,7 +121,7 @@ export function TodayStatus() {
         <>
           <div className="border-t border-[var(--border-default)]" />
           <div className="flex items-center gap-4">
-            <span className="text-xs font-semibold w-12 text-orange-600">钉钉</span>
+            <span className="text-xs font-semibold w-12 text-orange-600">{t.dingtalk}</span>
             {renderEntries(dingtalkEntries)}
           </div>
         </>

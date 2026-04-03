@@ -23,6 +23,7 @@ const I18N = {
     cancel: '取消',
     saving: '保存中…',
     save: '保存',
+    dingtalk: '钉钉',
   },
   'zh-TW': {
     titleEdit: '編輯機器人',
@@ -41,6 +42,7 @@ const I18N = {
     cancel: '取消',
     saving: '儲存中…',
     save: '儲存',
+    dingtalk: '釘釘',
   },
   en: {
     titleEdit: 'Edit Bot',
@@ -59,6 +61,7 @@ const I18N = {
     cancel: 'Cancel',
     saving: 'Saving…',
     save: 'Save',
+    dingtalk: 'DingTalk',
   },
   th: {
     titleEdit: 'แก้ไขบอท',
@@ -77,6 +80,7 @@ const I18N = {
     cancel: 'ยกเลิก',
     saving: 'กำลังบันทึก…',
     save: 'บันทึก',
+    dingtalk: 'DingTalk',
   },
 };
 
@@ -161,7 +165,7 @@ export function BotFormModal({ open, platform, initial, onClose, onSave }: BotFo
           <h2 className="text-sm font-semibold text-[var(--text-primary)]">
             {initial ? t.titleEdit : t.titleAdd}
             <span className="ml-2 text-xs font-normal text-[var(--text-muted)]">
-              {platform === 'lark' ? 'Lark' : '钉钉'}
+              {platform === 'lark' ? 'Lark' : t.dingtalk}
             </span>
           </h2>
           <button
