@@ -184,12 +184,10 @@ async def lifespan(app: FastAPI):
     # M33: 每日 09:30 自动写入 T-1 快照（兜底，防止无人访问导致当天数据丢失）
     def _daily_snapshot_job():
         try:
-            from datetime import date as _date
             from datetime import timedelta as _td
 
             from backend.core.channel_funnel_engine import ChannelFunnelEngine
             from backend.core.daily_snapshot_service import DailySnapshotService
-
             from backend.core.date_override import get_today as _get_today
             ref = _get_today() - _td(days=1)
             svc = DailySnapshotService()

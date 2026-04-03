@@ -63,17 +63,48 @@ def emit_caliber_alert(source: str, alerts: list[dict]) -> None:
 
 
 def _write_error_log(record: dict) -> None:
-    """将 P0 告警写入 error-log.jsonl（前端崩溃日志同格式）"""
+    """将 P0 告警写入 error-log.jsonl（前端崩溃日志同格式）。
+
+    节流策略：同一 fingerprint 24h 内仅写入一次，防止服务重启后无限重复写入。
+    直接写文件而非调用 HTTP API，避免循环依赖；但必须自行实现 24h 去重。
+    """
     try:
         _ERROR_LOG.parent.mkdir(parents=True, exist_ok=True)
+        fp = f"caliber-{record['type']}-{record['source']}"
         entry = {
             "ts": record["ts"],
             "source_file": "caliber_guard",
             "error_type": record["type"],
             "message": record["detail"],
             "level": record["level"],
-            "fingerprint": f"caliber-{record['type']}-{record['source']}",
+            "fingerprint": fp,
         }
+
+        # 24h 去重：读取已有记录，检查同 fingerprint 是否在 24h 内已写入
+        if _ERROR_LOG.exists():
+            from datetime import timedelta
+            cutoff = datetime.now(UTC) - timedelta(hours=24)
+            for line in _ERROR_LOG.read_text(encoding="utf-8").splitlines():
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    existing = json.loads(line)
+                except json.JSONDecodeError:
+                    continue
+                if existing.get("fingerprint") != fp:
+                    continue
+                # 解析时间戳，判断是否在 24h 内
+                ts_str = existing.get("ts", "")
+                try:
+                    # 支持带 Z 后缀的 ISO8601
+                    ts_dt = datetime.fromisoformat(ts_str.replace("Z", "+00:00"))
+                    if ts_dt > cutoff:
+                        logger.debug("口径守卫 P0 已在 24h 内写入，跳过: %s", fp)
+                        return
+                except (ValueError, AttributeError):
+                    pass  # 时间戳解析失败则继续写入（保守策略）
+
         with _ERROR_LOG.open("a", encoding="utf-8") as f:
             f.write(json.dumps(entry, ensure_ascii=False) + "\n")
     except Exception as exc:

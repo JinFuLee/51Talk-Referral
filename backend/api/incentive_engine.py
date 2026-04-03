@@ -21,7 +21,7 @@ import logging
 import math
 import re
 import uuid
-from datetime import UTC, date, datetime
+from datetime import UTC, datetime
 from io import BytesIO
 from pathlib import Path
 from typing import Any, Literal
@@ -488,9 +488,8 @@ def get_recommendations(
 ) -> dict[str, Any]:
     """基于漏斗杠杆矩阵，推荐最高 ROI 的内场激励活动参数。"""
     from backend.core.channel_funnel_engine import ChannelFunnelEngine
-    from backend.core.leverage_engine import compute_leverage_matrix
-
     from backend.core.date_override import get_today
+    from backend.core.leverage_engine import compute_leverage_matrix
     if month is None:
         month = get_today().strftime("%Y%m")
 

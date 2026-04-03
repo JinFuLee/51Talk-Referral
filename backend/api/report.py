@@ -10,9 +10,9 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Request
 
 from backend.api.dependencies import get_data_manager
 from backend.core.config import get_targets
-from backend.core.date_override import get_today
 from backend.core.daily_snapshot_service import DB_PATH, DailySnapshotService
 from backend.core.data_manager import DataManager
+from backend.core.date_override import get_today
 from backend.core.report_engine import ReportEngine
 from backend.models.filters import UnifiedFilter, parse_filters
 
@@ -206,6 +206,108 @@ def get_report_comparison(
         }
     except Exception as exc:
         logger.error("comparison 计算失败: %s", exc, exc_info=True)
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
+
+
+# ── 端点 3b：ComparisonBanner 专用摘要（compare-summary）──────────────────────
+
+
+@router.get("/report/compare-summary", summary="ComparisonBanner 对比摘要（4 个 KPI 前/后/变化率）")
+def get_compare_summary(
+    mode: str = Query(
+        default="mom",
+        description="对比模式：mom（月环比）/ wow（周环比）/ yoy（年同比）",
+    ),
+    reference_date: str | None = Query(
+        default=None,
+        description="T-1 参考日期，格式 YYYY-MM-DD",
+    ),
+    filters: UnifiedFilter = Depends(parse_filters),
+    dm: DataManager = Depends(get_data_manager),
+) -> dict[str, Any]:
+    """
+    为前端 ComparisonBanner 提供格式化后的 4 KPI 对比摘要。
+
+    返回格式::
+
+        {
+          "available": true,
+          "label": "vs 上月同期",
+          "metrics": {
+            "registrations": {"current": 120, "compare": 100, "change_pct": 20.0},
+            "payments": {"current": 80, "compare": 60, "change_pct": 33.3},
+            "revenue": {"current": 8000.0, "compare": 6000.0, "change_pct": 33.3},
+            "leads": {"current": 200, "compare": 180, "change_pct": 11.1}
+          }
+        }
+    """
+    _MODE_CFG: dict[str, tuple[str, str, str]] = {
+        "mom": ("month", "td", "vs 上月同期"),
+        "wow": ("week", "td", "vs 上周同期"),
+        "yoy": ("year", "td", "vs 去年同期"),
+    }
+    if mode not in _MODE_CFG:
+        raise HTTPException(
+            status_code=400,
+            detail=f"mode 无效：{mode}，合法值：{sorted(_MODE_CFG)}",
+        )
+
+    ref = _parse_date_param(reference_date) or (get_today() - timedelta(days=1))
+    level, comp_type, label = _MODE_CFG[mode]
+    dim_key = f"{level}_td" if comp_type == "td" else f"{level}_{comp_type}"
+
+    # mom 特殊处理：level=month, type=td → key=month_td
+    _KEY_MAP = {
+        "month_td": "month_td",
+        "week_td": "week_td",
+        "year_td": "year_td",
+    }
+    dim_key = _KEY_MAP.get(dim_key, dim_key)
+
+    _METRIC_MAP = {
+        "registrations": "registrations",
+        "payments": "payments",
+        "revenue": "revenue_usd",
+        "leads": "registrations",  # leads 用注册数代理（当前快照无独立 leads 字段）
+    }
+
+    try:
+        from backend.core.comparison_engine import ComparisonEngine
+
+        engine = ComparisonEngine(DB_PATH)
+        metrics_out: dict[str, dict[str, Any]] = {}
+        any_data = False
+
+        for banner_key, metric_key in _METRIC_MAP.items():
+            try:
+                result = engine.compute(metric_key, "total", ref)
+                dim_data = result.get(dim_key, {})
+                current = dim_data.get("current")
+                previous = dim_data.get("previous")
+                delta_pct = dim_data.get("delta_pct")
+                if current is not None or previous is not None:
+                    any_data = True
+                metrics_out[banner_key] = {
+                    "current": current,
+                    "compare": previous,
+                    "change_pct": round(delta_pct * 100, 1) if delta_pct is not None else None,
+                }
+            except Exception:
+                metrics_out[banner_key] = {"current": None, "compare": None, "change_pct": None}
+
+        # leads 与 registrations 相同来源，直接复用，避免重复请求
+        if "registrations" in metrics_out and "leads" not in metrics_out:
+            metrics_out["leads"] = metrics_out["registrations"]
+
+        return {
+            "available": any_data,
+            "label": label,
+            "unavailable_reason": None if any_data else "快照数据不足，请先运行取数",
+            "metrics": metrics_out,
+        }
+
+    except Exception as exc:
+        logger.error("compare-summary 计算失败: %s", exc, exc_info=True)
         raise HTTPException(status_code=500, detail=str(exc)) from exc
 
 

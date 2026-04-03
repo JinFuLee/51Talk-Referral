@@ -9,11 +9,8 @@ import sqlite3
 import tempfile
 from datetime import date
 from pathlib import Path
-from typing import Any
 
 import pandas as pd
-import pytest
-
 
 # ── 三因素分解引擎 ──────────────────────────────────────────────────────────────
 

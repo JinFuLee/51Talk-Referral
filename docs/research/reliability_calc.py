@@ -5,7 +5,6 @@ import hashlib
 import random
 from pathlib import Path
 
-
 ROOT = Path("/Users/felixmacbookairm4/Desktop/ref-ops-engine/docs/research")
 RATER_A = ROOT / "route_decisions_rater_a.csv"
 RATER_B = ROOT / "route_decisions_rater_b.csv"

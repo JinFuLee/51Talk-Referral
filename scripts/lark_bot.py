@@ -2220,7 +2220,10 @@ def cmd_followup(args: argparse.Namespace) -> None:
     _pr = str(Path(__file__).resolve().parent.parent)
     if _pr not in _sys.path:
         _sys.path.insert(0, _pr)
-    from backend.core.notification_validator import NotificationValidator, ValidationResult
+    from backend.core.notification_validator import (
+        NotificationValidator,
+        ValidationResult,
+    )
     _validator = NotificationValidator()
     _vr = _validator.validate_pre_send("followup", {"students": students})
     if not _vr.passed:

@@ -94,8 +94,8 @@ def stage2_api_output(api_base: str) -> tuple[int, int]:
     """Stage 2: 验收 API 输出层"""
     print(f"\n{C_BOLD}━━━ Stage 2: API 输出层验收 ━━━{C_RESET}")
 
-    import urllib.request
     import urllib.error
+    import urllib.request
 
     validator = NotificationValidator()
     total_warnings = 0

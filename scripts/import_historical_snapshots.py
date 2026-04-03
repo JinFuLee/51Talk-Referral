@@ -8,7 +8,6 @@
 from __future__ import annotations
 
 import sqlite3
-from datetime import date
 from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -275,7 +274,7 @@ def main() -> None:
     cursor = conn.execute("SELECT COUNT(*) FROM daily_channel_snapshots")
     dcs_count = cursor.fetchone()[0]
 
-    print(f"✓ 导入完成:")
+    print("✓ 导入完成:")
     print(f"  monthly_archives: {ma_count} 条（期望 55 = 11月×5口径）")
     print(f"  daily_snapshots: {ds_count} 条（期望 11 = 11月×总计）")
     print(f"  daily_channel_snapshots: {dcs_count} 条（期望 55 = 11月×5口径）")

@@ -197,7 +197,7 @@ class NotificationEngine:
                     print("\n[BLOCKED] 数据验收未通过（非泰国/数据过旧/指标异常）:")
                     for v in _vr.violations:
                         print(f"  ✗ {v}")
-                    _validator.log_failure(_vr, f"dingtalk_engine.run")
+                    _validator.log_failure(_vr, "dingtalk_engine.run")
                     if not dry_run:
                         print("推送已阻止。请检查数据源后重试。")
                         return
