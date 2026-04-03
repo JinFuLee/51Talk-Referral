@@ -1,6 +1,7 @@
 'use client';
 
 import { Fragment, useState, useMemo } from 'react';
+import { useLocale } from 'next-intl';
 import { useFilteredSWR } from '@/lib/hooks/use-filtered-swr';
 import { formatRevenue } from '@/lib/utils';
 import { Spinner } from '@/components/ui/Spinner';
@@ -8,6 +9,324 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { MemberDetailDrawer } from '@/components/members/MemberDetailDrawer';
 import { StudentTagBadge } from '@/components/checkin/StudentTagBadge';
 import { useWideConfig } from '@/lib/hooks/useWideConfig';
+
+// ── Inline I18N ────────────────────────────────────────────────────────────────
+
+const I18N = {
+  zh: {
+    // GroupFilterBar
+    segmentLabel: '分群:',
+    exportTsv: '导出 TSV ↓',
+    // GroupFilter labels
+    filterAll: '全部',
+    filterNever: '从未打卡',
+    filterWasActive: '曾打卡本月未打',
+    filterThisWeek: '本周未打卡',
+    filterPartial: '打过今天没打',
+    filterCardExpiry: '卡到期≤30天',
+    filterDormantHp: '沉睡高潜',
+    filterHandover: '即将交接',
+    filterRenewalRisk: '续费风险',
+    // Table headers
+    thRank: '排名',
+    thPriority: '🔴优先级',
+    thActivation: '激活',
+    thStudentId: '学员ID',
+    thEnclosure: '围场',
+    thCcOwner: 'CC负责',
+    thSsOwner: 'SS负责',
+    thLpOwner: 'LP负责',
+    thCheckinWeekMonth: '本周/月打卡',
+    thCheckinLastMonth: '上月打卡',
+    thConnStatus: 'CC/SS/LP 接通',
+    thTags: '标签',
+    thChannel: '渠道',
+    thGoldenWindow: '黄金窗口',
+    thLesson: '📚课耗(3月均)',
+    thReferral: '👥本月推荐',
+    thRevenue: '💰历史付费',
+    thLastContact: 'CC末次联系',
+    thIncentive: '激励',
+    thCardExpiry: '卡到期',
+    // Row inline
+    thisWeekPrefix: '本周',
+    thisMonthPrefix: '本月',
+    // Expanded row
+    expandedTitle: '完整档案 — 全部字段',
+    collapseBtn: '收起 ▲',
+    fieldStudentId: '学员 ID',
+    fieldEnclosure: '围场',
+    fieldResponsible: '负责人',
+    fieldQualityScore: '质量评分',
+    fieldLesson3m: '3月均课耗',
+    fieldReferralThisMonth: '本月推荐',
+    fieldRevenue: '历史付费',
+    fieldLastContact: 'CC末次联系',
+    fieldCardExpiry: '卡到期天数',
+    // Contact badge
+    contactNeedCall: '需联系',
+    contactDaysAgo: (d: number) => `${d}天前`,
+    // Activation dot title
+    activationTitle: (s: number) => `激活概率 ${s}`,
+    // Conn status dot title
+    connConnected: '已接通',
+    connNotConnected: '未接通',
+    // Golden window labels
+    gwFirstCheckin: '首次打卡',
+    gwLeadNoShow: '有B未出席',
+    gwRenewalWindow: '续费窗口',
+    // Channel labels
+    chLine: 'LINE',
+    chSms: '短信',
+    chPhone: '电话',
+    chApp: 'APP',
+    // Bottom stats
+    statsTotalPrefix: '共',
+    statsTotalSuffix: '名未打卡有效学员',
+    statsAvgScore: '平均评分',
+    statsHighQuality: '高质量(≥70)占比',
+    statsHighQualityCount: (n: number) => `${n} 人`,
+    // Client tags
+    tagFullAttendance: '满勤',
+    tagActive: '活跃',
+    tagImproving: '进步明显',
+    tagDeclining: '在退步',
+    tagDormantHp: '沉睡高潜',
+    tagSuperConvert: '超级转化',
+    // Empty / error states
+    emptyTitle: '暂无未打卡学员',
+    emptyDesc: '当前筛选条件下无数据，或数据文件尚未上传',
+    errorTitle: '加载失败',
+    errorDesc: '请检查后端服务是否正常运行',
+  },
+  'zh-TW': {
+    segmentLabel: '分群:',
+    exportTsv: '匯出 TSV ↓',
+    filterAll: '全部',
+    filterNever: '從未打卡',
+    filterWasActive: '曾打卡本月未打',
+    filterThisWeek: '本週未打卡',
+    filterPartial: '打過今天沒打',
+    filterCardExpiry: '卡到期≤30天',
+    filterDormantHp: '沉睡高潛',
+    filterHandover: '即將交接',
+    filterRenewalRisk: '續費風險',
+    thRank: '排名',
+    thPriority: '🔴優先級',
+    thActivation: '激活',
+    thStudentId: '學員ID',
+    thEnclosure: '圍場',
+    thCcOwner: 'CC負責',
+    thSsOwner: 'SS負責',
+    thLpOwner: 'LP負責',
+    thCheckinWeekMonth: '本週/月打卡',
+    thCheckinLastMonth: '上月打卡',
+    thConnStatus: 'CC/SS/LP 接通',
+    thTags: '標籤',
+    thChannel: '渠道',
+    thGoldenWindow: '黃金窗口',
+    thLesson: '📚課耗(3月均)',
+    thReferral: '👥本月推薦',
+    thRevenue: '💰歷史付費',
+    thLastContact: 'CC末次聯繫',
+    thIncentive: '激勵',
+    thCardExpiry: '卡到期',
+    thisWeekPrefix: '本週',
+    thisMonthPrefix: '本月',
+    expandedTitle: '完整檔案 — 全部欄位',
+    collapseBtn: '收起 ▲',
+    fieldStudentId: '學員 ID',
+    fieldEnclosure: '圍場',
+    fieldResponsible: '負責人',
+    fieldQualityScore: '質量評分',
+    fieldLesson3m: '3月均課耗',
+    fieldReferralThisMonth: '本月推薦',
+    fieldRevenue: '歷史付費',
+    fieldLastContact: 'CC末次聯繫',
+    fieldCardExpiry: '卡到期天數',
+    contactNeedCall: '需聯繫',
+    contactDaysAgo: (d: number) => `${d}天前`,
+    activationTitle: (s: number) => `激活概率 ${s}`,
+    connConnected: '已接通',
+    connNotConnected: '未接通',
+    gwFirstCheckin: '首次打卡',
+    gwLeadNoShow: '有B未出席',
+    gwRenewalWindow: '續費窗口',
+    chLine: 'LINE',
+    chSms: '簡訊',
+    chPhone: '電話',
+    chApp: 'APP',
+    statsTotalPrefix: '共',
+    statsTotalSuffix: '名未打卡有效學員',
+    statsAvgScore: '平均評分',
+    statsHighQuality: '高質量(≥70)佔比',
+    statsHighQualityCount: (n: number) => `${n} 人`,
+    tagFullAttendance: '滿勤',
+    tagActive: '活躍',
+    tagImproving: '進步明顯',
+    tagDeclining: '在退步',
+    tagDormantHp: '沉睡高潛',
+    tagSuperConvert: '超級轉化',
+    emptyTitle: '暫無未打卡學員',
+    emptyDesc: '當前篩選條件下無數據，或數據文件尚未上傳',
+    errorTitle: '載入失敗',
+    errorDesc: '請檢查後端服務是否正常運行',
+  },
+  en: {
+    segmentLabel: 'Segment:',
+    exportTsv: 'Export TSV ↓',
+    filterAll: 'All',
+    filterNever: 'Never Checked In',
+    filterWasActive: 'Was Active / Lapsed',
+    filterThisWeek: 'Skipped This Week',
+    filterPartial: 'Partial This Month',
+    filterCardExpiry: 'Card Expiry ≤30d',
+    filterDormantHp: 'Dormant High-Pot',
+    filterHandover: 'Upcoming Handover',
+    filterRenewalRisk: 'Renewal Risk',
+    thRank: 'Rank',
+    thPriority: '🔴Priority',
+    thActivation: 'Activation',
+    thStudentId: 'Student ID',
+    thEnclosure: 'Enclosure',
+    thCcOwner: 'CC Owner',
+    thSsOwner: 'SS Owner',
+    thLpOwner: 'LP Owner',
+    thCheckinWeekMonth: 'Wk / Mo Check-in',
+    thCheckinLastMonth: 'Last Mo Check-in',
+    thConnStatus: 'CC/SS/LP Reached',
+    thTags: 'Tags',
+    thChannel: 'Channel',
+    thGoldenWindow: 'Golden Window',
+    thLesson: '📚Lessons (3mo avg)',
+    thReferral: '👥Referrals (mo)',
+    thRevenue: '💰Revenue',
+    thLastContact: 'CC Last Contact',
+    thIncentive: 'Incentive',
+    thCardExpiry: 'Card Expiry',
+    thisWeekPrefix: 'Wk',
+    thisMonthPrefix: 'Mo',
+    expandedTitle: 'Full Profile — All Fields',
+    collapseBtn: 'Collapse ▲',
+    fieldStudentId: 'Student ID',
+    fieldEnclosure: 'Enclosure',
+    fieldResponsible: 'Owner',
+    fieldQualityScore: 'Quality Score',
+    fieldLesson3m: '3-Mo Avg Lessons',
+    fieldReferralThisMonth: 'Referrals (Mo)',
+    fieldRevenue: 'Revenue',
+    fieldLastContact: 'CC Last Contact',
+    fieldCardExpiry: 'Card Expiry (days)',
+    contactNeedCall: 'Call Now',
+    contactDaysAgo: (d: number) => `${d}d ago`,
+    activationTitle: (s: number) => `Activation probability ${s}`,
+    connConnected: 'Reached',
+    connNotConnected: 'Not reached',
+    gwFirstCheckin: 'First Check-in',
+    gwLeadNoShow: 'Lead No-Show',
+    gwRenewalWindow: 'Renewal Window',
+    chLine: 'LINE',
+    chSms: 'SMS',
+    chPhone: 'Phone',
+    chApp: 'App',
+    statsTotalPrefix: '',
+    statsTotalSuffix: 'students not checked in',
+    statsAvgScore: 'Avg Score',
+    statsHighQuality: 'High-quality (≥70)',
+    statsHighQualityCount: (n: number) => `${n} students`,
+    tagFullAttendance: 'Full Attendance',
+    tagActive: 'Active',
+    tagImproving: 'Improving',
+    tagDeclining: 'Declining',
+    tagDormantHp: 'Dormant High-Pot',
+    tagSuperConvert: 'Super Converter',
+    emptyTitle: 'No Students to Follow Up',
+    emptyDesc: 'No data under current filters, or data file not yet uploaded.',
+    errorTitle: 'Load Failed',
+    errorDesc: 'Please check if the backend service is running.',
+  },
+  th: {
+    segmentLabel: 'กลุ่ม:',
+    exportTsv: 'ส่งออก TSV ↓',
+    filterAll: 'ทั้งหมด',
+    filterNever: 'ไม่เคยเช็คอิน',
+    filterWasActive: 'เคยเช็คอิน/เดือนนี้ไม่เช็ค',
+    filterThisWeek: 'ไม่เช็คอินสัปดาห์นี้',
+    filterPartial: 'เช็คบางส่วน',
+    filterCardExpiry: 'บัตรหมดอายุ ≤30 วัน',
+    filterDormantHp: 'ศักยภาพสูงแต่หยุดชะงัก',
+    filterHandover: 'ใกล้ส่งต่อ',
+    filterRenewalRisk: 'ความเสี่ยงต่ออายุ',
+    thRank: 'อันดับ',
+    thPriority: '🔴ความสำคัญ',
+    thActivation: 'การกระตุ้น',
+    thStudentId: 'รหัสนักเรียน',
+    thEnclosure: 'คอก',
+    thCcOwner: 'CC รับผิดชอบ',
+    thSsOwner: 'SS รับผิดชอบ',
+    thLpOwner: 'LP รับผิดชอบ',
+    thCheckinWeekMonth: 'เช็คอิน สัปดาห์/เดือน',
+    thCheckinLastMonth: 'เช็คอินเดือนที่แล้ว',
+    thConnStatus: 'ติดต่อ CC/SS/LP',
+    thTags: 'แท็ก',
+    thChannel: 'ช่องทาง',
+    thGoldenWindow: 'ช่วงทอง',
+    thLesson: '📚เรียน (เฉลี่ย 3 เดือน)',
+    thReferral: '👥แนะนำ (เดือน)',
+    thRevenue: '💰รายได้',
+    thLastContact: 'CC ติดต่อล่าสุด',
+    thIncentive: 'สิ่งจูงใจ',
+    thCardExpiry: 'วันหมดอายุบัตร',
+    thisWeekPrefix: 'สัปดาห์',
+    thisMonthPrefix: 'เดือน',
+    expandedTitle: 'โปรไฟล์เต็ม — ทุกฟิลด์',
+    collapseBtn: 'ย่อ ▲',
+    fieldStudentId: 'รหัสนักเรียน',
+    fieldEnclosure: 'คอก',
+    fieldResponsible: 'ผู้รับผิดชอบ',
+    fieldQualityScore: 'คะแนนคุณภาพ',
+    fieldLesson3m: 'เรียนเฉลี่ย 3 เดือน',
+    fieldReferralThisMonth: 'แนะนำเดือนนี้',
+    fieldRevenue: 'รายได้รวม',
+    fieldLastContact: 'CC ติดต่อล่าสุด',
+    fieldCardExpiry: 'วันหมดอายุบัตร (วัน)',
+    contactNeedCall: 'ต้องติดต่อ',
+    contactDaysAgo: (d: number) => `${d} วันที่แล้ว`,
+    activationTitle: (s: number) => `ความน่าจะเป็นในการกระตุ้น ${s}`,
+    connConnected: 'ติดต่อได้',
+    connNotConnected: 'ติดต่อไม่ได้',
+    gwFirstCheckin: 'เช็คอินครั้งแรก',
+    gwLeadNoShow: 'มี B ไม่มาเรียน',
+    gwRenewalWindow: 'ช่วงต่ออายุ',
+    chLine: 'LINE',
+    chSms: 'SMS',
+    chPhone: 'โทรศัพท์',
+    chApp: 'แอป',
+    statsTotalPrefix: '',
+    statsTotalSuffix: 'นักเรียนที่ยังไม่ได้เช็คอิน',
+    statsAvgScore: 'คะแนนเฉลี่ย',
+    statsHighQuality: 'คุณภาพสูง (≥70)',
+    statsHighQualityCount: (n: number) => `${n} คน`,
+    tagFullAttendance: 'เต็มพิกัด',
+    tagActive: 'กระตือรือร้น',
+    tagImproving: 'พัฒนาขึ้น',
+    tagDeclining: 'ถดถอย',
+    tagDormantHp: 'ศักยภาพสูงแต่หยุดชะงัก',
+    tagSuperConvert: 'แปลงสูง',
+    emptyTitle: 'ไม่มีนักเรียนที่ต้องติดตาม',
+    emptyDesc: 'ไม่มีข้อมูลตามตัวกรองปัจจุบัน หรือยังไม่ได้อัปโหลดไฟล์ข้อมูล',
+    errorTitle: 'โหลดล้มเหลว',
+    errorDesc: 'กรุณาตรวจสอบว่าบริการ backend ทำงานอยู่หรือไม่',
+  },
+} as const;
+
+type Locale = keyof typeof I18N;
+
+function useT() {
+  const locale = useLocale();
+  const lang: Locale = (locale in I18N ? locale : 'zh') as Locale;
+  return I18N[lang];
+}
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -113,32 +432,23 @@ type GroupFilter =
   | 'handover'
   | 'renewal_risk';
 
-const GROUP_FILTER_LABELS: Record<GroupFilter, string> = {
-  all: '全部',
-  never: '从未打卡',
-  was_active: '曾打卡本月未打',
-  this_week: '本周未打卡',
-  partial: '打过今天没打',
-  card_expiry: '卡到期≤30天',
-  dormant_hp: '沉睡高潜',
-  handover: '即将交接',
-  renewal_risk: '续费风险',
-};
+// GROUP_FILTER_LABELS is now derived from t() inside GroupFilterBar (see below)
 
 function computeClientTags(
   daysThis: number,
   daysLast: number,
   lesson: number,
-  registrations: number
+  registrations: number,
+  t: ReturnType<typeof useT>
 ): string[] {
   const tags: string[] = [];
-  if (daysThis >= 6) tags.push('满勤');
-  else if (daysThis >= 4) tags.push('活跃');
+  if (daysThis >= 6) tags.push(t.tagFullAttendance);
+  else if (daysThis >= 4) tags.push(t.tagActive);
   const delta = daysThis - daysLast;
-  if (delta >= 2 && daysLast > 0) tags.push('进步明显');
-  if (delta <= -2) tags.push('在退步');
-  if (daysThis === 0 && lesson >= 10) tags.push('沉睡高潜');
-  if (daysThis >= 4 && registrations >= 2) tags.push('超级转化');
+  if (delta >= 2 && daysLast > 0) tags.push(t.tagImproving);
+  if (delta <= -2) tags.push(t.tagDeclining);
+  if (daysThis === 0 && lesson >= 10) tags.push(t.tagDormantHp);
+  if (daysThis >= 4 && registrations >= 2) tags.push(t.tagSuperConvert);
   return tags;
 }
 
@@ -175,6 +485,7 @@ interface ExpandedRowProps {
 }
 
 function ExpandedRow({ member, colSpan, onClose }: ExpandedRowProps) {
+  const t = useT();
   // Extract extra fields (everything beyond known columns)
   const KNOWN = new Set([
     'rank',
@@ -195,28 +506,28 @@ function ExpandedRow({ member, colSpan, onClose }: ExpandedRowProps) {
       <td colSpan={colSpan} className="px-4 py-3">
         <div className="flex items-center justify-between mb-2">
           <span className="text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
-            完整档案 — 全部字段
+            {t.expandedTitle}
           </span>
           <button
             onClick={onClose}
             className="text-[var(--text-muted)] hover:text-[var(--text-secondary)] text-xs px-2 py-0.5 rounded hover:bg-[var(--n-200)] transition-colors"
           >
-            收起 ▲
+            {t.collapseBtn}
           </button>
         </div>
 
         {/* Known columns summary */}
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-1 mb-3 text-xs">
           {[
-            ['学员 ID', String(member.id)],
-            ['围场', member.enclosure || '—'],
-            ['负责人', member.responsible || '—'],
-            ['质量评分', String(member.quality_score)],
-            ['3月均课耗', fmtNum(member.lesson_avg_3m)],
-            ['本月推荐', fmtNum(member.referrals_this_month)],
-            ['历史付费', fmtRevenue(member.total_revenue_usd)],
-            ['CC末次联系', member.cc_last_contact_date || '—'],
-            ['卡到期天数', fmtNum(member.days_until_card_expiry)],
+            [t.fieldStudentId, String(member.id)],
+            [t.fieldEnclosure, member.enclosure || '—'],
+            [t.fieldResponsible, member.responsible || '—'],
+            [t.fieldQualityScore, String(member.quality_score)],
+            [t.fieldLesson3m, fmtNum(member.lesson_avg_3m)],
+            [t.fieldReferralThisMonth, fmtNum(member.referrals_this_month)],
+            [t.fieldRevenue, fmtRevenue(member.total_revenue_usd)],
+            [t.fieldLastContact, member.cc_last_contact_date || '—'],
+            [t.fieldCardExpiry, fmtNum(member.days_until_card_expiry)],
           ].map(([label, val]) => (
             <div key={label} className="flex gap-2">
               <span className="text-[var(--text-muted)] w-24 shrink-0">{label}</span>
@@ -260,12 +571,13 @@ function ExpandedRow({ member, colSpan, onClose }: ExpandedRowProps) {
 // ── Activation Score Dot ───────────────────────────────────────────────────────
 
 function ActivationDot({ score }: { score: number }) {
+  const t = useT();
   const color = score >= 70 ? 'bg-emerald-500' : score >= 40 ? 'bg-amber-400' : 'bg-red-400';
   return (
     <div className="flex items-center gap-1.5 justify-center">
       <span
         className={`w-2.5 h-2.5 rounded-full inline-block ${color}`}
-        title={`激活概率 ${score}`}
+        title={t.activationTitle(score)}
       />
       <span className="font-mono tabular-nums text-[var(--text-secondary)]">{score}</span>
     </div>
@@ -299,16 +611,16 @@ const CHANNEL_ICON: Record<string, string> = {
   app: '📱',
 };
 
-const CHANNEL_LABEL: Record<string, string> = {
-  line: 'LINE',
-  sms: '短信',
-  phone: '电话',
-  app: 'APP',
-};
-
 function ChannelBadge({ channel }: { channel: string }) {
+  const t = useT();
+  const channelLabel: Record<string, string> = {
+    line: t.chLine,
+    sms: t.chSms,
+    phone: t.chPhone,
+    app: t.chApp,
+  };
   return (
-    <span title={CHANNEL_LABEL[channel] ?? channel} className="text-base leading-none">
+    <span title={channelLabel[channel] ?? channel} className="text-base leading-none">
       {CHANNEL_ICON[channel] ?? '📱'}
     </span>
   );
@@ -317,9 +629,10 @@ function ChannelBadge({ channel }: { channel: string }) {
 // ── Connection Status Dots ──────────────────────────────────────────────────────
 
 function ConnStatusDots({ cc, ss, lp }: { cc: number; ss: number; lp: number }) {
+  const t = useT();
   const dot = (val: number, label: string) => (
     <span
-      title={`${label}: ${val === 1 ? '已接通' : '未接通'}`}
+      title={`${label}: ${val === 1 ? t.connConnected : t.connNotConnected}`}
       className={`w-2 h-2 rounded-full inline-block ${
         val === 1 ? 'bg-emerald-500' : val === 0 ? 'bg-red-400' : 'bg-gray-300'
       }`}
@@ -336,13 +649,13 @@ function ConnStatusDots({ cc, ss, lp }: { cc: number; ss: number; lp: number }) 
 
 // ── Golden Window Badges ────────────────────────────────────────────────────────
 
-const WINDOW_LABEL: Record<string, string> = {
-  first_checkin: '首次打卡',
-  lead_no_show: '有B未出席',
-  renewal_window: '续费窗口',
-};
-
 function GoldenWindowBadges({ windows }: { windows: string[] }) {
+  const t = useT();
+  const windowLabel: Record<string, string> = {
+    first_checkin: t.gwFirstCheckin,
+    lead_no_show: t.gwLeadNoShow,
+    renewal_window: t.gwRenewalWindow,
+  };
   if (!windows || windows.length === 0) return <span className="text-[var(--text-muted)]">—</span>;
   return (
     <div className="flex flex-wrap gap-0.5">
@@ -351,7 +664,7 @@ function GoldenWindowBadges({ windows }: { windows: string[] }) {
           key={w}
           className="px-1 py-0.5 rounded text-[10px] bg-amber-100 text-amber-700 whitespace-nowrap"
         >
-          {WINDOW_LABEL[w] ?? w}
+          {windowLabel[w] ?? w}
         </span>
       ))}
     </div>
@@ -361,16 +674,19 @@ function GoldenWindowBadges({ windows }: { windows: string[] }) {
 // ── CC Contact Badge ────────────────────────────────────────────────────────────
 
 function ContactBadge({ days }: { days: number | null }) {
+  const t = useT();
   if (days === null) return <span className="text-[var(--text-muted)]">—</span>;
   if (days > 14)
     return (
       <span className="text-red-600 font-medium">
-        {days}天前
-        <span className="ml-1 px-1 py-0.5 bg-red-100 text-red-600 rounded text-xs">需联系</span>
+        {t.contactDaysAgo(days)}
+        <span className="ml-1 px-1 py-0.5 bg-red-100 text-red-600 rounded text-xs">
+          {t.contactNeedCall}
+        </span>
       </span>
     );
-  if (days > 7) return <span className="text-amber-500 font-medium">{days}天前</span>;
-  return <span className="text-emerald-600">{days}天前</span>;
+  if (days > 7) return <span className="text-amber-500 font-medium">{t.contactDaysAgo(days)}</span>;
+  return <span className="text-emerald-600">{t.contactDaysAgo(days)}</span>;
 }
 
 // ── Group Filter Bar ────────────────────────────────────────────────────────────
@@ -385,6 +701,18 @@ function GroupFilterBar({
   onChange,
   exportHref,
 }: GroupFilterBarProps & { exportHref?: string }) {
+  const t = useT();
+  const groupFilterLabels: Record<GroupFilter, string> = {
+    all: t.filterAll,
+    never: t.filterNever,
+    was_active: t.filterWasActive,
+    this_week: t.filterThisWeek,
+    partial: t.filterPartial,
+    card_expiry: t.filterCardExpiry,
+    dormant_hp: t.filterDormantHp,
+    handover: t.filterHandover,
+    renewal_risk: t.filterRenewalRisk,
+  };
   const groups: GroupFilter[] = [
     'all',
     'never',
@@ -398,7 +726,7 @@ function GroupFilterBar({
   ];
   return (
     <div className="flex flex-wrap items-center gap-2 pb-2">
-      <span className="text-xs text-[var(--text-muted)]">分群:</span>
+      <span className="text-xs text-[var(--text-muted)]">{t.segmentLabel}</span>
       <div className="flex flex-wrap rounded-lg border border-[var(--border-subtle)] overflow-hidden text-xs font-medium">
         {groups.map((g) => (
           <button
@@ -410,7 +738,7 @@ function GroupFilterBar({
                 : 'bg-[var(--bg-surface)] text-[var(--text-secondary)] hover:bg-[var(--bg-subtle)]'
             }`}
           >
-            {GROUP_FILTER_LABELS[g]}
+            {groupFilterLabels[g]}
           </button>
         ))}
       </div>
@@ -420,7 +748,7 @@ function GroupFilterBar({
           download="followup.tsv"
           className="ml-auto px-3 py-1.5 text-xs font-medium border border-[var(--border-default)] rounded-lg bg-[var(--bg-surface)] text-[var(--text-secondary)] hover:bg-[var(--bg-subtle)] transition-colors whitespace-nowrap"
         >
-          导出 TSV ↓
+          {t.exportTsv}
         </a>
       )}
     </div>
@@ -435,12 +763,11 @@ interface FollowupTableProps {
 }
 
 function FollowupTable({ items, onDrawerOpen }: FollowupTableProps) {
+  const t = useT();
   const [expandedId, setExpandedId] = useState<string | number | null>(null);
 
   if (items.length === 0) {
-    return (
-      <EmptyState title="暂无未打卡学员" description="当前筛选条件下无数据，或数据文件尚未上传" />
-    );
+    return <EmptyState title={t.emptyTitle} description={t.emptyDesc} />;
   }
 
   // 改造后共 20 列
@@ -451,26 +778,28 @@ function FollowupTable({ items, onDrawerOpen }: FollowupTableProps) {
       <table className="w-full text-xs">
         <thead>
           <tr className="slide-thead-row text-xs">
-            <th className="py-1.5 px-2 text-center whitespace-nowrap w-8">排名</th>
-            <th className="py-1.5 px-2 text-center whitespace-nowrap">🔴优先级</th>
-            <th className="py-1.5 px-2 text-center whitespace-nowrap">激活</th>
-            <th className="py-1.5 px-2 text-left whitespace-nowrap">学员ID</th>
-            <th className="py-1.5 px-2 text-left whitespace-nowrap">围场</th>
-            <th className="py-1.5 px-2 text-left whitespace-nowrap min-w-[80px]">CC负责</th>
-            <th className="py-1.5 px-2 text-left whitespace-nowrap min-w-[80px]">SS负责</th>
-            <th className="py-1.5 px-2 text-left whitespace-nowrap min-w-[80px]">LP负责</th>
-            <th className="py-1.5 px-2 text-center whitespace-nowrap">本周/月打卡</th>
-            <th className="py-1.5 px-2 text-center whitespace-nowrap">上月打卡</th>
-            <th className="py-1.5 px-2 text-center whitespace-nowrap">CC/SS/LP 接通</th>
-            <th className="py-1.5 px-2 text-left whitespace-nowrap min-w-[120px]">标签</th>
-            <th className="py-1.5 px-2 text-center whitespace-nowrap">渠道</th>
-            <th className="py-1.5 px-2 text-left whitespace-nowrap min-w-[80px]">黄金窗口</th>
-            <th className="py-1.5 px-2 text-right whitespace-nowrap">📚课耗(3月均)</th>
-            <th className="py-1.5 px-2 text-right whitespace-nowrap">👥本月推荐</th>
-            <th className="py-1.5 px-2 text-right whitespace-nowrap">💰历史付费</th>
-            <th className="py-1.5 px-2 text-left whitespace-nowrap">CC末次联系</th>
-            <th className="py-1.5 px-2 text-center whitespace-nowrap">激励</th>
-            <th className="py-1.5 px-2 text-right whitespace-nowrap">卡到期</th>
+            <th className="py-1.5 px-2 text-center whitespace-nowrap w-8">{t.thRank}</th>
+            <th className="py-1.5 px-2 text-center whitespace-nowrap">{t.thPriority}</th>
+            <th className="py-1.5 px-2 text-center whitespace-nowrap">{t.thActivation}</th>
+            <th className="py-1.5 px-2 text-left whitespace-nowrap">{t.thStudentId}</th>
+            <th className="py-1.5 px-2 text-left whitespace-nowrap">{t.thEnclosure}</th>
+            <th className="py-1.5 px-2 text-left whitespace-nowrap min-w-[80px]">{t.thCcOwner}</th>
+            <th className="py-1.5 px-2 text-left whitespace-nowrap min-w-[80px]">{t.thSsOwner}</th>
+            <th className="py-1.5 px-2 text-left whitespace-nowrap min-w-[80px]">{t.thLpOwner}</th>
+            <th className="py-1.5 px-2 text-center whitespace-nowrap">{t.thCheckinWeekMonth}</th>
+            <th className="py-1.5 px-2 text-center whitespace-nowrap">{t.thCheckinLastMonth}</th>
+            <th className="py-1.5 px-2 text-center whitespace-nowrap">{t.thConnStatus}</th>
+            <th className="py-1.5 px-2 text-left whitespace-nowrap min-w-[120px]">{t.thTags}</th>
+            <th className="py-1.5 px-2 text-center whitespace-nowrap">{t.thChannel}</th>
+            <th className="py-1.5 px-2 text-left whitespace-nowrap min-w-[80px]">
+              {t.thGoldenWindow}
+            </th>
+            <th className="py-1.5 px-2 text-right whitespace-nowrap">{t.thLesson}</th>
+            <th className="py-1.5 px-2 text-right whitespace-nowrap">{t.thReferral}</th>
+            <th className="py-1.5 px-2 text-right whitespace-nowrap">{t.thRevenue}</th>
+            <th className="py-1.5 px-2 text-left whitespace-nowrap">{t.thLastContact}</th>
+            <th className="py-1.5 px-2 text-center whitespace-nowrap">{t.thIncentive}</th>
+            <th className="py-1.5 px-2 text-right whitespace-nowrap">{t.thCardExpiry}</th>
           </tr>
         </thead>
         <tbody>
@@ -491,7 +820,7 @@ function FollowupTable({ items, onDrawerOpen }: FollowupTableProps) {
             const regsVal = m.referrals_this_month ?? 0;
 
             // 客户端标签计算
-            const clientTags = computeClientTags(daysThis, daysLast, lessonVal, regsVal);
+            const clientTags = computeClientTags(daysThis, daysLast, lessonVal, regsVal, t);
             // 激活概率
             const activationScore = computeActivationScore(daysLast, lessonVal);
 
@@ -561,9 +890,9 @@ function FollowupTable({ items, onDrawerOpen }: FollowupTableProps) {
                             ? 'text-[var(--text-muted)]'
                             : 'text-emerald-600 font-semibold'
                         }
-                        title="本周"
+                        title={t.thisWeekPrefix}
                       >
-                        本周 {daysThisWeek}
+                        {t.thisWeekPrefix} {daysThisWeek}
                       </span>
                       <span
                         className={`text-[10px] ${
@@ -573,9 +902,9 @@ function FollowupTable({ items, onDrawerOpen }: FollowupTableProps) {
                               ? 'text-emerald-600'
                               : 'text-[var(--text-secondary)]'
                         }`}
-                        title="本月"
+                        title={t.thisMonthPrefix}
                       >
-                        本月 {daysThis}/6
+                        {t.thisMonthPrefix} {daysThis}/6
                       </span>
                     </div>
                   </td>
@@ -670,26 +999,27 @@ interface BottomStatsProps {
 }
 
 function BottomStats({ total, avgScore, highQualityCount }: BottomStatsProps) {
+  const t = useT();
   const pct = total > 0 ? ((highQualityCount / total) * 100).toFixed(1) : '0.0';
   return (
     <div className="flex flex-wrap gap-6 pt-3 mt-3 border-t border-[var(--border-subtle)] text-xs text-[var(--text-muted)]">
       <span>
-        共{' '}
+        {t.statsTotalPrefix && <>{t.statsTotalPrefix} </>}
         <strong className="text-[var(--text-primary)] font-semibold font-mono tabular-nums">
           {total}
         </strong>{' '}
-        名未打卡有效学员
+        {t.statsTotalSuffix}
       </span>
       <span>
-        平均评分{' '}
+        {t.statsAvgScore}{' '}
         <strong className="text-[var(--text-primary)] font-semibold font-mono tabular-nums">
           {(avgScore ?? 0).toFixed(1)}
         </strong>
       </span>
       <span>
-        高质量(≥70)占比{' '}
+        {t.statsHighQuality}{' '}
         <strong className="text-orange-500 font-semibold font-mono tabular-nums">{pct}%</strong> (
-        {highQualityCount} 人)
+        {t.statsHighQualityCount(highQualityCount)})
       </span>
     </div>
   );
@@ -713,6 +1043,7 @@ export function FollowupTab({
   teamFilter = '',
   salesSearch = '',
 }: FollowupTabProps) {
+  const t = useT();
   const { configJson, activeRoles: hookActiveRoles } = useWideConfig();
 
   // 优先使用 hook 内部读取的值，props 作为备用
@@ -851,9 +1182,9 @@ export function FollowupTab({
           <Spinner size="lg" />
         </div>
       ) : error ? (
-        <EmptyState title="加载失败" description="请检查后端服务是否正常运行" />
+        <EmptyState title={t.errorTitle} description={t.errorDesc} />
       ) : !data || filteredItems.length === 0 ? (
-        <EmptyState title="暂无未打卡学员" description="当前筛选条件下无数据，或数据文件尚未上传" />
+        <EmptyState title={t.emptyTitle} description={t.emptyDesc} />
       ) : (
         <>
           <FollowupTable
