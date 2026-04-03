@@ -1,8 +1,52 @@
 import { formatRate } from '@/lib/utils';
 import type { ThreeFactorComparison } from '@/lib/types/channel';
 
+const I18N = {
+  zh: {
+    empty: '暂无三因素数据',
+    colChannel: '渠道',
+    colExpected: '预期量',
+    colActual: '实际量',
+    colGap: '差距',
+    colApptFactor: '预约因子',
+    colShowFactor: '出席因子',
+    colPayFactor: '付费因子',
+  },
+  'zh-TW': {
+    empty: '暫無三因素資料',
+    colChannel: '渠道',
+    colExpected: '預期量',
+    colActual: '實際量',
+    colGap: '差距',
+    colApptFactor: '預約因子',
+    colShowFactor: '出席因子',
+    colPayFactor: '付費因子',
+  },
+  en: {
+    empty: 'No 3-factor data',
+    colChannel: 'Channel',
+    colExpected: 'Expected',
+    colActual: 'Actual',
+    colGap: 'Gap',
+    colApptFactor: 'Appt Factor',
+    colShowFactor: 'Show Factor',
+    colPayFactor: 'Pay Factor',
+  },
+  th: {
+    empty: 'ไม่มีข้อมูล 3 ปัจจัย',
+    colChannel: 'ช่องทาง',
+    colExpected: 'คาดการณ์',
+    colActual: 'จริง',
+    colGap: 'ส่วนต่าง',
+    colApptFactor: 'ปัจจัยนัดหมาย',
+    colShowFactor: 'ปัจจัยเข้าร่วม',
+    colPayFactor: 'ปัจจัยชำระเงิน',
+  },
+} as const;
+
 interface ThreeFactorTableProps {
   comparisons: ThreeFactorComparison[];
+  locale?: string;
 }
 
 function FactorBadge({ value }: { value: number | null }) {
@@ -23,9 +67,10 @@ function FactorBadge({ value }: { value: number | null }) {
   );
 }
 
-export function ThreeFactorTable({ comparisons }: ThreeFactorTableProps) {
+export function ThreeFactorTable({ comparisons, locale = 'zh' }: ThreeFactorTableProps) {
+  const t = (I18N as unknown as Record<string, (typeof I18N)['zh']>)[locale] ?? I18N['zh'];
   if (comparisons.length === 0) {
-    return <p className="text-sm text-[var(--text-muted)] text-center py-6">暂无三因素数据</p>;
+    return <p className="text-sm text-[var(--text-muted)] text-center py-6">{t.empty}</p>;
   }
 
   return (
@@ -33,13 +78,13 @@ export function ThreeFactorTable({ comparisons }: ThreeFactorTableProps) {
       <table className="w-full text-sm">
         <thead>
           <tr className="slide-thead-row text-xs">
-            <th className="py-1.5 px-2 border-0 text-left">渠道</th>
-            <th className="py-1.5 px-2 border-0 text-right">预期量</th>
-            <th className="py-1.5 px-2 border-0 text-right">实际量</th>
-            <th className="py-1.5 px-2 border-0 text-right">差距</th>
-            <th className="py-1.5 px-2 border-0 text-right">预约因子</th>
-            <th className="py-1.5 px-2 border-0 text-right">出席因子</th>
-            <th className="py-1.5 px-2 border-0 text-right">付费因子</th>
+            <th className="py-1.5 px-2 border-0 text-left">{t.colChannel}</th>
+            <th className="py-1.5 px-2 border-0 text-right">{t.colExpected}</th>
+            <th className="py-1.5 px-2 border-0 text-right">{t.colActual}</th>
+            <th className="py-1.5 px-2 border-0 text-right">{t.colGap}</th>
+            <th className="py-1.5 px-2 border-0 text-right">{t.colApptFactor}</th>
+            <th className="py-1.5 px-2 border-0 text-right">{t.colShowFactor}</th>
+            <th className="py-1.5 px-2 border-0 text-right">{t.colPayFactor}</th>
           </tr>
         </thead>
         <tbody>

@@ -14,9 +14,17 @@ import {
 import type { FunnelStage } from '@/lib/types/funnel';
 import { CHART_PALETTE } from '@/lib/chart-palette';
 
+const I18N = {
+  zh: { actual: '实际', target: '目标' },
+  'zh-TW': { actual: '實際', target: '目標' },
+  en: { actual: 'Actual', target: 'Target' },
+  th: { actual: 'จริง', target: 'เป้าหมาย' },
+} as const;
+
 interface ConversionRateBarProps {
   stages: FunnelStage[];
   height?: number;
+  locale?: string;
 }
 
 const RATE_PAIRS = [
@@ -32,7 +40,8 @@ function gapColor(gap: number | undefined) {
   return CHART_PALETTE.axisTick;
 }
 
-export function ConversionRateBar({ stages, height = 240 }: ConversionRateBarProps) {
+export function ConversionRateBar({ stages, height = 240, locale = 'zh' }: ConversionRateBarProps) {
+  const t = (I18N as unknown as Record<string, (typeof I18N)['zh']>)[locale] ?? I18N['zh'];
   const stageMap = Object.fromEntries(stages.map((s) => [s.name, s]));
 
   const chartData = RATE_PAIRS.map(({ key, from, to }) => {
@@ -60,7 +69,10 @@ export function ConversionRateBar({ stages, height = 240 }: ConversionRateBarPro
           domain={[0, 'auto']}
         />
         <Tooltip
-          formatter={(v: number, name: string) => [`${v}%`, name === 'actual' ? '实际' : '目标']}
+          formatter={(v: number, name: string) => [
+            `${v}%`,
+            name === 'actual' ? t.actual : t.target,
+          ]}
           contentStyle={{
             background: 'var(--bg-surface)',
             border: '1px solid var(--border-default)',

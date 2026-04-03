@@ -4,6 +4,13 @@ import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recha
 import { formatRevenue, formatRate } from '@/lib/utils';
 import { CHART_PALETTE } from '@/lib/chart-palette';
 
+const I18N = {
+  zh: { empty: '暂无渠道数据', revenue: '业绩' },
+  'zh-TW': { empty: '暫無渠道資料', revenue: '業績' },
+  en: { empty: 'No channel data', revenue: 'Revenue' },
+  th: { empty: 'ไม่มีข้อมูลช่องทาง', revenue: 'รายได้' },
+} as const;
+
 interface ChannelPieEntry {
   channel: string;
   revenue_usd: number;
@@ -12,13 +19,15 @@ interface ChannelPieEntry {
 interface ChannelPieChartProps {
   channels: ChannelPieEntry[];
   height?: number;
+  locale?: string;
 }
 
 const CHANNEL_COLORS = CHART_PALETTE.series;
 
-export function ChannelPieChart({ channels, height = 320 }: ChannelPieChartProps) {
+export function ChannelPieChart({ channels, height = 320, locale = 'zh' }: ChannelPieChartProps) {
+  const t = (I18N as unknown as Record<string, (typeof I18N)['zh']>)[locale] ?? I18N['zh'];
   if (channels.length === 0) {
-    return <p className="text-sm text-[var(--text-muted)] text-center py-6">暂无渠道数据</p>;
+    return <p className="text-sm text-[var(--text-muted)] text-center py-6">{t.empty}</p>;
   }
 
   const pieData = channels.map((c) => ({
@@ -57,7 +66,7 @@ export function ChannelPieChart({ channels, height = 320 }: ChannelPieChartProps
           ))}
         </Pie>
         <Tooltip
-          formatter={(val: number) => [formatRevenue(val), '业绩']}
+          formatter={(val: number) => [formatRevenue(val), t.revenue]}
           contentStyle={{
             background: 'var(--bg-surface)',
             border: '1px solid var(--border-default)',
