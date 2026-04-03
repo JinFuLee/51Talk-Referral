@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect, useRef } from 'react';
 import useSWR from 'swr';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import {
   Globe,
   Search,
@@ -36,10 +36,59 @@ function getCurrentYYYYMM(): string {
   return new Date().toISOString().slice(0, 7).replace('-', '');
 }
 
-/** 将 YYYYMM 格式转成 "2026年3月" 形式，currentMonthSuffix 为 i18n 化的"（当月）"后缀 */
-function formatYYYYMMtoLabel(yyyymm: string, isCurrent: boolean, currentMonthSuffix: string): string {
+/** 将 YYYYMM 格式转成 locale-aware 月份标签
+ * zh/zh-TW: 2026年4月（当月）
+ * en:        Apr 2026 (current)
+ * th:        เม.ย. 2569 (ปัจจุบัน)  ← 泰历 = 公历+543
+ */
+const TH_MONTH_ABBR = [
+  'ม.ค.',
+  'ก.พ.',
+  'มี.ค.',
+  'เม.ย.',
+  'พ.ค.',
+  'มิ.ย.',
+  'ก.ค.',
+  'ส.ค.',
+  'ก.ย.',
+  'ต.ค.',
+  'พ.ย.',
+  'ธ.ค.',
+];
+const EN_MONTH_ABBR = [
+  'Jan',
+  'Feb',
+  'Mar',
+  'Apr',
+  'May',
+  'Jun',
+  'Jul',
+  'Aug',
+  'Sep',
+  'Oct',
+  'Nov',
+  'Dec',
+];
+
+function formatYYYYMMtoLabel(
+  yyyymm: string,
+  isCurrent: boolean,
+  currentMonthSuffix: string,
+  locale: string
+): string {
   const year = parseInt(yyyymm.slice(0, 4), 10);
   const month = parseInt(yyyymm.slice(4, 6), 10);
+  const monthIdx = month - 1; // 0-based
+  if (locale === 'th') {
+    const thYear = year + 543;
+    const label = `${TH_MONTH_ABBR[monthIdx] ?? month} ${thYear}`;
+    return isCurrent ? `${label}${currentMonthSuffix}` : label;
+  }
+  if (locale === 'en') {
+    const label = `${EN_MONTH_ABBR[monthIdx] ?? month} ${year}`;
+    return isCurrent ? `${label}${currentMonthSuffix}` : label;
+  }
+  // zh / zh-TW fallback
   if (isCurrent) return `${year}年${month}月${currentMonthSuffix}`;
   return `${year}年${month}月`;
 }
@@ -61,7 +110,13 @@ const GRANULARITY_VALUES: Granularity[] = ['day', 'week', 'month', 'quarter'];
 // 漏斗阶段选项
 // ──────────────────────────────────────────────────────────────────────────────
 
-const FUNNEL_STAGE_VALUES: FunnelStage[] = ['all', 'registration', 'appointment', 'attendance', 'payment'];
+const FUNNEL_STAGE_VALUES: FunnelStage[] = [
+  'all',
+  'registration',
+  'appointment',
+  'attendance',
+  'payment',
+];
 
 // ──────────────────────────────────────────────────────────────────────────────
 // 渠道选项（静态标签，实际可选值来自 /api/filter/options）
@@ -226,7 +281,9 @@ function EnclosureDropdown({ value, onChange, enclosures }: EnclosureDropdownPro
                 />
                 <span className="text-xs text-[var(--text-primary)]">{enc.label || enc.value}</span>
                 {!enc.is_active && (
-                  <span className="ml-auto text-[10px] text-[var(--text-muted)]">{t('enclosure.nonActive')}</span>
+                  <span className="ml-auto text-[10px] text-[var(--text-muted)]">
+                    {t('enclosure.nonActive')}
+                  </span>
                 )}
               </label>
             ))}
@@ -287,9 +344,10 @@ function BehaviorChips({ value, onChange, behaviors }: BehaviorChipsProps) {
   }, [open]);
 
   const activeCount = value?.length ?? 0;
-  const label = activeCount === 0 || value === null
-    ? t('behavior.label')
-    : t('behavior.count', { n: activeCount });
+  const label =
+    activeCount === 0 || value === null
+      ? t('behavior.label')
+      : t('behavior.count', { n: activeCount });
 
   function toggleBehavior(slug: BehaviorSegment) {
     const current = value ?? [];
@@ -345,7 +403,10 @@ function BehaviorChips({ value, onChange, behaviors }: BehaviorChipsProps) {
                     style={{ backgroundColor: color }}
                   />
                   <span className="text-[var(--text-primary)]">
-                    {beh.label || (BEHAVIOR_I18N_KEYS[beh.value] ? t(BEHAVIOR_I18N_KEYS[beh.value] as Parameters<typeof t>[0]) : beh.value)}
+                    {beh.label ||
+                      (BEHAVIOR_I18N_KEYS[beh.value]
+                        ? t(BEHAVIOR_I18N_KEYS[beh.value] as Parameters<typeof t>[0])
+                        : beh.value)}
                   </span>
                 </button>
               );
@@ -422,6 +483,7 @@ export function UnifiedFilterBar() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [advancedOpen, setAdvancedOpen] = useState(false);
   const t = useTranslations('filterBar');
+  const locale = useLocale();
 
   // Store 状态
   const country = useConfigStore((s) => s.country);
@@ -560,18 +622,23 @@ export function UnifiedFilterBar() {
     label: v === 'all' ? t('allRoles') : v === 'ops' ? t('ops') : v.toUpperCase(),
   }));
 
-  const GRANULARITY_OPTIONS: { value: Granularity; label: string }[] = GRANULARITY_VALUES.map((v) => ({
-    value: v,
-    label: t(`granularity.${v}` as Parameters<typeof t>[0]),
-  }));
+  const GRANULARITY_OPTIONS: { value: Granularity; label: string }[] = GRANULARITY_VALUES.map(
+    (v) => ({
+      value: v,
+      label: t(`granularity.${v}` as Parameters<typeof t>[0]),
+    })
+  );
 
-  const FUNNEL_STAGE_OPTIONS: { value: FunnelStage; label: string }[] = FUNNEL_STAGE_VALUES.map((v) => ({
-    value: v,
-    label: t(`funnelStage.${v}` as Parameters<typeof t>[0]),
-  }));
+  const FUNNEL_STAGE_OPTIONS: { value: FunnelStage; label: string }[] = FUNNEL_STAGE_VALUES.map(
+    (v) => ({
+      value: v,
+      label: t(`funnelStage.${v}` as Parameters<typeof t>[0]),
+    })
+  );
 
   // channel label 辅助函数（通过 i18n key 获取翻译）
-  const getChannelLabel = (ch: Channel): string => t(CHANNEL_I18N_KEYS[ch] as Parameters<typeof t>[0]);
+  const getChannelLabel = (ch: Channel): string =>
+    t(CHANNEL_I18N_KEYS[ch] as Parameters<typeof t>[0]);
 
   // 当月后缀（用于月份选择器 formatYYYYMMtoLabel）
   const currentMonthSuffix = t('currentMonth');
@@ -630,7 +697,7 @@ export function UnifiedFilterBar() {
             const isCurrent = ym === currentYYYYMM;
             return (
               <option key={ym} value={ym}>
-                {formatYYYYMMtoLabel(ym, isCurrent, currentMonthSuffix)}
+                {formatYYYYMMtoLabel(ym, isCurrent, currentMonthSuffix, locale)}
               </option>
             );
           })}
@@ -922,7 +989,9 @@ export function UnifiedFilterBar() {
           <div className="w-10 h-1 rounded-full bg-[var(--border-default)]" />
         </div>
         <div className="px-4 pb-2 flex items-center justify-between">
-          <span className="text-base font-semibold text-[var(--text-primary)]">{t('dataFilter')}</span>
+          <span className="text-base font-semibold text-[var(--text-primary)]">
+            {t('dataFilter')}
+          </span>
           <button
             onClick={() => setDrawerOpen(false)}
             className="p-1.5 rounded-full hover:bg-[var(--bg-subtle)] text-[var(--text-muted)] transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"

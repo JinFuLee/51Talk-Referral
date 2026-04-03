@@ -52,6 +52,14 @@ const I18N = {
     exportGapLabel: '差距',
     exportAchLabel: '达成率',
     exportConvLabel: '转化率',
+    // stage 名映射（后端返回中文，前端按 locale 转换）
+    stage_转介绍注册数: '转介绍注册数',
+    stage_预约数: '预约数',
+    stage_出席数: '出席数',
+    stage_转介绍付费数: '转介绍付费数',
+    stage_注册预约率: '注册预约率',
+    stage_预约出席率: '预约出席率',
+    stage_出席付费率: '出席付费率',
   },
   'zh-TW': {
     pageTitle: '漏斗分析',
@@ -100,6 +108,13 @@ const I18N = {
     exportGapLabel: '差距',
     exportAchLabel: '達成率',
     exportConvLabel: '轉化率',
+    stage_转介绍注册数: '轉介紹註冊數',
+    stage_预约数: '預約數',
+    stage_出席数: '出席數',
+    stage_转介绍付费数: '轉介紹付費數',
+    stage_注册预约率: '註冊預約率',
+    stage_预约出席率: '預約出席率',
+    stage_出席付费率: '出席付費率',
   },
   en: {
     pageTitle: 'Funnel Analysis',
@@ -148,6 +163,13 @@ const I18N = {
     exportGapLabel: 'Gap',
     exportAchLabel: 'Achievement',
     exportConvLabel: 'Conversion',
+    stage_转介绍注册数: 'Referral Registrations',
+    stage_预约数: 'Appointments',
+    stage_出席数: 'Attendances',
+    stage_转介绍付费数: 'Referral Payments',
+    stage_注册预约率: 'Reg→Appt Rate',
+    stage_预约出席率: 'Appt→Attend Rate',
+    stage_出席付费率: 'Attend→Pay Rate',
   },
   th: {
     pageTitle: 'การวิเคราะห์ Funnel',
@@ -196,6 +218,13 @@ const I18N = {
     exportGapLabel: 'ส่วนต่าง',
     exportAchLabel: 'อัตราบรรลุ',
     exportConvLabel: 'อัตราแปลง',
+    stage_转介绍注册数: 'จำนวนลงทะเบียนแนะนำ',
+    stage_预约数: 'จำนวนนัดหมาย',
+    stage_出席数: 'จำนวนเข้าร่วม',
+    stage_转介绍付费数: 'จำนวนชำระเงินแนะนำ',
+    stage_注册预约率: 'อัตราลงทะเบียน→นัดหมาย',
+    stage_预约出席率: 'อัตรานัดหมาย→เข้าร่วม',
+    stage_出席付费率: 'อัตราเข้าร่วม→ชำระเงิน',
   },
 } as const;
 import { formatRate } from '@/lib/utils';
@@ -267,6 +296,12 @@ export default function FunnelPage() {
   });
   const locale = useLocale();
   const t = (I18N as unknown as Record<string, (typeof I18N)['zh']>)[locale] ?? I18N['zh'];
+
+  /** 将后端返回的中文 stage 名转换为当前 locale 对应标签，未命中时原样展示 */
+  function stageName(name: string): string {
+    const key = `stage_${name}` as keyof typeof t;
+    return (t[key] as string | undefined) ?? name;
+  }
   const {
     data: funnelData,
     isLoading: fLoading,
@@ -324,7 +359,7 @@ export default function FunnelPage() {
   const conversionChartData = stages
     .filter((s) => s.conversion_rate !== undefined)
     .map((s) => ({
-      name: s.name,
+      name: stageName(s.name),
       actual: Number(((s.conversion_rate ?? 0) * 100).toFixed(1)),
       target: Number(((s.target_rate ?? 0) * 100).toFixed(1)),
       // rate_gap 后端未提供时，用 actual 转化率 vs target_rate 的差值着色；
@@ -386,7 +421,9 @@ export default function FunnelPage() {
           </div>
           <div className="text-xs text-[var(--text-secondary)]">
             {t.bottleneckPrefix}{' '}
-            <span className="font-semibold text-[var(--text-primary)]">{bottleneckStage.name}</span>{' '}
+            <span className="font-semibold text-[var(--text-primary)]">
+              {stageName(bottleneckStage.name)}
+            </span>{' '}
             {t.bottleneckSuffix}{' '}
             <span className="text-[var(--color-danger)] font-semibold">
               {bottleneckStage.achievement_rate != null
@@ -395,7 +432,7 @@ export default function FunnelPage() {
             </span>
             {bestStage && bestStage.name !== bottleneckStage.name && (
               <>
-                ；{bestStage.name} {t.bestSuffix}
+                ；{stageName(bestStage.name)} {t.bestSuffix}
                 <span className="text-emerald-800 font-semibold">
                   {bestStage.achievement_rate != null
                     ? `${Math.round(bestStage.achievement_rate * 100)}%`
@@ -472,7 +509,7 @@ export default function FunnelPage() {
                 <tbody>
                   {invitationStages.map((s, i) => (
                     <tr key={s.name} className={i % 2 === 0 ? 'slide-row-even' : 'slide-row-odd'}>
-                      <td className="slide-td font-medium">{s.name}</td>
+                      <td className="slide-td font-medium">{stageName(s.name)}</td>
                       <td className="slide-td text-right font-mono tabular-nums text-[var(--text-secondary)]">
                         {s.target != null
                           ? s.name.includes('率')
@@ -537,7 +574,7 @@ export default function FunnelPage() {
               <tbody>
                 {stages.map((s) => (
                   <tr key={s.name} className="even:bg-[var(--bg-subtle)]">
-                    <td className="py-2 px-2 text-xs font-medium">{s.name}</td>
+                    <td className="py-2 px-2 text-xs font-medium">{stageName(s.name)}</td>
                     <td className="py-2 px-2 text-xs text-right font-mono tabular-nums text-[var(--text-secondary)]">
                       {s.target != null
                         ? s.name.includes('率')
@@ -652,7 +689,7 @@ export default function FunnelPage() {
               <tbody>
                 {scenarios.map((s) => (
                   <tr key={s.stage} className="even:bg-[var(--bg-subtle)]">
-                    <td className="py-2 px-2 text-xs font-medium">{s.stage}</td>
+                    <td className="py-2 px-2 text-xs font-medium">{stageName(s.stage)}</td>
                     <td className="py-2 px-2 text-xs text-right font-mono tabular-nums text-[var(--text-secondary)]">
                       {formatRate(s.current_rate)}
                     </td>
