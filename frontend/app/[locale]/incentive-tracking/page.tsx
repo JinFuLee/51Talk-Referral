@@ -849,7 +849,7 @@ function LeverageTab({ t }: { t: T18N }) {
       <div className="flex items-center justify-center h-64">
         <div className="text-center space-y-2">
           <Spinner size="lg" />
-          <p className="text-sm text-[var(--text-muted)]">正在分析杠杆机会…</p>
+          <p className="text-sm text-[var(--text-muted)]">{t.loadingLeverage}</p>
         </div>
       </div>
     );
@@ -859,10 +859,8 @@ function LeverageTab({ t }: { t: T18N }) {
     return (
       <div className="py-16 text-center space-y-2">
         <p className="text-4xl">📊</p>
-        <p className="text-sm font-medium text-[var(--text-primary)]">暂无杠杆分析数据</p>
-        <p className="text-xs text-[var(--text-muted)]">
-          后端分析引擎正在建立基线数据，稍后再来查看
-        </p>
+        <p className="text-sm font-medium text-[var(--text-primary)]">{t.leverageEmptyTitle}</p>
+        <p className="text-xs text-[var(--text-muted)]">{t.leverageEmptyDesc}</p>
       </div>
     );
   }
@@ -873,11 +871,13 @@ function LeverageTab({ t }: { t: T18N }) {
   return (
     <div className="space-y-3">
       <div className="text-xs text-[var(--text-muted)] space-y-1">
-        <p>以下阶段对转介绍业绩的杠杆效应最强，建议优先在此设置激励活动。</p>
+        <p>{t.leverageDesc}</p>
         {raw?.phase_label && (
           <p className="font-medium text-[var(--text-secondary)]">
-            当前阶段：{raw.phase_label}
-            {raw.remaining_workdays != null && ` · 剩余 ${raw.remaining_workdays} 个工作日`}
+            {t.leverageCurrentPhase}
+            {raw.phase_label}
+            {raw.remaining_workdays != null &&
+              `${t.leverageRemainingDays}${raw.remaining_workdays}${t.leverageRemainingDaysSuffix}`}
           </p>
         )}
         {raw?.note && <p className="text-amber-600">{raw.note}</p>}
@@ -901,7 +901,7 @@ function LeverageTab({ t }: { t: T18N }) {
               {/* 杠杆评分进度条 */}
               <div className="space-y-1">
                 <div className="flex items-center justify-between">
-                  <span className="text-[10px] text-[var(--text-muted)]">杠杆评分</span>
+                  <span className="text-[10px] text-[var(--text-muted)]">{t.leverageScore}</span>
                   <span className="text-xs font-mono font-semibold text-[var(--text-primary)]">
                     {(rec.leverage_score ?? 0).toFixed(1)}
                   </span>
@@ -916,7 +916,7 @@ function LeverageTab({ t }: { t: T18N }) {
 
               {/* 增量金额 */}
               <div className="flex items-center gap-1.5 text-xs">
-                <span className="text-[var(--text-muted)]">业绩增量</span>
+                <span className="text-[var(--text-muted)]">{t.leverageRevImpact}</span>
                 <span className="font-mono font-semibold text-emerald-600">
                   +${rec.revenue_impact_usd.toLocaleString()}
                 </span>
@@ -945,12 +945,12 @@ function LeverageTab({ t }: { t: T18N }) {
               {/* 创建活动按钮（时间感知） */}
               {alreadyCreated ? (
                 <div className="w-full py-1.5 text-xs font-medium text-[var(--text-muted)] border border-[var(--border-default)] rounded-lg text-center">
-                  ✓ 已创建
+                  {t.leverageAlreadyCreated}
                 </div>
               ) : rec.actionable === false ? (
                 <div className="w-full py-1.5 text-xs text-center space-y-0.5">
                   <div className="font-medium text-[var(--text-muted)] border border-[var(--border-default)] rounded-lg py-1.5">
-                    下月初创建
+                    {t.leverageNextMonth}
                   </div>
                   {rec.action_note && (
                     <p className="text-[10px] text-[var(--text-muted)]">{rec.action_note}</p>
@@ -961,7 +961,7 @@ function LeverageTab({ t }: { t: T18N }) {
                   onClick={() => openCreateFromRec(rec)}
                   className="w-full py-1.5 text-xs font-medium text-action border border-action rounded-lg hover:bg-action hover:text-white transition-colors"
                 >
-                  创建活动
+                  {t.leverageCreateBtn}
                 </button>
               )}
             </div>
@@ -972,6 +972,7 @@ function LeverageTab({ t }: { t: T18N }) {
       {modalOpen && (
         <CampaignModal
           prefill={prefill}
+          t={t}
           onClose={() => setModalOpen(false)}
           onSaved={async () => {
             setModalOpen(false);
@@ -985,7 +986,7 @@ function LeverageTab({ t }: { t: T18N }) {
 
 // ─── Tab 2: 活动管理 ───────────────────────────────────────────────────────
 
-function CampaignsTab() {
+function CampaignsTab({ t }: { t: T18N }) {
   const month = getCurrentMonth();
   const { data, isLoading, error, mutate } = useFilteredSWR<Campaign[]>(
     `/api/incentive/campaigns?month=${month}`
@@ -1009,7 +1010,7 @@ function CampaignsTab() {
   }
 
   async function handleDelete(c: Campaign) {
-    if (!confirm(`确认删除活动"${c.name}"？此操作不可恢复。`)) return;
+    if (!confirm(`${t.confirmDelete}${c.name}${t.confirmDeleteSuffix}`)) return;
     try {
       const res = await fetch(`/api/incentive/campaigns/${c.id}`, {
         method: 'DELETE',
@@ -1031,7 +1032,7 @@ function CampaignsTab() {
       const url = URL.createObjectURL(blob);
       window.open(url, '_blank');
     } catch {
-      alert('海报生成失败，请稍后重试');
+      alert(t.posterFailed);
     }
   }
 
@@ -1050,11 +1051,9 @@ function CampaignsTab() {
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <p className="text-xs text-[var(--text-muted)]">
-          管理当月激励活动，达标自动通知 · 支持海报生成
-        </p>
+        <p className="text-xs text-[var(--text-muted)]">{t.campaignsMgmtDesc}</p>
         <button onClick={openCreate} className="btn-primary px-3 py-1.5 text-xs font-medium">
-          + 新建活动
+          {t.campaignsNewBtn}
         </button>
       </div>
 
@@ -1066,15 +1065,15 @@ function CampaignsTab() {
 
       {error && (
         <div className="py-4 text-center text-sm text-[var(--text-muted)]">
-          加载失败，后端接口暂不可用
+          {t.campaignsLoadFail}
         </div>
       )}
 
       {!isLoading && campaigns.length === 0 && (
         <div className="py-12 text-center space-y-2">
           <p className="text-3xl">🎯</p>
-          <p className="text-sm font-medium text-[var(--text-primary)]">暂无激励活动</p>
-          <p className="text-xs text-[var(--text-muted)]">点击「新建活动」开始设置本月激励方案</p>
+          <p className="text-sm font-medium text-[var(--text-primary)]">{t.campaignsEmptyTitle}</p>
+          <p className="text-xs text-[var(--text-muted)]">{t.campaignsEmptyDesc}</p>
         </div>
       )}
 
@@ -1083,14 +1082,14 @@ function CampaignsTab() {
           <table className="w-full text-sm">
             <thead>
               <tr className="slide-thead-row">
-                <th className="slide-th text-left">活动名称</th>
-                <th className="slide-th text-center">岗位</th>
-                <th className="slide-th text-left">指标</th>
-                <th className="slide-th text-left">条件</th>
-                <th className="slide-th text-right">奖励</th>
-                <th className="slide-th text-center">进度</th>
-                <th className="slide-th text-center">状态</th>
-                <th className="slide-th text-center">操作</th>
+                <th className="slide-th text-left">{t.thCampaignName}</th>
+                <th className="slide-th text-center">{t.thRole}</th>
+                <th className="slide-th text-left">{t.thMetric}</th>
+                <th className="slide-th text-left">{t.thCondition}</th>
+                <th className="slide-th text-right">{t.thReward}</th>
+                <th className="slide-th text-center">{t.thProgress}</th>
+                <th className="slide-th text-center">{t.thStatus}</th>
+                <th className="slide-th text-center">{t.thActions}</th>
               </tr>
             </thead>
             <tbody>
@@ -1143,7 +1142,7 @@ function CampaignsTab() {
                     <span
                       className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${campaignStatusColor(c.status)}`}
                     >
-                      {campaignStatusLabel(c.status)}
+                      {campaignStatusLabel(c.status, t)}
                     </span>
                   </td>
                   <td className="slide-td">
@@ -1152,25 +1151,25 @@ function CampaignsTab() {
                         onClick={() => openEdit(c)}
                         className="text-[10px] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
                       >
-                        编辑
+                        {t.actionEdit}
                       </button>
                       <button
                         onClick={() => handlePauseResume(c)}
                         className="text-[10px] text-[var(--text-secondary)] hover:text-amber-600 transition-colors"
                       >
-                        {c.status === 'active' ? '暂停' : '恢复'}
+                        {c.status === 'active' ? t.actionPause : t.actionResume}
                       </button>
                       <button
                         onClick={() => handleGeneratePoster(c)}
                         className="text-[10px] text-[var(--text-secondary)] hover:text-blue-600 transition-colors"
                       >
-                        海报
+                        {t.actionPoster}
                       </button>
                       <button
                         onClick={() => handleDelete(c)}
                         className="text-[10px] text-[var(--text-secondary)] hover:text-red-500 transition-colors"
                       >
-                        删除
+                        {t.actionDelete}
                       </button>
                     </div>
                   </td>
@@ -1184,6 +1183,7 @@ function CampaignsTab() {
       {modalOpen && (
         <CampaignModal
           editCampaign={editTarget}
+          t={t}
           onClose={() => setModalOpen(false)}
           onSaved={async () => {
             setModalOpen(false);
@@ -1211,7 +1211,7 @@ function ProgressBar({ pct, status }: { pct: number; status: PersonProgress['sta
 
 // ─── 活动进度卡片 ──────────────────────────────────────────────────────────
 
-function CampaignProgressCard({ item }: { item: CampaignProgress }) {
+function CampaignProgressCard({ item, t }: { item: CampaignProgress; t: T18N }) {
   const { campaign, records, qualified_count, close_count, total_estimated_thb } = item;
 
   return (
@@ -1237,28 +1237,33 @@ function CampaignProgressCard({ item }: { item: CampaignProgress }) {
         </div>
         <div className="text-right shrink-0">
           <div className="text-xs font-mono text-emerald-600 font-semibold">
-            已达标 {qualified_count} 人
+            {t.qualifiedCount} {qualified_count}
+            {t.personUnit ? ` ${t.personUnit}` : ''}
           </div>
           {close_count > 0 && (
-            <div className="text-[10px] text-amber-500">接近 {close_count} 人</div>
+            <div className="text-[10px] text-amber-500">
+              {t.closeCount} {close_count}
+              {t.personUnit ? ` ${t.personUnit}` : ''}
+            </div>
           )}
         </div>
       </div>
 
-      {/* 预计发放 */}
+      {/* estimated payout */}
       <div className="flex items-center gap-1.5 text-xs py-1 px-2 bg-[var(--bg-subtle)] rounded">
-        <span className="text-[var(--text-muted)]">预计发放</span>
+        <span className="text-[var(--text-muted)]">{t.estimatedPayout}</span>
         <span className="font-mono font-semibold text-[var(--text-primary)]">
           ฿{total_estimated_thb.toLocaleString()}
         </span>
         <span className="text-[var(--text-muted)]">
-          （฿{campaign.reward_thb.toLocaleString()} × {qualified_count} 人）
+          （฿{campaign.reward_thb.toLocaleString()} × {qualified_count}
+          {t.personUnit ? ` ${t.personUnit}` : ''}）
         </span>
       </div>
 
-      {/* 人员进度列表 */}
+      {/* person progress list */}
       {records.length === 0 ? (
-        <p className="text-xs text-[var(--text-muted)] py-2 text-center">暂无人员数据</p>
+        <p className="text-xs text-[var(--text-muted)] py-2 text-center">{t.noPersonData}</p>
       ) : (
         <div className="space-y-2">
           {records.map((r) => (
@@ -1288,7 +1293,7 @@ function CampaignProgressCard({ item }: { item: CampaignProgress }) {
                 >
                   {r.status === 'qualified'
                     ? `฿${r.reward_thb.toLocaleString()}`
-                    : progressStatusLabel(r.status)}
+                    : progressStatusLabel(r.status, t)}
                 </span>
               </div>
             </div>
@@ -1301,7 +1306,7 @@ function CampaignProgressCard({ item }: { item: CampaignProgress }) {
 
 // ─── Tab 3: 实时进度 ───────────────────────────────────────────────────────
 
-function ProgressTab() {
+function ProgressTab({ t }: { t: T18N }) {
   const month = getCurrentMonth();
   const {
     data: progressData,
@@ -1324,11 +1329,11 @@ function ProgressTab() {
     <div className="space-y-4">
       {/* 预算状态条 */}
       {(!budgetLoading || budget) && (
-        <Card title="预算消耗状态">
+        <Card title={t.budgetCardTitle}>
           <div className="space-y-3">
             <div className="space-y-1.5">
               <div className="flex items-center justify-between text-xs">
-                <span className="text-[var(--text-secondary)] font-medium">内场激励</span>
+                <span className="text-[var(--text-secondary)] font-medium">{t.budgetIndoor}</span>
                 <span className="font-mono text-[var(--text-primary)]">
                   ฿{totalSpent.toLocaleString()} / ฿{indoorBudget.toLocaleString()}
                 </span>
@@ -1346,9 +1351,15 @@ function ProgressTab() {
                 />
               </div>
               <div className="flex items-center justify-between text-[10px] text-[var(--text-muted)]">
-                <span>{(spentPct ?? 0).toFixed(1)}% 已消耗</span>
+                <span>
+                  {(spentPct ?? 0).toFixed(1)}
+                  {t.budgetConsumed}
+                </span>
                 {indoorBudget > 0 && (
-                  <span>剩余 ฿{Math.max(0, indoorBudget - totalSpent).toLocaleString()}</span>
+                  <span>
+                    {t.budgetRemaining}
+                    {Math.max(0, indoorBudget - totalSpent).toLocaleString()}
+                  </span>
                 )}
               </div>
             </div>
@@ -1357,9 +1368,7 @@ function ProgressTab() {
       )}
 
       {/* 数据口径说明 */}
-      <p className="text-xs text-[var(--text-muted)]">
-        数据为当月累计（ข้อมูลเป็นยอดสะสมทั้งเดือน），并非从活动开始日起算
-      </p>
+      <p className="text-xs text-[var(--text-muted)]">{t.dataRemark}</p>
 
       {/* 活动进度列表 */}
       {progressLoading && (

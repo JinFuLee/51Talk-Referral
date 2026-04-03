@@ -13,14 +13,14 @@ const I18N = {
 type I18NKey = keyof typeof I18N;
 function useT() {
   const locale = useLocale();
-  return I18N[(locale as I18NKey) in I18N ? (locale as I18NKey) : 'zh'];
+  return { strings: I18N[(locale as I18NKey) in I18N ? (locale as I18NKey) : 'zh'], locale };
 }
 
-const KPI_LABELS: Record<string, string> = {
-  registrations: '注册',
-  payments: '付费',
-  revenue: '收入',
-  leads: 'Leads',
+const KPI_LABELS_I18N: Record<string, Record<string, string>> = {
+  registrations: { zh: '注册', 'zh-TW': '註冊', en: 'Registrations', th: 'ลงทะเบียน' },
+  payments: { zh: '付费', 'zh-TW': '付費', en: 'Payments', th: 'ชำระเงิน' },
+  revenue: { zh: '收入', 'zh-TW': '收入', en: 'Revenue', th: 'รายได้' },
+  leads: { zh: 'Leads', 'zh-TW': 'Leads', en: 'Leads', th: 'Leads' },
 };
 
 function formatCompact(n: number | null | undefined): string {
@@ -41,7 +41,7 @@ interface CompareSummaryResponse {
 }
 
 export function ComparisonBanner() {
-  const t = useT();
+  const { strings: t, locale } = useT();
   const hydrated = useStoreHydrated();
   const compareMode = useConfigStore((s) => s.compareMode);
   const { data, isLoading } = useFilteredSWR<CompareSummaryResponse>(
@@ -75,7 +75,7 @@ export function ComparisonBanner() {
     );
   }
 
-  const metricKeys = Object.keys(KPI_LABELS);
+  const metricKeys = Object.keys(KPI_LABELS_I18N);
 
   return (
     <div className="h-9 bg-[var(--bg-subtle)]/80 border-b border-[var(--border-subtle)] flex items-center justify-center gap-4 px-6 overflow-x-auto">
@@ -87,7 +87,8 @@ export function ComparisonBanner() {
         if (!metric) return null;
 
         const pct = metric.change_pct;
-        const label = KPI_LABELS[key];
+        const label =
+          (KPI_LABELS_I18N[key] ?? {})[locale] ?? (KPI_LABELS_I18N[key] ?? {})['zh'] ?? key;
 
         let dirIcon = '—';
         let colorCls = 'text-[var(--text-muted)]';
