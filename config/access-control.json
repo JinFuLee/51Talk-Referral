@@ -5,6 +5,26 @@
     "/checkin",
     "/"
   ],
+  "roles": {
+    "admin": {
+      "name": {"zh": "管理员", "th": "ผู้ดูแลระบบ"},
+      "color": "#ef4444",
+      "pages": ["*"],
+      "canManage": true
+    },
+    "ops_manager": {
+      "name": {"zh": "运营管理", "th": "ผู้จัดการปฏิบัติการ"},
+      "color": "#3b82f6",
+      "pages": ["/*"],
+      "canManage": false
+    },
+    "viewer": {
+      "name": {"zh": "查看者", "th": "ผู้ชม"},
+      "color": "#a855f7",
+      "pages": ["/", "/daily-monitor", "/reports/ops"],
+      "canManage": false
+    }
+  },
   "users": [
     {
       "email": "jinfuleestudio@gmail.com",
@@ -16,5 +36,5 @@
     "require_auth": true,
     "admin_emails": ["jinfuleestudio@gmail.com"]
   },
-  "version": 5
+  "version": 6
 }
