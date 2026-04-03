@@ -1,34 +1,51 @@
 'use client';
 
 import { useState } from 'react';
+import { useLocale } from 'next-intl';
 import { ClipboardList, TrendingUp, Download } from 'lucide-react';
 
 interface ReportDownloaderProps {
   reportType: 'ops' | 'exec';
   date?: string;
-  lang?: 'zh' | 'th';
+  /** @deprecated Pass locale via next-intl useLocale instead */
+  lang?: string;
 }
 
-export function ReportDownloader({ reportType, date, lang = 'zh' }: ReportDownloaderProps) {
+const REPORT_I18N = {
+  zh: {
+    ops: '下载运营报告',
+    exec: '下载管理层报告',
+    downloading: '下载中...',
+    error: '下载失败',
+  },
+  'zh-TW': {
+    ops: '下載運營報告',
+    exec: '下載管理層報告',
+    downloading: '下載中...',
+    error: '下載失敗',
+  },
+  en: {
+    ops: 'Download Ops Report',
+    exec: 'Download Executive Report',
+    downloading: 'Downloading...',
+    error: 'Download failed',
+  },
+  th: {
+    ops: 'ดาวน์โหลดรายงานปฏิบัติการ',
+    exec: 'ดาวน์โหลดรายงานผู้บริหาร',
+    downloading: 'กำลังดาวน์โหลด...',
+    error: 'ดาวน์โหลดล้มเหลว',
+  },
+} as const;
+type ReportI18NKey = keyof typeof REPORT_I18N;
+
+export function ReportDownloader({ reportType, date }: ReportDownloaderProps) {
+  const locale = useLocale();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const labels = {
-    zh: {
-      ops: '下载运营报告',
-      exec: '下载管理层报告',
-      downloading: '下载中...',
-      error: '下载失败',
-    },
-    th: {
-      ops: 'ดาวน์โหลดรายงานปฏิบัติการ',
-      exec: 'ดาวน์โหลดรายงานผู้บริหาร',
-      downloading: 'กำลังดาวน์โหลด...',
-      error: 'ดาวน์โหลดล้มเหลว',
-    },
-  };
-
-  const l = labels[lang];
+  const l =
+    REPORT_I18N[(locale as ReportI18NKey) in REPORT_I18N ? (locale as ReportI18NKey) : 'zh'];
 
   async function handleDownload() {
     setLoading(true);

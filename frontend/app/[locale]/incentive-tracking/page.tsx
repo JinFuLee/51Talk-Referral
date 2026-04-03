@@ -59,7 +59,17 @@ const I18N = {
     errInvalidReward: '请填写有效的奖励金额',
     errDuplicateMetric: '该指标已有进行中的活动',
     errSaveFailed: '保存失败',
+    // Operator labels
+    operatorGte: '≥（大于等于）',
+    operatorLte: '≤（小于等于）',
+    operatorGt: '>（大于）',
+    operatorLt: '<（小于）',
+    // Role labels
+    roleCC: 'CC（前端销售）',
+    roleSS: 'SS（后端销售）',
+    roleLP: 'LP（后端服务）',
     // Leverage tab
+    loadingLeverage: '正在分析杠杆机会…',
     leverageDesc: '以下阶段对转介绍业绩的杠杆效应最强，建议优先在此设置激励活动。',
     leverageCurrentPhase: '当前阶段：',
     leverageRemainingDays: ' · 剩余 ',
@@ -106,6 +116,11 @@ const I18N = {
     close: '人',
     totalEstimated: '预计发放',
     noPersonData: '暂无人员数据',
+    // Progress card
+    qualifiedCount: '已达标',
+    closeCount: '接近',
+    personUnit: '人',
+    estimatedPayout: '预计发放',
   },
   'zh-TW': {
     pageTitle: '內場激勵系統',
@@ -189,6 +204,22 @@ const I18N = {
     close: '人',
     totalEstimated: '預計發放',
     noPersonData: '暫無人員資料',
+    // Operator labels
+    operatorGte: '≥（大於等於）',
+    operatorLte: '≤（小於等於）',
+    operatorGt: '>（大於）',
+    operatorLt: '<（小於）',
+    // Role labels
+    roleCC: 'CC（前端銷售）',
+    roleSS: 'SS（後端銷售）',
+    roleLP: 'LP（後端服務）',
+    // Loading
+    loadingLeverage: '正在分析槓桿機會…',
+    // Progress card
+    qualifiedCount: '已達標',
+    closeCount: '接近',
+    personUnit: '人',
+    estimatedPayout: '預計發放',
   },
   en: {
     pageTitle: 'Incentive System',
@@ -273,6 +304,22 @@ const I18N = {
     close: 'close',
     totalEstimated: 'Est. Payout',
     noPersonData: 'No person data',
+    // Operator labels
+    operatorGte: '≥ (gte)',
+    operatorLte: '≤ (lte)',
+    operatorGt: '> (gt)',
+    operatorLt: '< (lt)',
+    // Role labels
+    roleCC: 'CC (Front Sales)',
+    roleSS: 'SS (Back Sales)',
+    roleLP: 'LP (Back Service)',
+    // Loading
+    loadingLeverage: 'Analyzing leverage opportunities…',
+    // Progress card
+    qualifiedCount: 'Qualified',
+    closeCount: 'Close',
+    personUnit: '',
+    estimatedPayout: 'Est. Payout',
   },
   th: {
     pageTitle: 'ระบบแรงจูงใจภายใน',
@@ -356,6 +403,22 @@ const I18N = {
     close: 'คน',
     totalEstimated: 'ประมาณการจ่าย',
     noPersonData: 'ไม่มีข้อมูลบุคคล',
+    // Operator labels
+    operatorGte: '≥ (มากกว่าหรือเท่ากับ)',
+    operatorLte: '≤ (น้อยกว่าหรือเท่ากับ)',
+    operatorGt: '> (มากกว่า)',
+    operatorLt: '< (น้อยกว่า)',
+    // Role labels
+    roleCC: 'CC (ฝ่ายขายหน้า)',
+    roleSS: 'SS (ฝ่ายขายหลัง)',
+    roleLP: 'LP (ฝ่ายบริการหลัง)',
+    // Loading
+    loadingLeverage: 'กำลังวิเคราะห์โอกาสพันธะ…',
+    // Progress card
+    qualifiedCount: 'ผ่านเกณฑ์',
+    closeCount: 'ใกล้ถึง',
+    personUnit: 'คน',
+    estimatedPayout: 'ประมาณการจ่าย',
   },
 };
 
@@ -392,29 +455,31 @@ function progressStatusBadge(status: PersonProgress['status']): string {
   }
 }
 
-function progressStatusLabel(status: PersonProgress['status']): string {
+type T18N = (typeof I18N)['zh'];
+
+function progressStatusLabel(status: PersonProgress['status'], t: T18N): string {
   switch (status) {
     case 'qualified':
-      return '已达标';
+      return t.statusQualified;
     case 'close':
-      return '接近';
+      return t.statusClose;
     case 'in_progress':
-      return '进行中';
+      return t.statusInProgress;
     default:
-      return '未开始';
+      return t.statusNotStarted;
   }
 }
 
-function campaignStatusLabel(status: Campaign['status']): string {
+function campaignStatusLabel(status: Campaign['status'], t: T18N): string {
   switch (status) {
     case 'active':
-      return '进行中';
+      return t.campaignActive;
     case 'paused':
-      return '已暂停';
+      return t.campaignPaused;
     case 'completed':
-      return '已完成';
+      return t.campaignCompleted;
     case 'deleted':
-      return '已删除';
+      return t.campaignDeleted;
   }
 }
 
@@ -438,6 +503,7 @@ interface CampaignModalProps {
   onSaved: () => void;
   prefill?: Partial<CampaignFormValues>;
   editCampaign?: Campaign;
+  t: T18N;
 }
 
 interface CampaignFormValues {
@@ -452,14 +518,16 @@ interface CampaignFormValues {
   end_date: string;
 }
 
-const OPERATOR_LABELS: Record<string, string> = {
-  gte: '≥（大于等于）',
-  lte: '≤（小于等于）',
-  gt: '>（大于）',
-  lt: '<（小于）',
-};
+function getOperatorLabels(t: T18N): Record<string, string> {
+  return {
+    gte: t.operatorGte,
+    lte: t.operatorLte,
+    gt: t.operatorGt,
+    lt: t.operatorLt,
+  };
+}
 
-function CampaignModal({ onClose, onSaved, prefill, editCampaign }: CampaignModalProps) {
+function CampaignModal({ onClose, onSaved, prefill, editCampaign, t }: CampaignModalProps) {
   const month = getCurrentMonth();
   const [form, setForm] = useState<CampaignFormValues>({
     name: editCampaign?.name ?? prefill?.name ?? '',
@@ -496,15 +564,15 @@ function CampaignModal({ onClose, onSaved, prefill, editCampaign }: CampaignModa
     const threshold = parseFloat(form.threshold);
     const reward = parseFloat(form.reward_thb);
     if (!form.name.trim()) {
-      setError('请填写活动名称');
+      setError(t.errNoName);
       return;
     }
     if (isNaN(threshold)) {
-      setError('请填写有效的达标阈值');
+      setError(t.errInvalidThreshold);
       return;
     }
     if (isNaN(reward) || reward <= 0) {
-      setError('请填写有效的奖励金额');
+      setError(t.errInvalidReward);
       return;
     }
     setSaving(true);
@@ -532,7 +600,7 @@ function CampaignModal({ onClose, onSaved, prefill, editCampaign }: CampaignModa
       });
       if (res.status === 409) {
         const body = await res.json().catch(() => ({}));
-        setError(body?.detail || '该指标已有进行中的活动');
+        setError(body?.detail || t.errDuplicateMetric);
         setSaving(false);
         return;
       }
@@ -542,7 +610,7 @@ function CampaignModal({ onClose, onSaved, prefill, editCampaign }: CampaignModa
       }
       onSaved();
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : '保存失败');
+      setError(e instanceof Error ? e.message : t.errSaveFailed);
     } finally {
       setSaving(false);
     }
@@ -553,7 +621,7 @@ function CampaignModal({ onClose, onSaved, prefill, editCampaign }: CampaignModa
       <div className="bg-[var(--bg-surface)] rounded-xl shadow-xl w-full max-w-lg mx-4 p-6 space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="text-base font-semibold text-[var(--text-primary)]">
-            {editCampaign ? '编辑活动' : '新建激励活动'}
+            {editCampaign ? t.modalEditTitle : t.modalCreateTitle}
           </h2>
           <button
             onClick={onClose}
@@ -564,55 +632,55 @@ function CampaignModal({ onClose, onSaved, prefill, editCampaign }: CampaignModa
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-3">
-          {/* 活动名称 */}
+          {/* campaign name */}
           <div className="space-y-1">
             <label className="text-xs font-medium text-[var(--text-secondary)]">
-              活动名称 <span className="text-red-400">*</span>
+              {t.fieldCampaignName} <span className="text-red-400">*</span>
             </label>
             <input
               type="text"
               value={form.name}
               onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
-              placeholder="如：CC本月冲量激励"
+              placeholder={t.fieldCampaignNamePlaceholder}
               className="w-full px-3 py-2 border border-[var(--border-subtle)] rounded-lg text-sm bg-[var(--bg-surface)] focus:outline-none focus:ring-2 focus:ring-action"
             />
           </div>
 
-          {/* 泰文名称 */}
+          {/* Thai name */}
           <div className="space-y-1">
             <label className="text-xs font-medium text-[var(--text-secondary)]">
-              泰文名称（选填）
+              {t.fieldThaiName}
             </label>
             <input
               type="text"
               value={form.name_th}
               onChange={(e) => setForm((p) => ({ ...p, name_th: e.target.value }))}
-              placeholder="泰语名称，用于海报"
+              placeholder={t.fieldThaiNamePlaceholder}
               className="w-full px-3 py-2 border border-[var(--border-subtle)] rounded-lg text-sm bg-[var(--bg-surface)] focus:outline-none focus:ring-2 focus:ring-action"
             />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
-            {/* 角色 */}
+            {/* role */}
             <div className="space-y-1">
               <label className="text-xs font-medium text-[var(--text-secondary)]">
-                岗位 <span className="text-red-400">*</span>
+                {t.fieldRole} <span className="text-red-400">*</span>
               </label>
               <select
                 value={form.role}
                 onChange={(e) => handleRoleChange(e.target.value as 'CC' | 'SS' | 'LP')}
                 className="w-full px-3 py-2 border border-[var(--border-subtle)] rounded-lg text-sm bg-[var(--bg-surface)] focus:outline-none focus:ring-2 focus:ring-action"
               >
-                <option value="CC">CC（前端销售）</option>
-                <option value="SS">SS（后端销售）</option>
-                <option value="LP">LP（后端服务）</option>
+                <option value="CC">{t.roleCC}</option>
+                <option value="SS">{t.roleSS}</option>
+                <option value="LP">{t.roleLP}</option>
               </select>
             </div>
 
-            {/* 指标 */}
+            {/* metric */}
             <div className="space-y-1">
               <label className="text-xs font-medium text-[var(--text-secondary)]">
-                考核指标 <span className="text-red-400">*</span>
+                {t.fieldMetric} <span className="text-red-400">*</span>
               </label>
               <select
                 value={form.metric}
@@ -629,10 +697,10 @@ function CampaignModal({ onClose, onSaved, prefill, editCampaign }: CampaignModa
           </div>
 
           <div className="grid grid-cols-2 gap-3">
-            {/* 运算符 */}
+            {/* operator */}
             <div className="space-y-1">
               <label className="text-xs font-medium text-[var(--text-secondary)]">
-                条件 <span className="text-red-400">*</span>
+                {t.fieldCondition} <span className="text-red-400">*</span>
               </label>
               <select
                 value={form.operator}
@@ -644,7 +712,7 @@ function CampaignModal({ onClose, onSaved, prefill, editCampaign }: CampaignModa
                 }
                 className="w-full px-3 py-2 border border-[var(--border-subtle)] rounded-lg text-sm bg-[var(--bg-surface)] focus:outline-none focus:ring-2 focus:ring-action"
               >
-                {Object.entries(OPERATOR_LABELS).map(([k, v]) => (
+                {Object.entries(getOperatorLabels(t)).map(([k, v]) => (
                   <option key={k} value={k}>
                     {v}
                   </option>
@@ -652,41 +720,41 @@ function CampaignModal({ onClose, onSaved, prefill, editCampaign }: CampaignModa
               </select>
             </div>
 
-            {/* 阈值 */}
+            {/* threshold */}
             <div className="space-y-1">
               <label className="text-xs font-medium text-[var(--text-secondary)]">
-                达标阈值 <span className="text-red-400">*</span>
+                {t.fieldThreshold} <span className="text-red-400">*</span>
               </label>
               <input
                 type="number"
                 value={form.threshold}
                 onChange={(e) => setForm((p) => ({ ...p, threshold: e.target.value }))}
-                placeholder="如 10"
+                placeholder={t.fieldThresholdPlaceholder}
                 className="w-full px-3 py-2 border border-[var(--border-subtle)] rounded-lg text-sm font-mono bg-[var(--bg-surface)] focus:outline-none focus:ring-2 focus:ring-action"
               />
             </div>
           </div>
 
-          {/* 奖励 */}
+          {/* reward */}
           <div className="space-y-1">
             <label className="text-xs font-medium text-[var(--text-secondary)]">
-              奖励金额（฿） <span className="text-red-400">*</span>
+              {t.fieldReward} <span className="text-red-400">*</span>
             </label>
             <input
               type="number"
               min={0}
               value={form.reward_thb}
               onChange={(e) => setForm((p) => ({ ...p, reward_thb: e.target.value }))}
-              placeholder="如 500"
+              placeholder={t.fieldRewardPlaceholder}
               className="w-full px-3 py-2 border border-[var(--border-subtle)] rounded-lg text-sm font-mono bg-[var(--bg-surface)] focus:outline-none focus:ring-2 focus:ring-action"
             />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
-            {/* 开始日期 */}
+            {/* start date */}
             <div className="space-y-1">
               <label className="text-xs font-medium text-[var(--text-secondary)]">
-                开始日期（选填）
+                {t.fieldStartDate}
               </label>
               <input
                 type="date"
@@ -696,10 +764,10 @@ function CampaignModal({ onClose, onSaved, prefill, editCampaign }: CampaignModa
               />
             </div>
 
-            {/* 结束日期 */}
+            {/* end date */}
             <div className="space-y-1">
               <label className="text-xs font-medium text-[var(--text-secondary)]">
-                结束日期（选填）
+                {t.fieldEndDate}
               </label>
               <input
                 type="date"
@@ -718,14 +786,14 @@ function CampaignModal({ onClose, onSaved, prefill, editCampaign }: CampaignModa
               onClick={onClose}
               className="px-4 py-2 text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
             >
-              取消
+              {t.btnCancel}
             </button>
             <button
               type="submit"
               disabled={saving}
               className="px-4 py-2 bg-action text-white rounded-lg text-sm font-medium hover:bg-action-active transition-colors disabled:opacity-50"
             >
-              {saving ? '保存中…' : editCampaign ? '更新活动' : '创建活动'}
+              {saving ? t.btnSaving : editCampaign ? t.btnUpdate : t.btnCreate}
             </button>
           </div>
         </form>
@@ -736,7 +804,7 @@ function CampaignModal({ onClose, onSaved, prefill, editCampaign }: CampaignModa
 
 // ─── Tab 1: 杠杆分析 ───────────────────────────────────────────────────────
 
-function LeverageTab() {
+function LeverageTab({ t }: { t: T18N }) {
   const {
     data: raw,
     isLoading,

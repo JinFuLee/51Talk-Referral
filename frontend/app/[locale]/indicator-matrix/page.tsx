@@ -311,21 +311,26 @@ export default function IndicatorMatrixPage() {
     return map;
   }, [filtered]);
 
+  function availabilityLabel(a: IndicatorAvailability) {
+    if (a === 'available') return t.availableLabel;
+    if (a === 'partial') return t.partialLabel;
+    return t.pendingLabel;
+  }
+
   if (error) {
     return (
       <div className={BIZ_PAGE}>
-        <PageHeader
-          title="指标矩阵总览"
-          subtitle="CC/SS/LP 三岗位指标覆盖范围配置与对比"
-          icon={LayoutGrid}
-        />
+        <PageHeader title={t.pageTitle} subtitle={t.pageSubtitle} icon={LayoutGrid} />
         <div className="py-12 flex flex-col items-center gap-3 text-[var(--text-muted)]">
-          <p className="text-sm">加载失败：{error.message || '无法连接后端'}</p>
+          <p className="text-sm">
+            {t.loadFailed}
+            {error.message || t.noBackend}
+          </p>
           <button
             onClick={() => mutate()}
             className="px-4 py-1.5 rounded-lg text-xs font-medium bg-[var(--bg-subtle)] border border-[var(--border-default)] text-[var(--text-secondary)] hover:bg-[var(--border-default)] transition-colors"
           >
-            重试
+            {t.retry}
           </button>
         </div>
       </div>
@@ -335,45 +340,35 @@ export default function IndicatorMatrixPage() {
   if (!isLoading && registry.length === 0) {
     return (
       <div className={BIZ_PAGE}>
-        <PageHeader
-          title="指标矩阵总览"
-          subtitle="CC/SS/LP 三岗位指标覆盖范围配置与对比"
-          icon={LayoutGrid}
-        />
-        <div className="py-12 text-center text-[var(--text-muted)]">
-          指标注册表为空，请检查 config.json 中的 indicator_registry 配置
-        </div>
+        <PageHeader title={t.pageTitle} subtitle={t.pageSubtitle} icon={LayoutGrid} />
+        <div className="py-12 text-center text-[var(--text-muted)]">{t.emptyRegistry}</div>
       </div>
     );
   }
 
   return (
     <div className={BIZ_PAGE}>
-      <PageHeader
-        title="指标矩阵总览"
-        subtitle="CC/SS/LP 三岗位指标覆盖范围配置与对比"
-        icon={LayoutGrid}
-      >
+      <PageHeader title={t.pageTitle} subtitle={t.pageSubtitle} icon={LayoutGrid}>
         <button
           onClick={handleExportCSV}
           disabled={registry.length === 0}
           className="flex items-center gap-1.5 px-3 py-2 border border-[var(--border-default)] rounded-lg text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-subtle)] disabled:opacity-40 transition-colors"
         >
           <Download className="w-4 h-4" aria-hidden="true" />
-          导出 CSV
+          {t.exportCsv}
         </button>
         <button
           onClick={handleSave}
           disabled={saving || isLoading}
           className="px-4 py-2 bg-action text-white rounded-lg text-sm font-medium hover:bg-action-active disabled:opacity-50 transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-action"
         >
-          {saving ? '保存中…' : '保存配置'}
+          {saving ? t.saving : t.saveConfig}
         </button>
       </PageHeader>
 
       {msg && (
         <p
-          className={`text-sm ${msg.includes('成功') ? 'text-[var(--n-600)]' : 'text-[var(--n-500)]'}`}
+          className={`text-sm ${msg === t.saveSuccess ? 'text-[var(--n-600)]' : 'text-[var(--n-500)]'}`}
         >
           {msg}
         </p>
@@ -386,7 +381,7 @@ export default function IndicatorMatrixPage() {
           onChange={(e) => setFilterCategory(e.target.value as IndicatorCategory | 'all')}
           className="px-3 py-1.5 border border-[var(--border-default)] rounded-md text-sm bg-[var(--bg-surface)] text-[var(--text-primary)] focus:outline-none focus-visible:ring-2 focus-visible:ring-action"
         >
-          <option value="all">全部分类</option>
+          <option value="all">{t.filterAllCategory}</option>
           {INDICATOR_CATEGORIES.map((cat) => (
             <option key={cat} value={cat}>
               {language === 'th' ? CATEGORY_LABELS_TH[cat] : CATEGORY_LABELS_ZH[cat]}
@@ -399,7 +394,7 @@ export default function IndicatorMatrixPage() {
           onChange={(e) => setFilterRole(e.target.value as typeof filterRole)}
           className="px-3 py-1.5 border border-[var(--border-default)] rounded-md text-sm bg-[var(--bg-surface)] text-[var(--text-primary)] focus:outline-none focus-visible:ring-2 focus-visible:ring-action"
         >
-          <option value="all">全部角色</option>
+          <option value="all">{t.filterAllRole}</option>
           <option value="CC">CC</option>
           <option value="SS">SS</option>
           <option value="LP">LP</option>
@@ -410,19 +405,19 @@ export default function IndicatorMatrixPage() {
           onChange={(e) => setFilterAvailability(e.target.value as IndicatorAvailability | 'all')}
           className="px-3 py-1.5 border border-[var(--border-default)] rounded-md text-sm bg-[var(--bg-surface)] text-[var(--text-primary)] focus:outline-none focus-visible:ring-2 focus-visible:ring-action"
         >
-          <option value="all">全部状态</option>
-          <option value="available">可用</option>
-          <option value="partial">部分可用</option>
-          <option value="pending">待接入</option>
+          <option value="all">{t.filterAllStatus}</option>
+          <option value="available">{t.availableLabel}</option>
+          <option value="partial">{t.partialLabel}</option>
+          <option value="pending">{t.pendingLabel}</option>
         </select>
 
         <span className="ml-auto text-xs text-[var(--text-muted)]">
-          显示 {filtered.length} / {registry.length} 项
+          {t.showing} {filtered.length} {t.of} {registry.length} {t.items}
         </span>
       </div>
 
       {isLoading && (
-        <div className="py-12 text-center text-sm text-[var(--text-muted)]">加载中…</div>
+        <div className="py-12 text-center text-sm text-[var(--text-muted)]">{t.loading}</div>
       )}
 
       {!isLoading && (
@@ -431,16 +426,16 @@ export default function IndicatorMatrixPage() {
           <div className="bg-[var(--bg-surface)] border border-[var(--border-default)] rounded-lg overflow-hidden">
             {/* 表头 */}
             <div className="flex items-center gap-3 px-4 py-2.5 bg-[var(--n-800)]">
-              <div className="flex-1 text-xs font-semibold text-white">指标名称</div>
+              <div className="flex-1 text-xs font-semibold text-white">{t.colName}</div>
               <div className="w-14 text-center text-xs font-semibold text-white">CC</div>
               <div className="w-14 text-center text-xs font-semibold text-white">SS</div>
               <div className="w-14 text-center text-xs font-semibold text-white">LP</div>
-              <div className="w-20 text-center text-xs font-semibold text-white">状态</div>
+              <div className="w-20 text-center text-xs font-semibold text-white">{t.colStatus}</div>
             </div>
 
             {/* 分类分组 */}
             {Object.keys(byCatFiltered).length === 0 && (
-              <div className="py-8 text-center text-sm text-[var(--text-muted)]">暂无匹配指标</div>
+              <div className="py-8 text-center text-sm text-[var(--text-muted)]">{t.noMatch}</div>
             )}
 
             {INDICATOR_CATEGORIES.map((cat) => {
@@ -475,7 +470,7 @@ export default function IndicatorMatrixPage() {
                           <span className="text-sm text-[var(--text-primary)]">{name}</span>
                           {isCCOnly && (
                             <span className="ml-1.5 text-[10px] text-[var(--n-500)] font-medium">
-                              CC 独有
+                              {t.ccOnly}
                             </span>
                           )}
                           {ind.formula && (
@@ -500,7 +495,7 @@ export default function IndicatorMatrixPage() {
                             disabled={disabled}
                             onChange={() => !disabled && toggleSS(ind.id)}
                             className="w-4 h-4 rounded border-[var(--border-default)] accent-action cursor-pointer disabled:cursor-not-allowed disabled:opacity-40 focus-visible:ring-2 focus-visible:ring-action"
-                            aria-label={`SS 启用 ${name}`}
+                            aria-label={`SS ${name}`}
                           />
                         </div>
 
@@ -512,7 +507,7 @@ export default function IndicatorMatrixPage() {
                             disabled={disabled}
                             onChange={() => !disabled && toggleLP(ind.id)}
                             className="w-4 h-4 rounded border-[var(--border-default)] accent-action cursor-pointer disabled:cursor-not-allowed disabled:opacity-40 focus-visible:ring-2 focus-visible:ring-action"
-                            aria-label={`LP 启用 ${name}`}
+                            aria-label={`LP ${name}`}
                           />
                         </div>
 
@@ -527,7 +522,7 @@ export default function IndicatorMatrixPage() {
                                   : 'bg-[var(--n-100)] text-[var(--text-muted)]'
                             }`}
                           >
-                            {AVAILABILITY_LABELS[ind.availability]}
+                            {availabilityLabel(ind.availability)}
                           </span>
                         </div>
                       </div>
@@ -542,23 +537,33 @@ export default function IndicatorMatrixPage() {
           <div className="flex flex-wrap items-center gap-4 p-3 bg-[var(--bg-surface)] border border-[var(--border-default)] rounded-lg text-sm">
             <div className="flex items-center gap-1.5">
               <span className="text-[var(--text-muted)]">CC</span>
-              <span className="font-semibold text-[var(--text-primary)]">{stats.cc} 项</span>
+              <span className="font-semibold text-[var(--text-primary)]">
+                {stats.cc} {t.items}
+              </span>
             </div>
             <div className="flex items-center gap-1.5">
               <span className="text-[var(--text-muted)]">SS</span>
-              <span className="font-semibold text-[var(--text-primary)]">{stats.ss} 项</span>
+              <span className="font-semibold text-[var(--text-primary)]">
+                {stats.ss} {t.items}
+              </span>
             </div>
             <div className="flex items-center gap-1.5">
               <span className="text-[var(--text-muted)]">LP</span>
-              <span className="font-semibold text-[var(--text-primary)]">{stats.lp} 项</span>
+              <span className="font-semibold text-[var(--text-primary)]">
+                {stats.lp} {t.items}
+              </span>
             </div>
             <div className="flex items-center gap-1.5">
-              <span className="text-[var(--text-muted)]">待接入</span>
-              <span className="font-semibold text-orange-600">{stats.pending} 项</span>
+              <span className="text-[var(--text-muted)]">{t.statsPending}</span>
+              <span className="font-semibold text-orange-600">
+                {stats.pending} {t.items}
+              </span>
             </div>
             <div className="ml-auto flex items-center gap-1.5">
-              <span className="text-[var(--text-muted)]">总计</span>
-              <span className="font-semibold text-[var(--text-primary)]">{stats.total} 项</span>
+              <span className="text-[var(--text-muted)]">{t.statsTotal}</span>
+              <span className="font-semibold text-[var(--text-primary)]">
+                {stats.total} {t.items}
+              </span>
             </div>
           </div>
         </>

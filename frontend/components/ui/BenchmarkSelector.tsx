@@ -1,21 +1,61 @@
 'use client';
 
+import { useLocale } from 'next-intl';
 import { useConfigStore, useStoreHydrated } from '@/lib/stores/config-store';
 import type { BenchmarkMode } from '@/lib/types/filters';
 
+const BENCHMARK_I18N = {
+  zh: {
+    compare: '对比',
+    target: 'vs 目标',
+    bm_progress: 'vs BM进度',
+    bm_today: 'vs 今日BM',
+    prediction: 'vs 预测',
+  },
+  'zh-TW': {
+    compare: '對比',
+    target: 'vs 目標',
+    bm_progress: 'vs BM進度',
+    bm_today: 'vs 今日BM',
+    prediction: 'vs 預測',
+  },
+  en: {
+    compare: 'Compare',
+    target: 'vs Target',
+    bm_progress: 'vs BM Progress',
+    bm_today: 'vs BM Today',
+    prediction: 'vs Forecast',
+  },
+  th: {
+    compare: 'เปรียบเทียบ',
+    target: 'vs เป้าหมาย',
+    bm_progress: 'vs ความคืบหน้า BM',
+    bm_today: 'vs BM วันนี้',
+    prediction: 'vs การคาดการณ์',
+  },
+} as const;
+
+type BenchmarkI18NKey = keyof typeof BENCHMARK_I18N;
+type BenchmarkLabelKey = 'target' | 'bm_progress' | 'bm_today' | 'prediction';
+
 interface BenchmarkOption {
   value: BenchmarkMode;
-  label: string;
+  labelKey: BenchmarkLabelKey;
 }
 
 const BENCHMARK_OPTIONS: BenchmarkOption[] = [
-  { value: 'target', label: 'vs 目标' },
-  { value: 'bm_progress', label: 'vs BM进度' },
-  { value: 'bm_today', label: 'vs 今日BM' },
-  { value: 'prediction', label: 'vs 预测' },
+  { value: 'target', labelKey: 'target' },
+  { value: 'bm_progress', labelKey: 'bm_progress' },
+  { value: 'bm_today', labelKey: 'bm_today' },
+  { value: 'prediction', labelKey: 'prediction' },
 ];
 
 export function BenchmarkSelector() {
+  const locale = useLocale();
+  const t =
+    BENCHMARK_I18N[
+      (locale as BenchmarkI18NKey) in BENCHMARK_I18N ? (locale as BenchmarkI18NKey) : 'zh'
+    ];
   const hydrated = useStoreHydrated();
   const benchmarks = useConfigStore((s) => s.benchmarks);
   const setBenchmarks = useConfigStore((s) => s.setBenchmarks);
@@ -38,7 +78,7 @@ export function BenchmarkSelector() {
 
   return (
     <div className="flex items-center gap-1.5 flex-wrap">
-      <span className="text-xs text-[var(--text-muted)] shrink-0 mr-0.5">对比</span>
+      <span className="text-xs text-[var(--text-muted)] shrink-0 mr-0.5">{t.compare}</span>
       {BENCHMARK_OPTIONS.map((opt) => {
         const isActive = activeBenchmarks.includes(opt.value);
         return (
@@ -52,7 +92,7 @@ export function BenchmarkSelector() {
                 : 'bg-transparent text-[var(--text-secondary)] border-[var(--border-default)] hover:border-[var(--brand-p1)] hover:text-[var(--text-primary)]',
             ].join(' ')}
           >
-            {opt.label}
+            {t[opt.labelKey]}
           </button>
         );
       })}

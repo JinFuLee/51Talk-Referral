@@ -52,6 +52,10 @@ const I18N = {
     exportTotalPaid: '总付费',
     exportConvRate: '转化率',
     exportHistCoding: '历史转码',
+    chCCNarrow: 'CC 窄口',
+    chSSNarrow: 'SS 窄口',
+    chLPNarrow: 'LP 窄口',
+    chWide: '宽口',
   },
   'zh-TW': {
     pageTitle: '推薦者價值貢獻',
@@ -99,6 +103,10 @@ const I18N = {
     exportTotalPaid: '總付費',
     exportConvRate: '轉化率',
     exportHistCoding: '歷史轉碼',
+    chCCNarrow: 'CC 窄口',
+    chSSNarrow: 'SS 窄口',
+    chLPNarrow: 'LP 窄口',
+    chWide: '寬口',
   },
   en: {
     pageTitle: 'Referrer Value Contribution',
@@ -147,6 +155,10 @@ const I18N = {
     exportTotalPaid: 'Total Paid',
     exportConvRate: 'Conv Rate',
     exportHistCoding: 'Hist Coding',
+    chCCNarrow: 'CC Narrow',
+    chSSNarrow: 'SS Narrow',
+    chLPNarrow: 'LP Narrow',
+    chWide: 'Wide',
   },
   th: {
     pageTitle: 'การมีส่วนร่วมของผู้แนะนำ',
@@ -195,6 +207,10 @@ const I18N = {
     exportTotalPaid: 'ยอดชำระรวม',
     exportConvRate: 'อัตราแปลง',
     exportHistCoding: 'ประวัติการแปลงรหัส',
+    chCCNarrow: 'CC แคบ',
+    chSSNarrow: 'SS แคบ',
+    chLPNarrow: 'LP แคบ',
+    chWide: 'กว้าง',
   },
 } as const;
 import { Card } from '@/components/ui/Card';
@@ -312,10 +328,10 @@ export default function ReferralContributorPage() {
 
   /* 渠道条形图数据 */
   const channelChartData = [
-    { channel: 'CC 窄口', [t.barNew]: ccNew, [t.barPaid]: ccPaid },
-    { channel: 'SS 窄口', [t.barNew]: ssNew, [t.barPaid]: ssPaid },
-    { channel: 'LP 窄口', [t.barNew]: lpNew, [t.barPaid]: lpPaid },
-    { channel: '宽口', [t.barNew]: wideNew, [t.barPaid]: widePaid },
+    { channel: t.chCCNarrow, [t.barNew]: ccNew, [t.barPaid]: ccPaid },
+    { channel: t.chSSNarrow, [t.barNew]: ssNew, [t.barPaid]: ssPaid },
+    { channel: t.chLPNarrow, [t.barNew]: lpNew, [t.barPaid]: lpPaid },
+    { channel: t.chWide, [t.barNew]: wideNew, [t.barPaid]: widePaid },
   ];
 
   /* 排序 */
