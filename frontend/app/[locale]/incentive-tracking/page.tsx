@@ -13,7 +13,7 @@ import type {
   IncentiveBudget,
   PersonProgress,
 } from '@/lib/types/incentive';
-import { METRIC_LABELS, ROLE_METRICS } from '@/lib/types/incentive';
+import { getMetricLabel, ROLE_METRICS } from '@/lib/types/incentive';
 import { formatRate } from '@/lib/utils';
 
 // ─── i18n ──────────────────────────────────────────────────────────────────
@@ -121,6 +121,25 @@ const I18N = {
     closeCount: '接近',
     personUnit: '人',
     estimatedPayout: '预计发放',
+    // Stage labels (backend enum → display)
+    stageLabels: {
+      appt_rate: '注册预约率',
+      attend_rate: '预约出席率',
+      paid_rate: '出席付费率',
+    } as Record<string, string>,
+    // Rationale by stage
+    rationaleByStage: {
+      appt_rate: '提升注册→预约转化，增加有效 leads 数',
+      attend_rate: '提升预约→出席转化，减少爽约损耗',
+      paid_rate: '提升出席→付费转化，缩短成交周期',
+      checkin_rate: '提升打卡率，增加学员触达基础',
+      participation_rate: '提升参与率，扩大转介绍漏斗入口',
+      cc_reach_rate: '提升触达率，增加有效沟通覆盖',
+    } as Record<string, string>,
+    // Action notes (backend string → i18n)
+    actionNoteClosing: '建议下月初创建',
+    actionNoteLate: '结果指标需 2-3 周转化，建议下月初',
+    actionNoteMid: '月中可创建冲刺版',
   },
   'zh-TW': {
     pageTitle: '內場激勵系統',
@@ -220,6 +239,24 @@ const I18N = {
     closeCount: '接近',
     personUnit: '人',
     estimatedPayout: '預計發放',
+    // Stage labels
+    stageLabels: {
+      appt_rate: '注冊預約率',
+      attend_rate: '預約出席率',
+      paid_rate: '出席付費率',
+    } as Record<string, string>,
+    // Rationale by stage
+    rationaleByStage: {
+      appt_rate: '提升注冊→預約轉化，增加有效 leads 數',
+      attend_rate: '提升預約→出席轉化，減少爽約損耗',
+      paid_rate: '提升出席→付費轉化，縮短成交週期',
+      checkin_rate: '提升打卡率，增加學員觸達基礎',
+      participation_rate: '提升參與率，擴大轉介紹漏斗入口',
+      cc_reach_rate: '提升觸達率，增加有效溝通覆蓋',
+    } as Record<string, string>,
+    actionNoteClosing: '建議下月初建立',
+    actionNoteLate: '結果指標需 2-3 週轉化，建議下月初',
+    actionNoteMid: '月中可建立衝刺版',
   },
   en: {
     pageTitle: 'Incentive System',
@@ -320,6 +357,24 @@ const I18N = {
     closeCount: 'Close',
     personUnit: '',
     estimatedPayout: 'Est. Payout',
+    // Stage labels
+    stageLabels: {
+      appt_rate: 'Reg → Appt Rate',
+      attend_rate: 'Appt → Attend Rate',
+      paid_rate: 'Attend → Paid Rate',
+    } as Record<string, string>,
+    // Rationale by stage
+    rationaleByStage: {
+      appt_rate: 'Improve registration→appointment conversion to increase effective leads',
+      attend_rate: 'Improve appointment→attendance conversion, reduce no-shows',
+      paid_rate: 'Improve attendance→payment conversion, shorten deal cycle',
+      checkin_rate: 'Improve check-in rate to increase student reach base',
+      participation_rate: 'Improve participation rate, expand referral funnel entry',
+      cc_reach_rate: 'Improve reach rate, increase effective communication coverage',
+    } as Record<string, string>,
+    actionNoteClosing: 'Recommend creating at start of next month',
+    actionNoteLate: 'Outcome metrics need 2–3 weeks to convert; recommend next month',
+    actionNoteMid: 'Can create sprint version mid-month',
   },
   th: {
     pageTitle: 'ระบบแรงจูงใจภายใน',
@@ -419,10 +474,48 @@ const I18N = {
     closeCount: 'ใกล้ถึง',
     personUnit: 'คน',
     estimatedPayout: 'ประมาณการจ่าย',
+    // Stage labels
+    stageLabels: {
+      appt_rate: 'อัตราการนัดหมาย',
+      attend_rate: 'อัตราการเข้าร่วม',
+      paid_rate: 'อัตราการชำระเงิน',
+    } as Record<string, string>,
+    // Rationale by stage
+    rationaleByStage: {
+      appt_rate: 'เพิ่มอัตราการลงทะเบียน→นัดหมาย เพิ่มจำนวนลีดที่มีประสิทธิภาพ',
+      attend_rate: 'เพิ่มอัตราการนัดหมาย→เข้าร่วม ลดการไม่มาตามนัด',
+      paid_rate: 'เพิ่มอัตราการเข้าร่วม→ชำระเงิน ลดระยะเวลาปิดการขาย',
+      checkin_rate: 'เพิ่มอัตราเช็คอิน เพิ่มฐานการติดต่อนักเรียน',
+      participation_rate: 'เพิ่มอัตราการมีส่วนร่วม ขยายช่องทางการแนะนำ',
+      cc_reach_rate: 'เพิ่มอัตราการติดต่อ เพิ่มการสื่อสารที่มีประสิทธิภาพ',
+    } as Record<string, string>,
+    actionNoteClosing: 'แนะนำให้สร้างต้นเดือนหน้า',
+    actionNoteLate: 'ตัวชี้วัดผลลัพธ์ต้องใช้เวลา 2-3 สัปดาห์ แนะนำเดือนหน้า',
+    actionNoteMid: 'สามารถสร้างเวอร์ชัน sprint กลางเดือนได้',
   },
 };
 
 // ─── 工具函数 ──────────────────────────────────────────────────────────────
+
+/** 将后端返回的中文 action_note 字符串映射到当前 locale 翻译 */
+function translateActionNote(note: string, t: T18N): string {
+  if (!note) return '';
+  if (
+    note.includes('下月初创建') ||
+    note.includes('下月初建立') ||
+    note.includes('建议下月初创建') ||
+    note === '建议下月初创建'
+  ) {
+    return t.actionNoteClosing;
+  }
+  if (note.includes('2-3')) {
+    return t.actionNoteLate;
+  }
+  if (note.includes('月中')) {
+    return t.actionNoteMid;
+  }
+  return note; // unknown pattern — show as-is
+}
 
 function getCurrentMonth(): string {
   const now = new Date();
@@ -529,6 +622,7 @@ function getOperatorLabels(t: T18N): Record<string, string> {
 
 function CampaignModal({ onClose, onSaved, prefill, editCampaign, t }: CampaignModalProps) {
   const month = getCurrentMonth();
+  const locale = useLocale();
   const [form, setForm] = useState<CampaignFormValues>({
     name: editCampaign?.name ?? prefill?.name ?? '',
     name_th: editCampaign?.name_th ?? prefill?.name_th ?? '',
@@ -689,7 +783,7 @@ function CampaignModal({ onClose, onSaved, prefill, editCampaign, t }: CampaignM
               >
                 {availableMetrics.map((m) => (
                   <option key={m} value={m}>
-                    {METRIC_LABELS[m] ?? m}
+                    {getMetricLabel(m, locale)}
                   </option>
                 ))}
               </select>
@@ -894,7 +988,7 @@ function LeverageTab({ t }: { t: T18N }) {
                   {rec.rank}
                 </span>
                 <span className="text-sm font-semibold text-[var(--text-primary)]">
-                  {rec.stage_label ?? rec.stage}
+                  {t.stageLabels[rec.stage] ?? rec.stage_label ?? rec.stage}
                 </span>
               </div>
 
@@ -938,7 +1032,7 @@ function LeverageTab({ t }: { t: T18N }) {
               {/* 推荐理由 */}
               {sg?.rationale && (
                 <p className="text-[10px] text-[var(--text-muted)] leading-relaxed border-t border-[var(--border-subtle)] pt-2">
-                  {sg.rationale}
+                  {t.rationaleByStage[rec.stage] ?? sg.rationale}
                 </p>
               )}
 
@@ -953,7 +1047,9 @@ function LeverageTab({ t }: { t: T18N }) {
                     {t.leverageNextMonth}
                   </div>
                   {rec.action_note && (
-                    <p className="text-[10px] text-[var(--text-muted)]">{rec.action_note}</p>
+                    <p className="text-[10px] text-[var(--text-muted)]">
+                      {translateActionNote(rec.action_note, t)}
+                    </p>
                   )}
                 </div>
               ) : (
@@ -988,6 +1084,7 @@ function LeverageTab({ t }: { t: T18N }) {
 
 function CampaignsTab({ t }: { t: T18N }) {
   const month = getCurrentMonth();
+  const locale = useLocale();
   const { data, isLoading, error, mutate } = useFilteredSWR<Campaign[]>(
     `/api/incentive/campaigns?month=${month}`
   );
@@ -1107,7 +1204,7 @@ function CampaignsTab({ t }: { t: T18N }) {
                     </span>
                   </td>
                   <td className="slide-td text-[var(--text-secondary)]">
-                    {METRIC_LABELS[c.metric] ?? c.metric}
+                    {getMetricLabel(c.metric, locale)}
                   </td>
                   <td className="slide-td font-mono text-xs">
                     {c.operator === 'gte'
@@ -1213,6 +1310,7 @@ function ProgressBar({ pct, status }: { pct: number; status: PersonProgress['sta
 
 function CampaignProgressCard({ item, t }: { item: CampaignProgress; t: T18N }) {
   const { campaign, records, qualified_count, close_count, total_estimated_thb } = item;
+  const locale = useLocale();
 
   return (
     <div className="card-base p-4 space-y-3">
@@ -1223,7 +1321,7 @@ function CampaignProgressCard({ item, t }: { item: CampaignProgress; t: T18N }) 
           <div className="flex items-center gap-2 mt-0.5">
             <span className="text-[10px] text-[var(--text-muted)]">{campaign.role}</span>
             <span className="text-[10px] text-[var(--text-muted)]">
-              {METRIC_LABELS[campaign.metric] ?? campaign.metric}{' '}
+              {getMetricLabel(campaign.metric, locale)}{' '}
               {campaign.operator === 'gte'
                 ? '≥'
                 : campaign.operator === 'lte'

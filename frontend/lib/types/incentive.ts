@@ -69,20 +69,37 @@ export interface IncentiveBudget {
   updated_at: string;
 }
 
-// 指标名中文映射
-export const METRIC_LABELS: Record<string, string> = {
-  paid: '付费单量',
-  leads: '转介绍注册数',
-  showup: '出席人数',
-  revenue: '业绩(USD)',
-  checkin_rate: '打卡率',
-  participation_rate: '参与率',
-  cc_reach_rate: 'CC触达率',
-  registrations: '注册数',
-  payments: '付费数',
-  revenue_usd: '业绩(USD)',
-  cargo_ratio: '带货比',
+// 指标名多语言映射
+export const METRIC_LABELS: Record<string, Record<string, string>> = {
+  paid: { zh: '付费单量', 'zh-TW': '付費單量', en: 'Paid Orders', th: 'คำสั่งซื้อที่ชำระ' },
+  leads: { zh: '转介绍注册数', 'zh-TW': '轉介紹注冊數', en: 'Referral Leads', th: 'ลีดแนะนำ' },
+  showup: { zh: '出席人数', 'zh-TW': '出席人數', en: 'Attendees', th: 'ผู้เข้าร่วม' },
+  revenue: { zh: '业绩(USD)', 'zh-TW': '業績(USD)', en: 'Revenue (USD)', th: 'รายได้ (USD)' },
+  checkin_rate: { zh: '打卡率', 'zh-TW': '打卡率', en: 'Check-in Rate', th: 'อัตราเช็คอิน' },
+  participation_rate: {
+    zh: '参与率',
+    'zh-TW': '參與率',
+    en: 'Participation Rate',
+    th: 'อัตราการมีส่วนร่วม',
+  },
+  cc_reach_rate: {
+    zh: 'CC触达率',
+    'zh-TW': 'CC觸達率',
+    en: 'CC Reach Rate',
+    th: 'อัตราการติดต่อ CC',
+  },
+  registrations: { zh: '注册数', 'zh-TW': '注冊數', en: 'Registrations', th: 'การลงทะเบียน' },
+  payments: { zh: '付费数', 'zh-TW': '付費數', en: 'Payments', th: 'การชำระเงิน' },
+  revenue_usd: { zh: '业绩(USD)', 'zh-TW': '業績(USD)', en: 'Revenue (USD)', th: 'รายได้ (USD)' },
+  cargo_ratio: { zh: '带货比', 'zh-TW': '帶貨比', en: 'Cargo Ratio', th: 'อัตราสินค้า' },
 };
+
+/** 根据 locale 获取指标标签，fallback 到 metric key */
+export function getMetricLabel(metric: string, locale: string): string {
+  const map = METRIC_LABELS[metric];
+  if (!map) return metric;
+  return map[locale] ?? map['zh'] ?? metric;
+}
 
 export const ROLE_METRICS: Record<string, string[]> = {
   CC: ['paid', 'leads', 'showup', 'revenue', 'checkin_rate', 'participation_rate', 'cc_reach_rate'],
