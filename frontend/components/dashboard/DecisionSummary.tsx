@@ -1,7 +1,68 @@
 'use client';
 
 import { useMemo } from 'react';
+import { useLocale } from 'next-intl';
 import { formatRate } from '@/lib/utils';
+
+const I18N = {
+  zh: {
+    monthlyPaidAchieve: '本月付费达成率',
+    timeProgress: '时间进度',
+    aheadOf: '领先进度线',
+    behindOf: '落后进度线',
+    forecastComplete: '月底预计完成',
+    revenueAchieve: '业绩达成率',
+    bottleneck: '瓶颈：',
+    target: '目标',
+    gap: '差',
+    checkinRate: '打卡率',
+    participationRate: '参与率',
+    ariaLabel: '决策摘要',
+  },
+  'zh-TW': {
+    monthlyPaidAchieve: '本月付費達成率',
+    timeProgress: '時間進度',
+    aheadOf: '領先進度線',
+    behindOf: '落後進度線',
+    forecastComplete: '月底預計完成',
+    revenueAchieve: '業績達成率',
+    bottleneck: '瓶頸：',
+    target: '目標',
+    gap: '差',
+    checkinRate: '打卡率',
+    participationRate: '參與率',
+    ariaLabel: '決策摘要',
+  },
+  en: {
+    monthlyPaidAchieve: 'Monthly Payment Achievement',
+    timeProgress: 'Time Progress',
+    aheadOf: 'ahead of pace',
+    behindOf: 'behind pace',
+    forecastComplete: 'Month-end forecast',
+    revenueAchieve: 'Revenue Achievement',
+    bottleneck: 'Bottleneck: ',
+    target: 'Target',
+    gap: 'Gap',
+    checkinRate: 'Check-in Rate',
+    participationRate: 'Participation Rate',
+    ariaLabel: 'Decision Summary',
+  },
+  th: {
+    monthlyPaidAchieve: 'อัตราบรรลุการชำระเงินประจำเดือน',
+    timeProgress: 'ความคืบหน้าตามเวลา',
+    aheadOf: 'นำหน้าเป้าหมาย',
+    behindOf: 'ช้ากว่าเป้าหมาย',
+    forecastComplete: 'คาดการณ์สิ้นเดือน',
+    revenueAchieve: 'อัตราบรรลุรายได้',
+    bottleneck: 'คอขวด: ',
+    target: 'เป้าหมาย',
+    gap: 'ช่องว่าง',
+    checkinRate: 'อัตราเช็คอิน',
+    participationRate: 'อัตราการมีส่วนร่วม',
+    ariaLabel: 'สรุปการตัดสินใจ',
+  },
+} as const;
+type Locale = keyof typeof I18N;
 
 interface DecisionSummaryProps {
   /** 实际付费数 */
@@ -33,6 +94,9 @@ export function DecisionSummary({
   participationRate,
   revenueAchievementRate,
 }: DecisionSummaryProps) {
+  const locale = useLocale() as Locale;
+  const t = I18N[locale] ?? I18N.zh;
+
   const analysis = useMemo(() => {
     // 付费达成率
     const paidAchieve =
@@ -56,7 +120,7 @@ export function DecisionSummary({
       const gap = checkinRate - target;
       if (gap < 0) {
         bottlenecks.push({
-          name: '打卡率',
+          name: t.checkinRate,
           actual: `${Math.round(checkinRate * 100)}%`,
           target: `${Math.round(target * 100)}%`,
           gap: formatRate(Math.abs(gap)),
@@ -69,7 +133,7 @@ export function DecisionSummary({
       const gap = participationRate - target;
       if (gap < 0) {
         bottlenecks.push({
-          name: '参与率',
+          name: t.participationRate,
           actual: `${Math.round(participationRate * 100)}%`,
           target: `${Math.round(target * 100)}%`,
           gap: formatRate(Math.abs(gap)),
@@ -143,36 +207,38 @@ export function DecisionSummary({
   const paceGapText =
     paceGap !== null
       ? paceGap >= 0
-        ? `领先进度线 ${formatRate(paceGap)}`
-        : `落后进度线 ${formatRate(Math.abs(paceGap))}`
+        ? `${t.aheadOf} ${formatRate(paceGap)}`
+        : `${t.behindOf} ${formatRate(Math.abs(paceGap))}`
       : null;
 
-  const forecastText = forecastPct !== null ? `月底预计完成 ${forecastPct}%` : null;
+  const forecastText = forecastPct !== null ? `${t.forecastComplete} ${forecastPct}%` : null;
 
   const bottleneckText =
     topBottlenecks.length > 0
-      ? `关键瓶颈：${topBottlenecks.map((b) => `${b.name} ${b.actual}（目标 ${b.target}）`).join('，')}`
+      ? topBottlenecks.map((b) => `${b.name} ${b.actual}`).join('，')
       : null;
 
   return (
     <div
       className={`flex flex-col gap-1.5 rounded-lg border border-[var(--border-default)] border-l-4 px-4 py-3 ${accentColor}`}
       role="region"
-      aria-label="决策摘要"
+      aria-label={t.ariaLabel}
     >
       <div className="flex items-center gap-2 flex-wrap">
         <span className="text-sm">{statusIcon}</span>
         <span className="text-sm font-semibold text-[var(--text-primary)]">
-          本月付费达成率{' '}
+          {t.monthlyPaidAchieve}{' '}
           <span className={`text-base font-bold ${accentTextColor}`}>{paidAchievePct}%</span>
-          ，时间进度{' '}
+          {', '}
+          {t.timeProgress}{' '}
           <span className="font-bold text-[var(--text-primary)]">{timeProgressPct}%</span>
           {paceGapText && (
             <>
-              ，<span className={accentTextColor}>{paceGapText}</span>
+              {', '}
+              <span className={accentTextColor}>{paceGapText}</span>
             </>
           )}
-          。
+          {'。'}
         </span>
         {forecastText && (
           <span className="text-sm text-[var(--text-secondary)]">{forecastText}。</span>
@@ -182,7 +248,7 @@ export function DecisionSummary({
       {/* 业绩达成率（如有）*/}
       {revAchievePct !== null && (
         <div className="text-xs text-[var(--text-secondary)]">
-          业绩达成率{' '}
+          {t.revenueAchieve}{' '}
           <span
             className={`font-semibold ${revAchievePct >= 80 ? 'text-emerald-800' : revAchievePct >= 60 ? 'text-amber-800' : 'text-[var(--color-danger)]'}`}
           >
@@ -194,14 +260,14 @@ export function DecisionSummary({
       {/* 关键瓶颈 */}
       {bottleneckText && (
         <div className="text-xs text-[var(--text-secondary)]">
-          <span className="font-medium text-[var(--text-primary)]">瓶颈：</span>
+          <span className="font-medium text-[var(--text-primary)]">{t.bottleneck}</span>
           {topBottlenecks.map((b, i) => (
             <span key={b.name}>
               {i > 0 && '，'}
               <span className="font-medium text-[var(--text-primary)]">{b.name}</span>{' '}
               <span className="text-[var(--color-danger)] font-semibold">{b.actual}</span>
               <span className="text-[var(--text-muted)]">
-                （目标 {b.target}，差 {b.gap}）
+                （{t.target} {b.target}，{t.gap} {b.gap}）
               </span>
             </span>
           ))}
