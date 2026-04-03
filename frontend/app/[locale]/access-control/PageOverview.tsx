@@ -44,10 +44,13 @@ const I18N = {
 
 interface PageEntry {
   path: string;
-  name_zh: string;
-  name_en: string;
+  // 后端返回嵌套格式 name: {zh, th} 或扁平格式 name_zh/name_en
+  name_zh?: string;
+  name_en?: string;
+  name?: { zh?: string; en?: string; th?: string };
   description_zh?: string;
   description_en?: string;
+  description?: { zh?: string; en?: string; th?: string };
   category: string;
   is_public: boolean;
   visitor_count?: number;
@@ -121,8 +124,15 @@ function PageItem({
 }) {
   const t = I18N[lang];
   const isZh = lang === 'zh' || lang === 'zh-TW';
-  const name = isZh ? page.name_zh : page.name_en;
-  const desc = isZh ? page.description_zh : page.description_en;
+  // 兼容嵌套 {zh,en,th} 和扁平 name_zh/name_en 两种后端格式
+  const name =
+    (isZh ? (page.name_zh ?? page.name?.zh) : (page.name_en ?? page.name?.en)) ??
+    page.name?.zh ??
+    page.path;
+  const desc =
+    (isZh
+      ? (page.description_zh ?? page.description?.zh)
+      : (page.description_en ?? page.description?.en)) ?? page.description?.zh;
 
   return (
     <div className="flex items-center justify-between py-2.5 px-3 rounded-lg hover:bg-[var(--bg-subtle)] transition-colors group">
