@@ -350,12 +350,22 @@ def _validate_filter_coverage(
 def _cross_validate(dm: DataManager) -> list[dict]:
     """层 2：D1 (result) vs D2 (enclosure_cc) 交叉校验。
 
-    阈值来源：
-    - PCAOB AS 2105 A 级：Overall Materiality 5%
-    - Pointblank B 级：warn=1%、error=5%、critical=10%
+    口径说明（2026-04-02 修正）：
+    - D1「总带新付费金额USD」= 泰国区域全口径 revenue（CC+SS+LP+运营所有渠道合计），
+      来自结果数据表，是区域维度的月度 KPI 汇总。
+    - D2 围场数据 = 仅 CC 销售团队（^TH-CC\\w+Team$）的围场 revenue，
+      是 CC 个人维度的明细聚合，天然是 D1 的子集。
+    - 两者口径不同（区域总计 vs CC 子集），D2 < D1 是完全正常的结构性差异，
+      不应触发 R5 偏差告警。
 
-    R4: D2 > D1（非转介绍数据混入，P0）
-    R5: 偏差超过阈值（分 3 档）
+    有效校验规则：
+    - R4: D2 > D1（CC 子集 revenue > 区域总计 = 必然是非 CC 渠道数据混入，P0）
+      注意：当前数据 D2 ≈ D1 属于巧合（CC 占泰国全部 revenue），不是常态。
+
+    已废弃规则：
+    - R5（D1/D2 偏差阈值）：口径本身就不同，偏差没有业务含义，已废弃。
+      历史告警（2026-04-02 D1=$222,629 vs D2=$2,641 = 98.8%）
+      是旧缓存数据（多月积累的 D1）+ 当时不完整的 D2 围场文件，为假阳性告警。
     """
     alerts: list[dict] = []
 
@@ -366,7 +376,7 @@ def _cross_validate(dm: DataManager) -> list[dict]:
     if enclosure_cc is None or enclosure_cc.empty:
         return alerts
 
-    # D1 汇总（泰国口径，取所有行聚合）
+    # D1 汇总（泰国口径，区域总计）
     d1_df = DataManager.filter_thai_region(result_df, fallback_to_all=True)
     d1_revenue = pd.to_numeric(
         d1_df.get("总带新付费金额USD", pd.Series()), errors="coerce"
@@ -381,59 +391,23 @@ def _cross_validate(dm: DataManager) -> list[dict]:
         agg.get("revenue_actual", pd.Series()), errors="coerce"
     ).sum()
 
-    # 只比 revenue（两边都是转介绍口径，预期差 ~1.5%）
-    # leads 不比：D1 含 SS/LP/运营 leads，D2 仅 CC，结构性差异 ~11%
-    for metric, d1_val, d2_val in [
-        ("revenue", float(d1_revenue), float(d2_revenue)),
-    ]:
-        if d1_val <= 0:
-            continue
-        ratio = d2_val / d1_val
+    # R4 only: D2 > D1 是绝对异常（CC 子集不可能超过区域总计）
+    # R5 已废弃：D2 < D1 是正常口径差异（D1 含 SS/LP/运营 revenue）
+    if d1_revenue > 0:
+        ratio = d2_revenue / d1_revenue
         diff_pct = abs(1 - ratio)
-
-        if diff_pct < _CALIBER_THRESHOLDS["trivial"]:
-            continue  # Clearly Trivial，不告警
-
         if ratio > 1.0:
-            # R4: D2 超过 D1 = 非转介绍数据混入
             alerts.append({
                 "level": "P0",
                 "type": "R4_d2_exceeds_d1",
-                "metric": metric,
-                "d1": round(d1_val, 2),
-                "d2": round(d2_val, 2),
+                "metric": "revenue",
+                "d1": round(d1_revenue, 2),
+                "d2": round(d2_revenue, 2),
                 "diff_pct": round(diff_pct, 4),
                 "detail": (
-                    f"{metric}: D2({d2_val:,.0f}) > D1({d1_val:,.0f})，"
-                    f"差异 {diff_pct:.1%}，疑似非转介绍数据混入"
-                ),
-            })
-        elif diff_pct > _CALIBER_THRESHOLDS["critical"]:
-            # R5: 严重口径偏差（> 5% PCAOB Overall Materiality）
-            alerts.append({
-                "level": "P0",
-                "type": "R5_caliber_critical",
-                "metric": metric,
-                "d1": round(d1_val, 2),
-                "d2": round(d2_val, 2),
-                "diff_pct": round(diff_pct, 4),
-                "detail": (
-                    f"{metric}: D1/D2 偏差 {diff_pct:.1%} > 5%"
-                    "（PCAOB Overall Materiality，A 级）"
-                ),
-            })
-        elif diff_pct > _CALIBER_THRESHOLDS["warning"]:
-            # R5: 警告级偏差（1-5% Performance Materiality 区）
-            alerts.append({
-                "level": "P1",
-                "type": "R5_caliber_warning",
-                "metric": metric,
-                "d1": round(d1_val, 2),
-                "d2": round(d2_val, 2),
-                "diff_pct": round(diff_pct, 4),
-                "detail": (
-                    f"{metric}: D1/D2 偏差 {diff_pct:.1%} "
-                    "在 1-5% Performance Materiality 区（PCAOB A 级）"
+                    f"revenue: D2({d2_revenue:,.0f}) > D1({d1_revenue:,.0f})，"
+                    f"差异 {diff_pct:.1%}，CC 围场 revenue 超过泰国区域总计，"
+                    "疑似非 CC 渠道数据混入 D2"
                 ),
             })
 
