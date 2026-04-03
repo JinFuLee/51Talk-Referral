@@ -140,7 +140,8 @@ function LoginView() {
         setError((data as { detail?: string }).detail || t.error);
         return;
       }
-      router.push(from || `/${locale}`);
+      // useRouter from @/i18n/navigation auto-prefixes locale, so push '/' not '/${locale}'
+      router.push(from || '/');
     } catch {
       setError(t.error);
     } finally {
