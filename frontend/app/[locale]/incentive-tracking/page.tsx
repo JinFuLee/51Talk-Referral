@@ -1379,23 +1379,21 @@ function ProgressTab({ t }: { t: T18N }) {
 
       {progressError && (
         <div className="py-4 text-center text-sm text-[var(--text-muted)]">
-          加载失败，后端接口暂不可用
+          {t.progressLoadFail}
         </div>
       )}
 
       {!progressLoading && items.length === 0 && (
         <div className="py-12 text-center space-y-2">
           <p className="text-3xl">🏆</p>
-          <p className="text-sm font-medium text-[var(--text-primary)]">暂无进行中的活动</p>
-          <p className="text-xs text-[var(--text-muted)]">
-            在「活动管理」中创建活动后，实时进度将在此展示
-          </p>
+          <p className="text-sm font-medium text-[var(--text-primary)]">{t.progressEmptyTitle}</p>
+          <p className="text-xs text-[var(--text-muted)]">{t.progressEmptyDesc}</p>
         </div>
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
         {items.map((item) => (
-          <CampaignProgressCard key={item.campaign.id} item={item} />
+          <CampaignProgressCard key={item.campaign.id} item={item} t={t} />
         ))}
       </div>
     </div>
@@ -1406,12 +1404,6 @@ function ProgressTab({ t }: { t: T18N }) {
 
 type TabKey = 'leverage' | 'campaigns' | 'progress';
 
-const TABS: { key: TabKey; label: string }[] = [
-  { key: 'leverage', label: '📊 杠杆分析' },
-  { key: 'campaigns', label: '🎯 活动管理' },
-  { key: 'progress', label: '⚡ 实时进度' },
-];
-
 export default function IncentiveTrackingPage() {
   usePageDimensions({
     country: true,
@@ -1420,19 +1412,25 @@ export default function IncentiveTrackingPage() {
     team: true,
     granularity: true,
   });
+  const locale = useLocale();
+  const t = I18N[locale as keyof typeof I18N] ?? I18N.zh;
   const [activeTab, setActiveTab] = useState<TabKey>('leverage');
+
+  const TABS: { key: TabKey; label: string }[] = [
+    { key: 'leverage', label: t.tabLeverage },
+    { key: 'campaigns', label: t.tabCampaigns },
+    { key: 'progress', label: t.tabProgress },
+  ];
 
   return (
     <div className="space-y-4">
-      {/* 页头 */}
+      {/* page header */}
       <div>
-        <h1 className="page-title">内场激励系统</h1>
-        <p className="text-sm text-[var(--text-secondary)] mt-1">
-          杠杆机会识别 · 激励活动管理 · 实时达标追踪
-        </p>
+        <h1 className="page-title">{t.pageTitle}</h1>
+        <p className="text-sm text-[var(--text-secondary)] mt-1">{t.pageDesc}</p>
       </div>
 
-      {/* Tab 切换 */}
+      {/* tab switcher */}
       <div className="flex gap-1 p-1 bg-[var(--bg-subtle)] rounded-lg w-fit">
         {TABS.map(({ key, label }) => (
           <button
@@ -1449,10 +1447,10 @@ export default function IncentiveTrackingPage() {
         ))}
       </div>
 
-      {/* Tab 内容 */}
-      {activeTab === 'leverage' && <LeverageTab />}
-      {activeTab === 'campaigns' && <CampaignsTab />}
-      {activeTab === 'progress' && <ProgressTab />}
+      {/* tab content */}
+      {activeTab === 'leverage' && <LeverageTab t={t} />}
+      {activeTab === 'campaigns' && <CampaignsTab t={t} />}
+      {activeTab === 'progress' && <ProgressTab t={t} />}
     </div>
   );
 }

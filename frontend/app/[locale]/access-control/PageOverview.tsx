@@ -12,6 +12,15 @@ const I18N = {
     publicBadge: '公开',
     noPages: '暂无页面',
     visitors: '人可访问',
+    publicCount: (n: number) => `${n} 个公开`,
+  },
+  'zh-TW': {
+    publicToggle: '公開',
+    private: '私有',
+    publicBadge: '公開',
+    noPages: '暫無頁面',
+    visitors: '人可存取',
+    publicCount: (n: number) => `${n} 個公開`,
   },
   en: {
     publicToggle: 'Public',
@@ -19,6 +28,15 @@ const I18N = {
     publicBadge: 'Public',
     noPages: 'No pages',
     visitors: ' can access',
+    publicCount: (n: number) => `${n} public`,
+  },
+  th: {
+    publicToggle: 'สาธารณะ',
+    private: 'ส่วนตัว',
+    publicBadge: 'สาธารณะ',
+    noPages: 'ไม่มีหน้า',
+    visitors: ' เข้าถึงได้',
+    publicCount: (n: number) => `${n} สาธารณะ`,
   },
 } as const;
 
@@ -42,34 +60,49 @@ interface PageOverviewProps {
 
 // ── 分类配置 ──────────────────────────────────────────────────────────────────
 
-const CATEGORIES: Record<string, { zh: string; th: string; icon: React.ReactNode }> = {
+const CATEGORIES: Record<
+  string,
+  { zh: string; 'zh-TW': string; en: string; th: string; icon: React.ReactNode }
+> = {
   ops_core: {
     zh: '运营核心',
+    'zh-TW': '運營核心',
+    en: 'Ops Core',
     th: 'ปฏิบัติการหลัก',
     icon: <BarChart3 className="w-4 h-4" />,
   },
   performance: {
     zh: '业绩管理',
+    'zh-TW': '業績管理',
+    en: 'Performance',
     th: 'ผลงาน',
     icon: <TrendingUp className="w-4 h-4" />,
   },
   student: {
     zh: '学员管理',
+    'zh-TW': '學員管理',
+    en: 'Student Mgmt',
     th: 'จัดการสมาชิก',
     icon: <Users className="w-4 h-4" />,
   },
   risk: {
     zh: '风险与质量',
+    'zh-TW': '風險與品質',
+    en: 'Risk & Quality',
     th: 'ความเสี่ยง',
     icon: <Shield className="w-4 h-4" />,
   },
   reports: {
     zh: '报告汇报',
+    'zh-TW': '報告匯報',
+    en: 'Reports',
     th: 'รายงาน',
     icon: <FileText className="w-4 h-4" />,
   },
   system: {
     zh: '系统管理',
+    'zh-TW': '系統管理',
+    en: 'System',
     th: 'ระบบ',
     icon: <Settings className="w-4 h-4" />,
   },
@@ -83,12 +116,13 @@ function PageItem({
   onToggle,
 }: {
   page: PageEntry;
-  lang: 'zh' | 'en';
+  lang: I18NLang;
   onToggle: (path: string, isPublic: boolean) => Promise<void>;
 }) {
   const t = I18N[lang];
-  const name = lang === 'zh' ? page.name_zh : page.name_en;
-  const desc = lang === 'zh' ? page.description_zh : page.description_en;
+  const isZh = lang === 'zh' || lang === 'zh-TW';
+  const name = isZh ? page.name_zh : page.name_en;
+  const desc = isZh ? page.description_zh : page.description_en;
 
   return (
     <div className="flex items-center justify-between py-2.5 px-3 rounded-lg hover:bg-[var(--bg-subtle)] transition-colors group">
@@ -142,9 +176,11 @@ function PageItem({
 
 // ── 主组件 ────────────────────────────────────────────────────────────────────
 
+type I18NLang = keyof typeof I18N;
+
 export default function PageOverview({ pages, onTogglePublic }: PageOverviewProps) {
   const locale = useLocale();
-  const lang = locale === 'zh' || locale === 'zh-TW' ? 'zh' : 'en';
+  const lang: I18NLang = (locale in I18N ? locale : 'en') as I18NLang;
 
   // 按分类分组
   const grouped: Record<string, PageEntry[]> = {};
@@ -176,12 +212,14 @@ export default function PageOverview({ pages, onTogglePublic }: PageOverviewProp
                 <div className="flex items-center gap-2">
                   <span className="text-[var(--text-muted)]">{catInfo.icon}</span>
                   <span className="text-sm font-semibold text-[var(--text-primary)]">
-                    {catInfo.zh}
+                    {catInfo[lang] ?? catInfo.zh}
                   </span>
                   <span className="text-xs text-[var(--text-muted)]">({catPages.length})</span>
                 </div>
                 {publicCount > 0 && (
-                  <span className="text-xs text-emerald-600">{publicCount} 个公开</span>
+                  <span className="text-xs text-emerald-600">
+                    {I18N[lang].publicCount(publicCount)}
+                  </span>
                 )}
               </div>
 
