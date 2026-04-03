@@ -41,6 +41,7 @@ interface CompareSummaryResponse {
 }
 
 export function ComparisonBanner() {
+  const t = useT();
   const hydrated = useStoreHydrated();
   const compareMode = useConfigStore((s) => s.compareMode);
   const { data, isLoading } = useFilteredSWR<CompareSummaryResponse>(
@@ -63,8 +64,6 @@ export function ComparisonBanner() {
   }
 
   if (!data) return null;
-
-  const t = useT();
 
   if (!data.available) {
     return (
