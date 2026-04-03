@@ -6,7 +6,7 @@ import { useRouter } from '@/i18n/navigation';
 import { useLocale } from 'next-intl';
 import { useFilteredSWR } from '@/lib/hooks/use-filtered-swr';
 import { usePageDimensions } from '@/lib/hooks/use-page-dimensions';
-import { BookOpen, Loader2, AlertCircle, BookMarked, Globe } from 'lucide-react';
+import { BookOpen, Loader2, AlertCircle, BookMarked } from 'lucide-react';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { BookShelf } from '@/components/knowledge/BookShelf';
 import { ChapterTree } from '@/components/knowledge/ChapterTree';
@@ -101,12 +101,6 @@ function saveBookmarks(items: BookmarkItem[]) {
 
 // ── Main page ────────────────────────────────────────────────────────────────
 
-const LANGS = [
-  { code: 'zh', label: '中文' },
-  { code: 'th', label: 'ไทย' },
-  { code: 'en', label: 'EN' },
-] as const;
-
 function KnowledgePageInner() {
   const locale = useLocale();
   const t = (I18N as unknown as Record<string, (typeof I18N)['zh']>)[locale] ?? I18N['zh'];
@@ -117,17 +111,6 @@ function KnowledgePageInner() {
   // Active state
   const [activeBook, setActiveBook] = useState<string | null>(searchParams.get('book'));
   const [activeChapter, setActiveChapter] = useState<string | null>(null);
-  const [lang, setLang] = useState<string>(() => {
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem('knowledge-lang') ?? 'zh';
-    }
-    return 'zh';
-  });
-
-  // Persist lang
-  useEffect(() => {
-    localStorage.setItem('knowledge-lang', lang);
-  }, [lang]);
 
   // Bookmarks
   const [bookmarks, setBookmarks] = useState<BookmarkItem[]>([]);
@@ -139,8 +122,8 @@ function KnowledgePageInner() {
     if (shouldShowGuide()) setShowGuide(true);
   }, []);
 
-  // Fetch book list
-  const langParam = lang !== 'zh' ? `?lang=${lang}` : '';
+  // Fetch book list (pass locale as lang param so backend can serve locale-aware content)
+  const langParam = locale !== 'zh' ? `?lang=${locale}` : '';
   const {
     data: books,
     isLoading: booksLoading,
@@ -161,7 +144,7 @@ function KnowledgePageInner() {
     }
   }, [activeBook, router]);
 
-  // Fetch book content (with lang)
+  // Fetch book content (with locale)
   const bookUrl = activeBook ? `/api/knowledge/book/${activeBook}${langParam}` : null;
   const {
     data: bookContent,
@@ -275,23 +258,6 @@ function KnowledgePageInner() {
         <div className="flex items-center justify-between gap-4 flex-wrap">
           <PageHeader icon={BookOpen} title={t.pageTitle} subtitle={t.pageSubtitle} />
           <div className="flex items-center gap-3">
-            {/* Language switcher */}
-            <div className="flex items-center gap-1 border border-[var(--border-default)] rounded-lg p-0.5">
-              <Globe className="w-3.5 h-3.5 text-[var(--text-muted)] ml-1.5" />
-              {LANGS.map((l) => (
-                <button
-                  key={l.code}
-                  onClick={() => setLang(l.code)}
-                  className={`px-2 py-1 rounded text-xs font-medium transition-colors ${
-                    lang === l.code
-                      ? 'bg-[var(--color-accent)] text-white'
-                      : 'text-[var(--text-secondary)] hover:bg-[var(--bg-subtle)]'
-                  }`}
-                >
-                  {l.label}
-                </button>
-              ))}
-            </div>
             <SearchBar onResultClick={handleSearchResult} />
             <BookmarkPanel
               bookmarks={bookmarks}
@@ -370,7 +336,7 @@ function KnowledgePageInner() {
                 bookmarks={bookmarkIds}
                 onToggleBookmark={toggleBookmark}
               />
-              <GlossaryCard key={`${activeBook}-${lang}`} containerRef={readerRef} />
+              <GlossaryCard key={`${activeBook}-${locale}`} containerRef={readerRef} />
             </>
           )}
         </main>
