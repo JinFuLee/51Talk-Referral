@@ -293,6 +293,8 @@ const I18N = {
     mom_paid: '付費數',
     mom_revenue: '業績',
     mom_register: '註冊數',
+    monthBarPct: '年',
+    monthBarSuffix: '月',
   },
   en: {
     all: 'All',
@@ -440,6 +442,8 @@ const I18N = {
     mom_paid: 'Paid',
     mom_revenue: 'Revenue',
     mom_register: 'Registrations',
+    monthBarPct: '',
+    monthBarSuffix: '',
   },
   th: {
     all: 'ทั้งหมด',
@@ -583,6 +587,8 @@ const I18N = {
     mom_paid: 'ชำระเงิน',
     mom_revenue: 'รายได้',
     mom_register: 'ลงทะเบียน',
+    monthBarPct: '',
+    monthBarSuffix: '',
   },
 } as const;
 import { useFilteredSWR } from '@/lib/hooks/use-filtered-swr';
@@ -598,7 +604,7 @@ import { useIndicatorMatrix } from '@/lib/hooks/useIndicatorMatrix';
 import { useDataSources } from '@/lib/hooks';
 import type { AttributionSummary } from '@/lib/types/cross-analysis';
 import type { IndicatorCategory } from '@/lib/types/indicator-matrix';
-import { CATEGORY_LABELS_ZH } from '@/lib/types/indicator-matrix';
+import { CATEGORY_LABELS_ZH, CATEGORY_LABELS_TH } from '@/lib/types/indicator-matrix';
 import { DataSourceSection } from '@/components/datasources/DataSourceSection';
 import { AnomalyBanner } from '@/components/dashboard/AnomalyBanner';
 import { DecisionSummary } from '@/components/dashboard/DecisionSummary';

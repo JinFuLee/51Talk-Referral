@@ -14,6 +14,14 @@ const I18N = {
     noUsers: '暂无用户数据',
     noData: '暂无权限数据',
   },
+  'zh-TW': {
+    user: '用戶',
+    publicPage: '公開頁面',
+    noAccess: '無權限',
+    roleInherited: '角色繼承',
+    noUsers: '暫無用戶資料',
+    noData: '暫無權限資料',
+  },
   en: {
     user: 'User',
     publicPage: 'Public',
@@ -22,17 +30,25 @@ const I18N = {
     noUsers: 'No users',
     noData: 'No data',
   },
+  th: {
+    user: 'ผู้ใช้',
+    publicPage: 'สาธารณะ',
+    noAccess: 'ไม่มีสิทธิ์',
+    roleInherited: 'ผ่านบทบาท',
+    noUsers: 'ไม่มีข้อมูลผู้ใช้',
+    noData: 'ไม่มีข้อมูลสิทธิ์',
+  },
 } as const;
 
 // ── 分类配置（与 PageOverview 保持一致）────────────────────────────────────
 
-const CATEGORY_INFO: Record<string, { zh: string }> = {
-  ops_core: { zh: '运营核心' },
-  performance: { zh: '业绩管理' },
-  student: { zh: '学员管理' },
-  risk: { zh: '风险与质量' },
-  reports: { zh: '报告汇报' },
-  system: { zh: '系统管理' },
+const CATEGORY_INFO: Record<string, { zh: string; 'zh-TW': string; en: string; th: string }> = {
+  ops_core: { zh: '运营核心', 'zh-TW': '運營核心', en: 'Ops Core', th: 'ปฏิบัติการหลัก' },
+  performance: { zh: '业绩管理', 'zh-TW': '業績管理', en: 'Performance', th: 'ผลงาน' },
+  student: { zh: '学员管理', 'zh-TW': '學員管理', en: 'Student Mgmt', th: 'จัดการสมาชิก' },
+  risk: { zh: '风险与质量', 'zh-TW': '風險與品質', en: 'Risk & Quality', th: 'ความเสี่ยง' },
+  reports: { zh: '报告汇报', 'zh-TW': '報告匯報', en: 'Reports', th: 'รายงาน' },
+  system: { zh: '系统管理', 'zh-TW': '系統管理', en: 'System', th: 'ระบบ' },
 };
 
 // ── 类型定义 ──────────────────────────────────────────────────────────────────
@@ -110,9 +126,11 @@ function MatrixCell({
 
 // ── 主组件 ────────────────────────────────────────────────────────────────────
 
+type I18NLang = keyof typeof I18N;
+
 export default function PermissionMatrix({ users, pages, roles }: PermissionMatrixProps) {
   const locale = useLocale();
-  const lang = locale === 'zh' || locale === 'zh-TW' ? 'zh' : 'en';
+  const lang: I18NLang = (locale in I18N ? locale : 'en') as I18NLang;
   const t = I18N[lang];
 
   // 按分类分组页面
@@ -177,7 +195,7 @@ export default function PermissionMatrix({ users, pages, roles }: PermissionMatr
               <thead>
                 <tr className="slide-thead-row text-xs">
                   <th className="slide-th slide-th-left" style={{ minWidth: '160px' }}>
-                    {catInfo.zh} — {t.user}
+                    {catInfo[lang] ?? catInfo.zh} — {t.user}
                   </th>
                   {catPages.map((page) => (
                     <th
