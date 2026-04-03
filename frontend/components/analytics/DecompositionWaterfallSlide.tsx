@@ -47,6 +47,8 @@ const I18N: Record<
     empty: string;
     emptyHint: string;
     usd: string;
+    driverNames: { vol: string; conv: string; price: string };
+    insightTpl: (name: string, sign: string, rev: string, method: string) => string;
   }
 > = {
   zh: {
@@ -71,6 +73,9 @@ const I18N: Record<
     empty: '暂无分解数据',
     emptyHint: '请上传本月 Excel 数据源后自动刷新',
     usd: '金额 (USD)',
+    driverNames: { vol: '量', conv: '率', price: '价' },
+    insightTpl: (name: string, sign: string, rev: string, method: string) =>
+      `主要驱动：${name}贡献 ${sign}${rev}（${method} 分解）`,
   },
   'zh-TW': {
     title: '增量分解瀑布圖',
@@ -94,6 +99,9 @@ const I18N: Record<
     empty: '暫無分解資料',
     emptyHint: '請上傳本月 Excel 資料源後自動刷新',
     usd: '金額 (USD)',
+    driverNames: { vol: '量', conv: '率', price: '價' },
+    insightTpl: (name: string, sign: string, rev: string, method: string) =>
+      `主要驅動：${name}貢獻 ${sign}${rev}（${method} 分解）`,
   },
   en: {
     title: 'Revenue Decomposition Waterfall',
@@ -117,6 +125,9 @@ const I18N: Record<
     empty: 'No decomposition data',
     emptyHint: 'Upload monthly Excel data to refresh',
     usd: 'USD',
+    driverNames: { vol: 'Vol', conv: 'Conv', price: 'Price' },
+    insightTpl: (name: string, sign: string, rev: string, method: string) =>
+      `Top driver: ${name} contributed ${sign}${rev} (${method})`,
   },
   th: {
     title: 'แผนภูมิน้ำตกการแยกย่อยรายได้',
@@ -140,6 +151,9 @@ const I18N: Record<
     empty: 'ไม่มีข้อมูลการแยกย่อย',
     emptyHint: 'กรุณาอัปโหลดไฟล์ Excel ประจำเดือน',
     usd: 'USD',
+    driverNames: { vol: 'ปริมาณ', conv: 'อัตรา', price: 'ราคา' },
+    insightTpl: (name: string, sign: string, rev: string, method: string) =>
+      `ปัจจัยหลัก: ${name} ส่งผล ${sign}${rev} (${method})`,
   },
 };
 
@@ -192,13 +206,13 @@ export function DecompositionWaterfallSlide({ slideNumber, totalSlides }: SlideP
     const conv = isLMDI ? data.lmdi.conv_lmdi : data.laspeyres.conv_delta;
     const price = isLMDI ? data.lmdi.price_lmdi : data.laspeyres.price_delta;
     const drivers = [
-      { name: '量', v: vol },
-      { name: '率', v: conv },
-      { name: '价', v: price },
+      { name: t.driverNames.vol, v: vol },
+      { name: t.driverNames.conv, v: conv },
+      { name: t.driverNames.price, v: price },
     ].sort((a, b) => Math.abs(b.v) - Math.abs(a.v));
     const top = drivers[0];
     const sign = top.v > 0 ? '+' : '';
-    return `主要驱动：${top.name}贡献 ${sign}${formatRevenue(top.v)}（${isLMDI ? 'LMDI' : 'Laspeyres'} 分解）`;
+    return t.insightTpl(top.name, sign, formatRevenue(top.v), isLMDI ? 'LMDI' : 'Laspeyres');
   })();
 
   const waterfallData = data ? buildWaterfallData(data, t) : [];

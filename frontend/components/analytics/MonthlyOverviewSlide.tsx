@@ -37,6 +37,8 @@ const I18N = {
     noDataDesc: '请上传本月 Excel 数据源',
     ahead: '领先',
     behind: '落后',
+    bmFootnote: '数量指标：BM效率 ≥ BM% = 领先进度 · 效率指标：达成率 = 实际/目标，GAP = pp差',
+    metricLabel: '指标',
   },
   en: {
     title: 'Monthly Overview',
@@ -69,6 +71,9 @@ const I18N = {
     noDataDesc: "Please upload this month's Excel data source",
     ahead: 'Ahead',
     behind: 'Behind',
+    bmFootnote:
+      'Count metrics: BM Eff ≥ BM% = On Pace · Rate metrics: Eff = Actual/Target, GAP = pp diff',
+    metricLabel: 'Metric',
   },
   'zh-TW': {
     title: '月度總覽',
@@ -101,6 +106,8 @@ const I18N = {
     noDataDesc: '請上傳本月 Excel 資料源',
     ahead: '領先',
     behind: '落後',
+    bmFootnote: '數量指標：BM效率 ≥ BM% = 領先進度 · 效率指標：達成率 = 實際/目標，GAP = pp差',
+    metricLabel: '指標',
   },
   th: {
     title: 'ภาพรวมประจำเดือน',
@@ -133,6 +140,9 @@ const I18N = {
     noDataDesc: 'กรุณาอัปโหลดไฟล์ Excel ประจำเดือน',
     ahead: 'นำหน้า',
     behind: 'ตามหลัง',
+    bmFootnote:
+      'ตัวชี้วัดปริมาณ: BM Eff ≥ BM% = นำหน้า · ตัวชี้วัดอัตรา: Eff = จริง/เป้า, GAP = pp ต่าง',
+    metricLabel: 'ตัวชี้วัด',
   },
 } as const;
 
@@ -236,13 +246,7 @@ export function MonthlyOverviewSlide({ data }: Props) {
         <table className="w-full text-xs border-collapse">
           <thead>
             <tr className="slide-thead-row">
-              <th className="slide-th slide-th-left">
-                {locale === 'zh' || locale === 'zh-TW'
-                  ? '指标'
-                  : locale === 'th'
-                    ? 'ตัวชี้วัด'
-                    : 'Metric'}
-              </th>
+              <th className="slide-th slide-th-left">{t.metricLabel}</th>
               <th className="slide-th slide-th-right">{t.target}</th>
               <th className="slide-th slide-th-right">{t.actual}</th>
               <th className="slide-th slide-th-right">{t.bmEff}</th>
@@ -297,9 +301,7 @@ export function MonthlyOverviewSlide({ data }: Props) {
       {/* BM 进度角标 */}
       <div className="flex items-center justify-between pt-1 border-t border-[var(--border-subtle)]">
         <span className="text-[10px] text-[var(--text-muted)]">BM = {formatRate(data.bm_pct)}</span>
-        <span className="text-[10px] text-[var(--text-muted)]">
-          数量指标：BM效率 ≥ BM% = 领先进度 · 效率指标：达成率 = 实际/目标，GAP = pp差
-        </span>
+        <span className="text-[10px] text-[var(--text-muted)]">{t.bmFootnote}</span>
       </div>
     </div>
   );

@@ -34,6 +34,7 @@ const I18N: Record<
     empty: string;
     emptyHint: string;
     stageLabels: Record<string, string>;
+    insightTpl: (channel: string, stage: string, score: string, rev: string) => string;
   }
 > = {
   zh: {
@@ -61,6 +62,8 @@ const I18N: Record<
       attend_rate: '出席率',
       paid_rate: '付费率',
     },
+    insightTpl: (channel: string, stage: string, score: string, rev: string) =>
+      `最大瓶颈：${channel} ${stage}（杠杆分 ${score}，增量收入 ${rev}）`,
   },
   'zh-TW': {
     title: '漏斗槓桿矩陣',
@@ -87,6 +90,8 @@ const I18N: Record<
       attend_rate: '出席率',
       paid_rate: '付費率',
     },
+    insightTpl: (channel: string, stage: string, score: string, rev: string) =>
+      `最大瓶頸：${channel} ${stage}（槓桿分 ${score}，增量收入 ${rev}）`,
   },
   en: {
     title: 'Funnel Leverage Matrix',
@@ -113,6 +118,8 @@ const I18N: Record<
       attend_rate: 'Attend Rate',
       paid_rate: 'Paid Rate',
     },
+    insightTpl: (channel: string, stage: string, score: string, rev: string) =>
+      `Top bottleneck: ${channel} ${stage} (score ${score}, rev impact ${rev})`,
   },
   th: {
     title: 'เมทริกซ์แรงงัดช่องทาง',
@@ -139,6 +146,8 @@ const I18N: Record<
       attend_rate: 'อัตราเข้าร่วม',
       paid_rate: 'อัตราชำระ',
     },
+    insightTpl: (channel: string, stage: string, score: string, rev: string) =>
+      `คอขวดหลัก: ${channel} ${stage} (คะแนน ${score}, รายได้เพิ่ม ${rev})`,
   },
 };
 
@@ -192,7 +201,12 @@ export function FunnelLeverageSlide({ slideNumber, totalSlides }: SlideProps) {
   const insight = (() => {
     if (!topBottleneck) return undefined;
     const stageLabel = t.stageLabels[topBottleneck.stage] ?? topBottleneck.stage;
-    return `最大瓶颈：${topBottleneck.channel} ${stageLabel}（杠杆分 ${(topBottleneck.leverage_score ?? 0).toFixed(2)}，增量收入 ${formatRevenue(topBottleneck.revenue_impact)}）`;
+    return t.insightTpl(
+      topBottleneck.channel,
+      stageLabel,
+      (topBottleneck.leverage_score ?? 0).toFixed(2),
+      formatRevenue(topBottleneck.revenue_impact)
+    );
   })();
 
   return (
