@@ -211,12 +211,6 @@ function pct(v: number | null | undefined): string {
 
 type TabKey = 'cc' | 'ss' | 'lp';
 
-const TABS: { key: TabKey; label: string }[] = [
-  { key: 'cc', label: 'CC' },
-  { key: 'ss', label: 'SS' },
-  { key: 'lp', label: 'LP' },
-];
-
 /* ── CC 内容 ─────────────────────────────────────────────── */
 
 function CCContent() {

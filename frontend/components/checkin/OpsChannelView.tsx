@@ -342,6 +342,7 @@ interface OpsChannelViewProps {
 }
 
 export function OpsChannelView({ configJson }: OpsChannelViewProps) {
+  const t = useT();
   const [subTab, setSubTab] = useState<SubTabId>('channel');
 
   const { data, isLoading, error, mutate } = useFilteredSWR<RankingResponse>(
@@ -350,6 +351,11 @@ export function OpsChannelView({ configJson }: OpsChannelViewProps) {
   );
 
   const opsData = data?.by_role?.['运营'];
+
+  const subTabs = [
+    { id: 'channel' as SubTabId, label: t.tabChannel },
+    { id: 'student_ranking' as SubTabId, label: t.tabStudentRanking },
+  ];
 
   // 加载态
   if (isLoading) {
@@ -364,9 +370,9 @@ export function OpsChannelView({ configJson }: OpsChannelViewProps) {
   if (error) {
     return (
       <EmptyState
-        title="数据加载失败"
-        description="无法获取运营渠道数据，请检查后端服务"
-        action={{ label: '重试', onClick: () => mutate() }}
+        title={t.loadError}
+        description={t.loadErrorDesc}
+        action={{ label: t.retry, onClick: () => mutate() }}
       />
     );
   }
@@ -374,7 +380,7 @@ export function OpsChannelView({ configJson }: OpsChannelViewProps) {
   // 子 Tab 切换条（独立渲染，不受加载/空态影响）
   const SubTabBar = (
     <div className="flex gap-1 border-b border-[var(--border-default)] mb-4">
-      {SUB_TABS.map((tab) => (
+      {subTabs.map((tab) => (
         <button
           key={tab.id}
           onClick={() => setSubTab(tab.id)}
@@ -406,10 +412,7 @@ export function OpsChannelView({ configJson }: OpsChannelViewProps) {
     return (
       <div className="space-y-0">
         {SubTabBar}
-        <EmptyState
-          title="M6~M12+ 围场暂无学员数据"
-          description="上传包含 M6+ 围场的过程数据（D3）后自动刷新"
-        />
+        <EmptyState title={t.emptyTitle} description={t.emptyDesc} />
       </div>
     );
   }
@@ -427,19 +430,19 @@ export function OpsChannelView({ configJson }: OpsChannelViewProps) {
           <div className="text-2xl font-bold tabular-nums text-[var(--text-primary)]">
             {fmtNum(opsData.total_students)}
           </div>
-          <div className="text-xs text-[var(--text-muted)] mt-0.5">M6~M12+ 总学员</div>
+          <div className="text-xs text-[var(--text-muted)] mt-0.5">{t.m6TotalStudents}</div>
         </div>
         <div className="card-compact text-center">
           <div className="text-2xl font-bold tabular-nums text-[var(--text-primary)]">
             {fmtNum(opsData.checked_in)}
           </div>
-          <div className="text-xs text-[var(--text-muted)] mt-0.5">已打卡</div>
+          <div className="text-xs text-[var(--text-muted)] mt-0.5">{t.checkedIn}</div>
         </div>
         <div className="card-compact text-center">
           <div className="text-2xl font-bold tabular-nums text-[var(--text-primary)]">
             {formatRate(opsData.checkin_rate)}
           </div>
-          <div className="text-xs text-[var(--text-muted)] mt-0.5">打卡率</div>
+          <div className="text-xs text-[var(--text-muted)] mt-0.5">{t.checkinRate}</div>
         </div>
       </div>
 
@@ -453,7 +456,7 @@ export function OpsChannelView({ configJson }: OpsChannelViewProps) {
       )}
 
       {channels.length === 0 && (
-        <EmptyState title="暂无渠道配置" description="后端尚未返回渠道触达数据" />
+        <EmptyState title={t.noChannelTitle} description={t.noChannelDesc} />
       )}
 
       {/* 区域 C — 围场子段分布 */}
@@ -461,7 +464,7 @@ export function OpsChannelView({ configJson }: OpsChannelViewProps) {
 
       {segments.length === 1 && (
         <div className="card-compact">
-          <div className="text-xs text-[var(--text-muted)] mb-1">围场子段</div>
+          <div className="text-xs text-[var(--text-muted)] mb-1">{t.enclosureSegLabel}</div>
           <div className="flex items-center gap-3">
             <span className="font-medium text-[var(--text-primary)]">{segments[0].label}</span>
             <span className="text-xs font-mono tabular-nums text-[var(--text-secondary)]">

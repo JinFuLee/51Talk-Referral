@@ -365,12 +365,12 @@ export default function RoleEditor({ roles, pages, onSaveRole, onCreateRole }: R
     setSaving(true);
     try {
       await onCreateRole(newRoleName.trim(), newRoleColor);
-      toast.success('角色已创建');
+      toast.success(t.toastCreated);
       setNewRoleName('');
       setNewRoleColor(PRESET_COLORS[0]);
       setShowCreate(false);
     } catch (e: unknown) {
-      toast.error(e instanceof Error ? e.message : '创建失败');
+      toast.error(e instanceof Error ? e.message : t.toastCreateFailed);
     } finally {
       setSaving(false);
     }
@@ -380,7 +380,7 @@ export default function RoleEditor({ roles, pages, onSaveRole, onCreateRole }: R
     <div className="space-y-4">
       {/* 操作栏 */}
       <div className="flex items-center justify-between">
-        <span className="text-sm text-[var(--text-muted)]">{roles.length} 个角色</span>
+        <span className="text-sm text-[var(--text-muted)]">{t.roleCount(roles.length)}</span>
         <button
           onClick={() => setShowCreate(true)}
           className="flex items-center gap-1.5 btn-secondary text-xs"
