@@ -430,9 +430,7 @@ function CCContent() {
             </tbody>
           </table>
         </div>
-        <p className="text-xs text-[var(--text-muted)] mt-2 px-1">
-          高质量：接通时长 ≥120s · 可疑：接通时长 &lt;30s · 点击列标题排序
-        </p>
+        <p className="text-xs text-[var(--text-muted)] mt-2 px-1">{t.tableNote}</p>
       </Card>
     </div>
   );
@@ -449,53 +447,48 @@ export default function FollowupQualityPage() {
     granularity: true,
   });
 
+  const locale = useLocale();
+  const t = (I18N as unknown as Record<string, (typeof I18N)['zh']>)[locale] ?? I18N['zh'];
+
   const [tab, setTab] = useState<TabKey>('cc');
+
+  const TABS: { key: TabKey; label: string }[] = [
+    { key: 'cc', label: t.tabCC },
+    { key: 'ss', label: t.tabSS },
+    { key: 'lp', label: t.tabLP },
+  ];
 
   return (
     <div className="space-y-3">
       {/* 页头 */}
       <div>
-        <h1 className="page-title">跟进质量分析</h1>
-        <p className="text-sm text-[var(--text-secondary)] mt-1">
-          通话质量分层 · 失联风险预警 · 跟进行为评估
-        </p>
-        <p className="text-xs text-[var(--text-muted)] mt-0.5">
-          高质量：通话 ≥120s · 可疑：通话 &lt;30s · 失联：最后联系距今天数
-        </p>
+        <h1 className="page-title">{t.pageTitle}</h1>
+        <p className="text-sm text-[var(--text-secondary)] mt-1">{t.pageSubtitle}</p>
+        <p className="text-xs text-[var(--text-muted)] mt-0.5">{t.pageNote}</p>
       </div>
 
       {/* Tab 切换 */}
       <div className="flex gap-1 border-b border-[var(--border-default)]">
-        {TABS.map((t) => (
+        {TABS.map((tab_item) => (
           <button
-            key={t.key}
-            onClick={() => setTab(t.key)}
+            key={tab_item.key}
+            onClick={() => setTab(tab_item.key)}
             className={[
               'px-4 py-2 text-sm font-medium rounded-t-md transition-colors',
-              tab === t.key
+              tab === tab_item.key
                 ? 'bg-[var(--bg-surface)] text-[var(--text-primary)] border border-b-0 border-[var(--border-default)]'
                 : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]',
             ].join(' ')}
           >
-            {t.label}
+            {tab_item.label}
           </button>
         ))}
       </div>
 
       {/* Tab 内容 */}
       {tab === 'cc' && <CCContent />}
-      {tab === 'ss' && (
-        <EmptyState
-          title="SS 跟进数据暂未接入"
-          description="SS 后端跟进数据等数据源补充后自动启用，无需手动配置"
-        />
-      )}
-      {tab === 'lp' && (
-        <EmptyState
-          title="LP 跟进数据暂未接入"
-          description="LP 服务跟进数据等数据源补充后自动启用，无需手动配置"
-        />
-      )}
+      {tab === 'ss' && <EmptyState title={t.ssNotConnected} description={t.ssNotConnectedDesc} />}
+      {tab === 'lp' && <EmptyState title={t.lpNotConnected} description={t.lpNotConnectedDesc} />}
     </div>
   );
 }

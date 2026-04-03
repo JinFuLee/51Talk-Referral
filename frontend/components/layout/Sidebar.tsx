@@ -2,42 +2,133 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useLocale } from 'next-intl';
 import clsx from 'clsx';
 
-const NAV_ITEMS = [
-  { href: '/', label: '看板' },
-  { href: '/analysis', label: '深度分析' },
-  { href: '/ranking', label: '绩效排名' },
-  { href: '/trend', label: '趋势分析' },
-  { href: '/funnel', label: '漏斗分析' },
-  { href: '/outreach-quality', label: '接通质量' },
-  { href: '/followup-quality', label: '跟进质量' },
-  { href: '/referral-contributor', label: '推荐者贡献' },
-  { href: '/incentive-tracking', label: '激励追踪' },
-  { href: '/renewal-risk', label: '续费风险' },
-  { href: '/reports', label: '分析报告' },
-  { href: '/datasources', label: '数据源' },
-  { href: '/snapshots', label: '历史快照' },
-  { href: '/settings', label: '设置' },
-];
+// ── I18N ────────────────────────────────────────────────────────────────────
+
+const I18N = {
+  zh: {
+    subtitle: '51Talk 泰国转介绍',
+    footer: 'M9 · Next.js 前端',
+    nav: {
+      '/': '看板',
+      '/analysis': '深度分析',
+      '/ranking': '绩效排名',
+      '/trend': '趋势分析',
+      '/funnel': '漏斗分析',
+      '/outreach-quality': '接通质量',
+      '/followup-quality': '跟进质量',
+      '/referral-contributor': '推荐者贡献',
+      '/incentive-tracking': '激励追踪',
+      '/renewal-risk': '续费风险',
+      '/reports': '分析报告',
+      '/datasources': '数据源',
+      '/snapshots': '历史快照',
+      '/settings': '设置',
+    },
+  },
+  'zh-TW': {
+    subtitle: '51Talk 泰國轉介紹',
+    footer: 'M9 · Next.js 前端',
+    nav: {
+      '/': '看板',
+      '/analysis': '深度分析',
+      '/ranking': '績效排名',
+      '/trend': '趨勢分析',
+      '/funnel': '漏斗分析',
+      '/outreach-quality': '接通質量',
+      '/followup-quality': '跟進質量',
+      '/referral-contributor': '推薦者貢獻',
+      '/incentive-tracking': '激勵追蹤',
+      '/renewal-risk': '續費風險',
+      '/reports': '分析報告',
+      '/datasources': '資料來源',
+      '/snapshots': '歷史快照',
+      '/settings': '設定',
+    },
+  },
+  en: {
+    subtitle: '51Talk Thailand Referral',
+    footer: 'M9 · Next.js Frontend',
+    nav: {
+      '/': 'Dashboard',
+      '/analysis': 'Deep Analysis',
+      '/ranking': 'Performance Ranking',
+      '/trend': 'Trend Analysis',
+      '/funnel': 'Funnel Analysis',
+      '/outreach-quality': 'Call Quality',
+      '/followup-quality': 'Follow-up Quality',
+      '/referral-contributor': 'Referral Contributors',
+      '/incentive-tracking': 'Incentive Tracking',
+      '/renewal-risk': 'Renewal Risk',
+      '/reports': 'Reports',
+      '/datasources': 'Data Sources',
+      '/snapshots': 'Snapshots',
+      '/settings': 'Settings',
+    },
+  },
+  th: {
+    subtitle: '51Talk ไทย แนะนำเพื่อน',
+    footer: 'M9 · Next.js Frontend',
+    nav: {
+      '/': 'แดชบอร์ด',
+      '/analysis': 'วิเคราะห์เชิงลึก',
+      '/ranking': 'อันดับผลงาน',
+      '/trend': 'วิเคราะห์แนวโน้ม',
+      '/funnel': 'วิเคราะห์ Funnel',
+      '/outreach-quality': 'คุณภาพการโทร',
+      '/followup-quality': 'คุณภาพการติดตาม',
+      '/referral-contributor': 'ผู้แนะนำ',
+      '/incentive-tracking': 'ติดตามสิ่งจูงใจ',
+      '/renewal-risk': 'ความเสี่ยงต่ออายุ',
+      '/reports': 'รายงาน',
+      '/datasources': 'แหล่งข้อมูล',
+      '/snapshots': 'ภาพรวมประวัติ',
+      '/settings': 'การตั้งค่า',
+    },
+  },
+} as const;
+
+type SidebarLocale = keyof typeof I18N;
+
+const NAV_HREFS = [
+  '/',
+  '/analysis',
+  '/ranking',
+  '/trend',
+  '/funnel',
+  '/outreach-quality',
+  '/followup-quality',
+  '/referral-contributor',
+  '/incentive-tracking',
+  '/renewal-risk',
+  '/reports',
+  '/datasources',
+  '/snapshots',
+  '/settings',
+] as const;
 
 export function Sidebar() {
   const pathname = usePathname();
+  const locale = useLocale();
+  const t = I18N[(locale as SidebarLocale) in I18N ? (locale as SidebarLocale) : 'zh'];
 
   return (
     <aside className="w-56 bg-slate-900 flex flex-col shrink-0">
       <div className="px-4 py-5 border-b border-slate-700">
         <div className="text-white font-bold text-sm leading-tight">ref-ops-engine</div>
-        <div className="text-[var(--text-muted)] text-xs mt-0.5">51Talk 泰国转介绍</div>
+        <div className="text-[var(--text-muted)] text-xs mt-0.5">{t.subtitle}</div>
       </div>
 
       <nav className="flex-1 px-2 py-4 space-y-0.5 overflow-y-auto">
-        {NAV_ITEMS.map((item) => {
-          const isActive = item.href === '/' ? pathname === '/' : pathname.startsWith(item.href);
+        {NAV_HREFS.map((href) => {
+          const isActive =
+            href === '/' ? pathname === '/' || pathname === `/${locale}` : pathname.includes(href);
           return (
             <Link
-              key={item.href}
-              href={item.href}
+              key={href}
+              href={href}
               aria-current={isActive ? 'page' : undefined}
               className={clsx(
                 'flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',
@@ -46,14 +137,14 @@ export function Sidebar() {
                   : 'text-[var(--text-muted)] hover:text-white hover:bg-slate-800'
               )}
             >
-              {item.label}
+              {t.nav[href]}
             </Link>
           );
         })}
       </nav>
 
       <div className="px-4 py-3 border-t border-slate-700">
-        <p className="text-xs text-[var(--text-secondary)]">M9 · Next.js 前端</p>
+        <p className="text-xs text-[var(--text-secondary)]">{t.footer}</p>
       </div>
     </aside>
   );
