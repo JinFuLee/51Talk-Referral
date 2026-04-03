@@ -138,12 +138,20 @@ export default async function middleware(request: NextRequest): Promise<NextResp
     return redirectToDenied(request);
   }
 
+  // admin 全放行（canManage=true 或 isAdmin=true）
+  if (access.isAdmin || access.roleDef.canManage) {
+    const response = intlMiddleware(request);
+    response.headers.set('x-user-email', access.email || '');
+    response.headers.set('x-user-role', access.role);
+    response.headers.set('x-user-is-admin', '1');
+    return response;
+  }
+
   // 角色页面权限检查
   if (isAllowedByRole(pagePath, access.roleDef.pages ?? [])) {
     const response = intlMiddleware(request);
     response.headers.set('x-user-email', access.email || '');
     response.headers.set('x-user-role', access.role);
-    if (access.isAdmin) response.headers.set('x-user-is-admin', '1');
     return response;
   }
 
