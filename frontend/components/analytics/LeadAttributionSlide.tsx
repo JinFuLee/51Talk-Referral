@@ -34,6 +34,7 @@ const I18N: Record<
     retry: string;
     empty: string;
     emptyHint: string;
+    insightTpl: (ch: string, share: string, r2p: string) => string;
   }
 > = {
   zh: {
@@ -57,6 +58,8 @@ const I18N: Record<
     retry: '重试',
     empty: '暂无线索归因数据',
     emptyHint: '请上传本月 Excel 数据源后自动刷新',
+    insightTpl: (ch: string, share: string, r2p: string) =>
+      `${ch} 业绩贡献最高（${share}），注册→付费率 ${r2p}`,
   },
   'zh-TW': {
     title: '線索歸因分析',
@@ -79,6 +82,8 @@ const I18N: Record<
     retry: '重試',
     empty: '暫無線索歸因資料',
     emptyHint: '請上傳本月 Excel 資料源後自動刷新',
+    insightTpl: (ch: string, share: string, r2p: string) =>
+      `${ch} 業績貢獻最高（${share}），註冊→付費率 ${r2p}`,
   },
   en: {
     title: 'Lead Attribution',
@@ -101,6 +106,8 @@ const I18N: Record<
     retry: 'Retry',
     empty: 'No lead attribution data',
     emptyHint: 'Upload monthly Excel data to refresh',
+    insightTpl: (ch: string, share: string, r2p: string) =>
+      `${ch} top revenue contributor (${share}), Reg→Pay rate ${r2p}`,
   },
   th: {
     title: 'การวิเคราะห์แหล่งที่มาของลูกค้า',
@@ -124,6 +131,8 @@ const I18N: Record<
     retry: 'ลองใหม่',
     empty: 'ไม่มีข้อมูลการวิเคราะห์',
     emptyHint: 'กรุณาอัปโหลดไฟล์ Excel ประจำเดือน',
+    insightTpl: (ch: string, share: string, r2p: string) =>
+      `${ch} มีรายได้สูงสุด (${share}), อัตราลงทะเบียน→ชำระ ${r2p}`,
   },
 };
 
@@ -201,7 +210,11 @@ export function LeadAttributionSlide({ slideNumber, totalSlides }: SlideProps) {
   const insight = (() => {
     if (!rows.length) return undefined;
     const topRev = rows.reduce((a, b) => (a.revenue_usd > b.revenue_usd ? a : b));
-    return `${topRev.channel} 业绩贡献最高（${formatRate(topRev.revenue_share)}），注册→付费率 ${formatRate(topRev.reg_to_pay_rate)}`;
+    return t.insightTpl(
+      topRev.channel,
+      formatRate(topRev.revenue_share),
+      formatRate(topRev.reg_to_pay_rate)
+    );
   })();
 
   return (
