@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
+import { useLocale } from 'next-intl';
 import { useFilteredSWR } from '@/lib/hooks/use-filtered-swr';
 import { Spinner } from '@/components/ui/Spinner';
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -10,6 +11,120 @@ import { useCheckinThresholds } from '@/lib/hooks/useCheckinThresholds';
 import { formatRate } from '@/lib/utils';
 import { OpsChannelView } from './OpsChannelView';
 import { CCStudentDrilldown } from './CCStudentDrilldown';
+
+/* ── I18N ────────────────────────────────────────────────────────── */
+
+const I18N = {
+  zh: {
+    noData: '暂无数据',
+    rank: '排名',
+    team: '团队',
+    sales: '销售',
+    validStudents: '有效学员',
+    validStudentsTooltip: '已付费且在有效期内的学员数，是打卡运营的基数',
+    checkedIn: '已打卡',
+    checkinRate: '打卡率',
+    checkinRateTooltip: '转码且分享的学员/有效学员。绿≥50%，橙30-50%，红<30%',
+    total: '合计',
+    noMembers: '暂无成员数据',
+    subtotal: '小计',
+    subTabGroup: '小组排行',
+    subTabPerson: '个人排行 + 团队卡片',
+    loading: '加载排行数据…',
+    loadError: '加载失败',
+    loadErrorDesc: '无法获取打卡排行数据，请检查后端服务是否正常运行',
+    retry: '重试',
+    noRankData: '暂无排行数据',
+    noRankDataDesc: '上传围场打卡数据（D2）并完成分析后自动刷新',
+    noRoleData: '暂无排行数据',
+    noRoleDataDesc: '当前围场配置下无可展示的角色排行，请检查围场角色分配设置',
+    teamCards: '团队卡片',
+  },
+  'zh-TW': {
+    noData: '暫無數據',
+    rank: '排名',
+    team: '團隊',
+    sales: '銷售',
+    validStudents: '有效學員',
+    validStudentsTooltip: '已付費且在有效期內的學員數，是打卡運營的基數',
+    checkedIn: '已打卡',
+    checkinRate: '打卡率',
+    checkinRateTooltip: '轉碼且分享的學員/有效學員。綠≥50%，橙30-50%，紅<30%',
+    total: '合計',
+    noMembers: '暫無成員數據',
+    subtotal: '小計',
+    subTabGroup: '小組排行',
+    subTabPerson: '個人排行 + 團隊卡片',
+    loading: '載入排行數據…',
+    loadError: '載入失敗',
+    loadErrorDesc: '無法取得打卡排行數據，請檢查後端服務是否正常運行',
+    retry: '重試',
+    noRankData: '暫無排行數據',
+    noRankDataDesc: '上傳圍場打卡數據（D2）並完成分析後自動刷新',
+    noRoleData: '暫無排行數據',
+    noRoleDataDesc: '目前圍場設定下無可展示的角色排行，請檢查圍場角色分配設定',
+    teamCards: '團隊卡片',
+  },
+  en: {
+    noData: 'No data',
+    rank: 'Rank',
+    team: 'Team',
+    sales: 'Sales',
+    validStudents: 'Valid Students',
+    validStudentsTooltip: 'Paid and active students; base for check-in operations',
+    checkedIn: 'Checked In',
+    checkinRate: 'Check-in Rate',
+    checkinRateTooltip:
+      'Students who transcoded & shared / valid students. Green≥50%, Orange 30-50%, Red<30%',
+    total: 'Total',
+    noMembers: 'No member data',
+    subtotal: 'Subtotal',
+    subTabGroup: 'Group Ranking',
+    subTabPerson: 'Individual Ranking + Team Cards',
+    loading: 'Loading ranking data…',
+    loadError: 'Load Failed',
+    loadErrorDesc: 'Unable to fetch check-in ranking data, please check backend service',
+    retry: 'Retry',
+    noRankData: 'No ranking data',
+    noRankDataDesc: 'Upload enclosure check-in data (D2) and complete analysis to refresh',
+    noRoleData: 'No ranking data',
+    noRoleDataDesc:
+      'No role rankings available under current enclosure config; check role assignment',
+    teamCards: 'Team Cards',
+  },
+  th: {
+    noData: 'ไม่มีข้อมูล',
+    rank: 'อันดับ',
+    team: 'ทีม',
+    sales: 'การขาย',
+    validStudents: 'นักเรียนที่ใช้งานอยู่',
+    validStudentsTooltip: 'นักเรียนที่ชำระเงินและยังอยู่ในช่วงใช้งาน',
+    checkedIn: 'เช็คอินแล้ว',
+    checkinRate: 'อัตราเช็คอิน',
+    checkinRateTooltip:
+      'นักเรียนที่แปลงโค้ดและแชร์ / นักเรียนที่ใช้งานอยู่ เขียว≥50% ส้ม30-50% แดง<30%',
+    total: 'รวม',
+    noMembers: 'ไม่มีข้อมูลสมาชิก',
+    subtotal: 'ยอดรวมย่อย',
+    subTabGroup: 'อันดับกลุ่ม',
+    subTabPerson: 'อันดับบุคคล + การ์ดทีม',
+    loading: 'กำลังโหลดข้อมูลอันดับ…',
+    loadError: 'โหลดล้มเหลว',
+    loadErrorDesc: 'ไม่สามารถดึงข้อมูลอันดับการเช็คอิน กรุณาตรวจสอบบริการ backend',
+    retry: 'ลองใหม่',
+    noRankData: 'ไม่มีข้อมูลอันดับ',
+    noRankDataDesc: 'อัปโหลดข้อมูลเช็คอินคอก (D2) และวิเคราะห์เสร็จแล้วจะรีเฟรชอัตโนมัติ',
+    noRoleData: 'ไม่มีข้อมูลอันดับ',
+    noRoleDataDesc: 'ไม่มีอันดับบทบาทภายใต้การตั้งค่าคอกปัจจุบัน',
+    teamCards: 'การ์ดทีม',
+  },
+} as const;
+
+type RankingLocale = keyof typeof I18N;
+function useRankingT() {
+  const locale = useLocale();
+  return I18N[(locale as RankingLocale) in I18N ? (locale as RankingLocale) : 'zh'];
+}
 
 // ── 类型定义 ──────────────────────────────────────────────────────────────────
 
