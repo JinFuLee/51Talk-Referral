@@ -1,7 +1,74 @@
 'use client';
 
+import { useLocale } from 'next-intl';
 import { Search, X } from 'lucide-react';
 import type { HighPotentialStudent } from '@/lib/types/member';
+
+const I18N = {
+  zh: {
+    searchPlaceholder: '搜索学员ID / CC名',
+    allEnclosures: '全部围场',
+    engagementAll: '参与深度：全部',
+    engagementDeep: '深度参与',
+    engagementShallow: '浅度参与',
+    paidAll: '付费：全部',
+    paidYes: '已付费',
+    paidNo: '未付费',
+    ccTeamAll: 'CC 团队：全部',
+    reset: '重置',
+    countAll: (n: number) => `共 ${n} 人`,
+    countFiltered: (filtered: number, total: number) => `${filtered} / ${total} 人`,
+  },
+  'zh-TW': {
+    searchPlaceholder: '搜索學員ID / CC名',
+    allEnclosures: '全部圍場',
+    engagementAll: '參與深度：全部',
+    engagementDeep: '深度參與',
+    engagementShallow: '淺度參與',
+    paidAll: '付費：全部',
+    paidYes: '已付費',
+    paidNo: '未付費',
+    ccTeamAll: 'CC 團隊：全部',
+    reset: '重置',
+    countAll: (n: number) => `共 ${n} 人`,
+    countFiltered: (filtered: number, total: number) => `${filtered} / ${total} 人`,
+  },
+  en: {
+    searchPlaceholder: 'Search student ID / CC name',
+    allEnclosures: 'All Enclosures',
+    engagementAll: 'Engagement: All',
+    engagementDeep: 'Deep',
+    engagementShallow: 'Shallow',
+    paidAll: 'Payment: All',
+    paidYes: 'Paid',
+    paidNo: 'Not Paid',
+    ccTeamAll: 'CC Team: All',
+    reset: 'Reset',
+    countAll: (n: number) => `Total ${n}`,
+    countFiltered: (filtered: number, total: number) => `${filtered} / ${total}`,
+  },
+  th: {
+    searchPlaceholder: 'ค้นหารหัสนักเรียน / ชื่อ CC',
+    allEnclosures: 'ทุกคอก',
+    engagementAll: 'การมีส่วนร่วม: ทั้งหมด',
+    engagementDeep: 'ลึก',
+    engagementShallow: 'ตื้น',
+    paidAll: 'การชำระ: ทั้งหมด',
+    paidYes: 'ชำระแล้ว',
+    paidNo: 'ยังไม่ชำระ',
+    ccTeamAll: 'ทีม CC: ทั้งหมด',
+    reset: 'รีเซ็ต',
+    countAll: (n: number) => `รวม ${n} คน`,
+    countFiltered: (filtered: number, total: number) => `${filtered} / ${total} คน`,
+  },
+} as const;
+
+type Locale = keyof typeof I18N;
+
+function useT() {
+  const locale = useLocale();
+  return I18N[(locale as Locale) in I18N ? (locale as Locale) : 'zh'];
+}
 
 export interface FilterState {
   search: string;
@@ -43,6 +110,7 @@ export function HighPotentialFilters({
   totalFiltered,
   totalAll,
 }: HighPotentialFiltersProps) {
+  const t = useT();
   const enclosureOptions = extractOptions(students, 'enclosure');
   const ccGroupOptions = extractOptions(students, 'cc_group');
 
@@ -72,7 +140,7 @@ export function HighPotentialFilters({
           type="text"
           value={filters.search}
           onChange={(e) => onChange({ ...filters, search: e.target.value })}
-          placeholder="搜索学员ID / CC名"
+          placeholder={t.searchPlaceholder}
           className="w-full pl-8 pr-3 py-1.5 text-sm rounded-lg border border-[var(--border-default)] bg-[var(--bg-surface)] text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]/20 focus:border-[var(--color-accent-muted)]"
         />
       </div>
@@ -83,7 +151,7 @@ export function HighPotentialFilters({
         onChange={(e) => onChange({ ...filters, enclosure: e.target.value })}
         className="px-3 py-1.5 text-sm rounded-lg border border-[var(--border-default)] bg-[var(--bg-surface)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]/20 cursor-pointer"
       >
-        <option value="all">全部围场</option>
+        <option value="all">{t.allEnclosures}</option>
         {enclosureOptions.map((v) => (
           <option key={v} value={v}>
             {v}
@@ -97,9 +165,9 @@ export function HighPotentialFilters({
         onChange={(e) => onChange({ ...filters, deepEngagement: e.target.value })}
         className="px-3 py-1.5 text-sm rounded-lg border border-[var(--border-default)] bg-[var(--bg-surface)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]/20 cursor-pointer"
       >
-        <option value="all">参与深度：全部</option>
-        <option value="deep">深度参与</option>
-        <option value="shallow">浅度参与</option>
+        <option value="all">{t.engagementAll}</option>
+        <option value="deep">{t.engagementDeep}</option>
+        <option value="shallow">{t.engagementShallow}</option>
       </select>
 
       {/* 付费状态 */}
@@ -108,9 +176,9 @@ export function HighPotentialFilters({
         onChange={(e) => onChange({ ...filters, hasPaid: e.target.value })}
         className="px-3 py-1.5 text-sm rounded-lg border border-[var(--border-default)] bg-[var(--bg-surface)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]/20 cursor-pointer"
       >
-        <option value="all">付费：全部</option>
-        <option value="yes">已付费</option>
-        <option value="no">未付费</option>
+        <option value="all">{t.paidAll}</option>
+        <option value="yes">{t.paidYes}</option>
+        <option value="no">{t.paidNo}</option>
       </select>
 
       {/* CC 团队 */}
@@ -120,7 +188,7 @@ export function HighPotentialFilters({
           onChange={(e) => onChange({ ...filters, ccGroup: e.target.value })}
           className="px-3 py-1.5 text-sm rounded-lg border border-[var(--border-default)] bg-[var(--bg-surface)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]/20 cursor-pointer"
         >
-          <option value="all">CC 团队：全部</option>
+          <option value="all">{t.ccTeamAll}</option>
           {ccGroupOptions.map((v) => (
             <option key={v} value={v}>
               {v}
@@ -132,7 +200,9 @@ export function HighPotentialFilters({
       {/* 重置 + 计数 */}
       <div className="flex items-center gap-2 ml-auto">
         <span className="text-xs text-[var(--text-muted)] whitespace-nowrap">
-          {totalFiltered === totalAll ? `共 ${totalAll} 人` : `${totalFiltered} / ${totalAll} 人`}
+          {totalFiltered === totalAll
+            ? t.countAll(totalAll)
+            : t.countFiltered(totalFiltered, totalAll)}
         </span>
         {hasActiveFilter && (
           <button
@@ -140,7 +210,7 @@ export function HighPotentialFilters({
             className="flex items-center gap-1 px-2 py-1 text-xs rounded-md bg-[var(--bg-subtle)] text-[var(--text-secondary)] hover:bg-[var(--border-default)] transition-colors"
           >
             <X className="w-3 h-3" />
-            重置
+            {t.reset}
           </button>
         )}
       </div>
