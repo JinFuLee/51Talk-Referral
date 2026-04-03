@@ -212,7 +212,10 @@ def get_report_comparison(
 # ── 端点 3b：ComparisonBanner 专用摘要（compare-summary）──────────────────────
 
 
-@router.get("/report/compare-summary", summary="ComparisonBanner 对比摘要（4 个 KPI 前/后/变化率）")
+@router.get(
+    "/report/compare-summary",
+    summary="ComparisonBanner 对比摘要（4 个 KPI 前/后/变化率）",
+)
 def get_compare_summary(
     mode: str = Query(
         default="mom",
@@ -287,13 +290,18 @@ def get_compare_summary(
                 delta_pct = dim_data.get("delta_pct")
                 if current is not None or previous is not None:
                     any_data = True
+                chg = round(delta_pct * 100, 1) if delta_pct is not None else None
                 metrics_out[banner_key] = {
                     "current": current,
                     "compare": previous,
-                    "change_pct": round(delta_pct * 100, 1) if delta_pct is not None else None,
+                    "change_pct": chg,
                 }
             except Exception:
-                metrics_out[banner_key] = {"current": None, "compare": None, "change_pct": None}
+                metrics_out[banner_key] = {
+                    "current": None,
+                    "compare": None,
+                    "change_pct": None,
+                }
 
         # leads 与 registrations 相同来源，直接复用，避免重复请求
         if "registrations" in metrics_out and "leads" not in metrics_out:
