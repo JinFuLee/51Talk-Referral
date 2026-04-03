@@ -3,6 +3,7 @@
 import { useLocale } from 'next-intl';
 import { formatRate, formatUSD, formatValue } from '@/lib/utils';
 import type { ScenarioAnalysis } from '@/lib/types/report';
+import { useLabel, SCENARIO_NAME_LABELS } from '@/lib/label-maps';
 
 // ── I18N ──────────────────────────────────────────────────────────────────────
 const I18N = {
@@ -73,6 +74,7 @@ interface Props {
 export function ScenarioCompareSlide({ data }: Props) {
   const locale = useLocale();
   const t = (I18N as unknown as Record<string, (typeof I18N)['zh']>)[locale] ?? I18N['zh'];
+  const label = useLabel();
   const scenarios = data?.scenarios ?? [];
 
   const totalImpactRev = scenarios.reduce((s, sc) => s + (sc.impact_revenue ?? 0), 0);
@@ -117,7 +119,9 @@ export function ScenarioCompareSlide({ data }: Props) {
                       key={`${sc.name}-${i}`}
                       className={i % 2 === 0 ? 'slide-row-even' : 'slide-row-odd'}
                     >
-                      <td className="slide-td font-medium text-[var(--text-primary)]">{sc.name}</td>
+                      <td className="slide-td font-medium text-[var(--text-primary)]">
+                        {label(SCENARIO_NAME_LABELS, sc.name)}
+                      </td>
                       {scenarios.some((s) => s.channel) && (
                         <td className="slide-td text-[var(--text-muted)]">{sc.channel ?? '—'}</td>
                       )}

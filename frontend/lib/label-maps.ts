@@ -15,10 +15,38 @@ export const CHANNEL_LABELS: LabelMap = {
   CC窄: { zh: 'CC窄', 'zh-TW': 'CC窄', en: 'CC Narrow', th: 'CC แคบ' },
   SS窄: { zh: 'SS窄', 'zh-TW': 'SS窄', en: 'SS Narrow', th: 'SS แคบ' },
   LP窄: { zh: 'LP窄', 'zh-TW': 'LP窄', en: 'LP Narrow', th: 'LP แคบ' },
+  // 带"口"后缀变体（后端有时返回这些 key）
+  CC窄口: { zh: 'CC窄口', 'zh-TW': 'CC窄口', en: 'CC Narrow', th: 'CC แคบ' },
+  SS窄口: { zh: 'SS窄口', 'zh-TW': 'SS窄口', en: 'SS Narrow', th: 'SS แคบ' },
+  LP窄口: { zh: 'LP窄口', 'zh-TW': 'LP窄口', en: 'LP Narrow', th: 'LP แคบ' },
+  宽口: { zh: '宽口', 'zh-TW': '寬口', en: 'Wide', th: 'กว้าง' },
   CC宽: { zh: 'CC宽', 'zh-TW': 'CC寬', en: 'CC Wide', th: 'CC กว้าง' },
   LP宽: { zh: 'LP宽', 'zh-TW': 'LP寬', en: 'LP Wide', th: 'LP กว้าง' },
   运营宽: { zh: '运营宽', 'zh-TW': '運營寬', en: 'Ops Wide', th: 'ปฏิบัติการ กว้าง' },
   总计: { zh: '总计', 'zh-TW': '總計', en: 'Total', th: 'รวม' },
+  รวมช่องทางแคบ: { zh: '总窄口', 'zh-TW': '總窄口', en: 'Total Narrow', th: 'รวมช่องทางแคบ' },
+};
+
+/** 后端 projection_engine 返回的场景名称 → 当前 locale */
+export const SCENARIO_NAME_LABELS: LabelMap = {
+  预约率提升至目标: {
+    zh: '预约率提升至目标',
+    'zh-TW': '預約率提升至目標',
+    en: 'Appt Rate to Target',
+    th: 'อัตรานัดหมายถึงเป้า',
+  },
+  出席率提升至目标: {
+    zh: '出席率提升至目标',
+    'zh-TW': '出席率提升至目標',
+    en: 'Attend Rate to Target',
+    th: 'อัตราเข้าร่วมถึงเป้า',
+  },
+  付费率提升至目标: {
+    zh: '付费率提升至目标',
+    'zh-TW': '付費率提升至目標',
+    en: 'Pay Rate to Target',
+    th: 'อัตราชำระเงินถึงเป้า',
+  },
 };
 
 export const STUDENT_TAG_LABELS: LabelMap = {

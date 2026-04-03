@@ -14,6 +14,7 @@ import type { AttributionBreakdownItem } from '@/lib/types/cross-analysis';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { formatRate } from '@/lib/utils';
 import { useLocale } from 'next-intl';
+import { useLabel, CHANNEL_LABELS } from '@/lib/label-maps';
 
 const I18N = {
   zh: {
@@ -73,6 +74,7 @@ function barColor(pct: number): string {
 export function ContributionBreakdown({ data, title }: ContributionBreakdownProps) {
   const locale = useLocale();
   const t = I18N[(locale as Locale) in I18N ? (locale as Locale) : 'zh'];
+  const label = useLabel();
 
   if (data.length === 0) {
     return <EmptyState title={t.noData} description={t.noDataDesc} />;
@@ -98,8 +100,10 @@ export function ContributionBreakdown({ data, title }: ContributionBreakdownProp
             dataKey="group_key"
             width={100}
             tick={{ fontSize: 11, fill: 'var(--text-secondary)' }}
+            tickFormatter={(v: string) => label(CHANNEL_LABELS, v)}
           />
           <Tooltip
+            labelFormatter={(v: string) => label(CHANNEL_LABELS, v)}
             formatter={(val: number, name: string) => {
               if (name === 'paid_count') return [`${val} ${t.paidUnit}`, t.paidLabel];
               return [val, name];
