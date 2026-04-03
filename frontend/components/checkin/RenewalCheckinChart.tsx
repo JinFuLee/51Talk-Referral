@@ -27,6 +27,26 @@ const I18N = {
     legendAvg: 'Avg Renewals',
     legendPct: 'Has Renewal %',
   },
+  'zh-TW': {
+    bandLabel: '打卡頻段：',
+    hasRenewalPct: '有續費學員比例：',
+    avgRenewals: '人均續費訂單數：',
+    bandStudents: '該頻段學員數：',
+    noCorrelation: '暫無續費關聯數據',
+    noRenewal: '暫無續費數據（需要「總續費訂單數」欄位）',
+    legendAvg: '人均續費訂單數',
+    legendPct: '有續費比例 %',
+  },
+  th: {
+    bandLabel: 'กลุ่มความถี่: ',
+    hasRenewalPct: 'อัตราการต่ออายุ: ',
+    avgRenewals: 'ต่ออายุเฉลี่ย: ',
+    bandStudents: 'นักเรียนในกลุ่ม: ',
+    noCorrelation: 'ไม่มีข้อมูลความสัมพันธ์การต่ออายุ',
+    noRenewal: 'ไม่มีข้อมูลการต่ออายุ (ต้องการฟิลด์ "จำนวนคำสั่งซื้อต่ออายุทั้งหมด")',
+    legendAvg: 'ต่ออายุเฉลี่ย',
+    legendPct: 'มีการต่ออายุ %',
+  },
 } as const;
 
 interface RenewalCheckinChartProps {
@@ -93,7 +113,7 @@ function CustomTooltip({
  */
 export function RenewalCheckinChart({ data }: RenewalCheckinChartProps) {
   const locale = useLocale();
-  const t = I18N[locale === 'en' ? 'en' : 'zh'];
+  const t = I18N[locale as keyof typeof I18N] ?? I18N.zh;
 
   if (!data?.by_band || data.by_band.length === 0) {
     return (

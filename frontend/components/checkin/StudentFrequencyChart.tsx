@@ -32,6 +32,22 @@ const I18N = {
     noData: 'No frequency data',
     countSuffix: 'x',
   },
+  'zh-TW': {
+    zeroCheckin: '零打卡',
+    thisMonthN: (n: number) => `本月 ${n} 次`,
+    students: '學員人數：',
+    pct: '佔比：',
+    noData: '暫無頻次數據',
+    countSuffix: '次',
+  },
+  th: {
+    zeroCheckin: 'ไม่มีการเช็คอิน',
+    thisMonthN: (n: number) => `เดือนนี้ ${n} ครั้ง`,
+    students: 'นักเรียน: ',
+    pct: 'สัดส่วน: ',
+    noData: 'ไม่มีข้อมูลความถี่',
+    countSuffix: 'ครั้ง',
+  },
 } as const;
 
 interface StudentFrequencyChartProps {
@@ -76,7 +92,7 @@ function CustomTooltip({ active, payload, t }: TooltipProps<number, string> & { 
  */
 export function StudentFrequencyChart({ data }: StudentFrequencyChartProps) {
   const locale = useLocale();
-  const t = I18N[locale === 'en' ? 'en' : 'zh'];
+  const t = I18N[locale as keyof typeof I18N] ?? I18N.zh;
 
   if (!data || data.length === 0) {
     return (

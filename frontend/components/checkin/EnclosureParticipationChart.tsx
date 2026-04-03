@@ -33,6 +33,22 @@ const I18N = {
     enclosureStudents: 'Students: ',
     noData: 'No enclosure distribution data',
   },
+  'zh-TW': {
+    enclosureLabel: '圍場：',
+    participationRate: '參與率：',
+    avgCheckin: '人均打卡：',
+    daysSuffix: ' 天',
+    enclosureStudents: '該圍場學員數：',
+    noData: '暫無圍場分佈數據',
+  },
+  th: {
+    enclosureLabel: 'กลุ่ม: ',
+    participationRate: 'อัตราการมีส่วนร่วม: ',
+    avgCheckin: 'เช็คอินเฉลี่ย: ',
+    daysSuffix: ' วัน',
+    enclosureStudents: 'นักเรียนในกลุ่ม: ',
+    noData: 'ไม่มีข้อมูลการกระจายกลุ่ม',
+  },
 } as const;
 
 interface EnclosureChartRow {
@@ -82,7 +98,7 @@ function EnclosureTooltip({
 
 export function EnclosureParticipationChart({ data }: { data: EnclosureDistItem[] }) {
   const locale = useLocale();
-  const t = I18N[locale === 'en' ? 'en' : 'zh'];
+  const t = I18N[locale as keyof typeof I18N] ?? I18N.zh;
 
   if (!data || data.length === 0) {
     return (

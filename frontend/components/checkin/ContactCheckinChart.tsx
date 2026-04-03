@@ -208,7 +208,7 @@ export function ContactCheckinChart({ data }: ContactCheckinChartProps) {
           tick={{ fontSize: 11, fill: CHART_PALETTE.axisLabel }}
           axisLine={false}
           tickLine={false}
-          width={100}
+          width={120}
         />
         <Tooltip
           content={(props: TooltipProps<number, string>) => (

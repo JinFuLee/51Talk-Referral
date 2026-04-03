@@ -96,7 +96,7 @@ export function ContributionBreakdown({ data, title }: ContributionBreakdownProp
           <YAxis
             type="category"
             dataKey="group_key"
-            width={80}
+            width={100}
             tick={{ fontSize: 11, fill: 'var(--text-secondary)' }}
           />
           <Tooltip

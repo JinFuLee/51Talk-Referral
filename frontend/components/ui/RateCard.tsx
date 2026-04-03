@@ -6,6 +6,8 @@ import { useLocale } from 'next-intl';
 const I18N = {
   zh: { target: (n: number) => `目标 ${n}%` },
   en: { target: (n: number) => `Target ${n}%` },
+  'zh-TW': { target: (n: number) => `目標 ${n}%` },
+  th: { target: (n: number) => `เป้าหมาย ${n}%` },
 } as const;
 
 interface RateCardProps {
@@ -38,7 +40,7 @@ function RateCardBase({ label, rate, sub, target }: RateCardProps) {
           : 'text-[var(--text-primary)]';
 
   // vs 目标差值
-  const t = I18N[locale === 'en' ? 'en' : 'zh'];
+  const t = I18N[locale as keyof typeof I18N] ?? I18N.zh;
   const vsDiff =
     targetPct !== undefined && pct !== null ? ((pct - targetPct) / targetPct) * 100 : null;
   const vsIsPositive = vsDiff !== null && vsDiff >= 0;

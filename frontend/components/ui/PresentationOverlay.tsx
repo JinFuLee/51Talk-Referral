@@ -7,11 +7,13 @@ import { useLocale } from 'next-intl';
 const I18N = {
   zh: { exitBtn: '退出汇报模式' },
   en: { exitBtn: 'Exit Presentation' },
+  'zh-TW': { exitBtn: '退出彙報模式' },
+  th: { exitBtn: 'ออกจากโหมดนำเสนอ' },
 } as const;
 
 export function PresentationOverlay() {
   const locale = useLocale();
-  const t = I18N[locale === 'en' ? 'en' : 'zh'];
+  const t = I18N[locale as keyof typeof I18N] ?? I18N.zh;
   const isPresentationMode = usePresentationStore((s) => s.isPresentationMode);
   const exitPresentationMode = usePresentationStore((s) => s.exitPresentationMode);
 

@@ -14,6 +14,16 @@ const I18N = {
     prevPage: 'Previous',
     nextPage: 'Next',
   },
+  'zh-TW': {
+    totalItems: (n: number) => `共 ${n.toLocaleString()} 條記錄`,
+    prevPage: '上一頁',
+    nextPage: '下一頁',
+  },
+  th: {
+    totalItems: (n: number) => `ทั้งหมด ${n.toLocaleString()} รายการ`,
+    prevPage: 'ก่อนหน้า',
+    nextPage: 'ถัดไป',
+  },
 } as const;
 
 export interface PaginationProps {
@@ -25,7 +35,7 @@ export interface PaginationProps {
 
 export function Pagination({ currentPage, totalPages, totalItems, onPageChange }: PaginationProps) {
   const locale = useLocale();
-  const t = I18N[locale === 'en' ? 'en' : 'zh'];
+  const t = I18N[locale as keyof typeof I18N] ?? I18N.zh;
 
   return (
     <div className="flex items-center gap-3 text-sm">
