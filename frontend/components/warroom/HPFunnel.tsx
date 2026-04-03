@@ -1,12 +1,47 @@
 'use client';
 
+import { useLocale } from 'next-intl';
 import type { WarroomStudent } from '@/lib/types/cross-analysis';
+
+const I18N = {
+  zh: {
+    title: '高潜漏斗',
+    highPotential: '高潜学员',
+    newReg: '带新注册',
+    attendance: '出席',
+    payments: '付费',
+  },
+  'zh-TW': {
+    title: '高潛漏斗',
+    highPotential: '高潛學員',
+    newReg: '帶新註冊',
+    attendance: '出席',
+    payments: '付費',
+  },
+  en: {
+    title: 'High-Potential Funnel',
+    highPotential: 'HP Students',
+    newReg: 'Referred Registrations',
+    attendance: 'Attendance',
+    payments: 'Payments',
+  },
+  th: {
+    title: 'ช่องทางศักยภาพสูง',
+    highPotential: 'นักเรียนศักยภาพสูง',
+    newReg: 'ลงทะเบียนจากการแนะนำ',
+    attendance: 'เข้าร่วม',
+    payments: 'ชำระเงิน',
+  },
+} as const;
 
 interface HPFunnelProps {
   students: WarroomStudent[];
 }
 
 export function HPFunnel({ students }: HPFunnelProps) {
+  const locale = useLocale();
+  const t = I18N[locale as keyof typeof I18N] ?? I18N.zh;
+
   const total = students.length;
   if (total === 0) return null;
 
@@ -15,21 +50,21 @@ export function HPFunnel({ students }: HPFunnelProps) {
   const totalPay = students.reduce((s, x) => s + x.payments, 0);
 
   const steps = [
-    { label: '高潜学员', value: total, color: '#6366f1', pct: 100 },
+    { label: t.highPotential, value: total, color: '#6366f1', pct: 100 },
     {
-      label: '带新注册',
+      label: t.newReg,
       value: totalNew,
       color: '#8b5cf6',
       pct: total > 0 ? Math.round((totalNew / total) * 100) : 0,
     },
     {
-      label: '出席',
+      label: t.attendance,
       value: totalAttend,
       color: '#a78bfa',
       pct: total > 0 ? Math.round((totalAttend / total) * 100) : 0,
     },
     {
-      label: '付费',
+      label: t.payments,
       value: totalPay,
       color: '#c4b5fd',
       pct: total > 0 ? Math.round((totalPay / total) * 100) : 0,
@@ -38,7 +73,7 @@ export function HPFunnel({ students }: HPFunnelProps) {
 
   return (
     <div className="bg-[var(--bg-surface)] rounded-xl border border-[var(--border-default)] shadow-[var(--shadow-subtle)] p-3">
-      <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-3">高潜漏斗</h3>
+      <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-3">{t.title}</h3>
       <div className="space-y-2">
         {steps.map((step) => (
           <div key={step.label} className="flex items-center gap-3">

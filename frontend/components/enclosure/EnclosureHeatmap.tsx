@@ -1,7 +1,71 @@
 'use client';
 
+import { useLocale } from 'next-intl';
 import { formatRate, fmtEnc } from '@/lib/utils';
 import type { EnclosureCCMetrics } from '@/lib/types/enclosure';
+
+const I18N = {
+  zh: {
+    empty: '暂无围场数据，上传数据文件后自动刷新',
+    enclosure: '围场段',
+    cc: 'CC',
+    students: '有效学员',
+    participationRate: '参与率',
+    cargoRatio: '带货比',
+    checkinRate: '打卡率',
+    ccReach: 'CC触达率',
+    ssReach: 'SS触达率',
+    lpReach: 'LP触达率',
+    registrations: '注册数',
+    payments: '付费数',
+    revenue: '业绩(USD)',
+  },
+  'zh-TW': {
+    empty: '暫無圍場數據，上傳資料檔案後自動刷新',
+    enclosure: '圍場段',
+    cc: 'CC',
+    students: '有效學員',
+    participationRate: '參與率',
+    cargoRatio: '帶貨比',
+    checkinRate: '打卡率',
+    ccReach: 'CC觸達率',
+    ssReach: 'SS觸達率',
+    lpReach: 'LP觸達率',
+    registrations: '註冊數',
+    payments: '付費數',
+    revenue: '業績(USD)',
+  },
+  en: {
+    empty: 'No enclosure data. Upload a data file to refresh.',
+    enclosure: 'Enclosure',
+    cc: 'CC',
+    students: 'Active Students',
+    participationRate: 'Participation',
+    cargoRatio: 'Referral Ratio',
+    checkinRate: 'Check-in Rate',
+    ccReach: 'CC Reach',
+    ssReach: 'SS Reach',
+    lpReach: 'LP Reach',
+    registrations: 'Registrations',
+    payments: 'Payments',
+    revenue: 'Revenue (USD)',
+  },
+  th: {
+    empty: 'ไม่มีข้อมูล Enclosure กรุณาอัปโหลดไฟล์ข้อมูล',
+    enclosure: 'Enclosure',
+    cc: 'CC',
+    students: 'นักเรียนที่ใช้งาน',
+    participationRate: 'อัตราการมีส่วนร่วม',
+    cargoRatio: 'อัตราการแนะนำ',
+    checkinRate: 'อัตราเช็คอิน',
+    ccReach: 'CC การเข้าถึง',
+    ssReach: 'SS การเข้าถึง',
+    lpReach: 'LP การเข้าถึง',
+    registrations: 'ลงทะเบียน',
+    payments: 'ชำระเงิน',
+    revenue: 'รายได้ (USD)',
+  },
+} as const;
 
 interface EnclosureHeatmapProps {
   metrics: EnclosureCCMetrics[];
@@ -14,12 +78,11 @@ function heatmapBg(value: number, low: number, high: number): string {
 }
 
 export function EnclosureHeatmap({ metrics }: EnclosureHeatmapProps) {
+  const locale = useLocale();
+  const t = I18N[locale as keyof typeof I18N] ?? I18N.zh;
+
   if (metrics.length === 0) {
-    return (
-      <div className="text-center py-8 text-sm text-[var(--text-muted)]">
-        暂无围场数据，上传数据文件后自动刷新
-      </div>
-    );
+    return <div className="text-center py-8 text-sm text-[var(--text-muted)]">{t.empty}</div>;
   }
 
   return (
@@ -27,18 +90,18 @@ export function EnclosureHeatmap({ metrics }: EnclosureHeatmapProps) {
       <table className="w-full text-sm border-collapse">
         <thead>
           <tr className="slide-thead-row text-xs">
-            <th className="py-1.5 px-2 border-0 text-left">围场段</th>
-            <th className="py-1.5 px-2 border-0 text-left">CC</th>
-            <th className="py-1.5 px-2 border-0 text-right">有效学员</th>
-            <th className="py-1.5 px-2 border-0 text-center">参与率</th>
-            <th className="py-1.5 px-2 border-0 text-center">带货比</th>
-            <th className="py-1.5 px-2 border-0 text-center">打卡率</th>
-            <th className="py-1.5 px-2 border-0 text-center">CC触达率</th>
-            <th className="py-1.5 px-2 border-0 text-center">SS触达率</th>
-            <th className="py-1.5 px-2 border-0 text-center">LP触达率</th>
-            <th className="py-1.5 px-2 border-0 text-right">注册数</th>
-            <th className="py-1.5 px-2 border-0 text-right">付费数</th>
-            <th className="py-1.5 px-2 border-0 text-right">业绩(USD)</th>
+            <th className="py-1.5 px-2 border-0 text-left">{t.enclosure}</th>
+            <th className="py-1.5 px-2 border-0 text-left">{t.cc}</th>
+            <th className="py-1.5 px-2 border-0 text-right">{t.students}</th>
+            <th className="py-1.5 px-2 border-0 text-center">{t.participationRate}</th>
+            <th className="py-1.5 px-2 border-0 text-center">{t.cargoRatio}</th>
+            <th className="py-1.5 px-2 border-0 text-center">{t.checkinRate}</th>
+            <th className="py-1.5 px-2 border-0 text-center">{t.ccReach}</th>
+            <th className="py-1.5 px-2 border-0 text-center">{t.ssReach}</th>
+            <th className="py-1.5 px-2 border-0 text-center">{t.lpReach}</th>
+            <th className="py-1.5 px-2 border-0 text-right">{t.registrations}</th>
+            <th className="py-1.5 px-2 border-0 text-right">{t.payments}</th>
+            <th className="py-1.5 px-2 border-0 text-right">{t.revenue}</th>
           </tr>
         </thead>
         <tbody>
