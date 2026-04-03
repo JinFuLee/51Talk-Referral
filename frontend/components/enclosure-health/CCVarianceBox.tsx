@@ -1,6 +1,51 @@
 'use client';
 
 import { formatRate } from '@/lib/utils';
+import { useLocale } from 'next-intl';
+
+const I18N = {
+  zh: {
+    noData: '暂无方差数据',
+    min: 'min',
+    median: '中位',
+    mean: '均值',
+    max: 'max',
+    legendMean: '均值',
+    legendMedian: '中位数',
+    legendRange: '均值±1σ',
+  },
+  en: {
+    noData: 'No variance data',
+    min: 'min',
+    median: 'Med',
+    mean: 'Mean',
+    max: 'max',
+    legendMean: 'Mean',
+    legendMedian: 'Median',
+    legendRange: 'Mean±1σ',
+  },
+  'zh-TW': {
+    noData: '暫無方差數據',
+    min: 'min',
+    median: '中位',
+    mean: '均值',
+    max: 'max',
+    legendMean: '均值',
+    legendMedian: '中位數',
+    legendRange: '均值±1σ',
+  },
+  th: {
+    noData: 'ไม่มีข้อมูลความแปรปรวน',
+    min: 'ต่ำสุด',
+    median: 'มัธยฐาน',
+    mean: 'เฉลี่ย',
+    max: 'สูงสุด',
+    legendMean: 'ค่าเฉลี่ย',
+    legendMedian: 'มัธยฐาน',
+    legendRange: 'Mean±1σ',
+  },
+} as const;
+type Locale = keyof typeof I18N;
 
 export interface VarianceRow {
   segment: string;
@@ -16,10 +61,13 @@ interface CCVarianceBoxProps {
 }
 
 export function CCVarianceBox({ data }: CCVarianceBoxProps) {
+  const locale = useLocale();
+  const t = I18N[(locale as Locale) in I18N ? (locale as Locale) : 'zh'];
+
   if (!data.length) {
     return (
       <div className="flex items-center justify-center h-32 text-sm text-[var(--text-muted)]">
-        暂无方差数据
+        {t.noData}
       </div>
     );
   }
@@ -36,10 +84,18 @@ export function CCVarianceBox({ data }: CCVarianceBoxProps) {
             <div className="flex items-center justify-between mb-1">
               <span className="text-xs font-medium text-[var(--text-primary)]">{row.segment}</span>
               <div className="flex gap-3 text-[10px] text-[var(--text-muted)] font-mono">
-                <span>min {formatRate(row.min)}</span>
-                <span>中位 {formatRate(row.median)}</span>
-                <span>均值 {formatRate(row.mean)}</span>
-                <span>max {formatRate(row.max)}</span>
+                <span>
+                  {t.min} {formatRate(row.min)}
+                </span>
+                <span>
+                  {t.median} {formatRate(row.median)}
+                </span>
+                <span>
+                  {t.mean} {formatRate(row.mean)}
+                </span>
+                <span>
+                  {t.max} {formatRate(row.max)}
+                </span>
                 <span className="text-yellow-500">±{formatRate(row.std)}</span>
               </div>
             </div>
@@ -86,15 +142,15 @@ export function CCVarianceBox({ data }: CCVarianceBoxProps) {
       <div className="flex items-center gap-4 text-[10px] text-[var(--text-muted)] mt-1">
         <div className="flex items-center gap-1">
           <div className="w-3 h-0.5 bg-action-accent" />
-          <span>均值</span>
+          <span>{t.legendMean}</span>
         </div>
         <div className="flex items-center gap-1">
           <div className="w-3 h-0.5 bg-orange-400" />
-          <span>中位数</span>
+          <span>{t.legendMedian}</span>
         </div>
         <div className="flex items-center gap-1">
           <div className="w-3 h-2 bg-action-accent-muted/50 rounded" />
-          <span>均值±1σ</span>
+          <span>{t.legendRange}</span>
         </div>
       </div>
     </div>

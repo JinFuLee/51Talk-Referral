@@ -10,6 +10,39 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts';
+import { useLocale } from 'next-intl';
+
+const I18N = {
+  zh: {
+    noData: '暂无对标数据',
+    participation: '参与率',
+    conversion: '转化率',
+    checkin: '打卡率',
+    reach: '触达率',
+  },
+  en: {
+    noData: 'No benchmark data',
+    participation: 'Participation',
+    conversion: 'Conversion',
+    checkin: 'Check-in',
+    reach: 'Reach',
+  },
+  'zh-TW': {
+    noData: '暫無對標數據',
+    participation: '參與率',
+    conversion: '轉化率',
+    checkin: '打卡率',
+    reach: '觸達率',
+  },
+  th: {
+    noData: 'ไม่มีข้อมูลเปรียบเทียบ',
+    participation: 'เข้าร่วม',
+    conversion: 'แปลง',
+    checkin: 'เช็คอิน',
+    reach: 'เข้าถึง',
+  },
+} as const;
+type Locale = keyof typeof I18N;
 
 export interface BenchmarkRow {
   segment: string;
@@ -23,28 +56,34 @@ interface SegmentBenchmarkProps {
   data: BenchmarkRow[];
 }
 
-const METRICS = [
-  { key: 'participation', label: '参与率', color: '#3b82f6' },
-  { key: 'conversion', label: '转化率', color: '#22c55e' },
-  { key: 'checkin', label: '打卡率', color: '#f59e0b' },
-  { key: 'reach', label: '触达率', color: '#a855f7' },
-] as const;
+const METRIC_COLORS = ['#3b82f6', '#22c55e', '#f59e0b', '#a855f7'] as const;
+const METRIC_KEYS = ['participation', 'conversion', 'checkin', 'reach'] as const;
 
 export function SegmentBenchmark({ data }: SegmentBenchmarkProps) {
+  const locale = useLocale();
+  const t = I18N[(locale as Locale) in I18N ? (locale as Locale) : 'zh'];
+
   if (!data.length) {
     return (
       <div className="flex items-center justify-center h-48 text-sm text-[var(--text-muted)]">
-        暂无对标数据
+        {t.noData}
       </div>
     );
   }
 
+  const METRICS = [
+    { key: 'participation', label: t.participation, color: METRIC_COLORS[0] },
+    { key: 'conversion', label: t.conversion, color: METRIC_COLORS[1] },
+    { key: 'checkin', label: t.checkin, color: METRIC_COLORS[2] },
+    { key: 'reach', label: t.reach, color: METRIC_COLORS[3] },
+  ] as const;
+
   const chartData = data.map((row) => ({
     name: row.segment,
-    参与率: Math.round((row.participation ?? 0) * 100),
-    转化率: Math.round((row.conversion ?? 0) * 100),
-    打卡率: Math.round((row.checkin ?? 0) * 100),
-    触达率: Math.round((row.reach ?? 0) * 100),
+    [t.participation]: Math.round((row.participation ?? 0) * 100),
+    [t.conversion]: Math.round((row.conversion ?? 0) * 100),
+    [t.checkin]: Math.round((row.checkin ?? 0) * 100),
+    [t.reach]: Math.round((row.reach ?? 0) * 100),
   }));
 
   return (

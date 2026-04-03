@@ -5,12 +5,99 @@ import { useFilteredSWR } from '@/lib/hooks/use-filtered-swr';
 import type { SimulationResult } from '@/lib/types/cross-analysis';
 import { formatRate } from '@/lib/utils';
 import { Spinner } from '@/components/ui/Spinner';
+import { useLocale } from 'next-intl';
 
-const SEGMENTS = [
-  { value: 'reg_to_appt', label: '注册→预约率' },
-  { value: 'appt_to_attend', label: '预约→出席率' },
-  { value: 'attend_to_pay', label: '出席→付费率' },
-];
+const I18N = {
+  zh: {
+    funnel: '漏斗段',
+    targetRate: '目标转化率：',
+    calculating: '计算中…',
+    errorMsg: '无法加载模拟数据，请检查后端服务',
+    currentRate: '当前',
+    targetRateLabel: '目标转化率',
+    currentPaid: '当前付费',
+    predictedPaid: '预测付费',
+    predictedAchievement: '预测达成率',
+    raiseTo: '将',
+    from: '从',
+    to: '提升到',
+    predictPaidIncrease: '，预计付费增加',
+    people: '人',
+    hint: '调整上方参数查看预测结果',
+    segments: {
+      reg_to_appt: '注册→预约率',
+      appt_to_attend: '预约→出席率',
+      attend_to_pay: '出席→付费率',
+    },
+  },
+  en: {
+    funnel: 'Funnel Stage',
+    targetRate: 'Target Rate: ',
+    calculating: 'Calculating…',
+    errorMsg: 'Failed to load simulation data, check backend',
+    currentRate: 'Current',
+    targetRateLabel: 'Target Rate',
+    currentPaid: 'Current Paid',
+    predictedPaid: 'Predicted Paid',
+    predictedAchievement: 'Predicted Achievement',
+    raiseTo: 'Raising',
+    from: 'from',
+    to: 'to',
+    predictPaidIncrease: ', predicted paid increase',
+    people: '',
+    hint: 'Adjust the parameters above to see predictions',
+    segments: {
+      reg_to_appt: 'Reg→Appt Rate',
+      appt_to_attend: 'Appt→Attend Rate',
+      attend_to_pay: 'Attend→Pay Rate',
+    },
+  },
+  'zh-TW': {
+    funnel: '漏斗段',
+    targetRate: '目標轉化率：',
+    calculating: '計算中…',
+    errorMsg: '無法載入模擬數據，請檢查後端服務',
+    currentRate: '當前',
+    targetRateLabel: '目標轉化率',
+    currentPaid: '當前付費',
+    predictedPaid: '預測付費',
+    predictedAchievement: '預測達成率',
+    raiseTo: '將',
+    from: '從',
+    to: '提升到',
+    predictPaidIncrease: '，預計付費增加',
+    people: '人',
+    hint: '調整上方參數查看預測結果',
+    segments: {
+      reg_to_appt: '注冊→預約率',
+      appt_to_attend: '預約→出席率',
+      attend_to_pay: '出席→付費率',
+    },
+  },
+  th: {
+    funnel: 'ช่องทาง',
+    targetRate: 'อัตราเป้าหมาย: ',
+    calculating: 'กำลังคำนวณ…',
+    errorMsg: 'โหลดข้อมูลจำลองไม่ได้ ตรวจสอบบริการหลังบ้าน',
+    currentRate: 'ปัจจุบัน',
+    targetRateLabel: 'อัตราเป้าหมาย',
+    currentPaid: 'ชำระปัจจุบัน',
+    predictedPaid: 'ชำระที่คาด',
+    predictedAchievement: 'การบรรลุที่คาด',
+    raiseTo: 'ยก',
+    from: 'จาก',
+    to: 'ถึง',
+    predictPaidIncrease: ' คาดว่าชำระเพิ่ม',
+    people: 'คน',
+    hint: 'ปรับพารามิเตอร์ด้านบนเพื่อดูการคาดการณ์',
+    segments: {
+      reg_to_appt: 'ลงทะเบียน→นัด',
+      appt_to_attend: 'นัด→เข้าร่วม',
+      attend_to_pay: 'เข้าร่วม→ชำระ',
+    },
+  },
+} as const;
+type Locale = keyof typeof I18N;
 
 function achievementColor(rate: number): string {
   if (rate >= 1) return 'text-emerald-800';
@@ -21,6 +108,14 @@ function achievementColor(rate: number): string {
 export function GapSimulator() {
   const [segment, setSegment] = useState('attend_to_pay');
   const [newRate, setNewRate] = useState(0.5);
+  const locale = useLocale();
+  const t = I18N[(locale as Locale) in I18N ? (locale as Locale) : 'zh'];
+
+  const SEGMENTS = [
+    { value: 'reg_to_appt', label: t.segments.reg_to_appt },
+    { value: 'appt_to_attend', label: t.segments.appt_to_attend },
+    { value: 'attend_to_pay', label: t.segments.attend_to_pay },
+  ];
 
   const url = `/api/attribution/simulation?segment=${encodeURIComponent(segment)}&new_rate=${newRate}`;
   const { data, isLoading, error } = useFilteredSWR<SimulationResult>(url);
@@ -32,7 +127,7 @@ export function GapSimulator() {
       {/* 选择漏斗段 */}
       <div className="flex flex-wrap gap-3 items-end">
         <div className="flex flex-col gap-1">
-          <label className="text-xs text-[var(--text-muted)]">漏斗段</label>
+          <label className="text-xs text-[var(--text-muted)]">{t.funnel}</label>
           <select
             value={segment}
             onChange={(e) => setSegment(e.target.value)}
@@ -48,7 +143,7 @@ export function GapSimulator() {
 
         <div className="flex flex-col gap-1 flex-1 min-w-48">
           <label className="text-xs text-[var(--text-muted)]">
-            目标转化率：
+            {t.targetRate}
             <span className="font-semibold text-[var(--text-primary)]">{formatRate(newRate)}</span>
           </label>
           <input
@@ -70,48 +165,48 @@ export function GapSimulator() {
       {/* 预测结果 */}
       {isLoading && (
         <div className="flex items-center gap-2 text-xs text-[var(--text-muted)]">
-          <Spinner size="sm" /> 计算中…
+          <Spinner size="sm" /> {t.calculating}
         </div>
       )}
 
-      {error && (
-        <p className="text-xs text-[var(--color-danger)]">无法加载模拟数据，请检查后端服务</p>
-      )}
+      {error && <p className="text-xs text-[var(--color-danger)]">{t.errorMsg}</p>}
 
       {data && !isLoading && (
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <div className="card-subtle">
-            <p className="text-xs text-[var(--text-muted)]">当前 {segmentLabel}</p>
+            <p className="text-xs text-[var(--text-muted)]">
+              {t.currentRate} {segmentLabel}
+            </p>
             <p className="text-lg font-bold tabular-nums text-[var(--text-primary)]">
               {formatRate(data.current_rate)}
             </p>
           </div>
 
           <div className="card-subtle">
-            <p className="text-xs text-[var(--text-muted)]">目标转化率</p>
+            <p className="text-xs text-[var(--text-muted)]">{t.targetRateLabel}</p>
             <p className="text-lg font-bold tabular-nums text-action-accent">
               {formatRate(data.new_rate)}
             </p>
           </div>
 
           <div className="card-subtle">
-            <p className="text-xs text-[var(--text-muted)]">当前付费</p>
+            <p className="text-xs text-[var(--text-muted)]">{t.currentPaid}</p>
             <p className="text-lg font-bold tabular-nums text-[var(--text-primary)]">
-              {(data.current_paid ?? 0).toLocaleString()} 人
+              {(data.current_paid ?? 0).toLocaleString()} {t.people}
             </p>
           </div>
 
           <div className="card-subtle">
-            <p className="text-xs text-[var(--text-muted)]">预测付费</p>
+            <p className="text-xs text-[var(--text-muted)]">{t.predictedPaid}</p>
             <p className="text-lg font-bold tabular-nums text-emerald-800">
-              {(data.new_paid ?? 0).toLocaleString()} 人
+              {(data.new_paid ?? 0).toLocaleString()} {t.people}
             </p>
           </div>
 
           {/* 预测达成率 */}
           <div className="col-span-2 sm:col-span-4 card-subtle flex items-center gap-3">
             <div>
-              <p className="text-xs text-[var(--text-muted)]">预测达成率</p>
+              <p className="text-xs text-[var(--text-muted)]">{t.predictedAchievement}</p>
               <p
                 className={`text-2xl font-bold tabular-nums ${achievementColor(data.predicted_achievement)}`}
               >
@@ -119,11 +214,12 @@ export function GapSimulator() {
               </p>
             </div>
             <div className="text-xs text-[var(--text-muted)]">
-              将 <strong className="text-[var(--text-primary)]">{segmentLabel}</strong> 从{' '}
-              <strong>{formatRate(data.current_rate)}</strong> 提升到{' '}
-              <strong>{formatRate(data.new_rate)}</strong>， 预计付费增加{' '}
+              {t.raiseTo} <strong className="text-[var(--text-primary)]">{segmentLabel}</strong>{' '}
+              {t.from} <strong>{formatRate(data.current_rate)}</strong> {t.to}{' '}
+              <strong>{formatRate(data.new_rate)}</strong>
+              {t.predictPaidIncrease}{' '}
               <strong className="text-emerald-800">
-                +{((data.new_paid ?? 0) - (data.current_paid ?? 0)).toLocaleString()} 人
+                +{((data.new_paid ?? 0) - (data.current_paid ?? 0)).toLocaleString()} {t.people}
               </strong>
             </div>
           </div>
@@ -131,7 +227,7 @@ export function GapSimulator() {
       )}
 
       {!data && !isLoading && !error && (
-        <p className="text-xs text-[var(--text-muted)]">调整上方参数查看预测结果</p>
+        <p className="text-xs text-[var(--text-muted)]">{t.hint}</p>
       )}
     </div>
   );

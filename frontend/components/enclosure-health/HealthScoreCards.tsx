@@ -1,6 +1,39 @@
 'use client';
 
 import { formatRate } from '@/lib/utils';
+import { useLocale } from 'next-intl';
+
+const I18N = {
+  zh: {
+    noData: '暂无围场健康数据',
+    levels: { green: '健康', yellow: '警告', red: '危险' },
+    participation: '参与率',
+    conversion: '转化率',
+    checkin: '打卡率',
+  },
+  en: {
+    noData: 'No enclosure health data',
+    levels: { green: 'Healthy', yellow: 'Warning', red: 'Danger' },
+    participation: 'Participation',
+    conversion: 'Conversion',
+    checkin: 'Check-in',
+  },
+  'zh-TW': {
+    noData: '暫無圍場健康數據',
+    levels: { green: '健康', yellow: '警告', red: '危險' },
+    participation: '參與率',
+    conversion: '轉化率',
+    checkin: '打卡率',
+  },
+  th: {
+    noData: 'ไม่มีข้อมูลสุขภาพ Enclosure',
+    levels: { green: 'ดี', yellow: 'เตือน', red: 'อันตราย' },
+    participation: 'เข้าร่วม',
+    conversion: 'แปลง',
+    checkin: 'เช็คอิน',
+  },
+} as const;
+type Locale = keyof typeof I18N;
 
 export interface HealthScore {
   segment: string;
@@ -16,16 +49,22 @@ interface HealthScoreCardsProps {
   onSegmentClick?: (segment: string) => void;
 }
 
-function LevelBadge({ level }: { level: 'green' | 'yellow' | 'red' }) {
+function LevelBadge({
+  level,
+  labels,
+}: {
+  level: 'green' | 'yellow' | 'red';
+  labels: { green: string; yellow: string; red: string };
+}) {
   const map = {
-    green: { bg: 'bg-green-100', text: 'text-green-700', label: '健康' },
-    yellow: { bg: 'bg-yellow-100', text: 'text-yellow-700', label: '警告' },
-    red: { bg: 'bg-red-100', text: 'text-red-700', label: '危险' },
+    green: { bg: 'bg-green-100', text: 'text-green-700' },
+    yellow: { bg: 'bg-yellow-100', text: 'text-yellow-700' },
+    red: { bg: 'bg-red-100', text: 'text-red-700' },
   };
   const s = map[level];
   return (
     <span className={`px-1.5 py-0.5 rounded text-[10px] font-semibold ${s.bg} ${s.text}`}>
-      {s.label}
+      {labels[level]}
     </span>
   );
 }
@@ -37,10 +76,11 @@ function scoreColor(score: number): string {
 }
 
 export function HealthScoreCards({ data, onSegmentClick }: HealthScoreCardsProps) {
+  const locale = useLocale();
+  const t = I18N[(locale as Locale) in I18N ? (locale as Locale) : 'zh'];
+
   if (!data.length) {
-    return (
-      <div className="text-sm text-[var(--text-muted)] text-center py-8">暂无围场健康数据</div>
-    );
+    return <div className="text-sm text-[var(--text-muted)] text-center py-8">{t.noData}</div>;
   }
 
   return (
@@ -63,7 +103,7 @@ export function HealthScoreCards({ data, onSegmentClick }: HealthScoreCardsProps
               <span className="text-xs font-semibold text-[var(--text-primary)] truncate">
                 {item.segment}
               </span>
-              <LevelBadge level={item.level} />
+              <LevelBadge level={item.level} labels={t.levels} />
             </div>
 
             {/* 健康分环形进度 */}
@@ -100,15 +140,15 @@ export function HealthScoreCards({ data, onSegmentClick }: HealthScoreCardsProps
               </div>
               <div className="flex-1 space-y-0.5 text-xs">
                 <div className="flex justify-between">
-                  <span className="text-[var(--text-muted)]">参与率</span>
+                  <span className="text-[var(--text-muted)]">{t.participation}</span>
                   <span className="font-mono tabular-nums">{formatRate(item.participation)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-[var(--text-muted)]">转化率</span>
+                  <span className="text-[var(--text-muted)]">{t.conversion}</span>
                   <span className="font-mono tabular-nums">{formatRate(item.conversion)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-[var(--text-muted)]">打卡率</span>
+                  <span className="text-[var(--text-muted)]">{t.checkin}</span>
                   <span className="font-mono tabular-nums">{formatRate(item.checkin)}</span>
                 </div>
               </div>
