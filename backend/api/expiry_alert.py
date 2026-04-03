@@ -93,8 +93,8 @@ def get_expiry_alert(
     df = df.copy()
     df["_expiry_days"] = pd.to_numeric(df[expiry_col], errors="coerce")
 
-    # 筛选 0 ~ days 内到期（已到期=0 也纳入预警）
-    mask = (df["_expiry_days"] >= 0) & (df["_expiry_days"] <= days)
+    # 筛选 1 ~ days 内到期（剩余天数=0 表示已失效，不纳入预警）
+    mask = (df["_expiry_days"] > 0) & (df["_expiry_days"] <= days)
     filtered = df[mask].copy()
 
     if filtered.empty:
