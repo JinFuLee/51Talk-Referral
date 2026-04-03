@@ -101,6 +101,8 @@ const I18N = {
     kpi_showup: '出席数',
     kpi_paid: '付费数',
     kpi_revenue: '业绩 (USD)',
+    kpi_aov: '客单价',
+    kpi_register_conv: '注册转化率',
     kpi8CardTitle: 'KPI 指标（8 项全维度）',
     tp_timeProgress: '时间进度',
     tp_today: '今日',
@@ -250,6 +252,8 @@ const I18N = {
     kpi_showup: '出席數',
     kpi_paid: '付費數',
     kpi_revenue: '業績 (USD)',
+    kpi_aov: '客單價',
+    kpi_register_conv: '註冊轉化率',
     kpi8CardTitle: 'KPI 指標（8 項全維度）',
     tp_timeProgress: '時間進度',
     tp_today: '今日',
@@ -402,6 +406,8 @@ const I18N = {
     kpi_showup: 'Show-ups',
     kpi_paid: 'Paid',
     kpi_revenue: 'Revenue (USD)',
+    kpi_aov: 'AOV',
+    kpi_register_conv: 'Reg Conv. Rate',
     kpi8CardTitle: 'KPI Metrics (8 Dimensions)',
     tp_timeProgress: 'Time Progress',
     tp_today: 'Today',
@@ -552,6 +558,8 @@ const I18N = {
     kpi_showup: 'เข้าเรียน',
     kpi_paid: 'ชำระเงิน',
     kpi_revenue: 'รายได้ (USD)',
+    kpi_aov: 'AOV',
+    kpi_register_conv: 'อัตราแปลงลงทะเบียน',
     kpi8CardTitle: 'KPI (8 มิติ)',
     tp_timeProgress: 'ความคืบหน้าเวลา',
     tp_today: 'วันนี้',
@@ -1008,34 +1016,51 @@ interface KpiCardDef {
   knowledgeChapter?: string; // 知识库章节跳转
 }
 
-const KPI_CARDS: KpiCardDef[] = [
-  { key: '转介绍注册数', label: '注册', paceKey: 'register', knowledgeChapter: 'chapter-2' },
-  { key: '预约数', label: '预约', paceKey: 'appointment', knowledgeChapter: 'chapter-2' },
-  { key: '出席数', label: '出席', paceKey: 'showup', knowledgeChapter: 'chapter-2' },
-  {
-    key: '转介绍付费数',
-    label: '付费',
-    targetKey: '转介绍基础业绩单量标',
-    paceKey: 'paid',
-    knowledgeChapter: 'chapter-4',
-  },
-  {
-    key: '总带新付费金额USD',
-    label: '业绩 (USD)',
-    format: 'currency',
-    targetKey: '转介绍基础业绩标USD',
-    paceKey: 'revenue',
-    knowledgeChapter: 'chapter-4',
-  },
-  {
-    key: '客单价',
-    label: '客单价',
-    format: 'currency',
-    targetKey: '转介绍基础业绩客单价标USD',
-    knowledgeChapter: 'chapter-2-1',
-  },
-  { key: '注册转化率', label: '注册转化率', format: 'rate', knowledgeChapter: 'chapter-8' },
-];
+function getKpiCards(t: I18NType): KpiCardDef[] {
+  return [
+    {
+      key: '转介绍注册数',
+      label: t.kpi_register,
+      paceKey: 'register',
+      knowledgeChapter: 'chapter-2',
+    },
+    {
+      key: '预约数',
+      label: t.kpi_appointment,
+      paceKey: 'appointment',
+      knowledgeChapter: 'chapter-2',
+    },
+    { key: '出席数', label: t.kpi_showup, paceKey: 'showup', knowledgeChapter: 'chapter-2' },
+    {
+      key: '转介绍付费数',
+      label: t.kpi_paid,
+      targetKey: '转介绍基础业绩单量标',
+      paceKey: 'paid',
+      knowledgeChapter: 'chapter-4',
+    },
+    {
+      key: '总带新付费金额USD',
+      label: t.kpi_revenue,
+      format: 'currency',
+      targetKey: '转介绍基础业绩标USD',
+      paceKey: 'revenue',
+      knowledgeChapter: 'chapter-4',
+    },
+    {
+      key: '客单价',
+      label: t.kpi_aov,
+      format: 'currency',
+      targetKey: '转介绍基础业绩客单价标USD',
+      knowledgeChapter: 'chapter-2-1',
+    },
+    {
+      key: '注册转化率',
+      label: t.kpi_register_conv,
+      format: 'rate',
+      knowledgeChapter: 'chapter-8',
+    },
+  ];
+}
 
 const RATE_PAIRS: { from: string; to: string; rateKey: string }[] = [
   { from: '转介绍注册数', to: '预约数', rateKey: '注册预约率' },
@@ -1248,12 +1273,12 @@ function RingProgress({ label, value, color }: RingProps) {
   );
 }
 
-function MonthlyAchievementSection() {
+function MonthlyAchievementSection({ t }: { t: I18NType }) {
   const { data, isLoading } = useFilteredSWR<AttributionSummary>('/api/attribution/summary');
 
   if (isLoading) {
     return (
-      <Card title="月度目标达成">
+      <Card title={t.monthlyAchCardTitle}>
         <div className="flex items-center justify-around py-2 gap-4">
           {Array.from({ length: 3 }).map((_, i) => (
             <div key={i} className="flex flex-col items-center gap-2">
@@ -1269,22 +1294,23 @@ function MonthlyAchievementSection() {
   if (!data) return null;
 
   const rings: RingProps[] = [
-    { label: '单量达成率', value: data.unit_achievement_rate ?? 0, color: '#6366f1' },
-    { label: '业绩达成率', value: data.revenue_achievement_rate ?? 0, color: '#10b981' },
-    { label: '客单价达成率', value: data.order_value_achievement_rate ?? 0, color: '#f59e0b' },
+    { label: t.ring_unitAch, value: data.unit_achievement_rate ?? 0, color: '#6366f1' },
+    { label: t.ring_revAch, value: data.revenue_achievement_rate ?? 0, color: '#10b981' },
+    { label: t.ring_aovAch, value: data.order_value_achievement_rate ?? 0, color: '#f59e0b' },
   ];
 
   return (
-    <Card title="月度目标达成">
+    <Card title={t.monthlyAchCardTitle}>
       <div className="flex items-center justify-around py-2">
         {rings.map((r) => (
           <RingProgress key={r.label} {...r} />
         ))}
       </div>
       <p className="text-[10px] text-[var(--text-muted)] text-center mt-1">
-        颜色：<span className="text-emerald-700 font-medium">绿≥100%</span> ·{' '}
-        <span className="text-amber-700 font-medium">橙80-100%</span> ·{' '}
-        <span className="text-red-600 font-medium">红&lt;80%</span>
+        {t.colorHintFull}
+        <span className="text-emerald-700 font-medium">{t.colorGreen100}</span> ·{' '}
+        <span className="text-amber-700 font-medium">{t.colorOrange80}</span> ·{' '}
+        <span className="text-red-600 font-medium">{t.colorRed80}</span>
       </p>
     </Card>
   );
@@ -1318,16 +1344,20 @@ export default function DashboardPage() {
     funnelStage: true,
     channel: true,
   });
+  const locale = useLocale();
+  const t = I18N[locale as keyof typeof I18N] ?? I18N.zh;
   const [roleView, setRoleView] = useState<RoleView>('all');
   const { data, isLoading, error } = useFilteredSWR<OverviewResponse>('/api/overview');
   const { data: fullSources } = useDataSources();
+  const KPI_CARDS = getKpiCards(t);
 
   // 根据岗位视角过滤 KPI 卡片（all = 全部显示）
   const visibleKpiCards = useMemo(() => {
     if (roleView === 'all') return KPI_CARDS;
     const allowedKeys = new Set(KPI_CARD_INDICATOR_IDS[roleView] ?? []);
     return KPI_CARDS.filter((c) => allowedKeys.has(c.key));
-  }, [roleView]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [roleView, t]);
 
   if (isLoading) {
     return (
@@ -1347,15 +1377,13 @@ export default function DashboardPage() {
   if (error) {
     return (
       <div className="flex flex-col items-center justify-center py-16 gap-3">
-        <p className="text-sm font-medium text-[var(--text-primary)]">数据加载失败</p>
-        <p className="text-xs text-[var(--text-muted)]">
-          无法获取概览数据，请检查后端服务是否正常运行
-        </p>
+        <p className="text-sm font-medium text-[var(--text-primary)]">{t.errLoadFailed}</p>
+        <p className="text-xs text-[var(--text-muted)]">{t.errLoadFailedDesc}</p>
         <button
           onClick={() => window.location.reload()}
           className="mt-1 px-4 py-1.5 rounded-lg text-xs font-medium bg-[var(--bg-subtle)] border border-[var(--border-default)] text-[var(--text-secondary)] hover:bg-[var(--border-default)] transition-colors min-h-[44px] min-w-[44px]"
         >
-          重试
+          {t.btnRetry}
         </button>
       </div>
     );
@@ -1371,12 +1399,7 @@ export default function DashboardPage() {
   const hasMetrics = Object.keys(metrics).length > 0;
 
   if (!hasMetrics && sources.length === 0) {
-    return (
-      <EmptyState
-        title="暂无数据"
-        description="请将 Excel 数据文件放入数据源目录，完成后刷新页面即可自动加载"
-      />
-    );
+    return <EmptyState title={t.emptyTitle} description={t.emptyDesc} />;
   }
 
   const allSourcesOk = sources.length > 0 && sources.every((s) => s.has_file);
@@ -1402,9 +1425,9 @@ export default function DashboardPage() {
           })()}
           worstMoMLabel={(() => {
             const pairs: [string, string][] = [
-              ['paid', '付费数'],
-              ['revenue', '业绩'],
-              ['register', '注册数'],
+              ['paid', t.mom_paid],
+              ['revenue', t.mom_revenue],
+              ['register', t.mom_register],
             ];
             const worst = pairs.reduce<[string, string] | null>((acc, [k, label]) => {
               const v = kpiMom[k];
@@ -1432,28 +1455,27 @@ export default function DashboardPage() {
 
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="page-title">运营总览</h1>
-          <p className="text-sm text-[var(--text-secondary)] mt-1">
-            转介绍漏斗达成情况 · 数据源状态
-          </p>
+          <h1 className="page-title">{t.pageHeader}</h1>
+          <p className="text-sm text-[var(--text-secondary)] mt-1">{t.pageHeaderSub}</p>
         </div>
         {/* 岗位视角筛选器 */}
-        <RoleFilter value={roleView} onChange={setRoleView} />
+        <RoleFilter value={roleView} onChange={setRoleView} t={t} />
       </div>
 
       {/* 指标矩阵摘要（仅 SS/LP 视角时显示） */}
-      <IndicatorMatrixSummary role={roleView} />
+      <IndicatorMatrixSummary role={roleView} t={t} locale={locale} />
 
       {/* 时间进度信息条 */}
-      {tp && <TimeProgressBar tp={tp} />}
+      {tp && <TimeProgressBar tp={tp} t={t} />}
 
       {/* KPI 卡片 */}
       {hasMetrics && (
         <>
           <p className="text-[10px] text-[var(--text-muted)] -mb-2">
-            达成率颜色：<span className="text-emerald-700 font-medium">绿≥100%</span> ·{' '}
-            <span className="text-amber-700 font-medium">橙80-100%</span> ·{' '}
-            <span className="text-red-600 font-medium">红&lt;80%</span>
+            {t.achieveColorHint}
+            <span className="text-emerald-700 font-medium">{t.colorGreen100}</span> ·{' '}
+            <span className="text-amber-700 font-medium">{t.colorOrange80}</span> ·{' '}
+            <span className="text-red-600 font-medium">{t.colorRed80}</span>
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
             {visibleKpiCards.map(({ key, label, format, targetKey, paceKey, knowledgeChapter }) => {
@@ -1503,26 +1525,23 @@ export default function DashboardPage() {
 
       {/* KPI 8 项全维度 */}
       {data?.kpi_8item && Object.keys(data.kpi_8item).length > 0 && (
-        <KPI8Section kpi8item={data.kpi_8item} />
+        <KPI8Section kpi8item={data.kpi_8item} t={t} />
       )}
 
       {/* BM 节奏对比 */}
       {data?.bm_comparison && <BmComparisonTable data={data.bm_comparison} />}
 
       {/* 漏斗转化率 */}
-      <Card title="漏斗转化率">
+      <Card title={t.funnelCardTitle}>
         {!hasMetrics ? (
-          <EmptyState
-            title="暂无漏斗数据"
-            description="请确认已上传本月 Excel 数据源（A1 当月快照），上传后自动刷新"
-          />
+          <EmptyState title={t.funnelEmpty} description={t.funnelEmptyDesc} />
         ) : (
           <>
-            <FunnelSnapshot metrics={metrics} timeProgress={tp?.time_progress ?? 0} />
+            <FunnelSnapshot metrics={metrics} timeProgress={tp?.time_progress ?? 0} t={t} />
             {/* 追进度需日均行 */}
             {tp && Object.keys(kpiPace).length > 0 && (
               <div className="mt-3 pt-3 border-t border-[var(--border)]">
-                <PaceRow kpiPace={kpiPace} timeProgress={tp.time_progress} />
+                <PaceRow kpiPace={kpiPace} timeProgress={tp.time_progress} t={t} />
               </div>
             )}
           </>
@@ -1530,57 +1549,55 @@ export default function DashboardPage() {
       </Card>
 
       {/* 月度目标达成 */}
-      <MonthlyAchievementSection />
+      <MonthlyAchievementSection t={t} />
 
       {/* D2b 全站基准 */}
       {d2b && (
-        <Card title="全站基准（D2b）">
-          <p className="text-[11px] text-[var(--text-muted)] mb-3">
-            全站学员参与效率快照 · 财务模型参与率与运营口径相同（待确认）
-          </p>
+        <Card title={t.d2bCardTitle}>
+          <p className="text-[11px] text-[var(--text-muted)] mb-3">{t.d2bCardDesc}</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
             {[
               {
-                label: '有效学员数',
+                label: t.d2b_totalStudents,
                 value: (d2b.total_students ?? 0).toLocaleString(),
-                subtitle: '已付费且在有效期内的学员，是本月转介绍运营的基数',
+                subtitle: t.d2b_totalStudentsSub,
                 chapter: 'chapter-1',
               },
               {
-                label: '带新系数',
+                label: t.d2b_newCoeff,
                 value: d2b.new_coefficient != null ? d2b.new_coefficient.toFixed(2) : '—',
-                subtitle: '每个参与的A学员平均带来的B注册数，>2为优质',
+                subtitle: t.d2b_newCoeffSub,
                 chapter: 'chapter-2-0',
               },
               {
-                label: '带货比',
+                label: t.d2b_cargoRatio,
                 value: d2b.cargo_ratio != null ? d2b.cargo_ratio.toFixed(2) : '—',
-                subtitle: '带来注册的学员数/有效学员总数，衡量整体转介绍渗透率',
+                subtitle: t.d2b_cargoRatioSub,
                 chapter: 'chapter-2-0',
               },
               {
-                label: '带新参与数',
+                label: t.d2b_participationCount,
                 value:
                   d2b.participation_count != null ? d2b.participation_count.toLocaleString() : '—',
-                subtitle: '带来≥1个注册的有效学员数',
+                subtitle: t.d2b_participationCountSub,
                 chapter: 'chapter-2-0',
               },
               {
-                label: '参与率',
+                label: t.d2b_participationRate,
                 value: d2b.participation_rate != null ? formatRate(d2b.participation_rate) : '—',
-                subtitle: '带来注册的学员/有效学员总数',
+                subtitle: t.d2b_participationRateSub,
                 chapter: 'chapter-2-0',
               },
               {
-                label: '打卡率',
+                label: t.d2b_checkinRate,
                 value: d2b.checkin_rate != null ? formatRate(d2b.checkin_rate) : '—',
-                subtitle: '转码且分享的学员/有效学员，绿≥50%，橙30-50%，红<30%',
+                subtitle: t.d2b_checkinRateSub,
                 chapter: 'chapter-2-0',
               },
               {
-                label: 'CC触达率',
+                label: t.d2b_ccReachRate,
                 value: d2b.cc_reach_rate != null ? formatRate(d2b.cc_reach_rate) : '—',
-                subtitle: 'CC有效通话(≥20s)学员数/有效学员总数',
+                subtitle: t.d2b_ccReachRateSub,
                 chapter: 'chapter-2-0',
               },
             ].map(({ label, value, subtitle, chapter }) => (
@@ -1605,7 +1622,7 @@ export default function DashboardPage() {
       )}
 
       {/* 数据源状态 */}
-      <Card title="数据源状态">
+      <Card title={t.dataSourceCardTitle}>
         <DataSourceSection sources={fullSources ?? []} />
       </Card>
 
