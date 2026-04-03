@@ -1,8 +1,68 @@
 'use client';
 
 import { useState } from 'react';
+import { useLocale } from 'next-intl';
 import { Bookmark, X, Trash2, StickyNote } from 'lucide-react';
 import { clsx } from 'clsx';
+
+/* ── I18N ────────────────────────────────────────────────────────── */
+
+const I18N = {
+  zh: {
+    ariaOpen: '查看收藏',
+    btnLabel: '收藏',
+    panelTitle: '收藏章节',
+    ariaClose: '关闭',
+    emptyTitle: '还没有收藏章节',
+    emptyHint: '阅读时点击 ☆ 按钮添加收藏',
+    ariaAddNote: '添加笔记',
+    ariaRemove: '删除收藏',
+    notePlaceholder: '添加笔记…',
+    save: '保存',
+    cancel: '取消',
+  },
+  'zh-TW': {
+    ariaOpen: '查看收藏',
+    btnLabel: '收藏',
+    panelTitle: '收藏章節',
+    ariaClose: '關閉',
+    emptyTitle: '還沒有收藏章節',
+    emptyHint: '閱讀時點擊 ☆ 按鈕新增收藏',
+    ariaAddNote: '新增筆記',
+    ariaRemove: '刪除收藏',
+    notePlaceholder: '新增筆記…',
+    save: '儲存',
+    cancel: '取消',
+  },
+  en: {
+    ariaOpen: 'View bookmarks',
+    btnLabel: 'Bookmarks',
+    panelTitle: 'Bookmarks',
+    ariaClose: 'Close',
+    emptyTitle: 'No bookmarks yet',
+    emptyHint: 'Click ☆ while reading to bookmark a chapter',
+    ariaAddNote: 'Add note',
+    ariaRemove: 'Remove bookmark',
+    notePlaceholder: 'Add a note…',
+    save: 'Save',
+    cancel: 'Cancel',
+  },
+  th: {
+    ariaOpen: 'ดูบุ๊กมาร์ก',
+    btnLabel: 'บุ๊กมาร์ก',
+    panelTitle: 'บุ๊กมาร์ก',
+    ariaClose: 'ปิด',
+    emptyTitle: 'ยังไม่มีบุ๊กมาร์ก',
+    emptyHint: 'คลิก ☆ ขณะอ่านเพื่อบันทึกบทที่ต้องการ',
+    ariaAddNote: 'เพิ่มโน้ต',
+    ariaRemove: 'ลบบุ๊กมาร์ก',
+    notePlaceholder: 'เพิ่มโน้ต…',
+    save: 'บันทึก',
+    cancel: 'ยกเลิก',
+  },
+} as const;
+
+type Locale = keyof typeof I18N;
 
 export interface BookmarkItem {
   id: string;
@@ -34,9 +94,10 @@ interface BookmarkRowProps {
   onNavigate: (bookId: string, chapterId: string) => void;
   onRemove: (id: string) => void;
   onUpdateNote: (id: string, note: string) => void;
+  t: (typeof I18N)[Locale];
 }
 
-function BookmarkRow({ item, onNavigate, onRemove, onUpdateNote }: BookmarkRowProps) {
+function BookmarkRow({ item, onNavigate, onRemove, onUpdateNote, t }: BookmarkRowProps) {
   const [editingNote, setEditingNote] = useState(false);
   const [note, setNote] = useState(item.note ?? '');
 
@@ -58,14 +119,14 @@ function BookmarkRow({ item, onNavigate, onRemove, onUpdateNote }: BookmarkRowPr
           <button
             onClick={() => setEditingNote((v) => !v)}
             className="p-1 rounded text-[var(--text-muted)] hover:text-[var(--color-accent)] hover:bg-[var(--bg-subtle)] transition-colors focus-visible:outline-none"
-            title="添加笔记"
+            title={t.ariaAddNote}
           >
             <StickyNote className="w-3.5 h-3.5" />
           </button>
           <button
             onClick={() => onRemove(item.id)}
             className="p-1 rounded text-[var(--text-muted)] hover:text-[var(--color-danger)] hover:bg-[var(--color-danger-surface)] transition-colors focus-visible:outline-none"
-            title="删除收藏"
+            title={t.ariaRemove}
           >
             <Trash2 className="w-3.5 h-3.5" />
           </button>
@@ -79,7 +140,7 @@ function BookmarkRow({ item, onNavigate, onRemove, onUpdateNote }: BookmarkRowPr
           <textarea
             value={note}
             onChange={(e) => setNote(e.target.value)}
-            placeholder="添加笔记…"
+            placeholder={t.notePlaceholder}
             rows={2}
             className="flex-1 text-xs px-2 py-1 bg-[var(--bg-surface)] border border-[var(--border-default)] rounded text-[var(--text-primary)] resize-none focus:outline-none focus:border-[var(--color-accent)]"
           />
@@ -88,13 +149,16 @@ function BookmarkRow({ item, onNavigate, onRemove, onUpdateNote }: BookmarkRowPr
               onClick={saveNote}
               className="px-2 py-1 text-[10px] bg-[var(--color-accent)] text-white rounded hover:bg-[var(--color-accent-hover)] transition-colors focus-visible:outline-none"
             >
-              保存
+              {t.save}
             </button>
             <button
-              onClick={() => { setNote(item.note ?? ''); setEditingNote(false); }}
+              onClick={() => {
+                setNote(item.note ?? '');
+                setEditingNote(false);
+              }}
               className="px-2 py-1 text-[10px] bg-[var(--bg-subtle)] text-[var(--text-muted)] rounded hover:bg-[var(--border-default)] transition-colors focus-visible:outline-none"
             >
-              取消
+              {t.cancel}
             </button>
           </div>
         </div>
@@ -103,7 +167,15 @@ function BookmarkRow({ item, onNavigate, onRemove, onUpdateNote }: BookmarkRowPr
   );
 }
 
-export function BookmarkPanel({ bookmarks, onNavigate, onRemove, onUpdateNote }: BookmarkPanelProps) {
+export function BookmarkPanel({
+  bookmarks,
+  onNavigate,
+  onRemove,
+  onUpdateNote,
+}: BookmarkPanelProps) {
+  const locale = useLocale() as Locale;
+  const t = I18N[locale] ?? I18N.zh;
+
   const [open, setOpen] = useState(false);
   const groups = groupByBook(bookmarks);
 
@@ -113,10 +185,10 @@ export function BookmarkPanel({ bookmarks, onNavigate, onRemove, onUpdateNote }:
       <button
         onClick={() => setOpen(true)}
         className="relative flex items-center gap-1.5 px-3 py-2 text-sm rounded-lg border border-[var(--border-default)] bg-[var(--bg-surface)] text-[var(--text-secondary)] hover:bg-[var(--bg-subtle)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)]"
-        aria-label="查看收藏"
+        aria-label={t.ariaOpen}
       >
         <Bookmark className="w-4 h-4" />
-        <span className="hidden sm:inline">收藏</span>
+        <span className="hidden sm:inline">{t.btnLabel}</span>
         {bookmarks.length > 0 && (
           <span className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-[var(--color-accent)] text-white text-[9px] flex items-center justify-center font-bold">
             {bookmarks.length > 9 ? '9+' : bookmarks.length}
@@ -138,13 +210,13 @@ export function BookmarkPanel({ bookmarks, onNavigate, onRemove, onUpdateNote }:
             <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--border-subtle)]">
               <div className="flex items-center gap-2">
                 <Bookmark className="w-4 h-4 text-[var(--color-accent)]" />
-                <h2 className="text-sm font-semibold text-[var(--text-primary)]">收藏章节</h2>
+                <h2 className="text-sm font-semibold text-[var(--text-primary)]">{t.panelTitle}</h2>
                 <span className="text-xs text-[var(--text-muted)]">({bookmarks.length})</span>
               </div>
               <button
                 onClick={() => setOpen(false)}
                 className="p-1.5 rounded text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-[var(--bg-subtle)] transition-colors focus-visible:outline-none"
-                aria-label="关闭"
+                aria-label={t.ariaClose}
               >
                 <X className="w-4 h-4" />
               </button>
@@ -154,10 +226,8 @@ export function BookmarkPanel({ bookmarks, onNavigate, onRemove, onUpdateNote }:
               {bookmarks.length === 0 ? (
                 <div className="py-12 text-center">
                   <Bookmark className="w-8 h-8 mx-auto text-[var(--text-muted)] mb-3" />
-                  <p className="text-sm text-[var(--text-muted)]">还没有收藏章节</p>
-                  <p className="text-xs text-[var(--text-muted)] mt-1">
-                    阅读时点击 ☆ 按钮添加收藏
-                  </p>
+                  <p className="text-sm text-[var(--text-muted)]">{t.emptyTitle}</p>
+                  <p className="text-xs text-[var(--text-muted)] mt-1">{t.emptyHint}</p>
                 </div>
               ) : (
                 Object.entries(groups).map(([bookTitle, items]) => (
@@ -169,9 +239,13 @@ export function BookmarkPanel({ bookmarks, onNavigate, onRemove, onUpdateNote }:
                       <BookmarkRow
                         key={item.id}
                         item={item}
-                        onNavigate={(bId, cId) => { onNavigate(bId, cId); setOpen(false); }}
+                        onNavigate={(bId, cId) => {
+                          onNavigate(bId, cId);
+                          setOpen(false);
+                        }}
                         onRemove={onRemove}
                         onUpdateNote={onUpdateNote}
+                        t={t}
                       />
                     ))}
                   </div>

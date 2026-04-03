@@ -1,5 +1,7 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
+
 interface LifecycleBadgeProps {
   lifecycle: string;
 }
@@ -31,13 +33,14 @@ function getLifecycleLabel(lifecycle: string): string {
 }
 
 export function LifecycleBadge({ lifecycle }: LifecycleBadgeProps) {
+  const t = useTranslations('members');
   const style = getBadgeStyle(lifecycle);
   const label = getLifecycleLabel(lifecycle);
 
   return (
     <span
       className={`inline-flex items-center px-2 py-0.5 rounded border text-xs font-medium ${style}`}
-      title={`生命周期: ${label}`}
+      title={`${t('lifecycleLabel')}: ${label}`}
     >
       {label}
     </span>

@@ -1,22 +1,25 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import type { SnapshotStats } from '@/lib/types';
 
 export function SnapshotStatsCard({ stats }: { stats: SnapshotStats | undefined }) {
+  const t = useTranslations('snapshotStats');
+
   if (!stats) {
     return (
       <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-4 text-xs text-[var(--text-muted)]">
-        加载快照统计中…
+        {t('loading')}
       </div>
     );
   }
 
   return (
     <div className="grid grid-cols-3 gap-4">
-      <Stat label="日级快照数" value={stats.total_daily_snapshots} />
-      <Stat label="CC 快照数" value={stats.total_cc_snapshots} />
+      <Stat label={t('dailySnapshots')} value={stats.total_daily_snapshots} />
+      <Stat label={t('ccSnapshots')} value={stats.total_cc_snapshots} />
       <Stat
-        label="时间范围"
+        label={t('dateRange')}
         value={stats.date_range ? `${stats.date_range.from} ~ ${stats.date_range.to}` : '—'}
       />
     </div>

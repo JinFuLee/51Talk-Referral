@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import { useTranslations } from 'next-intl';
 import { isChunkLoadError, tryAutoReload, clearReloadFlag } from '@/lib/chunk-error';
 
 export default function Error({
@@ -10,6 +11,8 @@ export default function Error({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  const t = useTranslations('errorPage');
+
   useEffect(() => {
     if (isChunkLoadError(error)) {
       tryAutoReload();
@@ -20,10 +23,8 @@ export default function Error({
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="text-center max-w-md">
-          <h2 className="text-xl font-bold mb-2">页面版本已更新</h2>
-          <p className="text-[var(--text-secondary)] mb-4">
-            检测到新版本部署，请刷新页面加载最新内容。
-          </p>
+          <h2 className="text-xl font-bold mb-2">{t('chunkTitle')}</h2>
+          <p className="text-[var(--text-secondary)] mb-4">{t('chunkDesc')}</p>
           <button
             onClick={() => {
               clearReloadFlag();
@@ -31,7 +32,7 @@ export default function Error({
             }}
             className="px-4 py-2 bg-primary text-primary-foreground rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
           >
-            刷新页面
+            {t('reload')}
           </button>
         </div>
       </div>
@@ -41,20 +42,20 @@ export default function Error({
   return (
     <div className="flex items-center justify-center min-h-[60vh]">
       <div className="text-center max-w-md">
-        <h2 className="text-xl font-bold text-destructive mb-2">页面加载出错</h2>
+        <h2 className="text-xl font-bold text-destructive mb-2">{t('genericTitle')}</h2>
         <p className="text-[var(--text-secondary)] mb-4">{error.message}</p>
         <div className="flex gap-3 justify-center">
           <button
             onClick={reset}
             className="px-4 py-2 bg-primary text-primary-foreground rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
           >
-            重试
+            {t('retry')}
           </button>
           <button
             onClick={() => window.location.reload()}
             className="px-4 py-2 border border-[var(--border-default)] rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
           >
-            刷新页面
+            {t('reload')}
           </button>
         </div>
       </div>

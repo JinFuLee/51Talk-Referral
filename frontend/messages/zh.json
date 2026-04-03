@@ -63,7 +63,8 @@
     "label": {
       "noReports": "暂无报告文件",
       "selectReport": "选择左侧报告查看内容",
-      "loading": "加载中…"
+      "loading": "加载中…",
+      "download": "下载"
     }
   },
   "datasources": {

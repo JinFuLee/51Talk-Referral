@@ -5,11 +5,46 @@
  * error.tsx 在 layout 内部捕获不到，需要这个全局错误页面。
  *
  * global-error.tsx 必须自带 <html> + <body>，因为 layout 已经崩了。
+ * next-intl hooks 在此处不可用（layout 已崩），使用 navigator.language 推断语言。
  */
 
 import { useEffect } from 'react';
 
 const CHUNK_RELOAD_KEY = 'chunk_reload_attempted';
+
+const GLOBAL_ERROR_I18N = {
+  zh: {
+    chunkTitle: '页面版本已更新',
+    chunkDesc: '检测到新版本部署，请刷新页面加载最新内容。',
+    reload: '刷新页面',
+    sysError: '系统错误',
+    retry: '重试',
+  },
+  en: {
+    chunkTitle: 'New version available',
+    chunkDesc: 'A new deployment was detected. Please reload to get the latest version.',
+    reload: 'Reload',
+    sysError: 'System Error',
+    retry: 'Retry',
+  },
+  th: {
+    chunkTitle: 'มีเวอร์ชันใหม่',
+    chunkDesc: 'ตรวจพบการอัปเดตใหม่ กรุณาโหลดหน้าใหม่',
+    reload: 'โหลดใหม่',
+    sysError: 'เกิดข้อผิดพลาด',
+    retry: 'ลองใหม่',
+  },
+} as const;
+
+type GELang = keyof typeof GLOBAL_ERROR_I18N;
+
+function detectLang(): GELang {
+  if (typeof navigator === 'undefined') return 'zh';
+  const l = navigator.language?.toLowerCase() ?? '';
+  if (l.startsWith('th')) return 'th';
+  if (l.startsWith('zh')) return 'zh';
+  return 'en';
+}
 
 function isChunkLoadError(error: Error): boolean {
   return (
@@ -27,6 +62,8 @@ export default function GlobalError({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  const t = GLOBAL_ERROR_I18N[detectLang()];
+
   useEffect(() => {
     if (isChunkLoadError(error)) {
       const lastAttempt = sessionStorage.getItem(CHUNK_RELOAD_KEY);
@@ -39,7 +76,7 @@ export default function GlobalError({
   }, [error]);
 
   return (
-    <html lang="zh">
+    <html lang={detectLang()}>
       <body
         style={{
           margin: 0,
@@ -54,10 +91,8 @@ export default function GlobalError({
         <div style={{ textAlign: 'center', maxWidth: 420, padding: 32 }}>
           {isChunkLoadError(error) ? (
             <>
-              <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 8 }}>页面版本已更新</h2>
-              <p style={{ color: '#666', marginBottom: 16 }}>
-                检测到新版本部署，请刷新页面加载最新内容。
-              </p>
+              <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 8 }}>{t.chunkTitle}</h2>
+              <p style={{ color: '#666', marginBottom: 16 }}>{t.chunkDesc}</p>
               <button
                 onClick={() => {
                   sessionStorage.removeItem(CHUNK_RELOAD_KEY);
@@ -73,7 +108,7 @@ export default function GlobalError({
                   fontSize: 14,
                 }}
               >
-                刷新页面
+                {t.reload}
               </button>
             </>
           ) : (
@@ -86,7 +121,7 @@ export default function GlobalError({
                   marginBottom: 8,
                 }}
               >
-                系统错误
+                {t.sysError}
               </h2>
               <p style={{ color: '#666', marginBottom: 16 }}>{error.message}</p>
               <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
@@ -102,7 +137,7 @@ export default function GlobalError({
                     fontSize: 14,
                   }}
                 >
-                  重试
+                  {t.retry}
                 </button>
                 <button
                   onClick={() => window.location.reload()}
@@ -116,7 +151,7 @@ export default function GlobalError({
                     fontSize: 14,
                   }}
                 >
-                  刷新页面
+                  {t.reload}
                 </button>
               </div>
             </>

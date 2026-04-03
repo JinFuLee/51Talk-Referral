@@ -1,9 +1,33 @@
 'use client';
 
+import { useLocale } from 'next-intl';
 import { Bookmark, BookmarkCheck } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import type { Components } from 'react-markdown';
+
+/* ── I18N ────────────────────────────────────────────────────────── */
+
+const I18N = {
+  zh: {
+    ariaUnbookmark: '取消收藏',
+    ariaBookmark: '收藏此章节',
+  },
+  'zh-TW': {
+    ariaUnbookmark: '取消收藏',
+    ariaBookmark: '收藏此章節',
+  },
+  en: {
+    ariaUnbookmark: 'Remove bookmark',
+    ariaBookmark: 'Bookmark this section',
+  },
+  th: {
+    ariaUnbookmark: 'ยกเลิกบุ๊กมาร์ก',
+    ariaBookmark: 'บุ๊กมาร์กส่วนนี้',
+  },
+} as const;
+
+type Locale = keyof typeof I18N;
 
 interface MarkdownReaderProps {
   content: string;
@@ -30,6 +54,9 @@ function slugify(text: string): string {
 }
 
 export function MarkdownReader({ content, bookmarks, onToggleBookmark }: MarkdownReaderProps) {
+  const locale = useLocale() as Locale;
+  const t = I18N[locale] ?? I18N.zh;
+
   const components: Components = {
     h2: ({ children }) => {
       const rawText = String(children);
@@ -45,8 +72,8 @@ export function MarkdownReader({ content, bookmarks, onToggleBookmark }: Markdow
           <button
             onClick={() => onToggleBookmark(id, cleanText)}
             className="opacity-0 group-hover:opacity-100 transition-opacity text-[var(--text-muted)] hover:text-[var(--color-accent)] focus-visible:outline-none focus-visible:opacity-100"
-            aria-label={isBookmarked ? '取消收藏' : '收藏此章节'}
-            title={isBookmarked ? '取消收藏' : '收藏此章节'}
+            aria-label={isBookmarked ? t.ariaUnbookmark : t.ariaBookmark}
+            title={isBookmarked ? t.ariaUnbookmark : t.ariaBookmark}
           >
             {isBookmarked ? (
               <BookmarkCheck className="w-4 h-4 text-[var(--color-accent)]" />

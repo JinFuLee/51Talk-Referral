@@ -1,6 +1,50 @@
 'use client';
 
+import { useLocale } from 'next-intl';
 import { X, BookOpen, ArrowRight } from 'lucide-react';
+
+/* ── I18N ────────────────────────────────────────────────────────── */
+
+const I18N = {
+  zh: {
+    title: '欢迎来到知识库',
+    subtitle: '推荐新手从以下内容开始阅读',
+    ariaClose: '关闭引导',
+    dismissBtn: '不再显示',
+    badgeMust: '必读',
+    badgeRecommended: '选读',
+    badgeReference: '参考',
+  },
+  'zh-TW': {
+    title: '歡迎來到知識庫',
+    subtitle: '推薦新手從以下內容開始閱讀',
+    ariaClose: '關閉引導',
+    dismissBtn: '不再顯示',
+    badgeMust: '必讀',
+    badgeRecommended: '選讀',
+    badgeReference: '參考',
+  },
+  en: {
+    title: 'Welcome to the Knowledge Base',
+    subtitle: 'Recommended reading for new users',
+    ariaClose: 'Close guide',
+    dismissBtn: "Don't show again",
+    badgeMust: 'Must read',
+    badgeRecommended: 'Recommended',
+    badgeReference: 'Reference',
+  },
+  th: {
+    title: 'ยินดีต้อนรับสู่คลังความรู้',
+    subtitle: 'แนะนำสำหรับผู้ใช้ใหม่',
+    ariaClose: 'ปิดคู่มือ',
+    dismissBtn: 'ไม่ต้องแสดงอีก',
+    badgeMust: 'ต้องอ่าน',
+    badgeRecommended: 'แนะนำ',
+    badgeReference: 'อ้างอิง',
+  },
+} as const;
+
+type Locale = keyof typeof I18N;
 
 const STORAGE_KEY = 'knowledge-guide-dismissed';
 
@@ -50,18 +94,30 @@ const READING_ITEMS: ReadingItem[] = [
   },
 ];
 
-const BADGE_CONFIG = {
-  must: { label: '必读', className: 'bg-[var(--color-danger-surface)] text-[var(--color-danger)]' },
-  recommended: { label: '选读', className: 'bg-[var(--color-warning-surface)] text-[var(--color-warning)]' },
-  reference: { label: '参考', className: 'bg-[var(--bg-subtle)] text-[var(--text-muted)]' },
-};
-
 interface ReadingGuideProps {
   onNavigate: (bookId: string, chapterId: string) => void;
   onDismiss: () => void;
 }
 
 export function ReadingGuide({ onNavigate, onDismiss }: ReadingGuideProps) {
+  const locale = useLocale() as Locale;
+  const t = I18N[locale] ?? I18N.zh;
+
+  const BADGE_CONFIG = {
+    must: {
+      label: t.badgeMust,
+      className: 'bg-[var(--color-danger-surface)] text-[var(--color-danger)]',
+    },
+    recommended: {
+      label: t.badgeRecommended,
+      className: 'bg-[var(--color-warning-surface)] text-[var(--color-warning)]',
+    },
+    reference: {
+      label: t.badgeReference,
+      className: 'bg-[var(--bg-subtle)] text-[var(--text-muted)]',
+    },
+  };
+
   const handleDismiss = () => {
     try {
       localStorage.setItem(STORAGE_KEY, '1');
@@ -81,14 +137,14 @@ export function ReadingGuide({ onNavigate, onDismiss }: ReadingGuideProps) {
               <BookOpen className="w-5 h-5 text-[var(--color-accent)]" />
             </div>
             <div>
-              <h2 className="text-base font-semibold text-[var(--text-primary)]">欢迎来到知识库</h2>
-              <p className="text-xs text-[var(--text-muted)]">推荐新手从以下内容开始阅读</p>
+              <h2 className="text-base font-semibold text-[var(--text-primary)]">{t.title}</h2>
+              <p className="text-xs text-[var(--text-muted)]">{t.subtitle}</p>
             </div>
           </div>
           <button
             onClick={handleDismiss}
             className="p-1.5 rounded text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-[var(--bg-subtle)] transition-colors focus-visible:outline-none"
-            aria-label="关闭引导"
+            aria-label={t.ariaClose}
           >
             <X className="w-4 h-4" />
           </button>
@@ -101,14 +157,21 @@ export function ReadingGuide({ onNavigate, onDismiss }: ReadingGuideProps) {
             return (
               <button
                 key={i}
-                onClick={() => { onNavigate(item.bookId, item.chapterId); handleDismiss(); }}
+                onClick={() => {
+                  onNavigate(item.bookId, item.chapterId);
+                  handleDismiss();
+                }}
                 className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-[var(--bg-subtle)] transition-colors text-left group focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-accent)]"
               >
-                <span className={`shrink-0 text-[10px] font-semibold px-1.5 py-0.5 rounded ${badge.className}`}>
+                <span
+                  className={`shrink-0 text-[10px] font-semibold px-1.5 py-0.5 rounded ${badge.className}`}
+                >
                   {badge.label}
                 </span>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-[var(--text-primary)] truncate">{item.title}</p>
+                  <p className="text-sm font-medium text-[var(--text-primary)] truncate">
+                    {item.title}
+                  </p>
                   <p className="text-xs text-[var(--text-muted)] truncate">{item.description}</p>
                 </div>
                 <ArrowRight className="w-3.5 h-3.5 text-[var(--text-muted)] shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -123,7 +186,7 @@ export function ReadingGuide({ onNavigate, onDismiss }: ReadingGuideProps) {
             onClick={handleDismiss}
             className="text-xs text-[var(--text-muted)] hover:text-[var(--text-secondary)] underline decoration-dotted transition-colors focus-visible:outline-none"
           >
-            不再显示
+            {t.dismissBtn}
           </button>
         </div>
       </div>

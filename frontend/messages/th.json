@@ -63,7 +63,8 @@
     "label": {
       "noReports": "ยังไม่มีไฟล์รายงาน",
       "selectReport": "เลือกรายงานด้านซ้ายเพื่อดูเนื้อหา",
-      "loading": "กำลังโหลด…"
+      "loading": "กำลังโหลด…",
+      "download": "ดาวน์โหลด"
     }
   },
   "datasources": {

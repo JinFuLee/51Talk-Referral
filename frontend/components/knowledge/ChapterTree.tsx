@@ -1,8 +1,20 @@
 'use client';
 
 import { useState } from 'react';
+import { useLocale } from 'next-intl';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 import { clsx } from 'clsx';
+
+/* ── I18N ────────────────────────────────────────────────────────── */
+
+const I18N = {
+  zh: { empty: '暂无章节', ariaNav: '章节导航' },
+  'zh-TW': { empty: '暫無章節', ariaNav: '章節導覽' },
+  en: { empty: 'No chapters', ariaNav: 'Chapter navigation' },
+  th: { empty: 'ไม่มีบท', ariaNav: 'การนำทางบท' },
+} as const;
+
+type Locale = keyof typeof I18N;
 
 export interface Chapter {
   chapter_id: string;
@@ -85,12 +97,15 @@ function ChapterNode({ chapter, activeId, onSelect, depth = 0 }: ChapterNodeProp
 }
 
 export function ChapterTree({ chapters, activeId, onSelect }: ChapterTreeProps) {
+  const locale = useLocale() as Locale;
+  const t = I18N[locale] ?? I18N.zh;
+
   if (chapters.length === 0) {
-    return <div className="px-2 py-3 text-xs text-[var(--text-muted)]">暂无章节</div>;
+    return <div className="px-2 py-3 text-xs text-[var(--text-muted)]">{t.empty}</div>;
   }
 
   return (
-    <nav aria-label="章节导航" className="space-y-0.5">
+    <nav aria-label={t.ariaNav} className="space-y-0.5">
       {chapters.map((chapter) => (
         <ChapterNode
           key={chId(chapter)}

@@ -64,7 +64,8 @@
     "label": {
       "noReports": "No report files yet",
       "selectReport": "Select a report on the left to view",
-      "loading": "Loading…"
+      "loading": "Loading…",
+      "download": "Download"
     }
   },
   "datasources": {
