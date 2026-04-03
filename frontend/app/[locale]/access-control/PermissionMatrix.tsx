@@ -61,7 +61,8 @@ interface UserEntry {
 
 interface PageEntry {
   path: string;
-  name_zh: string;
+  name_zh?: string;
+  name?: { zh?: string; en?: string; th?: string };
   category: string;
   is_public: boolean;
 }
@@ -143,10 +144,23 @@ export default function PermissionMatrix({ users, pages, roles }: PermissionMatr
 
   const categoryKeys = Object.keys(CATEGORY_INFO).filter((k) => groupedPages[k]?.length > 0);
 
-  // 构建角色→页面权限映射
-  const rolePageMap: Record<string, Set<string>> = {};
+  // 构建角色→页面权限检查函数（支持 * 和 /* 通配符）
+  const roleHasAccess: Record<string, (path: string) => boolean> = {};
   for (const role of roles) {
-    rolePageMap[role.id] = new Set(role.allowed_pages ?? []);
+    const allowedPages = role.allowed_pages ?? [];
+    // * 或 /* = 全权限
+    if (allowedPages.includes('*') || allowedPages.includes('/*')) {
+      roleHasAccess[role.id] = () => true;
+    } else {
+      const pageSet = new Set(allowedPages);
+      roleHasAccess[role.id] = (path: string) => {
+        if (pageSet.has(path)) return true;
+        // 前缀通配符：/reports/* 匹配 /reports/ops
+        return allowedPages.some(
+          (p) => p.endsWith('/*') && (path === p.slice(0, -2) || path.startsWith(p.slice(0, -1)))
+        );
+      };
+    }
   }
 
   if (users.length === 0) {
@@ -205,7 +219,7 @@ export default function PermissionMatrix({ users, pages, roles }: PermissionMatr
                       title={page.path}
                     >
                       <span className="block truncate text-center max-w-[100px]">
-                        {page.name_zh}
+                        {page.name_zh ?? page.name?.zh ?? page.path}
                       </span>
                     </th>
                   ))}
@@ -214,7 +228,6 @@ export default function PermissionMatrix({ users, pages, roles }: PermissionMatr
               <tbody>
                 {users.map((user, i) => {
                   const userRole = roles.find((r) => r.id === user.role);
-                  const rolePages = rolePageMap[user.role] ?? new Set();
 
                   return (
                     <tr
@@ -242,8 +255,9 @@ export default function PermissionMatrix({ users, pages, roles }: PermissionMatr
                       </td>
                       {catPages.map((page) => {
                         const isPublic = page.is_public;
-                        const hasAccess = isPublic || rolePages.has(page.path);
-                        const isRoleInherited = !isPublic && rolePages.has(page.path);
+                        const checkFn = roleHasAccess[user.role] ?? (() => false);
+                        const hasAccess = isPublic || checkFn(page.path);
+                        const isRoleInherited = !isPublic && checkFn(page.path);
 
                         return (
                           <MatrixCell
