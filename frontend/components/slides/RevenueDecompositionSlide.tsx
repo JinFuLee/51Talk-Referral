@@ -1,10 +1,87 @@
 'use client';
 
+import { useLocale } from 'next-intl';
 import { useFilteredSWR } from '@/lib/hooks/use-filtered-swr';
 import { formatRate, formatRevenue } from '@/lib/utils';
 import { SlideShell } from '@/components/presentation/SlideShell';
 import { SkeletonChart } from '@/components/ui/Skeleton';
 import type { SlideProps } from '@/lib/presentation/types';
+
+const I18N = {
+  zh: {
+    title: '渠道业绩拆解',
+    subtitle: '各渠道注册 → 付费 → 金额 → 占比',
+    section: '渠道分析',
+    col_channel: '渠道',
+    col_registrations: '注册数',
+    col_payments: '付费数',
+    col_revenue: '付费金额',
+    col_share_pct: '金额占比',
+    col_share_bar: '占比',
+    col_total: '合计',
+    loading_failed: '数据加载失败',
+    check_backend: '请检查后端服务是否正常运行',
+    retry: '重试',
+    no_data: '暂无渠道业绩数据，请上传本月 Excel 数据源',
+    insight: (topChannel: string, topRevenue: string, topShare: number | null, total: string) =>
+      `合计 ${total}；最大渠道：${topChannel}${topShare !== null ? ` 占 ${topShare}%` : ''}（${topRevenue}）`,
+  },
+  'zh-TW': {
+    title: '渠道業績拆解',
+    subtitle: '各渠道注冊 → 付費 → 金額 → 占比',
+    section: '渠道分析',
+    col_channel: '渠道',
+    col_registrations: '注冊數',
+    col_payments: '付費數',
+    col_revenue: '付費金額',
+    col_share_pct: '金額占比',
+    col_share_bar: '占比',
+    col_total: '合計',
+    loading_failed: '資料載入失敗',
+    check_backend: '請檢查後端服務是否正常運行',
+    retry: '重試',
+    no_data: '暫無渠道業績資料，請上傳本月 Excel 資料來源',
+    insight: (topChannel: string, topRevenue: string, topShare: number | null, total: string) =>
+      `合計 ${total}；最大渠道：${topChannel}${topShare !== null ? ` 占 ${topShare}%` : ''}（${topRevenue}）`,
+  },
+  en: {
+    title: 'Channel Revenue Breakdown',
+    subtitle: 'Channel: Registrations → Payments → Revenue → Share',
+    section: 'Channel Analysis',
+    col_channel: 'Channel',
+    col_registrations: 'Registrations',
+    col_payments: 'Payments',
+    col_revenue: 'Revenue',
+    col_share_pct: 'Revenue Share',
+    col_share_bar: 'Share',
+    col_total: 'Total',
+    loading_failed: 'Failed to load data',
+    check_backend: 'Please check if the backend service is running',
+    retry: 'Retry',
+    no_data: "No channel revenue data. Please upload this month's Excel data source",
+    insight: (topChannel: string, topRevenue: string, topShare: number | null, total: string) =>
+      `Total ${total}; Top channel: ${topChannel}${topShare !== null ? ` (${topShare}%)` : ''} — ${topRevenue}`,
+  },
+  th: {
+    title: 'การแยกรายได้ตามช่องทาง',
+    subtitle: 'ช่องทาง: ลงทะเบียน → ชำระเงิน → รายได้ → สัดส่วน',
+    section: 'การวิเคราะห์ช่องทาง',
+    col_channel: 'ช่องทาง',
+    col_registrations: 'ลงทะเบียน',
+    col_payments: 'ชำระเงิน',
+    col_revenue: 'รายได้',
+    col_share_pct: 'สัดส่วนรายได้',
+    col_share_bar: 'สัดส่วน',
+    col_total: 'รวม',
+    loading_failed: 'โหลดข้อมูลล้มเหลว',
+    check_backend: 'กรุณาตรวจสอบว่าบริการ Backend ทำงานปกติ',
+    retry: 'ลองใหม่',
+    no_data: 'ไม่มีข้อมูลรายได้ตามช่องทาง กรุณาอัปโหลดข้อมูล Excel ประจำเดือน',
+    insight: (topChannel: string, topRevenue: string, topShare: number | null, total: string) =>
+      `รวม ${total}; ช่องทางอันดับ 1: ${topChannel}${topShare !== null ? ` (${topShare}%)` : ''} — ${topRevenue}`,
+  },
+} as const;
+type Locale = keyof typeof I18N;
 
 // 对齐 /api/channel 真实返回
 interface ChannelRow {
@@ -18,6 +95,9 @@ interface ChannelRow {
 }
 
 export function RevenueDecompositionSlide({ slideNumber, totalSlides }: SlideProps) {
+  const locale = useLocale() as Locale;
+  const t = I18N[locale] ?? I18N.zh;
+
   const { data, isLoading, error, mutate } = useFilteredSWR<ChannelRow[]>('/api/channel');
   const channels = data ?? [];
 
@@ -28,16 +108,21 @@ export function RevenueDecompositionSlide({ slideNumber, totalSlides }: SlidePro
     if (!channels.length) return undefined;
     const top = channels.reduce((a, b) => ((a.revenue_usd ?? 0) > (b.revenue_usd ?? 0) ? a : b));
     const topShare = top.share_pct !== null ? Math.round(top.share_pct * 100) : null;
-    return `合计 ${formatRevenue(totalRevenue)}；最大渠道：${top.channel}${topShare !== null ? ` 占 ${topShare}%` : ''}（${formatRevenue(top.revenue_usd ?? 0)}）`;
+    return t.insight(
+      top.channel,
+      formatRevenue(top.revenue_usd ?? 0),
+      topShare,
+      formatRevenue(totalRevenue)
+    );
   })();
 
   return (
     <SlideShell
       slideNumber={slideNumber}
       totalSlides={totalSlides}
-      title="渠道业绩拆解"
-      subtitle="各渠道注册 → 付费 → 金额 → 占比"
-      section="渠道分析"
+      title={t.title}
+      subtitle={t.subtitle}
+      section={t.section}
       insight={insight}
     >
       {isLoading ? (
@@ -47,31 +132,31 @@ export function RevenueDecompositionSlide({ slideNumber, totalSlides }: SlidePro
       ) : error ? (
         <div className="flex items-center justify-center h-full">
           <div className="text-center space-y-2">
-            <p className="text-base font-semibold text-red-600">数据加载失败</p>
-            <p className="text-sm text-[var(--text-muted)]">请检查后端服务是否正常运行</p>
+            <p className="text-base font-semibold text-red-600">{t.loading_failed}</p>
+            <p className="text-sm text-[var(--text-muted)]">{t.check_backend}</p>
             <button
               onClick={() => mutate()}
               className="mt-1 px-4 py-1.5 rounded-lg text-sm border border-[var(--border-default)] text-[var(--text-secondary)] hover:bg-[var(--bg-subtle)] transition-colors"
             >
-              重试
+              {t.retry}
             </button>
           </div>
         </div>
       ) : channels.length === 0 ? (
         <div className="flex items-center justify-center h-full">
-          <p className="text-[var(--text-muted)]">暂无渠道业绩数据，请上传本月 Excel 数据源</p>
+          <p className="text-[var(--text-muted)]">{t.no_data}</p>
         </div>
       ) : (
         <div className="overflow-auto h-full">
           <table className="w-full text-sm border-collapse">
             <thead>
               <tr className="slide-thead-row">
-                <th className="slide-th slide-th-left">渠道</th>
-                <th className="slide-th slide-th-left">注册数</th>
-                <th className="slide-th slide-th-left">付费数</th>
-                <th className="slide-th slide-th-left">付费金额</th>
-                <th className="slide-th slide-th-left">金额占比</th>
-                <th className="slide-th slide-th-left">占比</th>
+                <th className="slide-th slide-th-left">{t.col_channel}</th>
+                <th className="slide-th slide-th-left">{t.col_registrations}</th>
+                <th className="slide-th slide-th-left">{t.col_payments}</th>
+                <th className="slide-th slide-th-left">{t.col_revenue}</th>
+                <th className="slide-th slide-th-left">{t.col_share_pct}</th>
+                <th className="slide-th slide-th-left">{t.col_share_bar}</th>
               </tr>
             </thead>
             <tbody>
@@ -109,7 +194,7 @@ export function RevenueDecompositionSlide({ slideNumber, totalSlides }: SlidePro
             </tbody>
             <tfoot>
               <tr className="slide-tfoot-row">
-                <td className="px-3 py-1.5 text-xs">合计</td>
+                <td className="px-3 py-1.5 text-xs">{t.col_total}</td>
                 <td className="px-3 py-1.5 text-xs text-right font-mono tabular-nums">
                   {channels.reduce((s, c) => s + (c.registrations ?? 0), 0).toLocaleString()}
                 </td>
