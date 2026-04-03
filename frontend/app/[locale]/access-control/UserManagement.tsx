@@ -31,6 +31,48 @@ const I18N = {
     changeRole: '修改角色',
     saving: '保存中…',
     deleting: '删除中…',
+    toastAdded: '用户已添加',
+    toastAddFailed: '添加失败',
+    toastBatchAdded: (n: number) => `已添加 ${n} 个用户`,
+    toastBatchFailed: '批量添加失败',
+    toastDeleted: '用户已删除',
+    toastDeleteFailed: '删除失败',
+    toastRoleUpdated: '角色已更新',
+    toastRoleUpdateFailed: '更新失败',
+    dateLocale: 'zh-CN',
+  },
+  'zh-TW': {
+    addUser: '新增用戶',
+    batchAdd: '批量添加',
+    email: '郵箱',
+    name: '姓名',
+    role: '角色',
+    addedAt: '添加時間',
+    actions: '操作',
+    deleteConfirm: '確認刪除此用戶？',
+    delete: '刪除',
+    save: '儲存',
+    cancel: '取消',
+    emailPlaceholder: '用戶郵箱',
+    namePlaceholder: '用戶姓名（可選）',
+    batchPlaceholder: '每行一個郵箱\nuser1@example.com\nuser2@example.com',
+    noUsers: '暫無用戶',
+    addFirst: '添加第一個用戶',
+    batchCount: '個郵箱',
+    import: '匯入',
+    selectRole: '選擇角色',
+    changeRole: '修改角色',
+    saving: '儲存中…',
+    deleting: '刪除中…',
+    toastAdded: '用戶已添加',
+    toastAddFailed: '添加失敗',
+    toastBatchAdded: (n: number) => `已添加 ${n} 個用戶`,
+    toastBatchFailed: '批量添加失敗',
+    toastDeleted: '用戶已刪除',
+    toastDeleteFailed: '刪除失敗',
+    toastRoleUpdated: '角色已更新',
+    toastRoleUpdateFailed: '更新失敗',
+    dateLocale: 'zh-TW',
   },
   en: {
     addUser: 'Add User',
@@ -55,6 +97,48 @@ const I18N = {
     changeRole: 'Change role',
     saving: 'Saving…',
     deleting: 'Deleting…',
+    toastAdded: 'User added',
+    toastAddFailed: 'Add failed',
+    toastBatchAdded: (n: number) => `${n} users added`,
+    toastBatchFailed: 'Batch add failed',
+    toastDeleted: 'User deleted',
+    toastDeleteFailed: 'Delete failed',
+    toastRoleUpdated: 'Role updated',
+    toastRoleUpdateFailed: 'Update failed',
+    dateLocale: 'en-US',
+  },
+  th: {
+    addUser: 'เพิ่มผู้ใช้',
+    batchAdd: 'เพิ่มหลายรายการ',
+    email: 'อีเมล',
+    name: 'ชื่อ',
+    role: 'บทบาท',
+    addedAt: 'เพิ่มเมื่อ',
+    actions: 'การดำเนินการ',
+    deleteConfirm: 'ยืนยันการลบผู้ใช้นี้?',
+    delete: 'ลบ',
+    save: 'บันทึก',
+    cancel: 'ยกเลิก',
+    emailPlaceholder: 'อีเมลผู้ใช้',
+    namePlaceholder: 'ชื่อผู้ใช้ (ไม่บังคับ)',
+    batchPlaceholder: 'หนึ่งอีเมลต่อบรรทัด\nuser1@example.com\nuser2@example.com',
+    noUsers: 'ยังไม่มีผู้ใช้',
+    addFirst: 'เพิ่มผู้ใช้คนแรก',
+    batchCount: ' อีเมล',
+    import: 'นำเข้า',
+    selectRole: 'เลือกบทบาท',
+    changeRole: 'เปลี่ยนบทบาท',
+    saving: 'กำลังบันทึก…',
+    deleting: 'กำลังลบ…',
+    toastAdded: 'เพิ่มผู้ใช้แล้ว',
+    toastAddFailed: 'เพิ่มล้มเหลว',
+    toastBatchAdded: (n: number) => `เพิ่ม ${n} ผู้ใช้แล้ว`,
+    toastBatchFailed: 'เพิ่มหลายรายการล้มเหลว',
+    toastDeleted: 'ลบผู้ใช้แล้ว',
+    toastDeleteFailed: 'ลบล้มเหลว',
+    toastRoleUpdated: 'อัปเดตบทบาทแล้ว',
+    toastRoleUpdateFailed: 'อัปเดตล้มเหลว',
+    dateLocale: 'th-TH',
   },
 } as const;
 
@@ -116,7 +200,7 @@ export default function UserManagement({
   onChangeRole,
 }: UserManagementProps) {
   const locale = useLocale();
-  const lang = locale === 'zh' || locale === 'zh-TW' ? 'zh' : 'en';
+  const lang = (locale in I18N ? locale : 'en') as keyof typeof I18N;
   const t = I18N[lang];
 
   const [showForm, setShowForm] = useState(false);
@@ -137,13 +221,13 @@ export default function UserManagement({
     setSaving(true);
     try {
       await onAdd(formEmail.trim(), formName.trim(), formRole || defaultRole);
-      toast.success('用户已添加');
+      toast.success(t.toastAdded);
       setFormEmail('');
       setFormName('');
       setFormRole(defaultRole);
       setShowForm(false);
     } catch (e: unknown) {
-      toast.error(e instanceof Error ? e.message : '添加失败');
+      toast.error(e instanceof Error ? e.message : t.toastAddFailed);
     } finally {
       setSaving(false);
     }
@@ -161,11 +245,11 @@ export default function UserManagement({
       for (const email of emails) {
         await onAdd(email, '', batchRole || defaultRole);
       }
-      toast.success(`已添加 ${emails.length} 个用户`);
+      toast.success(t.toastBatchAdded(emails.length));
       setBatchText('');
       setShowBatch(false);
     } catch (e: unknown) {
-      toast.error(e instanceof Error ? e.message : '批量添加失败');
+      toast.error(e instanceof Error ? e.message : t.toastBatchFailed);
     } finally {
       setSaving(false);
     }
@@ -176,9 +260,9 @@ export default function UserManagement({
     setDeletingEmail(email);
     try {
       await onDelete(email);
-      toast.success('用户已删除');
+      toast.success(t.toastDeleted);
     } catch (e: unknown) {
-      toast.error(e instanceof Error ? e.message : '删除失败');
+      toast.error(e instanceof Error ? e.message : t.toastDeleteFailed);
     } finally {
       setDeletingEmail(null);
     }
@@ -188,9 +272,9 @@ export default function UserManagement({
     setEditingRole(email);
     try {
       await onChangeRole(email, newRole);
-      toast.success('角色已更新');
+      toast.success(t.toastRoleUpdated);
     } catch (e: unknown) {
-      toast.error(e instanceof Error ? e.message : '更新失败');
+      toast.error(e instanceof Error ? e.message : t.toastRoleUpdateFailed);
     } finally {
       setEditingRole(null);
     }
@@ -383,7 +467,7 @@ export default function UserManagement({
                     )}
                   </td>
                   <td className="slide-td text-[var(--text-muted)] text-xs">
-                    {user.added_at ? new Date(user.added_at).toLocaleDateString('zh-CN') : '—'}
+                    {user.added_at ? new Date(user.added_at).toLocaleDateString(t.dateLocale) : '—'}
                   </td>
                   <td className="slide-td text-center">
                     <button

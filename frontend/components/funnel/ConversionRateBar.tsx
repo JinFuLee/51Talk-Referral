@@ -15,10 +15,34 @@ import type { FunnelStage } from '@/lib/types/funnel';
 import { CHART_PALETTE } from '@/lib/chart-palette';
 
 const I18N = {
-  zh: { actual: '实际', target: '目标' },
-  'zh-TW': { actual: '實際', target: '目標' },
-  en: { actual: 'Actual', target: 'Target' },
-  th: { actual: 'จริง', target: 'เป้าหมาย' },
+  zh: {
+    actual: '实际',
+    target: '目标',
+    regAppt: '注册预约率',
+    apptShow: '预约出席率',
+    showPay: '出席付费率',
+  },
+  'zh-TW': {
+    actual: '實際',
+    target: '目標',
+    regAppt: '註冊預約率',
+    apptShow: '預約出席率',
+    showPay: '出席付費率',
+  },
+  en: {
+    actual: 'Actual',
+    target: 'Target',
+    regAppt: 'Reg→Appt',
+    apptShow: 'Appt→Show',
+    showPay: 'Show→Pay',
+  },
+  th: {
+    actual: 'จริง',
+    target: 'เป้าหมาย',
+    regAppt: 'ลงทะเบียน→นัด',
+    apptShow: 'นัด→เข้าร่วม',
+    showPay: 'เข้าร่วม→ชำระ',
+  },
 } as const;
 
 interface ConversionRateBarProps {
@@ -27,11 +51,13 @@ interface ConversionRateBarProps {
   locale?: string;
 }
 
+// Stage keys are fixed Chinese data-model names (matched against Excel/API stage names).
+// Display labels come from I18N at render time.
 const RATE_PAIRS = [
-  { key: '注册预约率', from: '注册', to: '预约' },
-  { key: '预约出席率', from: '预约', to: '出席' },
-  { key: '出席付费率', from: '出席', to: '付费' },
-] as const;
+  { labelKey: 'regAppt' as const, from: '注册', to: '预约' },
+  { labelKey: 'apptShow' as const, from: '预约', to: '出席' },
+  { labelKey: 'showPay' as const, from: '出席', to: '付费' },
+];
 
 function gapColor(gap: number | undefined) {
   if (gap === undefined) return CHART_PALETTE.axisTick;
