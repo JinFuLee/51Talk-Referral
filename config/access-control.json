@@ -36,5 +36,5 @@
     "require_auth": true,
     "admin_emails": ["jinfuleestudio@gmail.com"]
   },
-  "version": 6
+  "version": 8
 }

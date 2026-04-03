@@ -284,13 +284,13 @@ def update_access_control(request: Request, body: dict[str, Any]) -> dict[str, A
     if not _is_admin(request, config):
         raise HTTPException(status_code=403, detail="需要管理员权限")
 
-    # 保留 version 并递增
-    current_version = config.get("version", 1)
-    body["version"] = current_version + 1
+    # 合并更新（而非替换），保留未传入的字段
+    merged = {**config, **body}
+    merged["version"] = config.get("version", 1) + 1
 
-    _write_config(body)
-    logger.info(f"权限配置已更新，version → {body['version']}")
-    return {"ok": True, "version": body["version"]}
+    _write_config(merged)
+    logger.info(f"权限配置已更新，version → {merged['version']}")
+    return {"ok": True, "version": merged["version"]}
 
 
 @router.get("/access-control/me")
