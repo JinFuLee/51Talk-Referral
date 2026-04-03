@@ -13,6 +13,57 @@ import {
   Label,
 } from 'recharts';
 import { CHART_PALETTE } from '@/lib/chart-palette';
+import { useLocale } from 'next-intl';
+
+const I18N = {
+  zh: {
+    noData: '暂无散点数据',
+    xAxis: '带新系数',
+    yAxis: '付费金额(USD)',
+    paidAmt: '付费金额',
+    newCoeff: '带新系数',
+    hoverHint: '鼠标悬停查看 CC 名称',
+    quadrants: { lowEff: '低效高收', star: '明星CC', inactive: '待激活', latent: '潜力CC' },
+  },
+  en: {
+    noData: 'No scatter data',
+    xAxis: 'Bring-new Coeff',
+    yAxis: 'Paid Amount(USD)',
+    paidAmt: 'Paid Amount',
+    newCoeff: 'Bring-new Coeff',
+    hoverHint: 'Hover to see CC name',
+    quadrants: {
+      lowEff: 'Low-eff High-rev',
+      star: 'Star CC',
+      inactive: 'Inactive',
+      latent: 'Potential CC',
+    },
+  },
+  'zh-TW': {
+    noData: '暫無散點數據',
+    xAxis: '帶新係數',
+    yAxis: '付費金額(USD)',
+    paidAmt: '付費金額',
+    newCoeff: '帶新係數',
+    hoverHint: '滑鼠懸停查看 CC 名稱',
+    quadrants: { lowEff: '低效高收', star: '明星CC', inactive: '待激活', latent: '潛力CC' },
+  },
+  th: {
+    noData: 'ไม่มีข้อมูลกราฟกระจาย',
+    xAxis: 'สัมประสิทธิ์นำใหม่',
+    yAxis: 'ยอดชำระ(USD)',
+    paidAmt: 'ยอดชำระ',
+    newCoeff: 'สัมประสิทธิ์นำใหม่',
+    hoverHint: 'วางเมาส์เพื่อดูชื่อ CC',
+    quadrants: {
+      lowEff: 'ประสิทธิภาพต่ำรายได้สูง',
+      star: 'CC ดาวเด่น',
+      inactive: 'รอเปิดใช้งาน',
+      latent: 'CC ศักยภาพ',
+    },
+  },
+} as const;
+type Locale = keyof typeof I18N;
 
 interface ScatterPoint {
   cc_name: string;
@@ -73,11 +124,13 @@ function CustomDot({ cx = 0, cy = 0, payload, hoveredName, onHover }: CustomDotP
 
 export function EfficiencyScatter({ data }: EfficiencyScatterProps) {
   const [hoveredName, setHoveredName] = useState<string | null>(null);
+  const locale = useLocale();
+  const t = I18N[(locale as Locale) in I18N ? (locale as Locale) : 'zh'];
 
   if (!data.length) {
     return (
       <div className="flex items-center justify-center h-48 text-sm text-[var(--text-muted)]">
-        暂无散点数据
+        {t.noData}
       </div>
     );
   }
@@ -86,10 +139,25 @@ export function EfficiencyScatter({ data }: EfficiencyScatterProps) {
   const yMid = data.reduce((s, d) => s + d.y, 0) / data.length;
 
   const quadrantLabels = [
-    { x: xMid * 0.5, y: yMid * 1.5, text: '低效高收', color: CHART_PALETTE.quadrant.lowEff },
-    { x: xMid * 1.5, y: yMid * 1.5, text: '明星CC', color: CHART_PALETTE.quadrant.star },
-    { x: xMid * 0.5, y: yMid * 0.5, text: '待激活', color: CHART_PALETTE.quadrant.inactive },
-    { x: xMid * 1.5, y: yMid * 0.5, text: '潜力CC', color: CHART_PALETTE.quadrant.latent },
+    {
+      x: xMid * 0.5,
+      y: yMid * 1.5,
+      text: t.quadrants.lowEff,
+      color: CHART_PALETTE.quadrant.lowEff,
+    },
+    { x: xMid * 1.5, y: yMid * 1.5, text: t.quadrants.star, color: CHART_PALETTE.quadrant.star },
+    {
+      x: xMid * 0.5,
+      y: yMid * 0.5,
+      text: t.quadrants.inactive,
+      color: CHART_PALETTE.quadrant.inactive,
+    },
+    {
+      x: xMid * 1.5,
+      y: yMid * 0.5,
+      text: t.quadrants.latent,
+      color: CHART_PALETTE.quadrant.latent,
+    },
   ];
 
   return (
@@ -101,11 +169,11 @@ export function EfficiencyScatter({ data }: EfficiencyScatterProps) {
             <XAxis
               type="number"
               dataKey="x"
-              name="带新系数"
+              name={t.xAxis}
               tick={{ fontSize: 10, fill: 'var(--text-muted)' }}
             >
               <Label
-                value="带新系数"
+                value={t.xAxis}
                 offset={-10}
                 position="insideBottom"
                 style={{ fontSize: 10, fill: 'var(--text-secondary)' }}
@@ -114,11 +182,11 @@ export function EfficiencyScatter({ data }: EfficiencyScatterProps) {
             <YAxis
               type="number"
               dataKey="y"
-              name="付费金额"
+              name={t.paidAmt}
               tick={{ fontSize: 10, fill: 'var(--text-muted)' }}
             >
               <Label
-                value="付费金额(USD)"
+                value={t.yAxis}
                 angle={-90}
                 position="insideLeft"
                 offset={15}
@@ -133,8 +201,12 @@ export function EfficiencyScatter({ data }: EfficiencyScatterProps) {
                 return (
                   <div className="bg-[var(--bg-surface)] border border-[var(--border-default)] rounded p-2 text-xs shadow">
                     <div className="font-semibold">{d.cc_name}</div>
-                    <div>带新系数: {(d.x ?? 0).toFixed(2)}</div>
-                    <div>付费金额: ${(d.y ?? 0).toLocaleString()}</div>
+                    <div>
+                      {t.newCoeff}: {(d.x ?? 0).toFixed(2)}
+                    </div>
+                    <div>
+                      {t.paidAmt}: ${(d.y ?? 0).toLocaleString()}
+                    </div>
                   </div>
                 );
               }}
@@ -160,7 +232,7 @@ export function EfficiencyScatter({ data }: EfficiencyScatterProps) {
           </div>
         ))}
       </div>
-      <p className="text-center text-xs text-[var(--text-muted)] mt-1">鼠标悬停查看 CC 名称</p>
+      <p className="text-center text-xs text-[var(--text-muted)] mt-1">{t.hoverHint}</p>
     </div>
   );
 }

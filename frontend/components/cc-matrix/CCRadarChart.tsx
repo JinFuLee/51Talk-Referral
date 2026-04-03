@@ -11,6 +11,55 @@ import {
 } from 'recharts';
 import { CHART_PALETTE } from '@/lib/chart-palette';
 import { formatRate } from '@/lib/utils';
+import { useLocale } from 'next-intl';
+
+const I18N = {
+  zh: {
+    title: '5 维战力图',
+    close: '关闭',
+    labels: {
+      participation: '参与率',
+      conversion: '转化率',
+      checkin: '打卡率',
+      reach: '触达率',
+      cargo_ratio: '带货比',
+    },
+  },
+  en: {
+    title: '5-Dim Radar',
+    close: 'Close',
+    labels: {
+      participation: 'Participation',
+      conversion: 'Conversion',
+      checkin: 'Check-in',
+      reach: 'Reach',
+      cargo_ratio: 'Cargo Ratio',
+    },
+  },
+  'zh-TW': {
+    title: '5 維戰力圖',
+    close: '關閉',
+    labels: {
+      participation: '參與率',
+      conversion: '轉化率',
+      checkin: '打卡率',
+      reach: '觸達率',
+      cargo_ratio: '帶貨比',
+    },
+  },
+  th: {
+    title: 'กราฟ 5 มิติ',
+    close: 'ปิด',
+    labels: {
+      participation: 'อัตราเข้าร่วม',
+      conversion: 'อัตราแปลง',
+      checkin: 'อัตราเช็คอิน',
+      reach: 'อัตราเข้าถึง',
+      cargo_ratio: 'อัตราสินค้า',
+    },
+  },
+} as const;
+type Locale = keyof typeof I18N;
 
 export interface CCRadarData {
   cc_name: string;
@@ -26,15 +75,18 @@ interface CCRadarChartProps {
   onClose?: () => void;
 }
 
-const LABELS: { key: keyof Omit<CCRadarData, 'cc_name'>; label: string }[] = [
-  { key: 'participation', label: '参与率' },
-  { key: 'conversion', label: '转化率' },
-  { key: 'checkin', label: '打卡率' },
-  { key: 'reach', label: '触达率' },
-  { key: 'cargo_ratio', label: '带货比' },
-];
-
 export function CCRadarChart({ data, onClose }: CCRadarChartProps) {
+  const locale = useLocale();
+  const t = I18N[(locale as Locale) in I18N ? (locale as Locale) : 'zh'];
+
+  const LABELS: { key: keyof Omit<CCRadarData, 'cc_name'>; label: string }[] = [
+    { key: 'participation', label: t.labels.participation },
+    { key: 'conversion', label: t.labels.conversion },
+    { key: 'checkin', label: t.labels.checkin },
+    { key: 'reach', label: t.labels.reach },
+    { key: 'cargo_ratio', label: t.labels.cargo_ratio },
+  ];
+
   const chartData = LABELS.map(({ key, label }) => ({
     subject: label,
     value: Math.round((data[key] ?? 0) * 100),
@@ -46,12 +98,12 @@ export function CCRadarChart({ data, onClose }: CCRadarChartProps) {
       <div className="bg-[var(--bg-surface)] border border-[var(--border-default)] rounded-xl shadow-2xl p-5 w-[360px]">
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-sm font-semibold text-[var(--text-primary)]">
-            {data.cc_name} — 5 维战力图
+            {data.cc_name} — {t.title}
           </h3>
           <button
             onClick={onClose}
             className="text-[var(--text-muted)] hover:text-[var(--text-primary)] text-lg leading-none transition-colors"
-            aria-label="关闭"
+            aria-label={t.close}
           >
             ×
           </button>

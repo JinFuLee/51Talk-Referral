@@ -165,12 +165,15 @@ function readLocalStorage(key: string): EnclosureRoleAssignment | null {
   return null;
 }
 
+type I18NType = (typeof I18N)['zh'];
+
 interface AssignmentTableProps {
   title: string;
   subtitle: string;
   assignment: EnclosureRoleAssignment;
   defaultVal: EnclosureRoleAssignment;
   onSave: (data: EnclosureRoleAssignment) => Promise<void>;
+  t: I18NType;
 }
 
 function AssignmentTable({
@@ -179,6 +182,7 @@ function AssignmentTable({
   assignment: initialAssignment,
   defaultVal,
   onSave,
+  t,
 }: AssignmentTableProps) {
   const [assignment, setAssignment] = useState<EnclosureRoleAssignment>(initialAssignment);
   const [saved, setSaved] = useState(false);
@@ -234,14 +238,14 @@ function AssignmentTable({
             disabled={saving}
             className="text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors disabled:opacity-40"
           >
-            重置默认
+            {t.resetBtn}
           </button>
           <button
             onClick={handleSave}
             disabled={saving}
             className="px-3 py-1 bg-action text-white rounded text-xs font-medium hover:bg-action-active transition-colors focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-action disabled:opacity-40"
           >
-            {saving ? '保存中…' : saved ? '已保存' : '保存'}
+            {saving ? t.savingBtn : saved ? t.savedBtn : t.saveBtn}
           </button>
         </div>
       </div>
@@ -249,10 +253,10 @@ function AssignmentTable({
         <table className="w-full text-sm">
           <thead>
             <tr className="slide-thead-row text-xs">
-              <th className="text-left py-1.5 px-3">围场</th>
+              <th className="text-left py-1.5 px-3">{t.enclosureCol}</th>
               {ROLES.map((role) => (
                 <th key={role} className="text-center py-1.5 px-3">
-                  {role}
+                  {role === '运营' ? t.ops : role}
                 </th>
               ))}
             </tr>
@@ -290,6 +294,9 @@ function AssignmentTable({
 }
 
 export default function EnclosureRoleCard() {
+  const locale = useLocale();
+  const t = (I18N as unknown as Record<string, (typeof I18N)['zh']>)[locale] ?? I18N['zh'];
+
   const { data, mutate, isLoading, error } = useFilteredSWR<
     Record<string, Record<string, string[]>>
   >('/api/config/enclosure-role');
@@ -355,35 +362,35 @@ export default function EnclosureRoleCard() {
   }
 
   return (
-    <Card title="围场-岗位负责配置">
+    <Card title={t.cardTitle}>
       {isLoading && (
-        <div className="py-4 text-center text-xs text-[var(--text-muted)]">加载中…</div>
+        <div className="py-4 text-center text-xs text-[var(--text-muted)]">{t.loading}</div>
       )}
       {error && !isLoading && (
-        <div className="py-2 text-xs text-[var(--color-danger)]">加载配置失败，使用本地默认值</div>
+        <div className="py-2 text-xs text-[var(--color-danger)]">{t.loadError}</div>
       )}
       {!isLoading && (
         <div className="space-y-6">
           <AssignmentTable
-            title="窄口径负责配置"
-            subtitle="CC/SS/LP 主动联系场景"
+            title={t.narrowTitle}
+            subtitle={t.narrowSubtitle}
             assignment={narrowAssignment}
             defaultVal={DEFAULT_NARROW}
             onSave={handleSaveNarrow}
+            t={t}
           />
           <div className="border-t border-[var(--border-subtle)]" />
           <AssignmentTable
-            title="宽口径负责配置"
-            subtitle="学员自主打卡场景（打卡面板使用）"
+            title={t.wideTitle}
+            subtitle={t.wideSubtitle}
             assignment={wideAssignment}
             defaultVal={DEFAULT_WIDE}
             onSave={handleSaveWide}
+            t={t}
           />
         </div>
       )}
-      <p className="mt-3 text-xs text-[var(--text-muted)]">
-        勾选 = 该围场由该岗位服务；允许多选。配置持久化到服务端，打卡面板读取宽口径配置。
-      </p>
+      <p className="mt-3 text-xs text-[var(--text-muted)]">{t.hint}</p>
     </Card>
   );
 }
