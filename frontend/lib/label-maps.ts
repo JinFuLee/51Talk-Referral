@@ -1,0 +1,53 @@
+'use client';
+
+import { useLocale } from 'next-intl';
+
+type L = 'zh' | 'zh-TW' | 'en' | 'th';
+export type LabelMap = Record<string, Record<L, string>>;
+
+/** 统一 label 查找：后端中文 key → 当前 locale 翻译 */
+export function useLabel() {
+  const locale = useLocale() as L;
+  return (map: LabelMap, key: string) => map[key]?.[locale] ?? map[key]?.zh ?? key;
+}
+
+export const CHANNEL_LABELS: LabelMap = {
+  CC窄: { zh: 'CC窄', 'zh-TW': 'CC窄', en: 'CC Narrow', th: 'CC แคบ' },
+  SS窄: { zh: 'SS窄', 'zh-TW': 'SS窄', en: 'SS Narrow', th: 'SS แคบ' },
+  LP窄: { zh: 'LP窄', 'zh-TW': 'LP窄', en: 'LP Narrow', th: 'LP แคบ' },
+  CC宽: { zh: 'CC宽', 'zh-TW': 'CC寬', en: 'CC Wide', th: 'CC กว้าง' },
+  LP宽: { zh: 'LP宽', 'zh-TW': 'LP寬', en: 'LP Wide', th: 'LP กว้าง' },
+  运营宽: { zh: '运营宽', 'zh-TW': '運營寬', en: 'Ops Wide', th: 'ปฏิบัติการ กว้าง' },
+  总计: { zh: '总计', 'zh-TW': '總計', en: 'Total', th: 'รวม' },
+};
+
+export const STUDENT_TAG_LABELS: LabelMap = {
+  满勤: { zh: '满勤', 'zh-TW': '滿勤', en: 'Full Attendance', th: 'เข้าเรียนครบ' },
+  活跃: { zh: '活跃', 'zh-TW': '活躍', en: 'Active', th: 'กระตือรือร้น' },
+  进步明显: { zh: '进步明显', 'zh-TW': '進步明顯', en: 'Improving', th: 'พัฒนาขึ้น' },
+  在退步: { zh: '在退步', 'zh-TW': '在退步', en: 'Declining', th: 'ถดถอย' },
+  沉睡高潜: { zh: '沉睡高潜', 'zh-TW': '沉睡高潛', en: 'Dormant HP', th: 'หยุดชะงัก' },
+  超级转化: { zh: '超级转化', 'zh-TW': '超級轉化', en: 'Super Converter', th: 'แปลงสูง' },
+};
+
+export const FEASIBILITY_LABELS: LabelMap = {
+  高概率达成: { zh: '高概率达成', 'zh-TW': '高概率達成', en: 'High Probability', th: 'โอกาสสูง' },
+  基本可达: { zh: '基本可达', 'zh-TW': '基本可達', en: 'Achievable', th: 'บรรลุได้' },
+  有挑战: { zh: '有挑战', 'zh-TW': '有挑戰', en: 'Challenging', th: 'ท้าทาย' },
+  风险较大: { zh: '风险较大', 'zh-TW': '風險較大', en: 'Risky', th: 'มีความเสี่ยง' },
+  难度极高: { zh: '难度极高', 'zh-TW': '難度極高', en: 'Very Hard', th: 'ยากมาก' },
+};
+
+export const OPS_CHANNEL_LABELS: LabelMap = {
+  电话: { zh: '电话', 'zh-TW': '電話', en: 'Phone', th: 'โทรศัพท์' },
+  短信: { zh: '短信', 'zh-TW': '短信', en: 'SMS', th: 'SMS' },
+  '电话/短信': { zh: '电话/短信', 'zh-TW': '電話/短信', en: 'Phone/SMS', th: 'โทรศัพท์/SMS' },
+  'LINE OA': { zh: 'LINE OA', 'zh-TW': 'LINE OA', en: 'LINE OA', th: 'LINE OA' },
+  'APP 站内推送': {
+    zh: 'APP 站内推送',
+    'zh-TW': 'APP 站內推送',
+    en: 'App Push',
+    th: 'แจ้งเตือน App',
+  },
+  邮件: { zh: '邮件', 'zh-TW': '郵件', en: 'Email', th: 'อีเมล' },
+};

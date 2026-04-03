@@ -1,5 +1,6 @@
 'use client';
 
+import { useLabel, OPS_CHANNEL_LABELS } from '@/lib/label-maps';
 import { useFilteredSWR } from '@/lib/hooks/use-filtered-swr';
 import { Spinner } from '@/components/ui/Spinner';
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -191,6 +192,7 @@ const COST_STYLES: Record<string, string> = {
 
 function ChannelCard({ channel }: { channel: OpsChannel }) {
   const t = useT();
+  const label = useLabel();
   const ratePercent = Math.min(100, Math.round((channel.estimated_contact_rate ?? 0) * 100));
 
   const priorityLabels: Record<string, string> = {
@@ -209,7 +211,9 @@ function ChannelCard({ channel }: { channel: OpsChannel }) {
     <div className="card-compact overflow-hidden flex flex-col !p-0">
       {/* 卡片头部 */}
       <div className="bg-[var(--n-800,#1e293b)] text-white px-3 py-2 flex items-center justify-between gap-2">
-        <span className="text-sm font-bold truncate">{channel.channel_name}</span>
+        <span className="text-sm font-bold truncate">
+          {label(OPS_CHANNEL_LABELS, channel.channel_name)}
+        </span>
         <span
           className={cn(
             'text-xs px-2 py-0.5 rounded-full font-semibold whitespace-nowrap',

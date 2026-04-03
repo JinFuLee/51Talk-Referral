@@ -1,6 +1,7 @@
 'use client';
 
 import { useLocale } from 'next-intl';
+import { useLabel, FEASIBILITY_LABELS } from '@/lib/label-maps';
 import { Card } from '@/components/ui/Card';
 import { formatRate } from '@/lib/utils';
 import { NumInput, PctInput } from '@/components/ui/NumInput';
@@ -95,6 +96,7 @@ export default function TargetSettingsCard({
 }: TargetSettingsCardProps) {
   const locale = useLocale();
   const t = (I18N as unknown as Record<string, (typeof I18N)['zh']>)[locale] ?? I18N['zh'];
+  const label = useLabel();
   return (
     <>
       {/* 智能推荐 */}
@@ -171,7 +173,7 @@ export default function TargetSettingsCard({
                         : 'bg-red-100 text-red-700'
                   }`}
                 >
-                  <span>{recommendation.feasibility.label}</span>
+                  <span>{label(FEASIBILITY_LABELS, recommendation.feasibility.label)}</span>
                   <span className="text-[var(--text-secondary)]">
                     ({recommendation.feasibility.probability})
                   </span>

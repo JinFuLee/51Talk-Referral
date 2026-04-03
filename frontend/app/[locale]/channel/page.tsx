@@ -203,6 +203,7 @@ const I18N = {
   },
 } as const;
 import { formatRate } from '@/lib/utils';
+import { useLabel, CHANNEL_LABELS } from '@/lib/label-maps';
 import { Card } from '@/components/ui/Card';
 import { Spinner } from '@/components/ui/Spinner';
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -308,6 +309,7 @@ export default function ChannelPage() {
   });
   const locale = useLocale();
   const t = (I18N as unknown as Record<string, (typeof I18N)['zh']>)[locale] ?? I18N['zh'];
+  const label = useLabel();
   type Tab = 'perf' | 'net' | 'three' | 'contributor';
   const TABS: { key: Tab; label: string }[] = [
     { key: 'perf', label: t.tabPerf },
@@ -427,7 +429,9 @@ export default function ChannelPage() {
                     <tbody>
                       {channels.map((c) => (
                         <tr key={c.channel} className="even:bg-[var(--bg-subtle)]">
-                          <td className="py-2 px-2 text-xs font-medium">{c.channel}</td>
+                          <td className="py-2 px-2 text-xs font-medium">
+                            {label(CHANNEL_LABELS, c.channel)}
+                          </td>
                           <td className="py-2 px-2 text-xs text-right font-mono tabular-nums">
                             {fmtNum(c.registrations)}
                           </td>
@@ -464,7 +468,9 @@ export default function ChannelPage() {
                     cy="50%"
                     outerRadius={90}
                     dataKey="value"
-                    label={({ name, percent }) => `${name} ${formatRate(percent, 0)}`}
+                    label={({ name, percent }) =>
+                      `${label(CHANNEL_LABELS, name as string)} ${formatRate(percent, 0)}`
+                    }
                     labelLine={false}
                     animationDuration={600}
                     animationEasing="ease-out"
@@ -515,7 +521,9 @@ export default function ChannelPage() {
                 <tbody>
                   {contributions.map((c) => (
                     <tr key={c.channel} className="even:bg-[var(--bg-subtle)]">
-                      <td className="py-2 px-2 text-xs font-medium">{c.channel}</td>
+                      <td className="py-2 px-2 text-xs font-medium">
+                        {label(CHANNEL_LABELS, c.channel)}
+                      </td>
                       <td className="py-2 px-2 text-xs text-right font-mono tabular-nums font-semibold">
                         {fmtUsd(c.revenue)}
                       </td>
@@ -542,7 +550,10 @@ export default function ChannelPage() {
               .sort((a, b) => (b[paid] as number) - (a[paid] as number))
               .slice(0, 5);
             return (
-              <Card key={channelLabel} title={`${channelLabel} · ${t.contributorTitle}`}>
+              <Card
+                key={channelLabel}
+                title={`${label(CHANNEL_LABELS, channelLabel)} · ${t.contributorTitle}`}
+              >
                 {top5.length === 0 ? (
                   <EmptyState title={t.emptyContributor} description={t.emptyContributorDesc} />
                 ) : (
@@ -609,7 +620,9 @@ export default function ChannelPage() {
                     const gap = c.gap;
                     return (
                       <tr key={c.channel} className="even:bg-[var(--bg-subtle)]">
-                        <td className="py-2 px-2 text-xs font-medium">{c.channel}</td>
+                        <td className="py-2 px-2 text-xs font-medium">
+                          {label(CHANNEL_LABELS, c.channel)}
+                        </td>
                         <td className="py-2 px-2 text-xs text-right font-mono tabular-nums">
                           {fmtNum(c.expected_volume)}
                         </td>

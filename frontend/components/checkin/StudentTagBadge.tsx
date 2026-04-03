@@ -1,6 +1,7 @@
 'use client';
 
 import { useLocale } from 'next-intl';
+import { useLabel, STUDENT_TAG_LABELS } from '@/lib/label-maps';
 
 // 学员标签徽章组件 — 渲染彩色 pill badges
 
@@ -96,6 +97,7 @@ interface StudentTagBadgeProps {
  */
 export function StudentTagBadge({ tags, maxVisible }: StudentTagBadgeProps) {
   const locale = useLocale();
+  const label = useLabel();
   if (!tags || tags.length === 0) return null;
 
   const visible = maxVisible != null ? tags.slice(0, maxVisible) : tags;
@@ -111,7 +113,7 @@ export function StudentTagBadge({ tags, maxVisible }: StudentTagBadgeProps) {
             className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-xs font-medium border ${config.className}`}
           >
             <span aria-hidden="true">{config.emoji}</span>
-            <span>{tag}</span>
+            <span>{label(STUDENT_TAG_LABELS, tag)}</span>
           </span>
         );
       })}
