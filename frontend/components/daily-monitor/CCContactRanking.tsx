@@ -14,10 +14,13 @@ import { useLocale } from 'next-intl';
 import type { CCContactRankItem } from '@/lib/types/cross-analysis';
 import { CHART_PALETTE } from '@/lib/chart-palette';
 
-const I18N = {
+type CCRankingI18N = { contactRate: string; callCount: string };
+const I18N: Record<string, CCRankingI18N> = {
   zh: { contactRate: '触达率', callCount: '接通次数' },
+  'zh-TW': { contactRate: '觸達率', callCount: '接通次數' },
   en: { contactRate: 'Contact Rate', callCount: 'Call Count' },
-} as const;
+  th: { contactRate: 'อัตราการติดต่อ', callCount: 'จำนวนการโทร' },
+};
 
 interface CCContactRankingProps {
   data: CCContactRankItem[];
@@ -27,7 +30,7 @@ const COLORS = CHART_PALETTE.series;
 
 export function CCContactRanking({ data }: CCContactRankingProps) {
   const locale = useLocale();
-  const t = I18N[locale === 'en' ? 'en' : 'zh'];
+  const t: CCRankingI18N = I18N[locale] ?? I18N['zh'];
 
   const sorted = [...data].sort((a, b) => b.contact_rate - a.contact_rate);
   const chartData = sorted.map((d) => ({
@@ -55,7 +58,7 @@ export function CCContactRanking({ data }: CCContactRankingProps) {
           type="category"
           dataKey="name"
           tick={{ fontSize: 11, fill: 'var(--text-secondary)' }}
-          width={64}
+          width={160}
         />
         <Tooltip
           formatter={(v: number, name: string) => (name === t.contactRate ? `${v}%` : v)}

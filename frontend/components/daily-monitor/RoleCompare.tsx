@@ -10,7 +10,16 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts';
+import { useLocale } from 'next-intl';
 import { CHART_PALETTE } from '@/lib/chart-palette';
+
+type RoleCompareI18N = { todayRate: string };
+const I18N: Record<string, RoleCompareI18N> = {
+  zh: { todayRate: '今日触达率' },
+  'zh-TW': { todayRate: '今日觸達率' },
+  en: { todayRate: "Today's Contact Rate" },
+  th: { todayRate: 'อัตราการติดต่อวันนี้' },
+};
 
 interface RoleCompareProps {
   ccRate: number;
@@ -19,9 +28,12 @@ interface RoleCompareProps {
 }
 
 export function RoleCompare({ ccRate, ssRate, lpRate }: RoleCompareProps) {
+  const locale = useLocale();
+  const t: RoleCompareI18N = I18N[locale] ?? I18N['zh'];
+
   const data = [
     {
-      name: '今日触达率',
+      name: t.todayRate,
       CC: Math.round(ccRate * 100),
       SS: Math.round(ssRate * 100),
       LP: Math.round(lpRate * 100),
