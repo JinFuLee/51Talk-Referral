@@ -12,6 +12,19 @@ const I18N = {
     unread: '未读',
     empty: '暂无通知',
     markRead: '标记为已读',
+    mockNotifications: [
+      {
+        title: 'KPI 红色预警',
+        message: '本月付费转化率低至 12%，远低于目标 18%',
+        timestamp: '10分钟前',
+      },
+      {
+        title: '零跟进预警',
+        message: '王明有 5 个分配的体验课超过 24 小时未跟进',
+        timestamp: '1小时前',
+      },
+      { title: '报表生成完毕', message: '本周全区复盘简报已生成', timestamp: '5小时前' },
+    ],
   },
   'zh-TW': {
     center: '通知中心',
@@ -20,6 +33,19 @@ const I18N = {
     unread: '未讀',
     empty: '暫無通知',
     markRead: '標記為已讀',
+    mockNotifications: [
+      {
+        title: 'KPI 紅色預警',
+        message: '本月付費轉化率低至 12%，遠低於目標 18%',
+        timestamp: '10分鐘前',
+      },
+      {
+        title: '零跟進預警',
+        message: '王明有 5 個分配的體驗課超過 24 小時未跟進',
+        timestamp: '1小時前',
+      },
+      { title: '報表生成完畢', message: '本週全區覆盤簡報已生成', timestamp: '5小時前' },
+    ],
   },
   en: {
     center: 'Notification Center',
@@ -28,6 +54,23 @@ const I18N = {
     unread: 'Unread',
     empty: 'No notifications',
     markRead: 'Mark as read',
+    mockNotifications: [
+      {
+        title: 'KPI Red Alert',
+        message: 'This month paid conversion rate dropped to 12%, far below the 18% target',
+        timestamp: '10 min ago',
+      },
+      {
+        title: 'Zero Follow-up Alert',
+        message: 'Wang Ming has 5 assigned trial lessons with no follow-up for over 24 hours',
+        timestamp: '1 hour ago',
+      },
+      {
+        title: 'Report Ready',
+        message: "This week's full-region recap brief has been generated",
+        timestamp: '5 hours ago',
+      },
+    ],
   },
   th: {
     center: 'ศูนย์การแจ้งเตือน',
@@ -36,6 +79,23 @@ const I18N = {
     unread: 'ยังไม่ได้อ่าน',
     empty: 'ไม่มีการแจ้งเตือน',
     markRead: 'ทำเครื่องหมายว่าอ่านแล้ว',
+    mockNotifications: [
+      {
+        title: 'แจ้งเตือน KPI สีแดง',
+        message: 'อัตราการแปลงชำระเงินเดือนนี้ลดลงเหลือ 12% ต่ำกว่าเป้าหมาย 18%',
+        timestamp: '10 นาทีที่แล้ว',
+      },
+      {
+        title: 'แจ้งเตือนไม่มีการติดตาม',
+        message: 'Wang Ming มีคลาสทดลอง 5 คลาสที่ไม่มีการติดตามเกิน 24 ชั่วโมง',
+        timestamp: '1 ชั่วโมงที่แล้ว',
+      },
+      {
+        title: 'รายงานพร้อมแล้ว',
+        message: 'รายงานสรุปประจำสัปดาห์นี้ถูกสร้างแล้ว',
+        timestamp: '5 ชั่วโมงที่แล้ว',
+      },
+    ],
   },
 } as const;
 type I18NKey = keyof typeof I18N;
@@ -58,30 +118,30 @@ export function NotificationCenter() {
   const [isOpen, setIsOpen] = useState(false);
   const [filter, setFilter] = useState<'all' | 'unread'>('all');
 
-  // Mock data since Claude handles logic
-  const [notifications, setNotifications] = useState<NotificationItem[]>([
+  // Mock data — titles/messages/timestamps come from I18N
+  const [notifications, setNotifications] = useState<NotificationItem[]>(() => [
     {
       id: '1',
       type: 'alert',
-      title: 'KPI 红色预警',
-      message: '本月付费转化率低至 12%，远低于目标 18%',
-      timestamp: '10分钟前',
+      title: t.mockNotifications[0].title,
+      message: t.mockNotifications[0].message,
+      timestamp: t.mockNotifications[0].timestamp,
       read: false,
     },
     {
       id: '2',
       type: 'warning',
-      title: '零跟进预警',
-      message: '王明有 5 个分配的体验课超过 24 小时未跟进',
-      timestamp: '1小时前',
+      title: t.mockNotifications[1].title,
+      message: t.mockNotifications[1].message,
+      timestamp: t.mockNotifications[1].timestamp,
       read: false,
     },
     {
       id: '3',
       type: 'info',
-      title: '报表生成完毕',
-      message: '本周全区复盘简报已生成',
-      timestamp: '5小时前',
+      title: t.mockNotifications[2].title,
+      message: t.mockNotifications[2].message,
+      timestamp: t.mockNotifications[2].timestamp,
       read: true,
     },
   ]);

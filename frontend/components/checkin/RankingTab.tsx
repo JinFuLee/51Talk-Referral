@@ -174,6 +174,7 @@ interface RoleColumnProps {
 }
 
 function RoleColumn({ role, summary, subTab, rateColor }: RoleColumnProps) {
+  const t = useRankingT();
   const rows = subTab === 'group' ? summary.by_group : summary.by_person;
 
   return (
@@ -195,27 +196,27 @@ function RoleColumn({ role, summary, subTab, rateColor }: RoleColumnProps) {
       {/* 排行表 */}
       <div className="overflow-hidden">
         {rows.length === 0 ? (
-          <div className="py-6 text-center text-xs text-[var(--text-muted)]">暂无数据</div>
+          <div className="py-6 text-center text-xs text-[var(--text-muted)]">{t.noData}</div>
         ) : (
           <table className="w-full text-xs">
             <thead>
               <tr className="bg-[var(--n-200)] text-[var(--text-secondary)] text-xs font-semibold border-b border-[var(--border-default)]">
-                <th className="py-1 px-2 text-center w-8">排名</th>
-                <th className="py-1 px-2 text-left">{subTab === 'group' ? '团队' : '销售'}</th>
+                <th className="py-1 px-2 text-center w-8">{t.rank}</th>
+                <th className="py-1 px-2 text-left">{subTab === 'group' ? t.team : t.sales}</th>
                 {subTab === 'person' && (
-                  <th className="py-1 px-2 text-left whitespace-nowrap">团队</th>
+                  <th className="py-1 px-2 text-left whitespace-nowrap">{t.team}</th>
                 )}
                 <th className="py-1 px-2 text-right whitespace-nowrap">
                   <span className="inline-flex items-center justify-end gap-1">
-                    有效学员
-                    <BrandDot tooltip="已付费且在有效期内的学员数，是打卡运营的基数" />
+                    {t.validStudents}
+                    <BrandDot tooltip={t.validStudentsTooltip} />
                   </span>
                 </th>
-                <th className="py-1 px-2 text-right whitespace-nowrap">已打卡</th>
+                <th className="py-1 px-2 text-right whitespace-nowrap">{t.checkedIn}</th>
                 <th className="py-1 px-2 text-right whitespace-nowrap">
                   <span className="inline-flex items-center justify-end gap-1">
-                    打卡率
-                    <BrandDot tooltip="转码且分享的学员/有效学员。绿≥50%，橙30-50%，红<30%" />
+                    {t.checkinRate}
+                    <BrandDot tooltip={t.checkinRateTooltip} />
                   </span>
                 </th>
               </tr>
@@ -267,7 +268,7 @@ function RoleColumn({ role, summary, subTab, rateColor }: RoleColumnProps) {
               <tr className="bg-[var(--bg-subtle)] font-semibold border-t border-[var(--border-subtle)]">
                 <td className="py-1 px-2 text-center text-[var(--text-muted)] text-xs">—</td>
                 <td className="py-1 px-2 text-xs" colSpan={subTab === 'person' ? 2 : 1}>
-                  合计
+                  {t.total}
                 </td>
                 <td className="py-1 px-2 text-right font-mono tabular-nums text-xs">
                   {fmtNum(summary.total_students)}
@@ -306,6 +307,7 @@ interface TeamCardProps {
 }
 
 function TeamCard({ card, rateColor, rateBg }: TeamCardProps) {
+  const t = useRankingT();
   const shortName = card.team.replace(/^TH-/i, '').replace(/Team$/i, '');
   const [expandedCC, setExpandedCC] = useState<string | null>(null);
 
@@ -328,17 +330,17 @@ function TeamCard({ card, rateColor, rateBg }: TeamCardProps) {
 
       {/* 成员列表 */}
       {card.members.length === 0 ? (
-        <div className="px-3 py-4 text-xs text-[var(--text-muted)] text-center">暂无成员数据</div>
+        <div className="px-3 py-4 text-xs text-[var(--text-muted)] text-center">{t.noMembers}</div>
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full text-xs">
             <thead>
               <tr className="bg-[var(--bg-subtle)] text-[var(--text-muted)] text-xs font-semibold">
                 <th className="py-1 px-2 text-center w-7">#</th>
-                <th className="py-1 px-2 text-left">销售</th>
-                <th className="py-1 px-2 text-right">学员</th>
-                <th className="py-1 px-2 text-right">打卡</th>
-                <th className="py-1 px-2 text-right">打卡率</th>
+                <th className="py-1 px-2 text-left">{t.sales}</th>
+                <th className="py-1 px-2 text-right">{t.validStudents}</th>
+                <th className="py-1 px-2 text-right">{t.checkedIn}</th>
+                <th className="py-1 px-2 text-right">{t.checkinRate}</th>
               </tr>
             </thead>
             <tbody>
@@ -387,7 +389,7 @@ function TeamCard({ card, rateColor, rateBg }: TeamCardProps) {
             <tfoot>
               <tr className="border-t border-[var(--border-default)] font-semibold bg-[var(--bg-subtle)]">
                 <td className="py-1.5 px-2 text-center text-[var(--text-muted)]">—</td>
-                <td className="py-1.5 px-2 text-[var(--text-primary)]">小计</td>
+                <td className="py-1.5 px-2 text-[var(--text-primary)]">{t.subtotal}</td>
                 <td className="py-1.5 px-2 text-right font-mono tabular-nums text-[var(--text-primary)]">
                   {fmtNum(card.totalStudents)}
                 </td>
@@ -468,9 +470,11 @@ export function RankingTab({ roleFilter = 'CC', enclosureFilter }: RankingTabPro
     });
   }, [data, roleFilter]);
 
+  const t = useRankingT();
+
   const SUB_TABS: { id: 'group' | 'person'; label: string }[] = [
-    { id: 'group', label: '小组排行' },
-    { id: 'person', label: '个人排行 + 团队卡片' },
+    { id: 'group', label: t.subTabGroup },
+    { id: 'person', label: t.subTabPerson },
   ];
 
   // 运营角色：渠道触达视图
@@ -508,32 +512,29 @@ export function RankingTab({ roleFilter = 'CC', enclosureFilter }: RankingTabPro
       {isLoading && (
         <div className="flex items-center justify-center py-16 gap-2 text-sm text-[var(--text-muted)]">
           <Spinner size="lg" />
-          <span>加载排行数据…</span>
+          <span>{t.loading}</span>
         </div>
       )}
 
       {/* 错误态 */}
       {error && !isLoading && (
         <EmptyState
-          title="加载失败"
-          description="无法获取打卡排行数据，请检查后端服务是否正常运行"
-          action={{ label: '重试', onClick: () => mutate() }}
+          title={t.loadError}
+          description={t.loadErrorDesc}
+          action={{ label: t.retry, onClick: () => mutate() }}
         />
       )}
 
       {/* 空态 */}
       {!isLoading && !error && !data && (
-        <EmptyState title="暂无排行数据" description="上传围场打卡数据（D2）并完成分析后自动刷新" />
+        <EmptyState title={t.noRankData} description={t.noRankDataDesc} />
       )}
 
       {/* 排行数据 */}
       {!isLoading && !error && data && (
         <>
           {Object.keys(data.by_role).length === 0 ? (
-            <EmptyState
-              title="暂无排行数据"
-              description="当前围场配置下无可展示的角色排行，请检查围场角色分配设置"
-            />
+            <EmptyState title={t.noRoleData} description={t.noRoleDataDesc} />
           ) : (
             <>
               {/* subTab=group: 按角色分列（由 roleFilter 限定只显示当前角色） */}
@@ -581,7 +582,7 @@ export function RankingTab({ roleFilter = 'CC', enclosureFilter }: RankingTabPro
                   {teamCards.length > 0 && (
                     <div>
                       <h3 className="text-sm font-semibold text-[var(--text-secondary)] uppercase tracking-wider mb-3">
-                        团队卡片
+                        {t.teamCards}
                       </h3>
                       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                         {teamCards.map((card) => (

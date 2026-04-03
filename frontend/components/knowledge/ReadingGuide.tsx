@@ -14,6 +14,13 @@ const I18N = {
     badgeMust: '必读',
     badgeRecommended: '选读',
     badgeReference: '参考',
+    items: [
+      { title: '业务角色速查（CC / SS / LP）', description: '了解三大岗位职责与分工边界' },
+      { title: '围场定义与计算规则', description: '付费当日起算天数分段逻辑' },
+      { title: '核心指标公式大全', description: '参与率、打卡率、触达率、带新系数等' },
+      { title: '六步分析法', description: '从数据到决策的结构化分析框架' },
+      { title: '5-Why 根因分析', description: '异常偏离时的因果链追溯方法' },
+    ],
   },
   'zh-TW': {
     title: '歡迎來到知識庫',
@@ -23,6 +30,13 @@ const I18N = {
     badgeMust: '必讀',
     badgeRecommended: '選讀',
     badgeReference: '參考',
+    items: [
+      { title: '業務角色速查（CC / SS / LP）', description: '了解三大崗位職責與分工邊界' },
+      { title: '圍場定義與計算規則', description: '付費當日起算天數分段邏輯' },
+      { title: '核心指標公式大全', description: '參與率、打卡率、觸達率、帶新係數等' },
+      { title: '六步分析法', description: '從數據到決策的結構化分析框架' },
+      { title: '5-Why 根因分析', description: '異常偏離時的因果鏈追溯方法' },
+    ],
   },
   en: {
     title: 'Welcome to the Knowledge Base',
@@ -32,6 +46,28 @@ const I18N = {
     badgeMust: 'Must read',
     badgeRecommended: 'Recommended',
     badgeReference: 'Reference',
+    items: [
+      {
+        title: 'Role Reference (CC / SS / LP)',
+        description: 'Responsibilities and boundaries of the three roles',
+      },
+      {
+        title: 'Enclosure Definition & Calculation',
+        description: 'Day-based segmentation logic from first payment',
+      },
+      {
+        title: 'Core Metric Formulas',
+        description: 'Participation rate, check-in rate, reach rate, referral coefficient, etc.',
+      },
+      {
+        title: 'Six-Step Analysis Framework',
+        description: 'Structured analysis from data to decision',
+      },
+      {
+        title: '5-Why Root Cause Analysis',
+        description: 'Causal chain tracing for anomaly deviations',
+      },
+    ],
   },
   th: {
     title: 'ยินดีต้อนรับสู่คลังความรู้',
@@ -41,6 +77,22 @@ const I18N = {
     badgeMust: 'ต้องอ่าน',
     badgeRecommended: 'แนะนำ',
     badgeReference: 'อ้างอิง',
+    items: [
+      { title: 'คู่มือบทบาท (CC / SS / LP)', description: 'ความรับผิดชอบและขอบเขตของสามบทบาท' },
+      { title: 'นิยามคอกและกฎการคำนวณ', description: 'ตรรกะการแบ่งเซกเมนต์ตามวันนับจากวันชำระ' },
+      {
+        title: 'สูตรตัวชี้วัดหลัก',
+        description: 'อัตราการมีส่วนร่วม เช็คอิน การเข้าถึง สัมประสิทธิ์แนะนำ เป็นต้น',
+      },
+      {
+        title: 'กรอบการวิเคราะห์ 6 ขั้นตอน',
+        description: 'การวิเคราะห์เชิงโครงสร้างจากข้อมูลสู่การตัดสินใจ',
+      },
+      {
+        title: 'การวิเคราะห์รากเหง้า 5-Why',
+        description: 'การตามรอยสาเหตุเมื่อพบความเบี่ยงเบนผิดปกติ',
+      },
+    ],
   },
 } as const;
 
@@ -51,47 +103,15 @@ const STORAGE_KEY = 'knowledge-guide-dismissed';
 interface ReadingItem {
   bookId: string;
   chapterId: string;
-  title: string;
-  description: string;
   badge: 'must' | 'recommended' | 'reference';
 }
 
 const READING_ITEMS: ReadingItem[] = [
-  {
-    bookId: 'business-glossary',
-    chapterId: 'core-roles',
-    title: '业务角色速查（CC / SS / LP）',
-    description: '了解三大岗位职责与分工边界',
-    badge: 'must',
-  },
-  {
-    bookId: 'business-glossary',
-    chapterId: 'enclosure-definition',
-    title: '围场定义与计算规则',
-    description: '付费当日起算天数分段逻辑',
-    badge: 'must',
-  },
-  {
-    bookId: 'business-glossary',
-    chapterId: 'metrics-formula',
-    title: '核心指标公式大全',
-    description: '参与率、打卡率、触达率、带新系数等',
-    badge: 'must',
-  },
-  {
-    bookId: 'methodology',
-    chapterId: 'six-step-analysis',
-    title: '六步分析法',
-    description: '从数据到决策的结构化分析框架',
-    badge: 'recommended',
-  },
-  {
-    bookId: 'methodology',
-    chapterId: 'five-why',
-    title: '5-Why 根因分析',
-    description: '异常偏离时的因果链追溯方法',
-    badge: 'reference',
-  },
+  { bookId: 'business-glossary', chapterId: 'core-roles', badge: 'must' },
+  { bookId: 'business-glossary', chapterId: 'enclosure-definition', badge: 'must' },
+  { bookId: 'business-glossary', chapterId: 'metrics-formula', badge: 'must' },
+  { bookId: 'methodology', chapterId: 'six-step-analysis', badge: 'recommended' },
+  { bookId: 'methodology', chapterId: 'five-why', badge: 'reference' },
 ];
 
 interface ReadingGuideProps {
@@ -154,6 +174,7 @@ export function ReadingGuide({ onNavigate, onDismiss }: ReadingGuideProps) {
         <div className="px-5 py-4 space-y-2">
           {READING_ITEMS.map((item, i) => {
             const badge = BADGE_CONFIG[item.badge];
+            const localItem = t.items[i];
             return (
               <button
                 key={i}
@@ -170,9 +191,11 @@ export function ReadingGuide({ onNavigate, onDismiss }: ReadingGuideProps) {
                 </span>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-[var(--text-primary)] truncate">
-                    {item.title}
+                    {localItem.title}
                   </p>
-                  <p className="text-xs text-[var(--text-muted)] truncate">{item.description}</p>
+                  <p className="text-xs text-[var(--text-muted)] truncate">
+                    {localItem.description}
+                  </p>
                 </div>
                 <ArrowRight className="w-3.5 h-3.5 text-[var(--text-muted)] shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
               </button>
