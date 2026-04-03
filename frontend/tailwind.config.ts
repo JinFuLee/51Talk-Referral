@@ -177,6 +177,18 @@ const config: Config = {
           '50%': { opacity: '0.3', transform: 'scale(1.05)' },
           '100%': { opacity: '0.1', transform: 'scale(0.95)' },
         },
+        'auth-float': {
+          '0%, 100%': { transform: 'translateY(0) scale(1)' },
+          '50%': { transform: 'translateY(-20px) scale(1.02)' },
+        },
+        'auth-float-reverse': {
+          '0%, 100%': { transform: 'translateY(0) scale(1)' },
+          '50%': { transform: 'translateY(15px) scale(0.98)' },
+        },
+        'auth-glow': {
+          '0%, 100%': { opacity: '0.6' },
+          '50%': { opacity: '1' },
+        },
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
@@ -187,6 +199,9 @@ const config: Config = {
         'slide-down': 'slide-down 0.4s ease-out',
         'pulse-soft': 'pulse-soft 3s ease-in-out infinite',
         'pulse-alert': 'pulse-alert 2.5s ease-in-out infinite',
+        'auth-float': 'auth-float 8s ease-in-out infinite',
+        'auth-float-reverse': 'auth-float-reverse 10s ease-in-out infinite',
+        'auth-glow': 'auth-glow 4s ease-in-out infinite',
       },
     },
   },
