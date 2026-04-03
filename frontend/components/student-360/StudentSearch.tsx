@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useLocale } from 'next-intl';
 import {
   Select,
   SelectContent,
@@ -8,6 +9,65 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+
+const I18N = {
+  zh: {
+    searchPlaceholder: '搜索学员ID / 姓名 / CC姓名...',
+    segmentAll: '全部围场',
+    lifecycleAll: '全部生命周期',
+    hpAll: '全部学员',
+    hpHigh: '高潜学员',
+    hpNormal: '普通学员',
+    lifecycleActive: '活跃',
+    lifecycleSilent: '沉默',
+    lifecycleRisk: '流失风险',
+    lifecycleChurned: '流失',
+    ccPlaceholder: 'CC姓名',
+    clearFilters: '清除筛选',
+  },
+  'zh-TW': {
+    searchPlaceholder: '搜尋學員ID / 姓名 / CC姓名...',
+    segmentAll: '全部圍場',
+    lifecycleAll: '全部生命週期',
+    hpAll: '全部學員',
+    hpHigh: '高潛學員',
+    hpNormal: '普通學員',
+    lifecycleActive: '活躍',
+    lifecycleSilent: '沉默',
+    lifecycleRisk: '流失風險',
+    lifecycleChurned: '流失',
+    ccPlaceholder: 'CC姓名',
+    clearFilters: '清除篩選',
+  },
+  en: {
+    searchPlaceholder: 'Search Student ID / Name / CC name...',
+    segmentAll: 'All Enclosures',
+    lifecycleAll: 'All Lifecycles',
+    hpAll: 'All Students',
+    hpHigh: 'High Potential',
+    hpNormal: 'Regular',
+    lifecycleActive: 'Active',
+    lifecycleSilent: 'Silent',
+    lifecycleRisk: 'At Risk',
+    lifecycleChurned: 'Churned',
+    ccPlaceholder: 'CC Name',
+    clearFilters: 'Clear Filters',
+  },
+  th: {
+    searchPlaceholder: 'ค้นหารหัสนักเรียน / ชื่อ / ชื่อ CC...',
+    segmentAll: 'คอกทั้งหมด',
+    lifecycleAll: 'วงจรชีวิตทั้งหมด',
+    hpAll: 'นักเรียนทั้งหมด',
+    hpHigh: 'ศักยภาพสูง',
+    hpNormal: 'ปกติ',
+    lifecycleActive: 'ใช้งานอยู่',
+    lifecycleSilent: 'เงียบ',
+    lifecycleRisk: 'เสี่ยงหลุด',
+    lifecycleChurned: 'หลุดแล้ว',
+    ccPlaceholder: 'ชื่อ CC',
+    clearFilters: 'ล้างตัวกรอง',
+  },
+} as const;
 
 export interface SearchFilters {
   query: string;
@@ -22,8 +82,7 @@ interface StudentSearchProps {
   onChange: (filters: SearchFilters) => void;
 }
 
-const SEGMENT_OPTIONS = [
-  { value: '', label: '全部围场' },
+const SEGMENT_RANGE_OPTIONS = [
   { value: '0M', label: 'M0（0~30）' },
   { value: '1M', label: 'M1（31~60）' },
   { value: '2M', label: 'M2（61~90）' },
@@ -38,23 +97,31 @@ const SEGMENT_OPTIONS = [
   { value: '11M', label: 'M11（331~360）' },
   { value: '12M', label: 'M12（361~390）' },
   { value: '12M+', label: 'M12+（391+）' },
-];
-
-const LIFECYCLE_OPTIONS = [
-  { value: '', label: '全部生命周期' },
-  { value: '活跃', label: '活跃' },
-  { value: '沉默', label: '沉默' },
-  { value: '流失风险', label: '流失风险' },
-  { value: '流失', label: '流失' },
-];
-
-const HP_OPTIONS = [
-  { value: '', label: '全部学员' },
-  { value: 'true', label: '高潜学员' },
-  { value: 'false', label: '普通学员' },
-];
+] as const;
 
 export function StudentSearch({ filters, onChange }: StudentSearchProps) {
+  const locale = useLocale();
+  const t = I18N[locale as keyof typeof I18N] ?? I18N.zh;
+
+  const SEGMENT_OPTIONS = [
+    { value: '', label: t.segmentAll },
+    ...SEGMENT_RANGE_OPTIONS.map((o) => ({ value: o.value, label: o.label })),
+  ];
+
+  const LIFECYCLE_OPTIONS = [
+    { value: '', label: t.lifecycleAll },
+    { value: '活跃', label: t.lifecycleActive },
+    { value: '沉默', label: t.lifecycleSilent },
+    { value: '流失风险', label: t.lifecycleRisk },
+    { value: '流失', label: t.lifecycleChurned },
+  ];
+
+  const HP_OPTIONS = [
+    { value: '', label: t.hpAll },
+    { value: 'true', label: t.hpHigh },
+    { value: 'false', label: t.hpNormal },
+  ];
+
   const [queryInput, setQueryInput] = useState(filters.query);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -91,7 +158,7 @@ export function StudentSearch({ filters, onChange }: StudentSearchProps) {
       {/* 搜索框 */}
       <input
         type="text"
-        placeholder="搜索学员ID / 姓名 / CC姓名..."
+        placeholder={t.searchPlaceholder}
         value={queryInput}
         onChange={(e) => handleQueryChange(e.target.value)}
         className="w-full px-3 py-2 border border-[var(--border-subtle)] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-action"
@@ -105,7 +172,7 @@ export function StudentSearch({ filters, onChange }: StudentSearchProps) {
           onValueChange={(v) => onChange({ ...filters, segment: v === 'all' ? '' : v })}
         >
           <SelectTrigger className="h-8 text-xs w-36">
-            <SelectValue placeholder="全部围场" />
+            <SelectValue placeholder={t.segmentAll} />
           </SelectTrigger>
           <SelectContent>
             {SEGMENT_OPTIONS.map((o) => (
@@ -122,7 +189,7 @@ export function StudentSearch({ filters, onChange }: StudentSearchProps) {
           onValueChange={(v) => onChange({ ...filters, lifecycle: v === 'all' ? '' : v })}
         >
           <SelectTrigger className="h-8 text-xs w-36">
-            <SelectValue placeholder="全部生命周期" />
+            <SelectValue placeholder={t.lifecycleAll} />
           </SelectTrigger>
           <SelectContent>
             {LIFECYCLE_OPTIONS.map((o) => (
@@ -144,7 +211,7 @@ export function StudentSearch({ filters, onChange }: StudentSearchProps) {
           }
         >
           <SelectTrigger className="h-8 text-xs w-28">
-            <SelectValue placeholder="全部学员" />
+            <SelectValue placeholder={t.hpAll} />
           </SelectTrigger>
           <SelectContent>
             {HP_OPTIONS.map((o) => (
@@ -158,7 +225,7 @@ export function StudentSearch({ filters, onChange }: StudentSearchProps) {
         {/* CC 搜索 */}
         <input
           type="text"
-          placeholder="CC姓名"
+          placeholder={t.ccPlaceholder}
           value={filters.cc_name}
           onChange={(e) => onChange({ ...filters, cc_name: e.target.value })}
           className="h-8 px-3 border border-[var(--border-subtle)] rounded-md text-xs focus:outline-none focus:ring-2 focus:ring-action w-28"
@@ -169,7 +236,7 @@ export function StudentSearch({ filters, onChange }: StudentSearchProps) {
             onClick={clearAll}
             className="h-8 px-3 text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)] border border-[var(--border-subtle)] rounded-md"
           >
-            清除筛选
+            {t.clearFilters}
           </button>
         )}
       </div>

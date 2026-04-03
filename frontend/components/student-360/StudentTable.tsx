@@ -1,9 +1,85 @@
 'use client';
 
+import { useLocale } from 'next-intl';
 import type { Student360Brief } from '@/lib/types/cross-analysis';
 import { formatRevenue, formatRate } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { ChevronUp, ChevronDown, ChevronsUpDown } from 'lucide-react';
+
+const I18N = {
+  zh: {
+    colStudentId: '学员ID',
+    colName: '姓名',
+    colEnclosure: '围场',
+    colLifecycle: '生命周期',
+    colCC: 'CC',
+    colPaidAmount: '付费金额',
+    colTotalNew: '带新数',
+    colCheckinRate: '打卡率',
+    colHighPotential: '高潜',
+    colLastContact: '最后接通',
+    highPotentialBadge: '高潜',
+    empty: '暂无数据，请调整搜索条件',
+    pagination: (page: number, totalPages: number, total: number) =>
+      `第 ${page} / ${totalPages} 页，共 ${total} 条`,
+    prevPage: '上一页',
+    nextPage: '下一页',
+  },
+  'zh-TW': {
+    colStudentId: '學員ID',
+    colName: '姓名',
+    colEnclosure: '圍場',
+    colLifecycle: '生命週期',
+    colCC: 'CC',
+    colPaidAmount: '付費金額',
+    colTotalNew: '帶新數',
+    colCheckinRate: '打卡率',
+    colHighPotential: '高潛',
+    colLastContact: '最後接通',
+    highPotentialBadge: '高潛',
+    empty: '暫無數據，請調整搜尋條件',
+    pagination: (page: number, totalPages: number, total: number) =>
+      `第 ${page} / ${totalPages} 頁，共 ${total} 條`,
+    prevPage: '上一頁',
+    nextPage: '下一頁',
+  },
+  en: {
+    colStudentId: 'Student ID',
+    colName: 'Name',
+    colEnclosure: 'Enclosure',
+    colLifecycle: 'Lifecycle',
+    colCC: 'CC',
+    colPaidAmount: 'Paid Amount',
+    colTotalNew: 'Referrals',
+    colCheckinRate: 'Check-in Rate',
+    colHighPotential: 'High Potential',
+    colLastContact: 'Last Contact',
+    highPotentialBadge: 'HP',
+    empty: 'No data. Try adjusting search filters.',
+    pagination: (page: number, totalPages: number, total: number) =>
+      `Page ${page} / ${totalPages} — ${total} total`,
+    prevPage: 'Prev',
+    nextPage: 'Next',
+  },
+  th: {
+    colStudentId: 'รหัสนักเรียน',
+    colName: 'ชื่อ',
+    colEnclosure: 'คอก',
+    colLifecycle: 'วงจรชีวิต',
+    colCC: 'CC',
+    colPaidAmount: 'ยอดชำระ',
+    colTotalNew: 'ผู้แนะนำ',
+    colCheckinRate: 'อัตราเช็กอิน',
+    colHighPotential: 'ศักยภาพสูง',
+    colLastContact: 'ติดต่อล่าสุด',
+    highPotentialBadge: 'ศักยภาพสูง',
+    empty: 'ไม่มีข้อมูล กรุณาปรับเงื่อนไขการค้นหา',
+    pagination: (page: number, totalPages: number, total: number) =>
+      `หน้า ${page} / ${totalPages} — รวม ${total} รายการ`,
+    prevPage: 'ก่อนหน้า',
+    nextPage: 'ถัดไป',
+  },
+} as const;
 
 type SortKey = 'paid_amount' | 'total_new' | 'checkin_rate' | 'last_contact_date';
 type SortDir = 'asc' | 'desc';
@@ -61,6 +137,8 @@ export function StudentTable({
   onPageChange,
   onRowClick,
 }: StudentTableProps) {
+  const locale = useLocale();
+  const t = I18N[locale as keyof typeof I18N] ?? I18N.zh;
   const totalPages = Math.ceil(total / pageSize) || 1;
 
   const handleSort = (col: SortKey) => {
@@ -78,23 +156,27 @@ export function StudentTable({
         <table className="w-full text-sm">
           <thead>
             <tr className="slide-thead-row text-xs">
-              <th className="py-1.5 px-2 border-0 text-left whitespace-nowrap">学员ID</th>
-              <th className="py-1.5 px-2 border-0 text-left whitespace-nowrap">姓名</th>
-              <th className="py-1.5 px-2 border-0 text-left whitespace-nowrap">围场</th>
-              <th className="py-1.5 px-2 border-0 text-left whitespace-nowrap">生命周期</th>
-              <th className="py-1.5 px-2 border-0 text-left whitespace-nowrap min-w-[100px]">CC</th>
+              <th className="py-1.5 px-2 border-0 text-left whitespace-nowrap">{t.colStudentId}</th>
+              <th className="py-1.5 px-2 border-0 text-left whitespace-nowrap">{t.colName}</th>
+              <th className="py-1.5 px-2 border-0 text-left whitespace-nowrap">{t.colEnclosure}</th>
+              <th className="py-1.5 px-2 border-0 text-left whitespace-nowrap">{t.colLifecycle}</th>
+              <th className="py-1.5 px-2 border-0 text-left whitespace-nowrap min-w-[100px]">
+                {t.colCC}
+              </th>
               <SortableHead col="paid_amount" sort={sort} onSort={handleSort}>
-                付费金额
+                {t.colPaidAmount}
               </SortableHead>
               <SortableHead col="total_new" sort={sort} onSort={handleSort}>
-                带新数
+                {t.colTotalNew}
               </SortableHead>
               <SortableHead col="checkin_rate" sort={sort} onSort={handleSort}>
-                打卡率
+                {t.colCheckinRate}
               </SortableHead>
-              <th className="py-1.5 px-2 border-0 text-center whitespace-nowrap">高潜</th>
+              <th className="py-1.5 px-2 border-0 text-center whitespace-nowrap">
+                {t.colHighPotential}
+              </th>
               <SortableHead col="last_contact_date" sort={sort} onSort={handleSort} align="left">
-                最后接通
+                {t.colLastContact}
               </SortableHead>
             </tr>
           </thead>
@@ -102,7 +184,7 @@ export function StudentTable({
             {items.length === 0 ? (
               <tr>
                 <td colSpan={10} className="py-12 text-center text-sm text-[var(--text-muted)]">
-                  暂无数据，请调整搜索条件
+                  {t.empty}
                 </td>
               </tr>
             ) : (
@@ -147,7 +229,7 @@ export function StudentTable({
                         className="text-white border-0 text-[10px] px-1.5 py-0.5"
                         style={{ backgroundColor: '#f97316' }}
                       >
-                        高潜
+                        {t.highPotentialBadge}
                       </Badge>
                     ) : (
                       <span className="text-[var(--text-muted)]">—</span>
@@ -166,7 +248,7 @@ export function StudentTable({
       {/* 分页 */}
       <div className="flex items-center justify-between mt-4 pt-4 border-t border-[var(--border-subtle)]">
         <span className="text-xs text-[var(--text-muted)]">
-          第 {page} / {totalPages} 页，共 {total} 条
+          {t.pagination(page, totalPages, total)}
         </span>
         <div className="flex gap-2">
           <button
@@ -174,14 +256,14 @@ export function StudentTable({
             disabled={page === 1}
             className="px-3 py-1.5 rounded-lg border border-[var(--border-subtle)] text-sm disabled:opacity-40 hover:bg-[var(--bg-subtle)]"
           >
-            上一页
+            {t.prevPage}
           </button>
           <button
             onClick={() => onPageChange(Math.min(totalPages, page + 1))}
             disabled={page >= totalPages}
             className="px-3 py-1.5 rounded-lg border border-[var(--border-subtle)] text-sm disabled:opacity-40 hover:bg-[var(--bg-subtle)]"
           >
-            下一页
+            {t.nextPage}
           </button>
         </div>
       </div>

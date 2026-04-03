@@ -258,7 +258,7 @@ function RoiCell({ roi }: { roi: number | null }) {
 }
 
 // CSV 导出
-function exportToCSV(students: RoiStudentRow[], t: (typeof I18N)['zh']) {
+function exportToCSV(students: RoiStudentRow[], t: (typeof I18N)[keyof typeof I18N]) {
   const headers = [
     t.csvRank,
     t.csvStudentId,

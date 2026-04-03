@@ -524,7 +524,7 @@ function DimensionPillBar({
 }: {
   current: string;
   onSelect: (id: string) => void;
-  t: (typeof I18N)['zh'];
+  t: (typeof I18N)[keyof typeof I18N];
 }) {
   return (
     <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
