@@ -7,6 +7,15 @@ interface DataSourceStatusProps {
   lang: string;
 }
 
+function getSourceName(source: DSStatus, lang: string): string {
+  const isZh = lang === 'zh' || lang === 'zh-TW';
+  // Prefer locale-specific name when available; fallback to zh
+  if (!isZh && 'name_en' in source && (source as { name_en?: string }).name_en) {
+    return (source as { name_en?: string }).name_en!;
+  }
+  return source.name_zh;
+}
+
 const STATUS_I18N = {
   zh: { missing: '缺失', fresh: '最新', stale: '旧' },
   'zh-TW': { missing: '缺失', fresh: '最新', stale: '舊' },
@@ -51,7 +60,7 @@ export function DataSourceStatus({ source, lang }: DataSourceStatusProps) {
   return (
     <div className="flex items-center justify-between py-1.5 px-2 rounded hover:bg-[var(--bg-primary)]">
       <span className="text-xs text-[var(--text-primary)] truncate flex-1 mr-2">
-        {source.name_zh}
+        {getSourceName(source, lang)}
       </span>
       <div className="flex items-center gap-1.5 shrink-0">
         <StatusBadge isFresh={source.is_fresh} hasFile={source.has_file} lang={lang} />

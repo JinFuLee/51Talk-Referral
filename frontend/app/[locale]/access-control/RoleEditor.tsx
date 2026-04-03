@@ -172,7 +172,7 @@ const PRESET_COLORS = ['#1B365D', '#2D9F6F', '#E8932A', '#E05545', '#5576A8', '#
 export interface RoleDef {
   id: string;
   name_zh: string;
-  name_en: string;
+  name_en?: string;
   color: string;
   is_preset: boolean;
   page_count?: number;
@@ -183,6 +183,7 @@ export interface RoleDef {
 interface PageEntry {
   path: string;
   name_zh: string;
+  name_en?: string;
   category: string;
 }
 
@@ -295,7 +296,11 @@ function PageChecklist({
                         onChange={() => onToggle(page.path)}
                         className="w-4 h-4 rounded border-[var(--border-default)] text-action accent-action cursor-pointer focus-visible:ring-2 focus-visible:ring-action"
                       />
-                      <span className="text-sm text-[var(--text-primary)]">{page.name_zh}</span>
+                      <span className="text-sm text-[var(--text-primary)]">
+                        {lang !== 'zh' && lang !== 'zh-TW' && page.name_en
+                          ? page.name_en
+                          : page.name_zh}
+                      </span>
                       <span className="text-xs text-[var(--text-muted)] ml-auto">{page.path}</span>
                     </label>
                   ))}
@@ -455,7 +460,9 @@ export default function RoleEditor({ roles, pages, onSaveRole, onCreateRole }: R
                     style={{ backgroundColor: role.color }}
                   />
                   <span className="text-sm font-semibold text-[var(--text-primary)]">
-                    {role.name_zh}
+                    {lang !== 'zh' && lang !== 'zh-TW' && role.name_en
+                      ? role.name_en
+                      : role.name_zh}
                   </span>
                   {role.is_preset && (
                     <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-[var(--n-100)] text-[var(--text-muted)] font-medium">

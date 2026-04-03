@@ -48,7 +48,8 @@
     },
     "label": {
       "noData": "No Data"
-    }
+    },
+    "placeholder": "Blocks 6-11 (MoM Attribution / Funnel Leverage / Channel Attribution) — coming soon"
   },
   "ranking": {
     "title": "Performance Ranking",

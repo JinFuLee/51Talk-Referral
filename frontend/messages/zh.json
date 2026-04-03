@@ -47,7 +47,8 @@
     },
     "label": {
       "noData": "暂无数据"
-    }
+    },
+    "placeholder": "区块 6-11（MoM 归因 / 漏斗杠杆 / 渠道归因）待实现"
   },
   "ranking": {
     "title": "绩效排名",

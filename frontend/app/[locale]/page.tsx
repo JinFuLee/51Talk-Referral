@@ -150,6 +150,10 @@ const I18N = {
     mom_register: '注册数',
     monthBarPct: '年',
     monthBarSuffix: '月',
+    funnel_register: '注册',
+    funnel_appointment: '预约',
+    funnel_showup: '出席',
+    funnel_paid: '付费',
   },
   'zh-TW': {
     all: '全部',
@@ -295,6 +299,10 @@ const I18N = {
     mom_register: '註冊數',
     monthBarPct: '年',
     monthBarSuffix: '月',
+    funnel_register: '註冊',
+    funnel_appointment: '預約',
+    funnel_showup: '出席',
+    funnel_paid: '付費',
   },
   en: {
     all: 'All',
@@ -444,6 +452,10 @@ const I18N = {
     mom_register: 'Registrations',
     monthBarPct: '',
     monthBarSuffix: '',
+    funnel_register: 'Register',
+    funnel_appointment: 'Appt',
+    funnel_showup: 'Show-up',
+    funnel_paid: 'Paid',
   },
   th: {
     all: 'ทั้งหมด',
@@ -589,6 +601,10 @@ const I18N = {
     mom_register: 'ลงทะเบียน',
     monthBarPct: '',
     monthBarSuffix: '',
+    funnel_register: 'ลงทะเบียน',
+    funnel_appointment: 'นัดหมาย',
+    funnel_showup: 'เข้าเรียน',
+    funnel_paid: 'ชำระเงิน',
   },
 } as const;
 import { useFilteredSWR } from '@/lib/hooks/use-filtered-swr';
@@ -617,19 +633,30 @@ import type { BmComparison } from '@/lib/types/bm-calendar';
 
 type RoleView = 'all' | 'CC' | 'SS' | 'LP';
 
-const ROLE_LABELS: Record<RoleView, string> = {
-  all: '全部',
-  CC: 'CC 前端',
-  SS: 'SS 后端',
-  LP: 'LP 服务',
-};
+const ROLE_VIEW_KEYS: RoleView[] = ['all', 'CC', 'SS', 'LP'];
 
 /* ── 岗位筛选器 ─────────────────────────────────────────────────── */
 
-function RoleFilter({ value, onChange }: { value: RoleView; onChange: (v: RoleView) => void }) {
+type I18NType = (typeof I18N)[keyof typeof I18N];
+
+function RoleFilter({
+  value,
+  onChange,
+  t,
+}: {
+  value: RoleView;
+  onChange: (v: RoleView) => void;
+  t: I18NType;
+}) {
+  const roleLabels: Record<RoleView, string> = {
+    all: t.roleAll,
+    CC: t.roleCCFront,
+    SS: t.roleSSBack,
+    LP: t.roleLPService,
+  };
   return (
     <div className="flex items-center gap-1.5 flex-wrap">
-      {(Object.keys(ROLE_LABELS) as RoleView[]).map((role) => (
+      {ROLE_VIEW_KEYS.map((role) => (
         <button
           key={role}
           onClick={() => onChange(role)}
@@ -639,7 +666,7 @@ function RoleFilter({ value, onChange }: { value: RoleView; onChange: (v: RoleVi
               : 'bg-[var(--bg-subtle)] text-[var(--text-secondary)] hover:bg-[var(--border-default)]'
           }`}
         >
-          {ROLE_LABELS[role]}
+          {roleLabels[role]}
         </button>
       ))}
     </div>
@@ -648,7 +675,15 @@ function RoleFilter({ value, onChange }: { value: RoleView; onChange: (v: RoleVi
 
 /* ── 指标矩阵摘要卡片 ──────────────────────────────────────────── */
 
-function IndicatorMatrixSummary({ role }: { role: RoleView }) {
+function IndicatorMatrixSummary({
+  role,
+  t,
+  locale,
+}: {
+  role: RoleView;
+  t: I18NType;
+  locale: string;
+}) {
   const { registry, matrix, isLoading } = useIndicatorMatrix();
 
   if (isLoading) return null;
@@ -667,19 +702,27 @@ function IndicatorMatrixSummary({ role }: { role: RoleView }) {
   );
 
   const categories = Object.entries(categoryCount) as [IndicatorCategory, number][];
+  const categoryLabels = locale === 'th' ? CATEGORY_LABELS_TH : CATEGORY_LABELS_ZH;
+
+  const roleLabels: Record<RoleView, string> = {
+    all: t.roleAll,
+    CC: t.roleCCFront,
+    SS: t.roleSSBack,
+    LP: t.roleLPService,
+  };
 
   return (
     <div className="rounded-lg border border-[var(--border-default)] bg-[var(--bg-subtle)] px-4 py-3">
       <div className="flex items-center justify-between mb-2">
         <span className="text-xs font-semibold text-[var(--text-primary)]">
-          {ROLE_LABELS[role]} 活跃指标
+          {roleLabels[role]} {t.activeIndicatorsLabel}
         </span>
         <span className="text-xs text-[var(--text-muted)]">
-          共{' '}
+          {t.totalCount}{' '}
           <span className="font-semibold text-[var(--text-primary)]">
             {activeIndicators.length}
           </span>{' '}
-          项
+          {t.itemsCount}
         </span>
       </div>
       <div className="flex flex-wrap gap-2">
@@ -688,7 +731,7 @@ function IndicatorMatrixSummary({ role }: { role: RoleView }) {
             key={cat}
             className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] bg-[var(--bg-surface)] border border-[var(--border-default)] text-[var(--text-secondary)]"
           >
-            {CATEGORY_LABELS_ZH[cat]}
+            {categoryLabels[cat]}
             <span className="font-semibold text-[var(--text-primary)]">{count}</span>
           </span>
         ))}
@@ -775,31 +818,55 @@ function gapColor(v: number | null): string {
   return 'text-[var(--text-secondary)]';
 }
 
-// KPI8 各行的 L1 副标题说明
-const KPI8_SUBTITLES: Record<string, string> = {
-  时间进度差: '实际达成率 - 时间进度，正值=跑赢进度线，负值=落后于时间',
-  达标需日均: '完成月目标每天需新增量，基于剩余工作日均摊',
-  追进度需日均: '追上时间进度线每天需新增量（比达标更紧迫）',
-  效率提升需求: '当前日均速度需提升的百分比才能完成月目标',
-};
+function KPI8Card({ label, item, format = 'count', t }: KPI8CardProps & { t: I18NType }) {
+  // row key → subtitle key in t
+  const subtitleMap: Record<string, string> = {
+    paceGap: t.sub_paceGap,
+    remainDailyAvg: t.sub_remainDailyAvg,
+    paceDailyNeeded: t.sub_paceDailyNeeded,
+    efficiencyNeeded: t.sub_efficiencyNeeded,
+  };
 
-function KPI8Card({ label, item, format = 'count' }: KPI8CardProps) {
-  const rows: { label: string; value: string; colorFn?: (v: number | null) => string }[] = [
-    { label: '当前实际', value: fmt8(item.actual, format) },
-    { label: '本月目标', value: fmt8(item.target, format) },
-    { label: '目标绝对差', value: fmt8(item.absolute_gap, format), colorFn: gapColor },
+  const rows: {
+    key: string;
+    label: string;
+    value: string;
+    colorFn?: (v: number | null) => string;
+  }[] = [
+    { key: 'currentActual', label: t.row_currentActual, value: fmt8(item.actual, format) },
+    { key: 'monthTarget', label: t.row_monthTarget, value: fmt8(item.target, format) },
     {
-      label: '时间进度差',
+      key: 'absoluteGap',
+      label: t.row_absoluteGap,
+      value: fmt8(item.absolute_gap, format),
+      colorFn: gapColor,
+    },
+    {
+      key: 'paceGap',
+      label: t.row_paceGap,
       value: item.pace_gap !== null ? formatRate(item.pace_gap) : '—',
       colorFn: gapColor,
     },
-    { label: '达标需日均', value: fmt8(item.remaining_daily_avg, format) },
-    { label: '追进度需日均', value: fmt8(item.pace_daily_needed, format) },
     {
-      label: '效率提升需求',
+      key: 'remainDailyAvg',
+      label: t.row_remainDailyAvg,
+      value: fmt8(item.remaining_daily_avg, format),
+    },
+    {
+      key: 'paceDailyNeeded',
+      label: t.row_paceDailyNeeded,
+      value: fmt8(item.pace_daily_needed, format),
+    },
+    {
+      key: 'efficiencyNeeded',
+      label: t.row_efficiencyNeeded,
       value: item.efficiency_needed !== null ? formatRate(item.efficiency_needed) : '—',
     },
-    { label: '当前日均', value: fmt8(item.current_daily_avg, format) },
+    {
+      key: 'currentDailyAvg',
+      label: t.row_currentDailyAvg,
+      value: fmt8(item.current_daily_avg, format),
+    },
   ];
 
   return (
@@ -809,17 +876,17 @@ function KPI8Card({ label, item, format = 'count' }: KPI8CardProps) {
       </p>
       <div className="grid grid-cols-2 gap-x-3 gap-y-2">
         {rows.map((r) => (
-          <div key={r.label} className="flex flex-col">
-            <span className="text-[10px] text-[var(--text-muted)]" title={KPI8_SUBTITLES[r.label]}>
+          <div key={r.key} className="flex flex-col">
+            <span className="text-[10px] text-[var(--text-muted)]" title={subtitleMap[r.key]}>
               {r.label}
             </span>
             <span
               className={`text-sm font-mono tabular-nums font-semibold ${
                 r.colorFn
                   ? r.colorFn(
-                      r.label === '时间进度差'
+                      r.key === 'paceGap'
                         ? item.pace_gap
-                        : r.label === '目标绝对差'
+                        : r.key === 'absoluteGap'
                           ? item.absolute_gap
                           : null
                     )
@@ -828,9 +895,9 @@ function KPI8Card({ label, item, format = 'count' }: KPI8CardProps) {
             >
               {r.value}
             </span>
-            {KPI8_SUBTITLES[r.label] && (
+            {subtitleMap[r.key] && (
               <span className="text-[9px] text-[var(--text-muted)] leading-tight mt-0.5 opacity-70">
-                {KPI8_SUBTITLES[r.label]}
+                {subtitleMap[r.key]}
               </span>
             )}
           </div>
@@ -850,7 +917,14 @@ interface RateCard8Props {
   rootCause?: string;
 }
 
-function RateCard8({ label, actual, target, lossDesc, rootCause }: RateCard8Props) {
+function RateCard8({
+  label,
+  actual,
+  target,
+  lossDesc,
+  rootCause,
+  t,
+}: RateCard8Props & { t: I18NType }) {
   const pct = actual !== null ? Math.round(actual * 100) : null;
   const targetPct = target !== null ? Math.round(target * 100) : null;
   const gap = actual !== null && target !== null ? actual - target : null;
@@ -869,19 +943,19 @@ function RateCard8({ label, actual, target, lossDesc, rootCause }: RateCard8Prop
       </p>
       <div className="grid grid-cols-2 gap-x-3 gap-y-2 mb-2">
         <div className="flex flex-col">
-          <span className="text-[10px] text-[var(--text-muted)]">实际率</span>
+          <span className="text-[10px] text-[var(--text-muted)]">{t.rateActual}</span>
           <span className="text-sm font-mono font-semibold text-[var(--text-primary)]">
             {pct !== null ? `${pct}%` : '—'}
           </span>
         </div>
         <div className="flex flex-col">
-          <span className="text-[10px] text-[var(--text-muted)]">目标率</span>
+          <span className="text-[10px] text-[var(--text-muted)]">{t.rateTarget}</span>
           <span className="text-sm font-mono font-semibold text-[var(--text-secondary)]">
             {targetPct !== null ? `${targetPct}%` : '—'}
           </span>
         </div>
         <div className="flex flex-col col-span-2">
-          <span className="text-[10px] text-[var(--text-muted)]">目标差</span>
+          <span className="text-[10px] text-[var(--text-muted)]">{t.rateGap}</span>
           <span className={`text-sm font-mono font-semibold ${gapClass}`}>
             {gap !== null ? `${gap >= 0 ? '+' : ''}${formatRate(Math.abs(gap))}` : '—'}
           </span>
@@ -899,25 +973,24 @@ function RateCard8({ label, actual, target, lossDesc, rootCause }: RateCard8Prop
 
 /* ── KPI 8 项展示区 ──────────────────────────────────────────── */
 
-const KPI8_DEFS: { key: string; label: string; format?: 'currency' | 'count' }[] = [
-  { key: 'register', label: '注册数' },
-  { key: 'appointment', label: '预约数' },
-  { key: 'showup', label: '出席数' },
-  { key: 'paid', label: '付费数' },
-  { key: 'revenue', label: '业绩 (USD)', format: 'currency' },
-];
-
-function KPI8Section({ kpi8item }: { kpi8item: Record<string, KPI8Item | null> }) {
-  const defs = KPI8_DEFS.filter((d) => kpi8item[d.key]);
+function KPI8Section({ kpi8item, t }: { kpi8item: Record<string, KPI8Item | null>; t: I18NType }) {
+  const kpi8Defs: { key: string; label: string; format?: 'currency' | 'count' }[] = [
+    { key: 'register', label: t.kpi_register },
+    { key: 'appointment', label: t.kpi_appointment },
+    { key: 'showup', label: t.kpi_showup },
+    { key: 'paid', label: t.kpi_paid },
+    { key: 'revenue', label: t.kpi_revenue, format: 'currency' },
+  ];
+  const defs = kpi8Defs.filter((d) => kpi8item[d.key]);
   if (defs.length === 0) return null;
 
   return (
-    <Card title="KPI 指标（8 项全维度）">
+    <Card title={t.kpi8CardTitle}>
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
         {defs.map(({ key, label, format }) => {
           const item = kpi8item[key];
           if (!item) return null;
-          return <KPI8Card key={key} label={label} item={item} format={format} />;
+          return <KPI8Card key={key} label={label} item={item} format={format} t={t} />;
         })}
       </div>
     </Card>
@@ -976,14 +1049,17 @@ function num(v: unknown): number {
 
 /* ── 时间进度信息条 ────────────────────────────────────────────── */
 
-function TimeProgressBar({ tp }: { tp: TimeProgressInfo }) {
+function TimeProgressBar({ tp, t }: { tp: TimeProgressInfo; t: I18NType }) {
   const pct = Math.round(tp.time_progress * 100);
-  const month = tp.month_start.slice(0, 7).replace('-', ' 年 ') + ' 月';
+  const [year, mon] = tp.month_start.slice(0, 7).split('-');
+  const month = t.monthBarPct
+    ? `${year}${t.monthBarPct}${mon}${t.monthBarSuffix}`
+    : `${year}-${mon}`;
 
   return (
     <div className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-xs text-[var(--text-secondary)]">
       <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
-        <span className="font-medium text-[var(--text-primary)]">时间进度</span>
+        <span className="font-medium text-[var(--text-primary)]">{t.tp_timeProgress}</span>
         <span className="text-[var(--text-muted)]">{month}</span>
       </div>
 
@@ -998,19 +1074,19 @@ function TimeProgressBar({ tp }: { tp: TimeProgressInfo }) {
       {/* 数字信息行 */}
       <div className="flex flex-wrap gap-x-5 gap-y-1">
         <span>
-          今日 <span className="font-medium text-[var(--text-primary)]">{tp.today}</span>
+          {t.tp_today} <span className="font-medium text-[var(--text-primary)]">{tp.today}</span>
         </span>
         <span>
-          已过工作日{' '}
+          {t.tp_elapsedWorkdays}{' '}
           <span className="font-medium text-[var(--text-primary)]">{tp.elapsed_workdays}</span> /{' '}
           {tp.total_workdays}
         </span>
         <span>
-          剩余工作日{' '}
+          {t.tp_remainingWorkdays}{' '}
           <span className="font-medium text-[var(--text-primary)]">{tp.remaining_workdays}</span>
         </span>
         <span>
-          时间进度{' '}
+          {t.tp_timePct}{' '}
           <span
             className={`font-semibold ${pct >= 80 ? 'text-[var(--color-danger)]' : pct >= 50 ? 'text-amber-800' : 'text-action-accent'}`}
           >
@@ -1027,27 +1103,30 @@ function TimeProgressBar({ tp }: { tp: TimeProgressInfo }) {
 interface PaceRowProps {
   kpiPace: Record<string, KpiPaceItem | null>;
   timeProgress: number;
+  t: I18NType;
 }
 
-const PACE_LABELS: { key: string; label: string; format?: 'currency' }[] = [
-  { key: 'register', label: '注册日均需' },
-  { key: 'appointment', label: '预约日均需' },
-  { key: 'showup', label: '出席日均需' },
-  { key: 'paid', label: '付费日均需' },
-  { key: 'revenue', label: '业绩日均需', format: 'currency' },
-];
+function PaceRow({ kpiPace, timeProgress, t }: PaceRowProps) {
+  const paceLabels: { key: string; label: string; format?: 'currency' }[] = [
+    { key: 'register', label: t.pace_register },
+    { key: 'appointment', label: t.pace_appointment },
+    { key: 'showup', label: t.pace_showup },
+    { key: 'paid', label: t.pace_paid },
+    { key: 'revenue', label: t.pace_revenue, format: 'currency' },
+  ];
 
-function PaceRow({ kpiPace, timeProgress }: PaceRowProps) {
-  const items = PACE_LABELS.map(({ key, label, format }) => {
-    const item = kpiPace[key];
-    if (!item || item.pace_daily_needed === null) return null;
-    const needed = item.pace_daily_needed;
-    const avg = item.daily_avg ?? 0;
-    // 当前日均是否落后（日均 < 追进度需日均 → 落后）
-    const isBehind = avg < needed - 0.001;
-    const display = format === 'currency' ? formatRevenue(needed) : needed.toFixed(1);
-    return { key, label, display, isBehind };
-  }).filter(Boolean) as { key: string; label: string; display: string; isBehind: boolean }[];
+  const items = paceLabels
+    .map(({ key, label, format }) => {
+      const item = kpiPace[key];
+      if (!item || item.pace_daily_needed === null) return null;
+      const needed = item.pace_daily_needed;
+      const avg = item.daily_avg ?? 0;
+      // 当前日均是否落后（日均 < 追进度需日均 → 落后）
+      const isBehind = avg < needed - 0.001;
+      const display = format === 'currency' ? formatRevenue(needed) : needed.toFixed(1);
+      return { key, label, display, isBehind };
+    })
+    .filter(Boolean) as { key: string; label: string; display: string; isBehind: boolean }[];
 
   if (items.length === 0) return null;
 
@@ -1064,7 +1143,9 @@ function PaceRow({ kpiPace, timeProgress }: PaceRowProps) {
         </span>
       ))}
       <span className="text-[var(--text-muted)] ml-auto">
-        （追进度时间进度 {Math.round(timeProgress * 100)}%）
+        {t.paceRowSuffix}
+        {Math.round(timeProgress * 100)}
+        {t.paceRowSuffix2}
       </span>
     </div>
   );
@@ -1075,10 +1156,19 @@ function PaceRow({ kpiPace, timeProgress }: PaceRowProps) {
 function FunnelSnapshot({
   metrics,
   timeProgress,
+  t,
 }: {
   metrics: Record<string, number | string | null>;
   timeProgress: number;
+  t: I18NType;
 }) {
+  const funnelLabelMap: Record<string, string> = {
+    转介绍注册数: t.funnel_register,
+    预约数: t.funnel_appointment,
+    出席数: t.funnel_showup,
+    转介绍付费数: t.funnel_paid,
+  };
+
   return (
     <div className="space-y-4">
       {RATE_PAIRS.map(({ from, to, rateKey }) => {
@@ -1087,7 +1177,7 @@ function FunnelSnapshot({
           <div key={rateKey}>
             <div className="flex justify-between text-xs text-[var(--text-secondary)] mb-1">
               <span>
-                {from.replace('转介绍', '').replace('数', '')} → {to.replace('数', '')}
+                {funnelLabelMap[from] ?? from} → {funnelLabelMap[to] ?? to}
               </span>
               <span className="font-medium">{formatRate(rate)}</span>
             </div>

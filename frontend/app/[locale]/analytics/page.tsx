@@ -2,7 +2,7 @@
 
 export const dynamic = 'force-dynamic';
 
-import { useTranslations, useLocale } from 'next-intl';
+import { useTranslations } from 'next-intl';
 import { useFilteredSWR } from '@/lib/hooks/use-filtered-swr';
 import { usePageDimensions } from '@/lib/hooks/use-page-dimensions';
 import { formatRate } from '@/lib/utils';
@@ -24,8 +24,7 @@ export default function AnalyticsPage() {
     channel: true,
   });
   const t = useTranslations('analysis');
-  const locale = useLocale();
-  // lang variable removed — slides now use useLocale() internally
+  // slides use useLocale() internally — no need to pass locale as prop
   const { data, isLoading, error, mutate } = useFilteredSWR<DailyReport>('/api/report/daily');
 
   const bm = data?.bm_pct ?? 0;
@@ -119,9 +118,9 @@ export default function AnalyticsPage() {
           {/* Row 3: 区块 5（全宽） */}
           <RevenueContributionSlide data={data.blocks.revenue_contribution} />
 
-          {/* Row 4-6: 区块 6-11 占位（由 FE2 实现） */}
+          {/* Row 4-6: blocks 6-11 placeholder (implemented by FE2) */}
           <div className="card-base p-6 text-center text-sm text-[var(--text-muted)]">
-            区块 6-11（MoM 归因 / 例子归因 / 增量分解 / 漏斗杠杆 / 渠道归因）由 FE2 MK 实现
+            {t('placeholder')}
           </div>
         </div>
       )}

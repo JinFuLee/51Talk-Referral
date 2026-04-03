@@ -47,7 +47,8 @@
     },
     "label": {
       "noData": "暂无資料"
-    }
+    },
+    "placeholder": "區塊 6-11（MoM 歸因 / 漏斗槓桿 / 渠道歸因）待實現"
   },
   "ranking": {
     "title": "绩效排名",

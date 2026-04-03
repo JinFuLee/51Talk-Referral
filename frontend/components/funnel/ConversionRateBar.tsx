@@ -53,10 +53,10 @@ interface ConversionRateBarProps {
 
 // Stage keys are fixed Chinese data-model names (matched against Excel/API stage names).
 // Display labels come from I18N at render time.
-const RATE_PAIRS = [
-  { labelKey: 'regAppt' as const, from: '注册', to: '预约' },
-  { labelKey: 'apptShow' as const, from: '预约', to: '出席' },
-  { labelKey: 'showPay' as const, from: '出席', to: '付费' },
+const RATE_PAIRS: { labelKey: keyof (typeof I18N)['zh']; from: string; to: string }[] = [
+  { labelKey: 'regAppt', from: '注册', to: '预约' },
+  { labelKey: 'apptShow', from: '预约', to: '出席' },
+  { labelKey: 'showPay', from: '出席', to: '付费' },
 ];
 
 function gapColor(gap: number | undefined) {
@@ -70,7 +70,7 @@ export function ConversionRateBar({ stages, height = 240, locale = 'zh' }: Conve
   const t = (I18N as unknown as Record<string, (typeof I18N)['zh']>)[locale] ?? I18N['zh'];
   const stageMap = Object.fromEntries(stages.map((s) => [s.name, s]));
 
-  const chartData = RATE_PAIRS.map(({ key, from, to }) => {
+  const chartData = RATE_PAIRS.map(({ labelKey, from, to }) => {
     const fromStage = stageMap[from];
     const toStage = stageMap[to];
     const actual =
@@ -81,7 +81,7 @@ export function ConversionRateBar({ stages, height = 240, locale = 'zh' }: Conve
     const target =
       toStage?.target_rate != null ? Number((toStage.target_rate * 100).toFixed(1)) : null;
     const gap = target != null ? actual - target : undefined;
-    return { name: key, actual, target, gap };
+    return { name: t[labelKey], actual, target, gap };
   });
 
   return (
