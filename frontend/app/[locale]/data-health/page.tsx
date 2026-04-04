@@ -26,6 +26,19 @@ import type {
   DiffFromLast,
 } from '@/lib/types/data-health';
 
+// ── 引擎状态类型（API 返回但前端类型未声明） ────────────────────────────────
+interface EngineTable {
+  rows?: number;
+  cols?: number;
+  status: string;
+}
+interface EngineStatus {
+  status: string;
+  tables: Record<string, EngineTable>;
+  total_rows: number;
+  table_count: number;
+}
+
 // ── I18N ──────────────────────────────────────────────────────────────────────
 
 const I18N = {
@@ -52,6 +65,10 @@ const I18N = {
     moduleCheck: '模块检查',
     crossChecks: '跨端点一致性',
     feErrors: '前端错误（24h）',
+    engineStatus: '引擎状态',
+    engineTable: '表',
+    engineRows: '行',
+    engineCols: '列',
     endpoints: '端点',
     fields: '字段',
     health: '健康',
@@ -95,6 +112,10 @@ const I18N = {
     moduleCheck: '模組檢查',
     crossChecks: '跨端點一致性',
     feErrors: '前端錯誤（24h）',
+    engineStatus: '引擎狀態',
+    engineTable: '表',
+    engineRows: '行',
+    engineCols: '列',
     endpoints: '端點',
     fields: '欄位',
     health: '健康',
@@ -139,6 +160,10 @@ const I18N = {
     moduleCheck: 'Module Check',
     crossChecks: 'Cross-endpoint Consistency',
     feErrors: 'Frontend Errors (24h)',
+    engineStatus: 'Engine Status',
+    engineTable: 'tables',
+    engineRows: 'rows',
+    engineCols: 'cols',
     endpoints: 'endpoints',
     fields: 'fields',
     health: 'healthy',
@@ -182,6 +207,10 @@ const I18N = {
     moduleCheck: 'ตรวจสอบโมดูล',
     crossChecks: 'ความสอดคล้องข้าม endpoint',
     feErrors: 'ข้อผิดพลาดฟรอนต์เอนด์ (24h)',
+    engineStatus: 'สถานะ Engine',
+    engineTable: 'ตาราง',
+    engineRows: 'แถว',
+    engineCols: 'คอลัมน์',
     endpoints: 'endpoint',
     fields: 'ฟิลด์',
     health: 'สุขภาพดี',
@@ -204,18 +233,20 @@ const I18N = {
   },
 };
 
-// ── 辅助函数 ──────────────────────────────────────────────────────────────────
+type T = (typeof I18N)['zh'];
 
-function statusBgClass(status: 'healthy' | 'warning' | 'critical' | 'ok' | 'error'): string {
+// ── 辅助：语义状态色 CSS 类（全用 design token，暗色模式友好） ────────────────
+
+function statusDotClass(status: string): string {
   switch (status) {
     case 'healthy':
     case 'ok':
-      return 'bg-emerald-500';
+      return 'bg-[var(--color-success)]';
     case 'warning':
-      return 'bg-amber-500';
+      return 'bg-[var(--color-warning)]';
     case 'critical':
     case 'error':
-      return 'bg-red-500';
+      return 'bg-[var(--color-danger)]';
     default:
       return 'bg-[var(--text-muted)]';
   }
@@ -224,12 +255,12 @@ function statusBgClass(status: 'healthy' | 'warning' | 'critical' | 'ok' | 'erro
 function layerBadgeClass(status: PipelineLayer['status']): string {
   switch (status) {
     case 'ok':
-      return 'bg-emerald-50 text-emerald-700';
+      return 'bg-[var(--color-success-surface)] text-[var(--color-success)]';
     case 'warning':
-      return 'bg-amber-50 text-amber-700';
+      return 'bg-[var(--color-warning-surface)] text-[var(--color-warning)]';
     case 'critical':
     case 'error':
-      return 'bg-red-50 text-red-700';
+      return 'bg-[var(--color-danger-surface)] text-[var(--color-danger)]';
     default:
       return 'bg-[var(--bg-subtle)] text-[var(--text-muted)]';
   }
@@ -238,13 +269,13 @@ function layerBadgeClass(status: PipelineLayer['status']): string {
 function fieldTypeBadgeClass(type: string): string {
   switch (type) {
     case 'null':
-      return 'bg-amber-100 text-amber-700';
+      return 'bg-[var(--color-warning-surface)] text-[var(--color-warning)]';
     case 'number':
-      return 'bg-blue-50 text-blue-700';
+      return 'bg-[var(--color-accent-surface)] text-[var(--color-accent)]';
     case 'string':
-      return 'bg-emerald-50 text-emerald-700';
+      return 'bg-[var(--color-success-surface)] text-[var(--color-success)]';
     case 'array':
-      return 'bg-purple-50 text-purple-700';
+      return 'badge-info';
     default:
       return 'bg-[var(--bg-subtle)] text-[var(--text-muted)]';
   }
@@ -252,22 +283,22 @@ function fieldTypeBadgeClass(type: string): string {
 
 // ── 页面顶部 Header ───────────────────────────────────────────────────────────
 
-function PageHeader({ t }: { t: (typeof I18N)['zh'] }) {
+function PageHeader({ t }: { t: T }) {
   return (
     <div>
-      <h1 className="text-xl font-bold text-[var(--text-primary)] font-display">{t.pageTitle}</h1>
-      <p className="text-sm text-[var(--text-muted)] mt-0.5">{t.pageSubtitle}</p>
+      <h1 className="page-title">{t.pageTitle}</h1>
+      <p className="page-subtitle">{t.pageSubtitle}</p>
     </div>
   );
 }
 
 // ── Loading 态 ────────────────────────────────────────────────────────────────
 
-function LoadingState({ t }: { t: (typeof I18N)['zh'] }) {
+function LoadingState({ t }: { t: T }) {
   return (
     <div className="space-y-4">
       {Array.from({ length: 4 }).map((_, i) => (
-        <div key={i} className="card-base h-24 animate-pulse bg-[var(--n-100)]" />
+        <div key={i} className="card-base h-24 animate-pulse bg-[var(--bg-subtle)]" />
       ))}
       <p className="text-center text-sm text-[var(--text-muted)]">{t.loading}</p>
     </div>
@@ -276,12 +307,12 @@ function LoadingState({ t }: { t: (typeof I18N)['zh'] }) {
 
 // ── Error 态 ──────────────────────────────────────────────────────────────────
 
-function ErrorState({ onRetry, t }: { onRetry: () => void; t: (typeof I18N)['zh'] }) {
+function ErrorState({ onRetry, t }: { onRetry: () => void; t: T }) {
   return (
-    <div className="card-base flex flex-col items-center justify-center py-12 gap-3">
-      <p className="text-base font-semibold text-red-600">{t.errorTitle}</p>
+    <div className="state-empty card-base">
+      <p className="text-base font-semibold text-[var(--color-danger)]">{t.errorTitle}</p>
       <p className="text-sm text-[var(--text-muted)]">{t.errorDesc}</p>
-      <button onClick={onRetry} className="btn-secondary">
+      <button onClick={onRetry} className="btn-secondary mt-2">
         {t.retry}
       </button>
     </div>
@@ -301,7 +332,7 @@ function L0Banner({
   onRefresh: () => void;
   autoRefresh: boolean;
   onToggleAuto: (v: boolean) => void;
-  t: (typeof I18N)['zh'];
+  t: T;
 }) {
   const diff: DiffFromLast = report.vs_last_check;
   const trendIcon: Record<DiffFromLast['trend'], string> = {
@@ -316,7 +347,7 @@ function L0Banner({
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div className="flex items-center gap-3">
           <div
-            className={`w-3 h-3 rounded-full shrink-0 ${statusBgClass(report.overall_status)}`}
+            className={`w-3 h-3 rounded-full shrink-0 ${statusDotClass(report.overall_status)}`}
           />
           <div>
             <div className="text-sm font-semibold text-[var(--text-primary)]">
@@ -334,12 +365,12 @@ function L0Banner({
                   <span className="flex items-center gap-1">
                     {t.vsLast}
                     {diff.new_issues > 0 && (
-                      <span className="text-red-500">
+                      <span className="text-[var(--color-danger)]">
                         +{diff.new_issues} {t.newIssues}
                       </span>
                     )}
                     {diff.resolved_issues > 0 && (
-                      <span className="text-emerald-500">
+                      <span className="text-[var(--color-success)]">
                         {' '}
                         {diff.resolved_issues} {t.resolved}
                       </span>
@@ -351,7 +382,9 @@ function L0Banner({
                   </span>
                 </>
               )}
-              {!diff.last_checked_at && <span className="text-amber-500">{t.firstRun}</span>}
+              {!diff.last_checked_at && (
+                <span className="text-[var(--color-warning)]">{t.firstRun}</span>
+              )}
             </div>
           </div>
         </div>
@@ -396,20 +429,59 @@ function PipelineBar({ pipeline }: { pipeline: PipelineLayer[] }) {
   );
 }
 
+// ── 引擎状态卡片（新增） ────────────────────────────────────────────────────
+
+function EngineStatusSection({ engine, t }: { engine: EngineStatus; t: T }) {
+  if (!engine) return null;
+
+  const tables = Object.entries(engine.tables);
+
+  return (
+    <div className="space-y-2">
+      <h3 className="table-header flex items-center gap-2">
+        {t.engineStatus}
+        <span className={`badge-${engine.status === 'ok' ? 'success' : 'warning'}`}>
+          {engine.table_count} {t.engineTable} &middot; {engine.total_rows.toLocaleString()}{' '}
+          {t.engineRows}
+        </span>
+      </h3>
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2">
+        {tables.map(([name, tbl]) => (
+          <div
+            key={name}
+            className={`card-compact border-l-4 ${tbl.status === 'ok' ? 'border-[var(--color-success)]' : tbl.status === 'unknown' ? 'border-[var(--text-muted)]' : 'border-[var(--color-warning)]'}`}
+          >
+            <div className="text-xs font-medium text-[var(--text-primary)] truncate" title={name}>
+              {name}
+            </div>
+            <div className="text-[10px] text-[var(--text-muted)] mt-1 font-mono">
+              {tbl.rows != null ? (
+                <>
+                  {tbl.rows.toLocaleString()} {t.engineRows} &middot; {tbl.cols} {t.engineCols}
+                </>
+              ) : (
+                tbl.status
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 // ── 根因卡片 ──────────────────────────────────────────────────────────────────
 
-function RootCauseCards({ causes, t }: { causes: RootCause[]; t: (typeof I18N)['zh'] }) {
+function RootCauseCards({ causes, t }: { causes: RootCause[]; t: T }) {
   const label = useLabel();
   if (!causes || causes.length === 0) return null;
   return (
     <div className="space-y-2">
-      <h3 className="text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
-        {t.rootCauses}
-      </h3>
+      <h3 className="table-header">{t.rootCauses}</h3>
       {causes.map((rc, i) => (
         <div
           key={i}
-          className="card-base p-3 flex items-center justify-between gap-3 border-l-4 border-amber-400"
+          className="card-compact flex items-center justify-between gap-3 border-l-4 border-[var(--color-warning)]"
         >
           <div className="min-w-0">
             <span className="text-sm font-medium text-[var(--text-primary)]">
@@ -443,31 +515,23 @@ function RootCauseCards({ causes, t }: { causes: RootCause[]; t: (typeof I18N)['
 
 // ── 数据时效 ──────────────────────────────────────────────────────────────────
 
-function FreshnessSection({
-  freshness,
-  t,
-}: {
-  freshness: DataFreshness[];
-  t: (typeof I18N)['zh'];
-}) {
+function FreshnessSection({ freshness, t }: { freshness: DataFreshness[]; t: T }) {
   if (!freshness || freshness.length === 0) return null;
   return (
     <div className="space-y-2">
-      <h3 className="text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
-        {t.freshness}
-      </h3>
+      <h3 className="table-header">{t.freshness}</h3>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
         {freshness.map((f) => {
           const borderColor =
             f.status === 'fresh'
-              ? 'border-emerald-400'
+              ? 'border-[var(--color-success)]'
               : f.status === 'stale'
-                ? 'border-amber-400'
-                : 'border-red-400';
+                ? 'border-[var(--color-warning)]'
+                : 'border-[var(--color-danger)]';
           const statusLabel =
             f.status === 'fresh' ? t.fresh : f.status === 'stale' ? t.stale : t.expired;
           return (
-            <div key={f.file} className={`card-base p-3 border-l-4 ${borderColor}`}>
+            <div key={f.file} className={`card-compact border-l-4 ${borderColor}`}>
               <div
                 className="text-xs font-medium text-[var(--text-primary)] truncate"
                 title={f.source}
@@ -487,7 +551,7 @@ function FreshnessSection({
 
 // ── L3 字段表格 ───────────────────────────────────────────────────────────────
 
-function FieldTable({ fields, t }: { fields: FieldCheck[]; t: (typeof I18N)['zh'] }) {
+function FieldTable({ fields, t }: { fields: FieldCheck[]; t: T }) {
   const [filter, setFilter] = useState<'all' | 'warn' | 'null'>('all');
   const [search, setSearch] = useState('');
 
@@ -518,7 +582,7 @@ function FieldTable({ fields, t }: { fields: FieldCheck[]; t: (typeof I18N)['zh'
               onClick={() => setFilter(f)}
               className={`px-2 py-0.5 rounded text-[10px] font-medium transition-colors ${
                 filter === f
-                  ? 'bg-[var(--color-accent)] text-white'
+                  ? 'bg-[var(--color-accent)] text-[var(--color-accent-text)]'
                   : 'bg-[var(--bg-surface)] text-[var(--text-muted)]'
               }`}
             >
@@ -535,7 +599,7 @@ function FieldTable({ fields, t }: { fields: FieldCheck[]; t: (typeof I18N)['zh'
           placeholder={t.searchPlaceholder}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="flex-1 min-w-0 px-2 py-1 text-xs rounded border border-[var(--border-default)] bg-[var(--bg-surface)] text-[var(--text-primary)] placeholder:text-[var(--text-muted)]"
+          className="input-base flex-1 min-w-0 !px-2 !py-1 !text-xs"
         />
       </div>
 
@@ -563,7 +627,7 @@ function FieldTable({ fields, t }: { fields: FieldCheck[]; t: (typeof I18N)['zh'
                   key={`${f.path}-${i}`}
                   className={
                     f.status === 'warn'
-                      ? 'bg-amber-50'
+                      ? 'row-warning'
                       : i % 2 === 0
                         ? 'slide-row-even'
                         : 'slide-row-odd'
@@ -589,7 +653,13 @@ function FieldTable({ fields, t }: { fields: FieldCheck[]; t: (typeof I18N)['zh'
                   >
                     {f.value_preview}
                   </td>
-                  <td className="slide-td text-center">{f.status === 'ok' ? '🟢' : '🟡'}</td>
+                  <td className="slide-td text-center">
+                    {f.status === 'ok' ? (
+                      <span className="inline-block w-2 h-2 rounded-full bg-[var(--color-success)]" />
+                    ) : (
+                      <span className="inline-block w-2 h-2 rounded-full bg-[var(--color-warning)]" />
+                    )}
+                  </td>
                 </tr>
               ))
             )}
@@ -605,7 +675,7 @@ function FieldTable({ fields, t }: { fields: FieldCheck[]; t: (typeof I18N)['zh'
 
 // ── L2 端点列表 ───────────────────────────────────────────────────────────────
 
-function EndpointList({ endpoints, t }: { endpoints: EndpointResult[]; t: (typeof I18N)['zh'] }) {
+function EndpointList({ endpoints, t }: { endpoints: EndpointResult[]; t: T }) {
   const [expandedEp, setExpandedEp] = useState<string | null>(null);
 
   return (
@@ -625,8 +695,8 @@ function EndpointList({ endpoints, t }: { endpoints: EndpointResult[]; t: (typeo
                 <span
                   className={`shrink-0 px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold ${
                     ep.status_code === 200
-                      ? 'bg-emerald-50 text-emerald-700'
-                      : 'bg-red-50 text-red-700'
+                      ? 'bg-[var(--color-success-surface)] text-[var(--color-success)]'
+                      : 'bg-[var(--color-danger-surface)] text-[var(--color-danger)]'
                   }`}
                 >
                   {ep.status_code}
@@ -635,7 +705,10 @@ function EndpointList({ endpoints, t }: { endpoints: EndpointResult[]; t: (typeo
                   {ep.method} {ep.path}
                 </span>
                 {ep.error && (
-                  <span className="text-[10px] text-red-500 truncate" title={ep.error}>
+                  <span
+                    className="text-[10px] text-[var(--color-danger)] truncate"
+                    title={ep.error}
+                  >
                     {ep.error.slice(0, 60)}
                   </span>
                 )}
@@ -646,12 +719,12 @@ function EndpointList({ endpoints, t }: { endpoints: EndpointResult[]; t: (typeo
                   {ep.total_fields} {t.fields}
                 </span>
                 {ep.null_fields > 0 && (
-                  <span className="text-amber-500">{ep.null_fields} null</span>
+                  <span className="text-[var(--color-warning)]">{ep.null_fields} null</span>
                 )}
                 {/* 健康进度条 */}
-                <div className="w-16 h-1.5 bg-[var(--bg-subtle)] rounded-full overflow-hidden">
+                <div className="w-16 h-1.5 progress-track overflow-hidden">
                   <div
-                    className="h-full bg-emerald-500 rounded-full transition-all duration-300"
+                    className="h-full rounded-full transition-all duration-300 bg-[var(--color-success)]"
                     style={{ width: `${healthPct}%` }}
                   />
                 </div>
@@ -677,7 +750,7 @@ function EndpointList({ endpoints, t }: { endpoints: EndpointResult[]; t: (typeo
 
 // ── L1 模块卡片组 ─────────────────────────────────────────────────────────────
 
-function ModuleCards({ modules, t }: { modules: ModuleResult[]; t: (typeof I18N)['zh'] }) {
+function ModuleCards({ modules, t }: { modules: ModuleResult[]; t: T }) {
   const [expandedModule, setExpandedModule] = useState<string | null>(null);
   const label = useLabel();
 
@@ -685,9 +758,7 @@ function ModuleCards({ modules, t }: { modules: ModuleResult[]; t: (typeof I18N)
 
   return (
     <div className="space-y-2">
-      <h3 className="text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
-        {t.moduleCheck}
-      </h3>
+      <h3 className="table-header">{t.moduleCheck}</h3>
       {modules.map((mod) => {
         const isExpanded = expandedModule === mod.name;
         return (
@@ -699,7 +770,7 @@ function ModuleCards({ modules, t }: { modules: ModuleResult[]; t: (typeof I18N)
             >
               <div className="flex items-center gap-3">
                 <div
-                  className={`w-2.5 h-2.5 rounded-full shrink-0 ${mod.all_ok ? 'bg-emerald-500' : 'bg-red-500'}`}
+                  className={`w-2.5 h-2.5 rounded-full shrink-0 ${mod.all_ok ? 'bg-[var(--color-success)]' : 'bg-[var(--color-danger)]'}`}
                 />
                 <span className="text-sm font-medium text-[var(--text-primary)]">
                   {label(DATA_MODULE_LABELS, mod.name)}
@@ -713,7 +784,7 @@ function ModuleCards({ modules, t }: { modules: ModuleResult[]; t: (typeof I18N)
                   {mod.total_fields.toLocaleString()} {t.fields}
                 </span>
                 {mod.null_fields > 0 && (
-                  <span className="text-amber-500">{mod.null_fields} null</span>
+                  <span className="text-[var(--color-warning)]">{mod.null_fields} null</span>
                 )}
                 <span>{isExpanded ? '▾' : '▸'}</span>
               </div>
@@ -730,18 +801,16 @@ function ModuleCards({ modules, t }: { modules: ModuleResult[]; t: (typeof I18N)
 
 // ── 跨端点一致性 ──────────────────────────────────────────────────────────────
 
-function CrossChecks({ checks, t }: { checks: CrossCheck[]; t: (typeof I18N)['zh'] }) {
+function CrossChecks({ checks, t }: { checks: CrossCheck[]; t: T }) {
   const label = useLabel();
   if (!checks || checks.length === 0) return null;
   return (
     <div className="space-y-2">
-      <h3 className="text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
-        {t.crossChecks}
-      </h3>
+      <h3 className="table-header">{t.crossChecks}</h3>
       {checks.map((c, i) => (
         <div
           key={i}
-          className={`card-base p-3 border-l-4 ${c.passed ? 'border-emerald-400' : 'border-red-400'}`}
+          className={`card-compact border-l-4 ${c.passed ? 'border-[var(--color-success)]' : 'border-[var(--color-danger)]'}`}
         >
           <span className="text-sm text-[var(--text-primary)]">
             {label(CROSS_CHECK_LABELS, c.name)}
@@ -755,17 +824,17 @@ function CrossChecks({ checks, t }: { checks: CrossCheck[]; t: (typeof I18N)['zh
 
 // ── 前端错误 ──────────────────────────────────────────────────────────────────
 
-function FrontendErrorsSection({ errors, t }: { errors: FrontendErrors; t: (typeof I18N)['zh'] }) {
+function FrontendErrorsSection({ errors, t }: { errors: FrontendErrors; t: T }) {
   if (!errors || errors.last_24h === 0) return null;
   return (
     <div className="space-y-2">
-      <h3 className="text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider flex items-center gap-2">
+      <h3 className="table-header flex items-center gap-2">
         {t.feErrors}
-        <span className="text-red-500 font-mono normal-case">{errors.last_24h}</span>
+        <span className="badge-danger normal-case">{errors.last_24h}</span>
       </h3>
       {errors.top_errors.map((e, i) => (
-        <div key={i} className="card-base p-3 border-l-4 border-red-400">
-          <div className="text-xs font-mono text-red-600 truncate" title={e.message}>
+        <div key={i} className="card-compact border-l-4 border-[var(--color-danger)]">
+          <div className="text-xs font-mono text-[var(--color-danger)] truncate" title={e.message}>
             {e.message}
           </div>
           <div className="text-[10px] text-[var(--text-muted)] mt-0.5">
@@ -782,13 +851,12 @@ function FrontendErrorsSection({ errors, t }: { errors: FrontendErrors; t: (type
 export default function DataHealthPage() {
   usePageDimensions({});
   const locale = useLocale();
-  const t = (I18N as unknown as Record<string, (typeof I18N)['zh']>)[locale] ?? I18N['zh'];
+  const t = (I18N as unknown as Record<string, T>)[locale] ?? I18N['zh'];
   const [autoRefresh, setAutoRefresh] = useState(false);
 
-  const { data, isLoading, error, mutate } = useFilteredSWR<DataHealthReport>(
-    '/api/data-health/data-quality',
-    { refreshInterval: autoRefresh ? 30000 : 0 }
-  );
+  const { data, isLoading, error, mutate } = useFilteredSWR<
+    DataHealthReport & { engine_status?: EngineStatus }
+  >('/api/data-health/data-quality', { refreshInterval: autoRefresh ? 30000 : 0 });
 
   return (
     <div className="space-y-6 px-6 py-6">
@@ -799,10 +867,10 @@ export default function DataHealthPage() {
       {error && !isLoading && <ErrorState onRetry={() => mutate()} t={t} />}
 
       {!isLoading && !error && !data && (
-        <div className="card-base flex flex-col items-center justify-center py-12 gap-3">
+        <div className="state-empty card-base">
           <p className="text-base font-semibold text-[var(--text-secondary)]">{t.emptyTitle}</p>
           <p className="text-sm text-[var(--text-muted)]">{t.emptyDesc}</p>
-          <button onClick={() => mutate()} className="btn-secondary">
+          <button onClick={() => mutate()} className="btn-secondary mt-2">
             {t.retry}
           </button>
         </div>
@@ -820,6 +888,7 @@ export default function DataHealthPage() {
           <PipelineBar pipeline={data.pipeline_status} />
           <RootCauseCards causes={data.root_causes} t={t} />
           <FreshnessSection freshness={data.data_freshness} t={t} />
+          {data.engine_status && <EngineStatusSection engine={data.engine_status} t={t} />}
           <ModuleCards modules={data.modules} t={t} />
           <CrossChecks checks={data.cross_checks} t={t} />
           <FrontendErrorsSection errors={data.frontend_errors} t={t} />
