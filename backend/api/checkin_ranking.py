@@ -18,6 +18,7 @@ from backend.api._checkin_config import (
     _detect_role_from_team,
     _get_invalid_names,
     _get_role_cols,
+    _get_narrow_role,
     _get_wide_role,
     _parse_role_enclosures,
 )
@@ -169,10 +170,11 @@ def get_checkin_ranking(
         enc_labels = [e.strip() for e in enclosure.split(",") if e.strip()]
         enc_filter_raws = [m_to_raw[m] for m in enc_labels if m in m_to_raw]
 
-    # 确定角色列表
+    # 确定角色列表（窄口 + 宽口合并，确保 CC/SS/LP/运营 都出现）
+    _narrow_role_map = _get_narrow_role()
     _wide_role_map = _get_wide_role()
     _role_cols_map = _get_role_cols()
-    roles = list(_wide_role_map.keys())
+    roles = list(dict.fromkeys(list(_narrow_role_map.keys()) + list(_wide_role_map.keys())))
     if role_config:
         try:
             parsed = json.loads(role_config)
@@ -200,7 +202,8 @@ def get_checkin_ranking(
         name_col, group_col = _role_cols_map.get(
             role, ("last_cc_name", "last_cc_group_name")
         )
-        enclosures = override if override else _wide_role_map.get(role, [])
+        # 打卡用窄口围场分配（CC/SS/LP 各有独立负责围场）
+        enclosures = override if override else _narrow_role_map.get(role, _wide_role_map.get(role, []))
 
         # 按角色默认围场筛选
         if _D3_ENCLOSURE_COL in d3.columns:

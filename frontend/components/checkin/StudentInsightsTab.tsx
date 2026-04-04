@@ -8,6 +8,15 @@ import { useLocale } from 'next-intl';
 import { Spinner } from '@/components/ui/Spinner';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { StatMiniCard } from '@/components/ui/StatMiniCard';
+import { StudentFrequencyChart } from '@/components/checkin/StudentFrequencyChart';
+import { LessonCheckinCross } from '@/components/checkin/LessonCheckinCross';
+import { ConversionFunnelProof } from '@/components/checkin/ConversionFunnelProof';
+import { ContactCheckinChart } from '@/components/checkin/ContactCheckinChart';
+import { RenewalCheckinChart } from '@/components/checkin/RenewalCheckinChart';
+import { StudentRankingPanel } from '@/components/checkin/StudentRankingPanel';
+import { EnclosureParticipationChart } from '@/components/checkin/EnclosureParticipationChart';
+import { useStudentAnalysis } from '@/lib/hooks/useStudentAnalysis';
+import { formatRate } from '@/lib/utils';
 
 // ── 内联 I18N ────────────────────────────────────────────────────────────────
 
@@ -134,15 +143,6 @@ const I18N = {
 } as const;
 
 type Locale = keyof typeof I18N;
-import { StudentFrequencyChart } from '@/components/checkin/StudentFrequencyChart';
-import { LessonCheckinCross } from '@/components/checkin/LessonCheckinCross';
-import { ConversionFunnelProof } from '@/components/checkin/ConversionFunnelProof';
-import { ContactCheckinChart } from '@/components/checkin/ContactCheckinChart';
-import { RenewalCheckinChart } from '@/components/checkin/RenewalCheckinChart';
-import { StudentRankingPanel } from '@/components/checkin/StudentRankingPanel';
-import { EnclosureParticipationChart } from '@/components/checkin/EnclosureParticipationChart';
-import { useStudentAnalysis } from '@/lib/hooks/useStudentAnalysis';
-import { formatRate } from '@/lib/utils';
 
 interface StudentInsightsTabProps {
   enclosureFilter: string | null;
@@ -223,16 +223,16 @@ export function StudentInsightsTab({ enclosureFilter }: StudentInsightsTabProps)
           />
           <StatMiniCard
             label={t.zeroCheckin}
-            value={mc.zero_this.toLocaleString()}
-            sub={t.lastMonthPeople(mc.zero_last.toLocaleString())}
-            accent={mc.zero_this > mc.zero_last ? 'red' : 'green'}
+            value={(mc.zero_this ?? 0).toLocaleString()}
+            sub={t.lastMonthPeople((mc.zero_last ?? 0).toLocaleString())}
+            accent={(mc.zero_this ?? 0) > (mc.zero_last ?? 0) ? 'red' : 'green'}
             subtitle={t.zeroSubtitle}
           />
           <StatMiniCard
             label={t.superfan}
-            value={mc.superfan_this.toLocaleString()}
-            sub={t.lastMonthPeople(mc.superfan_last.toLocaleString())}
-            accent={mc.superfan_this >= mc.superfan_last ? 'green' : 'red'}
+            value={(mc.superfan_this ?? 0).toLocaleString()}
+            sub={t.lastMonthPeople((mc.superfan_last ?? 0).toLocaleString())}
+            accent={(mc.superfan_this ?? 0) >= (mc.superfan_last ?? 0) ? 'green' : 'red'}
             subtitle={t.superfanSubtitle}
           />
         </div>

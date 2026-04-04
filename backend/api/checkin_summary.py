@@ -17,6 +17,7 @@ from backend.api._checkin_config import (
     _clean_names,
     _get_invalid_names,
     _get_role_cols,
+    _get_narrow_role,
     _get_wide_role,
     _parse_role_enclosures,
 )
@@ -287,7 +288,13 @@ def get_checkin_summary(
         if enc_filter_raws:
             d3 = d3[d3[_D3_ENCLOSURE_COL].isin(enc_filter_raws)].copy()
 
-    roles = list(_get_wide_role().keys())
+    # 用 narrow（窄口）决定角色列表，确保 CC/SS/LP 都出现
+    # wide 只有 CC+运营，narrow 有完整 CC/SS/LP 分配
+    narrow_roles = _get_narrow_role()
+    wide_roles = _get_wide_role()
+    # 合并：narrow 的角色 + wide 独有的角色（如 运营）
+    all_role_keys = list(dict.fromkeys(list(narrow_roles.keys()) + list(wide_roles.keys())))
+    roles = all_role_keys
     if role_config:
         try:
             parsed = json.loads(role_config)
@@ -303,10 +310,12 @@ def get_checkin_summary(
                 dm.load_all().get("students", pd.DataFrame()), filters
             )
             by_role[role] = _aggregate_ops_channels(
-                d3, d4, enclosures_override=override
+                d3, d4, enclosures_override=override or wide_roles.get(role)
             )
         else:
-            by_role[role] = _aggregate_role(d3, role, enclosures_override=override)
+            # 打卡用窄口（narrow）围场分配：CC/SS/LP 各有独立负责围场
+            narrow_enc = override or narrow_roles.get(role)
+            by_role[role] = _aggregate_role(d3, role, enclosures_override=narrow_enc)
 
     return {"by_role": by_role}
 

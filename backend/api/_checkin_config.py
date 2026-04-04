@@ -206,6 +206,45 @@ def _get_wide_role() -> dict[str, list[str]]:
     return result if result else _WIDE_ROLE_FALLBACK
 
 
+def _get_narrow_role() -> dict[str, list[str]]:
+    """从 config/enclosure_role_override.json 的 narrow 字段读取窄口径围场-角色映射。
+    窄口 = 员工链接绑定维度（CC/SS/LP 各有独立负责围场）。
+    打卡面板按窄口展示，因为打卡跟进是按员工个人链接维度。
+
+    override 格式: {"narrow": {"M0": ["CC"], "M2": ["CC","SS"], "M3": ["LP","CC"], ...}}
+    返回格式: {"CC": ["0~30", "31~60", ...], "SS": ["61~90"], "LP": ["91~120", ...]}
+    """
+    _M_TO_BAND: dict[str, str] = {
+        "M0": "0~30", "M1": "31~60", "M2": "61~90", "M3": "91~120",
+        "M4": "121~150", "M5": "151~180", "M6": "6M", "M7": "7M",
+        "M8": "8M", "M9": "9M", "M10": "10M", "M11": "11M",
+        "M12": "12M", "M12+": "12M+", "M6+": "M6+",
+    }
+
+    try:
+        if _OVERRIDE_PATH.exists():
+            override_data = json.loads(_OVERRIDE_PATH.read_text(encoding="utf-8"))
+            narrow: dict[str, list[str]] | None = override_data.get("narrow")
+            if narrow:
+                role_to_bands: dict[str, list[str]] = {}
+                for month, roles in narrow.items():
+                    band = _M_TO_BAND.get(month)
+                    if not band:
+                        continue
+                    for role in roles:
+                        if role not in role_to_bands:
+                            role_to_bands[role] = []
+                        if band not in role_to_bands[role]:
+                            role_to_bands[role].append(band)
+                if role_to_bands:
+                    return role_to_bands
+    except Exception:
+        pass
+
+    # fallback 到 wide（向后兼容）
+    return _get_wide_role()
+
+
 def _get_role_cols() -> dict[str, tuple[str, str]]:
     """从 config.json role_columns 读取各岗位人员列映射。fallback 到硬编码。"""
     cfg = _get_config().get("role_columns", {})
