@@ -352,8 +352,15 @@ def _count_orders(cc_name: str) -> tuple[int, int]:
     return today_total, cc_month_total
 
 
-def format_reply(order: ParsedOrder) -> str:
-    """生成泰文回复（钉钉 Markdown 格式）"""
+def format_reply(
+    order: ParsedOrder,
+    today_stats: dict | None = None,
+) -> str:
+    """生成泰文回复（钉钉 Markdown 格式）
+
+    Args:
+        today_stats: 来自 today_orders.add_order() 的今日累计数据
+    """
     now = datetime.now().strftime("%Y-%m-%d %H:%M")
 
     if not order.is_order:
@@ -361,8 +368,18 @@ def format_reply(order: ParsedOrder) -> str:
 
     rate = _load_exchange_rate()
 
-    # 统计单数
-    today_n, cc_month_n = _count_orders(order.cc_name)
+    # 单数统计（优先用累加器，fallback 用 JSONL）
+    if today_stats:
+        today_n = today_stats["today_count"]
+        cc_today_n = today_stats["cc_today_count"]
+        today_total_thb = today_stats["today_total_thb"]
+    else:
+        today_n_raw, _ = _count_orders(order.cc_name)
+        today_n = today_n_raw
+        cc_today_n = 0
+        today_total_thb = 0.0
+
+    _, cc_month_n = _count_orders(order.cc_name)
 
     lines: list[str] = []
     lines.append("### ✓ Referral ยืนยันแล้ว")
@@ -444,23 +461,35 @@ def format_reply(order: ParsedOrder) -> str:
     lines.append(f"📅  {now}")
     lines.append("")
 
-    # ④ BM + 月目标（双换行保证排版）
+    # ④ BM + 月目标（T-1 actual + 今日累计 = 实时估算）
     summary = _fetch_revenue_status()
     if summary:
-        actual_usd = summary.get("revenue_usd", 0) or 0
+        t1_actual_usd = summary.get("revenue_usd", 0) or 0
         target_usd = summary.get("revenue_target", 0) or 0
         bm_pct = summary.get("bm_pct", 0) or 0
-        rev_progress = summary.get("revenue_progress", 0) or 0
 
-        actual_thb = actual_usd * rate
+        t1_actual_thb = t1_actual_usd * rate
         target_thb = target_usd * rate
+
+        # 实时合计 = T-1 + 今日已确认金额
+        realtime_thb = t1_actual_thb + today_total_thb
+        realtime_progress = realtime_thb / target_thb if target_thb else 0
 
         lines.append("---")
         lines.append("")
 
-        # BM 差距（每项独立段落，双换行）
+        # 数据说明
+        if today_total_thb > 0:
+            lines.append(
+                f"💡  T-1 ฿{t1_actual_thb:,.0f}"
+                f" + วันนี้ ฿{today_total_thb:,.0f}"
+                f" = **฿{realtime_thb:,.0f}**"
+            )
+            lines.append("")
+
+        # BM 差距
         bm_target_thb = target_thb * bm_pct
-        bm_gap_thb = actual_thb - bm_target_thb
+        bm_gap_thb = realtime_thb - bm_target_thb
         if bm_gap_thb >= 0:
             lines.append(f"📈  **BM วันนี้**")
             lines.append("")
@@ -471,13 +500,13 @@ def format_reply(order: ParsedOrder) -> str:
             lines.append(f"ต่ำกว่าเป้า **฿{abs(bm_gap_thb):,.0f}**")
         lines.append("")
         lines.append(
-            f"ความคืบหน้า {rev_progress:.1%}  vs  BM {bm_pct:.1%}"
+            f"ความคืบหน้า {realtime_progress:.1%}  vs  BM {bm_pct:.1%}"
         )
         lines.append("")
         lines.append("")
 
         # 月目标差距
-        month_gap_thb = actual_thb - target_thb
+        month_gap_thb = realtime_thb - target_thb
         if month_gap_thb >= 0:
             lines.append(f"🎯  **เป้าเดือน**")
             lines.append("")
@@ -488,7 +517,7 @@ def format_reply(order: ParsedOrder) -> str:
             lines.append(f"เหลืออีก **฿{abs(month_gap_thb):,.0f}**")
         lines.append("")
         lines.append(
-            f"฿{actual_thb:,.0f} / ฿{target_thb:,.0f}"
+            f"฿{realtime_thb:,.0f} / ฿{target_thb:,.0f}"
         )
         lines.append("")
 
@@ -548,8 +577,9 @@ class OrderBotHandler(dingtalk_stream.ChatbotHandler):
             msg_type = raw_data.get("msgtype", "unknown") if isinstance(raw_data, dict) else "?"
             logger.info("收到回调: msgtype=%s, keys=%s", msg_type, list(raw_data.keys()) if isinstance(raw_data, dict) else "N/A")
 
-            # 提取文本（支持 text 和 richText 两种格式）
+            # 提取文本 + 图片（支持 text 和 richText 两种格式）
             text: str = ""
+            image_bytes_list: list[bytes] = []
 
             if msg_type == "text":
                 incoming = dingtalk_stream.ChatbotMessage.from_dict(raw_data)
@@ -557,13 +587,23 @@ class OrderBotHandler(dingtalk_stream.ChatbotHandler):
                     text = (incoming.text.content or "").strip()
 
             elif msg_type == "richText":
-                # richText: content.richText 是数组，提取所有 text 段
+                # richText: content.richText 是数组，分离 text 和 picture
                 content = raw_data.get("content", {})
                 rich_parts = content.get("richText", [])
                 text_parts = []
                 for part in rich_parts:
-                    if isinstance(part, dict) and part.get("text"):
-                        text_parts.append(part["text"])
+                    if isinstance(part, dict):
+                        if part.get("text"):
+                            text_parts.append(part["text"])
+                        if part.get("downloadCode") or part.get("pictureDownloadUrl"):
+                            # 图片：尝试下载用于 OCR
+                            dl_url = part.get("pictureDownloadUrl", "")
+                            if dl_url:
+                                from scripts.order_ocr import download_image_url
+                                img = download_image_url(dl_url)
+                                if img:
+                                    image_bytes_list.append(img)
+                                    logger.info("下载图片成功: %d bytes", len(img))
                 text = "\n".join(text_parts).strip()
 
             else:
@@ -575,6 +615,17 @@ class OrderBotHandler(dingtalk_stream.ChatbotHandler):
                 return AckMessage.STATUS_OK, "OK"
 
             logger.info("解析文本 (%s): %s", msg_type, text[:100])
+
+            # OCR 图片提取金额
+            ocr_amount_thb: float | None = None
+            if image_bytes_list:
+                from scripts.order_ocr import extract_thb_from_image
+                for img_bytes in image_bytes_list:
+                    amt = extract_thb_from_image(img_bytes)
+                    if amt and amt > 100:
+                        ocr_amount_thb = amt
+                        logger.info("OCR 提取金额: ฿%.0f", amt)
+                        break
 
         except Exception as e:
             logger.error("回调解析异常: %s (data keys: %s)", e, list(raw_data.keys()) if isinstance(raw_data, dict) else "N/A")
@@ -591,13 +642,29 @@ class OrderBotHandler(dingtalk_stream.ChatbotHandler):
             logger.info("非转介绍，跳过: source=%s", order.lead_source)
             return AckMessage.STATUS_OK, "OK"
 
+        # 注入 OCR 金额（文本没金额但图片有）
+        if ocr_amount_thb and order.amount_thb is None:
+            order.amount_thb = ocr_amount_thb
+            rate = _load_exchange_rate()
+            order.amount_usd = ocr_amount_thb / rate
+
+        # 写入今日累加器
+        from scripts.today_orders import add_order as _add_today
+        today_stats = _add_today(
+            cc_name=order.cc_name,
+            team=f"{order.team_code} Team {order.team_number}",
+            student=order.student_name,
+            product=order.product,
+            amount_thb=order.amount_thb,
+        )
+
         # 日志
         sender = raw_data.get("senderNick", "")
         conv_id = raw_data.get("conversationId", "")
         _log_order(order, sender=sender, conversation_id=conv_id)
 
-        # 回复（richText 模式用 sessionWebhook 直接发）
-        reply = format_reply(order)
+        # 回复（含今日累计数据）
+        reply = format_reply(order, today_stats=today_stats)
         if reply:
             webhook = raw_data.get("sessionWebhook", "")
             if webhook:
