@@ -11,6 +11,12 @@ import { GapDashboardSlide } from '@/components/analytics/GapDashboardSlide';
 import { ScenarioCompareSlide } from '@/components/analytics/ScenarioCompareSlide';
 import { ProjectionSlide } from '@/components/analytics/ProjectionSlide';
 import { RevenueContributionSlide } from '@/components/analytics/RevenueContributionSlide';
+import { MomAttributionSlide } from '@/components/analytics/MomAttributionSlide';
+import { LeadAttributionSlide } from '@/components/analytics/LeadAttributionSlide';
+import { DecompositionWaterfallSlide } from '@/components/analytics/DecompositionWaterfallSlide';
+import { FunnelLeverageSlide } from '@/components/analytics/FunnelLeverageSlide';
+import { ChannelRevenueSlide } from '@/components/analytics/ChannelRevenueSlide';
+import { ChannelThreeFactorSlide } from '@/components/analytics/ChannelThreeFactorSlide';
 import type { DailyReport } from '@/lib/types/report';
 
 export default function AnalyticsPage() {
@@ -116,9 +122,20 @@ export default function AnalyticsPage() {
           {/* Row 3: 区块 5（全宽） */}
           <RevenueContributionSlide data={data.blocks.revenue_contribution} />
 
-          {/* Row 4-6: blocks 6-11 placeholder (implemented by FE2) */}
-          <div className="card-base p-6 text-center text-sm text-[var(--text-muted)]">
-            {t('placeholder')}
+          {/* Row 4: 区块 6 + 区块 7 */}
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+            <MomAttributionSlide slideNumber={0} totalSlides={0} />
+            <LeadAttributionSlide slideNumber={0} totalSlides={0} />
+          </div>
+
+          {/* Row 5: 区块 8（全宽） */}
+          <DecompositionWaterfallSlide slideNumber={0} totalSlides={0} />
+
+          {/* Row 6: 区块 9 + 区块 10 + 区块 11 */}
+          <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+            <FunnelLeverageSlide slideNumber={0} totalSlides={0} />
+            <ChannelRevenueSlide slideNumber={0} totalSlides={0} />
+            <ChannelThreeFactorSlide slideNumber={0} totalSlides={0} />
           </div>
         </div>
       )}
