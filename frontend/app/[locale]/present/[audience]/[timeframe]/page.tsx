@@ -3,7 +3,7 @@
 import { useEffect, useCallback, useRef } from 'react';
 import { useParams } from 'next/navigation';
 import { useRouter } from '@/i18n/navigation';
-import { useLocale } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { usePageDimensions } from '@/lib/hooks/use-page-dimensions';
 import { usePresentationStore } from '@/lib/stores/presentation-store';
 import { BrandMark } from '@/components/ui/BrandMark';
@@ -20,13 +20,6 @@ import { FunnelAttributionSlide } from '@/components/slides/FunnelAttributionSli
 import { LeadAttributionSlide } from '@/components/slides/LeadAttributionSlide';
 import { NetAttributionSlide } from '@/components/slides/NetAttributionSlide';
 import { ChannelRevenueSlide } from '@/components/slides/ChannelRevenueSlide';
-
-const I18N = {
-  zh: { exitBtn: '退出', exitTitle: '退出汇报模式' },
-  'zh-TW': { exitBtn: '退出', exitTitle: '退出匯報模式' },
-  en: { exitBtn: 'Exit', exitTitle: 'Exit Presentation Mode' },
-  th: { exitBtn: 'ออก', exitTitle: 'ออกจากโหมดนำเสนอ' },
-};
 
 // 有效组合：audience → 允许的 timeframe
 const VALID_COMBINATIONS: Record<string, string[]> = {
@@ -75,7 +68,7 @@ export default function PresentationPage() {
     channel: true,
   });
   const locale = useLocale();
-  const t = (I18N as unknown as Record<string, (typeof I18N)['zh']>)[locale] ?? I18N['zh'];
+  const t = useTranslations('present_[audience]_[timeframe]');
   const params = useParams();
   const router = useRouter();
   const { currentSlide, nextSlide, prevSlide, togglePresentationMode, exitPresentationMode } =
@@ -179,11 +172,11 @@ export default function PresentationPage() {
       <button
         onClick={exitPresentation}
         className="absolute bottom-5 right-6 z-50 flex items-center gap-2 px-4 py-2 rounded-xl backdrop-blur-xl bg-white/8 border border-white/10 text-white/50 text-xs font-semibold transition-all duration-200 hover:bg-white/15 hover:text-white/80 hover:-translate-y-0.5"
-        title={t.exitTitle}
+        title={t('exitTitle')}
       >
         <BrandMark size={14} className="text-[var(--brand-p1)]" />
         <span className="font-mono tracking-wider">ESC</span>
-        <span>{t.exitBtn}</span>
+        <span>{t('exitBtn')}</span>
       </button>
     </div>
   );

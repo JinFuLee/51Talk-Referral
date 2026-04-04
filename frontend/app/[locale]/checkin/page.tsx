@@ -242,7 +242,7 @@ function CheckinPageInner() {
       )}
       {summaryError && (
         <div className="text-center py-4">
-          <p className="text-sm font-semibold text-[var(--color-danger)]">{t.summaryLoadFailed}</p>
+          <p className="text-sm font-semibold text-red-600">{t.summaryLoadFailed}</p>
           <p className="text-xs text-[var(--text-muted)] mt-1">{t.checkBackend}</p>
         </div>
       )}

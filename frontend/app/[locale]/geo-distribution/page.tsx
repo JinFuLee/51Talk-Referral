@@ -1,95 +1,10 @@
 'use client';
 
-import { useLocale } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { useFilteredSWR } from '@/lib/hooks/use-filtered-swr';
 import { usePageDimensions } from '@/lib/hooks/use-page-dimensions';
 import { Spinner } from '@/components/ui/Spinner';
 import { EmptyState } from '@/components/ui/EmptyState';
-
-const I18N = {
-  zh: {
-    title: '地理分布',
-    subtitle: '学员常登录国家分布 · 共',
-    subtitleStudents: '位学员 ·',
-    subtitleRegions: '个国家/地区',
-    cardProportion: '占比',
-    colCountry: '国家 / 地区',
-    colStudents: '学员数',
-    colShare: '占比分布',
-    colAvgReg: '人均推荐注册',
-    colAvgPay: '人均推荐付费',
-    footerNote:
-      '「常登录国家」来自学员账号注册/登录地理信息 · 人均指标为该国家所有学员的月度平均值',
-    errorTitle: '数据加载失败',
-    errorDesc: '无法获取地理分布数据，请检查后端服务是否正常运行',
-    errorRetry: '重试',
-    emptySubtitle: '学员常登录国家分布及推荐效果',
-    emptyTitle: '暂无地理数据',
-    emptyDesc: '数据源中未找到「常登录国家」列，请上传包含地理信息的学员数据文件',
-  },
-  'zh-TW': {
-    title: '地理分布',
-    subtitle: '學員常登入國家分布 · 共',
-    subtitleStudents: '位學員 ·',
-    subtitleRegions: '個國家/地區',
-    cardProportion: '佔比',
-    colCountry: '國家 / 地區',
-    colStudents: '學員數',
-    colShare: '佔比分布',
-    colAvgReg: '人均推薦註冊',
-    colAvgPay: '人均推薦付費',
-    footerNote:
-      '「常登入國家」來自學員帳號註冊/登入地理資訊 · 人均指標為該國家所有學員的月度平均值',
-    errorTitle: '資料載入失敗',
-    errorDesc: '無法取得地理分布資料，請檢查後端服務是否正常運行',
-    errorRetry: '重試',
-    emptySubtitle: '學員常登入國家分布及推薦效果',
-    emptyTitle: '暫無地理資料',
-    emptyDesc: '資料來源中未找到「常登入國家」欄，請上傳包含地理資訊的學員資料檔案',
-  },
-  en: {
-    title: 'Geographic Distribution',
-    subtitle: 'Student login country distribution · Total',
-    subtitleStudents: 'students ·',
-    subtitleRegions: 'countries/regions',
-    cardProportion: 'Share',
-    colCountry: 'Country / Region',
-    colStudents: 'Students',
-    colShare: 'Share Distribution',
-    colAvgReg: 'Avg Referral Reg.',
-    colAvgPay: 'Avg Referral Pay.',
-    footerNote:
-      '"Login Country" is derived from student account registration/login geography · Per-capita metrics are monthly averages for all students in that country',
-    errorTitle: 'Load Failed',
-    errorDesc: 'Cannot load geographic distribution data, please check backend service',
-    errorRetry: 'Retry',
-    emptySubtitle: 'Student login country distribution and referral performance',
-    emptyTitle: 'No Geographic Data',
-    emptyDesc:
-      'No "Login Country" column found in data source. Please upload student data with geographic info.',
-  },
-  th: {
-    title: 'การกระจายทางภูมิศาสตร์',
-    subtitle: 'การกระจายประเทศที่นักเรียนล็อกอินบ่อย · ทั้งหมด',
-    subtitleStudents: 'คน ·',
-    subtitleRegions: 'ประเทศ/ภูมิภาค',
-    cardProportion: 'สัดส่วน',
-    colCountry: 'ประเทศ / ภูมิภาค',
-    colStudents: 'นักเรียน',
-    colShare: 'การกระจายสัดส่วน',
-    colAvgReg: 'การลงทะเบียนแนะนำเฉลี่ย/คน',
-    colAvgPay: 'การชำระเงินแนะนำเฉลี่ย/คน',
-    footerNote:
-      '"ประเทศที่ล็อกอินบ่อย" มาจากข้อมูลภูมิศาสตร์การลงทะเบียน/เข้าสู่ระบบของนักเรียน · ตัวชี้วัดต่อหัวคือค่าเฉลี่ยรายเดือนของนักเรียนทั้งหมดในประเทศนั้น',
-    errorTitle: 'โหลดข้อมูลล้มเหลว',
-    errorDesc: 'ไม่สามารถโหลดข้อมูลการกระจายทางภูมิศาสตร์ได้ กรุณาตรวจสอบบริการ backend',
-    errorRetry: 'ลองใหม่',
-    emptySubtitle: 'การกระจายประเทศที่นักเรียนล็อกอินบ่อยและผลการแนะนำ',
-    emptyTitle: 'ไม่มีข้อมูลภูมิศาสตร์',
-    emptyDesc:
-      'ไม่พบคอลัมน์ "ประเทศที่ล็อกอินบ่อย" ในแหล่งข้อมูล กรุณาอัปโหลดไฟล์ข้อมูลนักเรียนที่มีข้อมูลภูมิศาสตร์',
-  },
-};
 
 interface GeoItem {
   country: string;
@@ -121,7 +36,7 @@ function BarCell({ pct }: { pct: number }) {
 export default function GeoDistributionPage() {
   usePageDimensions({ country: true, dataRole: true });
   const locale = useLocale();
-  const t = (I18N as unknown as Record<string, (typeof I18N)['zh']>)[locale] ?? I18N['zh'];
+  const t = useTranslations('geoDistribution');
 
   const { data, isLoading, error, mutate } = useFilteredSWR<GeoItem[]>(
     '/api/analysis/geo-distribution'
@@ -138,9 +53,9 @@ export default function GeoDistributionPage() {
   if (error) {
     return (
       <EmptyState
-        title={t.errorTitle}
-        description={t.errorDesc}
-        action={{ label: t.errorRetry, onClick: () => mutate() }}
+        title={t('errorTitle')}
+        description={t('errorDesc')}
+        action={{ label: t('errorRetry'), onClick: () => mutate() }}
       />
     );
   }
@@ -149,10 +64,10 @@ export default function GeoDistributionPage() {
     return (
       <div className="space-y-4">
         <div>
-          <h1 className="page-title">{t.title}</h1>
-          <p className="text-sm text-[var(--text-secondary)] mt-1">{t.emptySubtitle}</p>
+          <h1 className="page-title">{t('title')}</h1>
+          <p className="text-sm text-[var(--text-secondary)] mt-1">{t('emptySubtitle')}</p>
         </div>
-        <EmptyState title={t.emptyTitle} description={t.emptyDesc} />
+        <EmptyState title={t('emptyTitle')} description={t('emptyDesc')} />
       </div>
     );
   }
@@ -163,10 +78,10 @@ export default function GeoDistributionPage() {
     <div className="space-y-6">
       {/* 页面标题 */}
       <div>
-        <h1 className="page-title">{t.title}</h1>
+        <h1 className="page-title">{t('title')}</h1>
         <p className="text-sm text-[var(--text-secondary)] mt-1">
-          {t.subtitle} {totalStudents.toLocaleString()} {t.subtitleStudents} {data.length}{' '}
-          {t.subtitleRegions}
+          {t('subtitle')} {totalStudents.toLocaleString()} {t('subtitleStudents')} {data.length}{' '}
+          {t('subtitleRegions')}
         </p>
       </div>
 
@@ -182,7 +97,7 @@ export default function GeoDistributionPage() {
               {(item.student_count ?? 0).toLocaleString()}
             </p>
             <p className="text-xs text-[var(--text-secondary)] mt-1">
-              {t.cardProportion} {(item.pct ?? 0).toFixed(1)}%
+              {t('cardProportion')} {(item.pct ?? 0).toFixed(1)}%
             </p>
           </div>
         ))}
@@ -193,13 +108,13 @@ export default function GeoDistributionPage() {
         <table className="w-full text-sm">
           <thead>
             <tr className="slide-thead-row">
-              <th className="slide-th text-left">{t.colCountry}</th>
-              <th className="slide-th text-right">{t.colStudents}</th>
+              <th className="slide-th text-left">{t('colCountry')}</th>
+              <th className="slide-th text-right">{t('colStudents')}</th>
               <th className="slide-th" style={{ minWidth: '160px' }}>
-                {t.colShare}
+                {t('colShare')}
               </th>
-              <th className="slide-th text-right">{t.colAvgReg}</th>
-              <th className="slide-th text-right">{t.colAvgPay}</th>
+              <th className="slide-th text-right">{t('colAvgReg')}</th>
+              <th className="slide-th text-right">{t('colAvgPay')}</th>
             </tr>
           </thead>
           <tbody>
@@ -233,7 +148,7 @@ export default function GeoDistributionPage() {
       </div>
 
       {/* 说明 */}
-      <p className="text-xs text-[var(--text-muted)]">{t.footerNote}</p>
+      <p className="text-xs text-[var(--text-muted)]">{t('footerNote')}</p>
     </div>
   );
 }

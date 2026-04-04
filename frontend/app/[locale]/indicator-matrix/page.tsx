@@ -7,7 +7,7 @@ import { PageHeader } from '@/components/ui/PageHeader';
 import { BIZ_PAGE } from '@/lib/layout';
 import { useIndicatorMatrix } from '@/lib/hooks/useIndicatorMatrix';
 import { indicatorMatrixAPI } from '@/lib/api';
-import { useLocale } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import type { IndicatorCategory, IndicatorAvailability } from '@/lib/types/indicator-matrix';
 import {
   INDICATOR_CATEGORIES,
@@ -16,175 +16,11 @@ import {
 } from '@/lib/types/indicator-matrix';
 import { translateFormula } from '@/lib/utils';
 
-const I18N = {
-  zh: {
-    pageTitle: '指标矩阵总览',
-    pageSubtitle: 'CC/SS/LP 三岗位指标覆盖范围配置与对比',
-    exportCsv: '导出 CSV',
-    saving: '保存中…',
-    saveConfig: '保存配置',
-    loadFailed: '加载失败：',
-    noBackend: '无法连接后端',
-    retry: '重试',
-    emptyRegistry: '指标注册表为空，请检查 config.json 中的 indicator_registry 配置',
-    filterAllCategory: '全部分类',
-    filterAllRole: '全部角色',
-    filterAllStatus: '全部状态',
-    showing: '显示',
-    of: '/',
-    items: '项',
-    loading: '加载中…',
-    colName: '指标名称',
-    colStatus: '状态',
-    noMatch: '暂无匹配指标',
-    ccOnly: 'CC 独有',
-    statsPending: '待接入',
-    statsTotal: '总计',
-    saveSuccess: '保存成功',
-    saveFailed: '保存失败',
-    csvHeaders: ['ID', '名称', '泰文名', 'Category', '单位', 'CC', 'SS', 'LP', '可用性', '数据源'],
-    csvYes: '是',
-    csvNo: '否',
-    availableLabel: '可用',
-    pendingLabel: '待接入',
-    partialLabel: '部分可用',
-  },
-  'zh-TW': {
-    pageTitle: '指標矩陣總覽',
-    pageSubtitle: 'CC/SS/LP 三職位指標覆蓋範圍設定與對比',
-    exportCsv: '匯出 CSV',
-    saving: '儲存中…',
-    saveConfig: '儲存設定',
-    loadFailed: '載入失敗：',
-    noBackend: '無法連接後端',
-    retry: '重試',
-    emptyRegistry: '指標登錄檔為空，請檢查 config.json 中的 indicator_registry 設定',
-    filterAllCategory: '全部分類',
-    filterAllRole: '全部角色',
-    filterAllStatus: '全部狀態',
-    showing: '顯示',
-    of: '/',
-    items: '項',
-    loading: '載入中…',
-    colName: '指標名稱',
-    colStatus: '狀態',
-    noMatch: '暫無匹配指標',
-    ccOnly: 'CC 獨有',
-    statsPending: '待接入',
-    statsTotal: '總計',
-    saveSuccess: '儲存成功',
-    saveFailed: '儲存失敗',
-    csvHeaders: [
-      'ID',
-      '名稱',
-      '泰文名',
-      'Category',
-      '單位',
-      'CC',
-      'SS',
-      'LP',
-      '可用性',
-      '資料來源',
-    ],
-    csvYes: '是',
-    csvNo: '否',
-    availableLabel: '可用',
-    pendingLabel: '待接入',
-    partialLabel: '部分可用',
-  },
-  en: {
-    pageTitle: 'Indicator Matrix',
-    pageSubtitle: 'CC/SS/LP role indicator coverage configuration',
-    exportCsv: 'Export CSV',
-    saving: 'Saving…',
-    saveConfig: 'Save Config',
-    loadFailed: 'Load failed: ',
-    noBackend: 'Cannot connect to backend',
-    retry: 'Retry',
-    emptyRegistry: 'Indicator registry is empty. Check indicator_registry in config.json',
-    filterAllCategory: 'All Categories',
-    filterAllRole: 'All Roles',
-    filterAllStatus: 'All Status',
-    showing: 'Showing',
-    of: '/',
-    items: 'items',
-    loading: 'Loading…',
-    colName: 'Indicator Name',
-    colStatus: 'Status',
-    noMatch: 'No matching indicators',
-    ccOnly: 'CC only',
-    statsPending: 'Pending',
-    statsTotal: 'Total',
-    saveSuccess: 'Saved successfully',
-    saveFailed: 'Save failed',
-    csvHeaders: [
-      'ID',
-      'Name',
-      'Thai Name',
-      'Category',
-      'Unit',
-      'CC',
-      'SS',
-      'LP',
-      'Availability',
-      'Data Source',
-    ],
-    csvYes: 'Yes',
-    csvNo: 'No',
-    availableLabel: 'Available',
-    pendingLabel: 'Pending',
-    partialLabel: 'Partial',
-  },
-  th: {
-    pageTitle: 'เมทริกซ์ตัวชี้วัด',
-    pageSubtitle: 'การกำหนดค่าตัวชี้วัดสำหรับ CC/SS/LP',
-    exportCsv: 'ส่งออก CSV',
-    saving: 'กำลังบันทึก…',
-    saveConfig: 'บันทึกการตั้งค่า',
-    loadFailed: 'โหลดล้มเหลว: ',
-    noBackend: 'ไม่สามารถเชื่อมต่อแบ็กเอนด์',
-    retry: 'ลองใหม่',
-    emptyRegistry: 'รีจิสทรีตัวชี้วัดว่างเปล่า กรุณาตรวจสอบ indicator_registry ใน config.json',
-    filterAllCategory: 'ทุกหมวดหมู่',
-    filterAllRole: 'ทุกบทบาท',
-    filterAllStatus: 'ทุกสถานะ',
-    showing: 'แสดง',
-    of: '/',
-    items: 'รายการ',
-    loading: 'กำลังโหลด…',
-    colName: 'ชื่อตัวชี้วัด',
-    colStatus: 'สถานะ',
-    noMatch: 'ไม่พบตัวชี้วัดที่ตรงกัน',
-    ccOnly: 'เฉพาะ CC',
-    statsPending: 'รอเชื่อมต่อ',
-    statsTotal: 'ทั้งหมด',
-    saveSuccess: 'บันทึกสำเร็จ',
-    saveFailed: 'บันทึกล้มเหลว',
-    csvHeaders: [
-      'ID',
-      'ชื่อ',
-      'ชื่อไทย',
-      'หมวดหมู่',
-      'หน่วย',
-      'CC',
-      'SS',
-      'LP',
-      'ความพร้อมใช้',
-      'แหล่งข้อมูล',
-    ],
-    csvYes: 'ใช่',
-    csvNo: 'ไม่',
-    availableLabel: 'พร้อมใช้',
-    pendingLabel: 'รอเชื่อมต่อ',
-    partialLabel: 'บางส่วน',
-  },
-};
-
 export default function IndicatorMatrixPage() {
   usePageDimensions({});
   const { registry, matrix, mutate, isLoading, error } = useIndicatorMatrix();
   const locale = useLocale();
-  const t = (I18N as unknown as Record<string, (typeof I18N)['zh']>)[locale] ?? I18N['zh'];
+  const t = useTranslations('indicatorMatrix');
   const language = (locale === 'th' ? 'th' : 'zh') as 'zh' | 'th';
 
   const [filterCategory, setFilterCategory] = useState<IndicatorCategory | 'all'>('all');
@@ -258,25 +94,25 @@ export default function IndicatorMatrixPage() {
         indicatorMatrixAPI.putMatrix('LP', Array.from(lpActive)),
       ]);
       await mutate();
-      setMsg(t.saveSuccess);
+      setMsg(t('saveSuccess'));
     } catch (e: unknown) {
-      setMsg(e instanceof Error ? e.message : t.saveFailed);
+      setMsg(e instanceof Error ? e.message : t('saveFailed'));
     } finally {
       setSaving(false);
     }
   }
 
   function handleExportCSV() {
-    const headers = t.csvHeaders;
+    const headers = t.raw('csvHeaders') as string[];
     const rows = registry.map((ind) => [
       ind.id,
       ind.name_zh,
       ind.name_th,
       language === 'th' ? CATEGORY_LABELS_TH[ind.category] : CATEGORY_LABELS_ZH[ind.category],
       ind.unit,
-      ccActive.has(ind.id) ? t.csvYes : t.csvNo,
-      ssActive.has(ind.id) ? t.csvYes : t.csvNo,
-      lpActive.has(ind.id) ? t.csvYes : t.csvNo,
+      ccActive.has(ind.id) ? t('csvYes') : t('csvNo'),
+      ssActive.has(ind.id) ? t('csvYes') : t('csvNo'),
+      lpActive.has(ind.id) ? t('csvYes') : t('csvNo'),
       availabilityLabel(ind.availability),
       ind.data_source,
     ]);
@@ -313,25 +149,25 @@ export default function IndicatorMatrixPage() {
   }, [filtered]);
 
   function availabilityLabel(a: IndicatorAvailability) {
-    if (a === 'available') return t.availableLabel;
-    if (a === 'partial') return t.partialLabel;
-    return t.pendingLabel;
+    if (a === 'available') return t('availableLabel');
+    if (a === 'partial') return t('partialLabel');
+    return t('pendingLabel');
   }
 
   if (error) {
     return (
       <div className={BIZ_PAGE}>
-        <PageHeader title={t.pageTitle} subtitle={t.pageSubtitle} icon={LayoutGrid} />
+        <PageHeader title={t('pageTitle')} subtitle={t('pageSubtitle')} icon={LayoutGrid} />
         <div className="py-12 flex flex-col items-center gap-3 text-[var(--text-muted)]">
           <p className="text-sm">
-            {t.loadFailed}
-            {error.message || t.noBackend}
+            {t('loadFailed')}
+            {error.message || t('noBackend')}
           </p>
           <button
             onClick={() => mutate()}
             className="px-4 py-1.5 rounded-lg text-xs font-medium bg-[var(--bg-subtle)] border border-[var(--border-default)] text-[var(--text-secondary)] hover:bg-[var(--border-default)] transition-colors"
           >
-            {t.retry}
+            {t('retry')}
           </button>
         </div>
       </div>
@@ -341,35 +177,35 @@ export default function IndicatorMatrixPage() {
   if (!isLoading && registry.length === 0) {
     return (
       <div className={BIZ_PAGE}>
-        <PageHeader title={t.pageTitle} subtitle={t.pageSubtitle} icon={LayoutGrid} />
-        <div className="py-12 text-center text-[var(--text-muted)]">{t.emptyRegistry}</div>
+        <PageHeader title={t('pageTitle')} subtitle={t('pageSubtitle')} icon={LayoutGrid} />
+        <div className="py-12 text-center text-[var(--text-muted)]">{t('emptyRegistry')}</div>
       </div>
     );
   }
 
   return (
     <div className={BIZ_PAGE}>
-      <PageHeader title={t.pageTitle} subtitle={t.pageSubtitle} icon={LayoutGrid}>
+      <PageHeader title={t('pageTitle')} subtitle={t('pageSubtitle')} icon={LayoutGrid}>
         <button
           onClick={handleExportCSV}
           disabled={registry.length === 0}
           className="flex items-center gap-1.5 px-3 py-2 border border-[var(--border-default)] rounded-lg text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-subtle)] disabled:opacity-40 transition-colors"
         >
           <Download className="w-4 h-4" aria-hidden="true" />
-          {t.exportCsv}
+          {t('exportCsv')}
         </button>
         <button
           onClick={handleSave}
           disabled={saving || isLoading}
           className="px-4 py-2 bg-action text-white rounded-lg text-sm font-medium hover:bg-action-active disabled:opacity-50 transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-action"
         >
-          {saving ? t.saving : t.saveConfig}
+          {saving ? t('saving') : t('saveConfig')}
         </button>
       </PageHeader>
 
       {msg && (
         <p
-          className={`text-sm ${msg === t.saveSuccess ? 'text-[var(--n-600)]' : 'text-[var(--n-500)]'}`}
+          className={`text-sm ${msg === t('saveSuccess') ? 'text-[var(--n-600)]' : 'text-[var(--n-500)]'}`}
         >
           {msg}
         </p>
@@ -382,7 +218,7 @@ export default function IndicatorMatrixPage() {
           onChange={(e) => setFilterCategory(e.target.value as IndicatorCategory | 'all')}
           className="px-3 py-1.5 border border-[var(--border-default)] rounded-md text-sm bg-[var(--bg-surface)] text-[var(--text-primary)] focus:outline-none focus-visible:ring-2 focus-visible:ring-action"
         >
-          <option value="all">{t.filterAllCategory}</option>
+          <option value="all">{t('filterAllCategory')}</option>
           {INDICATOR_CATEGORIES.map((cat) => (
             <option key={cat} value={cat}>
               {language === 'th' ? CATEGORY_LABELS_TH[cat] : CATEGORY_LABELS_ZH[cat]}
@@ -395,7 +231,7 @@ export default function IndicatorMatrixPage() {
           onChange={(e) => setFilterRole(e.target.value as typeof filterRole)}
           className="px-3 py-1.5 border border-[var(--border-default)] rounded-md text-sm bg-[var(--bg-surface)] text-[var(--text-primary)] focus:outline-none focus-visible:ring-2 focus-visible:ring-action"
         >
-          <option value="all">{t.filterAllRole}</option>
+          <option value="all">{t('filterAllRole')}</option>
           <option value="CC">CC</option>
           <option value="SS">SS</option>
           <option value="LP">LP</option>
@@ -406,19 +242,19 @@ export default function IndicatorMatrixPage() {
           onChange={(e) => setFilterAvailability(e.target.value as IndicatorAvailability | 'all')}
           className="px-3 py-1.5 border border-[var(--border-default)] rounded-md text-sm bg-[var(--bg-surface)] text-[var(--text-primary)] focus:outline-none focus-visible:ring-2 focus-visible:ring-action"
         >
-          <option value="all">{t.filterAllStatus}</option>
-          <option value="available">{t.availableLabel}</option>
-          <option value="partial">{t.partialLabel}</option>
-          <option value="pending">{t.pendingLabel}</option>
+          <option value="all">{t('filterAllStatus')}</option>
+          <option value="available">{t('availableLabel')}</option>
+          <option value="partial">{t('partialLabel')}</option>
+          <option value="pending">{t('pendingLabel')}</option>
         </select>
 
         <span className="ml-auto text-xs text-[var(--text-muted)]">
-          {t.showing} {filtered.length} {t.of} {registry.length} {t.items}
+          {t('showing')} {filtered.length} {t('of')} {registry.length} {t('items')}
         </span>
       </div>
 
       {isLoading && (
-        <div className="py-12 text-center text-sm text-[var(--text-muted)]">{t.loading}</div>
+        <div className="py-12 text-center text-sm text-[var(--text-muted)]">{t('loading')}</div>
       )}
 
       {!isLoading && (
@@ -427,16 +263,20 @@ export default function IndicatorMatrixPage() {
           <div className="bg-[var(--bg-surface)] border border-[var(--border-default)] rounded-lg overflow-hidden">
             {/* 表头 */}
             <div className="flex items-center gap-3 px-4 py-2.5 bg-[var(--n-800)]">
-              <div className="flex-1 text-xs font-semibold text-white">{t.colName}</div>
+              <div className="flex-1 text-xs font-semibold text-white">{t('colName')}</div>
               <div className="w-14 text-center text-xs font-semibold text-white">CC</div>
               <div className="w-14 text-center text-xs font-semibold text-white">SS</div>
               <div className="w-14 text-center text-xs font-semibold text-white">LP</div>
-              <div className="w-20 text-center text-xs font-semibold text-white">{t.colStatus}</div>
+              <div className="w-20 text-center text-xs font-semibold text-white">
+                {t('colStatus')}
+              </div>
             </div>
 
             {/* 分类分组 */}
             {Object.keys(byCatFiltered).length === 0 && (
-              <div className="py-8 text-center text-sm text-[var(--text-muted)]">{t.noMatch}</div>
+              <div className="py-8 text-center text-sm text-[var(--text-muted)]">
+                {t('noMatch')}
+              </div>
             )}
 
             {INDICATOR_CATEGORIES.map((cat) => {
@@ -471,7 +311,7 @@ export default function IndicatorMatrixPage() {
                           <span className="text-sm text-[var(--text-primary)]">{name}</span>
                           {isCCOnly && (
                             <span className="ml-1.5 text-[10px] text-[var(--n-500)] font-medium">
-                              {t.ccOnly}
+                              {t('ccOnly')}
                             </span>
                           )}
                           {ind.formula && (
@@ -539,31 +379,31 @@ export default function IndicatorMatrixPage() {
             <div className="flex items-center gap-1.5">
               <span className="text-[var(--text-muted)]">CC</span>
               <span className="font-semibold text-[var(--text-primary)]">
-                {stats.cc} {t.items}
+                {stats.cc} {t('items')}
               </span>
             </div>
             <div className="flex items-center gap-1.5">
               <span className="text-[var(--text-muted)]">SS</span>
               <span className="font-semibold text-[var(--text-primary)]">
-                {stats.ss} {t.items}
+                {stats.ss} {t('items')}
               </span>
             </div>
             <div className="flex items-center gap-1.5">
               <span className="text-[var(--text-muted)]">LP</span>
               <span className="font-semibold text-[var(--text-primary)]">
-                {stats.lp} {t.items}
+                {stats.lp} {t('items')}
               </span>
             </div>
             <div className="flex items-center gap-1.5">
-              <span className="text-[var(--text-muted)]">{t.statsPending}</span>
+              <span className="text-[var(--text-muted)]">{t('statsPending')}</span>
               <span className="font-semibold text-orange-600">
-                {stats.pending} {t.items}
+                {stats.pending} {t('items')}
               </span>
             </div>
             <div className="ml-auto flex items-center gap-1.5">
-              <span className="text-[var(--text-muted)]">{t.statsTotal}</span>
+              <span className="text-[var(--text-muted)]">{t('statsTotal')}</span>
               <span className="font-semibold text-[var(--text-primary)]">
-                {stats.total} {t.items}
+                {stats.total} {t('items')}
               </span>
             </div>
           </div>

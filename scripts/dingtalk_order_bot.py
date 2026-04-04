@@ -246,10 +246,12 @@ def _fetch_revenue_status() -> dict | None:
 
 
 def _fetch_cc_ranking(cc_name: str) -> dict | None:
-    """从后端获取 CC 业绩排名（T-1 数据）
+    """从后端获取 CC 个人业绩数据（T-1 数据）
 
-    Returns: {"rank": 3, "total": 62, "revenue_thb": 89,774,
-              "team_rank": 2, "team_total": 7, "team": "TH-CC01Team"}
+    Returns: {
+        "rank", "total", "revenue_thb", "team", "team_rank", "team_total",
+        "target_thb", "bm_expected_thb"  ← 个人 BM / Target
+    }
     """
     try:
         req = urllib.request.Request(
@@ -271,11 +273,14 @@ def _fetch_cc_ranking(cc_name: str) -> dict | None:
         team_rev = (t.get("revenue", {}) or {}).get("actual", 0) or 0
         team_revenues[team_name] = team_rev
         for r in t.get("records", []):
-            rev = (r.get("revenue", {}) or {}).get("actual", 0) or 0
+            rev_obj = r.get("revenue", {}) or {}
+            rev = rev_obj.get("actual", 0) or 0
             all_ccs.append({
                 "cc": r.get("cc_name", ""),
                 "team": r.get("team", ""),
                 "revenue": rev,
+                "target": rev_obj.get("target", 0) or 0,
+                "bm_expected": rev_obj.get("bm_expected", 0) or 0,
             })
 
     if not all_ccs:
@@ -285,6 +290,8 @@ def _fetch_cc_ranking(cc_name: str) -> dict | None:
     all_ccs.sort(key=lambda x: x["revenue"], reverse=True)
     cc_rank = 0
     cc_rev = 0.0
+    cc_target = 0.0
+    cc_bm = 0.0
     cc_team = ""
     cc_lower = cc_name.lower().replace("thcc-", "").replace("thcc", "")
     for i, cc in enumerate(all_ccs, 1):
@@ -292,6 +299,8 @@ def _fetch_cc_ranking(cc_name: str) -> dict | None:
         if name_clean == cc_lower or cc_lower in name_clean:
             cc_rank = i
             cc_rev = cc["revenue"]
+            cc_target = cc["target"]
+            cc_bm = cc["bm_expected"]
             cc_team = cc["team"]
             break
 
@@ -312,21 +321,24 @@ def _fetch_cc_ranking(cc_name: str) -> dict | None:
         "rank": cc_rank,
         "total": len(all_ccs),
         "revenue_thb": cc_rev * rate,
+        "target_thb": cc_target * rate,
+        "bm_expected_thb": cc_bm * rate,
         "team": cc_team,
         "team_rank": team_rank,
         "team_total": len(sorted_teams),
     }
 
 
-def _count_orders(cc_name: str) -> tuple[int, int]:
-    """从日志统计：(今日转介绍总单数, 该CC本月总单数)"""
+def _count_orders(cc_name: str) -> tuple[int, int, int]:
+    """从日志统计：(今日转介绍总单数, 该CC本月总单数, 全月转介绍总单数)"""
     today_str = datetime.now().strftime("%Y-%m-%d")
     month_str = datetime.now().strftime("%Y-%m")
     today_total = 0
     cc_month_total = 0
+    month_total = 0
 
     if not LOG_PATH.exists():
-        return 0, 0
+        return 0, 0, 0
 
     try:
         with open(LOG_PATH, encoding="utf-8") as f:
@@ -341,6 +353,7 @@ def _count_orders(cc_name: str) -> tuple[int, int]:
                     if ts[:10] == today_str:
                         today_total += 1
                     if ts[:7] == month_str:
+                        month_total += 1
                         entry_cc = entry.get("cc_name", "")
                         if entry_cc.lower() == cc_name.lower():
                             cc_month_total += 1
@@ -349,7 +362,7 @@ def _count_orders(cc_name: str) -> tuple[int, int]:
     except OSError:
         pass
 
-    return today_total, cc_month_total
+    return today_total, cc_month_total, month_total
 
 
 def format_reply(
@@ -374,12 +387,12 @@ def format_reply(
         cc_today_n = today_stats["cc_today_count"]
         today_total_thb = today_stats["today_total_thb"]
     else:
-        today_n_raw, _ = _count_orders(order.cc_name)
+        today_n_raw, _, _ = _count_orders(order.cc_name)
         today_n = today_n_raw
         cc_today_n = 0
         today_total_thb = 0.0
 
-    _, cc_month_n = _count_orders(order.cc_name)
+    _, cc_month_n, month_total_n = _count_orders(order.cc_name)
 
     lines: list[str] = []
 
@@ -391,86 +404,66 @@ def format_reply(
     else:
         thb = None
 
-    # ── 第一段：确认 + 金额 ──
-    amt_str = f"**฿{thb:,.0f}**" if thb else "รอยืนยัน"
-    lines.append(f"### ✔ Referral ยืนยันแล้ว")
-    lines.append("")
-    lines.append(amt_str)
+    # ── 标题：Bill Referral NNN in YYYYMM ──
+    ym = datetime.now().strftime("%Y%m")
+    bill_num = f"{month_total_n:03d}"
+    lines.append(f"### ✔ Bill Referral {bill_num} in {ym}")
     lines.append("")
     lines.append("---")
     lines.append("")
 
-    # ── 第二段：订单详情（每行有标签）──
+    # ── 订单详情 ──
     cc_display = order.cc_name or "—"
-    team_short = ""
-    if order.team_code:
-        team_short = order.team_code.replace("THCC", "CC")
-        if order.team_number:
-            team_short = f"CC{order.team_number.zfill(2)}"
-
-    lines.append(f"CC: **{cc_display}** · {team_short}")
+    lines.append(f"**{cc_display}**")
     lines.append("")
-    if order.product:
-        lines.append(f"สินค้า: {order.product}")
+
+    amt_str = f"฿{thb:,.0f}" if thb else "รอยืนยัน"
+    lines.append(f"ยอด: **{amt_str}**")
+    lines.append("")
+
+    if cc_month_n > 0:
+        lines.append(f"บิลที่ **{cc_month_n}** ของเดือน")
         lines.append("")
-    if order.student_name:
-        lines.append(f"นักเรียน: {order.student_name}")
+
+    # ── CC 个人业绩（BM / Target 是个人的）──
+    cc_info = _fetch_cc_ranking(order.cc_name) if order.cc_name else None
+    if cc_info:
+        cc_rev_thb = cc_info["revenue_thb"]
+        cc_realtime = cc_rev_thb + (thb or 0)
+
+        lines.append(f"ยอดรวม: **฿{cc_realtime:,.0f}**")
         lines.append("")
-    if cc_month_n > 0 and order.cc_name:
-        lines.append(
-            f"ออเดอร์ Referral เดือนนี้:"
-            f" ที่ **{cc_month_n}** ของ {cc_display}"
-        )
+
+        # vs BM（个人）
+        bm_thb = cc_info["bm_expected_thb"]
+        bm_gap = cc_realtime - bm_thb
+        if bm_gap >= 0:
+            lines.append(f"vs BM: เกิน **฿{bm_gap:,.0f}**")
+            lines.append("")
+            lines.append("ยอดเยี่ยม! นำหน้า BM แล้ว รักษาจังหวะไว้!")
+        else:
+            lines.append(f"vs BM: ขาด **฿{abs(bm_gap):,.0f}**")
+            lines.append("")
+            lines.append("เหลือนิดเดียว สู้ต่อไป!")
         lines.append("")
-    if today_n >= 3:
-        lines.append(f"วันนี้รวม **{today_n}** ออเดอร์ต่อเนื่อง")
+
+        # vs Target（个人）
+        tgt_thb = cc_info["target_thb"]
+        tgt_gap = cc_realtime - tgt_thb
+        if tgt_gap >= 0:
+            lines.append(f"vs Target: เกิน **฿{tgt_gap:,.0f}**")
+            lines.append("")
+            lines.append("ทะลุเป้าแล้ว! ปังมาก!")
+        else:
+            pct_done = (cc_realtime / tgt_thb * 100) if tgt_thb else 0
+            lines.append(f"vs Target: ขาด **฿{abs(tgt_gap):,.0f}**")
+            lines.append("")
+            lines.append(
+                f"ทำได้แล้ว {pct_done:.0f}% ของเป้า ทีละก้าว ไม่หยุด!"
+            )
         lines.append("")
 
     lines.append("---")
-    lines.append("")
-
-    # ── 第三段：业绩汇总 ──
-    summary = _fetch_revenue_status()
-    if summary:
-        t1_actual_usd = summary.get("revenue_usd", 0) or 0
-        target_usd = summary.get("revenue_target", 0) or 0
-        bm_pct = summary.get("bm_pct", 0) or 0
-        t1_actual_thb = t1_actual_usd * rate
-        target_thb = target_usd * rate
-        realtime_thb = t1_actual_thb + today_total_thb
-        realtime_progress = realtime_thb / target_thb if target_thb else 0
-
-        lines.append(
-            f"ยอดรวมวันนี้: **฿{realtime_thb:,.0f}**"
-            f" ({today_n} ออเดอร์)"
-        )
-        lines.append("")
-
-        bm_target_thb = target_thb * bm_pct
-        bm_gap_thb = realtime_thb - bm_target_thb
-        if bm_gap_thb >= 0:
-            lines.append(
-                f"vs BM วันนี้: นำหน้า **฿{bm_gap_thb:,.0f}**"
-            )
-        else:
-            lines.append(
-                f"vs BM วันนี้: ตามหลัง **฿{abs(bm_gap_thb):,.0f}**"
-            )
-        lines.append("")
-
-        target_short = (
-            f"฿{target_thb / 1_000_000:.1f}M"
-            if target_thb >= 1_000_000
-            else f"฿{target_thb:,.0f}"
-        )
-        lines.append(
-            f"เป้าเดือน: {target_short}"
-            f" (คืบหน้า {realtime_progress:.1%})"
-        )
-        lines.append("")
-    else:
-        lines.append(f"วันนี้รวม {today_n} ออเดอร์")
-        lines.append("")
 
     return "\n".join(lines)
 

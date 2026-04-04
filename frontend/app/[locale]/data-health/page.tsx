@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, Fragment } from 'react';
-import { useLocale } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { useFilteredSWR } from '@/lib/hooks/use-filtered-swr';
 import { usePageDimensions } from '@/lib/hooks/use-page-dimensions';
 import {
@@ -38,202 +38,6 @@ interface EngineStatus {
   total_rows: number;
   table_count: number;
 }
-
-// ── I18N ──────────────────────────────────────────────────────────────────────
-
-const I18N = {
-  zh: {
-    pageTitle: '数据管线诊断',
-    pageSubtitle: '端到端字段健康检查 · 根因诊断 · 时效监控',
-    loading: '正在检查所有端点，请稍候…',
-    errorTitle: '诊断加载失败',
-    errorDesc: '后端服务未运行，或 /api/data-health/data-quality 端点不存在',
-    retry: '重试',
-    emptyTitle: '暂无诊断数据',
-    emptyDesc: '后端需实现 GET /api/data-health/data-quality 端点',
-    refresh: '刷新检查',
-    autoRefresh: '自动 30s',
-    vsLast: 'vs 上次：',
-    newIssues: '新异常',
-    resolved: '已修复',
-    noChange: '无变化',
-    firstRun: '首次检查',
-    rootCauses: '根因诊断',
-    fieldAffected: '字段受影响',
-    sample: '如：',
-    freshness: '数据时效',
-    moduleCheck: '模块检查',
-    crossChecks: '跨端点一致性',
-    feErrors: '前端错误（24h）',
-    engineStatus: '引擎状态',
-    engineTable: '表',
-    engineRows: '行',
-    engineCols: '列',
-    endpoints: '端点',
-    fields: '字段',
-    health: '健康',
-    duration: '耗时',
-    filterAll: '全部',
-    filterWarn: '异常',
-    searchPlaceholder: '搜索字段路径…',
-    colPath: '路径',
-    colType: '类型',
-    colPreview: '值预览',
-    colStatus: '状态',
-    noMatch: '无匹配字段',
-    showing: '显示',
-    requestFailed: '请求失败：',
-    noFieldData: '无字段数据',
-    fresh: '新鲜',
-    stale: '偏旧',
-    expired: '过期',
-    clickCopy: '点击复制路径',
-  },
-  'zh-TW': {
-    pageTitle: '資料管線診斷',
-    pageSubtitle: '端到端欄位健康檢查 · 根因診斷 · 時效監控',
-    loading: '正在檢查所有端點，請稍候…',
-    errorTitle: '診斷載入失敗',
-    errorDesc: '後端服務未運行，或 /api/data-health/data-quality 端點不存在',
-    retry: '重試',
-    emptyTitle: '暫無診斷資料',
-    emptyDesc: '後端需實現 GET /api/data-health/data-quality 端點',
-    refresh: '刷新檢查',
-    autoRefresh: '自動 30s',
-    vsLast: 'vs 上次：',
-    newIssues: '新異常',
-    resolved: '已修復',
-    noChange: '無變化',
-    firstRun: '首次檢查',
-    rootCauses: '根因診斷',
-    fieldAffected: '欄位受影響',
-    sample: '如：',
-    freshness: '資料時效',
-    moduleCheck: '模組檢查',
-    crossChecks: '跨端點一致性',
-    feErrors: '前端錯誤（24h）',
-    engineStatus: '引擎狀態',
-    engineTable: '表',
-    engineRows: '行',
-    engineCols: '列',
-    endpoints: '端點',
-    fields: '欄位',
-    health: '健康',
-    duration: '耗時',
-    filterAll: '全部',
-    filterWarn: '異常',
-    searchPlaceholder: '搜尋欄位路徑…',
-    colPath: '路徑',
-    colType: '類型',
-    colPreview: '值預覽',
-    colStatus: '狀態',
-    noMatch: '無匹配欄位',
-    showing: '顯示',
-    requestFailed: '請求失敗：',
-    noFieldData: '無欄位資料',
-    fresh: '新鮮',
-    stale: '偏舊',
-    expired: '過期',
-    clickCopy: '點擊複製路徑',
-  },
-  en: {
-    pageTitle: 'Data Pipeline Diagnostics',
-    pageSubtitle: 'End-to-end field health check · Root cause diagnosis · Freshness monitor',
-    loading: 'Checking all endpoints, please wait…',
-    errorTitle: 'Diagnostics failed to load',
-    errorDesc:
-      'Backend service is not running, or /api/data-health/data-quality endpoint does not exist',
-    retry: 'Retry',
-    emptyTitle: 'No diagnostic data',
-    emptyDesc: 'Backend must implement GET /api/data-health/data-quality',
-    refresh: 'Refresh check',
-    autoRefresh: 'Auto 30s',
-    vsLast: 'vs last: ',
-    newIssues: 'new issues',
-    resolved: 'resolved',
-    noChange: 'no change',
-    firstRun: 'First run',
-    rootCauses: 'Root Cause Diagnosis',
-    fieldAffected: 'fields affected',
-    sample: 'e.g.: ',
-    freshness: 'Data Freshness',
-    moduleCheck: 'Module Check',
-    crossChecks: 'Cross-endpoint Consistency',
-    feErrors: 'Frontend Errors (24h)',
-    engineStatus: 'Engine Status',
-    engineTable: 'tables',
-    engineRows: 'rows',
-    engineCols: 'cols',
-    endpoints: 'endpoints',
-    fields: 'fields',
-    health: 'healthy',
-    duration: 'took',
-    filterAll: 'All',
-    filterWarn: 'Warn',
-    searchPlaceholder: 'Search field path…',
-    colPath: 'Path',
-    colType: 'Type',
-    colPreview: 'Value Preview',
-    colStatus: 'Status',
-    noMatch: 'No matching fields',
-    showing: 'Showing',
-    requestFailed: 'Request failed: ',
-    noFieldData: 'No field data',
-    fresh: 'Fresh',
-    stale: 'Stale',
-    expired: 'Expired',
-    clickCopy: 'Click to copy path',
-  },
-  th: {
-    pageTitle: 'วินิจฉัยท่อส่งข้อมูล',
-    pageSubtitle: 'ตรวจสอบฟิลด์ตลอดเส้นทาง · วินิจฉัยสาเหตุ · ติดตามความทันสมัย',
-    loading: 'กำลังตรวจสอบทุก endpoint กรุณารอสักครู่…',
-    errorTitle: 'โหลดการวินิจฉัยล้มเหลว',
-    errorDesc: 'บริการแบ็กเอนด์ไม่ทำงาน หรือ endpoint /api/data-health/data-quality ไม่มีอยู่',
-    retry: 'ลองใหม่',
-    emptyTitle: 'ไม่มีข้อมูลการวินิจฉัย',
-    emptyDesc: 'แบ็กเอนด์ต้องใช้งาน GET /api/data-health/data-quality',
-    refresh: 'รีเฟรช',
-    autoRefresh: 'อัตโนมัติ 30s',
-    vsLast: 'เทียบครั้งที่แล้ว: ',
-    newIssues: 'ปัญหาใหม่',
-    resolved: 'แก้ไขแล้ว',
-    noChange: 'ไม่มีการเปลี่ยนแปลง',
-    firstRun: 'ครั้งแรก',
-    rootCauses: 'การวินิจฉัยสาเหตุ',
-    fieldAffected: 'ฟิลด์ที่ได้รับผลกระทบ',
-    sample: 'เช่น: ',
-    freshness: 'ความทันสมัยของข้อมูล',
-    moduleCheck: 'ตรวจสอบโมดูล',
-    crossChecks: 'ความสอดคล้องข้าม endpoint',
-    feErrors: 'ข้อผิดพลาดฟรอนต์เอนด์ (24h)',
-    engineStatus: 'สถานะ Engine',
-    engineTable: 'ตาราง',
-    engineRows: 'แถว',
-    engineCols: 'คอลัมน์',
-    endpoints: 'endpoint',
-    fields: 'ฟิลด์',
-    health: 'สุขภาพดี',
-    duration: 'ใช้เวลา',
-    filterAll: 'ทั้งหมด',
-    filterWarn: 'คำเตือน',
-    searchPlaceholder: 'ค้นหาเส้นทางฟิลด์…',
-    colPath: 'เส้นทาง',
-    colType: 'ประเภท',
-    colPreview: 'ตัวอย่างค่า',
-    colStatus: 'สถานะ',
-    noMatch: 'ไม่พบฟิลด์ที่ตรงกัน',
-    showing: 'แสดง',
-    requestFailed: 'คำขอล้มเหลว: ',
-    noFieldData: 'ไม่มีข้อมูลฟิลด์',
-    fresh: 'สด',
-    stale: 'เก่า',
-    expired: 'หมดอายุ',
-    clickCopy: 'คลิกเพื่อคัดลอกเส้นทาง',
-  },
-};
-
-type T = (typeof I18N)['zh'];
 
 // ── 辅助：语义状态色 CSS 类（全用 design token，暗色模式友好） ────────────────
 
@@ -283,37 +87,37 @@ function fieldTypeBadgeClass(type: string): string {
 
 // ── 页面顶部 Header ───────────────────────────────────────────────────────────
 
-function PageHeader({ t }: { t: T }) {
+function PageHeader({ t }: { t: (key: string) => string }) {
   return (
     <div>
-      <h1 className="page-title">{t.pageTitle}</h1>
-      <p className="page-subtitle">{t.pageSubtitle}</p>
+      <h1 className="page-title">{t('pageTitle')}</h1>
+      <p className="page-subtitle">{t('pageSubtitle')}</p>
     </div>
   );
 }
 
 // ── Loading 态 ────────────────────────────────────────────────────────────────
 
-function LoadingState({ t }: { t: T }) {
+function LoadingState({ t }: { t: (key: string) => string }) {
   return (
     <div className="space-y-4">
       {Array.from({ length: 4 }).map((_, i) => (
         <div key={i} className="card-base h-24 animate-pulse bg-[var(--bg-subtle)]" />
       ))}
-      <p className="text-center text-sm text-[var(--text-muted)]">{t.loading}</p>
+      <p className="text-center text-sm text-[var(--text-muted)]">{t('loading')}</p>
     </div>
   );
 }
 
 // ── Error 态 ──────────────────────────────────────────────────────────────────
 
-function ErrorState({ onRetry, t }: { onRetry: () => void; t: T }) {
+function ErrorState({ onRetry, t }: { onRetry: () => void; t: (key: string) => string }) {
   return (
     <div className="state-empty card-base">
-      <p className="text-base font-semibold text-[var(--color-danger)]">{t.errorTitle}</p>
-      <p className="text-sm text-[var(--text-muted)]">{t.errorDesc}</p>
+      <p className="text-base font-semibold text-[var(--color-danger)]">{t('errorTitle')}</p>
+      <p className="text-sm text-[var(--text-muted)]">{t('errorDesc')}</p>
       <button onClick={onRetry} className="btn-secondary mt-2">
-        {t.retry}
+        {t('retry')}
       </button>
     </div>
   );
@@ -332,7 +136,7 @@ function L0Banner({
   onRefresh: () => void;
   autoRefresh: boolean;
   onToggleAuto: (v: boolean) => void;
-  t: T;
+  t: (key: string) => string;
 }) {
   const diff: DiffFromLast = report.vs_last_check;
   const trendIcon: Record<DiffFromLast['trend'], string> = {
@@ -351,46 +155,46 @@ function L0Banner({
           />
           <div>
             <div className="text-sm font-semibold text-[var(--text-primary)]">
-              {report.total_endpoints} {t.endpoints} &middot; {report.total_fields.toLocaleString()}{' '}
-              {t.fields}
-              &middot; {report.overall_health_pct}% {t.health}
+              {report.total_endpoints} {t('endpoints')} &middot;{' '}
+              {report.total_fields.toLocaleString()} {t('fields')}
+              &middot; {report.overall_health_pct}% {t('health')}
             </div>
             <div className="text-xs text-[var(--text-muted)] flex flex-wrap items-center gap-2 mt-0.5">
               <span>
-                {t.duration} {report.check_duration_ms}ms
+                {t('duration')} {report.check_duration_ms}ms
               </span>
               {diff.last_checked_at && (
                 <>
                   <span>&middot;</span>
                   <span className="flex items-center gap-1">
-                    {t.vsLast}
+                    {t('vsLast')}
                     {diff.new_issues > 0 && (
                       <span className="text-[var(--color-danger)]">
-                        +{diff.new_issues} {t.newIssues}
+                        +{diff.new_issues} {t('newIssues')}
                       </span>
                     )}
                     {diff.resolved_issues > 0 && (
                       <span className="text-[var(--color-success)]">
                         {' '}
-                        {diff.resolved_issues} {t.resolved}
+                        {diff.resolved_issues} {t('resolved')}
                       </span>
                     )}
                     {diff.new_issues === 0 && diff.resolved_issues === 0 && (
-                      <span>{t.noChange}</span>
+                      <span>{t('noChange')}</span>
                     )}
                     <span className="ml-1">{trendIcon[diff.trend]}</span>
                   </span>
                 </>
               )}
               {!diff.last_checked_at && (
-                <span className="text-[var(--color-warning)]">{t.firstRun}</span>
+                <span className="text-[var(--color-warning)]">{t('firstRun')}</span>
               )}
             </div>
           </div>
         </div>
         <div className="flex items-center gap-2 shrink-0">
           <button onClick={onRefresh} className="btn-secondary text-xs px-3 py-1.5">
-            {t.refresh}
+            {t('refresh')}
           </button>
           <label className="flex items-center gap-1.5 text-xs text-[var(--text-muted)] cursor-pointer select-none">
             <input
@@ -399,7 +203,7 @@ function L0Banner({
               onChange={(e) => onToggleAuto(e.target.checked)}
               className="rounded"
             />
-            {t.autoRefresh}
+            {t('autoRefresh')}
           </label>
         </div>
       </div>
@@ -431,7 +235,7 @@ function PipelineBar({ pipeline }: { pipeline: PipelineLayer[] }) {
 
 // ── 引擎状态卡片（新增） ────────────────────────────────────────────────────
 
-function EngineStatusSection({ engine, t }: { engine: EngineStatus; t: T }) {
+function EngineStatusSection({ engine, t }: { engine: EngineStatus; t: (key: string) => string }) {
   if (!engine) return null;
 
   const tables = Object.entries(engine.tables);
@@ -439,10 +243,10 @@ function EngineStatusSection({ engine, t }: { engine: EngineStatus; t: T }) {
   return (
     <div className="space-y-2">
       <h3 className="table-header flex items-center gap-2">
-        {t.engineStatus}
+        {t('engineStatus')}
         <span className={`badge-${engine.status === 'ok' ? 'success' : 'warning'}`}>
-          {engine.table_count} {t.engineTable} &middot; {engine.total_rows.toLocaleString()}{' '}
-          {t.engineRows}
+          {engine.table_count} {t('engineTable')} &middot; {engine.total_rows.toLocaleString()}{' '}
+          {t('engineRows')}
         </span>
       </h3>
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2">
@@ -457,7 +261,8 @@ function EngineStatusSection({ engine, t }: { engine: EngineStatus; t: T }) {
             <div className="text-[10px] text-[var(--text-muted)] mt-1 font-mono">
               {tbl.rows != null ? (
                 <>
-                  {tbl.rows.toLocaleString()} {t.engineRows} &middot; {tbl.cols} {t.engineCols}
+                  {tbl.rows.toLocaleString()} {t('engineRows')} &middot; {tbl.cols}{' '}
+                  {t('engineCols')}
                 </>
               ) : (
                 tbl.status
@@ -472,12 +277,12 @@ function EngineStatusSection({ engine, t }: { engine: EngineStatus; t: T }) {
 
 // ── 根因卡片 ──────────────────────────────────────────────────────────────────
 
-function RootCauseCards({ causes, t }: { causes: RootCause[]; t: T }) {
+function RootCauseCards({ causes, t }: { causes: RootCause[]; t: (key: string) => string }) {
   const label = useLabel();
   if (!causes || causes.length === 0) return null;
   return (
     <div className="space-y-2">
-      <h3 className="table-header">{t.rootCauses}</h3>
+      <h3 className="table-header">{t('rootCauses')}</h3>
       {causes.map((rc, i) => (
         <div
           key={i}
@@ -488,11 +293,11 @@ function RootCauseCards({ causes, t }: { causes: RootCause[]; t: T }) {
               {label(ROOT_CAUSE_LABELS, rc.cause)}
             </span>
             <span className="ml-2 text-xs text-[var(--text-muted)]">
-              → {rc.affected_fields} {t.fieldAffected}
+              → {rc.affected_fields} {t('fieldAffected')}
             </span>
             {rc.sample_paths && rc.sample_paths.length > 0 && (
               <div className="text-[10px] text-[var(--text-muted)] font-mono mt-0.5 truncate">
-                {t.sample}
+                {t('sample')}
                 {rc.sample_paths.slice(0, 2).join(' / ')}
               </div>
             )}
@@ -515,11 +320,17 @@ function RootCauseCards({ causes, t }: { causes: RootCause[]; t: T }) {
 
 // ── 数据时效 ──────────────────────────────────────────────────────────────────
 
-function FreshnessSection({ freshness, t }: { freshness: DataFreshness[]; t: T }) {
+function FreshnessSection({
+  freshness,
+  t,
+}: {
+  freshness: DataFreshness[];
+  t: (key: string) => string;
+}) {
   if (!freshness || freshness.length === 0) return null;
   return (
     <div className="space-y-2">
-      <h3 className="table-header">{t.freshness}</h3>
+      <h3 className="table-header">{t('freshness')}</h3>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
         {freshness.map((f) => {
           const borderColor =
@@ -529,7 +340,7 @@ function FreshnessSection({ freshness, t }: { freshness: DataFreshness[]; t: T }
                 ? 'border-[var(--color-warning)]'
                 : 'border-[var(--color-danger)]';
           const statusLabel =
-            f.status === 'fresh' ? t.fresh : f.status === 'stale' ? t.stale : t.expired;
+            f.status === 'fresh' ? t('fresh') : f.status === 'stale' ? t('stale') : t('expired');
           return (
             <div key={f.file} className={`card-compact border-l-4 ${borderColor}`}>
               <div
@@ -551,7 +362,7 @@ function FreshnessSection({ freshness, t }: { freshness: DataFreshness[]; t: T }
 
 // ── L3 字段表格 ───────────────────────────────────────────────────────────────
 
-function FieldTable({ fields, t }: { fields: FieldCheck[]; t: T }) {
+function FieldTable({ fields, t }: { fields: FieldCheck[]; t: (key: string) => string }) {
   const [filter, setFilter] = useState<'all' | 'warn' | 'null'>('all');
   const [search, setSearch] = useState('');
 
@@ -587,16 +398,16 @@ function FieldTable({ fields, t }: { fields: FieldCheck[]; t: T }) {
               }`}
             >
               {f === 'all'
-                ? `${t.filterAll} (${fields.length})`
+                ? `${t('filterAll')} (${fields.length})`
                 : f === 'warn'
-                  ? `${t.filterWarn} (${warnCount})`
+                  ? `${t('filterWarn')} (${warnCount})`
                   : `null (${nullCount})`}
             </button>
           ))}
         </div>
         <input
           type="text"
-          placeholder={t.searchPlaceholder}
+          placeholder={t('searchPlaceholder')}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="input-base flex-1 min-w-0 !px-2 !py-1 !text-xs"
@@ -608,17 +419,17 @@ function FieldTable({ fields, t }: { fields: FieldCheck[]; t: T }) {
         <table className="w-full text-xs">
           <thead className="sticky top-0">
             <tr className="slide-thead-row">
-              <th className="slide-th text-left">{t.colPath}</th>
-              <th className="slide-th text-center w-16">{t.colType}</th>
-              <th className="slide-th text-left">{t.colPreview}</th>
-              <th className="slide-th text-center w-10">{t.colStatus}</th>
+              <th className="slide-th text-left">{t('colPath')}</th>
+              <th className="slide-th text-center w-16">{t('colType')}</th>
+              <th className="slide-th text-left">{t('colPreview')}</th>
+              <th className="slide-th text-center w-10">{t('colStatus')}</th>
             </tr>
           </thead>
           <tbody>
             {filtered.length === 0 ? (
               <tr>
                 <td colSpan={4} className="slide-td text-center text-[var(--text-muted)] py-4">
-                  {t.noMatch}
+                  {t('noMatch')}
                 </td>
               </tr>
             ) : (
@@ -636,7 +447,7 @@ function FieldTable({ fields, t }: { fields: FieldCheck[]; t: T }) {
                   <td
                     className="slide-td font-mono text-[10px] text-[var(--text-secondary)] cursor-pointer hover:text-[var(--text-primary)] transition-colors"
                     onClick={() => copyPath(f.path)}
-                    title={t.clickCopy}
+                    title={t('clickCopy')}
                   >
                     {f.path}
                   </td>
@@ -667,7 +478,7 @@ function FieldTable({ fields, t }: { fields: FieldCheck[]; t: T }) {
         </table>
       </div>
       <p className="text-[10px] text-[var(--text-muted)]">
-        {t.showing} {filtered.length} / {fields.length} {t.fields}
+        {t('showing')} {filtered.length} / {fields.length} {t('fields')}
       </p>
     </div>
   );
@@ -675,7 +486,13 @@ function FieldTable({ fields, t }: { fields: FieldCheck[]; t: T }) {
 
 // ── L2 端点列表 ───────────────────────────────────────────────────────────────
 
-function EndpointList({ endpoints, t }: { endpoints: EndpointResult[]; t: T }) {
+function EndpointList({
+  endpoints,
+  t,
+}: {
+  endpoints: EndpointResult[];
+  t: (key: string) => string;
+}) {
   const [expandedEp, setExpandedEp] = useState<string | null>(null);
 
   return (
@@ -716,7 +533,7 @@ function EndpointList({ endpoints, t }: { endpoints: EndpointResult[]; t: T }) {
               <div className="flex items-center gap-3 text-[10px] text-[var(--text-muted)] shrink-0 ml-2">
                 <span>{ep.response_ms}ms</span>
                 <span>
-                  {ep.total_fields} {t.fields}
+                  {ep.total_fields} {t('fields')}
                 </span>
                 {ep.null_fields > 0 && (
                   <span className="text-[var(--color-warning)]">{ep.null_fields} null</span>
@@ -738,7 +555,7 @@ function EndpointList({ endpoints, t }: { endpoints: EndpointResult[]; t: T }) {
             )}
             {isExpanded && (!ep.fields || ep.fields.length === 0) && (
               <div className="px-6 py-3 bg-[var(--bg-subtle)] text-xs text-[var(--text-muted)]">
-                {ep.error ? `${t.requestFailed}${ep.error}` : t.noFieldData}
+                {ep.error ? `${t('requestFailed')}${ep.error}` : t('noFieldData')}
               </div>
             )}
           </div>
@@ -750,7 +567,7 @@ function EndpointList({ endpoints, t }: { endpoints: EndpointResult[]; t: T }) {
 
 // ── L1 模块卡片组 ─────────────────────────────────────────────────────────────
 
-function ModuleCards({ modules, t }: { modules: ModuleResult[]; t: T }) {
+function ModuleCards({ modules, t }: { modules: ModuleResult[]; t: (key: string) => string }) {
   const [expandedModule, setExpandedModule] = useState<string | null>(null);
   const label = useLabel();
 
@@ -758,7 +575,7 @@ function ModuleCards({ modules, t }: { modules: ModuleResult[]; t: T }) {
 
   return (
     <div className="space-y-2">
-      <h3 className="table-header">{t.moduleCheck}</h3>
+      <h3 className="table-header">{t('moduleCheck')}</h3>
       {modules.map((mod) => {
         const isExpanded = expandedModule === mod.name;
         return (
@@ -778,10 +595,10 @@ function ModuleCards({ modules, t }: { modules: ModuleResult[]; t: T }) {
               </div>
               <div className="flex items-center gap-3 text-xs text-[var(--text-muted)] shrink-0">
                 <span>
-                  {mod.endpoints.length} {t.endpoints}
+                  {mod.endpoints.length} {t('endpoints')}
                 </span>
                 <span>
-                  {mod.total_fields.toLocaleString()} {t.fields}
+                  {mod.total_fields.toLocaleString()} {t('fields')}
                 </span>
                 {mod.null_fields > 0 && (
                   <span className="text-[var(--color-warning)]">{mod.null_fields} null</span>
@@ -801,12 +618,12 @@ function ModuleCards({ modules, t }: { modules: ModuleResult[]; t: T }) {
 
 // ── 跨端点一致性 ──────────────────────────────────────────────────────────────
 
-function CrossChecks({ checks, t }: { checks: CrossCheck[]; t: T }) {
+function CrossChecks({ checks, t }: { checks: CrossCheck[]; t: (key: string) => string }) {
   const label = useLabel();
   if (!checks || checks.length === 0) return null;
   return (
     <div className="space-y-2">
-      <h3 className="table-header">{t.crossChecks}</h3>
+      <h3 className="table-header">{t('crossChecks')}</h3>
       {checks.map((c, i) => (
         <div
           key={i}
@@ -824,12 +641,18 @@ function CrossChecks({ checks, t }: { checks: CrossCheck[]; t: T }) {
 
 // ── 前端错误 ──────────────────────────────────────────────────────────────────
 
-function FrontendErrorsSection({ errors, t }: { errors: FrontendErrors; t: T }) {
+function FrontendErrorsSection({
+  errors,
+  t,
+}: {
+  errors: FrontendErrors;
+  t: (key: string) => string;
+}) {
   if (!errors || errors.last_24h === 0) return null;
   return (
     <div className="space-y-2">
       <h3 className="table-header flex items-center gap-2">
-        {t.feErrors}
+        {t('feErrors')}
         <span className="badge-danger normal-case">{errors.last_24h}</span>
       </h3>
       {errors.top_errors.map((e, i) => (
@@ -851,7 +674,7 @@ function FrontendErrorsSection({ errors, t }: { errors: FrontendErrors; t: T }) 
 export default function DataHealthPage() {
   usePageDimensions({});
   const locale = useLocale();
-  const t = (I18N as unknown as Record<string, T>)[locale] ?? I18N['zh'];
+  const t = useTranslations('dataHealth');
   const [autoRefresh, setAutoRefresh] = useState(false);
 
   const { data, isLoading, error, mutate } = useFilteredSWR<
@@ -868,10 +691,10 @@ export default function DataHealthPage() {
 
       {!isLoading && !error && !data && (
         <div className="state-empty card-base">
-          <p className="text-base font-semibold text-[var(--text-secondary)]">{t.emptyTitle}</p>
-          <p className="text-sm text-[var(--text-muted)]">{t.emptyDesc}</p>
+          <p className="text-base font-semibold text-[var(--text-secondary)]">{t('emptyTitle')}</p>
+          <p className="text-sm text-[var(--text-muted)]">{t('emptyDesc')}</p>
           <button onClick={() => mutate()} className="btn-secondary mt-2">
-            {t.retry}
+            {t('retry')}
           </button>
         </div>
       )}

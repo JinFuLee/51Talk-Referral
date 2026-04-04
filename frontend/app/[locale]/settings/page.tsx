@@ -1,47 +1,9 @@
 'use client';
 
 import { useState, useCallback, useEffect } from 'react';
-import { useLocale } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { toast } from 'sonner';
 
-const I18N = {
-  zh: {
-    pageTitle: '系统设置',
-    saveTargets: '保存目标',
-    saveSuccess: '保存成功',
-    saveFailed: '保存失败',
-    rateInvalid: '请输入有效汇率',
-    applied: '已应用',
-    plan: '方案',
-  },
-  'zh-TW': {
-    pageTitle: '系統設定',
-    saveTargets: '儲存目標',
-    saveSuccess: '儲存成功',
-    saveFailed: '儲存失敗',
-    rateInvalid: '請輸入有效匯率',
-    applied: '已套用',
-    plan: '方案',
-  },
-  en: {
-    pageTitle: 'System Settings',
-    saveTargets: 'Save Targets',
-    saveSuccess: 'Saved successfully',
-    saveFailed: 'Save failed',
-    rateInvalid: 'Please enter a valid rate',
-    applied: 'Applied',
-    plan: 'plan',
-  },
-  th: {
-    pageTitle: 'การตั้งค่าระบบ',
-    saveTargets: 'บันทึกเป้าหมาย',
-    saveSuccess: 'บันทึกสำเร็จ',
-    saveFailed: 'บันทึกไม่สำเร็จ',
-    rateInvalid: 'กรุณาใส่อัตราแลกเปลี่ยนที่ถูกต้อง',
-    applied: 'ใช้แล้ว',
-    plan: 'แผน',
-  },
-};
 import { usePageDimensions } from '@/lib/hooks/use-page-dimensions';
 import { useExchangeRate, useTargetsV2, useTargetRecommendation } from '@/lib/hooks';
 import { PageHeader } from '@/components/layout/PageHeader';
@@ -75,7 +37,7 @@ import { defaultV2, MONTHS } from './defaultV2';
 export default function SettingsPage() {
   usePageDimensions({});
   const locale = useLocale();
-  const t = (I18N as unknown as Record<string, (typeof I18N)['zh']>)[locale] ?? I18N['zh'];
+  const t = useTranslations('settings');
   const [selectedMonth, setSelectedMonth] = useState(() => {
     const now = new Date();
     return `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}`;
@@ -162,7 +124,7 @@ export default function SettingsPage() {
         sop: { ...prev.sop, ...prefill.sop },
       };
     });
-    setMsg(`${t.applied}"${scenario.label}"${t.plan}`);
+    setMsg(`${t('applied')}"${scenario.label}"${t('plan')}`);
   }
 
   async function handleSave() {
@@ -172,10 +134,10 @@ export default function SettingsPage() {
       mutateV2(v2, false);
       await configAPI.putTargetsV2(selectedMonth, v2);
       await mutateV2();
-      setMsg(t.saveSuccess);
-      toast.success(t.saveSuccess);
+      setMsg(t('saveSuccess'));
+      toast.success(t('saveSuccess'));
     } catch (e: unknown) {
-      const errMsg = e instanceof Error ? e.message : t.saveFailed;
+      const errMsg = e instanceof Error ? e.message : t('saveFailed');
       setMsg(errMsg);
       toast.error(errMsg);
     } finally {
@@ -186,7 +148,7 @@ export default function SettingsPage() {
   async function handleSaveRate() {
     const val = parseFloat(rateInput);
     if (isNaN(val) || val <= 0) {
-      setRateMsg(t.rateInvalid);
+      setRateMsg(t('rateInvalid'));
       return;
     }
     setRateSaving(true);
@@ -194,11 +156,11 @@ export default function SettingsPage() {
     try {
       await configAPI.putExchangeRate(val);
       await mutateRate();
-      setRateMsg(t.saveSuccess);
+      setRateMsg(t('saveSuccess'));
       setRateInput('');
-      toast.success(t.saveSuccess);
+      toast.success(t('saveSuccess'));
     } catch (e: unknown) {
-      const errMsg = e instanceof Error ? e.message : t.saveFailed;
+      const errMsg = e instanceof Error ? e.message : t('saveFailed');
       setRateMsg(errMsg);
       toast.error(errMsg);
     } finally {
@@ -208,7 +170,7 @@ export default function SettingsPage() {
 
   return (
     <div className={BIZ_PAGE}>
-      <PageHeader title={t.pageTitle}>
+      <PageHeader title={t('pageTitle')}>
         <div className="flex items-center gap-3">
           <select
             value={selectedMonth}
@@ -226,7 +188,7 @@ export default function SettingsPage() {
             disabled={saving}
             className="px-4 py-2 bg-action text-white rounded-lg text-sm font-medium hover:bg-action-active disabled:opacity-50 transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-action"
           >
-            {saving ? <Spinner size="sm" /> : t.saveTargets}
+            {saving ? <Spinner size="sm" /> : t('saveTargets')}
           </button>
         </div>
       </PageHeader>
