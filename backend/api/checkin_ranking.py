@@ -165,7 +165,7 @@ def get_checkin_ranking(
     # 解析围场过滤：将 M 标签转回原始围场值列表
     enc_filter_raws: list[str] | None = None
     if enclosure and _D3_ENCLOSURE_COL in d3.columns:
-        m_to_raw = {v: k for k, v in _M_MAP.items()}
+        m_to_raw = {v: k for k, v in _M_MAP.items() if k not in {"0M", "1M", "2M", "3M", "4M", "5M"}}
         enc_labels = [e.strip() for e in enclosure.split(",") if e.strip()]
         enc_filter_raws = [m_to_raw[m] for m in enc_labels if m in m_to_raw]
 

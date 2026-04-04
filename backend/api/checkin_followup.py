@@ -379,7 +379,7 @@ def get_checkin_followup(
 
     # 围场筛选：前端传 M 标签（M0,M3），转为 D3 原始值（0~30,91~120）
     if enclosure and _D3_ENCLOSURE_COL in df_d3.columns:
-        m_to_raw = {v: k for k, v in _M_MAP.items()}
+        m_to_raw = {v: k for k, v in _M_MAP.items() if k not in {"0M", "1M", "2M", "3M", "4M", "5M"}}
         enc_list = [e.strip() for e in enclosure.split(",") if e.strip()]
         raw_encs = [m_to_raw.get(e, e) for e in enc_list]
         df_d3 = df_d3[df_d3[_D3_ENCLOSURE_COL].isin(raw_encs)]

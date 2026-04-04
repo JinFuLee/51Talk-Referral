@@ -304,6 +304,35 @@ class NotificationEngine:
                 result["sub_results"] = combined
                 return result
 
+            # tl_overview：业绩排名总览（THB，含 BM + 打卡率 + 参与率）
+            if module_id == "tl_overview":
+                perf = self._fetch_cc_performance()
+                if not perf or not perf.get("teams"):
+                    result["status"] = "no_data"
+                    print("  [tl_overview] 无 cc-performance 数据")
+                    return result
+                today_str = datetime.now().strftime("%d/%m")
+                img = self._gen_tl_overview_image(perf, today_str)
+                date_tag = datetime.now().strftime("%Y%m%d")
+                path = OUTPUT_DIR / f"tl-overview-{date_tag}.png"
+                path.write_bytes(img)
+                result["images_count"] = 1
+                if dry_run:
+                    kb = len(img) / 1024
+                    print(f"  [tl_overview] CC Revenue Ranking → {path} ({kb:.0f} KB)")
+                    result["status"] = "dry_run"
+                else:
+                    title = f"📊 CC Revenue Ranking {today_str}"
+                    sent = self._upload_and_send(img, title, channel, path.name)
+                    result["status"] = "sent" if sent else "error"
+                    if sent:
+                        print(f"  ✅ {title}")
+                return result
+
+            # team_checkin_combined：打卡图 + 未打卡 ID 合并为一条消息/组
+            if module_id == "team_checkin_combined":
+                return self._process_team_checkin_combined(role, channel, dry_run)
+
             # followup_per_cc：分组推送（8 条消息：1 总览 + 7 小组，每 CC 图片+ID）
             if module_id == "followup_per_cc":
                 return self._process_followup_per_cc(role, channel, dry_run)
@@ -2010,6 +2039,134 @@ class NotificationEngine:
     def _fetch_cc_performance(self) -> dict | None:
         """获取 /api/cc-performance 全量数据"""
         return self._fetch_url(f"{self.api_base}/api/cc-performance")
+
+    def _gen_tl_overview_image(
+        self, perf_data: dict, today_str: str,
+    ) -> bytes:
+        """TL 总览图：7 组按业绩(THB)排名 + BM 今日/月 + 打卡率 + 参与率
+
+        金色主调，排名模式，只有业绩追 BM。
+        """
+        from matplotlib.patches import FancyBboxPatch, Rectangle
+
+        teams = perf_data.get("teams", [])
+        xrate = perf_data.get("exchange_rate", 34.0)
+        time_pct = perf_data.get("time_progress_pct", 0)
+
+        # 构建行数据，按业绩 THB 降序
+        rows: list[dict] = []
+        for t in teams:
+            rev = t.get("revenue", {})
+            actual_thb = (rev.get("actual", 0) or 0) * xrate
+            bm_today_thb = (rev.get("bm_expected", 0) or 0) * xrate
+            target_thb = (rev.get("target", 0) or 0) * xrate
+            rows.append({
+                "team": t["team"].replace("TH-", "").replace("Team", ""),
+                "rev_thb": actual_thb,
+                "bm_today": bm_today_thb,
+                "bm_month": target_thb,
+                "checkin": t.get("checkin_rate", 0) or 0,
+                "participation": t.get("participation_rate", 0) or 0,
+            })
+        rows.sort(key=lambda r: -r["rev_thb"])
+
+        n = len(rows)
+        row_h = 0.55
+        fig_h = 1.8 + 0.5 + n * row_h + 0.6
+        fig, ax = plt.subplots(figsize=(10, max(fig_h, 5)), dpi=150)
+        ax.set_xlim(0, 10)
+        ax.set_ylim(0, fig_h)
+        ax.axis("off")
+        fig.patch.set_facecolor(_C_BG)
+        ax.set_facecolor(_C_BG)
+
+        # ── 品牌条（金色） ──
+        _GOLD = "#D4A017"
+        _GOLD_BG = "#FDF6E3"
+        _GOLD_DARK = "#B8860B"
+        ax.add_patch(Rectangle((0, fig_h - 0.15), 10, 0.15,
+                               color=_GOLD_DARK, zorder=5))
+
+        # ── 标题 ──
+        y = fig_h - 0.6
+        ax.text(0.4, y, "CC Revenue Ranking", fontsize=18,
+                fontweight="bold", color=_C_TEXT, va="center",
+                fontfamily=_THAI_FONTS)
+        ax.text(7.0, y, f"{today_str} T-1 | Progress {time_pct:.0%}",
+                fontsize=10, color=_C_MUTED, va="center", ha="left")
+
+        # ── 表头 ──
+        y_table = y - 0.65
+        cx = [0.4, 1.2, 3.2, 5.0, 6.8, 8.2, 9.4]
+        headers = ["#", "Team", "รายได้(฿)", "BM วันนี้(฿)", "BM เดือน(฿)",
+                   "เช็คอิน", "มีส่วนร่วม"]
+        h_align = ["center", "left", "right", "right", "right", "center", "center"]
+
+        ax.add_patch(Rectangle((0.2, y_table - 0.2), 9.6, 0.42,
+                               color=_C_N800, zorder=3))
+        for i, h in enumerate(headers):
+            ax.text(cx[i], y_table, h, fontsize=7.5, fontweight="bold",
+                    color="white", va="center", ha=h_align[i],
+                    fontfamily=_THAI_FONTS, zorder=4)
+
+        # ── 数据行 ──
+        for idx, row in enumerate(rows):
+            y_r = y_table - 0.42 - idx * row_h
+
+            # 斑马纹
+            if idx % 2 == 0:
+                ax.add_patch(Rectangle((0.2, y_r - row_h / 2 + 0.08),
+                                       9.6, row_h, color=_GOLD_BG,
+                                       zorder=1))
+
+            # 排名（前 3 金色圆）
+            rank_color = _GOLD if idx < 3 else _C_MUTED
+            ax.text(cx[0], y_r, f"{idx + 1}", fontsize=10,
+                    fontweight="bold" if idx < 3 else "normal",
+                    color=rank_color, ha="center", va="center")
+
+            # 组名
+            ax.text(cx[1], y_r, row["team"], fontsize=10,
+                    fontweight="bold", color=_C_TEXT, ha="left",
+                    va="center", fontfamily=_THAI_FONTS)
+
+            # 业绩 THB（金色大字）
+            rev_str = f"฿{row['rev_thb']:,.0f}"
+            ax.text(cx[2], y_r, rev_str, fontsize=10.5,
+                    fontweight="bold",
+                    color=_GOLD_DARK if row["rev_thb"] > 0 else _C_MUTED,
+                    ha="right", va="center")
+
+            # BM 今日 + 颜色（超 = 绿，落后 = 红）
+            bm_color = _C_SUCCESS if row["rev_thb"] >= row["bm_today"] else _C_DANGER
+            bm_str = f"฿{row['bm_today']:,.0f}"
+            ax.text(cx[3], y_r, bm_str, fontsize=9,
+                    color=bm_color, ha="right", va="center")
+
+            # BM 月
+            ax.text(cx[4], y_r, f"฿{row['bm_month']:,.0f}", fontsize=9,
+                    color=_C_TEXT2, ha="right", va="center")
+
+            # 打卡率
+            ck_color = self._status_color(row["checkin"])
+            ax.text(cx[5], y_r, f"{row['checkin']:.0%}", fontsize=10,
+                    fontweight="bold", color=ck_color,
+                    ha="center", va="center")
+
+            # 参与率
+            ax.text(cx[6], y_r, f"{row['participation']:.0%}", fontsize=10,
+                    color=_C_TEXT2, ha="center", va="center")
+
+        # ── 底部 ──
+        y_foot = y_table - 0.42 - n * row_h - 0.2
+        ax.plot([0.5, 9.5], [y_foot + 0.1, y_foot + 0.1],
+                color=_C_BORDER_H, linewidth=0.5)
+        ax.text(5.0, y_foot - 0.1,
+                "ref-ops-engine  |  Revenue in THB  |  T-1 Data",
+                fontsize=7.5, color=_C_MUTED, va="center", ha="center")
+
+        plt.tight_layout(pad=0.3)
+        return self._fig_to_bytes(fig)
 
     def _gen_team_comprehensive_image(
         self,

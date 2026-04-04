@@ -277,9 +277,11 @@ def get_checkin_summary(
         dm.load_all().get("detail", pd.DataFrame()), filters
     )
 
-    # 解析围场过滤：将 M 标签转回原始围场值，对 d3 做全局交叉过滤
+    # 解析围场过滤：将 M 标签转回 D3 原始围场值（0~30/31~60 格式），
+    # 排除生命周期列格式（0M/1M/2M...）避免反查被覆盖
     if enclosure and _D3_ENCLOSURE_COL in d3.columns:
-        m_to_raw = {v: k for k, v in _M_MAP.items()}
+        _lifecycle_keys = {"0M", "1M", "2M", "3M", "4M", "5M"}
+        m_to_raw = {v: k for k, v in _M_MAP.items() if k not in _lifecycle_keys}
         enc_labels = [e.strip() for e in enclosure.split(",") if e.strip()]
         enc_filter_raws = [m_to_raw[m] for m in enc_labels if m in m_to_raw]
         if enc_filter_raws:

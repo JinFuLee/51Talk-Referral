@@ -73,8 +73,8 @@
   "scope_description": "通知只发送窄口径数据（CC/SS/LP，无运营），来源 config.json enclosure_role_narrow",
   "routing": {
     "ops": ["team_ranking", "result_metrics", "achievement_metrics", "action_items", "cc_enc_warning"],
-    "cc_detail": ["team_ranking", "team_comprehensive", "unchecked_ids"],
-    "cc_overview": ["team_ranking", "result_metrics", "honor_ranking"],
+    "cc_detail": ["tl_overview", "team_checkin_combined"],
+    "cc_overview": ["tl_overview"],
     "role_detail": ["team_ranking", "individual_ranking"]
   },
   "role_metrics": {

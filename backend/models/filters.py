@@ -151,8 +151,22 @@ def apply_filters(
                 return df
 
     # 5. enclosure — 行级围场过滤（None = 不过滤，保留全部）
+    # M 标签（M0/M1...）→ D3 原始围场值（0~30/31~60...）展开，
+    # 同时保留 M 标签本身以兼容 D4（生命周期列用 M 标签格式）
     if filters.enclosure is not None and enc_col and enc_col in df.columns:
-        df = df[df[enc_col].isin(filters.enclosure)]
+        _M_LABEL_TO_RAW = {
+            "M0": "0~30", "M1": "31~60", "M2": "61~90", "M3": "91~120",
+            "M4": "121~150", "M5": "151~180", "M6": "6M", "M7": "7M",
+            "M8": "8M", "M9": "9M", "M10": "10M", "M11": "11M",
+            "M12": "12M", "M12+": "12M+", "M6+": "M6+",
+        }
+        expanded: set[str] = set()
+        for enc in filters.enclosure:
+            expanded.add(enc)  # 保留原值（M 标签，兼容 D4）
+            raw = _M_LABEL_TO_RAW.get(enc)
+            if raw:
+                expanded.add(raw)  # 加入 D3 原始值
+        df = df[df[enc_col].isin(expanded)]
         if df.empty:
             return df
 
