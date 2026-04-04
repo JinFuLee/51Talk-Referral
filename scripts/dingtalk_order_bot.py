@@ -320,8 +320,12 @@ class OrderBotHandler(dingtalk_stream.ChatbotHandler):
         order = parse_order_message(text)
 
         if not order.is_order:
-            # 非成交消息，不回复（静默）
             logger.debug("非成交消息，跳过: %s", text[:80])
+            return AckMessage.STATUS_OK, "OK"
+
+        if not order.is_referral:
+            # 非转介绍成交，静默（只处理 Referral）
+            logger.debug("非转介绍，跳过: source=%s", order.lead_source)
             return AckMessage.STATUS_OK, "OK"
 
         # 日志
