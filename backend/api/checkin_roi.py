@@ -351,6 +351,7 @@ def _aggregate_channel_roi(
     summary="打卡 ROI 分析 — 学员成本×收入×风险分层",
 )
 def get_checkin_roi_analysis(
+    role: str | None = Query(None, description="角色筛选（CC/SS/LP），按角色负责围场过滤"),
     role_config: str | None = Query(None, description="围场配置 JSON"),
     enclosure: str | None = Query(None, description="围场过滤（M 标签，如 M0）"),
     filters: UnifiedFilter = Depends(parse_filters),
@@ -366,6 +367,22 @@ def get_checkin_roi_analysis(
     data = dm.load_all()
     df_d4: pd.DataFrame = apply_filters(data.get("students", pd.DataFrame()), filters)
     df_d3: pd.DataFrame = apply_filters(data.get("detail", pd.DataFrame()), filters)
+
+    # ── 按角色负责围场过滤 D4（生命周期列）──────────────────────────────────
+    if role and role not in ("全部", ""):
+        from backend.api.checkin import _get_wide_role, _parse_role_enclosures
+        enc_override = _parse_role_enclosures(role_config, role)
+        if not enc_override:
+            wide = _get_wide_role()
+            enc_override = wide.get(role, [])
+        if enc_override:
+            # D4 用 M 标签（通过 _M_MAP 转换原始围场值）
+            m_labels = {_M_MAP.get(e, e) for e in enc_override}
+            lifecycle_col = "生命周期" if "生命周期" in df_d4.columns else "围场"
+            if lifecycle_col in df_d4.columns:
+                df_d4 = df_d4[df_d4[lifecycle_col].map(
+                    lambda v: _M_MAP.get(_safe_str(v), _safe_str(v))
+                ).isin(m_labels)]
 
     if df_d4.empty:
         return JSONResponse(

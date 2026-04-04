@@ -232,6 +232,7 @@ const I18N = {
 type Locale = keyof typeof I18N;
 
 interface Props {
+  roleFilter?: string;
   enclosureFilter?: string | null;
 }
 
@@ -307,7 +308,7 @@ function exportToCSV(students: RoiStudentRow[], t: (typeof I18N)[keyof typeof I1
   URL.revokeObjectURL(url);
 }
 
-export function RoiStudentTable({ enclosureFilter }: Props) {
+export function RoiStudentTable({ roleFilter, enclosureFilter }: Props) {
   const rawLocale = useLocale();
   const locale = rawLocale as Locale;
   const t = I18N[locale] ?? I18N.zh;
@@ -315,6 +316,7 @@ export function RoiStudentTable({ enclosureFilter }: Props) {
   const [sortKey, setSortKey] = useState<'roi' | 'cost' | 'revenue'>('roi');
 
   const params = new URLSearchParams();
+  if (roleFilter) params.set('role', roleFilter);
   if (enclosureFilter) params.set('enclosure', enclosureFilter);
 
   const { data, isLoading, error } = useFilteredSWR<RoiAnalysisResponse>(

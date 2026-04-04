@@ -678,7 +678,8 @@
     "todayStatus": "Today's Status",
     "push": "Push",
     "schedule": "Scheduled Tasks",
-    "outputs": "Outputs"
+    "outputs": "Outputs",
+    "routing": "Content Routing"
   },
   "nav": {
     "dashboard": "Dashboard",

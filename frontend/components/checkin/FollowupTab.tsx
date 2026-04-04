@@ -778,28 +778,56 @@ function FollowupTable({ items, onDrawerOpen }: FollowupTableProps) {
       <table className="w-full text-xs">
         <thead>
           <tr className="slide-thead-row text-xs">
+            {/* 移动端常显 6 列 */}
             <th className="py-1.5 px-2 text-center whitespace-nowrap w-8">{t.thRank}</th>
             <th className="py-1.5 px-2 text-center whitespace-nowrap">{t.thPriority}</th>
-            <th className="py-1.5 px-2 text-center whitespace-nowrap">{t.thActivation}</th>
             <th className="py-1.5 px-2 text-left whitespace-nowrap">{t.thStudentId}</th>
             <th className="py-1.5 px-2 text-left whitespace-nowrap">{t.thEnclosure}</th>
             <th className="py-1.5 px-2 text-left whitespace-nowrap min-w-[80px]">{t.thCcOwner}</th>
-            <th className="py-1.5 px-2 text-left whitespace-nowrap min-w-[80px]">{t.thSsOwner}</th>
-            <th className="py-1.5 px-2 text-left whitespace-nowrap min-w-[80px]">{t.thLpOwner}</th>
             <th className="py-1.5 px-2 text-center whitespace-nowrap">{t.thCheckinWeekMonth}</th>
-            <th className="py-1.5 px-2 text-center whitespace-nowrap">{t.thCheckinLastMonth}</th>
-            <th className="py-1.5 px-2 text-center whitespace-nowrap">{t.thConnStatus}</th>
-            <th className="py-1.5 px-2 text-left whitespace-nowrap min-w-[120px]">{t.thTags}</th>
-            <th className="py-1.5 px-2 text-center whitespace-nowrap">{t.thChannel}</th>
-            <th className="py-1.5 px-2 text-left whitespace-nowrap min-w-[80px]">
+            {/* 平板+ 展开列 */}
+            <th className="py-1.5 px-2 text-center whitespace-nowrap hidden md:table-cell">
+              {t.thActivation}
+            </th>
+            <th className="py-1.5 px-2 text-left whitespace-nowrap min-w-[80px] hidden md:table-cell">
+              {t.thSsOwner}
+            </th>
+            <th className="py-1.5 px-2 text-left whitespace-nowrap min-w-[80px] hidden md:table-cell">
+              {t.thLpOwner}
+            </th>
+            <th className="py-1.5 px-2 text-center whitespace-nowrap hidden md:table-cell">
+              {t.thCheckinLastMonth}
+            </th>
+            <th className="py-1.5 px-2 text-center whitespace-nowrap hidden lg:table-cell">
+              {t.thConnStatus}
+            </th>
+            <th className="py-1.5 px-2 text-left whitespace-nowrap min-w-[120px] hidden lg:table-cell">
+              {t.thTags}
+            </th>
+            <th className="py-1.5 px-2 text-center whitespace-nowrap hidden lg:table-cell">
+              {t.thChannel}
+            </th>
+            <th className="py-1.5 px-2 text-left whitespace-nowrap min-w-[80px] hidden lg:table-cell">
               {t.thGoldenWindow}
             </th>
-            <th className="py-1.5 px-2 text-right whitespace-nowrap">{t.thLesson}</th>
-            <th className="py-1.5 px-2 text-right whitespace-nowrap">{t.thReferral}</th>
-            <th className="py-1.5 px-2 text-right whitespace-nowrap">{t.thRevenue}</th>
-            <th className="py-1.5 px-2 text-left whitespace-nowrap">{t.thLastContact}</th>
-            <th className="py-1.5 px-2 text-center whitespace-nowrap">{t.thIncentive}</th>
-            <th className="py-1.5 px-2 text-right whitespace-nowrap">{t.thCardExpiry}</th>
+            <th className="py-1.5 px-2 text-right whitespace-nowrap hidden xl:table-cell">
+              {t.thLesson}
+            </th>
+            <th className="py-1.5 px-2 text-right whitespace-nowrap hidden xl:table-cell">
+              {t.thReferral}
+            </th>
+            <th className="py-1.5 px-2 text-right whitespace-nowrap hidden xl:table-cell">
+              {t.thRevenue}
+            </th>
+            <th className="py-1.5 px-2 text-left whitespace-nowrap hidden xl:table-cell">
+              {t.thLastContact}
+            </th>
+            <th className="py-1.5 px-2 text-center whitespace-nowrap hidden xl:table-cell">
+              {t.thIncentive}
+            </th>
+            <th className="py-1.5 px-2 text-right whitespace-nowrap hidden xl:table-cell">
+              {t.thCardExpiry}
+            </th>
           </tr>
         </thead>
         <tbody>
@@ -843,17 +871,14 @@ function FollowupTable({ items, onDrawerOpen }: FollowupTableProps) {
                       : { borderLeft: '4px solid transparent' }
                   }
                 >
+                  {/* ── 移动端常显 6 列 ── */}
                   {/* 排名 */}
                   <td className="py-1 px-2 text-center font-mono tabular-nums text-[var(--text-muted)]">
                     {m.rank}
                   </td>
-                  {/* 优先级评分（新） */}
+                  {/* 优先级 */}
                   <td className="py-1 px-2 text-center">
                     <PriorityBadge score={m.action_priority_score ?? 0} />
-                  </td>
-                  {/* 激活概率 */}
-                  <td className="py-1 px-2">
-                    <ActivationDot score={activationScore} />
                   </td>
                   {/* 学员ID */}
                   <td className="py-1 px-2 text-action-accent font-medium font-mono tabular-nums whitespace-nowrap">
@@ -867,21 +892,7 @@ function FollowupTable({ items, onDrawerOpen }: FollowupTableProps) {
                   <td className="py-1 px-2 whitespace-nowrap" title={m.responsible ?? ''}>
                     {m.responsible || '—'}
                   </td>
-                  {/* SS 负责人（新） */}
-                  <td
-                    className="py-1 px-2 whitespace-nowrap text-[var(--text-secondary)]"
-                    title={m.ss_name ?? ''}
-                  >
-                    {m.ss_name || '—'}
-                  </td>
-                  {/* LP 负责人（新） */}
-                  <td
-                    className="py-1 px-2 whitespace-nowrap text-[var(--text-secondary)]"
-                    title={m.lp_name ?? ''}
-                  >
-                    {m.lp_name || '—'}
-                  </td>
-                  {/* 本周/月打卡（新：本周+本月双行） */}
+                  {/* 本周/月打卡 */}
                   <td className="py-1 px-2 text-center font-mono tabular-nums">
                     <div className="flex flex-col items-center leading-tight">
                       <span
@@ -908,12 +919,32 @@ function FollowupTable({ items, onDrawerOpen }: FollowupTableProps) {
                       </span>
                     </div>
                   </td>
+                  {/* ── 平板+ (md) ── */}
+                  {/* 激活概率 */}
+                  <td className="py-1 px-2 hidden md:table-cell">
+                    <ActivationDot score={activationScore} />
+                  </td>
+                  {/* SS 负责人 */}
+                  <td
+                    className="py-1 px-2 whitespace-nowrap text-[var(--text-secondary)] hidden md:table-cell"
+                    title={m.ss_name ?? ''}
+                  >
+                    {m.ss_name || '—'}
+                  </td>
+                  {/* LP 负责人 */}
+                  <td
+                    className="py-1 px-2 whitespace-nowrap text-[var(--text-secondary)] hidden md:table-cell"
+                    title={m.lp_name ?? ''}
+                  >
+                    {m.lp_name || '—'}
+                  </td>
                   {/* 上月打卡 */}
-                  <td className="py-1 px-2 text-center font-mono tabular-nums text-[var(--text-muted)]">
+                  <td className="py-1 px-2 text-center font-mono tabular-nums text-[var(--text-muted)] hidden md:table-cell">
                     {daysLast}/6
                   </td>
-                  {/* CC/SS/LP 接通状态（新） */}
-                  <td className="py-1 px-2">
+                  {/* ── 桌面 (lg) ── */}
+                  {/* CC/SS/LP 接通状态 */}
+                  <td className="py-1 px-2 hidden lg:table-cell">
                     <ConnStatusDots
                       cc={m.cc_connected ?? 0}
                       ss={m.ss_connected ?? 0}
@@ -921,39 +952,40 @@ function FollowupTable({ items, onDrawerOpen }: FollowupTableProps) {
                     />
                   </td>
                   {/* 标签 */}
-                  <td className="py-1 px-2 min-w-[120px]">
+                  <td className="py-1 px-2 min-w-[120px] hidden lg:table-cell">
                     {clientTags.length > 0 ? (
                       <StudentTagBadge tags={clientTags} maxVisible={2} />
                     ) : (
                       <span className="text-[var(--text-muted)]">—</span>
                     )}
                   </td>
-                  {/* 推荐渠道（新） */}
-                  <td className="py-1 px-2 text-center">
+                  {/* 推荐渠道 */}
+                  <td className="py-1 px-2 text-center hidden lg:table-cell">
                     <ChannelBadge channel={m.recommended_channel ?? 'app'} />
                   </td>
-                  {/* 黄金窗口（新） */}
-                  <td className="py-1 px-2 min-w-[80px]">
+                  {/* 黄金窗口 */}
+                  <td className="py-1 px-2 min-w-[80px] hidden lg:table-cell">
                     <GoldenWindowBadges windows={m.golden_window ?? []} />
                   </td>
+                  {/* ── 宽屏 (xl) ── */}
                   {/* 课耗 */}
-                  <td className="py-1 px-2 text-right font-mono tabular-nums">
+                  <td className="py-1 px-2 text-right font-mono tabular-nums hidden xl:table-cell">
                     {fmtNum(m.lesson_avg_3m)}
                   </td>
                   {/* 本月推荐 */}
-                  <td className="py-1 px-2 text-right font-mono tabular-nums">
+                  <td className="py-1 px-2 text-right font-mono tabular-nums hidden xl:table-cell">
                     {fmtNum(m.referrals_this_month)}
                   </td>
                   {/* 历史付费 */}
-                  <td className="py-1 px-2 text-right font-mono tabular-nums">
+                  <td className="py-1 px-2 text-right font-mono tabular-nums hidden xl:table-cell">
                     {fmtRevenue(m.total_revenue_usd)}
                   </td>
                   {/* CC末次联系 */}
-                  <td className="py-1 px-2 whitespace-nowrap">
+                  <td className="py-1 px-2 whitespace-nowrap hidden xl:table-cell">
                     <ContactBadge days={daysSinceContact} />
                   </td>
-                  {/* 激励状态（新） */}
-                  <td className="py-1 px-2 text-center">
+                  {/* 激励状态 */}
+                  <td className="py-1 px-2 text-center hidden xl:table-cell">
                     {m.incentive_status ? (
                       <span className="px-1 py-0.5 rounded text-[10px] bg-emerald-50 text-emerald-700 whitespace-nowrap">
                         {m.incentive_status}
@@ -964,7 +996,7 @@ function FollowupTable({ items, onDrawerOpen }: FollowupTableProps) {
                   </td>
                   {/* 卡到期 */}
                   <td
-                    className={`py-1 px-2 text-right font-mono tabular-nums ${
+                    className={`py-1 px-2 text-right font-mono tabular-nums hidden xl:table-cell ${
                       cardExpirySoon
                         ? 'text-orange-500 font-medium'
                         : 'text-[var(--text-secondary)]'

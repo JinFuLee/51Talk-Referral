@@ -25,6 +25,7 @@ const I18N = {
     noTeamData: '暂无团队数据',
     enclosureHeader: '围场',
     noEnclosureData: '暂无围场数据',
+    zeroDataHint: '当前数据源仅覆盖 M0~M2 围场，此角色数据需上传更多围场明细后自动显示',
     loadFailed: '数据加载失败',
     loadFailedDesc: '无法获取打卡汇总数据，请检查后端服务',
     retry: '重试',
@@ -56,6 +57,7 @@ const I18N = {
     noTeamData: '暫無團隊資料',
     enclosureHeader: '圍場',
     noEnclosureData: '暫無圍場資料',
+    zeroDataHint: '目前資料來源僅覆蓋 M0~M2 圍場，此角色資料需上傳更多圍場明細後自動顯示',
     loadFailed: '資料載入失敗',
     loadFailedDesc: '無法取得打卡彙總資料，請檢查後端服務',
     retry: '重試',
@@ -87,6 +89,8 @@ const I18N = {
     noTeamData: 'No team data',
     enclosureHeader: 'Enclosure',
     noEnclosureData: 'No enclosure data',
+    zeroDataHint:
+      "Current data covers M0–M2 only. This role's data will appear once more enclosure details are uploaded.",
     loadFailed: 'Failed to Load',
     loadFailedDesc: 'Unable to fetch check-in summary. Please check the backend service.',
     retry: 'Retry',
@@ -120,6 +124,8 @@ const I18N = {
     noTeamData: 'ไม่มีข้อมูลทีม',
     enclosureHeader: 'คอก',
     noEnclosureData: 'ไม่มีข้อมูลคอก',
+    zeroDataHint:
+      'แหล่งข้อมูลปัจจุบันครอบคลุมเฉพาะ M0–M2 ข้อมูลบทบาทนี้จะปรากฏหลังอัปโหลดรายละเอียดเพิ่มเติม',
     loadFailed: 'โหลดข้อมูลล้มเหลว',
     loadFailedDesc: 'ไม่สามารถดึงข้อมูลสรุปเช็คอิน กรุณาตรวจสอบบริการแบ็คเอนด์',
     retry: 'ลองใหม่',
@@ -205,6 +211,13 @@ function ChannelColumn({ ch, rateColor, rateBg, isSelected, t }: ChannelColumnPr
         {ch.channel}
         {isSelected && <span className="ml-1.5 opacity-70 text-[10px]">▶ {t.currentRole}</span>}
       </div>
+
+      {/* 零数据提示 */}
+      {ch.total_students === 0 && ch.channel !== 'CC' && (
+        <div className="bg-amber-50 border border-amber-200 rounded-md px-3 py-2.5 text-xs text-amber-700">
+          {t.zeroDataHint}
+        </div>
+      )}
 
       {/* 总体大数字 */}
       <div className="bg-[var(--bg-surface)] border border-[var(--border-default)] rounded-md px-3 py-2.5 space-y-1">

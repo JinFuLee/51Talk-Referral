@@ -144,8 +144,6 @@ const TABS = [
 
 type TabId = (typeof TABS)[number]['id'];
 
-const ROLES_ALL = ['CC', 'SS', 'LP', '运营'] as const;
-
 // ── 主页面（内部，需要 useSearchParams）────────────────────────────────────────
 
 function CheckinPageInner() {
@@ -164,7 +162,7 @@ function CheckinPageInner() {
     behavior: true,
   });
 
-  const { focusCC, clearMyView } = useMyView();
+  const { focusCC } = useMyView();
 
   // ── 智能默认 Tab ──────────────────────────────────────────────────────────
   function resolveDefaultTab(): TabId {
@@ -176,96 +174,21 @@ function CheckinPageInner() {
   }
   const activeTab = resolveDefaultTab();
 
-  // ── 筛选状态（集中管理）──────────────────────────────────────────────────
-
-  // 角色：URL 持久化
+  // ── 筛选状态（从 URL 读取，UI 由 UnifiedFilterBar 全局管理）──────────────
   const roleFilter: string = searchParams.get('role') || 'CC';
-
-  // 团队：URL 持久化
   const teamFilter: string = searchParams.get('team') || '';
-
-  // 围场：URL 持久化
   const enclosureFilter: string | null = searchParams.get('enclosure') || null;
+  const ccSearch: string = searchParams.get('cc') || focusCC || '';
 
-  // CC 搜索：page 级 state（初始值来自 URL cc 参数）
-  const [ccSearch, setCCSearch] = useState<string>(() => searchParams.get('cc') || focusCC || '');
-
-  // KPI 围场（当前角色负责的围场列表）
-  const kpiEnclosures = useMemo(
-    () => (roleEnclosures[roleFilter] ?? []) as string[],
-    [roleEnclosures, roleFilter]
-  );
-
-  // ── URL 更新函数 ──────────────────────────────────────────────────────────
-
-  const handleEnclosureChange = useCallback(
-    (enc: string | null) => {
-      const params = new URLSearchParams(searchParams.toString());
-      if (enc) params.set('enclosure', enc);
-      else params.delete('enclosure');
-      router.replace(`/checkin?${params.toString()}`);
-    },
-    [router, searchParams]
-  );
-
-  const handleRoleChange = useCallback(
-    (role: string) => {
-      const params = new URLSearchParams(searchParams.toString());
-      params.set('role', role);
-      params.delete('team'); // 切换角色时清除团队筛选
-      router.replace(`/checkin?${params.toString()}`);
-    },
-    [router, searchParams]
-  );
-
-  const handleTeamChange = useCallback(
-    (team: string) => {
-      const params = new URLSearchParams(searchParams.toString());
-      if (team) params.set('team', team);
-      else params.delete('team');
-      router.replace(`/checkin?${params.toString()}`);
-    },
-    [router, searchParams]
-  );
-
-  const handleClearAll = useCallback(() => {
-    clearMyView();
-    setCCSearch('');
-    const params = new URLSearchParams();
-    if (searchParams.get('tab')) params.set('tab', searchParams.get('tab')!);
-    router.replace(`/checkin?${params.toString()}`);
-  }, [clearMyView, router, searchParams]);
-
-  // ── 是否有筛选激活 ────────────────────────────────────────────────────────
-  const hasAnyFilter = Boolean(enclosureFilter || roleFilter !== 'CC' || teamFilter || ccSearch);
-
-  // ── 团队列表（从 summary 数据提取）────────────────────────────────────────
+  // ── 汇总数据（导出 + 状态提示）───────────────────────────────────────────
   const {
     data: summaryData,
     isLoading: summaryLoading,
     error: summaryError,
   } = useFilteredSWR<CheckinSummaryResponse>('/api/checkin/summary');
 
-  const teams = useMemo(() => {
-    const roleData = summaryData?.by_role?.[roleFilter];
-    return roleData?.by_team?.map((t) => t.team).sort() ?? [];
-  }, [summaryData, roleFilter]);
-
-  // ── 可见角色列表 ──────────────────────────────────────────────────────────
-  const visibleRoles = useMemo(
-    () =>
-      activeRoles.length > 0
-        ? ROLES_ALL.filter((r) => activeRoles.includes(r))
-        : Array.from(ROLES_ALL),
-    [activeRoles]
-  );
-
   // ── 导出 ──────────────────────────────────────────────────────────────────
   const { exportCSV } = useExport();
-
-  const { data: scatterData } = useFilteredSWR<ContactConversionItem[]>(
-    '/api/daily-monitor/contact-vs-conversion'
-  );
 
   function handleTabChange(id: string) {
     const params = new URLSearchParams(searchParams.toString());
@@ -361,16 +284,6 @@ function CheckinPageInner() {
           <RoiAnalysisTab roleFilter={roleFilter} enclosureFilter={enclosureFilter} />
         )}
       </div>
-
-      {/* 触达效果分析 */}
-      {scatterData && scatterData.length > 0 && (
-        <div className="mt-6">
-          <Card title={t.contactAnalysis}>
-            <p className="text-xs text-[var(--text-muted)] mb-3">{t.contactSubtitle}</p>
-            <ContactConversionScatter data={scatterData} />
-          </Card>
-        </div>
-      )}
     </div>
   );
 }

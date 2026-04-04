@@ -124,6 +124,7 @@ function useT() {
 }
 
 interface Props {
+  roleFilter?: string;
   enclosureFilter?: string | null;
 }
 
@@ -150,10 +151,11 @@ function SummaryCard({
   );
 }
 
-export function RoiDashboard({ enclosureFilter }: Props) {
+export function RoiDashboard({ roleFilter, enclosureFilter }: Props) {
   const t = useT();
   const locale = useLocale();
   const params = new URLSearchParams();
+  if (roleFilter) params.set('role', roleFilter);
   if (enclosureFilter) params.set('enclosure', enclosureFilter);
 
   const { data, isLoading, error } = useFilteredSWR<RoiAnalysisResponse>(

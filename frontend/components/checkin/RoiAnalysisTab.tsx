@@ -38,7 +38,7 @@ interface Props {
 
 type SubTabId = 'dashboard' | 'students' | 'channels';
 
-export function RoiAnalysisTab({ enclosureFilter }: Props) {
+export function RoiAnalysisTab({ roleFilter, enclosureFilter }: Props) {
   const locale = useLocale();
   const t = I18N[(locale as TabLocale) in I18N ? (locale as TabLocale) : 'zh'];
   const [activeSubTab, setActiveSubTab] = useState<SubTabId>('dashboard');
@@ -71,9 +71,15 @@ export function RoiAnalysisTab({ enclosureFilter }: Props) {
 
       {/* 子面板内容 */}
       <div>
-        {activeSubTab === 'dashboard' && <RoiDashboard enclosureFilter={enclosureFilter} />}
-        {activeSubTab === 'students' && <RoiStudentTable enclosureFilter={enclosureFilter} />}
-        {activeSubTab === 'channels' && <RoiChannelMatrix enclosureFilter={enclosureFilter} />}
+        {activeSubTab === 'dashboard' && (
+          <RoiDashboard roleFilter={roleFilter} enclosureFilter={enclosureFilter} />
+        )}
+        {activeSubTab === 'students' && (
+          <RoiStudentTable roleFilter={roleFilter} enclosureFilter={enclosureFilter} />
+        )}
+        {activeSubTab === 'channels' && (
+          <RoiChannelMatrix roleFilter={roleFilter} enclosureFilter={enclosureFilter} />
+        )}
       </div>
     </div>
   );

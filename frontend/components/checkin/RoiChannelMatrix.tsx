@@ -100,6 +100,7 @@ function useT() {
 }
 
 interface Props {
+  roleFilter?: string;
   enclosureFilter?: string | null;
 }
 
@@ -137,10 +138,11 @@ function ChannelHighlight({
   return null;
 }
 
-export function RoiChannelMatrix({ enclosureFilter }: Props) {
+export function RoiChannelMatrix({ roleFilter, enclosureFilter }: Props) {
   const t = useT();
   const label = useLabel();
   const params = new URLSearchParams();
+  if (roleFilter) params.set('role', roleFilter);
   if (enclosureFilter) params.set('enclosure', enclosureFilter);
 
   const { data, isLoading, error } = useFilteredSWR<RoiAnalysisResponse>(

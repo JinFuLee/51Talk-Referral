@@ -677,7 +677,8 @@
     "todayStatus": "สถานะวันนี้",
     "push": "ส่งข้อความ",
     "schedule": "งานตั้งเวลา",
-    "outputs": "ผลลัพธ์"
+    "outputs": "ผลลัพธ์",
+    "routing": "เส้นทางเนื้อหา"
   },
   "nav": {
     "dashboard": "ภาพรวม Dashboard",

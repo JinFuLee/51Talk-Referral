@@ -2257,14 +2257,14 @@ class NotificationEngine:
                     enc = s.get("enclosure", "?")
                     s_by_enc[enc].append(str(s.get("student_id", "")))
 
-                md += f"👤 **{cc_short}** ({len(cc_students)} คน)\n"
+                md += f"👤 **{cc_short}** ({len(cc_students)} คน)\n\n"
                 for enc in enc_order:
                     ids = s_by_enc.get(enc, [])
                     if not ids:
                         continue
                     chunks = [", ".join(ids[i:i + 8]) for i in range(0, len(ids), 8)]
-                    md += f"**{enc}** · {len(ids)} คน\n"
-                    md += "\n".join(chunks) + "\n\n"
+                    md += f"**{enc}** · {len(ids)} คน\n\n"
+                    md += "\n\n".join(chunks) + "\n\n"
 
             title = f"⚠️ {short} ยังไม่เช็คอิน {date_display}"
             r = self._send_dingtalk(title, md, channel)

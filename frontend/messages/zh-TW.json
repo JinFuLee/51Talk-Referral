@@ -677,7 +677,8 @@
     "todayStatus": "今日狀態",
     "push": "推送",
     "schedule": "排程任務",
-    "outputs": "輸出"
+    "outputs": "輸出",
+    "routing": "內容路由矩陣"
   },
   "nav": {
     "dashboard": "總覽 Dashboard",
