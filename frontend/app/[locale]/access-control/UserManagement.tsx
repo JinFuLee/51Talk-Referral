@@ -474,9 +474,9 @@ export default function UserManagement({
                       onClick={() => handleDelete(user.email)}
                       disabled={deletingEmail === user.email}
                       title={t.delete}
-                      className="p-1.5 rounded-lg hover:bg-red-50 transition-colors disabled:opacity-40"
+                      className="p-1.5 rounded-lg hover:bg-[var(--color-danger-surface)] transition-colors disabled:opacity-40"
                     >
-                      <Trash2 className="w-3.5 h-3.5 text-red-400" />
+                      <Trash2 className="w-3.5 h-3.5 text-[var(--color-danger)]" />
                     </button>
                   </td>
                 </tr>

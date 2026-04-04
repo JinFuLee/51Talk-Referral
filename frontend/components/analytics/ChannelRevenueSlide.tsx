@@ -116,9 +116,9 @@ type DailyReportSlice = { blocks: { channel_revenue: ChannelRevenue } };
 function JudgmentBadge({ judgment }: { judgment: '↑' | '↓' | '→' }) {
   const color =
     judgment === '↑'
-      ? 'text-emerald-700 font-bold'
+      ? 'text-[var(--color-success)] font-bold'
       : judgment === '↓'
-        ? 'text-red-600 font-bold'
+        ? 'text-[var(--color-danger)] font-bold'
         : 'text-[var(--text-muted)]';
   return <span className={`text-base ${color}`}>{judgment}</span>;
 }
@@ -163,7 +163,7 @@ export function ChannelRevenueSlide({ slideNumber, totalSlides }: SlideProps) {
       ) : error ? (
         <div className="flex items-center justify-center h-full">
           <div className="text-center space-y-2">
-            <p className="text-base font-semibold text-red-600">{t.error}</p>
+            <p className="text-base font-semibold text-[var(--color-danger)]">{t.error}</p>
             <p className="text-sm text-[var(--text-muted)]">{t.errorHint}</p>
             <button
               onClick={() => mutate()}
@@ -207,13 +207,13 @@ export function ChannelRevenueSlide({ slideNumber, totalSlides }: SlideProps) {
                     {formatRevenue(row.this_month_revenue)}
                   </td>
                   <td
-                    className={`px-3 py-2 text-xs text-right font-mono tabular-nums font-semibold ${row.delta_revenue >= 0 ? 'text-emerald-700' : 'text-red-600'}`}
+                    className={`px-3 py-2 text-xs text-right font-mono tabular-nums font-semibold ${row.delta_revenue >= 0 ? 'text-[var(--color-success)]' : 'text-[var(--color-danger)]'}`}
                   >
                     {row.delta_revenue >= 0 ? '+' : ''}
                     {formatRevenue(row.delta_revenue)}
                   </td>
                   <td
-                    className={`px-3 py-2 text-xs text-right font-mono tabular-nums ${row.delta_pct >= 0 ? 'text-emerald-700' : 'text-red-600'}`}
+                    className={`px-3 py-2 text-xs text-right font-mono tabular-nums ${row.delta_pct >= 0 ? 'text-[var(--color-success)]' : 'text-[var(--color-danger)]'}`}
                   >
                     {row.delta_pct >= 0 ? '+' : ''}
                     {formatRate(row.delta_pct)}
@@ -237,13 +237,13 @@ export function ChannelRevenueSlide({ slideNumber, totalSlides }: SlideProps) {
                   {formatRevenue(totalThisMonth)}
                 </td>
                 <td
-                  className={`px-3 py-2 text-xs text-right font-mono tabular-nums font-semibold ${totalDelta >= 0 ? 'text-emerald-700' : 'text-red-600'}`}
+                  className={`px-3 py-2 text-xs text-right font-mono tabular-nums font-semibold ${totalDelta >= 0 ? 'text-[var(--color-success)]' : 'text-[var(--color-danger)]'}`}
                 >
                   {totalDelta >= 0 ? '+' : ''}
                   {formatRevenue(totalDelta)}
                 </td>
                 <td
-                  className={`px-3 py-2 text-xs text-right font-mono tabular-nums ${totalDeltaPct >= 0 ? 'text-emerald-700' : 'text-red-600'}`}
+                  className={`px-3 py-2 text-xs text-right font-mono tabular-nums ${totalDeltaPct >= 0 ? 'text-[var(--color-success)]' : 'text-[var(--color-danger)]'}`}
                 >
                   {totalDeltaPct >= 0 ? '+' : ''}
                   {formatRate(totalDeltaPct)}

@@ -1,31 +1,17 @@
-import { cn } from "@/lib/utils"
+import { cn } from '@/lib/utils';
 
-function Skeleton({
-  className,
-  ...props
-}: React.HTMLAttributes<HTMLDivElement>) {
-  return (
-    <div
-      className={cn("animate-pulse rounded-md bg-muted", className)}
-      {...props}
-    />
-  )
+function Skeleton({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
+  return <div className={cn('animate-pulse rounded-md bg-muted', className)} {...props} />;
 }
 
 export function SkeletonCard({ className }: { className?: string }) {
-  return (
-    <div
-      className={cn("animate-pulse rounded-xl bg-[var(--n-200)]", className ?? "h-24")}
-    />
-  );
+  return <div className={cn('animate-pulse rounded-xl bg-[var(--n-200)]', className ?? 'h-24')} />;
 }
 
 export function SkeletonChart({ className }: { className?: string }) {
   return (
-    <div
-      className={cn("animate-pulse rounded-lg bg-[var(--n-200)]", className ?? "h-48 w-full")}
-    />
+    <div className={cn('animate-pulse rounded-lg bg-[var(--n-200)]', className ?? 'h-48 w-full')} />
   );
 }
 
-export { Skeleton }
+export { Skeleton };

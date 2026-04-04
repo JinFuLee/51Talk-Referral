@@ -374,7 +374,7 @@ function CompareRow({
           diff == null
             ? ''
             : diff > 0
-              ? 'text-emerald-800'
+              ? 'text-[var(--color-success)]'
               : diff < 0
                 ? 'text-[var(--color-danger)]'
                 : 'text-[var(--text-muted)]'
@@ -536,8 +536,8 @@ export function Profile360Drawer({ stdtId, onClose }: Profile360DrawerProps) {
                                 detail.hp_info.urgency_level === 'red'
                                   ? 'text-[var(--color-danger)]'
                                   : detail.hp_info.urgency_level === 'yellow'
-                                    ? 'text-amber-800'
-                                    : 'text-emerald-800'
+                                    ? 'text-[var(--color-warning)]'
+                                    : 'text-[var(--color-success)]'
                               }`}
                             >
                               {detail.hp_info.urgency_level === 'red'
@@ -605,7 +605,7 @@ export function Profile360Drawer({ stdtId, onClose }: Profile360DrawerProps) {
                             className={
                               detail.referral_reward_status.includes('已') ||
                               detail.referral_reward_status.includes('领')
-                                ? 'text-emerald-800 font-medium'
+                                ? 'text-[var(--color-success)] font-medium'
                                 : 'text-[var(--text-muted)]'
                             }
                           >
@@ -665,9 +665,9 @@ export function Profile360Drawer({ stdtId, onClose }: Profile360DrawerProps) {
                               detail.days_to_card_expiry <= 7
                                 ? 'text-[var(--color-danger)] font-medium'
                                 : detail.days_to_card_expiry <= 14
-                                  ? 'text-amber-800 font-medium'
+                                  ? 'text-[var(--color-warning)] font-medium'
                                   : detail.days_to_card_expiry <= 30
-                                    ? 'text-emerald-800 font-medium'
+                                    ? 'text-[var(--color-success)] font-medium'
                                     : 'text-[var(--text-primary)]'
                             }
                           >
@@ -688,7 +688,7 @@ export function Profile360Drawer({ stdtId, onClose }: Profile360DrawerProps) {
                               detail.days_since_last_renewal > 60
                                 ? 'text-[var(--color-danger)] font-medium'
                                 : detail.days_since_last_renewal > 30
-                                  ? 'text-amber-800 font-medium'
+                                  ? 'text-[var(--color-warning)] font-medium'
                                   : 'text-[var(--text-primary)]'
                             }
                           >

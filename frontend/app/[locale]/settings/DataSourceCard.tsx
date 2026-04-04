@@ -204,7 +204,9 @@ export default function DataSourceCard() {
             {saving ? <Spinner size="sm" /> : t.updateBtn}
           </button>
           {msg && (
-            <span className={`text-xs ${msg.ok ? 'text-emerald-600' : 'text-red-600'}`}>
+            <span
+              className={`text-xs ${msg.ok ? 'text-[var(--color-success)]' : 'text-[var(--color-danger)]'}`}
+            >
               {msg.text}
             </span>
           )}

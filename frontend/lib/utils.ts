@@ -117,7 +117,7 @@ export const CHART_HEIGHT = { sm: 220, md: 260, lg: 320 } as const;
  * 此函数按 locale 将中文术语替换为对应语言文本。
  *
  * 中文来源（projects/referral/config.json）：
- *   CC接通, 有效接通, CC新单转介绍
+ * CC接通, 有效接通, CC新单转介绍
  */
 const FORMULA_TERMS: Record<string, Record<string, string>> = {
   CC接通: {
@@ -145,7 +145,7 @@ const FORMULA_TERMS: Record<string, Record<string, string>> = {
  * 不认识的术语保持原样。
  *
  * @param formula 原始公式字符串（可为 null/undefined）
- * @param locale  'zh' | 'zh-TW' | 'en' | 'th'
+ * @param locale 'zh' | 'zh-TW' | 'en' | 'th'
  */
 export function translateFormula(formula: string | null | undefined, locale: string): string {
   if (!formula) return '';
@@ -167,7 +167,7 @@ export function metricColor(
   thresholds: [number, number]
 ): string {
   if (value === null || value === undefined) return 'text-[var(--text-muted)]';
-  if (value >= thresholds[1]) return 'text-emerald-800 font-semibold';
-  if (value >= thresholds[0]) return 'text-amber-800';
-  return 'text-red-700';
+  if (value >= thresholds[1]) return 'text-[var(--color-success)] font-semibold';
+  if (value >= thresholds[0]) return 'text-[var(--color-warning)]';
+  return 'text-[var(--color-danger)]';
 }

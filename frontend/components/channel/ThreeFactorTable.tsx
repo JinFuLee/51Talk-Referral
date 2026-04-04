@@ -56,10 +56,10 @@ function FactorBadge({ value }: { value: number | null }) {
   const pct = value * 100;
   const color =
     pct >= 50
-      ? 'bg-green-50 text-green-700'
+      ? 'bg-[var(--color-success-surface)] text-[var(--color-success)]'
       : pct >= 30
-        ? 'bg-yellow-50 text-yellow-700'
-        : 'bg-red-50 text-red-600';
+        ? 'bg-[var(--color-warning-surface)] text-[var(--color-warning)]'
+        : 'bg-[var(--color-danger-surface)] text-[var(--color-danger)]';
   return (
     <span className={`inline-block px-1.5 py-0.5 rounded text-xs font-medium ${color}`}>
       {formatRate(value)}
@@ -105,7 +105,7 @@ export function ThreeFactorTable({ comparisons }: ThreeFactorTableProps) {
                   c.gap == null
                     ? 'text-[var(--text-secondary)]'
                     : c.gap >= 0
-                      ? 'text-emerald-800'
+                      ? 'text-[var(--color-success)]'
                       : 'text-[var(--color-danger)]'
                 }`}
               >

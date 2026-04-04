@@ -7,15 +7,15 @@ interface ContactGaugeProps {
 }
 
 function rateColor(rate: number): string {
-  if (rate >= 0.6) return 'text-emerald-800';
-  if (rate >= 0.4) return 'text-amber-800';
+  if (rate >= 0.6) return 'text-[var(--color-success)]';
+  if (rate >= 0.4) return 'text-[var(--color-warning)]';
   return 'text-[var(--color-danger)]';
 }
 
 function barColor(rate: number): string {
-  if (rate >= 0.6) return 'bg-green-500';
-  if (rate >= 0.4) return 'bg-yellow-400';
-  return 'bg-red-400';
+  if (rate >= 0.6) return 'bg-[var(--color-success)]';
+  if (rate >= 0.4) return 'bg-[var(--color-warning)]';
+  return 'bg-[var(--color-danger)]';
 }
 
 export function ContactGauge({ label, rate }: ContactGaugeProps) {

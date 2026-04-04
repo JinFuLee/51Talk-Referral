@@ -15,8 +15,8 @@ function getCurrentYYYYMM(): string {
  *
  * Serialization rules (per spec §4.3):
  * - Default values are omitted to keep URLs clean:
- *     country='TH' → not sent, dataRole='all' → not sent,
- *     channel='all' → not sent
+ * country='TH' → not sent, dataRole='all' → not sent,
+ * channel='all' → not sent
  * - null values are not sent: enclosure=null → not sent
  * - Arrays are comma-joined: enclosure=['M0','M1'] → "M0,M1"
  * - camelCase → snake_case: dataRole → data_role
@@ -25,7 +25,7 @@ function getCurrentYYYYMM(): string {
  * - selectedMonth: only sent if not null and not current month (YYYYMM)
  *
  * Usage:
- *   const { data } = useFilteredSWR<MyType>('/api/some/endpoint');
+ * const { data } = useFilteredSWR<MyType>('/api/some/endpoint');
  */
 export function useFilteredSWR<T>(
   basePath: string | null,

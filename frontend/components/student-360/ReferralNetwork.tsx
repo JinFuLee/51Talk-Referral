@@ -81,8 +81,8 @@ function NetworkNode({
     type === 'center'
       ? 'bg-action-accent-surface border-action-accent-subtle'
       : type === 'referrer'
-        ? 'bg-purple-50 border-purple-300'
-        : 'bg-green-50 border-green-300';
+        ? 'bg-[var(--color-accent-surface)] border-purple-300'
+        : 'bg-[var(--color-success-surface)] border-[var(--color-success)]';
 
   return (
     <div className={`flex items-center gap-2 px-3 py-2 rounded-lg border ${bg} text-sm`}>

@@ -131,10 +131,16 @@ function ChannelHighlight({
 }) {
   if (channel === best)
     return (
-      <span className="ml-1 text-xs text-green-700 bg-green-100 px-1 rounded">{bestLabel}</span>
+      <span className="ml-1 text-xs text-[var(--color-success)] bg-[var(--color-success-surface)] px-1 rounded">
+        {bestLabel}
+      </span>
     );
   if (channel === worst)
-    return <span className="ml-1 text-xs text-red-700 bg-red-100 px-1 rounded">{worstLabel}</span>;
+    return (
+      <span className="ml-1 text-xs text-[var(--color-danger)] bg-[var(--color-danger-surface)] px-1 rounded">
+        {worstLabel}
+      </span>
+    );
   return null;
 }
 
@@ -281,12 +287,12 @@ export function RoiChannelMatrix({ roleFilter, enclosureFilter }: Props) {
                   {label(CHANNEL_LABELS, ch) || ch}
                 </span>
                 {ch === bestChannel && (
-                  <span className="text-xs text-green-700 bg-green-100 px-1.5 py-0.5 rounded-full">
+                  <span className="text-xs text-[var(--color-success)] bg-[var(--color-success-surface)] px-1.5 py-0.5 rounded-full">
                     {t.best}
                   </span>
                 )}
                 {ch === worstChannel && ch !== bestChannel && (
-                  <span className="text-xs text-red-700 bg-red-100 px-1.5 py-0.5 rounded-full">
+                  <span className="text-xs text-[var(--color-danger)] bg-[var(--color-danger-surface)] px-1.5 py-0.5 rounded-full">
                     {t.worst}
                   </span>
                 )}

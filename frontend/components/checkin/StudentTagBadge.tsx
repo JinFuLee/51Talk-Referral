@@ -20,12 +20,35 @@ type TagKey =
   | 'super_convert';
 
 const TAG_STYLE: Record<TagKey, TagConfig> = {
-  full_attendance: { emoji: '🏆', className: 'bg-amber-100 text-amber-800 border-amber-200' },
-  active: { emoji: '🌟', className: 'bg-emerald-100 text-emerald-800 border-emerald-200' },
-  improving: { emoji: '📈', className: 'bg-blue-100 text-blue-800 border-blue-200' },
-  declining: { emoji: '⚠️', className: 'bg-red-100 text-red-800 border-red-200' },
-  dormant_hp: { emoji: '🔴', className: 'bg-gray-100 text-gray-800 border-gray-200 animate-pulse' },
-  super_convert: { emoji: '💎', className: 'bg-purple-100 text-purple-800 border-purple-200' },
+  full_attendance: {
+    emoji: '🏆',
+    className:
+      'bg-[var(--color-warning-surface)] text-[var(--color-warning)] border-[var(--color-warning)]',
+  },
+  active: {
+    emoji: '🌟',
+    className:
+      'bg-[var(--color-success-surface)] text-[var(--color-success)] border-[var(--color-success)]',
+  },
+  improving: {
+    emoji: '📈',
+    className:
+      'bg-[var(--color-accent-surface)] text-[var(--color-accent)] border-[var(--color-accent)]',
+  },
+  declining: {
+    emoji: '⚠️',
+    className:
+      'bg-[var(--color-danger-surface)] text-[var(--color-danger)] border-[var(--color-danger)]',
+  },
+  dormant_hp: {
+    emoji: '🔴',
+    className:
+      'bg-[var(--bg-subtle)] text-[var(--text-primary)] border-[var(--border-default)] animate-pulse',
+  },
+  super_convert: {
+    emoji: '💎',
+    className: 'bg-[var(--color-accent-surface)] text-[var(--color-accent)] border-purple-200',
+  },
 };
 
 /** Per-locale display text → TagKey mapping */
@@ -74,7 +97,7 @@ function resolveStyle(tag: string, locale: string): TagConfig | undefined {
 /** 无法识别的标签 fallback 样式 */
 const DEFAULT_CONFIG: TagConfig = {
   emoji: '🏷️',
-  className: 'bg-gray-100 text-gray-700 border-gray-200',
+  className: 'bg-[var(--bg-subtle)] text-[var(--text-secondary)] border-[var(--border-default)]',
 };
 
 interface StudentTagBadgeProps {
@@ -92,8 +115,8 @@ interface StudentTagBadgeProps {
  * 自动识别 zh/zh-TW/en/th 四语的标签字符串。
  *
  * 使用示例：
- *   <StudentTagBadge tags={student.tags} />
- *   <StudentTagBadge tags={student.tags} maxVisible={2} />
+ * <StudentTagBadge tags={student.tags} />
+ * <StudentTagBadge tags={student.tags} maxVisible={2} />
  */
 export function StudentTagBadge({ tags, maxVisible }: StudentTagBadgeProps) {
   const locale = useLocale();
@@ -118,7 +141,7 @@ export function StudentTagBadge({ tags, maxVisible }: StudentTagBadgeProps) {
         );
       })}
       {overflow > 0 && (
-        <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600 border border-gray-200">
+        <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium bg-[var(--bg-subtle)] text-[var(--text-secondary)] border border-[var(--border-default)]">
           +{overflow}
         </span>
       )}

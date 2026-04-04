@@ -38,9 +38,9 @@ type FunnelStage = { name: string; value: number };
 /**
  * Parse xychart-beta blocks.
  * Supports:
- *   x-axis ["label1", "label2", ...]
- *   bar [val1, val2, ...]
- *   line [val1, val2, ...]
+ * x-axis ["label1", "label2", ...]
+ * bar [val1, val2, ...]
+ * line [val1, val2, ...]
  */
 function parseXyChart(
   body: string,
@@ -124,8 +124,8 @@ function xyChartToProps(
 /**
  * Parse pie blocks.
  * Format:
- *   pie title "Some Title"
- *   "Label" : 123
+ * pie title "Some Title"
+ * "Label" : 123
  */
 function parsePieChart(body: string): { data: { name: string; value: number }[]; title: string } {
   const lines = body
@@ -230,8 +230,8 @@ function CodeRenderer({ className, children }: CodeProps) {
   }
 
   return (
-    <pre className="my-3 p-4 bg-gray-900 rounded-lg overflow-x-auto">
-      <code className={`text-xs text-gray-100 ${className ?? ''}`}>{raw}</code>
+    <pre className="my-3 p-4 bg-[var(--bg-subtle)] rounded-lg overflow-x-auto">
+      <code className={`text-xs text-[var(--text-muted)] ${className ?? ''}`}>{raw}</code>
     </pre>
   );
 }

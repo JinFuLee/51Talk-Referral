@@ -73,7 +73,7 @@ export default function ReportsPage() {
                             r.report_type === 'ops'
                               ? 'bg-action-accent-subtle text-action-accent'
                               : r.report_type === 'exec'
-                                ? 'bg-purple-100 text-purple-700'
+                                ? 'bg-[var(--color-accent-surface)] text-[var(--color-accent)]'
                                 : 'bg-[var(--bg-subtle)] text-[var(--text-secondary)]'
                           }`}
                         >

@@ -94,7 +94,9 @@ function Cell({ active, title }: { active: boolean; title: string }) {
     <div
       title={title}
       className={`w-5 h-5 rounded-sm ${
-        active ? 'bg-green-500' : 'bg-[var(--bg-subtle)] border border-[var(--border-subtle)]'
+        active
+          ? 'bg-[var(--color-success)]'
+          : 'bg-[var(--bg-subtle)] border border-[var(--border-subtle)]'
       }`}
     />
   );
@@ -114,7 +116,8 @@ export function DailyLogTab({ logs }: DailyLogTabProps) {
     <div className="space-y-4">
       <div className="flex gap-4 text-xs text-[var(--text-secondary)]">
         <span className="flex items-center gap-1">
-          <span className="w-3 h-3 rounded-sm bg-green-500 inline-block" /> {t.hasActivity}
+          <span className="w-3 h-3 rounded-sm bg-[var(--color-success)] inline-block" />{' '}
+          {t.hasActivity}
         </span>
         <span className="flex items-center gap-1">
           <span className="w-3 h-3 rounded-sm bg-[var(--bg-subtle)] border border-[var(--border-subtle)] inline-block" />{' '}

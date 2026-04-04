@@ -140,7 +140,11 @@ type DailyReportSlice = { blocks: { lead_attribution: LeadAttribution } };
 
 function RateCell({ value }: { value: number }) {
   const color =
-    value >= 0.5 ? 'text-emerald-700' : value >= 0.3 ? 'text-amber-700' : 'text-red-600';
+    value >= 0.5
+      ? 'text-[var(--color-success)]'
+      : value >= 0.3
+        ? 'text-[var(--color-warning)]'
+        : 'text-[var(--color-danger)]';
   return (
     <td className={`px-2 py-1.5 text-xs text-right font-mono tabular-nums ${color}`}>
       {formatRate(value)}
@@ -233,7 +237,7 @@ export function LeadAttributionSlide({ slideNumber, totalSlides }: SlideProps) {
       ) : error ? (
         <div className="flex items-center justify-center h-full">
           <div className="text-center space-y-2">
-            <p className="text-base font-semibold text-red-600">{t.error}</p>
+            <p className="text-base font-semibold text-[var(--color-danger)]">{t.error}</p>
             <p className="text-sm text-[var(--text-muted)]">{t.errorHint}</p>
             <button
               onClick={() => mutate()}

@@ -569,7 +569,7 @@ export function CCTargetUpload({ month, onUploadSuccess }: CCTargetUploadProps) 
                   onClick={() =>
                     window.open(`/api/cc-performance/targets/template?month=${month}`, '_blank')
                   }
-                  className="flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700 transition-colors"
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[var(--color-success)] text-white text-sm font-medium hover:bg-[var(--color-success)] transition-colors"
                 >
                   <Download className="w-4 h-4" />
                   {t.downloadTemplate}
@@ -691,7 +691,7 @@ export function CCTargetUpload({ month, onUploadSuccess }: CCTargetUploadProps) 
                             key={i}
                             className={
                               invalidRowIndices.has(i)
-                                ? 'bg-red-50'
+                                ? 'bg-[var(--color-danger-surface)]'
                                 : i % 2 === 0
                                   ? 'slide-row-even'
                                   : 'slide-row-odd'
@@ -701,7 +701,9 @@ export function CCTargetUpload({ month, onUploadSuccess }: CCTargetUploadProps) 
                               <td
                                 key={h}
                                 className={`slide-td whitespace-nowrap${
-                                  h === 'cc_name' && invalidRowIndices.has(i) ? ' text-red-600' : ''
+                                  h === 'cc_name' && invalidRowIndices.has(i)
+                                    ? ' text-[var(--color-danger)]'
+                                    : ''
                                 }`}
                               >
                                 {row[h]}
@@ -716,7 +718,7 @@ export function CCTargetUpload({ month, onUploadSuccess }: CCTargetUploadProps) 
                     {t.totalRows(totalRowCount, Math.min(totalRowCount, 10))}
                   </p>
                   {invalidRowIndices.size > 0 && (
-                    <p className="text-xs text-amber-600">
+                    <p className="text-xs text-[var(--color-warning)]">
                       {t.invalidRows(invalidRowIndices.size)}
                     </p>
                   )}
@@ -725,9 +727,9 @@ export function CCTargetUpload({ month, onUploadSuccess }: CCTargetUploadProps) 
 
               {/* 错误提示 */}
               {error && (
-                <div className="flex items-start gap-2 rounded-lg bg-red-50 border border-red-200 px-4 py-3">
-                  <AlertCircle className="w-4 h-4 text-red-600 mt-0.5 flex-shrink-0" />
-                  <p className="text-sm text-red-700">{error}</p>
+                <div className="flex items-start gap-2 rounded-lg bg-[var(--color-danger-surface)] border border-[var(--color-danger)] px-4 py-3">
+                  <AlertCircle className="w-4 h-4 text-[var(--color-danger)] mt-0.5 flex-shrink-0" />
+                  <p className="text-sm text-[var(--color-danger)]">{error}</p>
                 </div>
               )}
 
@@ -735,15 +737,15 @@ export function CCTargetUpload({ month, onUploadSuccess }: CCTargetUploadProps) 
               {uploadResult && (
                 <div className="space-y-2">
                   {/* 匹配成功块 */}
-                  <div className="rounded-lg bg-emerald-50 border border-emerald-200 px-4 py-3">
+                  <div className="rounded-lg bg-[var(--color-success-surface)] border border-[var(--color-success)] px-4 py-3">
                     <div className="flex items-start gap-2">
-                      <CheckCircle className="w-4 h-4 text-emerald-600 mt-0.5 flex-shrink-0" />
-                      <p className="text-sm text-emerald-700">
+                      <CheckCircle className="w-4 h-4 text-[var(--color-success)] mt-0.5 flex-shrink-0" />
+                      <p className="text-sm text-[var(--color-success)]">
                         {t.matchedSuccess(uploadResult.matched)}
                       </p>
                     </div>
                     {uploadResult.duplicates > 0 && (
-                      <p className="text-xs text-amber-600 ml-6 mt-1">
+                      <p className="text-xs text-[var(--color-warning)] ml-6 mt-1">
                         {t.duplicates(
                           uploadResult.duplicates,
                           uploadResult.duplicate_names.join('、')
@@ -754,14 +756,14 @@ export function CCTargetUpload({ month, onUploadSuccess }: CCTargetUploadProps) 
 
                   {/* 孤儿名单块（上传名字在数据中找不到） */}
                   {uploadResult.orphaned.length > 0 && (
-                    <div className="rounded-lg bg-amber-50 border border-amber-200 px-4 py-3">
+                    <div className="rounded-lg bg-[var(--color-warning-surface)] border border-[var(--color-warning)] px-4 py-3">
                       <div className="flex items-start gap-2">
-                        <AlertCircle className="w-4 h-4 text-amber-500 mt-0.5 flex-shrink-0" />
+                        <AlertCircle className="w-4 h-4 text-[var(--color-warning)] mt-0.5 flex-shrink-0" />
                         <div className="space-y-1">
-                          <p className="text-sm text-amber-600">
+                          <p className="text-sm text-[var(--color-warning)]">
                             {t.orphanedTitle(uploadResult.orphaned.length)}
                           </p>
-                          <p className="font-mono text-xs text-amber-700 leading-relaxed">
+                          <p className="font-mono text-xs text-[var(--color-warning)] leading-relaxed">
                             {uploadResult.orphaned
                               .map((o) => `${o.name}（$${(o.target ?? 0).toLocaleString()}）`)
                               .join('、')}
@@ -827,7 +829,7 @@ export function CCTargetUpload({ month, onUploadSuccess }: CCTargetUploadProps) 
                 <button
                   onClick={handleDelete}
                   disabled={deleting || !month}
-                  className="flex items-center gap-1.5 text-xs text-red-600 hover:text-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="flex items-center gap-1.5 text-xs text-[var(--color-danger)] hover:text-[var(--color-danger)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   {deleting ? (
                     <Loader2 className="w-3.5 h-3.5 animate-spin" />

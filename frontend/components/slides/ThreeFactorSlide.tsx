@@ -110,10 +110,10 @@ function GapBadge({ gap }: { gap: number }) {
     <span
       className={`inline-block px-2 py-0.5 rounded text-xs font-bold ${
         isPositive
-          ? 'text-green-700 bg-green-50'
+          ? 'text-[var(--color-success)] bg-[var(--color-success-surface)]'
           : gap >= -5
-            ? 'text-yellow-700 bg-yellow-50'
-            : 'text-red-700 bg-red-50'
+            ? 'text-[var(--color-warning)] bg-[var(--color-warning-surface)]'
+            : 'text-[var(--color-danger)] bg-[var(--color-danger-surface)]'
       }`}
     >
       {isPositive ? '+' : ''}
@@ -125,10 +125,10 @@ function GapBadge({ gap }: { gap: number }) {
 function FactorBadge({ value }: { value: number }) {
   const color =
     value >= 1
-      ? 'text-green-700 bg-green-50'
+      ? 'text-[var(--color-success)] bg-[var(--color-success-surface)]'
       : value >= 0.9
-        ? 'text-yellow-700 bg-yellow-50'
-        : 'text-red-700 bg-red-50';
+        ? 'text-[var(--color-warning)] bg-[var(--color-warning-surface)]'
+        : 'text-[var(--color-danger)] bg-[var(--color-danger-surface)]';
   return (
     <span className={`inline-block px-2 py-0.5 rounded text-xs font-semibold ${color}`}>
       {formatRate(value)}
@@ -183,7 +183,7 @@ export function ThreeFactorSlide({ slideNumber, totalSlides }: SlideProps) {
       ) : error ? (
         <div className="flex items-center justify-center h-full">
           <div className="text-center space-y-2">
-            <p className="text-base font-semibold text-red-600">{t.loading_failed}</p>
+            <p className="text-base font-semibold text-[var(--color-danger)]">{t.loading_failed}</p>
             <p className="text-sm text-[var(--text-muted)]">{t.check_backend}</p>
             <button
               onClick={() => mutate()}

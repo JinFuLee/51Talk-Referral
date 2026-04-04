@@ -96,7 +96,7 @@ export function CCVarianceBox({ data }: CCVarianceBoxProps) {
                 <span>
                   {t.max} {formatRate(row.max)}
                 </span>
-                <span className="text-yellow-500">±{formatRate(row.std)}</span>
+                <span className="text-[var(--color-warning)]">±{formatRate(row.std)}</span>
               </div>
             </div>
 

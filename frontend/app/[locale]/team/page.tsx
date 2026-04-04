@@ -336,7 +336,7 @@ interface RankingResponse {
 function RankBadge({ rank }: { rank: number }) {
   const cls =
     rank === 1
-      ? 'bg-yellow-100 text-yellow-700'
+      ? 'bg-[var(--color-warning-surface)] text-[var(--color-warning)]'
       : rank === 2
         ? 'bg-[var(--bg-subtle)] text-[var(--text-secondary)]'
         : rank === 3
@@ -455,12 +455,12 @@ function CCTabContent() {
     <div className="space-y-4">
       {/* insight 卡片 */}
       {topCC && bottomCC && topCC.cc_name !== bottomCC.cc_name && (
-        <div className="flex flex-col gap-1.5 rounded-lg border border-[var(--border-default)] border-l-4 border-l-green-500 bg-green-50 px-4 py-3">
+        <div className="flex flex-col gap-1.5 rounded-lg border border-[var(--border-default)] border-l-4 border-l-green-500 bg-[var(--color-success-surface)] px-4 py-3">
           <div className="text-sm font-semibold text-[var(--text-primary)]">{tr.insightTitle}</div>
           <div className="text-xs text-[var(--text-secondary)]">
             {tr.insightTopLabel}
             <span className="font-semibold text-[var(--text-primary)]">{topCC.cc_name}</span>{' '}
-            <span className="text-emerald-800 font-semibold">
+            <span className="text-[var(--color-success)] font-semibold">
               {formatRate(topCC.participation_rate)}
             </span>
             {tr.insightBottomLabel}
@@ -479,9 +479,9 @@ function CCTabContent() {
           </div>
           <p className="text-[10px] text-[var(--text-muted)]">
             {tr.colorHint}
-            <span className="text-emerald-700 font-medium">{tr.colorGreen}</span> ·{' '}
-            <span className="text-amber-700 font-medium">{tr.colorAmber}</span> ·{' '}
-            <span className="text-red-600 font-medium">{tr.colorRed}</span>
+            <span className="text-[var(--color-success)] font-medium">{tr.colorGreen}</span> ·{' '}
+            <span className="text-[var(--color-warning)] font-medium">{tr.colorAmber}</span> ·{' '}
+            <span className="text-[var(--color-danger)] font-medium">{tr.colorRed}</span>
             {tr.colorHintSuffix}
           </p>
         </div>
@@ -551,7 +551,7 @@ function CCTabContent() {
                       {(t.registrations ?? 0).toLocaleString()}
                     </td>
                     <td
-                      className={`slide-td py-1.5 px-2 text-right font-mono tabular-nums ${(t.payments ?? 0) >= 1 ? 'text-emerald-800 font-semibold' : ''}`}
+                      className={`slide-td py-1.5 px-2 text-right font-mono tabular-nums ${(t.payments ?? 0) >= 1 ? 'text-[var(--color-success)] font-semibold' : ''}`}
                     >
                       {(t.payments ?? 0).toLocaleString()}
                     </td>
@@ -661,14 +661,14 @@ function RoleRankingContent({ role, apiUrl }: { role: 'SS' | 'LP'; apiUrl: strin
     <div className="space-y-4">
       {/* 效率 insight 卡片 */}
       {topMember && bottomMember && topMember.name !== bottomMember.name && (
-        <div className="flex flex-col gap-1 rounded-lg border border-[var(--border-default)] border-l-4 border-l-green-500 bg-green-50 px-4 py-3">
+        <div className="flex flex-col gap-1 rounded-lg border border-[var(--border-default)] border-l-4 border-l-green-500 bg-[var(--color-success-surface)] px-4 py-3">
           <div className="text-sm font-semibold text-[var(--text-primary)]">
             {tr.insightRoleTitle(role)}
           </div>
           <div className="text-xs text-[var(--text-secondary)]">
             {tr.insightTopLabel}
             <span className="font-semibold text-[var(--text-primary)]">{topMember.name}</span>{' '}
-            <span className="text-emerald-800 font-semibold">
+            <span className="text-[var(--color-success)] font-semibold">
               {formatRate(topMember.participation_rate)}
             </span>
             {tr.insightBottomLabel}
@@ -682,13 +682,15 @@ function RoleRankingContent({ role, apiUrl }: { role: 'SS' | 'LP'; apiUrl: strin
           </div>
           <p className="text-[10px] text-[var(--text-muted)]">
             {tr.colorHint}
-            <span className="text-emerald-700 font-medium">{tr.colorGreenLow}</span> ·{' '}
-            <span className="text-amber-700 font-medium">{tr.colorAmberLow}</span> ·{' '}
-            <span className="text-red-600 font-medium">{tr.colorRedLow}</span>
+            <span className="text-[var(--color-success)] font-medium">
+              {tr.colorGreenLow}
+            </span> ·{' '}
+            <span className="text-[var(--color-warning)] font-medium">{tr.colorAmberLow}</span> ·{' '}
+            <span className="text-[var(--color-danger)] font-medium">{tr.colorRedLow}</span>
             {tr.colorHintParticipation}，
-            <span className="text-emerald-700 font-medium">{tr.colorGreen}</span> ·{' '}
-            <span className="text-amber-700 font-medium">{tr.colorAmber}</span> ·{' '}
-            <span className="text-red-600 font-medium">{tr.colorRed}</span>
+            <span className="text-[var(--color-success)] font-medium">{tr.colorGreen}</span> ·{' '}
+            <span className="text-[var(--color-warning)] font-medium">{tr.colorAmber}</span> ·{' '}
+            <span className="text-[var(--color-danger)] font-medium">{tr.colorRed}</span>
             {tr.colorHintCheckin}
           </p>
         </div>

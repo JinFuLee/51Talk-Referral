@@ -67,8 +67,8 @@ export function ComparisonBanner() {
 
   if (!data.available) {
     return (
-      <div className="h-9 bg-amber-50/80 border-b border-amber-100 flex items-center justify-center px-6">
-        <span className="text-xs text-amber-600">
+      <div className="h-9 bg-[var(--color-warning-surface)] border-b border-[var(--color-warning)] flex items-center justify-center px-6">
+        <span className="text-xs text-[var(--color-warning)]">
           ⚠ {data.label}：{data.unavailable_reason ?? t.noCompareData}
         </span>
       </div>

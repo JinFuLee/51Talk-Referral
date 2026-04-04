@@ -821,7 +821,7 @@ function fmt8(v: number | null, format: 'currency' | 'count' = 'count'): string 
 
 function gapColor(v: number | null): string {
   if (v === null) return 'text-[var(--text-muted)]';
-  if (v > 0) return 'text-emerald-800';
+  if (v > 0) return 'text-[var(--color-success)]';
   if (v < 0) return 'text-[var(--color-danger)]';
   return 'text-[var(--text-secondary)]';
 }
@@ -941,7 +941,7 @@ function RateCard8({
     gap === null
       ? 'text-[var(--text-muted)]'
       : gap >= 0
-        ? 'text-emerald-800'
+        ? 'text-[var(--color-success)]'
         : 'text-[var(--color-danger)]';
 
   return (
@@ -1113,7 +1113,7 @@ function TimeProgressBar({ tp, t }: { tp: TimeProgressInfo; t: I18NType }) {
         <span>
           {t.tp_timePct}{' '}
           <span
-            className={`font-semibold ${pct >= 80 ? 'text-[var(--color-danger)]' : pct >= 50 ? 'text-amber-800' : 'text-action-accent'}`}
+            className={`font-semibold ${pct >= 80 ? 'text-[var(--color-danger)]' : pct >= 50 ? 'text-[var(--color-warning)]' : 'text-action-accent'}`}
           >
             {pct}%
           </span>
@@ -1231,9 +1231,9 @@ function RingProgress({ label, value, color }: RingProps) {
 
   const textColor =
     value >= 1
-      ? 'text-emerald-800'
+      ? 'text-[var(--color-success)]'
       : value >= 0.8
-        ? 'text-amber-800'
+        ? 'text-[var(--color-warning)]'
         : 'text-[var(--color-danger)]';
 
   return (
@@ -1308,9 +1308,9 @@ function MonthlyAchievementSection({ t }: { t: I18NType }) {
       </div>
       <p className="text-[10px] text-[var(--text-muted)] text-center mt-1">
         {t.colorHintFull}
-        <span className="text-emerald-700 font-medium">{t.colorGreen100}</span> ·{' '}
-        <span className="text-amber-700 font-medium">{t.colorOrange80}</span> ·{' '}
-        <span className="text-red-600 font-medium">{t.colorRed80}</span>
+        <span className="text-[var(--color-success)] font-medium">{t.colorGreen100}</span> ·{' '}
+        <span className="text-[var(--color-warning)] font-medium">{t.colorOrange80}</span> ·{' '}
+        <span className="text-[var(--color-danger)] font-medium">{t.colorRed80}</span>
       </p>
     </Card>
   );
@@ -1471,9 +1471,11 @@ export default function DashboardPage() {
         <>
           <p className="text-[10px] text-[var(--text-muted)] -mb-2">
             {t.achieveColorHint}
-            <span className="text-emerald-700 font-medium">{t.colorGreen100}</span> ·{' '}
-            <span className="text-amber-700 font-medium">{t.colorOrange80}</span> ·{' '}
-            <span className="text-red-600 font-medium">{t.colorRed80}</span>
+            <span className="text-[var(--color-success)] font-medium">
+              {t.colorGreen100}
+            </span> ·{' '}
+            <span className="text-[var(--color-warning)] font-medium">{t.colorOrange80}</span> ·{' '}
+            <span className="text-[var(--color-danger)] font-medium">{t.colorRed80}</span>
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
             {visibleKpiCards.map(({ key, label, format, targetKey, paceKey, knowledgeChapter }) => {

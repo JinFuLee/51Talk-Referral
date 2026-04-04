@@ -41,7 +41,7 @@ export function SlideProgressBar({ current, total, sections = [] }: SlideProgres
 
             {/* Tooltip */}
             {hoveredSection === section.name && (
-              <div className="absolute top-3 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-50 shadow-lg">
+              <div className="absolute top-3 left-1/2 -translate-x-1/2 bg-[var(--bg-subtle)] text-white text-xs px-2 py-1 rounded whitespace-nowrap z-50 shadow-lg">
                 {section.name}
                 <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-transparent border-b-slate-900" />
               </div>

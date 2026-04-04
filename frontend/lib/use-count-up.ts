@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState } from 'react';
 
 export function useCountUp(end: number, duration: number = 1000) {
   const [count, setCount] = useState(0);
@@ -11,10 +11,10 @@ export function useCountUp(end: number, duration: number = 1000) {
       if (!startTime) startTime = timestamp;
       const progress = timestamp - startTime;
       const percentage = Math.min(progress / duration, 1);
-      
+
       // easeOutExpo
       const easeOut = percentage === 1 ? 1 : 1 - Math.pow(2, -10 * percentage);
-      
+
       setCount(end * easeOut);
 
       if (progress < duration) {

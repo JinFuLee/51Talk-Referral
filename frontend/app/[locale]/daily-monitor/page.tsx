@@ -260,13 +260,13 @@ export default function DailyMonitorPage() {
               label={t.funnelAttendance}
               value={stats.funnel.attendance}
               max={funnelMax}
-              color="bg-purple-500"
+              color="bg-[var(--color-accent)]"
             />
             <FunnelBar
               label={t.funnelPayments}
               value={stats.funnel.payments}
               max={funnelMax}
-              color="bg-green-500"
+              color="bg-[var(--color-success)]"
             />
             <div className="pt-1 border-t border-[var(--border-subtle)]">
               <div className="flex justify-between text-xs">

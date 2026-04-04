@@ -142,7 +142,7 @@ export function CCRankingTable({ rankings }: CCRankingTableProps) {
                 <span
                   className={`inline-flex w-6 h-6 items-center justify-center rounded-full text-xs font-bold ${
                     i === 0
-                      ? 'bg-yellow-100 text-yellow-700'
+                      ? 'bg-[var(--color-warning-surface)] text-[var(--color-warning)]'
                       : i === 1
                         ? 'bg-[var(--bg-surface)] text-[var(--text-secondary)]'
                         : i === 2

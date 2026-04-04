@@ -2,10 +2,10 @@
  * Next.js Middleware — RBAC 三层访问控制 + next-intl i18n 路由
  *
  * 三层逻辑：
- *   1. 特殊页面（login/access-denied）→ 直接放行，不参与 RBAC（防止死循环）
- *   2. 本地开发（localhost）→ 跳过 RBAC，直接放行
- *   3. 有 session cookie → fetch /api/access-control/me 传 X-Session-Token → 检查权限
- *      无 cookie 且非公开页 → redirect /[locale]/login?from=当前路径
+ * 1. 特殊页面（login/access-denied）→ 直接放行，不参与 RBAC（防止死循环）
+ * 2. 本地开发（localhost）→ 跳过 RBAC，直接放行
+ * 3. 有 session cookie → fetch /api/access-control/me 传 X-Session-Token → 检查权限
+ * 无 cookie 且非公开页 → redirect /[locale]/login?from=当前路径
  */
 
 import createMiddleware from 'next-intl/middleware';

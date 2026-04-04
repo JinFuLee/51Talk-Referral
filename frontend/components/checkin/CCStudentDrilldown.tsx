@@ -119,7 +119,11 @@ interface DeltaCellProps {
 
 function DeltaCell({ delta }: DeltaCellProps) {
   const color =
-    delta > 0 ? 'text-emerald-700' : delta < 0 ? 'text-red-600' : 'text-[var(--text-muted)]';
+    delta > 0
+      ? 'text-[var(--color-success)]'
+      : delta < 0
+        ? 'text-[var(--color-danger)]'
+        : 'text-[var(--text-muted)]';
   return (
     <td className={`slide-td text-center tabular-nums font-semibold ${color}`}>
       {delta > 0 ? `+${delta}` : delta}
@@ -134,7 +138,7 @@ function DeltaCell({ delta }: DeltaCellProps) {
  * 最大高度 400px 内滚动。
  *
  * 使用示例：
- *   <CCStudentDrilldown ccName="小明" />
+ * <CCStudentDrilldown ccName="小明" />
  */
 export function CCStudentDrilldown({ ccName }: CCStudentDrilldownProps) {
   const t = useT();
@@ -150,7 +154,7 @@ export function CCStudentDrilldown({ ccName }: CCStudentDrilldownProps) {
 
   if (error) {
     return (
-      <div className="flex items-center justify-center h-16 text-xs text-red-600">
+      <div className="flex items-center justify-center h-16 text-xs text-[var(--color-danger)]">
         {t.loadFailed}
       </div>
     );

@@ -453,9 +453,9 @@ const COL_GROUPS: ColGroup[] = [
 
 function achievementTextClass(pct: number | null): string {
   if (pct == null) return 'text-[var(--text-muted)]';
-  if (pct >= 1) return 'text-emerald-700 font-semibold';
-  if (pct >= 0.8) return 'text-amber-700';
-  return 'text-red-700';
+  if (pct >= 1) return 'text-[var(--color-success)] font-semibold';
+  if (pct >= 0.8) return 'text-[var(--color-warning)]';
+  return 'text-[var(--color-danger)]';
 }
 
 // ── 排名徽章 ────────────────────────────────────────────
@@ -463,7 +463,7 @@ function achievementTextClass(pct: number | null): string {
 function RankBadge({ rank }: { rank: number }) {
   const cls =
     rank === 1
-      ? 'bg-yellow-100 text-yellow-700'
+      ? 'bg-[var(--color-warning-surface)] text-[var(--color-warning)]'
       : rank === 2
         ? 'bg-[var(--bg-subtle)] text-[var(--text-secondary)]'
         : rank === 3
@@ -484,7 +484,9 @@ function GapCell({ gap }: { gap: number | null }) {
   if (gap == null) return <span className="text-[var(--text-muted)]">—</span>;
   const isPos = gap >= 0;
   return (
-    <span className={isPos ? 'text-emerald-700 font-semibold' : 'text-red-700'}>
+    <span
+      className={isPos ? 'text-[var(--color-success)] font-semibold' : 'text-[var(--color-danger)]'}
+    >
       {isPos ? '+' : ''}
       {gap.toLocaleString()}
     </span>
@@ -497,7 +499,11 @@ function AmtGapCell({ gap }: { gap: number | null }) {
   const absVal = Math.abs(gap);
   const display = absVal < 100 ? '$0' : `$${Math.round(absVal).toLocaleString()}`;
   return (
-    <span className={gap > 0 ? 'text-emerald-600 font-semibold' : 'text-red-600'}>
+    <span
+      className={
+        gap > 0 ? 'text-[var(--color-success)] font-semibold' : 'text-[var(--color-danger)]'
+      }
+    >
       {gap > 0 ? '+' : '-'}
       {display}
     </span>
@@ -508,7 +514,11 @@ function AmtGapCell({ gap }: { gap: number | null }) {
 function CountGapCell({ gap }: { gap: number | null }) {
   if (gap == null || gap === 0) return <span className="text-[var(--text-muted)]">—</span>;
   return (
-    <span className={gap > 0 ? 'text-emerald-600 font-semibold' : 'text-red-600'}>
+    <span
+      className={
+        gap > 0 ? 'text-[var(--color-success)] font-semibold' : 'text-[var(--color-danger)]'
+      }
+    >
       {gap > 0 ? '+' : ''}
       {Math.round(gap).toLocaleString()}
     </span>
@@ -575,7 +585,9 @@ function RateGapCell({ gap }: { gap: number | null }) {
   if (gap == null) return <span className="text-[var(--text-muted)]">—</span>;
   const isPos = gap >= 0;
   return (
-    <span className={isPos ? 'text-emerald-700 font-semibold' : 'text-red-700'}>
+    <span
+      className={isPos ? 'text-[var(--color-success)] font-semibold' : 'text-[var(--color-danger)]'}
+    >
       {isPos ? '+' : ''}
       {(gap * 100).toFixed(1)}pp
     </span>
@@ -1305,7 +1317,7 @@ export function CCPerformanceTable({
                         {fmtAmt(record.remaining_daily_avg)}
                       </td>
                       <td
-                        className={`slide-td py-1.5 px-2 text-right font-mono tabular-nums ${record.efficiency_lift_pct != null && record.efficiency_lift_pct > 0.2 ? 'text-red-700' : record.efficiency_lift_pct != null && record.efficiency_lift_pct <= 0 ? 'text-emerald-700' : ''}`}
+                        className={`slide-td py-1.5 px-2 text-right font-mono tabular-nums ${record.efficiency_lift_pct != null && record.efficiency_lift_pct > 0.2 ? 'text-[var(--color-danger)]' : record.efficiency_lift_pct != null && record.efficiency_lift_pct <= 0 ? 'text-[var(--color-success)]' : ''}`}
                       >
                         {record.efficiency_lift_pct != null
                           ? `${(record.efficiency_lift_pct * 100).toFixed(1)}%`

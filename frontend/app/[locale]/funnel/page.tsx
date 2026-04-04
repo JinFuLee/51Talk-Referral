@@ -413,7 +413,7 @@ export default function FunnelPage() {
 
       {/* 漏斗 insight 卡片 */}
       {bottleneckStage && (
-        <div className="flex flex-col gap-1.5 rounded-lg border border-[var(--border-default)] border-l-4 border-l-amber-400 bg-amber-50 px-4 py-3">
+        <div className="flex flex-col gap-1.5 rounded-lg border border-[var(--border-default)] border-l-4 border-l-amber-400 bg-[var(--color-warning-surface)] px-4 py-3">
           <div className="text-sm font-semibold text-[var(--text-primary)]">
             {t.funnelDiagnosis}
           </div>
@@ -431,7 +431,7 @@ export default function FunnelPage() {
             {bestStage && bestStage.name !== bottleneckStage.name && (
               <>
                 ；{stageName(bestStage.name)} {t.bestSuffix}
-                <span className="text-emerald-800 font-semibold">
+                <span className="text-[var(--color-success)] font-semibold">
                   {bestStage.achievement_rate != null
                     ? `${Math.round(bestStage.achievement_rate * 100)}%`
                     : '—'}
@@ -443,9 +443,9 @@ export default function FunnelPage() {
           </div>
           <p className="text-[10px] text-[var(--text-muted)]">
             {t.colorLegend}
-            <span className="text-emerald-700 font-medium">{t.colorGreen}</span> ·{' '}
-            <span className="text-amber-700 font-medium">{t.colorOrange}</span> ·{' '}
-            <span className="text-red-600 font-medium">{t.colorRed}</span>
+            <span className="text-[var(--color-success)] font-medium">{t.colorGreen}</span> ·{' '}
+            <span className="text-[var(--color-warning)] font-medium">{t.colorOrange}</span> ·{' '}
+            <span className="text-[var(--color-danger)] font-medium">{t.colorRed}</span>
             {t.colorSuffix}
           </p>
         </div>
@@ -523,7 +523,7 @@ export default function FunnelPage() {
                           : '—'}
                       </td>
                       <td
-                        className={`slide-td text-right font-mono tabular-nums font-medium ${(s.gap ?? 0) >= 0 ? 'text-emerald-800' : 'text-[var(--color-danger)]'}`}
+                        className={`slide-td text-right font-mono tabular-nums font-medium ${(s.gap ?? 0) >= 0 ? 'text-[var(--color-success)]' : 'text-[var(--color-danger)]'}`}
                       >
                         {s.gap != null ? `${s.gap >= 0 ? '+' : ''}${s.gap.toLocaleString()}` : '—'}
                       </td>
@@ -589,7 +589,9 @@ export default function FunnelPage() {
                     </td>
                     <td
                       className={`py-1 px-2 text-xs text-right font-mono tabular-nums font-medium ${
-                        (s.gap ?? 0) >= 0 ? 'text-emerald-800' : 'text-[var(--color-danger)]'
+                        (s.gap ?? 0) >= 0
+                          ? 'text-[var(--color-success)]'
+                          : 'text-[var(--color-danger)]'
                       }`}
                     >
                       {s.gap != null
@@ -602,9 +604,9 @@ export default function FunnelPage() {
                       <span
                         className={`font-medium ${
                           (s.achievement_rate ?? 0) >= 1
-                            ? 'text-emerald-800'
+                            ? 'text-[var(--color-success)]'
                             : (s.achievement_rate ?? 0) >= 0.8
-                              ? 'text-amber-800'
+                              ? 'text-[var(--color-warning)]'
                               : 'text-[var(--color-danger)]'
                         }`}
                       >
@@ -700,7 +702,7 @@ export default function FunnelPage() {
                     <td className="py-2 px-2 text-xs text-right font-mono tabular-nums">
                       +{(s.impact_payments ?? 0).toLocaleString()}
                     </td>
-                    <td className="py-2 px-2 text-xs text-right font-mono tabular-nums text-emerald-800 font-medium">
+                    <td className="py-2 px-2 text-xs text-right font-mono tabular-nums text-[var(--color-success)] font-medium">
                       +${(s.impact_revenue ?? 0).toLocaleString()}
                     </td>
                   </tr>

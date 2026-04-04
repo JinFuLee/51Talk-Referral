@@ -149,9 +149,9 @@ function formatGapValue(key: GapKey, val: number | null | undefined): string {
 
 function gapStatusColor(val: number | null | undefined): string {
   if (val == null) return 'text-[var(--text-muted)]';
-  if (val >= 0) return 'text-emerald-800';
-  if (val >= -10) return 'text-amber-800';
-  return 'text-red-700';
+  if (val >= 0) return 'text-[var(--color-success)]';
+  if (val >= -10) return 'text-[var(--color-warning)]';
+  return 'text-[var(--color-danger)]';
 }
 
 interface Props {
@@ -189,7 +189,7 @@ export function GapDashboardSlide({ data, monthlyData }: Props) {
         key={key}
         className={`rounded-lg border ${compact ? 'p-2' : 'p-3'} ${
           isNeg
-            ? 'bg-red-50 border-red-200'
+            ? 'bg-[var(--color-danger-surface)] border-[var(--color-danger)]'
             : 'bg-[var(--color-success-surface)] border-[var(--border-subtle)]'
         }`}
       >
@@ -202,7 +202,9 @@ export function GapDashboardSlide({ data, monthlyData }: Props) {
           {isNeg ? '▼ ' : isRevOrAsp ? '+' : '+'}
           {formatGapValue(key, val)}
         </p>
-        <p className={`text-[9px] mt-0.5 ${isNeg ? 'text-red-600' : 'text-emerald-700'}`}>
+        <p
+          className={`text-[9px] mt-0.5 ${isNeg ? 'text-[var(--color-danger)]' : 'text-[var(--color-success)]'}`}
+        >
           {label}
         </p>
       </div>

@@ -127,7 +127,7 @@ export function TargetGapSlide({ slideNumber, totalSlides }: SlideProps) {
       ) : error ? (
         <div className="flex items-center justify-center h-full">
           <div className="text-center space-y-2">
-            <p className="text-base font-semibold text-red-600">{t.loading_failed}</p>
+            <p className="text-base font-semibold text-[var(--color-danger)]">{t.loading_failed}</p>
             <p className="text-sm text-[var(--text-muted)]">{t.check_backend}</p>
             <button
               onClick={() => mutate()}
@@ -153,13 +153,15 @@ export function TargetGapSlide({ slideNumber, totalSlides }: SlideProps) {
               <div
                 key={s.name}
                 className={`flex flex-col gap-2 rounded-[var(--radius-xl)] p-6 ${
-                  isAtRisk ? 'bg-red-50 border-2 border-red-300' : 'bg-[var(--bg-subtle)]'
+                  isAtRisk
+                    ? 'bg-[var(--color-danger-surface)] border-2 border-[var(--color-danger)]'
+                    : 'bg-[var(--bg-subtle)]'
                 }`}
               >
                 <p className="text-sm font-medium text-[var(--text-secondary)]">{s.name}</p>
                 <div
                   className={`text-3xl font-bold ${
-                    isAtRisk ? 'text-red-600' : 'text-[var(--text-primary)]'
+                    isAtRisk ? 'text-[var(--color-danger)]' : 'text-[var(--text-primary)]'
                   }`}
                   style={isAtRisk ? undefined : { color: 'var(--brand-p1, var(--text-primary))' }}
                 >
@@ -171,19 +173,19 @@ export function TargetGapSlide({ slideNumber, totalSlides }: SlideProps) {
                 {target > 0 && (
                   <>
                     <div
-                      className={`text-lg font-bold ${gap >= 0 ? 'text-emerald-800' : 'text-[var(--color-danger)]'}`}
+                      className={`text-lg font-bold ${gap >= 0 ? 'text-[var(--color-success)]' : 'text-[var(--color-danger)]'}`}
                     >
                       {gap >= 0 ? '+' : ''}
                       {gap.toLocaleString()}
                     </div>
                     <div className="w-full bg-[var(--bg-subtle)] rounded-full h-2">
                       <div
-                        className={`h-2 rounded-full ${rate >= 1 ? 'bg-emerald-600' : rate >= 0.8 ? 'bg-amber-500' : 'bg-[var(--color-danger)]'}`}
+                        className={`h-2 rounded-full ${rate >= 1 ? 'bg-[var(--color-success)]' : rate >= 0.8 ? 'bg-[var(--color-warning)]' : 'bg-[var(--color-danger)]'}`}
                         style={{ width: `${Math.min(100, rate * 100)}%` }}
                       />
                     </div>
                     <p
-                      className={`text-sm font-semibold ${rate >= 1 ? 'text-emerald-800' : rate >= 0.8 ? 'text-amber-800' : 'text-[var(--color-danger)]'}`}
+                      className={`text-sm font-semibold ${rate >= 1 ? 'text-[var(--color-success)]' : rate >= 0.8 ? 'text-[var(--color-warning)]' : 'text-[var(--color-danger)]'}`}
                     >
                       {formatRate(rate)}
                     </p>

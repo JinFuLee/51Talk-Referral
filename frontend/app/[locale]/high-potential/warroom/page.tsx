@@ -147,9 +147,9 @@ function UrgencyBadge({
   labels: { red: string; yellow: string; green: string };
 }) {
   const bg: Record<string, string> = {
-    red: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
-    yellow: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
-    green: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
+    red: 'bg-[var(--color-danger-surface)] text-[var(--color-danger)]',
+    yellow: 'bg-[var(--color-warning-surface)] text-[var(--color-warning)]',
+    green: 'bg-[var(--color-success-surface)] text-[var(--color-success)]',
   };
   return (
     <span
@@ -217,12 +217,14 @@ export default function WarroomPage() {
           </p>
         </div>
         {redCount > 0 && (
-          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-50 border border-red-200 dark:bg-red-900/20 dark:border-red-700">
+          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[var(--color-danger-surface)] border border-[var(--color-danger)]">
             <AlertTriangle className="w-4 h-4 text-[var(--color-danger)]" />
-            <span className="text-sm font-semibold text-red-600 dark:text-red-400">
+            <span className="text-sm font-semibold text-[var(--color-danger)]">
               {t.todayUrgent}
             </span>
-            <Badge className="bg-red-500 text-white text-xs px-1.5 py-0 ml-0.5">{redCount}</Badge>
+            <Badge className="bg-[var(--color-danger)] text-white text-xs px-1.5 py-0 ml-0.5">
+              {redCount}
+            </Badge>
           </div>
         )}
       </div>

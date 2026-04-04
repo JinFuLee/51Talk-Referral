@@ -279,7 +279,7 @@ function HeaderWithTip({ children, tip }: { children: React.ReactNode; tip: stri
       </span>
       <span
         className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 hidden group-hover:block z-10
-        bg-gray-900 text-white text-[10px] rounded px-2 py-1 whitespace-nowrap pointer-events-none shadow-lg"
+ bg-[var(--bg-subtle)] text-white text-[10px] rounded px-2 py-1 whitespace-nowrap pointer-events-none shadow-lg"
       >
         {tip}
       </span>

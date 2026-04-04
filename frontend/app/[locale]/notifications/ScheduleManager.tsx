@@ -392,7 +392,7 @@ export function ScheduleManager() {
                   {sch.channels.length > 0 && (
                     <span className="truncate max-w-[160px]">{sch.channels.join(', ')}</span>
                   )}
-                  {sch.dry_run && <span className="text-amber-500">Dry Run</span>}
+                  {sch.dry_run && <span className="text-[var(--color-warning)]">Dry Run</span>}
                 </div>
                 {sch.description && (
                   <p className="mt-0.5 text-[11px] text-[var(--text-secondary)] truncate max-w-xs">
@@ -411,9 +411,9 @@ export function ScheduleManager() {
                 className="p-1.5 rounded-lg hover:bg-[var(--bg-subtle)] transition-colors disabled:opacity-50"
               >
                 {sch.enabled ? (
-                  <PowerOff className="w-3.5 h-3.5 text-amber-500" />
+                  <PowerOff className="w-3.5 h-3.5 text-[var(--color-warning)]" />
                 ) : (
-                  <Power className="w-3.5 h-3.5 text-green-500" />
+                  <Power className="w-3.5 h-3.5 text-[var(--color-success)]" />
                 )}
               </button>
               <button
@@ -427,9 +427,9 @@ export function ScheduleManager() {
                 onClick={() => handleDelete(sch.id)}
                 disabled={actionId === sch.id}
                 title={t.delete}
-                className="p-1.5 rounded-lg hover:bg-red-50 transition-colors disabled:opacity-50"
+                className="p-1.5 rounded-lg hover:bg-[var(--color-danger-surface)] transition-colors disabled:opacity-50"
               >
-                <Trash2 className="w-3.5 h-3.5 text-red-400" />
+                <Trash2 className="w-3.5 h-3.5 text-[var(--color-danger)]" />
               </button>
             </div>
           </div>

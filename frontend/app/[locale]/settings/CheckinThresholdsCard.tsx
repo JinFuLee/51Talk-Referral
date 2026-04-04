@@ -125,7 +125,7 @@ export default function CheckinThresholdsCard() {
           {/* good threshold */}
           <div className="space-y-1">
             <label className="text-xs font-medium text-[var(--text-secondary)] flex items-center gap-1.5">
-              <span className="inline-block w-2.5 h-2.5 rounded-sm bg-green-500" />
+              <span className="inline-block w-2.5 h-2.5 rounded-sm bg-[var(--color-success)]" />
               {t.goodLabel}
             </label>
             <div className="flex items-center gap-1">
@@ -146,7 +146,7 @@ export default function CheckinThresholdsCard() {
           {/* warning threshold */}
           <div className="space-y-1">
             <label className="text-xs font-medium text-[var(--text-secondary)] flex items-center gap-1.5">
-              <span className="inline-block w-2.5 h-2.5 rounded-sm bg-yellow-400" />
+              <span className="inline-block w-2.5 h-2.5 rounded-sm bg-[var(--color-warning)]" />
               {t.warningLabel}
             </label>
             <div className="flex items-center gap-1">
@@ -169,15 +169,15 @@ export default function CheckinThresholdsCard() {
         <div className="flex items-center gap-3 text-xs py-2 px-3 bg-[var(--bg-subtle)] rounded">
           <span className="text-[var(--text-muted)]">{t.preview}</span>
           <span className="flex items-center gap-1">
-            <span className="inline-block w-2 h-2 rounded-full bg-green-500" />≥
+            <span className="inline-block w-2 h-2 rounded-full bg-[var(--color-success)]" />≥
             {Math.round(cfg.good * 100)}%
           </span>
           <span className="flex items-center gap-1">
-            <span className="inline-block w-2 h-2 rounded-full bg-yellow-400" />
+            <span className="inline-block w-2 h-2 rounded-full bg-[var(--color-warning)]" />
             {Math.round(cfg.warning * 100)}–{Math.round(cfg.good * 100)}%
           </span>
           <span className="flex items-center gap-1">
-            <span className="inline-block w-2 h-2 rounded-full bg-red-400" />
+            <span className="inline-block w-2 h-2 rounded-full bg-[var(--color-danger)]" />
             &lt;{Math.round(cfg.warning * 100)}%
           </span>
         </div>

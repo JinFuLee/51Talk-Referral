@@ -2,7 +2,7 @@
  * usePagination — 纯前端分页 hook
  * 数据已在内存中，支持越界保护和 data 变化时自动重置
  */
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect } from 'react';
 
 export function usePagination<T>(data: T[], pageSize: number = 20) {
   const [page, setPageRaw] = useState(1);

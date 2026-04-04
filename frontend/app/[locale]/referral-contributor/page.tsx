@@ -406,7 +406,9 @@ export default function ReferralContributorPage() {
         <Card title="">
           <div className="text-center py-3">
             <p className="text-xs text-[var(--text-muted)] mb-1">{t.totalPaid}</p>
-            <p className="text-3xl font-bold text-emerald-800">{totalPaid.toLocaleString()}</p>
+            <p className="text-3xl font-bold text-[var(--color-success)]">
+              {totalPaid.toLocaleString()}
+            </p>
           </div>
         </Card>
         <Card title="">
@@ -554,7 +556,9 @@ export default function ReferralContributorPage() {
                   </td>
                   <td className="slide-td text-right font-mono tabular-nums">
                     {r.ss_new_count > 0 ? (
-                      <span className="text-purple-600 font-semibold">{r.ss_new_count}</span>
+                      <span className="text-[var(--color-accent)] font-semibold">
+                        {r.ss_new_count}
+                      </span>
                     ) : (
                       <span className="text-[var(--text-muted)]">—</span>
                     )}
@@ -576,7 +580,7 @@ export default function ReferralContributorPage() {
                   <td className="slide-td text-right font-mono tabular-nums font-bold text-[var(--text-primary)]">
                     {r.total_new}
                   </td>
-                  <td className="slide-td text-right font-mono tabular-nums font-bold text-emerald-800">
+                  <td className="slide-td text-right font-mono tabular-nums font-bold text-[var(--color-success)]">
                     {r.total_paid > 0 ? (
                       r.total_paid
                     ) : (
@@ -587,9 +591,9 @@ export default function ReferralContributorPage() {
                     <span
                       className={
                         r.conversion_rate >= 0.3
-                          ? 'text-emerald-800 font-semibold'
+                          ? 'text-[var(--color-success)] font-semibold'
                           : r.conversion_rate > 0
-                            ? 'text-amber-800'
+                            ? 'text-[var(--color-warning)]'
                             : 'text-[var(--text-muted)]'
                       }
                     >

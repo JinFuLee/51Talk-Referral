@@ -71,7 +71,11 @@ export function FunnelSnapshot({ stages }: FunnelSnapshotProps) {
         if (!fromStage || !toStage) return null;
         const rate = fromStage.actual > 0 ? toStage.actual / fromStage.actual : 0;
         const colorClass =
-          rate >= 0.5 ? 'bg-green-500' : rate >= 0.3 ? 'bg-yellow-400' : 'bg-red-400';
+          rate >= 0.5
+            ? 'bg-[var(--color-success)]'
+            : rate >= 0.3
+              ? 'bg-[var(--color-warning)]'
+              : 'bg-[var(--color-danger)]';
         const fromLabel = t[fromKey];
         const toLabel = t[toKey];
         return (

@@ -93,15 +93,15 @@ interface QuadrantConfig {
  * 展示学员在"有无课耗"×"有无打卡"四个象限的分布，
  * 帮助 CC 快速识别"有课耗但未打卡"的激活机会池。
  *
- *  ┌─────────────┬───────────────┐
- *  │ 核心用户     │ 激活目标池 🔴  │ ← 有课耗
- *  ├─────────────┼───────────────┤
- *  │ 轻度参与     │ 完全沉默      │ ← 无课耗
- *  └─────────────┴───────────────┘
- *    ↑ 有打卡        ↑ 无打卡
+ * ┌─────────────┬───────────────┐
+ * │ 核心用户 │ 激活目标池 🔴 │ ← 有课耗
+ * ├─────────────┼───────────────┤
+ * │ 轻度参与 │ 完全沉默 │ ← 无课耗
+ * └─────────────┴───────────────┘
+ * ↑ 有打卡 ↑ 无打卡
  *
  * 使用示例：
- *   <LessonCheckinCross data={analysis.lesson_checkin_cross} />
+ * <LessonCheckinCross data={analysis.lesson_checkin_cross} />
  */
 export function LessonCheckinCross({ data }: LessonCheckinCrossProps) {
   const locale = useLocale();
@@ -116,16 +116,17 @@ export function LessonCheckinCross({ data }: LessonCheckinCrossProps) {
   const pct = (n: number) => (total > 0 ? `${((n / total) * 100).toFixed(1)}%` : '—');
 
   // 四象限配置（行=课耗，列=打卡）
-  // 布局：[0]左上 有课耗+有打卡  [1]右上 有课耗+无打卡
-  //       [2]左下 无课耗+有打卡  [3]右下 无课耗+无打卡
+  // 布局：[0]左上 有课耗+有打卡 [1]右上 有课耗+无打卡
+  // [2]左下 无课耗+有打卡 [3]右下 无课耗+无打卡
   const quadrants: Array<{ value: number; config: QuadrantConfig }> = [
     {
       value: data.has_lesson_has_checkin,
       config: {
         label: t.coreUser,
         sublabel: t.coreUserSub,
-        containerClass: 'bg-emerald-50 border-emerald-200 hover:bg-emerald-100',
-        valueClass: 'text-emerald-700',
+        containerClass:
+          'bg-[var(--color-success-surface)] border-[var(--color-success)] hover:bg-[var(--color-success-surface)]',
+        valueClass: 'text-[var(--color-success)]',
       },
     },
     {
@@ -134,8 +135,9 @@ export function LessonCheckinCross({ data }: LessonCheckinCrossProps) {
         label: t.activationPool,
         sublabel: t.activationPoolSub,
         flag: '🔴',
-        containerClass: 'bg-amber-50 border-amber-200 hover:bg-amber-100',
-        valueClass: 'text-amber-700',
+        containerClass:
+          'bg-[var(--color-warning-surface)] border-[var(--color-warning)] hover:bg-[var(--color-warning-surface)]',
+        valueClass: 'text-[var(--color-warning)]',
       },
     },
     {
@@ -143,8 +145,9 @@ export function LessonCheckinCross({ data }: LessonCheckinCrossProps) {
       config: {
         label: t.lightUser,
         sublabel: t.lightUserSub,
-        containerClass: 'bg-blue-50 border-blue-200 hover:bg-blue-100',
-        valueClass: 'text-blue-700',
+        containerClass:
+          'bg-[var(--color-accent-surface)] border-[var(--color-accent)] hover:bg-[var(--color-accent-surface)]',
+        valueClass: 'text-[var(--color-accent)]',
       },
     },
     {
@@ -152,8 +155,9 @@ export function LessonCheckinCross({ data }: LessonCheckinCrossProps) {
       config: {
         label: t.silent,
         sublabel: t.silentSub,
-        containerClass: 'bg-gray-50 border-gray-200 hover:bg-gray-100',
-        valueClass: 'text-gray-600',
+        containerClass:
+          'bg-[var(--bg-subtle)] border-[var(--border-default)] hover:bg-[var(--bg-subtle)]',
+        valueClass: 'text-[var(--text-secondary)]',
       },
     },
   ];
@@ -201,7 +205,7 @@ export function LessonCheckinCross({ data }: LessonCheckinCrossProps) {
                   {q.config.sublabel}
                 </div>
                 {i === 1 && q.value > 0 && (
-                  <div className="mt-1.5 text-xs text-amber-600 font-medium">
+                  <div className="mt-1.5 text-xs text-[var(--color-warning)] font-medium">
                     {t.maxOpportunity}
                   </div>
                 )}

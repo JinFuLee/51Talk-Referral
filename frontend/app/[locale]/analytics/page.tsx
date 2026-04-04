@@ -80,7 +80,7 @@ export default function AnalyticsPage() {
 
       {error && !isLoading && (
         <div className="card-base flex flex-col items-center justify-center py-12 gap-3">
-          <p className="text-base font-semibold text-red-600">{t('loadError')}</p>
+          <p className="text-base font-semibold text-[var(--color-danger)]">{t('loadError')}</p>
           <p className="text-sm text-[var(--text-muted)]">{t('loadErrorDesc')}</p>
           <button onClick={() => mutate()} className="btn-secondary">
             {t('retry')}

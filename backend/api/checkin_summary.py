@@ -28,6 +28,9 @@ from backend.api._checkin_shared import (
     find_d4_id_col as _find_d4_id_col,
 )
 from backend.api._checkin_shared import (
+    m_label_to_index as _m_label_to_index,
+)
+from backend.api._checkin_shared import (
     safe_str as _safe_str,
 )
 from backend.api.dependencies import get_data_manager
@@ -138,21 +141,20 @@ def _aggregate_ops_channels(
 ) -> dict[str, Any]:
     """运营角色聚合：按渠道推荐 + 围场子段，不使用 CC/SS/LP 人员列。"""
     enclosures = enclosures_override or [
-        "6M",
-        "7M",
-        "8M",
-        "9M",
-        "10M",
-        "11M",
-        "12M",
-        "12M+",
-        "M6+",
-        "181+",
+        "6M", "7M", "8M", "9M", "10M", "11M", "12M", "12M+",
+        "M6+", "181+",
     ]
 
-    # 筛选 M6+ 围场学员
+    # D3 围场只到 M6+（不拆分 6M/7M/...），确保 M6+/181+ 总在匹配列表中
+    _d3_match = set(enclosures)
+    _m6_plus_keys = {"6M", "7M", "8M", "9M", "10M", "11M", "12M", "12M+"}
+    if _d3_match & _m6_plus_keys:
+        _d3_match.add("M6+")
+        _d3_match.add("181+")
+
+    # 筛选运营围场学员
     if _D3_ENCLOSURE_COL in df_d3.columns:
-        subset = df_d3[df_d3[_D3_ENCLOSURE_COL].isin(enclosures)].copy()
+        subset = df_d3[df_d3[_D3_ENCLOSURE_COL].isin(_d3_match)].copy()
     else:
         subset = df_d3.copy()
 
@@ -199,29 +201,80 @@ def _aggregate_ops_channels(
             ch["recommended_count"] = unchecked
         channels.append(ch)
 
-    # 围场子段
+    # 围场子段（D3 只到 M6+，用 D4 生命周期列细分为 M6→M12+）
     by_enclosure_segment: list[dict[str, Any]] = []
+
+    # 构建 D4 生命周期索引（stdt_id → 生命周期 M 标签）
+    _d4_lifecycle: dict[str, str] = {}
+    d4_lifecycle_col = "生命周期" if "生命周期" in df_d4.columns else None
+    if d4_lifecycle_col and d3_id_col:
+        for _, row in df_d4.iterrows():
+            sid = _safe_str(row.get(_find_d4_id_col(df_d4) or "", ""))
+            lc = _safe_str(row.get(d4_lifecycle_col, ""))
+            if sid and lc:
+                _d4_lifecycle[sid] = _M_MAP.get(lc, lc)
+
     if _D3_ENCLOSURE_COL in subset.columns:
         for enc_val in sorted(subset[_D3_ENCLOSURE_COL].dropna().unique()):
-            seg = subset[subset[_D3_ENCLOSURE_COL] == enc_val]
-            t = len(seg)
-            c = (
-                int(
-                    pd.to_numeric(seg[_D3_CHECKIN_COL], errors="coerce").fillna(0).sum()
+            enc_str = _safe_str(enc_val)
+            m_label = _M_MAP.get(enc_str, enc_str)
+
+            # M6+ 桶：用 D4 生命周期细分为 M6→M12+
+            if m_label in ("M6+", "M6") and d3_id_col and _d4_lifecycle:
+                seg = subset[subset[_D3_ENCLOSURE_COL] == enc_val]
+                # 给每行打上 D4 生命周期标签
+                sub_groups: dict[str, list[int]] = {}  # M标签 → [打卡值]
+                for _, row in seg.iterrows():
+                    sid = _safe_str(row.get(d3_id_col, ""))
+                    d4_m = _d4_lifecycle.get(sid, "M12+")  # 未匹配归入 M12+
+                    ck = int(pd.to_numeric(row.get(_D3_CHECKIN_COL, 0), errors="coerce") or 0)
+                    # D4 标签 < M6 的学员归入 M12+（D3 M6+ 桶内不应有 M0-M5）
+                    _m6_plus_set = {"M6", "M7", "M8", "M9", "M10", "M11", "M12", "M12+"}
+                    if d4_m not in _m6_plus_set:
+                        d4_m = "M12+"
+                    sub_groups.setdefault(d4_m, []).append(ck)
+                # 按 M6→M12+ 顺序输出
+                _order = ["M6", "M7", "M8", "M9", "M10", "M11", "M12", "M12+"]
+                for m in _order:
+                    vals = sub_groups.get(m, [])
+                    if not vals:
+                        continue
+                    t = len(vals)
+                    c = sum(vals)
+                    by_enclosure_segment.append({
+                        "segment": m,
+                        "label": f"{m}围场",
+                        "students": t,
+                        "checked_in": c,
+                        "rate": round(c / t, 4) if t > 0 else 0.0,
+                    })
+                # 未匹配到 D4 的残余（不应发生，但兜底）
+                for m, vals in sub_groups.items():
+                    if m not in _order:
+                        t = len(vals)
+                        c = sum(vals)
+                        by_enclosure_segment.append({
+                            "segment": m,
+                            "label": f"{m}围场",
+                            "students": t,
+                            "checked_in": c,
+                            "rate": round(c / t, 4) if t > 0 else 0.0,
+                        })
+            else:
+                # 非 M6+ 的正常围场段
+                seg = subset[subset[_D3_ENCLOSURE_COL] == enc_val]
+                t = len(seg)
+                c = (
+                    int(pd.to_numeric(seg[_D3_CHECKIN_COL], errors="coerce").fillna(0).sum())
+                    if _D3_CHECKIN_COL in seg.columns else 0
                 )
-                if _D3_CHECKIN_COL in seg.columns
-                else 0
-            )
-            label = _M_MAP.get(_safe_str(enc_val), _safe_str(enc_val))
-            by_enclosure_segment.append(
-                {
-                    "segment": label,
-                    "label": f"{label}围场",
+                by_enclosure_segment.append({
+                    "segment": m_label,
+                    "label": f"{m_label}围场",
                     "students": t,
                     "checked_in": c,
                     "rate": round(c / t, 4) if t > 0 else 0.0,
-                }
-            )
+                })
 
     if not by_enclosure_segment:
         by_enclosure_segment = [
@@ -233,6 +286,9 @@ def _aggregate_ops_channels(
                 "rate": round(rate, 4),
             }
         ]
+
+    # 按 M 标签排序（M3→M4→...→M12+）
+    by_enclosure_segment.sort(key=lambda x: _m_label_to_index(x["segment"]))
 
     return {
         "total_students": total,

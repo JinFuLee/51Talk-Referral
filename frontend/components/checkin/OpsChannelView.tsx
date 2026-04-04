@@ -174,8 +174,9 @@ function fmtNum(n: number | null | undefined): string {
 // ── 优先级标签 ────────────────────────────────────────────────────────────────
 
 const PRIORITY_STYLES: Record<string, string> = {
-  high: 'bg-red-50 text-red-700 border border-red-200',
-  medium: 'bg-amber-50 text-amber-700 border border-amber-200',
+  high: 'bg-[var(--color-danger-surface)] text-[var(--color-danger)] border border-[var(--color-danger)]',
+  medium:
+    'bg-[var(--color-warning-surface)] text-[var(--color-warning)] border border-[var(--color-warning)]',
   low: 'bg-[var(--bg-surface)] text-[var(--text-secondary)] border border-[var(--border-subtle)]',
 };
 
@@ -183,9 +184,9 @@ const PRIORITY_STYLES: Record<string, string> = {
 
 const COST_STYLES: Record<string, string> = {
   high: 'text-[var(--color-danger)]',
-  medium: 'text-amber-800',
-  low: 'text-emerald-800',
-  lowest: 'text-emerald-900',
+  medium: 'text-[var(--color-warning)]',
+  low: 'text-[var(--color-success)]',
+  lowest: 'text-[var(--color-success)]',
 };
 
 // ── 渠道卡片 ─────────────────────────────────────────────────────────────────

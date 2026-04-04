@@ -88,7 +88,7 @@ function CustomTooltip({ active, payload, t }: TooltipProps<number, string> & { 
  * 每根柱顶标注人数，tooltip 显示百分比。
  *
  * 使用示例：
- *   <StudentFrequencyChart data={analysis.frequency_distribution} />
+ * <StudentFrequencyChart data={analysis.frequency_distribution} />
  */
 export function StudentFrequencyChart({ data }: StudentFrequencyChartProps) {
   const locale = useLocale();

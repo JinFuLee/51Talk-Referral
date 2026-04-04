@@ -16,7 +16,7 @@ const usePageDimensionsStore = create<{
  * UnifiedFilterBar 读取此声明自动隐藏不适用的筛选器。
  *
  * Example:
- *   usePageDimensions({ country: true, dataRole: true, enclosure: true, team: true });
+ * usePageDimensions({ country: true, dataRole: true, enclosure: true, team: true });
  */
 export function usePageDimensions(dims: PageDimensions): void {
   const setDims = usePageDimensionsStore((s) => s.setDims);

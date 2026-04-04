@@ -121,8 +121,8 @@ function assignmentToRoleEnclosures(assignment: EnclosureRoleAssignment): Record
  * 共享 hook：从后端 API 读取宽口径围场配置（与 Settings 页面同源）
  *
  * 数据源变更历史：
- *   旧版：localStorage('enclosure_role_wide') — Settings 迁移后已删除
- *   新版：/api/config/enclosure-role → .wide 字段
+ * 旧版：localStorage('enclosure_role_wide') — Settings 迁移后已删除
+ * 新版：/api/config/enclosure-role → .wide 字段
  *
  * 返回 { config, roleEnclosures, activeRoles, configJson }
  */

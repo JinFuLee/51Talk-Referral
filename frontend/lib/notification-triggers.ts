@@ -1,5 +1,5 @@
-import type { SummaryData } from "./types";
-import { useNotificationStore } from "./stores/notification-store";
+import type { SummaryData } from './types';
+import { useNotificationStore } from './stores/notification-store';
 
 /**
  * Trigger notifications based on summary KPI data.
@@ -13,15 +13,15 @@ export function checkAndTriggerNotifications(summaryData: SummaryData): void {
     if (!m) continue;
 
     // KPI status red → warning
-    if (m.status === "red") {
+    if (m.status === 'red') {
       const key = `kpi_red_${metric}_${today}`;
       if (!store.hasKey(key)) {
         store.addNotification({
-          type: "warning",
+          type: 'warning',
           title: `KPI 预警：${m.label ?? metric}`,
           message: `当前值 ${m.actual}，目标 ${m.target}，状态严重落后。`,
           source: key,
-          actionHref: "/ops/dashboard",
+          actionHref: '/ops/dashboard',
         });
       }
     }
@@ -36,11 +36,11 @@ export function checkAndTriggerNotifications(summaryData: SummaryData): void {
       const key = `gap_20pct_${metric}_${today}`;
       if (!store.hasKey(key)) {
         store.addNotification({
-          type: "alert",
+          type: 'alert',
           title: `目标缺口预警：${m.label ?? metric}`,
           message: `差额 ${m.absolute_gap.toFixed(0)}，超过目标 20%，需加速追进度。`,
           source: key,
-          actionHref: "/ops/kpi-north-star",
+          actionHref: '/ops/kpi-north-star',
         });
       }
     }
@@ -60,11 +60,11 @@ export function checkZeroFollowupNotification(totalZero: number): void {
 
   if (!store.hasKey(key)) {
     store.addNotification({
-      type: "alert",
-      title: "零跟进学员预警",
+      type: 'alert',
+      title: '零跟进学员预警',
       message: `本月有 ${totalZero} 名付费学员未被跟进，存在流失风险。`,
       source: key,
-      actionHref: "/ops/followup-alert",
+      actionHref: '/ops/followup-alert',
     });
   }
 }

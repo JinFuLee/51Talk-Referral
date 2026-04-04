@@ -132,7 +132,7 @@ export function ScenarioAnalysisSlide({ slideNumber, totalSlides }: SlideProps) 
       ) : error ? (
         <div className="flex items-center justify-center h-full">
           <div className="text-center space-y-2">
-            <p className="text-base font-semibold text-red-600">{t.loading_failed}</p>
+            <p className="text-base font-semibold text-[var(--color-danger)]">{t.loading_failed}</p>
             <p className="text-sm text-[var(--text-muted)]">{t.check_backend}</p>
             <button
               onClick={() => mutate()}
@@ -178,7 +178,7 @@ export function ScenarioAnalysisSlide({ slideNumber, totalSlides }: SlideProps) 
             </div>
             <div className="bg-[var(--color-success-surface)] rounded-lg p-3 text-center">
               <p className="text-xs text-[var(--text-muted)] mb-1">{t.impact_revenue}</p>
-              <p className="text-lg font-bold text-emerald-800">
+              <p className="text-lg font-bold text-[var(--color-success)]">
                 +${(data.impact_revenue ?? 0).toLocaleString()}
               </p>
             </div>

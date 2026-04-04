@@ -1,24 +1,24 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo } from 'react';
 
 export function useSortable<T extends Record<string, unknown>>(
   data: T[],
   defaultKey: keyof T & string,
-  defaultDir: "asc" | "desc" = "desc"
+  defaultDir: 'asc' | 'desc' = 'desc'
 ): {
   sortedData: T[];
   sortKey: keyof T & string;
-  sortDir: "asc" | "desc";
+  sortDir: 'asc' | 'desc';
   onSort: (key: keyof T & string) => void;
 } {
   const [sortKey, setSortKey] = useState<keyof T & string>(defaultKey);
-  const [sortDir, setSortDir] = useState<"asc" | "desc">(defaultDir);
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>(defaultDir);
 
   const onSort = (key: keyof T & string) => {
     if (key === sortKey) {
-      setSortDir((prev) => (prev === "asc" ? "desc" : "asc"));
+      setSortDir((prev) => (prev === 'asc' ? 'desc' : 'asc'));
     } else {
       setSortKey(key);
-      setSortDir("desc");
+      setSortDir('desc');
     }
   };
 
@@ -33,13 +33,13 @@ export function useSortable<T extends Record<string, unknown>>(
       if (bVal == null) return -1;
 
       let cmp: number;
-      if (typeof aVal === "number" && typeof bVal === "number") {
+      if (typeof aVal === 'number' && typeof bVal === 'number') {
         cmp = aVal - bVal;
       } else {
         cmp = String(aVal).localeCompare(String(bVal), undefined, { numeric: true });
       }
 
-      return sortDir === "asc" ? cmp : -cmp;
+      return sortDir === 'asc' ? cmp : -cmp;
     });
   }, [data, sortKey, sortDir]);
 

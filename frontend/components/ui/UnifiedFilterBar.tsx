@@ -30,8 +30,8 @@ function getCurrentYYYYMM(): string {
 
 /** 将 YYYYMM 格式转成 locale-aware 月份标签
  * zh/zh-TW: 2026年4月（当月）
- * en:        Apr 2026 (current)
- * th:        เม.ย. 2569 (ปัจจุบัน)  ← 泰历 = 公历+543
+ * en: Apr 2026 (current)
+ * th: เม.ย. 2569 (ปัจจุบัน) ← 泰历 = 公历+543
  */
 const TH_MONTH_ABBR = [
   'ม.ค.',
@@ -482,7 +482,7 @@ export function UnifiedFilterBar() {
           className={[
             'h-8 px-2.5 rounded-lg border text-xs font-medium outline-none cursor-pointer transition-all',
             isHistoricalView
-              ? 'bg-amber-50 border-amber-400 text-amber-700 focus:ring-1 focus:ring-amber-400'
+              ? 'bg-[var(--color-warning-surface)] border-[var(--color-warning)] text-[var(--color-warning)] focus:ring-1 focus:ring-amber-400'
               : 'bg-[var(--bg-subtle)] border-[var(--border-subtle)] text-[var(--text-primary)] focus:ring-1 focus:ring-[var(--brand-p1)]',
           ].join(' ')}
         >
@@ -505,7 +505,7 @@ export function UnifiedFilterBar() {
               onChange={(e) =>
                 setCustomDateRange({ start: e.target.value, end: customDateRange.end })
               }
-              className="h-8 px-2 rounded-lg border border-amber-400 bg-amber-50 text-xs text-amber-700 outline-none focus:ring-1 focus:ring-amber-400"
+              className="h-8 px-2 rounded-lg border border-[var(--color-warning)] bg-[var(--color-warning-surface)] text-xs text-[var(--color-warning)] outline-none focus:ring-1 focus:ring-amber-400"
             />
             <span className="text-xs text-[var(--text-muted)]">~</span>
             <input
@@ -514,7 +514,7 @@ export function UnifiedFilterBar() {
               onChange={(e) =>
                 setCustomDateRange({ start: customDateRange.start, end: e.target.value })
               }
-              className="h-8 px-2 rounded-lg border border-amber-400 bg-amber-50 text-xs text-amber-700 outline-none focus:ring-1 focus:ring-amber-400"
+              className="h-8 px-2 rounded-lg border border-[var(--color-warning)] bg-[var(--color-warning-surface)] text-xs text-[var(--color-warning)] outline-none focus:ring-1 focus:ring-amber-400"
             />
           </div>
         )}

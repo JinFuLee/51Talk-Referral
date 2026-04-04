@@ -572,7 +572,12 @@ function ExpandedRow({ member, colSpan, onClose }: ExpandedRowProps) {
 
 function ActivationDot({ score }: { score: number }) {
   const t = useT();
-  const color = score >= 70 ? 'bg-emerald-500' : score >= 40 ? 'bg-amber-400' : 'bg-red-400';
+  const color =
+    score >= 70
+      ? 'bg-[var(--color-success)]'
+      : score >= 40
+        ? 'bg-[var(--color-warning)]'
+        : 'bg-[var(--color-danger)]';
   return (
     <div className="flex items-center gap-1.5 justify-center">
       <span
@@ -589,11 +594,16 @@ function ActivationDot({ score }: { score: number }) {
 function PriorityBadge({ score }: { score: number }) {
   const color =
     score >= 60
-      ? 'text-red-600 font-semibold'
+      ? 'text-[var(--color-danger)] font-semibold'
       : score >= 30
-        ? 'text-amber-500 font-medium'
+        ? 'text-[var(--color-warning)] font-medium'
         : 'text-[var(--text-muted)]';
-  const dot = score >= 60 ? 'bg-red-500' : score >= 30 ? 'bg-amber-400' : 'bg-gray-300';
+  const dot =
+    score >= 60
+      ? 'bg-[var(--color-danger)]'
+      : score >= 30
+        ? 'bg-[var(--color-warning)]'
+        : 'bg-[var(--bg-subtle)]';
   return (
     <div className="flex items-center gap-1 justify-center">
       <span className={`w-2 h-2 rounded-full inline-block ${dot}`} />
@@ -634,7 +644,11 @@ function ConnStatusDots({ cc, ss, lp }: { cc: number; ss: number; lp: number }) 
     <span
       title={`${label}: ${val === 1 ? t.connConnected : t.connNotConnected}`}
       className={`w-2 h-2 rounded-full inline-block ${
-        val === 1 ? 'bg-emerald-500' : val === 0 ? 'bg-red-400' : 'bg-gray-300'
+        val === 1
+          ? 'bg-[var(--color-success)]'
+          : val === 0
+            ? 'bg-[var(--color-danger)]'
+            : 'bg-[var(--bg-subtle)]'
       }`}
     />
   );
@@ -662,7 +676,7 @@ function GoldenWindowBadges({ windows }: { windows: string[] }) {
       {windows.map((w) => (
         <span
           key={w}
-          className="px-1 py-0.5 rounded text-[10px] bg-amber-100 text-amber-700 whitespace-nowrap"
+          className="px-1 py-0.5 rounded text-[10px] bg-[var(--color-warning-surface)] text-[var(--color-warning)] whitespace-nowrap"
         >
           {windowLabel[w] ?? w}
         </span>
@@ -678,15 +692,18 @@ function ContactBadge({ days }: { days: number | null }) {
   if (days === null) return <span className="text-[var(--text-muted)]">—</span>;
   if (days > 14)
     return (
-      <span className="text-red-600 font-medium">
+      <span className="text-[var(--color-danger)] font-medium">
         {t.contactDaysAgo(days)}
-        <span className="ml-1 px-1 py-0.5 bg-red-100 text-red-600 rounded text-xs">
+        <span className="ml-1 px-1 py-0.5 bg-[var(--color-danger-surface)] text-[var(--color-danger)] rounded text-xs">
           {t.contactNeedCall}
         </span>
       </span>
     );
-  if (days > 7) return <span className="text-amber-500 font-medium">{t.contactDaysAgo(days)}</span>;
-  return <span className="text-emerald-600">{t.contactDaysAgo(days)}</span>;
+  if (days > 7)
+    return (
+      <span className="text-[var(--color-warning)] font-medium">{t.contactDaysAgo(days)}</span>
+    );
+  return <span className="text-[var(--color-success)]">{t.contactDaysAgo(days)}</span>;
 }
 
 // ── Group Filter Bar ────────────────────────────────────────────────────────────
@@ -899,7 +916,7 @@ function FollowupTable({ items, onDrawerOpen }: FollowupTableProps) {
                         className={
                           daysThisWeek === 0
                             ? 'text-[var(--text-muted)]'
-                            : 'text-emerald-600 font-semibold'
+                            : 'text-[var(--color-success)] font-semibold'
                         }
                         title={t.thisWeekPrefix}
                       >
@@ -910,7 +927,7 @@ function FollowupTable({ items, onDrawerOpen }: FollowupTableProps) {
                           daysThis === 0
                             ? 'text-[var(--text-muted)]'
                             : daysThis >= 5
-                              ? 'text-emerald-600'
+                              ? 'text-[var(--color-success)]'
                               : 'text-[var(--text-secondary)]'
                         }`}
                         title={t.thisMonthPrefix}
@@ -987,7 +1004,7 @@ function FollowupTable({ items, onDrawerOpen }: FollowupTableProps) {
                   {/* 激励状态 */}
                   <td className="py-1 px-2 text-center hidden xl:table-cell">
                     {m.incentive_status ? (
-                      <span className="px-1 py-0.5 rounded text-[10px] bg-emerald-50 text-emerald-700 whitespace-nowrap">
+                      <span className="px-1 py-0.5 rounded text-[10px] bg-[var(--color-success-surface)] text-[var(--color-success)] whitespace-nowrap">
                         {m.incentive_status}
                       </span>
                     ) : (

@@ -19,9 +19,9 @@ import { useConfigStore } from '@/lib/stores/config-store';
  * - MyViewBanner 显示当前视角并提供"清除"入口
  *
  * 使用示例：
- *   const { focusCC, setMyView, clearMyView, isActive } = useMyView();
- *   setMyView('小明');   // 设置 CC 视角并同步 URL
- *   clearMyView();       // 清除视角
+ * const { focusCC, setMyView, clearMyView, isActive } = useMyView();
+ * setMyView('小明'); // 设置 CC 视角并同步 URL
+ * clearMyView(); // 清除视角
  */
 export function useMyView() {
   const searchParams = useSearchParams();

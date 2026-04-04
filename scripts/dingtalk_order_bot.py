@@ -382,12 +382,99 @@ def format_reply(
     _, cc_month_n = _count_orders(order.cc_name)
 
     lines: list[str] = []
-    lines.append("### ✓ Referral ยืนยันแล้ว")
+
+    # ── 金额预处理 ──
+    if order.amount_usd is not None:
+        thb = order.amount_thb or (order.amount_usd * rate)
+    elif order.amount_thb is not None:
+        thb = order.amount_thb
+    else:
+        thb = None
+
+    # ── 第一段：确认 + 金额 ──
+    amt_str = f"**฿{thb:,.0f}**" if thb else "รอยืนยัน"
+    lines.append(f"### ✔ Referral ยืนยันแล้ว")
+    lines.append("")
+    lines.append(amt_str)
+    lines.append("")
+    lines.append("---")
     lines.append("")
 
-    # CC 排名
-    ranking = _fetch_cc_ranking(order.cc_name) if order.cc_name else None
+    # ── 第二段：订单详情（每行有标签）──
+    cc_display = order.cc_name or "—"
+    team_short = ""
+    if order.team_code:
+        team_short = order.team_code.replace("THCC", "CC")
+        if order.team_number:
+            team_short = f"CC{order.team_number.zfill(2)}"
 
+    lines.append(f"CC: **{cc_display}** · {team_short}")
+    lines.append("")
+    if order.product:
+        lines.append(f"สินค้า: {order.product}")
+        lines.append("")
+    if order.student_name:
+        lines.append(f"นักเรียน: {order.student_name}")
+        lines.append("")
+    if cc_month_n > 0 and order.cc_name:
+        lines.append(
+            f"ออเดอร์ Referral เดือนนี้:"
+            f" ที่ **{cc_month_n}** ของ {cc_display}"
+        )
+        lines.append("")
+    if today_n >= 3:
+        lines.append(f"วันนี้รวม **{today_n}** ออเดอร์ต่อเนื่อง")
+        lines.append("")
+
+    lines.append("---")
+    lines.append("")
+
+    # ── 第三段：业绩汇总 ──
+    summary = _fetch_revenue_status()
+    if summary:
+        t1_actual_usd = summary.get("revenue_usd", 0) or 0
+        target_usd = summary.get("revenue_target", 0) or 0
+        bm_pct = summary.get("bm_pct", 0) or 0
+        t1_actual_thb = t1_actual_usd * rate
+        target_thb = target_usd * rate
+        realtime_thb = t1_actual_thb + today_total_thb
+        realtime_progress = realtime_thb / target_thb if target_thb else 0
+
+        lines.append(
+            f"ยอดรวมวันนี้: **฿{realtime_thb:,.0f}**"
+            f" ({today_n} ออเดอร์)"
+        )
+        lines.append("")
+
+        bm_target_thb = target_thb * bm_pct
+        bm_gap_thb = realtime_thb - bm_target_thb
+        if bm_gap_thb >= 0:
+            lines.append(
+                f"vs BM วันนี้: นำหน้า **฿{bm_gap_thb:,.0f}**"
+            )
+        else:
+            lines.append(
+                f"vs BM วันนี้: ตามหลัง **฿{abs(bm_gap_thb):,.0f}**"
+            )
+        lines.append("")
+
+        target_short = (
+            f"฿{target_thb / 1_000_000:.1f}M"
+            if target_thb >= 1_000_000
+            else f"฿{target_thb:,.0f}"
+        )
+        lines.append(
+            f"เป้าเดือน: {target_short}"
+            f" (คืบหน้า {realtime_progress:.1%})"
+        )
+        lines.append("")
+    else:
+        lines.append(f"วันนี้รวม {today_n} ออเดอร์")
+        lines.append("")
+
+    return "\n".join(lines)
+
+    # ── 以下为旧格式，已被精简版替代（保留注释以备回滚参考）──
     # ① 今日转介绍第 N 单
     lines.append(
         f"📊  Referral วันนี้ ออเดอร์ที่ **#{today_n}**"

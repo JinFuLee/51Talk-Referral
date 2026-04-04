@@ -120,7 +120,7 @@ function CustomTooltip({ active, payload, label, labels }: CustomTooltipProps) {
  * 顶部 callout banner 显示倍率差异（5-6次 vs 0次）。
  *
  * 使用示例：
- *   <ConversionFunnelProof data={analysis.conversion_funnel} />
+ * <ConversionFunnelProof data={analysis.conversion_funnel} />
  */
 export function ConversionFunnelProof({ data }: ConversionFunnelProofProps) {
   const t = useT();
@@ -151,7 +151,7 @@ export function ConversionFunnelProof({ data }: ConversionFunnelProofProps) {
     <div className="space-y-3">
       {/* Callout Banner */}
       {multiplier !== null && multiplier > 1.5 && (
-        <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-emerald-50 border border-emerald-200 text-xs text-emerald-700">
+        <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[var(--color-success-surface)] border border-[var(--color-success)] text-xs text-[var(--color-success)]">
           <span className="text-base" aria-hidden="true">
             💡
           </span>
@@ -159,7 +159,7 @@ export function ConversionFunnelProof({ data }: ConversionFunnelProofProps) {
             dangerouslySetInnerHTML={{
               __html: t.calloutText(
                 `<strong>${highFreqItem.band}</strong>`,
-                `<strong class="font-mono tabular-nums text-emerald-800">${multiplier.toFixed(1)}</strong>`
+                `<strong class="font-mono tabular-nums text-[var(--color-success)]">${multiplier.toFixed(1)}</strong>`
               ),
             }}
           />

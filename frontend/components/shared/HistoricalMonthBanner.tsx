@@ -63,14 +63,12 @@ export function HistoricalMonthBanner() {
   const monthLabel = formatYYYYMM(selectedMonth!, t.formatDate);
 
   return (
-    <div className="flex items-center gap-2 px-4 py-2 bg-amber-50 border-b border-amber-200 text-amber-800 text-xs">
-      <AlertTriangle className="w-3.5 h-3.5 shrink-0 text-amber-500" />
-      <span className="font-medium">
-        {t.viewing(monthLabel)}
-      </span>
+    <div className="flex items-center gap-2 px-4 py-2 bg-[var(--color-warning-surface)] border-b border-[var(--color-warning)] text-[var(--color-warning)] text-xs">
+      <AlertTriangle className="w-3.5 h-3.5 shrink-0 text-[var(--color-warning)]" />
+      <span className="font-medium">{t.viewing(monthLabel)}</span>
       <button
         onClick={() => setSelectedMonth(null)}
-        className="ml-auto px-2.5 py-0.5 rounded-full bg-amber-100 border border-amber-300 text-amber-700 hover:bg-amber-200 transition-colors font-medium whitespace-nowrap"
+        className="ml-auto px-2.5 py-0.5 rounded-full bg-[var(--color-warning-surface)] border border-[var(--color-warning)] text-[var(--color-warning)] hover:bg-[var(--color-warning-surface)] transition-colors font-medium whitespace-nowrap"
       >
         {t.backToNow}
       </button>

@@ -1,6 +1,6 @@
 export interface ErrorEntry {
   ts: string;
-  type: "api_error" | "render_error" | "unhandled_error" | "console_error";
+  type: 'api_error' | 'render_error' | 'unhandled_error' | 'console_error';
   page: string;
   component?: string;
   message: string;
@@ -26,7 +26,7 @@ function extractSourceFile(stack?: string): string | undefined {
 
 /** 生成去重指纹 */
 function fingerprint(type: string, source?: string, message?: string): string {
-  const raw = `${type}|${source ?? "unknown"}|${(message ?? "").slice(0, 80)}`;
+  const raw = `${type}|${source ?? 'unknown'}|${(message ?? '').slice(0, 80)}`;
   // 简单 hash — 不需要密码学强度
   let h = 0;
   for (let i = 0; i < raw.length; i++) {
@@ -41,7 +41,7 @@ class ErrorLogger {
   /** 最近 5 分钟内已上报的指纹（窗口去重） */
   private recentFingerprints = new Set<string>();
 
-  capture(entry: Partial<ErrorEntry> & { message: string; type: ErrorEntry["type"] }) {
+  capture(entry: Partial<ErrorEntry> & { message: string; type: ErrorEntry['type'] }) {
     const source = entry.source_file ?? extractSourceFile(entry.stack);
     const fp = fingerprint(entry.type, source, entry.message);
 
@@ -52,8 +52,8 @@ class ErrorLogger {
 
     this.buffer.push({
       ts: new Date().toISOString(),
-      page: typeof window !== "undefined" ? window.location.pathname : "",
-      ua: typeof navigator !== "undefined" ? navigator.userAgent : undefined,
+      page: typeof window !== 'undefined' ? window.location.pathname : '',
+      ua: typeof navigator !== 'undefined' ? navigator.userAgent : undefined,
       source_file: source,
       fingerprint: fp,
       ...entry,
@@ -71,9 +71,9 @@ class ErrorLogger {
     if (this.buffer.length === 0) return;
     const batch = this.buffer.splice(0);
     try {
-      await fetch("/api/system/error-log", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      await fetch('/api/system/error-log', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ entries: batch }),
       });
     } catch {
@@ -84,17 +84,17 @@ class ErrorLogger {
 
 export const errorLogger = new ErrorLogger();
 
-if (typeof window !== "undefined") {
-  window.addEventListener("error", (e) => {
+if (typeof window !== 'undefined') {
+  window.addEventListener('error', (e) => {
     errorLogger.capture({
-      type: "unhandled_error",
+      type: 'unhandled_error',
       message: e.message,
       stack: e.error?.stack,
     });
   });
-  window.addEventListener("unhandledrejection", (e) => {
+  window.addEventListener('unhandledrejection', (e) => {
     errorLogger.capture({
-      type: "unhandled_error",
+      type: 'unhandled_error',
       message: String(e.reason),
       stack: e.reason?.stack,
     });

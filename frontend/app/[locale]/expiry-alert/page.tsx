@@ -153,26 +153,26 @@ function SummaryCards({ summary, t }: { summary: ExpiryAlertSummary; t: (typeof 
     urgent: {
       label: t.urgent,
       sub: t.urgentRange,
-      bg: 'bg-red-50 border-red-200',
-      text: 'text-red-700',
-      count: 'text-red-600',
-      badge: 'bg-red-100 text-red-700',
+      bg: 'bg-[var(--color-danger-surface)] border-[var(--color-danger)]',
+      text: 'text-[var(--color-danger)]',
+      count: 'text-[var(--color-danger)]',
+      badge: 'bg-[var(--color-danger-surface)] text-[var(--color-danger)]',
     },
     warning: {
       label: t.warning,
       sub: t.warningRange,
-      bg: 'bg-yellow-50 border-yellow-200',
-      text: 'text-yellow-700',
+      bg: 'bg-[var(--color-warning-surface)] border-[var(--color-warning)]',
+      text: 'text-[var(--color-warning)]',
       count: 'text-[var(--color-warning)]',
-      badge: 'bg-yellow-100 text-yellow-700',
+      badge: 'bg-[var(--color-warning-surface)] text-[var(--color-warning)]',
     },
     watch: {
       label: t.watch,
       sub: t.watchRange,
-      bg: 'bg-green-50 border-green-200',
-      text: 'text-green-700',
+      bg: 'bg-[var(--color-success-surface)] border-[var(--color-success)]',
+      text: 'text-[var(--color-success)]',
       count: 'text-[var(--color-success)]',
-      badge: 'bg-green-100 text-green-700',
+      badge: 'bg-[var(--color-success-surface)] text-[var(--color-success)]',
     },
   } as const;
 
@@ -211,20 +211,20 @@ function contactDaysBadge(days: number | null, daysUnit: string, noContact: stri
   if (days === null) return <span className="text-[var(--text-muted)]">{noContact}</span>;
   if (days <= 7)
     return (
-      <span className="inline-block px-1.5 py-0.5 rounded text-[11px] font-semibold bg-green-100 text-green-700">
+      <span className="inline-block px-1.5 py-0.5 rounded text-[11px] font-semibold bg-[var(--color-success-surface)] text-[var(--color-success)]">
         {days}
         {daysUnit}
       </span>
     );
   if (days <= 14)
     return (
-      <span className="inline-block px-1.5 py-0.5 rounded text-[11px] font-semibold bg-yellow-100 text-yellow-700">
+      <span className="inline-block px-1.5 py-0.5 rounded text-[11px] font-semibold bg-[var(--color-warning-surface)] text-[var(--color-warning)]">
         {days}
         {daysUnit}
       </span>
     );
   return (
-    <span className="inline-block px-1.5 py-0.5 rounded text-[11px] font-semibold bg-red-100 text-red-700">
+    <span className="inline-block px-1.5 py-0.5 rounded text-[11px] font-semibold bg-[var(--color-danger-surface)] text-[var(--color-danger)]">
       {days}
       {daysUnit}
     </span>
@@ -239,15 +239,15 @@ function ExpiryTable({ items, t }: { items: ExpiryAlertItem[]; t: (typeof I18N)[
   }
 
   const URGENCY_CONFIG = {
-    urgent: { badge: 'bg-red-100 text-red-700' },
-    warning: { badge: 'bg-yellow-100 text-yellow-700' },
-    watch: { badge: 'bg-green-100 text-green-700' },
+    urgent: { badge: 'bg-[var(--color-danger-surface)] text-[var(--color-danger)]' },
+    warning: { badge: 'bg-[var(--color-warning-surface)] text-[var(--color-warning)]' },
+    watch: { badge: 'bg-[var(--color-success-surface)] text-[var(--color-success)]' },
   } as const;
 
   const RISK_BADGE: Record<string, string> = {
-    high: 'bg-red-100 text-red-700',
+    high: 'bg-[var(--color-danger-surface)] text-[var(--color-danger)]',
     medium: 'bg-orange-100 text-orange-700',
-    low: 'bg-green-100 text-green-700',
+    low: 'bg-[var(--color-success-surface)] text-[var(--color-success)]',
   };
   const RISK_LABEL: Record<string, string> = {
     high: t.riskHigh,

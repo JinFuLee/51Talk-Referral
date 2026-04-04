@@ -211,7 +211,7 @@ export function MemberTable({
                 daysExpiry === null || daysExpiry === undefined
                   ? ''
                   : daysExpiry <= 0
-                    ? 'text-red-600 font-semibold'
+                    ? 'text-[var(--color-danger)] font-semibold'
                     : daysExpiry <= 30
                       ? 'text-orange-500'
                       : 'text-[var(--text-secondary)]';

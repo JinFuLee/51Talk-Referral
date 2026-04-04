@@ -151,7 +151,7 @@ export function FunnelAttributionSlide({ slideNumber, totalSlides }: SlideProps)
       ) : error ? (
         <div className="flex items-center justify-center h-full">
           <div className="text-center space-y-2">
-            <p className="text-base font-semibold text-red-600">{t.loading_failed}</p>
+            <p className="text-base font-semibold text-[var(--color-danger)]">{t.loading_failed}</p>
             <p className="text-sm text-[var(--text-muted)]">{t.check_backend}</p>
             <button
               onClick={() => mutate()}
@@ -197,12 +197,12 @@ export function FunnelAttributionSlide({ slideNumber, totalSlides }: SlideProps)
                       {target > 0 ? target.toLocaleString() : '-'}
                     </td>
                     <td
-                      className={`px-3 py-2 text-sm text-right font-mono tabular-nums font-bold ${isGood ? 'text-emerald-800' : 'text-[var(--color-danger)]'}`}
+                      className={`px-3 py-2 text-sm text-right font-mono tabular-nums font-bold ${isGood ? 'text-[var(--color-success)]' : 'text-[var(--color-danger)]'}`}
                     >
                       {target > 0 ? `${isGood ? '+' : ''}${gap.toLocaleString()}` : '-'}
                     </td>
                     <td
-                      className={`px-3 py-2 text-sm text-right font-semibold ${rate >= 1 ? 'text-emerald-800' : rate >= 0.8 ? 'text-amber-800' : rate > 0 ? 'text-[var(--color-danger)]' : 'text-[var(--text-muted)]'}`}
+                      className={`px-3 py-2 text-sm text-right font-semibold ${rate >= 1 ? 'text-[var(--color-success)]' : rate >= 0.8 ? 'text-[var(--color-warning)]' : rate > 0 ? 'text-[var(--color-danger)]' : 'text-[var(--text-muted)]'}`}
                     >
                       {rate > 0 ? formatRate(rate) : '-'}
                     </td>
@@ -211,10 +211,10 @@ export function FunnelAttributionSlide({ slideNumber, totalSlides }: SlideProps)
                         <span
                           className={`inline-block px-2 py-0.5 rounded text-xs font-bold ${
                             r.stepRate >= 0.8
-                              ? 'text-green-700 bg-green-50'
+                              ? 'text-[var(--color-success)] bg-[var(--color-success-surface)]'
                               : r.stepRate >= 0.5
-                                ? 'text-yellow-700 bg-yellow-50'
-                                : 'text-red-700 bg-red-50'
+                                ? 'text-[var(--color-warning)] bg-[var(--color-warning-surface)]'
+                                : 'text-[var(--color-danger)] bg-[var(--color-danger-surface)]'
                           }`}
                         >
                           {formatRate(r.stepRate)}

@@ -286,7 +286,7 @@ export default function OutreachQualityPage() {
         <Card title="">
           <div className="pt-1">
             <p className="text-xs text-[var(--text-muted)] mb-1">{t.referralRevenue}</p>
-            <p className="text-2xl font-bold text-emerald-800">
+            <p className="text-2xl font-bold text-[var(--color-success)]">
               {summary.referral_revenue_usd != null
                 ? `$${summary.referral_revenue_usd.toLocaleString()}`
                 : '—'}
@@ -379,13 +379,13 @@ export default function OutreachQualityPage() {
                     <td className="slide-td text-right font-mono tabular-nums text-[var(--text-secondary)]">
                       {safeRate(row.cc_connected, row.students)}
                     </td>
-                    <td className="slide-td text-right font-mono tabular-nums text-purple-600">
+                    <td className="slide-td text-right font-mono tabular-nums text-[var(--color-accent)]">
                       {safeNum(row.ss_connected)}
                     </td>
-                    <td className="slide-td text-right font-mono tabular-nums text-amber-800">
+                    <td className="slide-td text-right font-mono tabular-nums text-[var(--color-warning)]">
                       {safeNum(row.lp_connected)}
                     </td>
-                    <td className="slide-td text-right font-mono tabular-nums text-emerald-800">
+                    <td className="slide-td text-right font-mono tabular-nums text-[var(--color-success)]">
                       {safeNum(row.effective_checkin)}
                     </td>
                     <td className="slide-td text-right font-mono tabular-nums">

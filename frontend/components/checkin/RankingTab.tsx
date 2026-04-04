@@ -502,7 +502,7 @@ export function RankingTab({ roleFilter = 'CC', enclosureFilter }: RankingTabPro
           ))}
         </div>
         {enclosureFilter && (
-          <span className="ml-2 px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 text-xs font-medium">
+          <span className="ml-2 px-2 py-0.5 rounded-full bg-[var(--color-warning-surface)] text-[var(--color-warning)] text-xs font-medium">
             {enclosureFilter}
           </span>
         )}
@@ -604,15 +604,15 @@ export function RankingTab({ roleFilter = 'CC', enclosureFilter }: RankingTabPro
           {/* 图例 */}
           <div className="flex items-center gap-4 text-xs text-[var(--text-muted)] pt-1">
             <span className="flex items-center gap-1">
-              <span className="inline-block w-2.5 h-2.5 rounded-sm bg-green-500 opacity-70" />
+              <span className="inline-block w-2.5 h-2.5 rounded-sm bg-[var(--color-success)] opacity-70" />
               {legend.good}
             </span>
             <span className="flex items-center gap-1">
-              <span className="inline-block w-2.5 h-2.5 rounded-sm bg-yellow-400 opacity-70" />
+              <span className="inline-block w-2.5 h-2.5 rounded-sm bg-[var(--color-warning)] opacity-70" />
               {legend.warning}
             </span>
             <span className="flex items-center gap-1">
-              <span className="inline-block w-2.5 h-2.5 rounded-sm bg-red-400 opacity-70" />
+              <span className="inline-block w-2.5 h-2.5 rounded-sm bg-[var(--color-danger)] opacity-70" />
               {legend.bad}
             </span>
           </div>

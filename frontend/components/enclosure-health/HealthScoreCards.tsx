@@ -57,9 +57,9 @@ function LevelBadge({
   labels: { green: string; yellow: string; red: string };
 }) {
   const map = {
-    green: { bg: 'bg-green-100', text: 'text-green-700' },
-    yellow: { bg: 'bg-yellow-100', text: 'text-yellow-700' },
-    red: { bg: 'bg-red-100', text: 'text-red-700' },
+    green: { bg: 'bg-[var(--color-success-surface)]', text: 'text-[var(--color-success)]' },
+    yellow: { bg: 'bg-[var(--color-warning-surface)]', text: 'text-[var(--color-warning)]' },
+    red: { bg: 'bg-[var(--color-danger-surface)]', text: 'text-[var(--color-danger)]' },
   };
   const s = map[level];
   return (
@@ -88,10 +88,10 @@ export function HealthScoreCards({ data, onSegmentClick }: HealthScoreCardsProps
       {data.map((item) => {
         const borderColor =
           item.level === 'green'
-            ? 'border-green-400'
+            ? 'border-[var(--color-success)]'
             : item.level === 'yellow'
-              ? 'border-yellow-400'
-              : 'border-red-400';
+              ? 'border-[var(--color-warning)]'
+              : 'border-[var(--color-danger)]';
 
         return (
           <div

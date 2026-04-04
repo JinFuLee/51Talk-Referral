@@ -24,9 +24,9 @@ export function TargetGapCard({ name, target, actual, gap, achievement_rate }: T
   const achievePct = achievement_rate * 100;
   const achieveColor =
     achievePct >= 100
-      ? 'text-emerald-800'
+      ? 'text-[var(--color-success)]'
       : achievePct >= 80
-        ? 'text-amber-800'
+        ? 'text-[var(--color-warning)]'
         : 'text-[var(--color-danger)]';
 
   return (
@@ -45,7 +45,7 @@ export function TargetGapCard({ name, target, actual, gap, achievement_rate }: T
           {t.target} {(target ?? 0).toLocaleString()}
         </span>
         <span
-          className={`font-medium ${isAbove ? 'text-emerald-800' : 'text-[var(--color-danger)]'}`}
+          className={`font-medium ${isAbove ? 'text-[var(--color-success)]' : 'text-[var(--color-danger)]'}`}
         >
           {isAbove ? '+' : ''}
           {(gap ?? 0).toLocaleString()}
@@ -56,9 +56,9 @@ export function TargetGapCard({ name, target, actual, gap, achievement_rate }: T
         <div
           className={`h-1.5 rounded-full transition-all duration-200 ${
             achievePct >= 100
-              ? 'bg-emerald-600'
+              ? 'bg-[var(--color-success)]'
               : achievePct >= 80
-                ? 'bg-amber-500'
+                ? 'bg-[var(--color-warning)]'
                 : 'bg-[var(--color-danger)]'
           }`}
           style={{ width: `${Math.min(100, achievePct)}%` }}

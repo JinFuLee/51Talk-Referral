@@ -132,7 +132,7 @@ export function RevenueDecompositionSlide({ slideNumber, totalSlides }: SlidePro
       ) : error ? (
         <div className="flex items-center justify-center h-full">
           <div className="text-center space-y-2">
-            <p className="text-base font-semibold text-red-600">{t.loading_failed}</p>
+            <p className="text-base font-semibold text-[var(--color-danger)]">{t.loading_failed}</p>
             <p className="text-sm text-[var(--text-muted)]">{t.check_backend}</p>
             <button
               onClick={() => mutate()}

@@ -379,7 +379,7 @@ function safeRate(v: number | null | undefined): string {
 function RankBadge({ rank }: { rank: number }) {
   const cls =
     rank === 1
-      ? 'bg-yellow-100 text-yellow-700'
+      ? 'bg-[var(--color-warning-surface)] text-[var(--color-warning)]'
       : rank === 2
         ? 'bg-[var(--bg-subtle)] text-[var(--text-secondary)]'
         : rank === 3
@@ -487,9 +487,9 @@ function CCTabContent({
           <>
             <p className="text-[10px] text-[var(--text-muted)] mb-2">
               {t.colorHint}
-              <span className="text-emerald-700 font-medium">{t.colorGreen}</span> ·{' '}
-              <span className="text-amber-700 font-medium">{t.colorOrange}</span> ·{' '}
-              <span className="text-red-600 font-medium">{t.colorRed}</span>
+              <span className="text-[var(--color-success)] font-medium">{t.colorGreen}</span> ·{' '}
+              <span className="text-[var(--color-warning)] font-medium">{t.colorOrange}</span> ·{' '}
+              <span className="text-[var(--color-danger)] font-medium">{t.colorRed}</span>
               {t.colorSuffix}
             </p>
             <div className="overflow-x-auto">
@@ -1058,7 +1058,7 @@ function AllTabContent({ filter, t }: { filter: string; t: (typeof I18N)['zh'] }
 
   const summaryItems = [
     { role: t.tabCC, color: 'border-action-accent', ...ccTotal },
-    { role: t.tabSS, color: 'border-green-500', ...ssTotal },
+    { role: t.tabSS, color: 'border-[var(--color-success)]', ...ssTotal },
     { role: t.tabLP, color: 'border-purple-500', ...lpTotal },
   ];
 
@@ -1083,7 +1083,7 @@ function AllTabContent({ filter, t }: { filter: string; t: (typeof I18N)['zh'] }
     <div className="space-y-5 md:space-y-6">
       {/* Enclosure efficiency insight card */}
       {topEnclosure && (
-        <div className="flex flex-col gap-1.5 rounded-lg border border-[var(--border-default)] border-l-4 border-l-blue-400 bg-blue-50 px-4 py-3">
+        <div className="flex flex-col gap-1.5 rounded-lg border border-[var(--border-default)] border-l-4 border-l-blue-400 bg-[var(--color-accent-surface)] px-4 py-3">
           <div className="text-sm font-semibold text-[var(--text-primary)]">{t.insightTitle}</div>
           <div className="text-xs text-[var(--text-secondary)]">
             <span className="font-medium text-[var(--text-primary)]">{topEnclosure.seg}</span>{' '}

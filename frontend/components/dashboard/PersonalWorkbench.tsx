@@ -98,7 +98,7 @@ interface HighPotentialCountResponse {
 function RankBadge({ rank, total }: { rank: number; total: number }) {
   const isTop3 = rank <= 3;
   const badgeClass = isTop3
-    ? 'bg-amber-100 text-amber-800 border border-amber-300 font-bold'
+    ? 'bg-[var(--color-warning-surface)] text-[var(--color-warning)] border border-[var(--color-warning)] font-bold'
     : 'bg-[var(--bg-subtle)] text-[var(--text-secondary)] border border-[var(--border-default)]';
 
   return (
@@ -149,7 +149,11 @@ function RankRow({
 function ProgressBar({ value, target }: { value: number; target: number }) {
   const pct = target > 0 ? Math.min(Math.round((value / target) * 100), 100) : 0;
   const overTarget = target > 0 && value >= target;
-  const barColor = overTarget ? 'bg-green-500' : pct >= 70 ? 'bg-amber-400' : 'bg-red-400';
+  const barColor = overTarget
+    ? 'bg-[var(--color-success)]'
+    : pct >= 70
+      ? 'bg-[var(--color-warning)]'
+      : 'bg-[var(--color-danger)]';
 
   return (
     <div className="mt-1">
@@ -157,7 +161,7 @@ function ProgressBar({ value, target }: { value: number; target: number }) {
         <span className="font-semibold text-[var(--text-primary)]">{value}</span>
         <span className="font-semibold text-[var(--text-secondary)]">{target}</span>
         <span
-          className={`font-semibold ${overTarget ? 'text-emerald-800' : 'text-[var(--text-primary)]'}`}
+          className={`font-semibold ${overTarget ? 'text-[var(--color-success)]' : 'text-[var(--text-primary)]'}`}
         >
           {pct}%
         </span>
@@ -308,7 +312,7 @@ export function PersonalWorkbench() {
               </span>
               <Link
                 href={`/high-potential?cc=${encodeURIComponent(focusCC)}`}
-                className="inline-flex items-center gap-1 text-[11px] text-blue-600 hover:text-blue-800 transition-colors"
+                className="inline-flex items-center gap-1 text-[11px] text-[var(--color-accent)] hover:text-[var(--color-accent)] transition-colors"
               >
                 {t.viewDetails}
                 <ExternalLink className="w-3 h-3" />

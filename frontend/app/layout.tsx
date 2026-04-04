@@ -45,10 +45,10 @@ export default function RootLayout({
         <script
           dangerouslySetInnerHTML={{
             __html: `
-  try {
-    if (localStorage.theme === 'dark' || (!('theme' in localStorage) && matchMedia('(prefers-color-scheme:dark)').matches))
-      document.documentElement.classList.add('dark')
-  } catch(e){}
+ try {
+ if (localStorage.theme === 'dark' || (!('theme' in localStorage) && matchMedia('(prefers-color-scheme:dark)').matches))
+ document.documentElement.classList.add('dark')
+ } catch(e){}
 `,
           }}
         />

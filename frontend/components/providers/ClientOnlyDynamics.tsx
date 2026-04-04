@@ -1,19 +1,20 @@
-"use client";
+'use client';
 
 /**
  * Next.js 15: `ssr: false` dynamic() calls must reside in Client Components.
  * These wrappers are imported by the Server Component layout.tsx.
  */
 
-import dynamic from "next/dynamic";
+import dynamic from 'next/dynamic';
 
 const CoPilotTerminalDynamic = dynamic(
-  () => import("@/components/ui/CoPilotTerminal").then((m) => ({ default: m.CoPilotTerminal })),
+  () => import('@/components/ui/CoPilotTerminal').then((m) => ({ default: m.CoPilotTerminal })),
   { ssr: false }
 );
 
 const PresentationOverlayDynamic = dynamic(
-  () => import("@/components/ui/PresentationOverlay").then((m) => ({ default: m.PresentationOverlay })),
+  () =>
+    import('@/components/ui/PresentationOverlay').then((m) => ({ default: m.PresentationOverlay })),
   { ssr: false }
 );
 

@@ -330,19 +330,19 @@ function fmtDelta(delta: number): string {
 function RankBadge({ rank }: { rank: number }) {
   if (rank === 1)
     return (
-      <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-amber-400 text-white font-bold text-sm">
+      <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-[var(--color-warning)] text-white font-bold text-sm">
         1
       </span>
     );
   if (rank === 2)
     return (
-      <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-slate-400 text-white font-bold text-sm">
+      <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-[var(--bg-subtle)] text-white font-bold text-sm">
         2
       </span>
     );
   if (rank === 3)
     return (
-      <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-amber-700 text-white font-bold text-sm">
+      <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-[var(--color-warning)] text-white font-bold text-sm">
         3
       </span>
     );
@@ -444,7 +444,7 @@ export function OpsStudentRanking({ configJson }: OpsStudentRankingProps) {
                     key={s.student_id}
                     className={cn(
                       idx % 2 === 0 ? 'slide-row-even' : 'slide-row-odd',
-                      isTop3 && 'bg-amber-50/40'
+                      isTop3 && 'bg-[var(--color-warning-surface)]'
                     )}
                   >
                     <td className="slide-td text-center">
@@ -475,7 +475,9 @@ export function OpsStudentRanking({ configJson }: OpsStudentRankingProps) {
                         <span
                           className={cn(
                             'ml-1 text-xs',
-                            s.delta > 0 ? 'text-emerald-600' : 'text-red-500'
+                            s.delta > 0
+                              ? 'text-[var(--color-success)]'
+                              : 'text-[var(--color-danger)]'
                           )}
                         >
                           {fmtDelta(s.delta)}

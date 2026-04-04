@@ -132,8 +132,8 @@ export function ScenarioCompareSlide({ data }: Props) {
                         <span
                           className={
                             rateDelta >= 0
-                              ? 'text-emerald-800 font-semibold'
-                              : 'text-red-700 font-semibold'
+                              ? 'text-[var(--color-success)] font-semibold'
+                              : 'text-[var(--color-danger)] font-semibold'
                           }
                         >
                           {formatRate(sc.target_rate)}
@@ -155,7 +155,7 @@ export function ScenarioCompareSlide({ data }: Props) {
                           ? `+${sc.impact_payments.toLocaleString()}`
                           : '—'}
                       </td>
-                      <td className="slide-td text-right font-mono tabular-nums text-emerald-800 font-semibold">
+                      <td className="slide-td text-right font-mono tabular-nums text-[var(--color-success)] font-semibold">
                         {sc.impact_revenue != null ? `+${formatUSD(sc.impact_revenue)}` : '—'}
                       </td>
                     </tr>
@@ -169,7 +169,7 @@ export function ScenarioCompareSlide({ data }: Props) {
           {totalImpactRev > 0 && (
             <div className="flex items-center justify-between pt-2 border-t border-[var(--border-subtle)]">
               <span className="text-xs text-[var(--text-muted)]">{t.totalImpact}</span>
-              <span className="text-sm font-bold text-emerald-800 font-mono">
+              <span className="text-sm font-bold text-[var(--color-success)] font-mono">
                 +{formatUSD(totalImpactRev)}
               </span>
             </div>

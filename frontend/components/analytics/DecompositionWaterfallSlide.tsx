@@ -238,7 +238,7 @@ export function DecompositionWaterfallSlide({ slideNumber, totalSlides }: SlideP
       ) : error ? (
         <div className="flex items-center justify-center h-full">
           <div className="text-center space-y-2">
-            <p className="text-base font-semibold text-red-600">{t.error}</p>
+            <p className="text-base font-semibold text-[var(--color-danger)]">{t.error}</p>
             <p className="text-sm text-[var(--text-muted)]">{t.errorHint}</p>
             <button
               onClick={() => mutate()}
@@ -262,7 +262,7 @@ export function DecompositionWaterfallSlide({ slideNumber, totalSlides }: SlideP
               <span
                 className={`inline-block px-2 py-0.5 text-xs rounded-full font-medium ${
                   isLMDI
-                    ? 'bg-amber-50 text-amber-700 border border-amber-200'
+                    ? 'bg-[var(--color-warning-surface)] text-[var(--color-warning)] border border-[var(--color-warning)]'
                     : 'bg-[var(--color-accent-surface)] text-[var(--brand-p2)] border border-[var(--color-accent-subtle)]'
                 }`}
               >
@@ -339,7 +339,7 @@ export function DecompositionWaterfallSlide({ slideNumber, totalSlides }: SlideP
             <div className="rounded-xl border border-[var(--border-default)] p-3 bg-[var(--bg-surface)]">
               <p className="text-xs text-[var(--text-muted)] mb-1">{t.actualDelta}</p>
               <p
-                className={`text-sm font-bold ${currentRev >= baseRev ? 'text-emerald-700' : 'text-red-600'}`}
+                className={`text-sm font-bold ${currentRev >= baseRev ? 'text-[var(--color-success)]' : 'text-[var(--color-danger)]'}`}
               >
                 {currentRev >= baseRev ? '+' : ''}
                 {formatRevenue(currentRev - baseRev)}

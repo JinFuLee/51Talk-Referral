@@ -210,10 +210,21 @@ export default function RenewalRiskPage() {
   function riskBadge(days?: number | null): { label: string; cls: string } {
     if (days == null)
       return { label: t.riskUnknown, cls: 'bg-[var(--bg-subtle)] text-[var(--text-secondary)]' };
-    if (days > 90) return { label: t.riskHigh, cls: 'bg-red-100 text-red-700' };
+    if (days > 90)
+      return {
+        label: t.riskHigh,
+        cls: 'bg-[var(--color-danger-surface)] text-[var(--color-danger)]',
+      };
     if (days > 60) return { label: t.riskMidHigh, cls: 'bg-orange-100 text-orange-700' };
-    if (days > 30) return { label: t.riskWatch, cls: 'bg-yellow-100 text-yellow-700' };
-    return { label: t.riskNormal, cls: 'bg-green-100 text-green-700' };
+    if (days > 30)
+      return {
+        label: t.riskWatch,
+        cls: 'bg-[var(--color-warning-surface)] text-[var(--color-warning)]',
+      };
+    return {
+      label: t.riskNormal,
+      cls: 'bg-[var(--color-success-surface)] text-[var(--color-success)]',
+    };
   }
 
   if (isLoading) {
@@ -327,7 +338,7 @@ export default function RenewalRiskPage() {
                       >
                         ⓘ
                       </span>
-                      <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 hidden group-hover:block z-10 bg-gray-900 text-white text-[10px] rounded px-2 py-1 whitespace-nowrap pointer-events-none shadow-lg">
+                      <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 hidden group-hover:block z-10 bg-[var(--bg-subtle)] text-white text-[10px] rounded px-2 py-1 whitespace-nowrap pointer-events-none shadow-lg">
                         {t.colLessonPkgTip}
                       </span>
                     </span>
@@ -341,7 +352,7 @@ export default function RenewalRiskPage() {
                       >
                         ⓘ
                       </span>
-                      <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 hidden group-hover:block z-10 bg-gray-900 text-white text-[10px] rounded px-2 py-1 whitespace-nowrap pointer-events-none shadow-lg">
+                      <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 hidden group-hover:block z-10 bg-[var(--bg-subtle)] text-white text-[10px] rounded px-2 py-1 whitespace-nowrap pointer-events-none shadow-lg">
                         {t.colRenewalOrdersTip}
                       </span>
                     </span>
@@ -358,7 +369,7 @@ export default function RenewalRiskPage() {
                       className="even:bg-[var(--bg-subtle)] hover:bg-[var(--bg-subtle)]"
                     >
                       <td className="slide-td font-mono text-xs">{s.stdt_id ?? '—'}</td>
-                      <td className="slide-td text-right font-mono tabular-nums font-semibold text-red-600">
+                      <td className="slide-td text-right font-mono tabular-nums font-semibold text-[var(--color-danger)]">
                         {s.days_since_last_renewal ?? '—'}
                       </td>
                       <td className="slide-td text-center">

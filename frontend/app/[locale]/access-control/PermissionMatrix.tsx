@@ -96,8 +96,8 @@ function MatrixCell({
   if (isPublic) {
     return (
       <td className="slide-td text-center" title={title}>
-        <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-emerald-100">
-          <Globe className="w-3 h-3 text-emerald-600" />
+        <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-[var(--color-success-surface)]">
+          <Globe className="w-3 h-3 text-[var(--color-success)]" />
         </span>
       </td>
     );
@@ -182,8 +182,8 @@ export default function PermissionMatrix({ users, pages, roles }: PermissionMatr
           {t.roleInherited}
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-emerald-100">
-            <Globe className="w-3 h-3 text-emerald-600" />
+          <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-[var(--color-success-surface)]">
+            <Globe className="w-3 h-3 text-[var(--color-success)]" />
           </span>
           {t.publicPage}
         </span>

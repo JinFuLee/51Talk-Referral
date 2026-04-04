@@ -7,8 +7,18 @@ import { useLocale } from 'next-intl';
 const I18N = {
   zh: { exporting: '导出中...', export: '数据导出', csv: 'CSV 格式', excel: 'Excel 格式' },
   'zh-TW': { exporting: '匯出中...', export: '資料匯出', csv: 'CSV 格式', excel: 'Excel 格式' },
-  en: { exporting: 'Exporting...', export: 'Export Data', csv: 'CSV Format', excel: 'Excel Format' },
-  th: { exporting: 'กำลังส่งออก...', export: 'ส่งออกข้อมูล', csv: 'รูปแบบ CSV', excel: 'รูปแบบ Excel' },
+  en: {
+    exporting: 'Exporting...',
+    export: 'Export Data',
+    csv: 'CSV Format',
+    excel: 'Excel Format',
+  },
+  th: {
+    exporting: 'กำลังส่งออก...',
+    export: 'ส่งออกข้อมูล',
+    csv: 'รูปแบบ CSV',
+    excel: 'รูปแบบ Excel',
+  },
 } as const;
 type I18NKey = keyof typeof I18N;
 function useT() {

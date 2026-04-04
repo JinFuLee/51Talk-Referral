@@ -255,13 +255,13 @@ const TIER_CONFIG: Record<
   share: {
     border: 'border-[var(--color-success)]',
     bg: 'bg-[var(--color-success-surface)]',
-    badgeClass: 'bg-emerald-100 text-emerald-700',
+    badgeClass: 'bg-[var(--color-success-surface)] text-[var(--color-success)]',
     checkColor: 'text-[var(--color-success)]',
   },
   custom: {
     border: 'border-[var(--color-warning)]',
     bg: 'bg-[var(--color-warning-surface)]',
-    badgeClass: 'bg-amber-100 text-amber-700',
+    badgeClass: 'bg-[var(--color-warning-surface)] text-[var(--color-warning)]',
     checkColor: 'text-[var(--color-warning)]',
   },
 };
@@ -840,9 +840,9 @@ export function TargetRecommender() {
               }
               className={`px-5 py-2 rounded-xl text-sm font-semibold transition-colors whitespace-nowrap shrink-0 disabled:opacity-50 disabled:cursor-not-allowed ${
                 applyStatus === 'success'
-                  ? 'bg-emerald-100 text-emerald-700 border border-emerald-200'
+                  ? 'bg-[var(--color-success-surface)] text-[var(--color-success)] border border-[var(--color-success)]'
                   : applyStatus === 'error'
-                    ? 'bg-red-50 text-red-700 border border-red-200'
+                    ? 'bg-[var(--color-danger-surface)] text-[var(--color-danger)] border border-[var(--color-danger)]'
                     : 'bg-[var(--brand-p2)] text-white hover:bg-[var(--brand-p2-hover)]'
               }`}
             >

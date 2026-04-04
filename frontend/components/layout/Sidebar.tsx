@@ -115,8 +115,8 @@ export function Sidebar() {
   const t = I18N[(locale as SidebarLocale) in I18N ? (locale as SidebarLocale) : 'zh'];
 
   return (
-    <aside className="w-56 bg-slate-900 flex flex-col shrink-0">
-      <div className="px-4 py-5 border-b border-slate-700">
+    <aside className="w-56 bg-[var(--bg-subtle)] flex flex-col shrink-0">
+      <div className="px-4 py-5 border-b border-[var(--border-default)]">
         <div className="text-white font-bold text-sm leading-tight">ref-ops-engine</div>
         <div className="text-[var(--text-muted)] text-xs mt-0.5">{t.subtitle}</div>
       </div>
@@ -134,7 +134,7 @@ export function Sidebar() {
                 'flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',
                 isActive
                   ? 'bg-primary text-primary-foreground'
-                  : 'text-[var(--text-muted)] hover:text-white hover:bg-slate-800'
+                  : 'text-[var(--text-muted)] hover:text-white hover:bg-[var(--bg-subtle)]'
               )}
             >
               {t.nav[href]}
@@ -143,7 +143,7 @@ export function Sidebar() {
         })}
       </nav>
 
-      <div className="px-4 py-3 border-t border-slate-700">
+      <div className="px-4 py-3 border-t border-[var(--border-default)]">
         <p className="text-xs text-[var(--text-secondary)]">{t.footer}</p>
       </div>
     </aside>

@@ -94,7 +94,7 @@ function DotCell({
   return (
     <div className="flex items-center justify-center h-5 w-5">
       <span
-        className={`w-3 h-3 rounded-full ${connected ? 'bg-green-500' : 'bg-gray-200 dark:bg-gray-700'}`}
+        className={`w-3 h-3 rounded-full ${connected ? 'bg-[var(--color-success)]' : 'bg-[var(--n-200)]'}`}
         title={connected ? labelConnected : labelNot}
       />
     </div>
@@ -134,8 +134,8 @@ export function ContactTimeline({ stdtId }: ContactTimelineProps) {
         <span
           className={`ml-auto px-2 py-0.5 rounded-full text-[10px] font-medium ${
             data.is_high_potential
-              ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'
-              : 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400'
+              ? 'bg-[var(--color-warning-surface)] text-[var(--color-warning)]'
+              : 'bg-[var(--bg-subtle)] text-[var(--text-muted)] dark:text-[var(--text-muted)]'
           }`}
         >
           {data.is_high_potential ? t.highPotential : t.normalStudent}
@@ -185,7 +185,7 @@ export function ContactTimeline({ stdtId }: ContactTimelineProps) {
                 <div className="flex items-center justify-center h-5 w-5">
                   <span
                     className={`w-3 h-3 rounded ${
-                      d.valid_checkin ? 'bg-action-accent-muted' : 'bg-gray-200 dark:bg-gray-700'
+                      d.valid_checkin ? 'bg-action-accent-muted' : 'bg-[var(--n-200)]'
                     }`}
                     title={d.valid_checkin ? t.validCheckin : t.notCheckin}
                   />
@@ -197,11 +197,11 @@ export function ContactTimeline({ stdtId }: ContactTimelineProps) {
           {/* Legend */}
           <div className="flex gap-4 mt-2 text-[10px] text-[var(--text-muted)]">
             <span className="flex items-center gap-1">
-              <span className="w-2.5 h-2.5 rounded-full bg-green-500 inline-block" />
+              <span className="w-2.5 h-2.5 rounded-full bg-[var(--color-success)] inline-block" />
               {t.legendConnected}
             </span>
             <span className="flex items-center gap-1">
-              <span className="w-2.5 h-2.5 rounded-full bg-gray-300 inline-block" />
+              <span className="w-2.5 h-2.5 rounded-full bg-[var(--bg-subtle)] inline-block" />
               {t.legendNotConnected}
             </span>
             <span className="flex items-center gap-1">

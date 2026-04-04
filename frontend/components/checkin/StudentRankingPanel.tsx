@@ -167,9 +167,9 @@ interface TableRowProps {
 function StudentTableRow({ rank, row, index }: TableRowProps) {
   const deltaColor =
     row.delta > 0
-      ? 'text-emerald-700'
+      ? 'text-[var(--color-success)]'
       : row.delta < 0
-        ? 'text-red-600'
+        ? 'text-[var(--color-danger)]'
         : 'text-[var(--text-muted)]';
 
   const rowClass = index % 2 === 0 ? 'slide-row-even' : 'slide-row-odd';
@@ -264,7 +264,7 @@ function SectionTable({ sections, flatMode = false, t }: SectionTableProps) {
  * 按分区展示：满勤区 / 活跃区 / 低频区（频次模式）
  *
  * 使用示例：
- *   <StudentRankingPanel />
+ * <StudentRankingPanel />
  */
 interface StudentRankingPanelProps {
   enclosureFilter?: string | null;
@@ -335,7 +335,7 @@ export function StudentRankingPanel({ enclosureFilter }: StudentRankingPanelProp
 
       {/* error */}
       {!isLoading && error && (
-        <div className="flex items-center justify-center h-32 text-sm text-red-600">
+        <div className="flex items-center justify-center h-32 text-sm text-[var(--color-danger)]">
           {t.loadFailed}
         </div>
       )}

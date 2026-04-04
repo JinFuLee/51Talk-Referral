@@ -279,14 +279,18 @@ function CCContent() {
           <Card title="">
             <div className="text-center py-3">
               <p className="text-xs text-[var(--text-muted)] mb-1">{t.highQualityPct}</p>
-              <p className="text-3xl font-bold text-emerald-800">{pct(summary.high_quality_pct)}</p>
+              <p className="text-3xl font-bold text-[var(--color-success)]">
+                {pct(summary.high_quality_pct)}
+              </p>
               <p className="text-xs text-[var(--text-muted)] mt-1">{t.highQualityNote}</p>
             </div>
           </Card>
           <Card title="">
             <div className="text-center py-3">
               <p className="text-xs text-[var(--text-muted)] mb-1">{t.suspiciousPct}</p>
-              <p className="text-3xl font-bold text-amber-800">{pct(summary.suspicious_pct)}</p>
+              <p className="text-3xl font-bold text-[var(--color-warning)]">
+                {pct(summary.suspicious_pct)}
+              </p>
               <p className="text-xs text-[var(--text-muted)] mt-1">{t.suspiciousNote}</p>
             </div>
           </Card>
@@ -385,9 +389,9 @@ function CCContent() {
                       <span
                         className={
                           highRate >= 0.6
-                            ? 'text-emerald-800 font-semibold'
+                            ? 'text-[var(--color-success)] font-semibold'
                             : highRate >= 0.4
-                              ? 'text-amber-800'
+                              ? 'text-[var(--color-warning)]'
                               : 'text-[var(--color-danger)]'
                         }
                       >
@@ -400,7 +404,7 @@ function CCContent() {
                           suspRate > 0.3
                             ? 'text-[var(--color-danger)] font-semibold'
                             : suspRate > 0.1
-                              ? 'text-amber-800'
+                              ? 'text-[var(--color-warning)]'
                               : 'text-[var(--text-secondary)]'
                         }
                       >

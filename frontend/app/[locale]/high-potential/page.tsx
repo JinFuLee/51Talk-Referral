@@ -246,9 +246,9 @@ function urgencyBorderClass(level?: 'red' | 'yellow' | 'green'): string {
 }
 
 function urgencyBadgeClass(level?: 'red' | 'yellow' | 'green'): string {
-  if (level === 'red') return 'bg-red-50 text-[var(--color-danger)]';
-  if (level === 'yellow') return 'bg-amber-50 text-[var(--color-warning)]';
-  if (level === 'green') return 'bg-emerald-50 text-[var(--color-success)]';
+  if (level === 'red') return 'bg-[var(--color-danger-surface)] text-[var(--color-danger)]';
+  if (level === 'yellow') return 'bg-[var(--color-warning-surface)] text-[var(--color-warning)]';
+  if (level === 'green') return 'bg-[var(--color-success-surface)] text-[var(--color-success)]';
   return '';
 }
 
@@ -266,7 +266,7 @@ function PaymentsBadge({ payments, label }: { payments: number; label: string })
     <span
       className={`text-[10px] px-1.5 py-0.5 rounded-md font-semibold ${
         hasPayment
-          ? 'bg-emerald-50 text-[var(--color-success)]'
+          ? 'bg-[var(--color-success-surface)] text-[var(--color-success)]'
           : 'bg-[var(--bg-subtle)] text-[var(--text-muted)]'
       }`}
     >
@@ -286,7 +286,7 @@ function EngagementBadge({
     <span
       className={`text-[10px] px-1.5 py-0.5 rounded-md font-semibold ${
         deep
-          ? 'bg-emerald-50 text-[var(--color-success)]'
+          ? 'bg-[var(--color-success-surface)] text-[var(--color-success)]'
           : 'bg-[var(--bg-subtle)] text-[var(--text-muted)]'
       }`}
     >
@@ -560,18 +560,18 @@ export default function HighPotentialPage() {
           <p className="text-[10px] text-[var(--text-muted)] mt-1">
             {t.urgencyLabel}
             <span className="inline-flex items-center gap-1 mx-1">
-              <span className="w-2 h-2 rounded-full bg-red-500 inline-block" />
-              <span className="text-red-600 font-medium">{t.urgencyRed}</span>
+              <span className="w-2 h-2 rounded-full bg-[var(--color-danger)] inline-block" />
+              <span className="text-[var(--color-danger)] font-medium">{t.urgencyRed}</span>
             </span>
             {t.urgencyRedDesc}
             <span className="inline-flex items-center gap-1 mx-1">
-              <span className="w-2 h-2 rounded-full bg-amber-400 inline-block" />
-              <span className="text-amber-600 font-medium">{t.urgencyYellow}</span>
+              <span className="w-2 h-2 rounded-full bg-[var(--color-warning)] inline-block" />
+              <span className="text-[var(--color-warning)] font-medium">{t.urgencyYellow}</span>
             </span>
             {t.urgencyYellowDesc}
             <span className="inline-flex items-center gap-1 mx-1">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" />
-              <span className="text-emerald-600 font-medium">{t.urgencyGreen}</span>
+              <span className="w-2 h-2 rounded-full bg-[var(--color-success)] inline-block" />
+              <span className="text-[var(--color-success)] font-medium">{t.urgencyGreen}</span>
             </span>
             {t.urgencyGreenDesc}
           </p>

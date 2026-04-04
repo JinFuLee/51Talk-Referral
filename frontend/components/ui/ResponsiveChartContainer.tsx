@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import React, { useEffect, useState, useRef, createContext, useContext } from "react";
-import { cn } from "@/lib/utils";
+import React, { useEffect, useState, useRef, createContext, useContext } from 'react';
+import { cn } from '@/lib/utils';
 
 interface ChartContextType {
   isCompact: boolean;
@@ -54,8 +54,8 @@ export function ResponsiveChartContainer({
       <div
         ref={containerRef}
         className={cn(
-          "w-full h-full relative transition-all duration-300",
-          dimensions.isCompact ? "chart-compact-mode" : "chart-full-mode",
+          'w-full h-full relative transition-all duration-300',
+          dimensions.isCompact ? 'chart-compact-mode' : 'chart-full-mode',
           className
         )}
         style={{ minHeight }}

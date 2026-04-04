@@ -48,7 +48,7 @@ const STATUS_TEXT_I18N = {
 const STATUS_ICON = {
   pending: <div className="w-4 h-4 rounded-full border-2 border-[var(--border-hover)]" />,
   sending: <Loader2 className="w-4 h-4 animate-spin text-action-accent" />,
-  success: <CheckCircle2 className="w-4 h-4 text-emerald-500" />,
+  success: <CheckCircle2 className="w-4 h-4 text-[var(--color-success)]" />,
   error: <XCircle className="w-4 h-4 text-[var(--color-danger)]" />,
 };
 
@@ -96,7 +96,7 @@ export function PushProgress({ items }: PushProgressProps) {
             <span
               className={`text-xs ${
                 item.status === 'success'
-                  ? 'text-emerald-600'
+                  ? 'text-[var(--color-success)]'
                   : item.status === 'error'
                     ? 'text-[var(--color-danger)]'
                     : 'text-[var(--text-muted)]'

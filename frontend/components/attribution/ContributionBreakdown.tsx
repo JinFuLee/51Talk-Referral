@@ -139,13 +139,14 @@ export function ContributionBreakdown({ data, title }: ContributionBreakdownProp
       {/* 图例 */}
       <div className="flex gap-4 mt-2 text-xs text-[var(--text-muted)]">
         <span className="flex items-center gap-1">
-          <span className="w-3 h-3 rounded-sm inline-block bg-green-600" /> {t.legend100}
+          <span className="w-3 h-3 rounded-sm inline-block bg-[var(--color-success)]" />{' '}
+          {t.legend100}
         </span>
         <span className="flex items-center gap-1">
           <span className="w-3 h-3 rounded-sm inline-block bg-action-accent" /> {t.legend50}
         </span>
         <span className="flex items-center gap-1">
-          <span className="w-3 h-3 rounded-sm inline-block bg-red-600" /> {t.legend0}
+          <span className="w-3 h-3 rounded-sm inline-block bg-[var(--color-danger)]" /> {t.legend0}
         </span>
       </div>
     </div>

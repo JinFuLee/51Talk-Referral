@@ -11,9 +11,9 @@ const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
  * useFilterSync v3 — Bidirectional sync between URL search params and config-store.
  *
  * Syncs all 8 dimension params + team/cc + customDateRange:
- *   ?date_from=2026-01-01&date_to=2026-01-31&team=THCC-A&cc=张伟
- *   &country=TH&data_role=all&enclosure=M0,M1&granularity=month
- *   &funnel_stage=all&channel=all&behavior=gold,effective&benchmarks=target
+ * ?date_from=2026-01-01&date_to=2026-01-31&team=THCC-A&cc=张伟
+ * &country=TH&data_role=all&enclosure=M0,M1&granularity=month
+ * &funnel_stage=all&channel=all&behavior=gold,effective&benchmarks=target
  *
  * Default values are preserved in URL for clarity (unlike useFilteredSWR which omits them).
  * Uses router.replace so URL updates don't add history entries.

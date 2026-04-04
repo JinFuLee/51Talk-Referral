@@ -100,7 +100,7 @@ const I18N = {
 type Locale = keyof typeof I18N;
 
 function achievementColor(rate: number): string {
-  if (rate >= 1) return 'text-emerald-800';
+  if (rate >= 1) return 'text-[var(--color-success)]';
   if (rate >= 0.5) return 'text-action-accent';
   return 'text-[var(--color-danger)]';
 }
@@ -198,7 +198,7 @@ export function GapSimulator() {
 
           <div className="card-subtle">
             <p className="text-xs text-[var(--text-muted)]">{t.predictedPaid}</p>
-            <p className="text-lg font-bold tabular-nums text-emerald-800">
+            <p className="text-lg font-bold tabular-nums text-[var(--color-success)]">
               {(data.new_paid ?? 0).toLocaleString()} {t.people}
             </p>
           </div>
@@ -218,7 +218,7 @@ export function GapSimulator() {
               {t.from} <strong>{formatRate(data.current_rate)}</strong> {t.to}{' '}
               <strong>{formatRate(data.new_rate)}</strong>
               {t.predictPaidIncrease}{' '}
-              <strong className="text-emerald-800">
+              <strong className="text-[var(--color-success)]">
                 +{((data.new_paid ?? 0) - (data.current_paid ?? 0)).toLocaleString()} {t.people}
               </strong>
             </div>

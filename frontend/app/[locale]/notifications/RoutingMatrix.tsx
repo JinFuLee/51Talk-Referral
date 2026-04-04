@@ -158,9 +158,9 @@ interface RoutingData {
 // AUDIENCE_LABELS is now derived from t inside the component
 
 const AUDIENCE_COLORS: Record<string, string> = {
-  all: 'text-blue-600',
-  tl: 'text-amber-600',
-  ops: 'text-purple-600',
+  all: 'text-[var(--color-accent)]',
+  tl: 'text-[var(--color-warning)]',
+  ops: 'text-[var(--color-accent)]',
 };
 
 const FORMAT_ICONS: Record<string, typeof Image> = {
@@ -255,7 +255,7 @@ export function RoutingMatrix() {
         <button
           onClick={() => setShowAdd(!showAdd)}
           className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-lg
-                     bg-[var(--bg-subtle)] hover:bg-[var(--bg-elevated)] transition-colors"
+ bg-[var(--bg-subtle)] hover:bg-[var(--bg-elevated)] transition-colors"
         >
           <Plus className="w-3.5 h-3.5" />
           {t.addModule}
@@ -273,7 +273,7 @@ export function RoutingMatrix() {
                 onChange={(e) => setNewModule({ ...newModule, id: e.target.value })}
                 placeholder={t.moduleIdPlaceholder}
                 className="w-full px-3 py-1.5 text-sm border border-[var(--border-default)] rounded-lg
-                           bg-[var(--bg-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--action)]"
+ bg-[var(--bg-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--action)]"
               />
             </div>
             <div>
@@ -283,7 +283,7 @@ export function RoutingMatrix() {
                 onChange={(e) => setNewModule({ ...newModule, description: e.target.value })}
                 placeholder={t.descriptionPlaceholder}
                 className="w-full px-3 py-1.5 text-sm border border-[var(--border-default)] rounded-lg
-                           bg-[var(--bg-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--action)]"
+ bg-[var(--bg-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--action)]"
               />
             </div>
           </div>
@@ -318,8 +318,8 @@ export function RoutingMatrix() {
               onClick={addModule}
               disabled={!newModule.id.trim()}
               className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-lg
-                         bg-[var(--action)] text-white hover:bg-[var(--action-accent)]
-                         disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+ bg-[var(--action)] text-white hover:bg-[var(--action-accent)]
+ disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               <Save className="w-3 h-3" />
               {t.save}
@@ -368,7 +368,7 @@ export function RoutingMatrix() {
                         <div className="flex items-center gap-1.5">
                           <span className="font-medium text-[var(--text-primary)]">{mod.id}</span>
                           {mod.cc_only && (
-                            <span className="px-1.5 py-0.5 text-[10px] font-medium rounded-full bg-amber-100 text-amber-700">
+                            <span className="px-1.5 py-0.5 text-[10px] font-medium rounded-full bg-[var(--color-warning-surface)] text-[var(--color-warning)]">
                               CC
                             </span>
                           )}
@@ -382,7 +382,7 @@ export function RoutingMatrix() {
                               value={editDesc}
                               onChange={(e) => setEditDesc(e.target.value)}
                               className="flex-1 px-2 py-0.5 text-xs border border-[var(--border-default)] rounded
-                                         bg-[var(--bg-primary)] focus:outline-none focus:ring-1 focus:ring-[var(--action)]"
+ bg-[var(--bg-primary)] focus:outline-none focus:ring-1 focus:ring-[var(--action)]"
                               autoFocus
                               onKeyDown={(e) => {
                                 if (e.key === 'Enter') saveDescription(mod.id);
@@ -391,7 +391,7 @@ export function RoutingMatrix() {
                             />
                             <button
                               onClick={() => saveDescription(mod.id)}
-                              className="p-0.5 text-green-600 hover:bg-green-50 rounded"
+                              className="p-0.5 text-[var(--color-success)] hover:bg-[var(--color-success-surface)] rounded"
                             >
                               <Check className="w-3.5 h-3.5" />
                             </button>
@@ -438,11 +438,11 @@ export function RoutingMatrix() {
                           onClick={() => toggleRouting(mod.id, aud, enabled)}
                           disabled={isSaving}
                           className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all
-                            ${
-                              enabled
-                                ? 'bg-green-100 text-green-700 hover:bg-green-200'
-                                : 'bg-[var(--bg-subtle)] text-[var(--text-muted)] hover:bg-[var(--bg-elevated)]'
-                            } ${isSaving ? 'opacity-50' : ''}`}
+ ${
+   enabled
+     ? 'bg-[var(--color-success-surface)] text-[var(--color-success)] hover:bg-[var(--color-success-surface)]'
+     : 'bg-[var(--bg-subtle)] text-[var(--text-muted)] hover:bg-[var(--bg-elevated)]'
+ } ${isSaving ? 'opacity-50' : ''}`}
                           title={enabled ? t.enabledClickToDisable : t.disabledClickToEnable}
                         >
                           {enabled ? <Check className="w-4 h-4" /> : <X className="w-4 h-4" />}
@@ -466,7 +466,7 @@ export function RoutingMatrix() {
                       </button>
                       <button
                         onClick={() => deleteModule(mod.id)}
-                        className="p-1.5 text-[var(--text-muted)] hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                        className="p-1.5 text-[var(--text-muted)] hover:text-[var(--color-danger)] hover:bg-[var(--color-danger-surface)] rounded-lg transition-colors"
                         title={t.deleteModule}
                       >
                         <Trash2 className="w-3.5 h-3.5" />

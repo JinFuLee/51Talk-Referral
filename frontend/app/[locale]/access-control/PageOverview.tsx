@@ -141,7 +141,7 @@ function PageItem({
           <div className="flex items-center gap-2">
             <span className="text-sm font-medium text-[var(--text-primary)] truncate">{name}</span>
             {page.is_public && (
-              <span className="flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700 font-medium shrink-0">
+              <span className="flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded-full bg-[var(--color-success-surface)] text-[var(--color-success)] font-medium shrink-0">
                 <Globe className="w-2.5 h-2.5" />
                 {t.publicBadge}
               </span>
@@ -170,7 +170,7 @@ function PageItem({
           onClick={() => onToggle(page.path, !page.is_public)}
           title={page.is_public ? t.private : t.publicToggle}
           className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-action focus-visible:ring-offset-2 ${
-            page.is_public ? 'bg-emerald-500' : 'bg-[var(--n-300)]'
+            page.is_public ? 'bg-[var(--color-success)]' : 'bg-[var(--n-300)]'
           }`}
         >
           <span
@@ -227,7 +227,7 @@ export default function PageOverview({ pages, onTogglePublic }: PageOverviewProp
                   <span className="text-xs text-[var(--text-muted)]">({catPages.length})</span>
                 </div>
                 {publicCount > 0 && (
-                  <span className="text-xs text-emerald-600">
+                  <span className="text-xs text-[var(--color-success)]">
                     {I18N[lang].publicCount(publicCount)}
                   </span>
                 )}

@@ -215,7 +215,7 @@ function ChannelColumn({ ch, rateColor, rateBg, isSelected, t }: ChannelColumnPr
 
       {/* 零数据提示 */}
       {ch.total_students === 0 && ch.channel !== 'CC' && (
-        <div className="bg-amber-50 border border-amber-200 rounded-md px-3 py-2.5 text-xs text-amber-700">
+        <div className="bg-[var(--color-warning-surface)] border border-[var(--color-warning)] rounded-md px-3 py-2.5 text-xs text-[var(--color-warning)]">
           {t.zeroDataHint}
         </div>
       )}

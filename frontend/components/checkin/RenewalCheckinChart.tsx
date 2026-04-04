@@ -109,7 +109,7 @@ function CustomTooltip({
  * - 有续费学员比例 %（右轴逻辑，实为同轴展示，绿色）
  *
  * 使用示例：
- *   <RenewalCheckinChart data={analysis.renewal_checkin_correlation} />
+ * <RenewalCheckinChart data={analysis.renewal_checkin_correlation} />
  */
 export function RenewalCheckinChart({ data }: RenewalCheckinChartProps) {
   const locale = useLocale();

@@ -139,7 +139,11 @@ function DeltaCell({ value }: { value: number | null | undefined }) {
   if (value == null)
     return <td className="px-2 py-1.5 text-xs text-right text-[var(--text-muted)]">—</td>;
   const color =
-    value > 0 ? 'text-emerald-700' : value < 0 ? 'text-red-600' : 'text-[var(--text-muted)]';
+    value > 0
+      ? 'text-[var(--color-success)]'
+      : value < 0
+        ? 'text-[var(--color-danger)]'
+        : 'text-[var(--text-muted)]';
   return (
     <td className={`px-2 py-1.5 text-xs text-right font-mono tabular-nums font-semibold ${color}`}>
       {value > 0 ? '+' : ''}
@@ -171,7 +175,7 @@ function ChannelRow({
         <span
           className={`inline-block px-1.5 py-0.5 text-xs rounded font-medium ${
             isLMDI
-              ? 'bg-amber-50 text-amber-700'
+              ? 'bg-[var(--color-warning-surface)] text-[var(--color-warning)]'
               : 'bg-[var(--color-accent-surface)] text-[var(--brand-p2)]'
           }`}
         >
@@ -235,7 +239,7 @@ export function ChannelThreeFactorSlide({ slideNumber, totalSlides }: SlideProps
       ) : error ? (
         <div className="flex items-center justify-center h-full">
           <div className="text-center space-y-2">
-            <p className="text-base font-semibold text-red-600">{t.error}</p>
+            <p className="text-base font-semibold text-[var(--color-danger)]">{t.error}</p>
             <p className="text-sm text-[var(--text-muted)]">{t.errorHint}</p>
             <button
               onClick={() => mutate()}
@@ -254,7 +258,7 @@ export function ChannelThreeFactorSlide({ slideNumber, totalSlides }: SlideProps
         <div className="flex flex-col gap-2 h-full">
           {/* 方法说明 */}
           {lmdiCount > 0 && (
-            <div className="flex-shrink-0 px-3 py-1.5 bg-amber-50 rounded-lg border border-amber-200 text-xs text-amber-700">
+            <div className="flex-shrink-0 px-3 py-1.5 bg-[var(--color-warning-surface)] rounded-lg border border-[var(--color-warning)] text-xs text-[var(--color-warning)]">
               {t.lmdiNotice(lmdiCount)}
             </div>
           )}
@@ -287,7 +291,7 @@ export function ChannelThreeFactorSlide({ slideNumber, totalSlides }: SlideProps
               {t.legendLasp}
             </span>
             <span>
-              <span className="inline-block w-2 h-2 rounded-sm bg-amber-100 mr-1" />
+              <span className="inline-block w-2 h-2 rounded-sm bg-[var(--color-warning-surface)] mr-1" />
               {t.legendLmdi}
             </span>
           </div>

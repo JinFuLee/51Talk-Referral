@@ -189,17 +189,17 @@ export function DecisionSummary({
   // 左侧 accent 颜色
   const accentColor =
     status === 'critical'
-      ? 'border-l-red-500 bg-red-50'
+      ? 'border-l-red-500 bg-[var(--color-danger-surface)]'
       : status === 'at-risk'
-        ? 'border-l-amber-400 bg-amber-50'
-        : 'border-l-green-500 bg-green-50';
+        ? 'border-l-amber-400 bg-[var(--color-warning-surface)]'
+        : 'border-l-green-500 bg-[var(--color-success-surface)]';
 
   const accentTextColor =
     status === 'critical'
       ? 'text-[var(--color-danger)]'
       : status === 'at-risk'
-        ? 'text-amber-800'
-        : 'text-emerald-800';
+        ? 'text-[var(--color-warning)]'
+        : 'text-[var(--color-success)]';
 
   const statusIcon = status === 'critical' ? '🔴' : status === 'at-risk' ? '🟡' : '🟢';
 
@@ -250,7 +250,7 @@ export function DecisionSummary({
         <div className="text-xs text-[var(--text-secondary)]">
           {t.revenueAchieve}{' '}
           <span
-            className={`font-semibold ${revAchievePct >= 80 ? 'text-emerald-800' : revAchievePct >= 60 ? 'text-amber-800' : 'text-[var(--color-danger)]'}`}
+            className={`font-semibold ${revAchievePct >= 80 ? 'text-[var(--color-success)]' : revAchievePct >= 60 ? 'text-[var(--color-warning)]' : 'text-[var(--color-danger)]'}`}
           >
             {revAchievePct}%
           </span>

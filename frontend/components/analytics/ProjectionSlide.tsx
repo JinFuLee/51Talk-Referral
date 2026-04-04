@@ -185,19 +185,21 @@ export function ProjectionSlide({ data, bm_pct }: Props) {
         <div
           className={`flex items-center justify-between rounded-lg p-3 ${
             isAhead
-              ? 'bg-[var(--color-success-surface)] border border-emerald-200'
-              : 'bg-red-50 border border-red-200'
+              ? 'bg-[var(--color-success-surface)] border border-[var(--color-success)]'
+              : 'bg-[var(--color-danger-surface)] border border-[var(--color-danger)]'
           }`}
         >
           <span className="text-xs font-semibold text-[var(--text-secondary)]">{t.revenueGap}</span>
           <div className="text-right">
             <span
-              className={`text-sm font-bold font-mono ${isAhead ? 'text-emerald-800' : 'text-red-700'}`}
+              className={`text-sm font-bold font-mono ${isAhead ? 'text-[var(--color-success)]' : 'text-[var(--color-danger)]'}`}
             >
               {isAhead ? '+' : ''}
               {formatUSD(revGap)}
             </span>
-            <p className={`text-[10px] mt-0.5 ${isAhead ? 'text-emerald-700' : 'text-red-600'}`}>
+            <p
+              className={`text-[10px] mt-0.5 ${isAhead ? 'text-[var(--color-success)]' : 'text-[var(--color-danger)]'}`}
+            >
               {isAhead ? t.ahead : t.behind}
             </p>
           </div>
@@ -211,7 +213,7 @@ export function ProjectionSlide({ data, bm_pct }: Props) {
             <p className="text-xs font-semibold text-[var(--text-muted)]">{t.aspSensitivity}</p>
             <p className="text-[10px] text-[var(--text-muted)]">{t.aspSensDesc}</p>
           </div>
-          <span className="text-sm font-bold text-amber-800 font-mono">
+          <span className="text-sm font-bold text-[var(--color-warning)] font-mono">
             -{formatUSD(Math.abs(data.asp_sensitivity_per_dollar))}
           </span>
         </div>

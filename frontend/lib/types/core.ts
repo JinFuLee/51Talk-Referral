@@ -4,7 +4,7 @@
  */
 
 /** 红绿灯状态 */
-export type Status = "green" | "yellow" | "red";
+export type Status = 'green' | 'yellow' | 'red';
 
 /** 带目标值的指标 */
 export interface MetricWithTarget {
@@ -24,7 +24,7 @@ export interface PredictionBand {
 
 /** 风险预警条目（业务视图版） */
 export interface RiskAlertBiz {
-  level: "red" | "yellow" | "green";
+  level: 'red' | 'yellow' | 'green';
   category: string;
   message: string;
   action: string;

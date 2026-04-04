@@ -160,7 +160,7 @@ export function NotificationCenter() {
       >
         <Bell className="w-5 h-5" />
         {unreadCount > 0 && (
-          <span className="absolute top-1 right-1.5 flex h-2.5 w-2.5 items-center justify-center rounded-full bg-red-500 text-[8px] font-bold text-white ring-2 ring-white" />
+          <span className="absolute top-1 right-1.5 flex h-2.5 w-2.5 items-center justify-center rounded-full bg-[var(--color-danger)] text-[8px] font-bold text-white ring-2 ring-white" />
         )}
       </button>
 
@@ -218,7 +218,7 @@ export function NotificationCenter() {
                           <ShieldAlert className="w-4 h-4 text-[var(--color-danger)]" />
                         )}
                         {n.type === 'warning' && (
-                          <AlertTriangle className="w-4 h-4 text-amber-500" />
+                          <AlertTriangle className="w-4 h-4 text-[var(--color-warning)]" />
                         )}
                         {n.type === 'info' && <Info className="w-4 h-4 text-action-text" />}
                       </div>

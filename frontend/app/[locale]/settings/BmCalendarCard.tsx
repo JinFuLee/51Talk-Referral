@@ -115,11 +115,11 @@ type DayTypeOption = 'normal' | 'kickoff' | 'holiday_off';
 
 function dayTypeBg(dayType: string, isOverride: boolean): string {
   const base: Record<string, string> = {
-    weekend: 'bg-blue-50',
+    weekend: 'bg-[var(--color-accent-surface)]',
     weekday: 'bg-white',
     dayoff: 'bg-[var(--bg-subtle)]',
-    kickoff: 'bg-amber-50',
-    holiday_off: 'bg-red-50',
+    kickoff: 'bg-[var(--color-warning-surface)]',
+    holiday_off: 'bg-[var(--color-danger-surface)]',
   };
   const color = base[dayType] ?? 'bg-white';
   return isOverride ? `${color} ring-1 ring-amber-400` : color;
@@ -251,9 +251,9 @@ export default function BmCalendarCard({ selectedMonth }: BmCalendarCardProps) {
   const monthLabel = t.year ? `${yr}${t.year}${mo}${t.month}` : `${yr}-${mo}`;
 
   const legends = [
-    { bg: 'bg-blue-50', label: t.legendWeekend },
-    { bg: 'bg-amber-50', label: t.legendKickoff },
-    { bg: 'bg-red-50', label: t.legendHolidayOff },
+    { bg: 'bg-[var(--color-accent-surface)]', label: t.legendWeekend },
+    { bg: 'bg-[var(--color-warning-surface)]', label: t.legendKickoff },
+    { bg: 'bg-[var(--color-danger-surface)]', label: t.legendHolidayOff },
     { bg: 'bg-[var(--bg-subtle)]', label: t.legendDayOff },
     { bg: 'bg-white ring-1 ring-amber-400', label: t.legendOverride },
   ];
@@ -318,7 +318,7 @@ export default function BmCalendarCard({ selectedMonth }: BmCalendarCardProps) {
               <div key={dateStr} className="relative">
                 <button
                   onClick={() => setActiveDate(isActive ? null : dateStr)}
-                  className={`w-full rounded-lg border border-[var(--border-default)] p-1.5 text-left transition-colors hover:border-amber-400 ${dayData ? dayTypeBg(dayData.day_type, dayData.is_override) : 'bg-white'}`}
+                  className={`w-full rounded-lg border border-[var(--border-default)] p-1.5 text-left transition-colors hover:border-[var(--color-warning)] ${dayData ? dayTypeBg(dayData.day_type, dayData.is_override) : 'bg-white'}`}
                   title={dayData?.label || undefined}
                 >
                   <div className="flex items-start justify-between">
@@ -326,7 +326,7 @@ export default function BmCalendarCard({ selectedMonth }: BmCalendarCardProps) {
                       {dayNum}
                     </span>
                     {dayData?.is_override && (
-                      <span className="w-1.5 h-1.5 rounded-full bg-amber-500 mt-0.5" />
+                      <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-warning)] mt-0.5" />
                     )}
                   </div>
                   {dayData && (

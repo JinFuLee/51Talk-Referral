@@ -297,7 +297,7 @@ function LoginView() {
 
                 {/* 错误提示 */}
                 {error && (
-                  <div className="flex items-start gap-2.5 px-3.5 py-3 rounded-xl bg-[var(--color-danger-surface)] border border-red-200/60 animate-slide-up">
+                  <div className="flex items-start gap-2.5 px-3.5 py-3 rounded-xl bg-[var(--color-danger-surface)] border border-[var(--color-danger)] animate-slide-up">
                     <AlertCircle className="w-4 h-4 text-[var(--color-danger)] mt-0.5 flex-shrink-0" />
                     <p className="text-sm text-[var(--color-danger)] leading-relaxed">{error}</p>
                   </div>

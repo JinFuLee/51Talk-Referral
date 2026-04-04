@@ -135,10 +135,10 @@ export function AnomalyBanner({
   const summary = anomalies.map((a) => a.message).join('。');
 
   const bannerClass = hasCritical
-    ? 'bg-red-50 border border-red-200 text-red-800'
-    : 'bg-amber-50 border border-amber-200 text-amber-800';
+    ? 'bg-[var(--color-danger-surface)] border border-[var(--color-danger)] text-[var(--color-danger)]'
+    : 'bg-[var(--color-warning-surface)] border border-[var(--color-warning)] text-[var(--color-warning)]';
 
-  const iconClass = hasCritical ? 'text-[var(--color-danger)]' : 'text-amber-800';
+  const iconClass = hasCritical ? 'text-[var(--color-danger)]' : 'text-[var(--color-warning)]';
 
   function handleDismiss() {
     const today = new Date().toDateString();

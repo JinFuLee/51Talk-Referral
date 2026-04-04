@@ -134,7 +134,7 @@ function fmtNum(v: number, format: RowFormat): string {
 
 function BmGapCell({ value, format }: { value: number; format: RowFormat }) {
   const isPositive = value >= 0;
-  const colorClass = isPositive ? 'text-emerald-800' : 'text-[var(--color-danger)]';
+  const colorClass = isPositive ? 'text-[var(--color-success)]' : 'text-[var(--color-danger)]';
   const arrow = isPositive ? '▲' : '▼';
   const sign = isPositive ? '+' : '';
   const display =

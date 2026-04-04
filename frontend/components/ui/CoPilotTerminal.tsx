@@ -72,15 +72,15 @@ export function CoPilotTerminal() {
       {/* Terminal Window */}
       <div
         className={cn(
-          'fixed bottom-6 right-6 w-96 h-[32rem] bg-slate-950 rounded-[var(--radius-xl)] shadow-2xl flex flex-col overflow-hidden z-50 border border-slate-800 transition-all duration-200 transform origin-bottom-right',
+          'fixed bottom-6 right-6 w-96 h-[32rem] bg-[var(--bg-subtle)] rounded-[var(--radius-xl)] shadow-2xl flex flex-col overflow-hidden z-50 border border-[var(--border-default)] transition-all duration-200 transform origin-bottom-right',
           isOpen ? 'scale-100 opacity-100' : 'scale-90 opacity-0 pointer-events-none'
         )}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3 bg-slate-900 border-b border-slate-800">
+        <div className="flex items-center justify-between px-4 py-3 bg-[var(--bg-subtle)] border-b border-[var(--border-default)]">
           <div className="flex items-center gap-2">
             <TerminalIcon className="w-4 h-4 text-action" />
-            <span className="text-sm font-semibold tracking-tight text-slate-200">
+            <span className="text-sm font-semibold tracking-tight text-[var(--text-muted)]">
               Co-pilot Terminal
             </span>
           </div>
@@ -104,7 +104,7 @@ export function CoPilotTerminal() {
                   'max-w-[85%] rounded-xl px-4 py-2.5 text-sm whitespace-pre-wrap',
                   msg.role === 'user'
                     ? 'bg-action-active text-white'
-                    : 'bg-slate-800 text-slate-300 font-mono tracking-tight'
+                    : 'bg-[var(--bg-subtle)] text-[var(--text-muted)] font-mono tracking-tight'
                 )}
               >
                 {msg.role === 'assistant' && (
@@ -116,10 +116,10 @@ export function CoPilotTerminal() {
           ))}
           {isTyping && (
             <div className="flex justify-start">
-              <div className="bg-slate-800 text-slate-300 rounded-xl px-4 py-3 text-sm flex items-center gap-1.5">
-                <div className="w-1.5 h-1.5 rounded-full bg-slate-500 animate-bounce" />
-                <div className="w-1.5 h-1.5 rounded-full bg-slate-500 animate-bounce delay-75" />
-                <div className="w-1.5 h-1.5 rounded-full bg-slate-500 animate-bounce delay-150" />
+              <div className="bg-[var(--bg-subtle)] text-[var(--text-muted)] rounded-xl px-4 py-3 text-sm flex items-center gap-1.5">
+                <div className="w-1.5 h-1.5 rounded-full bg-[var(--bg-subtle)] animate-bounce" />
+                <div className="w-1.5 h-1.5 rounded-full bg-[var(--bg-subtle)] animate-bounce delay-75" />
+                <div className="w-1.5 h-1.5 rounded-full bg-[var(--bg-subtle)] animate-bounce delay-150" />
               </div>
             </div>
           )}
@@ -127,7 +127,7 @@ export function CoPilotTerminal() {
         </div>
 
         {/* Input */}
-        <div className="p-3 bg-slate-900 border-t border-slate-800">
+        <div className="p-3 bg-[var(--bg-subtle)] border-t border-[var(--border-default)]">
           <div className="relative flex items-center">
             <input
               type="text"
@@ -135,7 +135,7 @@ export function CoPilotTerminal() {
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSend()}
               placeholder="Ask Team Agent..."
-              className="w-full bg-slate-950 text-slate-200 text-sm rounded-xl py-2.5 pl-4 pr-10 border border-slate-800 focus:outline-none focus:ring-1 focus:ring-action font-mono placeholder:text-slate-600"
+              className="w-full bg-[var(--bg-subtle)] text-[var(--text-muted)] text-sm rounded-xl py-2.5 pl-4 pr-10 border border-[var(--border-default)] focus:outline-none focus:ring-1 focus:ring-action font-mono placeholder:text-[var(--text-secondary)]"
             />
             <button
               onClick={handleSend}

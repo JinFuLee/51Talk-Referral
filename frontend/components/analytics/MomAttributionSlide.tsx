@@ -139,14 +139,14 @@ function formatMetricValue(metric: string, value: number | null | undefined): st
 }
 
 function judgmentColor(j: '↑' | '↓' | '→'): string {
-  if (j === '↑') return 'text-emerald-700 font-bold';
-  if (j === '↓') return 'text-red-600 font-bold';
+  if (j === '↑') return 'text-[var(--color-success)] font-bold';
+  if (j === '↓') return 'text-[var(--color-danger)] font-bold';
   return 'text-[var(--text-muted)]';
 }
 
 function deltaColor(delta: number): string {
-  if (delta > 0) return 'text-emerald-700 font-semibold';
-  if (delta < 0) return 'text-red-600 font-semibold';
+  if (delta > 0) return 'text-[var(--color-success)] font-semibold';
+  if (delta < 0) return 'text-[var(--color-danger)] font-semibold';
   return 'text-[var(--text-muted)]';
 }
 
@@ -189,7 +189,7 @@ export function MomAttributionSlide({ slideNumber, totalSlides }: SlideProps) {
       ) : error ? (
         <div className="flex items-center justify-center h-full">
           <div className="text-center space-y-2">
-            <p className="text-base font-semibold text-red-600">{t.error}</p>
+            <p className="text-base font-semibold text-[var(--color-danger)]">{t.error}</p>
             <p className="text-sm text-[var(--text-muted)]">{t.errorHint}</p>
             <button
               onClick={() => mutate()}

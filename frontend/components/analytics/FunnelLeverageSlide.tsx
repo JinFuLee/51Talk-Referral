@@ -156,7 +156,12 @@ type DailyReportSlice = { blocks: { funnel_leverage: FunnelLeverage } };
 function ScoreBar({ score }: { score: number }) {
   // score 通常在 0-1 之间（impact × feasibility × urgency 归一化后）
   const pct = Math.min(100, score * 100);
-  const color = score >= 0.5 ? 'bg-emerald-500' : score >= 0.25 ? 'bg-amber-500' : 'bg-red-400';
+  const color =
+    score >= 0.5
+      ? 'bg-[var(--color-success)]'
+      : score >= 0.25
+        ? 'bg-[var(--color-warning)]'
+        : 'bg-[var(--color-danger)]';
   return (
     <div className="flex items-center gap-2">
       <div className="flex-1 bg-[var(--bg-subtle)] rounded-full h-1.5">
@@ -176,9 +181,9 @@ function PotentialBadge({ label }: { label: string }) {
     <span
       className={`inline-block px-1.5 py-0.5 text-xs rounded-full font-medium whitespace-nowrap ${
         isGood
-          ? 'bg-emerald-50 text-emerald-700'
+          ? 'bg-[var(--color-success-surface)] text-[var(--color-success)]'
           : isPending
-            ? 'bg-amber-50 text-amber-700'
+            ? 'bg-[var(--color-warning-surface)] text-[var(--color-warning)]'
             : 'bg-[var(--bg-subtle)] text-[var(--text-muted)]'
       }`}
     >
@@ -225,7 +230,7 @@ export function FunnelLeverageSlide({ slideNumber, totalSlides }: SlideProps) {
       ) : error ? (
         <div className="flex items-center justify-center h-full">
           <div className="text-center space-y-2">
-            <p className="text-base font-semibold text-red-600">{t.error}</p>
+            <p className="text-base font-semibold text-[var(--color-danger)]">{t.error}</p>
             <p className="text-sm text-[var(--text-muted)]">{t.errorHint}</p>
             <button
               onClick={() => mutate()}
@@ -290,7 +295,7 @@ export function FunnelLeverageSlide({ slideNumber, totalSlides }: SlideProps) {
                       <td className="px-3 py-1.5 text-xs font-semibold text-[var(--text-primary)]">
                         {row.channel}
                         {row.is_bottleneck && (
-                          <span className="ml-1 text-amber-500 text-xs">★</span>
+                          <span className="ml-1 text-[var(--color-warning)] text-xs">★</span>
                         )}
                       </td>
                       <td className="px-3 py-1.5 text-xs text-[var(--text-secondary)]">
@@ -303,7 +308,7 @@ export function FunnelLeverageSlide({ slideNumber, totalSlides }: SlideProps) {
                         {formatRate(row.target_rate)}
                       </td>
                       <td
-                        className={`px-2 py-1.5 text-xs text-right font-mono tabular-nums font-semibold ${row.gap >= 0 ? 'text-emerald-700' : 'text-red-600'}`}
+                        className={`px-2 py-1.5 text-xs text-right font-mono tabular-nums font-semibold ${row.gap >= 0 ? 'text-[var(--color-success)]' : 'text-[var(--color-danger)]'}`}
                       >
                         {row.gap > 0 ? '+' : ''}
                         {formatRate(row.gap)}

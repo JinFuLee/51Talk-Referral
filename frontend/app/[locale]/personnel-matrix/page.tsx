@@ -302,7 +302,7 @@ function safeRate(v: number | null | undefined): string {
 function RankBadge({ rank }: { rank: number }) {
   const cls =
     rank === 1
-      ? 'bg-yellow-100 text-yellow-700'
+      ? 'bg-[var(--color-warning-surface)] text-[var(--color-warning)]'
       : rank === 2
         ? 'bg-[var(--bg-subtle)] text-[var(--text-secondary)]'
         : rank === 3
@@ -382,7 +382,7 @@ function CCTabContent() {
           </div>
         ) : heatmapError ? (
           <div className="text-center py-8">
-            <p className="text-base font-semibold text-red-600">{t.loadFail}</p>
+            <p className="text-base font-semibold text-[var(--color-danger)]">{t.loadFail}</p>
             <p className="text-sm text-[var(--text-muted)] mt-1">{t.loadFailDesc}</p>
           </div>
         ) : !heatmapData?.rows?.length ? (

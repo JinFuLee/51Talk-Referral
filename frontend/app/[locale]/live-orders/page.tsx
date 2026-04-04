@@ -311,14 +311,14 @@ export default function LiveOrdersPage() {
           value={`${s.total_orders} ${t.orderUnit}`}
           sub={t.confirmedN(s.confirmed_orders, s.unconfirmed_orders)}
           icon={Package}
-          color="text-blue-600"
+          color="text-[var(--color-accent)]"
         />
         <SummaryCard
           label={t.todayAmount}
           value={fmt(s.total_thb)}
           sub={t.ocrConfirmed(s.confirmed_orders)}
           icon={DollarSign}
-          color="text-amber-600"
+          color="text-[var(--color-warning)]"
         />
         <SummaryCard
           label={t.todayBm}
@@ -329,7 +329,7 @@ export default function LiveOrdersPage() {
           }
           sub={t.t1Plus(fmt(s.t1_actual_thb), fmt(s.total_thb))}
           icon={s.bm_gap_thb >= 0 ? TrendingUp : TrendingDown}
-          color={s.bm_gap_thb >= 0 ? 'text-green-600' : 'text-red-600'}
+          color={s.bm_gap_thb >= 0 ? 'text-[var(--color-success)]' : 'text-[var(--color-danger)]'}
         />
         <SummaryCard
           label={t.monthTarget}
@@ -340,7 +340,9 @@ export default function LiveOrdersPage() {
           }
           sub={`${fmt(s.realtime_thb)} / ${fmt(s.target_thb)}`}
           icon={s.month_gap_thb >= 0 ? TrendingUp : AlertTriangle}
-          color={s.month_gap_thb >= 0 ? 'text-green-600' : 'text-amber-600'}
+          color={
+            s.month_gap_thb >= 0 ? 'text-[var(--color-success)]' : 'text-[var(--color-warning)]'
+          }
         />
       </div>
 
@@ -393,7 +395,9 @@ export default function LiveOrdersPage() {
                     <td className="px-4 py-2.5 text-center">
                       <span
                         className={
-                          cc.confirmed_count === cc.count ? 'text-green-600' : 'text-amber-600'
+                          cc.confirmed_count === cc.count
+                            ? 'text-[var(--color-success)]'
+                            : 'text-[var(--color-warning)]'
                         }
                       >
                         {cc.confirmed_count}/{cc.count}
@@ -424,7 +428,7 @@ export default function LiveOrdersPage() {
             onClick={resetAll}
             disabled={resetting || orders.length === 0}
             className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg
-                       bg-red-50 text-red-600 hover:bg-red-100 disabled:opacity-50 transition-colors"
+ bg-[var(--color-danger-surface)] text-[var(--color-danger)] hover:bg-[var(--color-danger-surface)] disabled:opacity-50 transition-colors"
           >
             <RotateCcw className={`w-3.5 h-3.5 ${resetting ? 'animate-spin' : ''}`} />
             {t.clearAll}
@@ -485,7 +489,7 @@ export default function LiveOrdersPage() {
                             value={editAmount}
                             onChange={(e) => setEditAmount(e.target.value)}
                             className="w-24 px-2 py-0.5 text-sm text-right border border-[var(--border-default)] rounded
-                                       bg-[var(--bg-primary)] focus:outline-none focus:ring-1 focus:ring-[var(--action)]"
+ bg-[var(--bg-primary)] focus:outline-none focus:ring-1 focus:ring-[var(--action)]"
                             autoFocus
                             onKeyDown={(e) => {
                               if (e.key === 'Enter') updateAmount(o.index);
@@ -494,7 +498,7 @@ export default function LiveOrdersPage() {
                           />
                           <button
                             onClick={() => updateAmount(o.index)}
-                            className="p-0.5 text-green-600 hover:bg-green-50 rounded"
+                            className="p-0.5 text-[var(--color-success)] hover:bg-[var(--color-success-surface)] rounded"
                           >
                             <Check className="w-3.5 h-3.5" />
                           </button>
@@ -507,7 +511,7 @@ export default function LiveOrdersPage() {
                         </div>
                       ) : (
                         <span
-                          className={`cursor-pointer hover:text-[var(--action)] ${o.amount_thb ? 'font-semibold text-[var(--text-primary)]' : 'text-amber-500'}`}
+                          className={`cursor-pointer hover:text-[var(--action)] ${o.amount_thb ? 'font-semibold text-[var(--text-primary)]' : 'text-[var(--color-warning)]'}`}
                           onClick={() => {
                             setEditingIdx(o.index);
                             setEditAmount(o.amount_thb?.toString() || '');
@@ -532,7 +536,7 @@ export default function LiveOrdersPage() {
                         </button>
                         <button
                           onClick={() => deleteOrder(o.index)}
-                          className="p-1 text-[var(--text-muted)] hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+                          className="p-1 text-[var(--text-muted)] hover:text-[var(--color-danger)] hover:bg-[var(--color-danger-surface)] rounded transition-colors"
                           title="ลบ / 删除"
                         >
                           <Trash2 className="w-3.5 h-3.5" />

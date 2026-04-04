@@ -177,22 +177,20 @@ export default function EnclosureHealthPage() {
       {/* 顶部汇总 */}
       {scores.length > 0 && (
         <div className="flex gap-3 flex-wrap">
-          <div className="px-3 py-1.5 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg text-xs flex items-center gap-1.5">
-            <div className="w-2 h-2 rounded-full bg-green-500" />
-            <span className="font-medium text-green-700 dark:text-green-400">{t.badgeHealthy}</span>
-            <span className="font-bold text-green-700 dark:text-green-400">{greenCount}</span>
+          <div className="px-3 py-1.5 bg-[var(--color-success-surface)] border border-[var(--color-success)] rounded-lg text-xs flex items-center gap-1.5">
+            <div className="w-2 h-2 rounded-full bg-[var(--color-success)]" />
+            <span className="font-medium text-[var(--color-success)]">{t.badgeHealthy}</span>
+            <span className="font-bold text-[var(--color-success)]">{greenCount}</span>
           </div>
-          <div className="px-3 py-1.5 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg text-xs flex items-center gap-1.5">
-            <div className="w-2 h-2 rounded-full bg-yellow-500" />
-            <span className="font-medium text-yellow-700 dark:text-yellow-400">
-              {t.badgeWarning}
-            </span>
-            <span className="font-bold text-yellow-700 dark:text-yellow-400">{yellowCount}</span>
+          <div className="px-3 py-1.5 bg-[var(--color-warning-surface)] border border-[var(--color-warning)] rounded-lg text-xs flex items-center gap-1.5">
+            <div className="w-2 h-2 rounded-full bg-[var(--color-warning)]" />
+            <span className="font-medium text-[var(--color-warning)]">{t.badgeWarning}</span>
+            <span className="font-bold text-[var(--color-warning)]">{yellowCount}</span>
           </div>
-          <div className="px-3 py-1.5 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-xs flex items-center gap-1.5">
-            <div className="w-2 h-2 rounded-full bg-red-500" />
-            <span className="font-medium text-red-700 dark:text-red-400">{t.badgeDanger}</span>
-            <span className="font-bold text-red-700 dark:text-red-400">{redCount}</span>
+          <div className="px-3 py-1.5 bg-[var(--color-danger-surface)] border border-[var(--color-danger)] rounded-lg text-xs flex items-center gap-1.5">
+            <div className="w-2 h-2 rounded-full bg-[var(--color-danger)]" />
+            <span className="font-medium text-[var(--color-danger)]">{t.badgeDanger}</span>
+            <span className="font-bold text-[var(--color-danger)]">{redCount}</span>
           </div>
         </div>
       )}
@@ -205,7 +203,7 @@ export default function EnclosureHealthPage() {
           </div>
         ) : scoresError ? (
           <div className="text-center py-8">
-            <p className="text-base font-semibold text-red-600">{t.errorLoad}</p>
+            <p className="text-base font-semibold text-[var(--color-danger)]">{t.errorLoad}</p>
             <p className="text-sm text-[var(--text-muted)] mt-1">{t.errorCheck}</p>
           </div>
         ) : !scores.length ? (
@@ -259,7 +257,7 @@ export default function EnclosureHealthPage() {
           </div>
         ) : benchmarkError ? (
           <div className="text-center py-8">
-            <p className="text-base font-semibold text-red-600">{t.errorLoad}</p>
+            <p className="text-base font-semibold text-[var(--color-danger)]">{t.errorLoad}</p>
             <p className="text-sm text-[var(--text-muted)] mt-1">{t.errorCheck}</p>
           </div>
         ) : !benchmarks.length ? (
@@ -277,7 +275,7 @@ export default function EnclosureHealthPage() {
           </div>
         ) : varianceError ? (
           <div className="text-center py-8">
-            <p className="text-base font-semibold text-red-600">{t.errorLoad}</p>
+            <p className="text-base font-semibold text-[var(--color-danger)]">{t.errorLoad}</p>
             <p className="text-sm text-[var(--text-muted)] mt-1">{t.errorCheck}</p>
           </div>
         ) : !variances.length ? (

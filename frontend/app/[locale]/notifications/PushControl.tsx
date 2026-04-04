@@ -322,7 +322,7 @@ export function PushControl({ platform }: PushControlProps) {
   if (loadError) {
     return (
       <div className="flex flex-col items-center justify-center gap-3 py-10 text-center">
-        <AlertTriangle className="w-8 h-8 text-red-400" />
+        <AlertTriangle className="w-8 h-8 text-[var(--color-danger)]" />
         <p className="text-sm font-medium text-[var(--text-primary)]">{t.loadFailed}</p>
         <p className="text-xs text-[var(--text-muted)]">{loadError.message ?? t.checkBackend}</p>
         <button
@@ -448,7 +448,7 @@ export function PushControl({ platform }: PushControlProps) {
                 <span className="flex-1 text-xs text-[var(--text-primary)]">{c.name}</span>
                 <span className="text-xs text-[var(--text-muted)]">{c.group_name}</span>
                 {c.is_test && (
-                  <span className="text-xs px-1.5 py-0.5 bg-amber-100 text-amber-700 rounded">
+                  <span className="text-xs px-1.5 py-0.5 bg-[var(--color-warning-surface)] text-[var(--color-warning)] rounded">
                     {t.testBadge}
                   </span>
                 )}
@@ -475,7 +475,7 @@ export function PushControl({ platform }: PushControlProps) {
 
       {/* Warning for no test group */}
       {selectedChannelIds.some((id) => !(channels ?? []).find((c) => c.id === id)?.is_test) && (
-        <div className="flex items-start gap-2 p-2.5 bg-amber-50 rounded-xl text-amber-700">
+        <div className="flex items-start gap-2 p-2.5 bg-[var(--color-warning-surface)] rounded-xl text-[var(--color-warning)]">
           <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
           <p className="text-xs">{t.formalWarning}</p>
         </div>
@@ -501,7 +501,7 @@ export function PushControl({ platform }: PushControlProps) {
         <button
           onClick={handleConfirmPush}
           disabled={pushState === 'pushing'}
-          className="ml-auto flex items-center gap-1.5 px-4 py-2 bg-red-600 text-white rounded-lg text-xs font-semibold hover:bg-red-700 transition-colors disabled:opacity-40"
+          className="ml-auto flex items-center gap-1.5 px-4 py-2 bg-[var(--color-danger)] text-white rounded-lg text-xs font-semibold hover:bg-[var(--color-danger)] transition-colors disabled:opacity-40"
         >
           {t.confirmPushBtn}
         </button>

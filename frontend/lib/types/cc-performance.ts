@@ -90,7 +90,7 @@ export interface CCPerformanceRecord {
   students_count: number | null; // 管辖学员数
 
   // 目标分配上下文
-  target_source: "allocated" | "manual"; // "allocated"=按学员数加权
+  target_source: 'allocated' | 'manual'; // "allocated"=按学员数加权
   team_revenue_target: number | null; // 团队总金额目标(供对比)
   team_paid_target: number | null; // 团队总付费目标
 
@@ -163,10 +163,7 @@ export function toTHB(usd: number | null, rate: number): number | null {
 }
 
 /** PerformanceMetric 的 THB 版本（百分比/BM率不换算，金额字段换算） */
-export function metricToTHB(
-  m: PerformanceMetric,
-  rate: number
-): PerformanceMetric {
+export function metricToTHB(m: PerformanceMetric, rate: number): PerformanceMetric {
   return {
     target: toTHB(m.target, rate),
     actual: toTHB(m.actual, rate),

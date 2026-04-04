@@ -59,7 +59,7 @@ export interface BotChannel {
 
 const ROLE_COLORS: Record<string, string> = {
   CC: 'bg-action-surface text-action-text',
-  LP: 'bg-purple-100 text-purple-700',
+  LP: 'bg-[var(--color-accent-surface)] text-[var(--color-accent)]',
   SS: 'bg-action-accent-subtle text-action-accent',
   运营: 'bg-stone-100 text-stone-600',
   ALL: 'bg-[var(--bg-subtle)] text-[var(--text-secondary)]',
@@ -97,7 +97,7 @@ export function BotCard({ bot, onEdit, onDelete, onToggle }: BotCardProps) {
           <div className="flex items-center gap-2">
             <span className="text-sm font-semibold text-[var(--text-primary)]">{bot.name}</span>
             {bot.is_test && (
-              <span className="text-xs px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 font-medium">
+              <span className="text-xs px-1.5 py-0.5 rounded bg-[var(--color-warning-surface)] text-[var(--color-warning)] font-medium">
                 {t.testBadge}
               </span>
             )}

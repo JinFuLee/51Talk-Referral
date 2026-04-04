@@ -173,26 +173,26 @@ function fmtVal(key: string, val: number | null | undefined): string {
 
 function gapColor(gap: number | null | undefined): string {
   if (gap == null) return 'text-[var(--text-muted)]';
-  if (gap >= 0) return 'text-emerald-800 font-semibold';
-  if (gap >= -0.05) return 'text-amber-800 font-semibold';
-  return 'text-red-700 font-semibold';
+  if (gap >= 0) return 'text-[var(--color-success)] font-semibold';
+  if (gap >= -0.05) return 'text-[var(--color-warning)] font-semibold';
+  return 'text-[var(--color-danger)] font-semibold';
 }
 
 /** 效率列颜色
- *  量类：≥100% 已达标(绿) / ≥BM% 领先(绿) / <BM% 落后(红)
- *  率类：≥100% 达标(绿) / ≥95% 接近(黄) / <95% 落后(红) — 不用 BM 阈值
+ * 量类：≥100% 已达标(绿) / ≥BM% 领先(绿) / <BM% 落后(红)
+ * 率类：≥100% 达标(绿) / ≥95% 接近(黄) / <95% 落后(红) — 不用 BM 阈值
  */
 function bmEffColor(eff: number | null | undefined, bmPct: number, isRate = false): string {
   if (eff == null || eff === 0) return 'text-[var(--text-muted)]';
-  if (eff >= 1.0) return 'text-emerald-800 font-semibold';
+  if (eff >= 1.0) return 'text-[var(--color-success)] font-semibold';
   if (isRate) {
     // 率类：纯粹看达成率离 100% 多远
-    if (eff >= 0.95) return 'text-amber-800 font-semibold';
-    return 'text-red-700 font-semibold';
+    if (eff >= 0.95) return 'text-[var(--color-warning)] font-semibold';
+    return 'text-[var(--color-danger)] font-semibold';
   }
   // 量类：BM 进度阈值
-  if (eff >= bmPct) return 'text-emerald-800 font-semibold';
-  return 'text-red-700 font-semibold';
+  if (eff >= bmPct) return 'text-[var(--color-success)] font-semibold';
+  return 'text-[var(--color-danger)] font-semibold';
 }
 
 interface Props {

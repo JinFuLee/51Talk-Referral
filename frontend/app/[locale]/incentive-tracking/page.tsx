@@ -525,11 +525,11 @@ function getCurrentMonth(): string {
 function progressStatusColor(status: PersonProgress['status']): string {
   switch (status) {
     case 'qualified':
-      return 'bg-emerald-500';
+      return 'bg-[var(--color-success)]';
     case 'close':
-      return 'bg-amber-400';
+      return 'bg-[var(--color-warning)]';
     case 'in_progress':
-      return 'bg-blue-400';
+      return 'bg-[var(--color-accent)]';
     default:
       return 'bg-[var(--border-default)]';
   }
@@ -538,11 +538,11 @@ function progressStatusColor(status: PersonProgress['status']): string {
 function progressStatusBadge(status: PersonProgress['status']): string {
   switch (status) {
     case 'qualified':
-      return 'text-emerald-600 bg-emerald-50';
+      return 'text-[var(--color-success)] bg-[var(--color-success-surface)]';
     case 'close':
-      return 'text-amber-600 bg-amber-50';
+      return 'text-[var(--color-warning)] bg-[var(--color-warning-surface)]';
     case 'in_progress':
-      return 'text-blue-600 bg-blue-50';
+      return 'text-[var(--color-accent)] bg-[var(--color-accent-surface)]';
     default:
       return 'text-[var(--text-muted)] bg-[var(--bg-subtle)]';
   }
@@ -579,11 +579,11 @@ function campaignStatusLabel(status: Campaign['status'], t: T18N): string {
 function campaignStatusColor(status: Campaign['status']): string {
   switch (status) {
     case 'active':
-      return 'text-emerald-600 bg-emerald-50';
+      return 'text-[var(--color-success)] bg-[var(--color-success-surface)]';
     case 'paused':
-      return 'text-amber-600 bg-amber-50';
+      return 'text-[var(--color-warning)] bg-[var(--color-warning-surface)]';
     case 'completed':
-      return 'text-blue-600 bg-blue-50';
+      return 'text-[var(--color-accent)] bg-[var(--color-accent-surface)]';
     case 'deleted':
       return 'text-[var(--text-muted)] bg-[var(--bg-subtle)]';
   }
@@ -729,7 +729,7 @@ function CampaignModal({ onClose, onSaved, prefill, editCampaign, t }: CampaignM
           {/* campaign name */}
           <div className="space-y-1">
             <label className="text-xs font-medium text-[var(--text-secondary)]">
-              {t.fieldCampaignName} <span className="text-red-400">*</span>
+              {t.fieldCampaignName} <span className="text-[var(--color-danger)]">*</span>
             </label>
             <input
               type="text"
@@ -758,7 +758,7 @@ function CampaignModal({ onClose, onSaved, prefill, editCampaign, t }: CampaignM
             {/* role */}
             <div className="space-y-1">
               <label className="text-xs font-medium text-[var(--text-secondary)]">
-                {t.fieldRole} <span className="text-red-400">*</span>
+                {t.fieldRole} <span className="text-[var(--color-danger)]">*</span>
               </label>
               <select
                 value={form.role}
@@ -774,7 +774,7 @@ function CampaignModal({ onClose, onSaved, prefill, editCampaign, t }: CampaignM
             {/* metric */}
             <div className="space-y-1">
               <label className="text-xs font-medium text-[var(--text-secondary)]">
-                {t.fieldMetric} <span className="text-red-400">*</span>
+                {t.fieldMetric} <span className="text-[var(--color-danger)]">*</span>
               </label>
               <select
                 value={form.metric}
@@ -794,7 +794,7 @@ function CampaignModal({ onClose, onSaved, prefill, editCampaign, t }: CampaignM
             {/* operator */}
             <div className="space-y-1">
               <label className="text-xs font-medium text-[var(--text-secondary)]">
-                {t.fieldCondition} <span className="text-red-400">*</span>
+                {t.fieldCondition} <span className="text-[var(--color-danger)]">*</span>
               </label>
               <select
                 value={form.operator}
@@ -817,7 +817,7 @@ function CampaignModal({ onClose, onSaved, prefill, editCampaign, t }: CampaignM
             {/* threshold */}
             <div className="space-y-1">
               <label className="text-xs font-medium text-[var(--text-secondary)]">
-                {t.fieldThreshold} <span className="text-red-400">*</span>
+                {t.fieldThreshold} <span className="text-[var(--color-danger)]">*</span>
               </label>
               <input
                 type="number"
@@ -832,7 +832,7 @@ function CampaignModal({ onClose, onSaved, prefill, editCampaign, t }: CampaignM
           {/* reward */}
           <div className="space-y-1">
             <label className="text-xs font-medium text-[var(--text-secondary)]">
-              {t.fieldReward} <span className="text-red-400">*</span>
+              {t.fieldReward} <span className="text-[var(--color-danger)]">*</span>
             </label>
             <input
               type="number"
@@ -872,7 +872,7 @@ function CampaignModal({ onClose, onSaved, prefill, editCampaign, t }: CampaignM
             </div>
           </div>
 
-          {error && <p className="text-xs text-red-500">{error}</p>}
+          {error && <p className="text-xs text-[var(--color-danger)]">{error}</p>}
 
           <div className="flex items-center gap-2 justify-end pt-2">
             <button
@@ -974,7 +974,7 @@ function LeverageTab({ t }: { t: T18N }) {
               `${t.leverageRemainingDays}${raw.remaining_workdays}${t.leverageRemainingDaysSuffix}`}
           </p>
         )}
-        {raw?.note && <p className="text-amber-600">{raw.note}</p>}
+        {raw?.note && <p className="text-[var(--color-warning)]">{raw.note}</p>}
       </div>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
         {top3.map((rec) => {
@@ -1011,7 +1011,7 @@ function LeverageTab({ t }: { t: T18N }) {
               {/* 增量金额 */}
               <div className="flex items-center gap-1.5 text-xs">
                 <span className="text-[var(--text-muted)]">{t.leverageRevImpact}</span>
-                <span className="font-mono font-semibold text-emerald-600">
+                <span className="font-mono font-semibold text-[var(--color-success)]">
                   +${rec.revenue_impact_usd.toLocaleString()}
                 </span>
               </div>
@@ -1216,7 +1216,7 @@ function CampaignsTab({ t }: { t: T18N }) {
                           : '<'}{' '}
                     {c.threshold}
                   </td>
-                  <td className="slide-td text-right font-mono font-semibold text-emerald-700">
+                  <td className="slide-td text-right font-mono font-semibold text-[var(--color-success)]">
                     ฿{c.reward_thb.toLocaleString()}
                   </td>
                   <td className="slide-td text-center text-xs">
@@ -1252,19 +1252,19 @@ function CampaignsTab({ t }: { t: T18N }) {
                       </button>
                       <button
                         onClick={() => handlePauseResume(c)}
-                        className="text-[10px] text-[var(--text-secondary)] hover:text-amber-600 transition-colors"
+                        className="text-[10px] text-[var(--text-secondary)] hover:text-[var(--color-warning)] transition-colors"
                       >
                         {c.status === 'active' ? t.actionPause : t.actionResume}
                       </button>
                       <button
                         onClick={() => handleGeneratePoster(c)}
-                        className="text-[10px] text-[var(--text-secondary)] hover:text-blue-600 transition-colors"
+                        className="text-[10px] text-[var(--text-secondary)] hover:text-[var(--color-accent)] transition-colors"
                       >
                         {t.actionPoster}
                       </button>
                       <button
                         onClick={() => handleDelete(c)}
-                        className="text-[10px] text-[var(--text-secondary)] hover:text-red-500 transition-colors"
+                        className="text-[10px] text-[var(--text-secondary)] hover:text-[var(--color-danger)] transition-colors"
                       >
                         {t.actionDelete}
                       </button>
@@ -1334,12 +1334,12 @@ function CampaignProgressCard({ item, t }: { item: CampaignProgress; t: T18N }) 
           </div>
         </div>
         <div className="text-right shrink-0">
-          <div className="text-xs font-mono text-emerald-600 font-semibold">
+          <div className="text-xs font-mono text-[var(--color-success)] font-semibold">
             {t.qualifiedCount} {qualified_count}
             {t.personUnit ? ` ${t.personUnit}` : ''}
           </div>
           {close_count > 0 && (
-            <div className="text-[10px] text-amber-500">
+            <div className="text-[10px] text-[var(--color-warning)]">
               {t.closeCount} {close_count}
               {t.personUnit ? ` ${t.personUnit}` : ''}
             </div>
@@ -1440,10 +1440,10 @@ function ProgressTab({ t }: { t: T18N }) {
                 <div
                   className={`h-full rounded-full transition-all ${
                     spentPct >= 90
-                      ? 'bg-red-500'
+                      ? 'bg-[var(--color-danger)]'
                       : spentPct >= 70
-                        ? 'bg-amber-400'
-                        : 'bg-emerald-500'
+                        ? 'bg-[var(--color-warning)]'
+                        : 'bg-[var(--color-success)]'
                   }`}
                   style={{ width: `${spentPct}%` }}
                 />

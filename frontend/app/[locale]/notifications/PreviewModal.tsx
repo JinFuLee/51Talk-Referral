@@ -147,7 +147,11 @@ export function PreviewModal({ open, template, role, platform, onClose }: Previe
             </div>
           )}
 
-          {error && <div className="bg-red-50 rounded-xl p-4 text-sm text-red-600">{error}</div>}
+          {error && (
+            <div className="bg-[var(--color-danger-surface)] rounded-xl p-4 text-sm text-[var(--color-danger)]">
+              {error}
+            </div>
+          )}
 
           {preview && !loading && (
             <div className="space-y-4">
@@ -155,7 +159,9 @@ export function PreviewModal({ open, template, role, platform, onClose }: Previe
               <div className="flex items-center gap-2 text-sm">
                 <span
                   className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                    preview.ok ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'
+                    preview.ok
+                      ? 'bg-[var(--color-success-surface)] text-[var(--color-success)]'
+                      : 'bg-[var(--color-danger-surface)] text-[var(--color-danger)]'
                   }`}
                 >
                   {preview.ok ? t.genSuccess : t.genFailed}

@@ -72,9 +72,9 @@ interface EnclosureHeatmapProps {
 }
 
 function heatmapBg(value: number, low: number, high: number): string {
-  if (value >= high) return 'bg-green-100 text-green-800';
-  if (value >= low) return 'bg-yellow-50 text-yellow-700';
-  return 'bg-red-50 text-red-700';
+  if (value >= high) return 'bg-[var(--color-success-surface)] text-[var(--color-success)]';
+  if (value >= low) return 'bg-[var(--color-warning-surface)] text-[var(--color-warning)]';
+  return 'bg-[var(--color-danger-surface)] text-[var(--color-danger)]';
 }
 
 export function EnclosureHeatmap({ metrics }: EnclosureHeatmapProps) {

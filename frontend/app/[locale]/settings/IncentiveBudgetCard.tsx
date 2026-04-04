@@ -142,7 +142,7 @@ export default function IncentiveBudgetCard({ month }: Props) {
           {/* indoor */}
           <div className="space-y-1">
             <label className="text-xs font-medium text-[var(--text-secondary)] flex items-center gap-1.5">
-              <span className="inline-block w-2.5 h-2.5 rounded-sm bg-blue-500" />
+              <span className="inline-block w-2.5 h-2.5 rounded-sm bg-[var(--color-accent)]" />
               {t.indoor}
             </label>
             <div className="flex items-center gap-1">
@@ -163,7 +163,7 @@ export default function IncentiveBudgetCard({ month }: Props) {
           {/* outdoor */}
           <div className="space-y-1">
             <label className="text-xs font-medium text-[var(--text-secondary)] flex items-center gap-1.5">
-              <span className="inline-block w-2.5 h-2.5 rounded-sm bg-purple-500" />
+              <span className="inline-block w-2.5 h-2.5 rounded-sm bg-[var(--color-accent)]" />
               {t.outdoor}
             </label>
             <div className="flex items-center gap-1">
@@ -182,7 +182,7 @@ export default function IncentiveBudgetCard({ month }: Props) {
           </div>
         </div>
 
-        {error && <p className="text-xs text-red-500">{error}</p>}
+        {error && <p className="text-xs text-[var(--color-danger)]">{error}</p>}
 
         <div className="flex items-center gap-2 justify-end">
           <button

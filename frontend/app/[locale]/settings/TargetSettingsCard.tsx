@@ -113,7 +113,7 @@ export default function TargetSettingsCard({
                 const s = recommendation.scenarios[key];
                 const colors: Record<typeof key, string> = {
                   conservative: 'border-action-accent-subtle bg-action-accent-surface',
-                  base: 'border-green-200 bg-green-50',
+                  base: 'border-[var(--color-success)] bg-[var(--color-success-surface)]',
                   aggressive: 'border-orange-200 bg-orange-50',
                 };
                 return (
@@ -167,10 +167,10 @@ export default function TargetSettingsCard({
                 <div
                   className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium mt-1 ${
                     recommendation.feasibility.confidence === 'high'
-                      ? 'bg-green-100 text-green-700'
+                      ? 'bg-[var(--color-success-surface)] text-[var(--color-success)]'
                       : recommendation.feasibility.confidence === 'medium'
-                        ? 'bg-yellow-100 text-yellow-700'
-                        : 'bg-red-100 text-red-700'
+                        ? 'bg-[var(--color-warning-surface)] text-[var(--color-warning)]'
+                        : 'bg-[var(--color-danger-surface)] text-[var(--color-danger)]'
                   }`}
                 >
                   <span>{label(FEASIBILITY_LABELS, recommendation.feasibility.label)}</span>

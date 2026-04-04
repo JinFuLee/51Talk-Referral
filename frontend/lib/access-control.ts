@@ -115,8 +115,8 @@ const LOCALES = ['en', 'zh', 'zh-TW', 'th'];
 /**
  * 从带 locale 前缀的 pathname 中提取实际页面路径。
  * 例：`/zh/cc-performance` → `/cc-performance`
- *     `/th/reports/ops`   → `/reports/ops`
- *     `/reports/ops`      → `/reports/ops`（无 locale 前缀时原样返回）
+ * `/th/reports/ops` → `/reports/ops`
+ * `/reports/ops` → `/reports/ops`（无 locale 前缀时原样返回）
  */
 export function extractPagePath(pathname: string): string {
   for (const locale of LOCALES) {

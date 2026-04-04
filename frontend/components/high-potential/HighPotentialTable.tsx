@@ -300,7 +300,7 @@ export function HighPotentialTable({ students, warroomMap }: HighPotentialTableP
                     <span
                       className={`text-[10px] px-1.5 py-0.5 rounded-md font-semibold ${
                         s.deep_engagement
-                          ? 'bg-emerald-50 text-[var(--color-success)]'
+                          ? 'bg-[var(--color-success-surface)] text-[var(--color-success)]'
                           : 'bg-[var(--bg-subtle)] text-[var(--text-muted)]'
                       }`}
                     >

@@ -26,7 +26,7 @@ function rateColor(rate: number): string {
 }
 
 function rateLabel(rate: number): string {
-  if (rate >= 1) return 'text-emerald-800';
+  if (rate >= 1) return 'text-[var(--color-success)]';
   if (rate >= 0.5) return 'text-action-accent';
   return 'text-[var(--color-danger)]';
 }

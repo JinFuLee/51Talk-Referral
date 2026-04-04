@@ -93,9 +93,9 @@ interface CCPerformanceSummaryCardsProps {
 
 function achievementColor(pct: number | null): string {
   if (pct == null) return 'text-[var(--text-muted)]';
-  if (pct >= 1) return 'text-emerald-700';
-  if (pct >= 0.8) return 'text-amber-700';
-  return 'text-red-700';
+  if (pct >= 1) return 'text-[var(--color-success)]';
+  if (pct >= 0.8) return 'text-[var(--color-warning)]';
+  return 'text-[var(--color-danger)]';
 }
 
 function achievementBarColor(pct: number | null): string {
@@ -247,7 +247,7 @@ export function CCPerformanceSummaryCards({
         </div>
         {bmGap != null && (
           <div
-            className={`mt-1 text-xs font-semibold ${bmGap >= 0 ? 'text-emerald-700' : 'text-red-700'}`}
+            className={`mt-1 text-xs font-semibold ${bmGap >= 0 ? 'text-[var(--color-success)]' : 'text-[var(--color-danger)]'}`}
           >
             {bmGap >= 0 ? '↑' : '↓'} {formatRevenue(Math.abs(bmGap), exchangeRate)}
           </div>
@@ -274,7 +274,7 @@ export function CCPerformanceSummaryCards({
             <span className="text-[var(--text-muted)]">
               {locale === 'en' ? 'Need' : locale === 'th' ? 'ต้องการ' : '达标需'}
             </span>{' '}
-            <span className="font-semibold text-amber-700">
+            <span className="font-semibold text-[var(--color-warning)]">
               {formatRevenue(dailyNeeded, exchangeRate)}/
               {locale === 'en' ? 'day' : locale === 'th' ? 'วัน' : '天'}
             </span>
@@ -305,7 +305,7 @@ export function CCPerformanceSummaryCards({
         </div>
         {gt?.pace_gap_pct != null && (
           <div
-            className={`mt-1 text-xs font-semibold ${gt.pace_gap_pct >= 0 ? 'text-emerald-700' : 'text-red-700'}`}
+            className={`mt-1 text-xs font-semibold ${gt.pace_gap_pct >= 0 ? 'text-[var(--color-success)]' : 'text-[var(--color-danger)]'}`}
           >
             {gt.pace_gap_pct >= 0
               ? t.ahead((gt.pace_gap_pct * 100).toFixed(1))

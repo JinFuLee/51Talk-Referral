@@ -87,7 +87,9 @@ export function Topbar() {
               isOnline ? 'bg-success' : 'bg-destructive'
             )}
           />
-          <span className="hidden sm:inline">{isOnline ? t('backendOnline') : t('backendOffline')}</span>
+          <span className="hidden sm:inline">
+            {isOnline ? t('backendOnline') : t('backendOffline')}
+          </span>
         </div>
 
         <span className="hidden sm:inline text-[var(--text-muted)]">|</span>

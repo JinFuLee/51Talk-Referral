@@ -36,7 +36,7 @@ export function PresentationOverlay() {
 
       <button
         onClick={exitPresentationMode}
-        className="fixed bottom-6 inset-x-0 mx-auto w-max px-6 py-2.5 bg-slate-900/80 backdrop-blur-md text-white rounded-full shadow-2xl flex items-center justify-center gap-2 hover:bg-slate-900 transition-all z-[100] hide-in-presentation-btn"
+        className="fixed bottom-6 inset-x-0 mx-auto w-max px-6 py-2.5 bg-[var(--bg-subtle)] backdrop-blur-md text-white rounded-full shadow-2xl flex items-center justify-center gap-2 hover:bg-[var(--bg-subtle)] transition-all z-[100] hide-in-presentation-btn"
         style={{ animation: 'fadeInUp 0.3s ease-out' }}
       >
         <X className="w-4 h-4" />

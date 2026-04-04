@@ -1,9 +1,9 @@
-import { create } from "zustand";
-import { persist } from "zustand/middleware";
+import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 
 export interface Notification {
   id: string;
-  type: "warning" | "alert" | "info";
+  type: 'warning' | 'alert' | 'info';
   title: string;
   message: string;
   timestamp: number;
@@ -17,7 +17,7 @@ const MAX_NOTIFICATIONS = 50;
 interface NotificationStore {
   notifications: Notification[];
   unreadCount: number;
-  addNotification: (n: Omit<Notification, "id" | "timestamp" | "read">) => void;
+  addNotification: (n: Omit<Notification, 'id' | 'timestamp' | 'read'>) => void;
   markRead: (id: string) => void;
   markAllRead: () => void;
   clearAll: () => void;
@@ -39,10 +39,7 @@ export const useNotificationStore = create<NotificationStore>()(
           read: false,
         };
         set((state) => {
-          const updated = [notification, ...state.notifications].slice(
-            0,
-            MAX_NOTIFICATIONS
-          );
+          const updated = [notification, ...state.notifications].slice(0, MAX_NOTIFICATIONS);
           return {
             notifications: updated,
             unreadCount: updated.filter((x) => !x.read).length,
@@ -52,9 +49,7 @@ export const useNotificationStore = create<NotificationStore>()(
 
       markRead: (id) => {
         set((state) => {
-          const updated = state.notifications.map((n) =>
-            n.id === id ? { ...n, read: true } : n
-          );
+          const updated = state.notifications.map((n) => (n.id === id ? { ...n, read: true } : n));
           return {
             notifications: updated,
             unreadCount: updated.filter((x) => !x.read).length,
@@ -78,6 +73,6 @@ export const useNotificationStore = create<NotificationStore>()(
         return get().notifications.some((n) => n.source === key);
       },
     }),
-    { name: "ops-notifications" }
+    { name: 'ops-notifications' }
   )
 );

@@ -121,7 +121,7 @@ export function ConversionRateBar({ stages, height = 240 }: ConversionRateBarPro
           ))}
         </Bar>
         {/* Target markers as reference lines per category would need custom shape;
-            instead render target as a second bar with low opacity */}
+ instead render target as a second bar with low opacity */}
         <Bar
           dataKey="target"
           name="target"

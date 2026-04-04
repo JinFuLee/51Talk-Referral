@@ -104,7 +104,7 @@ export function OutputGallery({ platform: _platform }: OutputGalleryProps) {
 
   if (error) {
     return (
-      <div className="flex items-center gap-2 py-10 justify-center text-amber-600">
+      <div className="flex items-center gap-2 py-10 justify-center text-[var(--color-warning)]">
         <AlertCircle className="w-5 h-5" />
         <span className="text-sm">{t.loadError}</span>
       </div>
@@ -148,7 +148,7 @@ export function OutputGallery({ platform: _platform }: OutputGalleryProps) {
           <span className="text-sm">{t.loading}</span>
         </div>
       ) : error ? (
-        <div className="flex items-center gap-2 py-10 justify-center text-amber-600">
+        <div className="flex items-center gap-2 py-10 justify-center text-[var(--color-warning)]">
           <AlertCircle className="w-5 h-5" />
           <span className="text-sm">{t.loadError}</span>
         </div>
@@ -180,7 +180,7 @@ export function OutputGallery({ platform: _platform }: OutputGalleryProps) {
                   hidden
                   className="w-full aspect-video bg-[var(--bg-primary)] flex items-center justify-center"
                 >
-                  <ImageIcon className="w-8 h-8 text-slate-300" />
+                  <ImageIcon className="w-8 h-8 text-[var(--text-muted)]" />
                 </div>
                 <div className="px-2.5 py-2 flex items-center justify-between gap-2">
                   <span className="text-xs text-[var(--text-muted)] truncate">

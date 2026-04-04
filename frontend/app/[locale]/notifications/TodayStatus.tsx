@@ -63,7 +63,7 @@ export function TodayStatus() {
 
   if (error) {
     return (
-      <div className="flex items-center gap-2 py-3 text-amber-600">
+      <div className="flex items-center gap-2 py-3 text-[var(--color-warning)]">
         <AlertCircle className="w-4 h-4" />
         <span className="text-sm">{t.loadError}</span>
       </div>
@@ -95,7 +95,7 @@ export function TodayStatus() {
             <span className="text-xs font-medium text-[var(--text-primary)]">{id}</span>
             {rec.pushed ? (
               <>
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
+                <CheckCircle2 className="w-3.5 h-3.5 text-[var(--color-success)]" />
                 <span className="text-xs text-[var(--text-muted)]">
                   {rec.time} ({rec.result})
                 </span>

@@ -63,7 +63,9 @@ function MomBadge({ change }: { change: number }) {
     );
   }
   return (
-    <span className="inline-flex items-center text-[10px] text-[var(--text-muted)]">— {t.flat}</span>
+    <span className="inline-flex items-center text-[10px] text-[var(--text-muted)]">
+      — {t.flat}
+    </span>
   );
 }
 
@@ -87,9 +89,7 @@ export function StatCard({
     <div
       className={cn(
         'rounded-xl border p-3',
-        highlight === 'warn'
-          ? 'border-orange-400 dark:border-orange-500'
-          : 'border-[var(--border-default)]',
+        highlight === 'warn' ? 'border-orange-400' : 'border-[var(--border-default)]',
         className
       )}
       style={{
@@ -135,7 +135,9 @@ export function StatCard({
 
       {target !== undefined && (
         <div className="flex items-center gap-1 mt-1">
-          <span className="text-xs text-[var(--text-muted)]">{t.target} {target}</span>
+          <span className="text-xs text-[var(--text-muted)]">
+            {t.target} {target}
+          </span>
           {pct !== null && (
             <span
               className="text-xs font-medium"

@@ -135,7 +135,7 @@ function rateColor(rate: number): string {
  * 柱色根据参与率（≥50% 绿 / 30-50% 橙 / <30% 红）语义化着色。
  *
  * 使用示例：
- *   <ContactCheckinChart data={analysis.contact_checkin_response} />
+ * <ContactCheckinChart data={analysis.contact_checkin_response} />
  */
 export function ContactCheckinChart({ data }: ContactCheckinChartProps) {
   const t = useT();
