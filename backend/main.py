@@ -85,6 +85,8 @@ ROUTER_REGISTRY: dict = {
     "access_control": ("backend.api.access_control", "/api", ["access-control"]),
     # ── M38 新增：历史归档 ────────────────────────────────────────────────────────
     "archives": ("backend.api.archives", "/api", ["archives"]),
+    # ── 今日实时成交 ─────────────────────────────────────────────────────────────
+    "live_orders": ("backend.api.live_orders", "/api", ["live-orders"]),
 }
 
 
