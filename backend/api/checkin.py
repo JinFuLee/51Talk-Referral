@@ -10,10 +10,10 @@
 
 from fastapi import APIRouter
 
-from backend.api.checkin_summary import router as _summary
-from backend.api.checkin_ranking import router as _ranking
 from backend.api.checkin_followup import router as _followup
 from backend.api.checkin_insights import router as _insights
+from backend.api.checkin_ranking import router as _ranking
+from backend.api.checkin_summary import router as _summary
 
 router = APIRouter()
 router.include_router(_summary)
@@ -23,7 +23,7 @@ router.include_router(_insights)
 
 # 向后兼容：checkin_roi.py 从 backend.api.checkin import 这些函数
 from backend.api._checkin_config import (  # noqa: F401, E402
+    _get_config,
     _get_wide_role,
     _parse_role_enclosures,
-    _get_config,
 )

@@ -3,37 +3,33 @@
 from __future__ import annotations
 
 import json
-import math
+from datetime import date
 from pathlib import Path
-from typing import Any
 
 import pandas as pd
-from fastapi import APIRouter, Depends, Query, Request, Response
+from fastapi import APIRouter, Depends, Query, Request
 
-from backend.api._checkin_shared import (
-    M_MAP as _M_MAP,
-    M_TO_DAYS as _M_TO_DAYS,
-    find_d4_id_col as _find_d4_id_col,
-    m_label_to_index as _m_label_to_index,
-    safe as _safe,
-    safe_str as _safe_str,
-)
 from backend.api._checkin_config import (
-    _get_config,
-    _get_wide_role,
-    _get_role_cols,
-    _get_invalid_names,
-    _get_quality_score_config,
-    _get_priority_rules,
-    _parse_role_enclosures,
-    _clean_names,
-    _detect_role_from_team,
-    _calc_quality_score,
     _D3_CHECKIN_COL,
     _D3_STUDENT_COL,
-    _D3_ENCLOSURE_COL,
     _D4_LIFECYCLE_COL,
-    _OPS_CHANNELS,
+    _get_config,
+    _parse_role_enclosures,
+)
+from backend.api._checkin_shared import (
+    M_MAP as _M_MAP,
+)
+from backend.api._checkin_shared import (
+    find_d4_id_col as _find_d4_id_col,
+)
+from backend.api._checkin_shared import (
+    m_label_to_index as _m_label_to_index,
+)
+from backend.api._checkin_shared import (
+    safe as _safe,
+)
+from backend.api._checkin_shared import (
+    safe_str as _safe_str,
 )
 from backend.api.dependencies import get_data_manager
 from backend.core.data_manager import DataManager

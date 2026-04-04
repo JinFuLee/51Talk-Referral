@@ -17,7 +17,6 @@
 from __future__ import annotations
 
 import json
-import math
 from pathlib import Path
 from typing import Any
 
@@ -27,9 +26,17 @@ from fastapi.responses import JSONResponse
 
 from backend.api._checkin_shared import (
     M_MAP as _M_MAP,
+)
+from backend.api._checkin_shared import (
     find_d4_id_col as _find_d4_id_col,
+)
+from backend.api._checkin_shared import (
     safe as _safe,
+)
+from backend.api._checkin_shared import (
     safe_int as _safe_int,
+)
+from backend.api._checkin_shared import (
     safe_str as _safe_str,
 )
 from backend.api.dependencies import get_data_manager

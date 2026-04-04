@@ -3,40 +3,34 @@
 from __future__ import annotations
 
 import json
-import math
 from typing import Any
 
 import pandas as pd
-from fastapi import APIRouter, Depends, Query, Request, Response
+from fastapi import APIRouter, Depends, Query, Request
 
+from backend.api._checkin_config import (
+    _D3_CHECKIN_COL,
+    _D3_ENCLOSURE_COL,
+    _D3_STUDENT_COL,
+    _OPS_CHANNELS,
+    _calc_quality_score,
+    _clean_names,
+    _get_invalid_names,
+    _get_role_cols,
+    _get_wide_role,
+    _parse_role_enclosures,
+)
 from backend.api._checkin_shared import (
     M_MAP as _M_MAP,
-    M_TO_DAYS as _M_TO_DAYS,
-    find_d4_id_col as _find_d4_id_col,
-    m_label_to_index as _m_label_to_index,
-    safe as _safe,
-    safe_str as _safe_str,
 )
-from backend.api._checkin_config import (
-    _get_config,
-    _get_wide_role,
-    _get_role_cols,
-    _get_invalid_names,
-    _get_quality_score_config,
-    _get_priority_rules,
-    _parse_role_enclosures,
-    _clean_names,
-    _detect_role_from_team,
-    _calc_quality_score,
-    _D3_CHECKIN_COL,
-    _D3_STUDENT_COL,
-    _D3_ENCLOSURE_COL,
-    _D4_LIFECYCLE_COL,
-    _OPS_CHANNELS,
+from backend.api._checkin_shared import (
+    find_d4_id_col as _find_d4_id_col,
+)
+from backend.api._checkin_shared import (
+    safe_str as _safe_str,
 )
 from backend.api.dependencies import get_data_manager
 from backend.core.data_manager import DataManager
-from backend.core.date_override import get_today
 from backend.models.filters import UnifiedFilter, apply_filters, parse_filters
 
 router = APIRouter()
@@ -134,48 +128,6 @@ def _aggregate_role(
         "by_team": by_team,
         "by_enclosure": by_enclosure,
     }
-
-
-# 运营渠道推荐配置
-_OPS_CHANNELS: list[dict[str, Any]] = [
-    {
-        "channel_id": "phone",
-        "channel_name": "电话/短信",
-        "priority": "high",
-        "cost_level": "high",
-        "description": "高价值学员人工触达",
-        "target_criteria": "质量评分≥70",
-        "estimated_contact_rate": 0.70,
-    },
-    {
-        "channel_id": "line_oa",
-        "channel_name": "LINE OA",
-        "priority": "medium",
-        "cost_level": "medium",
-        "description": "社交触达，适合 M6-M7 中等质量学员",
-        "target_criteria": "质量评分≥40 且 M6-M7 围场",
-        "estimated_contact_rate": 0.40,
-    },
-    {
-        "channel_id": "app_push",
-        "channel_name": "APP 站内推送",
-        "priority": "medium",
-        "cost_level": "low",
-        "description": "自动化批量触达",
-        "target_criteria": "全部 6M+ 未打卡",
-        "estimated_contact_rate": 0.18,
-    },
-    {
-        "channel_id": "email",
-        "channel_name": "邮件",
-        "priority": "low",
-        "cost_level": "lowest",
-        "description": "兜底广撒网",
-        "target_criteria": "全部 6M+ 未打卡",
-        "estimated_contact_rate": 0.10,
-    },
-]
-
 
 
 def _aggregate_ops_channels(
