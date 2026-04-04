@@ -20,6 +20,13 @@ const GLOBAL_ERROR_I18N = {
     sysError: '系统错误',
     retry: '重试',
   },
+  'zh-TW': {
+    chunkTitle: '頁面版本已更新',
+    chunkDesc: '偵測到新版本部署，請重新整理頁面以載入最新內容。',
+    reload: '重新整理',
+    sysError: '系統錯誤',
+    retry: '重試',
+  },
   en: {
     chunkTitle: 'New version available',
     chunkDesc: 'A new deployment was detected. Please reload to get the latest version.',
@@ -42,6 +49,7 @@ function detectLang(): GELang {
   if (typeof navigator === 'undefined') return 'zh';
   const l = navigator.language?.toLowerCase() ?? '';
   if (l.startsWith('th')) return 'th';
+  if (l === 'zh-tw' || l === 'zh-hant') return 'zh-TW';
   if (l.startsWith('zh')) return 'zh';
   return 'en';
 }

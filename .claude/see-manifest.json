@@ -1,27 +1,32 @@
 {
   "see_manifest_version": "1.0",
-  "generated_at": "2026-04-04T03:57:14Z",
+  "see_version": "2026-04-04",
+  "generated_at": "2026-04-04T04:44:04Z",
   "project_type": "web-fullstack",
   "tech_stack": {
     "language": "typescript",
     "framework": "nextjs",
     "backend": "fastapi",
-    "db": "none",
-    "orm": "none",
+    "db": "sqlite",
+    "orm": "sqlite-native",
     "test": "vitest",
+    "lint": "ruff",
     "package_manager": "uv"
   },
   "deploy": {
     "method": "docker-compose",
-    "ports": {},
-    "verify_url": "",
-    "build_cmd": "",
-    "start_cmd": ""
+    "ports": {
+      "backend": 8100,
+      "frontend": 3100
+    },
+    "verify_url": "http://localhost:3100",
+    "build_cmd": "cd frontend && npm run build",
+    "start_cmd": "docker-compose up -d"
   },
   "db_migration": {
-    "tool": "none",
-    "migration_dir": "",
-    "backup_method": ""
+    "tool": "sqlite-native",
+    "migration_dir": null,
+    "backup_method": "sqlite-cp"
   },
   "design_system": "see-ds-v2",
   "i18n": [
@@ -29,5 +34,13 @@
     "th",
     "zh-TW",
     "zh"
-  ]
+  ],
+  "custom": {
+    "data_source_dir": "input/",
+    "snapshot_db": "output/snapshots.db",
+    "notification_channels": [
+      "dingtalk",
+      "lark"
+    ]
+  }
 }
