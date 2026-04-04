@@ -49,7 +49,6 @@ const I18N = {
 interface ConversionRateBarProps {
   stages: FunnelStage[];
   height?: number;
-  locale?: string;
 }
 
 // Stage keys are fixed Chinese data-model names (matched against Excel/API stage names).
@@ -67,7 +66,8 @@ function gapColor(gap: number | undefined) {
   return CHART_PALETTE.axisTick;
 }
 
-export function ConversionRateBar({ stages, height = 240, locale = 'zh' }: ConversionRateBarProps) {
+export function ConversionRateBar({ stages, height = 240 }: ConversionRateBarProps) {
+  const locale = useLocale();
   const t = (I18N as unknown as Record<string, (typeof I18N)['zh']>)[locale] ?? I18N['zh'];
   const stageMap = Object.fromEntries(stages.map((s) => [s.name, s]));
 

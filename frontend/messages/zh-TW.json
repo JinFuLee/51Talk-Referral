@@ -723,7 +723,8 @@
     "subtitle": "轉介紹營運",
     "openMenu": "開啟導航選單",
     "closeMenu": "關閉導航選單",
-    "mainNav": "主導航"
+    "mainNav": "主導航",
+    "liveOrders": "即時訂單"
   },
   "topbar": {
     "t1Data": "T-1 資料",

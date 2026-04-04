@@ -39,13 +39,10 @@ const I18N = {
 
 interface RevenueContributionTableProps {
   contributions: RevenueContribution[];
-  locale?: string;
 }
 
-export function RevenueContributionTable({
-  contributions,
-  locale = 'zh',
-}: RevenueContributionTableProps) {
+export function RevenueContributionTable({ contributions }: RevenueContributionTableProps) {
+  const locale = useLocale();
   const t = (I18N as unknown as Record<string, (typeof I18N)['zh']>)[locale] ?? I18N['zh'];
   if (contributions.length === 0) {
     return <p className="text-sm text-[var(--text-muted)] text-center py-6">{t.empty}</p>;

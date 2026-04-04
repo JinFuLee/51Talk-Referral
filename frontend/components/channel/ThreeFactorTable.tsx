@@ -47,7 +47,6 @@ const I18N = {
 
 interface ThreeFactorTableProps {
   comparisons: ThreeFactorComparison[];
-  locale?: string;
 }
 
 function FactorBadge({ value }: { value: number | null }) {
@@ -68,7 +67,8 @@ function FactorBadge({ value }: { value: number | null }) {
   );
 }
 
-export function ThreeFactorTable({ comparisons, locale = 'zh' }: ThreeFactorTableProps) {
+export function ThreeFactorTable({ comparisons }: ThreeFactorTableProps) {
+  const locale = useLocale();
   const t = (I18N as unknown as Record<string, (typeof I18N)['zh']>)[locale] ?? I18N['zh'];
   if (comparisons.length === 0) {
     return <p className="text-sm text-[var(--text-muted)] text-center py-6">{t.empty}</p>;

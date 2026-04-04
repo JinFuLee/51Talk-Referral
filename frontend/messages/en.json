@@ -724,7 +724,8 @@
     "subtitle": "Referral Operations",
     "openMenu": "Open navigation menu",
     "closeMenu": "Close navigation menu",
-    "mainNav": "Main navigation"
+    "mainNav": "Main navigation",
+    "liveOrders": "Live Orders"
   },
   "topbar": {
     "t1Data": "T-1 Data",

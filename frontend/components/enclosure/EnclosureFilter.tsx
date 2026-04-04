@@ -1,7 +1,16 @@
 'use client';
 
-const FILTERS = [
-  { label: '全部', value: '' },
+import { useLocale } from 'next-intl';
+
+const I18N = {
+  zh: { all: '全部', ariaLabel: '围场分段筛选' },
+  'zh-TW': { all: '全部', ariaLabel: '圍場分段篩選' },
+  en: { all: 'All', ariaLabel: 'Enclosure segment filter' },
+  th: { all: 'ทั้งหมด', ariaLabel: 'กรองเซกเมนต์' },
+} as const;
+
+const FILTERS_BASE = [
+  { label_zh: '全部', value: '' },
   { label: 'M0（0~30）', value: '0M' },
   { label: 'M1（31~60）', value: '1M' },
   { label: 'M2（61~90）', value: '2M' },

@@ -1,6 +1,14 @@
 'use client';
 
+import { useLocale } from 'next-intl';
 import { formatRate } from '@/lib/utils';
+
+const I18N = {
+  zh: { defaultLabel: '达成率' },
+  'zh-TW': { defaultLabel: '達成率' },
+  en: { defaultLabel: 'Achievement' },
+  th: { defaultLabel: 'อัตราสำเร็จ' },
+} as const;
 
 interface AchievementGaugeProps {
   /** Achievement rate as a decimal, e.g. 0.85 = 85% */
@@ -9,7 +17,10 @@ interface AchievementGaugeProps {
   size?: number;
 }
 
-export function AchievementGauge({ value, label = '达成率', size = 160 }: AchievementGaugeProps) {
+export function AchievementGauge({ value, label, size = 160 }: AchievementGaugeProps) {
+  const locale = useLocale();
+  const t = I18N[locale as keyof typeof I18N] || I18N.zh;
+  const resolvedLabel = label ?? t.defaultLabel;
   const pct = Math.min(1, Math.max(0, value));
   const percentage = pct * 100;
 

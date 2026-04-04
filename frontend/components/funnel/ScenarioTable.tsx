@@ -43,10 +43,10 @@ const I18N = {
 
 interface ScenarioTableProps {
   stages: ScenarioResult[];
-  locale?: string;
 }
 
-export function ScenarioTable({ stages, locale = 'zh' }: ScenarioTableProps) {
+export function ScenarioTable({ stages }: ScenarioTableProps) {
+  const locale = useLocale();
   const t = (I18N as unknown as Record<string, (typeof I18N)['zh']>)[locale] ?? I18N['zh'];
   if (stages.length === 0) {
     return <p className="text-sm text-[var(--text-muted)] text-center py-6">{t.empty}</p>;

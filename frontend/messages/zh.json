@@ -723,7 +723,8 @@
     "subtitle": "转介绍运营",
     "openMenu": "打开导航菜单",
     "closeMenu": "关闭导航菜单",
-    "mainNav": "主导航"
+    "mainNav": "主导航",
+    "liveOrders": "实时订单"
   },
   "topbar": {
     "t1Data": "T-1 数据",

@@ -1,7 +1,15 @@
 'use client';
 
+import { useLocale } from 'next-intl';
 import { ChevronUp, ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
+
+const I18N = {
+  zh: { sortTitle: (label: string) => `点击按 ${label} 排序` },
+  'zh-TW': { sortTitle: (label: string) => `點擊按 ${label} 排序` },
+  en: { sortTitle: (label: string) => `Sort by ${label}` },
+  th: { sortTitle: (label: string) => `เรียงตาม ${label}` },
+} as const;
 
 export interface SortableHeaderProps {
   label: string;
