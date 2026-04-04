@@ -164,8 +164,6 @@ export default function DailyMonitorPage() {
     country: true,
     dataRole: true,
     team: true,
-    granularity: 'day',
-    funnelStage: true,
     channel: true,
   });
 

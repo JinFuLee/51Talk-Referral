@@ -158,8 +158,6 @@ function CheckinPageInner() {
     dataRole: true,
     enclosure: true,
     team: true,
-    granularity: true,
-    behavior: true,
   });
 
   const { focusCC } = useMyView();

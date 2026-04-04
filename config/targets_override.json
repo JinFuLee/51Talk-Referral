@@ -214,17 +214,27 @@
     "约课率目标": 0.77,
     "出席率目标": 0.66,
     "子口径": {
-      "CC窄口径": { "倒子目标": 270 },
-      "SS窄口径": { "倒子目标": 75 },
-      "LP窄口径": { "倒子目标": 140 },
-      "宽口径": { "倒子目标": 490 }
+      "CC窄口径": {
+        "倒子目标": 270
+      },
+      "SS窄口径": {
+        "倒子目标": 75
+      },
+      "LP窄口径": {
+        "倒子目标": 140
+      },
+      "宽口径": {
+        "倒子目标": 490
+      }
     },
     "version": 2,
     "month": "202604",
     "hard": {
       "referral_revenue": 209200,
       "display_currency": "USD",
-      "lock_field": "amount"
+      "lock_field": "amount",
+      "total_revenue": 717550.0,
+      "referral_pct": 0.291548
     },
     "channels": {
       "cc_narrow": {
@@ -251,30 +261,100 @@
       "wide": {
         "user_count": 490,
         "asp": 950,
-        "conversion_rate": 0.220,
+        "conversion_rate": 0.22,
         "reserve_rate": 0.77,
         "attend_rate": 0.66
       }
     },
     "enclosures": {
-      "d0_30": { "reach_rate": 0, "participation_rate": 0.0834, "conversion_rate": 0, "checkin_rate": 0 },
-      "d31_60": { "reach_rate": 0, "participation_rate": 0.0834, "conversion_rate": 0, "checkin_rate": 0 },
-      "d61_90": { "reach_rate": 0, "participation_rate": 0.0834, "conversion_rate": 0, "checkin_rate": 0 },
-      "d91_120": { "reach_rate": 0, "participation_rate": 0.0796, "conversion_rate": 0, "checkin_rate": 0 },
-      "d121_150": { "reach_rate": 0, "participation_rate": 0.0617, "conversion_rate": 0, "checkin_rate": 0 },
-      "d151_180": { "reach_rate": 0, "participation_rate": 0.0617, "conversion_rate": 0, "checkin_rate": 0 },
-      "d6M": { "reach_rate": 0, "participation_rate": 0.0424, "conversion_rate": 0, "checkin_rate": 0 },
-      "d7M": { "reach_rate": 0, "participation_rate": 0.0424, "conversion_rate": 0, "checkin_rate": 0 },
-      "d8M": { "reach_rate": 0, "participation_rate": 0.0424, "conversion_rate": 0, "checkin_rate": 0 },
-      "d9M": { "reach_rate": 0, "participation_rate": 0.0424, "conversion_rate": 0, "checkin_rate": 0 },
-      "d10M": { "reach_rate": 0, "participation_rate": 0.0424, "conversion_rate": 0, "checkin_rate": 0 },
-      "d11M": { "reach_rate": 0, "participation_rate": 0.0424, "conversion_rate": 0, "checkin_rate": 0 },
-      "d12M": { "reach_rate": 0, "participation_rate": 0.0424, "conversion_rate": 0, "checkin_rate": 0 },
-      "d12M_plus": { "reach_rate": 0, "participation_rate": 0.0424, "conversion_rate": 0, "checkin_rate": 0 }
+      "d0_30": {
+        "reach_rate": 0,
+        "participation_rate": 0.0834,
+        "conversion_rate": 0,
+        "checkin_rate": 0
+      },
+      "d31_60": {
+        "reach_rate": 0,
+        "participation_rate": 0.0834,
+        "conversion_rate": 0,
+        "checkin_rate": 0
+      },
+      "d61_90": {
+        "reach_rate": 0,
+        "participation_rate": 0.0834,
+        "conversion_rate": 0,
+        "checkin_rate": 0
+      },
+      "d91_120": {
+        "reach_rate": 0,
+        "participation_rate": 0.0796,
+        "conversion_rate": 0,
+        "checkin_rate": 0
+      },
+      "d121_150": {
+        "reach_rate": 0,
+        "participation_rate": 0.0617,
+        "conversion_rate": 0,
+        "checkin_rate": 0
+      },
+      "d151_180": {
+        "reach_rate": 0,
+        "participation_rate": 0.0617,
+        "conversion_rate": 0,
+        "checkin_rate": 0
+      },
+      "d6M": {
+        "reach_rate": 0,
+        "participation_rate": 0.0424,
+        "conversion_rate": 0,
+        "checkin_rate": 0
+      },
+      "d7M": {
+        "reach_rate": 0,
+        "participation_rate": 0.0424,
+        "conversion_rate": 0,
+        "checkin_rate": 0
+      },
+      "d8M": {
+        "reach_rate": 0,
+        "participation_rate": 0.0424,
+        "conversion_rate": 0,
+        "checkin_rate": 0
+      },
+      "d9M": {
+        "reach_rate": 0,
+        "participation_rate": 0.0424,
+        "conversion_rate": 0,
+        "checkin_rate": 0
+      },
+      "d10M": {
+        "reach_rate": 0,
+        "participation_rate": 0.0424,
+        "conversion_rate": 0,
+        "checkin_rate": 0
+      },
+      "d11M": {
+        "reach_rate": 0,
+        "participation_rate": 0.0424,
+        "conversion_rate": 0,
+        "checkin_rate": 0
+      },
+      "d12M": {
+        "reach_rate": 0,
+        "participation_rate": 0.0424,
+        "conversion_rate": 0,
+        "checkin_rate": 0
+      },
+      "d12M_plus": {
+        "reach_rate": 0,
+        "participation_rate": 0.0424,
+        "conversion_rate": 0,
+        "checkin_rate": 0
+      }
     },
     "sop": {
       "checkin_rate": 0.35,
-      "reach_rate": 0.20,
+      "reach_rate": 0.2,
       "participation_rate": 0.0535,
       "reserve_rate": 0.77,
       "attend_rate": 0.66,

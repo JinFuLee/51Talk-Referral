@@ -277,7 +277,6 @@ export default function ReferralContributorPage() {
     dataRole: true,
     enclosure: true,
     team: true,
-    granularity: true,
     channel: true,
   });
   const locale = useLocale();

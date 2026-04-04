@@ -121,8 +121,6 @@ export default function AttributionPage() {
     dataRole: true,
     enclosure: true,
     team: true,
-    granularity: true,
-    funnelStage: true,
     channel: true,
   });
 

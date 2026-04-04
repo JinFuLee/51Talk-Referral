@@ -137,7 +137,6 @@ export default function EnclosureHealthPage() {
     dataRole: true,
     enclosure: true,
     team: true,
-    granularity: true,
   });
 
   const [expandedSegment, setExpandedSegment] = useState<string | null>(null);

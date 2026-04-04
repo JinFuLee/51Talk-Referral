@@ -16,11 +16,10 @@ function getCurrentYYYYMM(): string {
  * Serialization rules (per spec §4.3):
  * - Default values are omitted to keep URLs clean:
  *     country='TH' → not sent, dataRole='all' → not sent,
- *     granularity='month' → not sent, funnelStage='all' → not sent,
  *     channel='all' → not sent
- * - null values are not sent: enclosure=null → not sent, behavior=null → not sent
+ * - null values are not sent: enclosure=null → not sent
  * - Arrays are comma-joined: enclosure=['M0','M1'] → "M0,M1"
- * - camelCase → snake_case: dataRole → data_role, funnelStage → funnel_stage
+ * - camelCase → snake_case: dataRole → data_role
  * - benchmarks always sent (backend needs it)
  * - teamFilter → 'team', focusCC → 'cc' (backwards compat)
  * - selectedMonth: only sent if not null and not current month (YYYYMM)
@@ -38,10 +37,7 @@ export function useFilteredSWR<T>(
   const country = useConfigStore((s) => s.country);
   const dataRole = useConfigStore((s) => s.dataRole);
   const enclosure = useConfigStore((s) => s.enclosure);
-  const granularity = useConfigStore((s) => s.granularity);
-  const funnelStage = useConfigStore((s) => s.funnelStage);
   const channel = useConfigStore((s) => s.channel);
-  const behavior = useConfigStore((s) => s.behavior);
   const benchmarks = useConfigStore((s) => s.benchmarks);
   const selectedMonth = useConfigStore((s) => s.selectedMonth);
   const customDateRange = useConfigStore((s) => s.customDateRange);
@@ -60,10 +56,7 @@ export function useFilteredSWR<T>(
       country,
       dataRole,
       enclosure,
-      granularity,
-      funnelStage,
       channel,
-      behavior,
       benchmarks,
       selectedMonth,
       customDateRange,
@@ -80,10 +73,7 @@ interface DimensionParams {
   country: string;
   dataRole: string;
   enclosure: string[] | null;
-  granularity: string;
-  funnelStage: string;
   channel: string;
-  behavior: string[] | null;
   benchmarks: string[];
   selectedMonth: string | null;
   customDateRange: { start: string; end: string } | null;
@@ -129,21 +119,8 @@ function buildKey(
     setIfNotLocal('enclosure', dims.enclosure.join(','));
   }
 
-  // granularity: skip default 'month'
-  if (dims.granularity && dims.granularity !== 'month')
-    setIfNotLocal('granularity', dims.granularity);
-
-  // funnelStage → funnel_stage: skip default 'all'
-  if (dims.funnelStage && dims.funnelStage !== 'all')
-    setIfNotLocal('funnel_stage', dims.funnelStage);
-
   // channel: skip default 'all'
   if (dims.channel && dims.channel !== 'all') setIfNotLocal('channel', dims.channel);
-
-  // behavior: null = not sent, array = comma-joined
-  if (dims.behavior !== null && dims.behavior.length > 0) {
-    setIfNotLocal('behavior', dims.behavior.join(','));
-  }
 
   // benchmarks: always sent (unless page explicitly passes it)
   if (dims.benchmarks && dims.benchmarks.length > 0) {

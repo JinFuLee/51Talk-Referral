@@ -10,7 +10,6 @@ export default function CCMatrixRedirect() {
     dataRole: true,
     enclosure: true,
     team: true,
-    granularity: true,
   });
   useEffect(() => {
     router.replace('/personnel-matrix?tab=cc');

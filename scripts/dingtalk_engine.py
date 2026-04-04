@@ -2449,6 +2449,15 @@ class NotificationEngine:
         date_display = f"{today_str} T-1"
         group_order = [g.get("group", "") for g in groups]
 
+        # team_filter：通道配置指定组时只发该组（如 cc01 通道只发 CC01）
+        team_filter = channel.get("team_filter")
+        if team_filter:
+            group_order = [g for g in group_order if g == team_filter]
+            if not group_order:
+                result["status"] = "no_data"
+                print(f"  [team_checkin_combined] team_filter={team_filter} 无匹配")
+                return result
+
         if dry_run:
             for team_name in group_order:
                 short = team_name.replace("TH-", "").replace("Team", "")

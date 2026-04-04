@@ -38,10 +38,7 @@ class UnifiedFilter(BaseModel):
     enclosure: list[str] | None = None  # None = active default
     team: str | None = None
     cc: str | None = None
-    granularity: str = "month"  # Literal["day","week","month","quarter"]
-    funnel_stage: str = "all"  # Literal["all","registration","appointment","attendance","payment"]  # noqa: E501
     channel: str = "all"  # Literal["all","cc_narrow","ss_narrow","lp_narrow","cc_wide","lp_wide","ops_wide"]  # noqa: E501
-    behavior: list[str] | None = None  # None = all
     benchmarks: list[str] = Field(default=["target"])
 
 
@@ -51,10 +48,7 @@ def parse_filters(
     enclosure: str | None = Query(None),  # 逗号分隔: "M0,M1,M2"
     team: str | None = Query(None),
     cc: str | None = Query(None),
-    granularity: str = Query("month"),
-    funnel_stage: str = Query("all"),
     channel: str = Query("all"),
-    behavior: str | None = Query(None),  # 逗号分隔: "gold,effective"
     benchmarks: str = Query("target"),  # 逗号分隔: "target,bm_progress"
 ) -> UnifiedFilter:
     """FastAPI Depends — 从 query params 解析为 UnifiedFilter"""
@@ -64,10 +58,7 @@ def parse_filters(
         enclosure=enclosure.split(",") if enclosure else None,
         team=team,
         cc=cc,
-        granularity=granularity,
-        funnel_stage=funnel_stage,
         channel=channel,
-        behavior=behavior.split(",") if behavior else None,
         benchmarks=benchmarks.split(","),
     )
 
@@ -109,8 +100,7 @@ def apply_filters(
     5. enclosure → 围场列过滤（None = ACTIVE_ENCLOSURES）
     6. channel → 渠道列过滤
 
-    granularity / funnel_stage / benchmarks / behavior 不在此处处理，
-    由各 API 端点自行根据值调整聚合/展示逻辑。
+    benchmarks 不在此处处理，由各 API 端点自行根据值调整聚合/展示逻辑。
     """
     if df is None or df.empty:
         return df

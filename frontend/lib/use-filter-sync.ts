@@ -2,15 +2,7 @@
 
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useConfigStore } from './stores/config-store';
-import type {
-  Country,
-  DataRole,
-  Granularity,
-  FunnelStage,
-  Channel,
-  BehaviorSegment,
-  BenchmarkMode,
-} from './types/filters';
+import type { Country, DataRole, Channel, BenchmarkMode } from './types/filters';
 import { useEffect, useRef } from 'react';
 
 const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
@@ -36,10 +28,7 @@ export function useFilterSync(): void {
   const country = useConfigStore((s) => s.country);
   const dataRole = useConfigStore((s) => s.dataRole);
   const enclosure = useConfigStore((s) => s.enclosure);
-  const granularity = useConfigStore((s) => s.granularity);
-  const funnelStage = useConfigStore((s) => s.funnelStage);
   const channel = useConfigStore((s) => s.channel);
-  const behavior = useConfigStore((s) => s.behavior);
   const benchmarks = useConfigStore((s) => s.benchmarks);
 
   const setCustomDateRange = useConfigStore((s) => s.setCustomDateRange);
@@ -48,10 +37,7 @@ export function useFilterSync(): void {
   const setCountry = useConfigStore((s) => s.setCountry);
   const setDataRole = useConfigStore((s) => s.setDataRole);
   const setEnclosure = useConfigStore((s) => s.setEnclosure);
-  const setGranularity = useConfigStore((s) => s.setGranularity);
-  const setFunnelStage = useConfigStore((s) => s.setFunnelStage);
   const setChannel = useConfigStore((s) => s.setChannel);
-  const setBehavior = useConfigStore((s) => s.setBehavior);
   const setBenchmarks = useConfigStore((s) => s.setBenchmarks);
 
   // Track whether the initial URL → store sync has happened
@@ -69,10 +55,7 @@ export function useFilterSync(): void {
     const countryParam = searchParams.get('country');
     const dataRoleParam = searchParams.get('data_role');
     const enclosureParam = searchParams.get('enclosure');
-    const granularityParam = searchParams.get('granularity');
-    const funnelStageParam = searchParams.get('funnel_stage');
     const channelParam = searchParams.get('channel');
-    const behaviorParam = searchParams.get('behavior');
     const benchmarksParam = searchParams.get('benchmarks');
 
     // customDateRange from URL
@@ -91,10 +74,7 @@ export function useFilterSync(): void {
     if (countryParam) setCountry(countryParam as Country);
     if (dataRoleParam) setDataRole(dataRoleParam as DataRole);
     if (enclosureParam) setEnclosure(enclosureParam.split(',').filter(Boolean));
-    if (granularityParam) setGranularity(granularityParam as Granularity);
-    if (funnelStageParam) setFunnelStage(funnelStageParam as FunnelStage);
     if (channelParam) setChannel(channelParam as Channel);
-    if (behaviorParam) setBehavior(behaviorParam.split(',').filter(Boolean) as BehaviorSegment[]);
     if (benchmarksParam)
       setBenchmarks(benchmarksParam.split(',').filter(Boolean) as BenchmarkMode[]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -137,15 +117,7 @@ export function useFilterSync(): void {
       params.delete('enclosure');
     }
 
-    params.set('granularity', granularity);
-    params.set('funnel_stage', funnelStage);
     params.set('channel', channel);
-
-    if (behavior !== null && behavior.length > 0) {
-      params.set('behavior', behavior.join(','));
-    } else {
-      params.delete('behavior');
-    }
 
     if (benchmarks.length > 0) {
       params.set('benchmarks', benchmarks.join(','));
@@ -155,17 +127,5 @@ export function useFilterSync(): void {
 
     router.replace(`?${params.toString()}`, { scroll: false });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    customDateRange,
-    teamFilter,
-    focusCC,
-    country,
-    dataRole,
-    enclosure,
-    granularity,
-    funnelStage,
-    channel,
-    behavior,
-    benchmarks,
-  ]);
+  }, [customDateRange, teamFilter, focusCC, country, dataRole, enclosure, channel, benchmarks]);
 }

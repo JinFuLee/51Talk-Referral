@@ -21,7 +21,6 @@ export default function ReportsPage() {
     dataRole: true,
     enclosure: true,
     team: true,
-    granularity: true,
     channel: true,
   });
   const t = useTranslations();

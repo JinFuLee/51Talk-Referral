@@ -17,15 +17,21 @@ import type { CompareMode } from '@/lib/stores/config-store';
 import { swrFetcher } from '@/lib/api';
 import { useCurrentPageDimensions } from '@/lib/hooks/use-page-dimensions';
 import { BenchmarkSelector } from './BenchmarkSelector';
-import type {
-  FilterOptions,
-  DataRole,
-  Granularity,
-  FunnelStage,
-  Channel,
-  BehaviorSegment,
-  PageDimensions,
-} from '@/lib/types/filters';
+import type { FilterOptions, DataRole, Channel, PageDimensions } from '@/lib/types/filters';
+
+// 本地类型：granularity/funnelStage/behavior 已从全局 config-store 移除，
+// UnifiedFilterBar 保留对应 UI 控件但不再与全局 store 同步
+type Granularity = 'day' | 'week' | 'month' | 'quarter';
+type FunnelStage = 'all' | 'registration' | 'appointment' | 'attendance' | 'payment';
+type BehaviorSegment =
+  | 'gold'
+  | 'effective'
+  | 'stuck_pay'
+  | 'stuck_show'
+  | 'potential'
+  | 'freeloader'
+  | 'newcomer'
+  | 'casual';
 
 // ──────────────────────────────────────────────────────────────────────────────
 // 工具函数
@@ -491,11 +497,12 @@ export function UnifiedFilterBar() {
   const enclosure = useConfigStore((s) => s.enclosure);
   const teamFilter = useConfigStore((s) => s.teamFilter);
   const focusCC = useConfigStore((s) => s.focusCC);
-  const granularity = useConfigStore((s) => s.granularity);
-  const funnelStage = useConfigStore((s) => s.funnelStage);
   const channel = useConfigStore((s) => s.channel);
-  const behavior = useConfigStore((s) => s.behavior);
   const selectedMonth = useConfigStore((s) => s.selectedMonth);
+  // granularity / funnelStage / behavior 已从全局 store 移除，改为本地 state
+  const [granularity, setGranularity] = useState<Granularity>('month');
+  const [funnelStage, setFunnelStage] = useState<FunnelStage>('all');
+  const [behavior, setBehavior] = useState<BehaviorSegment[] | null>(null);
   const customDateRange = useConfigStore((s) => s.customDateRange);
   const compareMode = useConfigStore((s) => s.compareMode);
 
@@ -504,10 +511,7 @@ export function UnifiedFilterBar() {
   const setEnclosure = useConfigStore((s) => s.setEnclosure);
   const setTeamFilter = useConfigStore((s) => s.setTeamFilter);
   const setFocusCC = useConfigStore((s) => s.setFocusCC);
-  const setGranularity = useConfigStore((s) => s.setGranularity);
-  const setFunnelStage = useConfigStore((s) => s.setFunnelStage);
   const setChannel = useConfigStore((s) => s.setChannel);
-  const setBehavior = useConfigStore((s) => s.setBehavior);
   const setSelectedMonth = useConfigStore((s) => s.setSelectedMonth);
   const setCustomDateRange = useConfigStore((s) => s.setCustomDateRange);
   const setCompareMode = useConfigStore((s) => s.setCompareMode);
@@ -566,10 +570,7 @@ export function UnifiedFilterBar() {
     setFocusCC,
     setDataRole,
     setEnclosure,
-    setGranularity,
-    setFunnelStage,
     setChannel,
-    setBehavior,
   ]);
 
   // 抽屉时禁止 body 滚动
@@ -607,7 +608,7 @@ export function UnifiedFilterBar() {
   const channels = filterOptions?.channels ?? [];
 
   // 行为
-  const behaviors = filterOptions?.behaviors ?? [];
+  const behaviors: { value: string; label: string; color: string; count: number }[] = [];
 
   // data_role 固定值处理（cc-performance 页面固定为 cc）
   const dataRoleFixed = typeof dims.dataRole === 'string' ? (dims.dataRole as DataRole) : null;

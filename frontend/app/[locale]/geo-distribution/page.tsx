@@ -119,7 +119,7 @@ function BarCell({ pct }: { pct: number }) {
 }
 
 export default function GeoDistributionPage() {
-  usePageDimensions({ country: true, dataRole: true, granularity: true });
+  usePageDimensions({ country: true, dataRole: true });
   const locale = useLocale();
   const t = (I18N as unknown as Record<string, (typeof I18N)['zh']>)[locale] ?? I18N['zh'];
 

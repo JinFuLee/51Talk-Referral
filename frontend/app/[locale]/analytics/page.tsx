@@ -19,8 +19,6 @@ export default function AnalyticsPage() {
     dataRole: true,
     enclosure: true,
     team: true,
-    granularity: true,
-    funnelStage: true,
     channel: true,
   });
   const t = useTranslations('analysis');

@@ -1,15 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { useEffect, useState } from 'react';
-import type {
-  Country,
-  DataRole,
-  Granularity,
-  FunnelStage,
-  Channel,
-  BehaviorSegment,
-  BenchmarkMode,
-} from '@/lib/types/filters';
+import type { Country, DataRole, Channel, BenchmarkMode } from '@/lib/types/filters';
 
 /**
  * 在消费 persist store 的组件中调用，避免 SSR/CSR 水合不匹配。
@@ -35,14 +27,6 @@ const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 const YYYYMM_RE = /^\d{6}$/;
 
 const VALID_DATA_ROLES: DataRole[] = ['all', 'cc', 'ss', 'lp', 'ops'];
-const VALID_GRANULARITIES: Granularity[] = ['day', 'week', 'month', 'quarter'];
-const VALID_FUNNEL_STAGES: FunnelStage[] = [
-  'all',
-  'registration',
-  'appointment',
-  'attendance',
-  'payment',
-];
 const VALID_CHANNELS: Channel[] = [
   'all',
   'cc_narrow',
@@ -74,14 +58,6 @@ function validateDataRole(v: unknown): DataRole {
   return VALID_DATA_ROLES.includes(v as DataRole) ? (v as DataRole) : 'all';
 }
 
-function validateGranularity(v: unknown): Granularity {
-  return VALID_GRANULARITIES.includes(v as Granularity) ? (v as Granularity) : 'month';
-}
-
-function validateFunnelStage(v: unknown): FunnelStage {
-  return VALID_FUNNEL_STAGES.includes(v as FunnelStage) ? (v as FunnelStage) : 'all';
-}
-
 function validateChannel(v: unknown): Channel {
   return VALID_CHANNELS.includes(v as Channel) ? (v as Channel) : 'all';
 }
@@ -107,25 +83,6 @@ function validateSelectedMonth(v: unknown): string | null {
   return null;
 }
 
-function validateBehavior(v: unknown): BehaviorSegment[] | null {
-  if (v === null || v === undefined) return null;
-  if (!Array.isArray(v)) return null;
-  const VALID_BEHAVIORS: BehaviorSegment[] = [
-    'gold',
-    'effective',
-    'stuck_pay',
-    'stuck_show',
-    'potential',
-    'freeloader',
-    'newcomer',
-    'casual',
-  ];
-  const items = v.filter((item) =>
-    VALID_BEHAVIORS.includes(item as BehaviorSegment)
-  ) as BehaviorSegment[];
-  return items.length > 0 ? items : null;
-}
-
 interface ConfigState {
   role: 'ops' | 'exec' | 'finance';
   input_dir: string;
@@ -141,10 +98,8 @@ interface ConfigState {
   country: Country;
   dataRole: DataRole;
   enclosure: string[] | null;
-  granularity: Granularity;
-  funnelStage: FunnelStage;
   channel: Channel;
-  behavior: BehaviorSegment[] | null;
+  granularity: 'month' | 'week' | 'day';
   benchmarks: BenchmarkMode[];
   // ── Month selector (M38) ────────────────────────────────────────────────────
   /** YYYYMM 格式的历史月份，null = 当前月 */
@@ -167,10 +122,8 @@ interface ConfigState {
         | 'setCountry'
         | 'setDataRole'
         | 'setEnclosure'
-        | 'setGranularity'
-        | 'setFunnelStage'
         | 'setChannel'
-        | 'setBehavior'
+        | 'setGranularity'
         | 'setBenchmarks'
         | 'setSelectedMonth'
         | 'setCustomDateRange'
@@ -185,10 +138,8 @@ interface ConfigState {
   setCountry: (country: Country) => void;
   setDataRole: (dataRole: DataRole) => void;
   setEnclosure: (enclosure: string[] | null) => void;
-  setGranularity: (granularity: Granularity) => void;
-  setFunnelStage: (funnelStage: FunnelStage) => void;
   setChannel: (channel: Channel) => void;
-  setBehavior: (behavior: BehaviorSegment[] | null) => void;
+  setGranularity: (granularity: 'month' | 'week' | 'day') => void;
   setBenchmarks: (benchmarks: BenchmarkMode[]) => void;
   setSelectedMonth: (month: string | null) => void;
   setCustomDateRange: (range: { start: string; end: string } | null) => void;
@@ -209,10 +160,8 @@ export const useConfigStore = create<ConfigState>()(
       country: 'TH',
       dataRole: 'all',
       enclosure: null,
-      granularity: 'month',
-      funnelStage: 'all',
       channel: 'all',
-      behavior: null,
+      granularity: 'month',
       benchmarks: ['target'],
       selectedMonth: null,
       customDateRange: null,
@@ -226,10 +175,8 @@ export const useConfigStore = create<ConfigState>()(
       setCountry: (country) => set({ country }),
       setDataRole: (dataRole) => set({ dataRole }),
       setEnclosure: (enclosure) => set({ enclosure }),
-      setGranularity: (granularity) => set({ granularity }),
-      setFunnelStage: (funnelStage) => set({ funnelStage }),
       setChannel: (channel) => set({ channel }),
-      setBehavior: (behavior) => set({ behavior }),
+      setGranularity: (granularity) => set({ granularity }),
       setBenchmarks: (benchmarks) => set({ benchmarks }),
       setSelectedMonth: (selectedMonth) => set({ selectedMonth }),
       setCustomDateRange: (customDateRange) => set({ customDateRange }),
@@ -266,12 +213,9 @@ export const useConfigStore = create<ConfigState>()(
         }
         // Dimension field validators
         state.dataRole = validateDataRole(state.dataRole);
-        state.granularity = validateGranularity(state.granularity);
-        state.funnelStage = validateFunnelStage(state.funnelStage);
         state.channel = validateChannel(state.channel);
         state.benchmarks = validateBenchmarks(state.benchmarks);
         state.enclosure = validateEnclosure(state.enclosure);
-        state.behavior = validateBehavior(state.behavior);
         state.selectedMonth = validateSelectedMonth(state.selectedMonth);
         // customDateRange validator
         if (state.customDateRange !== null && state.customDateRange !== undefined) {

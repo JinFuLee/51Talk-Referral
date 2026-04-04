@@ -444,7 +444,6 @@ export default function FollowupQualityPage() {
     dataRole: true,
     enclosure: true,
     team: true,
-    granularity: true,
   });
 
   const locale = useLocale();

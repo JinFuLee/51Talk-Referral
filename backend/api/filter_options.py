@@ -50,18 +50,6 @@ _CHANNELS = [
     {"value": "ops_wide", "label": "运营宽口径", "available_sources": ["A1", "A2"]},
 ]
 
-_BEHAVIORS = [
-    {"value": "gold", "label": "黄金学员", "color": "#FFD100", "count": 0},
-    {"value": "effective", "label": "高效学员", "color": "#22C55E", "count": 0},
-    {"value": "stuck_pay", "label": "卡付费", "color": "#F97316", "count": 0},
-    {"value": "stuck_show", "label": "卡出席", "color": "#EAB308", "count": 0},
-    {"value": "potential", "label": "高潜学员", "color": "#3B82F6", "count": 0},
-    {"value": "freeloader", "label": "白嫖学员", "color": "#6B7280", "count": 0},
-    {"value": "newcomer", "label": "新学员", "color": "#8B5CF6", "count": 0},
-    {"value": "casual", "label": "随缘学员", "color": "#94A3B8", "count": 0},
-]
-
-
 @router.get("/options", summary="获取筛选维度可选值")
 def get_filter_options(dm: DataManager = Depends(get_data_manager)) -> dict:
     """返回 UnifiedFilterBar 所需全部维度的可选值列表。
@@ -126,6 +114,5 @@ def get_filter_options(dm: DataManager = Depends(get_data_manager)) -> dict:
             for val, label, is_active in _ENCLOSURE_DEFS
         ],
         "channels": _CHANNELS,
-        "behaviors": _BEHAVIORS,
         "cc_list": cc_list,
     }
