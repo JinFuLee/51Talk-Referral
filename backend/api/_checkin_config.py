@@ -1,14 +1,13 @@
-"""打卡模块 — 配置加载与业务工具函数
+"""打卡模块 — 配置加载 + 业务工具函数
 
-从 checkin.py 提取，供 checkin_summary / checkin_ranking /
-checkin_followup / checkin_insights 共用。
-
-不定义 router，不包含任何 API 端点。
+所有 checkin_*.py 子模块共用的配置读取、常量定义、工具函数。
+共享类型转换工具在 _checkin_shared.py。
 """
 
 from __future__ import annotations
 
 import json
+import math
 from pathlib import Path
 from typing import Any
 
@@ -22,6 +21,7 @@ from backend.api._checkin_shared import (
     safe as _safe,
     safe_str as _safe_str,
 )
+
 
 # ── Config 动态加载 ─────────────────────────────────────────────────────────
 
@@ -96,6 +96,8 @@ def _get_priority_rules() -> dict[str, int]:
             _PRIO_CACHE = _PRIORITY_RULES_FALLBACK
     return {r["id"]: r["score"] for r in (_PRIO_CACHE or _PRIORITY_RULES_FALLBACK)}
 
+
+# ── 常量（共享常量从 _checkin_shared 导入，见文件顶部）─────────────────────
 
 # ── 硬编码 fallback（当 config.json 读取失败时使用）─────────────────────────
 
@@ -224,6 +226,10 @@ def _get_quality_score_config() -> dict:
     return _get_config().get("quality_score_config", _QUALITY_SCORE_FALLBACK)
 
 
+# 为保持向后兼容性，保留模块级常量（值在首次使用时从 config 派生）
+# 直接使用下面的 getter 函数，不依赖模块级绑定
+
+
 def _get_wide_role_cached() -> dict[str, list[str]]:
     """模块级 _WIDE_ROLE 的兼容入口，每次从 getter 获取（config 热重载安全）。"""
     return _get_wide_role()
@@ -249,6 +255,8 @@ def _parse_role_enclosures(role_config: str | None, role: str) -> list[str] | No
         return None
 
 
+# 各岗位人员列（name_col, group_col）— 从 config.json role_columns 动态加载
+# 直接调用 _get_role_cols() 获取最新值
 def _get_role_cols_snapshot() -> dict[str, tuple[str, str]]:
     """返回当前 config 的 role_cols 快照，供模块级 _ROLE_COLS 使用。"""
     return _get_role_cols()
@@ -366,8 +374,8 @@ def _calc_quality_score(row_d3: pd.Series, d4_row: pd.Series | None) -> float:
     return round(lesson_score + referral_score + payment_score + enclosure_score, 1)
 
 
-# ── 运营渠道推荐配置 ──────────────────────────────────────────────────────────
 
+# 运营渠道推荐配置
 _OPS_CHANNELS: list[dict[str, Any]] = [
     {
         "channel_id": "phone",
@@ -407,119 +415,3 @@ _OPS_CHANNELS: list[dict[str, Any]] = [
     },
 ]
 
-
-def _aggregate_ops_channels(
-    df_d3: pd.DataFrame,
-    df_d4: pd.DataFrame,
-    enclosures_override: list[str] | None = None,
-) -> dict[str, Any]:
-    """运营角色聚合：按渠道推荐 + 围场子段，不使用 CC/SS/LP 人员列。
-    被 checkin_summary 和 checkin_ranking 共用，定义于此以避免循环 import。"""
-    enclosures = enclosures_override or [
-        "6M",
-        "7M",
-        "8M",
-        "9M",
-        "10M",
-        "11M",
-        "12M",
-        "12M+",
-        "M6+",
-        "181+",
-    ]
-
-    # 筛选 M6+ 围场学员
-    if _D3_ENCLOSURE_COL in df_d3.columns:
-        subset = df_d3[df_d3[_D3_ENCLOSURE_COL].isin(enclosures)].copy()
-    else:
-        subset = df_d3.copy()
-
-    total = len(subset)
-    checked = 0
-    if total > 0 and _D3_CHECKIN_COL in subset.columns:
-        checked = int(
-            pd.to_numeric(subset[_D3_CHECKIN_COL], errors="coerce").fillna(0).sum()
-        )
-    rate = checked / total if total > 0 else 0.0
-    unchecked = total - checked
-
-    # 构建 D4 索引，计算未打卡学员质量评分
-    d3_id_col = _D3_STUDENT_COL if _D3_STUDENT_COL in subset.columns else None
-    d4_id_col = _find_d4_id_col(df_d4) if not df_d4.empty else None
-    d4_index: dict[str, pd.Series] = {}
-    if d4_id_col and not df_d4.empty:
-        for _, row in df_d4.iterrows():
-            sid = _safe_str(row.get(d4_id_col, ""))
-            if sid:
-                d4_index[sid] = row
-
-    quality_scores: list[float] = []
-    for _, row in subset.iterrows():
-        is_checked = pd.to_numeric(row.get(_D3_CHECKIN_COL, 0), errors="coerce") or 0
-        if is_checked > 0:
-            continue  # 只统计未打卡学员
-        sid = _safe_str(row.get(d3_id_col, "")) if d3_id_col else ""
-        d4_row = d4_index.get(sid)
-        score = _calc_quality_score(row, d4_row)
-        quality_scores.append(score)
-
-    phone_count = sum(1 for s in quality_scores if s >= 70)
-    line_count = sum(1 for s in quality_scores if s >= 40)
-
-    channels: list[dict[str, Any]] = []
-    for ch_def in _OPS_CHANNELS:
-        ch = dict(ch_def)
-        if ch["channel_id"] == "phone":
-            ch["recommended_count"] = phone_count
-        elif ch["channel_id"] == "line_oa":
-            ch["recommended_count"] = line_count
-        else:
-            ch["recommended_count"] = unchecked
-        channels.append(ch)
-
-    # 围场子段
-    by_enclosure_segment: list[dict[str, Any]] = []
-    if _D3_ENCLOSURE_COL in subset.columns:
-        for enc_val in sorted(subset[_D3_ENCLOSURE_COL].dropna().unique()):
-            seg = subset[subset[_D3_ENCLOSURE_COL] == enc_val]
-            t = len(seg)
-            c = (
-                int(
-                    pd.to_numeric(seg[_D3_CHECKIN_COL], errors="coerce").fillna(0).sum()
-                )
-                if _D3_CHECKIN_COL in seg.columns
-                else 0
-            )
-            label = _M_MAP.get(_safe_str(enc_val), _safe_str(enc_val))
-            by_enclosure_segment.append(
-                {
-                    "segment": label,
-                    "label": f"{label}围场",
-                    "students": t,
-                    "checked_in": c,
-                    "rate": round(c / t, 4) if t > 0 else 0.0,
-                }
-            )
-
-    if not by_enclosure_segment:
-        by_enclosure_segment = [
-            {
-                "segment": "M6~M12+",
-                "label": "181天+围场",
-                "students": total,
-                "checked_in": checked,
-                "rate": round(rate, 4),
-            }
-        ]
-
-    return {
-        "total_students": total,
-        "checked_in": checked,
-        "checkin_rate": round(rate, 4),
-        "channels": channels,
-        "by_enclosure_segment": by_enclosure_segment,
-        "by_team": [],  # 兼容 SummaryTab ChannelColumn（运营无团队拆分）
-        "by_enclosure": [],  # 兼容 SummaryTab ChannelColumn（运营无围场拆分）
-        "by_group": [],
-        "by_person": [],
-    }

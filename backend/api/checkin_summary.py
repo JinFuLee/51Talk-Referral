@@ -1,37 +1,42 @@
-"""打卡汇总端点 — /checkin/summary
-
-聚合函数：
-  _aggregate_role()         — CC/SS/LP 角色打卡数据聚合（本模块私有）
-  _aggregate_ops_channels() — 运营围场（M6+）按渠道推荐聚合（来自 _checkin_config，ranking 共用）
-
-API 端点：
-  GET /checkin/summary
-"""
+"""打卡汇总 API — /checkin/summary"""
 
 from __future__ import annotations
 
 import json
+import math
 from typing import Any
 
 import pandas as pd
-from fastapi import APIRouter, Depends, Query, Request
+from fastapi import APIRouter, Depends, Query, Request, Response
 
-from backend.api._checkin_config import (
-    _D3_CHECKIN_COL,
-    _D3_ENCLOSURE_COL,
-    _aggregate_ops_channels,
-    _clean_names,
-    _get_invalid_names,
-    _get_role_cols,
-    _get_wide_role,
-    _parse_role_enclosures,
-)
 from backend.api._checkin_shared import (
     M_MAP as _M_MAP,
+    M_TO_DAYS as _M_TO_DAYS,
+    find_d4_id_col as _find_d4_id_col,
+    m_label_to_index as _m_label_to_index,
+    safe as _safe,
     safe_str as _safe_str,
+)
+from backend.api._checkin_config import (
+    _get_config,
+    _get_wide_role,
+    _get_role_cols,
+    _get_invalid_names,
+    _get_quality_score_config,
+    _get_priority_rules,
+    _parse_role_enclosures,
+    _clean_names,
+    _detect_role_from_team,
+    _calc_quality_score,
+    _D3_CHECKIN_COL,
+    _D3_STUDENT_COL,
+    _D3_ENCLOSURE_COL,
+    _D4_LIFECYCLE_COL,
+    _OPS_CHANNELS,
 )
 from backend.api.dependencies import get_data_manager
 from backend.core.data_manager import DataManager
+from backend.core.date_override import get_today
 from backend.models.filters import UnifiedFilter, apply_filters, parse_filters
 
 router = APIRouter()
@@ -131,6 +136,171 @@ def _aggregate_role(
     }
 
 
+# 运营渠道推荐配置
+_OPS_CHANNELS: list[dict[str, Any]] = [
+    {
+        "channel_id": "phone",
+        "channel_name": "电话/短信",
+        "priority": "high",
+        "cost_level": "high",
+        "description": "高价值学员人工触达",
+        "target_criteria": "质量评分≥70",
+        "estimated_contact_rate": 0.70,
+    },
+    {
+        "channel_id": "line_oa",
+        "channel_name": "LINE OA",
+        "priority": "medium",
+        "cost_level": "medium",
+        "description": "社交触达，适合 M6-M7 中等质量学员",
+        "target_criteria": "质量评分≥40 且 M6-M7 围场",
+        "estimated_contact_rate": 0.40,
+    },
+    {
+        "channel_id": "app_push",
+        "channel_name": "APP 站内推送",
+        "priority": "medium",
+        "cost_level": "low",
+        "description": "自动化批量触达",
+        "target_criteria": "全部 6M+ 未打卡",
+        "estimated_contact_rate": 0.18,
+    },
+    {
+        "channel_id": "email",
+        "channel_name": "邮件",
+        "priority": "low",
+        "cost_level": "lowest",
+        "description": "兜底广撒网",
+        "target_criteria": "全部 6M+ 未打卡",
+        "estimated_contact_rate": 0.10,
+    },
+]
+
+
+
+def _aggregate_ops_channels(
+    df_d3: pd.DataFrame,
+    df_d4: pd.DataFrame,
+    enclosures_override: list[str] | None = None,
+) -> dict[str, Any]:
+    """运营角色聚合：按渠道推荐 + 围场子段，不使用 CC/SS/LP 人员列。"""
+    enclosures = enclosures_override or [
+        "6M",
+        "7M",
+        "8M",
+        "9M",
+        "10M",
+        "11M",
+        "12M",
+        "12M+",
+        "M6+",
+        "181+",
+    ]
+
+    # 筛选 M6+ 围场学员
+    if _D3_ENCLOSURE_COL in df_d3.columns:
+        subset = df_d3[df_d3[_D3_ENCLOSURE_COL].isin(enclosures)].copy()
+    else:
+        subset = df_d3.copy()
+
+    total = len(subset)
+    checked = 0
+    if total > 0 and _D3_CHECKIN_COL in subset.columns:
+        checked = int(
+            pd.to_numeric(subset[_D3_CHECKIN_COL], errors="coerce").fillna(0).sum()
+        )
+    rate = checked / total if total > 0 else 0.0
+    unchecked = total - checked
+
+    # 构建 D4 索引，计算未打卡学员质量评分
+    d3_id_col = _D3_STUDENT_COL if _D3_STUDENT_COL in subset.columns else None
+    d4_id_col = _find_d4_id_col(df_d4) if not df_d4.empty else None
+    d4_index: dict[str, pd.Series] = {}
+    if d4_id_col and not df_d4.empty:
+        for _, row in df_d4.iterrows():
+            sid = _safe_str(row.get(d4_id_col, ""))
+            if sid:
+                d4_index[sid] = row
+
+    quality_scores: list[float] = []
+    for _, row in subset.iterrows():
+        is_checked = pd.to_numeric(row.get(_D3_CHECKIN_COL, 0), errors="coerce") or 0
+        if is_checked > 0:
+            continue  # 只统计未打卡学员
+        sid = _safe_str(row.get(d3_id_col, "")) if d3_id_col else ""
+        d4_row = d4_index.get(sid)
+        score = _calc_quality_score(row, d4_row)
+        quality_scores.append(score)
+
+    phone_count = sum(1 for s in quality_scores if s >= 70)
+    line_count = sum(1 for s in quality_scores if s >= 40)
+
+    channels: list[dict[str, Any]] = []
+    for ch_def in _OPS_CHANNELS:
+        ch = dict(ch_def)
+        if ch["channel_id"] == "phone":
+            ch["recommended_count"] = phone_count
+        elif ch["channel_id"] == "line_oa":
+            ch["recommended_count"] = line_count
+        else:
+            ch["recommended_count"] = unchecked
+        channels.append(ch)
+
+    # 围场子段
+    by_enclosure_segment: list[dict[str, Any]] = []
+    if _D3_ENCLOSURE_COL in subset.columns:
+        for enc_val in sorted(subset[_D3_ENCLOSURE_COL].dropna().unique()):
+            seg = subset[subset[_D3_ENCLOSURE_COL] == enc_val]
+            t = len(seg)
+            c = (
+                int(
+                    pd.to_numeric(seg[_D3_CHECKIN_COL], errors="coerce").fillna(0).sum()
+                )
+                if _D3_CHECKIN_COL in seg.columns
+                else 0
+            )
+            label = _M_MAP.get(_safe_str(enc_val), _safe_str(enc_val))
+            by_enclosure_segment.append(
+                {
+                    "segment": label,
+                    "label": f"{label}围场",
+                    "students": t,
+                    "checked_in": c,
+                    "rate": round(c / t, 4) if t > 0 else 0.0,
+                }
+            )
+
+    if not by_enclosure_segment:
+        by_enclosure_segment = [
+            {
+                "segment": "M6~M12+",
+                "label": "181天+围场",
+                "students": total,
+                "checked_in": checked,
+                "rate": round(rate, 4),
+            }
+        ]
+
+    return {
+        "total_students": total,
+        "checked_in": checked,
+        "checkin_rate": round(rate, 4),
+        "channels": channels,
+        "by_enclosure_segment": by_enclosure_segment,
+        "by_team": [],  # 兼容 SummaryTab ChannelColumn（运营无团队拆分）
+        "by_enclosure": [],  # 兼容 SummaryTab ChannelColumn（运营无围场拆分）
+        "by_group": [],
+        "by_person": [],
+    }
+
+
+
+
+# ── API 端点 ──
+
+# ── API 端点 ──────────────────────────────────────────────────────────────────
+
+
 @router.get(
     "/checkin/summary",
     summary="打卡汇总（Tab1）— D3 明细表，按角色 / 团队 / 围场分组",
@@ -185,3 +355,4 @@ def get_checkin_summary(
             by_role[role] = _aggregate_role(d3, role, enclosures_override=override)
 
     return {"by_role": by_role}
+
