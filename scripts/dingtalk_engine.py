@@ -258,13 +258,13 @@ class NotificationEngine:
 
     # ── 内部：模块处理 ────────────────────────────────────────────────────────
 
-    # CC 专属模块白名单：SS/LP 通道严禁发送这些模块（硬防线）
-    _CC_ONLY_MODULES = frozenset({
-        "cc_enc_warning", "action_items", "student_improvement",
-        "result_metrics", "achievement_metrics",
-        "process_metrics", "efficiency_metrics", "service_metrics",
-        "honor_ranking",
-    })
+    # ── 硬防线：角色隔离 ──────────────────────────────────────────────────
+    # CC/SS/LP 三群互不串发（硬性规则，不可违反）。
+    # - cc_enc_warning 是唯一 CC 结构专属模块（数据结构绑定 CC）
+    # - 其余模块（result_metrics 等）按 role 参数生成对应角色数据，
+    #   数据层隔离靠 data["by_role"][role] 选取，不会串角色
+    # - 测试群（test）不受角色隔离限制，可接收所有内容
+    _CC_STRUCT_ONLY_MODULES = frozenset({"cc_enc_warning"})
 
     def _process_module(self, module_id: str, channel: dict, dry_run: bool) -> dict:
         """处理单个内容模块：获取数据 → 生成图片/文本 → 发送"""
@@ -277,13 +277,9 @@ class NotificationEngine:
         try:
             role = channel.get("role", "CC")
 
-            # ── 硬防线：SS/LP 通道禁止接收 CC 专属模块 ──
-            # SS/LP 只允许 team_ranking + individual_ranking（窄口 leads）
-            if role in ("SS", "LP") and module_id in self._CC_ONLY_MODULES:
-                result["status"] = "blocked_role_isolation"
-                print(
-                    f"  [{module_id}] BLOCKED: {role} 通道禁止发送此模块"
-                )
+            # ── 硬防线：CC 结构专属模块，非 CC 角色直接跳过 ──
+            if role != "CC" and module_id in self._CC_STRUCT_ONLY_MODULES:
+                result["status"] = "skipped_role_isolation"
                 return result
 
             # role=ALL（ops 通道）：循环 CC/SS/LP 各走一遍，每角色独立生成
@@ -311,6 +307,27 @@ class NotificationEngine:
             # followup_per_cc：分组推送（8 条消息：1 总览 + 7 小组，每 CC 图片+ID）
             if module_id == "followup_per_cc":
                 return self._process_followup_per_cc(role, channel, dry_run)
+
+            # team_comprehensive：每组多维达成卡（1 图/组，合并打卡+业绩）
+            if module_id == "team_comprehensive":
+                return self._process_team_comprehensive(role, channel, dry_run)
+
+            # unchecked_ids：按组→CC 分组的未打卡学员 ID（1 段文本）
+            if module_id == "unchecked_ids":
+                md_text = self._generate_unchecked_ids_text(role)
+                if dry_run:
+                    print(f"  [unchecked_ids] (文本 dry-run):\n{md_text[:400]}...")
+                    result["status"] = "dry_run"
+                else:
+                    title = f"⚠️ ยังไม่เช็คอิน {role} {datetime.now().strftime('%d/%m')}"
+                    r = self._send_dingtalk(title, md_text, channel)
+                    if r.get("errcode") == 0:
+                        print(f"  ✅ {title}")
+                        result["status"] = "sent"
+                    else:
+                        print(f"  ❌ {title}: {r}")
+                        result["status"] = "error"
+                return result
 
             # action_items 是文本消息，走独立分支
             if module_id == "action_items":
@@ -1923,6 +1940,305 @@ class NotificationEngine:
         lines.append("> ข้อมูล T-1 · ref-ops-engine · student-analysis")
         lines.append("> 数据来源 T-1 · 学员打卡分析")
 
+        return "\n".join(lines)
+
+    # ── team_comprehensive：每组多维达成卡 ─────────────────────────────────
+
+    def _process_team_comprehensive(
+        self, role: str, channel: dict, dry_run: bool,
+    ) -> dict:
+        """team_comprehensive 模块处理：获取双数据源 → 每组生成一张多维达成卡"""
+        result: dict[str, Any] = {
+            "module": "team_comprehensive",
+            "status": "pending",
+            "images_count": 0,
+        }
+
+        # 1. 获取双数据源
+        checkin_data = self._fetch_data(role)
+        perf_data = self._fetch_cc_performance()
+
+        if not checkin_data or not perf_data:
+            result["status"] = "no_data"
+            print("  [team_comprehensive] 数据不足（需要 checkin + cc-performance）")
+            return result
+
+        role_checkin = checkin_data.get("by_role", {}).get(role, {})
+        groups = role_checkin.get("by_group", [])
+        persons = role_checkin.get("by_person", [])
+        perf_teams = perf_data.get("teams", [])
+
+        # 按 team name 建索引
+        perf_map: dict[str, dict] = {t["team"]: t for t in perf_teams}
+        person_by_group: dict[str, list[dict]] = {}
+        for p in persons:
+            g = p.get("group", "")
+            person_by_group.setdefault(g, []).append(p)
+
+        # 按 by_group 排序
+        group_order = [g.get("group", "") for g in groups]
+        date_tag = datetime.now().strftime("%Y%m%d")
+        today_str = datetime.now().strftime("%d/%m")
+
+        images: list[tuple[str, bytes, Path]] = []
+        for team_name in group_order:
+            perf_team = perf_map.get(team_name)
+            if not perf_team:
+                print(f"  [team_comprehensive] {team_name} 无 cc-performance 数据，跳过")
+                continue
+            ck_members = person_by_group.get(team_name, [])
+            img = self._gen_team_comprehensive_image(
+                team_name, perf_team, ck_members, today_str
+            )
+            short = team_name.replace("TH-", "").replace("Team", "")
+            path = OUTPUT_DIR / f"team-card-{short}-{date_tag}.png"
+            path.write_bytes(img)
+            images.append((f"📊 {short} {today_str}", img, path))
+
+        result["images_count"] = len(images)
+
+        if not images:
+            result["status"] = "no_images"
+            return result
+
+        if dry_run:
+            for title, img_bytes, path in images:
+                kb = len(img_bytes) / 1024
+                print(f"  [team_comprehensive] {title} → {path} ({kb:.0f} KB)")
+            result["status"] = "dry_run"
+            return result
+
+        # 发送
+        success = 0
+        for img_idx, (title, img_bytes, path) in enumerate(images):
+            if img_idx > 0:
+                time.sleep(5)
+            sent = self._upload_and_send(img_bytes, title, channel, path.name)
+            if sent:
+                success += 1
+        result["status"] = "sent" if success == len(images) else "partial"
+        result["sent"] = success
+        return result
+
+    def _fetch_cc_performance(self) -> dict | None:
+        """获取 /api/cc-performance 全量数据"""
+        return self._fetch_url(f"{self.api_base}/api/cc-performance")
+
+    def _gen_team_comprehensive_image(
+        self,
+        team_name: str,
+        perf_team: dict,
+        checkin_members: list[dict],
+        today_str: str,
+    ) -> bytes:
+        """多维达成卡：团队汇总条 + 每人指标表格
+
+        Args:
+            team_name: 团队原始名（如 TH-CC01Team）
+            perf_team: cc-performance teams[] 中的该 team 数据
+            checkin_members: checkin ranking by_person 中属于该 team 的成员
+            today_str: 日期显示（如 04/04）
+        """
+        short = team_name.replace("TH-", "").replace("Team", "")
+        records = perf_team.get("records", [])
+
+        # 按 cc_name join checkin 数据
+        checkin_map: dict[str, dict] = {
+            m["name"]: m for m in checkin_members
+        }
+        # 合并：以 perf records 为主，补 checkin 数据
+        rows: list[dict] = []
+        for rec in records:
+            cc = rec.get("cc_name", "")
+            ck = checkin_map.get(cc, {})
+            leads_actual = 0
+            leads_obj = rec.get("leads", {})
+            if isinstance(leads_obj, dict):
+                leads_actual = leads_obj.get("actual", 0) or 0
+            elif isinstance(leads_obj, (int, float)):
+                leads_actual = leads_obj
+            paid_actual = 0
+            paid_obj = rec.get("paid", {})
+            if isinstance(paid_obj, dict):
+                paid_actual = paid_obj.get("actual", 0) or 0
+            elif isinstance(paid_obj, (int, float)):
+                paid_actual = paid_obj
+            rev_actual = 0
+            rev_obj = rec.get("revenue", {})
+            if isinstance(rev_obj, dict):
+                rev_actual = rev_obj.get("actual", 0) or 0
+            elif isinstance(rev_obj, (int, float)):
+                rev_actual = rev_obj
+            rows.append({
+                "name": cc.replace("THCC-", "").replace("thcc-", ""),
+                "students": ck.get("students", rec.get("students_count", 0)),
+                "checkin_rate": ck.get("rate", rec.get("checkin_rate", 0)) or 0,
+                "leads": int(leads_actual),
+                "paid": int(paid_actual),
+                "revenue": rev_actual,
+            })
+
+        # 按业绩降序排序
+        rows.sort(key=lambda r: (-r["revenue"], -r["leads"], -r["checkin_rate"]))
+
+        # 团队汇总
+        team_rev = 0
+        t_rev = perf_team.get("revenue", {})
+        if isinstance(t_rev, dict):
+            team_rev = t_rev.get("actual", 0) or 0
+        team_paid = 0
+        t_paid = perf_team.get("paid", {})
+        if isinstance(t_paid, dict):
+            team_paid = t_paid.get("actual", 0) or 0
+        team_leads = sum(r["leads"] for r in rows)
+        team_students = perf_team.get("students_count", sum(r["students"] for r in rows))
+        team_checkin_rate = perf_team.get("checkin_rate", 0) or 0
+        team_reach_rate = perf_team.get("cc_reach_rate", 0) or 0
+
+        # ── matplotlib 绘图 ──
+        n_rows = len(rows)
+        fig_h = 2.0 + 1.2 + n_rows * 0.42 + 0.3
+        fig, ax = plt.subplots(figsize=(9, max(fig_h, 4)), dpi=150)
+        ax.set_xlim(0, 10)
+        ax.set_ylim(0, fig_h)
+        ax.axis("off")
+        fig.patch.set_facecolor(_C_BG)
+        ax.set_facecolor(_C_BG)
+
+        # ── 品牌条 ──
+        from matplotlib.patches import FancyBboxPatch, Rectangle
+        ax.add_patch(Rectangle((0, fig_h - 0.15), 10, 0.15,
+                               color=_C_BRAND_P2, zorder=5))
+
+        # ── 标题 ──
+        y = fig_h - 0.55
+        ax.text(0.4, y, f"{short}", fontsize=18, fontweight="bold",
+                color=_C_TEXT, va="center", fontfamily=_THAI_FONTS)
+        ax.text(5.5, y, f"{today_str} T-1", fontsize=11,
+                color=_C_MUTED, va="center", ha="left")
+
+        # ── 团队汇总条（圆角卡片）──
+        y_summary = y - 0.85
+        ax.add_patch(FancyBboxPatch(
+            (0.3, y_summary - 0.3), 9.4, 0.7,
+            boxstyle="round,pad=0.08", facecolor=_C_SURFACE,
+            edgecolor=_C_BORDER, linewidth=0.8, zorder=2,
+        ))
+        # 汇总指标
+        cols_x = [1.0, 3.0, 5.0, 7.2, 9.0]
+        labels = ["รายได้/业绩", "ชำระ/付费", "Leads", "เช็คอิน/打卡", "ติดต่อ/触达"]
+        values = [
+            f"${team_rev:,.0f}",
+            f"{int(team_paid)}",
+            f"{team_leads}",
+            f"{team_checkin_rate:.0%}",
+            f"{team_reach_rate:.0%}",
+        ]
+        for i, (lbl, val) in enumerate(zip(labels, values)):
+            ax.text(cols_x[i], y_summary + 0.22, val, fontsize=13,
+                    fontweight="bold", color=_C_TEXT, ha="center",
+                    va="center", fontfamily=_THAI_FONTS)
+            ax.text(cols_x[i], y_summary - 0.12, lbl, fontsize=7,
+                    color=_C_MUTED, ha="center", va="center",
+                    fontfamily=_THAI_FONTS)
+
+        # ── 表格 ──
+        y_table_top = y_summary - 0.7
+        # 列位置
+        cx = [0.5, 1.6, 4.0, 5.3, 6.5, 7.7, 9.2]
+        headers = ["#", "CC", "นร./学员", "เช็คอิน/%", "Leads", "ชำระ/付费", "รายได้(USD)"]
+        header_aligns = ["center", "left", "center", "center", "center", "center", "right"]
+
+        # 表头
+        y_h = y_table_top
+        ax.add_patch(Rectangle((0.3, y_h - 0.18), 9.4, 0.36,
+                               color=_C_N800, zorder=3))
+        for i, h in enumerate(headers):
+            ax.text(cx[i], y_h, h, fontsize=7.5, fontweight="bold",
+                    color="white", va="center", ha=header_aligns[i],
+                    fontfamily=_THAI_FONTS, zorder=4)
+
+        # 数据行
+        row_h = 0.42
+        for idx, row in enumerate(rows):
+            y_r = y_h - 0.36 - idx * row_h
+            # 斑马纹
+            if idx % 2 == 0:
+                ax.add_patch(Rectangle((0.3, y_r - row_h / 2 + 0.04),
+                                       9.4, row_h, color=_C_SURFACE,
+                                       zorder=1))
+            # 打卡率颜色
+            ck_color = self._status_color(row["checkin_rate"])
+            # 数据
+            ax.text(cx[0], y_r, f"{idx + 1}", fontsize=8,
+                    color=_C_MUTED, ha="center", va="center")
+            ax.text(cx[1], y_r, row["name"], fontsize=8.5,
+                    color=_C_TEXT, ha="left", va="center",
+                    fontfamily=_THAI_FONTS)
+            ax.text(cx[2], y_r, f"{row['students']}", fontsize=8.5,
+                    color=_C_TEXT, ha="center", va="center")
+            ax.text(cx[3], y_r, f"{row['checkin_rate']:.0%}", fontsize=8.5,
+                    color=ck_color, fontweight="bold", ha="center",
+                    va="center")
+            ax.text(cx[4], y_r, f"{row['leads']}", fontsize=8.5,
+                    color=_C_TEXT, ha="center", va="center")
+            ax.text(cx[5], y_r, f"{row['paid']}", fontsize=8.5,
+                    color=_C_TEXT, ha="center", va="center")
+            rev_str = f"${row['revenue']:,.0f}" if row["revenue"] else "—"
+            ax.text(cx[6], y_r, rev_str, fontsize=8.5,
+                    color=_C_SUCCESS if row["revenue"] > 0 else _C_MUTED,
+                    fontweight="bold" if row["revenue"] > 0 else "normal",
+                    ha="right", va="center")
+
+        plt.tight_layout(pad=0.3)
+        return self._fig_to_bytes(fig)
+
+    def _generate_unchecked_ids_text(self, role: str) -> str:
+        """生成按组→CC分组的未打卡学员 ID 列表（Markdown 文本）"""
+        followup = self._fetch_followup(role)
+        today = datetime.now().strftime("%d/%m")
+
+        lines = [
+            f"### ⚠️ ยังไม่ได้เช็คอิน · {role} · {today}",
+            f"### 未打卡学员跟进 · {role} · {today}",
+            "",
+        ]
+
+        if not followup:
+            lines.append("✅ ไม่มีข้อมูล / 无数据")
+            return "\n".join(lines)
+
+        students: list[dict] = followup.get("students", [])
+        if not students:
+            lines.append("✅ ไม่มีนักเรียนที่ต้องติดตาม / 暂无需跟进学员")
+            return "\n".join(lines)
+
+        # 按 team → cc 分组
+        from collections import defaultdict
+        by_team: dict[str, dict[str, list[str]]] = defaultdict(
+            lambda: defaultdict(list)
+        )
+        for s in students:
+            team = s.get("team", s.get("group", "Unknown"))
+            cc = s.get("cc_name", s.get("owner", "Unknown"))
+            sid = str(s.get("student_id", s.get("id", "?")))
+            by_team[team][cc].append(sid)
+
+        # 按 team 排序输出
+        for team in sorted(by_team.keys()):
+            short = team.replace("TH-", "").replace("Team", "")
+            lines.append(f"**{short}**")
+            for cc in sorted(by_team[team].keys()):
+                ids = by_team[team][cc]
+                cc_short = cc.replace("THCC-", "").replace("thcc-", "")
+                lines.append(f"👤 {cc_short} ({len(ids)} คน)")
+                # 每行 8 个 ID，方便复制
+                for i in range(0, len(ids), 8):
+                    chunk = ", ".join(ids[i:i + 8])
+                    lines.append(f"> {chunk}")
+            lines.append("")
+
+        lines.append(f"> รวม {len(students)} คน / 共 {len(students)} 人")
         return "\n".join(lines)
 
     # ── 内部：图片上传（双图床 fallback）────────────────────────────────────

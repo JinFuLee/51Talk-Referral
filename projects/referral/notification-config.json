@@ -56,13 +56,24 @@
       "description": "นักเรียนพัฒนาการ Top5 + นักเรียนศักยภาพสูงที่หลับอยู่（学员打卡进步 Top5 + 沉睡高潜统计）",
       "api": "/api/checkin/student-analysis?limit=5",
       "fields": ["improvement_ranking", "tags_summary"]
+    },
+    "team_comprehensive": {
+      "per_team": true,
+      "description": "每组多维达成卡：团队汇总(业绩/付费/Leads/打卡率) + 每人指标表格",
+      "data_sources": ["/api/checkin/ranking", "/api/cc-performance"],
+      "cc_only_note": "仅 CC 通道使用，SS/LP 用 individual_ranking"
+    },
+    "unchecked_ids": {
+      "format": "markdown",
+      "description": "按组→CC分组的未打卡学员ID列表，方便复制跟进",
+      "data_source": "/api/checkin/followup"
     }
   },
   "scope": "narrow",
   "scope_description": "通知只发送窄口径数据（CC/SS/LP，无运营），来源 config.json enclosure_role_narrow",
   "routing": {
-    "ops": ["team_ranking", "result_metrics", "action_items", "cc_enc_warning"],
-    "cc_detail": ["team_ranking", "individual_ranking", "result_metrics", "achievement_metrics", "process_metrics", "efficiency_metrics", "service_metrics", "action_items", "student_improvement", "honor_ranking", "cc_enc_warning"],
+    "ops": ["team_ranking", "result_metrics", "achievement_metrics", "action_items", "cc_enc_warning"],
+    "cc_detail": ["team_ranking", "team_comprehensive", "unchecked_ids"],
     "cc_overview": ["team_ranking", "result_metrics", "honor_ranking"],
     "role_detail": ["team_ranking", "individual_ranking"]
   },

@@ -59,27 +59,72 @@ def get_live_orders() -> dict:
     data = _load_today()
     orders = data.get("orders", [])
 
-    # 按 CC 聚合
-    cc_map: dict[str, dict] = {}
+    # 按 CC 聚合今日数据
+    cc_today: dict[str, dict] = {}
     for i, o in enumerate(orders):
         cc = o.get("cc_name", "Unknown")
-        if cc not in cc_map:
-            cc_map[cc] = {
-                "cc_name": cc,
-                "team": o.get("team", ""),
+        if cc not in cc_today:
+            cc_today[cc] = {
                 "count": 0,
                 "confirmed_count": 0,
-                "total_thb": 0.0,
+                "today_thb": 0.0,
+                "team": o.get("team", ""),
                 "order_indices": [],
             }
-        cc_map[cc]["count"] += 1
-        cc_map[cc]["order_indices"].append(i)
+        cc_today[cc]["count"] += 1
+        cc_today[cc]["order_indices"].append(i)
         amt = o.get("amount_thb")
         if amt:
-            cc_map[cc]["confirmed_count"] += 1
-            cc_map[cc]["total_thb"] += amt
+            cc_today[cc]["confirmed_count"] += 1
+            cc_today[cc]["today_thb"] += amt
 
-    # 排序：金额降序
+    # 拉 T-1 CC 个人数据
+    rate = _load_exchange_rate()
+    cc_t1: dict[str, float] = {}
+    try:
+        import urllib.request as _ur
+        req = _ur.Request(
+            "http://localhost:8100/api/cc-performance?detail=true",
+            headers={"Accept": "application/json"},
+        )
+        with _ur.urlopen(req, timeout=8) as resp:
+            perf = json.loads(resp.read().decode("utf-8"))
+            for team in perf.get("teams", []):
+                for rec in team.get("records", []):
+                    name = rec.get("cc_name", "")
+                    rev = (rec.get("revenue", {}) or {}).get("actual", 0) or 0
+                    cc_t1[name] = rev * rate
+    except Exception:
+        pass
+
+    # 合并：所有出现在 T-1 或今日的 CC
+    all_cc_names = set(cc_today.keys())
+    # 也加入 T-1 中今日有单的 CC（名字模糊匹配）
+    cc_map: dict[str, dict] = {}
+    for cc_name in all_cc_names:
+        today = cc_today.get(cc_name, {})
+        # 从 T-1 数据找匹配的 CC（模糊匹配：忽略 THCC- 前缀和大小写）
+        t1_rev = 0.0
+        cc_lower = cc_name.lower().replace("thcc-", "").replace("thcc", "")
+        for t1_name, t1_val in cc_t1.items():
+            t1_clean = t1_name.lower().replace("thcc-", "").replace("thcc", "")
+            if t1_clean == cc_lower or cc_lower in t1_clean:
+                t1_rev = t1_val
+                break
+
+        today_thb = today.get("today_thb", 0.0)
+        cc_map[cc_name] = {
+            "cc_name": cc_name,
+            "team": today.get("team", ""),
+            "count": today.get("count", 0),
+            "confirmed_count": today.get("confirmed_count", 0),
+            "t1_thb": t1_rev,
+            "today_thb": today_thb,
+            "total_thb": t1_rev + today_thb,
+            "order_indices": today.get("order_indices", []),
+        }
+
+    # 排序：总额降序
     cc_list = sorted(cc_map.values(), key=lambda x: x["total_thb"], reverse=True)
 
     # 总计

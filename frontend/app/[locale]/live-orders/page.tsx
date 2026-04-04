@@ -32,6 +32,9 @@ const I18N = {
     amountThb: '金额 (฿)',
     manage: '操作',
     clickToEdit: '点击编辑',
+    t1Amount: 'T-1 金额',
+    todayAmountCol: '今日金额',
+    totalAmount: '总额',
     orderUnit: '单',
     confirmedN: (n: number, u: number) => `已确认 ${n} / 未确认 ${u}`,
     ocrConfirmed: (n: number) => `OCR 已确认 ${n} 笔`,
@@ -69,6 +72,9 @@ const I18N = {
     amountThb: '金額 (฿)',
     manage: '操作',
     clickToEdit: '點擊編輯',
+    t1Amount: 'T-1 金額',
+    todayAmountCol: '今日金額',
+    totalAmount: '總額',
     orderUnit: '單',
     confirmedN: (n: number, u: number) => `已確認 ${n} / 未確認 ${u}`,
     ocrConfirmed: (n: number) => `OCR 已確認 ${n} 筆`,
@@ -106,6 +112,9 @@ const I18N = {
     amountThb: 'Amount (฿)',
     manage: 'Actions',
     clickToEdit: 'Click to edit',
+    t1Amount: 'T-1',
+    todayAmountCol: 'Today',
+    totalAmount: 'Total',
     orderUnit: 'orders',
     confirmedN: (n: number, u: number) => `Confirmed ${n} / Pending ${u}`,
     ocrConfirmed: (n: number) => `OCR confirmed ${n} items`,
@@ -143,6 +152,9 @@ const I18N = {
     amountThb: 'ยอดเงิน (฿)',
     manage: 'จัดการ',
     clickToEdit: 'คลิกเพื่อแก้ไข',
+    t1Amount: 'T-1',
+    todayAmountCol: 'วันนี้',
+    totalAmount: 'รวม',
     orderUnit: 'ออเดอร์',
     confirmedN: (n: number, u: number) => `ยืนยันแล้ว ${n} / ไม่ยืนยัน ${u}`,
     ocrConfirmed: (n: number) => `OCR ยืนยันแล้ว ${n} รายการ`,
@@ -193,6 +205,8 @@ interface CCRow {
   team: string;
   count: number;
   confirmed_count: number;
+  t1_thb: number;
+  today_thb: number;
   total_thb: number;
   order_indices: number[];
 }
@@ -354,8 +368,14 @@ export default function LiveOrdersPage() {
                   <th className="text-center px-4 py-2.5 text-xs font-semibold text-[var(--text-secondary)] uppercase">
                     {t.confirmed}
                   </th>
+                  <th className="text-right px-4 py-2.5 text-xs font-semibold text-[var(--text-muted)] uppercase">
+                    {t.t1Amount}
+                  </th>
                   <th className="text-right px-4 py-2.5 text-xs font-semibold text-[var(--text-secondary)] uppercase">
-                    {t.amount}
+                    {t.todayAmountCol}
+                  </th>
+                  <th className="text-right px-4 py-2.5 text-xs font-semibold text-[var(--text-primary)] uppercase">
+                    {t.totalAmount}
                   </th>
                 </tr>
               </thead>
@@ -379,7 +399,13 @@ export default function LiveOrdersPage() {
                         {cc.confirmed_count}/{cc.count}
                       </span>
                     </td>
-                    <td className="px-4 py-2.5 text-right font-semibold">
+                    <td className="px-4 py-2.5 text-right text-[var(--text-muted)]">
+                      {cc.t1_thb > 0 ? fmt(cc.t1_thb) : '—'}
+                    </td>
+                    <td className="px-4 py-2.5 text-right text-[var(--text-secondary)]">
+                      {cc.today_thb > 0 ? fmt(cc.today_thb) : '—'}
+                    </td>
+                    <td className="px-4 py-2.5 text-right font-semibold text-[var(--text-primary)]">
                       {cc.total_thb > 0 ? fmt(cc.total_thb) : '—'}
                     </td>
                   </tr>
