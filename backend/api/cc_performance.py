@@ -1230,8 +1230,11 @@ def get_cc_performance(
     """
     CC 个人业绩全维度 API。
 
-    - month: YYYYMM，默认当前月份
-    - 返回按团队分组的 CC 个人记录 + 各团队汇总 + 全局汇总
+    业务规则（不可绕过）：
+    - CC 是全公司唯一的转化端口，所有付费都是 CC 完成的
+    - CC 窄口覆盖全围场（M0~M12+），业绩不按围场拆分
+    - 本 API 强制忽略 enclosure 参数——围场维度对 CC 业绩无意义
+    - 保留 country / team / cc 过滤（地区、团队、个人筛选有意义）
     """
     from backend.core.date_override import get_today
 
@@ -1242,11 +1245,23 @@ def get_cc_performance(
     # 时间进度
     mp = compute_month_progress(reference_date=today)
 
-    # 加载数据
+    # ── 强制清除围场过滤 ──
+    # CC 负责全公司转化，围场维度对 CC 业绩无意义
+    # 用新 filter 实例替代（保留 country/team/cc，清除 enclosure）
+    cc_filters = UnifiedFilter(
+        country=filters.country,
+        data_role=filters.data_role,
+        enclosure=None,  # 强制：CC 业绩不按围场过滤
+        team=filters.team,
+        cc=filters.cc,
+        channel=filters.channel,
+        benchmarks=filters.benchmarks,
+    )
+
     data = dm.load_all()
-    df_d2 = apply_filters(data.get("enclosure_cc", pd.DataFrame()), filters)
-    df_d3 = apply_filters(data.get("detail", pd.DataFrame()), filters)
-    df_d4 = apply_filters(data.get("students", pd.DataFrame()), filters)
+    df_d2 = apply_filters(data.get("enclosure_cc", pd.DataFrame()), cc_filters)
+    df_d3 = apply_filters(data.get("detail", pd.DataFrame()), cc_filters)
+    df_d4 = apply_filters(data.get("students", pd.DataFrame()), cc_filters)
 
     # 聚合三个数据源
     agg_d2 = _agg_d2(df_d2) if not df_d2.empty else pd.DataFrame()
