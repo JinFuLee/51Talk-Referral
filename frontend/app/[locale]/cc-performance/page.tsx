@@ -19,8 +19,9 @@ export default function CCPerformancePage() {
   });
   const locale = useLocale();
   const t = useTranslations('ccPerformance');
-  const { data, isLoading, error, mutate } =
-    useFilteredSWR<CCPerformanceResponse>('/api/cc-performance');
+  const { data, isLoading, error, mutate } = useFilteredSWR<CCPerformanceResponse>(
+    '/api/cc-performance?enclosure=' // CC 负责全漏斗转化，不按围场过滤
+  );
 
   // 达标 / BM 参照系，全局同步到卡片和表格
   const [viewMode, setViewMode] = useState<ViewMode>('target');
