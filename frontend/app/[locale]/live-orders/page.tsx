@@ -132,8 +132,7 @@ import { PageHeader } from '@/components/layout/PageHeader';
 import { Card } from '@/components/ui/Card';
 import { BIZ_PAGE } from '@/lib/layout';
 
-const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8100';
-const SWR_KEY = `${API}/api/live-orders`;
+const SWR_KEY = '/api/live-orders';
 
 interface Order {
   index: number;
@@ -198,7 +197,7 @@ export default function LiveOrdersPage() {
     async (idx: number) => {
       const val = parseFloat(editAmount);
       if (isNaN(val) && editAmount !== '') return;
-      await fetch(`${API}/api/live-orders/${idx}/amount`, {
+      await fetch(`/api/live-orders/${idx}/amount`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ amount_thb: editAmount === '' ? null : val }),
@@ -211,14 +210,14 @@ export default function LiveOrdersPage() {
 
   const deleteOrder = useCallback(async (idx: number) => {
     if (!confirm('ลบออเดอร์นี้?')) return;
-    await fetch(`${API}/api/live-orders/${idx}`, { method: 'DELETE' });
+    await fetch(`/api/live-orders/${idx}`, { method: 'DELETE' });
     mutate(SWR_KEY);
   }, []);
 
   const resetAll = useCallback(async () => {
     if (!confirm('ล้างข้อมูลวันนี้ทั้งหมด? (ยืนยัน)')) return;
     setResetting(true);
-    await fetch(`${API}/api/live-orders/reset`, { method: 'POST' });
+    await fetch(`/api/live-orders/reset`, { method: 'POST' });
     mutate(SWR_KEY);
     setResetting(false);
   }, []);

@@ -138,7 +138,7 @@ const I18N = {
   },
 } as const;
 
-const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8100';
+const API = '';
 
 interface Module {
   id: string;
