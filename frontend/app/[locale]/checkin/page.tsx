@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useCallback, useState, useMemo } from 'react';
+import { Suspense, useMemo } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useRouter } from '@/i18n/navigation';
 import { useLocale } from 'next-intl';
@@ -8,7 +8,6 @@ import { useFilteredSWR } from '@/lib/hooks/use-filtered-swr';
 import { usePageDimensions } from '@/lib/hooks/use-page-dimensions';
 import { Spinner } from '@/components/ui/Spinner';
 import { PageTabs } from '@/components/ui/PageTabs';
-import { Card } from '@/components/ui/Card';
 import { FollowupTab } from '@/components/checkin/FollowupTab';
 import { RankingTab } from '@/components/checkin/RankingTab';
 import SummaryTab from '@/components/checkin/SummaryTab';
@@ -16,10 +15,8 @@ import { StudentInsightsTab } from '@/components/checkin/StudentInsightsTab';
 import { RoiAnalysisTab } from '@/components/checkin/RoiAnalysisTab';
 import { useWideConfig } from '@/lib/hooks/useWideConfig';
 import { useMyView } from '@/lib/hooks/useMyView';
-import { ContactConversionScatter } from '@/components/daily-monitor/ContactConversionScatter';
 import { ExportButton } from '@/components/ui/ExportButton';
 import { useExport } from '@/lib/use-export';
-import type { ContactConversionItem } from '@/lib/types/cross-analysis';
 
 // ── I18N ──────────────────────────────────────────────────────────────────────
 
@@ -30,8 +27,6 @@ const I18N = {
     loadingTeams: '加载团队数据中…',
     summaryLoadFailed: '汇总数据加载失败',
     checkBackend: '请检查后端服务是否正常运行',
-    contactAnalysis: '触达效果分析',
-    contactSubtitle: '触达率 × 转化率散点图 · 数据来源：日常触达监控',
     tabs: {
       overview: '概览',
       insights: '学员洞察',
@@ -54,8 +49,6 @@ const I18N = {
     loadingTeams: '載入團隊資料中…',
     summaryLoadFailed: '匯總資料載入失敗',
     checkBackend: '請檢查後端服務是否正常運行',
-    contactAnalysis: '觸達效果分析',
-    contactSubtitle: '觸達率 × 轉化率散點圖 · 資料來源：日常觸達監控',
     tabs: {
       overview: '概覽',
       insights: '學員洞察',
@@ -78,8 +71,6 @@ const I18N = {
     loadingTeams: 'Loading team data…',
     summaryLoadFailed: 'Summary data failed to load',
     checkBackend: 'Please check if the backend service is running',
-    contactAnalysis: 'Contact Effect Analysis',
-    contactSubtitle: 'Reach Rate × Conversion Rate scatter · Source: daily contact monitor',
     tabs: {
       overview: 'Overview',
       insights: 'Student Insights',
@@ -102,8 +93,6 @@ const I18N = {
     loadingTeams: 'กำลังโหลดข้อมูลทีม…',
     summaryLoadFailed: 'โหลดข้อมูลสรุปล้มเหลว',
     checkBackend: 'กรุณาตรวจสอบว่าบริการแบ็กเอนด์ทำงานอยู่',
-    contactAnalysis: 'การวิเคราะห์ผลการติดต่อ',
-    contactSubtitle: 'กราฟกระจาย อัตราการเข้าถึง × อัตราการแปลง · แหล่งข้อมูล: การติดตามประจำวัน',
     tabs: {
       overview: 'ภาพรวม',
       insights: 'ข้อมูลเชิงลึกนักเรียน',

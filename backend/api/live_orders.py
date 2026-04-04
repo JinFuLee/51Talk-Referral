@@ -97,32 +97,61 @@ def get_live_orders() -> dict:
     except Exception:
         pass
 
-    # 合并：所有出现在 T-1 或今日的 CC
-    all_cc_names = set(cc_today.keys())
-    # 也加入 T-1 中今日有单的 CC（名字模糊匹配）
+    # 合并：全部 CC（T-1 全量 + 今日有单的）
     cc_map: dict[str, dict] = {}
-    for cc_name in all_cc_names:
-        today = cc_today.get(cc_name, {})
-        # 从 T-1 数据找匹配的 CC（模糊匹配：忽略 THCC- 前缀和大小写）
-        t1_rev = 0.0
-        cc_lower = cc_name.lower().replace("thcc-", "").replace("thcc", "")
-        for t1_name, t1_val in cc_t1.items():
-            t1_clean = t1_name.lower().replace("thcc-", "").replace("thcc", "")
-            if t1_clean == cc_lower or cc_lower in t1_clean:
-                t1_rev = t1_val
-                break
 
-        today_thb = today.get("today_thb", 0.0)
-        cc_map[cc_name] = {
-            "cc_name": cc_name,
-            "team": today.get("team", ""),
-            "count": today.get("count", 0),
-            "confirmed_count": today.get("confirmed_count", 0),
-            "t1_thb": t1_rev,
-            "today_thb": today_thb,
-            "total_thb": t1_rev + today_thb,
-            "order_indices": today.get("order_indices", []),
+    def _clean(name: str) -> str:
+        return name.lower().replace("thcc-", "").replace("thcc", "").strip()
+
+    # 先放所有 T-1 CC
+    for t1_name, t1_val in cc_t1.items():
+        display = t1_name.replace("THCC-", "").replace("thcc-", "")
+        cc_map[_clean(t1_name)] = {
+            "cc_name": display,
+            "team": "",
+            "count": 0,
+            "confirmed_count": 0,
+            "t1_thb": t1_val,
+            "today_thb": 0.0,
+            "total_thb": t1_val,
+            "order_indices": [],
         }
+
+    # 获取 T-1 团队信息
+    try:
+        for team in perf.get("teams", []):
+            team_name = team.get("team", "")
+            for rec in team.get("records", []):
+                key = _clean(rec.get("cc_name", ""))
+                if key in cc_map:
+                    short_team = team_name.replace("TH-", "").replace("Team", "T")
+                    cc_map[key]["team"] = short_team
+    except Exception:
+        pass
+
+    # 叠加今日数据
+    for cc_name, today in cc_today.items():
+        key = _clean(cc_name)
+        if key in cc_map:
+            cc_map[key]["count"] = today["count"]
+            cc_map[key]["confirmed_count"] = today["confirmed_count"]
+            cc_map[key]["today_thb"] = today["today_thb"]
+            cc_map[key]["total_thb"] = cc_map[key]["t1_thb"] + today["today_thb"]
+            cc_map[key]["order_indices"] = today["order_indices"]
+            if today.get("team"):
+                cc_map[key]["team"] = today["team"]
+        else:
+            # 新 CC（T-1 没有的）
+            cc_map[key] = {
+                "cc_name": cc_name,
+                "team": today.get("team", ""),
+                "count": today["count"],
+                "confirmed_count": today["confirmed_count"],
+                "t1_thb": 0.0,
+                "today_thb": today["today_thb"],
+                "total_thb": today["today_thb"],
+                "order_indices": today["order_indices"],
+            }
 
     # 排序：总额降序
     cc_list = sorted(cc_map.values(), key=lambda x: x["total_thb"], reverse=True)

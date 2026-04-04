@@ -400,13 +400,13 @@ export default function LiveOrdersPage() {
                       </span>
                     </td>
                     <td className="px-4 py-2.5 text-right text-[var(--text-muted)]">
-                      {cc.t1_thb > 0 ? fmt(cc.t1_thb) : '—'}
+                      {fmt(cc.t1_thb || 0)}
                     </td>
                     <td className="px-4 py-2.5 text-right text-[var(--text-secondary)]">
-                      {cc.today_thb > 0 ? fmt(cc.today_thb) : '—'}
+                      {fmt(cc.today_thb || 0)}
                     </td>
                     <td className="px-4 py-2.5 text-right font-semibold text-[var(--text-primary)]">
-                      {cc.total_thb > 0 ? fmt(cc.total_thb) : '—'}
+                      {fmt(cc.total_thb || 0)}
                     </td>
                   </tr>
                 ))}

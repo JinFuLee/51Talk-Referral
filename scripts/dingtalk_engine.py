@@ -312,22 +312,9 @@ class NotificationEngine:
             if module_id == "team_comprehensive":
                 return self._process_team_comprehensive(role, channel, dry_run)
 
-            # unchecked_ids：按组→CC 分组的未打卡学员 ID（1 段文本）
+            # unchecked_ids：按组拆发未打卡学员 ID（每组一条文本，围场分段）
             if module_id == "unchecked_ids":
-                md_text = self._generate_unchecked_ids_text(role)
-                if dry_run:
-                    print(f"  [unchecked_ids] (文本 dry-run):\n{md_text[:400]}...")
-                    result["status"] = "dry_run"
-                else:
-                    title = f"⚠️ ยังไม่เช็คอิน {role} {datetime.now().strftime('%d/%m')}"
-                    r = self._send_dingtalk(title, md_text, channel)
-                    if r.get("errcode") == 0:
-                        print(f"  ✅ {title}")
-                        result["status"] = "sent"
-                    else:
-                        print(f"  ❌ {title}: {r}")
-                        result["status"] = "error"
-                return result
+                return self._process_unchecked_ids_per_team(role, channel, dry_run)
 
             # action_items 是文本消息，走独立分支
             if module_id == "action_items":
@@ -2192,6 +2179,103 @@ class NotificationEngine:
 
         plt.tight_layout(pad=0.3)
         return self._fig_to_bytes(fig)
+
+    def _process_unchecked_ids_per_team(
+        self, role: str, channel: dict, dry_run: bool,
+    ) -> dict:
+        """unchecked_ids：每组一条文本，按围场分段列出 CC→学员 ID"""
+        import sys as _sys  # noqa: PLC0415
+        from collections import defaultdict as _dd  # noqa: PLC0415
+
+        _sd = str(Path(__file__).resolve().parent)
+        if _sd not in _sys.path:
+            _sys.path.insert(0, _sd)
+        import lark_bot as _lb  # noqa: PLC0415
+
+        result: dict[str, Any] = {
+            "module": "unchecked_ids",
+            "status": "pending",
+        }
+
+        # 围场配置
+        enc_order = _lb._get_role_enclosures(role)
+
+        # 获取数据
+        followup = self._fetch_followup(role)
+        all_students: list[dict] = (
+            followup.get("students", []) if followup else []
+        )
+        # 过滤到角色对应围场
+        valid_encs = set(enc_order)
+        students = [s for s in all_students if s.get("enclosure") in valid_encs]
+        if not students:
+            print("  [unchecked_ids] 无未打卡学员")
+            result["status"] = "no_data"
+            return result
+
+        today = datetime.now()
+        date_display = f"{today.strftime('%d/%m')} T-1"
+
+        # 按 team → CC → 围场分组
+        teams_raw = _lb.group_students_by_team(students)
+        team_exclude: set[str] = {"TH-LP01Region"} if role == "LP" else set()
+        teams = {k: v for k, v in teams_raw.items() if k not in team_exclude}
+
+        if dry_run:
+            for team_name, members in teams.items():
+                short = team_name.replace("TH-", "").replace("Team", "")
+                ccs = _lb.group_students_by_cc(members)
+                print(f"  [unchecked_ids] {short}: {len(ccs)} CC, {len(members)} 学员")
+            result["status"] = "dry_run"
+            return result
+
+        # 发送：每组一条文本
+        msg_idx = 0
+        msg_total = len(teams)
+        for team_name, members in teams.items():
+            short = team_name.replace("TH-", "").replace("Team", "")
+            ccs = _lb.group_students_by_cc(members)
+
+            md = (
+                f"### ⚠️ {short} ยังไม่เช็คอิน · {date_display}\n"
+                f"### {short} 未打卡跟进\n\n"
+                f"未打卡 **{len(members)}** 人 | {role} {len(ccs)}\n\n"
+                f"---\n\n"
+            )
+
+            for cc_name, cc_students in ccs.items():
+                cc_short = (
+                    cc_name.replace("THCC-", "")
+                    .replace("thcc-", "")
+                    .replace("THSS-", "")
+                    .replace("tgss-", "")
+                    .replace("THLP-", "")
+                )
+                # 按围场分组
+                s_by_enc: dict[str, list[str]] = _dd(list)
+                for s in cc_students:
+                    enc = s.get("enclosure", "?")
+                    s_by_enc[enc].append(str(s.get("student_id", "")))
+
+                md += f"👤 **{cc_short}** ({len(cc_students)} คน)\n"
+                for enc in enc_order:
+                    ids = s_by_enc.get(enc, [])
+                    if not ids:
+                        continue
+                    chunks = [", ".join(ids[i:i + 8]) for i in range(0, len(ids), 8)]
+                    md += f"**{enc}** · {len(ids)} คน\n"
+                    md += "\n".join(chunks) + "\n\n"
+
+            title = f"⚠️ {short} ยังไม่เช็คอิน {date_display}"
+            r = self._send_dingtalk(title, md, channel)
+            ok = r.get("errcode") == 0
+            msg_idx += 1
+            print(f"  {'✅' if ok else '❌'} [unchecked_ids] {msg_idx}/{msg_total} {short}")
+            if msg_idx < msg_total:
+                time.sleep(5)
+
+        result["status"] = "sent"
+        return result
 
     def _generate_unchecked_ids_text(self, role: str) -> str:
         """生成按组→CC分组的未打卡学员 ID 列表（Markdown 文本）"""

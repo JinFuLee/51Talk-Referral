@@ -30,6 +30,14 @@ from typing import Any
 import pandas as pd
 from fastapi import APIRouter, Depends, Query, Request, Response
 
+from backend.api._checkin_shared import (
+    M_MAP as _M_MAP,
+    M_TO_DAYS as _M_TO_DAYS,
+    find_d4_id_col as _find_d4_id_col,
+    m_label_to_index as _m_label_to_index,
+    safe as _safe,
+    safe_str as _safe_str,
+)
 from backend.api.dependencies import get_data_manager
 from backend.core.data_manager import DataManager
 from backend.core.date_override import get_today
@@ -73,48 +81,7 @@ def _get_config() -> dict:
     return _CONFIG_CACHE
 
 
-# ── 常量 ─────────────────────────────────────────────────────────────────────
-
-# D3 围场原始字符串 → M 标签
-# 纯数学映射（M0=0-30, M1=31-60...），与 config.json enclosure_role_wide 保持一致
-_M_MAP: dict[str, str] = {
-    "0~30": "M0",
-    "31~60": "M1",
-    "61~90": "M2",
-    "91~120": "M3",
-    "121~150": "M4",
-    "151~180": "M5",
-    "6M": "M6",
-    "7M": "M7",
-    "8M": "M8",
-    "9M": "M9",
-    "10M": "M10",
-    "11M": "M11",
-    "12M": "M12",
-    "12M+": "M12+",
-    # 旧数据兼容
-    "M6+": "M6+",
-    "181+": "M6+",
-}
-
-# 围场段 → 天数映射（与前端 M_TO_DAYS 对齐）
-_M_TO_DAYS: dict[str, tuple[int, int]] = {
-    "0~30": (0, 30),
-    "31~60": (31, 60),
-    "61~90": (61, 90),
-    "91~120": (91, 120),
-    "121~150": (121, 150),
-    "151~180": (151, 180),
-    "6M": (181, 210),
-    "7M": (211, 240),
-    "8M": (241, 270),
-    "9M": (271, 300),
-    "10M": (301, 330),
-    "11M": (331, 360),
-    "12M": (361, 390),
-    "12M+": (391, 9999),
-    "M6+": (181, 9999),  # 旧数据兼容
-}
+# ── 常量（共享常量从 _checkin_shared 导入，见文件顶部）─────────────────────
 
 # ── 硬编码 fallback（当 config.json 读取失败时使用）─────────────────────────
 
@@ -283,55 +250,7 @@ def _get_role_cols_snapshot() -> dict[str, tuple[str, str]]:
 _D3_CHECKIN_COL = "有效打卡"
 _D3_STUDENT_COL = "stdt_id"
 _D3_ENCLOSURE_COL = "围场"
-
-# D4 学员 ID 候选列（按优先级）
-_D4_STUDENT_ID_CANDIDATES = ["学员id", "stdt_id"]
 _D4_LIFECYCLE_COL = "生命周期"
-
-
-# ── 工具函数 ─────────────────────────────────────────────────────────────────
-
-
-def _safe(val) -> Any:
-    if val is None:
-        return None
-    try:
-        if pd.isna(val):
-            return None
-    except (TypeError, ValueError):
-        pass
-    try:
-        f = float(val)
-        return None if math.isnan(f) else f
-    except (ValueError, TypeError):
-        return str(val) if val else None
-
-
-def _safe_str(val) -> str:
-    if val is None:
-        return ""
-    try:
-        if pd.isna(val):
-            return ""
-    except (TypeError, ValueError):
-        pass
-    return str(val).strip()
-
-
-def _m_label_to_index(m_label: str) -> int:
-    """M0→0, M1→1, ... M12→12, M12+→13, M6+→6"""
-    s = m_label.lstrip("M")
-    if s.endswith("+"):
-        # M12+ → 13, M6+ → 6
-        try:
-            base = int(s.rstrip("+"))
-            return base + 1 if base == 12 else base
-        except ValueError:
-            return 99
-    try:
-        return int(s)
-    except ValueError:
-        return 99
 
 
 def _clean_names(
@@ -352,13 +271,6 @@ def _clean_names(
         mask &= df[group_col].notna()
         df = df[mask]
     return df
-
-
-def _find_d4_id_col(df: pd.DataFrame) -> str | None:
-    for c in _D4_STUDENT_ID_CANDIDATES:
-        if c in df.columns:
-            return c
-    return None
 
 
 def _detect_role_from_team(team: str) -> str:

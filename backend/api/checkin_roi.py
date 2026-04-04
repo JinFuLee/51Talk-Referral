@@ -25,6 +25,13 @@ import pandas as pd
 from fastapi import APIRouter, Depends, Query
 from fastapi.responses import JSONResponse
 
+from backend.api._checkin_shared import (
+    M_MAP as _M_MAP,
+    find_d4_id_col as _find_d4_id_col,
+    safe as _safe,
+    safe_int as _safe_int,
+    safe_str as _safe_str,
+)
 from backend.api.dependencies import get_data_manager
 from backend.core.data_manager import DataManager
 from backend.models.filters import UnifiedFilter, apply_filters, parse_filters
@@ -79,74 +86,8 @@ def _get_roi_config() -> dict:
     return _ROI_CONFIG_CACHE
 
 
-# ── 围场 M 标签映射 ───────────────────────────────────────────────────────────
-
-_M_MAP: dict[str, str] = {
-    "0~30": "M0",
-    "31~60": "M1",
-    "61~90": "M2",
-    "91~120": "M3",
-    "121~150": "M4",
-    "151~180": "M5",
-    "6M": "M6",
-    "7M": "M7",
-    "8M": "M8",
-    "9M": "M9",
-    "10M": "M10",
-    "11M": "M11",
-    "12M": "M12",
-    "12M+": "M12+",
-    "M6+": "M6+",
-    # 生命周期列格式
-    "0M": "M0",
-    "1M": "M1",
-    "2M": "M2",
-    "3M": "M3",
-    "4M": "M4",
-    "5M": "M5",
-}
-
-# ── 工具函数 ──────────────────────────────────────────────────────────────────
-
-
-def _safe(val: Any) -> float | None:
-    """安全转 float，None / NaN / 无法转换 → None。"""
-    if val is None:
-        return None
-    try:
-        if pd.isna(val):
-            return None
-    except (TypeError, ValueError):
-        pass
-    try:
-        f = float(val)
-        return None if math.isnan(f) else f
-    except (ValueError, TypeError):
-        return None
-
-
-def _safe_str(val: Any) -> str:
-    if val is None:
-        return ""
-    try:
-        if pd.isna(val):
-            return ""
-    except (TypeError, ValueError):
-        pass
-    return str(val).strip()
-
-
-def _safe_int(val: Any, default: int = 0) -> int:
-    f = _safe(val)
-    return int(f) if f is not None else default
-
-
-def _find_d4_id_col(df: pd.DataFrame) -> str | None:
-    for c in ("学员id", "stdt_id"):
-        if c in df.columns:
-            return c
-    return None
-
+# 共享常量 _M_MAP / _safe / _safe_str / _safe_int / _find_d4_id_col
+# 从 _checkin_shared 导入，见文件顶部
 
 # ── 核心计算 ──────────────────────────────────────────────────────────────────
 
