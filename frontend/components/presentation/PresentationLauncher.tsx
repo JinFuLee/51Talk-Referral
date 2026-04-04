@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { useLocale } from 'next-intl';
 import { clsx } from 'clsx';
 import { useRouter } from '@/i18n/navigation';
-import { Users, TrendingUp, Handshake, Play, Clock } from 'lucide-react';
+import { Users, TrendingUp, Handshake, Play, Clock, ArrowLeft } from 'lucide-react';
 import { usePresentationStore } from '@/lib/stores/presentation-store';
 import { BrandMark } from '@/components/ui/BrandMark';
 import type { Audience, Timeframe } from '@/lib/presentation/types';
@@ -198,6 +198,16 @@ export function PresentationLauncher() {
           }}
         />
       </div>
+
+      {/* ── 返回按钮 — 左上角 ── */}
+      <button
+        type="button"
+        onClick={() => router.push('/')}
+        className="absolute top-6 left-6 z-20 flex items-center gap-2 px-4 py-2 rounded-xl backdrop-blur-xl bg-white/8 border border-white/10 text-white/50 text-sm font-medium transition-all duration-200 hover:bg-white/15 hover:text-white/80"
+      >
+        <ArrowLeft className="w-4 h-4" />
+        <span>{locale === 'en' ? 'Back' : locale === 'th' ? 'กลับ' : '返回'}</span>
+      </button>
 
       <div
         className="relative z-10 flex flex-col gap-10 max-w-4xl w-full mx-auto py-8 animate-slide-up"
