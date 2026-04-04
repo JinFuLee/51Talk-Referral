@@ -287,6 +287,142 @@ def test_channel(platform: str, channel_id: str) -> dict:
 # ── 模板 ──────────────────────────────────────────────────────────────────────
 
 
+NOTIFICATION_CONFIG_PATH = (
+    PROJECT_ROOT / "projects" / "referral" / "notification-config.json"
+)
+
+
+# ── 内容模块 + 路由矩阵 CRUD ────────────────────────────────────────────────────
+
+
+@router.get("/notifications/routing")
+def get_routing() -> dict:
+    """返回完整内容路由配置：模块定义 + 受众路由 + 角色指标"""
+    cfg = _read_json(NOTIFICATION_CONFIG_PATH, {})
+    modules = cfg.get("content_modules", {})
+    routing = cfg.get("routing", {})
+    role_metrics = cfg.get("role_metrics", {})
+
+    # 构建模块列表（含路由状态）
+    audience_types = sorted(routing.keys())  # all, tl, ops
+    module_list = []
+    for mod_id, mod_cfg in modules.items():
+        audiences = {aud: (mod_id in routing.get(aud, [])) for aud in audience_types}
+        module_list.append({
+            "id": mod_id,
+            "description": mod_cfg.get("description", ""),
+            "format": mod_cfg.get("format", "image"),
+            "per_team": mod_cfg.get("per_team", False),
+            "cc_only": mod_cfg.get("cc_only", False),
+            "audiences": audiences,
+        })
+
+    return {
+        "modules": module_list,
+        "audience_types": audience_types,
+        "role_metrics": role_metrics,
+        "schedule": cfg.get("schedule", {}),
+    }
+
+
+class RoutingUpdate(BaseModel):
+    """更新路由矩阵：module_id → audience → enabled"""
+    module_id: str
+    audience: str
+    enabled: bool
+
+
+@router.put("/notifications/routing")
+def update_routing(body: RoutingUpdate) -> dict:
+    """更新单个模块在某受众下的路由开关"""
+    cfg = _read_json(NOTIFICATION_CONFIG_PATH, {})
+    routing = cfg.setdefault("routing", {})
+    modules = cfg.get("content_modules", {})
+
+    if body.module_id not in modules:
+        raise HTTPException(status_code=404, detail=f"模块 '{body.module_id}' 不存在")
+
+    audience_list = routing.setdefault(body.audience, [])
+
+    if body.enabled and body.module_id not in audience_list:
+        audience_list.append(body.module_id)
+    elif not body.enabled and body.module_id in audience_list:
+        audience_list.remove(body.module_id)
+
+    _write_json(NOTIFICATION_CONFIG_PATH, cfg)
+    return {"ok": True, "module": body.module_id, "audience": body.audience, "enabled": body.enabled}
+
+
+class ModuleCreate(BaseModel):
+    id: str
+    description: str = ""
+    format: str = "image"
+    per_team: bool = False
+    cc_only: bool = False
+
+
+@router.post("/notifications/modules", status_code=201)
+def create_module(body: ModuleCreate) -> dict:
+    """新增内容模块"""
+    cfg = _read_json(NOTIFICATION_CONFIG_PATH, {})
+    modules = cfg.setdefault("content_modules", {})
+
+    if body.id in modules:
+        raise HTTPException(status_code=409, detail=f"模块 '{body.id}' 已存在")
+
+    modules[body.id] = {
+        "description": body.description,
+        "format": body.format,
+        "per_team": body.per_team,
+        "cc_only": body.cc_only,
+    }
+    _write_json(NOTIFICATION_CONFIG_PATH, cfg)
+    return {"ok": True, "id": body.id}
+
+
+class ModuleUpdate(BaseModel):
+    description: str | None = None
+    format: str | None = None
+    per_team: bool | None = None
+    cc_only: bool | None = None
+
+
+@router.put("/notifications/modules/{module_id}")
+def update_module(module_id: str, body: ModuleUpdate) -> dict:
+    """编辑模块属性"""
+    cfg = _read_json(NOTIFICATION_CONFIG_PATH, {})
+    modules = cfg.get("content_modules", {})
+
+    if module_id not in modules:
+        raise HTTPException(status_code=404, detail=f"模块 '{module_id}' 不存在")
+
+    update = body.model_dump(exclude_none=True)
+    modules[module_id].update(update)
+    _write_json(NOTIFICATION_CONFIG_PATH, cfg)
+    return {"ok": True, "id": module_id}
+
+
+@router.delete("/notifications/modules/{module_id}")
+def delete_module(module_id: str) -> dict:
+    """删除模块（同时清理路由引用）"""
+    cfg = _read_json(NOTIFICATION_CONFIG_PATH, {})
+    modules = cfg.get("content_modules", {})
+
+    if module_id not in modules:
+        raise HTTPException(status_code=404, detail=f"模块 '{module_id}' 不存在")
+
+    del modules[module_id]
+
+    # 清理路由中的引用
+    routing = cfg.get("routing", {})
+    for aud, mod_list in routing.items():
+        if module_id in mod_list:
+            mod_list.remove(module_id)
+
+    _write_json(NOTIFICATION_CONFIG_PATH, cfg)
+    return {"ok": True, "deleted": module_id}
+
+
 @router.get("/notifications/templates")
 def get_templates() -> dict:
     """返回可用模板列表，围场从 Settings 动态读取"""

@@ -15,6 +15,7 @@ import { BotManager } from './BotManager';
 import { PushControl } from './PushControl';
 import { OutputGallery } from './OutputGallery';
 import { ScheduleManager } from './ScheduleManager';
+import { RoutingMatrix } from './RoutingMatrix';
 
 type Platform = 'lark' | 'dingtalk';
 
@@ -44,6 +45,11 @@ export default function NotificationsPage() {
         activeId={platform}
         onChange={(id) => setPlatform(id as Platform)}
       />
+
+      {/* Content Routing Matrix */}
+      <Card title={t('routing') ?? '内容路由矩阵'}>
+        <RoutingMatrix />
+      </Card>
 
       {/* Bot Manager */}
       <Card>

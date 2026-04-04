@@ -1,17 +1,19 @@
 """Quick BI 自动取数脚本 — Playwright 全自动化
 
 流程：
-  1. 打开 Quick BI 仪表板（token3rd 免登 URL）
-  2. 逐个表格：hover → 点击 ⋮ → 自助取数 → 创建取数任务 → 等待完成 → 下载
-  3. 将下载的 Excel 移动到 input/ 并重命名
+  1. 登录 51Talk BI（bi.51talk.com）获取认证
+  2. 从 BI 看板 iframe 中提取 Quick BI URL（含 fresh accessTicket）
+  3. 直接打开 Quick BI 全页面（复用全部现有 DOM 选择器）
+  4. 逐个表格：hover → 点击 ⋮ → 自助取数 → 创建取数任务 → 等待完成 → 下载
+  5. 将下载的 Excel 移动到 input/ 并重命名
 
 用法：
   uv run python scripts/quickbi_fetch.py                   # 交互模式（能看到浏览器）
   uv run python scripts/quickbi_fetch.py --headless        # 无头模式
-  uv run python scripts/quickbi_fetch.py --url '新URL'     # 更新 URL 并执行
   uv run python scripts/quickbi_fetch.py --download-only   # 仅下载最新已完成任务
   uv run python scripts/quickbi_fetch.py --debug           # 调试：只打开页面不操作
 
+认证凭证：key/bi-51talk.json
 配置文件：config/quickbi_source.json
 """
 
@@ -35,8 +37,12 @@ log = logging.getLogger("quickbi")
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 CONFIG_PATH = PROJECT_ROOT / "config" / "quickbi_source.json"
+BI_CREDS_PATH = PROJECT_ROOT / "key" / "bi-51talk.json"
 INPUT_DIR = PROJECT_ROOT / "input"
 DOWNLOAD_TMP = PROJECT_ROOT / ".quickbi_downloads"
+
+# D4（已付费学员围场明细）月底才上线，临时跳过
+SKIP_INDICES: set[int] = {6}
 
 
 # ── 配置 ─────────────────────────────────────────────────────────────────────
@@ -52,6 +58,72 @@ def load_config() -> dict:
 def save_config(cfg: dict) -> None:
     with open(CONFIG_PATH, "w") as f:
         json.dump(cfg, f, ensure_ascii=False, indent=2)
+
+
+def _load_bi_creds() -> dict:
+    """读取 51Talk BI 登录凭证。"""
+    if not BI_CREDS_PATH.exists():
+        log.error("BI 凭证文件不存在: %s", BI_CREDS_PATH)
+        sys.exit(1)
+    with open(BI_CREDS_PATH) as f:
+        return json.load(f)
+
+
+# ── 51Talk BI 登录 + Quick BI URL 提取 ──────────────────────────────────────
+
+def _login_and_get_quickbi_url(page) -> str:
+    """登录 bi.51talk.com，提取 iframe 中的 Quick BI URL（含 fresh accessTicket）。
+
+    流程：
+      1. POST 登录 bi.51talk.com（邮箱前缀 + 密码）
+      2. 导航到转介绍看板页面
+      3. 从 <iframe id="myiframe"> 的 src 提取 Quick BI URL
+      4. 返回该 URL，后续直接打开 Quick BI 全页面（避免 iframe 坐标偏移问题）
+    """
+    creds = _load_bi_creds()
+    bi_dashboard = creds.get(
+        "dashboard_url",
+        "http://bi.51talk.com/backend/market/referral_monitor_dashboard",
+    )
+
+    # ── 1. 登录 ──
+    log.info("登录 51Talk BI...")
+    page.goto("http://bi.51talk.com/auth/login", wait_until="domcontentloaded", timeout=15000)
+    page.fill('input[name="email"]', creds["email"])
+    page.fill('input[name="password"]', creds["password"])
+    page.click('button[type="submit"]')
+    page.wait_for_timeout(3000)
+
+    if "login" in page.url and "backend" not in page.url:
+        log.error("BI 登录失败，仍在登录页: %s", page.url)
+        page.screenshot(path=str(PROJECT_ROOT / "bi_login_err.png"))
+        sys.exit(1)
+    log.info("✓ BI 登录成功")
+
+    # ── 2. 导航到看板（加载 iframe）──
+    log.info("加载转介绍看板...")
+    page.goto(bi_dashboard, wait_until="domcontentloaded", timeout=30000)
+    page.wait_for_timeout(10000)  # 等待 iframe 加载
+
+    # ── 3. 提取 iframe src ──
+    iframe_src = page.evaluate('''() => {
+        const iframe = document.getElementById('myiframe');
+        return iframe ? iframe.src : null;
+    }''')
+
+    if not iframe_src or "bi.aliyuncs.com" not in iframe_src:
+        log.error("未找到 Quick BI iframe，src=%s", iframe_src)
+        page.screenshot(path=str(PROJECT_ROOT / "bi_iframe_err.png"))
+        sys.exit(1)
+
+    log.info("✓ 提取 Quick BI URL: %s...%s", iframe_src[:50], iframe_src[-30:])
+
+    # 更新 config 中的 dashboard_url（方便 fallback 和调试）
+    cfg = load_config()
+    cfg["dashboard_url"] = iframe_src
+    save_config(cfg)
+
+    return iframe_src
 
 
 # ── 告警 ─────────────────────────────────────────────────────────────────────
@@ -94,13 +166,14 @@ def _alert_failed_sources(failed_files: list[str]) -> None:
     # 消息内容
     failed_list = "\n".join(f"- {f}" for f in failed_files)
     now_str = datetime.now().strftime("%Y-%m-%d %H:%M")
+    active_total = len(TABLE_DEFS) - len(SKIP_INDICES)
     text = (
         f"### ⚠️ Quick BI 部分数据源下载失败\n\n"
         f"**时间**: {now_str}\n\n"
-        f"**成功**: {len(TABLE_DEFS) - len(failed_files)}/{len(TABLE_DEFS)}\n\n"
+        f"**成功**: {active_total - len(failed_files)}/{active_total}\n\n"
         f"**失败源**:\n{failed_list}\n\n"
         f"**已自动重试 2 轮仍失败**\n\n"
-        f"**操作**: 检查 Quick BI 仪表板对应 Tab 是否正常"
+        f"**操作**: 检查 VPN 连接 + Quick BI 仪表板对应 Tab 是否正常"
     )
 
     payload = json.dumps(
@@ -331,7 +404,7 @@ def _select_month(page, month: str) -> bool:
 
 
 def run_fetch(
-    url: str,
+    url: str | None = None,
     headless: bool = False,
     download_only: bool = False,
     month: str | None = None,
@@ -339,6 +412,7 @@ def run_fetch(
     """执行完整取数流程。返回 (成功列表, 失败文件名列表)。
 
     Args:
+        url: Quick BI URL（可选，为 None 时自动通过 BI 登录获取）
         month: 可选，YYYYMM 格式。指定后先切换 Quick BI 月份再下载。
     """
     from playwright.sync_api import sync_playwright
@@ -358,6 +432,10 @@ def run_fetch(
         )
         page = context.new_page()
 
+        # ── 登录 51Talk BI + 提取 Quick BI URL ───────────────────────
+        if url is None or "bi.51talk.com" in url:
+            url = _login_and_get_quickbi_url(page)
+
         # ── 加载仪表板 ────────────────────────────────────────────────
         log.info("打开仪表板...")
         page.goto(url, wait_until="domcontentloaded", timeout=30000)
@@ -372,15 +450,22 @@ def run_fetch(
                 return [], [d[2] for d in TABLE_DEFS]
 
         # ── 逐个表格处理 ──────────────────────────────────────────────
+        active_count = len(TABLE_DEFS) - len(SKIP_INDICES)
+        seq = 0
         for i, (caption_text, tab_name, out_file) in enumerate(TABLE_DEFS):
+            if i in SKIP_INDICES:
+                log.info("━━━ [skip] %s (临时跳过) ━━━", out_file)
+                continue
+
+            seq += 1
             label = tab_name or caption_text
             log.info(
                 "━━━ [%d/%d] %s ━━━",
-                i + 1, len(TABLE_DEFS), label,
+                seq, active_count, label,
             )
 
             # 每个表格前确保回到仪表板
-            if i > 0:
+            if seq > 1:
                 _ensure_dashboard(page, url)
 
             try:
@@ -403,7 +488,7 @@ def run_fetch(
         succeeded_files = {Path(p).name for _, p in results}
         failed_defs = [
             (i, d) for i, d in enumerate(TABLE_DEFS)
-            if d[2] not in succeeded_files
+            if d[2] not in succeeded_files and i not in SKIP_INDICES
         ]
 
         if failed_defs and not download_only:
@@ -440,7 +525,8 @@ def run_fetch(
 
         browser.close()
 
-    log.info("━━━ 完成: %d/%d 成功 ━━━", len(results), len(TABLE_DEFS))
+    active_total = len(TABLE_DEFS) - len(SKIP_INDICES)
+    log.info("━━━ 完成: %d/%d 成功 ━━━", len(results), active_total)
 
     # 返回失败源列表供告警使用
     final_failed = [d[2] for _, d in failed_defs] if failed_defs else []
@@ -461,7 +547,7 @@ def _fetch_one_table(
     """处理单个表格的完整取数流程。"""
 
     # ── 0. 确保在仪表板页面 ──
-    if "token3rd/dashboard" not in page.url:
+    if "bi.aliyuncs.com" not in page.url:
         page.goto(
             dashboard_url,
             wait_until="domcontentloaded",
@@ -871,8 +957,8 @@ def post_process(results: list[tuple[str, Path]]) -> list[Path]:
 # ── 入口 ─────────────────────────────────────────────────────────────────────
 
 def main():
-    parser = argparse.ArgumentParser(description="Quick BI 自动取数")
-    parser.add_argument("--url", help="更新仪表板 URL")
+    parser = argparse.ArgumentParser(description="Quick BI 自动取数（通过 51Talk BI 认证）")
+    parser.add_argument("--url", help="直接使用 Quick BI URL（跳过 BI 登录，用于调试）")
     parser.add_argument("--headless", action="store_true", help="无头模式")
     parser.add_argument("--download-only", action="store_true", help="仅下载最新任务")
     parser.add_argument("--debug", action="store_true", help="调试模式")
@@ -882,7 +968,7 @@ def main():
     )
     parser.add_argument(
         "--month",
-        help="指定下载月份（YYYYMM 格式，如 202603），先在 Quick BI 切换月份再下载",
+        help="指定下载月份（YYYYMM 格式，如 202604），先在 Quick BI 切换月份再下载",
     )
     parser.add_argument(
         "--no-alert", action="store_true",
@@ -890,21 +976,19 @@ def main():
     )
     args = parser.parse_args()
 
-    cfg = load_config()
-
-    if args.url:
-        cfg["dashboard_url"] = args.url
-        save_config(cfg)
-        log.info("✓ URL 已更新")
-
-    url = cfg["dashboard_url"]
+    # URL 来源优先级：--url 参数 > 自动通过 BI 登录获取
+    url = args.url  # None 时 run_fetch 内部自动登录
 
     if args.debug:
         from playwright.sync_api import sync_playwright
 
         with sync_playwright() as p:
             b = p.chromium.launch(headless=False)
-            pg = b.new_page(viewport={"width": 1440, "height": 900})
+            ctx = b.new_context(viewport={"width": 1440, "height": 900}, locale="zh-CN")
+            pg = ctx.new_page()
+            # 调试模式也走 BI 登录流程
+            if url is None:
+                url = _login_and_get_quickbi_url(pg)
             pg.goto(url, wait_until="domcontentloaded", timeout=30000)
             log.info("调试模式 — Ctrl+C 退出")
             try:
@@ -918,23 +1002,23 @@ def main():
     # ── 补抓模式：只获取日期落后的数据源 ──
     if args.catchup:
         stale_indices = _detect_stale_sources()
+        # 排除 SKIP_INDICES
+        stale_indices = [i for i in stale_indices if i not in SKIP_INDICES]
         if not stale_indices:
             log.info("━━━ 所有数据源均为最新，无需补抓 ━━━")
             return
         log.info("━━━ 补抓模式: %d 个落后源 ━━━", len(stale_indices))
-        # 只获取落后的源
         original_table_defs = TABLE_DEFS.copy()
         stale_defs = [TABLE_DEFS[i] for i in stale_indices]
-        # 临时替换 TABLE_DEFS 仅获取落后源
         TABLE_DEFS.clear()
         TABLE_DEFS.extend(stale_defs)
         results, failed_sources = run_fetch(url, headless=True, download_only=False)
         TABLE_DEFS.clear()
         TABLE_DEFS.extend(original_table_defs)
     else:
-        log.info("━━━ Quick BI 自动取数 ━━━")
-        log.info("URL: %s...%s", url[:50], url[-20:])
-        log.info("表格: %d 个", len(TABLE_DEFS))
+        active_count = len(TABLE_DEFS) - len(SKIP_INDICES)
+        log.info("━━━ Quick BI 自动取数（via 51Talk BI）━━━")
+        log.info("表格: %d 个（跳过 %d 个）", active_count, len(SKIP_INDICES))
         log.info("模式: %s", "无头" if args.headless else "交互")
         if args.month:
             log.info("指定月份: %s", args.month)
@@ -949,8 +1033,9 @@ def main():
         log.warning("━━━ 无文件下载 ━━━")
         log.info("排查建议:")
         log.info("  1. uv run python scripts/quickbi_fetch.py --debug")
-        log.info("  2. 检查 accessTicket 是否过期")
-        log.info("  3. 查看 quickbi_err_*.png 截图")
+        log.info("  2. 检查 VPN 是否已连接")
+        log.info("  3. 检查 key/bi-51talk.json 凭证是否正确")
+        log.info("  4. 查看 quickbi_err_*.png / bi_*_err.png 截图")
 
     # ── 失败源钉钉告警（2026-03-31 新增，永久防线）──────────────────
     if failed_sources and not args.month and not args.no_alert:

@@ -32,11 +32,15 @@ POLL_INTERVAL=1800  # 30 分钟
 log() { echo "$LOG_PREFIX $*"; }
 
 # ── 数据日期检测 ─────────────────────────────────────────────────────────────
+# D4（已付费学员围场明细）月底才上线，7/8 即成功
+MIN_FILES_FOR_SUCCESS=7
+
 check_data_today() {
     # 文件名含今天日期（格式 _YYYYMMDD_）= 数据已更新
+    # 需要 ≥ MIN_FILES_FOR_SUCCESS 个文件才算成功
     local count
-    count=$(find "$DATA_DIR" -name "*_${TODAY}_*" -type f 2>/dev/null | head -1 | wc -l)
-    [ "$count" -gt 0 ]
+    count=$(find "$DATA_DIR" -name "*_${TODAY}_*" -type f 2>/dev/null | wc -l | tr -d ' ')
+    [ "$count" -ge "$MIN_FILES_FOR_SUCCESS" ]
 }
 
 # ── 后端管理 ─────────────────────────────────────────────────────────────────
