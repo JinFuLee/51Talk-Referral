@@ -466,7 +466,12 @@ export function CCTargetUpload({ month, onUploadSuccess }: CCTargetUploadProps) 
     try {
       const form = new FormData();
       form.append('file', fileToUpload);
-      const res = await fetch(`/api/cc-performance/targets/upload?month=${month}`, {
+      // Excel (.xlsx) → SM 导入接口（自动解析并按比例计算），CSV → 普通上传
+      const isExcel = fileToUpload.name.endsWith('.xlsx') || fileToUpload.name.endsWith('.xls');
+      const endpoint = isExcel
+        ? `/api/cc-performance/targets/import-sm?month=${month}`
+        : `/api/cc-performance/targets/upload?month=${month}`;
+      const res = await fetch(endpoint, {
         method: 'POST',
         body: form,
       });
@@ -475,12 +480,14 @@ export function CCTargetUpload({ month, onUploadSuccess }: CCTargetUploadProps) 
         throw new Error(text || t.uploadFailedStatus(res.status));
       }
       const data = await res.json();
+      // import-sm 返回 cc_count/preview，upload 返回 count/matched/orphaned
+      const ccCount = data.count ?? data.cc_count ?? 0;
       setUploadResult({
-        count: data.count ?? 0,
-        total_rows: data.total_rows ?? 0,
+        count: ccCount,
+        total_rows: data.total_rows ?? ccCount,
         duplicates: data.duplicates ?? 0,
         duplicate_names: data.duplicate_names ?? [],
-        matched: data.matched ?? data.count ?? 0,
+        matched: data.matched ?? ccCount,
         orphaned: data.orphaned ?? [],
         unmatched_d2: data.unmatched_d2 ?? [],
         month: data.month ?? month,
