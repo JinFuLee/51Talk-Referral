@@ -2265,10 +2265,8 @@ class NotificationEngine:
             md = (
                 f"### ⚠️ {short} ยังไม่เช็คอิน · {date_display}\n"
                 f"### {short} 未打卡跟进\n\n"
-                f"นร. **{g_total}** | เช็คอิน **{g_checked}** ({g_rate:.0%})"
-                f" | ยังไม่ **{len(members)}** | {role} {len(ccs)}\n\n"
-                f"学员 **{g_total}** | 已打卡 **{g_checked}** ({g_rate:.0%})"
-                f" | 未打卡 **{len(members)}** | {role} {len(ccs)}\n\n"
+                f"เช็คอิน **{g_checked}/{g_total}** ({g_rate:.0%})"
+                f" | {role} {len(ccs)}\n\n"
                 f"---\n\n"
             )
 
@@ -2295,8 +2293,7 @@ class NotificationEngine:
 
                 md += (
                     f"👤 **{cc_short}**"
-                    f" (นร. {p_total} | เช็คอิน {p_checked}/{p_total}"
-                    f" · {p_rate:.0%} | ยังไม่ {unchecked})\n\n"
+                    f" (เช็คอิน {p_checked}/{p_total} · {p_rate:.0%})\n\n"
                 )
                 for enc in enc_order:
                     ids = s_by_enc.get(enc, [])

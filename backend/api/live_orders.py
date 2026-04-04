@@ -103,9 +103,14 @@ def get_live_orders() -> dict:
     def _clean(name: str) -> str:
         return name.lower().replace("thcc-", "").replace("thcc", "").strip()
 
+    def _display_name(raw: str) -> str:
+        """CC 显示名：去前缀 + 首字母大写"""
+        name = raw.replace("THCC-", "").replace("thcc-", "").replace("Thcc-", "").strip()
+        return name[0].upper() + name[1:] if name else name
+
     # 先放所有 T-1 CC
     for t1_name, t1_val in cc_t1.items():
-        display = t1_name.replace("THCC-", "").replace("thcc-", "")
+        display = _display_name(t1_name)
         cc_map[_clean(t1_name)] = {
             "cc_name": display,
             "team": "",
@@ -149,7 +154,7 @@ def get_live_orders() -> dict:
         else:
             # 新 CC（T-1 没有的）
             cc_map[key] = {
-                "cc_name": cc_name,
+                "cc_name": _display_name(cc_name),
                 "team": today.get("team", ""),
                 "count": today["count"],
                 "confirmed_count": today["confirmed_count"],
