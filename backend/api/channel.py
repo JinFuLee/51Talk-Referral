@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import json
 import math
 from pathlib import Path
 from typing import Any
@@ -47,57 +46,26 @@ _M_TO_DAYS: dict[str, tuple[int, int]] = {
 
 
 def _get_wide_role_config() -> dict[str, list[str]]:
-    """读取宽口围场→角色配置。
+    """读取宽口围场→角色配置（复用 _checkin_config 三层优先级，保证全局一致）。
 
-    优先级：enclosure_role_override.json wide → config.json enclosure_role_wide → 默认值
-    返回格式: {"M0": ["CC"], "M3": ["LP"], "M6+": ["运营"], ...}
+    返回格式: {"M0": ["CC"], "M3": ["SS"], "M6+": ["运营"], ...}（围场→角色列表）
     """
-    # 1. 优先读 override 文件
     try:
-        if _OVERRIDE_PATH.exists():
-            data = json.loads(_OVERRIDE_PATH.read_text(encoding="utf-8"))
-            wide = data.get("wide")
-            if wide and isinstance(wide, dict):
-                return wide
+        from backend.api._checkin_config import _get_wide_role
+        role_to_bands = _get_wide_role()  # {"CC": ["0~30","31~60",...], ...}
+        # 反转为 {围场M标签: [角色,...]} 格式
+        _raw_to_m: dict[str, str] = {
+            "0~30": "M0", "31~60": "M1", "61~90": "M2", "91~120": "M3",
+            "121~150": "M4", "151~180": "M5",
+        }
+        result: dict[str, list[str]] = {}
+        for role, bands in role_to_bands.items():
+            for band in bands:
+                m_label = _raw_to_m.get(band, band)
+                result.setdefault(m_label, []).append(role)
+        return result
     except Exception:
-        pass
-
-    # 2. fallback: config.json enclosure_role_wide（天数范围格式 → M 标签格式）
-    try:
-        if _CONFIG_PATH.exists():
-            cfg = json.loads(_CONFIG_PATH.read_text(encoding="utf-8"))
-            wide_cfg = cfg.get("enclosure_role_wide", {})
-            if wide_cfg:
-                result: dict[str, list[str]] = {}
-                for role, spec in wide_cfg.items():
-                    min_d = spec.get("min_days", 0)
-                    max_d = spec.get("max_days") or 9999
-                    for m_label, (lo, hi) in _M_TO_DAYS.items():
-                        if lo >= min_d and hi <= max_d:
-                            result.setdefault(m_label, []).append(role)
-                if result:
-                    return result
-    except Exception:
-        pass
-
-    # 3. 硬编码默认值（最终 fallback）
-    return {
-        "M0": ["CC"],
-        "M1": ["CC"],
-        "M2": ["CC"],
-        "M3": ["LP"],
-        "M4": ["LP"],
-        "M5": ["LP"],
-        "M6": ["运营"],
-        "M7": ["运营"],
-        "M8": ["运营"],
-        "M9": ["运营"],
-        "M10": ["运营"],
-        "M11": ["运营"],
-        "M12": ["运营"],
-        "M12+": ["运营"],
-        "M6+": ["运营"],  # 旧数据兼容
-    }
+        return {"M0": ["CC"], "M1": ["CC"], "M2": ["CC"]}
 
 
 def _safe_val(val: object) -> Any:

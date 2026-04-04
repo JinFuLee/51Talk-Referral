@@ -19,15 +19,44 @@ _CHANNEL_MAP: dict[str, str] = {
     "ops_wide": "运营宽口径",
 }
 
-# data_role → 负责围场列表映射（按 enclosure_role_assignment 配置）
-# 包含 M 标签 + 原始围场值，因为不同数据源列值格式不同：
-#   D2/D2b: M 标签（M0, M1...）  D3/D4: 原始值（0~30, 31~60...）
-_ROLE_ENCLOSURE_MAP: dict[str, list[str]] = {
-    "cc": ["M0", "M1", "M2", "0~30", "31~60", "61~90"],
-    "ss": ["M3", "91~120"],
-    "lp": ["M4", "M5", "M6+", "121~150", "151~180", "6M", "7M", "8M", "9M", "10M", "11M", "12M", "12M+", "M6+", "181+"],
-    "ops": ["M6+", "6M", "7M", "8M", "9M", "10M", "11M", "12M", "12M+", "181+"],
+# M 标签 ↔ 原始围场值双向映射（数据源格式不同：D2=M标签, D3/D4=原始值）
+_M_TO_RAW: dict[str, str] = {
+    "M0": "0~30", "M1": "31~60", "M2": "61~90", "M3": "91~120",
+    "M4": "121~150", "M5": "151~180", "M6+": "M6+",
 }
+
+
+def _get_role_enclosure_map() -> dict[str, list[str]]:
+    """从 config 动态生成 data_role → 围场列表映射。
+
+    读取 _checkin_config._get_wide_role()（三层优先级），
+    展开为 M 标签 + 原始围场值两种格式（兼容不同数据源）。
+    """
+    try:
+        from backend.api._checkin_config import _get_wide_role
+        wide_role = _get_wide_role()
+    except Exception:
+        # 启动阶段 import 可能失败，返回空让 apply_filters 跳过 data_role 过滤
+        return {}
+
+    result: dict[str, list[str]] = {}
+    for role, bands in wide_role.items():
+        key = role.lower()
+        if key == "运营":
+            key = "ops"
+        expanded: list[str] = []
+        for band in bands:
+            expanded.append(band)
+            # 原始值 → 找对应 M 标签
+            for m, raw in _M_TO_RAW.items():
+                if raw == band and m not in expanded:
+                    expanded.append(m)
+            # M 标签 → 找对应原始值
+            raw_val = _M_TO_RAW.get(band)
+            if raw_val and raw_val not in expanded:
+                expanded.append(raw_val)
+        result[key] = expanded
+    return result
 
 
 class UnifiedFilter(BaseModel):
@@ -132,9 +161,9 @@ def apply_filters(
         if df.empty:
             return df
 
-    # 4. data_role — 围场角色映射过滤
+    # 4. data_role — 围场角色映射过滤（从 config 动态读取，非硬编码）
     if filters.data_role and filters.data_role != "all":
-        role_enclosures = _ROLE_ENCLOSURE_MAP.get(filters.data_role)
+        role_enclosures = _get_role_enclosure_map().get(filters.data_role)
         if role_enclosures and enc_col and enc_col in df.columns:
             df = df[df[enc_col].isin(role_enclosures)]
             if df.empty:

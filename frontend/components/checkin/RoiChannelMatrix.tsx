@@ -7,6 +7,7 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { formatUSD } from '@/lib/utils';
 import type { RoiAnalysisResponse, ChannelRoiItem } from '@/lib/types/checkin-roi';
 import { CHANNEL_LABELS, useLabel } from '@/lib/label-maps';
+import { useWideConfig } from '@/lib/hooks/useWideConfig';
 
 // ── 内联 I18N ────────────────────────────────────────────────────────────────
 
@@ -17,8 +18,8 @@ const I18N = {
     noData: '暂无渠道 ROI 数据',
     noDataDesc: '当前条件下无渠道活动数据',
     calibrationNote: '口径说明：',
-    calibrationDesc:
-      '渠道归因按围场段分配（CC=M0-M2，SS=M3，LP=M4-M5，宽口=M6+）。 收入为近似值（带新付费数 × 平均客单价 $150）。',
+    calibrationDesc: (mapping: string) =>
+      `渠道归因按围场段分配（${mapping}）。收入为近似值（带新付费数 × 平均客单价）。`,
     channelHeader: '渠道',
     newCountHeader: '带新人数',
     newPaidHeader: '带新付费数',
@@ -37,8 +38,8 @@ const I18N = {
     noData: '暫無渠道 ROI 資料',
     noDataDesc: '目前條件下無渠道活動資料',
     calibrationNote: '口徑說明：',
-    calibrationDesc:
-      '渠道歸因按圍場段分配（CC=M0-M2，SS=M3，LP=M4-M5，寬口=M6+）。收入為近似值（帶新付費數 × 平均客單價 $150）。',
+    calibrationDesc: (mapping: string) =>
+      `渠道歸因按圍場段分配（${mapping}）。收入為近似值（帶新付費數 × 平均客單價）。`,
     channelHeader: '渠道',
     newCountHeader: '帶新人數',
     newPaidHeader: '帶新付費數',
@@ -57,8 +58,8 @@ const I18N = {
     noData: 'No Channel ROI Data',
     noDataDesc: 'No channel activity data under current filters.',
     calibrationNote: 'Note: ',
-    calibrationDesc:
-      'Channel attribution by enclosure segment (CC=M0-M2, SS=M3, LP=M4-M5, Wide=M6+). Revenue is approximate (new paid × avg $150 per order).',
+    calibrationDesc: (mapping: string) =>
+      `Channel attribution by enclosure (${mapping}). Revenue is approximate.`,
     channelHeader: 'Channel',
     newCountHeader: 'New Count',
     newPaidHeader: 'New Paid',
@@ -77,8 +78,8 @@ const I18N = {
     noData: 'ไม่มีข้อมูล ROI ช่องทาง',
     noDataDesc: 'ไม่มีข้อมูลกิจกรรมช่องทางภายใต้เงื่อนไขปัจจุบัน',
     calibrationNote: 'หมายเหตุ: ',
-    calibrationDesc:
-      'การระบุแหล่งที่มาตามช่วงคอก (CC=M0-M2, SS=M3, LP=M4-M5, กว้าง=M6+) รายได้เป็นค่าประมาณ (ชำระใหม่ × $150 เฉลี่ย)',
+    calibrationDesc: (mapping: string) =>
+      `การระบุแหล่งที่มาตามคอก (${mapping}) รายได้เป็นค่าประมาณ`,
     channelHeader: 'ช่องทาง',
     newCountHeader: 'จำนวนใหม่',
     newPaidHeader: 'ชำระใหม่',
@@ -147,6 +148,10 @@ function ChannelHighlight({
 export function RoiChannelMatrix({ roleFilter, enclosureFilter }: Props) {
   const t = useT();
   const label = useLabel();
+  const { roleEnclosures } = useWideConfig();
+  const roleMapping = Object.entries(roleEnclosures ?? {})
+    .map(([r, e]) => `${r}=${(e as string[]).join('/')}`)
+    .join(', ');
   const params = new URLSearchParams();
   if (roleFilter) params.set('role', roleFilter);
   if (enclosureFilter) params.set('enclosure', enclosureFilter);
@@ -207,7 +212,7 @@ export function RoiChannelMatrix({ roleFilter, enclosureFilter }: Props) {
       <div className="card-base p-3 bg-[var(--bg-subtle)]">
         <p className="text-xs text-[var(--text-secondary)]">
           <strong>{t.calibrationNote}</strong>
-          {t.calibrationDesc}
+          {t.calibrationDesc(roleMapping)}
         </p>
       </div>
 

@@ -88,8 +88,8 @@ def _get_honor_config() -> dict:
     return {"honor": honor, "cc_warning_by_enclosure": enc_warn}
 
 
-# ── 围场-角色映射（从 Settings 读取）────────────────────────────────────────
-
+# ── 围场-角色映射（从 Settings 读取，fallback 仅在 override 不存在时使用）──
+# 注意：此 fallback 非 SSoT，实际分工以 config/enclosure_role_override.json 为准
 _ROLE_ENC_FALLBACK: dict[str, list[str]] = {
     "CC": ["M0", "M1", "M2"],
     "LP": ["M3", "M4", "M5"],

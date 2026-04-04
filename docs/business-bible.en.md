@@ -127,6 +127,8 @@ Enclosure Period = the day-count segment calculated from the user's **payment da
 
 #### Narrow Channel (Staff actively contacts students)
 
+> The table below shows **default values**. Actual assignments are per Settings → Enclosure Config (`/api/config/enclosure-role`).
+
 | Enclosure Period (Days) | Enclosure Period (Month) | Responsible Role | Metric Scope |
 |------------------------|--------------------------|-----------------|--------------|
 | 0–90 days | M0–M2 | **CC** | full_funnel (registrations / appointments / attendance / payments / revenue + all conversion rates) |
@@ -134,6 +136,8 @@ Enclosure Period = the day-count segment calculated from the user's **payment da
 | 121+ days | M4+ | **LP** | leads + process metrics (Outreach Rate / Check-in Rate) + cross-role leads→CC conversion rate |
 
 #### Wide Channel (Students self-share)
+
+> The table below shows **default values**. Actual assignments are per Settings config.
 
 | Enclosure Period (Days) | Enclosure Period (Month) | Responsible Role |
 |------------------------|--------------------------|-----------------|

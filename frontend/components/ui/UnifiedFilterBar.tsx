@@ -107,7 +107,8 @@ const CHANNEL_I18N_KEYS: Record<Channel, string> = {
   ops_wide: 'channel.opsWide',
 };
 
-// 有效围场（active）的 slug 列表（业务定义：M0-M6+）
+// Loading 占位符（API /api/filter/options 返回前使用，非 SSoT）
+// 实际围场列表从 filterOptions.enclosures 动态读取
 const ACTIVE_ENCLOSURES = ['M0', 'M1', 'M2', 'M3', 'M4', 'M5', 'M6+'];
 
 // ──────────────────────────────────────────────────────────────────────────────

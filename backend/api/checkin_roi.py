@@ -45,6 +45,32 @@ from backend.models.filters import UnifiedFilter, apply_filters, parse_filters
 
 router = APIRouter()
 
+
+def _build_enc_to_role() -> dict[str, str]:
+    """从 config 动态生成 M标签→角色 映射（ROI 归因用）。"""
+    try:
+        from backend.api._checkin_config import _get_wide_role
+        wide = _get_wide_role()
+    except Exception:
+        return {}
+    result: dict[str, str] = {}
+    # M标签→围场段映射
+    _band_to_m: dict[str, str] = {
+        "0~30": "M0", "31~60": "M1", "61~90": "M2", "91~120": "M3",
+        "121~150": "M4", "151~180": "M5",
+    }
+    for role, bands in wide.items():
+        for band in bands:
+            m_label = _band_to_m.get(band, band)  # 原始值→M标签
+            if m_label.startswith("M") or m_label == band:
+                result[m_label] = role
+            # 也加原始值映射
+            result[band] = role
+    return result
+
+
+_enc_to_role_cache = _build_enc_to_role()
+
 # ── 配置加载 ──────────────────────────────────────────────────────────────────
 
 _ROI_CONFIG_PATH = (
@@ -322,15 +348,8 @@ def _aggregate_channel_roi(
         pay_cards = int(s.get("payment_cards") or 0)
         student_total_cards = act_cards + bind_cards + att_cards + pay_cards
 
-        # 按围场段归因到渠道（与 CLAUDE.md 围场-角色边界对齐）
-        if enc_m in ("M0", "M1", "M2"):
-            ch = "CC"
-        elif enc_m == "M3":
-            ch = "SS"
-        elif enc_m in ("M4", "M5"):
-            ch = "LP"
-        else:
-            ch = "宽口"
+        # 按围场段归因到渠道（从 config 动态读取，非硬编码）
+        ch = _enc_to_role_cache.get(enc_m, "宽口")
 
         result[ch]["new_count"] += reg
         result[ch]["new_paid"] += pay
@@ -358,7 +377,9 @@ def _aggregate_channel_roi(
     summary="打卡 ROI 分析 — 学员成本×收入×风险分层",
 )
 def get_checkin_roi_analysis(
-    role: str | None = Query(None, description="角色筛选（CC/SS/LP），按角色负责围场过滤"),
+    role: str | None = Query(
+        None, description="角色筛选（CC/SS/LP），按围场过滤"
+    ),
     role_config: str | None = Query(None, description="围场配置 JSON"),
     enclosure: str | None = Query(None, description="围场过滤（M 标签，如 M0）"),
     filters: UnifiedFilter = Depends(parse_filters),

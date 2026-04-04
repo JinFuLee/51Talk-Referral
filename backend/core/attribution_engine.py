@@ -41,24 +41,23 @@ _BAND_TO_M: dict[str, str] = {
     "181+": "M6+",
 }
 
-# 默认宽口归因配置（Settings 读取失败时 fallback）
-_DEFAULT_WIDE_ROLE: dict[str, list[str]] = {
-    "M0": ["CC"],
-    "M1": ["CC"],
-    "M2": ["CC"],
-    "M3": ["LP"],
-    "M4": ["LP"],
-    "M5": ["LP"],
-    "M6": ["运营"],
-    "M7": ["运营"],
-    "M8": ["运营"],
-    "M9": ["运营"],
-    "M10": ["运营"],
-    "M11": ["运营"],
-    "M12": ["运营"],
-    "M12+": ["运营"],
-    "M6+": ["运营"],  # 旧数据兼容（新数据走 M6~M12+ 独立键）
-}
+def _load_default_wide_role() -> dict[str, list[str]]:
+    """从 config 动态读取宽口归因配置（复用 _checkin_config 三层优先级）。"""
+    try:
+        from backend.api._checkin_config import _get_wide_role
+        role_to_bands = _get_wide_role()  # {"CC": ["0~30",...], "SS": ["91~120"], ...}
+        _raw_to_m: dict[str, str] = {
+            "0~30": "M0", "31~60": "M1", "61~90": "M2", "91~120": "M3",
+            "121~150": "M4", "151~180": "M5",
+        }
+        result: dict[str, list[str]] = {}
+        for role, bands in role_to_bands.items():
+            for band in bands:
+                m_label = _raw_to_m.get(band, band)
+                result.setdefault(m_label, []).append(role)
+        return result
+    except Exception:
+        return {"M0": ["CC"], "M1": ["CC"], "M2": ["CC"]}
 
 # 窄口渠道 D2 列映射
 _NARROW_PARTICIPATION_COLS: dict[str, str] = {
@@ -96,7 +95,7 @@ class AttributionEngine:
         self._d2 = enclosure_cc_df
         self._d3 = detail_df
         # wide_role_config 格式: {"M0": ["CC"], "M3": ["LP"], "M6+": ["运营"], ...}
-        self._wide_cfg = wide_role_config or _DEFAULT_WIDE_ROLE
+        self._wide_cfg = wide_role_config or _load_default_wide_role()
 
     def _sum_col(self, df: pd.DataFrame, col: str) -> float | None:
         if col not in df.columns:

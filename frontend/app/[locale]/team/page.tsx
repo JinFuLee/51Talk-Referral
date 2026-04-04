@@ -6,6 +6,7 @@ import { useRouter } from '@/i18n/navigation';
 import { useLocale } from 'next-intl';
 import { useFilteredSWR } from '@/lib/hooks/use-filtered-swr';
 import { usePageDimensions } from '@/lib/hooks/use-page-dimensions';
+import { useWideConfig } from '@/lib/hooks/useWideConfig';
 import { formatRate, formatRevenue, metricColor } from '@/lib/utils';
 import { Card } from '@/components/ui/Card';
 import { SkeletonCard } from '@/components/ui/Skeleton';
@@ -81,8 +82,7 @@ const I18N = {
     roleTableTitle: (role: string) => `${role} 组级绩效排名`,
     pageTitle: '团队汇总',
     pageDesc: 'CC / SS / LP 三岗团队绩效 · 学员数 · 参与率 · 注册 · 付费',
-    pageHint:
-      'CC 负责 M0~M2（0-90天）全漏斗；SS 负责 M3（91-120天）；LP 负责 M4~M5（121-180天）；运营负责 M6~M12+（181天+）',
+    pageHintTemplate: (mapping: string) => `围场×岗位分工（按 Settings 配置）：${mapping}`,
     csvGroup: '组别',
     csvStudents: '学员数',
     csvParticipation: '参与率',
@@ -146,8 +146,7 @@ const I18N = {
     roleTableTitle: (role: string) => `${role} 組級績效排名`,
     pageTitle: '團隊匯總',
     pageDesc: 'CC / SS / LP 三崗團隊績效 · 學員數 · 參與率 · 註冊 · 付費',
-    pageHint:
-      'CC 負責 M0~M2（0-90天）全漏斗；SS 負責 M3（91-120天）；LP 負責 M4~M5（121-180天）；運營負責 M6~M12+（181天+）',
+    pageHintTemplate: (mapping: string) => `圍場×崗位分工（按 Settings 配置）：${mapping}`,
     csvGroup: '組別',
     csvStudents: '學員數',
     csvParticipation: '參與率',
@@ -212,8 +211,7 @@ const I18N = {
     roleTableTitle: (role: string) => `${role} Group Performance Ranking`,
     pageTitle: 'Team Summary',
     pageDesc: 'CC / SS / LP team performance · Students · Participation · Registrations · Payments',
-    pageHint:
-      'CC handles M0~M2 (0-90d) full funnel; SS handles M3 (91-120d); LP handles M4~M5 (121-180d); Ops handles M6~M12+ (181d+)',
+    pageHintTemplate: (mapping: string) => `Enclosure × Role (per Settings): ${mapping}`,
     csvGroup: 'Group',
     csvStudents: 'Students',
     csvParticipation: 'Participation',
@@ -278,8 +276,7 @@ const I18N = {
     roleTableTitle: (role: string) => `อันดับประสิทธิภาพกลุ่ม ${role}`,
     pageTitle: 'สรุปทีม',
     pageDesc: 'ประสิทธิภาพทีม CC / SS / LP · นักเรียน · การมีส่วนร่วม · ลงทะเบียน · ชำระเงิน',
-    pageHint:
-      'CC รับผิดชอบ M0~M2 (0-90วัน) ทุกขั้นตอน; SS รับผิดชอบ M3 (91-120วัน); LP รับผิดชอบ M4~M5 (121-180วัน); Ops รับผิดชอบ M6~M12+ (181วัน+)',
+    pageHintTemplate: (mapping: string) => `คอก×บทบาท (ตาม Settings): ${mapping}`,
     csvGroup: 'กลุ่ม',
     csvStudents: 'นักเรียน',
     csvParticipation: 'มีส่วนร่วม',
@@ -823,6 +820,12 @@ function TeamPageInner() {
   const { data: ssData } = useFilteredSWR<RankingResponse>('/api/team/ss-ranking');
   const { data: lpData } = useFilteredSWR<RankingResponse>('/api/team/lp-ranking');
 
+  // 从 config 动态生成围场×角色描述（非硬编码）
+  const { roleEnclosures } = useWideConfig();
+  const roleHint = Object.entries(roleEnclosures ?? {})
+    .map(([role, encs]) => `${role}=${(encs as string[]).join('/')}`)
+    .join('；');
+
   function handleTabChange(tab: TabKey) {
     const params = new URLSearchParams(searchParams.toString());
     params.set('tab', tab);
@@ -889,7 +892,7 @@ function TeamPageInner() {
         <div>
           <h1 className="page-title">{tr.pageTitle}</h1>
           <p className="text-sm text-[var(--text-secondary)] mt-1">{tr.pageDesc}</p>
-          <p className="text-sm text-[var(--text-muted)] mt-0.5">{tr.pageHint}</p>
+          <p className="text-sm text-[var(--text-muted)] mt-0.5">{tr.pageHintTemplate(roleHint)}</p>
         </div>
         <ExportButton onExportCsv={handleExport} />
       </div>

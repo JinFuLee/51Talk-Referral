@@ -62,36 +62,32 @@ def _mask_secret(value: str | None) -> str:
 
 
 def _get_role_enclosures() -> dict[str, list[str]]:
-    """从 Settings 配置读取角色-围场映射（宽口）
+    """从 config 动态读取角色-围场映射（宽口），复用 _checkin_config 的三层优先级。
 
-    读取路径：config/enclosure_role_override.json
-    fallback：config.json enclosure_role_assignment
+    统一入口：_get_wide_role()（三层优先级）。
+    将围场段转为 M 标签格式（通知系统用 M 标签）。
     """
-    override = _read_json(ENCLOSURE_ROLE_OVERRIDE_PATH)
-    if override and isinstance(override, dict):
-        wide = override.get("wide", {})
-        if wide:
-            # 转为 {role: [enclosure, ...]} 格式
-            role_map: dict[str, list[str]] = {}
-            for enc, roles in wide.items():
-                for role in roles:
-                    role_map.setdefault(role, []).append(enc)
-            if role_map:
-                return role_map
-
-    # fallback：config.json
-    main_cfg = _read_json(MAIN_CONFIG_PATH, {})
-    assignment = main_cfg.get("enclosure_role_assignment", {})
-    if assignment:
-        return {k: v if isinstance(v, list) else [v] for k, v in assignment.items()}
-
-    # 硬编码兜底
-    return {
-        "CC": ["M0", "M1", "M2"],
-        "LP": ["M3", "M4", "M5"],
-        "SS": ["M3"],
-        "运营": ["M6", "M7", "M8", "M9", "M10", "M11", "M12", "M12+", "M6+"],
-    }
+    try:
+        from backend.api._checkin_config import _get_wide_role
+        wide = _get_wide_role()
+        # wide 返回 {"CC": ["0~30","31~60",...], "SS": ["91~120"], ...}
+        # 转为 M 标签格式
+        _raw_to_m: dict[str, str] = {
+            "0~30": "M0", "31~60": "M1", "61~90": "M2", "91~120": "M3",
+            "121~150": "M4", "151~180": "M5",
+        }
+        result: dict[str, list[str]] = {}
+        for role, bands in wide.items():
+            m_labels = []
+            for band in bands:
+                m = _raw_to_m.get(band, band)  # 已是 M 标签则保留
+                if m not in m_labels:
+                    m_labels.append(m)
+            result[role] = m_labels
+        return result
+    except Exception:
+        # 启动阶段 import 可能失败
+        return {"CC": ["M0", "M1", "M2"]}
 
 
 def _platform_cred_path(platform: str) -> Path:
@@ -450,8 +446,8 @@ def get_templates() -> dict:
         {
             "id": "cc_followup",
             "role": "CC",
-            "enclosures": role_enc.get("CC", ["M0", "M1", "M2"]),
-            "enclosures_label": _enc_label(role_enc.get("CC", ["M0", "M1", "M2"])),
+            "enclosures": role_enc.get("CC", []),
+            "enclosures_label": _enc_label(role_enc.get("CC", [])),
             "messages": _msg_count("CC"),
             "enabled": True,
             "description": "CC 前端销售未打卡跟进",
@@ -459,8 +455,8 @@ def get_templates() -> dict:
         {
             "id": "lp_followup",
             "role": "LP",
-            "enclosures": role_enc.get("LP", ["M3", "M4", "M5"]),
-            "enclosures_label": _enc_label(role_enc.get("LP", ["M3", "M4", "M5"])),
+            "enclosures": role_enc.get("LP", []),
+            "enclosures_label": _enc_label(role_enc.get("LP", [])),
             "messages": _msg_count("LP"),
             "enabled": True,
             "description": "LP 后端服务未打卡跟进",
@@ -468,8 +464,8 @@ def get_templates() -> dict:
         {
             "id": "ss_followup",
             "role": "SS",
-            "enclosures": role_enc.get("SS", ["M3"]),
-            "enclosures_label": _enc_label(role_enc.get("SS", ["M3"])),
+            "enclosures": role_enc.get("SS", []),
+            "enclosures_label": _enc_label(role_enc.get("SS", [])),
             "messages": "待配置",
             "enabled": False,
             "description": "SS 后端销售未打卡跟进",
@@ -477,8 +473,8 @@ def get_templates() -> dict:
         {
             "id": "ops_followup",
             "role": "运营",
-            "enclosures": role_enc.get("运营", ["M6+"]),
-            "enclosures_label": _enc_label(role_enc.get("运营", ["M6+"])),
+            "enclosures": role_enc.get("运营", []),
+            "enclosures_label": _enc_label(role_enc.get("运营", [])),
             "messages": "待配置",
             "enabled": False,
             "description": "运营团队未打卡跟进",
