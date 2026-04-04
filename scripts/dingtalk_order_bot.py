@@ -18,6 +18,7 @@ import json
 import logging
 import re
 import sys
+import urllib.request
 from dataclasses import asdict, dataclass
 from datetime import datetime
 from pathlib import Path
@@ -231,6 +232,19 @@ def parse_order_message(text: str) -> ParsedOrder:
 
 # ── 回复格式化 ────────────────────────────────────────────────────────────────
 
+def _fetch_revenue_status() -> dict | None:
+    """从后端获取当前业绩进度（T-1 数据）"""
+    try:
+        req = urllib.request.Request(
+            "http://localhost:8100/api/report/summary",
+            headers={"Accept": "application/json"},
+        )
+        with urllib.request.urlopen(req, timeout=5) as resp:
+            return json.loads(resp.read().decode("utf-8"))
+    except Exception:
+        return None
+
+
 def format_reply(order: ParsedOrder) -> str:
     """生成泰文回复（钉钉 Markdown 格式）"""
     now = datetime.now().strftime("%Y-%m-%d %H:%M")
@@ -239,51 +253,96 @@ def format_reply(order: ParsedOrder) -> str:
         return ""
 
     lines: list[str] = []
-
-    if order.is_referral:
-        lines.append("### ✓ ยืนยันยอดขาย Referral")
-    else:
-        source = order.lead_source or "ไม่ทราบ"
-        lines.append(f"### ยืนยันยอดขาย（{source}）")
-
+    lines.append("### ✓ Referral ยืนยันแล้ว")
     lines.append("")
-    lines.append("---")
 
+    # 小组 + CC 名
+    if order.cc_name:
+        team_str = order.team_code or ""
+        if order.team_number:
+            team_str += f" TEAM {order.team_number}"
+        lines.append(f"👤 **{order.cc_name}** — {team_str}")
+
+    # 学员 + 产品
+    parts = []
     if order.student_name:
-        lines.append(f"- นักเรียน: **{order.student_name}**")
-
+        parts.append(order.student_name)
     if order.product:
-        lines.append(f"- แพ็กเกจ: {order.product}")
+        parts.append(order.product)
+    if parts:
+        lines.append(f"📦 {' · '.join(parts)}")
 
+    # 金额（如有）
     if order.amount_usd is not None:
         thb_str = (
             f" (฿{order.amount_thb:,.0f})" if order.amount_thb else ""
         )
-        lines.append(f"- ยอดเงิน: **${order.amount_usd:,.0f}{thb_str}**")
+        lines.append(f"💰 **${order.amount_usd:,.0f}{thb_str}**")
 
-    if order.order_type:
-        type_th = "ออเดอร์ใหม่" if "新" in order.order_type else "ต่ออายุ"
-        lines.append(f"- ประเภท: {type_th}")
+    # 时间
+    lines.append(f"📅 {now}")
 
-    if order.cc_name:
-        team_str = order.team_code
-        if order.team_number:
-            team_str += f" TEAM {order.team_number}"
-        lines.append(f"- พนักงานขาย: **{order.cc_name}** ({team_str})")
+    # BM + 月目标差距（从后端 T-1 数据）
+    summary = _fetch_revenue_status()
+    if summary:
+        actual = summary.get("revenue_usd", 0) or 0
+        target = summary.get("revenue_target", 0) or 0
+        bm_pct = summary.get("bm_pct", 0) or 0
+        rev_progress = summary.get("revenue_progress", 0) or 0
 
-    if order.is_referral:
         lines.append("")
-        lines.append("> ช่องทาง: Referral ✓ นับเป็นยอดขาย Referral")
+        lines.append("---")
 
-    if order.parse_errors:
-        lines.append("")
-        missing = ", ".join(order.parse_errors)
-        lines.append(f"⚠ ข้อมูลไม่ครบ: {missing}")
+        # BM 差距（今日进度 vs BM 进度线）
+        bm_target_usd = target * bm_pct
+        bm_gap = actual - bm_target_usd
+        if bm_gap >= 0:
+            lines.append(
+                f"📈 BM วันนี้: **เกินเป้า ${bm_gap:,.0f}** "
+                f"({rev_progress:.1%} vs BM {bm_pct:.1%})"
+            )
+        else:
+            lines.append(
+                f"📉 BM วันนี้: **ต่ำกว่าเป้า ${abs(bm_gap):,.0f}** "
+                f"({rev_progress:.1%} vs BM {bm_pct:.1%})"
+            )
 
-    lines.append("")
-    lines.append(f"⏱ {now}")
+        # 月目标差距
+        month_gap = actual - target
+        if month_gap >= 0:
+            lines.append(
+                f"🎯 เป้าเดือน: **เกินเป้าแล้ว ${month_gap:,.0f}**"
+            )
+        else:
+            lines.append(
+                f"🎯 เป้าเดือน: **เหลืออีก ${abs(month_gap):,.0f}** "
+                f"(${actual:,.0f}/${target:,.0f})"
+            )
 
     return "\n".join(lines)
+
+
+# ── Webhook 回复（支持 richText 场景）────────────────────────────────────────
+
+def _reply_via_webhook(webhook: str, text: str) -> None:
+    """通过 sessionWebhook 直接回复（richText 消息无法用 reply_text）"""
+    payload = json.dumps(
+        {"msgtype": "markdown", "markdown": {"title": "Referral ✓", "text": text}},
+        ensure_ascii=False,
+    ).encode("utf-8")
+    try:
+        req = urllib.request.Request(
+            webhook,
+            data=payload,
+            headers={"Content-Type": "application/json"},
+            method="POST",
+        )
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            result = json.loads(resp.read().decode("utf-8"))
+            if result.get("errcode") != 0:
+                logger.warning("webhook 回复失败: %s", result)
+    except Exception as e:
+        logger.error("webhook 回复异常: %s", e)
 
 
 # ── 日志持久化 ────────────────────────────────────────────────────────────────
@@ -310,39 +369,69 @@ class OrderBotHandler(dingtalk_stream.ChatbotHandler):
     async def process(
         self, callback: dingtalk_stream.CallbackMessage
     ) -> tuple[str, str]:
-        incoming = dingtalk_stream.ChatbotMessage.from_dict(callback.data)
-        text: str = ""
-        if incoming.text and hasattr(incoming.text, "content"):
-            text = (incoming.text.content or "").strip()
+        try:
+            # 详细日志：记录原始回调数据
+            raw_data = callback.data
+            msg_type = raw_data.get("msgtype", "unknown") if isinstance(raw_data, dict) else "?"
+            logger.info("收到回调: msgtype=%s, keys=%s", msg_type, list(raw_data.keys()) if isinstance(raw_data, dict) else "N/A")
 
-        if not text:
+            # 提取文本（支持 text 和 richText 两种格式）
+            text: str = ""
+
+            if msg_type == "text":
+                incoming = dingtalk_stream.ChatbotMessage.from_dict(raw_data)
+                if incoming.text and hasattr(incoming.text, "content"):
+                    text = (incoming.text.content or "").strip()
+
+            elif msg_type == "richText":
+                # richText: content.richText 是数组，提取所有 text 段
+                content = raw_data.get("content", {})
+                rich_parts = content.get("richText", [])
+                text_parts = []
+                for part in rich_parts:
+                    if isinstance(part, dict) and part.get("text"):
+                        text_parts.append(part["text"])
+                text = "\n".join(text_parts).strip()
+
+            else:
+                logger.info("跳过非文本消息: msgtype=%s", msg_type)
+                return AckMessage.STATUS_OK, "OK"
+
+            if not text:
+                logger.info("空文本，跳过 (msgtype=%s)", msg_type)
+                return AckMessage.STATUS_OK, "OK"
+
+            logger.info("解析文本 (%s): %s", msg_type, text[:100])
+
+        except Exception as e:
+            logger.error("回调解析异常: %s (data keys: %s)", e, list(raw_data.keys()) if isinstance(raw_data, dict) else "N/A")
             return AckMessage.STATUS_OK, "OK"
 
         # 解析
         order = parse_order_message(text)
 
         if not order.is_order:
-            logger.debug("非成交消息，跳过: %s", text[:80])
+            logger.info("非成交消息，跳过: %s", text[:60])
             return AckMessage.STATUS_OK, "OK"
 
         if not order.is_referral:
-            # 非转介绍成交，静默（只处理 Referral）
-            logger.debug("非转介绍，跳过: source=%s", order.lead_source)
+            logger.info("非转介绍，跳过: source=%s", order.lead_source)
             return AckMessage.STATUS_OK, "OK"
 
         # 日志
-        sender = getattr(incoming, "sender_nick", "") or getattr(
-            incoming, "senderNick", ""
-        )
-        conv_id = getattr(incoming, "conversation_id", "") or getattr(
-            incoming, "conversationId", ""
-        )
+        sender = raw_data.get("senderNick", "")
+        conv_id = raw_data.get("conversationId", "")
         _log_order(order, sender=sender, conversation_id=conv_id)
 
-        # 回复
+        # 回复（richText 模式用 sessionWebhook 直接发）
         reply = format_reply(order)
         if reply:
-            self.reply_text(reply, incoming)
+            webhook = raw_data.get("sessionWebhook", "")
+            if webhook:
+                _reply_via_webhook(webhook, reply)
+            elif msg_type == "text":
+                incoming = dingtalk_stream.ChatbotMessage.from_dict(raw_data)
+                self.reply_text(reply, incoming)
             logger.info(
                 "已回复: %s %s $%s",
                 order.cc_name,
