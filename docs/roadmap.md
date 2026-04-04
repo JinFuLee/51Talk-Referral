@@ -546,9 +546,9 @@ M37(✅) ──► M38(✅) ──► M39(✅) ──► M40(规划中)
 | #19 | Cohort/围场数据源历史队列完整性验证 | P2 | M20 | 🟡 待处理 |
 | #20 | /attribution 端点逻辑填充（M16 创建但未实现） | P3 | M27 | ✅ 已解决（M27 三维归因补全：渠道/漏斗/口径） |
 | #21 | 部分图表组件使用 mock fallback 数据 | P2 | M20 | ✅ 已解决（M20 全清，amber banner 标识剩余降级组件） |
-| #22 | D2/D3 围场对比 Excel 文件为空，需补充真实数据 | P2 | M20 | 🟡 待处理。需要：从 BI 系统导出围场分布明细报表（含 0-30/31-60/61-90/91-180/181+ 天分段数据），保存到 `input/enclosure_data.xlsx`，格式参考 `backend/core/loaders/ops_loader.py` 字段映射。 |
+| #22 | D2/D3 围场对比 Excel 文件为空 | P2 | M38 | ✅ 已解决（M38 Quick BI→51Talk BI 迁移后，围场数据直接从 BI 拉取，enclosure_cc 772 行数据正常）|
 | #23 | F4 渠道 MoM 流图依赖历史趋势数据（当前仅一期） | P2 | M22+ | 🟡 待处理。需要：每月末从 BI 导出渠道收入明细 Excel 并追加到 `input/` 目录（命名含月份，如 `channel_trend_202602.xlsx`）；M21 Parquet 缓存已就绪可提速读取，但不能替代多期原始文件，需人工每月执行一次导出。 |
-| #24 | YoY/WoW 历史对比依赖快照充分性（需 >=2 周期） | P2 | M22+ | 🟡 待处理。自动机制已就绪：`analysis_service.py` 每次调用 `/api/analysis/run` 即触发 `snapshot_store.save_snapshot()` 写入 SQLite，`get_weekly_kpi()`/`get_same_month_last_year()` 查询已实现；WoW 需积累 >=2 周日常运行，YoY 需积累到 2027-02 方可对比同期，无需人工干预，保持系统日常运行即可。 |
+| #24 | YoY/WoW 历史对比依赖快照充分性 | P2 | M33 | ✅ 已解决（M33 日快照已自动化，launchd 每日写入 SQLite，截至 2026-04 已积累 >30 天数据，WoW 可用）|
 | #25 | ActionPlanSlide/MeetingSummarySlide/ResourceSlide 使用静态模板数据 | P2 | M18.3 | ✅ 已解决（M18.3 接真实 API） |
 | #26 | 部分 Slide 组件 API endpoint 返回 404 fallback | P2 | M18.3 | ✅ 已解决（M18.3 全部 endpoint 补全） |
 | #27 | WhatIfSlide 滑块为前端本地计算，未调后端接口 | P3 | M19 | ✅ 已解决（M18.3 接入 POST /api/analysis/what-if） |
