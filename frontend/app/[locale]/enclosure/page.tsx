@@ -1157,9 +1157,7 @@ function EnclosurePageInner() {
     dataRole: true,
     enclosure: true,
     team: true,
-    granularity: true,
     channel: true,
-    behavior: true,
   });
 
   const { data: ccExportData } = useFilteredSWR<EnclosureResponse>('/api/enclosure');

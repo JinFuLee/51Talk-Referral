@@ -323,7 +323,6 @@ def _compare_extremes(
     """peak/valley: 当前月快照 vs 历史最高/最低月快照"""
     import sqlite3
 
-    agg_fn = "MAX" if mode == "peak" else "MIN"
     label = "vs 历史巅峰" if mode == "peak" else "vs 历史低谷"
 
     try:
@@ -332,7 +331,8 @@ def _compare_extremes(
 
         # 当前月最新快照
         current_row = conn.execute(
-            "SELECT * FROM daily_snapshots WHERE month_key = ? ORDER BY snapshot_date DESC LIMIT 1",
+            "SELECT * FROM daily_snapshots "
+                "WHERE month_key = ? ORDER BY snapshot_date DESC LIMIT 1",
             (ref.strftime("%Y%m"),),
         ).fetchone()
 
@@ -349,7 +349,7 @@ def _compare_extremes(
         any_data = False
 
         for banner_key, db_col in metric_map.items():
-            current_val = current_row[db_col] if db_col in current_row.keys() else None
+            current_val = current_row.get(db_col)
 
             # 查历史极值（排除当前月及之后的未完成月）
             extreme_row = conn.execute(
@@ -406,7 +406,8 @@ def _compare_prediction(
         conn.row_factory = sqlite3.Row
 
         current_row = conn.execute(
-            "SELECT * FROM daily_snapshots WHERE month_key = ? ORDER BY snapshot_date DESC LIMIT 1",
+            "SELECT * FROM daily_snapshots "
+                "WHERE month_key = ? ORDER BY snapshot_date DESC LIMIT 1",
             (ref.strftime("%Y%m"),),
         ).fetchone()
         conn.close()
@@ -419,7 +420,7 @@ def _compare_prediction(
                 "metrics": {},
             }
 
-        bm_pct = current_row["bm_pct"] if "bm_pct" in current_row.keys() else None
+        bm_pct = current_row.get("bm_pct")
         if not bm_pct or bm_pct <= 0:
             return {
                 "available": False,
@@ -457,14 +458,18 @@ def _compare_prediction(
         any_data = False
 
         for banner_key, db_col in metric_map.items():
-            current_val = current_row[db_col] if db_col in current_row.keys() else None
+            current_val = current_row.get(db_col)
             predicted_val = eom_map.get(banner_key)
 
             if current_val is not None or predicted_val is not None:
                 any_data = True
 
             chg = None
-            if current_val is not None and predicted_val is not None and current_val != 0:
+            if (
+                current_val is not None
+                and predicted_val is not None
+                and current_val != 0
+            ):
                 chg = round((predicted_val - current_val) / abs(current_val) * 100, 1)
 
             metrics_out[banner_key] = {

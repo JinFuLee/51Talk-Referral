@@ -99,7 +99,6 @@ interface ConfigState {
   dataRole: DataRole;
   enclosure: string[] | null;
   channel: Channel;
-  granularity: 'month' | 'week' | 'day';
   benchmarks: BenchmarkMode[];
   // ── Month selector (M38) ────────────────────────────────────────────────────
   /** YYYYMM 格式的历史月份，null = 当前月 */
@@ -123,7 +122,6 @@ interface ConfigState {
         | 'setDataRole'
         | 'setEnclosure'
         | 'setChannel'
-        | 'setGranularity'
         | 'setBenchmarks'
         | 'setSelectedMonth'
         | 'setCustomDateRange'
@@ -139,7 +137,6 @@ interface ConfigState {
   setDataRole: (dataRole: DataRole) => void;
   setEnclosure: (enclosure: string[] | null) => void;
   setChannel: (channel: Channel) => void;
-  setGranularity: (granularity: 'month' | 'week' | 'day') => void;
   setBenchmarks: (benchmarks: BenchmarkMode[]) => void;
   setSelectedMonth: (month: string | null) => void;
   setCustomDateRange: (range: { start: string; end: string } | null) => void;
@@ -161,7 +158,6 @@ export const useConfigStore = create<ConfigState>()(
       dataRole: 'all',
       enclosure: null,
       channel: 'all',
-      granularity: 'month',
       benchmarks: ['target'],
       selectedMonth: null,
       customDateRange: null,
@@ -176,7 +172,6 @@ export const useConfigStore = create<ConfigState>()(
       setDataRole: (dataRole) => set({ dataRole }),
       setEnclosure: (enclosure) => set({ enclosure }),
       setChannel: (channel) => set({ channel }),
-      setGranularity: (granularity) => set({ granularity }),
       setBenchmarks: (benchmarks) => set({ benchmarks }),
       setSelectedMonth: (selectedMonth) => set({ selectedMonth }),
       setCustomDateRange: (customDateRange) => set({ customDateRange }),

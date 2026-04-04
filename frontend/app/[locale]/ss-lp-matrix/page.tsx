@@ -9,7 +9,6 @@ export default function SSLPMatrixRedirect() {
     dataRole: true,
     enclosure: true,
     team: true,
-    granularity: true,
   });
   const router = useRouter();
   useEffect(() => {

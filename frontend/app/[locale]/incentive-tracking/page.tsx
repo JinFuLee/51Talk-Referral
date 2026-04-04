@@ -1508,7 +1508,6 @@ export default function IncentiveTrackingPage() {
     dataRole: true,
     enclosure: true,
     team: true,
-    granularity: true,
   });
   const locale = useLocale();
   const t = I18N[locale as keyof typeof I18N] ?? I18N.zh;

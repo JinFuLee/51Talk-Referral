@@ -201,7 +201,6 @@ export default function OutreachQualityPage() {
     dataRole: true,
     enclosure: true,
     team: true,
-    granularity: true,
   });
 
   const { data, isLoading, error, mutate } = useFilteredSWR<OutreachQualitySummary>(

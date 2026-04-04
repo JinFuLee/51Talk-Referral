@@ -809,7 +809,6 @@ function TeamPageInner() {
     dataRole: true,
     enclosure: true,
     team: true,
-    granularity: true,
   });
   const locale = useLocale();
   const tr = (I18N as unknown as Record<string, (typeof I18N)['zh']>)[locale] ?? I18N['zh'];

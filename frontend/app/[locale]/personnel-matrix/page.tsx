@@ -720,7 +720,6 @@ function PersonnelMatrixPageInner() {
     dataRole: true,
     enclosure: true,
     team: true,
-    granularity: true,
   });
   const locale = useLocale();
   const t = (I18N as unknown as Record<string, (typeof I18N)['zh']>)[locale] ?? I18N['zh'];

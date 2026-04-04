@@ -303,8 +303,6 @@ export default function ChannelPage() {
     dataRole: true,
     enclosure: true,
     team: true,
-    granularity: true,
-    funnelStage: true,
     channel: true,
   });
   const locale = useLocale();

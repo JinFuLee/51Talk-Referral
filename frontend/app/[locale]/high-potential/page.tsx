@@ -478,7 +478,7 @@ const DEFAULT_FILTERS: FilterState = {
 };
 
 export default function HighPotentialPage() {
-  usePageDimensions({ country: true, enclosure: true, team: true, behavior: true });
+  usePageDimensions({ country: true, enclosure: true, team: true });
   const locale = useLocale();
   const t = (I18N as unknown as Record<string, (typeof I18N)['zh']>)[locale] ?? I18N['zh'];
 
