@@ -184,22 +184,16 @@ export function CCPerformanceSummaryCards({
   const t = I18N[locale as keyof typeof I18N] ?? I18N.zh;
   const gt = grandTotal;
 
-  // 总业绩卡片：根据 viewMode 切换参照系
-  const revenueActual = formatRevenue(gt?.revenue?.actual ?? null, exchangeRate);
-  const revenueReference =
-    viewMode === 'bm'
-      ? gt?.revenue?.bm_expected != null
-        ? t.bmRef(formatRevenue(gt.revenue.bm_expected, exchangeRate))
-        : undefined
-      : gt?.revenue?.target != null
-        ? t.targetRef(formatRevenue(gt.revenue.target, exchangeRate))
-        : undefined;
+  const revActual = gt?.revenue?.actual ?? null;
+  const revTarget = gt?.revenue?.target ?? null;
+  const bmExpected = gt?.revenue?.bm_expected ?? null;
+  const bmPct = gt?.revenue?.bm_pct ?? null;
+  const targetAchPct = gt?.revenue?.achievement_pct ?? null;
 
-  // 达成率卡片：根据 viewMode 切换
-  const achievementPct =
-    viewMode === 'bm' ? (gt?.revenue?.bm_pct ?? null) : (gt?.revenue?.achievement_pct ?? null);
+  // BM 差额
+  const bmGap = revActual != null && bmExpected != null ? revActual - bmExpected : null;
 
-  // 时间进度卡片
+  // 时间进度
   const progressPct = Math.round(timeProgressPct * 100);
   const progressBarColor =
     progressPct >= 80
@@ -208,29 +202,87 @@ export function CCPerformanceSummaryCards({
         ? 'var(--color-warning)'
         : 'var(--color-danger)';
 
+  // 日均
+  const dailyAvg = gt?.current_daily_avg ?? null;
+  const dailyNeeded = gt?.remaining_daily_avg ?? null;
+  const paceNeeded = gt?.pace_daily_needed ?? null;
+
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-      {/* 总业绩 */}
+    <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+      {/* 1. 月度目标 */}
+      <KPICard
+        label={t.targetRef('')?.replace(/\s*$/, '') || '月度目标'}
+        tooltip={t.teamRevenueTooltipTarget}
+        value={revTarget != null ? formatRevenue(revTarget, exchangeRate) : '—'}
+      />
+
+      {/* 2. 当前总业绩 */}
       <KPICard
         label={t.teamRevenue}
-        tooltip={viewMode === 'bm' ? t.teamRevenueTooltipBm : t.teamRevenueTooltipTarget}
-        value={revenueActual}
-        targetLabel={revenueReference}
-        achievementPct={achievementPct}
+        tooltip={t.teamRevenueTooltipTarget}
+        value={formatRevenue(revActual, exchangeRate)}
+        targetLabel={
+          revTarget != null
+            ? `${t.achievementRate} ${targetAchPct != null ? `${(targetAchPct * 100).toFixed(1)}%` : '—'}`
+            : undefined
+        }
+        achievementPct={targetAchPct}
         achievementRateLabel={t.achievementRate}
       />
 
-      {/* 达成率 */}
-      <KPICard
-        label={viewMode === 'bm' ? t.bmAchievement : t.revenueAchievement}
-        tooltip={viewMode === 'bm' ? t.bmTooltip : t.targetTooltip}
-        value={achievementPct != null ? formatRate(achievementPct) : '—'}
-        targetLabel={viewMode === 'bm' ? t.bmPace : t.target100}
-        achievementPct={achievementPct}
-        achievementRateLabel={t.achievementRate}
-      />
+      {/* 3. BM 进度 */}
+      <div
+        className="rounded-xl border border-[var(--border-default)] p-4"
+        style={{ background: 'var(--bg-surface)', boxShadow: 'var(--shadow-subtle)' }}
+        title={t.bmTooltip}
+      >
+        <p className="text-xs text-[var(--text-secondary)] uppercase tracking-wide mb-1">
+          BM {t.bmPace}
+        </p>
+        <div className="text-xl font-bold font-mono tabular-nums text-[var(--text-primary)] mt-1">
+          {bmExpected != null ? formatRevenue(bmExpected, exchangeRate) : '—'}
+        </div>
+        <div className="text-xs text-[var(--text-muted)] mt-1">
+          {bmPct != null ? `${t.achievementRate} ${(bmPct * 100).toFixed(1)}%` : ''}
+        </div>
+        {bmGap != null && (
+          <div
+            className={`mt-1 text-xs font-semibold ${bmGap >= 0 ? 'text-emerald-700' : 'text-red-700'}`}
+          >
+            {bmGap >= 0 ? '↑' : '↓'} {formatRevenue(Math.abs(bmGap), exchangeRate)}
+          </div>
+        )}
+      </div>
 
-      {/* 时间进度 */}
+      {/* 4. 日均节奏 */}
+      <div
+        className="rounded-xl border border-[var(--border-default)] p-4"
+        style={{ background: 'var(--bg-surface)', boxShadow: 'var(--shadow-subtle)' }}
+        title="达标需日均 / 当前日均"
+      >
+        <p className="text-xs text-[var(--text-secondary)] uppercase tracking-wide mb-1">
+          {locale === 'en' ? 'Daily Pace' : locale === 'th' ? 'ต่อวัน' : '日均节奏'}
+        </p>
+        <div className="text-xl font-bold font-mono tabular-nums text-[var(--text-primary)] mt-1">
+          {dailyAvg != null ? formatRevenue(dailyAvg, exchangeRate) : '—'}
+        </div>
+        <div className="text-xs text-[var(--text-muted)] mt-1">
+          {locale === 'en' ? 'Current daily avg' : locale === 'th' ? 'เฉลี่ยวันนี้' : '当前日均'}
+        </div>
+        {dailyNeeded != null && dailyNeeded > 0 && (
+          <div className="text-xs mt-1">
+            <span className="text-[var(--text-muted)]">
+              {locale === 'en' ? 'Need' : locale === 'th' ? 'ต้องการ' : '达标需'}
+            </span>{' '}
+            <span className="font-semibold text-amber-700">
+              {formatRevenue(dailyNeeded, exchangeRate)}/
+              {locale === 'en' ? 'day' : locale === 'th' ? 'วัน' : '天'}
+            </span>
+          </div>
+        )}
+      </div>
+
+      {/* 5. 时间进度 */}
       <div
         className="rounded-xl border border-[var(--border-default)] p-4"
         style={{ background: 'var(--bg-surface)', boxShadow: 'var(--shadow-subtle)' }}
@@ -242,9 +294,7 @@ export function CCPerformanceSummaryCards({
         <div className="text-xl font-bold font-mono tabular-nums text-[var(--text-primary)] mt-1">
           {progressPct}%
         </div>
-        <div className="flex items-center gap-1 mt-1">
-          <span className="text-xs text-[var(--text-muted)]">{t.monthlyWeighted}</span>
-        </div>
+        <div className="text-xs text-[var(--text-muted)] mt-1">{t.monthlyWeighted}</div>
         <div className="mt-2">
           <div className="h-1 rounded-full bg-[var(--n-200)]">
             <div
