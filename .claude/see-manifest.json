@@ -1,0 +1,33 @@
+{
+  "see_manifest_version": "1.0",
+  "generated_at": "2026-04-04T03:57:14Z",
+  "project_type": "web-fullstack",
+  "tech_stack": {
+    "language": "typescript",
+    "framework": "nextjs",
+    "backend": "fastapi",
+    "db": "none",
+    "orm": "none",
+    "test": "vitest",
+    "package_manager": "uv"
+  },
+  "deploy": {
+    "method": "docker-compose",
+    "ports": {},
+    "verify_url": "",
+    "build_cmd": "",
+    "start_cmd": ""
+  },
+  "db_migration": {
+    "tool": "none",
+    "migration_dir": "",
+    "backup_method": ""
+  },
+  "design_system": "see-ds-v2",
+  "i18n": [
+    "en",
+    "th",
+    "zh-TW",
+    "zh"
+  ]
+}

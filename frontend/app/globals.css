@@ -708,6 +708,69 @@ body.presentation-mode .presentation-watermark {
   background-color: rgba(255, 255, 255, 0.1) !important;
 }
 
+/* --- 表格全面暗色适配（核心） --- */
+/* 表头：深色半透明玻璃，不是亮灰条 */
+.slide-content-dark .slide-thead-row {
+  background-color: rgba(255, 255, 255, 0.06) !important;
+}
+.slide-content-dark .slide-thead-row th,
+.slide-content-dark .slide-thead-row .slide-th,
+.slide-content-dark .slide-thead-row .slide-th-sub {
+  color: rgba(255, 255, 255, 0.7) !important;
+}
+/* 表体行：暗色交替 */
+.slide-content-dark .slide-row-even {
+  background-color: transparent !important;
+}
+.slide-content-dark .slide-row-odd {
+  background-color: rgba(255, 255, 255, 0.02) !important;
+}
+/* 表体偶数行 hover */
+.slide-content-dark tr:nth-child(even) {
+  background-color: transparent;
+}
+.slide-content-dark tr:nth-child(odd) {
+  background-color: rgba(255, 255, 255, 0.02);
+}
+/* 表尾行 */
+.slide-content-dark .slide-tfoot-row {
+  border-top-color: rgba(255, 255, 255, 0.1) !important;
+  background-color: rgba(255, 255, 255, 0.04) !important;
+  color: #f5f5f5 !important;
+}
+/* 表格单元格文字：全面提亮 */
+.slide-content-dark .slide-td {
+  color: #d0d0d0 !important;
+}
+/* 表格边框线 */
+.slide-content-dark table {
+  border-color: rgba(255, 255, 255, 0.06) !important;
+}
+.slide-content-dark tbody tr {
+  border-color: rgba(255, 255, 255, 0.04) !important;
+}
+.slide-content-dark .divide-\[var\(--border-subtle\)\] > * + * {
+  border-color: rgba(255, 255, 255, 0.04) !important;
+}
+/* 表格外框 */
+.slide-content-dark .overflow-x-auto {
+  border-color: rgba(255, 255, 255, 0.06) !important;
+}
+/* 覆盖全局 td/th !important 规则 */
+.slide-content-dark td {
+  color: #d0d0d0 !important;
+}
+.slide-content-dark th {
+  color: rgba(255, 255, 255, 0.7) !important;
+}
+/* 知识库表格同步 */
+.slide-content-dark .kb-table thead {
+  background-color: rgba(255, 255, 255, 0.06) !important;
+}
+.slide-content-dark .kb-table thead th {
+  color: rgba(255, 255, 255, 0.7) !important;
+}
+
 /* ── Slide 演示模式 Design Token ────────────────── */
 /* 修改此处即全局生效于所有 Slide 表格组件 */
 
