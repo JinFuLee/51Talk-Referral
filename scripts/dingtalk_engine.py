@@ -325,8 +325,6 @@ class NotificationEngine:
                     title = f"📊 CC Revenue Ranking {today_str}"
                     sent = self._upload_and_send(img, title, channel, path.name)
                     result["status"] = "sent" if sent else "error"
-                    if sent:
-                        print(f"  ✅ {title}")
                 return result
 
             # team_checkin_combined：打卡图 + 未打卡 ID 合并为一条消息/组
@@ -2336,6 +2334,168 @@ class NotificationEngine:
 
         plt.tight_layout(pad=0.3)
         return self._fig_to_bytes(fig)
+
+    def _process_team_checkin_combined(
+        self, role: str, channel: dict, dry_run: bool,
+    ) -> dict:
+        """每组一条消息：打卡排名图（嵌入 Markdown）+ 未打卡学员 ID"""
+        import sys as _sys  # noqa: PLC0415
+        from collections import defaultdict as _dd  # noqa: PLC0415
+
+        _sd = str(Path(__file__).resolve().parent)
+        if _sd not in _sys.path:
+            _sys.path.insert(0, _sd)
+        import dingtalk_daily as _daily  # noqa: PLC0415
+        import lark_bot as _lb  # noqa: PLC0415
+
+        result: dict[str, Any] = {
+            "module": "team_checkin_combined",
+            "status": "pending",
+        }
+
+        # 1. 获取打卡数据
+        checkin_data = self._fetch_data(role)
+        if not checkin_data:
+            result["status"] = "no_data"
+            print("  [team_checkin_combined] 无打卡数据")
+            return result
+
+        role_checkin = checkin_data.get("by_role", {}).get(role, {})
+        groups = role_checkin.get("by_group", [])
+        persons = role_checkin.get("by_person", [])
+
+        # 2. 获取未打卡学员数据
+        enc_order = _lb._get_role_enclosures(role)
+        followup = self._fetch_followup(role)
+        all_students: list[dict] = (
+            followup.get("students", []) if followup else []
+        )
+        valid_encs = set(enc_order)
+        unchecked_students = [
+            s for s in all_students if s.get("enclosure") in valid_encs
+        ]
+
+        # 按 team → CC → 围场分组
+        unchecked_by_team: dict[str, list[dict]] = {}
+        for s in unchecked_students:
+            team = s.get("team", "Unknown")
+            unchecked_by_team.setdefault(team, []).append(s)
+
+        # 按人建索引
+        person_by_group: dict[str, list[dict]] = {}
+        for p in persons:
+            g = p.get("group", "")
+            person_by_group.setdefault(g, []).append(p)
+
+        # 按人打卡索引
+        ck_person_map: dict[str, dict] = {
+            p["name"]: p for p in persons
+        }
+
+        today = datetime.now()
+        today_str = today.strftime("%d/%m")
+        date_tag = today.strftime("%Y%m%d")
+        date_display = f"{today_str} T-1"
+        group_order = [g.get("group", "") for g in groups]
+
+        if dry_run:
+            for team_name in group_order:
+                short = team_name.replace("TH-", "").replace("Team", "")
+                uc = unchecked_by_team.get(team_name, [])
+                print(f"  [team_checkin_combined] {short}: 未打卡 {len(uc)}")
+            result["status"] = "dry_run"
+            return result
+
+        # 3. 每组生成图 + 文本 → 合并为一条 Markdown
+        msg_idx = 0
+        msg_total = len(group_order)
+        for team_name in group_order:
+            short = team_name.replace("TH-", "").replace("Team", "")
+            members = person_by_group.get(team_name, [])
+            uc_list = unchecked_by_team.get(team_name, [])
+
+            # 团队汇总
+            g_info = next(
+                (g for g in groups if g.get("group") == team_name), {}
+            )
+            t_total = g_info.get("students", 0)
+            t_checked = g_info.get("checked_in", 0)
+            t_rate = g_info.get("rate", 0) or 0
+
+            # 生成打卡图
+            img = _daily.generate_team_image(
+                team_name, members, t_total, t_checked
+            )
+            path = OUTPUT_DIR / f"checkin-{short}-{date_tag}.png"
+            path.write_bytes(img)
+
+            # 上传图片
+            img_url = self._upload_image(img, path.name)
+
+            # 构建 Markdown（图片 + 未打卡 ID）
+            md = f"## {short} เช็คอิน · {date_display}\n\n"
+            if img_url:
+                md += f"![{short}]({img_url})\n\n"
+
+            if uc_list:
+                md += (
+                    f"---\n\n"
+                    f"**ยังไม่เช็คอิน / 未打卡**"
+                    f" · เช็คอิน {t_checked}/{t_total} ({t_rate:.0%})\n\n"
+                )
+
+                # 按 CC 分组
+                ccs = _lb.group_students_by_cc(uc_list)
+                for cc_name, cc_students in ccs.items():
+                    cc_short = (
+                        cc_name.replace("THCC-", "")
+                        .replace("thcc-", "")
+                        .replace("THSS-", "")
+                        .replace("tgss-", "")
+                        .replace("THLP-", "")
+                    )
+                    ck_p = ck_person_map.get(cc_name, {})
+                    p_checked = ck_p.get("checked_in", 0)
+                    p_total = ck_p.get("students", 0)
+                    p_rate = ck_p.get("rate", 0) or 0
+
+                    md += (
+                        f"👤 **{cc_short}**"
+                        f" (เช็คอิน {p_checked}/{p_total} · {p_rate:.0%})\n\n"
+                    )
+                    # 按围场分段
+                    s_by_enc: dict[str, list[str]] = _dd(list)
+                    for s in cc_students:
+                        enc = s.get("enclosure", "?")
+                        s_by_enc[enc].append(str(s.get("student_id", "")))
+
+                    for enc in enc_order:
+                        ids = s_by_enc.get(enc, [])
+                        if not ids:
+                            continue
+                        chunks = [
+                            ", ".join(ids[i:i + 8])
+                            for i in range(0, len(ids), 8)
+                        ]
+                        md += f"**{enc}** · {len(ids)} คน\n\n"
+                        md += "\n\n".join(chunks) + "\n\n"
+            else:
+                md += "\n\n✅ ไม่มีนักเรียนที่ต้องติดตาม\n\n"
+
+            # 发送
+            title = f"📋 {short} Check-in {date_display}"
+            r = self._send_dingtalk(title, md, channel)
+            ok = r.get("errcode") == 0
+            msg_idx += 1
+            print(
+                f"  {'✅' if ok else '❌'}"
+                f" [team_checkin_combined] {msg_idx}/{msg_total} {short}"
+            )
+            if msg_idx < msg_total:
+                time.sleep(5)
+
+        result["status"] = "sent"
+        return result
 
     def _process_unchecked_ids_per_team(
         self, role: str, channel: dict, dry_run: bool,

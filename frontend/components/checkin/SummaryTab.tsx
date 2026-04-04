@@ -5,6 +5,7 @@ import { useFilteredSWR } from '@/lib/hooks/use-filtered-swr';
 import { useStudentAnalysis } from '@/lib/hooks/useStudentAnalysis';
 import { useWideConfig } from '@/lib/hooks/useWideConfig';
 import { useCheckinThresholds } from '@/lib/hooks/useCheckinThresholds';
+import { useConfigStore } from '@/lib/stores/config-store';
 import { Spinner } from '@/components/ui/Spinner';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { StatMiniCard } from '@/components/ui/StatMiniCard';
@@ -314,6 +315,7 @@ export default function SummaryTab({ enclosureFilter, roleFilter }: SummaryTabPr
   const t = I18N[(locale as Locale) in I18N ? (locale as Locale) : 'zh'];
   const { configJson } = useWideConfig();
   const { rateColor, rateBg } = useCheckinThresholds();
+  const dataRole = useConfigStore((s) => s.dataRole);
 
   const summaryUrl = `/api/checkin/summary?role_config=${encodeURIComponent(configJson)}${
     enclosureFilter ? `&enclosure=${encodeURIComponent(enclosureFilter)}` : ''
@@ -344,16 +346,30 @@ export default function SummaryTab({ enclosureFilter, roleFilter }: SummaryTabPr
   }
 
   const byRole = data?.by_role ?? {};
-  const channels: CheckinChannelSummary[] = Object.entries(byRole)
-    .filter(([role]) => role !== '运营')
-    .map(([role, v]) => ({
-      channel: role,
-      total_students: v.total_students,
-      total_checkin: v.checked_in,
-      checkin_rate: v.checkin_rate,
-      by_team: v.by_team ?? [],
-      by_enclosure: v.by_enclosure ?? [],
-    }));
+
+  // dataRole 映射：全部 → CC+SS+LP，单选 → 只显示对应角色面板
+  const _ROLE_MAP: Record<string, string[]> = {
+    all: ['CC', 'SS', 'LP'],
+    cc: ['CC'],
+    ss: ['SS'],
+    lp: ['LP'],
+    ops: ['运营'],
+  };
+  const visibleRoles = _ROLE_MAP[dataRole] ?? _ROLE_MAP.all;
+
+  const channels: CheckinChannelSummary[] = visibleRoles
+    .filter((role) => role !== '运营') // 运营有专属视图，不在此 grid 展示
+    .map((role) => {
+      const v = byRole[role];
+      return {
+        channel: role,
+        total_students: v?.total_students ?? 0,
+        total_checkin: v?.checked_in ?? 0,
+        checkin_rate: v?.checkin_rate ?? 0,
+        by_team: v?.by_team ?? [],
+        by_enclosure: v?.by_enclosure ?? [],
+      };
+    });
 
   if (channels.length === 0) {
     return <EmptyState title={t.noData} description={t.noDataDesc} />;
