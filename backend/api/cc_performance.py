@@ -1251,8 +1251,8 @@ def get_cc_performance(
     # 用新 filter 实例替代（保留 country/team/cc，清除 enclosure）
     cc_filters = UnifiedFilter(
         country=filters.country,
-        data_role=filters.data_role,
-        enclosure=None,  # 强制：CC 业绩不按围场过滤
+        data_role="all",  # 强制：CC 负责全转化，不按角色围场过滤
+        enclosure=None,   # 强制：不按围场过滤
         team=filters.team,
         cc=filters.cc,
         channel=filters.channel,
