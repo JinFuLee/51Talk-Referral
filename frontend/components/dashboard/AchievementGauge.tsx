@@ -97,7 +97,7 @@ export function AchievementGauge({ value, label, size = 160 }: AchievementGaugeP
           fontSize={11}
           fill="var(--n-400)"
         >
-          {label}
+          {resolvedLabel}
         </text>
       </svg>
     </div>

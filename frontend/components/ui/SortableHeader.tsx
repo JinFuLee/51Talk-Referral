@@ -30,12 +30,14 @@ export function SortableHeader({
   className,
   align = 'left',
 }: SortableHeaderProps) {
+  const locale = useLocale();
+  const t = I18N[locale as keyof typeof I18N] || I18N.zh;
   const isActive = currentSortKey === columnKey;
 
   return (
     <th
       onClick={() => onSort(columnKey)}
-      title={`点击按 ${label} 排序`}
+      title={t.sortTitle(label)}
       className={cn(
         'group cursor-pointer p-4 text-sm font-medium transition-colors select-none',
         isActive

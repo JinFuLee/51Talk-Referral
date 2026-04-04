@@ -28,8 +28,8 @@ const ibmPlexSansThai = IBM_Plex_Sans_Thai({
 });
 
 export const metadata: Metadata = {
-  title: 'ref-ops-engine — 运营分析面板',
-  description: '51Talk 泰国转介绍运营自动化分析引擎',
+  title: 'ref-ops-engine — Operations Dashboard',
+  description: '51Talk Thailand referral operations analytics engine',
 };
 
 export default function RootLayout({

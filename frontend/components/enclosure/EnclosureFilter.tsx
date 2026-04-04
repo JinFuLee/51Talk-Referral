@@ -9,22 +9,38 @@ const I18N = {
   th: { all: 'ทั้งหมด', ariaLabel: 'กรองเซกเมนต์' },
 } as const;
 
-const FILTERS_BASE = [
-  { label_zh: '全部', value: '' },
-  { label: 'M0（0~30）', value: '0M' },
-  { label: 'M1（31~60）', value: '1M' },
-  { label: 'M2（61~90）', value: '2M' },
-  { label: 'M3（91~120）', value: '3M' },
-  { label: 'M4（121~150）', value: '4M' },
-  { label: 'M5（151~180）', value: '5M' },
-  { label: 'M6（181~210）', value: '6M' },
-  { label: 'M7（211~240）', value: '7M' },
-  { label: 'M8（241~270）', value: '8M' },
-  { label: 'M9（271~300）', value: '9M' },
-  { label: 'M10（301~330）', value: '10M' },
-  { label: 'M11（331~360）', value: '11M' },
-  { label: 'M12（361~390）', value: '12M' },
-  { label: 'M12+（391+）', value: '12M+' },
+const ENCLOSURE_SEGMENTS = [
+  'M0（0~30）',
+  'M1（31~60）',
+  'M2（61~90）',
+  'M3（91~120）',
+  'M4（121~150）',
+  'M5（151~180）',
+  'M6（181~210）',
+  'M7（211~240）',
+  'M8（241~270）',
+  'M9（271~300）',
+  'M10（301~330）',
+  'M11（331~360）',
+  'M12（361~390）',
+  'M12+（391+）',
+];
+
+const SEGMENT_VALUES = [
+  '0M',
+  '1M',
+  '2M',
+  '3M',
+  '4M',
+  '5M',
+  '6M',
+  '7M',
+  '8M',
+  '9M',
+  '10M',
+  '11M',
+  '12M',
+  '12M+',
 ];
 
 interface EnclosureFilterProps {
@@ -33,9 +49,17 @@ interface EnclosureFilterProps {
 }
 
 export function EnclosureFilter({ value, onChange }: EnclosureFilterProps) {
+  const locale = useLocale();
+  const t = I18N[locale as keyof typeof I18N] || I18N.zh;
+
+  const filters = [
+    { label: t.all, value: '' },
+    ...ENCLOSURE_SEGMENTS.map((label, i) => ({ label, value: SEGMENT_VALUES[i] })),
+  ];
+
   return (
-    <div className="flex flex-wrap gap-2" role="group" aria-label="围场分段筛选">
-      {FILTERS.map((f) => (
+    <div className="flex flex-wrap gap-2" role="group" aria-label={t.ariaLabel}>
+      {filters.map((f) => (
         <button
           key={f.value}
           onClick={() => onChange(f.value)}

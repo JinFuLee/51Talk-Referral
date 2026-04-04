@@ -22,7 +22,7 @@ export function EmptyState({ title, description, icon, action }: EmptyStateProps
   return (
     <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
       {icon ?? <Inbox className="h-12 w-12 mb-4 opacity-50" />}
-      <p className="text-sm font-medium">{title}</p>
+      <p className="text-sm font-medium">{resolvedTitle}</p>
       {description && <p className="text-xs mt-1 text-center max-w-xs">{description}</p>}
       {action && (
         <button
