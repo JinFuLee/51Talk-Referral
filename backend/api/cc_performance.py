@@ -1376,9 +1376,12 @@ def get_cc_performance(
     reconciliation: dict | None = None
     if has_uploaded:
         matched_revenue = sum(r.revenue.actual or 0 for r in all_records)
-        # 系统总业绩 = D2 全部行（含无 CC 名的）
+        # 系统总业绩 = 聚合后全部 CC 的 revenue_actual 之和
         sys_total = _sf(
-            pd.to_numeric(merged[_rev_col], errors="coerce").sum()
+            pd.to_numeric(
+                merged[_agg_rev_col] if _agg_rev_col in merged.columns
+                else pd.Series(), errors="coerce"
+            ).sum()
         ) or 0.0
         # 无 CC 名的业绩（已在 grand_total 补偿）
         _cc_col = "last_cc_name"
@@ -1391,8 +1394,9 @@ def get_cc_performance(
                 _null_mask = _null_mask & (df_d2["区域"].astype(str) == "泰国")
             unassigned_rev = _sf(
                 pd.to_numeric(
-                    df_d2.loc[_null_mask, _rev_col] if _rev_col in df_d2.columns
-                    else pd.Series(), errors="coerce"
+                    df_d2.loc[_null_mask, _raw_rev_col]
+                    if _raw_rev_col in df_d2.columns else pd.Series(),
+                    errors="coerce"
                 ).sum()
             ) or 0.0
         reconciliation = {
