@@ -387,7 +387,7 @@ export default function SummaryTab({ enclosureFilter, roleFilter }: SummaryTabPr
             ch={ch}
             rateColor={rateColor}
             rateBg={rateBg}
-            isSelected={roleFilter ? ch.channel === roleFilter : false}
+            isSelected={dataRole !== 'all' || ch.channel === (roleFilter || 'CC')}
             t={t}
           />
         ))}

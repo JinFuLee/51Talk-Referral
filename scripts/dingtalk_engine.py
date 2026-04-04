@@ -2041,15 +2041,21 @@ class NotificationEngine:
     def _gen_tl_overview_image(
         self, perf_data: dict, today_str: str,
     ) -> bytes:
-        """TL 总览图：7 组按业绩(THB)排名 + BM 今日/月 + 打卡率 + 参与率
+        """TL 总览图：总业绩汇总 + 7 组按业绩(THB)排名 + BM 差额 + 打卡率 + 参与率
 
-        金色主调，排名模式，只有业绩追 BM。
+        金色主调，排名模式，只有业绩追 BM。BM 差额列强调领先/落后。
         """
         from matplotlib.patches import FancyBboxPatch, Rectangle
 
         teams = perf_data.get("teams", [])
         xrate = perf_data.get("exchange_rate", 34.0)
         time_pct = perf_data.get("time_progress_pct", 0)
+        gt = perf_data.get("grand_total", {})
+        gt_rev = gt.get("revenue", {}) if gt else {}
+        total_actual_thb = (gt_rev.get("actual", 0) or 0) * xrate
+        total_bm_today_thb = (gt_rev.get("bm_expected", 0) or 0) * xrate
+        total_target_thb = (gt_rev.get("target", 0) or 0) * xrate
+        total_bm_gap = total_actual_thb - total_bm_today_thb
 
         # 构建行数据，按业绩 THB 降序
         rows: list[dict] = []
@@ -2062,45 +2068,89 @@ class NotificationEngine:
                 "team": t["team"].replace("TH-", "").replace("Team", ""),
                 "rev_thb": actual_thb,
                 "bm_today": bm_today_thb,
+                "bm_gap": actual_thb - bm_today_thb,
                 "bm_month": target_thb,
                 "checkin": t.get("checkin_rate", 0) or 0,
                 "participation": t.get("participation_rate", 0) or 0,
             })
         rows.sort(key=lambda r: -r["rev_thb"])
 
+        _GOLD = "#D4A017"
+        _GOLD_BG = "#FDF6E3"
+        _GOLD_DARK = "#B8860B"
+
         n = len(rows)
         row_h = 0.55
-        fig_h = 1.8 + 0.5 + n * row_h + 0.6
-        fig, ax = plt.subplots(figsize=(10, max(fig_h, 5)), dpi=150)
-        ax.set_xlim(0, 10)
+        # 额外空间：汇总卡片
+        fig_h = 2.2 + 1.0 + 0.5 + n * row_h + 0.6
+        fig, ax = plt.subplots(figsize=(10.5, max(fig_h, 5.5)), dpi=150)
+        ax.set_xlim(0, 10.5)
         ax.set_ylim(0, fig_h)
         ax.axis("off")
         fig.patch.set_facecolor(_C_BG)
         ax.set_facecolor(_C_BG)
 
         # ── 品牌条（金色） ──
-        _GOLD = "#D4A017"
-        _GOLD_BG = "#FDF6E3"
-        _GOLD_DARK = "#B8860B"
-        ax.add_patch(Rectangle((0, fig_h - 0.15), 10, 0.15,
+        ax.add_patch(Rectangle((0, fig_h - 0.15), 10.5, 0.15,
                                color=_GOLD_DARK, zorder=5))
 
         # ── 标题 ──
-        y = fig_h - 0.6
+        y = fig_h - 0.55
         ax.text(0.4, y, "CC Revenue Ranking", fontsize=18,
                 fontweight="bold", color=_C_TEXT, va="center",
                 fontfamily=_THAI_FONTS)
-        ax.text(7.0, y, f"{today_str} T-1 | Progress {time_pct:.0%}",
+        ax.text(7.5, y, f"{today_str} T-1 | Progress {time_pct:.0%}",
                 fontsize=10, color=_C_MUTED, va="center", ha="left")
 
+        # ── 总业绩汇总条 ──
+        y_sum = y - 0.85
+        ax.add_patch(FancyBboxPatch(
+            (0.3, y_sum - 0.3), 9.9, 0.7,
+            boxstyle="round,pad=0.08", facecolor=_GOLD_BG,
+            edgecolor=_GOLD, linewidth=1.2, zorder=2,
+        ))
+        # 总业绩
+        ax.text(1.8, y_sum + 0.18, f"฿{total_actual_thb:,.0f}",
+                fontsize=16, fontweight="bold", color=_GOLD_DARK,
+                ha="center", va="center")
+        ax.text(1.8, y_sum - 0.15, "รวม/总业绩", fontsize=8,
+                color=_C_MUTED, ha="center", va="center",
+                fontfamily=_THAI_FONTS)
+        # BM 差额
+        gap_sign = "+" if total_bm_gap >= 0 else ""
+        gap_color = _C_SUCCESS if total_bm_gap >= 0 else _C_DANGER
+        gap_label = "นำ/领先" if total_bm_gap >= 0 else "ตาม/落后"
+        ax.text(4.5, y_sum + 0.18,
+                f"{gap_sign}฿{total_bm_gap:,.0f}",
+                fontsize=14, fontweight="bold", color=gap_color,
+                ha="center", va="center")
+        ax.text(4.5, y_sum - 0.15, f"vs BM วันนี้ ({gap_label})",
+                fontsize=8, color=_C_MUTED, ha="center", va="center",
+                fontfamily=_THAI_FONTS)
+        # 月目标
+        ax.text(7.0, y_sum + 0.18, f"฿{total_target_thb:,.0f}",
+                fontsize=13, color=_C_TEXT2, ha="center", va="center")
+        ax.text(7.0, y_sum - 0.15, "เป้าเดือน/月目标", fontsize=8,
+                color=_C_MUTED, ha="center", va="center",
+                fontfamily=_THAI_FONTS)
+        # 达成率
+        ach_pct = (total_actual_thb / total_target_thb) if total_target_thb else 0
+        ax.text(9.2, y_sum + 0.18, f"{ach_pct:.1%}",
+                fontsize=13, fontweight="bold",
+                color=_C_SUCCESS if ach_pct >= time_pct else _C_DANGER,
+                ha="center", va="center")
+        ax.text(9.2, y_sum - 0.15, "บรรลุ/达成", fontsize=8,
+                color=_C_MUTED, ha="center", va="center",
+                fontfamily=_THAI_FONTS)
+
         # ── 表头 ──
-        y_table = y - 0.65
-        cx = [0.4, 1.2, 3.2, 5.0, 6.8, 8.2, 9.4]
-        headers = ["#", "Team", "รายได้(฿)", "BM วันนี้(฿)", "BM เดือน(฿)",
+        y_table = y_sum - 0.75
+        cx = [0.4, 1.3, 3.0, 5.0, 6.8, 8.3, 9.8]
+        headers = ["#", "Team", "รายได้(฿)", "vs BM วันนี้", "BM เดือน(฿)",
                    "เช็คอิน", "มีส่วนร่วม"]
         h_align = ["center", "left", "right", "right", "right", "center", "center"]
 
-        ax.add_patch(Rectangle((0.2, y_table - 0.2), 9.6, 0.42,
+        ax.add_patch(Rectangle((0.2, y_table - 0.2), 10.1, 0.42,
                                color=_C_N800, zorder=3))
         for i, h in enumerate(headers):
             ax.text(cx[i], y_table, h, fontsize=7.5, fontweight="bold",
@@ -2114,10 +2164,10 @@ class NotificationEngine:
             # 斑马纹
             if idx % 2 == 0:
                 ax.add_patch(Rectangle((0.2, y_r - row_h / 2 + 0.08),
-                                       9.6, row_h, color=_GOLD_BG,
+                                       10.1, row_h, color=_GOLD_BG,
                                        zorder=1))
 
-            # 排名（前 3 金色圆）
+            # 排名
             rank_color = _GOLD if idx < 3 else _C_MUTED
             ax.text(cx[0], y_r, f"{idx + 1}", fontsize=10,
                     fontweight="bold" if idx < 3 else "normal",
@@ -2129,17 +2179,18 @@ class NotificationEngine:
                     va="center", fontfamily=_THAI_FONTS)
 
             # 业绩 THB（金色大字）
-            rev_str = f"฿{row['rev_thb']:,.0f}"
-            ax.text(cx[2], y_r, rev_str, fontsize=10.5,
+            ax.text(cx[2], y_r, f"฿{row['rev_thb']:,.0f}", fontsize=10.5,
                     fontweight="bold",
                     color=_GOLD_DARK if row["rev_thb"] > 0 else _C_MUTED,
                     ha="right", va="center")
 
-            # BM 今日 + 颜色（超 = 绿，落后 = 红）
-            bm_color = _C_SUCCESS if row["rev_thb"] >= row["bm_today"] else _C_DANGER
-            bm_str = f"฿{row['bm_today']:,.0f}"
-            ax.text(cx[3], y_r, bm_str, fontsize=9,
-                    color=bm_color, ha="right", va="center")
+            # BM 差额（强调：绿色领先/红色落后）
+            gap = row["bm_gap"]
+            gap_s = "+" if gap >= 0 else ""
+            gap_c = _C_SUCCESS if gap >= 0 else _C_DANGER
+            ax.text(cx[3], y_r, f"{gap_s}฿{gap:,.0f}",
+                    fontsize=10, fontweight="bold", color=gap_c,
+                    ha="right", va="center")
 
             # BM 月
             ax.text(cx[4], y_r, f"฿{row['bm_month']:,.0f}", fontsize=9,
@@ -2151,15 +2202,15 @@ class NotificationEngine:
                     fontweight="bold", color=ck_color,
                     ha="center", va="center")
 
-            # 参与率
-            ax.text(cx[6], y_r, f"{row['participation']:.0%}", fontsize=10,
+            # 参与率（小数点 1 位）
+            ax.text(cx[6], y_r, f"{row['participation']:.1%}", fontsize=10,
                     color=_C_TEXT2, ha="center", va="center")
 
         # ── 底部 ──
         y_foot = y_table - 0.42 - n * row_h - 0.2
-        ax.plot([0.5, 9.5], [y_foot + 0.1, y_foot + 0.1],
+        ax.plot([0.5, 10.0], [y_foot + 0.1, y_foot + 0.1],
                 color=_C_BORDER_H, linewidth=0.5)
-        ax.text(5.0, y_foot - 0.1,
+        ax.text(5.25, y_foot - 0.1,
                 "ref-ops-engine  |  Revenue in THB  |  T-1 Data",
                 fontsize=7.5, color=_C_MUTED, va="center", ha="center")
 
