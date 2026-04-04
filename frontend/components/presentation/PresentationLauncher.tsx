@@ -6,6 +6,7 @@ import { clsx } from 'clsx';
 import { useRouter } from '@/i18n/navigation';
 import { Users, TrendingUp, Handshake, Play, Clock } from 'lucide-react';
 import { usePresentationStore } from '@/lib/stores/presentation-store';
+import { BrandMark } from '@/components/ui/BrandMark';
 import type { Audience, Timeframe } from '@/lib/presentation/types';
 
 /* ── I18N ────────────────────────────────────────────────────────── */
@@ -130,17 +131,17 @@ interface TimeframeConfig {
 const SCENES: SceneConfig[] = [
   {
     id: 'gm',
-    icon: <TrendingUp className="w-8 h-8" />,
+    icon: <TrendingUp className="w-7 h-7" />,
     allowedTimeframes: ['daily', 'weekly', 'monthly', 'quarterly', 'yearly'],
   },
   {
     id: 'ops-director',
-    icon: <Users className="w-8 h-8" />,
+    icon: <Users className="w-7 h-7" />,
     allowedTimeframes: ['daily', 'weekly', 'monthly'],
   },
   {
     id: 'crosscheck',
-    icon: <Handshake className="w-8 h-8" />,
+    icon: <Handshake className="w-7 h-7" />,
     allowedTimeframes: ['weekly', 'monthly', 'quarterly'],
   },
 ];
@@ -173,14 +174,38 @@ export function PresentationLauncher() {
   }
 
   return (
-    <div className="flex flex-col gap-8 max-w-4xl mx-auto py-8">
-      {/* Scene selection */}
-      <div>
-        <p className="text-sm font-semibold text-[var(--text-secondary)] uppercase tracking-widest mb-4">
-          {t.selectScene}
-        </p>
-        <div className="grid grid-cols-3 gap-4">
-          {SCENES.map((scene) => {
+    <div className="min-h-[calc(100vh-8rem)] relative flex items-center justify-center">
+      {/* ── 品牌氛围背景 ── */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        <div
+          className="absolute -top-20 right-1/4 w-[400px] h-[400px] rounded-full animate-auth-float"
+          style={{
+            background: 'radial-gradient(circle, rgba(255,209,0,0.08) 0%, transparent 60%)',
+          }}
+        />
+        <div
+          className="absolute bottom-0 -left-20 w-[300px] h-[300px] rounded-full animate-auth-float-reverse"
+          style={{
+            background: 'radial-gradient(circle, rgba(27,54,93,0.05) 0%, transparent 60%)',
+          }}
+        />
+      </div>
+
+      <div
+        className="relative z-10 flex flex-col gap-10 max-w-4xl w-full mx-auto py-8 animate-slide-up"
+        style={{ animationFillMode: 'both' }}
+      >
+        {/* ── 品牌标题 ── */}
+        <div className="text-center animate-fade-in">
+          <BrandMark size={40} className="text-[var(--brand-p1)] mx-auto mb-4 animate-pulse-soft" />
+          <h1 className="font-display text-3xl font-bold text-[var(--n-900)] tracking-tight">
+            {t.selectScene}
+          </h1>
+        </div>
+
+        {/* ── 场景选择 ── */}
+        <div className="grid grid-cols-3 gap-5">
+          {SCENES.map((scene, i) => {
             const isSelected = selectedScene === scene.id;
             const sceneLabel = t.scenes[scene.id] ?? { title: scene.id, description: '' };
             return (
@@ -191,18 +216,19 @@ export function PresentationLauncher() {
                   setSelectedTimeframe(null);
                 }}
                 className={clsx(
-                  'flex flex-col items-start gap-3 rounded-[var(--radius-xl)] border-2 p-6 text-left transition-all duration-200',
+                  'group flex flex-col items-start gap-4 rounded-2xl border-2 p-7 text-left transition-all duration-300 animate-slide-up',
                   isSelected
-                    ? 'border-primary bg-primary/5 shadow-md shadow-primary/10'
-                    : 'border-[var(--border-subtle)] bg-[var(--bg-surface)] hover:border-[var(--border-hover)] hover:shadow-sm'
+                    ? 'border-[var(--brand-p1)] bg-[var(--color-action-surface)] shadow-lg'
+                    : 'border-[var(--border-default)] bg-[var(--bg-surface)] hover:border-[var(--n-300)] hover:shadow-md'
                 )}
+                style={{ animationDelay: `${0.1 + i * 0.08}s`, animationFillMode: 'both' }}
               >
                 <div
                   className={clsx(
-                    'rounded-xl p-3',
+                    'rounded-xl p-3.5 transition-all duration-300',
                     isSelected
-                      ? 'bg-primary text-white'
-                      : 'bg-[var(--bg-subtle)] text-[var(--text-secondary)]'
+                      ? 'bg-[var(--brand-p1)] text-[var(--brand-p2)]'
+                      : 'bg-[var(--n-100)] text-[var(--n-600)] group-hover:bg-[var(--n-200)]'
                   )}
                 >
                   {scene.icon}
@@ -210,13 +236,13 @@ export function PresentationLauncher() {
                 <div>
                   <p
                     className={clsx(
-                      'text-lg font-bold',
-                      isSelected ? 'text-primary' : 'text-[var(--text-primary)]'
+                      'text-lg font-bold font-display transition-colors',
+                      isSelected ? 'text-[var(--brand-p2)]' : 'text-[var(--text-primary)]'
                     )}
                   >
                     {sceneLabel.title}
                   </p>
-                  <p className="text-sm text-[var(--text-secondary)] mt-1 leading-snug">
+                  <p className="text-sm text-[var(--n-500)] mt-1.5 leading-relaxed">
                     {sceneLabel.description}
                   </p>
                 </div>
@@ -224,63 +250,64 @@ export function PresentationLauncher() {
             );
           })}
         </div>
-      </div>
 
-      {/* Timeframe selection (only shown after scene selected) */}
-      {selectedScene && (
-        <div style={{ animation: 'fadeInUp 0.3s ease forwards' }}>
-          <style>{`
-            @keyframes fadeInUp {
-              from { opacity: 0; transform: translateY(8px); }
-              to   { opacity: 1; transform: translateY(0); }
-            }
-          `}</style>
-          <p className="text-sm font-semibold text-[var(--text-secondary)] uppercase tracking-widest mb-4 flex items-center gap-2">
-            <Clock className="w-4 h-4" />
-            {t.selectTimeframe}
-          </p>
-          <div className="flex gap-3">
-            {TIMEFRAMES.map((tf) => {
-              const allowed = allowedTimeframes.includes(tf.id);
-              const isSelected = selectedTimeframe === tf.id;
-              const tfLabel = t.timeframes[tf.id] ?? { label: tf.id, sublabel: '' };
-              return (
-                <button
-                  key={tf.id}
-                  onClick={() => allowed && setSelectedTimeframe(tf.id)}
-                  disabled={!allowed}
-                  className={clsx(
-                    'flex flex-col items-center gap-1 px-5 py-3 rounded-xl border-2 transition-all duration-200',
-                    !allowed && 'opacity-30 cursor-not-allowed',
-                    isSelected
-                      ? 'border-primary bg-primary/5 text-primary'
-                      : 'border-[var(--border-subtle)] bg-[var(--bg-surface)] hover:border-[var(--border-hover)] text-[var(--text-primary)]'
-                  )}
-                >
-                  <span className="text-base font-bold">{tfLabel.label}</span>
-                  <span className="text-xs text-[var(--text-muted)]">{tfLabel.sublabel}</span>
-                </button>
-              );
-            })}
+        {/* ── 时间维度选择（场景选定后滑入） ── */}
+        {selectedScene && (
+          <div className="animate-slide-up" style={{ animationFillMode: 'both' }}>
+            <p className="text-xs font-bold text-[var(--n-500)] uppercase tracking-[0.15em] mb-4 flex items-center gap-2">
+              <Clock className="w-4 h-4" />
+              {t.selectTimeframe}
+            </p>
+            <div className="flex gap-3">
+              {TIMEFRAMES.map((tf, i) => {
+                const allowed = allowedTimeframes.includes(tf.id);
+                const isSelected = selectedTimeframe === tf.id;
+                const tfLabel = t.timeframes[tf.id] ?? { label: tf.id, sublabel: '' };
+                return (
+                  <button
+                    key={tf.id}
+                    onClick={() => allowed && setSelectedTimeframe(tf.id)}
+                    disabled={!allowed}
+                    className={clsx(
+                      'flex flex-col items-center gap-1.5 px-6 py-3.5 rounded-xl border-2 transition-all duration-200 animate-slide-up',
+                      !allowed && 'opacity-25 cursor-not-allowed',
+                      isSelected
+                        ? 'border-[var(--brand-p1)] bg-[var(--color-action-surface)] shadow-sm'
+                        : 'border-[var(--border-default)] bg-[var(--bg-surface)] hover:border-[var(--n-300)]'
+                    )}
+                    style={{ animationDelay: `${i * 0.05}s`, animationFillMode: 'both' }}
+                  >
+                    <span
+                      className={clsx(
+                        'text-base font-bold font-display',
+                        isSelected ? 'text-[var(--brand-p2)]' : 'text-[var(--text-primary)]'
+                      )}
+                    >
+                      {tfLabel.label}
+                    </span>
+                    <span className="text-xs text-[var(--n-400)]">{tfLabel.sublabel}</span>
+                  </button>
+                );
+              })}
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Start button */}
-      <div className="flex justify-end">
-        <button
-          onClick={handleStart}
-          disabled={!selectedScene || !selectedTimeframe}
-          className={clsx(
-            'flex items-center gap-3 px-8 py-4 rounded-[var(--radius-xl)] text-lg font-bold transition-all duration-200',
-            selectedScene && selectedTimeframe
-              ? 'bg-primary text-white shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 hover:-translate-y-0.5'
-              : 'bg-[var(--bg-subtle)] text-[var(--text-muted)] cursor-not-allowed'
-          )}
-        >
-          <Play className="w-5 h-5" />
-          {t.startBtn}
-        </button>
+        {/* ── 开始按钮 ── */}
+        <div className="flex justify-center pt-2">
+          <button
+            onClick={handleStart}
+            disabled={!selectedScene || !selectedTimeframe}
+            className={clsx(
+              'auth-btn max-w-xs',
+              !(selectedScene && selectedTimeframe) &&
+                'opacity-40 cursor-not-allowed hover:transform-none hover:shadow-none'
+            )}
+          >
+            <Play className="w-5 h-5" />
+            {t.startBtn}
+          </button>
+        </div>
       </div>
     </div>
   );

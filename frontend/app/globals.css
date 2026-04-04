@@ -524,6 +524,7 @@ body.presentation-mode .presentation-watermark {
   margin-left: 4px !important;
 }
 
+/* ── Slide 进场方向动效（与登录页 slide-up 同语言）── */
 @keyframes slideIn {
   from {
     opacity: 0;
@@ -533,6 +534,37 @@ body.presentation-mode .presentation-watermark {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+/* 前进方向：从右侧滑入 */
+@keyframes slide-enter-right {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* 后退方向：从左侧滑入 */
+@keyframes slide-enter-left {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.slide-enter-right {
+  animation: slide-enter-right 0.4s ease-out both;
+}
+.slide-enter-left {
+  animation: slide-enter-left 0.4s ease-out both;
 }
 
 /* ── Slide 演示模式 Design Token ────────────────── */

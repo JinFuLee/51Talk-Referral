@@ -1,11 +1,12 @@
 'use client';
 
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useRef } from 'react';
 import { useParams } from 'next/navigation';
 import { useRouter } from '@/i18n/navigation';
 import { useLocale } from 'next-intl';
 import { usePageDimensions } from '@/lib/hooks/use-page-dimensions';
 import { usePresentationStore } from '@/lib/stores/presentation-store';
+import { BrandMark } from '@/components/ui/BrandMark';
 import type { Audience } from '@/lib/presentation/types';
 
 import { TargetGapSlide } from '@/components/slides/TargetGapSlide';
@@ -80,6 +81,7 @@ export default function PresentationPage() {
   const router = useRouter();
   const { currentSlide, nextSlide, prevSlide, togglePresentationMode, exitPresentationMode } =
     usePresentationStore();
+  const directionRef = useRef<'forward' | 'backward'>('forward');
 
   const exitPresentation = useCallback(() => {
     exitPresentationMode();
@@ -139,11 +141,13 @@ export default function PresentationPage() {
         case 'ArrowRight':
         case ' ':
           e.preventDefault();
+          directionRef.current = 'forward';
           nextSlide(totalSlides);
           break;
         case 'ArrowLeft':
         case 'Backspace':
           e.preventDefault();
+          directionRef.current = 'backward';
           prevSlide();
           break;
         case 'Escape':
@@ -165,17 +169,18 @@ export default function PresentationPage() {
   }
 
   return (
-    <div className="relative w-full h-screen bg-[var(--bg-surface)] overflow-hidden">
+    <div className="relative w-full h-screen overflow-hidden" key={currentSlide}>
       {/* 当前 Slide */}
       <CurrentSlide slideNumber={currentSlide + 1} totalSlides={totalSlides} />
 
-      {/* 退出按钮（底部右下角小型悬浮按钮） */}
+      {/* 退出按钮 — 毛玻璃品牌风格 */}
       <button
         onClick={exitPresentation}
-        className="absolute bottom-4 right-4 z-50 flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-black/10 hover:bg-black/20 text-[var(--text-muted)] text-xs font-medium transition-colors duration-200 backdrop-blur-sm"
+        className="absolute bottom-5 right-6 z-50 flex items-center gap-2 px-4 py-2 rounded-xl backdrop-blur-xl bg-white/60 border border-white/40 shadow-lg text-[var(--n-600)] text-xs font-semibold transition-all duration-200 hover:bg-white/80 hover:shadow-xl hover:-translate-y-0.5"
         title={t.exitTitle}
       >
-        <span>ESC</span>
+        <BrandMark size={14} className="text-[var(--brand-p1)]" />
+        <span className="font-mono tracking-wider">ESC</span>
         <span>{t.exitBtn}</span>
       </button>
     </div>
