@@ -311,7 +311,9 @@ class OrderBotHandler(dingtalk_stream.ChatbotHandler):
         self, callback: dingtalk_stream.CallbackMessage
     ) -> tuple[str, str]:
         incoming = dingtalk_stream.ChatbotMessage.from_dict(callback.data)
-        text: str = (incoming.text.content or "").strip()
+        text: str = ""
+        if incoming.text and hasattr(incoming.text, "content"):
+            text = (incoming.text.content or "").strip()
 
         if not text:
             return AckMessage.STATUS_OK, "OK"
