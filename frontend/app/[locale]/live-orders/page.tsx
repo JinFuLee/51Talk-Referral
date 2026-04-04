@@ -32,6 +32,17 @@ const I18N = {
     amountThb: '金额 (฿)',
     manage: '操作',
     clickToEdit: '点击编辑',
+    orderUnit: '单',
+    confirmedN: (n: number, u: number) => `已确认 ${n} / 未确认 ${u}`,
+    ocrConfirmed: (n: number) => `OCR 已确认 ${n} 笔`,
+    overTarget: (v: string) => `超额 ${v}`,
+    belowTarget: (v: string) => `落后 ${v}`,
+    t1Plus: (t1: string, today: string) => `T-1 ${t1} + 今日 ${today}`,
+    remaining: (v: string) => `还差 ${v}`,
+    exceeded: (v: string) => `超额 ${v}`,
+    pendingAmount: '等待系统确认',
+    deleteConfirm: '删除这笔订单？',
+    resetConfirm: '清空今日所有数据？（确认）',
   },
   'zh-TW': {
     subtitleFmt: (date: string) => `今日即時成交 — ${date}（每 15 秒自動刷新）`,
@@ -58,6 +69,17 @@ const I18N = {
     amountThb: '金額 (฿)',
     manage: '操作',
     clickToEdit: '點擊編輯',
+    orderUnit: '單',
+    confirmedN: (n: number, u: number) => `已確認 ${n} / 未確認 ${u}`,
+    ocrConfirmed: (n: number) => `OCR 已確認 ${n} 筆`,
+    overTarget: (v: string) => `超額 ${v}`,
+    belowTarget: (v: string) => `落後 ${v}`,
+    t1Plus: (t1: string, today: string) => `T-1 ${t1} + 今日 ${today}`,
+    remaining: (v: string) => `還差 ${v}`,
+    exceeded: (v: string) => `超額 ${v}`,
+    pendingAmount: '等待系統確認',
+    deleteConfirm: '刪除這筆訂單？',
+    resetConfirm: '清空今日所有數據？（確認）',
   },
   en: {
     subtitleFmt: (date: string) => `Today's Live Orders — ${date} (auto-refresh every 15s)`,
@@ -84,6 +106,17 @@ const I18N = {
     amountThb: 'Amount (฿)',
     manage: 'Actions',
     clickToEdit: 'Click to edit',
+    orderUnit: 'orders',
+    confirmedN: (n: number, u: number) => `Confirmed ${n} / Pending ${u}`,
+    ocrConfirmed: (n: number) => `OCR confirmed ${n} items`,
+    overTarget: (v: string) => `Over ${v}`,
+    belowTarget: (v: string) => `Behind ${v}`,
+    t1Plus: (t1: string, today: string) => `T-1 ${t1} + Today ${today}`,
+    remaining: (v: string) => `${v} remaining`,
+    exceeded: (v: string) => `Exceeded ${v}`,
+    pendingAmount: 'Pending',
+    deleteConfirm: 'Delete this order?',
+    resetConfirm: 'Clear all today data? (confirm)',
   },
   th: {
     subtitleFmt: (date: string) => `ออเดอร์วันนี้ — ${date} (รีเฟรชทุก 15 วินาที)`,
@@ -110,6 +143,17 @@ const I18N = {
     amountThb: 'ยอดเงิน (฿)',
     manage: 'จัดการ',
     clickToEdit: 'คลิกเพื่อแก้ไข',
+    orderUnit: 'ออเดอร์',
+    confirmedN: (n: number, u: number) => `ยืนยันแล้ว ${n} / ไม่ยืนยัน ${u}`,
+    ocrConfirmed: (n: number) => `OCR ยืนยันแล้ว ${n} รายการ`,
+    overTarget: (v: string) => `เกินเป้า ${v}`,
+    belowTarget: (v: string) => `ต่ำกว่า ${v}`,
+    t1Plus: (t1: string, today: string) => `T-1 ${t1} + วันนี้ ${today}`,
+    remaining: (v: string) => `เหลือ ${v}`,
+    exceeded: (v: string) => `เกิน ${v}`,
+    pendingAmount: 'รอยืนยัน',
+    deleteConfirm: 'ลบออเดอร์นี้?',
+    resetConfirm: 'ล้างข้อมูลวันนี้ทั้งหมด? (ยืนยัน)',
   },
 } as const;
 import {
@@ -209,13 +253,13 @@ export default function LiveOrdersPage() {
   );
 
   const deleteOrder = useCallback(async (idx: number) => {
-    if (!confirm('ลบออเดอร์นี้?')) return;
+    if (!confirm(t.deleteConfirm)) return;
     await fetch(`/api/live-orders/${idx}`, { method: 'DELETE' });
     mutate(SWR_KEY);
   }, []);
 
   const resetAll = useCallback(async () => {
-    if (!confirm('ล้างข้อมูลวันนี้ทั้งหมด? (ยืนยัน)')) return;
+    if (!confirm(t.resetConfirm)) return;
     setResetting(true);
     await fetch(`/api/live-orders/reset`, { method: 'POST' });
     mutate(SWR_KEY);
@@ -250,15 +294,15 @@ export default function LiveOrdersPage() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <SummaryCard
           label={t.todayOrders}
-          value={`${s.total_orders} ออเดอร์`}
-          sub={`ยืนยันแล้ว ${s.confirmed_orders} / ไม่ยืนยัน ${s.unconfirmed_orders}`}
+          value={`${s.total_orders} ${t.orderUnit}`}
+          sub={t.confirmedN(s.confirmed_orders, s.unconfirmed_orders)}
           icon={Package}
           color="text-blue-600"
         />
         <SummaryCard
           label={t.todayAmount}
           value={fmt(s.total_thb)}
-          sub={`OCR ยืนยันแล้ว ${s.confirmed_orders} รายการ`}
+          sub={t.ocrConfirmed(s.confirmed_orders)}
           icon={DollarSign}
           color="text-amber-600"
         />
@@ -266,10 +310,10 @@ export default function LiveOrdersPage() {
           label={t.todayBm}
           value={
             s.bm_gap_thb >= 0
-              ? `เกินเป้า ${fmt(s.bm_gap_thb)}`
-              : `ต่ำกว่า ${fmt(Math.abs(s.bm_gap_thb))}`
+              ? t.overTarget(fmt(s.bm_gap_thb))
+              : t.belowTarget(fmt(Math.abs(s.bm_gap_thb)))
           }
-          sub={`T-1 ${fmt(s.t1_actual_thb)} + วันนี้ ${fmt(s.total_thb)}`}
+          sub={t.t1Plus(fmt(s.t1_actual_thb), fmt(s.total_thb))}
           icon={s.bm_gap_thb >= 0 ? TrendingUp : TrendingDown}
           color={s.bm_gap_thb >= 0 ? 'text-green-600' : 'text-red-600'}
         />
@@ -277,8 +321,8 @@ export default function LiveOrdersPage() {
           label={t.monthTarget}
           value={
             s.month_gap_thb >= 0
-              ? `เกิน ${fmt(s.month_gap_thb)}`
-              : `เหลือ ${fmt(Math.abs(s.month_gap_thb))}`
+              ? t.exceeded(fmt(s.month_gap_thb))
+              : t.remaining(fmt(Math.abs(s.month_gap_thb)))
           }
           sub={`${fmt(s.realtime_thb)} / ${fmt(s.target_thb)}`}
           icon={s.month_gap_thb >= 0 ? TrendingUp : AlertTriangle}
@@ -444,7 +488,7 @@ export default function LiveOrdersPage() {
                           }}
                           title={t.clickToEdit}
                         >
-                          {o.amount_thb ? fmt(o.amount_thb) : 'รอยืนยัน'}
+                          {o.amount_thb ? fmt(o.amount_thb) : t.pendingAmount}
                         </span>
                       )}
                     </td>

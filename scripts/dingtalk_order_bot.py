@@ -599,7 +599,7 @@ class OrderBotHandler(dingtalk_stream.ChatbotHandler):
                             # 图片：尝试下载用于 OCR
                             dl_url = part.get("pictureDownloadUrl", "")
                             if dl_url:
-                                from scripts.order_ocr import download_image_url
+                                from order_ocr import download_image_url
                                 img = download_image_url(dl_url)
                                 if img:
                                     image_bytes_list.append(img)
@@ -619,7 +619,7 @@ class OrderBotHandler(dingtalk_stream.ChatbotHandler):
             # OCR 图片提取金额
             ocr_amount_thb: float | None = None
             if image_bytes_list:
-                from scripts.order_ocr import extract_thb_from_image
+                from order_ocr import extract_thb_from_image
                 for img_bytes in image_bytes_list:
                     amt = extract_thb_from_image(img_bytes)
                     if amt and amt > 100:
@@ -649,7 +649,7 @@ class OrderBotHandler(dingtalk_stream.ChatbotHandler):
             order.amount_usd = ocr_amount_thb / rate
 
         # 写入今日累加器
-        from scripts.today_orders import add_order as _add_today
+        from today_orders import add_order as _add_today
         today_stats = _add_today(
             cc_name=order.cc_name,
             team=f"{order.team_code} Team {order.team_number}",

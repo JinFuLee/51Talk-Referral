@@ -258,6 +258,14 @@ class NotificationEngine:
 
     # ── 内部：模块处理 ────────────────────────────────────────────────────────
 
+    # CC 专属模块白名单：SS/LP 通道严禁发送这些模块（硬防线）
+    _CC_ONLY_MODULES = frozenset({
+        "cc_enc_warning", "action_items", "student_improvement",
+        "result_metrics", "achievement_metrics",
+        "process_metrics", "efficiency_metrics", "service_metrics",
+        "honor_ranking",
+    })
+
     def _process_module(self, module_id: str, channel: dict, dry_run: bool) -> dict:
         """处理单个内容模块：获取数据 → 生成图片/文本 → 发送"""
         result: dict[str, Any] = {
@@ -268,6 +276,15 @@ class NotificationEngine:
 
         try:
             role = channel.get("role", "CC")
+
+            # ── 硬防线：SS/LP 通道禁止接收 CC 专属模块 ──
+            # SS/LP 只允许 team_ranking + individual_ranking（窄口 leads）
+            if role in ("SS", "LP") and module_id in self._CC_ONLY_MODULES:
+                result["status"] = "blocked_role_isolation"
+                print(
+                    f"  [{module_id}] BLOCKED: {role} 通道禁止发送此模块"
+                )
+                return result
 
             # role=ALL（ops 通道）：循环 CC/SS/LP 各走一遍，每角色独立生成
             if role == "ALL":

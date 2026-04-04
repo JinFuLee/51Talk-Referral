@@ -61,9 +61,10 @@
   "scope": "narrow",
   "scope_description": "通知只发送窄口径数据（CC/SS/LP，无运营），来源 config.json enclosure_role_narrow",
   "routing": {
-    "all": ["team_ranking", "honor_ranking"],
-    "tl": ["team_ranking", "individual_ranking", "result_metrics", "achievement_metrics", "process_metrics", "efficiency_metrics", "service_metrics", "action_items", "student_improvement", "honor_ranking", "cc_enc_warning"],
-    "ops": ["team_ranking", "individual_ranking", "result_metrics", "achievement_metrics", "process_metrics", "efficiency_metrics", "service_metrics", "action_items", "student_improvement", "honor_ranking", "cc_enc_warning"]
+    "ops": ["team_ranking", "result_metrics", "action_items", "cc_enc_warning"],
+    "cc_detail": ["team_ranking", "individual_ranking", "result_metrics", "achievement_metrics", "process_metrics", "efficiency_metrics", "service_metrics", "action_items", "student_improvement", "honor_ranking", "cc_enc_warning"],
+    "cc_overview": ["team_ranking", "result_metrics", "honor_ranking"],
+    "role_detail": ["team_ranking", "individual_ranking"]
   },
   "role_metrics": {
     "CC": {
@@ -80,7 +81,7 @@
       }
     },
     "SS": {
-      "enclosure": "M2 narrow only",
+      "enclosure": "M3 narrow only (follows enclosure_role_narrow config)",
       "scope": "narrow leads only",
       "result": ["窄口leads数"],
       "achievement": ["leads达成率"],
@@ -92,8 +93,8 @@
       }
     },
     "LP": {
-      "enclosure": "M3-M5 narrow+wide",
-      "scope": "narrow+wide leads",
+      "enclosure": "M4+ narrow (follows enclosure_role_narrow config)",
+      "scope": "narrow leads",
       "result": ["窄宽leads数"],
       "achievement": ["leads达成率", "打卡率"],
       "process": ["转介绍注册数", "触达数", "带新数"],
