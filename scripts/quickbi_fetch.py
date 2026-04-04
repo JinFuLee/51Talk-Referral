@@ -252,7 +252,7 @@ def _detect_stale_sources() -> list[int]:
         ("*围场过程数据*byLP*.xlsx", None),                 # D2-LP
         ("*围场过程数据*byCC副本*.xlsx", None),              # D2b
         ("*明细*.xlsx", "围场"),                            # D3 (排除围场)
-        ("*已付费学员转介绍围场明细*.xlsx", None),            # D4
+        # ("*已付费学员转介绍围场明细*.xlsx", None),          # D4 未上线
         ("*高潜学员*.xlsx", None),                          # D5
     ]
 
@@ -299,7 +299,8 @@ TABLE_DEFS = [
     ("围场过程数据", "LP", "转介绍中台检测_围场过程数据_byLP.xlsx"),
     ("围场过程数据", "区域汇关键指标", "区域汇_围场过程数据_byCC副本.xlsx"),
     ("明细", None, "转介绍中台检测_明细.xlsx"),
-    ("转介绍中台检测-明细", None, "已付费学员转介绍围场明细.xlsx"),
+    # D4 未上线（预计月底），上线后启用，caption 为"转介绍中台检测-明细"
+    # ("转介绍中台检测-明细", None, "已付费学员转介绍围场明细.xlsx"),
     ("高潜学员", None, "转介绍中台监测_高潜学员.xlsx"),
 ]
 
@@ -905,7 +906,7 @@ def _cleanup_old_data_source_files(
         "*围场过程数据*bySS*.xlsx",
         "*围场过程数据*byLP*.xlsx",
         "*明细*.xlsx",
-        "*已付费学员转介绍围场明细*.xlsx",
+        # "*已付费学员转介绍围场明细*.xlsx",  # D4 未上线
         "*高潜学员*.xlsx",
     ]
 
