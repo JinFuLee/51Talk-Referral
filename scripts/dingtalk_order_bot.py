@@ -245,6 +245,79 @@ def _fetch_revenue_status() -> dict | None:
         return None
 
 
+def _fetch_cc_ranking(cc_name: str) -> dict | None:
+    """从后端获取 CC 业绩排名（T-1 数据）
+
+    Returns: {"rank": 3, "total": 62, "revenue_thb": 89,774,
+              "team_rank": 2, "team_total": 7, "team": "TH-CC01Team"}
+    """
+    try:
+        req = urllib.request.Request(
+            "http://localhost:8100/api/cc-performance?detail=true",
+            headers={"Accept": "application/json"},
+        )
+        with urllib.request.urlopen(req, timeout=8) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+    except Exception:
+        return None
+
+    rate = _load_exchange_rate()
+
+    # Flatten all CC records
+    all_ccs: list[dict] = []
+    team_revenues: dict[str, float] = {}
+    for t in data.get("teams", []):
+        team_name = t.get("team", "")
+        team_rev = (t.get("revenue", {}) or {}).get("actual", 0) or 0
+        team_revenues[team_name] = team_rev
+        for r in t.get("records", []):
+            rev = (r.get("revenue", {}) or {}).get("actual", 0) or 0
+            all_ccs.append({
+                "cc": r.get("cc_name", ""),
+                "team": r.get("team", ""),
+                "revenue": rev,
+            })
+
+    if not all_ccs:
+        return None
+
+    # Sort by revenue descending → find rank
+    all_ccs.sort(key=lambda x: x["revenue"], reverse=True)
+    cc_rank = 0
+    cc_rev = 0.0
+    cc_team = ""
+    cc_lower = cc_name.lower().replace("thcc-", "").replace("thcc", "")
+    for i, cc in enumerate(all_ccs, 1):
+        name_clean = cc["cc"].lower().replace("thcc-", "").replace("thcc", "")
+        if name_clean == cc_lower or cc_lower in name_clean:
+            cc_rank = i
+            cc_rev = cc["revenue"]
+            cc_team = cc["team"]
+            break
+
+    if cc_rank == 0:
+        return None
+
+    # Team ranking
+    sorted_teams = sorted(
+        team_revenues.items(), key=lambda x: x[1], reverse=True
+    )
+    team_rank = 0
+    for i, (tn, _) in enumerate(sorted_teams, 1):
+        if tn == cc_team:
+            team_rank = i
+            break
+
+    return {
+        "rank": cc_rank,
+        "total": len(all_ccs),
+        "revenue_thb": cc_rev * rate,
+        "team": cc_team,
+        "team_rank": team_rank,
+        "team_total": len(sorted_teams),
+    }
+
+
 def _count_orders(cc_name: str) -> tuple[int, int]:
     """从日志统计：(今日转介绍总单数, 该CC本月总单数)"""
     today_str = datetime.now().strftime("%Y-%m-%d")
@@ -295,7 +368,10 @@ def format_reply(order: ParsedOrder) -> str:
     lines.append("### ✓ Referral ยืนยันแล้ว")
     lines.append("")
 
-    # 单数统计
+    # CC 排名
+    ranking = _fetch_cc_ranking(order.cc_name) if order.cc_name else None
+
+    # 单数统计 + 连击
     count_parts = []
     if today_n > 0:
         count_parts.append(f"วันนี้ออเดอร์ที่ **#{today_n}**")
@@ -305,6 +381,28 @@ def format_reply(order: ParsedOrder) -> str:
         )
     if count_parts:
         lines.append(f"🔢  {' · '.join(count_parts)}")
+        lines.append("")
+
+    # 连击
+    if today_n >= 3:
+        lines.append(f"🔥🔥🔥  **{today_n} ออเดอร์ต่อเนื่อง!**")
+        lines.append("")
+    elif today_n >= 2:
+        lines.append(f"🔥  **ต่อเนื่อง {today_n} ออเดอร์!**")
+        lines.append("")
+
+    # 排名
+    if ranking:
+        r = ranking
+        medal = "🥇" if r["rank"] == 1 else "🥈" if r["rank"] == 2 else "🥉" if r["rank"] == 3 else "🏅"
+        lines.append(
+            f"{medal}  อันดับที่ **#{r['rank']}** จาก {r['total']} คน"
+            f"  |  ยอดเดือนนี้ ฿{r['revenue_thb']:,.0f}"
+        )
+        if r["team_rank"] > 0:
+            lines.append(
+                f"👥  {r['team']} อันดับทีม **#{r['team_rank']}/{r['team_total']}**"
+            )
         lines.append("")
 
     lines.append("---")
