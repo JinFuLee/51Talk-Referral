@@ -174,19 +174,27 @@ export function PresentationLauncher() {
   }
 
   return (
-    <div className="min-h-[calc(100vh-8rem)] relative flex items-center justify-center">
-      {/* ── 品牌氛围背景 ── */}
+    <div className="min-h-screen relative flex items-center justify-center bg-gradient-to-br from-[#050505] via-[#0a0a0a] to-[#0f0f0f]">
+      {/* ── 暗色品牌氛围背景 ── */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         <div
-          className="absolute -top-20 right-1/4 w-[400px] h-[400px] rounded-full animate-auth-float"
+          className="absolute -top-20 right-1/4 w-[500px] h-[500px] rounded-full animate-auth-float"
           style={{
-            background: 'radial-gradient(circle, rgba(255,209,0,0.08) 0%, transparent 60%)',
+            background: 'radial-gradient(circle, rgba(255,209,0,0.06) 0%, transparent 60%)',
           }}
         />
         <div
-          className="absolute bottom-0 -left-20 w-[300px] h-[300px] rounded-full animate-auth-float-reverse"
+          className="absolute bottom-0 -left-20 w-[400px] h-[400px] rounded-full animate-auth-float-reverse"
           style={{
             background: 'radial-gradient(circle, rgba(27,54,93,0.05) 0%, transparent 60%)',
+          }}
+        />
+        {/* grain 纹理 */}
+        <div
+          className="absolute inset-0 opacity-[0.03]"
+          style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
+            backgroundSize: '200px',
           }}
         />
       </div>
@@ -198,7 +206,7 @@ export function PresentationLauncher() {
         {/* ── 品牌标题 ── */}
         <div className="text-center animate-fade-in">
           <BrandMark size={40} className="text-[var(--brand-p1)] mx-auto mb-4 animate-pulse-soft" />
-          <h1 className="font-display text-3xl font-bold text-[var(--n-900)] tracking-tight">
+          <h1 className="font-display text-3xl font-bold text-[#f5f5f5] tracking-tight">
             {t.selectScene}
           </h1>
         </div>
@@ -218,8 +226,8 @@ export function PresentationLauncher() {
                 className={clsx(
                   'group flex flex-col items-start gap-4 rounded-2xl border-2 p-7 text-left transition-all duration-300 animate-slide-up',
                   isSelected
-                    ? 'border-[var(--brand-p1)] bg-[var(--color-action-surface)] shadow-lg'
-                    : 'border-[var(--border-default)] bg-[var(--bg-surface)] hover:border-[var(--n-300)] hover:shadow-md'
+                    ? 'border-[var(--brand-p1)] bg-[var(--brand-p1)]/5 shadow-lg shadow-[var(--brand-p1)]/10'
+                    : 'border-white/10 bg-white/[0.03] hover:border-white/20 hover:bg-white/[0.06]'
                 )}
                 style={{ animationDelay: `${0.1 + i * 0.08}s`, animationFillMode: 'both' }}
               >
@@ -228,7 +236,7 @@ export function PresentationLauncher() {
                     'rounded-xl p-3.5 transition-all duration-300',
                     isSelected
                       ? 'bg-[var(--brand-p1)] text-[var(--brand-p2)]'
-                      : 'bg-[var(--n-100)] text-[var(--n-600)] group-hover:bg-[var(--n-200)]'
+                      : 'bg-white/5 text-white/40 group-hover:bg-white/10'
                   )}
                 >
                   {scene.icon}
@@ -237,12 +245,12 @@ export function PresentationLauncher() {
                   <p
                     className={clsx(
                       'text-lg font-bold font-display transition-colors',
-                      isSelected ? 'text-[var(--brand-p2)]' : 'text-[var(--text-primary)]'
+                      isSelected ? 'text-[var(--brand-p1)]' : 'text-[#f5f5f5]'
                     )}
                   >
                     {sceneLabel.title}
                   </p>
-                  <p className="text-sm text-[var(--n-500)] mt-1.5 leading-relaxed">
+                  <p className="text-sm text-white/40 mt-1.5 leading-relaxed">
                     {sceneLabel.description}
                   </p>
                 </div>
@@ -254,7 +262,7 @@ export function PresentationLauncher() {
         {/* ── 时间维度选择（场景选定后滑入） ── */}
         {selectedScene && (
           <div className="animate-slide-up" style={{ animationFillMode: 'both' }}>
-            <p className="text-xs font-bold text-[var(--n-500)] uppercase tracking-[0.15em] mb-4 flex items-center gap-2">
+            <p className="text-xs font-bold text-white/30 uppercase tracking-[0.15em] mb-4 flex items-center gap-2">
               <Clock className="w-4 h-4" />
               {t.selectTimeframe}
             </p>
@@ -272,20 +280,20 @@ export function PresentationLauncher() {
                       'flex flex-col items-center gap-1.5 px-6 py-3.5 rounded-xl border-2 transition-all duration-200 animate-slide-up',
                       !allowed && 'opacity-25 cursor-not-allowed',
                       isSelected
-                        ? 'border-[var(--brand-p1)] bg-[var(--color-action-surface)] shadow-sm'
-                        : 'border-[var(--border-default)] bg-[var(--bg-surface)] hover:border-[var(--n-300)]'
+                        ? 'border-[var(--brand-p1)] bg-[var(--brand-p1)]/5 shadow-sm'
+                        : 'border-white/10 bg-white/[0.03] hover:border-white/20'
                     )}
                     style={{ animationDelay: `${i * 0.05}s`, animationFillMode: 'both' }}
                   >
                     <span
                       className={clsx(
                         'text-base font-bold font-display',
-                        isSelected ? 'text-[var(--brand-p2)]' : 'text-[var(--text-primary)]'
+                        isSelected ? 'text-[var(--brand-p1)]' : 'text-[#f5f5f5]'
                       )}
                     >
                       {tfLabel.label}
                     </span>
-                    <span className="text-xs text-[var(--n-400)]">{tfLabel.sublabel}</span>
+                    <span className="text-xs text-white/30">{tfLabel.sublabel}</span>
                   </button>
                 );
               })}
@@ -299,9 +307,9 @@ export function PresentationLauncher() {
             onClick={handleStart}
             disabled={!selectedScene || !selectedTimeframe}
             className={clsx(
-              'auth-btn max-w-xs',
+              'auth-btn max-w-xs shadow-[0_0_30px_rgba(255,209,0,0.15)]',
               !(selectedScene && selectedTimeframe) &&
-                'opacity-40 cursor-not-allowed hover:transform-none hover:shadow-none'
+                'opacity-30 cursor-not-allowed hover:transform-none hover:shadow-none'
             )}
           >
             <Play className="w-5 h-5" />

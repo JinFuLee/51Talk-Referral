@@ -567,6 +567,34 @@ body.presentation-mode .presentation-watermark {
   animation: slide-enter-left 0.4s ease-out both;
 }
 
+/* ── 暗色 Slide 内容区适配 ────────────────────────── */
+/* Slide 表格在暗底上的样式覆盖 */
+.slide-content-dark .card-base,
+.slide-content-dark .card-compact {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+.slide-content-dark .card-base:hover {
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+}
+.slide-content-dark td,
+.slide-content-dark th:not(.slide-thead-row th) {
+  color: #e0e0e0 !important;
+}
+.slide-content-dark .text-\[var\(--text-primary\)\],
+.slide-content-dark .text-\[var\(--text-secondary\)\] {
+  color: #e0e0e0 !important;
+}
+.slide-content-dark .text-\[var\(--text-muted\)\] {
+  color: #888888 !important;
+}
+.slide-content-dark .bg-\[var\(--bg-subtle\)\] {
+  background-color: rgba(255, 255, 255, 0.04) !important;
+}
+.slide-content-dark .border-\[var\(--border-default\)\] {
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
 /* ── Slide 演示模式 Design Token ────────────────── */
 /* 修改此处即全局生效于所有 Slide 表格组件 */
 

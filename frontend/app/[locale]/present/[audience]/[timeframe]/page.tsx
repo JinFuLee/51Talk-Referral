@@ -7,6 +7,7 @@ import { useLocale } from 'next-intl';
 import { usePageDimensions } from '@/lib/hooks/use-page-dimensions';
 import { usePresentationStore } from '@/lib/stores/presentation-store';
 import { BrandMark } from '@/components/ui/BrandMark';
+import { CursorGlow } from '@/components/presentation/CursorGlow';
 import type { Audience } from '@/lib/presentation/types';
 
 import { TargetGapSlide } from '@/components/slides/TargetGapSlide';
@@ -169,14 +170,17 @@ export default function PresentationPage() {
   }
 
   return (
-    <div className="relative w-full h-screen overflow-hidden" key={currentSlide}>
+    <div className="relative w-full h-screen overflow-hidden bg-[#0a0a0a]" key={currentSlide}>
+      {/* 鼠标跟踪金色光晕 */}
+      <CursorGlow />
+
       {/* 当前 Slide */}
       <CurrentSlide slideNumber={currentSlide + 1} totalSlides={totalSlides} />
 
-      {/* 退出按钮 — 毛玻璃品牌风格 */}
+      {/* 退出按钮 — 暗色毛玻璃 */}
       <button
         onClick={exitPresentation}
-        className="absolute bottom-5 right-6 z-50 flex items-center gap-2 px-4 py-2 rounded-xl backdrop-blur-xl bg-white/60 border border-white/40 shadow-lg text-[var(--n-600)] text-xs font-semibold transition-all duration-200 hover:bg-white/80 hover:shadow-xl hover:-translate-y-0.5"
+        className="absolute bottom-5 right-6 z-50 flex items-center gap-2 px-4 py-2 rounded-xl backdrop-blur-xl bg-white/8 border border-white/10 text-white/50 text-xs font-semibold transition-all duration-200 hover:bg-white/15 hover:text-white/80 hover:-translate-y-0.5"
         title={t.exitTitle}
       >
         <BrandMark size={14} className="text-[var(--brand-p1)]" />

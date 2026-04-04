@@ -12,11 +12,28 @@ interface PresentationStore {
   prevSlide: () => void;
 }
 
+function setBodyPresentationMode(active: boolean) {
+  if (typeof document === 'undefined') return;
+  if (active) {
+    document.body.classList.add('presentation-mode');
+  } else {
+    document.body.classList.remove('presentation-mode');
+  }
+}
+
 export const usePresentationStore = create<PresentationStore>((set) => ({
   isPresentationMode: false,
   currentSlide: 0,
-  togglePresentationMode: () => set((state) => ({ isPresentationMode: !state.isPresentationMode })),
-  exitPresentationMode: () => set({ isPresentationMode: false, currentSlide: 0 }),
+  togglePresentationMode: () =>
+    set((state) => {
+      const next = !state.isPresentationMode;
+      setBodyPresentationMode(next);
+      return { isPresentationMode: next };
+    }),
+  exitPresentationMode: () => {
+    setBodyPresentationMode(false);
+    set({ isPresentationMode: false, currentSlide: 0 });
+  },
   setCurrentSlide: (n: number) => set({ currentSlide: n }),
   nextSlide: (total: number) =>
     set((state) => ({
