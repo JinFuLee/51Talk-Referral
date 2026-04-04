@@ -1029,18 +1029,29 @@ body.presentation-mode .presentation-watermark {
   @apply px-4 py-2 rounded-lg border border-[var(--border-default)] text-[var(--text-secondary)] text-sm hover:bg-[var(--bg-subtle)] transition-colors;
 }
 .btn-danger {
-  @apply px-4 py-2 rounded-lg bg-red-600 text-white font-medium text-sm hover:bg-red-700 transition-colors;
+  @apply px-4 py-2 rounded-lg font-medium text-sm transition-colors;
+  background-color: var(--color-danger);
+  color: #ffffff;
+}
+.btn-danger:hover {
+  filter: brightness(0.9);
 }
 
 /* 徽章 */
 .badge-success {
-  @apply text-xs px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 font-medium;
+  @apply text-xs px-2 py-0.5 rounded-full font-medium;
+  background-color: var(--color-success-surface);
+  color: var(--color-success);
 }
 .badge-warning {
-  @apply text-xs px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 font-medium;
+  @apply text-xs px-2 py-0.5 rounded-full font-medium;
+  background-color: var(--color-warning-surface);
+  color: var(--color-warning);
 }
 .badge-danger {
-  @apply text-xs px-2 py-0.5 rounded-full bg-red-100 text-red-700 font-medium;
+  @apply text-xs px-2 py-0.5 rounded-full font-medium;
+  background-color: var(--color-danger-surface);
+  color: var(--color-danger);
 }
 .badge-info {
   @apply text-xs px-2 py-0.5 rounded-full bg-action-surface text-action-accent font-medium;
