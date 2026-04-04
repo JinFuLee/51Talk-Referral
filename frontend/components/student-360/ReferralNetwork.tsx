@@ -81,7 +81,7 @@ function NetworkNode({
     type === 'center'
       ? 'bg-action-accent-surface border-action-accent-subtle'
       : type === 'referrer'
-        ? 'bg-[var(--color-accent-surface)] border-purple-300'
+        ? 'bg-[var(--color-accent-surface)] border-[var(--color-accent)]'
         : 'bg-[var(--color-success-surface)] border-[var(--color-success)]';
 
   return (

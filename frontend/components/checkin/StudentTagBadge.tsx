@@ -47,7 +47,8 @@ const TAG_STYLE: Record<TagKey, TagConfig> = {
   },
   super_convert: {
     emoji: '💎',
-    className: 'bg-[var(--color-accent-surface)] text-[var(--color-accent)] border-purple-200',
+    className:
+      'bg-[var(--color-accent-surface)] text-[var(--color-accent)] border-[var(--color-accent)]',
   },
 };
 

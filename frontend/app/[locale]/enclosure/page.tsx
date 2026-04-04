@@ -1059,7 +1059,7 @@ function AllTabContent({ filter, t }: { filter: string; t: (typeof I18N)['zh'] }
   const summaryItems = [
     { role: t.tabCC, color: 'border-action-accent', ...ccTotal },
     { role: t.tabSS, color: 'border-[var(--color-success)]', ...ssTotal },
-    { role: t.tabLP, color: 'border-purple-500', ...lpTotal },
+    { role: t.tabLP, color: 'border-[var(--color-accent)]', ...lpTotal },
   ];
 
   // 围场效率 insight：按围场段汇总 CC 参与率，找最高/最低

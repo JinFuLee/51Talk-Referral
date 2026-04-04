@@ -78,7 +78,7 @@ interface CCPerformanceSummaryCardsProps {
 /* ── helpers ──────────────────────────────────────────── */
 
 function statusColor(isPositive: boolean) {
-  return isPositive ? 'text-emerald-600' : 'text-red-600';
+  return isPositive ? 'text-[var(--color-success)]' : 'text-[var(--color-danger)]';
 }
 
 function barColor(pct: number): string {
@@ -211,7 +211,7 @@ export function CCPerformanceSummaryCards({
           {dailyNeed != null && dailyNeed > 0 && (
             <div className="flex items-center justify-between text-sm">
               <span className="text-[var(--text-muted)]">{t.needDaily}</span>
-              <span className="font-mono tabular-nums font-semibold text-amber-600">
+              <span className="font-mono tabular-nums font-semibold text-[var(--color-warning)]">
                 {formatRevenue(dailyNeed, er)}
                 {t.perDay}
               </span>
