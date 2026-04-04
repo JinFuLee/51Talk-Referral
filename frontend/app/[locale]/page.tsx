@@ -635,6 +635,7 @@ import { DecisionSummary } from '@/components/dashboard/DecisionSummary';
 import { PersonalWorkbench } from '@/components/dashboard/PersonalWorkbench';
 import { KnowledgeLink } from '@/components/ui/KnowledgeLink';
 import { BmComparisonTable } from '@/components/dashboard/BmComparisonTable';
+import { OverviewSummaryCards } from '@/components/dashboard/OverviewSummaryCards';
 import type { BmComparison } from '@/lib/types/bm-calendar';
 
 /* ── 岗位视角类型 ──────────────────────────────────────────────── */
@@ -1046,19 +1047,7 @@ function getKpiCards(t: I18NType): KpiCardDef[] {
       paceKey: 'revenue',
       knowledgeChapter: 'chapter-4',
     },
-    {
-      key: '客单价',
-      label: t.kpi_aov,
-      format: 'currency',
-      targetKey: '转介绍基础业绩客单价标USD',
-      knowledgeChapter: 'chapter-2-1',
-    },
-    {
-      key: '注册转化率',
-      label: t.kpi_register_conv,
-      format: 'rate',
-      knowledgeChapter: 'chapter-8',
-    },
+    // AOV 和注册转化率已移至漏斗区域展示
   ];
 }
 
@@ -1319,15 +1308,7 @@ function MonthlyAchievementSection({ t }: { t: I18NType }) {
 /* ── KPI 卡片对应的指标 ID（与 overview API metrics key 对应） ──── */
 
 const KPI_CARD_INDICATOR_IDS: Record<string, string[]> = {
-  CC: [
-    '转介绍注册数',
-    '预约数',
-    '出席数',
-    '转介绍付费数',
-    '总带新付费金额USD',
-    '客单价',
-    '注册转化率',
-  ],
+  CC: ['转介绍注册数', '预约数', '出席数', '转介绍付费数', '总带新付费金额USD'],
   SS: ['转介绍注册数', '触达率', '打卡率'],
   LP: ['转介绍注册数', '触达率', '打卡率'],
 };
@@ -1467,6 +1448,15 @@ export default function DashboardPage() {
       {tp && <TimeProgressBar tp={tp} t={t} />}
 
       {/* KPI 卡片 */}
+      {/* ── L0: 汇总 3 卡（业绩 → BM 节奏 → 时间&日均）── */}
+      {data?.kpi_8item && (
+        <OverviewSummaryCards
+          kpi8item={data.kpi_8item}
+          bmComparison={data.bm_comparison}
+          timeProgress={tp}
+        />
+      )}
+
       {hasMetrics && (
         <>
           <p className="text-[10px] text-[var(--text-muted)] -mb-2">
@@ -1523,10 +1513,7 @@ export default function DashboardPage() {
         </>
       )}
 
-      {/* KPI 8 项全维度 */}
-      {data?.kpi_8item && Object.keys(data.kpi_8item).length > 0 && (
-        <KPI8Section kpi8item={data.kpi_8item} t={t} />
-      )}
+      {/* KPI 8 项全维度 — 已合并到 OverviewSummaryCards + BmComparisonTable */}
 
       {/* BM 节奏对比 */}
       {data?.bm_comparison && <BmComparisonTable data={data.bm_comparison} />}
@@ -1538,18 +1525,26 @@ export default function DashboardPage() {
         ) : (
           <>
             <FunnelSnapshot metrics={metrics} timeProgress={tp?.time_progress ?? 0} t={t} />
-            {/* 追进度需日均行 */}
-            {tp && Object.keys(kpiPace).length > 0 && (
-              <div className="mt-3 pt-3 border-t border-[var(--border)]">
-                <PaceRow kpiPace={kpiPace} timeProgress={tp.time_progress} t={t} />
-              </div>
-            )}
+            {/* AOV + 注册转化率（从 StatCard 移入漏斗区） */}
+            <div className="mt-3 pt-3 border-t border-[var(--border-default)] flex flex-wrap gap-6 text-xs text-[var(--text-secondary)]">
+              <span>
+                {t.kpi_aov}:{' '}
+                <strong className="text-[var(--text-primary)]">
+                  {formatRevenue(num(metrics['客单价']))}
+                </strong>
+              </span>
+              <span>
+                {t.kpi_register_conv}:{' '}
+                <strong className="text-[var(--text-primary)]">
+                  {formatRate(num(metrics['注册转化率']))}
+                </strong>
+              </span>
+            </div>
           </>
         )}
       </Card>
 
-      {/* 月度目标达成 */}
-      <MonthlyAchievementSection t={t} />
+      {/* 月度目标达成 — 已合并到 OverviewSummaryCards 进度条 */}
 
       {/* D2b 全站基准 */}
       {d2b && (

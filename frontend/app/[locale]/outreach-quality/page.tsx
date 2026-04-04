@@ -102,6 +102,9 @@ export default function OutreachQualityPage() {
         <p className="text-sm text-[var(--text-secondary)] mt-1">{t('pageSubtitle')}</p>
       </div>
 
+      <p className="text-sm font-semibold text-[var(--text-primary)] mt-1">
+        {t('sectionOutreach')}
+      </p>
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
           { label: t('ccConnected'), value: summary.cc_connected, students: summary.students },
@@ -125,6 +128,7 @@ export default function OutreachQualityPage() {
         ))}
       </div>
 
+      <p className="text-sm font-semibold text-[var(--text-primary)] mt-1">{t('sectionResults')}</p>
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <Card title="">
           <div className="pt-1">
