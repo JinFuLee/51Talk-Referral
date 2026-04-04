@@ -86,7 +86,7 @@ _ORDER_PATTERN = re.compile(
     "|".join(_ORDER_KEYWORDS), re.IGNORECASE
 )
 
-# Source of leads
+# Source of leads（REF / ReF / Refer / Referral 全匹配）
 _SOURCE_PATTERN = re.compile(
     r"source\s+of\s+leads?\s*[:\-：]\s*(.+)", re.IGNORECASE
 )
@@ -96,7 +96,7 @@ _STUDENT_PATTERN = re.compile(
     r"student\s+name\s*[:\-：]\s*(.+)", re.IGNORECASE
 )
 
-# Amount（支持 $1200 / $1,200 / 1200USD / ฿40800 / Amount: 1200）
+# Amount（可选字段 — 真实成交消息大多不含金额）
 _AMOUNT_PATTERN = re.compile(
     r"(?:amount|revenue|金额|业绩)\s*[:\-：]\s*"
     r"[\$]?\s*([\d,]+(?:\.\d{1,2})?)"
@@ -108,16 +108,24 @@ _DOLLAR_PATTERN = re.compile(
     r"\$\s*([\d,]+(?:\.\d{1,2})?)"
 )
 
-# 产品名（⭐️...⭐️ 之间）
+# 产品名：⭐️...⭐️ 优先匹配
 _PRODUCT_PATTERN = re.compile(
     r"⭐️\s*(.+?)\s*⭐️"
 )
+# 通用 emoji 清理（用于从产品行剥离装饰符）
+_EMOJI_STRIP = re.compile(
+    r"[\[\]][^\[\]]*[\[\]]"  # [emoji名] 格式
+    r"|[\U0001F300-\U0001FAFF]"  # Unicode emoji
+    r"|[⭐️❤️🏆🎁💸🍀🎂💝🔥💰🎊🎉🥇🥈🥉✨🌟💖💗🌹🎯📌✅☑️👑🏅]"
+    r"|[^\x00-\x7F\u0E00-\u0E7F]"  # 非 ASCII 非泰文
+)
 
-# THCC 团队信息（THCC NIRUT TEAM 5）
+# THCC 团队信息（THCC NIRUT TEAM 5 / THCC KooKKai Team 1）
+# CC 名支持混合大小写、含数字
 _TEAM_PATTERN = re.compile(
-    r"(TH(?:CC|SS|LP)(?:-[A-Z])?)\s+"  # 团队代码
-    r"([A-Z][A-Za-z]+)\s+"              # CC 名字
-    r"(?:TEAM|team)\s*(\d+)",           # Team 编号
+    r"(TH(?:CC|SS|LP)(?:-[A-Za-z])?)\s+"  # 团队代码（含小写后缀）
+    r"([A-Za-z][A-Za-z0-9]+)\s+"           # CC 名字（混合大小写）
+    r"(?:TEAM|team|Team)\s*(\d+)",         # Team 编号
     re.IGNORECASE,
 )
 
@@ -142,29 +150,28 @@ def parse_order_message(text: str) -> ParsedOrder:
         return order
     order.is_order = True
 
-    # 2. 线索来源
+    # 2. 线索来源（REF / ReF / Refer / Referral / 转介绍）
     m = _SOURCE_PATTERN.search(text)
     if m:
         source_raw = m.group(1).strip()
-        order.lead_source = source_raw
-        # "Refer" / "Referral" / "转介绍" = 转介绍
+        # 清理 @ 后面的人名和 emoji
+        source_clean = re.split(r"\s*@", source_raw)[0].strip()
+        order.lead_source = source_clean
         order.is_referral = bool(
-            re.search(r"refer|转介绍", source_raw, re.IGNORECASE)
+            re.search(r"ref|转介绍", source_clean, re.IGNORECASE)
         )
     else:
         errors.append("Source of leads 未找到")
 
-    # 3. 金额
+    # 3. 金额（可选 — 大部分真实成交消息不含金额）
     m = _AMOUNT_PATTERN.search(text)
     if m:
         order.amount_usd = float(m.group(1).replace(",", ""))
     else:
-        # 备用：独立 $金额
         m = _DOLLAR_PATTERN.search(text)
         if m:
             order.amount_usd = float(m.group(1).replace(",", ""))
-        else:
-            errors.append("金额未找到")
+        # 无金额不报错 — 真实消息通常不含金额
 
     if order.amount_usd is not None:
         rate = _load_exchange_rate()
@@ -177,10 +184,28 @@ def parse_order_message(text: str) -> ParsedOrder:
     else:
         errors.append("Student Name 未找到")
 
-    # 5. 产品
+    # 5. 产品（⭐️...⭐️ 优先，备用：Congratulations 与 Source 之间的行）
     m = _PRODUCT_PATTERN.search(text)
     if m:
         order.product = m.group(1).strip()
+    else:
+        # 通用提取：取 Congratulations 和 Source of leads 之间的内容行
+        lines = text.split("\n")
+        congrats_idx = -1
+        source_idx = len(lines)
+        for li, line in enumerate(lines):
+            if re.search(r"congratulations", line, re.IGNORECASE):
+                congrats_idx = li
+            if re.search(r"source\s+of\s+leads", line, re.IGNORECASE):
+                source_idx = li
+                break
+        if congrats_idx >= 0:
+            for li in range(congrats_idx + 1, source_idx):
+                cleaned = _EMOJI_STRIP.sub("", lines[li]).strip()
+                cleaned = re.sub(r"^[\s\-–—]+", "", cleaned).strip()
+                if cleaned and len(cleaned) > 1:
+                    order.product = cleaned
+                    break
 
     # 6. 团队 + CC 名
     m = _TEAM_PATTERN.search(text)
@@ -207,50 +232,53 @@ def parse_order_message(text: str) -> ParsedOrder:
 # ── 回复格式化 ────────────────────────────────────────────────────────────────
 
 def format_reply(order: ParsedOrder) -> str:
-    """生成回复文本（钉钉 Markdown 格式）"""
+    """生成泰文回复（钉钉 Markdown 格式）"""
     now = datetime.now().strftime("%Y-%m-%d %H:%M")
 
     if not order.is_order:
-        return ""  # 非成交消息不回复
+        return ""
 
     lines: list[str] = []
 
     if order.is_referral:
-        lines.append("### ✓ 转介绍成交确认")
+        lines.append("### ✓ ยืนยันยอดขาย Referral")
     else:
-        source = order.lead_source or "未知"
-        lines.append(f"### 成交确认（渠道：{source}）")
+        source = order.lead_source or "ไม่ทราบ"
+        lines.append(f"### ยืนยันยอดขาย（{source}）")
 
     lines.append("")
     lines.append("---")
 
     if order.student_name:
-        lines.append(f"- 学员：**{order.student_name}**")
+        lines.append(f"- นักเรียน: **{order.student_name}**")
 
     if order.product:
-        lines.append(f"- 产品：{order.product}")
+        lines.append(f"- แพ็กเกจ: {order.product}")
 
     if order.amount_usd is not None:
-        thb_str = f" (฿{order.amount_thb:,.0f})" if order.amount_thb else ""
-        lines.append(f"- 金额：**${order.amount_usd:,.0f}{thb_str}**")
+        thb_str = (
+            f" (฿{order.amount_thb:,.0f})" if order.amount_thb else ""
+        )
+        lines.append(f"- ยอดเงิน: **${order.amount_usd:,.0f}{thb_str}**")
 
     if order.order_type:
-        lines.append(f"- 类型：{order.order_type}")
+        type_th = "ออเดอร์ใหม่" if "新" in order.order_type else "ต่ออายุ"
+        lines.append(f"- ประเภท: {type_th}")
 
     if order.cc_name:
         team_str = order.team_code
         if order.team_number:
             team_str += f" TEAM {order.team_number}"
-        lines.append(f"- 销售：**{order.cc_name}** ({team_str})")
+        lines.append(f"- พนักงานขาย: **{order.cc_name}** ({team_str})")
 
     if order.is_referral:
         lines.append("")
-        lines.append("> 渠道：转介绍 ✓ 计入转介绍业绩")
+        lines.append("> ช่องทาง: Referral ✓ นับเป็นยอดขาย Referral")
 
-    # 缺失字段提示
     if order.parse_errors:
         lines.append("")
-        lines.append(f"⚠ 信息不完整：{', '.join(order.parse_errors)}")
+        missing = ", ".join(order.parse_errors)
+        lines.append(f"⚠ ข้อมูลไม่ครบ: {missing}")
 
     lines.append("")
     lines.append(f"⏱ {now}")
