@@ -350,7 +350,12 @@ def update_routing(body: RoutingUpdate) -> dict:
         audience_list.remove(body.module_id)
 
     _write_json(NOTIFICATION_CONFIG_PATH, cfg)
-    return {"ok": True, "module": body.module_id, "audience": body.audience, "enabled": body.enabled}
+    return {
+        "ok": True,
+        "module": body.module_id,
+        "audience": body.audience,
+        "enabled": body.enabled,
+    }
 
 
 class ModuleCreate(BaseModel):
@@ -415,7 +420,7 @@ def delete_module(module_id: str) -> dict:
 
     # 清理路由中的引用
     routing = cfg.get("routing", {})
-    for aud, mod_list in routing.items():
+    for _aud, mod_list in routing.items():
         if module_id in mod_list:
             mod_list.remove(module_id)
 
