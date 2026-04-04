@@ -233,7 +233,8 @@
     "data_health",
     "access_control",
     "caliber_guard",
-    "archives"
+    "archives",
+    "live_orders"
   ],
   "enclosure_role_assignment": {
     "CC": {
