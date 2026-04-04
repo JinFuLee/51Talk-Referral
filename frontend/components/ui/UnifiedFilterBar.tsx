@@ -19,20 +19,6 @@ import { useCurrentPageDimensions } from '@/lib/hooks/use-page-dimensions';
 import { BenchmarkSelector } from './BenchmarkSelector';
 import type { FilterOptions, DataRole, Channel, PageDimensions } from '@/lib/types/filters';
 
-// 本地类型：granularity/funnelStage/behavior 已从全局 config-store 移除，
-// UnifiedFilterBar 保留对应 UI 控件但不再与全局 store 同步
-type Granularity = 'day' | 'week' | 'month' | 'quarter';
-type FunnelStage = 'all' | 'registration' | 'appointment' | 'attendance' | 'payment';
-type BehaviorSegment =
-  | 'gold'
-  | 'effective'
-  | 'stuck_pay'
-  | 'stuck_show'
-  | 'potential'
-  | 'freeloader'
-  | 'newcomer'
-  | 'casual';
-
 // ──────────────────────────────────────────────────────────────────────────────
 // 工具函数
 // ──────────────────────────────────────────────────────────────────────────────
@@ -105,24 +91,6 @@ function formatYYYYMMtoLabel(
 
 // 静态 value 列表，label 在主组件内通过 t() 动态生成（品牌名 CC/SS/LP 不翻译）
 const DATA_ROLE_VALUES: DataRole[] = ['all', 'cc', 'ss', 'lp', 'ops'];
-
-// ──────────────────────────────────────────────────────────────────────────────
-// 时间粒度分段
-// ──────────────────────────────────────────────────────────────────────────────
-
-const GRANULARITY_VALUES: Granularity[] = ['day', 'week', 'month', 'quarter'];
-
-// ──────────────────────────────────────────────────────────────────────────────
-// 漏斗阶段选项
-// ──────────────────────────────────────────────────────────────────────────────
-
-const FUNNEL_STAGE_VALUES: FunnelStage[] = [
-  'all',
-  'registration',
-  'appointment',
-  'attendance',
-  'payment',
-];
 
 // ──────────────────────────────────────────────────────────────────────────────
 // 渠道选项（静态标签，实际可选值来自 /api/filter/options）
@@ -301,141 +269,6 @@ function EnclosureDropdown({ value, onChange, enclosures }: EnclosureDropdownPro
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
-// 学员行为多选 Chip
-// ──────────────────────────────────────────────────────────────────────────────
-
-const BEHAVIOR_COLORS: Record<string, string> = {
-  gold: '#FFD100',
-  effective: '#22c55e',
-  stuck_pay: '#ef4444',
-  stuck_show: '#f97316',
-  potential: '#3b82f6',
-  freeloader: '#6b7280',
-  newcomer: '#a855f7',
-  casual: '#94a3b8',
-};
-
-// behavior i18n key 映射（stuck_pay → behavior.stuckPay 等）
-const BEHAVIOR_I18N_KEYS: Record<string, string> = {
-  gold: 'behavior.gold',
-  effective: 'behavior.effective',
-  stuck_pay: 'behavior.stuckPay',
-  stuck_show: 'behavior.stuckShow',
-  potential: 'behavior.potential',
-  freeloader: 'behavior.freeloader',
-  newcomer: 'behavior.newcomer',
-  casual: 'behavior.casual',
-};
-
-interface BehaviorChipsProps {
-  value: BehaviorSegment[] | null;
-  onChange: (v: BehaviorSegment[] | null) => void;
-  behaviors: { value: string; label: string; color: string; count: number }[];
-}
-
-function BehaviorChips({ value, onChange, behaviors }: BehaviorChipsProps) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-  const t = useTranslations('filterBar');
-
-  useEffect(() => {
-    if (!open) return;
-    function handleClickOutside(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) {
-        setOpen(false);
-      }
-    }
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [open]);
-
-  const activeCount = value?.length ?? 0;
-  const label =
-    activeCount === 0 || value === null
-      ? t('behavior.label')
-      : t('behavior.count', { n: activeCount });
-
-  function toggleBehavior(slug: BehaviorSegment) {
-    const current = value ?? [];
-    const next = current.includes(slug) ? current.filter((v) => v !== slug) : [...current, slug];
-    onChange(next.length > 0 ? next : null);
-  }
-
-  const currentSet = new Set<string>(value ?? []);
-
-  const displayBehaviors =
-    behaviors.length > 0
-      ? behaviors
-      : Object.keys(BEHAVIOR_I18N_KEYS).map((key) => ({
-          value: key,
-          label: t(BEHAVIOR_I18N_KEYS[key] as Parameters<typeof t>[0]),
-          color: BEHAVIOR_COLORS[key] ?? '#94a3b8',
-          count: 0,
-        }));
-
-  return (
-    <div className="relative" ref={ref}>
-      <button
-        onClick={() => setOpen((v) => !v)}
-        className="flex items-center gap-1.5 px-2.5 py-1 h-8 rounded-lg bg-[var(--bg-subtle)] border border-[var(--border-subtle)] text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--border-default)] transition-colors whitespace-nowrap"
-      >
-        <span>{label}</span>
-        {activeCount > 0 && (
-          <span className="w-4 h-4 rounded-full bg-[var(--brand-p1)] text-white text-[10px] flex items-center justify-center font-medium">
-            {activeCount}
-          </span>
-        )}
-        <ChevronDown className="w-3 h-3 shrink-0" />
-      </button>
-      {open && (
-        <div className="absolute top-full left-0 mt-1 z-50 bg-[var(--bg-surface)] border border-[var(--border-default)] rounded-xl shadow-lg min-w-[180px] p-2">
-          <div className="flex flex-wrap gap-1.5">
-            {displayBehaviors.map((beh) => {
-              const isActive = currentSet.has(beh.value);
-              const color = beh.color || BEHAVIOR_COLORS[beh.value] || '#94a3b8';
-              return (
-                <button
-                  key={beh.value}
-                  onClick={() => toggleBehavior(beh.value as BehaviorSegment)}
-                  className={[
-                    'flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium border transition-colors',
-                    isActive
-                      ? 'border-[var(--brand-p1)] bg-[var(--bg-subtle)]'
-                      : 'border-[var(--border-subtle)] hover:border-[var(--border-default)]',
-                  ].join(' ')}
-                >
-                  <span
-                    className="w-2 h-2 rounded-full shrink-0"
-                    style={{ backgroundColor: color }}
-                  />
-                  <span className="text-[var(--text-primary)]">
-                    {beh.label ||
-                      (BEHAVIOR_I18N_KEYS[beh.value]
-                        ? t(BEHAVIOR_I18N_KEYS[beh.value] as Parameters<typeof t>[0])
-                        : beh.value)}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-          {value !== null && value.length > 0 && (
-            <button
-              onClick={() => {
-                onChange(null);
-                setOpen(false);
-              }}
-              className="mt-2 w-full text-[10px] text-[var(--text-muted)] hover:text-[var(--text-primary)] text-center transition-colors"
-            >
-              {t('clear')}
-            </button>
-          )}
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ──────────────────────────────────────────────────────────────────────────────
 // FilterSlot — 统一控制 enabled / disabled / locked 三态
 // ──────────────────────────────────────────────────────────────────────────────
 
@@ -499,10 +332,6 @@ export function UnifiedFilterBar() {
   const focusCC = useConfigStore((s) => s.focusCC);
   const channel = useConfigStore((s) => s.channel);
   const selectedMonth = useConfigStore((s) => s.selectedMonth);
-  // granularity / funnelStage / behavior 已从全局 store 移除，改为本地 state
-  const [granularity, setGranularity] = useState<Granularity>('month');
-  const [funnelStage, setFunnelStage] = useState<FunnelStage>('all');
-  const [behavior, setBehavior] = useState<BehaviorSegment[] | null>(null);
   const customDateRange = useConfigStore((s) => s.customDateRange);
   const compareMode = useConfigStore((s) => s.compareMode);
 
@@ -543,14 +372,7 @@ export function UnifiedFilterBar() {
   // 是否有激活的筛选器
   const hasActiveFilter =
     hydrated &&
-    Boolean(
-      teamFilter ||
-      focusCC ||
-      enclosure !== null ||
-      dataRole !== 'all' ||
-      channel !== 'all' ||
-      (behavior !== null && behavior.length > 0)
-    );
+    Boolean(teamFilter || focusCC || enclosure !== null || dataRole !== 'all' || channel !== 'all');
 
   const handleClearAll = useCallback(() => {
     setSelectedMonth(null);
@@ -559,10 +381,7 @@ export function UnifiedFilterBar() {
     setFocusCC(null);
     setDataRole('all');
     setEnclosure(null);
-    setGranularity('month');
-    setFunnelStage('all');
     setChannel('all');
-    setBehavior(null);
   }, [
     setSelectedMonth,
     setCustomDateRange,
@@ -589,10 +408,7 @@ export function UnifiedFilterBar() {
   const dataRoleState = resolveSlotState(dims.dataRole);
   const enclosureState = resolveSlotState(dims.enclosure);
   const teamState = resolveSlotState(dims.team);
-  const granularityState = resolveSlotState(dims.granularity);
-  const funnelState = resolveSlotState(dims.funnelStage);
   const channelState = resolveSlotState(dims.channel);
-  const behaviorState = resolveSlotState(dims.behavior);
 
   // 国家选项
   const countries = filterOptions?.countries ?? [{ value: 'TH', label: '🌏 泰国 (TH)' }];
@@ -607,35 +423,14 @@ export function UnifiedFilterBar() {
   // 渠道
   const channels = filterOptions?.channels ?? [];
 
-  // 行为
-  const behaviors: { value: string; label: string; color: string; count: number }[] = [];
-
   // data_role 固定值处理（cc-performance 页面固定为 cc）
   const dataRoleFixed = typeof dims.dataRole === 'string' ? (dims.dataRole as DataRole) : null;
-
-  // granularity 固定值处理（daily-monitor 页面 day 固定）
-  const granularityFixed =
-    typeof dims.granularity === 'string' ? (dims.granularity as Granularity) : null;
 
   // 动态构建 options（通过 t() 获取 i18n 标签，品牌名 CC/SS/LP 不翻译）
   const DATA_ROLE_OPTIONS: { value: DataRole; label: string }[] = DATA_ROLE_VALUES.map((v) => ({
     value: v,
     label: v === 'all' ? t('allRoles') : v === 'ops' ? t('ops') : v.toUpperCase(),
   }));
-
-  const GRANULARITY_OPTIONS: { value: Granularity; label: string }[] = GRANULARITY_VALUES.map(
-    (v) => ({
-      value: v,
-      label: t(`granularity.${v}` as Parameters<typeof t>[0]),
-    })
-  );
-
-  const FUNNEL_STAGE_OPTIONS: { value: FunnelStage; label: string }[] = FUNNEL_STAGE_VALUES.map(
-    (v) => ({
-      value: v,
-      label: t(`funnelStage.${v}` as Parameters<typeof t>[0]),
-    })
-  );
 
   // channel label 辅助函数（通过 i18n key 获取翻译）
   const getChannelLabel = (ch: Channel): string =>
@@ -652,11 +447,8 @@ export function UnifiedFilterBar() {
   ];
 
   // 是否显示第二行（有任一分析维度适用当前页面）
-  const showAdvancedRow =
-    dims.granularity !== undefined ||
-    dims.funnelStage !== undefined ||
-    dims.channel !== undefined ||
-    dims.behavior !== undefined;
+  // showAdvancedRow: 仅 channel 控制
+  const showAdvancedRow = dims.channel !== undefined;
 
   // ── Desktop 内容 ──────────────────────────────────────────────────────────
 
@@ -847,45 +639,6 @@ export function UnifiedFilterBar() {
 
   const desktopRow2 = advancedOpen ? (
     <div className="hidden md:flex items-center gap-2 flex-wrap px-4 pb-2 pt-0">
-      {/* 时间粒度 */}
-      <FilterSlot
-        state={granularityState}
-        tooltip={
-          granularityState === 'locked'
-            ? t('lockedToGranularity', { granularity: granularityFixed ?? '' })
-            : t('granularityNotApplicable')
-        }
-      >
-        {granularityFixed ? (
-          <span className="flex items-center gap-1 px-2.5 py-1 h-8 rounded-full bg-[var(--bg-subtle)] border border-[var(--border-subtle)] text-xs text-[var(--text-muted)] select-none">
-            🔒{' '}
-            {GRANULARITY_OPTIONS.find((g) => g.value === granularityFixed)?.label ??
-              granularityFixed}
-          </span>
-        ) : (
-          <SegmentedControl
-            options={GRANULARITY_OPTIONS}
-            value={hydrated ? granularity : 'month'}
-            onChange={setGranularity}
-          />
-        )}
-      </FilterSlot>
-
-      {/* 漏斗阶段 */}
-      <FilterSlot state={funnelState} tooltip={t('funnelNotApplicable')}>
-        <select
-          value={hydrated ? funnelStage : 'all'}
-          onChange={(e) => setFunnelStage(e.target.value as FunnelStage)}
-          className="h-8 px-2.5 rounded-lg bg-[var(--bg-subtle)] border border-[var(--border-subtle)] text-xs text-[var(--text-primary)] focus:ring-1 focus:ring-[var(--brand-p1)] outline-none cursor-pointer transition-colors"
-        >
-          {FUNNEL_STAGE_OPTIONS.map((opt) => (
-            <option key={opt.value} value={opt.value}>
-              {opt.label}
-            </option>
-          ))}
-        </select>
-      </FilterSlot>
-
       {/* 渠道 */}
       <FilterSlot state={channelState} tooltip={t('channelNotApplicable')}>
         <select
@@ -906,15 +659,6 @@ export function UnifiedFilterBar() {
             </option>
           ))}
         </select>
-      </FilterSlot>
-
-      {/* 学员行为多选 */}
-      <FilterSlot state={behaviorState} tooltip={t('behaviorNotApplicable')}>
-        <BehaviorChips
-          value={hydrated ? behavior : null}
-          onChange={setBehavior}
-          behaviors={behaviors}
-        />
       </FilterSlot>
     </div>
   ) : null;
@@ -1129,51 +873,6 @@ export function UnifiedFilterBar() {
                   autoFocus
                 />
               </div>
-            </div>
-          )}
-
-          {/* 时间粒度 */}
-          {dims.granularity !== false && dims.granularity !== undefined && !granularityFixed && (
-            <div className="space-y-2">
-              <label className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">
-                {t('granularityLabel')}
-              </label>
-              <div className="flex gap-2">
-                {GRANULARITY_OPTIONS.map((opt) => (
-                  <button
-                    key={opt.value}
-                    onClick={() => setGranularity(opt.value)}
-                    className={[
-                      'flex-1 py-1.5 rounded text-sm font-medium border transition-colors',
-                      granularity === opt.value
-                        ? 'bg-[var(--brand-p1)] text-white border-[var(--brand-p1)]'
-                        : 'border-[var(--border-default)] text-[var(--text-secondary)]',
-                    ].join(' ')}
-                  >
-                    {opt.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* 漏斗阶段 */}
-          {dims.funnelStage !== false && dims.funnelStage !== undefined && (
-            <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">
-                {t('funnelStageLabel')}
-              </label>
-              <select
-                value={funnelStage}
-                onChange={(e) => setFunnelStage(e.target.value as FunnelStage)}
-                className="w-full bg-[var(--bg-subtle)] border border-[var(--border-subtle)] text-[var(--text-primary)] text-sm rounded-lg focus:ring-2 focus:ring-[var(--brand-p1)] focus:border-[var(--brand-p1)] block px-3 py-2.5 outline-none transition-colors"
-              >
-                {FUNNEL_STAGE_OPTIONS.map((opt) => (
-                  <option key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </option>
-                ))}
-              </select>
             </div>
           )}
 
