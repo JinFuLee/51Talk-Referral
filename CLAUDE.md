@@ -446,6 +446,9 @@ CC 排名算法详见 [docs/cc-ranking-spec.md](docs/cc-ranking-spec.md)（3类1
 | M35 | 2026-03-27 | CC 个人业绩看板 | 后端 D2+D3+D4 三源聚合+目标上传 + 前端 3 层渐进式+8 列组表格+雷达图 | 6 new + 2 mod, +1400 lines |
 | M34 | 2026-03-27 | 打卡管理页重构（学员视角+岗位沉浸式+围场联动+页面整合）| 后端9维度API+UnifiedFilterBar+4Tab重构+12共享组件+关键洞察（80.5%零打卡/CC触达参与率49.6%）| 后端+800行 / 前端新建15+修改6 |
 | M36 | 2026-03-28 | 打卡升级（运营排行14维+行动中心10改造+ROI分析）| 8数据源137列全量利用+二级裂变A→B→C+8级行为分层+渠道ROI矩阵+优先级矩阵+$1.31次卡成本模型 | 7 new + 8 mod, +2500 lines |
+| M37 | 2026-03-29 | 全维度分析框架（8维筛选+4基准+UnifiedFilterBar+useFilteredSWR+parse_filters）| 80+ files, 10+ new, 3 Team sessions |
+| M38 | 2026-04-04 | 数据管道迁移+成交机器人+演示模式 | 51Talk BI迁移+OCR机器人+电影演示+口径守卫+CC排名+暗色模式 | ~50 commits, +8000 lines |
+| M39 | 2026-04-04 | i18n完成+打卡重构+前端优化+SM目标导入 | 143keys×3语言+checkin拆分5模块+参数优先级+SM Excel比例分摊 | ~90 commits, +22000 lines |
 
 ## 已知问题与技术债
 

@@ -462,11 +462,38 @@
 - QA: tsc 零错误 / ruff 零错误 / compliance 0 violations / push 成功
 - 沉淀: 规格文档 + CLAUDE.md 规则 + 合规脚本 + Memory 条目（5 层防线全在位）
 
+### M38: 数据管道迁移 + 成交机器人 + 演示模式（2026-03-29 → 2026-04-04）
+- [x] **数据源迁移** — Quick BI → 51Talk BI，自动登录消除手动 token，launchd ��日 10:00 取��� + 11:00 补抓安全网
+- [x] **日快照自动化** — 取��成功后自动触发 `snapshot_daily.py` 写入 T-1 快照到 SQLite
+- [x] **口径守卫 SEE 闭环** — `caliber-guard` 3 层校验��关���列/聚合一致/格式合规）+ T0/T1 三阶段观测
+- [x] **成交机器人** — 钉钉实时订单推送���OCR 金额提取 + 日内累加器 + CC/团队排名 + BM 实时差额 + 泰铢格式 + launchd 守护
+- [x] `/live-orders` 实时订单页（standalone server + API + i18n）
+- [x] **CC 排名��强** — 全量 62 CC + T-1/Today/Total 三列 + ฿0 not dash
+- [x] **Sales 角色** — 访问控制 9 �� sales team
+- [x] **演示模式** — 电影感暗色全屏 + 光���辉光 + 统一动效 + 返回按钮
+- [x] **电影登录页** — (auth) 路由组 + 粒子���景 + 品牌色渐变
+- [x] **暗色模式** — 全部 Slide 组件暗色适配
+- 统计: ~50 commits, +8000 lines, 20+ new files
+
+### M39: i18n 完成 + 打卡重构 + 前端优化（2026-04-01 → 2026-04-04）
+- [x] **i18n 批量推进** — 15+ 组件 4 语言���（funnel/channel/routing/knowledge/access-control/checkin 等）
+- [x] **i18n 消息同步** — dashboard 命名空间 143 keys × 3 语言（en/zh-TW/th），4 语言 742 keys 完全对齐
+- [x] **i18n 残留清理** — RankingTab/PermissionMatrix/UserManagement/indicator-matrix/ConversionRateBar 等硬编码中文
+- [x] **打卡模块拆分** — `checkin.py` 2461 → 5 模块（summary/ranking/roi/followup/students）
+- [x] **打卡审计** — 7 项改进（filter 联动/dataRole 高亮/SummaryTab 响应）
+- [x] **CC 显示名标准化** — strip THCC- 前缀 + capitalize
+- [x] **团���名标准化** — 统一为 "THCC Team N" 格式
+- [x] **前���重构** — UnifiedFilterBar 废弃维度删除 + store 清理 + comparison 控件统�� + dead code 清理
+- [x] **参数优先级修复** — 全局 filter ��覆盖页面本地 query params（M37 教训）
+- [x] **SM 目标导入** — 从 SM Excel 自��按比例计算 CC 转介绍目标��新 API + Settings UI）
+- [x] **围场标签扩展** — apply_filters M-label → raw value 自动���开
+- 统计: ~90 commits, +22000 lines, 60+ file changes
+
 ---
 
 ## 规划中
 
-### M38: 话术迭代系统（待规划）
+### M40: 话术迭代系统（待规划）
 - 运营贴入当前话术 → AI 评分 → 多方案生成 → A/B 追踪 → 自动迭代
 - 依赖 M33 瓶颈识别结果做输入
 
@@ -487,6 +514,9 @@ M18.2(✅) ──► M18.3(✅) ──► M19(✅)
 
 M32(✅) ──► M33(✅) ──► M34(✅) ──► M35(✅) ──► M36(✅) ──► M37(✅)
                          运营报告引擎   学员视角重构   CC个人业绩   打卡升级    全维度框架
+
+M37(✅) ──► M38(✅) ──► M39(✅) ──► M40(规划中)
+             数据管道+机器人   i18n+重构     话术迭代
 ```
 
 ---
