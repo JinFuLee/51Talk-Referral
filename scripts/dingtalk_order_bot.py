@@ -245,6 +245,40 @@ def _fetch_revenue_status() -> dict | None:
         return None
 
 
+def _count_orders(cc_name: str) -> tuple[int, int]:
+    """从日志统计：(今日转介绍总单数, 该CC本月总单数)"""
+    today_str = datetime.now().strftime("%Y-%m-%d")
+    month_str = datetime.now().strftime("%Y-%m")
+    today_total = 0
+    cc_month_total = 0
+
+    if not LOG_PATH.exists():
+        return 0, 0
+
+    try:
+        with open(LOG_PATH, encoding="utf-8") as f:
+            for line in f:
+                if not line.strip():
+                    continue
+                try:
+                    entry = json.loads(line)
+                    if not entry.get("is_referral"):
+                        continue
+                    ts = entry.get("ts", "")
+                    if ts[:10] == today_str:
+                        today_total += 1
+                    if ts[:7] == month_str:
+                        entry_cc = entry.get("cc_name", "")
+                        if entry_cc.lower() == cc_name.lower():
+                            cc_month_total += 1
+                except (json.JSONDecodeError, KeyError):
+                    continue
+    except OSError:
+        pass
+
+    return today_total, cc_month_total
+
+
 def format_reply(order: ParsedOrder) -> str:
     """生成泰文回复（钉钉 Markdown 格式）"""
     now = datetime.now().strftime("%Y-%m-%d %H:%M")
@@ -254,9 +288,26 @@ def format_reply(order: ParsedOrder) -> str:
 
     rate = _load_exchange_rate()
 
+    # 统计单数
+    today_n, cc_month_n = _count_orders(order.cc_name)
+
     lines: list[str] = []
     lines.append("### ✓ Referral ยืนยันแล้ว")
     lines.append("")
+
+    # 单数统计
+    count_parts = []
+    if today_n > 0:
+        count_parts.append(f"วันนี้ออเดอร์ที่ **#{today_n}**")
+    if cc_month_n > 0 and order.cc_name:
+        count_parts.append(
+            f"{order.cc_name} เดือนนี้ **#{cc_month_n}**"
+        )
+    if count_parts:
+        lines.append(f"🔢  {' · '.join(count_parts)}")
+        lines.append("")
+
+    lines.append("---")
     lines.append("")
 
     # 小组 + CC 名
@@ -277,18 +328,17 @@ def format_reply(order: ParsedOrder) -> str:
         lines.append(f"📦  แพ็กเกจ: {order.product}")
         lines.append("")
 
-    # 金额（泰铢优先）
+    # 金额（泰铢）
     if order.amount_usd is not None:
         thb = order.amount_thb or (order.amount_usd * rate)
-        lines.append(f"💰  **฿{thb:,.0f}**")
+        lines.append(f"💰  ยอดเงิน: **฿{thb:,.0f}**")
         lines.append("")
     elif order.amount_thb is not None:
-        lines.append(f"💰  **฿{order.amount_thb:,.0f}**")
+        lines.append(f"💰  ยอดเงิน: **฿{order.amount_thb:,.0f}**")
         lines.append("")
 
     # 时间
     lines.append(f"📅  {now}")
-    lines.append("")
     lines.append("")
 
     # BM + 月目标差距（从后端 T-1 数据，全部转泰铢）
@@ -310,14 +360,19 @@ def format_reply(order: ParsedOrder) -> str:
         bm_gap_thb = actual_thb - bm_target_thb
         if bm_gap_thb >= 0:
             lines.append(
-                f"📈  BM วันนี้:  **เกินเป้า ฿{bm_gap_thb:,.0f}**"
+                f"📈  BM วันนี้:"
+            )
+            lines.append(
+                f"**เกินเป้า ฿{bm_gap_thb:,.0f}**"
             )
         else:
             lines.append(
-                f"📉  BM วันนี้:  **ต่ำกว่าเป้า ฿{abs(bm_gap_thb):,.0f}**"
+                f"📉  BM วันนี้:"
+            )
+            lines.append(
+                f"**ต่ำกว่าเป้า ฿{abs(bm_gap_thb):,.0f}**"
             )
         lines.append(
-            f"&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"
             f"ความคืบหน้า {rev_progress:.1%}  vs  BM {bm_pct:.1%}"
         )
         lines.append("")
@@ -326,14 +381,19 @@ def format_reply(order: ParsedOrder) -> str:
         month_gap_thb = actual_thb - target_thb
         if month_gap_thb >= 0:
             lines.append(
-                f"🎯  เป้าเดือน:  **เกินเป้าแล้ว ฿{month_gap_thb:,.0f}**"
+                f"🎯  เป้าเดือน:"
+            )
+            lines.append(
+                f"**เกินเป้าแล้ว ฿{month_gap_thb:,.0f}**"
             )
         else:
             lines.append(
-                f"🎯  เป้าเดือน:  **เหลืออีก ฿{abs(month_gap_thb):,.0f}**"
+                f"🎯  เป้าเดือน:"
+            )
+            lines.append(
+                f"**เหลืออีก ฿{abs(month_gap_thb):,.0f}**"
             )
         lines.append(
-            f"&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"
             f"฿{actual_thb:,.0f} / ฿{target_thb:,.0f}"
         )
         lines.append("")
