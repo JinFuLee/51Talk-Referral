@@ -1,3 +1,4 @@
+import { useLocale } from 'next-intl';
 import { formatRate } from '@/lib/utils';
 import type { ThreeFactorComparison } from '@/lib/types/channel';
 

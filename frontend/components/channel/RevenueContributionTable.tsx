@@ -1,3 +1,4 @@
+import { useLocale } from 'next-intl';
 import { formatRevenue, formatRate } from '@/lib/utils';
 import type { RevenueContribution } from '@/lib/types/channel';
 

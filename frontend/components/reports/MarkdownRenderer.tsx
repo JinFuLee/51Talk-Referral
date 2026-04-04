@@ -2,6 +2,30 @@
 
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { useLocale } from 'next-intl';
+
+const I18N = {
+  zh: {
+    barLabel: (idx: number) => (idx === 0 ? '柱' : `柱${idx + 1}`),
+    baselineLine: '基准线',
+    extraLine: (idx: number) => `折线${idx + 1}`,
+  },
+  'zh-TW': {
+    barLabel: (idx: number) => (idx === 0 ? '柱' : `柱${idx + 1}`),
+    baselineLine: '基準線',
+    extraLine: (idx: number) => `折線${idx + 1}`,
+  },
+  en: {
+    barLabel: (idx: number) => (idx === 0 ? 'Bar' : `Bar ${idx + 1}`),
+    baselineLine: 'Baseline',
+    extraLine: (idx: number) => `Line ${idx + 1}`,
+  },
+  th: {
+    barLabel: (idx: number) => (idx === 0 ? 'แท่ง' : `แท่ง${idx + 1}`),
+    baselineLine: 'เส้นฐาน',
+    extraLine: (idx: number) => `เส้น${idx + 1}`,
+  },
+} as const;
 // Charts removed in refactor — inline Recharts used in pages directly
 // TrendLineChart, PieChart, FunnelChart stubs for report rendering
 const TrendLineChart = (_props: Record<string, unknown>) => null;
@@ -18,7 +42,12 @@ type FunnelStage = { name: string; value: number };
  *   bar [val1, val2, ...]
  *   line [val1, val2, ...]
  */
-function parseXyChart(body: string): {
+function parseXyChart(
+  body: string,
+  barLabel: (idx: number) => string,
+  baselineLine: string,
+  extraLine: (idx: number) => string
+): {
   labels: string[];
   bars: { key: string; values: number[] }[];
   lines: { key: string; values: number[] }[];
@@ -47,14 +76,14 @@ function parseXyChart(body: string): {
       const match = line.match(/\[(.+)\]/);
       if (match) {
         const values = match[1].split(',').map((s) => parseFloat(s.trim()));
-        bars.push({ key: `柱${barIdx > 0 ? barIdx + 1 : ''}`, values });
+        bars.push({ key: barLabel(barIdx), values });
         barIdx++;
       }
     } else if (line.startsWith('line')) {
       const match = line.match(/\[(.+)\]/);
       if (match) {
         const values = match[1].split(',').map((s) => parseFloat(s.trim()));
-        lineData.push({ key: lineIdx === 0 ? '基准线' : `折线${lineIdx + 1}`, values });
+        lineData.push({ key: lineIdx === 0 ? baselineLine : extraLine(lineIdx), values });
         lineIdx++;
       }
     }
@@ -63,8 +92,13 @@ function parseXyChart(body: string): {
   return { labels, bars, lines: lineData, title };
 }
 
-function xyChartToProps(body: string) {
-  const { labels, bars, lines, title } = parseXyChart(body);
+function xyChartToProps(
+  body: string,
+  barLabel: (idx: number) => string,
+  baselineLine: string,
+  extraLine: (idx: number) => string
+) {
+  const { labels, bars, lines, title } = parseXyChart(body, barLabel, baselineLine, extraLine);
 
   const data = labels.map((label, i) => {
     const point: Record<string, string | number> = { label };
@@ -148,10 +182,12 @@ interface CodeProps {
 }
 
 function MermaidBlock({ body }: { body: string }) {
+  const locale = useLocale();
+  const t = I18N[locale as keyof typeof I18N] || I18N.zh;
   const trimmed = body.trim();
 
   if (trimmed.startsWith('xychart-beta')) {
-    const props = xyChartToProps(trimmed);
+    const props = xyChartToProps(trimmed, t.barLabel, t.baselineLine, t.extraLine);
     return (
       <div className="my-4 p-4 bg-[var(--bg-surface)] backdrop-blur-md rounded-[var(--radius-xl)] border border-[var(--border-default)] shadow-[var(--shadow-md)] transition-all duration-200 hover:shadow-[var(--shadow-lg)] hover:-translate-y-1">
         <TrendLineChart {...props} />

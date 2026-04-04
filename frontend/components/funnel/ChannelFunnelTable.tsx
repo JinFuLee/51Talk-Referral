@@ -1,3 +1,4 @@
+import { useLocale } from 'next-intl';
 import type { ChannelMetrics } from '@/lib/types/channel';
 import { formatRate } from '@/lib/utils';
 
@@ -54,12 +55,12 @@ const I18N = {
 
 interface ChannelFunnelTableProps {
   channels: ChannelMetrics[];
-  locale?: string;
 }
 
 const STAGES = ['registrations', 'appointments', 'attendance', 'payments'] as const;
 
-export function ChannelFunnelTable({ channels, locale = 'zh' }: ChannelFunnelTableProps) {
+export function ChannelFunnelTable({ channels }: ChannelFunnelTableProps) {
+  const locale = useLocale();
   const t = (I18N as unknown as Record<string, (typeof I18N)['zh']>)[locale] ?? I18N['zh'];
   const STAGE_LABELS: Record<(typeof STAGES)[number], string> = {
     registrations: t.stageRegistrations,

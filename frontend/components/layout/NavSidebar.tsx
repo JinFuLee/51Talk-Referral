@@ -39,6 +39,7 @@ import {
   UserCheck,
   Activity,
   Lock,
+  Zap,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
@@ -107,6 +108,7 @@ const MAIN_GROUPS: NavGroup[] = [
       { href: '/analytics', label: 'analytics', Icon: LineChart },
       { href: '/reports', label: 'reports', Icon: FileText },
       { href: '/notifications', label: 'notifications', Icon: Bot },
+      { href: '/live-orders', label: 'liveOrders', Icon: Zap },
       { href: '/indicator-matrix', label: 'indicatorMatrix', Icon: LayoutGrid },
       { href: '/knowledge', label: 'knowledge', Icon: BookOpen },
       { href: '/data-health', label: 'dataHealth', Icon: Activity },

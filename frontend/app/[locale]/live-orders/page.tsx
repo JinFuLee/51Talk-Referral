@@ -4,6 +4,114 @@ export const dynamic = 'force-dynamic';
 
 import { useState, useCallback } from 'react';
 import useSWR, { mutate } from 'swr';
+import { useLocale } from 'next-intl';
+
+const I18N = {
+  zh: {
+    subtitleFmt: (date: string) => `今日实时成交 — ${date}（每 15 秒自动刷新）`,
+    loadingSubtitle: '今日实时成交',
+    loadFailed: '加载失败',
+    todayOrders: '今日',
+    todayAmount: '今日金额',
+    todayBm: '今日 BM',
+    monthTarget: '月目标',
+    ccRanking: 'CC 排行',
+    noOrdersToday: '今日暂无订单',
+    team: '团队',
+    orders: '订单数',
+    confirmed: '确认',
+    amount: '金额',
+    allOrders: '订单明细',
+    clearAll: '一键清算',
+    noOrdersEmpty: '今日暂无订单 — 等待 CC @机器人 报单',
+    total: '总计',
+    rank: '#',
+    time: '时间',
+    student: '学员',
+    product: '套餐',
+    amountThb: '金额 (฿)',
+    manage: '操作',
+    clickToEdit: '点击编辑',
+  },
+  'zh-TW': {
+    subtitleFmt: (date: string) => `今日即時成交 — ${date}（每 15 秒自動刷新）`,
+    loadingSubtitle: '今日即時成交',
+    loadFailed: '載入失敗',
+    todayOrders: '今日',
+    todayAmount: '今日金額',
+    todayBm: '今日 BM',
+    monthTarget: '月目標',
+    ccRanking: 'CC 排行',
+    noOrdersToday: '今日暫無訂單',
+    team: '團隊',
+    orders: '訂單數',
+    confirmed: '確認',
+    amount: '金額',
+    allOrders: '訂單明細',
+    clearAll: '一鍵清算',
+    noOrdersEmpty: '今日暫無訂單 — 等待 CC @機器人 報單',
+    total: '總計',
+    rank: '#',
+    time: '時間',
+    student: '學員',
+    product: '套餐',
+    amountThb: '金額 (฿)',
+    manage: '操作',
+    clickToEdit: '點擊編輯',
+  },
+  en: {
+    subtitleFmt: (date: string) => `Today's Live Orders — ${date} (auto-refresh every 15s)`,
+    loadingSubtitle: "Today's Live Orders",
+    loadFailed: 'Failed to load',
+    todayOrders: 'Today',
+    todayAmount: "Today's Amount",
+    todayBm: "Today's BM",
+    monthTarget: 'Monthly Target',
+    ccRanking: 'CC Ranking',
+    noOrdersToday: 'No orders today',
+    team: 'Team',
+    orders: 'Orders',
+    confirmed: 'Confirmed',
+    amount: 'Amount',
+    allOrders: 'All Orders',
+    clearAll: 'Clear All',
+    noOrdersEmpty: 'No orders today — waiting for CC @bot to report',
+    total: 'Total',
+    rank: '#',
+    time: 'Time',
+    student: 'Student',
+    product: 'Package',
+    amountThb: 'Amount (฿)',
+    manage: 'Actions',
+    clickToEdit: 'Click to edit',
+  },
+  th: {
+    subtitleFmt: (date: string) => `ออเดอร์วันนี้ — ${date} (รีเฟรชทุก 15 วินาที)`,
+    loadingSubtitle: 'ออเดอร์วันนี้',
+    loadFailed: 'โหลดล้มเหลว',
+    todayOrders: 'วันนี้',
+    todayAmount: 'ยอดวันนี้',
+    todayBm: 'BM วันนี้',
+    monthTarget: 'เป้าเดือน',
+    ccRanking: 'จัดอันดับ CC',
+    noOrdersToday: 'ยังไม่มีออเดอร์วันนี้',
+    team: 'ทีม',
+    orders: 'ออเดอร์',
+    confirmed: 'ยืนยัน',
+    amount: 'ยอดเงิน',
+    allOrders: 'ออเดอร์ทั้งหมด',
+    clearAll: 'ล้างทั้งหมด',
+    noOrdersEmpty: 'ยังไม่มีออเดอร์วันนี้ — รอ CC @บอท รายงาน',
+    total: 'รวมทั้งหมด',
+    rank: '#',
+    time: 'เวลา',
+    student: 'นักเรียน',
+    product: 'แพ็กเกจ',
+    amountThb: 'ยอดเงิน (฿)',
+    manage: 'จัดการ',
+    clickToEdit: 'คลิกเพื่อแก้ไข',
+  },
+} as const;
 import {
   Zap,
   RotateCcw,
@@ -76,6 +184,9 @@ function fmtTime(ts: string): string {
 }
 
 export default function LiveOrdersPage() {
+  const locale = useLocale();
+  const t = I18N[locale as keyof typeof I18N] || I18N.zh;
+
   const { data, error, isLoading } = useSWR<LiveData>(SWR_KEY, swrFetcher, {
     refreshInterval: 15000,
   });
@@ -115,7 +226,7 @@ export default function LiveOrdersPage() {
   if (isLoading)
     return (
       <div className={BIZ_PAGE}>
-        <PageHeader title="Live Orders" subtitle="今日实时成交" icon={Zap} />
+        <PageHeader title="Live Orders" subtitle={t.loadingSubtitle} icon={Zap} />
         <div className="animate-pulse h-60 rounded-xl bg-[var(--bg-subtle)]" />
       </div>
     );
@@ -123,9 +234,9 @@ export default function LiveOrdersPage() {
   if (error || !data)
     return (
       <div className={BIZ_PAGE}>
-        <PageHeader title="Live Orders" subtitle="今日实时成交" icon={Zap} />
+        <PageHeader title="Live Orders" subtitle={t.loadingSubtitle} icon={Zap} />
         <Card>
-          <p className="text-[var(--text-muted)]">加载失败</p>
+          <p className="text-[var(--text-muted)]">{t.loadFailed}</p>
         </Card>
       </div>
     );
@@ -134,30 +245,26 @@ export default function LiveOrdersPage() {
 
   return (
     <div className={BIZ_PAGE}>
-      <PageHeader
-        title="Live Orders"
-        subtitle={`今日实时成交 — ${data.date}（每 15 秒自动刷新）`}
-        icon={Zap}
-      />
+      <PageHeader title="Live Orders" subtitle={t.subtitleFmt(data.date)} icon={Zap} />
 
       {/* ── 摘要卡片 ── */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <SummaryCard
-          label="วันนี้ / 今日"
+          label={t.todayOrders}
           value={`${s.total_orders} ออเดอร์`}
           sub={`ยืนยันแล้ว ${s.confirmed_orders} / ไม่ยืนยัน ${s.unconfirmed_orders}`}
           icon={Package}
           color="text-blue-600"
         />
         <SummaryCard
-          label="ยอดวันนี้ / 今日金额"
+          label={t.todayAmount}
           value={fmt(s.total_thb)}
           sub={`OCR ยืนยันแล้ว ${s.confirmed_orders} รายการ`}
           icon={DollarSign}
           color="text-amber-600"
         />
         <SummaryCard
-          label="BM วันนี้ / 今日 BM"
+          label={t.todayBm}
           value={
             s.bm_gap_thb >= 0
               ? `เกินเป้า ${fmt(s.bm_gap_thb)}`
@@ -168,7 +275,7 @@ export default function LiveOrdersPage() {
           color={s.bm_gap_thb >= 0 ? 'text-green-600' : 'text-red-600'}
         />
         <SummaryCard
-          label="เป้าเดือน / 月目标"
+          label={t.monthTarget}
           value={
             s.month_gap_thb >= 0
               ? `เกิน ${fmt(s.month_gap_thb)}`
@@ -181,31 +288,31 @@ export default function LiveOrdersPage() {
       </div>
 
       {/* ── CC 排行 ── */}
-      <Card title="CC 排行 / จัดอันดับ CC วันนี้">
+      <Card title={t.ccRanking}>
         {by_cc.length === 0 ? (
-          <p className="text-[var(--text-muted)] text-sm py-4">ยังไม่มีออเดอร์วันนี้</p>
+          <p className="text-[var(--text-muted)] text-sm py-4">{t.noOrdersToday}</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="bg-[var(--bg-subtle)]">
                   <th className="text-left px-4 py-2.5 text-xs font-semibold text-[var(--text-secondary)] uppercase">
-                    #
+                    {t.rank}
                   </th>
                   <th className="text-left px-4 py-2.5 text-xs font-semibold text-[var(--text-secondary)] uppercase">
                     CC
                   </th>
                   <th className="text-left px-4 py-2.5 text-xs font-semibold text-[var(--text-secondary)] uppercase">
-                    ทีม / 团队
+                    {t.team}
                   </th>
                   <th className="text-center px-4 py-2.5 text-xs font-semibold text-[var(--text-secondary)] uppercase">
-                    ออเดอร์
+                    {t.orders}
                   </th>
                   <th className="text-center px-4 py-2.5 text-xs font-semibold text-[var(--text-secondary)] uppercase">
-                    ยืนยัน
+                    {t.confirmed}
                   </th>
                   <th className="text-right px-4 py-2.5 text-xs font-semibold text-[var(--text-secondary)] uppercase">
-                    ยอดเงิน / 金额
+                    {t.amount}
                   </th>
                 </tr>
               </thead>
@@ -242,7 +349,7 @@ export default function LiveOrdersPage() {
 
       {/* ── 订单明细 ── */}
       <Card
-        title="ออเดอร์ทั้งหมด / 订单明细"
+        title={t.allOrders}
         actions={
           <button
             onClick={resetAll}
@@ -251,39 +358,37 @@ export default function LiveOrdersPage() {
                        bg-red-50 text-red-600 hover:bg-red-100 disabled:opacity-50 transition-colors"
           >
             <RotateCcw className={`w-3.5 h-3.5 ${resetting ? 'animate-spin' : ''}`} />
-            ล้างทั้งหมด / 一键清算
+            {t.clearAll}
           </button>
         }
       >
         {orders.length === 0 ? (
-          <p className="text-[var(--text-muted)] text-sm py-4">
-            ยังไม่มีออเดอร์วันนี้ — รอ CC @机器人 ในกลุ่ม
-          </p>
+          <p className="text-[var(--text-muted)] text-sm py-4">{t.noOrdersEmpty}</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="bg-[var(--bg-subtle)]">
                   <th className="text-left px-3 py-2.5 text-xs font-semibold text-[var(--text-secondary)] uppercase w-[50px]">
-                    #
+                    {t.rank}
                   </th>
                   <th className="text-left px-3 py-2.5 text-xs font-semibold text-[var(--text-secondary)] uppercase w-[60px]">
-                    เวลา
+                    {t.time}
                   </th>
                   <th className="text-left px-3 py-2.5 text-xs font-semibold text-[var(--text-secondary)] uppercase">
                     CC
                   </th>
                   <th className="text-left px-3 py-2.5 text-xs font-semibold text-[var(--text-secondary)] uppercase">
-                    นักเรียน
+                    {t.student}
                   </th>
                   <th className="text-left px-3 py-2.5 text-xs font-semibold text-[var(--text-secondary)] uppercase">
-                    แพ็กเกจ
+                    {t.product}
                   </th>
                   <th className="text-right px-3 py-2.5 text-xs font-semibold text-[var(--text-secondary)] uppercase w-[140px]">
-                    ยอดเงิน (฿)
+                    {t.amountThb}
                   </th>
                   <th className="text-center px-3 py-2.5 text-xs font-semibold text-[var(--text-muted)] uppercase w-[80px]">
-                    จัดการ
+                    {t.manage}
                   </th>
                 </tr>
               </thead>
@@ -338,7 +443,7 @@ export default function LiveOrdersPage() {
                             setEditingIdx(o.index);
                             setEditAmount(o.amount_thb?.toString() || '');
                           }}
-                          title="คลิกเพื่อแก้ไข / 点击编辑"
+                          title={t.clickToEdit}
                         >
                           {o.amount_thb ? fmt(o.amount_thb) : 'รอยืนยัน'}
                         </span>
@@ -374,7 +479,7 @@ export default function LiveOrdersPage() {
                     colSpan={5}
                     className="px-3 py-2.5 text-right text-xs uppercase text-[var(--text-secondary)]"
                   >
-                    รวมทั้งหมด / 总计
+                    {t.total}
                   </td>
                   <td className="px-3 py-2.5 text-right text-[var(--text-primary)]">
                     {s.total_thb > 0 ? fmt(s.total_thb) : '—'}
