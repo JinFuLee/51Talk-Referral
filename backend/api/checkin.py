@@ -60,6 +60,11 @@ _OVERRIDE_PATH = (
     / "config"
     / "enclosure_role_override.json"
 )
+_PRIORITY_RULES_PATH = (
+    Path(__file__).resolve().parent.parent.parent
+    / "config"
+    / "priority_rules.json"
+)
 
 
 def _get_config() -> dict:
@@ -79,6 +84,39 @@ def _get_config() -> dict:
         except Exception:
             _CONFIG_CACHE = {}
     return _CONFIG_CACHE
+
+
+_PRIO_CACHE: list[dict] | None = None
+_PRIO_MTIME: float = 0.0
+
+# 硬编码 fallback（config/priority_rules.json 读取失败时使用）
+_PRIORITY_RULES_FALLBACK: list[dict] = [
+    {"id": "card_expiry_urgent", "score": 30},
+    {"id": "card_expiry_soon", "score": 20},
+    {"id": "lapsed_this_week", "score": 20},
+    {"id": "active_no_referral", "score": 15},
+    {"id": "lead_no_payment", "score": 20},
+    {"id": "unreachable", "score": 15},
+]
+
+
+def _get_priority_rules() -> dict[str, int]:
+    """从 config/priority_rules.json 读取优先级规则分值映射。
+    返回 {rule_id: score} dict。"""
+    global _PRIO_CACHE, _PRIO_MTIME
+    try:
+        mtime = _PRIORITY_RULES_PATH.stat().st_mtime
+    except OSError:
+        mtime = 0.0
+    if _PRIO_CACHE is None or mtime != _PRIO_MTIME:
+        try:
+            with open(_PRIORITY_RULES_PATH, encoding="utf-8") as f:
+                data = json.load(f)
+            _PRIO_CACHE = data.get("rules", _PRIORITY_RULES_FALLBACK)
+            _PRIO_MTIME = mtime
+        except Exception:
+            _PRIO_CACHE = _PRIORITY_RULES_FALLBACK
+    return {r["id"]: r["score"] for r in (_PRIO_CACHE or _PRIORITY_RULES_FALLBACK)}
 
 
 # ── 常量（共享常量从 _checkin_shared 导入，见文件顶部）─────────────────────
@@ -881,19 +919,20 @@ def _build_followup_students(
         else:
             referral_reg_val = referral_pay_val = referral_att_val = cc_dial_count = 0
 
+        _pr = _get_priority_rules()
         _prio = 0
         if card_days is not None and card_days <= 15:
-            _prio += 30
+            _prio += _pr.get("card_expiry_urgent", 30)
         elif card_days is not None and card_days <= 30:
-            _prio += 20
+            _prio += _pr.get("card_expiry_soon", 20)
         if days_this_month > 0 and days_this_week == 0:
-            _prio += 20
+            _prio += _pr.get("lapsed_this_week", 20)
         if days_this_month >= 4 and referral_reg_val == 0:
-            _prio += 15
+            _prio += _pr.get("active_no_referral", 15)
         if referral_reg_val > 0 and referral_pay_val == 0:
-            _prio += 20
+            _prio += _pr.get("lead_no_payment", 20)
         if cc_dial_count >= 5 and cc_connected == 0:
-            _prio += 15
+            _prio += _pr.get("unreachable", 15)
         action_priority_score = min(_prio, 100)
 
         # ── 推荐联系渠道 ─────────────────────────────────────────────────────

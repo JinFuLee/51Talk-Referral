@@ -117,15 +117,21 @@ def get_live_orders() -> dict:
             "order_indices": [],
         }
 
-    # 获取 T-1 团队信息
+    # 获取 T-1 团队信息（统一格式为 "THCC Team N"）
+    import re as _re
+    def _fmt_team(raw: str) -> str:
+        m = _re.search(r"CC(\d+)", raw)
+        if m:
+            return f"THCC Team {int(m.group(1))}"
+        return raw.replace("TH-", "")
+
     try:
         for team in perf.get("teams", []):
             team_name = team.get("team", "")
             for rec in team.get("records", []):
                 key = _clean(rec.get("cc_name", ""))
                 if key in cc_map:
-                    short_team = team_name.replace("TH-", "").replace("Team", "T")
-                    cc_map[key]["team"] = short_team
+                    cc_map[key]["team"] = _fmt_team(team_name)
     except Exception:
         pass
 

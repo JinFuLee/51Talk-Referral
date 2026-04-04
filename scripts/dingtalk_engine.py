@@ -2221,11 +2221,31 @@ class NotificationEngine:
         team_exclude: set[str] = {"TH-LP01Region"} if role == "LP" else set()
         teams = {k: v for k, v in teams_raw.items() if k not in team_exclude}
 
+        # 获取 checkin ranking 数据（总学员/已打卡/打卡率）
+        checkin_data = self._fetch_data(role)
+        role_checkin = (
+            checkin_data.get("by_role", {}).get(role, {}) if checkin_data else {}
+        )
+        # 按组建索引：team_name → {students, checked_in, rate}
+        ck_group_map: dict[str, dict] = {
+            g["group"]: g for g in role_checkin.get("by_group", [])
+        }
+        # 按人建索引：cc_name → {students, checked_in, rate}
+        ck_person_map: dict[str, dict] = {
+            p["name"]: p for p in role_checkin.get("by_person", [])
+        }
+
         if dry_run:
             for team_name, members in teams.items():
                 short = team_name.replace("TH-", "").replace("Team", "")
                 ccs = _lb.group_students_by_cc(members)
-                print(f"  [unchecked_ids] {short}: {len(ccs)} CC, {len(members)} 学员")
+                ck_g = ck_group_map.get(team_name, {})
+                print(
+                    f"  [unchecked_ids] {short}: {len(ccs)} CC, "
+                    f"学员 {ck_g.get('students', '?')}, "
+                    f"已打卡 {ck_g.get('checked_in', '?')}, "
+                    f"未打卡 {len(members)}"
+                )
             result["status"] = "dry_run"
             return result
 
@@ -2236,10 +2256,19 @@ class NotificationEngine:
             short = team_name.replace("TH-", "").replace("Team", "")
             ccs = _lb.group_students_by_cc(members)
 
+            # 组级打卡数据
+            ck_g = ck_group_map.get(team_name, {})
+            g_total = ck_g.get("students", 0)
+            g_checked = ck_g.get("checked_in", 0)
+            g_rate = ck_g.get("rate", 0) or 0
+
             md = (
                 f"### ⚠️ {short} ยังไม่เช็คอิน · {date_display}\n"
                 f"### {short} 未打卡跟进\n\n"
-                f"未打卡 **{len(members)}** 人 | {role} {len(ccs)}\n\n"
+                f"นร. **{g_total}** | เช็คอิน **{g_checked}** ({g_rate:.0%})"
+                f" | ยังไม่ **{len(members)}** | {role} {len(ccs)}\n\n"
+                f"学员 **{g_total}** | 已打卡 **{g_checked}** ({g_rate:.0%})"
+                f" | 未打卡 **{len(members)}** | {role} {len(ccs)}\n\n"
                 f"---\n\n"
             )
 
@@ -2251,13 +2280,24 @@ class NotificationEngine:
                     .replace("tgss-", "")
                     .replace("THLP-", "")
                 )
+                # 个人打卡数据
+                ck_p = ck_person_map.get(cc_name, {})
+                p_total = ck_p.get("students", 0)
+                p_checked = ck_p.get("checked_in", 0)
+                p_rate = ck_p.get("rate", 0) or 0
+                unchecked = len(cc_students)
+
                 # 按围场分组
                 s_by_enc: dict[str, list[str]] = _dd(list)
                 for s in cc_students:
                     enc = s.get("enclosure", "?")
                     s_by_enc[enc].append(str(s.get("student_id", "")))
 
-                md += f"👤 **{cc_short}** ({len(cc_students)} คน)\n\n"
+                md += (
+                    f"👤 **{cc_short}**"
+                    f" (นร. {p_total} | เช็คอิน {p_checked}/{p_total}"
+                    f" · {p_rate:.0%} | ยังไม่ {unchecked})\n\n"
+                )
                 for enc in enc_order:
                     ids = s_by_enc.get(enc, [])
                     if not ids:

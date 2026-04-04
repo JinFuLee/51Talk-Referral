@@ -1042,11 +1042,12 @@ function BottomStats({ total, avgScore, highQualityCount }: BottomStatsProps) {
         </strong>{' '}
         {t.statsTotalSuffix}
       </span>
-      <span>
+      <span title="课耗(40%) + 推荐活跃(30%) + 付费贡献(20%) + 围场加权(10%)">
         {t.statsAvgScore}{' '}
         <strong className="text-[var(--text-primary)] font-semibold font-mono tabular-nums">
           {(avgScore ?? 0).toFixed(1)}
         </strong>
+        <span className="ml-1 cursor-help opacity-60">ⓘ</span>
       </span>
       <span>
         {t.statsHighQuality}{' '}
