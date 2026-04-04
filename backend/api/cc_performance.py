@@ -1231,9 +1231,10 @@ def get_cc_performance(
     CC 个人业绩全维度 API。
 
     业务规则（不可绕过）：
-    - CC 是全公司唯一的转化端口，所有付费都是 CC 完成的
-    - CC 窄口覆盖全围场（M0~M12+），业绩不按围场拆分
+    - CC 是全公司唯一转化端口，所有付费都是 CC 完成的
+    - CC 窄口覆盖全围场，业绩不按围场拆分
     - 本 API 强制忽略 enclosure 参数——围场维度对 CC 业绩无意义
+    - 围场×岗位的具体分工由 config.json enclosure_role_assignment 定义
     - 保留 country / team / cc 过滤（地区、团队、个人筛选有意义）
     """
     from backend.core.date_override import get_today
