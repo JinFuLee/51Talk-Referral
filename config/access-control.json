@@ -40,6 +40,27 @@
         "/reports/ops"
       ],
       "canManage": false
+    },
+    "sales": {
+      "name": {
+        "zh": "销售",
+        "th": "ฝ่ายขาย"
+      },
+      "color": "#f59e0b",
+      "pages": [
+        "/",
+        "/daily-monitor",
+        "/cc-performance",
+        "/cc-matrix",
+        "/indicator-matrix",
+        "/incentive-tracking",
+        "/checkin",
+        "/funnel",
+        "/members",
+        "/enclosure",
+        "/reports/ops"
+      ],
+      "canManage": false
     }
   },
   "users": [
@@ -47,6 +68,51 @@
       "email": "jinfuleestudio@gmail.com",
       "role": "admin",
       "name": "Felix"
+    },
+    {
+      "email": "renhang@51talk.com",
+      "role": "sales",
+      "name": "Zoe"
+    },
+    {
+      "email": "panawat@51talk.com",
+      "role": "sales",
+      "name": "Golf"
+    },
+    {
+      "email": "sirikwan@51talk.com",
+      "role": "sales",
+      "name": "Team6"
+    },
+    {
+      "email": "Khatthaliya.Suk@51talk.com",
+      "role": "sales",
+      "name": "Team-5"
+    },
+    {
+      "email": "zen@51talk.com",
+      "role": "sales",
+      "name": "Team-1"
+    },
+    {
+      "email": "chayanit@51talk.com",
+      "role": "sales",
+      "name": "Team-2"
+    },
+    {
+      "email": "muhammadfadil@51talk.com",
+      "role": "sales",
+      "name": "Team3"
+    },
+    {
+      "email": "apinun@51talk.com",
+      "role": "sales",
+      "name": "Team-4"
+    },
+    {
+      "email": "chonticha.j@51talk.com",
+      "role": "sales",
+      "name": "Team-15"
     }
   ],
   "settings": {
@@ -55,7 +121,7 @@
       "jinfuleestudio@gmail.com"
     ]
   },
-  "version": 9,
+  "version": 10,
   "pageRegistry": [
     {
       "path": "/",
