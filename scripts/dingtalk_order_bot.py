@@ -591,19 +591,26 @@ class OrderBotHandler(dingtalk_stream.ChatbotHandler):
                 content = raw_data.get("content", {})
                 rich_parts = content.get("richText", [])
                 text_parts = []
-                for part in rich_parts:
+                for pi, part in enumerate(rich_parts):
                     if isinstance(part, dict):
+                        logger.info("  richText[%d] keys=%s", pi, list(part.keys()))
                         if part.get("text"):
                             text_parts.append(part["text"])
-                        if part.get("downloadCode") or part.get("pictureDownloadUrl"):
-                            # 图片：尝试下载用于 OCR
-                            dl_url = part.get("pictureDownloadUrl", "")
-                            if dl_url:
-                                from order_ocr import download_image_url
-                                img = download_image_url(dl_url)
+                        # 图片检测
+                        pic_code = part.get("downloadCode") or part.get("pictureDownloadCode") or ""
+                        if pic_code:
+                            logger.info("  发现图片 downloadCode=%s", pic_code[:30])
+                            robot_code = raw_data.get("robotCode", "")
+                            creds = _load_bot_creds()
+                            if creds and robot_code:
+                                from order_ocr import download_dingtalk_image
+                                img = download_dingtalk_image(
+                                    pic_code, robot_code,
+                                    creds["app_key"], creds["app_secret"],
+                                )
                                 if img:
                                     image_bytes_list.append(img)
-                                    logger.info("下载图片成功: %d bytes", len(img))
+                                    logger.info("  下载图片成功: %d bytes", len(img))
                 text = "\n".join(text_parts).strip()
 
             else:
@@ -683,6 +690,16 @@ class OrderBotHandler(dingtalk_stream.ChatbotHandler):
 
 
 # ── 启动 ──────────────────────────────────────────────────────────────────────
+
+def _load_bot_creds() -> dict | None:
+    """读取凭证（用于图片下载 API）"""
+    if not CREDENTIALS_PATH.exists():
+        return None
+    try:
+        return json.loads(CREDENTIALS_PATH.read_text())
+    except Exception:
+        return None
+
 
 def _load_credentials() -> tuple[str, str]:
     """从 key/dingtalk-bot.json 读取凭证"""

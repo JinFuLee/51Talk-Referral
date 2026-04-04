@@ -93,23 +93,56 @@ def _parse_thb_from_text(text: str) -> float | None:
     return result
 
 
-def download_dingtalk_image(download_code: str, robot_code: str, token: str) -> bytes | None:
-    """从钉钉下载图片。
+def _get_dingtalk_access_token(app_key: str, app_secret: str) -> str | None:
+    """获取钉钉 access_token（有效期 2 小时，不缓存）"""
+    import json as _json
+    url = "https://api.dingtalk.com/v1.0/oauth2/accessToken"
+    payload = _json.dumps({
+        "appKey": app_key,
+        "appSecret": app_secret,
+    }).encode("utf-8")
+    try:
+        req = urllib.request.Request(
+            url, data=payload,
+            headers={"Content-Type": "application/json"},
+            method="POST",
+        )
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            result = _json.loads(resp.read().decode("utf-8"))
+            token = result.get("accessToken")
+            if token:
+                logger.info("获取 access_token 成功")
+                return token
+    except Exception as e:
+        logger.error("获取 access_token 失败: %s", e)
+    return None
 
-    DingTalk richText 图片需要通过 API 下载：
-    POST https://api.dingtalk.com/v1.0/robot/messageFiles/download
+
+def download_dingtalk_image(
+    download_code: str,
+    robot_code: str,
+    app_key: str,
+    app_secret: str,
+) -> bytes | None:
+    """从钉钉下载 richText 中的图片。
+
+    流程：获取 access_token → POST /v1.0/robot/messageFiles/download → 下载图片
     """
+    import json as _json
+
+    token = _get_dingtalk_access_token(app_key, app_secret)
+    if not token:
+        return None
+
     url = "https://api.dingtalk.com/v1.0/robot/messageFiles/download"
-    payload = {
+    payload = _json.dumps({
         "downloadCode": download_code,
         "robotCode": robot_code,
-    }
+    }).encode("utf-8")
 
     try:
-        import json
         req = urllib.request.Request(
-            url,
-            data=json.dumps(payload).encode("utf-8"),
+            url, data=payload,
             headers={
                 "Content-Type": "application/json",
                 "x-acs-dingtalk-access-token": token,
@@ -117,12 +150,13 @@ def download_dingtalk_image(download_code: str, robot_code: str, token: str) -> 
             method="POST",
         )
         with urllib.request.urlopen(req, timeout=15) as resp:
-            result = json.loads(resp.read().decode("utf-8"))
+            result = _json.loads(resp.read().decode("utf-8"))
             download_url = result.get("downloadUrl")
             if download_url:
-                img_req = urllib.request.Request(download_url)
-                with urllib.request.urlopen(img_req, timeout=15) as img_resp:
-                    return img_resp.read()
+                logger.info("图片下载 URL: %s", download_url[:80])
+                return download_image_url(download_url)
+            else:
+                logger.warning("API 无 downloadUrl: %s", result)
     except Exception as e:
         logger.error("图片下载失败: %s", e)
 
