@@ -469,5 +469,5 @@ CC 排名算法详见 [docs/cc-ranking-spec.md](docs/cc-ranking-spec.md)（3类1
 | 28 | 新增技术债 | presentation.py fallback 数据仍为规则派生非真实 PDCA 系统对接 | P3 | M21+ | M18.3 新识别，影响汇报准确性（低优） |
 | 30 | 全局 Skill 缺失 | 全局 Skill 骨架缺失通用版本，跨项目复用需手动复制（仅有项目级适配版） | P2 | M21+ | 本地化资产新识别，建议建立 ~/.claude/skills-lib/ 跨项目共用库 |
 | 31 | DuckDB dual-track 后手 | DuckDB 替换 Parquet+pandas 的可行性评估已完成（82/100），待 M22+ 数据量增长后决策切换时机 | P3 | M22+ | M21 新识别，评估报告已完成，当前 Parquet 方案满足需求 |
-| 37 | 前端性能 | 47 页面全部 "use client"，无 RSC 收益，所有页面全量 JS 客户端加载 | P3 | M34+ | 内部工具可接受，规模扩大时考虑部分页面改 RSC |
+| 37 | 前端性能 | 47 页面全部 "use client"，无 RSC 收益 | P3 | — | ✅ 已关闭（内部工具可接受，性能满足需求，不做 RSC 迁移）|
 | 38 | 开发工具链 | Next.js 15 + React 19 下 webpack dev server 的 ErrorBoundary（class 组件）触发 HMR 崩溃 | P1 | 已修复 | 切换 turbopack（`next dev --turbo`）解决；debug 规则沉淀至 `~/.claude/rules/nextjs-debug.md` |

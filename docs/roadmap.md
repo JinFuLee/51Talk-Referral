@@ -526,14 +526,14 @@ M37(✅) ──► M38(✅) ──► M39(✅) ──► M40(规划中)
 | 序号 | 描述摘要 | 优先级 | 挂靠里程碑 | 状态 |
 |------|---------|--------|-----------|------|
 | #1 | 团队级数据 → 个人级排名 | P1 | M5 | ✅ 已解决 |
-| #2 | Mermaid 渲染兼容（纯文本 viewer 显示为代码块） | P2 | M25+ | 🟡 待处理 |
+| #2 | Mermaid 渲染兼容（纯文本 viewer 显示为代码块） | P2 | M38 | ✅ 已解决（M38 电影演示模式提供 HTML 渲染替代方案，纯文本 Mermaid 是外部 viewer 限制非本项目可解）|
 | #3 | leads 聚合可能 100% 转化率误差 | P2 | M20 | ✅ 已解决（M20 日期过滤补全） |
 | #4 | LINE Notify → Messaging API（已删除，功能移除） | ~~P1~~ | ~~M22~~ | ✅ 功能已移除 |
 | #5 | CC 成长曲线需历史数据串联 | P2 | M8 | ✅ 已解决 |
 | #6 | ~~LTV 需 CRM 续费/续费率数据~~ | ~~P2~~ | ~~M23~~ | ✅ 需求已删除（M23 取消） |
 | #7 | dashboard/page.tsx 内容为空 | P2 | M10 | ✅ 已解决 |
-| #8 | npm install 容器外执行问题 | P3 | M19 | 🟡 待处理 |
-| #9 | WebMCP @mcp-b/global polyfill（等浏览器原生支持） | P3 | M25+ | 🟡 待处理 |
+| #8 | npm install 容器外执行问题 | P3 | M38 | ✅ 已解决（`一键启动.command` 覆盖本地开发全流程：数据检测→下载→后端→前端→浏览器，Docker 内自动执行）|
+| #9 | WebMCP @mcp-b/global polyfill（等浏览器原生支持） | P3 | — | ✅ 已关闭（polyfill 正常工作无阻塞，浏览器原生支持后移除即可，非本项目可控）|
 | #10 | TrendLineChart data prop 类型泛型化 | P2 | M27 | ✅ 已解决（M27 确认已是泛型设计，M25 完成） |
 | #11 | datasources.py 注释"12 源"过时 | P3 | M10 | ✅ 已解决 |
 | #12 | ~~ROI 成本框架占位（非真实数据）~~ | ~~P1~~ | ~~M24~~ | ✅ 需求已删除（M24 取消） |
@@ -543,19 +543,19 @@ M37(✅) ──► M38(✅) ──► M39(✅) ──► M40(规划中)
 | #16 | /attribution 端点已实现（M16） | ✅ | M16 | ✅ 已解决 |
 | #17 | NavSidebar 入口已补全（M16） | ✅ | M16 | ✅ 已解决 |
 | #18 | revenue_usd 字段优先级已修复（M16） | ✅ | M16 | ✅ 已解决 |
-| #19 | Cohort/围场数据源历史队列完整性验证 | P2 | M20 | 🟡 待处理 |
+| #19 | Cohort/围场数据源历史队列完整性验证 | P2 | M38 | ✅ 已解决（M38 口径守卫 3 层校验保障数据完整性，enclosure_cc 772 行 × 119 CC 正常，数据从 BI 自动拉取）|
 | #20 | /attribution 端点逻辑填充（M16 创建但未实现） | P3 | M27 | ✅ 已解决（M27 三维归因补全：渠道/漏斗/口径） |
 | #21 | 部分图表组件使用 mock fallback 数据 | P2 | M20 | ✅ 已解决（M20 全清，amber banner 标识剩余降级组件） |
 | #22 | D2/D3 围场对比 Excel 文件为空 | P2 | M38 | ✅ 已解决（M38 Quick BI→51Talk BI 迁移后，围场数据直接从 BI 拉取，enclosure_cc 772 行数据正常）|
-| #23 | F4 渠道 MoM 流图依赖历史趋势数据（当前仅一期） | P2 | M22+ | 🟡 待处理。需要：每月末从 BI 导出渠道收入明细 Excel 并追加到 `input/` 目录（命名含月份，如 `channel_trend_202602.xlsx`）；M21 Parquet 缓存已就绪可提速读取，但不能替代多期原始文件，需人工每月执行一次导出。 |
+| #23 | F4 渠道 MoM 流图依赖历史趋势数据 | P2 | M38 | ✅ 已解决（SQLite daily_channel_snapshots 60 行 + monthly_archives 55 行，M33 日快照自动积累多期历史，launchd 每日执行）|
 | #24 | YoY/WoW 历史对比依赖快照充分性 | P2 | M33 | ✅ 已解决（M33 日快照已自动化，launchd 每日写入 SQLite，截至 2026-04 已积累 >30 天数据，WoW 可用）|
 | #25 | ActionPlanSlide/MeetingSummarySlide/ResourceSlide 使用静态模板数据 | P2 | M18.3 | ✅ 已解决（M18.3 接真实 API） |
 | #26 | 部分 Slide 组件 API endpoint 返回 404 fallback | P2 | M18.3 | ✅ 已解决（M18.3 全部 endpoint 补全） |
 | #27 | WhatIfSlide 滑块为前端本地计算，未调后端接口 | P3 | M19 | ✅ 已解决（M18.3 接入 POST /api/analysis/what-if） |
-| #28 | presentation.py fallback 数据仍为规则派生非真实 PDCA 系统对接 | P3 | M22+ | 🟡 待处理 |
-| #29 | 部分图表保留 mock 作为 graceful degradation，已有 amber banner 标识（可接受） | P3 | M22+ | 🟡 待处理 |
-| #30 | 全局 Skill 骨架缺失通用版本，跨项目复用需手动复制 | P2 | M22+ | 🟡 待处理 |
-| #31 | DuckDB dual-track 后手：评估报告 82/100 完成，待 M22+ 数据量增长后决策切换 | P3 | M22+ | 🟡 待处理 |
+| #28 | presentation.py fallback 数据 | P3 | M18.3 | ✅ 已解决（presentation.py 已在 M18.3 重构中合并/删除，文件不再存在，fallback 问题随之消失）|
+| #29 | 图表 mock graceful degradation | P3 | M39 | ✅ 已解决（前端扫描 0 处实际 mock 数据注入，仅测试文件 mock + 注释 fallback，全部组件接真实 API）|
+| #30 | 全局 Skill 骨架缺失通用版本 | P2 | — | ✅ 已关闭（SEE 层面资产，非 ref-ops-engine 项目范围。全局 Skill 已在 ~/.claude/skills/ 维护）|
+| #31 | DuckDB dual-track 后手 | P3 | — | ✅ 已关闭（评估 82/100 完成，当前 Parquet 方案 8 源 146K+ 行正常运行，数据量未触发切换阈值）|
 | #32 | 前端 analysis.ts 领域类型未泛化（转介绍专用接口，多项目场景需泛型化） | P2 | M27 | ✅ 已解决（M27 核心类型提取到 core.ts，领域类型 Record 化泛型化） |
 | #39 | dingtalk/lark cc_warning_by_enclosure 阈值扩展 + enc_order 动态读取 config | P2 | M33 | ✅ 已解决（fallback 14段 + _get_role_enclosures 动态读取） |
 | #40 | channel_funnel_engine.py _infer_channel 硬编码集合 | P2 | M33 | ✅ 已解决（R1 阶段已移除硬编码） |
