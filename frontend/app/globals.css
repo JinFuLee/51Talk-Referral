@@ -870,12 +870,15 @@ html {
   scroll-behavior: smooth;
 }
 
-/* 2. 筛选切换内容区过渡 */
+/* 2. 筛选切换内容区过渡（与登录页运动语言一致） */
 .content-transition {
-  transition: opacity 150ms ease-out;
+  transition:
+    opacity 0.3s ease-out,
+    transform 0.3s ease-out;
 }
 .content-transition[data-loading='true'] {
-  opacity: 0.5;
+  opacity: 0.4;
+  transform: translateY(2px);
 }
 
 /* 3. 数字变化 scale 脉冲 */
@@ -887,11 +890,11 @@ html {
   transform: scale(1.05);
 }
 
-/* 4. 页面切换 fade-in */
+/* 4. 页面切换 slide-up（与登录页动效语言一致） */
 @keyframes page-fade-in {
   from {
     opacity: 0;
-    transform: translateY(4px);
+    transform: translateY(10px);
   }
   to {
     opacity: 1;
@@ -900,7 +903,41 @@ html {
 }
 
 main > * {
-  animation: page-fade-in 200ms ease-out;
+  animation: page-fade-in 0.4s ease-out both;
+}
+
+/* 5. 卡片进场动效 — 交错出现 */
+.card-base,
+.card-compact,
+.card-subtle,
+.card-interactive {
+  animation: page-fade-in 0.4s ease-out both;
+}
+
+/* 交错动效：容器内卡片依次出现（最多 8 个阶梯） */
+.animate-stagger > *:nth-child(1) {
+  animation-delay: 0s;
+}
+.animate-stagger > *:nth-child(2) {
+  animation-delay: 0.05s;
+}
+.animate-stagger > *:nth-child(3) {
+  animation-delay: 0.1s;
+}
+.animate-stagger > *:nth-child(4) {
+  animation-delay: 0.15s;
+}
+.animate-stagger > *:nth-child(5) {
+  animation-delay: 0.2s;
+}
+.animate-stagger > *:nth-child(6) {
+  animation-delay: 0.25s;
+}
+.animate-stagger > *:nth-child(7) {
+  animation-delay: 0.3s;
+}
+.animate-stagger > *:nth-child(8) {
+  animation-delay: 0.35s;
 }
 
 /* prefers-reduced-motion 已在上方全局归零块处理，无需重复 */
