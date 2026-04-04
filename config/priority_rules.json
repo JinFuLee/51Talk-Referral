@@ -1,0 +1,41 @@
+{
+  "_comment": "行动优先级评分规则（满分100），由 checkin.py _build_followup_students 消费",
+  "rules": [
+    {
+      "id": "card_expiry_urgent",
+      "condition": "card_days <= 15",
+      "score": 30,
+      "description": "卡到期≤15天，紧急跟进"
+    },
+    {
+      "id": "card_expiry_soon",
+      "condition": "card_days <= 30",
+      "score": 20,
+      "description": "卡到期≤30天，需关注"
+    },
+    {
+      "id": "lapsed_this_week",
+      "condition": "days_this_month > 0 AND days_this_week == 0",
+      "score": 20,
+      "description": "本月打过卡但本周未打，有流失风险"
+    },
+    {
+      "id": "active_no_referral",
+      "condition": "days_this_month >= 4 AND referral_reg == 0",
+      "score": 15,
+      "description": "高频打卡但零推荐，可引导转介绍"
+    },
+    {
+      "id": "lead_no_payment",
+      "condition": "referral_reg > 0 AND referral_pay == 0",
+      "score": 20,
+      "description": "有推荐注册但未付费，跟进转化"
+    },
+    {
+      "id": "unreachable",
+      "condition": "cc_dial_count >= 5 AND cc_connected == 0",
+      "score": 15,
+      "description": "多次拨打未接通，换渠道触达"
+    }
+  ]
+}
