@@ -254,6 +254,7 @@ def _agg_d2(df: pd.DataFrame) -> pd.DataFrame:
 
 # ── 层 3：过滤覆盖率 + 分布集中度校验 ──────────────────────────────────────────
 
+
 def _validate_filter_coverage(
     original_df: pd.DataFrame,
     filtered_df: pd.DataFrame,
@@ -280,22 +281,26 @@ def _validate_filter_coverage(
     # 监控：团队数 = 0 → P0 | 团队数骤降 → P1
     _EXPECTED_MIN_TEAMS = 5  # 来源③经验值，30 天复审
     if kept == 0:
-        alerts.append({
-            "level": "P0",
-            "type": "R7_coverage_critical",
-            "coverage": 0,
-            "detail": "CC 团队过滤后为 0，regex 可能失效",
-        })
+        alerts.append(
+            {
+                "level": "P0",
+                "type": "R7_coverage_critical",
+                "coverage": 0,
+                "detail": "CC 团队过滤后为 0，regex 可能失效",
+            }
+        )
     elif kept < _EXPECTED_MIN_TEAMS:
-        alerts.append({
-            "level": "P1",
-            "type": "R7_coverage_low",
-            "coverage": kept,
-            "detail": (
-                f"CC 团队仅 {kept} 个 < {_EXPECTED_MIN_TEAMS}"
-                "（预期 ≥5，可能有团队改名未匹配 regex）"
-            ),
-        })
+        alerts.append(
+            {
+                "level": "P1",
+                "type": "R7_coverage_low",
+                "coverage": kept,
+                "detail": (
+                    f"CC 团队仅 {kept} 个 < {_EXPECTED_MIN_TEAMS}"
+                    "（预期 ≥5，可能有团队改名未匹配 regex）"
+                ),
+            }
+        )
 
     # R7 扩展：被排除团队中是否有 revenue > 0
     rev_col = "总带新付费金额USD"
@@ -303,12 +308,14 @@ def _validate_filter_coverage(
     if rev_col in excl_df.columns and not excl_df.empty:
         excl_revenue = pd.to_numeric(excl_df[rev_col], errors="coerce").sum()
         if excl_revenue > 0:
-            alerts.append({
-                "level": "P1",
-                "type": "R7_excluded_has_revenue",
-                "excluded_revenue": round(float(excl_revenue), 2),
-                "detail": f"被排除团队包含业绩 ${excl_revenue:,.0f}，疑似误过滤",
-            })
+            alerts.append(
+                {
+                    "level": "P1",
+                    "type": "R7_excluded_has_revenue",
+                    "excluded_revenue": round(float(excl_revenue), 2),
+                    "detail": f"被排除团队包含业绩 ${excl_revenue:,.0f}，疑似误过滤",
+                }
+            )
 
     # R7 分布：Shannon Entropy + HHI（A 级科学标准）
     leads_col = "转介绍注册数"
@@ -317,7 +324,8 @@ def _validate_filter_coverage(
     if has_leads and has_grp and len(kept_teams) > 1:
         team_leads = (
             pd.to_numeric(filtered_df[leads_col], errors="coerce")
-            .groupby(filtered_df[grp_col]).sum()
+            .groupby(filtered_df[grp_col])
+            .sum()
         )
         total_leads = team_leads.sum()
         if total_leads > 0 and len(team_leads) > 1:
@@ -326,26 +334,29 @@ def _validate_filter_coverage(
             if max_entropy > 0:
                 entropy = -sum(pi * math.log(pi) for pi in p if pi > 0)
                 normalized_entropy = entropy / max_entropy
-                hhi = float((p ** 2).sum())
+                hhi = float((p**2).sum())
 
                 if normalized_entropy < 0.4 or hhi > 0.25:
-                    alerts.append({
-                        "level": "P1",
-                        "type": "R7_distribution_skewed",
-                        "entropy": round(normalized_entropy, 3),
-                        "hhi": round(hhi, 3),
-                        "detail": (
-                            f"leads 分布集中度异常："
-                            f"Shannon H={normalized_entropy:.2f}(<0.4) "
-                            f"HHI={hhi:.2f}(>0.25)"
-                            "（Shannon 1948 A 级 + Hirschman 1964 A 级）"
-                        ),
-                    })
+                    alerts.append(
+                        {
+                            "level": "P1",
+                            "type": "R7_distribution_skewed",
+                            "entropy": round(normalized_entropy, 3),
+                            "hhi": round(hhi, 3),
+                            "detail": (
+                                f"leads 分布集中度异常："
+                                f"Shannon H={normalized_entropy:.2f}(<0.4) "
+                                f"HHI={hhi:.2f}(>0.25)"
+                                "（Shannon 1948 A 级 + Hirschman 1964 A 级）"
+                            ),
+                        }
+                    )
 
     return alerts
 
 
 # ── 层 2：D1 vs D2 业务逻辑交叉校验 ─────────────────────────────────────────────
+
 
 def _cross_validate(dm: DataManager) -> list[dict]:
     """层 2：D1 (result) vs D2 (enclosure_cc) 交叉校验。
@@ -397,19 +408,21 @@ def _cross_validate(dm: DataManager) -> list[dict]:
         ratio = d2_revenue / d1_revenue
         diff_pct = abs(1 - ratio)
         if ratio > 1.0:
-            alerts.append({
-                "level": "P0",
-                "type": "R4_d2_exceeds_d1",
-                "metric": "revenue",
-                "d1": round(d1_revenue, 2),
-                "d2": round(d2_revenue, 2),
-                "diff_pct": round(diff_pct, 4),
-                "detail": (
-                    f"revenue: D2({d2_revenue:,.0f}) > D1({d1_revenue:,.0f})，"
-                    f"差异 {diff_pct:.1%}，CC 围场 revenue 超过泰国区域总计，"
-                    "疑似非 CC 渠道数据混入 D2"
-                ),
-            })
+            alerts.append(
+                {
+                    "level": "P0",
+                    "type": "R4_d2_exceeds_d1",
+                    "metric": "revenue",
+                    "d1": round(d1_revenue, 2),
+                    "d2": round(d2_revenue, 2),
+                    "diff_pct": round(diff_pct, 4),
+                    "detail": (
+                        f"revenue: D2({d2_revenue:,.0f}) > D1({d1_revenue:,.0f})，"
+                        f"差异 {diff_pct:.1%}，CC 围场 revenue 超过泰国区域总计，"
+                        "疑似非 CC 渠道数据混入 D2"
+                    ),
+                }
+            )
 
     return alerts
 
@@ -891,6 +904,190 @@ def get_cc_targets_template(
 
 
 @router.post(
+    "/cc-performance/targets/import-sm",
+    summary="从 SM 业绩目标 Excel 自动计算转介绍个人目标",
+)
+def import_sm_targets(
+    month: str = Query(..., description="YYYYMM 格式月份"),
+    file: UploadFile = File(...),
+) -> dict:
+    """解析 SM Target Proposal Excel，按比例计算每个 CC 的转介绍目标。
+
+    逻辑：
+    1. 从 Excel 提取每个 CC 的总业绩目标（USD）
+    2. 从系统读取当月转介绍总目标（hard.referral_revenue）
+    3. 计算转介绍占比 = referral_revenue / sum(cc_total_targets)
+    4. 每人转介绍目标 = 个人总目标 × 转介绍占比
+    5. 写入 config/cc_targets_{month}.json
+    """
+    content = file.file.read()
+
+    # ── 1. 解析 Excel ──
+    import openpyxl
+
+    wb = openpyxl.load_workbook(io.BytesIO(content), data_only=True)
+    # 优先用 "Revised" sheet，fallback 第一个 sheet
+    ws = wb["Revised"] if "Revised" in wb.sheetnames else wb[wb.sheetnames[0]]
+
+    # 自动检测目标列（标题含 "Target" + "USD" 的列）
+    # 默认 col I (index 9)，但先扫描 row 1 确认
+    target_col_idx = 9  # I 列
+    for cell in ws[1]:
+        hdr = str(cell.value or "")
+        if "target" in hdr.lower() and "march" not in hdr.lower():
+            # 检查下一行是否标 "USD"
+            sub = ws.cell(row=2, column=cell.column).value
+            if sub and "usd" in str(sub).lower():
+                target_col_idx = cell.column
+                break
+
+    cc_rows: list[dict] = []
+    for row in ws.iter_rows(min_row=3, max_row=ws.max_row, values_only=False):
+        a_val = row[0].value  # Col A: CRM name
+        b_val = row[1].value  # Col B: Full name
+        c_val = row[2].value if len(row) > 2 else None  # Col C: Team
+        target_val = (
+            row[target_col_idx - 1].value if len(row) >= target_col_idx else None
+        )
+
+        # 跳过汇总行（"Total Team-X"）
+        if b_val and "total team" in str(b_val).lower():
+            continue
+        # 跳过底部汇总（A 是纯数字且 B 为空，或含 HQ/Diff）
+        if b_val and any(kw in str(b_val).lower() for kw in ["hq target", "diff"]):
+            continue
+        # 跳过空行
+        if not a_val and not target_val:
+            continue
+        # 跳过 A 是纯数字（团���人数统计行）
+        if (
+            isinstance(a_val, (int, float))
+            and not isinstance(a_val, bool)
+            and (not b_val or "total" in str(b_val).lower())
+        ):
+            continue
+
+        # 提取 CC 名和目标
+        cc_name = str(a_val).strip() if a_val else ""
+        if not cc_name:
+            continue
+
+        target_usd = _sf(target_val)
+        if target_usd is None or target_usd <= 0:
+            continue
+
+        cc_rows.append(
+            {
+                "cc_name": cc_name,
+                "full_name": str(b_val).strip() if b_val else "",
+                "team": str(c_val).strip() if c_val else "",
+                "total_target_usd": target_usd,
+            }
+        )
+
+    if not cc_rows:
+        raise HTTPException(status_code=400, detail="Excel 中未找到有效的 CC 目标行")
+
+    # ── 2. 读取系统转介绍目标 ──
+    targets = _load_targets(month)
+    hard = targets.get("hard", {})
+    referral_revenue = _sf(hard.get("referral_revenue"))
+    if referral_revenue is None or referral_revenue <= 0:
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                f"系统中 {month} 月未配置转介绍目标"
+                "（hard.referral_revenue），请先在 Settings 页设置"
+            ),
+        )
+
+    # ── 3. 计算转介绍占比 ──
+    total_target_from_excel = sum(r["total_target_usd"] for r in cc_rows)
+    if total_target_from_excel <= 0:
+        raise HTTPException(status_code=400, detail="Excel 中 CC 总目标为 0")
+
+    referral_ratio = referral_revenue / total_target_from_excel
+
+    # ── 4. 计算每人转介绍目标 ──
+    cc_targets: dict[str, dict] = {}
+    for r in cc_rows:
+        cc_name = r["cc_name"]
+        personal_referral = round(r["total_target_usd"] * referral_ratio, 2)
+        if cc_name in cc_targets:
+            # 同名（Newbie）合并
+            cc_targets[cc_name]["referral_usd_target"] = round(
+                cc_targets[cc_name]["referral_usd_target"] + personal_referral, 2
+            )
+            cc_targets[cc_name]["total_target_usd"] = round(
+                cc_targets[cc_name]["total_target_usd"] + r["total_target_usd"], 2
+            )
+        else:
+            cc_targets[cc_name] = {
+                "referral_usd_target": personal_referral,
+                "total_target_usd": r["total_target_usd"],
+            }
+
+    # ── 5. 写入 cc_targets 文件 ──
+    payload = {
+        "month": month,
+        "updated_at": datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "source": "sm_import",
+        "referral_ratio": round(referral_ratio, 6),
+        "total_target_from_excel": total_target_from_excel,
+        "referral_revenue": referral_revenue,
+        "targets": {
+            k: {"referral_usd_target": v["referral_usd_target"]}
+            for k, v in cc_targets.items()
+        },
+    }
+
+    _CONFIG_DIR.mkdir(parents=True, exist_ok=True)
+    target_path = _CONFIG_DIR / f"cc_targets_{month}.json"
+    tmp_path = target_path.with_suffix(".tmp")
+    json_str = json.dumps(payload, ensure_ascii=False, indent=2)
+    tmp_path.write_text(json_str, encoding="utf-8")
+    tmp_path.rename(target_path)
+
+    # ── 6. 同步更新 targets_override 的 total_revenue ──
+    override_path = _CONFIG_DIR / "targets_override.json"
+    overrides = _read_json(override_path, {})
+    if month not in overrides:
+        overrides[month] = {}
+    if "hard" not in overrides[month]:
+        overrides[month]["hard"] = {}
+    overrides[month]["hard"]["total_revenue"] = total_target_from_excel
+    overrides[month]["hard"]["referral_pct"] = round(referral_ratio, 6)
+    ov_tmp = override_path.with_suffix(".tmp")
+    ov_tmp.write_text(
+        json.dumps(overrides, ensure_ascii=False, indent=2), encoding="utf-8"
+    )
+    ov_tmp.rename(override_path)
+
+    # ── 返回预览 ──
+    preview = [
+        {
+            "cc_name": k,
+            "total_target_usd": v["total_target_usd"],
+            "referral_usd_target": v["referral_usd_target"],
+        }
+        for k, v in sorted(cc_targets.items(), key=lambda x: x[0].lower())
+    ]
+
+    return {
+        "status": "ok",
+        "month": month,
+        "referral_revenue": referral_revenue,
+        "total_target_from_excel": total_target_from_excel,
+        "referral_ratio_pct": round(referral_ratio * 100, 2),
+        "cc_count": len(cc_targets),
+        "total_allocated": round(
+            sum(v["referral_usd_target"] for v in cc_targets.values()), 2
+        ),
+        "preview": preview,
+    }
+
+
+@router.post(
     "/cc-performance/targets/upload",
     summary="上传 CC 个人目标（CSV 或 Excel）",
 )
@@ -1037,6 +1234,7 @@ def get_cc_performance(
     - 返回按团队分组的 CC 个人记录 + 各团队汇总 + 全局汇总
     """
     from backend.core.date_override import get_today
+
     today = get_today()
     if not month:
         month = today.strftime("%Y%m")
@@ -1300,6 +1498,7 @@ def get_cc_performance(
         layer2_alerts = _cross_validate(dm)
         if layer2_alerts:
             from backend.core.caliber_guard import emit_caliber_alert
+
             emit_caliber_alert("layer2_business", layer2_alerts)
     except Exception as _l2_exc:
         logger.warning("层 2 校验失败（非致命）: %s", _l2_exc)
@@ -1312,14 +1511,13 @@ def get_cc_performance(
                 if not agg_d2.empty and "team" in agg_d2.columns
                 else []
             )
-            filtered_for_l3 = (
-                agg_d2.reset_index() if not agg_d2.empty else df_d2
-            )
+            filtered_for_l3 = agg_d2.reset_index() if not agg_d2.empty else df_d2
             layer3_alerts = _validate_filter_coverage(
                 df_d2, filtered_for_l3, kept_teams_list
             )
             if layer3_alerts:
                 from backend.core.caliber_guard import emit_caliber_alert
+
                 emit_caliber_alert("layer3_distribution", layer3_alerts)
     except Exception as _l3_exc:
         logger.warning("层 3 校验失败（非致命）: %s", _l3_exc)

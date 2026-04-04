@@ -69,6 +69,7 @@ import BmCalendarCard from './BmCalendarCard';
 import { TargetRecommender } from '@/components/settings/TargetRecommender';
 import DataSourceCard from './DataSourceCard';
 import IncentiveBudgetCard from './IncentiveBudgetCard';
+import SMTargetImportCard from './SMTargetImportCard';
 import { defaultV2, MONTHS } from './defaultV2';
 
 export default function SettingsPage() {
@@ -254,6 +255,7 @@ export default function SettingsPage() {
         onUpdateHard={updateHard}
         onApplyScenario={applyScenario}
       />
+      <SMTargetImportCard month={selectedMonth} />
       <TargetRecommender />
       <ChannelSettingsCard v2={v2} onUpdateChannel={updateChannel} />
       <EnclosureSettingsCard
