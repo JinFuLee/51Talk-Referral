@@ -14,7 +14,7 @@ export default function CCPerformancePage() {
   usePageDimensions({
     country: true,
     dataRole: 'cc',
-    enclosure: true,
+    enclosure: false, // CC 负责全漏斗转化，业绩不按围场过滤
     team: true,
   });
   const locale = useLocale();
