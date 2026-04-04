@@ -347,9 +347,9 @@ export default function SummaryTab({ enclosureFilter, roleFilter }: SummaryTabPr
 
   const byRole = data?.by_role ?? {};
 
-  // dataRole 映射：全部 → CC+SS+LP，单选 → 只显示对应角色面板
+  // dataRole 映射：全部 → CC+SS+LP+运营，单选 → 只显示对应角色面板
   const _ROLE_MAP: Record<string, string[]> = {
-    all: ['CC', 'SS', 'LP'],
+    all: ['CC', 'SS', 'LP', '运营'],
     cc: ['CC'],
     ss: ['SS'],
     lp: ['LP'],
@@ -357,19 +357,17 @@ export default function SummaryTab({ enclosureFilter, roleFilter }: SummaryTabPr
   };
   const visibleRoles = _ROLE_MAP[dataRole] ?? _ROLE_MAP.all;
 
-  const channels: CheckinChannelSummary[] = visibleRoles
-    .filter((role) => role !== '运营') // 运营有专属视图，不在此 grid 展示
-    .map((role) => {
-      const v = byRole[role];
-      return {
-        channel: role,
-        total_students: v?.total_students ?? 0,
-        total_checkin: v?.checked_in ?? 0,
-        checkin_rate: v?.checkin_rate ?? 0,
-        by_team: v?.by_team ?? [],
-        by_enclosure: v?.by_enclosure ?? [],
-      };
-    });
+  const channels: CheckinChannelSummary[] = visibleRoles.map((role) => {
+    const v = byRole[role];
+    return {
+      channel: role,
+      total_students: v?.total_students ?? 0,
+      total_checkin: v?.checked_in ?? 0,
+      checkin_rate: v?.checkin_rate ?? 0,
+      by_team: v?.by_team ?? [],
+      by_enclosure: v?.by_enclosure ?? [],
+    };
+  });
 
   if (channels.length === 0) {
     return <EmptyState title={t.noData} description={t.noDataDesc} />;
