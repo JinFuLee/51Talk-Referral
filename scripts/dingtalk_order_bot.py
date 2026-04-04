@@ -252,72 +252,91 @@ def format_reply(order: ParsedOrder) -> str:
     if not order.is_order:
         return ""
 
+    rate = _load_exchange_rate()
+
     lines: list[str] = []
     lines.append("### ✓ Referral ยืนยันแล้ว")
+    lines.append("")
     lines.append("")
 
     # 小组 + CC 名
     if order.cc_name:
         team_str = order.team_code or ""
         if order.team_number:
-            team_str += f" TEAM {order.team_number}"
-        lines.append(f"👤 **{order.cc_name}** — {team_str}")
+            team_str += f" Team {order.team_number}"
+        lines.append(f"👤  **{order.cc_name}**  |  {team_str}")
+        lines.append("")
 
-    # 学员 + 产品
-    parts = []
+    # 学员
     if order.student_name:
-        parts.append(order.student_name)
-    if order.product:
-        parts.append(order.product)
-    if parts:
-        lines.append(f"📦 {' · '.join(parts)}")
+        lines.append(f"🎓  นักเรียน: {order.student_name}")
+        lines.append("")
 
-    # 金额（如有）
+    # 产品
+    if order.product:
+        lines.append(f"📦  แพ็กเกจ: {order.product}")
+        lines.append("")
+
+    # 金额（泰铢优先）
     if order.amount_usd is not None:
-        thb_str = (
-            f" (฿{order.amount_thb:,.0f})" if order.amount_thb else ""
-        )
-        lines.append(f"💰 **${order.amount_usd:,.0f}{thb_str}**")
+        thb = order.amount_thb or (order.amount_usd * rate)
+        lines.append(f"💰  **฿{thb:,.0f}**")
+        lines.append("")
+    elif order.amount_thb is not None:
+        lines.append(f"💰  **฿{order.amount_thb:,.0f}**")
+        lines.append("")
 
     # 时间
-    lines.append(f"📅 {now}")
+    lines.append(f"📅  {now}")
+    lines.append("")
+    lines.append("")
 
-    # BM + 月目标差距（从后端 T-1 数据）
+    # BM + 月目标差距（从后端 T-1 数据，全部转泰铢）
     summary = _fetch_revenue_status()
     if summary:
-        actual = summary.get("revenue_usd", 0) or 0
-        target = summary.get("revenue_target", 0) or 0
+        actual_usd = summary.get("revenue_usd", 0) or 0
+        target_usd = summary.get("revenue_target", 0) or 0
         bm_pct = summary.get("bm_pct", 0) or 0
         rev_progress = summary.get("revenue_progress", 0) or 0
 
-        lines.append("")
-        lines.append("---")
+        actual_thb = actual_usd * rate
+        target_thb = target_usd * rate
 
-        # BM 差距（今日进度 vs BM 进度线）
-        bm_target_usd = target * bm_pct
-        bm_gap = actual - bm_target_usd
-        if bm_gap >= 0:
+        lines.append("---")
+        lines.append("")
+
+        # BM 差距
+        bm_target_thb = target_thb * bm_pct
+        bm_gap_thb = actual_thb - bm_target_thb
+        if bm_gap_thb >= 0:
             lines.append(
-                f"📈 BM วันนี้: **เกินเป้า ${bm_gap:,.0f}** "
-                f"({rev_progress:.1%} vs BM {bm_pct:.1%})"
+                f"📈  BM วันนี้:  **เกินเป้า ฿{bm_gap_thb:,.0f}**"
             )
         else:
             lines.append(
-                f"📉 BM วันนี้: **ต่ำกว่าเป้า ${abs(bm_gap):,.0f}** "
-                f"({rev_progress:.1%} vs BM {bm_pct:.1%})"
+                f"📉  BM วันนี้:  **ต่ำกว่าเป้า ฿{abs(bm_gap_thb):,.0f}**"
             )
+        lines.append(
+            f"&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"
+            f"ความคืบหน้า {rev_progress:.1%}  vs  BM {bm_pct:.1%}"
+        )
+        lines.append("")
 
         # 月目标差距
-        month_gap = actual - target
-        if month_gap >= 0:
+        month_gap_thb = actual_thb - target_thb
+        if month_gap_thb >= 0:
             lines.append(
-                f"🎯 เป้าเดือน: **เกินเป้าแล้ว ${month_gap:,.0f}**"
+                f"🎯  เป้าเดือน:  **เกินเป้าแล้ว ฿{month_gap_thb:,.0f}**"
             )
         else:
             lines.append(
-                f"🎯 เป้าเดือน: **เหลืออีก ${abs(month_gap):,.0f}** "
-                f"(${actual:,.0f}/${target:,.0f})"
+                f"🎯  เป้าเดือน:  **เหลืออีก ฿{abs(month_gap_thb):,.0f}**"
             )
+        lines.append(
+            f"&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"
+            f"฿{actual_thb:,.0f} / ฿{target_thb:,.0f}"
+        )
+        lines.append("")
 
     return "\n".join(lines)
 
