@@ -240,8 +240,17 @@ def _aggregate_ops_channels(
         "checkin_rate": round(rate, 4),
         "channels": channels,
         "by_enclosure_segment": by_enclosure_segment,
-        "by_team": [],  # 兼容 SummaryTab ChannelColumn（运营无团队拆分）
-        "by_enclosure": [],  # 兼容 SummaryTab ChannelColumn（运营无围场拆分）
+        "by_team": [],  # 运营无团队拆分
+        # 运营围场拆分：从 by_enclosure_segment 映射为 ChannelColumn 通用格式
+        "by_enclosure": [
+            {
+                "enclosure": seg["segment"],
+                "students": seg["students"],
+                "checked_in": seg["checked_in"],
+                "rate": seg["rate"],
+            }
+            for seg in by_enclosure_segment
+        ],
         "by_group": [],
         "by_person": [],
     }

@@ -173,5 +173,19 @@ class CCPerformanceResponse(BaseModel):
     has_targets: bool = False  # 是否已上传 CC 个人目标
     target_month: str | None = None  # 目标文件对应月份
     target_count: int = 0  # 已上传目标的 CC 人数
+
+    # 对账（上传目标后启用：匹配 CC 业绩之和 vs 系统总业绩）
+    reconciliation: dict | None = None
+    # {
+    #   "matched_revenue": float,      # 匹配到的 CC 业绩之和
+    #   "system_total_revenue": float,  # D2 系统总转介绍业绩
+    #   "unassigned_revenue": float,    # 无 CC 名的业绩
+    #   "hidden_revenue": float,        # 被隐藏 CC 的业绩（不在上传名单）
+    #   "difference": float,            # matched + unassigned + hidden - system_total
+    #   "matched_count": int,           # 匹配到的 CC 数
+    #   "hidden_count": int,            # 被隐藏的 CC 数
+    #   "hidden_names": list[str],      # 被隐藏的 CC 名列表
+    # }
+
     teams: list[CCPerformanceTeamSummary] = []
     grand_total: CCPerformanceRecord | None = None  # 全局汇总行

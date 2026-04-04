@@ -1343,8 +1343,23 @@ def get_cc_performance(
                 }
 
     # 构建个人记录
+    # 如果上传了目标文件，只显示文件中有的 CC（隐藏未上传的）
+    has_uploaded = bool(cc_targets)
     all_records: list[CCPerformanceRecord] = []
+    hidden_names: list[str] = []
+    hidden_revenue: float = 0.0
+    # merged 是 _agg_d2 输出，列名 revenue_actual；df_d2 是原始列名 总带新付费金额USD
+    _agg_rev_col = "revenue_actual"
+    _raw_rev_col = "总带新付费金额USD"
     for cc_name, row in merged.iterrows():
+        cc_lower = str(cc_name).lower()
+        if has_uploaded and cc_lower not in uploaded_lower:
+            # 记录被隐藏 CC 的业绩用于对账
+            hidden_names.append(str(cc_name))
+            _hr = _sf(row.get(_agg_rev_col))
+            if _hr:
+                hidden_revenue += _hr
+            continue  # 上传了目标但此 CC 不在名单中 → 隐藏
         rec = _build_record(
             cc_name=str(cc_name),
             row=row,
@@ -1356,6 +1371,43 @@ def get_cc_performance(
             team_referral_target=team_referral_target,
         )
         all_records.append(rec)
+
+    # 对账：匹配 CC 业绩之和 vs 系统总业绩
+    reconciliation: dict | None = None
+    if has_uploaded:
+        matched_revenue = sum(r.revenue.actual or 0 for r in all_records)
+        # 系统总业绩 = D2 全部行（含无 CC 名的）
+        sys_total = _sf(
+            pd.to_numeric(merged[_rev_col], errors="coerce").sum()
+        ) or 0.0
+        # 无 CC 名的业绩（已在 grand_total 补偿）
+        _cc_col = "last_cc_name"
+        unassigned_rev = 0.0
+        if not df_d2.empty and _cc_col in df_d2.columns:
+            _null_mask = df_d2[_cc_col].isna() | (
+                df_d2[_cc_col].astype(str).str.strip().isin(["", "nan", "NaN"])
+            )
+            if "区域" in df_d2.columns:
+                _null_mask = _null_mask & (df_d2["区域"].astype(str) == "泰国")
+            unassigned_rev = _sf(
+                pd.to_numeric(
+                    df_d2.loc[_null_mask, _rev_col] if _rev_col in df_d2.columns
+                    else pd.Series(), errors="coerce"
+                ).sum()
+            ) or 0.0
+        reconciliation = {
+            "matched_revenue": round(matched_revenue, 2),
+            "system_total_revenue": round(sys_total + unassigned_rev, 2),
+            "unassigned_revenue": round(unassigned_rev, 2),
+            "hidden_revenue": round(hidden_revenue, 2),
+            "difference": round(
+                matched_revenue + hidden_revenue + unassigned_rev
+                - (sys_total + unassigned_rev), 2
+            ),
+            "matched_count": len(all_records),
+            "hidden_count": len(hidden_names),
+            "hidden_names": sorted(hidden_names),
+        }
 
     # 按团队分组
     team_map: dict[str, list[CCPerformanceRecord]] = {}
@@ -1531,6 +1583,7 @@ def get_cc_performance(
         has_targets=bool(cc_targets),
         target_month=month if cc_targets else None,
         target_count=len(cc_targets),
+        reconciliation=reconciliation,
         teams=teams,
         grand_total=grand_total,
     )
