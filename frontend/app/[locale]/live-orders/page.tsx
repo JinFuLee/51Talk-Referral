@@ -3,8 +3,9 @@
 export const dynamic = 'force-dynamic';
 
 import { useState, useCallback } from 'react';
-import useSWR, { mutate } from 'swr';
+import { mutate } from 'swr';
 import { useLocale } from 'next-intl';
+import { useFilteredSWR } from '@/lib/hooks/use-filtered-swr';
 
 const I18N = {
   zh: {
@@ -183,7 +184,6 @@ import {
   Package,
   Clock,
 } from 'lucide-react';
-import { swrFetcher } from '@/lib/api';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { Card } from '@/components/ui/Card';
 import { BIZ_PAGE } from '@/lib/layout';
@@ -244,7 +244,7 @@ export default function LiveOrdersPage() {
   const locale = useLocale();
   const t = I18N[locale as keyof typeof I18N] || I18N.zh;
 
-  const { data, error, isLoading } = useSWR<LiveData>(SWR_KEY, swrFetcher, {
+  const { data, error, isLoading } = useFilteredSWR<LiveData>(SWR_KEY, {
     refreshInterval: 15000,
   });
   const [editingIdx, setEditingIdx] = useState<number | null>(null);
@@ -261,7 +261,7 @@ export default function LiveOrdersPage() {
         body: JSON.stringify({ amount_thb: editAmount === '' ? null : val }),
       });
       setEditingIdx(null);
-      mutate(SWR_KEY);
+      mutate((key) => typeof key === 'string' && key.startsWith(SWR_KEY));
     },
     [editAmount]
   );

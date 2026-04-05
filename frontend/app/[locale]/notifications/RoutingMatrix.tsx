@@ -1,8 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import useSWR, { mutate } from 'swr';
+import { mutate } from 'swr';
 import { useLocale } from 'next-intl';
+import { useFilteredSWR } from '@/lib/hooks/use-filtered-swr';
 import {
   Grid3X3,
   Plus,
@@ -16,8 +17,6 @@ import {
   Users,
   Shield,
 } from 'lucide-react';
-
-import { swrFetcher } from '@/lib/api';
 
 const I18N = {
   zh: {
@@ -178,10 +177,8 @@ export function RoutingMatrix() {
     ops: t.audienceOps,
   };
 
-  const { data, error, isLoading } = useSWR<RoutingData>(
-    `${API}/api/notifications/routing`,
-    swrFetcher
-  );
+  const ROUTING_KEY = `${API}/api/notifications/routing`;
+  const { data, error, isLoading } = useFilteredSWR<RoutingData>(ROUTING_KEY);
   const [editingModule, setEditingModule] = useState<string | null>(null);
   const [editDesc, setEditDesc] = useState('');
   const [showAdd, setShowAdd] = useState(false);
@@ -205,7 +202,7 @@ export function RoutingMatrix() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ module_id: moduleId, audience, enabled: !current }),
     });
-    mutate(`${API}/api/notifications/routing`);
+    mutate((key) => typeof key === 'string' && key.startsWith(ROUTING_KEY));
     setSaving(null);
   };
 
@@ -216,13 +213,13 @@ export function RoutingMatrix() {
       body: JSON.stringify({ description: editDesc }),
     });
     setEditingModule(null);
-    mutate(`${API}/api/notifications/routing`);
+    mutate((key) => typeof key === 'string' && key.startsWith(ROUTING_KEY));
   };
 
   const deleteModule = async (moduleId: string) => {
     if (!confirm(`${t.confirmDelete} "${moduleId}"？`)) return;
     await fetch(`${API}/api/notifications/modules/${moduleId}`, { method: 'DELETE' });
-    mutate(`${API}/api/notifications/routing`);
+    mutate((key) => typeof key === 'string' && key.startsWith(ROUTING_KEY));
   };
 
   const addModule = async () => {
@@ -235,7 +232,7 @@ export function RoutingMatrix() {
     if (res.ok) {
       setShowAdd(false);
       setNewModule({ id: '', description: '', format: 'image', cc_only: false });
-      mutate(`${API}/api/notifications/routing`);
+      mutate((key) => typeof key === 'string' && key.startsWith(ROUTING_KEY));
     }
   };
 
