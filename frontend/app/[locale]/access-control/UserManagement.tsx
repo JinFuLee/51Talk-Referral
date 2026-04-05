@@ -172,9 +172,7 @@ function RoleBadge({ role, roles }: { role: string; roles: RoleDef[] }) {
   const roleDef = roles.find((r) => r.id === role);
   if (!roleDef)
     return (
-      <span className="text-xs px-2 py-0.5 rounded-full bg-[var(--n-100)] text-[var(--text-muted)]">
-        {role}
-      </span>
+      <span className="text-xs px-2 py-0.5 rounded-full bg-n-100 text-muted-token">{role}</span>
     );
 
   return (
@@ -314,10 +312,10 @@ export default function UserManagement({
       {/* 单个添加表单 */}
       {showForm && (
         <div className="card-base p-4 space-y-3 border-action/30">
-          <h4 className="text-sm font-medium text-[var(--text-primary)]">{t.addUser}</h4>
+          <h4 className="text-sm font-medium text-primary-token">{t.addUser}</h4>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
             <div>
-              <label className="block text-xs text-[var(--text-secondary)] mb-1">{t.email}</label>
+              <label className="block text-xs text-secondary-token mb-1">{t.email}</label>
               <input
                 type="email"
                 value={formEmail}
@@ -327,7 +325,7 @@ export default function UserManagement({
               />
             </div>
             <div>
-              <label className="block text-xs text-[var(--text-secondary)] mb-1">{t.name}</label>
+              <label className="block text-xs text-secondary-token mb-1">{t.name}</label>
               <input
                 type="text"
                 value={formName}
@@ -337,7 +335,7 @@ export default function UserManagement({
               />
             </div>
             <div>
-              <label className="block text-xs text-[var(--text-secondary)] mb-1">{t.role}</label>
+              <label className="block text-xs text-secondary-token mb-1">{t.role}</label>
               <select
                 value={formRole}
                 onChange={(e) => setFormRole(e.target.value)}
@@ -369,7 +367,7 @@ export default function UserManagement({
       {/* 批量添加表单 */}
       {showBatch && (
         <div className="card-base p-4 space-y-3 border-action/30">
-          <h4 className="text-sm font-medium text-[var(--text-primary)]">{t.batchAdd}</h4>
+          <h4 className="text-sm font-medium text-primary-token">{t.batchAdd}</h4>
           <textarea
             value={batchText}
             onChange={(e) => setBatchText(e.target.value)}
@@ -389,7 +387,7 @@ export default function UserManagement({
               ))}
             </select>
             {batchEmails.length > 0 && (
-              <span className="text-xs text-[var(--text-muted)]">
+              <span className="text-xs text-muted-token">
                 {batchEmails.length}
                 {t.batchCount}
               </span>
@@ -413,14 +411,14 @@ export default function UserManagement({
       {/* 用户表格 */}
       {users.length === 0 ? (
         <div className="state-empty">
-          <Mail className="w-8 h-8 text-[var(--n-300)]" />
+          <Mail className="w-8 h-8 text-n-300" />
           <p className="text-sm">{t.noUsers}</p>
           <button onClick={() => setShowForm(true)} className="btn-primary text-xs mt-2">
             {t.addFirst}
           </button>
         </div>
       ) : (
-        <div className="overflow-x-auto rounded-xl border border-[var(--border-default)]">
+        <div className="overflow-x-auto rounded-xl border border-default-token">
           <table className="w-full text-sm">
             <thead>
               <tr className="slide-thead-row text-xs">
@@ -435,18 +433,18 @@ export default function UserManagement({
               {users.map((user, i) => (
                 <tr
                   key={user.email}
-                  className={`border-b border-[var(--border-subtle)] transition-colors hover:bg-[var(--color-accent-surface)] ${
-                    i % 2 === 0 ? '' : 'bg-[var(--bg-subtle)]'
+                  className={`border-b border-subtle-token transition-colors hover:bg-accent-surface ${
+                    i % 2 === 0 ? '' : 'bg-subtle'
                   }`}
                 >
                   <td className="slide-td font-medium">{user.email}</td>
-                  <td className="slide-td text-[var(--text-muted)]">{user.name ?? '—'}</td>
+                  <td className="slide-td text-muted-token">{user.name ?? '—'}</td>
                   <td className="slide-td">
                     {editingRole === user.email ? (
                       <select
                         defaultValue={user.role}
                         onChange={(e) => handleRoleChange(user.email, e.target.value)}
-                        className="text-xs border border-[var(--border-default)] rounded px-2 py-1 bg-[var(--bg-surface)] focus:outline-none focus:ring-2 focus:ring-action"
+                        className="text-xs border border-default-token rounded px-2 py-1 bg-surface focus:outline-none focus:ring-2 focus:ring-action"
                         autoFocus
                         onBlur={() => setEditingRole(null)}
                       >
@@ -466,7 +464,7 @@ export default function UserManagement({
                       </button>
                     )}
                   </td>
-                  <td className="slide-td text-[var(--text-muted)] text-xs">
+                  <td className="slide-td text-muted-token text-xs">
                     {user.added_at ? new Date(user.added_at).toLocaleDateString(t.dateLocale) : '—'}
                   </td>
                   <td className="slide-td text-center">
@@ -474,9 +472,9 @@ export default function UserManagement({
                       onClick={() => handleDelete(user.email)}
                       disabled={deletingEmail === user.email}
                       title={t.delete}
-                      className="p-1.5 rounded-lg hover:bg-[var(--color-danger-surface)] transition-colors disabled:opacity-40"
+                      className="p-1.5 rounded-lg hover:bg-danger-surface transition-colors disabled:opacity-40"
                     >
-                      <Trash2 className="w-3.5 h-3.5 text-[var(--color-danger)]" />
+                      <Trash2 className="w-3.5 h-3.5 text-danger-token" />
                     </button>
                   </td>
                 </tr>

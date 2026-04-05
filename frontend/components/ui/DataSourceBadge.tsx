@@ -149,12 +149,9 @@ export function DataSourceBadge({ source, className, isEstimated }: DataSourceBa
     <span
       className={clsx(
         'text-[10px] px-2 py-0.5 rounded-full font-medium border flex-shrink-0 whitespace-nowrap',
-        variant === 'yellow' &&
-          'bg-[var(--color-warning-surface)] text-[var(--color-warning)] border-[var(--color-warning)]',
-        variant === 'green' &&
-          'bg-[var(--color-success-surface)] text-[var(--color-success)] border-[var(--color-success)]',
-        variant === 'gray' &&
-          'bg-[var(--bg-subtle)] text-[var(--text-secondary)] border-[var(--border-subtle)]',
+        variant === 'yellow' && 'bg-warning-surface text-warning-token border-warning-token',
+        variant === 'green' && 'bg-success-surface text-success-token border-success-token',
+        variant === 'gray' && 'bg-subtle text-secondary-token border-subtle-token',
         className
       )}
       title={isEstimated ? t.estimatedTitle : t.realTitle}

@@ -108,7 +108,7 @@ interface Props {
 const CHANNELS = ['CC', 'SS', 'LP', '宽口'] as const;
 
 function RoiCell({ roi }: { roi: number | null }) {
-  if (roi == null) return <span className="text-[var(--text-muted)]">—</span>;
+  if (roi == null) return <span className="text-muted-token">—</span>;
   const color = roi >= 200 ? '#16a34a' : roi >= 0 ? '#ca8a04' : '#dc2626';
   return (
     <span className="font-semibold text-base" style={{ color }}>
@@ -132,13 +132,13 @@ function ChannelHighlight({
 }) {
   if (channel === best)
     return (
-      <span className="ml-1 text-xs text-[var(--color-success)] bg-[var(--color-success-surface)] px-1 rounded">
+      <span className="ml-1 text-xs text-success-token bg-success-surface px-1 rounded">
         {bestLabel}
       </span>
     );
   if (channel === worst)
     return (
-      <span className="ml-1 text-xs text-[var(--color-danger)] bg-[var(--color-danger-surface)] px-1 rounded">
+      <span className="ml-1 text-xs text-danger-token bg-danger-surface px-1 rounded">
         {worstLabel}
       </span>
     );
@@ -209,15 +209,15 @@ export function RoiChannelMatrix({ roleFilter, enclosureFilter }: Props) {
   return (
     <div className="space-y-4">
       {/* 说明 */}
-      <div className="card-base p-3 bg-[var(--bg-subtle)]">
-        <p className="text-xs text-[var(--text-secondary)]">
+      <div className="card-base p-3 bg-subtle">
+        <p className="text-xs text-secondary-token">
           <strong>{t.calibrationNote}</strong>
           {t.calibrationDesc(roleMapping)}
         </p>
       </div>
 
       {/* 矩阵表格 */}
-      <div className="overflow-x-auto rounded-xl border border-[var(--border-default)]">
+      <div className="overflow-x-auto rounded-xl border border-default-token">
         <table className="w-full text-sm">
           <thead>
             <tr className="slide-thead-row">
@@ -288,16 +288,16 @@ export function RoiChannelMatrix({ roleFilter, enclosureFilter }: Props) {
           return (
             <div key={ch} className="card-base p-4">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-[var(--text-primary)]">
+                <span className="text-sm font-medium text-primary-token">
                   {label(CHANNEL_LABELS, ch) || ch}
                 </span>
                 {ch === bestChannel && (
-                  <span className="text-xs text-[var(--color-success)] bg-[var(--color-success-surface)] px-1.5 py-0.5 rounded-full">
+                  <span className="text-xs text-success-token bg-success-surface px-1.5 py-0.5 rounded-full">
                     {t.best}
                   </span>
                 )}
                 {ch === worstChannel && ch !== bestChannel && (
-                  <span className="text-xs text-[var(--color-danger)] bg-[var(--color-danger-surface)] px-1.5 py-0.5 rounded-full">
+                  <span className="text-xs text-danger-token bg-danger-surface px-1.5 py-0.5 rounded-full">
                     {t.worst}
                   </span>
                 )}
@@ -305,17 +305,15 @@ export function RoiChannelMatrix({ roleFilter, enclosureFilter }: Props) {
               <p className="text-xl font-semibold" style={{ color: roiColor }}>
                 {v.roi != null ? `${v.roi.toFixed(1)}%` : '—'}
               </p>
-              <p className="text-xs text-[var(--text-muted)] mt-1">{t.roiHeader}</p>
-              <div className="mt-2 pt-2 border-t border-[var(--border-default)] space-y-0.5">
+              <p className="text-xs text-muted-token mt-1">{t.roiHeader}</p>
+              <div className="mt-2 pt-2 border-t border-default-token space-y-0.5">
                 <div className="flex justify-between text-xs">
-                  <span className="text-[var(--text-muted)]">{t.convRate}</span>
-                  <span className="text-[var(--text-secondary)]">
-                    {(convRate ?? 0).toFixed(1)}%
-                  </span>
+                  <span className="text-muted-token">{t.convRate}</span>
+                  <span className="text-secondary-token">{(convRate ?? 0).toFixed(1)}%</span>
                 </div>
                 <div className="flex justify-between text-xs">
-                  <span className="text-[var(--text-muted)]">{t.cost}</span>
-                  <span className="text-[var(--text-secondary)]">{formatUSD(v.cost_usd)}</span>
+                  <span className="text-muted-token">{t.cost}</span>
+                  <span className="text-secondary-token">{formatUSD(v.cost_usd)}</span>
                 </div>
               </div>
             </div>

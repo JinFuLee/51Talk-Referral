@@ -189,17 +189,17 @@ export function DecisionSummary({
   // 左侧 accent 颜色
   const accentColor =
     status === 'critical'
-      ? 'border-l-red-500 bg-[var(--color-danger-surface)]'
+      ? 'border-l-red-500 bg-danger-surface'
       : status === 'at-risk'
-        ? 'border-l-amber-400 bg-[var(--color-warning-surface)]'
-        : 'border-l-green-500 bg-[var(--color-success-surface)]';
+        ? 'border-l-amber-400 bg-warning-surface'
+        : 'border-l-green-500 bg-success-surface';
 
   const accentTextColor =
     status === 'critical'
-      ? 'text-[var(--color-danger)]'
+      ? 'text-danger-token'
       : status === 'at-risk'
-        ? 'text-[var(--color-warning)]'
-        : 'text-[var(--color-success)]';
+        ? 'text-warning-token'
+        : 'text-success-token';
 
   const statusIcon = status === 'critical' ? '🔴' : status === 'at-risk' ? '🟡' : '🟢';
 
@@ -220,18 +220,17 @@ export function DecisionSummary({
 
   return (
     <div
-      className={`flex flex-col gap-1.5 rounded-lg border border-[var(--border-default)] border-l-4 px-4 py-3 ${accentColor}`}
+      className={`flex flex-col gap-1.5 rounded-lg border border-default-token border-l-4 px-4 py-3 ${accentColor}`}
       role="region"
       aria-label={t.ariaLabel}
     >
       <div className="flex items-center gap-2 flex-wrap">
         <span className="text-sm">{statusIcon}</span>
-        <span className="text-sm font-semibold text-[var(--text-primary)]">
+        <span className="text-sm font-semibold text-primary-token">
           {t.monthlyPaidAchieve}{' '}
           <span className={`text-base font-bold ${accentTextColor}`}>{paidAchievePct}%</span>
           {', '}
-          {t.timeProgress}{' '}
-          <span className="font-bold text-[var(--text-primary)]">{timeProgressPct}%</span>
+          {t.timeProgress} <span className="font-bold text-primary-token">{timeProgressPct}%</span>
           {paceGapText && (
             <>
               {', '}
@@ -240,17 +239,15 @@ export function DecisionSummary({
           )}
           {'。'}
         </span>
-        {forecastText && (
-          <span className="text-sm text-[var(--text-secondary)]">{forecastText}。</span>
-        )}
+        {forecastText && <span className="text-sm text-secondary-token">{forecastText}。</span>}
       </div>
 
       {/* 业绩达成率（如有）*/}
       {revAchievePct !== null && (
-        <div className="text-xs text-[var(--text-secondary)]">
+        <div className="text-xs text-secondary-token">
           {t.revenueAchieve}{' '}
           <span
-            className={`font-semibold ${revAchievePct >= 80 ? 'text-[var(--color-success)]' : revAchievePct >= 60 ? 'text-[var(--color-warning)]' : 'text-[var(--color-danger)]'}`}
+            className={`font-semibold ${revAchievePct >= 80 ? 'text-success-token' : revAchievePct >= 60 ? 'text-warning-token' : 'text-danger-token'}`}
           >
             {revAchievePct}%
           </span>
@@ -259,14 +256,14 @@ export function DecisionSummary({
 
       {/* 关键瓶颈 */}
       {bottleneckText && (
-        <div className="text-xs text-[var(--text-secondary)]">
-          <span className="font-medium text-[var(--text-primary)]">{t.bottleneck}</span>
+        <div className="text-xs text-secondary-token">
+          <span className="font-medium text-primary-token">{t.bottleneck}</span>
           {topBottlenecks.map((b, i) => (
             <span key={b.name}>
               {i > 0 && '，'}
-              <span className="font-medium text-[var(--text-primary)]">{b.name}</span>{' '}
-              <span className="text-[var(--color-danger)] font-semibold">{b.actual}</span>
-              <span className="text-[var(--text-muted)]">
+              <span className="font-medium text-primary-token">{b.name}</span>{' '}
+              <span className="text-danger-token font-semibold">{b.actual}</span>
+              <span className="text-muted-token">
                 （{t.target} {b.target}，{t.gap} {b.gap}）
               </span>
             </span>

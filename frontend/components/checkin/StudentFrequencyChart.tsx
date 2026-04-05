@@ -62,17 +62,17 @@ function CustomTooltip({ active, payload, t }: TooltipProps<number, string> & { 
   if (!active || !payload || payload.length === 0) return null;
   const item = payload[0].payload as FrequencyItem;
   return (
-    <div className="bg-white border border-[var(--border-default)] rounded-lg shadow-md px-3 py-2 text-xs">
-      <p className="font-semibold text-[var(--text-primary)] mb-0.5">
+    <div className="bg-white border border-default-token rounded-lg shadow-md px-3 py-2 text-xs">
+      <p className="font-semibold text-primary-token mb-0.5">
         {item.count === 0 ? t.zeroCheckin : t.thisMonthN(item.count)}
       </p>
-      <p className="text-[var(--text-secondary)]">
+      <p className="text-secondary-token">
         {t.students}
         <span className="font-mono tabular-nums font-semibold">
           {item.students.toLocaleString()}
         </span>
       </p>
-      <p className="text-[var(--text-secondary)]">
+      <p className="text-secondary-token">
         {t.pct}
         <span className="font-mono tabular-nums font-semibold">{(item.pct * 100).toFixed(1)}%</span>
       </p>
@@ -96,7 +96,7 @@ export function StudentFrequencyChart({ data }: StudentFrequencyChartProps) {
 
   if (!data || data.length === 0) {
     return (
-      <div className="flex items-center justify-center h-[280px] text-sm text-[var(--text-muted)]">
+      <div className="flex items-center justify-center h-[280px] text-sm text-muted-token">
         {t.noData}
       </div>
     );

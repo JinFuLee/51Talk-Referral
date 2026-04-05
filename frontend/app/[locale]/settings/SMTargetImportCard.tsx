@@ -147,8 +147,8 @@ export default function SMTargetImportCard({ month }: { month: string }) {
     <Card>
       <div className="space-y-4">
         <div>
-          <h3 className="text-base font-semibold text-[var(--text-primary)]">{t.title}</h3>
-          <p className="text-xs text-[var(--text-tertiary)] mt-1">{t.desc}</p>
+          <h3 className="text-base font-semibold text-primary-token">{t.title}</h3>
+          <p className="text-xs text-muted-token mt-1">{t.desc}</p>
         </div>
 
         {/* Upload area */}
@@ -176,9 +176,7 @@ export default function SMTargetImportCard({ month }: { month: string }) {
             )}
           </button>
           {fileName && !loading && (
-            <span className="text-xs text-[var(--text-secondary)] truncate max-w-[200px]">
-              {fileName}
-            </span>
+            <span className="text-xs text-secondary-token truncate max-w-[200px]">{fileName}</span>
           )}
         </div>
 
@@ -193,48 +191,43 @@ export default function SMTargetImportCard({ month }: { month: string }) {
                 { label: t.ccCount, value: String(result.cc_count) },
                 { label: t.allocated, value: fmt(result.total_allocated) },
               ].map((item) => (
-                <div key={item.label} className="bg-[var(--bg-subtle)] rounded-lg p-3">
-                  <div className="text-[10px] text-[var(--text-tertiary)] uppercase tracking-wide">
+                <div key={item.label} className="bg-subtle rounded-lg p-3">
+                  <div className="text-[10px] text-muted-token uppercase tracking-wide">
                     {item.label}
                   </div>
-                  <div className="text-sm font-semibold text-[var(--text-primary)] mt-1">
-                    {item.value}
-                  </div>
+                  <div className="text-sm font-semibold text-primary-token mt-1">{item.value}</div>
                 </div>
               ))}
             </div>
 
             {/* Preview table */}
             <details>
-              <summary className="text-xs text-[var(--text-secondary)] cursor-pointer hover:text-[var(--text-primary)] transition-colors">
+              <summary className="text-xs text-secondary-token cursor-pointer hover:text-primary-token transition-colors">
                 {t.preview} ({result.cc_count})
               </summary>
-              <div className="mt-2 max-h-[300px] overflow-y-auto border border-[var(--border-default)] rounded-lg">
+              <div className="mt-2 max-h-[300px] overflow-y-auto border border-default-token rounded-lg">
                 <table className="w-full text-xs">
-                  <thead className="bg-[var(--bg-subtle)] sticky top-0">
+                  <thead className="bg-subtle sticky top-0">
                     <tr>
-                      <th className="text-left px-3 py-2 font-medium text-[var(--text-secondary)]">
+                      <th className="text-left px-3 py-2 font-medium text-secondary-token">
                         {t.ccName}
                       </th>
-                      <th className="text-right px-3 py-2 font-medium text-[var(--text-secondary)]">
+                      <th className="text-right px-3 py-2 font-medium text-secondary-token">
                         {t.totalTarget}
                       </th>
-                      <th className="text-right px-3 py-2 font-medium text-[var(--text-secondary)]">
+                      <th className="text-right px-3 py-2 font-medium text-secondary-token">
                         {t.referralUsd}
                       </th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-[var(--border-default)]">
                     {result.preview.map((row) => (
-                      <tr
-                        key={row.cc_name}
-                        className="hover:bg-[var(--bg-subtle)] transition-colors"
-                      >
-                        <td className="px-3 py-1.5 text-[var(--text-primary)]">{row.cc_name}</td>
-                        <td className="px-3 py-1.5 text-right text-[var(--text-secondary)]">
+                      <tr key={row.cc_name} className="hover:bg-subtle transition-colors">
+                        <td className="px-3 py-1.5 text-primary-token">{row.cc_name}</td>
+                        <td className="px-3 py-1.5 text-right text-secondary-token">
                           {fmt(row.total_target_usd)}
                         </td>
-                        <td className="px-3 py-1.5 text-right font-medium text-[var(--text-primary)]">
+                        <td className="px-3 py-1.5 text-right font-medium text-primary-token">
                           {fmt(row.referral_usd_target)}
                         </td>
                       </tr>

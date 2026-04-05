@@ -311,9 +311,9 @@ export function PushControl({ platform }: PushControlProps) {
   if (isLoading) {
     return (
       <div className="space-y-3 animate-pulse">
-        <div className="h-16 bg-[var(--bg-subtle)] rounded-xl" />
-        <div className="h-10 bg-[var(--bg-subtle)] rounded-lg" />
-        <div className="h-24 bg-[var(--bg-subtle)] rounded-lg" />
+        <div className="h-16 bg-subtle rounded-xl" />
+        <div className="h-10 bg-subtle rounded-lg" />
+        <div className="h-24 bg-subtle rounded-lg" />
       </div>
     );
   }
@@ -322,15 +322,15 @@ export function PushControl({ platform }: PushControlProps) {
   if (loadError) {
     return (
       <div className="flex flex-col items-center justify-center gap-3 py-10 text-center">
-        <AlertTriangle className="w-8 h-8 text-[var(--color-danger)]" />
-        <p className="text-sm font-medium text-[var(--text-primary)]">{t.loadFailed}</p>
-        <p className="text-xs text-[var(--text-muted)]">{loadError.message ?? t.checkBackend}</p>
+        <AlertTriangle className="w-8 h-8 text-danger-token" />
+        <p className="text-sm font-medium text-primary-token">{t.loadFailed}</p>
+        <p className="text-xs text-muted-token">{loadError.message ?? t.checkBackend}</p>
         <button
           onClick={() => {
             mutateTemplates();
             mutateChannels();
           }}
-          className="flex items-center gap-1.5 px-3 py-1.5 text-xs border border-[var(--border-default)] rounded-lg text-[var(--text-secondary)] hover:bg-[var(--bg-primary)] transition-colors"
+          className="flex items-center gap-1.5 px-3 py-1.5 text-xs border border-default-token rounded-lg text-secondary-token hover:bg-bg-primary transition-colors"
         >
           <RefreshCw className="w-3.5 h-3.5" />
           {t.retry}
@@ -343,8 +343,8 @@ export function PushControl({ platform }: PushControlProps) {
   if (!channels || channels.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center gap-2 py-10 text-center">
-        <p className="text-sm font-medium text-[var(--text-primary)]">{t.noConfig}</p>
-        <p className="text-xs text-[var(--text-muted)]">{t.noConfigHint}</p>
+        <p className="text-sm font-medium text-primary-token">{t.noConfig}</p>
+        <p className="text-xs text-muted-token">{t.noConfigHint}</p>
       </div>
     );
   }
@@ -352,13 +352,11 @@ export function PushControl({ platform }: PushControlProps) {
   return (
     <div className="space-y-4">
       {/* One-click push all */}
-      <div className="flex items-center gap-3 p-3 bg-[var(--bg-primary)] rounded-xl">
-        <Rocket className="w-5 h-5 text-[var(--text-secondary)] shrink-0" />
+      <div className="flex items-center gap-3 p-3 bg-bg-primary rounded-xl">
+        <Rocket className="w-5 h-5 text-secondary-token shrink-0" />
         <div className="flex-1">
-          <p className="text-sm font-medium text-[var(--text-primary)]">{t.oneClickTitle}</p>
-          <p className="text-xs text-[var(--text-muted)]">
-            {t.oneClickHint(enabledChannels.length)}
-          </p>
+          <p className="text-sm font-medium text-primary-token">{t.oneClickTitle}</p>
+          <p className="text-xs text-muted-token">{t.oneClickHint(enabledChannels.length)}</p>
         </div>
         <button
           onClick={handlePushAll}
@@ -370,20 +368,20 @@ export function PushControl({ platform }: PushControlProps) {
       </div>
 
       <div className="flex items-center gap-3">
-        <div className="flex-1 h-px bg-[var(--border-default)]" />
-        <span className="text-xs text-[var(--text-muted)]">{t.orSpecify}</span>
-        <div className="flex-1 h-px bg-[var(--border-default)]" />
+        <div className="flex-1 h-px bg-n-200" />
+        <span className="text-xs text-muted-token">{t.orSpecify}</span>
+        <div className="flex-1 h-px bg-n-200" />
       </div>
 
       {/* Template selection */}
       <div>
-        <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5">
+        <label className="block text-xs font-medium text-secondary-token mb-1.5">
           {t.templateLabel}
         </label>
         <select
           value={selectedTemplate}
           onChange={(e) => setSelectedTemplate(e.target.value)}
-          className="w-full text-sm border border-[var(--border-subtle)] rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-action"
+          className="w-full text-sm border border-subtle-token rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-action"
         >
           {(
             templates ?? [
@@ -407,7 +405,7 @@ export function PushControl({ platform }: PushControlProps) {
 
       {/* Role filter for preview */}
       <div>
-        <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5">
+        <label className="block text-xs font-medium text-secondary-token mb-1.5">
           {t.previewRoleLabel}
         </label>
         <div className="flex gap-1.5 flex-wrap">
@@ -418,7 +416,7 @@ export function PushControl({ platform }: PushControlProps) {
               className={`px-2.5 py-1 rounded-full text-xs font-medium transition-colors ${
                 selectedRole === r
                   ? 'bg-action text-white'
-                  : 'bg-[var(--bg-subtle)] text-[var(--text-secondary)] hover:bg-[var(--bg-elevated)]'
+                  : 'bg-subtle text-secondary-token hover:bg-bg-elevated'
               }`}
             >
               {r}
@@ -430,14 +428,14 @@ export function PushControl({ platform }: PushControlProps) {
       {/* Channel selection */}
       {enabledChannels.length > 0 && (
         <div>
-          <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5">
+          <label className="block text-xs font-medium text-secondary-token mb-1.5">
             {t.targetChannelLabel}
           </label>
           <div className="space-y-1.5 max-h-40 overflow-y-auto pr-1">
             {enabledChannels.map((c) => (
               <label
                 key={c.id}
-                className="flex items-center gap-2.5 p-2 rounded-lg hover:bg-[var(--bg-primary)] cursor-pointer select-none"
+                className="flex items-center gap-2.5 p-2 rounded-lg hover:bg-bg-primary cursor-pointer select-none"
               >
                 <input
                   type="checkbox"
@@ -445,10 +443,10 @@ export function PushControl({ platform }: PushControlProps) {
                   onChange={() => toggleChannel(c.id)}
                   className="rounded"
                 />
-                <span className="flex-1 text-xs text-[var(--text-primary)]">{c.name}</span>
-                <span className="text-xs text-[var(--text-muted)]">{c.group_name}</span>
+                <span className="flex-1 text-xs text-primary-token">{c.name}</span>
+                <span className="text-xs text-muted-token">{c.group_name}</span>
                 {c.is_test && (
-                  <span className="text-xs px-1.5 py-0.5 bg-[var(--color-warning-surface)] text-[var(--color-warning)] rounded">
+                  <span className="text-xs px-1.5 py-0.5 bg-warning-surface text-warning-token rounded">
                     {t.testBadge}
                   </span>
                 )}
@@ -460,12 +458,12 @@ export function PushControl({ platform }: PushControlProps) {
 
       {/* Progress */}
       {progressItems.length > 0 && (
-        <div className="border border-[var(--border-default)] rounded-xl p-3">
+        <div className="border border-default-token rounded-xl p-3">
           <PushProgress items={progressItems} />
           {pushState !== 'pushing' && (
             <button
               onClick={resetPush}
-              className="mt-3 text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)] underline"
+              className="mt-3 text-xs text-muted-token hover:text-primary-token underline"
             >
               {t.clearRecord}
             </button>
@@ -475,7 +473,7 @@ export function PushControl({ platform }: PushControlProps) {
 
       {/* Warning for no test group */}
       {selectedChannelIds.some((id) => !(channels ?? []).find((c) => c.id === id)?.is_test) && (
-        <div className="flex items-start gap-2 p-2.5 bg-[var(--color-warning-surface)] rounded-xl text-[var(--color-warning)]">
+        <div className="flex items-start gap-2 p-2.5 bg-warning-surface rounded-xl text-warning-token">
           <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
           <p className="text-xs">{t.formalWarning}</p>
         </div>
@@ -485,7 +483,7 @@ export function PushControl({ platform }: PushControlProps) {
       <div className="flex items-center gap-2">
         <button
           onClick={() => setPreviewOpen(true)}
-          className="flex items-center gap-1.5 px-3 py-2 border border-[var(--border-subtle)] rounded-lg text-xs font-medium text-[var(--text-secondary)] hover:bg-[var(--bg-primary)] transition-colors"
+          className="flex items-center gap-1.5 px-3 py-2 border border-subtle-token rounded-lg text-xs font-medium text-secondary-token hover:bg-bg-primary transition-colors"
         >
           <Eye className="w-3.5 h-3.5" />
           {t.preview}
@@ -501,7 +499,7 @@ export function PushControl({ platform }: PushControlProps) {
         <button
           onClick={handleConfirmPush}
           disabled={pushState === 'pushing'}
-          className="ml-auto flex items-center gap-1.5 px-4 py-2 bg-[var(--color-danger)] text-white rounded-lg text-xs font-semibold hover:bg-[var(--color-danger)] transition-colors disabled:opacity-40"
+          className="ml-auto flex items-center gap-1.5 px-4 py-2 bg-danger-token text-white rounded-lg text-xs font-semibold hover:bg-danger-token transition-colors disabled:opacity-40"
         >
           {t.confirmPushBtn}
         </button>

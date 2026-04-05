@@ -183,7 +183,7 @@ export function StudentTable({
           <tbody>
             {items.length === 0 ? (
               <tr>
-                <td colSpan={10} className="py-12 text-center text-sm text-[var(--text-muted)]">
+                <td colSpan={10} className="py-12 text-center text-sm text-muted-token">
                   {t.empty}
                 </td>
               </tr>
@@ -192,7 +192,7 @@ export function StudentTable({
                 <tr
                   key={m.stdt_id}
                   onClick={() => onRowClick(m.stdt_id)}
-                  className={`even:bg-[var(--bg-subtle)] cursor-pointer hover:bg-action-accent-surface transition-colors ${
+                  className={`even:bg-subtle cursor-pointer hover:bg-action-accent-surface transition-colors ${
                     m.is_high_potential ? 'border-l-2 border-l-orange-400' : ''
                   }`}
                 >
@@ -200,11 +200,11 @@ export function StudentTable({
                     {m.stdt_id}
                   </td>
                   <td className="py-1 px-2 text-xs whitespace-nowrap">{m.name || '—'}</td>
-                  <td className="py-1 px-2 text-xs text-[var(--text-secondary)] whitespace-nowrap">
+                  <td className="py-1 px-2 text-xs text-secondary-token whitespace-nowrap">
                     {m.enclosure || '—'}
                   </td>
                   <td className="py-1 px-2 text-xs whitespace-nowrap">
-                    <span className="px-1.5 py-0.5 bg-[var(--bg-subtle)] rounded text-xs">
+                    <span className="px-1.5 py-0.5 bg-subtle rounded text-xs">
                       {m.lifecycle || '—'}
                     </span>
                   </td>
@@ -232,10 +232,10 @@ export function StudentTable({
                         {t.highPotentialBadge}
                       </Badge>
                     ) : (
-                      <span className="text-[var(--text-muted)]">—</span>
+                      <span className="text-muted-token">—</span>
                     )}
                   </td>
-                  <td className="py-1 px-2 text-xs text-[var(--text-secondary)] whitespace-nowrap">
+                  <td className="py-1 px-2 text-xs text-secondary-token whitespace-nowrap">
                     {m.last_contact_date || '—'}
                   </td>
                 </tr>
@@ -246,22 +246,20 @@ export function StudentTable({
       </div>
 
       {/* 分页 */}
-      <div className="flex items-center justify-between mt-4 pt-4 border-t border-[var(--border-subtle)]">
-        <span className="text-xs text-[var(--text-muted)]">
-          {t.pagination(page, totalPages, total)}
-        </span>
+      <div className="flex items-center justify-between mt-4 pt-4 border-t border-subtle-token">
+        <span className="text-xs text-muted-token">{t.pagination(page, totalPages, total)}</span>
         <div className="flex gap-2">
           <button
             onClick={() => onPageChange(Math.max(1, page - 1))}
             disabled={page === 1}
-            className="px-3 py-1.5 rounded-lg border border-[var(--border-subtle)] text-sm disabled:opacity-40 hover:bg-[var(--bg-subtle)]"
+            className="px-3 py-1.5 rounded-lg border border-subtle-token text-sm disabled:opacity-40 hover:bg-subtle"
           >
             {t.prevPage}
           </button>
           <button
             onClick={() => onPageChange(Math.min(totalPages, page + 1))}
             disabled={page >= totalPages}
-            className="px-3 py-1.5 rounded-lg border border-[var(--border-subtle)] text-sm disabled:opacity-40 hover:bg-[var(--bg-subtle)]"
+            className="px-3 py-1.5 rounded-lg border border-subtle-token text-sm disabled:opacity-40 hover:bg-subtle"
           >
             {t.nextPage}
           </button>

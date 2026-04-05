@@ -82,30 +82,30 @@ function CustomTooltip({ active, payload, label, labels }: CustomTooltipProps) {
   if (!item) return null;
 
   return (
-    <div className="bg-white border border-[var(--border-default)] rounded-lg shadow-md px-3 py-2 text-xs space-y-1">
-      <p className="font-semibold text-[var(--text-primary)] border-b border-[var(--border-subtle)] pb-1 mb-1">
+    <div className="bg-white border border-default-token rounded-lg shadow-md px-3 py-2 text-xs space-y-1">
+      <p className="font-semibold text-primary-token border-b border-subtle-token pb-1 mb-1">
         {labels.freqBand}
         {label}
       </p>
-      <p className="text-[var(--text-secondary)]">
+      <p className="text-secondary-token">
         {labels.regRate}
-        <span className="font-mono tabular-nums font-semibold text-[var(--text-primary)] ml-1">
+        <span className="font-mono tabular-nums font-semibold text-primary-token ml-1">
           {((item.has_registration_pct ?? 0) * 100).toFixed(1)}%
         </span>
       </p>
-      <p className="text-[var(--text-secondary)]">
+      <p className="text-secondary-token">
         {labels.payRate}
-        <span className="font-mono tabular-nums font-semibold text-[var(--text-primary)] ml-1">
+        <span className="font-mono tabular-nums font-semibold text-primary-token ml-1">
           {((item.has_payment_pct ?? 0) * 100).toFixed(1)}%
         </span>
       </p>
-      <p className="text-[var(--text-muted)] border-t border-[var(--border-subtle)] pt-1 mt-1">
+      <p className="text-muted-token border-t border-subtle-token pt-1 mt-1">
         {labels.avgStats(
           (item.avg_registrations ?? 0).toFixed(2),
           (item.avg_payments ?? 0).toFixed(2)
         )}
       </p>
-      <p className="text-[var(--text-muted)]">
+      <p className="text-muted-token">
         {labels.studentCount((item.students ?? 0).toLocaleString())}
       </p>
     </div>
@@ -127,7 +127,7 @@ export function ConversionFunnelProof({ data }: ConversionFunnelProofProps) {
 
   if (!data || data.length === 0) {
     return (
-      <div className="flex items-center justify-center h-[280px] text-sm text-[var(--text-muted)]">
+      <div className="flex items-center justify-center h-[280px] text-sm text-muted-token">
         {t.noData}
       </div>
     );
@@ -151,7 +151,7 @@ export function ConversionFunnelProof({ data }: ConversionFunnelProofProps) {
     <div className="space-y-3">
       {/* Callout Banner */}
       {multiplier !== null && multiplier > 1.5 && (
-        <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[var(--color-success-surface)] border border-[var(--color-success)] text-xs text-[var(--color-success)]">
+        <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-success-surface border border-success-token text-xs text-success-token">
           <span className="text-base" aria-hidden="true">
             💡
           </span>
@@ -159,7 +159,7 @@ export function ConversionFunnelProof({ data }: ConversionFunnelProofProps) {
             dangerouslySetInnerHTML={{
               __html: t.calloutText(
                 `<strong>${highFreqItem.band}</strong>`,
-                `<strong class="font-mono tabular-nums text-[var(--color-success)]">${multiplier.toFixed(1)}</strong>`
+                `<strong class="font-mono tabular-nums text-success-token">${multiplier.toFixed(1)}</strong>`
               ),
             }}
           />

@@ -17,15 +17,15 @@ export function PageHeader({
   subtitle,
   icon: Icon,
   badge,
-  badgeColor = 'bg-[var(--bg-subtle)] text-[var(--text-secondary)]',
+  badgeColor = 'bg-subtle text-secondary-token',
   children,
 }: PageHeaderProps) {
   return (
     <div className="flex items-center justify-between">
       <div className="flex items-center gap-3">
         {Icon && (
-          <div className="p-2 rounded-lg bg-[var(--bg-subtle)] border border-[var(--border-subtle)]">
-            <Icon className="w-5 h-5 text-[var(--text-secondary)]" aria-hidden="true" />
+          <div className="p-2 rounded-lg bg-subtle border border-subtle-token">
+            <Icon className="w-5 h-5 text-secondary-token" aria-hidden="true" />
           </div>
         )}
         <div>
@@ -37,7 +37,7 @@ export function PageHeader({
               </span>
             )}
           </div>
-          {subtitle && <p className="text-xs text-[var(--text-muted)] mt-0.5">{subtitle}</p>}
+          {subtitle && <p className="text-xs text-muted-token mt-0.5">{subtitle}</p>}
         </div>
       </div>
       {children && <div className="flex items-center gap-2">{children}</div>}

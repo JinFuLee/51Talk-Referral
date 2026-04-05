@@ -98,8 +98,8 @@ interface HighPotentialCountResponse {
 function RankBadge({ rank, total }: { rank: number; total: number }) {
   const isTop3 = rank <= 3;
   const badgeClass = isTop3
-    ? 'bg-[var(--color-warning-surface)] text-[var(--color-warning)] border border-[var(--color-warning)] font-bold'
-    : 'bg-[var(--bg-subtle)] text-[var(--text-secondary)] border border-[var(--border-default)]';
+    ? 'bg-warning-surface text-warning-token border border-warning-token font-bold'
+    : 'bg-subtle text-secondary-token border border-default-token';
 
   return (
     <span
@@ -126,17 +126,17 @@ function RankRow({
   if (rank === null) {
     return (
       <div className="flex items-center justify-between py-1.5">
-        <span className="text-xs text-[var(--text-muted)]">{label}</span>
-        <span className="text-xs text-[var(--text-muted)]">{t.noData}</span>
+        <span className="text-xs text-muted-token">{label}</span>
+        <span className="text-xs text-muted-token">{t.noData}</span>
       </div>
     );
   }
   return (
     <div className="flex items-center justify-between py-1.5">
-      <span className="text-xs text-[var(--text-secondary)]">{label}</span>
+      <span className="text-xs text-secondary-token">{label}</span>
       <div className="flex items-center gap-2">
         {score !== null && score !== undefined && (
-          <span className="text-xs text-[var(--text-muted)] tabular-nums">
+          <span className="text-xs text-muted-token tabular-nums">
             {typeof score === 'number' ? score.toFixed(1) : score}
           </span>
         )}
@@ -150,23 +150,23 @@ function ProgressBar({ value, target }: { value: number; target: number }) {
   const pct = target > 0 ? Math.min(Math.round((value / target) * 100), 100) : 0;
   const overTarget = target > 0 && value >= target;
   const barColor = overTarget
-    ? 'bg-[var(--color-success)]'
+    ? 'bg-success-token'
     : pct >= 70
-      ? 'bg-[var(--color-warning)]'
-      : 'bg-[var(--color-danger)]';
+      ? 'bg-warning-token'
+      : 'bg-danger-token';
 
   return (
     <div className="mt-1">
-      <div className="flex justify-between text-[10px] text-[var(--text-muted)] mb-0.5">
-        <span className="font-semibold text-[var(--text-primary)]">{value}</span>
-        <span className="font-semibold text-[var(--text-secondary)]">{target}</span>
+      <div className="flex justify-between text-[10px] text-muted-token mb-0.5">
+        <span className="font-semibold text-primary-token">{value}</span>
+        <span className="font-semibold text-secondary-token">{target}</span>
         <span
-          className={`font-semibold ${overTarget ? 'text-[var(--color-success)]' : 'text-[var(--text-primary)]'}`}
+          className={`font-semibold ${overTarget ? 'text-success-token' : 'text-primary-token'}`}
         >
           {pct}%
         </span>
       </div>
-      <div className="relative h-2 rounded-full bg-[var(--border-default)] overflow-hidden">
+      <div className="relative h-2 rounded-full bg-n-200 overflow-hidden">
         <div
           className={`absolute left-0 top-0 h-full rounded-full transition-all ${barColor}`}
           style={{ width: `${pct}%` }}
@@ -206,7 +206,7 @@ export function PersonalWorkbench() {
   if (!focusCC) {
     return (
       <Card title={t.myWorkbench}>
-        <div className="flex items-center gap-3 py-4 text-sm text-[var(--text-muted)]">
+        <div className="flex items-center gap-3 py-4 text-sm text-muted-token">
           <User className="w-5 h-5 shrink-0 opacity-40" />
           <span>{t.selectCC}</span>
         </div>
@@ -221,19 +221,19 @@ export function PersonalWorkbench() {
       {isLoading ? (
         <div className="flex items-center gap-2 py-4">
           <Spinner size="sm" />
-          <span className="text-xs text-[var(--text-muted)]">{t.loadingPersonal}</span>
+          <span className="text-xs text-muted-token">{t.loadingPersonal}</span>
         </div>
       ) : (
         <div className="space-y-4">
           {/* 月度排名 */}
           <section>
             <div className="flex items-center gap-1.5 mb-2">
-              <TrendingUp className="w-3.5 h-3.5 text-[var(--text-muted)]" />
-              <span className="text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wide">
+              <TrendingUp className="w-3.5 h-3.5 text-muted-token" />
+              <span className="text-xs font-semibold text-secondary-token uppercase tracking-wide">
                 {t.monthlyRank}
               </span>
               {totalRanked > 0 && (
-                <span className="text-[10px] text-[var(--text-muted)]">
+                <span className="text-[10px] text-muted-token">
                   （{t.total} {totalRanked} {t.persons}）
                 </span>
               )}
@@ -264,7 +264,7 @@ export function PersonalWorkbench() {
                 )}
               </div>
             ) : (
-              <p className="text-xs text-[var(--text-muted)] py-2">{t.noRankData}</p>
+              <p className="text-xs text-muted-token py-2">{t.noRankData}</p>
             )}
           </section>
 
@@ -272,8 +272,8 @@ export function PersonalWorkbench() {
           {myRankItem && (
             <section>
               <div className="flex items-center gap-1.5 mb-2">
-                <TrendingUp className="w-3.5 h-3.5 text-[var(--text-muted)]" />
-                <span className="text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wide">
+                <TrendingUp className="w-3.5 h-3.5 text-muted-token" />
+                <span className="text-xs font-semibold text-secondary-token uppercase tracking-wide">
                   {t.monthlyProgress}
                 </span>
               </div>
@@ -284,9 +284,9 @@ export function PersonalWorkbench() {
                   target={myRankItem.target_registrations as number}
                 />
               ) : myRankItem.registrations !== undefined ? (
-                <div className="text-xs text-[var(--text-muted)]">
+                <div className="text-xs text-muted-token">
                   {t.newReferralCount}
-                  <span className="font-semibold text-[var(--text-primary)] ml-1">
+                  <span className="font-semibold text-primary-token ml-1">
                     {myRankItem.registrations as number}
                   </span>
                   <span className="ml-1 opacity-60">{t.targetUnavailable}</span>
@@ -298,21 +298,21 @@ export function PersonalWorkbench() {
           {/* 待跟进高潜学员 */}
           <section>
             <div className="flex items-center gap-1.5 mb-2">
-              <Users className="w-3.5 h-3.5 text-[var(--text-muted)]" />
-              <span className="text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wide">
+              <Users className="w-3.5 h-3.5 text-muted-token" />
+              <span className="text-xs font-semibold text-secondary-token uppercase tracking-wide">
                 {t.highPotentialStudents}
               </span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-xs text-[var(--text-muted)]">
+              <span className="text-xs text-muted-token">
                 {t.responsibleHP}
-                <span className="font-semibold text-[var(--text-primary)] ml-1">
+                <span className="font-semibold text-primary-token ml-1">
                   {hpCount !== null ? hpCount : '—'}
                 </span>
               </span>
               <Link
                 href={`/high-potential?cc=${encodeURIComponent(focusCC)}`}
-                className="inline-flex items-center gap-1 text-[11px] text-[var(--color-accent)] hover:text-[var(--color-accent)] transition-colors"
+                className="inline-flex items-center gap-1 text-[11px] text-accent-token hover:text-accent-token transition-colors"
               >
                 {t.viewDetails}
                 <ExternalLink className="w-3 h-3" />

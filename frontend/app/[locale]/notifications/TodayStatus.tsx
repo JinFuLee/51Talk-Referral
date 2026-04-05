@@ -54,7 +54,7 @@ export function TodayStatus() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center gap-2 py-3 text-[var(--text-muted)]">
+      <div className="flex items-center gap-2 py-3 text-muted-token">
         <Loader2 className="w-4 h-4 animate-spin" />
         <span className="text-sm">{t.loading}</span>
       </div>
@@ -63,7 +63,7 @@ export function TodayStatus() {
 
   if (error) {
     return (
-      <div className="flex items-center gap-2 py-3 text-[var(--color-warning)]">
+      <div className="flex items-center gap-2 py-3 text-warning-token">
         <AlertCircle className="w-4 h-4" />
         <span className="text-sm">{t.loadError}</span>
       </div>
@@ -76,7 +76,7 @@ export function TodayStatus() {
   // 无推送数据时显示空状态
   if (channelEntries.length === 0) {
     return (
-      <div className="flex items-center gap-2 py-3 text-[var(--text-muted)]">
+      <div className="flex items-center gap-2 py-3 text-muted-token">
         <Clock className="w-4 h-4" />
         <span className="text-sm">{t.noRecord(data?.date ?? '')}</span>
       </div>
@@ -92,16 +92,16 @@ export function TodayStatus() {
       <div className="flex items-center gap-3 flex-wrap">
         {entries.map(([id, rec]) => (
           <div key={id} className="flex items-center gap-1.5">
-            <span className="text-xs font-medium text-[var(--text-primary)]">{id}</span>
+            <span className="text-xs font-medium text-primary-token">{id}</span>
             {rec.pushed ? (
               <>
-                <CheckCircle2 className="w-3.5 h-3.5 text-[var(--color-success)]" />
-                <span className="text-xs text-[var(--text-muted)]">
+                <CheckCircle2 className="w-3.5 h-3.5 text-success-token" />
+                <span className="text-xs text-muted-token">
                   {rec.time} ({rec.result})
                 </span>
               </>
             ) : (
-              <Clock className="w-3.5 h-3.5 text-[var(--text-muted)]" />
+              <Clock className="w-3.5 h-3.5 text-muted-token" />
             )}
           </div>
         ))}
@@ -119,7 +119,7 @@ export function TodayStatus() {
       )}
       {dingtalkEntries.length > 0 && (
         <>
-          <div className="border-t border-[var(--border-default)]" />
+          <div className="border-t border-default-token" />
           <div className="flex items-center gap-4">
             <span className="text-xs font-semibold w-12 text-orange-600">{t.dingtalk}</span>
             {renderEntries(dingtalkEntries)}

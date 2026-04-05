@@ -140,9 +140,7 @@ function NavLink({ href, label, Icon, t }: NavItem & { t: (key: string) => strin
       className={clsx(
         'flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
-        isActive
-          ? 'bg-[var(--color-accent)] text-white font-medium'
-          : 'text-[var(--text-secondary)] hover:bg-[var(--bg-subtle)]'
+        isActive ? 'bg-accent-token text-white font-medium' : 'text-secondary-token hover:bg-subtle'
       )}
     >
       <Icon className="w-4 h-4 shrink-0" aria-hidden="true" />
@@ -170,7 +168,7 @@ function CollapsibleGroup({
         className={clsx(
           'w-full flex items-center justify-between px-3 py-1.5 rounded',
           'text-[10px] font-semibold uppercase tracking-wider',
-          'text-[var(--text-muted)] hover:text-[var(--text-secondary)]',
+          'text-muted-token hover:text-secondary-token',
           'transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
           'mt-3'
         )}
@@ -267,12 +265,12 @@ function SidebarContent() {
 
   return (
     <>
-      <div className="px-4 py-4 border-b border-[var(--border-subtle)]">
+      <div className="px-4 py-4 border-b border-subtle-token">
         <div className="flex items-center gap-2">
-          <BrandMark size={20} className="text-[var(--brand-p1)] shrink-0" />
+          <BrandMark size={20} className="text-brand-p1 shrink-0" />
           <p className="text-sm font-bold text-primary tracking-wide font-display">51Talk</p>
         </div>
-        <p className="text-xs text-[var(--text-muted)] mt-0.5 pl-7">{t('subtitle')}</p>
+        <p className="text-xs text-muted-token mt-0.5 pl-7">{t('subtitle')}</p>
       </div>
 
       <nav className="flex-1 p-2 overflow-y-auto" aria-label={t('mainNav')}>
@@ -298,11 +296,11 @@ export function NavSidebar() {
     <>
       {/* Mobile hamburger button */}
       <button
-        className="lg:hidden fixed top-4 left-4 z-50 p-2 rounded-lg bg-[var(--bg-surface)] border border-[var(--border-subtle)] shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+        className="lg:hidden fixed top-4 left-4 z-50 p-2 rounded-lg bg-surface border border-subtle-token shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
         onClick={() => setMobileOpen(true)}
         aria-label={tNav('openMenu')}
       >
-        <Menu className="w-5 h-5 text-[var(--text-secondary)]" aria-hidden="true" />
+        <Menu className="w-5 h-5 text-secondary-token" aria-hidden="true" />
       </button>
 
       {/* Mobile overlay */}
@@ -320,9 +318,9 @@ export function NavSidebar() {
             aria-hidden="true"
           />
           {/* Sidebar panel */}
-          <aside className="relative w-64 h-full bg-[var(--bg-surface)] flex flex-col shrink-0 shadow-xl">
+          <aside className="relative w-64 h-full bg-surface flex flex-col shrink-0 shadow-xl">
             <button
-              className="absolute top-3 right-3 p-1.5 rounded-lg text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-[var(--bg-subtle)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              className="absolute top-3 right-3 p-1.5 rounded-lg text-muted-token hover:text-secondary-token hover:bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
               onClick={() => setMobileOpen(false)}
               aria-label={tNav('closeMenu')}
             >
@@ -334,7 +332,7 @@ export function NavSidebar() {
       )}
 
       {/* Desktop sidebar */}
-      <aside className="hidden lg:flex w-56 h-full bg-[var(--bg-surface)] backdrop-blur-md border-r border-[var(--border-default)] flex-col shrink-0">
+      <aside className="hidden lg:flex w-56 h-full bg-surface backdrop-blur-md border-r border-default-token flex-col shrink-0">
         <SidebarContent />
       </aside>
     </>

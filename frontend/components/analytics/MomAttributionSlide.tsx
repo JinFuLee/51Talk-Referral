@@ -139,15 +139,15 @@ function formatMetricValue(metric: string, value: number | null | undefined): st
 }
 
 function judgmentColor(j: '↑' | '↓' | '→'): string {
-  if (j === '↑') return 'text-[var(--color-success)] font-bold';
-  if (j === '↓') return 'text-[var(--color-danger)] font-bold';
-  return 'text-[var(--text-muted)]';
+  if (j === '↑') return 'text-success-token font-bold';
+  if (j === '↓') return 'text-danger-token font-bold';
+  return 'text-muted-token';
 }
 
 function deltaColor(delta: number): string {
-  if (delta > 0) return 'text-[var(--color-success)] font-semibold';
-  if (delta < 0) return 'text-[var(--color-danger)] font-semibold';
-  return 'text-[var(--text-muted)]';
+  if (delta > 0) return 'text-success-token font-semibold';
+  if (delta < 0) return 'text-danger-token font-semibold';
+  return 'text-muted-token';
 }
 
 type DailyReportSlice = { blocks: { mom_attribution: MomAttribution } };
@@ -189,18 +189,18 @@ export function MomAttributionSlide({ slideNumber, totalSlides }: SlideProps) {
       ) : error ? (
         <div className="flex items-center justify-center h-full">
           <div className="text-center space-y-2">
-            <p className="text-base font-semibold text-[var(--color-danger)]">{t.error}</p>
-            <p className="text-sm text-[var(--text-muted)]">{t.errorHint}</p>
+            <p className="text-base font-semibold text-danger-token">{t.error}</p>
+            <p className="text-sm text-muted-token">{t.errorHint}</p>
             <button
               onClick={() => mutate()}
-              className="mt-1 px-4 py-1.5 rounded-lg text-sm border border-[var(--border-default)] text-[var(--text-secondary)] hover:bg-[var(--bg-subtle)] transition-colors"
+              className="mt-1 px-4 py-1.5 rounded-lg text-sm border border-default-token text-secondary-token hover:bg-subtle transition-colors"
             >
               {t.retry}
             </button>
           </div>
         </div>
       ) : rows.length === 0 ? (
-        <div className="flex flex-col justify-center items-center h-full gap-3 text-[var(--text-muted)]">
+        <div className="flex flex-col justify-center items-center h-full gap-3 text-muted-token">
           <p className="text-base font-medium">{t.empty}</p>
           <p className="text-sm">{t.emptyHint}</p>
         </div>
@@ -224,17 +224,17 @@ export function MomAttributionSlide({ slideNumber, totalSlides }: SlideProps) {
                 const isRate = isRateMetric(row.metric);
                 return (
                   <tr key={row.metric} className={i % 2 === 0 ? 'slide-row-even' : 'slide-row-odd'}>
-                    <td className="px-3 py-2 text-xs font-semibold text-[var(--text-primary)]">
+                    <td className="px-3 py-2 text-xs font-semibold text-primary-token">
                       {METRIC_LABELS[row.metric]?.[lang as keyof (typeof METRIC_LABELS)[string]] ??
                         row.metric}
                     </td>
-                    <td className="px-3 py-2 text-xs text-right font-mono tabular-nums text-[var(--text-secondary)]">
+                    <td className="px-3 py-2 text-xs text-right font-mono tabular-nums text-secondary-token">
                       {formatMetricValue(row.metric, row.last_month)}
                     </td>
-                    <td className="px-3 py-2 text-xs text-right font-mono tabular-nums font-semibold text-[var(--text-primary)]">
+                    <td className="px-3 py-2 text-xs text-right font-mono tabular-nums font-semibold text-primary-token">
                       {formatMetricValue(row.metric, row.this_month)}
                     </td>
-                    <td className="px-3 py-2 text-xs text-right font-mono tabular-nums text-[var(--text-secondary)]">
+                    <td className="px-3 py-2 text-xs text-right font-mono tabular-nums text-secondary-token">
                       {formatMetricValue(row.metric, row.target)}
                     </td>
                     <td

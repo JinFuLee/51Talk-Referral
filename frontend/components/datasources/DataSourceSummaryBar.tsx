@@ -85,7 +85,7 @@ export function DataSourceSummaryBar({ sources }: { sources: DataSourceStatus[] 
     score >= 80 ? 'text-success' : score >= 60 ? 'text-warning' : 'text-destructive';
 
   return (
-    <div className="flex flex-wrap items-center justify-between gap-3 px-3 py-2 rounded-lg bg-[var(--bg-subtle)] border border-[var(--border-subtle)] mb-3">
+    <div className="flex flex-wrap items-center justify-between gap-3 px-3 py-2 rounded-lg bg-subtle border border-subtle-token mb-3">
       <div className="flex items-center gap-3">
         {/* 同步状态 */}
         <div className="flex items-center gap-1.5">
@@ -94,7 +94,7 @@ export function DataSourceSummaryBar({ sources }: { sources: DataSourceStatus[] 
               allSynced ? 'bg-success' : 'bg-warning'
             }`}
           />
-          <span className="text-xs text-[var(--text-secondary)]">
+          <span className="text-xs text-secondary-token">
             {t.synced(syncedCount, sources.length)}
           </span>
         </div>
@@ -102,15 +102,15 @@ export function DataSourceSummaryBar({ sources }: { sources: DataSourceStatus[] 
         {/* 日期一致性 */}
         {!datesConsistent && <span className="text-xs text-warning">{t.datesInconsistent}</span>}
         {datesConsistent && uniqueDate && (
-          <span className="text-xs text-[var(--text-muted)]">{t.date(uniqueDate)}</span>
+          <span className="text-xs text-muted-token">{t.date(uniqueDate)}</span>
         )}
       </div>
 
       {/* 健康分 */}
       <div className="flex items-center gap-1.5">
-        <span className="text-xs text-[var(--text-muted)]">{t.healthScore}</span>
+        <span className="text-xs text-muted-token">{t.healthScore}</span>
         <span className={`text-sm font-bold ${scoreColor}`}>{score}</span>
-        <span className="text-xs text-[var(--text-muted)]">{t.outOf}</span>
+        <span className="text-xs text-muted-token">{t.outOf}</span>
       </div>
     </div>
   );

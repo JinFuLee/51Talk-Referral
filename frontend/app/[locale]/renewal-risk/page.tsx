@@ -80,22 +80,21 @@ export default function RenewalRiskPage() {
   );
 
   function riskBadge(days?: number | null): { label: string; cls: string } {
-    if (days == null)
-      return { label: t('riskUnknown'), cls: 'bg-[var(--bg-subtle)] text-[var(--text-secondary)]' };
+    if (days == null) return { label: t('riskUnknown'), cls: 'bg-subtle text-secondary-token' };
     if (days > 90)
       return {
         label: t('riskHigh'),
-        cls: 'bg-[var(--color-danger-surface)] text-[var(--color-danger)]',
+        cls: 'bg-danger-surface text-danger-token',
       };
     if (days > 60) return { label: t('riskMidHigh'), cls: 'bg-orange-100 text-orange-700' };
     if (days > 30)
       return {
         label: t('riskWatch'),
-        cls: 'bg-[var(--color-warning-surface)] text-[var(--color-warning)]',
+        cls: 'bg-warning-surface text-warning-token',
       };
     return {
       label: t('riskNormal'),
-      cls: 'bg-[var(--color-success-surface)] text-[var(--color-success)]',
+      cls: 'bg-success-surface text-success-token',
     };
   }
 
@@ -125,7 +124,7 @@ export default function RenewalRiskPage() {
     <div className="space-y-3">
       <div>
         <h1 className="page-title">{t('title')}</h1>
-        <p className="text-sm text-[var(--text-secondary)] mt-1">{t('subtitle')}</p>
+        <p className="text-sm text-secondary-token mt-1">{t('subtitle')}</p>
       </div>
 
       {segments.length === 0 ? (
@@ -139,13 +138,13 @@ export default function RenewalRiskPage() {
               return (
                 <Card key={seg.segment_id ?? seg.label} title="">
                   <div className="pt-1">
-                    <p className="text-xs text-[var(--text-muted)] mb-1">
+                    <p className="text-xs text-muted-token mb-1">
                       {seg.label}（{seg.days_range ?? seg.label} 天）
                     </p>
                     <p className="text-2xl font-bold" style={{ color }}>
                       {(seg.count ?? 0).toLocaleString()}
                     </p>
-                    <p className="text-xs text-[var(--text-secondary)] mt-1">
+                    <p className="text-xs text-secondary-token mt-1">
                       {t('cardProportion')} {formatRate(pct)}
                     </p>
                   </div>
@@ -210,7 +209,7 @@ export default function RenewalRiskPage() {
                       >
                         ⓘ
                       </span>
-                      <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 hidden group-hover:block z-10 bg-[var(--bg-subtle)] text-white text-[10px] rounded px-2 py-1 whitespace-nowrap pointer-events-none shadow-lg">
+                      <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 hidden group-hover:block z-10 bg-subtle text-white text-[10px] rounded px-2 py-1 whitespace-nowrap pointer-events-none shadow-lg">
                         {t('colLessonPkgTip')}
                       </span>
                     </span>
@@ -224,7 +223,7 @@ export default function RenewalRiskPage() {
                       >
                         ⓘ
                       </span>
-                      <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 hidden group-hover:block z-10 bg-[var(--bg-subtle)] text-white text-[10px] rounded px-2 py-1 whitespace-nowrap pointer-events-none shadow-lg">
+                      <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 hidden group-hover:block z-10 bg-subtle text-white text-[10px] rounded px-2 py-1 whitespace-nowrap pointer-events-none shadow-lg">
                         {t('colRenewalOrdersTip')}
                       </span>
                     </span>
@@ -236,12 +235,9 @@ export default function RenewalRiskPage() {
                 {highRiskStudents.map((s, i) => {
                   const badge = riskBadge(s.days_since_last_renewal);
                   return (
-                    <tr
-                      key={s.stdt_id ?? i}
-                      className="even:bg-[var(--bg-subtle)] hover:bg-[var(--bg-subtle)]"
-                    >
+                    <tr key={s.stdt_id ?? i} className="even:bg-subtle hover:bg-subtle">
                       <td className="slide-td font-mono text-xs">{s.stdt_id ?? '—'}</td>
-                      <td className="slide-td text-right font-mono tabular-nums font-semibold text-[var(--color-danger)]">
+                      <td className="slide-td text-right font-mono tabular-nums font-semibold text-danger-token">
                         {s.days_since_last_renewal ?? '—'}
                       </td>
                       <td className="slide-td text-center">
@@ -251,9 +247,7 @@ export default function RenewalRiskPage() {
                           {badge.label}
                         </span>
                       </td>
-                      <td className="slide-td text-[var(--text-secondary)]">
-                        {s.enclosure ?? '—'}
-                      </td>
+                      <td className="slide-td text-secondary-token">{s.enclosure ?? '—'}</td>
                       <td className="slide-td">{s.cc_name ?? '—'}</td>
                       <td className="slide-td text-right font-mono tabular-nums">
                         {s.total_lesson_packages != null

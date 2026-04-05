@@ -45,43 +45,43 @@ function statusDotClass(status: string): string {
   switch (status) {
     case 'healthy':
     case 'ok':
-      return 'bg-[var(--color-success)]';
+      return 'bg-success-token';
     case 'warning':
-      return 'bg-[var(--color-warning)]';
+      return 'bg-warning-token';
     case 'critical':
     case 'error':
-      return 'bg-[var(--color-danger)]';
+      return 'bg-danger-token';
     default:
-      return 'bg-[var(--text-muted)]';
+      return 'text-muted-bg';
   }
 }
 
 function layerBadgeClass(status: PipelineLayer['status']): string {
   switch (status) {
     case 'ok':
-      return 'bg-[var(--color-success-surface)] text-[var(--color-success)]';
+      return 'bg-success-surface text-success-token';
     case 'warning':
-      return 'bg-[var(--color-warning-surface)] text-[var(--color-warning)]';
+      return 'bg-warning-surface text-warning-token';
     case 'critical':
     case 'error':
-      return 'bg-[var(--color-danger-surface)] text-[var(--color-danger)]';
+      return 'bg-danger-surface text-danger-token';
     default:
-      return 'bg-[var(--bg-subtle)] text-[var(--text-muted)]';
+      return 'bg-subtle text-muted-token';
   }
 }
 
 function fieldTypeBadgeClass(type: string): string {
   switch (type) {
     case 'null':
-      return 'bg-[var(--color-warning-surface)] text-[var(--color-warning)]';
+      return 'bg-warning-surface text-warning-token';
     case 'number':
-      return 'bg-[var(--color-accent-surface)] text-[var(--color-accent)]';
+      return 'bg-accent-surface text-accent-token';
     case 'string':
-      return 'bg-[var(--color-success-surface)] text-[var(--color-success)]';
+      return 'bg-success-surface text-success-token';
     case 'array':
       return 'badge-info';
     default:
-      return 'bg-[var(--bg-subtle)] text-[var(--text-muted)]';
+      return 'bg-subtle text-muted-token';
   }
 }
 
@@ -102,9 +102,9 @@ function LoadingState({ t }: { t: (key: string) => string }) {
   return (
     <div className="space-y-4">
       {Array.from({ length: 4 }).map((_, i) => (
-        <div key={i} className="card-base h-24 animate-pulse bg-[var(--bg-subtle)]" />
+        <div key={i} className="card-base h-24 animate-pulse bg-subtle" />
       ))}
-      <p className="text-center text-sm text-[var(--text-muted)]">{t('loading')}</p>
+      <p className="text-center text-sm text-muted-token">{t('loading')}</p>
     </div>
   );
 }
@@ -114,8 +114,8 @@ function LoadingState({ t }: { t: (key: string) => string }) {
 function ErrorState({ onRetry, t }: { onRetry: () => void; t: (key: string) => string }) {
   return (
     <div className="state-empty card-base">
-      <p className="text-base font-semibold text-[var(--color-danger)]">{t('errorTitle')}</p>
-      <p className="text-sm text-[var(--text-muted)]">{t('errorDesc')}</p>
+      <p className="text-base font-semibold text-danger-token">{t('errorTitle')}</p>
+      <p className="text-sm text-muted-token">{t('errorDesc')}</p>
       <button onClick={onRetry} className="btn-secondary mt-2">
         {t('retry')}
       </button>
@@ -154,12 +154,12 @@ function L0Banner({
             className={`w-3 h-3 rounded-full shrink-0 ${statusDotClass(report.overall_status)}`}
           />
           <div>
-            <div className="text-sm font-semibold text-[var(--text-primary)]">
+            <div className="text-sm font-semibold text-primary-token">
               {report.total_endpoints} {t('endpoints')} &middot;{' '}
               {report.total_fields.toLocaleString()} {t('fields')}
               &middot; {report.overall_health_pct}% {t('health')}
             </div>
-            <div className="text-xs text-[var(--text-muted)] flex flex-wrap items-center gap-2 mt-0.5">
+            <div className="text-xs text-muted-token flex flex-wrap items-center gap-2 mt-0.5">
               <span>
                 {t('duration')} {report.check_duration_ms}ms
               </span>
@@ -169,12 +169,12 @@ function L0Banner({
                   <span className="flex items-center gap-1">
                     {t('vsLast')}
                     {diff.new_issues > 0 && (
-                      <span className="text-[var(--color-danger)]">
+                      <span className="text-danger-token">
                         +{diff.new_issues} {t('newIssues')}
                       </span>
                     )}
                     {diff.resolved_issues > 0 && (
-                      <span className="text-[var(--color-success)]">
+                      <span className="text-success-token">
                         {' '}
                         {diff.resolved_issues} {t('resolved')}
                       </span>
@@ -186,9 +186,7 @@ function L0Banner({
                   </span>
                 </>
               )}
-              {!diff.last_checked_at && (
-                <span className="text-[var(--color-warning)]">{t('firstRun')}</span>
-              )}
+              {!diff.last_checked_at && <span className="text-warning-token">{t('firstRun')}</span>}
             </div>
           </div>
         </div>
@@ -196,7 +194,7 @@ function L0Banner({
           <button onClick={onRefresh} className="btn-secondary text-xs px-3 py-1.5">
             {t('refresh')}
           </button>
-          <label className="flex items-center gap-1.5 text-xs text-[var(--text-muted)] cursor-pointer select-none">
+          <label className="flex items-center gap-1.5 text-xs text-muted-token cursor-pointer select-none">
             <input
               type="checkbox"
               checked={autoRefresh}
@@ -220,7 +218,7 @@ function PipelineBar({ pipeline }: { pipeline: PipelineLayer[] }) {
     <div className="flex items-center gap-2 overflow-x-auto py-1">
       {pipeline.map((layer, i) => (
         <Fragment key={layer.layer}>
-          {i > 0 && <span className="text-[var(--text-muted)] shrink-0">→</span>}
+          {i > 0 && <span className="text-muted-token shrink-0">→</span>}
           <div
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium shrink-0 ${layerBadgeClass(layer.status)}`}
           >
@@ -253,12 +251,12 @@ function EngineStatusSection({ engine, t }: { engine: EngineStatus; t: (key: str
         {tables.map(([name, tbl]) => (
           <div
             key={name}
-            className={`card-compact border-l-4 ${tbl.status === 'ok' ? 'border-[var(--color-success)]' : tbl.status === 'unknown' ? 'border-[var(--text-muted)]' : 'border-[var(--color-warning)]'}`}
+            className={`card-compact border-l-4 ${tbl.status === 'ok' ? 'border-success-token' : tbl.status === 'unknown' ? 'border-muted-token' : 'border-warning-token'}`}
           >
-            <div className="text-xs font-medium text-[var(--text-primary)] truncate" title={name}>
+            <div className="text-xs font-medium text-primary-token truncate" title={name}>
               {name}
             </div>
-            <div className="text-[10px] text-[var(--text-muted)] mt-1 font-mono">
+            <div className="text-[10px] text-muted-token mt-1 font-mono">
               {tbl.rows != null ? (
                 <>
                   {tbl.rows.toLocaleString()} {t('engineRows')} &middot; {tbl.cols}{' '}
@@ -286,17 +284,17 @@ function RootCauseCards({ causes, t }: { causes: RootCause[]; t: (key: string) =
       {causes.map((rc, i) => (
         <div
           key={i}
-          className="card-compact flex items-center justify-between gap-3 border-l-4 border-[var(--color-warning)]"
+          className="card-compact flex items-center justify-between gap-3 border-l-4 border-warning-token"
         >
           <div className="min-w-0">
-            <span className="text-sm font-medium text-[var(--text-primary)]">
+            <span className="text-sm font-medium text-primary-token">
               {label(ROOT_CAUSE_LABELS, rc.cause)}
             </span>
-            <span className="ml-2 text-xs text-[var(--text-muted)]">
+            <span className="ml-2 text-xs text-muted-token">
               → {rc.affected_fields} {t('fieldAffected')}
             </span>
             {rc.sample_paths && rc.sample_paths.length > 0 && (
-              <div className="text-[10px] text-[var(--text-muted)] font-mono mt-0.5 truncate">
+              <div className="text-[10px] text-muted-token font-mono mt-0.5 truncate">
                 {t('sample')}
                 {rc.sample_paths.slice(0, 2).join(' / ')}
               </div>
@@ -308,7 +306,7 @@ function RootCauseCards({ causes, t }: { causes: RootCause[]; t: (key: string) =
                 {label(REMEDIATION_ACTION_LABELS, rc.remediation.action)}
               </a>
             ) : (
-              <span className="text-xs text-[var(--text-muted)] shrink-0">
+              <span className="text-xs text-muted-token shrink-0">
                 {label(REMEDIATION_MANUAL_LABELS, rc.remediation.manual ?? '')}
               </span>
             ))}
@@ -335,21 +333,18 @@ function FreshnessSection({
         {freshness.map((f) => {
           const borderColor =
             f.status === 'fresh'
-              ? 'border-[var(--color-success)]'
+              ? 'border-success-token'
               : f.status === 'stale'
-                ? 'border-[var(--color-warning)]'
-                : 'border-[var(--color-danger)]';
+                ? 'border-warning-token'
+                : 'border-danger-token';
           const statusLabel =
             f.status === 'fresh' ? t('fresh') : f.status === 'stale' ? t('stale') : t('expired');
           return (
             <div key={f.file} className={`card-compact border-l-4 ${borderColor}`}>
-              <div
-                className="text-xs font-medium text-[var(--text-primary)] truncate"
-                title={f.source}
-              >
+              <div className="text-xs font-medium text-primary-token truncate" title={f.source}>
                 {f.source}
               </div>
-              <div className="text-[10px] text-[var(--text-muted)] mt-1">
+              <div className="text-[10px] text-muted-token mt-1">
                 T-{f.age_days} · {statusLabel}
               </div>
             </div>
@@ -383,7 +378,7 @@ function FieldTable({ fields, t }: { fields: FieldCheck[]; t: (key: string) => s
   }
 
   return (
-    <div className="px-6 py-3 bg-[var(--bg-subtle)] space-y-2">
+    <div className="px-6 py-3 bg-subtle space-y-2">
       {/* 筛选栏 */}
       <div className="flex items-center gap-3 flex-wrap">
         <div className="flex items-center gap-1">
@@ -393,8 +388,8 @@ function FieldTable({ fields, t }: { fields: FieldCheck[]; t: (key: string) => s
               onClick={() => setFilter(f)}
               className={`px-2 py-0.5 rounded text-[10px] font-medium transition-colors ${
                 filter === f
-                  ? 'bg-[var(--color-accent)] text-[var(--color-accent-text)]'
-                  : 'bg-[var(--bg-surface)] text-[var(--text-muted)]'
+                  ? 'bg-accent-token text-accent-text-token'
+                  : 'bg-surface text-muted-token'
               }`}
             >
               {f === 'all'
@@ -415,7 +410,7 @@ function FieldTable({ fields, t }: { fields: FieldCheck[]; t: (key: string) => s
       </div>
 
       {/* 字段表格 */}
-      <div className="max-h-96 overflow-y-auto rounded border border-[var(--border-default)]">
+      <div className="max-h-96 overflow-y-auto rounded border border-default-token">
         <table className="w-full text-xs">
           <thead className="sticky top-0">
             <tr className="slide-thead-row">
@@ -428,7 +423,7 @@ function FieldTable({ fields, t }: { fields: FieldCheck[]; t: (key: string) => s
           <tbody>
             {filtered.length === 0 ? (
               <tr>
-                <td colSpan={4} className="slide-td text-center text-[var(--text-muted)] py-4">
+                <td colSpan={4} className="slide-td text-center text-muted-token py-4">
                   {t('noMatch')}
                 </td>
               </tr>
@@ -445,7 +440,7 @@ function FieldTable({ fields, t }: { fields: FieldCheck[]; t: (key: string) => s
                   }
                 >
                   <td
-                    className="slide-td font-mono text-[10px] text-[var(--text-secondary)] cursor-pointer hover:text-[var(--text-primary)] transition-colors"
+                    className="slide-td font-mono text-[10px] text-secondary-token cursor-pointer hover:text-primary-token transition-colors"
                     onClick={() => copyPath(f.path)}
                     title={t('clickCopy')}
                   >
@@ -459,16 +454,16 @@ function FieldTable({ fields, t }: { fields: FieldCheck[]; t: (key: string) => s
                     </span>
                   </td>
                   <td
-                    className="slide-td font-mono text-[10px] text-[var(--text-muted)] truncate max-w-[200px]"
+                    className="slide-td font-mono text-[10px] text-muted-token truncate max-w-[200px]"
                     title={f.value_preview}
                   >
                     {f.value_preview}
                   </td>
                   <td className="slide-td text-center">
                     {f.status === 'ok' ? (
-                      <span className="inline-block w-2 h-2 rounded-full bg-[var(--color-success)]" />
+                      <span className="inline-block w-2 h-2 rounded-full bg-success-token" />
                     ) : (
-                      <span className="inline-block w-2 h-2 rounded-full bg-[var(--color-warning)]" />
+                      <span className="inline-block w-2 h-2 rounded-full bg-warning-token" />
                     )}
                   </td>
                 </tr>
@@ -477,7 +472,7 @@ function FieldTable({ fields, t }: { fields: FieldCheck[]; t: (key: string) => s
           </tbody>
         </table>
       </div>
-      <p className="text-[10px] text-[var(--text-muted)]">
+      <p className="text-[10px] text-muted-token">
         {t('showing')} {filtered.length} / {fields.length} {t('fields')}
       </p>
     </div>
@@ -496,52 +491,49 @@ function EndpointList({
   const [expandedEp, setExpandedEp] = useState<string | null>(null);
 
   return (
-    <div className="border-t border-[var(--border-default)]">
+    <div className="border-t border-default-token">
       {endpoints.map((ep) => {
         const healthPct =
           ep.total_fields > 0 ? ((ep.total_fields - ep.null_fields) / ep.total_fields) * 100 : 100;
         const isExpanded = expandedEp === ep.path;
 
         return (
-          <div key={ep.path} className="border-b border-[var(--border-subtle)] last:border-b-0">
+          <div key={ep.path} className="border-b border-subtle-token last:border-b-0">
             <button
               onClick={() => setExpandedEp(isExpanded ? null : ep.path)}
-              className="w-full px-6 py-2.5 flex items-center justify-between hover:bg-[var(--bg-subtle)] transition-colors"
+              className="w-full px-6 py-2.5 flex items-center justify-between hover:bg-subtle transition-colors"
             >
               <div className="flex items-center gap-2 min-w-0">
                 <span
                   className={`shrink-0 px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold ${
                     ep.status_code === 200
-                      ? 'bg-[var(--color-success-surface)] text-[var(--color-success)]'
-                      : 'bg-[var(--color-danger-surface)] text-[var(--color-danger)]'
+                      ? 'bg-success-surface text-success-token'
+                      : 'bg-danger-surface text-danger-token'
                   }`}
                 >
                   {ep.status_code}
                 </span>
-                <span className="text-xs font-mono text-[var(--text-secondary)] truncate">
+                <span className="text-xs font-mono text-secondary-token truncate">
                   {ep.method} {ep.path}
                 </span>
                 {ep.error && (
-                  <span
-                    className="text-[10px] text-[var(--color-danger)] truncate"
-                    title={ep.error}
-                  >
+                  <span className="text-[10px] text-danger-token truncate" title={ep.error}>
                     {ep.error.slice(0, 60)}
                   </span>
                 )}
               </div>
-              <div className="flex items-center gap-3 text-[10px] text-[var(--text-muted)] shrink-0 ml-2">
+              <div className="flex items-center gap-3 text-[10px] text-muted-token shrink-0 ml-2">
                 <span>{ep.response_ms}ms</span>
                 <span>
                   {ep.total_fields} {t('fields')}
                 </span>
                 {ep.null_fields > 0 && (
-                  <span className="text-[var(--color-warning)]">{ep.null_fields} null</span>
+                  <span className="text-warning-token">{ep.null_fields} null</span>
                 )}
                 {/* 健康进度条 */}
                 <div className="w-16 h-1.5 progress-track overflow-hidden">
                   <div
-                    className="h-full rounded-full transition-all duration-300 bg-[var(--color-success)]"
+                    className="h-full rounded-full transition-all duration-300 bg-success-token"
                     style={{ width: `${healthPct}%` }}
                   />
                 </div>
@@ -554,7 +546,7 @@ function EndpointList({
               <FieldTable fields={ep.fields} t={t} />
             )}
             {isExpanded && (!ep.fields || ep.fields.length === 0) && (
-              <div className="px-6 py-3 bg-[var(--bg-subtle)] text-xs text-[var(--text-muted)]">
+              <div className="px-6 py-3 bg-subtle text-xs text-muted-token">
                 {ep.error ? `${t('requestFailed')}${ep.error}` : t('noFieldData')}
               </div>
             )}
@@ -583,17 +575,17 @@ function ModuleCards({ modules, t }: { modules: ModuleResult[]; t: (key: string)
             {/* L1 卡片头 */}
             <button
               onClick={() => setExpandedModule(isExpanded ? null : mod.name)}
-              className="w-full px-4 py-3 flex items-center justify-between hover:bg-[var(--bg-subtle)] transition-colors"
+              className="w-full px-4 py-3 flex items-center justify-between hover:bg-subtle transition-colors"
             >
               <div className="flex items-center gap-3">
                 <div
-                  className={`w-2.5 h-2.5 rounded-full shrink-0 ${mod.all_ok ? 'bg-[var(--color-success)]' : 'bg-[var(--color-danger)]'}`}
+                  className={`w-2.5 h-2.5 rounded-full shrink-0 ${mod.all_ok ? 'bg-success-token' : 'bg-danger-token'}`}
                 />
-                <span className="text-sm font-medium text-[var(--text-primary)]">
+                <span className="text-sm font-medium text-primary-token">
                   {label(DATA_MODULE_LABELS, mod.name)}
                 </span>
               </div>
-              <div className="flex items-center gap-3 text-xs text-[var(--text-muted)] shrink-0">
+              <div className="flex items-center gap-3 text-xs text-muted-token shrink-0">
                 <span>
                   {mod.endpoints.length} {t('endpoints')}
                 </span>
@@ -601,7 +593,7 @@ function ModuleCards({ modules, t }: { modules: ModuleResult[]; t: (key: string)
                   {mod.total_fields.toLocaleString()} {t('fields')}
                 </span>
                 {mod.null_fields > 0 && (
-                  <span className="text-[var(--color-warning)]">{mod.null_fields} null</span>
+                  <span className="text-warning-token">{mod.null_fields} null</span>
                 )}
                 <span>{isExpanded ? '▾' : '▸'}</span>
               </div>
@@ -627,12 +619,10 @@ function CrossChecks({ checks, t }: { checks: CrossCheck[]; t: (key: string) => 
       {checks.map((c, i) => (
         <div
           key={i}
-          className={`card-compact border-l-4 ${c.passed ? 'border-[var(--color-success)]' : 'border-[var(--color-danger)]'}`}
+          className={`card-compact border-l-4 ${c.passed ? 'border-success-token' : 'border-danger-token'}`}
         >
-          <span className="text-sm text-[var(--text-primary)]">
-            {label(CROSS_CHECK_LABELS, c.name)}
-          </span>
-          {c.note && <span className="ml-2 text-xs text-[var(--text-muted)]">{c.note}</span>}
+          <span className="text-sm text-primary-token">{label(CROSS_CHECK_LABELS, c.name)}</span>
+          {c.note && <span className="ml-2 text-xs text-muted-token">{c.note}</span>}
         </div>
       ))}
     </div>
@@ -656,11 +646,11 @@ function FrontendErrorsSection({
         <span className="badge-danger normal-case">{errors.last_24h}</span>
       </h3>
       {errors.top_errors.map((e, i) => (
-        <div key={i} className="card-compact border-l-4 border-[var(--color-danger)]">
-          <div className="text-xs font-mono text-[var(--color-danger)] truncate" title={e.message}>
+        <div key={i} className="card-compact border-l-4 border-danger-token">
+          <div className="text-xs font-mono text-danger-token truncate" title={e.message}>
             {e.message}
           </div>
-          <div className="text-[10px] text-[var(--text-muted)] mt-0.5">
+          <div className="text-[10px] text-muted-token mt-0.5">
             {e.page} &middot; {e.count}x
           </div>
         </div>
@@ -691,8 +681,8 @@ export default function DataHealthPage() {
 
       {!isLoading && !error && !data && (
         <div className="state-empty card-base">
-          <p className="text-base font-semibold text-[var(--text-secondary)]">{t('emptyTitle')}</p>
-          <p className="text-sm text-[var(--text-muted)]">{t('emptyDesc')}</p>
+          <p className="text-base font-semibold text-secondary-token">{t('emptyTitle')}</p>
+          <p className="text-sm text-muted-token">{t('emptyDesc')}</p>
           <button onClick={() => mutate()} className="btn-secondary mt-2">
             {t('retry')}
           </button>

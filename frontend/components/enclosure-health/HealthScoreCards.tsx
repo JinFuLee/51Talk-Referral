@@ -57,9 +57,9 @@ function LevelBadge({
   labels: { green: string; yellow: string; red: string };
 }) {
   const map = {
-    green: { bg: 'bg-[var(--color-success-surface)]', text: 'text-[var(--color-success)]' },
-    yellow: { bg: 'bg-[var(--color-warning-surface)]', text: 'text-[var(--color-warning)]' },
-    red: { bg: 'bg-[var(--color-danger-surface)]', text: 'text-[var(--color-danger)]' },
+    green: { bg: 'bg-success-surface', text: 'text-success-token' },
+    yellow: { bg: 'bg-warning-surface', text: 'text-warning-token' },
+    red: { bg: 'bg-danger-surface', text: 'text-danger-token' },
   };
   const s = map[level];
   return (
@@ -80,7 +80,7 @@ export function HealthScoreCards({ data, onSegmentClick }: HealthScoreCardsProps
   const t = I18N[(locale as Locale) in I18N ? (locale as Locale) : 'zh'];
 
   if (!data.length) {
-    return <div className="text-sm text-[var(--text-muted)] text-center py-8">{t.noData}</div>;
+    return <div className="text-sm text-muted-token text-center py-8">{t.noData}</div>;
   }
 
   return (
@@ -88,19 +88,19 @@ export function HealthScoreCards({ data, onSegmentClick }: HealthScoreCardsProps
       {data.map((item) => {
         const borderColor =
           item.level === 'green'
-            ? 'border-[var(--color-success)]'
+            ? 'border-success-token'
             : item.level === 'yellow'
-              ? 'border-[var(--color-warning)]'
-              : 'border-[var(--color-danger)]';
+              ? 'border-warning-token'
+              : 'border-danger-token';
 
         return (
           <div
             key={item.segment}
-            className={`bg-[var(--bg-surface)] border-l-4 ${borderColor} rounded-lg p-3 cursor-pointer hover:shadow-md transition-shadow`}
+            className={`bg-surface border-l-4 ${borderColor} rounded-lg p-3 cursor-pointer hover:shadow-md transition-shadow`}
             onClick={() => onSegmentClick?.(item.segment)}
           >
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-semibold text-[var(--text-primary)] truncate">
+              <span className="text-xs font-semibold text-primary-token truncate">
                 {item.segment}
               </span>
               <LevelBadge level={item.level} labels={t.levels} />
@@ -140,15 +140,15 @@ export function HealthScoreCards({ data, onSegmentClick }: HealthScoreCardsProps
               </div>
               <div className="flex-1 space-y-0.5 text-xs">
                 <div className="flex justify-between">
-                  <span className="text-[var(--text-muted)]">{t.participation}</span>
+                  <span className="text-muted-token">{t.participation}</span>
                   <span className="font-mono tabular-nums">{formatRate(item.participation)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-[var(--text-muted)]">{t.conversion}</span>
+                  <span className="text-muted-token">{t.conversion}</span>
                   <span className="font-mono tabular-nums">{formatRate(item.conversion)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-[var(--text-muted)]">{t.checkin}</span>
+                  <span className="text-muted-token">{t.checkin}</span>
                   <span className="font-mono tabular-nums">{formatRate(item.checkin)}</span>
                 </div>
               </div>

@@ -136,14 +136,9 @@ const I18N: Record<
 type DailyReportSlice = { blocks: { channel_three_factor: ChannelThreeFactor } };
 
 function DeltaCell({ value }: { value: number | null | undefined }) {
-  if (value == null)
-    return <td className="px-2 py-1.5 text-xs text-right text-[var(--text-muted)]">—</td>;
+  if (value == null) return <td className="px-2 py-1.5 text-xs text-right text-muted-token">—</td>;
   const color =
-    value > 0
-      ? 'text-[var(--color-success)]'
-      : value < 0
-        ? 'text-[var(--color-danger)]'
-        : 'text-[var(--text-muted)]';
+    value > 0 ? 'text-success-token' : value < 0 ? 'text-danger-token' : 'text-muted-token';
   return (
     <td className={`px-2 py-1.5 text-xs text-right font-mono tabular-nums font-semibold ${color}`}>
       {value > 0 ? '+' : ''}
@@ -170,13 +165,11 @@ function ChannelRow({
 
   return (
     <tr className={index % 2 === 0 ? 'slide-row-even' : 'slide-row-odd'}>
-      <td className="px-3 py-2 text-xs font-semibold text-[var(--text-primary)]">{row.channel}</td>
+      <td className="px-3 py-2 text-xs font-semibold text-primary-token">{row.channel}</td>
       <td className="px-2 py-2 text-center">
         <span
           className={`inline-block px-1.5 py-0.5 text-xs rounded font-medium ${
-            isLMDI
-              ? 'bg-[var(--color-warning-surface)] text-[var(--color-warning)]'
-              : 'bg-[var(--color-accent-surface)] text-[var(--brand-p2)]'
+            isLMDI ? 'bg-warning-surface text-warning-token' : 'bg-accent-surface text-brand-p2'
           }`}
         >
           {isLMDI ? t.lmdiLabel : t.laspLabel}
@@ -186,8 +179,8 @@ function ChannelRow({
       <DeltaCell value={convDelta} />
       <DeltaCell value={priceDelta} />
       {!isLMDI && <DeltaCell value={d.residual} />}
-      {isLMDI && <td className="px-2 py-1.5 text-xs text-right text-[var(--text-muted)]">—</td>}
-      <td className="px-2 py-1.5 text-xs text-right font-mono tabular-nums font-bold text-[var(--text-primary)]">
+      {isLMDI && <td className="px-2 py-1.5 text-xs text-right text-muted-token">—</td>}
+      <td className="px-2 py-1.5 text-xs text-right font-mono tabular-nums font-bold text-primary-token">
         {formatRevenue(d.actual_delta)}
       </td>
     </tr>
@@ -239,18 +232,18 @@ export function ChannelThreeFactorSlide({ slideNumber, totalSlides }: SlideProps
       ) : error ? (
         <div className="flex items-center justify-center h-full">
           <div className="text-center space-y-2">
-            <p className="text-base font-semibold text-[var(--color-danger)]">{t.error}</p>
-            <p className="text-sm text-[var(--text-muted)]">{t.errorHint}</p>
+            <p className="text-base font-semibold text-danger-token">{t.error}</p>
+            <p className="text-sm text-muted-token">{t.errorHint}</p>
             <button
               onClick={() => mutate()}
-              className="mt-1 px-4 py-1.5 rounded-lg text-sm border border-[var(--border-default)] text-[var(--text-secondary)] hover:bg-[var(--bg-subtle)] transition-colors"
+              className="mt-1 px-4 py-1.5 rounded-lg text-sm border border-default-token text-secondary-token hover:bg-subtle transition-colors"
             >
               {t.retry}
             </button>
           </div>
         </div>
       ) : channels.length === 0 ? (
-        <div className="flex flex-col justify-center items-center h-full gap-3 text-[var(--text-muted)]">
+        <div className="flex flex-col justify-center items-center h-full gap-3 text-muted-token">
           <p className="text-base font-medium">{t.empty}</p>
           <p className="text-sm">{t.emptyHint}</p>
         </div>
@@ -258,7 +251,7 @@ export function ChannelThreeFactorSlide({ slideNumber, totalSlides }: SlideProps
         <div className="flex flex-col gap-2 h-full">
           {/* 方法说明 */}
           {lmdiCount > 0 && (
-            <div className="flex-shrink-0 px-3 py-1.5 bg-[var(--color-warning-surface)] rounded-lg border border-[var(--color-warning)] text-xs text-[var(--color-warning)]">
+            <div className="flex-shrink-0 px-3 py-1.5 bg-warning-surface rounded-lg border border-warning-token text-xs text-warning-token">
               {t.lmdiNotice(lmdiCount)}
             </div>
           )}
@@ -285,13 +278,13 @@ export function ChannelThreeFactorSlide({ slideNumber, totalSlides }: SlideProps
           </div>
 
           {/* 图例说明 */}
-          <div className="flex-shrink-0 flex gap-4 text-xs text-[var(--text-muted)] px-1">
+          <div className="flex-shrink-0 flex gap-4 text-xs text-muted-token px-1">
             <span>
-              <span className="inline-block w-2 h-2 rounded-sm bg-[var(--color-accent-surface)] mr-1" />
+              <span className="inline-block w-2 h-2 rounded-sm bg-accent-surface mr-1" />
               {t.legendLasp}
             </span>
             <span>
-              <span className="inline-block w-2 h-2 rounded-sm bg-[var(--color-warning-surface)] mr-1" />
+              <span className="inline-block w-2 h-2 rounded-sm bg-warning-surface mr-1" />
               {t.legendLmdi}
             </span>
           </div>

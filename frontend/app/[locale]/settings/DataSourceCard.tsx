@@ -158,30 +158,30 @@ export default function DataSourceCard() {
       <div className="space-y-4">
         <div className="grid grid-cols-2 gap-2 text-xs">
           <div>
-            <span className="text-[var(--text-muted)]">{t.platform}</span>
-            <p className="font-medium text-[var(--text-primary)]">{t.platformName}</p>
+            <span className="text-muted-token">{t.platform}</span>
+            <p className="font-medium text-primary-token">{t.platformName}</p>
           </div>
           <div>
-            <span className="text-[var(--text-muted)]">{t.accessTicket}</span>
-            <p className="font-mono text-[var(--text-primary)]">
+            <span className="text-muted-token">{t.accessTicket}</span>
+            <p className="font-mono text-primary-token">
               {data ? ticketPreview(data.dashboard_url) : '…'}
             </p>
           </div>
           <div>
-            <span className="text-[var(--text-muted)]">{t.tableCount}</span>
-            <p className="font-medium text-[var(--text-primary)]">
+            <span className="text-muted-token">{t.tableCount}</span>
+            <p className="font-medium text-primary-token">
               {data?.tables?.length ?? '…'}
               {t.tableUnit ? ` ${t.tableUnit}` : ''}
             </p>
           </div>
           <div>
-            <span className="text-[var(--text-muted)]">{t.lastUpdated}</span>
-            <p className="font-medium text-[var(--text-primary)]">{timeAgo(data?.last_updated)}</p>
+            <span className="text-muted-token">{t.lastUpdated}</span>
+            <p className="font-medium text-primary-token">{timeAgo(data?.last_updated)}</p>
           </div>
         </div>
 
         <div className="space-y-1.5">
-          <label htmlFor="quickbi-url" className="text-xs font-medium text-[var(--text-secondary)]">
+          <label htmlFor="quickbi-url" className="text-xs font-medium text-secondary-token">
             {t.urlLabel}
           </label>
           <textarea
@@ -190,7 +190,7 @@ export default function DataSourceCard() {
             onChange={(e) => setUrlInput(e.target.value)}
             placeholder="https://bi.aliyuncs.com/token3rd/dashboard/view/pc.htm?..."
             rows={3}
-            className="w-full px-3 py-2 border border-[var(--border-subtle)] rounded-lg text-xs font-mono focus:outline-none focus-visible:ring-2 focus-visible:ring-action resize-none"
+            className="w-full px-3 py-2 border border-subtle-token rounded-lg text-xs font-mono focus:outline-none focus-visible:ring-2 focus-visible:ring-action resize-none"
           />
         </div>
 
@@ -204,9 +204,7 @@ export default function DataSourceCard() {
             {saving ? <Spinner size="sm" /> : t.updateBtn}
           </button>
           {msg && (
-            <span
-              className={`text-xs ${msg.ok ? 'text-[var(--color-success)]' : 'text-[var(--color-danger)]'}`}
-            >
+            <span className={`text-xs ${msg.ok ? 'text-success-token' : 'text-danger-token'}`}>
               {msg.text}
             </span>
           )}
@@ -215,13 +213,13 @@ export default function DataSourceCard() {
         {/* 表格清单 */}
         {data?.tables && data.tables.length > 0 && (
           <details className="text-xs">
-            <summary className="cursor-pointer text-[var(--text-muted)] hover:text-[var(--text-secondary)]">
+            <summary className="cursor-pointer text-muted-token hover:text-secondary-token">
               {data.tables.length} {t.tablesExpand}
             </summary>
-            <ul className="mt-1.5 space-y-0.5 pl-4 text-[var(--text-secondary)]">
+            <ul className="mt-1.5 space-y-0.5 pl-4 text-secondary-token">
               {data.tables.map((tbl: { name: string; file: string }, i: number) => (
                 <li key={i} className="flex gap-2">
-                  <span className="font-mono text-[var(--text-muted)]">{tbl.file}</span>
+                  <span className="font-mono text-muted-token">{tbl.file}</span>
                   <span>← {tbl.name}</span>
                 </li>
               ))}
@@ -230,9 +228,9 @@ export default function DataSourceCard() {
         )}
 
         {/* 使用说明 */}
-        <p className="text-[10px] text-[var(--text-muted)] leading-relaxed">
+        <p className="text-[10px] text-muted-token leading-relaxed">
           {t.hint}
-          <code className="mx-1 px-1 py-0.5 bg-[var(--bg-subtle)] rounded text-[9px]">
+          <code className="mx-1 px-1 py-0.5 bg-subtle rounded text-[9px]">
             uv run python scripts/quickbi_fetch.py --headless
           </code>
         </p>

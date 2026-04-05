@@ -118,7 +118,7 @@ export function BotManager({ platform }: BotManagerProps) {
 
   if (isLoading) {
     return (
-      <div className="flex items-center gap-2 py-8 justify-center text-[var(--text-muted)]">
+      <div className="flex items-center gap-2 py-8 justify-center text-muted-token">
         <Loader2 className="w-5 h-5 animate-spin" />
         <span className="text-sm">{t.loading}</span>
       </div>
@@ -127,7 +127,7 @@ export function BotManager({ platform }: BotManagerProps) {
 
   if (error) {
     return (
-      <div className="flex items-center gap-2 py-8 justify-center text-[var(--color-warning)]">
+      <div className="flex items-center gap-2 py-8 justify-center text-warning-token">
         <AlertCircle className="w-5 h-5" />
         <span className="text-sm">{t.loadError}</span>
       </div>
@@ -139,10 +139,10 @@ export function BotManager({ platform }: BotManagerProps) {
   return (
     <>
       <div className="flex items-center justify-between mb-3">
-        <h3 className="text-sm font-semibold text-[var(--text-primary)]">{t.title}</h3>
+        <h3 className="text-sm font-semibold text-primary-token">{t.title}</h3>
         <button
           onClick={openAdd}
-          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium border border-[var(--border-subtle)] rounded-lg hover:bg-[var(--bg-primary)] text-[var(--text-secondary)] transition-colors"
+          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium border border-subtle-token rounded-lg hover:bg-bg-primary text-secondary-token transition-colors"
         >
           <Plus className="w-3.5 h-3.5" />
           {t.addBot}
@@ -156,7 +156,7 @@ export function BotManager({ platform }: BotManagerProps) {
           icon={
             <button
               onClick={openAdd}
-              className="mb-4 flex items-center gap-2 px-4 py-2 rounded-lg border border-dashed border-[var(--border-hover)] text-sm text-[var(--text-muted)] hover:bg-[var(--bg-primary)] transition-colors"
+              className="mb-4 flex items-center gap-2 px-4 py-2 rounded-lg border border-dashed border-hover-token text-sm text-muted-token hover:bg-bg-primary transition-colors"
             >
               <Plus className="w-4 h-4" />
               {t.addBot}

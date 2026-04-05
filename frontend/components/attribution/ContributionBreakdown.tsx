@@ -85,7 +85,7 @@ export function ContributionBreakdown({ data, title }: ContributionBreakdownProp
 
   return (
     <div>
-      <p className="text-xs text-[var(--text-muted)] mb-2">
+      <p className="text-xs text-muted-token mb-2">
         {title} {t.suffix}
       </p>
       <ResponsiveContainer width="100%" height={Math.max(160, sorted.length * 36)}>
@@ -137,16 +137,15 @@ export function ContributionBreakdown({ data, title }: ContributionBreakdownProp
       </ResponsiveContainer>
 
       {/* 图例 */}
-      <div className="flex gap-4 mt-2 text-xs text-[var(--text-muted)]">
+      <div className="flex gap-4 mt-2 text-xs text-muted-token">
         <span className="flex items-center gap-1">
-          <span className="w-3 h-3 rounded-sm inline-block bg-[var(--color-success)]" />{' '}
-          {t.legend100}
+          <span className="w-3 h-3 rounded-sm inline-block bg-success-token" /> {t.legend100}
         </span>
         <span className="flex items-center gap-1">
           <span className="w-3 h-3 rounded-sm inline-block bg-action-accent" /> {t.legend50}
         </span>
         <span className="flex items-center gap-1">
-          <span className="w-3 h-3 rounded-sm inline-block bg-[var(--color-danger)]" /> {t.legend0}
+          <span className="w-3 h-3 rounded-sm inline-block bg-danger-token" /> {t.legend0}
         </span>
       </div>
     </div>

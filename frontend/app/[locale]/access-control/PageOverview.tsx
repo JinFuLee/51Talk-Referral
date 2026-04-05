@@ -135,22 +135,20 @@ function PageItem({
       : (page.description_en ?? page.description?.en)) ?? page.description?.zh;
 
   return (
-    <div className="flex items-center justify-between py-2.5 px-3 rounded-lg hover:bg-[var(--bg-subtle)] transition-colors group">
+    <div className="flex items-center justify-between py-2.5 px-3 rounded-lg hover:bg-subtle transition-colors group">
       <div className="flex items-center gap-3 min-w-0">
         <div className="min-w-0">
           <div className="flex items-center gap-2">
-            <span className="text-sm font-medium text-[var(--text-primary)] truncate">{name}</span>
+            <span className="text-sm font-medium text-primary-token truncate">{name}</span>
             {page.is_public && (
-              <span className="flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded-full bg-[var(--color-success-surface)] text-[var(--color-success)] font-medium shrink-0">
+              <span className="flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded-full bg-success-surface text-success-token font-medium shrink-0">
                 <Globe className="w-2.5 h-2.5" />
                 {t.publicBadge}
               </span>
             )}
           </div>
-          {desc && (
-            <p className="text-xs text-[var(--text-muted)] mt-0.5 truncate max-w-xs">{desc}</p>
-          )}
-          <p className="text-[10px] text-[var(--text-muted)] opacity-0 group-hover:opacity-100 transition-opacity">
+          {desc && <p className="text-xs text-muted-token mt-0.5 truncate max-w-xs">{desc}</p>}
+          <p className="text-[10px] text-muted-token opacity-0 group-hover:opacity-100 transition-opacity">
             {page.path}
           </p>
         </div>
@@ -158,7 +156,7 @@ function PageItem({
 
       <div className="flex items-center gap-3 ml-4 shrink-0">
         {page.visitor_count !== undefined && (
-          <span className="text-xs text-[var(--text-muted)]">
+          <span className="text-xs text-muted-token">
             {page.visitor_count}
             {t.visitors}
           </span>
@@ -170,7 +168,7 @@ function PageItem({
           onClick={() => onToggle(page.path, !page.is_public)}
           title={page.is_public ? t.private : t.publicToggle}
           className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-action focus-visible:ring-offset-2 ${
-            page.is_public ? 'bg-[var(--color-success)]' : 'bg-[var(--n-300)]'
+            page.is_public ? 'bg-success-token' : 'bg-n-300'
           }`}
         >
           <span
@@ -206,7 +204,7 @@ export default function PageOverview({ pages, onTogglePublic }: PageOverviewProp
     <div className="space-y-4">
       {categoryKeys.length === 0 ? (
         <div className="state-empty">
-          <Settings className="w-8 h-8 text-[var(--n-300)]" />
+          <Settings className="w-8 h-8 text-n-300" />
           <span className="text-sm">{I18N[lang].noPages}</span>
         </div>
       ) : (
@@ -220,14 +218,14 @@ export default function PageOverview({ pages, onTogglePublic }: PageOverviewProp
               {/* 分类标题 */}
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
-                  <span className="text-[var(--text-muted)]">{catInfo.icon}</span>
-                  <span className="text-sm font-semibold text-[var(--text-primary)]">
+                  <span className="text-muted-token">{catInfo.icon}</span>
+                  <span className="text-sm font-semibold text-primary-token">
                     {catInfo[lang] ?? catInfo.zh}
                   </span>
-                  <span className="text-xs text-[var(--text-muted)]">({catPages.length})</span>
+                  <span className="text-xs text-muted-token">({catPages.length})</span>
                 </div>
                 {publicCount > 0 && (
-                  <span className="text-xs text-[var(--color-success)]">
+                  <span className="text-xs text-success-token">
                     {I18N[lang].publicCount(publicCount)}
                   </span>
                 )}

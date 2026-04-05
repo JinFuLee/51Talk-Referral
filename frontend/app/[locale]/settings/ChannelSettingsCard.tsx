@@ -114,8 +114,8 @@ export default function ChannelSettingsCard({ v2, onUpdateChannel }: ChannelSett
               const paid = Math.round(c.user_count * c.conversion_rate);
               const rev = paid * c.asp;
               return (
-                <tr key={k} className="border-b border-[var(--border-subtle)]">
-                  <td className="py-1 px-2 text-xs font-medium text-[var(--text-secondary)]">
+                <tr key={k} className="border-b border-subtle-token">
+                  <td className="py-1 px-2 text-xs font-medium text-secondary-token">
                     {t[k as keyof typeof t]}
                   </td>
                   <td className="py-1 px-2 text-xs text-right">
@@ -138,34 +138,34 @@ export default function ChannelSettingsCard({ v2, onUpdateChannel }: ChannelSett
                       onChange={(v) => onUpdateChannel(k, { conversion_rate: v })}
                     />
                   </td>
-                  <td className="py-1 px-2 text-xs text-right font-mono tabular-nums text-[var(--text-secondary)]">
+                  <td className="py-1 px-2 text-xs text-right font-mono tabular-nums text-secondary-token">
                     {paid}
                   </td>
-                  <td className="py-1 px-2 text-xs text-right font-mono tabular-nums text-[var(--text-secondary)]">
+                  <td className="py-1 px-2 text-xs text-right font-mono tabular-nums text-secondary-token">
                     ${rev.toLocaleString()}
                   </td>
                 </tr>
               );
             })}
-            <tr className="border-t-2 border-[var(--border-subtle)] font-semibold">
-              <td className="py-1 px-2 text-xs text-[var(--text-primary)]">{t.total}</td>
-              <td className="py-1 px-2 text-xs text-right font-mono tabular-nums text-[var(--text-primary)]">
+            <tr className="border-t-2 border-subtle-token font-semibold">
+              <td className="py-1 px-2 text-xs text-primary-token">{t.total}</td>
+              <td className="py-1 px-2 text-xs text-right font-mono tabular-nums text-primary-token">
                 {totalReg}
               </td>
-              <td className="py-1 px-2 text-xs text-right font-mono tabular-nums text-[var(--text-muted)]">
+              <td className="py-1 px-2 text-xs text-right font-mono tabular-nums text-muted-token">
                 —
               </td>
-              <td className="py-1 px-2 text-xs text-right font-mono tabular-nums text-[var(--text-muted)]">
+              <td className="py-1 px-2 text-xs text-right font-mono tabular-nums text-muted-token">
                 {totalReg > 0 ? formatRate(totalPaid / totalReg) : '—'}
               </td>
-              <td className="py-1 px-2 text-xs text-right font-mono tabular-nums text-[var(--text-primary)]">
+              <td className="py-1 px-2 text-xs text-right font-mono tabular-nums text-primary-token">
                 {totalPaid}
               </td>
               <td
                 className={`py-1 px-2 text-xs text-right font-mono tabular-nums ${
                   revenueGap !== 0 && v2.hard.referral_revenue > 0
-                    ? 'text-[var(--color-warning)]'
-                    : 'text-[var(--text-primary)]'
+                    ? 'text-warning-token'
+                    : 'text-primary-token'
                 }`}
               >
                 ${totalChannelRevenue.toLocaleString()}

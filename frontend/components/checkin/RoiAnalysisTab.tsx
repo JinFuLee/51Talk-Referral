@@ -52,7 +52,7 @@ export function RoiAnalysisTab({ roleFilter, enclosureFilter }: Props) {
   return (
     <div className="space-y-4">
       {/* 子 Tab 导航 */}
-      <div className="flex gap-1 border-b border-[var(--border-default)]">
+      <div className="flex gap-1 border-b border-default-token">
         {SUB_TABS.map((tab) => (
           <button
             key={tab.id}
@@ -60,8 +60,8 @@ export function RoiAnalysisTab({ roleFilter, enclosureFilter }: Props) {
             className={[
               'px-4 py-2 text-sm font-medium border-b-2 transition-colors -mb-px',
               activeSubTab === tab.id
-                ? 'border-[var(--action-accent)] text-[var(--action-accent)]'
-                : 'border-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)]',
+                ? 'border-action-accent-token text-action-accent-token'
+                : 'border-transparent text-secondary-token hover:text-primary-token',
             ].join(' ')}
           >
             {tab.label}

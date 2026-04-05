@@ -78,7 +78,7 @@ export class ErrorBoundary extends Component<{ children: ReactNode }, State> {
         return (
           <div className="p-8 text-center">
             <h2 className="text-xl font-bold mb-2">{t.chunkTitle}</h2>
-            <p className="text-[var(--text-secondary)] mb-4">{t.chunkDesc}</p>
+            <p className="text-secondary-token mb-4">{t.chunkDesc}</p>
             <button
               onClick={() => {
                 clearReloadFlag();
@@ -95,8 +95,8 @@ export class ErrorBoundary extends Component<{ children: ReactNode }, State> {
       return (
         <div className="p-8 text-center">
           <h2 className="text-xl font-bold text-destructive mb-2">{t.renderError}</h2>
-          <p className="text-[var(--text-secondary)] mb-4">{this.state.error?.message}</p>
-          <pre className="text-left text-xs bg-[var(--bg-surface)] p-2 overflow-auto max-h-96">
+          <p className="text-secondary-token mb-4">{this.state.error?.message}</p>
+          <pre className="text-left text-xs bg-surface p-2 overflow-auto max-h-96">
             {this.state.error?.stack}
           </pre>
           <button

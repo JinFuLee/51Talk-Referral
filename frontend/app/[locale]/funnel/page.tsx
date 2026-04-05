@@ -97,7 +97,7 @@ export default function FunnelPage() {
   if (isLoading) {
     return (
       <div className="space-y-5">
-        <div className="h-8 w-40 animate-pulse rounded-md bg-[var(--n-200)]" />
+        <div className="h-8 w-40 animate-pulse rounded-md bg-n-200" />
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
           {Array.from({ length: 6 }).map((_, i) => (
             <SkeletonCard key={i} className="h-20" />
@@ -186,24 +186,22 @@ export default function FunnelPage() {
       <div className="flex items-start justify-between mb-2">
         <div>
           <h1 className="page-title">{t('pageTitle')}</h1>
-          <p className="text-sm text-[var(--text-secondary)] mt-1">{t('pageSubtitle')}</p>
+          <p className="text-sm text-secondary-token mt-1">{t('pageSubtitle')}</p>
         </div>
         <ExportButton onExportCsv={handleExport} />
       </div>
 
       {/* 漏斗 insight 卡片 */}
       {bottleneckStage && (
-        <div className="flex flex-col gap-1.5 rounded-lg border border-[var(--border-default)] border-l-4 border-l-amber-400 bg-[var(--color-warning-surface)] px-4 py-3">
-          <div className="text-sm font-semibold text-[var(--text-primary)]">
-            {t('funnelDiagnosis')}
-          </div>
-          <div className="text-xs text-[var(--text-secondary)]">
+        <div className="flex flex-col gap-1.5 rounded-lg border border-default-token border-l-4 border-l-amber-400 bg-warning-surface px-4 py-3">
+          <div className="text-sm font-semibold text-primary-token">{t('funnelDiagnosis')}</div>
+          <div className="text-xs text-secondary-token">
             {t('bottleneckPrefix')}{' '}
-            <span className="font-semibold text-[var(--text-primary)]">
+            <span className="font-semibold text-primary-token">
               {stageName(bottleneckStage.name)}
             </span>{' '}
             {t('bottleneckSuffix')}{' '}
-            <span className="text-[var(--color-danger)] font-semibold">
+            <span className="text-danger-token font-semibold">
               {bottleneckStage.achievement_rate != null
                 ? `${Math.round(bottleneckStage.achievement_rate * 100)}%`
                 : '—'}
@@ -211,7 +209,7 @@ export default function FunnelPage() {
             {bestStage && bestStage.name !== bottleneckStage.name && (
               <>
                 ；{stageName(bestStage.name)} {t('bestSuffix')}
-                <span className="text-[var(--color-success)] font-semibold">
+                <span className="text-success-token font-semibold">
                   {bestStage.achievement_rate != null
                     ? `${Math.round(bestStage.achievement_rate * 100)}%`
                     : '—'}
@@ -221,13 +219,11 @@ export default function FunnelPage() {
             )}
             。
           </div>
-          <p className="text-[10px] text-[var(--text-muted)]">
+          <p className="text-[10px] text-muted-token">
             {t('colorLegend')}
-            <span className="text-[var(--color-success)] font-medium">
-              {t('colorGreen')}
-            </span> ·{' '}
-            <span className="text-[var(--color-warning)] font-medium">{t('colorOrange')}</span> ·{' '}
-            <span className="text-[var(--color-danger)] font-medium">{t('colorRed')}</span>
+            <span className="text-success-token font-medium">{t('colorGreen')}</span> ·{' '}
+            <span className="text-warning-token font-medium">{t('colorOrange')}</span> ·{' '}
+            <span className="text-danger-token font-medium">{t('colorRed')}</span>
             {t('colorSuffix')}
           </p>
         </div>
@@ -239,23 +235,23 @@ export default function FunnelPage() {
           {/* 邀约汇总指标 */}
           {invitationStats && (
             <div className="grid grid-cols-3 gap-3 mb-4">
-              <div className="bg-[var(--bg-subtle)] rounded-lg p-3">
-                <p className="text-xs text-[var(--text-muted)] mb-1">{t('invitationTotal')}</p>
-                <p className="text-xl font-bold text-[var(--text-primary)] font-mono tabular-nums">
+              <div className="bg-subtle rounded-lg p-3">
+                <p className="text-xs text-muted-token mb-1">{t('invitationTotal')}</p>
+                <p className="text-xl font-bold text-primary-token font-mono tabular-nums">
                   {(invitationStats.invitation_count ?? 0).toLocaleString()}
                 </p>
               </div>
-              <div className="bg-[var(--bg-subtle)] rounded-lg p-3">
-                <p className="text-xs text-[var(--text-muted)] mb-1">{t('regToInvRate')}</p>
-                <p className="text-xl font-bold text-[var(--text-primary)] font-mono tabular-nums">
+              <div className="bg-subtle rounded-lg p-3">
+                <p className="text-xs text-muted-token mb-1">{t('regToInvRate')}</p>
+                <p className="text-xl font-bold text-primary-token font-mono tabular-nums">
                   {invitationStats.registration_invitation_rate != null
                     ? formatRate(invitationStats.registration_invitation_rate)
                     : '—'}
                 </p>
               </div>
-              <div className="bg-[var(--bg-subtle)] rounded-lg p-3">
-                <p className="text-xs text-[var(--text-muted)] mb-1">{t('invToShowRate')}</p>
-                <p className="text-xl font-bold text-[var(--text-primary)] font-mono tabular-nums">
+              <div className="bg-subtle rounded-lg p-3">
+                <p className="text-xs text-muted-token mb-1">{t('invToShowRate')}</p>
+                <p className="text-xl font-bold text-primary-token font-mono tabular-nums">
                   {invitationStats.invitation_showup_rate != null
                     ? formatRate(invitationStats.invitation_showup_rate)
                     : '—'}
@@ -290,7 +286,7 @@ export default function FunnelPage() {
                   {invitationStages.map((s, i) => (
                     <tr key={s.name} className={i % 2 === 0 ? 'slide-row-even' : 'slide-row-odd'}>
                       <td className="slide-td font-medium">{stageName(s.name)}</td>
-                      <td className="slide-td text-right font-mono tabular-nums text-[var(--text-secondary)]">
+                      <td className="slide-td text-right font-mono tabular-nums text-secondary-token">
                         {s.target != null
                           ? s.name.includes('率')
                             ? formatRate(s.target)
@@ -305,7 +301,7 @@ export default function FunnelPage() {
                           : '—'}
                       </td>
                       <td
-                        className={`slide-td text-right font-mono tabular-nums font-medium ${(s.gap ?? 0) >= 0 ? 'text-[var(--color-success)]' : 'text-[var(--color-danger)]'}`}
+                        className={`slide-td text-right font-mono tabular-nums font-medium ${(s.gap ?? 0) >= 0 ? 'text-success-token' : 'text-danger-token'}`}
                       >
                         {s.gap != null ? `${s.gap >= 0 ? '+' : ''}${s.gap.toLocaleString()}` : '—'}
                       </td>
@@ -353,9 +349,9 @@ export default function FunnelPage() {
               </thead>
               <tbody>
                 {stages.map((s) => (
-                  <tr key={s.name} className="even:bg-[var(--bg-subtle)]">
+                  <tr key={s.name} className="even:bg-subtle">
                     <td className="py-2 px-2 text-xs font-medium">{stageName(s.name)}</td>
-                    <td className="py-2 px-2 text-xs text-right font-mono tabular-nums text-[var(--text-secondary)]">
+                    <td className="py-2 px-2 text-xs text-right font-mono tabular-nums text-secondary-token">
                       {s.target != null
                         ? s.name.includes('率')
                           ? formatRate(s.target)
@@ -371,9 +367,7 @@ export default function FunnelPage() {
                     </td>
                     <td
                       className={`py-1 px-2 text-xs text-right font-mono tabular-nums font-medium ${
-                        (s.gap ?? 0) >= 0
-                          ? 'text-[var(--color-success)]'
-                          : 'text-[var(--color-danger)]'
+                        (s.gap ?? 0) >= 0 ? 'text-success-token' : 'text-danger-token'
                       }`}
                     >
                       {s.gap != null
@@ -386,16 +380,16 @@ export default function FunnelPage() {
                       <span
                         className={`font-medium ${
                           (s.achievement_rate ?? 0) >= 1
-                            ? 'text-[var(--color-success)]'
+                            ? 'text-success-token'
                             : (s.achievement_rate ?? 0) >= 0.8
-                              ? 'text-[var(--color-warning)]'
-                              : 'text-[var(--color-danger)]'
+                              ? 'text-warning-token'
+                              : 'text-danger-token'
                         }`}
                       >
                         {formatRate(s.achievement_rate)}
                       </span>
                     </td>
-                    <td className="py-2 px-2 text-xs text-right font-mono tabular-nums text-[var(--text-secondary)]">
+                    <td className="py-2 px-2 text-xs text-right font-mono tabular-nums text-secondary-token">
                       {s.conversion_rate !== undefined ? formatRate(s.conversion_rate) : '—'}
                     </td>
                   </tr>
@@ -470,9 +464,9 @@ export default function FunnelPage() {
               </thead>
               <tbody>
                 {scenarios.map((s) => (
-                  <tr key={s.stage} className="even:bg-[var(--bg-subtle)]">
+                  <tr key={s.stage} className="even:bg-subtle">
                     <td className="py-2 px-2 text-xs font-medium">{stageName(s.stage)}</td>
-                    <td className="py-2 px-2 text-xs text-right font-mono tabular-nums text-[var(--text-secondary)]">
+                    <td className="py-2 px-2 text-xs text-right font-mono tabular-nums text-secondary-token">
                       {formatRate(s.current_rate)}
                     </td>
                     <td className="py-2 px-2 text-xs text-right font-mono tabular-nums text-action-accent font-medium">
@@ -484,7 +478,7 @@ export default function FunnelPage() {
                     <td className="py-2 px-2 text-xs text-right font-mono tabular-nums">
                       +{(s.impact_payments ?? 0).toLocaleString()}
                     </td>
-                    <td className="py-2 px-2 text-xs text-right font-mono tabular-nums text-[var(--color-success)] font-medium">
+                    <td className="py-2 px-2 text-xs text-right font-mono tabular-nums text-success-token font-medium">
                       +${(s.impact_revenue ?? 0).toLocaleString()}
                     </td>
                   </tr>

@@ -50,23 +50,19 @@ function MomBadge({ change }: { change: number }) {
   const pct = (change * 100).toFixed(1);
   if (change > 0.001) {
     return (
-      <span className="inline-flex items-center gap-0.5 text-[10px] font-medium text-[var(--color-success)]">
+      <span className="inline-flex items-center gap-0.5 text-[10px] font-medium text-success-token">
         ↑ {pct}%
       </span>
     );
   }
   if (change < -0.001) {
     return (
-      <span className="inline-flex items-center gap-0.5 text-[10px] font-medium text-[var(--color-danger)]">
+      <span className="inline-flex items-center gap-0.5 text-[10px] font-medium text-danger-token">
         ↓ {Math.abs(Number(pct))}%
       </span>
     );
   }
-  return (
-    <span className="inline-flex items-center text-[10px] text-[var(--text-muted)]">
-      — {t.flat}
-    </span>
-  );
+  return <span className="inline-flex items-center text-[10px] text-muted-token">— {t.flat}</span>;
 }
 
 export function StatCard({
@@ -89,7 +85,7 @@ export function StatCard({
     <div
       className={cn(
         'rounded-xl border p-3',
-        highlight === 'warn' ? 'border-orange-400' : 'border-[var(--border-default)]',
+        highlight === 'warn' ? 'border-orange-400' : 'border-default-token',
         className
       )}
       style={{
@@ -106,7 +102,7 @@ export function StatCard({
         (e.currentTarget as HTMLDivElement).style.transform = 'translateY(0)';
       }}
     >
-      <p className="text-xs text-[var(--text-secondary)] uppercase tracking-wide mb-1 inline-flex items-center">
+      <p className="text-xs text-secondary-token uppercase tracking-wide mb-1 inline-flex items-center">
         {label}
         {knowledgeChapter && (
           <KnowledgeLink chapter={knowledgeChapter} book={knowledgeBook} className="w-3 h-3" />
@@ -115,7 +111,7 @@ export function StatCard({
 
       {/* 数值行：数字 + sparkline 并排 */}
       <div className="flex items-end justify-between gap-2">
-        <div className="stat-number text-xl font-bold font-mono tabular-nums text-[var(--text-primary)]">
+        <div className="stat-number text-xl font-bold font-mono tabular-nums text-primary-token">
           {value}
         </div>
         {hasSparkline && (
@@ -135,7 +131,7 @@ export function StatCard({
 
       {target !== undefined && (
         <div className="flex items-center gap-1 mt-1">
-          <span className="text-xs text-[var(--text-muted)]">
+          <span className="text-xs text-muted-token">
             {t.target} {target}
           </span>
           {pct !== null && (
@@ -155,7 +151,7 @@ export function StatCard({
       {pct !== null && (
         <div className="mt-2">
           <div className="flex justify-between text-xs mb-1">
-            <span className="text-[var(--text-muted)]">{t.achievement}</span>
+            <span className="text-muted-token">{t.achievement}</span>
             <span
               className="font-semibold"
               style={{ color: achievementTextColor(achievement ?? 0) }}
@@ -163,7 +159,7 @@ export function StatCard({
               {pct}%
             </span>
           </div>
-          <div className="h-1 rounded-full bg-[var(--n-200)]">
+          <div className="h-1 rounded-full bg-n-200">
             <div
               className="h-1 rounded-full transition-all duration-500"
               style={{

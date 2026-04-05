@@ -2,6 +2,241 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ══════════════════════════════════════════════════
+   SEE Semantic Utility Classes — Token 替换层
+   替代不稳定的 Tailwind arbitrary value bg-[var(--xxx)]
+   用法：直接 className="bg-surface text-muted border-default"
+   ══════════════════════════════════════════════════ */
+@layer utilities {
+  /* ── 背景色 ── */
+  .bg-surface {
+    background-color: var(--bg-surface);
+  }
+  .bg-subtle {
+    background-color: var(--bg-subtle);
+  }
+  .bg-bg-primary {
+    background-color: var(--bg-primary);
+  }
+  .bg-bg-elevated {
+    background-color: var(--bg-elevated, var(--bg-surface));
+  }
+
+  /* ── 文字色 ── */
+  .text-primary-token {
+    color: var(--text-primary);
+  }
+  .text-secondary-token {
+    color: var(--text-secondary);
+  }
+  .text-muted-token {
+    color: var(--text-muted);
+  }
+
+  /* ── 边框色 ── */
+  .border-default-token {
+    border-color: var(--border-default);
+  }
+  .border-subtle-token {
+    border-color: var(--border-subtle);
+  }
+  .border-hover-token {
+    border-color: var(--border-hover, var(--border-default));
+  }
+
+  /* ── 状态色（背景） ── */
+  .bg-success-surface {
+    background-color: var(--color-success-surface);
+  }
+  .bg-warning-surface {
+    background-color: var(--color-warning-surface);
+  }
+  .bg-danger-surface {
+    background-color: var(--color-danger-surface);
+  }
+  .bg-accent-surface {
+    background-color: var(--color-accent-surface);
+  }
+  .bg-action-surface {
+    background-color: var(--color-action-surface);
+  }
+  .bg-accent-subtle {
+    background-color: var(--color-accent-subtle);
+  }
+
+  /* ── 状态色（前景文字） ── */
+  .text-success-token {
+    color: var(--color-success);
+  }
+  .text-warning-token {
+    color: var(--color-warning);
+  }
+  .text-danger-token {
+    color: var(--color-danger);
+  }
+  .text-accent-token {
+    color: var(--color-accent);
+  }
+  .text-action-token {
+    color: var(--color-action);
+  }
+
+  /* ── 状态色（背景填充） ── */
+  .bg-success-token {
+    background-color: var(--color-success);
+  }
+  .bg-warning-token {
+    background-color: var(--color-warning);
+  }
+  .bg-danger-token {
+    background-color: var(--color-danger);
+  }
+  .bg-accent-token {
+    background-color: var(--color-accent);
+  }
+
+  /* ── 状态色（边框） ── */
+  .border-success-token {
+    border-color: var(--color-success);
+  }
+  .border-warning-token {
+    border-color: var(--color-warning);
+  }
+  .border-danger-token {
+    border-color: var(--color-danger);
+  }
+  .border-accent-token {
+    border-color: var(--color-accent);
+  }
+
+  /* ── 品牌色 ── */
+  .bg-brand-p1 {
+    background-color: var(--brand-p1);
+  }
+  .border-brand-p1 {
+    border-color: var(--brand-p1);
+  }
+  .text-brand-p1 {
+    color: var(--brand-p1);
+  }
+  .text-brand-p2 {
+    color: var(--brand-p2);
+  }
+
+  /* ── 中性色（直接引用 token） ── */
+  .bg-n-50 {
+    background-color: var(--n-50);
+  }
+  .bg-n-100 {
+    background-color: var(--n-100);
+  }
+  .bg-n-200 {
+    background-color: var(--n-200);
+  }
+  .bg-n-300 {
+    background-color: var(--n-300);
+  }
+  .bg-n-800 {
+    background-color: var(--n-800);
+  }
+  .bg-n-900 {
+    background-color: var(--n-900);
+  }
+  .border-n-200 {
+    border-color: var(--n-200);
+  }
+
+  /* ── 中性色文字（tailwind.config 已有 n.xxx，此处补充语义别名）── */
+  .text-n-100 {
+    color: var(--n-100);
+  }
+  .text-n-700 {
+    color: var(--n-700);
+  }
+  .text-n-800 {
+    color: var(--n-800);
+  }
+
+  /* ── 品牌色补充 ── */
+  .bg-brand-p2 {
+    background-color: var(--brand-p2);
+  }
+  .bg-brand-p2-hover {
+    background-color: var(--brand-p2-hover);
+  }
+  .border-brand-p2 {
+    border-color: var(--brand-p2);
+  }
+  .text-action-text-token {
+    color: var(--color-action-text);
+  }
+  .text-accent-text-token {
+    color: var(--color-accent-text);
+  }
+  .bg-accent-hover-token {
+    background-color: var(--color-accent-hover);
+  }
+  .border-action-token {
+    border-color: var(--color-action);
+  }
+  .border-accent-muted-token {
+    border-color: var(--color-accent-muted);
+  }
+  .border-accent-subtle-token {
+    border-color: var(--color-accent-subtle);
+  }
+  .bg-action-token {
+    background-color: var(--color-action);
+  }
+
+  /* ── action-accent 别名（部分组件用此变量名）── */
+  .bg-action-accent-token {
+    background-color: var(--color-accent);
+  }
+  .border-action-accent-token {
+    border-color: var(--color-accent);
+  }
+  .text-action-accent-token {
+    color: var(--color-accent);
+  }
+  .ring-action-token-ring {
+    --tw-ring-color: var(--color-action);
+  }
+
+  /* ── 演示模式专用 ── */
+  .bg-cinema {
+    background-color: #0a0a0a;
+  } /* 演示全屏纯黑背景 */
+
+  /* ── 杂项 ── */
+  .bg-muted-token {
+    background-color: var(--n-100);
+  } /* bg-muted 别名 */
+  .bg-surface-alt {
+    background-color: var(--bg-surface);
+  } /* surface 别名 */
+  .text-muted-bg {
+    background-color: var(--text-muted);
+  } /* 特殊背景用途 */
+  .border-muted-token {
+    border-color: var(--text-muted);
+  }
+
+  /* ── ring ── */
+  .ring-accent-token {
+    --tw-ring-color: var(--color-accent);
+  }
+  .ring-brand-p1-ring {
+    --tw-ring-color: var(--brand-p1);
+  }
+  .ring-action-token {
+    --tw-ring-color: var(--color-action);
+  }
+  .ring-action-opt {
+    --tw-ring-color: var(--color-action);
+  }
+}
+
 /* ── SEE v2.0: Display 字体自动应用到标题 ──── */
 @layer base {
   h1,

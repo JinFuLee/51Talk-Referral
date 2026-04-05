@@ -129,7 +129,7 @@ export function EfficiencyScatter({ data }: EfficiencyScatterProps) {
 
   if (!data.length) {
     return (
-      <div className="flex items-center justify-center h-48 text-sm text-[var(--text-muted)]">
+      <div className="flex items-center justify-center h-48 text-sm text-muted-token">
         {t.noData}
       </div>
     );
@@ -199,7 +199,7 @@ export function EfficiencyScatter({ data }: EfficiencyScatterProps) {
                 if (!active || !payload?.length) return null;
                 const d = payload[0]?.payload as ScatterPoint;
                 return (
-                  <div className="bg-[var(--bg-surface)] border border-[var(--border-default)] rounded p-2 text-xs shadow">
+                  <div className="bg-surface border border-default-token rounded p-2 text-xs shadow">
                     <div className="font-semibold">{d.cc_name}</div>
                     <div>
                       {t.newCoeff}: {(d.x ?? 0).toFixed(2)}
@@ -228,11 +228,11 @@ export function EfficiencyScatter({ data }: EfficiencyScatterProps) {
         {quadrantLabels.map((q) => (
           <div key={q.text} className="flex items-center gap-1">
             <div className="w-2 h-2 rounded-full" style={{ backgroundColor: q.color }} />
-            <span className="text-xs text-[var(--text-muted)]">{q.text}</span>
+            <span className="text-xs text-muted-token">{q.text}</span>
           </div>
         ))}
       </div>
-      <p className="text-center text-xs text-[var(--text-muted)] mt-1">{t.hoverHint}</p>
+      <p className="text-center text-xs text-muted-token mt-1">{t.hoverHint}</p>
     </div>
   );
 }

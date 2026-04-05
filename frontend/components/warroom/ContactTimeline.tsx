@@ -94,7 +94,7 @@ function DotCell({
   return (
     <div className="flex items-center justify-center h-5 w-5">
       <span
-        className={`w-3 h-3 rounded-full ${connected ? 'bg-[var(--color-success)]' : 'bg-[var(--n-200)]'}`}
+        className={`w-3 h-3 rounded-full ${connected ? 'bg-success-token' : 'bg-n-200'}`}
         title={connected ? labelConnected : labelNot}
       />
     </div>
@@ -113,29 +113,29 @@ export function ContactTimeline({ stdtId }: ContactTimelineProps) {
     return (
       <div className="flex items-center justify-center py-6">
         <Spinner size="sm" />
-        <span className="ml-2 text-xs text-[var(--text-muted)]">{t.loading}</span>
+        <span className="ml-2 text-xs text-muted-token">{t.loading}</span>
       </div>
     );
   }
 
   if (error || !data) {
-    return <div className="py-4 text-center text-xs text-[var(--text-muted)]">{t.error}</div>;
+    return <div className="py-4 text-center text-xs text-muted-token">{t.error}</div>;
   }
 
   const logs = data.daily_log.slice(-30);
 
   return (
-    <div className="mt-3 rounded-xl border border-[var(--border-default)] bg-[var(--bg-subtle)] p-3">
-      <div className="flex items-center gap-3 mb-2 text-xs text-[var(--text-muted)]">
-        <span className="font-medium text-[var(--text-secondary)]">{t.title}</span>
+    <div className="mt-3 rounded-xl border border-default-token bg-subtle p-3">
+      <div className="flex items-center gap-3 mb-2 text-xs text-muted-token">
+        <span className="font-medium text-secondary-token">{t.title}</span>
         <span>
           {t.enclosure}：{data.profile.enclosure}
         </span>
         <span
           className={`ml-auto px-2 py-0.5 rounded-full text-[10px] font-medium ${
             data.is_high_potential
-              ? 'bg-[var(--color-warning-surface)] text-[var(--color-warning)]'
-              : 'bg-[var(--bg-subtle)] text-[var(--text-muted)] dark:text-[var(--text-muted)]'
+              ? 'bg-warning-surface text-warning-token'
+              : 'bg-subtle text-muted-token dark:text-muted-token'
           }`}
         >
           {data.is_high_potential ? t.highPotential : t.normalStudent}
@@ -150,7 +150,7 @@ export function ContactTimeline({ stdtId }: ContactTimelineProps) {
             {logs.map((d) => (
               <div
                 key={d.date}
-                className="flex-1 text-center text-[9px] text-[var(--text-muted)] leading-none"
+                className="flex-1 text-center text-[9px] text-muted-token leading-none"
               >
                 {d.date.slice(8)}
               </div>
@@ -160,7 +160,7 @@ export function ContactTimeline({ stdtId }: ContactTimelineProps) {
           {/* CC / SS / LP rows */}
           {ROLES.map(({ key, label }) => (
             <div key={key} className="flex items-center gap-0.5 mb-1">
-              <div className="w-8 shrink-0 text-[10px] font-semibold text-[var(--text-secondary)]">
+              <div className="w-8 shrink-0 text-[10px] font-semibold text-secondary-token">
                 {label}
               </div>
               {logs.map((d) => (
@@ -177,7 +177,7 @@ export function ContactTimeline({ stdtId }: ContactTimelineProps) {
 
           {/* Check-in row */}
           <div className="flex items-center gap-0.5 mt-1">
-            <div className="w-8 shrink-0 text-[10px] font-semibold text-[var(--text-secondary)]">
+            <div className="w-8 shrink-0 text-[10px] font-semibold text-secondary-token">
               {t.checkinRowLabel}
             </div>
             {logs.map((d) => (
@@ -185,7 +185,7 @@ export function ContactTimeline({ stdtId }: ContactTimelineProps) {
                 <div className="flex items-center justify-center h-5 w-5">
                   <span
                     className={`w-3 h-3 rounded ${
-                      d.valid_checkin ? 'bg-action-accent-muted' : 'bg-[var(--n-200)]'
+                      d.valid_checkin ? 'bg-action-accent-muted' : 'bg-n-200'
                     }`}
                     title={d.valid_checkin ? t.validCheckin : t.notCheckin}
                   />
@@ -195,13 +195,13 @@ export function ContactTimeline({ stdtId }: ContactTimelineProps) {
           </div>
 
           {/* Legend */}
-          <div className="flex gap-4 mt-2 text-[10px] text-[var(--text-muted)]">
+          <div className="flex gap-4 mt-2 text-[10px] text-muted-token">
             <span className="flex items-center gap-1">
-              <span className="w-2.5 h-2.5 rounded-full bg-[var(--color-success)] inline-block" />
+              <span className="w-2.5 h-2.5 rounded-full bg-success-token inline-block" />
               {t.legendConnected}
             </span>
             <span className="flex items-center gap-1">
-              <span className="w-2.5 h-2.5 rounded-full bg-[var(--bg-subtle)] inline-block" />
+              <span className="w-2.5 h-2.5 rounded-full bg-subtle inline-block" />
               {t.legendNotConnected}
             </span>
             <span className="flex items-center gap-1">

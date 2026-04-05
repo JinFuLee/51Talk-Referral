@@ -100,9 +100,9 @@ const I18N = {
 type Locale = keyof typeof I18N;
 
 function achievementColor(rate: number): string {
-  if (rate >= 1) return 'text-[var(--color-success)]';
+  if (rate >= 1) return 'text-success-token';
   if (rate >= 0.5) return 'text-action-accent';
-  return 'text-[var(--color-danger)]';
+  return 'text-danger-token';
 }
 
 export function GapSimulator() {
@@ -127,11 +127,11 @@ export function GapSimulator() {
       {/* 选择漏斗段 */}
       <div className="flex flex-wrap gap-3 items-end">
         <div className="flex flex-col gap-1">
-          <label className="text-xs text-[var(--text-muted)]">{t.funnel}</label>
+          <label className="text-xs text-muted-token">{t.funnel}</label>
           <select
             value={segment}
             onChange={(e) => setSegment(e.target.value)}
-            className="text-sm rounded-lg border border-[var(--border-default)] bg-[var(--bg-surface)] text-[var(--text-primary)] px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-action"
+            className="text-sm rounded-lg border border-default-token bg-surface text-primary-token px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-action"
           >
             {SEGMENTS.map((s) => (
               <option key={s.value} value={s.value}>
@@ -142,9 +142,9 @@ export function GapSimulator() {
         </div>
 
         <div className="flex flex-col gap-1 flex-1 min-w-48">
-          <label className="text-xs text-[var(--text-muted)]">
+          <label className="text-xs text-muted-token">
             {t.targetRate}
-            <span className="font-semibold text-[var(--text-primary)]">{formatRate(newRate)}</span>
+            <span className="font-semibold text-primary-token">{formatRate(newRate)}</span>
           </label>
           <input
             type="range"
@@ -155,7 +155,7 @@ export function GapSimulator() {
             onChange={(e) => setNewRate(parseFloat(e.target.value))}
             className="w-full accent-action-accent"
           />
-          <div className="flex justify-between text-xs text-[var(--text-muted)]">
+          <div className="flex justify-between text-xs text-muted-token">
             <span>0%</span>
             <span>100%</span>
           </div>
@@ -164,41 +164,41 @@ export function GapSimulator() {
 
       {/* 预测结果 */}
       {isLoading && (
-        <div className="flex items-center gap-2 text-xs text-[var(--text-muted)]">
+        <div className="flex items-center gap-2 text-xs text-muted-token">
           <Spinner size="sm" /> {t.calculating}
         </div>
       )}
 
-      {error && <p className="text-xs text-[var(--color-danger)]">{t.errorMsg}</p>}
+      {error && <p className="text-xs text-danger-token">{t.errorMsg}</p>}
 
       {data && !isLoading && (
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <div className="card-subtle">
-            <p className="text-xs text-[var(--text-muted)]">
+            <p className="text-xs text-muted-token">
               {t.currentRate} {segmentLabel}
             </p>
-            <p className="text-lg font-bold tabular-nums text-[var(--text-primary)]">
+            <p className="text-lg font-bold tabular-nums text-primary-token">
               {formatRate(data.current_rate)}
             </p>
           </div>
 
           <div className="card-subtle">
-            <p className="text-xs text-[var(--text-muted)]">{t.targetRateLabel}</p>
+            <p className="text-xs text-muted-token">{t.targetRateLabel}</p>
             <p className="text-lg font-bold tabular-nums text-action-accent">
               {formatRate(data.new_rate)}
             </p>
           </div>
 
           <div className="card-subtle">
-            <p className="text-xs text-[var(--text-muted)]">{t.currentPaid}</p>
-            <p className="text-lg font-bold tabular-nums text-[var(--text-primary)]">
+            <p className="text-xs text-muted-token">{t.currentPaid}</p>
+            <p className="text-lg font-bold tabular-nums text-primary-token">
               {(data.current_paid ?? 0).toLocaleString()} {t.people}
             </p>
           </div>
 
           <div className="card-subtle">
-            <p className="text-xs text-[var(--text-muted)]">{t.predictedPaid}</p>
-            <p className="text-lg font-bold tabular-nums text-[var(--color-success)]">
+            <p className="text-xs text-muted-token">{t.predictedPaid}</p>
+            <p className="text-lg font-bold tabular-nums text-success-token">
               {(data.new_paid ?? 0).toLocaleString()} {t.people}
             </p>
           </div>
@@ -206,19 +206,19 @@ export function GapSimulator() {
           {/* 预测达成率 */}
           <div className="col-span-2 sm:col-span-4 card-subtle flex items-center gap-3">
             <div>
-              <p className="text-xs text-[var(--text-muted)]">{t.predictedAchievement}</p>
+              <p className="text-xs text-muted-token">{t.predictedAchievement}</p>
               <p
                 className={`text-2xl font-bold tabular-nums ${achievementColor(data.predicted_achievement)}`}
               >
                 {formatRate(data.predicted_achievement)}
               </p>
             </div>
-            <div className="text-xs text-[var(--text-muted)]">
-              {t.raiseTo} <strong className="text-[var(--text-primary)]">{segmentLabel}</strong>{' '}
-              {t.from} <strong>{formatRate(data.current_rate)}</strong> {t.to}{' '}
+            <div className="text-xs text-muted-token">
+              {t.raiseTo} <strong className="text-primary-token">{segmentLabel}</strong> {t.from}{' '}
+              <strong>{formatRate(data.current_rate)}</strong> {t.to}{' '}
               <strong>{formatRate(data.new_rate)}</strong>
               {t.predictPaidIncrease}{' '}
-              <strong className="text-[var(--color-success)]">
+              <strong className="text-success-token">
                 +{((data.new_paid ?? 0) - (data.current_paid ?? 0)).toLocaleString()} {t.people}
               </strong>
             </div>
@@ -226,9 +226,7 @@ export function GapSimulator() {
         </div>
       )}
 
-      {!data && !isLoading && !error && (
-        <p className="text-xs text-[var(--text-muted)]">{t.hint}</p>
-      )}
+      {!data && !isLoading && !error && <p className="text-xs text-muted-token">{t.hint}</p>}
     </div>
   );
 }

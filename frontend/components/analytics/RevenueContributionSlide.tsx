@@ -97,22 +97,22 @@ export function RevenueContributionSlide({ data }: Props) {
     <div className="card-base p-5 flex flex-col gap-4">
       {/* Header */}
       <div>
-        <h3 className="text-sm font-bold text-[var(--text-primary)] font-display">{t.title}</h3>
-        <p className="text-xs text-[var(--text-muted)] mt-0.5">{t.subtitle}</p>
+        <h3 className="text-sm font-bold text-primary-token font-display">{t.title}</h3>
+        <p className="text-xs text-muted-token mt-0.5">{t.subtitle}</p>
       </div>
 
       {/* 空态 */}
       {channels.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-8 gap-2">
-          <p className="text-sm font-medium text-[var(--text-secondary)]">{t.noData}</p>
-          <p className="text-xs text-[var(--text-muted)]">{t.noDataDesc}</p>
+          <p className="text-sm font-medium text-secondary-token">{t.noData}</p>
+          <p className="text-xs text-muted-token">{t.noDataDesc}</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* 左侧：饼图 */}
           {pieData.length > 0 && (
             <div>
-              <p className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wide mb-2">
+              <p className="text-xs font-semibold text-muted-token uppercase tracking-wide mb-2">
                 {t.chartTitle}
               </p>
               <ResponsiveContainer width="100%" height={200}>
@@ -166,19 +166,19 @@ export function RevenueContributionSlide({ data }: Props) {
               <tbody>
                 {channels.map((c, i) => (
                   <tr key={c.channel} className={i % 2 === 0 ? 'slide-row-even' : 'slide-row-odd'}>
-                    <td className="slide-td font-medium text-[var(--text-primary)]">{c.channel}</td>
-                    <td className="slide-td text-right font-mono tabular-nums text-[var(--text-secondary)]">
+                    <td className="slide-td font-medium text-primary-token">{c.channel}</td>
+                    <td className="slide-td text-right font-mono tabular-nums text-secondary-token">
                       {c.payments != null ? c.payments.toLocaleString() : '—'}
                     </td>
-                    <td className="slide-td text-right font-mono tabular-nums text-[var(--text-muted)]">
+                    <td className="slide-td text-right font-mono tabular-nums text-muted-token">
                       {total?.revenue_usd && c.revenue_usd != null
                         ? formatRate(c.revenue_usd / total.revenue_usd)
                         : '—'}
                     </td>
-                    <td className="slide-td text-right font-mono tabular-nums font-semibold text-[var(--text-primary)]">
+                    <td className="slide-td text-right font-mono tabular-nums font-semibold text-primary-token">
                       {formatUSD(c.revenue_usd)}
                     </td>
-                    <td className="slide-td text-right font-mono tabular-nums text-[var(--color-accent)]">
+                    <td className="slide-td text-right font-mono tabular-nums text-accent-token">
                       {formatUSD(c.asp)}
                     </td>
                   </tr>
@@ -186,14 +186,14 @@ export function RevenueContributionSlide({ data }: Props) {
 
                 {/* 窄口小计行 */}
                 {narrowSubtotal && (
-                  <tr className="slide-tfoot-row border-t-2 border-[var(--border-default)]">
+                  <tr className="slide-tfoot-row border-t-2 border-default-token">
                     <td className="slide-td font-bold">{t.narrowSubtotal}</td>
                     <td className="slide-td text-right font-mono tabular-nums font-bold">
                       {narrowSubtotal.payments != null
                         ? narrowSubtotal.payments.toLocaleString()
                         : '—'}
                     </td>
-                    <td className="slide-td text-right font-mono tabular-nums text-[var(--text-muted)]">
+                    <td className="slide-td text-right font-mono tabular-nums text-muted-token">
                       {total?.revenue_usd && narrowSubtotal.revenue_usd != null
                         ? formatRate(narrowSubtotal.revenue_usd / total.revenue_usd)
                         : '—'}
@@ -216,10 +216,10 @@ export function RevenueContributionSlide({ data }: Props) {
                     <td className="slide-td text-right font-mono tabular-nums font-bold">
                       {total.payments != null ? total.payments.toLocaleString() : '—'}
                     </td>
-                    <td className="slide-td text-right font-mono tabular-nums text-[var(--text-muted)]">
+                    <td className="slide-td text-right font-mono tabular-nums text-muted-token">
                       100%
                     </td>
-                    <td className="slide-td text-right font-mono tabular-nums font-bold text-[var(--color-accent)]">
+                    <td className="slide-td text-right font-mono tabular-nums font-bold text-accent-token">
                       {formatUSD(total.revenue_usd)}
                     </td>
                     <td className="slide-td text-right font-mono tabular-nums">

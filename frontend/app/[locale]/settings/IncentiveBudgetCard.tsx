@@ -127,22 +127,20 @@ export default function IncentiveBudgetCard({ month }: Props) {
   return (
     <Card title={t.cardTitle}>
       <div className="space-y-4">
-        <p className="text-xs text-[var(--text-muted)]">
+        <p className="text-xs text-muted-token">
           {t.desc}
           {t.year
             ? `${month.slice(0, 4)}${t.year}${month.slice(4)}${t.month}`
             : `${month.slice(0, 4)}-${month.slice(4)}`}
         </p>
 
-        {isLoading && (
-          <div className="py-2 text-center text-xs text-[var(--text-muted)]">{t.loading}</div>
-        )}
+        {isLoading && <div className="py-2 text-center text-xs text-muted-token">{t.loading}</div>}
 
         <div className="grid grid-cols-2 gap-4">
           {/* indoor */}
           <div className="space-y-1">
-            <label className="text-xs font-medium text-[var(--text-secondary)] flex items-center gap-1.5">
-              <span className="inline-block w-2.5 h-2.5 rounded-sm bg-[var(--color-accent)]" />
+            <label className="text-xs font-medium text-secondary-token flex items-center gap-1.5">
+              <span className="inline-block w-2.5 h-2.5 rounded-sm bg-accent-token" />
               {t.indoor}
             </label>
             <div className="flex items-center gap-1">
@@ -153,17 +151,17 @@ export default function IncentiveBudgetCard({ month }: Props) {
                 value={indoorBudget}
                 onChange={(e) => setIndoorBudget(e.target.value)}
                 placeholder="35000"
-                className="w-28 px-2 py-1.5 border border-[var(--border-subtle)] rounded text-sm font-mono tabular-nums bg-[var(--bg-surface)] focus:outline-none focus:ring-2 focus:ring-action"
+                className="w-28 px-2 py-1.5 border border-subtle-token rounded text-sm font-mono tabular-nums bg-surface focus:outline-none focus:ring-2 focus:ring-action"
               />
-              <span className="text-xs text-[var(--text-muted)]">฿</span>
+              <span className="text-xs text-muted-token">฿</span>
             </div>
-            <p className="text-[10px] text-[var(--text-muted)]">{t.indoorHint}</p>
+            <p className="text-[10px] text-muted-token">{t.indoorHint}</p>
           </div>
 
           {/* outdoor */}
           <div className="space-y-1">
-            <label className="text-xs font-medium text-[var(--text-secondary)] flex items-center gap-1.5">
-              <span className="inline-block w-2.5 h-2.5 rounded-sm bg-[var(--color-accent)]" />
+            <label className="text-xs font-medium text-secondary-token flex items-center gap-1.5">
+              <span className="inline-block w-2.5 h-2.5 rounded-sm bg-accent-token" />
               {t.outdoor}
             </label>
             <div className="flex items-center gap-1">
@@ -174,15 +172,15 @@ export default function IncentiveBudgetCard({ month }: Props) {
                 value={outdoorBudget}
                 onChange={(e) => setOutdoorBudget(e.target.value)}
                 placeholder="20000"
-                className="w-28 px-2 py-1.5 border border-[var(--border-subtle)] rounded text-sm font-mono tabular-nums bg-[var(--bg-surface)] focus:outline-none focus:ring-2 focus:ring-action"
+                className="w-28 px-2 py-1.5 border border-subtle-token rounded text-sm font-mono tabular-nums bg-surface focus:outline-none focus:ring-2 focus:ring-action"
               />
-              <span className="text-xs text-[var(--text-muted)]">฿</span>
+              <span className="text-xs text-muted-token">฿</span>
             </div>
-            <p className="text-[10px] text-[var(--text-muted)]">{t.outdoorHint}</p>
+            <p className="text-[10px] text-muted-token">{t.outdoorHint}</p>
           </div>
         </div>
 
-        {error && <p className="text-xs text-[var(--color-danger)]">{error}</p>}
+        {error && <p className="text-xs text-danger-token">{error}</p>}
 
         <div className="flex items-center gap-2 justify-end">
           <button

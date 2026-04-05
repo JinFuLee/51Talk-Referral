@@ -49,7 +49,7 @@ export function ScenarioTable({ stages }: ScenarioTableProps) {
   const locale = useLocale();
   const t = (I18N as unknown as Record<string, (typeof I18N)['zh']>)[locale] ?? I18N['zh'];
   if (stages.length === 0) {
-    return <p className="text-sm text-[var(--text-muted)] text-center py-6">{t.empty}</p>;
+    return <p className="text-sm text-muted-token text-center py-6">{t.empty}</p>;
   }
 
   return (
@@ -67,23 +67,21 @@ export function ScenarioTable({ stages }: ScenarioTableProps) {
         </thead>
         <tbody>
           {stages.map((s) => (
-            <tr key={s.stage} className="even:bg-[var(--bg-subtle)]">
-              <td className="py-1 px-2 text-xs font-medium text-[var(--text-primary)]">
-                {s.stage}
-              </td>
-              <td className="py-1 px-2 text-xs text-right font-mono tabular-nums text-[var(--text-secondary)]">
+            <tr key={s.stage} className="even:bg-subtle">
+              <td className="py-1 px-2 text-xs font-medium text-primary-token">{s.stage}</td>
+              <td className="py-1 px-2 text-xs text-right font-mono tabular-nums text-secondary-token">
                 {formatRate(s.current_rate)}
               </td>
               <td className="py-1 px-2 text-xs text-right font-mono tabular-nums font-medium text-action-accent">
                 {formatRate(s.scenario_rate)}
               </td>
-              <td className="py-1 px-2 text-xs text-right font-mono tabular-nums text-[var(--text-primary)]">
+              <td className="py-1 px-2 text-xs text-right font-mono tabular-nums text-primary-token">
                 +{(s.impact_registrations ?? 0).toLocaleString()}
               </td>
-              <td className="py-1 px-2 text-xs text-right font-mono tabular-nums text-[var(--text-primary)]">
+              <td className="py-1 px-2 text-xs text-right font-mono tabular-nums text-primary-token">
                 +{(s.impact_payments ?? 0).toLocaleString()}
               </td>
-              <td className="py-1 px-2 text-xs text-right font-mono tabular-nums font-semibold text-[var(--color-success)]">
+              <td className="py-1 px-2 text-xs text-right font-mono tabular-nums font-semibold text-success-token">
                 +${(s.impact_revenue ?? 0).toLocaleString()}
               </td>
             </tr>

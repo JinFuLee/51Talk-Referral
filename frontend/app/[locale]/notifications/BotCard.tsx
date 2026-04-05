@@ -59,10 +59,10 @@ export interface BotChannel {
 
 const ROLE_COLORS: Record<string, string> = {
   CC: 'bg-action-surface text-action-text',
-  LP: 'bg-[var(--color-accent-surface)] text-[var(--color-accent)]',
+  LP: 'bg-accent-surface text-accent-token',
   SS: 'bg-action-accent-subtle text-action-accent',
   运营: 'bg-stone-100 text-stone-600',
-  ALL: 'bg-[var(--bg-subtle)] text-[var(--text-secondary)]',
+  ALL: 'bg-subtle text-secondary-token',
 };
 
 interface BotCardProps {
@@ -76,13 +76,12 @@ export function BotCard({ bot, onEdit, onDelete, onToggle }: BotCardProps) {
   const locale = useLocale();
   const t = (I18N as unknown as Record<string, (typeof I18N)['zh']>)[locale] ?? I18N['zh'];
   const [showSecret, setShowSecret] = useState(false);
-  const roleColor =
-    ROLE_COLORS[bot.role ?? ''] ?? 'bg-[var(--bg-subtle)] text-[var(--text-secondary)]';
+  const roleColor = ROLE_COLORS[bot.role ?? ''] ?? 'bg-subtle text-secondary-token';
   const borderColor = bot.platform === 'lark' ? 'border-l-action-accent' : 'border-l-orange-500';
 
   return (
     <div
-      className={`rounded-xl bg-[var(--bg-surface)] border border-[var(--border-default)] border-l-4 ${borderColor} p-4 flex flex-col gap-3`}
+      className={`rounded-xl bg-surface border border-default-token border-l-4 ${borderColor} p-4 flex flex-col gap-3`}
       style={{ boxShadow: 'var(--shadow-subtle)', transition: 'box-shadow 0.2s ease' }}
       onMouseEnter={(e) => {
         (e.currentTarget as HTMLDivElement).style.boxShadow = 'var(--shadow-medium)';
@@ -95,19 +94,19 @@ export function BotCard({ bot, onEdit, onDelete, onToggle }: BotCardProps) {
       <div className="flex items-start justify-between">
         <div>
           <div className="flex items-center gap-2">
-            <span className="text-sm font-semibold text-[var(--text-primary)]">{bot.name}</span>
+            <span className="text-sm font-semibold text-primary-token">{bot.name}</span>
             {bot.is_test && (
-              <span className="text-xs px-1.5 py-0.5 rounded bg-[var(--color-warning-surface)] text-[var(--color-warning)] font-medium">
+              <span className="text-xs px-1.5 py-0.5 rounded bg-warning-surface text-warning-token font-medium">
                 {t.testBadge}
               </span>
             )}
           </div>
-          <p className="text-xs text-[var(--text-muted)] mt-0.5">{bot.group_name}</p>
+          <p className="text-xs text-muted-token mt-0.5">{bot.group_name}</p>
         </div>
         <div className="flex items-center gap-1">
           <button
             onClick={() => onEdit(bot)}
-            className="p-1.5 rounded-md hover:bg-[var(--bg-subtle)] transition-colors text-[var(--text-secondary)]"
+            className="p-1.5 rounded-md hover:bg-subtle transition-colors text-secondary-token"
             title="编辑"
           >
             <Edit2 className="w-3.5 h-3.5" />
@@ -118,7 +117,7 @@ export function BotCard({ bot, onEdit, onDelete, onToggle }: BotCardProps) {
                 onDelete(bot.id);
               }
             }}
-            className="p-1.5 rounded-md hover:bg-[var(--color-danger-surface)] transition-colors text-[var(--text-secondary)] hover:text-[var(--color-danger)]"
+            className="p-1.5 rounded-md hover:bg-danger-surface transition-colors text-secondary-token hover:text-danger-token"
             title="删除"
           >
             <Trash2 className="w-3.5 h-3.5" />
@@ -132,17 +131,15 @@ export function BotCard({ bot, onEdit, onDelete, onToggle }: BotCardProps) {
           {bot.role ?? 'ALL'}
         </span>
         <label className="flex items-center gap-2 cursor-pointer select-none">
-          <span className="text-xs text-[var(--text-muted)]">
-            {bot.enabled ? t.enabled : t.disabled}
-          </span>
+          <span className="text-xs text-muted-token">{bot.enabled ? t.enabled : t.disabled}</span>
           <div
             onClick={() => onToggle(bot.id, !bot.enabled)}
             className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
-              bot.enabled ? 'bg-action' : 'bg-[var(--bg-elevated)]'
+              bot.enabled ? 'bg-action' : 'bg-bg-elevated'
             }`}
           >
             <span
-              className={`inline-block h-3.5 w-3.5 transform rounded-full bg-[var(--bg-surface)] shadow transition-transform ${
+              className={`inline-block h-3.5 w-3.5 transform rounded-full bg-surface shadow transition-transform ${
                 bot.enabled ? 'translate-x-4' : 'translate-x-1'
               }`}
             />
@@ -152,17 +149,17 @@ export function BotCard({ bot, onEdit, onDelete, onToggle }: BotCardProps) {
 
       {/* Webhook */}
       <div>
-        <p className="text-xs text-[var(--text-muted)] mb-1">{t.webhookLabel}</p>
+        <p className="text-xs text-muted-token mb-1">{t.webhookLabel}</p>
         <div className="flex items-center gap-1">
           <input
             type={showSecret ? 'text' : 'password'}
             value={bot.webhook_preview ?? bot.webhook ?? ''}
             readOnly
-            className="flex-1 text-xs bg-[var(--bg-primary)] border border-[var(--border-subtle)] rounded px-2 py-1 font-mono text-[var(--text-secondary)] outline-none"
+            className="flex-1 text-xs bg-bg-primary border border-subtle-token rounded px-2 py-1 font-mono text-secondary-token outline-none"
           />
           <button
             onClick={() => setShowSecret((v) => !v)}
-            className="p-1 text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+            className="p-1 text-muted-token hover:text-primary-token"
           >
             {showSecret ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
           </button>
@@ -170,9 +167,7 @@ export function BotCard({ bot, onEdit, onDelete, onToggle }: BotCardProps) {
       </div>
 
       {/* Last sent */}
-      {bot.last_sent && (
-        <p className="text-xs text-[var(--text-muted)]">{t.lastSent(bot.last_sent)}</p>
-      )}
+      {bot.last_sent && <p className="text-xs text-muted-token">{t.lastSent(bot.last_sent)}</p>}
     </div>
   );
 }

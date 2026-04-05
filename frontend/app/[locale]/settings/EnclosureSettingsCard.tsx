@@ -104,7 +104,7 @@ function CollapseToggle({ open, onToggle, t }: CollapseToggleProps & { t: (typeo
   return (
     <button
       onClick={onToggle}
-      className="text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)] flex items-center gap-1 transition-colors focus-visible:ring-2 focus-visible:ring-action rounded"
+      className="text-xs text-secondary-token hover:text-primary-token flex items-center gap-1 transition-colors focus-visible:ring-2 focus-visible:ring-action rounded"
     >
       <span>{open ? t.collapse : t.expand}</span>
     </button>
@@ -151,8 +151,8 @@ export default function EnclosureSettingsCard({
             </thead>
             <tbody>
               {ENCLOSURE_METRIC_KEYS.map((metric) => (
-                <tr key={metric} className="border-b border-[var(--border-subtle)]">
-                  <td className="py-1 px-2 text-xs text-[var(--text-secondary)]">
+                <tr key={metric} className="border-b border-subtle-token">
+                  <td className="py-1 px-2 text-xs text-secondary-token">
                     {t[metric as keyof typeof t]}
                   </td>
                   {ENCLOSURE_KEYS.map((k) => (
@@ -169,7 +169,7 @@ export default function EnclosureSettingsCard({
           </table>
         </div>
       ) : (
-        <p className="text-sm text-[var(--text-muted)]">{t.placeholder}</p>
+        <p className="text-sm text-muted-token">{t.placeholder}</p>
       )}
     </Card>
   );

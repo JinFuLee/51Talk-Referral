@@ -502,15 +502,15 @@ function ExpandedRow({ member, colSpan, onClose }: ExpandedRowProps) {
   const extra = Object.fromEntries(Object.entries(member).filter(([k]) => !KNOWN.has(k)));
 
   return (
-    <tr className="bg-[var(--bg-subtle)]">
+    <tr className="bg-subtle">
       <td colSpan={colSpan} className="px-4 py-3">
         <div className="flex items-center justify-between mb-2">
-          <span className="text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
+          <span className="text-xs font-semibold text-secondary-token uppercase tracking-wider">
             {t.expandedTitle}
           </span>
           <button
             onClick={onClose}
-            className="text-[var(--text-muted)] hover:text-[var(--text-secondary)] text-xs px-2 py-0.5 rounded hover:bg-[var(--n-200)] transition-colors"
+            className="text-muted-token hover:text-secondary-token text-xs px-2 py-0.5 rounded hover:bg-n-200 transition-colors"
           >
             {t.collapseBtn}
           </button>
@@ -530,31 +530,23 @@ function ExpandedRow({ member, colSpan, onClose }: ExpandedRowProps) {
             [t.fieldCardExpiry, fmtNum(member.days_until_card_expiry)],
           ].map(([label, val]) => (
             <div key={label} className="flex gap-2">
-              <span className="text-[var(--text-muted)] w-24 shrink-0">{label}</span>
-              <span className="text-[var(--text-primary)] font-medium">{val}</span>
+              <span className="text-muted-token w-24 shrink-0">{label}</span>
+              <span className="text-primary-token font-medium">{val}</span>
             </div>
           ))}
         </div>
 
         {/* Extra D4 fields */}
         {Object.keys(extra).length > 0 && (
-          <div className="rounded border border-[var(--border-subtle)] overflow-hidden">
+          <div className="rounded border border-subtle-token overflow-hidden">
             <table className="w-full text-xs">
               <tbody>
                 {Object.entries(extra).map(([key, val], idx) => (
-                  <tr
-                    key={key}
-                    className={
-                      idx % 2 === 0 ? 'bg-[var(--bg-surface)]' : 'bg-[var(--bg-muted,#f9fafb)]'
-                    }
-                  >
-                    <td
-                      className="py-1 px-3 text-[var(--text-muted)] w-1/2 break-words"
-                      title={key}
-                    >
+                  <tr key={key} className={idx % 2 === 0 ? 'bg-surface' : 'bg-muted-token'}>
+                    <td className="py-1 px-3 text-muted-token w-1/2 break-words" title={key}>
                       {key}
                     </td>
-                    <td className="py-1 px-3 text-[var(--text-primary)] text-right break-all font-mono tabular-nums">
+                    <td className="py-1 px-3 text-primary-token text-right break-all font-mono tabular-nums">
                       {val === null || val === undefined || val === '' ? '—' : String(val)}
                     </td>
                   </tr>
@@ -573,18 +565,14 @@ function ExpandedRow({ member, colSpan, onClose }: ExpandedRowProps) {
 function ActivationDot({ score }: { score: number }) {
   const t = useT();
   const color =
-    score >= 70
-      ? 'bg-[var(--color-success)]'
-      : score >= 40
-        ? 'bg-[var(--color-warning)]'
-        : 'bg-[var(--color-danger)]';
+    score >= 70 ? 'bg-success-token' : score >= 40 ? 'bg-warning-token' : 'bg-danger-token';
   return (
     <div className="flex items-center gap-1.5 justify-center">
       <span
         className={`w-2.5 h-2.5 rounded-full inline-block ${color}`}
         title={t.activationTitle(score)}
       />
-      <span className="font-mono tabular-nums text-[var(--text-secondary)]">{score}</span>
+      <span className="font-mono tabular-nums text-secondary-token">{score}</span>
     </div>
   );
 }
@@ -594,16 +582,11 @@ function ActivationDot({ score }: { score: number }) {
 function PriorityBadge({ score }: { score: number }) {
   const color =
     score >= 60
-      ? 'text-[var(--color-danger)] font-semibold'
+      ? 'text-danger-token font-semibold'
       : score >= 30
-        ? 'text-[var(--color-warning)] font-medium'
-        : 'text-[var(--text-muted)]';
-  const dot =
-    score >= 60
-      ? 'bg-[var(--color-danger)]'
-      : score >= 30
-        ? 'bg-[var(--color-warning)]'
-        : 'bg-[var(--bg-subtle)]';
+        ? 'text-warning-token font-medium'
+        : 'text-muted-token';
+  const dot = score >= 60 ? 'bg-danger-token' : score >= 30 ? 'bg-warning-token' : 'bg-subtle';
   return (
     <div className="flex items-center gap-1 justify-center">
       <span className={`w-2 h-2 rounded-full inline-block ${dot}`} />
@@ -644,11 +627,7 @@ function ConnStatusDots({ cc, ss, lp }: { cc: number; ss: number; lp: number }) 
     <span
       title={`${label}: ${val === 1 ? t.connConnected : t.connNotConnected}`}
       className={`w-2 h-2 rounded-full inline-block ${
-        val === 1
-          ? 'bg-[var(--color-success)]'
-          : val === 0
-            ? 'bg-[var(--color-danger)]'
-            : 'bg-[var(--bg-subtle)]'
+        val === 1 ? 'bg-success-token' : val === 0 ? 'bg-danger-token' : 'bg-subtle'
       }`}
     />
   );
@@ -670,13 +649,13 @@ function GoldenWindowBadges({ windows }: { windows: string[] }) {
     lead_no_show: t.gwLeadNoShow,
     renewal_window: t.gwRenewalWindow,
   };
-  if (!windows || windows.length === 0) return <span className="text-[var(--text-muted)]">—</span>;
+  if (!windows || windows.length === 0) return <span className="text-muted-token">—</span>;
   return (
     <div className="flex flex-wrap gap-0.5">
       {windows.map((w) => (
         <span
           key={w}
-          className="px-1 py-0.5 rounded text-[10px] bg-[var(--color-warning-surface)] text-[var(--color-warning)] whitespace-nowrap"
+          className="px-1 py-0.5 rounded text-[10px] bg-warning-surface text-warning-token whitespace-nowrap"
         >
           {windowLabel[w] ?? w}
         </span>
@@ -689,21 +668,19 @@ function GoldenWindowBadges({ windows }: { windows: string[] }) {
 
 function ContactBadge({ days }: { days: number | null }) {
   const t = useT();
-  if (days === null) return <span className="text-[var(--text-muted)]">—</span>;
+  if (days === null) return <span className="text-muted-token">—</span>;
   if (days > 14)
     return (
-      <span className="text-[var(--color-danger)] font-medium">
+      <span className="text-danger-token font-medium">
         {t.contactDaysAgo(days)}
-        <span className="ml-1 px-1 py-0.5 bg-[var(--color-danger-surface)] text-[var(--color-danger)] rounded text-xs">
+        <span className="ml-1 px-1 py-0.5 bg-danger-surface text-danger-token rounded text-xs">
           {t.contactNeedCall}
         </span>
       </span>
     );
   if (days > 7)
-    return (
-      <span className="text-[var(--color-warning)] font-medium">{t.contactDaysAgo(days)}</span>
-    );
-  return <span className="text-[var(--color-success)]">{t.contactDaysAgo(days)}</span>;
+    return <span className="text-warning-token font-medium">{t.contactDaysAgo(days)}</span>;
+  return <span className="text-success-token">{t.contactDaysAgo(days)}</span>;
 }
 
 // ── Group Filter Bar ────────────────────────────────────────────────────────────
@@ -743,16 +720,16 @@ function GroupFilterBar({
   ];
   return (
     <div className="flex flex-wrap items-center gap-2 pb-2">
-      <span className="text-xs text-[var(--text-muted)]">{t.segmentLabel}</span>
-      <div className="flex flex-wrap rounded-lg border border-[var(--border-subtle)] overflow-hidden text-xs font-medium">
+      <span className="text-xs text-muted-token">{t.segmentLabel}</span>
+      <div className="flex flex-wrap rounded-lg border border-subtle-token overflow-hidden text-xs font-medium">
         {groups.map((g) => (
           <button
             key={g}
             onClick={() => onChange(g)}
             className={`px-3 py-1.5 transition-colors whitespace-nowrap ${
               active === g
-                ? 'bg-[var(--n-800)] text-white'
-                : 'bg-[var(--bg-surface)] text-[var(--text-secondary)] hover:bg-[var(--bg-subtle)]'
+                ? 'bg-n-800 text-white'
+                : 'bg-surface text-secondary-token hover:bg-subtle'
             }`}
           >
             {groupFilterLabels[g]}
@@ -763,7 +740,7 @@ function GroupFilterBar({
         <a
           href={exportHref}
           download="followup.tsv"
-          className="ml-auto px-3 py-1.5 text-xs font-medium border border-[var(--border-default)] rounded-lg bg-[var(--bg-surface)] text-[var(--text-secondary)] hover:bg-[var(--bg-subtle)] transition-colors whitespace-nowrap"
+          className="ml-auto px-3 py-1.5 text-xs font-medium border border-default-token rounded-lg bg-surface text-secondary-token hover:bg-subtle transition-colors whitespace-nowrap"
         >
           {t.exportTsv}
         </a>
@@ -879,7 +856,7 @@ function FollowupTable({ items, onDrawerOpen }: FollowupTableProps) {
                       setExpandedId(m.id);
                     }
                   }}
-                  className={`cursor-pointer transition-colors even:bg-[var(--bg-subtle)] hover:bg-action-accent-surface relative ${
+                  className={`cursor-pointer transition-colors even:bg-subtle hover:bg-action-accent-surface relative ${
                     expanded ? 'bg-action-accent-surface' : ''
                   }`}
                   style={
@@ -890,7 +867,7 @@ function FollowupTable({ items, onDrawerOpen }: FollowupTableProps) {
                 >
                   {/* ── 移动端常显 6 列 ── */}
                   {/* 排名 */}
-                  <td className="py-1 px-2 text-center font-mono tabular-nums text-[var(--text-muted)]">
+                  <td className="py-1 px-2 text-center font-mono tabular-nums text-muted-token">
                     {m.rank}
                   </td>
                   {/* 优先级 */}
@@ -902,7 +879,7 @@ function FollowupTable({ items, onDrawerOpen }: FollowupTableProps) {
                     {m.id}
                   </td>
                   {/* 围场 */}
-                  <td className="py-1 px-2 text-[var(--text-secondary)] whitespace-nowrap">
+                  <td className="py-1 px-2 text-secondary-token whitespace-nowrap">
                     {m.enclosure || '—'}
                   </td>
                   {/* CC 负责人 */}
@@ -915,8 +892,8 @@ function FollowupTable({ items, onDrawerOpen }: FollowupTableProps) {
                       <span
                         className={
                           daysThisWeek === 0
-                            ? 'text-[var(--text-muted)]'
-                            : 'text-[var(--color-success)] font-semibold'
+                            ? 'text-muted-token'
+                            : 'text-success-token font-semibold'
                         }
                         title={t.thisWeekPrefix}
                       >
@@ -925,10 +902,10 @@ function FollowupTable({ items, onDrawerOpen }: FollowupTableProps) {
                       <span
                         className={`text-[10px] ${
                           daysThis === 0
-                            ? 'text-[var(--text-muted)]'
+                            ? 'text-muted-token'
                             : daysThis >= 5
-                              ? 'text-[var(--color-success)]'
-                              : 'text-[var(--text-secondary)]'
+                              ? 'text-success-token'
+                              : 'text-secondary-token'
                         }`}
                         title={t.thisMonthPrefix}
                       >
@@ -943,20 +920,20 @@ function FollowupTable({ items, onDrawerOpen }: FollowupTableProps) {
                   </td>
                   {/* SS 负责人 */}
                   <td
-                    className="py-1 px-2 whitespace-nowrap text-[var(--text-secondary)] hidden md:table-cell"
+                    className="py-1 px-2 whitespace-nowrap text-secondary-token hidden md:table-cell"
                     title={m.ss_name ?? ''}
                   >
                     {m.ss_name || '—'}
                   </td>
                   {/* LP 负责人 */}
                   <td
-                    className="py-1 px-2 whitespace-nowrap text-[var(--text-secondary)] hidden md:table-cell"
+                    className="py-1 px-2 whitespace-nowrap text-secondary-token hidden md:table-cell"
                     title={m.lp_name ?? ''}
                   >
                     {m.lp_name || '—'}
                   </td>
                   {/* 上月打卡 */}
-                  <td className="py-1 px-2 text-center font-mono tabular-nums text-[var(--text-muted)] hidden md:table-cell">
+                  <td className="py-1 px-2 text-center font-mono tabular-nums text-muted-token hidden md:table-cell">
                     {daysLast}/6
                   </td>
                   {/* ── 桌面 (lg) ── */}
@@ -973,7 +950,7 @@ function FollowupTable({ items, onDrawerOpen }: FollowupTableProps) {
                     {clientTags.length > 0 ? (
                       <StudentTagBadge tags={clientTags} maxVisible={2} />
                     ) : (
-                      <span className="text-[var(--text-muted)]">—</span>
+                      <span className="text-muted-token">—</span>
                     )}
                   </td>
                   {/* 推荐渠道 */}
@@ -1004,19 +981,17 @@ function FollowupTable({ items, onDrawerOpen }: FollowupTableProps) {
                   {/* 激励状态 */}
                   <td className="py-1 px-2 text-center hidden xl:table-cell">
                     {m.incentive_status ? (
-                      <span className="px-1 py-0.5 rounded text-[10px] bg-[var(--color-success-surface)] text-[var(--color-success)] whitespace-nowrap">
+                      <span className="px-1 py-0.5 rounded text-[10px] bg-success-surface text-success-token whitespace-nowrap">
                         {m.incentive_status}
                       </span>
                     ) : (
-                      <span className="text-[var(--text-muted)]">—</span>
+                      <span className="text-muted-token">—</span>
                     )}
                   </td>
                   {/* 卡到期 */}
                   <td
                     className={`py-1 px-2 text-right font-mono tabular-nums hidden xl:table-cell ${
-                      cardExpirySoon
-                        ? 'text-orange-500 font-medium'
-                        : 'text-[var(--text-secondary)]'
+                      cardExpirySoon ? 'text-orange-500 font-medium' : 'text-secondary-token'
                     }`}
                   >
                     {m.days_until_card_expiry === null || m.days_until_card_expiry === undefined
@@ -1051,17 +1026,17 @@ function BottomStats({ total, avgScore, highQualityCount }: BottomStatsProps) {
   const t = useT();
   const pct = total > 0 ? ((highQualityCount / total) * 100).toFixed(1) : '0.0';
   return (
-    <div className="flex flex-wrap gap-6 pt-3 mt-3 border-t border-[var(--border-subtle)] text-xs text-[var(--text-muted)]">
+    <div className="flex flex-wrap gap-6 pt-3 mt-3 border-t border-subtle-token text-xs text-muted-token">
       <span>
         {t.statsTotalPrefix && <>{t.statsTotalPrefix} </>}
-        <strong className="text-[var(--text-primary)] font-semibold font-mono tabular-nums">
+        <strong className="text-primary-token font-semibold font-mono tabular-nums">
           {total}
         </strong>{' '}
         {t.statsTotalSuffix}
       </span>
       <span title="课耗(40%) + 推荐活跃(30%) + 付费贡献(20%) + 围场加权(10%)">
         {t.statsAvgScore}{' '}
-        <strong className="text-[var(--text-primary)] font-semibold font-mono tabular-nums">
+        <strong className="text-primary-token font-semibold font-mono tabular-nums">
           {(avgScore ?? 0).toFixed(1)}
         </strong>
         <span className="ml-1 cursor-help opacity-60">ⓘ</span>

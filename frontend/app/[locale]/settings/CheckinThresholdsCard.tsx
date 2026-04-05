@@ -115,17 +115,15 @@ export default function CheckinThresholdsCard() {
   return (
     <Card title={t.cardTitle}>
       <div className="space-y-4">
-        <p className="text-xs text-[var(--text-muted)]">{t.desc}</p>
+        <p className="text-xs text-muted-token">{t.desc}</p>
 
-        {isLoading && (
-          <div className="py-2 text-center text-xs text-[var(--text-muted)]">{t.loading}</div>
-        )}
+        {isLoading && <div className="py-2 text-center text-xs text-muted-token">{t.loading}</div>}
 
         <div className="grid grid-cols-2 gap-4">
           {/* good threshold */}
           <div className="space-y-1">
-            <label className="text-xs font-medium text-[var(--text-secondary)] flex items-center gap-1.5">
-              <span className="inline-block w-2.5 h-2.5 rounded-sm bg-[var(--color-success)]" />
+            <label className="text-xs font-medium text-secondary-token flex items-center gap-1.5">
+              <span className="inline-block w-2.5 h-2.5 rounded-sm bg-success-token" />
               {t.goodLabel}
             </label>
             <div className="flex items-center gap-1">
@@ -136,17 +134,17 @@ export default function CheckinThresholdsCard() {
                 step={1}
                 value={Math.round(cfg.good * 100)}
                 onChange={(e) => setCfg((p) => ({ ...p, good: Number(e.target.value) / 100 }))}
-                className="w-20 px-2 py-1.5 border border-[var(--border-subtle)] rounded text-sm font-mono tabular-nums bg-[var(--bg-surface)] focus:outline-none focus:ring-2 focus:ring-action"
+                className="w-20 px-2 py-1.5 border border-subtle-token rounded text-sm font-mono tabular-nums bg-surface focus:outline-none focus:ring-2 focus:ring-action"
               />
-              <span className="text-xs text-[var(--text-muted)]">%</span>
+              <span className="text-xs text-muted-token">%</span>
             </div>
-            <p className="text-[10px] text-[var(--text-muted)]">{t.goodHint}</p>
+            <p className="text-[10px] text-muted-token">{t.goodHint}</p>
           </div>
 
           {/* warning threshold */}
           <div className="space-y-1">
-            <label className="text-xs font-medium text-[var(--text-secondary)] flex items-center gap-1.5">
-              <span className="inline-block w-2.5 h-2.5 rounded-sm bg-[var(--color-warning)]" />
+            <label className="text-xs font-medium text-secondary-token flex items-center gap-1.5">
+              <span className="inline-block w-2.5 h-2.5 rounded-sm bg-warning-token" />
               {t.warningLabel}
             </label>
             <div className="flex items-center gap-1">
@@ -157,27 +155,27 @@ export default function CheckinThresholdsCard() {
                 step={1}
                 value={Math.round(cfg.warning * 100)}
                 onChange={(e) => setCfg((p) => ({ ...p, warning: Number(e.target.value) / 100 }))}
-                className="w-20 px-2 py-1.5 border border-[var(--border-subtle)] rounded text-sm font-mono tabular-nums bg-[var(--bg-surface)] focus:outline-none focus:ring-2 focus:ring-action"
+                className="w-20 px-2 py-1.5 border border-subtle-token rounded text-sm font-mono tabular-nums bg-surface focus:outline-none focus:ring-2 focus:ring-action"
               />
-              <span className="text-xs text-[var(--text-muted)]">%</span>
+              <span className="text-xs text-muted-token">%</span>
             </div>
-            <p className="text-[10px] text-[var(--text-muted)]">{t.warningHint}</p>
+            <p className="text-[10px] text-muted-token">{t.warningHint}</p>
           </div>
         </div>
 
         {/* preview */}
-        <div className="flex items-center gap-3 text-xs py-2 px-3 bg-[var(--bg-subtle)] rounded">
-          <span className="text-[var(--text-muted)]">{t.preview}</span>
+        <div className="flex items-center gap-3 text-xs py-2 px-3 bg-subtle rounded">
+          <span className="text-muted-token">{t.preview}</span>
           <span className="flex items-center gap-1">
-            <span className="inline-block w-2 h-2 rounded-full bg-[var(--color-success)]" />≥
+            <span className="inline-block w-2 h-2 rounded-full bg-success-token" />≥
             {Math.round(cfg.good * 100)}%
           </span>
           <span className="flex items-center gap-1">
-            <span className="inline-block w-2 h-2 rounded-full bg-[var(--color-warning)]" />
+            <span className="inline-block w-2 h-2 rounded-full bg-warning-token" />
             {Math.round(cfg.warning * 100)}–{Math.round(cfg.good * 100)}%
           </span>
           <span className="flex items-center gap-1">
-            <span className="inline-block w-2 h-2 rounded-full bg-[var(--color-danger)]" />
+            <span className="inline-block w-2 h-2 rounded-full bg-danger-token" />
             &lt;{Math.round(cfg.warning * 100)}%
           </span>
         </div>
@@ -187,7 +185,7 @@ export default function CheckinThresholdsCard() {
           <button
             onClick={handleReset}
             disabled={saving || isLoading}
-            className="text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors disabled:opacity-40"
+            className="text-xs text-secondary-token hover:text-primary-token transition-colors disabled:opacity-40"
           >
             {t.resetBtn}
           </button>

@@ -26,6 +26,8 @@ const I18N = {
       { icon: 'activity', title: '实时监控', desc: '日快照 + 钉钉推送' },
     ],
     langLabel: '语言',
+    welcomeTitle: '欢迎回来',
+    welcomeDesc: '登录以访问运营分析面板',
   },
   'zh-TW': {
     brand: '51Talk',
@@ -42,6 +44,8 @@ const I18N = {
       { icon: 'activity', title: '即時監控', desc: '日快照 + 釘釘推送' },
     ],
     langLabel: '語言',
+    welcomeTitle: '歡迎回來',
+    welcomeDesc: '登入以訪問營運分析面板',
   },
   en: {
     brand: '51Talk',
@@ -58,6 +62,8 @@ const I18N = {
       { icon: 'activity', title: 'Real-time', desc: 'Daily snapshots + DingTalk alerts' },
     ],
     langLabel: 'Language',
+    welcomeTitle: 'Welcome back',
+    welcomeDesc: 'Sign in to access the operations dashboard',
   },
   th: {
     brand: '51Talk',
@@ -74,6 +80,8 @@ const I18N = {
       { icon: 'activity', title: 'เรียลไทม์', desc: 'สแนปชอตรายวัน + แจ้งเตือน' },
     ],
     langLabel: 'ภาษา',
+    welcomeTitle: 'ยินดีต้อนรับ',
+    welcomeDesc: 'เข้าสู่ระบบเพื่อเข้าถึงแดชบอร์ด',
   },
 } as const;
 
@@ -104,8 +112,8 @@ export default function LoginPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen flex items-center justify-center bg-[var(--n-50)]">
-          <Loader2 className="w-8 h-8 animate-spin text-[var(--brand-p1)]" />
+        <div className="min-h-screen flex items-center justify-center bg-n-50">
+          <Loader2 className="w-8 h-8 animate-spin text-brand-p1" />
         </div>
       }
     >
@@ -203,7 +211,7 @@ function LoginView() {
             {/* Logo + 品牌名 */}
             <div className="flex items-center gap-4 mb-8">
               <div className="relative">
-                <BrandMark size={64} className="text-[var(--brand-p1)] animate-pulse-soft" />
+                <BrandMark size={64} className="text-brand-p1 animate-pulse-soft" />
                 {/* logo 背后光效 */}
                 <div
                   className="absolute inset-0 -m-3 rounded-full animate-auth-glow"
@@ -213,17 +221,15 @@ function LoginView() {
                 />
               </div>
               <div>
-                <h1 className="font-display text-4xl font-bold text-[var(--n-900)] tracking-tight">
+                <h1 className="font-display text-4xl font-bold text-n-900 tracking-tight">
                   {t.brand}
                 </h1>
-                <p className="text-lg text-[var(--n-600)] font-medium mt-0.5">{t.subtitle}</p>
+                <p className="text-lg text-n-600 font-medium mt-0.5">{t.subtitle}</p>
               </div>
             </div>
 
             {/* Tagline */}
-            <p className="text-xl text-[var(--n-500)] leading-relaxed mb-12 font-light">
-              {t.tagline}
-            </p>
+            <p className="text-xl text-n-500 leading-relaxed mb-12 font-light">{t.tagline}</p>
 
             {/* 三个特性 */}
             <div className="space-y-5">
@@ -233,12 +239,12 @@ function LoginView() {
                   className="flex items-start gap-4 animate-slide-up"
                   style={{ animationDelay: `${0.15 + i * 0.1}s`, animationFillMode: 'both' }}
                 >
-                  <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-[var(--color-action-surface)] flex items-center justify-center text-[var(--brand-p2)]">
+                  <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-action-surface flex items-center justify-center text-brand-p2">
                     <FeatureIcon type={f.icon} />
                   </div>
                   <div>
-                    <h3 className="text-sm font-semibold text-[var(--n-800)]">{f.title}</h3>
-                    <p className="text-sm text-[var(--n-500)] mt-0.5">{f.desc}</p>
+                    <h3 className="text-sm font-semibold text-n-800">{f.title}</h3>
+                    <p className="text-sm text-n-500 mt-0.5">{f.desc}</p>
                   </div>
                 </div>
               ))}
@@ -254,10 +260,10 @@ function LoginView() {
           >
             {/* 移动端 logo */}
             <div className="flex items-center gap-3 mb-8 lg:hidden">
-              <BrandMark size={40} className="text-[var(--brand-p1)] animate-pulse-soft" />
+              <BrandMark size={40} className="text-brand-p1 animate-pulse-soft" />
               <div>
-                <h1 className="font-display text-2xl font-bold text-[var(--n-900)]">{t.brand}</h1>
-                <p className="text-sm text-[var(--n-600)]">{t.subtitle}</p>
+                <h1 className="font-display text-2xl font-bold text-n-900">{t.brand}</h1>
+                <p className="text-sm text-n-600">{t.subtitle}</p>
               </div>
             </div>
 
@@ -265,22 +271,14 @@ function LoginView() {
             <div className="auth-card rounded-2xl p-8 md:p-10">
               {/* 桌面端卡片标题 */}
               <div className="hidden lg:block mb-8">
-                <h2 className="font-display text-2xl font-bold text-[var(--n-900)]">
-                  {locale === 'en' ? 'Welcome back' : locale === 'th' ? 'ยินดีต้อนรับ' : '欢迎回来'}
-                </h2>
-                <p className="text-sm text-[var(--n-500)] mt-1">
-                  {locale === 'en'
-                    ? 'Sign in to access the operations dashboard'
-                    : locale === 'th'
-                      ? 'เข้าสู่ระบบเพื่อเข้าถึงแดชบอร์ด'
-                      : '登录以访问运营分析面板'}
-                </p>
+                <h2 className="font-display text-2xl font-bold text-n-900">{t.welcomeTitle}</h2>
+                <p className="text-sm text-n-500 mt-1">{t.welcomeDesc}</p>
               </div>
 
               {/* 表单 */}
               <div className="space-y-5">
                 <div className="space-y-2">
-                  <label className="text-xs font-semibold text-[var(--n-600)] uppercase tracking-wider">
+                  <label className="text-xs font-semibold text-n-600 uppercase tracking-wider">
                     {t.emailLabel}
                   </label>
                   <input
@@ -297,9 +295,9 @@ function LoginView() {
 
                 {/* 错误提示 */}
                 {error && (
-                  <div className="flex items-start gap-2.5 px-3.5 py-3 rounded-xl bg-[var(--color-danger-surface)] border border-[var(--color-danger)] animate-slide-up">
-                    <AlertCircle className="w-4 h-4 text-[var(--color-danger)] mt-0.5 flex-shrink-0" />
-                    <p className="text-sm text-[var(--color-danger)] leading-relaxed">{error}</p>
+                  <div className="flex items-start gap-2.5 px-3.5 py-3 rounded-xl bg-danger-surface border border-danger-token animate-slide-up">
+                    <AlertCircle className="w-4 h-4 text-danger-token mt-0.5 flex-shrink-0" />
+                    <p className="text-sm text-danger-token leading-relaxed">{error}</p>
                   </div>
                 )}
 
@@ -336,9 +334,9 @@ function LoginView() {
               </div>
 
               {/* 分隔线 + 语言切换 */}
-              <div className="mt-8 pt-6 border-t border-[var(--n-200)]/60">
+              <div className="mt-8 pt-6 border-t border-n-200/60">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs text-[var(--n-400)] font-medium">{t.langLabel}</span>
+                  <span className="text-xs text-n-400 font-medium">{t.langLabel}</span>
                   <div className="flex gap-1">
                     {LANG_OPTIONS.map((opt) => (
                       <button
@@ -346,8 +344,8 @@ function LoginView() {
                         onClick={() => switchLocale(opt.code)}
                         className={`px-2.5 py-1 text-xs rounded-lg font-medium transition-all duration-200 ${
                           locale === opt.code
-                            ? 'bg-[var(--brand-p2)] text-white shadow-sm'
-                            : 'text-[var(--n-500)] hover:text-[var(--n-800)] hover:bg-[var(--n-100)]'
+                            ? 'bg-brand-p2 text-white shadow-sm'
+                            : 'text-n-500 hover:text-n-800 hover:bg-n-100'
                         }`}
                       >
                         {opt.label}
@@ -359,7 +357,7 @@ function LoginView() {
             </div>
 
             {/* 底部版权 */}
-            <p className="text-center text-xs text-[var(--n-400)] mt-6">
+            <p className="text-center text-xs text-n-400 mt-6">
               &copy; {new Date().getFullYear()} 51Talk &middot; Referral Operations
             </p>
           </div>

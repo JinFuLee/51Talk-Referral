@@ -247,32 +247,29 @@ function PageChecklist({
           const isOpen = openCats[catKey] !== false; // default open
 
           return (
-            <div
-              key={catKey}
-              className="border border-[var(--border-subtle)] rounded-lg overflow-hidden"
-            >
+            <div key={catKey} className="border border-subtle-token rounded-lg overflow-hidden">
               {/* 分类标题栏 */}
-              <div className="flex items-center justify-between px-3 py-2 bg-[var(--bg-subtle)]">
+              <div className="flex items-center justify-between px-3 py-2 bg-subtle">
                 <button
                   onClick={() => toggleCat(catKey)}
-                  className="flex items-center gap-2 text-sm font-medium text-[var(--text-primary)]"
+                  className="flex items-center gap-2 text-sm font-medium text-primary-token"
                 >
-                  <span className="text-[var(--text-muted)]">{catInfo.icon}</span>
+                  <span className="text-muted-token">{catInfo.icon}</span>
                   <span>{catInfo[lang] ?? catInfo.zh}</span>
-                  <span className="text-xs text-[var(--text-muted)]">
+                  <span className="text-xs text-muted-token">
                     ({catPages.filter((p) => selectedPaths.has(p.path)).length}/{catPages.length})
                   </span>
                   {isOpen ? (
-                    <ChevronDown className="w-3.5 h-3.5 text-[var(--text-muted)]" />
+                    <ChevronDown className="w-3.5 h-3.5 text-muted-token" />
                   ) : (
-                    <ChevronRight className="w-3.5 h-3.5 text-[var(--text-muted)]" />
+                    <ChevronRight className="w-3.5 h-3.5 text-muted-token" />
                   )}
                 </button>
 
                 <div className="flex items-center gap-2 text-xs">
                   <button
                     onClick={() => (allSelected ? clearAllInCat(catKey) : selectAllInCat(catKey))}
-                    className="text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors"
+                    className="text-muted-token hover:text-secondary-token transition-colors"
                   >
                     {allSelected ? t.clearAll : t.selectAll}
                   </button>
@@ -288,20 +285,20 @@ function PageChecklist({
                   {catPages.map((page) => (
                     <label
                       key={page.path}
-                      className="flex items-center gap-3 px-4 py-2 cursor-pointer hover:bg-[var(--bg-subtle)] transition-colors"
+                      className="flex items-center gap-3 px-4 py-2 cursor-pointer hover:bg-subtle transition-colors"
                     >
                       <input
                         type="checkbox"
                         checked={selectedPaths.has(page.path)}
                         onChange={() => onToggle(page.path)}
-                        className="w-4 h-4 rounded border-[var(--border-default)] text-action accent-action cursor-pointer focus-visible:ring-2 focus-visible:ring-action"
+                        className="w-4 h-4 rounded border-default-token text-action accent-action cursor-pointer focus-visible:ring-2 focus-visible:ring-action"
                       />
-                      <span className="text-sm text-[var(--text-primary)]">
+                      <span className="text-sm text-primary-token">
                         {lang !== 'zh' && lang !== 'zh-TW' && page.name_en
                           ? page.name_en
                           : page.name_zh}
                       </span>
-                      <span className="text-xs text-[var(--text-muted)] ml-auto">{page.path}</span>
+                      <span className="text-xs text-muted-token ml-auto">{page.path}</span>
                     </label>
                   ))}
                 </div>
@@ -385,7 +382,7 @@ export default function RoleEditor({ roles, pages, onSaveRole, onCreateRole }: R
     <div className="space-y-4">
       {/* 操作栏 */}
       <div className="flex items-center justify-between">
-        <span className="text-sm text-[var(--text-muted)]">{t.roleCount(roles.length)}</span>
+        <span className="text-sm text-muted-token">{t.roleCount(roles.length)}</span>
         <button
           onClick={() => setShowCreate(true)}
           className="flex items-center gap-1.5 btn-secondary text-xs"
@@ -398,7 +395,7 @@ export default function RoleEditor({ roles, pages, onSaveRole, onCreateRole }: R
       {/* 新建角色表单 */}
       {showCreate && (
         <div className="card-base p-4 space-y-3 border-action/30">
-          <h4 className="text-sm font-medium text-[var(--text-primary)]">{t.createRole}</h4>
+          <h4 className="text-sm font-medium text-primary-token">{t.createRole}</h4>
           <div className="flex items-center gap-3">
             <input
               type="text"
@@ -413,9 +410,7 @@ export default function RoleEditor({ roles, pages, onSaveRole, onCreateRole }: R
                   key={c}
                   onClick={() => setNewRoleColor(c)}
                   className={`w-5 h-5 rounded-full border-2 transition-transform ${
-                    newRoleColor === c
-                      ? 'border-[var(--border-default)] scale-125'
-                      : 'border-transparent'
+                    newRoleColor === c ? 'border-default-token scale-125' : 'border-transparent'
                   }`}
                   style={{ backgroundColor: c }}
                   title={c}
@@ -442,7 +437,7 @@ export default function RoleEditor({ roles, pages, onSaveRole, onCreateRole }: R
       <div className="space-y-3">
         {roles.length === 0 && (
           <div className="state-empty">
-            <Shield className="w-8 h-8 text-[var(--n-300)]" />
+            <Shield className="w-8 h-8 text-n-300" />
             <span className="text-sm">{t.noRoles}</span>
           </div>
         )}
@@ -459,22 +454,22 @@ export default function RoleEditor({ roles, pages, onSaveRole, onCreateRole }: R
                     className="w-3 h-3 rounded-full shrink-0"
                     style={{ backgroundColor: role.color }}
                   />
-                  <span className="text-sm font-semibold text-[var(--text-primary)]">
+                  <span className="text-sm font-semibold text-primary-token">
                     {lang !== 'zh' && lang !== 'zh-TW' && role.name_en
                       ? role.name_en
                       : role.name_zh}
                   </span>
                   {role.is_preset && (
-                    <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-[var(--n-100)] text-[var(--text-muted)] font-medium">
+                    <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-n-100 text-muted-token font-medium">
                       {t.preset}
                     </span>
                   )}
-                  <span className="text-xs text-[var(--text-muted)]">
+                  <span className="text-xs text-muted-token">
                     {role.page_count ?? 0}
                     {t.pages}
                   </span>
                   {role.user_count !== undefined && (
-                    <span className="text-xs text-[var(--text-muted)]">
+                    <span className="text-xs text-muted-token">
                       {role.user_count}
                       {t.users}
                     </span>
@@ -487,14 +482,14 @@ export default function RoleEditor({ roles, pages, onSaveRole, onCreateRole }: R
                       <button
                         onClick={handleSavePermissions}
                         disabled={saving}
-                        className="flex items-center gap-1 px-2 py-1 rounded-lg bg-[var(--color-success)] text-white text-xs hover:opacity-90 disabled:opacity-50 transition-opacity"
+                        className="flex items-center gap-1 px-2 py-1 rounded-lg bg-success-token text-white text-xs hover:opacity-90 disabled:opacity-50 transition-opacity"
                       >
                         <Check className="w-3 h-3" />
                         {saving ? t.saving : t.save}
                       </button>
                       <button
                         onClick={cancelEdit}
-                        className="flex items-center gap-1 px-2 py-1 rounded-lg border border-[var(--border-default)] text-xs hover:bg-[var(--bg-subtle)] transition-colors"
+                        className="flex items-center gap-1 px-2 py-1 rounded-lg border border-default-token text-xs hover:bg-subtle transition-colors"
                       >
                         <X className="w-3 h-3" />
                         {t.cancel}
@@ -503,7 +498,7 @@ export default function RoleEditor({ roles, pages, onSaveRole, onCreateRole }: R
                   ) : (
                     <button
                       onClick={() => startEdit(role)}
-                      className="flex items-center gap-1 px-2 py-1 rounded-lg border border-[var(--border-default)] text-xs hover:bg-[var(--bg-subtle)] transition-colors"
+                      className="flex items-center gap-1 px-2 py-1 rounded-lg border border-default-token text-xs hover:bg-subtle transition-colors"
                     >
                       <Pencil className="w-3 h-3" />
                       {t.editRole}
@@ -530,14 +525,14 @@ export default function RoleEditor({ roles, pages, onSaveRole, onCreateRole }: R
                     return (
                       <span
                         key={path}
-                        className="text-[10px] px-1.5 py-0.5 rounded bg-[var(--bg-subtle)] text-[var(--text-muted)]"
+                        className="text-[10px] px-1.5 py-0.5 rounded bg-subtle text-muted-token"
                       >
                         {page?.name_zh ?? path}
                       </span>
                     );
                   })}
                   {role.allowed_pages.length > 8 && (
-                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-[var(--bg-subtle)] text-[var(--text-muted)]">
+                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-subtle text-muted-token">
                       +{role.allowed_pages.length - 8}
                     </span>
                   )}

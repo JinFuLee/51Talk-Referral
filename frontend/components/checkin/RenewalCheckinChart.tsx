@@ -76,24 +76,24 @@ function CustomTooltip({
   if (!row) return null;
 
   return (
-    <div className="bg-white border border-[var(--border-default)] rounded-lg shadow-md px-3 py-2 text-xs space-y-1">
-      <p className="font-semibold text-[var(--text-primary)] border-b border-[var(--border-subtle)] pb-1 mb-1">
+    <div className="bg-white border border-default-token rounded-lg shadow-md px-3 py-2 text-xs space-y-1">
+      <p className="font-semibold text-primary-token border-b border-subtle-token pb-1 mb-1">
         {t.bandLabel}
         {label}
       </p>
-      <p className="text-[var(--text-secondary)]">
+      <p className="text-secondary-token">
         {t.hasRenewalPct}
-        <span className="font-mono tabular-nums font-semibold text-[var(--text-primary)] ml-1">
+        <span className="font-mono tabular-nums font-semibold text-primary-token ml-1">
           {((row.has_renewal_pct ?? 0) * 100).toFixed(1)}%
         </span>
       </p>
-      <p className="text-[var(--text-secondary)]">
+      <p className="text-secondary-token">
         {t.avgRenewals}
-        <span className="font-mono tabular-nums font-semibold text-[var(--text-primary)] ml-1">
+        <span className="font-mono tabular-nums font-semibold text-primary-token ml-1">
           {(row.avg_renewals ?? 0).toFixed(2)}
         </span>
       </p>
-      <p className="text-[var(--text-muted)]">
+      <p className="text-muted-token">
         {t.bandStudents}
         {(row.students ?? 0).toLocaleString()}
       </p>
@@ -117,7 +117,7 @@ export function RenewalCheckinChart({ data }: RenewalCheckinChartProps) {
 
   if (!data?.by_band || data.by_band.length === 0) {
     return (
-      <div className="flex items-center justify-center h-[280px] text-sm text-[var(--text-muted)]">
+      <div className="flex items-center justify-center h-[280px] text-sm text-muted-token">
         {t.noCorrelation}
       </div>
     );
@@ -135,7 +135,7 @@ export function RenewalCheckinChart({ data }: RenewalCheckinChartProps) {
   const hasData = chartData.some((r) => r.avg_renewals > 0 || r.has_renewal_pct > 0);
   if (!hasData) {
     return (
-      <div className="flex items-center justify-center h-[280px] text-sm text-[var(--text-muted)]">
+      <div className="flex items-center justify-center h-[280px] text-sm text-muted-token">
         {t.noRenewal}
       </div>
     );

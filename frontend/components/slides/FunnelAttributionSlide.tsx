@@ -151,11 +151,11 @@ export function FunnelAttributionSlide({ slideNumber, totalSlides }: SlideProps)
       ) : error ? (
         <div className="flex items-center justify-center h-full">
           <div className="text-center space-y-2">
-            <p className="text-base font-semibold text-[var(--color-danger)]">{t.loading_failed}</p>
-            <p className="text-sm text-[var(--text-muted)]">{t.check_backend}</p>
+            <p className="text-base font-semibold text-danger-token">{t.loading_failed}</p>
+            <p className="text-sm text-muted-token">{t.check_backend}</p>
             <button
               onClick={() => mutate()}
-              className="mt-1 px-4 py-1.5 rounded-lg text-sm border border-[var(--border-default)] text-[var(--text-secondary)] hover:bg-[var(--bg-subtle)] transition-colors"
+              className="mt-1 px-4 py-1.5 rounded-lg text-sm border border-default-token text-secondary-token hover:bg-subtle transition-colors"
             >
               {t.retry}
             </button>
@@ -163,7 +163,7 @@ export function FunnelAttributionSlide({ slideNumber, totalSlides }: SlideProps)
         </div>
       ) : rows.length === 0 ? (
         <div className="flex items-center justify-center h-full">
-          <p className="text-[var(--text-muted)]">{t.no_data}</p>
+          <p className="text-muted-token">{t.no_data}</p>
         </div>
       ) : (
         <div className="overflow-auto h-full">
@@ -187,22 +187,20 @@ export function FunnelAttributionSlide({ slideNumber, totalSlides }: SlideProps)
                 const isGood = gap >= 0;
                 return (
                   <tr key={r.name} className={i % 2 === 0 ? 'slide-row-even' : 'slide-row-odd'}>
-                    <td className="px-3 py-2 text-sm font-semibold text-[var(--text-primary)]">
-                      {r.name}
-                    </td>
-                    <td className="px-3 py-2 text-sm text-right font-mono tabular-nums font-bold text-[var(--text-primary)]">
+                    <td className="px-3 py-2 text-sm font-semibold text-primary-token">{r.name}</td>
+                    <td className="px-3 py-2 text-sm text-right font-mono tabular-nums font-bold text-primary-token">
                       {actual.toLocaleString()}
                     </td>
-                    <td className="px-3 py-2 text-sm text-right font-mono tabular-nums text-[var(--text-secondary)]">
+                    <td className="px-3 py-2 text-sm text-right font-mono tabular-nums text-secondary-token">
                       {target > 0 ? target.toLocaleString() : '-'}
                     </td>
                     <td
-                      className={`px-3 py-2 text-sm text-right font-mono tabular-nums font-bold ${isGood ? 'text-[var(--color-success)]' : 'text-[var(--color-danger)]'}`}
+                      className={`px-3 py-2 text-sm text-right font-mono tabular-nums font-bold ${isGood ? 'text-success-token' : 'text-danger-token'}`}
                     >
                       {target > 0 ? `${isGood ? '+' : ''}${gap.toLocaleString()}` : '-'}
                     </td>
                     <td
-                      className={`px-3 py-2 text-sm text-right font-semibold ${rate >= 1 ? 'text-[var(--color-success)]' : rate >= 0.8 ? 'text-[var(--color-warning)]' : rate > 0 ? 'text-[var(--color-danger)]' : 'text-[var(--text-muted)]'}`}
+                      className={`px-3 py-2 text-sm text-right font-semibold ${rate >= 1 ? 'text-success-token' : rate >= 0.8 ? 'text-warning-token' : rate > 0 ? 'text-danger-token' : 'text-muted-token'}`}
                     >
                       {rate > 0 ? formatRate(rate) : '-'}
                     </td>
@@ -211,10 +209,10 @@ export function FunnelAttributionSlide({ slideNumber, totalSlides }: SlideProps)
                         <span
                           className={`inline-block px-2 py-0.5 rounded text-xs font-bold ${
                             r.stepRate >= 0.8
-                              ? 'text-[var(--color-success)] bg-[var(--color-success-surface)]'
+                              ? 'text-success-token bg-success-surface'
                               : r.stepRate >= 0.5
-                                ? 'text-[var(--color-warning)] bg-[var(--color-warning-surface)]'
-                                : 'text-[var(--color-danger)] bg-[var(--color-danger-surface)]'
+                                ? 'text-warning-token bg-warning-surface'
+                                : 'text-danger-token bg-danger-surface'
                           }`}
                         >
                           {formatRate(r.stepRate)}

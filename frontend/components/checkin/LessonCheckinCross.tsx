@@ -124,9 +124,8 @@ export function LessonCheckinCross({ data }: LessonCheckinCrossProps) {
       config: {
         label: t.coreUser,
         sublabel: t.coreUserSub,
-        containerClass:
-          'bg-[var(--color-success-surface)] border-[var(--color-success)] hover:bg-[var(--color-success-surface)]',
-        valueClass: 'text-[var(--color-success)]',
+        containerClass: 'bg-success-surface border-success-token hover:bg-success-surface',
+        valueClass: 'text-success-token',
       },
     },
     {
@@ -135,9 +134,8 @@ export function LessonCheckinCross({ data }: LessonCheckinCrossProps) {
         label: t.activationPool,
         sublabel: t.activationPoolSub,
         flag: '🔴',
-        containerClass:
-          'bg-[var(--color-warning-surface)] border-[var(--color-warning)] hover:bg-[var(--color-warning-surface)]',
-        valueClass: 'text-[var(--color-warning)]',
+        containerClass: 'bg-warning-surface border-warning-token hover:bg-warning-surface',
+        valueClass: 'text-warning-token',
       },
     },
     {
@@ -145,9 +143,8 @@ export function LessonCheckinCross({ data }: LessonCheckinCrossProps) {
       config: {
         label: t.lightUser,
         sublabel: t.lightUserSub,
-        containerClass:
-          'bg-[var(--color-accent-surface)] border-[var(--color-accent)] hover:bg-[var(--color-accent-surface)]',
-        valueClass: 'text-[var(--color-accent)]',
+        containerClass: 'bg-accent-surface border-accent-token hover:bg-accent-surface',
+        valueClass: 'text-accent-token',
       },
     },
     {
@@ -155,9 +152,8 @@ export function LessonCheckinCross({ data }: LessonCheckinCrossProps) {
       config: {
         label: t.silent,
         sublabel: t.silentSub,
-        containerClass:
-          'bg-[var(--bg-subtle)] border-[var(--border-default)] hover:bg-[var(--bg-subtle)]',
-        valueClass: 'text-[var(--text-secondary)]',
+        containerClass: 'bg-subtle border-default-token hover:bg-subtle',
+        valueClass: 'text-secondary-token',
       },
     },
   ];
@@ -167,7 +163,7 @@ export function LessonCheckinCross({ data }: LessonCheckinCrossProps) {
       {/* 轴标签 + 矩阵 */}
       <div className="flex gap-1">
         {/* Y 轴标签（课耗维度） */}
-        <div className="flex flex-col justify-between py-6 pr-1 text-xs text-[var(--text-muted)] text-right shrink-0 w-12">
+        <div className="flex flex-col justify-between py-6 pr-1 text-xs text-muted-token text-right shrink-0 w-12">
           <span>{t.hasLesson}</span>
           <span>{t.noLesson}</span>
         </div>
@@ -176,8 +172,8 @@ export function LessonCheckinCross({ data }: LessonCheckinCrossProps) {
         <div className="flex-1 space-y-1">
           {/* 列标签 */}
           <div className="grid grid-cols-2 gap-1">
-            <div className="text-center text-xs text-[var(--text-muted)] pb-1">{t.hasCheckin}</div>
-            <div className="text-center text-xs text-[var(--text-muted)] pb-1">{t.noCheckin}</div>
+            <div className="text-center text-xs text-muted-token pb-1">{t.hasCheckin}</div>
+            <div className="text-center text-xs text-muted-token pb-1">{t.noCheckin}</div>
           </div>
 
           {/* 第一行：有课耗 */}
@@ -188,7 +184,7 @@ export function LessonCheckinCross({ data }: LessonCheckinCrossProps) {
                 className={`rounded-lg border p-3 transition-colors ${q.config.containerClass}`}
               >
                 <div className="flex items-center justify-between mb-1">
-                  <span className="text-xs font-semibold text-[var(--text-secondary)]">
+                  <span className="text-xs font-semibold text-secondary-token">
                     {q.config.label}
                   </span>
                   {q.config.flag && (
@@ -200,12 +196,10 @@ export function LessonCheckinCross({ data }: LessonCheckinCrossProps) {
                 <div className={`text-2xl font-bold font-mono tabular-nums ${q.config.valueClass}`}>
                   {q.value.toLocaleString()}
                 </div>
-                <div className="text-xs text-[var(--text-muted)] mt-0.5">{pct(q.value)}</div>
-                <div className="text-xs text-[var(--text-muted)] mt-1 opacity-70">
-                  {q.config.sublabel}
-                </div>
+                <div className="text-xs text-muted-token mt-0.5">{pct(q.value)}</div>
+                <div className="text-xs text-muted-token mt-1 opacity-70">{q.config.sublabel}</div>
                 {i === 1 && q.value > 0 && (
-                  <div className="mt-1.5 text-xs text-[var(--color-warning)] font-medium">
+                  <div className="mt-1.5 text-xs text-warning-token font-medium">
                     {t.maxOpportunity}
                   </div>
                 )}
@@ -220,16 +214,14 @@ export function LessonCheckinCross({ data }: LessonCheckinCrossProps) {
                 key={i + 2}
                 className={`rounded-lg border p-3 transition-colors ${q.config.containerClass}`}
               >
-                <div className="text-xs font-semibold text-[var(--text-secondary)] mb-1">
+                <div className="text-xs font-semibold text-secondary-token mb-1">
                   {q.config.label}
                 </div>
                 <div className={`text-2xl font-bold font-mono tabular-nums ${q.config.valueClass}`}>
                   {q.value.toLocaleString()}
                 </div>
-                <div className="text-xs text-[var(--text-muted)] mt-0.5">{pct(q.value)}</div>
-                <div className="text-xs text-[var(--text-muted)] mt-1 opacity-70">
-                  {q.config.sublabel}
-                </div>
+                <div className="text-xs text-muted-token mt-0.5">{pct(q.value)}</div>
+                <div className="text-xs text-muted-token mt-1 opacity-70">{q.config.sublabel}</div>
               </div>
             ))}
           </div>
@@ -237,8 +229,8 @@ export function LessonCheckinCross({ data }: LessonCheckinCrossProps) {
       </div>
 
       {/* 总学员数 */}
-      <div className="text-xs text-[var(--text-muted)] text-right">
-        <span className="font-mono tabular-nums font-semibold text-[var(--text-secondary)]">
+      <div className="text-xs text-muted-token text-right">
+        <span className="font-mono tabular-nums font-semibold text-secondary-token">
           {t.totalLabel(total.toLocaleString())}
         </span>
       </div>

@@ -115,11 +115,11 @@ type DayTypeOption = 'normal' | 'kickoff' | 'holiday_off';
 
 function dayTypeBg(dayType: string, isOverride: boolean): string {
   const base: Record<string, string> = {
-    weekend: 'bg-[var(--color-accent-surface)]',
+    weekend: 'bg-accent-surface',
     weekday: 'bg-white',
-    dayoff: 'bg-[var(--bg-subtle)]',
-    kickoff: 'bg-[var(--color-warning-surface)]',
-    holiday_off: 'bg-[var(--color-danger-surface)]',
+    dayoff: 'bg-subtle',
+    kickoff: 'bg-warning-surface',
+    holiday_off: 'bg-danger-surface',
   };
   const color = base[dayType] ?? 'bg-white';
   return isOverride ? `${color} ring-1 ring-amber-400` : color;
@@ -144,7 +144,7 @@ export default function BmCalendarCard({ selectedMonth }: BmCalendarCardProps) {
 
   if (isLoading) {
     return (
-      <div className="card-base flex items-center gap-2 text-sm text-[var(--text-muted)]">
+      <div className="card-base flex items-center gap-2 text-sm text-muted-token">
         <Spinner size="sm" /> {t.loading}
       </div>
     );
@@ -155,7 +155,7 @@ export default function BmCalendarCard({ selectedMonth }: BmCalendarCardProps) {
     const mo = selectedMonth.slice(4);
     const label = t.year ? `${yr}${t.year}${mo}${t.month}` : `${yr}-${mo}`;
     return (
-      <div className="card-base text-sm text-[var(--text-muted)]">
+      <div className="card-base text-sm text-muted-token">
         {t.noData} {label} BM
       </div>
     );
@@ -251,10 +251,10 @@ export default function BmCalendarCard({ selectedMonth }: BmCalendarCardProps) {
   const monthLabel = t.year ? `${yr}${t.year}${mo}${t.month}` : `${yr}-${mo}`;
 
   const legends = [
-    { bg: 'bg-[var(--color-accent-surface)]', label: t.legendWeekend },
-    { bg: 'bg-[var(--color-warning-surface)]', label: t.legendKickoff },
-    { bg: 'bg-[var(--color-danger-surface)]', label: t.legendHolidayOff },
-    { bg: 'bg-[var(--bg-subtle)]', label: t.legendDayOff },
+    { bg: 'bg-accent-surface', label: t.legendWeekend },
+    { bg: 'bg-warning-surface', label: t.legendKickoff },
+    { bg: 'bg-danger-surface', label: t.legendHolidayOff },
+    { bg: 'bg-subtle', label: t.legendDayOff },
     { bg: 'bg-white ring-1 ring-amber-400', label: t.legendOverride },
   ];
 
@@ -262,18 +262,16 @@ export default function BmCalendarCard({ selectedMonth }: BmCalendarCardProps) {
     <div className="card-base">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h3 className="text-sm font-semibold text-[var(--text-primary)]">{t.bmCalTitle}</h3>
-          <p className="text-xs text-[var(--text-muted)] mt-0.5">
+          <h3 className="text-sm font-semibold text-primary-token">{t.bmCalTitle}</h3>
+          <p className="text-xs text-muted-token mt-0.5">
             {monthLabel} {t.totalWeight}{' '}
-            <span className="font-semibold text-[var(--text-secondary)]">
-              {data.total_raw_weight}
-            </span>
+            <span className="font-semibold text-secondary-token">{data.total_raw_weight}</span>
           </p>
         </div>
         <button
           onClick={handleReset}
           disabled={saving}
-          className="px-3 py-1.5 rounded-lg text-xs font-medium bg-[var(--bg-subtle)] text-[var(--text-secondary)] hover:bg-[var(--border-default)] transition-colors disabled:opacity-50"
+          className="px-3 py-1.5 rounded-lg text-xs font-medium bg-subtle text-secondary-token hover:bg-n-200 transition-colors disabled:opacity-50"
         >
           {saving ? <Spinner size="sm" /> : t.resetBtn}
         </button>
@@ -281,13 +279,8 @@ export default function BmCalendarCard({ selectedMonth }: BmCalendarCardProps) {
 
       <div className="flex flex-wrap gap-3 mb-3">
         {legends.map(({ bg, label }) => (
-          <span
-            key={label}
-            className="flex items-center gap-1 text-[11px] text-[var(--text-muted)]"
-          >
-            <span
-              className={`inline-block w-3 h-3 rounded-sm border border-[var(--border-default)] ${bg}`}
-            />
+          <span key={label} className="flex items-center gap-1 text-[11px] text-muted-token">
+            <span className={`inline-block w-3 h-3 rounded-sm border border-default-token ${bg}`} />
             {label}
           </span>
         ))}
@@ -296,10 +289,7 @@ export default function BmCalendarCard({ selectedMonth }: BmCalendarCardProps) {
       <div className="overflow-x-auto">
         <div className="grid grid-cols-7 gap-1 min-w-[420px]">
           {t.dayLabels.map((l) => (
-            <div
-              key={l}
-              className="text-center text-[10px] font-semibold text-[var(--text-muted)] py-1"
-            >
+            <div key={l} className="text-center text-[10px] font-semibold text-muted-token py-1">
               {l}
             </div>
           ))}
@@ -318,42 +308,38 @@ export default function BmCalendarCard({ selectedMonth }: BmCalendarCardProps) {
               <div key={dateStr} className="relative">
                 <button
                   onClick={() => setActiveDate(isActive ? null : dateStr)}
-                  className={`w-full rounded-lg border border-[var(--border-default)] p-1.5 text-left transition-colors hover:border-[var(--color-warning)] ${dayData ? dayTypeBg(dayData.day_type, dayData.is_override) : 'bg-white'}`}
+                  className={`w-full rounded-lg border border-default-token p-1.5 text-left transition-colors hover:border-warning-token ${dayData ? dayTypeBg(dayData.day_type, dayData.is_override) : 'bg-white'}`}
                   title={dayData?.label || undefined}
                 >
                   <div className="flex items-start justify-between">
-                    <span className="text-[11px] font-semibold text-[var(--text-primary)]">
-                      {dayNum}
-                    </span>
+                    <span className="text-[11px] font-semibold text-primary-token">{dayNum}</span>
                     {dayData?.is_override && (
-                      <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-warning)] mt-0.5" />
+                      <span className="w-1.5 h-1.5 rounded-full bg-warning-token mt-0.5" />
                     )}
                   </div>
                   {dayData && (
-                    <div className="text-[10px] text-[var(--text-muted)] mt-0.5 font-mono">
+                    <div className="text-[10px] text-muted-token mt-0.5 font-mono">
                       {((dayData.bm_daily_pct ?? 0) * 100).toFixed(1)}%
                     </div>
                   )}
                   {dayData?.label && (
-                    <div className="text-[9px] text-[var(--text-secondary)] truncate">
-                      {dayData.label}
-                    </div>
+                    <div className="text-[9px] text-secondary-token truncate">{dayData.label}</div>
                   )}
                 </button>
 
                 {/* Inline selector */}
                 {isActive && dayData && (
-                  <div className="absolute z-10 top-full left-0 mt-1 bg-[var(--bg-surface)] border border-[var(--border-default)] rounded-lg shadow-lg p-1.5 min-w-[100px]">
+                  <div className="absolute z-10 top-full left-0 mt-1 bg-surface border border-default-token rounded-lg shadow-lg p-1.5 min-w-[100px]">
                     {DAY_TYPE_OPTIONS.map((opt) => (
                       <button
                         key={opt.value}
                         onClick={() => handleSelectType(dayData, opt.value)}
-                        className={`w-full text-left px-2 py-1 rounded text-xs hover:bg-[var(--bg-subtle)] transition-colors ${
+                        className={`w-full text-left px-2 py-1 rounded text-xs hover:bg-subtle transition-colors ${
                           dayData.day_type === opt.value &&
                           !dayData.is_override &&
                           opt.value === 'normal'
-                            ? 'font-semibold text-[var(--text-primary)]'
-                            : 'text-[var(--text-secondary)]'
+                            ? 'font-semibold text-primary-token'
+                            : 'text-secondary-token'
                         }`}
                       >
                         {opt.label}
@@ -367,7 +353,7 @@ export default function BmCalendarCard({ selectedMonth }: BmCalendarCardProps) {
         </div>
       </div>
 
-      <p className="text-[10px] text-[var(--text-muted)] mt-3">{t.hint}</p>
+      <p className="text-[10px] text-muted-token mt-3">{t.hint}</p>
     </div>
   );
 }

@@ -85,8 +85,8 @@ export default function AttributionPage() {
       {/* 页面标题 */}
       <div>
         <h1 className="page-title">{t('title')}</h1>
-        <p className="text-sm text-[var(--text-secondary)] mt-1">{t('subtitle')}</p>
-        <p className="text-sm text-[var(--text-muted)] mt-0.5">{t('subtitleSub')}</p>
+        <p className="text-sm text-secondary-token mt-1">{t('subtitle')}</p>
+        <p className="text-sm text-muted-token mt-0.5">{t('subtitleSub')}</p>
       </div>
 
       {/* 区域1：4个漏斗阶段达成率环形图 */}
@@ -119,44 +119,44 @@ export default function AttributionPage() {
         </div>
 
         {/* 业绩达成概览行 */}
-        <div className="mt-3 pt-3 border-t border-[var(--border-default)] flex flex-wrap gap-x-6 gap-y-2 text-xs">
-          <span className="text-[var(--text-muted)]">
+        <div className="mt-3 pt-3 border-t border-default-token flex flex-wrap gap-x-6 gap-y-2 text-xs">
+          <span className="text-muted-token">
             {t('revenueRate')}{' '}
             <span
               className={`font-semibold ${
                 summary.revenue_achievement_rate >= 1
-                  ? 'text-[var(--color-success)]'
+                  ? 'text-success-token'
                   : summary.revenue_achievement_rate >= 0.5
                     ? 'text-action-accent'
-                    : 'text-[var(--color-danger)]'
+                    : 'text-danger-token'
               }`}
             >
               {formatRate(summary.revenue_achievement_rate)}
             </span>
           </span>
-          <span className="text-[var(--text-muted)]">
+          <span className="text-muted-token">
             {t('orderValueRate')}{' '}
             <span
               className={`font-semibold ${
                 summary.order_value_achievement_rate >= 1
-                  ? 'text-[var(--color-success)]'
+                  ? 'text-success-token'
                   : summary.order_value_achievement_rate >= 0.5
                     ? 'text-action-accent'
-                    : 'text-[var(--color-danger)]'
+                    : 'text-danger-token'
               }`}
             >
               {formatRate(summary.order_value_achievement_rate)}
             </span>
           </span>
-          <span className="text-[var(--text-muted)]">
+          <span className="text-muted-token">
             {t('regConvRate')}{' '}
-            <span className="font-semibold text-[var(--text-primary)]">
+            <span className="font-semibold text-primary-token">
               {formatRate(summary.registration_conversion_rate)}
             </span>
           </span>
-          <span className="text-[var(--text-muted)]">
+          <span className="text-muted-token">
             {t('attendPayRate')}{' '}
-            <span className="font-semibold text-[var(--text-primary)]">
+            <span className="font-semibold text-primary-token">
               {formatRate(summary.attend_to_pay_rate)}
             </span>
           </span>

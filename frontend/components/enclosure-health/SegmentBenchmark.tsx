@@ -65,7 +65,7 @@ export function SegmentBenchmark({ data }: SegmentBenchmarkProps) {
 
   if (!data.length) {
     return (
-      <div className="flex items-center justify-center h-48 text-sm text-[var(--text-muted)]">
+      <div className="flex items-center justify-center h-48 text-sm text-muted-token">
         {t.noData}
       </div>
     );

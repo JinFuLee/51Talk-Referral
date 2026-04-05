@@ -110,10 +110,10 @@ function GapBadge({ gap }: { gap: number }) {
     <span
       className={`inline-block px-2 py-0.5 rounded text-xs font-bold ${
         isPositive
-          ? 'text-[var(--color-success)] bg-[var(--color-success-surface)]'
+          ? 'text-success-token bg-success-surface'
           : gap >= -5
-            ? 'text-[var(--color-warning)] bg-[var(--color-warning-surface)]'
-            : 'text-[var(--color-danger)] bg-[var(--color-danger-surface)]'
+            ? 'text-warning-token bg-warning-surface'
+            : 'text-danger-token bg-danger-surface'
       }`}
     >
       {isPositive ? '+' : ''}
@@ -125,10 +125,10 @@ function GapBadge({ gap }: { gap: number }) {
 function FactorBadge({ value }: { value: number }) {
   const color =
     value >= 1
-      ? 'text-[var(--color-success)] bg-[var(--color-success-surface)]'
+      ? 'text-success-token bg-success-surface'
       : value >= 0.9
-        ? 'text-[var(--color-warning)] bg-[var(--color-warning-surface)]'
-        : 'text-[var(--color-danger)] bg-[var(--color-danger-surface)]';
+        ? 'text-warning-token bg-warning-surface'
+        : 'text-danger-token bg-danger-surface';
   return (
     <span className={`inline-block px-2 py-0.5 rounded text-xs font-semibold ${color}`}>
       {formatRate(value)}
@@ -183,18 +183,18 @@ export function ThreeFactorSlide({ slideNumber, totalSlides }: SlideProps) {
       ) : error ? (
         <div className="flex items-center justify-center h-full">
           <div className="text-center space-y-2">
-            <p className="text-base font-semibold text-[var(--color-danger)]">{t.loading_failed}</p>
-            <p className="text-sm text-[var(--text-muted)]">{t.check_backend}</p>
+            <p className="text-base font-semibold text-danger-token">{t.loading_failed}</p>
+            <p className="text-sm text-muted-token">{t.check_backend}</p>
             <button
               onClick={() => mutate()}
-              className="mt-1 px-4 py-1.5 rounded-lg text-sm border border-[var(--border-default)] text-[var(--text-secondary)] hover:bg-[var(--bg-subtle)] transition-colors"
+              className="mt-1 px-4 py-1.5 rounded-lg text-sm border border-default-token text-secondary-token hover:bg-subtle transition-colors"
             >
               {t.retry}
             </button>
           </div>
         </div>
       ) : channels.length === 0 ? (
-        <div className="flex flex-col justify-center items-center h-full gap-3 text-[var(--text-muted)]">
+        <div className="flex flex-col justify-center items-center h-full gap-3 text-muted-token">
           <p className="text-base font-medium">{t.no_data}</p>
           <p className="text-sm">{t.no_data_hint}</p>
         </div>
@@ -225,11 +225,11 @@ export function ThreeFactorSlide({ slideNumber, totalSlides }: SlideProps) {
             <tbody>
               {channels.map((c, i) => (
                 <tr key={c.channel} className={i % 2 === 0 ? 'slide-row-even' : 'slide-row-odd'}>
-                  <td className="slide-td font-semibold text-[var(--text-primary)]">{c.channel}</td>
-                  <td className="slide-td text-right font-mono tabular-nums text-[var(--text-secondary)]">
+                  <td className="slide-td font-semibold text-primary-token">{c.channel}</td>
+                  <td className="slide-td text-right font-mono tabular-nums text-secondary-token">
                     {(c.expected_volume ?? 0).toLocaleString()}
                   </td>
-                  <td className="slide-td text-right font-mono tabular-nums font-medium text-[var(--text-primary)]">
+                  <td className="slide-td text-right font-mono tabular-nums font-medium text-primary-token">
                     {(c.actual_volume ?? 0).toLocaleString()}
                   </td>
                   <td className="slide-td text-right">
@@ -248,7 +248,7 @@ export function ThreeFactorSlide({ slideNumber, totalSlides }: SlideProps) {
               ))}
             </tbody>
           </table>
-          <p className="mt-3 px-4 text-xs text-[var(--text-muted)]">{t.footnote}</p>
+          <p className="mt-3 px-4 text-xs text-muted-token">{t.footnote}</p>
         </div>
       )}
     </SlideShell>

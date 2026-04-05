@@ -121,7 +121,7 @@ function RowStatus({
 
   if (status === 'ok') {
     return (
-      <span className="text-[var(--text-muted)]">
+      <span className="text-muted-token">
         {rowCount.toLocaleString()}
         {t.rowSuffix}
       </span>
@@ -162,12 +162,12 @@ function UtilizationBar({
   return (
     <div className="space-y-0.5">
       <div className="flex items-center justify-between">
-        <span className="text-[10px] text-[var(--text-muted)]">{label}</span>
-        <span className="text-[10px] font-medium text-[var(--text-secondary)]">
+        <span className="text-[10px] text-muted-token">{label}</span>
+        <span className="text-[10px] font-medium text-secondary-token">
           {pct != null ? `${pct}%` : '—'}
         </span>
       </div>
-      <div className="h-1 rounded-full bg-[var(--border-default)] overflow-hidden">
+      <div className="h-1 rounded-full bg-n-200 overflow-hidden">
         {pct != null && (
           <div
             className={`h-full rounded-full transition-all ${
@@ -194,16 +194,14 @@ export function DataSourceHealthCard({ source }: { source: DataSourceStatus }) {
   const tier: FreshnessTier = source.freshness_tier ?? 'missing';
 
   return (
-    <div className="rounded-xl border border-[var(--border-default)] bg-[var(--bg-surface)] p-3 text-xs flex flex-col gap-2">
+    <div className="rounded-xl border border-default-token bg-surface p-3 text-xs flex flex-col gap-2">
       {/* Header */}
       <div className="flex items-start justify-between gap-2">
         <div className="flex flex-col gap-0.5 min-w-0">
           {tag && (
-            <span className="text-[10px] font-bold text-[var(--text-muted)] tracking-wide">
-              {tag}
-            </span>
+            <span className="text-[10px] font-bold text-muted-token tracking-wide">{tag}</span>
           )}
-          <span className="font-semibold text-[var(--text-primary)] truncate leading-tight">
+          <span className="font-semibold text-primary-token truncate leading-tight">
             {label || name}
           </span>
         </div>
@@ -212,9 +210,9 @@ export function DataSourceHealthCard({ source }: { source: DataSourceStatus }) {
 
       {/* 数据日期 */}
       {source.data_date && (
-        <div className="text-[var(--text-muted)]">
+        <div className="text-muted-token">
           {t.dataDate}
-          <span className="text-[var(--text-secondary)] font-medium">{source.data_date}</span>
+          <span className="text-secondary-token font-medium">{source.data_date}</span>
         </div>
       )}
 
@@ -223,7 +221,7 @@ export function DataSourceHealthCard({ source }: { source: DataSourceStatus }) {
 
       {/* 字段利用率进度条 */}
       {(source.completeness_rate != null || source.utilization_rate != null) && (
-        <div className="space-y-1.5 pt-1 border-t border-[var(--border-subtle)]">
+        <div className="space-y-1.5 pt-1 border-t border-subtle-token">
           <UtilizationBar
             rate={source.completeness_rate}
             label={t.fieldComplete}
@@ -236,7 +234,7 @@ export function DataSourceHealthCard({ source }: { source: DataSourceStatus }) {
       {/* 核心字段 */}
       {source.critical_completeness_rate != null && (
         <div className="flex items-center justify-between text-[10px]">
-          <span className="text-[var(--text-muted)]">
+          <span className="text-muted-token">
             {t.coreField(
               source.critical_columns_present ?? '?',
               source.critical_columns_total ?? '?'

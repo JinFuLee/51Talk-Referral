@@ -127,18 +127,18 @@ export function ChannelRevenueSlide({ slideNumber, totalSlides }: SlideProps) {
       ) : error ? (
         <div className="flex items-center justify-center h-full">
           <div className="text-center space-y-2">
-            <p className="text-base font-semibold text-[var(--color-danger)]">{t.loading_failed}</p>
-            <p className="text-sm text-[var(--text-muted)]">{t.check_backend}</p>
+            <p className="text-base font-semibold text-danger-token">{t.loading_failed}</p>
+            <p className="text-sm text-muted-token">{t.check_backend}</p>
             <button
               onClick={() => mutate()}
-              className="mt-1 px-4 py-1.5 rounded-lg text-sm border border-[var(--border-default)] text-[var(--text-secondary)] hover:bg-[var(--bg-subtle)] transition-colors"
+              className="mt-1 px-4 py-1.5 rounded-lg text-sm border border-default-token text-secondary-token hover:bg-subtle transition-colors"
             >
               {t.retry}
             </button>
           </div>
         </div>
       ) : channels.length === 0 ? (
-        <div className="flex flex-col justify-center items-center h-full gap-3 text-[var(--text-muted)]">
+        <div className="flex flex-col justify-center items-center h-full gap-3 text-muted-token">
           <p className="text-base font-medium">{t.no_data}</p>
           <p className="text-sm">{t.no_data_hint}</p>
         </div>
@@ -193,7 +193,7 @@ export function ChannelRevenueSlide({ slideNumber, totalSlides }: SlideProps) {
               <tbody>
                 {channels.map((c, i) => (
                   <tr key={c.channel} className={i % 2 === 0 ? 'slide-row-even' : 'slide-row-odd'}>
-                    <td className="px-2 py-1 text-xs font-semibold text-[var(--text-primary)] flex items-center gap-2">
+                    <td className="px-2 py-1 text-xs font-semibold text-primary-token flex items-center gap-2">
                       <span
                         className="inline-block w-2 h-2 rounded-full"
                         style={{
@@ -205,10 +205,10 @@ export function ChannelRevenueSlide({ slideNumber, totalSlides }: SlideProps) {
                     <td className="px-2 py-1 text-xs text-right font-mono tabular-nums text-action-accent font-semibold">
                       {formatRevenue(c.per_capita ?? 0)}
                     </td>
-                    <td className="px-2 py-1 text-xs text-right font-mono tabular-nums font-medium text-[var(--text-primary)]">
+                    <td className="px-2 py-1 text-xs text-right font-mono tabular-nums font-medium text-primary-token">
                       {formatRevenue(c.revenue)}
                     </td>
-                    <td className="px-2 py-1 text-xs text-right font-mono tabular-nums text-[var(--text-muted)]">
+                    <td className="px-2 py-1 text-xs text-right font-mono tabular-nums text-muted-token">
                       {formatRate(c.share)}
                     </td>
                   </tr>
@@ -217,13 +217,13 @@ export function ChannelRevenueSlide({ slideNumber, totalSlides }: SlideProps) {
               <tfoot>
                 <tr className="slide-tfoot-row">
                   <td className="px-2 py-1 text-xs">{t.col_grand_total}</td>
-                  <td className="px-2 py-1 text-xs text-right font-mono tabular-nums text-[var(--text-muted)]">
+                  <td className="px-2 py-1 text-xs text-right font-mono tabular-nums text-muted-token">
                     —
                   </td>
-                  <td className="px-2 py-1 text-xs text-right font-mono tabular-nums font-medium text-[var(--text-primary)]">
+                  <td className="px-2 py-1 text-xs text-right font-mono tabular-nums font-medium text-primary-token">
                     {formatRevenue(totalAmount)}
                   </td>
-                  <td className="px-2 py-1 text-xs text-right font-mono tabular-nums text-[var(--text-muted)]">
+                  <td className="px-2 py-1 text-xs text-right font-mono tabular-nums text-muted-token">
                     100%
                   </td>
                 </tr>

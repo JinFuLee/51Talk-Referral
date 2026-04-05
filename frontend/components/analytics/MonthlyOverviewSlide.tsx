@@ -172,10 +172,10 @@ function fmtVal(key: string, val: number | null | undefined): string {
 }
 
 function gapColor(gap: number | null | undefined): string {
-  if (gap == null) return 'text-[var(--text-muted)]';
-  if (gap >= 0) return 'text-[var(--color-success)] font-semibold';
-  if (gap >= -0.05) return 'text-[var(--color-warning)] font-semibold';
-  return 'text-[var(--color-danger)] font-semibold';
+  if (gap == null) return 'text-muted-token';
+  if (gap >= 0) return 'text-success-token font-semibold';
+  if (gap >= -0.05) return 'text-warning-token font-semibold';
+  return 'text-danger-token font-semibold';
 }
 
 /** 效率列颜色
@@ -183,16 +183,16 @@ function gapColor(gap: number | null | undefined): string {
  * 率类：≥100% 达标(绿) / ≥95% 接近(黄) / <95% 落后(红) — 不用 BM 阈值
  */
 function bmEffColor(eff: number | null | undefined, bmPct: number, isRate = false): string {
-  if (eff == null || eff === 0) return 'text-[var(--text-muted)]';
-  if (eff >= 1.0) return 'text-[var(--color-success)] font-semibold';
+  if (eff == null || eff === 0) return 'text-muted-token';
+  if (eff >= 1.0) return 'text-success-token font-semibold';
   if (isRate) {
     // 率类：纯粹看达成率离 100% 多远
-    if (eff >= 0.95) return 'text-[var(--color-warning)] font-semibold';
-    return 'text-[var(--color-danger)] font-semibold';
+    if (eff >= 0.95) return 'text-warning-token font-semibold';
+    return 'text-danger-token font-semibold';
   }
   // 量类：BM 进度阈值
-  if (eff >= bmPct) return 'text-[var(--color-success)] font-semibold';
-  return 'text-[var(--color-danger)] font-semibold';
+  if (eff >= bmPct) return 'text-success-token font-semibold';
+  return 'text-danger-token font-semibold';
 }
 
 interface Props {
@@ -225,8 +225,8 @@ export function MonthlyOverviewSlide({ data }: Props) {
   if (!data) {
     return (
       <div className="card-base p-5 flex flex-col justify-center items-center gap-2 min-h-[280px]">
-        <p className="text-sm font-medium text-[var(--text-secondary)]">{t.noData}</p>
-        <p className="text-xs text-[var(--text-muted)]">{t.noDataDesc}</p>
+        <p className="text-sm font-medium text-secondary-token">{t.noData}</p>
+        <p className="text-xs text-muted-token">{t.noDataDesc}</p>
       </div>
     );
   }
@@ -237,8 +237,8 @@ export function MonthlyOverviewSlide({ data }: Props) {
     <div className="card-base p-5 flex flex-col gap-4">
       {/* Header */}
       <div>
-        <h3 className="text-sm font-bold text-[var(--text-primary)] font-display">{t.title}</h3>
-        <p className="text-xs text-[var(--text-muted)] mt-0.5">{t.subtitle}</p>
+        <h3 className="text-sm font-bold text-primary-token font-display">{t.title}</h3>
+        <p className="text-xs text-muted-token mt-0.5">{t.subtitle}</p>
       </div>
 
       {/* 表格 */}
@@ -265,13 +265,13 @@ export function MonthlyOverviewSlide({ data }: Props) {
 
               return (
                 <tr key={key} className={i % 2 === 0 ? 'slide-row-even' : 'slide-row-odd'}>
-                  <td className="slide-td font-medium text-[var(--text-primary)]">
+                  <td className="slide-td font-medium text-primary-token">
                     {t.metrics[key] ?? key}
                   </td>
-                  <td className="slide-td text-right font-mono tabular-nums text-[var(--text-muted)]">
+                  <td className="slide-td text-right font-mono tabular-nums text-muted-token">
                     {fmtVal(key, target)}
                   </td>
-                  <td className="slide-td text-right font-mono tabular-nums font-semibold text-[var(--text-primary)]">
+                  <td className="slide-td text-right font-mono tabular-nums font-semibold text-primary-token">
                     {fmtVal(key, actual)}
                   </td>
                   <td className="slide-td text-right font-mono tabular-nums">
@@ -288,7 +288,7 @@ export function MonthlyOverviewSlide({ data }: Props) {
                         : '—'}
                     </span>
                   </td>
-                  <td className="slide-td text-right font-mono tabular-nums text-[var(--text-muted)]">
+                  <td className="slide-td text-right font-mono tabular-nums text-muted-token">
                     {dailyAvg != null && dailyAvg !== 0 ? fmtVal(key, dailyAvg) : '—'}
                   </td>
                 </tr>
@@ -299,9 +299,9 @@ export function MonthlyOverviewSlide({ data }: Props) {
       </div>
 
       {/* BM 进度角标 */}
-      <div className="flex items-center justify-between pt-1 border-t border-[var(--border-subtle)]">
-        <span className="text-[10px] text-[var(--text-muted)]">BM = {formatRate(data.bm_pct)}</span>
-        <span className="text-[10px] text-[var(--text-muted)]">{t.bmFootnote}</span>
+      <div className="flex items-center justify-between pt-1 border-t border-subtle-token">
+        <span className="text-[10px] text-muted-token">BM = {formatRate(data.bm_pct)}</span>
+        <span className="text-[10px] text-muted-token">{t.bmFootnote}</span>
       </div>
     </div>
   );

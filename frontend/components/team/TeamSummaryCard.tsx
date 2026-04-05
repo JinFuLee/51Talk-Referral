@@ -89,8 +89,8 @@ export function TeamSummaryCard({
     <div className="card-interactive" style={{ cursor: 'default' }}>
       <div className="flex items-start justify-between mb-3">
         <div>
-          <p className="text-base font-bold text-[var(--text-primary)]">{cc_name}</p>
-          <p className="text-xs text-[var(--text-muted)] mt-0.5">{cc_group}</p>
+          <p className="text-base font-bold text-primary-token">{cc_name}</p>
+          <p className="text-xs text-muted-token mt-0.5">{cc_group}</p>
         </div>
         <div className="text-right">
           <div
@@ -107,51 +107,51 @@ export function TeamSummaryCard({
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-2 pt-3 border-t border-[var(--border-default)]">
+      <div className="grid grid-cols-3 gap-2 pt-3 border-t border-default-token">
         <div className="text-center">
-          <div className="text-sm font-semibold text-[var(--text-primary)]">
+          <div className="text-sm font-semibold text-primary-token">
             {formatRate(participation_rate)}
           </div>
-          <div className="text-[10px] text-[var(--text-muted)] mt-0.5">
+          <div className="text-[10px] text-muted-token mt-0.5">
             {t.participationRate} <BrandDot tooltip={t.participationTooltip} />
           </div>
         </div>
         <div className="text-center">
-          <div className="text-sm font-semibold text-[var(--text-primary)]">
+          <div className="text-sm font-semibold text-primary-token">
             {registrations.toLocaleString()}
           </div>
-          <div className="text-[10px] text-[var(--text-muted)] mt-0.5">{t.registrations}</div>
+          <div className="text-[10px] text-muted-token mt-0.5">{t.registrations}</div>
         </div>
         <div className="text-center">
-          <div className="text-sm font-semibold text-[var(--text-primary)]">
+          <div className="text-sm font-semibold text-primary-token">
             {payments.toLocaleString()}
           </div>
-          <div className="text-[10px] text-[var(--text-muted)] mt-0.5">{t.payments}</div>
+          <div className="text-[10px] text-muted-token mt-0.5">{t.payments}</div>
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-2 mt-3 pt-3 border-t border-[var(--border-default)]">
+      <div className="grid grid-cols-2 gap-2 mt-3 pt-3 border-t border-default-token">
         <div className="text-center">
-          <div className="text-sm font-semibold text-[var(--text-primary)]">
+          <div className="text-sm font-semibold text-primary-token">
             {formatRate(checkin_rate ?? 0)}
           </div>
-          <div className="text-[10px] text-[var(--text-muted)] mt-0.5">
+          <div className="text-[10px] text-muted-token mt-0.5">
             {t.checkinRate} <BrandDot tooltip={t.checkinTooltip} />
           </div>
         </div>
         <div className="text-center">
-          <div className="text-sm font-semibold text-[var(--text-primary)]">
+          <div className="text-sm font-semibold text-primary-token">
             {formatRate(cc_reach_rate ?? 0)}
           </div>
-          <div className="text-[10px] text-[var(--text-muted)] mt-0.5">
+          <div className="text-[10px] text-muted-token mt-0.5">
             {t.ccReach} <BrandDot tooltip={t.ccReachTooltip} />
           </div>
         </div>
       </div>
 
-      <div className="mt-3 pt-2.5 border-t border-[var(--border-default)] flex items-baseline justify-end gap-1.5">
-        <span className="text-xs text-[var(--text-muted)]">{t.revenue}</span>
-        <span className="text-base font-bold text-[var(--text-primary)]">
+      <div className="mt-3 pt-2.5 border-t border-default-token flex items-baseline justify-end gap-1.5">
+        <span className="text-xs text-muted-token">{t.revenue}</span>
+        <span className="text-base font-bold text-primary-token">
           $
           {(revenue_usd ?? 0).toLocaleString(undefined, {
             minimumFractionDigits: 0,

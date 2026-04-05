@@ -207,7 +207,7 @@ function KnowledgePageInner() {
   return (
     <div className="flex flex-col h-full">
       {/* Page header */}
-      <div className="px-6 py-4 border-b border-[var(--border-default)] bg-[var(--bg-surface)]">
+      <div className="px-6 py-4 border-b border-default-token bg-surface">
         <div className="flex items-center justify-between gap-4 flex-wrap">
           <PageHeader icon={BookOpen} title={t('pageTitle')} subtitle={t('pageSubtitle')} />
           <div className="flex items-center gap-3">
@@ -223,12 +223,12 @@ function KnowledgePageInner() {
 
         {/* Book shelf */}
         {booksLoading ? (
-          <div className="flex items-center gap-2 py-3 text-sm text-[var(--text-muted)]">
+          <div className="flex items-center gap-2 py-3 text-sm text-muted-token">
             <Loader2 className="w-4 h-4 animate-spin" />
             {t('loadingShelf')}
           </div>
         ) : booksError ? (
-          <div className="flex items-center gap-2 py-3 text-sm text-[var(--color-danger)]">
+          <div className="flex items-center gap-2 py-3 text-sm text-danger-token">
             <AlertCircle className="w-4 h-4" />
             {t('shelfError')}
           </div>
@@ -247,9 +247,9 @@ function KnowledgePageInner() {
       {/* Main body: chapter tree + reader */}
       <div className="flex flex-1 min-h-0 overflow-hidden">
         {/* Left: chapter tree */}
-        <aside className="w-[280px] shrink-0 border-r border-[var(--border-default)] bg-[var(--bg-surface)] overflow-y-auto py-4 px-3">
+        <aside className="w-[280px] shrink-0 border-r border-default-token bg-surface overflow-y-auto py-4 px-3">
           {contentLoading ? (
-            <div className="flex items-center gap-2 text-sm text-[var(--text-muted)] px-2 py-3">
+            <div className="flex items-center gap-2 text-sm text-muted-token px-2 py-3">
               <Loader2 className="w-4 h-4 animate-spin" />
               {t('loadingChapter')}
             </div>
@@ -265,20 +265,20 @@ function KnowledgePageInner() {
         {/* Right: reader */}
         <main
           ref={readerRef as React.RefObject<HTMLElement>}
-          className="flex-1 overflow-y-auto px-8 py-8 bg-[var(--bg-primary)]"
+          className="flex-1 overflow-y-auto px-8 py-8 bg-bg-primary"
         >
           {contentLoading ? (
-            <div className="flex flex-col items-center justify-center py-24 gap-4 text-[var(--text-muted)]">
+            <div className="flex flex-col items-center justify-center py-24 gap-4 text-muted-token">
               <Loader2 className="w-8 h-8 animate-spin" />
               <p className="text-sm">{t('loadingContent')}</p>
             </div>
           ) : contentError ? (
             <div className="flex flex-col items-center justify-center py-24 gap-3">
-              <AlertCircle className="w-8 h-8 text-[var(--color-danger)]" />
-              <p className="text-sm text-[var(--color-danger)]">{t('contentError')}</p>
+              <AlertCircle className="w-8 h-8 text-danger-token" />
+              <p className="text-sm text-danger-token">{t('contentError')}</p>
             </div>
           ) : !activeBook || !bookContent ? (
-            <div className="flex flex-col items-center justify-center py-24 gap-4 text-[var(--text-muted)]">
+            <div className="flex flex-col items-center justify-center py-24 gap-4 text-muted-token">
               <BookMarked className="w-12 h-12 opacity-30" />
               <p className="text-sm">{t('selectBook')}</p>
             </div>

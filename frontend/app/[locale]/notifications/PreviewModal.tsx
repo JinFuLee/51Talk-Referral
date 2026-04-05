@@ -119,11 +119,11 @@ export function PreviewModal({ open, template, role, platform, onClose }: Previe
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-      <div className="bg-[var(--bg-surface)] rounded-2xl shadow-xl w-full max-w-lg mx-4 overflow-hidden max-h-[80vh] flex flex-col">
-        <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--border-default)] shrink-0">
+      <div className="bg-surface rounded-2xl shadow-xl w-full max-w-lg mx-4 overflow-hidden max-h-[80vh] flex flex-col">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-default-token shrink-0">
           <div>
-            <h2 className="text-sm font-semibold text-[var(--text-primary)]">{t.title}</h2>
-            <p className="text-xs text-[var(--text-muted)] mt-0.5">
+            <h2 className="text-sm font-semibold text-primary-token">{t.title}</h2>
+            <p className="text-xs text-muted-token mt-0.5">
               {platform === 'lark' ? 'Lark' : t.dingtalk} · {role} · {template}
             </p>
           </div>
@@ -133,7 +133,7 @@ export function PreviewModal({ open, template, role, platform, onClose }: Previe
               setPreview(null);
               onClose();
             }}
-            className="p-1 rounded-md hover:bg-[var(--bg-subtle)] text-[var(--text-muted)]"
+            className="p-1 rounded-md hover:bg-subtle text-muted-token"
           >
             <X className="w-4 h-4" />
           </button>
@@ -141,14 +141,14 @@ export function PreviewModal({ open, template, role, platform, onClose }: Previe
 
         <div className="flex-1 overflow-y-auto p-5">
           {loading && (
-            <div className="flex items-center justify-center py-12 gap-2 text-[var(--text-muted)]">
+            <div className="flex items-center justify-center py-12 gap-2 text-muted-token">
               <Loader2 className="w-5 h-5 animate-spin" />
               <span className="text-sm">{t.generating}</span>
             </div>
           )}
 
           {error && (
-            <div className="bg-[var(--color-danger-surface)] rounded-xl p-4 text-sm text-[var(--color-danger)]">
+            <div className="bg-danger-surface rounded-xl p-4 text-sm text-danger-token">
               {error}
             </div>
           )}
@@ -160,13 +160,13 @@ export function PreviewModal({ open, template, role, platform, onClose }: Previe
                 <span
                   className={`px-2 py-0.5 rounded-full text-xs font-medium ${
                     preview.ok
-                      ? 'bg-[var(--color-success-surface)] text-[var(--color-success)]'
-                      : 'bg-[var(--color-danger-surface)] text-[var(--color-danger)]'
+                      ? 'bg-success-surface text-success-token'
+                      : 'bg-danger-surface text-danger-token'
                   }`}
                 >
                   {preview.ok ? t.genSuccess : t.genFailed}
                 </span>
-                <span className="text-[var(--text-muted)] text-xs">
+                <span className="text-muted-token text-xs">
                   {t.roleImages(preview.role, preview.images_count)}
                 </span>
               </div>
@@ -174,14 +174,12 @@ export function PreviewModal({ open, template, role, platform, onClose }: Previe
               {/* 总览图片 */}
               {preview.overview_image && (
                 <div>
-                  <p className="text-xs text-[var(--text-muted)] mb-2 font-medium">
-                    {t.overviewImg}
-                  </p>
+                  <p className="text-xs text-muted-token mb-2 font-medium">{t.overviewImg}</p>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={`/api/notifications/outputs/image/${preview.overview_image}`}
                     alt={t.overviewImg}
-                    className="w-full rounded-xl border border-[var(--border-default)] shadow-sm"
+                    className="w-full rounded-xl border border-default-token shadow-sm"
                   />
                 </div>
               )}
@@ -189,7 +187,7 @@ export function PreviewModal({ open, template, role, platform, onClose }: Previe
               {/* 样本图片 */}
               {preview.sample_images.length > 0 && (
                 <div>
-                  <p className="text-xs text-[var(--text-muted)] mb-2 font-medium">
+                  <p className="text-xs text-muted-token mb-2 font-medium">
                     {t.sampleImgs(preview.sample_images.length)}
                   </p>
                   <div className="space-y-2">
@@ -199,7 +197,7 @@ export function PreviewModal({ open, template, role, platform, onClose }: Previe
                         key={img}
                         src={`/api/notifications/outputs/image/${img}`}
                         alt={img}
-                        className="w-full rounded-xl border border-[var(--border-default)] shadow-sm"
+                        className="w-full rounded-xl border border-default-token shadow-sm"
                       />
                     ))}
                   </div>
@@ -208,18 +206,14 @@ export function PreviewModal({ open, template, role, platform, onClose }: Previe
 
               {/* 无图片时提示 */}
               {preview.images_count === 0 && (
-                <div className="py-8 text-center text-sm text-[var(--text-muted)]">
-                  {t.noImages}
-                </div>
+                <div className="py-8 text-center text-sm text-muted-token">{t.noImages}</div>
               )}
 
               {/* 脚本输出 */}
               {preview.stdout_tail && (
                 <div>
-                  <p className="text-xs text-[var(--text-muted)] mb-2 font-medium">
-                    {t.scriptOutput}
-                  </p>
-                  <pre className="text-xs bg-[var(--bg-primary)] rounded-xl p-4 whitespace-pre-wrap font-sans border border-[var(--border-subtle)] overflow-auto max-h-40">
+                  <p className="text-xs text-muted-token mb-2 font-medium">{t.scriptOutput}</p>
+                  <pre className="text-xs bg-bg-primary rounded-xl p-4 whitespace-pre-wrap font-sans border border-subtle-token overflow-auto max-h-40">
                     {preview.stdout_tail}
                   </pre>
                 </div>

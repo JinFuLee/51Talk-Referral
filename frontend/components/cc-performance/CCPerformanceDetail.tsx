@@ -145,11 +145,11 @@ function ActionCard({
 
   return (
     <div
-      className={`rounded-lg border border-[var(--border-default)] border-l-4 ${borderColor} px-3 py-2.5 bg-[var(--bg-surface)]`}
+      className={`rounded-lg border border-default-token border-l-4 ${borderColor} px-3 py-2.5 bg-surface`}
     >
-      <p className="text-xs text-[var(--text-muted)] mb-0.5">{label}</p>
-      <p className="text-sm font-bold font-mono tabular-nums text-[var(--text-primary)]">{value}</p>
-      {sub && <p className="text-xs text-[var(--text-secondary)] mt-0.5">{sub}</p>}
+      <p className="text-xs text-muted-token mb-0.5">{label}</p>
+      <p className="text-sm font-bold font-mono tabular-nums text-primary-token">{value}</p>
+      {sub && <p className="text-xs text-secondary-token mt-0.5">{sub}</p>}
     </div>
   );
 }
@@ -196,10 +196,10 @@ export function CCPerformanceDetail({ record, exchangeRate }: CCPerformanceDetai
   const efficiencyLift = record.efficiency_lift_pct ?? null;
 
   return (
-    <div className="border border-[var(--border-default)] rounded-xl bg-[var(--bg-subtle)] px-4 py-4 mt-1 grid grid-cols-1 lg:grid-cols-2 gap-4">
+    <div className="border border-default-token rounded-xl bg-subtle px-4 py-4 mt-1 grid grid-cols-1 lg:grid-cols-2 gap-4">
       {/* 左侧：雷达图 */}
       <div>
-        <p className="text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wide mb-2">
+        <p className="text-xs font-semibold text-secondary-token uppercase tracking-wide mb-2">
           {t.radarTitle(record.cc_name)}
         </p>
         {radarLoading ? (
@@ -223,7 +223,7 @@ export function CCPerformanceDetail({ record, exchangeRate }: CCPerformanceDetai
             </RadarChart>
           </ResponsiveContainer>
         ) : (
-          <div className="flex items-center justify-center h-40 text-xs text-[var(--text-muted)]">
+          <div className="flex items-center justify-center h-40 text-xs text-muted-token">
             {t.noRadarData}
           </div>
         )}
@@ -231,7 +231,7 @@ export function CCPerformanceDetail({ record, exchangeRate }: CCPerformanceDetai
 
       {/* 右侧：行动建议 */}
       <div>
-        <p className="text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wide mb-2">
+        <p className="text-xs font-semibold text-secondary-token uppercase tracking-wide mb-2">
           {t.actionTitle}
         </p>
         <div className="space-y-2">
@@ -267,7 +267,7 @@ export function CCPerformanceDetail({ record, exchangeRate }: CCPerformanceDetai
         </div>
 
         {/* 过程指标摘要 */}
-        <div className="mt-3 pt-3 border-t border-[var(--border-default)] grid grid-cols-3 gap-2">
+        <div className="mt-3 pt-3 border-t border-default-token grid grid-cols-3 gap-2">
           {[
             { label: t.participation, value: formatRate(record.participation_rate) },
             { label: t.checkin, value: formatRate(record.checkin_rate) },
@@ -280,10 +280,8 @@ export function CCPerformanceDetail({ record, exchangeRate }: CCPerformanceDetai
             { label: t.payment, value: record.paid?.actual?.toLocaleString() ?? '—' },
           ].map((item) => (
             <div key={item.label} className="text-center">
-              <p className="text-[10px] text-[var(--text-muted)]">{item.label}</p>
-              <p className="text-xs font-semibold text-[var(--text-primary)] font-mono">
-                {item.value}
-              </p>
+              <p className="text-[10px] text-muted-token">{item.label}</p>
+              <p className="text-xs font-semibold text-primary-token font-mono">{item.value}</p>
             </div>
           ))}
         </div>

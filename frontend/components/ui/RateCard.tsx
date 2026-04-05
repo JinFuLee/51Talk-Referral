@@ -37,7 +37,7 @@ function RateCardBase({ label, rate, sub, target }: RateCardProps) {
         ? 'text-warning'
         : status === 'red'
           ? 'text-destructive'
-          : 'text-[var(--text-primary)]';
+          : 'text-primary-token';
 
   // vs 目标差值
   const t = I18N[locale as keyof typeof I18N] ?? I18N.zh;
@@ -53,7 +53,7 @@ function RateCardBase({ label, rate, sub, target }: RateCardProps) {
 
   return (
     <div className="card-interactive p-4">
-      <p className="text-xs text-[var(--text-secondary)] mb-2">{label}</p>
+      <p className="text-xs text-secondary-token mb-2">{label}</p>
       <div className="flex items-baseline">
         <p className={`text-3xl font-bold ${textColor}`}>{pct}%</p>
         {vsDiff !== null && (
@@ -63,10 +63,10 @@ function RateCardBase({ label, rate, sub, target }: RateCardProps) {
           </span>
         )}
       </div>
-      {sub && <p className="text-xs text-[var(--text-muted)] mt-1">{sub}</p>}
+      {sub && <p className="text-xs text-muted-token mt-1">{sub}</p>}
       {targetPct !== undefined && (
         <>
-          <div className="mt-3 h-1 rounded-full bg-[var(--n-200)]">
+          <div className="mt-3 h-1 rounded-full bg-n-200">
             <div
               className="h-1 rounded-full transition-all duration-500"
               style={{
@@ -82,7 +82,7 @@ function RateCardBase({ label, rate, sub, target }: RateCardProps) {
               }}
             />
           </div>
-          <p className="text-xs text-[var(--text-muted)] mt-1">{t.target(targetPct)}</p>
+          <p className="text-xs text-muted-token mt-1">{t.target(targetPct)}</p>
         </>
       )}
     </div>

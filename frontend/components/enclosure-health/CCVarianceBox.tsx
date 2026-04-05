@@ -66,7 +66,7 @@ export function CCVarianceBox({ data }: CCVarianceBoxProps) {
 
   if (!data.length) {
     return (
-      <div className="flex items-center justify-center h-32 text-sm text-[var(--text-muted)]">
+      <div className="flex items-center justify-center h-32 text-sm text-muted-token">
         {t.noData}
       </div>
     );
@@ -82,8 +82,8 @@ export function CCVarianceBox({ data }: CCVarianceBoxProps) {
         return (
           <div key={row.segment}>
             <div className="flex items-center justify-between mb-1">
-              <span className="text-xs font-medium text-[var(--text-primary)]">{row.segment}</span>
-              <div className="flex gap-3 text-[10px] text-[var(--text-muted)] font-mono">
+              <span className="text-xs font-medium text-primary-token">{row.segment}</span>
+              <div className="flex gap-3 text-[10px] text-muted-token font-mono">
                 <span>
                   {t.min} {formatRate(row.min)}
                 </span>
@@ -96,12 +96,12 @@ export function CCVarianceBox({ data }: CCVarianceBoxProps) {
                 <span>
                   {t.max} {formatRate(row.max)}
                 </span>
-                <span className="text-[var(--color-warning)]">±{formatRate(row.std)}</span>
+                <span className="text-warning-token">±{formatRate(row.std)}</span>
               </div>
             </div>
 
             {/* 简化箱线图：横向条 */}
-            <div className="relative h-5 bg-[var(--bg-subtle)] rounded overflow-hidden">
+            <div className="relative h-5 bg-subtle rounded overflow-hidden">
               {/* min → max 全程条 */}
               <div
                 className="absolute inset-y-0 bg-action-accent-subtle dark:bg-action-accent/20 rounded"
@@ -139,7 +139,7 @@ export function CCVarianceBox({ data }: CCVarianceBoxProps) {
         );
       })}
 
-      <div className="flex items-center gap-4 text-[10px] text-[var(--text-muted)] mt-1">
+      <div className="flex items-center gap-4 text-[10px] text-muted-token mt-1">
         <div className="flex items-center gap-1">
           <div className="w-3 h-0.5 bg-action-accent" />
           <span>{t.legendMean}</span>

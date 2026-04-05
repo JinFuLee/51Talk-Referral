@@ -250,7 +250,7 @@ function RiskBadge({ level }: { level: RiskLevel }) {
 }
 
 function RoiCell({ roi }: { roi: number | null }) {
-  if (roi == null) return <span className="text-[var(--text-muted)]">—</span>;
+  if (roi == null) return <span className="text-muted-token">—</span>;
   const color = roi >= 200 ? '#16a34a' : roi >= 0 ? '#ca8a04' : '#dc2626';
   return (
     <span className="font-semibold" style={{ color }}>
@@ -381,8 +381,8 @@ export function RoiStudentTable({ roleFilter, enclosureFilter }: Props) {
               className={[
                 'px-2.5 py-1 rounded-full text-xs font-medium border transition-colors',
                 riskFilter === opt.id
-                  ? 'bg-[var(--action-accent)] text-white border-[var(--action-accent)]'
-                  : 'bg-[var(--bg-surface)] text-[var(--text-secondary)] border-[var(--border-default)] hover:bg-[var(--bg-subtle)]',
+                  ? 'bg-action-accent-token text-white border-action-accent-token'
+                  : 'bg-surface text-secondary-token border-default-token hover:bg-subtle',
               ].join(' ')}
             >
               {opt.label}
@@ -409,14 +409,14 @@ export function RoiStudentTable({ roleFilter, enclosureFilter }: Props) {
       </div>
 
       {/* 结果数 */}
-      <p className="text-xs text-[var(--text-muted)]">
+      <p className="text-xs text-muted-token">
         {filtered.length.toLocaleString()} {t.studentCount}
         {riskFilter !== 'all' &&
           `${t.filteredBy}${getRiskLabel(riskFilter as RiskLevel, rawLocale)}${t.filteredBySuffix}`}
       </p>
 
       {/* 表格 */}
-      <div className="overflow-x-auto rounded-xl border border-[var(--border-default)]">
+      <div className="overflow-x-auto rounded-xl border border-default-token">
         <table className="w-full text-sm">
           <thead>
             <tr className="slide-thead-row">
@@ -439,7 +439,7 @@ export function RoiStudentTable({ roleFilter, enclosureFilter }: Props) {
           <tbody>
             {filtered.length === 0 ? (
               <tr>
-                <td colSpan={14} className="py-8 text-center text-xs text-[var(--text-muted)]">
+                <td colSpan={14} className="py-8 text-center text-xs text-muted-token">
                   {t.noStudents}
                 </td>
               </tr>
@@ -449,7 +449,7 @@ export function RoiStudentTable({ roleFilter, enclosureFilter }: Props) {
                   key={s.student_id || i}
                   className={i % 2 === 0 ? 'slide-row-even' : 'slide-row-odd'}
                 >
-                  <td className="slide-td text-right text-[var(--text-muted)]">{i + 1}</td>
+                  <td className="slide-td text-right text-muted-token">{i + 1}</td>
                   <td className="slide-td font-mono text-xs">{s.student_id || '—'}</td>
                   <td className="slide-td">{s.enclosure || '—'}</td>
                   <td className="slide-td">{s.cc_name || '—'}</td>

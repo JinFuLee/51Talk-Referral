@@ -333,12 +333,12 @@ interface RankingResponse {
 function RankBadge({ rank }: { rank: number }) {
   const cls =
     rank === 1
-      ? 'bg-[var(--color-warning-surface)] text-[var(--color-warning)]'
+      ? 'bg-warning-surface text-warning-token'
       : rank === 2
-        ? 'bg-[var(--bg-subtle)] text-[var(--text-secondary)]'
+        ? 'bg-subtle text-secondary-token'
         : rank === 3
           ? 'bg-orange-50 text-orange-600'
-          : 'text-[var(--text-muted)]';
+          : 'text-muted-token';
   return (
     <span
       className={`inline-flex w-6 h-6 items-center justify-center rounded-full text-xs font-bold ${cls}`}
@@ -452,19 +452,17 @@ function CCTabContent() {
     <div className="space-y-4">
       {/* insight 卡片 */}
       {topCC && bottomCC && topCC.cc_name !== bottomCC.cc_name && (
-        <div className="flex flex-col gap-1.5 rounded-lg border border-[var(--border-default)] border-l-4 border-l-green-500 bg-[var(--color-success-surface)] px-4 py-3">
-          <div className="text-sm font-semibold text-[var(--text-primary)]">{tr.insightTitle}</div>
-          <div className="text-xs text-[var(--text-secondary)]">
+        <div className="flex flex-col gap-1.5 rounded-lg border border-default-token border-l-4 border-l-green-500 bg-success-surface px-4 py-3">
+          <div className="text-sm font-semibold text-primary-token">{tr.insightTitle}</div>
+          <div className="text-xs text-secondary-token">
             {tr.insightTopLabel}
-            <span className="font-semibold text-[var(--text-primary)]">{topCC.cc_name}</span>{' '}
-            <span className="text-[var(--color-success)] font-semibold">
+            <span className="font-semibold text-primary-token">{topCC.cc_name}</span>{' '}
+            <span className="text-success-token font-semibold">
               {formatRate(topCC.participation_rate)}
             </span>
             {tr.insightBottomLabel}
-            <span className="font-semibold text-[var(--text-primary)]">
-              {bottomCC.cc_name}
-            </span>{' '}
-            <span className="text-[var(--color-danger)] font-semibold">
+            <span className="font-semibold text-primary-token">{bottomCC.cc_name}</span>{' '}
+            <span className="text-danger-token font-semibold">
               {formatRate(bottomCC.participation_rate)}
             </span>
             {topCC.participation_rate != null &&
@@ -474,11 +472,11 @@ function CCTabContent() {
               )}
             。
           </div>
-          <p className="text-[10px] text-[var(--text-muted)]">
+          <p className="text-[10px] text-muted-token">
             {tr.colorHint}
-            <span className="text-[var(--color-success)] font-medium">{tr.colorGreen}</span> ·{' '}
-            <span className="text-[var(--color-warning)] font-medium">{tr.colorAmber}</span> ·{' '}
-            <span className="text-[var(--color-danger)] font-medium">{tr.colorRed}</span>
+            <span className="text-success-token font-medium">{tr.colorGreen}</span> ·{' '}
+            <span className="text-warning-token font-medium">{tr.colorAmber}</span> ·{' '}
+            <span className="text-danger-token font-medium">{tr.colorRed}</span>
             {tr.colorHintSuffix}
           </p>
         </div>
@@ -533,9 +531,7 @@ function CCTabContent() {
                       <RankBadge rank={i + 1} />
                     </td>
                     <td className="slide-td py-1.5 px-2 font-medium">{t.cc_name}</td>
-                    <td className="slide-td py-1.5 px-2 text-[var(--text-secondary)]">
-                      {t.cc_group}
-                    </td>
+                    <td className="slide-td py-1.5 px-2 text-secondary-token">{t.cc_group}</td>
                     <td className="slide-td py-1.5 px-2 text-right font-mono tabular-nums">
                       {(t.students ?? 0).toLocaleString()}
                     </td>
@@ -548,7 +544,7 @@ function CCTabContent() {
                       {(t.registrations ?? 0).toLocaleString()}
                     </td>
                     <td
-                      className={`slide-td py-1.5 px-2 text-right font-mono tabular-nums ${(t.payments ?? 0) >= 1 ? 'text-[var(--color-success)] font-semibold' : ''}`}
+                      className={`slide-td py-1.5 px-2 text-right font-mono tabular-nums ${(t.payments ?? 0) >= 1 ? 'text-success-token font-semibold' : ''}`}
                     >
                       {(t.payments ?? 0).toLocaleString()}
                     </td>
@@ -658,36 +654,32 @@ function RoleRankingContent({ role, apiUrl }: { role: 'SS' | 'LP'; apiUrl: strin
     <div className="space-y-4">
       {/* 效率 insight 卡片 */}
       {topMember && bottomMember && topMember.name !== bottomMember.name && (
-        <div className="flex flex-col gap-1 rounded-lg border border-[var(--border-default)] border-l-4 border-l-green-500 bg-[var(--color-success-surface)] px-4 py-3">
-          <div className="text-sm font-semibold text-[var(--text-primary)]">
+        <div className="flex flex-col gap-1 rounded-lg border border-default-token border-l-4 border-l-green-500 bg-success-surface px-4 py-3">
+          <div className="text-sm font-semibold text-primary-token">
             {tr.insightRoleTitle(role)}
           </div>
-          <div className="text-xs text-[var(--text-secondary)]">
+          <div className="text-xs text-secondary-token">
             {tr.insightTopLabel}
-            <span className="font-semibold text-[var(--text-primary)]">{topMember.name}</span>{' '}
-            <span className="text-[var(--color-success)] font-semibold">
+            <span className="font-semibold text-primary-token">{topMember.name}</span>{' '}
+            <span className="text-success-token font-semibold">
               {formatRate(topMember.participation_rate)}
             </span>
             {tr.insightBottomLabel}
-            <span className="font-semibold text-[var(--text-primary)]">
-              {bottomMember.name}
-            </span>{' '}
-            <span className="text-[var(--color-danger)] font-semibold">
+            <span className="font-semibold text-primary-token">{bottomMember.name}</span>{' '}
+            <span className="text-danger-token font-semibold">
               {formatRate(bottomMember.participation_rate)}
             </span>
             。
           </div>
-          <p className="text-[10px] text-[var(--text-muted)]">
+          <p className="text-[10px] text-muted-token">
             {tr.colorHint}
-            <span className="text-[var(--color-success)] font-medium">
-              {tr.colorGreenLow}
-            </span> ·{' '}
-            <span className="text-[var(--color-warning)] font-medium">{tr.colorAmberLow}</span> ·{' '}
-            <span className="text-[var(--color-danger)] font-medium">{tr.colorRedLow}</span>
+            <span className="text-success-token font-medium">{tr.colorGreenLow}</span> ·{' '}
+            <span className="text-warning-token font-medium">{tr.colorAmberLow}</span> ·{' '}
+            <span className="text-danger-token font-medium">{tr.colorRedLow}</span>
             {tr.colorHintParticipation}，
-            <span className="text-[var(--color-success)] font-medium">{tr.colorGreen}</span> ·{' '}
-            <span className="text-[var(--color-warning)] font-medium">{tr.colorAmber}</span> ·{' '}
-            <span className="text-[var(--color-danger)] font-medium">{tr.colorRed}</span>
+            <span className="text-success-token font-medium">{tr.colorGreen}</span> ·{' '}
+            <span className="text-warning-token font-medium">{tr.colorAmber}</span> ·{' '}
+            <span className="text-danger-token font-medium">{tr.colorRed}</span>
             {tr.colorHintCheckin}
           </p>
         </div>
@@ -728,7 +720,7 @@ function RoleRankingContent({ role, apiUrl }: { role: 'SS' | 'LP'; apiUrl: strin
                       <RankBadge rank={i + 1} />
                     </td>
                     <td className="slide-td py-1.5 px-2 font-medium">{r.name}</td>
-                    <td className="slide-td py-1.5 px-2 text-[var(--text-secondary)]">{r.group}</td>
+                    <td className="slide-td py-1.5 px-2 text-secondary-token">{r.group}</td>
                     <td className="slide-td py-1.5 px-2 text-right font-mono tabular-nums">
                       {(r.students ?? 0).toLocaleString()}
                     </td>
@@ -891,8 +883,8 @@ function TeamPageInner() {
       <div className="flex items-start justify-between mb-2">
         <div>
           <h1 className="page-title">{tr.pageTitle}</h1>
-          <p className="text-sm text-[var(--text-secondary)] mt-1">{tr.pageDesc}</p>
-          <p className="text-sm text-[var(--text-muted)] mt-0.5">{tr.pageHintTemplate(roleHint)}</p>
+          <p className="text-sm text-secondary-token mt-1">{tr.pageDesc}</p>
+          <p className="text-sm text-muted-token mt-0.5">{tr.pageHintTemplate(roleHint)}</p>
         </div>
         <ExportButton onExportCsv={handleExport} />
       </div>

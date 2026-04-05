@@ -66,7 +66,7 @@ export function EnclosureFilter({ value, onChange }: EnclosureFilterProps) {
           className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
             value === f.value
               ? 'bg-action-accent text-white shadow-sm'
-              : 'bg-[var(--bg-subtle)] text-[var(--text-secondary)] hover:bg-[var(--n-200)]'
+              : 'bg-subtle text-secondary-token hover:bg-n-200'
           }`}
           aria-pressed={value === f.value}
         >

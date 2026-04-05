@@ -157,9 +157,9 @@ interface RoutingData {
 // AUDIENCE_LABELS is now derived from t inside the component
 
 const AUDIENCE_COLORS: Record<string, string> = {
-  all: 'text-[var(--color-accent)]',
-  tl: 'text-[var(--color-warning)]',
-  ops: 'text-[var(--color-accent)]',
+  all: 'text-accent-token',
+  tl: 'text-warning-token',
+  ops: 'text-accent-token',
 };
 
 const FORMAT_ICONS: Record<string, typeof Image> = {
@@ -190,8 +190,8 @@ export function RoutingMatrix() {
   });
   const [saving, setSaving] = useState<string | null>(null);
 
-  if (isLoading) return <div className="animate-pulse h-40 rounded-lg bg-[var(--bg-subtle)]" />;
-  if (error || !data) return <div className="text-[var(--text-muted)]">{t.loadFailed}</div>;
+  if (isLoading) return <div className="animate-pulse h-40 rounded-lg bg-subtle" />;
+  if (error || !data) return <div className="text-muted-token">{t.loadFailed}</div>;
 
   const { modules, audience_types } = data;
 
@@ -241,18 +241,16 @@ export function RoutingMatrix() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Grid3X3 className="w-5 h-5 text-[var(--text-secondary)]" />
-          <h3 className="text-sm font-semibold text-[var(--text-primary)]">
-            {t.contentModuleXAudience}
-          </h3>
-          <span className="text-xs text-[var(--text-muted)]">
+          <Grid3X3 className="w-5 h-5 text-secondary-token" />
+          <h3 className="text-sm font-semibold text-primary-token">{t.contentModuleXAudience}</h3>
+          <span className="text-xs text-muted-token">
             {modules.length} {t.modules} · {audience_types.length} {t.audienceLevels}
           </span>
         </div>
         <button
           onClick={() => setShowAdd(!showAdd)}
           className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-lg
- bg-[var(--bg-subtle)] hover:bg-[var(--bg-elevated)] transition-colors"
+ bg-subtle hover:bg-bg-elevated transition-colors"
         >
           <Plus className="w-3.5 h-3.5" />
           {t.addModule}
@@ -261,26 +259,26 @@ export function RoutingMatrix() {
 
       {/* Add Module Form */}
       {showAdd && (
-        <div className="p-4 rounded-lg border border-[var(--border-default)] bg-[var(--bg-surface)] space-y-3">
+        <div className="p-4 rounded-lg border border-default-token bg-surface space-y-3">
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-xs text-[var(--text-muted)] mb-1 block">{t.moduleId}</label>
+              <label className="text-xs text-muted-token mb-1 block">{t.moduleId}</label>
               <input
                 value={newModule.id}
                 onChange={(e) => setNewModule({ ...newModule, id: e.target.value })}
                 placeholder={t.moduleIdPlaceholder}
-                className="w-full px-3 py-1.5 text-sm border border-[var(--border-default)] rounded-lg
- bg-[var(--bg-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--action)]"
+                className="w-full px-3 py-1.5 text-sm border border-default-token rounded-lg
+ bg-bg-primary focus:outline-none focus:ring-2 focus:ring-action-token"
               />
             </div>
             <div>
-              <label className="text-xs text-[var(--text-muted)] mb-1 block">{t.description}</label>
+              <label className="text-xs text-muted-token mb-1 block">{t.description}</label>
               <input
                 value={newModule.description}
                 onChange={(e) => setNewModule({ ...newModule, description: e.target.value })}
                 placeholder={t.descriptionPlaceholder}
-                className="w-full px-3 py-1.5 text-sm border border-[var(--border-default)] rounded-lg
- bg-[var(--bg-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--action)]"
+                className="w-full px-3 py-1.5 text-sm border border-default-token rounded-lg
+ bg-bg-primary focus:outline-none focus:ring-2 focus:ring-action-token"
               />
             </div>
           </div>
@@ -289,7 +287,7 @@ export function RoutingMatrix() {
               <select
                 value={newModule.format}
                 onChange={(e) => setNewModule({ ...newModule, format: e.target.value })}
-                className="px-2 py-1 text-xs border border-[var(--border-default)] rounded bg-[var(--bg-primary)]"
+                className="px-2 py-1 text-xs border border-default-token rounded bg-bg-primary"
               >
                 <option value="image">{t.image}</option>
                 <option value="markdown">Markdown</option>
@@ -307,7 +305,7 @@ export function RoutingMatrix() {
             <div className="flex-1" />
             <button
               onClick={() => setShowAdd(false)}
-              className="px-3 py-1 text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+              className="px-3 py-1 text-xs text-muted-token hover:text-primary-token"
             >
               {t.cancel}
             </button>
@@ -315,7 +313,7 @@ export function RoutingMatrix() {
               onClick={addModule}
               disabled={!newModule.id.trim()}
               className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-lg
- bg-[var(--action)] text-white hover:bg-[var(--action-accent)]
+ bg-action-token text-white hover:bg-action-accent-token
  disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               <Save className="w-3 h-3" />
@@ -326,14 +324,14 @@ export function RoutingMatrix() {
       )}
 
       {/* Matrix Table */}
-      <div className="overflow-x-auto rounded-xl border border-[var(--border-default)]">
+      <div className="overflow-x-auto rounded-xl border border-default-token">
         <table className="w-full text-sm">
           <thead>
-            <tr className="bg-[var(--bg-subtle)]">
-              <th className="text-left px-4 py-3 text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider w-[280px]">
+            <tr className="bg-subtle">
+              <th className="text-left px-4 py-3 text-xs font-semibold text-secondary-token uppercase tracking-wider w-[280px]">
                 {t.contentModule}
               </th>
-              <th className="text-left px-3 py-3 text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider w-[90px]">
+              <th className="text-left px-3 py-3 text-xs font-semibold text-secondary-token uppercase tracking-wider w-[90px]">
                 {t.format}
               </th>
               {audience_types.map((aud) => (
@@ -341,12 +339,12 @@ export function RoutingMatrix() {
                   key={aud}
                   className="text-center px-3 py-3 text-xs font-semibold uppercase tracking-wider w-[100px]"
                 >
-                  <span className={AUDIENCE_COLORS[aud] || 'text-[var(--text-secondary)]'}>
+                  <span className={AUDIENCE_COLORS[aud] || 'text-secondary-token'}>
                     {AUDIENCE_LABELS[aud] || aud}
                   </span>
                 </th>
               ))}
-              <th className="text-center px-3 py-3 text-xs font-semibold text-[var(--text-muted)] w-[80px]">
+              <th className="text-center px-3 py-3 text-xs font-semibold text-muted-token w-[80px]">
                 {t.actions}
               </th>
             </tr>
@@ -357,29 +355,27 @@ export function RoutingMatrix() {
               const isEditing = editingModule === mod.id;
 
               return (
-                <tr key={mod.id} className="hover:bg-[var(--bg-subtle)] transition-colors">
+                <tr key={mod.id} className="hover:bg-subtle transition-colors">
                   {/* Module Name + Description */}
                   <td className="px-4 py-3">
                     <div className="flex items-start gap-2">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-1.5">
-                          <span className="font-medium text-[var(--text-primary)]">{mod.id}</span>
+                          <span className="font-medium text-primary-token">{mod.id}</span>
                           {mod.cc_only && (
-                            <span className="px-1.5 py-0.5 text-[10px] font-medium rounded-full bg-[var(--color-warning-surface)] text-[var(--color-warning)]">
+                            <span className="px-1.5 py-0.5 text-[10px] font-medium rounded-full bg-warning-surface text-warning-token">
                               CC
                             </span>
                           )}
-                          {mod.per_team && (
-                            <Users className="w-3.5 h-3.5 text-[var(--text-muted)]" />
-                          )}
+                          {mod.per_team && <Users className="w-3.5 h-3.5 text-muted-token" />}
                         </div>
                         {isEditing ? (
                           <div className="flex items-center gap-1 mt-1">
                             <input
                               value={editDesc}
                               onChange={(e) => setEditDesc(e.target.value)}
-                              className="flex-1 px-2 py-0.5 text-xs border border-[var(--border-default)] rounded
- bg-[var(--bg-primary)] focus:outline-none focus:ring-1 focus:ring-[var(--action)]"
+                              className="flex-1 px-2 py-0.5 text-xs border border-default-token rounded
+ bg-bg-primary focus:outline-none focus:ring-1 focus:ring-action-token"
                               autoFocus
                               onKeyDown={(e) => {
                                 if (e.key === 'Enter') saveDescription(mod.id);
@@ -388,20 +384,20 @@ export function RoutingMatrix() {
                             />
                             <button
                               onClick={() => saveDescription(mod.id)}
-                              className="p-0.5 text-[var(--color-success)] hover:bg-[var(--color-success-surface)] rounded"
+                              className="p-0.5 text-success-token hover:bg-success-surface rounded"
                             >
                               <Check className="w-3.5 h-3.5" />
                             </button>
                             <button
                               onClick={() => setEditingModule(null)}
-                              className="p-0.5 text-[var(--text-muted)] hover:bg-[var(--bg-subtle)] rounded"
+                              className="p-0.5 text-muted-token hover:bg-subtle rounded"
                             >
                               <X className="w-3.5 h-3.5" />
                             </button>
                           </div>
                         ) : (
                           <p
-                            className="text-xs text-[var(--text-muted)] mt-0.5 truncate cursor-pointer hover:text-[var(--text-secondary)]"
+                            className="text-xs text-muted-token mt-0.5 truncate cursor-pointer hover:text-secondary-token"
                             onClick={() => {
                               setEditingModule(mod.id);
                               setEditDesc(mod.description);
@@ -417,7 +413,7 @@ export function RoutingMatrix() {
 
                   {/* Format */}
                   <td className="px-3 py-3">
-                    <div className="flex items-center gap-1.5 text-xs text-[var(--text-muted)]">
+                    <div className="flex items-center gap-1.5 text-xs text-muted-token">
                       <FormatIcon className="w-3.5 h-3.5" />
                       {mod.format === 'image' ? t.image : t.text}
                     </div>
@@ -437,8 +433,8 @@ export function RoutingMatrix() {
                           className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all
  ${
    enabled
-     ? 'bg-[var(--color-success-surface)] text-[var(--color-success)] hover:bg-[var(--color-success-surface)]'
-     : 'bg-[var(--bg-subtle)] text-[var(--text-muted)] hover:bg-[var(--bg-elevated)]'
+     ? 'bg-success-surface text-success-token hover:bg-success-surface'
+     : 'bg-subtle text-muted-token hover:bg-bg-elevated'
  } ${isSaving ? 'opacity-50' : ''}`}
                           title={enabled ? t.enabledClickToDisable : t.disabledClickToEnable}
                         >
@@ -456,14 +452,14 @@ export function RoutingMatrix() {
                           setEditingModule(mod.id);
                           setEditDesc(mod.description);
                         }}
-                        className="p-1.5 text-[var(--text-muted)] hover:text-[var(--action)] hover:bg-[var(--bg-subtle)] rounded-lg transition-colors"
+                        className="p-1.5 text-muted-token hover:text-action-token hover:bg-subtle rounded-lg transition-colors"
                         title={t.editDescription}
                       >
                         <Edit2 className="w-3.5 h-3.5" />
                       </button>
                       <button
                         onClick={() => deleteModule(mod.id)}
-                        className="p-1.5 text-[var(--text-muted)] hover:text-[var(--color-danger)] hover:bg-[var(--color-danger-surface)] rounded-lg transition-colors"
+                        className="p-1.5 text-muted-token hover:text-danger-token hover:bg-danger-surface rounded-lg transition-colors"
                         title={t.deleteModule}
                       >
                         <Trash2 className="w-3.5 h-3.5" />
@@ -481,18 +477,15 @@ export function RoutingMatrix() {
       {data.role_metrics && Object.keys(data.role_metrics).length > 0 && (
         <div className="space-y-3">
           <div className="flex items-center gap-2">
-            <Shield className="w-4 h-4 text-[var(--text-secondary)]" />
-            <h4 className="text-sm font-semibold text-[var(--text-primary)]">{t.roleMetrics}</h4>
+            <Shield className="w-4 h-4 text-secondary-token" />
+            <h4 className="text-sm font-semibold text-primary-token">{t.roleMetrics}</h4>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             {Object.entries(data.role_metrics).map(([role, metrics]) => (
-              <div
-                key={role}
-                className="p-3 rounded-lg border border-[var(--border-default)] bg-[var(--bg-surface)]"
-              >
+              <div key={role} className="p-3 rounded-lg border border-default-token bg-surface">
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="text-sm font-semibold text-[var(--text-primary)]">{role}</span>
-                  <span className="text-xs text-[var(--text-muted)]">
+                  <span className="text-sm font-semibold text-primary-token">{role}</span>
+                  <span className="text-xs text-muted-token">
                     {(metrics as Record<string, string[]>).enclosure || ''}
                   </span>
                 </div>
@@ -504,14 +497,14 @@ export function RoutingMatrix() {
                     if (itemList.length === 0) return null;
                     return (
                       <div key={category} className="flex items-start gap-2">
-                        <span className="text-[10px] font-medium text-[var(--text-muted)] uppercase w-16 shrink-0 pt-0.5">
+                        <span className="text-[10px] font-medium text-muted-token uppercase w-16 shrink-0 pt-0.5">
                           {category}
                         </span>
                         <div className="flex flex-wrap gap-1">
                           {itemList.map((item: string) => (
                             <span
                               key={item}
-                              className="px-1.5 py-0.5 text-[10px] rounded bg-[var(--bg-subtle)] text-[var(--text-secondary)]"
+                              className="px-1.5 py-0.5 text-[10px] rounded bg-subtle text-secondary-token"
                             >
                               {item}
                             </span>

@@ -180,7 +180,7 @@ function RoleColumn({ role, summary, subTab, rateColor }: RoleColumnProps) {
   return (
     <div className="card-base flex flex-col min-w-[320px] flex-1 !p-0 overflow-hidden">
       {/* 角色标题 + 汇总 */}
-      <div className="bg-[var(--n-800,#1e293b)] text-white text-xs font-semibold px-3 py-2 flex items-center justify-between">
+      <div className="bg-n-800 text-white text-xs font-semibold px-3 py-2 flex items-center justify-between">
         <span>{role}</span>
         <span
           className={`font-mono tabular-nums ${rateColor?.(summary.checkin_rate) ?? ''}`}
@@ -196,11 +196,11 @@ function RoleColumn({ role, summary, subTab, rateColor }: RoleColumnProps) {
       {/* 排行表 */}
       <div className="overflow-hidden">
         {rows.length === 0 ? (
-          <div className="py-6 text-center text-xs text-[var(--text-muted)]">{t.noData}</div>
+          <div className="py-6 text-center text-xs text-muted-token">{t.noData}</div>
         ) : (
           <table className="w-full text-xs">
             <thead>
-              <tr className="bg-[var(--n-200)] text-[var(--text-secondary)] text-xs font-semibold border-b border-[var(--border-default)]">
+              <tr className="bg-n-200 text-secondary-token text-xs font-semibold border-b border-default-token">
                 <th className="py-1 px-2 text-center w-8">{t.rank}</th>
                 <th className="py-1 px-2 text-left">{subTab === 'group' ? t.team : t.sales}</th>
                 {subTab === 'person' && (
@@ -230,8 +230,8 @@ function RoleColumn({ role, summary, subTab, rateColor }: RoleColumnProps) {
                 const teamField = subTab === 'person' ? (row as RankingPersonRow).group : null;
 
                 return (
-                  <tr key={`${nameField}-${i}`} className="even:bg-[var(--bg-subtle)]">
-                    <td className="py-1 px-2 text-center text-[var(--text-muted)] font-mono tabular-nums">
+                  <tr key={`${nameField}-${i}`} className="even:bg-subtle">
+                    <td className="py-1 px-2 text-center text-muted-token font-mono tabular-nums">
                       {row.rank}
                     </td>
                     <td
@@ -242,7 +242,7 @@ function RoleColumn({ role, summary, subTab, rateColor }: RoleColumnProps) {
                     </td>
                     {subTab === 'person' && (
                       <td
-                        className="py-1 px-2 text-[var(--text-muted)] whitespace-nowrap min-w-[80px]"
+                        className="py-1 px-2 text-muted-token whitespace-nowrap min-w-[80px]"
                         title={teamField ?? ''}
                       >
                         {teamField || '—'}
@@ -265,8 +265,8 @@ function RoleColumn({ role, summary, subTab, rateColor }: RoleColumnProps) {
             </tbody>
             {/* 合计行 */}
             <tfoot>
-              <tr className="bg-[var(--bg-subtle)] font-semibold border-t border-[var(--border-subtle)]">
-                <td className="py-1 px-2 text-center text-[var(--text-muted)] text-xs">—</td>
+              <tr className="bg-subtle font-semibold border-t border-subtle-token">
+                <td className="py-1 px-2 text-center text-muted-token text-xs">—</td>
                 <td className="py-1 px-2 text-xs" colSpan={subTab === 'person' ? 2 : 1}>
                   {t.total}
                 </td>
@@ -314,7 +314,7 @@ function TeamCard({ card, rateColor, rateBg }: TeamCardProps) {
   return (
     <div className="card-base overflow-hidden !p-0">
       {/* 卡片头部 */}
-      <div className="bg-[var(--n-800,#1e293b)] text-white px-3 py-2 flex items-center justify-between">
+      <div className="bg-n-800 text-white px-3 py-2 flex items-center justify-between">
         <span className="text-sm font-bold">{shortName}</span>
         <div className="flex items-center gap-2 text-xs">
           <span className="opacity-70 font-mono tabular-nums">
@@ -330,12 +330,12 @@ function TeamCard({ card, rateColor, rateBg }: TeamCardProps) {
 
       {/* 成员列表 */}
       {card.members.length === 0 ? (
-        <div className="px-3 py-4 text-xs text-[var(--text-muted)] text-center">{t.noMembers}</div>
+        <div className="px-3 py-4 text-xs text-muted-token text-center">{t.noMembers}</div>
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full text-xs">
             <thead>
-              <tr className="bg-[var(--bg-subtle)] text-[var(--text-muted)] text-xs font-semibold">
+              <tr className="bg-subtle text-muted-token text-xs font-semibold">
                 <th className="py-1 px-2 text-center w-7">#</th>
                 <th className="py-1 px-2 text-left">{t.sales}</th>
                 <th className="py-1 px-2 text-right">{t.validStudents}</th>
@@ -348,26 +348,24 @@ function TeamCard({ card, rateColor, rateBg }: TeamCardProps) {
                 <React.Fragment key={m.name}>
                   <tr
                     onClick={() => setExpandedCC(expandedCC === m.name ? null : m.name)}
-                    className={`cursor-pointer even:bg-[var(--bg-subtle)] hover:bg-action-accent-surface/50 transition-colors ${
-                      expandedCC === m.name ? 'border-l-2 border-[var(--color-accent)]' : ''
+                    className={`cursor-pointer even:bg-subtle hover:bg-action-accent-surface/50 transition-colors ${
+                      expandedCC === m.name ? 'border-l-2 border-accent-token' : ''
                     }`}
                   >
-                    <td className="py-1 px-2 text-center text-[var(--text-muted)] font-mono tabular-nums">
+                    <td className="py-1 px-2 text-center text-muted-token font-mono tabular-nums">
                       {i + 1}
                     </td>
                     <td
-                      className="py-1 px-2 font-medium whitespace-nowrap min-w-[100px] text-[var(--text-primary)]"
+                      className="py-1 px-2 font-medium whitespace-nowrap min-w-[100px] text-primary-token"
                       title={m.name}
                     >
                       {m.name}
-                      {expandedCC === m.name && (
-                        <span className="ml-1.5 text-[var(--text-muted)]">▲</span>
-                      )}
+                      {expandedCC === m.name && <span className="ml-1.5 text-muted-token">▲</span>}
                     </td>
-                    <td className="py-1 px-2 text-right font-mono tabular-nums text-[var(--text-secondary)]">
+                    <td className="py-1 px-2 text-right font-mono tabular-nums text-secondary-token">
                       {fmtNum(m.students)}
                     </td>
-                    <td className="py-1 px-2 text-right font-mono tabular-nums text-[var(--text-secondary)]">
+                    <td className="py-1 px-2 text-right font-mono tabular-nums text-secondary-token">
                       {fmtNum(m.checked_in)}
                     </td>
                     <td
@@ -387,13 +385,13 @@ function TeamCard({ card, rateColor, rateBg }: TeamCardProps) {
               ))}
             </tbody>
             <tfoot>
-              <tr className="border-t border-[var(--border-default)] font-semibold bg-[var(--bg-subtle)]">
-                <td className="py-1.5 px-2 text-center text-[var(--text-muted)]">—</td>
-                <td className="py-1.5 px-2 text-[var(--text-primary)]">{t.subtotal}</td>
-                <td className="py-1.5 px-2 text-right font-mono tabular-nums text-[var(--text-primary)]">
+              <tr className="border-t border-default-token font-semibold bg-subtle">
+                <td className="py-1.5 px-2 text-center text-muted-token">—</td>
+                <td className="py-1.5 px-2 text-primary-token">{t.subtotal}</td>
+                <td className="py-1.5 px-2 text-right font-mono tabular-nums text-primary-token">
                   {fmtNum(card.totalStudents)}
                 </td>
-                <td className="py-1.5 px-2 text-right font-mono tabular-nums text-[var(--text-primary)]">
+                <td className="py-1.5 px-2 text-right font-mono tabular-nums text-primary-token">
                   {fmtNum(card.totalCheckedIn)}
                 </td>
                 <td
@@ -486,15 +484,15 @@ export function RankingTab({ roleFilter = 'CC', enclosureFilter }: RankingTabPro
     <div className="space-y-4">
       {/* 子 Tab 切换 + 围场徽章 */}
       <div className="flex items-center gap-3">
-        <div className="flex rounded-lg border border-[var(--border-subtle)] overflow-hidden text-xs font-medium w-fit">
+        <div className="flex rounded-lg border border-subtle-token overflow-hidden text-xs font-medium w-fit">
           {SUB_TABS.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setSubTab(tab.id)}
               className={`px-4 py-1.5 transition-colors whitespace-nowrap ${
                 subTab === tab.id
-                  ? 'bg-[var(--n-800,#1e293b)] text-white'
-                  : 'bg-[var(--bg-surface)] text-[var(--text-secondary)] hover:bg-[var(--bg-subtle)]'
+                  ? 'bg-n-800 text-white'
+                  : 'bg-surface text-secondary-token hover:bg-subtle'
               }`}
             >
               {tab.label}
@@ -502,7 +500,7 @@ export function RankingTab({ roleFilter = 'CC', enclosureFilter }: RankingTabPro
           ))}
         </div>
         {enclosureFilter && (
-          <span className="ml-2 px-2 py-0.5 rounded-full bg-[var(--color-warning-surface)] text-[var(--color-warning)] text-xs font-medium">
+          <span className="ml-2 px-2 py-0.5 rounded-full bg-warning-surface text-warning-token text-xs font-medium">
             {enclosureFilter}
           </span>
         )}
@@ -510,7 +508,7 @@ export function RankingTab({ roleFilter = 'CC', enclosureFilter }: RankingTabPro
 
       {/* 加载态 */}
       {isLoading && (
-        <div className="flex items-center justify-center py-16 gap-2 text-sm text-[var(--text-muted)]">
+        <div className="flex items-center justify-center py-16 gap-2 text-sm text-muted-token">
           <Spinner size="lg" />
           <span>{t.loading}</span>
         </div>
@@ -581,7 +579,7 @@ export function RankingTab({ roleFilter = 'CC', enclosureFilter }: RankingTabPro
                   {/* 团队卡片网格 */}
                   {teamCards.length > 0 && (
                     <div>
-                      <h3 className="text-sm font-semibold text-[var(--text-secondary)] uppercase tracking-wider mb-3">
+                      <h3 className="text-sm font-semibold text-secondary-token uppercase tracking-wider mb-3">
                         {t.teamCards}
                       </h3>
                       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
@@ -602,17 +600,17 @@ export function RankingTab({ roleFilter = 'CC', enclosureFilter }: RankingTabPro
           )}
 
           {/* 图例 */}
-          <div className="flex items-center gap-4 text-xs text-[var(--text-muted)] pt-1">
+          <div className="flex items-center gap-4 text-xs text-muted-token pt-1">
             <span className="flex items-center gap-1">
-              <span className="inline-block w-2.5 h-2.5 rounded-sm bg-[var(--color-success)] opacity-70" />
+              <span className="inline-block w-2.5 h-2.5 rounded-sm bg-success-token opacity-70" />
               {legend.good}
             </span>
             <span className="flex items-center gap-1">
-              <span className="inline-block w-2.5 h-2.5 rounded-sm bg-[var(--color-warning)] opacity-70" />
+              <span className="inline-block w-2.5 h-2.5 rounded-sm bg-warning-token opacity-70" />
               {legend.warning}
             </span>
             <span className="flex items-center gap-1">
-              <span className="inline-block w-2.5 h-2.5 rounded-sm bg-[var(--color-danger)] opacity-70" />
+              <span className="inline-block w-2.5 h-2.5 rounded-sm bg-danger-token opacity-70" />
               {legend.bad}
             </span>
           </div>

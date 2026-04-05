@@ -94,9 +94,7 @@ function Cell({ active, title }: { active: boolean; title: string }) {
     <div
       title={title}
       className={`w-5 h-5 rounded-sm ${
-        active
-          ? 'bg-[var(--color-success)]'
-          : 'bg-[var(--bg-subtle)] border border-[var(--border-subtle)]'
+        active ? 'bg-success-token' : 'bg-subtle border border-subtle-token'
       }`}
     />
   );
@@ -106,7 +104,7 @@ export function DailyLogTab({ logs }: DailyLogTabProps) {
   const t = useT();
 
   if (!logs || logs.length === 0) {
-    return <div className="py-8 text-center text-sm text-[var(--text-muted)]">{t.noData}</div>;
+    return <div className="py-8 text-center text-sm text-muted-token">{t.noData}</div>;
   }
 
   // 取最近 30 天
@@ -114,13 +112,12 @@ export function DailyLogTab({ logs }: DailyLogTabProps) {
 
   return (
     <div className="space-y-4">
-      <div className="flex gap-4 text-xs text-[var(--text-secondary)]">
+      <div className="flex gap-4 text-xs text-secondary-token">
         <span className="flex items-center gap-1">
-          <span className="w-3 h-3 rounded-sm bg-[var(--color-success)] inline-block" />{' '}
-          {t.hasActivity}
+          <span className="w-3 h-3 rounded-sm bg-success-token inline-block" /> {t.hasActivity}
         </span>
         <span className="flex items-center gap-1">
-          <span className="w-3 h-3 rounded-sm bg-[var(--bg-subtle)] border border-[var(--border-subtle)] inline-block" />{' '}
+          <span className="w-3 h-3 rounded-sm bg-subtle border border-subtle-token inline-block" />{' '}
           {t.noActivity}
         </span>
       </div>
@@ -128,7 +125,7 @@ export function DailyLogTab({ logs }: DailyLogTabProps) {
       <div className="overflow-x-auto">
         <table className="text-xs border-collapse">
           <thead>
-            <tr className="bg-[var(--bg-subtle)] text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">
+            <tr className="bg-subtle text-xs font-semibold text-muted-token uppercase tracking-wider">
               <th className="text-left pr-3 py-1.5 whitespace-nowrap w-20">{t.date}</th>
               <th className="px-1 py-1.5">CC</th>
               <th className="px-1 py-1.5">SS</th>
@@ -141,8 +138,8 @@ export function DailyLogTab({ logs }: DailyLogTabProps) {
           </thead>
           <tbody>
             {recent.map((log) => (
-              <tr key={log.date} className="hover:bg-[var(--bg-subtle)]">
-                <td className="pr-3 py-0.5 text-[var(--text-secondary)] whitespace-nowrap font-mono">
+              <tr key={log.date} className="hover:bg-subtle">
+                <td className="pr-3 py-0.5 text-secondary-token whitespace-nowrap font-mono">
                   {log.date}
                 </td>
                 <td className="px-1 py-0.5">

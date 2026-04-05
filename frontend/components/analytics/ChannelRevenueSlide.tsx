@@ -116,10 +116,10 @@ type DailyReportSlice = { blocks: { channel_revenue: ChannelRevenue } };
 function JudgmentBadge({ judgment }: { judgment: '↑' | '↓' | '→' }) {
   const color =
     judgment === '↑'
-      ? 'text-[var(--color-success)] font-bold'
+      ? 'text-success-token font-bold'
       : judgment === '↓'
-        ? 'text-[var(--color-danger)] font-bold'
-        : 'text-[var(--text-muted)]';
+        ? 'text-danger-token font-bold'
+        : 'text-muted-token';
   return <span className={`text-base ${color}`}>{judgment}</span>;
 }
 
@@ -163,18 +163,18 @@ export function ChannelRevenueSlide({ slideNumber, totalSlides }: SlideProps) {
       ) : error ? (
         <div className="flex items-center justify-center h-full">
           <div className="text-center space-y-2">
-            <p className="text-base font-semibold text-[var(--color-danger)]">{t.error}</p>
-            <p className="text-sm text-[var(--text-muted)]">{t.errorHint}</p>
+            <p className="text-base font-semibold text-danger-token">{t.error}</p>
+            <p className="text-sm text-muted-token">{t.errorHint}</p>
             <button
               onClick={() => mutate()}
-              className="mt-1 px-4 py-1.5 rounded-lg text-sm border border-[var(--border-default)] text-[var(--text-secondary)] hover:bg-[var(--bg-subtle)] transition-colors"
+              className="mt-1 px-4 py-1.5 rounded-lg text-sm border border-default-token text-secondary-token hover:bg-subtle transition-colors"
             >
               {t.retry}
             </button>
           </div>
         </div>
       ) : rows.length === 0 ? (
-        <div className="flex flex-col justify-center items-center h-full gap-3 text-[var(--text-muted)]">
+        <div className="flex flex-col justify-center items-center h-full gap-3 text-muted-token">
           <p className="text-base font-medium">{t.empty}</p>
           <p className="text-sm">{t.emptyHint}</p>
         </div>
@@ -197,28 +197,28 @@ export function ChannelRevenueSlide({ slideNumber, totalSlides }: SlideProps) {
             <tbody>
               {rows.map((row, i) => (
                 <tr key={row.channel} className={i % 2 === 0 ? 'slide-row-even' : 'slide-row-odd'}>
-                  <td className="px-3 py-2 text-xs font-semibold text-[var(--text-primary)]">
+                  <td className="px-3 py-2 text-xs font-semibold text-primary-token">
                     {row.channel}
                   </td>
-                  <td className="px-3 py-2 text-xs text-right font-mono tabular-nums text-[var(--text-secondary)]">
+                  <td className="px-3 py-2 text-xs text-right font-mono tabular-nums text-secondary-token">
                     {formatRevenue(row.last_month_revenue)}
                   </td>
-                  <td className="px-3 py-2 text-xs text-right font-mono tabular-nums font-semibold text-[var(--text-primary)]">
+                  <td className="px-3 py-2 text-xs text-right font-mono tabular-nums font-semibold text-primary-token">
                     {formatRevenue(row.this_month_revenue)}
                   </td>
                   <td
-                    className={`px-3 py-2 text-xs text-right font-mono tabular-nums font-semibold ${row.delta_revenue >= 0 ? 'text-[var(--color-success)]' : 'text-[var(--color-danger)]'}`}
+                    className={`px-3 py-2 text-xs text-right font-mono tabular-nums font-semibold ${row.delta_revenue >= 0 ? 'text-success-token' : 'text-danger-token'}`}
                   >
                     {row.delta_revenue >= 0 ? '+' : ''}
                     {formatRevenue(row.delta_revenue)}
                   </td>
                   <td
-                    className={`px-3 py-2 text-xs text-right font-mono tabular-nums ${row.delta_pct >= 0 ? 'text-[var(--color-success)]' : 'text-[var(--color-danger)]'}`}
+                    className={`px-3 py-2 text-xs text-right font-mono tabular-nums ${row.delta_pct >= 0 ? 'text-success-token' : 'text-danger-token'}`}
                   >
                     {row.delta_pct >= 0 ? '+' : ''}
                     {formatRate(row.delta_pct)}
                   </td>
-                  <td className="px-3 py-2 text-xs text-[var(--text-secondary)] leading-snug">
+                  <td className="px-3 py-2 text-xs text-secondary-token leading-snug">
                     {row.driver_text}
                   </td>
                   <td className="px-3 py-2 text-center">
@@ -237,13 +237,13 @@ export function ChannelRevenueSlide({ slideNumber, totalSlides }: SlideProps) {
                   {formatRevenue(totalThisMonth)}
                 </td>
                 <td
-                  className={`px-3 py-2 text-xs text-right font-mono tabular-nums font-semibold ${totalDelta >= 0 ? 'text-[var(--color-success)]' : 'text-[var(--color-danger)]'}`}
+                  className={`px-3 py-2 text-xs text-right font-mono tabular-nums font-semibold ${totalDelta >= 0 ? 'text-success-token' : 'text-danger-token'}`}
                 >
                   {totalDelta >= 0 ? '+' : ''}
                   {formatRevenue(totalDelta)}
                 </td>
                 <td
-                  className={`px-3 py-2 text-xs text-right font-mono tabular-nums ${totalDeltaPct >= 0 ? 'text-[var(--color-success)]' : 'text-[var(--color-danger)]'}`}
+                  className={`px-3 py-2 text-xs text-right font-mono tabular-nums ${totalDeltaPct >= 0 ? 'text-success-token' : 'text-danger-token'}`}
                 >
                   {totalDeltaPct >= 0 ? '+' : ''}
                   {formatRate(totalDeltaPct)}

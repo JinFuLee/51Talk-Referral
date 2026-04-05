@@ -95,7 +95,7 @@ export function OutputGallery({ platform: _platform }: OutputGalleryProps) {
 
   if (isLoading) {
     return (
-      <div className="flex items-center gap-2 py-10 justify-center text-[var(--text-muted)]">
+      <div className="flex items-center gap-2 py-10 justify-center text-muted-token">
         <Loader2 className="w-5 h-5 animate-spin" />
         <span className="text-sm">{t.loading}</span>
       </div>
@@ -104,7 +104,7 @@ export function OutputGallery({ platform: _platform }: OutputGalleryProps) {
 
   if (error) {
     return (
-      <div className="flex items-center gap-2 py-10 justify-center text-[var(--color-warning)]">
+      <div className="flex items-center gap-2 py-10 justify-center text-warning-token">
         <AlertCircle className="w-5 h-5" />
         <span className="text-sm">{t.loadError}</span>
       </div>
@@ -119,7 +119,7 @@ export function OutputGallery({ platform: _platform }: OutputGalleryProps) {
           type="date"
           value={date}
           onChange={(e) => setDate(e.target.value)}
-          className="text-sm border border-[var(--border-subtle)] rounded-lg px-3 py-1.5 outline-none focus:ring-2 focus:ring-action"
+          className="text-sm border border-subtle-token rounded-lg px-3 py-1.5 outline-none focus:ring-2 focus:ring-action"
         />
         <div className="flex gap-1.5 flex-wrap">
           {ROLES.map((r) => (
@@ -129,26 +129,24 @@ export function OutputGallery({ platform: _platform }: OutputGalleryProps) {
               className={`px-2.5 py-1 rounded-full text-xs font-medium transition-colors ${
                 role === r
                   ? 'bg-action text-white'
-                  : 'bg-[var(--bg-subtle)] text-[var(--text-secondary)] hover:bg-[var(--bg-elevated)]'
+                  : 'bg-subtle text-secondary-token hover:bg-bg-elevated'
               }`}
             >
               {r}
             </button>
           ))}
         </div>
-        <span className="text-xs text-[var(--text-muted)] ml-auto">
-          {t.outputCount(data.length)}
-        </span>
+        <span className="text-xs text-muted-token ml-auto">{t.outputCount(data.length)}</span>
       </div>
 
       {/* Gallery */}
       {isLoading ? (
-        <div className="flex items-center gap-2 py-10 justify-center text-[var(--text-muted)]">
+        <div className="flex items-center gap-2 py-10 justify-center text-muted-token">
           <Loader2 className="w-5 h-5 animate-spin" />
           <span className="text-sm">{t.loading}</span>
         </div>
       ) : error ? (
-        <div className="flex items-center gap-2 py-10 justify-center text-[var(--color-warning)]">
+        <div className="flex items-center gap-2 py-10 justify-center text-warning-token">
           <AlertCircle className="w-5 h-5" />
           <span className="text-sm">{t.loadError}</span>
         </div>
@@ -178,17 +176,15 @@ export function OutputGallery({ platform: _platform }: OutputGalleryProps) {
                 />
                 <div
                   hidden
-                  className="w-full aspect-video bg-[var(--bg-primary)] flex items-center justify-center"
+                  className="w-full aspect-video bg-bg-primary flex items-center justify-center"
                 >
-                  <ImageIcon className="w-8 h-8 text-[var(--text-muted)]" />
+                  <ImageIcon className="w-8 h-8 text-muted-token" />
                 </div>
                 <div className="px-2.5 py-2 flex items-center justify-between gap-2">
-                  <span className="text-xs text-[var(--text-muted)] truncate">
+                  <span className="text-xs text-muted-token truncate">
                     {item.filename.slice(0, 20)}…
                   </span>
-                  <span className="text-xs text-[var(--text-muted)] shrink-0">
-                    {item.size_kb}KB
-                  </span>
+                  <span className="text-xs text-muted-token shrink-0">{item.size_kb}KB</span>
                 </div>
               </div>
             );

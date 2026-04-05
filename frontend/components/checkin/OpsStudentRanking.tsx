@@ -330,24 +330,24 @@ function fmtDelta(delta: number): string {
 function RankBadge({ rank }: { rank: number }) {
   if (rank === 1)
     return (
-      <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-[var(--color-warning)] text-white font-bold text-sm">
+      <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-warning-token text-white font-bold text-sm">
         1
       </span>
     );
   if (rank === 2)
     return (
-      <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-[var(--bg-subtle)] text-white font-bold text-sm">
+      <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-subtle text-white font-bold text-sm">
         2
       </span>
     );
   if (rank === 3)
     return (
-      <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-[var(--color-warning)] text-white font-bold text-sm">
+      <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-warning-token text-white font-bold text-sm">
         3
       </span>
     );
   return (
-    <span className="inline-flex items-center justify-center w-7 h-7 text-[var(--text-muted)] text-sm tabular-nums">
+    <span className="inline-flex items-center justify-center w-7 h-7 text-muted-token text-sm tabular-nums">
       {rank}
     </span>
   );
@@ -375,7 +375,7 @@ export function OpsStudentRanking({ configJson }: OpsStudentRankingProps) {
   // ── loading 态 ─────────────────────────────────────────────────────────────
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center py-16 gap-2 text-sm text-[var(--text-muted)]">
+      <div className="flex items-center justify-center py-16 gap-2 text-sm text-muted-token">
         <Spinner size="lg" />
       </div>
     );
@@ -413,10 +413,8 @@ export function OpsStudentRanking({ configJson }: OpsStudentRankingProps) {
       <DimensionPillBar current={dimension} onSelect={setDimension} t={t} />
 
       {/* 当前维度说明 */}
-      <div className="flex items-center gap-2 text-xs text-[var(--text-muted)] px-1">
-        <span className="font-medium text-[var(--text-secondary)]">
-          {t[currentDimDef.labelKey]}：
-        </span>
+      <div className="flex items-center gap-2 text-xs text-muted-token px-1">
+        <span className="font-medium text-secondary-token">{t[currentDimDef.labelKey]}：</span>
         <span>{t[currentDimDef.descKey]}</span>
       </div>
 
@@ -444,29 +442,27 @@ export function OpsStudentRanking({ configJson }: OpsStudentRankingProps) {
                     key={s.student_id}
                     className={cn(
                       idx % 2 === 0 ? 'slide-row-even' : 'slide-row-odd',
-                      isTop3 && 'bg-[var(--color-warning-surface)]'
+                      isTop3 && 'bg-warning-surface'
                     )}
                   >
                     <td className="slide-td text-center">
                       <RankBadge rank={s.rank} />
                     </td>
-                    <td className="slide-td font-mono text-xs text-[var(--text-secondary)] max-w-[120px] truncate">
+                    <td className="slide-td font-mono text-xs text-secondary-token max-w-[120px] truncate">
                       {s.student_id || '—'}
                     </td>
                     <td className="slide-td text-center">
-                      <span className="text-xs px-1.5 py-0.5 rounded bg-[var(--bg-subtle)] text-[var(--text-secondary)]">
+                      <span className="text-xs px-1.5 py-0.5 rounded bg-subtle text-secondary-token">
                         {s.enclosure}
                       </span>
                     </td>
                     <td className="slide-td text-xs">
                       <div className="truncate max-w-[100px]">{s.cc_name || '—'}</div>
                       {s.team && (
-                        <div className="text-[var(--text-muted)] truncate max-w-[100px]">
-                          {s.team}
-                        </div>
+                        <div className="text-muted-token truncate max-w-[100px]">{s.team}</div>
                       )}
                     </td>
-                    <td className="slide-td text-right font-bold text-[var(--text-primary)] tabular-nums">
+                    <td className="slide-td text-right font-bold text-primary-token tabular-nums">
                       {fmtValue(s[currentDimDef.valueKey] as number, currentDimDef.format)}
                     </td>
                     <td className="slide-td text-right tabular-nums">
@@ -475,9 +471,7 @@ export function OpsStudentRanking({ configJson }: OpsStudentRankingProps) {
                         <span
                           className={cn(
                             'ml-1 text-xs',
-                            s.delta > 0
-                              ? 'text-[var(--color-success)]'
-                              : 'text-[var(--color-danger)]'
+                            s.delta > 0 ? 'text-success-token' : 'text-danger-token'
                           )}
                         >
                           {fmtDelta(s.delta)}
@@ -499,17 +493,17 @@ export function OpsStudentRanking({ configJson }: OpsStudentRankingProps) {
       </div>
 
       {/* 底部统计摘要 */}
-      <div className="flex items-center justify-between text-xs text-[var(--text-muted)] px-1">
+      <div className="flex items-center justify-between text-xs text-muted-token px-1">
         <span>
           共{' '}
-          <span className="font-semibold text-[var(--text-primary)]">
+          <span className="font-semibold text-primary-token">
             {data.total_students.toLocaleString()}
           </span>{' '}
           {t.totalStudents}
         </span>
         <span>
           {t.nonZeroLabel}：
-          <span className="font-semibold text-[var(--text-primary)] ml-1">{nonZeroPct}%</span>（
+          <span className="font-semibold text-primary-token ml-1">{nonZeroPct}%</span>（
           {nonZeroCount}/{students.length}）
         </span>
       </div>
@@ -537,8 +531,8 @@ function DimensionPillBar({
           className={cn(
             'whitespace-nowrap text-xs px-3 py-1.5 rounded-full border transition-colors duration-150 flex-shrink-0',
             current === dim.id
-              ? 'bg-[var(--action-accent,#1d4ed8)] text-white border-[var(--action-accent,#1d4ed8)] font-semibold'
-              : 'bg-[var(--bg-surface)] text-[var(--text-secondary)] border-[var(--border-default)] hover:bg-[var(--bg-subtle)]'
+              ? 'bg-action-accent-token text-white border-action-accent-token font-semibold'
+              : 'bg-surface text-secondary-token border-default-token hover:bg-subtle'
           )}
           title={t[dim.descKey]}
         >

@@ -88,13 +88,13 @@ export function FileUploadPanel({ onSuccess }: FileUploadPanelProps) {
   }
 
   return (
-    <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-4 space-y-3 max-w-lg">
+    <div className="rounded-xl border border-subtle-token bg-surface p-4 space-y-3 max-w-lg">
       <div className="flex gap-2">
         <input
           value={sourceId}
           onChange={(e) => setSourceId(e.target.value)}
           placeholder={t.placeholder}
-          className="flex-1 px-3 py-2 border border-[var(--border-subtle)] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+          className="flex-1 px-3 py-2 border border-subtle-token rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring"
         />
         <input
           ref={inputRef}
@@ -105,7 +105,7 @@ export function FileUploadPanel({ onSuccess }: FileUploadPanelProps) {
         />
         <button
           onClick={() => inputRef.current?.click()}
-          className="px-3 py-2 border border-[var(--border-subtle)] rounded-lg text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-subtle)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+          className="px-3 py-2 border border-subtle-token rounded-lg text-sm text-secondary-token hover:bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
         >
           {t.chooseFile}
         </button>

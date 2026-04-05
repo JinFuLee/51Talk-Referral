@@ -99,12 +99,10 @@ export default function OutreachQualityPage() {
     <div className="space-y-3">
       <div>
         <h1 className="page-title">{t('pageTitle')}</h1>
-        <p className="text-sm text-[var(--text-secondary)] mt-1">{t('pageSubtitle')}</p>
+        <p className="text-sm text-secondary-token mt-1">{t('pageSubtitle')}</p>
       </div>
 
-      <p className="text-sm font-semibold text-[var(--text-primary)] mt-1">
-        {t('sectionOutreach')}
-      </p>
+      <p className="text-sm font-semibold text-primary-token mt-1">{t('sectionOutreach')}</p>
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
           { label: t('ccConnected'), value: summary.cc_connected, students: summary.students },
@@ -118,9 +116,9 @@ export default function OutreachQualityPage() {
         ].map(({ label, value, students }) => (
           <Card key={label} title="">
             <div className="pt-1">
-              <p className="text-xs text-[var(--text-muted)] mb-1">{label}</p>
-              <p className="text-2xl font-bold text-[var(--text-primary)]">{safeNum(value)}</p>
-              <p className="text-xs text-[var(--text-secondary)] mt-1">
+              <p className="text-xs text-muted-token mb-1">{label}</p>
+              <p className="text-2xl font-bold text-primary-token">{safeNum(value)}</p>
+              <p className="text-xs text-secondary-token mt-1">
                 {t('reachRate')} {safeRate(value, students)}
               </p>
             </div>
@@ -128,28 +126,28 @@ export default function OutreachQualityPage() {
         ))}
       </div>
 
-      <p className="text-sm font-semibold text-[var(--text-primary)] mt-1">{t('sectionResults')}</p>
+      <p className="text-sm font-semibold text-primary-token mt-1">{t('sectionResults')}</p>
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <Card title="">
           <div className="pt-1">
-            <p className="text-xs text-[var(--text-muted)] mb-1">{t('referralReg')}</p>
-            <p className="text-2xl font-bold text-[var(--text-primary)]">
+            <p className="text-xs text-muted-token mb-1">{t('referralReg')}</p>
+            <p className="text-2xl font-bold text-primary-token">
               {safeNum(summary.referral_registrations)}
             </p>
           </div>
         </Card>
         <Card title="">
           <div className="pt-1">
-            <p className="text-xs text-[var(--text-muted)] mb-1">{t('referralPay')}</p>
-            <p className="text-2xl font-bold text-[var(--text-primary)]">
+            <p className="text-xs text-muted-token mb-1">{t('referralPay')}</p>
+            <p className="text-2xl font-bold text-primary-token">
               {safeNum(summary.referral_payments)}
             </p>
           </div>
         </Card>
         <Card title="">
           <div className="pt-1">
-            <p className="text-xs text-[var(--text-muted)] mb-1">{t('referralRevenue')}</p>
-            <p className="text-2xl font-bold text-[var(--color-success)]">
+            <p className="text-xs text-muted-token mb-1">{t('referralRevenue')}</p>
+            <p className="text-2xl font-bold text-success-token">
               {summary.referral_revenue_usd != null
                 ? `$${summary.referral_revenue_usd.toLocaleString()}`
                 : '—'}
@@ -231,7 +229,7 @@ export default function OutreachQualityPage() {
               </thead>
               <tbody>
                 {byEnclosure.map((row, i) => (
-                  <tr key={i} className="even:bg-[var(--bg-subtle)] hover:bg-[var(--bg-subtle)]">
+                  <tr key={i} className="even:bg-subtle hover:bg-subtle">
                     <td className="slide-td font-medium">{row.enclosure ?? '—'}</td>
                     <td className="slide-td text-right font-mono tabular-nums">
                       {safeNum(row.students)}
@@ -239,16 +237,16 @@ export default function OutreachQualityPage() {
                     <td className="slide-td text-right font-mono tabular-nums font-semibold text-action-accent">
                       {safeNum(row.cc_connected)}
                     </td>
-                    <td className="slide-td text-right font-mono tabular-nums text-[var(--text-secondary)]">
+                    <td className="slide-td text-right font-mono tabular-nums text-secondary-token">
                       {safeRate(row.cc_connected, row.students)}
                     </td>
-                    <td className="slide-td text-right font-mono tabular-nums text-[var(--color-accent)]">
+                    <td className="slide-td text-right font-mono tabular-nums text-accent-token">
                       {safeNum(row.ss_connected)}
                     </td>
-                    <td className="slide-td text-right font-mono tabular-nums text-[var(--color-warning)]">
+                    <td className="slide-td text-right font-mono tabular-nums text-warning-token">
                       {safeNum(row.lp_connected)}
                     </td>
-                    <td className="slide-td text-right font-mono tabular-nums text-[var(--color-success)]">
+                    <td className="slide-td text-right font-mono tabular-nums text-success-token">
                       {safeNum(row.effective_checkin)}
                     </td>
                     <td className="slide-td text-right font-mono tabular-nums">
@@ -257,7 +255,7 @@ export default function OutreachQualityPage() {
                     <td className="slide-td text-right font-mono tabular-nums">
                       {safeNum(row.referral_payments)}
                     </td>
-                    <td className="slide-td text-right font-mono tabular-nums text-[var(--color-success)] font-medium">
+                    <td className="slide-td text-right font-mono tabular-nums text-success-token font-medium">
                       {row.referral_revenue_usd != null
                         ? `$${row.referral_revenue_usd.toLocaleString()}`
                         : '—'}

@@ -83,15 +83,15 @@ export function ScenarioCompareSlide({ data }: Props) {
     <div className="card-base p-5 flex flex-col gap-4">
       {/* Header */}
       <div>
-        <h3 className="text-sm font-bold text-[var(--text-primary)] font-display">{t.title}</h3>
-        <p className="text-xs text-[var(--text-muted)] mt-0.5">{t.subtitle}</p>
+        <h3 className="text-sm font-bold text-primary-token font-display">{t.title}</h3>
+        <p className="text-xs text-muted-token mt-0.5">{t.subtitle}</p>
       </div>
 
       {/* 空态 */}
       {scenarios.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-8 gap-2">
-          <p className="text-sm font-medium text-[var(--text-secondary)]">{t.noData}</p>
-          <p className="text-xs text-[var(--text-muted)]">{t.noDataDesc}</p>
+          <p className="text-sm font-medium text-secondary-token">{t.noData}</p>
+          <p className="text-xs text-muted-token">{t.noDataDesc}</p>
         </div>
       ) : (
         <>
@@ -119,43 +119,43 @@ export function ScenarioCompareSlide({ data }: Props) {
                       key={`${sc.name}-${i}`}
                       className={i % 2 === 0 ? 'slide-row-even' : 'slide-row-odd'}
                     >
-                      <td className="slide-td font-medium text-[var(--text-primary)]">
+                      <td className="slide-td font-medium text-primary-token">
                         {label(SCENARIO_NAME_LABELS, sc.name)}
                       </td>
                       {scenarios.some((s) => s.channel) && (
-                        <td className="slide-td text-[var(--text-muted)]">{sc.channel ?? '—'}</td>
+                        <td className="slide-td text-muted-token">{sc.channel ?? '—'}</td>
                       )}
-                      <td className="slide-td text-right font-mono tabular-nums text-[var(--text-muted)]">
+                      <td className="slide-td text-right font-mono tabular-nums text-muted-token">
                         {formatRate(sc.current_rate)}
                       </td>
                       <td className="slide-td text-right font-mono tabular-nums">
                         <span
                           className={
                             rateDelta >= 0
-                              ? 'text-[var(--color-success)] font-semibold'
-                              : 'text-[var(--color-danger)] font-semibold'
+                              ? 'text-success-token font-semibold'
+                              : 'text-danger-token font-semibold'
                           }
                         >
                           {formatRate(sc.target_rate)}
                         </span>
                         {rateDelta !== 0 && (
-                          <span className="text-[10px] text-[var(--text-muted)] ml-1">
+                          <span className="text-[10px] text-muted-token ml-1">
                             ({rateDelta >= 0 ? '+' : ''}
                             {(rateDelta * 100).toFixed(1)}pp)
                           </span>
                         )}
                       </td>
-                      <td className="slide-td text-right font-mono tabular-nums text-[var(--text-secondary)]">
+                      <td className="slide-td text-right font-mono tabular-nums text-secondary-token">
                         {sc.impact_registrations != null
                           ? `+${sc.impact_registrations.toLocaleString()}`
                           : '—'}
                       </td>
-                      <td className="slide-td text-right font-mono tabular-nums text-[var(--text-secondary)]">
+                      <td className="slide-td text-right font-mono tabular-nums text-secondary-token">
                         {sc.impact_payments != null
                           ? `+${sc.impact_payments.toLocaleString()}`
                           : '—'}
                       </td>
-                      <td className="slide-td text-right font-mono tabular-nums text-[var(--color-success)] font-semibold">
+                      <td className="slide-td text-right font-mono tabular-nums text-success-token font-semibold">
                         {sc.impact_revenue != null ? `+${formatUSD(sc.impact_revenue)}` : '—'}
                       </td>
                     </tr>
@@ -167,9 +167,9 @@ export function ScenarioCompareSlide({ data }: Props) {
 
           {/* 汇总行 */}
           {totalImpactRev > 0 && (
-            <div className="flex items-center justify-between pt-2 border-t border-[var(--border-subtle)]">
-              <span className="text-xs text-[var(--text-muted)]">{t.totalImpact}</span>
-              <span className="text-sm font-bold text-[var(--color-success)] font-mono">
+            <div className="flex items-center justify-between pt-2 border-t border-subtle-token">
+              <span className="text-xs text-muted-token">{t.totalImpact}</span>
+              <span className="text-sm font-bold text-success-token font-mono">
                 +{formatUSD(totalImpactRev)}
               </span>
             </div>

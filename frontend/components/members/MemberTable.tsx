@@ -146,7 +146,7 @@ export function MemberTable({
   const totalPages = Math.ceil(total / pageSize);
 
   if (items.length === 0) {
-    return <div className="text-center py-8 text-sm text-[var(--text-muted)]">{t.noData}</div>;
+    return <div className="text-center py-8 text-sm text-muted-token">{t.noData}</div>;
   }
 
   return (
@@ -211,28 +211,28 @@ export function MemberTable({
                 daysExpiry === null || daysExpiry === undefined
                   ? ''
                   : daysExpiry <= 0
-                    ? 'text-[var(--color-danger)] font-semibold'
+                    ? 'text-danger-token font-semibold'
                     : daysExpiry <= 30
                       ? 'text-orange-500'
-                      : 'text-[var(--text-secondary)]';
+                      : 'text-secondary-token';
 
               return (
                 <tr
                   key={m.id}
                   onClick={() => onRowClick?.(m.id)}
-                  className={`even:bg-[var(--bg-subtle)] transition-colors ${
-                    onRowClick ? 'cursor-pointer hover:bg-[var(--bg-subtle)]' : ''
+                  className={`even:bg-subtle transition-colors ${
+                    onRowClick ? 'cursor-pointer hover:bg-subtle' : ''
                   }`}
                 >
                   <td className="py-1 px-2 text-xs text-action-accent font-medium tabular-nums whitespace-nowrap">
                     {m.id}
                   </td>
                   <td className="py-1 px-2 text-xs whitespace-nowrap">{m.name || '—'}</td>
-                  <td className="py-1 px-2 text-xs text-[var(--text-secondary)] whitespace-nowrap">
+                  <td className="py-1 px-2 text-xs text-secondary-token whitespace-nowrap">
                     {m.enclosure}
                   </td>
                   <td className="py-1 px-2 text-xs whitespace-nowrap">
-                    <span className="px-1.5 py-0.5 bg-[var(--bg-subtle)] rounded text-xs text-[var(--text-secondary)]">
+                    <span className="px-1.5 py-0.5 bg-subtle rounded text-xs text-secondary-token">
                       {m.lifecycle}
                     </span>
                   </td>
@@ -278,7 +278,7 @@ export function MemberTable({
                         ? '—'
                         : String(Math.round(daysExpiry))}
                   </td>
-                  <td className="py-1 px-2 text-xs whitespace-nowrap text-[var(--text-secondary)]">
+                  <td className="py-1 px-2 text-xs whitespace-nowrap text-secondary-token">
                     {m.cc_last_call_date || '—'}
                   </td>
                 </tr>
@@ -288,22 +288,20 @@ export function MemberTable({
         </table>
       </div>
 
-      <div className="flex items-center justify-between mt-4 pt-4 border-t border-[var(--border-subtle)]">
-        <span className="text-xs text-[var(--text-muted)]">
-          {t.pagination(page, totalPages, total)}
-        </span>
+      <div className="flex items-center justify-between mt-4 pt-4 border-t border-subtle-token">
+        <span className="text-xs text-muted-token">{t.pagination(page, totalPages, total)}</span>
         <div className="flex gap-2">
           <button
             onClick={() => onPageChange(Math.max(1, page - 1))}
             disabled={page === 1}
-            className="px-3 py-1.5 rounded-lg border border-[var(--border-subtle)] text-sm disabled:opacity-40 hover:bg-[var(--bg-subtle)] transition-colors"
+            className="px-3 py-1.5 rounded-lg border border-subtle-token text-sm disabled:opacity-40 hover:bg-subtle transition-colors"
           >
             {t.prevPage}
           </button>
           <button
             onClick={() => onPageChange(Math.min(totalPages, page + 1))}
             disabled={page >= totalPages}
-            className="px-3 py-1.5 rounded-lg border border-[var(--border-subtle)] text-sm disabled:opacity-40 hover:bg-[var(--bg-subtle)] transition-colors"
+            className="px-3 py-1.5 rounded-lg border border-subtle-token text-sm disabled:opacity-40 hover:bg-subtle transition-colors"
           >
             {t.nextPage}
           </button>

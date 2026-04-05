@@ -25,9 +25,9 @@ export function NumInput({
         onChange={(e) => onChange(parseFloat(e.target.value) || 0)}
         step={step}
         min={min}
-        className="w-24 px-2 py-1 border border-[var(--border-subtle)] rounded text-sm text-right focus:outline-none focus-visible:ring-2 focus-visible:ring-action"
+        className="w-24 px-2 py-1 border border-subtle-token rounded text-sm text-right focus:outline-none focus-visible:ring-2 focus-visible:ring-action"
       />
-      {suffix && <span className="text-xs text-[var(--text-muted)]">{suffix}</span>}
+      {suffix && <span className="text-xs text-muted-token">{suffix}</span>}
     </div>
   );
 }

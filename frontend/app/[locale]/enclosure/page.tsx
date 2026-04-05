@@ -88,12 +88,12 @@ function safeRate(v: number | null | undefined): string {
 function RankBadge({ rank }: { rank: number }) {
   const cls =
     rank === 1
-      ? 'bg-[var(--color-warning-surface)] text-[var(--color-warning)]'
+      ? 'bg-warning-surface text-warning-token'
       : rank === 2
-        ? 'bg-[var(--bg-subtle)] text-[var(--text-secondary)]'
+        ? 'bg-subtle text-secondary-token'
         : rank === 3
           ? 'bg-orange-50 text-orange-600'
-          : 'text-[var(--text-muted)]';
+          : 'text-muted-token';
   return (
     <span
       className={`inline-flex w-6 h-6 items-center justify-center rounded-full text-xs font-bold ${cls}`}
@@ -176,7 +176,7 @@ function CCTabContent({
 
   if (err1 || err2) {
     return (
-      <div className="p-8 text-center text-[var(--text-muted)]">
+      <div className="p-8 text-center text-muted-token">
         <p>{t('loadFailed')}</p>
         <p className="text-xs mt-1">{(err1 ?? err2)?.message ?? t('loadFailedDesc')}</p>
       </div>
@@ -194,13 +194,11 @@ function CCTabContent({
           <EmptyState title={t('emptyEnclosure')} description={t('emptyEnclosureDesc')} />
         ) : (
           <>
-            <p className="text-[10px] text-[var(--text-muted)] mb-2">
+            <p className="text-[10px] text-muted-token mb-2">
               {t('colorHint')}
-              <span className="text-[var(--color-success)] font-medium">
-                {t('colorGreen')}
-              </span> ·{' '}
-              <span className="text-[var(--color-warning)] font-medium">{t('colorOrange')}</span> ·{' '}
-              <span className="text-[var(--color-danger)] font-medium">{t('colorRed')}</span>
+              <span className="text-success-token font-medium">{t('colorGreen')}</span> ·{' '}
+              <span className="text-warning-token font-medium">{t('colorOrange')}</span> ·{' '}
+              <span className="text-danger-token font-medium">{t('colorRed')}</span>
               {t('colorSuffix')}
             </p>
             <div className="overflow-x-auto">
@@ -238,7 +236,7 @@ function CCTabContent({
                 <tbody>
                   {rows.map((r, i) => (
                     <tr key={i} className={i % 2 === 0 ? 'slide-row-even' : 'slide-row-odd'}>
-                      <td className="slide-td py-1 px-2 text-[var(--text-secondary)]">
+                      <td className="slide-td py-1 px-2 text-secondary-token">
                         {fmtEnc(r.enclosure)}
                       </td>
                       <td className="slide-td py-1 px-2 font-medium">{r.cc_name}</td>
@@ -371,9 +369,7 @@ function CCTabContent({
                       <RankBadge rank={i + 1} />
                     </td>
                     <td className="slide-td py-1 px-2 font-medium">{r.cc_name}</td>
-                    <td className="slide-td py-1 px-2 text-[var(--text-secondary)]">
-                      {r.cc_group}
-                    </td>
+                    <td className="slide-td py-1 px-2 text-secondary-token">{r.cc_group}</td>
                     <td
                       className={`slide-td py-1 px-2 text-right font-mono tabular-nums ${metricColor(r.participation_rate, [0.1, 0.2])}`}
                     >
@@ -479,11 +475,11 @@ function SSTabContent({ filter, t }: { filter: string; t: (key: string) => strin
                     <td className="slide-td py-1.5 px-2">
                       <RankBadge rank={i + 1} />
                     </td>
-                    <td className="slide-td py-1.5 px-2 text-[var(--text-secondary)]">
+                    <td className="slide-td py-1.5 px-2 text-secondary-token">
                       {fmtEnc(r.enclosure)}
                     </td>
                     <td className="slide-td py-1.5 px-2 font-medium">{r.ss_name ?? '—'}</td>
-                    <td className="slide-td py-1.5 px-2 text-[var(--text-secondary)]">
+                    <td className="slide-td py-1.5 px-2 text-secondary-token">
                       {r.ss_group ?? '—'}
                     </td>
                     <td className="slide-td py-1.5 px-2 text-right font-mono tabular-nums">
@@ -538,9 +534,7 @@ function SSTabContent({ filter, t }: { filter: string; t: (key: string) => strin
               <tbody>
                 {enclosureSummary.map(([enc, data], i) => (
                   <tr key={enc} className={i % 2 === 0 ? 'slide-row-even' : 'slide-row-odd'}>
-                    <td className="slide-td py-1.5 px-2 text-[var(--text-secondary)]">
-                      {fmtEnc(enc)}
-                    </td>
+                    <td className="slide-td py-1.5 px-2 text-secondary-token">{fmtEnc(enc)}</td>
                     <td className="slide-td py-1.5 px-2 text-right font-mono tabular-nums">
                       {(data.students ?? 0).toLocaleString()}
                     </td>
@@ -641,11 +635,11 @@ function LPTabContent({ filter, t }: { filter: string; t: (key: string) => strin
                     <td className="slide-td py-1.5 px-2">
                       <RankBadge rank={i + 1} />
                     </td>
-                    <td className="slide-td py-1.5 px-2 text-[var(--text-secondary)]">
+                    <td className="slide-td py-1.5 px-2 text-secondary-token">
                       {fmtEnc(r.enclosure)}
                     </td>
                     <td className="slide-td py-1.5 px-2 font-medium">{r.lp_name ?? '—'}</td>
-                    <td className="slide-td py-1.5 px-2 text-[var(--text-secondary)]">
+                    <td className="slide-td py-1.5 px-2 text-secondary-token">
                       {r.lp_group ?? '—'}
                     </td>
                     <td className="slide-td py-1.5 px-2 text-right font-mono tabular-nums">
@@ -700,9 +694,7 @@ function LPTabContent({ filter, t }: { filter: string; t: (key: string) => strin
               <tbody>
                 {enclosureSummary.map(([enc, data], i) => (
                   <tr key={enc} className={i % 2 === 0 ? 'slide-row-even' : 'slide-row-odd'}>
-                    <td className="slide-td py-1.5 px-2 text-[var(--text-secondary)]">
-                      {fmtEnc(enc)}
-                    </td>
+                    <td className="slide-td py-1.5 px-2 text-secondary-token">{fmtEnc(enc)}</td>
                     <td className="slide-td py-1.5 px-2 text-right font-mono tabular-nums">
                       {(data.students ?? 0).toLocaleString()}
                     </td>
@@ -773,8 +765,8 @@ function AllTabContent({ filter, t }: { filter: string; t: (key: string) => stri
 
   const summaryItems = [
     { role: t('tabCC'), color: 'border-action-accent', ...ccTotal },
-    { role: t('tabSS'), color: 'border-[var(--color-success)]', ...ssTotal },
-    { role: t('tabLP'), color: 'border-[var(--color-accent)]', ...lpTotal },
+    { role: t('tabSS'), color: 'border-success-token', ...ssTotal },
+    { role: t('tabLP'), color: 'border-accent-token', ...lpTotal },
   ];
 
   // 围场效率 insight：按围场段汇总 CC 参与率，找最高/最低
@@ -798,14 +790,12 @@ function AllTabContent({ filter, t }: { filter: string; t: (key: string) => stri
     <div className="space-y-5 md:space-y-6">
       {/* Enclosure efficiency insight card */}
       {topEnclosure && (
-        <div className="flex flex-col gap-1.5 rounded-lg border border-[var(--border-default)] border-l-4 border-l-blue-400 bg-[var(--color-accent-surface)] px-4 py-3">
-          <div className="text-sm font-semibold text-[var(--text-primary)]">
-            {t('insightTitle')}
-          </div>
-          <div className="text-xs text-[var(--text-secondary)]">
-            <span className="font-medium text-[var(--text-primary)]">{topEnclosure.seg}</span>{' '}
+        <div className="flex flex-col gap-1.5 rounded-lg border border-default-token border-l-4 border-l-blue-400 bg-accent-surface px-4 py-3">
+          <div className="text-sm font-semibold text-primary-token">{t('insightTitle')}</div>
+          <div className="text-xs text-secondary-token">
+            <span className="font-medium text-primary-token">{topEnclosure.seg}</span>{' '}
             {t('insightHighest')}
-            <span className="font-semibold text-[var(--color-success)]">
+            <span className="font-semibold text-success-token">
               {Math.round(topEnclosure.avg * 100)}%
             </span>
             ）
@@ -822,31 +812,31 @@ function AllTabContent({ filter, t }: { filter: string; t: (key: string) => stri
         {summaryItems.map((item) => (
           <div
             key={item.role}
-            className={`bg-[var(--bg-surface)] rounded-lg border border-[var(--border-default)] border-l-4 ${item.color} p-4 space-y-2`}
+            className={`bg-surface rounded-lg border border-default-token border-l-4 ${item.color} p-4 space-y-2`}
           >
-            <div className="text-sm font-semibold text-[var(--text-primary)]">{item.role}</div>
+            <div className="text-sm font-semibold text-primary-token">{item.role}</div>
             <div className="grid grid-cols-2 gap-2 text-xs">
               <div>
-                <div className="text-[var(--text-muted)]">{t('colEffStudents')}</div>
-                <div className="font-mono font-semibold text-[var(--text-primary)]">
+                <div className="text-muted-token">{t('colEffStudents')}</div>
+                <div className="font-mono font-semibold text-primary-token">
                   {(item.students ?? 0).toLocaleString()}
                 </div>
               </div>
               <div>
-                <div className="text-[var(--text-muted)]">{t('colRegCount')}</div>
-                <div className="font-mono font-semibold text-[var(--text-primary)]">
+                <div className="text-muted-token">{t('colRegCount')}</div>
+                <div className="font-mono font-semibold text-primary-token">
                   {(item.registrations ?? 0).toLocaleString()}
                 </div>
               </div>
               <div>
-                <div className="text-[var(--text-muted)]">{t('colPaidCount')}</div>
-                <div className="font-mono font-semibold text-[var(--text-primary)]">
+                <div className="text-muted-token">{t('colPaidCount')}</div>
+                <div className="font-mono font-semibold text-primary-token">
                   {(item.payments ?? 0).toLocaleString()}
                 </div>
               </div>
               <div>
-                <div className="text-[var(--text-muted)]">{t('colRevUSD')}</div>
-                <div className="font-mono font-semibold text-[var(--text-primary)]">
+                <div className="text-muted-token">{t('colRevUSD')}</div>
+                <div className="font-mono font-semibold text-primary-token">
                   ${(item.revenue ?? 0).toLocaleString()}
                 </div>
               </div>
@@ -948,8 +938,8 @@ function EnclosurePageInner() {
       <div className="flex items-start justify-between mb-2">
         <div>
           <h1 className="page-title">{t('pageTitle')}</h1>
-          <p className="text-sm text-[var(--text-secondary)] mt-1">{t('pageDesc')}</p>
-          <p className="text-sm text-[var(--text-muted)] mt-0.5">{t('pageDesc2')}</p>
+          <p className="text-sm text-secondary-token mt-1">{t('pageDesc')}</p>
+          <p className="text-sm text-muted-token mt-0.5">{t('pageDesc2')}</p>
         </div>
         <ExportButton onExportCsv={handleExport} />
       </div>
@@ -965,7 +955,7 @@ function EnclosurePageInner() {
             className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${
               encFilter === val
                 ? 'bg-action-accent text-white'
-                : 'bg-[var(--bg-subtle)] text-[var(--text-secondary)] hover:bg-[var(--n-200)]'
+                : 'bg-subtle text-secondary-token hover:bg-n-200'
             }`}
           >
             {val === '' ? t('filterAll') : ENCLOSURE_FILTER_LABELS[val]}

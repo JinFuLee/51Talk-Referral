@@ -51,15 +51,15 @@ interface ThreeFactorTableProps {
 
 function FactorBadge({ value }: { value: number | null }) {
   if (value == null) {
-    return <span className="text-xs text-[var(--text-secondary)]">—</span>;
+    return <span className="text-xs text-secondary-token">—</span>;
   }
   const pct = value * 100;
   const color =
     pct >= 50
-      ? 'bg-[var(--color-success-surface)] text-[var(--color-success)]'
+      ? 'bg-success-surface text-success-token'
       : pct >= 30
-        ? 'bg-[var(--color-warning-surface)] text-[var(--color-warning)]'
-        : 'bg-[var(--color-danger-surface)] text-[var(--color-danger)]';
+        ? 'bg-warning-surface text-warning-token'
+        : 'bg-danger-surface text-danger-token';
   return (
     <span className={`inline-block px-1.5 py-0.5 rounded text-xs font-medium ${color}`}>
       {formatRate(value)}
@@ -71,7 +71,7 @@ export function ThreeFactorTable({ comparisons }: ThreeFactorTableProps) {
   const locale = useLocale();
   const t = (I18N as unknown as Record<string, (typeof I18N)['zh']>)[locale] ?? I18N['zh'];
   if (comparisons.length === 0) {
-    return <p className="text-sm text-[var(--text-muted)] text-center py-6">{t.empty}</p>;
+    return <p className="text-sm text-muted-token text-center py-6">{t.empty}</p>;
   }
 
   return (
@@ -90,23 +90,21 @@ export function ThreeFactorTable({ comparisons }: ThreeFactorTableProps) {
         </thead>
         <tbody>
           {comparisons.map((c) => (
-            <tr key={c.channel} className="even:bg-[var(--bg-subtle)]">
-              <td className="py-1 px-2 text-xs font-medium text-[var(--text-primary)]">
-                {c.channel}
-              </td>
-              <td className="py-1 px-2 text-xs text-right font-mono tabular-nums text-[var(--text-secondary)]">
+            <tr key={c.channel} className="even:bg-subtle">
+              <td className="py-1 px-2 text-xs font-medium text-primary-token">{c.channel}</td>
+              <td className="py-1 px-2 text-xs text-right font-mono tabular-nums text-secondary-token">
                 {c.expected_volume != null ? c.expected_volume.toLocaleString() : '—'}
               </td>
-              <td className="py-1 px-2 text-xs text-right font-mono tabular-nums font-semibold text-[var(--text-primary)]">
+              <td className="py-1 px-2 text-xs text-right font-mono tabular-nums font-semibold text-primary-token">
                 {c.actual_volume != null ? c.actual_volume.toLocaleString() : '—'}
               </td>
               <td
                 className={`py-1 px-2 text-xs text-right font-mono tabular-nums font-medium ${
                   c.gap == null
-                    ? 'text-[var(--text-secondary)]'
+                    ? 'text-secondary-token'
                     : c.gap >= 0
-                      ? 'text-[var(--color-success)]'
-                      : 'text-[var(--color-danger)]'
+                      ? 'text-success-token'
+                      : 'text-danger-token'
                 }`}
               >
                 {c.gap == null ? '—' : `${c.gap >= 0 ? '+' : ''}${c.gap.toLocaleString()}`}

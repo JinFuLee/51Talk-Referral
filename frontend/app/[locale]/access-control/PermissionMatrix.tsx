@@ -96,8 +96,8 @@ function MatrixCell({
   if (isPublic) {
     return (
       <td className="slide-td text-center" title={title}>
-        <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-[var(--color-success-surface)]">
-          <Globe className="w-3 h-3 text-[var(--color-success)]" />
+        <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-success-surface">
+          <Globe className="w-3 h-3 text-success-token" />
         </span>
       </td>
     );
@@ -106,11 +106,11 @@ function MatrixCell({
   if (hasAccess) {
     return (
       <td
-        className={`slide-td text-center ${isRoleInherited ? 'bg-[var(--color-accent-surface)]' : ''}`}
+        className={`slide-td text-center ${isRoleInherited ? 'bg-accent-surface' : ''}`}
         title={title}
       >
-        <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-[var(--color-success-surface)]">
-          <Check className="w-3 h-3 text-[var(--color-success)]" />
+        <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-success-surface">
+          <Check className="w-3 h-3 text-success-token" />
         </span>
       </td>
     );
@@ -118,8 +118,8 @@ function MatrixCell({
 
   return (
     <td className="slide-td text-center" title={title}>
-      <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-[var(--n-100)]">
-        <X className="w-3 h-3 text-[var(--n-400)]" />
+      <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-n-100">
+        <X className="w-3 h-3 text-n-400" />
       </span>
     </td>
   );
@@ -174,22 +174,22 @@ export default function PermissionMatrix({ users, pages, roles }: PermissionMatr
   return (
     <div className="space-y-4">
       {/* 图例 */}
-      <div className="flex items-center gap-4 text-xs text-[var(--text-muted)]">
+      <div className="flex items-center gap-4 text-xs text-muted-token">
         <span className="flex items-center gap-1.5">
-          <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-[var(--color-success-surface)]">
-            <Check className="w-3 h-3 text-[var(--color-success)]" />
+          <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-success-surface">
+            <Check className="w-3 h-3 text-success-token" />
           </span>
           {t.roleInherited}
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-[var(--color-success-surface)]">
-            <Globe className="w-3 h-3 text-[var(--color-success)]" />
+          <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-success-surface">
+            <Globe className="w-3 h-3 text-success-token" />
           </span>
           {t.publicPage}
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-[var(--n-100)]">
-            <X className="w-3 h-3 text-[var(--n-400)]" />
+          <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-n-100">
+            <X className="w-3 h-3 text-n-400" />
           </span>
           {t.noAccess}
         </span>
@@ -201,10 +201,7 @@ export default function PermissionMatrix({ users, pages, roles }: PermissionMatr
         const catInfo = CATEGORY_INFO[catKey];
 
         return (
-          <div
-            key={catKey}
-            className="overflow-x-auto rounded-xl border border-[var(--border-default)]"
-          >
+          <div key={catKey} className="overflow-x-auto rounded-xl border border-default-token">
             <table className="w-full text-sm min-w-[600px]">
               <thead>
                 <tr className="slide-thead-row text-xs">
@@ -232,9 +229,7 @@ export default function PermissionMatrix({ users, pages, roles }: PermissionMatr
                   return (
                     <tr
                       key={user.email}
-                      className={`border-b border-[var(--border-subtle)] ${
-                        i % 2 === 0 ? '' : 'bg-[var(--bg-subtle)]'
-                      }`}
+                      className={`border-b border-subtle-token ${i % 2 === 0 ? '' : 'bg-subtle'}`}
                     >
                       <td className="slide-td">
                         <div className="flex items-center gap-2">
@@ -244,11 +239,11 @@ export default function PermissionMatrix({ users, pages, roles }: PermissionMatr
                             style={{ backgroundColor: userRole?.color ?? 'var(--n-400)' }}
                           />
                           <div>
-                            <div className="text-sm font-medium text-[var(--text-primary)] truncate max-w-[120px]">
+                            <div className="text-sm font-medium text-primary-token truncate max-w-[120px]">
                               {user.email}
                             </div>
                             {user.name && (
-                              <div className="text-xs text-[var(--text-muted)]">{user.name}</div>
+                              <div className="text-xs text-muted-token">{user.name}</div>
                             )}
                           </div>
                         </div>

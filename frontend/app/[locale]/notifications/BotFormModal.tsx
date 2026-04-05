@@ -160,18 +160,15 @@ export function BotFormModal({ open, platform, initial, onClose, onSave }: BotFo
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-      <div className="bg-[var(--bg-surface)] rounded-2xl shadow-xl w-full max-w-md mx-4 overflow-hidden">
-        <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--border-default)]">
-          <h2 className="text-sm font-semibold text-[var(--text-primary)]">
+      <div className="bg-surface rounded-2xl shadow-xl w-full max-w-md mx-4 overflow-hidden">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-default-token">
+          <h2 className="text-sm font-semibold text-primary-token">
             {initial ? t.titleEdit : t.titleAdd}
-            <span className="ml-2 text-xs font-normal text-[var(--text-muted)]">
+            <span className="ml-2 text-xs font-normal text-muted-token">
               {platform === 'lark' ? 'Lark' : t.dingtalk}
             </span>
           </h2>
-          <button
-            onClick={onClose}
-            className="p-1 rounded-md hover:bg-[var(--bg-subtle)] text-[var(--text-muted)]"
-          >
+          <button onClick={onClose} className="p-1 rounded-md hover:bg-subtle text-muted-token">
             <X className="w-4 h-4" />
           </button>
         </div>
@@ -179,7 +176,7 @@ export function BotFormModal({ open, platform, initial, onClose, onSave }: BotFo
         <form onSubmit={handleSubmit} className="px-5 py-4 space-y-4">
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1">
+              <label className="block text-xs font-medium text-secondary-token mb-1">
                 {t.nameLabel}
               </label>
               <input
@@ -187,11 +184,11 @@ export function BotFormModal({ open, platform, initial, onClose, onSave }: BotFo
                 onChange={(e) => setForm((v) => ({ ...v, name: e.target.value }))}
                 required
                 placeholder={t.namePlaceholder}
-                className="w-full text-sm border border-[var(--border-subtle)] rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-action focus:border-transparent"
+                className="w-full text-sm border border-subtle-token rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-action focus:border-transparent"
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1">
+              <label className="block text-xs font-medium text-secondary-token mb-1">
                 {t.groupLabel}
               </label>
               <input
@@ -199,20 +196,20 @@ export function BotFormModal({ open, platform, initial, onClose, onSave }: BotFo
                 onChange={(e) => setForm((v) => ({ ...v, group_name: e.target.value }))}
                 required
                 placeholder={t.groupPlaceholder}
-                className="w-full text-sm border border-[var(--border-subtle)] rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-action focus:border-transparent"
+                className="w-full text-sm border border-subtle-token rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-action focus:border-transparent"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1">
+              <label className="block text-xs font-medium text-secondary-token mb-1">
                 {t.roleLabel}
               </label>
               <select
                 value={form.role}
                 onChange={(e) => setForm((v) => ({ ...v, role: e.target.value }))}
-                className="w-full text-sm border border-[var(--border-subtle)] rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-action"
+                className="w-full text-sm border border-subtle-token rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-action"
               >
                 {ROLES.map((r) => (
                   <option key={r} value={r}>
@@ -229,7 +226,7 @@ export function BotFormModal({ open, platform, initial, onClose, onSave }: BotFo
                   onChange={(e) => setForm((v) => ({ ...v, is_test: e.target.checked }))}
                   className="rounded"
                 />
-                <span className="text-xs text-[var(--text-secondary)]">{t.isTest}</span>
+                <span className="text-xs text-secondary-token">{t.isTest}</span>
               </label>
               <label className="flex items-center gap-2 cursor-pointer select-none">
                 <input
@@ -238,13 +235,13 @@ export function BotFormModal({ open, platform, initial, onClose, onSave }: BotFo
                   onChange={(e) => setForm((v) => ({ ...v, enabled: e.target.checked }))}
                   className="rounded"
                 />
-                <span className="text-xs text-[var(--text-secondary)]">{t.enabled}</span>
+                <span className="text-xs text-secondary-token">{t.enabled}</span>
               </label>
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1">
+            <label className="block text-xs font-medium text-secondary-token mb-1">
               Webhook URL
             </label>
             <div className="flex items-center gap-1">
@@ -254,12 +251,12 @@ export function BotFormModal({ open, platform, initial, onClose, onSave }: BotFo
                 onChange={(e) => setForm((v) => ({ ...v, webhook: e.target.value }))}
                 required
                 placeholder="https://..."
-                className="flex-1 text-sm border border-[var(--border-subtle)] rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-action font-mono"
+                className="flex-1 text-sm border border-subtle-token rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-action font-mono"
               />
               <button
                 type="button"
                 onClick={() => setShowWebhook((v) => !v)}
-                className="p-2 text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+                className="p-2 text-muted-token hover:text-primary-token"
               >
                 {showWebhook ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
@@ -267,7 +264,7 @@ export function BotFormModal({ open, platform, initial, onClose, onSave }: BotFo
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1">
+            <label className="block text-xs font-medium text-secondary-token mb-1">
               {t.secretHint}
             </label>
             <div className="flex items-center gap-1">
@@ -276,12 +273,12 @@ export function BotFormModal({ open, platform, initial, onClose, onSave }: BotFo
                 value={form.secret}
                 onChange={(e) => setForm((v) => ({ ...v, secret: e.target.value }))}
                 placeholder={t.secretPlaceholder}
-                className="flex-1 text-sm border border-[var(--border-subtle)] rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-action font-mono"
+                className="flex-1 text-sm border border-subtle-token rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-action font-mono"
               />
               <button
                 type="button"
                 onClick={() => setShowSecret((v) => !v)}
-                className="p-2 text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+                className="p-2 text-muted-token hover:text-primary-token"
               >
                 {showSecret ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
@@ -289,7 +286,7 @@ export function BotFormModal({ open, platform, initial, onClose, onSave }: BotFo
           </div>
 
           {error && (
-            <p className="text-xs text-[var(--color-danger)] bg-[var(--color-danger-surface)] px-3 py-2 rounded-lg">
+            <p className="text-xs text-danger-token bg-danger-surface px-3 py-2 rounded-lg">
               {error}
             </p>
           )}
@@ -298,7 +295,7 @@ export function BotFormModal({ open, platform, initial, onClose, onSave }: BotFo
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 px-4 py-2 border border-[var(--border-subtle)] rounded-lg text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-primary)] transition-colors"
+              className="flex-1 px-4 py-2 border border-subtle-token rounded-lg text-sm text-secondary-token hover:bg-bg-primary transition-colors"
             >
               {t.cancel}
             </button>

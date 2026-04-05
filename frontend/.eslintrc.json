@@ -31,7 +31,13 @@
       "files": [
         "**/lib/hooks/use-filtered-swr.ts",
         "**/lib/hooks/use-compare-data.ts",
-        "**/stores/config-store.ts"
+        "**/lib/use-compare-data.ts",
+        "**/lib/hooks.ts",
+        "**/stores/config-store.ts",
+        "**/components/ui/UnifiedFilterBar.tsx",
+        "**/components/presentation/SlideShell.tsx",
+        "**/components/presentation/PresentationLauncher.tsx",
+        "**/app/[locale]/present/**"
       ],
       "rules": {
         "no-restricted-syntax": "off"

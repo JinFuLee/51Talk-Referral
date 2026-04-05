@@ -247,22 +247,22 @@ const TIER_CONFIG: Record<
   { border: string; bg: string; badgeClass: string; checkColor: string }
 > = {
   pace: {
-    border: 'border-[var(--brand-p2)]',
-    bg: 'bg-[var(--color-accent-surface)]',
-    badgeClass: 'bg-[var(--color-accent-subtle)] text-[var(--brand-p2)]',
-    checkColor: 'text-[var(--brand-p2)]',
+    border: 'border-brand-p2',
+    bg: 'bg-accent-surface',
+    badgeClass: 'bg-accent-subtle text-brand-p2',
+    checkColor: 'text-brand-p2',
   },
   share: {
-    border: 'border-[var(--color-success)]',
-    bg: 'bg-[var(--color-success-surface)]',
-    badgeClass: 'bg-[var(--color-success-surface)] text-[var(--color-success)]',
-    checkColor: 'text-[var(--color-success)]',
+    border: 'border-success-token',
+    bg: 'bg-success-surface',
+    badgeClass: 'bg-success-surface text-success-token',
+    checkColor: 'text-success-token',
   },
   custom: {
-    border: 'border-[var(--color-warning)]',
-    bg: 'bg-[var(--color-warning-surface)]',
-    badgeClass: 'bg-[var(--color-warning-surface)] text-[var(--color-warning)]',
-    checkColor: 'text-[var(--color-warning)]',
+    border: 'border-warning-token',
+    bg: 'bg-warning-surface',
+    badgeClass: 'bg-warning-surface text-warning-token',
+    checkColor: 'text-warning-token',
   },
 };
 
@@ -278,9 +278,9 @@ function MetricRow({
 }) {
   return (
     <div className="flex items-center justify-between gap-2">
-      <span className="text-xs text-[var(--text-muted)] shrink-0">{label}</span>
+      <span className="text-xs text-muted-token shrink-0">{label}</span>
       <span
-        className={`text-xs font-mono tabular-nums text-right ${bold ? 'font-bold text-[var(--text-primary)]' : 'font-medium text-[var(--text-secondary)]'}`}
+        className={`text-xs font-mono tabular-nums text-right ${bold ? 'font-bold text-primary-token' : 'font-medium text-secondary-token'}`}
       >
         {value}
       </span>
@@ -318,8 +318,8 @@ function ReadonlyTierCard({
             {label}
           </span>
         </div>
-        <p className="text-xs text-[var(--text-muted)]">{desc}</p>
-        <p className="text-xs text-[var(--text-muted)] mt-2">{t.needCompanyRev}</p>
+        <p className="text-xs text-muted-token">{desc}</p>
+        <p className="text-xs text-muted-token mt-2">{t.needCompanyRev}</p>
       </div>
     );
   }
@@ -329,7 +329,7 @@ function ReadonlyTierCard({
       className={`relative flex flex-col rounded-xl border-2 p-4 cursor-pointer transition-all ${
         isSelected
           ? `${cfg.border} ${cfg.bg} shadow-md`
-          : 'border-[var(--border-default)] bg-[var(--bg-surface)] hover:border-[var(--border-default)] hover:shadow-sm'
+          : 'border-default-token bg-surface hover:border-default-token hover:shadow-sm'
       }`}
       onClick={onSelect}
     >
@@ -347,7 +347,7 @@ function ReadonlyTierCard({
         </span>
         {isDefault && <span className="badge-neutral">{t.defaultBadge}</span>}
       </div>
-      <p className="text-xs text-[var(--text-muted)] mb-3 leading-relaxed">{desc}</p>
+      <p className="text-xs text-muted-token mb-3 leading-relaxed">{desc}</p>
 
       {/* 核心指标 */}
       <div className="space-y-1.5">
@@ -390,7 +390,7 @@ function CustomTierCard({
       className={`relative flex flex-col rounded-xl border-2 p-4 transition-all ${
         isSelected
           ? `${cfg.border} ${cfg.bg} shadow-md`
-          : 'border-[var(--border-default)] bg-[var(--bg-surface)] hover:shadow-sm'
+          : 'border-default-token bg-surface hover:shadow-sm'
       }`}
       onClick={onSelect}
     >
@@ -406,12 +406,12 @@ function CustomTierCard({
           {t.tierCustom}
         </span>
       </div>
-      <p className="text-xs text-[var(--text-muted)] mb-3 leading-relaxed">{t.tierCustomDesc}</p>
+      <p className="text-xs text-muted-token mb-3 leading-relaxed">{t.tierCustomDesc}</p>
 
       {/* 可编辑输入 */}
       <div className="space-y-2 mb-3" onClick={(e) => e.stopPropagation()}>
         <div>
-          <label className="text-xs text-[var(--text-muted)] mb-0.5 block">{t.revenue} (USD)</label>
+          <label className="text-xs text-muted-token mb-0.5 block">{t.revenue} (USD)</label>
           <input
             type="number"
             className="input-base text-xs"
@@ -421,9 +421,7 @@ function CustomTierCard({
           />
         </div>
         <div>
-          <label className="text-xs text-[var(--text-muted)] mb-0.5 block">
-            {t.regToPayRate} (%)
-          </label>
+          <label className="text-xs text-muted-token mb-0.5 block">{t.regToPayRate} (%)</label>
           <input
             type="number"
             className="input-base text-xs"
@@ -434,7 +432,7 @@ function CustomTierCard({
           />
         </div>
         <div>
-          <label className="text-xs text-[var(--text-muted)] mb-0.5 block">{t.asp} (USD)</label>
+          <label className="text-xs text-muted-token mb-0.5 block">{t.asp} (USD)</label>
           <input
             type="number"
             className="input-base text-xs"
@@ -444,7 +442,7 @@ function CustomTierCard({
           />
         </div>
         <div>
-          <label className="text-xs text-[var(--text-muted)] mb-0.5 block">{t.registrations}</label>
+          <label className="text-xs text-muted-token mb-0.5 block">{t.registrations}</label>
           <input
             type="number"
             className="input-base text-xs"
@@ -469,7 +467,7 @@ function CustomTierCard({
 
       {/* 推算结果 */}
       {tierData ? (
-        <div className="space-y-1.5 border-t border-[var(--border-subtle)] pt-3">
+        <div className="space-y-1.5 border-t border-subtle-token pt-3">
           <MetricRow
             label={t.registrations}
             value={formatValue(tierData.total.registrations)}
@@ -481,7 +479,7 @@ function CustomTierCard({
           <MetricRow label={t.revenue} value={formatUSD(tierData.total.revenue_usd)} bold />
         </div>
       ) : (
-        <p className="text-xs text-[var(--text-muted)] italic">{t.needInput}</p>
+        <p className="text-xs text-muted-token italic">{t.needInput}</p>
       )}
     </div>
   );
@@ -493,7 +491,7 @@ function ChannelPreviewTable({ tierData, t }: { tierData: TierData; t: T }) {
   const total = tierData.total;
 
   return (
-    <div className="overflow-x-auto rounded-xl border border-[var(--border-default)]">
+    <div className="overflow-x-auto rounded-xl border border-default-token">
       <table className="w-full text-left border-collapse">
         <thead>
           <tr className="slide-thead-row">
@@ -513,7 +511,7 @@ function ChannelPreviewTable({ tierData, t }: { tierData: TierData; t: T }) {
         <tbody>
           {channels.map(([name, ch], i) => (
             <tr key={name} className={i % 2 === 0 ? 'slide-row-even' : 'slide-row-odd'}>
-              <td className="slide-td font-medium text-[var(--text-primary)]">{name}</td>
+              <td className="slide-td font-medium text-primary-token">{name}</td>
               <td className="slide-td slide-th-right font-mono tabular-nums">
                 {formatValue(ch.registrations)}
               </td>
@@ -714,20 +712,20 @@ export function TargetRecommender() {
       {/* 标题行 */}
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h3 className="text-lg font-bold text-[var(--text-primary)]">{t.title}</h3>
-          <p className="text-sm text-[var(--text-muted)] mt-0.5">{t.subtitle}</p>
+          <h3 className="text-lg font-bold text-primary-token">{t.title}</h3>
+          <p className="text-sm text-muted-token mt-0.5">{t.subtitle}</p>
         </div>
         <div className="flex gap-1 shrink-0">
           {/* Language switching now handled by URL locale via next-intl */}
         </div>
       </div>
 
-      <div className="border-b border-[var(--border-subtle)]" />
+      <div className="border-b border-subtle-token" />
 
       {/* 顶部输入区 */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
+          <label className="block text-sm font-medium text-secondary-token mb-1">
             {t.companyRevLabel} ({t.usd})
           </label>
           <input
@@ -739,7 +737,7 @@ export function TargetRecommender() {
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
+          <label className="block text-sm font-medium text-secondary-token mb-1">
             {t.referralShareLabel} ({t.pct})
           </label>
           <input
@@ -763,7 +761,7 @@ export function TargetRecommender() {
       ) : error ? (
         <div className="state-error flex-col gap-2">
           <p className="text-base font-semibold">{t.error}</p>
-          <p className="text-sm text-[var(--text-muted)]">{t.errorHint}</p>
+          <p className="text-sm text-muted-token">{t.errorHint}</p>
           <button onClick={() => mutate()} className="btn-secondary mt-1">
             {t.retry}
           </button>
@@ -812,11 +810,11 @@ export function TargetRecommender() {
           </div>
 
           {/* 应用区 */}
-          <div className="flex items-center gap-4 p-4 bg-[var(--bg-subtle)] rounded-xl border border-[var(--border-default)]">
+          <div className="flex items-center gap-4 p-4 bg-subtle rounded-xl border border-default-token">
             <div className="flex-1 min-w-0">
               {selectedTierData ? (
                 <>
-                  <p className="text-sm font-medium text-[var(--text-primary)] truncate">
+                  <p className="text-sm font-medium text-primary-token truncate">
                     {selectedTier === 'pace'
                       ? t.tierPace
                       : selectedTier === 'share'
@@ -824,13 +822,13 @@ export function TargetRecommender() {
                         : t.tierCustom}
                     ：{formatUSD(selectedTierData.total.revenue_usd)} {t.usd}
                   </p>
-                  <p className="text-xs text-[var(--text-muted)]">
+                  <p className="text-xs text-muted-token">
                     {t.registrations} {formatValue(selectedTierData.total.registrations)} ·{' '}
                     {t.payments} {formatValue(selectedTierData.total.payments)}
                   </p>
                 </>
               ) : (
-                <p className="text-sm text-[var(--text-muted)]">{t.selectTier}</p>
+                <p className="text-sm text-muted-token">{t.selectTier}</p>
               )}
             </div>
             <button
@@ -840,10 +838,10 @@ export function TargetRecommender() {
               }
               className={`px-5 py-2 rounded-xl text-sm font-semibold transition-colors whitespace-nowrap shrink-0 disabled:opacity-50 disabled:cursor-not-allowed ${
                 applyStatus === 'success'
-                  ? 'bg-[var(--color-success-surface)] text-[var(--color-success)] border border-[var(--color-success)]'
+                  ? 'bg-success-surface text-success-token border border-success-token'
                   : applyStatus === 'error'
-                    ? 'bg-[var(--color-danger-surface)] text-[var(--color-danger)] border border-[var(--color-danger)]'
-                    : 'bg-[var(--brand-p2)] text-white hover:bg-[var(--brand-p2-hover)]'
+                    ? 'bg-danger-surface text-danger-token border border-danger-token'
+                    : 'bg-brand-p2 text-white hover:bg-brand-p2-hover'
               }`}
             >
               {applyStatus === 'applying'
@@ -859,7 +857,7 @@ export function TargetRecommender() {
           {/* 全链路预览表 */}
           {selectedTierData && Object.keys(selectedTierData.channels).length > 0 && (
             <div>
-              <h4 className="text-sm font-semibold text-[var(--text-secondary)] mb-3">
+              <h4 className="text-sm font-semibold text-secondary-token mb-3">
                 {t.channelPreview}
               </h4>
               <ChannelPreviewTable tierData={selectedTierData} t={t} />

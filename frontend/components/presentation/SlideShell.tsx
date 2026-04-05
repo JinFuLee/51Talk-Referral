@@ -75,15 +75,15 @@ export function SlideShell({
 
       {/* ── 品牌水印 — 右上角 ── */}
       <div className="absolute top-5 right-6 flex items-center gap-2 opacity-[0.12] select-none pointer-events-none">
-        <BrandMark size={24} className="text-[var(--brand-p1)]" />
+        <BrandMark size={24} className="text-brand-p1" />
         <span className="text-xl font-black tracking-tight text-white/20 font-display">51Talk</span>
       </div>
 
       {/* ── Header ── */}
       <div className="relative z-10 px-10 pt-8 pb-4 flex-none">
         {section && (
-          <p className="text-[10px] font-bold text-[var(--brand-p1)] uppercase tracking-[0.15em] mb-2 flex items-center gap-2">
-            <span className="w-5 h-[2px] bg-[var(--brand-p1)] rounded-full" />
+          <p className="text-[10px] font-bold text-brand-p1 uppercase tracking-[0.15em] mb-2 flex items-center gap-2">
+            <span className="w-5 h-[2px] bg-brand-p1 rounded-full" />
             {section}
           </p>
         )}

@@ -127,11 +127,11 @@ export function TargetGapSlide({ slideNumber, totalSlides }: SlideProps) {
       ) : error ? (
         <div className="flex items-center justify-center h-full">
           <div className="text-center space-y-2">
-            <p className="text-base font-semibold text-[var(--color-danger)]">{t.loading_failed}</p>
-            <p className="text-sm text-[var(--text-muted)]">{t.check_backend}</p>
+            <p className="text-base font-semibold text-danger-token">{t.loading_failed}</p>
+            <p className="text-sm text-muted-token">{t.check_backend}</p>
             <button
               onClick={() => mutate()}
-              className="mt-1 px-4 py-1.5 rounded-lg text-sm border border-[var(--border-default)] text-[var(--text-secondary)] hover:bg-[var(--bg-subtle)] transition-colors"
+              className="mt-1 px-4 py-1.5 rounded-lg text-sm border border-default-token text-secondary-token hover:bg-subtle transition-colors"
             >
               {t.retry}
             </button>
@@ -139,7 +139,7 @@ export function TargetGapSlide({ slideNumber, totalSlides }: SlideProps) {
         </div>
       ) : stages.length === 0 ? (
         <div className="flex items-center justify-center h-full">
-          <p className="text-[var(--text-muted)]">{t.no_data}</p>
+          <p className="text-muted-token">{t.no_data}</p>
         </div>
       ) : (
         <div className="grid grid-cols-2 xl:grid-cols-4 gap-6 h-full content-center">
@@ -153,39 +153,35 @@ export function TargetGapSlide({ slideNumber, totalSlides }: SlideProps) {
               <div
                 key={s.name}
                 className={`flex flex-col gap-2 rounded-[var(--radius-xl)] p-6 ${
-                  isAtRisk
-                    ? 'bg-[var(--color-danger-surface)] border-2 border-[var(--color-danger)]'
-                    : 'bg-[var(--bg-subtle)]'
+                  isAtRisk ? 'bg-danger-surface border-2 border-danger-token' : 'bg-subtle'
                 }`}
               >
-                <p className="text-sm font-medium text-[var(--text-secondary)]">{s.name}</p>
+                <p className="text-sm font-medium text-secondary-token">{s.name}</p>
                 <div
                   className={`text-3xl font-bold ${
-                    isAtRisk ? 'text-[var(--color-danger)]' : 'text-[var(--text-primary)]'
+                    isAtRisk ? 'text-danger-token' : 'text-primary-token'
                   }`}
                   style={isAtRisk ? undefined : { color: 'var(--brand-p1, var(--text-primary))' }}
                 >
                   {actual.toLocaleString()}
                 </div>
-                {target > 0 && (
-                  <p className="text-sm text-[var(--text-muted)]">{t.target_label(target)}</p>
-                )}
+                {target > 0 && <p className="text-sm text-muted-token">{t.target_label(target)}</p>}
                 {target > 0 && (
                   <>
                     <div
-                      className={`text-lg font-bold ${gap >= 0 ? 'text-[var(--color-success)]' : 'text-[var(--color-danger)]'}`}
+                      className={`text-lg font-bold ${gap >= 0 ? 'text-success-token' : 'text-danger-token'}`}
                     >
                       {gap >= 0 ? '+' : ''}
                       {gap.toLocaleString()}
                     </div>
-                    <div className="w-full bg-[var(--bg-subtle)] rounded-full h-2">
+                    <div className="w-full bg-subtle rounded-full h-2">
                       <div
-                        className={`h-2 rounded-full ${rate >= 1 ? 'bg-[var(--color-success)]' : rate >= 0.8 ? 'bg-[var(--color-warning)]' : 'bg-[var(--color-danger)]'}`}
+                        className={`h-2 rounded-full ${rate >= 1 ? 'bg-success-token' : rate >= 0.8 ? 'bg-warning-token' : 'bg-danger-token'}`}
                         style={{ width: `${Math.min(100, rate * 100)}%` }}
                       />
                     </div>
                     <p
-                      className={`text-sm font-semibold ${rate >= 1 ? 'text-[var(--color-success)]' : rate >= 0.8 ? 'text-[var(--color-warning)]' : 'text-[var(--color-danger)]'}`}
+                      className={`text-sm font-semibold ${rate >= 1 ? 'text-success-token' : rate >= 0.8 ? 'text-warning-token' : 'text-danger-token'}`}
                     >
                       {formatRate(rate)}
                     </p>

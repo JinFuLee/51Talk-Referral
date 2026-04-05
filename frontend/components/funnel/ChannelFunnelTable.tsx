@@ -69,7 +69,7 @@ export function ChannelFunnelTable({ channels }: ChannelFunnelTableProps) {
     payments: t.stagePayments,
   };
   if (channels.length === 0) {
-    return <p className="text-sm text-[var(--text-muted)] text-center py-6">{t.empty}</p>;
+    return <p className="text-sm text-muted-token text-center py-6">{t.empty}</p>;
   }
 
   // Compute totals row (null-safe)
@@ -106,47 +106,45 @@ export function ChannelFunnelTable({ channels }: ChannelFunnelTableProps) {
         </thead>
         <tbody>
           {channels.map((c) => (
-            <tr key={c.channel} className="even:bg-[var(--bg-subtle)]">
-              <td className="py-1 px-2 text-xs font-medium text-[var(--text-primary)]">
-                {c.channel}
-              </td>
+            <tr key={c.channel} className="even:bg-subtle">
+              <td className="py-1 px-2 text-xs font-medium text-primary-token">{c.channel}</td>
               {STAGES.map((s) => (
                 <td
                   key={s}
-                  className="py-1 px-2 text-xs text-right font-mono tabular-nums text-[var(--text-primary)]"
+                  className="py-1 px-2 text-xs text-right font-mono tabular-nums text-primary-token"
                 >
                   {c[s] != null ? c[s]!.toLocaleString() : '—'}
                 </td>
               ))}
-              <td className="py-1 px-2 text-xs text-right font-mono tabular-nums text-[var(--text-secondary)]">
+              <td className="py-1 px-2 text-xs text-right font-mono tabular-nums text-secondary-token">
                 {convRate(c.appointments, c.registrations)}
               </td>
-              <td className="py-1 px-2 text-xs text-right font-mono tabular-nums text-[var(--text-secondary)]">
+              <td className="py-1 px-2 text-xs text-right font-mono tabular-nums text-secondary-token">
                 {convRate(c.attendance, c.appointments)}
               </td>
-              <td className="py-1 px-2 text-xs text-right font-mono tabular-nums text-[var(--text-secondary)]">
+              <td className="py-1 px-2 text-xs text-right font-mono tabular-nums text-secondary-token">
                 {convRate(c.payments, c.attendance)}
               </td>
             </tr>
           ))}
           {/* Totals row */}
-          <tr className="bg-[var(--bg-subtle)] font-semibold border-t border-[var(--border-subtle)]">
-            <td className="py-1 px-2 text-xs text-[var(--text-primary)]">{t.total}</td>
+          <tr className="bg-subtle font-semibold border-t border-subtle-token">
+            <td className="py-1 px-2 text-xs text-primary-token">{t.total}</td>
             {STAGES.map((s) => (
               <td
                 key={s}
-                className="py-1 px-2 text-xs text-right font-mono tabular-nums text-[var(--text-primary)]"
+                className="py-1 px-2 text-xs text-right font-mono tabular-nums text-primary-token"
               >
                 {totals[s].toLocaleString()}
               </td>
             ))}
-            <td className="py-1 px-2 text-xs text-right font-mono tabular-nums text-[var(--text-secondary)]">
+            <td className="py-1 px-2 text-xs text-right font-mono tabular-nums text-secondary-token">
               {convRate(totals.appointments, totals.registrations)}
             </td>
-            <td className="py-1 px-2 text-xs text-right font-mono tabular-nums text-[var(--text-secondary)]">
+            <td className="py-1 px-2 text-xs text-right font-mono tabular-nums text-secondary-token">
               {convRate(totals.attendance, totals.appointments)}
             </td>
-            <td className="py-1 px-2 text-xs text-right font-mono tabular-nums text-[var(--text-secondary)]">
+            <td className="py-1 px-2 text-xs text-right font-mono tabular-nums text-secondary-token">
               {convRate(totals.payments, totals.attendance)}
             </td>
           </tr>

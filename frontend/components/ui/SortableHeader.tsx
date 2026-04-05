@@ -41,8 +41,8 @@ export function SortableHeader({
       className={cn(
         'group cursor-pointer p-4 text-sm font-medium transition-colors select-none',
         isActive
-          ? 'bg-[var(--bg-subtle)] text-[var(--text-primary)]'
-          : 'text-[var(--text-secondary)] hover:bg-[var(--bg-subtle)] hover:text-[var(--text-primary)]',
+          ? 'bg-subtle text-primary-token'
+          : 'text-secondary-token hover:bg-subtle hover:text-primary-token',
         align === 'right' ? 'text-right' : align === 'center' ? 'text-center' : 'text-left',
         className
       )}
@@ -68,8 +68,8 @@ export function SortableHeader({
             )
           ) : (
             <>
-              <ChevronUp className="w-3 h-3 text-[var(--text-muted)]" />
-              <ChevronDown className="w-3 h-3 text-[var(--text-muted)]" />
+              <ChevronUp className="w-3 h-3 text-muted-token" />
+              <ChevronDown className="w-3 h-3 text-muted-token" />
             </>
           )}
         </div>

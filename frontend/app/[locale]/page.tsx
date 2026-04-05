@@ -670,9 +670,7 @@ function RoleFilter({
           key={role}
           onClick={() => onChange(role)}
           className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
-            value === role
-              ? 'bg-[var(--text-primary)] text-[var(--bg-surface)]'
-              : 'bg-[var(--bg-subtle)] text-[var(--text-secondary)] hover:bg-[var(--border-default)]'
+            value === role ? 'bg-n-900 text-white' : 'bg-subtle text-secondary-token hover:bg-n-200'
           }`}
         >
           {roleLabels[role]}
@@ -721,16 +719,14 @@ function IndicatorMatrixSummary({
   };
 
   return (
-    <div className="rounded-lg border border-[var(--border-default)] bg-[var(--bg-subtle)] px-4 py-3">
+    <div className="rounded-lg border border-default-token bg-subtle px-4 py-3">
       <div className="flex items-center justify-between mb-2">
-        <span className="text-xs font-semibold text-[var(--text-primary)]">
+        <span className="text-xs font-semibold text-primary-token">
           {roleLabels[role]} {t.activeIndicatorsLabel}
         </span>
-        <span className="text-xs text-[var(--text-muted)]">
+        <span className="text-xs text-muted-token">
           {t.totalCount}{' '}
-          <span className="font-semibold text-[var(--text-primary)]">
-            {activeIndicators.length}
-          </span>{' '}
+          <span className="font-semibold text-primary-token">{activeIndicators.length}</span>{' '}
           {t.itemsCount}
         </span>
       </div>
@@ -738,10 +734,10 @@ function IndicatorMatrixSummary({
         {categories.map(([cat, count]) => (
           <span
             key={cat}
-            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] bg-[var(--bg-surface)] border border-[var(--border-default)] text-[var(--text-secondary)]"
+            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] bg-surface border border-default-token text-secondary-token"
           >
             {categoryLabels[cat]}
-            <span className="font-semibold text-[var(--text-primary)]">{count}</span>
+            <span className="font-semibold text-primary-token">{count}</span>
           </span>
         ))}
       </div>
@@ -821,10 +817,10 @@ function fmt8(v: number | null, format: 'currency' | 'count' = 'count'): string 
 }
 
 function gapColor(v: number | null): string {
-  if (v === null) return 'text-[var(--text-muted)]';
-  if (v > 0) return 'text-[var(--color-success)]';
-  if (v < 0) return 'text-[var(--color-danger)]';
-  return 'text-[var(--text-secondary)]';
+  if (v === null) return 'text-muted-token';
+  if (v > 0) return 'text-success-token';
+  if (v < 0) return 'text-danger-token';
+  return 'text-secondary-token';
 }
 
 function KPI8Card({ label, item, format = 'count', t }: KPI8CardProps & { t: I18NType }) {
@@ -880,13 +876,13 @@ function KPI8Card({ label, item, format = 'count', t }: KPI8CardProps & { t: I18
 
   return (
     <div className="card-base p-3">
-      <p className="text-xs font-semibold text-[var(--text-primary)] uppercase tracking-wide mb-2">
+      <p className="text-xs font-semibold text-primary-token uppercase tracking-wide mb-2">
         {label}
       </p>
       <div className="grid grid-cols-2 gap-x-3 gap-y-2">
         {rows.map((r) => (
           <div key={r.key} className="flex flex-col">
-            <span className="text-[10px] text-[var(--text-muted)]" title={subtitleMap[r.key]}>
+            <span className="text-[10px] text-muted-token" title={subtitleMap[r.key]}>
               {r.label}
             </span>
             <span
@@ -899,13 +895,13 @@ function KPI8Card({ label, item, format = 'count', t }: KPI8CardProps & { t: I18
                           ? item.absolute_gap
                           : null
                     )
-                  : 'text-[var(--text-primary)]'
+                  : 'text-primary-token'
               }`}
             >
               {r.value}
             </span>
             {subtitleMap[r.key] && (
-              <span className="text-[9px] text-[var(--text-muted)] leading-tight mt-0.5 opacity-70">
+              <span className="text-[9px] text-muted-token leading-tight mt-0.5 opacity-70">
                 {subtitleMap[r.key]}
               </span>
             )}
@@ -939,42 +935,36 @@ function RateCard8({
   const gap = actual !== null && target !== null ? actual - target : null;
 
   const gapClass =
-    gap === null
-      ? 'text-[var(--text-muted)]'
-      : gap >= 0
-        ? 'text-[var(--color-success)]'
-        : 'text-[var(--color-danger)]';
+    gap === null ? 'text-muted-token' : gap >= 0 ? 'text-success-token' : 'text-danger-token';
 
   return (
     <div className="card-base p-3">
-      <p className="text-xs font-semibold text-[var(--text-primary)] uppercase tracking-wide mb-2">
+      <p className="text-xs font-semibold text-primary-token uppercase tracking-wide mb-2">
         {label}
       </p>
       <div className="grid grid-cols-2 gap-x-3 gap-y-2 mb-2">
         <div className="flex flex-col">
-          <span className="text-[10px] text-[var(--text-muted)]">{t.rateActual}</span>
-          <span className="text-sm font-mono font-semibold text-[var(--text-primary)]">
+          <span className="text-[10px] text-muted-token">{t.rateActual}</span>
+          <span className="text-sm font-mono font-semibold text-primary-token">
             {pct !== null ? `${pct}%` : '—'}
           </span>
         </div>
         <div className="flex flex-col">
-          <span className="text-[10px] text-[var(--text-muted)]">{t.rateTarget}</span>
-          <span className="text-sm font-mono font-semibold text-[var(--text-secondary)]">
+          <span className="text-[10px] text-muted-token">{t.rateTarget}</span>
+          <span className="text-sm font-mono font-semibold text-secondary-token">
             {targetPct !== null ? `${targetPct}%` : '—'}
           </span>
         </div>
         <div className="flex flex-col col-span-2">
-          <span className="text-[10px] text-[var(--text-muted)]">{t.rateGap}</span>
+          <span className="text-[10px] text-muted-token">{t.rateGap}</span>
           <span className={`text-sm font-mono font-semibold ${gapClass}`}>
             {gap !== null ? `${gap >= 0 ? '+' : ''}${formatRate(Math.abs(gap))}` : '—'}
           </span>
         </div>
       </div>
-      {lossDesc && (
-        <p className="text-[10px] text-[var(--color-danger)] mt-1 leading-relaxed">{lossDesc}</p>
-      )}
+      {lossDesc && <p className="text-[10px] text-danger-token mt-1 leading-relaxed">{lossDesc}</p>}
       {rootCause && (
-        <p className="text-[10px] text-[var(--text-muted)] mt-0.5 leading-relaxed">{rootCause}</p>
+        <p className="text-[10px] text-muted-token mt-0.5 leading-relaxed">{rootCause}</p>
       )}
     </div>
   );
@@ -1071,14 +1061,14 @@ function TimeProgressBar({ tp, t }: { tp: TimeProgressInfo; t: I18NType }) {
     : `${year}-${mon}`;
 
   return (
-    <div className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-xs text-[var(--text-secondary)]">
+    <div className="rounded-lg border border-default-token bg-surface-alt px-4 py-3 text-xs text-secondary-token">
       <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
-        <span className="font-medium text-[var(--text-primary)]">{t.tp_timeProgress}</span>
-        <span className="text-[var(--text-muted)]">{month}</span>
+        <span className="font-medium text-primary-token">{t.tp_timeProgress}</span>
+        <span className="text-muted-token">{month}</span>
       </div>
 
       {/* 进度条 */}
-      <div className="relative h-2 rounded-full bg-[var(--border)] overflow-hidden mb-2">
+      <div className="relative h-2 rounded-full bg-n-200 overflow-hidden mb-2">
         <div
           className="absolute left-0 top-0 h-full rounded-full bg-action-accent transition-all"
           style={{ width: `${Math.min(pct, 100)}%` }}
@@ -1088,21 +1078,21 @@ function TimeProgressBar({ tp, t }: { tp: TimeProgressInfo; t: I18NType }) {
       {/* 数字信息行 */}
       <div className="flex flex-wrap gap-x-5 gap-y-1">
         <span>
-          {t.tp_today} <span className="font-medium text-[var(--text-primary)]">{tp.today}</span>
+          {t.tp_today} <span className="font-medium text-primary-token">{tp.today}</span>
         </span>
         <span>
           {t.tp_elapsedWorkdays}{' '}
-          <span className="font-medium text-[var(--text-primary)]">{tp.elapsed_workdays}</span> /{' '}
+          <span className="font-medium text-primary-token">{tp.elapsed_workdays}</span> /{' '}
           {tp.total_workdays}
         </span>
         <span>
           {t.tp_remainingWorkdays}{' '}
-          <span className="font-medium text-[var(--text-primary)]">{tp.remaining_workdays}</span>
+          <span className="font-medium text-primary-token">{tp.remaining_workdays}</span>
         </span>
         <span>
           {t.tp_timePct}{' '}
           <span
-            className={`font-semibold ${pct >= 80 ? 'text-[var(--color-danger)]' : pct >= 50 ? 'text-[var(--color-warning)]' : 'text-action-accent'}`}
+            className={`font-semibold ${pct >= 80 ? 'text-danger-token' : pct >= 50 ? 'text-warning-token' : 'text-action-accent'}`}
           >
             {pct}%
           </span>
@@ -1148,15 +1138,13 @@ function PaceRow({ kpiPace, timeProgress, t }: PaceRowProps) {
     <div className="flex flex-wrap gap-x-5 gap-y-1 px-1 pt-1 text-xs">
       {items.map(({ key, label, display, isBehind }) => (
         <span key={key} className="flex items-center gap-1">
-          <span className="text-[var(--text-muted)]">{label}</span>
-          <span
-            className={`font-semibold ${isBehind ? 'text-[var(--color-danger)]' : 'text-action-text'}`}
-          >
+          <span className="text-muted-token">{label}</span>
+          <span className={`font-semibold ${isBehind ? 'text-danger-token' : 'text-action-text'}`}>
             {display}
           </span>
         </span>
       ))}
-      <span className="text-[var(--text-muted)] ml-auto">
+      <span className="text-muted-token ml-auto">
         {t.paceRowSuffix}
         {Math.round(timeProgress * 100)}
         {t.paceRowSuffix2}
@@ -1189,7 +1177,7 @@ function FunnelSnapshot({
         const rate = num(metrics[rateKey]);
         return (
           <div key={rateKey}>
-            <div className="flex justify-between text-xs text-[var(--text-secondary)] mb-1">
+            <div className="flex justify-between text-xs text-secondary-token mb-1">
               <span>
                 {funnelLabelMap[from] ?? from} → {funnelLabelMap[to] ?? to}
               </span>
@@ -1219,11 +1207,7 @@ function RingProgress({ label, value, color }: RingProps) {
   const dashOffset = circumference - (circumference * pct) / 100;
 
   const textColor =
-    value >= 1
-      ? 'text-[var(--color-success)]'
-      : value >= 0.8
-        ? 'text-[var(--color-warning)]'
-        : 'text-[var(--color-danger)]';
+    value >= 1 ? 'text-success-token' : value >= 0.8 ? 'text-warning-token' : 'text-danger-token';
 
   return (
     <div className="flex flex-col items-center gap-1">
@@ -1255,9 +1239,7 @@ function RingProgress({ label, value, color }: RingProps) {
           {pct}%
         </span>
       </div>
-      <span className="text-[11px] text-[var(--text-secondary)] text-center leading-tight">
-        {label}
-      </span>
+      <span className="text-[11px] text-secondary-token text-center leading-tight">{label}</span>
     </div>
   );
 }
@@ -1271,8 +1253,8 @@ function MonthlyAchievementSection({ t }: { t: I18NType }) {
         <div className="flex items-center justify-around py-2 gap-4">
           {Array.from({ length: 3 }).map((_, i) => (
             <div key={i} className="flex flex-col items-center gap-2">
-              <div className="w-16 h-16 rounded-full animate-pulse bg-[var(--n-200)]" />
-              <div className="h-3 w-16 rounded animate-pulse bg-[var(--n-200)]" />
+              <div className="w-16 h-16 rounded-full animate-pulse bg-n-200" />
+              <div className="h-3 w-16 rounded animate-pulse bg-n-200" />
             </div>
           ))}
         </div>
@@ -1295,11 +1277,11 @@ function MonthlyAchievementSection({ t }: { t: I18NType }) {
           <RingProgress key={r.label} {...r} />
         ))}
       </div>
-      <p className="text-[10px] text-[var(--text-muted)] text-center mt-1">
+      <p className="text-[10px] text-muted-token text-center mt-1">
         {t.colorHintFull}
-        <span className="text-[var(--color-success)] font-medium">{t.colorGreen100}</span> ·{' '}
-        <span className="text-[var(--color-warning)] font-medium">{t.colorOrange80}</span> ·{' '}
-        <span className="text-[var(--color-danger)] font-medium">{t.colorRed80}</span>
+        <span className="text-success-token font-medium">{t.colorGreen100}</span> ·{' '}
+        <span className="text-warning-token font-medium">{t.colorOrange80}</span> ·{' '}
+        <span className="text-danger-token font-medium">{t.colorRed80}</span>
       </p>
     </Card>
   );
@@ -1341,7 +1323,7 @@ export default function DashboardPage() {
   if (isLoading) {
     return (
       <div className="space-y-5">
-        <div className="h-8 w-48 animate-pulse rounded-md bg-[var(--n-200)]" />
+        <div className="h-8 w-48 animate-pulse rounded-md bg-n-200" />
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
           {Array.from({ length: 8 }).map((_, i) => (
             <SkeletonCard key={i} className="h-24" />
@@ -1356,11 +1338,11 @@ export default function DashboardPage() {
   if (error) {
     return (
       <div className="flex flex-col items-center justify-center py-16 gap-3">
-        <p className="text-sm font-medium text-[var(--text-primary)]">{t.errLoadFailed}</p>
-        <p className="text-xs text-[var(--text-muted)]">{t.errLoadFailedDesc}</p>
+        <p className="text-sm font-medium text-primary-token">{t.errLoadFailed}</p>
+        <p className="text-xs text-muted-token">{t.errLoadFailedDesc}</p>
         <button
           onClick={() => window.location.reload()}
-          className="mt-1 px-4 py-1.5 rounded-lg text-xs font-medium bg-[var(--bg-subtle)] border border-[var(--border-default)] text-[var(--text-secondary)] hover:bg-[var(--border-default)] transition-colors min-h-[44px] min-w-[44px]"
+          className="mt-1 px-4 py-1.5 rounded-lg text-xs font-medium bg-subtle border border-default-token text-secondary-token hover:bg-n-200 transition-colors min-h-[44px] min-w-[44px]"
         >
           {t.btnRetry}
         </button>
@@ -1435,7 +1417,7 @@ export default function DashboardPage() {
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h1 className="page-title">{t.pageHeader}</h1>
-          <p className="text-sm text-[var(--text-secondary)] mt-1">{t.pageHeaderSub}</p>
+          <p className="text-sm text-secondary-token mt-1">{t.pageHeaderSub}</p>
         </div>
         {/* 岗位视角筛选器 */}
         <RoleFilter value={roleView} onChange={setRoleView} t={t} />
@@ -1459,13 +1441,11 @@ export default function DashboardPage() {
 
       {hasMetrics && (
         <>
-          <p className="text-[10px] text-[var(--text-muted)] -mb-2">
+          <p className="text-[10px] text-muted-token -mb-2">
             {t.achieveColorHint}
-            <span className="text-[var(--color-success)] font-medium">
-              {t.colorGreen100}
-            </span> ·{' '}
-            <span className="text-[var(--color-warning)] font-medium">{t.colorOrange80}</span> ·{' '}
-            <span className="text-[var(--color-danger)] font-medium">{t.colorRed80}</span>
+            <span className="text-success-token font-medium">{t.colorGreen100}</span> ·{' '}
+            <span className="text-warning-token font-medium">{t.colorOrange80}</span> ·{' '}
+            <span className="text-danger-token font-medium">{t.colorRed80}</span>
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
             {visibleKpiCards.map(({ key, label, format, targetKey, paceKey, knowledgeChapter }) => {
@@ -1526,16 +1506,16 @@ export default function DashboardPage() {
           <>
             <FunnelSnapshot metrics={metrics} timeProgress={tp?.time_progress ?? 0} t={t} />
             {/* AOV + 注册转化率（从 StatCard 移入漏斗区） */}
-            <div className="mt-3 pt-3 border-t border-[var(--border-default)] flex flex-wrap gap-6 text-xs text-[var(--text-secondary)]">
+            <div className="mt-3 pt-3 border-t border-default-token flex flex-wrap gap-6 text-xs text-secondary-token">
               <span>
                 {t.kpi_aov}:{' '}
-                <strong className="text-[var(--text-primary)]">
+                <strong className="text-primary-token">
                   {formatRevenue(num(metrics['客单价']))}
                 </strong>
               </span>
               <span>
                 {t.kpi_register_conv}:{' '}
-                <strong className="text-[var(--text-primary)]">
+                <strong className="text-primary-token">
                   {formatRate(num(metrics['注册转化率']))}
                 </strong>
               </span>
@@ -1549,7 +1529,7 @@ export default function DashboardPage() {
       {/* D2b 全站基准 */}
       {d2b && (
         <Card title={t.d2bCardTitle}>
-          <p className="text-[11px] text-[var(--text-muted)] mb-3">{t.d2bCardDesc}</p>
+          <p className="text-[11px] text-muted-token mb-3">{t.d2bCardDesc}</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
             {[
               {
@@ -1596,18 +1576,15 @@ export default function DashboardPage() {
                 chapter: 'chapter-2-0',
               },
             ].map(({ label, value, subtitle, chapter }) => (
-              <div
-                key={label}
-                className="bg-[var(--bg-subtle)] rounded-lg px-3 py-2.5 flex flex-col gap-0.5"
-              >
-                <span className="text-[10px] text-[var(--text-muted)] inline-flex items-center">
+              <div key={label} className="bg-subtle rounded-lg px-3 py-2.5 flex flex-col gap-0.5">
+                <span className="text-[10px] text-muted-token inline-flex items-center">
                   {label}
                   {chapter && <KnowledgeLink chapter={chapter} className="w-3 h-3" />}
                 </span>
-                <span className="text-base font-bold font-mono tabular-nums text-[var(--text-primary)]">
+                <span className="text-base font-bold font-mono tabular-nums text-primary-token">
                   {value}
                 </span>
-                <span className="text-[9px] text-[var(--text-muted)] leading-tight opacity-75">
+                <span className="text-[9px] text-muted-token leading-tight opacity-75">
                   {subtitle}
                 </span>
               </div>

@@ -74,7 +74,7 @@ export function MetricRadar({ metrics }: MetricRadarProps) {
 
   return (
     <div className="w-full">
-      <p className="text-xs text-[var(--text-muted)] mb-2 text-center">
+      <p className="text-xs text-muted-token mb-2 text-center">
         {metrics.cc_name} — {t.title}
       </p>
       <ResponsiveContainer width="100%" height={240}>

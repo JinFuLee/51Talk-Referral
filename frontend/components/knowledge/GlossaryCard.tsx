@@ -137,18 +137,14 @@ export function GlossaryCard({ containerRef }: GlossaryCardProps) {
       style={{ left: tooltip.x, top: tooltip.y }}
     >
       <div className="flex items-start justify-between gap-2 mb-1">
-        <span className="text-sm font-semibold text-[var(--text-primary)]">
-          {tooltip.term.term}
-        </span>
+        <span className="text-sm font-semibold text-primary-token">{tooltip.term.term}</span>
         {tooltip.term.category && (
-          <span className="text-[10px] px-1.5 py-0.5 rounded bg-[var(--color-accent-surface)] text-[var(--color-accent)] font-medium shrink-0">
+          <span className="text-[10px] px-1.5 py-0.5 rounded bg-accent-surface text-accent-token font-medium shrink-0">
             {tooltip.term.category}
           </span>
         )}
       </div>
-      <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
-        {tooltip.term.definition}
-      </p>
+      <p className="text-xs text-secondary-token leading-relaxed">{tooltip.term.definition}</p>
     </div>
   );
 }

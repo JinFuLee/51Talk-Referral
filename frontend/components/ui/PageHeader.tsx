@@ -21,15 +21,15 @@ export function PageHeader({ title, subtitle, icon: Icon, badge, children }: Pag
           </div>
         )}
         <div>
-          <h1 className="text-xl font-bold text-[var(--text-primary)] flex items-center gap-2">
+          <h1 className="text-xl font-bold text-primary-token flex items-center gap-2">
             {title}
             {badge && (
-              <span className="text-[10px] uppercase font-bold tracking-wider bg-[var(--bg-subtle)] text-[var(--text-secondary)] px-2 py-0.5 rounded-full">
+              <span className="text-[10px] uppercase font-bold tracking-wider bg-subtle text-secondary-token px-2 py-0.5 rounded-full">
                 {badge}
               </span>
             )}
           </h1>
-          {subtitle && <p className="text-xs text-[var(--text-muted)] mt-0.5">{subtitle}</p>}
+          {subtitle && <p className="text-xs text-muted-token mt-0.5">{subtitle}</p>}
         </div>
       </div>
 

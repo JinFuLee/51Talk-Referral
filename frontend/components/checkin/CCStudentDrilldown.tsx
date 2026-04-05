@@ -107,8 +107,8 @@ interface SummaryStatProps {
 function SummaryStat({ label, value }: SummaryStatProps) {
   return (
     <span className="inline-flex items-center gap-1 text-xs">
-      <span className="text-[var(--text-muted)]">{label}</span>
-      <span className="font-semibold text-[var(--text-primary)]">{value}</span>
+      <span className="text-muted-token">{label}</span>
+      <span className="font-semibold text-primary-token">{value}</span>
     </span>
   );
 }
@@ -119,11 +119,7 @@ interface DeltaCellProps {
 
 function DeltaCell({ delta }: DeltaCellProps) {
   const color =
-    delta > 0
-      ? 'text-[var(--color-success)]'
-      : delta < 0
-        ? 'text-[var(--color-danger)]'
-        : 'text-[var(--text-muted)]';
+    delta > 0 ? 'text-success-token' : delta < 0 ? 'text-danger-token' : 'text-muted-token';
   return (
     <td className={`slide-td text-center tabular-nums font-semibold ${color}`}>
       {delta > 0 ? `+${delta}` : delta}
@@ -146,7 +142,7 @@ export function CCStudentDrilldown({ ccName }: CCStudentDrilldownProps) {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-16 text-xs text-[var(--text-muted)]">
+      <div className="flex items-center justify-center h-16 text-xs text-muted-token">
         {t.loading}
       </div>
     );
@@ -154,7 +150,7 @@ export function CCStudentDrilldown({ ccName }: CCStudentDrilldownProps) {
 
   if (error) {
     return (
-      <div className="flex items-center justify-center h-16 text-xs text-[var(--color-danger)]">
+      <div className="flex items-center justify-center h-16 text-xs text-danger-token">
         {t.loadFailed}
       </div>
     );
@@ -164,7 +160,7 @@ export function CCStudentDrilldown({ ccName }: CCStudentDrilldownProps) {
 
   if (students.length === 0) {
     return (
-      <div className="flex items-center justify-center h-16 text-xs text-[var(--text-muted)]">
+      <div className="flex items-center justify-center h-16 text-xs text-muted-token">
         {t.noData}
       </div>
     );
@@ -180,13 +176,13 @@ export function CCStudentDrilldown({ ccName }: CCStudentDrilldownProps) {
   const sorted = [...students].sort((a, b) => b.days_this_month - a.days_this_month);
 
   return (
-    <div className="border-t border-[var(--border-default)] bg-[var(--bg-subtle)]">
+    <div className="border-t border-default-token bg-subtle">
       {/* 摘要行 */}
-      <div className="flex items-center gap-4 px-4 py-2 border-b border-[var(--border-default)]">
+      <div className="flex items-center gap-4 px-4 py-2 border-b border-default-token">
         <SummaryStat label={t.totalLabel} value={t.totalUnit(total)} />
-        <span className="text-[var(--border-default)]">·</span>
+        <span className="text-secondary-token">·</span>
         <SummaryStat label={t.checkedInLabel} value={t.checkedInValue(checkedIn, checkedInPct)} />
-        <span className="text-[var(--border-default)]">·</span>
+        <span className="text-secondary-token">·</span>
         <SummaryStat label={t.sleepHighLabel} value={t.sleepHighValue(sleepHighPotential)} />
       </div>
 
@@ -211,21 +207,21 @@ export function CCStudentDrilldown({ ccName }: CCStudentDrilldownProps) {
                 key={row.student_id}
                 className={idx % 2 === 0 ? 'slide-row-even' : 'slide-row-odd'}
               >
-                <td className="slide-td font-mono text-[var(--text-primary)]">{row.student_id}</td>
-                <td className="slide-td text-center text-[var(--text-secondary)]">
+                <td className="slide-td font-mono text-primary-token">{row.student_id}</td>
+                <td className="slide-td text-center text-secondary-token">
                   {fmtEnc(row.enclosure)}
                 </td>
-                <td className="slide-td text-center font-semibold tabular-nums text-[var(--text-primary)]">
+                <td className="slide-td text-center font-semibold tabular-nums text-primary-token">
                   {row.days_this_month}
                 </td>
-                <td className="slide-td text-center tabular-nums text-[var(--text-secondary)]">
+                <td className="slide-td text-center tabular-nums text-secondary-token">
                   {row.days_last_month}
                 </td>
                 <DeltaCell delta={row.delta} />
-                <td className="slide-td text-center tabular-nums text-[var(--text-secondary)]">
+                <td className="slide-td text-center tabular-nums text-secondary-token">
                   {row.lesson_this_month != null ? row.lesson_this_month : '—'}
                 </td>
-                <td className="slide-td text-center tabular-nums text-[var(--text-secondary)]">
+                <td className="slide-td text-center tabular-nums text-secondary-token">
                   {row.referral_registrations}
                 </td>
                 <td className="slide-td">

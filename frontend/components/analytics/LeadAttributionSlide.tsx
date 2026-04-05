@@ -140,11 +140,7 @@ type DailyReportSlice = { blocks: { lead_attribution: LeadAttribution } };
 
 function RateCell({ value }: { value: number }) {
   const color =
-    value >= 0.5
-      ? 'text-[var(--color-success)]'
-      : value >= 0.3
-        ? 'text-[var(--color-warning)]'
-        : 'text-[var(--color-danger)]';
+    value >= 0.5 ? 'text-success-token' : value >= 0.3 ? 'text-warning-token' : 'text-danger-token';
   return (
     <td className={`px-2 py-1.5 text-xs text-right font-mono tabular-nums ${color}`}>
       {formatRate(value)}
@@ -171,29 +167,29 @@ function AttributionRow({
 
   return (
     <tr className={rowClass}>
-      <td className="px-3 py-1.5 text-xs font-semibold text-[var(--text-primary)]">
+      <td className="px-3 py-1.5 text-xs font-semibold text-primary-token">
         {isTotalRow ? t.total : row.channel}
       </td>
-      <td className="px-2 py-1.5 text-xs text-right font-mono tabular-nums text-[var(--text-secondary)]">
+      <td className="px-2 py-1.5 text-xs text-right font-mono tabular-nums text-secondary-token">
         {(row.registrations ?? 0).toLocaleString()}
       </td>
-      <td className="px-2 py-1.5 text-xs text-right font-mono tabular-nums text-[var(--text-muted)]">
+      <td className="px-2 py-1.5 text-xs text-right font-mono tabular-nums text-muted-token">
         {formatRate(row.reg_share)}
       </td>
       <RateCell value={row.appt_rate} />
       <RateCell value={row.attend_rate} />
       <RateCell value={row.paid_rate} />
       <RateCell value={row.reg_to_pay_rate} />
-      <td className="px-2 py-1.5 text-xs text-right font-mono tabular-nums font-semibold text-[var(--text-primary)]">
+      <td className="px-2 py-1.5 text-xs text-right font-mono tabular-nums font-semibold text-primary-token">
         {(row.payments ?? 0).toLocaleString()}
       </td>
-      <td className="px-2 py-1.5 text-xs text-right font-mono tabular-nums text-[var(--text-muted)]">
+      <td className="px-2 py-1.5 text-xs text-right font-mono tabular-nums text-muted-token">
         {formatRate(row.payment_share)}
       </td>
-      <td className="px-2 py-1.5 text-xs text-right font-mono tabular-nums font-medium text-[var(--text-primary)]">
+      <td className="px-2 py-1.5 text-xs text-right font-mono tabular-nums font-medium text-primary-token">
         {formatRevenue(row.revenue_usd)}
       </td>
-      <td className="px-2 py-1.5 text-xs text-right font-mono tabular-nums text-[var(--text-muted)]">
+      <td className="px-2 py-1.5 text-xs text-right font-mono tabular-nums text-muted-token">
         {formatRate(row.revenue_share)}
       </td>
     </tr>
@@ -237,18 +233,18 @@ export function LeadAttributionSlide({ slideNumber, totalSlides }: SlideProps) {
       ) : error ? (
         <div className="flex items-center justify-center h-full">
           <div className="text-center space-y-2">
-            <p className="text-base font-semibold text-[var(--color-danger)]">{t.error}</p>
-            <p className="text-sm text-[var(--text-muted)]">{t.errorHint}</p>
+            <p className="text-base font-semibold text-danger-token">{t.error}</p>
+            <p className="text-sm text-muted-token">{t.errorHint}</p>
             <button
               onClick={() => mutate()}
-              className="mt-1 px-4 py-1.5 rounded-lg text-sm border border-[var(--border-default)] text-[var(--text-secondary)] hover:bg-[var(--bg-subtle)] transition-colors"
+              className="mt-1 px-4 py-1.5 rounded-lg text-sm border border-default-token text-secondary-token hover:bg-subtle transition-colors"
             >
               {t.retry}
             </button>
           </div>
         </div>
       ) : rows.length === 0 ? (
-        <div className="flex flex-col justify-center items-center h-full gap-3 text-[var(--text-muted)]">
+        <div className="flex flex-col justify-center items-center h-full gap-3 text-muted-token">
           <p className="text-base font-medium">{t.empty}</p>
           <p className="text-sm">{t.emptyHint}</p>
         </div>

@@ -267,8 +267,8 @@ function CCContent() {
   }
 
   function sortIcon(key: SortKey) {
-    if (sortKey !== key) return <span className="text-[var(--text-muted)] ml-0.5">⇅</span>;
-    return <span className="text-[var(--text-primary)] ml-0.5">{sortAsc ? '↑' : '↓'}</span>;
+    if (sortKey !== key) return <span className="text-muted-token ml-0.5">⇅</span>;
+    return <span className="text-primary-token ml-0.5">{sortAsc ? '↑' : '↓'}</span>;
   }
 
   return (
@@ -278,29 +278,27 @@ function CCContent() {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <Card title="">
             <div className="text-center py-3">
-              <p className="text-xs text-[var(--text-muted)] mb-1">{t.highQualityPct}</p>
-              <p className="text-3xl font-bold text-[var(--color-success)]">
+              <p className="text-xs text-muted-token mb-1">{t.highQualityPct}</p>
+              <p className="text-3xl font-bold text-success-token">
                 {pct(summary.high_quality_pct)}
               </p>
-              <p className="text-xs text-[var(--text-muted)] mt-1">{t.highQualityNote}</p>
+              <p className="text-xs text-muted-token mt-1">{t.highQualityNote}</p>
             </div>
           </Card>
           <Card title="">
             <div className="text-center py-3">
-              <p className="text-xs text-[var(--text-muted)] mb-1">{t.suspiciousPct}</p>
-              <p className="text-3xl font-bold text-[var(--color-warning)]">
-                {pct(summary.suspicious_pct)}
-              </p>
-              <p className="text-xs text-[var(--text-muted)] mt-1">{t.suspiciousNote}</p>
+              <p className="text-xs text-muted-token mb-1">{t.suspiciousPct}</p>
+              <p className="text-3xl font-bold text-warning-token">{pct(summary.suspicious_pct)}</p>
+              <p className="text-xs text-muted-token mt-1">{t.suspiciousNote}</p>
             </div>
           </Card>
           <Card title="">
             <div className="text-center py-3">
-              <p className="text-xs text-[var(--text-muted)] mb-1">{t.lostContact}</p>
-              <p className="text-3xl font-bold text-[var(--color-danger)]">
+              <p className="text-xs text-muted-token mb-1">{t.lostContact}</p>
+              <p className="text-3xl font-bold text-danger-token">
                 {(summary.lost_contact_count ?? 0).toLocaleString()}
               </p>
-              <p className="text-xs text-[var(--text-muted)] mt-1">
+              <p className="text-xs text-muted-token mt-1">
                 {t.lostContactNote(summary.total_students ?? 0)}
               </p>
             </div>
@@ -374,11 +372,9 @@ function CCContent() {
                 const suspRate = p.students > 0 ? p.suspicious_count / p.students : 0;
                 return (
                   <tr key={p.cc_name} className={i % 2 === 0 ? 'slide-row-even' : 'slide-row-odd'}>
-                    <td className="slide-td text-center text-[var(--text-muted)] font-mono">
-                      {i + 1}
-                    </td>
+                    <td className="slide-td text-center text-muted-token font-mono">{i + 1}</td>
                     <td className="slide-td font-medium">{p.cc_name}</td>
-                    <td className="slide-td text-[var(--text-secondary)] text-xs">{p.cc_group}</td>
+                    <td className="slide-td text-secondary-token text-xs">{p.cc_group}</td>
                     <td className="slide-td text-right font-mono tabular-nums">
                       {(p.students ?? 0).toLocaleString()}
                     </td>
@@ -389,10 +385,10 @@ function CCContent() {
                       <span
                         className={
                           highRate >= 0.6
-                            ? 'text-[var(--color-success)] font-semibold'
+                            ? 'text-success-token font-semibold'
                             : highRate >= 0.4
-                              ? 'text-[var(--color-warning)]'
-                              : 'text-[var(--color-danger)]'
+                              ? 'text-warning-token'
+                              : 'text-danger-token'
                         }
                       >
                         {p.high_quality_count}
@@ -402,30 +398,30 @@ function CCContent() {
                       <span
                         className={
                           suspRate > 0.3
-                            ? 'text-[var(--color-danger)] font-semibold'
+                            ? 'text-danger-token font-semibold'
                             : suspRate > 0.1
-                              ? 'text-[var(--color-warning)]'
-                              : 'text-[var(--text-secondary)]'
+                              ? 'text-warning-token'
+                              : 'text-secondary-token'
                         }
                       >
                         {p.suspicious_count}
                       </span>
                     </td>
-                    <td className="slide-td text-right font-mono tabular-nums text-[var(--text-secondary)]">
+                    <td className="slide-td text-right font-mono tabular-nums text-secondary-token">
                       {fmt(p.avg_lost_days, 1)}
                     </td>
                     <td className="slide-td text-right font-mono tabular-nums">
                       <span
                         className={
                           p.lost_14d_count > 5
-                            ? 'text-[var(--color-danger)] font-semibold'
-                            : 'text-[var(--text-secondary)]'
+                            ? 'text-danger-token font-semibold'
+                            : 'text-secondary-token'
                         }
                       >
                         {p.lost_14d_count}
                       </span>
                     </td>
-                    <td className="slide-td text-right font-mono tabular-nums text-[var(--text-muted)]">
+                    <td className="slide-td text-right font-mono tabular-nums text-muted-token">
                       {(p.total_calls ?? 0).toLocaleString()}
                     </td>
                   </tr>
@@ -434,7 +430,7 @@ function CCContent() {
             </tbody>
           </table>
         </div>
-        <p className="text-xs text-[var(--text-muted)] mt-2 px-1">{t.tableNote}</p>
+        <p className="text-xs text-muted-token mt-2 px-1">{t.tableNote}</p>
       </Card>
     </div>
   );
@@ -466,12 +462,12 @@ export default function FollowupQualityPage() {
       {/* 页头 */}
       <div>
         <h1 className="page-title">{t.pageTitle}</h1>
-        <p className="text-sm text-[var(--text-secondary)] mt-1">{t.pageSubtitle}</p>
-        <p className="text-xs text-[var(--text-muted)] mt-0.5">{t.pageNote}</p>
+        <p className="text-sm text-secondary-token mt-1">{t.pageSubtitle}</p>
+        <p className="text-xs text-muted-token mt-0.5">{t.pageNote}</p>
       </div>
 
       {/* Tab 切换 */}
-      <div className="flex gap-1 border-b border-[var(--border-default)]">
+      <div className="flex gap-1 border-b border-default-token">
         {TABS.map((tab_item) => (
           <button
             key={tab_item.key}
@@ -479,8 +475,8 @@ export default function FollowupQualityPage() {
             className={[
               'px-4 py-2 text-sm font-medium rounded-t-md transition-colors',
               tab === tab_item.key
-                ? 'bg-[var(--bg-surface)] text-[var(--text-primary)] border border-b-0 border-[var(--border-default)]'
-                : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]',
+                ? 'bg-surface text-primary-token border border-b-0 border-default-token'
+                : 'text-muted-token hover:text-secondary-token',
             ].join(' ')}
           >
             {tab_item.label}

@@ -36,7 +36,7 @@ function HeatCell({ value, maxVal }: { value: number | null; maxVal: number }) {
   if (value == null) {
     return (
       <td className="slide-td text-center">
-        <span className="text-xs text-[var(--text-muted)]">—</span>
+        <span className="text-xs text-muted-token">—</span>
       </td>
     );
   }
@@ -94,7 +94,7 @@ export default function LearningHeatmapPage() {
       <div className="space-y-4">
         <div>
           <h1 className="page-title">{t('title')}</h1>
-          <p className="text-sm text-[var(--text-secondary)] mt-1">{t('subtitleEmpty')}</p>
+          <p className="text-sm text-secondary-token mt-1">{t('subtitleEmpty')}</p>
         </div>
         <EmptyState title={t('emptyTitle')} description={t('emptyDesc')} />
       </div>
@@ -121,11 +121,11 @@ export default function LearningHeatmapPage() {
       {/* 页面标题 */}
       <div>
         <h1 className="page-title">{t('title')}</h1>
-        <p className="text-sm text-[var(--text-secondary)] mt-1">{t('subtitle')}</p>
+        <p className="text-sm text-secondary-token mt-1">{t('subtitle')}</p>
       </div>
 
       {/* 图例 */}
-      <div className="flex items-center gap-3 text-xs text-[var(--text-muted)]">
+      <div className="flex items-center gap-3 text-xs text-muted-token">
         <span>{t('legendLabel')}</span>
         {(t.raw('legendLevels') as string[]).map((label: string, i: number) => (
           <div key={label} className="flex items-center gap-1">
@@ -136,7 +136,7 @@ export default function LearningHeatmapPage() {
       </div>
 
       {/* 热图表格 */}
-      <div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-lg overflow-x-auto">
+      <div className="bg-surface border border-subtle-token rounded-lg overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
             <tr className="slide-thead-row">
@@ -156,7 +156,7 @@ export default function LearningHeatmapPage() {
                   >
                     ⓘ
                   </span>
-                  <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 hidden group-hover:block z-10 bg-[var(--bg-subtle)] text-white text-[10px] rounded px-2 py-1 whitespace-nowrap pointer-events-none shadow-lg">
+                  <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 hidden group-hover:block z-10 bg-subtle text-white text-[10px] rounded px-2 py-1 whitespace-nowrap pointer-events-none shadow-lg">
                     {t('trendTooltip')}
                   </span>
                 </span>
@@ -172,7 +172,7 @@ export default function LearningHeatmapPage() {
                   key={row.enclosure}
                   className={i % 2 === 0 ? 'slide-row-even' : 'slide-row-odd'}
                 >
-                  <td className="slide-td font-medium text-[var(--text-primary)]">
+                  <td className="slide-td font-medium text-primary-token">
                     {fmtEnc(row.enclosure)}
                   </td>
                   {WEEK_KEYS.map((k) => (
@@ -180,11 +180,11 @@ export default function LearningHeatmapPage() {
                   ))}
                   <td className="slide-td text-center">
                     {avg != null ? (
-                      <span className="text-xs font-mono tabular-nums text-[var(--text-secondary)]">
+                      <span className="text-xs font-mono tabular-nums text-secondary-token">
                         {avg.toFixed(2)}
                       </span>
                     ) : (
-                      <span className="text-xs text-[var(--text-muted)]">—</span>
+                      <span className="text-xs text-muted-token">—</span>
                     )}
                   </td>
                   <td className="slide-td text-center">
@@ -192,17 +192,17 @@ export default function LearningHeatmapPage() {
                       <span
                         className={`text-xs font-medium ${
                           row.trend_ratio > 1.15
-                            ? 'text-[var(--color-danger)]'
+                            ? 'text-danger-token'
                             : row.trend_ratio < 0.85
-                              ? 'text-[var(--color-success)]'
-                              : 'text-[var(--text-secondary)]'
+                              ? 'text-success-token'
+                              : 'text-secondary-token'
                         }`}
                         title={`${t('colTrend')}: ${row.trend_ratio}`}
                       >
                         {row.trend_ratio > 1.15 ? '↓' : row.trend_ratio < 0.85 ? '↑' : '→'}
                       </span>
                     ) : (
-                      <span className="text-xs text-[var(--text-muted)]">—</span>
+                      <span className="text-xs text-muted-token">—</span>
                     )}
                   </td>
                 </tr>
@@ -213,7 +213,7 @@ export default function LearningHeatmapPage() {
       </div>
 
       {/* 说明 */}
-      <p className="text-xs text-[var(--text-muted)]">{t('footerNote')}</p>
+      <p className="text-xs text-muted-token">{t('footerNote')}</p>
     </div>
   );
 }

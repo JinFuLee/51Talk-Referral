@@ -25,17 +25,17 @@ export function Header({ lang, onLangChange, role, onRoleChange, lastUpdated }: 
   const { title, updatedLabel } = t;
 
   return (
-    <header className="h-14 bg-[var(--bg-surface)]/80 backdrop-blur-md border-b border-border/40 flex items-center justify-between px-6 shrink-0 relative z-40">
+    <header className="h-14 bg-surface/80 backdrop-blur-md border-b border-border/40 flex items-center justify-between px-6 shrink-0 relative z-40">
       <div className="flex items-center gap-3">
         <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
           <span className="text-white text-sm font-bold">51</span>
         </div>
-        <span className="font-semibold text-[var(--text-primary)] text-sm">{title}</span>
+        <span className="font-semibold text-primary-token text-sm">{title}</span>
       </div>
 
       <div className="flex items-center gap-4">
         {lastUpdated && (
-          <span className="text-xs text-[var(--text-muted)]">
+          <span className="text-xs text-muted-token">
             {updatedLabel}: {lastUpdated}
           </span>
         )}

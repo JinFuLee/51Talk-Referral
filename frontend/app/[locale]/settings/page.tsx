@@ -175,7 +175,7 @@ export default function SettingsPage() {
           <select
             value={selectedMonth}
             onChange={(e) => setSelectedMonth(e.target.value)}
-            className="px-3 py-2 border border-[var(--border-subtle)] rounded-lg text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-action"
+            className="px-3 py-2 border border-subtle-token rounded-lg text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-action"
           >
             {MONTHS.map((m) => (
               <option key={m} value={m}>
@@ -195,7 +195,7 @@ export default function SettingsPage() {
 
       {msg && (
         <p
-          className={`text-sm ${msg.includes('成功') ? 'text-[var(--color-success)]' : 'text-[var(--color-danger)]'}`}
+          className={`text-sm ${msg.includes('成功') ? 'text-success-token' : 'text-danger-token'}`}
         >
           {msg}
         </p>

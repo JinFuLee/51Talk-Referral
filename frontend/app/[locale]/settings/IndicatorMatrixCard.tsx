@@ -96,7 +96,7 @@ function AvailabilityBadge({ availability, t }: { availability: string; t: (type
   if (availability === 'available') return null;
   const label = availability === 'pending' ? t.availPending : t.availPartial;
   return (
-    <span className="ml-1.5 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-[var(--n-100)] text-[var(--text-muted)]">
+    <span className="ml-1.5 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-n-100 text-muted-token">
       {label}
     </span>
   );
@@ -130,12 +130,12 @@ function CategorySection({
     <div>
       <button
         onClick={() => setOpen((v) => !v)}
-        className="w-full flex items-center justify-between px-3 py-2 bg-[var(--n-100)] rounded-md text-xs font-semibold text-[var(--text-secondary)] hover:bg-[var(--n-200)] transition-colors"
+        className="w-full flex items-center justify-between px-3 py-2 bg-n-100 rounded-md text-xs font-semibold text-secondary-token hover:bg-n-200 transition-colors"
         aria-expanded={open}
       >
         <span>{catLabel}</span>
         <span className="flex items-center gap-1.5">
-          <span className="text-[var(--text-muted)]">
+          <span className="text-muted-token">
             {indicators.length}
             {t.itemCount ? ` ${t.itemCount}` : ''}
           </span>
@@ -155,14 +155,14 @@ function CategorySection({
             return (
               <div
                 key={ind.id}
-                className="flex items-center gap-3 px-3 py-2 border-b border-[var(--border-subtle)] last:border-0 hover:bg-[var(--bg-subtle)] transition-colors"
+                className="flex items-center gap-3 px-3 py-2 border-b border-subtle-token last:border-0 hover:bg-subtle transition-colors"
               >
                 {/* 指标名称 */}
                 <div className="flex-1 min-w-0">
-                  <span className="text-sm text-[var(--text-primary)]">{name}</span>
+                  <span className="text-sm text-primary-token">{name}</span>
                   <AvailabilityBadge availability={ind.availability} t={t} />
                   {ind.formula && (
-                    <p className="text-[11px] text-[var(--text-muted)] mt-0.5 font-mono truncate">
+                    <p className="text-[11px] text-muted-token mt-0.5 font-mono truncate">
                       {ind.formula}
                     </p>
                   )}
@@ -171,10 +171,10 @@ function CategorySection({
                 {/* CC 列：只读锁定 */}
                 <div className="w-12 flex justify-center">
                   <div
-                    className="w-4 h-4 flex items-center justify-center rounded bg-[var(--n-100)]"
+                    className="w-4 h-4 flex items-center justify-center rounded bg-n-100"
                     title={t.ccLockTitle}
                   >
-                    <Lock className="w-2.5 h-2.5 text-[var(--text-muted)]" aria-hidden="true" />
+                    <Lock className="w-2.5 h-2.5 text-muted-token" aria-hidden="true" />
                   </div>
                 </div>
 
@@ -185,7 +185,7 @@ function CategorySection({
                     checked={ssActive.has(ind.id)}
                     disabled={disabled}
                     onChange={() => !disabled && onToggle('SS', ind.id)}
-                    className="w-4 h-4 rounded border-[var(--border-default)] accent-action cursor-pointer disabled:cursor-not-allowed disabled:opacity-40 focus-visible:ring-2 focus-visible:ring-action"
+                    className="w-4 h-4 rounded border-default-token accent-action cursor-pointer disabled:cursor-not-allowed disabled:opacity-40 focus-visible:ring-2 focus-visible:ring-action"
                     aria-label={`SS ${name}`}
                   />
                 </div>
@@ -197,7 +197,7 @@ function CategorySection({
                     checked={lpActive.has(ind.id)}
                     disabled={disabled}
                     onChange={() => !disabled && onToggle('LP', ind.id)}
-                    className="w-4 h-4 rounded border-[var(--border-default)] accent-action cursor-pointer disabled:cursor-not-allowed disabled:opacity-40 focus-visible:ring-2 focus-visible:ring-action"
+                    className="w-4 h-4 rounded border-default-token accent-action cursor-pointer disabled:cursor-not-allowed disabled:opacity-40 focus-visible:ring-2 focus-visible:ring-action"
                     aria-label={`LP ${name}`}
                   />
                 </div>
@@ -285,7 +285,7 @@ export default function IndicatorMatrixCard() {
   if (error) {
     return (
       <Card title={t.cardTitle}>
-        <div className="p-6 text-center text-[var(--text-muted)]">
+        <div className="p-6 text-center text-muted-token">
           {t.loadError}
           {error.message || t.backendError}
         </div>
@@ -296,26 +296,24 @@ export default function IndicatorMatrixCard() {
   if (!isLoading && registry.length === 0) {
     return (
       <Card title={t.cardTitle}>
-        <div className="p-6 text-center text-[var(--text-muted)]">{t.emptyRegistry}</div>
+        <div className="p-6 text-center text-muted-token">{t.emptyRegistry}</div>
       </Card>
     );
   }
 
   return (
     <Card title={t.cardTitle}>
-      <p className="text-xs text-[var(--text-muted)] mb-3">
+      <p className="text-xs text-muted-token mb-3">
         {t.cardDesc}
-        <span className="ml-2 text-[var(--text-muted)]">{t.pendingHint}</span>
+        <span className="ml-2 text-muted-token">{t.pendingHint}</span>
       </p>
 
-      {isLoading && (
-        <div className="py-8 text-center text-sm text-[var(--text-muted)]">{t.loading}</div>
-      )}
+      {isLoading && <div className="py-8 text-center text-sm text-muted-token">{t.loading}</div>}
 
       {!isLoading && (
         <>
           {/* 表头 */}
-          <div className="flex items-center gap-3 px-3 py-2 bg-[var(--n-800)] rounded-t-md">
+          <div className="flex items-center gap-3 px-3 py-2 bg-n-800 rounded-t-md">
             <div className="flex-1 text-xs font-semibold text-white">{t.indicatorName}</div>
             <div className="w-12 text-center text-xs font-semibold text-white">CC</div>
             <div className="w-12 text-center text-xs font-semibold text-white">SS</div>
@@ -323,7 +321,7 @@ export default function IndicatorMatrixCard() {
           </div>
 
           {/* 按 category 渲染分组 */}
-          <div className="border border-[var(--border-default)] rounded-b-md divide-y divide-[var(--border-subtle)] overflow-hidden">
+          <div className="border border-default-token rounded-b-md divide-y divide-[var(--border-subtle)] overflow-hidden">
             {INDICATOR_CATEGORIES.map((cat) => (
               <CategorySection
                 key={cat}
@@ -341,9 +339,7 @@ export default function IndicatorMatrixCard() {
           {/* 操作栏 */}
           <div className="flex items-center justify-between mt-3">
             {msg && (
-              <p
-                className={`text-xs ${msg === t.saveSuccess ? 'text-[var(--n-600)]' : 'text-[var(--n-500)]'}`}
-              >
+              <p className={`text-xs ${msg === t.saveSuccess ? 'text-n-600' : 'text-n-500'}`}>
                 {msg}
               </p>
             )}
@@ -352,7 +348,7 @@ export default function IndicatorMatrixCard() {
               <button
                 onClick={handleReset}
                 disabled={saving || !matrix}
-                className="text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors disabled:opacity-40"
+                className="text-xs text-secondary-token hover:text-primary-token transition-colors disabled:opacity-40"
               >
                 {t.reset}
               </button>

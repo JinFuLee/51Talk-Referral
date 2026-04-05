@@ -134,7 +134,7 @@ function fmtNum(v: number, format: RowFormat): string {
 
 function BmGapCell({ value, format }: { value: number; format: RowFormat }) {
   const isPositive = value >= 0;
-  const colorClass = isPositive ? 'text-[var(--color-success)]' : 'text-[var(--color-danger)]';
+  const colorClass = isPositive ? 'text-success-token' : 'text-danger-token';
   const arrow = isPositive ? '▲' : '▼';
   const sign = isPositive ? '+' : '';
   const display =
@@ -150,10 +150,10 @@ function TodayRequiredCell({ value, format }: { value: number; format: RowFormat
   const locale = useLocale() as Locale;
   const t = I18N[locale] ?? I18N.zh;
   if (value <= 0) {
-    return <span className="text-[var(--text-muted)] text-sm">{t.overQuota}</span>;
+    return <span className="text-muted-token text-sm">{t.overQuota}</span>;
   }
   return (
-    <span className="text-[var(--color-danger)] font-mono tabular-nums text-sm">
+    <span className="text-danger-token font-mono tabular-nums text-sm">
       {fmtNum(value, format)}
     </span>
   );
@@ -192,10 +192,10 @@ export function BmComparisonTable({ data, visibleKeys }: BmComparisonTableProps)
       {/* 标题行 */}
       <div className="flex items-center justify-between mb-3">
         <div>
-          <h3 className="text-sm font-semibold text-[var(--text-primary)]">{t.titleBmRhythm}</h3>
-          <p className="text-xs text-[var(--text-muted)] mt-0.5">
+          <h3 className="text-sm font-semibold text-primary-token">{t.titleBmRhythm}</h3>
+          <p className="text-xs text-muted-token mt-0.5">
             {t.progressThrough} {calendar.reference_date}（{calendar.today_type}）· {t.cumProgress}{' '}
-            <span className="font-semibold text-[var(--text-secondary)]">{bmMtdPct}%</span>
+            <span className="font-semibold text-secondary-token">{bmMtdPct}%</span>
           </p>
         </div>
       </div>
@@ -203,7 +203,7 @@ export function BmComparisonTable({ data, visibleKeys }: BmComparisonTableProps)
       {/* 表格 */}
       <table className="w-full text-sm border-collapse">
         <thead>
-          <tr className="border-b border-[var(--border-default)]">
+          <tr className="border-b border-default-token">
             {COLUMNS.map((col) => (
               <th
                 key={col.label}
@@ -211,9 +211,7 @@ export function BmComparisonTable({ data, visibleKeys }: BmComparisonTableProps)
                 title={col.tooltip || undefined}
               >
                 {col.label}
-                {col.tooltip && (
-                  <span className="text-[var(--text-muted)] ml-0.5 cursor-help">ⓘ</span>
-                )}
+                {col.tooltip && <span className="text-muted-token ml-0.5 cursor-help">ⓘ</span>}
               </th>
             ))}
           </tr>
@@ -225,31 +223,31 @@ export function BmComparisonTable({ data, visibleKeys }: BmComparisonTableProps)
 
             const isLast = idx === rows.length - 1;
             const rowClass = isLast
-              ? 'border-t border-[var(--border-default)] bg-[var(--bg-subtle)]'
-              : 'border-b border-[var(--border-default)]';
+              ? 'border-t border-default-token bg-subtle'
+              : 'border-b border-default-token';
 
             return (
-              <tr key={key} className={`${rowClass} hover:bg-[var(--bg-subtle)] transition-colors`}>
-                <td className="py-2.5 px-3 font-medium text-[var(--text-primary)]">{label}</td>
-                <td className="py-2.5 px-3 text-right font-mono tabular-nums text-[var(--text-secondary)]">
+              <tr key={key} className={`${rowClass} hover:bg-subtle transition-colors`}>
+                <td className="py-2.5 px-3 font-medium text-primary-token">{label}</td>
+                <td className="py-2.5 px-3 text-right font-mono tabular-nums text-secondary-token">
                   {fmtNum(item.target, format)}
                 </td>
-                <td className="py-2.5 px-3 text-right font-mono tabular-nums text-[var(--text-secondary)]">
+                <td className="py-2.5 px-3 text-right font-mono tabular-nums text-secondary-token">
                   {fmtNum(item.bm_mtd, format)}
                 </td>
-                <td className="py-2.5 px-3 text-right font-mono tabular-nums text-[var(--text-primary)] font-semibold">
+                <td className="py-2.5 px-3 text-right font-mono tabular-nums text-primary-token font-semibold">
                   {fmtNum(item.actual, format)}
                 </td>
                 <td className="py-2.5 px-3 text-right">
                   <BmGapCell value={item.bm_gap} format={format} />
                 </td>
-                <td className="py-2.5 px-3 text-right font-mono tabular-nums text-[var(--text-secondary)]">
+                <td className="py-2.5 px-3 text-right font-mono tabular-nums text-secondary-token">
                   {fmtNum(item.bm_today, format)}
                 </td>
                 <td className="py-2.5 px-3 text-right">
                   <TodayRequiredCell value={item.today_required} format={format} />
                 </td>
-                <td className="py-2.5 px-3 text-right font-mono tabular-nums text-[var(--text-secondary)]">
+                <td className="py-2.5 px-3 text-right font-mono tabular-nums text-secondary-token">
                   {item.target_daily_avg != null ? fmtNum(item.target_daily_avg, format) : '—'}
                 </td>
               </tr>
@@ -259,7 +257,7 @@ export function BmComparisonTable({ data, visibleKeys }: BmComparisonTableProps)
       </table>
 
       {/* 底部说明 */}
-      <p className="text-[10px] text-[var(--text-muted)] mt-2">{t.footnote}</p>
+      <p className="text-[10px] text-muted-token mt-2">{t.footnote}</p>
     </div>
   );
 }

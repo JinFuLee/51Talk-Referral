@@ -148,10 +148,10 @@ function formatGapValue(key: GapKey, val: number | null | undefined): string {
 }
 
 function gapStatusColor(val: number | null | undefined): string {
-  if (val == null) return 'text-[var(--text-muted)]';
-  if (val >= 0) return 'text-[var(--color-success)]';
-  if (val >= -10) return 'text-[var(--color-warning)]';
-  return 'text-[var(--color-danger)]';
+  if (val == null) return 'text-muted-token';
+  if (val >= 0) return 'text-success-token';
+  if (val >= -10) return 'text-warning-token';
+  return 'text-danger-token';
 }
 
 interface Props {
@@ -167,8 +167,8 @@ export function GapDashboardSlide({ data, monthlyData }: Props) {
   if (!data) {
     return (
       <div className="card-base p-5 flex flex-col justify-center items-center gap-2 min-h-[280px]">
-        <p className="text-sm font-medium text-[var(--text-secondary)]">{t.noData}</p>
-        <p className="text-xs text-[var(--text-muted)]">{t.noDataDesc}</p>
+        <p className="text-sm font-medium text-secondary-token">{t.noData}</p>
+        <p className="text-xs text-muted-token">{t.noDataDesc}</p>
       </div>
     );
   }
@@ -188,12 +188,10 @@ export function GapDashboardSlide({ data, monthlyData }: Props) {
       <div
         key={key}
         className={`rounded-lg border ${compact ? 'p-2' : 'p-3'} ${
-          isNeg
-            ? 'bg-[var(--color-danger-surface)] border-[var(--color-danger)]'
-            : 'bg-[var(--color-success-surface)] border-[var(--border-subtle)]'
+          isNeg ? 'bg-danger-surface border-danger-token' : 'bg-success-surface border-subtle-token'
         }`}
       >
-        <p className="text-[9px] font-semibold text-[var(--text-muted)] uppercase tracking-wide mb-1">
+        <p className="text-[9px] font-semibold text-muted-token uppercase tracking-wide mb-1">
           {t.gapItems[key]}
         </p>
         <p
@@ -202,9 +200,7 @@ export function GapDashboardSlide({ data, monthlyData }: Props) {
           {isNeg ? '▼ ' : isRevOrAsp ? '+' : '+'}
           {formatGapValue(key, val)}
         </p>
-        <p
-          className={`text-[9px] mt-0.5 ${isNeg ? 'text-[var(--color-danger)]' : 'text-[var(--color-success)]'}`}
-        >
+        <p className={`text-[9px] mt-0.5 ${isNeg ? 'text-danger-token' : 'text-success-token'}`}>
           {label}
         </p>
       </div>
@@ -215,17 +211,17 @@ export function GapDashboardSlide({ data, monthlyData }: Props) {
     <div className="card-base p-5 flex flex-col gap-4">
       {/* Header */}
       <div>
-        <h3 className="text-sm font-bold text-[var(--text-primary)] font-display">{t.title}</h3>
-        <p className="text-xs text-[var(--text-muted)] mt-0.5">{t.subtitle}</p>
+        <h3 className="text-sm font-bold text-primary-token font-display">{t.title}</h3>
+        <p className="text-xs text-muted-token mt-0.5">{t.subtitle}</p>
       </div>
 
       {/* Section 1: 月度达标视角（主要） */}
       <div>
-        <p className="text-[10px] font-semibold text-[var(--text-secondary)] uppercase tracking-wide mb-2">
+        <p className="text-[10px] font-semibold text-secondary-token uppercase tracking-wide mb-2">
           {t.monthlyDesc}
         </p>
         {!monthlyData ? (
-          <p className="text-xs text-[var(--text-muted)] py-2">{t.noData}</p>
+          <p className="text-xs text-muted-token py-2">{t.noData}</p>
         ) : (
           <div className="grid grid-cols-2 gap-3">
             {GAP_KEYS.map((key) => renderGapCard(key, monthlyGaps[key]))}
@@ -235,7 +231,7 @@ export function GapDashboardSlide({ data, monthlyData }: Props) {
         {/* 渠道缺口表格 - 仅月度视角 */}
         {channelKeys.length > 0 && (
           <div className="mt-3">
-            <p className="text-[10px] font-semibold text-[var(--text-muted)] uppercase tracking-wide mb-2">
+            <p className="text-[10px] font-semibold text-muted-token uppercase tracking-wide mb-2">
               {t.channelGaps}
             </p>
             <table className="w-full text-xs border-collapse">
@@ -252,8 +248,8 @@ export function GapDashboardSlide({ data, monthlyData }: Props) {
                   const gapVal = monthlyGaps.channel_lead_gaps?.[ch];
                   return (
                     <tr key={ch} className={i % 2 === 0 ? 'slide-row-even' : 'slide-row-odd'}>
-                      <td className="slide-td font-medium text-[var(--text-primary)]">{ch}</td>
-                      <td className="slide-td text-right font-mono tabular-nums text-[var(--text-muted)]">
+                      <td className="slide-td font-medium text-primary-token">{ch}</td>
+                      <td className="slide-td text-right font-mono tabular-nums text-muted-token">
                         {tgt != null ? tgt.toLocaleString() : '—'}
                       </td>
                       <td
@@ -273,8 +269,8 @@ export function GapDashboardSlide({ data, monthlyData }: Props) {
       </div>
 
       {/* Section 2: BM 进度视角（次要，更紧凑） */}
-      <div className="pt-3 border-t border-[var(--border-subtle)]">
-        <p className="text-[10px] font-semibold text-[var(--text-secondary)] uppercase tracking-wide mb-2">
+      <div className="pt-3 border-t border-subtle-token">
+        <p className="text-[10px] font-semibold text-secondary-token uppercase tracking-wide mb-2">
           {t.bmDesc}
         </p>
         <div className="grid grid-cols-3 gap-2">

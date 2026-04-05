@@ -72,9 +72,9 @@ interface EnclosureHeatmapProps {
 }
 
 function heatmapBg(value: number, low: number, high: number): string {
-  if (value >= high) return 'bg-[var(--color-success-surface)] text-[var(--color-success)]';
-  if (value >= low) return 'bg-[var(--color-warning-surface)] text-[var(--color-warning)]';
-  return 'bg-[var(--color-danger-surface)] text-[var(--color-danger)]';
+  if (value >= high) return 'bg-success-surface text-success-token';
+  if (value >= low) return 'bg-warning-surface text-warning-token';
+  return 'bg-danger-surface text-danger-token';
 }
 
 export function EnclosureHeatmap({ metrics }: EnclosureHeatmapProps) {
@@ -82,7 +82,7 @@ export function EnclosureHeatmap({ metrics }: EnclosureHeatmapProps) {
   const t = I18N[locale as keyof typeof I18N] ?? I18N.zh;
 
   if (metrics.length === 0) {
-    return <div className="text-center py-8 text-sm text-[var(--text-muted)]">{t.empty}</div>;
+    return <div className="text-center py-8 text-sm text-muted-token">{t.empty}</div>;
   }
 
   return (
@@ -106,10 +106,8 @@ export function EnclosureHeatmap({ metrics }: EnclosureHeatmapProps) {
         </thead>
         <tbody>
           {metrics.map((r, i) => (
-            <tr key={i} className="even:bg-[var(--bg-subtle)]">
-              <td className="py-1 px-2 text-xs text-[var(--text-secondary)]">
-                {fmtEnc(r.enclosure)}
-              </td>
+            <tr key={i} className="even:bg-subtle">
+              <td className="py-1 px-2 text-xs text-secondary-token">{fmtEnc(r.enclosure)}</td>
               <td className="py-1 px-2 text-xs font-medium">{r.cc_name}</td>
               <td className="py-1 px-2 text-xs text-right font-mono tabular-nums">
                 {(r.students ?? 0).toLocaleString()}

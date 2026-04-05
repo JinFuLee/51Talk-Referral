@@ -72,15 +72,15 @@ export function HPFunnel({ students }: HPFunnelProps) {
   ];
 
   return (
-    <div className="bg-[var(--bg-surface)] rounded-xl border border-[var(--border-default)] shadow-[var(--shadow-subtle)] p-3">
-      <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-3">{t.title}</h3>
+    <div className="bg-surface rounded-xl border border-default-token shadow-[var(--shadow-subtle)] p-3">
+      <h3 className="text-sm font-semibold text-primary-token mb-3">{t.title}</h3>
       <div className="space-y-2">
         {steps.map((step) => (
           <div key={step.label} className="flex items-center gap-3">
-            <div className="w-16 shrink-0 text-xs text-[var(--text-secondary)] text-right">
+            <div className="w-16 shrink-0 text-xs text-secondary-token text-right">
               {step.label}
             </div>
-            <div className="flex-1 h-7 rounded bg-[var(--bg-subtle)] overflow-hidden relative">
+            <div className="flex-1 h-7 rounded bg-subtle overflow-hidden relative">
               <div
                 className="h-full rounded transition-all flex items-center pl-2"
                 style={{
@@ -91,9 +91,7 @@ export function HPFunnel({ students }: HPFunnelProps) {
                 <span className="text-[10px] font-bold text-white">{step.value}</span>
               </div>
             </div>
-            <div className="w-10 shrink-0 text-xs text-[var(--text-muted)] text-right">
-              {step.pct}%
-            </div>
+            <div className="w-10 shrink-0 text-xs text-muted-token text-right">{step.pct}%</div>
           </div>
         ))}
       </div>

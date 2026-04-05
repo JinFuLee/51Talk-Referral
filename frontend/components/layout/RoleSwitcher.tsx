@@ -23,7 +23,7 @@ export function RoleSwitcher({ role, onRoleChange }: RoleSwitcherProps) {
     <select
       value={role}
       onChange={(e) => onRoleChange(e.target.value as RoleKey)}
-      className="text-xs border border-[var(--border-subtle)] rounded-md px-2 py-1 bg-[var(--bg-surface)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-ring"
+      className="text-xs border border-subtle-token rounded-md px-2 py-1 bg-surface text-primary-token focus:outline-none focus:ring-2 focus:ring-ring"
     >
       {(Object.keys(ROLE_LABELS) as RoleKey[]).map((r) => (
         <option key={r} value={r}>

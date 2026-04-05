@@ -238,18 +238,18 @@ export function DecompositionWaterfallSlide({ slideNumber, totalSlides }: SlideP
       ) : error ? (
         <div className="flex items-center justify-center h-full">
           <div className="text-center space-y-2">
-            <p className="text-base font-semibold text-[var(--color-danger)]">{t.error}</p>
-            <p className="text-sm text-[var(--text-muted)]">{t.errorHint}</p>
+            <p className="text-base font-semibold text-danger-token">{t.error}</p>
+            <p className="text-sm text-muted-token">{t.errorHint}</p>
             <button
               onClick={() => mutate()}
-              className="mt-1 px-4 py-1.5 rounded-lg text-sm border border-[var(--border-default)] text-[var(--text-secondary)] hover:bg-[var(--bg-subtle)] transition-colors"
+              className="mt-1 px-4 py-1.5 rounded-lg text-sm border border-default-token text-secondary-token hover:bg-subtle transition-colors"
             >
               {t.retry}
             </button>
           </div>
         </div>
       ) : !data ? (
-        <div className="flex flex-col justify-center items-center h-full gap-3 text-[var(--text-muted)]">
+        <div className="flex flex-col justify-center items-center h-full gap-3 text-muted-token">
           <p className="text-base font-medium">{t.empty}</p>
           <p className="text-sm">{t.emptyHint}</p>
         </div>
@@ -262,8 +262,8 @@ export function DecompositionWaterfallSlide({ slideNumber, totalSlides }: SlideP
               <span
                 className={`inline-block px-2 py-0.5 text-xs rounded-full font-medium ${
                   isLMDI
-                    ? 'bg-[var(--color-warning-surface)] text-[var(--color-warning)] border border-[var(--color-warning)]'
-                    : 'bg-[var(--color-accent-surface)] text-[var(--brand-p2)] border border-[var(--color-accent-subtle)]'
+                    ? 'bg-warning-surface text-warning-token border border-warning-token'
+                    : 'bg-accent-surface text-brand-p2 border border-accent-subtle-token'
                 }`}
               >
                 {isLMDI ? `⚠ ${t.lmdiNote}` : t.laspNote}
@@ -324,31 +324,27 @@ export function DecompositionWaterfallSlide({ slideNumber, totalSlides }: SlideP
 
           {/* 右侧数据摘要 */}
           <div className="w-52 flex-shrink-0 flex flex-col gap-3 justify-center">
-            <div className="rounded-xl border border-[var(--border-default)] p-3 bg-[var(--bg-surface)]">
-              <p className="text-xs text-[var(--text-muted)] mb-1">{t.basePeriod}</p>
-              <p className="text-sm font-bold text-[var(--text-primary)]">
-                {formatRevenue(baseRev)}
-              </p>
+            <div className="rounded-xl border border-default-token p-3 bg-surface">
+              <p className="text-xs text-muted-token mb-1">{t.basePeriod}</p>
+              <p className="text-sm font-bold text-primary-token">{formatRevenue(baseRev)}</p>
             </div>
-            <div className="rounded-xl border border-[var(--border-default)] p-3 bg-[var(--bg-surface)]">
-              <p className="text-xs text-[var(--text-muted)] mb-1">{t.currentPeriod}</p>
-              <p className="text-sm font-bold text-[var(--brand-p2)]">
-                {formatRevenue(currentRev)}
-              </p>
+            <div className="rounded-xl border border-default-token p-3 bg-surface">
+              <p className="text-xs text-muted-token mb-1">{t.currentPeriod}</p>
+              <p className="text-sm font-bold text-brand-p2">{formatRevenue(currentRev)}</p>
             </div>
-            <div className="rounded-xl border border-[var(--border-default)] p-3 bg-[var(--bg-surface)]">
-              <p className="text-xs text-[var(--text-muted)] mb-1">{t.actualDelta}</p>
+            <div className="rounded-xl border border-default-token p-3 bg-surface">
+              <p className="text-xs text-muted-token mb-1">{t.actualDelta}</p>
               <p
-                className={`text-sm font-bold ${currentRev >= baseRev ? 'text-[var(--color-success)]' : 'text-[var(--color-danger)]'}`}
+                className={`text-sm font-bold ${currentRev >= baseRev ? 'text-success-token' : 'text-danger-token'}`}
               >
                 {currentRev >= baseRev ? '+' : ''}
                 {formatRevenue(currentRev - baseRev)}
               </p>
             </div>
             {!isLMDI && (
-              <div className="rounded-xl border border-[var(--border-default)] p-3 bg-[var(--bg-surface)]">
-                <p className="text-xs text-[var(--text-muted)] mb-1">{t.residualPct}</p>
-                <p className="text-sm font-semibold text-[var(--text-secondary)]">
+              <div className="rounded-xl border border-default-token p-3 bg-surface">
+                <p className="text-xs text-muted-token mb-1">{t.residualPct}</p>
+                <p className="text-sm font-semibold text-secondary-token">
                   {formatRate(data.laspeyres.residual_pct)}
                 </p>
               </div>
@@ -367,7 +363,7 @@ export function DecompositionWaterfallSlide({ slideNumber, totalSlides }: SlideP
                     className="inline-block w-2.5 h-2.5 rounded-sm flex-shrink-0"
                     style={{ backgroundColor: item.color }}
                   />
-                  <span className="text-xs text-[var(--text-muted)]">{item.label}</span>
+                  <span className="text-xs text-muted-token">{item.label}</span>
                 </div>
               ))}
             </div>

@@ -53,12 +53,12 @@ export function ComparisonBanner() {
 
   if (isLoading) {
     return (
-      <div className="h-9 bg-[var(--bg-subtle)]/80 border-b border-[var(--border-subtle)] flex items-center justify-center gap-4 px-6">
-        <div className="h-3 w-16 rounded bg-[var(--bg-subtle)] animate-pulse" />
-        <div className="h-3 w-24 rounded bg-[var(--bg-subtle)] animate-pulse" />
-        <div className="h-3 w-24 rounded bg-[var(--bg-subtle)] animate-pulse" />
-        <div className="h-3 w-24 rounded bg-[var(--bg-subtle)] animate-pulse" />
-        <div className="h-3 w-24 rounded bg-[var(--bg-subtle)] animate-pulse" />
+      <div className="h-9 bg-subtle/80 border-b border-subtle-token flex items-center justify-center gap-4 px-6">
+        <div className="h-3 w-16 rounded bg-subtle animate-pulse" />
+        <div className="h-3 w-24 rounded bg-subtle animate-pulse" />
+        <div className="h-3 w-24 rounded bg-subtle animate-pulse" />
+        <div className="h-3 w-24 rounded bg-subtle animate-pulse" />
+        <div className="h-3 w-24 rounded bg-subtle animate-pulse" />
       </div>
     );
   }
@@ -67,8 +67,8 @@ export function ComparisonBanner() {
 
   if (!data.available) {
     return (
-      <div className="h-9 bg-[var(--color-warning-surface)] border-b border-[var(--color-warning)] flex items-center justify-center px-6">
-        <span className="text-xs text-[var(--color-warning)]">
+      <div className="h-9 bg-warning-surface border-b border-warning-token flex items-center justify-center px-6">
+        <span className="text-xs text-warning-token">
           ⚠ {data.label}：{data.unavailable_reason ?? t.noCompareData}
         </span>
       </div>
@@ -78,10 +78,8 @@ export function ComparisonBanner() {
   const metricKeys = Object.keys(KPI_LABELS_I18N);
 
   return (
-    <div className="h-9 bg-[var(--bg-subtle)]/80 border-b border-[var(--border-subtle)] flex items-center justify-center gap-4 px-6 overflow-x-auto">
-      <span className="text-xs font-medium text-[var(--text-secondary)] shrink-0">
-        {data.label}
-      </span>
+    <div className="h-9 bg-subtle/80 border-b border-subtle-token flex items-center justify-center gap-4 px-6 overflow-x-auto">
+      <span className="text-xs font-medium text-secondary-token shrink-0">{data.label}</span>
       {metricKeys.map((key) => {
         const metric = data.metrics[key];
         if (!metric) return null;
@@ -91,26 +89,26 @@ export function ComparisonBanner() {
           (KPI_LABELS_I18N[key] ?? {})[locale] ?? (KPI_LABELS_I18N[key] ?? {})['zh'] ?? key;
 
         let dirIcon = '—';
-        let colorCls = 'text-[var(--text-muted)]';
+        let colorCls = 'text-muted-token';
 
         if (pct === null || pct === undefined) {
           dirIcon = t.noData;
-          colorCls = 'text-[var(--text-muted)]';
+          colorCls = 'text-muted-token';
         } else if (pct > 0) {
           dirIcon = `▲${Math.abs(pct).toFixed(1)}%`;
           colorCls = 'text-action-text';
         } else if (pct < 0) {
           dirIcon = `▼${Math.abs(pct).toFixed(1)}%`;
-          colorCls = 'text-[var(--color-danger)]';
+          colorCls = 'text-danger-token';
         }
 
         return (
           <span key={key} className="flex items-center gap-1 text-xs shrink-0">
-            <span className="text-[var(--text-secondary)]">{label}</span>
+            <span className="text-secondary-token">{label}</span>
             {metric.compare != null && (
-              <span className="text-[var(--text-muted)]">{formatCompact(metric.compare)}→</span>
+              <span className="text-muted-token">{formatCompact(metric.compare)}→</span>
             )}
-            <span className="text-[var(--text-secondary)] font-medium">
+            <span className="text-secondary-token font-medium">
               {formatCompact(metric.current)}
             </span>
             <span className={`font-semibold ${colorCls}`}>{dirIcon}</span>

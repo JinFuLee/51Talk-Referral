@@ -119,18 +119,18 @@ export function NetAttributionSlide({ slideNumber, totalSlides }: SlideProps) {
       ) : error ? (
         <div className="flex items-center justify-center h-full">
           <div className="text-center space-y-2">
-            <p className="text-base font-semibold text-[var(--color-danger)]">{t.loading_failed}</p>
-            <p className="text-sm text-[var(--text-muted)]">{t.check_backend}</p>
+            <p className="text-base font-semibold text-danger-token">{t.loading_failed}</p>
+            <p className="text-sm text-muted-token">{t.check_backend}</p>
             <button
               onClick={() => mutate()}
-              className="mt-1 px-4 py-1.5 rounded-lg text-sm border border-[var(--border-default)] text-[var(--text-secondary)] hover:bg-[var(--bg-subtle)] transition-colors"
+              className="mt-1 px-4 py-1.5 rounded-lg text-sm border border-default-token text-secondary-token hover:bg-subtle transition-colors"
             >
               {t.retry}
             </button>
           </div>
         </div>
       ) : channels.length === 0 ? (
-        <div className="flex flex-col justify-center items-center h-full gap-3 text-[var(--text-muted)]">
+        <div className="flex flex-col justify-center items-center h-full gap-3 text-muted-token">
           <p className="text-base font-medium">{t.no_data}</p>
           <p className="text-sm">{t.no_data_hint}</p>
         </div>
@@ -148,13 +148,13 @@ export function NetAttributionSlide({ slideNumber, totalSlides }: SlideProps) {
             <tbody>
               {channels.map((c, i) => (
                 <tr key={c.channel} className={i % 2 === 0 ? 'slide-row-even' : 'slide-row-odd'}>
-                  <td className="px-2 py-1 text-xs font-semibold text-[var(--text-primary)]">
+                  <td className="px-2 py-1 text-xs font-semibold text-primary-token">
                     {c.channel}
                   </td>
-                  <td className="px-2 py-1 text-xs text-right font-mono tabular-nums font-medium text-[var(--text-primary)]">
+                  <td className="px-2 py-1 text-xs text-right font-mono tabular-nums font-medium text-primary-token">
                     {formatRevenue(c.revenue)}
                   </td>
-                  <td className="px-2 py-1 text-xs text-right font-mono tabular-nums text-[var(--text-muted)]">
+                  <td className="px-2 py-1 text-xs text-right font-mono tabular-nums text-muted-token">
                     {formatRate(c.share)}
                   </td>
                   <td className="px-2 py-1 text-xs text-right font-mono tabular-nums font-semibold text-action-accent">
@@ -164,7 +164,7 @@ export function NetAttributionSlide({ slideNumber, totalSlides }: SlideProps) {
               ))}
             </tbody>
           </table>
-          <p className="mt-4 px-4 text-xs text-[var(--text-muted)]">{t.footnote}</p>
+          <p className="mt-4 px-4 text-xs text-muted-token">{t.footnote}</p>
         </div>
       )}
     </SlideShell>

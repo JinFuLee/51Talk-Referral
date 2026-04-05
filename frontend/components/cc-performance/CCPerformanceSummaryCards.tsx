@@ -78,7 +78,7 @@ interface CCPerformanceSummaryCardsProps {
 /* ── helpers ──────────────────────────────────────────── */
 
 function statusColor(isPositive: boolean) {
-  return isPositive ? 'text-[var(--color-success)]' : 'text-[var(--color-danger)]';
+  return isPositive ? 'text-success-token' : 'text-danger-token';
 }
 
 function barColor(pct: number): string {
@@ -115,19 +115,17 @@ export function CCPerformanceSummaryCards({
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
       {/* ── 卡 1：当月业绩（主卡）── */}
       <div
-        className="rounded-xl border border-[var(--border-default)] p-5"
+        className="rounded-xl border border-default-token p-5"
         style={{ background: 'var(--bg-surface)', boxShadow: 'var(--shadow-subtle)' }}
       >
-        <p className="text-xs text-[var(--text-secondary)] uppercase tracking-wider mb-2">
-          {t.revenue}
-        </p>
+        <p className="text-xs text-secondary-token uppercase tracking-wider mb-2">{t.revenue}</p>
 
         {/* 大数字 + 目标 */}
         <div className="flex items-baseline gap-2">
-          <span className="text-3xl font-bold font-mono tabular-nums text-[var(--text-primary)]">
+          <span className="text-3xl font-bold font-mono tabular-nums text-primary-token">
             {formatRevenue(actual, er)}
           </span>
-          <span className="text-sm text-[var(--text-muted)]">
+          <span className="text-sm text-muted-token">
             {t.of} {formatRevenue(target, er)}
           </span>
         </div>
@@ -135,12 +133,12 @@ export function CCPerformanceSummaryCards({
         {/* 进度条 */}
         <div className="mt-3">
           <div className="flex justify-between text-xs mb-1">
-            <span className="text-[var(--text-muted)]">{t.achievement}</span>
+            <span className="text-muted-token">{t.achievement}</span>
             <span className="font-semibold" style={{ color: barColor(achPct) }}>
               {achPct.toFixed(1)}%
             </span>
           </div>
-          <div className="h-2 rounded-full bg-[var(--n-100)]">
+          <div className="h-2 rounded-full bg-n-100">
             <div
               className="h-2 rounded-full transition-all duration-500"
               style={{
@@ -154,17 +152,15 @@ export function CCPerformanceSummaryCards({
 
       {/* ── 卡 2：BM 节奏 ── */}
       <div
-        className="rounded-xl border border-[var(--border-default)] p-5"
+        className="rounded-xl border border-default-token p-5"
         style={{ background: 'var(--bg-surface)', boxShadow: 'var(--shadow-subtle)' }}
       >
-        <p className="text-xs text-[var(--text-secondary)] uppercase tracking-wider mb-2">
-          {t.bmPace}
-        </p>
+        <p className="text-xs text-secondary-token uppercase tracking-wider mb-2">{t.bmPace}</p>
 
         {/* 应达金额 */}
         <div className="flex items-baseline gap-2">
-          <span className="text-xs text-[var(--text-muted)]">{t.bmExpected}</span>
-          <span className="text-lg font-semibold font-mono tabular-nums text-[var(--text-primary)]">
+          <span className="text-xs text-muted-token">{t.bmExpected}</span>
+          <span className="text-lg font-semibold font-mono tabular-nums text-primary-token">
             {formatRevenue(bmExpected, er)}
           </span>
         </div>
@@ -183,35 +179,33 @@ export function CCPerformanceSummaryCards({
 
       {/* ── 卡 3：时间 + 日均节奏 ── */}
       <div
-        className="rounded-xl border border-[var(--border-default)] p-5"
+        className="rounded-xl border border-default-token p-5"
         style={{ background: 'var(--bg-surface)', boxShadow: 'var(--shadow-subtle)' }}
       >
-        <p className="text-xs text-[var(--text-secondary)] uppercase tracking-wider mb-2">
-          {t.pace}
-        </p>
+        <p className="text-xs text-secondary-token uppercase tracking-wider mb-2">{t.pace}</p>
 
         {/* 时间进度 */}
         <div className="flex items-baseline gap-2 mb-3">
-          <span className="text-2xl font-bold font-mono tabular-nums text-[var(--text-primary)]">
+          <span className="text-2xl font-bold font-mono tabular-nums text-primary-token">
             {timePct}%
           </span>
-          <span className="text-xs text-[var(--text-muted)]">{t.timeProgress}</span>
+          <span className="text-xs text-muted-token">{t.timeProgress}</span>
         </div>
 
         {/* 日均对比：当前 vs 达标需 */}
         <div className="space-y-1.5">
           {dailyAvg != null && (
             <div className="flex items-center justify-between text-sm">
-              <span className="text-[var(--text-muted)]">{t.currentDaily}</span>
-              <span className="font-mono tabular-nums font-semibold text-[var(--text-primary)]">
+              <span className="text-muted-token">{t.currentDaily}</span>
+              <span className="font-mono tabular-nums font-semibold text-primary-token">
                 {formatRevenue(dailyAvg, er)}
               </span>
             </div>
           )}
           {dailyNeed != null && dailyNeed > 0 && (
             <div className="flex items-center justify-between text-sm">
-              <span className="text-[var(--text-muted)]">{t.needDaily}</span>
-              <span className="font-mono tabular-nums font-semibold text-[var(--color-warning)]">
+              <span className="text-muted-token">{t.needDaily}</span>
+              <span className="font-mono tabular-nums font-semibold text-warning-token">
                 {formatRevenue(dailyNeed, er)}
                 {t.perDay}
               </span>

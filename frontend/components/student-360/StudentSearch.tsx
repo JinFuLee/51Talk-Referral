@@ -161,7 +161,7 @@ export function StudentSearch({ filters, onChange }: StudentSearchProps) {
         placeholder={t.searchPlaceholder}
         value={queryInput}
         onChange={(e) => handleQueryChange(e.target.value)}
-        className="w-full px-3 py-2 border border-[var(--border-subtle)] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-action"
+        className="w-full px-3 py-2 border border-subtle-token rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-action"
       />
 
       {/* 筛选器一行 */}
@@ -228,13 +228,13 @@ export function StudentSearch({ filters, onChange }: StudentSearchProps) {
           placeholder={t.ccPlaceholder}
           value={filters.cc_name}
           onChange={(e) => onChange({ ...filters, cc_name: e.target.value })}
-          className="h-8 px-3 border border-[var(--border-subtle)] rounded-md text-xs focus:outline-none focus:ring-2 focus:ring-action w-28"
+          className="h-8 px-3 border border-subtle-token rounded-md text-xs focus:outline-none focus:ring-2 focus:ring-action w-28"
         />
 
         {hasFilters && (
           <button
             onClick={clearAll}
-            className="h-8 px-3 text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)] border border-[var(--border-subtle)] rounded-md"
+            className="h-8 px-3 text-xs text-secondary-token hover:text-primary-token border border-subtle-token rounded-md"
           >
             {t.clearFilters}
           </button>

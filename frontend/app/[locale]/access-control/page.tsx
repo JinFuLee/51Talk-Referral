@@ -114,9 +114,7 @@ function TabButton({
     <button
       onClick={onClick}
       className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
-        active
-          ? 'bg-[var(--color-accent)] text-white'
-          : 'text-[var(--text-secondary)] hover:bg-[var(--bg-subtle)]'
+        active ? 'bg-accent-token text-white' : 'text-secondary-token hover:bg-subtle'
       }`}
     >
       {children}
@@ -301,11 +299,11 @@ export default function AccessControlPage() {
   return (
     <div className={BIZ_PAGE}>
       <PageHeader title={t.title}>
-        <p className="text-sm text-[var(--text-muted)]">{t.subtitle}</p>
+        <p className="text-sm text-muted-token">{t.subtitle}</p>
       </PageHeader>
 
       {/* Tab 切换栏 */}
-      <div className="flex items-center gap-1 p-1 bg-[var(--bg-subtle)] rounded-xl w-fit">
+      <div className="flex items-center gap-1 p-1 bg-subtle rounded-xl w-fit">
         {(['pages', 'users', 'roles', 'matrix'] as Tab[]).map((tab) => (
           <TabButton key={tab} active={activeTab === tab} onClick={() => setActiveTab(tab)}>
             {t.tabs[tab]}
@@ -316,7 +314,7 @@ export default function AccessControlPage() {
       {/* 加载态 */}
       {isLoading && (
         <div className="state-loading">
-          <Shield className="w-5 h-5 text-[var(--text-muted)] animate-pulse" />
+          <Shield className="w-5 h-5 text-muted-token animate-pulse" />
           <span className="text-sm">{t.loading}</span>
         </div>
       )}

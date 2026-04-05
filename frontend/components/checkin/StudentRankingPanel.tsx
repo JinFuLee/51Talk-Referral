@@ -166,35 +166,29 @@ interface TableRowProps {
 
 function StudentTableRow({ rank, row, index }: TableRowProps) {
   const deltaColor =
-    row.delta > 0
-      ? 'text-[var(--color-success)]'
-      : row.delta < 0
-        ? 'text-[var(--color-danger)]'
-        : 'text-[var(--text-muted)]';
+    row.delta > 0 ? 'text-success-token' : row.delta < 0 ? 'text-danger-token' : 'text-muted-token';
 
   const rowClass = index % 2 === 0 ? 'slide-row-even' : 'slide-row-odd';
 
   return (
     <tr className={rowClass}>
-      <td className="slide-td text-center font-mono tabular-nums text-[var(--text-muted)]">
-        {rank}
-      </td>
-      <td className="slide-td font-mono text-xs text-[var(--text-primary)]">{row.student_id}</td>
-      <td className="slide-td text-center text-[var(--text-secondary)]">{fmtEnc(row.enclosure)}</td>
-      <td className="slide-td text-[var(--text-secondary)]">{row.cc_name || '—'}</td>
-      <td className="slide-td text-center font-semibold text-[var(--text-primary)] tabular-nums">
+      <td className="slide-td text-center font-mono tabular-nums text-muted-token">{rank}</td>
+      <td className="slide-td font-mono text-xs text-primary-token">{row.student_id}</td>
+      <td className="slide-td text-center text-secondary-token">{fmtEnc(row.enclosure)}</td>
+      <td className="slide-td text-secondary-token">{row.cc_name || '—'}</td>
+      <td className="slide-td text-center font-semibold text-primary-token tabular-nums">
         {row.days_this_month}
       </td>
-      <td className="slide-td text-center tabular-nums text-[var(--text-secondary)]">
+      <td className="slide-td text-center tabular-nums text-secondary-token">
         {row.days_last_month}
       </td>
       <td className={`slide-td text-center tabular-nums font-semibold ${deltaColor}`}>
         {row.delta > 0 ? `+${row.delta}` : row.delta}
       </td>
-      <td className="slide-td text-center tabular-nums text-[var(--text-secondary)]">
+      <td className="slide-td text-center tabular-nums text-secondary-token">
         {row.lesson_this_month != null ? row.lesson_this_month : '—'}
       </td>
-      <td className="slide-td text-center tabular-nums text-[var(--text-secondary)]">
+      <td className="slide-td text-center tabular-nums text-secondary-token">
         {row.referral_registrations}
       </td>
       <td className="slide-td">
@@ -234,11 +228,8 @@ function SectionTable({ sections, flatMode = false, t }: SectionTableProps) {
         {sections.map((section) => (
           <>
             {!flatMode && (
-              <tr key={`section-${section.label}`} className="bg-[var(--bg-subtle)]">
-                <td
-                  colSpan={10}
-                  className="px-3 py-1.5 text-xs font-semibold text-[var(--text-secondary)]"
-                >
+              <tr key={`section-${section.label}`} className="bg-subtle">
+                <td colSpan={10} className="px-3 py-1.5 text-xs font-semibold text-secondary-token">
                   {section.emoji} {section.label}
                 </td>
               </tr>
@@ -310,14 +301,14 @@ export function StudentRankingPanel({ enclosureFilter }: StudentRankingPanelProp
     <div className="card-base">
       {/* 标题 + 切换按钮 */}
       <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
-        <h3 className="text-sm font-semibold text-[var(--text-primary)]">{t.panelTitle}</h3>
+        <h3 className="text-sm font-semibold text-primary-token">{t.panelTitle}</h3>
         <div className="flex gap-1">
           {MODES.map((m) => (
             <button
               key={m.key}
               onClick={() => setMode(m.key)}
               className={`px-3 py-1.5 text-xs rounded-md font-medium transition-colors ${
-                mode === m.key ? 'bg-[var(--color-accent)] text-white' : 'btn-secondary'
+                mode === m.key ? 'bg-accent-token text-white' : 'btn-secondary'
               }`}
             >
               {m.label}
@@ -328,21 +319,21 @@ export function StudentRankingPanel({ enclosureFilter }: StudentRankingPanelProp
 
       {/* loading */}
       {isLoading && (
-        <div className="flex items-center justify-center h-32 text-sm text-[var(--text-muted)]">
+        <div className="flex items-center justify-center h-32 text-sm text-muted-token">
           {t.loading}
         </div>
       )}
 
       {/* error */}
       {!isLoading && error && (
-        <div className="flex items-center justify-center h-32 text-sm text-[var(--color-danger)]">
+        <div className="flex items-center justify-center h-32 text-sm text-danger-token">
           {t.loadFailed}
         </div>
       )}
 
       {/* empty */}
       {!isLoading && !error && totalRows === 0 && (
-        <div className="flex flex-col items-center justify-center h-32 gap-2 text-sm text-[var(--text-muted)]">
+        <div className="flex flex-col items-center justify-center h-32 gap-2 text-sm text-muted-token">
           <span>{t.noData}</span>
           <span className="text-xs">{t.noDataHint}</span>
         </div>

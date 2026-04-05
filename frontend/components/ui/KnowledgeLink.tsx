@@ -41,7 +41,7 @@ export function KnowledgeLink({
     <Link
       href={href}
       title={resolvedLabel}
-      className="inline-flex items-center justify-center ml-1.5 text-[var(--text-muted)] hover:text-[var(--color-accent)] transition-colors"
+      className="inline-flex items-center justify-center ml-1.5 text-muted-token hover:text-accent-token transition-colors"
       aria-label={resolvedLabel}
     >
       <Info className={className} />

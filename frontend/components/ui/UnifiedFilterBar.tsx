@@ -130,7 +130,7 @@ function SegmentedControl<T extends string>({
 }: SegmentedControlProps<T>) {
   return (
     <div
-      className="inline-flex items-center gap-0.5 p-0.5 rounded-full bg-[var(--bg-subtle)] border border-[var(--border-subtle)]"
+      className="inline-flex items-center gap-0.5 p-0.5 rounded-full bg-subtle border border-subtle-token"
       style={{ height: 32 }}
     >
       {options.map((opt) => (
@@ -141,8 +141,8 @@ function SegmentedControl<T extends string>({
           className={[
             'px-2.5 h-6 rounded-full text-xs font-medium transition-colors whitespace-nowrap',
             opt.value === value
-              ? 'bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-sm border border-[var(--border-subtle)]'
-              : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]',
+              ? 'bg-surface text-primary-token shadow-sm border border-subtle-token'
+              : 'text-secondary-token hover:text-primary-token',
             disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer',
           ].join(' ')}
         >
@@ -205,13 +205,13 @@ function EnclosureDropdown({ value, onChange, enclosures }: EnclosureDropdownPro
     <div className="relative" ref={ref}>
       <button
         onClick={() => setOpen((v) => !v)}
-        className="flex items-center gap-1.5 px-2.5 py-1 h-8 rounded-lg bg-[var(--bg-subtle)] border border-[var(--border-subtle)] text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--border-default)] transition-colors whitespace-nowrap"
+        className="flex items-center gap-1.5 px-2.5 py-1 h-8 rounded-lg bg-subtle border border-subtle-token text-xs text-secondary-token hover:text-primary-token hover:border-default-token transition-colors whitespace-nowrap"
       >
         <span>{getLabel()}</span>
         <ChevronDown className="w-3 h-3 shrink-0" />
       </button>
       {open && (
-        <div className="absolute top-full left-0 mt-1 z-50 bg-[var(--bg-surface)] border border-[var(--border-default)] rounded-xl shadow-lg min-w-[160px] py-1.5">
+        <div className="absolute top-full left-0 mt-1 z-50 bg-surface border border-default-token rounded-xl shadow-lg min-w-[160px] py-1.5">
           {/* 快捷选择 */}
           <div className="px-2 pb-1.5 flex gap-1">
             <button
@@ -219,8 +219,8 @@ function EnclosureDropdown({ value, onChange, enclosures }: EnclosureDropdownPro
               className={[
                 'flex-1 py-1 rounded text-xs font-medium transition-colors',
                 value !== null && value.length === 0
-                  ? 'bg-[var(--brand-p1)] text-white'
-                  : 'bg-[var(--bg-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]',
+                  ? 'bg-brand-p1 text-white'
+                  : 'bg-subtle text-secondary-token hover:text-primary-token',
               ].join(' ')}
             >
               {t('enclosure.selectAll')}
@@ -230,14 +230,14 @@ function EnclosureDropdown({ value, onChange, enclosures }: EnclosureDropdownPro
               className={[
                 'flex-1 py-1 rounded text-xs font-medium transition-colors',
                 value === null
-                  ? 'bg-[var(--brand-p1)] text-white'
-                  : 'bg-[var(--bg-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]',
+                  ? 'bg-brand-p1 text-white'
+                  : 'bg-subtle text-secondary-token hover:text-primary-token',
               ].join(' ')}
             >
               {t('enclosure.selectActive')}
             </button>
           </div>
-          <div className="h-px bg-[var(--border-subtle)] mx-2 mb-1" />
+          <div className="h-px bg-n-100 mx-2 mb-1" />
           {/* 具体围场复选框 */}
           <div className="max-h-48 overflow-y-auto px-1">
             {(enclosures.length > 0
@@ -246,7 +246,7 @@ function EnclosureDropdown({ value, onChange, enclosures }: EnclosureDropdownPro
             ).map((enc) => (
               <label
                 key={enc.value}
-                className="flex items-center gap-2 px-2 py-1 rounded hover:bg-[var(--bg-subtle)] cursor-pointer"
+                className="flex items-center gap-2 px-2 py-1 rounded hover:bg-subtle cursor-pointer"
               >
                 <input
                   type="checkbox"
@@ -254,9 +254,9 @@ function EnclosureDropdown({ value, onChange, enclosures }: EnclosureDropdownPro
                   onChange={() => toggleEnclosure(enc.value)}
                   className="w-3.5 h-3.5 accent-[var(--brand-p1)] shrink-0"
                 />
-                <span className="text-xs text-[var(--text-primary)]">{enc.label || enc.value}</span>
+                <span className="text-xs text-primary-token">{enc.label || enc.value}</span>
                 {!enc.is_active && (
-                  <span className="ml-auto text-[10px] text-[var(--text-muted)]">
+                  <span className="ml-auto text-[10px] text-muted-token">
                     {t('enclosure.nonActive')}
                   </span>
                 )}
@@ -457,7 +457,7 @@ export function UnifiedFilterBar() {
     <div className="hidden md:flex items-center gap-2 flex-wrap px-4 py-2">
       {/* 月份选择器 */}
       <div className="flex items-center gap-1.5">
-        <CalendarDays className="w-3.5 h-3.5 text-[var(--text-muted)] shrink-0" />
+        <CalendarDays className="w-3.5 h-3.5 text-muted-token shrink-0" />
         <select
           value={
             hydrated
@@ -483,8 +483,8 @@ export function UnifiedFilterBar() {
           className={[
             'h-8 px-2.5 rounded-lg border text-xs font-medium outline-none cursor-pointer transition-all',
             isHistoricalView
-              ? 'bg-[var(--color-warning-surface)] border-[var(--color-warning)] text-[var(--color-warning)] focus:ring-1 focus:ring-amber-400'
-              : 'bg-[var(--bg-subtle)] border-[var(--border-subtle)] text-[var(--text-primary)] focus:ring-1 focus:ring-[var(--brand-p1)]',
+              ? 'bg-warning-surface border-warning-token text-warning-token focus:ring-1 focus:ring-amber-400'
+              : 'bg-subtle border-subtle-token text-primary-token focus:ring-1 focus:ring-brand-p1-ring',
           ].join(' ')}
         >
           {(availableMonths ?? [currentYYYYMM]).map((ym) => {
@@ -506,16 +506,16 @@ export function UnifiedFilterBar() {
               onChange={(e) =>
                 setCustomDateRange({ start: e.target.value, end: customDateRange.end })
               }
-              className="h-8 px-2 rounded-lg border border-[var(--color-warning)] bg-[var(--color-warning-surface)] text-xs text-[var(--color-warning)] outline-none focus:ring-1 focus:ring-amber-400"
+              className="h-8 px-2 rounded-lg border border-warning-token bg-warning-surface text-xs text-warning-token outline-none focus:ring-1 focus:ring-amber-400"
             />
-            <span className="text-xs text-[var(--text-muted)]">~</span>
+            <span className="text-xs text-muted-token">~</span>
             <input
               type="date"
               value={customDateRange.end}
               onChange={(e) =>
                 setCustomDateRange({ start: customDateRange.start, end: e.target.value })
               }
-              className="h-8 px-2 rounded-lg border border-[var(--color-warning)] bg-[var(--color-warning-surface)] text-xs text-[var(--color-warning)] outline-none focus:ring-1 focus:ring-amber-400"
+              className="h-8 px-2 rounded-lg border border-warning-token bg-warning-surface text-xs text-warning-token outline-none focus:ring-1 focus:ring-amber-400"
             />
           </div>
         )}
@@ -524,7 +524,7 @@ export function UnifiedFilterBar() {
       {/* 国家 */}
       <FilterSlot state={countryState} tooltip={t('countryNotApplicable')}>
         {isSingleCountry ? (
-          <span className="flex items-center gap-1 px-2.5 py-1 h-8 rounded-lg bg-[var(--bg-subtle)] border border-[var(--border-subtle)] text-xs text-[var(--text-muted)] select-none">
+          <span className="flex items-center gap-1 px-2.5 py-1 h-8 rounded-lg bg-subtle border border-subtle-token text-xs text-muted-token select-none">
             <Globe className="w-3.5 h-3.5" />
             {countries[0]?.label ?? 'TH'}
           </span>
@@ -532,7 +532,7 @@ export function UnifiedFilterBar() {
           <select
             value={country}
             onChange={(e) => setCountry(e.target.value as typeof country)}
-            className="h-8 px-2.5 rounded-lg bg-[var(--bg-subtle)] border border-[var(--border-subtle)] text-xs text-[var(--text-primary)] focus:ring-1 focus:ring-[var(--brand-p1)] outline-none cursor-pointer transition-colors"
+            className="h-8 px-2.5 rounded-lg bg-subtle border border-subtle-token text-xs text-primary-token focus:ring-1 focus:ring-brand-p1-ring outline-none cursor-pointer transition-colors"
           >
             {countries.map((c) => (
               <option key={c.value} value={c.value}>
@@ -553,7 +553,7 @@ export function UnifiedFilterBar() {
         }
       >
         {dataRoleFixed ? (
-          <span className="flex items-center gap-1 px-2.5 py-1 h-8 rounded-full bg-[var(--bg-subtle)] border border-[var(--border-subtle)] text-xs text-[var(--text-muted)] select-none uppercase">
+          <span className="flex items-center gap-1 px-2.5 py-1 h-8 rounded-full bg-subtle border border-subtle-token text-xs text-muted-token select-none uppercase">
             🔒 {dataRoleFixed}
           </span>
         ) : (
@@ -579,7 +579,7 @@ export function UnifiedFilterBar() {
         <select
           value={teamFilter ?? ''}
           onChange={(e) => setTeamFilter(e.target.value || null)}
-          className="h-8 px-2.5 rounded-lg bg-[var(--bg-subtle)] border border-[var(--border-subtle)] text-xs text-[var(--text-primary)] focus:ring-1 focus:ring-[var(--brand-p1)] outline-none cursor-pointer transition-colors"
+          className="h-8 px-2.5 rounded-lg bg-subtle border border-subtle-token text-xs text-primary-token focus:ring-1 focus:ring-brand-p1-ring outline-none cursor-pointer transition-colors"
         >
           <option value="">{t('allTeams')}</option>
           {teams.map((t) => (
@@ -593,13 +593,13 @@ export function UnifiedFilterBar() {
       {/* CC 搜索 */}
       <FilterSlot state={teamState} tooltip={t('ccSearchNotApplicable')}>
         <div className="relative">
-          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3 h-3 text-[var(--text-muted)] pointer-events-none" />
+          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3 h-3 text-muted-token pointer-events-none" />
           <input
             type="text"
             value={focusCC ?? ''}
             onChange={(e) => setFocusCC(e.target.value || null)}
             placeholder={t('searchCC')}
-            className="h-8 pl-7 pr-3 rounded-full bg-[var(--bg-subtle)] border border-[var(--border-subtle)] text-xs text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:ring-1 focus:ring-[var(--brand-p1)] focus:border-[var(--brand-p1)] outline-none transition-all w-32 focus:w-44"
+            className="h-8 pl-7 pr-3 rounded-full bg-subtle border border-subtle-token text-xs text-primary-token placeholder:text-muted-token focus:ring-1 focus:ring-brand-p1-ring focus:border-brand-p1 outline-none transition-all w-32 focus:w-44"
           />
         </div>
       </FilterSlot>
@@ -608,7 +608,7 @@ export function UnifiedFilterBar() {
       {hasActiveFilter && (
         <button
           onClick={handleClearAll}
-          className="flex items-center gap-1 px-2 py-1 h-8 rounded-full text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)] border border-[var(--border-subtle)] hover:border-[var(--border-default)] transition-colors ml-auto"
+          className="flex items-center gap-1 px-2 py-1 h-8 rounded-full text-xs text-muted-token hover:text-primary-token border border-subtle-token hover:border-default-token transition-colors ml-auto"
         >
           <X className="w-3 h-3" />
           {t('clearFilter')}
@@ -621,8 +621,8 @@ export function UnifiedFilterBar() {
         className={[
           'flex items-center gap-1 px-2.5 py-1 h-8 rounded-lg text-xs font-medium border transition-colors',
           advancedOpen
-            ? 'bg-[var(--bg-subtle)] border-[var(--border-default)] text-[var(--text-primary)]'
-            : 'border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--border-default)]',
+            ? 'bg-subtle border-default-token text-primary-token'
+            : 'border-subtle-token text-secondary-token hover:text-primary-token hover:border-default-token',
         ].join(' ')}
       >
         {advancedOpen ? (
@@ -645,7 +645,7 @@ export function UnifiedFilterBar() {
         <select
           value={hydrated ? channel : 'all'}
           onChange={(e) => setChannel(e.target.value as Channel)}
-          className="h-8 px-2.5 rounded-lg bg-[var(--bg-subtle)] border border-[var(--border-subtle)] text-xs text-[var(--text-primary)] focus:ring-1 focus:ring-[var(--brand-p1)] outline-none cursor-pointer transition-colors"
+          className="h-8 px-2.5 rounded-lg bg-subtle border border-subtle-token text-xs text-primary-token focus:ring-1 focus:ring-brand-p1-ring outline-none cursor-pointer transition-colors"
         >
           {(channels.length > 0
             ? channels
@@ -673,10 +673,10 @@ export function UnifiedFilterBar() {
       {/* 基准对比 */}
       <BenchmarkSelector />
       {/* 分隔线 */}
-      <div className="h-4 w-px bg-[var(--border-subtle)]" />
+      <div className="h-4 w-px bg-n-100" />
       {/* 时间对比 */}
       <div className="flex items-center gap-1.5">
-        <span className="text-xs text-[var(--text-muted)] shrink-0 mr-0.5">{t('time')}</span>
+        <span className="text-xs text-muted-token shrink-0 mr-0.5">{t('time')}</span>
         {TEMPORAL_OPTIONS.map((opt) => {
           const isActive = compareMode === opt.value;
           return (
@@ -686,8 +686,8 @@ export function UnifiedFilterBar() {
               className={[
                 'px-2.5 py-1 rounded-full text-xs font-medium transition-colors border',
                 isActive
-                  ? 'bg-[var(--color-accent)] text-white border-[var(--color-accent)]'
-                  : 'bg-transparent text-[var(--text-secondary)] border-[var(--border-default)] hover:border-[var(--color-accent)] hover:text-[var(--text-primary)]',
+                  ? 'bg-accent-token text-white border-accent-token'
+                  : 'bg-transparent text-secondary-token border-default-token hover:border-accent-token hover:text-primary-token',
               ].join(' ')}
             >
               {opt.label}
@@ -704,18 +704,16 @@ export function UnifiedFilterBar() {
     <div className="md:hidden flex items-center justify-between px-3 py-2">
       <button
         onClick={() => setDrawerOpen(true)}
-        className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[var(--bg-subtle)] border border-[var(--border-default)] text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors min-h-[44px]"
+        className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-subtle border border-default-token text-sm text-secondary-token hover:text-primary-token transition-colors min-h-[44px]"
       >
         <SlidersHorizontal className="w-4 h-4" />
         {t('filter')}
-        {hasActiveFilter && (
-          <span className="ml-1 w-2 h-2 rounded-full bg-[var(--brand-p1)] inline-block" />
-        )}
+        {hasActiveFilter && <span className="ml-1 w-2 h-2 rounded-full bg-brand-p1 inline-block" />}
       </button>
       {hasActiveFilter && (
         <button
           onClick={handleClearAll}
-          className="flex items-center gap-1 px-2 py-1 rounded-full text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
+          className="flex items-center gap-1 px-2 py-1 rounded-full text-xs text-muted-token hover:text-primary-token transition-colors"
         >
           <X className="w-3 h-3" />
           {t('clearFilter')}
@@ -729,18 +727,16 @@ export function UnifiedFilterBar() {
   const mobileDrawer = drawerOpen ? (
     <div className="fixed inset-0 z-50 md:hidden">
       <div className="absolute inset-0 bg-black/40" onClick={() => setDrawerOpen(false)} />
-      <div className="absolute bottom-0 inset-x-0 bg-[var(--bg-surface)] rounded-t-2xl shadow-xl max-h-[85vh] overflow-y-auto">
+      <div className="absolute bottom-0 inset-x-0 bg-surface rounded-t-2xl shadow-xl max-h-[85vh] overflow-y-auto">
         {/* 把手 */}
         <div className="flex justify-center pt-3 pb-1">
-          <div className="w-10 h-1 rounded-full bg-[var(--border-default)]" />
+          <div className="w-10 h-1 rounded-full bg-n-200" />
         </div>
         <div className="px-4 pb-2 flex items-center justify-between">
-          <span className="text-base font-semibold text-[var(--text-primary)]">
-            {t('dataFilter')}
-          </span>
+          <span className="text-base font-semibold text-primary-token">{t('dataFilter')}</span>
           <button
             onClick={() => setDrawerOpen(false)}
-            className="p-1.5 rounded-full hover:bg-[var(--bg-subtle)] text-[var(--text-muted)] transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
+            className="p-1.5 rounded-full hover:bg-subtle text-muted-token transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
           >
             <X className="w-4 h-4" />
           </button>
@@ -750,7 +746,7 @@ export function UnifiedFilterBar() {
           {/* 数据角色 */}
           {dims.dataRole !== false && dims.dataRole !== undefined && !dataRoleFixed && (
             <div className="space-y-2">
-              <label className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">
+              <label className="text-xs font-semibold text-muted-token uppercase tracking-wider">
                 {t('dataRole')}
               </label>
               <div className="flex flex-wrap gap-2">
@@ -761,8 +757,8 @@ export function UnifiedFilterBar() {
                     className={[
                       'px-3 py-1.5 rounded-full text-sm font-medium border transition-colors',
                       dataRole === opt.value
-                        ? 'bg-[var(--brand-p1)] text-white border-[var(--brand-p1)]'
-                        : 'border-[var(--border-default)] text-[var(--text-secondary)]',
+                        ? 'bg-brand-p1 text-white border-brand-p1'
+                        : 'border-default-token text-secondary-token',
                     ].join(' ')}
                   >
                     {opt.label}
@@ -775,7 +771,7 @@ export function UnifiedFilterBar() {
           {/* 围场 */}
           {dims.enclosure !== false && dims.enclosure !== undefined && (
             <div className="space-y-2">
-              <label className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">
+              <label className="text-xs font-semibold text-muted-token uppercase tracking-wider">
                 {t('enclosureLabel')}
               </label>
               <div className="flex gap-2 mb-2">
@@ -784,8 +780,8 @@ export function UnifiedFilterBar() {
                   className={[
                     'flex-1 py-1.5 rounded text-sm font-medium border transition-colors',
                     enclosure !== null && enclosure.length === 0
-                      ? 'bg-[var(--brand-p1)] text-white border-[var(--brand-p1)]'
-                      : 'border-[var(--border-default)] text-[var(--text-secondary)]',
+                      ? 'bg-brand-p1 text-white border-brand-p1'
+                      : 'border-default-token text-secondary-token',
                   ].join(' ')}
                 >
                   {t('enclosure.selectAll')}
@@ -795,8 +791,8 @@ export function UnifiedFilterBar() {
                   className={[
                     'flex-1 py-1.5 rounded text-sm font-medium border transition-colors',
                     enclosure === null
-                      ? 'bg-[var(--brand-p1)] text-white border-[var(--brand-p1)]'
-                      : 'border-[var(--border-default)] text-[var(--text-secondary)]',
+                      ? 'bg-brand-p1 text-white border-brand-p1'
+                      : 'border-default-token text-secondary-token',
                   ].join(' ')}
                 >
                   {t('enclosure.selectActive')}
@@ -824,8 +820,8 @@ export function UnifiedFilterBar() {
                       className={[
                         'px-2.5 py-1 rounded-full text-xs font-medium border transition-colors',
                         isActive
-                          ? 'bg-[var(--brand-p1)] text-white border-[var(--brand-p1)]'
-                          : 'border-[var(--border-default)] text-[var(--text-secondary)]',
+                          ? 'bg-brand-p1 text-white border-brand-p1'
+                          : 'border-default-token text-secondary-token',
                       ].join(' ')}
                     >
                       {enc.label || enc.value}
@@ -839,13 +835,13 @@ export function UnifiedFilterBar() {
           {/* 团队 */}
           {dims.team !== false && dims.team !== undefined && (
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">
+              <label className="text-xs font-semibold text-muted-token uppercase tracking-wider">
                 {t('teamLabel')}
               </label>
               <select
                 value={teamFilter ?? ''}
                 onChange={(e) => setTeamFilter(e.target.value || null)}
-                className="w-full bg-[var(--bg-subtle)] border border-[var(--border-subtle)] text-[var(--text-primary)] text-sm font-medium rounded-lg focus:ring-2 focus:ring-[var(--brand-p1)] focus:border-[var(--brand-p1)] block px-3 py-2.5 outline-none transition-colors"
+                className="w-full bg-subtle border border-subtle-token text-primary-token text-sm font-medium rounded-lg focus:ring-2 focus:ring-brand-p1-ring focus:border-brand-p1 block px-3 py-2.5 outline-none transition-colors"
               >
                 <option value="">{t('allTeams')}</option>
                 {teams.map((t) => (
@@ -860,17 +856,17 @@ export function UnifiedFilterBar() {
           {/* CC 搜索 */}
           {dims.team !== false && dims.team !== undefined && (
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">
+              <label className="text-xs font-semibold text-muted-token uppercase tracking-wider">
                 {t('searchCCLabel')}
               </label>
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)] pointer-events-none" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-token pointer-events-none" />
                 <input
                   type="text"
                   value={focusCC ?? ''}
                   onChange={(e) => setFocusCC(e.target.value || null)}
                   placeholder={t('searchCCSpecific')}
-                  className="w-full bg-[var(--bg-subtle)] border border-[var(--border-subtle)] text-[var(--text-primary)] text-sm rounded-lg focus:ring-2 focus:ring-[var(--brand-p1)] focus:border-[var(--brand-p1)] block pl-9 pr-4 py-2.5 outline-none transition-all placeholder:text-[var(--text-muted)]"
+                  className="w-full bg-subtle border border-subtle-token text-primary-token text-sm rounded-lg focus:ring-2 focus:ring-brand-p1-ring focus:border-brand-p1 block pl-9 pr-4 py-2.5 outline-none transition-all placeholder:text-muted-token"
                   autoFocus
                 />
               </div>
@@ -880,13 +876,13 @@ export function UnifiedFilterBar() {
           {/* 渠道 */}
           {dims.channel !== false && dims.channel !== undefined && (
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">
+              <label className="text-xs font-semibold text-muted-token uppercase tracking-wider">
                 {t('channelLabel')}
               </label>
               <select
                 value={channel}
                 onChange={(e) => setChannel(e.target.value as Channel)}
-                className="w-full bg-[var(--bg-subtle)] border border-[var(--border-subtle)] text-[var(--text-primary)] text-sm rounded-lg focus:ring-2 focus:ring-[var(--brand-p1)] focus:border-[var(--brand-p1)] block px-3 py-2.5 outline-none transition-colors"
+                className="w-full bg-subtle border border-subtle-token text-primary-token text-sm rounded-lg focus:ring-2 focus:ring-brand-p1-ring focus:border-brand-p1 block px-3 py-2.5 outline-none transition-colors"
               >
                 {(channels.length > 0
                   ? channels
@@ -906,7 +902,7 @@ export function UnifiedFilterBar() {
 
           {/* 对比基准 */}
           <div className="space-y-2">
-            <label className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">
+            <label className="text-xs font-semibold text-muted-token uppercase tracking-wider">
               {t('compareLabel')}
             </label>
             <BenchmarkSelector />
@@ -914,7 +910,7 @@ export function UnifiedFilterBar() {
 
           {/* 时间对比 */}
           <div className="space-y-2">
-            <label className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">
+            <label className="text-xs font-semibold text-muted-token uppercase tracking-wider">
               {t('temporalLabel')}
             </label>
             <div className="flex gap-2">
@@ -927,8 +923,8 @@ export function UnifiedFilterBar() {
                     className={[
                       'flex-1 py-1.5 rounded text-sm font-medium border transition-colors',
                       isActive
-                        ? 'bg-[var(--color-accent)] text-white border-[var(--color-accent)]'
-                        : 'border-[var(--border-default)] text-[var(--text-secondary)]',
+                        ? 'bg-accent-token text-white border-accent-token'
+                        : 'border-default-token text-secondary-token',
                     ].join(' ')}
                   >
                     {opt.label}
@@ -946,14 +942,14 @@ export function UnifiedFilterBar() {
                   handleClearAll();
                   setDrawerOpen(false);
                 }}
-                className="flex-1 py-2.5 rounded-lg text-sm font-medium border border-[var(--border-default)] text-[var(--text-secondary)] hover:bg-[var(--bg-subtle)] transition-colors"
+                className="flex-1 py-2.5 rounded-lg text-sm font-medium border border-default-token text-secondary-token hover:bg-subtle transition-colors"
               >
                 {t('clearFilters')}
               </button>
             )}
             <button
               onClick={() => setDrawerOpen(false)}
-              className="flex-1 py-2.5 rounded-lg text-sm font-medium bg-[var(--brand-p1)] text-white hover:opacity-90 transition-opacity"
+              className="flex-1 py-2.5 rounded-lg text-sm font-medium bg-brand-p1 text-white hover:opacity-90 transition-opacity"
             >
               {t('confirm')}
             </button>
@@ -965,7 +961,7 @@ export function UnifiedFilterBar() {
 
   return (
     <>
-      <div className="sticky top-0 z-40 w-full bg-[var(--bg-surface)]/90 backdrop-blur-md border-b border-[var(--border-subtle)] shadow-sm flex-shrink-0">
+      <div className="sticky top-0 z-40 w-full bg-surface/90 backdrop-blur-md border-b border-subtle-token shadow-sm flex-shrink-0">
         {mobileBar}
         {desktopRow1}
         {desktopRow3}

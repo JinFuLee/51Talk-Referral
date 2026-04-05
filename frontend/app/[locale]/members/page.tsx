@@ -126,8 +126,8 @@ export default function MembersPage() {
       <div className="flex items-start justify-between">
         <div>
           <h1 className="page-title">{t('pageTitle')}</h1>
-          <p className="text-sm text-[var(--text-secondary)] mt-1">{t('pageSubtitle')}</p>
-          <p className="text-sm text-[var(--text-muted)] mt-0.5">{t('pageDesc')}</p>
+          <p className="text-sm text-secondary-token mt-1">{t('pageSubtitle')}</p>
+          <p className="text-sm text-muted-token mt-0.5">{t('pageDesc')}</p>
         </div>
         <ExportButton onExportCsv={handleExport} />
       </div>
@@ -142,7 +142,7 @@ export default function MembersPage() {
             setEnclosureFilter(e.target.value);
             setPage(1);
           }}
-          className="px-3 py-2 border border-[var(--border-subtle)] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-action w-40"
+          className="px-3 py-2 border border-subtle-token rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-action w-40"
         />
         <input
           type="text"
@@ -152,7 +152,7 @@ export default function MembersPage() {
             setCcFilter(e.target.value);
             setPage(1);
           }}
-          className="px-3 py-2 border border-[var(--border-subtle)] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-action w-36"
+          className="px-3 py-2 border border-subtle-token rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-action w-36"
         />
         <select
           value={contactDaysFilter}
@@ -160,7 +160,7 @@ export default function MembersPage() {
             setContactDaysFilter(e.target.value);
             setPage(1);
           }}
-          className="px-3 py-2 border border-[var(--border-subtle)] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-action bg-[var(--bg-surface)] text-[var(--text-primary)]"
+          className="px-3 py-2 border border-subtle-token rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-action bg-surface text-primary-token"
         >
           {CONTACT_DAY_OPTIONS.map((o) => (
             <option key={o.value} value={o.value}>
@@ -174,7 +174,7 @@ export default function MembersPage() {
             setCardHealthFilter(e.target.value);
             setPage(1);
           }}
-          className="px-3 py-2 border border-[var(--border-subtle)] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-action bg-[var(--bg-surface)] text-[var(--text-primary)]"
+          className="px-3 py-2 border border-subtle-token rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-action bg-surface text-primary-token"
         >
           {CARD_HEALTH_OPTIONS.map((o) => (
             <option key={o.value} value={o.value}>
@@ -182,7 +182,7 @@ export default function MembersPage() {
             </option>
           ))}
         </select>
-        <label className="flex items-center gap-1.5 text-sm text-[var(--text-secondary)] cursor-pointer select-none">
+        <label className="flex items-center gap-1.5 text-sm text-secondary-token cursor-pointer select-none">
           <input
             type="checkbox"
             checked={hasReferralFilter}
@@ -208,7 +208,7 @@ export default function MembersPage() {
               setHasReferralFilter(false);
               setPage(1);
             }}
-            className="px-3 py-2 text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+            className="px-3 py-2 text-sm text-secondary-token hover:text-primary-token"
           >
             {t('clearFilter')}
           </button>
@@ -305,25 +305,25 @@ export default function MembersPage() {
                       daysExpiry === null || daysExpiry === undefined
                         ? ''
                         : daysExpiry <= 0
-                          ? 'text-[var(--color-danger)] font-semibold'
+                          ? 'text-danger-token font-semibold'
                           : daysExpiry <= 30
                             ? 'text-orange-500'
-                            : 'text-[var(--text-secondary)]';
+                            : 'text-secondary-token';
 
                     return (
                       <tr
                         key={m.id}
                         onClick={() => setSelectedId(m.id)}
-                        className="even:bg-[var(--bg-subtle)] cursor-pointer hover:bg-action-surface transition-colors"
+                        className="even:bg-subtle cursor-pointer hover:bg-action-surface transition-colors"
                       >
                         <td className="py-2 px-2 text-xs text-action-accent font-medium font-mono tabular-nums whitespace-nowrap">
                           {m.id}
                         </td>
-                        <td className="py-2 px-2 text-xs text-[var(--text-secondary)] whitespace-nowrap">
+                        <td className="py-2 px-2 text-xs text-secondary-token whitespace-nowrap">
                           {m.enclosure}
                         </td>
                         <td className="py-2 px-2 text-xs whitespace-nowrap">
-                          <span className="px-1.5 py-0.5 bg-[var(--bg-subtle)] rounded text-xs">
+                          <span className="px-1.5 py-0.5 bg-subtle rounded text-xs">
                             {m.lifecycle}
                           </span>
                         </td>
@@ -364,7 +364,7 @@ export default function MembersPage() {
                               ? '—'
                               : String(Math.round(daysExpiry))}
                         </td>
-                        <td className="py-2 px-2 text-xs whitespace-nowrap text-[var(--text-secondary)]">
+                        <td className="py-2 px-2 text-xs whitespace-nowrap text-secondary-token">
                           {m.cc_last_call_date || '—'}
                         </td>
                       </tr>
@@ -375,22 +375,22 @@ export default function MembersPage() {
             </div>
 
             {/* 分页 */}
-            <div className="flex items-center justify-between mt-4 pt-4 border-t border-[var(--border-subtle)]">
-              <span className="text-xs text-[var(--text-muted)]">
+            <div className="flex items-center justify-between mt-4 pt-4 border-t border-subtle-token">
+              <span className="text-xs text-muted-token">
                 {t('pageLabel')} {page} {t('pageMid')} {totalPages} {t('pageSuffix')}
               </span>
               <div className="flex gap-2">
                 <button
                   onClick={() => setPage((p) => Math.max(1, p - 1))}
                   disabled={page === 1}
-                  className="px-3 py-1.5 rounded-lg border border-[var(--border-subtle)] text-sm disabled:opacity-40 hover:bg-[var(--bg-subtle)]"
+                  className="px-3 py-1.5 rounded-lg border border-subtle-token text-sm disabled:opacity-40 hover:bg-subtle"
                 >
                   {t('prevPage')}
                 </button>
                 <button
                   onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                   disabled={page >= totalPages}
-                  className="px-3 py-1.5 rounded-lg border border-[var(--border-subtle)] text-sm disabled:opacity-40 hover:bg-[var(--bg-subtle)]"
+                  className="px-3 py-1.5 rounded-lg border border-subtle-token text-sm disabled:opacity-40 hover:bg-subtle"
                 >
                   {t('nextPage')}
                 </button>

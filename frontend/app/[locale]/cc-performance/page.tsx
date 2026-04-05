@@ -34,8 +34,8 @@ export default function CCPerformancePage() {
       <div className="flex items-start justify-between gap-4">
         <div>
           <h1 className="page-title">{t('title')}</h1>
-          <p className="text-sm text-[var(--text-secondary)] mt-1">{t('subtitle')}</p>
-          <p className="text-sm text-[var(--text-muted)] mt-0.5">{t('scope')}</p>
+          <p className="text-sm text-secondary-token mt-1">{t('subtitle')}</p>
+          <p className="text-sm text-muted-token mt-0.5">{t('scope')}</p>
         </div>
         <div className="flex items-center gap-2 flex-shrink-0 pt-1">
           <CCTargetUpload

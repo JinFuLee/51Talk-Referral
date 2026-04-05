@@ -145,8 +145,8 @@ export default function ReferralContributorPage() {
   }
 
   function sortIcon(key: SortKey) {
-    if (sortKey !== key) return <span className="text-[var(--text-muted)] ml-0.5">⇅</span>;
-    return <span className="text-[var(--text-primary)] ml-0.5">{sortAsc ? '↑' : '↓'}</span>;
+    if (sortKey !== key) return <span className="text-muted-token ml-0.5">⇅</span>;
+    return <span className="text-primary-token ml-0.5">{sortAsc ? '↑' : '↓'}</span>;
   }
 
   function handleExport() {
@@ -179,8 +179,8 @@ export default function ReferralContributorPage() {
       <div className="flex items-start justify-between">
         <div>
           <h1 className="page-title">{t('pageTitle')}</h1>
-          <p className="text-sm text-[var(--text-secondary)] mt-1">{t('pageSubtitle')}</p>
-          <p className="text-xs text-[var(--text-muted)] mt-0.5">{t('pageDesc')}</p>
+          <p className="text-sm text-secondary-token mt-1">{t('pageSubtitle')}</p>
+          <p className="text-xs text-muted-token mt-0.5">{t('pageDesc')}</p>
         </div>
         <ExportButton onExportCsv={handleExport} />
       </div>
@@ -189,25 +189,23 @@ export default function ReferralContributorPage() {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <Card title="">
           <div className="text-center py-3">
-            <p className="text-xs text-[var(--text-muted)] mb-1">{t('totalContributors')}</p>
-            <p className="text-3xl font-bold text-[var(--text-primary)]">
+            <p className="text-xs text-muted-token mb-1">{t('totalContributors')}</p>
+            <p className="text-3xl font-bold text-primary-token">
               {(data?.total_contributors ?? contributors.length).toLocaleString()}
             </p>
           </div>
         </Card>
         <Card title="">
           <div className="text-center py-3">
-            <p className="text-xs text-[var(--text-muted)] mb-1">{t('totalPaid')}</p>
-            <p className="text-3xl font-bold text-[var(--color-success)]">
-              {totalPaid.toLocaleString()}
-            </p>
+            <p className="text-xs text-muted-token mb-1">{t('totalPaid')}</p>
+            <p className="text-3xl font-bold text-success-token">{totalPaid.toLocaleString()}</p>
           </div>
         </Card>
         <Card title="">
           <div className="text-center py-3">
-            <p className="text-xs text-[var(--text-muted)] mb-1">{t('totalNew')}</p>
+            <p className="text-xs text-muted-token mb-1">{t('totalNew')}</p>
             <p className="text-3xl font-bold text-action-accent">{totalNew.toLocaleString()}</p>
-            <p className="text-xs text-[var(--text-muted)] mt-1">
+            <p className="text-xs text-muted-token mt-1">
               {t('overallConv')} {totalNew > 0 ? formatRate(totalPaid / totalNew) : '—'}
             </p>
           </div>
@@ -328,14 +326,10 @@ export default function ReferralContributorPage() {
             <tbody>
               {sorted.map((r, i) => (
                 <tr key={r.stdt_id} className={i % 2 === 0 ? 'slide-row-even' : 'slide-row-odd'}>
-                  <td className="slide-td text-center text-[var(--text-muted)] font-mono">
-                    {i + 1}
-                  </td>
-                  <td className="slide-td font-mono text-xs text-[var(--text-secondary)]">
-                    {r.stdt_id}
-                  </td>
+                  <td className="slide-td text-center text-muted-token font-mono">{i + 1}</td>
+                  <td className="slide-td font-mono text-xs text-secondary-token">{r.stdt_id}</td>
                   <td className="slide-td text-center">
-                    <span className="text-xs bg-[var(--bg-subtle)] text-[var(--text-secondary)] px-1.5 py-0.5 rounded">
+                    <span className="text-xs bg-subtle text-secondary-token px-1.5 py-0.5 rounded">
                       {fmtEnc(r.enclosure)}
                     </span>
                   </td>
@@ -343,56 +337,54 @@ export default function ReferralContributorPage() {
                     {r.cc_new_count > 0 ? (
                       <span className="text-action-accent font-semibold">{r.cc_new_count}</span>
                     ) : (
-                      <span className="text-[var(--text-muted)]">—</span>
+                      <span className="text-muted-token">—</span>
                     )}
                   </td>
                   <td className="slide-td text-right font-mono tabular-nums">
                     {r.ss_new_count > 0 ? (
-                      <span className="text-[var(--color-accent)] font-semibold">
-                        {r.ss_new_count}
-                      </span>
+                      <span className="text-accent-token font-semibold">{r.ss_new_count}</span>
                     ) : (
-                      <span className="text-[var(--text-muted)]">—</span>
+                      <span className="text-muted-token">—</span>
                     )}
                   </td>
                   <td className="slide-td text-right font-mono tabular-nums">
                     {r.lp_new_count > 0 ? (
                       <span className="text-orange-600 font-semibold">{r.lp_new_count}</span>
                     ) : (
-                      <span className="text-[var(--text-muted)]">—</span>
+                      <span className="text-muted-token">—</span>
                     )}
                   </td>
                   <td className="slide-td text-right font-mono tabular-nums">
                     {r.wide_new_count > 0 ? (
                       <span className="text-cyan-600 font-semibold">{r.wide_new_count}</span>
                     ) : (
-                      <span className="text-[var(--text-muted)]">—</span>
+                      <span className="text-muted-token">—</span>
                     )}
                   </td>
-                  <td className="slide-td text-right font-mono tabular-nums font-bold text-[var(--text-primary)]">
+                  <td className="slide-td text-right font-mono tabular-nums font-bold text-primary-token">
                     {r.total_new}
                   </td>
-                  <td className="slide-td text-right font-mono tabular-nums font-bold text-[var(--color-success)]">
+                  <td className="slide-td text-right font-mono tabular-nums font-bold text-success-token">
                     {r.total_paid > 0 ? (
                       r.total_paid
                     ) : (
-                      <span className="text-[var(--text-muted)] font-normal">0</span>
+                      <span className="text-muted-token font-normal">0</span>
                     )}
                   </td>
                   <td className="slide-td text-right font-mono tabular-nums">
                     <span
                       className={
                         r.conversion_rate >= 0.3
-                          ? 'text-[var(--color-success)] font-semibold'
+                          ? 'text-success-token font-semibold'
                           : r.conversion_rate > 0
-                            ? 'text-[var(--color-warning)]'
-                            : 'text-[var(--text-muted)]'
+                            ? 'text-warning-token'
+                            : 'text-muted-token'
                       }
                     >
                       {pct(r.conversion_rate)}
                     </span>
                   </td>
-                  <td className="slide-td text-right font-mono tabular-nums text-[var(--text-secondary)]">
+                  <td className="slide-td text-right font-mono tabular-nums text-secondary-token">
                     {fmt(r.historical_coding_count)}
                   </td>
                 </tr>
@@ -400,7 +392,7 @@ export default function ReferralContributorPage() {
             </tbody>
           </table>
         </div>
-        <p className="text-xs text-[var(--text-muted)] mt-2 px-1">{t('tableFooter')}</p>
+        <p className="text-xs text-muted-token mt-2 px-1">{t('tableFooter')}</p>
       </Card>
     </div>
   );

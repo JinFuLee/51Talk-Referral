@@ -229,14 +229,14 @@ function AssignmentTable({
     <div className="space-y-2">
       <div className="flex items-center justify-between">
         <div>
-          <span className="text-sm font-semibold text-[var(--text-primary)]">{title}</span>
-          <span className="ml-2 text-xs text-[var(--text-muted)]">{subtitle}</span>
+          <span className="text-sm font-semibold text-primary-token">{title}</span>
+          <span className="ml-2 text-xs text-muted-token">{subtitle}</span>
         </div>
         <div className="flex items-center gap-2">
           <button
             onClick={handleReset}
             disabled={saving}
-            className="text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors disabled:opacity-40"
+            className="text-xs text-secondary-token hover:text-primary-token transition-colors disabled:opacity-40"
           >
             {t.resetBtn}
           </button>
@@ -265,9 +265,9 @@ function AssignmentTable({
             {ENCLOSURE_KEYS.map((month, i) => (
               <tr
                 key={month}
-                className={`border-b border-[var(--border-subtle)] ${i % 2 === 1 ? 'bg-[var(--bg-primary)]/50' : ''}`}
+                className={`border-b border-subtle-token ${i % 2 === 1 ? 'bg-bg-primary/50' : ''}`}
               >
-                <td className="py-2 px-3 text-xs font-medium text-[var(--text-primary)]">
+                <td className="py-2 px-3 text-xs font-medium text-primary-token">
                   {ENCLOSURE_DISPLAY[month] ?? month}
                 </td>
                 {ROLES.map((role) => {
@@ -278,7 +278,7 @@ function AssignmentTable({
                         type="checkbox"
                         checked={checked}
                         onChange={() => toggle(month, role)}
-                        className="w-4 h-4 rounded border-[var(--border-hover)] text-action accent-action cursor-pointer focus-visible:ring-2 focus-visible:ring-action"
+                        className="w-4 h-4 rounded border-hover-token text-action accent-action cursor-pointer focus-visible:ring-2 focus-visible:ring-action"
                         aria-label={`${month} 由 ${role} 服务`}
                       />
                     </td>
@@ -363,12 +363,8 @@ export default function EnclosureRoleCard() {
 
   return (
     <Card title={t.cardTitle}>
-      {isLoading && (
-        <div className="py-4 text-center text-xs text-[var(--text-muted)]">{t.loading}</div>
-      )}
-      {error && !isLoading && (
-        <div className="py-2 text-xs text-[var(--color-danger)]">{t.loadError}</div>
-      )}
+      {isLoading && <div className="py-4 text-center text-xs text-muted-token">{t.loading}</div>}
+      {error && !isLoading && <div className="py-2 text-xs text-danger-token">{t.loadError}</div>}
       {!isLoading && (
         <div className="space-y-6">
           <AssignmentTable
@@ -379,7 +375,7 @@ export default function EnclosureRoleCard() {
             onSave={handleSaveNarrow}
             t={t}
           />
-          <div className="border-t border-[var(--border-subtle)]" />
+          <div className="border-t border-subtle-token" />
           <AssignmentTable
             title={t.wideTitle}
             subtitle={t.wideSubtitle}
@@ -390,7 +386,7 @@ export default function EnclosureRoleCard() {
           />
         </div>
       )}
-      <p className="mt-3 text-xs text-[var(--text-muted)]">{t.hint}</p>
+      <p className="mt-3 text-xs text-muted-token">{t.hint}</p>
     </Card>
   );
 }

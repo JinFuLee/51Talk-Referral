@@ -60,26 +60,26 @@ export default function EnclosureHealthPage() {
     <div className="space-y-3">
       <div>
         <h1 className="page-title">{t('title')}</h1>
-        <p className="text-sm text-[var(--text-secondary)] mt-1">{t('subtitle')}</p>
+        <p className="text-sm text-secondary-token mt-1">{t('subtitle')}</p>
       </div>
 
       {/* 顶部汇总 */}
       {scores.length > 0 && (
         <div className="flex gap-3 flex-wrap">
-          <div className="px-3 py-1.5 bg-[var(--color-success-surface)] border border-[var(--color-success)] rounded-lg text-xs flex items-center gap-1.5">
-            <div className="w-2 h-2 rounded-full bg-[var(--color-success)]" />
-            <span className="font-medium text-[var(--color-success)]">{t('badgeHealthy')}</span>
-            <span className="font-bold text-[var(--color-success)]">{greenCount}</span>
+          <div className="px-3 py-1.5 bg-success-surface border border-success-token rounded-lg text-xs flex items-center gap-1.5">
+            <div className="w-2 h-2 rounded-full bg-success-token" />
+            <span className="font-medium text-success-token">{t('badgeHealthy')}</span>
+            <span className="font-bold text-success-token">{greenCount}</span>
           </div>
-          <div className="px-3 py-1.5 bg-[var(--color-warning-surface)] border border-[var(--color-warning)] rounded-lg text-xs flex items-center gap-1.5">
-            <div className="w-2 h-2 rounded-full bg-[var(--color-warning)]" />
-            <span className="font-medium text-[var(--color-warning)]">{t('badgeWarning')}</span>
-            <span className="font-bold text-[var(--color-warning)]">{yellowCount}</span>
+          <div className="px-3 py-1.5 bg-warning-surface border border-warning-token rounded-lg text-xs flex items-center gap-1.5">
+            <div className="w-2 h-2 rounded-full bg-warning-token" />
+            <span className="font-medium text-warning-token">{t('badgeWarning')}</span>
+            <span className="font-bold text-warning-token">{yellowCount}</span>
           </div>
-          <div className="px-3 py-1.5 bg-[var(--color-danger-surface)] border border-[var(--color-danger)] rounded-lg text-xs flex items-center gap-1.5">
-            <div className="w-2 h-2 rounded-full bg-[var(--color-danger)]" />
-            <span className="font-medium text-[var(--color-danger)]">{t('badgeDanger')}</span>
-            <span className="font-bold text-[var(--color-danger)]">{redCount}</span>
+          <div className="px-3 py-1.5 bg-danger-surface border border-danger-token rounded-lg text-xs flex items-center gap-1.5">
+            <div className="w-2 h-2 rounded-full bg-danger-token" />
+            <span className="font-medium text-danger-token">{t('badgeDanger')}</span>
+            <span className="font-bold text-danger-token">{redCount}</span>
           </div>
         </div>
       )}
@@ -92,8 +92,8 @@ export default function EnclosureHealthPage() {
           </div>
         ) : scoresError ? (
           <div className="text-center py-8">
-            <p className="text-base font-semibold text-[var(--color-danger)]">{t('errorLoad')}</p>
-            <p className="text-sm text-[var(--text-muted)] mt-1">{t('errorCheck')}</p>
+            <p className="text-base font-semibold text-danger-token">{t('errorLoad')}</p>
+            <p className="text-sm text-muted-token mt-1">{t('errorCheck')}</p>
           </div>
         ) : !scores.length ? (
           <EmptyState title={t('emptyScores')} description={t('emptyScoresDesc')} />
@@ -111,7 +111,7 @@ export default function EnclosureHealthPage() {
           title={`${expandedSegment} — ${t('segmentCcList')}`}
           actions={
             <button
-              className="text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
+              className="text-xs text-muted-token hover:text-primary-token transition-colors"
               onClick={() => setExpandedSegment(null)}
             >
               {t('collapseBtn')}
@@ -120,19 +120,19 @@ export default function EnclosureHealthPage() {
         >
           {(() => {
             const seg = scores.find((s) => s.segment === expandedSegment);
-            if (!seg) return <div className="text-sm text-[var(--text-muted)]">{t('noData')}</div>;
+            if (!seg) return <div className="text-sm text-muted-token">{t('noData')}</div>;
             return (
-              <div className="text-sm text-[var(--text-secondary)]">
+              <div className="text-sm text-secondary-token">
                 <p>
                   {expandedSegment} {t('segmentHealthScore')}{' '}
                   <strong>{(seg.health_score ?? 0).toFixed(0)}</strong>
                 </p>
-                <p className="text-xs mt-1 text-[var(--text-muted)]">
+                <p className="text-xs mt-1 text-muted-token">
                   {t('segmentParticipation')} {formatRate(seg.participation)} ·{' '}
                   {t('segmentConversion')} {formatRate(seg.conversion)} ·{t('segmentCheckin')}{' '}
                   {formatRate(seg.checkin)}
                 </p>
-                <p className="text-xs mt-2 text-[var(--text-muted)]">{t('segmentApiNote')}</p>
+                <p className="text-xs mt-2 text-muted-token">{t('segmentApiNote')}</p>
               </div>
             );
           })()}
@@ -147,8 +147,8 @@ export default function EnclosureHealthPage() {
           </div>
         ) : benchmarkError ? (
           <div className="text-center py-8">
-            <p className="text-base font-semibold text-[var(--color-danger)]">{t('errorLoad')}</p>
-            <p className="text-sm text-[var(--text-muted)] mt-1">{t('errorCheck')}</p>
+            <p className="text-base font-semibold text-danger-token">{t('errorLoad')}</p>
+            <p className="text-sm text-muted-token mt-1">{t('errorCheck')}</p>
           </div>
         ) : !benchmarks.length ? (
           <EmptyState title={t('emptyBenchmark')} description={t('emptyBenchmarkDesc')} />
@@ -165,8 +165,8 @@ export default function EnclosureHealthPage() {
           </div>
         ) : varianceError ? (
           <div className="text-center py-8">
-            <p className="text-base font-semibold text-[var(--color-danger)]">{t('errorLoad')}</p>
-            <p className="text-sm text-[var(--text-muted)] mt-1">{t('errorCheck')}</p>
+            <p className="text-base font-semibold text-danger-token">{t('errorLoad')}</p>
+            <p className="text-sm text-muted-token mt-1">{t('errorCheck')}</p>
           </div>
         ) : !variances.length ? (
           <EmptyState title={t('emptyVariance')} description={t('emptyVarianceDesc')} />

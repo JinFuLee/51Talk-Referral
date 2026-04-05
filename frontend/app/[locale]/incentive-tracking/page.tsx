@@ -525,26 +525,26 @@ function getCurrentMonth(): string {
 function progressStatusColor(status: PersonProgress['status']): string {
   switch (status) {
     case 'qualified':
-      return 'bg-[var(--color-success)]';
+      return 'bg-success-token';
     case 'close':
-      return 'bg-[var(--color-warning)]';
+      return 'bg-warning-token';
     case 'in_progress':
-      return 'bg-[var(--color-accent)]';
+      return 'bg-accent-token';
     default:
-      return 'bg-[var(--border-default)]';
+      return 'bg-n-200';
   }
 }
 
 function progressStatusBadge(status: PersonProgress['status']): string {
   switch (status) {
     case 'qualified':
-      return 'text-[var(--color-success)] bg-[var(--color-success-surface)]';
+      return 'text-success-token bg-success-surface';
     case 'close':
-      return 'text-[var(--color-warning)] bg-[var(--color-warning-surface)]';
+      return 'text-warning-token bg-warning-surface';
     case 'in_progress':
-      return 'text-[var(--color-accent)] bg-[var(--color-accent-surface)]';
+      return 'text-accent-token bg-accent-surface';
     default:
-      return 'text-[var(--text-muted)] bg-[var(--bg-subtle)]';
+      return 'text-muted-token bg-subtle';
   }
 }
 
@@ -579,13 +579,13 @@ function campaignStatusLabel(status: Campaign['status'], t: T18N): string {
 function campaignStatusColor(status: Campaign['status']): string {
   switch (status) {
     case 'active':
-      return 'text-[var(--color-success)] bg-[var(--color-success-surface)]';
+      return 'text-success-token bg-success-surface';
     case 'paused':
-      return 'text-[var(--color-warning)] bg-[var(--color-warning-surface)]';
+      return 'text-warning-token bg-warning-surface';
     case 'completed':
-      return 'text-[var(--color-accent)] bg-[var(--color-accent-surface)]';
+      return 'text-accent-token bg-accent-surface';
     case 'deleted':
-      return 'text-[var(--text-muted)] bg-[var(--bg-subtle)]';
+      return 'text-muted-token bg-subtle';
   }
 }
 
@@ -712,14 +712,14 @@ function CampaignModal({ onClose, onSaved, prefill, editCampaign, t }: CampaignM
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-      <div className="bg-[var(--bg-surface)] rounded-xl shadow-xl w-full max-w-lg mx-4 p-6 space-y-4">
+      <div className="bg-surface rounded-xl shadow-xl w-full max-w-lg mx-4 p-6 space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-base font-semibold text-[var(--text-primary)]">
+          <h2 className="text-base font-semibold text-primary-token">
             {editCampaign ? t.modalEditTitle : t.modalCreateTitle}
           </h2>
           <button
             onClick={onClose}
-            className="text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
+            className="text-muted-token hover:text-primary-token transition-colors"
           >
             ✕
           </button>
@@ -728,42 +728,40 @@ function CampaignModal({ onClose, onSaved, prefill, editCampaign, t }: CampaignM
         <form onSubmit={handleSubmit} className="space-y-3">
           {/* campaign name */}
           <div className="space-y-1">
-            <label className="text-xs font-medium text-[var(--text-secondary)]">
-              {t.fieldCampaignName} <span className="text-[var(--color-danger)]">*</span>
+            <label className="text-xs font-medium text-secondary-token">
+              {t.fieldCampaignName} <span className="text-danger-token">*</span>
             </label>
             <input
               type="text"
               value={form.name}
               onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
               placeholder={t.fieldCampaignNamePlaceholder}
-              className="w-full px-3 py-2 border border-[var(--border-subtle)] rounded-lg text-sm bg-[var(--bg-surface)] focus:outline-none focus:ring-2 focus:ring-action"
+              className="w-full px-3 py-2 border border-subtle-token rounded-lg text-sm bg-surface focus:outline-none focus:ring-2 focus:ring-action"
             />
           </div>
 
           {/* Thai name */}
           <div className="space-y-1">
-            <label className="text-xs font-medium text-[var(--text-secondary)]">
-              {t.fieldThaiName}
-            </label>
+            <label className="text-xs font-medium text-secondary-token">{t.fieldThaiName}</label>
             <input
               type="text"
               value={form.name_th}
               onChange={(e) => setForm((p) => ({ ...p, name_th: e.target.value }))}
               placeholder={t.fieldThaiNamePlaceholder}
-              className="w-full px-3 py-2 border border-[var(--border-subtle)] rounded-lg text-sm bg-[var(--bg-surface)] focus:outline-none focus:ring-2 focus:ring-action"
+              className="w-full px-3 py-2 border border-subtle-token rounded-lg text-sm bg-surface focus:outline-none focus:ring-2 focus:ring-action"
             />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             {/* role */}
             <div className="space-y-1">
-              <label className="text-xs font-medium text-[var(--text-secondary)]">
-                {t.fieldRole} <span className="text-[var(--color-danger)]">*</span>
+              <label className="text-xs font-medium text-secondary-token">
+                {t.fieldRole} <span className="text-danger-token">*</span>
               </label>
               <select
                 value={form.role}
                 onChange={(e) => handleRoleChange(e.target.value as 'CC' | 'SS' | 'LP')}
-                className="w-full px-3 py-2 border border-[var(--border-subtle)] rounded-lg text-sm bg-[var(--bg-surface)] focus:outline-none focus:ring-2 focus:ring-action"
+                className="w-full px-3 py-2 border border-subtle-token rounded-lg text-sm bg-surface focus:outline-none focus:ring-2 focus:ring-action"
               >
                 <option value="CC">{t.roleCC}</option>
                 <option value="SS">{t.roleSS}</option>
@@ -773,13 +771,13 @@ function CampaignModal({ onClose, onSaved, prefill, editCampaign, t }: CampaignM
 
             {/* metric */}
             <div className="space-y-1">
-              <label className="text-xs font-medium text-[var(--text-secondary)]">
-                {t.fieldMetric} <span className="text-[var(--color-danger)]">*</span>
+              <label className="text-xs font-medium text-secondary-token">
+                {t.fieldMetric} <span className="text-danger-token">*</span>
               </label>
               <select
                 value={form.metric}
                 onChange={(e) => setForm((p) => ({ ...p, metric: e.target.value }))}
-                className="w-full px-3 py-2 border border-[var(--border-subtle)] rounded-lg text-sm bg-[var(--bg-surface)] focus:outline-none focus:ring-2 focus:ring-action"
+                className="w-full px-3 py-2 border border-subtle-token rounded-lg text-sm bg-surface focus:outline-none focus:ring-2 focus:ring-action"
               >
                 {availableMetrics.map((m) => (
                   <option key={m} value={m}>
@@ -793,8 +791,8 @@ function CampaignModal({ onClose, onSaved, prefill, editCampaign, t }: CampaignM
           <div className="grid grid-cols-2 gap-3">
             {/* operator */}
             <div className="space-y-1">
-              <label className="text-xs font-medium text-[var(--text-secondary)]">
-                {t.fieldCondition} <span className="text-[var(--color-danger)]">*</span>
+              <label className="text-xs font-medium text-secondary-token">
+                {t.fieldCondition} <span className="text-danger-token">*</span>
               </label>
               <select
                 value={form.operator}
@@ -804,7 +802,7 @@ function CampaignModal({ onClose, onSaved, prefill, editCampaign, t }: CampaignM
                     operator: e.target.value as CampaignFormValues['operator'],
                   }))
                 }
-                className="w-full px-3 py-2 border border-[var(--border-subtle)] rounded-lg text-sm bg-[var(--bg-surface)] focus:outline-none focus:ring-2 focus:ring-action"
+                className="w-full px-3 py-2 border border-subtle-token rounded-lg text-sm bg-surface focus:outline-none focus:ring-2 focus:ring-action"
               >
                 {Object.entries(getOperatorLabels(t)).map(([k, v]) => (
                   <option key={k} value={k}>
@@ -816,23 +814,23 @@ function CampaignModal({ onClose, onSaved, prefill, editCampaign, t }: CampaignM
 
             {/* threshold */}
             <div className="space-y-1">
-              <label className="text-xs font-medium text-[var(--text-secondary)]">
-                {t.fieldThreshold} <span className="text-[var(--color-danger)]">*</span>
+              <label className="text-xs font-medium text-secondary-token">
+                {t.fieldThreshold} <span className="text-danger-token">*</span>
               </label>
               <input
                 type="number"
                 value={form.threshold}
                 onChange={(e) => setForm((p) => ({ ...p, threshold: e.target.value }))}
                 placeholder={t.fieldThresholdPlaceholder}
-                className="w-full px-3 py-2 border border-[var(--border-subtle)] rounded-lg text-sm font-mono bg-[var(--bg-surface)] focus:outline-none focus:ring-2 focus:ring-action"
+                className="w-full px-3 py-2 border border-subtle-token rounded-lg text-sm font-mono bg-surface focus:outline-none focus:ring-2 focus:ring-action"
               />
             </div>
           </div>
 
           {/* reward */}
           <div className="space-y-1">
-            <label className="text-xs font-medium text-[var(--text-secondary)]">
-              {t.fieldReward} <span className="text-[var(--color-danger)]">*</span>
+            <label className="text-xs font-medium text-secondary-token">
+              {t.fieldReward} <span className="text-danger-token">*</span>
             </label>
             <input
               type="number"
@@ -840,45 +838,41 @@ function CampaignModal({ onClose, onSaved, prefill, editCampaign, t }: CampaignM
               value={form.reward_thb}
               onChange={(e) => setForm((p) => ({ ...p, reward_thb: e.target.value }))}
               placeholder={t.fieldRewardPlaceholder}
-              className="w-full px-3 py-2 border border-[var(--border-subtle)] rounded-lg text-sm font-mono bg-[var(--bg-surface)] focus:outline-none focus:ring-2 focus:ring-action"
+              className="w-full px-3 py-2 border border-subtle-token rounded-lg text-sm font-mono bg-surface focus:outline-none focus:ring-2 focus:ring-action"
             />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             {/* start date */}
             <div className="space-y-1">
-              <label className="text-xs font-medium text-[var(--text-secondary)]">
-                {t.fieldStartDate}
-              </label>
+              <label className="text-xs font-medium text-secondary-token">{t.fieldStartDate}</label>
               <input
                 type="date"
                 value={form.start_date}
                 onChange={(e) => setForm((p) => ({ ...p, start_date: e.target.value }))}
-                className="w-full px-3 py-2 border border-[var(--border-subtle)] rounded-lg text-sm bg-[var(--bg-surface)] focus:outline-none focus:ring-2 focus:ring-action"
+                className="w-full px-3 py-2 border border-subtle-token rounded-lg text-sm bg-surface focus:outline-none focus:ring-2 focus:ring-action"
               />
             </div>
 
             {/* end date */}
             <div className="space-y-1">
-              <label className="text-xs font-medium text-[var(--text-secondary)]">
-                {t.fieldEndDate}
-              </label>
+              <label className="text-xs font-medium text-secondary-token">{t.fieldEndDate}</label>
               <input
                 type="date"
                 value={form.end_date}
                 onChange={(e) => setForm((p) => ({ ...p, end_date: e.target.value }))}
-                className="w-full px-3 py-2 border border-[var(--border-subtle)] rounded-lg text-sm bg-[var(--bg-surface)] focus:outline-none focus:ring-2 focus:ring-action"
+                className="w-full px-3 py-2 border border-subtle-token rounded-lg text-sm bg-surface focus:outline-none focus:ring-2 focus:ring-action"
               />
             </div>
           </div>
 
-          {error && <p className="text-xs text-[var(--color-danger)]">{error}</p>}
+          {error && <p className="text-xs text-danger-token">{error}</p>}
 
           <div className="flex items-center gap-2 justify-end pt-2">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
+              className="px-4 py-2 text-sm text-secondary-token hover:text-primary-token transition-colors"
             >
               {t.btnCancel}
             </button>
@@ -943,7 +937,7 @@ function LeverageTab({ t }: { t: T18N }) {
       <div className="flex items-center justify-center h-64">
         <div className="text-center space-y-2">
           <Spinner size="lg" />
-          <p className="text-sm text-[var(--text-muted)]">{t.loadingLeverage}</p>
+          <p className="text-sm text-muted-token">{t.loadingLeverage}</p>
         </div>
       </div>
     );
@@ -953,8 +947,8 @@ function LeverageTab({ t }: { t: T18N }) {
     return (
       <div className="py-16 text-center space-y-2">
         <p className="text-4xl">📊</p>
-        <p className="text-sm font-medium text-[var(--text-primary)]">{t.leverageEmptyTitle}</p>
-        <p className="text-xs text-[var(--text-muted)]">{t.leverageEmptyDesc}</p>
+        <p className="text-sm font-medium text-primary-token">{t.leverageEmptyTitle}</p>
+        <p className="text-xs text-muted-token">{t.leverageEmptyDesc}</p>
       </div>
     );
   }
@@ -964,17 +958,17 @@ function LeverageTab({ t }: { t: T18N }) {
 
   return (
     <div className="space-y-3">
-      <div className="text-xs text-[var(--text-muted)] space-y-1">
+      <div className="text-xs text-muted-token space-y-1">
         <p>{t.leverageDesc}</p>
         {raw?.phase_label && (
-          <p className="font-medium text-[var(--text-secondary)]">
+          <p className="font-medium text-secondary-token">
             {t.leverageCurrentPhase}
             {raw.phase_label}
             {raw.remaining_workdays != null &&
               `${t.leverageRemainingDays}${raw.remaining_workdays}${t.leverageRemainingDaysSuffix}`}
           </p>
         )}
-        {raw?.note && <p className="text-[var(--color-warning)]">{raw.note}</p>}
+        {raw?.note && <p className="text-warning-token">{raw.note}</p>}
       </div>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
         {top3.map((rec) => {
@@ -987,7 +981,7 @@ function LeverageTab({ t }: { t: T18N }) {
                 <span className="w-6 h-6 rounded-full bg-action text-white text-xs flex items-center justify-center font-bold">
                   {rec.rank}
                 </span>
-                <span className="text-sm font-semibold text-[var(--text-primary)]">
+                <span className="text-sm font-semibold text-primary-token">
                   {t.stageLabels[rec.stage] ?? rec.stage_label ?? rec.stage}
                 </span>
               </div>
@@ -995,12 +989,12 @@ function LeverageTab({ t }: { t: T18N }) {
               {/* 杠杆评分进度条 */}
               <div className="space-y-1">
                 <div className="flex items-center justify-between">
-                  <span className="text-[10px] text-[var(--text-muted)]">{t.leverageScore}</span>
-                  <span className="text-xs font-mono font-semibold text-[var(--text-primary)]">
+                  <span className="text-[10px] text-muted-token">{t.leverageScore}</span>
+                  <span className="text-xs font-mono font-semibold text-primary-token">
                     {(rec.leverage_score ?? 0).toFixed(1)}
                   </span>
                 </div>
-                <div className="h-1.5 bg-[var(--bg-subtle)] rounded-full overflow-hidden">
+                <div className="h-1.5 bg-subtle rounded-full overflow-hidden">
                   <div
                     className="h-full bg-action rounded-full transition-all"
                     style={{ width: `${(rec.leverage_score / maxScore) * 100}%` }}
@@ -1010,8 +1004,8 @@ function LeverageTab({ t }: { t: T18N }) {
 
               {/* 增量金额 */}
               <div className="flex items-center gap-1.5 text-xs">
-                <span className="text-[var(--text-muted)]">{t.leverageRevImpact}</span>
-                <span className="font-mono font-semibold text-[var(--color-success)]">
+                <span className="text-muted-token">{t.leverageRevImpact}</span>
+                <span className="font-mono font-semibold text-success-token">
                   +${rec.revenue_impact_usd.toLocaleString()}
                 </span>
               </div>
@@ -1019,11 +1013,9 @@ function LeverageTab({ t }: { t: T18N }) {
               {/* 转化率对比 */}
               {rec.current_rate != null && rec.target_rate != null && (
                 <div className="flex items-center gap-1.5 text-xs">
-                  <span className="font-mono text-[var(--text-muted)]">
-                    {formatRate(rec.current_rate)}
-                  </span>
-                  <span className="text-[var(--text-muted)]">→</span>
-                  <span className="font-mono font-semibold text-[var(--text-primary)]">
+                  <span className="font-mono text-muted-token">{formatRate(rec.current_rate)}</span>
+                  <span className="text-muted-token">→</span>
+                  <span className="font-mono font-semibold text-primary-token">
                     {formatRate(rec.target_rate)}
                   </span>
                 </div>
@@ -1031,23 +1023,23 @@ function LeverageTab({ t }: { t: T18N }) {
 
               {/* 推荐理由 */}
               {sg?.rationale && (
-                <p className="text-[10px] text-[var(--text-muted)] leading-relaxed border-t border-[var(--border-subtle)] pt-2">
+                <p className="text-[10px] text-muted-token leading-relaxed border-t border-subtle-token pt-2">
                   {t.rationaleByStage[rec.stage] ?? sg.rationale}
                 </p>
               )}
 
               {/* 创建活动按钮（时间感知） */}
               {alreadyCreated ? (
-                <div className="w-full py-1.5 text-xs font-medium text-[var(--text-muted)] border border-[var(--border-default)] rounded-lg text-center">
+                <div className="w-full py-1.5 text-xs font-medium text-muted-token border border-default-token rounded-lg text-center">
                   {t.leverageAlreadyCreated}
                 </div>
               ) : rec.actionable === false ? (
                 <div className="w-full py-1.5 text-xs text-center space-y-0.5">
-                  <div className="font-medium text-[var(--text-muted)] border border-[var(--border-default)] rounded-lg py-1.5">
+                  <div className="font-medium text-muted-token border border-default-token rounded-lg py-1.5">
                     {t.leverageNextMonth}
                   </div>
                   {rec.action_note && (
-                    <p className="text-[10px] text-[var(--text-muted)]">
+                    <p className="text-[10px] text-muted-token">
                       {translateActionNote(rec.action_note, t)}
                     </p>
                   )}
@@ -1148,7 +1140,7 @@ function CampaignsTab({ t }: { t: T18N }) {
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <p className="text-xs text-[var(--text-muted)]">{t.campaignsMgmtDesc}</p>
+        <p className="text-xs text-muted-token">{t.campaignsMgmtDesc}</p>
         <button onClick={openCreate} className="btn-primary px-3 py-1.5 text-xs font-medium">
           {t.campaignsNewBtn}
         </button>
@@ -1161,16 +1153,14 @@ function CampaignsTab({ t }: { t: T18N }) {
       )}
 
       {error && (
-        <div className="py-4 text-center text-sm text-[var(--text-muted)]">
-          {t.campaignsLoadFail}
-        </div>
+        <div className="py-4 text-center text-sm text-muted-token">{t.campaignsLoadFail}</div>
       )}
 
       {!isLoading && campaigns.length === 0 && (
         <div className="py-12 text-center space-y-2">
           <p className="text-3xl">🎯</p>
-          <p className="text-sm font-medium text-[var(--text-primary)]">{t.campaignsEmptyTitle}</p>
-          <p className="text-xs text-[var(--text-muted)]">{t.campaignsEmptyDesc}</p>
+          <p className="text-sm font-medium text-primary-token">{t.campaignsEmptyTitle}</p>
+          <p className="text-xs text-muted-token">{t.campaignsEmptyDesc}</p>
         </div>
       )}
 
@@ -1194,16 +1184,14 @@ function CampaignsTab({ t }: { t: T18N }) {
                 <tr key={c.id} className={i % 2 === 0 ? 'slide-row-even' : 'slide-row-odd'}>
                   <td className="slide-td font-medium">
                     <div>{c.name}</div>
-                    {c.name_th && (
-                      <div className="text-[10px] text-[var(--text-muted)]">{c.name_th}</div>
-                    )}
+                    {c.name_th && <div className="text-[10px] text-muted-token">{c.name_th}</div>}
                   </td>
                   <td className="slide-td text-center">
-                    <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-[var(--bg-subtle)] text-[var(--text-secondary)]">
+                    <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-subtle text-secondary-token">
                       {c.role}
                     </span>
                   </td>
-                  <td className="slide-td text-[var(--text-secondary)]">
+                  <td className="slide-td text-secondary-token">
                     {getMetricLabel(c.metric, locale)}
                   </td>
                   <td className="slide-td font-mono text-xs">
@@ -1216,7 +1204,7 @@ function CampaignsTab({ t }: { t: T18N }) {
                           : '<'}{' '}
                     {c.threshold}
                   </td>
-                  <td className="slide-td text-right font-mono font-semibold text-[var(--color-success)]">
+                  <td className="slide-td text-right font-mono font-semibold text-success-token">
                     ฿{c.reward_thb.toLocaleString()}
                   </td>
                   <td className="slide-td text-center text-xs">
@@ -1232,7 +1220,7 @@ function CampaignsTab({ t }: { t: T18N }) {
                           .total_count ?? '—'}
                       </span>
                     ) : (
-                      <span className="text-[var(--text-muted)]">—</span>
+                      <span className="text-muted-token">—</span>
                     )}
                   </td>
                   <td className="slide-td text-center">
@@ -1246,25 +1234,25 @@ function CampaignsTab({ t }: { t: T18N }) {
                     <div className="flex items-center gap-1.5 justify-center">
                       <button
                         onClick={() => openEdit(c)}
-                        className="text-[10px] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
+                        className="text-[10px] text-secondary-token hover:text-primary-token transition-colors"
                       >
                         {t.actionEdit}
                       </button>
                       <button
                         onClick={() => handlePauseResume(c)}
-                        className="text-[10px] text-[var(--text-secondary)] hover:text-[var(--color-warning)] transition-colors"
+                        className="text-[10px] text-secondary-token hover:text-warning-token transition-colors"
                       >
                         {c.status === 'active' ? t.actionPause : t.actionResume}
                       </button>
                       <button
                         onClick={() => handleGeneratePoster(c)}
-                        className="text-[10px] text-[var(--text-secondary)] hover:text-[var(--color-accent)] transition-colors"
+                        className="text-[10px] text-secondary-token hover:text-accent-token transition-colors"
                       >
                         {t.actionPoster}
                       </button>
                       <button
                         onClick={() => handleDelete(c)}
-                        className="text-[10px] text-[var(--text-secondary)] hover:text-[var(--color-danger)] transition-colors"
+                        className="text-[10px] text-secondary-token hover:text-danger-token transition-colors"
                       >
                         {t.actionDelete}
                       </button>
@@ -1297,7 +1285,7 @@ function CampaignsTab({ t }: { t: T18N }) {
 function ProgressBar({ pct, status }: { pct: number; status: PersonProgress['status'] }) {
   const clampedPct = Math.min(100, Math.max(0, pct));
   return (
-    <div className="h-2 bg-[var(--bg-subtle)] rounded-full overflow-hidden flex-1">
+    <div className="h-2 bg-subtle rounded-full overflow-hidden flex-1">
       <div
         className={`h-full rounded-full transition-all ${progressStatusColor(status)}`}
         style={{ width: `${clampedPct}%` }}
@@ -1317,10 +1305,10 @@ function CampaignProgressCard({ item, t }: { item: CampaignProgress; t: T18N }) 
       {/* 标题行 */}
       <div className="flex items-start justify-between gap-2">
         <div>
-          <span className="text-sm font-semibold text-[var(--text-primary)]">{campaign.name}</span>
+          <span className="text-sm font-semibold text-primary-token">{campaign.name}</span>
           <div className="flex items-center gap-2 mt-0.5">
-            <span className="text-[10px] text-[var(--text-muted)]">{campaign.role}</span>
-            <span className="text-[10px] text-[var(--text-muted)]">
+            <span className="text-[10px] text-muted-token">{campaign.role}</span>
+            <span className="text-[10px] text-muted-token">
               {getMetricLabel(campaign.metric, locale)}{' '}
               {campaign.operator === 'gte'
                 ? '≥'
@@ -1334,12 +1322,12 @@ function CampaignProgressCard({ item, t }: { item: CampaignProgress; t: T18N }) 
           </div>
         </div>
         <div className="text-right shrink-0">
-          <div className="text-xs font-mono text-[var(--color-success)] font-semibold">
+          <div className="text-xs font-mono text-success-token font-semibold">
             {t.qualifiedCount} {qualified_count}
             {t.personUnit ? ` ${t.personUnit}` : ''}
           </div>
           {close_count > 0 && (
-            <div className="text-[10px] text-[var(--color-warning)]">
+            <div className="text-[10px] text-warning-token">
               {t.closeCount} {close_count}
               {t.personUnit ? ` ${t.personUnit}` : ''}
             </div>
@@ -1348,12 +1336,12 @@ function CampaignProgressCard({ item, t }: { item: CampaignProgress; t: T18N }) 
       </div>
 
       {/* estimated payout */}
-      <div className="flex items-center gap-1.5 text-xs py-1 px-2 bg-[var(--bg-subtle)] rounded">
-        <span className="text-[var(--text-muted)]">{t.estimatedPayout}</span>
-        <span className="font-mono font-semibold text-[var(--text-primary)]">
+      <div className="flex items-center gap-1.5 text-xs py-1 px-2 bg-subtle rounded">
+        <span className="text-muted-token">{t.estimatedPayout}</span>
+        <span className="font-mono font-semibold text-primary-token">
           ฿{total_estimated_thb.toLocaleString()}
         </span>
-        <span className="text-[var(--text-muted)]">
+        <span className="text-muted-token">
           （฿{campaign.reward_thb.toLocaleString()} × {qualified_count}
           {t.personUnit ? ` ${t.personUnit}` : ''}）
         </span>
@@ -1361,17 +1349,17 @@ function CampaignProgressCard({ item, t }: { item: CampaignProgress; t: T18N }) 
 
       {/* person progress list */}
       {records.length === 0 ? (
-        <p className="text-xs text-[var(--text-muted)] py-2 text-center">{t.noPersonData}</p>
+        <p className="text-xs text-muted-token py-2 text-center">{t.noPersonData}</p>
       ) : (
         <div className="space-y-2">
           {records.map((r) => (
             <div key={`${r.person_name}-${r.team}`} className="flex items-center gap-2">
               {/* 姓名 + 团队 */}
               <div className="w-24 shrink-0">
-                <div className="text-xs font-medium text-[var(--text-primary)] truncate">
+                <div className="text-xs font-medium text-primary-token truncate">
                   {r.person_name}
                 </div>
-                <div className="text-[10px] text-[var(--text-muted)] truncate">{r.team}</div>
+                <div className="text-[10px] text-muted-token truncate">{r.team}</div>
               </div>
 
               {/* 进度条 */}
@@ -1379,7 +1367,7 @@ function CampaignProgressCard({ item, t }: { item: CampaignProgress; t: T18N }) 
 
               {/* 数值 */}
               <div className="w-12 text-right shrink-0">
-                <span className="text-xs font-mono text-[var(--text-primary)]">
+                <span className="text-xs font-mono text-primary-token">
                   {r.metric_value ?? 0}/{r.threshold}
                 </span>
               </div>
@@ -1431,24 +1419,24 @@ function ProgressTab({ t }: { t: T18N }) {
           <div className="space-y-3">
             <div className="space-y-1.5">
               <div className="flex items-center justify-between text-xs">
-                <span className="text-[var(--text-secondary)] font-medium">{t.budgetIndoor}</span>
-                <span className="font-mono text-[var(--text-primary)]">
+                <span className="text-secondary-token font-medium">{t.budgetIndoor}</span>
+                <span className="font-mono text-primary-token">
                   ฿{totalSpent.toLocaleString()} / ฿{indoorBudget.toLocaleString()}
                 </span>
               </div>
-              <div className="h-2.5 bg-[var(--bg-subtle)] rounded-full overflow-hidden">
+              <div className="h-2.5 bg-subtle rounded-full overflow-hidden">
                 <div
                   className={`h-full rounded-full transition-all ${
                     spentPct >= 90
-                      ? 'bg-[var(--color-danger)]'
+                      ? 'bg-danger-token'
                       : spentPct >= 70
-                        ? 'bg-[var(--color-warning)]'
-                        : 'bg-[var(--color-success)]'
+                        ? 'bg-warning-token'
+                        : 'bg-success-token'
                   }`}
                   style={{ width: `${spentPct}%` }}
                 />
               </div>
-              <div className="flex items-center justify-between text-[10px] text-[var(--text-muted)]">
+              <div className="flex items-center justify-between text-[10px] text-muted-token">
                 <span>
                   {(spentPct ?? 0).toFixed(1)}
                   {t.budgetConsumed}
@@ -1466,7 +1454,7 @@ function ProgressTab({ t }: { t: T18N }) {
       )}
 
       {/* 数据口径说明 */}
-      <p className="text-xs text-[var(--text-muted)]">{t.dataRemark}</p>
+      <p className="text-xs text-muted-token">{t.dataRemark}</p>
 
       {/* 活动进度列表 */}
       {progressLoading && (
@@ -1476,16 +1464,14 @@ function ProgressTab({ t }: { t: T18N }) {
       )}
 
       {progressError && (
-        <div className="py-4 text-center text-sm text-[var(--text-muted)]">
-          {t.progressLoadFail}
-        </div>
+        <div className="py-4 text-center text-sm text-muted-token">{t.progressLoadFail}</div>
       )}
 
       {!progressLoading && items.length === 0 && (
         <div className="py-12 text-center space-y-2">
           <p className="text-3xl">🏆</p>
-          <p className="text-sm font-medium text-[var(--text-primary)]">{t.progressEmptyTitle}</p>
-          <p className="text-xs text-[var(--text-muted)]">{t.progressEmptyDesc}</p>
+          <p className="text-sm font-medium text-primary-token">{t.progressEmptyTitle}</p>
+          <p className="text-xs text-muted-token">{t.progressEmptyDesc}</p>
         </div>
       )}
 
@@ -1524,19 +1510,19 @@ export default function IncentiveTrackingPage() {
       {/* page header */}
       <div>
         <h1 className="page-title">{t.pageTitle}</h1>
-        <p className="text-sm text-[var(--text-secondary)] mt-1">{t.pageDesc}</p>
+        <p className="text-sm text-secondary-token mt-1">{t.pageDesc}</p>
       </div>
 
       {/* tab switcher */}
-      <div className="flex gap-1 p-1 bg-[var(--bg-subtle)] rounded-lg w-fit">
+      <div className="flex gap-1 p-1 bg-subtle rounded-lg w-fit">
         {TABS.map(({ key, label }) => (
           <button
             key={key}
             onClick={() => setActiveTab(key)}
             className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
               activeTab === key
-                ? 'bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-sm'
-                : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+                ? 'bg-surface text-primary-token shadow-sm'
+                : 'text-secondary-token hover:text-primary-token'
             }`}
           >
             {label}

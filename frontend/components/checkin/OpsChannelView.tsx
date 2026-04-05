@@ -174,19 +174,18 @@ function fmtNum(n: number | null | undefined): string {
 // ── 优先级标签 ────────────────────────────────────────────────────────────────
 
 const PRIORITY_STYLES: Record<string, string> = {
-  high: 'bg-[var(--color-danger-surface)] text-[var(--color-danger)] border border-[var(--color-danger)]',
-  medium:
-    'bg-[var(--color-warning-surface)] text-[var(--color-warning)] border border-[var(--color-warning)]',
-  low: 'bg-[var(--bg-surface)] text-[var(--text-secondary)] border border-[var(--border-subtle)]',
+  high: 'bg-danger-surface text-danger-token border border-danger-token',
+  medium: 'bg-warning-surface text-warning-token border border-warning-token',
+  low: 'bg-surface text-secondary-token border border-subtle-token',
 };
 
 // PRIORITY_LABELS and COST_LABELS are now derived from I18N inside components
 
 const COST_STYLES: Record<string, string> = {
-  high: 'text-[var(--color-danger)]',
-  medium: 'text-[var(--color-warning)]',
-  low: 'text-[var(--color-success)]',
-  lowest: 'text-[var(--color-success)]',
+  high: 'text-danger-token',
+  medium: 'text-warning-token',
+  low: 'text-success-token',
+  lowest: 'text-success-token',
 };
 
 // ── 渠道卡片 ─────────────────────────────────────────────────────────────────
@@ -211,7 +210,7 @@ function ChannelCard({ channel }: { channel: OpsChannel }) {
   return (
     <div className="card-compact overflow-hidden flex flex-col !p-0">
       {/* 卡片头部 */}
-      <div className="bg-[var(--n-800,#1e293b)] text-white px-3 py-2 flex items-center justify-between gap-2">
+      <div className="bg-n-800 text-white px-3 py-2 flex items-center justify-between gap-2">
         <span className="text-sm font-bold truncate">
           {label(OPS_CHANNEL_LABELS, channel.channel_name)}
         </span>
@@ -229,26 +228,26 @@ function ChannelCard({ channel }: { channel: OpsChannel }) {
       <div className="p-3 flex flex-col gap-3 flex-1">
         {/* 推荐触达人数 */}
         <div className="text-center">
-          <div className="text-3xl font-bold tabular-nums text-[var(--text-primary)]">
+          <div className="text-3xl font-bold tabular-nums text-primary-token">
             {fmtNum(channel.recommended_count)}
           </div>
-          <div className="text-xs text-[var(--text-muted)] mt-0.5">{t.recommendedCount}</div>
+          <div className="text-xs text-muted-token mt-0.5">{t.recommendedCount}</div>
         </div>
 
         {/* 目标条件 */}
-        <div className="text-xs text-[var(--text-secondary)] bg-[var(--bg-subtle)] rounded px-2 py-1.5 leading-relaxed">
+        <div className="text-xs text-secondary-token bg-subtle rounded px-2 py-1.5 leading-relaxed">
           {channel.target_criteria}
         </div>
 
         {/* 预估触达率 */}
         <div>
           <div className="flex items-center justify-between text-xs mb-1">
-            <span className="text-[var(--text-muted)]">{t.estimatedContactRate}</span>
-            <span className="font-semibold tabular-nums text-[var(--text-primary)]">
+            <span className="text-muted-token">{t.estimatedContactRate}</span>
+            <span className="font-semibold tabular-nums text-primary-token">
               {formatRate(channel.estimated_contact_rate)}
             </span>
           </div>
-          <div className="h-1.5 rounded-full bg-[var(--bg-subtle)] overflow-hidden">
+          <div className="h-1.5 rounded-full bg-subtle overflow-hidden">
             <div
               className="h-full rounded-full bg-action-accent transition-all"
               style={{ width: `${ratePercent}%` }}
@@ -258,11 +257,11 @@ function ChannelCard({ channel }: { channel: OpsChannel }) {
 
         {/* 成本级别 */}
         <div className="flex items-center justify-between text-xs">
-          <span className="text-[var(--text-muted)]">{t.costLevel}</span>
+          <span className="text-muted-token">{t.costLevel}</span>
           <span
             className={cn(
               'font-semibold',
-              COST_STYLES[channel.cost_level] ?? 'text-[var(--text-secondary)]'
+              COST_STYLES[channel.cost_level] ?? 'text-secondary-token'
             )}
           >
             {costLabels[channel.cost_level] ?? channel.cost_level}
@@ -270,7 +269,7 @@ function ChannelCard({ channel }: { channel: OpsChannel }) {
         </div>
 
         {/* 渠道描述 */}
-        <div className="text-xs text-[var(--text-muted)] leading-relaxed border-t border-[var(--border-default)] pt-2">
+        <div className="text-xs text-muted-token leading-relaxed border-t border-default-token pt-2">
           {channel.description}
         </div>
       </div>
@@ -286,7 +285,7 @@ function EnclosureSegmentBar({ segments }: { segments: EnclosureSegment[] }) {
 
   return (
     <div className="card-compact overflow-hidden !p-0">
-      <div className="bg-[var(--n-800,#1e293b)] text-white px-3 py-2">
+      <div className="bg-n-800 text-white px-3 py-2">
         <span className="text-sm font-bold">{t.enclosureSegDist}</span>
       </div>
       <div className="p-3 space-y-3">
@@ -296,16 +295,14 @@ function EnclosureSegmentBar({ segments }: { segments: EnclosureSegment[] }) {
           return (
             <div key={seg.segment}>
               <div className="flex items-center justify-between text-xs mb-1">
-                <span className="font-medium text-[var(--text-primary)]">{seg.label}</span>
-                <span className="font-mono tabular-nums text-[var(--text-secondary)]">
+                <span className="font-medium text-primary-token">{seg.label}</span>
+                <span className="font-mono tabular-nums text-secondary-token">
                   {fmtNum(seg.checked_in)}/{fmtNum(seg.students)}{' '}
-                  <span className="font-semibold text-[var(--text-primary)]">
-                    {formatRate(seg.rate)}
-                  </span>
+                  <span className="font-semibold text-primary-token">{formatRate(seg.rate)}</span>
                 </span>
               </div>
               {/* 学员数量条 */}
-              <div className="h-4 rounded bg-[var(--bg-subtle)] overflow-hidden relative">
+              <div className="h-4 rounded bg-subtle overflow-hidden relative">
                 <div
                   className="h-full rounded bg-action-accent-subtle transition-all"
                   style={{ width: `${barWidth}%` }}
@@ -319,7 +316,7 @@ function EnclosureSegmentBar({ segments }: { segments: EnclosureSegment[] }) {
             </div>
           );
         })}
-        <div className="flex items-center gap-4 text-xs text-[var(--text-muted)] pt-1">
+        <div className="flex items-center gap-4 text-xs text-muted-token pt-1">
           <span className="flex items-center gap-1">
             <span className="inline-block w-3 h-3 rounded-sm bg-action-accent-subtle" />
             {t.totalStudents}
@@ -365,7 +362,7 @@ export function OpsChannelView({ configJson }: OpsChannelViewProps) {
   // 加载态
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center py-16 gap-2 text-sm text-[var(--text-muted)]">
+      <div className="flex items-center justify-center py-16 gap-2 text-sm text-muted-token">
         <Spinner size="lg" />
       </div>
     );
@@ -384,7 +381,7 @@ export function OpsChannelView({ configJson }: OpsChannelViewProps) {
 
   // 子 Tab 切换条（独立渲染，不受加载/空态影响）
   const SubTabBar = (
-    <div className="flex gap-1 border-b border-[var(--border-default)] mb-4">
+    <div className="flex gap-1 border-b border-default-token mb-4">
       {subTabs.map((tab) => (
         <button
           key={tab.id}
@@ -392,8 +389,8 @@ export function OpsChannelView({ configJson }: OpsChannelViewProps) {
           className={cn(
             'px-4 py-2 text-sm font-medium transition-colors duration-150 border-b-2 -mb-px',
             subTab === tab.id
-              ? 'border-[var(--action-accent,#1d4ed8)] text-[var(--action-accent,#1d4ed8)]'
-              : 'border-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+              ? 'border-action-accent-token text-action-accent-token'
+              : 'border-transparent text-secondary-token hover:text-primary-token'
           )}
         >
           {tab.label}
@@ -432,22 +429,22 @@ export function OpsChannelView({ configJson }: OpsChannelViewProps) {
       {/* 区域 A — 顶部总览卡片 */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <div className="card-compact text-center">
-          <div className="text-2xl font-bold tabular-nums text-[var(--text-primary)]">
+          <div className="text-2xl font-bold tabular-nums text-primary-token">
             {fmtNum(opsData.total_students)}
           </div>
-          <div className="text-xs text-[var(--text-muted)] mt-0.5">{t.m6TotalStudents}</div>
+          <div className="text-xs text-muted-token mt-0.5">{t.m6TotalStudents}</div>
         </div>
         <div className="card-compact text-center">
-          <div className="text-2xl font-bold tabular-nums text-[var(--text-primary)]">
+          <div className="text-2xl font-bold tabular-nums text-primary-token">
             {fmtNum(opsData.checked_in)}
           </div>
-          <div className="text-xs text-[var(--text-muted)] mt-0.5">{t.checkedIn}</div>
+          <div className="text-xs text-muted-token mt-0.5">{t.checkedIn}</div>
         </div>
         <div className="card-compact text-center">
-          <div className="text-2xl font-bold tabular-nums text-[var(--text-primary)]">
+          <div className="text-2xl font-bold tabular-nums text-primary-token">
             {formatRate(opsData.checkin_rate)}
           </div>
-          <div className="text-xs text-[var(--text-muted)] mt-0.5">{t.checkinRate}</div>
+          <div className="text-xs text-muted-token mt-0.5">{t.checkinRate}</div>
         </div>
       </div>
 
@@ -469,10 +466,10 @@ export function OpsChannelView({ configJson }: OpsChannelViewProps) {
 
       {segments.length === 1 && (
         <div className="card-compact">
-          <div className="text-xs text-[var(--text-muted)] mb-1">{t.enclosureSegLabel}</div>
+          <div className="text-xs text-muted-token mb-1">{t.enclosureSegLabel}</div>
           <div className="flex items-center gap-3">
-            <span className="font-medium text-[var(--text-primary)]">{segments[0].label}</span>
-            <span className="text-xs font-mono tabular-nums text-[var(--text-secondary)]">
+            <span className="font-medium text-primary-token">{segments[0].label}</span>
+            <span className="text-xs font-mono tabular-nums text-secondary-token">
               {fmtNum(segments[0].checked_in)}/{fmtNum(segments[0].students)} ·{' '}
               {formatRate(segments[0].rate)}
             </span>

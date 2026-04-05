@@ -337,7 +337,7 @@ function ExtraSection({
     <section>
       <button
         onClick={() => setExpanded((v) => !v)}
-        className="w-full flex items-center justify-between text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider mb-2 hover:text-[var(--text-secondary)] transition-colors"
+        className="w-full flex items-center justify-between text-xs font-semibold text-muted-token uppercase tracking-wider mb-2 hover:text-secondary-token transition-colors"
         aria-expanded={expanded}
       >
         <span>
@@ -348,23 +348,18 @@ function ExtraSection({
         <span className="text-base leading-none">{expanded ? '▾' : '▸'}</span>
       </button>
       {expanded && (
-        <div className="rounded-md border border-[var(--border-subtle)] overflow-x-auto">
+        <div className="rounded-md border border-subtle-token overflow-x-auto">
           <table className="w-full text-xs">
             <tbody>
               {entries.map(([key, val], idx) => (
-                <tr
-                  key={key}
-                  className={
-                    idx % 2 === 0 ? 'bg-[var(--bg-surface)]' : 'bg-[var(--bg-muted,#f9fafb)]'
-                  }
-                >
+                <tr key={key} className={idx % 2 === 0 ? 'bg-surface' : 'bg-muted-token'}>
                   <td
-                    className="py-1.5 px-3 text-[var(--text-muted)] w-1/2 align-top break-words"
+                    className="py-1.5 px-3 text-muted-token w-1/2 align-top break-words"
                     title={key}
                   >
                     {key}
                   </td>
-                  <td className="py-1.5 px-3 text-[var(--text-primary)] text-right align-top break-all">
+                  <td className="py-1.5 px-3 text-primary-token text-right align-top break-all">
                     {formatRawValue(key, val)}
                   </td>
                 </tr>
@@ -392,16 +387,16 @@ export function MemberDetailDrawer({ student, open, onClose }: MemberDetailDrawe
     >
       <div className="absolute inset-0 bg-black/40" aria-hidden="true" />
       <div
-        className="absolute right-0 top-0 h-full w-[480px] bg-[var(--bg-surface)] shadow-2xl overflow-y-auto"
+        className="absolute right-0 top-0 h-full w-[480px] bg-surface shadow-2xl overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between px-5 py-4 border-b sticky top-0 bg-[var(--bg-surface)] z-10">
-          <h2 className="font-semibold text-[var(--text-primary)]">
+        <div className="flex items-center justify-between px-5 py-4 border-b sticky top-0 bg-surface z-10">
+          <h2 className="font-semibold text-primary-token">
             {student ? `${t.titlePrefix}${student.id}` : t.titleFallback}
           </h2>
           <button
             onClick={onClose}
-            className="text-[var(--text-muted)] hover:text-[var(--text-secondary)] text-xl leading-none w-7 h-7 flex items-center justify-center rounded hover:bg-[var(--bg-subtle)] transition-colors"
+            className="text-muted-token hover:text-secondary-token text-xl leading-none w-7 h-7 flex items-center justify-center rounded hover:bg-subtle transition-colors"
             aria-label={t.close}
           >
             ×
@@ -410,21 +405,21 @@ export function MemberDetailDrawer({ student, open, onClose }: MemberDetailDrawe
 
         <div className="p-5 space-y-5">
           {!student ? (
-            <div className="text-center py-8 text-sm text-[var(--text-muted)]">{t.notFound}</div>
+            <div className="text-center py-8 text-sm text-muted-token">{t.notFound}</div>
           ) : (
             <>
               {FIELD_GROUP_DEFS.map((group) => (
                 <section key={group.titleKey}>
-                  <h3 className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider mb-3">
+                  <h3 className="text-xs font-semibold text-muted-token uppercase tracking-wider mb-3">
                     {t.groups[group.titleKey]}
                   </h3>
                   <dl className="space-y-2">
                     {group.fields.map(([key, fieldKey]) => (
                       <div key={key} className="flex items-start justify-between gap-3">
-                        <dt className="text-xs text-[var(--text-muted)] shrink-0 w-32">
+                        <dt className="text-xs text-muted-token shrink-0 w-32">
                           {t.fields[fieldKey]}
                         </dt>
-                        <dd className="text-sm font-medium text-[var(--text-primary)] text-right break-all">
+                        <dd className="text-sm font-medium text-primary-token text-right break-all">
                           {formatValue(key, student[key])}
                         </dd>
                       </div>
@@ -438,19 +433,19 @@ export function MemberDetailDrawer({ student, open, onClose }: MemberDetailDrawe
                 const remaining = Object.entries(student).filter(([key]) => !FIXED_KEYS.has(key));
                 return remaining.length > 0 ? (
                   <section>
-                    <h3 className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider mb-3">
+                    <h3 className="text-xs font-semibold text-muted-token uppercase tracking-wider mb-3">
                       {t.otherFields}
                     </h3>
                     <dl className="space-y-2">
                       {remaining.map(([key, val]) => (
                         <div key={key} className="flex items-start justify-between gap-3">
                           <dt
-                            className="text-xs text-[var(--text-muted)] shrink-0 w-32 break-words"
+                            className="text-xs text-muted-token shrink-0 w-32 break-words"
                             title={key}
                           >
                             {key}
                           </dt>
-                          <dd className="text-xs text-[var(--text-secondary)] text-right break-all">
+                          <dd className="text-xs text-secondary-token text-right break-all">
                             {formatRawValue(key, val)}
                           </dd>
                         </div>

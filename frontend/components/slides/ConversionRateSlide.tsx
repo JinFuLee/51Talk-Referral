@@ -145,11 +145,11 @@ export function ConversionRateSlide({ slideNumber, totalSlides }: SlideProps) {
       ) : error ? (
         <div className="flex items-center justify-center h-full">
           <div className="text-center space-y-2">
-            <p className="text-base font-semibold text-[var(--color-danger)]">{t.loading_failed}</p>
-            <p className="text-sm text-[var(--text-muted)]">{t.check_backend}</p>
+            <p className="text-base font-semibold text-danger-token">{t.loading_failed}</p>
+            <p className="text-sm text-muted-token">{t.check_backend}</p>
             <button
               onClick={() => mutate()}
-              className="mt-1 px-4 py-1.5 rounded-lg text-sm border border-[var(--border-default)] text-[var(--text-secondary)] hover:bg-[var(--bg-subtle)] transition-colors"
+              className="mt-1 px-4 py-1.5 rounded-lg text-sm border border-default-token text-secondary-token hover:bg-subtle transition-colors"
             >
               {t.retry}
             </button>
@@ -157,7 +157,7 @@ export function ConversionRateSlide({ slideNumber, totalSlides }: SlideProps) {
         </div>
       ) : chartData.length === 0 ? (
         <div className="flex items-center justify-center h-full">
-          <p className="text-[var(--text-muted)]">{t.no_data}</p>
+          <p className="text-muted-token">{t.no_data}</p>
         </div>
       ) : (
         <ResponsiveContainer width="100%" height="85%">

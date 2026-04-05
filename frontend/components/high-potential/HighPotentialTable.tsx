@@ -99,10 +99,10 @@ function UrgencyDot({ level }: { level?: 'red' | 'yellow' | 'green' }) {
   if (!level) return null;
   const cls =
     level === 'red'
-      ? 'bg-[var(--color-danger)]'
+      ? 'bg-danger-token'
       : level === 'yellow'
-        ? 'bg-[var(--color-warning)]'
-        : 'bg-[var(--color-success)]';
+        ? 'bg-warning-token'
+        : 'bg-success-token';
   return <span className={`inline-block w-2 h-2 rounded-full ${cls} shrink-0`} />;
 }
 
@@ -146,7 +146,7 @@ export function HighPotentialTable({ students, warroomMap }: HighPotentialTableP
   });
 
   return (
-    <div className="overflow-x-auto rounded-xl border border-[var(--border-default)] shadow-[var(--shadow-subtle)]">
+    <div className="overflow-x-auto rounded-xl border border-default-token shadow-[var(--shadow-subtle)]">
       <table className="w-full min-w-[900px] border-collapse text-sm">
         <thead>
           <tr className="slide-thead-row">
@@ -222,13 +222,13 @@ export function HighPotentialTable({ students, warroomMap }: HighPotentialTableP
             return (
               <tr
                 key={s.id}
-                className={`${isEven ? 'slide-row-even' : 'slide-row-odd'} hover:bg-[var(--color-accent-surface)] transition-colors`}
+                className={`${isEven ? 'slide-row-even' : 'slide-row-odd'} hover:bg-accent-surface transition-colors`}
               >
                 {/* 学员ID */}
                 <td className="slide-td px-4 py-2.5">
                   <div className="flex items-center gap-1.5">
                     {warroom?.urgency_level && <UrgencyDot level={warroom.urgency_level} />}
-                    <span className="font-mono text-xs text-[var(--text-primary)] font-semibold">
+                    <span className="font-mono text-xs text-primary-token font-semibold">
                       #{fmt(s.id)}
                     </span>
                   </div>
@@ -236,48 +236,48 @@ export function HighPotentialTable({ students, warroomMap }: HighPotentialTableP
 
                 {/* 围场 */}
                 <td className="slide-td px-4 py-2.5">
-                  <span className="text-[10px] px-1.5 py-0.5 rounded-md font-semibold bg-[var(--color-accent-surface)] text-[var(--color-accent)]">
+                  <span className="text-[10px] px-1.5 py-0.5 rounded-md font-semibold bg-accent-surface text-accent-token">
                     {fmt(s.enclosure)}
                   </span>
                 </td>
 
                 {/* CC */}
-                <td className="slide-td px-4 py-2.5 text-[var(--text-secondary)]">
+                <td className="slide-td px-4 py-2.5 text-secondary-token">
                   <div className="text-xs">
                     <div className="font-medium">{fmt(s.cc_name)}</div>
                     {s.cc_group && fmt(s.cc_group) !== '—' && (
-                      <div className="text-[var(--text-muted)] text-[10px]">{fmt(s.cc_group)}</div>
+                      <div className="text-muted-token text-[10px]">{fmt(s.cc_group)}</div>
                     )}
                   </div>
                 </td>
 
                 {/* SS */}
-                <td className="slide-td px-4 py-2.5 text-[var(--text-secondary)]">
+                <td className="slide-td px-4 py-2.5 text-secondary-token">
                   <div className="text-xs">
                     <div className="font-medium">{fmt(s.ss_name)}</div>
                     {s.ss_group && fmt(s.ss_group) !== '—' && (
-                      <div className="text-[var(--text-muted)] text-[10px]">{fmt(s.ss_group)}</div>
+                      <div className="text-muted-token text-[10px]">{fmt(s.ss_group)}</div>
                     )}
                   </div>
                 </td>
 
                 {/* LP */}
-                <td className="slide-td px-4 py-2.5 text-[var(--text-secondary)]">
+                <td className="slide-td px-4 py-2.5 text-secondary-token">
                   <div className="text-xs">
                     <div className="font-medium">{fmt(s.lp_name)}</div>
                     {s.lp_group && fmt(s.lp_group) !== '—' && (
-                      <div className="text-[var(--text-muted)] text-[10px]">{fmt(s.lp_group)}</div>
+                      <div className="text-muted-token text-[10px]">{fmt(s.lp_group)}</div>
                     )}
                   </div>
                 </td>
 
                 {/* 带新数 */}
-                <td className="slide-td px-4 py-2.5 text-right font-semibold text-[var(--text-primary)]">
+                <td className="slide-td px-4 py-2.5 text-right font-semibold text-primary-token">
                   {s.total_new ?? '—'}
                 </td>
 
                 {/* 出席数 */}
-                <td className="slide-td px-4 py-2.5 text-right text-[var(--text-secondary)]">
+                <td className="slide-td px-4 py-2.5 text-right text-secondary-token">
                   {s.attendance ?? '—'}
                 </td>
 
@@ -285,9 +285,7 @@ export function HighPotentialTable({ students, warroomMap }: HighPotentialTableP
                 <td className="slide-td px-4 py-2.5 text-right">
                   <span
                     className={`font-semibold ${
-                      (s.payments ?? 0) > 0
-                        ? 'text-[var(--color-success)]'
-                        : 'text-[var(--text-muted)]'
+                      (s.payments ?? 0) > 0 ? 'text-success-token' : 'text-muted-token'
                     }`}
                   >
                     {s.payments ?? '—'}
@@ -300,19 +298,19 @@ export function HighPotentialTable({ students, warroomMap }: HighPotentialTableP
                     <span
                       className={`text-[10px] px-1.5 py-0.5 rounded-md font-semibold ${
                         s.deep_engagement
-                          ? 'bg-[var(--color-success-surface)] text-[var(--color-success)]'
-                          : 'bg-[var(--bg-subtle)] text-[var(--text-muted)]'
+                          ? 'bg-success-surface text-success-token'
+                          : 'bg-subtle text-muted-token'
                       }`}
                     >
                       {s.deep_engagement ? t.deep : t.shallow}
                     </span>
                   ) : (
-                    <span className="text-[var(--text-muted)] text-xs">—</span>
+                    <span className="text-muted-token text-xs">—</span>
                   )}
                 </td>
 
                 {/* 打卡次数（来自 warroom checkin_7d） */}
-                <td className="slide-td px-4 py-2.5 text-right text-[var(--text-secondary)]">
+                <td className="slide-td px-4 py-2.5 text-right text-secondary-token">
                   {warroom?.checkin_7d ?? '—'}
                 </td>
 
@@ -322,17 +320,17 @@ export function HighPotentialTable({ students, warroomMap }: HighPotentialTableP
                     <span
                       className={`text-xs font-medium ${
                         warroom.days_remaining <= 7
-                          ? 'text-[var(--color-danger)]'
+                          ? 'text-danger-token'
                           : warroom.days_remaining <= 14
-                            ? 'text-[var(--color-warning)]'
-                            : 'text-[var(--text-secondary)]'
+                            ? 'text-warning-token'
+                            : 'text-secondary-token'
                       }`}
                     >
                       {warroom.days_remaining}
                       {t.daysSuffix}
                     </span>
                   ) : (
-                    <span className="text-[var(--text-muted)] text-xs">—</span>
+                    <span className="text-muted-token text-xs">—</span>
                   )}
                 </td>
               </tr>

@@ -66,17 +66,17 @@ export function MarkdownReader({ content, bookmarks, onToggleBookmark }: Markdow
       return (
         <h2
           id={id}
-          className="group flex items-center gap-2 text-xl font-bold text-[var(--text-primary)] mt-10 mb-4 pb-2 border-b border-[var(--border-default)] scroll-mt-6"
+          className="group flex items-center gap-2 text-xl font-bold text-primary-token mt-10 mb-4 pb-2 border-b border-default-token scroll-mt-6"
         >
           <span>{cleanText}</span>
           <button
             onClick={() => onToggleBookmark(id, cleanText)}
-            className="opacity-0 group-hover:opacity-100 transition-opacity text-[var(--text-muted)] hover:text-[var(--color-accent)] focus-visible:outline-none focus-visible:opacity-100"
+            className="opacity-0 group-hover:opacity-100 transition-opacity text-muted-token hover:text-accent-token focus-visible:outline-none focus-visible:opacity-100"
             aria-label={isBookmarked ? t.ariaUnbookmark : t.ariaBookmark}
             title={isBookmarked ? t.ariaUnbookmark : t.ariaBookmark}
           >
             {isBookmarked ? (
-              <BookmarkCheck className="w-4 h-4 text-[var(--color-accent)]" />
+              <BookmarkCheck className="w-4 h-4 text-accent-token" />
             ) : (
               <Bookmark className="w-4 h-4" />
             )}
@@ -90,17 +90,14 @@ export function MarkdownReader({ content, bookmarks, onToggleBookmark }: Markdow
       const [cleanText, anchor] = extractAnchor(rawText);
       const id = anchor ?? slugify(cleanText);
       return (
-        <h3
-          id={id}
-          className="text-base font-semibold text-[var(--text-primary)] mt-7 mb-3 scroll-mt-6"
-        >
+        <h3 id={id} className="text-base font-semibold text-primary-token mt-7 mb-3 scroll-mt-6">
           {cleanText}
         </h3>
       );
     },
 
     table: ({ children }) => (
-      <div className="overflow-x-auto my-6 rounded-lg border border-[var(--border-default)]">
+      <div className="overflow-x-auto my-6 rounded-lg border border-default-token">
         <table className="kb-table w-full text-sm border-collapse">{children}</table>
       </div>
     ),
@@ -110,7 +107,7 @@ export function MarkdownReader({ content, bookmarks, onToggleBookmark }: Markdow
     // 不在组件中写 inline style 或 Tailwind utility —— 防止 specificity 问题复发
 
     blockquote: ({ children }) => (
-      <blockquote className="border-l-4 border-[var(--color-accent)] bg-[var(--color-accent-surface)] pl-4 pr-4 py-3 my-5 rounded-r-lg text-[var(--text-secondary)] italic">
+      <blockquote className="border-l-4 border-accent-token bg-accent-surface pl-4 pr-4 py-3 my-5 rounded-r-lg text-secondary-token italic">
         {children}
       </blockquote>
     ),
@@ -120,36 +117,36 @@ export function MarkdownReader({ content, bookmarks, onToggleBookmark }: Markdow
       const raw = String(children ?? '').replace(/\n$/, '');
       if (isInline) {
         return (
-          <code className="px-1.5 py-0.5 bg-[var(--bg-subtle)] border border-[var(--border-subtle)] rounded text-[13px] font-mono text-[var(--color-accent)] break-all">
+          <code className="px-1.5 py-0.5 bg-subtle border border-subtle-token rounded text-[13px] font-mono text-accent-token break-all">
             {raw}
           </code>
         );
       }
       return (
-        <pre className="my-5 p-4 bg-[var(--n-900)] rounded-lg overflow-x-auto">
-          <code className={`text-xs text-[var(--n-100)] font-mono ${className ?? ''}`}>{raw}</code>
+        <pre className="my-5 p-4 bg-n-900 rounded-lg overflow-x-auto">
+          <code className={`text-xs text-n-100 font-mono ${className ?? ''}`}>{raw}</code>
         </pre>
       );
     },
 
     p: ({ children }) => (
-      <p className="my-3 text-[15px] leading-[1.8] text-[var(--text-secondary)]">{children}</p>
+      <p className="my-3 text-[15px] leading-[1.8] text-secondary-token">{children}</p>
     ),
 
     ul: ({ children }) => (
-      <ul className="my-3 pl-6 space-y-1.5 list-disc text-[15px] leading-[1.8] text-[var(--text-secondary)]">
+      <ul className="my-3 pl-6 space-y-1.5 list-disc text-[15px] leading-[1.8] text-secondary-token">
         {children}
       </ul>
     ),
 
     ol: ({ children }) => (
-      <ol className="my-3 pl-6 space-y-1.5 list-decimal text-[15px] leading-[1.8] text-[var(--text-secondary)]">
+      <ol className="my-3 pl-6 space-y-1.5 list-decimal text-[15px] leading-[1.8] text-secondary-token">
         {children}
       </ol>
     ),
 
     strong: ({ children }) => (
-      <strong className="font-semibold text-[var(--text-primary)]">{children}</strong>
+      <strong className="font-semibold text-primary-token">{children}</strong>
     ),
 
     a: ({ href, children }) => {
@@ -168,7 +165,7 @@ export function MarkdownReader({ content, bookmarks, onToggleBookmark }: Markdow
           onClick={handleClick}
           target={isAnchor ? undefined : '_blank'}
           rel={isAnchor ? undefined : 'noopener noreferrer'}
-          className="text-[var(--color-accent)] underline decoration-dotted hover:decoration-solid transition-all cursor-pointer"
+          className="text-accent-token underline decoration-dotted hover:decoration-solid transition-all cursor-pointer"
         >
           {children}
         </a>

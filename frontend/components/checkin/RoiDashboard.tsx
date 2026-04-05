@@ -142,11 +142,11 @@ function SummaryCard({
 }) {
   return (
     <div className="card-base p-4">
-      <p className="text-xs text-[var(--text-muted)] mb-1">{label}</p>
+      <p className="text-xs text-muted-token mb-1">{label}</p>
       <p className="text-xl font-semibold" style={color ? { color } : undefined}>
         {value}
       </p>
-      {sub && <p className="text-xs text-[var(--text-secondary)] mt-0.5">{sub}</p>}
+      {sub && <p className="text-xs text-secondary-token mt-0.5">{sub}</p>}
     </div>
   );
 }
@@ -241,7 +241,7 @@ export function RoiDashboard({ roleFilter, enclosureFilter }: Props) {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* 风险分层饼图 */}
         <div className="card-base p-4">
-          <h3 className="text-sm font-medium text-[var(--text-primary)] mb-3">{t.riskDistTitle}</h3>
+          <h3 className="text-sm font-medium text-primary-token mb-3">{t.riskDistTitle}</h3>
           {pieData.length > 0 ? (
             <ResponsiveContainer width="100%" height={260}>
               <PieChart>
@@ -275,7 +275,7 @@ export function RoiDashboard({ roleFilter, enclosureFilter }: Props) {
 
         {/* 渠道 ROI 条形图 */}
         <div className="card-base p-4">
-          <h3 className="text-sm font-medium text-[var(--text-primary)] mb-3">{t.channelTitle}</h3>
+          <h3 className="text-sm font-medium text-primary-token mb-3">{t.channelTitle}</h3>
           {barData.length > 0 ? (
             <ResponsiveContainer width="100%" height={260}>
               <BarChart data={barData} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
@@ -302,7 +302,7 @@ export function RoiDashboard({ roleFilter, enclosureFilter }: Props) {
           <div className="mt-3 grid grid-cols-4 gap-2">
             {barData.map((b) => (
               <div key={b.channel} className="text-center">
-                <p className="text-xs text-[var(--text-muted)]">
+                <p className="text-xs text-muted-token">
                   {/* CHANNEL_LABELS 映射，未命中回退原文 */}
                   {b.channel === '宽口'
                     ? ((
@@ -336,7 +336,7 @@ export function RoiDashboard({ roleFilter, enclosureFilter }: Props) {
 
       {/* 风险等级说明 */}
       <div className="card-base p-4">
-        <h3 className="text-sm font-medium text-[var(--text-primary)] mb-3">{t.riskLegendTitle}</h3>
+        <h3 className="text-sm font-medium text-primary-token mb-3">{t.riskLegendTitle}</h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
           {(
             Object.entries(RISK_LEVEL_CONFIG) as [
@@ -356,7 +356,7 @@ export function RoiDashboard({ roleFilter, enclosureFilter }: Props) {
                   <p className="text-xs font-medium" style={{ color: cfg.color }}>
                     {getRiskLabel(key, locale)}
                   </p>
-                  <p className="text-xs text-[var(--text-muted)]">
+                  <p className="text-xs text-muted-token">
                     {t.countPct(dist?.count ?? 0, dist?.pct ?? 0)}
                   </p>
                 </div>

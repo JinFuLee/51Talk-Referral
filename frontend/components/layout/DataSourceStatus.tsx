@@ -58,14 +58,14 @@ function StatusBadge({
 
 export function DataSourceStatus({ source, lang }: DataSourceStatusProps) {
   return (
-    <div className="flex items-center justify-between py-1.5 px-2 rounded hover:bg-[var(--bg-primary)]">
-      <span className="text-xs text-[var(--text-primary)] truncate flex-1 mr-2">
+    <div className="flex items-center justify-between py-1.5 px-2 rounded hover:bg-bg-primary">
+      <span className="text-xs text-primary-token truncate flex-1 mr-2">
         {getSourceName(source, lang)}
       </span>
       <div className="flex items-center gap-1.5 shrink-0">
         <StatusBadge isFresh={source.is_fresh} hasFile={source.has_file} lang={lang} />
         {source.latest_date && (
-          <span className="text-xs text-[var(--text-muted)]">{source.latest_date}</span>
+          <span className="text-xs text-muted-token">{source.latest_date}</span>
         )}
       </div>
     </div>

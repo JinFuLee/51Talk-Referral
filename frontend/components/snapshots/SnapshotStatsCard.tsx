@@ -8,7 +8,7 @@ export function SnapshotStatsCard({ stats }: { stats: SnapshotStats | undefined 
 
   if (!stats) {
     return (
-      <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-4 text-xs text-[var(--text-muted)]">
+      <div className="rounded-xl border border-subtle-token bg-surface p-4 text-xs text-muted-token">
         {t('loading')}
       </div>
     );
@@ -28,9 +28,9 @@ export function SnapshotStatsCard({ stats }: { stats: SnapshotStats | undefined 
 
 function Stat({ label, value }: { label: string; value: string | number }) {
   return (
-    <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-4">
-      <p className="text-xs text-[var(--text-secondary)] mb-1">{label}</p>
-      <p className="text-xl font-bold text-[var(--text-primary)]">{value}</p>
+    <div className="rounded-xl border border-subtle-token bg-surface p-4">
+      <p className="text-xs text-secondary-token mb-1">{label}</p>
+      <p className="text-xl font-bold text-primary-token">{value}</p>
     </div>
   );
 }

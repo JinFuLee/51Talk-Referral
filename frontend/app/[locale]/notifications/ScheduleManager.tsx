@@ -320,13 +320,13 @@ export function ScheduleManager() {
       {/* 标题栏 */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Calendar className="w-4 h-4 text-[var(--text-secondary)]" />
-          <span className="text-sm font-medium text-[var(--text-primary)]">{t.title}</span>
-          <span className="text-xs text-[var(--text-secondary)]">{t.subtitle}</span>
+          <Calendar className="w-4 h-4 text-secondary-token" />
+          <span className="text-sm font-medium text-primary-token">{t.title}</span>
+          <span className="text-xs text-secondary-token">{t.subtitle}</span>
         </div>
         <button
           onClick={openCreate}
-          className="flex items-center gap-1.5 px-3 py-1.5 bg-[var(--brand)] text-white text-xs rounded-lg hover:opacity-90 transition-opacity"
+          className="flex items-center gap-1.5 px-3 py-1.5 bg-brand-p1 text-white text-xs rounded-lg hover:opacity-90 transition-opacity"
         >
           <Plus className="w-3.5 h-3.5" />
           {t.addSchedule}
@@ -334,15 +334,13 @@ export function ScheduleManager() {
       </div>
 
       {/* 状态反馈 */}
-      {isLoading && (
-        <p className="text-sm text-[var(--text-secondary)] py-4 text-center">{t.loading}</p>
-      )}
-      {error && <p className="text-sm text-[var(--color-danger)] py-4 text-center">{t.error}</p>}
+      {isLoading && <p className="text-sm text-secondary-token py-4 text-center">{t.loading}</p>}
+      {error && <p className="text-sm text-danger-token py-4 text-center">{t.error}</p>}
 
       {/* 排程卡片列表 */}
       {!isLoading && !error && schedules.length === 0 && (
-        <div className="py-10 text-center text-sm text-[var(--text-secondary)] border border-dashed border-[var(--border-subtle)] rounded-xl">
-          <Clock className="w-8 h-8 mx-auto mb-2 text-[var(--border-default)]" />
+        <div className="py-10 text-center text-sm text-secondary-token border border-dashed border-subtle-token rounded-xl">
+          <Clock className="w-8 h-8 mx-auto mb-2 text-secondary-token" />
           <p>{t.noSchedules}</p>
         </div>
       )}
@@ -353,25 +351,25 @@ export function ScheduleManager() {
             key={sch.id}
             className={`flex items-start justify-between p-3.5 rounded-lg border transition-colors ${
               sch.enabled
-                ? 'bg-[var(--bg-surface)] border-[var(--border-subtle)]'
-                : 'bg-[var(--bg-primary)] border-[var(--border-subtle)] opacity-60'
+                ? 'bg-surface border-subtle-token'
+                : 'bg-bg-primary border-subtle-token opacity-60'
             }`}
           >
             {/* 左侧信息 */}
             <div className="flex items-start gap-3 min-w-0">
               <div
                 className={`mt-0.5 w-2 h-2 rounded-full flex-shrink-0 ${
-                  sch.enabled ? 'bg-[var(--color-success)]' : 'bg-[var(--border-default)]'
+                  sch.enabled ? 'bg-success-token' : 'bg-n-200'
                 }`}
               />
               <div className="min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-sm font-medium text-[var(--text-primary)]">{sch.name}</span>
+                  <span className="text-sm font-medium text-primary-token">{sch.name}</span>
                   <span
                     className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${
                       sch.enabled
-                        ? 'bg-[var(--color-success-surface)] text-[var(--color-success)]'
-                        : 'bg-[var(--bg-subtle)] text-[var(--text-muted)]'
+                        ? 'bg-success-surface text-success-token'
+                        : 'bg-subtle text-muted-token'
                     }`}
                   >
                     {sch.enabled ? t.enabled : t.disabled}
@@ -380,7 +378,7 @@ export function ScheduleManager() {
                     {sch.platform === 'lark' ? t.lark : t.dingtalk}
                   </span>
                 </div>
-                <div className="mt-0.5 flex items-center gap-3 text-xs text-[var(--text-secondary)]">
+                <div className="mt-0.5 flex items-center gap-3 text-xs text-secondary-token">
                   <span className="flex items-center gap-1">
                     <Clock className="w-3 h-3" />
                     {String(sch.cron_hour).padStart(2, '0')}:
@@ -392,10 +390,10 @@ export function ScheduleManager() {
                   {sch.channels.length > 0 && (
                     <span className="truncate max-w-[160px]">{sch.channels.join(', ')}</span>
                   )}
-                  {sch.dry_run && <span className="text-[var(--color-warning)]">Dry Run</span>}
+                  {sch.dry_run && <span className="text-warning-token">Dry Run</span>}
                 </div>
                 {sch.description && (
-                  <p className="mt-0.5 text-[11px] text-[var(--text-secondary)] truncate max-w-xs">
+                  <p className="mt-0.5 text-[11px] text-secondary-token truncate max-w-xs">
                     {sch.description}
                   </p>
                 )}
@@ -408,28 +406,28 @@ export function ScheduleManager() {
                 onClick={() => handleToggle(sch.id)}
                 disabled={actionId === sch.id}
                 title={sch.enabled ? t.disable : t.enable}
-                className="p-1.5 rounded-lg hover:bg-[var(--bg-subtle)] transition-colors disabled:opacity-50"
+                className="p-1.5 rounded-lg hover:bg-subtle transition-colors disabled:opacity-50"
               >
                 {sch.enabled ? (
-                  <PowerOff className="w-3.5 h-3.5 text-[var(--color-warning)]" />
+                  <PowerOff className="w-3.5 h-3.5 text-warning-token" />
                 ) : (
-                  <Power className="w-3.5 h-3.5 text-[var(--color-success)]" />
+                  <Power className="w-3.5 h-3.5 text-success-token" />
                 )}
               </button>
               <button
                 onClick={() => openEdit(sch)}
                 title={t.edit}
-                className="p-1.5 rounded-lg hover:bg-[var(--bg-subtle)] transition-colors"
+                className="p-1.5 rounded-lg hover:bg-subtle transition-colors"
               >
-                <Pencil className="w-3.5 h-3.5 text-[var(--text-secondary)]" />
+                <Pencil className="w-3.5 h-3.5 text-secondary-token" />
               </button>
               <button
                 onClick={() => handleDelete(sch.id)}
                 disabled={actionId === sch.id}
                 title={t.delete}
-                className="p-1.5 rounded-lg hover:bg-[var(--color-danger-surface)] transition-colors disabled:opacity-50"
+                className="p-1.5 rounded-lg hover:bg-danger-surface transition-colors disabled:opacity-50"
               >
-                <Trash2 className="w-3.5 h-3.5 text-[var(--color-danger)]" />
+                <Trash2 className="w-3.5 h-3.5 text-danger-token" />
               </button>
             </div>
           </div>
@@ -481,19 +479,19 @@ function ScheduleFormModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-      <div className="bg-[var(--bg-surface)] rounded-2xl shadow-2xl w-full max-w-md mx-4 p-6 space-y-4">
-        <h3 className="text-base font-semibold text-[var(--text-primary)]">
+      <div className="bg-surface rounded-2xl shadow-2xl w-full max-w-md mx-4 p-6 space-y-4">
+        <h3 className="text-base font-semibold text-primary-token">
           {isEdit ? t.edit : t.addSchedule}
         </h3>
 
         {/* 名称 */}
         <div>
-          <label className="block text-xs text-[var(--text-secondary)] mb-1">{t.name}</label>
+          <label className="block text-xs text-secondary-token mb-1">{t.name}</label>
           <input
             type="text"
             value={form.name}
             onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-            className="w-full border border-[var(--border-subtle)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-action/30"
+            className="w-full border border-subtle-token rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-action/30"
             placeholder={t.name}
           />
         </div>
@@ -501,24 +499,24 @@ function ScheduleFormModal({
         {/* 平台 + 模板 */}
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="block text-xs text-[var(--text-secondary)] mb-1">{t.platform}</label>
+            <label className="block text-xs text-secondary-token mb-1">{t.platform}</label>
             <select
               value={form.platform}
               onChange={(e) =>
                 setForm((f) => ({ ...f, platform: e.target.value as 'lark' | 'dingtalk' }))
               }
-              className="w-full border border-[var(--border-subtle)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-action/30"
+              className="w-full border border-subtle-token rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-action/30"
             >
               <option value="lark">{t.lark}</option>
               <option value="dingtalk">{t.dingtalk}</option>
             </select>
           </div>
           <div>
-            <label className="block text-xs text-[var(--text-secondary)] mb-1">{t.template}</label>
+            <label className="block text-xs text-secondary-token mb-1">{t.template}</label>
             <select
               value={form.template}
               onChange={(e) => setForm((f) => ({ ...f, template: e.target.value }))}
-              className="w-full border border-[var(--border-subtle)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-action/30"
+              className="w-full border border-subtle-token rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-action/30"
             >
               {Object.entries(t.templates).map(([k, v]) => (
                 <option key={k} value={k}>
@@ -531,7 +529,7 @@ function ScheduleFormModal({
 
         {/* 时间 */}
         <div>
-          <label className="block text-xs text-[var(--text-secondary)] mb-1">{t.time}</label>
+          <label className="block text-xs text-secondary-token mb-1">{t.time}</label>
           <div className="flex items-center gap-2">
             <input
               type="number"
@@ -544,9 +542,9 @@ function ScheduleFormModal({
                   cron_hour: Math.max(0, Math.min(23, Number(e.target.value))),
                 }))
               }
-              className="w-20 border border-[var(--border-subtle)] rounded-lg px-3 py-2 text-sm text-center focus:outline-none focus:ring-2 focus:ring-action/30"
+              className="w-20 border border-subtle-token rounded-lg px-3 py-2 text-sm text-center focus:outline-none focus:ring-2 focus:ring-action/30"
             />
-            <span className="text-[var(--text-secondary)] text-sm">{t.hour}</span>
+            <span className="text-secondary-token text-sm">{t.hour}</span>
             <input
               type="number"
               min={0}
@@ -558,15 +556,15 @@ function ScheduleFormModal({
                   cron_minute: Math.max(0, Math.min(59, Number(e.target.value))),
                 }))
               }
-              className="w-20 border border-[var(--border-subtle)] rounded-lg px-3 py-2 text-sm text-center focus:outline-none focus:ring-2 focus:ring-action/30"
+              className="w-20 border border-subtle-token rounded-lg px-3 py-2 text-sm text-center focus:outline-none focus:ring-2 focus:ring-action/30"
             />
-            <span className="text-[var(--text-secondary)] text-sm">{t.minute}</span>
+            <span className="text-secondary-token text-sm">{t.minute}</span>
           </div>
         </div>
 
         {/* 通道 */}
         <div>
-          <label className="block text-xs text-[var(--text-secondary)] mb-1">{t.channels}</label>
+          <label className="block text-xs text-secondary-token mb-1">{t.channels}</label>
           <input
             type="text"
             value={channelsStr}
@@ -579,26 +577,26 @@ function ScheduleFormModal({
                   .filter(Boolean),
               }))
             }
-            className="w-full border border-[var(--border-subtle)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-action/30"
+            className="w-full border border-subtle-token rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-action/30"
             placeholder="cc_all, cc_team_a"
           />
         </div>
 
         {/* 备注 */}
         <div>
-          <label className="block text-xs text-[var(--text-secondary)] mb-1">{t.description}</label>
+          <label className="block text-xs text-secondary-token mb-1">{t.description}</label>
           <input
             type="text"
             value={form.description}
             onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
-            className="w-full border border-[var(--border-subtle)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-action/30"
+            className="w-full border border-subtle-token rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-action/30"
             placeholder={t.description}
           />
         </div>
 
         {/* 开关 */}
         <div className="flex items-center gap-4">
-          <label className="flex items-center gap-2 cursor-pointer text-sm text-[var(--text-secondary)]">
+          <label className="flex items-center gap-2 cursor-pointer text-sm text-secondary-token">
             <input
               type="checkbox"
               checked={form.force}
@@ -607,7 +605,7 @@ function ScheduleFormModal({
             />
             {t.force}
           </label>
-          <label className="flex items-center gap-2 cursor-pointer text-sm text-[var(--text-secondary)]">
+          <label className="flex items-center gap-2 cursor-pointer text-sm text-secondary-token">
             <input
               type="checkbox"
               checked={form.dry_run}
@@ -616,7 +614,7 @@ function ScheduleFormModal({
             />
             {t.dryRun}
           </label>
-          <label className="flex items-center gap-2 cursor-pointer text-sm text-[var(--text-secondary)]">
+          <label className="flex items-center gap-2 cursor-pointer text-sm text-secondary-token">
             <input
               type="checkbox"
               checked={form.enabled}
@@ -631,14 +629,14 @@ function ScheduleFormModal({
         <div className="flex justify-end gap-2 pt-1">
           <button
             onClick={onCancel}
-            className="px-4 py-2 text-sm border border-[var(--border-subtle)] rounded-lg hover:bg-[var(--bg-primary)] transition-colors"
+            className="px-4 py-2 text-sm border border-subtle-token rounded-lg hover:bg-bg-primary transition-colors"
           >
             {t.cancel}
           </button>
           <button
             onClick={onSave}
             disabled={saving || !form.name.trim()}
-            className="px-4 py-2 text-sm bg-[var(--brand)] text-white rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50"
+            className="px-4 py-2 text-sm bg-brand-p1 text-white rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50"
           >
             {saving ? '...' : t.save}
           </button>

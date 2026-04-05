@@ -452,10 +452,10 @@ const COL_GROUPS: ColGroup[] = [
 // ── 达成率色彩 ──────────────────────────────────────────
 
 function achievementTextClass(pct: number | null): string {
-  if (pct == null) return 'text-[var(--text-muted)]';
-  if (pct >= 1) return 'text-[var(--color-success)] font-semibold';
-  if (pct >= 0.8) return 'text-[var(--color-warning)]';
-  return 'text-[var(--color-danger)]';
+  if (pct == null) return 'text-muted-token';
+  if (pct >= 1) return 'text-success-token font-semibold';
+  if (pct >= 0.8) return 'text-warning-token';
+  return 'text-danger-token';
 }
 
 // ── 排名徽章 ────────────────────────────────────────────
@@ -463,12 +463,12 @@ function achievementTextClass(pct: number | null): string {
 function RankBadge({ rank }: { rank: number }) {
   const cls =
     rank === 1
-      ? 'bg-[var(--color-warning-surface)] text-[var(--color-warning)]'
+      ? 'bg-warning-surface text-warning-token'
       : rank === 2
-        ? 'bg-[var(--bg-subtle)] text-[var(--text-secondary)]'
+        ? 'bg-subtle text-secondary-token'
         : rank === 3
           ? 'bg-orange-50 text-orange-600'
-          : 'text-[var(--text-muted)]';
+          : 'text-muted-token';
   return (
     <span
       className={`inline-flex w-6 h-6 items-center justify-center rounded-full text-xs font-bold ${cls}`}
@@ -481,12 +481,10 @@ function RankBadge({ rank }: { rank: number }) {
 // ── 进度差额显示 ─────────────────────────────────────────
 
 function GapCell({ gap }: { gap: number | null }) {
-  if (gap == null) return <span className="text-[var(--text-muted)]">—</span>;
+  if (gap == null) return <span className="text-muted-token">—</span>;
   const isPos = gap >= 0;
   return (
-    <span
-      className={isPos ? 'text-[var(--color-success)] font-semibold' : 'text-[var(--color-danger)]'}
-    >
+    <span className={isPos ? 'text-success-token font-semibold' : 'text-danger-token'}>
       {isPos ? '+' : ''}
       {gap.toLocaleString()}
     </span>
@@ -495,15 +493,11 @@ function GapCell({ gap }: { gap: number | null }) {
 
 /** 通用金额 gap 单元格（正绿负红，绝对值 < 100 显示 $0） */
 function AmtGapCell({ gap }: { gap: number | null }) {
-  if (gap == null || gap === 0) return <span className="text-[var(--text-muted)]">—</span>;
+  if (gap == null || gap === 0) return <span className="text-muted-token">—</span>;
   const absVal = Math.abs(gap);
   const display = absVal < 100 ? '$0' : `$${Math.round(absVal).toLocaleString()}`;
   return (
-    <span
-      className={
-        gap > 0 ? 'text-[var(--color-success)] font-semibold' : 'text-[var(--color-danger)]'
-      }
-    >
+    <span className={gap > 0 ? 'text-success-token font-semibold' : 'text-danger-token'}>
       {gap > 0 ? '+' : '-'}
       {display}
     </span>
@@ -512,13 +506,9 @@ function AmtGapCell({ gap }: { gap: number | null }) {
 
 /** 通用整数 gap 单元格（正绿负红） */
 function CountGapCell({ gap }: { gap: number | null }) {
-  if (gap == null || gap === 0) return <span className="text-[var(--text-muted)]">—</span>;
+  if (gap == null || gap === 0) return <span className="text-muted-token">—</span>;
   return (
-    <span
-      className={
-        gap > 0 ? 'text-[var(--color-success)] font-semibold' : 'text-[var(--color-danger)]'
-      }
-    >
+    <span className={gap > 0 ? 'text-success-token font-semibold' : 'text-danger-token'}>
       {gap > 0 ? '+' : ''}
       {Math.round(gap).toLocaleString()}
     </span>
@@ -582,12 +572,10 @@ function pickCountMetric(
 }
 
 function RateGapCell({ gap }: { gap: number | null }) {
-  if (gap == null) return <span className="text-[var(--text-muted)]">—</span>;
+  if (gap == null) return <span className="text-muted-token">—</span>;
   const isPos = gap >= 0;
   return (
-    <span
-      className={isPos ? 'text-[var(--color-success)] font-semibold' : 'text-[var(--color-danger)]'}
-    >
+    <span className={isPos ? 'text-success-token font-semibold' : 'text-danger-token'}>
       {isPos ? '+' : ''}
       {(gap * 100).toFixed(1)}pp
     </span>
@@ -797,14 +785,14 @@ export function CCPerformanceTable({
           placeholder={t.searchPlaceholder}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="input-base h-8 text-sm px-3 w-48 rounded-lg border border-[var(--border-default)] bg-[var(--bg-surface)] text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)] focus:border-transparent transition-colors duration-150"
+          className="input-base h-8 text-sm px-3 w-48 rounded-lg border border-default-token bg-surface text-primary-token placeholder:text-muted-token focus:outline-none focus:ring-2 focus:ring-accent-token focus:border-transparent transition-colors duration-150"
         />
 
         {/* 团队筛选 */}
         <select
           value={teamFilter}
           onChange={(e) => setTeamFilter(e.target.value)}
-          className="h-8 text-sm px-3 rounded-lg border border-[var(--border-default)] bg-[var(--bg-surface)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)] transition-colors duration-150"
+          className="h-8 text-sm px-3 rounded-lg border border-default-token bg-surface text-primary-token focus:outline-none focus:ring-2 focus:ring-accent-token transition-colors duration-150"
         >
           <option value="all">{t.allTeams}</option>
           {teamNames.map((name) => (
@@ -815,16 +803,16 @@ export function CCPerformanceTable({
         </select>
 
         {/* USD / THB 切换 */}
-        <div className="flex items-center rounded-lg border border-[var(--border-default)] overflow-hidden text-xs">
+        <div className="flex items-center rounded-lg border border-default-token overflow-hidden text-xs">
           <button
             onClick={() => setShowTHB(false)}
-            className={`px-3 py-1.5 transition-colors duration-150 ${!showTHB ? 'bg-[var(--color-accent)] text-white font-semibold' : 'bg-[var(--bg-surface)] text-[var(--text-secondary)] hover:bg-[var(--bg-subtle)]'}`}
+            className={`px-3 py-1.5 transition-colors duration-150 ${!showTHB ? 'bg-accent-token text-white font-semibold' : 'bg-surface text-secondary-token hover:bg-subtle'}`}
           >
             USD
           </button>
           <button
             onClick={() => setShowTHB(true)}
-            className={`px-3 py-1.5 transition-colors duration-150 ${showTHB ? 'bg-[var(--color-accent)] text-white font-semibold' : 'bg-[var(--bg-surface)] text-[var(--text-secondary)] hover:bg-[var(--bg-subtle)]'}`}
+            className={`px-3 py-1.5 transition-colors duration-150 ${showTHB ? 'bg-accent-token text-white font-semibold' : 'bg-surface text-secondary-token hover:bg-subtle'}`}
           >
             THB
           </button>
@@ -832,18 +820,18 @@ export function CCPerformanceTable({
 
         {/* 达标 / BM 参照系切换 */}
         <div
-          className="flex items-center rounded-lg border border-[var(--border-default)] overflow-hidden text-xs"
+          className="flex items-center rounded-lg border border-default-token overflow-hidden text-xs"
           title={t.viewModeTooltip}
         >
           <button
             onClick={() => onViewModeChange('target')}
-            className={`px-3 py-1.5 transition-colors duration-150 ${viewMode === 'target' ? 'bg-[var(--color-accent)] text-white font-semibold' : 'bg-[var(--bg-surface)] text-[var(--text-secondary)] hover:bg-[var(--bg-subtle)]'}`}
+            className={`px-3 py-1.5 transition-colors duration-150 ${viewMode === 'target' ? 'bg-accent-token text-white font-semibold' : 'bg-surface text-secondary-token hover:bg-subtle'}`}
           >
             {t.targetMode}
           </button>
           <button
             onClick={() => onViewModeChange('bm')}
-            className={`px-3 py-1.5 transition-colors duration-150 ${viewMode === 'bm' ? 'bg-[var(--color-accent)] text-white font-semibold' : 'bg-[var(--bg-surface)] text-[var(--text-secondary)] hover:bg-[var(--bg-subtle)]'}`}
+            className={`px-3 py-1.5 transition-colors duration-150 ${viewMode === 'bm' ? 'bg-accent-token text-white font-semibold' : 'bg-surface text-secondary-token hover:bg-subtle'}`}
           >
             {t.bmMode}
           </button>
@@ -857,8 +845,8 @@ export function CCPerformanceTable({
               onClick={() => toggleGroup(g.key)}
               className={`px-2 py-1 rounded text-xs transition-colors duration-150 border ${
                 visibleGroups[g.key]
-                  ? 'bg-[var(--color-accent)] text-white border-[var(--color-accent)]'
-                  : 'bg-[var(--bg-surface)] text-[var(--text-muted)] border-[var(--border-default)] hover:border-[var(--color-accent)]'
+                  ? 'bg-accent-token text-white border-accent-token'
+                  : 'bg-surface text-muted-token border-default-token hover:border-accent-token'
               }`}
             >
               {t[g.labelKey] as string}
@@ -871,14 +859,14 @@ export function CCPerformanceTable({
       </div>
 
       {/* 结果计数 */}
-      <p className="text-xs text-[var(--text-muted)]">
+      <p className="text-xs text-muted-token">
         {t.total} {sortedRecords.length} {t.ccUnit}
         {search && ` · ${t.searching}${search}${t.searchingEnd}`}
         {teamFilter !== 'all' && ` · ${teamFilter}`}
       </p>
 
       {/* 表格 */}
-      <div className="overflow-x-auto rounded-xl border border-[var(--border-default)]">
+      <div className="overflow-x-auto rounded-xl border border-default-token">
         <table className="w-full text-xs">
           <thead>
             <tr className="slide-thead-row">
@@ -1149,7 +1137,7 @@ export function CCPerformanceTable({
               return [
                 <tr
                   key={record.cc_name}
-                  className={`${i % 2 === 0 ? 'slide-row-even' : 'slide-row-odd'} cursor-pointer hover:bg-[var(--bg-subtle)] transition-colors duration-150`}
+                  className={`${i % 2 === 0 ? 'slide-row-even' : 'slide-row-odd'} cursor-pointer hover:bg-subtle transition-colors duration-150`}
                   onClick={() => toggleExpand(record.cc_name)}
                   title={t.expandTitle}
                 >
@@ -1163,13 +1151,13 @@ export function CCPerformanceTable({
                     <>
                       <td className="slide-td py-1.5 px-2 font-medium whitespace-nowrap">
                         <span className="flex items-center gap-1">
-                          <span className="text-[10px] text-[var(--text-muted)]">
+                          <span className="text-[10px] text-muted-token">
                             {isExpanded ? '▼' : '▶'}
                           </span>
                           {record.cc_name}
                         </span>
                       </td>
-                      <td className="slide-td py-1.5 px-2 text-[var(--text-secondary)] whitespace-nowrap">
+                      <td className="slide-td py-1.5 px-2 text-secondary-token whitespace-nowrap">
                         {record.team}
                       </td>
                       <td className="slide-td py-1.5 px-2 text-right font-mono tabular-nums">
@@ -1184,7 +1172,7 @@ export function CCPerformanceTable({
                       const rev = pickMetric(record.revenue, viewMode);
                       return (
                         <>
-                          <td className="slide-td py-1.5 px-2 text-right font-mono tabular-nums text-[var(--text-secondary)]">
+                          <td className="slide-td py-1.5 px-2 text-right font-mono tabular-nums text-secondary-token">
                             {fmtAmt(rev.reference)}
                           </td>
                           <td className="slide-td py-1.5 px-2 text-right font-mono tabular-nums font-semibold">
@@ -1210,7 +1198,7 @@ export function CCPerformanceTable({
                       const paid = pickCountMetric(record.paid, viewMode);
                       return (
                         <>
-                          <td className="slide-td py-1.5 px-2 text-right font-mono tabular-nums text-[var(--text-secondary)]">
+                          <td className="slide-td py-1.5 px-2 text-right font-mono tabular-nums text-secondary-token">
                             {leads.reference?.toLocaleString() ?? '—'}
                           </td>
                           <td className="slide-td py-1.5 px-2 text-right font-mono tabular-nums">
@@ -1219,7 +1207,7 @@ export function CCPerformanceTable({
                           <td className="slide-td py-1.5 px-2 text-right font-mono tabular-nums">
                             <CountGapCell gap={leads.gap ?? null} />
                           </td>
-                          <td className="slide-td py-1.5 px-2 text-right font-mono tabular-nums text-[var(--text-secondary)]">
+                          <td className="slide-td py-1.5 px-2 text-right font-mono tabular-nums text-secondary-token">
                             {showup.reference?.toLocaleString() ?? '—'}
                           </td>
                           <td className="slide-td py-1.5 px-2 text-right font-mono tabular-nums">
@@ -1228,7 +1216,7 @@ export function CCPerformanceTable({
                           <td className="slide-td py-1.5 px-2 text-right font-mono tabular-nums">
                             <CountGapCell gap={showup.gap ?? null} />
                           </td>
-                          <td className="slide-td py-1.5 px-2 text-right font-mono tabular-nums text-[var(--text-secondary)]">
+                          <td className="slide-td py-1.5 px-2 text-right font-mono tabular-nums text-secondary-token">
                             {paid.reference?.toLocaleString() ?? '—'}
                           </td>
                           <td className="slide-td py-1.5 px-2 text-right font-mono tabular-nums">
@@ -1287,7 +1275,7 @@ export function CCPerformanceTable({
                   {/* outreach */}
                   {show.outreach && (
                     <>
-                      <td className="slide-td py-1.5 px-2 text-right font-mono tabular-nums text-[var(--text-secondary)]">
+                      <td className="slide-td py-1.5 px-2 text-right font-mono tabular-nums text-secondary-token">
                         {record.call_target?.toLocaleString() ?? '—'}
                       </td>
                       <td className="slide-td py-1.5 px-2 text-right font-mono tabular-nums">
@@ -1317,7 +1305,7 @@ export function CCPerformanceTable({
                         {fmtAmt(record.remaining_daily_avg)}
                       </td>
                       <td
-                        className={`slide-td py-1.5 px-2 text-right font-mono tabular-nums ${record.efficiency_lift_pct != null && record.efficiency_lift_pct > 0.2 ? 'text-[var(--color-danger)]' : record.efficiency_lift_pct != null && record.efficiency_lift_pct <= 0 ? 'text-[var(--color-success)]' : ''}`}
+                        className={`slide-td py-1.5 px-2 text-right font-mono tabular-nums ${record.efficiency_lift_pct != null && record.efficiency_lift_pct > 0.2 ? 'text-danger-token' : record.efficiency_lift_pct != null && record.efficiency_lift_pct <= 0 ? 'text-success-token' : ''}`}
                       >
                         {record.efficiency_lift_pct != null
                           ? `${(record.efficiency_lift_pct * 100).toFixed(1)}%`
@@ -1330,7 +1318,7 @@ export function CCPerformanceTable({
                 // 展开详情行
                 isExpanded && (
                   <tr key={`${record.cc_name}-detail`}>
-                    <td colSpan={99} className="px-4 py-0 bg-[var(--bg-subtle)]">
+                    <td colSpan={99} className="px-4 py-0 bg-subtle">
                       <CCPerformanceDetail record={record} exchangeRate={exchangeRate} />
                     </td>
                   </tr>
@@ -1345,17 +1333,17 @@ export function CCPerformanceTable({
               {teams.map((team) => (
                 <tr
                   key={`subtotal-${team.team}`}
-                  className="bg-[var(--bg-subtle)] font-semibold border-t border-[var(--border-default)]"
+                  className="bg-subtle font-semibold border-t border-default-token"
                 >
-                  <td className="slide-td py-2 px-2 text-center text-[var(--text-muted)] text-[10px]">
+                  <td className="slide-td py-2 px-2 text-center text-muted-token text-[10px]">
                     {t.subtotal}
                   </td>
                   {show.identity && (
                     <>
-                      <td className="slide-td py-2 px-2 font-semibold text-[var(--text-primary)]">
+                      <td className="slide-td py-2 px-2 font-semibold text-primary-token">
                         {team.team}
                       </td>
-                      <td className="slide-td py-2 px-2 text-[var(--text-secondary)]">
+                      <td className="slide-td py-2 px-2 text-secondary-token">
                         {team.headcount}
                         {t.headcountUnit}
                       </td>
@@ -1369,7 +1357,7 @@ export function CCPerformanceTable({
                       const rev = pickMetric(team.revenue, viewMode);
                       return (
                         <>
-                          <td className="slide-td py-2 px-2 text-right font-mono tabular-nums text-[var(--text-secondary)]">
+                          <td className="slide-td py-2 px-2 text-right font-mono tabular-nums text-secondary-token">
                             {fmtAmt(rev.reference)}
                           </td>
                           <td className="slide-td py-2 px-2 text-right font-mono tabular-nums">
@@ -1393,7 +1381,7 @@ export function CCPerformanceTable({
                       const paid = pickCountMetric(team.paid, viewMode);
                       return (
                         <>
-                          <td className="slide-td py-2 px-2 text-right font-mono tabular-nums text-[var(--text-secondary)]">
+                          <td className="slide-td py-2 px-2 text-right font-mono tabular-nums text-secondary-token">
                             {leads.reference?.toLocaleString() ?? '—'}
                           </td>
                           <td className="slide-td py-2 px-2 text-right font-mono tabular-nums">
@@ -1402,7 +1390,7 @@ export function CCPerformanceTable({
                           <td className="slide-td py-2 px-2 text-right font-mono tabular-nums">
                             <CountGapCell gap={leads.gap ?? null} />
                           </td>
-                          <td className="slide-td py-2 px-2 text-right font-mono tabular-nums text-[var(--text-secondary)]">
+                          <td className="slide-td py-2 px-2 text-right font-mono tabular-nums text-secondary-token">
                             {showup.reference?.toLocaleString() ?? '—'}
                           </td>
                           <td className="slide-td py-2 px-2 text-right font-mono tabular-nums">
@@ -1411,7 +1399,7 @@ export function CCPerformanceTable({
                           <td className="slide-td py-2 px-2 text-right font-mono tabular-nums">
                             <CountGapCell gap={showup.gap ?? null} />
                           </td>
-                          <td className="slide-td py-2 px-2 text-right font-mono tabular-nums text-[var(--text-secondary)]">
+                          <td className="slide-td py-2 px-2 text-right font-mono tabular-nums text-secondary-token">
                             {paid.reference?.toLocaleString() ?? '—'}
                           </td>
                           <td className="slide-td py-2 px-2 text-right font-mono tabular-nums">
@@ -1464,7 +1452,7 @@ export function CCPerformanceTable({
                   )}
                   {show.outreach && (
                     <>
-                      <td className="slide-td py-2 px-2 text-right font-mono tabular-nums text-[var(--text-secondary)]">
+                      <td className="slide-td py-2 px-2 text-right font-mono tabular-nums text-secondary-token">
                         {team.call_target?.toLocaleString() ?? '—'}
                       </td>
                       <td className="slide-td py-2 px-2 text-right font-mono tabular-nums">

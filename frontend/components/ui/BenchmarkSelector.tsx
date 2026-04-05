@@ -78,7 +78,7 @@ export function BenchmarkSelector() {
 
   return (
     <div className="flex items-center gap-1.5 flex-wrap">
-      <span className="text-xs text-[var(--text-muted)] shrink-0 mr-0.5">{t.compare}</span>
+      <span className="text-xs text-muted-token shrink-0 mr-0.5">{t.compare}</span>
       {BENCHMARK_OPTIONS.map((opt) => {
         const isActive = activeBenchmarks.includes(opt.value);
         return (
@@ -88,8 +88,8 @@ export function BenchmarkSelector() {
             className={[
               'px-2.5 py-1 rounded-full text-xs font-medium transition-colors border',
               isActive
-                ? 'bg-[var(--brand-p1)] text-white border-[var(--brand-p1)]'
-                : 'bg-transparent text-[var(--text-secondary)] border-[var(--border-default)] hover:border-[var(--brand-p1)] hover:text-[var(--text-primary)]',
+                ? 'bg-brand-p1 text-white border-brand-p1'
+                : 'bg-transparent text-secondary-token border-default-token hover:border-brand-p1 hover:text-primary-token',
             ].join(' ')}
           >
             {t[opt.labelKey]}

@@ -161,7 +161,7 @@ export default function PresentationPage() {
   }
 
   return (
-    <div className="relative w-full h-screen overflow-hidden bg-[#0a0a0a]" key={currentSlide}>
+    <div className="relative w-full h-screen overflow-hidden bg-cinema" key={currentSlide}>
       {/* 鼠标跟踪金色光晕 */}
       <CursorGlow />
 
@@ -174,7 +174,7 @@ export default function PresentationPage() {
         className="absolute bottom-5 right-6 z-50 flex items-center gap-2 px-4 py-2 rounded-xl backdrop-blur-xl bg-white/8 border border-white/10 text-white/50 text-xs font-semibold transition-all duration-200 hover:bg-white/15 hover:text-white/80 hover:-translate-y-0.5"
         title={t('exitTitle')}
       >
-        <BrandMark size={14} className="text-[var(--brand-p1)]" />
+        <BrandMark size={14} className="text-brand-p1" />
         <span className="font-mono tracking-wider">ESC</span>
         <span>{t('exitBtn')}</span>
       </button>

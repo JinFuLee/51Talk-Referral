@@ -228,14 +228,14 @@ function CheckinPageInner() {
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div>
           <h1 className="page-title">{t.pageTitle}</h1>
-          <p className="text-sm text-[var(--text-secondary)] mt-0.5">{t.pageSubtitle}</p>
+          <p className="text-sm text-secondary-token mt-0.5">{t.pageSubtitle}</p>
         </div>
         {activeTab === 'overview' && <ExportButton onExportCsv={handleExportSummary} />}
       </div>
 
       {/* ── 汇总数据状态提示 ── */}
       {summaryLoading && (
-        <div className="flex items-center gap-2 text-xs text-[var(--text-muted)]">
+        <div className="flex items-center gap-2 text-xs text-muted-token">
           <Spinner size="sm" />
           <span>{t.loadingTeams}</span>
         </div>
@@ -243,7 +243,7 @@ function CheckinPageInner() {
       {summaryError && (
         <div className="text-center py-4">
           <p className="text-sm font-semibold text-red-600">{t.summaryLoadFailed}</p>
-          <p className="text-xs text-[var(--text-muted)] mt-1">{t.checkBackend}</p>
+          <p className="text-xs text-muted-token mt-1">{t.checkBackend}</p>
         </div>
       )}
 

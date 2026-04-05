@@ -105,7 +105,7 @@ export function CCRankingTable({ rankings }: CCRankingTableProps) {
   }
 
   if (rankings.length === 0) {
-    return <div className="text-center py-8 text-sm text-[var(--text-muted)]">{t.empty}</div>;
+    return <div className="text-center py-8 text-sm text-muted-token">{t.empty}</div>;
   }
 
   return (
@@ -126,7 +126,7 @@ export function CCRankingTable({ rankings }: CCRankingTableProps) {
             {COLUMNS.map((col) => (
               <th
                 key={col.key}
-                className="py-1.5 px-2 border-0 text-right cursor-pointer hover:text-[var(--text-muted)] select-none"
+                className="py-1.5 px-2 border-0 text-right cursor-pointer hover:text-muted-token select-none"
                 onClick={() => handleSort(col.key)}
               >
                 {col.label}
@@ -137,17 +137,17 @@ export function CCRankingTable({ rankings }: CCRankingTableProps) {
         </thead>
         <tbody>
           {sorted.map((r, i) => (
-            <tr key={r.cc_name} className="even:bg-[var(--bg-subtle)]">
+            <tr key={r.cc_name} className="even:bg-subtle">
               <td className="py-1 px-2 text-xs">
                 <span
                   className={`inline-flex w-6 h-6 items-center justify-center rounded-full text-xs font-bold ${
                     i === 0
-                      ? 'bg-[var(--color-warning-surface)] text-[var(--color-warning)]'
+                      ? 'bg-warning-surface text-warning-token'
                       : i === 1
-                        ? 'bg-[var(--bg-surface)] text-[var(--text-secondary)]'
+                        ? 'bg-surface text-secondary-token'
                         : i === 2
                           ? 'bg-orange-50 text-orange-600'
-                          : 'text-[var(--text-muted)] text-xs'
+                          : 'text-muted-token text-xs'
                   }`}
                 >
                   {i + 1}
@@ -159,7 +159,7 @@ export function CCRankingTable({ rankings }: CCRankingTableProps) {
               >
                 <span className="truncate block max-w-[150px]">{r.cc_name}</span>
               </td>
-              <td className="py-1 px-2 text-xs text-[var(--text-secondary)] whitespace-nowrap">
+              <td className="py-1 px-2 text-xs text-secondary-token whitespace-nowrap">
                 {r.cc_group}
               </td>
               {r.students !== undefined && (

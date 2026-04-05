@@ -215,7 +215,7 @@ export function PresentationLauncher() {
       >
         {/* ── 品牌标题 ── */}
         <div className="text-center animate-fade-in">
-          <BrandMark size={40} className="text-[var(--brand-p1)] mx-auto mb-4 animate-pulse-soft" />
+          <BrandMark size={40} className="text-brand-p1 mx-auto mb-4 animate-pulse-soft" />
           <h1 className="font-display text-3xl font-bold text-[#f5f5f5] tracking-tight">
             {t.selectScene}
           </h1>
@@ -236,7 +236,7 @@ export function PresentationLauncher() {
                 className={clsx(
                   'group flex flex-col items-start gap-4 rounded-2xl border-2 p-7 text-left transition-all duration-300 animate-slide-up',
                   isSelected
-                    ? 'border-[var(--brand-p1)] bg-[var(--brand-p1)]/5 shadow-lg shadow-[var(--brand-p1)]/10'
+                    ? 'border-brand-p1 bg-brand-p1/5 shadow-lg shadow-[var(--brand-p1)]/10'
                     : 'border-white/10 bg-white/[0.03] hover:border-white/20 hover:bg-white/[0.06]'
                 )}
                 style={{ animationDelay: `${0.1 + i * 0.08}s`, animationFillMode: 'both' }}
@@ -245,7 +245,7 @@ export function PresentationLauncher() {
                   className={clsx(
                     'rounded-xl p-3.5 transition-all duration-300',
                     isSelected
-                      ? 'bg-[var(--brand-p1)] text-[var(--brand-p2)]'
+                      ? 'bg-brand-p1 text-brand-p2'
                       : 'bg-white/5 text-white/40 group-hover:bg-white/10'
                   )}
                 >
@@ -255,7 +255,7 @@ export function PresentationLauncher() {
                   <p
                     className={clsx(
                       'text-lg font-bold font-display transition-colors',
-                      isSelected ? 'text-[var(--brand-p1)]' : 'text-[#f5f5f5]'
+                      isSelected ? 'text-brand-p1' : 'text-[#f5f5f5]'
                     )}
                   >
                     {sceneLabel.title}
@@ -290,7 +290,7 @@ export function PresentationLauncher() {
                       'flex flex-col items-center gap-1.5 px-6 py-3.5 rounded-xl border-2 transition-all duration-200 animate-slide-up',
                       !allowed && 'opacity-25 cursor-not-allowed',
                       isSelected
-                        ? 'border-[var(--brand-p1)] bg-[var(--brand-p1)]/5 shadow-sm'
+                        ? 'border-brand-p1 bg-brand-p1/5 shadow-sm'
                         : 'border-white/10 bg-white/[0.03] hover:border-white/20'
                     )}
                     style={{ animationDelay: `${i * 0.05}s`, animationFillMode: 'both' }}
@@ -298,7 +298,7 @@ export function PresentationLauncher() {
                     <span
                       className={clsx(
                         'text-base font-bold font-display',
-                        isSelected ? 'text-[var(--brand-p1)]' : 'text-[#f5f5f5]'
+                        isSelected ? 'text-brand-p1' : 'text-[#f5f5f5]'
                       )}
                     >
                       {tfLabel.label}

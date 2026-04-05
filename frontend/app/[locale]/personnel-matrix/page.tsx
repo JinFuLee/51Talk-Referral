@@ -302,12 +302,12 @@ function safeRate(v: number | null | undefined): string {
 function RankBadge({ rank }: { rank: number }) {
   const cls =
     rank === 1
-      ? 'bg-[var(--color-warning-surface)] text-[var(--color-warning)]'
+      ? 'bg-warning-surface text-warning-token'
       : rank === 2
-        ? 'bg-[var(--bg-subtle)] text-[var(--text-secondary)]'
+        ? 'bg-subtle text-secondary-token'
         : rank === 3
           ? 'bg-orange-50 text-orange-600'
-          : 'text-[var(--text-muted)]';
+          : 'text-muted-token';
   return (
     <span
       className={`inline-flex w-6 h-6 items-center justify-center rounded-full text-xs font-bold ${cls}`}
@@ -359,7 +359,7 @@ function CCTabContent() {
     <div className="space-y-5 md:space-y-6">
       {/* 着色维度切换 */}
       <div className="flex items-center gap-3">
-        <span className="text-xs text-[var(--text-muted)]">{t.colorDim}</span>
+        <span className="text-xs text-muted-token">{t.colorDim}</span>
         <Select value={metric} onValueChange={setMetric}>
           <SelectTrigger className="w-36 h-8 text-xs">
             <SelectValue />
@@ -382,8 +382,8 @@ function CCTabContent() {
           </div>
         ) : heatmapError ? (
           <div className="text-center py-8">
-            <p className="text-base font-semibold text-[var(--color-danger)]">{t.loadFail}</p>
-            <p className="text-sm text-[var(--text-muted)] mt-1">{t.loadFailDesc}</p>
+            <p className="text-base font-semibold text-danger-token">{t.loadFail}</p>
+            <p className="text-sm text-muted-token mt-1">{t.loadFailDesc}</p>
           </div>
         ) : !heatmapData?.rows?.length ? (
           <EmptyState title={t.noHeatmap} description={t.noHeatmapDesc} />
@@ -425,7 +425,7 @@ function CCTabContent() {
           title={t.drilldownTitle(drilldownCC, drilldownSeg)}
           actions={
             <button
-              className="text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
+              className="text-xs text-muted-token hover:text-primary-token transition-colors"
               onClick={() => {
                 setDrilldownCC(null);
                 setDrilldownSeg(null);
@@ -550,10 +550,8 @@ function SSTabContent() {
                     <RankBadge rank={i + 1} />
                   </td>
                   <td className="slide-td py-1.5 px-2 font-medium">{r.ss_name ?? '—'}</td>
-                  <td className="slide-td py-1.5 px-2 text-[var(--text-secondary)]">
-                    {r.ss_group ?? '—'}
-                  </td>
-                  <td className="slide-td py-1.5 px-2 text-[var(--text-secondary)]">
+                  <td className="slide-td py-1.5 px-2 text-secondary-token">{r.ss_group ?? '—'}</td>
+                  <td className="slide-td py-1.5 px-2 text-secondary-token">
                     {fmtEnc(r.enclosure)}
                   </td>
                   <td className="slide-td py-1.5 px-2 text-right font-mono tabular-nums">
@@ -669,10 +667,8 @@ function LPTabContent() {
                     <RankBadge rank={i + 1} />
                   </td>
                   <td className="slide-td py-1.5 px-2 font-medium">{r.lp_name ?? '—'}</td>
-                  <td className="slide-td py-1.5 px-2 text-[var(--text-secondary)]">
-                    {r.lp_group ?? '—'}
-                  </td>
-                  <td className="slide-td py-1.5 px-2 text-[var(--text-secondary)]">
+                  <td className="slide-td py-1.5 px-2 text-secondary-token">{r.lp_group ?? '—'}</td>
+                  <td className="slide-td py-1.5 px-2 text-secondary-token">
                     {fmtEnc(r.enclosure)}
                   </td>
                   <td className="slide-td py-1.5 px-2 text-right font-mono tabular-nums">
@@ -798,8 +794,8 @@ function PersonnelMatrixPageInner() {
       <div className="flex items-start justify-between mb-2">
         <div>
           <h1 className="page-title">{t.pageTitle}</h1>
-          <p className="text-sm text-[var(--text-secondary)] mt-1">{t.pageDesc}</p>
-          <p className="text-sm text-[var(--text-muted)] mt-0.5">{t.pageHint}</p>
+          <p className="text-sm text-secondary-token mt-1">{t.pageDesc}</p>
+          <p className="text-sm text-muted-token mt-0.5">{t.pageHint}</p>
         </div>
         <ExportButton onExportCsv={handleExport} />
       </div>

@@ -63,7 +63,7 @@ export function BookShelf({ books, activeId, onSelect }: BookShelfProps) {
   if (books.length === 0) {
     return (
       <div className="flex gap-2 px-1 py-2">
-        <span className="text-xs text-[var(--text-muted)]">{t.empty}</span>
+        <span className="text-xs text-muted-token">{t.empty}</span>
       </div>
     );
   }
@@ -79,16 +79,16 @@ export function BookShelf({ books, activeId, onSelect }: BookShelfProps) {
             onClick={() => onSelect(bookId)}
             className={clsx(
               'flex flex-col items-start px-3 py-2 rounded-lg border transition-colors text-left',
-              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)]',
+              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-token',
               isActive
-                ? 'bg-[var(--color-accent)] border-[var(--color-accent)] text-white'
-                : 'bg-[var(--bg-surface)] border-[var(--border-default)] text-[var(--text-secondary)] hover:bg-[var(--bg-subtle)]'
+                ? 'bg-accent-token border-accent-token text-white'
+                : 'bg-surface border-default-token text-secondary-token hover:bg-subtle'
             )}
           >
             <span
               className={clsx(
                 'text-sm font-medium',
-                isActive ? 'text-white' : 'text-[var(--text-primary)]'
+                isActive ? 'text-white' : 'text-primary-token'
               )}
             >
               {book.title}
@@ -96,7 +96,7 @@ export function BookShelf({ books, activeId, onSelect }: BookShelfProps) {
             <span
               className={clsx(
                 'text-[11px] mt-0.5',
-                isActive ? 'text-white/70' : 'text-[var(--text-muted)]'
+                isActive ? 'text-white/70' : 'text-muted-token'
               )}
             >
               {t.chapterCount(book.chapter_count)} · {t.updatedAt}{' '}

@@ -39,15 +39,15 @@ function urgencyBorderClass(level?: 'red' | 'yellow' | 'green'): string {
 }
 
 function urgencyBadgeClass(level?: 'red' | 'yellow' | 'green'): string {
-  if (level === 'red') return 'bg-[var(--color-danger-surface)] text-[var(--color-danger)]';
-  if (level === 'yellow') return 'bg-[var(--color-warning-surface)] text-[var(--color-warning)]';
-  if (level === 'green') return 'bg-[var(--color-success-surface)] text-[var(--color-success)]';
+  if (level === 'red') return 'bg-danger-surface text-danger-token';
+  if (level === 'yellow') return 'bg-warning-surface text-warning-token';
+  if (level === 'green') return 'bg-success-surface text-success-token';
   return '';
 }
 
 function EnclosureBadge({ enclosure }: { enclosure: string }) {
   return (
-    <span className="text-[10px] px-1.5 py-0.5 rounded-md font-semibold bg-[var(--color-accent-surface)] text-[var(--color-accent)]">
+    <span className="text-[10px] px-1.5 py-0.5 rounded-md font-semibold bg-accent-surface text-accent-token">
       {enclosure}
     </span>
   );
@@ -58,9 +58,7 @@ function PaymentsBadge({ payments, label }: { payments: number; label: string })
   return (
     <span
       className={`text-[10px] px-1.5 py-0.5 rounded-md font-semibold ${
-        hasPayment
-          ? 'bg-[var(--color-success-surface)] text-[var(--color-success)]'
-          : 'bg-[var(--bg-subtle)] text-[var(--text-muted)]'
+        hasPayment ? 'bg-success-surface text-success-token' : 'bg-subtle text-muted-token'
       }`}
     >
       {label} {payments}
@@ -78,9 +76,7 @@ function EngagementBadge({
   return (
     <span
       className={`text-[10px] px-1.5 py-0.5 rounded-md font-semibold ${
-        deep
-          ? 'bg-[var(--color-success-surface)] text-[var(--color-success)]'
-          : 'bg-[var(--bg-subtle)] text-[var(--text-muted)]'
+        deep ? 'bg-success-surface text-success-token' : 'bg-subtle text-muted-token'
       }`}
     >
       {deep ? labels.deep : labels.shallow}
@@ -93,8 +89,8 @@ function OwnerRow({ role, group, name }: { role: string; group: string; name: st
   const display = isValidValue(group) ? `${group} · ${name}` : name;
   return (
     <div className="flex justify-between items-center text-xs">
-      <span className="text-[var(--text-muted)] font-medium w-6 shrink-0">{role}</span>
-      <span className="text-[var(--text-secondary)] truncate text-right">{display}</span>
+      <span className="text-muted-token font-medium w-6 shrink-0">{role}</span>
+      <span className="text-secondary-token truncate text-right">{display}</span>
     </div>
   );
 }
@@ -114,8 +110,8 @@ function HighPotentialCard({
     >
       <div className="flex items-start justify-between mb-3">
         <div className="flex items-center gap-1.5 flex-wrap">
-          <Star className="w-3.5 h-3.5 text-[var(--color-warning)] shrink-0" />
-          <span className="text-sm font-semibold text-[var(--text-primary)]">#{student.id}</span>
+          <Star className="w-3.5 h-3.5 text-warning-token shrink-0" />
+          <span className="text-sm font-semibold text-primary-token">#{student.id}</span>
           <EnclosureBadge enclosure={student.enclosure} />
           {warroom?.urgency_level && (
             <span
@@ -132,22 +128,22 @@ function HighPotentialCard({
         <PaymentsBadge payments={student.payments} label={t('paid')} />
       </div>
 
-      <div className="grid grid-cols-3 gap-2 mb-4 rounded-lg bg-[var(--bg-subtle)] px-3 py-2.5">
+      <div className="grid grid-cols-3 gap-2 mb-4 rounded-lg bg-subtle px-3 py-2.5">
         <div className="text-center">
-          <div className="text-base font-bold text-[var(--text-primary)]">{student.total_new}</div>
-          <p className="text-[10px] text-[var(--text-muted)] mt-0.5">{t('new')}</p>
+          <div className="text-base font-bold text-primary-token">{student.total_new}</div>
+          <p className="text-[10px] text-muted-token mt-0.5">{t('new')}</p>
         </div>
-        <div className="text-center border-x border-[var(--border-default)]">
-          <div className="text-base font-bold text-[var(--text-primary)]">{student.attendance}</div>
-          <p className="text-[10px] text-[var(--text-muted)] mt-0.5">{t('attendance')}</p>
+        <div className="text-center border-x border-default-token">
+          <div className="text-base font-bold text-primary-token">{student.attendance}</div>
+          <p className="text-[10px] text-muted-token mt-0.5">{t('attendance')}</p>
         </div>
         <div className="text-center">
           <div
-            className={`text-base font-bold ${student.payments > 0 ? 'text-[var(--color-success)]' : 'text-[var(--text-primary)]'}`}
+            className={`text-base font-bold ${student.payments > 0 ? 'text-success-token' : 'text-primary-token'}`}
           >
             {student.payments}
           </div>
-          <p className="text-[10px] text-[var(--text-muted)] mt-0.5">{t('paid')}</p>
+          <p className="text-[10px] text-muted-token mt-0.5">{t('paid')}</p>
         </div>
       </div>
 
@@ -157,10 +153,10 @@ function HighPotentialCard({
         <OwnerRow role="LP" group={student.lp_group} name={student.lp_name} />
       </div>
 
-      <div className="pt-2.5 border-t border-[var(--border-subtle)] space-y-1.5">
+      <div className="pt-2.5 border-t border-subtle-token space-y-1.5">
         {student.deep_engagement != null && (
           <div className="flex items-center justify-between">
-            <span className="text-xs text-[var(--text-muted)]">{t('engagementDepth')}</span>
+            <span className="text-xs text-muted-token">{t('engagementDepth')}</span>
             <EngagementBadge
               deep={!!student.deep_engagement}
               labels={{ deep: t('deepEngagement'), shallow: t('shallowEngagement') }}
@@ -170,14 +166,14 @@ function HighPotentialCard({
 
         {student.days_since_last_cc_contact != null && (
           <div className="flex items-center justify-between text-xs">
-            <span className="text-[var(--text-muted)]">{t('lostContact')}</span>
+            <span className="text-muted-token">{t('lostContact')}</span>
             <span
               className={`font-semibold ${
                 student.days_since_last_cc_contact > 14
-                  ? 'text-[var(--color-danger)]'
+                  ? 'text-danger-token'
                   : student.days_since_last_cc_contact > 7
-                    ? 'text-[var(--color-warning)]'
-                    : 'text-[var(--color-success)]'
+                    ? 'text-warning-token'
+                    : 'text-success-token'
               }`}
             >
               {student.days_since_last_cc_contact} {t('days')}
@@ -186,31 +182,29 @@ function HighPotentialCard({
         )}
 
         {warroom && (
-          <div className="grid grid-cols-3 gap-1 pt-1.5 mt-1 border-t border-[var(--border-subtle)] text-center">
+          <div className="grid grid-cols-3 gap-1 pt-1.5 mt-1 border-t border-subtle-token text-center">
             <div>
               <div className="flex items-center justify-center gap-0.5 mb-0.5">
-                <Phone className="w-3 h-3 text-[var(--text-muted)]" />
-                <span className="text-xs font-bold text-[var(--text-primary)]">
-                  {warroom.checkin_7d}
-                </span>
+                <Phone className="w-3 h-3 text-muted-token" />
+                <span className="text-xs font-bold text-primary-token">{warroom.checkin_7d}</span>
               </div>
-              <p className="text-[10px] text-[var(--text-muted)]">{t('checkin')}</p>
+              <p className="text-[10px] text-muted-token">{t('checkin')}</p>
             </div>
             <div>
               <div className="flex items-center justify-center gap-0.5 mb-0.5">
-                <Clock className="w-3 h-3 text-[var(--text-muted)]" />
-                <span className="text-xs font-bold text-[var(--text-primary)]">
+                <Clock className="w-3 h-3 text-muted-token" />
+                <span className="text-xs font-bold text-primary-token">
                   {warroom.days_remaining}
                   {t('days')}
                 </span>
               </div>
-              <p className="text-[10px] text-[var(--text-muted)]">{t('window')}</p>
+              <p className="text-[10px] text-muted-token">{t('window')}</p>
             </div>
             <div>
-              <div className="text-xs font-bold text-[var(--text-primary)] mb-0.5">
+              <div className="text-xs font-bold text-primary-token mb-0.5">
                 {warroom.last_contact_date ?? '—'}
               </div>
-              <p className="text-[10px] text-[var(--text-muted)]">{t('connected')}</p>
+              <p className="text-[10px] text-muted-token">{t('connected')}</p>
             </div>
           </div>
         )}
@@ -347,24 +341,24 @@ export default function HighPotentialPage() {
       <div className="flex items-center justify-between gap-4 flex-wrap">
         <div>
           <h1 className="page-title">{t('title')}</h1>
-          <p className="text-sm text-[var(--text-secondary)] mt-0.5">
+          <p className="text-sm text-secondary-token mt-0.5">
             {t('subtitle')} {allStudents.length} {t('subtitlePeople')}
           </p>
-          <p className="text-[10px] text-[var(--text-muted)] mt-1">
+          <p className="text-[10px] text-muted-token mt-1">
             {t('urgencyLabel')}
             <span className="inline-flex items-center gap-1 mx-1">
-              <span className="w-2 h-2 rounded-full bg-[var(--color-danger)] inline-block" />
-              <span className="text-[var(--color-danger)] font-medium">{t('urgencyRed')}</span>
+              <span className="w-2 h-2 rounded-full bg-danger-token inline-block" />
+              <span className="text-danger-token font-medium">{t('urgencyRed')}</span>
             </span>
             {t('urgencyRedDesc')}
             <span className="inline-flex items-center gap-1 mx-1">
-              <span className="w-2 h-2 rounded-full bg-[var(--color-warning)] inline-block" />
-              <span className="text-[var(--color-warning)] font-medium">{t('urgencyYellow')}</span>
+              <span className="w-2 h-2 rounded-full bg-warning-token inline-block" />
+              <span className="text-warning-token font-medium">{t('urgencyYellow')}</span>
             </span>
             {t('urgencyYellowDesc')}
             <span className="inline-flex items-center gap-1 mx-1">
-              <span className="w-2 h-2 rounded-full bg-[var(--color-success)] inline-block" />
-              <span className="text-[var(--color-success)] font-medium">{t('urgencyGreen')}</span>
+              <span className="w-2 h-2 rounded-full bg-success-token inline-block" />
+              <span className="text-success-token font-medium">{t('urgencyGreen')}</span>
             </span>
             {t('urgencyGreenDesc')}
           </p>
@@ -373,13 +367,13 @@ export default function HighPotentialPage() {
         {/* 右侧操作 */}
         <div className="flex items-center gap-2">
           {/* 视图切换 */}
-          <div className="flex items-center bg-[var(--bg-surface)] border border-[var(--border-default)] rounded-lg p-0.5 shadow-sm">
+          <div className="flex items-center bg-surface border border-default-token rounded-lg p-0.5 shadow-sm">
             <button
               onClick={() => setViewMode('table')}
               className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium transition-colors ${
                 viewMode === 'table'
-                  ? 'bg-[var(--color-accent)] text-white'
-                  : 'text-[var(--text-secondary)] hover:bg-[var(--bg-subtle)]'
+                  ? 'bg-accent-token text-white'
+                  : 'text-secondary-token hover:bg-subtle'
               }`}
             >
               <List className="w-3.5 h-3.5" />
@@ -389,8 +383,8 @@ export default function HighPotentialPage() {
               onClick={() => setViewMode('card')}
               className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium transition-colors ${
                 viewMode === 'card'
-                  ? 'bg-[var(--color-accent)] text-white'
-                  : 'text-[var(--text-secondary)] hover:bg-[var(--bg-subtle)]'
+                  ? 'bg-accent-token text-white'
+                  : 'text-secondary-token hover:bg-subtle'
               }`}
             >
               <LayoutGrid className="w-3.5 h-3.5" />

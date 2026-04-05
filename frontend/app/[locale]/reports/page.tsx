@@ -63,7 +63,7 @@ export default function ReportsPage() {
                       className={`w-full text-left px-3 py-2.5 rounded-lg text-sm transition-colors ${
                         selected?.filename === r.filename
                           ? 'bg-action-surface text-action-text font-medium'
-                          : 'hover:bg-[var(--bg-subtle)] text-[var(--text-secondary)]'
+                          : 'hover:bg-subtle text-secondary-token'
                       }`}
                     >
                       <div className="font-medium truncate">{r.filename}</div>
@@ -73,22 +73,20 @@ export default function ReportsPage() {
                             r.report_type === 'ops'
                               ? 'bg-action-accent-subtle text-action-accent'
                               : r.report_type === 'exec'
-                                ? 'bg-[var(--color-accent-surface)] text-[var(--color-accent)]'
-                                : 'bg-[var(--bg-subtle)] text-[var(--text-secondary)]'
+                                ? 'bg-accent-surface text-accent-token'
+                                : 'bg-subtle text-secondary-token'
                           }`}
                         >
                           {r.report_type}
                         </span>
-                        {r.date && (
-                          <span className="text-xs text-[var(--text-muted)]">{r.date}</span>
-                        )}
+                        {r.date && <span className="text-xs text-muted-token">{r.date}</span>}
                       </div>
                     </button>
                   </li>
                 ))}
               </ul>
             ) : (
-              <div className="text-sm text-[var(--text-muted)] text-center py-8">
+              <div className="text-sm text-muted-token text-center py-8">
                 {t('reports.label.noReports')}
               </div>
             )}
@@ -106,12 +104,12 @@ export default function ReportsPage() {
                   downloadURL={reportsAPI.downloadURL(selected.filename)}
                 />
               ) : (
-                <div className="text-sm text-[var(--text-muted)] text-center py-20">
+                <div className="text-sm text-muted-token text-center py-20">
                   {t('reports.label.loading')}
                 </div>
               )
             ) : (
-              <div className="flex flex-col items-center justify-center h-full text-[var(--text-muted)]">
+              <div className="flex flex-col items-center justify-center h-full text-muted-token">
                 <svg
                   className="w-12 h-12 mb-3 opacity-30"
                   fill="none"

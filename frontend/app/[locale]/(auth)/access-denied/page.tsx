@@ -77,25 +77,23 @@ export default function AccessDeniedPage() {
         >
           {/* Logo */}
           <div className="flex justify-center mb-6">
-            <BrandMark size={36} className="text-[var(--brand-p1)] animate-pulse-soft" />
+            <BrandMark size={36} className="text-brand-p1 animate-pulse-soft" />
           </div>
 
           {/* 锁图标 */}
           <div className="relative mx-auto w-20 h-20 mb-8">
-            <div className="absolute inset-0 rounded-full bg-[var(--color-action-surface)] animate-auth-glow" />
-            <div className="relative flex items-center justify-center w-20 h-20 rounded-full bg-[var(--color-action-surface)] border border-[var(--brand-p1)]/20">
-              <Lock className="w-8 h-8 text-[var(--brand-p2)]" />
+            <div className="absolute inset-0 rounded-full bg-action-surface animate-auth-glow" />
+            <div className="relative flex items-center justify-center w-20 h-20 rounded-full bg-action-surface border border-brand-p1/20">
+              <Lock className="w-8 h-8 text-brand-p2" />
             </div>
           </div>
 
           {/* 文字 */}
           <div className="auth-card rounded-2xl p-8 md:p-10 text-left">
-            <h1 className="font-display text-2xl font-bold text-[var(--n-900)] text-center mb-2">
+            <h1 className="font-display text-2xl font-bold text-n-900 text-center mb-2">
               {t.title}
             </h1>
-            <p className="text-sm text-[var(--n-500)] leading-relaxed text-center mb-8">
-              {t.subtitle}
-            </p>
+            <p className="text-sm text-n-500 leading-relaxed text-center mb-8">{t.subtitle}</p>
 
             {/* 按钮组 */}
             <div className="space-y-3">
@@ -106,7 +104,7 @@ export default function AccessDeniedPage() {
 
               <Link
                 href={`/${locale}/login`}
-                className="flex items-center justify-center gap-2 w-full px-4 py-3 rounded-xl text-sm font-semibold text-[var(--n-700)] bg-[var(--n-100)] hover:bg-[var(--n-200)] border border-[var(--n-200)] transition-all duration-200"
+                className="flex items-center justify-center gap-2 w-full px-4 py-3 rounded-xl text-sm font-semibold text-n-700 bg-n-100 hover:bg-n-200 border border-n-200 transition-all duration-200"
               >
                 <LogIn className="w-4 h-4" />
                 <span>{t.login}</span>
@@ -115,7 +113,7 @@ export default function AccessDeniedPage() {
           </div>
 
           {/* 状态码 */}
-          <p className="text-xs text-[var(--n-400)] mt-6 tracking-wider font-mono">{t.code}</p>
+          <p className="text-xs text-n-400 mt-6 tracking-wider font-mono">{t.code}</p>
         </div>
       </div>
     </div>

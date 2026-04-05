@@ -126,15 +126,15 @@ export function ReadingGuide({ onNavigate, onDismiss }: ReadingGuideProps) {
   const BADGE_CONFIG = {
     must: {
       label: t.badgeMust,
-      className: 'bg-[var(--color-danger-surface)] text-[var(--color-danger)]',
+      className: 'bg-danger-surface text-danger-token',
     },
     recommended: {
       label: t.badgeRecommended,
-      className: 'bg-[var(--color-warning-surface)] text-[var(--color-warning)]',
+      className: 'bg-warning-surface text-warning-token',
     },
     reference: {
       label: t.badgeReference,
-      className: 'bg-[var(--bg-subtle)] text-[var(--text-muted)]',
+      className: 'bg-subtle text-muted-token',
     },
   };
 
@@ -151,19 +151,19 @@ export function ReadingGuide({ onNavigate, onDismiss }: ReadingGuideProps) {
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm p-4">
       <div className="card-base shadow-[var(--shadow-raised)] w-full max-w-lg">
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--border-subtle)]">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-subtle-token">
           <div className="flex items-center gap-2.5">
-            <div className="p-1.5 rounded-lg bg-[var(--color-accent-surface)]">
-              <BookOpen className="w-5 h-5 text-[var(--color-accent)]" />
+            <div className="p-1.5 rounded-lg bg-accent-surface">
+              <BookOpen className="w-5 h-5 text-accent-token" />
             </div>
             <div>
-              <h2 className="text-base font-semibold text-[var(--text-primary)]">{t.title}</h2>
-              <p className="text-xs text-[var(--text-muted)]">{t.subtitle}</p>
+              <h2 className="text-base font-semibold text-primary-token">{t.title}</h2>
+              <p className="text-xs text-muted-token">{t.subtitle}</p>
             </div>
           </div>
           <button
             onClick={handleDismiss}
-            className="p-1.5 rounded text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-[var(--bg-subtle)] transition-colors focus-visible:outline-none"
+            className="p-1.5 rounded text-muted-token hover:text-secondary-token hover:bg-subtle transition-colors focus-visible:outline-none"
             aria-label={t.ariaClose}
           >
             <X className="w-4 h-4" />
@@ -182,7 +182,7 @@ export function ReadingGuide({ onNavigate, onDismiss }: ReadingGuideProps) {
                   onNavigate(item.bookId, item.chapterId);
                   handleDismiss();
                 }}
-                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-[var(--bg-subtle)] transition-colors text-left group focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-accent)]"
+                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-subtle transition-colors text-left group focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-accent-token"
               >
                 <span
                   className={`shrink-0 text-[10px] font-semibold px-1.5 py-0.5 rounded ${badge.className}`}
@@ -190,24 +190,22 @@ export function ReadingGuide({ onNavigate, onDismiss }: ReadingGuideProps) {
                   {badge.label}
                 </span>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-[var(--text-primary)] truncate">
+                  <p className="text-sm font-medium text-primary-token truncate">
                     {localItem.title}
                   </p>
-                  <p className="text-xs text-[var(--text-muted)] truncate">
-                    {localItem.description}
-                  </p>
+                  <p className="text-xs text-muted-token truncate">{localItem.description}</p>
                 </div>
-                <ArrowRight className="w-3.5 h-3.5 text-[var(--text-muted)] shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
+                <ArrowRight className="w-3.5 h-3.5 text-muted-token shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
               </button>
             );
           })}
         </div>
 
         {/* Footer */}
-        <div className="px-5 py-3 border-t border-[var(--border-subtle)] flex justify-end">
+        <div className="px-5 py-3 border-t border-subtle-token flex justify-end">
           <button
             onClick={handleDismiss}
-            className="text-xs text-[var(--text-muted)] hover:text-[var(--text-secondary)] underline decoration-dotted transition-colors focus-visible:outline-none"
+            className="text-xs text-muted-token hover:text-secondary-token underline decoration-dotted transition-colors focus-visible:outline-none"
           >
             {t.dismissBtn}
           </button>

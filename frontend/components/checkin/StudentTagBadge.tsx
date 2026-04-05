@@ -22,33 +22,27 @@ type TagKey =
 const TAG_STYLE: Record<TagKey, TagConfig> = {
   full_attendance: {
     emoji: '🏆',
-    className:
-      'bg-[var(--color-warning-surface)] text-[var(--color-warning)] border-[var(--color-warning)]',
+    className: 'bg-warning-surface text-warning-token border-warning-token',
   },
   active: {
     emoji: '🌟',
-    className:
-      'bg-[var(--color-success-surface)] text-[var(--color-success)] border-[var(--color-success)]',
+    className: 'bg-success-surface text-success-token border-success-token',
   },
   improving: {
     emoji: '📈',
-    className:
-      'bg-[var(--color-accent-surface)] text-[var(--color-accent)] border-[var(--color-accent)]',
+    className: 'bg-accent-surface text-accent-token border-accent-token',
   },
   declining: {
     emoji: '⚠️',
-    className:
-      'bg-[var(--color-danger-surface)] text-[var(--color-danger)] border-[var(--color-danger)]',
+    className: 'bg-danger-surface text-danger-token border-danger-token',
   },
   dormant_hp: {
     emoji: '🔴',
-    className:
-      'bg-[var(--bg-subtle)] text-[var(--text-primary)] border-[var(--border-default)] animate-pulse',
+    className: 'bg-subtle text-primary-token border-default-token animate-pulse',
   },
   super_convert: {
     emoji: '💎',
-    className:
-      'bg-[var(--color-accent-surface)] text-[var(--color-accent)] border-[var(--color-accent)]',
+    className: 'bg-accent-surface text-accent-token border-accent-token',
   },
 };
 
@@ -98,7 +92,7 @@ function resolveStyle(tag: string, locale: string): TagConfig | undefined {
 /** 无法识别的标签 fallback 样式 */
 const DEFAULT_CONFIG: TagConfig = {
   emoji: '🏷️',
-  className: 'bg-[var(--bg-subtle)] text-[var(--text-secondary)] border-[var(--border-default)]',
+  className: 'bg-subtle text-secondary-token border-default-token',
 };
 
 interface StudentTagBadgeProps {
@@ -142,7 +136,7 @@ export function StudentTagBadge({ tags, maxVisible }: StudentTagBadgeProps) {
         );
       })}
       {overflow > 0 && (
-        <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium bg-[var(--bg-subtle)] text-[var(--text-secondary)] border border-[var(--border-default)]">
+        <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium bg-subtle text-secondary-token border border-default-token">
           +{overflow}
         </span>
       )}

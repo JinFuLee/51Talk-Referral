@@ -115,10 +115,10 @@ export function Sidebar() {
   const t = I18N[(locale as SidebarLocale) in I18N ? (locale as SidebarLocale) : 'zh'];
 
   return (
-    <aside className="w-56 bg-[var(--bg-subtle)] flex flex-col shrink-0">
-      <div className="px-4 py-5 border-b border-[var(--border-default)]">
+    <aside className="w-56 bg-subtle flex flex-col shrink-0">
+      <div className="px-4 py-5 border-b border-default-token">
         <div className="text-white font-bold text-sm leading-tight">ref-ops-engine</div>
-        <div className="text-[var(--text-muted)] text-xs mt-0.5">{t.subtitle}</div>
+        <div className="text-muted-token text-xs mt-0.5">{t.subtitle}</div>
       </div>
 
       <nav className="flex-1 px-2 py-4 space-y-0.5 overflow-y-auto">
@@ -134,7 +134,7 @@ export function Sidebar() {
                 'flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',
                 isActive
                   ? 'bg-primary text-primary-foreground'
-                  : 'text-[var(--text-muted)] hover:text-white hover:bg-[var(--bg-subtle)]'
+                  : 'text-muted-token hover:text-white hover:bg-subtle'
               )}
             >
               {t.nav[href]}
@@ -143,8 +143,8 @@ export function Sidebar() {
         })}
       </nav>
 
-      <div className="px-4 py-3 border-t border-[var(--border-default)]">
-        <p className="text-xs text-[var(--text-secondary)]">{t.footer}</p>
+      <div className="px-4 py-3 border-t border-default-token">
+        <p className="text-xs text-secondary-token">{t.footer}</p>
       </div>
     </aside>
   );

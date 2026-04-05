@@ -39,27 +39,25 @@ export default function AnalyticsPage() {
       {/* ── 顶部 Header ── */}
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-xl font-bold text-[var(--text-primary)] font-display">
-            {t('title')}
-          </h1>
-          <p className="text-sm text-[var(--text-muted)] mt-0.5">{t('subtitle')}</p>
+          <h1 className="text-xl font-bold text-primary-token font-display">{t('title')}</h1>
+          <p className="text-sm text-muted-token mt-0.5">{t('subtitle')}</p>
         </div>
       </div>
 
       {/* ── BM 进度条 ── */}
       <div className="card-base p-4">
         <div className="flex items-center justify-between mb-2">
-          <span className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">
+          <span className="text-xs font-semibold text-muted-token uppercase tracking-wider">
             {t('bmProgress')}
           </span>
           <div className="flex items-center gap-3">
-            <span className="text-xs text-[var(--text-muted)]">
+            <span className="text-xs text-muted-token">
               {t('dataDate')}：{date}
             </span>
-            <span className="text-sm font-bold text-[var(--text-primary)]">{formatRate(bm)}</span>
+            <span className="text-sm font-bold text-primary-token">{formatRate(bm)}</span>
           </div>
         </div>
-        <div className="w-full bg-[var(--color-accent-subtle)] rounded-full h-2">
+        <div className="w-full bg-accent-subtle rounded-full h-2">
           <div
             className="h-2 rounded-full transition-all duration-500"
             style={{
@@ -79,15 +77,15 @@ export default function AnalyticsPage() {
       {isLoading && (
         <div className="space-y-4">
           {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="card-base h-48 animate-pulse bg-[var(--n-100)]" />
+            <div key={i} className="card-base h-48 animate-pulse bg-n-100" />
           ))}
         </div>
       )}
 
       {error && !isLoading && (
         <div className="card-base flex flex-col items-center justify-center py-12 gap-3">
-          <p className="text-base font-semibold text-[var(--color-danger)]">{t('loadError')}</p>
-          <p className="text-sm text-[var(--text-muted)]">{t('loadErrorDesc')}</p>
+          <p className="text-base font-semibold text-danger-token">{t('loadError')}</p>
+          <p className="text-sm text-muted-token">{t('loadErrorDesc')}</p>
           <button onClick={() => mutate()} className="btn-secondary">
             {t('retry')}
           </button>
@@ -96,8 +94,8 @@ export default function AnalyticsPage() {
 
       {!isLoading && !error && !data && (
         <div className="card-base flex flex-col items-center justify-center py-12 gap-2">
-          <p className="text-base font-semibold text-[var(--text-secondary)]">{t('noData')}</p>
-          <p className="text-sm text-[var(--text-muted)]">{t('noDataDesc')}</p>
+          <p className="text-base font-semibold text-secondary-token">{t('noData')}</p>
+          <p className="text-sm text-muted-token">{t('noDataDesc')}</p>
         </div>
       )}
 

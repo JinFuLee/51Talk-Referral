@@ -150,7 +150,7 @@ interface StudentInsightsTabProps {
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
   return (
-    <h3 className="text-sm font-semibold text-[var(--text-secondary)] uppercase tracking-wider mb-3">
+    <h3 className="text-sm font-semibold text-secondary-token uppercase tracking-wider mb-3">
       {children}
     </h3>
   );
@@ -243,13 +243,11 @@ export function StudentInsightsTab({ enclosureFilter }: StudentInsightsTabProps)
         <SectionTitle>{t.freqQuadrant}</SectionTitle>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <div className="card-base p-5">
-            <p className="text-xs font-medium text-[var(--text-secondary)] mb-3">{t.freqLabel}</p>
+            <p className="text-xs font-medium text-secondary-token mb-3">{t.freqLabel}</p>
             <StudentFrequencyChart data={data.frequency_distribution} />
           </div>
           <div className="card-base p-5">
-            <p className="text-xs font-medium text-[var(--text-secondary)] mb-3">
-              {t.quadrantLabel}
-            </p>
+            <p className="text-xs font-medium text-secondary-token mb-3">{t.quadrantLabel}</p>
             <LessonCheckinCross data={data.lesson_checkin_cross} />
           </div>
         </div>
@@ -259,7 +257,7 @@ export function StudentInsightsTab({ enclosureFilter }: StudentInsightsTabProps)
       <div>
         <SectionTitle>{t.enclosureRate}</SectionTitle>
         <div className="card-base p-5">
-          <p className="text-xs text-[var(--text-muted)] mb-3">{t.enclosureDesc}</p>
+          <p className="text-xs text-muted-token mb-3">{t.enclosureDesc}</p>
           <EnclosureParticipationChart data={data.by_enclosure} />
         </div>
       </div>
@@ -268,7 +266,7 @@ export function StudentInsightsTab({ enclosureFilter }: StudentInsightsTabProps)
       <div>
         <SectionTitle>{t.conversionFunnel}</SectionTitle>
         <div className="card-base p-5">
-          <p className="text-xs text-[var(--text-muted)] mb-3">{t.conversionDesc}</p>
+          <p className="text-xs text-muted-token mb-3">{t.conversionDesc}</p>
           <ConversionFunnelProof data={data.conversion_funnel} />
         </div>
       </div>
@@ -278,15 +276,11 @@ export function StudentInsightsTab({ enclosureFilter }: StudentInsightsTabProps)
         <SectionTitle>{t.contactRenewal}</SectionTitle>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <div className="card-base p-5">
-            <p className="text-xs font-medium text-[var(--text-secondary)] mb-3">
-              {t.contactLabel}
-            </p>
+            <p className="text-xs font-medium text-secondary-token mb-3">{t.contactLabel}</p>
             <ContactCheckinChart data={data.contact_checkin_response} />
           </div>
           <div className="card-base p-5">
-            <p className="text-xs font-medium text-[var(--text-secondary)] mb-3">
-              {t.renewalLabel}
-            </p>
+            <p className="text-xs font-medium text-secondary-token mb-3">{t.renewalLabel}</p>
             <RenewalCheckinChart data={data.renewal_checkin_correlation} />
           </div>
         </div>

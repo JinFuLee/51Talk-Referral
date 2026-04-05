@@ -45,7 +45,7 @@ export function RevenueContributionTable({ contributions }: RevenueContributionT
   const locale = useLocale();
   const t = (I18N as unknown as Record<string, (typeof I18N)['zh']>)[locale] ?? I18N['zh'];
   if (contributions.length === 0) {
-    return <p className="text-sm text-[var(--text-muted)] text-center py-6">{t.empty}</p>;
+    return <p className="text-sm text-muted-token text-center py-6">{t.empty}</p>;
   }
 
   const totalRevenue = contributions.reduce((sum, c) => sum + (c.revenue ?? 0), 0);
@@ -65,39 +65,39 @@ export function RevenueContributionTable({ contributions }: RevenueContributionT
           {contributions.map((c) => {
             const barWidth = Math.min(100, ((c.revenue ?? 0) / (totalRevenue || 1)) * 100);
             return (
-              <tr key={c.channel} className="even:bg-[var(--bg-subtle)]">
+              <tr key={c.channel} className="even:bg-subtle">
                 <td className="py-1 px-2 text-xs">
-                  <span className="font-medium text-[var(--text-primary)]">{c.channel}</span>
+                  <span className="font-medium text-primary-token">{c.channel}</span>
                   {/* Mini bar */}
-                  <div className="mt-0.5 w-full bg-[var(--bg-subtle)] rounded-full h-1">
+                  <div className="mt-0.5 w-full bg-subtle rounded-full h-1">
                     <div
                       className="h-1 rounded-full bg-action-accent-muted transition-all duration-200"
                       style={{ width: `${barWidth}%` }}
                     />
                   </div>
                 </td>
-                <td className="py-1 px-2 text-xs text-right font-mono tabular-nums font-semibold text-[var(--text-primary)]">
+                <td className="py-1 px-2 text-xs text-right font-mono tabular-nums font-semibold text-primary-token">
                   {formatRevenue(c.revenue)}
                 </td>
-                <td className="py-1 px-2 text-xs text-right font-mono tabular-nums text-[var(--text-secondary)]">
+                <td className="py-1 px-2 text-xs text-right font-mono tabular-nums text-secondary-token">
                   {formatRate(c.share)}
                 </td>
-                <td className="py-1 px-2 text-xs text-right font-mono tabular-nums text-[var(--text-secondary)]">
+                <td className="py-1 px-2 text-xs text-right font-mono tabular-nums text-secondary-token">
                   {formatRevenue(c.per_capita)}
                 </td>
               </tr>
             );
           })}
           {/* Total row */}
-          <tr className="bg-[var(--bg-subtle)] font-semibold border-t border-[var(--border-subtle)]">
-            <td className="py-1 px-2 text-xs text-[var(--text-primary)]">{t.total}</td>
-            <td className="py-1 px-2 text-xs text-right font-mono tabular-nums text-[var(--text-primary)]">
+          <tr className="bg-subtle font-semibold border-t border-subtle-token">
+            <td className="py-1 px-2 text-xs text-primary-token">{t.total}</td>
+            <td className="py-1 px-2 text-xs text-right font-mono tabular-nums text-primary-token">
               {formatRevenue(totalRevenue)}
             </td>
-            <td className="py-1 px-2 text-xs text-right font-mono tabular-nums text-[var(--text-secondary)]">
+            <td className="py-1 px-2 text-xs text-right font-mono tabular-nums text-secondary-token">
               100%
             </td>
-            <td className="py-1 px-2 text-xs text-right font-mono tabular-nums text-[var(--text-muted)]">
+            <td className="py-1 px-2 text-xs text-right font-mono tabular-nums text-muted-token">
               —
             </td>
           </tr>

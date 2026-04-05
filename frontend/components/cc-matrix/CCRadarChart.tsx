@@ -95,14 +95,14 @@ export function CCRadarChart({ data, onClose }: CCRadarChartProps) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-      <div className="bg-[var(--bg-surface)] border border-[var(--border-default)] rounded-xl shadow-2xl p-5 w-[360px]">
+      <div className="bg-surface border border-default-token rounded-xl shadow-2xl p-5 w-[360px]">
         <div className="flex items-center justify-between mb-3">
-          <h3 className="text-sm font-semibold text-[var(--text-primary)]">
+          <h3 className="text-sm font-semibold text-primary-token">
             {data.cc_name} — {t.title}
           </h3>
           <button
             onClick={onClose}
-            className="text-[var(--text-muted)] hover:text-[var(--text-primary)] text-lg leading-none transition-colors"
+            className="text-muted-token hover:text-primary-token text-lg leading-none transition-colors"
             aria-label={t.close}
           >
             ×
@@ -145,8 +145,8 @@ export function CCRadarChart({ data, onClose }: CCRadarChartProps) {
         <div className="grid grid-cols-3 gap-1 mt-2">
           {LABELS.map(({ key, label }) => (
             <div key={key} className="text-center">
-              <div className="text-xs text-[var(--text-muted)]">{label}</div>
-              <div className="text-sm font-semibold font-mono text-[var(--text-primary)]">
+              <div className="text-xs text-muted-token">{label}</div>
+              <div className="text-sm font-semibold font-mono text-primary-token">
                 {formatRate(data[key] ?? 0)}
               </div>
             </div>

@@ -18,7 +18,7 @@ export function BottomTabBar() {
 
   return (
     <nav
-      className="block md:hidden fixed bottom-0 left-0 right-0 z-50 bg-[var(--bg-surface)] border-t border-[var(--border-default)]"
+      className="block md:hidden fixed bottom-0 left-0 right-0 z-50 bg-surface border-t border-default-token"
       style={{ height: 56 }}
     >
       <div className="flex h-full items-stretch">
@@ -29,9 +29,7 @@ export function BottomTabBar() {
               key={href}
               href={href}
               className={`flex-1 flex flex-col items-center justify-center gap-0.5 transition-colors ${
-                isActive
-                  ? 'text-[var(--brand-p1)]'
-                  : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'
+                isActive ? 'text-brand-p1' : 'text-muted-token hover:text-secondary-token'
               }`}
             >
               <Icon size={20} strokeWidth={isActive ? 2.5 : 1.75} />

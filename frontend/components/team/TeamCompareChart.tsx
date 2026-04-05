@@ -67,7 +67,7 @@ export function TeamCompareChart({ teams }: TeamCompareChartProps) {
   const t = I18N[locale as keyof typeof I18N] ?? I18N.zh;
 
   if (teams.length === 0) {
-    return <div className="text-center py-8 text-sm text-[var(--text-muted)]">{t.empty}</div>;
+    return <div className="text-center py-8 text-sm text-muted-token">{t.empty}</div>;
   }
 
   const chartData = teams.map((item) => ({
@@ -80,7 +80,7 @@ export function TeamCompareChart({ teams }: TeamCompareChartProps) {
   return (
     <div className="space-y-6">
       <div>
-        <p className="text-xs text-[var(--text-muted)] mb-3">{t.participationTitle}</p>
+        <p className="text-xs text-muted-token mb-3">{t.participationTitle}</p>
         <ResponsiveContainer width="100%" height={200}>
           <BarChart data={chartData} barSize={24}>
             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={CHART_PALETTE.grid} />
@@ -120,7 +120,7 @@ export function TeamCompareChart({ teams }: TeamCompareChartProps) {
       </div>
 
       <div>
-        <p className="text-xs text-[var(--text-muted)] mb-3">{t.regVsPayTitle}</p>
+        <p className="text-xs text-muted-token mb-3">{t.regVsPayTitle}</p>
         <ResponsiveContainer width="100%" height={220}>
           <BarChart data={chartData} barSize={20}>
             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={CHART_PALETTE.grid} />

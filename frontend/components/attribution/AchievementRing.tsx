@@ -26,9 +26,9 @@ function rateColor(rate: number): string {
 }
 
 function rateLabel(rate: number): string {
-  if (rate >= 1) return 'text-[var(--color-success)]';
+  if (rate >= 1) return 'text-success-token';
   if (rate >= 0.5) return 'text-action-accent';
-  return 'text-[var(--color-danger)]';
+  return 'text-danger-token';
 }
 
 export function AchievementRing({ label, actual, target, rate }: AchievementRingProps) {
@@ -41,8 +41,8 @@ export function AchievementRing({ label, actual, target, rate }: AchievementRing
   const data = [{ value: pct }, { value: 1 - pct }];
 
   return (
-    <div className="flex flex-col items-center gap-1 p-3 bg-[var(--bg-surface)] rounded-xl border border-[var(--border-default)] shadow-[var(--shadow-subtle)]">
-      <p className="text-xs text-[var(--text-secondary)] font-medium">{label}</p>
+    <div className="flex flex-col items-center gap-1 p-3 bg-surface rounded-xl border border-default-token shadow-[var(--shadow-subtle)]">
+      <p className="text-xs text-secondary-token font-medium">{label}</p>
 
       {/* 环形图 */}
       <div className="relative">
@@ -73,10 +73,10 @@ export function AchievementRing({ label, actual, target, rate }: AchievementRing
 
       {/* 实际/目标 */}
       <div className="text-center">
-        <p className="text-base font-bold tabular-nums text-[var(--text-primary)]">
+        <p className="text-base font-bold tabular-nums text-primary-token">
           {actual.toLocaleString()}
         </p>
-        <p className="text-xs text-[var(--text-muted)]">
+        <p className="text-xs text-muted-token">
           {t.target} {target.toLocaleString()}
         </p>
       </div>

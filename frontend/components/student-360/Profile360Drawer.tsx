@@ -341,9 +341,9 @@ interface Profile360DrawerProps {
 
 function InfoRow({ label, value }: { label: string; value: React.ReactNode }) {
   return (
-    <div className="grid grid-cols-[120px_1fr] gap-2 py-1.5 border-b border-[var(--border-subtle)] last:border-0">
-      <span className="text-xs text-[var(--text-muted)]">{label}</span>
-      <span className="text-xs text-[var(--text-primary)]">{value ?? '—'}</span>
+    <div className="grid grid-cols-[120px_1fr] gap-2 py-1.5 border-b border-subtle-token last:border-0">
+      <span className="text-xs text-muted-token">{label}</span>
+      <span className="text-xs text-primary-token">{value ?? '—'}</span>
     </div>
   );
 }
@@ -361,12 +361,12 @@ function CompareRow({
 }) {
   const diff = current != null && lastMonth != null ? current - lastMonth : null;
   return (
-    <div className="grid grid-cols-[120px_1fr_1fr_60px] gap-2 py-1.5 border-b border-[var(--border-subtle)] last:border-0">
-      <span className="text-xs text-[var(--text-muted)]">{label}</span>
+    <div className="grid grid-cols-[120px_1fr_1fr_60px] gap-2 py-1.5 border-b border-subtle-token last:border-0">
+      <span className="text-xs text-muted-token">{label}</span>
       <span className="text-xs font-mono tabular-nums">
         {current != null ? `${current}${unit}` : '—'}
       </span>
-      <span className="text-xs font-mono tabular-nums text-[var(--text-secondary)]">
+      <span className="text-xs font-mono tabular-nums text-secondary-token">
         {lastMonth != null ? `${lastMonth}${unit}` : '—'}
       </span>
       <span
@@ -374,10 +374,10 @@ function CompareRow({
           diff == null
             ? ''
             : diff > 0
-              ? 'text-[var(--color-success)]'
+              ? 'text-success-token'
               : diff < 0
-                ? 'text-[var(--color-danger)]'
-                : 'text-[var(--text-muted)]'
+                ? 'text-danger-token'
+                : 'text-muted-token'
         }`}
       >
         {diff != null ? (diff > 0 ? `+${diff}${unit}` : `${diff}${unit}`) : '—'}
@@ -398,13 +398,11 @@ function NewResultRow({
   const rate =
     newCount != null && paidCount != null && newCount > 0 ? formatRate(paidCount / newCount) : '—';
   return (
-    <div className="grid grid-cols-[80px_1fr_1fr_60px] gap-2 py-1.5 border-b border-[var(--border-subtle)] last:border-0">
-      <span className="text-xs text-[var(--text-muted)]">{role}</span>
+    <div className="grid grid-cols-[80px_1fr_1fr_60px] gap-2 py-1.5 border-b border-subtle-token last:border-0">
+      <span className="text-xs text-muted-token">{role}</span>
       <span className="text-xs font-mono tabular-nums">{newCount ?? '—'}</span>
       <span className="text-xs font-mono tabular-nums">{paidCount ?? '—'}</span>
-      <span className="text-xs font-mono tabular-nums text-right text-[var(--text-secondary)]">
-        {rate}
-      </span>
+      <span className="text-xs font-mono tabular-nums text-right text-secondary-token">{rate}</span>
     </div>
   );
 }
@@ -444,21 +442,19 @@ export function Profile360Drawer({ stdtId, onClose }: Profile360DrawerProps) {
 
       {/* 抽屉 */}
       <aside
-        className="fixed right-0 top-0 h-full z-50 w-full max-w-2xl bg-[var(--bg-surface)] shadow-2xl flex flex-col overflow-hidden"
+        className="fixed right-0 top-0 h-full z-50 w-full max-w-2xl bg-surface shadow-2xl flex flex-col overflow-hidden"
         role="dialog"
         aria-modal="true"
         aria-label={t.title}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--border-subtle)] shrink-0">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-subtle-token shrink-0">
           <div>
-            <h2 className="text-sm font-bold text-[var(--text-primary)]">
+            <h2 className="text-sm font-bold text-primary-token">
               {t.title}
-              {p?.name && <span className="ml-2 text-[var(--text-secondary)]">{p.name}</span>}
+              {p?.name && <span className="ml-2 text-secondary-token">{p.name}</span>}
             </h2>
-            {stdtId && (
-              <p className="text-xs text-[var(--text-muted)] font-mono mt-0.5">{stdtId}</p>
-            )}
+            {stdtId && <p className="text-xs text-muted-token font-mono mt-0.5">{stdtId}</p>}
           </div>
           <div className="flex items-center gap-2">
             {detail?.is_high_potential && (
@@ -468,7 +464,7 @@ export function Profile360Drawer({ stdtId, onClose }: Profile360DrawerProps) {
             )}
             <button
               onClick={onClose}
-              className="p-1.5 rounded-lg hover:bg-[var(--bg-subtle)] text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
+              className="p-1.5 rounded-lg hover:bg-subtle text-muted-token hover:text-primary-token transition-colors"
               aria-label={t.close}
             >
               <X className="w-4 h-4" />
@@ -483,12 +479,12 @@ export function Profile360Drawer({ stdtId, onClose }: Profile360DrawerProps) {
               <Spinner size="lg" />
             </div>
           ) : !detail ? (
-            <div className="flex justify-center items-center py-16 text-sm text-[var(--text-muted)]">
+            <div className="flex justify-center items-center py-16 text-sm text-muted-token">
               {t.loadError}
             </div>
           ) : (
             <Tabs defaultValue="profile" className="h-full">
-              <TabsList className="w-full rounded-none border-b border-[var(--border-subtle)] bg-transparent h-auto px-4 py-0 justify-start gap-0 overflow-x-auto">
+              <TabsList className="w-full rounded-none border-b border-subtle-token bg-transparent h-auto px-4 py-0 justify-start gap-0 overflow-x-auto">
                 {(
                   [
                     { value: 'profile', label: t.tabs.profile },
@@ -534,10 +530,10 @@ export function Profile360Drawer({ stdtId, onClose }: Profile360DrawerProps) {
                             <span
                               className={`font-medium ${
                                 detail.hp_info.urgency_level === 'red'
-                                  ? 'text-[var(--color-danger)]'
+                                  ? 'text-danger-token'
                                   : detail.hp_info.urgency_level === 'yellow'
-                                    ? 'text-[var(--color-warning)]'
-                                    : 'text-[var(--color-success)]'
+                                    ? 'text-warning-token'
+                                    : 'text-success-token'
                               }`}
                             >
                               {detail.hp_info.urgency_level === 'red'
@@ -561,7 +557,7 @@ export function Profile360Drawer({ stdtId, onClose }: Profile360DrawerProps) {
                 {/* Tab 2: learning */}
                 <TabsContent value="learning">
                   <div className="mb-3">
-                    <div className="grid grid-cols-[120px_1fr_1fr_60px] gap-2 py-1 text-[10px] uppercase tracking-wider text-[var(--text-muted)] font-semibold">
+                    <div className="grid grid-cols-[120px_1fr_1fr_60px] gap-2 py-1 text-[10px] uppercase tracking-wider text-muted-token font-semibold">
                       <span>{t.learning.metric}</span>
                       <span>{t.learning.thisMonth}</span>
                       <span>{t.learning.lastMonth}</span>
@@ -584,8 +580,8 @@ export function Profile360Drawer({ stdtId, onClose }: Profile360DrawerProps) {
                     lastMonth={p?.lesson_consumed_last_month}
                   />
                   {detail.avg_lesson_consumed_3m != null && (
-                    <div className="grid grid-cols-[120px_1fr] gap-2 py-1.5 border-b border-[var(--border-subtle)] last:border-0">
-                      <span className="text-xs text-[var(--text-muted)]">{t.learning.avg3m}</span>
+                    <div className="grid grid-cols-[120px_1fr] gap-2 py-1.5 border-b border-subtle-token last:border-0">
+                      <span className="text-xs text-muted-token">{t.learning.avg3m}</span>
                       <span className="text-xs font-mono tabular-nums">
                         {detail.avg_lesson_consumed_3m.toFixed(1)}
                       </span>
@@ -605,8 +601,8 @@ export function Profile360Drawer({ stdtId, onClose }: Profile360DrawerProps) {
                             className={
                               detail.referral_reward_status.includes('已') ||
                               detail.referral_reward_status.includes('领')
-                                ? 'text-[var(--color-success)] font-medium'
-                                : 'text-[var(--text-muted)]'
+                                ? 'text-success-token font-medium'
+                                : 'text-muted-token'
                             }
                           >
                             {detail.referral_reward_status}
@@ -620,7 +616,7 @@ export function Profile360Drawer({ stdtId, onClose }: Profile360DrawerProps) {
                   </div>
 
                   <div className="mt-4">
-                    <div className="text-xs font-semibold text-[var(--text-secondary)] mb-2">
+                    <div className="text-xs font-semibold text-secondary-token mb-2">
                       {t.referral.network}
                     </div>
                     <ReferralNetwork network={network ?? null} isLoading={networkLoading} />
@@ -663,12 +659,12 @@ export function Profile360Drawer({ stdtId, onClose }: Profile360DrawerProps) {
                           <span
                             className={
                               detail.days_to_card_expiry <= 7
-                                ? 'text-[var(--color-danger)] font-medium'
+                                ? 'text-danger-token font-medium'
                                 : detail.days_to_card_expiry <= 14
-                                  ? 'text-[var(--color-warning)] font-medium'
+                                  ? 'text-warning-token font-medium'
                                   : detail.days_to_card_expiry <= 30
-                                    ? 'text-[var(--color-success)] font-medium'
-                                    : 'text-[var(--text-primary)]'
+                                    ? 'text-success-token font-medium'
+                                    : 'text-primary-token'
                             }
                           >
                             {detail.days_to_card_expiry}
@@ -686,10 +682,10 @@ export function Profile360Drawer({ stdtId, onClose }: Profile360DrawerProps) {
                           <span
                             className={
                               detail.days_since_last_renewal > 60
-                                ? 'text-[var(--color-danger)] font-medium'
+                                ? 'text-danger-token font-medium'
                                 : detail.days_since_last_renewal > 30
-                                  ? 'text-[var(--color-warning)] font-medium'
-                                  : 'text-[var(--text-primary)]'
+                                  ? 'text-warning-token font-medium'
+                                  : 'text-primary-token'
                             }
                           >
                             {detail.days_since_last_renewal}
@@ -714,7 +710,7 @@ export function Profile360Drawer({ stdtId, onClose }: Profile360DrawerProps) {
                 {/* Tab 6: new_result */}
                 <TabsContent value="new_result">
                   <div className="mb-3">
-                    <div className="grid grid-cols-[80px_1fr_1fr_60px] gap-2 py-1 text-[10px] uppercase tracking-wider text-[var(--text-muted)] font-semibold">
+                    <div className="grid grid-cols-[80px_1fr_1fr_60px] gap-2 py-1 text-[10px] uppercase tracking-wider text-muted-token font-semibold">
                       <span>{t.newResult.channel}</span>
                       <span>{t.newResult.newCount}</span>
                       <span>{t.newResult.paidCount}</span>

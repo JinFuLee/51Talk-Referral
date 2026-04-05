@@ -147,9 +147,9 @@ function UrgencyBadge({
   labels: { red: string; yellow: string; green: string };
 }) {
   const bg: Record<string, string> = {
-    red: 'bg-[var(--color-danger-surface)] text-[var(--color-danger)]',
-    yellow: 'bg-[var(--color-warning-surface)] text-[var(--color-warning)]',
-    green: 'bg-[var(--color-success-surface)] text-[var(--color-success)]',
+    red: 'bg-danger-surface text-danger-token',
+    yellow: 'bg-warning-surface text-warning-token',
+    green: 'bg-success-surface text-success-token',
   };
   return (
     <span
@@ -212,17 +212,15 @@ export default function WarroomPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="page-title">{t.pageTitle}</h1>
-          <p className="text-sm text-[var(--text-secondary)] mt-0.5">
+          <p className="text-sm text-secondary-token mt-0.5">
             {t.pageSubtitle(allStudents.length)}
           </p>
         </div>
         {redCount > 0 && (
-          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[var(--color-danger-surface)] border border-[var(--color-danger)]">
-            <AlertTriangle className="w-4 h-4 text-[var(--color-danger)]" />
-            <span className="text-sm font-semibold text-[var(--color-danger)]">
-              {t.todayUrgent}
-            </span>
-            <Badge className="bg-[var(--color-danger)] text-white text-xs px-1.5 py-0 ml-0.5">
+          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-danger-surface border border-danger-token">
+            <AlertTriangle className="w-4 h-4 text-danger-token" />
+            <span className="text-sm font-semibold text-danger-token">{t.todayUrgent}</span>
+            <Badge className="bg-danger-token text-white text-xs px-1.5 py-0 ml-0.5">
               {redCount}
             </Badge>
           </div>
@@ -240,12 +238,12 @@ export default function WarroomPage() {
       <HPFunnel students={allStudents} />
 
       {/* 学员表格 */}
-      <div className="bg-[var(--bg-surface)] rounded-xl border border-[var(--border-default)] shadow-[var(--shadow-subtle)]">
-        <div className="px-3 py-2 border-b border-[var(--border-default)] flex items-center justify-between">
-          <h3 className="text-sm font-semibold text-[var(--text-primary)]">
+      <div className="bg-surface rounded-xl border border-default-token shadow-[var(--shadow-subtle)]">
+        <div className="px-3 py-2 border-b border-default-token flex items-center justify-between">
+          <h3 className="text-sm font-semibold text-primary-token">
             {t.studentList}
             {urgencyFilter && (
-              <span className="ml-2 text-xs font-normal text-[var(--text-muted)]">
+              <span className="ml-2 text-xs font-normal text-muted-token">
                 {t.filteredLabel(urgencyLabels[urgencyFilter])}
               </span>
             )}
@@ -286,7 +284,7 @@ export default function WarroomPage() {
                     <TableRow
                       className={[
                         'cursor-pointer transition-colors',
-                        idx % 2 === 0 ? 'bg-[var(--bg-surface)]' : 'bg-[var(--bg-subtle)]',
+                        idx % 2 === 0 ? 'bg-surface' : 'bg-subtle',
                         isExpanded ? 'bg-action-accent-surface dark:bg-action-accent/10' : '',
                       ].join(' ')}
                       onClick={() => setExpandedId(isExpanded ? null : s.stdt_id)}
@@ -306,7 +304,7 @@ export default function WarroomPage() {
                       >
                         {s.days_remaining}
                       </TableCell>
-                      <TableCell className="text-xs text-[var(--text-muted)]">
+                      <TableCell className="text-xs text-muted-token">
                         {s.last_contact_date ?? '—'}
                       </TableCell>
                       <TableCell className="text-xs text-center">{s.checkin_7d}</TableCell>

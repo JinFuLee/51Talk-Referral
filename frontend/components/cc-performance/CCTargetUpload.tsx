@@ -535,7 +535,7 @@ export function CCTargetUpload({ month, onUploadSuccess }: CCTargetUploadProps) 
       {/* 触发按钮 */}
       <button
         onClick={() => setIsOpen(true)}
-        className="flex items-center gap-2 px-3 py-1.5 bg-[var(--bg-surface)] border border-[var(--border-subtle)] text-[var(--text-secondary)] rounded-lg hover:bg-action-surface hover:text-action-text hover:border-action transition-colors shadow-sm text-sm font-medium focus:outline-none focus:ring-2 focus:ring-action/20"
+        className="flex items-center gap-2 px-3 py-1.5 bg-surface border border-subtle-token text-secondary-token rounded-lg hover:bg-action-surface hover:text-action-text hover:border-action transition-colors shadow-sm text-sm font-medium focus:outline-none focus:ring-2 focus:ring-action/20"
       >
         <Upload className="w-4 h-4" />
         {t.triggerBtn}
@@ -549,13 +549,13 @@ export function CCTargetUpload({ month, onUploadSuccess }: CCTargetUploadProps) 
             if (e.target === e.currentTarget) handleClose();
           }}
         >
-          <div className="bg-[var(--bg-surface)] rounded-xl shadow-xl max-w-2xl w-full max-h-[85vh] overflow-y-auto mx-4">
+          <div className="bg-surface rounded-xl shadow-xl max-w-2xl w-full max-h-[85vh] overflow-y-auto mx-4">
             {/* 弹窗头部 */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--border-default)]">
-              <h2 className="text-base font-semibold text-[var(--text-primary)]">{t.modalTitle}</h2>
+            <div className="flex items-center justify-between px-6 py-4 border-b border-default-token">
+              <h2 className="text-base font-semibold text-primary-token">{t.modalTitle}</h2>
               <button
                 onClick={handleClose}
-                className="p-1 rounded-md text-[var(--text-muted)] hover:bg-[var(--bg-subtle)] transition-colors"
+                className="p-1 rounded-md text-muted-token hover:bg-subtle transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -564,31 +564,31 @@ export function CCTargetUpload({ month, onUploadSuccess }: CCTargetUploadProps) 
             <div className="p-6 space-y-6">
               {/* 步骤 1：下载模板 */}
               <div className="space-y-2">
-                <p className="text-sm font-medium text-[var(--text-primary)]">{t.step1}</p>
+                <p className="text-sm font-medium text-primary-token">{t.step1}</p>
                 <button
                   onClick={() =>
                     window.open(`/api/cc-performance/targets/template?month=${month}`, '_blank')
                   }
-                  className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[var(--color-success)] text-white text-sm font-medium hover:bg-[var(--color-success)] transition-colors"
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg bg-success-token text-white text-sm font-medium hover:bg-success-token transition-colors"
                 >
                   <Download className="w-4 h-4" />
                   {t.downloadTemplate}
                 </button>
-                <p className="text-xs text-[var(--text-muted)]">{t.templateHint}</p>
+                <p className="text-xs text-muted-token">{t.templateHint}</p>
               </div>
 
               {/* 步骤 2：输入数据（文件上传 / 粘贴数据） */}
               <div className="space-y-3">
-                <p className="text-sm font-medium text-[var(--text-primary)]">{t.step2}</p>
+                <p className="text-sm font-medium text-primary-token">{t.step2}</p>
 
                 {/* Tab 切换 */}
-                <div className="flex border-b border-[var(--border-default)]">
+                <div className="flex border-b border-default-token">
                   <button
                     onClick={() => switchMode('file')}
                     className={`flex items-center gap-1.5 px-4 py-2 text-sm font-medium transition-colors -mb-px ${
                       inputMode === 'file'
-                        ? 'text-[var(--text-primary)] border-b-2 border-[var(--color-accent)]'
-                        : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'
+                        ? 'text-primary-token border-b-2 border-accent-token'
+                        : 'text-muted-token hover:text-secondary-token'
                     }`}
                   >
                     <Upload className="w-3.5 h-3.5" />
@@ -598,8 +598,8 @@ export function CCTargetUpload({ month, onUploadSuccess }: CCTargetUploadProps) 
                     onClick={() => switchMode('paste')}
                     className={`flex items-center gap-1.5 px-4 py-2 text-sm font-medium transition-colors -mb-px ${
                       inputMode === 'paste'
-                        ? 'text-[var(--text-primary)] border-b-2 border-[var(--color-accent)]'
-                        : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'
+                        ? 'text-primary-token border-b-2 border-accent-token'
+                        : 'text-muted-token hover:text-secondary-token'
                     }`}
                   >
                     <ClipboardPaste className="w-3.5 h-3.5" />
@@ -612,8 +612,8 @@ export function CCTargetUpload({ month, onUploadSuccess }: CCTargetUploadProps) 
                   <div
                     className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
                       isDragOver
-                        ? 'border-[var(--color-action)] bg-[var(--color-action-surface)]'
-                        : 'border-[var(--border-default)] hover:border-[var(--color-action)] hover:bg-[var(--color-action-surface)]'
+                        ? 'border-action-token bg-action-surface'
+                        : 'border-default-token hover:border-action-token hover:bg-action-surface'
                     }`}
                     onDragOver={(e) => {
                       e.preventDefault();
@@ -630,15 +630,15 @@ export function CCTargetUpload({ month, onUploadSuccess }: CCTargetUploadProps) 
                       className="hidden"
                       onChange={handleInputChange}
                     />
-                    <Upload className="w-8 h-8 mx-auto mb-2 text-[var(--text-muted)]" />
+                    <Upload className="w-8 h-8 mx-auto mb-2 text-muted-token" />
                     {selectedFile ? (
-                      <p className="text-sm font-medium text-[var(--color-action-text)]">
+                      <p className="text-sm font-medium text-action-text-token">
                         {t.selected(selectedFile.name)}
                       </p>
                     ) : (
                       <>
-                        <p className="text-sm text-[var(--text-secondary)]">{t.dropHint}</p>
-                        <p className="text-xs text-[var(--text-muted)] mt-1">{t.dropFormats}</p>
+                        <p className="text-sm text-secondary-token">{t.dropHint}</p>
+                        <p className="text-xs text-muted-token mt-1">{t.dropFormats}</p>
                       </>
                     )}
                   </div>
@@ -648,13 +648,13 @@ export function CCTargetUpload({ month, onUploadSuccess }: CCTargetUploadProps) 
                 {inputMode === 'paste' && (
                   <div className="space-y-2">
                     <textarea
-                      className="w-full min-h-[9rem] rounded-lg border border-[var(--border-default)] bg-[var(--bg-subtle)] px-3 py-2 font-mono text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]/30 focus:border-[var(--color-accent)] resize-y transition-colors"
+                      className="w-full min-h-[9rem] rounded-lg border border-default-token bg-subtle px-3 py-2 font-mono text-sm text-primary-token placeholder:text-muted-token focus:outline-none focus:ring-2 focus:ring-accent-token/30 focus:border-accent-token resize-y transition-colors"
                       placeholder={t.pastePlaceholder}
                       value={pasteText}
                       onChange={(e) => handlePasteTextChange(e.target.value)}
                       spellCheck={false}
                     />
-                    <p className="text-xs text-[var(--text-muted)]">
+                    <p className="text-xs text-muted-token">
                       {t.pasteHint} <code className="font-mono">cc_name</code> {t.pasteHint2}
                     </p>
                   </div>
@@ -663,18 +663,18 @@ export function CCTargetUpload({ month, onUploadSuccess }: CCTargetUploadProps) 
 
               {/* xlsx 提示 */}
               {inputMode === 'file' && selectedFile && isXlsx && (
-                <div className="rounded-lg bg-[var(--bg-subtle)] border border-[var(--border-default)] px-4 py-3">
-                  <p className="text-sm text-[var(--text-secondary)]">{t.xlsxServerParse}</p>
+                <div className="rounded-lg bg-subtle border border-default-token px-4 py-3">
+                  <p className="text-sm text-secondary-token">{t.xlsxServerParse}</p>
                 </div>
               )}
 
               {/* 步骤 3：预览 */}
               {showPreview && (
                 <div className="space-y-2">
-                  <p className="text-sm font-medium text-[var(--text-primary)]">
+                  <p className="text-sm font-medium text-primary-token">
                     {t.step3(Math.min(totalRowCount, 10))}
                   </p>
-                  <div className="overflow-x-auto rounded-lg border border-[var(--border-default)]">
+                  <div className="overflow-x-auto rounded-lg border border-default-token">
                     <table className="w-full text-left text-sm">
                       <thead>
                         <tr className="slide-thead-row">
@@ -691,7 +691,7 @@ export function CCTargetUpload({ month, onUploadSuccess }: CCTargetUploadProps) 
                             key={i}
                             className={
                               invalidRowIndices.has(i)
-                                ? 'bg-[var(--color-danger-surface)]'
+                                ? 'bg-danger-surface'
                                 : i % 2 === 0
                                   ? 'slide-row-even'
                                   : 'slide-row-odd'
@@ -702,7 +702,7 @@ export function CCTargetUpload({ month, onUploadSuccess }: CCTargetUploadProps) 
                                 key={h}
                                 className={`slide-td whitespace-nowrap${
                                   h === 'cc_name' && invalidRowIndices.has(i)
-                                    ? ' text-[var(--color-danger)]'
+                                    ? ' text-danger-token'
                                     : ''
                                 }`}
                               >
@@ -714,11 +714,11 @@ export function CCTargetUpload({ month, onUploadSuccess }: CCTargetUploadProps) 
                       </tbody>
                     </table>
                   </div>
-                  <p className="text-xs text-[var(--text-muted)]">
+                  <p className="text-xs text-muted-token">
                     {t.totalRows(totalRowCount, Math.min(totalRowCount, 10))}
                   </p>
                   {invalidRowIndices.size > 0 && (
-                    <p className="text-xs text-[var(--color-warning)]">
+                    <p className="text-xs text-warning-token">
                       {t.invalidRows(invalidRowIndices.size)}
                     </p>
                   )}
@@ -727,9 +727,9 @@ export function CCTargetUpload({ month, onUploadSuccess }: CCTargetUploadProps) 
 
               {/* 错误提示 */}
               {error && (
-                <div className="flex items-start gap-2 rounded-lg bg-[var(--color-danger-surface)] border border-[var(--color-danger)] px-4 py-3">
-                  <AlertCircle className="w-4 h-4 text-[var(--color-danger)] mt-0.5 flex-shrink-0" />
-                  <p className="text-sm text-[var(--color-danger)]">{error}</p>
+                <div className="flex items-start gap-2 rounded-lg bg-danger-surface border border-danger-token px-4 py-3">
+                  <AlertCircle className="w-4 h-4 text-danger-token mt-0.5 flex-shrink-0" />
+                  <p className="text-sm text-danger-token">{error}</p>
                 </div>
               )}
 
@@ -737,15 +737,15 @@ export function CCTargetUpload({ month, onUploadSuccess }: CCTargetUploadProps) 
               {uploadResult && (
                 <div className="space-y-2">
                   {/* 匹配成功块 */}
-                  <div className="rounded-lg bg-[var(--color-success-surface)] border border-[var(--color-success)] px-4 py-3">
+                  <div className="rounded-lg bg-success-surface border border-success-token px-4 py-3">
                     <div className="flex items-start gap-2">
-                      <CheckCircle className="w-4 h-4 text-[var(--color-success)] mt-0.5 flex-shrink-0" />
-                      <p className="text-sm text-[var(--color-success)]">
+                      <CheckCircle className="w-4 h-4 text-success-token mt-0.5 flex-shrink-0" />
+                      <p className="text-sm text-success-token">
                         {t.matchedSuccess(uploadResult.matched)}
                       </p>
                     </div>
                     {uploadResult.duplicates > 0 && (
-                      <p className="text-xs text-[var(--color-warning)] ml-6 mt-1">
+                      <p className="text-xs text-warning-token ml-6 mt-1">
                         {t.duplicates(
                           uploadResult.duplicates,
                           uploadResult.duplicate_names.join('、')
@@ -756,14 +756,14 @@ export function CCTargetUpload({ month, onUploadSuccess }: CCTargetUploadProps) 
 
                   {/* 孤儿名单块（上传名字在数据中找不到） */}
                   {uploadResult.orphaned.length > 0 && (
-                    <div className="rounded-lg bg-[var(--color-warning-surface)] border border-[var(--color-warning)] px-4 py-3">
+                    <div className="rounded-lg bg-warning-surface border border-warning-token px-4 py-3">
                       <div className="flex items-start gap-2">
-                        <AlertCircle className="w-4 h-4 text-[var(--color-warning)] mt-0.5 flex-shrink-0" />
+                        <AlertCircle className="w-4 h-4 text-warning-token mt-0.5 flex-shrink-0" />
                         <div className="space-y-1">
-                          <p className="text-sm text-[var(--color-warning)]">
+                          <p className="text-sm text-warning-token">
                             {t.orphanedTitle(uploadResult.orphaned.length)}
                           </p>
-                          <p className="font-mono text-xs text-[var(--color-warning)] leading-relaxed">
+                          <p className="font-mono text-xs text-warning-token leading-relaxed">
                             {uploadResult.orphaned
                               .map((o) => `${o.name}（$${(o.target ?? 0).toLocaleString()}）`)
                               .join('、')}
@@ -775,14 +775,14 @@ export function CCTargetUpload({ month, onUploadSuccess }: CCTargetUploadProps) 
 
                   {/* 无目标 CC 块（D2 中有但未上传目标） */}
                   {uploadResult.unmatched_d2.length > 0 && (
-                    <div className="rounded-lg bg-[var(--bg-subtle)] border border-[var(--border-default)] px-4 py-3">
+                    <div className="rounded-lg bg-subtle border border-default-token px-4 py-3">
                       <div className="flex items-start gap-2">
-                        <AlertCircle className="w-4 h-4 text-[var(--text-muted)] mt-0.5 flex-shrink-0" />
+                        <AlertCircle className="w-4 h-4 text-muted-token mt-0.5 flex-shrink-0" />
                         <div className="space-y-1">
-                          <p className="text-sm text-[var(--text-muted)]">
+                          <p className="text-sm text-muted-token">
                             {t.unmatchedTitle(uploadResult.unmatched_d2.length)}
                           </p>
-                          <p className="font-mono text-xs text-[var(--text-muted)] leading-relaxed">
+                          <p className="font-mono text-xs text-muted-token leading-relaxed">
                             {uploadResult.unmatched_d2.slice(0, 5).join('、')}
                             {uploadResult.unmatched_d2.length > 5 && (
                               <>{t.unmatchedMore(uploadResult.unmatched_d2.length - 5)}</>
@@ -796,14 +796,14 @@ export function CCTargetUpload({ month, onUploadSuccess }: CCTargetUploadProps) 
               )}
 
               {/* 操作按钮行 */}
-              <div className="flex items-center justify-between pt-2 border-t border-[var(--border-default)]">
+              <div className="flex items-center justify-between pt-2 border-t border-default-token">
                 <button onClick={handleClose} className="btn-secondary">
                   取消
                 </button>
                 <button
                   onClick={handleUpload}
                   disabled={!canUpload}
-                  className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[var(--color-accent)] text-white font-medium text-sm hover:bg-[var(--color-accent-hover)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg bg-accent-token text-white font-medium text-sm hover:bg-accent-hover-token transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {uploading ? (
                     <>
@@ -820,8 +820,8 @@ export function CCTargetUpload({ month, onUploadSuccess }: CCTargetUploadProps) 
               </div>
 
               {/* 底部状态栏 */}
-              <div className="rounded-lg bg-[var(--bg-subtle)] border border-[var(--border-default)] px-4 py-3 space-y-2">
-                <p className="text-xs text-[var(--text-muted)]">
+              <div className="rounded-lg bg-subtle border border-default-token px-4 py-3 space-y-2">
+                <p className="text-xs text-muted-token">
                   {uploadStatus
                     ? `当前状态：已上传 ${uploadStatus.count} 条个人目标（${uploadStatus.month}）`
                     : `当前月份：${month || '—'}，个人目标状态未知（上传后刷新）`}
@@ -829,7 +829,7 @@ export function CCTargetUpload({ month, onUploadSuccess }: CCTargetUploadProps) 
                 <button
                   onClick={handleDelete}
                   disabled={deleting || !month}
-                  className="flex items-center gap-1.5 text-xs text-[var(--color-danger)] hover:text-[var(--color-danger)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="flex items-center gap-1.5 text-xs text-danger-token hover:text-danger-token disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   {deleting ? (
                     <Loader2 className="w-3.5 h-3.5 animate-spin" />

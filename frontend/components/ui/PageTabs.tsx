@@ -19,7 +19,7 @@ export function PageTabs({ tabs, activeId, onChange, className }: PageTabsProps)
   return (
     <div
       className={cn(
-        'flex items-center gap-8 border-b border-[var(--border-subtle)] overflow-x-auto scrollbar-none',
+        'flex items-center gap-8 border-b border-subtle-token overflow-x-auto scrollbar-none',
         className
       )}
     >
@@ -31,9 +31,7 @@ export function PageTabs({ tabs, activeId, onChange, className }: PageTabsProps)
             onClick={() => onChange(tab.id)}
             className={cn(
               'relative px-1 py-3 text-sm font-medium transition-colors outline-none whitespace-nowrap min-h-[44px]',
-              isActive
-                ? 'text-action'
-                : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+              isActive ? 'text-action' : 'text-secondary-token hover:text-primary-token'
             )}
           >
             {tab.label}
@@ -62,12 +60,7 @@ export function SegmentedTabs<T extends string = string>({
   className,
 }: SegmentedTabsProps<T>) {
   return (
-    <div
-      className={cn(
-        'flex items-center gap-1 bg-[var(--bg-subtle)] rounded-lg p-1 w-fit',
-        className
-      )}
-    >
+    <div className={cn('flex items-center gap-1 bg-subtle rounded-lg p-1 w-fit', className)}>
       {tabs.map((t) => (
         <button
           key={t.key}
@@ -75,8 +68,8 @@ export function SegmentedTabs<T extends string = string>({
           className={cn(
             'px-4 py-1.5 rounded-md text-sm font-medium transition-colors outline-none min-h-[44px] min-w-[44px]',
             active === t.key
-              ? 'bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-sm'
-              : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+              ? 'bg-surface text-primary-token shadow-sm'
+              : 'text-secondary-token hover:text-primary-token'
           )}
         >
           {t.label}

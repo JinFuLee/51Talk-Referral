@@ -157,17 +157,13 @@ function ScoreBar({ score }: { score: number }) {
   // score 通常在 0-1 之间（impact × feasibility × urgency 归一化后）
   const pct = Math.min(100, score * 100);
   const color =
-    score >= 0.5
-      ? 'bg-[var(--color-success)]'
-      : score >= 0.25
-        ? 'bg-[var(--color-warning)]'
-        : 'bg-[var(--color-danger)]';
+    score >= 0.5 ? 'bg-success-token' : score >= 0.25 ? 'bg-warning-token' : 'bg-danger-token';
   return (
     <div className="flex items-center gap-2">
-      <div className="flex-1 bg-[var(--bg-subtle)] rounded-full h-1.5">
+      <div className="flex-1 bg-subtle rounded-full h-1.5">
         <div className={`h-1.5 rounded-full ${color}`} style={{ width: `${pct}%` }} />
       </div>
-      <span className="text-xs font-mono tabular-nums text-[var(--text-secondary)] w-8 text-right">
+      <span className="text-xs font-mono tabular-nums text-secondary-token w-8 text-right">
         {(score ?? 0).toFixed(2)}
       </span>
     </div>
@@ -181,10 +177,10 @@ function PotentialBadge({ label }: { label: string }) {
     <span
       className={`inline-block px-1.5 py-0.5 text-xs rounded-full font-medium whitespace-nowrap ${
         isGood
-          ? 'bg-[var(--color-success-surface)] text-[var(--color-success)]'
+          ? 'bg-success-surface text-success-token'
           : isPending
-            ? 'bg-[var(--color-warning-surface)] text-[var(--color-warning)]'
-            : 'bg-[var(--bg-subtle)] text-[var(--text-muted)]'
+            ? 'bg-warning-surface text-warning-token'
+            : 'bg-subtle text-muted-token'
       }`}
     >
       {label}
@@ -230,18 +226,18 @@ export function FunnelLeverageSlide({ slideNumber, totalSlides }: SlideProps) {
       ) : error ? (
         <div className="flex items-center justify-center h-full">
           <div className="text-center space-y-2">
-            <p className="text-base font-semibold text-[var(--color-danger)]">{t.error}</p>
-            <p className="text-sm text-[var(--text-muted)]">{t.errorHint}</p>
+            <p className="text-base font-semibold text-danger-token">{t.error}</p>
+            <p className="text-sm text-muted-token">{t.errorHint}</p>
             <button
               onClick={() => mutate()}
-              className="mt-1 px-4 py-1.5 rounded-lg text-sm border border-[var(--border-default)] text-[var(--text-secondary)] hover:bg-[var(--bg-subtle)] transition-colors"
+              className="mt-1 px-4 py-1.5 rounded-lg text-sm border border-default-token text-secondary-token hover:bg-subtle transition-colors"
             >
               {t.retry}
             </button>
           </div>
         </div>
       ) : scores.length === 0 ? (
-        <div className="flex flex-col justify-center items-center h-full gap-3 text-[var(--text-muted)]">
+        <div className="flex flex-col justify-center items-center h-full gap-3 text-muted-token">
           <p className="text-base font-medium">{t.empty}</p>
           <p className="text-sm">{t.emptyHint}</p>
         </div>
@@ -249,18 +245,18 @@ export function FunnelLeverageSlide({ slideNumber, totalSlides }: SlideProps) {
         <div className="flex flex-col gap-3 h-full">
           {/* 最大瓶颈高亮卡片 */}
           {topBottleneck && (
-            <div className="flex-shrink-0 px-4 py-3 rounded-xl border-2 border-[var(--brand-p1)] bg-[var(--color-warning-surface)] flex items-center gap-4">
-              <div className="flex-shrink-0 w-2 h-8 rounded-full bg-[var(--brand-p1)]" />
+            <div className="flex-shrink-0 px-4 py-3 rounded-xl border-2 border-brand-p1 bg-warning-surface flex items-center gap-4">
+              <div className="flex-shrink-0 w-2 h-8 rounded-full bg-brand-p1" />
               <div>
-                <p className="text-xs text-[var(--text-muted)] font-medium">{t.bottleneck}</p>
-                <p className="text-sm font-bold text-[var(--text-primary)]">
+                <p className="text-xs text-muted-token font-medium">{t.bottleneck}</p>
+                <p className="text-sm font-bold text-primary-token">
                   {topBottleneck.channel} ·{' '}
                   {t.stageLabels[topBottleneck.stage] ?? topBottleneck.stage}
                 </p>
               </div>
               <div className="ml-auto text-right">
-                <p className="text-xs text-[var(--text-muted)]">{t.impact}</p>
-                <p className="text-sm font-bold text-[var(--color-warning)]">
+                <p className="text-xs text-muted-token">{t.impact}</p>
+                <p className="text-sm font-bold text-warning-token">
                   +{formatRevenue(topBottleneck.revenue_impact)}
                 </p>
               </div>
@@ -292,28 +288,28 @@ export function FunnelLeverageSlide({ slideNumber, totalSlides }: SlideProps) {
                       key={`${row.channel}-${row.stage}`}
                       className={`${i % 2 === 0 ? 'slide-row-even' : 'slide-row-odd'} ${row.is_bottleneck ? 'ring-1 ring-inset ring-amber-300' : ''}`}
                     >
-                      <td className="px-3 py-1.5 text-xs font-semibold text-[var(--text-primary)]">
+                      <td className="px-3 py-1.5 text-xs font-semibold text-primary-token">
                         {row.channel}
                         {row.is_bottleneck && (
-                          <span className="ml-1 text-[var(--color-warning)] text-xs">★</span>
+                          <span className="ml-1 text-warning-token text-xs">★</span>
                         )}
                       </td>
-                      <td className="px-3 py-1.5 text-xs text-[var(--text-secondary)]">
+                      <td className="px-3 py-1.5 text-xs text-secondary-token">
                         {t.stageLabels[row.stage] ?? row.stage}
                       </td>
-                      <td className="px-2 py-1.5 text-xs text-right font-mono tabular-nums text-[var(--text-secondary)]">
+                      <td className="px-2 py-1.5 text-xs text-right font-mono tabular-nums text-secondary-token">
                         {formatRate(row.actual_rate)}
                       </td>
-                      <td className="px-2 py-1.5 text-xs text-right font-mono tabular-nums text-[var(--text-muted)]">
+                      <td className="px-2 py-1.5 text-xs text-right font-mono tabular-nums text-muted-token">
                         {formatRate(row.target_rate)}
                       </td>
                       <td
-                        className={`px-2 py-1.5 text-xs text-right font-mono tabular-nums font-semibold ${row.gap >= 0 ? 'text-[var(--color-success)]' : 'text-[var(--color-danger)]'}`}
+                        className={`px-2 py-1.5 text-xs text-right font-mono tabular-nums font-semibold ${row.gap >= 0 ? 'text-success-token' : 'text-danger-token'}`}
                       >
                         {row.gap > 0 ? '+' : ''}
                         {formatRate(row.gap)}
                       </td>
-                      <td className="px-2 py-1.5 text-xs text-right font-mono tabular-nums text-[var(--color-warning)] font-semibold">
+                      <td className="px-2 py-1.5 text-xs text-right font-mono tabular-nums text-warning-token font-semibold">
                         +{formatRevenue(row.revenue_impact)}
                       </td>
                       <td className="px-3 py-1.5">

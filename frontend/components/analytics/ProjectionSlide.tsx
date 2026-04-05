@@ -135,8 +135,8 @@ export function ProjectionSlide({ data, bm_pct }: Props) {
   if (!data) {
     return (
       <div className="card-base p-5 flex flex-col justify-center items-center gap-2 min-h-[280px]">
-        <p className="text-sm font-medium text-[var(--text-secondary)]">{t.noData}</p>
-        <p className="text-xs text-[var(--text-muted)]">{t.noDataDesc}</p>
+        <p className="text-sm font-medium text-secondary-token">{t.noData}</p>
+        <p className="text-xs text-muted-token">{t.noDataDesc}</p>
       </div>
     );
   }
@@ -148,8 +148,8 @@ export function ProjectionSlide({ data, bm_pct }: Props) {
     <div className="card-base p-5 flex flex-col gap-4">
       {/* Header */}
       <div>
-        <h3 className="text-sm font-bold text-[var(--text-primary)] font-display">{t.title}</h3>
-        <p className="text-xs text-[var(--text-muted)] mt-0.5">{t.subtitle}</p>
+        <h3 className="text-sm font-bold text-primary-token font-display">{t.title}</h3>
+        <p className="text-xs text-muted-token mt-0.5">{t.subtitle}</p>
       </div>
 
       {/* 预测值卡片组 */}
@@ -167,9 +167,9 @@ export function ProjectionSlide({ data, bm_pct }: Props) {
               const isMoney = MONEY_KEYS.has(key) || key.includes('revenue');
               return (
                 <tr key={key} className={i % 2 === 0 ? 'slide-row-even' : 'slide-row-odd'}>
-                  <td className="slide-td font-medium text-[var(--text-primary)]">{label}</td>
+                  <td className="slide-td font-medium text-primary-token">{label}</td>
                   <td
-                    className={`slide-td text-right font-mono tabular-nums font-semibold ${isMoney ? 'text-[var(--color-accent)]' : 'text-[var(--text-primary)]'}`}
+                    className={`slide-td text-right font-mono tabular-nums font-semibold ${isMoney ? 'text-accent-token' : 'text-primary-token'}`}
                   >
                     {projFmt(key, val)}
                   </td>
@@ -185,20 +185,20 @@ export function ProjectionSlide({ data, bm_pct }: Props) {
         <div
           className={`flex items-center justify-between rounded-lg p-3 ${
             isAhead
-              ? 'bg-[var(--color-success-surface)] border border-[var(--color-success)]'
-              : 'bg-[var(--color-danger-surface)] border border-[var(--color-danger)]'
+              ? 'bg-success-surface border border-success-token'
+              : 'bg-danger-surface border border-danger-token'
           }`}
         >
-          <span className="text-xs font-semibold text-[var(--text-secondary)]">{t.revenueGap}</span>
+          <span className="text-xs font-semibold text-secondary-token">{t.revenueGap}</span>
           <div className="text-right">
             <span
-              className={`text-sm font-bold font-mono ${isAhead ? 'text-[var(--color-success)]' : 'text-[var(--color-danger)]'}`}
+              className={`text-sm font-bold font-mono ${isAhead ? 'text-success-token' : 'text-danger-token'}`}
             >
               {isAhead ? '+' : ''}
               {formatUSD(revGap)}
             </span>
             <p
-              className={`text-[10px] mt-0.5 ${isAhead ? 'text-[var(--color-success)]' : 'text-[var(--color-danger)]'}`}
+              className={`text-[10px] mt-0.5 ${isAhead ? 'text-success-token' : 'text-danger-token'}`}
             >
               {isAhead ? t.ahead : t.behind}
             </p>
@@ -208,12 +208,12 @@ export function ProjectionSlide({ data, bm_pct }: Props) {
 
       {/* ASP 敏感性 */}
       {data.asp_sensitivity_per_dollar != null && (
-        <div className="flex items-center justify-between pt-2 border-t border-[var(--border-subtle)]">
+        <div className="flex items-center justify-between pt-2 border-t border-subtle-token">
           <div>
-            <p className="text-xs font-semibold text-[var(--text-muted)]">{t.aspSensitivity}</p>
-            <p className="text-[10px] text-[var(--text-muted)]">{t.aspSensDesc}</p>
+            <p className="text-xs font-semibold text-muted-token">{t.aspSensitivity}</p>
+            <p className="text-[10px] text-muted-token">{t.aspSensDesc}</p>
           </div>
-          <span className="text-sm font-bold text-[var(--color-warning)] font-mono">
+          <span className="text-sm font-bold text-warning-token font-mono">
             -{formatUSD(Math.abs(data.asp_sensitivity_per_dollar))}
           </span>
         </div>
@@ -221,13 +221,13 @@ export function ProjectionSlide({ data, bm_pct }: Props) {
 
       {/* 当前日均 */}
       {data.current_daily_avg && Object.keys(data.current_daily_avg).length > 0 && (
-        <div className="grid grid-cols-3 gap-2 pt-2 border-t border-[var(--border-subtle)]">
+        <div className="grid grid-cols-3 gap-2 pt-2 border-t border-subtle-token">
           {['registrations', 'payments', 'revenue_usd'].map((key) => {
             const val = data.current_daily_avg[key];
             return (
               <div key={key} className="text-center">
-                <p className="text-[10px] text-[var(--text-muted)]">{t.dailyMetrics[key] ?? key}</p>
-                <p className="text-xs font-bold font-mono text-[var(--text-primary)]">
+                <p className="text-[10px] text-muted-token">{t.dailyMetrics[key] ?? key}</p>
+                <p className="text-xs font-bold font-mono text-primary-token">
                   {key.includes('revenue')
                     ? formatUSD(val)
                     : val != null

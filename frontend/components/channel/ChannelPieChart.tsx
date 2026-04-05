@@ -27,7 +27,7 @@ const CHANNEL_COLORS = CHART_PALETTE.series;
 export function ChannelPieChart({ channels, height = 320, locale = 'zh' }: ChannelPieChartProps) {
   const t = (I18N as unknown as Record<string, (typeof I18N)['zh']>)[locale] ?? I18N['zh'];
   if (channels.length === 0) {
-    return <p className="text-sm text-[var(--text-muted)] text-center py-6">{t.empty}</p>;
+    return <p className="text-sm text-muted-token text-center py-6">{t.empty}</p>;
   }
 
   const pieData = channels.map((c) => ({

@@ -36,12 +36,12 @@ function FunnelBar({
   return (
     <div className="space-y-1">
       <div className="flex justify-between text-xs">
-        <span className="text-[var(--text-secondary)]">{label}</span>
-        <span className="font-mono font-medium text-[var(--text-primary)]">
+        <span className="text-secondary-token">{label}</span>
+        <span className="font-mono font-medium text-primary-token">
           {(value ?? 0).toLocaleString()}
         </span>
       </div>
-      <div className="w-full bg-[var(--bg-subtle)] rounded-full h-2">
+      <div className="w-full bg-subtle rounded-full h-2">
         <div
           className={`h-2 rounded-full transition-all ${color}`}
           style={{ width: `${Math.min(100, pct)}%` }}
@@ -121,7 +121,7 @@ export default function DailyMonitorPage() {
       {/* 页头 */}
       <div>
         <h1 className="page-title">{t('title')}</h1>
-        <p className="text-sm text-[var(--text-secondary)] mt-0.5">{t('subtitle')}</p>
+        <p className="text-sm text-secondary-token mt-0.5">{t('subtitle')}</p>
       </div>
 
       {/* 顶部大数字：三角色触达率 */}
@@ -161,23 +161,23 @@ export default function DailyMonitorPage() {
               label={t('funnelAttendance')}
               value={stats.funnel.attendance}
               max={funnelMax}
-              color="bg-[var(--color-accent)]"
+              color="bg-accent-token"
             />
             <FunnelBar
               label={t('funnelPayments')}
               value={stats.funnel.payments}
               max={funnelMax}
-              color="bg-[var(--color-success)]"
+              color="bg-success-token"
             />
-            <div className="pt-1 border-t border-[var(--border-subtle)]">
+            <div className="pt-1 border-t border-subtle-token">
               <div className="flex justify-between text-xs">
-                <span className="text-[var(--text-muted)]">{t('funnelRevenue')}</span>
-                <span className="font-mono font-semibold text-[var(--color-success)]">
+                <span className="text-muted-token">{t('funnelRevenue')}</span>
+                <span className="font-mono font-semibold text-success-token">
                   ${(stats.funnel?.revenue_usd ?? 0).toLocaleString()}
                 </span>
               </div>
               <div className="flex justify-between text-xs mt-1">
-                <span className="text-[var(--text-muted)]">{t('funnelCheckinRate')}</span>
+                <span className="text-muted-token">{t('funnelCheckinRate')}</span>
                 <span className="font-mono font-medium">{formatRate(stats.checkin_rate)}</span>
               </div>
             </div>
@@ -194,15 +194,15 @@ export default function DailyMonitorPage() {
 
       {/* CC / SS / LP 接通排行（Tab 切换） */}
       <Card title={t('cardRanking')}>
-        <div className="flex gap-1 bg-[var(--bg-subtle)] p-1 rounded-lg w-fit mb-3">
+        <div className="flex gap-1 bg-subtle p-1 rounded-lg w-fit mb-3">
           {RANKING_TABS.map((tab) => (
             <button
               key={tab.key}
               onClick={() => setRankingRole(tab.key)}
               className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
                 rankingRole === tab.key
-                  ? 'bg-[var(--bg-surface)] shadow-sm text-[var(--text-primary)]'
-                  : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+                  ? 'bg-surface shadow-sm text-primary-token'
+                  : 'text-secondary-token hover:text-primary-token'
               }`}
             >
               {tab.label}
@@ -222,7 +222,7 @@ export default function DailyMonitorPage() {
       {/* 触达 × 转化散点图 */}
       {scatterData.length > 0 && (
         <Card title={t('cardScatter')}>
-          <p className="text-xs text-[var(--text-muted)] mb-2">{t('scatterDesc')}</p>
+          <p className="text-xs text-muted-token mb-2">{t('scatterDesc')}</p>
           <ContactConversionScatter data={scatterData} />
         </Card>
       )}

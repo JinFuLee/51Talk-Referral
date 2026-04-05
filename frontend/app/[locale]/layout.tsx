@@ -79,7 +79,7 @@ export default async function LocaleLayout({
           <AuthShellGuard
             shell={
               <>
-                <div className="flex h-screen overflow-hidden bg-[var(--bg-primary)] presentation-expand relative">
+                <div className="flex h-screen overflow-hidden bg-bg-primary presentation-expand relative">
                   <div className="hide-in-presentation shrink-0 h-full">
                     <NavSidebar />
                   </div>
@@ -94,7 +94,7 @@ export default async function LocaleLayout({
                     <main className="flex-1 overflow-auto p-3 md:p-6 pb-20 md:pb-6 presentation-expand relative">
                       <ContentTransitionWrapper>{children}</ContentTransitionWrapper>
                       <div className="brand-watermark fixed bottom-4 right-4 pointer-events-none">
-                        <BrandMark size={32} className="text-[var(--brand-p1)]" />
+                        <BrandMark size={32} className="text-brand-p1" />
                       </div>
                     </main>
                   </div>

@@ -68,7 +68,7 @@ export function CCHeatmap({ rows, cols, data, onCCClick, onCellClick }: CCHeatma
     <div className="relative overflow-auto">
       {tooltip && (
         <div
-          className="fixed z-50 px-2 py-1 text-xs bg-[var(--n-900)] text-white rounded shadow-lg pointer-events-none"
+          className="fixed z-50 px-2 py-1 text-xs bg-n-900 text-white rounded shadow-lg pointer-events-none"
           style={{ left: tooltip.x + 12, top: tooltip.y - 28 }}
         >
           {tooltip.text}
@@ -81,7 +81,7 @@ export function CCHeatmap({ rows, cols, data, onCCClick, onCellClick }: CCHeatma
           {cols.map((seg) => (
             <div
               key={seg}
-              className="flex-shrink-0 text-center text-[10px] text-[var(--text-muted)] font-medium truncate py-1 border-b border-[var(--border-subtle)]"
+              className="flex-shrink-0 text-center text-[10px] text-muted-token font-medium truncate py-1 border-b border-subtle-token"
               style={{ width: CELL_W }}
             >
               {seg}
@@ -91,10 +91,10 @@ export function CCHeatmap({ rows, cols, data, onCCClick, onCellClick }: CCHeatma
 
         {/* 数据行 */}
         {rows.map((cc) => (
-          <div key={cc} className="flex items-center hover:bg-[var(--bg-subtle)] group">
+          <div key={cc} className="flex items-center hover:bg-subtle group">
             {/* CC 名称列 */}
             <div
-              className="flex-shrink-0 truncate text-xs font-medium text-[var(--text-primary)] cursor-pointer hover:text-action-accent transition-colors pr-2 py-0.5"
+              className="flex-shrink-0 truncate text-xs font-medium text-primary-token cursor-pointer hover:text-action-accent transition-colors pr-2 py-0.5"
               style={{ width: CC_COL_W, minWidth: CC_COL_W }}
               onClick={() => onCCClick?.(cc)}
               title={cc}
@@ -139,7 +139,7 @@ export function CCHeatmap({ rows, cols, data, onCCClick, onCellClick }: CCHeatma
         ))}
 
         {/* 色阶图例 */}
-        <div className="flex items-center gap-2 mt-3 text-xs text-[var(--text-muted)]">
+        <div className="flex items-center gap-2 mt-3 text-xs text-muted-token">
           <span>{t.low}</span>
           <div
             className="h-3 w-32 rounded"

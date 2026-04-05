@@ -82,7 +82,7 @@ function HeaderWithTip({ children, tip }: { children: React.ReactNode; tip: stri
       </span>
       <span
         className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 hidden group-hover:block z-10
- bg-[var(--bg-subtle)] text-white text-[10px] rounded px-2 py-1 whitespace-nowrap pointer-events-none shadow-lg"
+ bg-subtle text-white text-[10px] rounded px-2 py-1 whitespace-nowrap pointer-events-none shadow-lg"
       >
         {tip}
       </span>
@@ -153,7 +153,7 @@ export default function ChannelPage() {
 
   if (pageError) {
     return (
-      <div className="p-8 text-center text-[var(--text-muted)]">
+      <div className="p-8 text-center text-muted-token">
         <p>{t('loadFailed')}</p>
         <p className="text-xs mt-1">{pageError.message ?? t('loadFailedMsg')}</p>
       </div>
@@ -176,20 +176,20 @@ export default function ChannelPage() {
     <div className="space-y-5 md:space-y-6">
       <div className="mb-2">
         <h1 className="page-title">{t('pageTitle')}</h1>
-        <p className="text-sm text-[var(--text-secondary)] mt-1">{t('pageSubtitle')}</p>
-        <p className="text-sm text-[var(--text-muted)] mt-0.5">{t('pageDesc')}</p>
+        <p className="text-sm text-secondary-token mt-1">{t('pageSubtitle')}</p>
+        <p className="text-sm text-muted-token mt-0.5">{t('pageDesc')}</p>
       </div>
 
       {/* Tab 切换 */}
-      <div className="flex gap-1 bg-[var(--bg-subtle)] p-1 rounded-xl w-fit">
+      <div className="flex gap-1 bg-subtle p-1 rounded-xl w-fit">
         {TABS.map((tb) => (
           <button
             key={tb.key}
             onClick={() => setTab(tb.key)}
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
               tab === tb.key
-                ? 'bg-[var(--bg-surface)] shadow-sm text-[var(--text-primary)]'
-                : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+                ? 'bg-surface shadow-sm text-primary-token'
+                : 'text-secondary-token hover:text-primary-token'
             }`}
           >
             {tb.label}
@@ -204,9 +204,7 @@ export default function ChannelPage() {
               <EmptyState title={t('emptyChannel')} description={t('emptyChannelDesc')} />
             ) : (
               <>
-                <p className="text-[11px] text-[var(--text-secondary)] mb-2">
-                  {t('channelSummaryDesc')}
-                </p>
+                <p className="text-[11px] text-secondary-token mb-2">{t('channelSummaryDesc')}</p>
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
@@ -229,23 +227,23 @@ export default function ChannelPage() {
                     </thead>
                     <tbody>
                       {channels.map((c) => (
-                        <tr key={c.channel} className="even:bg-[var(--bg-subtle)]">
+                        <tr key={c.channel} className="even:bg-subtle">
                           <td className="py-2 px-2 text-xs font-medium">
                             {label(CHANNEL_LABELS, c.channel)}
                           </td>
                           <td className="py-2 px-2 text-xs text-right font-mono tabular-nums">
                             {fmtNum(c.registrations)}
                           </td>
-                          <td className="py-2 px-2 text-xs text-right font-mono tabular-nums text-[var(--text-secondary)]">
+                          <td className="py-2 px-2 text-xs text-right font-mono tabular-nums text-secondary-token">
                             {fmtNum(c.appointments)}
                           </td>
-                          <td className="py-2 px-2 text-xs text-right font-mono tabular-nums text-[var(--text-secondary)]">
+                          <td className="py-2 px-2 text-xs text-right font-mono tabular-nums text-secondary-token">
                             {fmtNum(c.attendance)}
                           </td>
-                          <td className="py-2 px-2 text-xs text-right font-mono tabular-nums text-[var(--text-secondary)]">
+                          <td className="py-2 px-2 text-xs text-right font-mono tabular-nums text-secondary-token">
                             {fmtNum(c.payments)}
                           </td>
-                          <td className="py-2 px-2 text-xs text-right font-mono tabular-nums text-[var(--text-secondary)]">
+                          <td className="py-2 px-2 text-xs text-right font-mono tabular-nums text-secondary-token">
                             {fmtUsd(c.revenue_usd)}
                           </td>
                         </tr>
@@ -321,7 +319,7 @@ export default function ChannelPage() {
                 </thead>
                 <tbody>
                   {contributions.map((c) => (
-                    <tr key={c.channel} className="even:bg-[var(--bg-subtle)]">
+                    <tr key={c.channel} className="even:bg-subtle">
                       <td className="py-2 px-2 text-xs font-medium">
                         {label(CHANNEL_LABELS, c.channel)}
                       </td>
@@ -331,7 +329,7 @@ export default function ChannelPage() {
                       <td className="py-2 px-2 text-xs text-right font-mono tabular-nums">
                         {fmtPct(c.share)}
                       </td>
-                      <td className="py-2 px-2 text-xs text-right font-mono tabular-nums text-[var(--text-secondary)]">
+                      <td className="py-2 px-2 text-xs text-right font-mono tabular-nums text-secondary-token">
                         {fmtUsd(c.per_capita)}
                       </td>
                     </tr>
@@ -378,15 +376,13 @@ export default function ChannelPage() {
                             key={c.stdt_id || i}
                             className={i % 2 === 0 ? 'slide-row-even' : 'slide-row-odd'}
                           >
-                            <td className="slide-td text-[var(--text-muted)] font-mono">{i + 1}</td>
+                            <td className="slide-td text-muted-token font-mono">{i + 1}</td>
                             <td className="slide-td font-mono text-xs">{c.stdt_id || '—'}</td>
-                            <td className="slide-td text-[var(--text-secondary)]">
-                              {c.enclosure || '—'}
-                            </td>
+                            <td className="slide-td text-secondary-token">{c.enclosure || '—'}</td>
                             <td className="slide-td text-right font-mono tabular-nums font-semibold text-action-accent">
                               {fmtNum(c[paid] as number)}
                             </td>
-                            <td className="slide-td text-right font-mono tabular-nums text-[var(--text-secondary)]">
+                            <td className="slide-td text-right font-mono tabular-nums text-secondary-token">
                               {fmtNum(c.total_new)}
                             </td>
                           </tr>
@@ -423,7 +419,7 @@ export default function ChannelPage() {
                   {comparisons.map((c) => {
                     const gap = c.gap;
                     return (
-                      <tr key={c.channel} className="even:bg-[var(--bg-subtle)]">
+                      <tr key={c.channel} className="even:bg-subtle">
                         <td className="py-2 px-2 text-xs font-medium">
                           {label(CHANNEL_LABELS, c.channel)}
                         </td>
@@ -436,10 +432,10 @@ export default function ChannelPage() {
                         <td
                           className={`py-2 px-2 text-xs text-right font-mono tabular-nums font-medium ${
                             gap == null
-                              ? 'text-[var(--text-secondary)]'
+                              ? 'text-secondary-token'
                               : gap >= 0
-                                ? 'text-[var(--color-success)]'
-                                : 'text-[var(--color-danger)]'
+                                ? 'text-success-token'
+                                : 'text-danger-token'
                           }`}
                         >
                           {fmtGap(gap)}

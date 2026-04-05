@@ -71,20 +71,16 @@ export function FunnelSnapshot({ stages }: FunnelSnapshotProps) {
         if (!fromStage || !toStage) return null;
         const rate = fromStage.actual > 0 ? toStage.actual / fromStage.actual : 0;
         const colorClass =
-          rate >= 0.5
-            ? 'bg-[var(--color-success)]'
-            : rate >= 0.3
-              ? 'bg-[var(--color-warning)]'
-              : 'bg-[var(--color-danger)]';
+          rate >= 0.5 ? 'bg-success-token' : rate >= 0.3 ? 'bg-warning-token' : 'bg-danger-token';
         const fromLabel = t[fromKey];
         const toLabel = t[toKey];
         return (
           <div key={`${fromKey}-${toKey}`}>
-            <div className="flex justify-between text-xs text-[var(--text-secondary)] mb-1">
+            <div className="flex justify-between text-xs text-secondary-token mb-1">
               <span>
                 {fromLabel} → {toLabel}
               </span>
-              <span className="font-medium text-[var(--text-primary)]">{formatRate(rate)}</span>
+              <span className="font-medium text-primary-token">{formatRate(rate)}</span>
             </div>
             <PercentBar value={rate * 100} max={100} colorClass={colorClass} />
           </div>

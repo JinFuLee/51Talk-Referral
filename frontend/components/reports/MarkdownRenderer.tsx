@@ -189,7 +189,7 @@ function MermaidBlock({ body }: { body: string }) {
   if (trimmed.startsWith('xychart-beta')) {
     const props = xyChartToProps(trimmed, t.barLabel, t.baselineLine, t.extraLine);
     return (
-      <div className="my-4 p-4 bg-[var(--bg-surface)] backdrop-blur-md rounded-[var(--radius-xl)] border border-[var(--border-default)] shadow-[var(--shadow-md)] transition-all duration-200 hover:shadow-[var(--shadow-lg)] hover:-translate-y-1">
+      <div className="my-4 p-4 bg-surface backdrop-blur-md rounded-[var(--radius-xl)] border border-default-token shadow-[var(--shadow-md)] transition-all duration-200 hover:shadow-[var(--shadow-lg)] hover:-translate-y-1">
         <TrendLineChart {...props} />
       </div>
     );
@@ -198,7 +198,7 @@ function MermaidBlock({ body }: { body: string }) {
   if (trimmed.startsWith('pie')) {
     const { data, title } = parsePieChart(trimmed);
     return (
-      <div className="my-4 p-4 bg-[var(--bg-surface)] backdrop-blur-md rounded-[var(--radius-xl)] border border-[var(--border-default)] shadow-[var(--shadow-md)] transition-all duration-200 hover:shadow-[var(--shadow-lg)] hover:-translate-y-1">
+      <div className="my-4 p-4 bg-surface backdrop-blur-md rounded-[var(--radius-xl)] border border-default-token shadow-[var(--shadow-md)] transition-all duration-200 hover:shadow-[var(--shadow-lg)] hover:-translate-y-1">
         <PieChart data={data} title={title || undefined} />
       </div>
     );
@@ -207,7 +207,7 @@ function MermaidBlock({ body }: { body: string }) {
   if (trimmed.startsWith('flowchart') || trimmed.startsWith('graph')) {
     const stages = parseFlowchart(trimmed);
     return (
-      <div className="my-4 p-4 bg-[var(--bg-surface)] backdrop-blur-md rounded-[var(--radius-xl)] border border-[var(--border-default)] shadow-[var(--shadow-md)] transition-all duration-200 hover:shadow-[var(--shadow-lg)] hover:-translate-y-1">
+      <div className="my-4 p-4 bg-surface backdrop-blur-md rounded-[var(--radius-xl)] border border-default-token shadow-[var(--shadow-md)] transition-all duration-200 hover:shadow-[var(--shadow-lg)] hover:-translate-y-1">
         <FunnelChart stages={stages} />
       </div>
     );
@@ -215,7 +215,7 @@ function MermaidBlock({ body }: { body: string }) {
 
   // Unknown mermaid — render as code
   return (
-    <pre className="my-4 p-4 bg-[var(--bg-surface)] rounded-lg overflow-x-auto text-xs text-[var(--text-primary)]">
+    <pre className="my-4 p-4 bg-surface rounded-lg overflow-x-auto text-xs text-primary-token">
       <code>{body}</code>
     </pre>
   );
@@ -230,8 +230,8 @@ function CodeRenderer({ className, children }: CodeProps) {
   }
 
   return (
-    <pre className="my-3 p-4 bg-[var(--bg-subtle)] rounded-lg overflow-x-auto">
-      <code className={`text-xs text-[var(--text-muted)] ${className ?? ''}`}>{raw}</code>
+    <pre className="my-3 p-4 bg-subtle rounded-lg overflow-x-auto">
+      <code className={`text-xs text-muted-token ${className ?? ''}`}>{raw}</code>
     </pre>
   );
 }
@@ -253,42 +253,38 @@ export function MarkdownRenderer({ content, className }: MarkdownRendererProps) 
           // Style tables
           table: ({ children }) => (
             <div className="overflow-x-auto my-4">
-              <table className="w-full text-sm border-collapse border border-[var(--border-subtle)]">
+              <table className="w-full text-sm border-collapse border border-subtle-token">
                 {children}
               </table>
             </div>
           ),
-          thead: ({ children }) => <thead className="bg-[var(--bg-primary)]">{children}</thead>,
+          thead: ({ children }) => <thead className="bg-bg-primary">{children}</thead>,
           th: ({ children }) => (
-            <th className="border border-[var(--border-subtle)] px-3 py-2 text-left text-xs font-medium text-[var(--text-muted)] uppercase tracking-wide">
+            <th className="border border-subtle-token px-3 py-2 text-left text-xs font-medium text-muted-token uppercase tracking-wide">
               {children}
             </th>
           ),
           td: ({ children }) => (
-            <td className="border border-[var(--border-subtle)] px-3 py-2 text-sm text-[var(--text-secondary)]">
+            <td className="border border-subtle-token px-3 py-2 text-sm text-secondary-token">
               {children}
             </td>
           ),
-          tr: ({ children }) => <tr className="even:bg-[var(--bg-primary)]">{children}</tr>,
+          tr: ({ children }) => <tr className="even:bg-bg-primary">{children}</tr>,
           // Headings
           h1: ({ children }) => (
-            <h1 className="text-xl font-bold text-[var(--text-primary)] mt-6 mb-3 border-b border-[var(--border-subtle)] pb-2">
+            <h1 className="text-xl font-bold text-primary-token mt-6 mb-3 border-b border-subtle-token pb-2">
               {children}
             </h1>
           ),
           h2: ({ children }) => (
-            <h2 className="text-lg font-semibold text-[var(--text-primary)] mt-5 mb-2">
-              {children}
-            </h2>
+            <h2 className="text-lg font-semibold text-primary-token mt-5 mb-2">{children}</h2>
           ),
           h3: ({ children }) => (
-            <h3 className="text-base font-semibold text-[var(--text-secondary)] mt-4 mb-2">
-              {children}
-            </h3>
+            <h3 className="text-base font-semibold text-secondary-token mt-4 mb-2">{children}</h3>
           ),
           // Blockquotes
           blockquote: ({ children }) => (
-            <blockquote className="border-l-4 border-action-accent-muted pl-4 my-3 text-[var(--text-secondary)] italic">
+            <blockquote className="border-l-4 border-action-accent-muted pl-4 my-3 text-secondary-token italic">
               {children}
             </blockquote>
           ),

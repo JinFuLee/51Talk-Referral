@@ -158,14 +158,14 @@ export default function IndicatorMatrixPage() {
     return (
       <div className={BIZ_PAGE}>
         <PageHeader title={t('pageTitle')} subtitle={t('pageSubtitle')} icon={LayoutGrid} />
-        <div className="py-12 flex flex-col items-center gap-3 text-[var(--text-muted)]">
+        <div className="py-12 flex flex-col items-center gap-3 text-muted-token">
           <p className="text-sm">
             {t('loadFailed')}
             {error.message || t('noBackend')}
           </p>
           <button
             onClick={() => mutate()}
-            className="px-4 py-1.5 rounded-lg text-xs font-medium bg-[var(--bg-subtle)] border border-[var(--border-default)] text-[var(--text-secondary)] hover:bg-[var(--border-default)] transition-colors"
+            className="px-4 py-1.5 rounded-lg text-xs font-medium bg-subtle border border-default-token text-secondary-token hover:bg-n-200 transition-colors"
           >
             {t('retry')}
           </button>
@@ -178,7 +178,7 @@ export default function IndicatorMatrixPage() {
     return (
       <div className={BIZ_PAGE}>
         <PageHeader title={t('pageTitle')} subtitle={t('pageSubtitle')} icon={LayoutGrid} />
-        <div className="py-12 text-center text-[var(--text-muted)]">{t('emptyRegistry')}</div>
+        <div className="py-12 text-center text-muted-token">{t('emptyRegistry')}</div>
       </div>
     );
   }
@@ -189,7 +189,7 @@ export default function IndicatorMatrixPage() {
         <button
           onClick={handleExportCSV}
           disabled={registry.length === 0}
-          className="flex items-center gap-1.5 px-3 py-2 border border-[var(--border-default)] rounded-lg text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-subtle)] disabled:opacity-40 transition-colors"
+          className="flex items-center gap-1.5 px-3 py-2 border border-default-token rounded-lg text-sm text-secondary-token hover:bg-subtle disabled:opacity-40 transition-colors"
         >
           <Download className="w-4 h-4" aria-hidden="true" />
           {t('exportCsv')}
@@ -204,19 +204,15 @@ export default function IndicatorMatrixPage() {
       </PageHeader>
 
       {msg && (
-        <p
-          className={`text-sm ${msg === t('saveSuccess') ? 'text-[var(--n-600)]' : 'text-[var(--n-500)]'}`}
-        >
-          {msg}
-        </p>
+        <p className={`text-sm ${msg === t('saveSuccess') ? 'text-n-600' : 'text-n-500'}`}>{msg}</p>
       )}
 
       {/* 筛选栏 */}
-      <div className="flex flex-wrap items-center gap-3 p-3 bg-[var(--bg-surface)] border border-[var(--border-default)] rounded-lg">
+      <div className="flex flex-wrap items-center gap-3 p-3 bg-surface border border-default-token rounded-lg">
         <select
           value={filterCategory}
           onChange={(e) => setFilterCategory(e.target.value as IndicatorCategory | 'all')}
-          className="px-3 py-1.5 border border-[var(--border-default)] rounded-md text-sm bg-[var(--bg-surface)] text-[var(--text-primary)] focus:outline-none focus-visible:ring-2 focus-visible:ring-action"
+          className="px-3 py-1.5 border border-default-token rounded-md text-sm bg-surface text-primary-token focus:outline-none focus-visible:ring-2 focus-visible:ring-action"
         >
           <option value="all">{t('filterAllCategory')}</option>
           {INDICATOR_CATEGORIES.map((cat) => (
@@ -229,7 +225,7 @@ export default function IndicatorMatrixPage() {
         <select
           value={filterRole}
           onChange={(e) => setFilterRole(e.target.value as typeof filterRole)}
-          className="px-3 py-1.5 border border-[var(--border-default)] rounded-md text-sm bg-[var(--bg-surface)] text-[var(--text-primary)] focus:outline-none focus-visible:ring-2 focus-visible:ring-action"
+          className="px-3 py-1.5 border border-default-token rounded-md text-sm bg-surface text-primary-token focus:outline-none focus-visible:ring-2 focus-visible:ring-action"
         >
           <option value="all">{t('filterAllRole')}</option>
           <option value="CC">CC</option>
@@ -240,7 +236,7 @@ export default function IndicatorMatrixPage() {
         <select
           value={filterAvailability}
           onChange={(e) => setFilterAvailability(e.target.value as IndicatorAvailability | 'all')}
-          className="px-3 py-1.5 border border-[var(--border-default)] rounded-md text-sm bg-[var(--bg-surface)] text-[var(--text-primary)] focus:outline-none focus-visible:ring-2 focus-visible:ring-action"
+          className="px-3 py-1.5 border border-default-token rounded-md text-sm bg-surface text-primary-token focus:outline-none focus-visible:ring-2 focus-visible:ring-action"
         >
           <option value="all">{t('filterAllStatus')}</option>
           <option value="available">{t('availableLabel')}</option>
@@ -248,21 +244,21 @@ export default function IndicatorMatrixPage() {
           <option value="pending">{t('pendingLabel')}</option>
         </select>
 
-        <span className="ml-auto text-xs text-[var(--text-muted)]">
+        <span className="ml-auto text-xs text-muted-token">
           {t('showing')} {filtered.length} {t('of')} {registry.length} {t('items')}
         </span>
       </div>
 
       {isLoading && (
-        <div className="py-12 text-center text-sm text-[var(--text-muted)]">{t('loading')}</div>
+        <div className="py-12 text-center text-sm text-muted-token">{t('loading')}</div>
       )}
 
       {!isLoading && (
         <>
           {/* 矩阵表格 */}
-          <div className="bg-[var(--bg-surface)] border border-[var(--border-default)] rounded-lg overflow-hidden">
+          <div className="bg-surface border border-default-token rounded-lg overflow-hidden">
             {/* 表头 */}
-            <div className="flex items-center gap-3 px-4 py-2.5 bg-[var(--n-800)]">
+            <div className="flex items-center gap-3 px-4 py-2.5 bg-n-800">
               <div className="flex-1 text-xs font-semibold text-white">{t('colName')}</div>
               <div className="w-14 text-center text-xs font-semibold text-white">CC</div>
               <div className="w-14 text-center text-xs font-semibold text-white">SS</div>
@@ -274,9 +270,7 @@ export default function IndicatorMatrixPage() {
 
             {/* 分类分组 */}
             {Object.keys(byCatFiltered).length === 0 && (
-              <div className="py-8 text-center text-sm text-[var(--text-muted)]">
-                {t('noMatch')}
-              </div>
+              <div className="py-8 text-center text-sm text-muted-token">{t('noMatch')}</div>
             )}
 
             {INDICATOR_CATEGORIES.map((cat) => {
@@ -287,13 +281,11 @@ export default function IndicatorMatrixPage() {
               return (
                 <div key={cat}>
                   {/* Category header */}
-                  <div className="px-4 py-1.5 bg-[var(--n-100)] border-b border-[var(--border-subtle)]">
-                    <span className="text-[11px] font-semibold uppercase tracking-wider text-[var(--text-muted)]">
+                  <div className="px-4 py-1.5 bg-n-100 border-b border-subtle-token">
+                    <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-token">
                       {catLabel}
                     </span>
-                    <span className="ml-2 text-[11px] text-[var(--text-muted)]">
-                      ({items.length})
-                    </span>
+                    <span className="ml-2 text-[11px] text-muted-token">({items.length})</span>
                   </div>
                   {/* Rows */}
                   {items.map((ind) => {
@@ -303,19 +295,19 @@ export default function IndicatorMatrixPage() {
                     return (
                       <div
                         key={ind.id}
-                        className={`flex items-center gap-3 px-4 py-2.5 border-b border-[var(--border-subtle)] last:border-0 hover:bg-[var(--bg-subtle)] transition-colors ${
-                          isCCOnly ? 'bg-[var(--n-100)]' : ''
+                        className={`flex items-center gap-3 px-4 py-2.5 border-b border-subtle-token last:border-0 hover:bg-subtle transition-colors ${
+                          isCCOnly ? 'bg-n-100' : ''
                         }`}
                       >
                         <div className="flex-1 min-w-0">
-                          <span className="text-sm text-[var(--text-primary)]">{name}</span>
+                          <span className="text-sm text-primary-token">{name}</span>
                           {isCCOnly && (
-                            <span className="ml-1.5 text-[10px] text-[var(--n-500)] font-medium">
+                            <span className="ml-1.5 text-[10px] text-n-500 font-medium">
                               {t('ccOnly')}
                             </span>
                           )}
                           {ind.formula && (
-                            <p className="text-[11px] text-[var(--text-muted)] mt-0.5 font-mono truncate">
+                            <p className="text-[11px] text-muted-token mt-0.5 font-mono truncate">
                               {translateFormula(ind.formula, locale)}
                             </p>
                           )}
@@ -335,7 +327,7 @@ export default function IndicatorMatrixPage() {
                             checked={ssActive.has(ind.id)}
                             disabled={disabled}
                             onChange={() => !disabled && toggleSS(ind.id)}
-                            className="w-4 h-4 rounded border-[var(--border-default)] accent-action cursor-pointer disabled:cursor-not-allowed disabled:opacity-40 focus-visible:ring-2 focus-visible:ring-action"
+                            className="w-4 h-4 rounded border-default-token accent-action cursor-pointer disabled:cursor-not-allowed disabled:opacity-40 focus-visible:ring-2 focus-visible:ring-action"
                             aria-label={`SS ${name}`}
                           />
                         </div>
@@ -347,7 +339,7 @@ export default function IndicatorMatrixPage() {
                             checked={lpActive.has(ind.id)}
                             disabled={disabled}
                             onChange={() => !disabled && toggleLP(ind.id)}
-                            className="w-4 h-4 rounded border-[var(--border-default)] accent-action cursor-pointer disabled:cursor-not-allowed disabled:opacity-40 focus-visible:ring-2 focus-visible:ring-action"
+                            className="w-4 h-4 rounded border-default-token accent-action cursor-pointer disabled:cursor-not-allowed disabled:opacity-40 focus-visible:ring-2 focus-visible:ring-action"
                             aria-label={`LP ${name}`}
                           />
                         </div>
@@ -357,10 +349,10 @@ export default function IndicatorMatrixPage() {
                           <span
                             className={`text-[10px] font-medium px-1.5 py-0.5 rounded ${
                               ind.availability === 'available'
-                                ? 'bg-[var(--n-100)] text-[var(--n-600)]'
+                                ? 'bg-n-100 text-n-600'
                                 : ind.availability === 'partial'
-                                  ? 'bg-[var(--n-200)] text-[var(--n-700)]'
-                                  : 'bg-[var(--n-100)] text-[var(--text-muted)]'
+                                  ? 'bg-n-200 text-n-700'
+                                  : 'bg-n-100 text-muted-token'
                             }`}
                           >
                             {availabilityLabel(ind.availability)}
@@ -375,34 +367,34 @@ export default function IndicatorMatrixPage() {
           </div>
 
           {/* 统计摘要栏 */}
-          <div className="flex flex-wrap items-center gap-4 p-3 bg-[var(--bg-surface)] border border-[var(--border-default)] rounded-lg text-sm">
+          <div className="flex flex-wrap items-center gap-4 p-3 bg-surface border border-default-token rounded-lg text-sm">
             <div className="flex items-center gap-1.5">
-              <span className="text-[var(--text-muted)]">CC</span>
-              <span className="font-semibold text-[var(--text-primary)]">
+              <span className="text-muted-token">CC</span>
+              <span className="font-semibold text-primary-token">
                 {stats.cc} {t('items')}
               </span>
             </div>
             <div className="flex items-center gap-1.5">
-              <span className="text-[var(--text-muted)]">SS</span>
-              <span className="font-semibold text-[var(--text-primary)]">
+              <span className="text-muted-token">SS</span>
+              <span className="font-semibold text-primary-token">
                 {stats.ss} {t('items')}
               </span>
             </div>
             <div className="flex items-center gap-1.5">
-              <span className="text-[var(--text-muted)]">LP</span>
-              <span className="font-semibold text-[var(--text-primary)]">
+              <span className="text-muted-token">LP</span>
+              <span className="font-semibold text-primary-token">
                 {stats.lp} {t('items')}
               </span>
             </div>
             <div className="flex items-center gap-1.5">
-              <span className="text-[var(--text-muted)]">{t('statsPending')}</span>
+              <span className="text-muted-token">{t('statsPending')}</span>
               <span className="font-semibold text-orange-600">
                 {stats.pending} {t('items')}
               </span>
             </div>
             <div className="ml-auto flex items-center gap-1.5">
-              <span className="text-[var(--text-muted)]">{t('statsTotal')}</span>
-              <span className="font-semibold text-[var(--text-primary)]">
+              <span className="text-muted-token">{t('statsTotal')}</span>
+              <span className="font-semibold text-primary-token">
                 {stats.total} {t('items')}
               </span>
             </div>

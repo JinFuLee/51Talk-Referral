@@ -19,7 +19,7 @@ const accentColor: Record<string, string> = {
   green: 'text-success',
   yellow: 'text-warning',
   red: 'text-destructive',
-  slate: 'text-[var(--text-primary)]',
+  slate: 'text-primary-token',
 };
 
 function ProgressBar({ ratio }: { ratio: number }) {
@@ -32,7 +32,7 @@ function ProgressBar({ ratio }: { ratio: number }) {
         : 'var(--color-danger)';
 
   return (
-    <div className="mt-2 h-1 rounded-full bg-[var(--n-200)]">
+    <div className="mt-2 h-1 rounded-full bg-n-200">
       <div
         className="h-1 rounded-full transition-all duration-500"
         style={{ width: `${pct}%`, backgroundColor: barColor }}
@@ -71,16 +71,14 @@ function StatMiniCardBase({
 
   return (
     <div className="card-interactive px-4 py-3">
-      <p className="text-xs text-[var(--text-muted)] mb-1">{label}</p>
+      <p className="text-xs text-muted-token mb-1">{label}</p>
       <div className="flex items-baseline">
         <p className={`stat-number text-2xl font-bold ${accentColor[accent]}`}>{value}</p>
         {hasTarget && <VsTargetBadge ratio={ratio} />}
       </div>
       {hasTarget && <ProgressBar ratio={ratio} />}
-      {sub && <p className="text-xs text-[var(--text-muted)] mt-0.5">{sub}</p>}
-      {subtitle && (
-        <p className="text-[11px] text-[var(--text-muted)] mt-1 leading-relaxed">{subtitle}</p>
-      )}
+      {sub && <p className="text-xs text-muted-token mt-0.5">{sub}</p>}
+      {subtitle && <p className="text-[11px] text-muted-token mt-1 leading-relaxed">{subtitle}</p>}
     </div>
   );
 }

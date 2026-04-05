@@ -159,7 +159,7 @@ def parse_order_message(text: str) -> ParsedOrder:
         source_clean = re.split(r"\s*@", source_raw)[0].strip()
         order.lead_source = source_clean
         order.is_referral = bool(
-            re.search(r"ref|转介绍", source_clean, re.IGNORECASE)
+            re.search(r"ref|rf|转介绍", source_clean, re.IGNORECASE)
         )
     else:
         errors.append("Source of leads 未找到")
@@ -329,16 +329,17 @@ def _fetch_cc_ranking(cc_name: str) -> dict | None:
     }
 
 
-def _count_orders(cc_name: str) -> tuple[int, int, int]:
-    """从日志统计：(今日转介绍总单数, 该CC本月总单数, 全月转介绍总单数)"""
+def _count_orders(cc_name: str) -> tuple[int, int, int, float]:
+    """从日志统计：(今日转介绍总单数, 该CC本月总单数, 全月转介绍总单数, 该CC今日累计THB)"""
     today_str = datetime.now().strftime("%Y-%m-%d")
     month_str = datetime.now().strftime("%Y-%m")
     today_total = 0
     cc_month_total = 0
     month_total = 0
+    cc_today_thb = 0.0
 
     if not LOG_PATH.exists():
-        return 0, 0, 0
+        return 0, 0, 0, 0.0
 
     try:
         with open(LOG_PATH, encoding="utf-8") as f:
@@ -350,19 +351,22 @@ def _count_orders(cc_name: str) -> tuple[int, int, int]:
                     if not entry.get("is_referral"):
                         continue
                     ts = entry.get("ts", "")
+                    entry_cc = entry.get("cc_name", "")
+                    is_same_cc = entry_cc.lower() == cc_name.lower()
                     if ts[:10] == today_str:
                         today_total += 1
+                        if is_same_cc:
+                            cc_today_thb += entry.get("amount_thb", 0) or 0
                     if ts[:7] == month_str:
                         month_total += 1
-                        entry_cc = entry.get("cc_name", "")
-                        if entry_cc.lower() == cc_name.lower():
+                        if is_same_cc:
                             cc_month_total += 1
                 except (json.JSONDecodeError, KeyError):
                     continue
     except OSError:
         pass
 
-    return today_total, cc_month_total, month_total
+    return today_total, cc_month_total, month_total, cc_today_thb
 
 
 def format_reply(
@@ -387,12 +391,12 @@ def format_reply(
         cc_today_n = today_stats["cc_today_count"]
         today_total_thb = today_stats["today_total_thb"]
     else:
-        today_n_raw, _, _ = _count_orders(order.cc_name)
+        today_n_raw, _, _, _ = _count_orders(order.cc_name)
         today_n = today_n_raw
         cc_today_n = 0
         today_total_thb = 0.0
 
-    _, cc_month_n, month_total_n = _count_orders(order.cc_name)
+    _, cc_month_n, month_total_n, cc_today_thb = _count_orders(order.cc_name)
 
     lines: list[str] = []
 
@@ -412,9 +416,43 @@ def format_reply(
     lines.append("---")
     lines.append("")
 
+    # ── 随机话术库 ──
+    import random  # noqa: PLC0415
+
+    _PRAISE_BM = [
+        "เริ่ดเลย! นำหน้า BM แล้ว รักษาจังหวะไว้นะ",
+        "ฉ่ำมาก! BM ผ่านฉลุย ลุยต่อเลย",
+        "ปังสุด! เกิน BM แล้ว ไม่หยุดแน่นอน",
+        "แรงส์! นำ BM อยู่ ไปต่อได้เลย",
+        "เยี่ยมไปเลย! BM ไม่ใช่ปัญหา ไปต่อ!",
+        "ดีงาม! ทำได้เกิน BM เก่งมาก",
+    ]
+    _ENCOURAGE_BM = [
+        "เหลือนิดเดียว สู้ต่อไปนะ!",
+        "ยังไหว ค่อยๆ ไล่ ทีละบิล!",
+        "อีกแค่นิดเดียว พยายามต่อไป!",
+        "ไม่ไกลแล้ว ลุยต่อเลย!",
+        "BM ไม่ได้ไกล ปิดอีกนิดก็ถึง!",
+        "ไฟยังลุก! อีกนิดเดียวถึง BM",
+    ]
+    _PRAISE_TARGET = [
+        "ทะลุเป้าแล้ว! ปังสุดๆ!",
+        "ฉ่ำ! เกินเป้าเดือนแล้ว เก่งมาก!",
+        "เป้าเดือนพังทลาย! แรงส์จริงๆ!",
+        "เหนือเป้าไปแล้ว ไม่มีใครหยุดได้!",
+    ]
+    _ENCOURAGE_TARGET = [
+        "ทีละก้าว ค่อยๆ ไป ไม่หยุด!",
+        "ยังมีเวลา ปิดทีละบิล ไปถึงแน่!",
+        "สู้ต่อไปนะ ทุกบิลนับ!",
+        "อีกหลายบิลก็ถึง สู้ๆ!",
+        "ยังไม่จบ ลุยต่อได้เลย!",
+        "เป้าอยู่ไม่ไกล ทำต่อไปนะ!",
+    ]
+
     # ── 订单详情 ──
     cc_display = order.cc_name or "—"
-    lines.append(f"**{cc_display}**")
+    lines.append(f"CC: **{cc_display}**")
     lines.append("")
 
     amt_str = f"฿{thb:,.0f}" if thb else "รอยืนยัน"
@@ -429,37 +467,43 @@ def format_reply(
     cc_info = _fetch_cc_ranking(order.cc_name) if order.cc_name else None
     if cc_info:
         cc_rev_thb = cc_info["revenue_thb"]
-        cc_realtime = cc_rev_thb + (thb or 0)
+        # 个人累计 = T-1 个人业绩 + 该 CC 今日全部订单 THB（含当笔）
+        cc_realtime = cc_rev_thb + cc_today_thb
 
         lines.append(f"ยอดรวม: **฿{cc_realtime:,.0f}**")
+        lines.append("")
+        lines.append("---")
         lines.append("")
 
         # vs BM（个人）
         bm_thb = cc_info["bm_expected_thb"]
         bm_gap = cc_realtime - bm_thb
         if bm_gap >= 0:
-            lines.append(f"vs BM: เกิน **฿{bm_gap:,.0f}**")
+            lines.append(f"vs BM: เกิน **฿{bm_gap:,.0f}** \U0001f4aa")
             lines.append("")
-            lines.append("ยอดเยี่ยม! นำหน้า BM แล้ว รักษาจังหวะไว้!")
+            lines.append(random.choice(_PRAISE_BM))
         else:
             lines.append(f"vs BM: ขาด **฿{abs(bm_gap):,.0f}**")
             lines.append("")
-            lines.append("เหลือนิดเดียว สู้ต่อไป!")
+            lines.append(random.choice(_ENCOURAGE_BM))
+        lines.append("")
+        lines.append("---")
         lines.append("")
 
         # vs Target（个人）
         tgt_thb = cc_info["target_thb"]
         tgt_gap = cc_realtime - tgt_thb
         if tgt_gap >= 0:
-            lines.append(f"vs Target: เกิน **฿{tgt_gap:,.0f}**")
+            lines.append(f"vs Target: เกิน **฿{tgt_gap:,.0f}** \U0001f3c6")
             lines.append("")
-            lines.append("ทะลุเป้าแล้ว! ปังมาก!")
+            lines.append(random.choice(_PRAISE_TARGET))
         else:
             pct_done = (cc_realtime / tgt_thb * 100) if tgt_thb else 0
             lines.append(f"vs Target: ขาด **฿{abs(tgt_gap):,.0f}**")
             lines.append("")
             lines.append(
-                f"ทำได้แล้ว {pct_done:.0f}% ของเป้า ทีละก้าว ไม่หยุด!"
+                f"ทำได้แล้ว {pct_done:.0f}% "
+                + random.choice(_ENCOURAGE_TARGET)
             )
         lines.append("")
 

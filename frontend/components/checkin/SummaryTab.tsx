@@ -204,29 +204,27 @@ function ChannelColumn({ ch, rateColor, rateBg, isSelected, t }: ChannelColumnPr
     <div
       className={cn(
         'flex flex-col gap-3 min-w-0',
-        isSelected ? 'ring-2 ring-[var(--color-action,#1B365D)] rounded-lg' : ''
+        isSelected ? 'ring-2 ring-action-opt rounded-lg' : ''
       )}
     >
       {/* 渠道标题 */}
-      <div className="bg-[var(--n-800,#1e293b)] text-white text-xs font-semibold px-2 py-1.5 rounded-t-md">
+      <div className="bg-n-800 text-white text-xs font-semibold px-2 py-1.5 rounded-t-md">
         {ch.channel}
         {isSelected && <span className="ml-1.5 opacity-70 text-[10px]">▶ {t.currentRole}</span>}
       </div>
 
       {/* 零数据提示 */}
       {ch.total_students === 0 && ch.channel !== 'CC' && (
-        <div className="bg-[var(--color-warning-surface)] border border-[var(--color-warning)] rounded-md px-3 py-2.5 text-xs text-[var(--color-warning)]">
+        <div className="bg-warning-surface border border-warning-token rounded-md px-3 py-2.5 text-xs text-warning-token">
           {t.zeroDataHint}
         </div>
       )}
 
       {/* 总体大数字 */}
-      <div className="bg-[var(--bg-surface)] border border-[var(--border-default)] rounded-md px-3 py-2.5 space-y-1">
+      <div className="bg-surface border border-default-token rounded-md px-3 py-2.5 space-y-1">
         <div className="flex items-baseline gap-1.5">
-          <span className="text-2xl font-bold text-[var(--text-primary)]">{ch.total_checkin}</span>
-          <span className="text-xs text-[var(--text-muted)]">
-            {t.personCount(ch.total_students)}
-          </span>
+          <span className="text-2xl font-bold text-primary-token">{ch.total_checkin}</span>
+          <span className="text-xs text-muted-token">{t.personCount(ch.total_students)}</span>
         </div>
         <div
           className={cn(
@@ -236,32 +234,32 @@ function ChannelColumn({ ch, rateColor, rateBg, isSelected, t }: ChannelColumnPr
         >
           {formatRate(ch.checkin_rate ?? 0)}
         </div>
-        <div className="text-[10px] text-[var(--text-muted)]">{t.checkedStudentsDesc}</div>
-        <div className="text-[10px] text-[var(--text-muted)] opacity-75">{t.colorHint}</div>
+        <div className="text-[10px] text-muted-token">{t.checkedStudentsDesc}</div>
+        <div className="text-[10px] text-muted-token opacity-75">{t.colorHint}</div>
       </div>
 
       {/* 按团队 */}
-      <div className="bg-[var(--bg-surface)] border border-[var(--border-default)] rounded-md overflow-hidden">
-        <div className="bg-[var(--n-800,#1e293b)] text-white text-[10px] font-semibold px-2 py-1 grid grid-cols-4 gap-1">
+      <div className="bg-surface border border-default-token rounded-md overflow-hidden">
+        <div className="bg-n-800 text-white text-[10px] font-semibold px-2 py-1 grid grid-cols-4 gap-1">
           <span className="col-span-2">{t.teamHeader}</span>
           <span className="text-right">{t.studentHeader}</span>
           <span className="text-right">{t.checkinRateHeader}</span>
         </div>
         {(ch.by_team ?? []).length === 0 ? (
-          <div className="text-[10px] text-[var(--text-muted)] px-2 py-2">{t.noTeamData}</div>
+          <div className="text-[10px] text-muted-token px-2 py-2">{t.noTeamData}</div>
         ) : (
           (ch.by_team ?? []).map((row, i) => (
             <div
               key={row.team}
               className={cn(
                 'grid grid-cols-4 gap-1 px-2 py-1 text-xs',
-                i % 2 === 0 ? 'bg-[var(--bg-subtle)]' : 'bg-[var(--bg-surface)]'
+                i % 2 === 0 ? 'bg-subtle' : 'bg-surface'
               )}
             >
-              <span className="col-span-2 truncate text-[var(--text-secondary)]" title={row.team}>
+              <span className="col-span-2 truncate text-secondary-token" title={row.team}>
                 {row.team}
               </span>
-              <span className="text-right text-[var(--text-primary)]">{row.students}</span>
+              <span className="text-right text-primary-token">{row.students}</span>
               <span className={cn('text-right font-medium', rateColor?.(row.rate) ?? '')}>
                 {formatRate(row.rate)}
               </span>
@@ -271,27 +269,25 @@ function ChannelColumn({ ch, rateColor, rateBg, isSelected, t }: ChannelColumnPr
       </div>
 
       {/* 按围场 */}
-      <div className="bg-[var(--bg-surface)] border border-[var(--border-default)] rounded-md overflow-hidden">
-        <div className="bg-[var(--n-800,#1e293b)] text-white text-[10px] font-semibold px-2 py-1 grid grid-cols-4 gap-1">
+      <div className="bg-surface border border-default-token rounded-md overflow-hidden">
+        <div className="bg-n-800 text-white text-[10px] font-semibold px-2 py-1 grid grid-cols-4 gap-1">
           <span className="col-span-2">{t.enclosureHeader}</span>
           <span className="text-right">{t.studentHeader}</span>
           <span className="text-right">{t.checkinRateHeader}</span>
         </div>
         {(ch.by_enclosure ?? []).length === 0 ? (
-          <div className="text-[10px] text-[var(--text-muted)] px-2 py-2">{t.noEnclosureData}</div>
+          <div className="text-[10px] text-muted-token px-2 py-2">{t.noEnclosureData}</div>
         ) : (
           (ch.by_enclosure ?? []).map((row, i) => (
             <div
               key={row.enclosure}
               className={cn(
                 'grid grid-cols-4 gap-1 px-2 py-1 text-xs',
-                i % 2 === 0 ? 'bg-[var(--bg-subtle)]' : 'bg-[var(--bg-surface)]'
+                i % 2 === 0 ? 'bg-subtle' : 'bg-surface'
               )}
             >
-              <span className="col-span-2 text-[var(--text-secondary)]">
-                {fmtEnc(row.enclosure)}
-              </span>
-              <span className="text-right text-[var(--text-primary)]">{row.students}</span>
+              <span className="col-span-2 text-secondary-token">{fmtEnc(row.enclosure)}</span>
+              <span className="text-right text-primary-token">{row.students}</span>
               <span className={cn('text-right font-medium', rateColor?.(row.rate) ?? '')}>
                 {formatRate(row.rate)}
               </span>
@@ -392,12 +388,12 @@ export default function SummaryTab({ enclosureFilter, roleFilter }: SummaryTabPr
       </div>
 
       {/* 分隔线 */}
-      <div className="h-px bg-[var(--border-default)]" />
+      <div className="h-px bg-n-200" />
 
       {/* KPI 卡片行（来自 student-analysis） */}
       {mc && (
         <div>
-          <h3 className="text-sm font-semibold text-[var(--text-secondary)] uppercase tracking-wider mb-3">
+          <h3 className="text-sm font-semibold text-secondary-token uppercase tracking-wider mb-3">
             {t.monthlyKpi}
           </h3>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -456,11 +452,11 @@ export default function SummaryTab({ enclosureFilter, roleFilter }: SummaryTabPr
       {/* 围场参与率柱图 */}
       {studentData?.by_enclosure && studentData.by_enclosure.length > 0 && (
         <div>
-          <h3 className="text-sm font-semibold text-[var(--text-secondary)] uppercase tracking-wider mb-3">
+          <h3 className="text-sm font-semibold text-secondary-token uppercase tracking-wider mb-3">
             {t.enclosureCheckinRate}
           </h3>
           <div className="card-base p-5">
-            <p className="text-xs text-[var(--text-muted)] mb-3">{t.enclosureChartDesc}</p>
+            <p className="text-xs text-muted-token mb-3">{t.enclosureChartDesc}</p>
             <EnclosureParticipationChart data={studentData.by_enclosure} />
           </div>
         </div>

@@ -23,9 +23,7 @@ function LazyMarkdownRenderer({ content }: { content: string }) {
       }),
     {
       ssr: false,
-      loading: () => (
-        <div className="animate-pulse text-[var(--text-muted)] text-sm">{t('loading')}</div>
-      ),
+      loading: () => <div className="animate-pulse text-muted-token text-sm">{t('loading')}</div>,
     }
   );
   return <MarkdownRenderer>{content}</MarkdownRenderer>;
@@ -40,9 +38,9 @@ interface ReportViewerProps {
 export function ReportViewer({ content, filename, downloadURL }: ReportViewerProps) {
   const t = useTranslations('reports.label');
   return (
-    <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] overflow-hidden shadow-[var(--shadow-subtle)]">
-      <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--border-subtle)] bg-[var(--bg-subtle)]">
-        <span className="text-sm font-medium text-[var(--text-primary)] truncate">{filename}</span>
+    <div className="rounded-xl border border-subtle-token bg-surface overflow-hidden shadow-[var(--shadow-subtle)]">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-subtle-token bg-subtle">
+        <span className="text-sm font-medium text-primary-token truncate">{filename}</span>
         <a
           href={downloadURL}
           download={filename}

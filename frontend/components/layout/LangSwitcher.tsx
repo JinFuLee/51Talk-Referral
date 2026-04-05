@@ -23,7 +23,7 @@ export function LangSwitcher() {
 
   return (
     <div
-      className="flex rounded-md border border-[var(--border-subtle)] overflow-hidden"
+      className="flex rounded-md border border-subtle-token overflow-hidden"
       role="group"
       aria-label="语言切换"
     >
@@ -35,7 +35,7 @@ export function LangSwitcher() {
           className={`px-3 py-1 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${
             locale === code
               ? 'bg-primary text-primary-foreground'
-              : 'bg-[var(--bg-surface)] text-[var(--text-secondary)] hover:bg-[var(--bg-primary)]'
+              : 'bg-surface text-secondary-token hover:bg-bg-primary'
           }`}
         >
           {label}

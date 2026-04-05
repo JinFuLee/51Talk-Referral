@@ -60,11 +60,11 @@ function ChapterNode({ chapter, activeId, onSelect, depth = 0 }: ChapterNodeProp
         onClick={handleClick}
         className={clsx(
           'w-full flex items-center gap-1.5 text-left rounded px-2 py-1.5 transition-colors',
-          'focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-accent)]',
+          'focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-accent-token',
           depth === 0 ? 'text-sm font-medium' : 'text-xs font-normal pl-5',
           isActive
-            ? 'border-l-[3px] border-[var(--color-accent)] bg-[var(--color-accent-surface)] text-[var(--color-accent)] rounded-l-none'
-            : 'text-[var(--text-secondary)] hover:bg-[var(--bg-subtle)] hover:text-[var(--text-primary)]'
+            ? 'border-l-[3px] border-accent-token bg-accent-surface text-accent-token rounded-l-none'
+            : 'text-secondary-token hover:bg-subtle hover:text-primary-token'
         )}
       >
         {hasChildren && depth === 0 && (
@@ -101,7 +101,7 @@ export function ChapterTree({ chapters, activeId, onSelect }: ChapterTreeProps) 
   const t = I18N[locale] ?? I18N.zh;
 
   if (chapters.length === 0) {
-    return <div className="px-2 py-3 text-xs text-[var(--text-muted)]">{t.empty}</div>;
+    return <div className="px-2 py-3 text-xs text-muted-token">{t.empty}</div>;
   }
 
   return (
