@@ -150,8 +150,7 @@ async def lifespan(app: FastAPI):
     # M33: 初始化日快照 SQLite 表
     try:
         from backend.core.daily_snapshot_service import DailySnapshotService
-        _snapshot_svc = DailySnapshotService()
-        _snapshot_svc._ensure_schema()
+        DailySnapshotService()  # __init__ 内部自动调用 _ensure_schema()
         logger.info("✓ 日快照 SQLite 表已初始化")
     except Exception as _snap_err:
         logger.warning(f"日快照表初始化失败（非致命）: {_snap_err}")

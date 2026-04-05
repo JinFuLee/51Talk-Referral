@@ -27,7 +27,8 @@ def get_geo_distribution(
     返回各国家/地区的学员分布及平均推荐指标。
     字段: country, student_count, pct, avg_referral_registrations, avg_payments
     """
-    students = apply_filters(dm.get("students") or pd.DataFrame(), filters)
+    raw = dm.get("students")
+    students = apply_filters(raw if raw is not None else pd.DataFrame(), filters)
     if students.empty:
         return []
 

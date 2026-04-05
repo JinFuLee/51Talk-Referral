@@ -347,9 +347,10 @@ def _compare_extremes(
 
         metrics_out: dict[str, dict[str, Any]] = {}
         any_data = False
+        current_dict = dict(current_row)
 
         for banner_key, db_col in metric_map.items():
-            current_val = current_row.get(db_col)
+            current_val = current_dict.get(db_col)
 
             # 查历史极值（排除当前月及之后的未完成月）
             extreme_row = conn.execute(
@@ -420,7 +421,7 @@ def _compare_prediction(
                 "metrics": {},
             }
 
-        bm_pct = current_row.get("bm_pct")
+        bm_pct = current_row["bm_pct"] if "bm_pct" in current_row.keys() else None
         if not bm_pct or bm_pct <= 0:
             return {
                 "available": False,
@@ -456,9 +457,10 @@ def _compare_prediction(
 
         metrics_out: dict[str, dict[str, Any]] = {}
         any_data = False
+        current_dict_p = dict(current_row)
 
         for banner_key, db_col in metric_map.items():
-            current_val = current_row.get(db_col)
+            current_val = current_dict_p.get(db_col)
             predicted_val = eom_map.get(banner_key)
 
             if current_val is not None or predicted_val is not None:

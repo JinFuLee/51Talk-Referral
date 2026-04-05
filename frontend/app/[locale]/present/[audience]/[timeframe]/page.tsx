@@ -107,20 +107,14 @@ export default function PresentationPage() {
 
     togglePresentationMode();
 
-    try {
-      document.documentElement.requestFullscreen?.();
-    } catch {
-      // 全屏不支持时静默忽略
-    }
+    document.documentElement.requestFullscreen?.()?.catch(() => {
+      // 全屏不支持或无用户手势时静默忽略
+    });
 
     return () => {
       exitPresentationMode();
-      try {
-        if (document.fullscreenElement) {
-          document.exitFullscreen?.();
-        }
-      } catch {
-        // 静默忽略
+      if (document.fullscreenElement) {
+        document.exitFullscreen?.()?.catch(() => {});
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps

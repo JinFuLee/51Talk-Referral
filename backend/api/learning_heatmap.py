@@ -27,7 +27,8 @@ def get_learning_heatmap(
     返回每个围场（生命周期段）的每周平均转码次数。
     字段: enclosure, week1_avg, week2_avg, week3_avg, week4_avg
     """
-    students = apply_filters(dm.get("students") or pd.DataFrame(), filters)
+    raw = dm.get("students")
+    students = apply_filters(raw if raw is not None else pd.DataFrame(), filters)
     if students.empty:
         return []
 
