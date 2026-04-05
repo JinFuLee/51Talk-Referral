@@ -9,5 +9,14 @@ export default getRequestConfig(async ({ requestLocale }) => {
   return {
     locale,
     messages: (await import(`../messages/${locale}.json`)).default,
+    onError(error) {
+      // Graceful fallback for missing translations during SSG/runtime
+      if (error.code !== 'MISSING_MESSAGE') {
+        console.warn(`[i18n] ${error.code}: ${error.message}`);
+      }
+    },
+    getMessageFallback({ namespace, key }) {
+      return key;
+    },
   };
 });

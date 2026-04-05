@@ -324,7 +324,7 @@
   "biz": {
     "overview": {
       "title": "Thailand Referral Business Overview",
-      "subtitle": "${getCurrentMonthLabel()} · Data as of T-1 · Business View",
+      "subtitle": "{month} · Data as of T-1 · Business View",
       "card": {
         "risks": "Key Risks",
         "keyActions": "Key Actions This Week"
@@ -355,7 +355,7 @@
     },
     "team": {
       "title": "Team Overview",
-      "subtitle": "${getCurrentMonthLabel()} · 人效 · 在岗 · 达标率",
+      "subtitle": "{month} · 人效 · 在岗 · 达标率",
       "card": {
         "ccEfficiency": "CC Efficiency",
         "ssEfficiency": "SS Efficiency",
@@ -440,7 +440,7 @@
     },
     "roi": {
       "title": "ROI Analysis",
-      "subtitle": "${getCurrentMonthLabel()} · 投资回报率全景 · ROI Overview",
+      "subtitle": "{month} · 投资回报率全景 · ROI Overview",
       "card": {
         "overview": "ROI Overview",
         "cohort": "Cohort Decay Curve",
@@ -522,7 +522,7 @@
     },
     "enclosure": {
       "title": "Enclosure Period Resource Allocation Strategy",
-      "subtitle": "${getCurrentMonthLabel()} · 按付费当日起算围场段 · 优化资源分配 · Enclosure Period Analysis",
+      "subtitle": "{month} · 按付费当日起算围场段 · 优化资源分配 · Enclosure Period Analysis",
       "card": {
         "heatmap": "Enclosure × ROI Heatmap",
         "coverage": "Enclosure Follow-up Coverage Rate",
@@ -549,7 +549,7 @@
     },
     "enclosure-health": {
       "title": "Enclosure Health Dashboard",
-      "subtitle": "${getCurrentMonthLabel()} · 跨源联动 F7 付费跟进 + F8 围场月度跟进 + D3 转介绍围场 · Paid Follow-up Tracking"
+      "subtitle": "{month} · 跨源联动 F7 付费跟进 + F8 围场月度跟进 + D3 转介绍围场 · Paid Follow-up Tracking"
     },
     "enclosure-detail": {
       "title": "Enclosure Period Detail Analysis",
@@ -1911,7 +1911,18 @@
     "feature2Title": "Smart Ops Recommendations",
     "feature2Desc": "Data-driven growth opportunity detection",
     "feature3Title": "Real-time Monitoring",
-    "feature3Desc": "Multi-channel alerts, always informed"
+    "feature3Desc": "Multi-channel alerts, always informed",
+    "features": [
+      "chart",
+      "Multi-dimension",
+      "8 filters × 4 benchmarks",
+      "sparkle",
+      "Smart Insights",
+      "Anomaly detection & attribution",
+      "activity",
+      "Real-time",
+      "Daily snapshots + DingTalk alerts"
+    ]
   },
   "PageOverview": {
     "publicCount": "{n} public",
@@ -1994,7 +2005,13 @@
     "matrix": "Matrix",
     "loading": "Loading…",
     "error": "Load failed, please refresh",
-    "saving": "Saving…"
+    "saving": "Saving…",
+    "tabs": {
+      "pages": "Pages",
+      "users": "Users",
+      "roles": "Roles",
+      "matrix": "Matrix"
+    }
   },
   "checkinPage": {
     "pageTitle": "Check-in Management",
@@ -2012,7 +2029,21 @@
     "students": "Students",
     "checked_in": "Checked-in",
     "rate": "Check-in Rate",
-    "exportFilename": "checkin-summary"
+    "exportFilename": "checkin-summary",
+    "tabs": {
+      "overview": "Overview",
+      "insights": "Student Insights",
+      "leaderboard": "Leaderboard",
+      "action": "Action Center",
+      "roi": "ROI Analysis"
+    },
+    "exportCols": {
+      "role": "Role",
+      "team": "Team",
+      "students": "Students",
+      "checked_in": "Checked-in",
+      "rate": "Check-in Rate"
+    }
   },
   "expiryAlertPage": {
     "cardTitle": "Expiring Students (within 30 days, {total} total)",
@@ -2046,7 +2077,7 @@
     "cardSuffix": "students' subscriptions expiring soon"
   },
   "followupQualityPage": {
-    "lostContactNote": "people / ${total.toLocaleString()} total students",
+    "lostContactNote": "people / {total} total students",
     "pageTitle": "Follow-up Quality Analysis",
     "pageSubtitle": "Call Quality Tiers · Lost Contact Alerts · Follow-up Behavior Assessment",
     "pageNote": "High Quality: call ≥120s · Suspicious: call <30s · Lost: days since last contact",
@@ -2208,7 +2239,20 @@
     "cc_reach_rate": "Improve reach rate, increase effective communication coverage",
     "actionNoteClosing": "Recommend creating at start of next month",
     "actionNoteLate": "Outcome metrics need 2–3 weeks to convert; recommend next month",
-    "actionNoteMid": "Can create sprint version mid-month"
+    "actionNoteMid": "Can create sprint version mid-month",
+    "stageLabels": {
+      "appt_rate": "Reg → Appt Rate",
+      "attend_rate": "Appt → Attend Rate",
+      "paid_rate": "Attend → Paid Rate"
+    },
+    "rationaleByStage": {
+      "appt_rate": "Improve registration→appointment conversion to increase effective leads",
+      "attend_rate": "Improve appointment→attendance conversion, reduce no-shows",
+      "paid_rate": "Improve attendance→payment conversion, shorten deal cycle",
+      "checkin_rate": "Improve check-in rate to increase student reach base",
+      "participation_rate": "Improve participation rate, expand referral funnel entry",
+      "cc_reach_rate": "Improve reach rate, increase effective communication coverage"
+    }
   },
   "liveOrdersPage": {
     "subtitleFmt": "Today's Live Orders — {date} (auto-refresh every 15s)",
@@ -2288,7 +2332,7 @@
   },
   "OutputGallery": {
     "outputCount": "{n} output(s)",
-    "emptyDesc": "No ${role !== 'ALL' ? role + ' ' : ''}push outputs on {date}",
+    "emptyDesc": "No {value}push outputs on {date}",
     "loading": "Loading output archive…",
     "loadError": "Failed to load output archive",
     "emptyTitle": "No outputs",
@@ -2397,7 +2441,12 @@
     "deleted": "Deleted",
     "cc_followup": "CC Followup",
     "daily_report": "Daily Report",
-    "checkin_reminder": "Checkin Reminder"
+    "checkin_reminder": "Checkin Reminder",
+    "templates": {
+      "cc_followup": "CC Followup",
+      "daily_report": "Daily Report",
+      "checkin_reminder": "Checkin Reminder"
+    }
   },
   "TodayStatus": {
     "noRecord": "No push records today ({date})",
@@ -2634,7 +2683,16 @@
     "toastSaveFailed": "Save failed, please retry",
     "toastResetSuccess": "BM calendar reset to default",
     "toastResetFailed": "Reset failed, please retry",
-    "hint": "Click a date cell to change its type. Kick Off weight 2.0, Day Off 1.0, Weekend 5.0, Weekday 3.0, Wednesday 1.0."
+    "hint": "Click a date cell to change its type. Kick Off weight 2.0, Day Off 1.0, Weekend 5.0, Weekday 3.0, Wednesday 1.0.",
+    "dayLabels": [
+      "Mon",
+      "Tue",
+      "Wed",
+      "Thu",
+      "Fri",
+      "Sat",
+      "Sun"
+    ]
   },
   "ChannelSettingsCard": {
     "cardTitle": "Channel Breakdown (L2)",
@@ -2821,7 +2879,20 @@
     "checkin_rate": "Check-in Rate",
     "is_high_potential": "High Potential",
     "last_contact_date": "Last Contact",
-    "exportFilename": "Student360"
+    "exportFilename": "Student360",
+    "exportCols": {
+      "stdt_id": "Student ID",
+      "name": "Name",
+      "region": "Region",
+      "enclosure": "Enclosure",
+      "lifecycle": "Lifecycle",
+      "cc_name": "CC",
+      "paid_amount": "Paid Amount",
+      "total_new": "New Referrals",
+      "checkin_rate": "Check-in Rate",
+      "is_high_potential": "High Potential",
+      "last_contact_date": "Last Contact"
+    }
   },
   "teamPage": {
     "loadFailRoleDesc": "Cannot fetch {role} team data, please check backend service",
@@ -2917,7 +2988,25 @@
     "behind": "Behind",
     "bmFootnote": "Count metrics: BM Eff ≥ BM% = On Pace · Rate metrics: Eff = Actual/Target, GAP = pp diff",
     "metricLabel": "Metric",
-    "noDataDesc": "Please upload this month's Excel data source"
+    "noDataDesc": "Please upload this month's Excel data source",
+    "metrics": {
+      "registrations": "Registrations",
+      "appointments": "Appointments",
+      "attendance": "Attendance",
+      "payments": "Payments",
+      "revenue_usd": "Revenue",
+      "asp": "ASP",
+      "appt_rate": "Appt Rate (Reg→Appt)",
+      "attend_rate": "Attend Rate (Appt→Attend)",
+      "paid_rate": "Paid Rate (Attend→Pay)",
+      "appt_to_pay_rate": "Appt→Pay Rate",
+      "reg_to_pay_rate": "Conv Rate (Reg→Pay)",
+      "checkin_rate": "Check-in Rate",
+      "cc_contact_rate": "CC Contact Rate",
+      "ss_contact_rate": "SS Contact Rate",
+      "lp_contact_rate": "LP Contact Rate",
+      "participation_rate": "Participation Rate"
+    }
   },
   "ProjectionSlide": {
     "title": "Month-End Projection",
@@ -2936,7 +3025,24 @@
     "metric": "Metric",
     "projectedValue": "Projected",
     "ahead": "Likely surplus",
-    "behind": "Likely shortfall"
+    "behind": "Likely shortfall",
+    "projections": [
+      "projected_registrations",
+      "Proj. Registrations",
+      "projected_appointments",
+      "Proj. Appointments",
+      "projected_attendance",
+      "Proj. Attendance",
+      "projected_payments",
+      "Proj. Payments",
+      "projected_revenue_usd",
+      "Proj. Revenue"
+    ],
+    "dailyMetrics": {
+      "registrations": "Reg/day",
+      "payments": "Pay/day",
+      "revenue_usd": "Rev/day"
+    }
   },
   "RevenueContributionSlide": {
     "insight": "Top contributor: {channel} at {share}% ({rev}), total {total}",
@@ -2952,7 +3058,17 @@
     "check_backend": "Please check if the backend service is running",
     "retry": "Retry",
     "no_data": "No channel attribution data available",
-    "no_data_hint": "Please upload this month's Excel data source to refresh"
+    "no_data_hint": "Please upload this month's Excel data source to refresh",
+    "channel": "Channel",
+    "payments": "Payments",
+    "payShare": "Pay %",
+    "revenue": "Revenue",
+    "revShare": "Rev %",
+    "asp": "ASP",
+    "narrowSubtotal": "Narrow Subtotal",
+    "noData": "No revenue data",
+    "noDataDesc": "Please upload this month's Excel data source",
+    "chartTitle": "Revenue Distribution"
   },
   "ScenarioCompareSlide": {
     "title": "Scenario Analysis",
@@ -2999,7 +3115,12 @@
     "hint": "Adjust the parameters above to see predictions",
     "reg_to_appt": "Reg→Appt Rate",
     "appt_to_attend": "Appt→Attend Rate",
-    "attend_to_pay": "Attend→Pay Rate"
+    "attend_to_pay": "Attend→Pay Rate",
+    "segments": {
+      "reg_to_appt": "Reg→Appt Rate",
+      "appt_to_attend": "Appt→Attend Rate",
+      "attend_to_pay": "Attend→Pay Rate"
+    }
   },
   "CCHeatmap": {
     "low": "Low",
@@ -3012,7 +3133,14 @@
     "conversion": "Conversion",
     "checkin": "Check-in",
     "reach": "Reach",
-    "cargo_ratio": "Cargo Ratio"
+    "cargo_ratio": "Cargo Ratio",
+    "labels": {
+      "participation": "Participation",
+      "conversion": "Conversion",
+      "checkin": "Check-in",
+      "reach": "Reach",
+      "cargo_ratio": "Cargo Ratio"
+    }
   },
   "EfficiencyScatter": {
     "noData": "No scatter data",
@@ -3024,7 +3152,13 @@
     "lowEff": "Low-eff High-rev",
     "star": "Star CC",
     "inactive": "Inactive",
-    "latent": "Potential CC"
+    "latent": "Potential CC",
+    "quadrants": {
+      "lowEff": "Low-eff High-rev",
+      "star": "Star CC",
+      "inactive": "Inactive",
+      "latent": "Potential CC"
+    }
   },
   "CCPerformanceDetail": {
     "radarTitle": "{name} Radar",
@@ -3175,7 +3309,7 @@
     "unmatchedTitle": "{n} CCs have no uploaded target (auto-allocated by student count):",
     "unmatchedMore": "and {n} more",
     "statusUploaded": "Status: {count} targets uploaded ({month})",
-    "statusUnknown": "Month: ${month || '—'}, target status unknown (refresh after upload)",
+    "statusUnknown": "Month: {month}, target status unknown (refresh after upload)",
     "uploadFailedStatus": "Upload failed ({status})",
     "deleteFailedStatus": "Delete failed ({status})",
     "triggerBtn": "Upload Targets",
@@ -3198,7 +3332,8 @@
     "onlyCsvXlsx": "Only .csv and .xlsx formats are supported",
     "uploadFailed": "Upload failed, please retry",
     "deleteFailed": "Delete failed, please retry",
-    "xlsxServerParse": "Excel file will be parsed server-side. Preview shows after \"Confirm Upload\"."
+    "xlsxServerParse": "Excel file will be parsed server-side. Preview shows after \"Confirm Upload\".",
+    "pastePlaceholder": "Paste from Excel / Google Sheets, e.g.:\\ncc_name\\treferral_usd_target\\nthcc-Zen\\t3000\\nthcc-Leo\\t2500"
   },
   "ChannelPieChart": {
     "empty": "No channel data",
@@ -3491,8 +3626,8 @@
     "cost": "Cost"
   },
   "RoiDashboard": {
-    "countUnit": "${n.toLocaleString()} students",
-    "countPct": "{count} (${(pct * 100).toFixed(1)}%)",
+    "countUnit": "{n} students",
+    "countPct": "{count} ({pct}%)",
     "loadFailed": "Failed to Load ROI Data",
     "loadFailedDesc": "Please check whether the backend service is running.",
     "noData": "No ROI Data",
@@ -3784,7 +3919,7 @@
     "statusOutdated": "Outdated"
   },
   "DataSourceHealthCard": {
-    "stale": "${d ?? '?'}d ago",
+    "stale": "{value}d ago",
     "coreField": "Core fields {present}/{total}",
     "today": "Today",
     "yesterday": "Yesterday",
@@ -3874,7 +4009,12 @@
     "red": "Danger",
     "participation": "Participation",
     "conversion": "Conversion",
-    "checkin": "Check-in"
+    "checkin": "Check-in",
+    "levels": {
+      "green": "Healthy",
+      "yellow": "Warning",
+      "red": "Danger"
+    }
   },
   "SegmentBenchmark": {
     "noData": "No benchmark data",
@@ -3972,7 +4112,19 @@
     "badgeRecommended": "Recommended",
     "badgeReference": "Reference",
     "description": "Responsibilities and boundaries of the three roles",
-    "dismissBtn": "Don't show again"
+    "dismissBtn": "Don't show again",
+    "items": [
+      "Role Reference (CC / SS / LP)",
+      "Responsibilities and boundaries of the three roles",
+      "Enclosure Definition & Calculation",
+      "Day-based segmentation logic from first payment",
+      "Core Metric Formulas",
+      "Participation rate, check-in rate, reach rate, referral coefficient, etc.",
+      "Six-Step Analysis Framework",
+      "Structured analysis from data to decision",
+      "5-Why Root Cause Analysis",
+      "Causal chain tracing for anomaly deviations"
+    ]
   },
   "SearchBar": {
     "placeholder": "Search knowledge base… (⌘K)",
@@ -3985,7 +4137,22 @@
   },
   "Sidebar": {
     "subtitle": "51Talk Thailand Referral",
-    "footer": "M9 · Next.js Frontend"
+    "footer": "M9 · Next.js Frontend",
+    "nav": {
+      "analysis": "Deep Analysis",
+      "ranking": "Performance Ranking",
+      "trend": "Trend Analysis",
+      "funnel": "Funnel Analysis",
+      "outreach-quality": "Call Quality",
+      "followup-quality": "Follow-up Quality",
+      "referral-contributor": "Referral Contributors",
+      "incentive-tracking": "Incentive Tracking",
+      "renewal-risk": "Renewal Risk",
+      "reports": "Reports",
+      "datasources": "Data Sources",
+      "snapshots": "Snapshots",
+      "settings": "Settings"
+    }
   },
   "MemberDetailDrawer": {
     "drawerLabel": "Student Detail",
@@ -4025,7 +4192,41 @@
     "lesson_consumed_this_month": "This Month Lessons",
     "referral_code_count_this_month": "This Month Referral Codes",
     "referral_reward_status": "Referral Reward Status",
-    "days_until_card_expiry": "Days Until Card Expiry"
+    "days_until_card_expiry": "Days Until Card Expiry",
+    "groups": {
+      "基本信息": "Basic Info",
+      "跟进人员": "Assigned Staff",
+      "转介绍漏斗": "Referral Funnel",
+      "活跃度": "Activity"
+    },
+    "fields": {
+      "id": "Student ID",
+      "name": "Name",
+      "region": "Region",
+      "country": "Country",
+      "enclosure": "Enclosure",
+      "lifecycle": "Lifecycle",
+      "teacher_level": "Teacher Level",
+      "first_paid_date": "First Paid Date",
+      "cc_name": "CC Name",
+      "cc_group": "CC Group",
+      "ss_name": "SS Name",
+      "ss_group": "SS Group",
+      "lp_name": "LP Name",
+      "lp_group": "LP Group",
+      "cc_last_call_date": "CC Last Call Date",
+      "registrations": "Registrations",
+      "appointments": "Appointments",
+      "attendance": "Attendance",
+      "payments": "Payments",
+      "total_revenue_usd": "Revenue (USD)",
+      "checkin_last_month": "Last Month Check-ins",
+      "checkin_this_month": "This Month Check-ins",
+      "lesson_consumed_this_month": "This Month Lessons",
+      "referral_code_count_this_month": "This Month Referral Codes",
+      "referral_reward_status": "Referral Reward Status",
+      "days_until_card_expiry": "Days Until Card Expiry"
+    }
   },
   "MemberTable": {
     "pagination": "Page {page} / {totalPages}, {total} total",
@@ -4061,12 +4262,49 @@
     "title": "GM Report",
     "description": "Strategic-level briefing for the GM, focusing on core KPIs and business trends",
     "label": "Daily",
-    "sublabel": "T-1 data"
+    "sublabel": "T-1 data",
+    "scenes": {
+      "gm": {
+        "title": "GM Report",
+        "description": "Strategic-level briefing for the GM, focusing on core KPIs and business trends"
+      },
+      "ops-director": {
+        "title": "Ops Director Report",
+        "description": "Deep operational analysis including funnel breakdown, CC rankings and action tracking"
+      },
+      "crosscheck": {
+        "title": "Peer Review Meeting",
+        "description": "Joint ops-business discussion with commitment tracking and co-actions"
+      }
+    },
+    "timeframes": {
+      "daily": {
+        "label": "Daily",
+        "sublabel": "T-1 data"
+      },
+      "weekly": {
+        "label": "Weekly",
+        "sublabel": "WoW compare"
+      },
+      "monthly": {
+        "label": "Monthly",
+        "sublabel": "MoM compare"
+      },
+      "quarterly": {
+        "label": "Quarterly",
+        "sublabel": "QoQ compare"
+      },
+      "yearly": {
+        "label": "Yearly",
+        "sublabel": "YoY compare"
+      }
+    }
   },
   "MarkdownRenderer": {
-    "extraLine": "Line ${idx + 1}",
-    "barLabel": "{(idx === 0 ? 'Bar' : `Bar ${idx}{1}`)}",
-    "baselineLine": "Baseline"
+    "extraLine": "Line {idx}",
+    "barLabel": "{idx}",
+    "baselineLine": "Baseline",
+    "Bar": "Bar {idx}"
   },
   "TargetRecommender": {
     "title": "Target Setting",
@@ -4132,9 +4370,9 @@
   },
   "ChannelRevenueSlide": {
     "insight": "{topChannel} is the top contributor ({topShare}%), total revenue {total}",
-    "title": "Channel Revenue Contribution",
-    "subtitle": "Per-capita revenue / Total revenue / Share by channel",
-    "section": "Channel Analysis",
+    "title": "Channel Revenue MoM",
+    "subtitle": "Channel × Last Mo. / This Mo. / Δ / Δ% / Driver / Judgment",
+    "section": "Channel Comparison",
     "col_channel": "Channel",
     "col_per_capita": "Per Capita",
     "col_total": "Total Revenue",
@@ -4145,11 +4383,24 @@
     "check_backend": "Please check if the backend service is running",
     "retry": "Retry",
     "no_data": "No channel revenue data",
-    "no_data_hint": "Please upload this month's Excel data source to refresh"
+    "no_data_hint": "Please upload this month's Excel data source to refresh",
+    "channel": "Channel",
+    "lastMonth": "Last Mo.",
+    "thisMonth": "This Mo.",
+    "delta": "Δ",
+    "deltaPct": "Δ%",
+    "driver": "Key Driver",
+    "judgment": "Judg.",
+    "totalRow": "Total",
+    "error": "Failed to load",
+    "errorHint": "Please check if backend is running",
+    "empty": "No channel MoM data",
+    "emptyHint": "Upload monthly Excel data to refresh",
+    "insightLargest": "largest delta"
   },
   "ConversionRateSlide": {
     "insight_all_above": "All {n} conversion rates exceed target — funnel is healthy",
-    "insight_below": "{belowN} stage(s) below target; weakest: {worstName} {worstActual}%, gap {worstGapStr}pp",
+    "insight_below": "{belowN} stage(s) below target; weakest: {worstName} {worstActual}%, gap {worstGapStr}pp{value} above target` : ''}",
     "title": "Conversion Rate × Monthly Achievement",
     "subtitle": "Actual conversion rate vs target for each funnel stage",
     "section": "Funnel Analysis",
@@ -4160,7 +4411,7 @@
     "no_data": "No funnel data. Please upload this month's Excel data source"
   },
   "FunnelAttributionSlide": {
-    "insight": "{{}",
+    "insight": "",
     "title": "Full Funnel Conversion Chain",
     "subtitle": "Reg → Appt → Attend → Paid — achievement & conversion rate per stage",
     "section": "Funnel Analysis",
@@ -4178,8 +4429,8 @@
   },
   "LeadAttributionSlide": {
     "insight": "Total {totalReg} registrations, {totalPaid} payments; top channel: {topChannel} {topPaid} pax",
-    "title": "Channel Lead Funnel",
-    "subtitle": "CC Narrow / SS Narrow / LP Narrow / Wide × Reg → Appt → Attend → Paid",
+    "title": "Lead Attribution",
+    "subtitle": "4 Channels × Reg/Share/ApptR/AttendR/PaidR/Reg→Pay/Payments/Share/Revenue/Share",
     "section": "Channel Analysis",
     "col_channel": "Channel",
     "col_reg": "Registrations",
@@ -4191,7 +4442,23 @@
     "check_backend": "Please check if the backend service is running",
     "retry": "Retry",
     "no_data": "No channel funnel data available",
-    "no_data_hint": "Please upload this month's Excel data source to refresh"
+    "no_data_hint": "Please upload this month's Excel data source to refresh",
+    "channel": "Channel",
+    "reg": "Reg.",
+    "regShare": "Reg%",
+    "apptRate": "Appt R.",
+    "attendRate": "Attend R.",
+    "paidRate": "Paid R.",
+    "regToPayRate": "Reg→Pay",
+    "payments": "Payments",
+    "payShare": "Pay%",
+    "revenue": "Revenue",
+    "revShare": "Rev%",
+    "error": "Failed to load",
+    "errorHint": "Please check if backend is running",
+    "empty": "No lead attribution data",
+    "emptyHint": "Upload monthly Excel data to refresh",
+    "insightTpl": "{ch} top revenue contributor ({share}), Reg→Pay rate {r2p}"
   },
   "NetAttributionSlide": {
     "insight": "Highest per capita: {topChannel} {topRevenue}, Lowest: {lowChannel} {lowRevenue}",
@@ -4210,7 +4477,7 @@
     "no_data_hint": "Please upload this month's Excel data source to refresh"
   },
   "RevenueDecompositionSlide": {
-    "insight": "Total {total}; top channel: {topChannel} {topRevenue} ({topShare}% share)",
+    "insight": "Total {total}; Top channel: {topChannel}{value}%)` : ''} — {topRevenue}",
     "title": "Channel Revenue Breakdown",
     "subtitle": "Channel: Registrations → Payments → Revenue → Share",
     "section": "Channel Analysis",
@@ -4244,8 +4511,8 @@
   },
   "TargetGapSlide": {
     "target_label": "Target {v}",
-    "insight_single": "{name} achievement {worstRate}%",
-    "insight_dual": "Weakest: {worstName} {worstRate}%, Strongest: {bestName} {bestRate}%",
+    "insight_single": "{name} achievement {rate}%{value}",
+    "insight_dual": "Weakest: {worstName} {worstRate}%{value}, Strongest: {bestName} {bestRate}%",
     "title": "Target Gap Overview",
     "subtitle": "Target vs Actual Achievement by Stage",
     "section": "Funnel Analysis",
@@ -4301,10 +4568,41 @@
     "loading": "Loading...",
     "loadError": "Failed to load data, please try again",
     "profile": "Profile",
-    "learning": "Learning",
-    "referral": "Referral",
-    "cc": "CC Follow-up",
-    "payment": "Payment",
+    "learning": {
+      "metric": "Metric",
+      "thisMonth": "This Month",
+      "lastMonth": "Last Month",
+      "mom": "MoM",
+      "checkinDays": "Check-in Days",
+      "referralCode": "Referral Codes",
+      "lessonConsumed": "Lessons",
+      "avg3m": "3M Avg Lessons"
+    },
+    "referral": {
+      "paidCount": "Referral Paid",
+      "rewardStatus": "Reward Status",
+      "referrerId": "Referrer ID",
+      "network": "Referral Network"
+    },
+    "cc": {
+      "ccName": "CC Name",
+      "ccGroup": "CC Group",
+      "lastCall": "Last Call",
+      "totalCalls": "Total Calls",
+      "note": "CC Note"
+    },
+    "payment": {
+      "paidAmount": "Paid Amount",
+      "channelL3": "Channel L3",
+      "avg3m": "3M Avg Lessons",
+      "cardExpiry": "Card Expiry",
+      "lastRenewal": "Last Renewal",
+      "totalRenewal": "Total Renewals",
+      "days": "d",
+      "daysAgo": "d ago",
+      "lessonsPerMonth": " lessons/mo",
+      "orders": " orders"
+    },
     "new_result": "New Results",
     "daily_log": "Daily Log",
     "stdtId": "Student ID",
@@ -4350,7 +4648,43 @@
     "channel": "Channel",
     "newCount": "New",
     "convRate": "Conv. Rate",
-    "wide": "Wide"
+    "wide": "Wide",
+    "tabs": {
+      "profile": "Profile",
+      "learning": "Learning",
+      "referral": "Referral",
+      "cc": "CC Follow-up",
+      "payment": "Payment",
+      "new_result": "New Results",
+      "daily_log": "Daily Log"
+    },
+    "fields": {
+      "stdtId": "Student ID",
+      "name": "Name",
+      "region": "Region",
+      "enclosure": "Enclosure",
+      "lifecycle": "Lifecycle",
+      "referrerId": "Referrer ID",
+      "ccName": "CC Name",
+      "ccGroup": "CC Group",
+      "ssName": "SS Name",
+      "lpName": "LP Name",
+      "channelL3": "Channel L3",
+      "hpScore": "HP Score",
+      "urgency": "Urgency",
+      "checkin7d": "7d Check-ins",
+      "contact7d": "7d Contacts",
+      "urgent": "Urgent",
+      "watch": "Watch",
+      "normal": "Normal"
+    },
+    "newResult": {
+      "channel": "Channel",
+      "newCount": "New",
+      "paidCount": "Paid",
+      "convRate": "Conv. Rate",
+      "wide": "Wide"
+    }
   },
   "ReferralNetwork": {
     "loading": "Loading...",
@@ -4457,10 +4791,21 @@
     "markRead": "Mark as read",
     "title": "KPI Red Alert",
     "message": "This month paid conversion rate dropped to 12%, far below the 18% target",
-    "timestamp": "10 min ago"
+    "timestamp": "10 min ago",
+    "mockNotifications": [
+      "KPI Red Alert",
+      "This month paid conversion rate dropped to 12%, far below the 18% target",
+      "10 min ago",
+      "Zero Follow-up Alert",
+      "Wang Ming has 5 assigned trial lessons with no follow-up for over 24 hours",
+      "1 hour ago",
+      "Report Ready",
+      "This week's full-region recap brief has been generated",
+      "5 hours ago"
+    ]
   },
   "Pagination": {
-    "totalItems": "${n.toLocaleString()} records",
+    "totalItems": "{n} records",
     "prevPage": "Previous",
     "nextPage": "Next"
   },
@@ -4550,7 +4895,12 @@
     "usd": "USD",
     "vol": "Vol",
     "conv": "Conv",
-    "price": "Price"
+    "price": "Price",
+    "driverNames": {
+      "vol": "Vol",
+      "conv": "Conv",
+      "price": "Price"
+    }
   },
   "FunnelLeverageSlide": {
     "insightTpl": "Top bottleneck: {channel} {stage} (score {score}, rev impact {rev})",
@@ -4575,6 +4925,62 @@
     "emptyHint": "Upload monthly Excel data to refresh",
     "appt_rate": "Appt Rate",
     "attend_rate": "Attend Rate",
-    "paid_rate": "Paid Rate"
+    "paid_rate": "Paid Rate",
+    "stageLabels": {
+      "appt_rate": "Appt Rate",
+      "attend_rate": "Attend Rate",
+      "paid_rate": "Paid Rate"
+    }
+  },
+  "errorPage": {
+    "title": "Page Error",
+    "retry": "Retry"
+  },
+  "snapshotStats": {},
+  "ui": {},
+  "GapDashboardSlide": {
+    "title": "Gap Dashboard",
+    "subtitle": "Key gaps · Revenue down to registrations",
+    "gapItems": {
+      "revenue_gap": "Revenue Gap",
+      "asp_gap": "ASP Gap",
+      "bill_gap": "Payment Gap (count)",
+      "showup_gap": "Attendance Gap (pax)",
+      "appt_gap": "Appointment Gap (pax)",
+      "lead_gap": "Registration Gap (pax)"
+    },
+    "channelTargets": "Channel Targets",
+    "channelGaps": "Channel Registration Gaps",
+    "viewBm": "BM Pace",
+    "viewMonthly": "Monthly Target",
+    "bmDesc": "Surplus/gap vs BM pace line",
+    "monthlyDesc": "Surplus/gap vs 100% monthly target",
+    "noData": "No data available",
+    "noDataDesc": "Please upload this month's Excel data source",
+    "channel": "Channel",
+    "target": "Target",
+    "gap": "Gap",
+    "shortfall": "Short",
+    "surplus": "Surplus"
+  },
+  "MomAttributionSlide": {
+    "title": "MoM Attribution",
+    "subtitle": "7 Metrics × Last / This / Target / Delta / Delta% / vs Target / Judgment",
+    "section": "MoM Analysis",
+    "metric": "Metric",
+    "lastMonth": "Last Mo.",
+    "thisMonth": "This Mo.",
+    "target": "Target",
+    "delta": "Δ",
+    "deltaPct": "Δ%",
+    "vsTarget": "vs Target",
+    "judgment": "Judg.",
+    "error": "Failed to load",
+    "errorHint": "Please check if backend is running",
+    "retry": "Retry",
+    "empty": "No MoM attribution data",
+    "emptyHint": "Upload monthly Excel data to refresh",
+    "insightVsTarget": "vs target",
+    "insightNeedsAttention": "needs attention"
   }
 }

@@ -583,8 +583,8 @@ export function UnifiedFilterBar() {
         >
           <option value="">{t('allTeams')}</option>
           {teams.map((item) => (
-            <option key={t('value')} value={t('value')}>
-              {t('label') || t('value')}
+            <option key={item.value} value={item.value}>
+              {item.label || item.value}
             </option>
           ))}
         </select>
@@ -845,8 +845,8 @@ export function UnifiedFilterBar() {
               >
                 <option value="">{t('allTeams')}</option>
                 {teams.map((item) => (
-                  <option key={t('value')} value={t('value')}>
-                    {t('label') || t('value')}
+                  <option key={item.value} value={item.value}>
+                    {item.label || item.value}
                   </option>
                 ))}
               </select>

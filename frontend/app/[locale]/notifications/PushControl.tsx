@@ -281,8 +281,8 @@ export function PushControl({ platform }: PushControlProps) {
               },
             ]
           ).map((item) => (
-            <option key={t('id')} value={t('id')}>
-              {t('role')} — {t('description')}
+            <option key={item.id} value={item.id}>
+              {item.role} — {item.description}
             </option>
           ))}
         </select>

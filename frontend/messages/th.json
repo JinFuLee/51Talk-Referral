@@ -323,7 +323,7 @@
   "biz": {
     "overview": {
       "title": "ภาพรวมธุรกิจการแนะนำในไทย",
-      "subtitle": "${getCurrentMonthLabel('th')} · ข้อมูลถึง T-1 · มุมมองธุรกิจ",
+      "subtitle": "{value} · ข้อมูลถึง T-1 · มุมมองธุรกิจ",
       "card": {
         "risks": "ความเสี่ยงหลัก",
         "keyActions": "การดำเนินการสำคัญสัปดาห์นี้"
@@ -354,7 +354,7 @@
     },
     "team": {
       "title": "ภาพรวมทีม",
-      "subtitle": "${getCurrentMonthLabel('th')} · ประสิทธิภาพ · การเข้างาน · อัตราบรรลุเป้า",
+      "subtitle": "{value} · ประสิทธิภาพ · การเข้างาน · อัตราบรรลุเป้า",
       "card": {
         "ccEfficiency": "ประสิทธิภาพ CC",
         "ssEfficiency": "ประสิทธิภาพ SS",
@@ -439,7 +439,7 @@
     },
     "roi": {
       "title": "วิเคราะห์ ROI",
-      "subtitle": "${getCurrentMonthLabel('th')} · ภาพรวมผลตอบแทนการลงทุน",
+      "subtitle": "{value} · ภาพรวมผลตอบแทนการลงทุน",
       "card": {
         "overview": "ภาพรวม ROI",
         "cohort": "กราฟ Cohort Decay",
@@ -521,7 +521,7 @@
     },
     "enclosure": {
       "title": "กลยุทธ์จัดสรรทรัพยากรตามช่วงวันหลังชำระ",
-      "subtitle": "${getCurrentMonthLabel('th')} · นับจากวันชำระเงิน · เพิ่มประสิทธิภาพการจัดสรร",
+      "subtitle": "{value} · นับจากวันชำระเงิน · เพิ่มประสิทธิภาพการจัดสรร",
       "card": {
         "heatmap": "แผนที่ความร้อน ช่วงวัน × ROI",
         "coverage": "อัตราครอบคลุมการติดตามตามช่วงวัน",
@@ -548,7 +548,7 @@
     },
     "enclosure-health": {
       "title": "แดชบอร์ดสุขภาพช่วงวัน",
-      "subtitle": "${getCurrentMonthLabel('th')} · F7+F8+D3 ติดตามการชำระ"
+      "subtitle": "{value} · F7+F8+D3 ติดตามการชำระ"
     },
     "enclosure-detail": {
       "title": "วิเคราะห์รายละเอียดช่วงวัน",
@@ -1897,7 +1897,18 @@
     "feature2Title": "คำแนะนำอัจฉริยะ",
     "feature2Desc": "ขับเคลื่อนด้วยข้อมูล ค้นพบโอกาสเติบโต",
     "feature3Title": "ติดตามข้อมูลแบบเรียลไทม์",
-    "feature3Desc": "แจ้งเตือนหลายช่องทาง รับรู้ทุกความเคลื่อนไหว"
+    "feature3Desc": "แจ้งเตือนหลายช่องทาง รับรู้ทุกความเคลื่อนไหว",
+    "features": [
+      "chart",
+      "วิเคราะห์ทุกมิติ",
+      "8 ตัวกรอง × 4 เกณฑ์",
+      "sparkle",
+      "ข้อมูลเชิงลึก",
+      "ตรวจจับความผิดปกติ",
+      "activity",
+      "เรียลไทม์",
+      "สแนปชอตรายวัน + แจ้งเตือน"
+    ]
   },
   "PageOverview": {
     "publicCount": "{n} สาธารณะ",
@@ -1998,7 +2009,21 @@
     "students": "นักเรียน",
     "checked_in": "เช็คอินแล้ว",
     "rate": "อัตราเช็คอิน",
-    "exportFilename": "checkin-summary"
+    "exportFilename": "checkin-summary",
+    "tabs": {
+      "overview": "ภาพรวม",
+      "insights": "ข้อมูลเชิงลึกนักเรียน",
+      "leaderboard": "กระดานผู้นำ",
+      "action": "ศูนย์ปฏิบัติการ",
+      "roi": "การวิเคราะห์ ROI"
+    },
+    "exportCols": {
+      "role": "ตำแหน่ง",
+      "team": "ทีม",
+      "students": "นักเรียน",
+      "checked_in": "เช็คอินแล้ว",
+      "rate": "อัตราเช็คอิน"
+    }
   },
   "expiryAlertPage": {
     "cardTitle": "รายละเอียดนักเรียนหมดอายุ (ภายใน 30 วัน รวม {total} คน)",
@@ -2032,7 +2057,7 @@
     "retry": "ลองใหม่"
   },
   "followupQualityPage": {
-    "lostContactNote": "คน / รวม ${total.toLocaleString()} คนนักเรียน",
+    "lostContactNote": "คน / รวม {total} คนนักเรียน",
     "pageTitle": "วิเคราะห์คุณภาพการติดตาม",
     "pageSubtitle": "จัดระดับคุณภาพการโทร · แจ้งเตือนความเสี่ยงขาดการติดต่อ · ประเมินพฤติกรรมติดตาม",
     "pageNote": "คุณภาพสูง: โทร ≥120s · น่าสงสัย: โทร <30s · ขาดติดต่อ: วันนับจากครั้งสุดท้าย",
@@ -2194,7 +2219,20 @@
     "cc_reach_rate": "เพิ่มอัตราการติดต่อ เพิ่มการสื่อสารที่มีประสิทธิภาพ",
     "actionNoteClosing": "แนะนำให้สร้างต้นเดือนหน้า",
     "actionNoteLate": "ตัวชี้วัดผลลัพธ์ต้องใช้เวลา 2-3 สัปดาห์ แนะนำเดือนหน้า",
-    "actionNoteMid": "สามารถสร้างเวอร์ชัน sprint กลางเดือนได้"
+    "actionNoteMid": "สามารถสร้างเวอร์ชัน sprint กลางเดือนได้",
+    "stageLabels": {
+      "appt_rate": "อัตราการนัดหมาย",
+      "attend_rate": "อัตราการเข้าร่วม",
+      "paid_rate": "อัตราการชำระเงิน"
+    },
+    "rationaleByStage": {
+      "appt_rate": "เพิ่มอัตราการลงทะเบียน→นัดหมาย เพิ่มจำนวนลีดที่มีประสิทธิภาพ",
+      "attend_rate": "เพิ่มอัตราการนัดหมาย→เข้าร่วม ลดการไม่มาตามนัด",
+      "paid_rate": "เพิ่มอัตราการเข้าร่วม→ชำระเงิน ลดระยะเวลาปิดการขาย",
+      "checkin_rate": "เพิ่มอัตราเช็คอิน เพิ่มฐานการติดต่อนักเรียน",
+      "participation_rate": "เพิ่มอัตราการมีส่วนร่วม ขยายช่องทางการแนะนำ",
+      "cc_reach_rate": "เพิ่มอัตราการติดต่อ เพิ่มการสื่อสารที่มีประสิทธิภาพ"
+    }
   },
   "liveOrdersPage": {
     "subtitleFmt": "ออเดอร์วันนี้ — {date} (รีเฟรชทุก 15 วินาที)",
@@ -2274,7 +2312,7 @@
   },
   "OutputGallery": {
     "outputCount": "{n} รายการ",
-    "emptyDesc": "ไม่มีผลลัพธ์การส่ง${role !== 'ALL' ? ' ' + role : ''} วันที่ {date}",
+    "emptyDesc": "ไม่มีผลลัพธ์การส่ง{value} วันที่ {date}",
     "loading": "กำลังโหลดไฟล์ผลลัพธ์…",
     "loadError": "ไม่สามารถโหลดไฟล์ผลลัพธ์ได้",
     "emptyTitle": "ไม่มีผลลัพธ์",
@@ -2384,7 +2422,12 @@
     "deleted": "ลบแล้ว",
     "cc_followup": "ติดตาม CC",
     "daily_report": "รายงานประจำวัน",
-    "checkin_reminder": "แจ้งเตือนเช็คอิน"
+    "checkin_reminder": "แจ้งเตือนเช็คอิน",
+    "templates": {
+      "cc_followup": "ติดตาม CC",
+      "daily_report": "รายงานประจำวัน",
+      "checkin_reminder": "แจ้งเตือนเช็คอิน"
+    }
   },
   "TodayStatus": {
     "noRecord": "ไม่มีบันทึกการส่งวันนี้ ({date})",
@@ -2621,7 +2664,16 @@
     "toastSaveFailed": "บันทึกไม่สำเร็จ กรุณาลองอีกครั้ง",
     "toastResetSuccess": "รีเซ็ตปฏิทิน BM แล้ว",
     "toastResetFailed": "รีเซ็ตไม่สำเร็จ กรุณาลองอีกครั้ง",
-    "hint": "คลิกวันที่เพื่อเปลี่ยนประเภท Kick Off น้ำหนัก 2.0, หยุดชดเชย 1.0, สุดสัปดาห์ 5.0, วันธรรมดา 3.0, วันพุธ 1.0"
+    "hint": "คลิกวันที่เพื่อเปลี่ยนประเภท Kick Off น้ำหนัก 2.0, หยุดชดเชย 1.0, สุดสัปดาห์ 5.0, วันธรรมดา 3.0, วันพุธ 1.0",
+    "dayLabels": [
+      "จ",
+      "อ",
+      "พ",
+      "พฤ",
+      "ศ",
+      "ส",
+      "อา"
+    ]
   },
   "ChannelSettingsCard": {
     "cardTitle": "แยกช่องทาง (L2)",
@@ -2808,7 +2860,20 @@
     "checkin_rate": "อัตราเช็คอิน",
     "is_high_potential": "ศักยภาพสูง",
     "last_contact_date": "ติดต่อล่าสุด",
-    "exportFilename": "Student360"
+    "exportFilename": "Student360",
+    "exportCols": {
+      "stdt_id": "รหัสนักเรียน",
+      "name": "ชื่อ",
+      "region": "ภูมิภาค",
+      "enclosure": "ระยะเวลา",
+      "lifecycle": "วงจรชีวิต",
+      "cc_name": "CC",
+      "paid_amount": "ยอดชำระ",
+      "total_new": "แนะนำใหม่",
+      "checkin_rate": "อัตราเช็คอิน",
+      "is_high_potential": "ศักยภาพสูง",
+      "last_contact_date": "ติดต่อล่าสุด"
+    }
   },
   "teamPage": {
     "loadFailRoleDesc": "ไม่สามารถดึงข้อมูลทีม {role} ได้ กรุณาตรวจสอบบริการ backend",
@@ -2904,7 +2969,25 @@
     "ahead": "นำหน้า",
     "behind": "ตามหลัง",
     "bmFootnote": "ตัวชี้วัดปริมาณ: BM Eff ≥ BM% = นำหน้า · ตัวชี้วัดอัตรา: Eff = จริง/เป้า, GAP = pp ต่าง",
-    "metricLabel": "ตัวชี้วัด"
+    "metricLabel": "ตัวชี้วัด",
+    "metrics": {
+      "registrations": "ลงทะเบียน",
+      "appointments": "นัดหมาย",
+      "attendance": "เข้าร่วม",
+      "payments": "ชำระ",
+      "revenue_usd": "รายได้",
+      "asp": "ASP",
+      "appt_rate": "อัตรานัดหมาย (ลง→นัด)",
+      "attend_rate": "อัตราเข้าร่วม (นัด→เข้า)",
+      "paid_rate": "อัตราชำระ (เข้า→ชำระ)",
+      "appt_to_pay_rate": "อัตรานัด→ชำระ",
+      "reg_to_pay_rate": "อัตราConv (ลง→ชำระ)",
+      "checkin_rate": "อัตราเช็คอิน",
+      "cc_contact_rate": "อัตราติดต่อ CC",
+      "ss_contact_rate": "อัตราติดต่อ SS",
+      "lp_contact_rate": "อัตราติดต่อ LP",
+      "participation_rate": "อัตราการมีส่วนร่วม"
+    }
   },
   "ProjectionSlide": {
     "title": "การคาดการณ์สิ้นเดือน",
@@ -2923,7 +3006,24 @@
     "metric": "ตัวชี้วัด",
     "projectedValue": "คาดการณ์",
     "ahead": "อาจเกินเป้า",
-    "behind": "อาจต่ำกว่าเป้า"
+    "behind": "อาจต่ำกว่าเป้า",
+    "projections": [
+      "projected_registrations",
+      "คาด ลงทะเบียน",
+      "projected_appointments",
+      "คาด นัดหมาย",
+      "projected_attendance",
+      "คาด เข้าร่วม",
+      "projected_payments",
+      "คาด ชำระ",
+      "projected_revenue_usd",
+      "คาด รายได้"
+    ],
+    "dailyMetrics": {
+      "registrations": "ลงทะเบียน/วัน",
+      "payments": "ชำระ/วัน",
+      "revenue_usd": "รายได้/วัน"
+    }
   },
   "RevenueContributionSlide": {
     "insight": "ผู้มีส่วนร่วมสูงสุด: {channel} {share}% ({rev}), รวม {total}",
@@ -2939,7 +3039,17 @@
     "check_backend": "กรุณาตรวจสอบว่าบริการ Backend ทำงานปกติ",
     "retry": "ลองใหม่",
     "no_data": "ไม่มีข้อมูลการระบุแหล่งที่มาของช่องทาง",
-    "no_data_hint": "กรุณาอัปโหลดข้อมูล Excel ประจำเดือนเพื่อรีเฟรช"
+    "no_data_hint": "กรุณาอัปโหลดข้อมูล Excel ประจำเดือนเพื่อรีเฟรช",
+    "channel": "ช่องทาง",
+    "payments": "ชำระ",
+    "payShare": "สัดส่วนชำระ",
+    "revenue": "รายได้",
+    "revShare": "สัดส่วนรายได้",
+    "asp": "ASP",
+    "narrowSubtotal": "รวมช่องทางแคบ",
+    "noData": "ไม่มีข้อมูลรายได้",
+    "noDataDesc": "กรุณาอัปโหลดไฟล์ Excel ประจำเดือน",
+    "chartTitle": "การกระจายรายได้"
   },
   "ScenarioCompareSlide": {
     "title": "การวิเคราะห์สถานการณ์",
@@ -2986,7 +3096,12 @@
     "hint": "ปรับพารามิเตอร์ด้านบนเพื่อดูการคาดการณ์",
     "reg_to_appt": "ลงทะเบียน→นัด",
     "appt_to_attend": "นัด→เข้าร่วม",
-    "attend_to_pay": "เข้าร่วม→ชำระ"
+    "attend_to_pay": "เข้าร่วม→ชำระ",
+    "segments": {
+      "reg_to_appt": "ลงทะเบียน→นัด",
+      "appt_to_attend": "นัด→เข้าร่วม",
+      "attend_to_pay": "เข้าร่วม→ชำระ"
+    }
   },
   "CCHeatmap": {
     "low": "ต่ำ",
@@ -2999,7 +3114,14 @@
     "conversion": "อัตราแปลง",
     "checkin": "อัตราเช็คอิน",
     "reach": "อัตราเข้าถึง",
-    "cargo_ratio": "อัตราสินค้า"
+    "cargo_ratio": "อัตราสินค้า",
+    "labels": {
+      "participation": "อัตราเข้าร่วม",
+      "conversion": "อัตราแปลง",
+      "checkin": "อัตราเช็คอิน",
+      "reach": "อัตราเข้าถึง",
+      "cargo_ratio": "อัตราสินค้า"
+    }
   },
   "EfficiencyScatter": {
     "noData": "ไม่มีข้อมูลกราฟกระจาย",
@@ -3011,7 +3133,13 @@
     "lowEff": "ประสิทธิภาพต่ำรายได้สูง",
     "star": "CC ดาวเด่น",
     "inactive": "รอเปิดใช้งาน",
-    "latent": "CC ศักยภาพ"
+    "latent": "CC ศักยภาพ",
+    "quadrants": {
+      "lowEff": "ประสิทธิภาพต่ำรายได้สูง",
+      "star": "CC ดาวเด่น",
+      "inactive": "รอเปิดใช้งาน",
+      "latent": "CC ศักยภาพ"
+    }
   },
   "CCPerformanceDetail": {
     "radarTitle": "เรดาร์ {name}",
@@ -3162,7 +3290,7 @@
     "unmatchedTitle": "CC {n} รายการไม่มีเป้าหมาย:",
     "unmatchedMore": "และอีก {n} คน",
     "statusUploaded": "อัปโหลด {count} เป้าหมาย ({month})",
-    "statusUnknown": "เดือน: ${month || '—'}, สถานะไม่ทราบ",
+    "statusUnknown": "เดือน: {month}, สถานะไม่ทราบ",
     "uploadFailedStatus": "อัปโหลดล้มเหลว ({status})",
     "deleteFailedStatus": "ลบล้มเหลว ({status})",
     "triggerBtn": "อัปโหลดเป้าหมาย",
@@ -3185,7 +3313,8 @@
     "onlyCsvXlsx": "รองรับเฉพาะ .csv และ .xlsx เท่านั้น",
     "uploadFailed": "อัปโหลดล้มเหลว โปรดลองใหม่",
     "deleteFailed": "ลบล้มเหลว โปรดลองใหม่",
-    "xlsxServerParse": "ไฟล์ Excel จะถูกประมวลผลที่เซิร์ฟเวอร์"
+    "xlsxServerParse": "ไฟล์ Excel จะถูกประมวลผลที่เซิร์ฟเวอร์",
+    "pastePlaceholder": "วางจาก Excel / Google Sheets เช่น:\\ncc_name\\treferral_usd_target\\nthcc-Zen\\t3000"
   },
   "ChannelPieChart": {
     "empty": "ไม่มีข้อมูลช่องทาง",
@@ -3478,8 +3607,8 @@
     "cost": "ต้นทุน"
   },
   "RoiDashboard": {
-    "countUnit": "${n.toLocaleString()} คน",
-    "countPct": "{count} คน (${(pct * 100).toFixed(1)}%)",
+    "countUnit": "{n} คน",
+    "countPct": "{count} คน ({pct}%)",
     "loadFailed": "โหลดข้อมูล ROI ล้มเหลว",
     "loadFailedDesc": "กรุณาตรวจสอบว่าบริการแบ็คเอนด์ทำงานอยู่",
     "noData": "ไม่มีข้อมูล ROI",
@@ -3771,7 +3900,7 @@
     "statusOutdated": "ล้าสมัย"
   },
   "DataSourceHealthCard": {
-    "stale": "${d ?? '?'} วันก่อน",
+    "stale": "{value} วันก่อน",
     "coreField": "ฟิลด์หลัก {present}/{total}",
     "today": "วันนี้",
     "yesterday": "เมื่อวาน",
@@ -3861,7 +3990,12 @@
     "red": "อันตราย",
     "participation": "เข้าร่วม",
     "conversion": "แปลง",
-    "checkin": "เช็คอิน"
+    "checkin": "เช็คอิน",
+    "levels": {
+      "green": "ดี",
+      "yellow": "เตือน",
+      "red": "อันตราย"
+    }
   },
   "SegmentBenchmark": {
     "noData": "ไม่มีข้อมูลเปรียบเทียบ",
@@ -3959,7 +4093,19 @@
     "badgeMust": "ต้องอ่าน",
     "badgeRecommended": "แนะนำ",
     "badgeReference": "อ้างอิง",
-    "description": "ความรับผิดชอบและขอบเขตของสามบทบาท"
+    "description": "ความรับผิดชอบและขอบเขตของสามบทบาท",
+    "items": [
+      "คู่มือบทบาท (CC / SS / LP)",
+      "ความรับผิดชอบและขอบเขตของสามบทบาท",
+      "นิยามคอกและกฎการคำนวณ",
+      "ตรรกะการแบ่งเซกเมนต์ตามวันนับจากวันชำระ",
+      "สูตรตัวชี้วัดหลัก",
+      "อัตราการมีส่วนร่วม เช็คอิน การเข้าถึง สัมประสิทธิ์แนะนำ เป็นต้น",
+      "กรอบการวิเคราะห์ 6 ขั้นตอน",
+      "การวิเคราะห์เชิงโครงสร้างจากข้อมูลสู่การตัดสินใจ",
+      "การวิเคราะห์รากเหง้า 5-Why",
+      "การตามรอยสาเหตุเมื่อพบความเบี่ยงเบนผิดปกติ"
+    ]
   },
   "SearchBar": {
     "placeholder": "ค้นหาในคลังความรู้… (⌘K)",
@@ -3972,7 +4118,22 @@
   },
   "Sidebar": {
     "subtitle": "51Talk ไทย แนะนำเพื่อน",
-    "footer": "M9 · Next.js Frontend"
+    "footer": "M9 · Next.js Frontend",
+    "nav": {
+      "analysis": "วิเคราะห์เชิงลึก",
+      "ranking": "อันดับผลงาน",
+      "trend": "วิเคราะห์แนวโน้ม",
+      "funnel": "วิเคราะห์ Funnel",
+      "outreach-quality": "คุณภาพการโทร",
+      "followup-quality": "คุณภาพการติดตาม",
+      "referral-contributor": "ผู้แนะนำ",
+      "incentive-tracking": "ติดตามสิ่งจูงใจ",
+      "renewal-risk": "ความเสี่ยงต่ออายุ",
+      "reports": "รายงาน",
+      "datasources": "แหล่งข้อมูล",
+      "snapshots": "ภาพรวมประวัติ",
+      "settings": "การตั้งค่า"
+    }
   },
   "MemberDetailDrawer": {
     "drawerLabel": "รายละเอียดนักเรียน",
@@ -4012,7 +4173,41 @@
     "lesson_consumed_this_month": "บทเรียนเดือนนี้",
     "referral_code_count_this_month": "โค้ดแนะนำเดือนนี้",
     "referral_reward_status": "สถานะรางวัลการแนะนำ",
-    "days_until_card_expiry": "วันก่อนบัตรหมดอายุ"
+    "days_until_card_expiry": "วันก่อนบัตรหมดอายุ",
+    "groups": {
+      "基本信息": "ข้อมูลพื้นฐาน",
+      "跟进人员": "เจ้าหน้าที่ดูแล",
+      "转介绍漏斗": "ช่องทางแนะนำ",
+      "活跃度": "ความกระตือรือร้น"
+    },
+    "fields": {
+      "id": "รหัสนักเรียน",
+      "name": "ชื่อ",
+      "region": "ภูมิภาค",
+      "country": "ประเทศ",
+      "enclosure": "คอก",
+      "lifecycle": "วงจรชีวิต",
+      "teacher_level": "ระดับครู",
+      "first_paid_date": "วันชำระครั้งแรก",
+      "cc_name": "ชื่อ CC",
+      "cc_group": "กลุ่ม CC",
+      "ss_name": "ชื่อ SS",
+      "ss_group": "กลุ่ม SS",
+      "lp_name": "ชื่อ LP",
+      "lp_group": "กลุ่ม LP",
+      "cc_last_call_date": "วันโทรล่าสุดของ CC",
+      "registrations": "จำนวนลงทะเบียน",
+      "appointments": "จำนวนนัดหมาย",
+      "attendance": "จำนวนเข้าร่วม",
+      "payments": "จำนวนชำระ",
+      "total_revenue_usd": "รายได้ (USD)",
+      "checkin_last_month": "เช็คอินเดือนที่แล้ว",
+      "checkin_this_month": "เช็คอินเดือนนี้",
+      "lesson_consumed_this_month": "บทเรียนเดือนนี้",
+      "referral_code_count_this_month": "โค้ดแนะนำเดือนนี้",
+      "referral_reward_status": "สถานะรางวัลการแนะนำ",
+      "days_until_card_expiry": "วันก่อนบัตรหมดอายุ"
+    }
   },
   "MemberTable": {
     "pagination": "หน้า {page} / {totalPages}, รวม {total} รายการ",
@@ -4048,12 +4243,49 @@
     "title": "รายงาน GM",
     "description": "การรายงานระดับกลยุทธ์ต่อ GM มุ่งเน้น KPI หลักและแนวโน้มธุรกิจ",
     "label": "รายวัน",
-    "sublabel": "ข้อมูล T-1"
+    "sublabel": "ข้อมูล T-1",
+    "scenes": {
+      "gm": {
+        "title": "รายงาน GM",
+        "description": "การรายงานระดับกลยุทธ์ต่อ GM มุ่งเน้น KPI หลักและแนวโน้มธุรกิจ"
+      },
+      "ops-director": {
+        "title": "รายงานผู้อำนวยการฝ่ายปฏิบัติการ",
+        "description": "การวิเคราะห์เชิงลึกระดับปฏิบัติการ รวมถึงการแยกวิเคราะห์ funnel และการติดตาม CC"
+      },
+      "crosscheck": {
+        "title": "การประชุมเพื่อนร่วมงาน",
+        "description": "การปรึกษาหารือร่วมกันระหว่างฝ่ายปฏิบัติการและธุรกิจ ติดตามคำมั่นสัญญาและการดำเนินการร่วม"
+      }
+    },
+    "timeframes": {
+      "daily": {
+        "label": "รายวัน",
+        "sublabel": "ข้อมูล T-1"
+      },
+      "weekly": {
+        "label": "รายสัปดาห์",
+        "sublabel": "เปรียบ WoW"
+      },
+      "monthly": {
+        "label": "รายเดือน",
+        "sublabel": "เปรียบ MoM"
+      },
+      "quarterly": {
+        "label": "รายไตรมาส",
+        "sublabel": "เปรียบ QoQ"
+      },
+      "yearly": {
+        "label": "รายปี",
+        "sublabel": "เปรียบ YoY"
+      }
+    }
   },
   "MarkdownRenderer": {
-    "extraLine": "เส้น${idx + 1}",
-    "barLabel": "{(idx === 0 ? 'แท่ง' : `แท่ง${idx}{1}`)}",
-    "baselineLine": "เส้นฐาน"
+    "extraLine": "เส้น{idx}",
+    "barLabel": "{idx}",
+    "baselineLine": "เส้นฐาน",
+    "ง": "แท่ง{idx}"
   },
   "TargetRecommender": {
     "title": "การตั้งเป้าหมาย",
@@ -4119,9 +4351,9 @@
   },
   "ChannelRevenueSlide": {
     "insight": "{topChannel} มีส่วนร่วมสูงสุด ({topShare}%), รายได้รวม {total}",
-    "title": "กราฟการมีส่วนร่วมของรายได้ตามช่องทาง",
-    "subtitle": "รายได้ต่อหัว / รายได้รวม / สัดส่วนตามช่องทาง",
-    "section": "การวิเคราะห์ช่องทาง",
+    "title": "การเปรียบเทียบรายได้ MoM ตามช่องทาง",
+    "subtitle": "ช่องทาง × เดือนก่อน / เดือนนี้ / Δ / Δ% / ตัวขับเคลื่อน / การตัดสิน",
+    "section": "การเปรียบเทียบช่องทาง",
     "col_channel": "ช่องทาง",
     "col_per_capita": "รายได้ต่อหัว",
     "col_total": "รายได้รวม",
@@ -4132,11 +4364,24 @@
     "check_backend": "กรุณาตรวจสอบว่าบริการ Backend ทำงานปกติ",
     "retry": "ลองใหม่",
     "no_data": "ไม่มีข้อมูลรายได้ตามช่องทาง",
-    "no_data_hint": "กรุณาอัปโหลดข้อมูล Excel ประจำเดือนเพื่อรีเฟรช"
+    "no_data_hint": "กรุณาอัปโหลดข้อมูล Excel ประจำเดือนเพื่อรีเฟรช",
+    "channel": "ช่องทาง",
+    "lastMonth": "เดือนก่อน",
+    "thisMonth": "เดือนนี้",
+    "delta": "Δ",
+    "deltaPct": "Δ%",
+    "driver": "ตัวขับเคลื่อนหลัก",
+    "judgment": "การตัดสิน",
+    "totalRow": "รวม",
+    "error": "โหลดข้อมูลล้มเหลว",
+    "errorHint": "กรุณาตรวจสอบบริการแบ็กเอนด์",
+    "empty": "ไม่มีข้อมูล MoM ของช่องทาง",
+    "emptyHint": "กรุณาอัปโหลดไฟล์ Excel ประจำเดือน",
+    "insightLargest": "Δมากที่สุด"
   },
   "ConversionRateSlide": {
     "insight_all_above": "อัตราการแปลงทั้ง {n} รายการเกินเป้าหมาย — ช่องทางมีประสิทธิภาพ",
-    "insight_below": "{belowN} ขั้นตอนต่ำกว่าเป้าหมาย; อ่อนแอที่สุด: {worstName} {worstActual}%, ต่างกัน {worstGapStr}pp",
+    "insight_below": "{belowN} ขั้นตอนต่ำกว่าเป้าหมาย; อ่อนแอที่สุด: {worstName} {worstActual}%, ต่างกัน {worstGapStr}pp{value} รายการเกินเป้า` : ''}",
     "title": "อัตราการแปลง × การบรรลุเป้ารายเดือน",
     "subtitle": "อัตราการแปลงจริงเทียบกับเป้าหมายในแต่ละขั้นตอน",
     "section": "การวิเคราะห์ช่องทาง",
@@ -4147,7 +4392,7 @@
     "bar_label": "อัตราจริง"
   },
   "FunnelAttributionSlide": {
-    "insight": "{{}",
+    "insight": "",
     "title": "ห่วงโซ่การแปลง Funnel เต็มรูปแบบ",
     "subtitle": "ลงทะเบียน → นัด → เข้าร่วม → ชำระเงิน — ผลและอัตราการแปลงแต่ละขั้น",
     "section": "การวิเคราะห์ Funnel",
@@ -4165,8 +4410,8 @@
   },
   "LeadAttributionSlide": {
     "insight": "รวม {totalReg} ลงทะเบียน, {totalPaid} ชำระเงิน; ช่องทางสูงสุด: {topChannel} {topPaid} คน",
-    "title": "Funnel ลูกค้าแต่ละช่องทาง",
-    "subtitle": "CC แคบ / SS แคบ / LP แคบ / กว้าง × ลงทะเบียน → นัด → เข้าร่วม → ชำระเงิน",
+    "title": "การวิเคราะห์แหล่งที่มาของลูกค้า",
+    "subtitle": "4 ช่องทาง × ลงทะเบียน/สัดส่วน/นัดหมาย/เข้าร่วม/ชำระ/ลงทะเบียน→ชำระ/ชำระ/สัดส่วน/รายได้/สัดส่วน",
     "section": "การวิเคราะห์ช่องทาง",
     "col_channel": "ช่องทาง",
     "col_reg": "การลงทะเบียน",
@@ -4178,7 +4423,23 @@
     "check_backend": "กรุณาตรวจสอบว่าบริการ Backend ทำงานปกติ",
     "retry": "ลองใหม่",
     "no_data": "ไม่มีข้อมูล Funnel ช่องทาง",
-    "no_data_hint": "กรุณาอัปโหลดข้อมูล Excel ประจำเดือนเพื่อรีเฟรช"
+    "no_data_hint": "กรุณาอัปโหลดข้อมูล Excel ประจำเดือนเพื่อรีเฟรช",
+    "channel": "ช่องทาง",
+    "reg": "ลงทะเบียน",
+    "regShare": "ลงทะเบียน%",
+    "apptRate": "อัตรานัดหมาย",
+    "attendRate": "อัตราเข้าร่วม",
+    "paidRate": "อัตราชำระ",
+    "regToPayRate": "ลง→ชำระ",
+    "payments": "ชำระ",
+    "payShare": "ชำระ%",
+    "revenue": "รายได้",
+    "revShare": "รายได้%",
+    "error": "โหลดข้อมูลล้มเหลว",
+    "errorHint": "กรุณาตรวจสอบบริการแบ็กเอนด์",
+    "empty": "ไม่มีข้อมูลการวิเคราะห์",
+    "emptyHint": "กรุณาอัปโหลดไฟล์ Excel ประจำเดือน",
+    "insightTpl": "{ch} มีรายได้สูงสุด ({share}), อัตราลงทะเบียน→ชำระ {r2p}"
   },
   "NetAttributionSlide": {
     "insight": "สูงสุดต่อหัว: {topChannel} {topRevenue}, ต่ำสุด: {lowChannel} {lowRevenue}",
@@ -4197,7 +4458,7 @@
     "footnote": "รายได้ต่อหัว = รายได้รวม ÷ จำนวนผู้ชำระเงิน (คำนวณโดย Backend)"
   },
   "RevenueDecompositionSlide": {
-    "insight": "รวม {total}; ช่องทางสูงสุด: {topChannel} {topRevenue} ({topShare}%)",
+    "insight": "รวม {total}; ช่องทางอันดับ 1: {topChannel}{value}%)` : ''} — {topRevenue}",
     "title": "การแยกรายได้ตามช่องทาง",
     "subtitle": "ช่องทาง: ลงทะเบียน → ชำระเงิน → รายได้ → สัดส่วน",
     "section": "การวิเคราะห์ช่องทาง",
@@ -4230,9 +4491,9 @@
     "no_data_hint": "กรุณาอัปโหลดข้อมูล Excel ประจำเดือนเพื่อรีเฟรช"
   },
   "TargetGapSlide": {
-    "target_label": "เป้า {v}",
-    "insight_single": "{name} บรรลุ {worstRate}%",
-    "insight_dual": "อ่อนแอที่สุด: {worstName} {worstRate}%, แข็งแกร่งที่สุด: {bestName} {bestRate}%",
+    "target_label": "เป้าหมาย {v}",
+    "insight_single": "{name} บรรลุ {rate}%{value}",
+    "insight_dual": "อ่อนที่สุด: {worstName} {worstRate}%{value}, แข็งแกร่งที่สุด: {bestName} {bestRate}%",
     "title": "ภาพรวมช่องว่างเป้าหมาย",
     "subtitle": "เป้าหมาย vs ผลจริงในแต่ละขั้นตอน",
     "section": "การวิเคราะห์ Funnel",
@@ -4288,10 +4549,41 @@
     "loading": "กำลังโหลด...",
     "loadError": "โหลดข้อมูลล้มเหลว โปรดลองอีกครั้ง",
     "profile": "ข้อมูลพื้นฐาน",
-    "learning": "พฤติกรรมการเรียน",
-    "referral": "พฤติกรรมการแนะนำ",
-    "cc": "CC ติดตาม",
-    "payment": "ข้อมูลการชำระ",
+    "learning": {
+      "metric": "ตัวชี้วัด",
+      "thisMonth": "เดือนนี้",
+      "lastMonth": "เดือนที่แล้ว",
+      "mom": "MoM",
+      "checkinDays": "วันเช็คอิน",
+      "referralCode": "โค้ดแนะนำ",
+      "lessonConsumed": "บทเรียน",
+      "avg3m": "เฉลี่ย 3 เดือน"
+    },
+    "referral": {
+      "paidCount": "ผู้แนะนำชำระแล้ว",
+      "rewardStatus": "สถานะรางวัล",
+      "referrerId": "รหัสผู้แนะนำ",
+      "network": "เครือข่ายการแนะนำ"
+    },
+    "cc": {
+      "ccName": "ชื่อ CC",
+      "ccGroup": "กลุ่ม CC",
+      "lastCall": "โทรล่าสุด",
+      "totalCalls": "โทรทั้งหมด",
+      "note": "บันทึก CC"
+    },
+    "payment": {
+      "paidAmount": "ยอดชำระ",
+      "channelL3": "ช่องทาง L3",
+      "avg3m": "เฉลี่ย 3 เดือน",
+      "cardExpiry": "หมดอายุบัตร",
+      "lastRenewal": "ต่ออายุล่าสุด",
+      "totalRenewal": "ต่ออายุทั้งหมด",
+      "days": " วัน",
+      "daysAgo": " วันที่แล้ว",
+      "lessonsPerMonth": " บทเรียน/เดือน",
+      "orders": " ออเดอร์"
+    },
     "new_result": "ผลการนำนักเรียนใหม่",
     "daily_log": "บันทึกรายวัน",
     "stdtId": "รหัสนักเรียน",
@@ -4337,7 +4629,43 @@
     "channel": "ช่องทาง",
     "newCount": "นักเรียนใหม่",
     "convRate": "อัตราแปลง",
-    "wide": "Wide"
+    "wide": "Wide",
+    "tabs": {
+      "profile": "ข้อมูลพื้นฐาน",
+      "learning": "พฤติกรรมการเรียน",
+      "referral": "พฤติกรรมการแนะนำ",
+      "cc": "CC ติดตาม",
+      "payment": "ข้อมูลการชำระ",
+      "new_result": "ผลการนำนักเรียนใหม่",
+      "daily_log": "บันทึกรายวัน"
+    },
+    "fields": {
+      "stdtId": "รหัสนักเรียน",
+      "name": "ชื่อ",
+      "region": "ภูมิภาค",
+      "enclosure": "คอก",
+      "lifecycle": "วงจรชีวิต",
+      "referrerId": "รหัสผู้แนะนำ",
+      "ccName": "ชื่อ CC",
+      "ccGroup": "กลุ่ม CC",
+      "ssName": "ชื่อ SS",
+      "lpName": "ชื่อ LP",
+      "channelL3": "ช่องทาง L3",
+      "hpScore": "คะแนน HP",
+      "urgency": "ระดับความเร่งด่วน",
+      "checkin7d": "เช็คอิน 7 วัน",
+      "contact7d": "ติดต่อ 7 วัน",
+      "urgent": "เร่งด่วน",
+      "watch": "ติดตาม",
+      "normal": "ปกติ"
+    },
+    "newResult": {
+      "channel": "ช่องทาง",
+      "newCount": "นักเรียนใหม่",
+      "paidCount": "ชำระแล้ว",
+      "convRate": "อัตราแปลง",
+      "wide": "Wide"
+    }
   },
   "ReferralNetwork": {
     "loading": "กำลังโหลด...",
@@ -4444,10 +4772,21 @@
     "markRead": "ทำเครื่องหมายว่าอ่านแล้ว",
     "title": "แจ้งเตือน KPI สีแดง",
     "message": "อัตราการแปลงชำระเงินเดือนนี้ลดลงเหลือ 12% ต่ำกว่าเป้าหมาย 18%",
-    "timestamp": "10 นาทีที่แล้ว"
+    "timestamp": "10 นาทีที่แล้ว",
+    "mockNotifications": [
+      "แจ้งเตือน KPI สีแดง",
+      "อัตราการแปลงชำระเงินเดือนนี้ลดลงเหลือ 12% ต่ำกว่าเป้าหมาย 18%",
+      "10 นาทีที่แล้ว",
+      "แจ้งเตือนไม่มีการติดตาม",
+      "Wang Ming มีคลาสทดลอง 5 คลาสที่ไม่มีการติดตามเกิน 24 ชั่วโมง",
+      "1 ชั่วโมงที่แล้ว",
+      "รายงานพร้อมแล้ว",
+      "รายงานสรุปประจำสัปดาห์นี้ถูกสร้างแล้ว",
+      "5 ชั่วโมงที่แล้ว"
+    ]
   },
   "Pagination": {
-    "totalItems": "ทั้งหมด ${n.toLocaleString()} รายการ",
+    "totalItems": "ทั้งหมด {n} รายการ",
     "prevPage": "ก่อนหน้า",
     "nextPage": "ถัดไป"
   },
@@ -4537,7 +4876,12 @@
     "usd": "USD",
     "vol": "ปริมาณ",
     "conv": "อัตรา",
-    "price": "ราคา"
+    "price": "ราคา",
+    "driverNames": {
+      "vol": "ปริมาณ",
+      "conv": "อัตรา",
+      "price": "ราคา"
+    }
   },
   "FunnelLeverageSlide": {
     "insightTpl": "คอขวดหลัก: {channel} {stage} (คะแนน {score}, รายได้เพิ่ม {rev})",
@@ -4562,6 +4906,62 @@
     "emptyHint": "กรุณาอัปโหลดไฟล์ Excel ประจำเดือน",
     "appt_rate": "อัตรานัดหมาย",
     "attend_rate": "อัตราเข้าร่วม",
-    "paid_rate": "อัตราชำระ"
+    "paid_rate": "อัตราชำระ",
+    "stageLabels": {
+      "appt_rate": "อัตรานัดหมาย",
+      "attend_rate": "อัตราเข้าร่วม",
+      "paid_rate": "อัตราชำระ"
+    }
+  },
+  "errorPage": {
+    "title": "เกิดข้อผิดพลาด",
+    "retry": "ลองอีกครั้ง"
+  },
+  "snapshotStats": {},
+  "ui": {},
+  "GapDashboardSlide": {
+    "title": "แดชบอร์ดช่องว่าง",
+    "subtitle": "ช่องว่างหลัก · จากรายได้ถึงการลงทะเบียน",
+    "viewBm": "ความคืบหน้า BM",
+    "viewMonthly": "เป้าประจำเดือน",
+    "gapItems": {
+      "revenue_gap": "ช่องว่างรายได้",
+      "asp_gap": "ช่องว่าง ASP",
+      "bill_gap": "ช่องว่างชำระ (ครั้ง)",
+      "showup_gap": "ช่องว่างเข้าร่วม (คน)",
+      "appt_gap": "ช่องว่างนัดหมาย (คน)",
+      "lead_gap": "ช่องว่างลงทะเบียน (คน)"
+    },
+    "channelTargets": "เป้าหมายช่องทาง",
+    "channelGaps": "ช่องว่างลงทะเบียนแต่ละช่องทาง",
+    "bmDesc": "ส่วนเกิน/ช่องว่าง vs แนว BM",
+    "monthlyDesc": "ส่วนเกิน/ช่องว่าง vs เป้า 100%",
+    "noData": "ไม่มีข้อมูล",
+    "noDataDesc": "กรุณาอัปโหลดไฟล์ Excel ประจำเดือน",
+    "channel": "ช่องทาง",
+    "target": "เป้าหมาย",
+    "gap": "ช่องว่าง",
+    "shortfall": "ขาด",
+    "surplus": "เกิน"
+  },
+  "MomAttributionSlide": {
+    "title": "การวิเคราะห์ MoM",
+    "subtitle": "7 ตัวชี้วัด × เดือนก่อน / เดือนนี้ / เป้าหมาย / Δ / Δ% / vs เป้า / การตัดสิน",
+    "section": "การวิเคราะห์ MoM",
+    "metric": "ตัวชี้วัด",
+    "lastMonth": "เดือนก่อน",
+    "thisMonth": "เดือนนี้",
+    "target": "เป้าหมาย",
+    "delta": "Δ",
+    "deltaPct": "Δ%",
+    "vsTarget": "vs เป้า",
+    "judgment": "การตัดสิน",
+    "error": "โหลดข้อมูลล้มเหลว",
+    "errorHint": "กรุณาตรวจสอบบริการแบ็กเอนด์",
+    "retry": "ลองใหม่",
+    "empty": "ไม่มีข้อมูล MoM",
+    "emptyHint": "กรุณาอัปโหลดไฟล์ Excel ประจำเดือน",
+    "insightVsTarget": "vs เป้าหมาย",
+    "insightNeedsAttention": "ต้องให้ความสนใจ"
   }
 }
