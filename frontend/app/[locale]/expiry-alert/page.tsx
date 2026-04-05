@@ -1,141 +1,12 @@
 'use client';
 
-import { useLocale } from 'next-intl';
+import { useTranslations } from 'next-intl';
 import { useFilteredSWR } from '@/lib/hooks/use-filtered-swr';
 import { usePageDimensions } from '@/lib/hooks/use-page-dimensions';
 import { Card } from '@/components/ui/Card';
 import { Spinner } from '@/components/ui/Spinner';
 import { EmptyState } from '@/components/ui/EmptyState';
 import type { ExpiryAlertSummary, ExpiryAlertItem } from '@/lib/types/enclosure-ss-lp';
-
-// ── I18N ──────────────────────────────────────────────────────────────────────
-
-const I18N = {
-  zh: {
-    pageTitle: '次卡到期预警',
-    pageSubtitle: '30 天内次卡即将到期学员 · 按紧急度分层展示',
-    urgent: '紧急',
-    urgentRange: '≤7天',
-    warning: '预警',
-    warningRange: '8~14天',
-    watch: '关注',
-    watchRange: '15~30天',
-    cardSuffix: '名学员次卡即将到期',
-    noContact: '无记录',
-    riskHigh: '高风险',
-    riskMedium: '中风险',
-    riskLow: '低风险',
-    emptyTable: '30天内无到期学员',
-    emptyTableDesc: '目前没有次卡即将到期的学员，请定期检查',
-    colRisk: '风险',
-    colStudentId: '学员 ID',
-    colEnclosure: '围场段',
-    colCC: 'CC',
-    colDaysLeft: '剩余天数',
-    colContactDays: '失联天数',
-    colCards: '当前次卡',
-    colMonthlyReg: '本月注册',
-    colMonthlyPay: '本月付费',
-    daysUnit: '天',
-    loadError: '数据加载失败',
-    loadErrorDesc: '请检查后端服务是否正常运行，或数据源是否已上传',
-    retry: '重试',
-    cardTitle: (total: number) => `到期学员明细（30天内，共 ${total} 人）`,
-  },
-  'zh-TW': {
-    pageTitle: '次卡到期預警',
-    pageSubtitle: '30 天內次卡即將到期學員 · 按緊急度分層展示',
-    urgent: '緊急',
-    urgentRange: '≤7天',
-    warning: '預警',
-    warningRange: '8~14天',
-    watch: '關注',
-    watchRange: '15~30天',
-    cardSuffix: '名學員次卡即將到期',
-    noContact: '無記錄',
-    riskHigh: '高風險',
-    riskMedium: '中風險',
-    riskLow: '低風險',
-    emptyTable: '30天內無到期學員',
-    emptyTableDesc: '目前沒有次卡即將到期的學員，請定期檢查',
-    colRisk: '風險',
-    colStudentId: '學員 ID',
-    colEnclosure: '圍場段',
-    colCC: 'CC',
-    colDaysLeft: '剩餘天數',
-    colContactDays: '失聯天數',
-    colCards: '當前次卡',
-    colMonthlyReg: '本月註冊',
-    colMonthlyPay: '本月付費',
-    daysUnit: '天',
-    loadError: '資料載入失敗',
-    loadErrorDesc: '請檢查後端服務是否正常運行，或資料來源是否已上傳',
-    retry: '重試',
-    cardTitle: (total: number) => `到期學員明細（30天內，共 ${total} 人）`,
-  },
-  en: {
-    pageTitle: 'Subscription Expiry Alert',
-    pageSubtitle: 'Students with subscriptions expiring within 30 days · Tiered by urgency',
-    urgent: 'Urgent',
-    urgentRange: '≤7 days',
-    warning: 'Warning',
-    warningRange: '8–14 days',
-    watch: 'Watch',
-    watchRange: '15–30 days',
-    cardSuffix: "students' subscriptions expiring soon",
-    noContact: 'No record',
-    riskHigh: 'High risk',
-    riskMedium: 'Medium risk',
-    riskLow: 'Low risk',
-    emptyTable: 'No expiring students in 30 days',
-    emptyTableDesc: 'No students have subscriptions expiring soon. Check back regularly.',
-    colRisk: 'Risk',
-    colStudentId: 'Student ID',
-    colEnclosure: 'Enclosure',
-    colCC: 'CC',
-    colDaysLeft: 'Days Left',
-    colContactDays: 'Days Since Contact',
-    colCards: 'Current Cards',
-    colMonthlyReg: 'Monthly Reg.',
-    colMonthlyPay: 'Monthly Pay.',
-    daysUnit: 'd',
-    loadError: 'Failed to load data',
-    loadErrorDesc: 'Please check if the backend service is running and data has been uploaded',
-    retry: 'Retry',
-    cardTitle: (total: number) => `Expiring Students (within 30 days, ${total} total)`,
-  },
-  th: {
-    pageTitle: 'แจ้งเตือนการหมดอายุ',
-    pageSubtitle: 'นักเรียนที่ซับสคริปชันหมดอายุภายใน 30 วัน · แบ่งตามระดับความเร่งด่วน',
-    urgent: 'เร่งด่วน',
-    urgentRange: '≤7 วัน',
-    warning: 'เตือน',
-    warningRange: '8–14 วัน',
-    watch: 'ติดตาม',
-    watchRange: '15–30 วัน',
-    cardSuffix: 'นักเรียนที่ซับสคริปชันกำลังหมดอายุ',
-    noContact: 'ไม่มีบันทึก',
-    riskHigh: 'ความเสี่ยงสูง',
-    riskMedium: 'ความเสี่ยงปานกลาง',
-    riskLow: 'ความเสี่ยงต่ำ',
-    emptyTable: 'ไม่มีนักเรียนหมดอายุใน 30 วัน',
-    emptyTableDesc: 'ไม่มีนักเรียนที่ซับสคริปชันกำลังหมดอายุ กรุณาตรวจสอบเป็นประจำ',
-    colRisk: 'ความเสี่ยง',
-    colStudentId: 'รหัสนักเรียน',
-    colEnclosure: 'ระยะเวลา',
-    colCC: 'CC',
-    colDaysLeft: 'วันที่เหลือ',
-    colContactDays: 'วันที่ขาดการติดต่อ',
-    colCards: 'คอร์สปัจจุบัน',
-    colMonthlyReg: 'ลงทะเบียนเดือนนี้',
-    colMonthlyPay: 'ชำระเดือนนี้',
-    daysUnit: 'วัน',
-    loadError: 'โหลดข้อมูลล้มเหลว',
-    loadErrorDesc: 'กรุณาตรวจสอบว่าบริการแบ็กเอนด์ทำงานอยู่ และข้อมูลได้รับการอัปโหลดแล้ว',
-    retry: 'ลองใหม่',
-    cardTitle: (total: number) => `รายละเอียดนักเรียนหมดอายุ (ภายใน 30 วัน รวม ${total} คน)`,
-  },
-};
 
 /* ── 紧急度分层颜色 ──────────────────────────────────────── */
 
@@ -148,27 +19,27 @@ function urgencyLevel(days: number | null): 'urgent' | 'warning' | 'watch' {
 
 /* ── 摘要卡片区 ──────────────────────────────────────────── */
 
-function SummaryCards({ summary, t }: { summary: ExpiryAlertSummary; t: (typeof I18N)['zh'] }) {
+function SummaryCards({ summary, t }: { summary: ExpiryAlertSummary; t: (key: string, params?: any) => string }) {
   const URGENCY_CONFIG = {
     urgent: {
-      label: t.urgent,
-      sub: t.urgentRange,
+      label: t('urgent'),
+      sub: t('urgentRange'),
       bg: 'bg-danger-surface border-danger-token',
       text: 'text-danger-token',
       count: 'text-danger-token',
       badge: 'bg-danger-surface text-danger-token',
     },
     warning: {
-      label: t.warning,
-      sub: t.warningRange,
+      label: t('warning'),
+      sub: t('warningRange'),
       bg: 'bg-warning-surface border-warning-token',
       text: 'text-warning-token',
       count: 'text-warning-token',
       badge: 'bg-warning-surface text-warning-token',
     },
     watch: {
-      label: t.watch,
-      sub: t.watchRange,
+      label: t('watch'),
+      sub: t('watchRange'),
       bg: 'bg-success-surface border-success-token',
       text: 'text-success-token',
       count: 'text-success-token',
@@ -197,7 +68,7 @@ function SummaryCards({ summary, t }: { summary: ExpiryAlertSummary; t: (typeof 
             <div className={`text-3xl font-bold font-mono tabular-nums ${cfg.count}`}>
               {(count ?? 0).toLocaleString()}
             </div>
-            <div className={`text-xs ${cfg.text} opacity-70`}>{t.cardSuffix}</div>
+            <div className={`text-xs ${cfg.text} opacity-70`}>{t('cardSuffix')}</div>
           </div>
         );
       })}
@@ -233,9 +104,9 @@ function contactDaysBadge(days: number | null, daysUnit: string, noContact: stri
 
 /* ── 到期预警表格 ──────────────────────────────────────────── */
 
-function ExpiryTable({ items, t }: { items: ExpiryAlertItem[]; t: (typeof I18N)['zh'] }) {
+function ExpiryTable({ items, t }: { items: ExpiryAlertItem[]; t: (key: string, params?: any) => string }) {
   if (items.length === 0) {
-    return <EmptyState title={t.emptyTable} description={t.emptyTableDesc} />;
+    return <EmptyState title={t('emptyTable')} description={t('emptyTableDesc')} />;
   }
 
   const URGENCY_CONFIG = {
@@ -250,9 +121,9 @@ function ExpiryTable({ items, t }: { items: ExpiryAlertItem[]; t: (typeof I18N)[
     low: 'bg-success-surface text-success-token',
   };
   const RISK_LABEL: Record<string, string> = {
-    high: t.riskHigh,
-    medium: t.riskMedium,
-    low: t.riskLow,
+    high: t('riskHigh'),
+    medium: t('riskMedium'),
+    low: t('riskLow'),
   };
 
   const sorted = [...items].sort((a, b) => (a.days_to_expiry ?? 999) - (b.days_to_expiry ?? 999));
@@ -262,15 +133,15 @@ function ExpiryTable({ items, t }: { items: ExpiryAlertItem[]; t: (typeof I18N)[
       <table className="w-full text-xs">
         <thead>
           <tr className="slide-thead-row">
-            <th className="slide-th slide-th-left py-2 px-2">{t.colRisk}</th>
-            <th className="slide-th slide-th-left py-2 px-2">{t.colStudentId}</th>
-            <th className="slide-th slide-th-left py-2 px-2">{t.colEnclosure}</th>
-            <th className="slide-th slide-th-left py-2 px-2">{t.colCC}</th>
-            <th className="slide-th slide-th-right py-2 px-2">{t.colDaysLeft}</th>
-            <th className="slide-th slide-th-right py-2 px-2">{t.colContactDays}</th>
-            <th className="slide-th slide-th-right py-2 px-2">{t.colCards}</th>
-            <th className="slide-th slide-th-right py-2 px-2">{t.colMonthlyReg}</th>
-            <th className="slide-th slide-th-right py-2 px-2">{t.colMonthlyPay}</th>
+            <th className="slide-th slide-th-left py-2 px-2">{t('colRisk')}</th>
+            <th className="slide-th slide-th-left py-2 px-2">{t('colStudentId')}</th>
+            <th className="slide-th slide-th-left py-2 px-2">{t('colEnclosure')}</th>
+            <th className="slide-th slide-th-left py-2 px-2">{t('colCC')}</th>
+            <th className="slide-th slide-th-right py-2 px-2">{t('colDaysLeft')}</th>
+            <th className="slide-th slide-th-right py-2 px-2">{t('colContactDays')}</th>
+            <th className="slide-th slide-th-right py-2 px-2">{t('colCards')}</th>
+            <th className="slide-th slide-th-right py-2 px-2">{t('colMonthlyReg')}</th>
+            <th className="slide-th slide-th-right py-2 px-2">{t('colMonthlyPay')}</th>
           </tr>
         </thead>
         <tbody>
@@ -301,14 +172,14 @@ function ExpiryTable({ items, t }: { items: ExpiryAlertItem[]; t: (typeof I18N)[
                       className={`inline-block px-1.5 py-0.5 rounded text-[11px] font-semibold ${cfg.badge}`}
                     >
                       {item.days_to_expiry}
-                      {t.daysUnit}
+                      {t('daysUnit')}
                     </span>
                   ) : (
                     '—'
                   )}
                 </td>
                 <td className="slide-td py-1.5 px-2 text-right">
-                  {contactDaysBadge(item.days_since_last_contact ?? null, t.daysUnit, t.noContact)}
+                  {contactDaysBadge(item.days_since_last_contact ?? null, t('daysUnit'), t('noContact'))}
                 </td>
                 <td className="slide-td py-1.5 px-2 text-right font-mono tabular-nums">
                   {item.current_cards ?? '—'}
@@ -332,8 +203,7 @@ function ExpiryTable({ items, t }: { items: ExpiryAlertItem[]; t: (typeof I18N)[
 
 export default function ExpiryAlertPage() {
   usePageDimensions({ country: true, enclosure: true, team: true });
-  const locale = useLocale();
-  const t = (I18N as unknown as Record<string, (typeof I18N)['zh']>)[locale] ?? I18N['zh'];
+  const t = useTranslations('expiryAlertPage');
 
   const {
     data: summary,
@@ -359,8 +229,8 @@ export default function ExpiryAlertPage() {
   return (
     <div className="space-y-3">
       <div>
-        <h1 className="page-title">{t.pageTitle}</h1>
-        <p className="text-sm text-secondary-token mt-1">{t.pageSubtitle}</p>
+        <h1 className="page-title">{t('pageTitle')}</h1>
+        <p className="text-sm text-secondary-token mt-1">{t('pageSubtitle')}</p>
       </div>
 
       {isLoading ? (
@@ -369,15 +239,15 @@ export default function ExpiryAlertPage() {
         </div>
       ) : error ? (
         <EmptyState
-          title={t.loadError}
-          description={t.loadErrorDesc}
-          action={{ label: t.retry, onClick: handleRetry }}
+          title={t('loadError')}
+          description={t('loadErrorDesc')}
+          action={{ label: t('retry'), onClick: handleRetry }}
         />
       ) : (
         <>
           {summary && <SummaryCards summary={summary} t={t} />}
 
-          <Card title={t.cardTitle(summary?.total ?? 0)}>
+          <Card title={t('cardTitle', { total: summary?.total ?? 0 })}>
             <ExpiryTable items={items ?? []} t={t} />
           </Card>
         </>

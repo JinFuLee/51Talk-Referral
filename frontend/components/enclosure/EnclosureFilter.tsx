@@ -1,14 +1,6 @@
 'use client';
 
-import { useLocale } from 'next-intl';
-
-const I18N = {
-  zh: { all: '全部', ariaLabel: '围场分段筛选' },
-  'zh-TW': { all: '全部', ariaLabel: '圍場分段篩選' },
-  en: { all: 'All', ariaLabel: 'Enclosure segment filter' },
-  th: { all: 'ทั้งหมด', ariaLabel: 'กรองเซกเมนต์' },
-} as const;
-
+import { useTranslations } from 'next-intl';
 const ENCLOSURE_SEGMENTS = [
   'M0（0~30）',
   'M1（31~60）',
@@ -49,16 +41,15 @@ interface EnclosureFilterProps {
 }
 
 export function EnclosureFilter({ value, onChange }: EnclosureFilterProps) {
-  const locale = useLocale();
-  const t = I18N[locale as keyof typeof I18N] || I18N.zh;
+    const t = useTranslations('EnclosureFilter');
 
   const filters = [
-    { label: t.all, value: '' },
+    { label: t('all'), value: '' },
     ...ENCLOSURE_SEGMENTS.map((label, i) => ({ label, value: SEGMENT_VALUES[i] })),
   ];
 
   return (
-    <div className="flex flex-wrap gap-2" role="group" aria-label={t.ariaLabel}>
+    <div className="flex flex-wrap gap-2" role="group" aria-label={t('ariaLabel')}>
       {filters.map((f) => (
         <button
           key={f.value}

@@ -2,18 +2,11 @@
 
 import { useConfigStore, useStoreHydrated } from '@/lib/stores/config-store';
 import { useFilteredSWR } from '@/lib/hooks/use-filtered-swr';
-import { useLocale } from 'next-intl';
-
-const I18N = {
-  zh: { noCompareData: '暂无对比数据', noData: '暂无数据' },
-  'zh-TW': { noCompareData: '暫無對比數據', noData: '暫無數據' },
-  en: { noCompareData: 'No comparison data', noData: 'No data' },
-  th: { noCompareData: 'ไม่มีข้อมูลเปรียบเทียบ', noData: 'ไม่มีข้อมูล' },
-} as const;
-type I18NKey = keyof typeof I18N;
+import { useLocale, useTranslations } from 'next-intl';
 function useT() {
   const locale = useLocale();
-  return { strings: I18N[(locale as I18NKey) in I18N ? (locale as I18NKey) : 'zh'], locale };
+  const strings = useTranslations('ComparisonBanner');
+  return { strings, locale };
 }
 
 const KPI_LABELS_I18N: Record<string, Record<string, string>> = {
@@ -69,7 +62,7 @@ export function ComparisonBanner() {
     return (
       <div className="h-9 bg-warning-surface border-b border-warning-token flex items-center justify-center px-6">
         <span className="text-xs text-warning-token">
-          ⚠ {data.label}：{data.unavailable_reason ?? t.noCompareData}
+          ⚠ {data.label}：{data.unavailable_reason ?? t('noCompareData')}
         </span>
       </div>
     );
@@ -92,7 +85,7 @@ export function ComparisonBanner() {
         let colorCls = 'text-muted-token';
 
         if (pct === null || pct === undefined) {
-          dirIcon = t.noData;
+          dirIcon = t('noData');
           colorCls = 'text-muted-token';
         } else if (pct > 0) {
           dirIcon = `▲${Math.abs(pct).toFixed(1)}%`;

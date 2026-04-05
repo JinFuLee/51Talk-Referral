@@ -1,54 +1,10 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import type { TooltipProps } from 'recharts';
-import { useLocale } from 'next-intl';
 import { CHART_PALETTE } from '@/lib/chart-palette';
 import type { RenewalCorrelation } from '@/lib/types/checkin-student';
-
-const I18N = {
-  zh: {
-    bandLabel: '打卡频段：',
-    hasRenewalPct: '有续费学员比例：',
-    avgRenewals: '人均续费订单数：',
-    bandStudents: '该频段学员数：',
-    noCorrelation: '暂无续费关联数据',
-    noRenewal: '暂无续费数据（需要"总续费订单数"字段）',
-    legendAvg: '人均续费订单数',
-    legendPct: '有续费比例 %',
-  },
-  en: {
-    bandLabel: 'Band: ',
-    hasRenewalPct: 'Renewal Rate: ',
-    avgRenewals: 'Avg Renewals: ',
-    bandStudents: 'Students in Band: ',
-    noCorrelation: 'No renewal correlation data',
-    noRenewal: 'No renewal data (requires "total_renewal_orders" field)',
-    legendAvg: 'Avg Renewals',
-    legendPct: 'Has Renewal %',
-  },
-  'zh-TW': {
-    bandLabel: '打卡頻段：',
-    hasRenewalPct: '有續費學員比例：',
-    avgRenewals: '人均續費訂單數：',
-    bandStudents: '該頻段學員數：',
-    noCorrelation: '暫無續費關聯數據',
-    noRenewal: '暫無續費數據（需要「總續費訂單數」欄位）',
-    legendAvg: '人均續費訂單數',
-    legendPct: '有續費比例 %',
-  },
-  th: {
-    bandLabel: 'กลุ่มความถี่: ',
-    hasRenewalPct: 'อัตราการต่ออายุ: ',
-    avgRenewals: 'ต่ออายุเฉลี่ย: ',
-    bandStudents: 'นักเรียนในกลุ่ม: ',
-    noCorrelation: 'ไม่มีข้อมูลความสัมพันธ์การต่ออายุ',
-    noRenewal: 'ไม่มีข้อมูลการต่ออายุ (ต้องการฟิลด์ "จำนวนคำสั่งซื้อต่ออายุทั้งหมด")',
-    legendAvg: 'ต่ออายุเฉลี่ย',
-    legendPct: 'มีการต่ออายุ %',
-  },
-} as const;
-
 interface RenewalCheckinChartProps {
   /** 续费×打卡关联数据 */
   data: RenewalCorrelation;
@@ -61,16 +17,13 @@ interface ChartRow {
   renewal_pct_display: number;
   students: number;
 }
-
-type TStrings = (typeof I18N)[keyof typeof I18N];
-
 /** 自定义 Tooltip */
 function CustomTooltip({
   active,
   payload,
   label,
   t,
-}: TooltipProps<number, string> & { t: TStrings }) {
+}: TooltipProps<number, string> & { t: (key: string, params?: any) => string }) {
   if (!active || !payload || payload.length === 0) return null;
   const row = payload[0]?.payload as ChartRow | undefined;
   if (!row) return null;
@@ -78,23 +31,23 @@ function CustomTooltip({
   return (
     <div className="bg-white border border-default-token rounded-lg shadow-md px-3 py-2 text-xs space-y-1">
       <p className="font-semibold text-primary-token border-b border-subtle-token pb-1 mb-1">
-        {t.bandLabel}
+        {t('bandLabel')}
         {label}
       </p>
       <p className="text-secondary-token">
-        {t.hasRenewalPct}
+        {t('hasRenewalPct')}
         <span className="font-mono tabular-nums font-semibold text-primary-token ml-1">
           {((row.has_renewal_pct ?? 0) * 100).toFixed(1)}%
         </span>
       </p>
       <p className="text-secondary-token">
-        {t.avgRenewals}
+        {t('avgRenewals')}
         <span className="font-mono tabular-nums font-semibold text-primary-token ml-1">
           {(row.avg_renewals ?? 0).toFixed(2)}
         </span>
       </p>
       <p className="text-muted-token">
-        {t.bandStudents}
+        {t('bandStudents')}
         {(row.students ?? 0).toLocaleString()}
       </p>
     </div>
@@ -112,13 +65,12 @@ function CustomTooltip({
  * <RenewalCheckinChart data={analysis.renewal_checkin_correlation} />
  */
 export function RenewalCheckinChart({ data }: RenewalCheckinChartProps) {
-  const locale = useLocale();
-  const t = I18N[locale as keyof typeof I18N] ?? I18N.zh;
+  const t = useTranslations('RenewalCheckinChart');
 
   if (!data?.by_band || data.by_band.length === 0) {
     return (
       <div className="flex items-center justify-center h-[280px] text-sm text-muted-token">
-        {t.noCorrelation}
+        {t('noCorrelation')}
       </div>
     );
   }
@@ -136,7 +88,7 @@ export function RenewalCheckinChart({ data }: RenewalCheckinChartProps) {
   if (!hasData) {
     return (
       <div className="flex items-center justify-center h-[280px] text-sm text-muted-token">
-        {t.noRenewal}
+        {t('noRenewal')}
       </div>
     );
   }
@@ -169,13 +121,13 @@ export function RenewalCheckinChart({ data }: RenewalCheckinChartProps) {
         />
         <Bar
           dataKey="avg_renewals"
-          name={t.legendAvg}
+          name={t('legendAvg')}
           fill={CHART_PALETTE.c1}
           radius={[3, 3, 0, 0]}
         />
         <Bar
           dataKey="renewal_pct_display"
-          name={t.legendPct}
+          name={t('legendPct')}
           fill={CHART_PALETTE.c4}
           radius={[3, 3, 0, 0]}
         />

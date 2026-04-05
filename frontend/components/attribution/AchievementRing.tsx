@@ -1,17 +1,8 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { PieChart, Pie, Cell } from 'recharts';
 import { cn, formatRate } from '@/lib/utils';
-import { useLocale } from 'next-intl';
-
-const I18N = {
-  zh: { target: '目标' },
-  en: { target: 'Target' },
-  'zh-TW': { target: '目標' },
-  th: { target: 'เป้าหมาย' },
-} as const;
-type Locale = keyof typeof I18N;
-
 interface AchievementRingProps {
   label: string;
   actual: number;
@@ -32,8 +23,7 @@ function rateLabel(rate: number): string {
 }
 
 export function AchievementRing({ label, actual, target, rate }: AchievementRingProps) {
-  const locale = useLocale();
-  const t = I18N[(locale as Locale) in I18N ? (locale as Locale) : 'zh'];
+    const t = useTranslations('AchievementRing');
   const pct = Math.min(rate, 1); // cap at 100% for ring display
   const color = rateColor(rate);
   const pctDisplay = formatRate(rate);
@@ -77,7 +67,7 @@ export function AchievementRing({ label, actual, target, rate }: AchievementRing
           {actual.toLocaleString()}
         </p>
         <p className="text-xs text-muted-token">
-          {t.target} {target.toLocaleString()}
+          {t('target')} {target.toLocaleString()}
         </p>
       </div>
     </div>

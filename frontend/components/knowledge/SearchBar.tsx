@@ -1,37 +1,9 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { useLocale } from 'next-intl';
+import { useTranslations } from 'next-intl';
 import { Search, X, Loader2 } from 'lucide-react';
 import { useFilteredSWR } from '@/lib/hooks/use-filtered-swr';
-
-/* ── I18N ────────────────────────────────────────────────────────── */
-
-const I18N = {
-  zh: {
-    placeholder: '搜索知识库… (⌘K)',
-    ariaClose: '清空搜索',
-    noResults: '未找到相关内容',
-  },
-  'zh-TW': {
-    placeholder: '搜尋知識庫… (⌘K)',
-    ariaClose: '清空搜尋',
-    noResults: '未找到相關內容',
-  },
-  en: {
-    placeholder: 'Search knowledge base… (⌘K)',
-    ariaClose: 'Clear search',
-    noResults: 'No results found',
-  },
-  th: {
-    placeholder: 'ค้นหาในคลังความรู้… (⌘K)',
-    ariaClose: 'ล้างการค้นหา',
-    noResults: 'ไม่พบผลลัพธ์',
-  },
-} as const;
-
-type Locale = keyof typeof I18N;
-
 export interface SearchResult {
   book_id: string;
   book_title: string;
@@ -65,8 +37,7 @@ function groupByBook(results: SearchResult[]): Record<string, SearchResult[]> {
 }
 
 export function SearchBar({ onResultClick }: SearchBarProps) {
-  const locale = useLocale() as Locale;
-  const t = I18N[locale] ?? I18N.zh;
+  const t = useTranslations('SearchBar');
 
   const [query, setQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
@@ -137,7 +108,7 @@ export function SearchBar({ onResultClick }: SearchBarProps) {
         <input
           ref={inputRef}
           type="search"
-          placeholder={t.placeholder}
+          placeholder={t('placeholder')}
           value={query}
           onChange={(e) => {
             setQuery(e.target.value);
@@ -153,7 +124,7 @@ export function SearchBar({ onResultClick }: SearchBarProps) {
               setDebouncedQuery('');
             }}
             className="absolute right-2.5 text-muted-token hover:text-secondary-token focus-visible:outline-none"
-            aria-label={t.ariaClose}
+            aria-label={t('ariaClose')}
           >
             <X className="w-3.5 h-3.5" />
           </button>
@@ -166,7 +137,7 @@ export function SearchBar({ onResultClick }: SearchBarProps) {
       {open && query.length >= 2 && (
         <div className="absolute top-full mt-1.5 left-0 right-0 z-50 card-base shadow-[var(--shadow-raised)] max-h-[380px] overflow-y-auto">
           {!hasResults && !isLoading && (
-            <div className="px-4 py-6 text-center text-sm text-muted-token">{t.noResults}</div>
+            <div className="px-4 py-6 text-center text-sm text-muted-token">{t('noResults')}</div>
           )}
 
           {hasResults &&

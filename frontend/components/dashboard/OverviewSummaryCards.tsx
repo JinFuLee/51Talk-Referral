@@ -1,11 +1,8 @@
 'use client';
 
-import { useLocale } from 'next-intl';
+import { useTranslations } from 'next-intl';
 import { formatRevenue } from '@/lib/utils';
 import type { BmComparison } from '@/lib/types/bm-calendar';
-
-/* ── types ────────────────────────────────────────────── */
-
 export interface OverviewSummaryCardsProps {
   kpi8item?: Record<
     string,
@@ -19,68 +16,6 @@ export interface OverviewSummaryCardsProps {
   bmComparison?: BmComparison;
   timeProgress?: { time_progress: number; elapsed_workdays: number; remaining_workdays: number };
 }
-
-/* ── i18n ─────────────────────────────────────────────── */
-
-const I18N = {
-  zh: {
-    revenue: '当月转介绍业绩',
-    of: '/',
-    achievement: '达成',
-    bmPace: 'BM 节奏',
-    bmExpected: '应达',
-    bmAhead: '领先 BM',
-    bmBehind: '落后 BM',
-    pace: '时间 & 节奏',
-    timeProgress: '时间进度',
-    currentDaily: '当前日均',
-    needDaily: '达标需',
-    perDay: '/天',
-  },
-  'zh-TW': {
-    revenue: '當月轉介紹業績',
-    of: '/',
-    achievement: '達成',
-    bmPace: 'BM 節奏',
-    bmExpected: '應達',
-    bmAhead: '領先 BM',
-    bmBehind: '落後 BM',
-    pace: '時間 & 節奏',
-    timeProgress: '時間進度',
-    currentDaily: '當前日均',
-    needDaily: '達標需',
-    perDay: '/天',
-  },
-  en: {
-    revenue: 'Referral Revenue',
-    of: '/',
-    achievement: 'Achievement',
-    bmPace: 'BM Pace',
-    bmExpected: 'Expected',
-    bmAhead: 'Ahead of BM',
-    bmBehind: 'Behind BM',
-    pace: 'Time & Pace',
-    timeProgress: 'Time',
-    currentDaily: 'Daily avg',
-    needDaily: 'Need',
-    perDay: '/day',
-  },
-  th: {
-    revenue: 'รายได้แนะนำ',
-    of: '/',
-    achievement: 'บรรลุ',
-    bmPace: 'BM',
-    bmExpected: 'คาดหวัง',
-    bmAhead: 'นำหน้า BM',
-    bmBehind: 'ล้าหลัง BM',
-    pace: 'เวลา & ก้าว',
-    timeProgress: 'เวลา',
-    currentDaily: 'เฉลี่ยวัน',
-    needDaily: 'ต้องการ',
-    perDay: '/วัน',
-  },
-} as const;
-
 /* ── helpers ──────────────────────────────────────────── */
 
 function barColor(pct: number): string {
@@ -100,8 +35,7 @@ export function OverviewSummaryCards({
   bmComparison,
   timeProgress,
 }: OverviewSummaryCardsProps) {
-  const locale = useLocale();
-  const t = I18N[locale as keyof typeof I18N] ?? I18N.zh;
+  const t = useTranslations('OverviewSummaryCards');
 
   const rev = kpi8item?.revenue;
   const actual = rev?.actual ?? 0;
@@ -124,18 +58,18 @@ export function OverviewSummaryCards({
         className="rounded-xl border border-default-token p-5"
         style={{ background: 'var(--bg-surface)', boxShadow: 'var(--shadow-subtle)' }}
       >
-        <p className="text-xs text-secondary-token uppercase tracking-wider mb-2">{t.revenue}</p>
+        <p className="text-xs text-secondary-token uppercase tracking-wider mb-2">{t('revenue')}</p>
         <div className="flex items-baseline gap-2">
           <span className="text-3xl font-bold font-mono tabular-nums text-primary-token">
             {formatRevenue(actual)}
           </span>
           <span className="text-sm text-muted-token">
-            {t.of} {formatRevenue(target)}
+            {t('of')} {formatRevenue(target)}
           </span>
         </div>
         <div className="mt-3">
           <div className="flex justify-between text-xs mb-1">
-            <span className="text-muted-token">{t.achievement}</span>
+            <span className="text-muted-token">{t('achievement')}</span>
             <span className="font-semibold" style={{ color: barColor(achPct) }}>
               {achPct.toFixed(1)}%
             </span>
@@ -157,9 +91,9 @@ export function OverviewSummaryCards({
         className="rounded-xl border border-default-token p-5"
         style={{ background: 'var(--bg-surface)', boxShadow: 'var(--shadow-subtle)' }}
       >
-        <p className="text-xs text-secondary-token uppercase tracking-wider mb-2">{t.bmPace}</p>
+        <p className="text-xs text-secondary-token uppercase tracking-wider mb-2">{t('bmPace')}</p>
         <div className="flex items-baseline gap-2">
-          <span className="text-xs text-muted-token">{t.bmExpected}</span>
+          <span className="text-xs text-muted-token">{t('bmExpected')}</span>
           <span className="text-lg font-semibold font-mono tabular-nums text-primary-token">
             {formatRevenue(bmExpected)}
           </span>
@@ -171,7 +105,7 @@ export function OverviewSummaryCards({
           {formatRevenue(bmGap)}
         </div>
         <p className={`text-xs mt-0.5 ${statusClass(bmGap >= 0)}`}>
-          {bmGap >= 0 ? t.bmAhead : t.bmBehind} · {bmPct.toFixed(0)}%
+          {bmGap >= 0 ? t('bmAhead') : t('bmBehind')} · {bmPct.toFixed(0)}%
         </p>
       </div>
 
@@ -180,17 +114,17 @@ export function OverviewSummaryCards({
         className="rounded-xl border border-default-token p-5"
         style={{ background: 'var(--bg-surface)', boxShadow: 'var(--shadow-subtle)' }}
       >
-        <p className="text-xs text-secondary-token uppercase tracking-wider mb-2">{t.pace}</p>
+        <p className="text-xs text-secondary-token uppercase tracking-wider mb-2">{t('pace')}</p>
         <div className="flex items-baseline gap-2 mb-3">
           <span className="text-2xl font-bold font-mono tabular-nums text-primary-token">
             {timePct}%
           </span>
-          <span className="text-xs text-muted-token">{t.timeProgress}</span>
+          <span className="text-xs text-muted-token">{t('timeProgress')}</span>
         </div>
         <div className="space-y-1.5">
           {dailyAvg != null && (
             <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-token">{t.currentDaily}</span>
+              <span className="text-muted-token">{t('currentDaily')}</span>
               <span className="font-mono tabular-nums font-semibold text-primary-token">
                 {formatRevenue(dailyAvg)}
               </span>
@@ -198,10 +132,10 @@ export function OverviewSummaryCards({
           )}
           {dailyNeed != null && dailyNeed > 0 && (
             <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-token">{t.needDaily}</span>
+              <span className="text-muted-token">{t('needDaily')}</span>
               <span className="font-mono tabular-nums font-semibold text-warning-token">
                 {formatRevenue(dailyNeed)}
-                {t.perDay}
+                {t('perDay')}
               </span>
             </div>
           )}

@@ -1,16 +1,9 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { formatRevenue, formatRate } from '@/lib/utils';
 import { CHART_PALETTE } from '@/lib/chart-palette';
-
-const I18N = {
-  zh: { empty: '暂无渠道数据', revenue: '业绩' },
-  'zh-TW': { empty: '暫無渠道資料', revenue: '業績' },
-  en: { empty: 'No channel data', revenue: 'Revenue' },
-  th: { empty: 'ไม่มีข้อมูลช่องทาง', revenue: 'รายได้' },
-} as const;
-
 interface ChannelPieEntry {
   channel: string;
   revenue_usd: number;
@@ -25,9 +18,9 @@ interface ChannelPieChartProps {
 const CHANNEL_COLORS = CHART_PALETTE.series;
 
 export function ChannelPieChart({ channels, height = 320, locale = 'zh' }: ChannelPieChartProps) {
-  const t = (I18N as unknown as Record<string, (typeof I18N)['zh']>)[locale] ?? I18N['zh'];
+  const t = useTranslations('ChannelPieChart');
   if (channels.length === 0) {
-    return <p className="text-sm text-muted-token text-center py-6">{t.empty}</p>;
+    return <p className="text-sm text-muted-token text-center py-6">{t('empty')}</p>;
   }
 
   const pieData = channels.map((c) => ({
@@ -66,7 +59,7 @@ export function ChannelPieChart({ channels, height = 320, locale = 'zh' }: Chann
           ))}
         </Pie>
         <Tooltip
-          formatter={(val: number) => [formatRevenue(val), t.revenue]}
+          formatter={(val: number) => [formatRevenue(val), t('revenue')]}
           contentStyle={{
             background: 'var(--bg-surface)',
             border: '1px solid var(--border-default)',

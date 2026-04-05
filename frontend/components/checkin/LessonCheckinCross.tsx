@@ -1,79 +1,7 @@
 'use client';
 
-import { useLocale } from 'next-intl';
+import { useTranslations } from 'next-intl';
 import type { LessonCheckinCross as LessonCheckinCrossData } from '@/lib/types/checkin-student';
-
-// ── 内联 I18N ────────────────────────────────────────────────────────────────
-
-const I18N = {
-  zh: {
-    hasLesson: '有课耗',
-    noLesson: '无课耗',
-    hasCheckin: '有打卡',
-    noCheckin: '无打卡',
-    coreUser: '核心用户',
-    coreUserSub: '有课耗 + 有打卡',
-    activationPool: '激活目标池',
-    activationPoolSub: '有课耗 + 无打卡',
-    lightUser: '轻度参与',
-    lightUserSub: '无课耗 + 有打卡',
-    silent: '完全沉默',
-    silentSub: '无课耗 + 无打卡',
-    maxOpportunity: '最大激活机会',
-    totalLabel: (n: string) => `总计 ${n} 名有效学员`,
-  },
-  'zh-TW': {
-    hasLesson: '有課耗',
-    noLesson: '無課耗',
-    hasCheckin: '有打卡',
-    noCheckin: '無打卡',
-    coreUser: '核心用戶',
-    coreUserSub: '有課耗 + 有打卡',
-    activationPool: '激活目標池',
-    activationPoolSub: '有課耗 + 無打卡',
-    lightUser: '輕度參與',
-    lightUserSub: '無課耗 + 有打卡',
-    silent: '完全沉默',
-    silentSub: '無課耗 + 無打卡',
-    maxOpportunity: '最大激活機會',
-    totalLabel: (n: string) => `總計 ${n} 名有效學員`,
-  },
-  en: {
-    hasLesson: 'Has Lessons',
-    noLesson: 'No Lessons',
-    hasCheckin: 'Checked In',
-    noCheckin: 'No Check-in',
-    coreUser: 'Core Users',
-    coreUserSub: 'Has lessons + Checked in',
-    activationPool: 'Activation Pool',
-    activationPoolSub: 'Has lessons + No check-in',
-    lightUser: 'Light Participation',
-    lightUserSub: 'No lessons + Checked in',
-    silent: 'Completely Silent',
-    silentSub: 'No lessons + No check-in',
-    maxOpportunity: 'Max Activation Opportunity',
-    totalLabel: (n: string) => `Total ${n} active students`,
-  },
-  th: {
-    hasLesson: 'มีการใช้คอร์ส',
-    noLesson: 'ไม่ใช้คอร์ส',
-    hasCheckin: 'เช็คอินแล้ว',
-    noCheckin: 'ไม่ได้เช็คอิน',
-    coreUser: 'ผู้ใช้หลัก',
-    coreUserSub: 'ใช้คอร์ส + เช็คอิน',
-    activationPool: 'กลุ่มเป้าหมายกระตุ้น',
-    activationPoolSub: 'ใช้คอร์ส + ไม่เช็คอิน',
-    lightUser: 'มีส่วนร่วมเล็กน้อย',
-    lightUserSub: 'ไม่ใช้คอร์ส + เช็คอิน',
-    silent: 'เงียบสนิท',
-    silentSub: 'ไม่ใช้คอร์ส + ไม่เช็คอิน',
-    maxOpportunity: 'โอกาสกระตุ้นสูงสุด',
-    totalLabel: (n: string) => `รวม ${n} นักเรียนที่ใช้งาน`,
-  },
-} as const;
-
-type Locale = keyof typeof I18N;
-
 interface LessonCheckinCrossProps {
   /** 课耗×打卡四象限数据 */
   data: LessonCheckinCrossData;
@@ -104,8 +32,7 @@ interface QuadrantConfig {
  * <LessonCheckinCross data={analysis.lesson_checkin_cross} />
  */
 export function LessonCheckinCross({ data }: LessonCheckinCrossProps) {
-  const locale = useLocale();
-  const t = I18N[(locale as Locale) in I18N ? (locale as Locale) : 'zh'];
+    const t = useTranslations('LessonCheckinCross');
 
   const total =
     data.has_lesson_no_checkin +
@@ -122,8 +49,8 @@ export function LessonCheckinCross({ data }: LessonCheckinCrossProps) {
     {
       value: data.has_lesson_has_checkin,
       config: {
-        label: t.coreUser,
-        sublabel: t.coreUserSub,
+        label: t('coreUser'),
+        sublabel: t('coreUserSub'),
         containerClass: 'bg-success-surface border-success-token hover:bg-success-surface',
         valueClass: 'text-success-token',
       },
@@ -131,8 +58,8 @@ export function LessonCheckinCross({ data }: LessonCheckinCrossProps) {
     {
       value: data.has_lesson_no_checkin,
       config: {
-        label: t.activationPool,
-        sublabel: t.activationPoolSub,
+        label: t('activationPool'),
+        sublabel: t('activationPoolSub'),
         flag: '🔴',
         containerClass: 'bg-warning-surface border-warning-token hover:bg-warning-surface',
         valueClass: 'text-warning-token',
@@ -141,8 +68,8 @@ export function LessonCheckinCross({ data }: LessonCheckinCrossProps) {
     {
       value: data.no_lesson_has_checkin,
       config: {
-        label: t.lightUser,
-        sublabel: t.lightUserSub,
+        label: t('lightUser'),
+        sublabel: t('lightUserSub'),
         containerClass: 'bg-accent-surface border-accent-token hover:bg-accent-surface',
         valueClass: 'text-accent-token',
       },
@@ -150,8 +77,8 @@ export function LessonCheckinCross({ data }: LessonCheckinCrossProps) {
     {
       value: data.no_lesson_no_checkin,
       config: {
-        label: t.silent,
-        sublabel: t.silentSub,
+        label: t('silent'),
+        sublabel: t('silentSub'),
         containerClass: 'bg-subtle border-default-token hover:bg-subtle',
         valueClass: 'text-secondary-token',
       },
@@ -164,16 +91,16 @@ export function LessonCheckinCross({ data }: LessonCheckinCrossProps) {
       <div className="flex gap-1">
         {/* Y 轴标签（课耗维度） */}
         <div className="flex flex-col justify-between py-6 pr-1 text-xs text-muted-token text-right shrink-0 w-12">
-          <span>{t.hasLesson}</span>
-          <span>{t.noLesson}</span>
+          <span>{t('hasLesson')}</span>
+          <span>{t('noLesson')}</span>
         </div>
 
         {/* 四象限网格 */}
         <div className="flex-1 space-y-1">
           {/* 列标签 */}
           <div className="grid grid-cols-2 gap-1">
-            <div className="text-center text-xs text-muted-token pb-1">{t.hasCheckin}</div>
-            <div className="text-center text-xs text-muted-token pb-1">{t.noCheckin}</div>
+            <div className="text-center text-xs text-muted-token pb-1">{t('hasCheckin')}</div>
+            <div className="text-center text-xs text-muted-token pb-1">{t('noCheckin')}</div>
           </div>
 
           {/* 第一行：有课耗 */}
@@ -200,7 +127,7 @@ export function LessonCheckinCross({ data }: LessonCheckinCrossProps) {
                 <div className="text-xs text-muted-token mt-1 opacity-70">{q.config.sublabel}</div>
                 {i === 1 && q.value > 0 && (
                   <div className="mt-1.5 text-xs text-warning-token font-medium">
-                    {t.maxOpportunity}
+                    {t('maxOpportunity')}
                   </div>
                 )}
               </div>
@@ -231,7 +158,7 @@ export function LessonCheckinCross({ data }: LessonCheckinCrossProps) {
       {/* 总学员数 */}
       <div className="text-xs text-muted-token text-right">
         <span className="font-mono tabular-nums font-semibold text-secondary-token">
-          {t.totalLabel(total.toLocaleString())}
+          {t('totalLabel', { n: total.toLocaleString() })}
         </span>
       </div>
     </div>

@@ -4,160 +4,8 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 import { mutate } from 'swr';
 import { Clock, Plus, Pencil, Trash2, Power, PowerOff, Calendar } from 'lucide-react';
-import { useLocale } from 'next-intl';
+import { useTranslations } from 'next-intl';
 import { useFilteredSWR } from '@/lib/hooks/use-filtered-swr';
-
-const I18N = {
-  zh: {
-    title: '定时任务',
-    subtitle: '管理自动推送计划',
-    addSchedule: '新建任务',
-    loading: '加载中...',
-    error: '加载失败',
-    noSchedules: '暂无定时任务',
-    enabled: '启用',
-    disabled: '停用',
-    lark: 'Lark',
-    dingtalk: '钉钉',
-    enable: '启用',
-    disable: '停用',
-    edit: '编辑',
-    delete: '删除',
-    confirmDelete: '确认删除此定时任务？',
-    name: '任务名称',
-    platform: '推送平台',
-    template: '消息模板',
-    time: '执行时间',
-    hour: '时',
-    minute: '分',
-    channels: '推送通道',
-    description: '备注',
-    force: '强制推送',
-    dryRun: '仅预览',
-    cancel: '取消',
-    save: '保存',
-    savedUpdated: '排程已更新',
-    savedCreated: '排程已创建',
-    deleted: '已删除',
-    templates: {
-      cc_followup: 'CC 跟进',
-      daily_report: '日报',
-      checkin_reminder: '打卡提醒',
-    } as Record<string, string>,
-  },
-  'zh-TW': {
-    title: '定時任務',
-    subtitle: '管理自動推送計畫',
-    addSchedule: '新建任務',
-    loading: '載入中...',
-    error: '載入失敗',
-    noSchedules: '尚無定時任務',
-    enabled: '啟用',
-    disabled: '停用',
-    lark: 'Lark',
-    dingtalk: '釘釘',
-    enable: '啟用',
-    disable: '停用',
-    edit: '編輯',
-    delete: '刪除',
-    confirmDelete: '確認刪除此定時任務？',
-    name: '任務名稱',
-    platform: '推送平台',
-    template: '訊息模板',
-    time: '執行時間',
-    hour: '時',
-    minute: '分',
-    channels: '推送通道',
-    description: '備註',
-    force: '強制推送',
-    dryRun: '僅預覽',
-    cancel: '取消',
-    save: '儲存',
-    savedUpdated: '排程已更新',
-    savedCreated: '排程已建立',
-    deleted: '已刪除',
-    templates: {
-      cc_followup: 'CC 跟進',
-      daily_report: '日報',
-      checkin_reminder: '打卡提醒',
-    } as Record<string, string>,
-  },
-  en: {
-    title: 'Schedules',
-    subtitle: 'Manage automated push tasks',
-    addSchedule: 'New Schedule',
-    loading: 'Loading...',
-    error: 'Load failed',
-    noSchedules: 'No schedules yet',
-    enabled: 'Enabled',
-    disabled: 'Disabled',
-    lark: 'Lark',
-    dingtalk: 'DingTalk',
-    enable: 'Enable',
-    disable: 'Disable',
-    edit: 'Edit',
-    delete: 'Delete',
-    confirmDelete: 'Delete this schedule?',
-    name: 'Name',
-    platform: 'Platform',
-    template: 'Template',
-    time: 'Run time',
-    hour: 'h',
-    minute: 'm',
-    channels: 'Channels',
-    description: 'Description',
-    force: 'Force send',
-    dryRun: 'Dry run',
-    cancel: 'Cancel',
-    save: 'Save',
-    savedUpdated: 'Schedule updated',
-    savedCreated: 'Schedule created',
-    deleted: 'Deleted',
-    templates: {
-      cc_followup: 'CC Followup',
-      daily_report: 'Daily Report',
-      checkin_reminder: 'Checkin Reminder',
-    } as Record<string, string>,
-  },
-  th: {
-    title: 'งานตามกำหนดเวลา',
-    subtitle: 'จัดการงานส่งอัตโนมัติ',
-    addSchedule: 'สร้างงานใหม่',
-    loading: 'กำลังโหลด...',
-    error: 'โหลดล้มเหลว',
-    noSchedules: 'ยังไม่มีงานตามกำหนดเวลา',
-    enabled: 'เปิดใช้งาน',
-    disabled: 'ปิดใช้งาน',
-    lark: 'Lark',
-    dingtalk: 'DingTalk',
-    enable: 'เปิดใช้งาน',
-    disable: 'ปิดใช้งาน',
-    edit: 'แก้ไข',
-    delete: 'ลบ',
-    confirmDelete: 'ยืนยันการลบงานตามกำหนดเวลานี้?',
-    name: 'ชื่องาน',
-    platform: 'แพลตฟอร์มการส่ง',
-    template: 'เทมเพลตข้อความ',
-    time: 'เวลาดำเนินการ',
-    hour: 'ชม.',
-    minute: 'นาที',
-    channels: 'ช่องทางการส่ง',
-    description: 'หมายเหตุ',
-    force: 'บังคับส่ง',
-    dryRun: 'ดูตัวอย่างเท่านั้น',
-    cancel: 'ยกเลิก',
-    save: 'บันทึก',
-    savedUpdated: 'อัปเดตกำหนดการแล้ว',
-    savedCreated: 'สร้างกำหนดการแล้ว',
-    deleted: 'ลบแล้ว',
-    templates: {
-      cc_followup: 'ติดตาม CC',
-      daily_report: 'รายงานประจำวัน',
-      checkin_reminder: 'แจ้งเตือนเช็คอิน',
-    } as Record<string, string>,
-  },
-} as const;
-
 const API_BASE = '/api';
 
 // ── 类型定义 ──────────────────────────────────────────────────────────────────
@@ -209,8 +57,7 @@ const DEFAULT_FORM: SchedulePayload = {
 // ── 主组件 ────────────────────────────────────────────────────────────────────
 
 export function ScheduleManager() {
-  const locale = useLocale();
-  const t = (I18N as unknown as Record<string, (typeof I18N)['zh']>)[locale] ?? I18N['zh'];
+  const t = useTranslations('ScheduleManager');
 
   const { data, error, isLoading } = useFilteredSWR<{ schedules: Schedule[]; total: number }>(
     `${API_BASE}/notifications/schedule`,
@@ -284,7 +131,7 @@ export function ScheduleManager() {
         });
       }
       await mutate(`${API_BASE}/notifications/schedule`);
-      toast.success(editTarget ? t.savedUpdated : t.savedCreated);
+      toast.success(editTarget ? t('savedUpdated') : t('savedCreated'));
       closeForm();
     } finally {
       setSaving(false);
@@ -292,12 +139,12 @@ export function ScheduleManager() {
   }
 
   async function handleDelete(id: string) {
-    if (!confirm(t.confirmDelete)) return;
+    if (!confirm(t('confirmDelete'))) return;
     setActionId(id);
     try {
       await fetch(`${API_BASE}/notifications/schedule/${id}`, { method: 'DELETE' });
       await mutate(`${API_BASE}/notifications/schedule`);
-      toast.success(t.deleted);
+      toast.success(t('deleted'));
     } finally {
       setActionId(null);
     }
@@ -321,27 +168,27 @@ export function ScheduleManager() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Calendar className="w-4 h-4 text-secondary-token" />
-          <span className="text-sm font-medium text-primary-token">{t.title}</span>
-          <span className="text-xs text-secondary-token">{t.subtitle}</span>
+          <span className="text-sm font-medium text-primary-token">{t('title')}</span>
+          <span className="text-xs text-secondary-token">{t('subtitle')}</span>
         </div>
         <button
           onClick={openCreate}
           className="flex items-center gap-1.5 px-3 py-1.5 bg-brand-p1 text-white text-xs rounded-lg hover:opacity-90 transition-opacity"
         >
           <Plus className="w-3.5 h-3.5" />
-          {t.addSchedule}
+          {t('addSchedule')}
         </button>
       </div>
 
       {/* 状态反馈 */}
-      {isLoading && <p className="text-sm text-secondary-token py-4 text-center">{t.loading}</p>}
-      {error && <p className="text-sm text-danger-token py-4 text-center">{t.error}</p>}
+      {isLoading && <p className="text-sm text-secondary-token py-4 text-center">{t('loading')}</p>}
+      {error && <p className="text-sm text-danger-token py-4 text-center">{t('error')}</p>}
 
       {/* 排程卡片列表 */}
       {!isLoading && !error && schedules.length === 0 && (
         <div className="py-10 text-center text-sm text-secondary-token border border-dashed border-subtle-token rounded-xl">
           <Clock className="w-8 h-8 mx-auto mb-2 text-secondary-token" />
-          <p>{t.noSchedules}</p>
+          <p>{t('noSchedules')}</p>
         </div>
       )}
 
@@ -372,10 +219,10 @@ export function ScheduleManager() {
                         : 'bg-subtle text-muted-token'
                     }`}
                   >
-                    {sch.enabled ? t.enabled : t.disabled}
+                    {sch.enabled ? t('enabled') : t('disabled')}
                   </span>
                   <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-action-surface text-action-accent font-medium">
-                    {sch.platform === 'lark' ? t.lark : t.dingtalk}
+                    {sch.platform === 'lark' ? t('lark') : t('dingtalk')}
                   </span>
                 </div>
                 <div className="mt-0.5 flex items-center gap-3 text-xs text-secondary-token">
@@ -385,7 +232,7 @@ export function ScheduleManager() {
                     {String(sch.cron_minute).padStart(2, '0')}
                   </span>
                   <span>
-                    {t.templates[sch.template as keyof typeof t.templates] ?? sch.template}
+                    {t(`templates.${sch.template}`)}
                   </span>
                   {sch.channels.length > 0 && (
                     <span className="truncate max-w-[160px]">{sch.channels.join(', ')}</span>
@@ -405,7 +252,7 @@ export function ScheduleManager() {
               <button
                 onClick={() => handleToggle(sch.id)}
                 disabled={actionId === sch.id}
-                title={sch.enabled ? t.disable : t.enable}
+                title={sch.enabled ? t('disable') : t('enable')}
                 className="p-1.5 rounded-lg hover:bg-subtle transition-colors disabled:opacity-50"
               >
                 {sch.enabled ? (
@@ -416,7 +263,7 @@ export function ScheduleManager() {
               </button>
               <button
                 onClick={() => openEdit(sch)}
-                title={t.edit}
+                title={t('edit')}
                 className="p-1.5 rounded-lg hover:bg-subtle transition-colors"
               >
                 <Pencil className="w-3.5 h-3.5 text-secondary-token" />
@@ -424,7 +271,7 @@ export function ScheduleManager() {
               <button
                 onClick={() => handleDelete(sch.id)}
                 disabled={actionId === sch.id}
-                title={t.delete}
+                title={t('delete')}
                 className="p-1.5 rounded-lg hover:bg-danger-surface transition-colors disabled:opacity-50"
               >
                 <Trash2 className="w-3.5 h-3.5 text-danger-token" />
@@ -437,7 +284,7 @@ export function ScheduleManager() {
       {/* 新增/编辑弹窗 */}
       {showForm && (
         <ScheduleFormModal
-          lang={locale in I18N ? (locale as Lang) : 'zh'}
+          lang={'zh'}
           form={form}
           setForm={setForm}
           onSave={handleSave}
@@ -451,11 +298,8 @@ export function ScheduleManager() {
 }
 
 // ── 表单弹窗 ──────────────────────────────────────────────────────────────────
-
-type Lang = keyof typeof I18N;
-
 interface ScheduleFormModalProps {
-  lang: Lang;
+  lang: string;
   form: SchedulePayload;
   setForm: React.Dispatch<React.SetStateAction<SchedulePayload>>;
   onSave: () => Promise<void>;
@@ -473,33 +317,32 @@ function ScheduleFormModal({
   saving,
   isEdit,
 }: ScheduleFormModalProps) {
-  const t = I18N[lang];
-
+  const t = useTranslations('ScheduleManager');
   const channelsStr = Array.isArray(form.channels) ? form.channels.join(', ') : form.channels;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
       <div className="bg-surface rounded-2xl shadow-2xl w-full max-w-md mx-4 p-6 space-y-4">
         <h3 className="text-base font-semibold text-primary-token">
-          {isEdit ? t.edit : t.addSchedule}
+          {isEdit ? t('edit') : t('addSchedule')}
         </h3>
 
         {/* 名称 */}
         <div>
-          <label className="block text-xs text-secondary-token mb-1">{t.name}</label>
+          <label className="block text-xs text-secondary-token mb-1">{t('name')}</label>
           <input
             type="text"
             value={form.name}
             onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
             className="w-full border border-subtle-token rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-action/30"
-            placeholder={t.name}
+            placeholder={t('name')}
           />
         </div>
 
         {/* 平台 + 模板 */}
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="block text-xs text-secondary-token mb-1">{t.platform}</label>
+            <label className="block text-xs text-secondary-token mb-1">{t('platform')}</label>
             <select
               value={form.platform}
               onChange={(e) =>
@@ -507,18 +350,18 @@ function ScheduleFormModal({
               }
               className="w-full border border-subtle-token rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-action/30"
             >
-              <option value="lark">{t.lark}</option>
-              <option value="dingtalk">{t.dingtalk}</option>
+              <option value="lark">{t('lark')}</option>
+              <option value="dingtalk">{t('dingtalk')}</option>
             </select>
           </div>
           <div>
-            <label className="block text-xs text-secondary-token mb-1">{t.template}</label>
+            <label className="block text-xs text-secondary-token mb-1">{t('template')}</label>
             <select
               value={form.template}
               onChange={(e) => setForm((f) => ({ ...f, template: e.target.value }))}
               className="w-full border border-subtle-token rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-action/30"
             >
-              {Object.entries(t.templates).map(([k, v]) => (
+              {Object.entries(t('templates')).map(([k, v]) => (
                 <option key={k} value={k}>
                   {v}
                 </option>
@@ -529,7 +372,7 @@ function ScheduleFormModal({
 
         {/* 时间 */}
         <div>
-          <label className="block text-xs text-secondary-token mb-1">{t.time}</label>
+          <label className="block text-xs text-secondary-token mb-1">{t('time')}</label>
           <div className="flex items-center gap-2">
             <input
               type="number"
@@ -544,7 +387,7 @@ function ScheduleFormModal({
               }
               className="w-20 border border-subtle-token rounded-lg px-3 py-2 text-sm text-center focus:outline-none focus:ring-2 focus:ring-action/30"
             />
-            <span className="text-secondary-token text-sm">{t.hour}</span>
+            <span className="text-secondary-token text-sm">{t('hour')}</span>
             <input
               type="number"
               min={0}
@@ -558,13 +401,13 @@ function ScheduleFormModal({
               }
               className="w-20 border border-subtle-token rounded-lg px-3 py-2 text-sm text-center focus:outline-none focus:ring-2 focus:ring-action/30"
             />
-            <span className="text-secondary-token text-sm">{t.minute}</span>
+            <span className="text-secondary-token text-sm">{t('minute')}</span>
           </div>
         </div>
 
         {/* 通道 */}
         <div>
-          <label className="block text-xs text-secondary-token mb-1">{t.channels}</label>
+          <label className="block text-xs text-secondary-token mb-1">{t('channels')}</label>
           <input
             type="text"
             value={channelsStr}
@@ -584,13 +427,13 @@ function ScheduleFormModal({
 
         {/* 备注 */}
         <div>
-          <label className="block text-xs text-secondary-token mb-1">{t.description}</label>
+          <label className="block text-xs text-secondary-token mb-1">{t('description')}</label>
           <input
             type="text"
             value={form.description}
             onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
             className="w-full border border-subtle-token rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-action/30"
-            placeholder={t.description}
+            placeholder={t('description')}
           />
         </div>
 
@@ -603,7 +446,7 @@ function ScheduleFormModal({
               onChange={(e) => setForm((f) => ({ ...f, force: e.target.checked }))}
               className="rounded"
             />
-            {t.force}
+            {t('force')}
           </label>
           <label className="flex items-center gap-2 cursor-pointer text-sm text-secondary-token">
             <input
@@ -612,7 +455,7 @@ function ScheduleFormModal({
               onChange={(e) => setForm((f) => ({ ...f, dry_run: e.target.checked }))}
               className="rounded"
             />
-            {t.dryRun}
+            {t('dryRun')}
           </label>
           <label className="flex items-center gap-2 cursor-pointer text-sm text-secondary-token">
             <input
@@ -621,7 +464,7 @@ function ScheduleFormModal({
               onChange={(e) => setForm((f) => ({ ...f, enabled: e.target.checked }))}
               className="rounded"
             />
-            {t.enabled}
+            {t('enabled')}
           </label>
         </div>
 
@@ -631,14 +474,14 @@ function ScheduleFormModal({
             onClick={onCancel}
             className="px-4 py-2 text-sm border border-subtle-token rounded-lg hover:bg-bg-primary transition-colors"
           >
-            {t.cancel}
+            {t('cancel')}
           </button>
           <button
             onClick={onSave}
             disabled={saving || !form.name.trim()}
             className="px-4 py-2 text-sm bg-brand-p1 text-white rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50"
           >
-            {saving ? '...' : t.save}
+            {saving ? '...' : t('save')}
           </button>
         </div>
       </div>

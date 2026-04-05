@@ -1,73 +1,7 @@
 'use client';
 
-import { useLocale } from 'next-intl';
+import { useTranslations } from 'next-intl';
 import type { DataSourceStatus, FreshnessTier, RowAnomalyStatus } from '@/lib/types';
-
-/* ── I18N ────────────────────────────────────────────────────────── */
-
-const I18N = {
-  zh: {
-    today: '当日',
-    yesterday: '昨日',
-    recent: '2-3天前',
-    stale: (d: number | null) => `${d ?? '?'}天前`,
-    missing: '缺失',
-    rowSuffix: '行',
-    rowLow: '↓偏少',
-    rowHigh: '↑偏多',
-    dataDate: '数据日期：',
-    fieldComplete: '字段完整率',
-    systemUtil: '系统消费率',
-    coreField: (present: number | string, total: number | string) => `核心字段 ${present}/${total}`,
-  },
-  'zh-TW': {
-    today: '當日',
-    yesterday: '昨日',
-    recent: '2-3天前',
-    stale: (d: number | null) => `${d ?? '?'}天前`,
-    missing: '缺失',
-    rowSuffix: '行',
-    rowLow: '↓偏少',
-    rowHigh: '↑偏多',
-    dataDate: '資料日期：',
-    fieldComplete: '欄位完整率',
-    systemUtil: '系統消費率',
-    coreField: (present: number | string, total: number | string) => `核心欄位 ${present}/${total}`,
-  },
-  en: {
-    today: 'Today',
-    yesterday: 'Yesterday',
-    recent: '2-3d ago',
-    stale: (d: number | null) => `${d ?? '?'}d ago`,
-    missing: 'Missing',
-    rowSuffix: ' rows',
-    rowLow: '↓low',
-    rowHigh: '↑high',
-    dataDate: 'Data date: ',
-    fieldComplete: 'Field completeness',
-    systemUtil: 'Utilization',
-    coreField: (present: number | string, total: number | string) =>
-      `Core fields ${present}/${total}`,
-  },
-  th: {
-    today: 'วันนี้',
-    yesterday: 'เมื่อวาน',
-    recent: '2-3 วันก่อน',
-    stale: (d: number | null) => `${d ?? '?'} วันก่อน`,
-    missing: 'ไม่มีข้อมูล',
-    rowSuffix: ' แถว',
-    rowLow: '↓น้อยผิดปกติ',
-    rowHigh: '↑มากผิดปกติ',
-    dataDate: 'วันที่ข้อมูล: ',
-    fieldComplete: 'ความสมบูรณ์ของฟิลด์',
-    systemUtil: 'อัตราการใช้งาน',
-    coreField: (present: number | string, total: number | string) =>
-      `ฟิลด์หลัก ${present}/${total}`,
-  },
-} as const;
-
-type Locale = keyof typeof I18N;
-
 /* ── 新鲜度徽章 ──────────────────────────────────────────────────── */
 
 const FRESHNESS_STYLE: Record<FreshnessTier, string> = {
@@ -85,18 +19,18 @@ function FreshnessBadge({
 }: {
   tier: FreshnessTier;
   daysBehind: number | null;
-  t: (typeof I18N)[Locale];
+  t: (key: string, params?: any) => string;
 }) {
   const label =
     tier === 'today'
-      ? t.today
+      ? t('today')
       : tier === 'yesterday'
-        ? t.yesterday
+        ? t('yesterday')
         : tier === 'recent'
-          ? t.recent
+          ? t('recent')
           : tier === 'stale'
-            ? t.stale(daysBehind)
-            : t.missing;
+            ? t('stale', { d: daysBehind })
+            : t('missing');
   return (
     <span
       className={`inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-medium whitespace-nowrap flex-shrink-0 ${FRESHNESS_STYLE[tier]}`}
@@ -115,7 +49,7 @@ function RowStatus({
 }: {
   status: RowAnomalyStatus;
   rowCount: number | null | undefined;
-  t: (typeof I18N)[Locale];
+  t: (key: string, params?: any) => string;
 }) {
   if (rowCount == null || status === 'unknown') return null;
 
@@ -123,7 +57,7 @@ function RowStatus({
     return (
       <span className="text-muted-token">
         {rowCount.toLocaleString()}
-        {t.rowSuffix}
+        {t('rowSuffix')}
       </span>
     );
   }
@@ -131,7 +65,7 @@ function RowStatus({
     return (
       <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[11px] font-medium bg-warning/10 text-warning">
         {rowCount.toLocaleString()}
-        {t.rowSuffix} {t.rowLow}
+        {t('rowSuffix')} {t('rowLow')}
       </span>
     );
   }
@@ -139,7 +73,7 @@ function RowStatus({
     return (
       <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[11px] font-medium bg-destructive/10 text-destructive">
         {rowCount.toLocaleString()}
-        {t.rowSuffix} {t.rowHigh}
+        {t('rowSuffix')} {t('rowHigh')}
       </span>
     );
   }
@@ -184,8 +118,7 @@ function UtilizationBar({
 /* ── 主卡片 ──────────────────────────────────────────────────────── */
 
 export function DataSourceHealthCard({ source }: { source: DataSourceStatus }) {
-  const locale = useLocale() as Locale;
-  const t = I18N[locale] ?? I18N.zh;
+  const t = useTranslations('DataSourceHealthCard');
 
   const name = source.name ?? source.name_zh ?? source.id;
   const tag = name.match(/\(D\d\)/)?.[0] ?? '';
@@ -211,7 +144,7 @@ export function DataSourceHealthCard({ source }: { source: DataSourceStatus }) {
       {/* 数据日期 */}
       {source.data_date && (
         <div className="text-muted-token">
-          {t.dataDate}
+          {t('dataDate')}
           <span className="text-secondary-token font-medium">{source.data_date}</span>
         </div>
       )}
@@ -224,10 +157,10 @@ export function DataSourceHealthCard({ source }: { source: DataSourceStatus }) {
         <div className="space-y-1.5 pt-1 border-t border-subtle-token">
           <UtilizationBar
             rate={source.completeness_rate}
-            label={t.fieldComplete}
+            label={t('fieldComplete')}
             variant="primary"
           />
-          <UtilizationBar rate={source.utilization_rate} label={t.systemUtil} variant="muted" />
+          <UtilizationBar rate={source.utilization_rate} label={t('systemUtil')} variant="muted" />
         </div>
       )}
 
@@ -235,10 +168,7 @@ export function DataSourceHealthCard({ source }: { source: DataSourceStatus }) {
       {source.critical_completeness_rate != null && (
         <div className="flex items-center justify-between text-[10px]">
           <span className="text-muted-token">
-            {t.coreField(
-              source.critical_columns_present ?? '?',
-              source.critical_columns_total ?? '?'
-            )}
+            {t('coreField', { present: source.critical_columns_present ?? '?', total: source.critical_columns_total ?? '?' })}
           </span>
           <span
             className={`font-medium ${

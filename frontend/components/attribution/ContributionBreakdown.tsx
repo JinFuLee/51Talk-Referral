@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import {
   BarChart,
   Bar,
@@ -13,53 +14,7 @@ import {
 import type { AttributionBreakdownItem } from '@/lib/types/cross-analysis';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { formatRate } from '@/lib/utils';
-import { useLocale } from 'next-intl';
 import { useLabel, CHANNEL_LABELS } from '@/lib/label-maps';
-
-const I18N = {
-  zh: {
-    noData: '暂无数据',
-    noDataDesc: '上传数据后自动刷新',
-    suffix: '· 按付费人数排名',
-    paidLabel: '付费',
-    paidUnit: '人',
-    legend100: '≥100% 目标',
-    legend50: '50~99%',
-    legend0: '<50%',
-  },
-  en: {
-    noData: 'No Data',
-    noDataDesc: 'Auto-refresh after uploading data',
-    suffix: '· ranked by paid count',
-    paidLabel: 'Paid',
-    paidUnit: '',
-    legend100: '≥100% target',
-    legend50: '50~99%',
-    legend0: '<50%',
-  },
-  'zh-TW': {
-    noData: '暫無數據',
-    noDataDesc: '上傳數據後自動刷新',
-    suffix: '· 按付費人數排名',
-    paidLabel: '付費',
-    paidUnit: '人',
-    legend100: '≥100% 目標',
-    legend50: '50~99%',
-    legend0: '<50%',
-  },
-  th: {
-    noData: 'ไม่มีข้อมูล',
-    noDataDesc: 'รีเฟรชอัตโนมัติหลังอัปโหลดข้อมูล',
-    suffix: '· จัดอันดับตามจำนวนที่ชำระ',
-    paidLabel: 'ชำระ',
-    paidUnit: 'คน',
-    legend100: '≥100% เป้าหมาย',
-    legend50: '50~99%',
-    legend0: '<50%',
-  },
-} as const;
-type Locale = keyof typeof I18N;
-
 interface ContributionBreakdownProps {
   data: AttributionBreakdownItem[];
   title: string;
@@ -72,12 +27,11 @@ function barColor(pct: number): string {
 }
 
 export function ContributionBreakdown({ data, title }: ContributionBreakdownProps) {
-  const locale = useLocale();
-  const t = I18N[(locale as Locale) in I18N ? (locale as Locale) : 'zh'];
+    const t = useTranslations('ContributionBreakdown');
   const label = useLabel();
 
   if (data.length === 0) {
-    return <EmptyState title={t.noData} description={t.noDataDesc} />;
+    return <EmptyState title={t('noData')} description={t('noDataDesc')} />;
   }
 
   // 按 paid_count 降序排序
@@ -86,7 +40,7 @@ export function ContributionBreakdown({ data, title }: ContributionBreakdownProp
   return (
     <div>
       <p className="text-xs text-muted-token mb-2">
-        {title} {t.suffix}
+        {title} {t('suffix')}
       </p>
       <ResponsiveContainer width="100%" height={Math.max(160, sorted.length * 36)}>
         <BarChart
@@ -105,7 +59,7 @@ export function ContributionBreakdown({ data, title }: ContributionBreakdownProp
           <Tooltip
             labelFormatter={(v: string) => label(CHANNEL_LABELS, v)}
             formatter={(val: number, name: string) => {
-              if (name === 'paid_count') return [`${val} ${t.paidUnit}`, t.paidLabel];
+              if (name === 'paid_count') return [`${val} ${t('paidUnit')}`, t('paidLabel')];
               return [val, name];
             }}
             contentStyle={{
@@ -139,13 +93,13 @@ export function ContributionBreakdown({ data, title }: ContributionBreakdownProp
       {/* 图例 */}
       <div className="flex gap-4 mt-2 text-xs text-muted-token">
         <span className="flex items-center gap-1">
-          <span className="w-3 h-3 rounded-sm inline-block bg-success-token" /> {t.legend100}
+          <span className="w-3 h-3 rounded-sm inline-block bg-success-token" /> {t('legend100')}
         </span>
         <span className="flex items-center gap-1">
-          <span className="w-3 h-3 rounded-sm inline-block bg-action-accent" /> {t.legend50}
+          <span className="w-3 h-3 rounded-sm inline-block bg-action-accent" /> {t('legend50')}
         </span>
         <span className="flex items-center gap-1">
-          <span className="w-3 h-3 rounded-sm inline-block bg-danger-token" /> {t.legend0}
+          <span className="w-3 h-3 rounded-sm inline-block bg-danger-token" /> {t('legend0')}
         </span>
       </div>
     </div>

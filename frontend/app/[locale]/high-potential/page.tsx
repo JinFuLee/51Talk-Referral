@@ -220,7 +220,8 @@ function exportCsv(
   warroomMap: Map<string, WarroomStudent>,
   t: ((key: string) => string) & { raw: (key: string) => unknown }
 ) {
-  const headers = t.raw('csvHeaders') as string[];
+  const rawHeaders = t.raw('csvHeaders');
+  const headers: string[] = Array.isArray(rawHeaders) ? rawHeaders : [];
   const rows = students.map((s) => {
     const w = warroomMap.get(String(s.id));
     return [

@@ -7,155 +7,7 @@ import { Card } from '@/components/ui/Card';
 import { Spinner } from '@/components/ui/Spinner';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { formatRate } from '@/lib/utils';
-import { useLocale } from 'next-intl';
-
-/* ── I18N ─────────────────────────────────────────────────── */
-
-const I18N = {
-  zh: {
-    pageTitle: '跟进质量分析',
-    pageSubtitle: '通话质量分层 · 失联风险预警 · 跟进行为评估',
-    pageNote: '高质量：通话 ≥120s · 可疑：通话 <30s · 失联：最后联系距今天数',
-    highQualityPct: '高质量通话占比',
-    highQualityNote: '通话时长 ≥120s',
-    suspiciousPct: '可疑通话占比',
-    suspiciousNote: '通话时长 <30s',
-    lostContact: '失联 >14 天',
-    lostContactNote: (total: number) => `人 / 共 ${total.toLocaleString()} 名学员`,
-    tableTitle: 'CC 个人跟进质量明细',
-    rank: '排名',
-    ccName: 'CC 名称',
-    group: '组别',
-    students: '学员数',
-    avgDuration: '均接通时长',
-    highQualityCount: '高质量数',
-    suspiciousCount: '可疑数',
-    avgLostDays: '均失联天数',
-    lostOver14: '失联>14天',
-    totalCalls: '总拨打次数',
-    tableNote: '高质量：接通时长 ≥120s · 可疑：接通时长 <30s · 点击列标题排序',
-    loadError: '数据加载失败',
-    loadErrorDesc: '无法获取跟进质量数据，请检查后端服务是否正常运行',
-    retry: '重试',
-    noData: '暂无跟进数据',
-    noDataDesc: '当前数据源缺少通话记录，上传含通话日志的数据文件后自动解析',
-    ssNotConnected: 'SS 跟进数据暂未接入',
-    ssNotConnectedDesc: 'SS 后端跟进数据等数据源补充后自动启用，无需手动配置',
-    lpNotConnected: 'LP 跟进数据暂未接入',
-    lpNotConnectedDesc: 'LP 服务跟进数据等数据源补充后自动启用，无需手动配置',
-    tabCC: 'CC 前端',
-    tabSS: 'SS 后端',
-    tabLP: 'LP 服务',
-  },
-  'zh-TW': {
-    pageTitle: '跟進質量分析',
-    pageSubtitle: '通話質量分層 · 失聯風險預警 · 跟進行為評估',
-    pageNote: '高質量：通話 ≥120s · 可疑：通話 <30s · 失聯：最後聯繫距今天數',
-    highQualityPct: '高質量通話佔比',
-    highQualityNote: '通話時長 ≥120s',
-    suspiciousPct: '可疑通話佔比',
-    suspiciousNote: '通話時長 <30s',
-    lostContact: '失聯 >14 天',
-    lostContactNote: (total: number) => `人 / 共 ${total.toLocaleString()} 名學員`,
-    tableTitle: 'CC 個人跟進質量明細',
-    rank: '排名',
-    ccName: 'CC 名稱',
-    group: '組別',
-    students: '學員數',
-    avgDuration: '均接通時長',
-    highQualityCount: '高質量數',
-    suspiciousCount: '可疑數',
-    avgLostDays: '均失聯天數',
-    lostOver14: '失聯>14天',
-    totalCalls: '總撥打次數',
-    tableNote: '高質量：接通時長 ≥120s · 可疑：接通時長 <30s · 點擊列標題排序',
-    loadError: '資料載入失敗',
-    loadErrorDesc: '無法取得跟進質量資料，請檢查後端服務是否正常運行',
-    retry: '重試',
-    noData: '暫無跟進資料',
-    noDataDesc: '當前資料來源缺少通話記錄，上傳含通話日誌的資料文件後自動解析',
-    ssNotConnected: 'SS 跟進資料暫未接入',
-    ssNotConnectedDesc: 'SS 後端跟進資料等資料來源補充後自動啟用，無需手動設定',
-    lpNotConnected: 'LP 跟進資料暫未接入',
-    lpNotConnectedDesc: 'LP 服務跟進資料等資料來源補充後自動啟用，無需手動設定',
-    tabCC: 'CC 前端',
-    tabSS: 'SS 後端',
-    tabLP: 'LP 服務',
-  },
-  en: {
-    pageTitle: 'Follow-up Quality Analysis',
-    pageSubtitle: 'Call Quality Tiers · Lost Contact Alerts · Follow-up Behavior Assessment',
-    pageNote: 'High Quality: call ≥120s · Suspicious: call <30s · Lost: days since last contact',
-    highQualityPct: 'High Quality Call %',
-    highQualityNote: 'Call duration ≥120s',
-    suspiciousPct: 'Suspicious Call %',
-    suspiciousNote: 'Call duration <30s',
-    lostContact: 'Lost >14 Days',
-    lostContactNote: (total: number) => `people / ${total.toLocaleString()} total students`,
-    tableTitle: 'CC Individual Follow-up Quality',
-    rank: 'Rank',
-    ccName: 'CC Name',
-    group: 'Group',
-    students: 'Students',
-    avgDuration: 'Avg Call Duration',
-    highQualityCount: 'High Quality',
-    suspiciousCount: 'Suspicious',
-    avgLostDays: 'Avg Lost Days',
-    lostOver14: 'Lost>14d',
-    totalCalls: 'Total Calls',
-    tableNote: 'High Quality: ≥120s · Suspicious: <30s · Click column header to sort',
-    loadError: 'Failed to Load Data',
-    loadErrorDesc: 'Unable to fetch follow-up quality data, please check backend service',
-    retry: 'Retry',
-    noData: 'No Follow-up Data',
-    noDataDesc: 'Missing call records in current data source, upload file with call logs to parse',
-    ssNotConnected: 'SS Follow-up Data Not Connected',
-    ssNotConnectedDesc:
-      'SS backend follow-up data will be enabled automatically when source is added',
-    lpNotConnected: 'LP Follow-up Data Not Connected',
-    lpNotConnectedDesc:
-      'LP service follow-up data will be enabled automatically when source is added',
-    tabCC: 'CC Frontend',
-    tabSS: 'SS Backend',
-    tabLP: 'LP Service',
-  },
-  th: {
-    pageTitle: 'วิเคราะห์คุณภาพการติดตาม',
-    pageSubtitle: 'จัดระดับคุณภาพการโทร · แจ้งเตือนความเสี่ยงขาดการติดต่อ · ประเมินพฤติกรรมติดตาม',
-    pageNote: 'คุณภาพสูง: โทร ≥120s · น่าสงสัย: โทร <30s · ขาดติดต่อ: วันนับจากครั้งสุดท้าย',
-    highQualityPct: 'อัตราการโทรคุณภาพสูง',
-    highQualityNote: 'ระยะเวลาโทร ≥120s',
-    suspiciousPct: 'อัตราการโทรน่าสงสัย',
-    suspiciousNote: 'ระยะเวลาโทร <30s',
-    lostContact: 'ขาดติดต่อ >14 วัน',
-    lostContactNote: (total: number) => `คน / รวม ${total.toLocaleString()} คนนักเรียน`,
-    tableTitle: 'รายละเอียดคุณภาพติดตามรายบุคคล CC',
-    rank: 'อันดับ',
-    ccName: 'ชื่อ CC',
-    group: 'กลุ่ม',
-    students: 'นักเรียน',
-    avgDuration: 'เวลาโทรเฉลี่ย',
-    highQualityCount: 'คุณภาพสูง',
-    suspiciousCount: 'น่าสงสัย',
-    avgLostDays: 'วันขาดติดต่อเฉลี่ย',
-    lostOver14: 'ขาดติดต่อ>14วัน',
-    totalCalls: 'จำนวนโทรทั้งหมด',
-    tableNote: 'คุณภาพสูง: ≥120s · น่าสงสัย: <30s · คลิกหัวคอลัมน์เพื่อเรียงลำดับ',
-    loadError: 'โหลดข้อมูลล้มเหลว',
-    loadErrorDesc: 'ไม่สามารถดึงข้อมูลคุณภาพการติดตาม กรุณาตรวจสอบบริการ backend',
-    retry: 'ลองใหม่',
-    noData: 'ไม่มีข้อมูลการติดตาม',
-    noDataDesc: 'แหล่งข้อมูลปัจจุบันขาดบันทึกการโทร อัปโหลดไฟล์ที่มีบันทึกการโทรเพื่อวิเคราะห์',
-    ssNotConnected: 'ยังไม่ได้เชื่อมต่อข้อมูลการติดตาม SS',
-    ssNotConnectedDesc: 'ข้อมูลการติดตาม SS จะเปิดใช้งานโดยอัตโนมัติเมื่อเพิ่มแหล่งข้อมูล',
-    lpNotConnected: 'ยังไม่ได้เชื่อมต่อข้อมูลการติดตาม LP',
-    lpNotConnectedDesc: 'ข้อมูลการติดตาม LP จะเปิดใช้งานโดยอัตโนมัติเมื่อเพิ่มแหล่งข้อมูล',
-    tabCC: 'CC ฝ่ายขายหน้า',
-    tabSS: 'SS ฝ่ายขายหลัง',
-    tabLP: 'LP บริการหลัง',
-  },
-};
-
+import { useLocale, useTranslations } from 'next-intl';
 /* ── 类型定义 ─────────────────────────────────────────────── */
 
 interface FollowupSummary {
@@ -215,7 +67,7 @@ type TabKey = 'cc' | 'ss' | 'lp';
 
 function CCContent() {
   const locale = useLocale();
-  const t = (I18N as unknown as Record<string, (typeof I18N)['zh']>)[locale] ?? I18N['zh'];
+  const t = useTranslations('followupQualityPage');
 
   const { data, isLoading, error, mutate } = useFilteredSWR<FollowupQualityResponse>(
     '/api/analysis/followup-quality',
@@ -237,9 +89,9 @@ function CCContent() {
   if (error) {
     return (
       <EmptyState
-        title={t.loadError}
-        description={t.loadErrorDesc}
-        action={{ label: t.retry, onClick: () => mutate() }}
+        title={t('loadError')}
+        description={t('loadErrorDesc')}
+        action={{ label: t('retry'), onClick: () => mutate() }}
       />
     );
   }
@@ -248,7 +100,7 @@ function CCContent() {
   const summary = data?.summary;
 
   if (persons.length === 0) {
-    return <EmptyState title={t.noData} description={t.noDataDesc} />;
+    return <EmptyState title={t('noData')} description={t('noDataDesc')} />;
   }
 
   const sorted = [...persons].sort((a, b) => {
@@ -278,28 +130,28 @@ function CCContent() {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <Card title="">
             <div className="text-center py-3">
-              <p className="text-xs text-muted-token mb-1">{t.highQualityPct}</p>
+              <p className="text-xs text-muted-token mb-1">{t('highQualityPct')}</p>
               <p className="text-3xl font-bold text-success-token">
                 {pct(summary.high_quality_pct)}
               </p>
-              <p className="text-xs text-muted-token mt-1">{t.highQualityNote}</p>
+              <p className="text-xs text-muted-token mt-1">{t('highQualityNote')}</p>
             </div>
           </Card>
           <Card title="">
             <div className="text-center py-3">
-              <p className="text-xs text-muted-token mb-1">{t.suspiciousPct}</p>
+              <p className="text-xs text-muted-token mb-1">{t('suspiciousPct')}</p>
               <p className="text-3xl font-bold text-warning-token">{pct(summary.suspicious_pct)}</p>
-              <p className="text-xs text-muted-token mt-1">{t.suspiciousNote}</p>
+              <p className="text-xs text-muted-token mt-1">{t('suspiciousNote')}</p>
             </div>
           </Card>
           <Card title="">
             <div className="text-center py-3">
-              <p className="text-xs text-muted-token mb-1">{t.lostContact}</p>
+              <p className="text-xs text-muted-token mb-1">{t('lostContact')}</p>
               <p className="text-3xl font-bold text-danger-token">
                 {(summary.lost_contact_count ?? 0).toLocaleString()}
               </p>
               <p className="text-xs text-muted-token mt-1">
-                {t.lostContactNote(summary.total_students ?? 0)}
+                {t('lostContactNote', { total: summary.total_students ?? 0 })}
               </p>
             </div>
           </Card>
@@ -307,61 +159,61 @@ function CCContent() {
       )}
 
       {/* CC 个人明细表 */}
-      <Card title={t.tableTitle}>
+      <Card title={t('tableTitle')}>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="slide-thead-row">
-                <th className="slide-th text-center w-10">{t.rank}</th>
-                <th className="slide-th text-left">{t.ccName}</th>
-                <th className="slide-th text-left">{t.group}</th>
+                <th className="slide-th text-center w-10">{t('rank')}</th>
+                <th className="slide-th text-left">{t('ccName')}</th>
+                <th className="slide-th text-left">{t('group')}</th>
                 <th
                   className="slide-th text-right cursor-pointer select-none"
                   onClick={() => handleSort('students')}
                 >
-                  {t.students}
+                  {t('students')}
                   {sortIcon('students')}
                 </th>
                 <th
                   className="slide-th text-right cursor-pointer select-none"
                   onClick={() => handleSort('avg_call_duration_sec')}
                 >
-                  {t.avgDuration}
+                  {t('avgDuration')}
                   {sortIcon('avg_call_duration_sec')}
                 </th>
                 <th
                   className="slide-th text-right cursor-pointer select-none"
                   onClick={() => handleSort('high_quality_count')}
                 >
-                  {t.highQualityCount}
+                  {t('highQualityCount')}
                   {sortIcon('high_quality_count')}
                 </th>
                 <th
                   className="slide-th text-right cursor-pointer select-none"
                   onClick={() => handleSort('suspicious_count')}
                 >
-                  {t.suspiciousCount}
+                  {t('suspiciousCount')}
                   {sortIcon('suspicious_count')}
                 </th>
                 <th
                   className="slide-th text-right cursor-pointer select-none"
                   onClick={() => handleSort('avg_lost_days')}
                 >
-                  {t.avgLostDays}
+                  {t('avgLostDays')}
                   {sortIcon('avg_lost_days')}
                 </th>
                 <th
                   className="slide-th text-right cursor-pointer select-none"
                   onClick={() => handleSort('lost_14d_count')}
                 >
-                  {t.lostOver14}
+                  {t('lostOver14')}
                   {sortIcon('lost_14d_count')}
                 </th>
                 <th
                   className="slide-th text-right cursor-pointer select-none"
                   onClick={() => handleSort('total_calls')}
                 >
-                  {t.totalCalls}
+                  {t('totalCalls')}
                   {sortIcon('total_calls')}
                 </th>
               </tr>
@@ -430,7 +282,7 @@ function CCContent() {
             </tbody>
           </table>
         </div>
-        <p className="text-xs text-muted-token mt-2 px-1">{t.tableNote}</p>
+        <p className="text-xs text-muted-token mt-2 px-1">{t('tableNote')}</p>
       </Card>
     </div>
   );
@@ -447,23 +299,23 @@ export default function FollowupQualityPage() {
   });
 
   const locale = useLocale();
-  const t = (I18N as unknown as Record<string, (typeof I18N)['zh']>)[locale] ?? I18N['zh'];
+  const t = useTranslations('followupQualityPage');
 
   const [tab, setTab] = useState<TabKey>('cc');
 
   const TABS: { key: TabKey; label: string }[] = [
-    { key: 'cc', label: t.tabCC },
-    { key: 'ss', label: t.tabSS },
-    { key: 'lp', label: t.tabLP },
+    { key: 'cc', label: t('tabCC') },
+    { key: 'ss', label: t('tabSS') },
+    { key: 'lp', label: t('tabLP') },
   ];
 
   return (
     <div className="space-y-3">
       {/* 页头 */}
       <div>
-        <h1 className="page-title">{t.pageTitle}</h1>
-        <p className="text-sm text-secondary-token mt-1">{t.pageSubtitle}</p>
-        <p className="text-xs text-muted-token mt-0.5">{t.pageNote}</p>
+        <h1 className="page-title">{t('pageTitle')}</h1>
+        <p className="text-sm text-secondary-token mt-1">{t('pageSubtitle')}</p>
+        <p className="text-xs text-muted-token mt-0.5">{t('pageNote')}</p>
       </div>
 
       {/* Tab 切换 */}
@@ -486,8 +338,8 @@ export default function FollowupQualityPage() {
 
       {/* Tab 内容 */}
       {tab === 'cc' && <CCContent />}
-      {tab === 'ss' && <EmptyState title={t.ssNotConnected} description={t.ssNotConnectedDesc} />}
-      {tab === 'lp' && <EmptyState title={t.lpNotConnected} description={t.lpNotConnectedDesc} />}
+      {tab === 'ss' && <EmptyState title={t('ssNotConnected')} description={t('ssNotConnectedDesc')} />}
+      {tab === 'lp' && <EmptyState title={t('lpNotConnected')} description={t('lpNotConnectedDesc')} />}
     </div>
   );
 }

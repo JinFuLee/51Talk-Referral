@@ -1,43 +1,7 @@
 'use client';
 
-import { useLocale } from 'next-intl';
+import { useTranslations } from 'next-intl';
 import type { DataSourceStatus } from '@/lib/types';
-
-/* ── I18N ────────────────────────────────────────────────────────── */
-
-const I18N = {
-  zh: {
-    synced: (n: number, total: number) => `${n}/${total} 源同步`,
-    datesInconsistent: '多源日期不一致',
-    date: (d: string) => `日期 ${d}`,
-    healthScore: '健康分',
-    outOf: '/ 100',
-  },
-  'zh-TW': {
-    synced: (n: number, total: number) => `${n}/${total} 源同步`,
-    datesInconsistent: '多源日期不一致',
-    date: (d: string) => `日期 ${d}`,
-    healthScore: '健康分',
-    outOf: '/ 100',
-  },
-  en: {
-    synced: (n: number, total: number) => `${n}/${total} synced`,
-    datesInconsistent: 'Dates inconsistent across sources',
-    date: (d: string) => `Date ${d}`,
-    healthScore: 'Health',
-    outOf: '/ 100',
-  },
-  th: {
-    synced: (n: number, total: number) => `${n}/${total} ซิงค์แล้ว`,
-    datesInconsistent: 'วันที่ของแหล่งข้อมูลไม่ตรงกัน',
-    date: (d: string) => `วันที่ ${d}`,
-    healthScore: 'คะแนนสุขภาพ',
-    outOf: '/ 100',
-  },
-} as const;
-
-type Locale = keyof typeof I18N;
-
 /* ── 健康分计算 ──────────────────────────────────────────────────── */
 
 function computeHealthScore(sources: DataSourceStatus[]) {
@@ -71,8 +35,7 @@ function computeHealthScore(sources: DataSourceStatus[]) {
 /* ── 摘要条组件 ──────────────────────────────────────────────────── */
 
 export function DataSourceSummaryBar({ sources }: { sources: DataSourceStatus[] }) {
-  const locale = useLocale() as Locale;
-  const t = I18N[locale] ?? I18N.zh;
+  const t = useTranslations('DataSourceSummaryBar');
 
   const { score, syncedCount } = computeHealthScore(sources);
   const allSynced = syncedCount === sources.length && sources.length > 0;
@@ -95,22 +58,22 @@ export function DataSourceSummaryBar({ sources }: { sources: DataSourceStatus[] 
             }`}
           />
           <span className="text-xs text-secondary-token">
-            {t.synced(syncedCount, sources.length)}
+            {t('synced', { n: syncedCount, total: sources.length })}
           </span>
         </div>
 
         {/* 日期一致性 */}
-        {!datesConsistent && <span className="text-xs text-warning">{t.datesInconsistent}</span>}
+        {!datesConsistent && <span className="text-xs text-warning">{t('datesInconsistent')}</span>}
         {datesConsistent && uniqueDate && (
-          <span className="text-xs text-muted-token">{t.date(uniqueDate)}</span>
+          <span className="text-xs text-muted-token">{t('date', { d: uniqueDate })}</span>
         )}
       </div>
 
       {/* 健康分 */}
       <div className="flex items-center gap-1.5">
-        <span className="text-xs text-muted-token">{t.healthScore}</span>
+        <span className="text-xs text-muted-token">{t('healthScore')}</span>
         <span className={`text-sm font-bold ${scoreColor}`}>{score}</span>
-        <span className="text-xs text-muted-token">{t.outOf}</span>
+        <span className="text-xs text-muted-token">{t('outOf')}</span>
       </div>
     </div>
   );

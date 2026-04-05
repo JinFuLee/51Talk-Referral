@@ -16,105 +16,7 @@ import {
   FileText,
   Settings,
 } from 'lucide-react';
-import { useLocale } from 'next-intl';
-
-// ── I18N ─────────────────────────────────────────────────────────────────────
-
-const I18N = {
-  zh: {
-    createRole: '新建角色',
-    editRole: '编辑权限',
-    roleName: '角色名称',
-    color: '颜色',
-    pages: '个页面',
-    users: '个用户',
-    preset: '预设',
-    custom: '自定义',
-    cannotDelete: '预设角色不可删除',
-    save: '保存',
-    cancel: '取消',
-    saving: '保存中…',
-    noRoles: '暂无角色',
-    selectAll: '全选',
-    clearAll: '清空',
-    namePlaceholder: '输入角色名称',
-    roleCount: (n: number) => `${n} 个角色`,
-    toastSaved: '权限已保存',
-    toastSaveFailed: '保存失败',
-    toastCreated: '角色已创建',
-    toastCreateFailed: '创建失败',
-  },
-  'zh-TW': {
-    createRole: '新建角色',
-    editRole: '編輯權限',
-    roleName: '角色名稱',
-    color: '顏色',
-    pages: '個頁面',
-    users: '個用戶',
-    preset: '預設',
-    custom: '自定義',
-    cannotDelete: '預設角色不可刪除',
-    save: '儲存',
-    cancel: '取消',
-    saving: '儲存中…',
-    noRoles: '暫無角色',
-    selectAll: '全選',
-    clearAll: '清空',
-    namePlaceholder: '輸入角色名稱',
-    roleCount: (n: number) => `${n} 個角色`,
-    toastSaved: '權限已儲存',
-    toastSaveFailed: '儲存失敗',
-    toastCreated: '角色已建立',
-    toastCreateFailed: '建立失敗',
-  },
-  en: {
-    createRole: 'New Role',
-    editRole: 'Edit Permissions',
-    roleName: 'Role Name',
-    color: 'Color',
-    pages: ' pages',
-    users: ' users',
-    preset: 'Preset',
-    custom: 'Custom',
-    cannotDelete: 'Preset roles cannot be deleted',
-    save: 'Save',
-    cancel: 'Cancel',
-    saving: 'Saving…',
-    noRoles: 'No roles',
-    selectAll: 'Select all',
-    clearAll: 'Clear',
-    namePlaceholder: 'Enter role name',
-    roleCount: (n: number) => `${n} roles`,
-    toastSaved: 'Permissions saved',
-    toastSaveFailed: 'Save failed',
-    toastCreated: 'Role created',
-    toastCreateFailed: 'Create failed',
-  },
-  th: {
-    createRole: 'สร้างบทบาท',
-    editRole: 'แก้ไขสิทธิ์',
-    roleName: 'ชื่อบทบาท',
-    color: 'สี',
-    pages: ' หน้า',
-    users: ' ผู้ใช้',
-    preset: 'ค่าเริ่มต้น',
-    custom: 'กำหนดเอง',
-    cannotDelete: 'บทบาทค่าเริ่มต้นไม่สามารถลบได้',
-    save: 'บันทึก',
-    cancel: 'ยกเลิก',
-    saving: 'กำลังบันทึก…',
-    noRoles: 'ไม่มีบทบาท',
-    selectAll: 'เลือกทั้งหมด',
-    clearAll: 'ล้างทั้งหมด',
-    namePlaceholder: 'กรอกชื่อบทบาท',
-    roleCount: (n: number) => `${n} บทบาท`,
-    toastSaved: 'บันทึกสิทธิ์แล้ว',
-    toastSaveFailed: 'บันทึกล้มเหลว',
-    toastCreated: 'สร้างบทบาทแล้ว',
-    toastCreateFailed: 'สร้างล้มเหลว',
-  },
-} as const;
-
+import { useLocale,  useTranslations } from 'next-intl';
 // ── 分类配置（与 PageOverview 保持一致）────────────────────────────────────
 
 const CATEGORY_INFO: Record<
@@ -195,9 +97,6 @@ interface RoleEditorProps {
 }
 
 // ── 页面 Checkbox 分组 ────────────────────────────────────────────────────────
-
-type Lang = keyof typeof I18N;
-
 function PageChecklist({
   pages,
   selectedPaths,
@@ -207,11 +106,10 @@ function PageChecklist({
   pages: PageEntry[];
   selectedPaths: Set<string>;
   onToggle: (path: string) => void;
-  lang: Lang;
+  lang: 'zh' | 'zh-TW' | 'en' | 'th';
 }) {
   const [openCats, setOpenCats] = useState<Record<string, boolean>>({});
-  const t = I18N[lang];
-
+  const t = useTranslations('RoleEditor');
   const grouped: Record<string, PageEntry[]> = {};
   for (const p of pages) {
     const cat = p.category || 'system';
@@ -271,7 +169,7 @@ function PageChecklist({
                     onClick={() => (allSelected ? clearAllInCat(catKey) : selectAllInCat(catKey))}
                     className="text-muted-token hover:text-secondary-token transition-colors"
                   >
-                    {allSelected ? t.clearAll : t.selectAll}
+                    {allSelected ? t('clearAll') : t('selectAll')}
                   </button>
                   {someSelected && !allSelected && (
                     <span className="w-1.5 h-1.5 rounded-full bg-action shrink-0" />
@@ -313,10 +211,9 @@ function PageChecklist({
 // ── 主组件 ────────────────────────────────────────────────────────────────────
 
 export default function RoleEditor({ roles, pages, onSaveRole, onCreateRole }: RoleEditorProps) {
+  const t = useTranslations('RoleEditor');
   const locale = useLocale();
-  const lang: Lang = (locale in I18N ? locale : 'en') as Lang;
-  const t = I18N[lang];
-
+  const lang = (['zh', 'zh-TW', 'en', 'th'].includes(locale) ? locale : 'en') as 'zh' | 'zh-TW' | 'en' | 'th';
   const [editingRoleId, setEditingRoleId] = useState<string | null>(null);
   const [selectedPages, setSelectedPages] = useState<Set<string>>(new Set());
   const [showCreate, setShowCreate] = useState(false);
@@ -353,10 +250,10 @@ export default function RoleEditor({ roles, pages, onSaveRole, onCreateRole }: R
         id: editingRoleId,
         allowed_pages: Array.from(selectedPages),
       });
-      toast.success(t.toastSaved);
+      toast.success(t('toastSaved'));
       cancelEdit();
     } catch (e: unknown) {
-      toast.error(e instanceof Error ? e.message : t.toastSaveFailed);
+      toast.error(e instanceof Error ? e.message : t('toastSaveFailed'));
     } finally {
       setSaving(false);
     }
@@ -367,12 +264,12 @@ export default function RoleEditor({ roles, pages, onSaveRole, onCreateRole }: R
     setSaving(true);
     try {
       await onCreateRole(newRoleName.trim(), newRoleColor);
-      toast.success(t.toastCreated);
+      toast.success(t('toastCreated'));
       setNewRoleName('');
       setNewRoleColor(PRESET_COLORS[0]);
       setShowCreate(false);
     } catch (e: unknown) {
-      toast.error(e instanceof Error ? e.message : t.toastCreateFailed);
+      toast.error(e instanceof Error ? e.message : t('toastCreateFailed'));
     } finally {
       setSaving(false);
     }
@@ -382,27 +279,27 @@ export default function RoleEditor({ roles, pages, onSaveRole, onCreateRole }: R
     <div className="space-y-4">
       {/* 操作栏 */}
       <div className="flex items-center justify-between">
-        <span className="text-sm text-muted-token">{t.roleCount(roles.length)}</span>
+        <span className="text-sm text-muted-token">{t('roleCount', { n: roles.length })}</span>
         <button
           onClick={() => setShowCreate(true)}
           className="flex items-center gap-1.5 btn-secondary text-xs"
         >
           <Plus className="w-3.5 h-3.5" />
-          {t.createRole}
+          {t('createRole')}
         </button>
       </div>
 
       {/* 新建角色表单 */}
       {showCreate && (
         <div className="card-base p-4 space-y-3 border-action/30">
-          <h4 className="text-sm font-medium text-primary-token">{t.createRole}</h4>
+          <h4 className="text-sm font-medium text-primary-token">{t('createRole')}</h4>
           <div className="flex items-center gap-3">
             <input
               type="text"
               value={newRoleName}
               onChange={(e) => setNewRoleName(e.target.value)}
               className="input-base flex-1"
-              placeholder={t.namePlaceholder}
+              placeholder={t('namePlaceholder')}
             />
             <div className="flex items-center gap-1.5">
               {PRESET_COLORS.map((c) => (
@@ -420,14 +317,14 @@ export default function RoleEditor({ roles, pages, onSaveRole, onCreateRole }: R
           </div>
           <div className="flex gap-2 justify-end">
             <button onClick={() => setShowCreate(false)} className="btn-secondary text-xs">
-              {t.cancel}
+              {t('cancel')}
             </button>
             <button
               onClick={handleCreate}
               disabled={saving || !newRoleName.trim()}
               className="btn-primary text-xs disabled:opacity-50"
             >
-              {saving ? t.saving : t.save}
+              {saving ? t('saving') : t('save')}
             </button>
           </div>
         </div>
@@ -438,7 +335,7 @@ export default function RoleEditor({ roles, pages, onSaveRole, onCreateRole }: R
         {roles.length === 0 && (
           <div className="state-empty">
             <Shield className="w-8 h-8 text-n-300" />
-            <span className="text-sm">{t.noRoles}</span>
+            <span className="text-sm">{t('noRoles')}</span>
           </div>
         )}
 
@@ -461,17 +358,17 @@ export default function RoleEditor({ roles, pages, onSaveRole, onCreateRole }: R
                   </span>
                   {role.is_preset && (
                     <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-n-100 text-muted-token font-medium">
-                      {t.preset}
+                      {t('preset')}
                     </span>
                   )}
                   <span className="text-xs text-muted-token">
                     {role.page_count ?? 0}
-                    {t.pages}
+                    {t('pages')}
                   </span>
                   {role.user_count !== undefined && (
                     <span className="text-xs text-muted-token">
                       {role.user_count}
-                      {t.users}
+                      {t('users')}
                     </span>
                   )}
                 </div>
@@ -485,14 +382,14 @@ export default function RoleEditor({ roles, pages, onSaveRole, onCreateRole }: R
                         className="flex items-center gap-1 px-2 py-1 rounded-lg bg-success-token text-white text-xs hover:opacity-90 disabled:opacity-50 transition-opacity"
                       >
                         <Check className="w-3 h-3" />
-                        {saving ? t.saving : t.save}
+                        {saving ? t('saving') : t('save')}
                       </button>
                       <button
                         onClick={cancelEdit}
                         className="flex items-center gap-1 px-2 py-1 rounded-lg border border-default-token text-xs hover:bg-subtle transition-colors"
                       >
                         <X className="w-3 h-3" />
-                        {t.cancel}
+                        {t('cancel')}
                       </button>
                     </>
                   ) : (
@@ -501,7 +398,7 @@ export default function RoleEditor({ roles, pages, onSaveRole, onCreateRole }: R
                       className="flex items-center gap-1 px-2 py-1 rounded-lg border border-default-token text-xs hover:bg-subtle transition-colors"
                     >
                       <Pencil className="w-3 h-3" />
-                      {t.editRole}
+                      {t('editRole')}
                     </button>
                   )}
                 </div>

@@ -1,40 +1,7 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { formatRate } from '@/lib/utils';
-import { useLocale } from 'next-intl';
-
-const I18N = {
-  zh: {
-    noData: '暂无围场健康数据',
-    levels: { green: '健康', yellow: '警告', red: '危险' },
-    participation: '参与率',
-    conversion: '转化率',
-    checkin: '打卡率',
-  },
-  en: {
-    noData: 'No enclosure health data',
-    levels: { green: 'Healthy', yellow: 'Warning', red: 'Danger' },
-    participation: 'Participation',
-    conversion: 'Conversion',
-    checkin: 'Check-in',
-  },
-  'zh-TW': {
-    noData: '暫無圍場健康數據',
-    levels: { green: '健康', yellow: '警告', red: '危險' },
-    participation: '參與率',
-    conversion: '轉化率',
-    checkin: '打卡率',
-  },
-  th: {
-    noData: 'ไม่มีข้อมูลสุขภาพ Enclosure',
-    levels: { green: 'ดี', yellow: 'เตือน', red: 'อันตราย' },
-    participation: 'เข้าร่วม',
-    conversion: 'แปลง',
-    checkin: 'เช็คอิน',
-  },
-} as const;
-type Locale = keyof typeof I18N;
-
 export interface HealthScore {
   segment: string;
   participation: number;
@@ -76,11 +43,10 @@ function scoreColor(score: number): string {
 }
 
 export function HealthScoreCards({ data, onSegmentClick }: HealthScoreCardsProps) {
-  const locale = useLocale();
-  const t = I18N[(locale as Locale) in I18N ? (locale as Locale) : 'zh'];
+    const t = useTranslations('HealthScoreCards');
 
   if (!data.length) {
-    return <div className="text-sm text-muted-token text-center py-8">{t.noData}</div>;
+    return <div className="text-sm text-muted-token text-center py-8">{t('noData')}</div>;
   }
 
   return (
@@ -103,7 +69,7 @@ export function HealthScoreCards({ data, onSegmentClick }: HealthScoreCardsProps
               <span className="text-xs font-semibold text-primary-token truncate">
                 {item.segment}
               </span>
-              <LevelBadge level={item.level} labels={t.levels} />
+              <LevelBadge level={item.level} labels={{ green: t('levels.green'), yellow: t('levels.yellow'), red: t('levels.red') }} />
             </div>
 
             {/* 健康分环形进度 */}
@@ -140,15 +106,15 @@ export function HealthScoreCards({ data, onSegmentClick }: HealthScoreCardsProps
               </div>
               <div className="flex-1 space-y-0.5 text-xs">
                 <div className="flex justify-between">
-                  <span className="text-muted-token">{t.participation}</span>
+                  <span className="text-muted-token">{t('participation')}</span>
                   <span className="font-mono tabular-nums">{formatRate(item.participation)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-token">{t.conversion}</span>
+                  <span className="text-muted-token">{t('conversion')}</span>
                   <span className="font-mono tabular-nums">{formatRate(item.conversion)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-token">{t.checkin}</span>
+                  <span className="text-muted-token">{t('checkin')}</span>
                   <span className="font-mono tabular-nums">{formatRate(item.checkin)}</span>
                 </div>
               </div>

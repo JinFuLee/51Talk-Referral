@@ -1,53 +1,10 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { Loader2, AlertCircle, ImageIcon } from 'lucide-react';
-import { useLocale } from 'next-intl';
 import { useFilteredSWR } from '@/lib/hooks/use-filtered-swr';
 import { EmptyState } from '@/components/ui/EmptyState';
-
-const I18N = {
-  zh: {
-    loading: '加载产出档案…',
-    loadError: '无法加载产出档案',
-    outputCount: (n: number) => `${n} 个产出`,
-    emptyTitle: '暂无产出档案',
-    emptyDesc: (date: string, role: string) =>
-      `${date} 无 ${role !== 'ALL' ? role + ' ' : ''}推送产出`,
-    roleAll: 'ALL',
-    opsLabel: '运营',
-  },
-  'zh-TW': {
-    loading: '載入產出檔案…',
-    loadError: '無法載入產出檔案',
-    outputCount: (n: number) => `${n} 個產出`,
-    emptyTitle: '暫無產出檔案',
-    emptyDesc: (date: string, role: string) =>
-      `${date} 無 ${role !== 'ALL' ? role + ' ' : ''}推送產出`,
-    roleAll: 'ALL',
-    opsLabel: '運營',
-  },
-  en: {
-    loading: 'Loading output archive…',
-    loadError: 'Failed to load output archive',
-    outputCount: (n: number) => `${n} output(s)`,
-    emptyTitle: 'No outputs',
-    emptyDesc: (date: string, role: string) =>
-      `No ${role !== 'ALL' ? role + ' ' : ''}push outputs on ${date}`,
-    roleAll: 'ALL',
-    opsLabel: 'Ops',
-  },
-  th: {
-    loading: 'กำลังโหลดไฟล์ผลลัพธ์…',
-    loadError: 'ไม่สามารถโหลดไฟล์ผลลัพธ์ได้',
-    outputCount: (n: number) => `${n} รายการ`,
-    emptyTitle: 'ไม่มีผลลัพธ์',
-    emptyDesc: (date: string, role: string) =>
-      `ไม่มีผลลัพธ์การส่ง${role !== 'ALL' ? ' ' + role : ''} วันที่ ${date}`,
-    roleAll: 'ALL',
-    opsLabel: 'ปฏิบัติการ',
-  },
-};
 
 /** 后端返回格式 */
 interface OutputItem {
@@ -77,9 +34,8 @@ interface OutputGalleryProps {
 }
 
 export function OutputGallery({ platform: _platform }: OutputGalleryProps) {
-  const locale = useLocale();
-  const t = (I18N as unknown as Record<string, (typeof I18N)['zh']>)[locale] ?? I18N['zh'];
-  const ROLES = [...ROLES_BASE, t.opsLabel];
+  const t = useTranslations('OutputGallery');
+  const ROLES = [...ROLES_BASE, t('opsLabel')];
   const [date, setDate] = useState(todayStr);
   const [role, setRole] = useState('ALL');
 
@@ -97,7 +53,7 @@ export function OutputGallery({ platform: _platform }: OutputGalleryProps) {
     return (
       <div className="flex items-center gap-2 py-10 justify-center text-muted-token">
         <Loader2 className="w-5 h-5 animate-spin" />
-        <span className="text-sm">{t.loading}</span>
+        <span className="text-sm">{t('loading')}</span>
       </div>
     );
   }
@@ -106,7 +62,7 @@ export function OutputGallery({ platform: _platform }: OutputGalleryProps) {
     return (
       <div className="flex items-center gap-2 py-10 justify-center text-warning-token">
         <AlertCircle className="w-5 h-5" />
-        <span className="text-sm">{t.loadError}</span>
+        <span className="text-sm">{t('loadError')}</span>
       </div>
     );
   }
@@ -136,22 +92,22 @@ export function OutputGallery({ platform: _platform }: OutputGalleryProps) {
             </button>
           ))}
         </div>
-        <span className="text-xs text-muted-token ml-auto">{t.outputCount(data.length)}</span>
+        <span className="text-xs text-muted-token ml-auto">{t('outputCount', { n: data.length })}</span>
       </div>
 
       {/* Gallery */}
       {isLoading ? (
         <div className="flex items-center gap-2 py-10 justify-center text-muted-token">
           <Loader2 className="w-5 h-5 animate-spin" />
-          <span className="text-sm">{t.loading}</span>
+          <span className="text-sm">{t('loading')}</span>
         </div>
       ) : error ? (
         <div className="flex items-center gap-2 py-10 justify-center text-warning-token">
           <AlertCircle className="w-5 h-5" />
-          <span className="text-sm">{t.loadError}</span>
+          <span className="text-sm">{t('loadError')}</span>
         </div>
       ) : data.length === 0 ? (
-        <EmptyState title={t.emptyTitle} description={t.emptyDesc(date, role)} />
+        <EmptyState title={t('emptyTitle')} description={t('emptyDesc', { date: date, role })} />
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
           {data.map((item) => {

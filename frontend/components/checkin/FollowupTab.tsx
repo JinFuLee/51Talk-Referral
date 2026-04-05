@@ -1,7 +1,7 @@
 'use client';
 
 import { Fragment, useState, useMemo } from 'react';
-import { useLocale } from 'next-intl';
+import { useTranslations } from 'next-intl';
 import { useFilteredSWR } from '@/lib/hooks/use-filtered-swr';
 import { formatRevenue } from '@/lib/utils';
 import { Spinner } from '@/components/ui/Spinner';
@@ -9,325 +9,6 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { MemberDetailDrawer } from '@/components/members/MemberDetailDrawer';
 import { StudentTagBadge } from '@/components/checkin/StudentTagBadge';
 import { useWideConfig } from '@/lib/hooks/useWideConfig';
-
-// ── Inline I18N ────────────────────────────────────────────────────────────────
-
-const I18N = {
-  zh: {
-    // GroupFilterBar
-    segmentLabel: '分群:',
-    exportTsv: '导出 TSV ↓',
-    // GroupFilter labels
-    filterAll: '全部',
-    filterNever: '从未打卡',
-    filterWasActive: '曾打卡本月未打',
-    filterThisWeek: '本周未打卡',
-    filterPartial: '打过今天没打',
-    filterCardExpiry: '卡到期≤30天',
-    filterDormantHp: '沉睡高潜',
-    filterHandover: '即将交接',
-    filterRenewalRisk: '续费风险',
-    // Table headers
-    thRank: '排名',
-    thPriority: '🔴优先级',
-    thActivation: '激活',
-    thStudentId: '学员ID',
-    thEnclosure: '围场',
-    thCcOwner: 'CC负责',
-    thSsOwner: 'SS负责',
-    thLpOwner: 'LP负责',
-    thCheckinWeekMonth: '本周/月打卡',
-    thCheckinLastMonth: '上月打卡',
-    thConnStatus: 'CC/SS/LP 接通',
-    thTags: '标签',
-    thChannel: '渠道',
-    thGoldenWindow: '黄金窗口',
-    thLesson: '📚课耗(3月均)',
-    thReferral: '👥本月推荐',
-    thRevenue: '💰历史付费',
-    thLastContact: 'CC末次联系',
-    thIncentive: '激励',
-    thCardExpiry: '卡到期',
-    // Row inline
-    thisWeekPrefix: '本周',
-    thisMonthPrefix: '本月',
-    // Expanded row
-    expandedTitle: '完整档案 — 全部字段',
-    collapseBtn: '收起 ▲',
-    fieldStudentId: '学员 ID',
-    fieldEnclosure: '围场',
-    fieldResponsible: '负责人',
-    fieldQualityScore: '质量评分',
-    fieldLesson3m: '3月均课耗',
-    fieldReferralThisMonth: '本月推荐',
-    fieldRevenue: '历史付费',
-    fieldLastContact: 'CC末次联系',
-    fieldCardExpiry: '卡到期天数',
-    // Contact badge
-    contactNeedCall: '需联系',
-    contactDaysAgo: (d: number) => `${d}天前`,
-    // Activation dot title
-    activationTitle: (s: number) => `激活概率 ${s}`,
-    // Conn status dot title
-    connConnected: '已接通',
-    connNotConnected: '未接通',
-    // Golden window labels
-    gwFirstCheckin: '首次打卡',
-    gwLeadNoShow: '有B未出席',
-    gwRenewalWindow: '续费窗口',
-    // Channel labels
-    chLine: 'LINE',
-    chSms: '短信',
-    chPhone: '电话',
-    chApp: 'APP',
-    // Bottom stats
-    statsTotalPrefix: '共',
-    statsTotalSuffix: '名未打卡有效学员',
-    statsAvgScore: '平均评分',
-    statsHighQuality: '高质量(≥70)占比',
-    statsHighQualityCount: (n: number) => `${n} 人`,
-    // Client tags
-    tagFullAttendance: '满勤',
-    tagActive: '活跃',
-    tagImproving: '进步明显',
-    tagDeclining: '在退步',
-    tagDormantHp: '沉睡高潜',
-    tagSuperConvert: '超级转化',
-    // Empty / error states
-    emptyTitle: '暂无未打卡学员',
-    emptyDesc: '当前筛选条件下无数据，或数据文件尚未上传',
-    errorTitle: '加载失败',
-    errorDesc: '请检查后端服务是否正常运行',
-  },
-  'zh-TW': {
-    segmentLabel: '分群:',
-    exportTsv: '匯出 TSV ↓',
-    filterAll: '全部',
-    filterNever: '從未打卡',
-    filterWasActive: '曾打卡本月未打',
-    filterThisWeek: '本週未打卡',
-    filterPartial: '打過今天沒打',
-    filterCardExpiry: '卡到期≤30天',
-    filterDormantHp: '沉睡高潛',
-    filterHandover: '即將交接',
-    filterRenewalRisk: '續費風險',
-    thRank: '排名',
-    thPriority: '🔴優先級',
-    thActivation: '激活',
-    thStudentId: '學員ID',
-    thEnclosure: '圍場',
-    thCcOwner: 'CC負責',
-    thSsOwner: 'SS負責',
-    thLpOwner: 'LP負責',
-    thCheckinWeekMonth: '本週/月打卡',
-    thCheckinLastMonth: '上月打卡',
-    thConnStatus: 'CC/SS/LP 接通',
-    thTags: '標籤',
-    thChannel: '渠道',
-    thGoldenWindow: '黃金窗口',
-    thLesson: '📚課耗(3月均)',
-    thReferral: '👥本月推薦',
-    thRevenue: '💰歷史付費',
-    thLastContact: 'CC末次聯繫',
-    thIncentive: '激勵',
-    thCardExpiry: '卡到期',
-    thisWeekPrefix: '本週',
-    thisMonthPrefix: '本月',
-    expandedTitle: '完整檔案 — 全部欄位',
-    collapseBtn: '收起 ▲',
-    fieldStudentId: '學員 ID',
-    fieldEnclosure: '圍場',
-    fieldResponsible: '負責人',
-    fieldQualityScore: '質量評分',
-    fieldLesson3m: '3月均課耗',
-    fieldReferralThisMonth: '本月推薦',
-    fieldRevenue: '歷史付費',
-    fieldLastContact: 'CC末次聯繫',
-    fieldCardExpiry: '卡到期天數',
-    contactNeedCall: '需聯繫',
-    contactDaysAgo: (d: number) => `${d}天前`,
-    activationTitle: (s: number) => `激活概率 ${s}`,
-    connConnected: '已接通',
-    connNotConnected: '未接通',
-    gwFirstCheckin: '首次打卡',
-    gwLeadNoShow: '有B未出席',
-    gwRenewalWindow: '續費窗口',
-    chLine: 'LINE',
-    chSms: '簡訊',
-    chPhone: '電話',
-    chApp: 'APP',
-    statsTotalPrefix: '共',
-    statsTotalSuffix: '名未打卡有效學員',
-    statsAvgScore: '平均評分',
-    statsHighQuality: '高質量(≥70)佔比',
-    statsHighQualityCount: (n: number) => `${n} 人`,
-    tagFullAttendance: '滿勤',
-    tagActive: '活躍',
-    tagImproving: '進步明顯',
-    tagDeclining: '在退步',
-    tagDormantHp: '沉睡高潛',
-    tagSuperConvert: '超級轉化',
-    emptyTitle: '暫無未打卡學員',
-    emptyDesc: '當前篩選條件下無數據，或數據文件尚未上傳',
-    errorTitle: '載入失敗',
-    errorDesc: '請檢查後端服務是否正常運行',
-  },
-  en: {
-    segmentLabel: 'Segment:',
-    exportTsv: 'Export TSV ↓',
-    filterAll: 'All',
-    filterNever: 'Never Checked In',
-    filterWasActive: 'Was Active / Lapsed',
-    filterThisWeek: 'Skipped This Week',
-    filterPartial: 'Partial This Month',
-    filterCardExpiry: 'Card Expiry ≤30d',
-    filterDormantHp: 'Dormant High-Pot',
-    filterHandover: 'Upcoming Handover',
-    filterRenewalRisk: 'Renewal Risk',
-    thRank: 'Rank',
-    thPriority: '🔴Priority',
-    thActivation: 'Activation',
-    thStudentId: 'Student ID',
-    thEnclosure: 'Enclosure',
-    thCcOwner: 'CC Owner',
-    thSsOwner: 'SS Owner',
-    thLpOwner: 'LP Owner',
-    thCheckinWeekMonth: 'Wk / Mo Check-in',
-    thCheckinLastMonth: 'Last Mo Check-in',
-    thConnStatus: 'CC/SS/LP Reached',
-    thTags: 'Tags',
-    thChannel: 'Channel',
-    thGoldenWindow: 'Golden Window',
-    thLesson: '📚Lessons (3mo avg)',
-    thReferral: '👥Referrals (mo)',
-    thRevenue: '💰Revenue',
-    thLastContact: 'CC Last Contact',
-    thIncentive: 'Incentive',
-    thCardExpiry: 'Card Expiry',
-    thisWeekPrefix: 'Wk',
-    thisMonthPrefix: 'Mo',
-    expandedTitle: 'Full Profile — All Fields',
-    collapseBtn: 'Collapse ▲',
-    fieldStudentId: 'Student ID',
-    fieldEnclosure: 'Enclosure',
-    fieldResponsible: 'Owner',
-    fieldQualityScore: 'Quality Score',
-    fieldLesson3m: '3-Mo Avg Lessons',
-    fieldReferralThisMonth: 'Referrals (Mo)',
-    fieldRevenue: 'Revenue',
-    fieldLastContact: 'CC Last Contact',
-    fieldCardExpiry: 'Card Expiry (days)',
-    contactNeedCall: 'Call Now',
-    contactDaysAgo: (d: number) => `${d}d ago`,
-    activationTitle: (s: number) => `Activation probability ${s}`,
-    connConnected: 'Reached',
-    connNotConnected: 'Not reached',
-    gwFirstCheckin: 'First Check-in',
-    gwLeadNoShow: 'Lead No-Show',
-    gwRenewalWindow: 'Renewal Window',
-    chLine: 'LINE',
-    chSms: 'SMS',
-    chPhone: 'Phone',
-    chApp: 'App',
-    statsTotalPrefix: '',
-    statsTotalSuffix: 'students not checked in',
-    statsAvgScore: 'Avg Score',
-    statsHighQuality: 'High-quality (≥70)',
-    statsHighQualityCount: (n: number) => `${n} students`,
-    tagFullAttendance: 'Full Attendance',
-    tagActive: 'Active',
-    tagImproving: 'Improving',
-    tagDeclining: 'Declining',
-    tagDormantHp: 'Dormant High-Pot',
-    tagSuperConvert: 'Super Converter',
-    emptyTitle: 'No Students to Follow Up',
-    emptyDesc: 'No data under current filters, or data file not yet uploaded.',
-    errorTitle: 'Load Failed',
-    errorDesc: 'Please check if the backend service is running.',
-  },
-  th: {
-    segmentLabel: 'กลุ่ม:',
-    exportTsv: 'ส่งออก TSV ↓',
-    filterAll: 'ทั้งหมด',
-    filterNever: 'ไม่เคยเช็คอิน',
-    filterWasActive: 'เคยเช็คอิน/เดือนนี้ไม่เช็ค',
-    filterThisWeek: 'ไม่เช็คอินสัปดาห์นี้',
-    filterPartial: 'เช็คบางส่วน',
-    filterCardExpiry: 'บัตรหมดอายุ ≤30 วัน',
-    filterDormantHp: 'ศักยภาพสูงแต่หยุดชะงัก',
-    filterHandover: 'ใกล้ส่งต่อ',
-    filterRenewalRisk: 'ความเสี่ยงต่ออายุ',
-    thRank: 'อันดับ',
-    thPriority: '🔴ความสำคัญ',
-    thActivation: 'การกระตุ้น',
-    thStudentId: 'รหัสนักเรียน',
-    thEnclosure: 'คอก',
-    thCcOwner: 'CC รับผิดชอบ',
-    thSsOwner: 'SS รับผิดชอบ',
-    thLpOwner: 'LP รับผิดชอบ',
-    thCheckinWeekMonth: 'เช็คอิน สัปดาห์/เดือน',
-    thCheckinLastMonth: 'เช็คอินเดือนที่แล้ว',
-    thConnStatus: 'ติดต่อ CC/SS/LP',
-    thTags: 'แท็ก',
-    thChannel: 'ช่องทาง',
-    thGoldenWindow: 'ช่วงทอง',
-    thLesson: '📚เรียน (เฉลี่ย 3 เดือน)',
-    thReferral: '👥แนะนำ (เดือน)',
-    thRevenue: '💰รายได้',
-    thLastContact: 'CC ติดต่อล่าสุด',
-    thIncentive: 'สิ่งจูงใจ',
-    thCardExpiry: 'วันหมดอายุบัตร',
-    thisWeekPrefix: 'สัปดาห์',
-    thisMonthPrefix: 'เดือน',
-    expandedTitle: 'โปรไฟล์เต็ม — ทุกฟิลด์',
-    collapseBtn: 'ย่อ ▲',
-    fieldStudentId: 'รหัสนักเรียน',
-    fieldEnclosure: 'คอก',
-    fieldResponsible: 'ผู้รับผิดชอบ',
-    fieldQualityScore: 'คะแนนคุณภาพ',
-    fieldLesson3m: 'เรียนเฉลี่ย 3 เดือน',
-    fieldReferralThisMonth: 'แนะนำเดือนนี้',
-    fieldRevenue: 'รายได้รวม',
-    fieldLastContact: 'CC ติดต่อล่าสุด',
-    fieldCardExpiry: 'วันหมดอายุบัตร (วัน)',
-    contactNeedCall: 'ต้องติดต่อ',
-    contactDaysAgo: (d: number) => `${d} วันที่แล้ว`,
-    activationTitle: (s: number) => `ความน่าจะเป็นในการกระตุ้น ${s}`,
-    connConnected: 'ติดต่อได้',
-    connNotConnected: 'ติดต่อไม่ได้',
-    gwFirstCheckin: 'เช็คอินครั้งแรก',
-    gwLeadNoShow: 'มี B ไม่มาเรียน',
-    gwRenewalWindow: 'ช่วงต่ออายุ',
-    chLine: 'LINE',
-    chSms: 'SMS',
-    chPhone: 'โทรศัพท์',
-    chApp: 'แอป',
-    statsTotalPrefix: '',
-    statsTotalSuffix: 'นักเรียนที่ยังไม่ได้เช็คอิน',
-    statsAvgScore: 'คะแนนเฉลี่ย',
-    statsHighQuality: 'คุณภาพสูง (≥70)',
-    statsHighQualityCount: (n: number) => `${n} คน`,
-    tagFullAttendance: 'เต็มพิกัด',
-    tagActive: 'กระตือรือร้น',
-    tagImproving: 'พัฒนาขึ้น',
-    tagDeclining: 'ถดถอย',
-    tagDormantHp: 'ศักยภาพสูงแต่หยุดชะงัก',
-    tagSuperConvert: 'แปลงสูง',
-    emptyTitle: 'ไม่มีนักเรียนที่ต้องติดตาม',
-    emptyDesc: 'ไม่มีข้อมูลตามตัวกรองปัจจุบัน หรือยังไม่ได้อัปโหลดไฟล์ข้อมูล',
-    errorTitle: 'โหลดล้มเหลว',
-    errorDesc: 'กรุณาตรวจสอบว่าบริการ backend ทำงานอยู่หรือไม่',
-  },
-} as const;
-
-type Locale = keyof typeof I18N;
-
-function useT() {
-  const locale = useLocale();
-  const lang: Locale = (locale in I18N ? locale : 'zh') as Locale;
-  return I18N[lang];
-}
-
 // ── Types ──────────────────────────────────────────────────────────────────────
 
 type Role = 'CC' | 'SS' | 'LP' | '运营';
@@ -439,16 +120,16 @@ function computeClientTags(
   daysLast: number,
   lesson: number,
   registrations: number,
-  t: ReturnType<typeof useT>
+  t: (key: string, params?: any) => string
 ): string[] {
   const tags: string[] = [];
-  if (daysThis >= 6) tags.push(t.tagFullAttendance);
-  else if (daysThis >= 4) tags.push(t.tagActive);
+  if (daysThis >= 6) tags.push(t('tagFullAttendance'));
+  else if (daysThis >= 4) tags.push(t('tagActive'));
   const delta = daysThis - daysLast;
-  if (delta >= 2 && daysLast > 0) tags.push(t.tagImproving);
-  if (delta <= -2) tags.push(t.tagDeclining);
-  if (daysThis === 0 && lesson >= 10) tags.push(t.tagDormantHp);
-  if (daysThis >= 4 && registrations >= 2) tags.push(t.tagSuperConvert);
+  if (delta >= 2 && daysLast > 0) tags.push(t('tagImproving'));
+  if (delta <= -2) tags.push(t('tagDeclining'));
+  if (daysThis === 0 && lesson >= 10) tags.push(t('tagDormantHp'));
+  if (daysThis >= 4 && registrations >= 2) tags.push(t('tagSuperConvert'));
   return tags;
 }
 
@@ -485,7 +166,7 @@ interface ExpandedRowProps {
 }
 
 function ExpandedRow({ member, colSpan, onClose }: ExpandedRowProps) {
-  const t = useT();
+  const t = useTranslations('FollowupTab');
   // Extract extra fields (everything beyond known columns)
   const KNOWN = new Set([
     'rank',
@@ -506,28 +187,28 @@ function ExpandedRow({ member, colSpan, onClose }: ExpandedRowProps) {
       <td colSpan={colSpan} className="px-4 py-3">
         <div className="flex items-center justify-between mb-2">
           <span className="text-xs font-semibold text-secondary-token uppercase tracking-wider">
-            {t.expandedTitle}
+            {t('expandedTitle')}
           </span>
           <button
             onClick={onClose}
             className="text-muted-token hover:text-secondary-token text-xs px-2 py-0.5 rounded hover:bg-n-200 transition-colors"
           >
-            {t.collapseBtn}
+            {t('collapseBtn')}
           </button>
         </div>
 
         {/* Known columns summary */}
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-1 mb-3 text-xs">
           {[
-            [t.fieldStudentId, String(member.id)],
-            [t.fieldEnclosure, member.enclosure || '—'],
-            [t.fieldResponsible, member.responsible || '—'],
-            [t.fieldQualityScore, String(member.quality_score)],
-            [t.fieldLesson3m, fmtNum(member.lesson_avg_3m)],
-            [t.fieldReferralThisMonth, fmtNum(member.referrals_this_month)],
-            [t.fieldRevenue, fmtRevenue(member.total_revenue_usd)],
-            [t.fieldLastContact, member.cc_last_contact_date || '—'],
-            [t.fieldCardExpiry, fmtNum(member.days_until_card_expiry)],
+            [t('fieldStudentId'), String(member.id)],
+            [t('fieldEnclosure'), member.enclosure || '—'],
+            [t('fieldResponsible'), member.responsible || '—'],
+            [t('fieldQualityScore'), String(member.quality_score)],
+            [t('fieldLesson3m'), fmtNum(member.lesson_avg_3m)],
+            [t('fieldReferralThisMonth'), fmtNum(member.referrals_this_month)],
+            [t('fieldRevenue'), fmtRevenue(member.total_revenue_usd)],
+            [t('fieldLastContact'), member.cc_last_contact_date || '—'],
+            [t('fieldCardExpiry'), fmtNum(member.days_until_card_expiry)],
           ].map(([label, val]) => (
             <div key={label} className="flex gap-2">
               <span className="text-muted-token w-24 shrink-0">{label}</span>
@@ -563,14 +244,14 @@ function ExpandedRow({ member, colSpan, onClose }: ExpandedRowProps) {
 // ── Activation Score Dot ───────────────────────────────────────────────────────
 
 function ActivationDot({ score }: { score: number }) {
-  const t = useT();
+  const t = useTranslations('FollowupTab');
   const color =
     score >= 70 ? 'bg-success-token' : score >= 40 ? 'bg-warning-token' : 'bg-danger-token';
   return (
     <div className="flex items-center gap-1.5 justify-center">
       <span
         className={`w-2.5 h-2.5 rounded-full inline-block ${color}`}
-        title={t.activationTitle(score)}
+        title={t('activationTitle', { s: score })}
       />
       <span className="font-mono tabular-nums text-secondary-token">{score}</span>
     </div>
@@ -605,12 +286,12 @@ const CHANNEL_ICON: Record<string, string> = {
 };
 
 function ChannelBadge({ channel }: { channel: string }) {
-  const t = useT();
+  const t = useTranslations('FollowupTab');
   const channelLabel: Record<string, string> = {
-    line: t.chLine,
-    sms: t.chSms,
-    phone: t.chPhone,
-    app: t.chApp,
+    line: t('chLine'),
+    sms: t('chSms'),
+    phone: t('chPhone'),
+    app: t('chApp'),
   };
   return (
     <span title={channelLabel[channel] ?? channel} className="text-base leading-none">
@@ -622,10 +303,10 @@ function ChannelBadge({ channel }: { channel: string }) {
 // ── Connection Status Dots ──────────────────────────────────────────────────────
 
 function ConnStatusDots({ cc, ss, lp }: { cc: number; ss: number; lp: number }) {
-  const t = useT();
+  const t = useTranslations('FollowupTab');
   const dot = (val: number, label: string) => (
     <span
-      title={`${label}: ${val === 1 ? t.connConnected : t.connNotConnected}`}
+      title={`${label}: ${val === 1 ? t('connConnected') : t('connNotConnected')}`}
       className={`w-2 h-2 rounded-full inline-block ${
         val === 1 ? 'bg-success-token' : val === 0 ? 'bg-danger-token' : 'bg-subtle'
       }`}
@@ -643,11 +324,11 @@ function ConnStatusDots({ cc, ss, lp }: { cc: number; ss: number; lp: number }) 
 // ── Golden Window Badges ────────────────────────────────────────────────────────
 
 function GoldenWindowBadges({ windows }: { windows: string[] }) {
-  const t = useT();
+  const t = useTranslations('FollowupTab');
   const windowLabel: Record<string, string> = {
-    first_checkin: t.gwFirstCheckin,
-    lead_no_show: t.gwLeadNoShow,
-    renewal_window: t.gwRenewalWindow,
+    first_checkin: t('gwFirstCheckin'),
+    lead_no_show: t('gwLeadNoShow'),
+    renewal_window: t('gwRenewalWindow'),
   };
   if (!windows || windows.length === 0) return <span className="text-muted-token">—</span>;
   return (
@@ -667,20 +348,20 @@ function GoldenWindowBadges({ windows }: { windows: string[] }) {
 // ── CC Contact Badge ────────────────────────────────────────────────────────────
 
 function ContactBadge({ days }: { days: number | null }) {
-  const t = useT();
+  const t = useTranslations('FollowupTab');
   if (days === null) return <span className="text-muted-token">—</span>;
   if (days > 14)
     return (
       <span className="text-danger-token font-medium">
-        {t.contactDaysAgo(days)}
+        {t('contactDaysAgo', { d: days })}
         <span className="ml-1 px-1 py-0.5 bg-danger-surface text-danger-token rounded text-xs">
-          {t.contactNeedCall}
+          {t('contactNeedCall')}
         </span>
       </span>
     );
   if (days > 7)
-    return <span className="text-warning-token font-medium">{t.contactDaysAgo(days)}</span>;
-  return <span className="text-success-token">{t.contactDaysAgo(days)}</span>;
+    return <span className="text-warning-token font-medium">{t('contactDaysAgo', { d: days })}</span>;
+  return <span className="text-success-token">{t('contactDaysAgo', { d: days })}</span>;
 }
 
 // ── Group Filter Bar ────────────────────────────────────────────────────────────
@@ -695,17 +376,17 @@ function GroupFilterBar({
   onChange,
   exportHref,
 }: GroupFilterBarProps & { exportHref?: string }) {
-  const t = useT();
+  const t = useTranslations('FollowupTab');
   const groupFilterLabels: Record<GroupFilter, string> = {
-    all: t.filterAll,
-    never: t.filterNever,
-    was_active: t.filterWasActive,
-    this_week: t.filterThisWeek,
-    partial: t.filterPartial,
-    card_expiry: t.filterCardExpiry,
-    dormant_hp: t.filterDormantHp,
-    handover: t.filterHandover,
-    renewal_risk: t.filterRenewalRisk,
+    all: t('filterAll'),
+    never: t('filterNever'),
+    was_active: t('filterWasActive'),
+    this_week: t('filterThisWeek'),
+    partial: t('filterPartial'),
+    card_expiry: t('filterCardExpiry'),
+    dormant_hp: t('filterDormantHp'),
+    handover: t('filterHandover'),
+    renewal_risk: t('filterRenewalRisk'),
   };
   const groups: GroupFilter[] = [
     'all',
@@ -720,7 +401,7 @@ function GroupFilterBar({
   ];
   return (
     <div className="flex flex-wrap items-center gap-2 pb-2">
-      <span className="text-xs text-muted-token">{t.segmentLabel}</span>
+      <span className="text-xs text-muted-token">{t('segmentLabel')}</span>
       <div className="flex flex-wrap rounded-lg border border-subtle-token overflow-hidden text-xs font-medium">
         {groups.map((g) => (
           <button
@@ -742,7 +423,7 @@ function GroupFilterBar({
           download="followup.tsv"
           className="ml-auto px-3 py-1.5 text-xs font-medium border border-default-token rounded-lg bg-surface text-secondary-token hover:bg-subtle transition-colors whitespace-nowrap"
         >
-          {t.exportTsv}
+          {t('exportTsv')}
         </a>
       )}
     </div>
@@ -757,11 +438,11 @@ interface FollowupTableProps {
 }
 
 function FollowupTable({ items, onDrawerOpen }: FollowupTableProps) {
-  const t = useT();
+  const t = useTranslations('FollowupTab');
   const [expandedId, setExpandedId] = useState<string | number | null>(null);
 
   if (items.length === 0) {
-    return <EmptyState title={t.emptyTitle} description={t.emptyDesc} />;
+    return <EmptyState title={t('emptyTitle')} description={t('emptyDesc')} />;
   }
 
   // 改造后共 20 列
@@ -773,54 +454,54 @@ function FollowupTable({ items, onDrawerOpen }: FollowupTableProps) {
         <thead>
           <tr className="slide-thead-row text-xs">
             {/* 移动端常显 6 列 */}
-            <th className="py-1.5 px-2 text-center whitespace-nowrap w-8">{t.thRank}</th>
-            <th className="py-1.5 px-2 text-center whitespace-nowrap">{t.thPriority}</th>
-            <th className="py-1.5 px-2 text-left whitespace-nowrap">{t.thStudentId}</th>
-            <th className="py-1.5 px-2 text-left whitespace-nowrap">{t.thEnclosure}</th>
-            <th className="py-1.5 px-2 text-left whitespace-nowrap min-w-[80px]">{t.thCcOwner}</th>
-            <th className="py-1.5 px-2 text-center whitespace-nowrap">{t.thCheckinWeekMonth}</th>
+            <th className="py-1.5 px-2 text-center whitespace-nowrap w-8">{t('thRank')}</th>
+            <th className="py-1.5 px-2 text-center whitespace-nowrap">{t('thPriority')}</th>
+            <th className="py-1.5 px-2 text-left whitespace-nowrap">{t('thStudentId')}</th>
+            <th className="py-1.5 px-2 text-left whitespace-nowrap">{t('thEnclosure')}</th>
+            <th className="py-1.5 px-2 text-left whitespace-nowrap min-w-[80px]">{t('thCcOwner')}</th>
+            <th className="py-1.5 px-2 text-center whitespace-nowrap">{t('thCheckinWeekMonth')}</th>
             {/* 平板+ 展开列 */}
             <th className="py-1.5 px-2 text-center whitespace-nowrap hidden md:table-cell">
-              {t.thActivation}
+              {t('thActivation')}
             </th>
             <th className="py-1.5 px-2 text-left whitespace-nowrap min-w-[80px] hidden md:table-cell">
-              {t.thSsOwner}
+              {t('thSsOwner')}
             </th>
             <th className="py-1.5 px-2 text-left whitespace-nowrap min-w-[80px] hidden md:table-cell">
-              {t.thLpOwner}
+              {t('thLpOwner')}
             </th>
             <th className="py-1.5 px-2 text-center whitespace-nowrap hidden md:table-cell">
-              {t.thCheckinLastMonth}
+              {t('thCheckinLastMonth')}
             </th>
             <th className="py-1.5 px-2 text-center whitespace-nowrap hidden lg:table-cell">
-              {t.thConnStatus}
+              {t('thConnStatus')}
             </th>
             <th className="py-1.5 px-2 text-left whitespace-nowrap min-w-[120px] hidden lg:table-cell">
-              {t.thTags}
+              {t('thTags')}
             </th>
             <th className="py-1.5 px-2 text-center whitespace-nowrap hidden lg:table-cell">
-              {t.thChannel}
+              {t('thChannel')}
             </th>
             <th className="py-1.5 px-2 text-left whitespace-nowrap min-w-[80px] hidden lg:table-cell">
-              {t.thGoldenWindow}
+              {t('thGoldenWindow')}
             </th>
             <th className="py-1.5 px-2 text-right whitespace-nowrap hidden xl:table-cell">
-              {t.thLesson}
+              {t('thLesson')}
             </th>
             <th className="py-1.5 px-2 text-right whitespace-nowrap hidden xl:table-cell">
-              {t.thReferral}
+              {t('thReferral')}
             </th>
             <th className="py-1.5 px-2 text-right whitespace-nowrap hidden xl:table-cell">
-              {t.thRevenue}
+              {t('thRevenue')}
             </th>
             <th className="py-1.5 px-2 text-left whitespace-nowrap hidden xl:table-cell">
-              {t.thLastContact}
+              {t('thLastContact')}
             </th>
             <th className="py-1.5 px-2 text-center whitespace-nowrap hidden xl:table-cell">
-              {t.thIncentive}
+              {t('thIncentive')}
             </th>
             <th className="py-1.5 px-2 text-right whitespace-nowrap hidden xl:table-cell">
-              {t.thCardExpiry}
+              {t('thCardExpiry')}
             </th>
           </tr>
         </thead>
@@ -895,9 +576,9 @@ function FollowupTable({ items, onDrawerOpen }: FollowupTableProps) {
                             ? 'text-muted-token'
                             : 'text-success-token font-semibold'
                         }
-                        title={t.thisWeekPrefix}
+                        title={t('thisWeekPrefix')}
                       >
-                        {t.thisWeekPrefix} {daysThisWeek}
+                        {t('thisWeekPrefix')} {daysThisWeek}
                       </span>
                       <span
                         className={`text-[10px] ${
@@ -907,9 +588,9 @@ function FollowupTable({ items, onDrawerOpen }: FollowupTableProps) {
                               ? 'text-success-token'
                               : 'text-secondary-token'
                         }`}
-                        title={t.thisMonthPrefix}
+                        title={t('thisMonthPrefix')}
                       >
-                        {t.thisMonthPrefix} {daysThis}/6
+                        {t('thisMonthPrefix')} {daysThis}/6
                       </span>
                     </div>
                   </td>
@@ -1023,28 +704,28 @@ interface BottomStatsProps {
 }
 
 function BottomStats({ total, avgScore, highQualityCount }: BottomStatsProps) {
-  const t = useT();
+  const t = useTranslations('FollowupTab');
   const pct = total > 0 ? ((highQualityCount / total) * 100).toFixed(1) : '0.0';
   return (
     <div className="flex flex-wrap gap-6 pt-3 mt-3 border-t border-subtle-token text-xs text-muted-token">
       <span>
-        {t.statsTotalPrefix && <>{t.statsTotalPrefix} </>}
+        {t('statsTotalPrefix') && <>{t('statsTotalPrefix')} </>}
         <strong className="text-primary-token font-semibold font-mono tabular-nums">
           {total}
         </strong>{' '}
-        {t.statsTotalSuffix}
+        {t('statsTotalSuffix')}
       </span>
       <span title="课耗(40%) + 推荐活跃(30%) + 付费贡献(20%) + 围场加权(10%)">
-        {t.statsAvgScore}{' '}
+        {t('statsAvgScore')}{' '}
         <strong className="text-primary-token font-semibold font-mono tabular-nums">
           {(avgScore ?? 0).toFixed(1)}
         </strong>
         <span className="ml-1 cursor-help opacity-60">ⓘ</span>
       </span>
       <span>
-        {t.statsHighQuality}{' '}
+        {t('statsHighQuality')}{' '}
         <strong className="text-orange-500 font-semibold font-mono tabular-nums">{pct}%</strong> (
-        {t.statsHighQualityCount(highQualityCount)})
+        {t('statsHighQualityCount', { n: highQualityCount })})
       </span>
     </div>
   );
@@ -1068,7 +749,7 @@ export function FollowupTab({
   teamFilter = '',
   salesSearch = '',
 }: FollowupTabProps) {
-  const t = useT();
+  const t = useTranslations('FollowupTab');
   const { configJson, activeRoles: hookActiveRoles } = useWideConfig();
 
   // 优先使用 hook 内部读取的值，props 作为备用
@@ -1207,9 +888,9 @@ export function FollowupTab({
           <Spinner size="lg" />
         </div>
       ) : error ? (
-        <EmptyState title={t.errorTitle} description={t.errorDesc} />
+        <EmptyState title={t('errorTitle')} description={t('errorDesc')} />
       ) : !data || filteredItems.length === 0 ? (
-        <EmptyState title={t.emptyTitle} description={t.emptyDesc} />
+        <EmptyState title={t('emptyTitle')} description={t('emptyDesc')} />
       ) : (
         <>
           <FollowupTable

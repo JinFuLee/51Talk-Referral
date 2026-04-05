@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { useLocale } from 'next-intl';
+import { useTranslations } from 'next-intl';
 import { useFilteredSWR } from '@/lib/hooks/use-filtered-swr';
 import {
   BarChart,
@@ -23,146 +23,12 @@ import type { Decomposition } from '@/lib/types/report';
 import type { SlideProps } from '@/lib/presentation/types';
 
 // ── 国际化 ───────────────────────────────────────
-const I18N: Record<
-  string,
-  {
-    title: string;
-    subtitle: string;
-    section: string;
-    volDelta: string;
-    convDelta: string;
-    priceDelta: string;
-    residual: string;
-    baseLine: string;
-    currentLine: string;
-    lmdiNote: string;
-    laspNote: string;
-    residualPct: string;
-    actualDelta: string;
-    basePeriod: string;
-    currentPeriod: string;
-    error: string;
-    errorHint: string;
-    retry: string;
-    empty: string;
-    emptyHint: string;
-    usd: string;
-    driverNames: { vol: string; conv: string; price: string };
-    insightTpl: (name: string, sign: string, rev: string, method: string) => string;
-  }
-> = {
-  zh: {
-    title: '增量分解瀑布图',
-    subtitle: '量贡献 / 率贡献 / 价贡献 / 残差（Laspeyres / LMDI 自动切换）',
-    section: '增量分析',
-    volDelta: '量贡献',
-    convDelta: '率贡献',
-    priceDelta: '价贡献',
-    residual: '残差',
-    baseLine: '上月业绩',
-    currentLine: '本月业绩',
-    lmdiNote: '残差率 > 3%，已自动切换至 LMDI 分解（零残差）',
-    laspNote: 'Laspeyres 加法分解',
-    residualPct: '残差率',
-    actualDelta: '实际总增量',
-    basePeriod: '基期',
-    currentPeriod: '当期',
-    error: '数据加载失败',
-    errorHint: '请检查后端服务是否正常运行',
-    retry: '重试',
-    empty: '暂无分解数据',
-    emptyHint: '请上传本月 Excel 数据源后自动刷新',
-    usd: '金额 (USD)',
-    driverNames: { vol: '量', conv: '率', price: '价' },
-    insightTpl: (name: string, sign: string, rev: string, method: string) =>
-      `主要驱动：${name}贡献 ${sign}${rev}（${method} 分解）`,
-  },
-  'zh-TW': {
-    title: '增量分解瀑布圖',
-    subtitle: '量貢獻 / 率貢獻 / 價貢獻 / 殘差（Laspeyres / LMDI 自動切換）',
-    section: '增量分析',
-    volDelta: '量貢獻',
-    convDelta: '率貢獻',
-    priceDelta: '價貢獻',
-    residual: '殘差',
-    baseLine: '上月業績',
-    currentLine: '本月業績',
-    lmdiNote: '殘差率 > 3%，已自動切換至 LMDI 分解（零殘差）',
-    laspNote: 'Laspeyres 加法分解',
-    residualPct: '殘差率',
-    actualDelta: '實際總增量',
-    basePeriod: '基期',
-    currentPeriod: '當期',
-    error: '資料載入失敗',
-    errorHint: '請檢查後端服務是否正常運行',
-    retry: '重試',
-    empty: '暫無分解資料',
-    emptyHint: '請上傳本月 Excel 資料源後自動刷新',
-    usd: '金額 (USD)',
-    driverNames: { vol: '量', conv: '率', price: '價' },
-    insightTpl: (name: string, sign: string, rev: string, method: string) =>
-      `主要驅動：${name}貢獻 ${sign}${rev}（${method} 分解）`,
-  },
-  en: {
-    title: 'Revenue Decomposition Waterfall',
-    subtitle: 'Vol / Conv / Price / Residual (Laspeyres / LMDI auto-switch)',
-    section: 'Incremental Analysis',
-    volDelta: 'Volume',
-    convDelta: 'Conv Rate',
-    priceDelta: 'Price',
-    residual: 'Residual',
-    baseLine: 'Last Mo.',
-    currentLine: 'This Mo.',
-    lmdiNote: 'Residual > 3%, switched to LMDI (zero residual)',
-    laspNote: 'Laspeyres Additive Decomposition',
-    residualPct: 'Residual %',
-    actualDelta: 'Actual Δ',
-    basePeriod: 'Base',
-    currentPeriod: 'Current',
-    error: 'Failed to load',
-    errorHint: 'Please check if backend is running',
-    retry: 'Retry',
-    empty: 'No decomposition data',
-    emptyHint: 'Upload monthly Excel data to refresh',
-    usd: 'USD',
-    driverNames: { vol: 'Vol', conv: 'Conv', price: 'Price' },
-    insightTpl: (name: string, sign: string, rev: string, method: string) =>
-      `Top driver: ${name} contributed ${sign}${rev} (${method})`,
-  },
-  th: {
-    title: 'แผนภูมิน้ำตกการแยกย่อยรายได้',
-    subtitle: 'ปริมาณ / อัตรา / ราคา / ส่วนเหลือ (Laspeyres / LMDI อัตโนมัติ)',
-    section: 'การวิเคราะห์ส่วนเพิ่ม',
-    volDelta: 'ปริมาณ',
-    convDelta: 'อัตราConv',
-    priceDelta: 'ราคา',
-    residual: 'ส่วนเหลือ',
-    baseLine: 'เดือนก่อน',
-    currentLine: 'เดือนนี้',
-    lmdiNote: 'ส่วนเหลือ > 3%, เปลี่ยนเป็น LMDI',
-    laspNote: 'การแยกย่อย Laspeyres',
-    residualPct: 'ส่วนเหลือ %',
-    actualDelta: 'Δ จริง',
-    basePeriod: 'ช่วงฐาน',
-    currentPeriod: 'ช่วงปัจจุบัน',
-    error: 'โหลดข้อมูลล้มเหลว',
-    errorHint: 'กรุณาตรวจสอบบริการแบ็กเอนด์',
-    retry: 'ลองใหม่',
-    empty: 'ไม่มีข้อมูลการแยกย่อย',
-    emptyHint: 'กรุณาอัปโหลดไฟล์ Excel ประจำเดือน',
-    usd: 'USD',
-    driverNames: { vol: 'ปริมาณ', conv: 'อัตรา', price: 'ราคา' },
-    insightTpl: (name: string, sign: string, rev: string, method: string) =>
-      `ปัจจัยหลัก: ${name} ส่งผล ${sign}${rev} (${method})`,
-  },
-};
-
 type DailyReportSlice = { blocks: { decomposition: Decomposition } };
 
 // 瀑布图数据构建
 function buildWaterfallData(
   decomp: Decomposition,
-  t: (typeof I18N)['zh']
+  t: (key: string, params?: any) => string
 ): Array<{ name: string; value: number; base: number; color: string }> {
   const isLMDI = decomp.display_method === 'lmdi';
   const baseRev = decomp.base_period.revenue_usd;
@@ -173,11 +39,11 @@ function buildWaterfallData(
   const residualVal = isLMDI ? null : decomp.laspeyres.residual;
 
   const entries = [
-    { name: t.volDelta, value: volVal, color: CHART_PALETTE.c4 },
-    { name: t.convDelta, value: convVal, color: CHART_PALETTE.c2 },
-    { name: t.priceDelta, value: priceVal, color: CHART_PALETTE.c3 },
+    { name: t('volDelta'), value: volVal, color: CHART_PALETTE.c4 },
+    { name: t('convDelta'), value: convVal, color: CHART_PALETTE.c2 },
+    { name: t('priceDelta'), value: priceVal, color: CHART_PALETTE.c3 },
     ...(residualVal !== null && Math.abs(residualVal) > 0.01
-      ? [{ name: t.residual, value: residualVal, color: CHART_PALETTE.neutral }]
+      ? [{ name: t('residual'), value: residualVal, color: CHART_PALETTE.neutral }]
       : []),
   ];
 
@@ -191,8 +57,7 @@ function buildWaterfallData(
 }
 
 export function DecompositionWaterfallSlide({ slideNumber, totalSlides }: SlideProps) {
-  const locale = useLocale();
-  const t = I18N[locale] ?? I18N['zh'];
+  const t = useTranslations('DecompositionWaterfallSlide');
 
   const { data, isLoading, error, mutate } = useFilteredSWR<Decomposition>('/api/report/daily', {
     fetcher: (url: string) =>
@@ -206,13 +71,13 @@ export function DecompositionWaterfallSlide({ slideNumber, totalSlides }: SlideP
     const conv = isLMDI ? data.lmdi.conv_lmdi : data.laspeyres.conv_delta;
     const price = isLMDI ? data.lmdi.price_lmdi : data.laspeyres.price_delta;
     const drivers = [
-      { name: t.driverNames.vol, v: vol },
-      { name: t.driverNames.conv, v: conv },
-      { name: t.driverNames.price, v: price },
+      { name: t('driverNames.vol'), v: vol },
+      { name: t('driverNames.conv'), v: conv },
+      { name: t('driverNames.price'), v: price },
     ].sort((a, b) => Math.abs(b.v) - Math.abs(a.v));
     const top = drivers[0];
     const sign = top.v > 0 ? '+' : '';
-    return t.insightTpl(top.name, sign, formatRevenue(top.v), isLMDI ? 'LMDI' : 'Laspeyres');
+    return t('insightTpl', { n: top.name, sign, revenue: formatRevenue(top.v), method: isLMDI ? 'LMDI' : 'Laspeyres' });
   })();
 
   const waterfallData = data ? buildWaterfallData(data, t) : [];
@@ -220,15 +85,15 @@ export function DecompositionWaterfallSlide({ slideNumber, totalSlides }: SlideP
   const currentRev = data?.current_period.revenue_usd ?? 0;
   const isLMDI = data?.display_method === 'lmdi';
 
-  const customTooltipFormatter = (value: number) => [formatRevenue(value), t.usd];
+  const customTooltipFormatter = (value: number) => [formatRevenue(value), t('usd')];
 
   return (
     <SlideShell
       slideNumber={slideNumber}
       totalSlides={totalSlides}
-      title={t.title}
-      subtitle={t.subtitle}
-      section={t.section}
+      title={t('title')}
+      subtitle={t('subtitle')}
+      section={t('section')}
       insight={insight}
     >
       {isLoading ? (
@@ -238,20 +103,20 @@ export function DecompositionWaterfallSlide({ slideNumber, totalSlides }: SlideP
       ) : error ? (
         <div className="flex items-center justify-center h-full">
           <div className="text-center space-y-2">
-            <p className="text-base font-semibold text-danger-token">{t.error}</p>
-            <p className="text-sm text-muted-token">{t.errorHint}</p>
+            <p className="text-base font-semibold text-danger-token">{t('error')}</p>
+            <p className="text-sm text-muted-token">{t('errorHint')}</p>
             <button
               onClick={() => mutate()}
               className="mt-1 px-4 py-1.5 rounded-lg text-sm border border-default-token text-secondary-token hover:bg-subtle transition-colors"
             >
-              {t.retry}
+              {t('retry')}
             </button>
           </div>
         </div>
       ) : !data ? (
         <div className="flex flex-col justify-center items-center h-full gap-3 text-muted-token">
-          <p className="text-base font-medium">{t.empty}</p>
-          <p className="text-sm">{t.emptyHint}</p>
+          <p className="text-base font-medium">{t('empty')}</p>
+          <p className="text-sm">{t('emptyHint')}</p>
         </div>
       ) : (
         <div className="flex gap-6 h-full">
@@ -266,7 +131,7 @@ export function DecompositionWaterfallSlide({ slideNumber, totalSlides }: SlideP
                     : 'bg-accent-surface text-brand-p2 border border-accent-subtle-token'
                 }`}
               >
-                {isLMDI ? `⚠ ${t.lmdiNote}` : t.laspNote}
+                {isLMDI ? `⚠ ${t('lmdiNote')}` : t('laspNote')}
               </span>
             </div>
 
@@ -300,7 +165,7 @@ export function DecompositionWaterfallSlide({ slideNumber, totalSlides }: SlideP
                   stroke={CHART_PALETTE.neutral}
                   strokeDasharray="4 4"
                   label={{
-                    value: t.baseLine,
+                    value: t('baseLine'),
                     position: 'insideTopLeft',
                     fill: CHART_PALETTE.axisLabel,
                     fontSize: 10,
@@ -312,7 +177,7 @@ export function DecompositionWaterfallSlide({ slideNumber, totalSlides }: SlideP
                   stroke={CHART_PALETTE.c2}
                   strokeDasharray="4 4"
                   label={{
-                    value: t.currentLine,
+                    value: t('currentLine'),
                     position: 'insideTopRight',
                     fill: CHART_PALETTE.c2,
                     fontSize: 10,
@@ -325,15 +190,15 @@ export function DecompositionWaterfallSlide({ slideNumber, totalSlides }: SlideP
           {/* 右侧数据摘要 */}
           <div className="w-52 flex-shrink-0 flex flex-col gap-3 justify-center">
             <div className="rounded-xl border border-default-token p-3 bg-surface">
-              <p className="text-xs text-muted-token mb-1">{t.basePeriod}</p>
+              <p className="text-xs text-muted-token mb-1">{t('basePeriod')}</p>
               <p className="text-sm font-bold text-primary-token">{formatRevenue(baseRev)}</p>
             </div>
             <div className="rounded-xl border border-default-token p-3 bg-surface">
-              <p className="text-xs text-muted-token mb-1">{t.currentPeriod}</p>
+              <p className="text-xs text-muted-token mb-1">{t('currentPeriod')}</p>
               <p className="text-sm font-bold text-brand-p2">{formatRevenue(currentRev)}</p>
             </div>
             <div className="rounded-xl border border-default-token p-3 bg-surface">
-              <p className="text-xs text-muted-token mb-1">{t.actualDelta}</p>
+              <p className="text-xs text-muted-token mb-1">{t('actualDelta')}</p>
               <p
                 className={`text-sm font-bold ${currentRev >= baseRev ? 'text-success-token' : 'text-danger-token'}`}
               >
@@ -343,7 +208,7 @@ export function DecompositionWaterfallSlide({ slideNumber, totalSlides }: SlideP
             </div>
             {!isLMDI && (
               <div className="rounded-xl border border-default-token p-3 bg-surface">
-                <p className="text-xs text-muted-token mb-1">{t.residualPct}</p>
+                <p className="text-xs text-muted-token mb-1">{t('residualPct')}</p>
                 <p className="text-sm font-semibold text-secondary-token">
                   {formatRate(data.laspeyres.residual_pct)}
                 </p>
@@ -353,10 +218,10 @@ export function DecompositionWaterfallSlide({ slideNumber, totalSlides }: SlideP
             {/* 颜色图例 */}
             <div className="space-y-1 pt-1">
               {[
-                { color: CHART_PALETTE.c4, label: t.volDelta },
-                { color: CHART_PALETTE.c2, label: t.convDelta },
-                { color: CHART_PALETTE.c3, label: t.priceDelta },
-                ...(!isLMDI ? [{ color: CHART_PALETTE.neutral, label: t.residual }] : []),
+                { color: CHART_PALETTE.c4, label: t('volDelta') },
+                { color: CHART_PALETTE.c2, label: t('convDelta') },
+                { color: CHART_PALETTE.c3, label: t('priceDelta') },
+                ...(!isLMDI ? [{ color: CHART_PALETTE.neutral, label: t('residual') }] : []),
               ].map((item) => (
                 <div key={item.label} className="flex items-center gap-2">
                   <span

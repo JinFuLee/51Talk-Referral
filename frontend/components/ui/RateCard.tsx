@@ -1,15 +1,7 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import React from 'react';
-import { useLocale } from 'next-intl';
-
-const I18N = {
-  zh: { target: (n: number) => `目标 ${n}%` },
-  en: { target: (n: number) => `Target ${n}%` },
-  'zh-TW': { target: (n: number) => `目標 ${n}%` },
-  th: { target: (n: number) => `เป้าหมาย ${n}%` },
-} as const;
-
 interface RateCardProps {
   label: string;
   rate: number; // 0~1
@@ -18,7 +10,6 @@ interface RateCardProps {
 }
 
 function RateCardBase({ label, rate, sub, target }: RateCardProps) {
-  const locale = useLocale();
   const pct = Math.round(rate * 100);
   const targetPct = target !== undefined ? Math.round(target * 100) : undefined;
   const status =
@@ -40,7 +31,7 @@ function RateCardBase({ label, rate, sub, target }: RateCardProps) {
           : 'text-primary-token';
 
   // vs 目标差值
-  const t = I18N[locale as keyof typeof I18N] ?? I18N.zh;
+  const t = useTranslations('RateCard');
   const vsDiff =
     targetPct !== undefined && pct !== null ? ((pct - targetPct) / targetPct) * 100 : null;
   const vsIsPositive = vsDiff !== null && vsDiff >= 0;
@@ -82,7 +73,7 @@ function RateCardBase({ label, rate, sub, target }: RateCardProps) {
               }}
             />
           </div>
-          <p className="text-xs text-muted-token mt-1">{t.target(targetPct)}</p>
+          <p className="text-xs text-muted-token mt-1">{t('target', { n: targetPct })}</p>
         </>
       )}
     </div>

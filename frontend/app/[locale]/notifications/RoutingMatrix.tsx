@@ -1,8 +1,8 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { mutate } from 'swr';
-import { useLocale } from 'next-intl';
 import { useFilteredSWR } from '@/lib/hooks/use-filtered-swr';
 import {
   Grid3X3,
@@ -17,126 +17,6 @@ import {
   Users,
   Shield,
 } from 'lucide-react';
-
-const I18N = {
-  zh: {
-    loadFailed: '加载失败',
-    contentModuleXAudience: '内容模块 × 受众路由',
-    modules: '个模块',
-    audienceLevels: '个受众级别',
-    addModule: '新增模块',
-    moduleId: '模块 ID',
-    moduleIdPlaceholder: '例: new_metrics',
-    description: '描述',
-    descriptionPlaceholder: '模块描述',
-    ccOnly: '仅 CC',
-    cancel: '取消',
-    save: '保存',
-    contentModule: '内容模块',
-    format: '格式',
-    actions: '操作',
-    image: '图片',
-    text: '文本',
-    enabledClickToDisable: '已启用 — 点击关闭',
-    disabledClickToEnable: '已关闭 — 点击启用',
-    editDescription: '编辑描述',
-    deleteModule: '删除模块',
-    confirmDelete: '确定删除模块',
-    roleMetrics: '角色指标口径',
-    audienceAll: '全员群',
-    audienceTl: 'TL 群',
-    audienceOps: '管理层',
-    clickToEditDesc: '点击编辑描述',
-  },
-  'zh-TW': {
-    loadFailed: '載入失敗',
-    contentModuleXAudience: '內容模組 × 受眾路由',
-    modules: '個模組',
-    audienceLevels: '個受眾級別',
-    addModule: '新增模組',
-    moduleId: '模組 ID',
-    moduleIdPlaceholder: '例: new_metrics',
-    description: '描述',
-    descriptionPlaceholder: '模組描述',
-    ccOnly: '僅 CC',
-    cancel: '取消',
-    save: '儲存',
-    contentModule: '內容模組',
-    format: '格式',
-    actions: '操作',
-    image: '圖片',
-    text: '文字',
-    enabledClickToDisable: '已啟用 — 點擊關閉',
-    disabledClickToEnable: '已關閉 — 點擊啟用',
-    editDescription: '編輯描述',
-    deleteModule: '刪除模組',
-    confirmDelete: '確定刪除模組',
-    roleMetrics: '角色指標口徑',
-    audienceAll: '全員群',
-    audienceTl: 'TL 群',
-    audienceOps: '管理層',
-    clickToEditDesc: '點擊編輯描述',
-  },
-  en: {
-    loadFailed: 'Failed to load',
-    contentModuleXAudience: 'Content Modules × Audience Routing',
-    modules: 'modules',
-    audienceLevels: 'audience levels',
-    addModule: 'Add Module',
-    moduleId: 'Module ID',
-    moduleIdPlaceholder: 'e.g. new_metrics',
-    description: 'Description',
-    descriptionPlaceholder: 'Module description',
-    ccOnly: 'CC only',
-    cancel: 'Cancel',
-    save: 'Save',
-    contentModule: 'Content Module',
-    format: 'Format',
-    actions: 'Actions',
-    image: 'Image',
-    text: 'Text',
-    enabledClickToDisable: 'Enabled — click to disable',
-    disabledClickToEnable: 'Disabled — click to enable',
-    editDescription: 'Edit description',
-    deleteModule: 'Delete module',
-    confirmDelete: 'Confirm delete module',
-    roleMetrics: 'Role Metric Definitions',
-    audienceAll: 'All Staff',
-    audienceTl: 'TL Group',
-    audienceOps: 'Management',
-    clickToEditDesc: 'Click to edit description',
-  },
-  th: {
-    loadFailed: 'โหลดล้มเหลว',
-    contentModuleXAudience: 'โมดูลเนื้อหา × การกำหนดเส้นทางผู้รับ',
-    modules: 'โมดูล',
-    audienceLevels: 'ระดับผู้รับ',
-    addModule: 'เพิ่มโมดูล',
-    moduleId: 'รหัสโมดูล',
-    moduleIdPlaceholder: 'เช่น new_metrics',
-    description: 'คำอธิบาย',
-    descriptionPlaceholder: 'คำอธิบายโมดูล',
-    ccOnly: 'เฉพาะ CC',
-    cancel: 'ยกเลิก',
-    save: 'บันทึก',
-    contentModule: 'โมดูลเนื้อหา',
-    format: 'รูปแบบ',
-    actions: 'การดำเนินการ',
-    image: 'รูปภาพ',
-    text: 'ข้อความ',
-    enabledClickToDisable: 'เปิดใช้งาน — คลิกเพื่อปิด',
-    disabledClickToEnable: 'ปิดใช้งาน — คลิกเพื่อเปิด',
-    editDescription: 'แก้ไขคำอธิบาย',
-    deleteModule: 'ลบโมดูล',
-    confirmDelete: 'ยืนยันการลบโมดูล',
-    roleMetrics: 'คำนิยามเมตริกตามบทบาท',
-    audienceAll: 'กลุ่มพนักงานทั้งหมด',
-    audienceTl: 'กลุ่ม TL',
-    audienceOps: 'ฝ่ายบริหาร',
-    clickToEditDesc: 'คลิกเพื่อแก้ไขคำอธิบาย',
-  },
-} as const;
-
 const API = '';
 
 interface Module {
@@ -168,13 +48,12 @@ const FORMAT_ICONS: Record<string, typeof Image> = {
 };
 
 export function RoutingMatrix() {
-  const locale = useLocale();
-  const t = I18N[locale as keyof typeof I18N] || I18N.zh;
+    const t = useTranslations('RoutingMatrix');
 
   const AUDIENCE_LABELS: Record<string, string> = {
-    all: t.audienceAll,
-    tl: t.audienceTl,
-    ops: t.audienceOps,
+    all: t('audienceAll'),
+    tl: t('audienceTl'),
+    ops: t('audienceOps'),
   };
 
   const ROUTING_KEY = `${API}/api/notifications/routing`;
@@ -191,7 +70,7 @@ export function RoutingMatrix() {
   const [saving, setSaving] = useState<string | null>(null);
 
   if (isLoading) return <div className="animate-pulse h-40 rounded-lg bg-subtle" />;
-  if (error || !data) return <div className="text-muted-token">{t.loadFailed}</div>;
+  if (error || !data) return <div className="text-muted-token">{t('loadFailed')}</div>;
 
   const { modules, audience_types } = data;
 
@@ -217,7 +96,7 @@ export function RoutingMatrix() {
   };
 
   const deleteModule = async (moduleId: string) => {
-    if (!confirm(`${t.confirmDelete} "${moduleId}"？`)) return;
+    if (!confirm(`${t('confirmDelete')} "${moduleId}"？`)) return;
     await fetch(`${API}/api/notifications/modules/${moduleId}`, { method: 'DELETE' });
     mutate((key) => typeof key === 'string' && key.startsWith(ROUTING_KEY));
   };
@@ -242,9 +121,9 @@ export function RoutingMatrix() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Grid3X3 className="w-5 h-5 text-secondary-token" />
-          <h3 className="text-sm font-semibold text-primary-token">{t.contentModuleXAudience}</h3>
+          <h3 className="text-sm font-semibold text-primary-token">{t('contentModuleXAudience')}</h3>
           <span className="text-xs text-muted-token">
-            {modules.length} {t.modules} · {audience_types.length} {t.audienceLevels}
+            {modules.length} {t('modules')} · {audience_types.length} {t('audienceLevels')}
           </span>
         </div>
         <button
@@ -253,7 +132,7 @@ export function RoutingMatrix() {
  bg-subtle hover:bg-bg-elevated transition-colors"
         >
           <Plus className="w-3.5 h-3.5" />
-          {t.addModule}
+          {t('addModule')}
         </button>
       </div>
 
@@ -262,21 +141,21 @@ export function RoutingMatrix() {
         <div className="p-4 rounded-lg border border-default-token bg-surface space-y-3">
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-xs text-muted-token mb-1 block">{t.moduleId}</label>
+              <label className="text-xs text-muted-token mb-1 block">{t('moduleId')}</label>
               <input
                 value={newModule.id}
                 onChange={(e) => setNewModule({ ...newModule, id: e.target.value })}
-                placeholder={t.moduleIdPlaceholder}
+                placeholder={t('moduleIdPlaceholder')}
                 className="w-full px-3 py-1.5 text-sm border border-default-token rounded-lg
  bg-bg-primary focus:outline-none focus:ring-2 focus:ring-action-token"
               />
             </div>
             <div>
-              <label className="text-xs text-muted-token mb-1 block">{t.description}</label>
+              <label className="text-xs text-muted-token mb-1 block">{t('description')}</label>
               <input
                 value={newModule.description}
                 onChange={(e) => setNewModule({ ...newModule, description: e.target.value })}
-                placeholder={t.descriptionPlaceholder}
+                placeholder={t('descriptionPlaceholder')}
                 className="w-full px-3 py-1.5 text-sm border border-default-token rounded-lg
  bg-bg-primary focus:outline-none focus:ring-2 focus:ring-action-token"
               />
@@ -289,7 +168,7 @@ export function RoutingMatrix() {
                 onChange={(e) => setNewModule({ ...newModule, format: e.target.value })}
                 className="px-2 py-1 text-xs border border-default-token rounded bg-bg-primary"
               >
-                <option value="image">{t.image}</option>
+                <option value="image">{t('image')}</option>
                 <option value="markdown">Markdown</option>
               </select>
             </label>
@@ -300,14 +179,14 @@ export function RoutingMatrix() {
                 onChange={(e) => setNewModule({ ...newModule, cc_only: e.target.checked })}
                 className="rounded"
               />
-              {t.ccOnly}
+              {t('ccOnly')}
             </label>
             <div className="flex-1" />
             <button
               onClick={() => setShowAdd(false)}
               className="px-3 py-1 text-xs text-muted-token hover:text-primary-token"
             >
-              {t.cancel}
+              {t('cancel')}
             </button>
             <button
               onClick={addModule}
@@ -317,7 +196,7 @@ export function RoutingMatrix() {
  disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               <Save className="w-3 h-3" />
-              {t.save}
+              {t('save')}
             </button>
           </div>
         </div>
@@ -329,10 +208,10 @@ export function RoutingMatrix() {
           <thead>
             <tr className="bg-subtle">
               <th className="text-left px-4 py-3 text-xs font-semibold text-secondary-token uppercase tracking-wider w-[280px]">
-                {t.contentModule}
+                {t('contentModule')}
               </th>
               <th className="text-left px-3 py-3 text-xs font-semibold text-secondary-token uppercase tracking-wider w-[90px]">
-                {t.format}
+                {t('format')}
               </th>
               {audience_types.map((aud) => (
                 <th
@@ -345,7 +224,7 @@ export function RoutingMatrix() {
                 </th>
               ))}
               <th className="text-center px-3 py-3 text-xs font-semibold text-muted-token w-[80px]">
-                {t.actions}
+                {t('actions')}
               </th>
             </tr>
           </thead>
@@ -402,7 +281,7 @@ export function RoutingMatrix() {
                               setEditingModule(mod.id);
                               setEditDesc(mod.description);
                             }}
-                            title={t.clickToEditDesc}
+                            title={t('clickToEditDesc')}
                           >
                             {mod.description || '—'}
                           </p>
@@ -415,7 +294,7 @@ export function RoutingMatrix() {
                   <td className="px-3 py-3">
                     <div className="flex items-center gap-1.5 text-xs text-muted-token">
                       <FormatIcon className="w-3.5 h-3.5" />
-                      {mod.format === 'image' ? t.image : t.text}
+                      {mod.format === 'image' ? t('image') : t('text')}
                     </div>
                   </td>
 
@@ -436,7 +315,7 @@ export function RoutingMatrix() {
      ? 'bg-success-surface text-success-token hover:bg-success-surface'
      : 'bg-subtle text-muted-token hover:bg-bg-elevated'
  } ${isSaving ? 'opacity-50' : ''}`}
-                          title={enabled ? t.enabledClickToDisable : t.disabledClickToEnable}
+                          title={enabled ? t('enabledClickToDisable') : t('disabledClickToEnable')}
                         >
                           {enabled ? <Check className="w-4 h-4" /> : <X className="w-4 h-4" />}
                         </button>
@@ -453,14 +332,14 @@ export function RoutingMatrix() {
                           setEditDesc(mod.description);
                         }}
                         className="p-1.5 text-muted-token hover:text-action-token hover:bg-subtle rounded-lg transition-colors"
-                        title={t.editDescription}
+                        title={t('editDescription')}
                       >
                         <Edit2 className="w-3.5 h-3.5" />
                       </button>
                       <button
                         onClick={() => deleteModule(mod.id)}
                         className="p-1.5 text-muted-token hover:text-danger-token hover:bg-danger-surface rounded-lg transition-colors"
-                        title={t.deleteModule}
+                        title={t('deleteModule')}
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
@@ -478,7 +357,7 @@ export function RoutingMatrix() {
         <div className="space-y-3">
           <div className="flex items-center gap-2">
             <Shield className="w-4 h-4 text-secondary-token" />
-            <h4 className="text-sm font-semibold text-primary-token">{t.roleMetrics}</h4>
+            <h4 className="text-sm font-semibold text-primary-token">{t('roleMetrics')}</h4>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             {Object.entries(data.role_metrics).map(([role, metrics]) => (

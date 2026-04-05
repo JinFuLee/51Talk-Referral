@@ -1,14 +1,5 @@
-import { useLocale } from 'next-intl';
+import { useTranslations } from 'next-intl';
 import { formatRate } from '@/lib/utils';
-
-const I18N = {
-  zh: { target: '目标' },
-  'zh-TW': { target: '目標' },
-  en: { target: 'Target' },
-  th: { target: 'เป้าหมาย' },
-} as const;
-type Locale = keyof typeof I18N;
-
 interface TargetGapCardProps {
   name: string;
   target: number;
@@ -18,8 +9,7 @@ interface TargetGapCardProps {
 }
 
 export function TargetGapCard({ name, target, actual, gap, achievement_rate }: TargetGapCardProps) {
-  const locale = useLocale() as Locale;
-  const t = I18N[locale] ?? I18N.zh;
+  const t = useTranslations('TargetGapCard');
   const isAbove = gap >= 0;
   const achievePct = achievement_rate * 100;
   const achieveColor =
@@ -42,7 +32,7 @@ export function TargetGapCard({ name, target, actual, gap, achievement_rate }: T
       </div>
       <div className="mt-2 flex items-center justify-between text-xs text-muted-token">
         <span>
-          {t.target} {(target ?? 0).toLocaleString()}
+          {t('target')} {(target ?? 0).toLocaleString()}
         </span>
         <span className={`font-medium ${isAbove ? 'text-success-token' : 'text-danger-token'}`}>
           {isAbove ? '+' : ''}

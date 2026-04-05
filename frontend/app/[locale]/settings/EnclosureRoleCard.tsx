@@ -1,77 +1,10 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { useState, useEffect, useCallback } from 'react';
-import { useLocale } from 'next-intl';
 import { Card } from '@/components/ui/Card';
 import { configAPI } from '@/lib/api';
 import { useFilteredSWR } from '@/lib/hooks/use-filtered-swr';
-
-const I18N = {
-  zh: {
-    cardTitle: '围场-岗位负责配置',
-    loading: '加载中…',
-    loadError: '加载配置失败，使用本地默认值',
-    narrowTitle: '窄口径负责配置',
-    narrowSubtitle: 'CC/SS/LP 主动联系场景',
-    wideTitle: '宽口径负责配置',
-    wideSubtitle: '学员自主打卡场景（打卡面板使用）',
-    resetBtn: '重置默认',
-    savingBtn: '保存中…',
-    savedBtn: '已保存',
-    saveBtn: '保存',
-    enclosureCol: '围场',
-    ops: '运营',
-    hint: '勾选 = 该围场由该岗位服务；允许多选。配置持久化到服务端，打卡面板读取宽口径配置。',
-  },
-  'zh-TW': {
-    cardTitle: '圍場-職位負責設定',
-    loading: '載入中…',
-    loadError: '載入設定失敗，使用本地預設值',
-    narrowTitle: '窄口徑負責設定',
-    narrowSubtitle: 'CC/SS/LP 主動聯繫場景',
-    wideTitle: '寬口徑負責設定',
-    wideSubtitle: '學員自主打卡場景（打卡面板使用）',
-    resetBtn: '重置預設',
-    savingBtn: '儲存中…',
-    savedBtn: '已儲存',
-    saveBtn: '儲存',
-    enclosureCol: '圍場',
-    ops: '運營',
-    hint: '勾選 = 該圍場由該職位服務；允許多選。設定持久化到服務端，打卡面板讀取寬口徑設定。',
-  },
-  en: {
-    cardTitle: 'Enclosure-Role Assignment',
-    loading: 'Loading…',
-    loadError: 'Failed to load config, using local defaults',
-    narrowTitle: 'Narrow Channel Assignment',
-    narrowSubtitle: 'CC/SS/LP proactive contact scenarios',
-    wideTitle: 'Wide Channel Assignment',
-    wideSubtitle: 'Student self check-in scenarios (check-in panel)',
-    resetBtn: 'Reset Default',
-    savingBtn: 'Saving…',
-    savedBtn: 'Saved',
-    saveBtn: 'Save',
-    enclosureCol: 'Enclosure',
-    ops: 'Ops',
-    hint: 'Checked = that enclosure is served by that role; multiple allowed. Config persists to server; check-in panel reads wide channel config.',
-  },
-  th: {
-    cardTitle: 'การกำหนดระยะเวลา-บทบาท',
-    loading: 'กำลังโหลด…',
-    loadError: 'โหลดการตั้งค่าไม่สำเร็จ ใช้ค่าเริ่มต้น',
-    narrowTitle: 'การกำหนดช่องทางแคบ',
-    narrowSubtitle: 'สถานการณ์ติดต่อเชิงรุก CC/SS/LP',
-    wideTitle: 'การกำหนดช่องทางกว้าง',
-    wideSubtitle: 'สถานการณ์เช็คอินด้วยตนเอง (หน้าเช็คอิน)',
-    resetBtn: 'รีเซ็ตค่าเริ่มต้น',
-    savingBtn: 'กำลังบันทึก…',
-    savedBtn: 'บันทึกแล้ว',
-    saveBtn: 'บันทึก',
-    enclosureCol: 'ระยะเวลา',
-    ops: 'ปฏิบัติการ',
-    hint: 'เครื่องหมายถูก = ระยะเวลานั้นให้บริการโดยบทบาทนั้น สามารถเลือกหลายข้อ ตั้งค่าถาวรที่เซิร์ฟเวอร์',
-  },
-};
 
 const ENCLOSURE_KEYS = [
   'M0',
@@ -165,7 +98,6 @@ function readLocalStorage(key: string): EnclosureRoleAssignment | null {
   return null;
 }
 
-type I18NType = (typeof I18N)['zh'];
 
 interface AssignmentTableProps {
   title: string;
@@ -173,7 +105,7 @@ interface AssignmentTableProps {
   assignment: EnclosureRoleAssignment;
   defaultVal: EnclosureRoleAssignment;
   onSave: (data: EnclosureRoleAssignment) => Promise<void>;
-  t: I18NType;
+  t: (key: string, params?: any) => string;
 }
 
 function AssignmentTable({
@@ -238,14 +170,14 @@ function AssignmentTable({
             disabled={saving}
             className="text-xs text-secondary-token hover:text-primary-token transition-colors disabled:opacity-40"
           >
-            {t.resetBtn}
+            {t('resetBtn')}
           </button>
           <button
             onClick={handleSave}
             disabled={saving}
             className="px-3 py-1 bg-action text-white rounded text-xs font-medium hover:bg-action-active transition-colors focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-action disabled:opacity-40"
           >
-            {saving ? t.savingBtn : saved ? t.savedBtn : t.saveBtn}
+            {saving ? t('savingBtn') : saved ? t('savedBtn') : t('saveBtn')}
           </button>
         </div>
       </div>
@@ -253,10 +185,10 @@ function AssignmentTable({
         <table className="w-full text-sm">
           <thead>
             <tr className="slide-thead-row text-xs">
-              <th className="text-left py-1.5 px-3">{t.enclosureCol}</th>
+              <th className="text-left py-1.5 px-3">{t('enclosureCol')}</th>
               {ROLES.map((role) => (
                 <th key={role} className="text-center py-1.5 px-3">
-                  {role === '运营' ? t.ops : role}
+                  {role === '运营' ? t('ops') : role}
                 </th>
               ))}
             </tr>
@@ -294,8 +226,7 @@ function AssignmentTable({
 }
 
 export default function EnclosureRoleCard() {
-  const locale = useLocale();
-  const t = (I18N as unknown as Record<string, (typeof I18N)['zh']>)[locale] ?? I18N['zh'];
+  const t = useTranslations('EnclosureRoleCard');
 
   const { data, mutate, isLoading, error } = useFilteredSWR<
     Record<string, Record<string, string[]>>
@@ -362,14 +293,14 @@ export default function EnclosureRoleCard() {
   }
 
   return (
-    <Card title={t.cardTitle}>
-      {isLoading && <div className="py-4 text-center text-xs text-muted-token">{t.loading}</div>}
-      {error && !isLoading && <div className="py-2 text-xs text-danger-token">{t.loadError}</div>}
+    <Card title={t('cardTitle')}>
+      {isLoading && <div className="py-4 text-center text-xs text-muted-token">{t('loading')}</div>}
+      {error && !isLoading && <div className="py-2 text-xs text-danger-token">{t('loadError')}</div>}
       {!isLoading && (
         <div className="space-y-6">
           <AssignmentTable
-            title={t.narrowTitle}
-            subtitle={t.narrowSubtitle}
+            title={t('narrowTitle')}
+            subtitle={t('narrowSubtitle')}
             assignment={narrowAssignment}
             defaultVal={DEFAULT_NARROW}
             onSave={handleSaveNarrow}
@@ -377,8 +308,8 @@ export default function EnclosureRoleCard() {
           />
           <div className="border-t border-subtle-token" />
           <AssignmentTable
-            title={t.wideTitle}
-            subtitle={t.wideSubtitle}
+            title={t('wideTitle')}
+            subtitle={t('wideSubtitle')}
             assignment={wideAssignment}
             defaultVal={DEFAULT_WIDE}
             onSave={handleSaveWide}
@@ -386,7 +317,7 @@ export default function EnclosureRoleCard() {
           />
         </div>
       )}
-      <p className="mt-3 text-xs text-muted-token">{t.hint}</p>
+      <p className="mt-3 text-xs text-muted-token">{t('hint')}</p>
     </Card>
   );
 }

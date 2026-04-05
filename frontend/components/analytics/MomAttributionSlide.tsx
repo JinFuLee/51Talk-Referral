@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { useLocale } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { useFilteredSWR } from '@/lib/hooks/use-filtered-swr';
 import { swrFetcher } from '@/lib/api';
 import { formatRate, formatRevenue } from '@/lib/utils';
@@ -9,112 +9,6 @@ import { SlideShell } from '@/components/presentation/SlideShell';
 import { SkeletonChart } from '@/components/ui/Skeleton';
 import type { MomAttribution, MomAttributionRow } from '@/lib/types/report';
 import type { SlideProps } from '@/lib/presentation/types';
-
-// ── 国际化 ───────────────────────────────────────
-const I18N: Record<
-  string,
-  {
-    title: string;
-    subtitle: string;
-    section: string;
-    metric: string;
-    lastMonth: string;
-    thisMonth: string;
-    target: string;
-    delta: string;
-    deltaPct: string;
-    vsTarget: string;
-    judgment: string;
-    error: string;
-    errorHint: string;
-    retry: string;
-    empty: string;
-    emptyHint: string;
-    insightVsTarget: string;
-    insightNeedsAttention: string;
-  }
-> = {
-  zh: {
-    title: 'MoM 增量归因',
-    subtitle: '7 指标 × 上月 / 本月 / 目标 / 增量 / 增量% / vs目标 / 判断',
-    section: '环比分析',
-    metric: '指标',
-    lastMonth: '上月',
-    thisMonth: '本月',
-    target: '目标',
-    delta: '增量',
-    deltaPct: '增量%',
-    vsTarget: 'vs目标',
-    judgment: '判断',
-    error: '数据加载失败',
-    errorHint: '请检查后端服务是否正常运行',
-    retry: '重试',
-    empty: '暂无 MoM 归因数据',
-    emptyHint: '请上传本月 Excel 数据源后自动刷新',
-    insightVsTarget: 'vs 目标',
-    insightNeedsAttention: '需重点关注',
-  },
-  'zh-TW': {
-    title: 'MoM 增量歸因',
-    subtitle: '7 指標 × 上月 / 本月 / 目標 / 增量 / 增量% / vs目標 / 判斷',
-    section: '環比分析',
-    metric: '指標',
-    lastMonth: '上月',
-    thisMonth: '本月',
-    target: '目標',
-    delta: '增量',
-    deltaPct: '增量%',
-    vsTarget: 'vs目標',
-    judgment: '判斷',
-    error: '資料載入失敗',
-    errorHint: '請檢查後端服務是否正常運行',
-    retry: '重試',
-    empty: '暫無 MoM 歸因資料',
-    emptyHint: '請上傳本月 Excel 資料源後自動刷新',
-    insightVsTarget: 'vs 目標',
-    insightNeedsAttention: '需重點關注',
-  },
-  en: {
-    title: 'MoM Attribution',
-    subtitle: '7 Metrics × Last / This / Target / Delta / Delta% / vs Target / Judgment',
-    section: 'MoM Analysis',
-    metric: 'Metric',
-    lastMonth: 'Last Mo.',
-    thisMonth: 'This Mo.',
-    target: 'Target',
-    delta: 'Δ',
-    deltaPct: 'Δ%',
-    vsTarget: 'vs Target',
-    judgment: 'Judg.',
-    error: 'Failed to load',
-    errorHint: 'Please check if backend is running',
-    retry: 'Retry',
-    empty: 'No MoM attribution data',
-    emptyHint: 'Upload monthly Excel data to refresh',
-    insightVsTarget: 'vs target',
-    insightNeedsAttention: 'needs attention',
-  },
-  th: {
-    title: 'การวิเคราะห์ MoM',
-    subtitle: '7 ตัวชี้วัด × เดือนก่อน / เดือนนี้ / เป้าหมาย / Δ / Δ% / vs เป้า / การตัดสิน',
-    section: 'การวิเคราะห์ MoM',
-    metric: 'ตัวชี้วัด',
-    lastMonth: 'เดือนก่อน',
-    thisMonth: 'เดือนนี้',
-    target: 'เป้าหมาย',
-    delta: 'Δ',
-    deltaPct: 'Δ%',
-    vsTarget: 'vs เป้า',
-    judgment: 'การตัดสิน',
-    error: 'โหลดข้อมูลล้มเหลว',
-    errorHint: 'กรุณาตรวจสอบบริการแบ็กเอนด์',
-    retry: 'ลองใหม่',
-    empty: 'ไม่มีข้อมูล MoM',
-    emptyHint: 'กรุณาอัปโหลดไฟล์ Excel ประจำเดือน',
-    insightVsTarget: 'vs เป้าหมาย',
-    insightNeedsAttention: 'ต้องให้ความสนใจ',
-  },
-};
 
 const METRIC_LABELS: Record<string, { zh: string; 'zh-TW': string; en: string; th: string }> = {
   revenue: { zh: '业绩 (USD)', 'zh-TW': '業績 (USD)', en: 'Revenue', th: 'รายได้ (USD)' },
@@ -155,7 +49,7 @@ type DailyReportSlice = { blocks: { mom_attribution: MomAttribution } };
 export function MomAttributionSlide({ slideNumber, totalSlides }: SlideProps) {
   const locale = useLocale();
   const lang = locale as 'zh' | 'zh-TW' | 'en' | 'th';
-  const t = I18N[locale] ?? I18N['zh'];
+  const t = useTranslations('MomAttributionSlide');
 
   const { data, isLoading, error, mutate } = useFilteredSWR<MomAttribution>('/api/report/daily', {
     fetcher: (url: string) =>
@@ -170,16 +64,16 @@ export function MomAttributionSlide({ slideNumber, totalSlides }: SlideProps) {
     const worst = rateRows.reduce((a, b) => (a.vs_target < b.vs_target ? a : b));
     const label =
       METRIC_LABELS[worst.metric]?.[lang as keyof (typeof METRIC_LABELS)[string]] ?? worst.metric;
-    return `${label} ${t.insightVsTarget} ${formatRate(worst.vs_target)}，${t.insightNeedsAttention}`;
+    return `${label} ${t('insightVsTarget')} ${formatRate(worst.vs_target)}，${t('insightNeedsAttention')}`;
   })();
 
   return (
     <SlideShell
       slideNumber={slideNumber}
       totalSlides={totalSlides}
-      title={t.title}
-      subtitle={t.subtitle}
-      section={t.section}
+      title={t('title')}
+      subtitle={t('subtitle')}
+      section={t('section')}
       insight={insight}
     >
       {isLoading ? (
@@ -189,34 +83,34 @@ export function MomAttributionSlide({ slideNumber, totalSlides }: SlideProps) {
       ) : error ? (
         <div className="flex items-center justify-center h-full">
           <div className="text-center space-y-2">
-            <p className="text-base font-semibold text-danger-token">{t.error}</p>
-            <p className="text-sm text-muted-token">{t.errorHint}</p>
+            <p className="text-base font-semibold text-danger-token">{t('error')}</p>
+            <p className="text-sm text-muted-token">{t('errorHint')}</p>
             <button
               onClick={() => mutate()}
               className="mt-1 px-4 py-1.5 rounded-lg text-sm border border-default-token text-secondary-token hover:bg-subtle transition-colors"
             >
-              {t.retry}
+              {t('retry')}
             </button>
           </div>
         </div>
       ) : rows.length === 0 ? (
         <div className="flex flex-col justify-center items-center h-full gap-3 text-muted-token">
-          <p className="text-base font-medium">{t.empty}</p>
-          <p className="text-sm">{t.emptyHint}</p>
+          <p className="text-base font-medium">{t('empty')}</p>
+          <p className="text-sm">{t('emptyHint')}</p>
         </div>
       ) : (
         <div className="overflow-auto h-full">
           <table className="w-full text-sm border-collapse">
             <thead>
               <tr className="slide-thead-row">
-                <th className="slide-th slide-th-left">{t.metric}</th>
-                <th className="slide-th slide-th-right">{t.lastMonth}</th>
-                <th className="slide-th slide-th-right">{t.thisMonth}</th>
-                <th className="slide-th slide-th-right">{t.target}</th>
-                <th className="slide-th slide-th-right">{t.delta}</th>
-                <th className="slide-th slide-th-right">{t.deltaPct}</th>
-                <th className="slide-th slide-th-right">{t.vsTarget}</th>
-                <th className="slide-th slide-th-center">{t.judgment}</th>
+                <th className="slide-th slide-th-left">{t('metric')}</th>
+                <th className="slide-th slide-th-right">{t('lastMonth')}</th>
+                <th className="slide-th slide-th-right">{t('thisMonth')}</th>
+                <th className="slide-th slide-th-right">{t('target')}</th>
+                <th className="slide-th slide-th-right">{t('delta')}</th>
+                <th className="slide-th slide-th-right">{t('deltaPct')}</th>
+                <th className="slide-th slide-th-right">{t('vsTarget')}</th>
+                <th className="slide-th slide-th-center">{t('judgment')}</th>
               </tr>
             </thead>
             <tbody>

@@ -1,17 +1,8 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { formatRate } from '@/lib/utils';
-import { useLocale } from 'next-intl';
-
-const I18N = {
-  zh: { low: '低', high: '高' },
-  en: { low: 'Low', high: 'High' },
-  'zh-TW': { low: '低', high: '高' },
-  th: { low: 'ต่ำ', high: 'สูง' },
-} as const;
-type Locale = keyof typeof I18N;
-
 export interface HeatmapCell {
   cc_name: string;
   segment: string;
@@ -47,8 +38,7 @@ function interpolateColor(value: number, min: number, max: number): string {
 
 export function CCHeatmap({ rows, cols, data, onCCClick, onCellClick }: CCHeatmapProps) {
   const [tooltip, setTooltip] = useState<{ x: number; y: number; text: string } | null>(null);
-  const locale = useLocale();
-  const t = I18N[(locale as Locale) in I18N ? (locale as Locale) : 'zh'];
+    const t = useTranslations('CCHeatmap');
 
   // 建立 (cc_name, segment) → value 查找表
   const valueMap = new Map<string, number>();
@@ -140,7 +130,7 @@ export function CCHeatmap({ rows, cols, data, onCCClick, onCellClick }: CCHeatma
 
         {/* 色阶图例 */}
         <div className="flex items-center gap-2 mt-3 text-xs text-muted-token">
-          <span>{t.low}</span>
+          <span>{t('low')}</span>
           <div
             className="h-3 w-32 rounded"
             style={{
@@ -148,7 +138,7 @@ export function CCHeatmap({ rows, cols, data, onCCClick, onCellClick }: CCHeatma
                 'linear-gradient(to right, rgb(59,130,246), rgb(234,179,8), rgb(239,68,68))',
             }}
           />
-          <span>{t.high}</span>
+          <span>{t('high')}</span>
         </div>
       </div>
     </div>

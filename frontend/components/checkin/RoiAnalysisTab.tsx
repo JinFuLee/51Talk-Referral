@@ -1,36 +1,10 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { useState } from 'react';
-import { useLocale } from 'next-intl';
 import { RoiDashboard } from '@/components/checkin/RoiDashboard';
 import { RoiStudentTable } from '@/components/checkin/RoiStudentTable';
 import { RoiChannelMatrix } from '@/components/checkin/RoiChannelMatrix';
-
-const I18N = {
-  zh: {
-    dashboard: '全局仪表盘',
-    students: '学员 ROI 排行',
-    channels: '渠道 ROI 矩阵',
-  },
-  'zh-TW': {
-    dashboard: '全局儀表板',
-    students: '學員 ROI 排行',
-    channels: '渠道 ROI 矩陣',
-  },
-  en: {
-    dashboard: 'Overview Dashboard',
-    students: 'Student ROI Ranking',
-    channels: 'Channel ROI Matrix',
-  },
-  th: {
-    dashboard: 'ภาพรวม Dashboard',
-    students: 'อันดับ ROI นักเรียน',
-    channels: 'เมทริกซ์ ROI ช่องทาง',
-  },
-} as const;
-
-type TabLocale = keyof typeof I18N;
-
 interface Props {
   roleFilter?: string;
   enclosureFilter?: string | null;
@@ -39,14 +13,13 @@ interface Props {
 type SubTabId = 'dashboard' | 'students' | 'channels';
 
 export function RoiAnalysisTab({ roleFilter, enclosureFilter }: Props) {
-  const locale = useLocale();
-  const t = I18N[(locale as TabLocale) in I18N ? (locale as TabLocale) : 'zh'];
+    const t = useTranslations('RoiAnalysisTab');
   const [activeSubTab, setActiveSubTab] = useState<SubTabId>('dashboard');
 
   const SUB_TABS: { id: SubTabId; label: string }[] = [
-    { id: 'dashboard', label: t.dashboard },
-    { id: 'students', label: t.students },
-    { id: 'channels', label: t.channels },
+    { id: 'dashboard', label: t('dashboard') },
+    { id: 'students', label: t('students') },
+    { id: 'channels', label: t('channels') },
   ];
 
   return (

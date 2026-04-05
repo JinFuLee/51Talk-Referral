@@ -1,58 +1,6 @@
-import { useLocale } from 'next-intl';
+import { useTranslations } from 'next-intl';
 import type { ChannelMetrics } from '@/lib/types/channel';
 import { formatRate } from '@/lib/utils';
-
-const I18N = {
-  zh: {
-    empty: '暂无渠道漏斗数据',
-    colChannel: '渠道',
-    stageRegistrations: '注册',
-    stageAppointments: '预约',
-    stageAttendance: '出席',
-    stagePayments: '付费',
-    colRegToAppt: '注→预',
-    colApptToShow: '预→出',
-    colShowToPay: '出→付',
-    total: '合计',
-  },
-  'zh-TW': {
-    empty: '暫無渠道漏斗資料',
-    colChannel: '渠道',
-    stageRegistrations: '註冊',
-    stageAppointments: '預約',
-    stageAttendance: '出席',
-    stagePayments: '付費',
-    colRegToAppt: '註→預',
-    colApptToShow: '預→出',
-    colShowToPay: '出→付',
-    total: '合計',
-  },
-  en: {
-    empty: 'No channel funnel data',
-    colChannel: 'Channel',
-    stageRegistrations: 'Reg',
-    stageAppointments: 'Appt',
-    stageAttendance: 'Attend',
-    stagePayments: 'Pay',
-    colRegToAppt: 'Reg→Appt',
-    colApptToShow: 'Appt→Show',
-    colShowToPay: 'Show→Pay',
-    total: 'Total',
-  },
-  th: {
-    empty: 'ไม่มีข้อมูล Funnel ตามช่องทาง',
-    colChannel: 'ช่องทาง',
-    stageRegistrations: 'ลงทะเบียน',
-    stageAppointments: 'นัดหมาย',
-    stageAttendance: 'เข้าร่วม',
-    stagePayments: 'ชำระเงิน',
-    colRegToAppt: 'ลง→นัด',
-    colApptToShow: 'นัด→เข้า',
-    colShowToPay: 'เข้า→ชำระ',
-    total: 'รวม',
-  },
-} as const;
-
 interface ChannelFunnelTableProps {
   channels: ChannelMetrics[];
 }
@@ -60,16 +8,15 @@ interface ChannelFunnelTableProps {
 const STAGES = ['registrations', 'appointments', 'attendance', 'payments'] as const;
 
 export function ChannelFunnelTable({ channels }: ChannelFunnelTableProps) {
-  const locale = useLocale();
-  const t = (I18N as unknown as Record<string, (typeof I18N)['zh']>)[locale] ?? I18N['zh'];
+  const t = useTranslations('ChannelFunnelTable');
   const STAGE_LABELS: Record<(typeof STAGES)[number], string> = {
-    registrations: t.stageRegistrations,
-    appointments: t.stageAppointments,
-    attendance: t.stageAttendance,
-    payments: t.stagePayments,
+    registrations: t('stageRegistrations'),
+    appointments: t('stageAppointments'),
+    attendance: t('stageAttendance'),
+    payments: t('stagePayments'),
   };
   if (channels.length === 0) {
-    return <p className="text-sm text-muted-token text-center py-6">{t.empty}</p>;
+    return <p className="text-sm text-muted-token text-center py-6">{t('empty')}</p>;
   }
 
   // Compute totals row (null-safe)
@@ -93,15 +40,15 @@ export function ChannelFunnelTable({ channels }: ChannelFunnelTableProps) {
       <table className="w-full text-sm">
         <thead>
           <tr className="slide-thead-row text-xs">
-            <th className="py-1.5 px-2 border-0 text-left">{t.colChannel}</th>
+            <th className="py-1.5 px-2 border-0 text-left">{t('colChannel')}</th>
             {STAGES.map((s) => (
               <th key={s} className="py-1.5 px-2 border-0 text-right">
                 {STAGE_LABELS[s]}
               </th>
             ))}
-            <th className="py-1.5 px-2 border-0 text-right">{t.colRegToAppt}</th>
-            <th className="py-1.5 px-2 border-0 text-right">{t.colApptToShow}</th>
-            <th className="py-1.5 px-2 border-0 text-right">{t.colShowToPay}</th>
+            <th className="py-1.5 px-2 border-0 text-right">{t('colRegToAppt')}</th>
+            <th className="py-1.5 px-2 border-0 text-right">{t('colApptToShow')}</th>
+            <th className="py-1.5 px-2 border-0 text-right">{t('colShowToPay')}</th>
           </tr>
         </thead>
         <tbody>
@@ -129,7 +76,7 @@ export function ChannelFunnelTable({ channels }: ChannelFunnelTableProps) {
           ))}
           {/* Totals row */}
           <tr className="bg-subtle font-semibold border-t border-subtle-token">
-            <td className="py-1 px-2 text-xs text-primary-token">{t.total}</td>
+            <td className="py-1 px-2 text-xs text-primary-token">{t('total')}</td>
             {STAGES.map((s) => (
               <td
                 key={s}

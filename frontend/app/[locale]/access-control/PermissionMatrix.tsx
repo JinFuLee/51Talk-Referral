@@ -1,45 +1,7 @@
 'use client';
 
 import { Globe, Check, X } from 'lucide-react';
-import { useLocale } from 'next-intl';
-
-// ── I18N ─────────────────────────────────────────────────────────────────────
-
-const I18N = {
-  zh: {
-    user: '用户',
-    publicPage: '公开页面',
-    noAccess: '无权限',
-    roleInherited: '角色继承',
-    noUsers: '暂无用户数据',
-    noData: '暂无权限数据',
-  },
-  'zh-TW': {
-    user: '用戶',
-    publicPage: '公開頁面',
-    noAccess: '無權限',
-    roleInherited: '角色繼承',
-    noUsers: '暫無用戶資料',
-    noData: '暫無權限資料',
-  },
-  en: {
-    user: 'User',
-    publicPage: 'Public',
-    noAccess: 'No access',
-    roleInherited: 'Via role',
-    noUsers: 'No users',
-    noData: 'No data',
-  },
-  th: {
-    user: 'ผู้ใช้',
-    publicPage: 'สาธารณะ',
-    noAccess: 'ไม่มีสิทธิ์',
-    roleInherited: 'ผ่านบทบาท',
-    noUsers: 'ไม่มีข้อมูลผู้ใช้',
-    noData: 'ไม่มีข้อมูลสิทธิ์',
-  },
-} as const;
-
+import { useLocale,  useTranslations } from 'next-intl';
 // ── 分类配置（与 PageOverview 保持一致）────────────────────────────────────
 
 const CATEGORY_INFO: Record<string, { zh: string; 'zh-TW': string; en: string; th: string }> = {
@@ -126,14 +88,10 @@ function MatrixCell({
 }
 
 // ── 主组件 ────────────────────────────────────────────────────────────────────
-
-type I18NLang = keyof typeof I18N;
-
 export default function PermissionMatrix({ users, pages, roles }: PermissionMatrixProps) {
+    const t = useTranslations('PermissionMatrix');
   const locale = useLocale();
-  const lang: I18NLang = (locale in I18N ? locale : 'en') as I18NLang;
-  const t = I18N[lang];
-
+  const lang = (['zh', 'zh-TW', 'en', 'th'].includes(locale) ? locale : 'en') as 'zh' | 'zh-TW' | 'en' | 'th';
   // 按分类分组页面
   const groupedPages: Record<string, PageEntry[]> = {};
   for (const p of pages) {
@@ -166,7 +124,7 @@ export default function PermissionMatrix({ users, pages, roles }: PermissionMatr
   if (users.length === 0) {
     return (
       <div className="state-empty">
-        <span className="text-sm">{t.noUsers}</span>
+        <span className="text-sm">{t('noUsers')}</span>
       </div>
     );
   }
@@ -179,19 +137,19 @@ export default function PermissionMatrix({ users, pages, roles }: PermissionMatr
           <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-success-surface">
             <Check className="w-3 h-3 text-success-token" />
           </span>
-          {t.roleInherited}
+          {t('roleInherited')}
         </span>
         <span className="flex items-center gap-1.5">
           <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-success-surface">
             <Globe className="w-3 h-3 text-success-token" />
           </span>
-          {t.publicPage}
+          {t('publicPage')}
         </span>
         <span className="flex items-center gap-1.5">
           <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-n-100">
             <X className="w-3 h-3 text-n-400" />
           </span>
-          {t.noAccess}
+          {t('noAccess')}
         </span>
       </div>
 
@@ -206,7 +164,7 @@ export default function PermissionMatrix({ users, pages, roles }: PermissionMatr
               <thead>
                 <tr className="slide-thead-row text-xs">
                   <th className="slide-th slide-th-left" style={{ minWidth: '160px' }}>
-                    {catInfo[lang] ?? catInfo.zh} — {t.user}
+                    {catInfo[lang] ?? catInfo.zh} — {t('user')}
                   </th>
                   {catPages.map((page) => (
                     <th
@@ -262,10 +220,10 @@ export default function PermissionMatrix({ users, pages, roles }: PermissionMatr
                             isRoleInherited={isRoleInherited}
                             title={
                               isPublic
-                                ? t.publicPage
+                                ? t('publicPage')
                                 : hasAccess
-                                  ? `${t.roleInherited}: ${userRole?.name_zh ?? user.role}`
-                                  : t.noAccess
+                                  ? `${t('roleInherited')}: ${userRole?.name_zh ?? user.role}`
+                                  : t('noAccess')
                             }
                           />
                         );

@@ -1,35 +1,7 @@
 'use client';
 
-import { useLocale } from 'next-intl';
+import { useTranslations } from 'next-intl';
 import { clsx } from 'clsx';
-
-/* ── I18N ────────────────────────────────────────────────────────── */
-
-const I18N = {
-  zh: {
-    empty: '暂无书籍',
-    chapterCount: (n: number) => `${n} 章`,
-    updatedAt: '更新于',
-  },
-  'zh-TW': {
-    empty: '暫無書籍',
-    chapterCount: (n: number) => `${n} 章`,
-    updatedAt: '更新於',
-  },
-  en: {
-    empty: 'No books available',
-    chapterCount: (n: number) => `${n} ch`,
-    updatedAt: 'Updated',
-  },
-  th: {
-    empty: 'ไม่มีหนังสือ',
-    chapterCount: (n: number) => `${n} บท`,
-    updatedAt: 'อัปเดต',
-  },
-} as const;
-
-type Locale = keyof typeof I18N;
-
 export interface Book {
   book_id: string;
   id: string;
@@ -57,13 +29,12 @@ function formatDate(iso: string): string {
 }
 
 export function BookShelf({ books, activeId, onSelect }: BookShelfProps) {
-  const locale = useLocale() as Locale;
-  const t = I18N[locale] ?? I18N.zh;
+  const t = useTranslations('BookShelf');
 
   if (books.length === 0) {
     return (
       <div className="flex gap-2 px-1 py-2">
-        <span className="text-xs text-muted-token">{t.empty}</span>
+        <span className="text-xs text-muted-token">{t('empty')}</span>
       </div>
     );
   }
@@ -99,7 +70,7 @@ export function BookShelf({ books, activeId, onSelect }: BookShelfProps) {
                 isActive ? 'text-white/70' : 'text-muted-token'
               )}
             >
-              {t.chapterCount(book.chapter_count)} · {t.updatedAt}{' '}
+              {t('chapterCount', { n: book.chapter_count })} · {t('updatedAt')}{' '}
               {formatDate(book.last_updated ?? book.updated_at ?? '')}
             </span>
           </button>

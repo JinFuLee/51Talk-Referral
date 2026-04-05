@@ -1,56 +1,9 @@
 'use client';
 
-import { useLocale } from 'next-intl';
+import { useTranslations } from 'next-intl';
 import { Card } from '@/components/ui/Card';
 import { PctInput } from '@/components/ui/NumInput';
 import type { EnclosureTarget, MonthlyTargetV2 } from '@/lib/types';
-
-const I18N = {
-  zh: {
-    cardTitle: '围场目标',
-    expand: '▶ 展开',
-    collapse: '▼ 收起',
-    placeholder: '点击右上角展开配置',
-    metric: '指标',
-    reach_rate: '触达率',
-    participation_rate: '参与率',
-    conversion_rate: '转化率',
-    checkin_rate: '打卡率',
-  },
-  'zh-TW': {
-    cardTitle: '圍場目標',
-    expand: '▶ 展開',
-    collapse: '▼ 收起',
-    placeholder: '點擊右上角展開設定',
-    metric: '指標',
-    reach_rate: '觸達率',
-    participation_rate: '參與率',
-    conversion_rate: '轉化率',
-    checkin_rate: '打卡率',
-  },
-  en: {
-    cardTitle: 'Enclosure Targets',
-    expand: '▶ Expand',
-    collapse: '▼ Collapse',
-    placeholder: 'Click top-right to expand',
-    metric: 'Metric',
-    reach_rate: 'Reach Rate',
-    participation_rate: 'Participation Rate',
-    conversion_rate: 'Conversion Rate',
-    checkin_rate: 'Check-in Rate',
-  },
-  th: {
-    cardTitle: 'เป้าหมายระยะเวลา',
-    expand: '▶ ขยาย',
-    collapse: '▼ ยุบ',
-    placeholder: 'คลิกมุมขวาบนเพื่อขยาย',
-    metric: 'ตัวชี้วัด',
-    reach_rate: 'อัตราการเข้าถึง',
-    participation_rate: 'อัตราการมีส่วนร่วม',
-    conversion_rate: 'อัตราการแปลง',
-    checkin_rate: 'อัตราเช็คอิน',
-  },
-};
 
 const ENCLOSURE_KEYS = [
   'd0_30',
@@ -100,13 +53,13 @@ interface CollapseToggleProps {
   onToggle: () => void;
 }
 
-function CollapseToggle({ open, onToggle, t }: CollapseToggleProps & { t: (typeof I18N)['zh'] }) {
+function CollapseToggle({ open, onToggle, t }: CollapseToggleProps & { t: (key: string, params?: any) => string }) {
   return (
     <button
       onClick={onToggle}
       className="text-xs text-secondary-token hover:text-primary-token flex items-center gap-1 transition-colors focus-visible:ring-2 focus-visible:ring-action rounded"
     >
-      <span>{open ? t.collapse : t.expand}</span>
+      <span>{open ? t('collapse') : t('expand')}</span>
     </button>
   );
 }
@@ -131,17 +84,16 @@ export default function EnclosureSettingsCard({
   onToggle,
   onUpdateEnclosure,
 }: EnclosureSettingsCardProps) {
-  const locale = useLocale();
-  const t = (I18N as unknown as Record<string, (typeof I18N)['zh']>)[locale] ?? I18N['zh'];
+  const t = useTranslations('EnclosureSettingsCard');
   const enclosures = v2.enclosures ?? ({} as Record<string, EnclosureTarget>);
   return (
-    <Card title={t.cardTitle} actions={<CollapseToggle open={open} onToggle={onToggle} t={t} />}>
+    <Card title={t('cardTitle')} actions={<CollapseToggle open={open} onToggle={onToggle} t={t} />}>
       {open ? (
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="slide-thead-row text-xs">
-                <th className="text-left py-1.5 px-2">{t.metric}</th>
+                <th className="text-left py-1.5 px-2">{t('metric')}</th>
                 {ENCLOSURE_KEYS.map((k) => (
                   <th key={k} className="text-right py-1.5 px-2">
                     {ENCLOSURE_LABELS[k]}
@@ -153,7 +105,7 @@ export default function EnclosureSettingsCard({
               {ENCLOSURE_METRIC_KEYS.map((metric) => (
                 <tr key={metric} className="border-b border-subtle-token">
                   <td className="py-1 px-2 text-xs text-secondary-token">
-                    {t[metric as keyof typeof t]}
+                    {t(metric)}
                   </td>
                   {ENCLOSURE_KEYS.map((k) => (
                     <td key={k} className="py-1 px-2 text-xs text-right">
@@ -169,7 +121,7 @@ export default function EnclosureSettingsCard({
           </table>
         </div>
       ) : (
-        <p className="text-sm text-muted-token">{t.placeholder}</p>
+        <p className="text-sm text-muted-token">{t('placeholder')}</p>
       )}
     </Card>
   );

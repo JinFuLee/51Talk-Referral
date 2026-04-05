@@ -1,6 +1,6 @@
 'use client';
 
-import { useLocale } from 'next-intl';
+import { useTranslations } from 'next-intl';
 import { useFilteredSWR } from '@/lib/hooks/use-filtered-swr';
 import { Spinner } from '@/components/ui/Spinner';
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -8,98 +8,6 @@ import { formatUSD } from '@/lib/utils';
 import type { RoiAnalysisResponse, ChannelRoiItem } from '@/lib/types/checkin-roi';
 import { CHANNEL_LABELS, useLabel } from '@/lib/label-maps';
 import { useWideConfig } from '@/lib/hooks/useWideConfig';
-
-// ── 内联 I18N ────────────────────────────────────────────────────────────────
-
-const I18N = {
-  zh: {
-    loadFailed: '渠道数据加载失败',
-    loadFailedDesc: '请检查后端服务是否正常运行',
-    noData: '暂无渠道 ROI 数据',
-    noDataDesc: '当前条件下无渠道活动数据',
-    calibrationNote: '口径说明：',
-    calibrationDesc: (mapping: string) =>
-      `渠道归因按围场段分配（${mapping}）。收入为近似值（带新付费数 × 平均客单价）。`,
-    channelHeader: '渠道',
-    newCountHeader: '带新人数',
-    newPaidHeader: '带新付费数',
-    costHeader: '成本 (USD)',
-    revenueHeader: '收入 (USD)',
-    roiHeader: 'ROI',
-    totalLabel: '合计',
-    best: '最优',
-    worst: '待改善',
-    convRate: '转化率',
-    cost: '成本',
-  },
-  'zh-TW': {
-    loadFailed: '渠道資料載入失敗',
-    loadFailedDesc: '請檢查後端服務是否正常執行',
-    noData: '暫無渠道 ROI 資料',
-    noDataDesc: '目前條件下無渠道活動資料',
-    calibrationNote: '口徑說明：',
-    calibrationDesc: (mapping: string) =>
-      `渠道歸因按圍場段分配（${mapping}）。收入為近似值（帶新付費數 × 平均客單價）。`,
-    channelHeader: '渠道',
-    newCountHeader: '帶新人數',
-    newPaidHeader: '帶新付費數',
-    costHeader: '成本 (USD)',
-    revenueHeader: '收入 (USD)',
-    roiHeader: 'ROI',
-    totalLabel: '合計',
-    best: '最優',
-    worst: '待改善',
-    convRate: '轉化率',
-    cost: '成本',
-  },
-  en: {
-    loadFailed: 'Failed to Load Channel Data',
-    loadFailedDesc: 'Please check whether the backend service is running.',
-    noData: 'No Channel ROI Data',
-    noDataDesc: 'No channel activity data under current filters.',
-    calibrationNote: 'Note: ',
-    calibrationDesc: (mapping: string) =>
-      `Channel attribution by enclosure (${mapping}). Revenue is approximate.`,
-    channelHeader: 'Channel',
-    newCountHeader: 'New Count',
-    newPaidHeader: 'New Paid',
-    costHeader: 'Cost (USD)',
-    revenueHeader: 'Revenue (USD)',
-    roiHeader: 'ROI',
-    totalLabel: 'Total',
-    best: 'Best',
-    worst: 'Needs Work',
-    convRate: 'Conv. Rate',
-    cost: 'Cost',
-  },
-  th: {
-    loadFailed: 'โหลดข้อมูลช่องทางล้มเหลว',
-    loadFailedDesc: 'กรุณาตรวจสอบว่าบริการแบ็คเอนด์ทำงานอยู่',
-    noData: 'ไม่มีข้อมูล ROI ช่องทาง',
-    noDataDesc: 'ไม่มีข้อมูลกิจกรรมช่องทางภายใต้เงื่อนไขปัจจุบัน',
-    calibrationNote: 'หมายเหตุ: ',
-    calibrationDesc: (mapping: string) =>
-      `การระบุแหล่งที่มาตามคอก (${mapping}) รายได้เป็นค่าประมาณ`,
-    channelHeader: 'ช่องทาง',
-    newCountHeader: 'จำนวนใหม่',
-    newPaidHeader: 'ชำระใหม่',
-    costHeader: 'ต้นทุน (USD)',
-    revenueHeader: 'รายได้ (USD)',
-    roiHeader: 'ROI',
-    totalLabel: 'รวม',
-    best: 'ดีที่สุด',
-    worst: 'ต้องปรับปรุง',
-    convRate: 'อัตราแปลง',
-    cost: 'ต้นทุน',
-  },
-} as const;
-
-type Locale = keyof typeof I18N;
-function useT() {
-  const locale = useLocale();
-  return I18N[(locale as Locale) in I18N ? (locale as Locale) : 'zh'];
-}
-
 interface Props {
   roleFilter?: string;
   enclosureFilter?: string | null;
@@ -146,7 +54,7 @@ function ChannelHighlight({
 }
 
 export function RoiChannelMatrix({ roleFilter, enclosureFilter }: Props) {
-  const t = useT();
+  const t = useTranslations('RoiChannelMatrix');
   const label = useLabel();
   const { roleEnclosures } = useWideConfig();
   const roleMapping = Object.entries(roleEnclosures ?? {})
@@ -169,11 +77,11 @@ export function RoiChannelMatrix({ roleFilter, enclosureFilter }: Props) {
   }
 
   if (error) {
-    return <EmptyState title={t.loadFailed} description={t.loadFailedDesc} />;
+    return <EmptyState title={t('loadFailed')} description={t('loadFailedDesc')} />;
   }
 
   if (!data || Object.keys(data.channel_roi).length === 0) {
-    return <EmptyState title={t.noData} description={t.noDataDesc} />;
+    return <EmptyState title={t('noData')} description={t('noDataDesc')} />;
   }
 
   const channelRoi = data.channel_roi;
@@ -211,8 +119,8 @@ export function RoiChannelMatrix({ roleFilter, enclosureFilter }: Props) {
       {/* 说明 */}
       <div className="card-base p-3 bg-subtle">
         <p className="text-xs text-secondary-token">
-          <strong>{t.calibrationNote}</strong>
-          {t.calibrationDesc(roleMapping)}
+          <strong>{t('calibrationNote')}</strong>
+          {t('calibrationDesc', { mapping: roleMapping })}
         </p>
       </div>
 
@@ -221,12 +129,12 @@ export function RoiChannelMatrix({ roleFilter, enclosureFilter }: Props) {
         <table className="w-full text-sm">
           <thead>
             <tr className="slide-thead-row">
-              <th className="slide-th">{t.channelHeader}</th>
-              <th className="slide-th text-right">{t.newCountHeader}</th>
-              <th className="slide-th text-right">{t.newPaidHeader}</th>
-              <th className="slide-th text-right">{t.costHeader}</th>
-              <th className="slide-th text-right">{t.revenueHeader}</th>
-              <th className="slide-th text-right">{t.roiHeader}</th>
+              <th className="slide-th">{t('channelHeader')}</th>
+              <th className="slide-th text-right">{t('newCountHeader')}</th>
+              <th className="slide-th text-right">{t('newPaidHeader')}</th>
+              <th className="slide-th text-right">{t('costHeader')}</th>
+              <th className="slide-th text-right">{t('revenueHeader')}</th>
+              <th className="slide-th text-right">{t('roiHeader')}</th>
             </tr>
           </thead>
           <tbody>
@@ -241,8 +149,8 @@ export function RoiChannelMatrix({ roleFilter, enclosureFilter }: Props) {
                       best={bestChannel}
                       worst={worstChannel}
                       channel={ch}
-                      bestLabel={t.best}
-                      worstLabel={t.worst}
+                      bestLabel={t('best')}
+                      worstLabel={t('worst')}
                     />
                   </td>
                   <td className="slide-td text-right">{(v.new_count ?? 0).toLocaleString()}</td>
@@ -258,7 +166,7 @@ export function RoiChannelMatrix({ roleFilter, enclosureFilter }: Props) {
           </tbody>
           <tfoot>
             <tr className="slide-tfoot-row font-semibold">
-              <td className="slide-td">{t.totalLabel}</td>
+              <td className="slide-td">{t('totalLabel')}</td>
               <td className="slide-td text-right">{(totals.new_count ?? 0).toLocaleString()}</td>
               <td className="slide-td text-right">{(totals.new_paid ?? 0).toLocaleString()}</td>
               <td className="slide-td text-right">{formatUSD(totals.cost_usd)}</td>
@@ -293,26 +201,26 @@ export function RoiChannelMatrix({ roleFilter, enclosureFilter }: Props) {
                 </span>
                 {ch === bestChannel && (
                   <span className="text-xs text-success-token bg-success-surface px-1.5 py-0.5 rounded-full">
-                    {t.best}
+                    {t('best')}
                   </span>
                 )}
                 {ch === worstChannel && ch !== bestChannel && (
                   <span className="text-xs text-danger-token bg-danger-surface px-1.5 py-0.5 rounded-full">
-                    {t.worst}
+                    {t('worst')}
                   </span>
                 )}
               </div>
               <p className="text-xl font-semibold" style={{ color: roiColor }}>
                 {v.roi != null ? `${v.roi.toFixed(1)}%` : '—'}
               </p>
-              <p className="text-xs text-muted-token mt-1">{t.roiHeader}</p>
+              <p className="text-xs text-muted-token mt-1">{t('roiHeader')}</p>
               <div className="mt-2 pt-2 border-t border-default-token space-y-0.5">
                 <div className="flex justify-between text-xs">
-                  <span className="text-muted-token">{t.convRate}</span>
+                  <span className="text-muted-token">{t('convRate')}</span>
                   <span className="text-secondary-token">{(convRate ?? 0).toFixed(1)}%</span>
                 </div>
                 <div className="flex justify-between text-xs">
-                  <span className="text-muted-token">{t.cost}</span>
+                  <span className="text-muted-token">{t('cost')}</span>
                   <span className="text-secondary-token">{formatUSD(v.cost_usd)}</span>
                 </div>
               </div>

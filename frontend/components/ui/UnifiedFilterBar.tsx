@@ -582,9 +582,9 @@ export function UnifiedFilterBar() {
           className="h-8 px-2.5 rounded-lg bg-subtle border border-subtle-token text-xs text-primary-token focus:ring-1 focus:ring-brand-p1-ring outline-none cursor-pointer transition-colors"
         >
           <option value="">{t('allTeams')}</option>
-          {teams.map((t) => (
-            <option key={t.value} value={t.value}>
-              {t.label || t.value}
+          {teams.map((item) => (
+            <option key={t('value')} value={t('value')}>
+              {t('label') || t('value')}
             </option>
           ))}
         </select>
@@ -844,9 +844,9 @@ export function UnifiedFilterBar() {
                 className="w-full bg-subtle border border-subtle-token text-primary-token text-sm font-medium rounded-lg focus:ring-2 focus:ring-brand-p1-ring focus:border-brand-p1 block px-3 py-2.5 outline-none transition-colors"
               >
                 <option value="">{t('allTeams')}</option>
-                {teams.map((t) => (
-                  <option key={t.value} value={t.value}>
-                    {t.label || t.value}
+                {teams.map((item) => (
+                  <option key={t('value')} value={t('value')}>
+                    {t('label') || t('value')}
                   </option>
                 ))}
               </select>

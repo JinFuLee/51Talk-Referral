@@ -2,18 +2,10 @@
 
 import Link from 'next/link';
 import { Info } from 'lucide-react';
-import { useLocale } from 'next-intl';
-
-const I18N = {
-  zh: { defaultLabel: '查看定义' },
-  'zh-TW': { defaultLabel: '查看定義' },
-  en: { defaultLabel: 'View definition' },
-  th: { defaultLabel: 'ดูคำจำกัดความ' },
-} as const;
-type I18NKey = keyof typeof I18N;
+import { useTranslations } from 'next-intl';
 function useDefaultLabel() {
-  const locale = useLocale();
-  return I18N[(locale as I18NKey) in I18N ? (locale as I18NKey) : 'zh'].defaultLabel;
+  const t = useTranslations('KnowledgeLink');
+  return t('defaultLabel');
 }
 
 interface KnowledgeLinkProps {

@@ -1,16 +1,8 @@
 'use client';
 
-import { useLocale } from 'next-intl';
+import { useTranslations } from 'next-intl';
 import { LangSwitcher } from './LangSwitcher';
 import { RoleSwitcher } from './RoleSwitcher';
-
-const I18N = {
-  zh: { title: '51Talk 转介绍运营面板', updatedLabel: '最后更新' },
-  'zh-TW': { title: '51Talk 轉介紹運營面板', updatedLabel: '最後更新' },
-  en: { title: '51Talk Referral Ops Panel', updatedLabel: 'Last updated' },
-  th: { title: '51Talk Referral Ops Panel', updatedLabel: 'อัปเดตล่าสุด' },
-} as const;
-
 interface HeaderProps {
   lang: 'zh' | 'th';
   onLangChange: (lang: 'zh' | 'th') => void;
@@ -20,9 +12,9 @@ interface HeaderProps {
 }
 
 export function Header({ lang, onLangChange, role, onRoleChange, lastUpdated }: HeaderProps) {
-  const locale = useLocale();
-  const t = I18N[locale as keyof typeof I18N] || I18N.zh;
-  const { title, updatedLabel } = t;
+    const t = useTranslations('Header');
+  const title = t('title');
+  const updatedLabel = t('updatedLabel');
 
   return (
     <header className="h-14 bg-surface/80 backdrop-blur-md border-b border-border/40 flex items-center justify-between px-6 shrink-0 relative z-40">

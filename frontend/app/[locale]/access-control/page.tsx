@@ -3,7 +3,7 @@
 import { useState, useCallback } from 'react';
 import { toast } from 'sonner';
 import { Shield } from 'lucide-react';
-import { useLocale } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { useFilteredSWR } from '@/lib/hooks/use-filtered-swr';
 import { usePageDimensions } from '@/lib/hooks/use-page-dimensions';
 import { PageHeader } from '@/components/layout/PageHeader';
@@ -12,38 +12,6 @@ import PageOverview from './PageOverview';
 import UserManagement from './UserManagement';
 import RoleEditor from './RoleEditor';
 import PermissionMatrix from './PermissionMatrix';
-
-// ── I18N ─────────────────────────────────────────────────────────────────────
-
-const I18N = {
-  zh: {
-    title: '权限管理',
-    subtitle: '管理页面访问权限、用户角色与公开设置',
-    tabs: {
-      pages: '页面总览',
-      users: '用户管理',
-      roles: '角色管理',
-      matrix: '权限矩阵',
-    },
-    loading: '加载中…',
-    error: '加载失败，请刷新重试',
-    saving: '保存中…',
-  },
-  en: {
-    title: 'Access Control',
-    subtitle: 'Manage page access, user roles, and public settings',
-    tabs: {
-      pages: 'Pages',
-      users: 'Users',
-      roles: 'Roles',
-      matrix: 'Matrix',
-    },
-    loading: 'Loading…',
-    error: 'Load failed, please refresh',
-    saving: 'Saving…',
-  },
-} as const;
-
 // ── 类型定义 ──────────────────────────────────────────────────────────────────
 
 interface PageEntry {
@@ -128,8 +96,7 @@ export default function AccessControlPage() {
   usePageDimensions({});
   const locale = useLocale();
   const lang = locale === 'zh' || locale === 'zh-TW' ? 'zh' : 'en';
-  const t = I18N[lang];
-
+  const t = useTranslations('accessControlPage');
   const [activeTab, setActiveTab] = useState<Tab>('pages');
 
   const {
@@ -298,15 +265,15 @@ export default function AccessControlPage() {
 
   return (
     <div className={BIZ_PAGE}>
-      <PageHeader title={t.title}>
-        <p className="text-sm text-muted-token">{t.subtitle}</p>
+      <PageHeader title={t('title')}>
+        <p className="text-sm text-muted-token">{t('subtitle')}</p>
       </PageHeader>
 
       {/* Tab 切换栏 */}
       <div className="flex items-center gap-1 p-1 bg-subtle rounded-xl w-fit">
         {(['pages', 'users', 'roles', 'matrix'] as Tab[]).map((tab) => (
           <TabButton key={tab} active={activeTab === tab} onClick={() => setActiveTab(tab)}>
-            {t.tabs[tab]}
+            {t(`tabs.${tab}`)}
           </TabButton>
         ))}
       </div>
@@ -315,14 +282,14 @@ export default function AccessControlPage() {
       {isLoading && (
         <div className="state-loading">
           <Shield className="w-5 h-5 text-muted-token animate-pulse" />
-          <span className="text-sm">{t.loading}</span>
+          <span className="text-sm">{t('loading')}</span>
         </div>
       )}
 
       {/* 错误态 */}
       {error && !isLoading && (
         <div className="state-error">
-          <span className="text-sm">{t.error}</span>
+          <span className="text-sm">{t('error')}</span>
         </div>
       )}
 

@@ -1,7 +1,7 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { useState, useRef, useCallback } from 'react';
-import { useLocale } from 'next-intl';
 import {
   Upload,
   X,
@@ -12,167 +12,6 @@ import {
   Loader2,
   ClipboardPaste,
 } from 'lucide-react';
-
-const I18N = {
-  zh: {
-    triggerBtn: '上传个人目标',
-    modalTitle: '上传 CC 个人目标',
-    step1: '步骤 1：下载模板',
-    downloadTemplate: '下载 CSV 模板',
-    templateHint: '模板已预填 CC 名字，只需填写转介绍业绩目标，付费/出席/leads 目标由系统自动推算',
-    step2: '步骤 2：输入数据',
-    tabFile: '上传文件',
-    tabPaste: '粘贴数据',
-    dropHint: '拖拽文件到此处或点击选择',
-    dropFormats: '支持 .csv 和 .xlsx',
-    selected: (name: string) => `已选择：${name}`,
-    pastePlaceholder: `从 Excel / Google Sheets 复制后粘贴，示例：\ncc_name\treferral_usd_target\nthcc-Zen\t3000\nthcc-Leo\t2500`,
-    pasteHint: '自动检测分隔符（Tab 或逗号）。含',
-    pasteHint2: '表头行会自动识别跳过；不含表头则按列序补全。',
-    xlsxHint: '点击「确认上传」后预览结果',
-    step3: (n: number) => `步骤 3：预览（前 ${n} 条）`,
-    totalRows: (total: number, preview: number) => `共 ${total} 条记录（预览前 ${preview} 条）`,
-    invalidRows: (n: number) => `${n} 行数字格式无法识别（已高亮），其余数据可正常上传`,
-    cancel: '取消',
-    confirmUpload: '确认上传',
-    uploading: '上传中...',
-    matchedSuccess: (n: number) => `${n} 个匹配成功（已写入）`,
-    duplicates: (n: number, names: string) => `${n} 条重名被合并（同名取最后一条）：${names}`,
-    orphanedTitle: (n: number) => `${n} 个未在数据中找到（目标已并入分配池）：`,
-    unmatchedTitle: (n: number) => `${n} 个 CC 无上传目标（系统按学员数自动分配）：`,
-    unmatchedMore: (n: number) => `等 ${n} 人`,
-    statusUploaded: (count: number, month: string) =>
-      `当前状态：已上传 ${count} 条个人目标（${month}）`,
-    statusUnknown: (month: string) => `当前月份：${month || '—'}，个人目标状态未知（上传后刷新）`,
-    clearTargets: '清除当前月目标（恢复按比例分配）',
-    onlyCsvXlsx: '仅支持 .csv 和 .xlsx 格式',
-    uploadFailed: '上传失败，请重试',
-    deleteFailed: '删除失败，请重试',
-    uploadFailedStatus: (status: number) => `上传失败 (${status})`,
-    deleteFailedStatus: (status: number) => `删除失败 (${status})`,
-    xlsxServerParse: 'Excel 文件将由服务端解析，点击「确认上传」后预览结果',
-  },
-  'zh-TW': {
-    triggerBtn: '上傳個人目標',
-    modalTitle: '上傳 CC 個人目標',
-    step1: '步驟 1：下載模板',
-    downloadTemplate: '下載 CSV 模板',
-    templateHint: '模板已預填 CC 名字，只需填寫轉介紹業績目標，付費/出席/leads 目標由系統自動推算',
-    step2: '步驟 2：輸入數據',
-    tabFile: '上傳文件',
-    tabPaste: '貼上數據',
-    dropHint: '拖曳文件到此處或點擊選擇',
-    dropFormats: '支援 .csv 和 .xlsx',
-    selected: (name: string) => `已選擇：${name}`,
-    pastePlaceholder: `從 Excel / Google Sheets 複製後貼上，範例：\ncc_name\treferral_usd_target\nthcc-Zen\t3000\nthcc-Leo\t2500`,
-    pasteHint: '自動偵測分隔符（Tab 或逗號）。含',
-    pasteHint2: '表頭行會自動識別跳過；不含表頭則按欄序補全。',
-    xlsxHint: '點擊「確認上傳」後預覽結果',
-    step3: (n: number) => `步驟 3：預覽（前 ${n} 條）`,
-    totalRows: (total: number, preview: number) => `共 ${total} 條記錄（預覽前 ${preview} 條）`,
-    invalidRows: (n: number) => `${n} 行數字格式無法識別（已高亮），其餘數據可正常上傳`,
-    cancel: '取消',
-    confirmUpload: '確認上傳',
-    uploading: '上傳中...',
-    matchedSuccess: (n: number) => `${n} 個匹配成功（已寫入）`,
-    duplicates: (n: number, names: string) => `${n} 條重名被合並（同名取最後一條）：${names}`,
-    orphanedTitle: (n: number) => `${n} 個未在數據中找到（目標已並入分配池）：`,
-    unmatchedTitle: (n: number) => `${n} 個 CC 無上傳目標（系統按學員數自動分配）：`,
-    unmatchedMore: (n: number) => `等 ${n} 人`,
-    statusUploaded: (count: number, month: string) =>
-      `當前狀態：已上傳 ${count} 條個人目標（${month}）`,
-    statusUnknown: (month: string) => `當前月份：${month || '—'}，個人目標狀態未知（上傳後刷新）`,
-    clearTargets: '清除當前月目標（恢復按比例分配）',
-    onlyCsvXlsx: '僅支援 .csv 和 .xlsx 格式',
-    uploadFailed: '上傳失敗，請重試',
-    deleteFailed: '刪除失敗，請重試',
-    uploadFailedStatus: (status: number) => `上傳失敗 (${status})`,
-    deleteFailedStatus: (status: number) => `刪除失敗 (${status})`,
-    xlsxServerParse: 'Excel 文件將由服務端解析，點擊「確認上傳」後預覽結果',
-  },
-  en: {
-    triggerBtn: 'Upload Targets',
-    modalTitle: 'Upload CC Individual Targets',
-    step1: 'Step 1: Download Template',
-    downloadTemplate: 'Download CSV Template',
-    templateHint:
-      'Template pre-fills CC names. Enter referral revenue target only; payment/showup/leads are auto-calculated.',
-    step2: 'Step 2: Enter Data',
-    tabFile: 'Upload File',
-    tabPaste: 'Paste Data',
-    dropHint: 'Drag file here or click to select',
-    dropFormats: 'Supports .csv and .xlsx',
-    selected: (name: string) => `Selected: ${name}`,
-    pastePlaceholder: `Paste from Excel / Google Sheets, e.g.:\ncc_name\treferral_usd_target\nthcc-Zen\t3000\nthcc-Leo\t2500`,
-    pasteHint: 'Auto-detects separator (Tab or comma). Rows with',
-    pasteHint2: 'header will be skipped; without header, columns are mapped by order.',
-    xlsxHint: 'Preview will show after clicking "Confirm Upload"',
-    step3: (n: number) => `Step 3: Preview (first ${n})`,
-    totalRows: (total: number, preview: number) =>
-      `${total} rows total (preview: first ${preview})`,
-    invalidRows: (n: number) =>
-      `${n} rows with invalid number format (highlighted); others can still be uploaded`,
-    cancel: 'Cancel',
-    confirmUpload: 'Confirm Upload',
-    uploading: 'Uploading...',
-    matchedSuccess: (n: number) => `${n} matched and written`,
-    duplicates: (n: number, names: string) => `${n} duplicates merged (last value kept): ${names}`,
-    orphanedTitle: (n: number) => `${n} not found in data (targets pooled):`,
-    unmatchedTitle: (n: number) =>
-      `${n} CCs have no uploaded target (auto-allocated by student count):`,
-    unmatchedMore: (n: number) => `and ${n} more`,
-    statusUploaded: (count: number, month: string) =>
-      `Status: ${count} targets uploaded (${month})`,
-    statusUnknown: (month: string) =>
-      `Month: ${month || '—'}, target status unknown (refresh after upload)`,
-    clearTargets: 'Clear monthly targets (restore proportional allocation)',
-    onlyCsvXlsx: 'Only .csv and .xlsx formats are supported',
-    uploadFailed: 'Upload failed, please retry',
-    deleteFailed: 'Delete failed, please retry',
-    uploadFailedStatus: (status: number) => `Upload failed (${status})`,
-    deleteFailedStatus: (status: number) => `Delete failed (${status})`,
-    xlsxServerParse: 'Excel file will be parsed server-side. Preview shows after "Confirm Upload".',
-  },
-  th: {
-    triggerBtn: 'อัปโหลดเป้าหมาย',
-    modalTitle: 'อัปโหลดเป้าหมายส่วนตัว CC',
-    step1: 'ขั้นตอนที่ 1: ดาวน์โหลดแม่แบบ',
-    downloadTemplate: 'ดาวน์โหลดแม่แบบ CSV',
-    templateHint: 'แม่แบบกรอกชื่อ CC ไว้แล้ว เพียงกรอกเป้าหมายรายได้',
-    step2: 'ขั้นตอนที่ 2: ป้อนข้อมูล',
-    tabFile: 'อัปโหลดไฟล์',
-    tabPaste: 'วางข้อมูล',
-    dropHint: 'ลากไฟล์มาวางหรือคลิกเลือก',
-    dropFormats: 'รองรับ .csv และ .xlsx',
-    selected: (name: string) => `เลือกแล้ว: ${name}`,
-    pastePlaceholder: `วางจาก Excel / Google Sheets เช่น:\ncc_name\treferral_usd_target\nthcc-Zen\t3000`,
-    pasteHint: 'ตรวจจับตัวคั่นอัตโนมัติ (Tab หรือจุลภาค) แถวที่มี',
-    pasteHint2: 'หัวตารางจะถูกข้ามโดยอัตโนมัติ',
-    xlsxHint: 'ตัวอย่างจะแสดงหลังกด "ยืนยันอัปโหลด"',
-    step3: (n: number) => `ขั้นตอนที่ 3: ตัวอย่าง (${n} รายการแรก)`,
-    totalRows: (total: number, preview: number) =>
-      `รวม ${total} รายการ (ตัวอย่าง ${preview} รายการแรก)`,
-    invalidRows: (n: number) => `${n} แถวรูปแบบตัวเลขไม่ถูกต้อง (ไฮไลต์)`,
-    cancel: 'ยกเลิก',
-    confirmUpload: 'ยืนยันอัปโหลด',
-    uploading: 'กำลังอัปโหลด...',
-    matchedSuccess: (n: number) => `จับคู่สำเร็จ ${n} รายการ`,
-    duplicates: (n: number, names: string) => `รวม ${n} ชื่อซ้ำ: ${names}`,
-    orphanedTitle: (n: number) => `ไม่พบในข้อมูล ${n} รายการ:`,
-    unmatchedTitle: (n: number) => `CC ${n} รายการไม่มีเป้าหมาย:`,
-    unmatchedMore: (n: number) => `และอีก ${n} คน`,
-    statusUploaded: (count: number, month: string) => `อัปโหลด ${count} เป้าหมาย (${month})`,
-    statusUnknown: (month: string) => `เดือน: ${month || '—'}, สถานะไม่ทราบ`,
-    clearTargets: 'ลบเป้าหมายเดือนนี้',
-    onlyCsvXlsx: 'รองรับเฉพาะ .csv และ .xlsx เท่านั้น',
-    uploadFailed: 'อัปโหลดล้มเหลว โปรดลองใหม่',
-    deleteFailed: 'ลบล้มเหลว โปรดลองใหม่',
-    uploadFailedStatus: (status: number) => `อัปโหลดล้มเหลว (${status})`,
-    deleteFailedStatus: (status: number) => `ลบล้มเหลว (${status})`,
-    xlsxServerParse: 'ไฟล์ Excel จะถูกประมวลผลที่เซิร์ฟเวอร์',
-  },
-} as const;
-
 interface CCTargetUploadProps {
   month: string; // YYYYMM
   onUploadSuccess: () => void;
@@ -220,8 +59,7 @@ function isCleanNumber(val: string): boolean {
 }
 
 export function CCTargetUpload({ month, onUploadSuccess }: CCTargetUploadProps) {
-  const locale = useLocale();
-  const t = I18N[locale as keyof typeof I18N] ?? I18N.zh;
+  const t = useTranslations('CCTargetUpload');
   const [isOpen, setIsOpen] = useState(false);
   const [inputMode, setInputMode] = useState<InputMode>('file');
   const [pasteText, setPasteText] = useState('');
@@ -398,7 +236,7 @@ export function CCTargetUpload({ month, onUploadSuccess }: CCTargetUploadProps) 
         setPreviewHeaders([]);
         setPreviewRows([]);
       } else {
-        setError(t.onlyCsvXlsx);
+        setError(t('onlyCsvXlsx'));
         setSelectedFile(null);
       }
     },
@@ -477,7 +315,7 @@ export function CCTargetUpload({ month, onUploadSuccess }: CCTargetUploadProps) 
       });
       if (!res.ok) {
         const text = await res.text().catch(() => res.statusText);
-        throw new Error(text || t.uploadFailedStatus(res.status));
+        throw new Error(text || t('uploadFailedStatus', { status: res.status }));
       }
       const data = await res.json();
       // import-sm 返回 cc_count/preview，upload 返回 count/matched/orphaned
@@ -494,7 +332,7 @@ export function CCTargetUpload({ month, onUploadSuccess }: CCTargetUploadProps) 
       });
       onUploadSuccess();
     } catch (err) {
-      setError(err instanceof Error ? err.message : t.uploadFailed);
+      setError(err instanceof Error ? err.message : t('uploadFailed'));
     } finally {
       setUploading(false);
     }
@@ -508,13 +346,13 @@ export function CCTargetUpload({ month, onUploadSuccess }: CCTargetUploadProps) 
       const res = await fetch(`/api/cc-performance/targets/${month}`, { method: 'DELETE' });
       if (!res.ok) {
         const text = await res.text().catch(() => res.statusText);
-        throw new Error(text || t.deleteFailedStatus(res.status));
+        throw new Error(text || t('deleteFailedStatus', { status: res.status }));
       }
       setUploadStatus(null);
       onUploadSuccess();
       reset();
     } catch (err) {
-      setError(err instanceof Error ? err.message : t.deleteFailed);
+      setError(err instanceof Error ? err.message : t('deleteFailed'));
     } finally {
       setDeleting(false);
     }
@@ -538,7 +376,7 @@ export function CCTargetUpload({ month, onUploadSuccess }: CCTargetUploadProps) 
         className="flex items-center gap-2 px-3 py-1.5 bg-surface border border-subtle-token text-secondary-token rounded-lg hover:bg-action-surface hover:text-action-text hover:border-action transition-colors shadow-sm text-sm font-medium focus:outline-none focus:ring-2 focus:ring-action/20"
       >
         <Upload className="w-4 h-4" />
-        {t.triggerBtn}
+        {t('triggerBtn')}
       </button>
 
       {/* 弹窗遮罩 */}
@@ -552,7 +390,7 @@ export function CCTargetUpload({ month, onUploadSuccess }: CCTargetUploadProps) 
           <div className="bg-surface rounded-xl shadow-xl max-w-2xl w-full max-h-[85vh] overflow-y-auto mx-4">
             {/* 弹窗头部 */}
             <div className="flex items-center justify-between px-6 py-4 border-b border-default-token">
-              <h2 className="text-base font-semibold text-primary-token">{t.modalTitle}</h2>
+              <h2 className="text-base font-semibold text-primary-token">{t('modalTitle')}</h2>
               <button
                 onClick={handleClose}
                 className="p-1 rounded-md text-muted-token hover:bg-subtle transition-colors"
@@ -564,7 +402,7 @@ export function CCTargetUpload({ month, onUploadSuccess }: CCTargetUploadProps) 
             <div className="p-6 space-y-6">
               {/* 步骤 1：下载模板 */}
               <div className="space-y-2">
-                <p className="text-sm font-medium text-primary-token">{t.step1}</p>
+                <p className="text-sm font-medium text-primary-token">{t('step1')}</p>
                 <button
                   onClick={() =>
                     window.open(`/api/cc-performance/targets/template?month=${month}`, '_blank')
@@ -572,14 +410,14 @@ export function CCTargetUpload({ month, onUploadSuccess }: CCTargetUploadProps) 
                   className="flex items-center gap-2 px-4 py-2 rounded-lg bg-success-token text-white text-sm font-medium hover:bg-success-token transition-colors"
                 >
                   <Download className="w-4 h-4" />
-                  {t.downloadTemplate}
+                  {t('downloadTemplate')}
                 </button>
-                <p className="text-xs text-muted-token">{t.templateHint}</p>
+                <p className="text-xs text-muted-token">{t('templateHint')}</p>
               </div>
 
               {/* 步骤 2：输入数据（文件上传 / 粘贴数据） */}
               <div className="space-y-3">
-                <p className="text-sm font-medium text-primary-token">{t.step2}</p>
+                <p className="text-sm font-medium text-primary-token">{t('step2')}</p>
 
                 {/* Tab 切换 */}
                 <div className="flex border-b border-default-token">
@@ -592,7 +430,7 @@ export function CCTargetUpload({ month, onUploadSuccess }: CCTargetUploadProps) 
                     }`}
                   >
                     <Upload className="w-3.5 h-3.5" />
-                    {t.tabFile}
+                    {t('tabFile')}
                   </button>
                   <button
                     onClick={() => switchMode('paste')}
@@ -603,7 +441,7 @@ export function CCTargetUpload({ month, onUploadSuccess }: CCTargetUploadProps) 
                     }`}
                   >
                     <ClipboardPaste className="w-3.5 h-3.5" />
-                    {t.tabPaste}
+                    {t('tabPaste')}
                   </button>
                 </div>
 
@@ -633,12 +471,12 @@ export function CCTargetUpload({ month, onUploadSuccess }: CCTargetUploadProps) 
                     <Upload className="w-8 h-8 mx-auto mb-2 text-muted-token" />
                     {selectedFile ? (
                       <p className="text-sm font-medium text-action-text-token">
-                        {t.selected(selectedFile.name)}
+                        {t('selected', { name: selectedFile.name })}
                       </p>
                     ) : (
                       <>
-                        <p className="text-sm text-secondary-token">{t.dropHint}</p>
-                        <p className="text-xs text-muted-token mt-1">{t.dropFormats}</p>
+                        <p className="text-sm text-secondary-token">{t('dropHint')}</p>
+                        <p className="text-xs text-muted-token mt-1">{t('dropFormats')}</p>
                       </>
                     )}
                   </div>
@@ -649,13 +487,13 @@ export function CCTargetUpload({ month, onUploadSuccess }: CCTargetUploadProps) 
                   <div className="space-y-2">
                     <textarea
                       className="w-full min-h-[9rem] rounded-lg border border-default-token bg-subtle px-3 py-2 font-mono text-sm text-primary-token placeholder:text-muted-token focus:outline-none focus:ring-2 focus:ring-accent-token/30 focus:border-accent-token resize-y transition-colors"
-                      placeholder={t.pastePlaceholder}
+                      placeholder={t('pastePlaceholder')}
                       value={pasteText}
                       onChange={(e) => handlePasteTextChange(e.target.value)}
                       spellCheck={false}
                     />
                     <p className="text-xs text-muted-token">
-                      {t.pasteHint} <code className="font-mono">cc_name</code> {t.pasteHint2}
+                      {t('pasteHint')} <code className="font-mono">cc_name</code> {t('pasteHint2')}
                     </p>
                   </div>
                 )}
@@ -664,7 +502,7 @@ export function CCTargetUpload({ month, onUploadSuccess }: CCTargetUploadProps) 
               {/* xlsx 提示 */}
               {inputMode === 'file' && selectedFile && isXlsx && (
                 <div className="rounded-lg bg-subtle border border-default-token px-4 py-3">
-                  <p className="text-sm text-secondary-token">{t.xlsxServerParse}</p>
+                  <p className="text-sm text-secondary-token">{t('xlsxServerParse')}</p>
                 </div>
               )}
 
@@ -672,7 +510,7 @@ export function CCTargetUpload({ month, onUploadSuccess }: CCTargetUploadProps) 
               {showPreview && (
                 <div className="space-y-2">
                   <p className="text-sm font-medium text-primary-token">
-                    {t.step3(Math.min(totalRowCount, 10))}
+                    {t('step3', { n: Math.min(totalRowCount, 10) })}
                   </p>
                   <div className="overflow-x-auto rounded-lg border border-default-token">
                     <table className="w-full text-left text-sm">
@@ -715,11 +553,11 @@ export function CCTargetUpload({ month, onUploadSuccess }: CCTargetUploadProps) 
                     </table>
                   </div>
                   <p className="text-xs text-muted-token">
-                    {t.totalRows(totalRowCount, Math.min(totalRowCount, 10))}
+                    {t('totalRows', { total: totalRowCount, preview: Math.min(totalRowCount, 10) })}
                   </p>
                   {invalidRowIndices.size > 0 && (
                     <p className="text-xs text-warning-token">
-                      {t.invalidRows(invalidRowIndices.size)}
+                      {t('invalidRows', { n: invalidRowIndices.size })}
                     </p>
                   )}
                 </div>
@@ -741,15 +579,14 @@ export function CCTargetUpload({ month, onUploadSuccess }: CCTargetUploadProps) 
                     <div className="flex items-start gap-2">
                       <CheckCircle className="w-4 h-4 text-success-token mt-0.5 flex-shrink-0" />
                       <p className="text-sm text-success-token">
-                        {t.matchedSuccess(uploadResult.matched)}
+                        {t('matchedSuccess', { n: uploadResult.matched })}
                       </p>
                     </div>
                     {uploadResult.duplicates > 0 && (
                       <p className="text-xs text-warning-token ml-6 mt-1">
-                        {t.duplicates(
-                          uploadResult.duplicates,
-                          uploadResult.duplicate_names.join('、')
-                        )}
+                        {t('duplicates', { n: uploadResult.duplicates,
+                          names: uploadResult.duplicate_names.join('、') })
+}
                       </p>
                     )}
                   </div>
@@ -761,7 +598,7 @@ export function CCTargetUpload({ month, onUploadSuccess }: CCTargetUploadProps) 
                         <AlertCircle className="w-4 h-4 text-warning-token mt-0.5 flex-shrink-0" />
                         <div className="space-y-1">
                           <p className="text-sm text-warning-token">
-                            {t.orphanedTitle(uploadResult.orphaned.length)}
+                            {t('orphanedTitle', { n: uploadResult.orphaned.length })}
                           </p>
                           <p className="font-mono text-xs text-warning-token leading-relaxed">
                             {uploadResult.orphaned
@@ -780,12 +617,12 @@ export function CCTargetUpload({ month, onUploadSuccess }: CCTargetUploadProps) 
                         <AlertCircle className="w-4 h-4 text-muted-token mt-0.5 flex-shrink-0" />
                         <div className="space-y-1">
                           <p className="text-sm text-muted-token">
-                            {t.unmatchedTitle(uploadResult.unmatched_d2.length)}
+                            {t('unmatchedTitle', { n: uploadResult.unmatched_d2.length })}
                           </p>
                           <p className="font-mono text-xs text-muted-token leading-relaxed">
                             {uploadResult.unmatched_d2.slice(0, 5).join('、')}
                             {uploadResult.unmatched_d2.length > 5 && (
-                              <>{t.unmatchedMore(uploadResult.unmatched_d2.length - 5)}</>
+                              <>{t('unmatchedMore', { n: uploadResult.unmatched_d2.length - 5 })}</>
                             )}
                           </p>
                         </div>

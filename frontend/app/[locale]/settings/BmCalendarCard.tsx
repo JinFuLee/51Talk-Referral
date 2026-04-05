@@ -1,111 +1,12 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { useState } from 'react';
-import { useLocale } from 'next-intl';
 import { toast } from 'sonner';
 import { configAPI } from '@/lib/api';
 import { useFilteredSWR } from '@/lib/hooks/use-filtered-swr';
 import { Spinner } from '@/components/ui/Spinner';
 import type { BmCalendarResponse, BmCalendarDay } from '@/lib/types/bm-calendar';
-
-const I18N = {
-  zh: {
-    loading: '加载 BM 日历…',
-    noData: '暂无',
-    year: '年',
-    month: '月',
-    bmCalTitle: 'BM 节奏配置',
-    totalWeight: '· 总权重',
-    resetBtn: '恢复默认',
-    legendWeekend: '周末',
-    legendKickoff: 'Kick Off',
-    legendHolidayOff: '调休',
-    legendDayOff: '休息日',
-    legendOverride: '手动覆盖',
-    dayLabels: ['一', '二', '三', '四', '五', '六', '日'],
-    dayTypeNormal: '正常',
-    dayTypeKickoff: 'Kick Off',
-    dayTypeHolidayOff: '调休',
-    toastUpdated: '已更新为「',
-    toastUpdatedSuffix: '」',
-    toastSaveFailed: '保存失败，请重试',
-    toastResetSuccess: '已恢复默认 BM 日历',
-    toastResetFailed: '恢复失败，请重试',
-    hint: '点击日期格子可修改当天类型。Kick Off 权重 2.0，调休权重 1.0，周末权重 5.0，普通工作日权重 3.0，周三权重 1.0。',
-  },
-  'zh-TW': {
-    loading: '載入 BM 日曆…',
-    noData: '暫無',
-    year: '年',
-    month: '月',
-    bmCalTitle: 'BM 節奏設定',
-    totalWeight: '· 總權重',
-    resetBtn: '恢復預設',
-    legendWeekend: '週末',
-    legendKickoff: 'Kick Off',
-    legendHolidayOff: '調休',
-    legendDayOff: '休息日',
-    legendOverride: '手動覆蓋',
-    dayLabels: ['一', '二', '三', '四', '五', '六', '日'],
-    dayTypeNormal: '正常',
-    dayTypeKickoff: 'Kick Off',
-    dayTypeHolidayOff: '調休',
-    toastUpdated: '已更新為「',
-    toastUpdatedSuffix: '」',
-    toastSaveFailed: '儲存失敗，請重試',
-    toastResetSuccess: '已恢復預設 BM 日曆',
-    toastResetFailed: '恢復失敗，請重試',
-    hint: '點擊日期格子可修改當天類型。Kick Off 權重 2.0，調休權重 1.0，週末權重 5.0，普通工作日權重 3.0，週三權重 1.0。',
-  },
-  en: {
-    loading: 'Loading BM calendar…',
-    noData: 'No data for',
-    year: '',
-    month: '',
-    bmCalTitle: 'BM Rhythm Config',
-    totalWeight: '· Total weight',
-    resetBtn: 'Reset Default',
-    legendWeekend: 'Weekend',
-    legendKickoff: 'Kick Off',
-    legendHolidayOff: 'Day Off',
-    legendDayOff: 'Rest Day',
-    legendOverride: 'Manual Override',
-    dayLabels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-    dayTypeNormal: 'Normal',
-    dayTypeKickoff: 'Kick Off',
-    dayTypeHolidayOff: 'Day Off',
-    toastUpdated: '',
-    toastUpdatedSuffix: ' updated',
-    toastSaveFailed: 'Save failed, please retry',
-    toastResetSuccess: 'BM calendar reset to default',
-    toastResetFailed: 'Reset failed, please retry',
-    hint: 'Click a date cell to change its type. Kick Off weight 2.0, Day Off 1.0, Weekend 5.0, Weekday 3.0, Wednesday 1.0.',
-  },
-  th: {
-    loading: 'กำลังโหลดปฏิทิน BM…',
-    noData: 'ไม่มีข้อมูล',
-    year: '',
-    month: '',
-    bmCalTitle: 'การกำหนดจังหวะ BM',
-    totalWeight: '· น้ำหนักรวม',
-    resetBtn: 'รีเซ็ตค่าเริ่มต้น',
-    legendWeekend: 'วันหยุดสุดสัปดาห์',
-    legendKickoff: 'Kick Off',
-    legendHolidayOff: 'วันหยุดชดเชย',
-    legendDayOff: 'วันหยุด',
-    legendOverride: 'แก้ไขด้วยตนเอง',
-    dayLabels: ['จ', 'อ', 'พ', 'พฤ', 'ศ', 'ส', 'อา'],
-    dayTypeNormal: 'ปกติ',
-    dayTypeKickoff: 'Kick Off',
-    dayTypeHolidayOff: 'วันหยุดชดเชย',
-    toastUpdated: '',
-    toastUpdatedSuffix: ' อัปเดตแล้ว',
-    toastSaveFailed: 'บันทึกไม่สำเร็จ กรุณาลองอีกครั้ง',
-    toastResetSuccess: 'รีเซ็ตปฏิทิน BM แล้ว',
-    toastResetFailed: 'รีเซ็ตไม่สำเร็จ กรุณาลองอีกครั้ง',
-    hint: 'คลิกวันที่เพื่อเปลี่ยนประเภท Kick Off น้ำหนัก 2.0, หยุดชดเชย 1.0, สุดสัปดาห์ 5.0, วันธรรมดา 3.0, วันพุธ 1.0',
-  },
-};
 
 interface BmCalendarCardProps {
   selectedMonth: string;
@@ -126,13 +27,12 @@ function dayTypeBg(dayType: string, isOverride: boolean): string {
 }
 
 export default function BmCalendarCard({ selectedMonth }: BmCalendarCardProps) {
-  const locale = useLocale();
-  const t = (I18N as unknown as Record<string, (typeof I18N)['zh']>)[locale] ?? I18N['zh'];
+  const t = useTranslations('BmCalendarCard');
 
   const DAY_TYPE_OPTIONS: { value: DayTypeOption; label: string; weight: number }[] = [
-    { value: 'normal', label: t.dayTypeNormal, weight: 0 },
-    { value: 'kickoff', label: t.dayTypeKickoff, weight: 2 },
-    { value: 'holiday_off', label: t.dayTypeHolidayOff, weight: 1 },
+    { value: 'normal', label: t('dayTypeNormal'), weight: 0 },
+    { value: 'kickoff', label: t('dayTypeKickoff'), weight: 2 },
+    { value: 'holiday_off', label: t('dayTypeHolidayOff'), weight: 1 },
   ];
 
   const { data, isLoading, mutate } = useFilteredSWR<BmCalendarResponse>(
@@ -145,7 +45,7 @@ export default function BmCalendarCard({ selectedMonth }: BmCalendarCardProps) {
   if (isLoading) {
     return (
       <div className="card-base flex items-center gap-2 text-sm text-muted-token">
-        <Spinner size="sm" /> {t.loading}
+        <Spinner size="sm" /> {t('loading')}
       </div>
     );
   }
@@ -153,10 +53,10 @@ export default function BmCalendarCard({ selectedMonth }: BmCalendarCardProps) {
   if (!data) {
     const yr = selectedMonth.slice(0, 4);
     const mo = selectedMonth.slice(4);
-    const label = t.year ? `${yr}${t.year}${mo}${t.month}` : `${yr}-${mo}`;
+    const label = t('year') ? `${yr}${t('year')}${mo}${t('month')}` : `${yr}-${mo}`;
     return (
       <div className="card-base text-sm text-muted-token">
-        {t.noData} {label} BM
+        {t('noData')} {label} BM
       </div>
     );
   }
@@ -212,7 +112,7 @@ export default function BmCalendarCard({ selectedMonth }: BmCalendarCardProps) {
           month: selectedMonth,
           specials: [
             ...existingSpecials,
-            { date: day.date, weight: 1, label: t.dayTypeHolidayOff },
+            { date: day.date, weight: 1, label: t('dayTypeHolidayOff') },
           ],
           kickoff_date: kickoffDate,
         });
@@ -220,9 +120,9 @@ export default function BmCalendarCard({ selectedMonth }: BmCalendarCardProps) {
 
       await mutate();
       const optLabel = DAY_TYPE_OPTIONS.find((o) => o.value === optionValue)?.label ?? optionValue;
-      toast.success(`${t.toastUpdated}${day.date} ${optLabel}${t.toastUpdatedSuffix}`);
+      toast.success(`${t('toastUpdated')}${day.date} ${optLabel}${t('toastUpdatedSuffix')}`);
     } catch {
-      toast.error(t.toastSaveFailed);
+      toast.error(t('toastSaveFailed'));
     } finally {
       setSaving(false);
       setActiveDate(null);
@@ -238,9 +138,9 @@ export default function BmCalendarCard({ selectedMonth }: BmCalendarCardProps) {
         kickoff_date: null,
       });
       await mutate();
-      toast.success(t.toastResetSuccess);
+      toast.success(t('toastResetSuccess'));
     } catch {
-      toast.error(t.toastResetFailed);
+      toast.error(t('toastResetFailed'));
     } finally {
       setSaving(false);
     }
@@ -248,23 +148,23 @@ export default function BmCalendarCard({ selectedMonth }: BmCalendarCardProps) {
 
   const yr = selectedMonth.slice(0, 4);
   const mo = selectedMonth.slice(4);
-  const monthLabel = t.year ? `${yr}${t.year}${mo}${t.month}` : `${yr}-${mo}`;
+  const monthLabel = t('year') ? `${yr}${t('year')}${mo}${t('month')}` : `${yr}-${mo}`;
 
   const legends = [
-    { bg: 'bg-accent-surface', label: t.legendWeekend },
-    { bg: 'bg-warning-surface', label: t.legendKickoff },
-    { bg: 'bg-danger-surface', label: t.legendHolidayOff },
-    { bg: 'bg-subtle', label: t.legendDayOff },
-    { bg: 'bg-white ring-1 ring-amber-400', label: t.legendOverride },
+    { bg: 'bg-accent-surface', label: t('legendWeekend') },
+    { bg: 'bg-warning-surface', label: t('legendKickoff') },
+    { bg: 'bg-danger-surface', label: t('legendHolidayOff') },
+    { bg: 'bg-subtle', label: t('legendDayOff') },
+    { bg: 'bg-white ring-1 ring-amber-400', label: t('legendOverride') },
   ];
 
   return (
     <div className="card-base">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h3 className="text-sm font-semibold text-primary-token">{t.bmCalTitle}</h3>
+          <h3 className="text-sm font-semibold text-primary-token">{t('bmCalTitle')}</h3>
           <p className="text-xs text-muted-token mt-0.5">
-            {monthLabel} {t.totalWeight}{' '}
+            {monthLabel} {t('totalWeight')}{' '}
             <span className="font-semibold text-secondary-token">{data.total_raw_weight}</span>
           </p>
         </div>
@@ -273,7 +173,7 @@ export default function BmCalendarCard({ selectedMonth }: BmCalendarCardProps) {
           disabled={saving}
           className="px-3 py-1.5 rounded-lg text-xs font-medium bg-subtle text-secondary-token hover:bg-n-200 transition-colors disabled:opacity-50"
         >
-          {saving ? <Spinner size="sm" /> : t.resetBtn}
+          {saving ? <Spinner size="sm" /> : t('resetBtn')}
         </button>
       </div>
 
@@ -288,7 +188,7 @@ export default function BmCalendarCard({ selectedMonth }: BmCalendarCardProps) {
 
       <div className="overflow-x-auto">
         <div className="grid grid-cols-7 gap-1 min-w-[420px]">
-          {t.dayLabels.map((l) => (
+          {['日', '一', '二', '三', '四', '五', '六'].map((l) => (
             <div key={l} className="text-center text-[10px] font-semibold text-muted-token py-1">
               {l}
             </div>
@@ -353,7 +253,7 @@ export default function BmCalendarCard({ selectedMonth }: BmCalendarCardProps) {
         </div>
       </div>
 
-      <p className="text-[10px] text-muted-token mt-3">{t.hint}</p>
+      <p className="text-[10px] text-muted-token mt-3">{t('hint')}</p>
     </div>
   );
 }

@@ -1,20 +1,7 @@
 import { cn } from '@/lib/utils';
 import { MiniSparkline } from '@/components/ui/MiniSparkline';
 import { KnowledgeLink } from '@/components/ui/KnowledgeLink';
-import { useLocale } from 'next-intl';
-
-const I18N = {
-  zh: { flat: '持平', target: '目标', achievement: '达成率' },
-  'zh-TW': { flat: '持平', target: '目標', achievement: '達成率' },
-  en: { flat: 'flat', target: 'Target', achievement: 'Achievement' },
-  th: { flat: 'คงที่', target: 'เป้าหมาย', achievement: 'อัตราสำเร็จ' },
-} as const;
-type I18NKey = keyof typeof I18N;
-function useT() {
-  const locale = useLocale();
-  return I18N[(locale as I18NKey) in I18N ? (locale as I18NKey) : 'zh'];
-}
-
+import { useTranslations } from 'next-intl';
 interface StatCardProps {
   label: string;
   value: string | number;
@@ -46,7 +33,7 @@ function achievementTextColor(rate: number): string {
 }
 
 function MomBadge({ change }: { change: number }) {
-  const t = useT();
+  const t = useTranslations('StatCard');
   const pct = (change * 100).toFixed(1);
   if (change > 0.001) {
     return (
@@ -62,7 +49,7 @@ function MomBadge({ change }: { change: number }) {
       </span>
     );
   }
-  return <span className="inline-flex items-center text-[10px] text-muted-token">— {t.flat}</span>;
+  return <span className="inline-flex items-center text-[10px] text-muted-token">— {t('flat')}</span>;
 }
 
 export function StatCard({
@@ -77,7 +64,7 @@ export function StatCard({
   knowledgeChapter,
   knowledgeBook,
 }: StatCardProps) {
-  const t = useT();
+  const t = useTranslations('StatCard');
   const pct = achievement !== undefined ? Math.round(achievement * 100) : null;
   const hasSparkline = sparkline && sparkline.filter((v) => v !== null).length >= 2;
 
@@ -132,7 +119,7 @@ export function StatCard({
       {target !== undefined && (
         <div className="flex items-center gap-1 mt-1">
           <span className="text-xs text-muted-token">
-            {t.target} {target}
+            {t('target')} {target}
           </span>
           {pct !== null && (
             <span
@@ -151,7 +138,7 @@ export function StatCard({
       {pct !== null && (
         <div className="mt-2">
           <div className="flex justify-between text-xs mb-1">
-            <span className="text-muted-token">{t.achievement}</span>
+            <span className="text-muted-token">{t('achievement')}</span>
             <span
               className="font-semibold"
               style={{ color: achievementTextColor(achievement ?? 0) }}

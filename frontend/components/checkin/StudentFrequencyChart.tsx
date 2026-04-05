@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import {
   BarChart,
   Bar,
@@ -11,69 +12,29 @@ import {
   LabelList,
 } from 'recharts';
 import type { TooltipProps } from 'recharts';
-import { useLocale } from 'next-intl';
 import { CHART_PALETTE } from '@/lib/chart-palette';
 import type { FrequencyItem } from '@/lib/types/checkin-student';
-
-const I18N = {
-  zh: {
-    zeroCheckin: '零打卡',
-    thisMonthN: (n: number) => `本月 ${n} 次`,
-    students: '学员人数：',
-    pct: '占比：',
-    noData: '暂无频次数据',
-    countSuffix: '次',
-  },
-  en: {
-    zeroCheckin: 'No Check-ins',
-    thisMonthN: (n: number) => `${n}× This Month`,
-    students: 'Students: ',
-    pct: 'Share: ',
-    noData: 'No frequency data',
-    countSuffix: 'x',
-  },
-  'zh-TW': {
-    zeroCheckin: '零打卡',
-    thisMonthN: (n: number) => `本月 ${n} 次`,
-    students: '學員人數：',
-    pct: '佔比：',
-    noData: '暫無頻次數據',
-    countSuffix: '次',
-  },
-  th: {
-    zeroCheckin: 'ไม่มีการเช็คอิน',
-    thisMonthN: (n: number) => `เดือนนี้ ${n} ครั้ง`,
-    students: 'นักเรียน: ',
-    pct: 'สัดส่วน: ',
-    noData: 'ไม่มีข้อมูลความถี่',
-    countSuffix: 'ครั้ง',
-  },
-} as const;
-
 interface StudentFrequencyChartProps {
   /** 0-6 次频次分布数组，共 7 项 */
   data: FrequencyItem[];
 }
-
-type TStrings = (typeof I18N)[keyof typeof I18N];
-
 /** 自定义 Tooltip */
-function CustomTooltip({ active, payload, t }: TooltipProps<number, string> & { t: TStrings }) {
+function CustomTooltip({ active, payload, t }: TooltipProps<number, string> & { t: (key: string, params?: any) => string }) {
   if (!active || !payload || payload.length === 0) return null;
   const item = payload[0].payload as FrequencyItem;
   return (
     <div className="bg-white border border-default-token rounded-lg shadow-md px-3 py-2 text-xs">
       <p className="font-semibold text-primary-token mb-0.5">
-        {item.count === 0 ? t.zeroCheckin : t.thisMonthN(item.count)}
+        {item.count === 0 ? t('zeroCheckin') : t('thisMonthN', { n: item.count })}
       </p>
       <p className="text-secondary-token">
-        {t.students}
+        {t('students')}
         <span className="font-mono tabular-nums font-semibold">
           {item.students.toLocaleString()}
         </span>
       </p>
       <p className="text-secondary-token">
-        {t.pct}
+        {t('pct')}
         <span className="font-mono tabular-nums font-semibold">{(item.pct * 100).toFixed(1)}%</span>
       </p>
     </div>
@@ -91,20 +52,19 @@ function CustomTooltip({ active, payload, t }: TooltipProps<number, string> & { 
  * <StudentFrequencyChart data={analysis.frequency_distribution} />
  */
 export function StudentFrequencyChart({ data }: StudentFrequencyChartProps) {
-  const locale = useLocale();
-  const t = I18N[locale as keyof typeof I18N] ?? I18N.zh;
+  const t = useTranslations('StudentFrequencyChart');
 
   if (!data || data.length === 0) {
     return (
       <div className="flex items-center justify-center h-[280px] text-sm text-muted-token">
-        {t.noData}
+        {t('noData')}
       </div>
     );
   }
 
   const chartData = data.map((item) => ({
     ...item,
-    label: item.count === 0 ? `0${t.countSuffix}` : `${item.count}${t.countSuffix}`,
+    label: item.count === 0 ? `0${t('countSuffix')}` : `${item.count}${t('countSuffix')}`,
   }));
 
   return (

@@ -1,35 +1,7 @@
 'use client';
 
-import { useLocale } from 'next-intl';
+import { useTranslations } from 'next-intl';
 import type { WarroomStudent } from '@/lib/types/cross-analysis';
-
-const I18N = {
-  zh: {
-    red: '紧急',
-    yellow: '关注',
-    green: '正常',
-    unit: '人',
-  },
-  'zh-TW': {
-    red: '緊急',
-    yellow: '關注',
-    green: '正常',
-    unit: '人',
-  },
-  en: {
-    red: 'Urgent',
-    yellow: 'Monitor',
-    green: 'Normal',
-    unit: '',
-  },
-  th: {
-    red: 'เร่งด่วน',
-    yellow: 'ติดตาม',
-    green: 'ปกติ',
-    unit: 'คน',
-  },
-} as const;
-
 interface UrgencyCardsProps {
   students: WarroomStudent[];
   activeFilter: 'red' | 'yellow' | 'green' | null;
@@ -64,8 +36,7 @@ const URGENCY_STYLE = {
 } as const;
 
 export function UrgencyCards({ students, activeFilter, onFilterChange }: UrgencyCardsProps) {
-  const locale = useLocale();
-  const t = I18N[locale as keyof typeof I18N] ?? I18N.zh;
+  const t = useTranslations('UrgencyCards');
 
   const counts = {
     red: students.filter((s) => s.urgency_level === 'red').length,
@@ -90,10 +61,10 @@ export function UrgencyCards({ students, activeFilter, onFilterChange }: Urgency
           >
             <div className="flex items-center gap-1.5 mb-1">
               <span className={`w-2.5 h-2.5 rounded-full ${style.dot}`} />
-              <span className={`text-xs font-medium ${style.text}`}>{t[level]}</span>
+              <span className={`text-xs font-medium ${style.text}`}>{t(level)}</span>
             </div>
             <span className={`text-3xl font-bold ${style.countText}`}>{counts[level]}</span>
-            {t.unit && <span className={`text-xs mt-0.5 ${style.text}`}>{t.unit}</span>}
+            {t('unit') && <span className={`text-xs mt-0.5 ${style.text}`}>{t('unit')}</span>}
           </button>
         );
       })}

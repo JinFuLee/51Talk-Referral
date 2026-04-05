@@ -10,18 +10,11 @@ import {
   ResponsiveContainer,
   Cell,
 } from 'recharts';
-import { useLocale } from 'next-intl';
+import { useTranslations } from 'next-intl';
 import type { CCContactRankItem } from '@/lib/types/cross-analysis';
 import { CHART_PALETTE } from '@/lib/chart-palette';
 
 type CCRankingI18N = { contactRate: string; callCount: string };
-const I18N: Record<string, CCRankingI18N> = {
-  zh: { contactRate: '触达率', callCount: '接通次数' },
-  'zh-TW': { contactRate: '觸達率', callCount: '接通次數' },
-  en: { contactRate: 'Contact Rate', callCount: 'Call Count' },
-  th: { contactRate: 'อัตราการติดต่อ', callCount: 'จำนวนการโทร' },
-};
-
 interface CCContactRankingProps {
   data: CCContactRankItem[];
 }
@@ -29,14 +22,13 @@ interface CCContactRankingProps {
 const COLORS = CHART_PALETTE.series;
 
 export function CCContactRanking({ data }: CCContactRankingProps) {
-  const locale = useLocale();
-  const t: CCRankingI18N = I18N[locale] ?? I18N['zh'];
+  const t = useTranslations('CCContactRanking');
 
   const sorted = [...data].sort((a, b) => b.contact_rate - a.contact_rate);
   const chartData = sorted.map((d) => ({
     name: d.cc_name,
-    [t.contactRate]: Math.round(d.contact_rate * 100),
-    [t.callCount]: d.contact_count,
+    [t('contactRate')]: Math.round(d.contact_rate * 100),
+    [t('callCount')]: d.contact_count,
     students: d.students,
   }));
 
@@ -61,7 +53,7 @@ export function CCContactRanking({ data }: CCContactRankingProps) {
           width={160}
         />
         <Tooltip
-          formatter={(v: number, name: string) => (name === t.contactRate ? `${v}%` : v)}
+          formatter={(v: number, name: string) => (name === t('contactRate') ? `${v}%` : v)}
           contentStyle={{
             background: 'var(--bg-surface)',
             border: '1px solid var(--border-default)',
@@ -72,7 +64,7 @@ export function CCContactRanking({ data }: CCContactRankingProps) {
           cursor={{ stroke: 'var(--border-hover)', strokeDasharray: '4 4' }}
         />
         <Bar
-          dataKey={t.contactRate}
+          dataKey={t('contactRate')}
           radius={[0, 4, 4, 0]}
           animationDuration={600}
           animationEasing="ease-out"

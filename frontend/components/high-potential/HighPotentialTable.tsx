@@ -1,73 +1,10 @@
 'use client';
 
 import { useState } from 'react';
-import { useLocale } from 'next-intl';
+import { useTranslations } from 'next-intl';
 import { SortableHeader } from '@/components/ui/SortableHeader';
 import type { HighPotentialStudent } from '@/lib/types/member';
 import type { WarroomStudent } from '@/lib/types/cross-analysis';
-
-const I18N = {
-  zh: {
-    colStudentId: '学员ID',
-    colEnclosure: '围场',
-    colTotalNew: '带新数',
-    colAttendance: '出席数',
-    colPayments: '付费数',
-    colEngagement: '参与深度',
-    colCheckin: '打卡次数',
-    colWindow: '窗口期',
-    deep: '深度',
-    shallow: '浅度',
-    daysSuffix: '天',
-  },
-  'zh-TW': {
-    colStudentId: '學員ID',
-    colEnclosure: '圍場',
-    colTotalNew: '帶新數',
-    colAttendance: '出席數',
-    colPayments: '付費數',
-    colEngagement: '參與深度',
-    colCheckin: '打卡次數',
-    colWindow: '窗口期',
-    deep: '深度',
-    shallow: '淺度',
-    daysSuffix: '天',
-  },
-  en: {
-    colStudentId: 'Student ID',
-    colEnclosure: 'Enclosure',
-    colTotalNew: 'New Referrals',
-    colAttendance: 'Attendance',
-    colPayments: 'Payments',
-    colEngagement: 'Engagement',
-    colCheckin: 'Check-ins',
-    colWindow: 'Window',
-    deep: 'Deep',
-    shallow: 'Shallow',
-    daysSuffix: 'd',
-  },
-  th: {
-    colStudentId: 'รหัสนักเรียน',
-    colEnclosure: 'คอก',
-    colTotalNew: 'นักเรียนใหม่',
-    colAttendance: 'เข้าร่วม',
-    colPayments: 'ชำระ',
-    colEngagement: 'การมีส่วนร่วม',
-    colCheckin: 'เช็คอิน',
-    colWindow: 'ช่วงเวลา',
-    deep: 'ลึก',
-    shallow: 'ตื้น',
-    daysSuffix: 'วัน',
-  },
-} as const;
-
-type Locale = keyof typeof I18N;
-
-function useT() {
-  const locale = useLocale();
-  return I18N[(locale as Locale) in I18N ? (locale as Locale) : 'zh'];
-}
-
 type SortKey =
   | 'id'
   | 'enclosure'
@@ -107,7 +44,7 @@ function UrgencyDot({ level }: { level?: 'red' | 'yellow' | 'green' }) {
 }
 
 export function HighPotentialTable({ students, warroomMap }: HighPotentialTableProps) {
-  const t = useT();
+  const t = useTranslations('HighPotentialTable');
   const [sortKey, setSortKey] = useState<SortKey>('total_new');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
 
@@ -151,7 +88,7 @@ export function HighPotentialTable({ students, warroomMap }: HighPotentialTableP
         <thead>
           <tr className="slide-thead-row">
             <SortableHeader
-              label={t.colStudentId}
+              label={t('colStudentId')}
               columnKey="id"
               currentSortKey={sortKey}
               currentSortDir={sortKey === 'id' ? sortDir : null}
@@ -159,7 +96,7 @@ export function HighPotentialTable({ students, warroomMap }: HighPotentialTableP
               className="slide-th slide-th-left"
             />
             <SortableHeader
-              label={t.colEnclosure}
+              label={t('colEnclosure')}
               columnKey="enclosure"
               currentSortKey={sortKey}
               currentSortDir={sortKey === 'enclosure' ? sortDir : null}
@@ -171,7 +108,7 @@ export function HighPotentialTable({ students, warroomMap }: HighPotentialTableP
             <th className="slide-th slide-th-left text-left px-4 py-3 text-sm font-medium">SS</th>
             <th className="slide-th slide-th-left text-left px-4 py-3 text-sm font-medium">LP</th>
             <SortableHeader
-              label={t.colTotalNew}
+              label={t('colTotalNew')}
               columnKey="total_new"
               currentSortKey={sortKey}
               currentSortDir={sortKey === 'total_new' ? sortDir : null}
@@ -180,7 +117,7 @@ export function HighPotentialTable({ students, warroomMap }: HighPotentialTableP
               className="slide-th slide-th-right"
             />
             <SortableHeader
-              label={t.colAttendance}
+              label={t('colAttendance')}
               columnKey="attendance"
               currentSortKey={sortKey}
               currentSortDir={sortKey === 'attendance' ? sortDir : null}
@@ -189,7 +126,7 @@ export function HighPotentialTable({ students, warroomMap }: HighPotentialTableP
               className="slide-th slide-th-right"
             />
             <SortableHeader
-              label={t.colPayments}
+              label={t('colPayments')}
               columnKey="payments"
               currentSortKey={sortKey}
               currentSortDir={sortKey === 'payments' ? sortDir : null}
@@ -198,10 +135,10 @@ export function HighPotentialTable({ students, warroomMap }: HighPotentialTableP
               className="slide-th slide-th-right"
             />
             <th className="slide-th slide-th-center text-center px-4 py-3 text-sm font-medium">
-              {t.colEngagement}
+              {t('colEngagement')}
             </th>
             <SortableHeader
-              label={t.colCheckin}
+              label={t('colCheckin')}
               columnKey="days_since_last_cc_contact"
               currentSortKey={sortKey}
               currentSortDir={sortKey === 'days_since_last_cc_contact' ? sortDir : null}
@@ -210,7 +147,7 @@ export function HighPotentialTable({ students, warroomMap }: HighPotentialTableP
               className="slide-th slide-th-right"
             />
             <th className="slide-th slide-th-right text-right px-4 py-3 text-sm font-medium">
-              {t.colWindow}
+              {t('colWindow')}
             </th>
           </tr>
         </thead>
@@ -302,7 +239,7 @@ export function HighPotentialTable({ students, warroomMap }: HighPotentialTableP
                           : 'bg-subtle text-muted-token'
                       }`}
                     >
-                      {s.deep_engagement ? t.deep : t.shallow}
+                      {s.deep_engagement ? t('deep') : t('shallow')}
                     </span>
                   ) : (
                     <span className="text-muted-token text-xs">—</span>
@@ -327,7 +264,7 @@ export function HighPotentialTable({ students, warroomMap }: HighPotentialTableP
                       }`}
                     >
                       {warroom.days_remaining}
-                      {t.daysSuffix}
+                      {t('daysSuffix')}
                     </span>
                   ) : (
                     <span className="text-muted-token text-xs">—</span>

@@ -1,133 +1,8 @@
 'use client';
 
-import { useLocale } from 'next-intl';
+import { useTranslations } from 'next-intl';
 import { formatUSD, formatValue } from '@/lib/utils';
 import type { GapDashboard } from '@/lib/types/report';
-
-// ── I18N ──────────────────────────────────────────────────────────────────────
-const I18N: Record<
-  string,
-  {
-    title: string;
-    subtitle: string;
-    viewBm: string;
-    viewMonthly: string;
-    gapItems: Record<string, string>;
-    channelTargets: string;
-    channelGaps: string;
-    bmDesc: string;
-    monthlyDesc: string;
-    noData: string;
-    noDataDesc: string;
-    channel: string;
-    target: string;
-    gap: string;
-    shortfall: string;
-    surplus: string;
-  }
-> = {
-  zh: {
-    title: '缺口仪表盘',
-    subtitle: '各类缺口数值 · 从业绩倒推到注册数',
-    viewBm: 'BM 进度',
-    viewMonthly: '月度达标',
-    gapItems: {
-      revenue_gap: '业绩缺口',
-      asp_gap: '客单价缺口',
-      bill_gap: '付费缺口（笔）',
-      showup_gap: '出席缺口（人）',
-      appt_gap: '预约缺口（人）',
-      lead_gap: '注册缺口（人）',
-    },
-    channelTargets: '渠道口径目标',
-    channelGaps: '各渠道注册缺口',
-    bmDesc: '相对 BM 进度线的超额/缺口',
-    monthlyDesc: '相对月度目标 100% 的超额/缺口',
-    noData: '暂无数据',
-    noDataDesc: '请上传本月 Excel 数据源',
-    channel: '渠道',
-    target: '目标',
-    gap: '缺口',
-    shortfall: '缺口',
-    surplus: '超额',
-  },
-  'zh-TW': {
-    title: '缺口儀表板',
-    subtitle: '各類缺口數值 · 從業績倒推到註冊數',
-    viewBm: 'BM 進度',
-    viewMonthly: '月度達標',
-    gapItems: {
-      revenue_gap: '業績缺口',
-      asp_gap: '客單價缺口',
-      bill_gap: '付費缺口（筆）',
-      showup_gap: '出席缺口（人）',
-      appt_gap: '預約缺口（人）',
-      lead_gap: '註冊缺口（人）',
-    },
-    channelTargets: '渠道口徑目標',
-    channelGaps: '各渠道註冊缺口',
-    bmDesc: '相對 BM 進度線的超額/缺口',
-    monthlyDesc: '相對月度目標 100% 的超額/缺口',
-    noData: '暫無資料',
-    noDataDesc: '請上傳本月 Excel 資料源',
-    channel: '渠道',
-    target: '目標',
-    gap: '缺口',
-    shortfall: '缺口',
-    surplus: '超額',
-  },
-  en: {
-    title: 'Gap Dashboard',
-    subtitle: 'Key gaps · Revenue down to registrations',
-    gapItems: {
-      revenue_gap: 'Revenue Gap',
-      asp_gap: 'ASP Gap',
-      bill_gap: 'Payment Gap (count)',
-      showup_gap: 'Attendance Gap (pax)',
-      appt_gap: 'Appointment Gap (pax)',
-      lead_gap: 'Registration Gap (pax)',
-    },
-    channelTargets: 'Channel Targets',
-    channelGaps: 'Channel Registration Gaps',
-    viewBm: 'BM Pace',
-    viewMonthly: 'Monthly Target',
-    bmDesc: 'Surplus/gap vs BM pace line',
-    monthlyDesc: 'Surplus/gap vs 100% monthly target',
-    noData: 'No data available',
-    noDataDesc: "Please upload this month's Excel data source",
-    channel: 'Channel',
-    target: 'Target',
-    gap: 'Gap',
-    shortfall: 'Short',
-    surplus: 'Surplus',
-  },
-  th: {
-    title: 'แดชบอร์ดช่องว่าง',
-    subtitle: 'ช่องว่างหลัก · จากรายได้ถึงการลงทะเบียน',
-    viewBm: 'ความคืบหน้า BM',
-    viewMonthly: 'เป้าประจำเดือน',
-    gapItems: {
-      revenue_gap: 'ช่องว่างรายได้',
-      asp_gap: 'ช่องว่าง ASP',
-      bill_gap: 'ช่องว่างชำระ (ครั้ง)',
-      showup_gap: 'ช่องว่างเข้าร่วม (คน)',
-      appt_gap: 'ช่องว่างนัดหมาย (คน)',
-      lead_gap: 'ช่องว่างลงทะเบียน (คน)',
-    },
-    channelTargets: 'เป้าหมายช่องทาง',
-    channelGaps: 'ช่องว่างลงทะเบียนแต่ละช่องทาง',
-    bmDesc: 'ส่วนเกิน/ช่องว่าง vs แนว BM',
-    monthlyDesc: 'ส่วนเกิน/ช่องว่าง vs เป้า 100%',
-    noData: 'ไม่มีข้อมูล',
-    noDataDesc: 'กรุณาอัปโหลดไฟล์ Excel ประจำเดือน',
-    channel: 'ช่องทาง',
-    target: 'เป้าหมาย',
-    gap: 'ช่องว่าง',
-    shortfall: 'ขาด',
-    surplus: 'เกิน',
-  },
-};
-
 type Lang = string;
 
 const GAP_KEYS = [
@@ -161,14 +36,13 @@ interface Props {
 }
 
 export function GapDashboardSlide({ data, monthlyData }: Props) {
-  const locale = useLocale();
-  const t = I18N[locale] ?? I18N['zh'];
+  const t = useTranslations('GapDashboardSlide');
 
   if (!data) {
     return (
       <div className="card-base p-5 flex flex-col justify-center items-center gap-2 min-h-[280px]">
-        <p className="text-sm font-medium text-secondary-token">{t.noData}</p>
-        <p className="text-xs text-muted-token">{t.noDataDesc}</p>
+        <p className="text-sm font-medium text-secondary-token">{t('noData')}</p>
+        <p className="text-xs text-muted-token">{t('noDataDesc')}</p>
       </div>
     );
   }
@@ -182,7 +56,7 @@ export function GapDashboardSlide({ data, monthlyData }: Props) {
 
   function renderGapCard(key: GapKey, val: number | null | undefined, compact = false) {
     const isNeg = (val ?? 0) < 0;
-    const label = isNeg ? t.shortfall : t.surplus;
+    const label = isNeg ? t('shortfall') : t('surplus');
     const isRevOrAsp = key === 'revenue_gap' || key === 'asp_gap';
     return (
       <div
@@ -192,7 +66,7 @@ export function GapDashboardSlide({ data, monthlyData }: Props) {
         }`}
       >
         <p className="text-[9px] font-semibold text-muted-token uppercase tracking-wide mb-1">
-          {t.gapItems[key]}
+          {t(`gapItems.${key}`)}
         </p>
         <p
           className={`${compact ? 'text-sm' : 'text-base'} font-bold font-mono tabular-nums ${gapStatusColor(val)}`}
@@ -211,17 +85,17 @@ export function GapDashboardSlide({ data, monthlyData }: Props) {
     <div className="card-base p-5 flex flex-col gap-4">
       {/* Header */}
       <div>
-        <h3 className="text-sm font-bold text-primary-token font-display">{t.title}</h3>
-        <p className="text-xs text-muted-token mt-0.5">{t.subtitle}</p>
+        <h3 className="text-sm font-bold text-primary-token font-display">{t('title')}</h3>
+        <p className="text-xs text-muted-token mt-0.5">{t('subtitle')}</p>
       </div>
 
       {/* Section 1: 月度达标视角（主要） */}
       <div>
         <p className="text-[10px] font-semibold text-secondary-token uppercase tracking-wide mb-2">
-          {t.monthlyDesc}
+          {t('monthlyDesc')}
         </p>
         {!monthlyData ? (
-          <p className="text-xs text-muted-token py-2">{t.noData}</p>
+          <p className="text-xs text-muted-token py-2">{t('noData')}</p>
         ) : (
           <div className="grid grid-cols-2 gap-3">
             {GAP_KEYS.map((key) => renderGapCard(key, monthlyGaps[key]))}
@@ -232,14 +106,14 @@ export function GapDashboardSlide({ data, monthlyData }: Props) {
         {channelKeys.length > 0 && (
           <div className="mt-3">
             <p className="text-[10px] font-semibold text-muted-token uppercase tracking-wide mb-2">
-              {t.channelGaps}
+              {t('channelGaps')}
             </p>
             <table className="w-full text-xs border-collapse">
               <thead>
                 <tr className="slide-thead-row">
-                  <th className="slide-th slide-th-left">{t.channel}</th>
-                  <th className="slide-th slide-th-right">{t.target}</th>
-                  <th className="slide-th slide-th-right">{t.gap}</th>
+                  <th className="slide-th slide-th-left">{t('channel')}</th>
+                  <th className="slide-th slide-th-right">{t('target')}</th>
+                  <th className="slide-th slide-th-right">{t('gap')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -271,7 +145,7 @@ export function GapDashboardSlide({ data, monthlyData }: Props) {
       {/* Section 2: BM 进度视角（次要，更紧凑） */}
       <div className="pt-3 border-t border-subtle-token">
         <p className="text-[10px] font-semibold text-secondary-token uppercase tracking-wide mb-2">
-          {t.bmDesc}
+          {t('bmDesc')}
         </p>
         <div className="grid grid-cols-3 gap-2">
           {GAP_KEYS.map((key) => renderGapCard(key, bmData.gaps[key], true))}

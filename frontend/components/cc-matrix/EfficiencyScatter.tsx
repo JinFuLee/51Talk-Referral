@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import {
   ScatterChart,
@@ -13,58 +14,6 @@ import {
   Label,
 } from 'recharts';
 import { CHART_PALETTE } from '@/lib/chart-palette';
-import { useLocale } from 'next-intl';
-
-const I18N = {
-  zh: {
-    noData: '暂无散点数据',
-    xAxis: '带新系数',
-    yAxis: '付费金额(USD)',
-    paidAmt: '付费金额',
-    newCoeff: '带新系数',
-    hoverHint: '鼠标悬停查看 CC 名称',
-    quadrants: { lowEff: '低效高收', star: '明星CC', inactive: '待激活', latent: '潜力CC' },
-  },
-  en: {
-    noData: 'No scatter data',
-    xAxis: 'Bring-new Coeff',
-    yAxis: 'Paid Amount(USD)',
-    paidAmt: 'Paid Amount',
-    newCoeff: 'Bring-new Coeff',
-    hoverHint: 'Hover to see CC name',
-    quadrants: {
-      lowEff: 'Low-eff High-rev',
-      star: 'Star CC',
-      inactive: 'Inactive',
-      latent: 'Potential CC',
-    },
-  },
-  'zh-TW': {
-    noData: '暫無散點數據',
-    xAxis: '帶新係數',
-    yAxis: '付費金額(USD)',
-    paidAmt: '付費金額',
-    newCoeff: '帶新係數',
-    hoverHint: '滑鼠懸停查看 CC 名稱',
-    quadrants: { lowEff: '低效高收', star: '明星CC', inactive: '待激活', latent: '潛力CC' },
-  },
-  th: {
-    noData: 'ไม่มีข้อมูลกราฟกระจาย',
-    xAxis: 'สัมประสิทธิ์นำใหม่',
-    yAxis: 'ยอดชำระ(USD)',
-    paidAmt: 'ยอดชำระ',
-    newCoeff: 'สัมประสิทธิ์นำใหม่',
-    hoverHint: 'วางเมาส์เพื่อดูชื่อ CC',
-    quadrants: {
-      lowEff: 'ประสิทธิภาพต่ำรายได้สูง',
-      star: 'CC ดาวเด่น',
-      inactive: 'รอเปิดใช้งาน',
-      latent: 'CC ศักยภาพ',
-    },
-  },
-} as const;
-type Locale = keyof typeof I18N;
-
 interface ScatterPoint {
   cc_name: string;
   x: number; // 带新系数
@@ -124,13 +73,12 @@ function CustomDot({ cx = 0, cy = 0, payload, hoveredName, onHover }: CustomDotP
 
 export function EfficiencyScatter({ data }: EfficiencyScatterProps) {
   const [hoveredName, setHoveredName] = useState<string | null>(null);
-  const locale = useLocale();
-  const t = I18N[(locale as Locale) in I18N ? (locale as Locale) : 'zh'];
+    const t = useTranslations('EfficiencyScatter');
 
   if (!data.length) {
     return (
       <div className="flex items-center justify-center h-48 text-sm text-muted-token">
-        {t.noData}
+        {t('noData')}
       </div>
     );
   }
@@ -142,20 +90,20 @@ export function EfficiencyScatter({ data }: EfficiencyScatterProps) {
     {
       x: xMid * 0.5,
       y: yMid * 1.5,
-      text: t.quadrants.lowEff,
+      text: t('quadrants.lowEff'),
       color: CHART_PALETTE.quadrant.lowEff,
     },
-    { x: xMid * 1.5, y: yMid * 1.5, text: t.quadrants.star, color: CHART_PALETTE.quadrant.star },
+    { x: xMid * 1.5, y: yMid * 1.5, text: t('quadrants.star'), color: CHART_PALETTE.quadrant.star },
     {
       x: xMid * 0.5,
       y: yMid * 0.5,
-      text: t.quadrants.inactive,
+      text: t('quadrants.inactive'),
       color: CHART_PALETTE.quadrant.inactive,
     },
     {
       x: xMid * 1.5,
       y: yMid * 0.5,
-      text: t.quadrants.latent,
+      text: t('quadrants.latent'),
       color: CHART_PALETTE.quadrant.latent,
     },
   ];
@@ -169,11 +117,11 @@ export function EfficiencyScatter({ data }: EfficiencyScatterProps) {
             <XAxis
               type="number"
               dataKey="x"
-              name={t.xAxis}
+              name={t('xAxis')}
               tick={{ fontSize: 10, fill: 'var(--text-muted)' }}
             >
               <Label
-                value={t.xAxis}
+                value={t('xAxis')}
                 offset={-10}
                 position="insideBottom"
                 style={{ fontSize: 10, fill: 'var(--text-secondary)' }}
@@ -182,11 +130,11 @@ export function EfficiencyScatter({ data }: EfficiencyScatterProps) {
             <YAxis
               type="number"
               dataKey="y"
-              name={t.paidAmt}
+              name={t('paidAmt')}
               tick={{ fontSize: 10, fill: 'var(--text-muted)' }}
             >
               <Label
-                value={t.yAxis}
+                value={t('yAxis')}
                 angle={-90}
                 position="insideLeft"
                 offset={15}
@@ -202,10 +150,10 @@ export function EfficiencyScatter({ data }: EfficiencyScatterProps) {
                   <div className="bg-surface border border-default-token rounded p-2 text-xs shadow">
                     <div className="font-semibold">{d.cc_name}</div>
                     <div>
-                      {t.newCoeff}: {(d.x ?? 0).toFixed(2)}
+                      {t('newCoeff')}: {(d.x ?? 0).toFixed(2)}
                     </div>
                     <div>
-                      {t.paidAmt}: ${(d.y ?? 0).toLocaleString()}
+                      {t('paidAmt')}: ${(d.y ?? 0).toLocaleString()}
                     </div>
                   </div>
                 );
@@ -232,7 +180,7 @@ export function EfficiencyScatter({ data }: EfficiencyScatterProps) {
           </div>
         ))}
       </div>
-      <p className="text-center text-xs text-muted-token mt-1">{t.hoverHint}</p>
+      <p className="text-center text-xs text-muted-token mt-1">{t('hoverHint')}</p>
     </div>
   );
 }

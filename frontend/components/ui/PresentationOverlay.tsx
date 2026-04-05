@@ -1,19 +1,10 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { usePresentationStore } from '@/lib/stores/presentation-store';
 import { X, Sparkles } from 'lucide-react';
-import { useLocale } from 'next-intl';
-
-const I18N = {
-  zh: { exitBtn: '退出汇报模式' },
-  en: { exitBtn: 'Exit Presentation' },
-  'zh-TW': { exitBtn: '退出彙報模式' },
-  th: { exitBtn: 'ออกจากโหมดนำเสนอ' },
-} as const;
-
 export function PresentationOverlay() {
-  const locale = useLocale();
-  const t = I18N[locale as keyof typeof I18N] ?? I18N.zh;
+  const t = useTranslations('PresentationOverlay');
   const isPresentationMode = usePresentationStore((s) => s.isPresentationMode);
   const exitPresentationMode = usePresentationStore((s) => s.exitPresentationMode);
 
@@ -40,7 +31,7 @@ export function PresentationOverlay() {
         style={{ animation: 'fadeInUp 0.3s ease-out' }}
       >
         <X className="w-4 h-4" />
-        <span className="text-sm font-medium tracking-wide">{t.exitBtn}</span>
+        <span className="text-sm font-medium tracking-wide">{t('exitBtn')}</span>
       </button>
 
       <style jsx>{`

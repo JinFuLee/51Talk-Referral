@@ -10,25 +10,17 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts';
-import { useLocale } from 'next-intl';
+import { useTranslations } from 'next-intl';
 import type { SegmentContactItem } from '@/lib/types/cross-analysis';
 import { CHART_PALETTE } from '@/lib/chart-palette';
 
 type SegmentBarI18N = { ccRate: string; ssRate: string; lpRate: string };
-const I18N: Record<string, SegmentBarI18N> = {
-  zh: { ccRate: 'CC 触达率', ssRate: 'SS 触达率', lpRate: 'LP 触达率' },
-  'zh-TW': { ccRate: 'CC 觸達率', ssRate: 'SS 觸達率', lpRate: 'LP 觸達率' },
-  en: { ccRate: 'CC Contact Rate', ssRate: 'SS Contact Rate', lpRate: 'LP Contact Rate' },
-  th: { ccRate: 'อัตราการติดต่อ CC', ssRate: 'อัตราการติดต่อ SS', lpRate: 'อัตราการติดต่อ LP' },
-};
-
 interface SegmentContactBarProps {
   data: SegmentContactItem[];
 }
 
 export function SegmentContactBar({ data }: SegmentContactBarProps) {
-  const locale = useLocale();
-  const t: SegmentBarI18N = I18N[locale] ?? I18N['zh'];
+  const t = useTranslations('SegmentContactBar');
 
   const chartData = data.map((d) => ({
     name: d.segment,
@@ -63,7 +55,7 @@ export function SegmentContactBar({ data }: SegmentContactBarProps) {
           dataKey="CC"
           stackId="a"
           fill={CHART_PALETTE.series[0]}
-          name={t.ccRate}
+          name={t('ccRate')}
           animationDuration={600}
           animationEasing="ease-out"
         />
@@ -71,7 +63,7 @@ export function SegmentContactBar({ data }: SegmentContactBarProps) {
           dataKey="SS"
           stackId="a"
           fill={CHART_PALETTE.series[1]}
-          name={t.ssRate}
+          name={t('ssRate')}
           animationDuration={600}
           animationEasing="ease-out"
         />
@@ -79,7 +71,7 @@ export function SegmentContactBar({ data }: SegmentContactBarProps) {
           dataKey="LP"
           stackId="a"
           fill={CHART_PALETTE.series[2]}
-          name={t.lpRate}
+          name={t('lpRate')}
           radius={[4, 4, 0, 0]}
           animationDuration={600}
           animationEasing="ease-out"

@@ -1,201 +1,14 @@
 'use client';
 
 import React, { useState, useCallback } from 'react';
-import { useLocale } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { useFilteredSWR } from '@/lib/hooks/use-filtered-swr';
 import { formatUSD, formatRate, formatValue } from '@/lib/utils';
 import { SkeletonChart } from '@/components/ui/Skeleton';
 
 // ── 国际化 ───────────────────────────────────────────────────────────────────
-const I18N = {
-  zh: {
-    title: '目标设定',
-    subtitle: '基于三种业务场景的月度目标设定，选择档位后一键写入本月目标',
-    companyRevLabel: '公司总业绩目标',
-    referralShareLabel: '转介绍占比',
-    companyRevPlaceholder: '600000',
-    referralSharePlaceholder: '30',
-    tierPace: '一档：稳达标',
-    tierShare: '二档：占比达标',
-    tierCustom: '三档：自定义',
-    tierPaceDesc: '当前效率照跑到月底 = 肯定达标',
-    tierShareDesc: '转介绍占公司总业绩目标反推全链路',
-    tierCustomDesc: '填入关键参数，系统推算其余字段',
-    registrations: '注册',
-    appointments: '预约',
-    attendance: '出席',
-    payments: '付费',
-    revenue: '业绩',
-    asp: '客单价',
-    regToPayRate: '注册→付费率',
-    apptRate: '预约率',
-    attendRate: '出席率',
-    paidRate: '付费率',
-    revenueShare: '业绩占比',
-    channel: '渠道',
-    total: '合计',
-    channelPreview: '全链路拆解预览',
-    apply: '应用此档',
-    applying: '写入中…',
-    applySuccess: '已写入本月目标',
-    applyError: '写入失败，请重试',
-    defaultBadge: '默认',
-    selected: '已选',
-    compute: '推算',
-    computing: '推算中…',
-    noData: '参数不足，无法计算',
-    needCompanyRev: '请填入公司总业绩目标',
-    needInput: '至少填入一个自定义参数',
-    loading: '加载中…',
-    error: '加载失败',
-    errorHint: '请检查后端服务',
-    retry: '重试',
-    selectTier: '选择档位后点击应用',
-    usd: 'USD',
-    pct: '%',
-  },
-  en: {
-    title: 'Target Setting',
-    subtitle: 'Three-scenario monthly target setting, one-click apply',
-    companyRevLabel: 'Company Revenue Target',
-    referralShareLabel: 'Referral Share',
-    companyRevPlaceholder: '600000',
-    referralSharePlaceholder: '30',
-    tierPace: 'Tier 1: Pace',
-    tierShare: 'Tier 2: Share',
-    tierCustom: 'Tier 3: Custom',
-    tierPaceDesc: 'Current efficiency → guaranteed month-end target',
-    tierShareDesc: 'Referral share of company target → full funnel backsolve',
-    tierCustomDesc: 'Fill key params, system calculates the rest',
-    registrations: 'Reg',
-    appointments: 'Appt',
-    attendance: 'Attend',
-    payments: 'Paid',
-    revenue: 'Revenue',
-    asp: 'ASP',
-    regToPayRate: 'Reg→Pay Rate',
-    apptRate: 'Appt Rate',
-    attendRate: 'Attend Rate',
-    paidRate: 'Paid Rate',
-    revenueShare: 'Rev Share',
-    channel: 'Channel',
-    total: 'Total',
-    channelPreview: 'Full Funnel Channel Preview',
-    apply: 'Apply',
-    applying: 'Applying…',
-    applySuccess: 'Applied to this month',
-    applyError: 'Failed, please retry',
-    defaultBadge: 'Default',
-    selected: 'Selected',
-    compute: 'Calculate',
-    computing: 'Calculating…',
-    noData: 'Insufficient params',
-    needCompanyRev: 'Please enter company revenue target',
-    needInput: 'Enter at least one custom param',
-    loading: 'Loading…',
-    error: 'Load failed',
-    errorHint: 'Check backend service',
-    retry: 'Retry',
-    selectTier: 'Select a tier then click Apply',
-    usd: 'USD',
-    pct: '%',
-  },
-  'zh-TW': {
-    title: '目標設定',
-    subtitle: '基於三種業務場景的月度目標設定，選擇檔位後一鍵寫入本月目標',
-    companyRevLabel: '公司總業績目標',
-    referralShareLabel: '轉介紹占比',
-    companyRevPlaceholder: '600000',
-    referralSharePlaceholder: '30',
-    tierPace: '一檔：穩達標',
-    tierShare: '二檔：占比達標',
-    tierCustom: '三檔：自定義',
-    tierPaceDesc: '當前效率照跑到月底 = 肯定達標',
-    tierShareDesc: '轉介紹占公司總業績目標反推全鏈路',
-    tierCustomDesc: '填入關鍵參數，系統推算其餘字段',
-    registrations: '註冊',
-    appointments: '預約',
-    attendance: '出席',
-    payments: '付費',
-    revenue: '業績',
-    asp: '客單價',
-    regToPayRate: '註冊→付費率',
-    apptRate: '預約率',
-    attendRate: '出席率',
-    paidRate: '付費率',
-    revenueShare: '業績占比',
-    channel: '渠道',
-    total: '合計',
-    channelPreview: '全鏈路拆解預覽',
-    apply: '應用此檔',
-    applying: '寫入中…',
-    applySuccess: '已寫入本月目標',
-    applyError: '寫入失敗，請重試',
-    defaultBadge: '預設',
-    selected: '已選',
-    compute: '推算',
-    computing: '推算中…',
-    noData: '參數不足，無法計算',
-    needCompanyRev: '請填入公司總業績目標',
-    needInput: '至少填入一個自定義參數',
-    loading: '載入中…',
-    error: '載入失敗',
-    errorHint: '請檢查後端服務',
-    retry: '重試',
-    selectTier: '選擇檔位後點擊應用',
-    usd: 'USD',
-    pct: '%',
-  },
-  th: {
-    title: 'การตั้งเป้าหมาย',
-    subtitle: 'การตั้งเป้าหมายรายเดือนจาก 3 สถานการณ์ธุรกิจ เลือกระดับแล้วบันทึก',
-    companyRevLabel: 'เป้ารายได้บริษัท',
-    referralShareLabel: 'สัดส่วนการแนะนำ',
-    companyRevPlaceholder: '600000',
-    referralSharePlaceholder: '30',
-    tierPace: 'ระดับ 1: ตามความเร็ว',
-    tierShare: 'ระดับ 2: ตามสัดส่วน',
-    tierCustom: 'ระดับ 3: กำหนดเอง',
-    tierPaceDesc: 'ความเร็วปัจจุบัน → บรรลุเป้าสิ้นเดือนแน่นอน',
-    tierShareDesc: 'คำนวณย้อนกลับจากสัดส่วนรายได้บริษัท',
-    tierCustomDesc: 'กรอกพารามิเตอร์หลัก ระบบคำนวณส่วนที่เหลือ',
-    registrations: 'ลงทะเบียน',
-    appointments: 'นัดหมาย',
-    attendance: 'เข้าร่วม',
-    payments: 'ชำระ',
-    revenue: 'รายได้',
-    asp: 'ASP',
-    regToPayRate: 'อัตราลง→ชำระ',
-    apptRate: 'อัตรานัดหมาย',
-    attendRate: 'อัตราเข้าร่วม',
-    paidRate: 'อัตราชำระ',
-    revenueShare: 'สัดส่วนรายได้',
-    channel: 'ช่องทาง',
-    total: 'รวม',
-    channelPreview: 'ภาพรวม funnel ทุกช่องทาง',
-    apply: 'ใช้ระดับนี้',
-    applying: 'กำลังบันทึก…',
-    applySuccess: 'บันทึกเป้าเดือนนี้แล้ว',
-    applyError: 'บันทึกล้มเหลว โปรดลองใหม่',
-    defaultBadge: 'ค่าเริ่มต้น',
-    selected: 'เลือกแล้ว',
-    compute: 'คำนวณ',
-    computing: 'กำลังคำนวณ…',
-    noData: 'พารามิเตอร์ไม่เพียงพอ',
-    needCompanyRev: 'กรุณากรอกเป้ารายได้บริษัท',
-    needInput: 'กรอกพารามิเตอร์อย่างน้อย 1 ค่า',
-    loading: 'กำลังโหลด…',
-    error: 'โหลดล้มเหลว',
-    errorHint: 'กรุณาตรวจสอบบริการแบ็กเอนด์',
-    retry: 'ลองใหม่',
-    selectTier: 'เลือกระดับแล้วคลิกใช้งาน',
-    usd: 'USD',
-    pct: '%',
-  },
-};
-
 type Lang = 'zh' | 'en' | 'zh-TW' | 'th';
-type T = (typeof I18N)['zh'];
+type T = Record<string, string>;
 type TierKey = 'pace' | 'share' | 'custom';
 
 // ── API 类型（与后端 TargetTierEngine 输出对齐）─────────────────────────────
@@ -306,7 +119,7 @@ function ReadonlyTierCard({
   isSelected: boolean;
   isDefault: boolean;
   onSelect: () => void;
-  t: T;
+  t: (key: string, params?: any) => string;
 }) {
   const cfg = TIER_CONFIG[tierKey];
 
@@ -319,7 +132,7 @@ function ReadonlyTierCard({
           </span>
         </div>
         <p className="text-xs text-muted-token">{desc}</p>
-        <p className="text-xs text-muted-token mt-2">{t.needCompanyRev}</p>
+        <p className="text-xs text-muted-token mt-2">{t('needCompanyRev')}</p>
       </div>
     );
   }
@@ -345,19 +158,19 @@ function ReadonlyTierCard({
         <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${cfg.badgeClass}`}>
           {label}
         </span>
-        {isDefault && <span className="badge-neutral">{t.defaultBadge}</span>}
+        {isDefault && <span className="badge-neutral">{t('defaultBadge')}</span>}
       </div>
       <p className="text-xs text-muted-token mb-3 leading-relaxed">{desc}</p>
 
       {/* 核心指标 */}
       <div className="space-y-1.5">
-        <MetricRow label={t.registrations} value={formatValue(tierData.total.registrations)} bold />
-        <MetricRow label={t.appointments} value={formatValue(tierData.total.appointments)} />
-        <MetricRow label={t.attendance} value={formatValue(tierData.total.attendance)} />
-        <MetricRow label={t.payments} value={formatValue(tierData.total.payments)} bold />
-        <MetricRow label={t.revenue} value={formatUSD(tierData.total.revenue_usd)} bold />
-        <MetricRow label={t.asp} value={formatUSD(tierData.total.asp)} />
-        <MetricRow label={t.regToPayRate} value={formatRate(tierData.total.reg_to_pay_rate)} />
+        <MetricRow label={t('registrations')} value={formatValue(tierData.total.registrations)} bold />
+        <MetricRow label={t('appointments')} value={formatValue(tierData.total.appointments)} />
+        <MetricRow label={t('attendance')} value={formatValue(tierData.total.attendance)} />
+        <MetricRow label={t('payments')} value={formatValue(tierData.total.payments)} bold />
+        <MetricRow label={t('revenue')} value={formatUSD(tierData.total.revenue_usd)} bold />
+        <MetricRow label={t('asp')} value={formatUSD(tierData.total.asp)} />
+        <MetricRow label={t('regToPayRate')} value={formatRate(tierData.total.reg_to_pay_rate)} />
       </div>
     </div>
   );
@@ -381,7 +194,7 @@ function CustomTierCard({
   onCompute: () => void;
   computing: boolean;
   onSelect: () => void;
-  t: T;
+  t: (key: string, params?: any) => string;
 }) {
   const cfg = TIER_CONFIG.custom;
 
@@ -403,15 +216,15 @@ function CustomTierCard({
 
       <div className="mb-2 flex items-center gap-2">
         <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${cfg.badgeClass}`}>
-          {t.tierCustom}
+          {t('tierCustom')}
         </span>
       </div>
-      <p className="text-xs text-muted-token mb-3 leading-relaxed">{t.tierCustomDesc}</p>
+      <p className="text-xs text-muted-token mb-3 leading-relaxed">{t('tierCustomDesc')}</p>
 
       {/* 可编辑输入 */}
       <div className="space-y-2 mb-3" onClick={(e) => e.stopPropagation()}>
         <div>
-          <label className="text-xs text-muted-token mb-0.5 block">{t.revenue} (USD)</label>
+          <label className="text-xs text-muted-token mb-0.5 block">{t('revenue')} (USD)</label>
           <input
             type="number"
             className="input-base text-xs"
@@ -421,7 +234,7 @@ function CustomTierCard({
           />
         </div>
         <div>
-          <label className="text-xs text-muted-token mb-0.5 block">{t.regToPayRate} (%)</label>
+          <label className="text-xs text-muted-token mb-0.5 block">{t('regToPayRate')} (%)</label>
           <input
             type="number"
             className="input-base text-xs"
@@ -432,7 +245,7 @@ function CustomTierCard({
           />
         </div>
         <div>
-          <label className="text-xs text-muted-token mb-0.5 block">{t.asp} (USD)</label>
+          <label className="text-xs text-muted-token mb-0.5 block">{t('asp')} (USD)</label>
           <input
             type="number"
             className="input-base text-xs"
@@ -442,7 +255,7 @@ function CustomTierCard({
           />
         </div>
         <div>
-          <label className="text-xs text-muted-token mb-0.5 block">{t.registrations}</label>
+          <label className="text-xs text-muted-token mb-0.5 block">{t('registrations')}</label>
           <input
             type="number"
             className="input-base text-xs"
@@ -462,31 +275,31 @@ function CustomTierCard({
         }}
         disabled={computing}
       >
-        {computing ? t.computing : t.compute}
+        {computing ? t('computing') : t('compute')}
       </button>
 
       {/* 推算结果 */}
       {tierData ? (
         <div className="space-y-1.5 border-t border-subtle-token pt-3">
           <MetricRow
-            label={t.registrations}
+            label={t('registrations')}
             value={formatValue(tierData.total.registrations)}
             bold
           />
-          <MetricRow label={t.appointments} value={formatValue(tierData.total.appointments)} />
-          <MetricRow label={t.attendance} value={formatValue(tierData.total.attendance)} />
-          <MetricRow label={t.payments} value={formatValue(tierData.total.payments)} bold />
-          <MetricRow label={t.revenue} value={formatUSD(tierData.total.revenue_usd)} bold />
+          <MetricRow label={t('appointments')} value={formatValue(tierData.total.appointments)} />
+          <MetricRow label={t('attendance')} value={formatValue(tierData.total.attendance)} />
+          <MetricRow label={t('payments')} value={formatValue(tierData.total.payments)} bold />
+          <MetricRow label={t('revenue')} value={formatUSD(tierData.total.revenue_usd)} bold />
         </div>
       ) : (
-        <p className="text-xs text-muted-token italic">{t.needInput}</p>
+        <p className="text-xs text-muted-token italic">{t('needInput')}</p>
       )}
     </div>
   );
 }
 
 // ── 子组件：全链路预览表 ──────────────────────────────────────────────────────
-function ChannelPreviewTable({ tierData, t }: { tierData: TierData; t: T }) {
+function ChannelPreviewTable({ tierData, t }: { tierData: TierData; t: (key: string, params?: any) => string }) {
   const channels = Object.entries(tierData.channels);
   const total = tierData.total;
 
@@ -495,17 +308,17 @@ function ChannelPreviewTable({ tierData, t }: { tierData: TierData; t: T }) {
       <table className="w-full text-left border-collapse">
         <thead>
           <tr className="slide-thead-row">
-            <th className="slide-th slide-th-left">{t.channel}</th>
-            <th className="slide-th slide-th-right">{t.registrations}</th>
-            <th className="slide-th slide-th-right">{t.appointments}</th>
-            <th className="slide-th slide-th-right">{t.attendance}</th>
-            <th className="slide-th slide-th-right">{t.payments}</th>
-            <th className="slide-th slide-th-right">{t.revenue}</th>
-            <th className="slide-th slide-th-right">{t.revenueShare}</th>
-            <th className="slide-th slide-th-right">{t.apptRate}</th>
-            <th className="slide-th slide-th-right">{t.attendRate}</th>
-            <th className="slide-th slide-th-right">{t.paidRate}</th>
-            <th className="slide-th slide-th-right">{t.asp}</th>
+            <th className="slide-th slide-th-left">{t('channel')}</th>
+            <th className="slide-th slide-th-right">{t('registrations')}</th>
+            <th className="slide-th slide-th-right">{t('appointments')}</th>
+            <th className="slide-th slide-th-right">{t('attendance')}</th>
+            <th className="slide-th slide-th-right">{t('payments')}</th>
+            <th className="slide-th slide-th-right">{t('revenue')}</th>
+            <th className="slide-th slide-th-right">{t('revenueShare')}</th>
+            <th className="slide-th slide-th-right">{t('apptRate')}</th>
+            <th className="slide-th slide-th-right">{t('attendRate')}</th>
+            <th className="slide-th slide-th-right">{t('paidRate')}</th>
+            <th className="slide-th slide-th-right">{t('asp')}</th>
           </tr>
         </thead>
         <tbody>
@@ -547,7 +360,7 @@ function ChannelPreviewTable({ tierData, t }: { tierData: TierData; t: T }) {
         </tbody>
         <tfoot>
           <tr className="slide-tfoot-row">
-            <td className="slide-td font-bold">{t.total}</td>
+            <td className="slide-td font-bold">{t('total')}</td>
             <td className="slide-td slide-th-right font-mono tabular-nums font-bold">
               {formatValue(total.registrations)}
             </td>
@@ -594,7 +407,7 @@ interface CustomInputs {
 // ── 主组件 ────────────────────────────────────────────────────────────────────
 export function TargetRecommender() {
   const locale = useLocale();
-  const t = I18N[locale as keyof typeof I18N] ?? I18N['zh'];
+  const t = useTranslations('TargetRecommender');
 
   // 顶部输入
   const [companyRevenue, setCompanyRevenue] = useState('');
@@ -712,8 +525,8 @@ export function TargetRecommender() {
       {/* 标题行 */}
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h3 className="text-lg font-bold text-primary-token">{t.title}</h3>
-          <p className="text-sm text-muted-token mt-0.5">{t.subtitle}</p>
+          <h3 className="text-lg font-bold text-primary-token">{t('title')}</h3>
+          <p className="text-sm text-muted-token mt-0.5">{t('subtitle')}</p>
         </div>
         <div className="flex gap-1 shrink-0">
           {/* Language switching now handled by URL locale via next-intl */}
@@ -726,24 +539,24 @@ export function TargetRecommender() {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium text-secondary-token mb-1">
-            {t.companyRevLabel} ({t.usd})
+            {t('companyRevLabel')} ({t('usd')})
           </label>
           <input
             type="number"
             className="input-base"
-            placeholder={t.companyRevPlaceholder}
+            placeholder={t('companyRevPlaceholder')}
             value={companyRevenue}
             onChange={(e) => setCompanyRevenue(e.target.value)}
           />
         </div>
         <div>
           <label className="block text-sm font-medium text-secondary-token mb-1">
-            {t.referralShareLabel} ({t.pct})
+            {t('referralShareLabel')} ({t('pct')})
           </label>
           <input
             type="number"
             className="input-base"
-            placeholder={t.referralSharePlaceholder}
+            placeholder={t('referralSharePlaceholder')}
             min={0}
             max={100}
             step={1}
@@ -760,10 +573,10 @@ export function TargetRecommender() {
         </div>
       ) : error ? (
         <div className="state-error flex-col gap-2">
-          <p className="text-base font-semibold">{t.error}</p>
-          <p className="text-sm text-muted-token">{t.errorHint}</p>
+          <p className="text-base font-semibold">{t('error')}</p>
+          <p className="text-sm text-muted-token">{t('errorHint')}</p>
           <button onClick={() => mutate()} className="btn-secondary mt-1">
-            {t.retry}
+            {t('retry')}
           </button>
         </div>
       ) : (
@@ -774,8 +587,8 @@ export function TargetRecommender() {
             <ReadonlyTierCard
               tierKey="pace"
               tierData={data?.tiers.pace ?? null}
-              label={t.tierPace}
-              desc={t.tierPaceDesc}
+              label={t('tierPace')}
+              desc={t('tierPaceDesc')}
               isSelected={selectedTier === 'pace'}
               isDefault
               onSelect={() => setSelectedTier('pace')}
@@ -786,8 +599,8 @@ export function TargetRecommender() {
             <ReadonlyTierCard
               tierKey="share"
               tierData={data?.tiers.share ?? null}
-              label={t.tierShare}
-              desc={t.tierShareDesc}
+              label={t('tierShare')}
+              desc={t('tierShareDesc')}
               isSelected={selectedTier === 'share'}
               isDefault={false}
               onSelect={() => {
@@ -816,19 +629,19 @@ export function TargetRecommender() {
                 <>
                   <p className="text-sm font-medium text-primary-token truncate">
                     {selectedTier === 'pace'
-                      ? t.tierPace
+                      ? t('tierPace')
                       : selectedTier === 'share'
-                        ? t.tierShare
-                        : t.tierCustom}
-                    ：{formatUSD(selectedTierData.total.revenue_usd)} {t.usd}
+                        ? t('tierShare')
+                        : t('tierCustom')}
+                    ：{formatUSD(selectedTierData.total.revenue_usd)} {t('usd')}
                   </p>
                   <p className="text-xs text-muted-token">
-                    {t.registrations} {formatValue(selectedTierData.total.registrations)} ·{' '}
-                    {t.payments} {formatValue(selectedTierData.total.payments)}
+                    {t('registrations')} {formatValue(selectedTierData.total.registrations)} ·{' '}
+                    {t('payments')} {formatValue(selectedTierData.total.payments)}
                   </p>
                 </>
               ) : (
-                <p className="text-sm text-muted-token">{t.selectTier}</p>
+                <p className="text-sm text-muted-token">{t('selectTier')}</p>
               )}
             </div>
             <button
@@ -845,12 +658,12 @@ export function TargetRecommender() {
               }`}
             >
               {applyStatus === 'applying'
-                ? t.applying
+                ? t('applying')
                 : applyStatus === 'success'
-                  ? `✓ ${t.applySuccess}`
+                  ? `✓ ${t('applySuccess')}`
                   : applyStatus === 'error'
-                    ? `✗ ${t.applyError}`
-                    : t.apply}
+                    ? `✗ ${t('applyError')}`
+                    : t('apply')}
             </button>
           </div>
 
@@ -858,7 +671,7 @@ export function TargetRecommender() {
           {selectedTierData && Object.keys(selectedTierData.channels).length > 0 && (
             <div>
               <h4 className="text-sm font-semibold text-secondary-token mb-3">
-                {t.channelPreview}
+                {t('channelPreview')}
               </h4>
               <ChannelPreviewTable tierData={selectedTierData} t={t} />
             </div>

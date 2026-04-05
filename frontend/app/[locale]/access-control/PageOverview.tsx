@@ -1,45 +1,7 @@
 'use client';
 
 import { BarChart3, TrendingUp, Users, Shield, FileText, Settings, Globe } from 'lucide-react';
-import { useLocale } from 'next-intl';
-
-// ── I18N ─────────────────────────────────────────────────────────────────────
-
-const I18N = {
-  zh: {
-    publicToggle: '公开',
-    private: '私有',
-    publicBadge: '公开',
-    noPages: '暂无页面',
-    visitors: '人可访问',
-    publicCount: (n: number) => `${n} 个公开`,
-  },
-  'zh-TW': {
-    publicToggle: '公開',
-    private: '私有',
-    publicBadge: '公開',
-    noPages: '暫無頁面',
-    visitors: '人可存取',
-    publicCount: (n: number) => `${n} 個公開`,
-  },
-  en: {
-    publicToggle: 'Public',
-    private: 'Private',
-    publicBadge: 'Public',
-    noPages: 'No pages',
-    visitors: ' can access',
-    publicCount: (n: number) => `${n} public`,
-  },
-  th: {
-    publicToggle: 'สาธารณะ',
-    private: 'ส่วนตัว',
-    publicBadge: 'สาธารณะ',
-    noPages: 'ไม่มีหน้า',
-    visitors: ' เข้าถึงได้',
-    publicCount: (n: number) => `${n} สาธารณะ`,
-  },
-} as const;
-
+import { useLocale, useTranslations } from 'next-intl';
 // ── 类型定义 ──────────────────────────────────────────────────────────────────
 
 interface PageEntry {
@@ -119,10 +81,10 @@ function PageItem({
   onToggle,
 }: {
   page: PageEntry;
-  lang: I18NLang;
+  lang: string;
   onToggle: (path: string, isPublic: boolean) => Promise<void>;
 }) {
-  const t = I18N[lang];
+  const t = useTranslations('PageOverview');
   const isZh = lang === 'zh' || lang === 'zh-TW';
   // 兼容嵌套 {zh,en,th} 和扁平 name_zh/name_en 两种后端格式
   const name =
@@ -143,7 +105,7 @@ function PageItem({
             {page.is_public && (
               <span className="flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded-full bg-success-surface text-success-token font-medium shrink-0">
                 <Globe className="w-2.5 h-2.5" />
-                {t.publicBadge}
+                {t('publicBadge')}
               </span>
             )}
           </div>
@@ -158,7 +120,7 @@ function PageItem({
         {page.visitor_count !== undefined && (
           <span className="text-xs text-muted-token">
             {page.visitor_count}
-            {t.visitors}
+            {t('visitors')}
           </span>
         )}
         {/* Toggle 开关 */}
@@ -166,7 +128,7 @@ function PageItem({
           role="switch"
           aria-checked={page.is_public}
           onClick={() => onToggle(page.path, !page.is_public)}
-          title={page.is_public ? t.private : t.publicToggle}
+          title={page.is_public ? t('private') : t('publicToggle')}
           className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-action focus-visible:ring-offset-2 ${
             page.is_public ? 'bg-success-token' : 'bg-n-300'
           }`}
@@ -183,14 +145,11 @@ function PageItem({
 }
 
 // ── 主组件 ────────────────────────────────────────────────────────────────────
-
-type I18NLang = keyof typeof I18N;
-
 export default function PageOverview({ pages, onTogglePublic }: PageOverviewProps) {
+  const t = useTranslations('PageOverview');
   const locale = useLocale();
-  const lang: I18NLang = (locale in I18N ? locale : 'en') as I18NLang;
-
-  // 按分类分组
+  const lang = (['zh', 'zh-TW', 'en', 'th'].includes(locale) ? locale : 'en') as 'zh' | 'zh-TW' | 'en' | 'th';
+    // 按分类分组
   const grouped: Record<string, PageEntry[]> = {};
   for (const page of pages) {
     const cat = page.category || 'system';
@@ -205,7 +164,7 @@ export default function PageOverview({ pages, onTogglePublic }: PageOverviewProp
       {categoryKeys.length === 0 ? (
         <div className="state-empty">
           <Settings className="w-8 h-8 text-n-300" />
-          <span className="text-sm">{I18N[lang].noPages}</span>
+          <span className="text-sm">{t('noPages')}</span>
         </div>
       ) : (
         categoryKeys.map((catKey) => {
@@ -226,7 +185,7 @@ export default function PageOverview({ pages, onTogglePublic }: PageOverviewProp
                 </div>
                 {publicCount > 0 && (
                   <span className="text-xs text-success-token">
-                    {I18N[lang].publicCount(publicCount)}
+                    {t('publicCount', { n: publicCount })}
                   </span>
                 )}
               </div>

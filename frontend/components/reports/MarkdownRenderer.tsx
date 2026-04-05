@@ -1,31 +1,8 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { useLocale } from 'next-intl';
-
-const I18N = {
-  zh: {
-    barLabel: (idx: number) => (idx === 0 ? '柱' : `柱${idx + 1}`),
-    baselineLine: '基准线',
-    extraLine: (idx: number) => `折线${idx + 1}`,
-  },
-  'zh-TW': {
-    barLabel: (idx: number) => (idx === 0 ? '柱' : `柱${idx + 1}`),
-    baselineLine: '基準線',
-    extraLine: (idx: number) => `折線${idx + 1}`,
-  },
-  en: {
-    barLabel: (idx: number) => (idx === 0 ? 'Bar' : `Bar ${idx + 1}`),
-    baselineLine: 'Baseline',
-    extraLine: (idx: number) => `Line ${idx + 1}`,
-  },
-  th: {
-    barLabel: (idx: number) => (idx === 0 ? 'แท่ง' : `แท่ง${idx + 1}`),
-    baselineLine: 'เส้นฐาน',
-    extraLine: (idx: number) => `เส้น${idx + 1}`,
-  },
-} as const;
 // Charts removed in refactor — inline Recharts used in pages directly
 // TrendLineChart, PieChart, FunnelChart stubs for report rendering
 const TrendLineChart = (_props: Record<string, unknown>) => null;
@@ -182,12 +159,11 @@ interface CodeProps {
 }
 
 function MermaidBlock({ body }: { body: string }) {
-  const locale = useLocale();
-  const t = I18N[locale as keyof typeof I18N] || I18N.zh;
+    const t = useTranslations('MarkdownRenderer');
   const trimmed = body.trim();
 
   if (trimmed.startsWith('xychart-beta')) {
-    const props = xyChartToProps(trimmed, t.barLabel, t.baselineLine, t.extraLine);
+    const props = xyChartToProps(trimmed, (idx: number) => t('barLabel', { idx }), t('baselineLine'), (idx: number) => t('extraLine', { idx }));
     return (
       <div className="my-4 p-4 bg-surface backdrop-blur-md rounded-[var(--radius-xl)] border border-default-token shadow-[var(--shadow-md)] transition-all duration-200 hover:shadow-[var(--shadow-lg)] hover:-translate-y-1">
         <TrendLineChart {...props} />

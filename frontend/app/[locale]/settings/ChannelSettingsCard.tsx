@@ -1,69 +1,10 @@
 'use client';
 
-import { useLocale } from 'next-intl';
+import { useTranslations } from 'next-intl';
 import { Card } from '@/components/ui/Card';
 import { NumInput, PctInput } from '@/components/ui/NumInput';
 import type { ChannelDecomposition, ChannelTarget, MonthlyTargetV2 } from '@/lib/types';
 import { formatRate } from '@/lib/utils';
-
-const I18N = {
-  zh: {
-    cardTitle: '渠道拆解 (L2)',
-    channel: '渠道',
-    regTarget: '注册目标',
-    asp: '客单价',
-    convRate: '转化率',
-    paidTarget: '付费目标',
-    revTarget: '收入目标',
-    total: '合计',
-    cc_narrow: 'CC窄口',
-    ss_narrow: 'SS窄口',
-    lp_narrow: 'LP窄口',
-    wide: '宽口',
-  },
-  'zh-TW': {
-    cardTitle: '渠道拆解 (L2)',
-    channel: '渠道',
-    regTarget: '註冊目標',
-    asp: '客單價',
-    convRate: '轉化率',
-    paidTarget: '付費目標',
-    revTarget: '收入目標',
-    total: '合計',
-    cc_narrow: 'CC窄口',
-    ss_narrow: 'SS窄口',
-    lp_narrow: 'LP窄口',
-    wide: '寬口',
-  },
-  en: {
-    cardTitle: 'Channel Breakdown (L2)',
-    channel: 'Channel',
-    regTarget: 'Reg Target',
-    asp: 'ASP',
-    convRate: 'Conv Rate',
-    paidTarget: 'Paid Target',
-    revTarget: 'Rev Target',
-    total: 'Total',
-    cc_narrow: 'CC Narrow',
-    ss_narrow: 'SS Narrow',
-    lp_narrow: 'LP Narrow',
-    wide: 'Wide',
-  },
-  th: {
-    cardTitle: 'แยกช่องทาง (L2)',
-    channel: 'ช่องทาง',
-    regTarget: 'เป้าลงทะเบียน',
-    asp: 'ราคาเฉลี่ย',
-    convRate: 'อัตราแปลง',
-    paidTarget: 'เป้าชำระเงิน',
-    revTarget: 'เป้ารายได้',
-    total: 'รวม',
-    cc_narrow: 'CC แคบ',
-    ss_narrow: 'SS แคบ',
-    lp_narrow: 'LP แคบ',
-    wide: 'กว้าง',
-  },
-};
 
 const CHANNEL_KEYS: (keyof ChannelDecomposition)[] = [
   'cc_narrow',
@@ -78,8 +19,7 @@ interface ChannelSettingsCardProps {
 }
 
 export default function ChannelSettingsCard({ v2, onUpdateChannel }: ChannelSettingsCardProps) {
-  const locale = useLocale();
-  const t = (I18N as unknown as Record<string, (typeof I18N)['zh']>)[locale] ?? I18N['zh'];
+  const t = useTranslations('ChannelSettingsCard');
   const ch = v2.channels;
 
   const totalReg = CHANNEL_KEYS.reduce((s, k) => s + ch[k].user_count, 0);
@@ -95,17 +35,17 @@ export default function ChannelSettingsCard({ v2, onUpdateChannel }: ChannelSett
     v2.hard.referral_revenue > 0 ? totalChannelRevenue - v2.hard.referral_revenue : 0;
 
   return (
-    <Card title={t.cardTitle}>
+    <Card title={t('cardTitle')}>
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
             <tr className="slide-thead-row text-xs">
-              <th className="text-left py-1.5 px-2 w-20">{t.channel}</th>
-              <th className="text-right py-1.5 px-2">{t.regTarget}</th>
-              <th className="text-right py-1.5 px-2">{t.asp}</th>
-              <th className="text-right py-1.5 px-2">{t.convRate}</th>
-              <th className="text-right py-1.5 px-2">{t.paidTarget}</th>
-              <th className="text-right py-1.5 px-2">{t.revTarget}</th>
+              <th className="text-left py-1.5 px-2 w-20">{t('channel')}</th>
+              <th className="text-right py-1.5 px-2">{t('regTarget')}</th>
+              <th className="text-right py-1.5 px-2">{t('asp')}</th>
+              <th className="text-right py-1.5 px-2">{t('convRate')}</th>
+              <th className="text-right py-1.5 px-2">{t('paidTarget')}</th>
+              <th className="text-right py-1.5 px-2">{t('revTarget')}</th>
             </tr>
           </thead>
           <tbody>
@@ -116,7 +56,7 @@ export default function ChannelSettingsCard({ v2, onUpdateChannel }: ChannelSett
               return (
                 <tr key={k} className="border-b border-subtle-token">
                   <td className="py-1 px-2 text-xs font-medium text-secondary-token">
-                    {t[k as keyof typeof t]}
+                    {t(k)}
                   </td>
                   <td className="py-1 px-2 text-xs text-right">
                     <NumInput
@@ -148,7 +88,7 @@ export default function ChannelSettingsCard({ v2, onUpdateChannel }: ChannelSett
               );
             })}
             <tr className="border-t-2 border-subtle-token font-semibold">
-              <td className="py-1 px-2 text-xs text-primary-token">{t.total}</td>
+              <td className="py-1 px-2 text-xs text-primary-token">{t('total')}</td>
               <td className="py-1 px-2 text-xs text-right font-mono tabular-nums text-primary-token">
                 {totalReg}
               </td>

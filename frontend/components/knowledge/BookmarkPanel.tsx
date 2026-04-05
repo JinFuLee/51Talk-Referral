@@ -1,69 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { useLocale } from 'next-intl';
+import { useTranslations } from 'next-intl';
 import { Bookmark, X, Trash2, StickyNote } from 'lucide-react';
 import { clsx } from 'clsx';
-
-/* ── I18N ────────────────────────────────────────────────────────── */
-
-const I18N = {
-  zh: {
-    ariaOpen: '查看收藏',
-    btnLabel: '收藏',
-    panelTitle: '收藏章节',
-    ariaClose: '关闭',
-    emptyTitle: '还没有收藏章节',
-    emptyHint: '阅读时点击 ☆ 按钮添加收藏',
-    ariaAddNote: '添加笔记',
-    ariaRemove: '删除收藏',
-    notePlaceholder: '添加笔记…',
-    save: '保存',
-    cancel: '取消',
-  },
-  'zh-TW': {
-    ariaOpen: '查看收藏',
-    btnLabel: '收藏',
-    panelTitle: '收藏章節',
-    ariaClose: '關閉',
-    emptyTitle: '還沒有收藏章節',
-    emptyHint: '閱讀時點擊 ☆ 按鈕新增收藏',
-    ariaAddNote: '新增筆記',
-    ariaRemove: '刪除收藏',
-    notePlaceholder: '新增筆記…',
-    save: '儲存',
-    cancel: '取消',
-  },
-  en: {
-    ariaOpen: 'View bookmarks',
-    btnLabel: 'Bookmarks',
-    panelTitle: 'Bookmarks',
-    ariaClose: 'Close',
-    emptyTitle: 'No bookmarks yet',
-    emptyHint: 'Click ☆ while reading to bookmark a chapter',
-    ariaAddNote: 'Add note',
-    ariaRemove: 'Remove bookmark',
-    notePlaceholder: 'Add a note…',
-    save: 'Save',
-    cancel: 'Cancel',
-  },
-  th: {
-    ariaOpen: 'ดูบุ๊กมาร์ก',
-    btnLabel: 'บุ๊กมาร์ก',
-    panelTitle: 'บุ๊กมาร์ก',
-    ariaClose: 'ปิด',
-    emptyTitle: 'ยังไม่มีบุ๊กมาร์ก',
-    emptyHint: 'คลิก ☆ ขณะอ่านเพื่อบันทึกบทที่ต้องการ',
-    ariaAddNote: 'เพิ่มโน้ต',
-    ariaRemove: 'ลบบุ๊กมาร์ก',
-    notePlaceholder: 'เพิ่มโน้ต…',
-    save: 'บันทึก',
-    cancel: 'ยกเลิก',
-  },
-} as const;
-
-type Locale = keyof typeof I18N;
-
 export interface BookmarkItem {
   id: string;
   title: string;
@@ -94,7 +34,7 @@ interface BookmarkRowProps {
   onNavigate: (bookId: string, chapterId: string) => void;
   onRemove: (id: string) => void;
   onUpdateNote: (id: string, note: string) => void;
-  t: (typeof I18N)[Locale];
+  t: (key: string, params?: any) => string;
 }
 
 function BookmarkRow({ item, onNavigate, onRemove, onUpdateNote, t }: BookmarkRowProps) {
@@ -119,14 +59,14 @@ function BookmarkRow({ item, onNavigate, onRemove, onUpdateNote, t }: BookmarkRo
           <button
             onClick={() => setEditingNote((v) => !v)}
             className="p-1 rounded text-muted-token hover:text-accent-token hover:bg-subtle transition-colors focus-visible:outline-none"
-            title={t.ariaAddNote}
+            title={t('ariaAddNote')}
           >
             <StickyNote className="w-3.5 h-3.5" />
           </button>
           <button
             onClick={() => onRemove(item.id)}
             className="p-1 rounded text-muted-token hover:text-danger-token hover:bg-danger-surface transition-colors focus-visible:outline-none"
-            title={t.ariaRemove}
+            title={t('ariaRemove')}
           >
             <Trash2 className="w-3.5 h-3.5" />
           </button>
@@ -140,7 +80,7 @@ function BookmarkRow({ item, onNavigate, onRemove, onUpdateNote, t }: BookmarkRo
           <textarea
             value={note}
             onChange={(e) => setNote(e.target.value)}
-            placeholder={t.notePlaceholder}
+            placeholder={t('notePlaceholder')}
             rows={2}
             className="flex-1 text-xs px-2 py-1 bg-surface border border-default-token rounded text-primary-token resize-none focus:outline-none focus:border-accent-token"
           />
@@ -149,7 +89,7 @@ function BookmarkRow({ item, onNavigate, onRemove, onUpdateNote, t }: BookmarkRo
               onClick={saveNote}
               className="px-2 py-1 text-[10px] bg-accent-token text-white rounded hover:bg-accent-hover-token transition-colors focus-visible:outline-none"
             >
-              {t.save}
+              {t('save')}
             </button>
             <button
               onClick={() => {
@@ -158,7 +98,7 @@ function BookmarkRow({ item, onNavigate, onRemove, onUpdateNote, t }: BookmarkRo
               }}
               className="px-2 py-1 text-[10px] bg-subtle text-muted-token rounded hover:bg-n-200 transition-colors focus-visible:outline-none"
             >
-              {t.cancel}
+              {t('cancel')}
             </button>
           </div>
         </div>
@@ -173,8 +113,7 @@ export function BookmarkPanel({
   onRemove,
   onUpdateNote,
 }: BookmarkPanelProps) {
-  const locale = useLocale() as Locale;
-  const t = I18N[locale] ?? I18N.zh;
+  const t = useTranslations('BookmarkPanel');
 
   const [open, setOpen] = useState(false);
   const groups = groupByBook(bookmarks);
@@ -185,10 +124,10 @@ export function BookmarkPanel({
       <button
         onClick={() => setOpen(true)}
         className="relative flex items-center gap-1.5 px-3 py-2 text-sm rounded-lg border border-default-token bg-surface text-secondary-token hover:bg-subtle transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-token"
-        aria-label={t.ariaOpen}
+        aria-label={t('ariaOpen')}
       >
         <Bookmark className="w-4 h-4" />
-        <span className="hidden sm:inline">{t.btnLabel}</span>
+        <span className="hidden sm:inline">{t('btnLabel')}</span>
         {bookmarks.length > 0 && (
           <span className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-accent-token text-white text-[9px] flex items-center justify-center font-bold">
             {bookmarks.length > 9 ? '9+' : bookmarks.length}
@@ -210,13 +149,13 @@ export function BookmarkPanel({
             <div className="flex items-center justify-between px-4 py-3 border-b border-subtle-token">
               <div className="flex items-center gap-2">
                 <Bookmark className="w-4 h-4 text-accent-token" />
-                <h2 className="text-sm font-semibold text-primary-token">{t.panelTitle}</h2>
+                <h2 className="text-sm font-semibold text-primary-token">{t('panelTitle')}</h2>
                 <span className="text-xs text-muted-token">({bookmarks.length})</span>
               </div>
               <button
                 onClick={() => setOpen(false)}
                 className="p-1.5 rounded text-muted-token hover:text-secondary-token hover:bg-subtle transition-colors focus-visible:outline-none"
-                aria-label={t.ariaClose}
+                aria-label={t('ariaClose')}
               >
                 <X className="w-4 h-4" />
               </button>
@@ -226,8 +165,8 @@ export function BookmarkPanel({
               {bookmarks.length === 0 ? (
                 <div className="py-12 text-center">
                   <Bookmark className="w-8 h-8 mx-auto text-muted-token mb-3" />
-                  <p className="text-sm text-muted-token">{t.emptyTitle}</p>
-                  <p className="text-xs text-muted-token mt-1">{t.emptyHint}</p>
+                  <p className="text-sm text-muted-token">{t('emptyTitle')}</p>
+                  <p className="text-xs text-muted-token mt-1">{t('emptyHint')}</p>
                 </div>
               ) : (
                 Object.entries(groups).map(([bookTitle, items]) => (

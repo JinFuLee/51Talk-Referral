@@ -2,38 +2,7 @@
 
 import { AlertTriangle } from 'lucide-react';
 import { useConfigStore, useStoreHydrated } from '@/lib/stores/config-store';
-import { useLocale } from 'next-intl';
-
-const I18N = {
-  zh: {
-    viewing: (label: string) => `正在查看 ${label} 历史数据 — 部分操作已禁用`,
-    backToNow: '返回当月',
-    formatDate: (year: number, month: number) => `${year}年${month}月`,
-  },
-  'zh-TW': {
-    viewing: (label: string) => `正在查看 ${label} 歷史數據 — 部分操作已停用`,
-    backToNow: '返回當月',
-    formatDate: (year: number, month: number) => `${year}年${month}月`,
-  },
-  en: {
-    viewing: (label: string) => `Viewing historical data for ${label} — some actions disabled`,
-    backToNow: 'Back to current month',
-    formatDate: (year: number, month: number) =>
-      new Date(year, month - 1).toLocaleString('en', { year: 'numeric', month: 'long' }),
-  },
-  th: {
-    viewing: (label: string) => `กำลังดูข้อมูลประวัติ ${label} — บางการดำเนินการถูกปิดใช้งาน`,
-    backToNow: 'กลับเดือนปัจจุบัน',
-    formatDate: (year: number, month: number) =>
-      new Date(year, month - 1).toLocaleString('th-TH', { year: 'numeric', month: 'long' }),
-  },
-} as const;
-type I18NKey = keyof typeof I18N;
-function useT() {
-  const locale = useLocale();
-  return I18N[(locale as I18NKey) in I18N ? (locale as I18NKey) : 'zh'];
-}
-
+import { useTranslations } from 'next-intl';
 /** 将 YYYYMM 按 locale 格式化为月份标签 */
 function formatYYYYMM(yyyymm: string, formatter: (y: number, m: number) => string): string {
   const year = parseInt(yyyymm.slice(0, 4), 10);
@@ -50,7 +19,7 @@ function getCurrentYYYYMM(): string {
  * 包含"当前查看的月份"说明 + "返回当月"快捷按钮。
  */
 export function HistoricalMonthBanner() {
-  const t = useT();
+  const t = useTranslations('HistoricalMonthBanner');
   const hydrated = useStoreHydrated();
   const selectedMonth = useConfigStore((s) => s.selectedMonth);
   const setSelectedMonth = useConfigStore((s) => s.setSelectedMonth);
@@ -60,17 +29,17 @@ export function HistoricalMonthBanner() {
 
   if (!isHistorical) return null;
 
-  const monthLabel = formatYYYYMM(selectedMonth!, t.formatDate);
+  const monthLabel = formatYYYYMM(selectedMonth!, (y: number, m: number) => t('formatDate', { y, m }));
 
   return (
     <div className="flex items-center gap-2 px-4 py-2 bg-warning-surface border-b border-warning-token text-warning-token text-xs">
       <AlertTriangle className="w-3.5 h-3.5 shrink-0 text-warning-token" />
-      <span className="font-medium">{t.viewing(monthLabel)}</span>
+      <span className="font-medium">{t('viewing', { label: monthLabel })}</span>
       <button
         onClick={() => setSelectedMonth(null)}
         className="ml-auto px-2.5 py-0.5 rounded-full bg-warning-surface border border-warning-token text-warning-token hover:bg-warning-surface transition-colors font-medium whitespace-nowrap"
       >
-        {t.backToNow}
+        {t('backToNow')}
       </button>
     </div>
   );

@@ -103,7 +103,8 @@ export default function IndicatorMatrixPage() {
   }
 
   function handleExportCSV() {
-    const headers = t.raw('csvHeaders') as string[];
+    const rawH = t.raw('csvHeaders');
+    const headers: string[] = Array.isArray(rawH) ? rawH : [];
     const rows = registry.map((ind) => [
       ind.id,
       ind.name_zh,

@@ -37,15 +37,13 @@ const REPORT_I18N = {
     error: 'ดาวน์โหลดล้มเหลว',
   },
 } as const;
-type ReportI18NKey = keyof typeof REPORT_I18N;
-
 export function ReportDownloader({ reportType, date }: ReportDownloaderProps) {
   const locale = useLocale();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const l =
-    REPORT_I18N[(locale as ReportI18NKey) in REPORT_I18N ? (locale as ReportI18NKey) : 'zh'];
+  type RIKey = keyof typeof REPORT_I18N;
+  const l = REPORT_I18N[(locale as RIKey) in REPORT_I18N ? (locale as RIKey) : 'zh'];
 
   async function handleDownload() {
     setLoading(true);

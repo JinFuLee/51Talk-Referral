@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { useLocale } from 'next-intl';
+import { useTranslations } from 'next-intl';
 import { useFilteredSWR } from '@/lib/hooks/use-filtered-swr';
 import { swrFetcher } from '@/lib/api';
 import { formatRevenue, formatRate } from '@/lib/utils';
@@ -11,128 +11,6 @@ import type { ChannelThreeFactor, ChannelThreeFactorRow } from '@/lib/types/repo
 import type { SlideProps } from '@/lib/presentation/types';
 
 // ── 国际化 ───────────────────────────────────────
-const I18N: Record<
-  string,
-  {
-    title: string;
-    subtitle: string;
-    section: string;
-    channel: string;
-    method: string;
-    volDelta: string;
-    convDelta: string;
-    priceDelta: string;
-    residual: string;
-    actualDelta: string;
-    laspLabel: string;
-    lmdiLabel: string;
-    error: string;
-    errorHint: string;
-    retry: string;
-    empty: string;
-    emptyHint: string;
-    insightLargest: string;
-    lmdiNotice: (n: number) => string;
-    legendLasp: string;
-    legendLmdi: string;
-  }
-> = {
-  zh: {
-    title: '渠道三因素分解',
-    subtitle: '各渠道量贡献 / 率贡献 / 价贡献（Laspeyres / LMDI 自动切换）',
-    section: '三因素分析',
-    channel: '渠道',
-    method: '方法',
-    volDelta: '量贡献',
-    convDelta: '率贡献',
-    priceDelta: '价贡献',
-    residual: '残差',
-    actualDelta: '实际增量',
-    laspLabel: 'Lasp.',
-    lmdiLabel: 'LMDI',
-    error: '数据加载失败',
-    errorHint: '请检查后端服务是否正常运行',
-    retry: '重试',
-    empty: '暂无三因素分解数据',
-    emptyHint: '请上传本月 Excel 数据源后自动刷新',
-    insightLargest: '实际增量最大',
-    lmdiNotice: (n: number) => `${n} 个渠道残差率 > 3%，已自动切换为 LMDI 分解（零残差）`,
-    legendLasp: 'Lasp. = Laspeyres 加法分解（残差率 ≤ 3%）',
-    legendLmdi: 'LMDI = 对数分解（残差率 > 3%，零残差）',
-  },
-  'zh-TW': {
-    title: '渠道三因素分解',
-    subtitle: '各渠道量貢獻 / 率貢獻 / 價貢獻（Laspeyres / LMDI 自動切換）',
-    section: '三因素分析',
-    channel: '渠道',
-    method: '方法',
-    volDelta: '量貢獻',
-    convDelta: '率貢獻',
-    priceDelta: '價貢獻',
-    residual: '殘差',
-    actualDelta: '實際增量',
-    laspLabel: 'Lasp.',
-    lmdiLabel: 'LMDI',
-    error: '資料載入失敗',
-    errorHint: '請檢查後端服務是否正常運行',
-    retry: '重試',
-    empty: '暫無三因素分解資料',
-    emptyHint: '請上傳本月 Excel 資料源後自動刷新',
-    insightLargest: '實際增量最大',
-    lmdiNotice: (n: number) => `${n} 個渠道殘差率 > 3%，已自動切換為 LMDI 分解（零殘差）`,
-    legendLasp: 'Lasp. = Laspeyres 加法分解（殘差率 ≤ 3%）',
-    legendLmdi: 'LMDI = 對數分解（殘差率 > 3%，零殘差）',
-  },
-  en: {
-    title: 'Channel Three-Factor Decomposition',
-    subtitle: 'Volume / Conv Rate / Price per channel (Laspeyres / LMDI auto-switch)',
-    section: 'Three-Factor Analysis',
-    channel: 'Channel',
-    method: 'Method',
-    volDelta: 'Volume Δ',
-    convDelta: 'Conv Δ',
-    priceDelta: 'Price Δ',
-    residual: 'Residual',
-    actualDelta: 'Actual Δ',
-    laspLabel: 'Lasp.',
-    lmdiLabel: 'LMDI',
-    error: 'Failed to load',
-    errorHint: 'Please check if backend is running',
-    retry: 'Retry',
-    empty: 'No three-factor data',
-    emptyHint: 'Upload monthly Excel data to refresh',
-    insightLargest: 'largest actual delta',
-    lmdiNotice: (n: number) =>
-      `${n} channel(s) residual > 3%, auto-switched to LMDI (zero residual)`,
-    legendLasp: 'Lasp. = Laspeyres additive decomposition (residual ≤ 3%)',
-    legendLmdi: 'LMDI = Log-mean decomposition (residual > 3%, zero residual)',
-  },
-  th: {
-    title: 'การแยกย่อย 3 ปัจจัยตามช่องทาง',
-    subtitle: 'ปริมาณ / อัตราConv / ราคา ต่อช่องทาง (Laspeyres / LMDI อัตโนมัติ)',
-    section: 'การวิเคราะห์ 3 ปัจจัย',
-    channel: 'ช่องทาง',
-    method: 'วิธี',
-    volDelta: 'Δปริมาณ',
-    convDelta: 'ΔConv',
-    priceDelta: 'Δราคา',
-    residual: 'ส่วนเหลือ',
-    actualDelta: 'Δจริง',
-    laspLabel: 'Lasp.',
-    lmdiLabel: 'LMDI',
-    error: 'โหลดข้อมูลล้มเหลว',
-    errorHint: 'กรุณาตรวจสอบบริการแบ็กเอนด์',
-    retry: 'ลองใหม่',
-    empty: 'ไม่มีข้อมูล 3 ปัจจัย',
-    emptyHint: 'กรุณาอัปโหลดไฟล์ Excel ประจำเดือน',
-    insightLargest: 'Δจริงมากที่สุด',
-    lmdiNotice: (n: number) =>
-      `${n} ช่องทางมีค่าคลาดเคลื่อน > 3% เปลี่ยนเป็น LMDI อัตโนมัติ (ไม่มีค่าคลาดเคลื่อน)`,
-    legendLasp: 'Lasp. = การแยกย่อยแบบ Laspeyres (คลาดเคลื่อน ≤ 3%)',
-    legendLmdi: 'LMDI = การแยกย่อยแบบลอการิทึม (คลาดเคลื่อน > 3%, ไม่มีค่าคลาดเคลื่อน)',
-  },
-};
-
 type DailyReportSlice = { blocks: { channel_three_factor: ChannelThreeFactor } };
 
 function DeltaCell({ value }: { value: number | null | undefined }) {
@@ -154,7 +32,7 @@ function ChannelRow({
 }: {
   row: ChannelThreeFactorRow;
   index: number;
-  t: (typeof I18N)['zh'];
+  t: (key: string, params?: any) => string;
 }) {
   const isLMDI = row.display_method === 'lmdi';
   const d = isLMDI ? row.lmdi : row.laspeyres;
@@ -172,7 +50,7 @@ function ChannelRow({
             isLMDI ? 'bg-warning-surface text-warning-token' : 'bg-accent-surface text-brand-p2'
           }`}
         >
-          {isLMDI ? t.lmdiLabel : t.laspLabel}
+          {isLMDI ? t('lmdiLabel') : t('laspLabel')}
         </span>
       </td>
       <DeltaCell value={volDelta} />
@@ -188,8 +66,7 @@ function ChannelRow({
 }
 
 export function ChannelThreeFactorSlide({ slideNumber, totalSlides }: SlideProps) {
-  const locale = useLocale();
-  const t = I18N[locale] ?? I18N['zh'];
+  const t = useTranslations('ChannelThreeFactorSlide');
 
   const { data, isLoading, error, mutate } = useFilteredSWR<ChannelThreeFactor>(
     '/api/report/daily',
@@ -210,7 +87,7 @@ export function ChannelThreeFactorSlide({ slideNumber, totalSlides }: SlideProps
     const delta =
       top.display_method === 'lmdi' ? top.lmdi.actual_delta : top.laspeyres.actual_delta;
     const sign = delta > 0 ? '+' : '';
-    return `${top.channel} ${t.insightLargest}（${sign}${formatRevenue(delta)}）`;
+    return `${top.channel} ${t('insightLargest')}（${sign}${formatRevenue(delta)}）`;
   })();
 
   // 统计哪些渠道使用 LMDI（用于说明）
@@ -220,9 +97,9 @@ export function ChannelThreeFactorSlide({ slideNumber, totalSlides }: SlideProps
     <SlideShell
       slideNumber={slideNumber}
       totalSlides={totalSlides}
-      title={t.title}
-      subtitle={t.subtitle}
-      section={t.section}
+      title={t('title')}
+      subtitle={t('subtitle')}
+      section={t('section')}
       insight={insight}
     >
       {isLoading ? (
@@ -232,27 +109,27 @@ export function ChannelThreeFactorSlide({ slideNumber, totalSlides }: SlideProps
       ) : error ? (
         <div className="flex items-center justify-center h-full">
           <div className="text-center space-y-2">
-            <p className="text-base font-semibold text-danger-token">{t.error}</p>
-            <p className="text-sm text-muted-token">{t.errorHint}</p>
+            <p className="text-base font-semibold text-danger-token">{t('error')}</p>
+            <p className="text-sm text-muted-token">{t('errorHint')}</p>
             <button
               onClick={() => mutate()}
               className="mt-1 px-4 py-1.5 rounded-lg text-sm border border-default-token text-secondary-token hover:bg-subtle transition-colors"
             >
-              {t.retry}
+              {t('retry')}
             </button>
           </div>
         </div>
       ) : channels.length === 0 ? (
         <div className="flex flex-col justify-center items-center h-full gap-3 text-muted-token">
-          <p className="text-base font-medium">{t.empty}</p>
-          <p className="text-sm">{t.emptyHint}</p>
+          <p className="text-base font-medium">{t('empty')}</p>
+          <p className="text-sm">{t('emptyHint')}</p>
         </div>
       ) : (
         <div className="flex flex-col gap-2 h-full">
           {/* 方法说明 */}
           {lmdiCount > 0 && (
             <div className="flex-shrink-0 px-3 py-1.5 bg-warning-surface rounded-lg border border-warning-token text-xs text-warning-token">
-              {t.lmdiNotice(lmdiCount)}
+              {t('lmdiNotice', { n: lmdiCount })}
             </div>
           )}
 
@@ -260,13 +137,13 @@ export function ChannelThreeFactorSlide({ slideNumber, totalSlides }: SlideProps
             <table className="w-full text-sm border-collapse">
               <thead>
                 <tr className="slide-thead-row">
-                  <th className="slide-th slide-th-left">{t.channel}</th>
-                  <th className="slide-th slide-th-center">{t.method}</th>
-                  <th className="slide-th slide-th-right">{t.volDelta}</th>
-                  <th className="slide-th slide-th-right">{t.convDelta}</th>
-                  <th className="slide-th slide-th-right">{t.priceDelta}</th>
-                  <th className="slide-th slide-th-right">{t.residual}</th>
-                  <th className="slide-th slide-th-right">{t.actualDelta}</th>
+                  <th className="slide-th slide-th-left">{t('channel')}</th>
+                  <th className="slide-th slide-th-center">{t('method')}</th>
+                  <th className="slide-th slide-th-right">{t('volDelta')}</th>
+                  <th className="slide-th slide-th-right">{t('convDelta')}</th>
+                  <th className="slide-th slide-th-right">{t('priceDelta')}</th>
+                  <th className="slide-th slide-th-right">{t('residual')}</th>
+                  <th className="slide-th slide-th-right">{t('actualDelta')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -281,11 +158,11 @@ export function ChannelThreeFactorSlide({ slideNumber, totalSlides }: SlideProps
           <div className="flex-shrink-0 flex gap-4 text-xs text-muted-token px-1">
             <span>
               <span className="inline-block w-2 h-2 rounded-sm bg-accent-surface mr-1" />
-              {t.legendLasp}
+              {t('legendLasp')}
             </span>
             <span>
               <span className="inline-block w-2 h-2 rounded-sm bg-warning-surface mr-1" />
-              {t.legendLmdi}
+              {t('legendLmdi')}
             </span>
           </div>
         </div>

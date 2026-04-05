@@ -1,16 +1,8 @@
 'use client';
 
-import { useLocale } from 'next-intl';
+import { useTranslations } from 'next-intl';
 import { ChevronUp, ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
-
-const I18N = {
-  zh: { sortTitle: (label: string) => `点击按 ${label} 排序` },
-  'zh-TW': { sortTitle: (label: string) => `點擊按 ${label} 排序` },
-  en: { sortTitle: (label: string) => `Sort by ${label}` },
-  th: { sortTitle: (label: string) => `เรียงตาม ${label}` },
-} as const;
-
 export interface SortableHeaderProps {
   label: string;
   columnKey: string;
@@ -30,14 +22,13 @@ export function SortableHeader({
   className,
   align = 'left',
 }: SortableHeaderProps) {
-  const locale = useLocale();
-  const t = I18N[locale as keyof typeof I18N] || I18N.zh;
+    const t = useTranslations('SortableHeader');
   const isActive = currentSortKey === columnKey;
 
   return (
     <th
       onClick={() => onSort(columnKey)}
-      title={t.sortTitle(label)}
+      title={t('sortTitle', { label: label })}
       className={cn(
         'group cursor-pointer p-4 text-sm font-medium transition-colors select-none',
         isActive

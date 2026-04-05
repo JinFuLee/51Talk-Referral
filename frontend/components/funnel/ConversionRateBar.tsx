@@ -1,6 +1,6 @@
 'use client';
 
-import { useLocale } from 'next-intl';
+import { useTranslations } from 'next-intl';
 import {
   BarChart,
   Bar,
@@ -14,46 +14,13 @@ import {
 } from 'recharts';
 import type { FunnelStage } from '@/lib/types/funnel';
 import { CHART_PALETTE } from '@/lib/chart-palette';
-
-const I18N = {
-  zh: {
-    actual: '实际',
-    target: '目标',
-    regAppt: '注册预约率',
-    apptShow: '预约出席率',
-    showPay: '出席付费率',
-  },
-  'zh-TW': {
-    actual: '實際',
-    target: '目標',
-    regAppt: '註冊預約率',
-    apptShow: '預約出席率',
-    showPay: '出席付費率',
-  },
-  en: {
-    actual: 'Actual',
-    target: 'Target',
-    regAppt: 'Reg→Appt',
-    apptShow: 'Appt→Show',
-    showPay: 'Show→Pay',
-  },
-  th: {
-    actual: 'จริง',
-    target: 'เป้าหมาย',
-    regAppt: 'ลงทะเบียน→นัด',
-    apptShow: 'นัด→เข้าร่วม',
-    showPay: 'เข้าร่วม→ชำระ',
-  },
-} as const;
-
 interface ConversionRateBarProps {
   stages: FunnelStage[];
   height?: number;
 }
 
 // Stage keys are fixed Chinese data-model names (matched against Excel/API stage names).
-// Display labels come from I18N at render time.
-const RATE_PAIRS: { labelKey: keyof (typeof I18N)['zh']; from: string; to: string }[] = [
+const RATE_PAIRS: { labelKey: string; from: string; to: string }[] = [
   { labelKey: 'regAppt', from: '注册', to: '预约' },
   { labelKey: 'apptShow', from: '预约', to: '出席' },
   { labelKey: 'showPay', from: '出席', to: '付费' },
@@ -67,8 +34,7 @@ function gapColor(gap: number | undefined) {
 }
 
 export function ConversionRateBar({ stages, height = 240 }: ConversionRateBarProps) {
-  const locale = useLocale();
-  const t = (I18N as unknown as Record<string, (typeof I18N)['zh']>)[locale] ?? I18N['zh'];
+  const t = useTranslations('ConversionRateBar');
   const stageMap = Object.fromEntries(stages.map((s) => [s.name, s]));
 
   const chartData = RATE_PAIRS.map(({ labelKey, from, to }) => {
@@ -82,7 +48,7 @@ export function ConversionRateBar({ stages, height = 240 }: ConversionRateBarPro
     const target =
       toStage?.target_rate != null ? Number((toStage.target_rate * 100).toFixed(1)) : null;
     const gap = target != null ? actual - target : undefined;
-    return { name: t[labelKey], actual, target, gap };
+    return { name: t(labelKey), actual, target, gap };
   });
 
   return (
@@ -98,7 +64,7 @@ export function ConversionRateBar({ stages, height = 240 }: ConversionRateBarPro
         <Tooltip
           formatter={(v: number, name: string) => [
             `${v}%`,
-            name === 'actual' ? t.actual : t.target,
+            name === 'actual' ? t('actual') : t('target'),
           ]}
           contentStyle={{
             background: 'var(--bg-surface)',

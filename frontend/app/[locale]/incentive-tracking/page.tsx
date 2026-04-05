@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useLocale } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { useFilteredSWR } from '@/lib/hooks/use-filtered-swr';
 import { usePageDimensions } from '@/lib/hooks/use-page-dimensions';
 import { Card } from '@/components/ui/Card';
@@ -18,487 +18,10 @@ import { formatRate } from '@/lib/utils';
 
 // ─── i18n ──────────────────────────────────────────────────────────────────
 
-const I18N = {
-  zh: {
-    pageTitle: '内场激励系统',
-    pageDesc: '杠杆机会识别 · 激励活动管理 · 实时达标追踪',
-    tabLeverage: '📊 杠杆分析',
-    tabCampaigns: '🎯 活动管理',
-    tabProgress: '⚡ 实时进度',
-    // Status labels
-    statusQualified: '已达标',
-    statusClose: '接近',
-    statusInProgress: '进行中',
-    statusNotStarted: '未开始',
-    campaignActive: '进行中',
-    campaignPaused: '已暂停',
-    campaignCompleted: '已完成',
-    campaignDeleted: '已删除',
-    // Campaign modal
-    modalCreateTitle: '新建激励活动',
-    modalEditTitle: '编辑活动',
-    fieldCampaignName: '活动名称',
-    fieldCampaignNamePlaceholder: '如：CC本月冲量激励',
-    fieldThaiName: '泰文名称（选填）',
-    fieldThaiNamePlaceholder: '泰语名称，用于海报',
-    fieldRole: '岗位',
-    fieldMetric: '考核指标',
-    fieldCondition: '条件',
-    fieldThreshold: '达标阈值',
-    fieldThresholdPlaceholder: '如 10',
-    fieldReward: '奖励金额（฿）',
-    fieldRewardPlaceholder: '如 500',
-    fieldStartDate: '开始日期（选填）',
-    fieldEndDate: '结束日期（选填）',
-    btnCancel: '取消',
-    btnCreate: '创建活动',
-    btnUpdate: '更新活动',
-    btnSaving: '保存中…',
-    errNoName: '请填写活动名称',
-    errInvalidThreshold: '请填写有效的达标阈值',
-    errInvalidReward: '请填写有效的奖励金额',
-    errDuplicateMetric: '该指标已有进行中的活动',
-    errSaveFailed: '保存失败',
-    // Operator labels
-    operatorGte: '≥（大于等于）',
-    operatorLte: '≤（小于等于）',
-    operatorGt: '>（大于）',
-    operatorLt: '<（小于）',
-    // Role labels
-    roleCC: 'CC（前端销售）',
-    roleSS: 'SS（后端销售）',
-    roleLP: 'LP（后端服务）',
-    // Leverage tab
-    loadingLeverage: '正在分析杠杆机会…',
-    leverageDesc: '以下阶段对转介绍业绩的杠杆效应最强，建议优先在此设置激励活动。',
-    leverageCurrentPhase: '当前阶段：',
-    leverageRemainingDays: ' · 剩余 ',
-    leverageRemainingDaysSuffix: ' 个工作日',
-    leverageScore: '杠杆评分',
-    leverageRevImpact: '业绩增量',
-    leverageAlreadyCreated: '✓ 已创建',
-    leverageNextMonth: '下月初创建',
-    leverageCreateBtn: '创建活动',
-    leverageEmptyTitle: '暂无杠杆分析数据',
-    leverageEmptyDesc: '后端分析引擎正在建立基线数据，稍后再来查看',
-    // Campaigns tab
-    campaignsMgmtDesc: '管理当月激励活动，达标自动通知 · 支持海报生成',
-    campaignsNewBtn: '+ 新建活动',
-    campaignsLoadFail: '加载失败，后端接口暂不可用',
-    campaignsEmptyTitle: '暂无激励活动',
-    campaignsEmptyDesc: '点击「新建活动」开始设置本月激励方案',
-    thCampaignName: '活动名称',
-    thRole: '岗位',
-    thMetric: '指标',
-    thCondition: '条件',
-    thReward: '奖励',
-    thProgress: '进度',
-    thStatus: '状态',
-    thActions: '操作',
-    actionEdit: '编辑',
-    actionPause: '暂停',
-    actionResume: '恢复',
-    actionPoster: '海报',
-    actionDelete: '删除',
-    posterFailed: '海报生成失败，请稍后重试',
-    confirmDelete: '确认删除活动"',
-    confirmDeleteSuffix: '"？此操作不可恢复。',
-    // Progress tab
-    budgetCardTitle: '预算消耗状态',
-    budgetIndoor: '内场激励',
-    budgetConsumed: '% 已消耗',
-    budgetRemaining: '剩余 ฿',
-    dataRemark: '数据为当月累计（ข้อมูลเป็นยอดสะสมทั้งเดือน），并非从活动开始日起算',
-    progressLoadFail: '加载失败，后端接口暂不可用',
-    progressEmptyTitle: '暂无进行中的活动',
-    progressEmptyDesc: '在「活动管理」中创建活动后，实时进度将在此展示',
-    qualified: '已达标',
-    close: '人',
-    totalEstimated: '预计发放',
-    noPersonData: '暂无人员数据',
-    // Progress card
-    qualifiedCount: '已达标',
-    closeCount: '接近',
-    personUnit: '人',
-    estimatedPayout: '预计发放',
-    // Stage labels (backend enum → display)
-    stageLabels: {
-      appt_rate: '注册预约率',
-      attend_rate: '预约出席率',
-      paid_rate: '出席付费率',
-    } as Record<string, string>,
-    // Rationale by stage
-    rationaleByStage: {
-      appt_rate: '提升注册→预约转化，增加有效 leads 数',
-      attend_rate: '提升预约→出席转化，减少爽约损耗',
-      paid_rate: '提升出席→付费转化，缩短成交周期',
-      checkin_rate: '提升打卡率，增加学员触达基础',
-      participation_rate: '提升参与率，扩大转介绍漏斗入口',
-      cc_reach_rate: '提升触达率，增加有效沟通覆盖',
-    } as Record<string, string>,
-    // Action notes (backend string → i18n)
-    actionNoteClosing: '建议下月初创建',
-    actionNoteLate: '结果指标需 2-3 周转化，建议下月初',
-    actionNoteMid: '月中可创建冲刺版',
-  },
-  'zh-TW': {
-    pageTitle: '內場激勵系統',
-    pageDesc: '槓桿機會識別 · 激勵活動管理 · 即時達標追蹤',
-    tabLeverage: '📊 槓桿分析',
-    tabCampaigns: '🎯 活動管理',
-    tabProgress: '⚡ 即時進度',
-    statusQualified: '已達標',
-    statusClose: '接近',
-    statusInProgress: '進行中',
-    statusNotStarted: '未開始',
-    campaignActive: '進行中',
-    campaignPaused: '已暫停',
-    campaignCompleted: '已完成',
-    campaignDeleted: '已刪除',
-    modalCreateTitle: '新建激勵活動',
-    modalEditTitle: '編輯活動',
-    fieldCampaignName: '活動名稱',
-    fieldCampaignNamePlaceholder: '如：CC本月衝量激勵',
-    fieldThaiName: '泰文名稱（選填）',
-    fieldThaiNamePlaceholder: '泰語名稱，用於海報',
-    fieldRole: '崗位',
-    fieldMetric: '考核指標',
-    fieldCondition: '條件',
-    fieldThreshold: '達標閾值',
-    fieldThresholdPlaceholder: '如 10',
-    fieldReward: '獎勵金額（฿）',
-    fieldRewardPlaceholder: '如 500',
-    fieldStartDate: '開始日期（選填）',
-    fieldEndDate: '結束日期（選填）',
-    btnCancel: '取消',
-    btnCreate: '建立活動',
-    btnUpdate: '更新活動',
-    btnSaving: '儲存中…',
-    errNoName: '請填寫活動名稱',
-    errInvalidThreshold: '請填寫有效的達標閾值',
-    errInvalidReward: '請填寫有效的獎勵金額',
-    errDuplicateMetric: '該指標已有進行中的活動',
-    errSaveFailed: '儲存失敗',
-    leverageDesc: '以下階段對轉介紹業績的槓桿效應最強，建議優先在此設置激勵活動。',
-    leverageCurrentPhase: '當前階段：',
-    leverageRemainingDays: ' · 剩餘 ',
-    leverageRemainingDaysSuffix: ' 個工作日',
-    leverageScore: '槓桿評分',
-    leverageRevImpact: '業績增量',
-    leverageAlreadyCreated: '✓ 已建立',
-    leverageNextMonth: '下月初建立',
-    leverageCreateBtn: '建立活動',
-    leverageEmptyTitle: '暫無槓桿分析資料',
-    leverageEmptyDesc: '後端分析引擎正在建立基線資料，稍後再來查看',
-    campaignsMgmtDesc: '管理當月激勵活動，達標自動通知 · 支援海報生成',
-    campaignsNewBtn: '+ 新建活動',
-    campaignsLoadFail: '載入失敗，後端介面暫不可用',
-    campaignsEmptyTitle: '暫無激勵活動',
-    campaignsEmptyDesc: '點擊「新建活動」開始設定本月激勵方案',
-    thCampaignName: '活動名稱',
-    thRole: '崗位',
-    thMetric: '指標',
-    thCondition: '條件',
-    thReward: '獎勵',
-    thProgress: '進度',
-    thStatus: '狀態',
-    thActions: '操作',
-    actionEdit: '編輯',
-    actionPause: '暫停',
-    actionResume: '恢復',
-    actionPoster: '海報',
-    actionDelete: '刪除',
-    posterFailed: '海報生成失敗，請稍後重試',
-    confirmDelete: '確認刪除活動「',
-    confirmDeleteSuffix: '」？此操作不可復原。',
-    budgetCardTitle: '預算消耗狀態',
-    budgetIndoor: '內場激勵',
-    budgetConsumed: '% 已消耗',
-    budgetRemaining: '剩餘 ฿',
-    dataRemark: '資料為當月累計（ข้อมูลเป็นยอดสะสมทั้งเดือน），並非從活動開始日起算',
-    progressLoadFail: '載入失敗，後端介面暫不可用',
-    progressEmptyTitle: '暫無進行中的活動',
-    progressEmptyDesc: '在「活動管理」中建立活動後，即時進度將在此展示',
-    qualified: '已達標',
-    close: '人',
-    totalEstimated: '預計發放',
-    noPersonData: '暫無人員資料',
-    // Operator labels
-    operatorGte: '≥（大於等於）',
-    operatorLte: '≤（小於等於）',
-    operatorGt: '>（大於）',
-    operatorLt: '<（小於）',
-    // Role labels
-    roleCC: 'CC（前端銷售）',
-    roleSS: 'SS（後端銷售）',
-    roleLP: 'LP（後端服務）',
-    // Loading
-    loadingLeverage: '正在分析槓桿機會…',
-    // Progress card
-    qualifiedCount: '已達標',
-    closeCount: '接近',
-    personUnit: '人',
-    estimatedPayout: '預計發放',
-    // Stage labels
-    stageLabels: {
-      appt_rate: '注冊預約率',
-      attend_rate: '預約出席率',
-      paid_rate: '出席付費率',
-    } as Record<string, string>,
-    // Rationale by stage
-    rationaleByStage: {
-      appt_rate: '提升注冊→預約轉化，增加有效 leads 數',
-      attend_rate: '提升預約→出席轉化，減少爽約損耗',
-      paid_rate: '提升出席→付費轉化，縮短成交週期',
-      checkin_rate: '提升打卡率，增加學員觸達基礎',
-      participation_rate: '提升參與率，擴大轉介紹漏斗入口',
-      cc_reach_rate: '提升觸達率，增加有效溝通覆蓋',
-    } as Record<string, string>,
-    actionNoteClosing: '建議下月初建立',
-    actionNoteLate: '結果指標需 2-3 週轉化，建議下月初',
-    actionNoteMid: '月中可建立衝刺版',
-  },
-  en: {
-    pageTitle: 'Incentive System',
-    pageDesc: 'Leverage opportunity identification · Campaign management · Real-time tracking',
-    tabLeverage: '📊 Leverage',
-    tabCampaigns: '🎯 Campaigns',
-    tabProgress: '⚡ Live Progress',
-    statusQualified: 'Qualified',
-    statusClose: 'Close',
-    statusInProgress: 'In Progress',
-    statusNotStarted: 'Not Started',
-    campaignActive: 'Active',
-    campaignPaused: 'Paused',
-    campaignCompleted: 'Completed',
-    campaignDeleted: 'Deleted',
-    modalCreateTitle: 'New Campaign',
-    modalEditTitle: 'Edit Campaign',
-    fieldCampaignName: 'Campaign Name',
-    fieldCampaignNamePlaceholder: 'e.g. CC Monthly Push',
-    fieldThaiName: 'Thai Name (optional)',
-    fieldThaiNamePlaceholder: 'Thai name for poster',
-    fieldRole: 'Role',
-    fieldMetric: 'Metric',
-    fieldCondition: 'Condition',
-    fieldThreshold: 'Threshold',
-    fieldThresholdPlaceholder: 'e.g. 10',
-    fieldReward: 'Reward (฿)',
-    fieldRewardPlaceholder: 'e.g. 500',
-    fieldStartDate: 'Start Date (optional)',
-    fieldEndDate: 'End Date (optional)',
-    btnCancel: 'Cancel',
-    btnCreate: 'Create',
-    btnUpdate: 'Update',
-    btnSaving: 'Saving…',
-    errNoName: 'Campaign name is required',
-    errInvalidThreshold: 'Please enter a valid threshold',
-    errInvalidReward: 'Please enter a valid reward amount',
-    errDuplicateMetric: 'An active campaign already exists for this metric',
-    errSaveFailed: 'Save failed',
-    leverageDesc:
-      'These phases have the strongest leverage on referral revenue. Set incentives here first.',
-    leverageCurrentPhase: 'Current phase: ',
-    leverageRemainingDays: ' · ',
-    leverageRemainingDaysSuffix: ' working days left',
-    leverageScore: 'Leverage Score',
-    leverageRevImpact: 'Revenue Impact',
-    leverageAlreadyCreated: '✓ Created',
-    leverageNextMonth: 'Create next month',
-    leverageCreateBtn: 'Create Campaign',
-    leverageEmptyTitle: 'No leverage analysis data',
-    leverageEmptyDesc: 'Backend engine is building baseline data, check back later',
-    campaignsMgmtDesc: 'Manage monthly campaigns · Auto-notify on qualification · Poster support',
-    campaignsNewBtn: '+ New Campaign',
-    campaignsLoadFail: 'Load failed, backend unavailable',
-    campaignsEmptyTitle: 'No campaigns yet',
-    campaignsEmptyDesc: 'Click "New Campaign" to set up this month\'s incentive plan',
-    thCampaignName: 'Campaign',
-    thRole: 'Role',
-    thMetric: 'Metric',
-    thCondition: 'Condition',
-    thReward: 'Reward',
-    thProgress: 'Progress',
-    thStatus: 'Status',
-    thActions: 'Actions',
-    actionEdit: 'Edit',
-    actionPause: 'Pause',
-    actionResume: 'Resume',
-    actionPoster: 'Poster',
-    actionDelete: 'Delete',
-    posterFailed: 'Poster generation failed, please try again',
-    confirmDelete: 'Delete campaign "',
-    confirmDeleteSuffix: '"? This cannot be undone.',
-    budgetCardTitle: 'Budget Consumption',
-    budgetIndoor: 'Indoor Incentive',
-    budgetConsumed: '% consumed',
-    budgetRemaining: 'Remaining ฿',
-    dataRemark: 'Data is month-to-date cumulative, not from campaign start date',
-    progressLoadFail: 'Load failed, backend unavailable',
-    progressEmptyTitle: 'No active campaigns',
-    progressEmptyDesc: 'Create campaigns in "Campaigns" tab to see live progress here',
-    qualified: 'Qualified',
-    close: 'close',
-    totalEstimated: 'Est. Payout',
-    noPersonData: 'No person data',
-    // Operator labels
-    operatorGte: '≥ (gte)',
-    operatorLte: '≤ (lte)',
-    operatorGt: '> (gt)',
-    operatorLt: '< (lt)',
-    // Role labels
-    roleCC: 'CC (Front Sales)',
-    roleSS: 'SS (Back Sales)',
-    roleLP: 'LP (Back Service)',
-    // Loading
-    loadingLeverage: 'Analyzing leverage opportunities…',
-    // Progress card
-    qualifiedCount: 'Qualified',
-    closeCount: 'Close',
-    personUnit: '',
-    estimatedPayout: 'Est. Payout',
-    // Stage labels
-    stageLabels: {
-      appt_rate: 'Reg → Appt Rate',
-      attend_rate: 'Appt → Attend Rate',
-      paid_rate: 'Attend → Paid Rate',
-    } as Record<string, string>,
-    // Rationale by stage
-    rationaleByStage: {
-      appt_rate: 'Improve registration→appointment conversion to increase effective leads',
-      attend_rate: 'Improve appointment→attendance conversion, reduce no-shows',
-      paid_rate: 'Improve attendance→payment conversion, shorten deal cycle',
-      checkin_rate: 'Improve check-in rate to increase student reach base',
-      participation_rate: 'Improve participation rate, expand referral funnel entry',
-      cc_reach_rate: 'Improve reach rate, increase effective communication coverage',
-    } as Record<string, string>,
-    actionNoteClosing: 'Recommend creating at start of next month',
-    actionNoteLate: 'Outcome metrics need 2–3 weeks to convert; recommend next month',
-    actionNoteMid: 'Can create sprint version mid-month',
-  },
-  th: {
-    pageTitle: 'ระบบแรงจูงใจภายใน',
-    pageDesc: 'ระบุโอกาสพันธะ · การจัดการแคมเปญ · การติดตามแบบเรียลไทม์',
-    tabLeverage: '📊 การวิเคราะห์พันธะ',
-    tabCampaigns: '🎯 จัดการแคมเปญ',
-    tabProgress: '⚡ ความคืบหน้า',
-    statusQualified: 'ผ่านเกณฑ์',
-    statusClose: 'ใกล้ถึง',
-    statusInProgress: 'กำลังดำเนินการ',
-    statusNotStarted: 'ยังไม่เริ่ม',
-    campaignActive: 'กำลังดำเนินการ',
-    campaignPaused: 'หยุดชั่วคราว',
-    campaignCompleted: 'เสร็จสิ้น',
-    campaignDeleted: 'ถูกลบ',
-    modalCreateTitle: 'สร้างแคมเปญแรงจูงใจ',
-    modalEditTitle: 'แก้ไขแคมเปญ',
-    fieldCampaignName: 'ชื่อแคมเปญ',
-    fieldCampaignNamePlaceholder: 'เช่น แรงจูงใจ CC ประจำเดือน',
-    fieldThaiName: 'ชื่อภาษาไทย (ไม่บังคับ)',
-    fieldThaiNamePlaceholder: 'ชื่อภาษาไทยสำหรับโปสเตอร์',
-    fieldRole: 'บทบาท',
-    fieldMetric: 'ตัวชี้วัด',
-    fieldCondition: 'เงื่อนไข',
-    fieldThreshold: 'เกณฑ์',
-    fieldThresholdPlaceholder: 'เช่น 10',
-    fieldReward: 'รางวัล (฿)',
-    fieldRewardPlaceholder: 'เช่น 500',
-    fieldStartDate: 'วันเริ่มต้น (ไม่บังคับ)',
-    fieldEndDate: 'วันสิ้นสุด (ไม่บังคับ)',
-    btnCancel: 'ยกเลิก',
-    btnCreate: 'สร้างแคมเปญ',
-    btnUpdate: 'อัปเดตแคมเปญ',
-    btnSaving: 'กำลังบันทึก…',
-    errNoName: 'กรุณากรอกชื่อแคมเปญ',
-    errInvalidThreshold: 'กรุณากรอกเกณฑ์ที่ถูกต้อง',
-    errInvalidReward: 'กรุณากรอกจำนวนเงินรางวัลที่ถูกต้อง',
-    errDuplicateMetric: 'มีแคมเปญที่ใช้งานอยู่สำหรับตัวชี้วัดนี้แล้ว',
-    errSaveFailed: 'บันทึกไม่สำเร็จ',
-    leverageDesc: 'ขั้นตอนเหล่านี้มีผลพันธะที่แข็งแกร่งที่สุดต่อรายได้การแนะนำ',
-    leverageCurrentPhase: 'ระยะปัจจุบัน: ',
-    leverageRemainingDays: ' · เหลือ ',
-    leverageRemainingDaysSuffix: ' วันทำงาน',
-    leverageScore: 'คะแนนพันธะ',
-    leverageRevImpact: 'ผลกระทบรายได้',
-    leverageAlreadyCreated: '✓ สร้างแล้ว',
-    leverageNextMonth: 'สร้างเดือนหน้า',
-    leverageCreateBtn: 'สร้างแคมเปญ',
-    leverageEmptyTitle: 'ไม่มีข้อมูลการวิเคราะห์พันธะ',
-    leverageEmptyDesc: 'เครื่องมือวิเคราะห์กำลังสร้างข้อมูลพื้นฐาน กรุณารอสักครู่',
-    campaignsMgmtDesc: 'จัดการแคมเปญประจำเดือน · แจ้งเตือนอัตโนมัติ · รองรับโปสเตอร์',
-    campaignsNewBtn: '+ สร้างแคมเปญ',
-    campaignsLoadFail: 'โหลดไม่สำเร็จ ระบบ backend ไม่พร้อมใช้งาน',
-    campaignsEmptyTitle: 'ไม่มีแคมเปญ',
-    campaignsEmptyDesc: 'คลิก "สร้างแคมเปญ" เพื่อตั้งค่าแผนแรงจูงใจประจำเดือน',
-    thCampaignName: 'แคมเปญ',
-    thRole: 'บทบาท',
-    thMetric: 'ตัวชี้วัด',
-    thCondition: 'เงื่อนไข',
-    thReward: 'รางวัล',
-    thProgress: 'ความคืบหน้า',
-    thStatus: 'สถานะ',
-    thActions: 'การดำเนินการ',
-    actionEdit: 'แก้ไข',
-    actionPause: 'หยุดชั่วคราว',
-    actionResume: 'ดำเนินการต่อ',
-    actionPoster: 'โปสเตอร์',
-    actionDelete: 'ลบ',
-    posterFailed: 'สร้างโปสเตอร์ไม่สำเร็จ กรุณาลองใหม่',
-    confirmDelete: 'ยืนยันการลบแคมเปญ "',
-    confirmDeleteSuffix: '"? ไม่สามารถยกเลิกได้',
-    budgetCardTitle: 'สถานะการใช้งบประมาณ',
-    budgetIndoor: 'แรงจูงใจภายใน',
-    budgetConsumed: '% ใช้ไปแล้ว',
-    budgetRemaining: 'คงเหลือ ฿',
-    dataRemark: 'ข้อมูลเป็นยอดสะสมทั้งเดือน ไม่ใช่นับจากวันเริ่มแคมเปญ',
-    progressLoadFail: 'โหลดไม่สำเร็จ ระบบ backend ไม่พร้อมใช้งาน',
-    progressEmptyTitle: 'ไม่มีแคมเปญที่ดำเนินการอยู่',
-    progressEmptyDesc: 'สร้างแคมเปญในแท็บ "จัดการแคมเปญ" เพื่อดูความคืบหน้า',
-    qualified: 'ผ่านเกณฑ์',
-    close: 'คน',
-    totalEstimated: 'ประมาณการจ่าย',
-    noPersonData: 'ไม่มีข้อมูลบุคคล',
-    // Operator labels
-    operatorGte: '≥ (มากกว่าหรือเท่ากับ)',
-    operatorLte: '≤ (น้อยกว่าหรือเท่ากับ)',
-    operatorGt: '> (มากกว่า)',
-    operatorLt: '< (น้อยกว่า)',
-    // Role labels
-    roleCC: 'CC (ฝ่ายขายหน้า)',
-    roleSS: 'SS (ฝ่ายขายหลัง)',
-    roleLP: 'LP (ฝ่ายบริการหลัง)',
-    // Loading
-    loadingLeverage: 'กำลังวิเคราะห์โอกาสพันธะ…',
-    // Progress card
-    qualifiedCount: 'ผ่านเกณฑ์',
-    closeCount: 'ใกล้ถึง',
-    personUnit: 'คน',
-    estimatedPayout: 'ประมาณการจ่าย',
-    // Stage labels
-    stageLabels: {
-      appt_rate: 'อัตราการนัดหมาย',
-      attend_rate: 'อัตราการเข้าร่วม',
-      paid_rate: 'อัตราการชำระเงิน',
-    } as Record<string, string>,
-    // Rationale by stage
-    rationaleByStage: {
-      appt_rate: 'เพิ่มอัตราการลงทะเบียน→นัดหมาย เพิ่มจำนวนลีดที่มีประสิทธิภาพ',
-      attend_rate: 'เพิ่มอัตราการนัดหมาย→เข้าร่วม ลดการไม่มาตามนัด',
-      paid_rate: 'เพิ่มอัตราการเข้าร่วม→ชำระเงิน ลดระยะเวลาปิดการขาย',
-      checkin_rate: 'เพิ่มอัตราเช็คอิน เพิ่มฐานการติดต่อนักเรียน',
-      participation_rate: 'เพิ่มอัตราการมีส่วนร่วม ขยายช่องทางการแนะนำ',
-      cc_reach_rate: 'เพิ่มอัตราการติดต่อ เพิ่มการสื่อสารที่มีประสิทธิภาพ',
-    } as Record<string, string>,
-    actionNoteClosing: 'แนะนำให้สร้างต้นเดือนหน้า',
-    actionNoteLate: 'ตัวชี้วัดผลลัพธ์ต้องใช้เวลา 2-3 สัปดาห์ แนะนำเดือนหน้า',
-    actionNoteMid: 'สามารถสร้างเวอร์ชัน sprint กลางเดือนได้',
-  },
-};
-
 // ─── 工具函数 ──────────────────────────────────────────────────────────────
 
 /** 将后端返回的中文 action_note 字符串映射到当前 locale 翻译 */
-function translateActionNote(note: string, t: T18N): string {
+function translateActionNote(note: string, t: (key: string, params?: any) => string): string {
   if (!note) return '';
   if (
     note.includes('下月初创建') ||
@@ -506,13 +29,13 @@ function translateActionNote(note: string, t: T18N): string {
     note.includes('建议下月初创建') ||
     note === '建议下月初创建'
   ) {
-    return t.actionNoteClosing;
+    return t('actionNoteClosing');
   }
   if (note.includes('2-3')) {
-    return t.actionNoteLate;
+    return t('actionNoteLate');
   }
   if (note.includes('月中')) {
-    return t.actionNoteMid;
+    return t('actionNoteMid');
   }
   return note; // unknown pattern — show as-is
 }
@@ -548,31 +71,30 @@ function progressStatusBadge(status: PersonProgress['status']): string {
   }
 }
 
-type T18N = (typeof I18N)['zh'];
 
-function progressStatusLabel(status: PersonProgress['status'], t: T18N): string {
+function progressStatusLabel(status: PersonProgress['status'], t: (key: string, params?: any) => string): string {
   switch (status) {
     case 'qualified':
-      return t.statusQualified;
+      return t('statusQualified');
     case 'close':
-      return t.statusClose;
+      return t('statusClose');
     case 'in_progress':
-      return t.statusInProgress;
+      return t('statusInProgress');
     default:
-      return t.statusNotStarted;
+      return t('statusNotStarted');
   }
 }
 
-function campaignStatusLabel(status: Campaign['status'], t: T18N): string {
+function campaignStatusLabel(status: Campaign['status'], t: (key: string, params?: any) => string): string {
   switch (status) {
     case 'active':
-      return t.campaignActive;
+      return t('campaignActive');
     case 'paused':
-      return t.campaignPaused;
+      return t('campaignPaused');
     case 'completed':
-      return t.campaignCompleted;
+      return t('campaignCompleted');
     case 'deleted':
-      return t.campaignDeleted;
+      return t('campaignDeleted');
   }
 }
 
@@ -596,7 +118,7 @@ interface CampaignModalProps {
   onSaved: () => void;
   prefill?: Partial<CampaignFormValues>;
   editCampaign?: Campaign;
-  t: T18N;
+  t: (key: string, params?: any) => string;
 }
 
 interface CampaignFormValues {
@@ -611,12 +133,12 @@ interface CampaignFormValues {
   end_date: string;
 }
 
-function getOperatorLabels(t: T18N): Record<string, string> {
+function getOperatorLabels(t: (key: string, params?: any) => string): Record<string, string> {
   return {
-    gte: t.operatorGte,
-    lte: t.operatorLte,
-    gt: t.operatorGt,
-    lt: t.operatorLt,
+    gte: t('operatorGte'),
+    lte: t('operatorLte'),
+    gt: t('operatorGt'),
+    lt: t('operatorLt'),
   };
 }
 
@@ -658,15 +180,15 @@ function CampaignModal({ onClose, onSaved, prefill, editCampaign, t }: CampaignM
     const threshold = parseFloat(form.threshold);
     const reward = parseFloat(form.reward_thb);
     if (!form.name.trim()) {
-      setError(t.errNoName);
+      setError(t('errNoName'));
       return;
     }
     if (isNaN(threshold)) {
-      setError(t.errInvalidThreshold);
+      setError(t('errInvalidThreshold'));
       return;
     }
     if (isNaN(reward) || reward <= 0) {
-      setError(t.errInvalidReward);
+      setError(t('errInvalidReward'));
       return;
     }
     setSaving(true);
@@ -694,7 +216,7 @@ function CampaignModal({ onClose, onSaved, prefill, editCampaign, t }: CampaignM
       });
       if (res.status === 409) {
         const body = await res.json().catch(() => ({}));
-        setError(body?.detail || t.errDuplicateMetric);
+        setError(body?.detail || t('errDuplicateMetric'));
         setSaving(false);
         return;
       }
@@ -704,7 +226,7 @@ function CampaignModal({ onClose, onSaved, prefill, editCampaign, t }: CampaignM
       }
       onSaved();
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : t.errSaveFailed);
+      setError(e instanceof Error ? e.message : t('errSaveFailed'));
     } finally {
       setSaving(false);
     }
@@ -715,7 +237,7 @@ function CampaignModal({ onClose, onSaved, prefill, editCampaign, t }: CampaignM
       <div className="bg-surface rounded-xl shadow-xl w-full max-w-lg mx-4 p-6 space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="text-base font-semibold text-primary-token">
-            {editCampaign ? t.modalEditTitle : t.modalCreateTitle}
+            {editCampaign ? t('modalEditTitle') : t('modalCreateTitle')}
           </h2>
           <button
             onClick={onClose}
@@ -729,25 +251,25 @@ function CampaignModal({ onClose, onSaved, prefill, editCampaign, t }: CampaignM
           {/* campaign name */}
           <div className="space-y-1">
             <label className="text-xs font-medium text-secondary-token">
-              {t.fieldCampaignName} <span className="text-danger-token">*</span>
+              {t('fieldCampaignName')} <span className="text-danger-token">*</span>
             </label>
             <input
               type="text"
               value={form.name}
               onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
-              placeholder={t.fieldCampaignNamePlaceholder}
+              placeholder={t('fieldCampaignNamePlaceholder')}
               className="w-full px-3 py-2 border border-subtle-token rounded-lg text-sm bg-surface focus:outline-none focus:ring-2 focus:ring-action"
             />
           </div>
 
           {/* Thai name */}
           <div className="space-y-1">
-            <label className="text-xs font-medium text-secondary-token">{t.fieldThaiName}</label>
+            <label className="text-xs font-medium text-secondary-token">{t('fieldThaiName')}</label>
             <input
               type="text"
               value={form.name_th}
               onChange={(e) => setForm((p) => ({ ...p, name_th: e.target.value }))}
-              placeholder={t.fieldThaiNamePlaceholder}
+              placeholder={t('fieldThaiNamePlaceholder')}
               className="w-full px-3 py-2 border border-subtle-token rounded-lg text-sm bg-surface focus:outline-none focus:ring-2 focus:ring-action"
             />
           </div>
@@ -756,23 +278,23 @@ function CampaignModal({ onClose, onSaved, prefill, editCampaign, t }: CampaignM
             {/* role */}
             <div className="space-y-1">
               <label className="text-xs font-medium text-secondary-token">
-                {t.fieldRole} <span className="text-danger-token">*</span>
+                {t('fieldRole')} <span className="text-danger-token">*</span>
               </label>
               <select
                 value={form.role}
                 onChange={(e) => handleRoleChange(e.target.value as 'CC' | 'SS' | 'LP')}
                 className="w-full px-3 py-2 border border-subtle-token rounded-lg text-sm bg-surface focus:outline-none focus:ring-2 focus:ring-action"
               >
-                <option value="CC">{t.roleCC}</option>
-                <option value="SS">{t.roleSS}</option>
-                <option value="LP">{t.roleLP}</option>
+                <option value="CC">{t('roleCC')}</option>
+                <option value="SS">{t('roleSS')}</option>
+                <option value="LP">{t('roleLP')}</option>
               </select>
             </div>
 
             {/* metric */}
             <div className="space-y-1">
               <label className="text-xs font-medium text-secondary-token">
-                {t.fieldMetric} <span className="text-danger-token">*</span>
+                {t('fieldMetric')} <span className="text-danger-token">*</span>
               </label>
               <select
                 value={form.metric}
@@ -792,7 +314,7 @@ function CampaignModal({ onClose, onSaved, prefill, editCampaign, t }: CampaignM
             {/* operator */}
             <div className="space-y-1">
               <label className="text-xs font-medium text-secondary-token">
-                {t.fieldCondition} <span className="text-danger-token">*</span>
+                {t('fieldCondition')} <span className="text-danger-token">*</span>
               </label>
               <select
                 value={form.operator}
@@ -815,13 +337,13 @@ function CampaignModal({ onClose, onSaved, prefill, editCampaign, t }: CampaignM
             {/* threshold */}
             <div className="space-y-1">
               <label className="text-xs font-medium text-secondary-token">
-                {t.fieldThreshold} <span className="text-danger-token">*</span>
+                {t('fieldThreshold')} <span className="text-danger-token">*</span>
               </label>
               <input
                 type="number"
                 value={form.threshold}
                 onChange={(e) => setForm((p) => ({ ...p, threshold: e.target.value }))}
-                placeholder={t.fieldThresholdPlaceholder}
+                placeholder={t('fieldThresholdPlaceholder')}
                 className="w-full px-3 py-2 border border-subtle-token rounded-lg text-sm font-mono bg-surface focus:outline-none focus:ring-2 focus:ring-action"
               />
             </div>
@@ -830,14 +352,14 @@ function CampaignModal({ onClose, onSaved, prefill, editCampaign, t }: CampaignM
           {/* reward */}
           <div className="space-y-1">
             <label className="text-xs font-medium text-secondary-token">
-              {t.fieldReward} <span className="text-danger-token">*</span>
+              {t('fieldReward')} <span className="text-danger-token">*</span>
             </label>
             <input
               type="number"
               min={0}
               value={form.reward_thb}
               onChange={(e) => setForm((p) => ({ ...p, reward_thb: e.target.value }))}
-              placeholder={t.fieldRewardPlaceholder}
+              placeholder={t('fieldRewardPlaceholder')}
               className="w-full px-3 py-2 border border-subtle-token rounded-lg text-sm font-mono bg-surface focus:outline-none focus:ring-2 focus:ring-action"
             />
           </div>
@@ -845,7 +367,7 @@ function CampaignModal({ onClose, onSaved, prefill, editCampaign, t }: CampaignM
           <div className="grid grid-cols-2 gap-3">
             {/* start date */}
             <div className="space-y-1">
-              <label className="text-xs font-medium text-secondary-token">{t.fieldStartDate}</label>
+              <label className="text-xs font-medium text-secondary-token">{t('fieldStartDate')}</label>
               <input
                 type="date"
                 value={form.start_date}
@@ -856,7 +378,7 @@ function CampaignModal({ onClose, onSaved, prefill, editCampaign, t }: CampaignM
 
             {/* end date */}
             <div className="space-y-1">
-              <label className="text-xs font-medium text-secondary-token">{t.fieldEndDate}</label>
+              <label className="text-xs font-medium text-secondary-token">{t('fieldEndDate')}</label>
               <input
                 type="date"
                 value={form.end_date}
@@ -874,14 +396,14 @@ function CampaignModal({ onClose, onSaved, prefill, editCampaign, t }: CampaignM
               onClick={onClose}
               className="px-4 py-2 text-sm text-secondary-token hover:text-primary-token transition-colors"
             >
-              {t.btnCancel}
+              {t('btnCancel')}
             </button>
             <button
               type="submit"
               disabled={saving}
               className="px-4 py-2 bg-action text-white rounded-lg text-sm font-medium hover:bg-action-active transition-colors disabled:opacity-50"
             >
-              {saving ? t.btnSaving : editCampaign ? t.btnUpdate : t.btnCreate}
+              {saving ? t('btnSaving') : editCampaign ? t('btnUpdate') : t('btnCreate')}
             </button>
           </div>
         </form>
@@ -892,7 +414,7 @@ function CampaignModal({ onClose, onSaved, prefill, editCampaign, t }: CampaignM
 
 // ─── Tab 1: 杠杆分析 ───────────────────────────────────────────────────────
 
-function LeverageTab({ t }: { t: T18N }) {
+function LeverageTab({ t }: { t: (key: string, params?: any) => string }) {
   const {
     data: raw,
     isLoading,
@@ -937,7 +459,7 @@ function LeverageTab({ t }: { t: T18N }) {
       <div className="flex items-center justify-center h-64">
         <div className="text-center space-y-2">
           <Spinner size="lg" />
-          <p className="text-sm text-muted-token">{t.loadingLeverage}</p>
+          <p className="text-sm text-muted-token">{t('loadingLeverage')}</p>
         </div>
       </div>
     );
@@ -947,8 +469,8 @@ function LeverageTab({ t }: { t: T18N }) {
     return (
       <div className="py-16 text-center space-y-2">
         <p className="text-4xl">📊</p>
-        <p className="text-sm font-medium text-primary-token">{t.leverageEmptyTitle}</p>
-        <p className="text-xs text-muted-token">{t.leverageEmptyDesc}</p>
+        <p className="text-sm font-medium text-primary-token">{t('leverageEmptyTitle')}</p>
+        <p className="text-xs text-muted-token">{t('leverageEmptyDesc')}</p>
       </div>
     );
   }
@@ -959,13 +481,13 @@ function LeverageTab({ t }: { t: T18N }) {
   return (
     <div className="space-y-3">
       <div className="text-xs text-muted-token space-y-1">
-        <p>{t.leverageDesc}</p>
+        <p>{t('leverageDesc')}</p>
         {raw?.phase_label && (
           <p className="font-medium text-secondary-token">
-            {t.leverageCurrentPhase}
+            {t('leverageCurrentPhase')}
             {raw.phase_label}
             {raw.remaining_workdays != null &&
-              `${t.leverageRemainingDays}${raw.remaining_workdays}${t.leverageRemainingDaysSuffix}`}
+              `${t('leverageRemainingDays')}${raw.remaining_workdays}${t('leverageRemainingDaysSuffix')}`}
           </p>
         )}
         {raw?.note && <p className="text-warning-token">{raw.note}</p>}
@@ -982,14 +504,14 @@ function LeverageTab({ t }: { t: T18N }) {
                   {rec.rank}
                 </span>
                 <span className="text-sm font-semibold text-primary-token">
-                  {t.stageLabels[rec.stage] ?? rec.stage_label ?? rec.stage}
+                  {t(`stageLabels.${rec.stage}`) ?? rec.stage_label ?? rec.stage}
                 </span>
               </div>
 
               {/* 杠杆评分进度条 */}
               <div className="space-y-1">
                 <div className="flex items-center justify-between">
-                  <span className="text-[10px] text-muted-token">{t.leverageScore}</span>
+                  <span className="text-[10px] text-muted-token">{t('leverageScore')}</span>
                   <span className="text-xs font-mono font-semibold text-primary-token">
                     {(rec.leverage_score ?? 0).toFixed(1)}
                   </span>
@@ -1004,7 +526,7 @@ function LeverageTab({ t }: { t: T18N }) {
 
               {/* 增量金额 */}
               <div className="flex items-center gap-1.5 text-xs">
-                <span className="text-muted-token">{t.leverageRevImpact}</span>
+                <span className="text-muted-token">{t('leverageRevImpact')}</span>
                 <span className="font-mono font-semibold text-success-token">
                   +${rec.revenue_impact_usd.toLocaleString()}
                 </span>
@@ -1024,19 +546,19 @@ function LeverageTab({ t }: { t: T18N }) {
               {/* 推荐理由 */}
               {sg?.rationale && (
                 <p className="text-[10px] text-muted-token leading-relaxed border-t border-subtle-token pt-2">
-                  {t.rationaleByStage[rec.stage] ?? sg.rationale}
+                  {t(`rationaleByStage.${rec.stage}`) ?? sg.rationale}
                 </p>
               )}
 
               {/* 创建活动按钮（时间感知） */}
               {alreadyCreated ? (
                 <div className="w-full py-1.5 text-xs font-medium text-muted-token border border-default-token rounded-lg text-center">
-                  {t.leverageAlreadyCreated}
+                  {t('leverageAlreadyCreated')}
                 </div>
               ) : rec.actionable === false ? (
                 <div className="w-full py-1.5 text-xs text-center space-y-0.5">
                   <div className="font-medium text-muted-token border border-default-token rounded-lg py-1.5">
-                    {t.leverageNextMonth}
+                    {t('leverageNextMonth')}
                   </div>
                   {rec.action_note && (
                     <p className="text-[10px] text-muted-token">
@@ -1049,7 +571,7 @@ function LeverageTab({ t }: { t: T18N }) {
                   onClick={() => openCreateFromRec(rec)}
                   className="w-full py-1.5 text-xs font-medium text-action border border-action rounded-lg hover:bg-action hover:text-white transition-colors"
                 >
-                  {t.leverageCreateBtn}
+                  {t('leverageCreateBtn')}
                 </button>
               )}
             </div>
@@ -1074,7 +596,7 @@ function LeverageTab({ t }: { t: T18N }) {
 
 // ─── Tab 2: 活动管理 ───────────────────────────────────────────────────────
 
-function CampaignsTab({ t }: { t: T18N }) {
+function CampaignsTab({ t }: { t: (key: string, params?: any) => string }) {
   const month = getCurrentMonth();
   const locale = useLocale();
   const { data, isLoading, error, mutate } = useFilteredSWR<Campaign[]>(
@@ -1099,7 +621,7 @@ function CampaignsTab({ t }: { t: T18N }) {
   }
 
   async function handleDelete(c: Campaign) {
-    if (!confirm(`${t.confirmDelete}${c.name}${t.confirmDeleteSuffix}`)) return;
+    if (!confirm(`${t('confirmDelete')}${c.name}${t('confirmDeleteSuffix')}`)) return;
     try {
       const res = await fetch(`/api/incentive/campaigns/${c.id}`, {
         method: 'DELETE',
@@ -1121,7 +643,7 @@ function CampaignsTab({ t }: { t: T18N }) {
       const url = URL.createObjectURL(blob);
       window.open(url, '_blank');
     } catch {
-      alert(t.posterFailed);
+      alert(t('posterFailed'));
     }
   }
 
@@ -1140,9 +662,9 @@ function CampaignsTab({ t }: { t: T18N }) {
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <p className="text-xs text-muted-token">{t.campaignsMgmtDesc}</p>
+        <p className="text-xs text-muted-token">{t('campaignsMgmtDesc')}</p>
         <button onClick={openCreate} className="btn-primary px-3 py-1.5 text-xs font-medium">
-          {t.campaignsNewBtn}
+          {t('campaignsNewBtn')}
         </button>
       </div>
 
@@ -1153,14 +675,14 @@ function CampaignsTab({ t }: { t: T18N }) {
       )}
 
       {error && (
-        <div className="py-4 text-center text-sm text-muted-token">{t.campaignsLoadFail}</div>
+        <div className="py-4 text-center text-sm text-muted-token">{t('campaignsLoadFail')}</div>
       )}
 
       {!isLoading && campaigns.length === 0 && (
         <div className="py-12 text-center space-y-2">
           <p className="text-3xl">🎯</p>
-          <p className="text-sm font-medium text-primary-token">{t.campaignsEmptyTitle}</p>
-          <p className="text-xs text-muted-token">{t.campaignsEmptyDesc}</p>
+          <p className="text-sm font-medium text-primary-token">{t('campaignsEmptyTitle')}</p>
+          <p className="text-xs text-muted-token">{t('campaignsEmptyDesc')}</p>
         </div>
       )}
 
@@ -1169,14 +691,14 @@ function CampaignsTab({ t }: { t: T18N }) {
           <table className="w-full text-sm">
             <thead>
               <tr className="slide-thead-row">
-                <th className="slide-th text-left">{t.thCampaignName}</th>
-                <th className="slide-th text-center">{t.thRole}</th>
-                <th className="slide-th text-left">{t.thMetric}</th>
-                <th className="slide-th text-left">{t.thCondition}</th>
-                <th className="slide-th text-right">{t.thReward}</th>
-                <th className="slide-th text-center">{t.thProgress}</th>
-                <th className="slide-th text-center">{t.thStatus}</th>
-                <th className="slide-th text-center">{t.thActions}</th>
+                <th className="slide-th text-left">{t('thCampaignName')}</th>
+                <th className="slide-th text-center">{t('thRole')}</th>
+                <th className="slide-th text-left">{t('thMetric')}</th>
+                <th className="slide-th text-left">{t('thCondition')}</th>
+                <th className="slide-th text-right">{t('thReward')}</th>
+                <th className="slide-th text-center">{t('thProgress')}</th>
+                <th className="slide-th text-center">{t('thStatus')}</th>
+                <th className="slide-th text-center">{t('thActions')}</th>
               </tr>
             </thead>
             <tbody>
@@ -1236,25 +758,25 @@ function CampaignsTab({ t }: { t: T18N }) {
                         onClick={() => openEdit(c)}
                         className="text-[10px] text-secondary-token hover:text-primary-token transition-colors"
                       >
-                        {t.actionEdit}
+                        {t('actionEdit')}
                       </button>
                       <button
                         onClick={() => handlePauseResume(c)}
                         className="text-[10px] text-secondary-token hover:text-warning-token transition-colors"
                       >
-                        {c.status === 'active' ? t.actionPause : t.actionResume}
+                        {c.status === 'active' ? t('actionPause') : t('actionResume')}
                       </button>
                       <button
                         onClick={() => handleGeneratePoster(c)}
                         className="text-[10px] text-secondary-token hover:text-accent-token transition-colors"
                       >
-                        {t.actionPoster}
+                        {t('actionPoster')}
                       </button>
                       <button
                         onClick={() => handleDelete(c)}
                         className="text-[10px] text-secondary-token hover:text-danger-token transition-colors"
                       >
-                        {t.actionDelete}
+                        {t('actionDelete')}
                       </button>
                     </div>
                   </td>
@@ -1296,7 +818,7 @@ function ProgressBar({ pct, status }: { pct: number; status: PersonProgress['sta
 
 // ─── 活动进度卡片 ──────────────────────────────────────────────────────────
 
-function CampaignProgressCard({ item, t }: { item: CampaignProgress; t: T18N }) {
+function CampaignProgressCard({ item, t }: { item: CampaignProgress; t: (key: string, params?: any) => string }) {
   const { campaign, records, qualified_count, close_count, total_estimated_thb } = item;
   const locale = useLocale();
 
@@ -1323,13 +845,13 @@ function CampaignProgressCard({ item, t }: { item: CampaignProgress; t: T18N }) 
         </div>
         <div className="text-right shrink-0">
           <div className="text-xs font-mono text-success-token font-semibold">
-            {t.qualifiedCount} {qualified_count}
-            {t.personUnit ? ` ${t.personUnit}` : ''}
+            {t('qualifiedCount')} {qualified_count}
+            {t('personUnit') ? ` ${t('personUnit')}` : ''}
           </div>
           {close_count > 0 && (
             <div className="text-[10px] text-warning-token">
-              {t.closeCount} {close_count}
-              {t.personUnit ? ` ${t.personUnit}` : ''}
+              {t('closeCount')} {close_count}
+              {t('personUnit') ? ` ${t('personUnit')}` : ''}
             </div>
           )}
         </div>
@@ -1337,19 +859,19 @@ function CampaignProgressCard({ item, t }: { item: CampaignProgress; t: T18N }) 
 
       {/* estimated payout */}
       <div className="flex items-center gap-1.5 text-xs py-1 px-2 bg-subtle rounded">
-        <span className="text-muted-token">{t.estimatedPayout}</span>
+        <span className="text-muted-token">{t('estimatedPayout')}</span>
         <span className="font-mono font-semibold text-primary-token">
           ฿{total_estimated_thb.toLocaleString()}
         </span>
         <span className="text-muted-token">
           （฿{campaign.reward_thb.toLocaleString()} × {qualified_count}
-          {t.personUnit ? ` ${t.personUnit}` : ''}）
+          {t('personUnit') ? ` ${t('personUnit')}` : ''}）
         </span>
       </div>
 
       {/* person progress list */}
       {records.length === 0 ? (
-        <p className="text-xs text-muted-token py-2 text-center">{t.noPersonData}</p>
+        <p className="text-xs text-muted-token py-2 text-center">{t('noPersonData')}</p>
       ) : (
         <div className="space-y-2">
           {records.map((r) => (
@@ -1392,7 +914,7 @@ function CampaignProgressCard({ item, t }: { item: CampaignProgress; t: T18N }) 
 
 // ─── Tab 3: 实时进度 ───────────────────────────────────────────────────────
 
-function ProgressTab({ t }: { t: T18N }) {
+function ProgressTab({ t }: { t: (key: string, params?: any) => string }) {
   const month = getCurrentMonth();
   const {
     data: progressData,
@@ -1415,11 +937,11 @@ function ProgressTab({ t }: { t: T18N }) {
     <div className="space-y-4">
       {/* 预算状态条 */}
       {(!budgetLoading || budget) && (
-        <Card title={t.budgetCardTitle}>
+        <Card title={t('budgetCardTitle')}>
           <div className="space-y-3">
             <div className="space-y-1.5">
               <div className="flex items-center justify-between text-xs">
-                <span className="text-secondary-token font-medium">{t.budgetIndoor}</span>
+                <span className="text-secondary-token font-medium">{t('budgetIndoor')}</span>
                 <span className="font-mono text-primary-token">
                   ฿{totalSpent.toLocaleString()} / ฿{indoorBudget.toLocaleString()}
                 </span>
@@ -1439,11 +961,11 @@ function ProgressTab({ t }: { t: T18N }) {
               <div className="flex items-center justify-between text-[10px] text-muted-token">
                 <span>
                   {(spentPct ?? 0).toFixed(1)}
-                  {t.budgetConsumed}
+                  {t('budgetConsumed')}
                 </span>
                 {indoorBudget > 0 && (
                   <span>
-                    {t.budgetRemaining}
+                    {t('budgetRemaining')}
                     {Math.max(0, indoorBudget - totalSpent).toLocaleString()}
                   </span>
                 )}
@@ -1454,7 +976,7 @@ function ProgressTab({ t }: { t: T18N }) {
       )}
 
       {/* 数据口径说明 */}
-      <p className="text-xs text-muted-token">{t.dataRemark}</p>
+      <p className="text-xs text-muted-token">{t('dataRemark')}</p>
 
       {/* 活动进度列表 */}
       {progressLoading && (
@@ -1464,14 +986,14 @@ function ProgressTab({ t }: { t: T18N }) {
       )}
 
       {progressError && (
-        <div className="py-4 text-center text-sm text-muted-token">{t.progressLoadFail}</div>
+        <div className="py-4 text-center text-sm text-muted-token">{t('progressLoadFail')}</div>
       )}
 
       {!progressLoading && items.length === 0 && (
         <div className="py-12 text-center space-y-2">
           <p className="text-3xl">🏆</p>
-          <p className="text-sm font-medium text-primary-token">{t.progressEmptyTitle}</p>
-          <p className="text-xs text-muted-token">{t.progressEmptyDesc}</p>
+          <p className="text-sm font-medium text-primary-token">{t('progressEmptyTitle')}</p>
+          <p className="text-xs text-muted-token">{t('progressEmptyDesc')}</p>
         </div>
       )}
 
@@ -1496,21 +1018,21 @@ export default function IncentiveTrackingPage() {
     team: true,
   });
   const locale = useLocale();
-  const t = I18N[locale as keyof typeof I18N] ?? I18N.zh;
+  const t = useTranslations('incentiveTrackingPage');
   const [activeTab, setActiveTab] = useState<TabKey>('leverage');
 
   const TABS: { key: TabKey; label: string }[] = [
-    { key: 'leverage', label: t.tabLeverage },
-    { key: 'campaigns', label: t.tabCampaigns },
-    { key: 'progress', label: t.tabProgress },
+    { key: 'leverage', label: t('tabLeverage') },
+    { key: 'campaigns', label: t('tabCampaigns') },
+    { key: 'progress', label: t('tabProgress') },
   ];
 
   return (
     <div className="space-y-4">
       {/* page header */}
       <div>
-        <h1 className="page-title">{t.pageTitle}</h1>
-        <p className="text-sm text-secondary-token mt-1">{t.pageDesc}</p>
+        <h1 className="page-title">{t('pageTitle')}</h1>
+        <p className="text-sm text-secondary-token mt-1">{t('pageDesc')}</p>
       </div>
 
       {/* tab switcher */}
