@@ -1,12 +1,5 @@
 import { Inbox } from 'lucide-react';
-import { useLocale } from 'next-intl';
-
-const I18N = {
-  zh: { defaultTitle: '暂无数据' },
-  'zh-TW': { defaultTitle: '暫無資料' },
-  en: { defaultTitle: 'No data' },
-  th: { defaultTitle: 'ไม่มีข้อมูล' },
-} as const;
+import { useTranslations } from 'next-intl';
 
 interface EmptyStateProps {
   title?: string;
@@ -16,9 +9,8 @@ interface EmptyStateProps {
 }
 
 export function EmptyState({ title, description, icon, action }: EmptyStateProps) {
-  const locale = useLocale();
-  const t = I18N[locale as keyof typeof I18N] || I18N.zh;
-  const resolvedTitle = title ?? t.defaultTitle;
+  const t = useTranslations('ui');
+  const resolvedTitle = title ?? t('defaultTitle');
   return (
     <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
       {icon ?? <Inbox className="h-12 w-12 mb-4 opacity-50" />}
