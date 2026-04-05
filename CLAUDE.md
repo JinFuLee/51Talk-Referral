@@ -199,15 +199,18 @@ Next.js 前端（34 页面 + 43 组件）
 - 新增组件必须有 loading / error / empty 三态，empty 态必须有操作指引
 - `isMock` / `MOCK_DATA` / `fallback.*data` 模式禁止引入，代码审查红线
 
-## SEE Design System v2.0（2026-03-25 落地）
+## SEE Design System v2.0（2026-03-25 落地，M40 Token 化完成 2026-04-05）
 - **字体**：Space Grotesk（标题/EN）+ Inter（正文/EN）+ IBM Plex Sans Thai（TH）+ PingFang SC/Noto Sans SC（ZH）
 - **品牌标志**：递归环 Recursive Loop（`public/brand-mark.svg`），Topbar 右侧 18px
 - **色板预设**：当前用 51Talk preset（金黄 `#FFD100` + 深蓝 `#1B365D`）
 - **渐进式披露**：2 层默认（L0 扫视 + L1 副标题/tooltip），L2 按需。BrandDot 组件触发 L1
-- **Token 源**：`~/.claude/design-tokens/`（全局 CSS token 文件 + 5 套预设 + init-tokens.sh）
-- **组件语义类**：`globals.css` 底部定义 `card-base/btn-primary/input-base/state-*` 等，组件统一引用
+- **Token 源**：`frontend/app/styles/tokens.css`（项目级语义 CSS 变量，M40 模块化后独立文件）+ `~/.claude/design-tokens/`（全局预设）
+- **CSS 模块化**（M40）：`globals.css` 62 行入口 → 6 个 `@import` 模块（`styles/tokens.css` / `semantic.css` / `slide.css` / `components.css` / `animations.css` / `overrides.css`）
+- **组件语义类**：`styles/semantic.css` 定义 `card-base/btn-primary/btn-secondary/btn-danger/input-base/state-*` 等，组件统一引用
+- **ESLint 执行层**（M40）：4 条规则自动拦截硬编码色值（`bg-[#`/`text-[#`/`border-[#`）+ 直接 `useSWR`。**新组件不用 token = 编译不过**
 - **图表色板**：`frontend/lib/chart-palette.ts`（共享常量，Recharts 消费）
 - **百分比格式**：统一用 `formatRate(value)`，null/NaN→"—"，禁止直接 `.toFixed()%`
+- **M40 成果**：2875 处 arbitrary value → 6 处（-99.8%），直接 useSWR → 0，useFilteredSWR 38 文件覆盖
 
 ## Slide 设计体系 SSoT 规则
 - Slide 表格样式统一引用 `globals.css` 中的 `slide-*` Design Token 类（`slide-thead-row/slide-th/slide-td/slide-row-*/slide-tfoot-row`）

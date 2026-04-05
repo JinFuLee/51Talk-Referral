@@ -491,9 +491,18 @@
 
 ---
 
+### M40: Token 化 + 模块化改造（2026-04-05）
+- [x] **Tag A 基建层** — globals.css 1283→62 行入口 + 6 模块，19 语义 token 扩展，ESLint 4 条拦截规则，2 组件模板
+- [x] **Tag B 数据层** — useFilteredSWR 全站推广，38 文件覆盖，直接 useSWR = 0
+- [x] **Tag C 样式层** — Tailwind arbitrary value 2875→6 处（-99.8%），210 文件变更
+- [x] **Tag D i18n** — 覆盖扩展（与 Tag C 合并 commit）
+- [x] **QA 验收** — pnpm build 零错误，159 页面生成，V1-V5 全部达标
+- 统计: 210 files changed, +3898/-3287 lines, 3 commits
+- 复利资产: ESLint 4 规则（新组件不用 token = 编译不过）+ CSS 模块化结构 + 组件模板 2 个
+
 ## 规划中
 
-### M40: 话术迭代系统（待规划）
+### M41: 话术迭代系统（待规划）
 - 运营贴入当前话术 → AI 评分 → 多方案生成 → A/B 追踪 → 自动迭代
 - 依赖 M33 瓶颈识别结果做输入
 
