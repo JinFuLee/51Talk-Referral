@@ -1,0 +1,295 @@
+/* ══════════════════════════════════════════════════
+   SEE Design System — 组件级样式
+   Auth 页面、Brand Dot、图表覆写等
+   ══════════════════════════════════════════════════ */
+
+/* ══════════════════════════════════════════════════
+   Auth Pages — 电影级登录/权限页样式
+   ══════════════════════════════════════════════════ */
+
+.auth-card {
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(24px) saturate(1.2);
+  -webkit-backdrop-filter: blur(24px) saturate(1.2);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  box-shadow:
+    0 4px 24px rgba(0, 0, 0, 0.04),
+    0 1px 2px rgba(0, 0, 0, 0.03),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+
+.auth-input {
+  width: 100%;
+  padding: 12px 16px;
+  font-size: 0.9375rem;
+  border-radius: var(--radius-md);
+  border: 1.5px solid var(--n-200);
+  background: rgba(255, 255, 255, 0.8);
+  color: var(--n-900);
+  outline: none;
+  transition: all 0.2s ease;
+}
+.auth-input::placeholder {
+  color: var(--n-400);
+}
+.auth-input:focus {
+  border-color: var(--brand-p1);
+  box-shadow:
+    0 0 0 3px rgba(255, 209, 0, 0.15),
+    0 0 20px rgba(255, 209, 0, 0.06);
+  background: #fff;
+}
+.auth-input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.auth-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 12px 20px;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  border-radius: var(--radius-md);
+  background: var(--brand-p1);
+  color: var(--brand-p2);
+  border: none;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  position: relative;
+  overflow: hidden;
+}
+.auth-btn:hover:not(:disabled) {
+  background: var(--brand-p1-hover);
+  box-shadow:
+    0 0 24px rgba(255, 209, 0, 0.25),
+    0 4px 12px rgba(255, 209, 0, 0.15);
+  transform: translateY(-1px);
+}
+.auth-btn:active:not(:disabled) {
+  background: var(--brand-p1-active);
+  transform: translateY(0);
+  box-shadow: 0 0 12px rgba(255, 209, 0, 0.15);
+}
+.auth-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+.auth-btn::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s ease;
+}
+.auth-btn:hover:not(:disabled)::after {
+  left: 100%;
+}
+
+/* ══════════════════════════════════════════════════
+   SEE Design System — Brand Dot v2.0.0
+   渐进式披露 L1 触发器 + 品牌微标志
+   ══════════════════════════════════════════════════ */
+
+.brand-dot {
+  display: inline-block;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background-color: var(--brand-p1);
+  opacity: 0.4;
+  transition:
+    opacity 150ms ease-out,
+    transform 150ms ease-out;
+  cursor: help;
+  vertical-align: middle;
+  margin-left: var(--space-1, 4px);
+  flex-shrink: 0;
+}
+.brand-dot:hover,
+.brand-dot:focus-visible {
+  opacity: 1;
+  transform: scale(1.5);
+}
+.dark .brand-dot {
+  background-color: var(--brand-p1-dark, var(--brand-p1));
+}
+
+.brand-watermark {
+  opacity: 0.12;
+  pointer-events: none;
+  user-select: none;
+}
+.dark .brand-watermark {
+  opacity: 0.08;
+}
+
+/* ══════════════════════════════════════════════════
+   Recharts 全局覆写（全局接管原始图表组件）
+   ══════════════════════════════════════════════════ */
+
+.recharts-tooltip-wrapper {
+  z-index: 50 !important;
+  outline: none !important;
+}
+
+.recharts-default-tooltip {
+  background-color: rgba(255, 255, 255, 0.9) !important;
+  border-radius: 12px !important;
+  border: 1px solid hsl(var(--border) / 0.8) !important;
+  box-shadow:
+    0 10px 15px -3px rgba(0, 0, 0, 0.08),
+    0 4px 6px -4px rgba(0, 0, 0, 0.04) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  padding: 12px 14px !important;
+  margin: 0 !important;
+  color: hsl(var(--foreground)) !important;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.dark .recharts-default-tooltip {
+  background-color: rgba(15, 23, 42, 0.85) !important;
+  border-color: rgba(51, 65, 85, 0.5) !important;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3) !important;
+  color: hsl(var(--foreground)) !important;
+}
+
+.recharts-tooltip-item {
+  color: inherit !important;
+  font-size: 13px !important;
+  padding: 2px 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+}
+.recharts-tooltip-item-name {
+  color: hsl(var(--muted-foreground)) !important;
+}
+.recharts-tooltip-item-value {
+  font-weight: 600 !important;
+  color: hsl(var(--foreground)) !important;
+}
+
+.recharts-cartesian-grid-horizontal line,
+.recharts-cartesian-grid-vertical line {
+  stroke: hsl(var(--border)) !important;
+  stroke-opacity: 0.6 !important;
+}
+
+.recharts-legend-wrapper {
+  padding-top: 16px !important;
+  font-size: 12px !important;
+  color: hsl(var(--muted-foreground)) !important;
+}
+.recharts-legend-item-text {
+  color: hsl(var(--muted-foreground)) !important;
+  margin-left: 4px !important;
+}
+
+/* ── 图表联动交互 ─────────────────────────────────── */
+.chart-linkage-group .chart-linkage-item {
+  transition:
+    opacity 0.3s ease,
+    filter 0.3s ease;
+}
+.chart-linkage-group.has-active .chart-linkage-item:not(.is-active) {
+  opacity: 0.3;
+  filter: grayscale(40%);
+}
+.chart-linkage-group.has-active .chart-linkage-item.is-active {
+  opacity: 1;
+  filter: grayscale(0%);
+  position: relative;
+  z-index: 10;
+}
+
+/* ── 图表响应式降级 ───────────────────────────────── */
+.chart-compact-mode .recharts-legend-wrapper {
+  display: none !important;
+}
+.chart-compact-mode .recharts-cartesian-axis-x .recharts-cartesian-axis-tick-value {
+  font-size: 10px !important;
+}
+.chart-compact-mode .recharts-yAxis .recharts-cartesian-axis-tick-value {
+  font-size: 10px !important;
+}
+
+/* ── W3A 交互动效 ─────────────────────────────────── */
+html {
+  scroll-behavior: smooth;
+}
+
+.content-transition {
+  transition:
+    opacity 0.3s ease-out,
+    transform 0.3s ease-out;
+}
+.content-transition[data-loading='true'] {
+  opacity: 0.4;
+  transform: translateY(2px);
+}
+
+.stat-number {
+  transition: transform 200ms ease-out;
+  display: inline-block;
+}
+.stat-number.stat-pulse {
+  transform: scale(1.05);
+}
+
+/* ── Presentation & Print Mode ─────────────────── */
+body.presentation-mode .hide-in-presentation {
+  display: none !important;
+}
+body.presentation-mode .presentation-expand {
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 0 !important;
+}
+.presentation-watermark {
+  display: none;
+}
+body.presentation-mode .presentation-watermark {
+  display: flex !important;
+}
+
+@media print {
+  body {
+    background: white !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  .hide-in-presentation,
+  nav,
+  aside,
+  button,
+  .shadow-flash,
+  .shadow-flash-lg {
+    display: none !important;
+    box-shadow: none !important;
+    border: none !important;
+  }
+  .presentation-expand,
+  main {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  .recharts-wrapper {
+    width: 100% !important;
+  }
+  .presentation-watermark {
+    display: flex !important;
+    color: #94a3b8 !important;
+  }
+}

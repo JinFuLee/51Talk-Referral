@@ -1,0 +1,66 @@
+'use client';
+
+/**
+ * [COMPONENT_NAME] — [简短描述]
+ *
+ * 语义类规范：
+ *   - 卡片容器: card-base / card-compact / card-subtle
+ *   - 按钮: btn-primary / btn-secondary / btn-danger
+ *   - 输入框: input-base
+ *   - 三态: state-loading / state-empty / state-error
+ *   - 间距: section-gap / card-gap
+ *
+ * 禁止直接使用色阶值（如 text-slate-500），改用语义 token class
+ */
+
+import { useTranslations } from 'next-intl';
+// import { useFilteredSWR } from '@/lib/hooks/use-filtered-swr'; // 有数据请求时启用
+
+interface [COMPONENT_NAME]Props {
+  // 定义 props
+}
+
+export function [COMPONENT_NAME]({ ...props }: [COMPONENT_NAME]Props) {
+  const t = useTranslations('[NAMESPACE]');
+
+  // --- 数据获取（替换为实际 API 路径）---
+  // const { data, error, isLoading } = useFilteredSWR<[DATA_TYPE]>('/api/[path]');
+
+  // --- 三态处理 ---
+  // if (isLoading) {
+  //   return <div className="state-loading">Loading...</div>;
+  // }
+  //
+  // if (error) {
+  //   return (
+  //     <div className="state-error">
+  //       <span>{t('error.title')}</span>
+  //       <p className="text-sm text-[var(--text-muted)]">{t('error.description')}</p>
+  //     </div>
+  //   );
+  // }
+  //
+  // if (!data || data.length === 0) {
+  //   return (
+  //     <div className="state-empty">
+  //       <span className="text-[var(--text-muted)]">{t('empty.title')}</span>
+  //       <p className="text-sm">{t('empty.description')}</p>
+  //     </div>
+  //   );
+  // }
+
+  return (
+    <div className="card-base">
+      {/* 页面标题 */}
+      <div className="mb-4">
+        <h2 className="page-title">{t('title')}</h2>
+        <p className="page-subtitle">{t('subtitle')}</p>
+      </div>
+
+      {/* 内容区 */}
+      <div className="card-gap">
+        {/* TODO: 实现组件内容 */}
+      </div>
+    </div>
+  );
+}

@@ -1,6 +1,12 @@
 import type { Metadata } from 'next';
 import { Space_Grotesk, Inter, IBM_Plex_Mono, IBM_Plex_Sans_Thai } from 'next/font/google';
 import './globals.css';
+import './styles/tokens.css';
+import './styles/overrides.css';
+import './styles/semantic.css';
+import './styles/slide.css';
+import './styles/components.css';
+import './styles/animations.css';
 
 const spaceGrotesk = Space_Grotesk({
   subsets: ['latin'],

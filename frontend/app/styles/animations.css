@@ -1,0 +1,129 @@
+/* ══════════════════════════════════════════════════
+   SEE Design System — 动画/过渡
+   ══════════════════════════════════════════════════ */
+
+/* ── Slide 进场方向动效 ───────────────────────────── */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slide-enter-right {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slide-enter-left {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.slide-enter-right {
+  animation: slide-enter-right 0.4s ease-out both;
+}
+.slide-enter-left {
+  animation: slide-enter-left 0.4s ease-out both;
+}
+
+/* ── 页面切换动效 ─────────────────────────────────── */
+@keyframes page-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+main > * {
+  animation: page-fade-in 0.4s ease-out both;
+}
+
+/* 卡片进场动效 */
+.card-base,
+.card-compact,
+.card-subtle,
+.card-interactive {
+  animation: page-fade-in 0.4s ease-out both;
+}
+
+/* 交错动效：容器内卡片依次出现（最多 8 个阶梯） */
+.animate-stagger > *:nth-child(1) {
+  animation-delay: 0s;
+}
+.animate-stagger > *:nth-child(2) {
+  animation-delay: 0.05s;
+}
+.animate-stagger > *:nth-child(3) {
+  animation-delay: 0.1s;
+}
+.animate-stagger > *:nth-child(4) {
+  animation-delay: 0.15s;
+}
+.animate-stagger > *:nth-child(5) {
+  animation-delay: 0.2s;
+}
+.animate-stagger > *:nth-child(6) {
+  animation-delay: 0.25s;
+}
+.animate-stagger > *:nth-child(7) {
+  animation-delay: 0.3s;
+}
+.animate-stagger > *:nth-child(8) {
+  animation-delay: 0.35s;
+}
+
+/* ── Brand Mark 动效 ──────────────────────────────── */
+.brand-mark-enter {
+  animation: brandMarkEnter 400ms ease-out both;
+}
+
+@keyframes brandMarkEnter {
+  from {
+    opacity: 0;
+    transform: scale(0.7);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* ── 无障碍：减少动效 ─────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .brand-dot:hover,
+  .brand-dot:focus-visible {
+    transform: none;
+  }
+  .brand-mark-enter {
+    animation: none;
+  }
+}

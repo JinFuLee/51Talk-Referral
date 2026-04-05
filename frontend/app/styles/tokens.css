@@ -1,0 +1,237 @@
+/* ══════════════════════════════════════════════════
+   SEE Design System — CSS 变量 Token 层
+   所有颜色/间距/字体/阴影/圆角的单一真相源
+   注意：本文件在 @tailwind 之前 @import，禁止使用 @layer
+   ══════════════════════════════════════════════════ */
+
+:root {
+  --foreground-rgb: 15, 23, 42;
+  --background-rgb: 248, 250, 252;
+
+  /* ── SEE Warm Neutral Tokens (v2.0) ─────────────── */
+  --n-50: #fafaf8;
+  --n-100: #f4f4f0;
+  --n-200: #e8e7e1;
+  --n-300: #d4d4c4;
+  --n-400: #a3a38e;
+  --n-500: #737360;
+  --n-600: #52524a;
+  --n-700: #3d3d37;
+  --n-800: #292521;
+  --n-900: #1c1815;
+
+  /* SEE Brand Layer (51Talk preset: 金黄 + 深蓝) */
+  --brand-p1: #ffd100;
+  --brand-p2: #1b365d;
+  --brand-p1-hover: #ffda33;
+  --brand-p1-active: #e6bc00;
+  --brand-p2-hover: #234b82;
+  --brand-p2-active: #0f2440;
+  --accent-spark: #ffd100;
+
+  /* 语义映射 */
+  --bg-primary: var(--n-100);
+  --bg-surface: #ffffff;
+  --bg-subtle: var(--n-100);
+  --text-primary: var(--n-900);
+  --text-secondary: var(--n-800);
+  --text-muted: var(--n-700);
+  --border-default: var(--n-200);
+  --border-subtle: var(--n-100);
+
+  /* 圆角 */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+
+  /* 阴影（单层） */
+  --shadow-subtle: 0 1px 3px rgba(0, 0, 0, 0.04);
+  --shadow-medium: 0 4px 12px rgba(0, 0, 0, 0.06);
+  --shadow-raised: 0 8px 24px rgba(0, 0, 0, 0.08);
+
+  /* 图表色板（51Talk 金黄→深蓝系） */
+  --chart-1-hex: #ffd100;
+  --chart-2-hex: #1b365d;
+  --chart-3-hex: #e8932a;
+  --chart-4-hex: #2d9f6f;
+  --chart-5-hex: #e05545;
+
+  /* ── 语义 Token（组件唯一引用层）── */
+  --color-action: var(--brand-p1);
+  --color-action-hover: var(--brand-p1-hover);
+  --color-action-active: var(--brand-p1-active);
+  --color-action-text: var(--brand-p2);
+  --color-action-surface: #fffbeb;
+  --color-accent: var(--brand-p2);
+  --color-accent-hover: var(--brand-p2-hover);
+  --color-accent-active: var(--brand-p2-active);
+  --color-accent-text: #ffffff;
+  --color-accent-surface: #e8edf4;
+  --color-accent-subtle: #c5d0e2;
+  --color-accent-muted: #5576a8;
+  --color-success: #2d9f6f;
+  --color-warning: #e8932a;
+  --color-danger: #e05545;
+  --color-info: var(--brand-p2);
+  --color-success-surface: #ecfdf5;
+  --color-warning-surface: #fffbeb;
+  --color-danger-surface: #fef2f2;
+  --color-border-brand: var(--brand-p1);
+
+  /* ── 高频硬编码色值语义别名（A2 Token 扩展）── */
+  /* 状态色别名（覆盖项目中频繁出现的 Tailwind 色阶）*/
+  --color-danger-base: #ef4444; /* red-500，替代硬编码 danger */
+  --color-danger-deep: #dc2626; /* red-600，深红 */
+  --color-warning-base: #f59e0b; /* amber-400，替代硬编码 warning */
+  --color-warning-dark: #ca8a04; /* yellow-600 */
+  --color-orange: #f97316; /* orange-500，行动橙色 */
+  --color-success-base: #22c55e; /* green-500 */
+  --color-success-deep: #16a34a; /* green-600 */
+  --color-success-alt: #10b981; /* emerald-500 */
+  /* 中性色别名 */
+  --color-neutral-bg: #f9fafb; /* gray-50，浅底 */
+  --color-neutral-light: #f5f5f5; /* 亮灰背景 */
+  --color-neutral-text: #6b7280; /* gray-500，次要文字 */
+  --color-dark-bg: #171717; /* 深色背景（暗模式） */
+  --color-dark-deeper: #0f0f0f; /* 更深背景 */
+  --color-slate-deep: #1e293b; /* slate-800，深蓝灰 */
+  /* 图表扩展色（替代直接使用 Tailwind 颜色） */
+  --color-chart-indigo: #6366f1; /* indigo-500 */
+  --color-chart-violet: #8b5cf6; /* violet-500 */
+  --color-chart-blue: #1d4ed8; /* blue-700 */
+
+  /* ── SEE Spacing ──────────────────────────────── */
+  --space-0-5: 2px;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-14: 56px;
+  --space-16: 64px;
+
+  /* ── SEE Font Stack ──────────────────────────── */
+  --font-display: 'Space Grotesk', 'Noto Serif SC', 'Noto Serif Thai', Georgia, serif;
+  --font-sans:
+    'Inter', 'IBM Plex Sans Thai', 'Prompt', 'PingFang SC', 'Noto Sans SC', 'Noto Sans Thai',
+    system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', 'SF Mono', 'Fira Code', monospace;
+
+  /* ── SEE 排版 5 级 Token (v2.0) ──────────────── */
+  --text-display-size: 2rem;
+  --text-display-weight: 700;
+  --text-display-lh: 1.15;
+  --text-heading-size: 1.125rem;
+  --text-heading-weight: 700;
+  --text-heading-lh: 1.3;
+  --text-body-size: 0.9375rem;
+  --text-body-weight: 400;
+  --text-body-lh: 1.7;
+  --text-caption-size: 0.8125rem;
+  --text-caption-weight: 500;
+  --text-caption-lh: 1.55;
+  --text-overline-size: 0.6875rem;
+  --text-overline-weight: 700;
+  --text-overline-lh: 1;
+  --text-overline-tracking: 0.12em;
+  --text-overline-transform: uppercase;
+
+  /* ── FlashUI shadcn Token 层（Light Theme）──── */
+  --background: 40 33% 98%;
+  --foreground: 240 3% 11%;
+  --card: 0 0% 100%;
+  --card-foreground: 240 3% 11%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 240 3% 11%;
+  --primary: 49 100% 50%;
+  --primary-foreground: 214 54% 23%;
+  --secondary: 214 54% 23%;
+  --secondary-foreground: 0 0% 100%;
+  --muted: 38 15% 95%;
+  --muted-foreground: 30 15% 35%;
+  --accent: 38 15% 96%;
+  --accent-foreground: 30 20% 20%;
+  --destructive: 4 76% 58%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 38 20% 88%;
+  --input: 38 20% 88%;
+  --ring: 160 30% 38%;
+  --success: 152 60% 42%;
+  --success-foreground: 0 0% 100%;
+  --warning: 28 90% 55%;
+  --warning-foreground: 0 0% 100%;
+  --info: 210 80% 65%;
+  --info-foreground: 0 0% 100%;
+  --chart-1: 49 100% 50%;
+  --chart-2: 214 54% 23%;
+  --chart-3: 28 90% 55%;
+  --chart-4: 152 60% 42%;
+  --chart-5: 4 76% 58%;
+  --chart-amber: 38 92% 50%;
+  --chart-rose: 350 89% 60%;
+  --chart-sky: 199 89% 48%;
+  --chart-blue: 226 83% 47%;
+  --chart-orange: 25 95% 53%;
+  --chart-lime: 84 81% 44%;
+  --chart-pink: 330 81% 60%;
+  --chart-emerald: 160 84% 39%;
+  --radius: 1rem;
+}
+
+/* ── Dark Mode Token 覆盖 ──────────────────────────── */
+.dark {
+  --bg-primary: var(--n-900);
+  --bg-surface: var(--n-800);
+  --bg-subtle: var(--n-700);
+  --text-primary: var(--n-50);
+  --text-secondary: var(--n-300);
+  --text-muted: var(--n-500);
+  --border-default: var(--n-700);
+  --border-subtle: var(--n-800);
+  --shadow-subtle: 0 1px 3px rgba(0, 0, 0, 0.2);
+  --shadow-medium: 0 4px 12px rgba(0, 0, 0, 0.3);
+  --shadow-raised: 0 8px 24px rgba(0, 0, 0, 0.4);
+  --background: 224 71% 4%;
+  --foreground: 213 31% 91%;
+  --card: 222 47% 7%;
+  --card-foreground: 213 31% 91%;
+  --popover: 224 71% 4%;
+  --popover-foreground: 215 20.2% 65.1%;
+  --primary: 49 100% 55%;
+  --primary-foreground: 214 54% 23%;
+  --secondary: 214 54% 30%;
+  --secondary-foreground: 0 0% 100%;
+  --muted: 223 47% 11%;
+  --muted-foreground: 215.4 16.3% 56.9%;
+  --accent: 216 34% 17%;
+  --accent-foreground: 210 40% 98%;
+  --destructive: 0 63% 31%;
+  --destructive-foreground: 210 40% 98%;
+  --border: 216 34% 17%;
+  --input: 216 34% 17%;
+  --ring: 160 35% 52%;
+  --success: 152 60% 42%;
+  --success-foreground: 0 0% 100%;
+  --warning: 28 90% 55%;
+  --warning-foreground: 0 0% 100%;
+  --info: 210 80% 65%;
+  --info-foreground: 0 0% 100%;
+  --chart-1: 49 100% 55%;
+  --chart-2: 214 54% 35%;
+  --chart-3: 28 90% 60%;
+  --chart-4: 152 60% 48%;
+  --chart-5: 4 76% 62%;
+  --chart-amber: 38 92% 50%;
+  --chart-rose: 350 89% 60%;
+  --chart-sky: 199 89% 48%;
+  --chart-blue: 226 83% 47%;
+  --chart-orange: 25 95% 53%;
+  --chart-lime: 84 81% 44%;
+  --chart-pink: 330 81% 60%;
+  --chart-emerald: 160 84% 39%;
+  --brand-p1-dark: #ffda33;
+}

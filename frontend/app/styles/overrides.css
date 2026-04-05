@@ -1,0 +1,58 @@
+/* ══════════════════════════════════════════════════
+   SEE Design System — Tailwind Preflight 覆盖
+   + 第三方库样式修补
+   ══════════════════════════════════════════════════ */
+
+/* ── 全局基础样式 ─────────────────────────────────── */
+body {
+  background: var(--bg-primary) !important;
+  color: var(--text-primary) !important;
+}
+
+/* ── 全局表格可读性强制 ───────────────────────────── */
+/* 防止 CSS 变量链/shadcn 层覆盖导致文字过浅 */
+td,
+th {
+  color: var(--text-primary) !important;
+}
+
+/* 深色背景表头白字 — 仅匹配真正的深色背景 */
+.slide-thead-row th,
+.slide-thead-row .slide-th,
+tr.text-white th,
+tr[class*='bg-[var(--n-800)'] th {
+  color: #ffffff !important;
+}
+
+/* 有显式颜色 class 的 td/th 保持原色 */
+td.text-blue-600,
+td.text-green-600,
+td.text-red-500,
+td.text-yellow-600,
+th.text-blue-600,
+th.text-green-600,
+th.text-red-500,
+th.text-yellow-600 {
+  color: inherit !important;
+}
+td[class*='text-blue'],
+td[class*='text-green'],
+td[class*='text-red'],
+td[class*='text-yellow'],
+td[class*='text-emerald'],
+td[class*='text-orange'] {
+  color: revert !important;
+}
+
+/* ── Scrollbar 美化 ───────────────────────────────── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: hsl(var(--muted));
+}
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--border));
+  border-radius: 3px;
+}

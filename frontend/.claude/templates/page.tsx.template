@@ -1,0 +1,86 @@
+'use client';
+
+/**
+ * [PAGE_NAME] 页面
+ *
+ * 规范：
+ *   - 数据获取：useFilteredSWR（自动附加全维度 filter 参数）
+ *   - 维度声明：usePageDimensions（声明页面支持的 filter 维度）
+ *   - 布局：page-container 包裹，section-gap 区分主要模块
+ *   - i18n：useTranslations（禁止硬编码中文字符串）
+ *   - 路由：从 @/i18n/navigation 导入 Link/useRouter/usePathname
+ *
+ * 禁止直接 useSWR，必须用 useFilteredSWR
+ */
+
+import { useTranslations } from 'next-intl';
+import { useFilteredSWR } from '@/lib/hooks/use-filtered-swr';
+// import { usePageDimensions } from '@/lib/hooks/use-page-dimensions';
+
+// interface [DATA_TYPE] {
+//   // 定义后端响应类型（字段名必须精确匹配后端 Pydantic 模型）
+// }
+
+export default function [PAGE_NAME]Page() {
+  const t = useTranslations('[NAMESPACE]');
+
+  // --- 声明本页面支持的 filter 维度（UnifiedFilterBar 据此显示/隐藏筛选器）---
+  // usePageDimensions({
+  //   country: true,
+  //   enclosure: true,
+  //   granularity: true,
+  //   team: true,
+  //   data_role: false,
+  //   funnel_stage: false,
+  //   channel: false,
+  //   behavior: false,
+  // });
+
+  // --- 数据获取（自动附加全局 filter 参数）---
+  const { data, error, isLoading } = useFilteredSWR<{ items: unknown[] }>('/api/[path]');
+
+  // --- 三态处理 ---
+  if (isLoading) {
+    return (
+      <div className="page-container">
+        <div className="state-loading">{t('common.loading')}</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="page-container">
+        <div className="state-error">
+          <p>{t('common.error')}</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!data?.items?.length) {
+    return (
+      <div className="page-container">
+        <div className="state-empty">
+          <p>{t('common.empty')}</p>
+          <p className="text-sm text-[var(--text-muted)]">{t('common.emptyHint')}</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="page-container">
+      {/* 页面标题区 */}
+      <div className="mb-6">
+        <h1 className="page-title">{t('title')}</h1>
+        <p className="page-subtitle">{t('subtitle')}</p>
+      </div>
+
+      {/* 主内容区 */}
+      <div className="section-gap">
+        {/* TODO: 实现页面内容，引用组件 */}
+      </div>
+    </div>
+  );
+}

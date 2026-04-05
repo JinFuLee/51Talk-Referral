@@ -7,7 +7,35 @@
       {
         "selector": "VariableDeclarator[id.name='fetcher'][init.type='ArrowFunctionExpression']",
         "message": "Use swrFetcher from @/lib/api instead of defining local fetcher"
+      },
+      {
+        "selector": "ImportDeclaration[source.value='swr'] ~ * CallExpression[callee.name='useSWR']",
+        "message": "Use useFilteredSWR from @/lib/hooks/use-filtered-swr instead of useSWR directly. Exemptions: use-filtered-swr.ts, use-compare-data.ts, config-store.ts"
+      },
+      {
+        "selector": "JSXAttribute[name.name='className'] > Literal[value=/bg-\\[#[0-9a-fA-F]/]",
+        "message": "Hardcoded hex color in Tailwind className: use semantic token class (e.g. bg-[var(--color-danger)]) or semantic CSS class instead"
+      },
+      {
+        "selector": "JSXAttribute[name.name='className'] > Literal[value=/text-\\[#[0-9a-fA-F]/]",
+        "message": "Hardcoded hex color in Tailwind className: use semantic token class (e.g. text-[var(--text-primary)]) or semantic CSS class instead"
+      },
+      {
+        "selector": "JSXAttribute[name.name='className'] > Literal[value=/border-\\[#[0-9a-fA-F]/]",
+        "message": "Hardcoded hex color in Tailwind className: use semantic token class or CSS variable instead"
       }
     ]
-  }
+  },
+  "overrides": [
+    {
+      "files": [
+        "**/lib/hooks/use-filtered-swr.ts",
+        "**/lib/hooks/use-compare-data.ts",
+        "**/stores/config-store.ts"
+      ],
+      "rules": {
+        "no-restricted-syntax": "off"
+      }
+    }
+  ]
 }
