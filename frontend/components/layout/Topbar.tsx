@@ -9,6 +9,7 @@ import { MonitorPlay, User, LogOut } from 'lucide-react';
 import clsx from 'clsx';
 import { useFilteredSWR } from '@/lib/hooks/use-filtered-swr';
 import { BrandMark } from '@/components/ui/BrandMark';
+import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { formatDate } from '@/lib/date-format';
 
 function ViewModeBadge({ pathname, t }: { pathname: string; t: (key: string) => string }) {
@@ -113,6 +114,11 @@ export function Topbar() {
             DEV
           </span>
         )}
+
+        <span className="hidden sm:inline text-muted-token">|</span>
+
+        {/* Theme toggle */}
+        <ThemeToggle />
 
         <span className="hidden sm:inline text-muted-token">|</span>
 

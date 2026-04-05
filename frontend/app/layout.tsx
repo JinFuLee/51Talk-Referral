@@ -50,12 +50,7 @@ export default function RootLayout({
         <link rel="apple-touch-icon" href="/favicon.svg" />
         <script
           dangerouslySetInnerHTML={{
-            __html: `
- try {
- if (localStorage.theme === 'dark' || (!('theme' in localStorage) && matchMedia('(prefers-color-scheme:dark)').matches))
- document.documentElement.classList.add('dark')
- } catch(e){}
-`,
+            __html: `;(function(){try{var t=localStorage.getItem('see-theme');var d=t==='dark'||(t!=='light'&&matchMedia('(prefers-color-scheme:dark)').matches);document.documentElement.classList.toggle('dark',d)}catch(e){}})()`,
           }}
         />
       </head>
