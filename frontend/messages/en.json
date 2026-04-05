@@ -1359,12 +1359,7 @@
     "regConvRate": "Registration Conversion Rate",
     "attendPayRate": "Attendance → Payment Rate",
     "cardBreakdown": "Contribution Breakdown",
-    "breakdownTabs": [
-      "Enclosure",
-      "CC",
-      "Channel",
-      "Lifecycle"
-    ],
+    "breakdownTabs": ["Enclosure", "CC", "Channel", "Lifecycle"],
     "cardGap": "GAP Simulator",
     "errorTitle": "Load Failed",
     "errorDesc": "Cannot load attribution summary data, please check backend service",
@@ -1415,11 +1410,7 @@
     "funnelCheckinRate": "Check-in Rate",
     "cardSegment": "Enclosure Contact Rate Distribution (Stacked)",
     "cardRanking": "Contact Ranking (Contact Rate)",
-    "rankingTabs": [
-      "CC Ranking",
-      "SS Ranking",
-      "LP Ranking"
-    ],
+    "rankingTabs": ["CC Ranking", "SS Ranking", "LP Ranking"],
     "cardScatter": "Contact Rate × Conversion Rate Scatter",
     "scatterDesc": "X-axis: Contact Rate · Y-axis: Conversion Rate · Top-right = optimal zone",
     "emptyStats": "No Contact Data",
@@ -1578,24 +1569,12 @@
     "subtitle": "Avg. weekly check-in count per Enclosure · Darker = more active",
     "subtitleEmpty": "Weekly average check-in count heatmap by Enclosure",
     "legendLabel": "Activity: ",
-    "legendLevels": [
-      "Very Low",
-      "Low",
-      "Medium",
-      "High",
-      "Very High",
-      "Extreme"
-    ],
+    "legendLevels": ["Very Low", "Low", "Medium", "High", "Very High", "Extreme"],
     "colEnclosure": "Enclosure / Lifecycle",
     "colTrend": "Trend",
     "colAvg": "Avg",
     "trendTooltip": "Decay ratio = prev weeks avg / this week, >1 means this week is lower",
-    "weeks": [
-      "Week 1",
-      "Week 2",
-      "Week 3",
-      "Week 4"
-    ],
+    "weeks": ["Week 1", "Week 2", "Week 3", "Week 4"],
     "footerNote": "Value = avg check-in count of all students in the Enclosure for that week (check-in = student sharing referral link)",
     "errorTitle": "Load Failed",
     "errorDesc": "Cannot load learning heatmap data, please check backend service",
@@ -2684,15 +2663,7 @@
     "toastResetSuccess": "BM calendar reset to default",
     "toastResetFailed": "Reset failed, please retry",
     "hint": "Click a date cell to change its type. Kick Off weight 2.0, Day Off 1.0, Weekend 5.0, Weekday 3.0, Wednesday 1.0.",
-    "dayLabels": [
-      "Mon",
-      "Tue",
-      "Wed",
-      "Thu",
-      "Fri",
-      "Sat",
-      "Sun"
-    ]
+    "dayLabels": ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
   },
   "ChannelSettingsCard": {
     "cardTitle": "Channel Breakdown (L2)",

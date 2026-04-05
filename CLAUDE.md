@@ -168,7 +168,7 @@ Next.js 前端（34 页面 + 43 组件）
 
 ## 国际化（i18n）规范
 - **前端 4 语言**：en / zh / zh-TW / th，由 next-intl 3.x 驱动，URL 路由 `/en/` `/zh/` `/zh-TW/` `/th/`
-- **翻译 SSoT**：`frontend/messages/{en,zh,zh-TW,th}.json`（457+ keys，嵌套命名空间）
+- **翻译 SSoT**：`frontend/messages/{en,zh,zh-TW,th}.json`（3100+ keys，嵌套命名空间，M41 全量迁移）
 - **组件内获取 locale**：`import { useLocale } from 'next-intl'`（禁止从 Zustand configStore 读 language）
 - **组件内翻译**：`import { useTranslations } from 'next-intl'; const t = useTranslations('namespace')`
 - **locale-aware 路由**：`import { Link, useRouter, usePathname } from '@/i18n/navigation'`
@@ -455,6 +455,7 @@ CC 排名算法详见 [docs/cc-ranking-spec.md](docs/cc-ranking-spec.md)（3类1
 | M38 | 2026-04-04 | 数据管道迁移+成交机器人+演示模式 | 51Talk BI迁移+OCR机器人+电影演示+口径守卫+CC排名+暗色模式 | ~50 commits, +8000 lines |
 | M39 | 2026-04-04 | i18n完成+打卡重构+前端优化+SM目标导入 | 143keys×3语言+checkin拆分5模块+参数优先级+SM Excel比例分摊 | ~90 commits, +22000 lines |
 | M40 | 2026-04-05 | Token化+模块化改造 | globals.css模块化(1283→62行+6模块)+arbitrary value 2875→6处(-99.8%)+useFilteredSWR 38文件+ESLint 4规则 | 3 commits, 210 files, +3898/-3287 lines |
+| M41 | 2026-04-06 | i18n深度覆盖 | 154文件内联I18N→useTranslations+3100keys×4语言+嵌套结构修复+ICU格式修复+build 159页面通过 | 2 commits, 170 files |
 
 ## 已知问题与技术债
 

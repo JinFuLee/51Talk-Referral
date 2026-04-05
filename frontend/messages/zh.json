@@ -1358,12 +1358,7 @@
     "regConvRate": "注册转化率",
     "attendPayRate": "出席→付费率",
     "cardBreakdown": "贡献拆解",
-    "breakdownTabs": [
-      "围场",
-      "CC",
-      "渠道",
-      "生命周期"
-    ],
+    "breakdownTabs": ["围场", "CC", "渠道", "生命周期"],
     "cardGap": "缺口模拟器",
     "errorTitle": "数据加载失败",
     "errorDesc": "无法获取归因汇总数据，请检查后端服务是否正常运行",
@@ -1414,11 +1409,7 @@
     "funnelCheckinRate": "打卡率",
     "cardSegment": "围场段触达率分布（堆叠）",
     "cardRanking": "接通排行（触达率）",
-    "rankingTabs": [
-      "CC 排行",
-      "SS 排行",
-      "LP 排行"
-    ],
+    "rankingTabs": ["CC 排行", "SS 排行", "LP 排行"],
     "cardScatter": "触达率 × 转化率 散点图",
     "scatterDesc": "横轴：触达率 · 纵轴：转化率 · 右上角为最优区间",
     "emptyStats": "暂无触达数据",
@@ -1577,24 +1568,12 @@
     "subtitle": "各围场每周平均转码次数 · 颜色越深代表学习活跃度越高",
     "subtitleEmpty": "各围场每周平均转码次数热力图",
     "legendLabel": "活跃度：",
-    "legendLevels": [
-      "极低",
-      "低",
-      "中",
-      "较高",
-      "高",
-      "极高"
-    ],
+    "legendLevels": ["极低", "低", "中", "较高", "高", "极高"],
     "colEnclosure": "围场 / 生命周期",
     "colTrend": "趋势",
     "colAvg": "周均",
     "trendTooltip": "衰减比 = 前几周均值/本周，>1表示本周低于历史",
-    "weeks": [
-      "第1周",
-      "第2周",
-      "第3周",
-      "第4周"
-    ],
+    "weeks": ["第1周", "第2周", "第3周", "第4周"],
     "footerNote": "数值 = 该围场所有学员在对应周内的平均转码次数（转码 = 学员分享推荐链接的行为）",
     "errorTitle": "数据加载失败",
     "errorDesc": "无法获取学习热图数据，请检查后端服务是否正常运行",
@@ -2683,15 +2662,7 @@
     "toastResetSuccess": "已恢复默认 BM 日历",
     "toastResetFailed": "恢复失败，请重试",
     "hint": "点击日期格子可修改当天类型。Kick Off 权重 2.0，调休权重 1.0，周末权重 5.0，普通工作日权重 3.0，周三权重 1.0。",
-    "dayLabels": [
-      "一",
-      "二",
-      "三",
-      "四",
-      "五",
-      "六",
-      "日"
-    ]
+    "dayLabels": ["一", "二", "三", "四", "五", "六", "日"]
   },
   "ChannelSettingsCard": {
     "cardTitle": "渠道拆解 (L2)",

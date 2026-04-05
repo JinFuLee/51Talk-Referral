@@ -1345,12 +1345,7 @@
     "regConvRate": "註冊轉化率",
     "attendPayRate": "出席→付費率",
     "cardBreakdown": "貢獻拆解",
-    "breakdownTabs": [
-      "圍場",
-      "CC",
-      "渠道",
-      "生命週期"
-    ],
+    "breakdownTabs": ["圍場", "CC", "渠道", "生命週期"],
     "cardGap": "缺口模擬器",
     "errorTitle": "資料載入失敗",
     "errorDesc": "無法取得歸因彙總資料，請檢查後端服務是否正常運行",
@@ -1401,11 +1396,7 @@
     "funnelCheckinRate": "打卡率",
     "cardSegment": "圍場段觸達率分布（堆疊）",
     "cardRanking": "接通排行（觸達率）",
-    "rankingTabs": [
-      "CC 排行",
-      "SS 排行",
-      "LP 排行"
-    ],
+    "rankingTabs": ["CC 排行", "SS 排行", "LP 排行"],
     "cardScatter": "觸達率 × 轉化率 散點圖",
     "scatterDesc": "橫軸：觸達率 · 縱軸：轉化率 · 右上角為最優區間",
     "emptyStats": "暫無觸達資料",
@@ -1564,24 +1555,12 @@
     "subtitle": "各圍場每週平均轉碼次數 · 顏色越深代表學習活躍度越高",
     "subtitleEmpty": "各圍場每週平均轉碼次數熱力圖",
     "legendLabel": "活躍度：",
-    "legendLevels": [
-      "極低",
-      "低",
-      "中",
-      "較高",
-      "高",
-      "極高"
-    ],
+    "legendLevels": ["極低", "低", "中", "較高", "高", "極高"],
     "colEnclosure": "圍場 / 生命週期",
     "colTrend": "趨勢",
     "colAvg": "週均",
     "trendTooltip": "衰減比 = 前幾週均值/本週，>1表示本週低於歷史",
-    "weeks": [
-      "第1週",
-      "第2週",
-      "第3週",
-      "第4週"
-    ],
+    "weeks": ["第1週", "第2週", "第3週", "第4週"],
     "footerNote": "數值 = 該圍場所有學員在對應週內的平均轉碼次數（轉碼 = 學員分享推薦連結的行為）",
     "errorTitle": "資料載入失敗",
     "errorDesc": "無法取得學習熱圖資料，請檢查後端服務是否正常運行",
@@ -2664,15 +2643,7 @@
     "toastResetSuccess": "已恢復預設 BM 日曆",
     "toastResetFailed": "恢復失敗，請重試",
     "hint": "點擊日期格子可修改當天類型。Kick Off 權重 2.0，調休權重 1.0，週末權重 5.0，普通工作日權重 3.0，週三權重 1.0。",
-    "dayLabels": [
-      "一",
-      "二",
-      "三",
-      "四",
-      "五",
-      "六",
-      "日"
-    ]
+    "dayLabels": ["一", "二", "三", "四", "五", "六", "日"]
   },
   "ChannelSettingsCard": {
     "cardTitle": "渠道拆解 (L2)",

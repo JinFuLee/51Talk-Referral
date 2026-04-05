@@ -500,10 +500,19 @@
 - 统计: 210 files changed, +3898/-3287 lines, 3 commits
 - 复利资产: ESLint 4 规则（新组件不用 token = 编译不过）+ CSS 模块化结构 + 组件模板 2 个
 
+### M41: i18n 深度覆盖 — 内联字典全量迁移至 next-intl（2026-04-05 → 2026-04-06）
+- [x] **Phase 1: 自动化迁移** — Python 脚本 `migrate_i18n.py` 扫描 154 文件，提取 2331 keys + 118 函数插值，写入 4 语言 messages JSON
+- [x] **Phase 2: 嵌套结构修复** — 从 git 历史重新提取 27 个命名空间的嵌套对象，补充 7 个 Record<> 类型 analytics slides
+- [x] **Phase 2: 语法修复** — 修复括号嵌套误匹配（10 处）、map 回调变量冲突（5 处）、类型残留（12 处）、ICU 格式错误（22 处）
+- [x] **Phase 2: Build 通过** — TypeScript 零错误 + 159/159 页面 SSG 生成成功
+- [x] **容错配置** — next-intl onError + getMessageFallback，缺失 key 显示 key 名而非抛异常
+- 统计: 170 files changed, 4 migration scripts, 3100+ translation keys × 4 languages, 2 commits
+- 复利资产: `scripts/migrate_i18n*.py`（跨项目可复用 i18n 批量迁移工具链）
+- 技术债: ~80 个翻译 key 显示 fallback text（功能正常，需逐步补全翻译值）
+
 ## 规划中
 
-### M41: i18n 深度覆盖 + 话术迭代系统（待规划）
-- [ ] i18n：~50-60 个含用户文案的组件文件补全 useTranslations（纯 UI 原子组件如 Spinner/Badge 不需翻译）
+### M42: 话术迭代系统（待规划）
 - [ ] 话术迭代：运营贴入当前话术 → AI 评分 → 多方案生成 → A/B 追踪 → 自动迭代
 - 依赖 M33 瓶颈识别结果做输入
 
@@ -525,8 +534,11 @@ M18.2(✅) ──► M18.3(✅) ──► M19(✅)
 M32(✅) ──► M33(✅) ──► M34(✅) ──► M35(✅) ──► M36(✅) ──► M37(✅)
                          运营报告引擎   学员视角重构   CC个人业绩   打卡升级    全维度框架
 
-M37(✅) ──► M38(✅) ──► M39(✅) ──► M40(✅)
-             数据管道+机器人   i18n+重构     Token化+模块化
+M37(✅) ──► M38(✅) ──► M39(✅) ──► M40(✅) ──► M41(✅)
+             数据管道+机器人   i18n+重构     Token化+模块化  i18n深度覆盖
+
+M41(✅) ──► M42(规划中)
+             话术迭代系统
 
 M40(✅) ──► M41(规划中)
              话术迭代系统
