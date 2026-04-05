@@ -1970,7 +1970,13 @@
     "pages": "页面总览",
     "matrix": "权限矩阵",
     "users": "用户管理",
-    "roles": "角色管理"
+    "roles": "角色管理",
+    "tabs": {
+      "pages": "หน้า",
+      "users": "ผู้ใช้",
+      "roles": "บทบาท",
+      "matrix": "เมทริกซ์สิทธิ์"
+    }
   },
   "checkinPage": {
     "pageTitle": "จัดการการเช็คอิน",
@@ -4352,7 +4358,7 @@
   },
   "ConversionRateSlide": {
     "insight_all_above": "อัตราการแปลงทั้ง {n} รายการเกินเป้าหมาย — ช่องทางมีประสิทธิภาพ",
-    "insight_below": "{belowN} ขั้นตอนต่ำกว่าเป้าหมาย; อ่อนแอที่สุด: {worstName} {worstActual}%, ต่างกัน {worstGapStr}pp{value} รายการเกินเป้า` : ''}",
+    "insight_below": "{belowN} ขั้นตอนต่ำกว่าเป้าหมาย; อ่อนแอที่สุด: {worstName} {worstActual}%, ต่างกัน {worstGapStr}pp",
     "title": "อัตราการแปลง × การบรรลุเป้ารายเดือน",
     "subtitle": "อัตราการแปลงจริงเทียบกับเป้าหมายในแต่ละขั้นตอน",
     "section": "การวิเคราะห์ช่องทาง",
@@ -4934,5 +4940,18 @@
     "emptyHint": "กรุณาอัปโหลดไฟล์ Excel ประจำเดือน",
     "insightVsTarget": "vs เป้าหมาย",
     "insightNeedsAttention": "ต้องให้ความสนใจ"
+  },
+  "accessControl": {
+    "title": "权限管理",
+    "subtitle": "管理页面访问权限、用户角色与公开设置",
+    "tabs": {
+      "pages": "页面总览",
+      "users": "用户管理",
+      "roles": "角色管理",
+      "matrix": "权限矩阵"
+    },
+    "loading": "加载中…",
+    "error": "加载失败，请刷新重试",
+    "saving": "保存中…"
   }
 }

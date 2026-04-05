@@ -4368,7 +4368,7 @@
   },
   "ConversionRateSlide": {
     "insight_all_above": "全部 {n} 个转化率均超目标，漏斗效率健康",
-    "insight_below": "{belowN} 个环节低于目标；最弱：{worstName} {worstActual}%，差 {worstGapStr}pp{value} 个超目标` : ''}",
+    "insight_below": "{belowN} 个环节低于目标；最弱：{worstName} {worstActual}%，差 {worstGapStr}pp",
     "title": "转化率 × 月达成",
     "subtitle": "各环节实际转化率 vs 目标",
     "section": "漏斗分析",
@@ -4445,7 +4445,7 @@
     "footnote": "人均业绩 = 总业绩 ÷ 付费人数（由后端计算）"
   },
   "RevenueDecompositionSlide": {
-    "insight": "合计 {total}；最大渠道：{topChannel}{value}%` : ''}（{topRevenue}）",
+    "insight": "合计 {total}；最大渠道：{topChannel} 占 {topShare}%（{topRevenue}）",
     "title": "渠道业绩拆解",
     "subtitle": "各渠道注册 → 付费 → 金额 → 占比",
     "section": "渠道分析",

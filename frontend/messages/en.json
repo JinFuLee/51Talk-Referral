@@ -4275,7 +4275,8 @@
     "extraLine": "Line {idx}",
     "barLabel": "{idx}",
     "baselineLine": "Baseline",
-    "Bar": "Bar {idx}"
+    "Bar": "Bar {idx}",
+    "柱": "Bar {idx}"
   },
   "TargetRecommender": {
     "title": "Target Setting",
@@ -4371,7 +4372,7 @@
   },
   "ConversionRateSlide": {
     "insight_all_above": "All {n} conversion rates exceed target — funnel is healthy",
-    "insight_below": "{belowN} stage(s) below target; weakest: {worstName} {worstActual}%, gap {worstGapStr}pp{value} above target` : ''}",
+    "insight_below": "{belowN} stage(s) below target; weakest: {worstName} {worstActual}%, gap {worstGapStr}pp",
     "title": "Conversion Rate × Monthly Achievement",
     "subtitle": "Actual conversion rate vs target for each funnel stage",
     "section": "Funnel Analysis",

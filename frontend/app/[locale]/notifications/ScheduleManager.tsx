@@ -231,9 +231,7 @@ export function ScheduleManager() {
                     {String(sch.cron_hour).padStart(2, '0')}:
                     {String(sch.cron_minute).padStart(2, '0')}
                   </span>
-                  <span>
-                    {t(`templates.${sch.template}`)}
-                  </span>
+                  <span>{t(`templates.${sch.template}`)}</span>
                   {sch.channels.length > 0 && (
                     <span className="truncate max-w-[160px]">{sch.channels.join(', ')}</span>
                   )}
@@ -361,7 +359,7 @@ function ScheduleFormModal({
               onChange={(e) => setForm((f) => ({ ...f, template: e.target.value }))}
               className="w-full border border-subtle-token rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-action/30"
             >
-              {Object.entries(t('templates')).map(([k, v]) => (
+              {Object.entries(t.raw('templates') as Record<string, string>).map(([k, v]) => (
                 <option key={k} value={k}>
                   {v}
                 </option>

@@ -33,10 +33,10 @@ export default function AttributionPage() {
   });
 
   const BREAKDOWN_TABS = [
-    { value: 'enclosure' as GroupBy, label: t('breakdownTabs')[0] },
-    { value: 'cc' as GroupBy, label: t('breakdownTabs')[1] },
-    { value: 'channel' as GroupBy, label: t('breakdownTabs')[2] },
-    { value: 'lifecycle' as GroupBy, label: t('breakdownTabs')[3] },
+    { value: 'enclosure' as GroupBy, label: t.raw('breakdownTabs') as string[][0] },
+    { value: 'cc' as GroupBy, label: t.raw('breakdownTabs') as string[][1] },
+    { value: 'channel' as GroupBy, label: t.raw('breakdownTabs') as string[][2] },
+    { value: 'lifecycle' as GroupBy, label: t.raw('breakdownTabs') as string[][3] },
   ];
 
   const [groupBy, setGroupBy] = useState<GroupBy>('enclosure');

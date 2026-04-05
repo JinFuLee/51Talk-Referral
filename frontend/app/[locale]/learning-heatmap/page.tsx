@@ -69,7 +69,8 @@ export default function LearningHeatmapPage() {
     '/api/analysis/learning-heatmap'
   );
 
-  const weeks = WEEK_KEYS.map((key, i) => ({ key, label: t('weeks')[i] }));
+  const rawWeeks = (t.raw('weeks') ?? []) as string[];
+  const weeks = WEEK_KEYS.map((key, i) => ({ key, label: rawWeeks[i] ?? key }));
 
   if (isLoading) {
     return (
@@ -127,12 +128,14 @@ export default function LearningHeatmapPage() {
       {/* 图例 */}
       <div className="flex items-center gap-3 text-xs text-muted-token">
         <span>{t('legendLabel')}</span>
-        {(Array.isArray(t.raw('legendLevels')) ? (t.raw('legendLevels') as string[]) : []).map((label: string, i: number) => (
-          <div key={label} className="flex items-center gap-1">
-            <div className="w-4 h-4 rounded" style={{ backgroundColor: legendBgs[i] }} />
-            <span>{label}</span>
-          </div>
-        ))}
+        {(Array.isArray(t.raw('legendLevels')) ? (t.raw('legendLevels') as string[]) : []).map(
+          (label: string, i: number) => (
+            <div key={label} className="flex items-center gap-1">
+              <div className="w-4 h-4 rounded" style={{ backgroundColor: legendBgs[i] }} />
+              <span>{label}</span>
+            </div>
+          )
+        )}
       </div>
 
       {/* 热图表格 */}

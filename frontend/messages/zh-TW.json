@@ -1970,7 +1970,13 @@
     "pages": "页面总览",
     "matrix": "权限矩阵",
     "users": "用户管理",
-    "roles": "角色管理"
+    "roles": "角色管理",
+    "tabs": {
+      "pages": "頁面",
+      "users": "用戶",
+      "roles": "角色",
+      "matrix": "權限矩陣"
+    }
   },
   "checkinPage": {
     "pageTitle": "打卡管理",
@@ -4349,7 +4355,7 @@
   },
   "ConversionRateSlide": {
     "insight_all_above": "全部 {n} 個轉化率均超目標，漏斗效率健康",
-    "insight_below": "{belowN} 個環節低於目標；最弱：{worstName} {worstActual}%，差 {worstGapStr}pp{value} 個超目標` : ''}",
+    "insight_below": "{belowN} 個環節低於目標；最弱：{worstName} {worstActual}%，差 {worstGapStr}pp",
     "title": "轉化率 × 月達成",
     "subtitle": "各環節實際轉化率 vs 目標",
     "section": "漏斗分析",
@@ -4426,7 +4432,7 @@
     "footnote": "人均業績 = 總業績 ÷ 付費人數（由後端計算）"
   },
   "RevenueDecompositionSlide": {
-    "insight": "合計 {total}；最大渠道：{topChannel}{value}%` : ''}（{topRevenue}）",
+    "insight": "合計 {total}；最大渠道：{topChannel} 占 {topShare}%（{topRevenue}）",
     "title": "渠道業績拆解",
     "subtitle": "各渠道注冊 → 付費 → 金額 → 占比",
     "section": "渠道分析",
@@ -4931,5 +4937,18 @@
     "emptyHint": "請上傳本月 Excel 資料源後自動刷新",
     "insightVsTarget": "vs 目標",
     "insightNeedsAttention": "需重點關注"
+  },
+  "accessControl": {
+    "title": "权限管理",
+    "subtitle": "管理页面访问权限、用户角色与公开设置",
+    "tabs": {
+      "pages": "页面总览",
+      "users": "用户管理",
+      "roles": "角色管理",
+      "matrix": "权限矩阵"
+    },
+    "loading": "加载中…",
+    "error": "加载失败，请刷新重试",
+    "saving": "保存中…"
   }
 }

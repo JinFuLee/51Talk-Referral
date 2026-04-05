@@ -56,9 +56,9 @@ export default function DailyMonitorPage() {
   const t = useTranslations('dailyMonitor');
 
   const RANKING_TABS: { key: RankingRole; label: string }[] = [
-    { key: 'cc', label: t('rankingTabs')[0] },
-    { key: 'ss', label: t('rankingTabs')[1] },
-    { key: 'lp', label: t('rankingTabs')[2] },
+    { key: 'cc', label: t.raw('rankingTabs') as string[][0] },
+    { key: 'ss', label: t.raw('rankingTabs') as string[][1] },
+    { key: 'lp', label: t.raw('rankingTabs') as string[][2] },
   ];
 
   usePageDimensions({
